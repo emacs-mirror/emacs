@@ -1,7 +1,7 @@
 /* arenavm.c: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -115,7 +115,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   CHECKL(AddrAdd(vmchunk->pages.pages, BTSize(chunk->pageTablePages)) <=
          vmchunk->overheadMappedLimit);
   /* .improve.check-table: Could check the consistency of the tables. */
-  
+
   return TRUE;
 }
 
@@ -176,7 +176,7 @@ static Bool VMArenaCheck(VMArena vmArena)
     /* count of committed, but we don't have all day. */
     CHECKL(VMMapped(VMChunkVM(primary)) <= arena->committed);
   }
-  
+
   CHECKD_NOSIG(Ring, &vmArena->spareRing);
 
   /* FIXME: Can't check VMParams */
@@ -341,19 +341,19 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   /* chunk is supposed to be uninitialized, so don't check it. */
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(BootBlock, boot);
-  
+
   /* .overhead.sa-mapped: Chunk overhead for sparse array 'mapped' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaMapped;
   saMapped = p;
-  
+
   /* .overhead.sa-pages: Chunk overhead for sparse array 'pages' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pageTablePages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaPages;
   saPages = p;
-  
+
   overheadLimit = AddrAdd(chunk->base, (Size)BootAllocated(boot));
 
   /* .overhead.page-table: Put the page table as late as possible, as
@@ -405,11 +405,11 @@ static Bool vmChunkDestroy(Tree tree, void *closure)
   AVERT(Chunk, chunk);
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(VMChunk, vmChunk);
-  
+
   chunkUnmapSpare(chunk);
-  
+
   SparseArrayFinish(&vmChunk->pages);
-  
+
   vmChunk->sig = SigInvalid;
   ChunkFinish(chunk);
 
@@ -559,7 +559,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   Chunk chunk;
   mps_arg_s arg;
   char vmParams[VMParamSize];
-  
+
   AVER(arenaReturn != NULL);
   AVERT(ArgList, args);
 
@@ -576,7 +576,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
     /* There has to be enough room in the chunk for a full complement of
        zones. Make it easier to write portable programs by rounding up. */
     size = grainSize * MPS_WORD_WIDTH;
-  
+
   /* Parse remaining arguments, if any, into VM parameters. We must do
      this into some stack-allocated memory for the moment, since we
      don't have anywhere else to put it. It gets copied later. */
@@ -602,7 +602,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
     goto failArenaInit;
   SetClassOfPoly(arena, CLASS(VMArena));
   AVER(vmArena == MustBeA(VMArena, arena));
-  
+
   arena->reserved = VMReserved(vm);
   arena->committed = VMMapped(vm);
 
@@ -664,7 +664,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
          arena->serial);
 
   vmArena->extended(arena, chunk->base, chunkSize);
-  
+
   *arenaReturn = arena;
   return ResOK;
 
@@ -692,7 +692,7 @@ static void VMArenaDestroy(Arena arena)
   arena->primary = NULL;
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy,
                         UNUSED_POINTER);
-  
+
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
 
@@ -726,7 +726,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   Size chunkSize;
   Size chunkMin;
   Res res;
-  
+
   /* TODO: Ensure that extended arena will be able to satisfy pref. */
   AVERT(LocusPref, pref);
   UNUSED(pref);
@@ -743,18 +743,18 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
     unsigned fidelity = 8;  /* max fraction of addr-space we may 'waste' */
     Size chunkHalf;
     Size sliceSize;
-    
+
     if (vmArena->extendMin > chunkMin)
       chunkMin = vmArena->extendMin;
     if (chunkSize < chunkMin)
       chunkSize = chunkMin;
-    
+
     res = ResRESOURCE;
     for(;; chunkSize = chunkHalf) {
       chunkHalf = chunkSize / 2;
       sliceSize = chunkHalf / fidelity;
       AVER(sliceSize > 0);
-      
+
       /* remove slices, down to chunkHalf but no further */
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
@@ -767,13 +767,13 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
       }
     }
   }
-  
+
 vmArenaGrow_Done:
   EVENT2(VMArenaExtendDone, chunkSize, ArenaReserved(arena));
   vmArena->extended(arena,
                     newChunk->base,
                     AddrOffset(newChunk->base, newChunk->limit));
-      
+
   return res;
 }
 
@@ -846,7 +846,7 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
   Index limitPI;
   Chunk chunk = VMChunk2Chunk(vmChunk);
   Res res;
-  
+
   limitPI = basePI + pages;
   AVER(limitPI <= chunk->pages);
 
@@ -1203,20 +1203,20 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
   Size desired = (Size)mps_desired;
   Size minimum = (Size)mps_minimum;
   VMArena vmArena;
-  
+
   ArenaEnter(arena);
-  
+
   AVERT(Arena, arena);
   vmArena = MustBeA(VMArena, arena);
-  
+
   /* Must desire at least the minimum increment! */
   AVER(desired >= minimum);
-  
+
   vmArena->extendBy = desired;
   vmArena->extendMin = minimum;
-  
+
   ArenaLeave(arena);
-  
+
   return MPS_RES_OK;
 }
 
@@ -1253,41 +1253,29 @@ mps_arena_class_t mps_arena_class_vm(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

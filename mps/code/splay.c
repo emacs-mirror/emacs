@@ -1,7 +1,7 @@
 /* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.  In the MPS these are usually
@@ -239,7 +239,7 @@ static Tree SplayZigZig(Tree middle, Tree *rightFirstIO, Tree rightNext)
   *rightFirstIO = middle;
   return TreeLeft(middle);
 }
-  
+
 /* SplayZag -- mirror image of SplayZig */
 
 static Tree SplayZag(Tree middle, Tree *leftLastIO, Tree *leftPrevReturn)
@@ -314,7 +314,7 @@ static Compare SplaySplitDown(SplayStateStruct *stateReturn,
   AVER(FUNCHECK(compare));
   AVER(!SplayTreeIsEmpty(splay));
   AVER(!SplayHasUpdate(splay));
-  
+
   TreeInit(&sentinel);
   leftLast = &sentinel;
   rightFirst = &sentinel;
@@ -519,7 +519,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
   AVERT_CRITICAL(SplayTree, splay);
   AVER_CRITICAL(FUNCHECK(compare));
   AVER_CRITICAL(!SplayTreeIsEmpty(splay));
-  
+
   updateNode = splay->updateNode;
   leftLast = TreeEMPTY;
   rightFirst = TreeEMPTY;
@@ -651,7 +651,7 @@ static void SplayAssembleRev(SplayTree splay, SplayState state)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVER_CRITICAL(state->middle != TreeEMPTY);
-  
+
   left = TreeLeft(state->middle);
   left = SplayUpdateRightSpine(splay, state->leftLast, left);
   TreeSetLeft(state->middle, left);
@@ -765,14 +765,14 @@ Bool SplayTreeInsert(SplayTree splay, Tree node)
     SplayTreeSetRoot(splay, node);
     return TRUE;
   }
-  
+
   switch (SplaySplay(splay, splay->nodeKey(node), splay->compare)) {
   default:
     NOTREACHED;
     /* fall through */
   case CompareEQUAL: /* duplicate node */
     return FALSE;
-    
+
   case CompareGREATER: /* left neighbour is at root */
     neighbour = SplayTreeRoot(splay);
     SplayTreeSetRoot(splay, node);
@@ -1019,7 +1019,7 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey)
 
   if (SplayTreeIsEmpty(splay))
     return TreeEMPTY;
-  
+
   /* Make old node the root.  Probably already is.  We don't mind if the
      node has been deleted, or replaced by a node with the same key. */
   switch (SplaySplay(splay, oldKey, splay->compare)) {
@@ -1131,7 +1131,7 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
   testNode = my->testNode;
   testTree = my->testTree;
   splay = my->splay;
-  
+
   if (TreeHasLeft(node) &&
       (*testTree)(splay, TreeLeft(node), testClosure)) {
     return CompareLESS;
@@ -1199,7 +1199,7 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
  * ``*nodeReturn`` is set to the node.
  *
  * The given callbacks testNode and testTree detect this property in
- * a single node or a sub-tree rooted at a node, and both receive an 
+ * a single node or a sub-tree rooted at a node, and both receive an
  * arbitrary closure.
  *
  * TODO: This repeatedly splays failed matches to the root and rotates
@@ -1236,14 +1236,14 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
 
   while (!found) {
     Tree oldRoot, newRoot;
-    
+
     /* FIXME: Rename to "seen" and "not yet seen" or something. */
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeRight(oldRoot);
 
     if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, testClosure))
       return FALSE; /* no suitable nodes in the rest of the tree */
-  
+
     /* Temporarily chop off the left half-tree, inclusive of root,
        so that the search excludes any nodes we've seen already. */
     SplayTreeSetRoot(splay, newRoot);
@@ -1298,13 +1298,13 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
 
   while (!found) {
     Tree oldRoot, newRoot;
-    
+
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeLeft(oldRoot);
 
     if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, testClosure))
       return FALSE; /* no suitable nodes in the rest of the tree */
-  
+
     /* Temporarily chop off the right half-tree, inclusive of root,
        so that the search excludes any nodes we've seen already. */
     SplayTreeSetRoot(splay, newRoot);
@@ -1412,41 +1412,29 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

@@ -1,15 +1,15 @@
 /* zcoll.c: Collection test
  *
  * $Id$
- * Copyright (c) 2008-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2008-2020 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * OBJECTIVE
  *
- * Test MPS collections.  In particular, reporting of how collections 
+ * Test MPS collections.  In particular, reporting of how collections
  * progress.
  *
- * Please add tests for other collection behaviour into this file.  
+ * Please add tests for other collection behaviour into this file.
  * (It's easier to maintain a few big tests than myriad small tests).
  * Expand the script language as necessary!  RHSK 2008-12-22.
  *
@@ -21,10 +21,10 @@
  * [preliminary, incomplete, code still being written]
  * The commands are:
  *   Arena -- governs initial arena size, required, must be first
- *   Make -- makes some objects, stores a proportion (chosen at 
- *           random) in the specified myroot array slots, and 
+ *   Make -- makes some objects, stores a proportion (chosen at
+ *           random) in the specified myroot array slots, and
  *           drops the rest (which therefore become garbage)
- *   Katalog -- (will be renamed Catalog) makes a Catalog, which 
+ *   Katalog -- (will be renamed Catalog) makes a Catalog, which
  *           is a 40 MB 4-level tree of 10^5 objects; see .catalog;
  *           see also .catalog.broken.
  *   Collect -- request a synchronous full garbage collection
@@ -32,7 +32,7 @@
  *
  * CODE OVERVIEW
  *
- * main() has the list of testscripts.  
+ * main() has the list of testscripts.
  *
  * testscriptA() sets up a new arena and trampolines to testscriptB().
  *
@@ -104,10 +104,10 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
   ulongest_t a = cols(alimit);
   ulongest_t count;
   ulongest_t i;
-  
+
   /* if we can show alimit within 200 cols, do so */
   count = (a < 200) ? a + 1 : c;
-  
+
   for(i = 0; i < count; i++) {
     putchar((i == a)  ? 'A'
             : (i < n) ? 'n'
@@ -121,7 +121,7 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
 
 /* print_M -- print count of bytes as Mebibytes or Megabytes
  *
- * Print as a whole number, "m" for the decimal point, and 
+ * Print as a whole number, "m" for the decimal point, and
  * then the decimal fraction.
  *
  * Input:                208896
@@ -182,7 +182,7 @@ static void get(mps_arena_t arena)
 
     cdie(mps_message_get(&message, arena, type),
          "get");
-    
+
     switch(type) {
       case mps_message_type_gc_start(): {
         mclockBegin = mps_message_clock(arena, message);
@@ -200,7 +200,7 @@ static void get(mps_arena_t arena)
         size_t alimit = mps_arena_reserved(arena);
 
         mclockEnd = mps_message_clock(arena, message);
-        
+
         printf("    %5"PRIuLONGEST": (%5"PRIuLONGEST")",
                (ulongest_t)mclockEnd, (ulongest_t)(mclockEnd - mclockBegin));
         printf("    Coll End  ");
@@ -222,34 +222,34 @@ static void get(mps_arena_t arena)
         break;
       }
     }
-    
+
     mps_message_discard(arena, message);
   }
 }
 
 
 /* .catalog: The Catalog client:
- * 
- * This is an MPS client for testing the MPS.  It simulates 
- * converting a multi-page "Catalog" document from a page-description 
+ *
+ * This is an MPS client for testing the MPS.  It simulates
+ * converting a multi-page "Catalog" document from a page-description
  * into a bitmap.
  *
- * The intention is that this task will cause memory usage that is 
- * fairly realistic (much more so than randomly allocated objects 
- * with random interconnections.  The patterns in common with real 
+ * The intention is that this task will cause memory usage that is
+ * fairly realistic (much more so than randomly allocated objects
+ * with random interconnections.  The patterns in common with real
  * clients are:
- *   - the program input and its task are 'fractal', with a 
+ *   - the program input and its task are 'fractal', with a
  *     self-similar hierarchy;
- *   - object allocation is prompted by each successive element of 
+ *   - object allocation is prompted by each successive element of
  *     the input/task;
- *   - objects are often used to store a transformed version of the 
+ *   - objects are often used to store a transformed version of the
  *     program input;
  *   - there may be several stages of transformation;
- *   - at each stage, the old object (holding the untransformed data) 
+ *   - at each stage, the old object (holding the untransformed data)
  *     may become dead;
- *   - sometimes a tree of objects becomes dead once an object at 
+ *   - sometimes a tree of objects becomes dead once an object at
  *     some level of the hierarchy has been fully processed;
- *   - there is more than one hierarchy, and objects in different 
+ *   - there is more than one hierarchy, and objects in different
  *     hierarchies interact.
  *
  * The entity-relationship diagram is:
@@ -258,12 +258,12 @@ static void get(mps_arena_t arena)
  *                                        |
  *        Palette --------------------< Colour
  *
- * The first hierarchy is a Catalog, containing Pages, each 
- * containing Articles (bits of artwork etc), each composed of 
- * Polygons.  Each polygon has a single colour.  
+ * The first hierarchy is a Catalog, containing Pages, each
+ * containing Articles (bits of artwork etc), each composed of
+ * Polygons.  Each polygon has a single colour.
  *
- * The second hierarchy is a top-level Palette, containing Colours.  
- * Colours (in this client) are expensive, large objects (perhaps 
+ * The second hierarchy is a top-level Palette, containing Colours.
+ * Colours (in this client) are expensive, large objects (perhaps
  * because of complex colour modelling or colour blending).
  *
  * The things that matter for their effect on MPS behaviour are:
@@ -311,7 +311,7 @@ static void CatalogCheck(void)
     Page = (void *)w;
     Insist(DYLAN_VECTOR_SLOT(Page, 0) == DYLAN_INT(PageSig));
     Pages += 1;
-    
+
     for(j = 0; j < PageVar; j += 1) {
       /* retrieve Art from Page */
       w = DYLAN_VECTOR_SLOT(Page, PageFix + j);
@@ -339,11 +339,11 @@ static void CatalogCheck(void)
 
 /* CatalogDo -- make a Catalog and its tree of objects
  *
- * .catalog.broken: this code, when compiled with 
- * moderate optimization, may have ambiguous interior pointers but 
- * lack corresponding ambiguous base pointers to MPS objects.  This 
- * means the interior pointers are unmanaged references, and the 
- * code goes wrong.  The hack in poolamc.c#4 cures this, but not very 
+ * .catalog.broken: this code, when compiled with
+ * moderate optimization, may have ambiguous interior pointers but
+ * lack corresponding ambiguous base pointers to MPS objects.  This
+ * means the interior pointers are unmanaged references, and the
+ * code goes wrong.  The hack in poolamc.c#4 cures this, but not very
  * nicely.  For further discussion, see:
  *    <https://info.ravenbrook.com/mail/2009/02/05/18-05-52/0.txt>
  */
@@ -356,7 +356,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
   die(make_dylan_vector(&v, ap, CatalogFix + CatalogVar), "Catalog");
   DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(CatalogSig);
   Catalog = (void *)v;
-  
+
   /* store Catalog in root */
   myrootExact[CatalogRootIndex] = Catalog;
   get(arena);
@@ -372,10 +372,10 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
     /* store Page in Catalog */
     DYLAN_VECTOR_SLOT(Catalog, CatalogFix + i) = (mps_word_t)Page;
     get(arena);
-    
+
     printf("Page %"PRIuLONGEST": make articles\n", (ulongest_t)i);
     (void)fflush(stdout);
-    
+
     for(j = 0; j < PageVar; j += 1) {
       die(make_dylan_vector(&v, ap, ArtFix + ArtVar), "Art");
       DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(ArtSig);
@@ -403,8 +403,8 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 
 /* MakeThing -- make an object of the size requested (in bytes)
  *
- * Any size is accepted.  MakeThing may round it up (MakeThing always 
- * makes a dylan vector, which has a minimum size of 8 bytes).  Vector 
+ * Any size is accepted.  MakeThing may round it up (MakeThing always
+ * makes a dylan vector, which has a minimum size of 8 bytes).  Vector
  * slots, if any, are initialized to DYLAN_INT(0).
  *
  * After making the object, calls get(), to retrieve MPS messages.
@@ -426,7 +426,7 @@ static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
   slots = words - 2;
   die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
   get(arena);
-  
+
   return (void *)v;
 }
 
@@ -434,7 +434,7 @@ static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_
 {
   static unsigned keepCount = 0;
   unsigned i;
-  
+
   mps_arena_park(arena);
   for(i = 0; i < 100; i++) {
     (void) MakeThing(arena, ap, big);
@@ -467,7 +467,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
 {
   unsigned keepCount = 0;
   unsigned objCount = 0;
-  
+
   Insist(keepRootspace <= myrootExactCOUNT);
 
   objCount = 0;
@@ -524,7 +524,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
 static void Rootdrop(char rank_char)
 {
   size_t i;
-  
+
   if(rank_char == 'A') {
     for(i = 0; i < myrootAmbigCOUNT; ++i) {
       myrootAmbig[i] = NULL;
@@ -544,7 +544,7 @@ static void stackwipe(void)
 {
   size_t iw;
   unsigned long aw[stackwipedepth];
-  
+
   /* Do some pointless work that the compiler won't optimise away, so that
      this function wipes over the stack by filling stuff into the "aw"
      array. */
@@ -552,7 +552,7 @@ static void stackwipe(void)
   /* https://xkcd.com/710/ */
   /* I don't want my friends to stop calling; I just want the */
   /* compiler to stop optimising away my code. */
-  
+
   /* Do you ever get two even numbers next to each other?  Hmmmm :-) */
   for(iw = 0; iw < stackwipedepth; iw++) {
     if((iw & 1) == 0) {
@@ -757,7 +757,7 @@ static void *testscriptB(void *arg, size_t s)
       "root_create - exact");
 
   die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create");
-  
+
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   stack_start = &stack_starts_here;
   stack_thr = thr;
@@ -834,7 +834,7 @@ static void testscriptA(const char *script)
 int main(int argc, char *argv[])
 {
   testlib_init(argc, argv);
-  
+
   /* 1<<19 == 524288 == 1/2 Mebibyte */
   /* 16<<20 == 16777216 == 16 Mebibyte */
 
@@ -888,28 +888,28 @@ int main(int argc, char *argv[])
 
   /* LSP -- Large Segment Padding (job001811)
    *
-   * BigdropSmall creates a big object & drops ref to it, 
-   * then a small object but keeps a ref to it.  Do this 100 
-   * times.  (It also parks the arena, to avoid incremental 
+   * BigdropSmall creates a big object & drops ref to it,
+   * then a small object but keeps a ref to it.  Do this 100
+   * times.  (It also parks the arena, to avoid incremental
    * collections).
    *
-   * If big is 28000, it is <= 28672 bytes and therefore fits on a seg 
-   * of 7 pages.  AMC classes this as a Medium Segment and uses the 
-   * remainder, placing the subsequent small object there.  If the ref 
+   * If big is 28000, it is <= 28672 bytes and therefore fits on a seg
+   * of 7 pages.  AMC classes this as a Medium Segment and uses the
+   * remainder, placing the subsequent small object there.  If the ref
    * to small is "A" = ambig, the entire 7-page seg is retained.
    *
-   * If big is > 28672 bytes (7 pages), it requires a seg of >= 8 
-   * pages.  AMC classes this as a Large Segment, and does LSP (Large 
-   * Segment Padding), to prevent the subsequent small object being 
-   * placed in the remainder.  If the ref to small is "A" = ambig, 
-   * only its 1-page seg is retained.  This greatly reduces the 
+   * If big is > 28672 bytes (7 pages), it requires a seg of >= 8
+   * pages.  AMC classes this as a Large Segment, and does LSP (Large
+   * Segment Padding), to prevent the subsequent small object being
+   * placed in the remainder.  If the ref to small is "A" = ambig,
+   * only its 1-page seg is retained.  This greatly reduces the
    * retention page-count.
    *
-   * If the ref to small is "E" = exact, then the small object is 
-   * preserved-by-copy onto a new seg.  In this case there is no 
+   * If the ref to small is "E" = exact, then the small object is
+   * preserved-by-copy onto a new seg.  In this case there is no
    * seg/page retention, so LSP does not help.  It has a small cost:
-   * total pages increase from 700 to 900.  So in this case (no ambig 
-   * retention at all, pessimal allocation pattern) LSP would slightly 
+   * total pages increase from 700 to 900.  So in this case (no ambig
+   * retention at all, pessimal allocation pattern) LSP would slightly
    * increase the frequency of minor collections.
    */
   /* 7p = 28672b; 8p = 32768b */
@@ -932,41 +932,29 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2008-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2008-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

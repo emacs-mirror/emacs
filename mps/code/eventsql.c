@@ -1,8 +1,8 @@
 /* eventsql.c: event log to SQLite importer.
- * 
+ *
  * $Id$
- * 
- * Copyright (c) 2012-2018 Ravenbrook Limited.  See end of file for license.
+ *
+ * Copyright (c) 2012-2020 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that imports events from a text-format
  * MPS telemetry file into a SQLite database file.
@@ -39,20 +39,20 @@
  *
  * -p (progress): Show progress with a series of dots written to
  * standard output (one dot per 100,000 events processed).  Defaults
- * on if -v specified, off otherwise. 
- * 
+ * on if -v specified, off otherwise.
+ *
  * -t (test):  Run unit tests on parts of eventsql.  There aren't many
  * of these.  TODO: write more unit tests.
  *
  * -d (delete): Delete the SQL file before importing.
- * 
+ *
  * -f (force): Import the events to SQL even if the SQL database
  * already includes a record of importing a matching log file.
- * 
+ *
  * -r (rebuild): Drop the glue tables from SQL, which will force them
  * to be recreated.  Important if you change event types or kinds in
  * eventdef.h.
- * 
+ *
  * -i <logfile>: Import events from the named logfile.  Defaults to
  * standard input.  If the specified file (matched by size and
  * modtime) has previously been imported to the same database, it will
@@ -276,17 +276,17 @@ static sqlite3 *openDatabase(void)
     else
       evlog(LOG_OFTEN, "Removed database file %s", databaseName);
   }
-          
+
   res = sqlite3_open_v2(databaseName,
                         &db,
                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                         NULL); /* use default sqlite_vfs object */
-        
+
   if (res != SQLITE_OK)
     sqlite_error(res, db, "Opening %s failed", databaseName);
 
   evlog(LOG_OFTEN, "Writing to %s.",databaseName);
-        
+
   return db;
 }
 
@@ -296,7 +296,7 @@ static void closeDatabase(sqlite3 *db)
 {
   int res = sqlite3_close(db);
   if (res != SQLITE_OK)
-    sqlite_error(res, db, "Closing database failed"); 
+    sqlite_error(res, db, "Closing database failed");
   evlog(LOG_SOMETIMES, "Closed %s.", databaseName);
 }
 
@@ -391,7 +391,7 @@ static void testTableExists(sqlite3 *db)
     int exists = tableExists(db, name);
     if (exists)
       evlog(LOG_OFTEN, "Table exists: %s", name);
-    else 
+    else
       evlog(LOG_OFTEN, "Table does not exist: %s", name);
     if (exists != tableTests[i].exists) {
       evlog(LOG_ALWAYS, "tableExists test failed on table %s", name);
@@ -433,7 +433,7 @@ static void registerLogFile(sqlite3 *db,
       error("Couldn't stat() %s", filename);
     file_size = st.st_size;
     file_modtime = st.st_mtime;
-                        
+
     statement = prepareStatement(db,
                                  "SELECT name, serial, completed FROM event_log"
                                  " WHERE size = ? AND modtime = ?");
@@ -443,7 +443,7 @@ static void registerLogFile(sqlite3 *db,
     res = sqlite3_bind_int64(statement, 2, file_modtime);
     if (res != SQLITE_OK)
       sqlite_error(res, db, "event_log bind of modtime failed.");
-    res = sqlite3_step(statement); 
+    res = sqlite3_step(statement);
     switch(res) {
     case SQLITE_DONE:
       evlog(LOG_SOMETIMES, "No log file matching '%s' found in database.", filename);
@@ -482,7 +482,7 @@ static void registerLogFile(sqlite3 *db,
   res = sqlite3_bind_int64(statement, 3, file_modtime);
   if (res != SQLITE_OK)
     sqlite_error(res, db, "event_log insert bind of modtime failed.");
-  res = sqlite3_step(statement); 
+  res = sqlite3_step(statement);
   if (res != SQLITE_DONE)
     sqlite_error(res, db, "insert into event_log failed.");
   logSerial = sqlite3_last_insert_rowid(db);
@@ -505,7 +505,7 @@ static void logFileCompleted(sqlite3 *db,
   res = sqlite3_bind_int64(statement, 1, completed);
   if (res != SQLITE_OK)
     sqlite_error(res, db, "event_log update bind of completed failed.");
-  res = sqlite3_step(statement); 
+  res = sqlite3_step(statement);
   if (res != SQLITE_DONE)
     sqlite_error(res, db, "insert into event_log failed.");
   evlog(LOG_SOMETIMES, "Marked in event_log: %llu events", completed);
@@ -566,7 +566,7 @@ static void makeTables(sqlite3 *db)
 {
   size_t i;
   evlog(LOG_SOMETIMES, "Creating tables.");
-        
+
   for (i=0; i < NELEMS(createStatements); ++i) {
     runStatement(db, createStatements[i], "Table creation");
   }
@@ -585,7 +585,7 @@ static void dropGlueTables(sqlite3 *db)
   char sql[1024];
 
   evlog(LOG_ALWAYS, "Dropping glue tables so they are rebuilt.");
-        
+
   for (i=0; i < NELEMS(glueTables); ++i) {
     evlog(LOG_SOMETIMES, "Dropping table %s", glueTables[i]);
     sprintf(sql, "DROP TABLE %s", glueTables[i]);
@@ -677,28 +677,28 @@ static void fillGlueTables(sqlite3 *db)
   int i;
   sqlite3_stmt *statement;
   int res;
-                
+
   statement = prepareStatement(db,
                                "INSERT OR IGNORE INTO event_kind (name, description, enum)"
                                "VALUES (?, ?, ?)");
-        
+
   i = 0;
   EventKindENUM(EVENT_KIND_DO_INSERT, X);
-        
+
   finalizeStatement(db, statement);
-        
-  statement = prepareStatement(db, 
+
+  statement = prepareStatement(db,
                                "INSERT OR IGNORE INTO event_type (name, code, used, kind)"
                                "VALUES (?, ?, ?, ?)");
   EVENT_LIST(EVENT_TYPE_DO_INSERT, X);
-        
+
   finalizeStatement(db, statement);
 
   statement = prepareStatement(db,
                                "INSERT OR IGNORE INTO event_param (type, param_index, sort, ident, doc)"
                                "VALUES (?, ?, ?, ?, ?)");
   EVENT_LIST(EVENT_TYPE_INSERT_PARAMS, X);
-        
+
   finalizeStatement(db, statement);
 }
 
@@ -727,8 +727,8 @@ static void fillGlueTables(sqlite3 *db)
 #define EVENT_PARAM_BIND_P bind_int
 #define EVENT_PARAM_BIND_U bind_int
 #define EVENT_PARAM_BIND_W bind_int
-#define EVENT_PARAM_BIND_D bind_real   
-#define EVENT_PARAM_BIND_S bind_text   
+#define EVENT_PARAM_BIND_D bind_real
+#define EVENT_PARAM_BIND_S bind_text
 #define EVENT_PARAM_BIND_B bind_int
 
 #define EVENT_PARAM_BIND(X, index, sort, ident, doc) \
@@ -947,7 +947,7 @@ int main(int argc, char *argv[])
   int64 count;
 
   parseArgs(argc, argv);
-        
+
   db = openDatabase();
   if (rebuild) {
     dropGlueTables(db);
@@ -969,41 +969,29 @@ int main(int argc, char *argv[])
 
 /* COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2012-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2012-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

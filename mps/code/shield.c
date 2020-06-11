@@ -1,7 +1,7 @@
 /* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * See: idea.shield, <design/shield>.
  *
@@ -34,7 +34,7 @@ void ShieldInit(Shield shield)
 void ShieldDestroyQueue(Shield shield, Arena arena)
 {
   AVER(shield->limit == 0); /* queue must be empty */
-  
+
   if (shield->length != 0) {
     AVER(shield->queue != NULL);
     ControlFree(arena, shield->queue,
@@ -116,7 +116,7 @@ Bool ShieldCheck(Shield shield)
 Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  
+
   res = WriteF(stream, depth,
                "Shield $P {\n",    (WriteFP)shield,
                "  ", shield->inside ? "inside" : "outside", " shield\n",
@@ -195,7 +195,7 @@ static void shieldSetPM(Shield shield, Seg seg, AccessSet mode)
       }
     }
   }
-}  
+}
 
 
 /* SegIsExposed -- is a segment exposed?
@@ -236,7 +236,7 @@ static void shieldSync(Shield shield, Seg seg)
 static void shieldSuspend(Arena arena)
 {
   Shield shield;
-  
+
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
   AVER(shield->inside);
@@ -272,7 +272,7 @@ void (ShieldHold)(Arena arena)
 void (ShieldRelease)(Arena arena)
 {
   Shield shield;
-  
+
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
   AVER(shield->inside);
@@ -440,7 +440,7 @@ static void shieldFlushEntries(Shield shield)
 static void shieldQueue(Arena arena, Seg seg)
 {
   Shield shield;
-  
+
   /* <design/trace#.fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   shield = ArenaShield(arena);
@@ -470,7 +470,7 @@ static void shieldQueue(Arena arena, Seg seg)
       length = ShieldQueueLENGTH;
     else
       length = shield->length * 2;
-    
+
     res = ControlAlloc(&p, arena, length * sizeof shield->queue[0]);
     if (res != ResOK) {
       AVER(ResIsAllocFailure(res));
@@ -544,7 +544,7 @@ void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 
   /* <design/shield#.inv.prot.shield> preserved */
   shieldSetSM(ArenaShield(arena), seg, BS_UNION(SegSM(seg), mode));
-  
+
   /* Ensure <design/shield#.inv.unsynced.suspended> and
      <design/shield#.inv.unsynced.depth> */
   shieldQueue(arena, seg);
@@ -561,7 +561,7 @@ void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   Shield shield;
-  
+
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
   SHIELD_AVERT(Seg, seg);
@@ -588,7 +588,7 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 void (ShieldEnter)(Arena arena)
 {
   Shield shield;
-  
+
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
   AVER(!shield->inside);
@@ -665,7 +665,7 @@ static void shieldDebugCheck(Arena arena)
 void (ShieldFlush)(Arena arena)
 {
   Shield shield;
-  
+
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
 #ifdef SHIELD_DEBUG
@@ -684,7 +684,7 @@ void (ShieldFlush)(Arena arena)
 void (ShieldLeave)(Arena arena)
 {
   Shield shield;
-  
+
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
   AVER(shield->inside);
@@ -727,7 +727,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
   AVER_CRITICAL(SegDepth(seg) > 0); /* overflow */
   ++shield->depth;
   AVER_CRITICAL(shield->depth > 0); /* overflow */
-  
+
   if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY)
     shieldSuspend(arena);
 
@@ -743,13 +743,13 @@ void (ShieldExpose)(Arena arena, Seg seg)
 void (ShieldCover)(Arena arena, Seg seg)
 {
   Shield shield;
-  
+
   /* <design/trace#.fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   shield = ArenaShield(arena);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(SegPM(seg) == AccessSetEMPTY);
- 
+
   AVER_CRITICAL(SegDepth(seg) > 0);
   SegSetDepth(seg, SegDepth(seg) - 1);
   AVER_CRITICAL(shield->depth > 0);
@@ -762,41 +762,29 @@ void (ShieldCover)(Arena arena, Seg seg)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

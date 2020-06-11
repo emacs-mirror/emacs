@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -93,7 +93,7 @@ typedef struct MVTStruct
   Size allocated;               /* bytes allocated to mutator */
   Size available;               /* bytes available for allocation */
   Size unavailable;             /* bytes lost to fragmentation */
- 
+
   /* pool meters*/
   METER_DECL(segAllocs)
   METER_DECL(segFrees)
@@ -131,7 +131,7 @@ typedef struct MVTStruct
   METER_DECL(exceptions)
   METER_DECL(exceptionSplinters)
   METER_DECL(exceptionReturns)
- 
+
   Sig sig;
 } MVTStruct;
 
@@ -287,12 +287,12 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
                  mps_args_none);
   if (res != ResOK)
     goto failFreePrimaryInit;
- 
+
   res = LandInit(MVTFreeSecondary(mvt), CLASS(Freelist), arena, align,
                  mvt, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
-  
+
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTFreePrimary(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreeSecondary(mvt));
@@ -318,14 +318,14 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   mvt->splinter = FALSE;
   mvt->splinterBase = (Addr)0;
   mvt->splinterLimit = (Addr)0;
- 
+
   /* accounting */
   mvt->size = 0;
   mvt->allocated = 0;
   mvt->available = 0;
   mvt->availLimit = 0;
   mvt->unavailable = 0;
- 
+
   /* meters*/
   METER_INIT(mvt->segAllocs, "segment allocations", (void *)mvt);
   METER_INIT(mvt->segFrees, "segment frees", (void *)mvt);
@@ -365,7 +365,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   SetClassOfPoly(pool, CLASS(MVTPool));
   mvt->sig = MVTSig;
   AVERC(MVT, mvt);
-  
+
   EVENT6(PoolInitMVT, pool, minSize, meanSize, maxSize,
                reserveDepth, fragLimit);
 
@@ -430,7 +430,7 @@ static void MVTFinish(Inst inst)
   Arena arena = PoolArena(pool);
   Ring ring;
   Ring node, nextNode;
- 
+
   AVERT(MVT, mvt);
 
   mvt->sig = SigInvalid;
@@ -576,10 +576,10 @@ static void MVTOneSegOnly(Addr *baseIO, Addr *limitIO, MVT mvt, Size minSize)
   Addr base, limit, segLimit;
   Seg seg = NULL;           /* suppress "may be used uninitialized" */
   Arena arena;
-  
+
   base = *baseIO;
   limit = *limitIO;
-  
+
   arena = PoolArena(MVTPool(mvt));
 
   SURELY(SegOfAddr(&seg, arena, base));
@@ -718,7 +718,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
      <design/poolmvt#.arch.ap.no-fit.return> */
   if (MVTSplinterFill(baseReturn, limitReturn, mvt, minSize))
     return ResOK;
-  
+
   /* Attempt to retrieve a free block from the ABQ. */
   if (MVTABQFill(baseReturn, limitReturn, mvt, minSize))
     return ResOK;
@@ -821,7 +821,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 
   AVERT(MVT, mvt);
   AVER(base < limit);
-  
+
   RangeInit(&range, base, limit);
   res = LandInsert(&newRange, MVTFreeLand(mvt), &range);
   if (res != ResOK)
@@ -975,7 +975,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   METER_ACC(mvt->poolAvailable, mvt->available);
   METER_ACC(mvt->poolAllocated, mvt->allocated);
   METER_ACC(mvt->poolSize, mvt->size);
- 
+
   /* <design/poolmvt#.arch.ap.no-fit.oversize.policy> */
   /* Return exceptional blocks directly to arena */
   if (size > mvt->fillSize) {
@@ -991,7 +991,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
     MVTSegFree(mvt, seg);
     return;
   }
- 
+
   MUST(MVTInsert(mvt, base, limit));
 }
 
@@ -1106,7 +1106,7 @@ static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   METER_WRITE(mvt->exceptions, stream, depth + 2);
   METER_WRITE(mvt->exceptionSplinters, stream, depth + 2);
   METER_WRITE(mvt->exceptionReturns, stream, depth + 2);
- 
+
   return ResOK;
 }
 
@@ -1146,7 +1146,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);
-   
+
     /* see <design/poolmvt#.arch.fragmentation.internal> */
     AVER(segSize >= mvt->fillSize);
     mvt->size += segSize;
@@ -1157,7 +1157,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
   }
   return res;
 }
- 
+
 
 /* MVTSegFree -- encapsulates SegFree with associated accounting and
  * metering
@@ -1165,7 +1165,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 static void MVTSegFree(MVT mvt, Seg seg)
 {
   Size size;
-  
+
   size = SegSize(seg);
   AVER(mvt->available >= size);
 
@@ -1173,7 +1173,7 @@ static void MVTSegFree(MVT mvt, Seg seg)
   mvt->size -= size;
   mvt->availLimit = mvt->size * mvt->fragLimit / 100;
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
-  
+
   SegFree(seg);
   METER_ACC(mvt->segFrees, size);
 }
@@ -1185,14 +1185,14 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
 {
   Addr base, limit;
   Bool success = FALSE;
-   
+
   base = RangeBase(range);
   limit = RangeLimit(range);
 
   while (base < limit) {
     Seg seg = NULL;         /* suppress "may be used uninitialized" */
     Addr segBase, segLimit;
-    
+
     SURELY(SegOfAddr(&seg, arena, base));
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);
@@ -1245,7 +1245,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
     (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt);
   }
 }
- 
+
 
 /* MVTContingencySearch -- search free lists for a block of a given size */
 
@@ -1288,14 +1288,14 @@ static Bool MVTContingencyVisitor(Land land, Range range,
     RangeInit(&cl->range, base, limit);
     return FALSE;
   }
- 
+
   /* do it the hard way */
   cl->hardSteps++;
   if (MVTCheckFit(base, limit, cl->min, cl->arena)) {
     RangeInit(&cl->range, base, limit);
     return FALSE;
   }
- 
+
   /* keep looking */
   return TRUE;
 }
@@ -1358,41 +1358,29 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

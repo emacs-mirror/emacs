@@ -1,7 +1,7 @@
 /* abq.c: QUEUE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A fixed-length FIFO queue.
  *
@@ -55,7 +55,7 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)
   METER_INIT(abq->pop, "pop", owner);
   METER_INIT(abq->peek, "peek", owner);
   METER_INIT(abq->delete, "delete", owner);
- 
+
   abq->sig = ABQSig;
 
   AVERT(ABQ, abq);
@@ -88,7 +88,7 @@ void ABQFinish(Arena arena, ABQ abq)
   METER_EMIT(&abq->peek);
   METER_EMIT(&abq->delete);
   ControlFree(arena, abq->queue, ABQQueueSize(abq->elements, abq->elementSize));
- 
+
   abq->elements = 0;
   abq->queue = NULL;
 
@@ -105,7 +105,7 @@ Bool ABQPush(ABQ abq, void *element)
 
   if (ABQIsFull(abq))
     return FALSE;
- 
+
   (void)mps_lib_memcpy(ABQElement(abq, abq->in), element, abq->elementSize);
   abq->in = ABQNextIndex(abq, abq->in);
 
@@ -121,14 +121,14 @@ Bool ABQPop(ABQ abq, void *elementReturn)
   AVERT(ABQ, abq);
 
   METER_ACC(abq->pop, ABQDepth(abq));
- 
+
   if (ABQIsEmpty(abq))
     return FALSE;
 
   (void)mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   abq->out = ABQNextIndex(abq, abq->out);
- 
+
   AVERT(ABQ, abq);
   return TRUE;
 }
@@ -191,7 +191,7 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
   res = WriteF(stream, depth, "} ABQ $P\n", (WriteFP)abq, NULL);
   if(res != ResOK)
     return res;
- 
+
   return ResOK;
 }
 
@@ -218,7 +218,7 @@ Bool ABQIsFull(ABQ abq)
 Count ABQDepth(ABQ abq)
 {
   Index out, in;
- 
+
   AVERT(ABQ, abq);
   out = abq->out;
   in = abq->in;
@@ -241,7 +241,7 @@ void ABQIterate(ABQ abq, ABQVisitor visitor, void *closure)
   copy = abq->out;
   index = abq->out;
   in = abq->in;
- 
+
   while (index != in) {
     void *element = ABQElement(abq, index);
     Bool delete = FALSE;
@@ -302,41 +302,29 @@ static void *ABQElement(ABQ abq, Index index)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

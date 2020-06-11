@@ -1,7 +1,7 @@
 /* locv.c: LEAF OBJECT POOL CLASS COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * This is (not much of) a coverage test for the Leaf Object
  * pool (PoolClassLO).
@@ -25,7 +25,7 @@ static mps_addr_t isMoved(mps_addr_t object);
 static void copy(mps_addr_t old, mps_addr_t new);
 static void pad(mps_addr_t base, size_t size);
 
-static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, 
+static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
                     void *p, size_t s);
 
 static mps_fmt_A_s locv_fmt =
@@ -71,16 +71,16 @@ int main(int argc, char *argv[])
   die(mps_reserve(&p, ap, sizeof(void *)), "mps_reserve min");
   *(mps_word_t *)p = sizeof(void *);
   cdie(mps_commit(ap, p, sizeof(void *)), "commit min");
-  
+
   die(mps_reserve(&roots[1], ap, 2*sizeof(void *)), "mps_reserve 2*min");
   p = roots[1];
   *(mps_word_t *)p = 2*sizeof(void *);
   cdie(mps_commit(ap, p, 2*sizeof(void *)), "commit 2*min");
-  
+
   die(mps_reserve(&p, ap, (size_t)4096), "mps_reserve 4096");
   *(mps_word_t *)p = 4096;
   cdie(mps_commit(ap, p, (size_t)4096), "commit 4096");
-  
+
   die(mps_reserve(&p, ap, sizeof(void *)), "mps_reserve last");
   *(mps_word_t *)p = sizeof(void *);
   cdie(mps_commit(ap, p, sizeof(void *)), "commit last");
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     mps_arena_formatted_objects_walk(arena, stepper, &count, 0);
     cdie(count == 4, "walk 4 objects");
   }
-  
+
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
@@ -153,7 +153,7 @@ static void pad(mps_addr_t base, size_t size)
   cdie(0, "pad");
 }
 
-static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, 
+static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
                     void *p, size_t s)
 {
   size_t *pcount;
@@ -162,7 +162,7 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
   testlib_unused(fmt);
   testlib_unused(pool);
   testlib_unused(s);
-  
+
   pcount = p;
   *pcount += 1;
 }
@@ -171,41 +171,29 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

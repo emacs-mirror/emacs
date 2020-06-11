@@ -1,7 +1,7 @@
 /* tree.c: BINARY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 2014-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2014-2020 Ravenbrook Limited.  See end of file for license.
  *
  * Simple binary trees with utilities, for use as building blocks.
  * Keep it simple, like Rings (see ring.h).
@@ -86,7 +86,7 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key,
 {
   Tree node, parent;
   Compare cmp = CompareEQUAL;
-  
+
   AVERT_CRITICAL(Tree, root);
   AVER_CRITICAL(treeReturn != NULL);
   AVER_CRITICAL(FUNCHECK(compare));
@@ -113,7 +113,7 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key,
       return cmp;
     }
   }
-  
+
   *treeReturn = parent;
   return cmp;
 }
@@ -157,7 +157,7 @@ Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key,
       return FALSE;
     }
   }
-  
+
   *treeReturn = best;
   return result;
 }
@@ -176,7 +176,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
 {
   Tree parent;
   Compare cmp;
-  
+
   AVER(treeReturn != NULL);
   AVERT(Tree, root);
   AVER(TreeCheckLeaf(node));
@@ -204,7 +204,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
     *treeReturn = NULL;
     return FALSE;
   }
-  
+
   *treeReturn = root;
   return TRUE;
 }
@@ -226,7 +226,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
  * <https://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
  *
  * Joseph M. Morris (1979). "Traversing Binary Trees Simply and Cheaply".
- * Information Processing Letters 9:5 pp. 197–200.
+ * Information Processing Letters 9:5 pp. 197-200.
  */
 
 Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
@@ -234,11 +234,11 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
 {
   Tree node;
   Bool visiting = TRUE;
-  
+
   AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
   /* closure arbitrary */
-  
+
   node = tree;
   while (node != TreeEMPTY) {
     if (node->left == TreeEMPTY) {
@@ -326,14 +326,14 @@ Bool TreeTraverse(Tree tree,
                   TreeVisitor visit, void *closure)
 {
   Tree parent, node;
-  
+
   AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
   /* closure arbitrary */
 
   parent = TreeEMPTY;
   node = tree;
-  
+
   if (node == TreeEMPTY)
     return TRUE;
 
@@ -438,7 +438,7 @@ Tree TreeReverseLeftSpine(Tree tree)
   Tree node, parent;
 
   AVERT(Tree, tree);
-  
+
   parent = TreeEMPTY;
   node = tree;
   while (node != TreeEMPTY) {
@@ -447,7 +447,7 @@ Tree TreeReverseLeftSpine(Tree tree)
     parent = node;
     node = child;
   }
-  
+
   return parent;
 }
 
@@ -465,7 +465,7 @@ Tree TreeReverseRightSpine(Tree tree)
   Tree node, parent;
 
   AVERT(Tree, tree);
-  
+
   parent = TreeEMPTY;
   node = tree;
   while (node != TreeEMPTY) {
@@ -474,7 +474,7 @@ Tree TreeReverseRightSpine(Tree tree)
     parent = node;
     node = child;
   }
-  
+
   return parent;
 }
 
@@ -484,7 +484,7 @@ Tree TreeReverseRightSpine(Tree tree)
 Count TreeToVine(Tree *link)
 {
   Count count = 0;
-  
+
   AVER(link != NULL);
   AVERT(Tree, *link);
 
@@ -494,7 +494,7 @@ Count TreeToVine(Tree *link)
     link = &((*link)->right);
     ++count;
   }
-  
+
   return count;
 }
 
@@ -532,7 +532,7 @@ void TreeBalance(Tree *treeIO)
 }
 
 
-/* TreeTraverseAndDelete -- traverse a tree while deleting nodes 
+/* TreeTraverseAndDelete -- traverse a tree while deleting nodes
  *
  * The visitor function must return TRUE to delete the current node,
  * or FALSE to keep it.
@@ -569,41 +569,29 @@ void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2014-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
