@@ -3156,6 +3156,17 @@ cleanup_vector (struct Lisp_Vector *vector)
 	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
       dispose_comp_unit (cu, true);
     }
+  else if (NATIVE_COMP_FLAG
+	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
+    {
+      struct Lisp_Subr *subr =
+	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
+      if (subr->native_comp_u[0])
+	{
+	  xfree (subr->symbol_name);
+	  xfree (subr->native_c_name[0]);
+	}
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
