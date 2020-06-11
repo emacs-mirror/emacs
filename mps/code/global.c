@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/arena>.  <design/thread-safety> is relevant
@@ -166,7 +166,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   CHECKS(Globals, arenaGlobals);
   arena = GlobalsArena(arenaGlobals);
-  CHECKL(arena->serial < arenaSerial); 
+  CHECKL(arena->serial < arenaSerial);
   CHECKD_NOSIG(Ring, &arenaGlobals->globalRing);
 
   CHECKL(MPSVersion() == arenaGlobals->mpsVersionString);
@@ -246,7 +246,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   /* .emergency.invariant: There can only be an emergency when a trace
    * is busy. */
   CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
-  
+
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
 
@@ -350,11 +350,11 @@ Res GlobalsInit(Globals arenaGlobals)
   RingInit(&arena->chainRing);
 
   HistoryInit(ArenaHistory(arena));
-  
+
   arena->emergency = FALSE;
 
   arena->stackWarm = NULL;
-  
+
   arenaGlobals->defaultChain = NULL;
 
   arenaGlobals->sig = GlobalsSig;
@@ -389,7 +389,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
     arena->enabledMessageTypes = v;
     BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
   }
-  
+
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     /* <design/message-gc#.lifecycle> */
     res = TraceIdMessagesCreate(arena, ti);
@@ -439,7 +439,7 @@ void GlobalsFinish(Globals arenaGlobals)
 {
   Arena arena;
   Rank rank;
-  
+
   arena = GlobalsArena(arenaGlobals);
   AVERT(Globals, arenaGlobals);
 
@@ -987,7 +987,7 @@ Ref ArenaRead(Arena arena, Ref *p)
 
   b = SegOfAddr(&seg, arena, (Addr)p);
   AVER(b == TRUE);
-  
+
   return ArenaPeekSeg(arena, seg, p);
 }
 
@@ -1002,7 +1002,7 @@ void ArenaWrite(Arena arena, Ref *p, Ref ref)
 
   b = SegOfAddr(&seg, arena, (Addr)p);
   AVER(b == TRUE);
-  
+
   ArenaPokeSeg(arena, seg, p, ref);
 }
 
@@ -1024,7 +1024,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth, "Globals\n", NULL);
   if (res != ResOK)
-    return res;  
+    return res;
 
   arena = GlobalsArena(arenaGlobals);
   res = WriteF(stream, depth + 2,
@@ -1135,41 +1135,29 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

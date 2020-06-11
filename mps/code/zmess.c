@@ -1,45 +1,45 @@
 /* zmess.c: Message test
  *
  * $Id$
- * Copyright (c) 2008-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2008-2020 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * OBJECTIVE
  *
  * Test MPS messages.  In particular:
- *  - Check prompt finalization even when there are several segs 
+ *  - Check prompt finalization even when there are several segs
  *    of guardians.  This test replaces fin1658a.c.  See job001658.
  *  - Check GC messages are correctly generated, posted, and queued,
- *    regardless of when the client gets them.  (Note: "get" means 
+ *    regardless of when the client gets them.  (Note: "get" means
  *    "mps_message_get", throughout).  See job001989.
  *
- * Please add tests for other message behaviour into this file.  
+ * Please add tests for other message behaviour into this file.
  * Expand the script language as necessary!  RHSK 2008-12-19.
  *
  *
  * DESIGN OVERVIEW
  *
- * Client (this test) does various actions that are known to provoke 
- * MPS messages.  Client (this test) gets these messages at variable 
+ * Client (this test) does various actions that are known to provoke
+ * MPS messages.  Client (this test) gets these messages at variable
  * times.
  *
  * Verification is:
- *   - client gets all the expected messages, and no others, at the 
+ *   - client gets all the expected messages, and no others, at the
  *     expected time;
  *   - no asserts or failures.
  *
- * Additionally: client checks the message order.  MPS specification 
- * does not currently guarantee that messages are queued in order of 
+ * Additionally: client checks the message order.  MPS specification
+ * does not currently guarantee that messages are queued in order of
  * posting, but in fact they should be, and it is a useful check.
- * (But finalization messages from a single collection may be posted 
+ * (But finalization messages from a single collection may be posted
  * in any order).
  *
- * The actions, messages to check for, and get times, are scripted 
+ * The actions, messages to check for, and get times, are scripted
  * using a simple text code:
  *   C - action: request garbage-collection;
  *   F - action: make a (registered)finalized object unreachable
- *        (note: this drops the myroot ref, but some objects are 
- *         deliberately kept alive by additional references; see 
+ *        (note: this drops the myroot ref, but some objects are
+ *         deliberately kept alive by additional references; see
  *         .keep-alive)
  *   b - message produced: collection begin (mps_message_type_gc_start);
  *   e - message produced: collection end (mps_message_type_gc);
@@ -51,11 +51,11 @@
  *  script "Cbe.FFCbffe.Cbe"
  *  means:
  *    Request a collection and check for _gc_start and _gc messages
- *    (in that order, and no other messages).  Then drop refs to two 
- *    objects, request another collection, and check for _gc_start, 
- *    the two finalization messages (in either order), and _gc.  Then 
- *    request a third collection and end the test WITHOUT GETTING 
- *    the last two messages (note: no "."), to test that 
+ *    (in that order, and no other messages).  Then drop refs to two
+ *    objects, request another collection, and check for _gc_start,
+ *    the two finalization messages (in either order), and _gc.  Then
+ *    request a third collection and end the test WITHOUT GETTING
+ *    the last two messages (note: no "."), to test that
  *    mps_arena_destroy copes with ungot messages.
  *
  * Each script runs in a newly created arena. The arena is clamped so
@@ -64,7 +64,7 @@
  *
  * CODE OVERVIEW
  *
- * main() has the list of testscripts.  
+ * main() has the list of testscripts.
  *
  * testscriptA() sets up a new arena and trampolines to testscriptB().
  *
@@ -81,11 +81,11 @@
  *
  * BUGS, FUTURE IMPROVEMENTS, ETC
  *
- * There are a few special objects with refs to each other (see 
- * .keep-alive).  For clarity and flexibility, there should be special 
+ * There are a few special objects with refs to each other (see
+ * .keep-alive).  For clarity and flexibility, there should be special
  * actions to drop the myroot ref to these, eg. '0', '1', '2', 'Y', 'Z'.
- * Whereas (for clarity) 'F' should be an action that drops the myroot 
- * ref to a plain (non-kept-alive) object, thereby simply provoking a 
+ * Whereas (for clarity) 'F' should be an action that drops the myroot
+ * ref to a plain (non-kept-alive) object, thereby simply provoking a
  * single finalization message.
  *
  * Actions could be expanded to include:
@@ -136,14 +136,14 @@ static int state[myrootCOUNT];
 
 /* report -- get and check messages
  *
- * Get messages, report what was got, check they are the expected 
- * messages, and (for finalization messages) check that these objects 
+ * Get messages, report what was got, check they are the expected
+ * messages, and (for finalization messages) check that these objects
  * should have been finalized (because we made them unreachable).
  *
- * .discard: The client should always call mps_message_discard when 
- * it has finished with the message.  But calling with the "discard" 
- * parameter set to false lets us check how the MPS handles naughty 
- * clients.  The undiscarded messages must be cleared up by 
+ * .discard: The client should always call mps_message_discard when
+ * it has finished with the message.  But calling with the "discard"
+ * parameter set to false lets us check how the MPS handles naughty
+ * clients.  The undiscarded messages must be cleared up by
  * ArenaDestroy.
  */
 static void report(mps_arena_t arena, const char *pm, Bool discard)
@@ -161,7 +161,7 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
     cdie(mps_message_get(&message, arena, type),
          "get");
     found += 1;
-    
+
     switch(type) {
       case mps_message_type_gc_start(): {
         printf("    Begin Collection\n");
@@ -190,7 +190,7 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
         break;
       }
     }
-    
+
     if(discard) {
       mps_message_discard(arena, message);  /* .discard */
     }
@@ -199,7 +199,7 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
     cdie(mFound == *pm, "Found message type != Expected message type");
     pm++;
   }
-  
+
   mFound = '\0';
   cdie(mFound == *pm, "No message found, but expected one");
 }
@@ -247,14 +247,14 @@ static void testscriptC(mps_arena_t arena, const char *script)
       case 'F': {
         /* (perhaps) make an object Finalizable
          *
-         * .alternate: We alternately pick objects from the low and 
-         * high ends of the myroot array.  This is used to test for 
+         * .alternate: We alternately pick objects from the low and
+         * high ends of the myroot array.  This is used to test for
          * the defect described in job001658.
          */
         Insist(loNext <= hiNext);
         i = isLoNext ? loNext++ : hiNext--;
         isLoNext = 1 - isLoNext;
-        
+
         printf("  Drop myroot ref to object %u -- "
                "this might make it Finalizable\n", i);
         /* drop myroot ref, to perhaps make i finalizable */
@@ -328,7 +328,7 @@ static void *testscriptB(void *arg, size_t s)
                             myroot, (size_t)myrootCOUNT),
       "root_create");
   die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create");
-  
+
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   die(mps_root_create_thread(&root_stackreg, arena,
                              thr, &stack_starts_here),
@@ -347,19 +347,19 @@ static void *testscriptB(void *arg, size_t s)
     myroot[i] = (void*)v;
     state[i] = rootSTATE;
   }
-  
+
   /* .keep-alive: Create some additional inter-object references.
    *
    * 1 and N-1 don't die until myroot refs to both have been nulled.
    *
    * 2 and 3 don't die until myroot refs to both have been nulled.
    *
-   * We do this to check that reachability via non-root refs prevents 
+   * We do this to check that reachability via non-root refs prevents
    * finalization.
    */
 
   /* Leave 0 and N containing NULL refs */
-  
+
   /* Make 1 and N-1 refer to each other */
   DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
   DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
@@ -428,11 +428,11 @@ static void testscriptA(const char *script)
 
 /* TIMCA_remote -- TraceIdMessagesCreate Alloc remote control
  *
- * In low memory situations, ControlAlloc may be unable to allocate 
- * memory for GC messages.  This needs to work flawlessly, but is 
+ * In low memory situations, ControlAlloc may be unable to allocate
+ * memory for GC messages.  This needs to work flawlessly, but is
  * hard to test.
  *
- * To simulate it for testing purposes, add the following lines to 
+ * To simulate it for testing purposes, add the following lines to
  * traceanc.c, before the definition of TraceIdMessagesCreate:
  *    #define ControlAlloc !TIMCA_remote() ? ResFAIL : ControlAlloc
  *    extern Bool TIMCA_remote(void);
@@ -463,7 +463,7 @@ extern Bool TIMCA_remote(void);
 Bool TIMCA_remote(void)
 {
   Bool succeed;
-  
+
   if(*TIMCA_str == '\0') {
     succeed = TRUE;
   } else if(*TIMCA_str == '0') {
@@ -478,7 +478,7 @@ Bool TIMCA_remote(void)
       TIMCA_str++;
     }
   }
-  
+
   return succeed;
 }
 
@@ -514,14 +514,14 @@ int main(int argc, char *argv[])
 
   /* Simple finalization
    *
-   * These tests rely on the particular order in which the "F" command 
+   * These tests rely on the particular order in which the "F" command
    * nulls-out references.  Not every "F" makes an object finalizable.
    * See .keep-alive.
    */
   testscriptA("FFCbffe.");
   testscriptA("FFCbffe.FFCbffe.");
   testscriptA("FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe.");
-  
+
   /* Various other scripts */
   testscriptA("Cbe.FFCbffe.Cbe");
 
@@ -530,10 +530,10 @@ int main(int argc, char *argv[])
    * These scripts only work with a manually edited traceanc.c --
    * see TIMCA_remote() above.
    *
-   * When TraceIdMessagesCreate is trying to pre-allocate GC messages, 
-   * either "0" or "10" makes it fail -- "0" fails the trace start 
-   * message alloc, whereas "10" fails the trace end message alloc. 
-   * In either case TraceIdMessagesCreate promptly gives up, and 
+   * When TraceIdMessagesCreate is trying to pre-allocate GC messages,
+   * either "0" or "10" makes it fail -- "0" fails the trace start
+   * message alloc, whereas "10" fails the trace end message alloc.
+   * In either case TraceIdMessagesCreate promptly gives up, and
    * neither start nor end message will be sent for the next trace.
    *
    * <design/message-gc#lifecycle>.
@@ -563,7 +563,7 @@ int main(int argc, char *argv[])
     /* 2 Collects and ArenaDestroy with no pre-allocated messages */
     TIMCA_setup("2000"); testscriptA("Cbe.C.C.");
     TIMCA_setup("201010"); testscriptA("Cbe.C.C.");
-    
+
     TIMCA_setup("");  /* must reset it! */
   }
 #endif
@@ -575,41 +575,29 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2008-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

@@ -1,7 +1,7 @@
 /* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/arena> is the main design document.  */
 
@@ -216,7 +216,7 @@ Bool ArenaCheck(Arena arena)
   CHECKL(TreeCheck(ArenaChunkTree(arena)));
   /* TODO: check that the chunkRing and chunkTree have identical members */
   /* nothing to check for chunkSerial */
-  
+
   CHECKL(LocusCheck(arena));
 
   CHECKL(BoolCheck(arena->hasFreeLand));
@@ -242,7 +242,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
 
   AVER(arena != NULL);
   AVERT(ArenaGrainSize, grainSize);
-  
+
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
   if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT))
@@ -282,9 +282,9 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   RingInit(ArenaChunkRing(arena));
   arena->chunkTree = TreeEMPTY;
   arena->chunkSerial = (Serial)0;
-  
+
   LocusInit(arena);
-  
+
   res = GlobalsInit(ArenaGlobals(arena));
   if (res != ResOK)
     goto failGlobalsInit;
@@ -292,7 +292,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   SetClassOfPoly(arena, CLASS(AbstractArena));
   arena->sig = ArenaSig;
   AVERC(Arena, arena);
-  
+
   /* Initialise a pool to hold the CBS blocks for the arena's free
    * land. This pool can't be allowed to extend itself using
    * ArenaAlloc because it is used to implement ArenaAlloc, so
@@ -410,7 +410,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass klass, ArgList args)
   res = arenaFreeLandInit(arena);
   if (res != ResOK)
     goto failFreeLandInit;
-  
+
   res = ControlInit(arena);
   if (res != ResOK)
     goto failControlInit;
@@ -468,7 +468,7 @@ static void arenaFreeLandFinish(Arena arena)
 {
   AVERT(Arena, arena);
   AVER(arena->hasFreeLand);
-  
+
   /* We're about to free the memory occupied by the free land, which
      contains a CBS.  We want to make sure that LandFinish doesn't try
      to check the CBS, so nuke it here.  TODO: LandReset? */
@@ -811,7 +811,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
                            chunk->allocTable,
                            chunk->allocBase, chunk->pages, 1))
     return ResRESOURCE;
-  
+
   res = Method(Arena, arena, pagesMarkAllocated)(arena, chunk,
                                                  basePageIndex, 1,
                                                  pool);
@@ -825,7 +825,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
 static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
   Res res;
-  
+
   AVER(baseReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Pool, pool);
@@ -913,7 +913,7 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
 {
   Res res;
   Land land;
-  
+
   AVER(rangeReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Range, range);
@@ -932,7 +932,7 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
     AVER(res == ResOK); /* we just gave memory to the CBS block pool */
     arenaExcludePage(arena, &pageRange);
   }
-  
+
   return ResOK;
 }
 
@@ -990,7 +990,7 @@ void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
   RangeInit(&range, base, limit);
   land = ArenaFreeLand(arena);
   res = LandDelete(&oldRange, land, &range);
-  
+
   /* Shouldn't be any other kind of failure because we were only deleting
      a non-coalesced block.  See .chunk.no-coalesce and
      <code/cbs.c#.delete.alloc>. */
@@ -1018,7 +1018,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
   Count pages;
   Res res;
   Land land;
-  
+
   AVER(tractReturn != NULL);
   AVERT(Arena, arena);
   /* ZoneSet is arbitrary */
@@ -1026,12 +1026,12 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
   AVERT(Pool, pool);
   AVER(arena == PoolArena(pool));
   AVER(SizeIsArenaGrains(size, arena));
-  
+
   if (!arena->zoned)
     zones = ZoneSetUNIV;
 
   /* Step 1. Find a range of address space. */
-  
+
   land = ArenaFreeLand(arena);
   res = LandFindInZones(&found, &range, &oldRange, land, size, zones, high);
 
@@ -1051,7 +1051,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
 
   if (!found) /* out of address space */
     return ResRESOURCE;
-  
+
   /* Step 2. Make memory available in the address space range. */
 
   b = ChunkOfAddr(&chunk, arena, RangeBase(&range));
@@ -1103,7 +1103,7 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool)
   res = PolicyAlloc(&tract, arena, pref, size, pool);
   if (res != ResOK)
     goto allocFail;
-  
+
   base = TractBase(tract);
 
   /* cache the tract - <design/arena#.tract.cache> */
@@ -1145,7 +1145,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
     arena->lastTract = NULL;
     arena->lastTractBase = (Addr)0;
   }
-  
+
   res = arenaFreeLandInsertExtend(&oldRange, arena, &range);
   if (res != ResOK) {
     Land land = ArenaFreeLand(arena);
@@ -1204,7 +1204,7 @@ void ArenaSetSpare(Arena arena, double spare)
     Size excess = arena->spareCommitted - spareMax;
     (void)Method(Arena, arena, purgeSpare)(arena, excess);
   }
-}  
+}
 
 double ArenaPauseTime(Arena arena)
 {
@@ -1378,41 +1378,29 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

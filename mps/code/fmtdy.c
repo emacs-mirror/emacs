@@ -1,7 +1,7 @@
 /* fmtdy.c: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *  Portions copyright (c) 2002 Global Graphics Software.
  *
  * .readership: MPS developers, Dylan developers
@@ -126,7 +126,7 @@ int dylan_wrapper_check(mps_word_t *w)
   /* but doesn't need to be. */
   assert((ww[WP] == 1) || (ww[WP] == 3));
   unused(ww);
-  
+
   /* Unpack the wrapper. */
 
   klass = w[WC];         /* class */
@@ -148,7 +148,7 @@ int dylan_wrapper_check(mps_word_t *w)
   vt = w[WS];            /* vector total word (Dylan-tagged) */
   t = vt >> 2;          /* vector total length */
   unused(t);
-  
+
   /* The second word is the class of the wrapped object. */
   /* It would be good to check which pool this is in. */
 
@@ -177,11 +177,11 @@ int dylan_wrapper_check(mps_word_t *w)
   /* Variable part format 6 is reserved. */
   assert(vf != 6);
   unused(vf);
-  
+
   /* There should be no shift in word vector formats. */
   assert((vf & 6) == 4 || es == 0);
   unused(es);
-  
+
   /* The fifth word is the number of patterns in the pattern */
   /* vector.  This can be calculated from the fixed part length. */
   /* The word is also tagged like a DylanWorks integer. */
@@ -569,7 +569,7 @@ mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   /* object should not be forwarded (as there is no forwarding method) */
   assert((h & 3) == 0);
   unused(h);
-  
+
   MPS_SCAN_BEGIN(mps_ss) {
     res = MPS_FIX12(mps_ss, p);
   } MPS_SCAN_END(mps_ss);
@@ -594,7 +594,7 @@ mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   /* weak vectors should have traceable fixed format */
   assert(ff == 1);
   unused(ff);
-  
+
   assoc = (mps_addr_t *)p[0];
 
   vword = w[WV];
@@ -604,7 +604,7 @@ mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   /* weak vectors should be non-stretchy traceable */
   assert(vf == 2);
   unused(vf);
-  
+
   /* q is end of the object.  There are fl fixed fields, vl variable */
   /* fields and another slot that contains the vector length */
   q = p + fl + vl + 1;
@@ -858,41 +858,29 @@ mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
