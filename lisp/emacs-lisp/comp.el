@@ -279,16 +279,9 @@ To be used when ncall-conv is nil."))
         :documentation "t if rest argument is present."))
 
 (cl-defstruct (comp-block (:copier nil)
-                          (:constructor make--comp-block
-                                        (addr sp name))) ; Positional
-  "A basic block."
+                          (:constructor nil))
+  "A base class for basic blocks."
   (name nil :type symbol)
-  ;; These two slots are used during limplification.
-  (sp nil :type number
-      :documentation "When non nil indicates the sp value while entering
-into it.")
-  (addr nil :type number
-        :documentation "Start block LAP address.")
   (insns () :type list
          :documentation "List of instructions.")
   (closed nil :type boolean
@@ -308,6 +301,22 @@ into it.")
   (final-frame nil :type vector
              :documentation "This is a copy of the frame when leaving the block.
 Is in use to help the SSA rename pass."))
+
+(cl-defstruct (comp-block-lap (:copier nil)
+                              (:include comp-block)
+                              (:constructor make--comp-block-lap
+                                            (addr sp name))) ; Positional
+  "A basic block created from lap."
+  ;; These two slots are used during limplification.
+  (sp nil :type number
+      :documentation "When non nil indicates the sp value while entering
+into it.")
+  (addr nil :type number
+        :documentation "Start block LAP address."))
+
+(cl-defstruct (comp-latch (:copier nil)
+                          (:include comp-block))
+  "A basic block for a latch loop.")
 
 (cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
   "An edge connecting two basic blocks."
@@ -751,20 +760,22 @@ Restore the original value afterwards."
 (defun comp-bb-maybe-add (lap-addr &optional sp)
   "If necessary create a pending basic block for LAP-ADDR with stack depth SP.
 The basic block is returned regardless it was already declared or not."
-  (let ((bb (or (cl-loop  ; See if the block was already liplified.
+  (let ((bb (or (cl-loop  ; See if the block was already limplified.
                  for bb being the hash-value in (comp-func-blocks comp-func)
-                 when (equal (comp-block-addr bb) lap-addr)
+                 when (and (comp-block-lap-p bb)
+                           (equal (comp-block-lap-addr bb) lap-addr))
                    return bb)
                 (cl-find-if (lambda (bb) ; Look within the pendings blocks.
-                              (= (comp-block-addr bb) lap-addr))
+                              (and (comp-block-lap-p bb)
+                                   (= (comp-block-lap-addr bb) lap-addr)))
                             (comp-limplify-pending-blocks comp-pass)))))
     (if bb
         (progn
-          (unless (or (null sp) (= sp (comp-block-sp bb)))
+          (unless (or (null sp) (= sp (comp-block-lap-sp bb)))
             (signal 'native-ice (list "incoherent stack pointers"
-                                      sp (comp-block-sp bb))))
+                                      sp (comp-block-lap-sp bb))))
           bb)
-      (car (push (make--comp-block lap-addr sp (comp-new-block-sym))
+      (car (push (make--comp-block-lap lap-addr sp (comp-new-block-sym))
                  (comp-limplify-pending-blocks comp-pass))))))
 
 (defsubst comp-call (func &rest args)
@@ -832,21 +843,44 @@ If DST-N is specified use it otherwise assume it to be the current slot."
 ENTRY-SP is the sp value when entering.
 The block is added to the current function.
 The block is returned."
-  (let ((bb (make--comp-block addr entry-sp block-name)))
+  (let ((bb (make--comp-block-lap addr entry-sp block-name)))
     (setf (comp-limplify-curr-block comp-pass) bb
           (comp-limplify-pc comp-pass) addr
-          (comp-limplify-sp comp-pass) (comp-block-sp bb))
+          (comp-limplify-sp comp-pass) (when (comp-block-lap-p bb)
+                                         (comp-block-lap-sp bb)))
     (puthash (comp-block-name bb) bb (comp-func-blocks comp-func))
     bb))
+
+(defun comp-latch-make-fill (target)
+  "Create a latch pointing to TARGET and fill it.
+Return the created latch"
+  (let ((latch (make-comp-latch :name (comp-new-block-sym "latch")))
+        (curr-bb (comp-limplify-curr-block comp-pass)))
+    ;; See `comp-make-curr-block'.
+    (setf (comp-limplify-curr-block comp-pass) latch)
+    (when (< comp-speed 3)
+      ;; At speed 3 the programmer is responsible to manually
+      ;; place `comp-maybe-gc-or-quit'.
+      (comp-emit '(call comp-maybe-gc-or-quit)))
+    ;; See `comp-emit-uncond-jump'.
+    (comp-emit `(jump ,(comp-block-name target)))
+    (comp-mark-curr-bb-closed)
+    (puthash (comp-block-name latch) latch (comp-func-blocks comp-func))
+    (setf (comp-limplify-curr-block comp-pass) curr-bb)
+    latch))
 
 (defun comp-emit-uncond-jump (lap-label)
   "Emit an unconditional branch to LAP-LABEL."
   (cl-destructuring-bind (label-num . stack-depth) lap-label
     (when stack-depth
       (cl-assert (= (1- stack-depth) (comp-sp))))
-    (let ((target (comp-bb-maybe-add (comp-label-to-addr label-num)
-                                     (comp-sp))))
-      (comp-emit `(jump ,(comp-block-name target)))
+    (let* ((target-addr (comp-label-to-addr label-num))
+           (target (comp-bb-maybe-add target-addr
+                                      (comp-sp)))
+           (latch (when (< target-addr (comp-limplify-pc comp-pass))
+                    (comp-latch-make-fill target)))
+           (eff-target-name (comp-block-name (or latch target))))
+      (comp-emit `(jump ,eff-target-name))
       (comp-mark-curr-bb-closed))))
 
 (defun comp-emit-cond-jump (a b target-offset lap-label negated)
@@ -859,13 +893,16 @@ Return value is the fall through block name."
     (let* ((bb (comp-block-name (comp-bb-maybe-add (1+ (comp-limplify-pc comp-pass))
                                                    (comp-sp)))) ; Fall through block.
            (target-sp (+ target-offset (comp-sp)))
-           (target (comp-block-name (comp-bb-maybe-add (comp-label-to-addr label-num)
-                                                       target-sp))))
+           (target-addr (comp-label-to-addr label-num))
+           (target (comp-bb-maybe-add target-addr target-sp))
+           (latch (when (< target-addr (comp-limplify-pc comp-pass))
+                    (comp-latch-make-fill target)))
+           (eff-target-name (comp-block-name (or latch target))))
       (when label-sp
         (cl-assert (= (1- label-sp) (+ target-offset (comp-sp)))))
       (comp-emit (if negated
-		     (list 'cond-jump a b target bb)
-		   (list 'cond-jump a b bb target)))
+		     (list 'cond-jump a b eff-target-name bb)
+		   (list 'cond-jump a b bb eff-target-name)))
       (comp-mark-curr-bb-closed)
       bb)))
 
@@ -878,7 +915,7 @@ Return value is the fall through block name."
                                           (comp-sp)))
            (handler-bb (comp-bb-maybe-add (comp-label-to-addr label-num)
                                           (1+ (comp-sp))))
-           (pop-bb (make--comp-block nil (comp-sp) (comp-new-block-sym))))
+           (pop-bb (make--comp-block-lap nil (comp-sp) (comp-new-block-sym))))
       (comp-emit (list 'push-handler
                        handler-type
                        (comp-slot+1)
@@ -904,9 +941,11 @@ Return value is the fall through block name."
                                                (comp-slot)
                                                (comp-slot+1))))))
 
-(defun comp-new-block-sym ()
-  "Return a unique symbol naming the next new basic block."
-  (intern (format "bb_%s" (funcall (comp-func-block-cnt-gen comp-func)))))
+(defun comp-new-block-sym (&optional postfix)
+  "Return a unique symbol postfixing POSTFIX naming the next new basic block."
+  (intern (format (if postfix "bb_%s_%s" "bb_%s")
+                  (funcall (comp-func-block-cnt-gen comp-func))
+                  postfix)))
 
 (defun comp-fill-label-h ()
   "Fill label-to-addr hash table for the current function."
@@ -948,9 +987,9 @@ Return value is the fall through block name."
         for ff-bb = (if last
                         (comp-bb-maybe-add (1+ (comp-limplify-pc comp-pass))
                                            (comp-sp))
-                      (make--comp-block nil
-                                        (comp-sp)
-                                        (comp-new-block-sym)))
+                      (make--comp-block-lap nil
+                                            (comp-sp)
+                                            (comp-new-block-sym)))
         for ff-bb-name = (comp-block-name ff-bb)
         if (eq test-func 'eq)
           do (comp-emit (list 'cond-jump var m-test ff-bb-name target-name))
@@ -1375,7 +1414,7 @@ into the C code forwarding the compilation unit."
                                :frame-size 1))
          (comp-func func)
          (comp-pass (make-comp-limplify
-                     :curr-block (make--comp-block -1 0 'top-level)
+                     :curr-block (make--comp-block-lap -1 0 'top-level)
                      :frame (comp-new-frame 1))))
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation (if for-late-load
@@ -1396,7 +1435,7 @@ into the C code forwarding the compilation unit."
   "Search for a block starting at ADDR into pending or limplified blocks."
   ;; FIXME Actually we could have another hash for this.
   (cl-flet ((pred (bb)
-              (equal (comp-block-addr bb) addr)))
+              (equal (comp-block-lap-addr bb) addr)))
     (if-let ((pending (cl-find-if #'pred
                                   (comp-limplify-pending-blocks comp-pass))))
         (comp-block-name pending)
@@ -1407,8 +1446,8 @@ into the C code forwarding the compilation unit."
 (defun comp-limplify-block (bb)
   "Limplify basic-block BB and add it to the current function."
   (setf (comp-limplify-curr-block comp-pass) bb
-        (comp-limplify-sp comp-pass) (comp-block-sp bb)
-        (comp-limplify-pc comp-pass) (comp-block-addr bb))
+        (comp-limplify-sp comp-pass) (comp-block-lap-sp bb)
+        (comp-limplify-pc comp-pass) (comp-block-lap-addr bb))
   (puthash (comp-block-name bb) bb (comp-func-blocks comp-func))
   (cl-loop
    for inst-cell on (nthcdr (comp-limplify-pc comp-pass)
@@ -1459,7 +1498,8 @@ into the C code forwarding the compilation unit."
     ;; Sanity check against block duplication.
     (cl-loop with addr-h = (make-hash-table)
              for bb being the hash-value in (comp-func-blocks func)
-             for addr = (comp-block-addr bb)
+             for addr = (when (comp-block-lap-p bb)
+                          (comp-block-lap-addr bb))
              when addr
                do (cl-assert (null (gethash addr addr-h)))
                   (puthash addr t addr-h))
