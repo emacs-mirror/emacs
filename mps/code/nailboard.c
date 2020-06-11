@@ -1,7 +1,7 @@
 /* nailboard.c: NAILBOARD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/nailboard>.
  */
@@ -102,7 +102,7 @@ static Size nailboardSize(Count nails, Count levels)
  * range of addresses from base to limit (which must be non-empty). If
  * successful, set *boardReturn to point to the nailboard and return
  * ResOK. Otherwise, return a result code to indicate failure.
- * 
+ *
  * alignment specifies the granularity of the nails: that is, the
  * number of bytes covered by each nail.
  */
@@ -145,7 +145,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
     BTResRange(board->level[i], 0, levelBits);
     p = PointerAdd(p, BTSize(levelBits));
   }
-  
+
   board->sig = NailboardSig;
   AVERT(Nailboard, board);
   *boardReturn = board;
@@ -234,7 +234,7 @@ static void nailboardIndexRange(Index *ibaseReturn, Index *ilimitReturn,
 
 
 /* NailboardGet -- return nail corresponding to address
- * 
+ *
  * Return the nail in the nailboard corresponding to the address addr.
  * It is an error if addr does not lie in the range of addresses
  * covered by the nailboard.
@@ -455,41 +455,29 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2014-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

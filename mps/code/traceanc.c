@@ -1,11 +1,11 @@
 /* traceanc.c: ANCILLARY SUPPORT FOR TRACER
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * All this ancillary stuff was making trace.c very cluttered.  
+ * All this ancillary stuff was making trace.c very cluttered.
  * Put it here instead.  RHSK 2008-12-09.
  *
  * CONTENTS
@@ -39,7 +39,7 @@
  *   mps_message_type_gc_start (enum macro)
  *   MPS_MESSAGE_TYPE_GC_START (enum)
  *
- * (Note: this should properly be called "trace begin", but it's much 
+ * (Note: this should properly be called "trace begin", but it's much
  * too late to change it now!)
  *
  * <design/message-gc>.
@@ -48,12 +48,12 @@
 #define TraceStartMessageSig ((Sig)0x51926535) /* SIGnature TRaceStartMeSsage */
 
 /* .whybuf:
- * .whybuf.len: Length (in chars) of a char buffer used to store the 
- * reason why a collection started in the TraceStartMessageStruct 
- * (used by mps_message_type_gc_start).  If the reason is too long to 
+ * .whybuf.len: Length (in chars) of a char buffer used to store the
+ * reason why a collection started in the TraceStartMessageStruct
+ * (used by mps_message_type_gc_start).  If the reason is too long to
  * fit, it must be truncated.
- * .whybuf.nul: Check insists that the last char in the array is NUL 
- * (even if there is another NUL earlier in the buffer); this makes 
+ * .whybuf.nul: Check insists that the last char in the array is NUL
+ * (even if there is another NUL earlier in the buffer); this makes
  * the NUL-termination check fast.
  */
 #define TRACE_START_MESSAGE_WHYBUF_LEN 128
@@ -137,10 +137,10 @@ static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
 
 /* TraceStartWhyToString -- why-code to text
  *
- * Converts a TraceStartWhy* code into a constant string describing 
+ * Converts a TraceStartWhy* code into a constant string describing
  * why a trace started.
  */
- 
+
 const char *TraceStartWhyToString(TraceStartWhy why)
 {
   const char *r;
@@ -243,7 +243,7 @@ void TracePostStartMessage(Trace trace)
  *   mps_message_type_gc (enum macro)
  *   MPS_MESSAGE_TYPE_GC (enum)
  *
- * (Note: this should properly be called "trace end", but it's much 
+ * (Note: this should properly be called "trace end", but it's much
  * too late to change it now!)
  *
  * <design/message-gc>.
@@ -369,7 +369,7 @@ void TracePostMessage(Trace trace)
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
-  
+
   arena = trace->arena;
   AVERT(Arena, arena);
 
@@ -389,7 +389,7 @@ void TracePostMessage(Trace trace)
   } else {
     arena->droppedMessages += 1;
   }
-  
+
   /* We have consumed the pre-allocated message */
   AVER(!arena->tMessage[ti]);
 }
@@ -401,15 +401,15 @@ void TracePostMessage(Trace trace)
 
 /* TraceIdMessagesCheck - pre-allocated messages for this traceid.
  *
- * Messages are absent when already sent, or when (exceptionally) 
- * ControlAlloc failed at the end of the previous trace.  If present, 
+ * Messages are absent when already sent, or when (exceptionally)
+ * ControlAlloc failed at the end of the previous trace.  If present,
  * they must be valid.
  *
- * Messages are pre-allocated all-or-nothing.  So if we've got a 
+ * Messages are pre-allocated all-or-nothing.  So if we've got a
  * start but no end, that's wrong.
  *
- * Note: this function does not take a pointer to a struct, so it is 
- * not a 'proper' _Check function.  It can be used in CHECKL, but 
+ * Note: this function does not take a pointer to a struct, so it is
+ * not a 'proper' _Check function.  It can be used in CHECKL, but
  * not CHECKD etc.
  */
 
@@ -438,11 +438,11 @@ Res TraceIdMessagesCreate(Arena arena, TraceId ti)
   TraceStartMessage tsMessage;
   TraceMessage tMessage;
   Res res;
-  
+
   /* Ensure we don't leak memory */
   AVER(!arena->tsMessage[ti]);
   AVER(!arena->tMessage[ti]);
-  
+
   res = ControlAlloc(&p, arena, sizeof(TraceStartMessageStruct));
   if(res != ResOK)
     goto failTraceStartMessage;
@@ -461,9 +461,9 @@ Res TraceIdMessagesCreate(Arena arena, TraceId ti)
 
   arena->tsMessage[ti] = tsMessage;
   arena->tMessage[ti] = tMessage;
-  
+
   AVER(TraceIdMessagesCheck(arena, ti));
-  
+
   return ResOK;
 
 failTraceMessage:
@@ -484,7 +484,7 @@ void TraceIdMessagesDestroy(Arena arena, TraceId ti)
 {
   TraceStartMessage tsMessage;
   TraceMessage tMessage;
-  
+
   AVER(TraceIdMessagesCheck(arena, ti));
 
   tsMessage = arena->tsMessage[ti];
@@ -573,7 +573,7 @@ void ArenaPark(Globals globals)
 
 
 /* arenaExpose -- discard all protection from MPS-managed memory
- * 
+ *
  * This is called by ArenaPostmortem, which we expect only to be used
  * after a fatal error. So we use the lowest-level description of the
  * MPS-managed memory (the chunk ring page tables) to avoid the risk
@@ -830,42 +830,29 @@ static void arenaForgetProtection(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited
- * <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

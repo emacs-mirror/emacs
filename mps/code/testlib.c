@@ -1,7 +1,7 @@
 /* testlib.c: TEST LIBRARY
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -31,43 +31,43 @@ int fail(void)
  *
  * We use the (Multiplicative) Linear Congruential Generator
  *   Xn = a * Xn-1 mod m
- * with: m = 2147483647 (2^31 - 1, a Mersenne prime), and a = 48271.  
- * This is a 'full-period' generator: all values in [1..(mod-1)] 
- * (ie. 0x00000001 to 0x7ffffffe inclusive) are returned once, and then 
- * the cycle begins again.  The value 0 is not part of the cycle and 
+ * with: m = 2147483647 (2^31 - 1, a Mersenne prime), and a = 48271.
+ * This is a 'full-period' generator: all values in [1..(mod-1)]
+ * (ie. 0x00000001 to 0x7ffffffe inclusive) are returned once, and then
+ * the cycle begins again.  The value 0 is not part of the cycle and
  * is never returned.  So the period = mod-1, ie. 2147483646.
  *
- * This generator is extremely simple and has been very well studied.  
+ * This generator is extremely simple and has been very well studied.
  * It is free of major vices we might care about for this application.
- * In particular, as m is prime, low order bits are random.  Therefore 
- * to roll an N-sided die (N << m), "rnd() % N" is acceptable, giving 
+ * In particular, as m is prime, low order bits are random.  Therefore
+ * to roll an N-sided die (N << m), "rnd() % N" is acceptable, giving
  * a value in [0..N-1].
  *
  * It was popularised by the much-cited Park & Miller paper:
  *   Stephen K Park & Keith W Miller (1988). Random number generators:
- *   good ones are hard to find.  Communications of the ACM, 
+ *   good ones are hard to find.  Communications of the ACM,
  *   31:1192-1201.
  * The recommended multiplier a was later updated from 16807 to 48271:
- *   Stephen K Park, Keith W Miller, Paul K. Stockmeyer (1993). 
+ *   Stephen K Park, Keith W Miller, Paul K. Stockmeyer (1993).
  *   Technical Correspondence.  Communications of the ACM, 36:105-110.
  *
- * (Many more elaborate generators have been invented.  The next simple 
- * step would be to combine with the MLCG m = 2147483399 a = 40692, to 
- * make the period "about 74 quadrillion".  See the summary of chapter 
+ * (Many more elaborate generators have been invented.  The next simple
+ * step would be to combine with the MLCG m = 2147483399 a = 40692, to
+ * make the period "about 74 quadrillion".  See the summary of chapter
  * 3 in Knuth's "The Art of Computer Programming".)
  *
  * This (fast) implementation uses the identity:
  *   0x80000000 == 0x7FFFFFFF + 0x00000001
- * noted by David Carta (1990), where 0x7FFFFFFF == 2^31-1 == m, which 
- * means that bits above the first 31 can simply be shifted >> 31 and 
- * added, preserving Xn mod m.  To remain within 32-bit unsigned 
- * arithmetic when multiplying the previous seed (31 bits) by a (16 
- * bits), the seed is split into bottom and top halves; bits above 
- * the first 31 are simply "top >> 16".  (Code by RHSK, inspired by 
+ * noted by David Carta (1990), where 0x7FFFFFFF == 2^31-1 == m, which
+ * means that bits above the first 31 can simply be shifted >> 31 and
+ * added, preserving Xn mod m.  To remain within 32-bit unsigned
+ * arithmetic when multiplying the previous seed (31 bits) by a (16
+ * bits), the seed is split into bottom and top halves; bits above
+ * the first 31 are simply "top >> 16".  (Code by RHSK, inspired by
  * Robin Whittle's article at "http://www.firstpr.com.au/dsp/rand31/").
  *
  * Slower implementations, used for verification:
- * rnd_verify_schrage uses the method of L. Schrage (1979 & 1983), 
+ * rnd_verify_schrage uses the method of L. Schrage (1979 & 1983),
  *   namely splitting the seed by q, where q = m div a.
  * rnd_verify_float simply uses floating point arithmetic.
  */
@@ -127,7 +127,7 @@ void rnd_verify(int depth)
   unsigned long orig_seed = seed;
   unsigned long i;
   unsigned long r = 0;
-  
+
   /* 0: the next value from rnd() matches rnd_verify_*() */
   if(depth >= 0) {
     seed_verify_schrage = seed;
@@ -169,7 +169,7 @@ void rnd_verify(int depth)
   if(depth >= 2) {
     int verify = (depth >= 3);
     unsigned long r1 = 1;
-    
+
     i = 0;
     seed = 1;
     seed_verify_schrage = seed;
@@ -267,17 +267,17 @@ rnd_state_t rnd_seed(void)
 
 /* randomize -- randomize the generator, or initialize to replay
  *
- * There have been 3 versions of the rnd-states reported by this 
+ * There have been 3 versions of the rnd-states reported by this
  * function:
  *
- * 1. before RHSK got his hands on rnd(), ie. pre-2008.  These seed 
- *    values are not currently supported, but it might be easy to 
+ * 1. before RHSK got his hands on rnd(), ie. pre-2008.  These seed
+ *    values are not currently supported, but it might be easy to
  *    add support.
  *
- * 2. v2 states: the published "seed" (state) value was the seed 
- *    *before* the 10 rnds to churn up and separate nearby values 
- *    from time().  This was unfortunate: you can't write a rnd_state 
- *    getter, because it would have to go 10 steps backwards, and 
+ * 2. v2 states: the published "seed" (state) value was the seed
+ *    *before* the 10 rnds to churn up and separate nearby values
+ *    from time().  This was unfortunate: you can't write a rnd_state
+ *    getter, because it would have to go 10 steps backwards, and
  *    that's impossible.
  *    (2008..2010-03-22)
  *
@@ -295,7 +295,7 @@ void randomize(int argc, char *argv[])
   if (argc > 1) {
     n = sscanf(argv[1], "%lu", &seed0);
     Insist(n == 1);
-    printf("%s: randomize(): resetting initial state (v3) to: %lu.\n", 
+    printf("%s: randomize(): resetting initial state (v3) to: %lu.\n",
            argv[0], seed0);
     rnd_state_set(seed0);
   } else {
@@ -324,7 +324,7 @@ void rnd_state_set(unsigned long seed0)
 
 /* rnd_state_set_2 -- legacy support for v2 rnd states
  *
- * In v2, the published "seed" (state) value was the seed *before* 
+ * In v2, the published "seed" (state) value was the seed *before*
  * the 10 rnds to churn up and separate nearby values from time().
  *
  * Set the seed, then convert it to a v3 state by doing those 10 rnds.
@@ -442,41 +442,29 @@ void testlib_init(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

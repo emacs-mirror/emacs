@@ -1,7 +1,7 @@
 /* ref.c: REFERENCES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.
  *
@@ -110,14 +110,14 @@ Bool RangeInZoneSetFirst(Addr *baseReturn, Addr *limitReturn,
   AVERT(Arena, arena);
   AVER(size > 0);
   AVER(zoneSet != ZoneSetEMPTY);
-  
+
   /* TODO: Consider whether this search is better done by bit twiddling
      zone sets, e.g. by constructing a mask of zone bits as wide as the
      size and rotating the zoneSet. */
 
   if (AddrOffset(base, limit) < size)
     return FALSE;
-  
+
   if (zoneSet == ZoneSetUNIV) {
     *baseReturn = base;
     *limitReturn = limit;
@@ -130,12 +130,12 @@ Bool RangeInZoneSetFirst(Addr *baseReturn, Addr *limitReturn,
     AVER(zoneSet != ZoneSetUNIV);
     return FALSE;
   }
-  
+
   /* There's no point searching through the zoneSet more than once. */
   searchLimit = AddrAdd(AddrAlignUp(base, ArenaStripeSize(arena)), zebra);
   if (searchLimit > base && limit > searchLimit)
     limit = searchLimit;
-  
+
   do {
     Addr next;
 
@@ -153,7 +153,7 @@ Bool RangeInZoneSetFirst(Addr *baseReturn, Addr *limitReturn,
     do
       next = nextStripe(next, limit, arena);
     while (next < limit && ZoneSetHasAddr(arena, zoneSet, next));
-    
+
     /* Is the run big enough to satisfy the size? */
     if (AddrOffset(base, next) >= size) {
       *baseReturn = base;
@@ -199,14 +199,14 @@ Bool RangeInZoneSetLast(Addr *baseReturn, Addr *limitReturn,
   AVERT(Arena, arena);
   AVER(size > 0);
   AVER(zoneSet != ZoneSetEMPTY);
-  
+
   /* TODO: Consider whether this search is better done by bit twiddling
      zone sets, e.g. by constructing a mask of zone bits as wide as the
      size and rotating the zoneSet. */
 
   if (AddrOffset(base, limit) < size)
     return FALSE;
-  
+
   if (zoneSet == ZoneSetUNIV) {
     *baseReturn = base;
     *limitReturn = limit;
@@ -219,12 +219,12 @@ Bool RangeInZoneSetLast(Addr *baseReturn, Addr *limitReturn,
     AVER(zoneSet != ZoneSetUNIV);
     return FALSE;
   }
-  
+
   /* There's no point searching through the zoneSet more than once. */
   searchBase = AddrSub(AddrAlignDown(limit, ArenaStripeSize(arena)), zebra);
   if (searchBase < limit && base < searchBase)
     base = searchBase;
-  
+
   do {
     Addr prev;
 
@@ -242,7 +242,7 @@ Bool RangeInZoneSetLast(Addr *baseReturn, Addr *limitReturn,
     do
       prev = prevStripe(base, prev, arena);
     while (prev > base && ZoneSetHasAddr(arena, zoneSet, AddrSub(prev, 1)));
-    
+
     /* Is the run big enough to satisfy the size? */
     if (AddrOffset(prev, limit) >= size) {
       *baseReturn = prev;
@@ -294,41 +294,29 @@ ZoneSet ZoneSetBlacklist(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

@@ -1,7 +1,7 @@
 /* mpm.c: GENERAL MPM SUPPORT
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
@@ -24,7 +24,7 @@ SRCID(mpm, "$Id$");
 #if defined(AVER_AND_CHECK)
 
 
-/* CheckLevel -- Control check level 
+/* CheckLevel -- Control check level
  *
  * This controls the behaviour of Check methods (see check.h).
  */
@@ -275,7 +275,7 @@ static Res WriteULongest(mps_lib_FILE *stream, ULongest w, unsigned base,
   AVER(2 <= base);
   AVER(base <= 16);
   AVER(width <= MPS_WORD_WIDTH);
- 
+
   /* Add digits to the buffer starting at the right-hand end, so that */
   /* the buffer forms a string representing the number.  A do...while */
   /* loop is used to ensure that at least one digit (zero) is written */
@@ -334,7 +334,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   /* terminator.  See .write.double.check. */
   char buf[1+DBL_DIG+2+1+1+DBL_DIG+1];
   int j = 0;
- 
+
   if (F == 0.0) {
     if (mps_lib_fputs("0", stream) == mps_lib_EOF)
       return ResIO;
@@ -346,7 +346,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     j++;
     F = - F;
   }
- 
+
   /* This scaling operation could introduce rounding errors. */
   for ( ; F >= 1.0 ; F /= 10.0) {
     E++;
@@ -358,7 +358,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   }
   for ( ; F < 0.1; F *= 10)
     E--;
-   
+
   /* See if %e notation is required */
   if (E > expmax || E <= expmin) {
     x = E - 1;
@@ -383,7 +383,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   /* the exponent.  This is Steele and White's FP3 algorithm. */
   do {
     int U;
-   
+
     if (E == 0) {
       buf[j] = '.';
       j++;
@@ -404,7 +404,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     buf[j] = digits[U];
     j++;
   } while (1);
- 
+
   /* Insert trailing 0's */
   for (i = E; i > 0; i--) {
     buf[j] = '0';
@@ -437,7 +437,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     } while (i > 0);
   }
   buf[j] = '\0';                /* arnold */
- 
+
   if (mps_lib_fputs(buf, stream) == mps_lib_EOF)
     return ResIO;
   return ResOK;
@@ -462,7 +462,7 @@ Res WriteF(mps_lib_FILE *stream, Count depth, ...)
 {
   Res res;
   va_list args;
- 
+
   va_start(args, depth);
   res = WriteF_v(stream, depth, args);
   va_end(args);
@@ -479,7 +479,7 @@ Res WriteF_v(mps_lib_FILE *stream, Count depth, va_list args)
   return res;
 }
 
-Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth, 
+Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
                          const char *firstformat, va_list args)
 {
   const char *format;
@@ -491,7 +491,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
   AVER(stream != NULL);
 
   format = firstformat;
- 
+
   for(;;) {
     if (format == NULL)
       break;
@@ -535,7 +535,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
             WriteFF f = va_arg(args, WriteFF);
             Byte *b = (Byte *)&f;
             /* ISO C forbids casting function pointers to integer, so
-               decode bytes (see design.writef.f). 
+               decode bytes (see design.writef.f).
                TODO: Be smarter about endianness. */
             for(i=0; i < sizeof(WriteFF); i++) {
               res = WriteULongest(stream, (ULongest)(b[i]), 16,
@@ -544,21 +544,21 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
                 return res;
             }
           } break;
-           
+
           case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
             r = mps_lib_fputs((const char *)s, stream);
             if (r == mps_lib_EOF)
               return ResIO;
           } break;
-       
+
           case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
             r = mps_lib_fputc((int)c, stream);
             if (r == mps_lib_EOF)
               return ResIO;
           } break;
-       
+
           case 'W': {                   /* word */
             WriteFW w = va_arg(args, WriteFW);
             res = WriteULongest(stream, (ULongest)w, 16,
@@ -587,7 +587,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
             if (res != ResOK)
               return res;
           } break;
-       
+
           case '$': {                   /* dollar char */
             r = mps_lib_fputc('$', stream);
             if (r == mps_lib_EOF)
@@ -600,7 +600,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
             if (res != ResOK)
               return res;
           } break;
-              
+
           default:
           NOTREACHED;
         }
@@ -611,7 +611,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
 
     format = va_arg(args, const char *);
   }
- 
+
   return ResOK;
 }
 
@@ -626,7 +626,7 @@ size_t StringLength(const char *s)
 
   while (s[i] != '\0')
     ++i;
-  
+
   return i;
 }
 
@@ -799,41 +799,29 @@ void QuickSort(void *array[], Count length,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

@@ -1,7 +1,7 @@
 /* table.h: A dictionary mapping a Word to a void*
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * .note.good-hash: As is common in hash table implementations, we
  * assume that the hash function is good.
@@ -18,27 +18,27 @@ SRCID(table, "$Id$");
 
 /* tableHash -- return a hash value from an address
  *
- * This uses a single cycle of an MLCG, more commonly seen as a 
- * pseudorandom number generator.  It works extremely well as a 
+ * This uses a single cycle of an MLCG, more commonly seen as a
+ * pseudorandom number generator.  It works extremely well as a
  * hash function.
  *
  * (In particular, it is substantially better than simply doing this:
  *   seed = (unsigned long)addr * 48271;
  * Tested by RHSK 2010-12-28.)
  *
- * This MLCG is a full period generator: it cycles through every 
- * number from 1 to m-1 before repeating.  Therefore, no two numbers 
- * in that range hash to the same value.  Furthermore, it has prime 
- * modulus, which tends to avoid recurring patterns in the low-order 
- * bits, which is good because the hash will be used modulus the 
+ * This MLCG is a full period generator: it cycles through every
+ * number from 1 to m-1 before repeating.  Therefore, no two numbers
+ * in that range hash to the same value.  Furthermore, it has prime
+ * modulus, which tends to avoid recurring patterns in the low-order
+ * bits, which is good because the hash will be used modulus the
  * number of slots in the table.
  *
- * Of course it's only a 31-bit cycle, so we start by losing the top 
+ * Of course it's only a 31-bit cycle, so we start by losing the top
  * bit of the address, but that's hardly a great problem.
  *
  * See `rnd` in testlib.c for more technical details.
  *
- * The implementation is quite subtle.  See rnd() in testlib.c, where 
+ * The implementation is quite subtle.  See rnd() in testlib.c, where
  * it has been exhaustively (ie: totally) tested.  RHSK 2010-12-28.
  *
  * NOTE: According to NB, still a fine function for producing a 31-bit hash
@@ -47,7 +47,7 @@ SRCID(table, "$Id$");
  * (e.g. ((key >> 2) & 0x7FFFFFFF)), or combine more of the key bits (e.g.
  * ((key ^ (key >> 31)) & 0x7fffffff)).
  */
- 
+
 #define R_m 2147483647UL
 #define R_a 48271UL
 
@@ -103,7 +103,7 @@ static TableEntry tableFind(Table table, TableKey key, Bool skip_deleted)
      is coprime and so visits all entries in the array eventually. */
   AVER(WordIsP2(table->length)); /* .find.visit */
 
-  mask = table->length - 1; 
+  mask = table->length - 1;
   hash = tableHash(key) & mask;
   i = hash;
   do {
@@ -121,24 +121,24 @@ static TableEntry tableFind(Table table, TableKey key, Bool skip_deleted)
 
 /* TableGrow -- increase the capacity of the table
  *
- * Ensure the transform's hashtable can accommodate N entries (filled 
- * slots), without becoming cramped.  If necessary, resize the 
+ * Ensure the transform's hashtable can accommodate N entries (filled
+ * slots), without becoming cramped.  If necessary, resize the
  * hashtable by allocating a new one and rehashing all old entries.
  * If insufficient memory, return error without modifying table.
  *
- * .hash.spacefraction: As with all closed hash tables, we must choose 
- * an appropriate proportion of slots to remain free.  More free slots 
- * help avoid large-sized contiguous clumps of full cells and their 
- * associated linear search costs. 
+ * .hash.spacefraction: As with all closed hash tables, we must choose
+ * an appropriate proportion of slots to remain free.  More free slots
+ * help avoid large-sized contiguous clumps of full cells and their
+ * associated linear search costs.
  *
  * .hash.initial: Any reasonable number.
  *
- * .hash.growth: A compromise between space inefficiency (growing bigger 
- * than required) and time inefficiency (growing too slowly, with all 
- * the rehash costs at every step).  A factor of 2 means that at the 
- * point of growing to a size X table, hash-work equivalent to filling 
- * a size-X table has already been done.  So we do at most 2x the 
- * hash-work we would have done if we had been able to guess the right 
+ * .hash.growth: A compromise between space inefficiency (growing bigger
+ * than required) and time inefficiency (growing too slowly, with all
+ * the rehash costs at every step).  A factor of 2 means that at the
+ * point of growing to a size X table, hash-work equivalent to filling
+ * a size-X table has already been done.  So we do at most 2x the
+ * hash-work we would have done if we had been able to guess the right
  * table size initially.
  *
  * Numbers of slots maintain this relation:
@@ -189,7 +189,7 @@ Res TableGrow(Table table, Count extraCapacity)
     newArray[i].key = table->unusedKey;
     newArray[i].value = NULL;
   }
- 
+
   table->length = newLength;
   table->array = newArray;
 
@@ -245,13 +245,13 @@ Res TableCreate(Table *tableReturn, Count length,
   table->unusedKey = unusedKey;
   table->deletedKey = deletedKey;
   table->sig = TableSig;
-  
+
   AVERT(Table, table);
 
   res = TableGrow(table, length);
   if (res != ResOK)
     return res;
- 
+
   *tableReturn = table;
   return ResOK;
 }
@@ -291,7 +291,7 @@ Bool TableLookup(TableValue *valueReturn, Table table, TableKey key)
 Res TableDefine(Table table, TableKey key, TableValue value)
 {
   TableEntry entry;
-  
+
   AVER(key != table->unusedKey);
   AVER(key != table->deletedKey);
 
@@ -325,7 +325,7 @@ Res TableDefine(Table table, TableKey key, TableValue value)
 Res TableRedefine(Table table, TableKey key, TableValue value)
 {
   TableEntry entry;
- 
+
   AVER(key != table->unusedKey);
   AVER(key != table->deletedKey);
 
@@ -379,41 +379,29 @@ Count TableCount(Table table)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

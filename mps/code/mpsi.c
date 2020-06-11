@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -473,12 +473,12 @@ mps_bool_t mps_addr_pool(mps_pool_t *mps_pool_o,
 
 /* mps_addr_fmt -- what format might this address have?
  *
- * .per-pool: There's no reason why all objects in a pool should have 
- * the same format.  But currently, MPS internals support at most one 
+ * .per-pool: There's no reason why all objects in a pool should have
+ * the same format.  But currently, MPS internals support at most one
  * format per pool.
  *
- * If the address is in a pool and has a format, returns TRUE and 
- * updates *mps_fmt_o to be that format.  Otherwise, returns FALSE 
+ * If the address is in a pool and has a format, returns TRUE and
+ * updates *mps_fmt_o to be that format.  Otherwise, returns FALSE
  * and does not update *mps_fmt_o.
  *
  * Note: may return an MPS-internal format.
@@ -879,7 +879,7 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t pool,
   AVER(mps_ap_o != NULL);
   AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
-  
+
   ArenaEnter(arena);
   AVERT(Pool, pool);
   bufclass = PoolDefaultBufferClass(pool);
@@ -1428,7 +1428,7 @@ mps_res_t mps_root_create_area_tagged(mps_root_t *mps_root_o,
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
-  
+
 
 mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_arena_t arena,
@@ -2175,7 +2175,7 @@ void mps_chain_destroy(mps_chain_t chain)
 }
 
 
-/* _mps_args_set_key -- set the key for a keyword argument 
+/* _mps_args_set_key -- set the key for a keyword argument
  *
  * This sets the key for the i'th keyword argument in the array args,
  * with bounds checking on i. It is used by the MPS_ARGS_BEGIN,
@@ -2195,41 +2195,29 @@ void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
