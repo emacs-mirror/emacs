@@ -2095,6 +2095,7 @@ struct Lisp_Subr
     };
     EMACS_INT doc;
     Lisp_Object native_comp_u[NATIVE_COMP_FLAG];
+    const char *native_c_name[NATIVE_COMP_FLAG];
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {

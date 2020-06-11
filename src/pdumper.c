@@ -2937,7 +2937,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_99B6674034)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_92BED44D81)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -2964,7 +2964,11 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
     }
   DUMP_FIELD_COPY (&out, subr, doc);
   if (NATIVE_COMP_FLAG)
-    dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
+    {
+      dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
+      if (!NILP (subr->native_comp_u[0]))
+	dump_field_fixup_later (ctx, &out, subr, &subr->native_c_name[0]);
+    }
 
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
   if (NATIVE_COMP_FLAG
@@ -3492,6 +3496,15 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
   const char *symbol_name = XSUBR (subr)->symbol_name;
   ALLOW_IMPLICIT_CONVERSION;
   dump_write (ctx, symbol_name, 1 + strlen (symbol_name));
+  DISALLOW_IMPLICIT_CONVERSION;
+
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     subr_offset + dump_offsetof (struct Lisp_Subr, native_c_name[0]),
+     ctx->offset);
+  const char *c_name = XSUBR (subr)->native_c_name[0];
+  ALLOW_IMPLICIT_CONVERSION;
+  dump_write (ctx, c_name, 1 + strlen (c_name));
   DISALLOW_IMPLICIT_CONVERSION;
 }
 
@@ -5342,20 +5355,18 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	   a 'top_level_run' mechanism, we revive them one-by-one
 	   here.  */
 	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);
-	Lisp_Object name = intern (subr->symbol_name);
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  XNATIVE_COMP_UNIT (subr->native_comp_u[0]);
 	if (!comp_u->handle)
 	  error ("can't relocate native subr with not loaded compilation unit");
-	Lisp_Object c_name = Fgethash (name, Vcomp_sym_subr_c_name_h, Qnil);
-	if (NILP (c_name))
-	  error ("missing label name");
-	void *func = dynlib_sym (comp_u->handle, SSDATA (c_name));
+	const char *c_name = subr->native_c_name[0];
+	eassert (c_name);
+	void *func = dynlib_sym (comp_u->handle, c_name);
 	if (!func)
 	  error ("can't find function in compilation unit");
 	subr->function.a0 = func;
 	Lisp_Object lambda_data_idx =
-	  Fgethash (c_name, comp_u->lambda_c_name_idx_h, Qnil);
+	  Fgethash (build_string (c_name), comp_u->lambda_c_name_idx_h, Qnil);
 	if (!NILP (lambda_data_idx))
 	  {
 	    /* This is an anonymous lambda.

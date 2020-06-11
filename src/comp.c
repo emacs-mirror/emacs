@@ -4567,6 +4567,7 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   x->s.native_intspec = intspec;
   x->s.doc = XFIXNUM (doc_idx);
   x->s.native_comp_u[0] = comp_u;
+  x->s.native_c_name[0] = xstrdup (SSDATA (c_name));
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
 
@@ -4595,9 +4596,6 @@ DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
      from dump.  See 'dump_do_dump_relocation'.  */
   eassert (NILP (Fgethash (c_name, cu->lambda_c_name_idx_h, Qnil)));
   Fputhash (c_name, reloc_idx, cu->lambda_c_name_idx_h);
-  /* The key is not really important as long is the same as
-     symbol_name so use c_name.  */
-  Fputhash (Fintern (c_name, Qnil), c_name, Vcomp_sym_subr_c_name_h);
   /* Do the real relocation fixup.  */
   cu->data_imp_relocs[XFIXNUM (reloc_idx)] = tem;
 
@@ -4618,7 +4616,6 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
 
   set_symbol_function (name, tem);
   LOADHIST_ATTACH (Fcons (Qdefun, name));
-  Fputhash (name, c_name, Vcomp_sym_subr_c_name_h);
 
   return tem;
 }
@@ -4820,10 +4817,6 @@ syms_of_comp (void)
      to be necessarily exposed to lisp but can easy debug for now.  */
   DEFVAR_LISP ("comp-subr-list", Vcomp_subr_list,
 	       doc: /* List of all defined subrs.  */);
-  DEFVAR_LISP ("comp-sym-subr-c-name-h", Vcomp_sym_subr_c_name_h,
-	       doc: /* Hash table symbol-function -> function-c-name.  For
-		       internal use during dump reload */);
-  Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table, QCtest, Qeq);
   DEFVAR_LISP ("comp-abi-hash", Vcomp_abi_hash,
 	       doc: /* String signing the ABI exposed to .eln files.  */);
   Vcomp_abi_hash = Qnil;
