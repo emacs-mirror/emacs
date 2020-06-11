@@ -81,6 +81,69 @@
     (should (equal (match-string 2 str) "mWh")))
   (should-not (string-match (rx battery--acpi-capacity eos) "45 mW")))
 
+(ert-deftest battery-upower-state ()
+  "Test `battery--upower-state'."
+  ;; Charging.
+  (dolist (total '(nil charging discharging empty fully-charged
+                       pending-charge pending-discharge))
+    (should (eq (battery--upower-state '(("State" . 1)) total) 'charging)))
+  (dolist (state '(nil 0 1 2 3 4 5 6))
+    (should (eq (battery--upower-state `(("State" . ,state)) 'charging)
+                'charging)))
+  ;; Discharging.
+  (dolist (total '(nil discharging empty fully-charged
+                       pending-charge pending-discharge))
+    (should (eq (battery--upower-state '(("State" . 2)) total) 'discharging)))
+  (dolist (state '(nil 0 2 3 4 5 6))
+    (should (eq (battery--upower-state `(("State" . ,state)) 'discharging)
+                'discharging)))
+  ;; Pending charge.
+  (dolist (total '(nil empty fully-charged pending-charge pending-discharge))
+    (should (eq (battery--upower-state '(("State" . 5)) total)
+                'pending-charge)))
+  (dolist (state '(nil 0 3 4 5 6))
+    (should (eq (battery--upower-state `(("State" . ,state)) 'pending-charge)
+                'pending-charge)))
+  ;; Pending discharge.
+  (dolist (total '(nil empty fully-charged pending-discharge))
+    (should (eq (battery--upower-state '(("State" . 6)) total)
+                'pending-discharge)))
+  (dolist (state '(nil 0 3 4 6))
+    (should (eq (battery--upower-state `(("State" . ,state)) 'pending-discharge)
+                'pending-discharge)))
+  ;; Empty.
+  (dolist (total '(nil empty))
+    (should (eq (battery--upower-state '(("State" . 3)) total) 'empty)))
+  (dolist (state '(nil 0 3))
+    (should (eq (battery--upower-state `(("State" . ,state)) 'empty) 'empty)))
+  ;; Fully charged.
+  (dolist (total '(nil fully-charged))
+    (should (eq (battery--upower-state '(("State" . 4)) total) 'fully-charged)))
+  (dolist (state '(nil 0 4))
+    (should (eq (battery--upower-state `(("State" . ,state)) 'fully-charged)
+                'fully-charged))))
+
+(ert-deftest battery-upower-state-unknown ()
+  "Test `battery--upower-state' with unknown states."
+  ;; Unknown running total retains new state.
+  (should-not (battery--upower-state () nil))
+  (should-not (battery--upower-state '(("State" . state)) nil))
+  (should-not (battery--upower-state '(("State" . 0)) nil))
+  (should (eq (battery--upower-state '(("State" . 1)) nil) 'charging))
+  (should (eq (battery--upower-state '(("State" . 2)) nil) 'discharging))
+  (should (eq (battery--upower-state '(("State" . 3)) nil) 'empty))
+  (should (eq (battery--upower-state '(("State" . 4)) nil) 'fully-charged))
+  (should (eq (battery--upower-state '(("State" . 5)) nil) 'pending-charge))
+  (should (eq (battery--upower-state '(("State" . 6)) nil) 'pending-discharge))
+  ;; Unknown new state retains running total.
+  (dolist (props '(() (("State" . state)) (("State" . 0))))
+    (dolist (total '(nil charging discharging empty fully-charged
+                         pending-charge pending-discharge))
+      (should (eq (battery--upower-state props total) total))))
+  ;; Conflicting empty and fully-charged.
+  (should-not (battery--upower-state '(("State" . 3)) 'fully-charged))
+  (should-not (battery--upower-state '(("State" . 4)) 'empty)))
+
 (ert-deftest battery-format ()
   "Test `battery-format'."
   (should (equal (battery-format "" ()) ""))

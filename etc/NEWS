@@ -464,6 +464,16 @@ have now been removed.
 ** Battery
 
 ---
+*** UPower is now the default battery status backend when available.
+UPower support via the function 'battery-upower' was added in Emacs
+26.1, but was disabled by default.  It is now the default value of
+'battery-status-function' when the system provides a UPower D-Bus
+service.  The user options 'battery-upower-device' and
+'battery-upower-subscribe' control which power sources to query and
+whether to respond to status change notifications in addition to
+polling, respectively.
+
+---
 *** A richer syntax can be used to format battery status information.
 The user options 'battery-mode-line-format' and
 'battery-echo-area-format' now support the full formatting syntax of
