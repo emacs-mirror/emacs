@@ -199,7 +199,7 @@ The name is made by appending a number to PREFIX, default \"T\"."
     [&optional ["&key" [cl-&key-arg &rest cl-&key-arg]
 		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
-		&or (symbolp &optional def-form) symbolp]]
+		&or (cl-lambda-arg &optional def-form) arg]]
     . [&or arg nil])))
 
 (def-edebug-spec cl-&optional-arg
@@ -219,7 +219,7 @@ The name is made by appending a number to PREFIX, default \"T\"."
     [&optional ["&key" cl-&key-arg &rest cl-&key-arg
                 &optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
-                &or (symbolp &optional def-form) symbolp]]
+                &or (cl-lambda-arg &optional def-form) arg]]
     . [&or arg nil])))
 
 (def-edebug-spec cl-type-spec sexp)
@@ -402,7 +402,7 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 			     arg]]
 		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
-		&or (symbolp &optional def-form) symbolp]]
+		&or (cl-macro-arg &optional def-form) arg]]
     [&optional "&environment" arg]
     )))
 
@@ -421,7 +421,7 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 			     arg]]
 		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
-		&or (symbolp &optional def-form) symbolp]]
+		&or (cl-macro-arg &optional def-form) arg]]
     . [&or arg nil])))
 
 ;;;###autoload

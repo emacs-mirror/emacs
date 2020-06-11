@@ -601,4 +601,13 @@ collection clause."
                    collect y into result1
                    finally return  (equal (nreverse result) result1))))
 
+(ert-deftest cl-macs-aux-edebug ()
+  "Check that Bug#40431 is fixed."
+  (with-temp-buffer
+    (prin1 '(cl-defun cl-macs-aux-edebug-test-fun (&aux ((a . b) '(1 . 2)))
+              (list a b))
+           (current-buffer))
+    ;; Just make sure the function can be instrumented.
+    (edebug-defun)))
+
 ;;; cl-macs-tests.el ends here

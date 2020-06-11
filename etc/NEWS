@@ -333,7 +333,7 @@ prefix on the Subject line in various languages.
 These new navigation commands are bound to 'n' and 'p' in
 'apropos-mode'.
 
-** CC mode
+** CC Mode
 
 *** Added support for Doxygen documentation style.
 'doxygen' is now a valid 'c-doc-comment-style' which recognises all

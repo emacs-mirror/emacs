@@ -763,13 +763,7 @@ Arguments the same as in `compile'."
           (when (file-exists-p filename)
             (with-temp-buffer
               (insert-file-contents filename)
-              (let ((dirs (split-string (buffer-string) "\n" t))
-                    (project-list '()))
-                (dolist (dir dirs)
-                  (cl-pushnew (file-name-as-directory dir)
-                              project-list
-                              :test #'equal))
-                (reverse project-list)))))))
+              (read (current-buffer)))))))
 
 (defun project--ensure-read-project-list ()
   "Initialize `project--list' if it hasn't already been."
@@ -780,7 +774,8 @@ Arguments the same as in `compile'."
   "Persist `project--list' to the project list file."
   (let ((filename project-list-file))
     (with-temp-buffer
-      (insert (string-join project--list "\n"))
+      (insert ";;; -*- lisp-data -*-\n")
+      (pp project--list (current-buffer))
       (write-region nil nil filename nil 'silent))))
 
 (defun project--add-to-project-list-front (pr)
@@ -788,9 +783,9 @@ Arguments the same as in `compile'."
 Save the result to disk if the project list was changed."
   (project--ensure-read-project-list)
   (let ((dir (project-root pr)))
-    (unless (equal (car project--list) dir)
-      (setq project--list (delete dir project--list))
-      (push dir project--list)
+    (unless (equal (caar project--list) dir)
+      (setq project--list (assoc-delete-all dir project--list))
+      (push (list dir) project--list)
       (project--write-project-list))))
 
 (defun project--remove-from-project-list (pr-dir)
@@ -798,8 +793,8 @@ Save the result to disk if the project list was changed."
 If the directory was in the list before the removal, save the
 result to disk."
   (project--ensure-read-project-list)
-  (when (member pr-dir project--list)
-    (setq project--list (delete pr-dir project--list))
+  (when (assoc pr-dir project--list)
+    (setq project--list (assoc-delete-all pr-dir project--list))
     (message "Project `%s' not found; removed from list" pr-dir)
     (project--write-project-list)))
 

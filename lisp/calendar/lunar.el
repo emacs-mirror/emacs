@@ -1,4 +1,4 @@
-;;; lunar.el --- calendar functions for phases of the moon
+;;; lunar.el --- calendar functions for phases of the moon  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992-1993, 1995, 1997, 2001-2020 Free Software
 ;; Foundation, Inc.
@@ -255,6 +255,8 @@ use instead of point."
 If called with an optional prefix argument ARG, prompts for month and year.
 This function is suitable for execution in an init file."
   (interactive "P")
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))
   (save-excursion
     (let* ((date (if arg (calendar-read-date t)
                    (calendar-current-date)))
@@ -262,18 +264,17 @@ This function is suitable for execution in an init file."
            (displayed-year (calendar-extract-year date)))
       (calendar-lunar-phases))))
 
-;; The function below is designed to be used in sexp diary entries,
-;; and may be present in users' diary files, so suppress the warning
-;; about this prefix-less dynamic variable.  It's called from
-;; `diary-list-sexp-entries', which binds the variable.
-(with-suppressed-warnings ((lexical date))
-  (defvar date))
-
 ;;;###diary-autoload
 (defun diary-lunar-phases (&optional mark)
   "Moon phases diary entry.
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
+  ;; This function is designed to be used in sexp diary entries, and
+  ;; may be present in users' diary files, so suppress the warning
+  ;; about this prefix-less dynamic variable.  It's called from
+  ;; `diary-list-sexp-entries', which binds the variable.
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))
   (let* ((index (lunar-index date))
          (phase (lunar-phase index)))
     (while (calendar-date-compare phase (list date))
