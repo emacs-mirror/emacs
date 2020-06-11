@@ -22,9 +22,9 @@
 (require 'battery)
 
 (ert-deftest battery-linux-proc-apm-regexp ()
-  "Test `battery-linux-proc-apm-regexp'."
+  "Test `rx' definition `battery--linux-proc-apm'."
   (let ((str "1.16 1.2 0x07 0x01 0xff 0x80 -1% -1 ?"))
-    (should (string-match battery-linux-proc-apm-regexp str))
+    (should (string-match (rx battery--linux-proc-apm) str))
     (should (equal (match-string 0 str) str))
     (should (equal (match-string 1 str) "1.16"))
     (should (equal (match-string 2 str) "1.2"))
@@ -36,7 +36,7 @@
     (should (equal (match-string 8 str) "-1"))
     (should (equal (match-string 9 str) "?")))
   (let ((str "1.16 1.2 0x03 0x00 0x00 0x01 99% 1792 min"))
-    (should (string-match battery-linux-proc-apm-regexp str))
+    (should (string-match (rx battery--linux-proc-apm) str))
     (should (equal (match-string 0 str) str))
     (should (equal (match-string 1 str) "1.16"))
     (should (equal (match-string 2 str) "1.2"))
@@ -47,6 +47,39 @@
     (should (equal (match-string 7 str) "99"))
     (should (equal (match-string 8 str) "1792"))
     (should (equal (match-string 9 str) "min"))))
+
+(ert-deftest battery-acpi-rate-regexp ()
+  "Test `rx' definition `battery--acpi-rate'."
+  (let ((str "01 mA"))
+    (should (string-match (rx (battery--acpi-rate)) str))
+    (should (equal (match-string 0 str) str))
+    (should (equal (match-string 1 str) "01"))
+    (should (equal (match-string 2 str) "mA")))
+  (let ((str "23 mW"))
+    (should (string-match (rx (battery--acpi-rate)) str))
+    (should (equal (match-string 0 str) str))
+    (should (equal (match-string 1 str) "23"))
+    (should (equal (match-string 2 str) "mW")))
+  (let ((str "23 mWh"))
+    (should (string-match (rx (battery--acpi-rate)) str))
+    (should (equal (match-string 0 str) "23 mW"))
+    (should (equal (match-string 1 str) "23"))
+    (should (equal (match-string 2 str) "mW")))
+  (should-not (string-match (rx (battery--acpi-rate) eos) "45 mWh")))
+
+(ert-deftest battery-acpi-capacity-regexp ()
+  "Test `rx' definition `battery--acpi-capacity'."
+  (let ((str "01 mAh"))
+    (should (string-match (rx battery--acpi-capacity) str))
+    (should (equal (match-string 0 str) str))
+    (should (equal (match-string 1 str) "01"))
+    (should (equal (match-string 2 str) "mAh")))
+  (let ((str "23 mWh"))
+    (should (string-match (rx battery--acpi-capacity) str))
+    (should (equal (match-string 0 str) str))
+    (should (equal (match-string 1 str) "23"))
+    (should (equal (match-string 2 str) "mWh")))
+  (should-not (string-match (rx battery--acpi-capacity eos) "45 mW")))
 
 (ert-deftest battery-format ()
   "Test `battery-format'."
