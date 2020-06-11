@@ -4398,6 +4398,12 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
   return true;
 }
 
+static void
+unset_cu_load_ongoing (Lisp_Object comp_u)
+{
+  XNATIVE_COMP_UNIT (comp_u)->load_ongoing = false;
+}
+
 void
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 		bool late_load)
@@ -4432,6 +4438,14 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     }
   else
     *saved_cu = comp_u_lisp_obj;
+
+  /* Once we are sure to have the right compilation unit we want to
+     identify is we have at least another load active on it.  */
+  bool recursive_load = comp_u->load_ongoing;
+  comp_u->load_ongoing = true;
+  ptrdiff_t count = SPECPDL_INDEX ();
+  if (!recursive_load)
+    record_unwind_protect (unset_cu_load_ongoing, comp_u_lisp_obj);
 
   freloc_check_fill ();
 
@@ -4508,14 +4522,21 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 are necessary exclusively during the first load.  Once these
 	 are collected we don't have to maintain them in the heap
 	 forever.  */
+      Lisp_Object volatile data_ephemeral_vec;
+      /* In case another load of the same CU is active on the stack
+	 all ephemeral data is hold by that frame.  Re-writing
+	 'data_ephemeral_vec' would be not only a waste of cycles but
+	 more importanly would lead to crashed if the contained data
+	 is not cons hashed.  */
+      if (!recursive_load)
+	{
+	  Lisp_Object volatile data_ephemeral_vec  =
+	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
 
-      Lisp_Object volatile data_ephemeral_vec  =
-	load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
-
-      EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
-      for (EMACS_INT i = 0; i < d_vec_len; i++)
-	data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
-
+	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
+	  for (EMACS_INT i = 0; i < d_vec_len; i++)
+	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
+	}
       /* Executing this will perform all the expected environment
 	 modifications.  */
       top_level_run (comp_u_lisp_obj);
@@ -4524,6 +4545,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       data_ephemeral_vec = data_ephemeral_vec;
       eassert (check_comp_unit_relocs (comp_u));
     }
+
+  if (!recursive_load)
+    /* Clean-up the load ongoing flag in case.  */
+    unbind_to (count, Qnil);
 
   return;
 }

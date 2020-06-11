@@ -52,7 +52,7 @@ struct Lisp_Native_Comp_Unit
   /* STUFFS WE DO NOT DUMP!!  */
   Lisp_Object *data_imp_relocs;
   bool loaded_once;
-
+  bool load_ongoing;
   dynlib_handle_ptr handle;
 #ifdef WINDOWSNT
   /* We need to store a copy of the original file name in memory that
