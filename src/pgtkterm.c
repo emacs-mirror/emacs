@@ -80,6 +80,8 @@ static struct event_queue_t {
 
 static Time ignore_next_mouse_click_timeout;
 
+static Lisp_Object xg_default_icon_file;
+
 static void pgtk_delete_display (struct pgtk_display_info *dpyinfo);
 static void pgtk_clear_frame_area(struct frame *f, int x, int y, int width, int height);
 static void pgtk_fill_rectangle(struct frame *f, unsigned long color, int x, int y, int width, int height);
@@ -475,6 +477,11 @@ pgtk_make_frame_visible (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   PGTK_TRACE("pgtk_make_frame_visible");
+
+  GtkWidget *win = FRAME_OUTPUT_DATA(f)->widget;
+
+  gtk_widget_show(win);
+
 #if 0
   NSTRACE ("x_make_frame_visible");
   /* XXX: at some points in past this was not needed, as the only place that
@@ -529,6 +536,11 @@ pgtk_make_frame_invisible (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   PGTK_TRACE("pgtk_make_frame_invisible");
+
+  GtkWidget *win = FRAME_OUTPUT_DATA(f)->widget;
+
+  gtk_widget_hide(win);
+
 #if 0
   NSView *view;
   NSTRACE ("x_make_frame_invisible");
@@ -2766,16 +2778,30 @@ pgtk_update_begin (struct frame *f)
 
   if (! FRAME_CR_SURFACE (f))
     {
-      int width = FRAME_PIXEL_WIDTH (f);
-      int height = FRAME_PIXEL_HEIGHT (f);
+      int width, height;
+      if (FRAME_GTK_WIDGET (f))
+	{
+	  GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+	  width = gdk_window_get_width (w);
+	  height = gdk_window_get_height (w);
+	}
+      else
+	{
+	  width = FRAME_PIXEL_WIDTH (f);
+	  height = FRAME_PIXEL_HEIGHT (f);
+	  if (! FRAME_EXTERNAL_TOOL_BAR (f))
+	    height += FRAME_TOOL_BAR_HEIGHT (f);
+	  if (! FRAME_EXTERNAL_MENU_BAR (f))
+	    height += FRAME_MENU_BAR_HEIGHT (f);
+	}
 
       if (width > 0 && height > 0)
-        {
-          block_input();
-          FRAME_CR_SURFACE (f) = cairo_image_surface_create
-            (CAIRO_FORMAT_ARGB32, width, height);
-          unblock_input();
-        }
+	{
+	  block_input();
+	  FRAME_CR_SURFACE (f) = cairo_image_surface_create
+	    (CAIRO_FORMAT_ARGB32, width, height);
+	  unblock_input();
+	}
     }
 
   pgtk_clear_under_internal_border (f);
@@ -6123,7 +6149,7 @@ pgtk_defined_color (struct frame *f,
 
 int pgtk_parse_color (const char *color_name, Emacs_Color *color)
 {
-  // PGTK_TRACE("pgtk_parse_color: %s", color_name);
+  PGTK_TRACE("pgtk_parse_color: %s", color_name);
 
   GdkRGBA rgba;
   if (gdk_rgba_parse(&rgba, color_name)) {
@@ -6173,6 +6199,7 @@ pgtk_query_colors (struct frame *f, Emacs_Color *colors, int ncolors)
       colors[i].red = GetRValue (pixel) * 257;
       colors[i].green = GetGValue (pixel) * 257;
       colors[i].blue = GetBValue (pixel) * 257;
+      PGTK_TRACE("pixel: %lx, red: %d, blue %d, green %d", colors[i].pixel, colors[i].red, colors[i].blue, colors[i].green);
     }
 }
 
@@ -6216,6 +6243,12 @@ syms_of_pgtkterm (void)
   DEFSYM (Qurl, "url");
 
   DEFSYM (Qlatin_1, "latin-1");
+
+  xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+  staticpro (&xg_default_icon_file);
+
+  DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
+
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));

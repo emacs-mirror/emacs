@@ -14330,10 +14330,8 @@ redisplay_tool_bar (struct frame *f)
   f->tool_bar_redisplayed = true;
 #ifdef HAVE_EXT_TOOL_BAR
 
-#if 0
   if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
-#endif
   return false;
 
 #else /* ! (HAVE_EXT_TOOL_BAR) */

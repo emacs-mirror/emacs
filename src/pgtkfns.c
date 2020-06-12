@@ -1394,22 +1394,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
  return unbind_to (count, frame);
 }
 
-void
-x_focus_frame (struct frame *f, bool noactivate)
-{
-  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-
-#if 0
-  if (dpyinfo->x_focus_frame != f)
-    {
-      EmacsView *view = FRAME_PGTK_VIEW (f);
-      block_input ();
-      [NSApp activateIgnoringOtherApps: YES];
-      [[view window] makeKeyAndOrderFront: view];
-      unblock_input ();
-    }
-#endif
-}
 
 #if 0
 static int

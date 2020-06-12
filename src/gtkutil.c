@@ -316,8 +316,8 @@ xg_create_default_cursor (GdkDisplay *gdpy)
 
 static GdkPixbuf *
 xg_get_pixbuf_from_pix_and_mask (struct frame *f,
-                                 Pixmap pix,
-                                 Pixmap mask)
+                                 Emacs_Pixmap pix,
+                                 Emacs_Pixmap mask)
 {
   GdkPixbuf *icon_buf = 0;
   int iunused;
@@ -327,7 +327,7 @@ xg_get_pixbuf_from_pix_and_mask (struct frame *f,
 #ifndef HAVE_PGTK
   if (FRAME_DISPLAY_INFO (f)->red_bits != 8)
     return 0;
-#endif
+
   XGetGeometry (FRAME_X_DISPLAY (f), pix, &wunused, &iunused, &iunused,
                 &width, &height, &uunused, &depth);
   if (depth != 24)
@@ -359,10 +359,20 @@ xg_get_pixbuf_from_pix_and_mask (struct frame *f,
 	XDestroyImage (xmm);
       XDestroyImage (xim);
     }
+#else
+  width = pix->width;
+  height = pix->height;
+  depth = pix->bits_per_pixel;
+
+  icon_buf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+
+
+#endif
 
   return icon_buf;
 }
-#endif
+
+
 
 #if defined USE_CAIRO && !defined HAVE_GTK3
 static GdkPixbuf *
@@ -413,6 +423,8 @@ xg_get_pixbuf_from_surface (cairo_surface_t *surface)
   return icon_buf;
 }
 #endif	/* USE_CAIRO && !HAVE_GTK3 */
+
+#endif /* !HAVE_PGTK */
 
 static Lisp_Object
 file_for_image (Lisp_Object image)

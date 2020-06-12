@@ -507,7 +507,22 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #endif
 
 #ifdef HAVE_PGTK
-  return -1;   // fixme:
+  GError *err;
+  ptrdiff_t id;
+  void * bitmap = gdk_pixbuf_new_from_file(SSDATA(file), &err);
+
+  if (!bitmap)
+    return -1;
+
+  id = image_allocate_bitmap_record(f);
+
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
+  //dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
+  dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
+  return id;
 #endif
 
 #ifdef HAVE_X_WINDOWS

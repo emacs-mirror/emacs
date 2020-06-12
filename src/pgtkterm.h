@@ -574,7 +574,7 @@ extern void pgtk_make_frame_invisible (struct frame *f);
 extern void x_wm_set_size_hint (struct frame *, long, bool);
 extern void x_free_frame_resources (struct frame *);
 extern void pgtk_iconify_frame (struct frame *f);
-extern void x_focus_frame (struct frame *f, bool noactivate);
+extern void pgtk_focus_frame (struct frame *f, bool noactivate);
 extern void pgtk_set_scroll_bar_default_width (struct frame *f);
 extern void pgtk_set_scroll_bar_default_height (struct frame *f);
 extern Lisp_Object x_get_focus_frame (struct frame *frame);
