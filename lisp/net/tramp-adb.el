@@ -136,7 +136,7 @@ It is used for TCP/IP devices."
     (file-selinux-context . tramp-handle-file-selinux-context)
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-adb-handle-file-system-info)
-    (file-truename . tramp-adb-handle-file-truename)
+    (file-truename . tramp-handle-file-truename)
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -226,104 +226,6 @@ ARGUMENTS to pass to the OPERATION."
 		(* 1024 (- (string-to-number (match-string 1))
 			   (string-to-number (match-string 2))))
 		(* 1024 (string-to-number (match-string 3)))))))))
-
-;; This is derived from `tramp-sh-handle-file-truename'.  Maybe the
-;; code could be shared?
-(defun tramp-adb-handle-file-truename (filename)
-  "Like `file-truename' for Tramp files."
-  ;; Preserve trailing "/".
-  (funcall
-   (if (directory-name-p filename) #'file-name-as-directory #'identity)
-   ;; Quote properly.
-   (funcall
-    (if (tramp-compat-file-name-quoted-p filename)
-	#'tramp-compat-file-name-quote #'identity)
-    (with-parsed-tramp-file-name
-	(tramp-compat-file-name-unquote (expand-file-name filename)) nil
-      (tramp-make-tramp-file-name
-       v
-       (with-tramp-file-property v localname "file-truename"
-	 (let (result)			; result steps in reverse order
-	   (tramp-message v 4 "Finding true name for `%s'" filename)
-	   (let* ((steps (split-string localname "/" 'omit))
-		  (localnamedir (tramp-run-real-handler
-				 'file-name-as-directory (list localname)))
-		  (is-dir (string= localname localnamedir))
-		  (thisstep nil)
-		  (numchase 0)
-		  ;; Don't make the following value larger than
-		  ;; necessary.  People expect an error message in a
-		  ;; timely fashion when something is wrong; otherwise
-		  ;; they might think that Emacs is hung.  Of course,
-		  ;; correctness has to come first.
-		  (numchase-limit 20)
-		  symlink-target)
-	     (while (and steps (< numchase numchase-limit))
-	       (setq thisstep (pop steps))
-	       (tramp-message
-		v 5 "Check %s"
-		(string-join
-		 (append '("") (reverse result) (list thisstep)) "/"))
-	       (setq symlink-target
-		     (tramp-compat-file-attribute-type
-		      (file-attributes
-		       (tramp-make-tramp-file-name
-			v
-			(string-join
-			 (append
-			  '("") (reverse result) (list thisstep)) "/")))))
-	       (cond ((string= "." thisstep)
-		      (tramp-message v 5 "Ignoring step `.'"))
-		     ((string= ".." thisstep)
-		      (tramp-message v 5 "Processing step `..'")
-		      (pop result))
-		     ((stringp symlink-target)
-		      ;; It's a symlink, follow it.
-		      (tramp-message v 5 "Follow symlink to %s" symlink-target)
-		      (setq numchase (1+ numchase))
-		      (when (file-name-absolute-p symlink-target)
-			(setq result nil))
-		      ;; If the symlink was absolute, we'll get a string
-		      ;; like "/user@host:/some/target"; extract the
-		      ;; "/some/target" part from it.
-		      (when (tramp-tramp-file-p symlink-target)
-			(unless (tramp-equal-remote filename symlink-target)
-			  (tramp-error
-			   v 'file-error
-			   "Symlink target `%s' on wrong host" symlink-target))
-			(setq symlink-target localname))
-		      (setq steps
-			    (append (split-string symlink-target "/" 'omit)
-				    steps)))
-		     (t
-		      ;; It's a file.
-		      (setq result (cons thisstep result)))))
-	     (when (>= numchase numchase-limit)
-	       (tramp-error
-		v 'file-error
-		"Maximum number (%d) of symlinks exceeded" numchase-limit))
-	     (setq result (reverse result))
-	     ;; Combine list to form string.
-	     (setq result
-		   (if result
-		       (string-join (cons "" result) "/")
-		     "/"))
-	     (when (and is-dir (or (string-empty-p result)
-				   (not (string= (substring result -1) "/"))))
-	       (setq result (concat result "/"))))
-
-	   ;; Detect cycle.
-	   (when (and (file-symlink-p filename)
-		      (string-equal result localname))
-	     (tramp-error
-	      v 'file-error
-	      "Apparent cycle of symbolic links for %s" filename))
-	   ;; If the resulting localname looks remote, we must quote it
-	   ;; for security reasons.
-	   (when (file-remote-p result)
-	     (setq result (tramp-compat-file-name-quote result 'top)))
-	   (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	   result)))))))
 
 (defun tramp-adb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

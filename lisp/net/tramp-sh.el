@@ -1153,59 +1153,9 @@ component is used as the target of the symlink."
 			    (tramp-shell-quote-argument localname)))))
 
 	    ;; Do it yourself.
-	    (t (let ((steps (split-string localname "/" 'omit))
-		     (thisstep nil)
-		     (numchase 0)
-		     ;; Don't make the following value larger than
-		     ;; necessary.  People expect an error message in a
-		     ;; timely fashion when something is wrong;
-		     ;; otherwise they might think that Emacs is hung.
-		     ;; Of course, correctness has to come first.
-		     (numchase-limit 20)
-		     symlink-target)
-		 (while (and steps (< numchase numchase-limit))
-		   (setq thisstep (pop steps))
-		   (tramp-message
-		    v 5 "Check %s"
-		    (string-join
-		     (append '("") (reverse result) (list thisstep)) "/"))
-		   (setq symlink-target
-			 (tramp-compat-file-attribute-type
-			  (file-attributes
-			   (tramp-make-tramp-file-name
-			    v
-			    (string-join
-			     (append
-			      '("") (reverse result) (list thisstep)) "/")
-			    'nohop))))
-		   (cond ((string= "." thisstep)
-			  (tramp-message v 5 "Ignoring step `.'"))
-			 ((string= ".." thisstep)
-			  (tramp-message v 5 "Processing step `..'")
-			  (pop result))
-			 ((stringp symlink-target)
-			  ;; It's a symlink, follow it.
-			  (tramp-message
-			   v 5 "Follow symlink to %s" symlink-target)
-			  (setq numchase (1+ numchase))
-			  (when (file-name-absolute-p symlink-target)
-			    (setq result nil))
-			  (setq steps
-				(append
-				 (split-string symlink-target "/" 'omit)
-				 steps)))
-			 (t
-			  ;; It's a file.
-			  (setq result (cons thisstep result)))))
-		 (when (>= numchase numchase-limit)
-		   (tramp-error
-		    v 'file-error
-		    "Maximum number (%d) of symlinks exceeded" numchase-limit))
-		 (setq result (reverse result)
-		       ;; Combine list to form string.
-		       result
-		       (if result (string-join (cons "" result) "/") "/"))
-		 (when (string-empty-p result) (setq result "/")))))
+	    (t (setq
+		result
+		(tramp-file-local-name (tramp-handle-file-truename filename)))))
 
 	   ;; Detect cycle.
 	   (when (and (file-symlink-p filename)

@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; Access functions for crypted remote files.  It uses encfs to
-;; encrypt/ decrypt the files on a remote directory.  A remote
+;; encrypt / decrypt the files on a remote directory.  A remote
 ;; directory, which shall include crypted files, must be declared in
 ;; `tramp-crypt-directories' via command `tramp-crypt-add-directory'.
 ;; All files in that directory, including all subdirectories, are
@@ -189,8 +189,8 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (file-selinux-context . ignore)
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-crypt-handle-file-system-info)
-    ;; (file-truename . tramp-crypt-handle-file-truename)
-    ;; (file-writable-p . ignore)
+    ;; `file-truename' performed by default handler.
+    (file-writable-p . tramp-crypt-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-crypt-handle-insert-directory)
@@ -351,7 +351,7 @@ connection if a previous connection has died for some reason."
 
 (defun tramp-crypt-send-command (vec &rest args)
   "Send encfsctl command to connection VEC.
-ARGS are the arguments."
+ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
   (tramp-crypt-maybe-open-connection vec)
   (with-current-buffer (tramp-get-connection-buffer vec)
     (erase-buffer))
@@ -380,11 +380,12 @@ ARGS are the arguments."
 	;; Save the password.
 	(ignore-errors
 	  (and (functionp tramp-password-save-function)
-	       (funcall tramp-password-save-function)))))))
+	       (funcall tramp-password-save-function)))
+	t))))
 
 (defun tramp-crypt-do-encrypt-or-decrypt-file-name (op name)
-  "Return encrypted/ decrypted NAME if NAME belongs to a crypted directory.
-OP must be `encrypt' or `decrypt'.
+  "Return encrypted / decrypted NAME if NAME belongs to a crypted directory.
+OP must be `encrypt' or `decrypt'.  Raise an error if this fails.
 Otherwise, return NAME."
   (if-let ((tramp-crypt-enabled t)
 	   (dir (tramp-crypt-file-name-p name))
@@ -399,9 +400,12 @@ Otherwise, return NAME."
 	(unless (string-equal localname "/")
 	  (with-tramp-file-property
 	      crypt-vec localname (concat (symbol-name op) "-file-name")
-	    (tramp-crypt-send-command
-	     crypt-vec (if (eq op 'encrypt) "encode" "decode")
-	     (tramp-compat-temporary-file-directory) localname)
+	    (unless (tramp-crypt-send-command
+		     crypt-vec (if (eq op 'encrypt) "encode" "decode")
+		     (tramp-compat-temporary-file-directory) localname)
+	      (tramp-error
+	       crypt-vec "%s of file name %s failed."
+	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
 	      (buffer-substring (point-min) (point-at-eol)))))))
@@ -419,9 +423,10 @@ Otherwise, return NAME."
   (tramp-crypt-do-encrypt-or-decrypt-file-name 'decrypt name))
 
 (defun tramp-crypt-do-encrypt-or-decrypt-file (op root infile outfile)
-  "Encrypt/ decrypt file INFILE to OUTFILE according to crypted directory ROOT.
+  "Encrypt / decrypt file INFILE to OUTFILE according to crypted directory ROOT.
 Both files must be local files.  OP must be `encrypt' or `decrypt'.
-If OP ist `decrypt', the basename of INFILE must be an encrypted file name."
+If OP ist `decrypt', the basename of INFILE must be an encrypted file name.
+Raise an error if this fails."
   (when-let ((tramp-crypt-enabled t)
 	     (dir (tramp-crypt-file-name-p root))
 	     (crypt-vec (tramp-crypt-dissect-file-name dir)))
@@ -429,10 +434,13 @@ If OP ist `decrypt', the basename of INFILE must be an encrypted file name."
 	   (if (eq op 'decrypt) 'binary coding-system-for-read))
 	  (coding-system-for-write
 	   (if (eq op 'encrypt) 'binary coding-system-for-write)))
-      (tramp-crypt-send-command
-       crypt-vec "cat" (and (eq op 'encrypt) "--reverse")
-       (file-name-directory infile)
-       (concat "/" (file-name-nondirectory infile)))
+      (unless (tramp-crypt-send-command
+	       crypt-vec "cat" (and (eq op 'encrypt) "--reverse")
+	       (file-name-directory infile)
+	       (concat "/" (file-name-nondirectory infile)))
+	(tramp-error
+	 crypt-vec "%s of file %s failed."
+	 (if (eq op 'encrypt) "Encrypting" "Decrypting") infile))
       (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	(write-region nil nil outfile)))))
 
@@ -520,16 +528,17 @@ absolute file names."
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
   (setq filename (file-truename filename))
-  (if (file-directory-p filename)
-      (progn
-	(copy-directory filename newname keep-date t)
-	(when (eq op 'rename) (delete-directory filename 'recursive)))
+  (let ((t1 (tramp-crypt-file-name-p filename))
+	(t2 (tramp-crypt-file-name-p newname))
+	(encrypt-filename (tramp-crypt-encrypt-file-name filename))
+	(encrypt-newname (tramp-crypt-encrypt-file-name newname))
+	(msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
-    (let ((t1 (tramp-crypt-file-name-p filename))
-	  (t2 (tramp-crypt-file-name-p newname))
-	  (encrypt-filename (tramp-crypt-encrypt-file-name filename))
-	  (encrypt-newname (tramp-crypt-encrypt-file-name newname))
-	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+    (if (file-directory-p filename)
+	(progn
+	  (copy-directory filename newname keep-date t)
+	  (when (eq op 'rename)
+	    (delete-directory filename 'recursive)))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
@@ -581,15 +590,15 @@ absolute file names."
 		  (rename-file filename tmpfile1 t))
 		(tramp-crypt-encrypt-file t2 tmpfile1 tmpfile2)
 		(rename-file tmpfile2 encrypt-newname ok-if-already-exists)))
-	      (delete-directory tmpdir 'recursive)))
+	      (delete-directory tmpdir 'recursive))))))
 
-	  (when (and t1 (eq op 'rename))
-	    (with-parsed-tramp-file-name filename v1
-	      (tramp-flush-file-properties v1 v1-localname)))
+    (when (and t1 (eq op 'rename))
+      (with-parsed-tramp-file-name filename v1
+	(tramp-flush-file-properties v1 v1-localname)))
 
-	  (when t2
-	    (with-parsed-tramp-file-name newname v2
-	      (tramp-flush-file-properties v2 v2-localname))))))))
+    (when t2
+      (with-parsed-tramp-file-name newname v2
+	(tramp-flush-file-properties v2 v2-localname)))))
 
 (defun tramp-crypt-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -692,28 +701,35 @@ absolute file names."
    ;; #'file-system-info.
    'file-system-info (list (tramp-crypt-encrypt-file-name filename))))
 
+(defun tramp-crypt-handle-file-writable-p (filename)
+  "Like `file-writable-p' for Tramp files."
+  (let (tramp-crypt-enabled)
+    (file-writable-p (tramp-crypt-encrypt-file-name filename))))
+
 (defun tramp-crypt-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (let (tramp-crypt-enabled)
-    (tramp-handle-insert-directory
-     (tramp-crypt-encrypt-file-name filename)
-     switches wildcard full-directory-p)
-    (let* ((filename (file-name-as-directory filename))
-	   (enc (tramp-crypt-encrypt-file-name filename))
-	   match string)
-      (goto-char (point-min))
-      (while (setq match (text-property-search-forward 'dired-filename t t))
-	(setq string
-	      (buffer-substring
-	       (prop-match-beginning match) (prop-match-end match))
-	      string (if (file-name-absolute-p string)
-			 (tramp-crypt-decrypt-file-name string)
-		       (substring
-			(tramp-crypt-decrypt-file-name (concat enc string))
-			(length filename))))
-	(delete-region (prop-match-beginning match) (prop-match-end match))
-	(insert (propertize string 'dired-filename t))))))
+  ;; This package has been added to Emacs 27.1.
+  (when (load "text-property-search" 'noerror 'nomessage)
+    (let (tramp-crypt-enabled)
+      (tramp-handle-insert-directory
+       (tramp-crypt-encrypt-file-name filename)
+       switches wildcard full-directory-p)
+      (let* ((filename (file-name-as-directory filename))
+	     (enc (tramp-crypt-encrypt-file-name filename))
+	     match string)
+	(goto-char (point-min))
+	(while (setq match (text-property-search-forward 'dired-filename t t))
+	  (setq string
+		(buffer-substring
+		 (prop-match-beginning match) (prop-match-end match))
+		string (if (file-name-absolute-p string)
+			   (tramp-crypt-decrypt-file-name string)
+			 (substring
+			  (tramp-crypt-decrypt-file-name (concat enc string))
+			  (length filename))))
+	  (delete-region (prop-match-beginning match) (prop-match-end match))
+	  (insert (propertize string 'dired-filename t)))))))
 
 (defun tramp-crypt-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."

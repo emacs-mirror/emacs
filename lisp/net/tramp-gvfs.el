@@ -1589,7 +1589,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	       (current-time)
 	     time)))))
 
-(defun tramp-gvfs-set-file-uid-gid (filename &optional uid gid)
+(defun tramp-gvfs-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)

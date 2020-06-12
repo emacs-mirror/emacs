@@ -3381,6 +3381,8 @@ User is always nil."
 	  ;; something is wrong; otherwise they might think that Emacs
 	  ;; is hung.  Of course, correctness has to come first.
 	  (numchase-limit 20)
+	  ;; Unquoting could enable encryption.
+	  tramp-crypt-enabled
 	  symlink-target)
       (with-parsed-tramp-file-name result v1
 	;; We cache only the localname.
@@ -3900,7 +3902,11 @@ of."
 
     (let ((tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
-		  filename (and (eq mustbenew 'excl) 'nofollow))))
+		  filename (and (eq mustbenew 'excl) 'nofollow)))
+	  (uid (tramp-compat-file-attribute-user-id
+		(file-attributes filename 'integer)))
+	  (gid (tramp-compat-file-attribute-group-id
+		(file-attributes filename 'integer))))
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -3919,15 +3925,18 @@ of."
 	(error
 	 (delete-file tmpfile)
 	 (tramp-error
-	  v 'file-error "Couldn't write region to `%s'" filename))))
+	  v 'file-error "Couldn't write region to `%s'" filename)))
 
-    (tramp-flush-file-properties v localname)
+      (tramp-flush-file-properties v localname)
 
-    ;; Set file modification time.
-    (when (or (eq visit t) (stringp visit))
-      (set-visited-file-modtime
-       (tramp-compat-file-attribute-modification-time
-	(file-attributes filename))))
+      ;; Set file modification time.
+      (when (or (eq visit t) (stringp visit))
+	(set-visited-file-modtime
+	 (tramp-compat-file-attribute-modification-time
+	  (file-attributes filename))))
+
+      ;; Set the ownership.
+      (tramp-set-file-uid-gid filename uid gid))
 
     ;; The end.
     (when (and (null noninteractive)
