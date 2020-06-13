@@ -42,7 +42,12 @@
   (with-lunar-test
    (should (equal (eclipse-check 1 1) "**  Eclipse **"))))
 
+;; This fails in certain time zones.
+;; Eg TZ=America/Phoenix make lisp/calendar/lunar-tests
+;; Similarly with TZ=UTC.
+;; Daylight saving related?
 (ert-deftest lunar-test-phase-list ()
+  :tags '(:unstable)
   (with-lunar-test
    (should (equal  (lunar-phase-list 3 1871)
                    '(((3 20 1871) "11:03pm" 0 "")
