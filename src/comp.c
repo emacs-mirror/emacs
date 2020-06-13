@@ -554,6 +554,7 @@ typedef struct {
   gcc_jit_function *setcdr;
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
+  gcc_jit_function *maybe_gc_or_quit;
   Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
   Lisp_Object exported_funcs_h; /* c-func-name -> gcc_jit_function *.  */
   Lisp_Object imported_funcs_h; /* subr_name -> gcc_jit_field *reloc_field.  */
@@ -610,7 +611,9 @@ void *helper_link_table[] =
     record_unwind_current_buffer,
     set_internal,
     helper_unwind_protect,
-    specbind };
+    specbind,
+    maybe_gc,
+    maybe_quit };
 
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
@@ -2316,6 +2319,13 @@ emit_integerp (Lisp_Object insn)
 				   &res);
 }
 
+static gcc_jit_rvalue *
+emit_maybe_gc_or_quit (Lisp_Object insn)
+{
+  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.maybe_gc_or_quit, 0,
+				   NULL);
+}
+
 /* This is in charge of serializing an object and export a function to
    retrieve it at load time.  */
 static void
@@ -2574,6 +2584,10 @@ declare_runtime_imported_funcs (void)
 
   args[0] = args[1] = comp.lisp_obj_type;
   ADD_IMPORTED (specbind, comp.void_type, 2, args);
+
+  ADD_IMPORTED (maybe_gc, comp.void_type, 0, NULL);
+
+  ADD_IMPORTED (maybe_quit, comp.void_type, 0, NULL);
 
 #undef ADD_IMPORTED
 
@@ -3512,6 +3526,96 @@ define_CHECK_IMPURE (void)
     gcc_jit_block_end_with_void_return (err_block, NULL);
 }
 
+static void
+define_maybe_gc_or_quit (void)
+{
+
+  /*
+    void
+    maybe_gc_or_quit (void)
+    {
+      static unsigned quitcounter;
+     inc:
+      quitcounter++;
+      if (quitcounter >> 14) goto maybe_do_it else goto pass;
+     maybe_do_it:
+          quitcounter = 0;
+          maybe_gc ();
+          maybe_quit ();
+          return;
+     pass:
+          return;
+    }
+  */
+
+  gcc_jit_block *bb_orig = comp.block;
+
+  gcc_jit_lvalue *quitcounter =
+    gcc_jit_context_new_global (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_GLOBAL_INTERNAL,
+      comp.unsigned_type,
+      "quitcounter");
+
+  comp.func = comp.maybe_gc_or_quit =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_INTERNAL,
+				  comp.void_type,
+				  "maybe_gc_quit",
+				  0, NULL, 0);
+  DECL_BLOCK (increment_block, comp.maybe_gc_or_quit);
+  DECL_BLOCK (maybe_do_it_block, comp.maybe_gc_or_quit);
+  DECL_BLOCK (pass_block, comp.maybe_gc_or_quit);
+
+  comp.block = increment_block;
+
+  gcc_jit_block_add_assignment (
+    comp.block,
+    NULL,
+    quitcounter,
+    emit_binary_op (GCC_JIT_BINARY_OP_PLUS,
+		    comp.unsigned_type,
+		    gcc_jit_lvalue_as_rvalue (quitcounter),
+		    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+							 comp.unsigned_type,
+							 1)));
+  emit_cond_jump (
+    emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
+		    comp.unsigned_type,
+		    gcc_jit_lvalue_as_rvalue (quitcounter),
+		    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+							 comp.unsigned_type,
+							 9)),
+    /* 9 translates into checking for GC or quit every 512 calls to
+       'maybe_gc_quit'.  This is the smallest value I could find with
+       no performance impact running elisp-banechmarks.  Byte
+       intepreter uses 256 (see 'exec_byte_code').  */
+    maybe_do_it_block,
+    pass_block);
+
+  comp.block = maybe_do_it_block;
+
+  gcc_jit_block_add_assignment (
+    comp.block,
+    NULL,
+    quitcounter,
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.unsigned_type,
+					 0));
+  gcc_jit_block_add_eval (comp.block, NULL,
+			  emit_call (intern_c_string ("maybe_gc"),
+				     comp.void_type, 0, NULL, false));
+  gcc_jit_block_add_eval (comp.block, NULL,
+			  emit_call (intern_c_string ("maybe_quit"),
+				     comp.void_type, 0, NULL, false));
+  gcc_jit_block_end_with_void_return (comp.block, NULL);
+
+  gcc_jit_block_end_with_void_return (pass_block, NULL);
+
+  comp.block = bb_orig;
+}
+
 /* Define a function to convert boolean into t or nil */
 
 static void
@@ -3761,6 +3865,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
       register_emitter (Qnegate, emit_negate);
       register_emitter (Qnumberp, emit_numperp);
       register_emitter (Qintegerp, emit_integerp);
+      register_emitter (Qcomp_maybe_gc_or_quit, emit_maybe_gc_or_quit);
     }
 
   comp.ctxt = gcc_jit_context_acquire ();
@@ -3949,6 +4054,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   define_setcar_setcdr ();
   define_add1_sub1 ();
   define_negate ();
+  define_maybe_gc_or_quit ();
 
   struct Lisp_Hash_Table *func_h =
     XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
@@ -4756,6 +4862,7 @@ syms_of_comp (void)
   DEFSYM (Qnegate, "negate");
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
+  DEFSYM (Qcomp_maybe_gc_or_quit, "comp-maybe-gc-or-quit");
 
   /* Allocation classes. */
   DEFSYM (Qd_default, "d-default");
