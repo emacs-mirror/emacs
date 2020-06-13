@@ -3161,7 +3161,7 @@ cleanup_vector (struct Lisp_Vector *vector)
     {
       struct Lisp_Subr *subr =
 	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
-      if (subr->native_comp_u[0])
+      if (!NILP (subr->native_comp_u[0]))
 	{
 	  xfree (subr->symbol_name);
 	  xfree (subr->native_c_name[0]);
