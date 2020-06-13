@@ -3163,7 +3163,9 @@ cleanup_vector (struct Lisp_Vector *vector)
 	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
       if (!NILP (subr->native_comp_u[0]))
 	{
-	  xfree (subr->symbol_name);
+	  /* FIXME Alternative and non invasive solution to this
+	     cast?  */
+	  xfree ((char *)subr->symbol_name);
 	  xfree (subr->native_c_name[0]);
 	}
     }
