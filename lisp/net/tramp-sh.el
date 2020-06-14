@@ -1039,6 +1039,8 @@ of command line.")
     (start-file-process . tramp-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . tramp-sh-handle-get-remote-gid)
+    (tramp-get-remote-uid . tramp-sh-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sh-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
     (vc-registered . tramp-sh-handle-vc-registered)
@@ -1467,6 +1469,26 @@ of."
 	    (if (eq flag 'nofollow) "-h" "")
 	    (tramp-shell-quote-argument localname)))))))
 
+(defun tramp-sh-handle-get-remote-uid (vec id-format)
+  "The uid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (ignore-errors
+    (cond
+     ((tramp-get-remote-id vec) (tramp-get-remote-uid-with-id vec id-format))
+     ((tramp-get-remote-perl vec) (tramp-get-remote-uid-with-perl vec id-format))
+     ((tramp-get-remote-python vec)
+      (tramp-get-remote-uid-with-python vec id-format)))))
+
+(defun tramp-sh-handle-get-remote-gid (vec id-format)
+  "The gid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (ignore-errors
+    (cond
+     ((tramp-get-remote-id vec) (tramp-get-remote-gid-with-id vec id-format))
+     ((tramp-get-remote-perl vec) (tramp-get-remote-gid-with-perl vec id-format))
+     ((tramp-get-remote-python vec)
+      (tramp-get-remote-gid-with-python vec id-format)))))
+
 (defun tramp-sh-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
   ;; Modern Unices allow chown only for root.  So we might need
@@ -1669,8 +1691,10 @@ of."
 (defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
   "Like `file-ownership-preserved-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-ownership-preserved-p"
-      (let ((attributes (file-attributes filename)))
+    (with-tramp-file-property
+	v localname
+	(format "file-ownership-preserved-p%s" (if group "-group" ""))
+      (let ((attributes (file-attributes filename 'integer)))
 	;; Return t if the file doesn't exist, since it's true that no
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
@@ -5778,27 +5802,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	       "import os; print (os.getuid())"
     "import os, pwd; print ('\\\"' + pwd.getpwuid(os.getuid())[0] + '\\\"')"))))
 
-(defun tramp-get-remote-uid (vec id-format)
-  "The uid of the remote connection VEC, in ID-FORMAT.
-ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (let ((res
-	   (ignore-errors
-	     (cond
-	      ((tramp-get-remote-id vec)
-	       (tramp-get-remote-uid-with-id vec id-format))
-	      ((tramp-get-remote-perl vec)
-	       (tramp-get-remote-uid-with-perl vec id-format))
-	      ((tramp-get-remote-python vec)
-	       (tramp-get-remote-uid-with-python vec id-format))))))
-      ;; Ensure there is a valid result.
-      (cond
-       ((and (equal id-format 'integer) (not (integerp res)))
-	tramp-unknown-id-integer)
-       ((and (equal id-format 'string) (not (stringp res)))
-	tramp-unknown-id-string)
-       (t res)))))
-
 (defun tramp-get-remote-gid-with-id (vec id-format)
   "Implement `tramp-get-remote-gid' for Tramp files using `id'."
   (tramp-send-command-and-read
@@ -5828,27 +5831,6 @@ ID-FORMAT valid values are `string' and `integer'."
 	   (if (equal id-format 'integer)
 	       "import os; print (os.getgid())"
     "import os, grp; print ('\\\"' + grp.getgrgid(os.getgid())[0] + '\\\"')"))))
-
-(defun tramp-get-remote-gid (vec id-format)
-  "The gid of the remote connection VEC, in ID-FORMAT.
-ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (let ((res
-	   (ignore-errors
-	     (cond
-	      ((tramp-get-remote-id vec)
-	       (tramp-get-remote-gid-with-id vec id-format))
-	      ((tramp-get-remote-perl vec)
-	       (tramp-get-remote-gid-with-perl vec id-format))
-	      ((tramp-get-remote-python vec)
-	       (tramp-get-remote-gid-with-python vec id-format))))))
-      ;; Ensure there is a valid result.
-      (cond
-       ((and (equal id-format 'integer) (not (integerp res)))
-	tramp-unknown-id-integer)
-       ((and (equal id-format 'string) (not (stringp res)))
-	tramp-unknown-id-string)
-       (t res)))))
 
 (defun tramp-get-remote-busybox (vec)
   "Determine remote `busybox' command."

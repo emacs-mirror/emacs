@@ -2280,6 +2280,9 @@ Must be handled by the callers."
     (when (processp (nth 0 args))
       (with-current-buffer (process-buffer (nth 0 args))
 	default-directory)))
+   ;; VEC.
+   ((member operation '(tramp-get-remote-gid tramp-get-remote-uid))
+    (tramp-make-tramp-file-name (nth 0 args)))
    ;; Unknown file primitive.
    (t (error "Unknown file I/O primitive: %s" operation))))
 
@@ -3903,10 +3906,12 @@ of."
     (let ((tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
 		  filename (and (eq mustbenew 'excl) 'nofollow)))
-	  (uid (tramp-compat-file-attribute-user-id
-		(file-attributes filename 'integer)))
-	  (gid (tramp-compat-file-attribute-group-id
-		(file-attributes filename 'integer))))
+	  (uid (or (tramp-compat-file-attribute-user-id
+		    (file-attributes filename 'integer))
+		   (tramp-get-remote-uid v 'integer)))
+	  (gid (or (tramp-compat-file-attribute-group-id
+		    (file-attributes filename 'integer))
+		   (tramp-get-remote-gid v 'integer))))
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -4612,12 +4617,8 @@ be granted."
 		 (concat "file-attributes-" suffix) nil)
 		(file-attributes
 		 (tramp-make-tramp-file-name vec) (intern suffix))))
-              (remote-uid
-               (tramp-get-connection-property
-                vec (concat "uid-" suffix) nil))
-              (remote-gid
-               (tramp-get-connection-property
-                vec (concat "gid-" suffix) nil))
+              (remote-uid (tramp-get-remote-uid vec (intern suffix)))
+              (remote-gid (tramp-get-remote-gid vec (intern suffix)))
 	      (unknown-id
 	       (if (string-equal suffix "string")
 		   tramp-unknown-id-string tramp-unknown-id-integer)))
@@ -4651,6 +4652,32 @@ be granted."
 			(tramp-compat-file-attribute-group-id
 			 file-attr))))))))))))
 
+(defun tramp-get-remote-uid (vec id-format)
+  "The uid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (with-tramp-connection-property vec (format "uid-%s" id-format)
+    (or (when-let
+	    ((handler
+	      (find-file-name-handler
+	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-uid)))
+	  (funcall handler #'tramp-get-remote-uid vec id-format))
+	;; Ensure there is a valid result.
+	(and (equal id-format 'integer) tramp-unknown-id-integer)
+	(and (equal id-format 'string) tramp-unknown-id-string))))
+
+(defun tramp-get-remote-gid (vec id-format)
+  "The gid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (with-tramp-connection-property vec (format "gid-%s" id-format)
+    (or (when-let
+	    ((handler
+	      (find-file-name-handler
+	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-uid)))
+	  (funcall handler #'tramp-get-remote-gid vec id-format))
+	;; Ensure there is a valid result.
+	(and (equal id-format 'integer) tramp-unknown-id-integer)
+	(and (equal id-format 'string) tramp-unknown-id-string))))
+
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise.
 This handles also chrooted environments, which are not regarded as local."
@@ -4673,9 +4700,7 @@ This handles also chrooted environments, which are not regarded as local."
        vec (tramp-compat-temporary-file-directory) 'nohop))
      ;; On some systems, chown runs only for root.
      (or (zerop (user-uid))
-	 ;; This is defined in tramp-sh.el.  Let's assume this is
-	 ;; loaded already.
-	 (zerop (tramp-compat-funcall 'tramp-get-remote-uid vec 'integer))))))
+	 (zerop (tramp-get-remote-uid vec 'integer))))))
 
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."

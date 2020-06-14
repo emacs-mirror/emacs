@@ -160,6 +160,8 @@ It is used for TCP/IP devices."
     (start-file-process . tramp-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)

@@ -2998,6 +2998,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
+  ;; Wildcards are not supported in tramp-crypt.el.
+  (skip-unless (not (tramp--test-crypt-p)))
   ;; Since Emacs 26.1.
   (skip-unless (fboundp 'insert-directory-wildcard-in-dir-p))
 

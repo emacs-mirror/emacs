@@ -182,7 +182,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (file-notify-add-watch . ignore)
     (file-notify-rm-watch . ignore)
     (file-notify-valid-p . ignore)
-    ;; (file-ownership-preserved-p . ignore)
+    (file-ownership-preserved-p . tramp-crypt-handle-file-ownership-preserved-p)
     (file-readable-p . tramp-crypt-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     ;; `file-remote-p' performed by default handler.
@@ -213,6 +213,8 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (start-file-process . ignore)
     ;; `substitute-in-file-name' performed by default handler.
     ;; (temporary-file-directory . tramp-crypt-handle-temporary-file-directory)
+    ;; `tramp-get-remote-gid' performed by default handler.
+    ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)
     ;; (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
@@ -465,6 +467,8 @@ directory.  File names will be also encrypted."
     (tramp-user-error nil "Feature is not enabled."))
   (unless (and (tramp-tramp-file-p name) (file-directory-p name))
     (tramp-user-error nil "%s must be an existing remote directory." name))
+  (when (tramp-compat-file-name-quoted-p name)
+    (tramp-user-error nil "%s must not be quoted." name))
   (setq name (file-name-as-directory (expand-file-name name)))
   (unless (member name tramp-crypt-directories)
     (setq tramp-crypt-directories (cons name tramp-crypt-directories)))
@@ -694,6 +698,11 @@ absolute file names."
   (let (tramp-crypt-enabled)
     (file-readable-p (tramp-crypt-encrypt-file-name filename))))
 
+(defun tramp-crypt-handle-file-ownership-preserved-p (filename &optional group)
+  "Like `file-ownership-preserved-p' for Tramp files."
+  (let (tramp-crypt-enabled)
+    (file-ownership-preserved-p (tramp-crypt-encrypt-file-name filename) group)))
+
 (defun tramp-crypt-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
   (tramp-crypt-run-real-handler
@@ -708,7 +717,8 @@ absolute file names."
 
 (defun tramp-crypt-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
-  "Like `insert-directory' for Tramp files."
+  "Like `insert-directory' for Tramp files.
+WILDCARD is not supported."
   ;; This package has been added to Emacs 27.1.
   (when (load "text-property-search" 'noerror 'nomessage)
     (let (tramp-crypt-enabled)

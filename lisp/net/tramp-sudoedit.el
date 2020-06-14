@@ -132,6 +132,8 @@ See `tramp-actions-before-shell' for more info.")
     (start-file-process . ignore)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . tramp-sudoedit-handle-get-remote-gid)
+    (tramp-get-remote-uid . tramp-sudoedit-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sudoedit-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
@@ -689,21 +691,19 @@ component is used as the target of the symlink."
 	    (tramp-flush-file-property v localname "file-selinux-context"))
 	  t)))))
 
-(defun tramp-sudoedit-get-remote-uid (vec id-format)
+(defun tramp-sudoedit-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (if (equal id-format 'integer)
-	(tramp-sudoedit-send-command-and-read vec "id" "-u")
-      (tramp-sudoedit-send-command-string vec "id" "-un"))))
+  (if (equal id-format 'integer)
+      (tramp-sudoedit-send-command-and-read vec "id" "-u")
+    (tramp-sudoedit-send-command-string vec "id" "-un")))
 
-(defun tramp-sudoedit-get-remote-gid (vec id-format)
+(defun tramp-sudoedit-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (if (equal id-format 'integer)
-	(tramp-sudoedit-send-command-and-read vec "id" "-g")
-      (tramp-sudoedit-send-command-string vec "id" "-gn"))))
+  (if (equal id-format 'integer)
+      (tramp-sudoedit-send-command-and-read vec "id" "-g")
+    (tramp-sudoedit-send-command-string vec "id" "-gn")))
 
 (defun tramp-sudoedit-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -711,8 +711,8 @@ ID-FORMAT valid values are `string' and `integer'."
       (tramp-sudoedit-send-command
        v "chown"
        (format "%d:%d"
-	       (or uid (tramp-sudoedit-get-remote-uid v 'integer))
-	       (or gid (tramp-sudoedit-get-remote-gid v 'integer)))
+	       (or uid (tramp-get-remote-uid v 'integer))
+	       (or gid (tramp-get-remote-gid v 'integer)))
        (tramp-unquote-file-local-name filename))))
 
 (defun tramp-sudoedit-handle-write-region
@@ -721,10 +721,10 @@ ID-FORMAT valid values are `string' and `integer'."
   (with-parsed-tramp-file-name filename nil
     (let* ((uid (or (tramp-compat-file-attribute-user-id
 		     (file-attributes filename 'integer))
-		    (tramp-sudoedit-get-remote-uid v 'integer)))
+		    (tramp-get-remote-uid v 'integer)))
 	   (gid (or (tramp-compat-file-attribute-group-id
 		     (file-attributes filename 'integer))
-		    (tramp-sudoedit-get-remote-gid v 'integer)))
+		    (tramp-get-remote-gid v 'integer)))
 	   (flag (and (eq mustbenew 'excl) 'nofollow))
 	   (modes (tramp-default-file-modes filename flag)))
       (prog1
@@ -785,14 +785,7 @@ connection if a previous connection has died for some reason."
       (tramp-set-connection-local-variables vec)
 
       ;; Mark it as connected.
-      (tramp-set-connection-property p "connected" t))
-
-    ;; In `tramp-check-cached-permissions', the connection properties
-    ;; "{uid,gid}-{integer,string}" are used.  We set them to proper values.
-    (tramp-sudoedit-get-remote-uid vec 'integer)
-    (tramp-sudoedit-get-remote-gid vec 'integer)
-    (tramp-sudoedit-get-remote-uid vec 'string)
-    (tramp-sudoedit-get-remote-gid vec 'string)))
+      (tramp-set-connection-property p "connected" t))))
 
 (defun tramp-sudoedit-send-command (vec &rest args)
   "Send commands ARGS to connection VEC.
