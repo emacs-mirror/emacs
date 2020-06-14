@@ -101,6 +101,7 @@
 ;; - rename-file (old new)                         OK
 ;; - find-file-hook ()                             OK
 ;; - conflicted-files                              OK
+;; - repository-url (file-or-dir)                  OK
 
 ;;; Code:
 
@@ -1081,6 +1082,12 @@ This prompts for a branch to merge from."
           (when (member state '("AU" "UD" "UA" ;; "DD"
                                 "DU" "AA" "UU"))
             (push (expand-file-name file directory) files)))))))
+
+(defun vc-git-repository-url (file-or-dir)
+  (let ((default-directory (vc-git-root file-or-dir)))
+    (with-temp-buffer
+      (vc-git-command (current-buffer) 0 nil "remote" "get-url" "origin")
+      (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 ;; Everywhere but here, follows vc-git-command, which uses vc-do-command
 ;; from vc-dispatcher.

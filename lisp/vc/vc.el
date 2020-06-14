@@ -553,6 +553,10 @@
 ;;   Return the list of files where conflict resolution is needed in
 ;;   the project that contains DIR.
 ;;   FIXME: what should it do with non-text conflicts?
+;;
+;; - repository-url (file)
+;;
+;;   Returns the URL of the repository of the current checkout.
 
 ;;; Changes from the pre-25.1 API:
 ;;
