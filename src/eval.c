@@ -56,10 +56,14 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
+int backtrace_byte_offset = -1;
+
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object backtrace_function (union specbinding *) EXTERNALLY_VISIBLE;
+union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
+union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, ptrdiff_t);
@@ -2152,7 +2156,10 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.function = function;
   current_thread->stack_top = specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
-  specpdl_ptr->bt.bytecode_offset = -1;
+  union specbinding *nxt = specpdl_ptr;
+  nxt = backtrace_next(nxt);
+  if (nxt->kind == SPECPDL_BACKTRACE)
+    nxt->bt.bytecode_offset = backtrace_byte_offset;
   grow_specpdl ();
 
   return count;

@@ -4113,6 +4113,7 @@ extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
+extern int backtrace_byte_offset;
 
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
@@ -4194,8 +4195,6 @@ extern void prog_ignore (Lisp_Object);
 extern ptrdiff_t record_in_backtrace (Lisp_Object, Lisp_Object *, ptrdiff_t);
 extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
 extern void get_backtrace (Lisp_Object array);
-extern union specbinding *backtrace_next (union specbinding *pdl) EXTERNALLY_VISIBLE;
-extern union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
 
