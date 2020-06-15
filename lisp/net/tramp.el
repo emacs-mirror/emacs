@@ -64,6 +64,7 @@
 
 ;; Pacify byte-compiler.
 (require 'cl-lib)
+(declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 
@@ -1780,6 +1781,10 @@ ARGUMENTS to actually emit the message (if applicable)."
 
 (put #'tramp-debug-message 'tramp-suppress-trace t)
 
+(defvar tramp-inhibit-progress-reporter nil
+  "Show Tramp progress reporter in the minibuffer.
+This variable is used to disable concurrent progress reporter messages.")
+
 (defsubst tramp-message (vec-or-proc level fmt-string &rest arguments)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
@@ -1795,8 +1800,9 @@ control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
   (ignore-errors
     (when (<= level tramp-verbose)
-      ;; Display only when there is a minimum level.
-      (when (<= level 3)
+      ;; Display only when there is a minimum level, and the progress
+      ;; reporter doesn't suppress further messages.
+      (when (and (<= level 3) (null tramp-inhibit-progress-reporter))
 	(apply #'message
 	       (concat
 		(cond
@@ -2014,7 +2020,12 @@ without a visible progress reporter."
 	      (run-at-time 3 0.1 #'tramp-progress-reporter-update pr))))
        (unwind-protect
            ;; Execute the body.
-           (prog1 (progn ,@body) (setq cookie "done"))
+           (prog1
+	       ;; Suppress concurrent progress reporter messages.
+	       (let ((tramp-inhibit-progress-reporter
+		      (or tramp-inhibit-progress-reporter tm)))
+		 ,@body)
+	     (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (cancel-timer tm))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
@@ -3995,7 +4006,7 @@ of."
   "Call `file-notify-rm-watch'."
   (unless (process-live-p proc)
     (tramp-message proc 5 "Sentinel called: `%S' `%s'" proc event)
-    (tramp-compat-funcall 'file-notify-rm-watch proc)))
+    (file-notify-rm-watch proc)))
 
 ;;; Functions for establishing connection:
 

@@ -145,7 +145,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-crypt-file-name-handler-alist
-  '(;; (access-file . tramp-crypt-handle-access-file)
+  '((access-file . tramp-crypt-handle-access-file)
     ;; (add-name-to-file . tramp-crypt-handle-not-implemented)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)
@@ -225,9 +225,14 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 
 (defsubst tramp-crypt-file-name-for-operation (operation &rest args)
   "Like `tramp-file-name-for-operation', but for crypted remote files."
-  (cl-letf (((symbol-function #'tramp-tramp-file-p)
-	     #'tramp-crypt-file-name-p))
-    (apply #'tramp-file-name-for-operation operation args)))
+  (let ((tfnfo (apply #'tramp-file-name-for-operation operation args)))
+    ;; `tramp-file-name-for-operation' returns already the first argument
+    ;; if it is remote.  So we check a possible second argument.
+    (unless (tramp-crypt-file-name-p tfnfo)
+      (setq tfnfo (apply
+		   #'tramp-file-name-for-operation
+		   operation (cons temporary-file-directory (cdr args)))))
+    tfnfo))
 
 (defun tramp-crypt-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
@@ -246,7 +251,8 @@ arguments to pass to the OPERATION."
   "Invoke the crypted remote file related OPERATION.
 First arg specifies the OPERATION, second arg ARGS is a list of
 arguments to pass to the OPERATION."
-  (if-let ((filename (apply #'tramp-file-name-for-operation operation args))
+  (if-let ((filename
+	    (apply #'tramp-crypt-file-name-for-operation operation args))
 	   (fn (and (tramp-crypt-file-name-p filename)
 		    (assoc operation tramp-crypt-file-name-handler-alist))))
       (save-match-data (apply (cdr fn) args))
@@ -356,7 +362,8 @@ connection if a previous connection has died for some reason."
 ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
   (tramp-crypt-maybe-open-connection vec)
   (with-current-buffer (tramp-get-connection-buffer vec)
-    (erase-buffer))
+    (erase-buffer)
+    (set-buffer-multibyte nil))
   (with-temp-buffer
     (let* (;; Don't check for a proper method.
 	   (non-essential t)
@@ -511,6 +518,21 @@ localname."
 
 ;; File name primitives.
 
+(defun tramp-crypt-handle-access-file (filename string)
+  "Like `access-file' for Tramp files."
+  (let* ((encrypt-filename (tramp-crypt-encrypt-file-name filename))
+	 (encrypt-regexp (concat (regexp-quote encrypt-filename) "\\'"))
+	 tramp-crypt-enabled)
+    (condition-case err
+	(access-file encrypt-filename string)
+      (error
+       (when (and (eq (car err) 'file-missing) (stringp (cadr err))
+		  (string-match-p encrypt-regexp (cadr err)))
+	 (setcar
+	  (cdr err)
+	  (replace-regexp-in-string encrypt-regexp filename (cadr err))))
+       (signal (car err) (cdr err))))))
+
 (defun tramp-crypt-do-copy-or-rename-file
   (op filename newname &optional ok-if-already-exists keep-date
    preserve-uid-gid preserve-extended-attributes)
@@ -576,6 +598,14 @@ absolute file names."
 		     (file-name-nondirectory encrypt-newname) tmpdir))
 		   tramp-crypt-enabled)
 	      (cond
+	       ;; Source and target file are on a crypted remote directory.
+	       ((and t1 t2)
+		(if (eq op 'copy)
+		    (copy-file
+		     encrypt-filename encrypt-newname ok-if-already-exists
+		     keep-date preserve-uid-gid preserve-extended-attributes)
+		  (rename-file
+		   encrypt-filename encrypt-newname ok-if-already-exists)))
 	       ;; Source file is on a crypted remote directory.
 	       (t1
 		(if (eq op 'copy)
