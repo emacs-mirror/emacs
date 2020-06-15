@@ -595,8 +595,11 @@ documentation themselves."
 (defvar eldoc--enthusiasm-curbing-timer nil
   "Timer used by `eldoc-documentation-enthusiast' to avoid blinking.")
 
+(defalias 'eldoc #'eldoc-print-current-symbol-info)
+
 (defun eldoc-print-current-symbol-info ()
   "Document thing at point."
+  (interactive)
   (if (not (eldoc-display-message-p))
       ;; Erase the last message if we won't display a new one.
       (when eldoc-last-message
