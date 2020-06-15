@@ -49,10 +49,11 @@ the native compiled one."
   :group 'comp)
 
 (defcustom comp-speed 2
-  "Compiler optimization level.  From 0 to 3.
-- 0 no optimizations are performed, compile time is favored.
+  "Compiler optimization level.  From -1 to 3.
+- -1 functions are kept in bytecode form and no native compilation is performed.
+- 0 native compilation is performed with no optimizations.
 - 1 lite optimizations.
-- 2 heavy optimizations.
+- 2 max optimization level fully adherent to the language semantic.
 - 3 max optimization level, to be used only when necessary.
     Warning: the compiler is free to perform dangerous optimizations."
   :type 'number
@@ -369,7 +370,9 @@ structure.")
   (has-non-local nil :type boolean
                  :documentation "t if non local jumps are present.")
   (array-h (make-hash-table) :type hash-table
-           :documentation "array idx -> array length."))
+           :documentation "array idx -> array length.")
+  (speed nil :type number
+         :documentation "Optimization level (see `comp-speed')."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexical scoped function."
@@ -546,6 +549,12 @@ instruction."
   (and (byte-code-function-p f)
        (fixnump (aref f 0))))
 
+(defun comp-spill-speed (fuction-name)
+  "Return the speed for SYMBOL-FUNCTION."
+  (or (plist-get (cdr (assq fuction-name byte-to-native-plist-environment))
+                 'speed)
+      comp-speed))
+
 (defun comp-c-func-name (name prefix)
   "Given NAME return a name suitable for the native code.
 Put PREFIX in front of it."
@@ -612,7 +621,8 @@ Put PREFIX in front of it."
          (func (make-comp-func-l :name function-name
                                  :c-name c-name
                                  :doc (documentation f)
-                                 :int-spec (interactive-form f))))
+                                 :int-spec (interactive-form f)
+                                 :speed (comp-spill-speed function-name))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 "can't native compile an already bytecompiled function"))
@@ -661,7 +671,8 @@ Put PREFIX in front of it."
             (comp-func-int-spec func) (interactive-form byte-func)
             (comp-func-c-name func) c-name
             (comp-func-lap func) lap
-            (comp-func-frame-size func) (comp-byte-frame-size byte-func))
+            (comp-func-frame-size func) (comp-byte-frame-size byte-func)
+            (comp-func-speed func) (comp-spill-speed name))
 
       ;; Store the c-name to have it retrivable from
       ;; `comp-ctxt-top-level-forms'.
@@ -681,7 +692,21 @@ Put PREFIX in front of it."
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))
   (setf (comp-ctxt-top-level-forms comp-ctxt)
-        (reverse byte-to-native-top-level-forms))
+        (cl-loop
+         for form in (reverse byte-to-native-top-level-forms)
+         collect
+         (if (and (byte-to-native-func-def-p form)
+                  (eq -1
+                      (comp-spill-speed (byte-to-native-func-def-name form))))
+             (let ((byte-code (byte-to-native-func-def-byte-func form)))
+               (remhash byte-code byte-to-native-lambdas-h)
+               (make-byte-to-native-top-level
+                :form `(defalias
+                         ',(byte-to-native-func-def-name form)
+                         ,byte-code
+                         nil)
+                :lexical (comp-lex-byte-func-p byte-code)))
+           form)))
   (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h))
 
 (defun comp-spill-lap (input)
@@ -690,7 +715,8 @@ If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
         (byte-to-native-lambdas-h (make-hash-table :test #'eq))
-        (byte-to-native-top-level-forms ()))
+        (byte-to-native-top-level-forms ())
+        (byte-to-native-plist-environment ()))
     (comp-spill-lap-function input)))
 
 
@@ -867,7 +893,7 @@ Return the created latch"
         (curr-bb (comp-limplify-curr-block comp-pass)))
     ;; See `comp-make-curr-block'.
     (setf (comp-limplify-curr-block comp-pass) latch)
-    (when (< comp-speed 3)
+    (when (< (comp-func-speed comp-func) 3)
       ;; At speed 3 the programmer is responsible to manually
       ;; place `comp-maybe-gc-or-quit'.
       (comp-emit '(call comp-maybe-gc-or-quit)))
@@ -1429,7 +1455,8 @@ into the C code forwarding the compilation unit."
                                              "late_top_level_run"
                                            "top_level_run")
                                  :args (make-comp-args :min 1 :max 1)
-                                 :frame-size 1))
+                                 :frame-size 1
+                                 :speed comp-speed))
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block-lap -1 0 'top-level)
@@ -2029,18 +2056,18 @@ Return t if something was changed."
 
 (defun comp-propagate1 (backward)
   (comp-ssa)
-  (when (>= comp-speed 2)
-    (maphash (lambda (_ f)
-               ;; FIXME remove the following condition when tested.
-               (unless (comp-func-has-non-local f)
-                 (let ((comp-func f))
-                   (comp-propagate-prologue backward)
-                   (cl-loop
-                    for i from 1
-                    while (comp-propagate*)
-                    finally (comp-log (format "Propagation run %d times\n" i) 2))
-                   (comp-log-func comp-func 3))))
-             (comp-ctxt-funcs-h comp-ctxt))))
+  (maphash (lambda (_ f)
+             (when (and (>= (comp-func-speed f) 2)
+                        ;; FIXME remove the following condition when tested.
+                        (not (comp-func-has-non-local f)))
+               (let ((comp-func f))
+                 (comp-propagate-prologue backward)
+                 (cl-loop
+                  for i from 1
+                  while (comp-propagate*)
+                  finally (comp-log (format "Propagation run %d times\n" i) 2))
+                 (comp-log-func comp-func 3))))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 (defun comp-propagate (_)
   "Forward propagate types and consts within the lattice."
@@ -2110,9 +2137,9 @@ FUNCTION can be a function-name or byte compiled function."
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers this for non self calls too!!
          ((and comp-func-callee
-               (or (and (>= comp-speed 3)
+               (or (and (>= (comp-func-speed comp-func) 3)
                         (comp-func-unique-in-cu-p callee))
-                   (and (>= comp-speed 2)
+                   (and (>= (comp-func-speed comp-func) 2)
                         ;; Anonymous lambdas can't be redefined so are
                         ;; always safe to optimize.
                         (byte-code-function-p callee))))
@@ -2145,12 +2172,12 @@ FUNCTION can be a function-name or byte compiled function."
 
 (defun comp-call-optim (_)
   "Try to optimize out funcall trampoline usage when possible."
-  (when (>= comp-speed 2)
-    (maphash (lambda (_ f)
+  (maphash (lambda (_ f)
+             (when (and (>= (comp-func-speed f) 2)
+                        (comp-func-l-p f))
                (let ((comp-func f))
-                 (when (comp-func-l-p f)
-                   (comp-call-optim-func))))
-             (comp-ctxt-funcs-h comp-ctxt))))
+                 (comp-call-optim-func))))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 
 ;;; Dead code elimination pass specific code.
@@ -2209,17 +2236,17 @@ Return the list of m-var ids nuked."
 
 (defun comp-dead-code (_)
   "Dead code elimination."
-  (when (>= comp-speed 2)
-    (maphash (lambda (_ f)
-               (let ((comp-func f))
-                 ;; FIXME remove the following condition when tested.
-                 (unless (comp-func-has-non-local comp-func)
-                   (cl-loop
-                    for i from 1
-                    while (comp-dead-assignments-func)
-                    finally (comp-log (format "dead code rm run %d times\n" i) 2)
-                            (comp-log-func comp-func 3)))))
-             (comp-ctxt-funcs-h comp-ctxt))))
+  (maphash (lambda (_ f)
+             (when (and (>= (comp-func-speed f) 2)
+                        ;; FIXME remove the following condition when tested.
+                        (not (comp-func-has-non-local f)))
+               (cl-loop
+                for comp-func = f
+                for i from 1
+                while (comp-dead-assignments-func)
+                finally (comp-log (format "dead code rm run %d times\n" i) 2)
+                (comp-log-func comp-func 3))))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 
 ;;; Tail Call Optimization pass specific code.
@@ -2252,14 +2279,14 @@ Return the list of m-var ids nuked."
 
 (defun comp-tco (_)
   "Simple peephole pass performing self TCO."
-  (when (>= comp-speed 3)
-    (maphash (lambda (_ f)
+  (maphash (lambda (_ f)
+             (when (and (>= (comp-func-speed f) 3)
+                        (comp-func-l-p f)
+                        (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (when (and (comp-func-l-p f)
-                            (not (comp-func-has-non-local comp-func)))
-                   (comp-tco-func)
-                   (comp-log-func comp-func 3))))
-             (comp-ctxt-funcs-h comp-ctxt))))
+                 (comp-tco-func)
+                 (comp-log-func comp-func 3))))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 
 ;;; Type hint removal pass specific code.
@@ -2279,12 +2306,12 @@ These are substituted with a normal 'set' op."
 
 (defun comp-remove-type-hints (_)
   "Dead code elimination."
-  (when (>= comp-speed 2)
-    (maphash (lambda (_ f)
+  (maphash (lambda (_ f)
+             (when (>= (comp-func-speed f) 2)
                (let ((comp-func f))
                  (comp-remove-type-hints-func)
-                 (comp-log-func comp-func 3)))
-             (comp-ctxt-funcs-h comp-ctxt))))
+                 (comp-log-func comp-func 3))))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 
 ;;; Final pass specific code.

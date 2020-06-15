@@ -411,7 +411,7 @@ load_gccjit_if_necessary (bool mandatory)
 #define TEXT_FDOC_SYM "text_data_fdoc"
 
 
-#define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
+#define COMP_SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
 #define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
 
 #define STR_VALUE(s) #s
@@ -536,6 +536,7 @@ typedef struct {
   size_t cast_union_field_biggest_type;
   gcc_jit_function *func; /* Current function being compiled.  */
   bool func_has_non_local; /* From comp-func has-non-local slot.  */
+  EMACS_INT func_speed; /* From comp-func speed slot.  */
   gcc_jit_lvalue **f_frame; /* "Floating" frame for the current function.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
@@ -734,7 +735,7 @@ emit_mvar_lval (Lisp_Object mvar)
 
   EMACS_INT arr_idx = XFIXNUM (CALL1I (comp-mvar-array-idx, mvar));
   EMACS_INT slot_n = XFIXNUM (mvar_slot);
-  if (comp.func_has_non_local || (SPEED < 2))
+  if (comp.func_has_non_local || (comp.func_speed < 2))
     return comp.arrays[arr_idx][slot_n];
   else
     {
@@ -3736,6 +3737,7 @@ compile_function (Lisp_Object func)
 				       comp.exported_funcs_h, Qnil));
 
   comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
+  comp.func_speed = XFIXNUM (CALL1I (comp-func-speed, func));
 
   struct Lisp_Hash_Table *array_h =
     XHASH_TABLE (CALL1I (comp-func-array-h, func));
@@ -3775,7 +3777,7 @@ compile_function (Lisp_Object func)
     - Allow gcc to trigger other optimizations that are prevented by memory
     referencing.
   */
-  if (SPEED >= 2)
+  if (comp.func_speed >= 2)
     {
       comp.f_frame = SAFE_ALLOCA (frame_size * sizeof (*comp.f_frame));
       for (ptrdiff_t i = 0; i < frame_size; ++i)
@@ -4030,7 +4032,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
-				  SPEED);
+				  COMP_SPEED);
   comp.d_default_idx =
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
   comp.d_impure_idx =

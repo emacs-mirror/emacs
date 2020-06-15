@@ -601,6 +601,8 @@ Each element is (INDEX . VALUE)")
   "List of top level forms.")
 (defvar byte-to-native-output-file nil
   "Temporary file containing the byte-compilation output.")
+(defvar byte-to-native-plist-environment nil
+  "To spill `overriding-plist-environment'.")
 
 
 ;;; The byte codes; this information is duplicated in bytecomp.c
@@ -1740,7 +1742,11 @@ extra args."
          ;; 		 byte-compile-generate-emacs19-bytecodes)
          (byte-compile-warnings byte-compile-warnings)
          )
-     ,@body))
+     (prog1
+         (progn ,@body)
+       (when byte-native-compiling
+         (setq byte-to-native-plist-environment
+               overriding-plist-environment)))))
 
 (defmacro displaying-byte-compile-warnings (&rest body)
   (declare (debug t))
