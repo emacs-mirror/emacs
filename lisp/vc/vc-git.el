@@ -1083,10 +1083,11 @@ This prompts for a branch to merge from."
                                 "DU" "AA" "UU"))
             (push (expand-file-name file directory) files)))))))
 
-(defun vc-git-repository-url (file-or-dir)
+(defun vc-git-repository-url (file-or-dir &optional remote-name)
   (let ((default-directory (vc-git-root file-or-dir)))
     (with-temp-buffer
-      (vc-git-command (current-buffer) 0 nil "remote" "get-url" "origin")
+      (vc-git-command (current-buffer) 0 nil "remote" "get-url"
+                      (or remote-name "origin"))
       (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 ;; Everywhere but here, follows vc-git-command, which uses vc-do-command

@@ -554,9 +554,12 @@
 ;;   the project that contains DIR.
 ;;   FIXME: what should it do with non-text conflicts?
 ;;
-;; - repository-url (file)
+;; - repository-url (file-or-dir &optional remote-name)
 ;;
-;;   Returns the URL of the repository of the current checkout.
+;;   Returns the URL of the repository of the current checkout
+;;   containing FILE-OR-DIR.  The optional REMOTE-NAME specifies the
+;;   remote (in Git parlance) whose URL is to be returned.  It has
+;;   only a meaning for distributed VCS and is ignored otherwise.
 
 ;;; Changes from the pre-25.1 API:
 ;;

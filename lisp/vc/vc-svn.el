@@ -818,7 +818,7 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
           (setq loglines (buffer-substring-no-properties start (point-max)))))
       vc-svn-revisions)))
 
-(defun vc-svn-repository-url (file-or-dir)
+(defun vc-svn-repository-url (file-or-dir &optional _remote-name)
   (let ((default-directory (vc-svn-root file-or-dir)))
     (with-temp-buffer
       (vc-svn-command (current-buffer) 0 nil
