@@ -358,6 +358,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (eq (comp-test-40187-1-f) 'foo))
   (should (eq (comp-test-40187-2-f) 'bar)))
 
+(ert-deftest comp-test-speed--1 ()
+  "Check that at speed -1 we do not native compile."
+  (should (= (comp-test-speed--1-f) 3))
+  (should-not (subr-native-elisp-p (symbol-function #'comp-test-speed--1-f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

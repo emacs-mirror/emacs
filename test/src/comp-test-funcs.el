@@ -286,6 +286,10 @@
 (defun comp-test-40187-2-f ()
   'bar)
 
+(defun comp-test-speed--1-f ()
+  (declare (speed -1))
+  3)
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
