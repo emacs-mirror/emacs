@@ -2023,6 +2023,12 @@ reestablished.  A value of @code{nil} disables this feature.  Most of
 the methods do not set this property except the @option{sudo} and
 @option{doas} methods, which use predefined values.
 
+@item @t{"tmpdir"}
+
+The temporary directory on the remote host.  If not specified, the
+default value is @t{"/data/local/tmp"} for the @option{adb} method,
+@t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
+
 @item @t{"posix"}
 
 Connections using the @option{smb} method check, whether the remote
