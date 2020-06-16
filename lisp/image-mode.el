@@ -810,8 +810,12 @@ was inserted."
 	    filename))
 	 ;; If we have a `fit-width' or a `fit-height', don't limit
 	 ;; the size of the image to the window size.
-	 (edges (and (eq image-transform-resize t)
-		     (window-inside-pixel-edges (get-buffer-window))))
+	 (edges (when (eq image-transform-resize t)
+		  (window-inside-pixel-edges (get-buffer-window))))
+	 (max-width (when edges
+		      (- (nth 2 edges) (nth 0 edges))))
+	 (max-height (when edges
+		       (- (nth 3 edges) (nth 1 edges))))
 	 (type (if (image--imagemagick-wanted-p filename)
 		   'imagemagick
 		 (image-type file-or-data nil data-p)))
@@ -827,14 +831,18 @@ was inserted."
                  (ignore-error exif-error
                    (exif-parse-buffer)))
                 0.0)))
+    ;; Swap width and height when changing orientation
+    ;; between portrait and landscape.
+    (when (and edges (zerop (mod (+ image-transform-rotation 90) 180)))
+      (setq max-width (prog1 max-height (setq max-height max-width))))
 
     ;; :scale 1: If we do not set this, create-image will apply
     ;; default scaling based on font size.
     (setq image (if (not edges)
 		    (create-image file-or-data type data-p :scale 1)
 		  (create-image file-or-data type data-p :scale 1
-				:max-width (- (nth 2 edges) (nth 0 edges))
-				:max-height (- (nth 3 edges) (nth 1 edges)))))
+				:max-width max-width
+				:max-height max-height)))
 
     ;; Discard any stale image data before looking it up again.
     (image-flush image)
