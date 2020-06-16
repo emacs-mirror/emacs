@@ -3087,6 +3087,7 @@ in the Dired buffer."
 
 (declare-function vc-compatible-state "vc")
 
+;;;###autoload
 (defun dired-vc-deduce-fileset (&optional state-model-only-files not-state-changing)
   (let ((backend (vc-responsible-backend default-directory))
         (files (dired-get-marked-files nil nil nil nil t))
