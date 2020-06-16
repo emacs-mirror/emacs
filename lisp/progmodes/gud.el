@@ -2621,9 +2621,9 @@ comint mode, which see."
     (select-window
      (display-buffer
       (get-buffer-create (concat "*gud" filepart "*"))
-      '(display-buffer-reuse-window
-        display-buffer-in-previous-window
-        display-buffer-same-window display-buffer-pop-up-window)))
+      '((display-buffer-reuse-window
+         display-buffer-in-previous-window
+         display-buffer-same-window display-buffer-pop-up-window))))
     (when (and existing-buffer (get-buffer-process existing-buffer))
       (error "This program is already being debugged"))
     ;; Set the dir, in case the buffer already existed with a different dir.
