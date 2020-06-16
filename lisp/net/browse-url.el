@@ -1,4 +1,4 @@
-;;; browse-url.el --- pass a URL to a WWW browser
+;;; browse-url.el --- pass a URL to a WWW browser  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
@@ -587,7 +587,7 @@ process), or nil (we don't know)."
       kind)))
 
 (defun browse-url--mailto (url &rest args)
-  "Calls `browse-url-mailto-function' with URL and ARGS."
+  "Call `browse-url-mailto-function' with URL and ARGS."
   (funcall browse-url-mailto-function url args))
 
 (defun browse-url--browser-kind-mailto (url)
@@ -596,7 +596,7 @@ process), or nil (we don't know)."
               #'browse-url--browser-kind-mailto)
 
 (defun browse-url--man (url &rest args)
-  "Calls `browse-url-man-function' with URL and ARGS."
+  "Call `browse-url-man-function' with URL and ARGS."
   (funcall browse-url-man-function url args))
 
 (defun browse-url--browser-kind-man (url)
@@ -605,7 +605,7 @@ process), or nil (we don't know)."
               #'browse-url--browser-kind-man)
 
 (defun browse-url--browser (url &rest args)
-  "Calls `browse-url-browser-function' with URL and ARGS."
+  "Call `browse-url-browser-function' with URL and ARGS."
   (funcall browse-url-browser-function url args))
 
 (defun browse-url--browser-kind-browser (url)
@@ -819,8 +819,8 @@ narrowed."
       (browse-url-of-file file-name))))
 
 (defun browse-url-delete-temp-file (&optional temp-file-name)
-  ;; Delete browse-url-temp-file-name from the file system
-  ;; If optional arg TEMP-FILE-NAME is non-nil, delete it instead
+  "Delete `browse-url-temp-file-name' from the file system.
+If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
   (let ((file-name (or temp-file-name browse-url-temp-file-name)))
     (if (and file-name (file-exists-p file-name))
 	(delete-file file-name))))
