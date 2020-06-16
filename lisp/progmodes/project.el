@@ -821,7 +821,7 @@ It's also possible to enter an arbitrary directory."
 ;;;###autoload
 (defvar project-switch-commands
   '((?f "Find file" project-find-file)
-    (?r "Find regexp" project-find-regexp)
+    (?g "Find regexp" project-find-regexp)
     (?d "Dired" project-dired)
     (?v "VC-Dir" project-vc-dir)
     (?s "Shell" project-shell)
