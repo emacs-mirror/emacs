@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -824,7 +824,6 @@ It's also possible to enter an arbitrary directory."
     (?g "Find regexp" project-find-regexp)
     (?d "Dired" project-dired)
     (?v "VC-Dir" project-vc-dir)
-    (?s "Shell" project-shell)
     (?e "Eshell" project-eshell))
   "Alist mapping keys to project switching menu entries.
 Used by `project-switch-project' to construct a dispatch menu of
