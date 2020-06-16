@@ -644,6 +644,7 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 (defun project-find-file-in (filename dirs project)
   "Complete FILENAME in DIRS in PROJECT and visit the result."
   (let* ((all-files (project-files project dirs))
+         (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
                        "Find file" all-files nil nil
                        filename)))
