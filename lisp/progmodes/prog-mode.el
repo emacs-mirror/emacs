@@ -183,6 +183,11 @@ on the symbol."
 		   (> (point) (cadr prettify-symbols--current-symbol-bounds))
 		   (and (not (eq prettify-symbols-unprettify-at-point 'right-edge))
 			(= (point) (cadr prettify-symbols--current-symbol-bounds)))))
+      ;; Adjust the bounds in case either end is invalid.
+      (setf (car prettify-symbols--current-symbol-bounds)
+            (max (car prettify-symbols--current-symbol-bounds) (point-min))
+            (cadr prettify-symbols--current-symbol-bounds)
+            (min (cadr prettify-symbols--current-symbol-bounds) (point-max)))
       (apply #'font-lock-flush prettify-symbols--current-symbol-bounds)
       (setq prettify-symbols--current-symbol-bounds nil))
     ;; Unprettify the current symbol.
