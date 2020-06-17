@@ -563,4 +563,15 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (equal (comp-tests-ffuncall-callee-opt-rest-dyn-f 1 2 3 4)
                  '(1 2 3 (4)))))
 
+(ert-deftest comp-tests-dynamic-arity ()
+  "Test func-arity on dynamic scope functions."
+  (should (equal '(2 . 2)
+                 (func-arity #'comp-tests-ffuncall-callee-dyn-f)))
+  (should (equal '(2 . 4)
+                 (func-arity #'comp-tests-ffuncall-callee-opt-dyn-f)))
+  (should (equal '(2 . many)
+                 (func-arity #'comp-tests-ffuncall-callee-rest-dyn-f)))
+  (should (equal '(2 . many)
+                 (func-arity #'comp-tests-ffuncall-callee-opt-rest-dyn-f))))
+
 ;;; comp-tests.el ends here
