@@ -490,6 +490,23 @@ DIRS must contain directory names."
   ;; Sidestep the issue of expanded/abbreviated file names here.
   (cl-set-difference files dirs :test #'file-in-directory-p))
 
+;;;###autoload
+(defvar project-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "f" 'project-find-file)
+    (define-key map "s" 'project-shell)
+    (define-key map "d" 'project-dired)
+    (define-key map "v" 'project-vc-dir)
+    (define-key map "c" 'project-compile)
+    (define-key map "e" 'project-eshell)
+    (define-key map "p" 'project-switch-project)
+    (define-key map "g" 'project-find-regexp)
+    (define-key map "r" 'project-query-replace-regexp)
+    map)
+  "Keymap for project commands.")
+
+;;;###autoload (define-key ctl-x-map "p" project-prefix-map)
+
 (defun project--value-in-dir (var dir)
   (with-temp-buffer
     (setq default-directory dir)
