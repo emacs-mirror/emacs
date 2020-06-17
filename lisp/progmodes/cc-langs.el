@@ -337,7 +337,8 @@ the evaluated constant value at compile time."
 This includes setting \\=' and \" as string delimiters, and setting up
 the comment syntax to handle both line style \"//\" and block style
 \"/*\" \"*/\" comments."
-
+  ;; Never native compile to allow cc-mode.el:467 hack.
+  (declare (speed -1))
   (modify-syntax-entry ?_  "_"     table)
   (modify-syntax-entry ?\\ "\\"    table)
   (modify-syntax-entry ?+  "."     table)

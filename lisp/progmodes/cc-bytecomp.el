@@ -97,6 +97,8 @@
   ;; compilation can trigger loading (various `require' type forms)
   ;; and loading can trigger compilation (the package manager does
   ;; this).  We walk the lisp stack if necessary.
+  ;; Never native compile to allow cc-defs.el:2345 hack.
+  (declare (speed -1))
   (cond
    ((and load-in-progress
 	 (boundp 'byte-compile-dest-file)
