@@ -143,7 +143,7 @@ executable, using the MinGW GCC compiler and development tools.
 
 @cindex DOS port
 @cindex Windows 3.11 port
-Emacs can also be compiled for MSDOS.  When run on recent MS Windows,
+Emacs can also be compiled for MSDOS@.  When run on recent MS Windows,
 it supports long file names, and uses the Windows clipboard.
 See the @file{msdos} directory in the Emacs sources for building
 instructions (requires DJGPP).
@@ -222,7 +222,7 @@ specific notes about debugging Emacs.
 
 @cindex debugging Emacs with GDB
 GDB is the GNU debugger, which can be used to debug Emacs when it has
-been compiled with MinGW GCC.  The best results will be obtained if
+been compiled with MinGW GCC@.  The best results will be obtained if
 you start gdb from the @file{src} directory as @kbd{gdb ./emacs.exe}.
 This will load the init file @file{.gdbinit}@footnote{
 Latest versions of GDB might refuse to load the init file for security
@@ -592,7 +592,7 @@ Subject: Re: Re[2]: problem with caps/ctrl swap on NT 4.0
 @end ignore
 @smallexample
 It's a binary value that lets you map keystrokes in the low-level keyboard
-drivers in NT.  As a result you don't have to worry about applications
+drivers in NT@.  As a result you don't have to worry about applications
 bypassing mappings that you've done at a higher level (i.e., it just works).
 
 Here's the format of the value:
@@ -1187,7 +1187,7 @@ A lot of effort has gone into making it easier to print from Emacs on
 MS Windows, but this has still been insufficient to keep up with
 changes in printing technology from text and postscript based printers
 connected via ports that can be accessed directly, to graphical
-printers that are only accessible via USB.  For details, see
+printers that are only accessible via USB@.  For details, see
 @uref{http://www.emacswiki.org/emacs/PrintingFromEmacs, Emacs
 Wiki}, @uref{http://www.emacswiki.org/emacs/PrintWithWebBrowser}, and
 @uref{http://www.emacswiki.org/emacs/PrintFromWindowsExplorer}.
@@ -1398,7 +1398,7 @@ default shell in Emacs, you can place the following in your init file:
 @end example
 
 WARNING: Some versions of bash set and use the environment variable
-PID.  For some as yet unknown reason, if @env{PID} is set and Emacs
+PID@.  For some as yet unknown reason, if @env{PID} is set and Emacs
 passes it on to bash subshells, bash dies (Emacs can inherit the
 @env{PID} variable if it's started from a bash shell).  If you clear
 the @env{PID} variable in your init file, you should be able to
@@ -1890,9 +1890,9 @@ need to use.
 @node MSVC
 @section How do I use Emacs with Microsoft Visual C++
 
-There are two ways you can use Emacs in conjunction with MSVC.  You
+There are two ways you can use Emacs in conjunction with MSVC@.  You
 can use Emacs as the editor, and do everything else in the DevStudio
-IDE.  Or you can use Emacs as an IDE, calling the MSVC command line
+IDE@.  Or you can use Emacs as an IDE, calling the MSVC command line
 tools to build your project.
 
 @menu

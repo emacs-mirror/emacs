@@ -1003,7 +1003,7 @@ variable @code{auto-revert-remote-files} to non-@code{nil}.
 @vindex auto-revert-use-notify
 @vindex auto-revert-interval
   By default, Auto Revert mode works using @dfn{file notifications},
-whereby changes in the filesystem are reported to Emacs by the OS.
+whereby changes in the filesystem are reported to Emacs by the OS@.
 You can disable use of file notifications by customizing the variable
 @code{auto-revert-use-notify} to a @code{nil} value, then Emacs will
 check for file changes by polling every five seconds.  You can change

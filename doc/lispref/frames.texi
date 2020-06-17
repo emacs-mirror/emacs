@@ -2173,7 +2173,7 @@ it on an undecorated frame.
 @item override-redirect
 @cindex override redirect frames
 If non-@code{nil}, this means that this is an @dfn{override redirect}
-frame---a frame not handled by window managers under X.  Override
+frame---a frame not handled by window managers under X@.  Override
 redirect frames have no window manager decorations, can be positioned
 and resized only via Emacs' positioning and resizing functions and are
 usually drawn on top of all other frames.  Setting this parameter has
