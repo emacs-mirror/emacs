@@ -306,7 +306,7 @@ backend implementation of `project-external-roots'.")
                     (if (and
                          ;; FIXME: Invalidate the cache when the value
                          ;; of this variable changes.
-                         project-vc-merge-submodules
+                         (project--vc-merge-submodules-p root)
                          (project--submodule-p root))
                         (let* ((parent (file-name-directory
                                         (directory-file-name root))))
@@ -396,19 +396,20 @@ backend implementation of `project-external-roots'.")
               (split-string
                (apply #'vc-git--run-command-string nil "ls-files" args)
                "\0" t)))
-       ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
-       (let* ((submodules (project--git-submodules))
-              (sub-files
-               (mapcar
-                (lambda (module)
-                  (when (file-directory-p module)
-                    (project--vc-list-files
-                     (concat default-directory module)
-                     backend
-                     extra-ignores)))
-                submodules)))
-         (setq files
-               (apply #'nconc files sub-files)))
+       (when (project--vc-merge-submodules-p default-directory)
+         ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
+         (let* ((submodules (project--git-submodules))
+                (sub-files
+                 (mapcar
+                  (lambda (module)
+                    (when (file-directory-p module)
+                      (project--vc-list-files
+                       (concat default-directory module)
+                       backend
+                       extra-ignores)))
+                  submodules)))
+           (setq files
+                 (apply #'nconc files sub-files))))
        ;; 'git ls-files' returns duplicate entries for merge conflicts.
        ;; XXX: Better solutions welcome, but this seems cheap enough.
        (delete-consecutive-dups files)))
@@ -428,6 +429,11 @@ backend implementation of `project-external-roots'.")
          (mapcar
           (lambda (s) (concat default-directory s))
           (split-string (buffer-string) "\0" t)))))))
+
+(defun project--vc-merge-submodules-p (dir)
+  (project--value-in-dir
+   'project-vc-merge-submodules
+   dir))
 
 (defun project--git-submodules ()
   ;; 'git submodule foreach' is much slower.
