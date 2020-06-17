@@ -1116,7 +1116,7 @@ is used.
 
 The choice between EasyPG and OpenSSL is controlled by the variable
 @code{mml-smime-use}, which needs to be set to the value @code{epg}
-for EasyPG.  Depending on your version of Emacs that value may be the
+for EasyPG@.  Depending on your version of Emacs that value may be the
 default; if not, you can either customize that variable or place the
 following line in your @file{.emacs} file (that line needs to be
 placed above other code related to message/gnus/encryption):
@@ -1232,7 +1232,7 @@ decryption/sign operation.  @xref{Agent Options, , , gnupg, Using the
 GNU Privacy Guard}.
 
 How to use @command{gpg-agent} in Emacs depends on your version of
-GnuPG.  With GnuPG version 2.1, @command{gpg-agent} is started
+GnuPG@.  With GnuPG version 2.1, @command{gpg-agent} is started
 automatically if necessary.  With older versions you may need to run
 the following command from the shell before starting Emacs.
 

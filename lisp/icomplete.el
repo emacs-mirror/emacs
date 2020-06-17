@@ -300,7 +300,10 @@ if that doesn't produce a completion match."
   (interactive)
   (if (and (eq (char-before) ?/)
            (eq (icomplete--category) 'file))
-      (zap-up-to-char -1 ?/)
+      (save-excursion
+        (goto-char (1- (point)))
+        (when (search-backward "/" (point-min) t)
+          (delete-region (1+ (point)) (point-max))))
     (call-interactively 'backward-delete-char)))
 
 (defvar icomplete-fido-mode-map

@@ -182,7 +182,7 @@ caught in `condition-case' by `dbus-error'.")
 ;;; Basic D-Bus message functions.
 
 (defvar dbus-return-values-table (make-hash-table :test 'equal)
-  "Hash table for temporary storing arguments of reply messages.
+  "Hash table for temporarily storing arguments of reply messages.
 A key in this hash table is a list (:serial BUS SERIAL), like in
 `dbus-registered-objects-table'.  BUS is either a Lisp symbol,
 `:system' or `:session', or a string denoting the bus address.
@@ -225,10 +225,10 @@ SERVICE is the D-Bus service name to be used.  PATH is the D-Bus
 object path SERVICE is registered at.  INTERFACE is an interface
 offered by SERVICE.  It must provide METHOD.
 
-If the parameter `:timeout' is given, the following integer TIMEOUT
-specifies the maximum number of milliseconds the method call must
-return.  The default value is 25,000.  If the method call doesn't
-return in time, a D-Bus error is raised.
+If the parameter `:timeout' is given, the following integer
+TIMEOUT specifies the maximum number of milliseconds before the
+method call must return.  The default value is 25,000.  If the
+method call doesn't return in time, a D-Bus error is raised.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
@@ -248,14 +248,14 @@ Lisp objects.  The type conversion happens the other direction as for
 input arguments.  It follows the mapping rules:
 
   DBUS_TYPE_BOOLEAN     => t or nil
-  DBUS_TYPE_BYTE        => number
-  DBUS_TYPE_UINT16      => number
+  DBUS_TYPE_BYTE        => natural number
+  DBUS_TYPE_UINT16      => natural number
   DBUS_TYPE_INT16       => integer
-  DBUS_TYPE_UINT32      => number or float
-  DBUS_TYPE_UNIX_FD     => number or float
-  DBUS_TYPE_INT32       => integer or float
-  DBUS_TYPE_UINT64      => number or float
-  DBUS_TYPE_INT64       => integer or float
+  DBUS_TYPE_UINT32      => natural number
+  DBUS_TYPE_UNIX_FD     => natural number
+  DBUS_TYPE_INT32       => integer
+  DBUS_TYPE_UINT64      => natural number
+  DBUS_TYPE_INT64       => integer
   DBUS_TYPE_DOUBLE      => float
   DBUS_TYPE_STRING      => string
   DBUS_TYPE_OBJECT_PATH => string
@@ -268,9 +268,9 @@ input arguments.  It follows the mapping rules:
 Example:
 
 \(dbus-call-method
-  :session \"org.gnome.seahorse\" \"/org/gnome/seahorse/keys/openpgp\"
-  \"org.gnome.seahorse.Keys\" \"GetKeyField\"
-  \"openpgp:657984B8C7A966DD\" \"simple-name\")
+ :session \"org.gnome.seahorse\" \"/org/gnome/seahorse/keys/openpgp\"
+ \"org.gnome.seahorse.Keys\" \"GetKeyField\"
+ \"openpgp:657984B8C7A966DD\" \"simple-name\")
 
   => (t (\"Philip R. Zimmermann\"))
 
@@ -278,9 +278,9 @@ If the result of the METHOD call is just one value, the converted Lisp
 object is returned instead of a list containing this single Lisp object.
 
 \(dbus-call-method
-  :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
-  \"org.freedesktop.Hal.Device\" \"GetPropertyString\"
-  \"system.kernel.machine\")
+ :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
+ \"org.freedesktop.Hal.Device\" \"GetPropertyString\"
+ \"system.kernel.machine\")
 
   => \"i686\""
 
@@ -357,10 +357,10 @@ HANDLER is a Lisp function, which is called when the corresponding
 return message has arrived.  If HANDLER is nil, no return message
 will be expected.
 
-If the parameter `:timeout' is given, the following integer TIMEOUT
-specifies the maximum number of milliseconds the method call must
-return.  The default value is 25,000.  If the method call doesn't
-return in time, a D-Bus error is raised.
+If the parameter `:timeout' is given, the following integer
+TIMEOUT specifies the maximum number of milliseconds before the
+method call must return.  The default value is 25,000.  If the
+method call doesn't return in time, a D-Bus error is raised.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
@@ -377,19 +377,19 @@ type symbols, see Info node `(dbus)Type Conversion'.
 
 If HANDLER is a Lisp function, the function returns a key into the
 hash table `dbus-registered-objects-table'.  The corresponding entry
-in the hash table is removed, when the return message has been arrived,
+in the hash table is removed, when the return message arrives,
 and HANDLER is called.
 
 Example:
 
 \(dbus-call-method-asynchronously
-  :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
-  \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
-  \"system.kernel.machine\")
+ :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
+ \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
+ \"system.kernel.machine\")
 
-  => (:serial :system 2)
+  -| i686
 
-  -| i686"
+  => (:serial :system 2)"
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
@@ -438,8 +438,8 @@ type symbols, see Info node `(dbus)Type Conversion'.
 Example:
 
 \(dbus-send-signal
-  :session nil \"/org/gnu/Emacs\" \"org.gnu.Emacs.FileManager\"
-  \"FileModified\" \"/home/albinus/.emacs\")"
+ :session nil \"/org/gnu/Emacs\" \"org.gnu.Emacs.FileManager\"
+ \"FileModified\" \"/home/albinus/.emacs\")"
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
@@ -625,17 +625,17 @@ SERVICE is the D-Bus service name used by the sending D-Bus object.
 It can be either a known name or the unique name of the D-Bus object
 sending the signal.
 
-PATH is the D-Bus object path SERVICE is registered.  INTERFACE
-is an interface offered by SERVICE.  It must provide SIGNAL.
-HANDLER is a Lisp function to be called when the signal is
-received.  It must accept as arguments the values SIGNAL is
+PATH is the D-Bus object path SERVICE is registered at.
+INTERFACE is an interface offered by SERVICE.  It must provide
+SIGNAL.  HANDLER is a Lisp function to be called when the signal
+is received.  It must accept as arguments the values SIGNAL is
 sending.
 
 SERVICE, PATH, INTERFACE and SIGNAL can be nil.  This is
 interpreted as a wildcard for the respective argument.
 
 The remaining arguments ARGS can be keywords or keyword string pairs.
-The meaning is as follows:
+Their meaning is as follows:
 
 `:argN' STRING:
 `:pathN' STRING: This stands for the Nth argument of the
@@ -643,8 +643,9 @@ signal.  `:pathN' arguments can be used for object path wildcard
 matches as specified by D-Bus, while an `:argN' argument
 requires an exact match.
 
-`:arg-namespace' STRING: Register for the signals, which first
-argument defines the service or interface namespace STRING.
+`:arg-namespace' STRING: Register for those signals, whose first
+argument names a service or interface within the namespace
+STRING.
 
 `:path-namespace' STRING: Register for the object path namespace
 STRING.  All signals sent from an object path, which has STRING as
@@ -660,8 +661,8 @@ Example:
   (message \"Device %s added\" device))
 
 \(dbus-register-signal
-  :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
-  \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
+ :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
+ \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
 
   => ((:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
       (\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
@@ -773,24 +774,24 @@ Example:
 
 (defun dbus-register-method
   (bus service path interface method handler &optional dont-register-service)
-  "Register for method METHOD on the D-Bus BUS.
+  "Register METHOD on the D-Bus BUS.
 
 BUS is either a Lisp symbol, `:system' or `:session', or a string
 denoting the bus address.
 
 SERVICE is the D-Bus service name of the D-Bus object METHOD is
-registered for.  It must be a known name (See discussion of
+registered for.  It must be a known name (see discussion of
 DONT-REGISTER-SERVICE below).
 
-PATH is the D-Bus object path SERVICE is registered (See discussion of
-DONT-REGISTER-SERVICE below).  INTERFACE is the interface offered by
-SERVICE.  It must provide METHOD.
+PATH is the D-Bus object path SERVICE is registered at (see
+discussion of DONT-REGISTER-SERVICE below).  INTERFACE is the
+interface offered by SERVICE.  It must provide METHOD.
 
 HANDLER is a Lisp function to be called when a method call is
 received.  It must accept the input arguments of METHOD.  The return
 value of HANDLER is used for composing the returning D-Bus message.
-In case HANDLER shall return a reply message with an empty argument
-list, HANDLER must return the symbol `:ignore'.
+If HANDLER returns a reply message with an empty argument list,
+HANDLER must return the symbol `:ignore'.
 
 When DONT-REGISTER-SERVICE is non-nil, the known name SERVICE is not
 registered.  This means that other D-Bus clients have no way of
@@ -888,8 +889,8 @@ association to the service from D-Bus."
 ;;; D-Bus type conversion.
 
 (defun dbus-string-to-byte-array (string)
-  "Transform STRING to list (:array :byte c1 :byte c2 ...).
-STRING shall be UTF8 coded."
+  "Transform STRING to list (:array :byte C1 :byte C2 ...).
+STRING shall be UTF-8 coded."
   (if (zerop (length string))
       '(:array :signature "y")
     (let (result)
@@ -897,7 +898,7 @@ STRING shall be UTF8 coded."
 	(setq result (append result (list :byte elt)))))))
 
 (defun dbus-byte-array-to-string (byte-array &optional multibyte)
-  "Transform BYTE-ARRAY into UTF8 coded string.
+  "Transform BYTE-ARRAY into UTF-8 coded string.
 BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte
 array as produced by `dbus-string-to-byte-array'.  The resulting
 string is unibyte encoded, unless MULTIBYTE is non-nil."
@@ -920,9 +921,9 @@ lower-case hex digits:
 
    \"0123abc_xyz\\x01\\xff\" -> \"_30123abc_5fxyz_01_ff\"
 
-i.e. similar to URI encoding, but with \"_\" taking the role of \"%\",
-and a smaller allowed set. As a special case, \"\" is escaped to
-\"_\".
+i.e. similar to URI encoding, but with \"_\" taking the role of
+\"%\", and a smaller allowed set.  As a special case, \"\" is
+escaped to \"_\".
 
 Returns the escaped string.  Algorithm taken from
 telepathy-glib's `tp_escape_as_identifier'."
@@ -963,8 +964,8 @@ the function which has been registered for this message.  ARGS
 are the arguments passed to HANDLER, when it is called during
 event handling in `dbus-handle-event'.
 
-This function raises a `dbus-error' signal in case the event is
-not well formed."
+This function signals a `dbus-error' if the event is not well
+formed."
   (when dbus-debug (message "DBus-Event %s" event))
   (unless (and (listp event)
 	       (eq (car event) 'dbus-event)
@@ -1038,16 +1039,16 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
   "Return the bus name the event is coming from.
 The result is either a Lisp symbol, `:system' or `:session', or a
 string denoting the bus address.  EVENT is a D-Bus event, see
-`dbus-check-event'.  This function raises a `dbus-error' signal
-in case the event is not well formed."
+`dbus-check-event'.  This function signals a `dbus-error' if the
+event is not well formed."
   (dbus-check-event event)
   (nth 1 event))
 
 (defun dbus-event-message-type (event)
   "Return the message type of the corresponding D-Bus message.
 The result is a number.  EVENT is a D-Bus event, see
-`dbus-check-event'.  This function raises a `dbus-error' signal
-in case the event is not well formed."
+`dbus-check-event'.  This function signals a `dbus-error' if the
+event is not well formed."
   (dbus-check-event event)
   (nth 2 event))
 
@@ -1055,41 +1056,40 @@ in case the event is not well formed."
   "Return the serial number of the corresponding D-Bus message.
 The result is a number.  The serial number is needed for
 generating a reply message.  EVENT is a D-Bus event, see
-`dbus-check-event'.  This function raises a `dbus-error' signal
-in case the event is not well formed."
+`dbus-check-event'.  This function signals a `dbus-error' if the
+event is not well formed."
   (dbus-check-event event)
   (nth 3 event))
 
 (defun dbus-event-service-name (event)
   "Return the name of the D-Bus object the event is coming from.
 The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
-This function raises a `dbus-error' signal in case the event is
-not well formed."
+This function signals a `dbus-error' if the event is not well
+formed."
   (dbus-check-event event)
   (nth 4 event))
 
 (defun dbus-event-path-name (event)
   "Return the object path of the D-Bus object the event is coming from.
 The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
-This function raises a `dbus-error' signal in case the event is
-not well formed."
+This function signals a `dbus-error' if the event is not well
+formed."
   (dbus-check-event event)
   (nth 5 event))
 
 (defun dbus-event-interface-name (event)
   "Return the interface name of the D-Bus object the event is coming from.
 The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
-This function raises a `dbus-error' signal in case the event is
-not well formed."
+This function signals a `dbus-error' if the event is not well
+formed."
   (dbus-check-event event)
   (nth 6 event))
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
-It is either a signal name or a method name. The result is a
+It is either a signal name or a method name.  The result is a
 string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
-function raises a `dbus-error' signal in case the event is not
-well formed."
+function signals a `dbus-error' if the event is not well formed."
   (dbus-check-event event)
   (nth 7 event))
 
@@ -1097,10 +1097,10 @@ well formed."
 ;;; D-Bus registered names.
 
 (defun dbus-list-activatable-names (&optional bus)
-  "Return the D-Bus service names which can be activated as list.
-If BUS is left nil, `:system' is assumed.  The result is a list
-of strings, which is nil when there are no activatable service
-names at all."
+  "Return a list of the D-Bus service names which can be activated.
+BUS defaults to `:system' when nil or omitted.  The result is a
+list of strings, which is nil when there are no activatable
+service names at all."
   (dbus-ignore-errors
     (dbus-call-method
      (or bus :system) dbus-service-dbus
@@ -1126,8 +1126,8 @@ A service has a known name if it doesn't start with \":\"."
 
 (defun dbus-list-queued-owners (bus service)
   "Return the unique names registered at D-Bus BUS and queued for SERVICE.
-The result is a list of strings, or nil when there are no
-queued name owners service names at all."
+The result is a list of strings, or nil when there are no queued
+name owner service names at all."
   (dbus-ignore-errors
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus
@@ -1144,13 +1144,13 @@ The result is either a string, or nil if there is no name owner."
 (defun dbus-ping (bus service &optional timeout)
   "Check whether SERVICE is registered for D-Bus BUS.
 TIMEOUT, a nonnegative integer, specifies the maximum number of
-milliseconds `dbus-ping' must return.  The default value is 25,000.
+milliseconds before `dbus-ping' must return.  The default value
+is 25,000.
 
-Note, that this autoloads SERVICE if it is not running yet.  If
-it shall be checked whether SERVICE is already running, one shall
-apply
+Note, that this autoloads SERVICE if it is not running yet.  To
+check whether SERVICE is already running, you can instead write
 
-  (member service \(dbus-list-known-names bus))"
+  (member service (dbus-list-known-names bus))"
   ;; "Ping" raises a D-Bus error if SERVICE does not exist.
   ;; Otherwise, it returns silently with nil.
   (condition-case nil
@@ -1239,11 +1239,11 @@ It returns a list of strings, which are further object paths of SERVICE."
   "Return all interface names of SERVICE in D-Bus BUS at object path PATH.
 It returns a list of strings.
 
-There will be always the default interface
-\"org.freedesktop.DBus.Introspectable\".  Another default
-interface is \"org.freedesktop.DBus.Properties\".  If present,
-\"interface\" objects can also have \"property\" objects as
-children, beside \"method\" and \"signal\" objects."
+The default interface \"org.freedesktop.DBus.Introspectable\" is
+always present.  Another default interface is
+\"org.freedesktop.DBus.Properties\".  If present, \"interface\"
+objects can also have \"property\" objects as children, beside
+\"method\" and \"signal\" objects."
   (let ((object (dbus-introspect-xml bus service path))
 	result)
     (dolist (elt (xml-get-children object 'interface) (nreverse result))
@@ -1251,9 +1251,10 @@ children, beside \"method\" and \"signal\" objects."
 
 (defun dbus-introspect-get-interface (bus service path interface)
   "Return the INTERFACE of SERVICE in D-Bus BUS at object path PATH.
-The return value is an XML object.  INTERFACE must be a string,
-element of the list returned by `dbus-introspect-get-interface-names'.
-The resulting \"interface\" object can contain \"method\", \"signal\",
+The return value is an XML object.  INTERFACE must be a string
+and a member of the list returned by
+`dbus-introspect-get-interface-names'.  The resulting
+\"interface\" object can contain \"method\", \"signal\",
 \"property\" and \"annotation\" children."
   (let ((elt (xml-get-children
 	      (dbus-introspect-xml bus service path) 'interface)))
@@ -1273,9 +1274,9 @@ SERVICE is a service of D-Bus BUS at object path PATH."
       (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-method (bus service path interface method)
-  "Return method METHOD of interface INTERFACE as XML object.
+  "Return method METHOD of interface INTERFACE as an XML object.
 It must be located at SERVICE in D-Bus BUS at object path PATH.
-METHOD must be a string, element of the list returned by
+METHOD must be a string and a member of the list returned by
 `dbus-introspect-get-method-names'.  The resulting \"method\"
 object can contain \"arg\" and \"annotation\" children."
   (let ((elt (xml-get-children
@@ -1296,7 +1297,7 @@ SERVICE is a service of D-Bus BUS at object path PATH."
       (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-signal (bus service path interface signal)
-  "Return signal SIGNAL of interface INTERFACE as XML object.
+  "Return signal SIGNAL of interface INTERFACE as an XML object.
 It must be located at SERVICE in D-Bus BUS at object path PATH.
 SIGNAL must be a string, element of the list returned by
 `dbus-introspect-get-signal-names'.  The resulting \"signal\"
@@ -1319,9 +1320,9 @@ SERVICE is a service of D-Bus BUS at object path PATH."
       (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-property (bus service path interface property)
-  "Return PROPERTY of INTERFACE as XML object.
+  "Return PROPERTY of INTERFACE as an XML object.
 It must be located at SERVICE in D-Bus BUS at object path PATH.
-PROPERTY must be a string, element of the list returned by
+PROPERTY must be a string and a member of the list returned by
 `dbus-introspect-get-property-names'.  The resulting PROPERTY
 object can contain \"annotation\" children."
   (let ((elt (xml-get-children
@@ -1336,7 +1337,7 @@ object can contain \"annotation\" children."
 
 (defun dbus-introspect-get-annotation-names
   (bus service path interface &optional name)
-  "Return all annotation names as list of strings.
+  "Return all annotation names as a list of strings.
 If NAME is nil, the annotations are children of INTERFACE,
 otherwise NAME must be a \"method\", \"signal\", or \"property\"
 object, where the annotations belong to."
@@ -1352,7 +1353,7 @@ object, where the annotations belong to."
 
 (defun dbus-introspect-get-annotation
   (bus service path interface name annotation)
-  "Return ANNOTATION as XML object.
+  "Return ANNOTATION as an XML object.
 If NAME is nil, ANNOTATION is a child of INTERFACE, otherwise
 NAME must be the name of a \"method\", \"signal\", or
 \"property\" object, where the ANNOTATION belongs to."
@@ -1374,7 +1375,7 @@ NAME must be the name of a \"method\", \"signal\", or
     (car elt)))
 
 (defun dbus-introspect-get-argument-names (bus service path interface name)
-  "Return a list of all argument names as list of strings.
+  "Return a list of all argument names as a list of strings.
 NAME must be a \"method\" or \"signal\" object.
 
 Argument names are optional, the function can return nil
@@ -1388,8 +1389,9 @@ therefore, even if the method or signal has arguments."
 
 (defun dbus-introspect-get-argument (bus service path interface name arg)
   "Return argument ARG as XML object.
-NAME must be a \"method\" or \"signal\" object.  ARG must be a string,
-element of the list returned by `dbus-introspect-get-argument-names'."
+NAME must be a \"method\" or \"signal\" object.  ARG must be a
+string and a member of the list returned by
+`dbus-introspect-get-argument-names'."
   (let ((elt (xml-get-children
 	      (or (dbus-introspect-get-method bus service path interface name)
 		  (dbus-introspect-get-signal bus service path interface name))
@@ -1402,7 +1404,7 @@ element of the list returned by `dbus-introspect-get-argument-names'."
 
 (defun dbus-introspect-get-signature
   (bus service path interface name &optional direction)
-  "Return signature of a `method' or `signal', represented by NAME, as string.
+  "Return signature of a `method' or `signal' represented by NAME as a string.
 If NAME is a `method', DIRECTION can be either \"in\" or \"out\".
 If DIRECTION is nil, \"in\" is assumed.
 
@@ -1450,9 +1452,8 @@ valid D-Bus value, or nil if there is no PROPERTY."
 
 (defun dbus-set-property (bus service path interface property value)
   "Set value of PROPERTY of INTERFACE to VALUE.
-It will be checked at BUS, SERVICE, PATH.  When the value has
-been set successful, the result is VALUE.  Otherwise, nil is
-returned."
+It will be checked at BUS, SERVICE, PATH.  When the value is
+successfully set return VALUE.  Otherwise, return nil."
   (dbus-ignore-errors
    ;; "Set" requires a variant.
    (dbus-call-method
@@ -1479,15 +1480,15 @@ nil is returned."
 (defun dbus-register-property
   (bus service path interface property access value
    &optional emits-signal dont-register-service)
-  "Register property PROPERTY on the D-Bus BUS.
+  "Register PROPERTY on the D-Bus BUS.
 
 BUS is either a Lisp symbol, `:system' or `:session', or a string
 denoting the bus address.
 
 SERVICE is the D-Bus service name of the D-Bus.  It must be a
-known name (See discussion of DONT-REGISTER-SERVICE below).
+known name (see discussion of DONT-REGISTER-SERVICE below).
 
-PATH is the D-Bus object path SERVICE is registered (See
+PATH is the D-Bus object path SERVICE is registered at (see
 discussion of DONT-REGISTER-SERVICE below).  INTERFACE is the
 name of the interface used at PATH, PROPERTY is the name of the
 property of INTERFACE.  ACCESS indicates, whether the property
@@ -1625,8 +1626,8 @@ It will be registered for all objects created by `dbus-register-property'."
   "Return all objects at BUS, SERVICE, PATH, and the children of PATH.
 The result is a list of objects.  Every object is a cons of an
 existing path name, and the list of available interface objects.
-An interface object is another cons, which car is the interface
-name, and the cdr is the list of properties as returned by
+An interface object is another cons, whose car is the interface
+name and cdr is the list of properties as returned by
 `dbus-get-all-properties' for that path and interface.  Example:
 
 \(dbus-get-all-managed-objects :session \"org.gnome.SettingsDaemon\" \"/\")
@@ -1782,12 +1783,13 @@ can be a string denoting the address of the corresponding bus.  For
 the system and session buses, this function is called when loading
 `dbus.el', there is no need to call it again.
 
-The function returns a number, which counts the connections this Emacs
-session has established to the BUS under the same unique name (see
-`dbus-get-unique-name').  It depends on the libraries Emacs is linked
-with, and on the environment Emacs is running.  For example, if Emacs
-is linked with the gtk toolkit, and it runs in a GTK-aware environment
-like Gnome, another connection might already be established.
+The function returns the number of connections this Emacs session
+has established to the BUS under the same unique name (see
+`dbus-get-unique-name').  It depends on the libraries Emacs is
+linked with, and on the environment Emacs is running.  For
+example, if Emacs is linked with the GTK+ toolkit, and it runs in
+a GTK+-aware environment like GNOME, another connection might
+already be established.
 
 When PRIVATE is non-nil, a new connection is established instead of
 reusing an existing one.  It results in a new unique name at the bus.

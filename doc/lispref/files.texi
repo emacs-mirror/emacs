@@ -1197,7 +1197,7 @@ inconclusive, the function returns @code{t} on Cygwin and @code{nil}
 on macOS.
 
 Currently this function always returns @code{nil} on platforms other
-than MS-DOS, MS-Windows, Cygwin, and macOS.  It does not detect
+than MS-DOS, MS-Windows, Cygwin, and macOS@.  It does not detect
 case-insensitivity of mounted filesystems, such as Samba shares or
 NFS-mounted Windows volumes.  On remote hosts, it assumes @code{t} for
 the @samp{smb} method.  For all other connection methods, runtime

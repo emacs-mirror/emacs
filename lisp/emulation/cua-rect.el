@@ -1412,7 +1412,7 @@ With prefix arg, indent to that column."
 (add-function :around region-extract-function
               #'cua--rectangle-region-extract)
 (add-function :around region-insert-function
-              #'cua--insert-rectangle)
+              #'cua--rectangle-region-insert)
 (add-function :around redisplay-highlight-region-function
               #'cua--rectangle-highlight-for-redisplay)
 
@@ -1421,6 +1421,10 @@ With prefix arg, indent to that column."
     ;; When cua--rectangle is active, just don't highlight at all, since we
     ;; already do it elsewhere.
     (funcall redisplay-unhighlight-region-function (nth 3 args))))
+
+(defun cua--rectangle-region-insert (orig &rest args)
+  (if (not cua--rectangle) (apply orig args)
+    (funcall #'cua--insert-rectangle (car args))))
 
 (defun cua--rectangle-region-extract (orig &optional delete)
   (cond

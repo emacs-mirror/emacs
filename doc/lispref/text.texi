@@ -5219,7 +5219,7 @@ Signaled when encountering invalid JSON syntax.
 @end table
 
   Only top-level values (arrays and objects) can be serialized to
-JSON.  The subobjects within these top-level values can be of any
+JSON@.  The subobjects within these top-level values can be of any
 type.  Likewise, the parsing functions will only return vectors,
 hashtables, alists, and plists.
 

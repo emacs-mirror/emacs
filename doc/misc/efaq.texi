@@ -1125,7 +1125,7 @@ scanning of @code{#define}d symbols.
 
 @cindex xref
 @item
-New package Xref replaces Etags's front-end and UI.  Xref provides a
+New package Xref replaces Etags's front-end and UI@.  Xref provides a
 generic framework and new commands to find and move to definitions of
 functions, macros, data structures etc., as well as go back to the
 location where you were before moving to a definition.  It supersedes

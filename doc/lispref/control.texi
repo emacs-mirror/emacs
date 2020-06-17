@@ -835,7 +835,7 @@ the second and subsequent occurrences do not expand to re-binding,
 but instead expand to an equality test using @code{eq}.
 
 The following example features a @code{pcase} form
-with two clauses and two @var{seqpat}, A and B.
+with two clauses and two @var{seqpat}, A and B@.
 Both A and B first check that @var{expval} is a
 pair (using @code{pred}),
 and then bind symbols to the @code{car} and @code{cdr}
