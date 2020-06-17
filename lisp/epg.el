@@ -123,7 +123,7 @@
 
 (defconst epg-no-data-reason-alist
   '((1 . "No armored data")
-    (2 . "Expected a packet but did not found one")
+    (2 . "Expected a packet but did not find one")
     (3 . "Invalid packet found, this may indicate a non OpenPGP message")
     (4 . "Signature expected but not found")))
 
