@@ -768,6 +768,19 @@ Arguments the same as in `compile'."
          (default-directory (project-root pr)))
     (compile command comint)))
 
+;;;###autoload
+(defun project-switch-to-buffer ()
+  "Switch to a buffer in the current project."
+  (interactive)
+  (let ((root (project-root (project-current t))))
+    (switch-to-buffer
+     (read-buffer
+      "Switch to buffer: " nil t
+      (lambda (buffer)
+        ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
+        (when-let ((file (buffer-file-name (cdr buffer))))
+          (file-in-directory-p file root)))))))
+
 
 ;;; Project list
 
