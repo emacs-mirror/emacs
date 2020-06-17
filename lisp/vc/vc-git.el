@@ -747,7 +747,7 @@ or an empty string if none."
                                     (concat "branch." branch ".remote")))))
 	  (when (string-match "\\([^\n]+\\)" remote)
 	    (setq remote (match-string 1 remote)))
-	  (when remote
+          (when (> (length remote) 0)
 	    (setq remote-url (vc-git-repository-url dir remote))))
       (setq branch "not (detached HEAD)"))
     (when stash-list
@@ -803,7 +803,7 @@ or an empty string if none."
      (propertize "Branch     : " 'face 'font-lock-type-face)
      (propertize branch
 		 'face 'font-lock-variable-name-face)
-     (when remote
+     (when remote-url
        (concat
 	"\n"
 	(propertize "Remote     : " 'face 'font-lock-type-face)
