@@ -2450,7 +2450,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   "Load Tramp file name handler, and perform OPERATION."
   (tramp-unload-file-name-handlers)
   (when tramp-mode
-    (let ((default-directory temporary-file-directory))
+    (let ((default-directory (tramp-compat-temporary-file-directory)))
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 

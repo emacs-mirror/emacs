@@ -146,7 +146,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
 ;;;###tramp-autoload
 (defconst tramp-crypt-file-name-handler-alist
   '((access-file . tramp-crypt-handle-access-file)
-    ;; (add-name-to-file . tramp-crypt-handle-not-implemented)
+    (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)
     (copy-file . tramp-crypt-handle-copy-file)
@@ -198,8 +198,8 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (load . tramp-handle-load)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-crypt-handle-make-directory)
-    ;; (make-directory-internal . tramp-crypt-handle-not-implemented)
-    ;; (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
+    (make-directory-internal . ignore)
+    (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
     (process-file . ignore)
@@ -212,11 +212,11 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (shell-command . ignore)
     (start-file-process . ignore)
     ;; `substitute-in-file-name' performed by default handler.
-    ;; (temporary-file-directory . tramp-crypt-handle-temporary-file-directory)
+    (temporary-file-directory . tramp-handle-temporary-file-directory)
     ;; `tramp-get-remote-gid' performed by default handler.
     ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)
-    ;; (unhandled-file-name-directory . ignore)
+    (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-handle-write-region))
@@ -230,8 +230,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
     ;; if it is remote.  So we check a possible second argument.
     (unless (tramp-crypt-file-name-p tfnfo)
       (setq tfnfo (apply
-		   #'tramp-file-name-for-operation
-		   operation (cons temporary-file-directory (cdr args)))))
+		   #'tramp-file-name-for-operation operation
+		   (cons (tramp-compat-temporary-file-directory) (cdr args)))))
     tfnfo))
 
 (defun tramp-crypt-run-real-handler (operation args)
@@ -413,7 +413,7 @@ Otherwise, return NAME."
 		     crypt-vec (if (eq op 'encrypt) "encode" "decode")
 		     (tramp-compat-temporary-file-directory) localname)
 	      (tramp-error
-	       crypt-vec "%s of file name %s failed."
+	       crypt-vec 'file-error "%s of file name %s failed."
 	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
@@ -448,7 +448,7 @@ Raise an error if this fails."
 	       (file-name-directory infile)
 	       (concat "/" (file-name-nondirectory infile)))
 	(tramp-error
-	 crypt-vec "%s of file %s failed."
+	 crypt-vec 'file-error "%s of file %s failed."
 	 (if (eq op 'encrypt) "Encrypting" "Decrypting") infile))
       (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	(write-region nil nil outfile)))))

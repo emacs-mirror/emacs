@@ -459,7 +459,7 @@ file names."
     ;; to cache a nil result.
     (or (tramp-get-connection-property
 	 (tramp-get-connection-process vec) "mounted" nil)
-	(let* ((default-directory temporary-file-directory)
+	(let* ((default-directory (tramp-compat-temporary-file-directory))
 	       (mount (shell-command-to-string "mount -t fuse.rclone")))
 	  (tramp-message vec 6 "%s" "mount -t fuse.rclone")
 	  (tramp-message vec 6 "\n%s" mount)
@@ -485,7 +485,8 @@ file names."
 		    ;; crash Emacs for some processes.  So we use
 		    ;; "pidof", which might not work everywhere.
 		    (if (<= emacs-major-version 25)
-			(let ((default-directory temporary-file-directory))
+			(let ((default-directory
+				(tramp-compat-temporary-file-directory)))
 			  (mapcar
 			   #'string-to-number
 			   (split-string
