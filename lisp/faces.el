@@ -1795,9 +1795,10 @@ on which one provides better contrast with COLOR."
       "#ffffff" "black"))
 
 (defconst color-luminance-dark-limit 0.325
-  "The relative luminance below which a color is considered 'dark',
-in the sense that white text is more readable than black with the
-color as background.  This value was determined experimentally.")
+  "The relative luminance below which a color is considered 'dark'.
+A 'dark' color in this sense provides better contrast with white
+than with black; see `color-dark-p'.
+This value was determined experimentally.")
 
 (defun color-dark-p (rgb)
   "Whether RGB is more readable against white than black.
