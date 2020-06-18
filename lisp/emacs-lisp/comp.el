@@ -372,7 +372,9 @@ structure.")
   (array-h (make-hash-table) :type hash-table
            :documentation "array idx -> array length.")
   (speed nil :type number
-         :documentation "Optimization level (see `comp-speed')."))
+         :documentation "Optimization level (see `comp-speed').")
+  (pure nil :type boolean
+        :documentation "t if declared pure nil otherwise."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexical scoped function."
@@ -549,10 +551,14 @@ instruction."
   (and (byte-code-function-p f)
        (fixnump (aref f 0))))
 
-(defun comp-spill-speed (fuction-name)
-  "Return the speed for SYMBOL-FUNCTION."
-  (or (plist-get (cdr (assq fuction-name byte-to-native-plist-environment))
-                 'speed)
+(defun comp-spill-decl-spec (function-name spec)
+  "Return the declared specifier SPEC for FUNCTION-NAME."
+  (plist-get (cdr (assq function-name byte-to-native-plist-environment))
+             spec))
+
+(defun comp-spill-speed (function-name)
+  "Return the speed for FUNCTION-NAME."
+  (or (comp-spill-decl-spec function-name 'speed)
       comp-speed))
 
 (defun comp-c-func-name (name prefix)
@@ -622,7 +628,9 @@ Put PREFIX in front of it."
                                  :c-name c-name
                                  :doc (documentation f)
                                  :int-spec (interactive-form f)
-                                 :speed (comp-spill-speed function-name))))
+                                 :speed (comp-spill-speed function-name)
+                                 :pure (comp-spill-decl-spec function-name
+                                                             'pure))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 "can't native compile an already bytecompiled function"))
@@ -672,7 +680,8 @@ Put PREFIX in front of it."
             (comp-func-c-name func) c-name
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp-byte-frame-size byte-func)
-            (comp-func-speed func) (comp-spill-speed name))
+            (comp-func-speed func) (comp-spill-speed name)
+            (comp-func-pure func) (comp-spill-decl-spec name 'pure))
 
       ;; Store the c-name to have it retrivable from
       ;; `comp-ctxt-top-level-forms'.
@@ -1960,7 +1969,12 @@ Here goes everything that can be done not iteratively (read once).
 (defsubst comp-function-optimizable-p (f args)
   "Given function F called with ARGS return non nil when optimizable."
   (when (cl-every #'comp-mvar-const-vld args)
-    (or (get f 'pure)
+    (or (when-let ((func (gethash (gethash f
+                                           (comp-ctxt-sym-to-c-name-h
+                                            comp-ctxt))
+                                  (comp-ctxt-funcs-h comp-ctxt))))
+          (comp-func-pure func))
+        (get f 'pure)
         (memq (get f 'byte-optimizer) comp-propagate-classes)
         (let ((values (mapcar #'comp-mvar-constant args)))
           (pcase f
