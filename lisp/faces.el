@@ -1794,6 +1794,11 @@ on which one provides better contrast with COLOR."
                             (color-values color)))
       "#ffffff" "black"))
 
+(defconst color-luminance-dark-limit 0.325
+  "The relative luminance below which a color is considered 'dark',
+in the sense that white text is more readable than black with the
+color as background.  This value was determined experimentally.")
+
 (defun color-dark-p (rgb)
   "Whether RGB is more readable against white than black.
 RGB is a 3-element list (R G B), each component in the range [0,1].
@@ -1814,7 +1819,7 @@ contrast colour with RGB as background and as foreground."
          (g (expt sg 2.2))
          (b (expt sb 2.2))
          (y (+ (* r 0.2126) (* g 0.7152) (* b 0.0722))))
-    (< y (eval-when-compile (expt 0.6 2.2)))))
+    (< y color-luminance-dark-limit)))
 
 (declare-function xw-color-defined-p "xfns.c" (color &optional frame))
 
