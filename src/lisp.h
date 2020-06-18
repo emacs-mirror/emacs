@@ -4113,7 +4113,6 @@ extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
-extern int backtrace_byte_offset;
 
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
@@ -4141,6 +4140,7 @@ extern AVOID signal_error (const char *, Lisp_Object);
 extern AVOID overflow_error (void);
 extern bool FUNCTIONP (Lisp_Object);
 extern Lisp_Object funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *arg_vector);
+extern Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 extern Lisp_Object eval_sub (Lisp_Object form);
 extern Lisp_Object apply1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object call0 (Lisp_Object);
@@ -4185,6 +4185,7 @@ extern Lisp_Object vformat_string (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern void un_autoload (Lisp_Object);
 extern Lisp_Object call_debugger (Lisp_Object arg);
+extern void do_debug_on_call (Lisp_Object code, ptrdiff_t count);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
@@ -4193,8 +4194,10 @@ extern void init_eval (void);
 extern void syms_of_eval (void);
 extern void prog_ignore (Lisp_Object);
 extern ptrdiff_t record_in_backtrace (Lisp_Object, Lisp_Object *, ptrdiff_t);
+extern ptrdiff_t record_in_backtrace_with_offset (Lisp_Object, Lisp_Object *, ptrdiff_t, int);
 extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
 extern void get_backtrace (Lisp_Object array);
+extern bool backtrace_debug_on_exit (union specbinding *pdl);
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
 

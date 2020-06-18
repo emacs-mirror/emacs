@@ -56,8 +56,6 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
-int backtrace_byte_offset = -1;
-
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
@@ -65,7 +63,6 @@ Lisp_Object backtrace_function (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
-static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, ptrdiff_t);
 static Lisp_Object lambda_arity (Lisp_Object);
 
@@ -146,7 +143,7 @@ backtrace_bytecode_offset (union specbinding *pdl)
   return pdl->bt.bytecode_offset;
 }
 
-static bool
+bool
 backtrace_debug_on_exit (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
@@ -354,7 +351,7 @@ call_debugger (Lisp_Object arg)
   return unbind_to (count, val);
 }
 
-static void
+void
 do_debug_on_call (Lisp_Object code, ptrdiff_t count)
 {
   debug_on_next_call = 0;
@@ -2146,6 +2143,27 @@ grow_specpdl (void)
 }
 
 ptrdiff_t
+record_in_backtrace_with_offset (Lisp_Object function, Lisp_Object *args,
+                                 ptrdiff_t nargs, int offset)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  eassert (nargs >= UNEVALLED);
+  specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
+  specpdl_ptr->bt.debug_on_exit = false;
+  specpdl_ptr->bt.function = function;
+  current_thread->stack_top = specpdl_ptr->bt.args = args;
+  specpdl_ptr->bt.nargs = nargs;
+  specpdl_ptr->bt.bytecode_offset = -1;
+  union specbinding *nxt = backtrace_top ();
+  if (backtrace_p (nxt) && nxt->kind == SPECPDL_BACKTRACE)
+    nxt->bt.bytecode_offset = offset;
+  grow_specpdl ();
+
+  return count;
+}
+
+ptrdiff_t
 record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2156,10 +2174,7 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.function = function;
   current_thread->stack_top = specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
-  union specbinding *nxt = specpdl_ptr;
-  nxt = backtrace_next(nxt);
-  if (nxt->kind == SPECPDL_BACKTRACE)
-    nxt->bt.bytecode_offset = backtrace_byte_offset;
+  specpdl_ptr->bt.bytecode_offset = -1;
   grow_specpdl ();
 
   return count;
@@ -2965,7 +2980,7 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
    FUN must be either a lambda-expression, a compiled-code object,
    or a module function.  */
 
-static Lisp_Object
+Lisp_Object
 funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 		register Lisp_Object *arg_vector)
 {
@@ -3053,7 +3068,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	    arg = Qnil;
 
 	  /* Bind the argument.  */
-	  if (!NILP (lexenv) && SYMBOLP (next))
+	  if (!NILP (lexenv))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
 	    lexenv = Fcons (Fcons (next, arg), lexenv);
 	  else

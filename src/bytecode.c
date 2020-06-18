@@ -311,8 +311,6 @@ enum byte_code_op
 
 #define TOP (*top)
 
-#define UPDATE_OFFSET (backtrace_byte_offset = pc - bytestr_data);
-
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
        doc: /* Function used internally in byte-compiled code.
 The first argument, BYTESTR, is a string of byte code;
@@ -433,7 +431,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
       /* NEXT is invoked at the end of an instruction to go to the
 	 next instruction.  It is either a computed goto, or a
 	 plain break.  */
-#define NEXT UPDATE_OFFSET goto *(targets[op = FETCH])
+#define NEXT goto *(targets[op = FETCH])
       /* FIRST is like NEXT, but is only used at the start of the
 	 interpreter body.  In the switch-based interpreter it is the
 	 switch, so the threaded definition must include a semicolon.  */
@@ -635,7 +633,90 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		  }
 	      }
 #endif
-	    TOP = Ffuncall (op + 1, &TOP);
+	    Lisp_Object fun, original_fun;
+	    Lisp_Object funcar;
+	    Lisp_Object *fun_args;
+	    ptrdiff_t numargs = op;
+	    Lisp_Object val;
+	    ptrdiff_t count_c;
+
+	    maybe_quit ();
+
+	    if (++lisp_eval_depth > max_lisp_eval_depth)
+	      {
+		if (max_lisp_eval_depth < 100)
+		  max_lisp_eval_depth = 100;
+		if (lisp_eval_depth > max_lisp_eval_depth)
+		  error ("Lisp nesting exceeds `max-lisp-eval-depth'");
+	      }
+
+	    fun_args = &TOP + 1;
+
+	    count_c = record_in_backtrace_with_offset (TOP, fun_args, numargs, pc - bytestr_data - 1);
+
+	    maybe_gc ();
+
+	    if (debug_on_next_call)
+	      do_debug_on_call (Qlambda, count);
+
+	    original_fun = TOP;
+
+	  retry:
+
+	    /* Optimize for no indirection.  */
+	    fun = original_fun;
+	    if (SYMBOLP (fun) && !NILP (fun)
+		&& (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
+	      fun = indirect_function (fun);
+
+	    if (COMPILEDP (fun))
+	      {
+		Lisp_Object syms_left = AREF (fun, COMPILED_ARGLIST);
+		if (FIXNUMP (syms_left))
+		  {
+		    if (CONSP (AREF (fun, COMPILED_BYTECODE)))
+		      Ffetch_bytecode (fun);
+		    val = exec_byte_code (AREF (fun, COMPILED_BYTECODE),
+					  AREF (fun, COMPILED_CONSTANTS),
+					  AREF (fun, COMPILED_STACK_DEPTH),
+					  syms_left, numargs, fun_args);
+		  }
+		else
+		  {
+		    /* The rest of funcall_lambda is very bulky */
+		    val = funcall_lambda (fun, numargs, fun_args);
+		  }
+	      }
+	    else if (SUBRP (fun))
+	      val = funcall_subr (XSUBR (fun), numargs, fun_args);
+#ifdef HAVE_MODULES
+	    else if (MODULE_FUNCTIONP (fun))
+	      val = funcall_module (fun, numargs, fun_args);
+#endif
+	    else
+	      {
+		if (NILP (fun))
+		  xsignal1 (Qvoid_function, original_fun);
+		if (!CONSP (fun)
+		    || (funcar = XCAR (fun), !SYMBOLP(funcar)))
+		  xsignal1 (Qinvalid_function, original_fun);
+		if (EQ (funcar, Qlambda)
+		    || EQ (funcar, Qclosure))
+		  val = funcall_lambda (fun, numargs, fun_args);
+		else if (EQ (funcar, Qautoload))
+		  {
+		    Fautoload_do_load (fun, original_fun, Qnil);
+		    goto retry;
+		  }
+		else
+		  xsignal1 (Qinvalid_function, original_fun);
+	      }
+	    lisp_eval_depth--;
+	    if (backtrace_debug_on_exit (specpdl + count_c))
+	      val = call_debugger (list2 (Qexit, val));
+	    specpdl_ptr--;
+
+	    TOP = val;
 	    NEXT;
 	  }
 
@@ -1451,7 +1532,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	unbind_to (count, Qnil);
       error ("binding stack not balanced (serious byte compiler bug)");
     }
-  backtrace_byte_offset = -1;
+
   Lisp_Object result = TOP;
   SAFE_FREE ();
   return result;
