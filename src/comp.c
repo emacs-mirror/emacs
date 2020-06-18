@@ -3590,8 +3590,8 @@ define_maybe_gc_or_quit (void)
 							 9)),
     /* 9 translates into checking for GC or quit every 512 calls to
        'maybe_gc_quit'.  This is the smallest value I could find with
-       no performance impact running elisp-banechmarks.  Byte
-       intepreter uses 256 (see 'exec_byte_code').  */
+       no performance impact running elisp-banechmarks and the same
+       used by the byte intepreter (see 'exec_byte_code').  */
     maybe_do_it_block,
     pass_block);
 
