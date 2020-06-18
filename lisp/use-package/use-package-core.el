@@ -1468,7 +1468,7 @@ no keyword implies `:all'."
     (use-package-concat
      (when use-package-compute-statistics
        `((use-package-statistics-gather :config ',name nil)))
-     (if (or (null arg) (equal arg '(t)))
+     (if (and (or (null arg) (equal arg '(t))) (not use-package-inject-hooks))
          body
        (use-package-with-elapsed-timer
            (format "Configuring package %s" name-symbol)
