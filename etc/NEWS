@@ -140,6 +140,7 @@ displayed and which are kept hidden.
 ** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
+
 *** A space between an open paren and a symbol changes the indentation rule.
 The presence of a space between an open paren and a symbol now is
 taken as a statement by the programmer that this should be indented
@@ -229,6 +230,12 @@ changes.
 +++
 *** New connection method "media", which allows accessing media devices
 like cell phones, tablets or cameras.
+
++++
+*** New command 'tramp-crypt-add-directory'.
+This command marks a remote directory to contain only encrypted files.
+See the "(tramp) Keeping files encrypted" node of the Tramp manual for
+details.  This feature is experimental.
 
 ** Tempo
 
@@ -420,9 +427,9 @@ information, see the related entry about 'shr-browse-url' above.
 all commands that prompt for a project directory.
 
 +++
-*** New commands 'project-dired', 'project-vc-dir', 'project-shell', 'project-eshell'.
-These commands run Dired/VC-Dir and Shell/Eshell in a project's root directory,
-respectively.
+*** New commands 'project-dired', 'project-vc-dir', 'project-shell',
+'project-eshell'.  These commands run Dired/VC-Dir and Shell/Eshell in
+a project's root directory, respectively.
 
 *** New command 'project-compile', which runs compilation.
 
@@ -449,18 +456,6 @@ Previously 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
-** The metamail.el library is now marked obsolete.
-
-** D-Bus
-
----
-*** Some obsolete variable and function aliases have been removed.
-In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
-'dbus-event-error-functions' and the function
-'dbus-call-method-non-blocking' was renamed to 'dbus-call-method'.
-The old names, which were kept as obsolete aliases of the new names,
-have now been removed.
-
 ** Battery
 
 ---
@@ -477,8 +472,8 @@ polling, respectively.
 *** A richer syntax can be used to format battery status information.
 The user options 'battery-mode-line-format' and
 'battery-echo-area-format' now support the full formatting syntax of
-the function 'format-spec' documented under '(elisp) Custom Format
-Strings'.  The new syntax includes specifiers for padding and
+the function 'format-spec' documented under node "(elisp) Custom Format
+Strings".  The new syntax includes specifiers for padding and
 truncation, amongst other things.
 
 
@@ -535,6 +530,16 @@ This is no longer supported, and setting this variable has no effect.
 +++
 ** The macro 'with-displayed-buffer-window' is now obsolete.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
+
+** The metamail.el library is now marked obsolete.
+
+---
+** Some obsolete variable and function aliases in dbus.el have been removed.
+In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
+'dbus-event-error-functions' and the function
+'dbus-call-method-non-blocking' was renamed to 'dbus-call-method'.
+The old names, which were kept as obsolete aliases of the new names,
+have now been removed.
 
 ---
 ** Some libraries obsolete since Emacs 23 have been removed:
