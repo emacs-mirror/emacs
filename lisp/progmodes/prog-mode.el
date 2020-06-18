@@ -91,10 +91,25 @@ instead."
   (or (car prog-indentation-context) 0))
 
 (defvar-local prettify-symbols-alist nil
-  "Alist of symbol prettifications.
-Each element looks like (SYMBOL . CHARACTER), where the symbol
-matching SYMBOL (a string, not a regexp) will be shown as
-CHARACTER instead.
+  "Alist of symbol string prettifications.
+Each element can look like (STRING . CHARACTER), where the
+STRING (a string, not a regexp) will be shown as CHARACTER
+instead.
+
+For example: \"->\" to the Unicode RIGHT ARROW →
+ (\"->\" . ?→)
+
+Elements can also look like (IDENTIFIER REGEXP CHARACTER) which
+will behave like the simpler (SYMBOL-STRING . CHARACTER) form
+except it will match regular expressions. The IDENTIFIER can be
+any symbol and should be unique to every package that augments
+`prettify-symbols-alist' (in order to remove prettifications
+easily with `prettify-symbols-remove-prettifications').
+
+For example: \"abc[123]\" matching \"abc1\", \"abc2\", or
+\"abc3\" could be mapped to the Unicode WORLD MAP. Note again the
+IDENTIFIER is an arbitrary Lisp symbol.
+ (my-worldmap \"abc[123]\" 128506)
 
 CHARACTER can be a character, or it can be a list or vector, in
 which case it will be used to compose the new symbol as per the
@@ -121,7 +136,41 @@ The matched symbol is the car of one entry in `prettify-symbols-alist'.
 The predicate receives the match's start and end positions as well
 as the match-string as arguments.")
 
-(defun prettify-symbols--compose-symbol (alist)
+;; (prettify-symbols-default-compose-replacer '(("xyz" 231) (prettify-regexp "aaa\\(bbb\\)" 169)) 568 574 "aaabbb")
+(defun prettify-symbols-default-compose-replacer (alist start end match &optional identifier)
+  "Return the compose-region prettification for MATCH from ALIST.
+START and END are passed back and may be modified (narrowed)."
+  (let ((quick-assoc (cdr (assoc match alist))))
+    (if quick-assoc
+        ;; Return the quick lookup if we can, else...
+        (list start end quick-assoc)
+      (cl-loop for ps in alist
+               ;; Did we get a valid regexp entry, and does it match
+               ;; the identifier (if packaged in the call) or the regexp?
+               if (and (symbolp (car-safe ps))
+                       ;; We must match the identifier symbol if we got it.
+                       (if identifier
+                           (eq identifier (car ps))
+                         t) ; But if there's no identifier, pass safely.
+
+                       ;; ...We need to always do a string-match for the bounds.
+                       (string-match (nth 1 ps) match))
+               ;; Now return the actual prettification start and end.
+               return (list (+ start (match-beginning 1))
+                            (+ start(match-end 1))
+                            (nth 2 ps))))))
+
+(defvar-local prettify-symbols-compose-replacer
+  #'prettify-symbols-default-compose-replacer
+  "A function to generate the replacement for a matched string.
+The function receives the current prettify-symbols-alist, the
+match's start and end positions, and the match-string as
+arguments.
+
+For regexp matches, the function will also receive the symbol
+that identifies the match, as per `prettify-symbols-alist'.")
+
+(defun prettify-symbols--compose-symbol (alist &optional identifier)
   "Compose a sequence of characters into a symbol.
 Regexp match data 0 specifies the characters to be composed."
   ;; Check that the chars should really be composed into a symbol.
@@ -132,10 +181,14 @@ Regexp match data 0 specifies the characters to be composed."
              (funcall prettify-symbols-compose-predicate start end match))
         ;; That's a symbol alright, so add the composition.
         (with-silent-modifications
-          (compose-region start end (cdr (assoc match alist)))
-          (add-text-properties
-           start end
-           `(prettify-symbols-start ,start prettify-symbols-end ,end)))
+          (let* ((replacement (funcall prettify-symbols-compose-replacer
+                                       alist start end match identifier))
+                 (start (nth 0 replacement))
+                 (end (nth 1 replacement)))
+            (apply #'compose-region replacement)
+            (add-text-properties
+             start end
+             `(prettify-symbols-start ,start prettify-symbols-end ,end))))
       ;; No composition for you.  Let's actually remove any
       ;; composition we may have added earlier and which is now
       ;; incorrect.
@@ -146,10 +199,30 @@ Regexp match data 0 specifies the characters to be composed."
   ;; Return nil because we're not adding any face property.
   nil)
 
+(defun prettify-symbols--make-fixed-matcher (alist)
+  "Make the fixed string matcher portion of the font-lock keywords from ALIST."
+  (regexp-opt (cl-loop for s in (mapcar 'car alist)
+                       if (stringp s)
+                       collect s)
+              t))
+
+(defun prettify-symbols--make-regexp-keywords (alist)
+  "Make the regexp string matcher portion of the font-lock keywords from ALIST."
+  ;; Collect the symbols to generate matchers keyed on them.
+  (cl-loop for ps in alist
+           if (symbolp (car-safe ps))
+           collect `(
+                     ,(nth 1 ps)          ; the regexp
+                     ;; the symbol composer called with the identifier
+                     (0 (prettify-symbols--compose-symbol
+                         ',prettify-symbols-alist
+                         ',(car ps))))))
+
 (defun prettify-symbols--make-keywords ()
   (if prettify-symbols-alist
-      `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
-         (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist))))
+      `((,(prettify-symbols--make-fixed-matcher prettify-symbols-alist)
+         (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist)))
+        ,@(prettify-symbols--make-regexp-keywords prettify-symbols-alist))
     nil))
 
 (defvar-local prettify-symbols--keywords nil)
@@ -199,6 +272,38 @@ on the symbol."
       (with-silent-modifications
 	(setq prettify-symbols--current-symbol-bounds (list s e))
         (remove-text-properties s e '(composition nil))))))
+
+(defun prettify-symbols-add-prettification-entry (entry)
+  "Add ENTRY to `prettify-symbols-alist' for the current buffer.
+ENTRY is formatted as per `prettify-symbols-alist' (which see).
+Duplicates according to `equal' will not be added."
+  (setq-local prettify-symbols-alist (cl-adjoin entry
+                                                prettify-symbols-alist
+                                                :test #'equal)))
+
+(defun prettify-symbols-add-prettification-rx (identifier regexp replacement)
+  "Convenience wrapper of `prettify-symbols-add-prettification-entry' to prettify REGEXP with REPLACEMENT."
+  (prettify-symbols-add-prettification-entry
+   (list identifier regexp replacement)))
+
+(defun prettify-symbols-add-prettification-string (fixed-string replacement)
+  "Convenience wrapper of `prettify-symbols-add-prettification-entry' to prettify FIXED-STRING with REPLACEMENT."
+  (prettify-symbols-add-prettification-entry
+   (cons fixed-string replacement)))
+
+(defun prettify-symbols-remove-prettification (entry)
+  "Remove ENTRY to `prettify-symbols-alist' for the current buffer.
+ENTRY is found with an `equal' test."
+  (setq-local prettify-symbols-alist (cl-remove entry
+                                                prettify-symbols-alist
+                                                :test #'equal)))
+
+(defun prettify-symbols-remove-prettifications (identifier)
+  "Remove all IDENTIFIER entries from `prettify-symbols-alist' for the current buffer.
+IDENTIFIER is as per `prettify-symbols-alist' (which see)."
+  (setq-local prettify-symbols-alist (cl-remove identifier
+                                                prettify-symbols-alist
+                                                :test #'car)))
 
 ;;;###autoload
 (define-minor-mode prettify-symbols-mode
