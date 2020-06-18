@@ -503,6 +503,7 @@ DIRS must contain directory names."
     (define-key map "v" 'project-vc-dir)
     (define-key map "c" 'project-compile)
     (define-key map "e" 'project-eshell)
+    (define-key map "k" 'project-kill-buffers)
     (define-key map "p" 'project-switch-project)
     (define-key map "g" 'project-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
