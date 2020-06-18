@@ -785,6 +785,47 @@ Arguments the same as in `compile'."
         (when-let ((file (buffer-file-name (cdr buffer))))
           (file-in-directory-p file root)))))))
 
+(defcustom project-kill-buffers-skip-conditions
+  '("\\*Help\\*")
+  "Conditions for buffers `project-kill-buffers' should not kill.
+Each condition is either a regular expression matching a buffer
+name, or a predicate function that takes a buffer object as
+argument and returns non-nil if it matches.  Buffers that match
+any of the conditions will not be killed."
+  :type '(repeat (choice regexp function))
+  :version "28.1")
+
+(defun project--buffer-list (pr)
+  "Return the list of all buffers in project PR."
+  (let ((root (project-root pr))
+        bufs)
+    (dolist (buf (buffer-list))
+      (let ((filename (or (buffer-file-name buf)
+                          (buffer-local-value 'default-directory buf))))
+        (when (and filename (file-in-directory-p filename root))
+          (push buf bufs))))
+    (nreverse bufs)))
+
+;;;###autoload
+(defun project-kill-buffers ()
+  "Kill all live buffers belonging to the current project.
+Certain buffers may be ignored, depending on the value of
+`project-kill-buffers-skip-conditions'."
+  (interactive)
+  (let ((pr (project-current t)) bufs)
+    (dolist (buf (project--buffer-list pr))
+      (unless (seq-some
+               (lambda (c)
+                 (cond ((stringp c)
+                        (string-match-p c (buffer-name buf)))
+                       ((functionp c)
+                        (funcall c buf))))
+               project-kill-buffers-skip-conditions)
+        (push buf bufs)))
+    (when (yes-or-no-p (format "Kill %d buffers in %s? "
+                               (length bufs) (project-root pr)))
+      (mapc #'kill-buffer bufs))))
+
 
 ;;; Project list
 
