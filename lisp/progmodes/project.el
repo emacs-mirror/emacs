@@ -777,14 +777,24 @@ Arguments the same as in `compile'."
 (defun project-switch-to-buffer ()
   "Switch to a buffer in the current project."
   (interactive)
-  (let ((root (project-root (project-current t))))
+  (let* ((root (project-root (project-current t)))
+         (current-buffer (current-buffer))
+         (other-buffer (other-buffer current-buffer))
+         (other-name (buffer-name other-buffer))
+         (predicate
+          (lambda (buffer)
+            ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
+            (and (not (eq (cdr buffer) current-buffer))
+                 (when-let ((file (buffer-local-value 'default-directory
+                                                      (cdr buffer))))
+                   (file-in-directory-p file root))))))
     (switch-to-buffer
      (read-buffer
-      "Switch to buffer: " nil t
-      (lambda (buffer)
-        ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
-        (when-let ((file (buffer-file-name (cdr buffer))))
-          (file-in-directory-p file root)))))))
+      "Switch to buffer: "
+      (when (funcall predicate (cons other-name other-buffer))
+        other-name)
+      t
+      predicate))))
 
 (defcustom project-kill-buffers-skip-conditions
   '("\\*Help\\*")
