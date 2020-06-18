@@ -4032,7 +4032,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
-				  COMP_SPEED);
+				  COMP_SPEED < 0 ? 0
+				  : (COMP_SPEED > 3 ? 3 : COMP_SPEED));
   comp.d_default_idx =
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
   comp.d_impure_idx =
