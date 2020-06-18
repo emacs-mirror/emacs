@@ -212,8 +212,11 @@ URL-REGEXP against the VCS URL and returns the value to be set as
   "Try setting up `bug-reference-mode' based on VC information.
 Test each configuration in `bug-reference-setup-from-vc-alist'
 and apply it if applicable."
-  (when buffer-file-name
-    (let* ((backend (vc-responsible-backend buffer-file-name t))
+  (let ((file-or-dir (or buffer-file-name
+                         ;; Catches modes such as vc-dir and Magit.
+                         default-directory))))
+  (when file-or-dir
+    (let* ((backend (vc-responsible-backend file-or-dir t))
            (url
             (or (ignore-errors
                   (vc-call-backend backend 'repository-url "upstream"))
