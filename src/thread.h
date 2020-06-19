@@ -103,6 +103,11 @@ struct thread_state
   union specbinding *m_specpdl_ptr;
 #define specpdl_ptr (current_thread->m_specpdl_ptr)
 
+  /* The offset of the current op of the byte-code function being
+     executed. */
+  int m_backtrace_byte_offset;
+#define backtrace_byte_offset (current_thread->m_backtrace_byte_offset)
+
   /* Depth in Lisp evaluations and function calls.  */
   intmax_t m_lisp_eval_depth;
 #define lisp_eval_depth (current_thread->m_lisp_eval_depth)

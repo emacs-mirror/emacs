@@ -56,8 +56,6 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
-int backtrace_byte_offset = -1;
-
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
