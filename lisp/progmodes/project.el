@@ -775,7 +775,9 @@ Arguments the same as in `compile'."
 
 ;;;###autoload
 (defun project-switch-to-buffer ()
-  "Switch to another buffer that visits some file in the current project."
+  "Switch to another buffer that is related to the current project.
+A buffer is related to a project if its `default-directory'
+is inside the directory hierarchy of the project's root."
   (interactive)
   (let* ((root (project-root (project-current t)))
          (current-buffer (current-buffer))
