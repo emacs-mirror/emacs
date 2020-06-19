@@ -703,19 +703,19 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 
 ;;;###autoload
 (defun project-dired ()
-  "Open Dired in the current project."
+  "Start Dired in the current project's root."
   (interactive)
   (dired (project-root (project-current t))))
 
 ;;;###autoload
 (defun project-vc-dir ()
-  "Open VC-Dir in the current project."
+  "Run VC-Dir in the current project's root."
   (interactive)
   (vc-dir (project-root (project-current t))))
 
 ;;;###autoload
 (defun project-shell ()
-  "Open Shell in the current project."
+  "Start an inferior shell in the current project's root directory."
   (interactive)
   (let ((default-directory (project-root (project-current t))))
     ;; Use ‘create-file-buffer’ to uniquify shell buffer names.
@@ -723,7 +723,7 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 
 ;;;###autoload
 (defun project-eshell ()
-  "Open Eshell in the current project."
+  "Start Eshell in the current project's root directory."
   (interactive)
   (let ((default-directory (project-root (project-current t))))
     (eshell t)))
@@ -775,7 +775,7 @@ Arguments the same as in `compile'."
 
 ;;;###autoload
 (defun project-switch-to-buffer ()
-  "Switch to a buffer in the current project."
+  "Switch to another buffer that visits some file in the current project."
   (interactive)
   (let* ((root (project-root (project-current t)))
          (current-buffer (current-buffer))
@@ -820,8 +820,7 @@ any of the conditions will not be killed."
 ;;;###autoload
 (defun project-kill-buffers ()
   "Kill all live buffers belonging to the current project.
-Certain buffers may be ignored, depending on the value of
-`project-kill-buffers-skip-conditions'."
+Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
   (interactive)
   (let ((pr (project-current t)) bufs)
     (dolist (buf (project--buffer-list pr))
@@ -841,7 +840,7 @@ Certain buffers may be ignored, depending on the value of
 ;;; Project list
 
 (defcustom project-list-file (locate-user-emacs-file "projects")
-  "File to save the list of known projects."
+  "File in which to save the list of known projects."
   :type 'file
   :version "28.1"
   :group 'project)
@@ -850,7 +849,7 @@ Certain buffers may be ignored, depending on the value of
   "List of known project directories.")
 
 (defun project--read-project-list ()
-  "Initialize `project--list' from the project list file."
+  "Initialize `project--list' using contents of `project-list-file'."
   (let ((filename project-list-file))
     (setq project--list
           (when (file-exists-p filename)
@@ -859,12 +858,12 @@ Certain buffers may be ignored, depending on the value of
               (read (current-buffer)))))))
 
 (defun project--ensure-read-project-list ()
-  "Initialize `project--list' if it hasn't already been."
+  "Initialize `project--list' if it isn't already initialized."
   (when (eq project--list 'unset)
     (project--read-project-list)))
 
 (defun project--write-project-list ()
-  "Persist `project--list' to the project list file."
+  "Save `project--list' in `project-list-file'."
   (let ((filename project-list-file))
     (with-temp-buffer
       (insert ";;; -*- lisp-data -*-\n")
@@ -873,7 +872,7 @@ Certain buffers may be ignored, depending on the value of
 
 (defun project--add-to-project-list-front (pr)
   "Add project PR to the front of the project list.
-Save the result to disk if the project list was changed."
+Save the result in `project-list-file' if the list of projects has changed."
   (project--ensure-read-project-list)
   (let ((dir (project-root pr)))
     (unless (equal (caar project--list) dir)
@@ -882,9 +881,10 @@ Save the result to disk if the project list was changed."
       (project--write-project-list))))
 
 (defun project--remove-from-project-list (pr-dir)
-  "Remove directory PR-DIR from the project list.
+  "Remove directory PR-DIR of a missing project from the project list.
 If the directory was in the list before the removal, save the
-result to disk."
+result in `project-list-file'.  Announce the project's removal
+from the list."
   (project--ensure-read-project-list)
   (when (assoc pr-dir project--list)
     (setq project--list (assoc-delete-all pr-dir project--list))
@@ -892,9 +892,10 @@ result to disk."
     (project--write-project-list)))
 
 (defun project-prompt-project-dir ()
-  "Prompt the user for a directory from known project roots.
-The project is chosen among projects known from the project list.
-It's also possible to enter an arbitrary directory."
+  "Prompt the user for a directory that is one of the known project roots.
+The project is chosen among projects known from the project list,
+see `project-list-file'.
+It's also possible to enter an arbitrary directory not in the list."
   (project--ensure-read-project-list)
   (let* ((dir-choice "... (choose a dir)")
          (choices
@@ -921,9 +922,9 @@ It's also possible to enter an arbitrary directory."
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
 
-Each element looks like (KEY LABEL COMMAND), where COMMAND is the
+Each element is of the form (KEY LABEL COMMAND), where COMMAND is the
 command to run when KEY is pressed.  LABEL is used to distinguish
-the choice in the dispatch menu.")
+the menu entries in the dispatch menu.")
 
 (defun project--keymap-prompt ()
   "Return a prompt for the project swithing dispatch menu."
@@ -937,9 +938,9 @@ the choice in the dispatch menu.")
 
 ;;;###autoload
 (defun project-switch-project ()
-  "\"Switch\" to another project by running a chosen command.
-The available commands are picked from `project-switch-commands'
-and presented in a dispatch menu."
+  "\"Switch\" to another project by running an Emacs command.
+The available commands are presented as a dispatch menu
+made from `project-switch-commands'."
   (interactive)
   (let ((dir (project-prompt-project-dir))
         (choice nil))
