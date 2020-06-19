@@ -1336,13 +1336,8 @@ component is used as the target of the symlink."
        ;; add a space.  Apostrophes in the stat output are masked as
        ;; `tramp-stat-marker', in order to make a proper shell escape
        ;; of them in file names.
-       "( (%s %s || %s -h %s) && (%s -c "
-       "'((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' "
-       "%s | sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g') || echo nil)"))
-    (tramp-get-file-exists-command vec)
-    (tramp-shell-quote-argument localname)
-    (tramp-get-test-command vec)
-    (tramp-shell-quote-argument localname)
+       "(%s -c '((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' %s |"
+       " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g')"))
     (tramp-get-remote-stat vec)
     tramp-stat-marker tramp-stat-marker
     (if (eq id-format 'integer)
@@ -1353,7 +1348,8 @@ component is used as the target of the symlink."
       (eval-when-compile (concat tramp-stat-marker "%G" tramp-stat-marker)))
     tramp-stat-marker tramp-stat-marker
     (tramp-shell-quote-argument localname)
-    tramp-stat-quoted-marker)))
+    tramp-stat-quoted-marker)
+   'noerror))
 
 (defun tramp-sh-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -2998,16 +2994,16 @@ STDERR can also be a file name."
 		      ;; the process is deleted.
 		      (when (bufferp stderr)
 			(with-current-buffer stderr
-			  (insert-file-contents-literally
-			   remote-tmpstderr 'visit))
+			  (insert-file-contents-literally remote-tmpstderr))
 			;; Delete tmpstderr file.
 			(add-function
 			 :after (process-sentinel p)
 			 (lambda (_proc _msg)
-			   (with-current-buffer stderr
-			     (insert-file-contents-literally
-			      remote-tmpstderr 'visit nil nil 'replace))
-			   (delete-file remote-tmpstderr))))
+			   (when (file-exists-p remote-tmpstderr)
+			     (with-current-buffer stderr
+			       (insert-file-contents-literally
+				remote-tmpstderr nil nil nil 'replace))
+			     (delete-file remote-tmpstderr)))))
 		      ;; Return process.
 		      p)))
 
@@ -4610,11 +4606,7 @@ Goes through the list `tramp-local-coding-commands' and
 				?o (tramp-get-remote-od vec)))
 			      value (replace-regexp-in-string "%" "%%" value)))
 		      (when (string-match-p "\\(^\\|[^%]\\)%t" value)
-			(setq tmpfile
-			      (make-temp-name
-			       (expand-file-name
-				tramp-temp-name-prefix
-				(tramp-get-remote-tmpdir vec)))
+			(setq tmpfile (tramp-make-tramp-temp-name vec)
 			      value
 			      (format-spec
 			       value
@@ -5053,10 +5045,7 @@ connection if a previous connection has died for some reason."
 			 (tmpfile
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
-			    (make-temp-name
-			     (expand-file-name
-			      tramp-temp-name-prefix
-			      (tramp-compat-temporary-file-directory)))))
+			    (tramp-compat-make-temp-name)))
 			 spec r-shell)
 
 		    ;; Add arguments for asynchronous processes.
@@ -5276,7 +5265,10 @@ raises an error."
 		    command marker (buffer-string))))))
       ;; Read the expression.
       (condition-case nil
-	  (prog1 (read (current-buffer))
+	  (prog1
+	      (let ((signal-hook-function
+		     (unless noerror signal-hook-function)))
+		(read (current-buffer)))
 	    ;; Error handling.
 	    (when (re-search-forward "\\S-" (point-at-eol) t)
 	      (error nil)))
@@ -5684,10 +5676,7 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
     (tramp-message vec 5 "Finding a suitable `touch' command")
     (let ((result (tramp-find-executable
 		   vec "touch" (tramp-get-remote-path vec)))
-	  (tmpfile
-	   (make-temp-name
-	    (expand-file-name
-	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+	  (tmpfile (tramp-make-tramp-temp-name vec)))
       ;; Busyboxes do support the "-t" option only when they have been
       ;; built with the DESKTOP config option.  Let's check it.
       (when result
@@ -5877,10 +5866,7 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
   "Check whether remote `chmod' supports nofollow argument."
   (with-tramp-connection-property vec "chmod-h"
     (tramp-message vec 5 "Finding a suitable `chmod' command with nofollow")
-    (let ((tmpfile
-	   (make-temp-name
-	    (expand-file-name
-	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+    (let ((tmpfile (tramp-make-tramp-temp-name vec)))
       (prog1
 	  (tramp-send-command-and-check
 	   vec
