@@ -951,6 +951,10 @@ is no information where to trace the message.")
     (tramp-error tramp-gvfs-dbus-event-vector 'file-error "%s" (cadr err))))
 
 (add-hook 'dbus-event-error-functions #'tramp-gvfs-dbus-event-error)
+(add-hook 'tramp-gvfs-unload-hook
+	  (lambda ()
+	    (remove-hook 'dbus-event-error-functions
+			 #'tramp-gvfs-dbus-event-error)))
 
 
 ;; File name primitives.
