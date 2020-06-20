@@ -716,8 +716,9 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 ;;;###autoload
 (defun project-shell ()
   "Start an inferior shell in the current project's root directory.
-With \\[universal-argument] prefix, create subsequent shell buffers
-with uniquified names."
+With \\[universal-argument] prefix, create subsequent shell
+buffers with uniquified names.  If several Shell buffers exists,
+this command jumps to the first created such buffer."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
          (default-project-shell-name
@@ -732,10 +733,21 @@ with uniquified names."
 
 ;;;###autoload
 (defun project-eshell ()
-  "Start Eshell in the current project's root directory."
+  "Start Eshell in the current project's root directory.
+With \\[universal-argument] prefix, create subsequent shell
+buffers with uniquified names.  If several Eshell buffers exists,
+this command jumps to the first created such buffer."
   (interactive)
-  (let ((default-directory (project-root (project-current t))))
-    (eshell t)))
+  (let* ((default-directory (project-root (project-current t)))
+         (eshell-buffer-name
+           (concat "*" (file-name-nondirectory
+                        (directory-file-name
+                         (file-name-directory default-directory)))
+                   "-eshell*"))
+         (eshell-buffer (get-buffer eshell-buffer-name)))
+    (if (and eshell-buffer (not current-prefix-arg))
+        (pop-to-buffer eshell-buffer)
+      (eshell t))))
 
 (declare-function fileloop-continue "fileloop" ())
 
