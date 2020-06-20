@@ -479,7 +479,7 @@ Otherwise, returns the Gnus Cloud data chunks."
           (forward-line 1))))
     (if update
         (progn
-	  (mapcar #'gnus-cloud-update-all chunks)
+	  (mapc #'gnus-cloud-update-all chunks)
 	  (setq gnus-cloud-sequence highest-sequence-seen))
       chunks)))
 
