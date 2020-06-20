@@ -2093,7 +2093,6 @@ This variable, when set to a string, makes the environment to be
 modified such that shells are started within the specified
 virtualenv."
   :type '(choice (const nil) directory)
-  :safe #'file-directory-p
   :group 'python)
 
 (defcustom python-shell-setup-codes nil
