@@ -61,6 +61,12 @@ It was declared obsolete in Emacs 27.1.
 
 * Startup Changes in Emacs 28.1
 
+** Emacs can support 24-bit color TTY without terminfo database.
+If your text-mode terminal supports 24-bit true color, but your system
+lacks the terminfo database, you can instruct Emacs to support 24-bit
+true color by setting COLORTERM=truecolor in the environment.  This is
+useful on systems such as FreeBSD which ships only with 'etc/termcap'.
+
 
 * Changes in Emacs 28.1
 
