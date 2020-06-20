@@ -715,11 +715,20 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 
 ;;;###autoload
 (defun project-shell ()
-  "Start an inferior shell in the current project's root directory."
+  "Start an inferior shell in the current project's root directory.
+With \\[universal-argument] prefix, create subsequent shell buffers
+with uniquified names."
   (interactive)
-  (let ((default-directory (project-root (project-current t))))
-    ;; Use ‘create-file-buffer’ to uniquify shell buffer names.
-    (shell (create-file-buffer "*shell*"))))
+  (let* ((default-directory (project-root (project-current t)))
+         (default-project-shell-name
+           (concat "*" (file-name-nondirectory
+                        (directory-file-name
+                         (file-name-directory default-directory)))
+                   "-shell*"))
+         (shell-buffer (get-buffer default-project-shell-name)))
+    (if (and shell-buffer (not current-prefix-arg))
+        (pop-to-buffer shell-buffer)
+      (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
 (defun project-eshell ()
