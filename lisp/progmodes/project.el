@@ -740,6 +740,7 @@ switch to it.  Otherwise, create a new Eshell buffer.
 With \\[universal-argument] prefix arg, create a new Eshell buffer even
 if one already exists."
   (interactive)
+  (defvar eshell-buffer-name)
   (let* ((default-directory (project-root (project-current t)))
          (eshell-buffer-name
            (concat "*" (file-name-nondirectory
