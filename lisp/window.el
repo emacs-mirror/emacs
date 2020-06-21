@@ -8627,15 +8627,20 @@ window; the function takes two arguments: an old and new window."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
+         (clearfun (make-symbol "clear-display-buffer-overriding-action"))
          (action (lambda (buffer alist)
                    (unless (> (minibuffer-depth) minibuffer-depth)
                      (let* ((ret (funcall pre-function buffer alist))
                             (window (car ret))
                             (type (cdr ret)))
                        (setq new-window (window--display-buffer buffer window
-                                                                type alist))))))
+                                                                type alist))
+                       ;; Reset display-buffer-overriding-action
+                       ;; after the first buffer display action
+                       (funcall clearfun)
+                       (setq post-function nil)
+                       new-window))))
          (command this-command)
-         (clearfun (make-symbol "clear-display-buffer-overriding-action"))
          (exitfun
           (lambda ()
             (setq display-buffer-overriding-action
@@ -8653,6 +8658,8 @@ window; the function takes two arguments: an old and new window."
 		     ;; adding the hook by the same command below.
 		     (eq this-command command))
               (funcall exitfun))))
+    ;; Reset display-buffer-overriding-action
+    ;; after the next command finishes
     (add-hook 'post-command-hook clearfun)
     (push action display-buffer-overriding-action)))
 

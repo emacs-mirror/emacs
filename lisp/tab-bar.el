@@ -1543,8 +1543,7 @@ Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab."
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
   (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
                   '((display-buffer-in-tab)
-                    (inhibit-same-window . nil)
-                    (reusable-frames . t))
+                    (inhibit-same-window . nil))
                   norecord))
 
 (defun find-file-other-tab (filename &optional wildcards)
@@ -1575,8 +1574,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
    (lambda (buffer alist)
      (cons (progn
              (display-buffer-in-tab
-              buffer (append alist '((inhibit-same-window . nil)
-                                     (reusable-frames . t))))
+              buffer (append alist '((inhibit-same-window . nil))))
              (selected-window))
            'tab)))
   (message "Display next command buffer in a new tab..."))
