@@ -451,11 +451,9 @@ resultant list of strings."
     `(lambda (file)
        (let ((attrs (file-attributes file)))
 	 (if attrs
-	     (,(if (eq qual ?-)
-		   'time-less-p
-		 (if (eq qual ?+)
-		     '(lambda (a b) (time-less-p b a))
-		   'time-equal-p))
+             (,(cond ((eq qual ?-) #'time-less-p)
+                     ((eq qual ?+) (lambda (a b) (time-less-p b a)))
+                     (#'time-equal-p))
 	      ,when (nth ,attr-index attrs)))))))
 
 (defun eshell-pred-file-type (type)

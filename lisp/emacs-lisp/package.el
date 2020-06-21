@@ -441,9 +441,9 @@ synchronously."
                  &aux
                  (name (intern name-string))
                  (version (version-to-list version-string))
-                 (reqs (mapcar #'(lambda (elt)
-                                   (list (car elt)
-                                         (version-to-list (cadr elt))))
+                 (reqs (mapcar (lambda (elt)
+                                 (list (car elt)
+                                       (version-to-list (cadr elt))))
                                (if (eq 'quote (car requirements))
                                    (nth 1 requirements)
                                  requirements)))
@@ -3871,9 +3871,9 @@ If VERSION is nil or the empty string, show all packages."
         (package-menu--generate t t)
       (package-menu--filter-by
        (let ((fun (pcase predicate
-                    ('= 'version-list-=)
-                    ('< 'version-list-<)
-                    ('> '(lambda (a b) (not (version-list-<= a b))))
+                    ('= #'version-list-=)
+                    ('< #'version-list-<)
+                    ('> (lambda (a b) (not (version-list-<= a b))))
                     (_ (error "Unknown predicate: %s" predicate))))
              (ver (version-to-list version)))
          (lambda (pkg-desc)

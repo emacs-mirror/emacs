@@ -605,7 +605,7 @@ are lineup only when \\[verilog-pretty-declarations] is typed."
 		(function :tag "Other"))
   :group 'verilog-mode-indent )
 (put 'verilog-auto-lineup 'safe-local-variable
-     '(lambda (x) (memq x '(nil all assignments declarations))))
+     (lambda (x) (memq x '(nil all assignments declarations))))
 
 (defcustom verilog-indent-level 3
   "Indentation of Verilog statements with respect to containing block."
@@ -1118,7 +1118,7 @@ SystemVerilog designs."
   :type 'boolean
   :group 'verilog-mode-auto)
 (put 'verilog-auto-reset-widths 'safe-local-variable
-     '(lambda (x) (memq x '(nil t unbased))))
+     (lambda (x) (memq x '(nil t unbased))))
 
 (defcustom verilog-assignment-delay ""
   "Text used for delays in delayed assignments.  Add a trailing space if set."
@@ -1138,7 +1138,7 @@ line."
 		(const :tag "Line up Assignment statements" single))
   :group 'verilog-mode-auto)
 (put 'verilog-auto-arg-format 'safe-local-variable
-     '(lambda (x) (memq x '(packed single))))
+     (lambda (x) (memq x '(packed single))))
 
 (defcustom verilog-auto-arg-sort nil
   "Non-nil means AUTOARG signal names will be sorted, not in declaration order.
@@ -1263,7 +1263,7 @@ otherwise no vectors if sizes match (like using nil)."
   :group 'verilog-mode-auto
   :type '(choice (const nil) (const t) (const unsigned)))
 (put 'verilog-auto-inst-vector 'safe-local-variable
-     '(lambda (x) (memq x '(nil t unsigned))))
+     (lambda (x) (memq x '(nil t unsigned))))
 
 (defcustom verilog-auto-inst-template-numbers nil
   "If true, when creating templated ports with AUTOINST, add a comment.
@@ -1280,7 +1280,7 @@ won't merge conflict."
   :group 'verilog-mode-auto
   :type '(choice (const nil) (const t) (const lhs)))
 (put 'verilog-auto-inst-template-numbers 'safe-local-variable
-     '(lambda (x) (memq x '(nil t lhs))))
+     (lambda (x) (memq x '(nil t lhs))))
 
 (defcustom verilog-auto-inst-template-required nil
   "If non-nil, when creating a port with AUTOINST, require a template.
