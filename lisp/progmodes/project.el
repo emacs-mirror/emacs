@@ -719,7 +719,7 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 If a buffer already exists for running a shell in the project's root,
 switch to it.  Otherwise, create a new shell buffer.
 With \\[universal-argument] prefix arg, create a new inferior shell buffer even
-if one already exist."
+if one already exists."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
          (default-project-shell-name
@@ -738,7 +738,7 @@ if one already exist."
 If a buffer already exists for running Eshell in the project's root,
 switch to it.  Otherwise, create a new Eshell buffer.
 With \\[universal-argument] prefix arg, create a new Eshell buffer even
-if one already exist."
+if one already exists."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
          (eshell-buffer-name
