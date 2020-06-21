@@ -175,9 +175,8 @@
 
 (defun package-test-suffix-matches (base suffix-list)
   "Return file names matching BASE concatenated with each item in SUFFIX-LIST"
-  (cl-mapcan
-   (lambda (item) (file-expand-wildcards (concat base item)))
-   suffix-list))
+  (mapcan (lambda (item) (file-expand-wildcards (concat base item)))
+          suffix-list))
 
 (defvar tar-parse-info)
 (declare-function tar-header-name "tar-mode" (cl-x) t) ; defstruct

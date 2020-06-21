@@ -195,7 +195,7 @@ subset of the project root and external roots.
 
 The default implementation uses `find-program'.  PROJECT is used
 to find the list of ignores for each directory."
-  (cl-mapcan
+  (mapcan
    (lambda (dir)
      (project--files-in-directory dir
                                   (project--dir-ignores project dir)))
@@ -351,7 +351,7 @@ backend implementation of `project-external-roots'.")
    (list (project-root project))))
 
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
-  (cl-mapcan
+  (mapcan
    (lambda (dir)
      (let (backend)
        (if (and (file-equal-p dir (cdr project))
