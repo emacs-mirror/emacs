@@ -589,7 +589,7 @@ See also `pascal-comment-area'."
   (interactive)
   (catch 'found
     (if (not (looking-at (concat "\\s \\|\\s)\\|" pascal-defun-re)))
-	(forward-sexp 1))
+	(ignore-errors (forward-sexp 1)))
     (let ((nest 0) (max -1) (func 0)
 	  (reg (concat pascal-beg-block-re "\\|"
 		       pascal-end-block-re "\\|"

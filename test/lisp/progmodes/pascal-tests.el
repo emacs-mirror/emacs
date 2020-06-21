@@ -52,4 +52,12 @@
         (should (equal completions nil))
         (should (equal point-before point-after))))))
 
+(ert-deftest pascal-beg-of-defun ()
+  (with-temp-buffer
+    (pascal-mode)
+    (insert "program test; procedure p(")
+    (forward-char -1)
+    (pascal-beg-of-defun)
+    (should (equal (point) 15))))
+
 (provide 'pascal-tests)
