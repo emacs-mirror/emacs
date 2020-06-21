@@ -1070,6 +1070,22 @@ that variable should be nil."
       (setq arg (1+ arg)))
     (select-frame-set-input-focus frame)))
 
+(defun other-frame-prefix ()
+  "Display the buffer of the next command in a new frame.
+The next buffer is the buffer displayed by the next command invoked
+immediately after this command (ignoring reading from the minibuffer).
+Creates a new frame before displaying the buffer.
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+  (interactive)
+  (display-buffer-override-next-command
+   (lambda (buffer alist)
+     (cons (display-buffer-pop-up-frame
+            buffer (append '((inhibit-same-window . t))
+                           alist))
+           'frame)))
+  (message "Display next command buffer in a new frame..."))
+
 (defun iconify-or-deiconify-frame ()
   "Iconify the selected frame, or deiconify if it's currently an icon."
   (interactive)
@@ -2697,6 +2713,7 @@ See also `toggle-frame-maximized'."
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
+(define-key ctl-x-5-map "5" 'other-frame-prefix)
 (define-key global-map [f11] 'toggle-frame-fullscreen)
 (define-key global-map [(meta f10)] 'toggle-frame-maximized)
 (define-key esc-map    [f10]        'toggle-frame-maximized)

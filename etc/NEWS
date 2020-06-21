@@ -115,6 +115,14 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Windows
+
+*** The key prefix 'C-x 4 4' displays next command buffer in a new window.
+
+** Frames
+
+*** The key prefix 'C-x 5 5' displays next command buffer in a new frame.
+
 ** Tab Bars
 
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
