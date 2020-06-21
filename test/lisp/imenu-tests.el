@@ -50,24 +50,23 @@
 	(setq input (cdr input)))))
     result))
 
-(defmacro imenu-simple-scan-deftest (name doc major-mode content expected-items)
+(defmacro imenu-simple-scan-deftest (name doc mode content expected-items)
   "Generate an ert test for mode-own imenu expression.
 Run `imenu-create-index-function' at the buffer which content is
-CONTENT with MAJOR-MODE. A generated test runs `imenu-create-index-function'
-at the buffer which content is CONTENT with MAJOR-MODE. Then it compares a list
-of strings which are picked up from the result with EXPECTED-ITEMS."
+CONTENT with major MODE.  A generated test runs `imenu-create-index-function'
+at the buffer which content is CONTENT with major MODE.  Then it compares a
+list of strings which are picked up from the result with EXPECTED-ITEMS."
   (let ((xname (intern (concat "imenu-simple-scan-deftest-" (symbol-name name)))))
     `(ert-deftest ,xname ()
-	 ,doc
+       ,doc
        (with-temp-buffer
 	 (insert ,content)
-	 (funcall ',major-mode)
+         (funcall #',mode)
 	 (let ((result-items (sort (imenu-simple-scan-deftest-gather-strings-from-list
 				    (funcall imenu-create-index-function))
 				   #'string-lessp))
 	       (expected-items (sort (copy-sequence ,expected-items) #'string-lessp)))
-	   (should (equal result-items expected-items))
-	   )))))
+           (should (equal result-items expected-items)))))))
 
 (imenu-simple-scan-deftest sh "Test imenu expression for sh-mode." sh-mode "a()
 {
