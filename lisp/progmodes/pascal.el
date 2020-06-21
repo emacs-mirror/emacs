@@ -1170,26 +1170,27 @@ indent of the current line in parameterlist."
 
 (defun pascal-type-completion (pascal-str)
   "Calculate all possible completions for types."
-  (let ((start (point))
-        (pascal-all ())
-	goon)
-    ;; Search for all reachable type declarations
-    (while (or (pascal-beg-of-defun)
-	       (setq goon (not goon)))
-      (save-excursion
-	(if (and (< start (prog1 (save-excursion (pascal-end-of-defun)
-						 (point))
-			    (forward-char 1)))
-		 (re-search-forward
-		  "\\<type\\>\\|\\<\\(begin\\|function\\|procedure\\)\\>"
-		  start t)
-		 (not (match-end 1)))
-	    ;; Check current type declaration
-            (setq pascal-all
-                  (nconc (pascal-get-completion-decl pascal-str)
-                         pascal-all)))))
+  (save-excursion
+    (let ((start (point))
+          (pascal-all ())
+	  goon)
+      ;; Search for all reachable type declarations
+      (while (or (pascal-beg-of-defun)
+	         (setq goon (not goon)))
+        (save-excursion
+	  (if (and (< start (prog1 (save-excursion (pascal-end-of-defun)
+						   (point))
+			      (forward-char 1)))
+		   (re-search-forward
+		    "\\<type\\>\\|\\<\\(begin\\|function\\|procedure\\)\\>"
+		    start t)
+		   (not (match-end 1)))
+	      ;; Check current type declaration
+              (setq pascal-all
+                    (nconc (pascal-get-completion-decl pascal-str)
+                           pascal-all)))))
 
-    pascal-all))
+      pascal-all)))
 
 (defun pascal-var-completion (prefix)
   "Calculate all possible completions for variables (or constants)."
@@ -1263,11 +1264,13 @@ indent of the current line in parameterlist."
                     (and (eq state 'defun)
                          (save-excursion
                            (re-search-backward ")[ \t]*:" (point-at-bol) t))))
-                (if (or (eq state 'paramlist) (eq state 'defun))
-                    (pascal-beg-of-defun))
-                (nconc
-                 (pascal-type-completion pascal-str)
-                 (pascal-keyword-completion pascal-type-keywords pascal-str)))
+                (save-excursion
+                  (if (or (eq state 'paramlist) (eq state 'defun))
+                      (pascal-beg-of-defun))
+                  (nconc
+                   (pascal-type-completion pascal-str)
+                   (pascal-keyword-completion pascal-type-keywords
+                                              pascal-str))))
                (                        ;--Starting a new statement
                 (and (not (eq state 'contexp))
                      (save-excursion
