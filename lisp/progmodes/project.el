@@ -716,9 +716,10 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 ;;;###autoload
 (defun project-shell ()
   "Start an inferior shell in the current project's root directory.
-With \\[universal-argument] prefix, create subsequent shell
-buffers with uniquified names.  If several Shell buffers exists,
-this command jumps to the first created such buffer."
+If such buffer already exists (one or several), switch to the one
+that was created first.
+With \\[universal-argument] prefix, create a new inferior shell
+buffer with uniquified name."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
          (default-project-shell-name
@@ -734,9 +735,10 @@ this command jumps to the first created such buffer."
 ;;;###autoload
 (defun project-eshell ()
   "Start Eshell in the current project's root directory.
-With \\[universal-argument] prefix, create subsequent shell
-buffers with uniquified names.  If several Eshell buffers exists,
-this command jumps to the first created such buffer."
+If such buffer already exists (one or several), switch to the one
+that was created first.
+With \\[universal-argument] prefix, create a new Eshell buffer
+with uniquified name."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
          (eshell-buffer-name
