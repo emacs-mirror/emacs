@@ -1506,7 +1506,8 @@ Return t if the file exists and loads successfully.  */)
       specbind (Qcurrent_load_list, Qnil);
       if (!NILP (Vpurify_flag))
 	{
-	  Lisp_Object base = parent_directory (Ffile_name_directory (found));
+	  Lisp_Object base = concat2 (parent_directory (Vinvocation_directory),
+				      build_string ("lisp/"));
 	  Lisp_Object offset = Flength (base);
 	  hist_file_name = Fsubstring (found, offset, Qnil);
 	}

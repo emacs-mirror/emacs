@@ -1061,7 +1061,12 @@ please check its value")
 	  (unless (file-readable-p lispdir)
 	    (princ (format "Lisp directory %s not readable?" lispdir))
 	    (terpri)))
-      (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
+      (setq lisp-dir
+            (file-truename
+             (if (string-match "\\.eln\\'" simple-file-name)
+                 (expand-file-name
+                  (concat (file-name-directory simple-file-name) "../"))
+               (file-name-directory simple-file-name))))
       (setq load-history
 	    (mapcar (lambda (elt)
 		      (if (and (stringp (car elt))
