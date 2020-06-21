@@ -1331,9 +1331,7 @@ component is used as the target of the symlink."
    (format
     (eval-when-compile
       (concat
-       ;; On Opsware, pdksh (which is the true name of ksh there)
-       ;; doesn't parse correctly the sequence "((".  Therefore, we
-       ;; add a space.  Apostrophes in the stat output are masked as
+       ;; Apostrophes in the stat output are masked as
        ;; `tramp-stat-marker', in order to make a proper shell escape
        ;; of them in file names.
        "(%s -c '((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' %s |"

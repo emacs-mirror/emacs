@@ -664,8 +664,8 @@ absolute file names."
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-flush-file-properties v localname)
-    (tramp-crypt-run-real-handler
-     #'delete-file (list (tramp-crypt-encrypt-file-name filename) trash))))
+    (let (tramp-crypt-enabled)
+      (delete-file (tramp-crypt-encrypt-file-name filename) trash))))
 
 (defun tramp-crypt-handle-directory-files (directory &optional full match nosort)
   "Like `directory-files' for Tramp files."
@@ -700,8 +700,8 @@ absolute file names."
 
 (defun tramp-crypt-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
-  (tramp-crypt-run-real-handler
-   #'file-attributes (list (tramp-crypt-encrypt-file-name filename) id-format)))
+  (let (tramp-crypt-enabled)
+    (file-attributes (tramp-crypt-encrypt-file-name filename) id-format)))
 
 (defun tramp-crypt-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
@@ -735,10 +735,10 @@ absolute file names."
 
 (defun tramp-crypt-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
-  (tramp-crypt-run-real-handler
-   ;; `file-system-info' exists since Emacs 27.1.  Then, we can use
-   ;; #'file-system-info.
-   'file-system-info (list (tramp-crypt-encrypt-file-name filename))))
+  (let (tramp-crypt-enabled)
+    ;; `file-system-info' exists since Emacs 27.1.
+    (tramp-compat-funcall
+     'file-system-info (tramp-crypt-encrypt-file-name filename))))
 
 (defun tramp-crypt-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -776,8 +776,8 @@ WILDCARD is not supported."
   (with-parsed-tramp-file-name (expand-file-name dir) nil
     (when (and (null parents) (file-exists-p dir))
       (tramp-error v 'file-already-exists "Directory already exists %s" dir))
-    (tramp-crypt-run-real-handler
-     #'make-directory (list (tramp-crypt-encrypt-file-name dir) parents))
+    (let (tramp-crypt-enabled)
+      (make-directory (tramp-crypt-encrypt-file-name dir) parents))
     ;; When PARENTS is non-nil, DIR could be a chain of non-existent
     ;; directories a/b/c/...  Instead of checking, we simply flush the
     ;; whole cache.

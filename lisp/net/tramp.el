@@ -2259,7 +2259,7 @@ Must be handled by the callers."
 	      file-newer-than-file-p rename-file))
     (cond
      ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))
-     ((tramp-tramp-file-p (nth 1 args)) (nth 1 args))
+     ((file-name-absolute-p (nth 1 args)) (nth 1 args))
      (t default-directory)))
    ;; FILE DIRECTORY resp FILE1 FILE2.
    ((eq operation 'expand-file-name)
@@ -3630,7 +3630,8 @@ User is always nil."
        v tramp-file-missing "Cannot load nonexistent file `%s'" file))
     (if (not (file-exists-p file))
 	nil
-      (let ((inhibit-message nomessage))
+      (let ((signal-hook-function (unless noerror signal-hook-function))
+	    (inhibit-message (or inhibit-message nomessage)))
 	(with-tramp-progress-reporter v 0 (format "Loading %s" file)
 	  (let ((local-copy (file-local-copy file)))
 	    (unwind-protect
