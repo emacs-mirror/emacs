@@ -61,6 +61,12 @@ It was declared obsolete in Emacs 27.1.
 
 * Startup Changes in Emacs 28.1
 
+** Emacs can support 24-bit color TTY without terminfo database.
+If your text-mode terminal supports 24-bit true color, but your system
+lacks the terminfo database, you can instruct Emacs to support 24-bit
+true color by setting COLORTERM=truecolor in the environment.  This is
+useful on systems such as FreeBSD which ships only with 'etc/termcap'.
+
 
 * Changes in Emacs 28.1
 
@@ -140,6 +146,7 @@ displayed and which are kept hidden.
 ** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
+
 *** A space between an open paren and a symbol changes the indentation rule.
 The presence of a space between an open paren and a symbol now is
 taken as a statement by the programmer that this should be indented
@@ -229,6 +236,12 @@ changes.
 +++
 *** New connection method "media", which allows accessing media devices
 like cell phones, tablets or cameras.
+
++++
+*** New command 'tramp-crypt-add-directory'.
+This command marks a remote directory to contain only encrypted files.
+See the "(tramp) Keeping files encrypted" node of the Tramp manual for
+details.  This feature is experimental.
 
 ** Tempo
 
@@ -420,9 +433,9 @@ information, see the related entry about 'shr-browse-url' above.
 all commands that prompt for a project directory.
 
 +++
-*** New commands 'project-dired', 'project-vc-dir', 'project-shell', 'project-eshell'.
-These commands run Dired/VC-Dir and Shell/Eshell in a project's root directory,
-respectively.
+*** New commands 'project-dired', 'project-vc-dir', 'project-shell',
+'project-eshell'.  These commands run Dired/VC-Dir and Shell/Eshell in
+a project's root directory, respectively.
 
 *** New command 'project-compile', which runs compilation.
 
@@ -449,7 +462,25 @@ Previously 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
-** The metamail.el library is now marked obsolete.
+** Battery
+
+---
+*** UPower is now the default battery status backend when available.
+UPower support via the function 'battery-upower' was added in Emacs
+26.1, but was disabled by default.  It is now the default value of
+'battery-status-function' when the system provides a UPower D-Bus
+service.  The user options 'battery-upower-device' and
+'battery-upower-subscribe' control which power sources to query and
+whether to respond to status change notifications in addition to
+polling, respectively.
+
+---
+*** A richer syntax can be used to format battery status information.
+The user options 'battery-mode-line-format' and
+'battery-echo-area-format' now support the full formatting syntax of
+the function 'format-spec' documented under node "(elisp) Custom Format
+Strings".  The new syntax includes specifiers for padding and
+truncation, amongst other things.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -505,6 +536,16 @@ This is no longer supported, and setting this variable has no effect.
 +++
 ** The macro 'with-displayed-buffer-window' is now obsolete.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
+
+** The metamail.el library is now marked obsolete.
+
+---
+** Some obsolete variable and function aliases in dbus.el have been removed.
+In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
+'dbus-event-error-functions' and the function
+'dbus-call-method-non-blocking' was renamed to 'dbus-call-method'.
+The old names, which were kept as obsolete aliases of the new names,
+have now been removed.
 
 ---
 ** Some libraries obsolete since Emacs 23 have been removed:
@@ -567,6 +608,13 @@ for encoding and decoding without having to bind
 ** New user option 'process-file-return-signal-string'.
 It controls, whether 'process-file' returns a string when a remote
 process is interrupted by a signal.
+
++++
+** The behavior of 'format-spec' is now closer to that of 'format'.
+In order for the two functions to behave more consistently,
+'format-spec' now pads and truncates based on string width rather than
+length, and also supports format specifications that include a
+truncating precision field, such as '%.2a'.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

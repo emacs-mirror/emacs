@@ -1039,6 +1039,8 @@ of command line.")
     (start-file-process . tramp-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . tramp-sh-handle-get-remote-gid)
+    (tramp-get-remote-uid . tramp-sh-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sh-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
     (vc-registered . tramp-sh-handle-vc-registered)
@@ -1153,59 +1155,9 @@ component is used as the target of the symlink."
 			    (tramp-shell-quote-argument localname)))))
 
 	    ;; Do it yourself.
-	    (t (let ((steps (split-string localname "/" 'omit))
-		     (thisstep nil)
-		     (numchase 0)
-		     ;; Don't make the following value larger than
-		     ;; necessary.  People expect an error message in a
-		     ;; timely fashion when something is wrong;
-		     ;; otherwise they might think that Emacs is hung.
-		     ;; Of course, correctness has to come first.
-		     (numchase-limit 20)
-		     symlink-target)
-		 (while (and steps (< numchase numchase-limit))
-		   (setq thisstep (pop steps))
-		   (tramp-message
-		    v 5 "Check %s"
-		    (string-join
-		     (append '("") (reverse result) (list thisstep)) "/"))
-		   (setq symlink-target
-			 (tramp-compat-file-attribute-type
-			  (file-attributes
-			   (tramp-make-tramp-file-name
-			    v
-			    (string-join
-			     (append
-			      '("") (reverse result) (list thisstep)) "/")
-			    'nohop))))
-		   (cond ((string= "." thisstep)
-			  (tramp-message v 5 "Ignoring step `.'"))
-			 ((string= ".." thisstep)
-			  (tramp-message v 5 "Processing step `..'")
-			  (pop result))
-			 ((stringp symlink-target)
-			  ;; It's a symlink, follow it.
-			  (tramp-message
-			   v 5 "Follow symlink to %s" symlink-target)
-			  (setq numchase (1+ numchase))
-			  (when (file-name-absolute-p symlink-target)
-			    (setq result nil))
-			  (setq steps
-				(append
-				 (split-string symlink-target "/" 'omit)
-				 steps)))
-			 (t
-			  ;; It's a file.
-			  (setq result (cons thisstep result)))))
-		 (when (>= numchase numchase-limit)
-		   (tramp-error
-		    v 'file-error
-		    "Maximum number (%d) of symlinks exceeded" numchase-limit))
-		 (setq result (reverse result)
-		       ;; Combine list to form string.
-		       result
-		       (if result (string-join (cons "" result) "/") "/"))
-		 (when (string-empty-p result) (setq result "/")))))
+	    (t (setq
+		result
+		(tramp-file-local-name (tramp-handle-file-truename filename)))))
 
 	   ;; Detect cycle.
 	   (when (and (file-symlink-p filename)
@@ -1379,18 +1331,11 @@ component is used as the target of the symlink."
    (format
     (eval-when-compile
       (concat
-       ;; On Opsware, pdksh (which is the true name of ksh there)
-       ;; doesn't parse correctly the sequence "((".  Therefore, we
-       ;; add a space.  Apostrophes in the stat output are masked as
+       ;; Apostrophes in the stat output are masked as
        ;; `tramp-stat-marker', in order to make a proper shell escape
        ;; of them in file names.
-       "( (%s %s || %s -h %s) && (%s -c "
-       "'((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' "
-       "%s | sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g') || echo nil)"))
-    (tramp-get-file-exists-command vec)
-    (tramp-shell-quote-argument localname)
-    (tramp-get-test-command vec)
-    (tramp-shell-quote-argument localname)
+       "(%s -c '((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' %s |"
+       " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g')"))
     (tramp-get-remote-stat vec)
     tramp-stat-marker tramp-stat-marker
     (if (eq id-format 'integer)
@@ -1401,7 +1346,8 @@ component is used as the target of the symlink."
       (eval-when-compile (concat tramp-stat-marker "%G" tramp-stat-marker)))
     tramp-stat-marker tramp-stat-marker
     (tramp-shell-quote-argument localname)
-    tramp-stat-quoted-marker)))
+    tramp-stat-quoted-marker)
+   'noerror))
 
 (defun tramp-sh-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -1516,6 +1462,26 @@ of."
 	      "")
 	    (if (eq flag 'nofollow) "-h" "")
 	    (tramp-shell-quote-argument localname)))))))
+
+(defun tramp-sh-handle-get-remote-uid (vec id-format)
+  "The uid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (ignore-errors
+    (cond
+     ((tramp-get-remote-id vec) (tramp-get-remote-uid-with-id vec id-format))
+     ((tramp-get-remote-perl vec) (tramp-get-remote-uid-with-perl vec id-format))
+     ((tramp-get-remote-python vec)
+      (tramp-get-remote-uid-with-python vec id-format)))))
+
+(defun tramp-sh-handle-get-remote-gid (vec id-format)
+  "The gid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (ignore-errors
+    (cond
+     ((tramp-get-remote-id vec) (tramp-get-remote-gid-with-id vec id-format))
+     ((tramp-get-remote-perl vec) (tramp-get-remote-gid-with-perl vec id-format))
+     ((tramp-get-remote-python vec)
+      (tramp-get-remote-gid-with-python vec id-format)))))
 
 (defun tramp-sh-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -1719,8 +1685,10 @@ of."
 (defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
   "Like `file-ownership-preserved-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-ownership-preserved-p"
-      (let ((attributes (file-attributes filename)))
+    (with-tramp-file-property
+	v localname
+	(format "file-ownership-preserved-p%s" (if group "-group" ""))
+      (let ((attributes (file-attributes filename 'integer)))
 	;; Return t if the file doesn't exist, since it's true that no
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
@@ -3024,16 +2992,16 @@ STDERR can also be a file name."
 		      ;; the process is deleted.
 		      (when (bufferp stderr)
 			(with-current-buffer stderr
-			  (insert-file-contents-literally
-			   remote-tmpstderr 'visit))
+			  (insert-file-contents-literally remote-tmpstderr))
 			;; Delete tmpstderr file.
 			(add-function
 			 :after (process-sentinel p)
 			 (lambda (_proc _msg)
-			   (with-current-buffer stderr
-			     (insert-file-contents-literally
-			      remote-tmpstderr 'visit nil nil 'replace))
-			   (delete-file remote-tmpstderr))))
+			   (when (file-exists-p remote-tmpstderr)
+			     (with-current-buffer stderr
+			       (insert-file-contents-literally
+				remote-tmpstderr nil nil nil 'replace))
+			     (delete-file remote-tmpstderr)))))
 		      ;; Return process.
 		      p)))
 
@@ -4636,11 +4604,7 @@ Goes through the list `tramp-local-coding-commands' and
 				?o (tramp-get-remote-od vec)))
 			      value (replace-regexp-in-string "%" "%%" value)))
 		      (when (string-match-p "\\(^\\|[^%]\\)%t" value)
-			(setq tmpfile
-			      (make-temp-name
-			       (expand-file-name
-				tramp-temp-name-prefix
-				(tramp-get-remote-tmpdir vec)))
+			(setq tmpfile (tramp-make-tramp-temp-name vec)
 			      value
 			      (format-spec
 			       value
@@ -5079,10 +5043,7 @@ connection if a previous connection has died for some reason."
 			 (tmpfile
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
-			    (make-temp-name
-			     (expand-file-name
-			      tramp-temp-name-prefix
-			      (tramp-compat-temporary-file-directory)))))
+			    (tramp-compat-make-temp-name)))
 			 spec r-shell)
 
 		    ;; Add arguments for asynchronous processes.
@@ -5302,7 +5263,10 @@ raises an error."
 		    command marker (buffer-string))))))
       ;; Read the expression.
       (condition-case nil
-	  (prog1 (read (current-buffer))
+	  (prog1
+	      (let ((signal-hook-function
+		     (unless noerror signal-hook-function)))
+		(read (current-buffer)))
 	    ;; Error handling.
 	    (when (re-search-forward "\\S-" (point-at-eol) t)
 	      (error nil)))
@@ -5710,10 +5674,7 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
     (tramp-message vec 5 "Finding a suitable `touch' command")
     (let ((result (tramp-find-executable
 		   vec "touch" (tramp-get-remote-path vec)))
-	  (tmpfile
-	   (make-temp-name
-	    (expand-file-name
-	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+	  (tmpfile (tramp-make-tramp-temp-name vec)))
       ;; Busyboxes do support the "-t" option only when they have been
       ;; built with the DESKTOP config option.  Let's check it.
       (when result
@@ -5828,27 +5789,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	       "import os; print (os.getuid())"
     "import os, pwd; print ('\\\"' + pwd.getpwuid(os.getuid())[0] + '\\\"')"))))
 
-(defun tramp-get-remote-uid (vec id-format)
-  "The uid of the remote connection VEC, in ID-FORMAT.
-ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (let ((res
-	   (ignore-errors
-	     (cond
-	      ((tramp-get-remote-id vec)
-	       (tramp-get-remote-uid-with-id vec id-format))
-	      ((tramp-get-remote-perl vec)
-	       (tramp-get-remote-uid-with-perl vec id-format))
-	      ((tramp-get-remote-python vec)
-	       (tramp-get-remote-uid-with-python vec id-format))))))
-      ;; Ensure there is a valid result.
-      (cond
-       ((and (equal id-format 'integer) (not (integerp res)))
-	tramp-unknown-id-integer)
-       ((and (equal id-format 'string) (not (stringp res)))
-	tramp-unknown-id-string)
-       (t res)))))
-
 (defun tramp-get-remote-gid-with-id (vec id-format)
   "Implement `tramp-get-remote-gid' for Tramp files using `id'."
   (tramp-send-command-and-read
@@ -5878,27 +5818,6 @@ ID-FORMAT valid values are `string' and `integer'."
 	   (if (equal id-format 'integer)
 	       "import os; print (os.getgid())"
     "import os, grp; print ('\\\"' + grp.getgrgid(os.getgid())[0] + '\\\"')"))))
-
-(defun tramp-get-remote-gid (vec id-format)
-  "The gid of the remote connection VEC, in ID-FORMAT.
-ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (let ((res
-	   (ignore-errors
-	     (cond
-	      ((tramp-get-remote-id vec)
-	       (tramp-get-remote-gid-with-id vec id-format))
-	      ((tramp-get-remote-perl vec)
-	       (tramp-get-remote-gid-with-perl vec id-format))
-	      ((tramp-get-remote-python vec)
-	       (tramp-get-remote-gid-with-python vec id-format))))))
-      ;; Ensure there is a valid result.
-      (cond
-       ((and (equal id-format 'integer) (not (integerp res)))
-	tramp-unknown-id-integer)
-       ((and (equal id-format 'string) (not (stringp res)))
-	tramp-unknown-id-string)
-       (t res)))))
 
 (defun tramp-get-remote-busybox (vec)
   "Determine remote `busybox' command."
@@ -5945,10 +5864,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Check whether remote `chmod' supports nofollow argument."
   (with-tramp-connection-property vec "chmod-h"
     (tramp-message vec 5 "Finding a suitable `chmod' command with nofollow")
-    (let ((tmpfile
-	   (make-temp-name
-	    (expand-file-name
-	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+    (let ((tmpfile (tramp-make-tramp-temp-name vec)))
       (prog1
 	  (tramp-send-command-and-check
 	   vec

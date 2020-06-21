@@ -821,6 +821,8 @@ It has been changed in GVFS 1.14.")
     (start-file-process . ignore)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . tramp-gvfs-handle-get-remote-gid)
+    (tramp-get-remote-uid . tramp-gvfs-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-gvfs-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
@@ -949,6 +951,10 @@ is no information where to trace the message.")
     (tramp-error tramp-gvfs-dbus-event-vector 'file-error "%s" (cadr err))))
 
 (add-hook 'dbus-event-error-functions #'tramp-gvfs-dbus-event-error)
+(add-hook 'tramp-gvfs-unload-hook
+	  (lambda ()
+	    (remove-hook 'dbus-event-error-functions
+			 #'tramp-gvfs-dbus-event-error)))
 
 
 ;; File name primitives.
@@ -1506,7 +1512,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	       ;; If the user is different from what we guess to be
 	       ;; the user, we don't know.  Let's check, whether
 	       ;; access is restricted explicitly.
-	       (and (/= (tramp-gvfs-get-remote-uid v 'integer)
+	       (and (/= (tramp-get-remote-uid v 'integer)
 			(tramp-compat-file-attribute-user-id
 			 (file-attributes filename 'integer)))
 		    (not
@@ -1589,7 +1595,27 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	       (current-time)
 	     time)))))
 
-(defun tramp-gvfs-set-file-uid-gid (filename &optional uid gid)
+(defun tramp-gvfs-handle-get-remote-uid (vec id-format)
+  "The uid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (if (equal id-format 'string)
+      (tramp-file-name-user vec)
+    (when-let
+	((localname (tramp-get-connection-property vec "default-location" nil)))
+      (tramp-compat-file-attribute-user-id
+       (file-attributes
+	(tramp-make-tramp-file-name vec localname) id-format)))))
+
+(defun tramp-gvfs-handle-get-remote-gid (vec id-format)
+  "The gid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (when-let
+      ((localname (tramp-get-connection-property vec "default-location" nil)))
+    (tramp-compat-file-attribute-group-id
+     (file-attributes
+      (tramp-make-tramp-file-name vec localname) id-format))))
+
+(defun tramp-gvfs-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -2057,39 +2083,6 @@ and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
 
 ;; Connection functions.
 
-(defun tramp-gvfs-get-remote-uid (vec id-format)
-  "The uid of the remote connection VEC, in ID-FORMAT.
-ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (let ((user (tramp-file-name-user vec))
-	  (localname
-	   (tramp-get-connection-property vec "default-location" nil)))
-      (cond
-       ((and (equal id-format 'string) user))
-       (localname
-	(tramp-compat-file-attribute-user-id
-	 (file-attributes
-	  (tramp-make-tramp-file-name vec localname) id-format)))
-       ((equal id-format 'integer) tramp-unknown-id-integer)
-       ((equal id-format 'string) tramp-unknown-id-string)))))
-
-(defun tramp-gvfs-get-remote-gid (vec id-format)
-  "The gid of the remote connection VEC, in ID-FORMAT.
-ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (let ((localname
-	   (tramp-get-connection-property vec "default-location" nil)))
-      (cond
-       (localname
-	(tramp-compat-file-attribute-group-id
-	 (file-attributes
-	  (tramp-make-tramp-file-name vec localname) id-format)))
-       ((equal id-format 'integer) tramp-unknown-id-integer)
-       ((equal id-format 'string) tramp-unknown-id-string)))))
-
-(defvar tramp-gvfs-get-remote-uid-gid-in-progress nil
-  "Indication, that remote uid and gid determination is in progress.")
-
 (defun tramp-gvfs-get-remote-prefix (vec)
   "The prefix of the remote connection VEC.
 This is relevant for GNOME Online Accounts."
@@ -2229,16 +2222,7 @@ connection if a previous connection has died for some reason."
 
 	;; Mark it as connected.
 	(tramp-set-connection-property
-	 (tramp-get-connection-process vec) "connected" t))))
-
-  ;; In `tramp-check-cached-permissions', the connection properties
-  ;; "{uid,gid}-{integer,string}" are used.  We set them to proper values.
-  (unless tramp-gvfs-get-remote-uid-gid-in-progress
-    (let ((tramp-gvfs-get-remote-uid-gid-in-progress t))
-      (tramp-gvfs-get-remote-uid vec 'integer)
-      (tramp-gvfs-get-remote-gid vec 'integer)
-      (tramp-gvfs-get-remote-uid vec 'string)
-      (tramp-gvfs-get-remote-gid vec 'string))))
+	 (tramp-get-connection-process vec) "connected" t)))))
 
 (defun tramp-gvfs-gio-tool-p (vec)
   "Check, whether the gio tool is available."

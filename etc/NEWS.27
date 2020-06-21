@@ -956,8 +956,8 @@ displays the buffer from the next command in that window.  For example,
 'S-M-right C-h i' displays the "*Info*" buffer in the right window,
 creating the window if necessary.  A special key can be customized to
 display the buffer in the same window, for example, 'S-M-0 C-h e'
-displays the "*Messages*" buffer in the same window.  'S-M-t C-h C-n'
-displays NEWS in a new tab.
+displays the "*Messages*" buffer in the same window.  'S-M-t C-h r'
+displays the Emacs manual in a new tab.
 
 +++
 *** Windmove also supports directional window deletion.

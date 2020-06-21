@@ -139,12 +139,232 @@ The second subexpression should match the bug reference (usually a number)."
 	(when url
 	  (browse-url url))))))
 
+(defun bug-reference--maybe-setup-from-vc (url url-rx bug-rx bug-url-fmt)
+  (when (string-match url-rx url)
+    (setq-local bug-reference-bug-regexp bug-rx)
+    (setq-local bug-reference-url-format
+                (let (groups)
+                  (dotimes (i (/ (length (match-data)) 2))
+                    (push (match-string i url) groups))
+                  (funcall bug-url-fmt (nreverse groups))))))
+
+(defvar bug-reference-setup-from-vc-alist
+  `(;;
+    ;; GNU projects on savannah.
+    ;;
+    ;; Not all of them use debbugs but that doesn't really matter
+    ;; because the auto-setup is only performed if
+    ;; `bug-reference-url-format' and `bug-reference-bug-regexp'
+    ;; aren't set already.
+    ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
+     "\\<\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\>"
+     ,(lambda (_) "https://debbugs.gnu.org/%s"))
+    ;;
+    ;; GitHub projects.
+    ;;
+    ;; Here #17 may refer to either an issue or a pull request but
+    ;; visiting the issue/17 web page will automatically redirect to
+    ;; the pull/17 page if 17 is a PR.  Explicit user/project#17 links
+    ;; to possibly different projects are also supported.
+    ("[/@]github.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
+     "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://github.com/"
+                    (or
+                     ;; Explicit user/proj#18 link.
+                     (match-string 1)
+                     ns-project)
+                    "/issues/"
+                    (match-string 2))))))
+    ;;
+    ;; GitLab projects.
+    ;;
+    ;; Here #18 is an issue and !17 is a merge request.  Explicit
+    ;; namespace/project#18 or namespace/project!17 references to
+    ;; possibly different projects are also supported.
+    ("[/@]gitlab.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
+     "\\(?1:[.A-Za-z0-9_/-]+\\)?\\(?3:[#!]\\)\\(?2:[0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://gitlab.com/"
+                    (or (match-string 1)
+                        ns-project)
+                    "/-/"
+                    (if (string= (match-string 3) "#")
+                        "issues/"
+                      "merge_requests/")
+                    (match-string 2)))))))
+  "An alist for setting up `bug-reference-mode' based on VC URL.
+
+Each element has the form (URL-REGEXP BUG-REGEXP URL-FORMAT-FN).
+
+URL-REGEXP is matched against the version control URL of the
+current buffer's file.  If it matches, BUG-REGEXP is set as
+`bug-reference-bug-regexp'.  URL-FORMAT-FN is a function of one
+argument that receives a list of the groups 0 to N of matching
+URL-REGEXP against the VCS URL and returns the value to be set as
+`bug-reference-url-format'.")
+
+(defun bug-reference-try-setup-from-vc ()
+  "Try setting up `bug-reference-mode' based on VC information.
+Test each configuration in `bug-reference-setup-from-vc-alist'
+and apply it if applicable."
+  (let ((file-or-dir (or buffer-file-name
+                         ;; Catches modes such as vc-dir and Magit.
+                         default-directory)))
+    (when file-or-dir
+      (let* ((backend (vc-responsible-backend file-or-dir t))
+             (url
+              (or (ignore-errors
+                    (vc-call-backend backend 'repository-url "upstream"))
+                  (ignore-errors
+                    (vc-call-backend backend 'repository-url)))))
+        (when url
+          (catch 'found
+            (dolist (config bug-reference-setup-from-vc-alist)
+              (when (apply #'bug-reference--maybe-setup-from-vc
+                           url config)
+                (throw 'found t)))))))))
+
+(defvar bug-reference-setup-from-mail-alist
+  `((,(regexp-opt '("emacs" "auctex" "gnus") 'words)
+     ,(regexp-opt '("@debbugs.gnu.org" "-devel@gnu.org"
+                    ;; List-Id of Gnus devel mailing list.
+                    "ding.gnus.org"))
+     "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+     "https://debbugs.gnu.org/%s"))
+  "An alist for setting up `bug-reference-mode' in mail modes.
+
+This takes action if `bug-reference-mode' is enabled in group and
+message buffers of Emacs mail clients.  Currently, only Gnus is
+supported.
+
+Each element has the form
+
+  (GROUP-REGEXP HEADER-REGEXP BUG-REGEXP URL-FORMAT)
+
+GROUP-REGEXP is a regexp matched against the current mail folder
+or newsgroup name.  HEADER-REGEXP is a regexp matched against the
+From, To, Cc, Newsgroup, and List-ID header values of the current
+mail or newsgroup message.  If any of those matches, BUG-REGEXP
+is set as `bug-reference-bug-regexp' and URL-FORMAT is set as
+`bug-reference-url-format'.
+
+Note: In Gnus, if a summary buffer has been set up based on
+GROUP-REGEXP, all article buffers opened from there will get the
+same `bug-reference-url-format' and `bug-reference-url-format'.")
+
+(defvar gnus-newsgroup-name)
+
+(defun bug-reference--maybe-setup-from-mail (group header-values)
+  "Set up according to mail GROUP or HEADER-VALUES.
+Group is a mail group/folder name and HEADER-VALUES is a list of
+mail header values, e.g., the values of From, To, Cc, List-ID,
+and Newsgroup.
+
+If any GROUP-REGEXP or HEADER-REGEXP of
+`bug-reference-setup-from-mail-alist' matches GROUP or any
+element in HEADER-VALUES, the corresponding BUG-REGEXP and
+URL-FORMAT are set."
+  (catch 'setup-done
+    (dolist (config bug-reference-setup-from-mail-alist)
+      (when (or
+             (and group
+                  (car config)
+                  (string-match-p (car config) group))
+             (and header-values
+                  (nth 1 config)
+                  (catch 'matching-header
+                    (dolist (h header-values)
+                      (when (and h (string-match-p (nth 1 config) h))
+                        (throw 'matching-header t))))))
+        (setq-local bug-reference-bug-regexp (nth 2 config))
+        (setq-local bug-reference-url-format (nth 3 config))
+        (throw 'setup-done t)))))
+
+(defun bug-reference-try-setup-from-gnus ()
+  "Try setting up `bug-reference-mode' based on Gnus group or article.
+Test each configuration in `bug-reference-setup-from-mail-alist'
+and set it if applicable."
+  (when (and (derived-mode-p 'gnus-summary-mode)
+             (bound-and-true-p gnus-newsgroup-name))
+    ;; Gnus reuses its article buffer so we have to check whenever the
+    ;; article changes.
+    (add-hook 'gnus-article-prepare-hook
+              #'bug-reference--try-setup-gnus-article)
+    (bug-reference--maybe-setup-from-mail gnus-newsgroup-name nil)))
+
+(defvar gnus-article-buffer)
+(defvar gnus-original-article-buffer)
+(defvar gnus-summary-buffer)
+
+(defun bug-reference--try-setup-gnus-article ()
+  (with-demoted-errors
+      "Error in bug-reference--try-setup-gnus-article: %S"
+    (when (and bug-reference-mode ;; Only if enabled in article buffers.
+               (derived-mode-p
+                'gnus-article-mode
+                ;; Apparently, gnus-article-prepare-hook is run in the
+                ;; summary buffer...
+                'gnus-summary-mode)
+               gnus-article-buffer
+               gnus-original-article-buffer
+               (buffer-live-p (get-buffer gnus-article-buffer))
+               (buffer-live-p (get-buffer gnus-original-article-buffer)))
+      (with-current-buffer gnus-article-buffer
+        (catch 'setup-done
+          ;; Copy over the values from the summary buffer.
+          (when (and gnus-summary-buffer
+                     (buffer-live-p gnus-summary-buffer))
+            (setq-local bug-reference-bug-regexp
+                        (with-current-buffer gnus-summary-buffer
+                          bug-reference-bug-regexp))
+            (setq-local bug-reference-url-format
+                        (with-current-buffer gnus-summary-buffer
+                          bug-reference-url-format))
+            (when (and bug-reference-bug-regexp
+                       bug-reference-url-format)
+              (throw 'setup-done t)))
+          ;; If the summary had no values, try setting according to
+          ;; the values of the From, To, and Cc headers.
+          (let (header-values)
+            (with-current-buffer
+                (get-buffer gnus-original-article-buffer)
+              (save-excursion
+                (goto-char (point-min))
+                ;; The Newsgroup is omitted because we already matched
+                ;; based on group name in the summary buffer.
+                (dolist (field '("list-id" "to" "from" "cc"))
+                  (let ((val (mail-fetch-field field)))
+                    (when val
+                      (push val header-values))))))
+            (bug-reference--maybe-setup-from-mail nil header-values)))))))
+
+(defun bug-reference--run-auto-setup ()
+  (when (or bug-reference-mode
+            bug-reference-prog-mode)
+    ;; Automatic setup only if the variables aren't already set, e.g.,
+    ;; by a local variables section in the file.
+    (unless (and bug-reference-bug-regexp
+                 bug-reference-url-format)
+      (with-demoted-errors
+          "Error during bug-reference auto-setup: %S"
+        (catch 'setup
+          (dolist (f (list #'bug-reference-try-setup-from-vc
+                           #'bug-reference-try-setup-from-gnus))
+            (when (funcall f)
+              (throw 'setup t))))))))
+
 ;;;###autoload
 (define-minor-mode bug-reference-mode
   "Toggle hyperlinking bug references in the buffer (Bug Reference mode)."
   nil
   ""
   nil
+  :after-hook (bug-reference--run-auto-setup)
   (if bug-reference-mode
       (jit-lock-register #'bug-reference-fontify)
     (jit-lock-unregister #'bug-reference-fontify)
@@ -158,6 +378,7 @@ The second subexpression should match the bug reference (usually a number)."
   nil
   ""
   nil
+  :after-hook (bug-reference--run-auto-setup)
   (if bug-reference-prog-mode
       (jit-lock-register #'bug-reference-fontify)
     (jit-lock-unregister #'bug-reference-fontify)

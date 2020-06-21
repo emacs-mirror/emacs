@@ -43,6 +43,7 @@
 
 ;; `temporary-file-directory' as function is introduced with Emacs 26.1.
 (declare-function tramp-handle-temporary-file-directory "tramp")
+(defvar tramp-temp-name-prefix)
 
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
@@ -61,15 +62,19 @@ It is the default value of `temporary-file-directory'."
   ;; into an infloop.
   (eval (car (get 'temporary-file-directory 'standard-value))))
 
+(defsubst tramp-compat-make-temp-name ()
+  "Generate a local temporary file name (compat function)."
+  (make-temp-name
+   (expand-file-name
+    tramp-temp-name-prefix (tramp-compat-temporary-file-directory))))
+
 (defsubst tramp-compat-make-temp-file (f &optional dir-flag)
   "Create a local temporary file (compat function).
 Add the extension of F, if existing."
-  (let* (file-name-handler-alist
-	 (prefix (expand-file-name
-		  (symbol-value 'tramp-temp-name-prefix)
-		  (tramp-compat-temporary-file-directory)))
-	 (extension (file-name-extension f t)))
-    (make-temp-file prefix dir-flag extension)))
+  (make-temp-file
+   (expand-file-name
+    tramp-temp-name-prefix (tramp-compat-temporary-file-directory))
+   dir-flag (file-name-extension f t)))
 
 ;; `temporary-file-directory' as function is introduced with Emacs 26.1.
 (defalias 'tramp-compat-temporary-file-directory-function

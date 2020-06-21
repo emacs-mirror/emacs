@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -195,7 +195,7 @@ subset of the project root and external roots.
 
 The default implementation uses `find-program'.  PROJECT is used
 to find the list of ignores for each directory."
-  (cl-mapcan
+  (mapcan
    (lambda (dir)
      (project--files-in-directory dir
                                   (project--dir-ignores project dir)))
@@ -306,7 +306,7 @@ backend implementation of `project-external-roots'.")
                     (if (and
                          ;; FIXME: Invalidate the cache when the value
                          ;; of this variable changes.
-                         project-vc-merge-submodules
+                         (project--vc-merge-submodules-p root)
                          (project--submodule-p root))
                         (let* ((parent (file-name-directory
                                         (directory-file-name root))))
@@ -351,7 +351,7 @@ backend implementation of `project-external-roots'.")
    (list (project-root project))))
 
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
-  (cl-mapcan
+  (mapcan
    (lambda (dir)
      (let (backend)
        (if (and (file-equal-p dir (cdr project))
@@ -396,19 +396,20 @@ backend implementation of `project-external-roots'.")
               (split-string
                (apply #'vc-git--run-command-string nil "ls-files" args)
                "\0" t)))
-       ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
-       (let* ((submodules (project--git-submodules))
-              (sub-files
-               (mapcar
-                (lambda (module)
-                  (when (file-directory-p module)
-                    (project--vc-list-files
-                     (concat default-directory module)
-                     backend
-                     extra-ignores)))
-                submodules)))
-         (setq files
-               (apply #'nconc files sub-files)))
+       (when (project--vc-merge-submodules-p default-directory)
+         ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
+         (let* ((submodules (project--git-submodules))
+                (sub-files
+                 (mapcar
+                  (lambda (module)
+                    (when (file-directory-p module)
+                      (project--vc-list-files
+                       (concat default-directory module)
+                       backend
+                       extra-ignores)))
+                  submodules)))
+           (setq files
+                 (apply #'nconc files sub-files))))
        ;; 'git ls-files' returns duplicate entries for merge conflicts.
        ;; XXX: Better solutions welcome, but this seems cheap enough.
        (delete-consecutive-dups files)))
@@ -428,6 +429,11 @@ backend implementation of `project-external-roots'.")
          (mapcar
           (lambda (s) (concat default-directory s))
           (split-string (buffer-string) "\0" t)))))))
+
+(defun project--vc-merge-submodules-p (dir)
+  (project--value-in-dir
+   'project-vc-merge-submodules
+   dir))
 
 (defun project--git-submodules ()
   ;; 'git submodule foreach' is much slower.
@@ -483,6 +489,28 @@ whose is already in the list."
 DIRS must contain directory names."
   ;; Sidestep the issue of expanded/abbreviated file names here.
   (cl-set-difference files dirs :test #'file-in-directory-p))
+
+
+;;; Project commands
+
+;;;###autoload
+(defvar project-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "f" 'project-find-file)
+    (define-key map "b" 'project-switch-to-buffer)
+    (define-key map "s" 'project-shell)
+    (define-key map "d" 'project-dired)
+    (define-key map "v" 'project-vc-dir)
+    (define-key map "c" 'project-compile)
+    (define-key map "e" 'project-eshell)
+    (define-key map "k" 'project-kill-buffers)
+    (define-key map "p" 'project-switch-project)
+    (define-key map "g" 'project-find-regexp)
+    (define-key map "r" 'project-query-replace-regexp)
+    map)
+  "Keymap for project commands.")
+
+;;;###autoload (define-key ctl-x-map "p" project-prefix-map)
 
 (defun project--value-in-dir (var dir)
   (with-temp-buffer
@@ -644,6 +672,7 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 (defun project-find-file-in (filename dirs project)
   "Complete FILENAME in DIRS in PROJECT and visit the result."
   (let* ((all-files (project-files project dirs))
+         (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
                        "Find file" all-files nil nil
                        filename)))
@@ -674,30 +703,53 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 
 ;;;###autoload
 (defun project-dired ()
-  "Open Dired in the current project."
+  "Start Dired in the current project's root."
   (interactive)
   (dired (project-root (project-current t))))
 
 ;;;###autoload
 (defun project-vc-dir ()
-  "Open VC-Dir in the current project."
+  "Run VC-Dir in the current project's root."
   (interactive)
   (vc-dir (project-root (project-current t))))
 
 ;;;###autoload
 (defun project-shell ()
-  "Open Shell in the current project."
+  "Start an inferior shell in the current project's root directory.
+If a buffer already exists for running a shell in the project's root,
+switch to it.  Otherwise, create a new shell buffer.
+With \\[universal-argument] prefix arg, create a new inferior shell buffer even
+if one already exist."
   (interactive)
-  (let ((default-directory (project-root (project-current t))))
-    ;; Use ‘create-file-buffer’ to uniquify shell buffer names.
-    (shell (create-file-buffer "*shell*"))))
+  (let* ((default-directory (project-root (project-current t)))
+         (default-project-shell-name
+           (concat "*" (file-name-nondirectory
+                        (directory-file-name
+                         (file-name-directory default-directory)))
+                   "-shell*"))
+         (shell-buffer (get-buffer default-project-shell-name)))
+    (if (and shell-buffer (not current-prefix-arg))
+        (pop-to-buffer shell-buffer)
+      (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
 (defun project-eshell ()
-  "Open Eshell in the current project."
+  "Start Eshell in the current project's root directory.
+If a buffer already exists for running Eshell in the project's root,
+switch to it.  Otherwise, create a new Eshell buffer.
+With \\[universal-argument] prefix arg, create a new Eshell buffer even
+if one already exist."
   (interactive)
-  (let ((default-directory (project-root (project-current t))))
-    (eshell t)))
+  (let* ((default-directory (project-root (project-current t)))
+         (eshell-buffer-name
+           (concat "*" (file-name-nondirectory
+                        (directory-file-name
+                         (file-name-directory default-directory)))
+                   "-eshell*"))
+         (eshell-buffer (get-buffer eshell-buffer-name)))
+    (if (and eshell-buffer (not current-prefix-arg))
+        (pop-to-buffer eshell-buffer)
+      (eshell t))))
 
 (declare-function fileloop-continue "fileloop" ())
 
@@ -744,11 +796,76 @@ Arguments the same as in `compile'."
          (default-directory (project-root pr)))
     (compile command comint)))
 
+;;;###autoload
+(defun project-switch-to-buffer ()
+  "Switch to another buffer that is related to the current project.
+A buffer is related to a project if its `default-directory'
+is inside the directory hierarchy of the project's root."
+  (interactive)
+  (let* ((root (project-root (project-current t)))
+         (current-buffer (current-buffer))
+         (other-buffer (other-buffer current-buffer))
+         (other-name (buffer-name other-buffer))
+         (predicate
+          (lambda (buffer)
+            ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
+            (and (not (eq (cdr buffer) current-buffer))
+                 (when-let ((file (buffer-local-value 'default-directory
+                                                      (cdr buffer))))
+                   (file-in-directory-p file root))))))
+    (switch-to-buffer
+     (read-buffer
+      "Switch to buffer: "
+      (when (funcall predicate (cons other-name other-buffer))
+        other-name)
+      t
+      predicate))))
+
+(defcustom project-kill-buffers-skip-conditions
+  '("\\*Help\\*")
+  "Conditions for buffers `project-kill-buffers' should not kill.
+Each condition is either a regular expression matching a buffer
+name, or a predicate function that takes a buffer object as
+argument and returns non-nil if it matches.  Buffers that match
+any of the conditions will not be killed."
+  :type '(repeat (choice regexp function))
+  :version "28.1")
+
+(defun project--buffer-list (pr)
+  "Return the list of all buffers in project PR."
+  (let ((root (project-root pr))
+        bufs)
+    (dolist (buf (buffer-list))
+      (let ((filename (or (buffer-file-name buf)
+                          (buffer-local-value 'default-directory buf))))
+        (when (and filename (file-in-directory-p filename root))
+          (push buf bufs))))
+    (nreverse bufs)))
+
+;;;###autoload
+(defun project-kill-buffers ()
+  "Kill all live buffers belonging to the current project.
+Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
+  (interactive)
+  (let ((pr (project-current t)) bufs)
+    (dolist (buf (project--buffer-list pr))
+      (unless (seq-some
+               (lambda (c)
+                 (cond ((stringp c)
+                        (string-match-p c (buffer-name buf)))
+                       ((functionp c)
+                        (funcall c buf))))
+               project-kill-buffers-skip-conditions)
+        (push buf bufs)))
+    (when (yes-or-no-p (format "Kill %d buffers in %s? "
+                               (length bufs) (project-root pr)))
+      (mapc #'kill-buffer bufs))))
+
 
 ;;; Project list
 
 (defcustom project-list-file (locate-user-emacs-file "projects")
-  "File to save the list of known projects."
+  "File in which to save the list of known projects."
   :type 'file
   :version "28.1"
   :group 'project)
@@ -757,7 +874,7 @@ Arguments the same as in `compile'."
   "List of known project directories.")
 
 (defun project--read-project-list ()
-  "Initialize `project--list' from the project list file."
+  "Initialize `project--list' using contents of `project-list-file'."
   (let ((filename project-list-file))
     (setq project--list
           (when (file-exists-p filename)
@@ -766,12 +883,12 @@ Arguments the same as in `compile'."
               (read (current-buffer)))))))
 
 (defun project--ensure-read-project-list ()
-  "Initialize `project--list' if it hasn't already been."
+  "Initialize `project--list' if it isn't already initialized."
   (when (eq project--list 'unset)
     (project--read-project-list)))
 
 (defun project--write-project-list ()
-  "Persist `project--list' to the project list file."
+  "Save `project--list' in `project-list-file'."
   (let ((filename project-list-file))
     (with-temp-buffer
       (insert ";;; -*- lisp-data -*-\n")
@@ -780,7 +897,7 @@ Arguments the same as in `compile'."
 
 (defun project--add-to-project-list-front (pr)
   "Add project PR to the front of the project list.
-Save the result to disk if the project list was changed."
+Save the result in `project-list-file' if the list of projects has changed."
   (project--ensure-read-project-list)
   (let ((dir (project-root pr)))
     (unless (equal (caar project--list) dir)
@@ -789,9 +906,10 @@ Save the result to disk if the project list was changed."
       (project--write-project-list))))
 
 (defun project--remove-from-project-list (pr-dir)
-  "Remove directory PR-DIR from the project list.
+  "Remove directory PR-DIR of a missing project from the project list.
 If the directory was in the list before the removal, save the
-result to disk."
+result in `project-list-file'.  Announce the project's removal
+from the list."
   (project--ensure-read-project-list)
   (when (assoc pr-dir project--list)
     (setq project--list (assoc-delete-all pr-dir project--list))
@@ -799,9 +917,10 @@ result to disk."
     (project--write-project-list)))
 
 (defun project-prompt-project-dir ()
-  "Prompt the user for a directory from known project roots.
-The project is chosen among projects known from the project list.
-It's also possible to enter an arbitrary directory."
+  "Prompt the user for a directory that is one of the known project roots.
+The project is chosen among projects known from the project list,
+see `project-list-file'.
+It's also possible to enter an arbitrary directory not in the list."
   (project--ensure-read-project-list)
   (let* ((dir-choice "... (choose a dir)")
          (choices
@@ -820,18 +939,17 @@ It's also possible to enter an arbitrary directory."
 ;;;###autoload
 (defvar project-switch-commands
   '((?f "Find file" project-find-file)
-    (?r "Find regexp" project-find-regexp)
+    (?g "Find regexp" project-find-regexp)
     (?d "Dired" project-dired)
     (?v "VC-Dir" project-vc-dir)
-    (?s "Shell" project-shell)
     (?e "Eshell" project-eshell))
   "Alist mapping keys to project switching menu entries.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
 
-Each element looks like (KEY LABEL COMMAND), where COMMAND is the
+Each element is of the form (KEY LABEL COMMAND), where COMMAND is the
 command to run when KEY is pressed.  LABEL is used to distinguish
-the choice in the dispatch menu.")
+the menu entries in the dispatch menu.")
 
 (defun project--keymap-prompt ()
   "Return a prompt for the project swithing dispatch menu."
@@ -845,9 +963,9 @@ the choice in the dispatch menu.")
 
 ;;;###autoload
 (defun project-switch-project ()
-  "\"Switch\" to another project by running a chosen command.
-The available commands are picked from `project-switch-commands'
-and presented in a dispatch menu."
+  "\"Switch\" to another project by running an Emacs command.
+The available commands are presented as a dispatch menu
+made from `project-switch-commands'."
   (interactive)
   (let ((dir (project-prompt-project-dir))
         (choice nil))

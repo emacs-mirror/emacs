@@ -2683,7 +2683,7 @@ highlighting rules in SQL mode.")
              nil 'require-match
              init 'sql-product-history init))))
 
-(defun sql-add-product (product display &optional plist)
+(defun sql-add-product (product display &rest plist)
   "Add support for a database product in `sql-mode'.
 
 Add PRODUCT to `sql-product-alist' which enables `sql-mode' to

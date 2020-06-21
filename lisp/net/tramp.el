@@ -64,6 +64,7 @@
 
 ;; Pacify byte-compiler.
 (require 'cl-lib)
+(declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 
@@ -1780,6 +1781,10 @@ ARGUMENTS to actually emit the message (if applicable)."
 
 (put #'tramp-debug-message 'tramp-suppress-trace t)
 
+(defvar tramp-inhibit-progress-reporter nil
+  "Show Tramp progress reporter in the minibuffer.
+This variable is used to disable concurrent progress reporter messages.")
+
 (defsubst tramp-message (vec-or-proc level fmt-string &rest arguments)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
@@ -1795,8 +1800,9 @@ control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
   (ignore-errors
     (when (<= level tramp-verbose)
-      ;; Display only when there is a minimum level.
-      (when (<= level 3)
+      ;; Display only when there is a minimum level, and the progress
+      ;; reporter doesn't suppress further messages.
+      (when (and (<= level 3) (null tramp-inhibit-progress-reporter))
 	(apply #'message
 	       (concat
 		(cond
@@ -2014,7 +2020,12 @@ without a visible progress reporter."
 	      (run-at-time 3 0.1 #'tramp-progress-reporter-update pr))))
        (unwind-protect
            ;; Execute the body.
-           (prog1 (progn ,@body) (setq cookie "done"))
+           (prog1
+	       ;; Suppress concurrent progress reporter messages.
+	       (let ((tramp-inhibit-progress-reporter
+		      (or tramp-inhibit-progress-reporter tm)))
+		 ,@body)
+	     (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (cancel-timer tm))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
@@ -2248,7 +2259,7 @@ Must be handled by the callers."
 	      file-newer-than-file-p rename-file))
     (cond
      ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))
-     ((tramp-tramp-file-p (nth 1 args)) (nth 1 args))
+     ((file-name-absolute-p (nth 1 args)) (nth 1 args))
      (t default-directory)))
    ;; FILE DIRECTORY resp FILE1 FILE2.
    ((eq operation 'expand-file-name)
@@ -2280,6 +2291,9 @@ Must be handled by the callers."
     (when (processp (nth 0 args))
       (with-current-buffer (process-buffer (nth 0 args))
 	default-directory)))
+   ;; VEC.
+   ((member operation '(tramp-get-remote-gid tramp-get-remote-uid))
+    (tramp-make-tramp-file-name (nth 0 args)))
    ;; Unknown file primitive.
    (t (error "Unknown file I/O primitive: %s" operation))))
 
@@ -2436,6 +2450,8 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   "Load Tramp file name handler, and perform OPERATION."
   (tramp-unload-file-name-handlers)
   (when tramp-mode
+    ;; We cannot use `tramp-compat-temporary-file-directory' here due
+    ;; to autoload.
     (let ((default-directory temporary-file-directory))
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
@@ -3381,6 +3397,8 @@ User is always nil."
 	  ;; something is wrong; otherwise they might think that Emacs
 	  ;; is hung.  Of course, correctness has to come first.
 	  (numchase-limit 20)
+	  ;; Unquoting could enable encryption.
+	  tramp-crypt-enabled
 	  symlink-target)
       (with-parsed-tramp-file-name result v1
 	;; We cache only the localname.
@@ -3612,7 +3630,8 @@ User is always nil."
        v tramp-file-missing "Cannot load nonexistent file `%s'" file))
     (if (not (file-exists-p file))
 	nil
-      (let ((inhibit-message nomessage))
+      (let ((signal-hook-function (unless noerror signal-hook-function))
+	    (inhibit-message (or inhibit-message nomessage)))
 	(with-tramp-progress-reporter v 0 (format "Loading %s" file)
 	  (let ((local-copy (file-local-copy file)))
 	    (unwind-protect
@@ -3900,7 +3919,13 @@ of."
 
     (let ((tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
-		  filename (and (eq mustbenew 'excl) 'nofollow))))
+		  filename (and (eq mustbenew 'excl) 'nofollow)))
+	  (uid (or (tramp-compat-file-attribute-user-id
+		    (file-attributes filename 'integer))
+		   (tramp-get-remote-uid v 'integer)))
+	  (gid (or (tramp-compat-file-attribute-group-id
+		    (file-attributes filename 'integer))
+		   (tramp-get-remote-gid v 'integer))))
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -3919,15 +3944,18 @@ of."
 	(error
 	 (delete-file tmpfile)
 	 (tramp-error
-	  v 'file-error "Couldn't write region to `%s'" filename))))
+	  v 'file-error "Couldn't write region to `%s'" filename)))
 
-    (tramp-flush-file-properties v localname)
+      (tramp-flush-file-properties v localname)
 
-    ;; Set file modification time.
-    (when (or (eq visit t) (stringp visit))
-      (set-visited-file-modtime
-       (tramp-compat-file-attribute-modification-time
-	(file-attributes filename))))
+      ;; Set file modification time.
+      (when (or (eq visit t) (stringp visit))
+	(set-visited-file-modtime
+	 (tramp-compat-file-attribute-modification-time
+	  (file-attributes filename))))
+
+      ;; Set the ownership.
+      (tramp-set-file-uid-gid filename uid gid))
 
     ;; The end.
     (when (and (null noninteractive)
@@ -3981,7 +4009,7 @@ of."
   "Call `file-notify-rm-watch'."
   (unless (process-live-p proc)
     (tramp-message proc 5 "Sentinel called: `%S' `%s'" proc event)
-    (tramp-compat-funcall 'file-notify-rm-watch proc)))
+    (file-notify-rm-watch proc)))
 
 ;;; Functions for establishing connection:
 
@@ -4603,12 +4631,8 @@ be granted."
 		 (concat "file-attributes-" suffix) nil)
 		(file-attributes
 		 (tramp-make-tramp-file-name vec) (intern suffix))))
-              (remote-uid
-               (tramp-get-connection-property
-                vec (concat "uid-" suffix) nil))
-              (remote-gid
-               (tramp-get-connection-property
-                vec (concat "gid-" suffix) nil))
+              (remote-uid (tramp-get-remote-uid vec (intern suffix)))
+              (remote-gid (tramp-get-remote-gid vec (intern suffix)))
 	      (unknown-id
 	       (if (string-equal suffix "string")
 		   tramp-unknown-id-string tramp-unknown-id-integer)))
@@ -4642,6 +4666,32 @@ be granted."
 			(tramp-compat-file-attribute-group-id
 			 file-attr))))))))))))
 
+(defun tramp-get-remote-uid (vec id-format)
+  "The uid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (with-tramp-connection-property vec (format "uid-%s" id-format)
+    (or (when-let
+	    ((handler
+	      (find-file-name-handler
+	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-uid)))
+	  (funcall handler #'tramp-get-remote-uid vec id-format))
+	;; Ensure there is a valid result.
+	(and (equal id-format 'integer) tramp-unknown-id-integer)
+	(and (equal id-format 'string) tramp-unknown-id-string))))
+
+(defun tramp-get-remote-gid (vec id-format)
+  "The gid of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (with-tramp-connection-property vec (format "gid-%s" id-format)
+    (or (when-let
+	    ((handler
+	      (find-file-name-handler
+	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-uid)))
+	  (funcall handler #'tramp-get-remote-gid vec id-format))
+	;; Ensure there is a valid result.
+	(and (equal id-format 'integer) tramp-unknown-id-integer)
+	(and (equal id-format 'string) tramp-unknown-id-string))))
+
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise.
 This handles also chrooted environments, which are not regarded as local."
@@ -4664,9 +4714,7 @@ This handles also chrooted environments, which are not regarded as local."
        vec (tramp-compat-temporary-file-directory) 'nohop))
      ;; On some systems, chown runs only for root.
      (or (zerop (user-uid))
-	 ;; This is defined in tramp-sh.el.  Let's assume this is
-	 ;; loaded already.
-	 (zerop (tramp-compat-funcall 'tramp-get-remote-uid vec 'integer))))))
+	 (zerop (tramp-get-remote-uid vec 'integer))))))
 
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
@@ -4679,18 +4727,21 @@ This handles also chrooted environments, which are not regarded as local."
 	  (tramp-error vec 'file-error "Directory %s not accessible" dir))
       dir)))
 
+(defun tramp-make-tramp-temp-name (vec)
+  "Generate a temporary file name on the remote host identified by VEC."
+  (make-temp-name
+   (expand-file-name tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))))
+
 (defun tramp-make-tramp-temp-file (vec)
   "Create a temporary file on the remote host identified by VEC.
 Return the local name of the temporary file."
-  (let ((prefix (expand-file-name
-		 tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))
-	result)
+  (let (result)
     (while (not result)
       ;; `make-temp-file' would be the natural choice for
       ;; implementation.  But it calls `write-region' internally,
       ;; which also needs a temporary file - we would end in an
       ;; infinite loop.
-      (setq result (make-temp-name prefix))
+      (setq result (tramp-make-tramp-temp-name vec))
       (if (file-exists-p result)
 	  (setq result nil)
 	;; This creates the file by side effect.

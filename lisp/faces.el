@@ -1794,6 +1794,12 @@ on which one provides better contrast with COLOR."
                             (color-values color)))
       "#ffffff" "black"))
 
+(defconst color-luminance-dark-limit 0.325
+  "The relative luminance below which a color is considered 'dark'.
+A 'dark' color in this sense provides better contrast with white
+than with black; see `color-dark-p'.
+This value was determined experimentally.")
+
 (defun color-dark-p (rgb)
   "Whether RGB is more readable against white than black.
 RGB is a 3-element list (R G B), each component in the range [0,1].
@@ -1814,7 +1820,7 @@ contrast colour with RGB as background and as foreground."
          (g (expt sg 2.2))
          (b (expt sb 2.2))
          (y (+ (* r 0.2126) (* g 0.7152) (* b 0.0722))))
-    (< y (eval-when-compile (expt 0.6 2.2)))))
+    (< y color-luminance-dark-limit)))
 
 (declare-function xw-color-defined-p "xfns.c" (color &optional frame))
 
@@ -2756,6 +2762,33 @@ Note: Other faces cannot inherit from the cursor face."
      :background "grey"))
   "Basic tool-bar face."
   :version "21.1"
+  :group 'basic-faces)
+
+(defface tab-bar
+  '((((class color) (min-colors 88))
+     :inherit variable-pitch
+     :background "grey85"
+     :foreground "black")
+    (((class mono))
+     :background "grey")
+    (t
+     :inverse-video t))
+  "Tab bar face."
+  :version "27.1"
+  :group 'basic-faces)
+
+(defface tab-line
+  '((((class color) (min-colors 88))
+     :inherit variable-pitch
+     :height 0.9
+     :background "grey85"
+     :foreground "black")
+    (((class mono))
+     :background "grey")
+    (t
+     :inverse-video t))
+  "Tab line face."
+  :version "27.1"
   :group 'basic-faces)
 
 (defface menu

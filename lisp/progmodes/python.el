@@ -633,6 +633,8 @@ builtins.")
     (,(lambda (limit)
         (let ((re (python-rx (group (+ (any word ?. ?_)))
                              (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
+                             ;; A type, like " : int ".
+                             (? ?: (* space) (+ (any word ?. ?_)) (* space))
                              assignment-operator))
               (res nil))
           (while (and (setq res (re-search-forward re limit t))
@@ -2090,7 +2092,7 @@ executed through tramp connections."
 This variable, when set to a string, makes the environment to be
 modified such that shells are started within the specified
 virtualenv."
-  :type '(choice (const nil) string)
+  :type '(choice (const nil) directory)
   :group 'python)
 
 (defcustom python-shell-setup-codes nil

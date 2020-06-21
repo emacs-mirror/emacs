@@ -35,25 +35,11 @@
   :group 'convenience
   :version "27.1")
 
-(defgroup tab-line-faces nil
+(defgroup tab-line-faces '((tab-line custom-face)) ; tab-line is defined in faces.el
   "Faces used in the tab line."
   :group 'tab-line
   :group 'faces
   :version "27.1")
-
-(defface tab-line
-  '((((class color) (min-colors 88))
-     :inherit variable-pitch
-     :height 0.9
-     :background "grey85"
-     :foreground "black")
-    (((class mono))
-     :background "grey")
-    (t
-     :inverse-video t))
-  "Tab line face."
-  :version "27.1"
-  :group 'tab-line-faces)
 
 (defface tab-line-tab
   '((default

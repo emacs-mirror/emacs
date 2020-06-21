@@ -452,7 +452,7 @@ Demonstrates bug 25599."
     (insert ";; aaaaaaaaa
 ;; bbbbbbbb")
     (let ((overlay-modified
-           (lambda (ov after-p _beg _end &optional length)
+           (lambda (ov after-p _beg _end &optional _length)
              (unless after-p
                (when (overlay-buffer ov)
                  (delete-overlay ov))))))

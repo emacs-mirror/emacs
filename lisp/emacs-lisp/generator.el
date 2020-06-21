@@ -673,7 +673,7 @@ When called as a function, NAME returns an iterator value that
 encapsulates the state of a computation that produces a sequence
 of values.  Callers can retrieve each value using `iter-next'."
   (declare (indent defun)
-           (debug (&define name lambda-list lambda-doc def-body))
+           (debug (&define name lambda-list lambda-doc &rest sexp))
            (doc-string 3))
   (cl-assert lexical-binding)
   (let* ((parsed-body (macroexp-parse-body body))
@@ -687,14 +687,14 @@ of values.  Callers can retrieve each value using `iter-next'."
   "Return a lambda generator.
 `iter-lambda' is to `iter-defun' as `lambda' is to `defun'."
   (declare (indent defun)
-           (debug (&define lambda-list lambda-doc def-body)))
+           (debug (&define lambda-list lambda-doc &rest sexp)))
   (cl-assert lexical-binding)
   `(lambda ,arglist
      ,(cps-generate-evaluator body)))
 
 (defmacro iter-make (&rest body)
   "Return a new iterator."
-  (declare (debug t))
+  (declare (debug (&rest sexp)))
   (cps-generate-evaluator body))
 
 (defconst iter-empty (lambda (_op _val) (signal 'iter-end-of-sequence nil))
@@ -720,7 +720,7 @@ is blocked."
 Evaluate BODY with VAR bound to each value from ITERATOR.
 Return the value with which ITERATOR finished iteration."
   (declare (indent 1)
-           (debug ((symbolp form) body)))
+           (debug ((symbolp form) &rest sexp)))
   (let ((done-symbol (cps--gensym "iter-do-iterator-done"))
         (condition-symbol (cps--gensym "iter-do-condition"))
         (it-symbol (cps--gensym "iter-do-iterator"))

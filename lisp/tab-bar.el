@@ -44,24 +44,11 @@
   :group 'convenience
   :version "27.1")
 
-(defgroup tab-bar-faces nil
+(defgroup tab-bar-faces '((tab-bar custom-face)) ; tab-bar is defined in faces.el
   "Faces used in the tab bar."
   :group 'tab-bar
   :group 'faces
   :version "27.1")
-
-(defface tab-bar
-  '((((class color) (min-colors 88))
-     :inherit variable-pitch
-     :background "grey85"
-     :foreground "black")
-    (((class mono))
-     :background "grey")
-    (t
-     :inverse-video t))
-  "Tab bar face."
-  :version "27.1"
-  :group 'tab-bar-faces)
 
 (defface tab-bar-tab
   '((default

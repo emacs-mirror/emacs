@@ -402,7 +402,7 @@ assumptions are false if the debugger is running interpreted.
 @cindex backtrace buffer
 
 Debugger mode is derived from Backtrace mode, which is also used to
-show backtraces by Edebug and ERT.  (@pxref{Edebug}, and @ref{Top,the
+show backtraces by Edebug and ERT@.  (@pxref{Edebug}, and @ref{Top,the
 ERT manual,, ert, ERT: Emacs Lisp Regression Testing}.)
 
 @cindex stack frame

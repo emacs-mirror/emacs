@@ -264,7 +264,7 @@ be found, return nil.
 The default implementation uses `semantic-symref-tool-alist' to
 find a search tool; by default, this uses \"find | grep\" in the
 `project-current' roots."
-  (cl-mapcan
+  (mapcan
    (lambda (dir)
      (xref-references-in-directory identifier dir))
    (let ((pr (project-current t)))
@@ -1383,8 +1383,8 @@ Such as the current syntax table and the applied syntax properties."
   (let (xref--last-file-buffer
         (tmp-buffer (generate-new-buffer " *xref-temp*")))
     (unwind-protect
-        (cl-mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
-                   hits)
+        (mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
+                hits)
       (kill-buffer tmp-buffer))))
 
 (defun xref--collect-matches (hit regexp tmp-buffer)

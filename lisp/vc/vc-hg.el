@@ -1525,6 +1525,14 @@ This function differs from vc-do-command in that it invokes
 (defun vc-hg-root (file)
   (vc-find-root file ".hg"))
 
+(defun vc-hg-repository-url (file-or-dir &optional remote-name)
+  (let ((default-directory (vc-hg-root file-or-dir)))
+    (with-temp-buffer
+      (vc-hg-command (current-buffer) 0 nil
+                     "config"
+                     (concat "paths." (or remote-name "default")))
+      (buffer-substring-no-properties (point-min) (1- (point-max))))))
+
 (provide 'vc-hg)
 
 ;;; vc-hg.el ends here

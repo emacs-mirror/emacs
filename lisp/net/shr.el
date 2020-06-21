@@ -185,12 +185,14 @@ and other things:
 (defvar shr-depth 0)
 (defvar shr-warning nil)
 (defvar shr-ignore-cache nil)
-(defvar shr-target-id nil)
 (defvar shr-table-separator-length 1)
 (defvar shr-table-separator-pixel-width 0)
 (defvar shr-table-id nil)
 (defvar shr-current-font nil)
 (defvar shr-internal-bullet nil)
+
+(defvar shr-target-id nil
+  "Target fragment identifier anchor.")
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -526,13 +528,13 @@ size, and full-buffer size."
                (funcall function dom))
               (t
                (shr-generic dom)))
-	(when (and shr-target-id
-		   (equal (dom-attr dom 'id) shr-target-id))
+        (when-let* ((id (dom-attr dom 'id)))
 	  ;; If the element was empty, we don't have anything to put the
 	  ;; anchor on.  So just insert a dummy character.
 	  (when (= start (point))
-	    (insert "*"))
-	  (put-text-property start (1+ start) 'shr-target-id shr-target-id))
+            (insert ?*)
+            (put-text-property (1- (point)) (point) 'display ""))
+          (put-text-property start (1+ start) 'shr-target-id id))
 	;; If style is set, then this node has set the color.
 	(when style
 	  (shr-colorize-region
@@ -1486,14 +1488,13 @@ ones, in case fg and bg are nil."
 	(start (point))
 	shr-start)
     (shr-generic dom)
-    (when (and shr-target-id
-	       (equal (dom-attr dom 'name) shr-target-id))
-      ;; We have a zero-length <a name="foo"> element, so just
-      ;; insert...  something.
+    (when-let* ((id (unless (dom-attr dom 'id) ; Handled by `shr-descend'.
+                      (dom-attr dom 'name))))  ; Obsolete since HTML5.
+      ;; We have an empty element, so just insert... something.
       (when (= start (point))
-	(shr-ensure-newline)
-	(insert " "))
-      (put-text-property start (1+ start) 'shr-target-id shr-target-id))
+        (insert ?\s)
+        (put-text-property (1- (point)) (point) 'display ""))
+      (put-text-property start (1+ start) 'shr-target-id id))
     (when url
       (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 

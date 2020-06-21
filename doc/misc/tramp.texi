@@ -1185,9 +1185,6 @@ for accessing the system storage, you shall prefer this.
 @ref{GVFS-based methods} for example, methods @option{gdrive} and
 @option{nextcloud}.
 
-@strong{Note}: The @option{rclone} method is experimental, don't use
-it in production systems!
-
 @end table
 
 
@@ -1732,6 +1729,7 @@ Convenience method to access vagrant boxes.  It is often used in
 multi-hop file names like
 @file{@value{prefix}vagrant@value{postfixhop}box|sudo@value{postfixhop}box@value{postfix}/path/to/file},
 where @samp{box} is the name of the vagrant box.
+
 @end table
 
 
@@ -2047,6 +2045,12 @@ connection is disabled for security reasons, and must be
 reestablished.  A value of @code{nil} disables this feature.  Most of
 the methods do not set this property except the @option{sudo} and
 @option{doas} methods, which use predefined values.
+
+@item @t{"tmpdir"}
+
+The temporary directory on the remote host.  If not specified, the
+default value is @t{"/data/local/tmp"} for the @option{adb} method,
+@t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
 
 @item @t{"posix"}
 
@@ -2654,6 +2658,9 @@ to direct all auto saves to that location.
 @node Keeping files encrypted
 @section Protect remote files by encryption
 @cindex Encrypt remote directories
+
+@strong{Note}: File encryption in @value{tramp} is experimental, don't
+use it in production systems!
 
 Sometimes, it is desirable to protect files located on remote
 directories, like cloud storages.  In order to do this, you might

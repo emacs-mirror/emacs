@@ -42,13 +42,12 @@
 (require 'mail-parse)
 (require 'mml)
 (require 'rfc822)
-(require 'format-spec)
 (require 'dired)
 (require 'mm-util)
 (require 'rfc2047)
 (require 'puny)
-(require 'rmc)			; read-multiple-choice
-(eval-when-compile (require 'subr-x))	; when-let*
+(require 'rmc)                          ; read-multiple-choice
+(eval-when-compile (require 'subr-x))
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -440,8 +439,8 @@ whitespace)."
 
 (defcustom message-elide-ellipsis "\n[...]\n\n"
   "The string which is inserted for elided text.
-This is a format-spec string, and you can use %l to say how many
-lines were removed, and %c to say how many characters were
+This is a `format-spec' string, and you can use %l to say how
+many lines were removed, and %c to say how many characters were
 removed."
   :type 'string
   :link '(custom-manual "(message)Various Commands")
@@ -3977,7 +3976,6 @@ This function uses `mail-citation-hook' if that is non-nil."
   "Cite function in the standard Message manner."
   (message-cite-original-1 nil))
 
-(autoload 'format-spec "format-spec")
 (autoload 'gnus-date-get-time "gnus-util")
 
 (defun message-insert-formatted-citation-line (&optional from date tz)
@@ -4002,20 +4000,18 @@ See `message-citation-line-format'."
   (when (or message-reply-headers (and from date))
     (unless from
       (setq from (mail-header-from message-reply-headers)))
-    (let* ((data (condition-case ()
-		     (funcall (if (boundp 'gnus-extract-address-components)
-				  gnus-extract-address-components
-				'mail-extract-address-components)
-			      from)
-		   (error nil)))
+    (let* ((data (ignore-errors
+                   (funcall (or (bound-and-true-p
+                                 gnus-extract-address-components)
+                                #'mail-extract-address-components)
+                            from)))
 	   (name (car data))
 	   (fname name)
 	   (lname name)
-	   (net (car (cdr data)))
-	   (name-or-net (or (car data)
-			    (car (cdr data)) from))
+           (net (cadr data))
+           (name-or-net (or name net from))
 	   (time
-	    (when (string-match "%[^fnNFL]" message-citation-line-format)
+            (when (string-match-p "%[^FLNfn]" message-citation-line-format)
 	      (cond ((numberp (car-safe date)) date) ;; backward compatibility
 		    (date (gnus-date-get-time date))
 		    (t
@@ -4024,68 +4020,53 @@ See `message-citation-line-format'."
 	   (tz (or tz
 		   (when (stringp date)
 		     (nth 8 (parse-time-string date)))))
-	   (flist
-	    (let ((i ?A) lst)
-	      (when (stringp name)
-		;; Guess first name and last name:
-		(let* ((names (delq
-			       nil
-			       (mapcar
-				(lambda (x)
-				  (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'"
-						    x)
-				      x
-				    nil))
-				(split-string name "[ \t]+"))))
-		       (count (length names)))
-		  (cond ((= count 1)
-			 (setq fname (car names)
-			       lname ""))
-			((or (= count 2) (= count 3))
-			 (setq fname (car names)
-			       lname (mapconcat 'identity (cdr names) " ")))
-			((> count 3)
-			 (setq fname (mapconcat 'identity
-						(butlast names (- count 2))
-						" ")
-			       lname (mapconcat 'identity
-						(nthcdr 2 names)
-						" "))))
-                  (when (string-match "\\(.*\\),\\'" fname)
-                    (let ((newlname (match-string 1 fname)))
-                      (setq fname lname lname newlname)))))
-	      ;; The following letters are not used in `format-time-string':
-	      (push ?E lst) (push "<E>" lst)
-	      (push ?F lst) (push (or fname name-or-net) lst)
-	      ;; We might want to use "" instead of "<X>" later.
-	      (push ?J lst) (push "<J>" lst)
-	      (push ?K lst) (push "<K>" lst)
-	      (push ?L lst) (push lname lst)
-	      (push ?N lst) (push name-or-net lst)
-	      (push ?O lst) (push "<O>" lst)
-	      (push ?P lst) (push "<P>" lst)
-	      (push ?Q lst) (push "<Q>" lst)
-	      (push ?f lst) (push from lst)
-	      (push ?i lst) (push "<i>" lst)
-	      (push ?n lst) (push net lst)
-	      (push ?o lst) (push "<o>" lst)
-	      (push ?q lst) (push "<q>" lst)
-	      (push ?t lst) (push "<t>" lst)
-	      (push ?v lst) (push "<v>" lst)
-	      ;; Delegate the rest to `format-time-string':
-	      (while (<= i ?z)
-		(when (and (not (memq i lst))
-			   ;; Skip (Z,a)
-			   (or (<= i ?Z)
-			       (>= i ?a)))
-		  (push i lst)
-		  (push (condition-case nil
-			    (format-time-string (format "%%%c" i) time tz)
-			  (error (format ">%c<" i)))
-			lst))
-		(setq i (1+ i)))
-	      (reverse lst)))
-	   (spec (apply 'format-spec-make flist)))
+           spec)
+      (when (stringp name)
+        ;; Guess first name and last name:
+        (let* ((names (seq-filter
+                       (lambda (s)
+                         (string-match-p (rx bos (+ (in word ?. ?-)) eos) s))
+                       (split-string name "[ \t]+")))
+               (count (length names)))
+          (cond ((= count 1)
+                 (setq fname (car names)
+                       lname ""))
+                ((or (= count 2) (= count 3))
+                 (setq fname (car names)
+                       lname (string-join (cdr names) " ")))
+                ((> count 3)
+                 (setq fname (string-join (butlast names (- count 2))
+                                          " ")
+                       lname (string-join (nthcdr 2 names) " "))))
+          (when (string-match "\\(.*\\),\\'" fname)
+            (let ((newlname (match-string 1 fname)))
+              (setq fname lname lname newlname)))))
+      ;; The following letters are not used in `format-time-string':
+      (push (cons ?E "<E>") spec)
+      (push (cons ?F (or fname name-or-net)) spec)
+      ;; We might want to use "" instead of "<X>" later.
+      (push (cons ?J "<J>") spec)
+      (push (cons ?K "<K>") spec)
+      (push (cons ?L lname) spec)
+      (push (cons ?N name-or-net) spec)
+      (push (cons ?O "<O>") spec)
+      (push (cons ?P "<P>") spec)
+      (push (cons ?Q "<Q>") spec)
+      (push (cons ?f from) spec)
+      (push (cons ?i "<i>") spec)
+      (push (cons ?n net) spec)
+      (push (cons ?o "<o>") spec)
+      (push (cons ?q "<q>") spec)
+      (push (cons ?t "<t>") spec)
+      (push (cons ?v "<v>") spec)
+      ;; Delegate the rest to `format-time-string':
+      (dolist (c (nconc (number-sequence ?A ?Z)
+                        (number-sequence ?a ?z)))
+        (unless (assq c spec)
+          (push (cons c (condition-case nil
+                            (format-time-string (format "%%%c" c) time tz)
+                          (error (format ">%c<" c))))
+                spec)))
       (insert (format-spec message-citation-line-format spec)))
     (newline)))
 

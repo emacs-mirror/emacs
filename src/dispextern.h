@@ -3514,6 +3514,8 @@ void update_face_from_frame_parameter (struct frame *, Lisp_Object,
                                        Lisp_Object);
 extern bool tty_defined_color (struct frame *, const char *, Emacs_Color *,
                                bool, bool);
+bool parse_color_spec (const char *,
+                       unsigned short *, unsigned short *, unsigned short *);
 
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (bool);

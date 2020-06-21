@@ -1381,7 +1381,7 @@ To make local rx extensions, use `rx-let' for `rx',
 For more details, see Info node `(elisp) Extending Rx'.
 
 \(fn NAME [(ARGS...)] RX)"
-  (declare (indent 1))
+  (declare (indent defun))
   `(eval-and-compile
      (put ',name 'rx-definition ',(rx--make-binding name definition))
      ',name))

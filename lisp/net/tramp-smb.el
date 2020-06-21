@@ -293,6 +293,8 @@ See `tramp-actions-before-shell' for more info.")
     (start-file-process . tramp-smb-handle-start-file-process)
     (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
@@ -436,11 +438,7 @@ pass to the OPERATION."
 	  (cond
 	   ;; We must use a local temporary directory.
 	   ((and t1 t2)
-	    (let ((tmpdir
-		   (make-temp-name
-		    (expand-file-name
-		     tramp-temp-name-prefix
-		     (tramp-compat-temporary-file-directory)))))
+	    (let ((tmpdir (tramp-compat-make-temp-name)))
 	      (unwind-protect
 		  (progn
 		    (make-directory tmpdir)
@@ -468,10 +466,7 @@ pass to the OPERATION."
 		   (localname (file-name-as-directory
 			       (replace-regexp-in-string
 				"\\\\" "/" (tramp-smb-get-localname v))))
-		   (tmpdir    (make-temp-name
-			       (expand-file-name
-				tramp-temp-name-prefix
-				(tramp-compat-temporary-file-directory))))
+		   (tmpdir    (tramp-compat-make-temp-name))
 		   (args      (list (concat "//" host "/" share) "-E"))
 		   (options   tramp-smb-options))
 

@@ -136,7 +136,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(require 'format-spec)
 (require 'utf7)
 (require 'rfc2104)
 ;; Hmm... digest-md5 is not part of Emacs.
@@ -517,12 +516,9 @@ sure of changing the value of `foo'."
 	     (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?s server
-			 ?p (number-to-string port)
-			 ?l imap-default-user))))
+                       (format-spec cmd `((?s . ,server)
+                                          (?p . ,(number-to-string port))
+                                          (?l . ,imap-default-user)))))
 	     response)
 	(when process
 	  (with-current-buffer buffer
@@ -583,12 +579,9 @@ sure of changing the value of `foo'."
 	     (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?s server
-			 ?p (number-to-string port)
-			 ?l imap-default-user))))
+                       (format-spec cmd `((?s . ,server)
+                                          (?p . ,(number-to-string port))
+                                          (?l . ,imap-default-user)))))
 	     response)
 	(when process
 	  (with-current-buffer buffer
@@ -701,13 +694,10 @@ sure of changing the value of `foo'."
              (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?s server
-			 ?g imap-shell-host
-			 ?p (number-to-string port)
-			 ?l imap-default-user)))))
+                       (format-spec cmd `((?s . ,server)
+                                          (?g . ,imap-shell-host)
+                                          (?p . ,(number-to-string port))
+                                          (?l . ,imap-default-user))))))
 	(when process
 	  (while (and (memq (process-status process) '(open run))
 		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug

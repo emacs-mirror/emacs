@@ -1968,12 +1968,12 @@ evaluate, @emph{not} as a list of files to visit.
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
 Specify a server file (@pxref{TCP Emacs server}) for connecting to an
-Emacs server via TCP.  Alternatively, you can set the
+Emacs server via TCP@.  Alternatively, you can set the
 @env{EMACS_SERVER_FILE} environment variable to point to the server
 file.  (The command-line option overrides the environment variable.)
 
 An Emacs server usually uses a local socket to listen for connections,
-but also supports connections over TCP.  To connect to a TCP Emacs
+but also supports connections over TCP@.  To connect to a TCP Emacs
 server, @command{emacsclient} needs to read a @dfn{server file}
 containing the connection details of the Emacs server.  The name of
 this file is specified with this option, either as a file name
@@ -2882,7 +2882,7 @@ widget.  The URL normally defaults to the URL at or before point, but
 if there is an active region (@pxref{Mark}), the default URL comes
 from the region instead, after removing any whitespace from it.  The
 command then creates a new buffer with the embedded browser showing
-the specified URL.  The buffer is put in the Xwidget-WebKit mode
+the specified URL@.  The buffer is put in the Xwidget-WebKit mode
 (similar to Image mode, @pxref{Image Mode}), which provides
 one-key commands for scrolling the widget, changing its size, and
 reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key

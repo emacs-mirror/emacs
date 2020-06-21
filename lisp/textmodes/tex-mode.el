@@ -2295,9 +2295,6 @@ FILE is typically the output DVI or PDF file."
 	     (setq uptodate nil)))))
      uptodate)))
 
-
-(autoload 'format-spec "format-spec")
-
 (defvar tex-executable-cache nil)
 (defun tex-executable-exists-p (name)
   "Like `executable-find' but with a cache."

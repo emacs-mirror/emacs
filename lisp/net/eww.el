@@ -25,14 +25,14 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'format-spec)
-(require 'shr)
-(require 'url)
-(require 'url-queue)
-(require 'thingatpt)
 (require 'mm-url)
 (require 'puny)
-(eval-when-compile (require 'subr-x)) ;; for string-trim
+(require 'shr)
+(require 'text-property-search)
+(require 'thingatpt)
+(require 'url)
+(require 'url-queue)
+(eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
   "Emacs Web Wowser"
@@ -543,10 +543,10 @@ Currently this means either text/html or application/xhtml+xml."
 	  (goto-char point))
 	 (shr-target-id
 	  (goto-char (point-min))
-	  (let ((point (next-single-property-change
-			(point-min) 'shr-target-id)))
-	    (when point
-	      (goto-char point))))
+          (let ((match (text-property-search-forward
+                        'shr-target-id shr-target-id t)))
+            (when match
+              (goto-char (prop-match-beginning match)))))
 	 (t
 	  (goto-char (point-min))
 	  ;; Don't leave point inside forms, because the normal eww

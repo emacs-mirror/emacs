@@ -1064,8 +1064,6 @@ corresponding command.
 Within CMD, %i denotes the input file(s), and %o denotes the
 output file. %i path(s) are relative, while %o is absolute.")
 
-(declare-function format-spec "format-spec.el" (format specification))
-
 ;;;###autoload
 (defun dired-do-compress-to ()
   "Compress selected files and directories to an archive.
@@ -1073,7 +1071,6 @@ Prompt for the archive file name.
 Choose the archiving command based on the archive file-name extension
 and `dired-compress-files-alist'."
   (interactive)
-  (require 'format-spec)
   (let* ((in-files (dired-get-marked-files nil nil nil nil t))
          (out-file (expand-file-name (read-file-name "Compress to: ")))
          (rule (cl-find-if
@@ -1093,12 +1090,12 @@ and `dired-compress-files-alist'."
            (when (zerop
                   (dired-shell-command
                    (format-spec (cdr rule)
-                                `((?\o . ,(shell-quote-argument out-file))
-                                  (?\i . ,(mapconcat
-                                           (lambda (file-desc)
-                                             (shell-quote-argument (file-name-nondirectory
-                                                                    file-desc)))
-                                           in-files " "))))))
+                                `((?o . ,(shell-quote-argument out-file))
+                                  (?i . ,(mapconcat
+                                          (lambda (in-file)
+                                            (shell-quote-argument
+                                             (file-name-nondirectory in-file)))
+                                          in-files " "))))))
              (message (ngettext "Compressed %d file to %s"
 			        "Compressed %d files to %s"
 			        (length in-files))
@@ -3087,6 +3084,7 @@ in the Dired buffer."
 
 (declare-function vc-compatible-state "vc")
 
+;;;###autoload
 (defun dired-vc-deduce-fileset (&optional state-model-only-files not-state-changing)
   (let ((backend (vc-responsible-backend default-directory))
         (files (dired-get-marked-files nil nil nil nil t))

@@ -1362,15 +1362,16 @@ a recently used tab.
 @findex tab-next
 Switch to the next tab.  If you repeat this command, it cycles through
 all the tabs on the selected frame.  With a positive numeric argument
-N, it switches to the next Nth tab; with a negative argument −N, it
-switches back to the previous Nth tab.
+@var{n}, it switches to the next @var{n}th tab; with a negative
+argument @minus{}@var{n}, it switches back to the previous @var{n}th
+tab.
 
 @item S-C-@key{TAB}
 @kindex S-C-TAB
 @findex tab-previous
-Switch to the previous tab.  With a positive numeric argument N, it
-switches to the previous Nth tab; with a negative argument −N, it
-switches back to the next Nth tab.
+Switch to the previous tab.  With a positive numeric argument @var{n},
+it switches to the previous @var{n}th tab; with a negative argument
+@minus{}@var{n}, it switches back to the next @var{n}th tab.
 
 @item C-x t @key{RET} @var{tabname} @key{RET}
 Switch to the tab by its name, with completion on all tab names.
@@ -1392,7 +1393,7 @@ to select the tab by its number.
 @findex tab-recent
 Switch to the recent tab.  The key combination is the modifier key
 defined by @code{tab-bar-select-tab-modifiers} and the key @kbd{0}.
-With a numeric argument N, switch to the Nth recent tab.
+With a numeric argument @var{n}, switch to the @var{n}th recent tab.
 @end table
 
   The following commands can be used to operate on tabs:
@@ -1406,9 +1407,9 @@ variable @code{tab-bar-tab-name-function}.
 
 @item C-x t m
 @findex tab-move
-Move the current tab N positions to the right with a positive numeric
-argument N.  With a negative argument −N, move the current tab
-N positions to the left.
+Move the current tab @var{n} positions to the right with a positive
+numeric argument @var{n}.  With a negative argument @minus{}@var{n},
+move the current tab @var{n} positions to the left.
 @end table
 
 @findex tab-bar-history-mode
@@ -1621,7 +1622,7 @@ again.
 enable mouse support.  You must have the gpm server installed and
 running on your system in order for this to work.  Note that when
 this mode is enabled, you cannot use the mouse to transfer text
-between Emacs and other programs which use GPM.  This is due to
+between Emacs and other programs which use GPM@.  This is due to
 limitations in GPM and the Linux kernel.
 
 @iftex

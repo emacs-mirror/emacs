@@ -850,11 +850,11 @@ Predefined dialects include BibTeX and biblatex."
 To interactively change the dialect use the command `bibtex-set-dialect'."
   :group 'bibtex
   :version "24.1"
-  :set '(lambda (symbol value)
-          (set-default symbol value)
-          ;; `bibtex-set-dialect' is undefined during loading (no problem)
-          (if (fboundp 'bibtex-set-dialect)
-              (bibtex-set-dialect value)))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         ;; `bibtex-set-dialect' is undefined during loading (no problem).
+         (if (fboundp 'bibtex-set-dialect)
+             (bibtex-set-dialect value)))
   :type '(choice (const BibTeX)
                  (const biblatex)
                  (symbol :tag "Custom")))

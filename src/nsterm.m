@@ -2341,9 +2341,6 @@ ns_get_color (const char *name, NSColor **col)
    See https://lists.gnu.org/r/emacs-devel/2009-07/msg01203.html.  */
 {
   NSColor *new = nil;
-  static char hex[20];
-  int scaling = 0;
-  float r = -1.0, g, b;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
   NSTRACE ("ns_get_color(%s, **)", name);
@@ -2386,49 +2383,29 @@ ns_get_color (const char *name, NSColor **col)
     }
 
   /* First, check for some sort of numeric specification.  */
-  hex[0] = '\0';
-
-  if (name[0] == '0' || name[0] == '1' || name[0] == '.')  /* RGB decimal */
+  unsigned short r16, g16, b16;
+  if (parse_color_spec (name, &r16, &g16, &b16))
     {
-      NSScanner *scanner = [NSScanner scannerWithString: nsname];
-      [scanner scanFloat: &r];
-      [scanner scanFloat: &g];
-      [scanner scanFloat: &b];
-    }
-  else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
-    scaling = (snprintf (hex, sizeof hex, "%s", name + 4) - 2) / 3;
-  else if (name[0] == '#')        /* An old X11 format; convert to newer */
-    {
-      int len = 0;
-      while (isxdigit (name[len + 1]))
-        len++;
-      if (name[len + 1] == '\0' && len >= 1 && len <= 12 && len % 3 == 0)
-        {
-          scaling = len / 3;
-          for (int i = 0; i < 3; i++)
-            sprintf (hex + i * (scaling + 1), "%.*s/", scaling,
-                     name + 1 + i * scaling);
-          hex[3 * (scaling + 1) - 1] = '\0';
-        }
-    }
-
-  if (hex[0])
-    {
-      unsigned int rr, gg, bb;
-      float fscale = (1 << (scaling * 4)) - 1;
-      if (sscanf (hex, "%x/%x/%x", &rr, &gg, &bb))
-        {
-          r = rr / fscale;
-          g = gg / fscale;
-          b = bb / fscale;
-        }
-    }
-
-  if (r >= 0.0F)
-    {
-      *col = [NSColor colorForEmacsRed: r green: g blue: b alpha: 1.0];
+      *col = [NSColor colorForEmacsRed: r16 / 65535.0
+                                 green: g16 / 65535.0
+                                  blue: b16 / 65535.0
+                                 alpha: 1.0];
       unblock_input ();
       return 0;
+    }
+  else if (name[0] == '0' || name[0] == '1' || name[0] == '.')
+    {
+      /* RGB decimal */
+      NSScanner *scanner = [NSScanner scannerWithString: nsname];
+      float r, g, b;
+      if (   [scanner scanFloat: &r] && r >= 0 && r <= 1
+          && [scanner scanFloat: &g] && g >= 0 && g <= 1
+          && [scanner scanFloat: &b] && b >= 0 && b <= 1)
+        {
+          *col = [NSColor colorForEmacsRed: r green: g blue: b alpha: 1.0];
+          unblock_input ();
+          return 0;
+        }
     }
 
   /* Otherwise, color is expected to be from a list */

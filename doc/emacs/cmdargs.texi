@@ -495,7 +495,14 @@ variables to be set, but it uses their values if they are set.
 @item CDPATH
 @vindex CDPATH@r{, environment variable}
 Used by the @code{cd} command to search for the directory you specify,
-when you specify a relative directory,
+when you specify a relative directory.
+@item COLORTERM
+@vindex COLORTERM@r{, environment variable}
+If this variable is set to the value @samp{truecolor}, it tells Emacs
+to use 24-bit true color on text-mode displays even if the terminfo
+database is not installed.  Emacs will use built-in commands to
+request true color by RGB values instead of the missing terminfo
+information.
 @item DBUS_SESSION_BUS_ADDRESS
 @vindex DBUS_SESSION_BUS_ADDRESS@r{, environment variable}
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no

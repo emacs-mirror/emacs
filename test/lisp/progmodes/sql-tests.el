@@ -187,7 +187,13 @@ Perform ACTION and validate results"
       (sql-add-product 'xyz "XyzDb")
 
       (should (equal (pp-to-string (assoc 'xyz sql-product-alist))
-                     "(xyz :name \"XyzDb\")\n"))))
+                     "(xyz :name \"XyzDb\")\n")))
+
+  (sql-test-product-feature-harness
+      (sql-add-product 'stu "StuDb" :X 1 :Y "2")
+
+      (should (equal (pp-to-string (assoc 'stu sql-product-alist))
+                     "(stu :name \"StuDb\" :X 1 :Y \"2\")\n"))))
 
 (ert-deftest sql-test-add-existing-product ()
   "Add a product that already exists."
