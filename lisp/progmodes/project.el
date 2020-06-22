@@ -819,7 +819,7 @@ is inside the directory hierarchy of the project's root."
       "Switch to buffer: "
       (when (funcall predicate (cons other-name other-buffer))
         other-name)
-      t
+      nil
       predicate))))
 
 (defcustom project-kill-buffers-skip-conditions
