@@ -1394,7 +1394,9 @@ no keyword implies `:all'."
               (comment (nth 2 def)))
           (unless (and comment (stringp comment))
             (setq comment (format "Customized with use-package %s" name)))
-          `(customize-set-variable (quote ,variable) ,value ,comment)))
+          `(funcall (or (get (quote ,variable) 'custom-set) #'set-default)
+                    (quote ,variable)
+                    ,value)))
     args)
    (use-package-process-keywords name rest state)))
 
