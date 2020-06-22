@@ -820,10 +820,10 @@ load_pixmap (struct frame *f, Lisp_Object name)
                             Color Handling
  ***********************************************************************/
 
-/* Parse hex color component at S ending right before E.
-   Set *DST to the value normalized so that the maximum for the
-   number of digits given becomes 65535, and return true on success,
-   false otherwise.  */
+/* Parse hex color component specification that starts at S and ends
+   right before E.  Set *DST to the parsed value normalized so that
+   the maximum value for the number of hex digits given becomes 65535,
+   and return true on success, false otherwise.  */
 static bool
 parse_hex_color_comp (const char *s, const char *e, unsigned short *dst)
 {
@@ -849,8 +849,9 @@ parse_hex_color_comp (const char *s, const char *e, unsigned short *dst)
   return true;
 }
 
-/* Parse floating-point color component at S ending right before E.
-   Return the number if in the range [0,1]; otherwise -1.  */
+/* Parse floating-point color component specification that starts at S
+   and ends right before E.  Return the parsed number if in the range
+   [0,1]; otherwise return -1.  */
 static double
 parse_float_color_comp (const char *s, const char *e)
 {
@@ -859,48 +860,54 @@ parse_float_color_comp (const char *s, const char *e)
   return (end == e && x >= 0 && x <= 1) ? x : -1;
 }
 
-/* Parse S as a numeric color specification and set *R, *G and *B.
+/* Parse SPEC as a numeric color specification and set *R, *G and *B.
    Return true on success, false on failure.
-   Recognized formats:
 
-    "#RGB", with R, G and B hex strings of equal length, 1-4 digits each
-    "rgb:R/G/B", with R, G and B hex strings, 1-4 digits each
-    "rgbi:R/G/B", with R, G and B numbers in [0,1]
+   Recognized formats of SPEC:
 
-   The result is normalized to a maximum value of 65535 per component.  */
+    "#RGB", with R, G and B hex strings of equal length, 1-4 digits each.
+    "rgb:R/G/B", with R, G and B hex strings, 1-4 digits each.
+    "rgbi:R/G/B", with R, G and B numbers in [0,1].
+
+   If the function succeeds, it assigns to each of the components *R,
+   *G, and *B a value normalized to be in the [0, 65535] range.  If
+   the function fails, some or all of the components remain unassigned.  */
 bool
-parse_color_spec (const char *s,
+parse_color_spec (const char *spec,
                   unsigned short *r, unsigned short *g, unsigned short *b)
 {
-  int len = strlen (s);
-  if (s[0] == '#')
+  int len = strlen (spec);
+  if (spec[0] == '#')
     {
       if ((len - 1) % 3 == 0)
         {
           int n = (len - 1) / 3;
-          return (   parse_hex_color_comp (s + 1 + 0 * n, s + 1 + 1 * n, r)
-                  && parse_hex_color_comp (s + 1 + 1 * n, s + 1 + 2 * n, g)
-                  && parse_hex_color_comp (s + 1 + 2 * n, s + 1 + 3 * n, b));
+          return (   parse_hex_color_comp (spec + 1 + 0 * n,
+					   spec + 1 + 1 * n, r)
+                  && parse_hex_color_comp (spec + 1 + 1 * n,
+					   spec + 1 + 2 * n, g)
+                  && parse_hex_color_comp (spec + 1 + 2 * n,
+					   spec + 1 + 3 * n, b));
         }
     }
-  else if (strncmp (s, "rgb:", 4) == 0)
+  else if (strncmp (spec, "rgb:", 4) == 0)
     {
       char *sep1, *sep2;
-      return ((sep1 = strchr (s + 4, '/')) != NULL
+      return ((sep1 = strchr (spec + 4, '/')) != NULL
               && (sep2 = strchr (sep1 + 1, '/')) != NULL
-              && parse_hex_color_comp (s + 4, sep1, r)
+              && parse_hex_color_comp (spec + 4, sep1, r)
               && parse_hex_color_comp (sep1 + 1, sep2, g)
-              && parse_hex_color_comp (sep2 + 1, s + len, b));
+              && parse_hex_color_comp (sep2 + 1, spec + len, b));
     }
-  else if (strncmp (s, "rgbi:", 5) == 0)
+  else if (strncmp (spec, "rgbi:", 5) == 0)
     {
       char *sep1, *sep2;
       double red, green, blue;
-      if ((sep1 = strchr (s + 5, '/')) != NULL
+      if ((sep1 = strchr (spec + 5, '/')) != NULL
           && (sep2 = strchr (sep1 + 1, '/')) != NULL
-          && (red = parse_float_color_comp (s + 5, sep1)) >= 0
+          && (red = parse_float_color_comp (spec + 5, sep1)) >= 0
           && (green = parse_float_color_comp (sep1 + 1, sep2)) >= 0
-          && (blue = parse_float_color_comp (sep2 + 1, s + len)) >= 0)
+          && (blue = parse_float_color_comp (sep2 + 1, spec + len)) >= 0)
         {
           *r = lrint (red * 65535);
           *g = lrint (green * 65535);
@@ -911,25 +918,26 @@ parse_color_spec (const char *s,
   return false;
 }
 
-DEFUN ("internal-color-values-from-color-spec",
-       Finternal_color_values_from_color_spec,
-       Sinternal_color_values_from_color_spec,
+DEFUN ("color-values-from-color-spec",
+       Fcolor_values_from_color_spec,
+       Scolor_values_from_color_spec,
        1, 1, 0,
-       doc: /* Parse STRING as a numeric color and return (RED GREEN BLUE).
-Recognised formats for STRING are:
+       doc: /* Parse color SPEC as a numeric color and return (RED GREEN BLUE).
+This function recognises the following formats for SPEC:
 
- #RGB, where R, G and B are hex numbers of equal length, 1-4 digits each
- rgb:R/G/B, where R, G, and B are hex numbers, 1-4 digits each
- rgbi:R/G/B, where R, G and B are floating-point numbers in [0,1]
+ #RGB, where R, G and B are hex numbers of equal length, 1-4 digits each.
+ rgb:R/G/B, where R, G, and B are hex numbers, 1-4 digits each.
+ rgbi:R/G/B, where R, G and B are floating-point numbers in [0,1].
 
-The result is normalized to a maximum value of 65535 per component,
-forming a list of three integers in [0,65535].
-If STRING is not in one of the above forms, return nil.  */)
-  (Lisp_Object string)
+If SPEC is not in one of the above forms, return nil.
+
+Each of the 3 integer members of the resulting list, RED, GREEN, and BLUE,
+is normalized to have its value in [0,65535].  */)
+  (Lisp_Object spec)
 {
-  CHECK_STRING (string);
+  CHECK_STRING (spec);
   unsigned short r, g, b;
-  return (parse_color_spec (SSDATA (string), &r, &g, &b)
+  return (parse_color_spec (SSDATA (spec), &r, &g, &b)
           ? list3i (r, g, b)
           : Qnil);
 }
@@ -7133,5 +7141,5 @@ clear the face cache, see `clear-face-cache'.  */);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
 #endif
-  defsubr (&Sinternal_color_values_from_color_spec);
+  defsubr (&Scolor_values_from_color_spec);
 }

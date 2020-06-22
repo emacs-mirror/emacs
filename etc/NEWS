@@ -624,6 +624,11 @@ In order for the two functions to behave more consistently,
 length, and also supports format specifications that include a
 truncating precision field, such as '%.2a'.
 
+---
+** New function 'color-values-from-color-spec'.
+This can be used to parse RGB color specs in several formats and
+convert them to a list (R G B) of primary color values.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
