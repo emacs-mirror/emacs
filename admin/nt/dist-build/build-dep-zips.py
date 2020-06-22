@@ -32,6 +32,7 @@ EMACS_MAJOR_VERSION="27"
 PKG_REQ='''mingw-w64-x86_64-giflib
 mingw-w64-x86_64-gnutls
 mingw-w64-x86_64-harfbuzz
+mingw-w64-x86_64-jansson
 mingw-w64-x86_64-lcms2
 mingw-w64-x86_64-libjpeg-turbo
 mingw-w64-x86_64-libpng
