@@ -101,15 +101,20 @@ For example: \"->\" to the Unicode RIGHT ARROW →
 
 Elements can also look like (IDENTIFIER REGEXP CHARACTER) which
 will behave like the simpler (SYMBOL-STRING . CHARACTER) form
-except it will match regular expressions. The IDENTIFIER can be
-any symbol and should be unique to every package that augments
-`prettify-symbols-alist' (in order to remove prettifications
-easily with `prettify-symbols-remove-prettifications').
+except it will match regular expressions. The REGEXP can have
+capturing groups, in which case the first such group will be
+prettified. If there are no capturing groups, the whole REGEXP is
+prettified.
+
+The IDENTIFIER can be any symbol and should be unique to every
+package that augments `prettify-symbols-alist' (in order to
+remove prettifications easily with
+`prettify-symbols-remove-prettifications').
 
 For example: \"abc[123]\" matching \"abc1\", \"abc2\", or
 \"abc3\" could be mapped to the Unicode WORLD MAP. Note again the
 IDENTIFIER is an arbitrary Lisp symbol.
- (my-worldmap \"abc[123]\" 128506)
+ (my-worldmap \"abc[123]\" ?\U0001f5fa)
 
 CHARACTER can be a character, or it can be a list or vector, in
 which case it will be used to compose the new symbol as per the
@@ -156,8 +161,12 @@ START and END are passed back and may be modified (narrowed)."
                        ;; ...We need to always do a string-match for the bounds.
                        (string-match (nth 1 ps) match))
                ;; Now return the actual prettification start and end.
-               return (list (+ start (match-beginning 1))
-                            (+ start(match-end 1))
+               return (list (+ start (or
+                                      (match-beginning 1)
+                                      (match-beginning 0)))
+                            (+ start (or
+                                      (match-end 1)
+                                      (match-end 0)))
                             (nth 2 ps))))))
 
 (defvar-local prettify-symbols-compose-replacer
