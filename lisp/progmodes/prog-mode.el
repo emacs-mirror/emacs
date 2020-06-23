@@ -90,6 +90,231 @@ instead."
   "Return the indentation column normally used for top-level constructs."
   (or (car prog-indentation-context) 0))
 
+;;; Text coverup library and API.
+
+(defvar-local text-coverup-alist nil
+  "Alist of text regexp coverups.
+Each element must look like (IDENTIFIER REGEXP REPLACEMENT)
+or (IDENTIFIER REGEXP REPLACEMENT COMPOSE-PREDICATE).  The REGEXP
+can have capturing groups, in which case the first such group
+will be prettified. If there are no capturing groups, the whole
+REGEXP is prettified.
+
+The IDENTIFIER can be any Lisp symbol and should be unique to
+every package that augments `text-coverup-alist' (in order to
+remove coverups easily with
+`text-coverup-remove-coverups').
+
+For example: \"abc[123]\" matching \"abc1\", \"abc2\", or
+\"abc3\" could be mapped to the Unicode WORLD MAP. Note again the
+IDENTIFIER is an arbitrary Lisp symbol.
+ (my-worldmap \"abc[123]\" ?\U0001f5fa)
+
+REPLACEMENT can be a character, or it can be a list or vector, in
+which case it will be used to compose the new visuals as per the
+third argument of `compose-region'.
+
+The COMPOSE-PREDICATE is a function, and if it's not specified
+will default to `text-coverup-compose-predicate' which see.")
+
+(defun text-coverup-default-compose-p (start end _outer_match _true_match)
+  "Return true iff the text between START and END should be composed.
+The outer match and true match are ignored.  This is the default
+for `text-coverup-compose-predicate' which is suitable for most
+programming languages such as C or Lisp."
+  ;; Check that the chars should really be composed into a visual replacement.
+  (let* ((syntaxes-beg (if (memq (char-syntax (char-after start)) '(?w ?_))
+                           '(?w ?_) '(?. ?\\)))
+         (syntaxes-end (if (memq (char-syntax (char-before end)) '(?w ?_))
+                           '(?w ?_) '(?. ?\\))))
+    (not (or (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg)
+             (memq (char-syntax (or (char-after end) ?\s)) syntaxes-end)
+             (nth 8 (syntax-ppss))))))
+
+(defvar-local text-coverup-compose-predicate
+  #'text-coverup-default-compose-p
+  "A default predicate for deciding if the current match is to be composed.
+The match is against an entry regexp in `text-coverup-alist'
+which see.  The predicate receives the match's start and end
+positions.  The outer match (match-string 0) and true
+match (either the first capture group AKA match-string 1, or the
+outer match again) are also provided.  This predicate can be
+overridden by each `text-coverup-alist' entry.")
+
+(defun text-coverup--compose-replacement (entry)
+  "Compose a regexp text match into a replacement, based on the ENTRY.
+The ENTRY is from `text-coverup-alist' which see."
+  ;; Get the inner match or the outer match if there's no capturing group.
+  (let ((start (or (match-beginning 1)
+                   (match-beginning 0)))
+        (end (or (match-end 1)
+                 (match-end 0)))
+        (true-match (or (match-string 1)
+                        (match-string 0)))
+        (outer-match (match-string 0))
+        (compose-predicate (or (nth 3 entry) text-coverup-compose-predicate)))
+    (if (and (not (equal text-coverup--current-bounds (list start end)))
+             (funcall compose-predicate start end outer-match true-match))
+        ;; That's a match alright, so add the composition.
+        (with-silent-modifications
+          (compose-region start end (nth 2 entry))
+          (add-text-properties
+           start end
+           `(text-coverup-start ,start text-coverup-end ,end)))
+      ;; No composition for you.  Let's actually remove any
+      ;; composition we may have added earlier and which is now
+      ;; incorrect.
+      (remove-list-of-text-properties start end
+                                      '(composition
+                                        text-coverup-start
+                                        text-coverup-end))))
+  ;; Return nil because we're not adding any face property.
+  nil)
+
+(defun text-coverup--make-keywords (alist)
+  "Make the regexp string matcher font-lock keywords from ALIST."
+  (if alist
+      (mapcar (lambda (ps)
+                ;; Collect the regexp with the replacement composer call.
+                `(,(nth 1 ps)
+                  (0 (text-coverup--compose-replacement ',ps))))
+              alist)
+    nil))
+
+(defvar-local text-coverup--keywords nil)
+
+(defvar-local text-coverup--current-bounds nil)
+
+(defcustom text-coverup-uncover-at-point 'right-edge
+  "If non-nil, show the non-prettified text when point is on it.
+If set to the Lisp symbol `right-edge', also uncover if point
+is immediately after the text.  The coverup will be
+reapplied as soon as point moves away from the text.  If set to
+nil, the coverup persists even when point is on the text."
+  :version "28.1"
+  :type '(choice (const :tag "Never uncover" nil)
+                 (const :tag "Uncover when point is inside" t)
+                 (const :tag "Uncover when point is inside or at right edge" right-edge))
+  :group 'prog-mode)
+
+(defun text-coverup--post-command-hook ()
+  (cl-labels ((get-prop-as-list
+               (prop)
+               (remove nil
+                       (list (get-text-property (point) prop)
+                             (when (and (eq text-coverup-uncover-at-point 'right-edge)
+                                        (not (bobp)))
+                               (get-text-property (1- (point)) prop))))))
+    ;; Re-apply coverup to the previous text.
+    (when (and text-coverup--current-bounds
+	       (or (< (point) (car text-coverup--current-bounds))
+		   (> (point) (cadr text-coverup--current-bounds))
+		   (and (not (eq text-coverup-uncover-at-point 'right-edge))
+			(= (point) (cadr text-coverup--current-bounds)))))
+      ;; Adjust the bounds in case either end is invalid.
+      (setf (car text-coverup--current-bounds)
+            (max (car text-coverup--current-bounds) (point-min))
+            (cadr text-coverup--current-bounds)
+            (min (cadr text-coverup--current-bounds) (point-max)))
+      (apply #'font-lock-flush text-coverup--current-bounds)
+      (setq text-coverup--current-bounds nil))
+    ;; Uncover the current text
+    (when-let* ((c (get-prop-as-list 'composition))
+	        (s (get-prop-as-list 'text-coverup-start))
+	        (e (get-prop-as-list 'text-coverup-end))
+	        (s (apply #'min s))
+	        (e (apply #'max e)))
+      (with-silent-modifications
+	(setq text-coverup--current-bounds (list s e))
+        (remove-text-properties s e '(composition nil))))))
+
+;;;###autoload
+(defun text-coverup-add-coverup-entry (entry)
+  "Add ENTRY to `text-coverup-alist' for the current buffer.
+ENTRY is formatted as per `text-coverup-alist' (which see).
+Duplicates according to `equal' will not be added.
+
+The ENTRY's identifier should be unique to each user of this API."
+  (setq-local text-coverup-alist (cl-adjoin entry
+                                                text-coverup-alist
+                                                :test #'equal))
+  (when text-coverup-alist
+    (turn-on-text-coverup-highlighting)))
+
+;;;###autoload
+(defun text-coverup-add-coverup (identifier regexp replacement &optional compose-predicate)
+  "Convenience wrapper of `text-coverup-add-coverup-entry' to cover up REGEXP with REPLACEMENT.
+IDENTIFIER should be unique to each user of this API.
+
+The optional COMPOSE-PREDICATE will override the default
+`text-coverup-compose-predicate' which see."
+  (text-coverup-add-coverup-entry
+   (list identifier regexp replacement compose-predicate)))
+
+;;;###autoload
+(defun text-coverup-remove-coverup (entry)
+  "Remove ENTRY to `text-coverup-alist' for the current buffer.
+ENTRY is found with an `equal' test. Returns t on success."
+  (setq-local text-coverup-alist (cl-remove entry
+                                                text-coverup-alist
+                                                :test #'equal))
+  (unless text-coverup-alist
+    (turn-off-text-coverup-highlighting)))
+
+;;;###autoload
+(defun text-coverup-remove-coverups (identifier)
+  "Remove all IDENTIFIER entries from `text-coverup-alist' for the current buffer.
+IDENTIFIER is as per `text-coverup-alist' (which see). Returns t on success."
+  (setq-local text-coverup-alist (cl-remove identifier
+                                                text-coverup-alist
+                                                :test #'car))
+  (unless text-coverup-alist
+    (turn-off-text-coverup-highlighting)))
+
+;;;###autoload
+(defun text-coverup-remove-all-coverups ()
+  "Remove all entries from `text-coverup-alist' for the current buffer.
+Returns t on success."
+  (setq-local text-coverup-alist nil)
+  (turn-off-text-coverup-highlighting))
+
+(defun text-coverup--cleanup ()
+  (when text-coverup--keywords
+    (font-lock-remove-keywords nil text-coverup--keywords)
+    (setq text-coverup--keywords nil)))
+
+;;;###autoload
+(defun turn-off-text-coverup-highlighting ()
+  (text-coverup--cleanup)
+  (remove-hook 'post-command-hook #'text-coverup--post-command-hook t)
+  (when (memq 'composition font-lock-extra-managed-props)
+    (setq font-lock-extra-managed-props (delq 'composition
+                                              font-lock-extra-managed-props))
+    (with-silent-modifications
+      (remove-text-properties (point-min) (point-max) '(composition nil))))
+  ; Return t to indicate success.
+  t)
+
+;;;###autoload
+(defun turn-on-text-coverup-highlighting ()
+  (text-coverup--cleanup)
+  (when (setq text-coverup--keywords (text-coverup--make-keywords
+                                       text-coverup-alist))
+    (font-lock-add-keywords nil text-coverup--keywords)
+    (setq-local font-lock-extra-managed-props
+                (append font-lock-extra-managed-props
+                        '(composition
+                          text-coverup-start
+                          text-coverup-end)))
+    (when text-coverup-uncover-at-point
+      (add-hook 'post-command-hook
+                #'text-coverup--post-command-hook nil t))
+    (font-lock-flush)
+  ; Return t to indicate success.
+    t))
+
+;;; Symbol prettification mode.
+
 (defvar-local prettify-symbols-alist nil
   "Alist of symbol prettifications.
 Each element looks like (SYMBOL . CHARACTER), where the symbol
