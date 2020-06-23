@@ -43,6 +43,7 @@
 (require 'dired)
 (require 'ert)
 (require 'ert-x)
+(require 'trace)
 (require 'tramp)
 (require 'vc)
 (require 'vc-bzr)
@@ -177,23 +178,36 @@ This shall used dynamically bound only.")
 (defmacro tramp--test-instrument-test-case (verbose &rest body)
   "Run BODY with `tramp-verbose' equal VERBOSE.
 Print the content of the Tramp connection and debug buffers, if
-`tramp-verbose' is greater than 3.  `should-error' is not handled
-properly.  BODY shall not contain a timeout."
+`tramp-verbose' is greater than 3.  Print traces if `tramp-verbose'
+is greater than 10.
+`should-error' is not handled properly.  BODY shall not contain a timeout."
   (declare (indent 1) (debug (natnump body)))
-  `(let ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
-	 (debug-ignored-errors
-	  (append
-	   '("^make-symbolic-link not supported$"
-	     "^error with add-name-to-file")
-	   debug-ignored-errors))
-	 inhibit-message)
+  `(let* ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
+	  (trace-buffer
+	   (when (> tramp-verbose 10) (generate-new-buffer " *temp*")))
+	  (debug-ignored-errors
+	   (append
+	    '("^make-symbolic-link not supported$"
+	      "^error with add-name-to-file")
+	    debug-ignored-errors))
+	  inhibit-message)
+     (when trace-buffer
+       (dolist (elt (all-completions "tramp-" obarray 'functionp))
+	 (trace-function-background (intern elt))))
      (unwind-protect
 	 (let ((tramp--test-instrument-test-case-p t)) ,@body)
        ;; Unwind forms.
+       (when trace-buffer
+	 (untrace-all))
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
-	 (dolist (buf (tramp-list-tramp-buffers))
+	 (dolist
+	     (buf (if trace-buffer
+		      (cons (get-buffer trace-buffer) (tramp-list-tramp-buffers))
+		    (tramp-list-tramp-buffers)))
 	   (with-current-buffer buf
-	     (message ";; %s\n%s" buf (buffer-string))))))))
+	     (message ";; %s\n%s" buf (buffer-string)))))
+       (when trace-buffer
+	 (kill-buffer trace-buffer)))))
 
 (defsubst tramp--test-message (fmt-string &rest arguments)
   "Emit a message into ERT *Messages*."
@@ -1996,7 +2010,7 @@ properly.  BODY shall not contain a timeout."
 
   ;; Samba does not support file names with periods followed by
   ;; spaces, and trailing periods or spaces.
-  (when (tramp-smb-file-name-p tramp-test-temporary-file-directory)
+  (when (tramp--test-smb-p)
     (dolist (file '("foo." "foo. bar" "foo "))
       (should-error
        (tramp-smb-get-localname
@@ -2150,7 +2164,7 @@ properly.  BODY shall not contain a timeout."
   ;; These are the methods the test doesn't fail.
   (when (or (tramp--test-adb-p) (tramp--test-ange-ftp-p) (tramp--test-gvfs-p)
 	    (tramp--test-rclone-p)
-	    (tramp-smb-file-name-p tramp-test-temporary-file-directory))
+	    (tramp--test-smb-p))
     (setf (ert-test-expected-result-type
 	   (ert-get-test 'tramp-test05-expand-file-name-relative))
 	  :passed))
@@ -3716,7 +3730,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (tramp--test-ignore-make-symbolic-link-error
 	     (make-symbolic-link tmp-name2 tmp-name1)
 	     (should (file-symlink-p tmp-name1))
-	     (if (tramp-smb-file-name-p tramp-test-temporary-file-directory)
+	     (if (tramp--test-smb-p)
 		 ;; The symlink command of `smbclient' detects the
 		 ;; cycle already.
 		 (should-error
@@ -5697,7 +5711,12 @@ This does not support utf8 based file transfer."
   "Check, whether the locale or remote host runs MS Windows.
 This requires restrictions of file name syntax."
   (or (eq system-type 'windows-nt)
-      (tramp-smb-file-name-p tramp-test-temporary-file-directory)))
+      (tramp--test-smb-p)))
+
+(defun tramp--test-smb-p ()
+  "Check, whether the locale or remote host runs MS Windows.
+This requires restrictions of file name syntax."
+  (tramp-smb-file-name-p tramp-test-temporary-file-directory))
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
@@ -5821,8 +5840,7 @@ This requires restrictions of file name syntax."
 		;; It does not work in the "smb" case, only relative
 		;; symlinks to existing files are shown there.
 		(tramp--test-ignore-make-symbolic-link-error
-		  (unless
-		     (tramp-smb-file-name-p tramp-test-temporary-file-directory)
+		  (unless (tramp--test-smb-p)
 		    (make-symbolic-link file2 file3)
 		    (should (file-symlink-p file3))
 		    (should
@@ -6554,6 +6572,8 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * file-equal-p (partly done in `tramp-test21-file-links')
 ;; * file-in-directory-p
 ;; * file-name-case-insensitive-p
+;; * tramp-get-remote-gid
+;; * tramp-get-remote-uid
 ;; * tramp-set-file-uid-gid
 
 ;; * Work on skipped tests.  Make a comment, when it is impossible.

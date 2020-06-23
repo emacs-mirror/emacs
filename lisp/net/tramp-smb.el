@@ -704,11 +704,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (delete nil
 		    (mapcar (lambda (x) (when (string-match-p match x) x))
 			    result))))
-    ;; Append directory.
+    ;; Prepend directory.
     (when full
       (setq result
 	    (mapcar
-	     (lambda (x) (format "%s/%s" directory x))
+	     (lambda (x) (format "%s/%s" (directory-file-name directory) x))
 	     result)))
     ;; Sort them if necessary.
     (unless nosort (setq result (sort result #'string-lessp)))
