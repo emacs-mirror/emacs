@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@set VERSION 0.3
+@set VERSION 0.4
 
 @setfilename ../../info/auth.info
 @settitle Emacs auth-source Library @value{VERSION}
@@ -58,6 +58,7 @@ It is a way for multiple applications to share a single configuration
 * Overview::                    Overview of the auth-source library.
 * Help for users::
 * Multiple GMail accounts with Gnus::
+* Hiding passwords in text buffers::
 * Secret Service API::
 * The Unix password store::
 * Help for developers::
@@ -279,6 +280,48 @@ Your netrc entries will then be:
 machine gmail login account@@gmail.com password "account password" port imap
 machine gmail2 login account2@@gmail.com password "account2 password" port imap
 @end example
+
+@node Hiding passwords in text buffers
+@chapter Hiding passwords in text buffers
+
+Emacs users and developers have to look at netrc files in text or JSON
+formats sometimes. Pro Tip: one easy way to protect from
+password-shoulder-surfers is to enter a hair band, grow long hair,
+curl it daily until it creates a visual barrier, become famous, keep
+using Emacs.
+
+An alternative is to enable @code{auth-source-reveal-mode} as follows:
+
+@example
+(require 'auth-source)
+(setq prettify-symbols-unprettify-at-point 'right-edge) ;; or customize it
+
+(add-hook 'prog-mode-hook 'turn-on-auth-source-reveal-mode)
+(add-hook 'text-mode-hook 'turn-on-auth-source-reveal-mode)
+(add-hook 'json-mode-hook 'turn-on-auth-source-reveal-mode)
+@end example
+
+Underneath, the @code{prettify-text} API is used to hide passwords
+based on a regular expression for netrc plain text or JSON files.
+
+You should definitely customize
+@code{prettify-text-unprettify-at-point} to be t or
+@code{right-edge}. If it's nil (the default), the password will not be
+revealed when you're inside it, which will annoy you AND
+password-shoulder-surfers. Note this is different from
+@code{prettify-symbols-unprettify-at-point} which only governs
+@code{prettify-symbols-mode} behavior.
+
+You can further customize the following.
+@defvar auth-source-reveal-regex
+A regular expression matching the text preceding the password (or, in JSON format, the key under which the password lives). By default it will be just ``password'' which also matches e.g. ``my_password''.
+
+Use only non-capturing parens inside this regular expression.
+@end defvar
+
+@defvar auth-source-reveal-json-modes
+This is a list of modes where the JSON regular expression logic should be installed, instead of the plaintext logic. By default this includes @code{json-mode} for instance.
+@end defvar
 
 @node Secret Service API
 @chapter Secret Service API

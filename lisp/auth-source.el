@@ -44,6 +44,7 @@
 
 (require 'cl-lib)
 (require 'eieio)
+(require 'prog-mode)
 
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")
@@ -2405,44 +2406,91 @@ MODE can be \"login\" or \"password\"."
       (setq password (funcall password)))
     (list user password auth-info)))
 
-;;; Tiny mode for editing .netrc/.authinfo modes (that basically just
-;;; hides passwords).
+;;; Tiny minor mode for editing .netrc/.authinfo modes (that basically
+;;; just hides passwords).
 
-(defcustom authinfo-hidden "password"
-  "Regexp matching elements in .authinfo/.netrc files that should be hidden."
+(defcustom auth-source-reveal-regex "password"
+  "Regexp matching tokens or JSON keys in .authinfo/.netrc/JSON files.
+The text following the tokens or under the JSON keys will be hidden."
   :type 'regexp
   :version "27.1")
 
+(defcustom auth-source-reveal-json-modes '(json-mode js-mode js2-mode rjsx-mode)
+  "List of symbols for modes that should use JSON parsing logic."
+  :type 'list
+  :version "27.1")
+
+(defcustom auth-source-reveal-hider '(?* (base-right . base-left) ?© (base-right . base-left) ?© (base-right . base-left) ?*)
+  "A character or a composition list to hide passwords.
+In the composition list form, you can use the format
+(?h (base-right . base-left) ?i (base-right . base-left) ?d (base-right . base-left) ?e)
+to show the string \"hide\" (by aligning character left/right baselines).
+
+Other composition keywords you can use: top-left/tl,
+top-center/tc, top-right/tr, base-left/Bl, base-center/Bc,
+base-right/Br, bottom-left/bl, bottom-center/bc, bottom-right/br,
+center-left/cl, center-center/cc, center-right/cr."
+  :type '(choice
+          (const :tag "A single copyright sign" ?©)
+          (character :tag "Any character")
+          (sexp :tag "A composition list"))
+  :version "27.1")
+
+(defun auth-source-reveal-compose-p (start end _outer_match _true_match)
+  "Return true iff the text between START and END should be composed.
+All arguments are currently ignored, always returning t for
+`auth-source-reveal-mode'.  This overrides the default for
+`text-coverup-compose-predicate'."
+  ;; Check that the chars should really be composed into a symbol.
+  t)
+
 ;;;###autoload
-(define-derived-mode authinfo-mode fundamental-mode "Authinfo"
-  "Mode for editing .authinfo/.netrc files.
+(define-minor-mode auth-source-reveal-mode
+  "Toggle password hiding for auth-source files using `text-coverup-mode'.
 
-This is just like `fundamental-mode', but hides passwords.  The
-passwords are revealed when point moved into the password.
+If called interactively, enable auth-source-reveal mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is toggle; disable the mode otherwise.
 
-\\{authinfo-mode-map}"
-  (authinfo--hide-passwords (point-min) (point-max))
-  (reveal-mode))
+When auth-source-reveal mode is enabled, passwords will be
+hidden. To reveal them when point is inside them, see
+`text-coverup-uncover-at-point'.
 
-(defun authinfo--hide-passwords (start end)
-  (save-excursion
-    (save-restriction
-      (narrow-to-region start end)
-      (goto-char start)
-      (while (re-search-forward (format "\\(\\s-\\|^\\)\\(%s\\)\\s-+"
-                                        authinfo-hidden)
-                                nil t)
-        (when (auth-source-netrc-looking-at-token)
-          (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
-            (overlay-put overlay 'display (propertize "****"
-                                                      'face 'warning))
-            (overlay-put overlay 'reveal-toggle-invisible
-                         #'authinfo--toggle-display)))))))
+See `auth-source-password-hide-regex' for the regex matching the
+tokens and keys associated with passwords."
+  ;; The initial value.
+  :init-value nil
+  ;; The indicator for the mode line.
+  :lighter " asr"
+  :group 'auth-source
 
-(defun authinfo--toggle-display (overlay hide)
-  (if hide
-      (overlay-put overlay 'display (propertize "****" 'face 'warning))
-    (overlay-put overlay 'display nil)))
+  (let ((identifier 'auth-source-reveal-regexp)) ; The identifier symbol.
+    (if auth-source-reveal-mode
+        ;; Install the coverup magic.
+        (when (text-coverup-add-coverup
+               identifier
+               ;; The regexp to hide/reveal.
+               (if (apply #'derived-mode-p auth-source-reveal-json-modes)
+                   (format "\"?password\"?[:[:blank:]]+\"\\([^\t\r\n\"]+\\)\""
+                           auth-source-reveal-regex)
+                 (format "\\b%s\\b\\s-+\\([^ \t\r\n]+\\)"
+                         auth-source-reveal-regex))
+               ;; The replacement symbol or composed string.
+               auth-source-reveal-hider
+               ;; A custom compose matcher.
+               #'auth-source-reveal-compose-p)
+          (unless text-coverup-uncover-at-point
+            (auth-source-do-warn
+             "Please set `%s' to _see_ passwords at point"
+             'text-coverup-uncover-at-point)))
+      ;; Else, when disabling, remove the coverups for our identifier.
+      (text-coverup-remove-coverups identifier))))
+
+;;;###autoload
+(defun turn-on-auth-source-reveal-mode ()
+  (when (not auth-source-reveal-mode)
+    (auth-source-reveal-mode 1)))
 
 (provide 'auth-source)
 
