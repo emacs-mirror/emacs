@@ -1366,7 +1366,7 @@ These are the commands available for use in the file status buffer:
     ;; Otherwise if you do C-x v d -> C-x C-f -> C-x v d
     ;; you may get a new *vc-dir* buffer, different from the original
     (file-truename (read-directory-name "VC status for directory: "
-					(vc-root-dir) nil t
+					(vc-root-dir) (vc-known-roots) t
 					nil))
     (if current-prefix-arg
 	(intern

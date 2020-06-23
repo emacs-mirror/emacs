@@ -935,6 +935,12 @@ It's also possible to enter an arbitrary directory not in the list."
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
 
+;;;###autoload
+(defun project-known-roots ()
+  "Return a list of known project roots."
+  (project--ensure-read-project-list)
+  project--list)
+
 
 ;;; Project switching
 
