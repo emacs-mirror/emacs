@@ -1074,11 +1074,9 @@ BEWARE: this function may change the current buffer."
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
 	(vc-deduce-fileset not-state-changing allow-unregistered state-model-only-files)))
-     ((and (derived-mode-p 'log-view-mode)
+     ((and (not buffer-file-name)
 	   (setq backend (vc-responsible-backend default-directory)))
       (list backend nil))
-     ((not buffer-file-name)
-       (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (if state-model-only-files
 	  (list (vc-backend-for-registration (buffer-file-name))
