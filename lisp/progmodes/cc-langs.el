@@ -2786,7 +2786,7 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
   java '("for" "if" "switch" "while" "catch" "synchronized")
   idl  nil
   pike '("for" "if" "switch" "while" "foreach")
-  awk  '("for" "if" "while"))
+  awk  '("for" "if" "switch" "while"))
 
 (c-lang-defconst c-block-stmt-2-key
   ;; Regexp matching the start of any statement followed by a paren sexp
@@ -2866,8 +2866,7 @@ nevertheless contains a list separated with `;' and not `,'."
 (c-lang-defconst c-case-kwds
   "The keyword(s) which introduce a \"case\" like construct.
 This construct is \"<keyword> <expression> :\"."
-  t '("case")
-  awk nil)
+  t '("case"))
 
 (c-lang-defconst c-case-kwds-regexp
   ;; Adorned regexp matching any "case"-like keyword.
