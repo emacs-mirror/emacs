@@ -173,11 +173,14 @@ directories with the help of new command 'dired-vc-next-action'.
 
 ** Change Logs and VC
 
-*** More vc commands that don't change VC state can be used from non-file buffers.
-Such non-file buffers should have 'default-directory' under vc.
+*** More VC commands can be used from non-file buffers.
+The relevant commands are those that don't change the VC state.
+The non-file buffers which can use VC commands are those that have
+their 'default-directory' under VC.
 
-*** Typing 'M-n' in the minibuffer that asks for a vc directory in vc commands
-can retrieve directories of previously used vc projects.
+*** 'M-n' now works in minibuffer prompts of VC commands.
+Typing 'M-n' in the minibuffer that prompts for a VC directory in VC
+commands now retrieves directories of previously used VC projects.
 
 *** New command 'vc-dir-root' uses the root directory without asking.
 
