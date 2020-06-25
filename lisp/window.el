@@ -8643,8 +8643,8 @@ window; the function takes two arguments: an old and new window."
          (command this-command)
          (exitfun
           (lambda ()
-            (setq display-buffer-overriding-action
-                  (delq action display-buffer-overriding-action))
+            (setcar display-buffer-overriding-action
+                    (delq action (car display-buffer-overriding-action)))
             (remove-hook 'post-command-hook clearfun)
             (when (functionp post-function)
               (funcall post-function old-window new-window)))))
@@ -8661,7 +8661,7 @@ window; the function takes two arguments: an old and new window."
     ;; Reset display-buffer-overriding-action
     ;; after the next command finishes
     (add-hook 'post-command-hook clearfun)
-    (push action display-buffer-overriding-action)))
+    (push action (car display-buffer-overriding-action))))
 
 
 (defun set-window-text-height (window height)
