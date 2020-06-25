@@ -1816,8 +1816,9 @@ mail status in mode line"))
       '(menu-item "List Key Bindings" describe-bindings
                   :help "Display all current key bindings (keyboard shortcuts)"))
     (bindings--define-key menu [list-recent-keystrokes]
-      '(menu-item "Show Recent Keys" view-lossage
-                  :help "Display last few input keystrokes and the commands run"))
+      '(menu-item "Show Recent Inputs" view-lossage
+                  :help "Display last few input events and the commands \
+they ran"))
     (bindings--define-key menu [describe-current-display-table]
       '(menu-item "Describe Display Table" describe-current-display-table
                   :help "Describe the current display table"))

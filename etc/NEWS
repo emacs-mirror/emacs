@@ -206,6 +206,11 @@ this user option.
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
 ---
+*** The command 'view-lossage' can now be invoked from the menu bar.
+The menu-bar Help menu now has a "Show Recent Inputs" item under the
+"Describe" sub-menu.
+
+---
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
