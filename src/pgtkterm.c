@@ -286,80 +286,6 @@ x_destroy_window (struct frame *f)
   dpyinfo->reference_count--;
 }
 
-/* Calculate the absolute position in frame F
-   from its current recorded position values and gravity.  */
-
-static void
-x_calc_absolute_position (struct frame *f)
-{
-  int flags = f->size_hint_flags;
-  struct frame *p = FRAME_PARENT_FRAME (f);
-
-  /* We have nothing to do if the current position
-     is already for the top-left corner.  */
-  if (!((flags & XNegative) || (flags & YNegative)))
-    return;
-
-  /* Treat negative positions as relative to the leftmost bottommost
-     position that fits on the screen.  */
-  if ((flags & XNegative) && (f->left_pos <= 0))
-    {
-      int width = FRAME_PIXEL_WIDTH (f);
-
-      /* A frame that has been visible at least once should have outer
-         edges.  */
-      if (FRAME_X_OUTPUT (f)->has_been_visible && !p)
-	{
-	  Lisp_Object frame;
-	  Lisp_Object edges = Qnil;
-
-	  XSETFRAME (frame, f);
-	  edges = Fpgtk_frame_edges (frame, Qouter_edges);
-	  if (!NILP (edges))
-	    width = (XFIXNUM (Fnth (make_fixnum (2), edges))
-		     - XFIXNUM (Fnth (make_fixnum (0), edges)));
-	}
-
-      if (p)
-	f->left_pos = (FRAME_PIXEL_WIDTH (p) - width - 2 * f->border_width
-		       + f->left_pos);
-      else
-	f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
-		       - width + f->left_pos);
-
-    }
-
-  if ((flags & YNegative) && (f->top_pos <= 0))
-    {
-      int height = FRAME_PIXEL_HEIGHT (f);
-
-      if (FRAME_X_OUTPUT (f)->has_been_visible && !p)
-	{
-	  Lisp_Object frame;
-	  Lisp_Object edges = Qnil;
-
-	  XSETFRAME (frame, f);
-	  if (NILP (edges))
-	    edges = Fpgtk_frame_edges (frame, Qouter_edges);
-	  if (!NILP (edges))
-	    height = (XFIXNUM (Fnth (make_fixnum (3), edges))
-		      - XFIXNUM (Fnth (make_fixnum (1), edges)));
-	}
-
-      if (p)
-	f->top_pos = (FRAME_PIXEL_HEIGHT (p) - height - 2 * f->border_width
-		      + f->top_pos);
-      else
-	f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
-		      - height + f->top_pos);
-    }
-
-  /* The left_pos and top_pos
-     are now relative to the top and left screen edges,
-     so the flags should correspond.  */
-  f->size_hint_flags &= ~(XNegative | YNegative);
-}
-
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
    to really change the position, and 0 when calling from
    x_make_frame_visible (in that case, XOFF and YOFF are the current
@@ -376,53 +302,46 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 
   struct frame *parent = FRAME_PARENT_FRAME (f);
   GtkAllocation a = { 0 };
+  int surface_pos_x = 0;
+  int surface_pos_y = 0;
+
+  if (parent)
+    {
+      /* determing the "height" of the titlebar, by finding the
+	 location of the "emacsfixed" widget on the surface/window */
+      GtkWidget *w = FRAME_GTK_WIDGET (parent);
+      gtk_widget_get_allocation (w, &a);
+    }
+
   if (change_gravity > 0)
     {
-      if (parent)
-	{
-	  /* determing the "height" of the titlebar, by finding the
-	     location of the "emacsfixed" widget on the surface/window */
-	  GtkWidget *w = FRAME_GTK_WIDGET (parent);
-	  gtk_widget_get_allocation (w, &a);
-	}
-
       f->size_hint_flags &= ~(XNegative | YNegative);
-      /* if the value is negative, don't include the titlebar offset */
+      f->left_pos = xoff;
+      f->top_pos = yoff;
+
       if (xoff < 0)
 	{
 	  f->size_hint_flags |= XNegative;
-	  f->left_pos = xoff;
 	}
-      else
-	{
-	  f->left_pos = xoff + a.x;	//~25
-	}
-
       if (yoff < 0)
 	{
 	  f->size_hint_flags |= YNegative;
-	  f->top_pos = yoff;
-	}
-      else
-	{
-	  f->top_pos = yoff + a.y;	//~60
 	}
       f->win_gravity = NorthWestGravity;
     }
 
-  x_calc_absolute_position (f);
-
   block_input ();
-  x_wm_set_size_hint (f, 0, false);
+  surface_pos_y = f->top_pos + a.y;
+  surface_pos_x = f->left_pos + a.x;
 
   /* When a position change was requested and the outer GTK widget
      has been realized already, leave it to gtk_window_move to DTRT
      and return.  Used for Bug#25851 and Bug#25943.  */
   if (change_gravity != 0 && FRAME_GTK_OUTER_WIDGET (f))
     {
-      PGTK_TRACE ("x_set_offset: move to %d,%d.", f->left_pos, f->top_pos);
+      PGTK_TRACE ("x_set_offset: move to %d,%d.", surface_pos_x, surface_pos_y);
       gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       f->left_pos, f->top_pos);
+		       surface_pos_x, surface_pos_y);
     }
 
   unblock_input ();
