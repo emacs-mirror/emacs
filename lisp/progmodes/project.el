@@ -449,7 +449,7 @@ backend implementation of `project-external-roots'.")
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (let* ((root (cdr project))
-          backend)
+         backend)
     (append
      (when (file-equal-p dir root)
        (setq backend (vc-responsible-backend root))
@@ -674,8 +674,8 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
   (let* ((all-files (project-files project dirs))
          (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
-                       "Find file" all-files nil nil
-                       filename)))
+                        "Find file" all-files nil nil
+                        filename)))
     (if (string= file "")
         (user-error "You didn't specify the file")
       (find-file file))))
@@ -743,10 +743,10 @@ if one already exists."
   (defvar eshell-buffer-name)
   (let* ((default-directory (project-root (project-current t)))
          (eshell-buffer-name
-           (concat "*" (file-name-nondirectory
-                        (directory-file-name
-                         (file-name-directory default-directory)))
-                   "-eshell*"))
+          (concat "*" (file-name-nondirectory
+                       (directory-file-name
+                        (file-name-directory default-directory)))
+                  "-eshell*"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
         (pop-to-buffer eshell-buffer)
@@ -886,8 +886,7 @@ With some possible metadata (to be decided).")
               (insert-file-contents filename)
               (read (current-buffer)))))
     (unless (seq-every-p
-             (lambda (elt) (and (listp elt)
-                           (stringp (car elt))))
+             (lambda (elt) (stringp (car-safe elt)))
              project--list)
       (warn "Contents of %s are in wrong format, resetting"
             project-list-file)
