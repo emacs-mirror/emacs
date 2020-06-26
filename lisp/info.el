@@ -2265,7 +2265,8 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
        (match-string-no-properties 1)))
 
 (defun Info-next ()
-  "Go to the next node of this node."
+  "Go to the \"next\" node, staying on the same hierarchical level.
+This command doesn't descend into sub-nodes, like \\<Info-mode-map>\\[Info-forward-node] does."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
@@ -2273,7 +2274,8 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
     (Info-goto-node (Info-extract-pointer "next"))))
 
 (defun Info-prev ()
-  "Go to the previous node of this node."
+  "Go to the \"previous\" node, staying on the same hierarchical level.
+This command doesn't go up to the parent node, like \\<Info-mode-map>\\[Info-backward-node] does."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
@@ -2887,7 +2889,13 @@ N is the digit argument used to invoke this command."
       (Info-goto-node (Info-extract-menu-counting nil)))))
 
 (defun Info-forward-node (&optional not-down not-up no-error)
-  "Go forward one node, considering all nodes as forming one sequence."
+  "Go forward one node, considering all nodes as forming one sequence.
+Interactively, if the current node has sub-nodes, descend into the first
+sub-node; otherwise go to the \"next\" node, if it exists, else go \"up\"
+to the parent node.
+When called from Lisp, NOT-DOWN non-nil means don't descend into sub-nodes,
+NOT-UP non-nil means don't go to parent nodes, and NO-ERROR non-nil means
+don't signal a user-error if there's no node to go to."
   (interactive)
   (goto-char (point-min))
   (forward-line 1)
@@ -2922,7 +2930,9 @@ N is the digit argument used to invoke this command."
 	  (t (user-error "No pointer forward from this node")))))
 
 (defun Info-backward-node ()
-  "Go backward one node, considering all nodes as forming one sequence."
+  "Go backward one node, considering all nodes as forming one sequence.
+If the current node has a \"previous\" node, go to it, descending into its
+last sub-node, if any; otherwise go \"up\" to the parent node."
   (interactive)
   (let ((prevnode (Info-extract-pointer "prev[ious]*" t))
 	(upnode (Info-extract-pointer "up" t))
