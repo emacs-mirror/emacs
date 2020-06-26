@@ -874,7 +874,8 @@ Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
   :group 'project)
 
 (defvar project--list 'unset
-  "List of known project directories.")
+  "List structure containing root directories of known projects.
+With some possible metadata (to be decided).")
 
 (defun project--read-project-list ()
   "Initialize `project--list' using contents of `project-list-file'."
@@ -883,7 +884,14 @@ Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
           (when (file-exists-p filename)
             (with-temp-buffer
               (insert-file-contents filename)
-              (read (current-buffer)))))))
+              (read (current-buffer)))))
+    (unless (seq-every-p
+             (lambda (elt) (and (listp elt)
+                           (stringp (car elt))))
+             project--list)
+      (warn "Contents of %s are in wrong format, resetting"
+            project-list-file)
+      (setq project--list nil))))
 
 (defun project--ensure-read-project-list ()
   "Initialize `project--list' if it isn't already initialized."
