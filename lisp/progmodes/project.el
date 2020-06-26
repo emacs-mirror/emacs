@@ -937,10 +937,10 @@ It's also possible to enter an arbitrary directory not in the list."
       pr-dir)))
 
 ;;;###autoload
-(defun project-known-roots ()
-  "Return a list of known project roots."
+(defun project-known-project-roots ()
+  "Return the list of root directories of all known projects."
   (project--ensure-read-project-list)
-  project--list)
+  (mapcar #'car project--list))
 
 
 ;;; Project switching
