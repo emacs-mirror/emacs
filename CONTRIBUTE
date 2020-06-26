@@ -53,9 +53,18 @@ archives.
 
 To email a patch you can use a shell command like 'git format-patch -1'
 to create a file, and then attach the file to your email.  This nicely
-packages the patch's commit message and changes.  To send just one
-such patch without additional remarks, you can use a command like
-'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+packages the patch's commit message and changes, and makes sure the
+format and whitespace are not munged in transit by the various mail
+agents.  To send just one such patch without additional remarks, it is
+also possible to use a command like
+
+  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+
+However, we prefer the 'git format-patch' method with attachment, as
+doing so delivers patches in the correct and easily-recognizable format
+more reliably, and makes the job of applying the patches easier and less
+error-prone.  It also allows to send patches whose author is someone
+other than the email sender.
 
 Once the cumulative amount of your submissions exceeds about 15 lines
 of non-trivial changes, we will need you to assign to the FSF the
