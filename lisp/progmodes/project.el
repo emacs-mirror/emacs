@@ -823,7 +823,7 @@ is inside the directory hierarchy of the project's root."
       nil
       predicate))))
 
-(defcustom project-kill-buffers-skip-conditions
+(defcustom project-kill-buffers-ignores
   '("\\*Help\\*")
   "Conditions for buffers `project-kill-buffers' should not kill.
 Each condition is either a regular expression matching a buffer
@@ -831,7 +831,8 @@ name, or a predicate function that takes a buffer object as
 argument and returns non-nil if it matches.  Buffers that match
 any of the conditions will not be killed."
   :type '(repeat (choice regexp function))
-  :version "28.1")
+  :version "28.1"
+  :package-version '(project . "0.5.0"))
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
@@ -847,7 +848,7 @@ any of the conditions will not be killed."
 ;;;###autoload
 (defun project-kill-buffers ()
   "Kill all live buffers belonging to the current project.
-Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
+Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
   (interactive)
   (let ((pr (project-current t)) bufs)
     (dolist (buf (project--buffer-list pr))
@@ -857,7 +858,7 @@ Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
                         (string-match-p c (buffer-name buf)))
                        ((functionp c)
                         (funcall c buf))))
-               project-kill-buffers-skip-conditions)
+               project-kill-buffers-ignores)
         (push buf bufs)))
     (when (yes-or-no-p (format "Kill %d buffers in %s? "
                                (length bufs) (project-root pr)))
