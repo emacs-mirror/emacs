@@ -302,7 +302,7 @@ non-nil if FILE exists and its contents were successfully inserted."
 (declare-function project-try-vc "project")
 (defun vc-known-roots ()
   "Return a list of known vc roots."
-  (seq-filter #'project-try-vc (mapcar #'car (project-known-roots))))
+  (seq-filter #'project-try-vc (project-known-project-roots)))
 
 (defun vc-find-root (file witness)
   "Find the root of a checked out project.
