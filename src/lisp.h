@@ -3230,6 +3230,7 @@ union specbinding
       Lisp_Object function;
       Lisp_Object *args;
       ptrdiff_t nargs;
+      int bytecode_offset;
     } bt;
   };
 
@@ -3279,6 +3280,9 @@ struct handler
   /* The next two are set by unwind_to_catch.  */
   enum nonlocal_exit nonlocal_exit;
   Lisp_Object val;
+
+  /* The bytecode offset where the error occurred. */
+  int bytecode_offset;
 
   struct handler *next;
   struct handler *nextfree;
@@ -4109,6 +4113,7 @@ extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
+extern int backtrace_byte_offset;
 
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:

@@ -56,6 +56,8 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
+int backtrace_byte_offset = -1;
+
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
@@ -135,6 +137,13 @@ backtrace_args (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
   return pdl->bt.args;
+}
+
+static int
+backtrace_bytecode_offset (union specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->bt.bytecode_offset;
 }
 
 static bool
@@ -335,9 +344,7 @@ call_debugger (Lisp_Object arg)
 	 redisplay, which necessarily leads to display problems.  */
   specbind (Qinhibit_eval_during_redisplay, Qt);
 #endif
-
   val = apply1 (Vdebugger, arg);
-
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */
@@ -2149,6 +2156,10 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.function = function;
   current_thread->stack_top = specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
+  union specbinding *nxt = specpdl_ptr;
+  nxt = backtrace_next(nxt);
+  if (nxt->kind == SPECPDL_BACKTRACE)
+    nxt->bt.bytecode_offset = backtrace_byte_offset;
   grow_specpdl ();
 
   return count;
@@ -3650,6 +3661,10 @@ backtrace_frame_apply (Lisp_Object function, union specbinding *pdl)
   if (backtrace_debug_on_exit (pdl))
     flags = list2 (QCdebug_on_exit, Qt);
 
+  int off = backtrace_bytecode_offset (pdl);
+  if (off > 0)
+    flags = Fcons (QCbytecode_offset, Fcons (make_fixnum (off), flags));
+
   if (backtrace_nargs (pdl) == UNEVALLED)
     return call4 (function, Qnil, backtrace_function (pdl), *backtrace_args (pdl), flags);
   else
@@ -4237,6 +4252,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sfetch_bytecode);
   defsubr (&Sbacktrace_debug);
   DEFSYM (QCdebug_on_exit, ":debug-on-exit");
+  DEFSYM (QCbytecode_offset, ":bytecode-offset");
   defsubr (&Smapbacktrace);
   defsubr (&Sbacktrace_frame_internal);
   defsubr (&Sbacktrace_frames_from_thread);
