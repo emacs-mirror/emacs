@@ -1782,12 +1782,6 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  start_display (&it3, w, top);
 		  if (start > CHARPOS (top))
 		    move_it_to (&it3, start - 1, -1, -1, -1, MOVE_TO_POS);
-		  /* Record the line-number width, if any.  Do it here,
-		     before subsequent calls to start_display etc. reset
-		     the line_number_produced_p flag, and we can no
-		     longer be sure we are not using stale info.  */
-		  int lnum_pixel_width =
-		    it3.line_number_produced_p ? it3.lnum_pixel_width : 0;
 		  /* Move forward one more line if the position before
 		     the display string is a newline or if it is the
 		     rightmost character on a line that is
@@ -1857,13 +1851,10 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  /* Account for line-number display, if IT3 still
 		     didn't.  This can happen if START - 1 is the
 		     first or the last character on its display line.  */
-		  if (!it3.line_number_produced_p)
-		    {
-		      if (lnum_pixel_width > 0)
-			top_x += lnum_pixel_width;
-		      else if (it.line_number_produced_p)
-			top_x += it.lnum_pixel_width;
-		    }
+		  if (it3.lnum_pixel_width > 0)
+		    top_x += it3.lnum_pixel_width;
+		  else if (it.line_number_produced_p)
+		    top_x += it.lnum_pixel_width;
 		  /* Normally, we would exit the above loop because we
 		     found the display element whose character
 		     position is CHARPOS.  For the contingency that we
