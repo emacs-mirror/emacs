@@ -1936,6 +1936,12 @@
       (define-prefix-command 'my/map)
       (bind-key "<f1>" 'my/map nil nil))))
 
+(defvar test-map (make-keymap))
+
+(ert-deftest bind-key/845 ()
+  (bind-key "C-c f" 'ignore 'test-map)
+  (describe-personal-keybindings))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t
