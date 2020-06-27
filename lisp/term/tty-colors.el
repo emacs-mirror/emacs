@@ -923,7 +923,7 @@ The returned value reflects the standard Emacs definition of
 COLOR (see the info node `(emacs) Colors'), regardless of whether
 the terminal can display it, so the return value should be the
 same regardless of what display is being used."
-  (or (internal-color-values-from-color-spec color)
+  (or (color-values-from-color-spec color)
       (cdr (assoc color color-name-rgb-alist))))
 
 (defun tty-color-translate (color &optional frame)

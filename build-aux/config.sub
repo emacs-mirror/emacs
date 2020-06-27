@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2020 Free Software Foundation, Inc.
 
-timestamp='2020-05-04'
+timestamp='2020-06-20'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -476,6 +476,10 @@ case $1 in
 			parisc)
 				basic_machine=hppa-unknown
 				os=linux
+				;;
+			psp)
+				basic_machine=mipsallegrexel-sony
+				os=psp
 				;;
 			pw32)
 				basic_machine=i586-unknown
@@ -1138,13 +1142,9 @@ case $cpu-$vendor in
 		cpu=nsx
 		vendor=tandem
 		;;
-	s390-*)
-		cpu=s390
-		vendor=ibm
-		;;
-	s390x-*)
-		cpu=s390x
-		vendor=ibm
+	mipsallegrexel-sony)
+		cpu=mipsallegrexel
+		vendor=sony
 		;;
 	tile*-*)
 		os=${os:-linux-gnu}
@@ -1229,6 +1229,7 @@ case $cpu-$vendor in
 			| pyramid \
 			| riscv | riscv32 | riscv64 \
 			| rl78 | romp | rs6000 | rx \
+			| s390 | s390x \
 			| score \
 			| sh | shl \
 			| sh[1234] | sh[24]a | sh[24]ae[lb] | sh[23]e | she[lb] | sh[lb]e \
@@ -1334,41 +1335,6 @@ case $os in
 	psos*)
 		os=psos
 		;;
-	# Now accept the basic system types.
-	# The portable systems comes first.
-	# Each alternative MUST end in a * to match a version number.
-	# sysv* is not here because it comes later, after sysvr4.
-	gnu* | bsd* | mach* | minix* | genix* | ultrix* | irix* \
-	     | *vms* | esix* | aix* | cnk* | sunos | sunos[34]*\
-	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
-	     | sym* | kopensolaris* | plan9* \
-	     | amigaos* | amigados* | msdos* | newsos* | unicos* | aof* \
-	     | aos* | aros* | cloudabi* | sortix* | twizzler* \
-	     | nindy* | vxsim* | vxworks* | ebmon* | hms* | mvs* \
-	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
-	     | knetbsd* | mirbsd* | netbsd* \
-	     | bitrig* | openbsd* | solidbsd* | libertybsd* | os108* \
-	     | ekkobsd* | kfreebsd* | freebsd* | riscix* | lynxos* \
-	     | bosx* | nextstep* | cxux* | aout* | elf* | oabi* \
-	     | ptx* | coff* | ecoff* | winnt* | domain* | vsta* \
-	     | udi* | eabi* | lites* | ieee* | go32* | aux* | hcos* \
-	     | chorusrdb* | cegcc* | glidix* \
-	     | cygwin* | msys* | pe* | moss* | proelf* | rtems* \
-	     | midipix* | mingw32* | mingw64* | linux-gnu* | linux-android* \
-	     | linux-newlib* | linux-musl* | linux-uclibc* \
-	     | uxpv* | beos* | mpeix* | udk* | moxiebox* \
-	     | interix* | uwin* | mks* | rhapsody* | darwin* \
-	     | openstep* | oskit* | conix* | pw32* | nonstopux* \
-	     | storm-chaos* | tops10* | tenex* | tops20* | its* \
-	     | os2* | vos* | palmos* | uclinux* | nucleus* \
-	     | morphos* | superux* | rtmk* | windiss* \
-	     | powermax* | dnix* | nx6 | nx7 | sei* | dragonfly* \
-	     | skyos* | haiku* | rdos* | toppers* | drops* | es* \
-	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
-	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
-	     | nsk* | powerunix* | genode*)
-	# Remember, each alternative MUST END IN *, to match a version number.
-		;;
 	qnx*)
 		case $cpu in
 		    x86 | i*86)
@@ -1393,17 +1359,20 @@ case $os in
 	linux-dietlibc)
 		os=linux-dietlibc
 		;;
-	linux*)
-		os=`echo $os | sed -e 's|linux|linux-gnu|'`
-		;;
 	lynx*178)
 		os=lynxos178
 		;;
 	lynx*5)
 		os=lynxos5
 		;;
+	lynxos*)
+		# don't get caught up in next wildcard
+		;;
 	lynx*)
 		os=lynxos
+		;;
+	mach)
+		# don't get caught up in next wildcard
 		;;
 	mac*)
 		os=`echo "$os" | sed -e 's|mac|macos|'`
@@ -1507,9 +1476,49 @@ case $os in
 		;;
 	ios)
 		;;
+	psp)
+		;;
 	none)
 		;;
 	*-eabi)
+		;;
+	# Now accept the basic system types.
+	# The portable systems comes first.
+	# Each alternative MUST end in a * to match a version number.
+	# sysv* is not here because it comes later, after sysvr4.
+	gnu* | bsd* | mach* | minix* | genix* | ultrix* | irix* \
+	     | *vms* | esix* | aix* | cnk* | sunos | sunos[34]*\
+	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
+	     | sym* | kopensolaris* | plan9* \
+	     | amigaos* | amigados* | msdos* | newsos* | unicos* | aof* \
+	     | aos* | aros* | cloudabi* | sortix* | twizzler* \
+	     | nindy* | vxsim* | vxworks* | ebmon* | hms* | mvs* \
+	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+	     | knetbsd* | mirbsd* | netbsd* \
+	     | bitrig* | openbsd* | solidbsd* | libertybsd* | os108* \
+	     | ekkobsd* | kfreebsd* | freebsd* | riscix* | lynxos* \
+	     | bosx* | nextstep* | cxux* | aout* | elf* | oabi* \
+	     | ptx* | coff* | ecoff* | winnt* | domain* | vsta* \
+	     | udi* | eabi* | lites* | ieee* | go32* | aux* | hcos* \
+	     | chorusrdb* | cegcc* | glidix* \
+	     | cygwin* | msys* | pe* | moss* | proelf* | rtems* \
+	     | midipix* | mingw32* | mingw64* | linux-gnu* | linux-android* \
+	     | linux-newlib* | linux-musl* | linux-uclibc* \
+	     | uxpv* | beos* | mpeix* | udk* | moxiebox* \
+	     | interix* | uwin* | mks* | rhapsody* | darwin* \
+	     | openstep* | oskit* | conix* | pw32* | nonstopux* \
+	     | storm-chaos* | tops10* | tenex* | tops20* | its* \
+	     | os2* | vos* | palmos* | uclinux* | nucleus* \
+	     | morphos* | superux* | rtmk* | windiss* \
+	     | powermax* | dnix* | nx6 | nx7 | sei* | dragonfly* \
+	     | skyos* | haiku* | rdos* | toppers* | drops* | es* \
+	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+	     | nsk* | powerunix* | genode*)
+	# Remember, each alternative MUST END IN *, to match a version number.
+		;;
+	linux*)
+		os=`echo $os | sed -e 's|linux|linux-gnu|'`
 		;;
 	*)
 		echo Invalid configuration \`"$1"\': system \`"$os"\' not recognized 1>&2

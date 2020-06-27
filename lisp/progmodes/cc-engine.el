@@ -3137,7 +3137,7 @@ comment at the start of cc-engine.el for more info."
 	       (not base)   ; FIXME!!! Compare base and far-base??
 					; (2019-05-21)
 	       (not end)
-	       (> here end))
+	       (>= here end))
 	      (progn
 		(setq far-base-and-state (c-parse-ps-state-below here)
 		      far-base (car far-base-and-state)
@@ -3150,7 +3150,7 @@ comment at the start of cc-engine.el for more info."
 	      (or
 	       (and (> here base) (null end))
 	       (null (nth 8 s))
-	       (and end (> here end))
+	       (and end (>= here end))
 	       (not
 		(or
 		 (and (nth 3 s)		; string

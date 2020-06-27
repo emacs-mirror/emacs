@@ -3477,15 +3477,18 @@ You can browse the resulting @file{*Packages*} buffer to see what is
 available, and then Emacs can automatically download and install the
 packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
 
-There are other, non-GNU, Emacs Lisp package servers, including:
-@uref{https://melpa.org, MELPA}; and
-@uref{https://marmalade-repo.org, Marmalade}.  To use additional
-package servers, customize the @code{package-archives} variable.  Be
-aware that installing a package can run arbitrary code, so only add
-sources that you trust.  Also, packages hosted on non-GNU package
-servers may encourage or require you to install and use non-free
-software; for example, MELPA is known to host some packages that do
-this.
+There are other Emacs Lisp package archives.  To use additional
+archives, you can customize the @code{package-archives} variable.
+Those archives have no affiliation with GNU Emacs, and we do not
+monitor how they are maintained.  They may pay close attention to
+correctness and safety of the code, or they may give only cursory
+attention.
+
+Also, packages hosted on these other archives may encourage or require
+you to install and use other nonfree programs.  Unless you can verify
+that a package is free software, and that it functions without
+installing any nonfree software, we recommend for your freedom's sake
+that you stay away from it.
 
 The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
 GNU Emacs sources mailing list}, which is gatewayed to the

@@ -396,7 +396,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 		     ;; which might ask the user for something
 		     (switch-to-buffer (current-buffer))
 		     (if (and (consp action)
-			      (not (eq (car action) 'lambda)))
+			      (not (functionp action)))
 			 (skeleton-insert action)
 		       (funcall action)))))
 	       (if (vectorp action)

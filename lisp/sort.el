@@ -554,9 +554,6 @@ is the one that ends before END."
   (if (> beg end)
       (let (mid) (setq mid end end beg beg mid)))
   (save-excursion
-    (when (or (< (line-beginning-position) beg)
-              (< end (line-end-position)))
-      (user-error "There are no full lines in the region"))
     ;; Put beg at the start of a line and end and the end of one --
     ;; the largest possible region which fits this criteria.
     (goto-char beg)
@@ -568,6 +565,8 @@ is the one that ends before END."
     ;; reversal; it isn't difficult to add it afterward.
     (or (and (eolp) (not (bolp))) (progn (forward-line -1) (end-of-line)))
     (setq end (point-marker))
+    (when (<= end beg)
+      (user-error "There are no full lines in the region"))
     ;; The real work.  This thing cranks through memory on large regions.
     (let (ll (do t))
       (while do

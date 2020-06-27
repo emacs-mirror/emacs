@@ -1871,9 +1871,10 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  top_x = it3.current_x - it3.pixel_width;
 		  /* Account for line-number display, if IT3 still
 		     didn't.  This can happen if START - 1 is the
-		     first character on its display line.  */
-		  if (!it3.line_number_produced_p
-		      && it.line_number_produced_p)
+		     first or the last character on its display line.  */
+		  if (it3.lnum_pixel_width > 0)
+		    top_x += it3.lnum_pixel_width;
+		  else if (it.line_number_produced_p)
 		    top_x += it.lnum_pixel_width;
 		  /* Normally, we would exit the above loop because we
 		     found the display element whose character

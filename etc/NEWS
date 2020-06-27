@@ -64,8 +64,8 @@ It was declared obsolete in Emacs 27.1.
 ** Emacs can support 24-bit color TTY without terminfo database.
 If your text-mode terminal supports 24-bit true color, but your system
 lacks the terminfo database, you can instruct Emacs to support 24-bit
-true color by setting COLORTERM=truecolor in the environment.  This is
-useful on systems such as FreeBSD which ships only with 'etc/termcap'.
+true color by setting 'COLORTERM=truecolor' in the environment.  This is
+useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 
 * Changes in Emacs 28.1
@@ -114,6 +114,14 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+** Windows
+
+*** The key prefix 'C-x 4 4' displays next command buffer in a new window.
+
+** Frames
+
+*** The key prefix 'C-x 5 5' displays next command buffer in a new frame.
 
 ** Tab Bars
 
@@ -165,6 +173,15 @@ directories with the help of new command 'dired-vc-next-action'.
 
 ** Change Logs and VC
 
+*** More VC commands can be used from non-file buffers.
+The relevant commands are those that don't change the VC state.
+The non-file buffers which can use VC commands are those that have
+their 'default-directory' under VC.
+
+*** 'M-n' now works in minibuffer prompts of VC commands.
+Typing 'M-n' in the minibuffer that prompts for a VC directory in VC
+commands now retrieves directories of previously used VC projects.
+
 *** New command 'vc-dir-root' uses the root directory without asking.
 
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
@@ -187,6 +204,11 @@ this user option.
 
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
+
+---
+*** The command 'view-lossage' can now be invoked from the menu bar.
+The menu-bar Help menu now has a "Show Recent Inputs" item under the
+"Describe" sub-menu.
 
 ---
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
@@ -382,7 +404,6 @@ To enable, add it to appropriate entries in 'c-offsets-alist', e.g.:
 ** browse-url
 
 *** Added support for custom URL handlers.
-
 There is a new variable 'browse-url-default-handlers' and a user
 option 'browse-url-handlers' being alists with '(REGEXP-OR-PREDICATE
 . FUNCTION)' entries allowing to define different browsing FUNCTIONs
@@ -396,7 +417,6 @@ Formerly, one could do the same by setting
 supported but deprecated.
 
 *** Categorization of browsing functions in internal vs. external.
-
 All standard browsing functions such as 'browse-url-firefox',
 'browse-url-mail', or 'eww' have been categorized into internal (URL
 is browsed in Emacs) or external (an external application is spawned
@@ -481,6 +501,21 @@ The user options 'battery-mode-line-format' and
 the function 'format-spec' documented under node "(elisp) Custom Format
 Strings".  The new syntax includes specifiers for padding and
 truncation, amongst other things.
+
+** bug-reference.el
+
+---
+*** Bug reference mode auto-setup.  If 'bug-reference-mode' or
+'bug-reference-prog-mode' have been activated, their respective hook
+has been run and still 'bug-reference-bug-regexp' and
+'bug-reference-url-format' aren't both set, it tries to guess
+appropriate values for those two variables.  There are two guessing
+mechanisms so far: based on version control information of the current
+buffer's file, and based on newsgroup/mail-folder name and several
+news and mail message headers in Gnus buffers.  Both mechanisms are
+extensible with custom rules, see the variables
+'bug-reference-setup-from-vc-alist' and
+'bug-reference-setup-from-mail-alist'.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -615,6 +650,11 @@ In order for the two functions to behave more consistently,
 'format-spec' now pads and truncates based on string width rather than
 length, and also supports format specifications that include a
 truncating precision field, such as '%.2a'.
+
+---
+** New function 'color-values-from-color-spec'.
+This can be used to parse RGB color specs in several formats and
+convert them to a list '(R G B)' of primary color values.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

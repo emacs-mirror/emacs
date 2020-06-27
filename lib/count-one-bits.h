@@ -34,29 +34,13 @@ _GL_INLINE_HEADER_BEGIN
 extern "C" {
 #endif
 
-/* Expand to code that computes the number of 1-bits of the local
-   variable 'x' of type TYPE (an unsigned integer type) and return it
-   from the current function.  */
-#define COUNT_ONE_BITS_GENERIC(TYPE)                                   \
-    do                                                                  \
-      {                                                                 \
-        int count = 0;                                                  \
-        int bits;                                                       \
-        for (bits = 0; bits < sizeof (TYPE) * CHAR_BIT; bits += 32)     \
-          {                                                             \
-            count += count_one_bits_32 (x);                             \
-            x = x >> 31 >> 1;                                           \
-          }                                                             \
-        return count;                                                   \
-      }                                                                 \
-    while (0)
-
-/* Assuming the GCC builtin is BUILTIN and the MSC builtin is MSC_BUILTIN,
+/* Assuming the GCC builtin is GCC_BUILTIN and the MSC builtin is MSC_BUILTIN,
    expand to code that computes the number of 1-bits of the local
    variable 'x' of type TYPE (an unsigned integer type) and return it
    from the current function.  */
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-# define COUNT_ONE_BITS(BUILTIN, MSC_BUILTIN, TYPE) return BUILTIN (x)
+# define COUNT_ONE_BITS(GCC_BUILTIN, MSC_BUILTIN, TYPE) \
+    return GCC_BUILTIN (x)
 #else
 
 /* Compute and return the number of 1-bits set in the least
@@ -71,14 +55,46 @@ count_one_bits_32 (unsigned int x)
   return (x >> 8) + (x & 0x00ff);
 }
 
+/* Expand to code that computes the number of 1-bits of the local
+   variable 'x' of type TYPE (an unsigned integer type) and return it
+   from the current function.  */
+# define COUNT_ONE_BITS_GENERIC(TYPE)                                   \
+    do                                                                  \
+      {                                                                 \
+        int count = 0;                                                  \
+        int bits;                                                       \
+        for (bits = 0; bits < sizeof (TYPE) * CHAR_BIT; bits += 32)     \
+          {                                                             \
+            count += count_one_bits_32 (x);                             \
+            x = x >> 31 >> 1;                                           \
+          }                                                             \
+        return count;                                                   \
+      }                                                                 \
+    while (0)
+
 # if 1500 <= _MSC_VER && (defined _M_IX86 || defined _M_X64)
 
 /* While gcc falls back to its own generic code if the machine
    on which it's running doesn't support popcount, with Microsoft's
    compiler we need to detect and fallback ourselves.  */
-#  pragma intrinsic __cpuid
-#  pragma intrinsic __popcnt
-#  pragma intrinsic __popcnt64
+
+#  if 0
+#   include <intrin.h>
+#  else
+    /* Don't pollute the namespace with too many MSVC intrinsics.  */
+#   pragma intrinsic (__cpuid)
+#   pragma intrinsic (__popcnt)
+#   if defined _M_X64
+#    pragma intrinsic (__popcnt64)
+#   endif
+#  endif
+
+#  if !defined _M_X64
+static inline __popcnt64 (unsigned long long x)
+{
+  return __popcnt ((unsigned int) (x >> 32)) + __popcnt ((unsigned int) x);
+}
+#  endif
 
 /* Return nonzero if popcount is supported.  */
 
@@ -90,25 +106,30 @@ popcount_supported (void)
 {
   if (popcount_support < 0)
     {
+      /* Do as described in
+         <https://docs.microsoft.com/en-us/cpp/intrinsics/popcnt16-popcnt-popcnt64> */
       int cpu_info[4];
       __cpuid (cpu_info, 1);
-      popcount_support = (cpu_info[2] >> 23) & 1;  /* See MSDN.  */
+      popcount_support = (cpu_info[2] >> 23) & 1;
     }
   return popcount_support;
 }
 
-#  define COUNT_ONE_BITS(BUILTIN, MSC_BUILTIN, TYPE)    \
-     do                                                 \
-       {                                                \
-         if (popcount_supported ())                     \
-           return MSC_BUILTIN (x);                      \
-         else                                           \
-           COUNT_ONE_BITS_GENERIC (TYPE);               \
-       }                                                \
+#  define COUNT_ONE_BITS(GCC_BUILTIN, MSC_BUILTIN, TYPE) \
+     do                                                  \
+       {                                                 \
+         if (popcount_supported ())                      \
+           return MSC_BUILTIN (x);                       \
+         else                                            \
+           COUNT_ONE_BITS_GENERIC (TYPE);                \
+       }                                                 \
      while (0)
+
 # else
-#  define COUNT_ONE_BITS(BUILTIN, MSC_BUILTIN, TYPE)	\
+
+#  define COUNT_ONE_BITS(GCC_BUILTIN, MSC_BUILTIN, TYPE) \
      COUNT_ONE_BITS_GENERIC (TYPE)
+
 # endif
 #endif
 

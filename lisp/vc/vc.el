@@ -1074,11 +1074,9 @@ BEWARE: this function may change the current buffer."
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
 	(vc-deduce-fileset not-state-changing allow-unregistered state-model-only-files)))
-     ((and (derived-mode-p 'log-view-mode)
+     ((and (not buffer-file-name)
 	   (setq backend (vc-responsible-backend default-directory)))
       (list backend nil))
-     ((not buffer-file-name)
-       (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (if state-model-only-files
 	  (list (vc-backend-for-registration (buffer-file-name))
@@ -2003,7 +2001,8 @@ saving the buffer."
 	  rootdir working-revision)
       (if backend
 	  (setq rootdir (vc-call-backend backend 'root default-directory))
-	(setq rootdir (read-directory-name "Directory for VC root-diff: "))
+	(setq rootdir (read-directory-name "Directory for VC root-diff: "
+                                           nil (vc-known-roots)))
 	(setq backend (vc-responsible-backend rootdir))
 	(if backend
 	    (setq default-directory rootdir)
@@ -2547,7 +2546,8 @@ with its diffs (if the underlying VCS supports that)."
 	 rootdir)
     (if backend
 	(setq rootdir (vc-call-backend backend 'root default-directory))
-      (setq rootdir (read-directory-name "Directory for VC revision log: "))
+      (setq rootdir (read-directory-name "Directory for VC revision log: "
+                                         nil (vc-known-roots)))
       (setq backend (vc-responsible-backend rootdir))
       (unless backend
         (error "Directory is not version controlled")))

@@ -124,7 +124,7 @@ open (const char *filename, int flags, ...)
 #endif
 
   fd = orig_open (filename,
-                  flags & ~(have_cloexec <= 0 ? O_CLOEXEC : 0), mode);
+                  flags & ~(have_cloexec < 0 ? O_CLOEXEC : 0), mode);
 
   if (flags & O_CLOEXEC)
     {

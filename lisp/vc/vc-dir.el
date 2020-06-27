@@ -1366,7 +1366,7 @@ These are the commands available for use in the file status buffer:
     ;; Otherwise if you do C-x v d -> C-x C-f -> C-x v d
     ;; you may get a new *vc-dir* buffer, different from the original
     (file-truename (read-directory-name "VC status for directory: "
-					(vc-root-dir) nil t
+					(vc-root-dir) (vc-known-roots) t
 					nil))
     (if current-prefix-arg
 	(intern
@@ -1496,8 +1496,9 @@ This implements the `bookmark-make-record-function' type for
 This implements the `handler' function interface for the record
 type returned by `vc-dir-bookmark-make-record'."
   (let* ((file (bookmark-prop-get bmk 'filename))
-         (buf (save-window-excursion
-                 (vc-dir file) (current-buffer))))
+         (buf (progn ;; Don't use save-window-excursion (bug#39722)
+                (vc-dir file)
+                (current-buffer))))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 

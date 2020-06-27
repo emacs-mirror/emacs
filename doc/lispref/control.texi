@@ -959,8 +959,9 @@ For example, the following is invalid:
 
 @example
 @group
+(require 'cl-lib)
 (pcase (read-number "Enter an integer: ")
-  ((or (and (pred evenp)
+  ((or (and (pred cl-evenp)
             e-num)      ; @r{bind @code{e-num} to @var{expval}}
        o-num)           ; @r{bind @code{o-num} to @var{expval}}
    (list e-num o-num)))
@@ -984,9 +985,10 @@ Reworking the above example:
 
 @example
 @group
+(require 'cl-lib)
 (pcase (read-number "Enter an integer: ")
   ((and num                                ; @r{line 1}
-        (or (and (pred evenp)              ; @r{line 2}
+        (or (and (pred cl-evenp)           ; @r{line 2}
                  (let spin 'even))         ; @r{line 3}
             (let spin 'odd)))              ; @r{line 4}
    (list spin num)))                       ; @r{line 5}

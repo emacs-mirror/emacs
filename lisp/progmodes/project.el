@@ -449,7 +449,7 @@ backend implementation of `project-external-roots'.")
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (let* ((root (cdr project))
-          backend)
+         backend)
     (append
      (when (file-equal-p dir root)
        (setq backend (vc-responsible-backend root))
@@ -674,8 +674,8 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
   (let* ((all-files (project-files project dirs))
          (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
-                       "Find file" all-files nil nil
-                       filename)))
+                        "Find file" all-files nil nil
+                        filename)))
     (if (string= file "")
         (user-error "You didn't specify the file")
       (find-file file))))
@@ -719,7 +719,7 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 If a buffer already exists for running a shell in the project's root,
 switch to it.  Otherwise, create a new shell buffer.
 With \\[universal-argument] prefix arg, create a new inferior shell buffer even
-if one already exist."
+if one already exists."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
          (default-project-shell-name
@@ -738,14 +738,15 @@ if one already exist."
 If a buffer already exists for running Eshell in the project's root,
 switch to it.  Otherwise, create a new Eshell buffer.
 With \\[universal-argument] prefix arg, create a new Eshell buffer even
-if one already exist."
+if one already exists."
   (interactive)
+  (defvar eshell-buffer-name)
   (let* ((default-directory (project-root (project-current t)))
          (eshell-buffer-name
-           (concat "*" (file-name-nondirectory
-                        (directory-file-name
-                         (file-name-directory default-directory)))
-                   "-eshell*"))
+          (concat "*" (file-name-nondirectory
+                       (directory-file-name
+                        (file-name-directory default-directory)))
+                  "-eshell*"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
         (pop-to-buffer eshell-buffer)
@@ -809,7 +810,8 @@ is inside the directory hierarchy of the project's root."
          (predicate
           (lambda (buffer)
             ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
-            (and (not (eq (cdr buffer) current-buffer))
+            (and (cdr buffer)
+                 (not (eq (cdr buffer) current-buffer))
                  (when-let ((file (buffer-local-value 'default-directory
                                                       (cdr buffer))))
                    (file-in-directory-p file root))))))
@@ -818,10 +820,10 @@ is inside the directory hierarchy of the project's root."
       "Switch to buffer: "
       (when (funcall predicate (cons other-name other-buffer))
         other-name)
-      t
+      nil
       predicate))))
 
-(defcustom project-kill-buffers-skip-conditions
+(defcustom project-kill-buffers-ignores
   '("\\*Help\\*")
   "Conditions for buffers `project-kill-buffers' should not kill.
 Each condition is either a regular expression matching a buffer
@@ -829,7 +831,8 @@ name, or a predicate function that takes a buffer object as
 argument and returns non-nil if it matches.  Buffers that match
 any of the conditions will not be killed."
   :type '(repeat (choice regexp function))
-  :version "28.1")
+  :version "28.1"
+  :package-version '(project . "0.5.0"))
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
@@ -845,7 +848,7 @@ any of the conditions will not be killed."
 ;;;###autoload
 (defun project-kill-buffers ()
   "Kill all live buffers belonging to the current project.
-Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
+Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
   (interactive)
   (let ((pr (project-current t)) bufs)
     (dolist (buf (project--buffer-list pr))
@@ -855,7 +858,7 @@ Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
                         (string-match-p c (buffer-name buf)))
                        ((functionp c)
                         (funcall c buf))))
-               project-kill-buffers-skip-conditions)
+               project-kill-buffers-ignores)
         (push buf bufs)))
     (when (yes-or-no-p (format "Kill %d buffers in %s? "
                                (length bufs) (project-root pr)))
@@ -871,7 +874,8 @@ Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
   :group 'project)
 
 (defvar project--list 'unset
-  "List of known project directories.")
+  "List structure containing root directories of known projects.
+With some possible metadata (to be decided).")
 
 (defun project--read-project-list ()
   "Initialize `project--list' using contents of `project-list-file'."
@@ -880,7 +884,13 @@ Certain buffers may be \"spared\", see `project-kill-buffers-skip-conditions'."
           (when (file-exists-p filename)
             (with-temp-buffer
               (insert-file-contents filename)
-              (read (current-buffer)))))))
+              (read (current-buffer)))))
+    (unless (seq-every-p
+             (lambda (elt) (stringp (car-safe elt)))
+             project--list)
+      (warn "Contents of %s are in wrong format, resetting"
+            project-list-file)
+      (setq project--list nil))))
 
 (defun project--ensure-read-project-list ()
   "Initialize `project--list' if it isn't already initialized."
@@ -932,6 +942,12 @@ It's also possible to enter an arbitrary directory not in the list."
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
+
+;;;###autoload
+(defun project-known-project-roots ()
+  "Return the list of root directories of all known projects."
+  (project--ensure-read-project-list)
+  (mapcar #'car project--list))
 
 
 ;;; Project switching

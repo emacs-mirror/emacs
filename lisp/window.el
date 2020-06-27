@@ -4005,6 +4005,43 @@ always effectively nil."
 	;; Always return nil.
 	nil))))
 
+(defun other-window-prefix ()
+  "Display the buffer of the next command in a new window.
+The next buffer is the buffer displayed by the next command invoked
+immediately after this command (ignoring reading from the minibuffer).
+Creates a new window before displaying the buffer.
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+  (interactive)
+  (display-buffer-override-next-command
+   (lambda (buffer alist)
+     (let ((alist (append '((inhibit-same-window . t)) alist))
+           window type)
+       (if (setq window (display-buffer-pop-up-window buffer alist))
+           (setq type 'window)
+         (setq window (display-buffer-use-some-window buffer alist)
+               type 'reuse))
+       (cons window type))))
+  (message "Display next command buffer in a new window..."))
+
+(defun same-window-prefix ()
+  "Display the buffer of the next command in the same window.
+The next buffer is the buffer displayed by the next command invoked
+immediately after this command (ignoring reading from the minibuffer).
+Even when the default rule should display the buffer in a new window,
+force its display in the already selected window.
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+  (interactive)
+  (display-buffer-override-next-command
+   (lambda (buffer alist)
+     (setq alist (append '((inhibit-same-window . nil)) alist))
+     (cons (or
+            (display-buffer-same-window buffer alist)
+            (display-buffer-use-some-window buffer alist))
+           'reuse)))
+  (message "Display next command buffer in the same window..."))
+
 ;; This should probably return non-nil when the selected window is part
 ;; of an atomic window whose root is the frame's root window.
 (defun one-window-p (&optional nomini all-frames)
@@ -8590,19 +8627,24 @@ window; the function takes two arguments: an old and new window."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
+         (clearfun (make-symbol "clear-display-buffer-overriding-action"))
          (action (lambda (buffer alist)
                    (unless (> (minibuffer-depth) minibuffer-depth)
                      (let* ((ret (funcall pre-function buffer alist))
                             (window (car ret))
                             (type (cdr ret)))
                        (setq new-window (window--display-buffer buffer window
-                                                                type alist))))))
+                                                                type alist))
+                       ;; Reset display-buffer-overriding-action
+                       ;; after the first buffer display action
+                       (funcall clearfun)
+                       (setq post-function nil)
+                       new-window))))
          (command this-command)
-         (clearfun (make-symbol "clear-display-buffer-overriding-action"))
          (exitfun
           (lambda ()
-            (setq display-buffer-overriding-action
-                  (delq action display-buffer-overriding-action))
+            (setcar display-buffer-overriding-action
+                    (delq action (car display-buffer-overriding-action)))
             (remove-hook 'post-command-hook clearfun)
             (when (functionp post-function)
               (funcall post-function old-window new-window)))))
@@ -8616,8 +8658,10 @@ window; the function takes two arguments: an old and new window."
 		     ;; adding the hook by the same command below.
 		     (eq this-command command))
               (funcall exitfun))))
+    ;; Reset display-buffer-overriding-action
+    ;; after the next command finishes
     (add-hook 'post-command-hook clearfun)
-    (push action display-buffer-overriding-action)))
+    (push action (car display-buffer-overriding-action))))
 
 
 (defun set-window-text-height (window height)
@@ -10124,5 +10168,6 @@ displaying that processes's buffer."
 (define-key ctl-x-map "-" 'shrink-window-if-larger-than-buffer)
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
+(define-key ctl-x-4-map "4" 'other-window-prefix)
 
 ;;; window.el ends here

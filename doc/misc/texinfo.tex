@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2020-05-07.17}
+\def\texinfoversion{2020-05-22.11}
 %
 % Copyright 1985, 1986, 1988, 1990-2020 Free Software Foundation, Inc.
 %
@@ -33,7 +33,7 @@
 % The texinfo.tex in any given distribution could well be out
 % of date, so if that's what you're using, please check.
 %
-% Send bug reports to bug-texinfo@gnu.org.  Please include including a
+% Send bug reports to bug-texinfo@gnu.org.  Please include a
 % complete document in each bug report with which we can reproduce the
 % problem.  Patches are, of course, greatly appreciated.
 %
@@ -408,7 +408,8 @@
 \ifr@ggedbottom \kern-\dimen@ \vfil \fi}
 }
 
-% Check if we are on the first page of a chapter.
+% Check if we are on the first page of a chapter.  Used for printing headings.
+\newif\ifchapterpage
 \def\checkchapterpage{%
   % Get the chapter that was current at the end of the last page
   \ifcase1\the\savedtopmark\fi
@@ -418,12 +419,9 @@
   \let\curchaptername\thischaptername
   %
   \ifx\curchaptername\prevchaptername
-    \let\thischapterheading\thischapter
+    \chapterpagefalse
   \else
-    % \thischapterheading is the same as \thischapter except it is blank
-    % for the first page of a chapter.  This is to prevent the chapter name
-    % being shown twice.
-    \def\thischapterheading{}%
+    \chapterpagetrue
   \fi
 }
 
@@ -1013,7 +1011,7 @@ where each line of input produces a line of output.}
 \let\setfilename=\comment
 
 % @bye.
-\outer\def\bye{\pagealignmacro\tracingstats=1\ptexend}
+\outer\def\bye{\chappager\pagelabels\tracingstats=1\ptexend}
 
 
 \message{pdf,}
@@ -1137,6 +1135,45 @@ where each line of input produces a line of output.}
 \fi
 \ifx\XeTeXrevision\thisisundefined\else
   \pdforxetextrue
+\fi
+
+
+% Output page labels information.
+% See PDF reference v.1.7 p.594, section 8.3.1.
+\ifpdf
+\def\pagelabels{%
+  \def\title{0 << /P (T-) /S /D >>}%
+  \edef\roman{\the\romancount << /S /r >>}%
+  \edef\arabic{\the\arabiccount << /S /D >>}%
+  %
+  % Page label ranges must be increasing.  Remove any duplicates.
+  % (There is a slight chance of this being wrong if e.g. there is
+  % a @contents but no @titlepage, etc.)
+  %
+  \ifnum\romancount=0 \def\roman{}\fi
+  \ifnum\arabiccount=0 \def\title{}%
+  \else
+    \ifnum\romancount=\arabiccount \def\roman{}\fi
+  \fi
+  %
+  \ifnum\romancount<\arabiccount
+    \pdfcatalog{/PageLabels << /Nums [\title \roman \arabic ] >> }\relax
+  \else
+    \pdfcatalog{/PageLabels << /Nums [\title \arabic \roman ] >> }\relax
+  \fi
+}
+\else
+  \let\pagelabels\relax
+\fi
+
+\newcount\pagecount \pagecount=0
+\newcount\romancount \romancount=0
+\newcount\arabiccount \arabiccount=0
+\ifpdf
+  \let\ptxadvancepageno\advancepageno
+  \def\advancepageno{%
+    \ptxadvancepageno\global\advance\pagecount by 1
+  }
 \fi
 
 
@@ -3806,12 +3843,19 @@ end
 
 \newtoks\evenheadline    % headline on even pages
 \newtoks\oddheadline     % headline on odd pages
+\newtoks\evenchapheadline% headline on even pages with a new chapter
+\newtoks\oddchapheadline % headline on odd pages with a new chapter
 \newtoks\evenfootline    % footline on even pages
 \newtoks\oddfootline     % footline on odd pages
 
 % Now make \makeheadline and \makefootline in Plain TeX use those variables
-\headline={{\textfonts\rm \ifodd\pageno \the\oddheadline
-                            \else \the\evenheadline \fi}}
+\headline={{\textfonts\rm
+            \ifchapterpage
+              \ifodd\pageno\the\oddchapheadline\else\the\evenchapheadline\fi
+            \else
+              \ifodd\pageno\the\oddheadline\else\the\evenheadline\fi
+            \fi}}
+
 \footline={{\textfonts\rm \ifodd\pageno \the\oddfootline
                             \else \the\evenfootline \fi}\HEADINGShook}
 \let\HEADINGShook=\relax
@@ -3827,12 +3871,14 @@ end
 \def\evenheading{\parsearg\evenheadingxxx}
 \def\evenheadingxxx #1{\evenheadingyyy #1\|\|\|\|\finish}
 \def\evenheadingyyy #1\|#2\|#3\|#4\finish{%
-\global\evenheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}}
+  \global\evenheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}
+  \global\evenchapheadline=\evenheadline}
 
 \def\oddheading{\parsearg\oddheadingxxx}
 \def\oddheadingxxx #1{\oddheadingyyy #1\|\|\|\|\finish}
 \def\oddheadingyyy #1\|#2\|#3\|#4\finish{%
-\global\oddheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}}
+  \global\oddheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}%
+  \global\oddchapheadline=\oddheadline}
 
 \parseargdef\everyheading{\oddheadingxxx{#1}\evenheadingxxx{#1}}%
 
@@ -3899,37 +3945,34 @@ end
 \parseargdef\headings{\csname HEADINGS#1\endcsname}
 
 \def\headingsoff{% non-global headings elimination
-  \evenheadline={\hfil}\evenfootline={\hfil}%
-   \oddheadline={\hfil}\oddfootline={\hfil}%
+  \evenheadline={\hfil}\evenfootline={\hfil}\evenchapheadline={\hfil}%
+   \oddheadline={\hfil}\oddfootline={\hfil}\oddchapheadline={\hfil}%
 }
 
 \def\HEADINGSoff{{\globaldefs=1 \headingsoff}} % global setting
 \HEADINGSoff  % it's the default
 
 % When we turn headings on, set the page number to 1.
+\def\pageone{
+  \global\pageno=1
+  \global\arabiccount = \pagecount
+}
+
 % For double-sided printing, put current file name in lower left corner,
 % chapter name on inside top of right hand pages, document
 % title on inside top of left hand pages, and page numbers on outside top
 % edge of all pages.
 \def\HEADINGSdouble{%
-\global\pageno=1
-\global\evenfootline={\hfil}
-\global\oddfootline={\hfil}
-\global\evenheadline={\line{\folio\hfil\thistitle}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
-\global\let\contentsalignmacro = \chapoddpage
+\pageone
+\HEADINGSdoublex
 }
 \let\contentsalignmacro = \chappager
 
 % For single-sided printing, chapter title goes across top left of page,
 % page number on top right.
 \def\HEADINGSsingle{%
-\global\pageno=1
-\global\evenfootline={\hfil}
-\global\oddfootline={\hfil}
-\global\evenheadline={\line{\thischapterheading\hfil\folio}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
-\global\let\contentsalignmacro = \chappager
+\pageone
+\HEADINGSsinglex
 }
 \def\HEADINGSon{\HEADINGSdouble}
 
@@ -3939,7 +3982,9 @@ end
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\folio\hfil\thistitle}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
+\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenchapheadline={\line{\folio\hfil}}
+\global\oddchapheadline={\line{\hfil\folio}}
 \global\let\contentsalignmacro = \chapoddpage
 }
 
@@ -3947,8 +3992,22 @@ end
 \def\HEADINGSsinglex{%
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
-\global\evenheadline={\line{\thischapterheading\hfil\folio}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
+\global\evenheadline={\line{\thischapter\hfil\folio}}
+\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenchapheadline={\line{\hfil\folio}}
+\global\oddchapheadline={\line{\hfil\folio}}
+\global\let\contentsalignmacro = \chappager
+}
+
+% for @setchapternewpage off
+\def\HEADINGSsinglechapoff{%
+\pageone
+\global\evenfootline={\hfil}
+\global\oddfootline={\hfil}
+\global\evenheadline={\line{\thischapter\hfil\folio}}
+\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenchapheadline=\evenheadline
+\global\oddchapheadline=\oddheadline
 \global\let\contentsalignmacro = \chappager
 }
 
@@ -5139,64 +5198,66 @@ end
   \let\lbracechar\{%
   \let\rbracechar\}%
   %
+  %
+  \let\do\indexnofontsdef
+  %
   % Non-English letters.
-  \def\AA{AA}%
-  \def\AE{AE}%
-  \def\DH{DZZ}%
-  \def\L{L}%
-  \def\OE{OE}%
-  \def\O{O}%
-  \def\TH{TH}%
-  \def\aa{aa}%
-  \def\ae{ae}%
-  \def\dh{dzz}%
-  \def\exclamdown{!}%
-  \def\l{l}%
-  \def\oe{oe}%
-  \def\ordf{a}%
-  \def\ordm{o}%
-  \def\o{o}%
-  \def\questiondown{?}%
-  \def\ss{ss}%
-  \def\th{th}%
+  \do\AA{AA}%
+  \do\AE{AE}%
+  \do\DH{DZZ}%
+  \do\L{L}%
+  \do\OE{OE}%
+  \do\O{O}%
+  \do\TH{TH}%
+  \do\aa{aa}%
+  \do\ae{ae}%
+  \do\dh{dzz}%
+  \do\exclamdown{!}%
+  \do\l{l}%
+  \do\oe{oe}%
+  \do\ordf{a}%
+  \do\ordm{o}%
+  \do\o{o}%
+  \do\questiondown{?}%
+  \do\ss{ss}%
+  \do\th{th}%
   %
-  \def\LaTeX{LaTeX}%
-  \def\TeX{TeX}%
+  \do\LaTeX{LaTeX}%
+  \do\TeX{TeX}%
   %
-  % Assorted special characters.  \defglyph gives the control sequence a
-  % definition that removes the {} that follows its use.
-  \defglyph\atchar{@}%
-  \defglyph\arrow{->}%
-  \defglyph\bullet{bullet}%
-  \defglyph\comma{,}%
-  \defglyph\copyright{copyright}%
-  \defglyph\dots{...}%
-  \defglyph\enddots{...}%
-  \defglyph\equiv{==}%
-  \defglyph\error{error}%
-  \defglyph\euro{euro}%
-  \defglyph\expansion{==>}%
-  \defglyph\geq{>=}%
-  \defglyph\guillemetleft{<<}%
-  \defglyph\guillemetright{>>}%
-  \defglyph\guilsinglleft{<}%
-  \defglyph\guilsinglright{>}%
-  \defglyph\leq{<=}%
-  \defglyph\lbracechar{\{}%
-  \defglyph\minus{-}%
-  \defglyph\point{.}%
-  \defglyph\pounds{pounds}%
-  \defglyph\print{-|}%
-  \defglyph\quotedblbase{"}%
-  \defglyph\quotedblleft{"}%
-  \defglyph\quotedblright{"}%
-  \defglyph\quoteleft{`}%
-  \defglyph\quoteright{'}%
-  \defglyph\quotesinglbase{,}%
-  \defglyph\rbracechar{\}}%
-  \defglyph\registeredsymbol{R}%
-  \defglyph\result{=>}%
-  \defglyph\textdegree{o}%
+  % Assorted special characters.
+  \do\atchar{@}%
+  \do\arrow{->}%
+  \do\bullet{bullet}%
+  \do\comma{,}%
+  \do\copyright{copyright}%
+  \do\dots{...}%
+  \do\enddots{...}%
+  \do\equiv{==}%
+  \do\error{error}%
+  \do\euro{euro}%
+  \do\expansion{==>}%
+  \do\geq{>=}%
+  \do\guillemetleft{<<}%
+  \do\guillemetright{>>}%
+  \do\guilsinglleft{<}%
+  \do\guilsinglright{>}%
+  \do\leq{<=}%
+  \do\lbracechar{\{}%
+  \do\minus{-}%
+  \do\point{.}%
+  \do\pounds{pounds}%
+  \do\print{-|}%
+  \do\quotedblbase{"}%
+  \do\quotedblleft{"}%
+  \do\quotedblright{"}%
+  \do\quoteleft{`}%
+  \do\quoteright{'}%
+  \do\quotesinglbase{,}%
+  \do\rbracechar{\}}%
+  \do\registeredsymbol{R}%
+  \do\result{=>}%
+  \do\textdegree{o}%
   %
   % We need to get rid of all macros, leaving only the arguments (if present).
   % Of course this is not nearly correct, but it is the best we can do for now.
@@ -5211,7 +5272,10 @@ end
   \macrolist
   \let\value\indexnofontsvalue
 }
-\def\defglyph#1#2{\def#1##1{#2}} % see above
+
+% Give the control sequence a definition that removes the {} that follows
+% its use, e.g. @AA{} -> AA
+\def\indexnofontsdef#1#2{\def#1##1{#2}}%
 
 
 
@@ -6423,18 +6487,16 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\CHAPPAGoff{%
 \global\let\contentsalignmacro = \chappager
 \global\let\pchapsepmacro=\chapbreak
-\global\let\pagealignmacro=\chappager}
+\global\def\HEADINGSon{\HEADINGSsinglechapoff}}
 
 \def\CHAPPAGon{%
 \global\let\contentsalignmacro = \chappager
 \global\let\pchapsepmacro=\chappager
-\global\let\pagealignmacro=\chappager
 \global\def\HEADINGSon{\HEADINGSsingle}}
 
 \def\CHAPPAGodd{%
 \global\let\contentsalignmacro = \chapoddpage
 \global\let\pchapsepmacro=\chapoddpage
-\global\let\pagealignmacro=\chapoddpage
 \global\def\HEADINGSon{\HEADINGSdouble}}
 
 \CHAPPAGon
@@ -6799,9 +6861,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\startcontents#1{%
   % If @setchapternewpage on, and @headings double, the contents should
-  % start on an odd page, unlike chapters.  Thus, we maintain
-  % \contentsalignmacro in parallel with \pagealignmacro.
-  % From: Torbjorn Granlund <tege@matematik.su.se>
+  % start on an odd page, unlike chapters.
   \contentsalignmacro
   \immediate\closeout\tocfile
   %
@@ -6816,6 +6876,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     %
     % Roman numerals for page numbers.
     \ifnum \pageno>0 \global\pageno = \lastnegativepageno \fi
+    \def\thistitle{}% no title in double-sided headings
+    % Record where the Roman numerals started.
+    \ifnum\romancount=0 \global\romancount=\pagecount \fi
 }
 
 % redefined for the two-volume lispref.  We always output on
@@ -6838,8 +6901,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \fi
     \closein 1
   \endgroup
-  \lastnegativepageno = \pageno
-  \global\pageno = \savepageno
+  \contentsendroman
 }
 
 % And just the chapters.
@@ -6874,10 +6936,20 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \vfill \eject
     \contentsalignmacro % in case @setchapternewpage odd is in effect
   \endgroup
-  \lastnegativepageno = \pageno
-  \global\pageno = \savepageno
+  \contentsendroman
 }
 \let\shortcontents = \summarycontents
+
+% Get ready to use Arabic numerals again
+\def\contentsendroman{%
+  \lastnegativepageno = \pageno
+  \global\pageno = \savepageno
+  %
+  % If \romancount > \arabiccount, the contents are at the end of the
+  % document.  Otherwise, advance where the Arabic numerals start for
+  % the page numbers.
+  \ifnum\romancount>\arabiccount\else\global\arabiccount=\pagecount\fi
+}
 
 % Typeset the label for a chapter or appendix for the short contents.
 % The arg is, e.g., `A' for an appendix, or `3' for a chapter.
@@ -7559,7 +7631,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \wlog{texinfo.tex: doing @verbatiminclude of #1^^J}%
       \edef\tmp{\noexpand\input #1 }
       \expandafter
-    }\tmp
+    }\expandafter\starttabbox\tmp\egroup
     \afterenvbreak
   }%
 }
@@ -10724,6 +10796,8 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{0232}{\=Y}%
   \DeclareUnicodeCharacter{0233}{\=y}%
   \DeclareUnicodeCharacter{0237}{\dotless{j}}%
+  %
+  \DeclareUnicodeCharacter{02BC}{'}%
   %
   \DeclareUnicodeCharacter{02DB}{\ogonek{ }}%
   %

@@ -348,6 +348,7 @@ If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
         (setq acc (funcall function acc elt)))
       acc)))
 
+;;;###autoload
 (cl-defgeneric seq-every-p (pred sequence)
   "Return non-nil if (PRED element) is non-nil for all elements of SEQUENCE."
   (catch 'seq--break
