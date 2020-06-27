@@ -996,7 +996,11 @@ An \"apropos\" query with -k gives a buffer of matching page
 names or descriptions.  The pattern argument is usually an
 \"grep -E\" style regexp.
 
-    -k pattern"
+    -k pattern
+
+Note that in some cases you will need to use \\[quoted-insert] to quote the
+SPC character in the above examples, because this command attempts
+to auto-complete your input based on the installed manual pages."
 
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
