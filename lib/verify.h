@@ -277,10 +277,22 @@ template <int w>
 #endif
 
 /* Assume that R always holds.  Behavior is undefined if R is false,
-   fails to evaluate, or has side effects.  Although assuming R can
-   help a compiler generate better code or diagnostics, performance
-   can suffer if R uses hard-to-optimize features such as function
-   calls not inlined by the compiler.  */
+   fails to evaluate, or has side effects.
+
+   'assume (R)' is a directive from the programmer telling the
+   compiler that R is true so the compiler needn't generate code to
+   test R.  This is why 'assume' is in verify.h: it's related to
+   static checking (in this case, static checking done by the
+   programmer), not dynamic checking.
+
+   'assume (R)' can affect compilation of all the code, not just code
+   that happens to be executed after the assume (R) is "executed".
+   For example, if the code mistakenly does 'assert (R); assume (R);'
+   the compiler is entitled to optimize away the 'assert (R)'.
+
+   Although assuming R can help a compiler generate better code or
+   diagnostics, performance can suffer if R uses hard-to-optimize
+   features such as function calls not inlined by the compiler.  */
 
 #if _GL_HAS_BUILTIN_UNREACHABLE
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())

@@ -33,20 +33,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef C_LOCALE
+# include "c-snprintf.h"
+# include "c-strtod.h"
+# define PREFIX(name) c_ ## name
+#else
+# define PREFIX(name) name
+#endif
+
 #if LENGTH == 3
 # define FLOAT long double
 # define FLOAT_DIG LDBL_DIG
 # define FLOAT_MIN LDBL_MIN
 # define FLOAT_PREC_BOUND _GL_LDBL_PREC_BOUND
-# define FTOASTR ldtoastr
+# define FTOASTR PREFIX (ldtoastr)
 # define PROMOTED_FLOAT long double
-# define STRTOF strtold
+# define STRTOF PREFIX (strtold)
 #elif LENGTH == 2
 # define FLOAT double
 # define FLOAT_DIG DBL_DIG
 # define FLOAT_MIN DBL_MIN
 # define FLOAT_PREC_BOUND _GL_DBL_PREC_BOUND
-# define FTOASTR dtoastr
+# define FTOASTR PREFIX (dtoastr)
 # define PROMOTED_FLOAT double
 #else
 # define LENGTH 1
@@ -54,7 +62,7 @@
 # define FLOAT_DIG FLT_DIG
 # define FLOAT_MIN FLT_MIN
 # define FLOAT_PREC_BOUND _GL_FLT_PREC_BOUND
-# define FTOASTR ftoastr
+# define FTOASTR PREFIX (ftoastr)
 # define PROMOTED_FLOAT double
 # if HAVE_STRTOF
 #  define STRTOF strtof
@@ -65,13 +73,16 @@
    may generate one or two extra digits, but that's better than not
    working at all.  */
 #ifndef STRTOF
-# define STRTOF strtod
+# define STRTOF PREFIX (strtod)
 #endif
 
 /* On hosts where it's not known that snprintf works, use sprintf to
    implement the subset needed here.  Typically BUFSIZE is big enough
    and there's little or no performance hit.  */
-#if ! GNULIB_SNPRINTF
+#ifdef C_LOCALE
+# undef snprintf
+# define snprintf c_snprintf
+#elif ! GNULIB_SNPRINTF
 # undef snprintf
 # define snprintf ftoastr_snprintf
 static int

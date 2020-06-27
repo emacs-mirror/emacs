@@ -1,4 +1,4 @@
-# memmem.m4 serial 26
+# memmem.m4 serial 27
 dnl Copyright (C) 2002-2004, 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -37,7 +37,7 @@ AC_DEFUN([gl_FUNC_MEMMEM_SIMPLE],
     /* Check for empty needle behavior.  */
     {
       const char *haystack = "AAA";
-      if (memmem (haystack, 3, NULL, 0) != haystack)
+      if (memmem (haystack, 3, (const char *) 1, 0) != haystack)
         result |= 2;
     }
     return result;
