@@ -10539,7 +10539,7 @@ The value is always a vector.  */)
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
        Sclear_this_command_keys, 0, 1, 0,
        doc: /* Clear out the vector that `this-command-keys' returns.
-Also clear the record of the last 100 events, unless optional arg
+Also clear the record of the last 300 input events, unless optional arg
 KEEP-RECORD is non-nil.  */)
   (Lisp_Object keep_record)
 {
