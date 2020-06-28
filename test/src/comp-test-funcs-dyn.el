@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defun comp-tests-ffuncall-callee-dyn-f (a b)
   (list a b))
 
@@ -34,6 +36,11 @@
 
 (defun comp-tests-ffuncall-callee-opt-rest-dyn-f (a b &optional c &rest d)
   (list a b c d))
+
+(defun comp-tests-cl-macro-exp-f ()
+  (cl-loop for xxx in '(a b)
+	   for yyy = xxx
+	   collect xxx))
 
 (provide 'comp-test-dyn-funcs)
 
