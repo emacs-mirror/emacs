@@ -4411,6 +4411,14 @@ dispose_comp_unit (struct Lisp_Native_Comp_Unit *comp_handle, bool delay)
    loaded the compiler and its dependencies.  */
 static Lisp_Object delayed_sources;
 
+
+/* Queue an asyncronous compilation for the source file defining
+   FUNCTION_NAME and perform a late load.
+
+   NOTE: ideally would be nice to move its call simply into Fload but
+   we need DEFINITION to guard against function redefinition while
+   async compilation happen.  */
+
 void
 maybe_defer_native_compilation (Lisp_Object function_name,
 				Lisp_Object definition)
@@ -4443,7 +4451,6 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       || noninteractive
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
-      || !FIXNUMP (AREF (definition, COMPILED_ARGLIST))
       || !STRINGP (Vload_true_file_name)
       || !suffix_p (Vload_true_file_name, ".elc"))
     return;
