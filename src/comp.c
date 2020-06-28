@@ -2339,7 +2339,19 @@ emit_static_object (const char *name, Lisp_Object obj)
      strings cause of this funny bug that will affect all pre gcc10 era gccs:
      https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html  */
 
+  ptrdiff_t count = SPECPDL_INDEX ();
+  /* Preserve uninterned symbols, this is specifically necessary for
+     CL macro expansion in dynamic scope code (bug#42088).  See
+     `byte-compile-output-file-form'.  */
+  specbind (intern_c_string ("print-escape-newlines"), Qt);
+  specbind (intern_c_string ("print-length"), Qnil);
+  specbind (intern_c_string ("print-level"), Qnil);
+  specbind (intern_c_string ("print-quoted"), Qt);
+  specbind (intern_c_string ("print-gensym"), Qt);
+  specbind (intern_c_string ("print-circle"), Qt);
   Lisp_Object str = Fprin1_to_string (obj, Qnil);
+  unbind_to (count, Qnil);
+
   ptrdiff_t len = SBYTES (str);
   const char *p = SSDATA (str);
 
