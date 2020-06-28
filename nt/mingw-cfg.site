@@ -153,3 +153,6 @@ gl_cv_warn_c__Wredundant_decls=no
 # missing prototype, since lib/unistd.h, where Gnulib has its
 # prototype, isn't built on Windows.
 gl_cv_func_copy_file_range=yes
+# We don't want to build Emacs so it depends on bcrypt.dll, since then
+# it will refuse to start on systems where that DLL is absent.
+gl_cv_lib_assume_bcrypt=no

@@ -39,10 +39,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "puresize.h"
 #include "gnutls.h"
 
-#if defined WINDOWSNT && defined HAVE_GNUTLS3
-# define gnutls_rnd w32_gnutls_rnd
-#endif
-
 static void sort_vector_copy (Lisp_Object, ptrdiff_t,
 			      Lisp_Object *restrict, Lisp_Object *restrict);
 enum equal_kind { EQUAL_NO_QUIT, EQUAL_PLAIN, EQUAL_INCLUDING_PROPERTIES };
