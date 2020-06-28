@@ -4813,11 +4813,9 @@ When @var{noerror} is non-@code{nil}, this function silently uses
 @code{raw-text} coding instead.
 
 @item (@code{iv-auto} @var{length})
-This will generate an IV (Initialization Vector) of the specified
-length using the GnuTLS @code{GNUTLS_RND_NONCE} generator and pass it
-to the function.  This ensures that the IV is unpredictable and
-unlikely to be reused in the same session.  The actual value of the IV
-is returned by the function as described below.
+This generates a random IV (Initialization Vector) of the specified
+length and passes it to the function.  This ensures that the IV is
+unpredictable and unlikely to be reused in the same session.
 
 @end table
 

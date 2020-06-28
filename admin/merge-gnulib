@@ -35,7 +35,7 @@ GNULIB_MODULES='
   environ execinfo explicit_bzero faccessat
   fchmodat fcntl fcntl-h fdopendir
   filemode filename filevercmp flexmember fpieee fstatat fsusage fsync futimens
-  getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
+  getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile lstat
   manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime nstrftime
   pathmax pipe2 pselect pthread_sigmask
