@@ -109,6 +109,7 @@
 #  futimens \
 #  getloadavg \
 #  getopt-gnu \
+#  getrandom \
 #  gettime \
 #  gettimeofday \
 #  gitlog-to-changelog \
@@ -1095,6 +1096,7 @@ gl_GNULIB_ENABLED_getdtablesize = @gl_GNULIB_ENABLED_getdtablesize@
 gl_GNULIB_ENABLED_getgroups = @gl_GNULIB_ENABLED_getgroups@
 gl_GNULIB_ENABLED_lchmod = @gl_GNULIB_ENABLED_lchmod@
 gl_GNULIB_ENABLED_malloca = @gl_GNULIB_ENABLED_malloca@
+gl_GNULIB_ENABLED_open = @gl_GNULIB_ENABLED_open@
 gl_GNULIB_ENABLED_strtoll = @gl_GNULIB_ENABLED_strtoll@
 gl_GNULIB_ENABLED_utimens = @gl_GNULIB_ENABLED_utimens@
 gl_LIBOBJS = @gl_LIBOBJS@
@@ -2168,7 +2170,9 @@ endif
 ## begin gnulib module open
 ifeq (,$(OMIT_GNULIB_MODULE_open))
 
+ifneq (,$(gl_GNULIB_ENABLED_open))
 
+endif
 EXTRA_DIST += open.c
 
 EXTRA_libgnu_a_SOURCES += open.c

@@ -308,6 +308,7 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([futimens])
   fi
   gl_SYS_STAT_MODULE_INDICATOR([futimens])
+  AC_REQUIRE([AC_CANONICAL_HOST])
   gl_GETLOADAVG
   if test $HAVE_GETLOADAVG = 0; then
     AC_LIBOBJ([getloadavg])
@@ -327,6 +328,7 @@ AC_DEFUN([gl_INIT],
   fi
   AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
   gl_UNISTD_MODULE_INDICATOR([getopt-posix])
+  AC_REQUIRE([AC_CANONICAL_HOST])
   gl_FUNC_GETRANDOM
   if test $HAVE_GETRANDOM = 0 || test $REPLACE_GETRANDOM = 1; then
     AC_LIBOBJ([getrandom])
@@ -383,12 +385,6 @@ AC_DEFUN([gl_INIT],
   gl_TIME_MODULE_INDICATOR([mktime])
   gl_MULTIARCH
   gl_FUNC_GNU_STRFTIME
-  gl_FUNC_OPEN
-  if test $REPLACE_OPEN = 1; then
-    AC_LIBOBJ([open])
-    gl_PREREQ_OPEN
-  fi
-  gl_FCNTL_MODULE_INDICATOR([open])
   gl_PATHMAX
   gl_FUNC_PIPE2
   gl_UNISTD_MODULE_INDICATOR([pipe2])
@@ -509,6 +505,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9=false
   gl_gnulib_enabled_malloca=false
   gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
+  gl_gnulib_enabled_open=false
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
   gl_gnulib_enabled_strtoll=false
@@ -517,7 +514,11 @@ AC_DEFUN([gl_INIT],
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
   {
     if ! $gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b; then
+      AC_REQUIRE([AC_CANONICAL_HOST])
       gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=true
+      if case $host_os in mingw*) false;; *) :;; esac; then
+        func_gl_gnulib_m4code_open
+      fi
     fi
   }
   func_gl_gnulib_m4code_cloexec ()
@@ -644,6 +645,21 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=true
     fi
   }
+  func_gl_gnulib_m4code_open ()
+  {
+    if ! $gl_gnulib_enabled_open; then
+      gl_FUNC_OPEN
+      if test $REPLACE_OPEN = 1; then
+        AC_LIBOBJ([open])
+        gl_PREREQ_OPEN
+      fi
+      gl_FCNTL_MODULE_INDICATOR([open])
+      gl_gnulib_enabled_open=true
+      if test $REPLACE_OPEN = 1; then
+        func_gl_gnulib_m4code_cloexec
+      fi
+    fi
+  }
   func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7 ()
   {
     if ! $gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7; then
@@ -720,14 +736,17 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     func_gl_gnulib_m4code_utimens
   fi
+  if case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0;; esac; then
+    func_gl_gnulib_m4code_open
+  fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi
+  if case $host_os in mingw*) false;; *) test $HAVE_GETRANDOM = 0 || test $REPLACE_GETRANDOM = 1;; esac; then
+    func_gl_gnulib_m4code_open
+  fi
   if test $NEED_LOCALTIME_BUFFER = 1; then
     func_gl_gnulib_m4code_2049e887c7e5308faad27b3f894bb8c9
-  fi
-  if test $REPLACE_OPEN = 1; then
-    func_gl_gnulib_m4code_cloexec
   fi
   if test $HAVE_READLINKAT = 0; then
     func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
@@ -763,6 +782,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9], [$gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_malloca], [$gl_gnulib_enabled_malloca])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_open], [$gl_gnulib_enabled_open])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7], [$gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c], [$gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
