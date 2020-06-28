@@ -4187,7 +4187,8 @@ pthread_sigmask strsignal setitimer timer_getoverrun \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
-cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np)
+cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
+pthread_set_name_np)
 LIBS=$OLD_LIBS
 
 if test "$ac_cv_func_pthread_setname_np" = "yes"; then
