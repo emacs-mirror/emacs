@@ -93,7 +93,7 @@ Skip if any is matching."
   :group 'comp)
 
 (defcustom comp-bootstrap-black-list
-  '("^leim/")
+  '()
   "List of regexps to exclude files from native compilation during bootstrap.
 Skip if any is matching."
   :type 'list
