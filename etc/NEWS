@@ -127,6 +127,10 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
 
+*** The tab bar is frame-local when 'tab-bar-show' is a number.
+Show/hide the tab bar independently for each frame, according to the
+value of 'tab-bar-show'.
+
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 
