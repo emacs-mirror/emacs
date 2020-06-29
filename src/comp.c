@@ -4787,7 +4787,17 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   Lisp_Object tem =
     make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, doc_idx, intspec,
 	       comp_u);
-  Fdefalias (name, tem, Qnil);
+
+  LOADHIST_ATTACH (Fcons (Qdefun, name));
+
+  { /* Handle automatic advice activation (bug#42038).
+       See `defalias'.  */
+    Lisp_Object hook = Fget (name, Qdefalias_fset_function);
+    if (!NILP (hook))
+      call2 (hook, name, tem);
+    else
+      Ffset (name, tem);
+  }
 
   return tem;
 }
