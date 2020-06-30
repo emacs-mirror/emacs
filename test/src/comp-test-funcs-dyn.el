@@ -42,6 +42,9 @@
 	   for yyy = xxx
 	   collect xxx))
 
+(cl-defun comp-tests-cl-uninterned-arg-parse-f (a &optional b &aux)
+  (list a b))
+
 (provide 'comp-test-dyn-funcs)
 
 ;;; comp-test-funcs-dyn.el ends here

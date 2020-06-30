@@ -578,4 +578,9 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "Verify CL macro expansion (bug#42088)."
   (should (equal (comp-tests-cl-macro-exp-f) '(a b))))
 
+(ert-deftest comp-tests-cl-uninterned-arg-parse-f ()
+  "Verify the parsing of a lambda list with uninterned symbols (bug#42120)."
+  (should (equal (comp-tests-cl-uninterned-arg-parse-f 1 2)
+                 '(1 2))))
+
 ;;; comp-tests.el ends here
