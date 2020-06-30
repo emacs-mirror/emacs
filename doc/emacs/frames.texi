@@ -439,29 +439,40 @@ buffer to select:
 @kindex C-x 5 2
 @findex make-frame-command
 Create a new frame (@code{make-frame-command}).
+
 @item C-x 5 b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another frame.  This runs
 @code{switch-to-buffer-other-frame}.
+
 @item C-x 5 f @var{filename} @key{RET}
 Visit file @var{filename} and select its buffer in another frame.  This
 runs @code{find-file-other-frame}.  @xref{Visiting}.
+
 @item C-x 5 d @var{directory} @key{RET}
 Select a Dired buffer for directory @var{directory} in another frame.
 This runs @code{dired-other-frame}.  @xref{Dired}.
+
 @item C-x 5 m
 Start composing a mail message in another frame.  This runs
 @code{compose-mail-other-frame}.  It is the other-frame variant of
 @kbd{C-x m}.  @xref{Sending Mail}.
+
 @item C-x 5 .
 Find the definition of an identifier in another frame.  This runs
 @code{xref-find-definitions-other-frame}, the multiple-frame variant
 of @kbd{M-.}.  @xref{Xref}.
+
 @item C-x 5 r @var{filename} @key{RET}
 @kindex C-x 5 r
 @findex find-file-read-only-other-frame
 Visit file @var{filename} read-only, and select its buffer in another
 frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
+
+@item C-x 5 5
+A more general prefix command affects the buffer displayed by the next
+command invoked immediately after this prefix command.  It requests
+the buffer of the next command to be displayed in another frame.
 @end table
 
   You can control the appearance and behavior of the newly-created
@@ -1316,6 +1327,11 @@ runs @code{find-file-other-tab}.  @xref{Visiting}.
 @item C-x t d @var{directory} @key{RET}
 Select a Dired buffer for directory @var{directory} in another tab.
 This runs @code{dired-other-tab}.  @xref{Dired}.
+
+@item C-x t t
+A more general prefix command affects the buffer displayed by the next
+command invoked immediately after this prefix command.  It requests
+the buffer of the next command to be displayed in another tab.
 @end table
 
 @vindex tab-bar-new-tab-choice

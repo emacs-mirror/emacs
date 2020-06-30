@@ -10168,6 +10168,7 @@ displaying that processes's buffer."
 (define-key ctl-x-map "-" 'shrink-window-if-larger-than-buffer)
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
+(define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
 
 ;;; window.el ends here

@@ -117,15 +117,25 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 ** Windows
 
+*** The key prefix 'C-x 4 1' displays next command buffer in the same window.
+It's bound to the command 'same-window-prefix' that requests the buffer
+of the next command to be displayed in the same window.
+
 *** The key prefix 'C-x 4 4' displays next command buffer in a new window.
+It's bound to the command 'other-window-prefix' that requests the buffer
+of the next command to be displayed in a new window.
 
 ** Frames
 
 *** The key prefix 'C-x 5 5' displays next command buffer in a new frame.
+It's bound to the command 'other-frame-prefix' that requests the buffer
+of the next command to be displayed in a new frame.
 
 ** Tab Bars
 
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
+It's bound to the command 'other-tab-prefix' that requests the buffer
+of the next command to be displayed in a new tab.
 
 *** The tab bar is frame-local when 'tab-bar-show' is a number.
 Show/hide the tab bar independently for each frame, according to the
