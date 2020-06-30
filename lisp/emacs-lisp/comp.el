@@ -1365,16 +1365,25 @@ the annotation emission."
   (comp-log-func func 2)
   func)
 
-(defun comp-prepare-args-for-top-level (function)
-  "Given FUNCTION return the two args arguments for comp--register-..."
-  (if (comp-func-l-p function)
-      (let ((args (comp-func-l-args function)))
-        (cons (comp-args-base-min args)
-              (if (comp-args-p args)
-                  (comp-args-max args)
-                'many)))
-    (cons (func-arity (comp-func-byte-func function))
-          (comp-func-d-lambda-list function))))
+(cl-defgeneric comp-prepare-args-for-top-level (function)
+  "Given FUNCTION return the two args arguments for comp--register-...")
+
+(cl-defmethod comp-prepare-args-for-top-level ((function comp-func-l))
+  "Lexical scoped FUNCTION."
+  (let ((args (comp-func-l-args function)))
+    (cons (make-comp-mvar :constant (comp-args-base-min args))
+          (make-comp-mvar :constant (if (comp-args-p args)
+                                        (comp-args-max args)
+                                      'many)))))
+
+(cl-defmethod comp-prepare-args-for-top-level ((function comp-func-d))
+  "Dynamic scoped FUNCTION."
+  (cons (make-comp-mvar :constant (func-arity (comp-func-byte-func function)))
+        (let ((comp-curr-allocation-class 'd-default))
+          ;; Lambda-lists must stay in the same relocation class of
+          ;; the object referenced by code to respect uninterned
+          ;; symbols.
+          (make-comp-mvar :constant (comp-func-d-lambda-list function)))))
 
 (cl-defgeneric comp-emit-for-top-level (form for-late-load)
   "Emit the limple code for top level FORM.")
@@ -1390,8 +1399,8 @@ the annotation emission."
                               'comp--late-register-subr
                             'comp--register-subr)
                           (make-comp-mvar :constant name)
-                          (make-comp-mvar :constant (car args))
-                          (make-comp-mvar :constant (cdr args))
+                          (car args)
+                          (cdr args)
                           (make-comp-mvar :constant c-name)
                           (make-comp-mvar
                            :constant
@@ -1431,8 +1440,8 @@ These are stored in the reloc data array."
                     (puthash (comp-func-byte-func func)
                              (make-comp-mvar :constant nil)
                              (comp-ctxt-lambda-fixups-h comp-ctxt)))
-                (make-comp-mvar :constant (car args))
-                (make-comp-mvar :constant (cdr args))
+                (car args)
+                (cdr args)
                 (make-comp-mvar :constant (comp-func-c-name func))
                 (make-comp-mvar
                  :constant (let* ((h (comp-ctxt-function-docs comp-ctxt))
