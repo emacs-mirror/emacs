@@ -58,6 +58,11 @@ shaping, so 'configure' now recommends that combination.
 ** The ftx font backend driver has been removed.
 It was declared obsolete in Emacs 27.1.
 
+---
+** Emacs no longer supports old OpenBSD systems.
+OpenBSD 5.3 and older releases are no longer supported, as they lack
+proper pty support that Emacs needs.
+
 
 * Startup Changes in Emacs 28.1
 
