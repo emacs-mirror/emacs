@@ -20421,6 +20421,10 @@ names or descriptions.  The pattern argument is usually an
 
     -k pattern
 
+Note that in some cases you will need to use \\[quoted-insert] to quote the
+SPC character in the above examples, because this command attempts
+to auto-complete your input based on the installed manual pages.
+
 \(fn MAN-ARGS)" t nil)
 
 (autoload 'man-follow "man" "\
