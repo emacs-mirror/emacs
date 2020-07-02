@@ -172,6 +172,11 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-final)
   "Passes to be executed in order.")
 
+(defvar comp-post-pass-hooks ()
+  "Alist PASS FUNCTIONS.
+Each function in FUNCTIONS is run after PASS.
+Useful to hook into pass checkers.")
+
 (defconst comp-known-ret-types '((cons . cons)
                                  (1+ . number)
                                  (1- . number)
@@ -2617,7 +2622,9 @@ Return the compilation unit file name."
                 (comp-log (format "(%s) Running pass %s:\n"
                                   function-or-file pass)
                           2)
-                (setf data (funcall pass data)))
+                (setf data (funcall pass data))
+                (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                         do (funcall f data)))
               comp-passes)
       (native-compiler-error
        ;; Add source input.
