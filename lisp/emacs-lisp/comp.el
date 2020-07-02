@@ -566,9 +566,11 @@ instruction."
   (or (comp-spill-decl-spec function-name 'speed)
       comp-speed))
 
-(defun comp-c-func-name (name prefix)
+(defun comp-c-func-name (name prefix &optional first)
   "Given NAME return a name suitable for the native code.
-Put PREFIX in front of it."
+Add PREFIX in front of it.  If FIRST is not nil pick the first
+available name ignoring compilation context and potential name
+clashes."
   ;; Unfortunatelly not all symbol names are valid as C function names...
   ;; Nassi's algorithm here:
   (let* ((orig-name (if (symbolp name) (symbol-name name) name))
@@ -583,7 +585,7 @@ Put PREFIX in front of it."
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
-    (if comp-ctxt
+    (if (null first)
         ;; Prevent C namespace conflicts.
         (cl-loop
          with h = (comp-ctxt-funcs-h comp-ctxt)

@@ -96,7 +96,7 @@ redefine OBJECT if it is a symbol."
                                          (regexp-quote
                                           (concat "<"
                                                   (comp-c-func-name
-                                                   (subr-name obj) "F")
+                                                   (subr-name obj) "F" t)
                                                   ">:"))))
               (beginning-of-line)
               (delete-region (point-min) (point))
