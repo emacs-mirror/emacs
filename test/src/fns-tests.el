@@ -890,6 +890,8 @@
   (should (equal (secure-hash 'sha512 "foobar")
                  (concat "0a50261ebd1a390fed2bf326f2673c145582a6342d5"
                          "23204973d0219337f81616a8069b012587cf5635f69"
-                         "25f1b56c360230c19b273500ee013e030601bf2425"))))
-
-(provide 'fns-tests)
+                         "25f1b56c360230c19b273500ee013e030601bf2425")))
+  ;; Test that a call to getrandom returns the right format.
+  ;; This does not test randomness; it's merely a format check.
+  (should (string-match "\\`[0-9a-f]\\{128\\}\\'"
+                        (secure-hash 'sha512 'iv-auto 100))))

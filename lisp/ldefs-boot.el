@@ -13444,7 +13444,54 @@ play around with the following keys:
 ;;;### (autoloads nil "format-spec" "format-spec.el" (0 0 0 0))
 ;;; Generated autoloads from format-spec.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-spec" '("format-spec")))
+(autoload 'format-spec "format-spec" "\
+Return a string based on FORMAT and SPECIFICATION.
+FORMAT is a string containing `format'-like specs like \"su - %u %k\".
+SPECIFICATION is an alist mapping format specification characters
+to their substitutions.
+
+For instance:
+
+  (format-spec \"su - %u %l\"
+               \\=`((?u . ,(user-login-name))
+                 (?l . \"ls\")))
+
+Each %-spec may contain optional flag, width, and precision
+modifiers, as follows:
+
+  %<flags><width><precision>character
+
+The following flags are allowed:
+
+* 0: Pad to the width, if given, with zeros instead of spaces.
+* -: Pad to the width, if given, on the right instead of the left.
+* <: Truncate to the width and precision, if given, on the left.
+* >: Truncate to the width and precision, if given, on the right.
+* ^: Convert to upper case.
+* _: Convert to lower case.
+
+The width and truncation modifiers behave like the corresponding
+ones in `format' when applied to %s.
+
+For example, \"%<010b\" means \"substitute into the output the
+value associated with ?b in SPECIFICATION, either padding it with
+leading zeros or truncating leading characters until it's ten
+characters wide\".
+
+Any text properties of FORMAT are copied to the result, with any
+text properties of a %-spec itself copied to its substitution.
+
+IGNORE-MISSING indicates how to handle %-spec characters not
+present in SPECIFICATION.  If it is nil or omitted, emit an
+error; if it is the symbol `ignore', leave those %-specs verbatim
+in the result, including their text properties, if any; if it is
+the symbol `delete', remove those %-specs from the result;
+otherwise do the same as for the symbol `ignore', but also leave
+any occurrences of \"%%\" in FORMAT verbatim in the result.
+
+\(fn FORMAT SPECIFICATION &optional IGNORE-MISSING)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-spec" '("format-spec-")))
 
 ;;;***
 
@@ -19171,7 +19218,7 @@ one of the aforementioned options instead of using this mode.
 
 ;;;### (autoloads nil "jsonrpc" "jsonrpc.el" (0 0 0 0))
 ;;; Generated autoloads from jsonrpc.el
-(push (purecopy '(jsonrpc 1 0 11)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 12)) package--builtin-versions)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jsonrpc" '("jrpc-default-request-timeout" "jsonrpc-")))
 
@@ -22294,8 +22341,8 @@ a greeting from the server.
 :nowait, if non-nil, says the connection should be made
 asynchronously, if possible.
 
-:shell-command is a format-spec string that can be used if :type
-is `shell'.  It has two specs, %s for host and %p for port
+:shell-command is a `format-spec' string that can be used if
+:type is `shell'.  It has two specs, %s for host and %p for port
 number.  Example: \"ssh gateway nc %s %p\".
 
 :tls-parameters is a list that should be supplied if you're
@@ -26204,7 +26251,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 3 0)) package--builtin-versions)
+(push (purecopy '(project 0 4 0)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIR or `default-directory'.
@@ -26212,6 +26259,10 @@ When no project found in DIR, and MAYBE-PROMPT is non-nil, ask
 the user for a different project to look in.
 
 \(fn &optional MAYBE-PROMPT DIR)" nil nil)
+
+(defvar project-prefix-map (let ((map (make-sparse-keymap))) (define-key map "f" 'project-find-file) (define-key map "b" 'project-switch-to-buffer) (define-key map "s" 'project-shell) (define-key map "d" 'project-dired) (define-key map "v" 'project-vc-dir) (define-key map "c" 'project-compile) (define-key map "e" 'project-eshell) (define-key map "k" 'project-kill-buffers) (define-key map "p" 'project-switch-project) (define-key map "g" 'project-find-regexp) (define-key map "r" 'project-query-replace-regexp) map) "\
+Keymap for project commands.")
+ (define-key ctl-x-map "p" project-prefix-map)
 
 (autoload 'project-find-regexp "project" "\
 Find all matches for REGEXP in the current project's roots.
@@ -26242,10 +26293,24 @@ The completion default is the filename at point, if one is
 recognized." t nil)
 
 (autoload 'project-dired "project" "\
-Open Dired in the current project." t nil)
+Start Dired in the current project's root." t nil)
+
+(autoload 'project-vc-dir "project" "\
+Run VC-Dir in the current project's root." t nil)
+
+(autoload 'project-shell "project" "\
+Start an inferior shell in the current project's root directory.
+If a buffer already exists for running a shell in the project's root,
+switch to it.  Otherwise, create a new shell buffer.
+With \\[universal-argument] prefix arg, create a new inferior shell buffer even
+if one already exists." t nil)
 
 (autoload 'project-eshell "project" "\
-Open Eshell in the current project." t nil)
+Start Eshell in the current project's root directory.
+If a buffer already exists for running Eshell in the project's root,
+switch to it.  Otherwise, create a new Eshell buffer.
+With \\[universal-argument] prefix arg, create a new Eshell buffer even
+if one already exists." t nil)
 
 (autoload 'project-search "project" "\
 Search for REGEXP in all the files of the project.
@@ -26264,21 +26329,36 @@ loop using the command \\[fileloop-continue].
 \(fn FROM TO)" t nil)
 
 (autoload 'project-compile "project" "\
-Run `compile' in the project root." t nil)
+Run `compile' in the project root.
+Arguments the same as in `compile'.
 
-(defvar project-switch-commands '(("f" "Find file" project-find-file) ("s" "Find regexp" project-find-regexp) ("d" "Dired" project-dired) ("e" "Eshell" project-eshell)) "\
+\(fn COMMAND &optional COMINT)" t nil)
+
+(autoload 'project-switch-to-buffer "project" "\
+Switch to another buffer that is related to the current project.
+A buffer is related to a project if its `default-directory'
+is inside the directory hierarchy of the project's root." t nil)
+
+(autoload 'project-kill-buffers "project" "\
+Kill all live buffers belonging to the current project.
+Certain buffers may be \"spared\", see `project-kill-buffers-ignores'." t nil)
+
+(autoload 'project-known-project-roots "project" "\
+Return the list of root directories of all known projects." nil nil)
+
+(defvar project-switch-commands '((102 "Find file" project-find-file) (103 "Find regexp" project-find-regexp) (100 "Dired" project-dired) (118 "VC-Dir" project-vc-dir) (101 "Eshell" project-eshell)) "\
 Alist mapping keys to project switching menu entries.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
 
-Each element looks like (KEY LABEL COMMAND), where COMMAND is the
+Each element is of the form (KEY LABEL COMMAND), where COMMAND is the
 command to run when KEY is pressed.  LABEL is used to distinguish
-the choice in the dispatch menu.")
+the menu entries in the dispatch menu.")
 
 (autoload 'project-switch-project "project" "\
-\"Switch\" to another project by running a chosen command.
-The available commands are picked from `project-switch-commands'
-and presented in a dispatch menu." t nil)
+\"Switch\" to another project by running an Emacs command.
+The available commands are presented as a dispatch menu
+made from `project-switch-commands'." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "project" '("project-")))
 
@@ -28726,7 +28806,7 @@ For more details, see Info node `(elisp) Extending Rx'.
 
 \(fn NAME [(ARGS...)] RX)" nil t)
 
-(function-put 'rx-define 'lisp-indent-function '1)
+(function-put 'rx-define 'lisp-indent-function 'defun)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rx" '("rx-")))
 
@@ -29992,6 +30072,11 @@ element of SEQUENCE, etc.
 If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called.
 
 \(fn FUNCTION SEQUENCE INITIAL-VALUE)" nil nil)
+
+(autoload 'seq-every-p "seq" "\
+Return non-nil if (PRED element) is non-nil for all elements of SEQUENCE.
+
+\(fn PRED SEQUENCE)" nil nil)
 
 (autoload 'seq-some "seq" "\
 Return non-nil if PRED is satisfied for at least one element of SEQUENCE.
@@ -34707,6 +34792,13 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;***
 
+;;;### (autoloads nil "tramp-crypt" "net/tramp-crypt.el" (0 0 0 0))
+;;; Generated autoloads from net/tramp-crypt.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tramp-crypt" '("tramp-crypt-")))
+
+;;;***
+
 ;;;### (autoloads nil "tramp-ftp" "net/tramp-ftp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp-ftp.el
 
@@ -36026,7 +36118,10 @@ Note that if FILE is a symbolic link, it will not be resolved --
 the responsible backend system for the symbolic link itself will
 be reported.
 
-\(fn FILE)" nil nil)
+If NO-ERROR is nil, signal an error that no VC backend is
+responsible for the given file.
+
+\(fn FILE &optional NO-ERROR)" nil nil)
 
 (autoload 'vc-next-action "vc" "\
 Do the next logical version control operation on the current fileset.

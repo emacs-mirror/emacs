@@ -163,7 +163,9 @@
 (defvar c-doc-line-join-re)
 (defvar c-doc-bright-comment-start-re)
 (defvar c-doc-line-join-end-ch)
-(defvar c-fl-syn-tab-region)
+(cc-bytecomp-defvar c-min-syn-tab-mkr)
+(cc-bytecomp-defvar c-max-syn-tab-mkr)
+(cc-bytecomp-defun c-clear-syn-tab)
 (cc-bytecomp-defun c-clear-string-fences)
 (cc-bytecomp-defun c-restore-string-fences)
 
@@ -1910,52 +1912,29 @@ comment at the start of cc-engine.el for more info."
 (defun c-enclosing-c++-attribute ()
   ;; If we're in C++ Mode, and point is within a correctly balanced [[ ... ]]
   ;; attribute structure, return a cons of its starting and ending positions.
-  ;; Otherwise, return nil.  We use the c-{in,is}-sws-face text properties for
-  ;; this determination, this macro being intended only for use in the *-sws-*
-  ;; functions and macros.  The match data are NOT preserved over this macro.
-  (let (attr-end pos-is-sws)
-     (and
-      (c-major-mode-is 'c++-mode)
-      (> (point) (point-min))
-      (setq pos-is-sws
-	    (if (get-text-property (1- (point)) 'c-is-sws)
-		(1- (point))
-	      (1- (previous-single-property-change
-		   (point) 'c-is-sws nil (point-min)))))
-      (save-excursion
-	(goto-char pos-is-sws)
-	(setq attr-end (c-looking-at-c++-attribute)))
-      (> attr-end (point))
-      (cons pos-is-sws attr-end))))
-
-(defun c-slow-enclosing-c++-attribute ()
-  ;; Like `c-enclosing-c++-attribute', but does not depend on the c-i[ns]-sws
-  ;; properties being set.
+  ;; Otherwise, return nil.
   (and
    (c-major-mode-is 'c++-mode)
    (save-excursion
-     (let ((paren-state (c-parse-state))
+     (let ((lim (max (- (point) 200) (point-min)))
 	   cand)
        (while
-	   (progn
-	     (setq cand
-		   (catch 'found-cand
-		     (while (cdr paren-state)
-		       (when (and (numberp (car paren-state))
-				  (numberp (cadr paren-state))
-				  (eq (car paren-state)
-				      (1+ (cadr paren-state)))
-				  (eq (char-after (car paren-state)) ?\[)
-				  (eq (char-after (cadr paren-state)) ?\[))
-			 (throw 'found-cand (cadr paren-state)))
-		       (setq paren-state (cdr paren-state)))))
-	     (and cand
-		  (not
-		   (and (c-go-list-forward cand)
-			(eq (char-before) ?\])
-			(eq (char-before (1- (point))) ?\])))))
-	 (setq paren-state (cdr paren-state)))
-       (and cand (cons cand (point)))))))
+	   (and
+	    (progn
+	      (skip-chars-backward "^[;{}" lim)
+	      (eq (char-before) ?\[))
+	    (not (eq (char-before (1- (point))) ?\[))
+	    (> (point) lim))
+	 (backward-char))
+       (and (eq (char-before) ?\[)
+	    (eq (char-before (1- (point))) ?\[)
+	    (progn (backward-char 2) t)
+	    (setq cand (point))
+	    (c-go-list-forward nil (min (+ (point) 200) (point-max)))
+	    (eq (char-before) ?\])
+	    (eq (char-before (1- (point))) ?\])
+	    (not (c-literal-limits))
+	    (cons cand (point)))))))
 
 (defun c-invalidate-sws-region-before (beg end)
   ;; Called from c-before-change.  BEG and END are the bounds of the change
@@ -3003,9 +2982,7 @@ comment at the start of cc-engine.el for more info."
 				 c-block-comment-awkward-chars)))
 		 (and (nth 4 s) (nth 7 s) ; Line comment
 		      (not (memq (char-before here) '(?\\ ?\n)))))))
-	    (c-with-extended-string-fences
-	     pos here
-	     (setq s (parse-partial-sexp pos here nil nil s))))
+	    (setq s (parse-partial-sexp pos here nil nil s)))
 	  (when (not (eq near-pos here))
 	    (c-semi-put-near-cache-entry here s))
 	  (cond

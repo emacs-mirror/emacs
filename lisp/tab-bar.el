@@ -799,11 +799,14 @@ After the tab is created, the hooks in
       (run-hook-with-args 'tab-bar-tab-post-open-functions
                           (nth to-index tabs)))
 
-    (when (and (not tab-bar-mode)
-               (or (eq tab-bar-show t)
-                   (and (natnump tab-bar-show)
-                        (> (length tabs) tab-bar-show))))
+    (cond
+     (tab-bar-mode)
+     ((eq tab-bar-show t)
       (tab-bar-mode 1))
+     ((and (natnump tab-bar-show)
+           (> (length (funcall tab-bar-tabs-function)) tab-bar-show)
+           (zerop (frame-parameter nil 'tab-bar-lines)))
+      (set-frame-parameter nil 'tab-bar-lines 1)))
 
     (force-mode-line-update)
     (unless tab-bar-mode
@@ -936,10 +939,11 @@ for the last tab on a frame is determined by
                 tab-bar-closed-tabs)
           (set-frame-parameter nil 'tabs (delq close-tab tabs)))
 
-        (when (and tab-bar-mode
-                   (and (natnump tab-bar-show)
-                        (<= (length tabs) tab-bar-show)))
-          (tab-bar-mode -1))
+        (when (and (not (zerop (frame-parameter nil 'tab-bar-lines)))
+                   (natnump tab-bar-show)
+                   (<= (length (funcall tab-bar-tabs-function))
+                       tab-bar-show))
+          (set-frame-parameter nil 'tab-bar-lines 0))
 
         (force-mode-line-update)
         (unless tab-bar-mode
@@ -975,10 +979,11 @@ for the last tab on a frame is determined by
           (run-hook-with-args 'tab-bar-tab-pre-close-functions (nth index tabs) nil)))
       (set-frame-parameter nil 'tabs (list (nth current-index tabs)))
 
-      (when (and tab-bar-mode
-                 (and (natnump tab-bar-show)
-                      (<= 1 tab-bar-show)))
-        (tab-bar-mode -1))
+      (when (and (not (zerop (frame-parameter nil 'tab-bar-lines)))
+                 (natnump tab-bar-show)
+                 (<= (length (funcall tab-bar-tabs-function))
+                     tab-bar-show))
+        (set-frame-parameter nil 'tab-bar-lines 0))
 
       (force-mode-line-update)
       (unless tab-bar-mode

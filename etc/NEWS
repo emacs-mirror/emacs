@@ -58,6 +58,11 @@ shaping, so 'configure' now recommends that combination.
 ** The ftx font backend driver has been removed.
 It was declared obsolete in Emacs 27.1.
 
+---
+** Emacs no longer supports old OpenBSD systems.
+OpenBSD 5.3 and older releases are no longer supported, as they lack
+proper pty support that Emacs needs.
+
 
 * Startup Changes in Emacs 28.1
 
@@ -117,15 +122,29 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 ** Windows
 
+*** The key prefix 'C-x 4 1' displays next command buffer in the same window.
+It's bound to the command 'same-window-prefix' that requests the buffer
+of the next command to be displayed in the same window.
+
 *** The key prefix 'C-x 4 4' displays next command buffer in a new window.
+It's bound to the command 'other-window-prefix' that requests the buffer
+of the next command to be displayed in a new window.
 
 ** Frames
 
 *** The key prefix 'C-x 5 5' displays next command buffer in a new frame.
+It's bound to the command 'other-frame-prefix' that requests the buffer
+of the next command to be displayed in a new frame.
 
 ** Tab Bars
 
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
+It's bound to the command 'other-tab-prefix' that requests the buffer
+of the next command to be displayed in a new tab.
+
+*** The tab bar is frame-local when 'tab-bar-show' is a number.
+Show/hide the tab bar independently for each frame, according to the
+value of 'tab-bar-show'.
 
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
@@ -177,10 +196,6 @@ directories with the help of new command 'dired-vc-next-action'.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
 their 'default-directory' under VC.
-
-*** 'M-n' now works in minibuffer prompts of VC commands.
-Typing 'M-n' in the minibuffer that prompts for a VC directory in VC
-commands now retrieves directories of previously used VC projects.
 
 *** New command 'vc-dir-root' uses the root directory without asking.
 

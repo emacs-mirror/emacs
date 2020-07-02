@@ -251,9 +251,19 @@ Mail}), but in another window (@code{compose-mail-other-window}).
 Find the definition of an identifier, similar to @kbd{M-.}
 (@pxref{Xref}), but in another window
 (@code{xref-find-definitions-other-window}).
+
 @item C-x 4 r @var{filename} @key{RET}
 Visit file @var{filename} read-only, and select its buffer in another
 window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
+
+@item C-x 4 4
+A more general prefix command affects the buffer displayed by the next
+command invoked immediately after this prefix command.  It requests
+the buffer of the next command to be displayed in another window.
+
+@item C-x 4 1
+This general prefix command requests the buffer of the next command
+to be displayed in the same window.
 @end table
 
 @node Change Window
