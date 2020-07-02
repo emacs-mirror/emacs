@@ -583,4 +583,52 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (equal (comp-tests-cl-uninterned-arg-parse-f 1 2)
                  '(1 2))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Middle-end specific tests. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun comp-tests-mentioned-p-1 (x insn)
+  (cl-loop for y in insn
+           when (cond
+                 ((consp y) (comp-tests-mentioned-p x y))
+                 ((and (comp-mvar-p y) (comp-mvar-const-vld y))
+                  (equal (comp-mvar-constant y) x))
+                 (t (equal x y)))
+             return t))
+
+(defun comp-tests-mentioned-p (x insn)
+  "Check if X is actively mentioned in INSN."
+  (unless (eq (car-safe insn)
+              'comment)
+    (comp-tests-mentioned-p-1 x insn)))
+
+(defun comp-tests-tco-checker (_)
+  "Check that inside `comp-tests-tco-f' we have no recursion."
+  (should-not
+   (cl-loop
+    named checker-loop
+    with func-name = (comp-c-func-name 'comp-tests-tco-f "F" t)
+    with f = (gethash func-name (comp-ctxt-funcs-h comp-ctxt))
+    for bb being each hash-value of (comp-func-blocks f)
+    do (cl-loop
+        for insn in (comp-block-insns bb)
+        when (or (comp-tests-mentioned-p 'comp-tests-tco-f insn)
+                 (comp-tests-mentioned-p func-name insn))
+        do (cl-return-from checker-loop 'mentioned)))))
+
+(ert-deftest comp-tests-tco ()
+  "Check for tail recursion elimination."
+  (let ((comp-speed 3)
+        (comp-post-pass-hooks '((comp-tco comp-tests-tco-checker)
+                                (comp-final comp-tests-tco-checker))))
+    (eval '(defun comp-tests-tco-f (a b count)
+             (if (= count 0)
+                 b
+               (comp-tests-tco-f (+ a b) a (- count 1))))
+          t)
+    (load (native-compile #'comp-tests-tco-f))
+    (should (subr-native-elisp-p (symbol-function #'comp-tests-tco-f)))
+    (should (= (comp-tests-tco-f 1 0 10) 55))))
+
 ;;; comp-tests.el ends here
