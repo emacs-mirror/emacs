@@ -1687,10 +1687,11 @@ Integration for LXD containers.  A container is accessed via
 @item magit-tramp
 @cindex method @option{git}
 @cindex @option{git} method
-Browing git repositories with @code{magit}.  A versioned file is accessed via
-@file{@trampfn{git,rev@@root-dir,/path/to/file}}.  @samp{rev} is a git
-revision, and @samp{root-dir} is a virtual host name for the root
-directory, specified in @code{magit-tramp-hosts-alist}.
+Browsing git repositories with @code{magit}.  A versioned file is
+accessed via @file{@trampfn{git,rev@@root-dir,/path/to/file}}.
+@samp{rev} is a git revision, and @samp{root-dir} is a virtual host
+name for the root directory, specified in
+@code{magit-tramp-hosts-alist}.
 
 @item tramp-hdfs
 @cindex method @option{hdfs}
