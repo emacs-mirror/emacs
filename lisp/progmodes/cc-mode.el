@@ -2597,7 +2597,7 @@ Key bindings:
 
 (defconst c-or-c++-mode--regexp
   (eval-when-compile
-    (let ((id "[a-zA-Z_][a-zA-Z0-9_]*") (ws "[ \t\r]+") (ws-maybe "[ \t\r]*")
+    (let ((id "[a-zA-Z_][a-zA-Z0-9_]*") (ws "[ \t]+") (ws-maybe "[ \t]*")
           (headers '("string" "string_view" "iostream" "map" "unordered_map"
                      "set" "unordered_set" "vector" "tuple")))
       (concat "^" ws-maybe "\\(?:"
