@@ -1663,8 +1663,7 @@ ORIGINAL-DESCRIPTION is the description given by
                                 (max (floor (* (frame-width) 0.8))))
                            (if (> (length str) max)
                                (concat (substring str 0 max) "...")
-                             str))))))
-      desc)))
+                             str)))))))))
 
 (defun which-key--extract-key (key-str)
   "Pull the last key (or key range) out of KEY-STR."
