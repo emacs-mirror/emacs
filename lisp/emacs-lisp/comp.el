@@ -2299,7 +2299,7 @@ Return the list of m-var ids nuked."
             (`((set ,l-val (direct-call ,func . ,args))
                (comment ,_comment)
                (return ,ret-val))
-             (when (and (eq func (comp-func-name comp-func))
+             (when (and (string= func (comp-func-c-name comp-func))
                         (eq l-val ret-val))
                (let ((tco-seq (comp-form-tco-call-seq args)))
                  (setf (car insns-seq) (car tco-seq)
