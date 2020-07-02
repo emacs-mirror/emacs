@@ -468,6 +468,7 @@ AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
 [use Nextstep (macOS Cocoa or GNUstep) windowing system.
 On by default on macOS.])],[],[with_ns=maybe])
 OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
+OPTION_DEFAULT_OFF([pgtk], [use pure GTK build without reliance on X libs (Wayland support) - Experimental])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -1830,11 +1831,15 @@ AC_SUBST(AUTO_DEPEND)
 ## window-system-specific substs.
 
 window_system=none
-AC_PATH_X
-if test "$no_x" != yes; then
-  window_system=x11
-else
+
+if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
+fi
+
+
+AC_PATH_X
+if test "$no_x" != yes && test "${with_pgtk}" != "yes"; then
+  window_system=x11
 fi
 
 LD_SWITCH_X_SITE_RPATH=
