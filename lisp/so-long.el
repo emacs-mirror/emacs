@@ -1819,9 +1819,10 @@ If it appears in `%s', you should remove it."
   ;; Update to version 1.0 from earlier versions:
   (when (version< so-long-version "1.0")
     (remove-hook 'change-major-mode-hook 'so-long-change-major-mode)
-    (require 'advice)
+    (eval-and-compile (require 'advice)) ;; Both macros and functions.
     (declare-function ad-find-advice "advice")
     (declare-function ad-remove-advice "advice")
+    (declare-function ad-activate "advice")
     (when (ad-find-advice 'hack-local-variables 'after 'so-long--file-local-mode)
       (ad-remove-advice 'hack-local-variables 'after 'so-long--file-local-mode)
       (ad-activate 'hack-local-variables))
