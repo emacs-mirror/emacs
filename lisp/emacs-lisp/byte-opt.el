@@ -672,36 +672,18 @@
 	    (apply (car form) constants))
 	form)))
 
-;; Portable Emacs integers fall in this range.
-(defconst byte-opt--portable-max #x1fffffff)
-(defconst byte-opt--portable-min (- -1 byte-opt--portable-max))
-
-;; True if N is a number that works the same on all Emacs platforms.
-;; Portable Emacs fixnums are exactly representable as floats on all
-;; Emacs platforms, and (except for -0.0) any floating-point number
-;; that equals one of these integers must be the same on all
-;; platforms.  Although other floating-point numbers such as 0.5 are
-;; also portable, it can be tricky to characterize them portably so
-;; they are not optimized.
-(defun byte-opt--portable-numberp (n)
-  (and (numberp n)
-       (<= byte-opt--portable-min n byte-opt--portable-max)
-       (= n (floor n))
-       (not (and (floatp n) (zerop n)
-                 (condition-case () (< (/ n) 0) (error))))))
-
-;; Use OP to reduce any leading prefix of portable numbers in the list
-;; (cons ACCUM ARGS) down to a single portable number, and return the
+;; Use OP to reduce any leading prefix of constant numbers in the list
+;; (cons ACCUM ARGS) down to a single number, and return the
 ;; resulting list A of arguments.  The idea is that applying OP to A
 ;; is equivalent to (but likely more efficient than) applying OP to
 ;; (cons ACCUM ARGS), on any Emacs platform.  Do not make any special
 ;; provision for (- X) or (/ X); for example, it is the caller’s
 ;; responsibility that (- 1 0) should not be "optimized" to (- 1).
 (defun byte-opt--arith-reduce (op accum args)
-  (when (byte-opt--portable-numberp accum)
+  (when (numberp accum)
     (let (accum1)
-      (while (and (byte-opt--portable-numberp (car args))
-                  (byte-opt--portable-numberp
+      (while (and (numberp (car args))
+                  (numberp
                    (setq accum1 (condition-case ()
                                     (funcall op accum (car args))
                                   (error))))
@@ -746,12 +728,11 @@
        ;; (- x -1) --> (1+ x)
        ((equal (cdr args) '(-1))
         (list '1+ (car args)))
-       ;; (- n) -> -n, where n and -n are portable numbers.
+       ;; (- n) -> -n, where n and -n are constant numbers.
        ;; This must be done separately since byte-opt--arith-reduce
        ;; is not applied to (- n).
        ((and (null (cdr args))
-             (byte-opt--portable-numberp (car args))
-             (byte-opt--portable-numberp (- (car args))))
+             (numberp (car args)))
         (- (car args)))
        ;; not further optimized
        ((equal args (cdr form)) form)
@@ -761,8 +742,7 @@
   (let ((args (cdr form)))
     (when (null (cdr args))
       (let ((n (car args)))
-        (when (and (byte-opt--portable-numberp n)
-                   (byte-opt--portable-numberp (1+ n)))
+        (when (numberp n)
           (setq form (1+ n))))))
   form)
 
@@ -770,8 +750,7 @@
   (let ((args (cdr form)))
     (when (null (cdr args))
       (let ((n (car args)))
-        (when (and (byte-opt--portable-numberp n)
-                   (byte-opt--portable-numberp (1- n)))
+        (when (numberp n)
           (setq form (1- n))))))
   form)
 
