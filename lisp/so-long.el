@@ -765,6 +765,7 @@ was established."
     display-line-numbers-mode
     flymake-mode
     flyspell-mode
+    glasses-mode
     goto-address-mode
     goto-address-prog-mode
     hi-lock-mode
@@ -784,6 +785,8 @@ was established."
     hl-sexp-mode
     idle-highlight-mode
     rainbow-delimiters-mode
+    smartparens-mode
+    smartparens-strict-mode
     )
   ;; It's not clear to me whether all of these would be problematic, but they
   ;; seemed like reasonable targets.  Some are certainly excessive in smaller
@@ -808,7 +811,7 @@ disabled modes are re-enabled by calling them with the numeric argument 1.
 Please submit bug reports to recommend additional modes for this list, whether
 they are in Emacs core, GNU ELPA, or elsewhere."
   :type '(repeat symbol) ;; not function, as may be unknown => mismatch.
-  :package-version '(so-long . "1.0"))
+  :package-version '(so-long . "1.1"))
 
 (defcustom so-long-variable-overrides
   '((bidi-inhibit-bpa . t)
