@@ -1769,7 +1769,7 @@ ender."
 `comment-start-skip' is initialized from this."
   ;; Default: Allow the last char of the comment starter(s) to be
   ;; repeated, then allow any amount of horizontal whitespace.
-  t (concat "\\("
+  t (concat "\\(?:"
 	    (c-concat-separated
 	     (mapcar (lambda (cs)
 		       (when cs

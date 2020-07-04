@@ -3186,6 +3186,24 @@ comment at the start of cc-engine.el for more info."
 	c-semi-near-cache-limit (min c-semi-near-cache-limit pos)
 	c-full-near-cache-limit (min c-full-near-cache-limit pos)))
 
+(defun c-foreign-truncate-lit-pos-cache (beg _end)
+  "Truncate CC Mode's literal cache.
+
+This function should be added to the `before-change-functions'
+hook by major modes that use CC Mode's filling functionality
+without initializing CC Mode.  Currently (2020-06) these are
+js-mode and mhtml-mode."
+  (c-truncate-lit-pos-cache beg))
+
+(defun c-foreign-init-lit-pos-cache ()
+  "Initialize CC Mode's literal cache.
+
+This function should be called from the mode functions of major
+modes which use CC Mode's filling functionality without
+initializing CC Mode.  Currently (2020-06) these are js-mode and
+mhtml-mode."
+  (c-truncate-lit-pos-cache 1))
+
 
 ;; A system for finding noteworthy parens before the point.
 
