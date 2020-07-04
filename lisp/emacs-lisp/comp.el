@@ -1994,13 +1994,8 @@ Here goes everything that can be done not iteratively (read once).
         (memq (get f 'byte-optimizer) comp-propagate-classes)
         (let ((values (mapcar #'comp-mvar-constant args)))
           (pcase f
-            ;; Simple integer operation.
-            ;; Note: byte-opt uses `byte-opt--portable-numberp'
-            ;; instead of just`fixnump'.
-            ((or '+ '- '* '1+ '-1) (and (cl-every #'fixnump values)
-                                        (fixnump (apply f values))))
-            ('/ (and (cl-every #'fixnump values)
-                     (not (= (car (last values)) 0)))))))))
+            ((or '+ '- '* '1+ '-1) t)
+            ('/ (not (= (car (last values)) 0))))))))
 
 (defsubst comp-function-call-maybe-remove (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
