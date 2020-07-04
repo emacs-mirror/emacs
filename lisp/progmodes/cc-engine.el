@@ -1582,6 +1582,7 @@ comment at the start of cc-engine.el for more info."
 	  (save-excursion (backward-char)
 			  (looking-at "\\s("))
 	  (c-crosses-statement-barrier-p (point) end)))))
+(make-obsolete 'c-at-expression-start-p nil "5.35")
 
 
 ;; A set of functions that covers various idiosyncrasies in
@@ -11894,17 +11895,6 @@ comment at the start of cc-engine.el for more info."
 			  (cons (cons beg end) type))
 		    (cons (list beg) type)))))
 	(error nil))))
-
-(defun c-looking-at-bos (&optional _lim)
-  ;; Return non-nil if between two statements or declarations, assuming
-  ;; point is not inside a literal or comment.
-  ;;
-  ;; Obsolete - `c-at-statement-start-p' or `c-at-expression-start-p'
-  ;; are recommended instead.
-  ;;
-  ;; This function might do hidden buffer changes.
-  (c-at-statement-start-p))
-(make-obsolete 'c-looking-at-bos 'c-at-statement-start-p "22.1")
 
 (defun c-looking-at-statement-block ()
   ;; Point is at an opening brace.  If this is a statement block (i.e. the
