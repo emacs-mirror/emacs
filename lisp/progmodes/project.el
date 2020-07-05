@@ -294,11 +294,14 @@ The directory names should be absolute.  Used in the VC project
 backend implementation of `project-external-roots'.")
 
 (defun project-try-vc (dir)
-  (let* ((backend (ignore-errors (vc-responsible-backend dir)))
+  (let* ((backend
+          ;; FIXME: This is slow. Cache it.
+          (ignore-errors (vc-responsible-backend dir)))
          (root
           (pcase backend
             ('Git
              ;; Don't stop at submodule boundary.
+             ;; FIXME: Cache for a shorter time.
              (or (vc-file-getprop dir 'project-git-root)
                  (let ((root (vc-call-backend backend 'root dir)))
                    (vc-file-setprop
