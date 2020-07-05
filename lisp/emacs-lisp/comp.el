@@ -164,6 +164,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-limplify
                         comp-propagate
                         comp-call-optim
+                        comp-ipa-pure
                         comp-propagate
                         comp-dead-code
                         comp-tco
@@ -379,7 +380,7 @@ structure.")
   (speed nil :type number
          :documentation "Optimization level (see `comp-speed').")
   (pure nil :type boolean
-        :documentation "t if declared pure nil otherwise."))
+        :documentation "t if pure nil otherwise."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexical scoped function."
@@ -1600,6 +1601,61 @@ into the C code forwarding the compilation unit."
   (comp-add-func-to-ctxt (comp-limplify-top-level nil))
   (when (comp-ctxt-with-late-load comp-ctxt)
     (comp-add-func-to-ctxt (comp-limplify-top-level t))))
+
+
+;;; pure-func pass specific code.
+
+;; Simple IPA pass to infer function purity of functions not
+;; explicitly declared as such.  This is effective only at speed 3 to
+;; avoid optimizing-out functions and preventing their redefinition
+;; being effective.
+
+(defun comp-collect-calls (f)
+  "Return a list with all the functions called by F."
+  (cl-loop
+   with h = (make-hash-table :test #'eq)
+   for b being each hash-value of (comp-func-blocks f)
+   do (cl-loop
+       for insn in (comp-block-insns b)
+       do (pcase insn
+            (`(set ,_lval (,(pred comp-call-op-p) ,f . ,_rest))
+             (puthash f t h))
+            (`(,(pred comp-call-op-p) ,f . ,_rest)
+             (puthash f t h))))
+   finally return (cl-loop
+                   for f being each hash-key of h
+                   collect (if (stringp f)
+                               (comp-func-name
+                                (gethash f
+                                         (comp-ctxt-funcs-h comp-ctxt)))
+                             f))))
+
+(defun comp-pure-infer-func (f)
+  "If all funtions called by F are pure then F is pure too."
+  (when (and (cl-every (lambda (x)
+                         (or (comp-function-pure-p x)
+                             (eq x (comp-func-name f))))
+                       (comp-collect-calls f))
+             (not (eq (comp-func-pure f) t)))
+    (comp-log (format "%s inferred to be pure" (comp-func-name f)))
+    (setf (comp-func-pure f) t)))
+
+(defun comp-ipa-pure (_)
+  "Infer function purity."
+  (cl-loop
+   with pure-n = 0
+   for n from 1
+   while
+   (/= pure-n
+       (setf pure-n
+             (cl-loop
+              for f being each hash-value of (comp-ctxt-funcs-h comp-ctxt)
+              when (and (>= (comp-func-speed f) 3)
+                        (comp-func-l-p f)
+                        (not (comp-func-pure f)))
+              do (comp-pure-infer-func f)
+              count (comp-func-pure f))))
+   finally (comp-log (format "ipa-pure iterated %d times" n))))
 
 
 ;;; SSA pass specific code.
