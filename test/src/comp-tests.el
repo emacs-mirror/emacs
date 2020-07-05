@@ -662,4 +662,36 @@ CHECKER should always return nil to have a pass."
     (should (subr-native-elisp-p (symbol-function #'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
+(defun comp-tests-pure-checker-1 (_)
+  "Check that inside `comp-tests-pure-caller-f' `comp-tests-pure-callee-f' is
+ folded."
+  (comp-tests-make-insn-checker
+   'comp-tests-pure-caller-f
+   (lambda (insn)
+     (or (comp-tests-mentioned-p 'comp-tests-pure-callee-f insn)
+         (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-pure-callee-f "F" t)
+                                 insn)))))
+
+(defun comp-tests-pure-checker-2 (_)
+  "Check that `comp-tests-pure-fibn-f' is folded."
+  (comp-tests-make-insn-checker
+   'comp-tests-pure-fibn-entry-f
+   (lambda (insn)
+     (or (comp-tests-mentioned-p 'comp-tests-pure-fibn-f insn)
+         (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-pure-fibn-f "F" t)
+                                 insn)))))
+
+(ert-deftest comp-tests-pure ()
+  "Some tests for pure functions optimization."
+  (let ((comp-speed 3)
+        (comp-post-pass-hooks '((comp-final comp-tests-pure-checker-1
+                                            comp-tests-pure-checker-2))))
+    (load (native-compile (concat comp-test-directory "comp-test-pure.el")))
+
+    (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-caller-f)))
+    (should (= (comp-tests-pure-caller-f) 4))
+
+    (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-fibn-entry-f)))
+    (should (= (comp-tests-pure-fibn-entry-f) 6765))))
+
 ;;; comp-tests.el ends here
