@@ -603,19 +603,28 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
               'comment)
     (comp-tests-mentioned-p-1 x insn)))
 
-(defun comp-tests-tco-checker (_)
-  "Check that inside `comp-tests-tco-f' we have no recursion."
+(defun comp-tests-make-insn-checker (func-name checker)
+  "Apply CHECKER to each insn in FUNC-NAME.
+CHECKER should always return nil to have a pass."
   (should-not
    (cl-loop
     named checker-loop
-    with func-name = (comp-c-func-name 'comp-tests-tco-f "F" t)
-    with f = (gethash func-name (comp-ctxt-funcs-h comp-ctxt))
+    with func-c-name = (comp-c-func-name func-name "F" t)
+    with f = (gethash func-c-name (comp-ctxt-funcs-h comp-ctxt))
     for bb being each hash-value of (comp-func-blocks f)
     do (cl-loop
         for insn in (comp-block-insns bb)
-        when (or (comp-tests-mentioned-p 'comp-tests-tco-f insn)
-                 (comp-tests-mentioned-p func-name insn))
-        do (cl-return-from checker-loop 'mentioned)))))
+        when (funcall checker insn)
+          do (cl-return-from checker-loop 'mentioned)))))
+
+(defun comp-tests-tco-checker (_)
+  "Check that inside `comp-tests-tco-f' we have no recursion."
+  (comp-tests-make-insn-checker
+   'comp-tests-tco-f
+   (lambda (insn)
+     (or (comp-tests-mentioned-p 'comp-tests-tco-f insn)
+         (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-tco-f "F" t)
+                                 insn)))))
 
 (ert-deftest comp-tests-tco ()
   "Check for tail recursion elimination."
