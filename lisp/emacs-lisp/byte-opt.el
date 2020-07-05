@@ -557,7 +557,10 @@
 	   (let ((args (mapcar #'byte-optimize-form (cdr form))))
 	     (if (and (get fn 'pure)
 		      (byte-optimize-all-constp args))
-		   (list 'quote (apply fn (mapcar #'eval args)))
+                 (let ((arg-values (mapcar #'eval args)))
+                   (condition-case nil
+                       (list 'quote (apply fn arg-values))
+                     (error (cons fn args))))
 	       (cons fn args)))))))
 
 (defun byte-optimize-all-constp (list)
@@ -1274,9 +1277,9 @@
 ;; Pure functions are side-effect free functions whose values depend
 ;; only on their arguments, not on the platform.  For these functions,
 ;; calls with constant arguments can be evaluated at compile time.
-;; This may shift runtime errors to compile time.  For example, logand
-;; is pure since its results are machine-independent, whereas ash is
-;; not pure because (ash 1 29)'s value depends on machine word size.
+;; For example, ash is pure since its results are machine-independent,
+;; whereas lsh is not pure because (lsh -1 -1)'s value depends on the
+;; fixnum range.
 ;;
 ;; When deciding whether a function is pure, do not worry about
 ;; mutable strings or markers, as they are so unlikely in real code
@@ -1286,9 +1289,41 @@
 ;; values if a marker is moved.
 
 (let ((pure-fns
-       '(% concat logand logcount logior lognot logxor
-	 regexp-opt regexp-quote
-	 string-to-char string-to-syntax symbol-name)))
+       '(concat regexp-opt regexp-quote
+	 string-to-char string-to-syntax symbol-name
+         eq eql
+         = /= < <= => > min max
+         + - * / % mod abs ash 1+ 1- sqrt
+         logand logior lognot logxor logcount
+         copysign isnan ldexp float logb
+         floor ceiling round truncate
+         ffloor fceiling fround ftruncate
+         string= string-equal string< string-lessp
+         consp atom listp nlistp propert-list-p
+         sequencep arrayp vectorp stringp bool-vector-p hash-table-p
+         null not
+         numberp integerp floatp natnump characterp
+         integer-or-marker-p number-or-marker-p char-or-string-p
+         symbolp keywordp
+         type-of
+         identity ignore
+
+         ;; The following functions are pure up to mutation of their
+         ;; arguments.  This is pure enough for the purposes of
+         ;; constant folding, but not necessarily for all kinds of
+         ;; code motion.
+         car cdr car-safe cdr-safe nth nthcdr last
+         equal
+         length safe-length
+         memq memql member
+         ;; `assoc' and `assoc-default' are excluded since they are
+         ;; impure if the test function is (consider `string-match').
+         assq rassq rassoc
+         plist-get lax-plist-get plist-member
+         aref elt
+         bool-vector-subsetp
+         bool-vector-count-population bool-vector-count-consecutive
+         )))
   (while pure-fns
     (put (car pure-fns) 'pure t)
     (setq pure-fns (cdr pure-fns)))
