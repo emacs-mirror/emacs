@@ -423,9 +423,13 @@ structure.")
   "Assignment predicate for OP."
   (when (memq op comp-limple-assignments) t))
 
+(defsubst comp-call-op-p (op)
+  "Call predicate for OP."
+  (when (memq op comp-limple-calls) t))
+
 (defsubst comp-limple-insn-call-p (insn)
   "Limple INSN call predicate."
-  (when (memq (car-safe insn) comp-limple-calls) t))
+  (comp-call-op-p (car-safe insn)))
 
 (defsubst comp-type-hint-p (func)
   "Type hint predicate for function name FUNC."
