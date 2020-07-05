@@ -800,10 +800,10 @@ Arguments the same as in `compile'."
 ;;;###autoload
 (defun project-switch-to-buffer ()
   "Switch to another buffer that is related to the current project.
-A buffer is related to a project if its `default-directory'
-is inside the directory hierarchy of the project's root."
+A buffer is related to a project if `project-current' returns the
+same (equal) value when called in that buffer."
   (interactive)
-  (let* ((root (project-root (project-current t)))
+  (let* ((pr (project-current t))
          (current-buffer (current-buffer))
          (other-buffer (other-buffer current-buffer))
          (other-name (buffer-name other-buffer))
@@ -811,10 +811,9 @@ is inside the directory hierarchy of the project's root."
           (lambda (buffer)
             ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
             (and (cdr buffer)
-                 (not (eq (cdr buffer) current-buffer))
-                 (when-let ((file (buffer-local-value 'default-directory
-                                                      (cdr buffer))))
-                   (file-in-directory-p file root))))))
+                 (equal pr
+                        (with-current-buffer (cdr buffer)
+                          (project-current)))))))
     (switch-to-buffer
      (read-buffer
       "Switch to buffer: "
@@ -836,13 +835,12 @@ any of the conditions will not be killed."
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
-  (let ((root (project-root pr))
-        bufs)
+  (let (bufs)
     (dolist (buf (buffer-list))
-      (let ((filename (or (buffer-file-name buf)
-                          (buffer-local-value 'default-directory buf))))
-        (when (and filename (file-in-directory-p filename root))
-          (push buf bufs))))
+      (when (equal pr
+                   (with-current-buffer buf
+                     (project-current)))
+        (push buf bufs)))
     (nreverse bufs)))
 
 ;;;###autoload
