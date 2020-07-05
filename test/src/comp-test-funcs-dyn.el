@@ -1,4 +1,4 @@
-;;; comp-test-funcs.el --- compilation unit tested by comp-tests.el -*- lexical-binding: nil; -*-
+;;; comp-test-funcs-dyn.el --- compilation unit tested by comp-tests.el -*- lexical-binding: nil; -*-
 
 ;; Copyright (C) 2020 Free Software Foundation, Inc.
 
