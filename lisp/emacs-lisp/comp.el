@@ -443,13 +443,16 @@ structure.")
                finally return t)
     t))
 
+(defsubst comp-symbol-func-to-fun (symbol-funcion)
+  "Given a function called SYMBOL-FUNCION return its `comp-func'."
+  (gethash (gethash symbol-funcion (comp-ctxt-sym-to-c-name-h
+                                    comp-ctxt))
+           (comp-ctxt-funcs-h comp-ctxt)))
+
 (defsubst comp-function-pure-p (f)
   "Return t if F is pure."
   (or (get f 'pure)
-      (when-let ((func (gethash (gethash f
-                                         (comp-ctxt-sym-to-c-name-h
-                                          comp-ctxt))
-                                (comp-ctxt-funcs-h comp-ctxt))))
+      (when-let ((func (comp-symbol-func-to-fun f)))
         (comp-func-pure func))))
 
 (defsubst comp-alloc-class-to-container (alloc-class)
@@ -2110,9 +2113,7 @@ Backward propagate array placement properties."
   "Given FUNC return the `comp-fun' definition in the current context.
 FUNCTION can be a function-name or byte compiled function."
   (if (symbolp func)
-      (gethash (gethash func
-                        (comp-ctxt-sym-to-c-name-h comp-ctxt))
-               (comp-ctxt-funcs-h comp-ctxt))
+      (comp-symbol-func-to-fun func)
     (cl-assert (byte-code-function-p func))
     (gethash func (comp-ctxt-byte-func-to-func-h comp-ctxt))))
 
