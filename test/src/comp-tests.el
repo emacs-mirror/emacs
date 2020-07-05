@@ -640,4 +640,26 @@ CHECKER should always return nil to have a pass."
     (should (subr-native-elisp-p (symbol-function #'comp-tests-tco-f)))
     (should (= (comp-tests-tco-f 1 0 10) 55))))
 
+(defun comp-tests-fw-prop-checker-1 (_)
+  "Check that inside `comp-tests-fw-prop-f' `concat' and `length' are folded."
+  (comp-tests-make-insn-checker
+   'comp-tests-fw-prop-1-f
+   (lambda (insn)
+     (or (comp-tests-mentioned-p 'concat insn)
+         (comp-tests-mentioned-p 'length insn)))))
+
+(ert-deftest comp-tests-fw-prop ()
+  "Some tests for forward propagation."
+  (let ((comp-speed 2)
+        (comp-post-pass-hooks '((comp-final comp-tests-fw-prop-checker-1))))
+    (eval '(defun comp-tests-fw-prop-1-f ()
+             (let* ((a "xxx")
+	            (b "yyy")
+	            (c (concat a b))) ; <= has to optimize
+               (length c))) ; <= has to optimize
+          t)
+    (load (native-compile #'comp-tests-fw-prop-1-f))
+    (should (subr-native-elisp-p (symbol-function #'comp-tests-fw-prop-1-f)))
+    (should (= (comp-tests-fw-prop-1-f) 6))))
+
 ;;; comp-tests.el ends here
