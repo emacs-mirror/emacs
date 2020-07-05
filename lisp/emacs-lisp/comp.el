@@ -443,6 +443,15 @@ structure.")
                finally return t)
     t))
 
+(defsubst comp-function-pure-p (f)
+  "Return t if F is pure."
+  (or (get f 'pure)
+      (when-let ((func (gethash (gethash f
+                                         (comp-ctxt-sym-to-c-name-h
+                                          comp-ctxt))
+                                (comp-ctxt-funcs-h comp-ctxt))))
+        (comp-func-pure func))))
+
 (defsubst comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS return the data container for the current context.
 Assume allocaiton class 'd-default as default."
@@ -1899,17 +1908,6 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 ;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
-(defvar comp-propagate-classes '(byte-optimize-associative-math
-                                 byte-optimize-binary-predicate
-                                 byte-optimize-concat
-                                 byte-optimize-equal
-                                 byte-optimize-identity
-                                 byte-optimize-member
-                                 byte-optimize-memq
-                                 byte-optimize-predicate)
-  "We optimize functions with 'byte-optimizer' property set to
- one of these symbols.  See byte-opt.el.")
-
 (defsubst comp-strict-type-of (obj)
   "Given OBJ return its type understanding fixnums."
   ;; Should be certainly smarter but now we take advantages just from fixnums.
@@ -1981,21 +1979,10 @@ Here goes everything that can be done not iteratively (read once).
         (comp-mvar-constant lval) (comp-mvar-constant rval)
         (comp-mvar-type lval) (comp-mvar-type rval)))
 
-;; Here should fall most of (defun byte-optimize-* equivalents.
 (defsubst comp-function-optimizable-p (f args)
   "Given function F called with ARGS return non nil when optimizable."
-  (when (cl-every #'comp-mvar-const-vld args)
-    (or (when-let ((func (gethash (gethash f
-                                           (comp-ctxt-sym-to-c-name-h
-                                            comp-ctxt))
-                                  (comp-ctxt-funcs-h comp-ctxt))))
-          (comp-func-pure func))
-        (get f 'pure)
-        (memq (get f 'byte-optimizer) comp-propagate-classes)
-        (let ((values (mapcar #'comp-mvar-constant args)))
-          (pcase f
-            ((or '+ '- '* '1+ '-1) t)
-            ('/ (not (= (car (last values)) 0))))))))
+  (and (cl-every #'comp-mvar-const-vld args)
+       (comp-function-pure-p f)))
 
 (defsubst comp-function-call-maybe-remove (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
