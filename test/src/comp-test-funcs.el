@@ -66,7 +66,7 @@
   (length '(1 2 3)))
 
 (defun comp-tests-aref-aset-f ()
-  (let ((vec [1 2 3]))
+  (let ((vec (make-vector 3 0)))
     (aset vec 2 100)
     (aref vec 2)))
 
