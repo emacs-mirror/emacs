@@ -1995,6 +1995,22 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
         (copy-comp-mvar insn)
       insn)))
 
+(defmacro comp-apply-in-env (func &rest args)
+  "Apply FUNC to ARGS in the current compilation environment."
+  `(let ((env (cl-loop
+               for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
+               for func-name = (comp-func-name f)
+               for byte-code = (comp-func-byte-func f)
+               when func-name
+               collect `(,func-name . ,(symbol-function func-name))
+               and do
+               (setf (symbol-function func-name) byte-code))))
+     (unwind-protect
+         (apply ,func ,@args)
+       (cl-loop
+        for (func-name . def) in env
+        do (setf (symbol-function func-name) def)))))
+
 (defun comp-ref-args-to-array (args)
   "Given ARGS assign them to a dedicated array."
   (when args
@@ -2064,13 +2080,17 @@ Here goes everything that can be done not iteratively (read once).
                                                     (car args))))))
      ((comp-function-optimizable-p f args)
       (ignore-errors
-        ;; No point to complain here because we should do basic block
-        ;; pruning in order to be sure that this is not dead-code.  This
-        ;; is now left to gcc, to be implemented only if we want a
-        ;; reliable diagnostic here.
-        (rewrite-insn-as-setimm insn
-                                (apply f
-                                       (mapcar #'comp-mvar-constant args))))))))
+        ;; No point to complain here in case of error because we
+        ;; should do basic block pruning in order to be sure that this
+        ;; is not dead-code.  This is now left to gcc, to be
+        ;; implemented only if we want a reliable diagnostic here.
+        (let* ((f (if-let (f-in-ctxt (comp-symbol-func-to-fun f))
+                      ;; If the function is IN the compilation ctxt
+                      ;; and know to be pure.
+                      (comp-func-byte-func f-in-ctxt)
+                    f))
+               (value (comp-apply-in-env f (mapcar #'comp-mvar-constant args))))
+          (rewrite-insn-as-setimm insn value)))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
