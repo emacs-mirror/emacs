@@ -2060,19 +2060,22 @@ Optional FORCE means force reassignment of the region property."
 ;;;_   > allout-widgets-undecorate-region (start end)
 (defun allout-widgets-undecorate-region (start end)
   "Eliminate widgets and decorations for all items in region from START to END."
-  (let ((next start)
-        widget)
+  (let (done next widget
+        (end (or end (point-max))))
     (save-excursion
       (goto-char start)
-      (while (<  (setq next (next-single-char-property-change next
-                                                              'display
-                                                              (current-buffer)
-                                                              end))
-                 end)
-        (goto-char next)
-        (when (setq widget (allout-get-item-widget))
-          ;; if the next-property/overly progression got us to a widget:
-          (allout-widgets-undecorate-item widget t))))))
+      (while (not done)
+        (when (and (allout-on-current-heading-p)
+                   (setq widget (allout-get-item-widget)))
+            (if widget
+                (allout-widgets-undecorate-item widget t)))
+        (goto-char (setq next
+                         (next-single-char-property-change (point)
+                                                           'display
+                                                           (current-buffer)
+                                                           end)))
+        (if (>= next end)
+            (setq done t))))))
 ;;;_   > allout-widgets-undecorate-text (text)
 (defun allout-widgets-undecorate-text (text)
   "Eliminate widgets and decorations for all items in TEXT."
