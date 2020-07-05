@@ -677,7 +677,7 @@ outline hot-spot navigation (see `allout-mode')."
   (setplist 'allout-cue-span-category nil)
   (put 'allout-cue-span-category 'evaporate t)
   (put 'allout-cue-span-category
-       'modification-hooks '(allout-body-modification-handler))
+       'modification-hooks '(allout-graphics-modification-handler))
   (put 'allout-cue-span-category 'local-map allout-cue-span-keymap)
   (put 'allout-cue-span-category 'mouse-face widget-button-face)
   (put 'allout-cue-span-category 'pointer 'arrow)
@@ -1994,8 +1994,7 @@ reapplying this method will rectify the glyphs."
   ;; NOTE: most of the cue-area
 
   (when (not (widget-get item-widget :is-container))
-    (let* ((cue-start (or (widget-get item-widget :distinctive-end)
-                          (widget-get item-widget :icon-end)))
+    (let* ((cue-start (widget-get item-widget :icon-end))
            (body-start (widget-get item-widget :body-start))
            ;(expanded (widget-get item-widget :expanded))
            ;(has-subitems (widget-get item-widget :has-subitems))
