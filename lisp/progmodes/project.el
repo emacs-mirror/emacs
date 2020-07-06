@@ -396,6 +396,8 @@ backend implementation of `project-external-roots'.")
        (setq files
              (mapcar
               (lambda (file) (concat default-directory file))
+              ;; XXX: With large enough project, split-string becomes
+              ;; one of the bottlenecks.
               (split-string
                (apply #'vc-git--run-command-string nil "ls-files" args)
                "\0" t)))
