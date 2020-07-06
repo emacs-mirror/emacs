@@ -795,7 +795,7 @@
    (t ;; This can enable some lapcode optimizations.
     (list (car form) (nth 2 form) (nth 1 form)))))
 
-(defun byte-optimize-predicate (form)
+(defun byte-optimize-constant-args (form)
   (let ((ok t)
 	(rest (cdr form)))
     (while (and rest ok)
@@ -810,9 +810,6 @@
 (defun byte-optimize-identity (form)
   (if (and (cdr form) (null (cdr (cdr form))))
       (nth 1 form)
-    (byte-compile-warn "identity called with %d arg%s, but requires 1"
-		       (length (cdr form))
-		       (if (= 1 (length (cdr form))) "" "s"))
     form))
 
 (defun byte-optimize--constant-symbol-p (expr)
@@ -847,19 +844,16 @@
 
 (defun byte-optimize-memq (form)
   ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
-  (if (/= (length (cdr form)) 2)
-      (byte-compile-warn "memq called with %d arg%s, but requires 2"
-		         (length (cdr form))
-		         (if (= 1 (length (cdr form))) "" "s"))
-    (let ((list (nth 2 form)))
-      (when (and (eq (car-safe list) 'quote)
+  (if (= (length (cdr form)) 2)
+      (let ((list (nth 2 form)))
+        (if (and (eq (car-safe list) 'quote)
                  (listp (setq list (cadr list)))
                  (= (length list) 1))
-        (setq form (byte-optimize-and
-                    `(and ,(byte-optimize-predicate
-                            `(eq ,(nth 1 form) ',(nth 0 list)))
-                          ',list)))))
-    (byte-optimize-predicate form)))
+            `(and (eq ,(nth 1 form) ',(nth 0 list))
+                  ',list)
+          form))
+    ;; Arity errors reported elsewhere.
+    form))
 
 (defun byte-optimize-concat (form)
   "Merge adjacent constant arguments to `concat'."
@@ -907,31 +901,8 @@
 (put 'string= 'byte-optimizer 'byte-optimize-binary-predicate)
 (put 'string-equal 'byte-optimizer 'byte-optimize-binary-predicate)
 
-(put '<   'byte-optimizer 'byte-optimize-predicate)
-(put '>   'byte-optimizer 'byte-optimize-predicate)
-(put '<=  'byte-optimizer 'byte-optimize-predicate)
-(put '>=  'byte-optimizer 'byte-optimize-predicate)
 (put '1+  'byte-optimizer 'byte-optimize-1+)
 (put '1-  'byte-optimizer 'byte-optimize-1-)
-(put 'not 'byte-optimizer 'byte-optimize-predicate)
-(put 'null  'byte-optimizer 'byte-optimize-predicate)
-(put 'consp 'byte-optimizer 'byte-optimize-predicate)
-(put 'listp 'byte-optimizer 'byte-optimize-predicate)
-(put 'symbolp 'byte-optimizer 'byte-optimize-predicate)
-(put 'stringp 'byte-optimizer 'byte-optimize-predicate)
-(put 'string< 'byte-optimizer 'byte-optimize-predicate)
-(put 'string-lessp  'byte-optimizer 'byte-optimize-predicate)
-(put 'proper-list-p 'byte-optimizer 'byte-optimize-predicate)
-
-(put 'logand 'byte-optimizer 'byte-optimize-predicate)
-(put 'logior 'byte-optimizer 'byte-optimize-predicate)
-(put 'logxor 'byte-optimizer 'byte-optimize-predicate)
-(put 'lognot 'byte-optimizer 'byte-optimize-predicate)
-
-(put 'car 'byte-optimizer 'byte-optimize-predicate)
-(put 'cdr 'byte-optimizer 'byte-optimize-predicate)
-(put 'car-safe 'byte-optimizer 'byte-optimize-predicate)
-(put 'cdr-safe 'byte-optimizer 'byte-optimize-predicate)
 
 (put 'concat 'byte-optimizer 'byte-optimize-concat)
 
@@ -962,7 +933,7 @@
 	       nil))
 	((null (cdr (cdr form)))
 	 (nth 1 form))
-	((byte-optimize-predicate form))))
+	((byte-optimize-constant-args form))))
 
 (defun byte-optimize-or (form)
   ;; Throw away nil's, and simplify if less than 2 args.
@@ -975,7 +946,7 @@
 	  (setq form (copy-sequence form)
 		rest (setcdr (memq (car rest) form) nil))))
     (if (cdr (cdr form))
-	(byte-optimize-predicate form)
+	(byte-optimize-constant-args form)
       (nth 1 form))))
 
 (defun byte-optimize-cond (form)
@@ -1122,7 +1093,7 @@
 	  (list 'car (if (zerop (nth 1 form))
 			 (nth 2 form)
 		       (list 'cdr (nth 2 form))))
-	(byte-optimize-predicate form))
+	form)
     form))
 
 (put 'nthcdr 'byte-optimizer 'byte-optimize-nthcdr)
@@ -1134,7 +1105,7 @@
 	    (while (>= (setq count (1- count)) 0)
 	      (setq form (list 'cdr form)))
 	    form)
-	(byte-optimize-predicate form))
+	form)
     form))
 
 ;; Fixme: delete-char -> delete-region (byte-coded)
@@ -2208,7 +2179,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (or noninteractive (message "compiling %s...done" x)))
 	     '(byte-optimize-form
 	       byte-optimize-body
-	       byte-optimize-predicate
+	       byte-optimize-constant-args
 	       byte-optimize-binary-predicate
 	       ;; Inserted some more than necessary, to speed it up.
 	       byte-optimize-form-code-walker
