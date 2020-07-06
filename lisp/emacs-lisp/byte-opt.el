@@ -842,6 +842,15 @@
     ;; Arity errors reported elsewhere.
     form))
 
+(defun byte-optimize-assoc (form)
+  ;; Replace 2-argument `assoc' with `assq', `rassoc' with `rassq',
+  ;; if the first arg is a symbol.
+  (if (and (= (length form) 3)
+           (byte-optimize--constant-symbol-p (nth 1 form)))
+      (cons (if (eq (car form) 'assoc) 'assq 'rassq)
+            (cdr form))
+    form))
+
 (defun byte-optimize-memq (form)
   ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
   (if (= (length (cdr form)) 2)
@@ -886,6 +895,8 @@
 (put 'memq 'byte-optimizer 'byte-optimize-memq)
 (put 'memql  'byte-optimizer 'byte-optimize-member)
 (put 'member 'byte-optimizer 'byte-optimize-member)
+(put 'assoc 'byte-optimizer 'byte-optimize-assoc)
+(put 'rassoc 'byte-optimizer 'byte-optimize-assoc)
 
 (put '+   'byte-optimizer 'byte-optimize-plus)
 (put '*   'byte-optimizer 'byte-optimize-multiply)
