@@ -1594,7 +1594,10 @@ We return the item-widget corresponding to the item at point."
       (if is-container
           (progn (widget-put item-widget :is-container t)
                  (setq reverse-siblings-chart (list 1)))
-        (goto-char (widget-apply parent :actual-position :from))
+        (let ((parent-position (widget-apply parent
+                                             :actual-position :from)))
+          (when parent-position
+            (goto-char parent-position)))
         (if (widget-get parent :is-container)
             ;; `allout-goto-prefix' will go to first non-container item:
             (allout-goto-prefix)
@@ -2388,7 +2391,7 @@ The elements of LIST are not copied, just the list structure itself."
 ;;;_ : provide
 (provide 'allout-widgets)
 
-;;;_. Local emacs vars.
-;;;_ , Local variables:
-;;;_ , allout-layout: (-1 : 0)
-;;;_ , End:
+;;;_ . Local emacs vars.
+;;;_  , Local variables:
+;;;_  , allout-layout: (-1 : 0)
+;;;_  , End:
