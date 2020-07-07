@@ -26342,6 +26342,22 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	startpos = marker_position (w->start);
 	startpos_byte = marker_byte_position (w->start);
 	height = WINDOW_TOTAL_LINES (w);
+	/* We cannot cope with w->start being outside of the
+	   accessible portion of the buffer; in particular,
+	   display_count_lines call below will infloop if called with
+	   startpos_byte outside of the [BEGV_BYTE..ZV_BYTE] region.
+	   Such w->start means we were called in some "creative" way
+	   when the buffer's restriction was changed, but the window
+	   wasn't yet redisplayed after that.  If that happens, we
+	   need to determine a new base line.  */
+	if (!(BUF_BEGV_BYTE (b) <= startpos_byte
+	      && startpos_byte <= BUF_ZV_BYTE (b)))
+	  {
+	    startpos = BUF_BEGV (b);
+	    startpos_byte = BUF_BEGV_BYTE (b);
+	    w->base_line_pos = 0;
+	    w->base_line_number = 0;
+	  }
 
 	/* If we decided that this buffer isn't suitable for line numbers,
 	   don't forget that too fast.  */
