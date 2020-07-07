@@ -365,6 +365,7 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
           Lisp_Object key = HASH_KEY (h, i);
           if (!EQ (key, Qunbound))
             {
+              CHECK_STRING (key);
               Lisp_Object ekey = json_encode (key);
               /* We can't specify the length, so the string must be
                NUL-terminated.  */
@@ -975,6 +976,7 @@ usage: (json-parse-string STRING &rest ARGS) */)
 #endif
 
   Lisp_Object string = args[0];
+  CHECK_STRING (string);
   Lisp_Object encoded = json_encode (string);
   check_string_without_embedded_nuls (encoded);
   struct json_configuration conf =
