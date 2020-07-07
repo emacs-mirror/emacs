@@ -4274,9 +4274,10 @@ a display specification has the form
 @noindent
 @var{fringe} is either the symbol @code{left-fringe} or
 @code{right-fringe}.  @var{bitmap} is a symbol identifying the bitmap
-to display.  The optional @var{face} names a face whose foreground
-color is used to display the bitmap; this face is automatically merged
-with the @code{fringe} face.
+to display.  The optional @var{face} names a face whose foreground and
+background colors are to be used to display the bitmap; this face is
+automatically merged with the @code{fringe} face.  If @var{face} is
+omitted, that means to use the @code{default} face.
 
   For instance, to display an arrow in the left fringe, using the
 @code{warning} face, you could say something like:
@@ -4980,8 +4981,9 @@ Margins}).
 This display specification on any character of a line of text causes
 the specified @var{bitmap} be displayed in the left or right fringes
 for that line, instead of the characters that have the display
-specification.  The optional @var{face} specifies the colors to be
-used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
+specification.  The optional @var{face} specifies the face whose
+colors are to be used for the bitmap display.  @xref{Fringe Bitmaps},
+for the details.
 
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
