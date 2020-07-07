@@ -363,10 +363,10 @@ bytecompiled code, and their results compared.")
 	(byte-compile-warnings nil)
 	(v0 (condition-case nil
 		(eval pat)
-	      (error nil)))
+	      (error 'bytecomp-check-error)))
 	(v1 (condition-case nil
 		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error nil))))
+	      (error 'bytecomp-check-error))))
     (equal v0 v1)))
 
 (put 'bytecomp-check-1 'ert-explainer 'bytecomp-explain-1)
@@ -374,10 +374,10 @@ bytecompiled code, and their results compared.")
 (defun bytecomp-explain-1 (pat)
   (let ((v0 (condition-case nil
 		(eval pat)
-	      (error nil)))
+	      (error 'bytecomp-check-error)))
 	(v1 (condition-case nil
 		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error nil))))
+	      (error 'bytecomp-check-error))))
     (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
 	    pat v0 v1)))
 
@@ -402,10 +402,10 @@ Subtests signal errors if something goes wrong."
     (dolist (pat byte-opt-testsuite-arith-data)
       (condition-case nil
 	  (setq v0 (eval pat))
-	(error (setq v0 nil)))
+	(error (setq v0 'bytecomp-check-error)))
       (condition-case nil
 	  (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
-	(error (setq v1 nil)))
+	(error (setq v1 'bytecomp-check-error)))
       (insert (format "%s" pat))
       (indent-to-column 65)
       (if (equal v0 v1)
@@ -561,11 +561,11 @@ bytecompiled code, and their results compared.")
 	(byte-compile-warnings nil)
 	(v0 (condition-case nil
 		(eval pat t)
-	      (error nil)))
+	      (error 'bytecomp-check-error)))
 	(v1 (condition-case nil
 		(funcall (let ((lexical-binding t))
                            (byte-compile `(lambda nil ,pat))))
-	      (error nil))))
+	      (error 'bytecomp-check-error))))
     (equal v0 v1)))
 
 (put 'bytecomp-lexbind-check-1 'ert-explainer 'bytecomp-lexbind-explain-1)
@@ -573,11 +573,11 @@ bytecompiled code, and their results compared.")
 (defun bytecomp-lexbind-explain-1 (pat)
   (let ((v0 (condition-case nil
 		(eval pat t)
-	      (error nil)))
+	      (error 'bytecomp-check-error)))
 	(v1 (condition-case nil
 		(funcall (let ((lexical-binding t))
                            (byte-compile (list 'lambda nil pat))))
-	      (error nil))))
+	      (error 'bytecomp-check-error))))
     (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
 	    pat v0 v1)))
 

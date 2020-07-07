@@ -296,5 +296,17 @@ Test with both unibyte and multibyte strings."
                          (1+ most-positive-fixnum)
                          (1- most-negative-fixnum)))))
 
+(ert-deftest json-parse-string/wrong-type ()
+  "Check that Bug#42113 is fixed."
+  (skip-unless (fboundp 'json-parse-string))
+  (should-error (json-parse-string 1) :type 'wrong-type-argument))
+
+(ert-deftest json-serialize/wrong-hash-key-type ()
+  "Check that Bug#42113 is fixed."
+  (skip-unless (fboundp 'json-serialize))
+  (let ((table (make-hash-table :test #'eq)))
+    (puthash 1 2 table)
+    (should-error (json-serialize table) :type 'wrong-type-argument)))
+
 (provide 'json-tests)
 ;;; json-tests.el ends here

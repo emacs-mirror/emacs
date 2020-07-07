@@ -1622,8 +1622,11 @@ display the result of expression evaluation."
   (let ((minibuffer-completing-symbol t))
     (minibuffer-with-setup-hook
         (lambda ()
-          ;; FIXME: call emacs-lisp-mode (see also
-          ;; `eldoc--eval-expression-setup')?
+          ;; FIXME: instead of just applying the syntax table, maybe
+          ;; use a special major mode tailored to reading Lisp
+          ;; expressions from the minibuffer? (`emacs-lisp-mode'
+          ;; doesn't preserve the necessary keybindings.)
+          (set-syntax-table emacs-lisp-mode-syntax-table)
           (add-hook 'completion-at-point-functions
                     #'elisp-completion-at-point nil t)
           (run-hooks 'eval-expression-minibuffer-setup-hook))

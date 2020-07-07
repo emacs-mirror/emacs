@@ -73,7 +73,9 @@ code();
 
 (defconst mhtml--crucial-variable-prefix
   (regexp-opt '("comment-" "uncomment-" "electric-indent-"
-                "smie-" "forward-sexp-function" "completion-" "major-mode"))
+                "smie-" "forward-sexp-function" "completion-" "major-mode"
+                "adaptive-fill-" "fill-" "normal-auto-fill-function"
+                "paragraph-"))
   "Regexp matching the prefix of \"crucial\" buffer-locals we want to capture.")
 
 (defconst mhtml--variable-prefix
@@ -255,17 +257,14 @@ This is used by `mhtml--pre-command'.")
    sgml-syntax-propertize-rules))
 
 (defun mhtml-syntax-propertize (start end)
-  ;; First remove our special settings from the affected text.  They
-  ;; will be re-applied as needed.
-  (remove-list-of-text-properties start end
-                                  '(syntax-table local-map mhtml-submode))
-  (goto-char start)
-  ;; Be sure to look back one character, because START won't yet have
-  ;; been propertized.
-  (unless (bobp)
-    (let ((submode (get-text-property (1- (point)) 'mhtml-submode)))
-      (if submode
-          (mhtml--syntax-propertize-submode submode end))))
+  (let ((submode (get-text-property start 'mhtml-submode)))
+    ;; First remove our special settings from the affected text.  They
+    ;; will be re-applied as needed.
+    (remove-list-of-text-properties start end
+                                    '(syntax-table local-map mhtml-submode))
+    (goto-char start)
+    (if submode
+        (mhtml--syntax-propertize-submode submode end)))
   (sgml-syntax-propertize (point) end mhtml--syntax-propertize))
 
 (defun mhtml-indent-line ()
@@ -332,6 +331,18 @@ the rules from `css-mode'."
 
   ;: Hack
   (js--update-quick-match-re)
+
+  ;; Setup the appropriate js-mode value of auto-fill-function.
+  (setf (mhtml--submode-crucial-captured-locals mhtml--js-submode)
+        (push (cons 'auto-fill-function
+                    (if (and (boundp 'auto-fill-function) auto-fill-function)
+                        #'js-do-auto-fill
+                      nil))
+              (mhtml--submode-crucial-captured-locals mhtml--js-submode)))
+
+  ;; This mode might be using CC Mode's filling functionality.
+  (c-foreign-init-lit-pos-cache)
+  (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
 
   ;; This is sort of a prog-mode as well as a text mode.
   (run-hooks 'prog-mode-hook))

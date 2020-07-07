@@ -1599,12 +1599,13 @@ parameters represent the user's stated preference; otherwise, use
 This parameter specifies a relative position of the frame's
 window-system window in the stacking (Z-) order of the frame's display.
 
-If this is @code{above}, the frame's window-system window is displayed
-above all other window-system windows that do not have the @code{above}
-property set.  If this is @code{nil}, the frame's window is displayed below all
-windows that have the @code{above} property set and above all windows
-that have the @code{below} property set.  If this is @code{below}, the
-frame's window is displayed below all windows that do not have the
+If this is @code{above}, the window-system will display the window
+that corresponds to the frame above all other window-system windows
+that do not have the @code{above} property set.  If this is
+@code{nil}, the frame's window is displayed below all windows that
+have the @code{above} property set and above all windows that have the
+@code{below} property set.  If this is @code{below}, the frame's
+window is displayed below all windows that do not have the
 @code{below} property set.
 
 To position the frame above or below a specific other frame use the

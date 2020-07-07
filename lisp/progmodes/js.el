@@ -4570,7 +4570,7 @@ This function is intended for use in `after-change-functions'."
 
   ;; Comments
   (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
+  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
   (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
@@ -4591,6 +4591,8 @@ This function is intended for use in `after-change-functions'."
   (setq imenu-create-index-function #'js--imenu-create-index)
 
   ;; for filling, pretend we're cc-mode
+  (c-foreign-init-lit-pos-cache)
+  (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
   (setq-local comment-line-break-function #'c-indent-new-comment-line)
   (setq-local comment-multi-line t)
   (setq-local electric-indent-chars
