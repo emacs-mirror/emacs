@@ -299,7 +299,7 @@ Otherwise work like `message'."
     (apply #'message format-string args)))
 
 (make-obsolete
- 'eldoc-message "use `eldoc-documentation-functions' instead." "1.1.0")
+ 'eldoc-message "use `eldoc-documentation-functions' instead." "eldoc-1.1.0")
 (defun eldoc-message (&optional string) (eldoc--message string))
 (defun eldoc--message (&optional string)
   "Display STRING as an ElDoc message if it's non-nil.
@@ -542,7 +542,7 @@ Meant as a value for `eldoc-documentation-strategy'."
                         nil))))
 
 (define-obsolete-variable-alias 'eldoc-documentation-function
-  'eldoc-documentation-strategy "1.1.0")
+  'eldoc-documentation-strategy "eldoc-1.1.0")
 
 (defcustom eldoc-documentation-strategy #'eldoc-documentation-default
   "How to collect and organize results of `eldoc-documentation-functions'.
