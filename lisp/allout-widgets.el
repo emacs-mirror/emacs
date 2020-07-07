@@ -415,15 +415,17 @@ not altered with an escape sequence.")
 ;;;_   , Widget element formatting
 ;;;_    = allout-item-icon-keymap
 (defvar allout-item-icon-keymap
-  (let ((km (make-sparse-keymap)))
+  (let ((km (make-sparse-keymap))
+        (as-parent (if (current-local-map)
+                       (make-composed-keymap (current-local-map)
+                                             (current-global-map))
+                     (current-global-map))))
+    ;; The keymap parent is reset on the each local var when mode starts.
+    (set-keymap-parent km as-parent)
     (dolist (digit '("0" "1" "2" "3"
                      "4" "5" "6" "7" "8" "9"))
       (define-key km digit 'digit-argument))
     (define-key km "-" 'negative-argument)
-;;    (define-key km [(return)] 'allout-tree-expand-command)
-;;    (define-key km [(meta return)] 'allout-toggle-torso-command)
-;;    (define-key km [(down-mouse-1)] 'allout-item-button-click)
-;;    (define-key km [(down-mouse-2)] 'allout-toggle-torso-event-command)
     ;; Override underlying mouse-1 and mouse-2 bindings in icon territory:
     (define-key km [(mouse-1)] (lambda () (interactive) nil))
     (define-key km [(mouse-2)] (lambda () (interactive) nil))
@@ -433,17 +435,16 @@ not altered with an escape sequence.")
 
     km)
   "General tree-node key bindings.")
+(make-variable-buffer-local 'allout-item-icon-keymap)
 ;;;_    = allout-item-body-keymap
 (defvar allout-item-body-keymap
   (let ((km (make-sparse-keymap))
-        (local-map (current-local-map)))
-;;    (define-key km [(control return)] 'allout-tree-expand-command)
-;;    (define-key km [(meta return)] 'allout-toggle-torso-command)
-    ;; XXX We need to reset this per buffer's mode; we do so in
-    ;; allout-widgets-mode.
-    (if local-map
-        (set-keymap-parent km local-map))
-
+        (as-parent (if (current-local-map)
+                       (make-composed-keymap (current-local-map)
+                                             (current-global-map))
+                     (current-global-map))))
+    ;; The keymap parent is reset on the each local var when mode starts.
+    (set-keymap-parent km as-parent)
     km)
   "General key bindings for the text content of outline items.")
 (make-variable-buffer-local 'allout-item-body-keymap)
@@ -456,6 +457,7 @@ not altered with an escape sequence.")
     (set-keymap-parent km allout-item-icon-keymap)
     km)
   "Keymap used in the item cue area - the space between the icon and headline.")
+(make-variable-buffer-local 'allout-cue-span-keymap)
 ;;;_    = allout-escapes-category
 (defvar allout-escapes-category nil
   "Symbol for category of text property used to hide escapes of prefix-like
@@ -566,8 +568,13 @@ outline hot-spot navigation (see `allout-mode')."
         (add-to-invisibility-spec '(allout-torso . t))
         (add-to-invisibility-spec 'allout-escapes)
 
-        (if (current-local-map)
-            (set-keymap-parent allout-item-body-keymap (current-local-map)))
+        (let ((as-parent (if (current-local-map)
+                             (make-composed-keymap (current-local-map)
+                                                   (current-global-map))
+                           (current-global-map))))
+          (set-keymap-parent allout-item-body-keymap as-parent)
+          ;; allout-cue-span-keymap uses allout-item-icon-keymap as parent.
+          (set-keymap-parent allout-item-icon-keymap as-parent))
 
         (add-hook 'allout-exposure-change-functions
                   'allout-widgets-exposure-change-recorder nil 'local)
