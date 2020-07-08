@@ -1390,15 +1390,8 @@ to the action header."
                  (when buffer-file-name
                    (shell-quote-argument buffer-file-name)))))
 
-  (if (boundp 'eldoc-documentation-functions)
-      (add-hook 'eldoc-documentation-functions
-                #'cfengine3-documentation-function nil t)
-    ;; For emacs < 25.1 where `eldoc-documentation-function' defaults
-    ;; to nil.
-    (or eldoc-documentation-function
-        (setq-local eldoc-documentation-function #'ignore))
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'cfengine3-documentation-function))
+  (add-hook 'eldoc-documentation-functions
+            #'cfengine3-documentation-function nil t)
 
   (add-hook 'completion-at-point-functions
             #'cfengine3-completion-function nil t)
