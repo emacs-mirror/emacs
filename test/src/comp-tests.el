@@ -629,6 +629,9 @@ CHECKER should always return nil to have a pass."
 (ert-deftest comp-tests-tco ()
   "Check for tail recursion elimination."
   (let ((comp-speed 3)
+        ;; Disable ipa-pure otherwise `comp-tests-tco-f' gets
+        ;; optimized-out.
+        (comp-disabled-passes '(comp-ipa-pure))
         (comp-post-pass-hooks '((comp-tco comp-tests-tco-checker)
                                 (comp-final comp-tests-tco-checker))))
     (eval '(defun comp-tests-tco-f (a b count)
