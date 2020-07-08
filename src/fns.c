@@ -1530,11 +1530,21 @@ same_float (Lisp_Object x, Lisp_Object y)
   return !neql;
 }
 
+/* True if X can be compared using `eq'.
+   This predicate is approximative, for maximum speed.  */
+static bool
+eq_comparable_value (Lisp_Object x)
+{
+  return SYMBOLP (x) || FIXNUMP (x);
+}
+
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (Lisp_Object elt, Lisp_Object list)
 {
+  if (eq_comparable_value (elt))
+    return Fmemq (elt, list);
   Lisp_Object tail = list;
   FOR_EACH_TAIL (tail)
     if (! NILP (Fequal (elt, XCAR (tail))))
@@ -1622,6 +1632,8 @@ The value is actually the first element of ALIST whose car equals KEY.
 Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
      (Lisp_Object key, Lisp_Object alist, Lisp_Object testfn)
 {
+  if (eq_comparable_value (key) && NILP (testfn))
+    return Fassq (key, alist);
   Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     {
@@ -1672,6 +1684,8 @@ DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
 The value is actually the first element of ALIST whose cdr equals KEY.  */)
   (Lisp_Object key, Lisp_Object alist)
 {
+  if (eq_comparable_value (key))
+    return Frassq (key, alist);
   Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     {
