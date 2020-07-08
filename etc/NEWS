@@ -251,8 +251,8 @@ supplied error message.
 This hook is intended to be used for registering doc string functions.
 These functions don't need to produce the doc string right away, they
 may arrange for it to be produced asynchronously.  The results of all
-doc string functions is accessible to the user through the existing
-single function hook 'eldoc-documentation-strategy'.
+doc string functions are accessible to the user through the existing
+variable 'eldoc-documentation-strategy'.
 
 *** New user option 'eldoc-documentation-strategy'.
 The built-in choices available for this user option let users compose
