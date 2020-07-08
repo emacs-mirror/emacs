@@ -2809,6 +2809,8 @@ variable.
          python-shell-comint-watch-for-first-prompt-output-filter
          python-comint-postoutput-scroll-to-bottom
          comint-watch-for-password-prompt))
+  (setq comint-preoutput-filter-functions
+        '(python-shell-output-filter))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-shell-compilation-regexp-alist)
   (add-hook 'completion-at-point-functions
@@ -3021,8 +3023,10 @@ t when called interactively."
                 (string-match "\n[ \t].*\n?\\'" string))
         (comint-send-string process "\n")))))
 
-(defvar python-shell-output-filter-in-progress nil)
-(defvar python-shell-output-filter-buffer nil)
+;;; Three variables used by `python-shell-output-filter'.
+(defvar python--shell-output-filter-in-progress nil)
+(defvar python--shell-output-filter-buffer nil)
+(defvar python--shell-output-filter-callback nil)
 
 (defun python-shell-output-filter (string)
   "Filter used in `python-shell-send-string-no-output' to grab output.
@@ -3030,48 +3034,71 @@ STRING is the output received to this point from the process.
 This filter saves received output from the process in
 `python-shell-output-filter-buffer' and stops receiving it after
 detecting a prompt at the end of the buffer."
-  (setq
-   string (ansi-color-filter-apply string)
-   python-shell-output-filter-buffer
-   (concat python-shell-output-filter-buffer string))
-  (when (python-shell-comint-end-of-output-p
-         python-shell-output-filter-buffer)
-    ;; Output ends when `python-shell-output-filter-buffer' contains
-    ;; the prompt attached at the end of it.
-    (setq python-shell-output-filter-in-progress nil
-          python-shell-output-filter-buffer
-          (substring python-shell-output-filter-buffer
-                     0 (match-beginning 0)))
-    (when (string-match
-           python-shell--prompt-calculated-output-regexp
-           python-shell-output-filter-buffer)
-      ;; Some shells, like IPython might append a prompt before the
-      ;; output, clean that.
-      (setq python-shell-output-filter-buffer
-            (substring python-shell-output-filter-buffer (match-end 0)))))
-  "")
+  (cond (python--shell-output-filter-in-progress
+         (setq
+          string (ansi-color-filter-apply string)
+          python--shell-output-filter-buffer
+          (concat python--shell-output-filter-buffer string))
+         (when (python-shell-comint-end-of-output-p
+                python--shell-output-filter-buffer)
+           ;; Output ends when `python-shell-output-filter-buffer' contains
+           ;; the prompt attached at the end of it.
+           (setq python--shell-output-filter-in-progress nil
+                 python--shell-output-filter-buffer
+                 (substring python--shell-output-filter-buffer
+                            0 (match-beginning 0)))
+           (when (string-match
+                  python-shell--prompt-calculated-output-regexp
+                  python--shell-output-filter-buffer)
+             ;; Some shells, like IPython might append a prompt before the
+             ;; output, clean that.
+             (setq python--shell-output-filter-buffer
+                   (substring python--shell-output-filter-buffer (match-end 0))))
+           (when python--shell-output-filter-callback
+             (funcall python--shell-output-filter-callback
+                      python--shell-output-filter-buffer)
+             (setq python--shell-output-filter-callback nil
+                   python--shell-output-filter-buffer nil)))
+         "")
+        (t string)))
 
-(defun python-shell-send-string-no-output (string &optional process)
+(defvar python--async-comint-timeout 1
+  "Defaults to 1, but can be bound dynamically.
+Namely by callers of `python-shell-send-string-no-output'.")
+
+(defun python-shell-send-string-no-output (string &optional process async)
   "Send STRING to PROCESS and inhibit output.
-Return the output."
+Return the output string, unless ASYNC is non-nil, in which case
+nil is returned.  If ASYNC is non-nil it should be a function of
+one argument.  It is called with the output string if the comint
+subjob finished successfully or with nil if it didn't."
   (let ((process (or process (python-shell-get-process-or-error)))
-        (comint-preoutput-filter-functions
-         '(python-shell-output-filter))
-        (python-shell-output-filter-in-progress t)
         (inhibit-quit t))
-    (or
-     (with-local-quit
-       (python-shell-send-string string process)
-       (while python-shell-output-filter-in-progress
-         ;; `python-shell-output-filter' takes care of setting
-         ;; `python-shell-output-filter-in-progress' to NIL after it
-         ;; detects end of output.
-         (accept-process-output process))
-       (prog1
-           python-shell-output-filter-buffer
-         (setq python-shell-output-filter-buffer nil)))
-     (with-current-buffer (process-buffer process)
-       (comint-interrupt-subjob)))))
+    (with-current-buffer (process-buffer process)
+      (setq python--shell-output-filter-in-progress t)
+      (cond (async
+             (python-shell-send-string string process)
+             (let ((timer (run-with-timer
+                           python--async-comint-timeout
+                           nil async nil)))
+               (setq python--shell-output-filter-callback
+                     (lambda (string)
+                       (funcall async string)
+                       (cancel-timer timer)))))
+            (t
+             (or
+              (with-local-quit
+                (python-shell-send-string string process)
+                (while python--shell-output-filter-in-progress
+                  ;; `python-shell-output-filter' takes care of
+                  ;; setting `python--shell-output-filter-in-progress'
+                  ;; to NIL after it detects end of output.
+                  (accept-process-output process))
+                (prog1
+                    python--shell-output-filter-buffer
+                  (setq python--shell-output-filter-buffer nil)))
+              (with-current-buffer (process-buffer process)
+                (comint-interrupt-subjob))))))))
 
 (defun python-shell-internal-send-string (string)
   "Send STRING to the Internal Python interpreter.
@@ -4532,27 +4559,46 @@ Returns the current symbol handling point within arguments."
         (python-util-forward-comment -1)))
     (python-info-current-symbol t)))
 
-(defun python-eldoc--get-doc-at-point (&optional force-input force-process)
+(defun python-eldoc--get-doc-at-point (&optional force-input force-process async)
   "Internal implementation to get documentation at point.
 If not FORCE-INPUT is passed then what `python-eldoc--get-symbol-at-point'
 returns will be used.  If not FORCE-PROCESS is passed what
-`python-shell-get-process' returns is used."
+`python-shell-get-process' returns is used.
+
+If ASYNC is non nil, should be a function accepting the
+documentation one or nil if there's no such thing.  In that case,
+the function returns t.
+"
   (let ((process (or force-process (python-shell-get-process))))
     (when process
       (let* ((input (or force-input
                         (python-eldoc--get-symbol-at-point)))
-             (docstring
-              (when input
-                ;; Prevent resizing the echo area when iPython is
-                ;; enabled.  Bug#18794.
-                (python-util-strip-string
+             (command (and input
+                           (concat
+                            python-eldoc-setup-code
+                            "\nprint(" (format python-eldoc-string-code input) ")"))))
+        (when command
+          (cond (async
                  (python-shell-send-string-no-output
-                  (concat
-                   python-eldoc-setup-code
-                   "\nprint(" (format python-eldoc-string-code input) ")")
-                  process)))))
-        (unless (zerop (length docstring))
-          docstring)))))
+                  command
+                  process
+                  (lambda (string)
+                    ;; Prevent resizing the echo area when iPython is
+                    ;; enabled.  Bug#18794.
+                    (when string
+                      (setq string (python-util-strip-string string)))
+                    (funcall async
+                             (and (not (zerop (length string)))
+                                  string))))
+                 t)
+                (t
+                 (let ((res
+                        (python-util-strip-string
+                         (python-shell-send-string-no-output
+                          command
+                          process))))
+                   (unless (zerop (length res))
+                     res)))))))))
 
 (defvar-local python-eldoc-get-doc t
   "Non-nil means eldoc should fetch the documentation
@@ -4573,28 +4619,32 @@ returns will be used.  If not FORCE-PROCESS is passed what
   :type 'boolean
   :version "25.1")
 
-(defun python-eldoc-function (&rest _ignored)
-  "`eldoc-documentation-function' for Python.
+(defun python-eldoc-function (callback &rest _ignored)
+  "A member of `eldoc-documentation-functions' for Python.
 For this to work as best as possible you should call
 `python-shell-send-buffer' from time to time so context in
 inferior Python process is updated properly.
 
-If `python-eldoc-function-timeout' seconds elapse before this
-function returns then if
+In systems with `eldoc-documentation-functions', CALLBACK is
+handled accordingly, otherwise this function is acceptable for
+`eldoc-documentation-function'.
+
+In the latter case if `python-eldoc-function-timeout' seconds
+elapse before this -function returns then if
 `python-eldoc-function-timeout-permanent' is non-nil
 `python-eldoc-get-doc' will be set to nil and eldoc will no
-longer return the documentation at the point automatically.
-
-Set `python-eldoc-get-doc' to t to reenable eldoc documentation
-fetching."
+longer return the documentation at the point automatically."
   (when python-eldoc-get-doc
-    (with-timeout (python-eldoc-function-timeout
-                   (if python-eldoc-function-timeout-permanent
-                       (progn
-                         (message "Eldoc echo-area display muted in this buffer, see `python-eldoc-function'")
-                         (setq python-eldoc-get-doc nil))
-                     (message "`python-eldoc-function' timed out, see `python-eldoc-function-timeout'")))
-      (python-eldoc--get-doc-at-point))))
+    (if (boundp 'eldoc-documentation-strategy)
+        (python-eldoc--get-doc-at-point nil nil callback)
+      (with-timeout
+          (python-eldoc-function-timeout
+           (if python-eldoc-function-timeout-permanent
+               (progn
+                 (message "Eldoc echo-area display muted in this buffer, see `python-eldoc-function'")
+                 (setq python-eldoc-get-doc nil))
+             (message "`python-eldoc-function' timed out, see `python-eldoc-function-timeout'")))
+        (python-eldoc--get-doc-at-point)))))
 
 (defun python-eldoc-at-point (symbol)
   "Get help on SYMBOL using `help'.
