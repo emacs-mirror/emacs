@@ -387,10 +387,12 @@ obligatory argument DOCSTRING, a string containing the
 documentation, followed by an optional list of keyword-value
 pairs of the form (:KEY VALUE :KEY2 VALUE2...).  KEY can be:
 
-* `:thing', VALUE is be a short string or symbol designating what
-  is being reported on;
+* `:thing', VALUE is a short string or symbol designating what is
+  being reported on.  The documentation display engine can elect
+  to remove this information depending on space contraints;
 
-* `:face', VALUE is a symbol designating a face;
+* `:face', VALUE is a symbol designating a face to use when
+  displaying `:thing''s value.
 
 Major modes should modify this hook locally, for example:
   (add-hook \\='eldoc-documentation-functions #\\='foo-mode-eldoc nil t)
@@ -494,14 +496,6 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
              (truncate-string-to-width
               (buffer-substring (point-min) (line-end-position 1)) width)))))))))
 
-;; This variable should be unbound, but that confuses
-;; `describe-symbol' for some reason.
-(defvar eldoc--make-callback nil "Helper for function `eldoc--make-callback'.")
-
-(defun eldoc--make-callback (method)
-  "Make callback suitable for `eldoc-documentation-functions'."
-  (funcall eldoc--make-callback method))
-
 (defun eldoc-documentation-default ()
   "Show first doc string for item at point.
 Default value for `eldoc-documentation-strategy'."
@@ -572,12 +566,16 @@ following values are allowed:
   the special hook is considered more important.
 
 This variable can also be set to a function of no args that
-allows for some or all of the special hook
-`eldoc-documentation-functions' to be run.  It should return nil,
-if no documentation is to be displayed at all, a string value
-with the documentation to display, or any other non-nil value in
-case the special hook functions undertake to display the
-documentation themselves."
+returns something other than a string or nil and allows for some
+or all of the special hook `eldoc-documentation-functions' to be
+run.  In that case, the strategy function should follow that
+other variable's protocol closely and endeavor to display the
+resulting doc strings itself.
+
+For backward compatibility to the \"old\" protocol, this variable
+can also be set to a function that returns nil or a doc string,
+depending whether or not there is documentation to display at
+all."
   :link '(info-link "(emacs) Lisp Doc")
   :type '(radio (function-item eldoc-documentation-default)
                 (function-item eldoc-documentation-compose)
@@ -609,19 +607,63 @@ before a higher priority one.")
 
 (defalias 'eldoc #'eldoc-print-current-symbol-info)
 
-(defun eldoc-print-current-symbol-info ()
-  "Document thing at point."
-  (interactive)
-  (if (not (eldoc-display-message-p))
-      ;; Erase the last message if we won't display a new one.
-      (when eldoc-last-message
-        (eldoc--message nil))
-    (let ((non-essential t))
-      ;; Only keep looking for the info as long as the user hasn't
-      ;; requested our attention.  This also locally disables
-      ;; inhibit-quit.
-      (while-no-input
-        (let* ((howmany 0) (want 0) (docs-registered '()))
+;; This variable should be unbound, but that confuses
+;; `describe-symbol' for some reason.
+(defvar eldoc--make-callback nil "Helper for function `eldoc--make-callback'.")
+
+;; JT@2020-07-08: the below docstring for the internal function
+;; `eldoc--invoke-strategy' could be moved to
+;; `eldoc-documentation-strategy' or thereabouts if/when we decide to
+;; extend or publish the `make-callback' protocol.
+(defun eldoc--make-callback (method)
+  "Make callback suitable for `eldoc-documentation-functions'.
+The return value is a function FN whose lambda list is (STRING
+&rest PLIST) and can be called by those functions.  Its
+responsibility is always to register the docstring STRING along
+with options specified in PLIST as the documentation to display
+for each particular situation.
+
+METHOD specifies how the callback behaves relative to other
+competing elements in `eldoc-documentation-functions'.  It can
+have the following values:
+
+- `:enthusiast' says to display STRING as soon as possible if
+  there's no higher priority doc string;
+
+- `:patient' says to display STRING along with all other
+   competing strings but only when all of all
+   `eldoc-documentation-functions' have been collected;
+
+- `:eager' says to display STRING along with all other competing
+  strings so far, as soon as possible."
+  (funcall eldoc--make-callback method))
+
+(defun eldoc--invoke-strategy ()
+  "Invoke `eldoc-documentation-strategy' function.
+
+That function's job is to run the `eldoc-documentation-functions'
+special hook, using the `run-hook' family of functions.  The way
+we invoke it here happens in a way strategy function can itself
+call `eldoc--make-callback' to produce values to give to the
+elements of the special hook `eldoc-documentation-functions'.
+
+For each element of `eldoc-documentation-functions' invoked a
+corresponding call to `eldoc--make-callback' must be made.  See
+docstring of `eldoc--make-callback' for the types of callback
+that can be produced.
+
+If the strategy function does not use `eldoc--make-callback', it
+must find some alternate way to produce callbacks to feed to
+`eldoc-documentation-function', and those callbacks should
+endeavour to display the docstrings given to them."
+  (let* (;; how many docstrings callbaks have been
+         (howmany 0)
+         ;; how many calls to callbacks we're waiting on. Used by
+         ;; `:patient'.
+         (want 0)
+         ;; how many doc strings and corresponding options have been
+         ;; registered it.
+         (docs-registered '()))
           (cl-labels
               ((register-doc (pos string plist)
                 (when (and string (> (length string) 0))
@@ -668,7 +710,21 @@ before a higher priority one.")
                     (;; Old protocol: got nil, clear the echo area;
                      (null res) (eldoc--message nil))
                     (;; New protocol: trust callback will be called;
-                     t)))))))))
+                     t))))))
+
+(defun eldoc-print-current-symbol-info ()
+  "Document thing at point."
+  (interactive)
+  (if (not (eldoc-display-message-p))
+      ;; Erase the last message if we won't display a new one.
+      (when eldoc-last-message
+        (eldoc--message nil))
+    (let ((non-essential t))
+      ;; Only keep looking for the info as long as the user hasn't
+      ;; requested our attention.  This also locally disables
+      ;; inhibit-quit.
+      (while-no-input
+        (eldoc--invoke-strategy)))))
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print
