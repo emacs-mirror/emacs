@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.8") (project "0.3.0") (xref "1.0.1") (eldoc "1.1.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.9") (project "0.3.0") (xref "1.0.1") (eldoc "1.2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
