@@ -192,12 +192,18 @@ What keys to type to input the character in the current input method
 
 @item
 The character's encodings, both internally in the buffer, and externally
-if you were to save the file.
+if you were to save the buffer to a file.
 
 @item
 If you are running Emacs on a graphical display, the font name and
 glyph code for the character.  If you are running Emacs on a text
 terminal, the code(s) sent to the terminal.
+
+@item
+If the character was composed on display with any following characters
+to form one or more grapheme clusters, the composition information:
+the font glyphs if the frame is on a graphical display, else the
+characters that were composed.
 
 @item
 The character's text properties (@pxref{Text Properties,,,
