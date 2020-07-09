@@ -543,7 +543,7 @@ specifies in the mode line."
                       ;; we wouldn't know when to revert it otherwise.
                       (not (eq buffer-stale-function
                                #'buffer-stale--default-function))))
-             (not (memq 'major-mode global-auto-revert-ignore-modes))
+             (not (memq major-mode global-auto-revert-ignore-modes))
              (or (null global-auto-revert-ignore-buffer)
                  (if (functionp global-auto-revert-ignore-buffer)
                      (not (funcall global-auto-revert-ignore-buffer
