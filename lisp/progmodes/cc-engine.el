@@ -1582,7 +1582,7 @@ comment at the start of cc-engine.el for more info."
 	  (save-excursion (backward-char)
 			  (looking-at "\\s("))
 	  (c-crosses-statement-barrier-p (point) end)))))
-(make-obsolete 'c-at-expression-start-p nil "5.35")
+(make-obsolete 'c-at-expression-start-p nil "CC mode 5.35")
 
 
 ;; A set of functions that covers various idiosyncrasies in
