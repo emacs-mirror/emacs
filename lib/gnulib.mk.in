@@ -117,6 +117,7 @@
 #  ignore-value \
 #  intprops \
 #  largefile \
+#  libgmp \
 #  lstat \
 #  manywarnings \
 #  memmem-simple \
@@ -245,14 +246,14 @@ GL_GENERATE_ALLOCA_H = @GL_GENERATE_ALLOCA_H@
 GL_GENERATE_BYTESWAP_H = @GL_GENERATE_BYTESWAP_H@
 GL_GENERATE_ERRNO_H = @GL_GENERATE_ERRNO_H@
 GL_GENERATE_EXECINFO_H = @GL_GENERATE_EXECINFO_H@
+GL_GENERATE_GMP_H = @GL_GENERATE_GMP_H@
 GL_GENERATE_IEEE754_H = @GL_GENERATE_IEEE754_H@
 GL_GENERATE_LIMITS_H = @GL_GENERATE_LIMITS_H@
 GL_GENERATE_STDALIGN_H = @GL_GENERATE_STDALIGN_H@
 GL_GENERATE_STDDEF_H = @GL_GENERATE_STDDEF_H@
 GL_GENERATE_STDINT_H = @GL_GENERATE_STDINT_H@
 GMALLOC_OBJ = @GMALLOC_OBJ@
-GMP_LIB = @GMP_LIB@
-GMP_OBJ = @GMP_OBJ@
+GMP_H = @GMP_H@
 GNULIB_ACCESS = @GNULIB_ACCESS@
 GNULIB_ALPHASORT = @GNULIB_ALPHASORT@
 GNULIB_ATOLL = @GNULIB_ATOLL@
@@ -760,6 +761,7 @@ LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
 LIB_EACCESS = @LIB_EACCESS@
 LIB_EXECINFO = @LIB_EXECINFO@
 LIB_GETRANDOM = @LIB_GETRANDOM@
+LIB_GMP = @LIB_GMP@
 LIB_MATH = @LIB_MATH@
 LIB_PTHREAD = @LIB_PTHREAD@
 LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
@@ -2013,6 +2015,29 @@ EXTRA_DIST += cdefs.h libc-config.h
 
 endif
 ## end   gnulib module libc-config
+
+## begin gnulib module libgmp
+ifeq (,$(OMIT_GNULIB_MODULE_libgmp))
+
+BUILT_SOURCES += $(GMP_H)
+
+# Build gmp.h as a wrapper for mini-gmp.h when using mini-gmp.
+ifneq (,$(GL_GENERATE_GMP_H))
+gmp.h: $(top_builddir)/config.status
+	echo '#include "mini-gmp.h"' >$@-t
+	mv $@-t $@
+else
+gmp.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += gmp.h gmp.h-t
+
+EXTRA_DIST += mini-gmp-gnulib.c mini-gmp.c mini-gmp.h
+
+EXTRA_libgnu_a_SOURCES += mini-gmp-gnulib.c mini-gmp.c
+
+endif
+## end   gnulib module libgmp
 
 ## begin gnulib module limits-h
 ifeq (,$(OMIT_GNULIB_MODULE_limits-h))

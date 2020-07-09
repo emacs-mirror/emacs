@@ -2,21 +2,21 @@
 
    Contributed to the GNU project by Niels Möller
 
-Copyright 1991-1997, 1999-2019 Free Software Foundation, Inc.
+Copyright 1991-1997, 1999-2020 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
 The GNU MP Library is free software; you can redistribute it and/or modify
 it under the terms of either:
 
-  * the GNU Lesser General Public License as published by the Free
+  * the GNU General Public License as published by the Free
     Software Foundation; either version 3 of the License, or (at your
     option) any later version.
 
 or
 
   * the GNU General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any
+    Foundation; either version 3 of the License, or (at your option) any
     later version.
 
 or both in parallel, as here.
@@ -27,7 +27,7 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
 
 You should have received copies of the GNU General Public License and the
-GNU Lesser General Public License along with the GNU MP Library.  If not,
+GNU General Public License along with the GNU MP Library.  If not,
 see https://www.gnu.org/licenses/.  */
 
 /* NOTE: All functions in this file which are not declared in
@@ -351,20 +351,27 @@ mp_set_memory_functions (void *(*alloc_func) (size_t),
   gmp_free_func = free_func;
 }
 
-#define gmp_xalloc(size) ((*gmp_allocate_func)((size)))
-#define gmp_free(p) ((*gmp_free_func) ((p), 0))
+#define gmp_alloc(size) ((*gmp_allocate_func)((size)))
+#define gmp_free(p, size) ((*gmp_free_func) ((p), (size)))
+#define gmp_realloc(ptr, old_size, size) ((*gmp_reallocate_func)(ptr, old_size, size))
 
 static mp_ptr
-gmp_xalloc_limbs (mp_size_t size)
+gmp_alloc_limbs (mp_size_t size)
 {
-  return (mp_ptr) gmp_xalloc (size * sizeof (mp_limb_t));
+  return (mp_ptr) gmp_alloc (size * sizeof (mp_limb_t));
 }
 
 static mp_ptr
-gmp_xrealloc_limbs (mp_ptr old, mp_size_t size)
+gmp_realloc_limbs (mp_ptr old, mp_size_t old_size, mp_size_t size)
 {
   assert (size > 0);
-  return (mp_ptr) (*gmp_reallocate_func) (old, 0, size * sizeof (mp_limb_t));
+  return (mp_ptr) gmp_realloc (old, old_size * sizeof (mp_limb_t), size * sizeof (mp_limb_t));
+}
+
+static void
+gmp_free_limbs (mp_ptr old, mp_size_t size)
+{
+  gmp_free (old, size * sizeof (mp_limb_t));
 }
 
 
@@ -956,11 +963,17 @@ mpn_div_qr_1_preinv (mp_ptr qp, mp_srcptr np, mp_size_t nn,
   mp_limb_t d, di;
   mp_limb_t r;
   mp_ptr tp = NULL;
+  mp_size_t tn = 0;
 
   if (inv->shift > 0)
     {
       /* Shift, reusing qp area if possible. In-place shift if qp == np. */
-      tp = qp ? qp : gmp_xalloc_limbs (nn);
+      tp = qp;
+      if (!tp)
+        {
+	   tn = nn;
+	   tp = gmp_alloc_limbs (tn);
+        }
       r = mpn_lshift (tp, np, nn, inv->shift);
       np = tp;
     }
@@ -977,8 +990,8 @@ mpn_div_qr_1_preinv (mp_ptr qp, mp_srcptr np, mp_size_t nn,
       if (qp)
 	qp[nn] = q;
     }
-  if ((inv->shift > 0) && (tp != qp))
-    gmp_free (tp);
+  if (tn)
+    gmp_free_limbs (tp, tn);
 
   return r >> inv->shift;
 }
@@ -1136,13 +1149,13 @@ mpn_div_qr (mp_ptr qp, mp_ptr np, mp_size_t nn, mp_srcptr dp, mp_size_t dn)
   mpn_div_qr_invert (&inv, dp, dn);
   if (dn > 2 && inv.shift > 0)
     {
-      tp = gmp_xalloc_limbs (dn);
+      tp = gmp_alloc_limbs (dn);
       gmp_assert_nocarry (mpn_lshift (tp, dp, dn, inv.shift));
       dp = tp;
     }
   mpn_div_qr_preinv (qp, np, nn, dp, dn, &inv);
   if (tp)
-    gmp_free (tp);
+    gmp_free_limbs (tp, dn);
 }
 
 
@@ -1428,14 +1441,14 @@ mpz_init2 (mpz_t r, mp_bitcnt_t bits)
 
   r->_mp_alloc = rn;
   r->_mp_size = 0;
-  r->_mp_d = gmp_xalloc_limbs (rn);
+  r->_mp_d = gmp_alloc_limbs (rn);
 }
 
 void
 mpz_clear (mpz_t r)
 {
   if (r->_mp_alloc)
-    gmp_free (r->_mp_d);
+    gmp_free_limbs (r->_mp_d, r->_mp_alloc);
 }
 
 static mp_ptr
@@ -1444,9 +1457,9 @@ mpz_realloc (mpz_t r, mp_size_t size)
   size = GMP_MAX (size, 1);
 
   if (r->_mp_alloc)
-    r->_mp_d = gmp_xrealloc_limbs (r->_mp_d, size);
+    r->_mp_d = gmp_realloc_limbs (r->_mp_d, r->_mp_alloc, size);
   else
-    r->_mp_d = gmp_xalloc_limbs (size);
+    r->_mp_d = gmp_alloc_limbs (size);
   r->_mp_alloc = size;
 
   if (GMP_ABS (r->_mp_size) > size)
@@ -1541,8 +1554,7 @@ mpz_init_set (mpz_t r, const mpz_t x)
 int
 mpz_fits_slong_p (const mpz_t u)
 {
-  return (LONG_MAX + LONG_MIN == 0 || mpz_cmp_ui (u, LONG_MAX) <= 0) &&
-    mpz_cmpabs_ui (u, GMP_NEG_CAST (unsigned long int, LONG_MIN)) <= 0;
+  return mpz_cmp_si (u, LONG_MAX) <= 0 && mpz_cmp_si (u, LONG_MIN) >= 0;
 }
 
 static int
@@ -1563,6 +1575,30 @@ mpz_fits_ulong_p (const mpz_t u)
   mp_size_t us = u->_mp_size;
 
   return us >= 0 && mpn_absfits_ulong_p (u->_mp_d, us);
+}
+
+int
+mpz_fits_sint_p (const mpz_t u)
+{
+  return mpz_cmp_si (u, INT_MAX) <= 0 && mpz_cmp_si (u, INT_MIN) >= 0;
+}
+
+int
+mpz_fits_uint_p (const mpz_t u)
+{
+  return u->_mp_size >= 0 && mpz_cmpabs_ui (u, UINT_MAX) <= 0;
+}
+
+int
+mpz_fits_sshort_p (const mpz_t u)
+{
+  return mpz_cmp_si (u, SHRT_MAX) <= 0 && mpz_cmp_si (u, SHRT_MIN) >= 0;
+}
+
+int
+mpz_fits_ushort_p (const mpz_t u)
+{
+  return u->_mp_size >= 0 && mpz_cmpabs_ui (u, USHRT_MAX) <= 0;
 }
 
 long int
@@ -3073,7 +3109,7 @@ mpz_powm (mpz_t r, const mpz_t b, const mpz_t e, const mpz_t m)
 	 one, using a *normalized* m. */
       minv.shift = 0;
 
-      tp = gmp_xalloc_limbs (mn);
+      tp = gmp_alloc_limbs (mn);
       gmp_assert_nocarry (mpn_lshift (tp, mp, mn, shift));
       mp = tp;
     }
@@ -3139,7 +3175,7 @@ mpz_powm (mpz_t r, const mpz_t b, const mpz_t e, const mpz_t m)
       tr->_mp_size = mpn_normalized_size (tr->_mp_d, mn);
     }
   if (tp)
-    gmp_free (tp);
+    gmp_free_limbs (tp, mn);
 
   mpz_swap (r, tr);
   mpz_clear (tr);
@@ -3350,13 +3386,15 @@ gmp_jacobi_coprime (mp_limb_t a, mp_limb_t b)
   gmp_ctz(c, a);
   a >>= 1;
 
-  do
+  for (;;)
     {
       a >>= c;
       /* (2/b) = -1 if b = 3 or 5 mod 8 */
       bit ^= c & (b ^ (b >> 1));
       if (a < b)
 	{
+	  if (a == 0)
+	    return bit & 1 ? -1 : 1;
 	  bit ^= a & b;
 	  a = b - a;
 	  b -= a;
@@ -3370,9 +3408,6 @@ gmp_jacobi_coprime (mp_limb_t a, mp_limb_t b)
       gmp_ctz(c, a);
       ++c;
     }
-  while (b > 0);
-
-  return bit & 1 ? -1 : 1;
 }
 
 static void
@@ -4144,7 +4179,7 @@ mpz_scan0 (const mpz_t u, mp_bitcnt_t starting_bit)
 size_t
 mpz_sizeinbase (const mpz_t u, int base)
 {
-  mp_size_t un;
+  mp_size_t un, tn;
   mp_srcptr up;
   mp_ptr tp;
   mp_bitcnt_t bits;
@@ -4177,20 +4212,21 @@ mpz_sizeinbase (const mpz_t u, int base)
 	 10. */
     }
 
-  tp = gmp_xalloc_limbs (un);
+  tp = gmp_alloc_limbs (un);
   mpn_copyi (tp, up, un);
   mpn_div_qr_1_invert (&bi, base);
 
+  tn = un;
   ndigits = 0;
   do
     {
       ndigits++;
-      mpn_div_qr_1_preinv (tp, tp, un, &bi);
-      un -= (tp[un-1] == 0);
+      mpn_div_qr_1_preinv (tp, tp, tn, &bi);
+      tn -= (tp[tn-1] == 0);
     }
-  while (un > 0);
+  while (tn > 0);
 
-  gmp_free (tp);
+  gmp_free_limbs (tp, un);
   return ndigits;
 }
 
@@ -4200,7 +4236,7 @@ mpz_get_str (char *sp, int base, const mpz_t u)
   unsigned bits;
   const char *digits;
   mp_size_t un;
-  size_t i, sn;
+  size_t i, sn, osn;
 
   digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   if (base > 1)
@@ -4221,15 +4257,19 @@ mpz_get_str (char *sp, int base, const mpz_t u)
 
   sn = 1 + mpz_sizeinbase (u, base);
   if (!sp)
-    sp = (char *) gmp_xalloc (1 + sn);
-
+    {
+      osn = 1 + sn;
+      sp = (char *) gmp_alloc (osn);
+    }
+  else
+    osn = 0;
   un = GMP_ABS (u->_mp_size);
 
   if (un == 0)
     {
       sp[0] = '0';
-      sp[1] = '\0';
-      return sp;
+      sn = 1;
+      goto ret;
     }
 
   i = 0;
@@ -4248,17 +4288,20 @@ mpz_get_str (char *sp, int base, const mpz_t u)
       mp_ptr tp;
 
       mpn_get_base_info (&info, base);
-      tp = gmp_xalloc_limbs (un);
+      tp = gmp_alloc_limbs (un);
       mpn_copyi (tp, u->_mp_d, un);
 
       sn = i + mpn_get_str_other ((unsigned char *) sp + i, base, &info, tp, un);
-      gmp_free (tp);
+      gmp_free_limbs (tp, un);
     }
 
   for (; i < sn; i++)
     sp[i] = digits[(unsigned char) sp[i]];
 
+ret:
   sp[sn] = '\0';
+  if (osn && osn != sn + 1)
+    sp = gmp_realloc(sp, osn, sn + 1);
   return sp;
 }
 
@@ -4268,7 +4311,7 @@ mpz_set_str (mpz_t r, const char *sp, int base)
   unsigned bits, value_of_a;
   mp_size_t rn, alloc;
   mp_ptr rp;
-  size_t dn;
+  size_t dn, sn;
   int sign;
   unsigned char *dp;
 
@@ -4306,7 +4349,8 @@ mpz_set_str (mpz_t r, const char *sp, int base)
       r->_mp_size = 0;
       return -1;
     }
-  dp = (unsigned char *) gmp_xalloc (strlen (sp));
+  sn = strlen(sp);
+  dp = (unsigned char *) gmp_alloc (sn);
 
   value_of_a = (base > 36) ? 36 : 10;
   for (dn = 0; *sp; sp++)
@@ -4326,7 +4370,7 @@ mpz_set_str (mpz_t r, const char *sp, int base)
 
       if (digit >= (unsigned) base)
 	{
-	  gmp_free (dp);
+	  gmp_free (dp, sn);
 	  r->_mp_size = 0;
 	  return -1;
 	}
@@ -4336,7 +4380,7 @@ mpz_set_str (mpz_t r, const char *sp, int base)
 
   if (!dn)
     {
-      gmp_free (dp);
+      gmp_free (dp, sn);
       r->_mp_size = 0;
       return -1;
     }
@@ -4360,7 +4404,7 @@ mpz_set_str (mpz_t r, const char *sp, int base)
       rn -= rp[rn-1] == 0;
     }
   assert (rn <= alloc);
-  gmp_free (dp);
+  gmp_free (dp, sn);
 
   r->_mp_size = sign ? - rn : rn;
 
@@ -4378,13 +4422,13 @@ size_t
 mpz_out_str (FILE *stream, int base, const mpz_t x)
 {
   char *str;
-  size_t len;
+  size_t len, n;
 
   str = mpz_get_str (NULL, base, x);
   len = strlen (str);
-  len = fwrite (str, 1, len, stream);
-  gmp_free (str);
-  return len;
+  n = fwrite (str, 1, len, stream);
+  gmp_free (str, len + 1);
+  return n;
 }
 
 
@@ -4512,7 +4556,7 @@ mpz_export (void *r, size_t *countp, int order, size_t size, int endian,
       count = (k + (un-1) * sizeof (mp_limb_t) + size - 1) / size;
 
       if (!r)
-	r = gmp_xalloc (count * size);
+	r = gmp_alloc (count * size);
 
       if (endian == 0)
 	endian = gmp_detect_endian ();

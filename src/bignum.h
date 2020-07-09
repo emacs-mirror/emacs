@@ -22,12 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef BIGNUM_H
 #define BIGNUM_H
 
-#ifdef HAVE_GMP
-# include <gmp.h>
-#else
-# include "mini-gmp.h"
-#endif
-
+#include <gmp.h>
 #include "lisp.h"
 
 /* Number of data bits in a limb.  */

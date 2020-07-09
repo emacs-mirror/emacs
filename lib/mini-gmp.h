@@ -7,14 +7,14 @@ This file is part of the GNU MP Library.
 The GNU MP Library is free software; you can redistribute it and/or modify
 it under the terms of either:
 
-  * the GNU Lesser General Public License as published by the Free
+  * the GNU General Public License as published by the Free
     Software Foundation; either version 3 of the License, or (at your
     option) any later version.
 
 or
 
   * the GNU General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any
+    Foundation; either version 3 of the License, or (at your option) any
     later version.
 
 or both in parallel, as here.
@@ -25,7 +25,7 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
 
 You should have received copies of the GNU General Public License and the
-GNU Lesser General Public License along with the GNU MP Library.  If not,
+GNU General Public License along with the GNU MP Library.  If not,
 see https://www.gnu.org/licenses/.  */
 
 /* About mini-gmp: This is a minimal implementation of a subset of the
@@ -244,6 +244,10 @@ mp_bitcnt_t mpz_scan1 (const mpz_t, mp_bitcnt_t);
 
 int mpz_fits_slong_p (const mpz_t);
 int mpz_fits_ulong_p (const mpz_t);
+int mpz_fits_sint_p (const mpz_t);
+int mpz_fits_uint_p (const mpz_t);
+int mpz_fits_sshort_p (const mpz_t);
+int mpz_fits_ushort_p (const mpz_t);
 long int mpz_get_si (const mpz_t);
 unsigned long int mpz_get_ui (const mpz_t);
 double mpz_get_d (const mpz_t);
