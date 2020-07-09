@@ -408,9 +408,6 @@ _GL_WARN_ON_USE (dup, "dup is unportable - "
 _GL_FUNCDECL_RPL (dup2, int, (int oldfd, int newfd));
 _GL_CXXALIAS_RPL (dup2, int, (int oldfd, int newfd));
 # else
-#  if !@HAVE_DUP2@
-_GL_FUNCDECL_SYS (dup2, int, (int oldfd, int newfd));
-#  endif
 _GL_CXXALIAS_SYS (dup2, int, (int oldfd, int newfd));
 # endif
 _GL_CXXALIASWARN (dup2);

@@ -240,7 +240,7 @@ AC_DEFUN([gl_INIT],
   gl_DIRENT_H
   gl_DOUBLE_SLASH_ROOT
   gl_FUNC_DUP2
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+  if test $REPLACE_DUP2 = 1; then
     AC_LIBOBJ([dup2])
     gl_PREREQ_DUP2
   fi
@@ -465,6 +465,7 @@ AC_DEFUN([gl_INIT],
   gl_SYS_TYPES_H
   AC_PROG_MKDIR_P
   gl_FUNC_GEN_TEMPNAME
+  gl_MODULE_INDICATOR([tempname])
   gl_HEADER_TIME_H
   gl_TIME_R
   if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then

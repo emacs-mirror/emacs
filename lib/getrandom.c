@@ -32,7 +32,7 @@
 # if HAVE_BCRYPT_H
 #  include <bcrypt.h>
 # else
-#  include <ntdef.h> /* NTSTATUS */
+#  define NTSTATUS LONG
 typedef void * BCRYPT_ALG_HANDLE;
 #  define BCRYPT_USE_SYSTEM_PREFERRED_RNG 0x00000002
 #  if HAVE_LIB_BCRYPT

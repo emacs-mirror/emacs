@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 19
+# manywarnings.m4 serial 20
 dnl Copyright (C) 2008-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -21,7 +21,7 @@ AC_DEFUN([gl_MANYWARN_COMPLEMENT],
       *" $gl_warn_item "*)
         ;;
       *)
-        gl_warn_set="$gl_warn_set $gl_warn_item"
+        gl_AS_VAR_APPEND([gl_warn_set], [" $gl_warn_item"])
         ;;
     esac
   done
@@ -49,12 +49,12 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
   AC_REQUIRE([AC_PROG_CC])
   if test -n "$GCC"; then
 
-    dnl Check if -W -Werror -Wno-missing-field-initializers is supported
+    dnl Check if -Wextra -Werror -Wno-missing-field-initializers is supported
     dnl with the current $CC $CFLAGS $CPPFLAGS.
     AC_CACHE_CHECK([whether -Wno-missing-field-initializers is supported],
       [gl_cv_cc_nomfi_supported],
       [gl_save_CFLAGS="$CFLAGS"
-       CFLAGS="$CFLAGS -W -Werror -Wno-missing-field-initializers"
+       CFLAGS="$CFLAGS -Wextra -Werror -Wno-missing-field-initializers"
        AC_COMPILE_IFELSE(
          [AC_LANG_PROGRAM([[]], [[]])],
          [gl_cv_cc_nomfi_supported=yes],
@@ -68,7 +68,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
       AC_CACHE_CHECK([whether -Wno-missing-field-initializers is needed],
         [gl_cv_cc_nomfi_needed],
         [gl_save_CFLAGS="$CFLAGS"
-         CFLAGS="$CFLAGS -W -Werror"
+         CFLAGS="$CFLAGS -Wextra -Werror"
          AC_COMPILE_IFELSE(
            [AC_LANG_PROGRAM(
               [[int f (void)
@@ -105,153 +105,41 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
   # To compare this list to your installed GCC's, run this Bash command:
   #
   # comm -3 \
-  #  <((sed -n 's/^  *\(-[^ 0-9][^ ]*\) .*/\1/p' manywarnings.m4; \
+  #  <((sed -n 's/^  *\(-[^ 0-9][^ ]*\).*/\1/p' manywarnings.m4; \
   #     awk '/^[^#]/ {print $1}' ../build-aux/gcc-warning.spec) | sort) \
   #  <(LC_ALL=C gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort)
 
-  gl_manywarn_set=
-  for gl_manywarn_item in -fno-common \
-    -W \
-    -Wabsolute-value \
-    -Waddress \
-    -Waddress-of-packed-member \
-    -Waggressive-loop-optimizations \
+  $1=
+  for gl_manywarn_item in -fanalyzer -fno-common \
     -Wall \
-    -Wanalyzer-double-fclose \
-    -Wanalyzer-double-free \
-    -Wanalyzer-exposure-through-output-file \
-    -Wanalyzer-file-leak \
-    -Wanalyzer-free-of-non-heap \
-    -Wanalyzer-malloc-leak \
-    -Wanalyzer-null-argument \
-    -Wanalyzer-null-dereference \
-    -Wanalyzer-possible-null-argument \
-    -Wanalyzer-possible-null-dereference \
-    -Wanalyzer-stale-setjmp-buffer \
-    -Wanalyzer-tainted-array-index \
-    -Wanalyzer-too-complex \
-    -Wanalyzer-unsafe-call-within-signal-handler \
-    -Wanalyzer-use-after-free \
-    -Wanalyzer-use-of-pointer-in-stale-stack-frame \
     -Warith-conversion \
-    -Wattribute-warning \
-    -Wattributes \
     -Wbad-function-cast \
-    -Wbool-compare \
-    -Wbool-operation \
-    -Wbuiltin-declaration-mismatch \
-    -Wbuiltin-macro-redefined \
-    -Wcannot-profile \
-    -Wcast-align \
     -Wcast-align=strict \
-    -Wcast-function-type \
-    -Wchar-subscripts \
-    -Wclobbered \
-    -Wcomment \
-    -Wcomments \
-    -Wcoverage-mismatch \
-    -Wcpp \
-    -Wdangling-else \
     -Wdate-time \
-    -Wdeprecated \
-    -Wdeprecated-declarations \
-    -Wdesignated-init \
     -Wdisabled-optimization \
-    -Wdiscarded-array-qualifiers \
-    -Wdiscarded-qualifiers \
-    -Wdiv-by-zero \
     -Wdouble-promotion \
     -Wduplicated-branches \
     -Wduplicated-cond \
-    -Wduplicate-decl-specifier \
-    -Wempty-body \
-    -Wendif-labels \
-    -Wenum-compare \
-    -Wenum-conversion \
-    -Wexpansion-to-defined \
     -Wextra \
-    -Wformat-contains-nul \
-    -Wformat-diag \
-    -Wformat-extra-args \
-    -Wformat-nonliteral \
-    -Wformat-security \
     -Wformat-signedness \
-    -Wformat-y2k \
-    -Wformat-zero-length \
-    -Wframe-address \
-    -Wfree-nonheap-object \
-    -Whsa \
-    -Wif-not-aligned \
-    -Wignored-attributes \
-    -Wignored-qualifiers \
-    -Wimplicit \
-    -Wimplicit-function-declaration \
-    -Wimplicit-int \
-    -Wincompatible-pointer-types \
     -Winit-self \
     -Winline \
-    -Wint-conversion \
-    -Wint-in-bool-context \
-    -Wint-to-pointer-cast \
-    -Winvalid-memory-model \
     -Winvalid-pch \
-    -Wlogical-not-parentheses \
     -Wlogical-op \
-    -Wmain \
-    -Wmaybe-uninitialized \
-    -Wmemset-elt-size \
-    -Wmemset-transposed-args \
-    -Wmisleading-indentation \
-    -Wmissing-attributes \
-    -Wmissing-braces \
     -Wmissing-declarations \
-    -Wmissing-field-initializers \
     -Wmissing-include-dirs \
-    -Wmissing-parameter-type \
-    -Wmissing-profile \
     -Wmissing-prototypes \
-    -Wmultichar \
-    -Wmultistatement-macros \
-    -Wnarrowing \
     -Wnested-externs \
-    -Wnonnull \
-    -Wnonnull-compare \
     -Wnull-dereference \
-    -Wodr \
-    -Wold-style-declaration \
     -Wold-style-definition \
     -Wopenmp-simd \
-    -Woverflow \
     -Woverlength-strings \
-    -Woverride-init \
     -Wpacked \
-    -Wpacked-bitfield-compat \
-    -Wpacked-not-aligned \
-    -Wparentheses \
     -Wpointer-arith \
-    -Wpointer-compare \
-    -Wpointer-sign \
-    -Wpointer-to-int-cast \
-    -Wpragmas \
-    -Wpsabi \
-    -Wrestrict \
-    -Wreturn-local-addr \
-    -Wreturn-type \
-    -Wscalar-storage-order \
-    -Wsequence-point \
     -Wshadow \
-    -Wshift-count-negative \
-    -Wshift-count-overflow \
-    -Wshift-negative-value \
-    -Wsizeof-array-argument \
-    -Wsizeof-pointer-div \
-    -Wsizeof-pointer-memaccess \
     -Wstack-protector \
-    -Wstrict-aliasing \
     -Wstrict-overflow \
     -Wstrict-prototypes \
-    -Wstring-compare \
-    -Wstringop-truncation \
     -Wsuggest-attribute=cold \
     -Wsuggest-attribute=const \
     -Wsuggest-attribute=format \
@@ -260,95 +148,63 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Wsuggest-attribute=pure \
     -Wsuggest-final-methods \
     -Wsuggest-final-types \
-    -Wswitch \
-    -Wswitch-bool \
-    -Wswitch-outside-range \
-    -Wswitch-unreachable \
     -Wsync-nand \
     -Wsystem-headers \
-    -Wtautological-compare \
     -Wtrampolines \
-    -Wtrigraphs \
-    -Wtype-limits \
     -Wuninitialized \
     -Wunknown-pragmas \
     -Wunsafe-loop-optimizations \
-    -Wunused \
-    -Wunused-but-set-parameter \
-    -Wunused-but-set-variable \
-    -Wunused-function \
-    -Wunused-label \
-    -Wunused-local-typedefs \
     -Wunused-macros \
-    -Wunused-parameter \
-    -Wunused-result \
-    -Wunused-value \
-    -Wunused-variable \
-    -Wvarargs \
     -Wvariadic-macros \
     -Wvector-operation-performance \
     -Wvla \
-    -Wvolatile-register-var \
     -Wwrite-strings \
-    -Wzero-length-bounds \
     \
     ; do
-    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
+    gl_AS_VAR_APPEND([$1], [" $gl_manywarn_item"])
   done
 
   # gcc --help=warnings outputs an unusual form for these options; list
   # them here so that the above 'comm' command doesn't report a false match.
-  # Would prefer "min (PTRDIFF_MAX, SIZE_MAX)", but it must be a literal.
-  # Also, AC_COMPUTE_INT requires it to fit in a long; it is 2**63 on
-  # the only platforms where it does not fit in a long, so make that
-  # a special case.
-  AC_MSG_CHECKING([max safe object size])
-  AC_COMPUTE_INT([gl_alloc_max],
-    [LONG_MAX < (PTRDIFF_MAX < (size_t) -1 ? PTRDIFF_MAX : (size_t) -1)
-     ? -1
-     : PTRDIFF_MAX < (size_t) -1 ? (long) PTRDIFF_MAX : (long) (size_t) -1],
-    [[#include <limits.h>
-      #include <stddef.h>
-      #include <stdint.h>
-    ]],
-    [gl_alloc_max=2147483647])
-  case $gl_alloc_max in
-    -1) gl_alloc_max=9223372036854775807;;
-  esac
-  AC_MSG_RESULT([$gl_alloc_max])
-  gl_manywarn_set="$gl_manywarn_set -Walloc-size-larger-than=$gl_alloc_max"
-  gl_manywarn_set="$gl_manywarn_set -Warray-bounds=2"
-  gl_manywarn_set="$gl_manywarn_set -Wattribute-alias=2"
-  gl_manywarn_set="$gl_manywarn_set -Wformat-overflow=2"
-  gl_manywarn_set="$gl_manywarn_set -Wformat-truncation=2"
-  gl_manywarn_set="$gl_manywarn_set -Wimplicit-fallthrough=5"
-  gl_manywarn_set="$gl_manywarn_set -Wnormalized=nfc"
-  gl_manywarn_set="$gl_manywarn_set -Wshift-overflow=2"
-  gl_manywarn_set="$gl_manywarn_set -Wstringop-overflow=2"
-  gl_manywarn_set="$gl_manywarn_set -Wunused-const-variable=2"
-  gl_manywarn_set="$gl_manywarn_set -Wvla-larger-than=4031"
+  gl_AS_VAR_APPEND([$1], [' -Warray-bounds=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wattribute-alias=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wformat-overflow=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wformat=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wformat-truncation=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wimplicit-fallthrough=5'])
+  gl_AS_VAR_APPEND([$1], [' -Wshift-overflow=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wunused-const-variable=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wvla-larger-than=4031'])
 
   # These are needed for older GCC versions.
   if test -n "$GCC"; then
     case `($CC --version) 2>/dev/null` in
       'gcc (GCC) '[[0-3]].* | \
       'gcc (GCC) '4.[[0-7]].*)
-        gl_manywarn_set="$gl_manywarn_set -fdiagnostics-show-option"
-        gl_manywarn_set="$gl_manywarn_set -funit-at-a-time"
+        gl_AS_VAR_APPEND([$1], [' -fdiagnostics-show-option'])
+        gl_AS_VAR_APPEND([$1], [' -funit-at-a-time'])
           ;;
     esac
   fi
 
   # Disable specific options as needed.
   if test "$gl_cv_cc_nomfi_needed" = yes; then
-    gl_manywarn_set="$gl_manywarn_set -Wno-missing-field-initializers"
+    gl_AS_VAR_APPEND([$1], [' -Wno-missing-field-initializers'])
   fi
 
   if test "$gl_cv_cc_uninitialized_supported" = no; then
-    gl_manywarn_set="$gl_manywarn_set -Wno-uninitialized"
+    gl_AS_VAR_APPEND([$1], [' -Wno-uninitialized'])
   fi
 
-  $1=$gl_manywarn_set
+  # Some warnings have too many false alarms in GCC 10.1.
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93695
+  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-double-free'])
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94458
+  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-malloc-leak'])
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94851
+  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-null-dereference'])
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95758
+  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-use-after-free'])
 
   AC_LANG_POP([C])
 ])
