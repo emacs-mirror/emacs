@@ -247,14 +247,25 @@ supplied error message.
 +++
 ** ElDoc
 
-*** New hook 'eldoc-documentation-functions' to be used for registering
-doc string functions.  This makes the results of all doc string
-functions accessible to the user through the existing single function hook
-'eldoc-documentation-function'.
+*** New hook 'eldoc-documentation-functions'.
+This hook is intended to be used for registering doc string functions.
+These functions don't need to produce the doc string right away, they
+may arrange for it to be produced asynchronously.  The results of all
+doc string functions are accessible to the user through the existing
+variable 'eldoc-documentation-strategy'.
 
-*** 'eldoc-documentation-function' is now a user option.
-Modes should use the new hook instead of this user option to register
-their backends.
+*** New user option 'eldoc-documentation-strategy'.
+The built-in choices available for this user option let users compose
+the results of 'eldoc-documentation-functions' in various ways, even
+if some of those functions are sychronous and some asynchchronous.
+The user option replaces 'eldoc-documentation-function', which is now
+obsolete.
+
+*** 'eldoc-echo-area-use-multiline-p' is now handled by ElDoc.
+The user option 'eldoc-echo-area-use-multiline-p' is now handled
+by the Eldoc library itself.  Functions in
+'eldoc-documentation-functions' don't need to worry about consulting
+it when producing a doc string.
 
 ** Eshell
 

@@ -194,7 +194,7 @@
   (dotimes (i 3)
     (should
      (equal (elisp-mode-tests--face-propertized-string
-             (elisp--highlight-function-argument 'foo "(A B C)" (1+ i) "foo: "))
+             (elisp--highlight-function-argument 'foo "(A B C)" (1+ i)))
             (propertize (nth i '("A" "B" "C"))
                         'face 'eldoc-highlight-function-argument)))))
 
@@ -206,7 +206,7 @@
     (cl-flet ((bold-arg (i)
                (elisp-mode-tests--face-propertized-string
                 (elisp--highlight-function-argument
-                 'foo "(PROMPT LST &key A B C)" i "foo: "))))
+                 'foo "(PROMPT LST &key A B C)" i))))
       (should-not (bold-arg 0))
       (progn (forward-sexp) (forward-char))
       (should (equal (bold-arg 1) "PROMPT"))
@@ -226,7 +226,7 @@
     (cl-flet ((bold-arg (i)
                (elisp-mode-tests--face-propertized-string
                 (elisp--highlight-function-argument
-                 'foo "(X &key A B C)" i "foo: "))))
+                 'foo "(X &key A B C)" i))))
       (should-not (bold-arg 0))
       ;; The `:b' specifies positional arg `X'.
       (progn (forward-sexp) (forward-char))

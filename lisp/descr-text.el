@@ -919,7 +919,7 @@ condition, the function may return string longer than WIDTH, see
            (t name)))))))
 
 ;;;###autoload
-(defun describe-char-eldoc ()
+(defun describe-char-eldoc (_callback &rest _)
   "Return a description of character at point for use by ElDoc mode.
 
 Return nil if character at point is a printable ASCII
@@ -929,10 +929,17 @@ Otherwise return a description formatted by
 of `eldoc-echo-area-use-multiline-p' variable and width of
 minibuffer window for width limit.
 
-This function is meant to be used as a value of
-`eldoc-documentation-function' variable."
+This function can be used as a value of
+`eldoc-documentation-functions' variable."
   (let ((ch (following-char)))
     (when (and (not (zerop ch)) (or (< ch 32) (> ch 127)))
+      ;; TODO: investigate if the new `eldoc-documentation-functions'
+      ;; API could significantly improve this.  JT@2020-07-07: Indeed,
+      ;; instead of returning a string tailored here for the echo area
+      ;; exclusively, we could call the (now unused) argument
+      ;; _CALLBACK with hints on how to shorten the string if needed,
+      ;; or with multiple usable strings which Eldoc picks according
+      ;; to its space contraints.
       (describe-char-eldoc--format
        ch
        (unless (eq eldoc-echo-area-use-multiline-p t)

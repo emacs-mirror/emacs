@@ -1294,10 +1294,10 @@ Calls `cfengine-cf-promises' with \"-s json\"."
                           'symbols))
         syntax)))
 
-(defun cfengine3-documentation-function ()
+(defun cfengine3-documentation-function (&rest _ignored)
   "Document CFengine 3 functions around point.
-Intended as the value of `eldoc-documentation-function', which see.
-Use it by enabling `eldoc-mode'."
+Intended as the value of `eldoc-documentation-functions', which
+see.  Use it by enabling `eldoc-mode'."
   (let ((fdef (cfengine3--current-function)))
     (when fdef
       (cfengine3-format-function-docstring fdef))))
@@ -1390,15 +1390,8 @@ to the action header."
                  (when buffer-file-name
                    (shell-quote-argument buffer-file-name)))))
 
-  (if (boundp 'eldoc-documentation-functions)
-      (add-hook 'eldoc-documentation-functions
-                #'cfengine3-documentation-function nil t)
-    ;; For emacs < 25.1 where `eldoc-documentation-function' defaults
-    ;; to nil.
-    (or eldoc-documentation-function
-        (setq-local eldoc-documentation-function #'ignore))
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'cfengine3-documentation-function))
+  (add-hook 'eldoc-documentation-functions
+            #'cfengine3-documentation-function nil t)
 
   (add-hook 'completion-at-point-functions
             #'cfengine3-completion-function nil t)

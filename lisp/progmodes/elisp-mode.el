@@ -280,7 +280,9 @@ Blank lines separate paragraphs.  Semicolons start comments.
                           electric-pair-text-pairs))
     (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
   (add-hook 'eldoc-documentation-functions
-            #'elisp-eldoc-documentation-function nil t)
+            #'elisp-eldoc-var-docstring nil t)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-funcall nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
@@ -1403,20 +1405,27 @@ which see."
       or argument string for functions.
   2 - `function' if function args, `variable' if variable documentation.")
 
-(defun elisp-eldoc-documentation-function ()
-  "`eldoc-documentation-function' (which see) for Emacs Lisp."
-  (let ((current-symbol (elisp--current-symbol))
-	(current-fnsym  (elisp--fnsym-in-current-sexp)))
-    (cond ((null current-fnsym)
-	   nil)
-	  ((eq current-symbol (car current-fnsym))
-	   (or (apply #'elisp-get-fnsym-args-string current-fnsym)
-	       (elisp-get-var-docstring current-symbol)))
-	  (t
-	   (or (elisp-get-var-docstring current-symbol)
-	       (apply #'elisp-get-fnsym-args-string current-fnsym))))))
+(defun elisp-eldoc-funcall (callback &rest _ignored)
+  "Document function call at point.
+Intended for `eldoc-documentation-functions' (which see)."
+  (let* ((sym-info (elisp--fnsym-in-current-sexp))
+         (fn-sym (car sym-info)))
+    (when fn-sym
+      (funcall callback (apply #'elisp-get-fnsym-args-string sym-info)
+               :thing fn-sym
+               :face (if (functionp fn-sym)
+                         'font-lock-function-name-face
+                       'font-lock-keyword-face)))))
 
-(defun elisp-get-fnsym-args-string (sym &optional index prefix)
+(defun elisp-eldoc-var-docstring (callback &rest _ignored)
+  "Document variable at point.
+Intended for `eldoc-documentation-functions' (which see)."
+  (let ((sym (elisp--current-symbol)))
+    (when sym (funcall callback (elisp-get-var-docstring sym)
+                       :thing sym
+                       :face 'font-lock-variable-name-face))))
+
+(defun elisp-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
 or elsewhere, return a 1-line docstring."
@@ -1442,20 +1451,13 @@ or elsewhere, return a 1-line docstring."
              ;; Stringify, and store before highlighting, downcasing, etc.
 	     (elisp--last-data-store sym (elisp-function-argstring args)
                                      'function))))))
-    ;; Highlight, truncate.
+    ;; Highlight
     (if argstring
 	(elisp--highlight-function-argument
-         sym argstring index
-         (or prefix
-             (concat (propertize (symbol-name sym) 'face
-                                 (if (functionp sym)
-                                     'font-lock-function-name-face
-                                   'font-lock-keyword-face))
-                     ": "))))))
+         sym argstring index))))
 
-(defun elisp--highlight-function-argument (sym args index prefix)
-  "Highlight argument INDEX in ARGS list for function SYM.
-In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
+(defun elisp--highlight-function-argument (sym args index)
+  "Highlight argument INDEX in ARGS list for function SYM."
   ;; FIXME: This should probably work on the list representation of `args'
   ;; rather than its string representation.
   ;; FIXME: This function is much too long, we need to split it up!
@@ -1558,7 +1560,6 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
       (when start
 	(setq doc (copy-sequence args))
 	(add-text-properties start end (list 'face argument-face) doc))
-      (setq doc (eldoc-docstring-format-sym-doc prefix doc))
       doc)))
 
 ;; Return a string containing a brief (one-line) documentation string for
@@ -1571,9 +1572,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
         (t
          (let ((doc (documentation-property sym 'variable-documentation t)))
            (when doc
-             (let ((doc (eldoc-docstring-format-sym-doc
-                         sym (elisp--docstring-first-line doc)
-                         'font-lock-variable-name-face)))
+             (let ((doc (elisp--docstring-first-line doc)))
                (elisp--last-data-store sym doc 'variable)))))))
 
 (defun elisp--last-data-store (symbol doc type)

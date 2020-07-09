@@ -75,18 +75,18 @@
     (goto-char (point-min))
     (should (eq ?a (following-char))) ; make sure we are where we think we are
     ;; Function should return nil for an ASCII character.
-    (should (not (describe-char-eldoc)))
+    (should (not (describe-char-eldoc 'ignore)))
 
     (goto-char (1+ (point)))
     (should (eq ?… (following-char)))
     (let ((eldoc-echo-area-use-multiline-p t))
       ;; Function should return description of an Unicode character.
       (should (equal "U+2026: Horizontal ellipsis (Po: Punctuation, Other)"
-                     (describe-char-eldoc))))
+                     (describe-char-eldoc 'ignore))))
 
     (goto-char (point-max))
     ;; At the end of the buffer, function should return nil and not blow up.
-    (should (not (describe-char-eldoc)))))
+    (should (not (describe-char-eldoc 'ignore)))))
 
 
 (provide 'descr-text-test)

@@ -4,9 +4,9 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.0.8
+;; Version: 1.0.9
 ;; Keywords: c languages tools
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -1002,6 +1002,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'after-change-functions 'flymake-after-change-function nil t)
     (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
+    (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function nil t)
 
     ;; If Flymake happened to be alrady already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
@@ -1019,6 +1020,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (remove-hook 'after-save-hook 'flymake-after-save-hook t)
     (remove-hook 'kill-buffer-hook 'flymake-kill-buffer-hook t)
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
+    (remove-hook 'eldoc-documentation-functions 'flymake-eldoc-function t)
 
     (mapc #'delete-overlay (flymake--overlays))
 
@@ -1085,6 +1087,14 @@ START and STOP and LEN are as in `after-change-functions'."
               (null flymake-diagnostic-functions))
     (flymake-mode)
     (flymake-log :warning "Turned on in `flymake-find-file-hook'")))
+
+(defun flymake-eldoc-function (report-doc &rest _)
+  "Document diagnostics at point.
+Intended for `eldoc-documentation-functions' (which see)."
+  (let ((diags (flymake-diagnostics (point))))
+    (when diags
+      (funcall report-doc
+               (mapconcat #'flymake-diagnostic-text diags "\n")))))
 
 (defun flymake-goto-next-error (&optional n filter interactive)
   "Go to Nth next Flymake diagnostic that matches FILTER.

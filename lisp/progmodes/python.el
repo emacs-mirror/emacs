@@ -4573,7 +4573,7 @@ returns will be used.  If not FORCE-PROCESS is passed what
   :type 'boolean
   :version "25.1")
 
-(defun python-eldoc-function ()
+(defun python-eldoc-function (&rest _ignored)
   "`eldoc-documentation-function' for Python.
 For this to work as best as possible you should call
 `python-shell-send-buffer' from time to time so context in
@@ -5553,14 +5553,16 @@ REPORT-FN is Flymake's callback function."
                                                  (current-column))))
          (^ '(- (1+ (current-indentation))))))
 
-  (if (null eldoc-documentation-function)
-      ;; Emacs<25
-      (set (make-local-variable 'eldoc-documentation-function)
-           #'python-eldoc-function)
-    (if (boundp 'eldoc-documentation-functions)
-        (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
-      (add-function :before-until (local 'eldoc-documentation-function)
-                    #'python-eldoc-function)))
+  (with-no-warnings
+    ;; supress warnings about eldoc-documentation-function being obsolete
+   (if (null eldoc-documentation-function)
+       ;; Emacs<25
+       (set (make-local-variable 'eldoc-documentation-function)
+            #'python-eldoc-function)
+     (if (boundp 'eldoc-documentation-functions)
+         (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
+       (add-function :before-until (local 'eldoc-documentation-function)
+                     #'python-eldoc-function))))
 
   (add-to-list
    'hs-special-modes-alist
