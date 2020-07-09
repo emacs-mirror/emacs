@@ -258,9 +258,7 @@ endif
 GMP_H = @GMP_H@
 LIB_GMP = @LIB_GMP@
 
-# Note: emacs-module.h is generated from emacs-module.h.in, hence we
-# look in ../src, not $(srcdir)/../src.
-MODULE_CFLAGS = -I../src -I$(srcdir)/../lib \
+MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 
