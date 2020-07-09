@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.1.0
+;; Version: 1.2.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -712,19 +712,22 @@ endeavour to display the docstrings given to them."
                     (;; New protocol: trust callback will be called;
                      t))))))
 
-(defun eldoc-print-current-symbol-info ()
+(defun eldoc-print-current-symbol-info (&optional interactive)
   "Document thing at point."
-  (interactive)
-  (if (not (eldoc-display-message-p))
-      ;; Erase the last message if we won't display a new one.
-      (when eldoc-last-message
-        (eldoc--message nil))
-    (let ((non-essential t))
-      ;; Only keep looking for the info as long as the user hasn't
-      ;; requested our attention.  This also locally disables
-      ;; inhibit-quit.
-      (while-no-input
-        (eldoc--invoke-strategy)))))
+  (interactive '(t))
+  (cond (interactive
+         (eldoc--invoke-strategy))
+        (t
+         (if (not (eldoc-display-message-p))
+             ;; Erase the last message if we won't display a new one.
+             (when eldoc-last-message
+               (eldoc--message nil))
+           (let ((non-essential t))
+             ;; Only keep looking for the info as long as the user hasn't
+             ;; requested our attention.  This also locally disables
+             ;; inhibit-quit.
+             (while-no-input
+               (eldoc--invoke-strategy)))))))
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print
