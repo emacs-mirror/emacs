@@ -248,7 +248,7 @@ properties removed.
 @defun concat &rest sequences
 @cindex copying strings
 @cindex concatenating strings
-This function returns a new string consisting of the characters in the
+This function returns a string consisting of the characters in the
 arguments passed to it (along with their text properties, if any).  The
 arguments may be strings, lists of numbers, or vectors of numbers; they
 are not themselves changed.  If @code{concat} receives no arguments, it
@@ -269,9 +269,14 @@ returns an empty string.
 @end example
 
 @noindent
-This function always constructs a new string that is not @code{eq} to
-any existing string, except when the result is the empty string (to
-save space, Emacs makes only one empty multibyte string).
+This function does not always allocate a new string.  Callers are
+advised not rely on the result being a new string nor on it being
+@code{eq} to an existing string.
+
+In particular, mutating the returned value may inadvertently change
+another string, alter a constant string in the program, or even raise
+an error.  To obtain a string that you can safely mutate, use
+@code{copy-sequence} on the result.
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
