@@ -318,6 +318,9 @@ local reference."
   (with-temp-buffer
     (let ((standard-output (current-buffer)))
       (describe-function-1 #'mod-test-sum)
+      (goto-char (point-min))
+      (while (re-search-forward "`[^']*/data/emacs-module/" nil t)
+        (replace-match "`data/emacs-module/"))
       (should (equal
                (buffer-substring-no-properties 1 (point-max))
                (format "a module function in `data/emacs-module/mod-test%s'.
