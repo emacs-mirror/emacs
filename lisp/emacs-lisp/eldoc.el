@@ -479,7 +479,7 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                  (count-screen-lines (point-min) (point) t (minibuffer-window)))
              while (> needed (if truncated (1- available) available))
              do (goto-char (line-end-position (if truncated 0 -1)))
-             (while (bolp) (goto-char (line-end-position 0)))
+             (while (and (not (bobp)) (bolp)) (goto-char (line-end-position 0)))
              finally
              (unless (and truncated
                           eldoc-prefer-doc-buffer
