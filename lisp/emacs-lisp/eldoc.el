@@ -537,7 +537,7 @@ Meant as a value for `eldoc-documentation-strategy'."
 
 ;; FIXME: The unintern fixes "don't know how to make a localized
 ;; variable an alias".
-(unintern 'eldoc-documentation-function)
+(unintern 'eldoc-documentation-function nil)
 (define-obsolete-variable-alias 'eldoc-documentation-function
   'eldoc-documentation-strategy "eldoc-1.1.0")
 
