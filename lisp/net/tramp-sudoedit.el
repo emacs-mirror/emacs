@@ -489,8 +489,8 @@ the result will be a local, non-Tramp, file name."
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
 	    (regexp (eval-when-compile
-		      (concat "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\):"
-			      "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\)"))))
+		      (concat "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\):"
+			      "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\)"))))
 	(when (and (tramp-sudoedit-remote-selinux-p v)
 		   (tramp-sudoedit-send-command
 		    v "ls" "-d" "-Z"

@@ -79,9 +79,9 @@ present for backward compatibility."
   ;;; This regexp recognizes absolute filenames with only one component
   ;;; on Windows, for the sake of hostname completion.
   (and (memq system-type '(ms-dos windows-nt))
-       (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
+       (or (assoc "^[[:alpha:]]:/[^/:]*\\'" file-name-handler-alist)
 	   (setq file-name-handler-alist
-		 (cons '("^[a-zA-Z]:/[^/:]*\\'" .
+		 (cons '("^[:alpha:]]:/[^/:]*\\'" .
 			 ange-ftp-completion-hook-function)
 		       file-name-handler-alist)))))
 

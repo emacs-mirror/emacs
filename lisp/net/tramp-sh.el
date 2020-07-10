@@ -90,10 +90,10 @@ the default storage location, e.g. \"$HOME/.sh_history\"."
                  (string :tag "Redirect to a file")))
 
 ;;;###tramp-autoload
-(defconst tramp-display-escape-sequence-regexp "\e[[;0-9]+m"
+(defconst tramp-display-escape-sequence-regexp "\e[[:digit:];[]+m"
   "Terminal control escape sequences for display attributes.")
 
-(defconst tramp-device-escape-sequence-regexp "\e[[0-9]+n"
+(defconst tramp-device-escape-sequence-regexp "\e[[:digit:][]+n"
   "Terminal control escape sequences for device status.")
 
 ;; ksh on OpenBSD 4.5 requires that $PS1 contains a `#' character for
@@ -1515,8 +1515,8 @@ ID-FORMAT valid values are `string' and `integer'."
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
 	    (regexp (eval-when-compile
-		      (concat "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\):"
-			      "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\)"))))
+		      (concat "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\):"
+			      "\\([[:alnum:]_]+\\):" "\\([[:alnum]_]+\\)"))))
 	(when (and (tramp-remote-selinux-p v)
 		   (tramp-send-command-and-check
 		    v (format
@@ -5223,7 +5223,7 @@ the exit status."
 	   "echo tramp_exit_status $?"
 	   (if subshell " )" "")))
   (with-current-buffer (tramp-get-connection-buffer vec)
-    (unless (tramp-search-regexp "tramp_exit_status [0-9]+")
+    (unless (tramp-search-regexp "tramp_exit_status [[:digit:]]+")
       (tramp-error
        vec 'file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")

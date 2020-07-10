@@ -448,8 +448,9 @@ For details, see `tramp-rename-files'."
 	 (tramp-user-error
 	  nil
 	  (substitute-command-keys
-	   (concat "Current buffer is not remote.  "
-		   "Consider `\\[tramp-rename-files]' instead.")))
+	   (eval-when-compile
+	     (concat "Current buffer is not remote.  "
+		     "Consider `\\[tramp-rename-files]' instead."))))
        (setq target
 	     (when (null current-prefix-arg)
 	       ;; The source remote connection shall not trigger any action.
