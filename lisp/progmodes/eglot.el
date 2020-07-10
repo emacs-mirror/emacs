@@ -2053,12 +2053,15 @@ is not active."
   ;; Commit logs for this function help understand what's going on.
   (when-let (completion-capability (eglot--server-capable :completionProvider))
     (let* ((server (eglot--current-server-or-lose))
-           (sort-completions (lambda (completions)
-                               (sort completions
-                                     (lambda (a b)
-                                       (string-lessp
-                                        (or (get-text-property 0 :sortText a) "")
-                                        (or (get-text-property 0 :sortText b) ""))))))
+           (sort-completions
+            (lambda (completions)
+              (cl-sort completions
+                       #'string-lessp
+                       :key (lambda (c)
+                              (or (plist-get
+                                   (get-text-property 0 'eglot--lsp-item c)
+                                   :sortText)
+                                  "")))))
            (metadata `(metadata . ((display-sort-function . ,sort-completions))))
            resp items (cached-proxies :none)
            (proxies
