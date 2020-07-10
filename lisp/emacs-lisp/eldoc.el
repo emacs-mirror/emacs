@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.3.0
+;; Version: 1.4.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -535,9 +535,6 @@ Meant as a value for `eldoc-documentation-strategy'."
                         (if (stringp str) (funcall callback str))
                         nil))))
 
-;; FIXME: The unintern fixes "don't know how to make a localized
-;; variable an alias".
-(unintern 'eldoc-documentation-function nil)
 (define-obsolete-variable-alias 'eldoc-documentation-function
   'eldoc-documentation-strategy "eldoc-1.1.0")
 
