@@ -34,7 +34,7 @@
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Shell
 ;; package support, Shell syntax highlighting, Pdb tracking, Symbol
-;; completion, Skeletons, FFAP, Code Check, Eldoc, Imenu.
+;; completion, Skeletons, FFAP, Code Check, ElDoc, Imenu.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -216,7 +216,7 @@
 ;; Code check: Check the current file for errors with `python-check'
 ;; using the program defined in `python-check-command'.
 
-;; Eldoc: returns documentation for object at point by using the
+;; ElDoc: returns documentation for object at point by using the
 ;; inferior python subprocess to inspect its documentation.  As you
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
@@ -4461,7 +4461,7 @@ See `python-check-command' for the default."
                          (format python-check-buffer-name command)))))
 
 
-;;; Eldoc
+;;; ElDoc
 
 (defcustom python-eldoc-setup-code
   "def __PYDOC_get_help(obj):
@@ -4578,7 +4578,7 @@ fetching."
     (with-timeout (python-eldoc-function-timeout
                    (if python-eldoc-function-timeout-permanent
                        (progn
-                         (message "Eldoc echo-area display muted in this buffer, see `python-eldoc-function'")
+                         (message "ElDoc echo-area display muted in this buffer, see `python-eldoc-function'")
                          (setq python-eldoc-get-doc nil))
                      (message "`python-eldoc-function' timed out, see `python-eldoc-function-timeout'")))
       (python-eldoc--get-doc-at-point))))

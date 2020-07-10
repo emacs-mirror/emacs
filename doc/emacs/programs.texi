@@ -1260,16 +1260,16 @@ the WoMan Info manual, which is distributed with Emacs.
 to view the built-in documentation for the Lisp functions and
 variables that you want to use.  @xref{Name Help}.
 
-@cindex Eldoc mode
+@cindex ElDoc mode
 @findex eldoc-mode
 @findex global-eldoc-mode
-  Eldoc is a buffer-local minor mode that helps with looking up Lisp
+  ElDoc is a buffer-local minor mode that helps with looking up Lisp
 documentation.  When it is enabled, the echo area displays some useful
 information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To
-toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  There's also a Global
-Eldoc mode, which is turned on by default, and affects buffers, such
+toggle ElDoc mode, type @kbd{M-x eldoc-mode}.  There's also a Global
+ElDoc mode, which is turned on by default, and affects buffers, such
 as @samp{*scratch*}, whose major mode is Emacs Lisp or Lisp
 Interaction (@w{@kbd{M-x global-eldoc-mode}} to turn it off globally).
 
