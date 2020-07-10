@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.4.0
+;; Version: 1.5.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -539,10 +539,27 @@ Meant as a value for `eldoc-documentation-strategy'."
                         (if (stringp str) (funcall callback str))
                         nil))))
 
-(define-obsolete-variable-alias 'eldoc-documentation-function
-  'eldoc-documentation-strategy "eldoc-1.1.0")
+;; JT@2020-07-10: Eldoc is pre-loaded, so in in Emacs < 28 we can't
+;; make the "old" `eldoc-documentation-function' point to the new
+;; `eldoc-documentation-strategy', so we do the reverse.  This allows
+;; for Eldoc to be loaded in those older Emacs versions and work with
+;; whomever (major-modes, extensions, ueser) sets one of the other
+;; variable.
+(defmacro eldoc--documentation-strategy-defcustom
+    (main secondary value docstring &rest more)
+  "Defcustom helper macro for sorting `eldoc-documentation-strategy'."
+  (declare (indent 2))
+  `(if (< emacs-major-version 28)
+       (progn
+         (defcustom ,secondary ,value ,docstring ,@more)
+         (define-obsolete-variable-alias ',main ',secondary "eldoc-1.1.0"))
+       (progn
+         (defcustom ,main ,value ,docstring  ,@more)
+         (defvaralias ',secondary ',main ,docstring))))
 
-(defcustom eldoc-documentation-strategy #'eldoc-documentation-default
+(eldoc--documentation-strategy-defcustom eldoc-documentation-strategy
+    eldoc-documentation-function
+  #'eldoc-documentation-default
   "How to collect and organize results of `eldoc-documentation-functions'.
 
 This variable controls how `eldoc-documentation-functions', which
