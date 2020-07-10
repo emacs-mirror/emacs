@@ -372,7 +372,7 @@ about the context around point.
 
 - If that decision can be taken quickly, the hook function may
   call CALLBACK immediately following the protocol described
-  berlow.  Alternatively it may ignore CALLBACK entirely and
+  below.  Alternatively it may ignore CALLBACK entirely and
   return either the doc string, or nil if there's no doc
   appropriate for the context.
 
