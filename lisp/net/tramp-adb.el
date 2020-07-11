@@ -496,9 +496,10 @@ Emacs dired can't find files."
       (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
 	;; "adb pull ..." does not always return an error code.
-	(when (or (tramp-adb-execute-adb-command
-		   v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
-		  (not (file-exists-p tmpfile)))
+	(unless
+	    (and (tramp-adb-execute-adb-command
+		  v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
+		 (file-exists-p tmpfile))
 	  (ignore-errors (delete-file tmpfile))
 	  (tramp-error
 	   v 'file-error "Cannot make local copy of file `%s'" filename))
@@ -551,8 +552,8 @@ But handle the case, if the \"test\" command is not available."
         v 3 (format-message
              "Moving tmp file `%s' to `%s'" tmpfile filename)
 	(unwind-protect
-	    (when (tramp-adb-execute-adb-command
-		   v "push" tmpfile (tramp-compat-file-name-unquote localname))
+	    (unless (tramp-adb-execute-adb-command
+		     v "push" tmpfile (tramp-compat-file-name-unquote localname))
 	      (tramp-error v 'file-error "Cannot write: `%s'" filename))
 	  (delete-file tmpfile)))
 
@@ -679,10 +680,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		;; because `file-attributes' reads the values from
 		;; there.
 		(tramp-flush-file-properties v localname)
-		(when (tramp-adb-execute-adb-command
-		       v "push"
-		       (tramp-compat-file-name-unquote filename)
-		       (tramp-compat-file-name-unquote localname))
+		(unless (tramp-adb-execute-adb-command
+			 v "push"
+			 (tramp-compat-file-name-unquote filename)
+			 (tramp-compat-file-name-unquote localname))
 		  (tramp-error
 		   v 'file-error
 		   "Cannot copy `%s' `%s'" filename newname))))))))
@@ -1048,10 +1049,10 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	     ;; Try to connect device.
 	     ((and tramp-adb-connect-if-not-connected
 		   (not (zerop (length host)))
-		   (not (tramp-adb-execute-adb-command
-                         vec "connect"
-                         (replace-regexp-in-string
-                          tramp-prefix-port-format ":" host))))
+		   (tramp-adb-execute-adb-command
+                    vec "connect"
+                    (replace-regexp-in-string
+		     tramp-prefix-port-format ":" host)))
 	      ;; When new device connected, running other adb command (e.g.
 	      ;; adb shell) immediately will fail.  To get around this
 	      ;; problem, add sleep 0.1 second here.
@@ -1061,18 +1062,18 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 		 vec 'file-error "Could not find device %s" host)))))))
 
 (defun tramp-adb-execute-adb-command (vec &rest args)
-  "Return nil on success error-output on failure."
+  "Execute an adb command.
+Insert the result into the connection buffer.  Return nil on
+error and non-nil on success."
   (when (and (> (length (tramp-file-name-host vec)) 0)
 	     ;; The -s switch is only available for ADB device commands.
 	     (not (member (car args) '("connect" "disconnect"))))
     (setq args (append (list "-s" (tramp-adb-get-device vec)) args)))
-  (with-temp-buffer
-    (prog1
-	(unless
-	    (zerop
-	     (apply #'tramp-call-process vec tramp-adb-program nil t nil args))
-	  (buffer-string))
-      (tramp-message vec 6 "%s" (buffer-string)))))
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    ;; Clean up the buffer.  We cannot call `erase-buffer' because
+    ;; narrowing might be in effect.
+    (let ((inhibit-read-only t)) (delete-region (point-min) (point-max)))
+    (zerop (apply #'tramp-call-process vec tramp-adb-program nil t nil args))))
 
 (defun tramp-adb-find-test-command (vec)
   "Check whether the ash has a builtin \"test\" command.
@@ -1084,25 +1085,30 @@ This happens for Android >= 4.0."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (unless neveropen (tramp-adb-maybe-open-connection vec))
-  (tramp-message vec 6 "%s" command)
-  (tramp-send-string vec command)
-  (unless nooutput
-    ;; FIXME: Race condition.
-    (tramp-adb-wait-for-output (tramp-get-connection-process vec))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (save-excursion
-	(goto-char (point-min))
-	;; We can't use stty to disable echo of command.  stty is said
-	;; to be added to toybox 0.7.6.  busybox shall have it, but this
-	;; isn't used any longer for Android.
-	(delete-matching-lines (regexp-quote command))
-	;; When the local machine is W32, there are still trailing ^M.
-	;; There must be a better solution by setting the correct coding
-	;; system, but this requires changes in core Tramp.
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" nil nil))))))
+  (if (string-match "[[:multibyte:]]" command)
+      ;; Multibyte codepoints with four bytes are not supported at
+      ;; least by toybox.
+      (tramp-adb-execute-adb-command vec "shell" command)
+
+    (unless neveropen (tramp-adb-maybe-open-connection vec))
+    (tramp-message vec 6 "%s" command)
+    (tramp-send-string vec command)
+    (unless nooutput
+      ;; FIXME: Race condition.
+      (tramp-adb-wait-for-output (tramp-get-connection-process vec))
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(save-excursion
+	  (goto-char (point-min))
+	  ;; We can't use stty to disable echo of command.  stty is said
+	  ;; to be added to toybox 0.7.6.  busybox shall have it, but this
+	  ;; isn't used any longer for Android.
+	  (delete-matching-lines (regexp-quote command))
+	  ;; When the local machine is W32, there are still trailing ^M.
+	  ;; There must be a better solution by setting the correct coding
+	  ;; system, but this requires changes in core Tramp.
+	  (goto-char (point-min))
+	  (while (re-search-forward "\r+$" nil t)
+	    (replace-match "" nil nil)))))))
 
 (defun tramp-adb-send-command-and-check (vec command &optional exit-status)
   "Run COMMAND and check its exit status.
