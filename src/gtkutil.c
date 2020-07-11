@@ -17,6 +17,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/* FIXME: This code is problematic; it misuses GTK, so the GTK
+   developers don't think they should fix the resulting problems in GTK
+   itself.  The right way to fix this is by rewriting the code in Emacs
+   to use GTK3 properly.  As of 2020, there is a project to do this.
+   Talk with Yuuki Harano <masm+emacs@masm11.me> if you are interested
+   in doing substantial work on this.  */
+
 #include <config.h>
 
 #ifdef USE_GTK
