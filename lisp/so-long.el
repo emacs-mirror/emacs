@@ -1047,7 +1047,9 @@ This is the default value of `so-long-predicate'."
   (let ((count 0) start)
     (save-excursion
       (goto-char (point-min))
-      (when so-long-skip-leading-comments
+      (when (and so-long-skip-leading-comments
+                 (or comment-use-syntax ;; Refer to `comment-forward'.
+                     (and comment-start-skip comment-end-skip)))
         ;; Skip the shebang line, if any.  This is not necessarily comment
         ;; syntax, so we need to treat it specially.
         (when (looking-at "#!")
