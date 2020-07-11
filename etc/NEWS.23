@@ -1779,7 +1779,7 @@ to update it to the new VC.
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
-*** Eldoc highlights the function argument under point
+*** ElDoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
 
 *** In Etags, the --members option is now the default.

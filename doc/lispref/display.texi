@@ -4275,9 +4275,15 @@ a display specification has the form
 @var{fringe} is either the symbol @code{left-fringe} or
 @code{right-fringe}.  @var{bitmap} is a symbol identifying the bitmap
 to display.  The optional @var{face} names a face whose foreground and
-background colors are to be used to display the bitmap; this face is
-automatically merged with the @code{fringe} face.  If @var{face} is
-omitted, that means to use the @code{default} face.
+background colors are to be used to display the bitmap, using the
+attributes of the @code{fringe} face for colors that @var{face} didn't
+specify.  If @var{face} is omitted, that means to use the attributes
+of the @code{default} face for the colors which the @code{fringe} face
+didn't specify.  For predictable results that don't depend on the
+attributes of the @code{default} and @code{fringe} faces, we recommend
+you never omit @var{face}, but always provide a specific face.  In
+particular, if you want the bitmap to be always displayed in the
+@code{fringe} face, use @code{fringe} as @var{face}.
 
   For instance, to display an arrow in the left fringe, using the
 @code{warning} face, you could say something like:
