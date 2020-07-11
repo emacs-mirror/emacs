@@ -684,7 +684,7 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
                                                         msg)
                        into diags
                        finally (funcall report-fn diags)))
-                  (flymake-log :warning "Cancelling obsolete check %s"
+                  (flymake-log :warning "Canceling obsolete check %s"
                                proc))
               ;; Cleanup the temporary buffer used to hold the
               ;; check's output.
