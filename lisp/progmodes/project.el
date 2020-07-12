@@ -106,8 +106,7 @@ either nil to mean that it is not applicable, or a project instance.
 The exact form of the project instance is up to each respective
 function; the only practical limitation is to use values that
 `cl-defmethod' can dispatch on, like a cons cell, or a list, or a
-CL struct.  For example, the default `project-try-vc' returns a
-cons cell of the form (vc . PROJECT-ROOT-DIRECTORY).")
+CL struct.")
 
 (defvar project-current-inhibit-prompt nil
   "Non-nil to skip prompting the user in `project-current'.")
@@ -115,13 +114,16 @@ cons cell of the form (vc . PROJECT-ROOT-DIRECTORY).")
 ;;;###autoload
 (defun project-current (&optional maybe-prompt directory)
   "Return the project instance in DIRECTORY, defaulting to `default-directory'.
-When no project is found in that directory, the result depends
-on the value of MAYBE-PROMPT: if it is nil or omitted, return nil,
+
+When no project is found in that directory, the result depends on
+the value of MAYBE-PROMPT: if it is nil or omitted, return nil,
 else ask the user for a directory in which to look for the
 project, and if no project is found there, return a \"transient\"
-project instance.  The \"transient\" project instance is a special
-project object whose form is (transient DIRECTORY), and that can be
-used as a basis for creating a project in that directory.
+project instance.
+
+The \"transient\" project instance is a special kind of value
+which denotes a project rooted in that directory and includes all
+files under it except for ones that match standard ignores.
 
 See the doc string of `project-find-functions' for the general form
 of the project instance object."
