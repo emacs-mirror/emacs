@@ -763,8 +763,8 @@ The character information includes:
                        (to (nth 4 composition))
                        glyph)
                   (if (fontp font)
-                      ;; GUI frame: show composition in terms of font
-                      ;; glyphs.
+                      ;; GUI frame: show composition in terms of
+                      ;; font glyphs and characters.
                       (progn
                         (insert " using this font:\n  "
                                 (symbol-name (font-get font :type))
@@ -774,7 +774,14 @@ The character information includes:
                         (while (and (<= from to)
                                     (setq glyph (lgstring-glyph gstring from)))
                           (insert (format "  %S\n" glyph))
-                          (setq from (1+ from))))
+                          (setq from (1+ from)))
+                        (insert "from these character(s):\n")
+                        (dotimes (i (lgstring-char-len gstring))
+                          (let ((char (lgstring-char gstring i)))
+                            (insert (format "  %c (#x%x) %s\n"
+                                            char char
+                                            (get-char-code-property
+                                             char 'name))))))
                     ;; TTY frame: show composition in terms of characters.
                     (insert " by these characters:\n")
                     (while (and (<= from to)
