@@ -541,6 +541,7 @@ typedef struct {
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
   gcc_jit_lvalue ***arrays;  /* Array index -> gcc_jit_lvalue **. */
+  gcc_jit_rvalue *zero;
   gcc_jit_rvalue *one;
   gcc_jit_rvalue *inttypebits;
   gcc_jit_rvalue *lisp_int0;
@@ -1845,31 +1846,46 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
   /* Ex: (funcall #s(comp-mvar 1 5 t eql symbol t)
                   #s(comp-mvar 2 6 nil nil nil t)
 		  #s(comp-mvar 3 7 t 0 fixnum t)).  */
-
+  static int i = 0;
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
 
-  if (!nargs)
-    return emit_call_ref (callee,
-			  nargs,
-			  comp.arrays[0][0],
-			  direct);
+  gcc_jit_lvalue *tmp_arr =
+    gcc_jit_function_new_local (
+      comp.func,
+      NULL,
+      gcc_jit_context_new_array_type (comp.ctxt,
+				      NULL,
+				      comp.lisp_obj_type,
+				      nargs),
+      format_string ("call_arr_%d", i++));
 
-  Lisp_Object first_arg = SECOND (insn);
-  Lisp_Object arr_idx = CALL1I (comp-mvar-array-idx, first_arg);
+  ptrdiff_t j = 0;
+  Lisp_Object arg = CDR (insn);
+  FOR_EACH_TAIL (arg)
+    {
+      gcc_jit_block_add_assignment (
+        comp.block,
+	NULL,
+	gcc_jit_context_new_array_access (
+	  comp.ctxt,
+	  NULL,
+	  gcc_jit_lvalue_as_rvalue (tmp_arr),
+	  gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					       comp.int_type,
+					       j)),
+	emit_mvar_rval (XCAR (arg)));
+      ++j;
+    }
 
-  /* Make sure all the arguments are layout-ed into the same array.  */
-  Lisp_Object p = XCDR (XCDR (insn));
-  FOR_EACH_TAIL (p)
-    if (!EQ (arr_idx, CALL1I (comp-mvar-array-idx, XCAR (p))))
-      xsignal2 (Qnative_ice, build_string ("incoherent array idx for insn"),
-		insn);
-
-  EMACS_INT first_slot = XFIXNUM (CALL1I (comp-mvar-slot, first_arg));
-  return emit_call_ref (callee,
-			nargs,
-			comp.arrays[XFIXNUM (arr_idx)][first_slot],
-			direct);
+  return emit_call_ref (
+	   callee,
+	   nargs,
+	   gcc_jit_context_new_array_access (comp.ctxt,
+					     NULL,
+					     gcc_jit_lvalue_as_rvalue (tmp_arr),
+					     comp.zero),
+	   direct);
 }
 
 static gcc_jit_rvalue *
@@ -3966,6 +3982,10 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   comp.lisp_obj_type = comp.lisp_word_type;
 #endif
   comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
+  comp.zero =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.emacs_int_type,
+					 0);
   comp.one =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					 comp.emacs_int_type,
