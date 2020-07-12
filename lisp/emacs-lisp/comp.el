@@ -168,7 +168,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-propagate
                         comp-dead-code
                         comp-tco
-                        comp-propagate-alloc
+                        comp-propagate
                         comp-remove-type-hints
                         comp-final)
   "Passes to be executed in order.")
@@ -400,9 +400,6 @@ structure.")
   "A meta-variable being a slot in the meta-stack."
   (id nil :type (or null number)
       :documentation "Unique id when in SSA form.")
-  ;; The following two are allocation info.
-  (array-idx 0 :type fixnum
-             :documentation "The array where the m-var gets allocated.")
   (slot nil :type (or fixnum symbol)
         :documentation "Slot number in the array if a number or
         'scratch' for scratch slot.")
@@ -2015,42 +2012,15 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
         for (func-name . def) in env
         do (setf (symbol-function func-name) def)))))
 
-(defun comp-ref-args-to-array (args)
-  "Given ARGS assign them to a dedicated array."
-  (when args
-    (cl-loop with array-h = (comp-func-array-h comp-func)
-             with arr-idx = (hash-table-count array-h)
-             for i from 0
-             for arg in args
-             initially
-               (puthash arr-idx (length args) array-h)
-             do
-               ;; We are not supposed to rename arrays more then once.
-               ;; This because we do only one final back propagation
-               ;; and arrays are used only once.
-
-               ;; Note: this last is just a property of the code generated
-               ;; by the byte-compiler.
-               (cl-assert (= (comp-mvar-array-idx arg) 0))
-               (setf (comp-mvar-slot arg) i
-                     (comp-mvar-array-idx arg) arr-idx))))
-
-(defun comp-propagate-prologue (backward)
+(defun comp-propagate-prologue ()
   "Prologue for the propagate pass.
 Here goes everything that can be done not iteratively (read once).
-- Forward propagate immediate involed in assignments.
-- Backward propagate array layout when BACKWARD is non nil."
+Forward propagate immediate involed in assignments."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do (cl-loop
        for insn in (comp-block-insns b)
        do (pcase insn
-            (`(set ,_lval (,(or 'callref 'direct-callref) ,_f . ,args))
-             (when backward
-               (comp-ref-args-to-array args)))
-            (`(,(or 'callref 'direct-callref) ,_f . ,args)
-             (when backward
-               (comp-ref-args-to-array args)))
             (`(setimm ,lval ,v)
              (setf (comp-mvar-const-vld lval) t
                    (comp-mvar-constant lval) v
@@ -2130,15 +2100,7 @@ Here goes everything that can be done not iteratively (read once).
                  (non-empty (cl-notany #'null types))
                  (x (car types))
                  (eqs (cl-every (lambda (y) (eq x y)) types)))
-       (setf (comp-mvar-type lval) x))
-     ;; Backward propagate array index and slot.
-     (let ((arr-idx (comp-mvar-array-idx lval)))
-       (when (> arr-idx 0)
-         (cl-loop with slot = (comp-mvar-slot lval)
-                  for arg in rest
-                  do
-                  (setf (comp-mvar-array-idx arg) arr-idx
-                        (comp-mvar-slot arg) slot)))))))
+       (setf (comp-mvar-type lval) x)))))
 
 (defun comp-propagate* ()
   "Propagate for set* and phi operands.
@@ -2153,29 +2115,21 @@ Return t if something was changed."
                          do (setf modified t))
            finally return modified))
 
-(defun comp-propagate1 (backward)
+(defun comp-propagate (_)
+  "Forward propagate types and consts within the lattice."
   (comp-ssa)
   (maphash (lambda (_ f)
              (when (and (>= (comp-func-speed f) 2)
                         ;; FIXME remove the following condition when tested.
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (comp-propagate-prologue backward)
+                 (comp-propagate-prologue)
                  (cl-loop
                   for i from 1
                   while (comp-propagate*)
                   finally (comp-log (format "Propagation run %d times\n" i) 2))
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
-
-(defun comp-propagate (_)
-  "Forward propagate types and consts within the lattice."
-  (comp-propagate1 nil))
-
-(defun comp-propagate-alloc (_)
-  "Forward propagate types and consts within the lattice.
-Backward propagate array placement properties."
-  (comp-propagate1 t))
 
 
 ;;; Call optimizer pass specific code.
