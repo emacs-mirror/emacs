@@ -103,9 +103,10 @@
 Each functions on this hook is called in turn with one
 argument, the directory in which to look, and should return
 either nil to mean that it is not applicable, or a project instance.
-The exact form of the project instance depends on the respective
-function; for example, the default `project-try-vc' returns a
-cons cell of the form (vc . PROJECT-ROOT-DIRECTORY).")
+The exact form of the project instance is up to each respective
+function; the only practical limitation is to use values that
+`cl-defmethod' can dispatch on, like a cons cell, or a list, or a
+CL struct.")
 
 (defvar project-current-inhibit-prompt nil
   "Non-nil to skip prompting the user in `project-current'.")
@@ -113,9 +114,10 @@ cons cell of the form (vc . PROJECT-ROOT-DIRECTORY).")
 ;;;###autoload
 (defun project-current (&optional maybe-prompt directory)
   "Return the project instance in DIRECTORY, defaulting to `default-directory'.
-When no project is found in that directory, and MAYBE-PROMPT
-is non-nil, ask the user for a directory in which to look for the project.
-If no project is found, return nil.
+When no project is found in that directory, and MAYBE-PROMPT is
+non-nil, ask the user for a directory in which to look for the
+project; if no project is found there, return a \"transient\"
+instance.
 
 See the doc string of `project-find-functions' for the form of the
 project instance object."
@@ -813,9 +815,7 @@ Arguments the same as in `compile'."
 This function prompts for another buffer, offering as candidates
 buffers that belong to the same project as the current buffer.
 Two buffers belong to the same project if their project instances,
-as reported by `project-current' in each buffer, are identical.  See
-the doc string of `project-find-functions' for the forms a project
-instance object can take."
+as reported by `project-current' in each buffer, are identical."
   (interactive)
   (let* ((pr (project-current t))
          (current-buffer (current-buffer))
