@@ -537,10 +537,9 @@ typedef struct {
   gcc_jit_function *func; /* Current function being compiled.  */
   bool func_has_non_local; /* From comp-func has-non-local slot.  */
   EMACS_INT func_speed; /* From comp-func speed slot.  */
-  gcc_jit_lvalue **f_frame; /* "Floating" frame for the current function.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
-  gcc_jit_lvalue ***arrays;  /* Array index -> gcc_jit_lvalue **. */
+  gcc_jit_lvalue **frame; /* Frame slot n -> gcc_jit_lvalue *.  */
   gcc_jit_rvalue *zero;
   gcc_jit_rvalue *one;
   gcc_jit_rvalue *inttypebits;
@@ -734,17 +733,7 @@ emit_mvar_lval (Lisp_Object mvar)
       return comp.scratch;
     }
 
-  EMACS_INT arr_idx = XFIXNUM (CALL1I (comp-mvar-array-idx, mvar));
-  EMACS_INT slot_n = XFIXNUM (mvar_slot);
-  if (comp.func_has_non_local || (comp.func_speed < 2))
-    return comp.arrays[arr_idx][slot_n];
-  else
-    {
-      if (arr_idx)
-	return comp.arrays[arr_idx][slot_n];
-      else
-	return comp.f_frame[slot_n];
-    }
+  return comp.frame[XFIXNUM (mvar_slot)];
 }
 
 static void
@@ -3767,54 +3756,13 @@ compile_function (Lisp_Object func)
   comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
   comp.func_speed = XFIXNUM (CALL1I (comp-func-speed, func));
 
-  struct Lisp_Hash_Table *array_h =
-    XHASH_TABLE (CALL1I (comp-func-array-h, func));
-  comp.arrays = SAFE_ALLOCA (array_h->count * sizeof (*comp.arrays));
-  for (ptrdiff_t i = 0; i < array_h->count; i++)
-    {
-      EMACS_INT array_len = XFIXNUM (HASH_VALUE (array_h, i));
-      comp.arrays[i] = SAFE_ALLOCA (array_len * sizeof (**comp.arrays));
-
-      gcc_jit_lvalue *arr =
-	gcc_jit_function_new_local (
-	  comp.func,
-	  NULL,
-	  gcc_jit_context_new_array_type (comp.ctxt,
-					  NULL,
-					  comp.lisp_obj_type,
-					  array_len),
-	  format_string ("arr_%td", i));
-
-      for (ptrdiff_t j = 0; j < array_len; j++)
-	comp.arrays[i][j] =
-	  gcc_jit_context_new_array_access (
-	    comp.ctxt,
-	    NULL,
-	    gcc_jit_lvalue_as_rvalue (arr),
-	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						 comp.int_type,
-						 j));
-    }
-
-  /*
-    The floating frame is a copy of the normal frame that can be used to store
-    locals if the are not going to be used in a nargs call.
-    This has two advantages:
-    - Enable gcc for better reordering (frame array is clobbered every time is
-    passed as parameter being involved into an nargs function call).
-    - Allow gcc to trigger other optimizations that are prevented by memory
-    referencing.
-  */
-  if (comp.func_speed >= 2)
-    {
-      comp.f_frame = SAFE_ALLOCA (frame_size * sizeof (*comp.f_frame));
-      for (ptrdiff_t i = 0; i < frame_size; ++i)
-	comp.f_frame[i] =
-	  gcc_jit_function_new_local (comp.func,
-				      NULL,
-				      comp.lisp_obj_type,
-				      format_string ("local%td", i));
-    }
+  comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
+  for (ptrdiff_t i = 0; i < frame_size; ++i)
+    comp.frame[i] =
+      gcc_jit_function_new_local (comp.func,
+				  NULL,
+				  comp.lisp_obj_type,
+				  format_string ("slot_%td", i));
 
   comp.scratch = NULL;
 
