@@ -4225,10 +4225,9 @@ performed successfully.  Any other value means an error."
 	      (tramp-get-connection-buffer vec)))
 	    ((eq exit 'process-died)
              (substitute-command-keys
-	      (eval-when-compile
-		(concat
-		 "Tramp failed to connect.  If this happens repeatedly, try\n"
-		 "    `\\[tramp-cleanup-this-connection]'"))))
+	      (concat
+	       "Tramp failed to connect.  If this happens repeatedly, try\n"
+	       "    `\\[tramp-cleanup-this-connection]'")))
 	    ((eq exit 'timeout)
 	     (format-message
 	      "Timeout reached, see buffer `%s' for details"

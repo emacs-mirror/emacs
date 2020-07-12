@@ -55,11 +55,10 @@ It is used for TCP/IP devices."
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
 ;;;###tramp-autoload
-(defcustom tramp-adb-prompt
-  "^[[:digit:]]*|?[[:alnum:]\e;[]*@?[[:alnum:]]*[^#\\$]*[#\\$][[:space:]]"
+(defcustom tramp-adb-prompt "^[^#\\$]*[#\\$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'regexp
-  :version "24.4"
+  :version "28.1"
   :group 'tramp)
 
 (eval-and-compile
@@ -229,11 +228,10 @@ ARGUMENTS to pass to the OPERATION."
 	(goto-char (point-min))
 	(forward-line)
 	(when (looking-at
-	       (eval-when-compile
-		 (concat "[[:space:]]*[^[:space:]]+"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)")))
+	       (concat "[[:space:]]*[^[:space:]]+"
+		       "[[:space:]]+\\([[:digit:]]+\\)"
+		       "[[:space:]]+\\([[:digit:]]+\\)"
+		       "[[:space:]]+\\([[:digit:]]+\\)"))
 	  ;; The values are given as 1k numbers, so we must change
 	  ;; them to number of bytes.
 	  (list (* 1024 (string-to-number (match-string 1)))
@@ -604,10 +602,9 @@ But handle the case, if the \"test\" command is not available."
       ;; (introduced in POSIX.1-2008) fails.
       (tramp-adb-send-command-and-check
        v (format
-	  (eval-when-compile
-	    (concat "touch -d %s %s %s 2>/dev/null || "
-		    "touch -d %s %s %s 2>/dev/null || "
-		    "touch -t %s %s %s"))
+	  (concat "touch -d %s %s %s 2>/dev/null || "
+		  "touch -d %s %s %s 2>/dev/null || "
+		  "touch -t %s %s %s")
 	  (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
 	  nofollow quoted-name
 	  (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
@@ -1085,7 +1082,7 @@ This happens for Android >= 4.0."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (if (string-match "[[:multibyte:]]" command)
+  (if (string-match-p "[[:multibyte:]]" command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
       (tramp-adb-execute-adb-command vec "shell" command)
@@ -1233,11 +1230,10 @@ connection if a previous connection has died for some reason."
 	    (tramp-message vec 5 "Checking system information")
 	    (tramp-adb-send-command
 	     vec
-	     (eval-when-compile
-	       (concat
-		"echo \\\"`getprop ro.product.model` "
-		"`getprop ro.product.version` "
-		"`getprop ro.build.version.release`\\\"")))
+	     (concat
+	      "echo \\\"`getprop ro.product.model` "
+	      "`getprop ro.product.version` "
+	      "`getprop ro.build.version.release`\\\""))
 	    (let ((old-getprop
 		   (tramp-get-connection-property vec "getprop" nil))
 		  (new-getprop

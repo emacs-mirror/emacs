@@ -108,8 +108,7 @@
 (require 'url-util)
 
 ;; Pacify byte-compiler.
-(eval-when-compile
-  (require 'custom))
+(eval-when-compile (require 'custom))
 
 (declare-function zeroconf-init "zeroconf")
 (declare-function zeroconf-list-service-types "zeroconf")
@@ -866,7 +865,7 @@ pass to the OPERATION."
 (defun tramp-gvfs-dbus-string-to-byte-array (string)
   "Like `dbus-string-to-byte-array' but add trailing \\0 if needed."
   (dbus-string-to-byte-array
-   (if (string-match "^(aya{sv})" tramp-gvfs-mountlocation-signature)
+   (if (string-match-p "^(aya{sv})" tramp-gvfs-mountlocation-signature)
        (concat string (string 0)) string)))
 
 (defun tramp-gvfs-dbus-byte-array-to-string (byte-array)
@@ -1288,8 +1287,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (if (eq id-format 'integer)
 		(string-to-number
 		 (or (cdr (assoc "unix::uid" attributes))
-		     (eval-when-compile
-		       (format "%s" tramp-unknown-id-integer))))
+		     (eval-when-compile (format "%s" tramp-unknown-id-integer))))
 	      (or (cdr (assoc "owner::user" attributes))
 		  (cdr (assoc "unix::uid" attributes))
 		  tramp-unknown-id-string)))
@@ -1297,8 +1295,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (if (eq id-format 'integer)
 		(string-to-number
 		 (or (cdr (assoc "unix::gid" attributes))
-		     (eval-when-compile
-		       (format "%s" tramp-unknown-id-integer))))
+		     (eval-when-compile (format "%s" tramp-unknown-id-integer))))
 	      (or (cdr (assoc "owner::group" attributes))
 		  (cdr (assoc "unix::gid" attributes))
 		  tramp-unknown-id-string)))

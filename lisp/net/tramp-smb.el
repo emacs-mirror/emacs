@@ -875,10 +875,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (while (not (eobp))
 	    (cond
 	     ((looking-at
-	       (eval-when-compile
-		 (concat
-		  "Size:\\s-+\\([[:digit:]]+\\)\\s-+"
-		  "Blocks:\\s-+[[:digit:]]+\\s-+\\(\\w+\\)")))
+	       (concat
+		"Size:\\s-+\\([[:digit:]]+\\)\\s-+"
+		"Blocks:\\s-+[[:digit:]]+\\s-+\\(\\w+\\)"))
 	      (setq size (string-to-number (match-string 1))
 		    id (if (string-equal "directory" (match-string 2)) t
 			 (if (string-equal "symbolic" (match-string 2)) ""))))
@@ -887,22 +886,20 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	      (setq inode (string-to-number (match-string 1))
 		    link (string-to-number (match-string 2))))
 	     ((looking-at
-	       (eval-when-compile
-		 (concat
-		  "Access:\\s-+([[:digit:]]+/\\(\\S-+\\))\\s-+"
-		  "Uid:\\s-+\\([[:digit:]]+\\)\\s-+"
-		  "Gid:\\s-+\\([[:digit:]]+\\)")))
+	       (concat
+		"Access:\\s-+([[:digit:]]+/\\(\\S-+\\))\\s-+"
+		"Uid:\\s-+\\([[:digit:]]+\\)\\s-+"
+		"Gid:\\s-+\\([[:digit:]]+\\)"))
 	      (setq mode (match-string 1)
 		    uid (if (equal id-format 'string) (match-string 2)
 			  (string-to-number (match-string 2)))
 		    gid (if (equal id-format 'string) (match-string 3)
 			  (string-to-number (match-string 3)))))
 	     ((looking-at
-	       (eval-when-compile
-		 (concat
-		  "Access:\\s-+"
-		  "\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
-		  "\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)")))
+	       (concat
+		"Access:\\s-+"
+		"\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
+		"\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"))
 	      (setq atime
 		    (encode-time
 		     (string-to-number (match-string 6)) ;; sec
@@ -912,11 +909,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       (eval-when-compile
-		 (concat
-		  "Modify:\\s-+"
-		  "\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
-		  "\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)")))
+	       (concat
+		"Modify:\\s-+"
+		"\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
+		"\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"))
 	      (setq mtime
 		    (encode-time
 		     (string-to-number (match-string 6)) ;; sec
@@ -926,11 +922,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       (eval-when-compile
-		 (concat
-		  "Change:\\s-+"
-		  "\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
-		  "\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)")))
+	       (concat
+		"Change:\\s-+"
+		"\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
+		"\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"))
 	      (setq ctime
 		    (encode-time
 		     (string-to-number (match-string 6)) ;; sec
@@ -1006,10 +1001,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (goto-char (point-min))
 	    (forward-line)
 	    (when (looking-at
-		   (eval-when-compile
-		     (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			     " blocks of size \\([[:digit:]]+\\)"
-			     "\\. \\([[:digit:]]+\\) blocks available")))
+		   (concat "[[:space:]]*\\([[:digit:]]+\\)"
+			   " blocks of size \\([[:digit:]]+\\)"
+			   "\\. \\([[:digit:]]+\\) blocks available"))
 	      (setq blocksize (string-to-number (match-string 2))
 		    total (* blocksize (string-to-number (match-string 1)))
 		    avail (* blocksize (string-to-number (match-string 3)))))
