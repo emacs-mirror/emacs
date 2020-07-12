@@ -162,13 +162,13 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
-                        comp-propagate
+                        comp-fwprop
                         comp-call-optim
                         comp-ipa-pure
-                        comp-propagate
+                        comp-fwprop
                         comp-dead-code
                         comp-tco
-                        comp-propagate
+                        comp-fwprop
                         comp-remove-type-hints
                         comp-final)
   "Passes to be executed in order.")
@@ -2012,7 +2012,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
         for (func-name . def) in env
         do (setf (symbol-function func-name) def)))))
 
-(defun comp-propagate-prologue ()
+(defun comp-fwprop-prologue ()
   "Prologue for the propagate pass.
 Here goes everything that can be done not iteratively (read once).
 Forward propagate immediate involed in assignments."
@@ -2066,7 +2066,7 @@ Forward propagate immediate involed in assignments."
                (value (comp-apply-in-env f (mapcar #'comp-mvar-constant args))))
           (rewrite-insn-as-setimm insn value)))))))
 
-(defun comp-propagate-insn (insn)
+(defun comp-fwprop-insn (insn)
   "Propagate within INSN."
   (pcase insn
     (`(set ,lval ,rval)
@@ -2102,7 +2102,7 @@ Forward propagate immediate involed in assignments."
                  (eqs (cl-every (lambda (y) (eq x y)) types)))
        (setf (comp-mvar-type lval) x)))))
 
-(defun comp-propagate* ()
+(defun comp-fwprop* ()
   "Propagate for set* and phi operands.
 Return t if something was changed."
   (cl-loop with modified = nil
@@ -2110,12 +2110,12 @@ Return t if something was changed."
            do (cl-loop for insn in (comp-block-insns b)
                        for orig-insn = (unless modified ; Save consing after 1th change.
                                          (comp-copy-insn insn))
-                       do (comp-propagate-insn insn)
+                       do (comp-fwprop-insn insn)
                        when (and (null modified) (not (equal insn orig-insn)))
                          do (setf modified t))
            finally return modified))
 
-(defun comp-propagate (_)
+(defun comp-fwprop (_)
   "Forward propagate types and consts within the lattice."
   (comp-ssa)
   (maphash (lambda (_ f)
@@ -2123,10 +2123,10 @@ Return t if something was changed."
                         ;; FIXME remove the following condition when tested.
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (comp-propagate-prologue)
+                 (comp-fwprop-prologue)
                  (cl-loop
                   for i from 1
-                  while (comp-propagate*)
+                  while (comp-fwprop*)
                   finally (comp-log (format "Propagation run %d times\n" i) 2))
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
