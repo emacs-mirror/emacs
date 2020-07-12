@@ -860,6 +860,8 @@ any of the conditions will not be killed."
 ;;;###autoload
 (defun project-kill-buffers ()
   "Kill all live buffers belonging to the current project.
+Two buffers belong to the same project if their project instances,
+as reported by `project-current' in each buffer, are identical.
 Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
   (interactive)
   (let ((pr (project-current t)) bufs)
