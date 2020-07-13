@@ -6035,18 +6035,22 @@ Use the `ls' command."
        "银河系漫游指南系列"
        "Автостопом по гала́ктике"
        ;; Use codepoints without a name.  See Bug#31272.
-       "bung")
+       "bung"
+       ;; Use codepoints from Supplementary Multilingual Plane (U+10000
+       ;; to U+1FFFF).
+       "🌈🍒👋")
 
       (when (tramp--test-expensive-test)
 	(delete-dups
 	 (mapcar
-	  ;; Use all available language specific snippets.  Filter out
-	  ;; strings which use unencodable characters.
+	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
 	     (stringp (setq x (eval (get-language-info (car x) 'sample-text))))
-	     (not (unencodable-char-position
-		   0 (length x) file-name-coding-system nil x))
+	     ;; Filter out strings which use unencodable characters.
+	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))
+		       (unencodable-char-position
+			0 (length x) file-name-coding-system nil x)))
 	     ;; ?\n and ?/ shouldn't be part of any file name.  ?\t,
 	     ;; ?. and ?? do not work for "smb" method.
 	     (replace-regexp-in-string "[\t\n/.?]" "" x)))

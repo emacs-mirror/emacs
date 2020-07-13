@@ -108,8 +108,7 @@
 (require 'url-util)
 
 ;; Pacify byte-compiler.
-(eval-when-compile
-  (require 'custom))
+(eval-when-compile (require 'custom))
 
 (declare-function zeroconf-init "zeroconf")
 (declare-function zeroconf-list-service-types "zeroconf")
@@ -697,32 +696,34 @@ It has been changed in GVFS 1.14.")
   "List of cons cells, mapping \"gvfs-<command>\" to \"gio <command>\".")
 
 ;; <http://www.pygtk.org/docs/pygobject/gio-constants.html>
-(defconst tramp-gvfs-file-attributes
-  '("name"
-    "type"
-    "standard::display-name"
-    "standard::symlink-target"
-    "standard::is-volatile"
-    "unix::nlink"
-    "unix::uid"
-    "owner::user"
-    "unix::gid"
-    "owner::group"
-    "time::access"
-    "time::modified"
-    "time::changed"
-    "standard::size"
-    "unix::mode"
-    "access::can-read"
-    "access::can-write"
-    "access::can-execute"
-    "unix::inode"
-    "unix::device")
-  "GVFS file attributes.")
+(eval-and-compile
+  (defconst tramp-gvfs-file-attributes
+    '("name"
+      "type"
+      "standard::display-name"
+      "standard::symlink-target"
+      "standard::is-volatile"
+      "unix::nlink"
+      "unix::uid"
+      "owner::user"
+      "unix::gid"
+      "owner::group"
+      "time::access"
+      "time::modified"
+      "time::changed"
+      "standard::size"
+      "unix::mode"
+      "access::can-read"
+      "access::can-write"
+      "access::can-execute"
+      "unix::inode"
+      "unix::device")
+    "GVFS file attributes."))
 
-(defconst tramp-gvfs-file-attributes-with-gvfs-ls-regexp
-  (concat "[[:blank:]]" (regexp-opt tramp-gvfs-file-attributes t) "=\\(.+?\\)")
-  "Regexp to parse GVFS file attributes with `gvfs-ls'.")
+(eval-and-compile
+  (defconst tramp-gvfs-file-attributes-with-gvfs-ls-regexp
+    (concat "[[:blank:]]" (regexp-opt tramp-gvfs-file-attributes t) "=\\(.+?\\)")
+    "Regexp to parse GVFS file attributes with `gvfs-ls'."))
 
 (defconst tramp-gvfs-file-attributes-with-gvfs-info-regexp
   (concat "^[[:blank:]]*"
@@ -864,7 +865,7 @@ pass to the OPERATION."
 (defun tramp-gvfs-dbus-string-to-byte-array (string)
   "Like `dbus-string-to-byte-array' but add trailing \\0 if needed."
   (dbus-string-to-byte-array
-   (if (string-match "^(aya{sv})" tramp-gvfs-mountlocation-signature)
+   (if (string-match-p "^(aya{sv})" tramp-gvfs-mountlocation-signature)
        (concat string (string 0)) string)))
 
 (defun tramp-gvfs-dbus-byte-array-to-string (byte-array)
@@ -1181,10 +1182,11 @@ file names."
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
 	  (while (looking-at
-		  (concat "^\\(.+\\)[[:blank:]]"
-			  "\\([[:digit:]]+\\)[[:blank:]]"
-			  "(\\(.+?\\))"
-			  tramp-gvfs-file-attributes-with-gvfs-ls-regexp))
+		  (eval-when-compile
+		    (concat "^\\(.+\\)[[:blank:]]"
+			    "\\([[:digit:]]+\\)[[:blank:]]"
+			    "(\\(.+?\\))"
+			    tramp-gvfs-file-attributes-with-gvfs-ls-regexp)))
 	    (let ((item (list (cons "type" (match-string 3))
 			      (cons "standard::size" (match-string 2))
 			      (cons "name" (match-string 1)))))
@@ -1285,8 +1287,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (if (eq id-format 'integer)
 		(string-to-number
 		 (or (cdr (assoc "unix::uid" attributes))
-		     (eval-when-compile
-		       (format "%s" tramp-unknown-id-integer))))
+		     (eval-when-compile (format "%s" tramp-unknown-id-integer))))
 	      (or (cdr (assoc "owner::user" attributes))
 		  (cdr (assoc "unix::uid" attributes))
 		  tramp-unknown-id-string)))
@@ -1294,8 +1295,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (if (eq id-format 'integer)
 		(string-to-number
 		 (or (cdr (assoc "unix::gid" attributes))
-		     (eval-when-compile
-		       (format "%s" tramp-unknown-id-integer))))
+		     (eval-when-compile (format "%s" tramp-unknown-id-integer))))
 	      (or (cdr (assoc "owner::group" attributes))
 		  (cdr (assoc "unix::gid" attributes))
 		  tramp-unknown-id-string)))
@@ -1475,11 +1475,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	;; File names are returned as URL paths.  We must convert them.
 	(when (string-match ddu file)
 	  (setq file (replace-match dd nil nil file)))
-	(while (string-match-p "%\\([0-9A-F]\\{2\\}\\)" file)
+	(while (string-match-p "%\\([[:xdigit:]]\\{2\\}\\)" file)
 	  (setq file (url-unhex-string file)))
 	(when (string-match ddu (or file1 ""))
 	  (setq file1 (replace-match dd nil nil file1)))
-	(while (string-match-p "%\\([0-9A-F]\\{2\\}\\)" (or file1 ""))
+	(while (string-match-p "%\\([[:xdigit:]]\\{2\\}\\)" (or file1 ""))
 	  (setq file1 (url-unhex-string file1)))
 	;; Remove watch when file or directory to be watched is deleted.
 	(when (and (member action '(moved deleted))

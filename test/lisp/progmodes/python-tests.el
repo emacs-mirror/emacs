@@ -3553,7 +3553,7 @@ def foo():
 ;;; Code check
 
 
-;;; Eldoc
+;;; ElDoc
 
 (ert-deftest python-eldoc--get-symbol-at-point-1 ()
   "Test paren handling."

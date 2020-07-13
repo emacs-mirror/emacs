@@ -101,30 +101,46 @@
 (defvar project-find-functions (list #'project-try-vc)
   "Special hook to find the project containing a given directory.
 Each functions on this hook is called in turn with one
-argument (the directory) and should return either nil to mean
-that it is not applicable, or a project instance.")
+argument, the directory in which to look, and should return
+either nil to mean that it is not applicable, or a project instance.
+The exact form of the project instance is up to each respective
+function; the only practical limitation is to use values that
+`cl-defmethod' can dispatch on, like a cons cell, or a list, or a
+CL struct.")
 
 (defvar project-current-inhibit-prompt nil
   "Non-nil to skip prompting the user in `project-current'.")
 
 ;;;###autoload
-(defun project-current (&optional maybe-prompt dir)
-  "Return the project instance in DIR or `default-directory'.
-When no project found in DIR, and MAYBE-PROMPT is non-nil, ask
-the user for a different project to look in."
-  (unless dir (setq dir default-directory))
-  (let ((pr (project--find-in-directory dir)))
+(defun project-current (&optional maybe-prompt directory)
+  "Return the project instance in DIRECTORY, defaulting to `default-directory'.
+
+When no project is found in that directory, the result depends on
+the value of MAYBE-PROMPT: if it is nil or omitted, return nil,
+else ask the user for a directory in which to look for the
+project, and if no project is found there, return a \"transient\"
+project instance.
+
+The \"transient\" project instance is a special kind of value
+which denotes a project rooted in that directory and includes all
+the files under the directory except for those that should be
+ignored (per `project-ignores').
+
+See the doc string of `project-find-functions' for the general form
+of the project instance object."
+  (unless directory (setq directory default-directory))
+  (let ((pr (project--find-in-directory directory)))
     (cond
      (pr)
      ((unless project-current-inhibit-prompt
         maybe-prompt)
-      (setq dir (project-prompt-project-dir)
-            pr (project--find-in-directory dir))))
+      (setq directory (project-prompt-project-dir)
+            pr (project--find-in-directory directory))))
     (when maybe-prompt
       (if pr
           (project--add-to-project-list-front pr)
-        (project--remove-from-project-list dir)
-        (setq pr (cons 'transient dir))))
+        (project--remove-from-project-list directory)
+        (setq pr (cons 'transient directory))))
     pr))
 
 (defun project--find-in-directory (dir)
@@ -802,9 +818,11 @@ Arguments the same as in `compile'."
 
 ;;;###autoload
 (defun project-switch-to-buffer ()
-  "Switch to another buffer that is related to the current project.
-A buffer is related to a project if `project-current' returns the
-same (equal) value when called in that buffer."
+  "Switch to another buffer belonging to the current project.
+This function prompts for another buffer, offering as candidates
+buffers that belong to the same project as the current buffer.
+Two buffers belong to the same project if their project instances,
+as reported by `project-current' in each buffer, are identical."
   (interactive)
   (let* ((pr (project-current t))
          (current-buffer (current-buffer))
@@ -849,6 +867,8 @@ any of the conditions will not be killed."
 ;;;###autoload
 (defun project-kill-buffers ()
   "Kill all live buffers belonging to the current project.
+Two buffers belong to the same project if their project instances,
+as reported by `project-current' in each buffer, are identical.
 Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
   (interactive)
   (let ((pr (project-current t)) bufs)

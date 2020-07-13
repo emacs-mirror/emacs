@@ -26387,7 +26387,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	height = WINDOW_TOTAL_LINES (w);
 	/* We cannot cope with w->start being outside of the
 	   accessible portion of the buffer; in particular,
-	   display_count_lines call below will infloop if called with
+	   display_count_lines call below might infloop if called with
 	   startpos_byte outside of the [BEGV_BYTE..ZV_BYTE] region.
 	   Such w->start means we were called in some "creative" way
 	   when the buffer's restriction was changed, but the window

@@ -117,6 +117,7 @@
 #  ignore-value \
 #  intprops \
 #  largefile \
+#  libgmp \
 #  lstat \
 #  manywarnings \
 #  memmem-simple \
@@ -245,14 +246,14 @@ GL_GENERATE_ALLOCA_H = @GL_GENERATE_ALLOCA_H@
 GL_GENERATE_BYTESWAP_H = @GL_GENERATE_BYTESWAP_H@
 GL_GENERATE_ERRNO_H = @GL_GENERATE_ERRNO_H@
 GL_GENERATE_EXECINFO_H = @GL_GENERATE_EXECINFO_H@
+GL_GENERATE_GMP_H = @GL_GENERATE_GMP_H@
 GL_GENERATE_IEEE754_H = @GL_GENERATE_IEEE754_H@
 GL_GENERATE_LIMITS_H = @GL_GENERATE_LIMITS_H@
 GL_GENERATE_STDALIGN_H = @GL_GENERATE_STDALIGN_H@
 GL_GENERATE_STDDEF_H = @GL_GENERATE_STDDEF_H@
 GL_GENERATE_STDINT_H = @GL_GENERATE_STDINT_H@
 GMALLOC_OBJ = @GMALLOC_OBJ@
-GMP_LIB = @GMP_LIB@
-GMP_OBJ = @GMP_OBJ@
+GMP_H = @GMP_H@
 GNULIB_ACCESS = @GNULIB_ACCESS@
 GNULIB_ALPHASORT = @GNULIB_ALPHASORT@
 GNULIB_ATOLL = @GNULIB_ATOLL@
@@ -325,6 +326,7 @@ GNULIB_GETPASS = @GNULIB_GETPASS@
 GNULIB_GETRANDOM = @GNULIB_GETRANDOM@
 GNULIB_GETSUBOPT = @GNULIB_GETSUBOPT@
 GNULIB_GETTIMEOFDAY = @GNULIB_GETTIMEOFDAY@
+GNULIB_GETUMASK = @GNULIB_GETUMASK@
 GNULIB_GETUSERSHELL = @GNULIB_GETUSERSHELL@
 GNULIB_GL_UNISTD_H_GETOPT = @GNULIB_GL_UNISTD_H_GETOPT@
 GNULIB_GRANTPT = @GNULIB_GRANTPT@
@@ -548,7 +550,6 @@ HAVE_DECL_UNSETENV = @HAVE_DECL_UNSETENV@
 HAVE_DECL_VSNPRINTF = @HAVE_DECL_VSNPRINTF@
 HAVE_DIRENT_H = @HAVE_DIRENT_H@
 HAVE_DPRINTF = @HAVE_DPRINTF@
-HAVE_DUP2 = @HAVE_DUP2@
 HAVE_DUP3 = @HAVE_DUP3@
 HAVE_EUIDACCESS = @HAVE_EUIDACCESS@
 HAVE_EXPLICIT_BZERO = @HAVE_EXPLICIT_BZERO@
@@ -578,6 +579,7 @@ HAVE_GETPASS = @HAVE_GETPASS@
 HAVE_GETRANDOM = @HAVE_GETRANDOM@
 HAVE_GETSUBOPT = @HAVE_GETSUBOPT@
 HAVE_GETTIMEOFDAY = @HAVE_GETTIMEOFDAY@
+HAVE_GETUMASK = @HAVE_GETUMASK@
 HAVE_GRANTPT = @HAVE_GRANTPT@
 HAVE_GROUP_MEMBER = @HAVE_GROUP_MEMBER@
 HAVE_IMAXDIV_T = @HAVE_IMAXDIV_T@
@@ -592,7 +594,6 @@ HAVE_MAKEINFO = @HAVE_MAKEINFO@
 HAVE_MAX_ALIGN_T = @HAVE_MAX_ALIGN_T@
 HAVE_MBSLEN = @HAVE_MBSLEN@
 HAVE_MBTOWC = @HAVE_MBTOWC@
-HAVE_MEMCHR = @HAVE_MEMCHR@
 HAVE_MEMPCPY = @HAVE_MEMPCPY@
 HAVE_MKDIRAT = @HAVE_MKDIRAT@
 HAVE_MKDTEMP = @HAVE_MKDTEMP@
@@ -760,6 +761,7 @@ LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
 LIB_EACCESS = @LIB_EACCESS@
 LIB_EXECINFO = @LIB_EXECINFO@
 LIB_GETRANDOM = @LIB_GETRANDOM@
+LIB_GMP = @LIB_GMP@
 LIB_MATH = @LIB_MATH@
 LIB_PTHREAD = @LIB_PTHREAD@
 LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
@@ -1132,7 +1134,6 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -2015,6 +2016,29 @@ EXTRA_DIST += cdefs.h libc-config.h
 endif
 ## end   gnulib module libc-config
 
+## begin gnulib module libgmp
+ifeq (,$(OMIT_GNULIB_MODULE_libgmp))
+
+BUILT_SOURCES += $(GMP_H)
+
+# Build gmp.h as a wrapper for mini-gmp.h when using mini-gmp.
+ifneq (,$(GL_GENERATE_GMP_H))
+gmp.h: $(top_builddir)/config.status
+	echo '#include "mini-gmp.h"' >$@-t
+	mv $@-t $@
+else
+gmp.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += gmp.h gmp.h-t
+
+EXTRA_DIST += mini-gmp-gnulib.c mini-gmp.c mini-gmp.h
+
+EXTRA_libgnu_a_SOURCES += mini-gmp-gnulib.c mini-gmp.c
+
+endif
+## end   gnulib module libgmp
+
 ## begin gnulib module limits-h
 ifeq (,$(OMIT_GNULIB_MODULE_limits-h))
 
@@ -2833,7 +2857,6 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_FFSL''@|$(HAVE_FFSL)|g' \
 	      -e 's|@''HAVE_FFSLL''@|$(HAVE_FFSLL)|g' \
 	      -e 's|@''HAVE_MBSLEN''@|$(HAVE_MBSLEN)|g' \
-	      -e 's|@''HAVE_MEMCHR''@|$(HAVE_MEMCHR)|g' \
 	      -e 's|@''HAVE_DECL_MEMMEM''@|$(HAVE_DECL_MEMMEM)|g' \
 	      -e 's|@''HAVE_MEMPCPY''@|$(HAVE_MEMPCPY)|g' \
 	      -e 's|@''HAVE_DECL_MEMRCHR''@|$(HAVE_DECL_MEMRCHR)|g' \
@@ -3017,6 +3040,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's/@''GNULIB_FSTAT''@/$(GNULIB_FSTAT)/g' \
 	      -e 's/@''GNULIB_FSTATAT''@/$(GNULIB_FSTATAT)/g' \
 	      -e 's/@''GNULIB_FUTIMENS''@/$(GNULIB_FUTIMENS)/g' \
+	      -e 's/@''GNULIB_GETUMASK''@/$(GNULIB_GETUMASK)/g' \
 	      -e 's/@''GNULIB_LCHMOD''@/$(GNULIB_LCHMOD)/g' \
 	      -e 's/@''GNULIB_LSTAT''@/$(GNULIB_LSTAT)/g' \
 	      -e 's/@''GNULIB_MKDIRAT''@/$(GNULIB_MKDIRAT)/g' \
@@ -3030,6 +3054,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''HAVE_FCHMODAT''@|$(HAVE_FCHMODAT)|g' \
 	      -e 's|@''HAVE_FSTATAT''@|$(HAVE_FSTATAT)|g' \
 	      -e 's|@''HAVE_FUTIMENS''@|$(HAVE_FUTIMENS)|g' \
+	      -e 's|@''HAVE_GETUMASK''@|$(HAVE_GETUMASK)|g' \
 	      -e 's|@''HAVE_LCHMOD''@|$(HAVE_LCHMOD)|g' \
 	      -e 's|@''HAVE_LSTAT''@|$(HAVE_LSTAT)|g' \
 	      -e 's|@''HAVE_MKDIRAT''@|$(HAVE_MKDIRAT)|g' \
@@ -3338,7 +3363,6 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      < $(srcdir)/unistd.in.h | \
 	  sed -e 's|@''HAVE_CHOWN''@|$(HAVE_CHOWN)|g' \
 	      -e 's|@''HAVE_COPY_FILE_RANGE''@|$(HAVE_COPY_FILE_RANGE)|g' \
-	      -e 's|@''HAVE_DUP2''@|$(HAVE_DUP2)|g' \
 	      -e 's|@''HAVE_DUP3''@|$(HAVE_DUP3)|g' \
 	      -e 's|@''HAVE_EUIDACCESS''@|$(HAVE_EUIDACCESS)|g' \
 	      -e 's|@''HAVE_FACCESSAT''@|$(HAVE_FACCESSAT)|g' \

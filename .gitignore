@@ -60,6 +60,7 @@ lib/execinfo.h
 lib/fcntl.h
 lib/getopt.h
 lib/getopt-cdefs.h
+lib/gmp.h
 lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a

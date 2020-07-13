@@ -55,15 +55,27 @@ It is used for TCP/IP devices."
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
 ;;;###tramp-autoload
-(defcustom tramp-adb-prompt
-  "^[[:digit:]]*|?[[:alnum:]\e;[]*@?[[:alnum:]]*[^#\\$]*[#\\$][[:space:]]"
+(defcustom tramp-adb-prompt "^[^#\\$]*[#\\$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'regexp
-  :version "24.4"
+  :version "28.1"
   :group 'tramp)
 
+(eval-and-compile
+  (defconst tramp-adb-ls-date-year-regexp
+    "[[:digit:]]\\{4\\}-[[:digit:]]\\{2\\}-[[:digit:]]\\{2\\}"
+    "Regexp for date year format in ls output."))
+
+(eval-and-compile
+  (defconst tramp-adb-ls-date-time-regexp
+    "[[:digit:]]\\{2\\}:[[:digit:]]\\{2\\}"
+  "Regexp for date time format in ls output."))
+
 (defconst tramp-adb-ls-date-regexp
-  "[[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]][0-9][0-9]:[0-9][0-9][[:space:]]"
+  (concat
+   "[[:space:]]" tramp-adb-ls-date-year-regexp
+   "[[:space:]]" tramp-adb-ls-date-time-regexp
+   "[[:space:]]")
   "Regexp for date format in ls output.")
 
 (defconst tramp-adb-ls-toolbox-regexp
@@ -73,7 +85,8 @@ It is used for TCP/IP devices."
    "[[:space:]]*\\([^[:space:]]+\\)"	; \2 username
    "[[:space:]]+\\([^[:space:]]+\\)"	; \3 group
    "[[:space:]]+\\([[:digit:]]+\\)"	; \4 size
-   "[[:space:]]+\\([-[:digit:]]+[[:space:]][:[:digit:]]+\\)" ; \5 date
+   "[[:space:]]+\\(" tramp-adb-ls-date-year-regexp
+   "[[:space:]]" tramp-adb-ls-date-time-regexp "\\)" ; \5 date
    "[[:space:]]\\(.*\\)$")		; \6 filename
   "Regexp for ls output.")
 
@@ -215,11 +228,10 @@ ARGUMENTS to pass to the OPERATION."
 	(goto-char (point-min))
 	(forward-line)
 	(when (looking-at
-	       (eval-when-compile
-		 (concat "[[:space:]]*[^[:space:]]+"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)")))
+	       (concat "[[:space:]]*[^[:space:]]+"
+		       "[[:space:]]+\\([[:digit:]]+\\)"
+		       "[[:space:]]+\\([[:digit:]]+\\)"
+		       "[[:space:]]+\\([[:digit:]]+\\)"))
 	  ;; The values are given as 1k numbers, so we must change
 	  ;; them to number of bytes.
 	  (list (* 1024 (string-to-number (match-string 1)))
@@ -272,7 +284,9 @@ ARGUMENTS to pass to the OPERATION."
 		 (if (eq id-format 'integer) 0 uid)
 		 (if (eq id-format 'integer) 0 gid)
 		 tramp-time-dont-know   ; atime
-		 (date-to-time date)	; mtime
+		 ;; `date-to-time' checks `iso8601-parse', which might fail.
+		 (let (signal-hook-function)
+		   (date-to-time date))	; mtime
 		 tramp-time-dont-know   ; ctime
 		 size
 		 mod-string
@@ -351,21 +365,6 @@ ARGUMENTS to pass to the OPERATION."
       "ls --color=never")
      (t "ls"))))
 
-(defun tramp-adb--gnu-switches-to-ash (switches)
-  "Almquist shell can't handle multiple arguments.
-Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
-  (split-string
-   (apply #'concat
-	  (mapcar (lambda (s)
-		    (replace-regexp-in-string
-		     "\\(.\\)" " -\\1" (replace-regexp-in-string "^-" "" s)))
-		  ;; FIXME: Warning about removed switches (long and non-dash).
-		  (delq nil
-			(mapcar
-			 (lambda (s)
-			   (and (not (string-match-p "\\(^--\\|^[^-]\\)" s)) s))
-			 switches))))))
-
 (defun tramp-adb-sh-fix-ls-output (&optional sort-by-time)
   "Insert dummy 0 in empty size columns.
 Android's \"ls\" command doesn't insert size column for directories:
@@ -375,10 +374,16 @@ Emacs dired can't find files."
     (goto-char (point-min))
     (while
 	(search-forward-regexp
-	 "[[:space:]]\\([[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]]\\)" nil t)
+	 (eval-when-compile
+	   (concat
+	    "[[:space:]]"
+	    "\\([[:space:]]" tramp-adb-ls-date-year-regexp "[[:space:]]\\)"))
+	 nil t)
       (replace-match "0\\1" "\\1" nil)
       ;; Insert missing "/".
-      (when (looking-at-p "[0-9][0-9]:[0-9][0-9][[:space:]]+$")
+      (when (looking-at-p
+	     (eval-when-compile
+	       (concat tramp-adb-ls-date-time-regexp "[[:space:]]+$")))
 	(end-of-line)
 	(insert "/")))
     ;; Sort entries.
@@ -489,9 +494,10 @@ Emacs dired can't find files."
       (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
 	;; "adb pull ..." does not always return an error code.
-	(when (or (tramp-adb-execute-adb-command
-		   v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
-		  (not (file-exists-p tmpfile)))
+	(unless
+	    (and (tramp-adb-execute-adb-command
+		  v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
+		 (file-exists-p tmpfile))
 	  (ignore-errors (delete-file tmpfile))
 	  (tramp-error
 	   v 'file-error "Cannot make local copy of file `%s'" filename))
@@ -544,8 +550,8 @@ But handle the case, if the \"test\" command is not available."
         v 3 (format-message
              "Moving tmp file `%s' to `%s'" tmpfile filename)
 	(unwind-protect
-	    (when (tramp-adb-execute-adb-command
-		   v "push" tmpfile (tramp-compat-file-name-unquote localname))
+	    (unless (tramp-adb-execute-adb-command
+		     v "push" tmpfile (tramp-compat-file-name-unquote localname))
 	      (tramp-error v 'file-error "Cannot write: `%s'" filename))
 	  (delete-file tmpfile)))
 
@@ -577,7 +583,7 @@ But handle the case, if the \"test\" command is not available."
     (unless (and (eq flag 'nofollow) (file-symlink-p filename))
       (tramp-flush-file-properties v localname)
       (tramp-adb-send-command-and-check
-       v (format "chmod %o %s" mode localname)))))
+       v (format "chmod %o %s" mode (tramp-shell-quote-argument localname))))))
 
 (defun tramp-adb-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
@@ -595,15 +601,16 @@ But handle the case, if the \"test\" command is not available."
       ;; fails.  Also, fall back on old POSIX 'touch -t' if 'touch -d'
       ;; (introduced in POSIX.1-2008) fails.
       (tramp-adb-send-command-and-check
-       v (format (concat "touch -d %s %s %s 2>/dev/null || "
-			 "touch -d %s %s %s 2>/dev/null || "
-			 "touch -t %s %s %s")
-		 (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
-		 nofollow quoted-name
-		 (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
-		 nofollow quoted-name
-		 (format-time-string "%Y%m%d%H%M.%S" time t)
-		 nofollow quoted-name)))))
+       v (format
+	  (concat "touch -d %s %s %s 2>/dev/null || "
+		  "touch -d %s %s %s 2>/dev/null || "
+		  "touch -t %s %s %s")
+	  (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
+	  nofollow quoted-name
+	  (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
+	  nofollow quoted-name
+	  (format-time-string "%Y%m%d%H%M.%S" time t)
+	  nofollow quoted-name)))))
 
 (defun tramp-adb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -670,10 +677,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		;; because `file-attributes' reads the values from
 		;; there.
 		(tramp-flush-file-properties v localname)
-		(when (tramp-adb-execute-adb-command
-		       v "push"
-		       (tramp-compat-file-name-unquote filename)
-		       (tramp-compat-file-name-unquote localname))
+		(unless (tramp-adb-execute-adb-command
+			 v "push"
+			 (tramp-compat-file-name-unquote filename)
+			 (tramp-compat-file-name-unquote localname))
 		  (tramp-error
 		   v 'file-error
 		   "Cannot copy `%s' `%s'" filename newname))))))))
@@ -1039,10 +1046,10 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	     ;; Try to connect device.
 	     ((and tramp-adb-connect-if-not-connected
 		   (not (zerop (length host)))
-		   (not (tramp-adb-execute-adb-command
-                         vec "connect"
-                         (replace-regexp-in-string
-                          tramp-prefix-port-format ":" host))))
+		   (tramp-adb-execute-adb-command
+                    vec "connect"
+                    (replace-regexp-in-string
+		     tramp-prefix-port-format ":" host)))
 	      ;; When new device connected, running other adb command (e.g.
 	      ;; adb shell) immediately will fail.  To get around this
 	      ;; problem, add sleep 0.1 second here.
@@ -1052,18 +1059,18 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 		 vec 'file-error "Could not find device %s" host)))))))
 
 (defun tramp-adb-execute-adb-command (vec &rest args)
-  "Return nil on success error-output on failure."
+  "Execute an adb command.
+Insert the result into the connection buffer.  Return nil on
+error and non-nil on success."
   (when (and (> (length (tramp-file-name-host vec)) 0)
 	     ;; The -s switch is only available for ADB device commands.
 	     (not (member (car args) '("connect" "disconnect"))))
     (setq args (append (list "-s" (tramp-adb-get-device vec)) args)))
-  (with-temp-buffer
-    (prog1
-	(unless
-	    (zerop
-	     (apply #'tramp-call-process vec tramp-adb-program nil t nil args))
-	  (buffer-string))
-      (tramp-message vec 6 "%s" (buffer-string)))))
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    ;; Clean up the buffer.  We cannot call `erase-buffer' because
+    ;; narrowing might be in effect.
+    (let ((inhibit-read-only t)) (delete-region (point-min) (point-max)))
+    (zerop (apply #'tramp-call-process vec tramp-adb-program nil t nil args))))
 
 (defun tramp-adb-find-test-command (vec)
   "Check whether the ash has a builtin \"test\" command.
@@ -1075,25 +1082,30 @@ This happens for Android >= 4.0."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (unless neveropen (tramp-adb-maybe-open-connection vec))
-  (tramp-message vec 6 "%s" command)
-  (tramp-send-string vec command)
-  (unless nooutput
-    ;; FIXME: Race condition.
-    (tramp-adb-wait-for-output (tramp-get-connection-process vec))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (save-excursion
-	(goto-char (point-min))
-	;; We can't use stty to disable echo of command.  stty is said
-	;; to be added to toybox 0.7.6.  busybox shall have it, but this
-	;; isn't used any longer for Android.
-	(delete-matching-lines (regexp-quote command))
-	;; When the local machine is W32, there are still trailing ^M.
-	;; There must be a better solution by setting the correct coding
-	;; system, but this requires changes in core Tramp.
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" nil nil))))))
+  (if (string-match-p "[[:multibyte:]]" command)
+      ;; Multibyte codepoints with four bytes are not supported at
+      ;; least by toybox.
+      (tramp-adb-execute-adb-command vec "shell" command)
+
+    (unless neveropen (tramp-adb-maybe-open-connection vec))
+    (tramp-message vec 6 "%s" command)
+    (tramp-send-string vec command)
+    (unless nooutput
+      ;; FIXME: Race condition.
+      (tramp-adb-wait-for-output (tramp-get-connection-process vec))
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(save-excursion
+	  (goto-char (point-min))
+	  ;; We can't use stty to disable echo of command.  stty is said
+	  ;; to be added to toybox 0.7.6.  busybox shall have it, but this
+	  ;; isn't used any longer for Android.
+	  (delete-matching-lines (regexp-quote command))
+	  ;; When the local machine is W32, there are still trailing ^M.
+	  ;; There must be a better solution by setting the correct coding
+	  ;; system, but this requires changes in core Tramp.
+	  (goto-char (point-min))
+	  (while (re-search-forward "\r+$" nil t)
+	    (replace-match "" nil nil)))))))
 
 (defun tramp-adb-send-command-and-check (vec command &optional exit-status)
   "Run COMMAND and check its exit status.
@@ -1108,7 +1120,7 @@ the exit status."
 	   (format "%s; echo tramp_exit_status $?" command)
 	 "echo tramp_exit_status $?"))
   (with-current-buffer (tramp-get-connection-buffer vec)
-    (unless (tramp-search-regexp "tramp_exit_status [0-9]+")
+    (unless (tramp-search-regexp "tramp_exit_status [[:digit:]]+")
       (tramp-error
        vec 'file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")
@@ -1217,7 +1229,11 @@ connection if a previous connection has died for some reason."
 	    ;; connection properties.  We start again.
 	    (tramp-message vec 5 "Checking system information")
 	    (tramp-adb-send-command
-	     vec "echo \\\"`getprop ro.product.model` `getprop ro.product.version` `getprop ro.build.version.release`\\\"")
+	     vec
+	     (concat
+	      "echo \\\"`getprop ro.product.model` "
+	      "`getprop ro.product.version` "
+	      "`getprop ro.build.version.release`\\\""))
 	    (let ((old-getprop
 		   (tramp-get-connection-property vec "getprop" nil))
 		  (new-getprop
@@ -1241,7 +1257,8 @@ connection if a previous connection has died for some reason."
 	      (tramp-adb-send-command vec (format "su %s" user))
 	      (unless (tramp-adb-send-command-and-check vec nil)
 		(delete-process p)
-		(tramp-flush-file-property vec "" "su-command-p")
+		;; Do not flush, we need the nil value.
+		(tramp-set-file-property vec "" "su-command-p" nil)
 		(tramp-error
 		 vec 'file-error "Cannot switch to user `%s'" user)))
 
@@ -1275,4 +1292,9 @@ connection if a previous connection has died for some reason."
 
 (provide 'tramp-adb)
 
+;;; TODO:
+;;
+;; * Support file names with multibyte codepoints.  Use as fallback
+;;   "adb shell COMMAND".
+;;
 ;;; tramp-adb.el ends here

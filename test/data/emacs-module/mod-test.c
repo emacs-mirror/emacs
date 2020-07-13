@@ -43,12 +43,7 @@ uintptr_t _beginthread (void (__cdecl *)(void *), unsigned, void *);
 # include <unistd.h>
 #endif
 
-#ifdef HAVE_GMP
 #include <gmp.h>
-#else
-#include "mini-gmp.h"
-#endif
-
 #include <emacs-module.h>
 
 #include "timespec.h"

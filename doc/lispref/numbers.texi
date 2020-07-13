@@ -227,6 +227,9 @@ you are using.  On all computers supported by Emacs, this is
 and is discussed further in David Goldberg's paper
 ``@url{https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html,
 What Every Computer Scientist Should Know About Floating-Point Arithmetic}''.
+On modern platforms, floating-point operations follow the IEEE-754
+standard closely; however, results are not always rounded correctly on
+some obsolescent platforms, notably 32-bit x86.
 
   The read syntax for floating-point numbers requires either a decimal
 point, an exponent, or both.  Optional signs (@samp{+} or @samp{-})

@@ -126,7 +126,7 @@ see which mode is actually being entered.
   Mode hooks are commonly used to enable minor modes (@pxref{Minor
 Modes}).  For example, you can put the following lines in your init
 file to enable Flyspell minor mode in all text-based major modes
-(@pxref{Spelling}), and Eldoc minor mode in Emacs Lisp mode
+(@pxref{Spelling}), and ElDoc minor mode in Emacs Lisp mode
 (@pxref{Lisp Doc}):
 
 @example

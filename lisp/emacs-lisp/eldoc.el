@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.1.0
+;; Version: 1.5.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -372,7 +372,7 @@ about the context around point.
 
 - If that decision can be taken quickly, the hook function may
   call CALLBACK immediately following the protocol described
-  berlow.  Alternatively it may ignore CALLBACK entirely and
+  below.  Alternatively it may ignore CALLBACK entirely and
   return either the doc string, or nil if there's no doc
   appropriate for the context.
 
@@ -459,42 +459,46 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
       ;; top-section of the `*eldoc' buffer.  I'm pretty sure nicer
       ;; strategies can be used here, probably by splitting this
       ;; function into some `eldoc-display-functions' special hook.
-      (if (and (eq 'truncate-sym-name-if-fit eldoc-echo-area-use-multiline-p)
-               (null (cdr docs))
-               (setq single-sym-name
-                     (format "%s" (plist-get (cdar docs) :thing)))
-               (> (+ (length (caar docs)) (length single-sym-name) 2) width))
-          (eldoc--message (caar docs))
-        (with-current-buffer (eldoc-doc-buffer)
-          (goto-char (point-min))
-          (cond
-           ;; Potentially truncate a long message into less lines,
-           ;; then display it in the echo area;
-           ((> available 1)
-            (cl-loop
-             initially (goto-char (line-end-position (1+ available)))
-             for truncated = nil then t
-             for needed
-             = (let ((truncate-lines message-truncate-lines))
-                 (count-screen-lines (point-min) (point) t (minibuffer-window)))
-             while (> needed (if truncated (1- available) available))
-             do (goto-char (line-end-position (if truncated 0 -1)))
-             (while (bolp) (goto-char (line-end-position 0)))
-             finally
-             (unless (and truncated
-                          eldoc-prefer-doc-buffer
-                          (get-buffer-window eldoc--doc-buffer))
-               (eldoc--message
-                (concat (buffer-substring (point-min) (point))
-                        (and truncated
-                             (format
-                              "\n(Documentation truncated. Use `%s' to see rest)"
-                              (substitute-command-keys "\\[eldoc-doc-buffer]"))))))))
-           ((= available 1)
-            ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
-            (eldoc--message
-             (truncate-string-to-width
-              (buffer-substring (point-min) (line-end-position 1)) width)))))))))
+      (let ((echo-area-message
+             (cond
+              ((and
+                (eq 'truncate-sym-name-if-fit eldoc-echo-area-use-multiline-p)
+                (null (cdr docs))
+                (setq single-sym-name
+                      (format "%s" (plist-get (cdar docs) :thing)))
+                (> (+ (length (caar docs)) (length single-sym-name) 2) width))
+               (caar docs))
+              ((> available 1)
+               (with-current-buffer (eldoc-doc-buffer)
+                 (cl-loop
+                  initially
+                  (goto-char (point-min))
+                  (goto-char (line-end-position (1+ available)))
+                  for truncated = nil then t
+                  for needed
+                  = (let ((truncate-lines message-truncate-lines))
+                      (count-screen-lines (point-min) (point) t
+                                          (minibuffer-window)))
+                  while (> needed (if truncated (1- available) available))
+                  do (goto-char (line-end-position (if truncated 0 -1)))
+                  (while (and (not (bobp)) (bolp)) (goto-char (line-end-position 0)))
+                  finally
+                  (unless (and truncated
+                               eldoc-prefer-doc-buffer
+                               (get-buffer-window eldoc--doc-buffer))
+                    (cl-return
+                     (concat
+                      (buffer-substring (point-min) (point))
+                      (and truncated
+                           (format
+                            "\n(Documentation truncated. Use `%s' to see rest)"
+                            (substitute-command-keys "\\[eldoc-doc-buffer]")))))))))
+              ((= available 1)
+               ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
+               (truncate-string-to-width
+                (buffer-substring (point-min) (line-end-position 1)) width)))))
+        (when echo-area-message
+          (eldoc--message echo-area-message))))))
 
 (defun eldoc-documentation-default ()
   "Show first doc string for item at point.
@@ -535,10 +539,27 @@ Meant as a value for `eldoc-documentation-strategy'."
                         (if (stringp str) (funcall callback str))
                         nil))))
 
-(define-obsolete-variable-alias 'eldoc-documentation-function
-  'eldoc-documentation-strategy "eldoc-1.1.0")
+;; JT@2020-07-10: Eldoc is pre-loaded, so in in Emacs < 28 we can't
+;; make the "old" `eldoc-documentation-function' point to the new
+;; `eldoc-documentation-strategy', so we do the reverse.  This allows
+;; for Eldoc to be loaded in those older Emacs versions and work with
+;; whomever (major-modes, extensions, ueser) sets one of the other
+;; variable.
+(defmacro eldoc--documentation-strategy-defcustom
+    (main secondary value docstring &rest more)
+  "Defcustom helper macro for sorting `eldoc-documentation-strategy'."
+  (declare (indent 2))
+  `(if (< emacs-major-version 28)
+       (progn
+         (defcustom ,secondary ,value ,docstring ,@more)
+         (define-obsolete-variable-alias ',main ',secondary "eldoc-1.1.0"))
+       (progn
+         (defcustom ,main ,value ,docstring  ,@more)
+         (defvaralias ',secondary ',main ,docstring))))
 
-(defcustom eldoc-documentation-strategy #'eldoc-documentation-default
+(eldoc--documentation-strategy-defcustom eldoc-documentation-strategy
+    eldoc-documentation-function
+  #'eldoc-documentation-default
   "How to collect and organize results of `eldoc-documentation-functions'.
 
 This variable controls how `eldoc-documentation-functions', which
@@ -712,19 +733,22 @@ endeavour to display the docstrings given to them."
                     (;; New protocol: trust callback will be called;
                      t))))))
 
-(defun eldoc-print-current-symbol-info ()
+(defun eldoc-print-current-symbol-info (&optional interactive)
   "Document thing at point."
-  (interactive)
-  (if (not (eldoc-display-message-p))
-      ;; Erase the last message if we won't display a new one.
-      (when eldoc-last-message
-        (eldoc--message nil))
-    (let ((non-essential t))
-      ;; Only keep looking for the info as long as the user hasn't
-      ;; requested our attention.  This also locally disables
-      ;; inhibit-quit.
-      (while-no-input
-        (eldoc--invoke-strategy)))))
+  (interactive '(t))
+  (cond (interactive
+         (eldoc--invoke-strategy))
+        (t
+         (if (not (eldoc-display-message-p))
+             ;; Erase the last message if we won't display a new one.
+             (when eldoc-last-message
+               (eldoc--message nil))
+           (let ((non-essential t))
+             ;; Only keep looking for the info as long as the user hasn't
+             ;; requested our attention.  This also locally disables
+             ;; inhibit-quit.
+             (while-no-input
+               (eldoc--invoke-strategy)))))))
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print

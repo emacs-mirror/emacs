@@ -488,9 +488,8 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
-	    (regexp (eval-when-compile
-		      (concat "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\):"
-			      "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\)"))))
+	    (regexp (concat "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\):"
+			    "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\)")))
 	(when (and (tramp-sudoedit-remote-selinux-p v)
 		   (tramp-sudoedit-send-command
 		    v "ls" "-d" "-Z"
@@ -515,10 +514,9 @@ the result will be a local, non-Tramp, file name."
 	  (goto-char (point-min))
 	  (forward-line)
 	  (when (looking-at
-		 (eval-when-compile
-		   (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			   "[[:space:]]+\\([[:digit:]]+\\)"
-			   "[[:space:]]+\\([[:digit:]]+\\)")))
+		 (concat "[[:space:]]*\\([[:digit:]]+\\)"
+			 "[[:space:]]+\\([[:digit:]]+\\)"
+			 "[[:space:]]+\\([[:digit:]]+\\)"))
 	    (list (string-to-number (match-string 1))
 		  ;; The second value is the used size.  We need the
 		  ;; free size.

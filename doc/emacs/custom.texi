@@ -1223,7 +1223,7 @@ other context has no special meaning.
 disable a minor mode in a local variables list, use the @code{eval}
 keyword with a Lisp expression that runs the mode command
 (@pxref{Minor Modes}).  For example, the following local variables
-list enables Eldoc mode (@pxref{Lisp Doc}) by calling
+list enables ElDoc mode (@pxref{Lisp Doc}) by calling
 @code{eldoc-mode} with no argument (calling it with an argument of 1
 would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
 calling @code{font-lock-mode} with an argument of @minus{}1.

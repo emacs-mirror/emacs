@@ -1,4 +1,4 @@
-# getrandom.m4 serial 6
+# getrandom.m4 serial 7
 dnl Copyright 2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -36,7 +36,9 @@ AC_DEFUN([gl_FUNC_GETRANDOM],
 
   case "$host_os" in
     mingw*)
-      AC_CHECK_HEADERS([bcrypt.h])
+      AC_CHECK_HEADERS([bcrypt.h], [], [],
+        [[#include <windows.h>
+        ]])
       AC_CACHE_CHECK([whether the bcrypt library is guaranteed to be present],
         [gl_cv_lib_assume_bcrypt],
         [AC_COMPILE_IFELSE(

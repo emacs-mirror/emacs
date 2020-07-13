@@ -560,7 +560,7 @@ Sometimes the prompt is reported to look like \"login as:\"."
   ;; Allow also [] style prompts.  They can appear only during
   ;; connection initialization; Tramp redefines the prompt afterwards.
   (concat "\\(?:^\\|\r\\)"
-	  "[^]#$%>\n]*#?[]#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*")
+	  "[^]#$%>\n]*#?[]#$%>] *\\(\e\\[[[:digit:];]*[[:alpha:]] *\\)*")
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -601,7 +601,7 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 	  "\\|"
 	  "^.*\\("
 	  ;; Here comes a list of regexes, separated by \\|
-	  "Received signal [0-9]+"
+	  "Received signal [[:digit:]]+"
 	  "\\).*")
   "Regexp matching a `login failed' message.
 The regexp should match at end of buffer."
@@ -797,9 +797,9 @@ Used in `tramp-make-tramp-file-name'.")
 Should always start with \"^\". Derived from `tramp-prefix-format'.")
 
 (defconst tramp-method-regexp-alist
-  '((default    . "[a-zA-Z0-9-]+")
+  '((default    . "[[:alnum:]-]+")
     (simplified . "")
-    (separate   . "[a-zA-Z0-9-]*"))
+    (separate   . "[[:alnum:]-]*"))
   "Alist mapping Tramp syntax to regexps matching methods identifiers.")
 
 (defun tramp-build-method-regexp ()
@@ -843,7 +843,7 @@ Derived from `tramp-postfix-method-format'.")
   "Regexp matching delimiter between user and domain names.
 Derived from `tramp-prefix-domain-format'.")
 
-(defconst tramp-domain-regexp "[a-zA-Z0-9_.-]+"
+(defconst tramp-domain-regexp "[[:alnum:]_.-]+"
   "Regexp matching domain names.")
 
 (defconst tramp-user-with-domain-regexp
@@ -860,7 +860,7 @@ Used in `tramp-make-tramp-file-name'.")
   "Regexp matching delimiter between user and host names.
 Derived from `tramp-postfix-user-format'.")
 
-(defconst tramp-host-regexp "[a-zA-Z0-9_.%-]+"
+(defconst tramp-host-regexp "[[:alnum:]_.%-]+"
   "Regexp matching host names.")
 
 (defconst tramp-prefix-ipv6-format-alist
@@ -888,7 +888,7 @@ Derived from `tramp-prefix-ipv6-format'.")
 ;; The following regexp is a bit sloppy.  But it shall serve our
 ;; purposes.  It covers also IPv4 mapped IPv6 addresses, like in
 ;; "::ffff:192.168.0.1".
-(defconst tramp-ipv6-regexp "\\(?:[a-zA-Z0-9]*:\\)+[a-zA-Z0-9.]+"
+(defconst tramp-ipv6-regexp "\\(?:[[:alnum:]]*:\\)+[[:alnum:].]+"
   "Regexp matching IPv6 addresses.")
 
 (defconst tramp-postfix-ipv6-format-alist
@@ -920,7 +920,7 @@ Derived from `tramp-postfix-ipv6-format'.")
   "Regexp matching delimiter between host names and port numbers.
 Derived from `tramp-prefix-port-format'.")
 
-(defconst tramp-port-regexp "[0-9]+"
+(defconst tramp-port-regexp "[[:digit:]]+"
   "Regexp matching port numbers.")
 
 (defconst tramp-host-with-port-regexp
@@ -1684,11 +1684,10 @@ version, the function does nothing."
       (format "*debug tramp/%s %s*" method host-port))))
 
 (defconst tramp-debug-outline-regexp
-  (eval-when-compile
-    (concat
-     "[0-9]+:[0-9]+:[0-9]+\\.[0-9]+ " ;; Timestamp.
-     "\\(?:\\(#<thread .+>\\) \\)?"   ;; Thread.
-     "[a-z0-9-]+ (\\([0-9]+\\)) #"))  ;; Function name, verbosity.
+  (concat
+   "[[:digit:]]+:[[:digit:]]+:[[:digit:]]+\\.[[:digit:]]+ " ;; Timestamp.
+   "\\(?:\\(#<thread .+>\\) \\)?" ;; Thread.
+   "[[:alnum:]-]+ (\\([[:digit:]]+\\)) #") ;; Function name, verbosity.
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
 
 (defconst tramp-debug-font-lock-keywords
@@ -2074,7 +2073,7 @@ letter into the file name.  This function removes it."
   (save-match-data
     (let ((quoted (tramp-compat-file-name-quoted-p name 'top))
 	  (result (tramp-compat-file-name-unquote name 'top)))
-      (setq result (if (string-match "\\`[a-zA-Z]:/" result)
+      (setq result (if (string-match "\\`[[:alpha:]]:/" result)
 		     (replace-match "/" nil t result) result))
       (if quoted (tramp-compat-file-name-quote result 'top) result))))
 
@@ -2938,7 +2937,7 @@ User is always nil."
   "Return a list of (user host) tuples allowed to access.
 User is always nil."
   (tramp-parse-shostkeys-sknownhosts
-   dirname (concat "^key_[0-9]+_\\(" tramp-host-regexp "\\)\\.pub$")))
+   dirname (concat "^key_[[:digit:]]+_\\(" tramp-host-regexp "\\)\\.pub$")))
 
 (defun tramp-parse-sknownhosts (dirname)
   "Return a list of (user host) tuples allowed to access.
@@ -3255,12 +3254,13 @@ User is always nil."
 		(let ((candidate
 		       (tramp-compat-file-name-unquote
 			(directory-file-name filename)))
+		      case-fold-search
 		      tmpfile)
 		  ;; Check, whether we find an existing file with
 		  ;; lower case letters.  This avoids us to create a
 		  ;; temporary file.
 		  (while (and (string-match-p
-			       "[a-z]" (tramp-file-local-name candidate))
+			       "[[:lower:]]" (tramp-file-local-name candidate))
 			      (not (file-exists-p candidate)))
 		    (setq candidate
 			  (directory-file-name
@@ -3269,8 +3269,8 @@ User is always nil."
 		  ;; for comparison.  `make-nearby-temp-file' is added
 		  ;; to Emacs 26+ like `file-name-case-insensitive-p',
 		  ;; so there is no compatibility problem calling it.
-		  (unless
-		      (string-match-p "[a-z]" (tramp-file-local-name candidate))
+		  (unless (string-match-p
+			   "[[:lower:]]" (tramp-file-local-name candidate))
 		    (setq tmpfile
 			  (let ((default-directory
 				  (file-name-directory filename)))
@@ -4225,10 +4225,9 @@ performed successfully.  Any other value means an error."
 	      (tramp-get-connection-buffer vec)))
 	    ((eq exit 'process-died)
              (substitute-command-keys
-	      (eval-when-compile
-		(concat
-		 "Tramp failed to connect.  If this happens repeatedly, try\n"
-		 "    `\\[tramp-cleanup-this-connection]'"))))
+	      (concat
+	       "Tramp failed to connect.  If this happens repeatedly, try\n"
+	       "    `\\[tramp-cleanup-this-connection]'")))
 	    ((eq exit 'timeout)
 	     (format-message
 	      "Timeout reached, see buffer `%s' for details"

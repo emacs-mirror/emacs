@@ -118,6 +118,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lchmod:
   # Code from module libc-config:
+  # Code from module libgmp:
   # Code from module limits-h:
   # Code from module localtime-buffer:
   # Code from module lstat:
@@ -240,7 +241,7 @@ AC_DEFUN([gl_INIT],
   gl_DIRENT_H
   gl_DOUBLE_SLASH_ROOT
   gl_FUNC_DUP2
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+  if test $REPLACE_DUP2 = 1; then
     AC_LIBOBJ([dup2])
     gl_PREREQ_DUP2
   fi
@@ -345,6 +346,10 @@ AC_DEFUN([gl_INIT],
   gl_INTTYPES_INCOMPLETE
   AC_REQUIRE([gl_LARGEFILE])
   gl___INLINE
+  gl_LIBGMP
+  if test -n "$GMP_H"; then
+    AC_LIBOBJ([mini-gmp-gnulib])
+  fi
   gl_LIMITS_H
   gl_FUNC_LSTAT
   if test $REPLACE_LSTAT = 1; then
@@ -465,6 +470,7 @@ AC_DEFUN([gl_INIT],
   gl_SYS_TYPES_H
   AC_PROG_MKDIR_P
   gl_FUNC_GEN_TEMPNAME
+  gl_MODULE_INDICATOR([tempname])
   gl_HEADER_TIME_H
   gl_TIME_R
   if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
@@ -1034,6 +1040,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/memmem.c
   lib/mempcpy.c
   lib/memrchr.c
+  lib/mini-gmp-gnulib.c
+  lib/mini-gmp.c
+  lib/mini-gmp.h
   lib/minmax.h
   lib/mkostemp.c
   lib/mktime-internal.h
@@ -1165,6 +1174,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/inttypes.m4
   m4/largefile.m4
   m4/lchmod.m4
+  m4/libgmp.m4
   m4/limits-h.m4
   m4/localtime-buffer.m4
   m4/lstat.m4

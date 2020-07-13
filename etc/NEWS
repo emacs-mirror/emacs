@@ -279,6 +279,13 @@ This allows users to use (define-key eshell-mode-map ...) as usual.
 Some modules have their own minor mode now to account for these
 changes.
 
+** EUDC
+
++++
+*** New macOS Contacts backend.
+This backend works on newer versions of macOS and is generally
+preferred over the eudcb-mab.el backend.
+
 ** Tramp
 
 +++

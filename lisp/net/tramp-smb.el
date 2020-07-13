@@ -875,23 +875,31 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (while (not (eobp))
 	    (cond
 	     ((looking-at
-	       "Size:\\s-+\\([0-9]+\\)\\s-+Blocks:\\s-+[0-9]+\\s-+\\(\\w+\\)")
+	       (concat
+		"Size:\\s-+\\([[:digit:]]+\\)\\s-+"
+		"Blocks:\\s-+[[:digit:]]+\\s-+\\(\\w+\\)"))
 	      (setq size (string-to-number (match-string 1))
 		    id (if (string-equal "directory" (match-string 2)) t
 			 (if (string-equal "symbolic" (match-string 2)) ""))))
 	     ((looking-at
-	       "Inode:\\s-+\\([0-9]+\\)\\s-+Links:\\s-+\\([0-9]+\\)")
+	       "Inode:\\s-+\\([[:digit:]]+\\)\\s-+Links:\\s-+\\([[:digit:]]+\\)")
 	      (setq inode (string-to-number (match-string 1))
 		    link (string-to-number (match-string 2))))
 	     ((looking-at
-	       "Access:\\s-+([0-9]+/\\(\\S-+\\))\\s-+Uid:\\s-+\\([0-9]+\\)\\s-+Gid:\\s-+\\([0-9]+\\)")
+	       (concat
+		"Access:\\s-+([[:digit:]]+/\\(\\S-+\\))\\s-+"
+		"Uid:\\s-+\\([[:digit:]]+\\)\\s-+"
+		"Gid:\\s-+\\([[:digit:]]+\\)"))
 	      (setq mode (match-string 1)
 		    uid (if (equal id-format 'string) (match-string 2)
 			  (string-to-number (match-string 2)))
 		    gid (if (equal id-format 'string) (match-string 3)
 			  (string-to-number (match-string 3)))))
 	     ((looking-at
-	       "Access:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
+	       (concat
+		"Access:\\s-+"
+		"\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
+		"\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"))
 	      (setq atime
 		    (encode-time
 		     (string-to-number (match-string 6)) ;; sec
@@ -901,7 +909,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       "Modify:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
+	       (concat
+		"Modify:\\s-+"
+		"\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
+		"\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"))
 	      (setq mtime
 		    (encode-time
 		     (string-to-number (match-string 6)) ;; sec
@@ -911,7 +922,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       "Change:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
+	       (concat
+		"Change:\\s-+"
+		"\\([[:digit:]]+\\)-\\([[:digit:]]+\\)-\\([[:digit:]]+\\)\\s-+"
+		"\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"))
 	      (setq ctime
 		    (encode-time
 		     (string-to-number (match-string 6)) ;; sec
@@ -987,10 +1001,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (goto-char (point-min))
 	    (forward-line)
 	    (when (looking-at
-		   (eval-when-compile
-		     (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			     " blocks of size \\([[:digit:]]+\\)"
-			     "\\. \\([[:digit:]]+\\) blocks available")))
+		   (concat "[[:space:]]*\\([[:digit:]]+\\)"
+			   " blocks of size \\([[:digit:]]+\\)"
+			   "\\. \\([[:digit:]]+\\) blocks available"))
 	      (setq blocksize (string-to-number (match-string 2))
 		    total (* blocksize (string-to-number (match-string 1)))
 		    avail (* blocksize (string-to-number (match-string 3)))))
@@ -1474,7 +1487,7 @@ component is used as the target of the symlink."
 		  ;; This is meant for traces, and returning from the
 		  ;; function.  No error is propagated outside, due to
 		  ;; the `ignore-errors' closure.
-		  (unless (tramp-search-regexp "tramp_exit_status [0-9]+")
+		  (unless (tramp-search-regexp "tramp_exit_status [[:digit:]]+")
 		    (tramp-error
 		     v 'file-error
 		     "Couldn't find exit status of `%s'" tramp-smb-acl-program))
@@ -1719,21 +1732,21 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 ;; Entries provided by smbclient DIR aren't fully regular.
 ;; They should have the format
 ;;
-;; \s-\{2,2}                              - leading spaces
+;; \s-\{2,2\}                             - leading spaces
 ;; \S-\(.*\S-\)\s-*                       - file name, 30 chars, left bound
 ;; \s-+[ADHRSV]*                          - permissions, 7 chars, right bound
 ;; \s-                                    - space delimiter
-;; \s-+[0-9]+                             - size, 8 chars, right bound
+;; \s-+[[:digit:]]+                       - size, 8 chars, right bound
 ;; \s-\{2,2\}                             - space delimiter
 ;; \w\{3,3\}                              - weekday
 ;; \s-                                    - space delimiter
 ;; \w\{3,3\}                              - month
 ;; \s-                                    - space delimiter
-;; [ 12][0-9]                             - day
+;; [ 12][[:digit:]]                       - day
 ;; \s-                                    - space delimiter
-;; [0-9]\{2,2\}:[0-9]\{2,2\}:[0-9]\{2,2\} - time
+;; [[:digit:]]\{2,2\}:[[:digit:]]\{2,2\}:[[:digit:]]\{2,2\} - time
 ;; \s-                                    - space delimiter
-;; [0-9]\{4,4\}                           - year
+;; [[:digit:]]\{4,4\}                     - year
 ;;
 ;; samba/src/client.c (http://samba.org/doxygen/samba/client_8c-source.html)
 ;; has function display_finfo:
@@ -1781,13 +1794,14 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
       (cl-block nil
 
 	;; year.
-	(if (string-match "\\([0-9]+\\)$" line)
+	(if (string-match "\\([[:digit:]]+\\)$" line)
 	    (setq year (string-to-number (match-string 1 line))
 		  line (substring line 0 -5))
 	  (cl-return))
 
 	;; time.
-	(if (string-match "\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)$" line)
+	(if (string-match
+	     "\\([[:digit:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)$" line)
 	    (setq hour (string-to-number (match-string 1 line))
 		  min  (string-to-number (match-string 2 line))
 		  sec  (string-to-number (match-string 3 line))
@@ -1795,7 +1809,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 	  (cl-return))
 
 	;; day.
-	(if (string-match "\\([0-9]+\\)$" line)
+	(if (string-match "\\([[:digit:]]+\\)$" line)
 	    (setq day  (string-to-number (match-string 1 line))
 		  line (substring line 0 -3))
 	  (cl-return))
@@ -1812,7 +1826,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 	  (cl-return))
 
 	;; size.
-	(if (string-match "\\([0-9]+\\)$" line)
+	(if (string-match "\\([[:digit:]]+\\)$" line)
 	    (let ((length (- (max 10 (1+ (length (match-string 1 line)))))))
 	      (setq size (string-to-number (match-string 1 line)))
 	      (when (string-match

@@ -5239,7 +5239,7 @@ has no effect on systems with case-insensitive file names.
 hooks.  `run-mode-hooks' does this automatically.
 
 *** Major modes can define `eldoc-documentation-function'
-locally to provide Eldoc functionality by some method appropriate to
+locally to provide ElDoc functionality by some method appropriate to
 the language.
 
 *** Use the new function `run-mode-hooks' to run the major mode's mode hook.
