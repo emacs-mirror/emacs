@@ -2103,20 +2103,20 @@ is not active."
                              (put-text-property 0 1 'eglot--lsp-item item proxy))
                            proxy))
                        items)))))
-           resolved
+           (resolved (make-hash-table))
            (resolve-maybe
             ;; Maybe completion/resolve JSON object `lsp-comp' into
             ;; another JSON object, if at all possible.  Otherwise,
             ;; just return lsp-comp.
             (lambda (lsp-comp)
-              (cond (resolved resolved)
-                    ((and (eglot--server-capable :completionProvider
-                                                 :resolveProvider)
-                          (plist-get lsp-comp :data))
-                     (setq resolved
-                           (jsonrpc-request server :completionItem/resolve
-                                            lsp-comp :cancel-on-input t)))
-                    (t lsp-comp))))
+              (or (gethash lsp-comp resolved)
+                  (setf (gethash lsp-comp resolved)
+                        (if (and (eglot--server-capable :completionProvider
+                                                        :resolveProvider)
+                                 (plist-get lsp-comp :data))
+                            (jsonrpc-request server :completionItem/resolve
+                                             lsp-comp :cancel-on-input t)
+                          lsp-comp)))))
            (bounds (bounds-of-thing-at-point 'symbol)))
       (list
        (or (car bounds) (point))
