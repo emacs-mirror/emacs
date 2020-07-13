@@ -434,7 +434,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
       /* NEXT is invoked at the end of an instruction to go to the
 	 next instruction.  It is either a computed goto, or a
 	 plain break.  */
-#define NEXT UPDATE_OFFSET; goto *(targets[op = FETCH])
+#define NEXT goto *(targets[op = FETCH])
       /* FIRST is like NEXT, but is only used at the start of the
 	 interpreter body.  In the switch-based interpreter it is the
 	 switch, so the threaded definition must include a semicolon.  */
@@ -622,6 +622,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  op -= Bcall;
 	docall:
 	  {
+	    UPDATE_OFFSET;
 	    DISCARD (op);
 #ifdef BYTE_CODE_METER
 	    if (byte_metering_on && SYMBOLP (TOP))
