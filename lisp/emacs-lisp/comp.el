@@ -471,6 +471,27 @@ Assume allocaiton class 'd-default as default."
   (puthash obj t (comp-data-container-idx (comp-alloc-class-to-container
                                            comp-curr-allocation-class))))
 
+
+;;; Log rountines.
+
+(defconst comp-limple-lock-keywords
+  `((,(rx bol "(comment" (1+ not-newline)) . font-lock-comment-face)
+    (,(rx "#s(" (group-n 1 "comp-mvar"))
+     (1 font-lock-function-name-face))
+    (,(rx bol "(" (group-n 1 "phi"))
+     (1 font-lock-variable-name-face))
+    (,(rx (group-n 1 (or "entry"
+                         (seq (or "entry_" "entry_fallback_" "bb_")
+                              (1+ num)))))
+     (1 font-lock-constant-face))
+    (,(rx "(" (group-n 1 (1+ (or word "-"))))
+     (1 font-lock-keyword-face)))
+  "Highlights used by comp-limple-mode.")
+
+(define-derived-mode comp-limple-mode fundamental-mode "LIMPLE"
+  "Syntax highlight LIMPLE IR."
+  (setf font-lock-defaults '(comp-limple-lock-keywords)))
+
 (cl-defun comp-log (data &optional (level 1))
   "Log DATA at LEVEL.
 LEVEL is a number from 1-3; if it is less than `comp-verbose', do
@@ -495,6 +516,8 @@ log with `comp-log-to-buffer'."
          (inhibit-read-only t)
          at-end-p)
     (with-current-buffer log-buffer
+      (unless (eq major-mode 'comp-limple-mode)
+        (comp-limple-mode))
       (when (= (point) (point-max))
         (setf at-end-p t))
       (save-excursion
@@ -533,6 +556,8 @@ VERBOSITY is a number between 0 and 3."
                               (comp-block-name (comp-edge-dst e)))
                       2))
           edges)))
+
+
 
 (defun comp-output-directory (src)
   "Return the compilation direcotry for source SRC."
