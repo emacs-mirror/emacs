@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.9") (project "0.3.0") (xref "1.0.1") (eldoc "1.2.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.9") (project "0.3.0") (xref "1.0.1") (eldoc "1.5.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -72,6 +72,15 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
+
+;; ElDoc is preloaded in Emacs, so `require'-ing won't guarantee we are
+;; using the latest version from GNU Elpa when we load eglot.el.  Use an
+;; heuristic to see if we need to `load' it in Emacs < 28.
+(if (and (< emacs-major-version 28)
+         (not (boundp 'eldoc-documentation-strategy)))
+    (load "eldoc")
+  (require 'eldoc))
+
 ;; forward-declare, but don't require (Emacs 28 doesn't seem to care)
 (defvar markdown-fontify-code-blocks-natively)
 (defvar company-backends)
