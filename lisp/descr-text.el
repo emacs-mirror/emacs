@@ -775,7 +775,7 @@ The character information includes:
                                     (setq glyph (lgstring-glyph gstring from)))
                           (insert (format "  %S\n" glyph))
                           (setq from (1+ from)))
-                        (insert "from these character(s):\n")
+                        (insert "from these characters:\n")
                         (dotimes (i (lgstring-char-len gstring))
                           (let ((char (lgstring-char gstring i)))
                             (insert (format "  %c (#x%x) %s\n"
