@@ -469,7 +469,7 @@ variable @code{imenu-generic-expression}, for the two variables
 @code{imenu-create-index-function} (@pxref{Imenu}).
 
 @item
-The mode can tell Eldoc mode how to retrieve different types of
+The mode can tell ElDoc mode how to retrieve different types of
 documentation for whatever is at point, by adding one or more
 buffer-local entries to the special hook
 @code{eldoc-documentation-functions}.

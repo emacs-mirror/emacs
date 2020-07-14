@@ -950,7 +950,7 @@ This function can be used as a value of
       ;; instead of returning a string tailored here for the echo area
       ;; exclusively, we could call the (now unused) argument
       ;; _CALLBACK with hints on how to shorten the string if needed,
-      ;; or with multiple usable strings which Eldoc picks according
+      ;; or with multiple usable strings which ElDoc picks according
       ;; to its space contraints.
       (describe-char-eldoc--format
        ch

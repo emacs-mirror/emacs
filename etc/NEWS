@@ -263,7 +263,7 @@ obsolete.
 
 *** 'eldoc-echo-area-use-multiline-p' is now handled by ElDoc.
 The user option 'eldoc-echo-area-use-multiline-p' is now handled
-by the Eldoc library itself.  Functions in
+by the ElDoc library itself.  Functions in
 'eldoc-documentation-functions' don't need to worry about consulting
 it when producing a doc string.
 

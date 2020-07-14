@@ -92,7 +92,7 @@ echo area must be resized to fit.
 
 If value is a number (integer or floating point), it has the
 semantics of `max-mini-window-height', constraining the resizing
-for Eldoc purposes only.
+for ElDoc purposes only.
 
 Any resizing respects `max-mini-window-height'.
 
@@ -112,9 +112,9 @@ single line of display in the echo area."
  line" truncate-sym-name-if-fit)))
 
 (defcustom eldoc-prefer-doc-buffer nil
-  "Prefer Eldoc's documentation buffer if it is showing in some frame.
+  "Prefer ElDoc's documentation buffer if it is showing in some frame.
 If this variable's value is t and a piece of documentation needs
-to be truncated to fit in the echo area, do so if Eldoc's
+to be truncated to fit in the echo area, do so if ElDoc's
 documentation buffer is not already showing, since the buffer
 always holds the full documentation."
   :type 'boolean)
@@ -539,11 +539,11 @@ Meant as a value for `eldoc-documentation-strategy'."
                         (if (stringp str) (funcall callback str))
                         nil))))
 
-;; JT@2020-07-10: Eldoc is pre-loaded, so in in Emacs < 28 we can't
+;; JT@2020-07-10: ElDoc is pre-loaded, so in Emacs < 28 we can't
 ;; make the "old" `eldoc-documentation-function' point to the new
 ;; `eldoc-documentation-strategy', so we do the reverse.  This allows
-;; for Eldoc to be loaded in those older Emacs versions and work with
-;; whomever (major-modes, extensions, ueser) sets one of the other
+;; for ElDoc to be loaded in those older Emacs versions and work with
+;; whomever (major-modes, extensions, user) sets one or the other
 ;; variable.
 (defmacro eldoc--documentation-strategy-defcustom
     (main secondary value docstring &rest more)
