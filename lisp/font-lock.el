@@ -986,7 +986,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	((bound-and-true-p lazy-lock-mode)
 	 (lazy-lock-after-unfontify-buffer))))
 
-;;; End of Font Lock Support mode.
+;; End of Font Lock Support mode.
 
 ;;; Fontification functions.
 
@@ -1393,7 +1393,7 @@ delimit the region to fontify."
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
-;;; End of Fontification functions.
+;; End of Fontification functions.
 
 ;;; Additional text property functions.
 
@@ -1485,7 +1485,7 @@ Optional argument OBJECT is the string or buffer containing the text."
 		      (put-text-property start next prop new object))))))
       (setq start (text-property-not-all next end prop nil object)))))
 
-;;; End of Additional text property functions.
+;; End of Additional text property functions.
 
 ;;; Syntactic regexp fontification functions.
 
@@ -1591,7 +1591,7 @@ START should be at the beginning of a line."
 	  (setq highlights (cdr highlights))))
       (setq keywords (cdr keywords)))))
 
-;;; End of Syntactic regexp fontification functions.
+;; End of Syntactic regexp fontification functions.
 
 ;;; Syntactic fontification functions.
 
@@ -1650,7 +1650,7 @@ START should be at the beginning of a line."
         (setq state (parse-partial-sexp (point) end nil nil state
 				        'syntax-table))))))
 
-;;; End of Syntactic fontification functions.
+;; End of Syntactic fontification functions.
 
 ;;; Keyword regexp fontification functions.
 
@@ -1784,9 +1784,9 @@ LOUDLY, if non-nil, allows progress-meter bar."
       (setq keywords (cdr keywords)))
     (set-marker pos nil)))
 
-;;; End of Keyword regexp fontification functions.
+;; End of Keyword regexp fontification functions.
 
-;; Various functions.
+;;; Various functions.
 
 (defun font-lock-compile-keywords (keywords &optional syntactic-keywords)
   "Compile KEYWORDS into the form (t KEYWORDS COMPILED...)
@@ -2102,7 +2102,7 @@ Sets various variables using `font-lock-defaults' and
   "Font Lock mode face used to highlight grouping constructs in Lisp regexps."
   :group 'font-lock-faces)
 
-;;; End of Color etc. support.
+;; End of Color etc. support.
 
 ;;; Menu support.
 
@@ -2204,7 +2204,7 @@ Sets various variables using `font-lock-defaults' and
 ;;  ;; Deactivate less/more fontification entries.
 ;;  (setq font-lock-fontify-level nil))
 
-;;; End of Menu support.
+;; End of Menu support.
 
 ;;; Various regexp information shared by several modes.
 ;; ;; Information specific to a single mode should go in its load library.
