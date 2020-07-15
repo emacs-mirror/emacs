@@ -412,24 +412,20 @@ callback data (if any)."
        (revoked-key "Signature made by revoked key ")
        (no-pubkey "No public key for "))
      key-id
-     (if user-id
-	 (concat " "
-		 (if (stringp user-id)
-		     (epg--decode-percent-escape-as-utf-8 user-id)
-		   (epg-decode-dn user-id)))
-       "")
-     (if (epg-signature-validity signature)
-	 (format " (trust %s)"  (epg-signature-validity signature))
-       "")
-     (if (epg-signature-creation-time signature)
-	 (format-time-string " created at %Y-%m-%dT%T%z"
-			     (epg-signature-creation-time signature))
-       "")
-     (if pubkey-algorithm
-	 (concat " using "
-		 (or (cdr (assq pubkey-algorithm epg-pubkey-algorithm-alist))
-		     (format "(unknown algorithm %d)" pubkey-algorithm)))
-       ""))))
+     (and user-id
+	  (concat " "
+		  (if (stringp user-id)
+		      (epg--decode-percent-escape-as-utf-8 user-id)
+		    (epg-decode-dn user-id))))
+     (and (epg-signature-validity signature)
+	  (format " (trust %s)"  (epg-signature-validity signature)))
+     (and (epg-signature-creation-time signature)
+	  (format-time-string " created at %Y-%m-%dT%T%z"
+			      (epg-signature-creation-time signature)))
+     (and pubkey-algorithm
+	  (concat " using "
+		  (or (cdr (assq pubkey-algorithm epg-pubkey-algorithm-alist))
+		      (format "(unknown algorithm %d)" pubkey-algorithm)))))))
 
 (defun epg-verify-result-to-string (verify-result)
   "Convert VERIFY-RESULT to a human readable string."
