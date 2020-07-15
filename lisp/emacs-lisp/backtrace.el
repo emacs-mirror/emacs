@@ -749,11 +749,13 @@ property for use by navigation."
         (source (plist-get (backtrace-frame-flags frame) :source-available))
         (offset (plist-get (backtrace-frame-flags frame) :bytecode-offset))
         ;; right justify and pad the offset (or the empty string)
-        (offset-format (format "%%%ds " (- backtrace--flags-width 3))))
+        (offset-format (format "%%%ds " (- backtrace--flags-width 3)))
+        (fun (ignore-errors (indirect-function (backtrace-frame-fun frame)))))
     (when (plist-get view :show-flags)
       (insert (if source ">" " "))
       (insert (if flag "*" " "))
-      (insert (format offset-format (or offset ""))))
+      (insert (format offset-format
+                      (or (and (byte-code-function-p fun) offset) ""))))
     (put-text-property beg (point) 'backtrace-section 'func)))
 
 (defun backtrace--print-func-and-args (frame _view)
