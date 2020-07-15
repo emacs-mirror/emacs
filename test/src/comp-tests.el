@@ -363,6 +363,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (= (comp-test-speed--1-f) 3))
   (should-not (subr-native-elisp-p (symbol-function #'comp-test-speed--1-f))))
 
+(ert-deftest comp-test-42360 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-07/msg00418.html>."
+  (should (string= (comp-test-42360-f "Nel mezzo del " 18 0 32 "yyy" nil)
+                   "Nel mezzo del     yyy")))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

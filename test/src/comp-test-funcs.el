@@ -290,6 +290,53 @@
   (declare (speed -1))
   3)
 
+(defun comp-test-42360-f (str end-column
+		              &optional start-column padding ellipsis
+                              ellipsis-text-property)
+  ;; From `truncate-string-to-width'.  A large enough function to
+  ;; potentially use all registers and that is modifying local
+  ;; variables inside condition-case.
+  (let ((str-len (length str))
+	(str-width 14)
+	(ellipsis-width 3)
+	(idx 0)
+	(column 0)
+	(head-padding "") (tail-padding "")
+	ch last-column last-idx from-idx)
+    (condition-case nil
+	(while (< column start-column)
+	  (setq ch (aref str idx)
+		column (+ column (char-width ch))
+		idx (1+ idx)))
+      (args-out-of-range (setq idx str-len)))
+    (if (< column start-column)
+	(if padding (make-string end-column padding) "")
+      (when (and padding (> column start-column))
+	(setq head-padding (make-string (- column start-column) padding)))
+      (setq from-idx idx)
+      (when (>= end-column column)
+	(condition-case nil
+	    (while (< column end-column)
+	      (setq last-column column
+		    last-idx idx
+		    ch (aref str idx)
+		    column (+ column (char-width ch))
+		    idx (1+ idx)))
+	  (args-out-of-range (setq idx str-len)))
+	(when (> column end-column)
+	  (setq column last-column
+		idx last-idx))
+	(when (and padding (< column end-column))
+	  (setq tail-padding (make-string (- end-column column) padding))))
+      (if (and ellipsis-text-property
+               (not (equal ellipsis ""))
+               idx)
+	  (concat head-padding
+                  (substring str from-idx idx)
+	          (propertize (substring str idx) 'display (or ellipsis "")))
+        (concat head-padding (substring str from-idx idx)
+	        tail-padding ellipsis)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
