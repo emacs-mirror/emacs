@@ -495,8 +495,9 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                             (substitute-command-keys "\\[eldoc-doc-buffer]")))))))))
               ((= available 1)
                ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
-               (truncate-string-to-width
-                (buffer-substring (point-min) (line-end-position 1)) width)))))
+               (with-current-buffer (eldoc-doc-buffer)
+                 (truncate-string-to-width
+                  (buffer-substring (point-min) (line-end-position 1)) width))))))
         (when echo-area-message
           (eldoc--message echo-area-message))))))
 
