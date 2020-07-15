@@ -1839,6 +1839,17 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
 
+  if (!nargs)
+    return emit_call_ref (callee, 0, comp.frame[0], direct);
+
+  if (comp.func_has_non_local || !comp.func_speed)
+    {
+      /* FIXME: See bug#42360.  */
+      Lisp_Object first_arg = SECOND (insn);
+      EMACS_INT first_slot = XFIXNUM (CALL1I (comp-mvar-slot, first_arg));
+      return emit_call_ref (callee, nargs, comp.frame[first_slot], direct);
+    }
+
   gcc_jit_lvalue *tmp_arr =
     gcc_jit_function_new_local (
       comp.func,
@@ -3757,12 +3768,36 @@ compile_function (Lisp_Object func)
   comp.func_speed = XFIXNUM (CALL1I (comp-func-speed, func));
 
   comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
-  for (ptrdiff_t i = 0; i < frame_size; ++i)
-    comp.frame[i] =
-      gcc_jit_function_new_local (comp.func,
-				  NULL,
-				  comp.lisp_obj_type,
-				  format_string ("slot_%td", i));
+  if (comp.func_has_non_local || !comp.func_speed)
+    {
+      /* FIXME: See bug#42360.  */
+      gcc_jit_lvalue *arr =
+        gcc_jit_function_new_local (
+          comp.func,
+          NULL,
+          gcc_jit_context_new_array_type (comp.ctxt,
+                                          NULL,
+                                          comp.lisp_obj_type,
+                                          frame_size),
+          "frame");
+
+      for (ptrdiff_t i = 0; i < frame_size; ++i)
+	comp.frame[i] =
+          gcc_jit_context_new_array_access (
+            comp.ctxt,
+            NULL,
+            gcc_jit_lvalue_as_rvalue (arr),
+            gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                                 comp.int_type,
+                                                 i));
+    }
+  else
+    for (ptrdiff_t i = 0; i < frame_size; ++i)
+      comp.frame[i] =
+	gcc_jit_function_new_local (comp.func,
+				    NULL,
+				    comp.lisp_obj_type,
+				    format_string ("slot_%td", i));
 
   comp.scratch = NULL;
 
