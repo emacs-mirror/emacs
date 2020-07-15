@@ -25,7 +25,9 @@
 (require 'epg)
 (require 'font-lock)
 (require 'widget)
-(eval-when-compile (require 'wid-edit))
+(eval-when-compile
+  (require 'subr-x)
+  (require 'wid-edit))
 (require 'derived)
 
 (defgroup epa nil
@@ -56,11 +58,6 @@ If neither t nor nil, ask user for confirmation."
   :type 'integer
   :group 'epa)
 
-(defgroup epa-faces nil
-  "Faces for epa-mode."
-  :version "23.1"
-  :group 'epa)
-
 (defcustom epa-mail-aliases nil
   "Alist of aliases of email addresses that stand for encryption keys.
 Each element is a list of email addresses (ALIAS EXPANSIONS...).
@@ -75,6 +72,11 @@ The command `epa-mail-encrypt' uses this."
   :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
   :group 'epa
   :version "24.4")
+
+(defgroup epa-faces nil
+  "Faces for epa-mode."
+  :version "23.1"
+  :group 'epa)
 
 (defface epa-validity-high
   '((default :weight bold)
@@ -117,13 +119,15 @@ The command `epa-mail-encrypt' uses this."
   '((default :weight bold)
     (((class color) (background dark)) :foreground "PaleTurquoise"))
   "Face for the name of the attribute field."
-  :group 'epa)
+  :version "28.1"
+  :group 'epa-faces)
 
 (defface epa-field-body
   '((default :slant italic)
     (((class color) (background dark)) :foreground "turquoise"))
   "Face for the body of the attribute field."
-  :group 'epa)
+  :version "28.1"
+  :group 'epa-faces)
 
 (defcustom epa-validity-face-alist
   '((unknown . epa-validity-disabled)
@@ -138,8 +142,9 @@ The command `epa-mail-encrypt' uses this."
     (full . epa-validity-high)
     (ultimate . epa-validity-high))
   "An alist mapping validity values to faces."
+  :version "28.1"
   :type '(repeat (cons symbol face))
-  :group 'epa)
+  :group 'epa-faces)
 
 (defvar epa-font-lock-keywords
   '(("^\\*"
@@ -185,6 +190,8 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-key-list-mode-map
   (let ((keymap (make-sparse-keymap))
 	(menu-map (make-sparse-keymap)))
+    (set-keymap-parent keymap widget-keymap)
+    (define-key keymap "\C-m" 'epa-show-key)
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -332,8 +339,7 @@ If ARG is non-nil, mark the key."
   (epa-mark-key (not arg)))
 
 (defun epa-exit-buffer ()
-  "Exit the current buffer.
-`epa-exit-buffer-function' is called if it is set."
+  "Exit the current buffer using `epa-exit-buffer-function'."
   (interactive)
   (funcall epa-exit-buffer-function))
 
@@ -397,8 +403,7 @@ DOC is documentation text to insert at the start."
       (goto-char point))
 
     (epa--insert-keys (epg-list-keys context name secret))
-    (widget-setup)
-    (set-keymap-parent (current-local-map) widget-keymap))
+    (widget-setup))
   (make-local-variable 'epa-list-keys-arguments)
   (setq epa-list-keys-arguments (list name secret))
   (goto-char (point-min))
@@ -499,6 +504,14 @@ the keys are listed.
 If SECRET is non-nil, list secret keys instead of public keys."
   (let ((keys (epg-list-keys context names secret)))
     (epa--select-keys prompt keys)))
+
+(defun epa-show-key ()
+  "Show a key on the current line."
+  (interactive)
+  (if-let ((key (get-text-property (point) 'epa-key)))
+      (save-selected-window
+        (epa--show-key key))
+    (error "No key on this line")))
 
 (defun epa--show-key (key)
   (let* ((primary-sub-key (car (epg-key-sub-key-list key)))

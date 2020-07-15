@@ -775,13 +775,16 @@ The character information includes:
                                     (setq glyph (lgstring-glyph gstring from)))
                           (insert (format "  %S\n" glyph))
                           (setq from (1+ from)))
-                        (insert "from these character(s):\n")
-                        (dotimes (i (lgstring-char-len gstring))
-                          (let ((char (lgstring-char gstring i)))
-                            (insert (format "  %c (#x%x) %s\n"
-                                            char char
-                                            (get-char-code-property
-                                             char 'name))))))
+                        (when (and (stringp (car composition))
+                                   (string-match "\"\\([^\"]+\\)\"" (car composition)))
+                          (insert "with these character(s):\n")
+                          (let ((chars (match-string 1 (car composition))))
+                            (dotimes (i (length chars))
+                              (let ((char (aref chars i)))
+                                (insert (format "  %c (#x%x) %s\n"
+                                                char char
+                                                (get-char-code-property
+                                                 char 'name))))))))
                     ;; TTY frame: show composition in terms of characters.
                     (insert " by these characters:\n")
                     (while (and (<= from to)
@@ -950,7 +953,7 @@ This function can be used as a value of
       ;; instead of returning a string tailored here for the echo area
       ;; exclusively, we could call the (now unused) argument
       ;; _CALLBACK with hints on how to shorten the string if needed,
-      ;; or with multiple usable strings which Eldoc picks according
+      ;; or with multiple usable strings which ElDoc picks according
       ;; to its space contraints.
       (describe-char-eldoc--format
        ch

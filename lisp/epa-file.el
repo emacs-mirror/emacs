@@ -40,9 +40,9 @@ Note that this option has no effect if you use GnuPG 2.0."
 (defcustom epa-file-select-keys nil
   "Control whether or not to pop up the key selection dialog.
 
-If t, always asks user to select recipients.
+If t, always ask user to select recipients.
 If nil, query user only when `epa-file-encrypt-to' is not set.
-If neither t nor nil, doesn't ask user.  In this case, symmetric
+If neither t nor nil, don't ask user.  In this case, symmetric
 encryption is used."
   :type '(choice (const :tag "Ask always" t)
 		 (const :tag "Ask when recipients are not set" nil)
@@ -50,16 +50,6 @@ encryption is used."
   :group 'epa-file)
 
 (defvar epa-file-passphrase-alist nil)
-
-(eval-and-compile
-  (if (fboundp 'encode-coding-string)
-      (defalias 'epa-file--encode-coding-string 'encode-coding-string)
-    (defalias 'epa-file--encode-coding-string 'identity)))
-
-(eval-and-compile
-  (if (fboundp 'decode-coding-string)
-      (defalias 'epa-file--decode-coding-string 'decode-coding-string)
-    (defalias 'epa-file--decode-coding-string 'identity)))
 
 (defun epa-file-passphrase-callback-function (context key-id file)
   (if (and epa-file-cache-passphrase-for-symmetric-encryption
@@ -71,8 +61,8 @@ encryption is used."
 	  (or (copy-sequence (cdr entry))
 	      (progn
 		(unless entry
-		  (setq entry (list file)
-			epa-file-passphrase-alist
+		  (setq entry (list file))
+		  (setq epa-file-passphrase-alist
 			(cons entry
 			      epa-file-passphrase-alist)))
 		(setq passphrase (epa-passphrase-callback-function context
@@ -236,11 +226,7 @@ encryption is used."
   (setq file (expand-file-name file))
   (let* ((coding-system (or coding-system-for-write
 			    (if (fboundp 'select-safe-coding-system)
-				;; This is needed since Emacs 22 has
-				;; no-conversion setting for *.gpg in
-				;; `auto-coding-alist'.
-			        (let ((buffer-file-name
-				       (file-name-sans-extension file)))
+			        (let ((buffer-file-name file))
 				  (select-safe-coding-system
 				   (point-min) (point-max)))
 			      buffer-file-coding-system)))
@@ -266,7 +252,7 @@ encryption is used."
 	      (epg-encrypt-string
 	       context
 	       (if (stringp start)
-		   (epa-file--encode-coding-string start coding-system)
+		   (encode-coding-string start coding-system)
 		 (unless start
 		   (setq start (point-min)
 			 end (point-max)))
@@ -280,8 +266,8 @@ encryption is used."
 		   ;; decrypted contents.
 		   (format-encode-buffer (with-current-buffer buffer
 					   buffer-file-format))
-		   (epa-file--encode-coding-string (buffer-string)
-						   coding-system)))
+		   (encode-coding-string (buffer-string)
+					 coding-system)))
 	       (if (or (eq epa-file-select-keys t)
 		       (and (null epa-file-select-keys)
 			    (not (local-variable-p 'epa-file-encrypt-to

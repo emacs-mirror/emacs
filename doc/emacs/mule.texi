@@ -202,7 +202,7 @@ terminal, the code(s) sent to the terminal.
 @item
 If the character was composed on display with any following characters
 to form one or more grapheme clusters, the composition information:
-the font glyphs if the frame is on a graphical display, else the
+the font glyphs if the frame is on a graphical display, and the
 characters that were composed.
 
 @item
