@@ -404,18 +404,13 @@ callback data (if any)."
 	 (pubkey-algorithm (epg-signature-pubkey-algorithm signature))
 	 (key-id (epg-signature-key-id signature)))
     (concat
-     (cond ((eq (epg-signature-status signature) 'good)
-	    "Good signature from ")
-	   ((eq (epg-signature-status signature) 'bad)
-	    "Bad signature from ")
-	   ((eq (epg-signature-status signature) 'expired)
-	    "Expired signature from ")
-	   ((eq (epg-signature-status signature) 'expired-key)
-	    "Signature made by expired key ")
-	   ((eq (epg-signature-status signature) 'revoked-key)
-	    "Signature made by revoked key ")
-	   ((eq (epg-signature-status signature) 'no-pubkey)
-	    "No public key for "))
+     (cl-case (epg-signature-status signature)
+       (good "Good signature from ")
+       (bad "Bad signature from ")
+       (expired "Expired signature from ")
+       (expired-key "Signature made by expired key ")
+       (revoked-key "Signature made by revoked key ")
+       (no-pubkey "No public key for "))
      key-id
      (if user-id
 	 (concat " "
