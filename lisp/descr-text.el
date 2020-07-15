@@ -781,8 +781,8 @@ The character information includes:
                           (let ((chars (match-string 1 (car composition))))
                             (dotimes (i (length chars))
                               (let ((char (aref chars i)))
-                                (insert (format "  %c (#x%x) %s\n"
-                                                char char
+                                (insert (format "  %s (#x%x) %s\n"
+                                                (describe-char-padded-string char) char
                                                 (get-char-code-property
                                                  char 'name))))))))
                     ;; TTY frame: show composition in terms of characters.
