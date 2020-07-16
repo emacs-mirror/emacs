@@ -1129,8 +1129,8 @@ The following commands are available:
   (gnus-update-group-mark-positions)
   (when gnus-use-undo
     (gnus-undo-mode 1))
-  (when gnus-slave
-    (gnus-slave-mode)))
+  (when gnus-child
+    (gnus-child-mode)))
 
 (defun gnus-update-group-mark-positions ()
   (save-excursion
@@ -4024,9 +4024,9 @@ otherwise all levels below ARG will be scanned too."
     (gnus-run-hooks 'gnus-get-top-new-news-hook)
     (gnus-run-hooks 'gnus-get-new-news-hook)
 
-    ;; Read any slave files.
-    (unless gnus-slave
-      (gnus-master-read-slave-newsrc))
+    ;; Read any child files.
+    (unless gnus-child
+      (gnus-parent-read-child-newsrc))
 
     (gnus-get-unread-articles (gnus-group-default-level arg t)
 			      nil one-level)

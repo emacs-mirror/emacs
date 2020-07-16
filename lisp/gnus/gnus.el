@@ -2226,8 +2226,8 @@ Disabling the agent may result in noticeable loss of performance."
   :group 'gnus-start
   :type '(choice (function-item gnus)
 		 (function-item gnus-no-server)
-		 (function-item gnus-slave)
-		 (function-item gnus-slave-no-server)))
+		 (function-item gnus-child)
+		 (function-item gnus-child-no-server)))
 
 (declare-function gnus-group-get-new-news "gnus-group")
 
@@ -2238,8 +2238,8 @@ Disabling the agent may result in noticeable loss of performance."
   :type '(choice (function-item gnus)
 		 (function-item gnus-group-get-new-news)
 		 (function-item gnus-no-server)
-		 (function-item gnus-slave)
-		 (function-item gnus-slave-no-server)))
+		 (function-item gnus-child)
+		 (function-item gnus-child-no-server)))
 
 (defcustom gnus-other-frame-parameters nil
   "Frame parameters used by `gnus-other-frame' to create a Gnus frame."
@@ -2417,8 +2417,8 @@ such as a mark that says whether an article is stored in the cache
 (defvar gnus-article-buffer "*Article*")
 (defvar gnus-server-buffer "*Server*")
 
-(defvar gnus-slave nil
-  "Whether this Gnus is a slave or not.")
+(defvar gnus-child nil
+  "Whether this Gnus is a child or not.")
 
 (defvar gnus-batch-mode nil
   "Whether this Gnus is running in batch mode or not.")
@@ -4034,13 +4034,17 @@ Allow completion over sensible values."
 ;;; User-level commands.
 
 ;;;###autoload
-(defun gnus-slave-no-server (&optional arg)
-  "Read network news as a slave, without connecting to the local server."
+(defun gnus-child-no-server (&optional arg)
+  "Read network news as a child, without connecting to the local server."
   (interactive "P")
   (gnus-no-server arg t))
 
 ;;;###autoload
-(defun gnus-no-server (&optional arg slave)
+(define-obsolete-function-alias 'gnus-slave-no-server #'gnus-child-no-server
+  "28.1")
+
+;;;###autoload
+(defun gnus-no-server (&optional arg child)
   "Read network news.
 If ARG is a positive number, Gnus will use that as the startup level.
 If ARG is nil, Gnus will be started at level 2.  If ARG is non-nil
@@ -4049,13 +4053,17 @@ an NNTP server to use.
 As opposed to `gnus', this command will not connect to the local
 server."
   (interactive "P")
-  (gnus-no-server-1 arg slave))
+  (gnus-no-server-1 arg child))
 
 ;;;###autoload
-(defun gnus-slave (&optional arg)
-  "Read news as a slave."
+(defun gnus-child (&optional arg)
+  "Read news as a child."
   (interactive "P")
-  (gnus arg nil 'slave))
+  (gnus arg nil 'child))
+
+;;;###autoload
+(define-obsolete-function-alias 'gnus-slave #'gnus-child "28.1")
+
 
 (defun gnus-delete-gnus-frame ()
   "Delete gnus frame unless it is the only one.
@@ -4116,7 +4124,7 @@ current display is used."
   (add-hook 'gnus-suspend-gnus-hook #'gnus-delete-gnus-frame)))))
 
 ;;;###autoload
-(defun gnus (&optional arg dont-connect slave)
+(defun gnus (&optional arg dont-connect child)
   "Read network news.
 If ARG is non-nil and a positive number, Gnus will use that as the
 startup level.  If ARG is non-nil and not a positive number, Gnus will
@@ -4130,7 +4138,7 @@ prompt the user for the name of an NNTP server to use."
     (message "You should byte-compile Gnus")
     (sit-for 2))
   (let ((gnus-action-message-log (list nil)))
-    (gnus-1 arg dont-connect slave)
+    (gnus-1 arg dont-connect child)
     (gnus-final-warning)))
 
 (declare-function debbugs-gnu "ext:debbugs-gnu"

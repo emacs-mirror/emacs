@@ -207,6 +207,12 @@ Bookmark locations can refer to VC directory buffers.
 
 ** Gnus
 
++++
+*** The name of dependent Gnus sessions has changed from "slave" to "child".
+The names of the commands 'gnus-slave', 'gnus-slave-no-server' and
+'gnus-slave-unplugged' have changed to 'gnus-child',
+'gnus-child-no-server' and 'gnus-child-unplugged' respectively.
+
 ---
 *** Change to default value of 'message-draft-headers' user option.
 The 'Date' symbol has been removed from the default value, meaning that
