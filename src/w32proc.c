@@ -2790,11 +2790,11 @@ sys_kill (pid_t pid, int sig)
               /* Set the foreground window to the child.  */
               if (SetForegroundWindow (cp->hwnd))
                 {
-		  /* Record the state of the Ctrl key: the user could
-		     have it depressed while we are simulating Ctrl-C,
-		     in which case we will have to leave the state of
-		     Ctrl depressed when we are done.  */
-		  short ctrl_state = GetKeyState (VK_CONTROL) & 0x8000;
+		  /* Record the state of the left Ctrl key: the user
+		     could have it depressed while we are simulating
+		     Ctrl-C, in which case we will have to leave the
+		     state of that Ctrl depressed when we are done.  */
+		  short ctrl_state = GetKeyState (VK_LCONTROL) & 0x8000;
 
                   /* Generate keystrokes as if user had typed Ctrl-Break or
                      Ctrl-C.  */
