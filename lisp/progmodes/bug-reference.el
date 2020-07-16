@@ -229,8 +229,9 @@ and apply it if applicable."
                            url config)
                 (throw 'found t)))))))))
 
+;; TODO: Implement something similar for IRC with rcirc/ERC.
 (defvar bug-reference-setup-from-mail-alist
-  `((,(regexp-opt '("emacs" "auctex" "gnus") 'words)
+  `((,(regexp-opt '("emacs" "auctex" "gnus" "tramp" "orgmode") 'words)
      ,(regexp-opt '("@debbugs.gnu.org" "-devel@gnu.org"
                     ;; List-Id of Gnus devel mailing list.
                     "ding.gnus.org"))
