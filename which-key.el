@@ -1476,39 +1476,54 @@ local bindings coming first. Within these categories order using
                (eq pseudo-def real-def))
       (cons (car key-binding) pseudo-desc))))
 
+(defsubst which-key--replace-in-binding (key-binding repl)
+  (cond ((or (not (consp repl)) (null (cdr repl)))
+         key-binding)
+        ((functionp (cdr repl))
+         (funcall (cdr repl) key-binding))
+        ((consp (cdr repl))
+         (cons
+          (cond ((and (caar repl) (cadr repl))
+                 (replace-regexp-in-string
+                  (caar repl) (cadr repl) (car key-binding) t))
+                ((cadr repl) (cadr repl))
+                (t (car key-binding)))
+          (cond ((and (cdar repl) (cddr repl))
+                 (replace-regexp-in-string
+                  (cdar repl) (cddr repl) (cdr key-binding) t))
+                ((cddr repl) (cddr repl))
+                (t (cdr key-binding)))))))
+
+(defun which-key--replace-in-repl-list-once (key-binding repls)
+  (cl-dolist (repl repls)
+    (when (which-key--match-replacement key-binding repl)
+      (cl-return (which-key--replace-in-binding key-binding repl)))))
+
+(defun which-key--replace-in-repl-list-many (key-binding repls)
+  (dolist (repl repls key-binding)
+    (when (which-key--match-replacement key-binding repl)
+      (setq key-binding (which-key--replace-in-binding key-binding repl)))))
+
 (defun which-key--maybe-replace (key-binding &optional prefix)
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
   (let* ((pseudo-binding (which-key--get-pseudo-binding key-binding prefix))
-         one-match)
+         replaced-key-binding)
     (if pseudo-binding
         pseudo-binding
-      (let* ((all-repls
-              (append (cdr-safe (assq major-mode which-key-replacement-alist))
-                      which-key-replacement-alist)))
-        (dolist (repl all-repls key-binding)
-          (when (and (or which-key-allow-multiple-replacements
-                         (not one-match))
-                     (which-key--match-replacement key-binding repl))
-            (setq one-match t)
-            (setq key-binding
-                  (cond ((or (not (consp repl)) (null (cdr repl)))
-                         key-binding)
-                        ((functionp (cdr repl))
-                         (funcall (cdr repl) key-binding))
-                        ((consp (cdr repl))
-                         (cons
-                          (cond ((and (caar repl) (cadr repl))
-                                 (replace-regexp-in-string
-                                  (caar repl) (cadr repl) (car key-binding) t))
-                                ((cadr repl) (cadr repl))
-                                (t (car key-binding)))
-                          (cond ((and (cdar repl) (cddr repl))
-                                 (replace-regexp-in-string
-                                  (cdar repl) (cddr repl) (cdr key-binding) t))
-                                ((cddr repl) (cddr repl))
-                                (t (cdr key-binding)))))))))))))
+      (let* ((replacer (if which-key-allow-multiple-replacements
+                           #'which-key--replace-in-repl-list-many
+                         #'which-key--replace-in-repl-list-once)))
+        (setq replaced-key-binding
+              (apply replacer
+                     (list key-binding
+                           (cdr-safe (assq major-mode which-key-replacement-alist)))))
+        ;; terminate early if we're only looking for one replacement and we found it
+        (if (and replaced-key-binding (not which-key-allow-multiple-replacements))
+            replaced-key-binding
+          (setq key-binding (or replaced-key-binding key-binding))
+          (or (apply replacer (list key-binding which-key-replacement-alist)) key-binding))))))
 
 (defsubst which-key--current-key-list (&optional key-str)
   (append (listify-key-sequence (which-key--current-prefix))
