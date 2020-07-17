@@ -283,6 +283,14 @@ contrast.  If that is still too low for you, you can customize the
 variables @code{shr-color-visible-distance-min} and
 @code{shr-color-visible-luminance-min} to get a better contrast.
 
+@vindex shr-max-width
+@vindex shr-width
+  By default, the max width used when rendering is 120 characters, but
+this can be adjusted by changing the @code{shr-max-width} variable.
+If a specified width is preferred no matter what the width of the
+window is, @code{shr-width} can be set.  If both variables are
+@code{nil}, the window width will always be used.
+
 @vindex shr-discard-aria-hidden
 @cindex @code{aria-hidden}, HTML attribute
   The HTML attribute @code{aria-hidden} is meant to tell screen

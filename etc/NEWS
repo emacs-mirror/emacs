@@ -478,6 +478,14 @@ other function, it will now be called instead of the default.
 
 ** EWW
 
++++
+*** New variable 'shr-max-width'
+This defaults to 120 characters, which means that even if you have
+very wide frames, HTML text will be rendered more narrowly, which
+usually leads to a more readable text.  If nil, 'shr-width' is adhered
+to as before, and as that defaults to nil, the window width is always
+used.
+
 ---
 *** The command 'eww-follow-link' now supports custom mailto handlers.
 The function that is invoked when clicking on or otherwise following a
