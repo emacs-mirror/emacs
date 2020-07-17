@@ -4040,8 +4040,11 @@ Allow completion over sensible values."
   (gnus-no-server arg t))
 
 ;;;###autoload
-(define-obsolete-function-alias 'gnus-slave-no-server #'gnus-child-no-server
-  "28.1")
+(defun gnus-slave-no-server (&optional arg)
+  "Read network news as a child, without connecting to the local server."
+  (interactive "P")
+  (gnus-no-server arg t))
+(make-obsolete 'gnus-slave-no-server 'gnus-child-no-server "28.1")
 
 ;;;###autoload
 (defun gnus-no-server (&optional arg child)
@@ -4062,8 +4065,11 @@ server."
   (gnus arg nil 'child))
 
 ;;;###autoload
-(define-obsolete-function-alias 'gnus-slave #'gnus-child "28.1")
-
+(defun gnus-slave (&optional arg)
+  "Read news as a child."
+  (interactive "P")
+  (gnus arg nil 'child))
+(make-obsolete 'gnus-slave 'gnus-child "28.1")
 
 (defun gnus-delete-gnus-frame ()
   "Delete gnus frame unless it is the only one.

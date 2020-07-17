@@ -610,8 +610,12 @@ manipulated as follows:
   (gnus arg nil 'child))
 
 ;;;###autoload
-(define-obsolete-function-alias 'gnus-slave-unplugged #'gnus-child-unplugged
-  "28.1")
+(defun gnus-slave-unplugged (&optional arg)
+  "Read news as a child unplugged."
+  (interactive "P")
+  (setq gnus-plugged nil)
+  (gnus arg nil 'child))
+(make-obsolete 'gnus-slave-unplugged 'gnus-child-unplugged "28.1")
 
 
 
