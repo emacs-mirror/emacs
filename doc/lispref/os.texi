@@ -707,6 +707,10 @@ the Emacs process.  (This is useful primarily in batch operation; see
 If @var{exit-data} is a string, its contents are stuffed into the
 terminal input buffer so that the shell (or whatever program next reads
 input) can read them.
+
+If @var{exit-data} is neither an integer nor a string, or is omitted,
+that means to use the (system-specific) exit status which indicates
+successful program termination.
 @end deffn
 
 @cindex SIGTERM
