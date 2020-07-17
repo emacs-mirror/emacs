@@ -386,6 +386,10 @@ the corresponding BUG-REGEXP and URL-FORMAT are set."
         (setq-local bug-reference-url-format (nth 3 config))
         (throw 'setup-done t)))))
 
+(defvar rcirc-target)
+(defvar rcirc-server-buffer)
+(defvar rcirc-server)
+
 (defun bug-reference-try-setup-from-rcirc ()
   "Try setting up `bug-reference-mode' based on rcirc channel and server.
 Test each configuration in `bug-reference-setup-from-irc-alist'
