@@ -2585,9 +2585,8 @@ flags that control whether to collect or render objects."
         (setq this 0)
         (dolist (column (dom-children row))
           (when (and (not (stringp column))
-                     (or (eq (dom-tag column) 'td)
-                         (eq (dom-tag column) 'th)))
-            (setq this (+ (1+ this) (length rowspans)))
+                     (memq (dom-tag column) '(td th)))
+            (setq this (+ 1 this (length rowspans)))
             ;; We have a rowspan, which we emulate later in rendering
             ;; by adding an extra column to the following rows.
             (when-let* ((span (dom-attr column 'rowspan)))
