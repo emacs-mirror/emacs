@@ -2576,12 +2576,29 @@ flags that control whether to collect or render objects."
     i))
 
 (defun shr-max-columns (dom)
-  (let ((max 0))
+  (let ((max 0)
+        (this 0)
+        (rowspans nil))
     (dolist (row (dom-children dom))
       (when (and (not (stringp row))
 		 (eq (dom-tag row) 'tr))
-	(setq max (max max (+ (shr-count row 'td)
-			      (shr-count row 'th))))))
+        (setq this 0)
+        (dolist (column (dom-children row))
+          (when (and (not (stringp column))
+                     (or (eq (dom-tag column) 'td)
+                         (eq (dom-tag column) 'th)))
+            (setq this (+ (1+ this) (length rowspans)))
+            ;; We have a rowspan, which we emulate later in rendering
+            ;; by adding an extra column to the following rows.
+            (when-let* ((span (dom-attr column 'rowspan)))
+              (push (string-to-number span) rowspans))))
+	(setq max (max max this)))
+      ;; Count down the rowspans in effect.
+      (let ((new nil))
+        (dolist (span rowspans)
+          (when (> span 1)
+            (push (1- span) new)))
+        (setq rowspans new)))
     max))
 
 (provide 'shr)
