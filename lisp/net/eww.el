@@ -1744,25 +1744,27 @@ If CHARSET is nil then use UTF-8."
     (insert ";; Auto-generated file; don't edit -*- mode: lisp-data -*-\n")
     (pp eww-bookmarks (current-buffer))))
 
-(defun eww-read-bookmarks ()
+(defun eww-read-bookmarks (&optional error-out)
+  "Read bookmarks from `eww-bookmarks'.
+If ERROR-OUT, signal user-error if there are no bookmarks."
   (let ((file (expand-file-name "eww-bookmarks" eww-bookmarks-directory)))
     (setq eww-bookmarks
 	  (unless (zerop (or (file-attribute-size (file-attributes file)) 0))
 	    (with-temp-buffer
 	      (insert-file-contents file)
-	      (read (current-buffer)))))))
+	      (read (current-buffer)))))
+    (when (and error-out (not eww-bookmarks))
+      (user-error "No bookmarks are defined"))))
 
 ;;;###autoload
 (defun eww-list-bookmarks ()
   "Display the bookmarks."
   (interactive)
+  (eww-read-bookmarks t)
   (pop-to-buffer "*eww bookmarks*")
   (eww-bookmark-prepare))
 
 (defun eww-bookmark-prepare ()
-  (eww-read-bookmarks)
-  (unless eww-bookmarks
-    (user-error "No bookmarks are defined"))
   (set-buffer (get-buffer-create "*eww bookmarks*"))
   (eww-bookmark-mode)
   (let* ((width (/ (window-width) 2))
@@ -1830,6 +1832,7 @@ If CHARSET is nil then use UTF-8."
 	bookmark)
     (unless (get-buffer "*eww bookmarks*")
       (setq first t)
+      (eww-read-bookmarks t)
       (eww-bookmark-prepare))
     (with-current-buffer (get-buffer "*eww bookmarks*")
       (when (and (not first)
@@ -1848,6 +1851,7 @@ If CHARSET is nil then use UTF-8."
 	bookmark)
     (unless (get-buffer "*eww bookmarks*")
       (setq first t)
+      (eww-read-bookmarks t)
       (eww-bookmark-prepare))
     (with-current-buffer (get-buffer "*eww bookmarks*")
       (if first
