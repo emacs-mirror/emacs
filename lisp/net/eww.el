@@ -263,13 +263,17 @@ This list can be customized via `eww-suggest-uris'."
     (nreverse uris)))
 
 ;;;###autoload
-(defun eww (url &optional arg)
+(defun eww (url &optional arg buffer)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'.
 
 If called with a prefix ARG, use a new buffer instead of reusing
-the default EWW buffer."
+the default EWW buffer.
+
+If BUFFER, the data to be rendered is in that buffer.  In that
+case, this function doesn't actually fetch URL.  BUFFER will be
+killed after rendering."
   (interactive
    (let* ((uris (eww-suggested-uris))
 	  (prompt (concat "Enter URL or keywords"
@@ -307,8 +311,12 @@ the default EWW buffer."
     (insert (format "Loading %s..." url))
     (goto-char (point-min)))
   (let ((url-mime-accept-string eww-accept-content-types))
-    (url-retrieve url #'eww-render
-                  (list url nil (current-buffer)))))
+    (if buffer
+        (let ((eww-buffer (current-buffer)))
+          (with-current-buffer buffer
+            (eww-render nil url nil eww-buffer)))
+      (url-retrieve url #'eww-render
+                    (list url nil (current-buffer))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
@@ -361,7 +369,19 @@ the default EWW buffer."
   (eww (concat "file://"
 	       (and (memq system-type '(windows-nt ms-dos))
 		    "/")
-	       (expand-file-name file))))
+	       (expand-file-name file))
+       nil
+       ;; The file name may be a non-local Tramp file.  The URL
+       ;; library doesn't understand these file names, so use the
+       ;; normal Emacs machinery to load the file.
+       (with-current-buffer (generate-new-buffer " *eww file*")
+         (set-buffer-multibyte nil)
+         (insert "Content-type: " (or (mailcap-extension-to-mime
+			               (url-file-extension file))
+                                      "application/octet-stream")
+                 "\n\n")
+         (insert-file-contents file)
+         (current-buffer))))
 
 ;;;###autoload
 (defun eww-search-words ()
