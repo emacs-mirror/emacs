@@ -476,15 +476,17 @@ This is still the case by default, but if you customize
 'browse-url-mailto-function' or 'browse-url-handlers' to call some
 other function, it will now be called instead of the default.
 
-** EWW
-
 +++
-*** New variable 'shr-max-width'
-This defaults to 120 characters, which means that even if you have
-very wide frames, HTML text will be rendered more narrowly, which
-usually leads to a more readable text.  If nil, 'shr-width' is adhered
-to as before, and as that defaults to nil, the window width is always
-used.
+*** New variable 'shr-max-width'.
+If this variable is non-nil, and 'shr-width' is nil, then SHR will use
+the value of 'shr-max-width' to limit the width of the rendered HTML.
+The default is 120 characters, so even if you have very wide frames,
+HTML text will be rendered more narrowly, which usually leads to a
+more readable text.  Set this variable to nil to get the previous
+behavior of rendering as wide as the window-width allows.  If
+'shr-width' is non-nil, it overrides this variable.
+
+** EWW
 
 ---
 *** The command 'eww-follow-link' now supports custom mailto handlers.

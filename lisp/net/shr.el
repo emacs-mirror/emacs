@@ -95,11 +95,11 @@ If nil, don't draw horizontal table lines."
   :type 'character)
 
 (defcustom shr-width nil
-  "Frame width to use for rendering.
+  "Window width to use for HTML rendering.
 May either be an integer specifying a fixed width in characters,
-or nil, meaning that the full width of the window should be used.
-If `shr-use-fonts' is set, the mean character width is used to
-compute the pixel width, which is used instead.
+or nil, meaning use the full width of the window.
+If `shr-use-fonts' is set, the value is interpreted as a multiple
+of the mean character width of the default face's font.
 
 Also see `shr-max-width'."
   :version "25.1"
@@ -107,19 +107,18 @@ Also see `shr-max-width'."
 		 (const   :tag "Use the width of the window" nil)))
 
 (defcustom shr-max-width 120
-  "Maximum text width to use for rendering.
-May either be an intereger specifying a fixed width in characters,
-or nil, meaning that there is no maximum width.
+  "Maximum text width to use for HTML rendering.
+May either be an integer specifying a fixed width in characters,
+or nil, meaning that there is no width limit.
 
-If `shr-use-fonts' is set, the mean character width is used to
-compute the pixel width, which is used instead.
+If `shr-use-fonts' is set, the value of this variable is
+interpreted as a multiple of the mean character width of the
+default face's font.
 
-Also see `shr-width'.  If `shr-width' is set, it overrides
-`shr-max-width', and if `shr-width' is nil, the frame width is
-used to compute the width to use."
+If `shr-width' is non-nil, it overrides this variable."
   :version "28.1"
   :type '(choice (integer :tag "Fixed width in characters")
-		 (const :tag "No maximum width" nil)))
+		 (const :tag "No width limit" nil)))
 
 (defcustom shr-bullet "* "
   "Bullet used for unordered lists.
