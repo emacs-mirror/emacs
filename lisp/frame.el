@@ -1083,7 +1083,8 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
      (cons (display-buffer-pop-up-frame
             buffer (append '((inhibit-same-window . t))
                            alist))
-           'frame)))
+           'frame))
+   nil "[other-frame]")
   (message "Display next command buffer in a new frame..."))
 
 (defun iconify-or-deiconify-frame ()

@@ -1581,7 +1581,8 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
              (display-buffer-in-tab
               buffer (append alist '((inhibit-same-window . nil))))
              (selected-window))
-           'tab)))
+           'tab))
+   nil "[other-tab]")
   (message "Display next command buffer in a new tab..."))
 
 (define-key tab-prefix-map "2" 'tab-new)
