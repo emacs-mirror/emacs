@@ -429,7 +429,7 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                       (integer val)
                       (t 1)))
          (things-reported-on)
-         single-sym-name)
+         single-doc single-doc-sym)
       ;; Then, compose the contents of the `*eldoc*' buffer.
       (with-current-buffer (eldoc-doc-buffer)
         (let ((inhibit-read-only t))
@@ -454,20 +454,24 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                                  (mapconcat (lambda (s) (format "%s" s))
                                             things-reported-on
                                             ", ")))))
-      ;; Finally, output to the echo area.  We handle the
-      ;; `truncate-sym-name-if-fit' special case first, by selecting a
-      ;; top-section of the `*eldoc' buffer.  I'm pretty sure nicer
+      ;; Finally, output to the echo area.  I'm pretty sure nicer
       ;; strategies can be used here, probably by splitting this
       ;; function into some `eldoc-display-functions' special hook.
       (let ((echo-area-message
              (cond
-              ((and
+              (;; We handle the `truncate-sym-name-if-fit' special
+               ;; case first, by checking if for a lot of special
+               ;; conditions.
+               (and
                 (eq 'truncate-sym-name-if-fit eldoc-echo-area-use-multiline-p)
                 (null (cdr docs))
-                (setq single-sym-name
+                (setq single-doc (caar docs))
+                (setq single-doc-sym
                       (format "%s" (plist-get (cdar docs) :thing)))
-                (> (+ (length (caar docs)) (length single-sym-name) 2) width))
-               (caar docs))
+                (< (length single-doc) width)
+                (not (string-match "\n" single-doc))
+                (> (+ (length single-doc) (length single-doc-sym) 2) width))
+               single-doc)
               ((> available 1)
                (with-current-buffer (eldoc-doc-buffer)
                  (cl-loop
@@ -497,7 +501,7 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
                (with-current-buffer (eldoc-doc-buffer)
                  (truncate-string-to-width
-                  (buffer-substring (point-min) (line-end-position 1)) width))))))
+                  (buffer-substring (goto-char (point-min)) (line-end-position 1)) width))))))
         (when echo-area-message
           (eldoc--message echo-area-message))))))
 
