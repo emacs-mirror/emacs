@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.5.0
+;; Version: 1.6.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -340,16 +340,32 @@ Also store it in `eldoc-last-message' and return that value."
          ;; for us, but do note that the last-message will be gone.
          (setq eldoc-last-message nil))))
 
-;; Decide whether now is a good time to display a message.
-(defun eldoc-display-message-p ()
-  "Return non-nil when it is appropriate to display an ElDoc message."
-  (and (eldoc-display-message-no-interference-p)
-       ;; If this-command is non-nil while running via an idle
-       ;; timer, we're still in the middle of executing a command,
-       ;; e.g. a query-replace where it would be annoying to
-       ;; overwrite the echo area.
-       (not this-command)
-       (eldoc--message-command-p last-command)))
+(defvar-local eldoc--last-request-state nil
+  "Tuple containing information about last ElDoc request.")
+(defun eldoc--request-state ()
+  "Compute information to store in `eldoc--last-request-state'."
+  (list (current-buffer) (buffer-modified-tick) (point)))
+
+(defun eldoc--request-docs-p (request-state)
+  "Return non-nil when it is appropriate to request docs.
+REQUEST-STATE is a candidate for `eldoc--last-request-state'"
+  (and
+   ;; FIXME: The original idea behind this function is to protect the
+   ;; Echo area from ElDoc interference, but since that is only one of
+   ;; the possible outlets of ElDoc, this must soon be reworked.
+   (eldoc-display-message-no-interference-p)
+   (not (and eldoc--doc-buffer
+             (get-buffer-window eldoc--doc-buffer)
+             (equal request-state
+                    (with-current-buffer
+                        eldoc--doc-buffer
+                      eldoc--last-request-state))))
+   ;; If this-command is non-nil while running via an idle
+   ;; timer, we're still in the middle of executing a command,
+   ;; e.g. a query-replace where it would be annoying to
+   ;; overwrite the echo area.
+   (not this-command)
+   (eldoc--message-command-p last-command)))
 
 
 ;; Check various conditions about the current environment that might make
@@ -400,7 +416,8 @@ so that the global value (i.e. the default value of the hook) is
 taken into account if the major mode specific function does not
 return any documentation.")
 
-(defvar eldoc--doc-buffer nil "Buffer holding latest eldoc-produced docs.")
+(defvar eldoc--doc-buffer nil "Buffer displaying latest ElDoc-produced docs.")
+
 (defun eldoc-doc-buffer (&optional interactive)
   "Get latest *eldoc* help buffer.  Interactively, display it."
   (interactive (list t))
@@ -409,6 +426,7 @@ return any documentation.")
           eldoc--doc-buffer
           (setq eldoc--doc-buffer (get-buffer-create "*eldoc*")))
     (when interactive (display-buffer eldoc--doc-buffer))))
+
 
 (defun eldoc--handle-docs (docs)
   "Display multiple DOCS in echo area.
@@ -429,9 +447,12 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                       (integer val)
                       (t 1)))
          (things-reported-on)
+         (request eldoc--last-request-state)
          single-doc single-doc-sym)
       ;; Then, compose the contents of the `*eldoc*' buffer.
       (with-current-buffer (eldoc-doc-buffer)
+        ;; Set doc-buffer's `eldoc--last-request-state', too
+        (setq eldoc--last-request-state request)
         (let ((inhibit-read-only t))
           (erase-buffer) (setq buffer-read-only t)
           (local-set-key "q" 'quit-window)
@@ -741,14 +762,16 @@ should endeavour to display the docstrings eventually produced."
 (defun eldoc-print-current-symbol-info (&optional interactive)
   "Document thing at point."
   (interactive '(t))
-  (cond (interactive
-         (eldoc--invoke-strategy))
-        (t
-         (if (not (eldoc-display-message-p))
-             ;; Erase the last message if we won't display a new one.
-             (when eldoc-last-message
-               (eldoc--message nil))
+  (let ((token (eldoc--request-state)))
+    (cond (interactive
+           (eldoc--invoke-strategy))
+          ((not (eldoc--request-docs-p token))
+           ;; Erase the last message if we won't display a new one.
+           (when eldoc-last-message
+             (eldoc--message nil)))
+          (t
            (let ((non-essential t))
+             (setq eldoc--last-request-state token)
              ;; Only keep looking for the info as long as the user hasn't
              ;; requested our attention.  This also locally disables
              ;; inhibit-quit.
