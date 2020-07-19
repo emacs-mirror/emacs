@@ -9060,6 +9060,9 @@ when filling.
 @findex gnus-article-fill-long-lines
 Fill long lines (@code{gnus-article-fill-long-lines}).
 
+You can give the command a numerical prefix to specify the width to use
+when filling.
+
 @item W C
 @kindex W C @r{(Summary)}
 @findex gnus-article-capitalize-sentences

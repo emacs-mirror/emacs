@@ -213,6 +213,10 @@ The names of the commands 'gnus-slave', 'gnus-slave-no-server' and
 'gnus-slave-unplugged' have changed to 'gnus-child',
 'gnus-child-no-server' and 'gnus-child-unplugged' respectively.
 
++++
+*** The 'W Q' summary mode command now takes a numerical prefix to
+allow adjusting the fill width.
+
 ---
 *** Change to default value of 'message-draft-headers' user option.
 The 'Date' symbol has been removed from the default value, meaning that

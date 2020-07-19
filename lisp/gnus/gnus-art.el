@@ -2303,21 +2303,27 @@ long lines if and only if arg is positive."
 		"\n")
 	(put-text-property start (point) 'gnus-decoration 'header)))))
 
-(defun article-fill-long-lines ()
-  "Fill lines that are wider than the window width or `fill-column'."
-  (interactive)
+(defun article-fill-long-lines (&optional width)
+  "Fill lines that are wider than the window width or `fill-column'.
+If WIDTH (interactively, the numeric prefix), use that as the
+fill width."
+  (interactive "P")
   (save-excursion
-    (let ((inhibit-read-only t)
-	  (width (window-width (get-buffer-window (current-buffer)))))
+    (let* ((inhibit-read-only t)
+	   (window-width (window-width (get-buffer-window (current-buffer))))
+	   (width (if width
+		      (prefix-numeric-value width)
+		    (min fill-column window-width))))
       (save-restriction
 	(article-goto-body)
 	(let ((adaptive-fill-mode nil)) ;Why?  -sm
 	  (while (not (eobp))
 	    (end-of-line)
-	    (when (>= (current-column) (min fill-column width))
+	    (when (>= (current-column) width)
 	      (narrow-to-region (min (1+ (point)) (point-max))
 				(point-at-bol))
-              (let ((goback (point-marker)))
+              (let ((goback (point-marker))
+		    (fill-column width))
                 (fill-paragraph nil)
                 (goto-char (marker-position goback)))
 	      (widen))
