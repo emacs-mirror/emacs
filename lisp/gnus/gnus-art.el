@@ -2304,7 +2304,7 @@ long lines if and only if arg is positive."
 	(put-text-property start (point) 'gnus-decoration 'header)))))
 
 (defun article-fill-long-lines ()
-  "Fill lines that are wider than the window width."
+  "Fill lines that are wider than the window width or `fill-column'."
   (interactive)
   (save-excursion
     (let ((inhibit-read-only t)
