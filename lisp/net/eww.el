@@ -263,13 +263,17 @@ This list can be customized via `eww-suggest-uris'."
     (nreverse uris)))
 
 ;;;###autoload
-(defun eww (url &optional arg)
+(defun eww (url &optional arg buffer)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'.
 
 If called with a prefix ARG, use a new buffer instead of reusing
-the default EWW buffer."
+the default EWW buffer.
+
+If BUFFER, the data to be rendered is in that buffer.  In that
+case, this function doesn't actually fetch URL.  BUFFER will be
+killed after rendering."
   (interactive
    (let* ((uris (eww-suggested-uris))
 	  (prompt (concat "Enter URL or keywords"
@@ -307,8 +311,12 @@ the default EWW buffer."
     (insert (format "Loading %s..." url))
     (goto-char (point-min)))
   (let ((url-mime-accept-string eww-accept-content-types))
-    (url-retrieve url #'eww-render
-                  (list url nil (current-buffer)))))
+    (if buffer
+        (let ((eww-buffer (current-buffer)))
+          (with-current-buffer buffer
+            (eww-render nil url nil eww-buffer)))
+      (url-retrieve url #'eww-render
+                    (list url nil (current-buffer))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
@@ -361,7 +369,19 @@ the default EWW buffer."
   (eww (concat "file://"
 	       (and (memq system-type '(windows-nt ms-dos))
 		    "/")
-	       (expand-file-name file))))
+	       (expand-file-name file))
+       nil
+       ;; The file name may be a non-local Tramp file.  The URL
+       ;; library doesn't understand these file names, so use the
+       ;; normal Emacs machinery to load the file.
+       (with-current-buffer (generate-new-buffer " *eww file*")
+         (set-buffer-multibyte nil)
+         (insert "Content-type: " (or (mailcap-extension-to-mime
+			               (url-file-extension file))
+                                      "application/octet-stream")
+                 "\n\n")
+         (insert-file-contents file)
+         (current-buffer))))
 
 ;;;###autoload
 (defun eww-search-words ()
@@ -1260,7 +1280,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
 (defun eww-tag-textarea (dom)
   (let ((start (point))
-	(value (or (dom-attr dom 'value) ""))
+        (value (or (dom-text dom) ""))
 	(lines (string-to-number (or (dom-attr dom 'rows) "10")))
 	(width (string-to-number (or (dom-attr dom 'cols) "10")))
 	end)
@@ -1744,25 +1764,27 @@ If CHARSET is nil then use UTF-8."
     (insert ";; Auto-generated file; don't edit -*- mode: lisp-data -*-\n")
     (pp eww-bookmarks (current-buffer))))
 
-(defun eww-read-bookmarks ()
+(defun eww-read-bookmarks (&optional error-out)
+  "Read bookmarks from `eww-bookmarks'.
+If ERROR-OUT, signal user-error if there are no bookmarks."
   (let ((file (expand-file-name "eww-bookmarks" eww-bookmarks-directory)))
     (setq eww-bookmarks
 	  (unless (zerop (or (file-attribute-size (file-attributes file)) 0))
 	    (with-temp-buffer
 	      (insert-file-contents file)
-	      (read (current-buffer)))))))
+	      (read (current-buffer)))))
+    (when (and error-out (not eww-bookmarks))
+      (user-error "No bookmarks are defined"))))
 
 ;;;###autoload
 (defun eww-list-bookmarks ()
   "Display the bookmarks."
   (interactive)
+  (eww-read-bookmarks t)
   (pop-to-buffer "*eww bookmarks*")
   (eww-bookmark-prepare))
 
 (defun eww-bookmark-prepare ()
-  (eww-read-bookmarks)
-  (unless eww-bookmarks
-    (user-error "No bookmarks are defined"))
   (set-buffer (get-buffer-create "*eww bookmarks*"))
   (eww-bookmark-mode)
   (let* ((width (/ (window-width) 2))
@@ -1830,6 +1852,7 @@ If CHARSET is nil then use UTF-8."
 	bookmark)
     (unless (get-buffer "*eww bookmarks*")
       (setq first t)
+      (eww-read-bookmarks t)
       (eww-bookmark-prepare))
     (with-current-buffer (get-buffer "*eww bookmarks*")
       (when (and (not first)
@@ -1848,6 +1871,7 @@ If CHARSET is nil then use UTF-8."
 	bookmark)
     (unless (get-buffer "*eww bookmarks*")
       (setq first t)
+      (eww-read-bookmarks t)
       (eww-bookmark-prepare))
     (with-current-buffer (get-buffer "*eww bookmarks*")
       (if first

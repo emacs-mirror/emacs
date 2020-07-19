@@ -436,7 +436,7 @@ Starting Gnus
 
 * Finding the News::            Choosing a method for getting news.
 * The Server is Down::          How can I read my mail then?
-* Slave Gnusae::                You can have more than one Gnus active at a time.
+* Child Gnusae::                You can have more than one Gnus active at a time.
 * Fetching a Group::            Starting Gnus just to read a group.
 * New Groups::                  What is Gnus supposed to do with new groups?
 * Changing Servers::            You may want to move from one server to another.
@@ -976,7 +976,7 @@ terminology section (@pxref{Terminology}).
 @menu
 * Finding the News::      Choosing a method for getting news.
 * The Server is Down::    How can I read my mail then?
-* Slave Gnusae::          You can have more than one Gnus active at a time.
+* Child Gnusae::          You can have more than one Gnus active at a time.
 * New Groups::            What is Gnus supposed to do with new groups?
 * Changing Servers::      You may want to move from one server to another.
 * Startup Files::         Those pesky startup files---@file{.newsrc}.
@@ -1090,9 +1090,9 @@ your primary server---instead, it will just activate all groups on level
 levels.)  Also @pxref{Group Levels}.
 
 
-@node Slave Gnusae
-@section Slave Gnusae
-@cindex slave
+@node Child Gnusae
+@section Child Gnusae
+@cindex child
 
 You might want to run more than one Emacs with more than one Gnus at the
 same time.  If you are using different @file{.newsrc} files (e.g., if you
@@ -1103,31 +1103,27 @@ The problem appears when you want to run two Gnusae that use the same
 @file{.newsrc} file.
 
 To work around that problem some, we here at the Think-Tank at the Gnus
-Towers have come up with a new concept: @dfn{Masters} and
-@dfn{slaves}.  (We have applied for a patent on this concept, and have
-taken out a copyright on those words.  If you wish to use those words in
-conjunction with each other, you have to send $1 per usage instance to
-me.  Usage of the patent (@dfn{Master/Slave Relationships In Computer
-Applications}) will be much more expensive, of course.)
+Towers have come up with a new concept: @dfn{Parents} and
+@dfn{children}.
 
-@findex gnus-slave
+@findex gnus-child
 Anyway, you start one Gnus up the normal way with @kbd{M-x gnus} (or
-however you do it).  Each subsequent slave Gnusae should be started with
-@kbd{M-x gnus-slave}.  These slaves won't save normal @file{.newsrc}
-files, but instead save @dfn{slave files} that contain information only
-on what groups have been read in the slave session.  When a master Gnus
-starts, it will read (and delete) these slave files, incorporating all
-information from them.  (The slave files will be read in the sequence
+however you do it).  Each subsequent child Gnusae should be started with
+@kbd{M-x gnus-child}.  These children won't save normal @file{.newsrc}
+files, but instead save @dfn{child files} that contain information only
+on what groups have been read in the child session.  When a parent Gnus
+starts, it will read (and delete) these child files, incorporating all
+information from them.  (The child files will be read in the sequence
 they were created, so the latest changes will have precedence.)
 
-Information from the slave files has, of course, precedence over the
-information in the normal (i.e., master) @file{.newsrc} file.
+Information from the child files has, of course, precedence over the
+information in the normal (i.e., parent) @file{.newsrc} file.
 
-If the @file{.newsrc*} files have not been saved in the master when the
-slave starts, you may be prompted as to whether to read an auto-save
-file.  If you answer ``yes'', the unsaved changes to the master will be
-incorporated into the slave.  If you answer ``no'', the slave may see some
-messages as unread that have been read in the master.
+If the @file{.newsrc*} files have not been saved in the parent when the
+child starts, you may be prompted as to whether to read an auto-save
+file.  If you answer ``yes'', the unsaved changes to the parent will be
+incorporated into the child.  If you answer ``no'', the child may see some
+messages as unread that have been read in the parent.
 
 
 
@@ -9063,6 +9059,9 @@ when filling.
 @kindex W Q @r{(Summary)}
 @findex gnus-article-fill-long-lines
 Fill long lines (@code{gnus-article-fill-long-lines}).
+
+You can give the command a numerical prefix to specify the width to use
+when filling.
 
 @item W C
 @kindex W C @r{(Summary)}
@@ -28487,9 +28486,9 @@ entry.
 The format spec @code{%C} for positioning point has changed to @code{%*}.
 
 @item
-@code{gnus-slave-unplugged}
+@code{gnus-child-unplugged}
 
-A new command which starts Gnus offline in slave mode.
+A new command which starts Gnus offline in child mode.
 
 @end itemize
 

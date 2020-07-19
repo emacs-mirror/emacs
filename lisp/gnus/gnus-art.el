@@ -2303,21 +2303,27 @@ long lines if and only if arg is positive."
 		"\n")
 	(put-text-property start (point) 'gnus-decoration 'header)))))
 
-(defun article-fill-long-lines ()
-  "Fill lines that are wider than the window width."
-  (interactive)
+(defun article-fill-long-lines (&optional width)
+  "Fill lines that are wider than the window width or `fill-column'.
+If WIDTH (interactively, the numeric prefix), use that as the
+fill width."
+  (interactive "P")
   (save-excursion
-    (let ((inhibit-read-only t)
-	  (width (window-width (get-buffer-window (current-buffer)))))
+    (let* ((inhibit-read-only t)
+	   (window-width (window-width (get-buffer-window (current-buffer))))
+	   (width (if width
+		      (prefix-numeric-value width)
+		    (min fill-column window-width))))
       (save-restriction
 	(article-goto-body)
 	(let ((adaptive-fill-mode nil)) ;Why?  -sm
 	  (while (not (eobp))
 	    (end-of-line)
-	    (when (>= (current-column) (min fill-column width))
+	    (when (>= (current-column) width)
 	      (narrow-to-region (min (1+ (point)) (point-max))
 				(point-at-bol))
-              (let ((goback (point-marker)))
+              (let ((goback (point-marker))
+		    (fill-column width))
                 (fill-paragraph nil)
                 (goto-char (marker-position goback)))
 	      (widen))
@@ -4406,6 +4412,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
   "e" gnus-article-read-summary-keys
   "\C-d" gnus-article-read-summary-keys
+  "\C-c\C-f" gnus-summary-mail-forward
   "\M-*" gnus-article-read-summary-keys
   "\M-#" gnus-article-read-summary-keys
   "\M-^" gnus-article-read-summary-keys
@@ -6674,7 +6681,7 @@ not have a face in `gnus-article-boring-faces'."
   (interactive "P")
   (gnus-article-check-buffer)
   (let ((nosaves
-	 '("q" "Q" "r" "\C-c\C-f" "m"  "a" "f" "WDD" "WDW"
+	 '("q" "Q" "r" "m"  "a" "f" "WDD" "WDW"
 	   "Zc" "ZC" "ZE" "ZQ" "ZZ" "Zn" "ZR" "ZG" "ZN" "ZP"
 	   "=" "^" "\M-^" "|"))
 	(nosave-but-article
@@ -7718,6 +7725,15 @@ positives are possible."
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-variable 1)
     ("M-x[ \t\n]+apropos-documentation[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-documentation 1)
+    ;; This is how URLs _should_ be embedded in text (RFC 1738, RFC 2396)...
+    ("<URL: *\\([^\n<>]*\\)>"
+     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
+    ;; RFC 2396 (2.4.3., delims) ...
+    ("\"URL: *\\([^\n\"]*\\)\""
+     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
+    ;; Raw URLs.
+    (gnus-button-url-regexp
+     0 (>= gnus-button-browse-level 0) browse-url-button-open-url 0)
     ;; The following entries may lead to many false positives so don't enable
     ;; them by default (use a high button level).
     ("/\\([a-z][-a-z0-9]+\\.el\\)\\>[^.?]"
@@ -7741,15 +7757,6 @@ positives are possible."
      ;; Unlike the other regexps we really have to require quoting
      ;; here to determine where it ends.
      1 (>= gnus-button-emacs-level 1) gnus-button-handle-describe-key 3)
-    ;; This is how URLs _should_ be embedded in text (RFC 1738, RFC 2396)...
-    ("<URL: *\\([^\n<>]*\\)>"
-     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
-    ;; RFC 2396 (2.4.3., delims) ...
-    ("\"URL: *\\([^\n\"]*\\)\""
-     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
-    ;; Raw URLs.
-    (gnus-button-url-regexp
-     0 (>= gnus-button-browse-level 0) browse-url-button-open-url 0)
     ;; man pages
     ("\\b\\([a-z][a-z]+([1-9])\\)\\W"
      0 (and (>= gnus-button-man-level 1) (< gnus-button-man-level 3))

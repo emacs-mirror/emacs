@@ -208,7 +208,11 @@ This requires either the macOS \"open\" command, or the freedesktop
 ;;;###autoload
 (defun report-emacs-bug (topic &optional unused)
   "Report a bug in GNU Emacs.
-Prompts for bug subject.  Leaves you in a mail buffer."
+Prompts for bug subject.  Leaves you in a mail buffer.
+
+Already submitted bugs can be found in the Emacs bug tracker:
+
+  https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1"
   (declare (advertised-calling-convention (topic) "24.5"))
   (interactive "sBug Subject: ")
   ;; The syntax `version;' is preferred to `[version]' because the
@@ -270,7 +274,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "https://debbugs.gnu.org/"))
+		   (browse-url "https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1"))
 	 'follow-link t)
 
 	(insert ".  Please check that

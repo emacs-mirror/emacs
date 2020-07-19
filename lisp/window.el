@@ -4021,7 +4021,8 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
            (setq type 'window)
          (setq window (display-buffer-use-some-window buffer alist)
                type 'reuse))
-       (cons window type))))
+       (cons window type)))
+   nil "[other-window]")
   (message "Display next command buffer in a new window..."))
 
 (defun same-window-prefix ()
@@ -4039,7 +4040,8 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
      (cons (or
             (display-buffer-same-window buffer alist)
             (display-buffer-use-some-window buffer alist))
-           'reuse)))
+           'reuse))
+   nil "[same-window]")
   (message "Display next command buffer in the same window..."))
 
 ;; This should probably return non-nil when the selected window is part
@@ -8616,14 +8618,16 @@ documentation for additional customization information."
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (pop-to-buffer buffer-or-name display-buffer--other-frame-action norecord))
 
-(defun display-buffer-override-next-command (pre-function &optional post-function)
+(defun display-buffer-override-next-command (pre-function &optional post-function echo)
   "Set `display-buffer-overriding-action' for the next command.
 `pre-function' is called to prepare the window where the buffer should be
 displayed.  This function takes two arguments `buffer' and `alist', and
 should return a cons with the displayed window and its type.  See the
 meaning of these values in `window--display-buffer'.
 Optional `post-function' is called after the buffer is displayed in the
-window; the function takes two arguments: an old and new window."
+window; the function takes two arguments: an old and new window.
+Optional string argument `echo' can be used to add a prefix to the
+command echo keystrokes that should describe the current prefix state."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
@@ -8641,11 +8645,13 @@ window; the function takes two arguments: an old and new window."
                        (setq post-function nil)
                        new-window))))
          (command this-command)
+         (echofun (when echo (lambda () echo)))
          (exitfun
           (lambda ()
             (setcar display-buffer-overriding-action
                     (delq action (car display-buffer-overriding-action)))
             (remove-hook 'post-command-hook clearfun)
+            (remove-hook 'prefix-command-echo-keystrokes-functions echofun)
             (when (functionp post-function)
               (funcall post-function old-window new-window)))))
     (fset clearfun
@@ -8661,6 +8667,8 @@ window; the function takes two arguments: an old and new window."
     ;; Reset display-buffer-overriding-action
     ;; after the next command finishes
     (add-hook 'post-command-hook clearfun)
+    (when echofun
+      (add-hook 'prefix-command-echo-keystrokes-functions echofun))
     (push action (car display-buffer-overriding-action))))
 
 

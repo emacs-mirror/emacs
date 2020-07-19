@@ -2511,7 +2511,10 @@ If non-@code{nil}, always ask for the server's capabilities, even when
 doing a @samp{plain} connection.
 
 @item :capability-command @var{capability-command}
-Command string to query the host capabilities.
+Command to query the host capabilities.  This can either be a string
+(which will then be sent verbatim to the server), or a function
+(called with a single parameter; the "greeting" from the server when
+connecting), and should return a string.
 
 @item :end-of-command @var{regexp}
 @itemx :end-of-capability @var{regexp}

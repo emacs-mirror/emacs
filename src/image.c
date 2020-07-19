@@ -8274,7 +8274,10 @@ gif_load (struct frame *f, struct image *img)
   rc = DGifSlurp (gif);
   if (rc == GIF_ERROR || gif->ImageCount <= 0)
     {
-      image_error ("Error reading `%s'", img->spec);
+      if (NILP (specified_data))
+	image_error ("Error reading `%s'", img->spec);
+      else
+	image_error ("Error reading GIF data");
       gif_close (gif, NULL);
       return 0;
     }

@@ -1510,7 +1510,11 @@ If YANK is non-nil, include the original article."
 	(gnus-inews-yank-articles (list (cdr gnus-article-current)))))))
 
 (defun gnus-bug (subject)
-  "Send a bug report to the Emacs maintainers."
+  "Send a bug report to the Emacs maintainers.
+
+Already submitted bugs can be found in the Emacs bug tracker:
+
+  https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1"
   (interactive "sBug Subject: ")
   (report-emacs-bug subject)
   (save-excursion

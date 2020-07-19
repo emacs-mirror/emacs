@@ -5352,7 +5352,8 @@ or a straight list of headers."
 	      ;; We remember that we probably want to output a dummy
 	      ;; root.
 	      (setq gnus-tmp-dummy-line gnus-tmp-header)
-	      (setq gnus-tmp-prev-subject gnus-tmp-header))
+	      (setq gnus-tmp-prev-subject
+		    (gnus-simplify-subject-fully gnus-tmp-header)))
 	     (t
 	      ;; We do not make a root for the gathered
 	      ;; sub-threads at all.
@@ -7331,6 +7332,8 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (gnus-group-next-unread-group 1))
     (setq group-point (point))
     (gnus-article-stop-animations)
+    (unless leave-hidden
+      (gnus-configure-windows 'group 'force))
     (if temporary
 	nil				;Nothing to do.
       (set-buffer buf)
@@ -7350,8 +7353,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (if quit-config
 	  (gnus-handle-ephemeral-exit quit-config)
 	(goto-char group-point)
-	(unless leave-hidden
-	  (gnus-configure-windows 'group 'force))
 	;; If gnus-group-buffer is already displayed, make sure we also move
 	;; the cursor in the window that displays it.
 	(let ((win (get-buffer-window (current-buffer) 0)))
@@ -12508,10 +12509,15 @@ save those articles instead."
   "Save parts matching TYPE to DIR.
 If REVERSE, save parts that do not match TYPE."
   (interactive
-   (list (read-string "Save parts of type: "
-		      (or (car gnus-summary-save-parts-type-history)
-			  gnus-summary-save-parts-default-mime)
-		      'gnus-summary-save-parts-type-history)
+   (list (completing-read "Save parts of type: "
+			  (progn
+			    (gnus-summary-select-article nil t)
+			    (gnus-eval-in-buffer-window gnus-article-buffer
+			      (delete-dups
+			       (mapcar (lambda (h)
+					 (mm-handle-media-type (cdr h)))
+				       gnus-article-mime-handle-alist))))
+			  nil nil nil 'gnus-summary-save-parts-type-history)
 	 (setq gnus-summary-save-parts-last-directory
 	       (read-directory-name "Save to directory: "
                                     gnus-summary-save-parts-last-directory

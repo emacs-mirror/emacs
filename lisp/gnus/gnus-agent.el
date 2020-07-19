@@ -603,11 +603,22 @@ manipulated as follows:
   (gnus))
 
 ;;;###autoload
-(defun gnus-slave-unplugged (&optional arg)
-  "Read news as a slave unplugged."
+(defun gnus-child-unplugged (&optional arg)
+  "Read news as a child unplugged."
   (interactive "P")
   (setq gnus-plugged nil)
-  (gnus arg nil 'slave))
+  (gnus arg nil 'child))
+
+;;;###autoload
+(defun gnus-slave-unplugged (&optional arg)
+  "Read news as a child unplugged."
+  (interactive "P")
+  (setq gnus-plugged nil)
+  (gnus arg nil 'child))
+(make-obsolete 'gnus-slave-unplugged 'gnus-child-unplugged "28.1")
+
+
+
 
 ;;;###autoload
 (defun gnus-agentize ()

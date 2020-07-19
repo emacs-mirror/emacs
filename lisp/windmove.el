@@ -491,8 +491,8 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
          (cons window type)))
      (lambda (old-window new-window)
        (when (window-live-p (if no-select old-window new-window))
-         (select-window (if no-select old-window new-window))))))
-  (message "[display-%s]" dir))
+         (select-window (if no-select old-window new-window))))
+     (format "[display-%s]" dir))))
 
 ;;;###autoload
 (defun windmove-display-left (&optional arg)

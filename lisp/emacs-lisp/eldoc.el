@@ -429,7 +429,7 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                       (integer val)
                       (t 1)))
          (things-reported-on)
-         single-sym-name)
+         single-doc single-doc-sym)
       ;; Then, compose the contents of the `*eldoc*' buffer.
       (with-current-buffer (eldoc-doc-buffer)
         (let ((inhibit-read-only t))
@@ -454,20 +454,24 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                                  (mapconcat (lambda (s) (format "%s" s))
                                             things-reported-on
                                             ", ")))))
-      ;; Finally, output to the echo area.  We handle the
-      ;; `truncate-sym-name-if-fit' special case first, by selecting a
-      ;; top-section of the `*eldoc' buffer.  I'm pretty sure nicer
+      ;; Finally, output to the echo area.  I'm pretty sure nicer
       ;; strategies can be used here, probably by splitting this
       ;; function into some `eldoc-display-functions' special hook.
       (let ((echo-area-message
              (cond
-              ((and
+              (;; We handle the `truncate-sym-name-if-fit' special
+               ;; case first, by checking if for a lot of special
+               ;; conditions.
+               (and
                 (eq 'truncate-sym-name-if-fit eldoc-echo-area-use-multiline-p)
                 (null (cdr docs))
-                (setq single-sym-name
+                (setq single-doc (caar docs))
+                (setq single-doc-sym
                       (format "%s" (plist-get (cdar docs) :thing)))
-                (> (+ (length (caar docs)) (length single-sym-name) 2) width))
-               (caar docs))
+                (< (length single-doc) width)
+                (not (string-match "\n" single-doc))
+                (> (+ (length single-doc) (length single-doc-sym) 2) width))
+               single-doc)
               ((> available 1)
                (with-current-buffer (eldoc-doc-buffer)
                  (cl-loop
@@ -497,7 +501,7 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
                (with-current-buffer (eldoc-doc-buffer)
                  (truncate-string-to-width
-                  (buffer-substring (point-min) (line-end-position 1)) width))))))
+                  (buffer-substring (goto-char (point-min)) (line-end-position 1)) width))))))
         (when echo-area-message
           (eldoc--message echo-area-message))))))
 
@@ -664,75 +668,75 @@ have the following values:
   "Invoke `eldoc-documentation-strategy' function.
 
 That function's job is to run the `eldoc-documentation-functions'
-special hook, using the `run-hook' family of functions.  The way
-we invoke it here happens in a way strategy function can itself
-call `eldoc--make-callback' to produce values to give to the
-elements of the special hook `eldoc-documentation-functions'.
+special hook, using the `run-hook' family of functions.  ElDoc's
+built-in strategy functions play along with the
+`eldoc--make-callback' protocol, using it to produce callback to
+feed to the functgions of `eldoc-documentation-functions'.
 
-For each element of `eldoc-documentation-functions' invoked a
-corresponding call to `eldoc--make-callback' must be made.  See
-docstring of `eldoc--make-callback' for the types of callback
-that can be produced.
-
-If the strategy function does not use `eldoc--make-callback', it
-must find some alternate way to produce callbacks to feed to
-`eldoc-documentation-function', and those callbacks should
-endeavour to display the docstrings given to them."
-  (let* (;; how many docstrings callbaks have been
+Other third-party strategy functions do not use
+`eldoc--make-callback'.  They must find some alternate way to
+produce callbacks to feed to `eldoc-documentation-function' and
+should endeavour to display the docstrings eventually produced."
+  (let* (;; How many callbacks have been created by the strategy
+         ;; fucntion and passed to elements of
+         ;; `eldoc-documentation-functions'.
          (howmany 0)
-         ;; how many calls to callbacks we're waiting on. Used by
-         ;; `:patient'.
+         ;; How many calls to callbacks we're still waiting on.  Used
+         ;; by `:patient'.
          (want 0)
-         ;; how many doc strings and corresponding options have been
-         ;; registered it.
+         ;; The doc strings and corresponding options registered so
+         ;; far.
          (docs-registered '()))
-          (cl-labels
-              ((register-doc (pos string plist)
-                (when (and string (> (length string) 0))
-                  (push (cons pos (cons string plist)) docs-registered)))
-               (display-doc ()
-                (eldoc--handle-docs
-                 (mapcar #'cdr
-                         (setq docs-registered
-                               (sort docs-registered
-                                     (lambda (a b) (< (car a) (car b))))))))
-               (make-callback (method)
-                (let ((pos (prog1 howmany (cl-incf howmany))))
-                  (cl-ecase method
-                    (:enthusiast
-                     (lambda (string &rest plist)
-                       (when (and string (cl-loop for (p) in docs-registered
-                                                  never (< p pos)))
-                         (setq docs-registered '())
-                         (register-doc pos string plist)
-                         (when (and (timerp eldoc--enthusiasm-curbing-timer)
-                                    (memq eldoc--enthusiasm-curbing-timer
-                                          timer-list))
-                           (cancel-timer eldoc--enthusiasm-curbing-timer))
-                         (setq eldoc--enthusiasm-curbing-timer
-                               (run-at-time (unless (zerop pos) 0.3)
-                                            nil #'display-doc)))
-                       t))
-                    (:patient
-                     (cl-incf want)
-                     (lambda (string &rest plist)
-                       (register-doc pos string plist)
-                       (when (zerop (cl-decf want)) (display-doc))
-                       t))
-                    (:eager
-                     (lambda (string &rest plist)
-                       (register-doc pos string plist)
-                       (display-doc)
-                       t))))))
-            (let* ((eldoc--make-callback #'make-callback)
-                   (res (funcall eldoc-documentation-strategy)))
-              ;; Observe the old and the new protocol:
-              (cond (;; Old protocol: got string, output immediately;
-                     (stringp res) (register-doc 0 res nil) (display-doc))
-                    (;; Old protocol: got nil, clear the echo area;
-                     (null res) (eldoc--message nil))
-                    (;; New protocol: trust callback will be called;
-                     t))))))
+    (cl-labels
+        ((register-doc
+          (pos string plist)
+          (when (and string (> (length string) 0))
+            (push (cons pos (cons string plist)) docs-registered)))
+         (display-doc
+          ()
+          (eldoc--handle-docs
+           (mapcar #'cdr
+                   (setq docs-registered
+                         (sort docs-registered
+                               (lambda (a b) (< (car a) (car b))))))))
+         (make-callback
+          (method)
+          (let ((pos (prog1 howmany (cl-incf howmany))))
+            (cl-ecase method
+              (:enthusiast
+               (lambda (string &rest plist)
+                 (when (and string (cl-loop for (p) in docs-registered
+                                            never (< p pos)))
+                   (setq docs-registered '())
+                   (register-doc pos string plist)
+                   (when (and (timerp eldoc--enthusiasm-curbing-timer)
+                              (memq eldoc--enthusiasm-curbing-timer
+                                    timer-list))
+                     (cancel-timer eldoc--enthusiasm-curbing-timer))
+                   (setq eldoc--enthusiasm-curbing-timer
+                         (run-at-time (unless (zerop pos) 0.3)
+                                      nil #'display-doc)))
+                 t))
+              (:patient
+               (cl-incf want)
+               (lambda (string &rest plist)
+                 (register-doc pos string plist)
+                 (when (zerop (cl-decf want)) (display-doc))
+                 t))
+              (:eager
+               (lambda (string &rest plist)
+                 (register-doc pos string plist)
+                 (display-doc)
+                 t))))))
+      (let* ((eldoc--make-callback #'make-callback)
+             (res (funcall eldoc-documentation-strategy)))
+        ;; Observe the old and the new protocol:
+        (cond (;; Old protocol: got string, output immediately;
+               (stringp res) (register-doc 0 res nil) (display-doc))
+              (;; Old protocol: got nil, clear the echo area;
+               (null res) (eldoc--message nil))
+              (;; New protocol: trust callback will be called;
+               t))))))
 
 (defun eldoc-print-current-symbol-info (&optional interactive)
   "Document thing at point."

@@ -207,6 +207,16 @@ Bookmark locations can refer to VC directory buffers.
 
 ** Gnus
 
++++
+*** The name of dependent Gnus sessions has changed from "slave" to "child".
+The names of the commands 'gnus-slave', 'gnus-slave-no-server' and
+'gnus-slave-unplugged' have changed to 'gnus-child',
+'gnus-child-no-server' and 'gnus-child-unplugged' respectively.
+
++++
+*** The 'W Q' summary mode command now takes a numerical prefix to
+allow adjusting the fill width.
+
 ---
 *** Change to default value of 'message-draft-headers' user option.
 The 'Date' symbol has been removed from the default value, meaning that
@@ -470,6 +480,16 @@ This is still the case by default, but if you customize
 'browse-url-mailto-function' or 'browse-url-handlers' to call some
 other function, it will now be called instead of the default.
 
++++
+*** New variable 'shr-max-width'.
+If this variable is non-nil, and 'shr-width' is nil, then SHR will use
+the value of 'shr-max-width' to limit the width of the rendered HTML.
+The default is 120 characters, so even if you have very wide frames,
+HTML text will be rendered more narrowly, which usually leads to a
+more readable text.  Set this variable to nil to get the previous
+behavior of rendering as wide as the window-width allows.  If
+'shr-width' is non-nil, it overrides this variable.
+
 ** EWW
 
 ---
@@ -542,13 +562,14 @@ truncation, amongst other things.
 'bug-reference-prog-mode' have been activated, their respective hook
 has been run and still 'bug-reference-bug-regexp' and
 'bug-reference-url-format' aren't both set, it tries to guess
-appropriate values for those two variables.  There are two guessing
+appropriate values for those two variables.  There are three guessing
 mechanisms so far: based on version control information of the current
-buffer's file, and based on newsgroup/mail-folder name and several
-news and mail message headers in Gnus buffers.  Both mechanisms are
-extensible with custom rules, see the variables
-'bug-reference-setup-from-vc-alist' and
-'bug-reference-setup-from-mail-alist'.
+buffer's file, based on newsgroup/mail-folder name and several news
+and mail message headers in Gnus buffers, and based on IRC channel and
+server in rcirc buffers.  All mechanisms are extensible with custom
+rules, see the variables 'bug-reference-setup-from-vc-alist',
+'bug-reference-setup-from-mail-alist', and
+'bug-reference-setup-from-irc-alist'.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -668,6 +689,12 @@ after the process has been created, or pass in ':coding '(nil nil)'.
 This allows specifying the coding systems used by a network process
 for encoding and decoding without having to bind
 'coding-system-for-{read,write}' or call 'set-process-coding-system'.
+
++++
+** 'open-network-stream' can now take a :capability-command that's a function.
+The function is called with the greeting from the server as its only
+parameter, and allows sending different TLS capability commands to the
+server based on that greeting.
 
 +++
 ** 'open-gnutls-stream' now also accepts a ':coding' argument.

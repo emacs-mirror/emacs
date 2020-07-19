@@ -702,15 +702,7 @@ should be shown to the user."
 	    ;; Treat everything like '300'
 	    nil))
 	 (when redirect-uri
-	   ;; Clean off any whitespace and/or <...> cruft.
-	   (if (string-match "\\([^ \t]+\\)[ \t]" redirect-uri)
-	       (setq redirect-uri (match-string 1 redirect-uri)))
-	   (if (string-match "^<\\(.*\\)>$" redirect-uri)
-	       (setq redirect-uri (match-string 1 redirect-uri)))
-
-	   ;; Some stupid sites (like sourceforge) send a
-	   ;; non-fully-qualified URL (ie: /), which royally confuses
-	   ;; the URL library.
+	   ;; Handle relative redirect URIs.
 	   (if (not (string-match url-nonrelative-link redirect-uri))
                ;; Be careful to use the real target URL, otherwise we may
                ;; compute the redirection relative to the URL of the proxy.
@@ -1404,13 +1396,22 @@ The return value of this function is the retrieval buffer."
 
 (defun url-https-proxy-connect (connection)
   (setq url-http-after-change-function 'url-https-proxy-after-change-function)
-  (process-send-string connection (format (concat "CONNECT %s:%d HTTP/1.1\r\n"
-                                                  "Host: %s\r\n"
-                                                  "\r\n")
-                                          (url-host url-current-object)
-                                          (or (url-port url-current-object)
-                                              url-https-default-port)
-                                          (url-host url-current-object))))
+  (process-send-string
+   connection
+   (format
+    (concat "CONNECT %s:%d HTTP/1.1\r\n"
+            "Host: %s\r\n"
+            (let ((proxy-auth (let ((url-basic-auth-storage
+                                     'url-http-proxy-basic-auth-storage))
+                                (url-get-authentication url-http-proxy nil
+                                                        'any nil))))
+              (and proxy-auth
+                   (concat "Proxy-Authorization: " proxy-auth "\r\n")))
+            "\r\n")
+    (url-host url-current-object)
+    (or (url-port url-current-object)
+        url-https-default-port)
+    (url-host url-current-object))))
 
 (defun url-https-proxy-after-change-function (_st _nd _length)
   (let* ((process-buffer (current-buffer))

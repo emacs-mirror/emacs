@@ -91,6 +91,7 @@
 ;;; Code:
 
 (require 'cl-generic)
+(require 'seq)
 (eval-when-compile (require 'subr-x))
 
 (defgroup project nil

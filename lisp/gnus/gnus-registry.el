@@ -449,19 +449,21 @@ This is not required after changing `gnus-registry-cache-file'."
      to subject sender recipients)))
 
 (defun gnus-registry-spool-action (id group &optional subject sender recipients)
-  (let ((to (gnus-group-guess-full-name-from-command-method group))
-        (recipients (or recipients
-                        (gnus-registry-sort-addresses
-                         (or (message-fetch-field "cc") "")
-                         (or (message-fetch-field "to") ""))))
-        (subject (or subject (message-fetch-field "subject")))
-        (sender (or sender (message-fetch-field "from"))))
-    (when (and (stringp id) (string-match "\r$" id))
-      (setq id (substring id 0 -1)))
-    (gnus-message 7 "Gnus registry: article %s spooled to %s"
-                  id
-                  to)
-    (gnus-registry-handle-action id nil to subject sender recipients)))
+  (save-restriction
+    (message-narrow-to-headers-or-head)
+    (let ((to (gnus-group-guess-full-name-from-command-method group))
+          (recipients (or recipients
+                          (gnus-registry-sort-addresses
+                           (or (message-fetch-field "cc") "")
+                           (or (message-fetch-field "to") ""))))
+          (subject (or subject (message-fetch-field "subject")))
+          (sender (or sender (message-fetch-field "from"))))
+      (when (and (stringp id) (string-match "\r$" id))
+	(setq id (substring id 0 -1)))
+      (gnus-message 7 "Gnus registry: article %s spooled to %s"
+                    id
+                    to)
+      (gnus-registry-handle-action id nil to subject sender recipients))))
 
 (defun gnus-registry-handle-action (id from to subject sender
                                        &optional recipients)

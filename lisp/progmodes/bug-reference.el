@@ -230,7 +230,7 @@ and apply it if applicable."
                 (throw 'found t)))))))))
 
 (defvar bug-reference-setup-from-mail-alist
-  `((,(regexp-opt '("emacs" "auctex" "gnus") 'words)
+  `((,(regexp-opt '("emacs" "auctex" "gnus" "tramp" "orgmode") 'words)
      ,(regexp-opt '("@debbugs.gnu.org" "-devel@gnu.org"
                     ;; List-Id of Gnus devel mailing list.
                     "ding.gnus.org"))
@@ -343,6 +343,65 @@ and set it if applicable."
                       (push val header-values))))))
             (bug-reference--maybe-setup-from-mail nil header-values)))))))
 
+(defvar bug-reference-setup-from-irc-alist
+  `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
+                                "erc") 'words))
+     "freenode"
+     "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+     "https://debbugs.gnu.org/%s"))
+  "An alist for setting up `bug-reference-mode' in IRC modes.
+
+This takes action if `bug-reference-mode' is enabled in IRC
+channels using one of Emacs' IRC clients (rcirc and ERC).
+Currently, only rcirc is supported.
+
+Each element has the form
+
+  (CHANNEL-REGEXP SERVER-REGEXP BUG-REGEXP URL-FORMAT)
+
+CHANNEL-REGEXP is a regexp matched against the current mail IRC
+channel name.  SERVER-REGEXP is matched against the IRC server
+name.  If any of those matches, BUG-REGEXP is set as
+`bug-reference-bug-regexp' and URL-FORMAT is set as
+`bug-reference-url-format'.")
+
+(defun bug-reference--maybe-setup-from-irc (channel server)
+  "Set up according to IRC CHANNEL or SERVER.
+CHANNEL is an IRC channel name and SERVER is that channel's
+server name.
+
+If any CHANNEL-REGEXP or SERVER-REGEXP of
+`bug-reference-setup-from-irc-alist' matches CHANNEL or SERVER,
+the corresponding BUG-REGEXP and URL-FORMAT are set."
+  (catch 'setup-done
+    (dolist (config bug-reference-setup-from-irc-alist)
+      (when (or
+             (and channel
+                  (car config)
+                  (string-match-p (car config) channel))
+             (and server
+                  (nth 1 config)
+                  (string-match-p (car config) server)))
+        (setq-local bug-reference-bug-regexp (nth 2 config))
+        (setq-local bug-reference-url-format (nth 3 config))
+        (throw 'setup-done t)))))
+
+(defvar rcirc-target)
+(defvar rcirc-server-buffer)
+(defvar rcirc-server)
+
+(defun bug-reference-try-setup-from-rcirc ()
+  "Try setting up `bug-reference-mode' based on rcirc channel and server.
+Test each configuration in `bug-reference-setup-from-irc-alist'
+and set it if applicable."
+  (when (derived-mode-p 'rcirc-mode)
+    (bug-reference--maybe-setup-from-irc
+     rcirc-target
+     (and rcirc-server-buffer
+          (buffer-live-p rcirc-server-buffer)
+          (with-current-buffer rcirc-server-buffer
+            rcirc-server)))))
+
 (defun bug-reference--run-auto-setup ()
   (when (or bug-reference-mode
             bug-reference-prog-mode)
@@ -354,7 +413,8 @@ and set it if applicable."
           "Error during bug-reference auto-setup: %S"
         (catch 'setup
           (dolist (f (list #'bug-reference-try-setup-from-vc
-                           #'bug-reference-try-setup-from-gnus))
+                           #'bug-reference-try-setup-from-gnus
+                           #'bug-reference-try-setup-from-rcirc))
             (when (funcall f)
               (throw 'setup t))))))))
 

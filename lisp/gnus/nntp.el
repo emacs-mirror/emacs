@@ -1263,7 +1263,17 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     "nntpd" pbuffer nntp-address nntp-port-number
 		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
-		     :capability-command "HELP\r\n"
+		     :capability-command
+		     (lambda (greeting)
+		       (if (and greeting
+				(string-match "Typhoon" greeting))
+			   ;; Certain versions of the Typhoon server
+			   ;; doesn't understand the CAPABILITIES
+			   ;; command, but includes the capability
+			   ;; data in the HELP command instead.
+			   "HELP\r\n"
+			 ;; Use the correct command for everything else.
+			 "CAPABILITIES\r\n"))
 		     :success "^3"
 		     :starttls-function
 		     (lambda (capabilities)
