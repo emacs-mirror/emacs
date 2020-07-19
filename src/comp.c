@@ -393,6 +393,8 @@ load_gccjit_if_necessary (bool mandatory)
 }
 
 
+#define ELN_FILENAME_HASH_LEN 64
+
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -634,6 +636,16 @@ format_string (const char *format, ...)
   return scratch_area;
 }
 
+static Lisp_Object
+comp_hash_string (Lisp_Object string)
+{
+  Lisp_Object digest = make_uninit_string (SHA512_DIGEST_SIZE * 2);
+  sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
+  hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
+
+  return digest;
+}
+
 /* Produce a key hashing Vcomp_subr_list.  */
 
 void
@@ -641,10 +653,7 @@ hash_native_abi (void)
 {
   Lisp_Object string = Fmapconcat (intern_c_string ("subr-name"),
 				   Vcomp_subr_list, build_string (" "));
-  Lisp_Object digest = make_uninit_string (SHA512_DIGEST_SIZE * 2);
-
-  sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
-  hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
+  Lisp_Object digest = comp_hash_string (string);
 
   /* Check runs once.  */
   eassert (NILP (Vcomp_abi_hash));
@@ -652,8 +661,7 @@ hash_native_abi (void)
   /* If 10 characters are usually sufficient for git I guess 16 are
      fine for us here.  */
   Vcomp_native_path_postfix =
-    concat3 (make_string ("eln-", 4),
-	     Vsystem_configuration,
+    concat2 (Vsystem_configuration,
 	     concat2 (make_string ("-", 1),
 		      Fsubstring_no_properties (Vcomp_abi_hash,
 						make_fixnum (0),
@@ -3852,6 +3860,30 @@ compile_function (Lisp_Object func)
 /* Entry points exposed to lisp.  */
 /**********************************/
 
+DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
+       Scomp_el_to_eln_filename, 1, 2, 0,
+       doc: /* Given a source file return the corresponding .eln true filename.
+If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
+  (Lisp_Object file_name, Lisp_Object base_dir)
+{
+  CHECK_STRING (file_name);
+  file_name = Fexpand_file_name (file_name, Qnil);
+  Lisp_Object hashed = Fsubstring (comp_hash_string (file_name), Qnil,
+				   make_fixnum (ELN_FILENAME_HASH_LEN));
+  file_name = concat2 (Ffile_name_nondirectory (Fsubstring (file_name, Qnil,
+							   make_fixnum (-3))),
+		       build_string ("-"));
+  file_name = concat3 (file_name, hashed, build_string (NATIVE_ELISP_SUFFIX));
+  if (NILP (base_dir))
+    base_dir = XCAR (Vcomp_eln_load_path);
+
+  if (!file_name_absolute_p (SSDATA (base_dir)))
+    base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
+
+  return Fexpand_file_name (file_name,
+			    concat2 (base_dir, Vcomp_native_path_postfix));
+}
+
 DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        0, 0, 0,
        doc: /* Initialize the native compiler context. Return t on success.  */)
@@ -4039,11 +4071,12 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
        doc: /* Compile as native code the current context to file.  */)
-  (Lisp_Object base_name)
+  (Lisp_Object file_name)
 {
   load_gccjit_if_necessary (true);
 
-  CHECK_STRING (base_name);
+  CHECK_STRING (file_name);
+  Lisp_Object base_name = Fsubstring (file_name, Qnil, make_fixnum (-4));
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
@@ -4105,19 +4138,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
 
-  Lisp_Object out_file = CALLN (Fconcat, base_name, dot_so);
   Lisp_Object tmp_file =
     Fmake_temp_file_internal (base_name, Qnil, dot_so, Qnil);
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
-  CALL2I (comp--replace-output-file, out_file, tmp_file);
+  CALL2I (comp--replace-output-file, file_name, tmp_file);
 
   if (!noninteractive)
     unbind_to (count, Qnil);
 
-  return out_file;
+  return file_name;
 }
 
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
@@ -4971,6 +5003,7 @@ syms_of_comp (void)
         build_pure_c_string ("eln file inconsistent with current runtime "
 			     "configuration, please recompile"));
 
+  defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
@@ -5014,6 +5047,22 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-name -> function-value.  For
 		       internal use during  */);
   Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
+
+  DEFVAR_LISP ("comp-eln-to-el-h", Vcomp_eln_to_el_h,
+	       doc: /* Hash table eln-filename -> el-filename.  */);
+  Vcomp_eln_to_el_h = CALLN (Fmake_hash_table, QCtest, Qequal);
+
+  DEFVAR_LISP ("comp-eln-load-path", Vcomp_eln_load_path,
+	       doc: /* List of eln cache directories.
+
+If a directory is non absolute is assumed to be relative to
+`invocation-directory'.
+The last directory of this list is assumed to be the system one.  */);
+
+  /* Temporary value in use for boostrap.  We can't do better as
+     `invocation-directory' is still unset, will be fixed up during
+     dump reload.  */
+  Vcomp_eln_load_path = Fcons (build_string ("../eln-cache/"), Qnil);
 
 #endif /* #ifdef HAVE_NATIVE_COMP */
 

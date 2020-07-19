@@ -569,28 +569,6 @@ VERBOSITY is a number between 0 and 3."
 
 
 
-(defun comp-output-directory (src)
-  "Return the compilation direcotry for source SRC."
-  (let* ((src (if (symbolp src) (symbol-name src) src))
-         (expanded-filename (expand-file-name src)))
-    (file-name-as-directory
-     (concat (file-name-directory expanded-filename)
-             comp-native-path-postfix))))
-
-(defun comp-output-base-filename (src)
-  "Output filename sans extention for SRC file being native compiled."
-  (let* ((src (if (symbolp src) (symbol-name src) src))
-         (expanded-filename (expand-file-name src))
-         (output-dir (comp-output-directory src))
-         (output-filename
-          (file-name-sans-extension
-           (file-name-nondirectory expanded-filename))))
-    (expand-file-name output-filename output-dir)))
-
-(defun comp-output-filename (src)
-  "Output filename for SRC file being native compiled."
-  (concat (comp-output-base-filename src) ".eln"))
-
 (defmacro comp-loop-insn-in-block (basic-block &rest body)
   "Loop over all insns in BASIC-BLOCK executning BODY.
 Inside BODY `insn' can be used to read or set the current
@@ -2486,7 +2464,7 @@ Prepare every function for final compilation and drive the C back-end."
     (unless (file-exists-p dir)
       ;; In case it's created in the meanwhile.
       (ignore-error 'file-already-exists
-        (make-directory dir)))
+        (make-directory dir t)))
     (unless comp-dry-run
       (comp--compile-ctxt-to-file name))))
 
@@ -2597,7 +2575,7 @@ display a message."
                        source-file)
          when (or comp-always-compile
                   (file-newer-than-file-p source-file
-                                          (comp-output-filename source-file)))
+                                          (comp-el-to-eln-filename source-file)))
          do (let* ((expr `(progn
                             (require 'comp)
                             (setf comp-speed ,comp-speed
@@ -2636,7 +2614,7 @@ display a message."
                                (when (and load1
                                           (zerop (process-exit-status process)))
                                  (native-elisp-load
-                                  (comp-output-filename source-file1)
+                                  (comp-el-to-eln-filename source-file1)
                                   (eq load1 'late)))
                                (comp-run-async-workers)))))
               (puthash source-file process comp-async-compilations))
@@ -2676,7 +2654,11 @@ Return the compilation unit file name."
          (byte-compile-debug t)
          (comp-ctxt
           (make-comp-ctxt
-           :output (comp-output-base-filename function-or-file)
+           :output (comp-el-to-eln-filename (if (symbolp function-or-file)
+                                                (symbol-name function-or-file)
+                                              function-or-file)
+                                            (when byte-native-for-bootstrap
+                                              (car (last comp-eln-load-path))))
            :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
@@ -2770,8 +2752,8 @@ queued with LOAD %"
                     (and (eq load 'late)
                          (cl-some (lambda (re) (string-match re file))
                                   comp-deferred-compilation-black-list)))
-          (let ((out-dir (comp-output-directory file))
-                (out-filename (comp-output-filename file)))
+          (let* ((out-filename (comp-el-to-eln-filename file))
+                 (out-dir (file-name-directory out-filename)))
             (if (or (file-writable-p out-filename)
                     (and (not (file-exists-p out-dir))
                          (file-writable-p (substring out-dir 0 -1))))

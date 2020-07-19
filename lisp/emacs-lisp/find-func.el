@@ -188,11 +188,7 @@ LIBRARY should be a string (the name of the library)."
    ((string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
     (setq library (replace-match "" t t library)))
    ((string-match "\\.eln\\'" library)
-    ;; From help-fns.el.
-    (setq library (expand-file-name (concat (file-name-base library)
-                                            ".el")
-		                    (concat (file-name-directory library)
-                                            "..")))))
+    (setq library (gethash (file-name-nondirectory library) comp-eln-to-el-h))))
   (or
    (locate-file library
                 (or find-function-source-path load-path)

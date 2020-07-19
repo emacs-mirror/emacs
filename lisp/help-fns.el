@@ -333,10 +333,8 @@ suitable file is found, return nil."
 			 object (or (if (symbolp type) type) 'defun))))
          (file-name (if (and true-name
                              (string-match "[.]eln\\'" true-name))
-                        (expand-file-name (concat (file-name-base true-name)
-                                                  ".el")
-		                          (concat (file-name-directory true-name)
-                                                  ".."))
+                        (gethash (file-name-nondirectory true-name)
+                                 comp-eln-to-el-h)
 	              true-name)))
     (cond
      (autoloaded
