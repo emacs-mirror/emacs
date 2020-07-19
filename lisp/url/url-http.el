@@ -702,15 +702,7 @@ should be shown to the user."
 	    ;; Treat everything like '300'
 	    nil))
 	 (when redirect-uri
-	   ;; Clean off any whitespace and/or <...> cruft.
-	   (if (string-match "\\([^ \t]+\\)[ \t]" redirect-uri)
-	       (setq redirect-uri (match-string 1 redirect-uri)))
-	   (if (string-match "^<\\(.*\\)>$" redirect-uri)
-	       (setq redirect-uri (match-string 1 redirect-uri)))
-
-	   ;; Some stupid sites (like sourceforge) send a
-	   ;; non-fully-qualified URL (ie: /), which royally confuses
-	   ;; the URL library.
+	   ;; Handle relative redirect URIs.
 	   (if (not (string-match url-nonrelative-link redirect-uri))
                ;; Be careful to use the real target URL, otherwise we may
                ;; compute the redirection relative to the URL of the proxy.
