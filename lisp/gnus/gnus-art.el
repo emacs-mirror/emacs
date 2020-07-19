@@ -4406,6 +4406,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
   "e" gnus-article-read-summary-keys
   "\C-d" gnus-article-read-summary-keys
+  "\C-c\C-f" gnus-summary-mail-forward
   "\M-*" gnus-article-read-summary-keys
   "\M-#" gnus-article-read-summary-keys
   "\M-^" gnus-article-read-summary-keys
@@ -6674,7 +6675,7 @@ not have a face in `gnus-article-boring-faces'."
   (interactive "P")
   (gnus-article-check-buffer)
   (let ((nosaves
-	 '("q" "Q" "r" "\C-c\C-f" "m"  "a" "f" "WDD" "WDW"
+	 '("q" "Q" "r" "m"  "a" "f" "WDD" "WDW"
 	   "Zc" "ZC" "ZE" "ZQ" "ZZ" "Zn" "ZR" "ZG" "ZN" "ZP"
 	   "=" "^" "\M-^" "|"))
 	(nosave-but-article
