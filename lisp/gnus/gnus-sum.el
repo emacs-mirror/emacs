@@ -7332,6 +7332,8 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (gnus-group-next-unread-group 1))
     (setq group-point (point))
     (gnus-article-stop-animations)
+    (unless leave-hidden
+      (gnus-configure-windows 'group 'force))
     (if temporary
 	nil				;Nothing to do.
       (set-buffer buf)
@@ -7351,8 +7353,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (if quit-config
 	  (gnus-handle-ephemeral-exit quit-config)
 	(goto-char group-point)
-	(unless leave-hidden
-	  (gnus-configure-windows 'group 'force))
 	;; If gnus-group-buffer is already displayed, make sure we also move
 	;; the cursor in the window that displays it.
 	(let ((win (get-buffer-window (current-buffer) 0)))
