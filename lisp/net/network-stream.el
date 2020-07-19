@@ -139,7 +139,10 @@ writes.  See `make-network-process' for details.
 
 :capability-command specifies a command used to query the HOST
   for its capabilities.  For instance, for IMAP this should be
-  \"1 CAPABILITY\\r\\n\".
+  \"1 CAPABILITY\\r\\n\".  This can either be a string (which will
+  then be sent verbatim to the server), or a function (called with
+  a single parameter; the \"greeting\" from the server when connecting),
+  and should return a string to send to the server.
 
 :starttls-function specifies a function for handling STARTTLS.
   This function should take one parameter, the response to the
@@ -280,8 +283,11 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
                                        :coding (plist-get parameters :coding)))
 	 (greeting (and (not (plist-get parameters :nogreeting))
 			(network-stream-get-response stream start eoc)))
-	 (capabilities (network-stream-command stream capability-command
-					       eo-capa))
+	 (capabilities
+          (network-stream-command
+           stream
+           (network-stream--capability-command capability-command greeting)
+           eo-capa))
 	 (resulting-type 'plain)
 	 starttls-available starttls-command error)
 
@@ -329,7 +335,10 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	;; Requery capabilities for protocols that require it; i.e.,
 	;; EHLO for SMTP.
 	(when (plist-get parameters :always-query-capabilities)
-	  (network-stream-command stream capability-command eo-capa)))
+	  (network-stream-command
+           stream
+           (network-stream--capability-command capability-command greeting)
+           eo-capa)))
       (when (let ((response
 		   (network-stream-command stream starttls-command eoc)))
 	      (and response (string-match success-string response)))
@@ -365,7 +374,10 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
                  host service))
 	;; Re-get the capabilities, which may have now changed.
 	(setq capabilities
-	      (network-stream-command stream capability-command eo-capa))))
+	      (network-stream-command
+               stream
+               (network-stream--capability-command capability-command greeting)
+               eo-capa))))
 
     ;; If TLS is mandatory, close the connection if it's unencrypted.
     (when (and require-tls
@@ -428,7 +440,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
                                     parameters)
               (require 'tls)
               (open-tls-stream name buffer host service)))
-	   (eoc (plist-get parameters :end-of-command)))
+	   (eoc (plist-get parameters :end-of-command))
+           greeting)
       (if (plist-get parameters :nowait)
           (list stream nil nil 'tls)
         ;; Check certificate validity etc.
@@ -440,17 +453,22 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
           ;; openssl/gnutls-cli.
           (when (and (not (gnutls-available-p))
                      eoc)
-            (network-stream-get-response stream start eoc)
+            (setq greeting (network-stream-get-response stream start eoc))
             (goto-char (point-min))
             (when (re-search-forward eoc nil t)
               (goto-char (match-beginning 0))
               (delete-region (point-min) (line-beginning-position))))
-          (let ((capability-command (plist-get parameters :capability-command))
+          (let ((capability-command
+                 (plist-get parameters :capability-command))
                 (eo-capa (or (plist-get parameters :end-of-capability)
                              eoc)))
             (list stream
                   (network-stream-get-response stream start eoc)
-                  (network-stream-command stream capability-command eo-capa)
+                  (network-stream-command
+                   stream
+                   (network-stream--capability-command
+                    capability-command greeting)
+                   eo-capa)
                   'tls)))))))
 
 (defun network-stream-open-shell (name buffer host service parameters)
@@ -464,20 +482,28 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 				  (format-spec
 				   (plist-get parameters :shell-command)
                                    `((?s . ,host)
-                                     (?p . ,service)))))))
+                                     (?p . ,service))))))
+         greeting)
     (when coding (if (consp coding)
-                       (set-process-coding-system stream
-                                                  (car coding)
-                                                  (cdr coding))
                      (set-process-coding-system stream
-                                                coding
-                                                coding)))
+                                                (car coding)
+                                                (cdr coding))
+                   (set-process-coding-system stream
+                                              coding
+                                              coding)))
     (list stream
-	  (network-stream-get-response stream start eoc)
-	  (network-stream-command stream capability-command
-				  (or (plist-get parameters :end-of-capability)
-				      eoc))
+	  (setq greeting (network-stream-get-response stream start eoc))
+	  (network-stream-command
+           stream
+           (network-stream--capability-command capability-command greeting)
+	   (or (plist-get parameters :end-of-capability)
+	       eoc))
 	  'plain)))
+
+(defun network-stream--capability-command (command greeting)
+  (if (functionp command)
+      (funcall command greeting)
+    command))
 
 (provide 'network-stream)
 

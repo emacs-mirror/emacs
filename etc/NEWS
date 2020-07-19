@@ -687,6 +687,12 @@ for encoding and decoding without having to bind
 'coding-system-for-{read,write}' or call 'set-process-coding-system'.
 
 +++
+** 'open-network-stream' can now take a :capability-command that's a function.
+The function is called with the greeting from the server as its only
+parameter, and allows sending different TLS capability commands to the
+server based on that greeting.
+
++++
 ** 'open-gnutls-stream' now also accepts a ':coding' argument.
 
 +++
