@@ -2337,68 +2337,48 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; line was fouled up by context fontification.
   (save-restriction
     (widen)
-    (let (new-beg new-end new-region case-fold-search string-fence-beg lim)
-      ;; Check how far back we need to extend the region where we reapply the
-      ;; string fence syntax-table properties.  These must be in place for the
-      ;; coming fontification operations.
-      (save-excursion
-	(goto-char (if c-in-after-change-fontification
-		       (min beg c-new-BEG)
-		     beg))
-	(setq lim (max (- (point) 500) (point-min)))
-	(while
+    (let (new-beg new-end new-region case-fold-search)
+      (c-save-buffer-state nil
+	;; Temporarily reapply the string fence syntax-table properties.
+	(unwind-protect
 	    (progn
-	      (skip-chars-backward "^\"" lim)
-	      (or (bobp) (backward-char))
-	      (save-excursion
-		(eq (logand (skip-chars-backward "\\\\") 1) 1))))
-	(setq string-fence-beg
-	      (cond ((c-get-char-property (point) 'c-fl-syn-tab)
-		     (point))
-		    (c-in-after-change-fontification
-		     c-new-BEG)
-		    (t beg)))
-	(c-save-buffer-state nil
-	  ;; Temporarily reapply the string fence syntax-table properties.
-	  (unwind-protect
-	      (progn
-		(c-restore-string-fences)
-		(if (and c-in-after-change-fontification
-			 (< beg c-new-END) (> end c-new-BEG))
-		    ;; Region and the latest after-change fontification region overlap.
-		    ;; Determine the upper and lower bounds of our adjusted region
-		    ;; separately.
-		    (progn
-		      (if (<= beg c-new-BEG)
-			  (setq c-in-after-change-fontification nil))
-		      (setq new-beg
-			    (if (and (>= beg (c-point 'bol c-new-BEG))
-				     (<= beg c-new-BEG))
-				;; Either jit-lock has accepted `c-new-BEG', or has
-				;; (probably) extended the change region spuriously
-				;; to BOL, which position likely has a
-				;; syntactically different position.  To ensure
-				;; correct fontification, we start at `c-new-BEG',
-				;; assuming any characters to the left of
-				;; `c-new-BEG' on the line do not require
-				;; fontification.
-				c-new-BEG
-			      (setq new-region (c-before-context-fl-expand-region beg end)
-				    new-end (cdr new-region))
-			      (car new-region)))
-		      (setq new-end
-			    (if (and (>= end (c-point 'bol c-new-END))
-				     (<= end c-new-END))
-				c-new-END
-			      (or new-end
-				  (cdr (c-before-context-fl-expand-region beg end))))))
-		  ;; Context (etc.) fontification.
-		  (setq new-region (c-before-context-fl-expand-region beg end)
-			new-beg (car new-region)  new-end (cdr new-region)))
-		;; Finally invoke font lock's functionality.
-		(funcall (default-value 'font-lock-fontify-region-function)
-			 new-beg new-end verbose))
-	    (c-clear-string-fences)))))))
+	      (c-restore-string-fences)
+	      (if (and c-in-after-change-fontification
+		       (< beg c-new-END) (> end c-new-BEG))
+		  ;; Region and the latest after-change fontification region overlap.
+		  ;; Determine the upper and lower bounds of our adjusted region
+		  ;; separately.
+		  (progn
+		    (if (<= beg c-new-BEG)
+			(setq c-in-after-change-fontification nil))
+		    (setq new-beg
+			  (if (and (>= beg (c-point 'bol c-new-BEG))
+				   (<= beg c-new-BEG))
+			      ;; Either jit-lock has accepted `c-new-BEG', or has
+			      ;; (probably) extended the change region spuriously
+			      ;; to BOL, which position likely has a
+			      ;; syntactically different position.  To ensure
+			      ;; correct fontification, we start at `c-new-BEG',
+			      ;; assuming any characters to the left of
+			      ;; `c-new-BEG' on the line do not require
+			      ;; fontification.
+			      c-new-BEG
+			    (setq new-region (c-before-context-fl-expand-region beg end)
+				  new-end (cdr new-region))
+			    (car new-region)))
+		    (setq new-end
+			  (if (and (>= end (c-point 'bol c-new-END))
+				   (<= end c-new-END))
+			      c-new-END
+			    (or new-end
+				(cdr (c-before-context-fl-expand-region beg end))))))
+		;; Context (etc.) fontification.
+		(setq new-region (c-before-context-fl-expand-region beg end)
+		      new-beg (car new-region)  new-end (cdr new-region)))
+	      ;; Finally invoke font lock's functionality.
+	      (funcall (default-value 'font-lock-fontify-region-function)
+		       new-beg new-end verbose))
+	  (c-clear-string-fences))))))
 
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change
