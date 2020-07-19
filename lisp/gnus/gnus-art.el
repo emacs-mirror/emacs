@@ -7725,6 +7725,15 @@ positives are possible."
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-variable 1)
     ("M-x[ \t\n]+apropos-documentation[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET\\>"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-documentation 1)
+    ;; This is how URLs _should_ be embedded in text (RFC 1738, RFC 2396)...
+    ("<URL: *\\([^\n<>]*\\)>"
+     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
+    ;; RFC 2396 (2.4.3., delims) ...
+    ("\"URL: *\\([^\n\"]*\\)\""
+     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
+    ;; Raw URLs.
+    (gnus-button-url-regexp
+     0 (>= gnus-button-browse-level 0) browse-url-button-open-url 0)
     ;; The following entries may lead to many false positives so don't enable
     ;; them by default (use a high button level).
     ("/\\([a-z][-a-z0-9]+\\.el\\)\\>[^.?]"
@@ -7748,15 +7757,6 @@ positives are possible."
      ;; Unlike the other regexps we really have to require quoting
      ;; here to determine where it ends.
      1 (>= gnus-button-emacs-level 1) gnus-button-handle-describe-key 3)
-    ;; This is how URLs _should_ be embedded in text (RFC 1738, RFC 2396)...
-    ("<URL: *\\([^\n<>]*\\)>"
-     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
-    ;; RFC 2396 (2.4.3., delims) ...
-    ("\"URL: *\\([^\n\"]*\\)\""
-     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
-    ;; Raw URLs.
-    (gnus-button-url-regexp
-     0 (>= gnus-button-browse-level 0) browse-url-button-open-url 0)
     ;; man pages
     ("\\b\\([a-z][a-z]+([1-9])\\)\\W"
      0 (and (>= gnus-button-man-level 1) (< gnus-button-man-level 3))
