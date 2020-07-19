@@ -55,7 +55,7 @@ It is used for TCP/IP devices."
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
 ;;;###tramp-autoload
-(defcustom tramp-adb-prompt "^[^#\\$]*[#\\$][[:space:]]"
+(defcustom tramp-adb-prompt "^[^#$\n\r]*[#$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'regexp
   :version "28.1"
