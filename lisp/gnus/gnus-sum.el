@@ -5352,7 +5352,8 @@ or a straight list of headers."
 	      ;; We remember that we probably want to output a dummy
 	      ;; root.
 	      (setq gnus-tmp-dummy-line gnus-tmp-header)
-	      (setq gnus-tmp-prev-subject gnus-tmp-header))
+	      (setq gnus-tmp-prev-subject
+		    (gnus-simplify-subject-fully gnus-tmp-header)))
 	     (t
 	      ;; We do not make a root for the gathered
 	      ;; sub-threads at all.
