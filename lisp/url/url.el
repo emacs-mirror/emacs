@@ -300,8 +300,15 @@ how long to wait for a response before giving up."
 	      (when quit-flag
 		(delete-process proc))
               (setq proc (and (not quit-flag)
-			      (get-buffer-process asynch-buffer)))))))
-      asynch-buffer)))
+			      (get-buffer-process asynch-buffer))))))
+        ;; On timeouts, make sure we kill any pending processes.
+        ;; There may be more than one if we had a redirect.
+        (when (process-live-p proc)
+          (delete-process proc))
+        (when-let ((aproc (get-buffer-process asynch-buffer)))
+          (when (process-live-p aproc)
+            (delete-process aproc)))))
+    asynch-buffer))
 
 ;; url-mm-callback called from url-mm, which requires mm-decode.
 (declare-function mm-dissect-buffer "mm-decode"
