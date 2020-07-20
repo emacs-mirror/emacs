@@ -270,7 +270,7 @@ doing before changing the value.
 +++
 ** Native GnuTLS connections can now use client certificates.
 Previously, this support was only available when using the external
-'gnutls-cli' command.  Call 'open-network-stream' with
+'gnutls-cli' or 'starttls' command.  Call 'open-network-stream' with
 ':client-certificate t' to trigger looking up of per-server
 certificates via 'auth-source'.
 
