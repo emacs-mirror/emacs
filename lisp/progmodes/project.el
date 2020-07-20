@@ -95,8 +95,11 @@
 ;;
 ;; - Choose the format of the value that represents a project for your
 ;; backend (we call it project instance).  Don't use any of the
-;; formats from other backends.  The value can be arbitrary, as long
-;; as the datatype is something `cl-defmethod' can dispatch on.
+;; formats from other backends.  The format can be arbitrary, as long
+;; as the datatype is something `cl-defmethod' can dispatch on.  The
+;; value should be stable (when compared with `equal') across
+;; invocations, meaning calls to that function from buffers belonging
+;; to the same project should return equal values.
 ;;
 ;; - Write a new function that will determine the current project
 ;; based on the directory and add it to `project-find-functions'
