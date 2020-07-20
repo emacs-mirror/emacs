@@ -2333,6 +2333,8 @@ DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
        doc: /* Exit the Emacs job and kill it.
 If ARG is an integer, return ARG as the exit program code.
 If ARG is a string, stuff it as keyboard input.
+Any other value of ARG, or ARG omitted, means return an
+exit code that indicates successful program termination.
 
 This function is called upon receipt of the signals SIGTERM
 or SIGHUP, and upon SIGINT in batch mode.
