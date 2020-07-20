@@ -5492,9 +5492,9 @@ key_press_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  {
 	    /* Decode the input data.  */
 
-	    /* The input should be decoded with `coding_system'
-	       which depends on which X*LookupString function
-	       we used just above and the locale.  */
+	    /* The input should be decoded with locale `coding_system'. */
+	    if (!NILP (Vlocale_coding_system))
+	      coding_system = Vlocale_coding_system;
 	    setup_coding_system (coding_system, &coding);
 	    coding.src_multibyte = false;
 	    coding.dst_multibyte = true;
