@@ -995,7 +995,6 @@ Generally invoked via `allout-exposure-change-functions'."
         ;; have to distinguish between concealing and exposing so that, eg,
         ;; `allout-expose-topic's mix is handled properly.
         handled-expose
-        handled-conceal
         covered
         deactivate-mark)
 
