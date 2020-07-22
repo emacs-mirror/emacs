@@ -2429,7 +2429,7 @@ the United States."
 	  (if (and (memq last-command-event '(?@ ?o ?h ?\' ?m))
 		   (string-match " " calc-hms-format))
 	      (insert " "))
-	(if (and (eq this-command last-command)
+	(if (and (memq last-command '(calcDigit-start calcDigit-key))
 		 (eq last-command-event ?.))
 	    (progn
 	      (require 'calc-ext)
