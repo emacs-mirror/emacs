@@ -1133,7 +1133,11 @@
   (match-expansion
    (use-package foo :custom (foo bar))
    `(progn
-      (customize-set-variable 'foo bar "Customized with use-package foo")
+      (funcall
+       (or
+        (get 'foo 'custom-set)
+        (function set-default))
+       'foo bar)
       (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:custom-face-1 ()
