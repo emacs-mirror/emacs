@@ -2154,10 +2154,11 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.function = function;
   current_thread->stack_top = specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
-  union specbinding *nxt = specpdl_ptr;
-  nxt = backtrace_next(nxt);
-  if (nxt->kind == SPECPDL_BACKTRACE)
-    nxt->bt.bytecode_offset = backtrace_byte_offset;
+  if (backtrace_byte_offset > 0) {
+    union specbinding *nxt = backtrace_top ();
+    if (backtrace_p (nxt) && nxt->kind == SPECPDL_BACKTRACE)
+      nxt->bt.bytecode_offset = backtrace_byte_offset;
+  }
   grow_specpdl ();
 
   return count;
