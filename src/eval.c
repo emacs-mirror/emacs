@@ -342,7 +342,9 @@ call_debugger (Lisp_Object arg)
 	 redisplay, which necessarily leads to display problems.  */
   specbind (Qinhibit_eval_during_redisplay, Qt);
 #endif
+
   val = apply1 (Vdebugger, arg);
+
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */

@@ -3281,9 +3281,6 @@ struct handler
   enum nonlocal_exit nonlocal_exit;
   Lisp_Object val;
 
-  /* The bytecode offset where the error occurred. */
-  int bytecode_offset;
-
   struct handler *next;
   struct handler *nextfree;
 

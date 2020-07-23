@@ -313,7 +313,7 @@ enum byte_code_op
 
 /* Update the thread's bytecode offset, just before NEXT. */
 
-#define UPDATE_OFFSET (backtrace_byte_offset = pc - bytestr_data)
+#define UPDATE_OFFSET (backtrace_byte_offset = pc - bytestr_data - 1)
 
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
        doc: /* Function used internally in byte-compiled code.
