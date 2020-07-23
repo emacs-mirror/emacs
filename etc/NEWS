@@ -566,8 +566,8 @@ appropriate values for those two variables.  There are three guessing
 mechanisms so far: based on version control information of the current
 buffer's file, based on newsgroup/mail-folder name and several news
 and mail message headers in Gnus buffers, and based on IRC channel and
-server in rcirc buffers.  All mechanisms are extensible with custom
-rules, see the variables 'bug-reference-setup-from-vc-alist',
+network in rcirc and ERC buffers.  All mechanisms are extensible with
+custom rules, see the variables 'bug-reference-setup-from-vc-alist',
 'bug-reference-setup-from-mail-alist', and
 'bug-reference-setup-from-irc-alist'.
 
