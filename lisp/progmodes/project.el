@@ -877,14 +877,7 @@ Arguments the same as in `compile'."
          (default-directory (project-root pr)))
     (compile command comint)))
 
-;;;###autoload
-(defun project-switch-to-buffer ()
-  "Switch to another buffer belonging to the current project.
-This function prompts for another buffer, offering as candidates
-buffers that belong to the same project as the current buffer.
-Two buffers belong to the same project if their project instances,
-as reported by `project-current' in each buffer, are identical."
-  (interactive)
+(defun project--read-project-buffer ()
   (let* ((pr (project-current t))
          (current-buffer (current-buffer))
          (other-buffer (other-buffer current-buffer))
@@ -896,13 +889,22 @@ as reported by `project-current' in each buffer, are identical."
                  (equal pr
                         (with-current-buffer (cdr buffer)
                           (project-current)))))))
-    (switch-to-buffer
-     (read-buffer
-      "Switch to buffer: "
-      (when (funcall predicate (cons other-name other-buffer))
-        other-name)
-      nil
-      predicate))))
+    (read-buffer
+     "Switch to buffer: "
+     (when (funcall predicate (cons other-name other-buffer))
+       other-name)
+     nil
+     predicate)))
+
+;;;###autoload
+(defun project-switch-to-buffer (buffer-or-name)
+  "Display buffer BUFFER-OR-NAME in the selected window.
+When called interactively, prompts for a buffer belonging to the
+current project.  Two buffers belong to the same project if their
+project instances, as reported by `project-current' in each
+buffer, are identical."
+  (interactive (list (project--read-project-buffer)))
+  (switch-to-buffer buffer))
 
 (defcustom project-kill-buffers-ignores
   '("\\*Help\\*")
