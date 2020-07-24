@@ -592,6 +592,73 @@ DIRS must contain directory names."
 
 ;;;###autoload (define-key ctl-x-map "p" project-prefix-map)
 
+;; We can't have these place-specific maps inherit from
+;; project-prefix-map because project--other-place-command needs to
+;; know which map the key binding came from, as if it came from one of
+;; these maps, we don't want to set display-buffer-overriding-action
+
+(defvar project-other-window-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-o" #'project-display-buffer)
+    map)
+  "Keymap for project commands that display buffers in other windows.")
+
+(defvar project-other-frame-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-o" #'project-display-buffer-other-frame)
+    map)
+  "Keymap for project commands that display buffers in other frames.")
+
+(defun project--other-place-command (action &optional map)
+  (let* ((key (read-key-sequence-vector nil t))
+         (place-cmd (lookup-key map key))
+         (generic-cmd (lookup-key project-prefix-map key))
+         (display-buffer-overriding-action (unless place-cmd action)))
+    (if-let ((cmd (or place-cmd generic-cmd)))
+        (call-interactively cmd)
+      (user-error "%s is undefined" (key-description key)))))
+
+;;;###autoload
+(defun project-other-window-command ()
+  "Run project command, displaying resultant buffer in another window.
+
+The following commands are available:
+
+\\{project-prefix-map}
+\\{project-other-window-map}"
+  (interactive)
+  (project--other-place-command '((display-buffer-pop-up-window)
+                                  (inhibit-same-window . t))
+                                project-other-window-map))
+
+;;;###autoload (define-key ctl-x-4-map "p" #'project-other-window-command)
+
+;;;###autoload
+(defun project-other-frame-command ()
+  "Run project command, displaying resultant buffer in another frame.
+
+The following commands are available:
+
+\\{project-prefix-map}
+\\{project-other-frame-map}"
+  (interactive)
+  (project--other-place-command '((display-buffer-pop-up-frame))
+                                project-other-frame-map))
+
+;;;###autoload (define-key ctl-x-5-map "p" #'project-other-frame-command)
+
+;;;###autoload
+(defun project-other-tab-command ()
+  "Run project command, displaying resultant buffer in a new tab.
+
+The following commands are available:
+
+\\{project-prefix-map}"
+  (interactive)
+  (project--other-place-command '((display-buffer-in-new-tab))))
+
+;;;###autoload (define-key tab-prefix-map "p" #'project-other-tab-command)
+
 (defun project--value-in-dir (var dir)
   (with-temp-buffer
     (setq default-directory dir)
