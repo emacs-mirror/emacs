@@ -904,7 +904,34 @@ current project.  Two buffers belong to the same project if their
 project instances, as reported by `project-current' in each
 buffer, are identical."
   (interactive (list (project--read-project-buffer)))
-  (switch-to-buffer buffer))
+  (switch-to-buffer buffer-or-name))
+
+;;;###autoload
+(defun project-display-buffer (buffer-or-name)
+  "Display BUFFER-OR-NAME in some window, without selecting it.
+When called interactively, prompts for a buffer belonging to the
+current project.  Two buffers belong to the same project if their
+project instances, as reported by `project-current' in each
+buffer, are identical.
+
+This function uses `display-buffer' as a subroutine, which see
+for how it is determined where the buffer will be displayed."
+  (interactive (list (project--read-project-buffer)))
+  (display-buffer buffer-or-name))
+
+;;;###autoload
+(defun project-display-buffer-other-frame (buffer-or-name)
+  "Display BUFFER-OR-NAME preferably in another frame.
+When called interactively, prompts for a buffer belonging to the
+current project.  Two buffers belong to the same project if their
+project instances, as reported by `project-current' in each
+buffer, are identical.
+
+This function uses `display-buffer-other-frame' as a subroutine,
+which see for how it is determined where the buffer will be
+displayed."
+  (interactive (list (project--read-project-buffer)))
+  (display-buffer-other-frame buffer))
 
 (defcustom project-kill-buffers-ignores
   '("\\*Help\\*")
