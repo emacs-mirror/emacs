@@ -1396,7 +1396,7 @@ synchronously, PROCESS is the name of the buffer where the manpage
 command is run.  Second argument STRING is the entire string of output."
   (save-excursion
     (let ((Man-buffer (process-buffer process)))
-      (if (null (buffer-name Man-buffer)) ;; deleted buffer
+      (if (not (buffer-live-p Man-buffer)) ;; deleted buffer
 	  (set-process-buffer process nil)
 
 	(with-current-buffer Man-buffer
@@ -1430,7 +1430,7 @@ manpage command."
 	(delete-buff nil)
 	message)
 
-    (if (null (buffer-name Man-buffer)) ;; deleted buffer
+    (if (not (buffer-live-p Man-buffer)) ;; deleted buffer
 	(or (stringp process)
 	    (set-process-buffer process nil))
 
