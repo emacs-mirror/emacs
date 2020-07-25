@@ -296,6 +296,22 @@ Fmod_test_invalid_load (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return invalid_stored_value;
 }
 
+/* The next function works in conjunction with the two previous ones.
+   It stows away a copy of the object created by
+   `Fmod_test_invalid_store' in a global reference.  Module assertions
+   should still detect the invalid load of the local reference.  */
+
+static emacs_value global_copy_of_invalid_stored_value;
+
+static emacs_value
+Fmod_test_invalid_store_copy (emacs_env *env, ptrdiff_t nargs,
+                              emacs_value *args, void *data)
+{
+  emacs_value local = Fmod_test_invalid_store (env, 0, NULL, NULL);
+  return global_copy_of_invalid_stored_value
+         = env->make_global_ref (env, local);
+}
+
 /* An invalid finalizer: Finalizers are run during garbage collection,
    where Lisp code can’t be executed.  -module-assertions tests for
    this case.  */
@@ -559,6 +575,8 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-vector-fill", Fmod_test_vector_fill, 2, 2, NULL, NULL);
   DEFUN ("mod-test-vector-eq", Fmod_test_vector_eq, 2, 2, NULL, NULL);
   DEFUN ("mod-test-invalid-store", Fmod_test_invalid_store, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-invalid-store-copy", Fmod_test_invalid_store_copy, 0, 0,
+         NULL, NULL);
   DEFUN ("mod-test-invalid-load", Fmod_test_invalid_load, 0, 0, NULL, NULL);
   DEFUN ("mod-test-invalid-finalizer", Fmod_test_invalid_finalizer, 0, 0,
          NULL, NULL);
