@@ -1630,6 +1630,10 @@ characters are actually defined by this map.
 @item
 @vindex mode-specific-map
 @code{mode-specific-map} is for characters that follow @kbd{C-c}.
+@item
+@vindex project-prefix-map
+@code{project-prefix-map} is for characters that follow @kbd{C-x p},
+used for project-related commands (@pxref{Projects}).
 @end itemize
 
 @node Local Keymaps

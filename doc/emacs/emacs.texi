@@ -857,6 +857,12 @@ Customizing VC
 * CVS Options::           Options for CVS.
 @end ifnottex
 
+Projects
+
+* Project File Commands::   Commands for handling project files.
+* Project Buffer Commands:: Commands for handling project buffers.
+* Switching Projects::      Switching between projects.
+
 Change Logs
 
 * Change Log Commands:: Commands for editing change log files.
