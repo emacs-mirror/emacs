@@ -301,6 +301,17 @@ during garbage collection."
     (mod-test-invalid-finalizer)
     (garbage-collect)))
 
+(ert-deftest module--test-assertions--globref-invalid-free ()
+  "Check that -module-assertions detects invalid freeing of a
+local reference."
+    (skip-unless (or (file-executable-p mod-test-emacs)
+                   (and (eq system-type 'windows-nt)
+                        (file-executable-p (concat mod-test-emacs ".exe")))))
+  (module--test-assertion
+      (rx "Global value was not found in list of " (+ digit) " globals")
+    (mod-test-globref-invalid-free)
+    (garbage-collect)))
+
 (ert-deftest module/describe-function-1 ()
   "Check that Bug#30163 is fixed."
   (with-temp-buffer

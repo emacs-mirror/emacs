@@ -468,6 +468,14 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
   Lisp_Object obj = value_to_lisp (global_value);
   ptrdiff_t i = hash_lookup (h, obj, NULL);
 
+  if (module_assertions)
+    {
+      ptrdiff_t n = 0;
+      if (! module_global_reference_p (global_value, &n))
+        module_abort ("Global value was not found in list of %"pD"d globals",
+                      n);
+    }
+
   if (i >= 0)
     {
       Lisp_Object value = HASH_VALUE (h, i);
@@ -475,11 +483,6 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
       eassert (0 < ref->refcount);
       if (--ref->refcount == 0)
         hash_remove_from_table (h, obj);
-    }
-  else if (module_assertions)
-    {
-      module_abort ("Global value was not found in list of %"pD"d globals",
-                    h->count);
     }
 }
 
