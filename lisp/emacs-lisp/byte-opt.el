@@ -709,6 +709,9 @@
              (integer (if integer-is-first arg1 arg2))
              (other (if integer-is-first arg2 arg1)))
         (list (if (eq integer 1) '1+ '1-) other)))
+     ;; (+ x y z) -> (+ (+ x y) z)
+     ((= (length args) 3)
+      `(+ ,(byte-optimize-plus `(+ ,(car args) ,(cadr args))) ,@(cddr args)))
      ;; not further optimized
      ((equal args (cdr form)) form)
      (t (cons '+ args)))))
@@ -737,6 +740,9 @@
        ((and (null (cdr args))
              (numberp (car args)))
         (- (car args)))
+       ;; (- x y z) -> (- (- x y) z)
+       ((= (length args) 3)
+        `(- ,(byte-optimize-minus `(- ,(car args) ,(cadr args))) ,@(cddr args)))
        ;; not further optimized
        ((equal args (cdr form)) form)
        (t (cons '- args))))))
@@ -764,6 +770,10 @@
      ((null args) 1)
      ;; (* n) -> n, where n is a number
      ((and (null (cdr args)) (numberp (car args))) (car args))
+     ;; (* x y z) -> (* (* x y) z)
+     ((= (length args) 3)
+      `(* ,(byte-optimize-multiply `(* ,(car args) ,(cadr args)))
+          ,@(cddr args)))
      ;; not further optimized
      ((equal args (cdr form)) form)
      (t (cons '* args)))))
