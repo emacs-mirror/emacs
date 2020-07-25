@@ -197,7 +197,7 @@ of the project instance object."
             pr (project--find-in-directory directory))))
     (when maybe-prompt
       (if pr
-          (project--add-to-project-list-front pr)
+          (project-remember-project pr)
         (project--remove-from-project-list directory)
         (setq pr (cons 'transient directory))))
     pr))
@@ -987,7 +987,8 @@ With some possible metadata (to be decided).")
       (pp project--list (current-buffer))
       (write-region nil nil filename nil 'silent))))
 
-(defun project--add-to-project-list-front (pr)
+;;;###autoload
+(defun project-remember-project (pr)
   "Add project PR to the front of the project list.
 Save the result in `project-list-file' if the list of projects has changed."
   (project--ensure-read-project-list)
