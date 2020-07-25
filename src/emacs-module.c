@@ -78,6 +78,7 @@ To add a new module function, proceed as follows:
 #include "emacs-module.h"
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -398,6 +399,28 @@ XMODULE_GLOBAL_REFERENCE (Lisp_Object o)
 {
   eassert (PSEUDOVECTORP (o, PVEC_OTHER));
   return XUNTAG (o, Lisp_Vectorlike, struct module_global_reference);
+}
+
+/* Returns whether V is a global reference.  Only used to check module
+   assertions.  If V is not a global reference, increment *N by the
+   number of global references (for debugging output).  */
+
+static bool
+module_global_reference_p (emacs_value v, ptrdiff_t *n)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
+  /* Note that we can't use `hash_lookup' because V might be a local
+     reference that's identical to some global reference.  */
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      if (!EQ (HASH_KEY (h, i), Qunbound)
+          && &XMODULE_GLOBAL_REFERENCE (HASH_VALUE (h, i))->value == v)
+        return true;
+    }
+  /* Only used for debugging, so we don't care about overflow, just
+     make sure the operation is defined.  */
+  INT_ADD_WRAPV (*n, h->count, n);
+  return false;
 }
 
 static emacs_value
@@ -1277,10 +1300,8 @@ value_to_lisp (emacs_value v)
           ++num_environments;
         }
       /* Also check global values.  */
-      struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
-      if (hash_lookup (h, v->v, NULL) != -1)
+      if (module_global_reference_p (v, &num_values))
         goto ok;
-      INT_ADD_WRAPV (num_values, h->count, &num_values);
       module_abort (("Emacs value not found in %"pD"d values "
 		     "of %"pD"d environments"),
                     num_values, num_environments);

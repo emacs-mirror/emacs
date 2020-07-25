@@ -272,6 +272,24 @@ must evaluate to a regular expression string."
     (mod-test-invalid-store)
     (mod-test-invalid-load)))
 
+(ert-deftest module--test-assertions--load-non-live-object-with-global-copy ()
+  "Check that -module-assertions verify that non-live objects aren't accessed.
+This differs from `module--test-assertions-load-non-live-object'
+in that it stows away a global reference.  The module assertions
+should nevertheless detect the invalid load."
+  (skip-unless (or (file-executable-p mod-test-emacs)
+                   (and (eq system-type 'windows-nt)
+                        (file-executable-p (concat mod-test-emacs ".exe")))))
+  ;; This doesn't yet cause undefined behavior.
+  (should (eq (mod-test-invalid-store-copy) 123))
+  (module--test-assertion (rx "Emacs value not found in "
+                              (+ digit) " values of "
+                              (+ digit) " environments\n")
+    ;; Storing and reloading a local value causes undefined behavior,
+    ;; which should be detected by the module assertions.
+    (mod-test-invalid-store-copy)
+    (mod-test-invalid-load)))
+
 (ert-deftest module--test-assertions--call-emacs-from-gc ()
   "Check that -module-assertions prevents calling Emacs functions
 during garbage collection."
