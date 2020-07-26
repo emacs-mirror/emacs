@@ -557,6 +557,9 @@ case-insensitive matching of messages when the old behavior is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
+---
+*** Messages from Visual Studio that mention column numbers are now recognized.
+
 ** Hi Lock mode
 
 ---
