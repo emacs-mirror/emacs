@@ -353,38 +353,45 @@ and set it if applicable."
 
 This takes action if `bug-reference-mode' is enabled in IRC
 channels using one of Emacs' IRC clients (rcirc and ERC).
-Currently, only rcirc is supported.
+Currently, rcirc and ERC are supported.
 
 Each element has the form
 
-  (CHANNEL-REGEXP SERVER-REGEXP BUG-REGEXP URL-FORMAT)
+  (CHANNEL-REGEXP NETWORK-REGEXP BUG-REGEXP URL-FORMAT)
 
-CHANNEL-REGEXP is a regexp matched against the current mail IRC
-channel name.  SERVER-REGEXP is matched against the IRC server
-name.  If any of those matches, BUG-REGEXP is set as
+CHANNEL-REGEXP is a regexp matched against the current IRC
+channel name (e.g. #emacs).  NETWORK-REGEXP is matched against
+the IRC network name (e.g. freenode).  Both entries are optional.
+If all given entries match, BUG-REGEXP is set as
 `bug-reference-bug-regexp' and URL-FORMAT is set as
 `bug-reference-url-format'.")
 
-(defun bug-reference--maybe-setup-from-irc (channel server)
-  "Set up according to IRC CHANNEL or SERVER.
-CHANNEL is an IRC channel name and SERVER is that channel's
-server name.
+(defun bug-reference--maybe-setup-from-irc (channel network)
+  "Set up according to IRC CHANNEL or NETWORK.
+CHANNEL is an IRC channel name (or generally a target, i.e., it
+could also be a user name) and NETWORK is that channel's network
+name.
 
-If any CHANNEL-REGEXP or SERVER-REGEXP of
-`bug-reference-setup-from-irc-alist' matches CHANNEL or SERVER,
-the corresponding BUG-REGEXP and URL-FORMAT are set."
+If any `bug-reference-setup-from-irc-alist' entry's
+CHANNEL-REGEXP and NETWORK-REGEXP match CHANNEL and NETWORK, the
+corresponding BUG-REGEXP and URL-FORMAT are set."
   (catch 'setup-done
     (dolist (config bug-reference-setup-from-irc-alist)
-      (when (or
-             (and channel
-                  (car config)
-                  (string-match-p (car config) channel))
-             (and server
-                  (nth 1 config)
-                  (string-match-p (car config) server)))
-        (setq-local bug-reference-bug-regexp (nth 2 config))
-        (setq-local bug-reference-url-format (nth 3 config))
-        (throw 'setup-done t)))))
+      (let ((channel-rx (car config))
+            (network-rx (nth 1 config)))
+        (when (and
+               ;; One of both has to be given.
+               (or channel-rx network-rx)
+               ;; The args have to be set.
+               channel network)
+          (when (and
+                 (or (null channel-rx)
+                     (string-match-p channel-rx channel))
+                 (or (null network-rx)
+                     (string-match-p network-rx network)))
+            (setq-local bug-reference-bug-regexp (nth 2 config))
+            (setq-local bug-reference-url-format (nth 3 config))
+            (throw 'setup-done t)))))))
 
 (defvar rcirc-target)
 (defvar rcirc-server-buffer)
@@ -402,6 +409,18 @@ and set it if applicable."
           (with-current-buffer rcirc-server-buffer
             rcirc-server)))))
 
+(declare-function erc-format-target "erc")
+(declare-function erc-network-name "erc-networks")
+
+(defun bug-reference-try-setup-from-erc ()
+  "Try setting up `bug-reference-mode' based on ERC channel and server.
+Test each configuration in `bug-reference-setup-from-irc-alist'
+and set it if applicable."
+  (when (derived-mode-p 'erc-mode)
+    (bug-reference--maybe-setup-from-irc
+     (erc-format-target)
+     (erc-network-name))))
+
 (defun bug-reference--run-auto-setup ()
   (when (or bug-reference-mode
             bug-reference-prog-mode)
@@ -414,7 +433,8 @@ and set it if applicable."
         (catch 'setup
           (dolist (f (list #'bug-reference-try-setup-from-vc
                            #'bug-reference-try-setup-from-gnus
-                           #'bug-reference-try-setup-from-rcirc))
+                           #'bug-reference-try-setup-from-rcirc
+                           #'bug-reference-try-setup-from-erc))
             (when (funcall f)
               (throw 'setup t))))))))
 

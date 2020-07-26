@@ -2111,6 +2111,7 @@ The info element is shared with the same element of
      ((string= gnus-ignored-newsgroups "")
       (delete-matching-lines "^to\\."))
      (t
+      ;; relint suppression: Duplicated alternative branch
       (delete-matching-lines (concat "^to\\.\\|" gnus-ignored-newsgroups))))
 
     (goto-char (point-min))

@@ -63,7 +63,7 @@ also possible to use a command like
 However, we prefer the 'git format-patch' method with attachment, as
 doing so delivers patches in the correct and easily-recognizable format
 more reliably, and makes the job of applying the patches easier and less
-error-prone.  It also allows to send patches whose author is someone
+error-prone.  It also allows sending patches whose author is someone
 other than the email sender.
 
 Once the cumulative amount of your submissions exceeds about 15 lines

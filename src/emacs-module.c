@@ -78,6 +78,7 @@ To add a new module function, proceed as follows:
 #include "emacs-module.h"
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -154,11 +155,11 @@ struct emacs_value_frame
 /* A structure that holds an initial frame (so that the first local
    values require no dynamic allocation) and keeps track of the
    current frame.  */
-static struct emacs_value_storage
+struct emacs_value_storage
 {
   struct emacs_value_frame initial;
   struct emacs_value_frame *current;
-} global_storage;
+};
 
 
 /* Private runtime and environment members.  */
@@ -371,9 +372,56 @@ module_get_environment (struct emacs_runtime *runtime)
 }
 
 /* To make global refs (GC-protected global values) keep a hash that
-   maps global Lisp objects to reference counts.  */
+   maps global Lisp objects to 'struct module_global_reference'
+   objects.  We store the 'emacs_value' in the hash table so that it
+   is automatically garbage-collected (Bug#42482).  */
 
 static Lisp_Object Vmodule_refs_hash;
+
+/* Pseudovector type for global references.  The pseudovector tag is
+   PVEC_OTHER since these values are never printed and don't need to
+   be special-cased for garbage collection.  */
+
+struct module_global_reference {
+  /* Pseudovector header, must come first. */
+  union vectorlike_header header;
+
+  /* Holds the emacs_value for the object.  The Lisp_Object stored
+     therein must be the same as the hash key.  */
+  struct emacs_value_tag value;
+
+  /* Reference count, always positive.  */
+  ptrdiff_t refcount;
+};
+
+static struct module_global_reference *
+XMODULE_GLOBAL_REFERENCE (Lisp_Object o)
+{
+  eassert (PSEUDOVECTORP (o, PVEC_OTHER));
+  return XUNTAG (o, Lisp_Vectorlike, struct module_global_reference);
+}
+
+/* Returns whether V is a global reference.  Only used to check module
+   assertions.  If V is not a global reference, increment *N by the
+   number of global references (for debugging output).  */
+
+static bool
+module_global_reference_p (emacs_value v, ptrdiff_t *n)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
+  /* Note that we can't use `hash_lookup' because V might be a local
+     reference that's identical to some global reference.  */
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      if (!EQ (HASH_KEY (h, i), Qunbound)
+          && &XMODULE_GLOBAL_REFERENCE (HASH_VALUE (h, i))->value == v)
+        return true;
+    }
+  /* Only used for debugging, so we don't care about overflow, just
+     make sure the operation is defined.  */
+  INT_ADD_WRAPV (*n, h->count, n);
+  return false;
+}
 
 static emacs_value
 module_make_global_ref (emacs_env *env, emacs_value value)
@@ -383,21 +431,30 @@ module_make_global_ref (emacs_env *env, emacs_value value)
   Lisp_Object new_obj = value_to_lisp (value), hashcode;
   ptrdiff_t i = hash_lookup (h, new_obj, &hashcode);
 
+  /* Note: This approach requires the garbage collector to never move
+     objects.  */
+
   if (i >= 0)
     {
       Lisp_Object value = HASH_VALUE (h, i);
-      EMACS_INT refcount = XFIXNAT (value) + 1;
-      if (MOST_POSITIVE_FIXNUM < refcount)
+      struct module_global_reference *ref = XMODULE_GLOBAL_REFERENCE (value);
+      bool overflow = INT_ADD_WRAPV (ref->refcount, 1, &ref->refcount);
+      if (overflow)
 	overflow_error ();
-      value = make_fixed_natnum (refcount);
-      set_hash_value_slot (h, i, value);
+      return &ref->value;
     }
   else
     {
-      hash_put (h, new_obj, make_fixed_natnum (1), hashcode);
+      struct module_global_reference *ref
+        = ALLOCATE_PLAIN_PSEUDOVECTOR (struct module_global_reference,
+                                       PVEC_OTHER);
+      ref->value.v = new_obj;
+      ref->refcount = 1;
+      Lisp_Object value;
+      XSETPSEUDOVECTOR (value, ref, PVEC_OTHER);
+      hash_put (h, new_obj, value, hashcode);
+      return &ref->value;
     }
-
-  return allocate_emacs_value (env, &global_storage, new_obj);
 }
 
 static void
@@ -411,25 +468,21 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
   Lisp_Object obj = value_to_lisp (global_value);
   ptrdiff_t i = hash_lookup (h, obj, NULL);
 
-  if (i >= 0)
-    {
-      EMACS_INT refcount = XFIXNAT (HASH_VALUE (h, i)) - 1;
-      if (refcount > 0)
-        set_hash_value_slot (h, i, make_fixed_natnum (refcount));
-      else
-        {
-          eassert (refcount == 0);
-          hash_remove_from_table (h, obj);
-        }
-    }
-
   if (module_assertions)
     {
-      ptrdiff_t count = 0;
-      if (value_storage_contains_p (&global_storage, global_value, &count))
-        return;
-      module_abort ("Global value was not found in list of %"pD"d globals",
-                    count);
+      ptrdiff_t n = 0;
+      if (! module_global_reference_p (global_value, &n))
+        module_abort ("Global value was not found in list of %"pD"d globals",
+                      n);
+    }
+
+  if (i >= 0)
+    {
+      Lisp_Object value = HASH_VALUE (h, i);
+      struct module_global_reference *ref = XMODULE_GLOBAL_REFERENCE (value);
+      eassert (0 < ref->refcount);
+      if (--ref->refcount == 0)
+        hash_remove_from_table (h, obj);
     }
 }
 
@@ -1250,7 +1303,7 @@ value_to_lisp (emacs_value v)
           ++num_environments;
         }
       /* Also check global values.  */
-      if (value_storage_contains_p (&global_storage, v, &num_values))
+      if (module_global_reference_p (v, &num_values))
         goto ok;
       module_abort (("Emacs value not found in %"pD"d values "
 		     "of %"pD"d environments"),
@@ -1467,10 +1520,7 @@ module_handle_nonlocal_exit (emacs_env *env, enum nonlocal_exit type,
 void
 init_module_assertions (bool enable)
 {
-  /* If enabling module assertions, use a hidden environment for
-     storing the globals.  This environment is never freed.  */
   module_assertions = enable;
-  initialize_storage (&global_storage);
 }
 
 /* Return whether STORAGE contains VALUE.  Used to check module

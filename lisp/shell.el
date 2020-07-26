@@ -184,16 +184,13 @@ shell buffer.  The value may depend on the operating system or shell."
     shell-environment-variable-completion
     shell-command-completion
     shell-c-a-p-replace-by-expanded-directory
+    pcomplete-completions-at-point
     shell-filename-completion
-    comint-filename-completion
-    ;; Put `pcomplete-completions-at-point' last so that other
-    ;; functions can run before it does, see bug#34330.
-    pcomplete-completions-at-point)
+    comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer."
   :type '(repeat function)
-  :version "27.1"
   :group 'shell)
 
 (defcustom shell-command-regexp "[^;&|\n]+"

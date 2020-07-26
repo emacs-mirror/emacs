@@ -1237,7 +1237,7 @@ log entries."
   (set (make-local-variable 'log-view-message-re)
        (if (not (memq vc-log-view-type '(long log-search with-diff)))
 	   (cadr vc-git-root-log-format)
-	 "^commit *\\([0-9a-z]+\\)"))
+	 "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
   (when (memq vc-log-view-type '(short log-outgoing log-incoming mergebase))
     (setq truncate-lines t)

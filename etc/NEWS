@@ -502,21 +502,31 @@ information, see the related entry about 'shr-browse-url' above.
 
 *** New user option 'project-vc-merge-submodules'.
 
-*** Previously used project directories are now suggested by
-all commands that prompt for a project directory.
+*** Project commands now have their own history.
+Previously used project directories are now suggested by all commands
+that prompt for a project directory.
+
++++
+*** New prefix keymap 'project-prefix-map'.
+Key sequences that invoke project-related commands start with the
+prefix 'C-x p'.  Type "C-x p C-h" to show the full list.
 
 +++
 *** New commands 'project-dired', 'project-vc-dir', 'project-shell',
 'project-eshell'.  These commands run Dired/VC-Dir and Shell/Eshell in
 a project's root directory, respectively.
 
-*** New command 'project-compile', which runs compilation.
++++
+*** New command 'project-compile'.
+This command runs compilation in the current project's root
+directory.
 
 +++
 *** New command 'project-switch-project'.
 This command lets you "switch" to another project and run a project
 command chosen from a dispatch menu.
 
++++
 *** New user option 'project-list-file'.
 
 ** json.el
@@ -566,8 +576,8 @@ appropriate values for those two variables.  There are three guessing
 mechanisms so far: based on version control information of the current
 buffer's file, based on newsgroup/mail-folder name and several news
 and mail message headers in Gnus buffers, and based on IRC channel and
-server in rcirc buffers.  All mechanisms are extensible with custom
-rules, see the variables 'bug-reference-setup-from-vc-alist',
+network in rcirc and ERC buffers.  All mechanisms are extensible with
+custom rules, see the variables 'bug-reference-setup-from-vc-alist',
 'bug-reference-setup-from-mail-alist', and
 'bug-reference-setup-from-irc-alist'.
 

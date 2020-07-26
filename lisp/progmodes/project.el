@@ -37,11 +37,29 @@
 ;; current project, without having to know which package handles
 ;; detection of that project type, parsing its config files, etc.
 ;;
-;; Infrastructure:
+;; This file consists of following parts:
 ;;
-;; Function `project-current', to determine the current project
-;; instance, and 4 (at the moment) generic functions that act on it.
-;; This list is to be extended in future versions.
+;; Infrastructure (the public API):
+;;
+;; Function `project-current' that returns the current project
+;; instance based on the value of the hook `project-find-functions',
+;; and several generic functions that act on it.
+;;
+;; `project-root' must be defined for every project.
+;; `project-files' can be overridden for performance purposes.
+;; `project-ignores' and `project-external-roots' describe the project
+;; files and its relations to external directories.  `project-files'
+;; should be consistent with `project-ignores'.
+;;
+;; This list can change in future versions.
+;;
+;; VC project:
+;;
+;; Originally conceived as an example implementation, now it's a
+;; relatively fast backend that delegates to 'git ls-files' or 'hg
+;; status' to list the project's files.  It honors the VC ignore
+;; files, but supports additions to the list using the user option
+;; `project-vc-ignores' (usually through .dir-locals.el).
 ;;
 ;; Utils:
 ;;
@@ -50,9 +68,49 @@
 ;;
 ;; Commands:
 ;;
-;; `project-find-file', `project-find-regexp' and
-;; `project-or-external-find-regexp' use the current API, and thus
-;; will work in any project that has an adapter.
+;; `project-prefix-map' contains the full list of commands defined in
+;; this package.  This map uses the prefix `C-x p' by default.
+;; Type `C-x p f' to find file in the current project.
+;; Type `C-x p C-h' to see all available commands and bindings.
+;;
+;; All commands defined in this package are implemented using the
+;; public API only.  As a result, they will work with any project
+;; backend that follows the protocol.
+;;
+;; Any third-party code that wants to use this package should likewise
+;; target the public API.  Use any of the built-in commands as the
+;; example.
+;;
+;; How to create a new backend:
+;;
+;; - Consider whether you really should, or whether there are other
+;; ways to reach your goals.  If the backend's performance is
+;; significantly lower than that of the built-in one, and it's first
+;; in the list, it will affect all commands that use it.  Unless you
+;; are going to be using it only yourself or in special circumstances,
+;; you will probably want it to be fast, and it's unlikely to be a
+;; trivial endeavor.  `project-files' is the method to optimize (the
+;; default implementation gets slower the more files the directory
+;; has, and the longer the list of ignores is).
+;;
+;; - Choose the format of the value that represents a project for your
+;; backend (we call it project instance).  Don't use any of the
+;; formats from other backends.  The format can be arbitrary, as long
+;; as the datatype is something `cl-defmethod' can dispatch on.  The
+;; value should be stable (when compared with `equal') across
+;; invocations, meaning calls to that function from buffers belonging
+;; to the same project should return equal values.
+;;
+;; - Write a new function that will determine the current project
+;; based on the directory and add it to `project-find-functions'
+;; (which see) using `add-hook'. It is a good idea to depend on the
+;; directory only, and not on the current major mode, for example.
+;; Because the usual expectation is that all files in the directory
+;; belong to the same project (even if some/most of them are ignored).
+;;
+;; - Define new methods for some or all generic functions for this
+;; backend using `cl-defmethod'.  A `project-root' method is
+;; mandatory, `project-files' is recommended, the rest are optional.
 
 ;;; TODO:
 
@@ -139,7 +197,7 @@ of the project instance object."
             pr (project--find-in-directory directory))))
     (when maybe-prompt
       (if pr
-          (project--add-to-project-list-front pr)
+          (project-remember-project pr)
         (project--remove-from-project-list directory)
         (setq pr (cons 'transient directory))))
     pr))
@@ -517,6 +575,7 @@ DIRS must contain directory names."
 (defvar project-prefix-map
   (let ((map (make-sparse-keymap)))
     (define-key map "f" 'project-find-file)
+    (define-key map "F" 'project-or-external-find-file)
     (define-key map "b" 'project-switch-to-buffer)
     (define-key map "s" 'project-shell)
     (define-key map "d" 'project-dired)
@@ -526,6 +585,7 @@ DIRS must contain directory names."
     (define-key map "k" 'project-kill-buffers)
     (define-key map "p" 'project-switch-project)
     (define-key map "g" 'project-find-regexp)
+    (define-key map "G" 'project-or-external-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
     map)
   "Keymap for project commands.")
@@ -927,7 +987,8 @@ With some possible metadata (to be decided).")
       (pp project--list (current-buffer))
       (write-region nil nil filename nil 'silent))))
 
-(defun project--add-to-project-list-front (pr)
+;;;###autoload
+(defun project-remember-project (pr)
   "Add project PR to the front of the project list.
 Save the result in `project-list-file' if the list of projects has changed."
   (project--ensure-read-project-list)

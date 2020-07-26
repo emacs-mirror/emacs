@@ -2102,11 +2102,12 @@ and `face'."
 	(insert " "))
       (widget-put widget :children children))))
 
-(defun custom-magic-reset (widget)
+(defun custom-magic-reset (widget &optional buffer)
   "Redraw the :custom-magic property of WIDGET."
   (let ((magic (widget-get widget :custom-magic)))
     (when magic
-      (widget-value-set magic (widget-value magic)))))
+      (with-current-buffer (or buffer (current-buffer))
+        (widget-value-set magic (widget-value magic))))))
 
 ;;; The `custom' Widget.
 
@@ -2217,7 +2218,7 @@ and `face'."
       ;; commands like `M-u' (that work on a region in the buffer)
       ;; will upcase the wrong part of the buffer, since more text has
       ;; been inserted before point.
-      (run-with-idle-timer 0.0 nil #'custom-magic-reset widget)
+      (run-with-idle-timer 0.0 nil #'custom-magic-reset widget (current-buffer))
       (apply 'widget-default-notify widget args))))
 
 (defun custom-redraw (widget)

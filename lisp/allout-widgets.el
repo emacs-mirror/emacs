@@ -415,15 +415,17 @@ not altered with an escape sequence.")
 ;;;_   , Widget element formatting
 ;;;_    = allout-item-icon-keymap
 (defvar allout-item-icon-keymap
-  (let ((km (make-sparse-keymap)))
+  (let ((km (make-sparse-keymap))
+        (as-parent (if (current-local-map)
+                       (make-composed-keymap (current-local-map)
+                                             (current-global-map))
+                     (current-global-map))))
+    ;; The keymap parent is reset on the each local var when mode starts.
+    (set-keymap-parent km as-parent)
     (dolist (digit '("0" "1" "2" "3"
                      "4" "5" "6" "7" "8" "9"))
       (define-key km digit 'digit-argument))
     (define-key km "-" 'negative-argument)
-;;    (define-key km [(return)] 'allout-tree-expand-command)
-;;    (define-key km [(meta return)] 'allout-toggle-torso-command)
-;;    (define-key km [(down-mouse-1)] 'allout-item-button-click)
-;;    (define-key km [(down-mouse-2)] 'allout-toggle-torso-event-command)
     ;; Override underlying mouse-1 and mouse-2 bindings in icon territory:
     (define-key km [(mouse-1)] (lambda () (interactive) nil))
     (define-key km [(mouse-2)] (lambda () (interactive) nil))
@@ -433,17 +435,16 @@ not altered with an escape sequence.")
 
     km)
   "General tree-node key bindings.")
+(make-variable-buffer-local 'allout-item-icon-keymap)
 ;;;_    = allout-item-body-keymap
 (defvar allout-item-body-keymap
   (let ((km (make-sparse-keymap))
-        (local-map (current-local-map)))
-;;    (define-key km [(control return)] 'allout-tree-expand-command)
-;;    (define-key km [(meta return)] 'allout-toggle-torso-command)
-    ;; XXX We need to reset this per buffer's mode; we do so in
-    ;; allout-widgets-mode.
-    (if local-map
-        (set-keymap-parent km local-map))
-
+        (as-parent (if (current-local-map)
+                       (make-composed-keymap (current-local-map)
+                                             (current-global-map))
+                     (current-global-map))))
+    ;; The keymap parent is reset on the each local var when mode starts.
+    (set-keymap-parent km as-parent)
     km)
   "General key bindings for the text content of outline items.")
 (make-variable-buffer-local 'allout-item-body-keymap)
@@ -456,6 +457,7 @@ not altered with an escape sequence.")
     (set-keymap-parent km allout-item-icon-keymap)
     km)
   "Keymap used in the item cue area - the space between the icon and headline.")
+(make-variable-buffer-local 'allout-cue-span-keymap)
 ;;;_    = allout-escapes-category
 (defvar allout-escapes-category nil
   "Symbol for category of text property used to hide escapes of prefix-like
@@ -566,8 +568,13 @@ outline hot-spot navigation (see `allout-mode')."
         (add-to-invisibility-spec '(allout-torso . t))
         (add-to-invisibility-spec 'allout-escapes)
 
-        (if (current-local-map)
-            (set-keymap-parent allout-item-body-keymap (current-local-map)))
+        (let ((as-parent (if (current-local-map)
+                             (make-composed-keymap (current-local-map)
+                                                   (current-global-map))
+                           (current-global-map))))
+          (set-keymap-parent allout-item-body-keymap as-parent)
+          ;; allout-cue-span-keymap uses allout-item-icon-keymap as parent.
+          (set-keymap-parent allout-item-icon-keymap as-parent))
 
         (add-hook 'allout-exposure-change-functions
                   'allout-widgets-exposure-change-recorder nil 'local)
@@ -677,7 +684,7 @@ outline hot-spot navigation (see `allout-mode')."
   (setplist 'allout-cue-span-category nil)
   (put 'allout-cue-span-category 'evaporate t)
   (put 'allout-cue-span-category
-       'modification-hooks '(allout-body-modification-handler))
+       'modification-hooks '(allout-graphics-modification-handler))
   (put 'allout-cue-span-category 'local-map allout-cue-span-keymap)
   (put 'allout-cue-span-category 'mouse-face widget-button-face)
   (put 'allout-cue-span-category 'pointer 'arrow)
@@ -988,6 +995,7 @@ Generally invoked via `allout-exposure-change-functions'."
         ;; have to distinguish between concealing and exposing so that, eg,
         ;; `allout-expose-topic's mix is handled properly.
         handled-expose
+        handled-conceal
         covered
         deactivate-mark)
 
@@ -1594,7 +1602,10 @@ We return the item-widget corresponding to the item at point."
       (if is-container
           (progn (widget-put item-widget :is-container t)
                  (setq reverse-siblings-chart (list 1)))
-        (goto-char (widget-apply parent :actual-position :from))
+        (let ((parent-position (widget-apply parent
+                                             :actual-position :from)))
+          (when parent-position
+            (goto-char parent-position)))
         (if (widget-get parent :is-container)
             ;; `allout-goto-prefix' will go to first non-container item:
             (allout-goto-prefix)
@@ -1994,8 +2005,7 @@ reapplying this method will rectify the glyphs."
   ;; NOTE: most of the cue-area
 
   (when (not (widget-get item-widget :is-container))
-    (let* ((cue-start (or (widget-get item-widget :distinctive-end)
-                          (widget-get item-widget :icon-end)))
+    (let* ((cue-start (widget-get item-widget :icon-end))
            (body-start (widget-get item-widget :body-start))
            ;(expanded (widget-get item-widget :expanded))
            ;(has-subitems (widget-get item-widget :has-subitems))
@@ -2050,19 +2060,22 @@ Optional FORCE means force reassignment of the region property."
 ;;;_   > allout-widgets-undecorate-region (start end)
 (defun allout-widgets-undecorate-region (start end)
   "Eliminate widgets and decorations for all items in region from START to END."
-  (let ((next start)
-        widget)
+  (let (done next widget
+        (end (or end (point-max))))
     (save-excursion
       (goto-char start)
-      (while (<  (setq next (next-single-char-property-change next
-                                                              'display
-                                                              (current-buffer)
-                                                              end))
-                 end)
-        (goto-char next)
-        (when (setq widget (allout-get-item-widget))
-          ;; if the next-property/overly progression got us to a widget:
-          (allout-widgets-undecorate-item widget t))))))
+      (while (not done)
+        (when (and (allout-on-current-heading-p)
+                   (setq widget (allout-get-item-widget)))
+            (if widget
+                (allout-widgets-undecorate-item widget t)))
+        (goto-char (setq next
+                         (next-single-char-property-change (point)
+                                                           'display
+                                                           (current-buffer)
+                                                           end)))
+        (if (>= next end)
+            (setq done t))))))
 ;;;_   > allout-widgets-undecorate-text (text)
 (defun allout-widgets-undecorate-text (text)
   "Eliminate widgets and decorations for all items in TEXT."
@@ -2389,7 +2402,7 @@ The elements of LIST are not copied, just the list structure itself."
 ;;;_ : provide
 (provide 'allout-widgets)
 
-;;;_. Local emacs vars.
-;;;_ , Local variables:
-;;;_ , allout-layout: (-1 : 0)
-;;;_ , End:
+;;;_ . Local emacs vars.
+;;;_  , Local variables:
+;;;_  , allout-layout: (-1 : 0)
+;;;_  , End:

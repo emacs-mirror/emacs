@@ -1584,7 +1584,9 @@ sequences}, with the @code{escape-glyph} face.  For instance,
 character code @code{U+0098} (octal 230) is displayed as @samp{\230}.
 If you change the buffer-local variable @code{ctl-arrow} to
 @code{nil}, the @acronym{ASCII} control characters are also displayed
-as octal escape sequences instead of caret escape sequences.
+as octal escape sequences instead of caret escape sequences.  (You can
+also request that raw bytes be shown in hex, @pxref{Display Custom,
+display-raw-bytes-as-hex}.)
 
 @vindex nobreak-char-display
 @cindex non-breaking space

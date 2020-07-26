@@ -1680,8 +1680,14 @@ If RECURSIVE, search recursively."
 		    (t (y-or-n-p
 			(format "Decrypt (S/MIME) part? "))))
 		   (mm-view-pkcs7 parts from))
-	  (goto-char (point-min))
-	  (insert "Content-type: text/plain\n\n")
+	  ;; Normally there will be a Content-type header here, but
+	  ;; some mailers don't add that to the encrypted part, which
+	  ;; makes the subsequent re-dissection fail here.
+	  (save-restriction
+	    (mail-narrow-to-head)
+	    (unless (mail-fetch-field "content-type")
+	      (goto-char (point-max))
+	      (insert "Content-type: text/plain\n\n")))
 	  (setq parts (mm-dissect-buffer t)))))
      ((equal subtype "signed")
       (unless (and (setq protocol

@@ -2012,9 +2012,11 @@ without a visible progress reporter."
      (tramp-message ,vec ,level "%s..." ,message)
      (let ((cookie "failed")
            (tm
-            ;; We start a pulsing progress reporter after 3
-            ;; seconds. Display only when there is a minimum level.
-	    (when-let ((pr (and (<= ,level (min tramp-verbose 3))
+            ;; We start a pulsing progress reporter after 3 seconds.
+            ;; Start only when there is no other progress reporter
+            ;; running, and when there is a minimum level.
+	    (when-let ((pr (and (null tramp-inhibit-progress-reporter)
+				(<= ,level (min tramp-verbose 3))
 				(make-progress-reporter ,message nil nil))))
 	      (run-at-time 3 0.1 #'tramp-progress-reporter-update pr))))
        (unwind-protect
