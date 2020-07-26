@@ -613,6 +613,7 @@ DIRS must contain directory names."
   (let* ((key (read-key-sequence-vector nil t))
          (place-cmd (lookup-key map key))
          (generic-cmd (lookup-key project-prefix-map key))
+         (switch-to-buffer-obey-display-actions t)
          (display-buffer-overriding-action (unless place-cmd action)))
     (if-let ((cmd (or place-cmd generic-cmd)))
         (call-interactively cmd)
