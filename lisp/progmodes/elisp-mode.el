@@ -280,9 +280,9 @@ Blank lines separate paragraphs.  Semicolons start comments.
                           electric-pair-text-pairs))
     (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
   (add-hook 'eldoc-documentation-functions
-            #'elisp-eldoc-var-docstring nil t)
-  (add-hook 'eldoc-documentation-functions
             #'elisp-eldoc-funcall nil t)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-var-docstring nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
