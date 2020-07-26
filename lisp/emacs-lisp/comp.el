@@ -417,6 +417,16 @@ structure.")
 
 
 
+(defun comp-ensure-native-compiler ()
+  "Make sure Emacs has native compiler support and libgccjit is laodable.
+Raise and error otherwise.
+To be used by all entry points."
+  (cond
+   ((null (boundp 'comp-ctxt))
+    (error "Emacs not compiled with native compiler support (--with-nativecomp)"))
+   ((null (native-comp-available-p))
+    (error "Cannot find libgccjit"))))
+
 (defsubst comp-set-op-p (op)
   "Assignment predicate for OP."
   (when (memq op comp-limple-sets) t))
@@ -2652,6 +2662,7 @@ FUNCTION-OR-FILE is a function symbol or a path to an Elisp file.
 When WITH-LATE-LOAD non Nil mark the compilation unit for late load
 once finished compiling (internal use only).
 Return the compilation unit file name."
+  (comp-ensure-native-compiler)
   (unless (or (functionp function-or-file)
               (stringp function-or-file))
     (signal 'native-compiler-error
@@ -2687,6 +2698,7 @@ Return the compilation unit file name."
 (defun batch-native-compile ()
   "Run `native-compile' on remaining command-line arguments.
 Ultra cheap impersonation of `batch-byte-compile'."
+  (comp-ensure-native-compiler)
   (cl-loop for file in command-line-args-left
            if (or (null byte-native-for-bootstrap)
                   (cl-notany (lambda (re) (string-match re file))
@@ -2699,6 +2711,7 @@ Ultra cheap impersonation of `batch-byte-compile'."
 (defun batch-byte-native-compile-for-bootstrap ()
   "As `batch-byte-compile' but used for booststrap.
 Always generate elc files too and handle native compiler expected errors."
+  (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLE") "1")
       (batch-byte-compile)
     (cl-assert (= 1 (length command-line-args-left)))
@@ -2721,6 +2734,7 @@ PATHS is one path or a list of paths to files or directories.
 run simultaneously.  If RECURSIVELY, recurse into subdirectories
 of given directories.
 LOAD can be nil t or 'late."
+  (comp-ensure-native-compiler)
   (unless (member load '(nil t late))
     (error "LOAD must be nil t or 'late"))
   (unless (listp paths)
