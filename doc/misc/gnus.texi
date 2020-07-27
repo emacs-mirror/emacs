@@ -402,6 +402,7 @@ This manual corresponds to Gnus v5.13
 @end iftex
 
 @menu
+* Don't Panic::              Your first 20 minutes with Gnus.
 * Starting Up::              Finding news can be a pain.
 * Group Buffer::             Selecting, subscribing and killing groups.
 * Summary Buffer::           Reading, saving and posting articles.
@@ -946,6 +947,140 @@ Emacs for Heathens
 
 @end detailmenu
 @end menu
+
+@node Don't Panic
+@chapter Don't Panic
+@cindex don't panic
+@cindex introduction to Gnus
+
+Welcome, gentle user, to the Gnus newsreader and email client!  Gnus
+is unlike most clients, in part because of its endless
+configurability, in part because of its historical origins.  Gnus is
+now a fully-featured email client, but it began life as a Usenet-style
+newsreader, and its genes are still newsreader genes.  Thus it behaves
+a little differently than most mail clients.
+
+The typical assumptions of a newsreader are:
+
+@enumerate
+@item
+The server offers a potentially enormous number of newsgroups on a
+variety of subjects.  The user may only be interested in some of those
+groups, and more interested in some than others.
+@item
+Many groups see a high volume of articles, and the user won't want to
+read all of them.  Mechanisms are needed for foregrounding interesting
+articles, and backgrounding uninteresting articles.
+@item
+Once a group has been scanned and dealt with by the user, it's
+unlikely to be of further interest until new articles come in.
+@end enumerate
+
+These assumptions lead to certain default Gnus behaviors:
+
+@enumerate
+@item
+Not all interesting groups are equally interesting, thus groups have
+varying degrees of ``subscribedness'', with different behavior
+depending on ``how subscribed'' a group is.
+@item
+There are many commands and tools for scoring and sorting articles,
+or otherwise sweeping them under the rug.
+@item
+Gnus will only show you groups with unread or ticked articles;
+groups with no new articles are hidden.
+@item
+When entering a group, only unread or ticked articles are shown,
+all other articles are hidden.
+@end enumerate
+
+If this seems draconian, think of it as Automatic Inbox Zero.  This is
+the way Gnus works by default.  It is possible to make it work more
+like an email client (always showing read groups and read articles),
+but that takes some effort on the part of the user.
+
+The brief introduction below should be enough to get you off the
+ground.
+
+@heading The Basics of Servers, Groups, and Articles
+@cindex servers
+@cindex groups
+@cindex articles
+
+The fundamental building blocks of Gnus are @dfn{servers},
+@dfn{groups}, and @dfn{articles}.  Servers can be local or remote.
+Each server maintains a list of groups, and those groups contain
+articles.  Because Gnus presents a unified interface to a wide variety
+of servers, the vocabulary doesn't always quite line up (see @ref{FAQ
+- Glossary}, for a more complete glossary).  Thus a local maildir is
+referred to as a ``server'' (@pxref{Finding the News}) the same as a
+Usenet or IMAP server is; ``groups'' (@pxref{Group Buffer}) might mean
+an NNTP group, IMAP folder, or local mail directory; and an
+``article'' (@pxref{Summary Buffer}) might elsewhere be known as a
+message or an email.  Gnus employs unified terms for all these things.
+
+Servers fall into two general categories: ``news-like'', meaning that
+the articles are part of a public archive and can't be manipulated by
+the user; and ``mail-like'', meaning that the articles are owned by
+the user, who can freely edit them, move them around, and delete
+them.
+
+For news-like servers, which typically offer hundreds or thousands of
+groups, it's important to be able to subscribe to a subset of those
+groups.  For mail-like servers, the user is generally automatically
+subscribed to all groups (though IMAP, for example, also allows
+selective subscription).  To change group subscription, enter the
+Server buffer (with @kbd{^}) and press @kbd{@key{RET}} on the server
+in question.  From here, Gnus provides commands to change or toggle
+your group subscriptions (@pxref{Browse Foreign Server}).
+
+A Gnus installation is basically just a list of one or more servers,
+plus the user's subscribed groups from those servers, plus articles in
+those groups.
+
+Servers can be added and configured in two places: in the user's
+gnus.el startup file, using the @code{gnus-select-method} and
+@code{gnus-secondary-select-methods} options, or within Gnus itself
+using interactive commands in the Server buffer.  @xref{Finding
+the News}, for details.
+
+
+@heading Fetching Mail
+
+New mail has to come from somewhere.  Some servers, such as NNTP or
+IMAP, are themselves responsible for fetching newly-arrived articles.
+Others, such as maildir or mbox servers, only store articles and don't
+fetch them from anywhere.
+
+In the latter case, Gnus provides for @code{mail sources}: places
+where new mail is fetched from.  A mail source might be a local spool,
+or a remote POP server, or some other source of incoming articles.
+Mail sources are usually configured globally, but can be specified
+per-group (@pxref{Mail Sources} for more information).
+
+@xref{Scanning New Messages}, for details on fetching new mail.
+
+@heading Viewing Mail
+
+By default, Gnus's Group buffer only displays groups with unread
+articles.  It is always possible to display all the groups temporarily
+with @kbd{L}, and to configure Gnus to always display some groups
+(@pxref{Listing Groups}).
+
+@xref{Selecting a Group}, for how to enter a group, and @pxref{Summary
+Buffer} for what to do once you're there.
+
+@heading Sending Mail
+
+New message composition can be initiated from the Group buffer
+(@pxref{Misc Group Stuff}).  If you're in a Summary buffer, you can
+compose replies and forward emails in addition to starting new
+messages, see @ref{Summary Mail Commands}, for details.
+
+For information about what happens once you've started composing a
+message, see @ref{Composing Messages}.  For information on setting up
+@acronym{SMTP} servers in particular, see @ref{Mail Variables, ,Mail
+Variables,message,Message manual}.
 
 @node Starting Up
 @chapter Starting Gnus
