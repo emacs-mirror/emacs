@@ -391,13 +391,6 @@
 	   (and (nth 1 form)
 		(not for-effect)
 		form))
-	  ((eq (car-safe fn) 'lambda)
-	   (let ((newform (byte-compile-unfold-lambda form)))
-	     (if (eq newform form)
-		 ;; Some error occurred, avoid infinite recursion
-		 form
-	       (byte-optimize-form-code-walker newform for-effect))))
-	  ((eq (car-safe fn) 'closure) form)
 	  ((memq fn '(let let*))
 	   ;; recursively enter the optimizer for the bindings and body
 	   ;; of a let or let*.  This for depth-firstness: forms that
@@ -443,13 +436,6 @@
 	   ;; This can turn (save-excursion ...) into (save-excursion) which
 	   ;; will be optimized away in the lap-optimize pass.
 	   (cons fn (byte-optimize-body (cdr form) for-effect)))
-
-	  ((eq fn 'with-output-to-temp-buffer)
-	   ;; this is just like the above, except for the first argument.
-	   (cons fn
-	     (cons
-	      (byte-optimize-form (nth 1 form) nil)
-	      (byte-optimize-body (cdr (cdr form)) for-effect))))
 
 	  ((eq fn 'if)
 	   (when (< (length form) 3)
@@ -529,6 +515,15 @@
 
           ;; Needed as long as we run byte-optimize-form after cconv.
           ((eq fn 'internal-make-closure) form)
+
+	  ((eq (car-safe fn) 'lambda)
+	   (let ((newform (byte-compile-unfold-lambda form)))
+	     (if (eq newform form)
+		 ;; Some error occurred, avoid infinite recursion
+		 form
+	       (byte-optimize-form-code-walker newform for-effect))))
+
+	  ((eq (car-safe fn) 'closure) form)
 
           ((byte-code-function-p fn)
            (cons fn (mapcar #'byte-optimize-form (cdr form))))
