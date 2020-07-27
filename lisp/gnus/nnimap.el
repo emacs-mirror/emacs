@@ -1670,8 +1670,7 @@ If LIMIT, first try to limit the search to the N last articles."
 	  (when (and active
 		     recent
 		     (> (car (last recent)) (cdr active)))
-	    (push (list (cons (gnus-group-real-name group) 0))
-		  nnmail-split-history)))
+	    (push (list (cons group 0)) nnmail-split-history)))
 	;; Note the active level for the next run-through.
 	(gnus-group-set-parameter info 'active (gnus-active group))
 	(gnus-group-set-parameter info 'uidvalidity uidvalidity)

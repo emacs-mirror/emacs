@@ -1749,7 +1749,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			  (nreverse (nnmail-article-group artnum-func))))))
     ;; Add the group-art list to the history list.
     (if group-art
-	(push group-art nnmail-split-history)
+	;; We need to get the unique Gnus group name for this article
+	;; -- there may be identically named groups from several
+	;; backends.
+	(push (cons (gnus-group-prefixed-name (car group-art)
+					      gnus-command-method)
+		    (cdr group-art))
+	      nnmail-split-history)
       (delete-region (point-min) (point-max)))))
 
 ;;; Get new mail.

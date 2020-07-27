@@ -7311,7 +7311,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
     (when gnus-use-cache
       (gnus-cache-write-active))
     ;; Remove entries for this group.
-    (nnmail-purge-split-history (gnus-group-real-name group))
+    (nnmail-purge-split-history group)
     ;; Make all changes in this group permanent.
     (unless quit-config
       (gnus-run-hooks 'gnus-exit-group-hook)
