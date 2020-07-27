@@ -1,4 +1,4 @@
-;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
+;;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-1997, 2001-2020 Free Software Foundation, Inc.
 
