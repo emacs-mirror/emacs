@@ -999,7 +999,7 @@ This function uses `display-buffer-other-frame' as a subroutine,
 which see for how it is determined where the buffer will be
 displayed."
   (interactive (list (project--read-project-buffer)))
-  (display-buffer-other-frame buffer))
+  (display-buffer-other-frame buffer-or-name))
 
 (defcustom project-kill-buffers-ignores
   '("\\*Help\\*")
