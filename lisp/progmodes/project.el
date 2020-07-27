@@ -568,6 +568,13 @@ DIRS must contain directory names."
   ;; Sidestep the issue of expanded/abbreviated file names here.
   (cl-set-difference files dirs :test #'file-in-directory-p))
 
+(defun project--value-in-dir (var dir)
+  (with-temp-buffer
+    (setq default-directory dir)
+    (let ((enable-local-variables :all))
+      (hack-dir-local-variables-non-file-buffer))
+    (symbol-value var)))
+
 
 ;;; Project commands
 
@@ -659,13 +666,6 @@ The following commands are available:
   (project--other-place-command '((display-buffer-in-new-tab))))
 
 ;;;###autoload (define-key tab-prefix-map "p" #'project-other-tab-command)
-
-(defun project--value-in-dir (var dir)
-  (with-temp-buffer
-    (setq default-directory dir)
-    (let ((enable-local-variables :all))
-      (hack-dir-local-variables-non-file-buffer))
-    (symbol-value var)))
 
 (declare-function grep-read-files "grep")
 (declare-function xref--show-xrefs "xref")
