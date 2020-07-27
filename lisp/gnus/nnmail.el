@@ -1752,9 +1752,11 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	;; We need to get the unique Gnus group name for this article
 	;; -- there may be identically named groups from several
 	;; backends.
-	(push (cons (gnus-group-prefixed-name (car group-art)
-					      gnus-command-method)
-		    (cdr group-art))
+	(push (mapcar
+	       (lambda (ga)
+		 (cons (gnus-group-prefixed-name (car ga) gnus-command-method)
+		       (cdr ga)))
+	       group-art)
 	      nnmail-split-history)
       (delete-region (point-min) (point-max)))))
 
