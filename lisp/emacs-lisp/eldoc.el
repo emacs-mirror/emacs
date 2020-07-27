@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.7.0
+;; Version: 1.8.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -229,11 +229,15 @@ expression point is on." :lighter eldoc-minor-mode-string
 (defun eldoc--eval-expression-setup ()
   ;; Setup `eldoc', similar to `emacs-lisp-mode'.  FIXME: Call
   ;; `emacs-lisp-mode' itself?
-  (add-hook 'eldoc-documentation-functions
-            #'elisp-eldoc-var-docstring nil t)
-  (add-hook 'eldoc-documentation-functions
-            #'elisp-eldoc-funcall nil t)
-  (setq eldoc-documentation-strategy 'eldoc-documentation-default)
+  (cond ((<= emacs-major-version 27)
+         (declare-function elisp-eldoc-documentation-function "elisp-mode")
+         (add-function :before-until (local 'eldoc-documentation-function)
+                       #'elisp-eldoc-documentation-function))
+        (t (add-hook 'eldoc-documentation-functions
+                     #'elisp-eldoc-var-docstring nil t)
+           (add-hook 'eldoc-documentation-functions
+                     #'elisp-eldoc-funcall nil t)
+           (setq eldoc-documentation-strategy 'eldoc-documentation-default)))
   (eldoc-mode +1))
 
 ;;;###autoload
