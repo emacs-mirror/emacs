@@ -212,6 +212,8 @@ files.")
     ("Carlos Pita" "memeplex")
     ("Vinicius Jose Latorre" "viniciusjl")
     ("Gaby Launay" "galaunay")
+    ("Alex Gramiak" "alex")
+    ("Dick R. Chiang" "dickmao")
     )
   "Alist of author aliases.
 
@@ -473,6 +475,9 @@ Changes to files matching one of the regexps in this list are not listed.")
     ;; Replaced by lisp/thread.el
     "lisp/emacs-lisp/thread-list.el"
     "etc/images/slash.bmp"
+    "src/mini-gmp-emacs.c"
+    "lib/dosname.h"
+    "lib/putenv.c"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -877,7 +882,9 @@ Changes to files in this list are not listed.")
     "library-of-babel.org"
     "flymake-elisp.el"
     "flymake-ui.el"
-    "pinentry.el")
+    "pinentry.el"
+    "ledit.el"
+    "lmenu.el")
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
 
@@ -1119,6 +1126,8 @@ in the repository.")
     ("gnus-news.texi" . "doc/misc/gnus.texi")
     ("lisp/multifile.el". "lisp/fileloop.el")
     ("lisp/emacs-lisp/thread.el". "lisp/thread.el")
+    ("src/mini-gmp.c" . "lib/mini-gmp.c")
+    ("src/mini-gmp.h" . "lib/mini-gmp.h")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
