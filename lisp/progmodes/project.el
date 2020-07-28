@@ -1001,16 +1001,51 @@ displayed."
   (interactive (list (project--read-project-buffer)))
   (display-buffer-other-frame buffer-or-name))
 
-(defcustom project-kill-buffers-ignores
-  '("\\*Help\\*")
-  "Conditions for buffers `project-kill-buffers' should not kill.
-Each condition is either a regular expression matching a buffer
-name, or a predicate function that takes a buffer object as
-argument and returns non-nil if it matches.  Buffers that match
-any of the conditions will not be killed."
-  :type '(repeat (choice regexp function))
+(defcustom project-kill-buffer-conditions
+  '(buffer-file-name    ; All file-visiting buffers are included.
+    ;; Most of the temp buffers in the background:
+    (major-mode . fundamental-mode)
+    ;; non-text buffer such as xref, occur, vc, log, ...
+    (and (derived-mode . special-mode)
+         (not (major-mode . help-mode)))
+    (derived-mode . compilation-mode)
+    (derived-mode . dired-mode)
+    (derived-mode . diff-mode))
+  "List of conditions to kill buffers related to a project.
+This list is used by `project-kill-buffers'.
+Each condition is either:
+- a regular expression, to match a buffer name,
+- a predicate function that takes a buffer object as argument
+  and returns non-nil if the buffer should be killed,
+- a cons-cell, where the car describes how to interpret the cdr.
+  The car can be one of the following:
+  * `major-mode': the buffer is killed if the buffer's major
+    mode is eq to the cons-cell's cdr
+  * `defived-mode': the buffer is killed if the buffer's major
+    mode is derived from the major mode denoted by the cons-cell's
+    cdr
+  * `not': the cdr is interpreted as a negation of a condition.
+  * `and': the cdr is a list of recursive conditions, that all have
+    to be met.
+  * `or': the cdr is a list of recursive conditions, of which at
+    least one has to be met.
+
+If any of these conditions are satified for a buffer in the
+current project, it will be killed."
+  :type '(repeat (choice regexp function symbol
+                         (cons :tag "Major mode"
+                               (const major-mode) symbol)
+                         (cons :tag "Derived mode"
+                               (const derived-mode) symbol)
+                         (cons :tag "Negation"
+                               (const not) sexp)
+                         (cons :tag "Conjunction"
+                               (const and) sexp)
+                         (cons :tag "Disjunction"
+                               (const or) sexp)))
   :version "28.1"
-  :package-version '(project . "0.5.0"))
+  :group 'project
+  :package-version '(project . "0.6.0"))
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
@@ -1022,26 +1057,66 @@ any of the conditions will not be killed."
         (push buf bufs)))
     (nreverse bufs)))
 
-;;;###autoload
-(defun project-kill-buffers ()
-  "Kill all live buffers belonging to the current project.
-Two buffers belong to the same project if their project instances,
-as reported by `project-current' in each buffer, are identical.
-Certain buffers may be \"spared\", see `project-kill-buffers-ignores'."
-  (interactive)
-  (let ((pr (project-current t)) bufs)
+(defun project--kill-buffer-check (buf conditions)
+  "Check if buffer BUF matches any element of the list CONDITIONS.
+See `project-kill-buffer-conditions' for more details on the form
+of CONDITIONS."
+  (catch 'kill
+    (dolist (c conditions)
+      (when (cond
+             ((stringp c)
+              (string-match-p c (buffer-name buf)))
+             ((symbolp c)
+              (funcall c buf))
+             ((eq (car-safe c) 'major-mode)
+              (eq (buffer-local-value 'major-mode buf)
+                  (cdr c)))
+             ((eq (car-safe c) 'derived-mode)
+              (provided-mode-derived-p
+               (buffer-local-value 'major-mode buf)
+               (cdr c)))
+             ((eq (car-safe c) 'not)
+              (not (project--kill-buffer-check buf (cdr c))))
+             ((eq (car-safe c) 'or)
+              (project--kill-buffer-check buf (cdr c)))
+             ((eq (car-safe c) 'and)
+              (seq-every-p
+               (apply-partially #'project--kill-buffer-check
+                                buf)
+               (mapcar #'list (cdr c)))))
+        (throw 'kill t)))))
+
+(defun project--buffers-to-kill (pr)
+  "Return list of buffers in project PR to kill.
+What buffers should or should not be killed is described
+in `project-kill-buffer-conditions'."
+  (let (bufs)
     (dolist (buf (project--buffer-list pr))
-      (unless (seq-some
-               (lambda (c)
-                 (cond ((stringp c)
-                        (string-match-p c (buffer-name buf)))
-                       ((functionp c)
-                        (funcall c buf))))
-               project-kill-buffers-ignores)
+      (when (project--kill-buffer-check buf project-kill-buffer-conditions)
         (push buf bufs)))
-    (when (yes-or-no-p (format "Kill %d buffers in %s? "
-                               (length bufs) (project-root pr)))
-      (mapc #'kill-buffer bufs))))
+    bufs))
+
+;;;###autoload
+(defun project-kill-buffers (&optional no-confirm)
+  "Kill the buffers belonging to the current project.
+Two buffers belong to the same project if their project
+instances, as reported by `project-current' in each buffer, are
+identical.  Only the buffers that match a condition in
+`project-kill-buffer-conditions' will be killed.  If NO-CONFIRM
+is non-nil, the command will not ask the user for confirmation.
+NO-CONFIRM is always nil when the command is invoked
+interactivly."
+  (interactive)
+  (let* ((pr (project-current t))
+         (bufs (project--buffers-to-kill pr)))
+    (cond (no-confirm
+           (mapc #'kill-buffer bufs))
+          ((null bufs)
+           (message "No buffers to kill"))
+          ((yes-or-no-p (format "Kill %d buffers in %s? "
+                                (length bufs)
+                                (project-root pr)))
+           (mapc #'kill-buffer bufs)))))
 
 
 ;;; Project list
