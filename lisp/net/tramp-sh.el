@@ -4093,79 +4093,53 @@ file exists and nonzero exit status otherwise."
 
 (defun tramp-open-shell (vec shell)
   "Open shell SHELL."
+  ;; Find arguments for this shell.
   (with-tramp-progress-reporter
       vec 5 (format-message "Opening remote shell `%s'" shell)
-    ;; Find arguments for this shell.
-    (let ((extra-args (tramp-get-sh-extra-args shell))
-	  (p (tramp-get-connection-process vec)))
-      ;; The readline library can disturb Tramp.  For example, the
-      ;; very recent version of libedit, the *BSD implementation of
-      ;; readline, confuses Tramp.  So we disable line editing.  Since
-      ;; $EDITRC is not supported on all target systems, we must move
-      ;; ~/.editrc temporarily somewhere else.  For bash and zsh we
-      ;; have disabled this already during shell invocation, see
-      ;; `tramp-sh-extra-args' (Bug#39399).
-      ;; The shell prompt might not be set yet, so we must read any
-      ;; prompt via `tramp-barf-if-no-shell-prompt'.
-      (unless extra-args
-	(tramp-send-command vec "rm -f ~/.editrc.tramp" t t)
-	(tramp-barf-if-no-shell-prompt p 10 "Couldn't find remote shell prompt")
-	(tramp-send-command
-	 vec "test -e ~/.editrc && mv -f ~/.editrc ~/.editrc.tramp" t t)
-	(tramp-barf-if-no-shell-prompt p 10 "Couldn't find remote shell prompt")
-	(tramp-send-command vec "echo 'edit off' >~/.editrc" t t)
-	(tramp-barf-if-no-shell-prompt
-	 p 10 "Couldn't find remote shell prompt"))
-      ;; It is useful to set the prompt in the following command
-      ;; because some people have a setting for $PS1 which /bin/sh
-      ;; doesn't know about and thus /bin/sh will display a strange
-      ;; prompt.  For example, if $PS1 has "${CWD}" in the value, then
-      ;; ksh will display the current working directory but /bin/sh
-      ;; will display a dollar sign.  The following command line sets
-      ;; $PS1 to a sane value, and works under Bourne-ish shells as
-      ;; well as csh-like shells.  We also unset the variable $ENV
-      ;; because that is read by some sh implementations (eg, bash
-      ;; when called as sh) on startup; this way, we avoid the startup
-      ;; file clobbering $PS1.  $PROMPT_COMMAND is another way to set
-      ;; the prompt in /bin/bash, it must be discarded as well.
-      ;; $HISTFILE is set according to `tramp-histfile-override'.
-      ;; $TERM and $INSIDE_EMACS set here to ensure they have the
-      ;; correct values when the shell starts, not just processes
-      ;; run within the shell.  (Which processes include our
-      ;; initial probes to ensure the remote shell is usable.)
-      (tramp-send-command
-       vec (format
-	    (concat
-	     "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
-	     "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s")
-            tramp-terminal-type
-            (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
-            (or (getenv-internal "ENV" tramp-remote-process-environment) "")
-	    (if (stringp tramp-histfile-override)
-		(format "HISTFILE=%s"
-			(tramp-shell-quote-argument tramp-histfile-override))
-	      (if tramp-histfile-override
-		  "HISTFILE='' HISTFILESIZE=0 HISTSIZE=0"
-		""))
-	    (tramp-shell-quote-argument tramp-end-of-output)
-	    shell (or extra-args ""))
-       t)
-      ;; Reset ~/.editrc.
-      (unless extra-args
-	(tramp-send-command vec "rm -f ~/.editrc" t)
-	(tramp-send-command
-	 vec "test -e ~/.editrc.tramp && mv -f ~/.editrc.tramp ~/.editrc" t))
-      ;; Check proper HISTFILE setting.  We give up when not working.
-      (when (and (stringp tramp-histfile-override)
-		 (file-name-directory tramp-histfile-override))
-	(tramp-barf-unless-okay
-	 vec
-	 (format
-	  "(cd %s)"
-	  (tramp-shell-quote-argument
-	   (file-name-directory tramp-histfile-override)))
-	 "`tramp-histfile-override' uses invalid file `%s'"
-	 tramp-histfile-override)))
+    ;; It is useful to set the prompt in the following command because
+    ;; some people have a setting for $PS1 which /bin/sh doesn't know
+    ;; about and thus /bin/sh will display a strange prompt.  For
+    ;; example, if $PS1 has "${CWD}" in the value, then ksh will
+    ;; display the current working directory but /bin/sh will display
+    ;; a dollar sign.  The following command line sets $PS1 to a sane
+    ;; value, and works under Bourne-ish shells as well as csh-like
+    ;; shells.  We also unset the variable $ENV because that is read
+    ;; by some sh implementations (eg, bash when called as sh) on
+    ;; startup; this way, we avoid the startup file clobbering $PS1.
+    ;; $PROMPT_COMMAND is another way to set the prompt in /bin/bash,
+    ;; it must be discarded as well.  $HISTFILE is set according to
+    ;; `tramp-histfile-override'.  $TERM and $INSIDE_EMACS set here to
+    ;; ensure they have the correct values when the shell starts, not
+    ;; just processes run within the shell.  (Which processes include
+    ;; our initial probes to ensure the remote shell is usable.)
+    (tramp-send-command
+     vec (format
+	  (concat
+	   "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
+	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s")
+          tramp-terminal-type
+          (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
+          (or (getenv-internal "ENV" tramp-remote-process-environment) "")
+	  (if (stringp tramp-histfile-override)
+	      (format "HISTFILE=%s"
+		      (tramp-shell-quote-argument tramp-histfile-override))
+	    (if tramp-histfile-override
+		"HISTFILE='' HISTFILESIZE=0 HISTSIZE=0"
+	      ""))
+	  (tramp-shell-quote-argument tramp-end-of-output)
+	  shell (or (tramp-get-sh-extra-args shell) ""))
+     t)
+    ;; Check proper HISTFILE setting.  We give up when not working.
+    (when (and (stringp tramp-histfile-override)
+	       (file-name-directory tramp-histfile-override))
+      (tramp-barf-unless-okay
+       vec
+       (format
+	"(cd %s)"
+	(tramp-shell-quote-argument
+	 (file-name-directory tramp-histfile-override)))
+       "`tramp-histfile-override' uses invalid file `%s'"
+       tramp-histfile-override))
 
     (tramp-set-connection-property
      (tramp-get-connection-process vec) "remote-shell" shell)))
@@ -4236,9 +4210,16 @@ process to set up.  VEC specifies the connection."
   (let ((tramp-end-of-output tramp-initial-end-of-output)
 	(case-fold-search t))
     (tramp-open-shell vec (tramp-get-method-parameter vec 'tramp-remote-shell))
+    (tramp-message vec 5 "Setting up remote shell environment")
+
+    ;; Disable line editing.
+    (tramp-send-command vec "set +o vi +o emacs" t)
+
+    ;; Dump option settings in the traces.
+    (when (>= tramp-verbose 9)
+      (tramp-send-command vec "set -o" t))
 
     ;; Disable echo expansion.
-    (tramp-message vec 5 "Setting up remote shell environment")
     (tramp-send-command
      vec "stty -inlcr -onlcr -echo kill '^U' erase '^H'" t)
     ;; Check whether the echo has really been disabled.  Some
@@ -4311,8 +4292,6 @@ process to set up.  VEC specifies the connection."
 	(set-process-coding-system proc cs-decode cs-encode)
 	(tramp-message
 	 vec 5 "Setting coding system to `%s' and `%s'" cs-decode cs-encode)))
-
-    (tramp-send-command vec "set +o vi +o emacs" t)
 
     ;; Check whether the remote host suffers from buggy
     ;; `send-process-string'.  This is known for FreeBSD (see comment
