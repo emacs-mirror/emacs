@@ -2031,7 +2031,7 @@ permissions.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object encoded_file, encoded_newname;
 #if HAVE_LIBSELINUX
-  security_context_t con;
+  char *con;
   int conlength = 0;
 #endif
 #ifdef WINDOWSNT
@@ -3118,7 +3118,7 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
 #if HAVE_LIBSELINUX
   if (is_selinux_enabled ())
     {
-      security_context_t con;
+      char *con;
       int conlength = lgetfilecon (SSDATA (ENCODE_FILE (absname)), &con);
       if (conlength > 0)
 	{
@@ -3163,7 +3163,7 @@ or if Emacs was not compiled with SELinux support.  */)
   Lisp_Object role = CAR_SAFE (CDR_SAFE (context));
   Lisp_Object type = CAR_SAFE (CDR_SAFE (CDR_SAFE (context)));
   Lisp_Object range = CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (context))));
-  security_context_t con;
+  char *con;
   bool fail;
   int conlength;
   context_t parsed_con;
