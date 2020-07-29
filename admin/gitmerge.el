@@ -354,7 +354,7 @@ Returns non-nil if conflicts remain."
                   ;; The conflict markers remain so we return non-nil.
                   (message "Failed to fix NEWS conflict"))))
              ;; Generated files.
-             ((member file '("lisp/ldefs-boot.el"))
+             ((member file '("lisp/ldefs-boot.el" "etc/AUTHORS"))
               ;; We are in the file's buffer, so names are relative.
               (call-process "git" nil t nil "reset" "--"
                             (file-name-nondirectory file))
