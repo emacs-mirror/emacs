@@ -132,7 +132,7 @@ variables.  To define a customizable variable, use the
 (@pxref{Customization}).
 
   In principle, you can assign a variable value to any symbol with
-@code{setq}, whether not it has first been defined as a variable.
+@code{setq}, whether or not it has first been defined as a variable.
 However, you ought to write a variable definition for each global
 variable that you want to use; otherwise, your Lisp program may not
 act correctly if it is evaluated with lexical scoping enabled

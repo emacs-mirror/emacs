@@ -10608,7 +10608,10 @@ The buffer is expected to contain a mail message." t nil)
 
 (autoload 'epa-mail-sign "epa-mail" "\
 Sign the current buffer.
-The buffer is expected to contain a mail message.
+The buffer is expected to contain a mail message, and signing is
+performed with your default key.
+With prefix argument, asks you to select interactively the key to
+use from your key ring.
 
 \(fn START END SIGNERS MODE)" t nil)
 
