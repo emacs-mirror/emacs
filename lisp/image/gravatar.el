@@ -125,11 +125,14 @@ a gravatar for a given email address."
     (libravatar . ,#'gravatar--service-libravatar))
   "Alist of supported gravatar services.")
 
-(defcustom gravatar-service 'libravatar
+(defcustom gravatar-service 'gravatar
   "Symbol denoting gravatar-like service to use.
 Note that certain services might ignore other options, such as
 `gravatar-default-image' or certain values as with
-`gravatar-rating'."
+`gravatar-rating'.
+
+Note that `'libravatar' has security implications: It can be used
+to track whether you're reading a specific mail."
   :type `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
                            gravatar-service-alist))
   :version "28.1"
