@@ -893,8 +893,9 @@ This is the same format used for saving keyboard macros (see
 For an approximate inverse of this, see `key-description'."
   ;; Don't use a defalias, since the `pure' property is true only for
   ;; the calling convention of `kbd'.
-  (read-kbd-macro keys))
-(put 'kbd 'pure t)
+  (declare (pure t))
+  ;; A pure function is expected to preserve the match data.
+  (save-match-data (read-kbd-macro keys)))
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
