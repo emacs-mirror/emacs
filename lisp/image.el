@@ -784,6 +784,7 @@ number, play until that number of seconds has elapsed."
       (if (setq timer (image-animate-timer image))
 	  (cancel-timer timer))
       (plist-put (cdr image) :animate-buffer (current-buffer))
+      (plist-put (cdr image) :animate-tardiness 0)
       (run-with-timer 0.2 nil #'image-animate-timeout
 		      image (or index 0) (car animation)
 		      0 limit (+ (float-time) 0.2)))))
@@ -848,9 +849,14 @@ The minimum delay between successive frames is `image-minimum-frame-delay'.
 
 If the image has a non-nil :speed property, it acts as a multiplier
 for the animation speed.  A negative value means to animate in reverse."
+  ;; We keep track of "how late" image frames arrive.  We decay the
+  ;; previous cumulative value by 10% and then add the current delay.
+  (plist-put (cdr image) :animate-tardiness
+             (+ (* (plist-get (cdr image) :animate-tardiness) 0.9)
+                (float-time (time-since target-time))))
   (when (and (buffer-live-p (plist-get (cdr image) :animate-buffer))
-             ;; Delayed more than two seconds more than expected.
-	     (or (time-less-p (time-since target-time) 2)
+             ;; Cumulatively delayed two seconds more than expected.
+             (or (< (plist-get (cdr image) :animate-tardiness) 2)
 		 (progn
 		   (message "Stopping animation; animation possibly too big")
 		   nil)))

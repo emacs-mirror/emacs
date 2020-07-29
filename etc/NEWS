@@ -490,6 +490,15 @@ more readable text.  Set this variable to nil to get the previous
 behavior of rendering as wide as the window-width allows.  If
 'shr-width' is non-nil, it overrides this variable.
 
+** Images
+
+---
+*** Animated images stop automatically under high CPU pressure sooner.
+Previously, an animated image would stop animating if any single image
+took more than two seconds to display.  The new algorithm maintains a
+decaying average of delays, and if this number gets too high, the
+animation is stopped.
+
 ** EWW
 
 +++
