@@ -492,6 +492,11 @@ behavior of rendering as wide as the window-width allows.  If
 
 ** EWW
 
++++
+*** 'eww-download-directory' will now use the XDG location, if defined.
+However, if ~/Downloads/ already exists, that will continue to be
+used.
+
 ---
 *** The command 'eww-follow-link' now supports custom mailto handlers.
 The function that is invoked when clicking on or otherwise following a
