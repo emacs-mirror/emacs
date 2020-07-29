@@ -156,7 +156,7 @@ value of 'tab-bar-show'.
 It is now defined as a generalized variable that can be used with
 'setf' to modify the value stored in a given class slot.
 
-** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'.
+** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
 The mode provides refined highlighting of built-in functions, types,
 and variables.
 
@@ -261,8 +261,8 @@ supplied error message.
 This hook is intended to be used for registering doc string functions.
 These functions don't need to produce the doc string right away, they
 may arrange for it to be produced asynchronously.  The results of all
-doc string functions are accessible to the user through the existing
-variable 'eldoc-documentation-strategy'.
+doc string functions are accessible to the user through the user
+option 'eldoc-documentation-strategy'.
 
 *** New user option 'eldoc-documentation-strategy'.
 The built-in choices available for this user option let users compose
@@ -481,14 +481,14 @@ This is still the case by default, but if you customize
 other function, it will now be called instead of the default.
 
 +++
-*** New variable 'shr-max-width'.
-If this variable is non-nil, and 'shr-width' is nil, then SHR will use
-the value of 'shr-max-width' to limit the width of the rendered HTML.
-The default is 120 characters, so even if you have very wide frames,
-HTML text will be rendered more narrowly, which usually leads to a
-more readable text.  Set this variable to nil to get the previous
-behavior of rendering as wide as the window-width allows.  If
-'shr-width' is non-nil, it overrides this variable.
+*** New user option 'shr-max-width'.
+If this user option is non-nil, and 'shr-width' is nil, then SHR will
+use the value of 'shr-max-width' to limit the width of the rendered
+HTML.  The default is 120 characters, so even if you have very wide
+frames, HTML text will be rendered more narrowly, which usually leads
+to a more readable text.  Set this user option to nil to get the
+previous behavior of rendering as wide as the 'window-width' allows.
+If 'shr-width' is non-nil, it overrides this variable.
 
 ** Images
 
@@ -503,7 +503,7 @@ animation is stopped.
 
 +++
 *** 'eww-download-directory' will now use the XDG location, if defined.
-However, if ~/Downloads/ already exists, that will continue to be
+However, if "~/Downloads/" already exists, that will continue to be
 used.
 
 ---
@@ -715,7 +715,7 @@ for encoding and decoding without having to bind
 'coding-system-for-{read,write}' or call 'set-process-coding-system'.
 
 +++
-** 'open-network-stream' can now take a :capability-command that's a function.
+** 'open-network-stream' can now take a ':capability-command' that's a function.
 The function is called with the greeting from the server as its only
 parameter, and allows sending different TLS capability commands to the
 server based on that greeting.
@@ -733,7 +733,7 @@ process is interrupted by a signal.
 In order for the two functions to behave more consistently,
 'format-spec' now pads and truncates based on string width rather than
 length, and also supports format specifications that include a
-truncating precision field, such as '%.2a'.
+truncating precision field, such as "%.2a".
 
 ---
 ** New function 'color-values-from-color-spec'.
