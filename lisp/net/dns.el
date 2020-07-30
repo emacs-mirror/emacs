@@ -374,9 +374,14 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	(set (intern key dns-cache) result)
 	result))))
 
-(defun dns-query (name &optional type fullp reversep)
+(defun dns-query-asynchronous (name callback &optional type fullp reversep)
   "Query a DNS server for NAME of TYPE.
-If FULLP, return the entire record returned.
+CALLBACK will be called with a single parameter: The result.
+
+If there's no result, or `dns-timeout' has passed, CALLBACK will
+be called with nil as the parameter.
+
+If FULLP, return the entire record.
 If REVERSEP, look up an IP address."
   (setq type (or type 'A))
   (unless (dns-servers-up-to-date-p)
@@ -392,63 +397,118 @@ If REVERSEP, look up an IP address."
       (progn
         (message "No DNS server configuration found")
         nil)
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (let* ((process
-              (condition-case ()
-                  (let ((server (car dns-servers))
-	                (coding-system-for-read 'binary)
-	                (coding-system-for-write 'binary))
-                    (if (featurep 'make-network-process '(:type datagram))
-	                (make-network-process
-	                 :name "dns"
-	                 :coding 'binary
-	                 :buffer (current-buffer)
-	                 :host server
-	                 :service "domain"
-	                 :type 'datagram)
-                      ;; On MS-Windows datagram sockets are not
-                      ;; supported, so we fall back on opening a TCP
-                      ;; connection to the DNS server.
+    (dns--lookup name callback type fullp)))
+
+(defun dns--lookup (name callback type full)
+  (with-current-buffer (generate-new-buffer " *dns*")
+    (set-buffer-multibyte nil)
+    (let* ((tcp nil)
+           (process
+            (condition-case ()
+                (let ((server (car dns-servers))
+	              (coding-system-for-read 'binary)
+	              (coding-system-for-write 'binary))
+                  (if (featurep 'make-network-process '(:type datagram))
+	              (make-network-process
+	               :name "dns"
+	               :coding 'binary
+	               :buffer (current-buffer)
+	               :host server
+	               :service "domain"
+	               :type 'datagram)
+                    ;; On MS-Windows datagram sockets are not
+                    ;; supported, so we fall back on opening a TCP
+                    ;; connection to the DNS server.
+                    (progn
+                      (setq tcp t)
                       (open-network-stream "dns" (current-buffer)
-                                           server "domain")))
-                (error
-                 (message
-                  "dns: Got an error while trying to talk to %s"
-                  (car dns-servers))
-                 nil)))
-             (step 100)
-             (times (* dns-timeout 1000))
-             (id (random 65000))
-             (tcp-p (and process (not (process-contact process :type)))))
-        (when process
-          (process-send-string
-           process
-           (dns-write `((id ,id)
-                        (opcode query)
-                        (queries ((,name (type ,type))))
-                        (recursion-desired-p t))
-                      tcp-p))
-          (while (and (zerop (buffer-size))
-                      (> times 0))
-	    (let ((step-sec (/ step 1000.0)))
-	      (sit-for step-sec)
-	      (accept-process-output process step-sec))
-            (setq times (- times step)))
-          (condition-case nil
-              (delete-process process)
-            (error nil))
-          (when (and (>= (buffer-size) 2)
-                     ;; We had a time-out.
-                     (> times 0))
-            (let ((result (dns-read (buffer-string) tcp-p)))
-              (if fullp
-                  result
-                (let ((answer (car (dns-get 'answers result))))
-                  (when (eq type (dns-get 'type answer))
-                    (if (eq type 'TXT)
-                        (dns-get-txt-answer (dns-get 'answers result))
-                      (dns-get 'data answer))))))))))))
+                                           server "domain"))))
+              (error
+               (message
+                "dns: Got an error while trying to talk to %s"
+                (car dns-servers))
+               nil)))
+           (triggered nil)
+           (buffer (current-buffer))
+           timer)
+      (if (not process)
+          (progn
+            (kill-buffer buffer)
+            (funcall callback nil))
+        ;; Call the callback if we don't get any response at all.
+        (setq timer (run-at-time dns-timeout nil
+                                 (lambda ()
+                                   (unless triggered
+                                     (setq triggered t)
+                                     (delete-process process)
+                                     (kill-buffer buffer)
+                                     (funcall callback nil)))))
+        (process-send-string
+         process
+         (dns-write `((id ,(random 65000))
+                      (opcode query)
+                      (queries ((,name (type ,type))))
+                      (recursion-desired-p t))
+                    tcp))
+        (set-process-filter
+         process
+         (lambda (process string)
+           (with-current-buffer (process-buffer process)
+             (goto-char (point-max))
+             (insert string)
+             (goto-char (point-min))
+             ;; If this is DNS, then we always get the full data in
+             ;; one packet.  If it's TCP, we may only get part of the
+             ;; data, but the first two bytes says how long the data
+             ;; is supposed to be.
+             (when (or (not tcp)
+                       (>= (buffer-size) (dns-read-bytes 2)))
+               (setq triggered t)
+               (cancel-timer timer)
+               (dns--filter process callback type full tcp)))))
+        ;; In case we the process is deleted for some reason, then do
+        ;; a failure callback.
+        (set-process-sentinel
+         process
+         (lambda (_ state)
+           (when (and (eq state 'deleted)
+                      ;; Ensure we don't trigger this callback twice.
+                      (not triggered))
+             (setq triggered t)
+             (cancel-timer timer)
+             (kill-buffer buffer)
+             (funcall callback nil))))))))
+
+(defun dns--filter (process callback type full tcp)
+  (let ((message (buffer-string)))
+    (when (process-live-p process)
+      (delete-process process))
+    (kill-buffer (current-buffer))
+    (when (>= (length message) 2)
+      (let ((result (dns-read message tcp)))
+        (funcall callback
+                 (if full
+                     result
+                   (let ((answer (car (dns-get 'answers result))))
+                     (when (eq type (dns-get 'type answer))
+                       (if (eq type 'TXT)
+                           (dns-get-txt-answer (dns-get 'answers result))
+                         (dns-get 'data answer))))))))))
+
+(defun dns-query (name &optional type fullp reversep)
+  "Query a DNS server for NAME of TYPE.
+If FULLP, return the entire record returned.
+If REVERSEP, look up an IP address."
+  (let ((result nil))
+    (dns-query-asynchronous
+     name
+     (lambda (response)
+       (setq result (list response)))
+     type fullp reversep)
+    ;; Loop until we get the callback.
+    (while (not result)
+      (sleep-for 0.01))
+    (car result)))
 
 (provide 'dns)
 
