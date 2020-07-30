@@ -4004,22 +4004,28 @@ whether it exists and if so, it is added to the environment
 variable PATH."
   (let ((command
 	 (format
-	  "PATH=%s; export PATH" (string-join (tramp-get-remote-path vec) ":")))
+	  "PATH=%s && export PATH" (string-join (tramp-get-remote-path vec) ":")))
 	(pipe-buf
 	 (with-tramp-connection-property vec "pipe-buf"
 	   (tramp-send-command-and-read
 	    vec "getconf PIPE_BUF / 2>/dev/null || echo 4096" 'noerror)))
-	tmpfile)
+	tmpfile chunk chunksize)
     (tramp-message vec 5 "Setting $PATH environment variable")
     (if (< (length command) pipe-buf)
 	(tramp-send-command vec command)
-      ;; Use a temporary file.
-      (setq tmpfile (tramp-make-tramp-temp-file vec))
-      (tramp-send-command vec (format
-			       "cat >%s <<'%s'\n%s\n%s"
-			       (tramp-shell-quote-argument tmpfile)
-			       tramp-end-of-heredoc
-			       command tramp-end-of-heredoc))
+      ;; Use a temporary file.  We cannot use `write-region' because
+      ;; setting the remote path happens in the early connection
+      ;; handshake, and not all external tools are determined yet.
+      (setq command (concat command "\n")
+	    tmpfile (tramp-make-tramp-temp-file vec))
+      (while (not (string-empty-p command))
+	(setq chunksize (min (length command) (/ pipe-buf 2))
+	      chunk (substring command 0 chunksize)
+	      command (substring command chunksize))
+	(tramp-send-command vec (format
+				 "echo -n %s >>%s"
+				 (tramp-shell-quote-argument chunk)
+				 (tramp-shell-quote-argument tmpfile))))
       (tramp-send-command vec (format ". %s" tmpfile))
       (tramp-send-command vec (format "rm -f %s" tmpfile)))))
 
