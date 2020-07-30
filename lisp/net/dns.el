@@ -355,25 +355,6 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
     result))
 
 ;;; Interface functions.
-(defmacro dns-make-network-process (server)
-  `(let ((server ,server)
-	 (coding-system-for-read 'binary)
-	 (coding-system-for-write 'binary))
-     (if (and
-          (fboundp 'make-network-process)
-          (featurep 'make-network-process '(:type datagram)))
-	 (make-network-process
-	  :name "dns"
-	  :coding 'binary
-	  :buffer (current-buffer)
-	  :host server
-	  :service "domain"
-	  :type 'datagram)
-       ;; Older versions of Emacs do not have `make-network-process',
-       ;; and on MS-Windows datagram sockets are not supported, so we
-       ;; fall back on opening a TCP connection to the DNS server.
-       (open-network-stream "dns" (current-buffer) server "domain"))))
-
 (defvar dns-cache (make-vector 4096 0))
 
 (defun dns-query-cached (name &optional type fullp reversep)
@@ -385,9 +366,6 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
       (let ((result (dns-query name type fullp reversep)))
 	(set (intern key dns-cache) result)
 	result))))
-
-;; The old names `query-dns' and `query-dns-cached' weren't used in Emacs 23
-;; yet, so no alias are provided.  --rsteib
 
 (defun dns-query (name &optional type fullp reversep)
   "Query a DNS server for NAME of TYPE.
@@ -409,17 +387,33 @@ If REVERSEP, look up an IP address."
         nil)
     (with-temp-buffer
       (set-buffer-multibyte nil)
-      (let* ((process (condition-case ()
-                          (dns-make-network-process (car dns-servers))
-                        (error
-                         (message
-                          "dns: Got an error while trying to talk to %s"
-                          (car dns-servers))
-                         nil)))
-            (step 100)
-            (times (* dns-timeout 1000))
-            (id (random 65000))
-            (tcp-p (and process (not (process-contact process :type)))))
+      (let* ((process
+              (condition-case ()
+                  (let ((server (car dns-servers))
+	                (coding-system-for-read 'binary)
+	                (coding-system-for-write 'binary))
+                    (if (featurep 'make-network-process '(:type datagram))
+	                (make-network-process
+	                 :name "dns"
+	                 :coding 'binary
+	                 :buffer (current-buffer)
+	                 :host server
+	                 :service "domain"
+	                 :type 'datagram)
+                      ;; On MS-Windows datagram sockets are not
+                      ;; supported, so we fall back on opening a TCP
+                      ;; connection to the DNS server.
+                      (open-network-stream "dns" (current-buffer)
+                                           server "domain")))
+                (error
+                 (message
+                  "dns: Got an error while trying to talk to %s"
+                  (car dns-servers))
+                 nil)))
+             (step 100)
+             (times (* dns-timeout 1000))
+             (id (random 65000))
+             (tcp-p (and process (not (process-contact process :type)))))
         (when process
           (process-send-string
            process
