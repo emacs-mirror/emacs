@@ -3538,7 +3538,7 @@ void recompute_basic_faces (struct frame *);
 int face_at_buffer_position (struct window *, ptrdiff_t, ptrdiff_t *,
                              ptrdiff_t, bool, int, enum lface_attribute_index);
 int face_for_overlay_string (struct window *, ptrdiff_t, ptrdiff_t *, ptrdiff_t,
-                             bool, Lisp_Object);
+                             bool, Lisp_Object, enum lface_attribute_index);
 int face_at_string_position (struct window *, Lisp_Object, ptrdiff_t, ptrdiff_t,
                              ptrdiff_t *, enum face_id, bool,
                              enum lface_attribute_index);
