@@ -1,4 +1,4 @@
-;;; dns.el --- Domain Name Service lookups
+;;; dns.el --- Domain Name Service lookups  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -23,6 +23,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(require 'cl-lib)
 
 (defvar dns-timeout 5
   "How many seconds to wait when doing DNS queries.")
@@ -73,7 +75,7 @@ updated.  Set this variable to t to disable the check.")
 
 (defun dns-write-bytes (value &optional length)
   (let (bytes)
-    (dotimes (i (or length 1))
+    (dotimes (_ (or length 1))
       (push (% value 256) bytes)
       (setq value (/ value 256)))
     (dolist (byte bytes)
@@ -81,7 +83,7 @@ updated.  Set this variable to t to disable the check.")
 
 (defun dns-read-bytes (length)
   (let ((value 0))
-    (dotimes (i length)
+    (dotimes (_ length)
       (setq value (logior (* value 256) (following-char)))
       (forward-char 1))
     value))
@@ -229,7 +231,7 @@ If TCP-P, the first two bytes of the packet will be the length field."
       (setq authorities (dns-read-bytes 2))
       (setq additionals (dns-read-bytes 2))
       (let ((qs nil))
-        (dotimes (i queries)
+        (dotimes (_ queries)
           (push (list (dns-read-name)
                       (list 'type (dns-inverse-get (dns-read-bytes 2)
                                                    dns-query-types))
@@ -237,26 +239,31 @@ If TCP-P, the first two bytes of the packet will be the length field."
                                                     dns-classes)))
                 qs))
         (push (list 'queries qs) spec))
-      (dolist (slot '(answers authorities additionals))
-        (let ((qs nil)
-              type)
-          (dotimes (i (symbol-value slot))
-            (push (list (dns-read-name)
-                        (list 'type
-                              (setq type (dns-inverse-get (dns-read-bytes 2)
-                                                          dns-query-types)))
-                        (list 'class (dns-inverse-get (dns-read-bytes 2)
-                                                      dns-classes))
-                        (list 'ttl (dns-read-bytes 4))
-                        (let ((length (dns-read-bytes 2)))
-                          (list 'data
-                                (dns-read-type
-                                 (buffer-substring
-                                  (point)
-                                  (progn (forward-char length) (point)))
-                                 type))))
-                  qs))
-          (push (list slot qs) spec)))
+      (cl-loop for (slot length) in `((answers ,answers)
+                                      (authorities ,authorities)
+                                      (additionals ,additionals))
+               do (let ((qs nil)
+                        type)
+                    (dotimes (_ length)
+                      (push (list (dns-read-name)
+                                  (list 'type
+                                        (setq type (dns-inverse-get
+                                                    (dns-read-bytes 2)
+                                                    dns-query-types)))
+                                  (list 'class (dns-inverse-get
+                                                (dns-read-bytes 2)
+                                                dns-classes))
+                                  (list 'ttl (dns-read-bytes 4))
+                                  (let ((length (dns-read-bytes 2)))
+                                    (list 'data
+                                          (dns-read-type
+                                           (buffer-substring
+                                            (point)
+                                            (progn (forward-char length)
+                                                   (point)))
+                                           type))))
+                            qs))
+                    (push (list slot qs) spec)))
       (nreverse spec))))
 
 (defun dns-read-int32 ()
@@ -274,12 +281,12 @@ If TCP-P, the first two bytes of the packet will be the length field."
           (cond
            ((eq type 'A)
             (let ((bytes nil))
-              (dotimes (i 4)
+              (dotimes (_ 4)
                 (push (dns-read-bytes 1) bytes))
               (mapconcat 'number-to-string (nreverse bytes) ".")))
            ((eq type 'AAAA)
             (let (hextets)
-              (dotimes (i 8)
+              (dotimes (_ 8)
                 (push (dns-read-bytes 2) hextets))
               (mapconcat (lambda (n) (format "%x" n))
                          (nreverse hextets) ":")))
