@@ -495,15 +495,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   const char *format_end = NULL;
 #endif
 
-#if ! defined _LIBC && ! HAVE_RUN_TZSET_TEST
-  /* Solaris 2.5.x and 2.6 tzset sometimes modify the storage returned
-     by localtime.  On such systems, we must either use the tzset and
-     localtime wrappers to work around the bug (which sets
-     HAVE_RUN_TZSET_TEST) or make a copy of the structure.  */
-  struct tm copy = *tp;
-  tp = &copy;
-#endif
-
   zone = NULL;
 #if HAVE_TM_ZONE
   /* The POSIX test suite assumes that setting

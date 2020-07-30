@@ -22,11 +22,13 @@
 
 #include "mini-gmp.h"
 
-/* Pacify GCC -Wsuggest-attribute=const, malloc, pure.  */
+/* Pacify GCC -Wsuggest-attribute=const, pure, malloc.  */
 #if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=const"
-# pragma GCC diagnostic ignored "-Wsuggest-attribute=malloc"
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
+#endif
+#if 8 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wsuggest-attribute=malloc"
 #endif
 
 /* Pacify GCC -Wunused-variable for variables used only in 'assert' calls.  */

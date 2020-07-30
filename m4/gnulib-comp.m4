@@ -120,7 +120,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module libc-config:
   # Code from module libgmp:
   # Code from module limits-h:
-  # Code from module localtime-buffer:
   # Code from module lstat:
   # Code from module malloca:
   # Code from module manywarnings:
@@ -508,7 +507,6 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
   gl_gnulib_enabled_lchmod=false
-  gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9=false
   gl_gnulib_enabled_malloca=false
   gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
   gl_gnulib_enabled_open=false
@@ -622,14 +620,6 @@ AC_DEFUN([gl_INIT],
       fi
       gl_SYS_STAT_MODULE_INDICATOR([lchmod])
       gl_gnulib_enabled_lchmod=true
-    fi
-  }
-  func_gl_gnulib_m4code_2049e887c7e5308faad27b3f894bb8c9 ()
-  {
-    if ! $gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9; then
-      AC_REQUIRE([gl_LOCALTIME_BUFFER_DEFAULTS])
-      AC_LIBOBJ([localtime-buffer])
-      gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9=true
     fi
   }
   func_gl_gnulib_m4code_malloca ()
@@ -751,9 +741,6 @@ AC_DEFUN([gl_INIT],
   if case $host_os in mingw*) false;; *) test $HAVE_GETRANDOM = 0 || test $REPLACE_GETRANDOM = 1;; esac; then
     func_gl_gnulib_m4code_open
   fi
-  if test $NEED_LOCALTIME_BUFFER = 1; then
-    func_gl_gnulib_m4code_2049e887c7e5308faad27b3f894bb8c9
-  fi
   if test $HAVE_READLINKAT = 0; then
     func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
   fi
@@ -785,7 +772,6 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_lchmod], [$gl_gnulib_enabled_lchmod])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9], [$gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_malloca], [$gl_gnulib_enabled_malloca])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_open], [$gl_gnulib_enabled_open])
@@ -1030,8 +1016,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/lchmod.c
   lib/libc-config.h
   lib/limits.in.h
-  lib/localtime-buffer.c
-  lib/localtime-buffer.h
   lib/lstat.c
   lib/malloca.c
   lib/malloca.h
@@ -1176,7 +1160,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lchmod.m4
   m4/libgmp.m4
   m4/limits-h.m4
-  m4/localtime-buffer.m4
   m4/lstat.m4
   m4/malloca.m4
   m4/manywarnings-c++.m4
