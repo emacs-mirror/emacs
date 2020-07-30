@@ -4966,27 +4966,6 @@ typedef union
 #endif
 } stacktop_sentry;
 
-/* Force callee-saved registers and register windows onto the stack.
-   Use the platform-defined __builtin_unwind_init if available,
-   obviating the need for machine dependent methods.  */
-#ifndef HAVE___BUILTIN_UNWIND_INIT
-# ifdef __sparc__
-   /* This trick flushes the register windows so that all the state of
-      the process is contained in the stack.
-      FreeBSD does not have a ta 3 handler, so handle it specially.
-      FIXME: Code in the Boehm GC suggests flushing (with 'flushrs') is
-      needed on ia64 too.  See mach_dep.c, where it also says inline
-      assembler doesn't work with relevant proprietary compilers.  */
-#  if defined __sparc64__ && defined __FreeBSD__
-#   define __builtin_unwind_init() asm ("flushw")
-#  else
-#   define __builtin_unwind_init() asm ("ta 3")
-#  endif
-# else
-#  define __builtin_unwind_init() ((void) 0)
-# endif
-#endif
-
 /* Yield an address close enough to the top of the stack that the
    garbage collector need not scan above it.  Callers should be
    declared NO_INLINE.  */
@@ -5022,15 +5001,13 @@ typedef union
    We have to mark Lisp objects in CPU registers that can hold local
    variables or are used to pass parameters.
 
-   This code assumes that calling setjmp saves registers we need
+   If __builtin_unwind_init is available, it should suffice to save
+   registers.
+
+   Otherwise, assume that calling setjmp saves registers we need
    to see in a jmp_buf which itself lies on the stack.  This doesn't
    have to be true!  It must be verified for each system, possibly
    by taking a look at the source code of setjmp.
-
-   If __builtin_unwind_init is available (defined by GCC >= 2.8) we
-   can use it as a machine independent method to store all registers
-   to the stack.  In this case the macros described in the previous
-   two paragraphs are not used.
 
    Stack Layout
 

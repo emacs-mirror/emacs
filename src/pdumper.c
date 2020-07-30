@@ -747,8 +747,9 @@ dump_off_from_lisp (Lisp_Object value)
   intmax_t n = intmax_t_from_lisp (value);
   eassert (DUMP_OFF_MIN <= n && n <= DUMP_OFF_MAX);
   ALLOW_IMPLICIT_CONVERSION;
-  return n;
+  dump_off converted = n;
   DISALLOW_IMPLICIT_CONVERSION;
+  return converted;
 }
 
 static Lisp_Object
