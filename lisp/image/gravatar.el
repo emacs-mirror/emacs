@@ -188,14 +188,15 @@ to track whether you're reading a specific mail."
 (defun gravatar-build-url (mail-address callback)
   "Find the URL of a gravatar for MAIL-ADDRESS and call CALLBACK with it."
   ;; https://gravatar.com/site/implement/images/
-  (funcall (alist-get gravatar-service gravatar-service-alist)
-           mail-address
-           (lambda (url)
-             (funcall callback
-                      (format "%s/%s?%s"
-                              url
-                              (gravatar-hash mail-address)
-                              (gravatar--query-string))))))
+  (let ((query-string (gravatar--query-string)))
+    (funcall (alist-get gravatar-service gravatar-service-alist)
+             mail-address
+             (lambda (url)
+               (funcall callback
+                        (format "%s/%s?%s"
+                                url
+                                (gravatar-hash mail-address)
+                                query-string))))))
 
 (defun gravatar-get-data ()
   "Return body of current URL buffer, or nil on failure."
