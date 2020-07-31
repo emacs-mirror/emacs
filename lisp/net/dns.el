@@ -374,20 +374,20 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	(set (intern key dns-cache) result)
 	result))))
 
-(defun dns-query-asynchronous (name callback &optional type fullp reversep)
+(defun dns-query-asynchronous (name callback &optional type full reverse)
   "Query a DNS server for NAME of TYPE.
 CALLBACK will be called with a single parameter: The result.
 
 If there's no result, or `dns-timeout' has passed, CALLBACK will
 be called with nil as the parameter.
 
-If FULLP, return the entire record.
-If REVERSEP, look up an IP address."
+If FULL, return the entire record.
+If REVERSE, look up an IP address."
   (setq type (or type 'A))
   (unless (dns-servers-up-to-date-p)
     (dns-set-servers))
 
-  (when reversep
+  (when reverse
     (setq name (concat
 		(mapconcat 'identity (nreverse (split-string name "\\.")) ".")
 		".in-addr.arpa")
@@ -397,7 +397,7 @@ If REVERSEP, look up an IP address."
       (progn
         (message "No DNS server configuration found")
         nil)
-    (dns--lookup name callback type fullp)))
+    (dns--lookup name callback type full)))
 
 (defun dns--lookup (name callback type full)
   (with-current-buffer (generate-new-buffer " *dns*")
@@ -495,16 +495,16 @@ If REVERSEP, look up an IP address."
                            (dns-get-txt-answer (dns-get 'answers result))
                          (dns-get 'data answer))))))))))
 
-(defun dns-query (name &optional type fullp reversep)
+(defun dns-query (name &optional type full reverse)
   "Query a DNS server for NAME of TYPE.
-If FULLP, return the entire record returned.
-If REVERSEP, look up an IP address."
+If FULL, return the entire record returned.
+If REVERSE, look up an IP address."
   (let ((result nil))
     (dns-query-asynchronous
      name
      (lambda (response)
        (setq result (list response)))
-     type fullp reversep)
+     type full reverse)
     ;; Loop until we get the callback.
     (while (not result)
       (sleep-for 0.01))
