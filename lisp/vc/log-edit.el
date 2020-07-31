@@ -51,6 +51,9 @@
 
 ;; The main keymap
 
+(define-obsolete-variable-alias 'vc-log-mode-map 'log-edit-mode-map "28.1")
+(define-obsolete-variable-alias 'vc-log-entry-mode 'log-edit-mode-map "28.1")
+
 (easy-mmode-defmap log-edit-mode-map
   '(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
@@ -66,10 +69,6 @@
     ("\C-c?"	. log-edit-mode-help))
   "Keymap for the `log-edit-mode' (to edit version control log messages)."
   :group 'log-edit)
-
-;; Compatibility with old names.  Should we bother ?
-(defvar vc-log-mode-map log-edit-mode-map)
-(defvar vc-log-entry-mode vc-log-mode-map)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."

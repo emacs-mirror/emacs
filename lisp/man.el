@@ -838,7 +838,7 @@ POS defaults to `point'."
 
 ;; For compatibility with older versions.
 ;;;###autoload
-(defalias 'manual-entry 'man)
+(define-obsolete-function-alias 'manual-entry 'man "28.1")
 
 (defvar Man-completion-cache nil
   ;; On my machine, "man -k" is so fast that a cache makes no sense,

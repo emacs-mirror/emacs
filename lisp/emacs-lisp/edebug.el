@@ -555,7 +555,7 @@ already is one.)"
 
 
 ;; Compatibility with old versions.
-(defalias 'edebug-all-defuns 'edebug-all-defs)
+(define-obsolete-function-alias 'edebug-all-defuns #'edebug-all-defs "28.1")
 
 ;;;###autoload
 (defun edebug-all-defs ()
