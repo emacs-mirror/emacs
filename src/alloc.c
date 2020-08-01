@@ -1947,6 +1947,9 @@ resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
       /* No need to reallocate, as the size change falls within the
 	 alignment slop.  */
       XSTRING (string)->u.s.size_byte = new_nbytes;
+#ifdef GC_CHECK_STRING_BYTES
+      SDATA_NBYTES (old_sdata) = new_nbytes;
+#endif
       new_charaddr = data + cidx_byte;
       memmove (new_charaddr + new_clen, new_charaddr + clen,
 	       nbytes - (cidx_byte + (clen - 1)));
