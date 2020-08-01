@@ -1761,7 +1761,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
   /* Initialize the compile stack.  */
   compile_stack.stack = xmalloc (INIT_COMPILE_STACK_SIZE
 				 * sizeof *compile_stack.stack);
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#ifdef HAVE___LSAN_IGNORE_OBJECT
   __lsan_ignore_object (compile_stack.stack);
 #endif
   compile_stack.size = INIT_COMPILE_STACK_SIZE;

@@ -1103,7 +1103,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   if (module_assertions)
     {
       rt = xmalloc (sizeof *rt);
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#ifdef HAVE___LSAN_IGNORE_OBJECT
       __lsan_ignore_object (rt);
 #endif
     }
@@ -1426,7 +1426,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   if (module_assertions)
     {
       env = xmalloc (sizeof *env);
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#ifdef HAVE___LSAN_IGNORE_OBJECT
       __lsan_ignore_object (env);
 #endif
     }

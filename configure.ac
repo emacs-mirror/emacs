@@ -4516,7 +4516,7 @@ AC_CHECK_FUNCS_ONCE([sbrk])
 
 AC_FUNC_FORK
 
-AC_CHECK_FUNCS(snprintf)
+AC_CHECK_FUNCS(snprintf __lsan_ignore_object)
 
 dnl Check for glib.  This differs from other library checks in that
 dnl Emacs need not link to glib unless some other library is already

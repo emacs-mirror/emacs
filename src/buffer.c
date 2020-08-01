@@ -5087,7 +5087,7 @@ enlarge_buffer_text (struct buffer *b, ptrdiff_t delta)
 #else
   p = xrealloc (b->text->beg, new_nbytes);
 #endif
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#ifdef HAVE___LSAN_IGNORE_OBJECT
   __lsan_ignore_object (p);
 #endif
 

@@ -619,7 +619,7 @@ newline_cache_on_off (struct buffer *buf)
 	  if (base_buf->newline_cache == 0)
             {
               base_buf->newline_cache = new_region_cache ();
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#ifdef HAVE___LSAN_IGNORE_OBJECT
               __lsan_ignore_object (base_buf->newline_cache);
 #endif
             }
