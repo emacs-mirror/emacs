@@ -4256,8 +4256,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; there's an indication for a signal describing string.
 	    (let ((process-file-return-signal-string t))
 	      (should
-	       (string-equal
-		"Interrupt"
+	       (string-match
+		"Interrupt\\|Signal 2"
 		(process-file
 		 (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
 		 nil nil nil "-c" "kill -2 $$"))))

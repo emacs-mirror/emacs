@@ -35,6 +35,8 @@
 
 (require 'tramp)
 
+(defvar process-file-return-signal-string)
+
 ;;;###tramp-autoload
 (defcustom tramp-adb-program "adb"
   "Name of the Android Debug Bridge program."
@@ -741,6 +743,33 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	     filename newname ok-if-already-exists 'keep-time 'preserve-uid-gid)
 	    (delete-file filename)))))))
 
+(defun tramp-adb-get-signal-strings (vec)
+  "Strings to return by `process-file' in case of signals."
+  (with-tramp-connection-property vec "signal-strings"
+    (let ((default-directory (tramp-make-tramp-file-name vec 'localname))
+	  ;; `shell-file-name' and `shell-command-switch' are needed
+	  ;; for Emacs < 27.1, which doesn't support connection-local
+	  ;; variables in `shell-command'.
+	  (shell-file-name "/system/bin/sh")
+	  (shell-command-switch "-c")
+	  process-file-return-signal-string signals result)
+      (dotimes (i 128) (push (format "Signal %d" i) result))
+      (setq result (reverse result)
+	    signals (split-string
+		     (shell-command-to-string "COLUMNS=40 kill -l") "\n" 'omit))
+      (setcar result 0)
+      (dolist (line signals)
+	(when (string-match
+	       (concat
+		"^[[:space:]]*\\([[:digit:]]+\\)"
+		"[[:space:]]+\\S-+[[:space:]]+"
+		"\\([[:alpha:]].*\\)$")
+	       line)
+	  (setcar
+	   (nthcdr (string-to-number (match-string 1 line)) result)
+	   (match-string 2 line))))
+      result)))
+
 (defun tramp-adb-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
@@ -833,7 +862,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; since Emacs 28.1.
       (when (and (bound-and-true-p process-file-return-signal-string)
 		 (natnump ret) (> ret 128))
-	(setq ret (nth (- ret 128) (tramp-get-signal-strings))))
+	(setq ret (nth (- ret 128) (tramp-adb-get-signal-strings v))))
 
       ;; Provide error file.
       (when tmpstderr (rename-file tmpstderr (cadr destination) t))
