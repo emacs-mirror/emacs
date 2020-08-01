@@ -4641,8 +4641,10 @@ mark_maybe_object (Lisp_Object obj)
       break;
     }
 
-  void *po = (char *) ((intptr_t) (char *) XLP (obj)
-                       + (offset - LISP_WORD_TAG (type_tag)));
+  bool overflow
+    = INT_SUBTRACT_WRAPV (offset, LISP_WORD_TAG (type_tag), &offset);
+  eassert (!overflow);
+  void *po = (char *) ((intptr_t) (char *) XLP (obj) + offset);
 
   /* If the pointer is in the dump image and the dump has a record
      of the object starting at the place where the pointer points, we
