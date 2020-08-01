@@ -1426,7 +1426,9 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   if (module_assertions)
     {
       env = xmalloc (sizeof *env);
+#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
       __lsan_ignore_object (env);
+#endif
     }
 
   priv->pending_non_local_exit = emacs_funcall_exit_return;
