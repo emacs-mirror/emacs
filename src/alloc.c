@@ -4643,7 +4643,13 @@ mark_maybe_object (Lisp_Object obj)
 
   bool overflow
     = INT_SUBTRACT_WRAPV (offset, LISP_WORD_TAG (type_tag), &offset);
+#if !defined WIDE_EMACS_INT || USE_LSB_TAG
+  /* If we don't use wide integers, then `intptr_t' should always be
+     large enough to not overflow.  Furthermore, when using the least
+     significant bits as tag bits, the tag is small enough to not
+     overflow either.  */
   eassert (!overflow);
+#endif
   void *po = (char *) ((intptr_t) (char *) XLP (obj) + offset);
 
   /* If the pointer is in the dump image and the dump has a record
