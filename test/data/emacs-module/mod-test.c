@@ -262,7 +262,9 @@ Fmod_test_string_a_to_b (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
     if (buf[i] == 'a')
       buf[i] = 'b';
 
-  return env->make_string (env, buf, size - 1);
+  emacs_value ret = env->make_string (env, buf, size - 1);
+  free (buf);
+  return ret;
 }
 
 
