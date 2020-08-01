@@ -84,6 +84,10 @@ To add a new module function, proceed as follows:
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#include <sanitizer/lsan_interface.h>
+#endif
+
 #include "lisp.h"
 #include "bignum.h"
 #include "dynlib.h"
@@ -1095,7 +1099,16 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
      for two different runtime objects are guaranteed to be distinct,
      which we can use for checking the liveness of runtime
      pointers.  */
-  struct emacs_runtime *rt = module_assertions ? xmalloc (sizeof *rt) : &rt_pub;
+  struct emacs_runtime *rt;
+  if (module_assertions)
+    {
+      rt = xmalloc (sizeof *rt);
+#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+      __lsan_ignore_object (rt);
+#endif
+    }
+  else
+    rt = &rt_pub;
   rt->size = sizeof *rt;
   rt->private_members = &rt_priv;
   rt->get_environment = module_get_environment;
@@ -1411,7 +1424,10 @@ static emacs_env *
 initialize_environment (emacs_env *env, struct emacs_env_private *priv)
 {
   if (module_assertions)
+    {
       env = xmalloc (sizeof *env);
+      __lsan_ignore_object (env);
+    }
 
   priv->pending_non_local_exit = emacs_funcall_exit_return;
   initialize_storage (&priv->storage);
