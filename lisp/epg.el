@@ -1683,7 +1683,8 @@ Otherwise, it makes a cleartext signature."
 	    (if (epg-context-result-for context 'error)
 		(let ((errors (epg-context-result-for context 'error)))
 		  (signal 'epg-error
-			  (list "Sign failed" (epg-errors-to-string errors))))))
+			  (list "Sign failed" (epg-errors-to-string errors))))
+              (signal 'epg-error '("Signing failed (unknown reason)"))))
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
