@@ -207,6 +207,12 @@ Bookmark locations can refer to VC directory buffers.
 
 ** Gnus
 
+---
+*** The value of "all" in the 'large-newsgroup-initial' group parameter changes.
+It was previously nil, which didn't work, because nil is
+indistinguishable from not being present.  The new value for "all" is
+the symbol 'all'.
+
 +++
 *** The name of dependent Gnus sessions has changed from "slave" to "child".
 The names of the commands 'gnus-slave', 'gnus-slave-no-server' and

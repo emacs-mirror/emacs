@@ -5938,7 +5938,9 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			 (initial (gnus-parameter-large-newsgroup-initial
 				   gnus-newsgroup-name))
 			 (default (if only-read-p
-				      (or initial gnus-large-newsgroup)
+				      (if (eq initial 'all)
+					  nil
+					(or initial gnus-large-newsgroup))
 				    number))
 			 (input
 			  (read-string
@@ -13165,10 +13167,13 @@ If ALL is a number, fetch this number of articles."
 	 (t
 	  (when (and (numberp gnus-large-newsgroup)
 		   (> len gnus-large-newsgroup))
-	      (let* ((cursor-in-echo-area nil)
-		     (initial (gnus-parameter-large-newsgroup-initial
-			       gnus-newsgroup-name))
-		     (input
+	      (let ((cursor-in-echo-area nil)
+		    (initial (gnus-parameter-large-newsgroup-initial
+			      gnus-newsgroup-name))
+		    input)
+		(when (eq initial 'all)
+		  (setq initial len))
+		(setq input
 		      (read-string
 		       (format
 			"How many articles from %s (%s %d): "
@@ -13177,7 +13182,7 @@ If ALL is a number, fetch this number of articles."
 			len)
 		       nil nil
 		       (and initial
-			    (number-to-string initial)))))
+			    (number-to-string initial))))
 		(unless (string-match "^[ \t]*$" input)
 		  (setq all (string-to-number input))
 		  (if (< all len)
