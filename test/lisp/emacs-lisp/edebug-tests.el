@@ -961,7 +961,7 @@ primary ones (Bug#42671)."
               (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
 
 (ert-deftest edebug-tests-cl-flet ()
-  "Check what Edebug can instrument `cl-flet' forms without name
+  "Check that Edebug can instrument `cl-flet' forms without name
 clashes (Bug#41853)."
   (with-temp-buffer
     (dolist (form '((defun edebug-tests-cl-flet-1 ()
