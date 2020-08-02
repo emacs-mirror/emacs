@@ -260,6 +260,10 @@ To revert to the previous behaviour,
 unconditionally aborts the current edebug instrumentation with the
 supplied error message.
 
+*** Edebug specification lists can use the new keyword ':unique',
+which appends a unique suffix to the Edebug name of the current
+definition.
+
 +++
 ** ElDoc
 

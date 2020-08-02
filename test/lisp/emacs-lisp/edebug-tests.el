@@ -960,5 +960,45 @@ primary ones (Bug#42671)."
         (list (intern "edebug-cl-defmethod-qualifier :around ((_ number))")
               (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
 
+(ert-deftest edebug-tests-cl-flet ()
+  "Check what Edebug can instrument `cl-flet' forms without name
+clashes (Bug#41853)."
+  (with-temp-buffer
+    (dolist (form '((defun edebug-tests-cl-flet-1 ()
+                      (cl-flet ((inner () 0)) (message "Hi"))
+                      (cl-flet ((inner () 1)) (inner)))
+                    (defun edebug-tests-cl-flet-2 ()
+                      (cl-flet ((inner () 2)) (inner)))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      (should (equal (reverse instrumented-names)
+                     ;; The outer definitions come after the inner
+                     ;; ones because their body ends later.
+                     ;; FIXME: There are twice as many inner
+                     ;; definitions as expected due to Bug#41988.
+                     ;; Once that bug is fixed, remove the duplicates.
+                     ;; FIXME: We'd rather have names such as
+                     ;; `edebug-tests-cl-flet-1@inner@cl-flet@10000',
+                     ;; but that requires further changes to Edebug.
+                     '(inner@cl-flet@10000
+                       inner@cl-flet@10001
+                       inner@cl-flet@10002
+                       inner@cl-flet@10003
+                       edebug-tests-cl-flet-1
+                       inner@cl-flet@10004
+                       inner@cl-flet@10005
+                       edebug-tests-cl-flet-2))))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

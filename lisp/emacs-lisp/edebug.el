@@ -1725,6 +1725,7 @@ contains a circular object."
 		(&define . edebug-match-&define)
 		(name . edebug-match-name)
 		(:name . edebug-match-colon-name)
+                (:unique . edebug-match-:unique)
 		(arg . edebug-match-arg)
 		(def-body . edebug-match-def-body)
 		(def-form . edebug-match-def-form)
@@ -2035,6 +2036,17 @@ contains a circular object."
 	    ;; Construct a new name by appending to previous name.
 	    (intern (format "%s@%s" edebug-def-name spec))
 	  spec))
+  nil)
+
+(defun edebug-match-:unique (_cursor spec)
+  "Match a `:unique PREFIX' specifier.
+SPEC is the symbol name prefix for `gensym'."
+  (let ((suffix (gensym spec)))
+    (setq edebug-def-name
+	  (if edebug-def-name
+	      ;; Construct a new name by appending to previous name.
+	      (intern (format "%s@%s" edebug-def-name suffix))
+	    suffix)))
   nil)
 
 (defun edebug-match-cl-generic-method-qualifier (cursor)
