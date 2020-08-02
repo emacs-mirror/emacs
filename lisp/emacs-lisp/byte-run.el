@@ -364,7 +364,12 @@ You don't need this.  (See bytecomp.el commentary for more details.)
 	    '(nil byte-compile-inline-expand))
       (error "`%s' is a primitive" name))
   `(prog1
-       (defun ,name ,arglist ,@body)
+       (defun ,name ,arglist
+         ;; Never native-compile defsubsts as we need the byte
+         ;; definition in `byte-compile-unfold-bcf' to perform the
+         ;; inlining (Bug#42664).
+         (declare (speed -1))
+         ,@body)
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
