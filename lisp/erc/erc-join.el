@@ -113,7 +113,7 @@ servers, presumably in the same domain."
 This is called from a timer set up by `erc-autojoin-channels'."
   (if erc--autojoin-timer
       (setq erc--autojoin-timer
-	    (erc-cancel-timer erc--autojoin-timer)))
+	    (cancel-timer erc--autojoin-timer)))
   (with-current-buffer buffer
     ;; Don't kick of another delayed autojoin or try to wait for
     ;; another ident response:
@@ -127,7 +127,7 @@ This is called from a timer set up by `erc-autojoin-channels'."
 This function is run from `erc-nickserv-identified-hook'."
   (if erc--autojoin-timer
       (setq erc--autojoin-timer
-	    (erc-cancel-timer erc--autojoin-timer)))
+	    (cancel-timer erc--autojoin-timer)))
   (when (eq erc-autojoin-timing 'ident)
     (let ((server (or erc-session-server erc-server-announced-name))
 	  (joined (mapcar (lambda (buf)

@@ -756,8 +756,8 @@ Return the name of this server's network as a symbol."
   (erc-with-server-buffer
     (intern (downcase (symbol-name erc-network)))))
 
-(erc-make-obsolete 'erc-current-network 'erc-network
-		   "Obsolete since erc-networks 1.5")
+(make-obsolete 'erc-current-network 'erc-network
+               "Obsolete since erc-networks 1.5")
 
 (defun erc-network-name ()
   "Return the name of the current network as a string."
