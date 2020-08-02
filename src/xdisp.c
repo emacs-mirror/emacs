@@ -19223,18 +19223,20 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
       && !MINI_WINDOW_P (w))
     {
       int this_scroll_margin = window_scroll_margin (w, MARGIN_IN_PIXELS);
+      if (window_wants_header_line (w))
+	this_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
       start_display (&it, w, pos);
 
       if ((w->cursor.y >= 0	/* not vscrolled */
 	   && w->cursor.y < this_scroll_margin
-	   && CHARPOS (pos) > BEGV
-           && it_charpos < ZV)
+	   && CHARPOS (pos) > BEGV)
 	  /* rms: considering make_cursor_line_fully_visible_p here
 	     seems to give wrong results.  We don't want to recenter
 	     when the last line is partly visible, we want to allow
 	     that case to be handled in the usual way.  */
-          || w->cursor.y > (it.last_visible_y - partial_line_height (&it)
-                            - this_scroll_margin - 1))
+	  || (it_charpos < ZV	/* if EOB is visible, disable bottom margin */
+	      && w->cursor.y > (it.last_visible_y - partial_line_height (&it)
+				- this_scroll_margin - 1)))
 	{
 	  w->cursor.vpos = -1;
 	  clear_glyph_matrix (w->desired_matrix);
