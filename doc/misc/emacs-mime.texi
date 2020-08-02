@@ -472,6 +472,13 @@ the case if you save it to disk and launch it in a different way
 to launch any external programs, set this variable to @code{nil} or
 @code{ask}.
 
+@item mm-inline-font-lock
+@vindex mm-inline-font-lock
+If non-@code{nil}, inlined parts that support font locking (for
+instance, patches or code snippets) will be font-locked.  This may be
+overriden by callers that have their own ways of enabling/inhibiting
+font locking.
+
 @end table
 
 @node Files and Directories

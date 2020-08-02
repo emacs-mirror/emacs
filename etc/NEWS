@@ -231,6 +231,12 @@ was sent.  To restore the original behavior of dating a message
 from when it is first saved or delayed, add the symbol 'Date' back to
 this user option.
 
++++
+*** New variable 'mm-inline-font-lock'.
+This variable is supposed to be bound by callers to determine whether
+inline MIME parts (that support it) are supposed to be font-locked or
+not.
+
 ** Help
 
 +++

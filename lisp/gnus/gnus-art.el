@@ -6018,6 +6018,7 @@ If nil, don't show those extra buttons."
 (defun gnus-mime-display-single (handle)
   (let ((type (mm-handle-media-type handle))
 	(ignored gnus-ignored-mime-types)
+	(mm-inline-font-lock (gnus-visual-p 'article-highlight 'highlight))
 	(not-attachment t)
 	display text)
     (catch 'ignored
