@@ -4652,7 +4652,8 @@ mark_maybe_object (Lisp_Object obj)
 #else
   (void) overflow;
 #endif
-  void *po = (char *) ((intptr_t) (char *) XLP (obj) + offset);
+  INT_ADD_WRAPV (offset, (intptr_t) (char *) XLP (obj), &offset);
+  void *po = (char *) offset;
 
   /* If the pointer is in the dump image and the dump has a record
      of the object starting at the place where the pointer points, we
