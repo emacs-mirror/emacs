@@ -4649,6 +4649,8 @@ mark_maybe_object (Lisp_Object obj)
      significant bits as tag bits, the tag is small enough to not
      overflow either.  */
   eassert (!overflow);
+#else
+  (void) overflow;
 #endif
   void *po = (char *) ((intptr_t) (char *) XLP (obj) + offset);
 
