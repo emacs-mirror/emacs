@@ -220,7 +220,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
                                       ;; requires larger changes to
                                       ;; Edebug.
                                       :unique "cl-generic-:method@"
-                                      [&rest atom]
+                                      [&rest cl-generic-method-qualifier]
                                       cl-generic-method-args lambda-doc
                                       def-body)]]
                      def-body)))
