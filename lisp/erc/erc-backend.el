@@ -864,41 +864,42 @@ Additionally, detect whether the IRC process has hung."
   "Send messages in `erc-server-flood-queue'.
 See `erc-server-flood-margin' for an explanation of the flood
 protection algorithm."
-  (with-current-buffer buffer
-    (let ((now (current-time)))
-      (when erc-server-flood-timer
-        (erc-cancel-timer erc-server-flood-timer)
-        (setq erc-server-flood-timer nil))
-      (when (time-less-p erc-server-flood-last-message now)
-        (setq erc-server-flood-last-message (erc-emacs-time-to-erc-time now)))
-      (while (and erc-server-flood-queue
-                  (time-less-p erc-server-flood-last-message
-                               (time-add now erc-server-flood-margin)))
-        (let ((msg (caar erc-server-flood-queue))
-              (encoding (cdar erc-server-flood-queue)))
-          (setq erc-server-flood-queue (cdr erc-server-flood-queue)
-                erc-server-flood-last-message
-                (+ erc-server-flood-last-message
-                   erc-server-flood-penalty))
-          (erc-log-irc-protocol msg 'outbound)
-          (erc-log (concat "erc-server-send-queue: "
-                           msg "(" (buffer-name buffer) ")"))
-          (when (erc-server-process-alive)
-            (condition-case nil
-                ;; Set encoding just before sending the string
-                (progn
-                  (when (fboundp 'set-process-coding-system)
-                    (set-process-coding-system erc-server-process
-                                               'raw-text encoding))
-                  (process-send-string erc-server-process msg))
-              ;; Sometimes the send can occur while the process is
-              ;; being killed, which results in a weird SIGPIPE error.
-              ;; Catch this and ignore it.
-              (error nil)))))
-      (when erc-server-flood-queue
-        (setq erc-server-flood-timer
-              (run-at-time (+ 0.2 erc-server-flood-penalty)
-                           nil #'erc-server-send-queue buffer))))))
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (let ((now (current-time)))
+        (when erc-server-flood-timer
+          (erc-cancel-timer erc-server-flood-timer)
+          (setq erc-server-flood-timer nil))
+        (when (time-less-p erc-server-flood-last-message now)
+          (setq erc-server-flood-last-message (erc-emacs-time-to-erc-time now)))
+        (while (and erc-server-flood-queue
+                    (time-less-p erc-server-flood-last-message
+                                 (time-add now erc-server-flood-margin)))
+          (let ((msg (caar erc-server-flood-queue))
+                (encoding (cdar erc-server-flood-queue)))
+            (setq erc-server-flood-queue (cdr erc-server-flood-queue)
+                  erc-server-flood-last-message
+                  (+ erc-server-flood-last-message
+                     erc-server-flood-penalty))
+            (erc-log-irc-protocol msg 'outbound)
+            (erc-log (concat "erc-server-send-queue: "
+                             msg "(" (buffer-name buffer) ")"))
+            (when (erc-server-process-alive)
+              (condition-case nil
+                  ;; Set encoding just before sending the string
+                  (progn
+                    (when (fboundp 'set-process-coding-system)
+                      (set-process-coding-system erc-server-process
+                                                 'raw-text encoding))
+                    (process-send-string erc-server-process msg))
+                ;; Sometimes the send can occur while the process is
+                ;; being killed, which results in a weird SIGPIPE error.
+                ;; Catch this and ignore it.
+                (error nil)))))
+        (when erc-server-flood-queue
+          (setq erc-server-flood-timer
+                (run-at-time (+ 0.2 erc-server-flood-penalty)
+                             nil #'erc-server-send-queue buffer)))))))
 
 (defun erc-message (message-command line &optional force)
   "Send LINE to the server as a privmsg or a notice.
