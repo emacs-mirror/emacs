@@ -4043,9 +4043,21 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
       [doTransform concat];
 
+      /* Smoothing is the default, so if we don't want smoothing we
+         have to turn it off.  */
+      if (! img->smoothing)
+        [[NSGraphicsContext currentContext]
+          setImageInterpolation:NSImageInterpolationNone];
+
       [img drawInRect:ir fromRect:ir
             operation:NSCompositingOperationSourceOver
              fraction:1.0 respectFlipped:YES hints:nil];
+
+      /* Apparently image interpolation is not reset with
+         restoreGraphicsState, so we have to manually reset it.  */
+      if (! img->smoothing)
+        [[NSGraphicsContext currentContext]
+          setImageInterpolation:NSImageInterpolationDefault];
 
       [[NSGraphicsContext currentContext] restoreGraphicsState];
     }
