@@ -4079,7 +4079,7 @@ variable PATH."
 	      chunk (substring command 0 chunksize)
 	      command (substring command chunksize))
 	(tramp-send-command vec (format
-				 "echo -n %s >>%s"
+				 "printf \"%%b\" \"$*\" %s >>%s"
 				 (tramp-shell-quote-argument chunk)
 				 (tramp-shell-quote-argument tmpfile))))
       (tramp-send-command vec (format ". %s" tmpfile))
