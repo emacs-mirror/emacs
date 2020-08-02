@@ -4861,7 +4861,7 @@ mark_memory (void const *start, void const *end)
 	 On a host with 32-bit pointers and 64-bit Lisp_Objects,
 	 a Lisp_Object might be split into registers saved into
 	 non-adjacent words and P might be the low-order word's value.  */
-      p = (char *) ((intptr_t) p + (intptr_t) lispsym);
+      p = (char *) ((uintptr_t) p + (uintptr_t) lispsym);
       mark_maybe_pointer (p);
 
       verify (alignof (Lisp_Object) % GC_POINTER_ALIGNMENT == 0);
