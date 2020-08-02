@@ -162,6 +162,9 @@ changes."
 (ert-deftest mod-test-globref-free-test ()
   (should (eq (mod-test-globref-free 1 'a "test" 'b) 'ok)))
 
+(ert-deftest mod-test-globref-reordered ()
+  (should (equal (mod-test-globref-reordered) '(t t t nil))))
+
 (ert-deftest mod-test-string-a-to-b-test ()
   (should (string= (mod-test-string-a-to-b "aaa") "bbb")))
 

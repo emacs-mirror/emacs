@@ -1,4 +1,4 @@
-;;; dns.el --- Domain Name Service lookups
+;;; dns.el --- Domain Name Service lookups  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -23,6 +23,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(require 'cl-lib)
 
 (defvar dns-timeout 5
   "How many seconds to wait when doing DNS queries.")
@@ -73,7 +75,7 @@ updated.  Set this variable to t to disable the check.")
 
 (defun dns-write-bytes (value &optional length)
   (let (bytes)
-    (dotimes (i (or length 1))
+    (dotimes (_ (or length 1))
       (push (% value 256) bytes)
       (setq value (/ value 256)))
     (dolist (byte bytes)
@@ -81,7 +83,7 @@ updated.  Set this variable to t to disable the check.")
 
 (defun dns-read-bytes (length)
   (let ((value 0))
-    (dotimes (i length)
+    (dotimes (_ length)
       (setq value (logior (* value 256) (following-char)))
       (forward-char 1))
     value))
@@ -229,7 +231,7 @@ If TCP-P, the first two bytes of the packet will be the length field."
       (setq authorities (dns-read-bytes 2))
       (setq additionals (dns-read-bytes 2))
       (let ((qs nil))
-        (dotimes (i queries)
+        (dotimes (_ queries)
           (push (list (dns-read-name)
                       (list 'type (dns-inverse-get (dns-read-bytes 2)
                                                    dns-query-types))
@@ -237,26 +239,31 @@ If TCP-P, the first two bytes of the packet will be the length field."
                                                     dns-classes)))
                 qs))
         (push (list 'queries qs) spec))
-      (dolist (slot '(answers authorities additionals))
-        (let ((qs nil)
-              type)
-          (dotimes (i (symbol-value slot))
-            (push (list (dns-read-name)
-                        (list 'type
-                              (setq type (dns-inverse-get (dns-read-bytes 2)
-                                                          dns-query-types)))
-                        (list 'class (dns-inverse-get (dns-read-bytes 2)
-                                                      dns-classes))
-                        (list 'ttl (dns-read-bytes 4))
-                        (let ((length (dns-read-bytes 2)))
-                          (list 'data
-                                (dns-read-type
-                                 (buffer-substring
-                                  (point)
-                                  (progn (forward-char length) (point)))
-                                 type))))
-                  qs))
-          (push (list slot qs) spec)))
+      (cl-loop for (slot length) in `((answers ,answers)
+                                      (authorities ,authorities)
+                                      (additionals ,additionals))
+               do (let ((qs nil)
+                        type)
+                    (dotimes (_ length)
+                      (push (list (dns-read-name)
+                                  (list 'type
+                                        (setq type (dns-inverse-get
+                                                    (dns-read-bytes 2)
+                                                    dns-query-types)))
+                                  (list 'class (dns-inverse-get
+                                                (dns-read-bytes 2)
+                                                dns-classes))
+                                  (list 'ttl (dns-read-bytes 4))
+                                  (let ((length (dns-read-bytes 2)))
+                                    (list 'data
+                                          (dns-read-type
+                                           (buffer-substring
+                                            (point)
+                                            (progn (forward-char length)
+                                                   (point)))
+                                           type))))
+                            qs))
+                    (push (list slot qs) spec)))
       (nreverse spec))))
 
 (defun dns-read-int32 ()
@@ -274,12 +281,12 @@ If TCP-P, the first two bytes of the packet will be the length field."
           (cond
            ((eq type 'A)
             (let ((bytes nil))
-              (dotimes (i 4)
+              (dotimes (_ 4)
                 (push (dns-read-bytes 1) bytes))
               (mapconcat 'number-to-string (nreverse bytes) ".")))
            ((eq type 'AAAA)
             (let (hextets)
-              (dotimes (i 8)
+              (dotimes (_ 8)
                 (push (dns-read-bytes 2) hextets))
               (mapconcat (lambda (n) (format "%x" n))
                          (nreverse hextets) ":")))
@@ -355,25 +362,6 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
     result))
 
 ;;; Interface functions.
-(defmacro dns-make-network-process (server)
-  `(let ((server ,server)
-	 (coding-system-for-read 'binary)
-	 (coding-system-for-write 'binary))
-     (if (and
-          (fboundp 'make-network-process)
-          (featurep 'make-network-process '(:type datagram)))
-	 (make-network-process
-	  :name "dns"
-	  :coding 'binary
-	  :buffer (current-buffer)
-	  :host server
-	  :service "domain"
-	  :type 'datagram)
-       ;; Older versions of Emacs do not have `make-network-process',
-       ;; and on MS-Windows datagram sockets are not supported, so we
-       ;; fall back on opening a TCP connection to the DNS server.
-       (open-network-stream "dns" (current-buffer) server "domain"))))
-
 (defvar dns-cache (make-vector 4096 0))
 
 (defun dns-query-cached (name &optional type fullp reversep)
@@ -386,18 +374,20 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	(set (intern key dns-cache) result)
 	result))))
 
-;; The old names `query-dns' and `query-dns-cached' weren't used in Emacs 23
-;; yet, so no alias are provided.  --rsteib
-
-(defun dns-query (name &optional type fullp reversep)
+(defun dns-query-asynchronous (name callback &optional type full reverse)
   "Query a DNS server for NAME of TYPE.
-If FULLP, return the entire record returned.
-If REVERSEP, look up an IP address."
+CALLBACK will be called with a single parameter: The result.
+
+If there's no result, or `dns-timeout' has passed, CALLBACK will
+be called with nil as the parameter.
+
+If FULL, return the entire record.
+If REVERSE, look up an IP address."
   (setq type (or type 'A))
   (unless (dns-servers-up-to-date-p)
     (dns-set-servers))
 
-  (when reversep
+  (when reverse
     (setq name (concat
 		(mapconcat 'identity (nreverse (split-string name "\\.")) ".")
 		".in-addr.arpa")
@@ -407,47 +397,118 @@ If REVERSEP, look up an IP address."
       (progn
         (message "No DNS server configuration found")
         nil)
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (let* ((process (condition-case ()
-                          (dns-make-network-process (car dns-servers))
-                        (error
-                         (message
-                          "dns: Got an error while trying to talk to %s"
-                          (car dns-servers))
-                         nil)))
-            (step 100)
-            (times (* dns-timeout 1000))
-            (id (random 65000))
-            (tcp-p (and process (not (process-contact process :type)))))
-        (when process
-          (process-send-string
-           process
-           (dns-write `((id ,id)
-                        (opcode query)
-                        (queries ((,name (type ,type))))
-                        (recursion-desired-p t))
-                      tcp-p))
-          (while (and (zerop (buffer-size))
-                      (> times 0))
-	    (let ((step-sec (/ step 1000.0)))
-	      (sit-for step-sec)
-	      (accept-process-output process step-sec))
-            (setq times (- times step)))
-          (condition-case nil
-              (delete-process process)
-            (error nil))
-          (when (and (>= (buffer-size) 2)
-                     ;; We had a time-out.
-                     (> times 0))
-            (let ((result (dns-read (buffer-string) tcp-p)))
-              (if fullp
-                  result
-                (let ((answer (car (dns-get 'answers result))))
-                  (when (eq type (dns-get 'type answer))
-                    (if (eq type 'TXT)
-                        (dns-get-txt-answer (dns-get 'answers result))
-                      (dns-get 'data answer))))))))))))
+    (dns--lookup name callback type full)))
+
+(defun dns--lookup (name callback type full)
+  (with-current-buffer (generate-new-buffer " *dns*")
+    (set-buffer-multibyte nil)
+    (let* ((tcp nil)
+           (process
+            (condition-case ()
+                (let ((server (car dns-servers))
+	              (coding-system-for-read 'binary)
+	              (coding-system-for-write 'binary))
+                  (if (featurep 'make-network-process '(:type datagram))
+	              (make-network-process
+	               :name "dns"
+	               :coding 'binary
+	               :buffer (current-buffer)
+	               :host server
+	               :service "domain"
+	               :type 'datagram)
+                    ;; On MS-Windows datagram sockets are not
+                    ;; supported, so we fall back on opening a TCP
+                    ;; connection to the DNS server.
+                    (progn
+                      (setq tcp t)
+                      (open-network-stream "dns" (current-buffer)
+                                           server "domain"))))
+              (error
+               (message
+                "dns: Got an error while trying to talk to %s"
+                (car dns-servers))
+               nil)))
+           (triggered nil)
+           (buffer (current-buffer))
+           timer)
+      (if (not process)
+          (progn
+            (kill-buffer buffer)
+            (funcall callback nil))
+        ;; Call the callback if we don't get any response at all.
+        (setq timer (run-at-time dns-timeout nil
+                                 (lambda ()
+                                   (unless triggered
+                                     (setq triggered t)
+                                     (delete-process process)
+                                     (kill-buffer buffer)
+                                     (funcall callback nil)))))
+        (process-send-string
+         process
+         (dns-write `((id ,(random 65000))
+                      (opcode query)
+                      (queries ((,name (type ,type))))
+                      (recursion-desired-p t))
+                    tcp))
+        (set-process-filter
+         process
+         (lambda (process string)
+           (with-current-buffer (process-buffer process)
+             (goto-char (point-max))
+             (insert string)
+             (goto-char (point-min))
+             ;; If this is DNS, then we always get the full data in
+             ;; one packet.  If it's TCP, we may only get part of the
+             ;; data, but the first two bytes says how long the data
+             ;; is supposed to be.
+             (when (or (not tcp)
+                       (>= (buffer-size) (dns-read-bytes 2)))
+               (setq triggered t)
+               (cancel-timer timer)
+               (dns--filter process callback type full tcp)))))
+        ;; In case we the process is deleted for some reason, then do
+        ;; a failure callback.
+        (set-process-sentinel
+         process
+         (lambda (_ state)
+           (when (and (eq state 'deleted)
+                      ;; Ensure we don't trigger this callback twice.
+                      (not triggered))
+             (setq triggered t)
+             (cancel-timer timer)
+             (kill-buffer buffer)
+             (funcall callback nil))))))))
+
+(defun dns--filter (process callback type full tcp)
+  (let ((message (buffer-string)))
+    (when (process-live-p process)
+      (delete-process process))
+    (kill-buffer (current-buffer))
+    (when (>= (length message) 2)
+      (let ((result (dns-read message tcp)))
+        (funcall callback
+                 (if full
+                     result
+                   (let ((answer (car (dns-get 'answers result))))
+                     (when (eq type (dns-get 'type answer))
+                       (if (eq type 'TXT)
+                           (dns-get-txt-answer (dns-get 'answers result))
+                         (dns-get 'data answer))))))))))
+
+(defun dns-query (name &optional type full reverse)
+  "Query a DNS server for NAME of TYPE.
+If FULL, return the entire record returned.
+If REVERSE, look up an IP address."
+  (let ((result nil))
+    (dns-query-asynchronous
+     name
+     (lambda (response)
+       (setq result (list response)))
+     type full reverse)
+    ;; Loop until we get the callback.
+    (while (not result)
+      (sleep-for 0.01))
+    (car result)))
 
 (provide 'dns)
 

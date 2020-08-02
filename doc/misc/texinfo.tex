@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2020-05-22.11}
+\def\texinfoversion{2020-06-25.17}
 %
 % Copyright 1985, 1986, 1988, 1990-2020 Free Software Foundation, Inc.
 %
@@ -4922,7 +4922,7 @@ end
 
 % like the previous two, but they put @code around the argument.
 \def\docodeindex#1{\edef\indexname{#1}\parsearg\docodeindexxxx}
-\def\docodeindexxxx #1{\doind{\indexname}{\code{#1}}}
+\def\docodeindexxxx #1{\docind{\indexname}{#1}}
 
 
 % Used for the aux, toc and index files to prevent expansion of Texinfo
@@ -5294,6 +5294,20 @@ end
   \fi
 }
 
+% Same as \doind, but for code indices
+\def\docind#1#2{%
+  \iflinks
+  {%
+    %
+    \requireopenindexfile{#1}%
+    \edef\writeto{\csname#1indfile\endcsname}%
+    %
+    \def\indextext{#2}%
+    \safewhatsit\docindwrite
+  }%
+  \fi
+}
+
 % Check if an index file has been opened, and if not, open it.
 \def\requireopenindexfile#1{%
 \ifnum\csname #1indfile\endcsname=0
@@ -5360,6 +5374,9 @@ end
     % trim spaces.
     \edef\trimmed{\segment}%
     \edef\trimmed{\expandafter\eatspaces\expandafter{\trimmed}}%
+    \ifincodeindex
+      \edef\trimmed{\noexpand\code{\trimmed}}%
+    \fi
     %
     \xdef\bracedtext{\bracedtext{\trimmed}}%
     %
@@ -5425,7 +5442,12 @@ end
 
 % Write the entry in \indextext to the index file.
 %
-\def\doindwrite{%
+
+\newif\ifincodeindex
+\def\doindwrite{\incodeindexfalse\doindwritex}
+\def\docindwrite{\incodeindextrue\doindwritex}
+
+\def\doindwritex{%
   \maybemarginindex
   %
   \atdummies
@@ -5645,7 +5667,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \else
     \begindoublecolumns
     \catcode`\\=0\relax
-    \catcode`\@=12\relax
+    %
+    % Make @ an escape character to give macros a chance to work.  This
+    % should work because we (hopefully) don't otherwise use @ in index files.
+    %\catcode`\@=12\relax
+    \catcode`\@=0\relax
     \input \jobname.\indexname s
     \enddoublecolumns
   \fi
@@ -7562,7 +7588,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \let\nonarrowing = t%
   \nonfillstart
   \tt % easiest (and conventionally used) font for verbatim
-  \def\par{\egroup\box\verbbox\endgraf\starttabbox}%
+  \def\par{\egroup\leavevmode\box\verbbox\endgraf\starttabbox}%
   \tabexpand
   \setupmarkupstyle{verbatim}%
   % Respect line breaks,

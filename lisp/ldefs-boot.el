@@ -7126,8 +7126,10 @@ Otherwise return a description formatted by
 of `eldoc-echo-area-use-multiline-p' variable and width of
 minibuffer window for width limit.
 
-This function is meant to be used as a value of
-`eldoc-documentation-function' variable." nil nil)
+This function can be used as a value of
+`eldoc-documentation-functions' variable.
+
+\(fn CALLBACK &rest _)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "descr-text" '("describe-")))
 
@@ -9949,7 +9951,7 @@ It creates an autoload function for CNAME's constructor.
 
 ;;;### (autoloads nil "eldoc" "emacs-lisp/eldoc.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/eldoc.el
-(push (purecopy '(eldoc 1 0 0)) package--builtin-versions)
+(push (purecopy '(eldoc 1 8 0)) package--builtin-versions)
 
 ;;;***
 
@@ -10255,6 +10257,10 @@ some major modes from being locked under some circumstances.
 (autoload 'report-emacs-bug "emacsbug" "\
 Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer.
+
+Already submitted bugs can be found in the Emacs bug tracker:
+
+  https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1
 
 \(fn TOPIC &optional UNUSED)" t nil)
 
@@ -10608,7 +10614,10 @@ The buffer is expected to contain a mail message." t nil)
 
 (autoload 'epa-mail-sign "epa-mail" "\
 Sign the current buffer.
-The buffer is expected to contain a mail message.
+The buffer is expected to contain a mail message, and signing is
+performed with your default key.
+With prefix argument, asks you to select interactively the key to
+use from your key ring.
 
 \(fn START END SIGNERS MODE)" t nil)
 
@@ -11859,6 +11868,14 @@ Edit the hotlist of directory servers in a specialized buffer." t nil)
 
 ;;;***
 
+;;;### (autoloads nil "eudcb-macos-contacts" "net/eudcb-macos-contacts.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from net/eudcb-macos-contacts.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "eudcb-macos-contacts" '("eudc-macos-contacts-")))
+
+;;;***
+
 ;;;### (autoloads nil "ewoc" "emacs-lisp/ewoc.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/ewoc.el
 
@@ -11906,7 +11923,11 @@ word(s) will be searched for via `eww-search-prefix'.
 If called with a prefix ARG, use a new buffer instead of reusing
 the default EWW buffer.
 
-\(fn URL &optional ARG)" t nil)
+If BUFFER, the data to be rendered is in that buffer.  In that
+case, this function doesn't actually fetch URL.  BUFFER will be
+killed after rendering.
+
+\(fn URL &optional ARG BUFFER)" t nil)
  (defalias 'browse-web 'eww)
 
 (autoload 'eww-open-file "eww" "\
@@ -11946,7 +11967,7 @@ instead of `browse-url-new-window-flag'.
 (autoload 'eww-list-bookmarks "eww" "\
 Display the bookmarks." t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "eww" '("eww-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "eww" '("erc--download-directory" "eww-")))
 
 ;;;***
 
@@ -13097,7 +13118,7 @@ lines.
 
 ;;;### (autoloads nil "flymake" "progmodes/flymake.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/flymake.el
-(push (purecopy '(flymake 1 0 8)) package--builtin-versions)
+(push (purecopy '(flymake 1 0 9)) package--builtin-versions)
 
 (autoload 'flymake-log "flymake" "\
 Log, at level LEVEL, the message MSG formatted with ARGS.
@@ -14137,8 +14158,13 @@ DEFAULT-MAP specifies the default key map for ICON-LIST.
 (when (fboundp 'custom-autoload)
  (custom-autoload 'gnus-select-method "gnus"))
 
+(autoload 'gnus-child-no-server "gnus" "\
+Read network news as a child, without connecting to the local server.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'gnus-slave-no-server "gnus" "\
-Read network news as a slave, without connecting to the local server.
+Read network news as a child, without connecting to the local server.
 
 \(fn &optional ARG)" t nil)
 
@@ -14151,10 +14177,15 @@ an NNTP server to use.
 As opposed to `gnus', this command will not connect to the local
 server.
 
-\(fn &optional ARG SLAVE)" t nil)
+\(fn &optional ARG CHILD)" t nil)
+
+(autoload 'gnus-child "gnus" "\
+Read news as a child.
+
+\(fn &optional ARG)" t nil)
 
 (autoload 'gnus-slave "gnus" "\
-Read news as a slave.
+Read news as a child.
 
 \(fn &optional ARG)" t nil)
 
@@ -14177,7 +14208,7 @@ If ARG is non-nil and a positive number, Gnus will use that as the
 startup level.  If ARG is non-nil and not a positive number, Gnus will
 prompt the user for the name of an NNTP server to use.
 
-\(fn &optional ARG DONT-CONNECT SLAVE)" t nil)
+\(fn &optional ARG DONT-CONNECT CHILD)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnus" '("gnus-")))
 
@@ -14192,8 +14223,13 @@ Start Gnus unplugged." t nil)
 (autoload 'gnus-plugged "gnus-agent" "\
 Start Gnus plugged." t nil)
 
+(autoload 'gnus-child-unplugged "gnus-agent" "\
+Read news as a child unplugged.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'gnus-slave-unplugged "gnus-agent" "\
-Read news as a slave unplugged.
+Read news as a child unplugged.
 
 \(fn &optional ARG)" t nil)
 
@@ -19865,7 +19901,7 @@ done.  Otherwise, it uses the current buffer.
 
 \(fn CALLBACK &optional SETUP PARAMS BUFFER MODE &rest IGNORE)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "log-edit" '("log-edit-" "vc-log-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "log-edit" '("log-edit-")))
 
 ;;;***
 
@@ -20540,7 +20576,7 @@ Previous contents of that buffer are killed first." t nil)
 ;;;### (autoloads nil "man" "man.el" (0 0 0 0))
 ;;; Generated autoloads from man.el
 
-(defalias 'manual-entry 'man)
+(define-obsolete-function-alias 'manual-entry 'man "28.1")
 
 (autoload 'man "man" "\
 Get a Un*x manual page and put it in a buffer.
@@ -20578,6 +20614,10 @@ names or descriptions.  The pattern argument is usually an
 \"grep -E\" style regexp.
 
     -k pattern
+
+Note that in some cases you will need to use \\[quoted-insert] to quote the
+SPC character in the above examples, because this command attempts
+to auto-complete your input based on the installed manual pages.
 
 \(fn MAN-ARGS)" t nil)
 
@@ -22310,7 +22350,10 @@ writes.  See `make-network-process' for details.
 
 :capability-command specifies a command used to query the HOST
   for its capabilities.  For instance, for IMAP this should be
-  \"1 CAPABILITY\\r\\n\".
+  \"1 CAPABILITY\\r\\n\".  This can either be a string (which will
+  then be sent verbatim to the server), or a function (called with
+  a single parameter; the \"greeting\" from the server when connecting),
+  and should return a string to send to the server.
 
 :starttls-function specifies a function for handling STARTTLS.
   This function should take one parameter, the response to the
@@ -26251,18 +26294,56 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 4 0)) package--builtin-versions)
+(push (purecopy '(project 0 5 0)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
-Return the project instance in DIR or `default-directory'.
-When no project found in DIR, and MAYBE-PROMPT is non-nil, ask
-the user for a different project to look in.
+Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
-\(fn &optional MAYBE-PROMPT DIR)" nil nil)
+When no project is found in that directory, the result depends on
+the value of MAYBE-PROMPT: if it is nil or omitted, return nil,
+else ask the user for a directory in which to look for the
+project, and if no project is found there, return a \"transient\"
+project instance.
 
-(defvar project-prefix-map (let ((map (make-sparse-keymap))) (define-key map "f" 'project-find-file) (define-key map "b" 'project-switch-to-buffer) (define-key map "s" 'project-shell) (define-key map "d" 'project-dired) (define-key map "v" 'project-vc-dir) (define-key map "c" 'project-compile) (define-key map "e" 'project-eshell) (define-key map "k" 'project-kill-buffers) (define-key map "p" 'project-switch-project) (define-key map "g" 'project-find-regexp) (define-key map "r" 'project-query-replace-regexp) map) "\
+The \"transient\" project instance is a special kind of value
+which denotes a project rooted in that directory and includes all
+the files under the directory except for those that should be
+ignored (per `project-ignores').
+
+See the doc string of `project-find-functions' for the general form
+of the project instance object.
+
+\(fn &optional MAYBE-PROMPT DIRECTORY)" nil nil)
+
+(defvar project-prefix-map (let ((map (make-sparse-keymap))) (define-key map "f" 'project-find-file) (define-key map "F" 'project-or-external-find-file) (define-key map "b" 'project-switch-to-buffer) (define-key map "s" 'project-shell) (define-key map "d" 'project-dired) (define-key map "v" 'project-vc-dir) (define-key map "c" 'project-compile) (define-key map "e" 'project-eshell) (define-key map "k" 'project-kill-buffers) (define-key map "p" 'project-switch-project) (define-key map "g" 'project-find-regexp) (define-key map "G" 'project-or-external-find-regexp) (define-key map "r" 'project-query-replace-regexp) map) "\
 Keymap for project commands.")
  (define-key ctl-x-map "p" project-prefix-map)
+
+(autoload 'project-other-window-command "project" "\
+Run project command, displaying resultant buffer in another window.
+
+The following commands are available:
+
+\\{project-prefix-map}
+\\{project-other-window-map}" t nil)
+ (define-key ctl-x-4-map "p" #'project-other-window-command)
+
+(autoload 'project-other-frame-command "project" "\
+Run project command, displaying resultant buffer in another frame.
+
+The following commands are available:
+
+\\{project-prefix-map}
+\\{project-other-frame-map}" t nil)
+ (define-key ctl-x-5-map "p" #'project-other-frame-command)
+
+(autoload 'project-other-tab-command "project" "\
+Run project command, displaying resultant buffer in a new tab.
+
+The following commands are available:
+
+\\{project-prefix-map}" t nil)
+ (define-key tab-prefix-map "p" #'project-other-tab-command)
 
 (autoload 'project-find-regexp "project" "\
 Find all matches for REGEXP in the current project's roots.
@@ -26335,13 +26416,56 @@ Arguments the same as in `compile'.
 \(fn COMMAND &optional COMINT)" t nil)
 
 (autoload 'project-switch-to-buffer "project" "\
-Switch to another buffer that is related to the current project.
-A buffer is related to a project if its `default-directory'
-is inside the directory hierarchy of the project's root." t nil)
+Display buffer BUFFER-OR-NAME in the selected window.
+When called interactively, prompts for a buffer belonging to the
+current project.  Two buffers belong to the same project if their
+project instances, as reported by `project-current' in each
+buffer, are identical.
+
+\(fn BUFFER-OR-NAME)" t nil)
+
+(autoload 'project-display-buffer "project" "\
+Display BUFFER-OR-NAME in some window, without selecting it.
+When called interactively, prompts for a buffer belonging to the
+current project.  Two buffers belong to the same project if their
+project instances, as reported by `project-current' in each
+buffer, are identical.
+
+This function uses `display-buffer' as a subroutine, which see
+for how it is determined where the buffer will be displayed.
+
+\(fn BUFFER-OR-NAME)" t nil)
+
+(autoload 'project-display-buffer-other-frame "project" "\
+Display BUFFER-OR-NAME preferably in another frame.
+When called interactively, prompts for a buffer belonging to the
+current project.  Two buffers belong to the same project if their
+project instances, as reported by `project-current' in each
+buffer, are identical.
+
+This function uses `display-buffer-other-frame' as a subroutine,
+which see for how it is determined where the buffer will be
+displayed.
+
+\(fn BUFFER-OR-NAME)" t nil)
 
 (autoload 'project-kill-buffers "project" "\
-Kill all live buffers belonging to the current project.
-Certain buffers may be \"spared\", see `project-kill-buffers-ignores'." t nil)
+Kill the buffers belonging to the current project.
+Two buffers belong to the same project if their project
+instances, as reported by `project-current' in each buffer, are
+identical.  Only the buffers that match a condition in
+`project-kill-buffer-conditions' will be killed.  If NO-CONFIRM
+is non-nil, the command will not ask the user for confirmation.
+NO-CONFIRM is always nil when the command is invoked
+interactivly.
+
+\(fn &optional NO-CONFIRM)" t nil)
+
+(autoload 'project-remember-project "project" "\
+Add project PR to the front of the project list.
+Save the result in `project-list-file' if the list of projects has changed.
+
+\(fn PR)" nil nil)
 
 (autoload 'project-known-project-roots "project" "\
 Return the list of root directories of all known projects." nil nil)
@@ -36789,7 +36913,7 @@ Key bindings:
 ;;;### (autoloads nil "verilog-mode" "progmodes/verilog-mode.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from progmodes/verilog-mode.el
-(push (purecopy '(verilog-mode 2020 2 23 232634261)) package--builtin-versions)
+(push (purecopy '(verilog-mode 2020 6 27 14326051)) package--builtin-versions)
 
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.

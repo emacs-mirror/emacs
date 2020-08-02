@@ -5476,7 +5476,8 @@ ns_term_init (Lisp_Object display_name)
   {
     NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
 
-    if ( cl == nil )
+    /* There are 752 colors defined in rgb.txt.  */
+    if ( cl == nil || [[cl allKeys] count] < 752)
       {
         Lisp_Object color_file, color_map, color;
         unsigned long c;

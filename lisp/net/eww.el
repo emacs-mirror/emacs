@@ -32,6 +32,7 @@
 (require 'thingatpt)
 (require 'url)
 (require 'url-queue)
+(require 'xdg)
 (eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
@@ -55,11 +56,24 @@
   :group 'eww
   :type 'string)
 
-(defcustom eww-download-directory "~/Downloads/"
-  "Directory where files will downloaded."
-  :version "24.4"
+(defun erc--download-directory ()
+  "Return the name of the download directory.
+If ~/Downloads/ exists, that will be used, and if not, the
+DOWNLOAD XDG user directory will be returned.  If that's
+undefined, ~/Downloads/ is returned anyway."
+  (or (and (file-exists-p "~/Downloads/")
+           "~/Downloads/")
+      (when-let ((dir (xdg-user-dir "DOWNLOAD")))
+        (file-name-as-directory dir))
+      "~/Downloads/"))
+
+(defcustom eww-download-directory 'erc--download-directory
+  "Directory where files will downloaded.
+This should either be a directory name or a function (called with
+no parameters) that returns a directory name."
+  :version "28.1"
   :group 'eww
-  :type 'directory)
+  :type '(choice directory function))
 
 ;;;###autoload
 (defcustom eww-suggest-uris
@@ -1632,20 +1646,23 @@ Differences in #targets are ignored."
   "Download URL to `eww-download-directory'.
 Use link at point if there is one, else the current page's URL."
   (interactive)
-  (access-file eww-download-directory "Download failed")
-  (let ((url (or (get-text-property (point) 'shr-url)
-                 (eww-current-url))))
-    (if (not url)
-        (message "No URL under point")
-      (url-retrieve url #'eww-download-callback (list url)))))
+  (let ((dir (if (stringp eww-download-directory)
+                 eww-download-directory
+               (funcall eww-download-directory))))
+    (access-file dir "Download failed")
+    (let ((url (or (get-text-property (point) 'shr-url)
+                   (eww-current-url))))
+      (if (not url)
+          (message "No URL under point")
+        (url-retrieve url #'eww-download-callback (list url dir))))))
 
-(defun eww-download-callback (status url)
+(defun eww-download-callback (status url dir)
   (unless (plist-get status :error)
     (let* ((obj (url-generic-parse-url url))
            (path (directory-file-name (car (url-path-and-query obj))))
            (file (eww-make-unique-file-name
                   (eww-decode-url-file-name (file-name-nondirectory path))
-                  eww-download-directory)))
+                  dir)))
       (goto-char (point-min))
       (re-search-forward "\r?\n\r?\n")
       (let ((coding-system-for-write 'no-conversion))

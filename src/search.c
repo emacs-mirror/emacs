@@ -21,6 +21,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#include <sanitizer/lsan_interface.h>
+#endif
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -613,7 +617,12 @@ newline_cache_on_off (struct buffer *buf)
 	{
 	  /* It should be on.  */
 	  if (base_buf->newline_cache == 0)
-	    base_buf->newline_cache = new_region_cache ();
+            {
+              base_buf->newline_cache = new_region_cache ();
+#ifdef HAVE___LSAN_IGNORE_OBJECT
+              __lsan_ignore_object (base_buf->newline_cache);
+#endif
+            }
 	}
       return base_buf->newline_cache;
     }

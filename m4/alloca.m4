@@ -1,4 +1,4 @@
-# alloca.m4 serial 15
+# alloca.m4 serial 16
 dnl Copyright (C) 2002-2004, 2006-2007, 2009-2020 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -51,12 +51,9 @@ AC_DEFUN([gl_FUNC_ALLOCA],
 AC_DEFUN([gl_PREREQ_ALLOCA], [:])
 
 # This works around a bug in autoconf <= 2.68.
-# See <https://lists.gnu.org/r/bug-gnulib/2011-06/msg00277.html>.
-
-m4_version_prereq([2.69], [] ,[
-
-# This is taken from the following Autoconf patch:
-# https://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commitdiff;h=6cd9f12520b0d6f76d3230d7565feba1ecf29497
+# See <https://lists.gnu.org/r/bug-gnulib/2011-06/msg00277.html> and
+# <https://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commitdiff;h=6cd9f12520b0d6f76d3230d7565feba1ecf29497>.
+# Also it has a simplification that is not yet in Autoconf.
 
 # _AC_LIBOBJ_ALLOCA
 # -----------------
@@ -71,26 +68,6 @@ m4_define([_AC_LIBOBJ_ALLOCA],
 AC_LIBSOURCES(alloca.c)
 AC_SUBST([ALLOCA], [\${LIBOBJDIR}alloca.$ac_objext])dnl
 AC_DEFINE(C_ALLOCA, 1, [Define to 1 if using 'alloca.c'.])
-
-AC_CACHE_CHECK(whether 'alloca.c' needs Cray hooks, ac_cv_os_cray,
-[AC_EGREP_CPP(webecray,
-[#if defined CRAY && ! defined CRAY2
-webecray
-#else
-wenotbecray
-#endif
-], ac_cv_os_cray=yes, ac_cv_os_cray=no)])
-if test $ac_cv_os_cray = yes; then
-  for ac_func in _getb67 GETB67 getb67; do
-    AC_CHECK_FUNC($ac_func,
-                  [AC_DEFINE_UNQUOTED(CRAY_STACKSEG_END, $ac_func,
-                                      [Define to one of '_getb67', 'GETB67',
-                                       'getb67' for Cray-2 and Cray-YMP
-                                       systems. This function is required for
-                                       'alloca.c' support on those systems.])
-    break])
-  done
-fi
 
 AC_CACHE_CHECK([stack direction for C alloca],
                [ac_cv_c_stack_direction],
@@ -124,5 +101,4 @@ AH_VERBATIM([STACK_DIRECTION],
         STACK_DIRECTION = 0 => direction of growth unknown */
 @%:@undef STACK_DIRECTION])dnl
 AC_DEFINE_UNQUOTED(STACK_DIRECTION, $ac_cv_c_stack_direction)
-])# _AC_LIBOBJ_ALLOCA
 ])

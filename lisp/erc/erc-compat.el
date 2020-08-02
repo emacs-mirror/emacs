@@ -79,10 +79,12 @@ START is the beginning position of the last match (see `match-beginning').
 See `replace-match' for explanations of FIXEDCASE and LITERAL."
   (replace-match newtext fixedcase literal string subexp))
 
-(defalias 'erc-with-selected-window 'with-selected-window)
-(defalias 'erc-cancel-timer 'cancel-timer)
-(defalias 'erc-make-obsolete 'make-obsolete)
-(defalias 'erc-make-obsolete-variable 'make-obsolete-variable)
+(define-obsolete-function-alias 'erc-with-selected-window
+  #'with-selected-window "28.1")
+(define-obsolete-function-alias 'erc-cancel-timer #'cancel-timer "28.1")
+(define-obsolete-function-alias 'erc-make-obsolete #'make-obsolete "28.1")
+(define-obsolete-function-alias 'erc-make-obsolete-variable
+  #'make-obsolete-variable "28.1")
 
 ;; Provide a simpler replacement for `member-if'
 (defun erc-member-if (predicate list)

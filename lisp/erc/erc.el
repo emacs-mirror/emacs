@@ -1212,7 +1212,7 @@ which the local user typed."
   :group 'erc-faces)
 
 (defface erc-header-line
-  '((t :foreground "grey20" :background "grey90"))
+  '((t :inherit header-line))
   "ERC face used for the header line.
 
 This will only be used if `erc-header-line-face-method' is non-nil."
@@ -1622,10 +1622,12 @@ symbol, it may have these values:
       (if (and (not buffer-name)
                erc-reuse-buffers
                (or (not (get-buffer candidate))
-                   (or target
-                       (with-current-buffer (get-buffer candidate)
-                         (and (erc-server-buffer-p)
-                              (not (erc-server-process-alive)))))
+                   ;; Looking for a server buffer, so there's no target.
+                   (and (not target)
+                        (with-current-buffer (get-buffer candidate)
+                          (and (erc-server-buffer-p)
+                               (not (erc-server-process-alive)))))
+                   ;; Channel buffer; check that it's from the right server.
                    (with-current-buffer (get-buffer candidate)
                      (and (string= erc-session-server server)
                           (erc-port-equal erc-session-port port)))))

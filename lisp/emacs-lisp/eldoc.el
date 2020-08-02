@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.6.0
+;; Version: 1.8.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -229,11 +229,15 @@ expression point is on." :lighter eldoc-minor-mode-string
 (defun eldoc--eval-expression-setup ()
   ;; Setup `eldoc', similar to `emacs-lisp-mode'.  FIXME: Call
   ;; `emacs-lisp-mode' itself?
-  (add-hook 'eldoc-documentation-functions
-            #'elisp-eldoc-var-docstring nil t)
-  (add-hook 'eldoc-documentation-functions
-            #'elisp-eldoc-funcall nil t)
-  (setq eldoc-documentation-strategy 'eldoc-documentation-default)
+  (cond ((<= emacs-major-version 27)
+         (declare-function elisp-eldoc-documentation-function "elisp-mode")
+         (add-function :before-until (local 'eldoc-documentation-function)
+                       #'elisp-eldoc-documentation-function))
+        (t (add-hook 'eldoc-documentation-functions
+                     #'elisp-eldoc-var-docstring nil t)
+           (add-hook 'eldoc-documentation-functions
+                     #'elisp-eldoc-funcall nil t)
+           (setq eldoc-documentation-strategy 'eldoc-documentation-default)))
   (eldoc-mode +1))
 
 ;;;###autoload
@@ -345,6 +349,12 @@ Also store it in `eldoc-last-message' and return that value."
 (defun eldoc--request-state ()
   "Compute information to store in `eldoc--last-request-state'."
   (list (current-buffer) (buffer-modified-tick) (point)))
+
+(defun eldoc-display-message-p ()
+  (eldoc--request-docs-p (eldoc--request-state)))
+(make-obsolete 'eldoc-display-message-p
+               "Use `eldoc-documentation-functions' instead."
+               "eldoc-1.6.0")
 
 (defun eldoc--request-docs-p (request-state)
   "Return non-nil when it is appropriate to request docs.

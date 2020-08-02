@@ -215,6 +215,35 @@ Fmod_test_globref_invalid_free (emacs_env *env, ptrdiff_t nargs,
   return env->intern (env, "nil");
 }
 
+/* Allocate and free global references in a different order.  */
+
+static emacs_value
+Fmod_test_globref_reordered (emacs_env *env, ptrdiff_t nargs,
+                                emacs_value *args, void *data)
+{
+  emacs_value booleans[2] = {
+    env->intern (env, "nil"),
+    env->intern (env, "t"),
+  };
+  emacs_value local = env->intern (env, "foo");
+  emacs_value globals[4] = {
+    env->make_global_ref (env, local),
+    env->make_global_ref (env, local),
+    env->make_global_ref (env, env->intern (env, "foo")),
+    env->make_global_ref (env, env->intern (env, "bar")),
+  };
+  emacs_value elements[4];
+  for (int i = 0; i < 4; ++i)
+    elements[i] = booleans[env->eq (env, globals[i], local)];
+  emacs_value ret = env->funcall (env, env->intern (env, "list"), 4, elements);
+  env->free_global_ref (env, globals[2]);
+  env->free_global_ref (env, globals[1]);
+  env->free_global_ref (env, globals[3]);
+  env->free_global_ref (env, globals[0]);
+  return ret;
+}
+
+
 /* Return a copy of the argument string where every 'a' is replaced
    with 'b'.  */
 static emacs_value
@@ -233,7 +262,9 @@ Fmod_test_string_a_to_b (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
     if (buf[i] == 'a')
       buf[i] = 'b';
 
-  return env->make_string (env, buf, size - 1);
+  emacs_value ret = env->make_string (env, buf, size - 1);
+  free (buf);
+  return ret;
 }
 
 
@@ -708,6 +739,8 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-globref-free", Fmod_test_globref_free, 4, 4, NULL, NULL);
   DEFUN ("mod-test-globref-invalid-free", Fmod_test_globref_invalid_free, 0, 0,
          NULL, NULL);
+  DEFUN ("mod-test-globref-reordered", Fmod_test_globref_reordered, 0, 0, NULL,
+         NULL);
   DEFUN ("mod-test-string-a-to-b", Fmod_test_string_a_to_b, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-make", Fmod_test_userptr_make, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-get", Fmod_test_userptr_get, 1, 1, NULL, NULL);

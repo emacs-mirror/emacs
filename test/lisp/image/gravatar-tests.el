@@ -65,8 +65,13 @@
   "Test `gravatar-build-url'."
   (let ((gravatar-default-image nil)
         (gravatar-force-default nil)
-        (gravatar-size nil))
-    (should (equal (gravatar-build-url "foo") "\
-https://seccdn.libravatar.org/avatar/acbd18db4cc2f85cedef654fccc4a4d8?r=g"))))
+        (gravatar-size nil)
+        (gravatar-service 'gravatar)
+        url)
+    (gravatar-build-url "foo" (lambda (u) (setq url u)))
+    (while (not url)
+      (sleep-for 0.01))
+    (should (equal url "\
+https://www.gravatar.com/avatar/acbd18db4cc2f85cedef654fccc4a4d8?r=g"))))
 
 ;;; gravatar-tests.el ends here

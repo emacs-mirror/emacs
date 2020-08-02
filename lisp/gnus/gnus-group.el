@@ -1768,7 +1768,7 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
   (get-text-property (point-at-bol) 'gnus-unread))
 
 (defun gnus-group-new-mail (group)
-  (if (nnmail-new-mail-p (gnus-group-real-name group))
+  (if (nnmail-new-mail-p group)
       gnus-new-mail-mark
     ?\s))
 
@@ -3600,7 +3600,7 @@ or nil if no action could be taken."
 	 (marks (gnus-info-marks (nth 1 entry)))
 	 (unread (gnus-sequence-of-unread-articles group)))
     ;; Remove entries for this group.
-    (nnmail-purge-split-history (gnus-group-real-name group))
+    (nnmail-purge-split-history group)
     ;; Do the updating only if the newsgroup isn't killed.
     (if (not (numberp (car entry)))
 	(gnus-message 1 "Can't catch up %s; non-active group" group)

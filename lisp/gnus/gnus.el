@@ -1591,7 +1591,7 @@ posting an article."
  "Alist of group regexps and its initial input of the number of articles."
  :variable-group gnus-group-parameter
  :parameter-type '(choice :tag "Initial Input for Large Newsgroup"
-			  (const :tag "All" nil)
+			  (const :tag "All" 'all)
 			  (integer))
  :parameter-document "\
 

@@ -227,7 +227,7 @@
 
 ;;; byte-compile optimizers to support inlining
 
-(put 'inline 'byte-optimizer 'byte-optimize-inline-handler)
+(put 'inline 'byte-optimizer #'byte-optimize-inline-handler)
 
 (defun byte-optimize-inline-handler (form)
   "byte-optimize-handler for the `inline' special-form."
@@ -391,13 +391,6 @@
 	   (and (nth 1 form)
 		(not for-effect)
 		form))
-	  ((eq (car-safe fn) 'lambda)
-	   (let ((newform (byte-compile-unfold-lambda form)))
-	     (if (eq newform form)
-		 ;; Some error occurred, avoid infinite recursion
-		 form
-	       (byte-optimize-form-code-walker newform for-effect))))
-	  ((eq (car-safe fn) 'closure) form)
 	  ((memq fn '(let let*))
 	   ;; recursively enter the optimizer for the bindings and body
 	   ;; of a let or let*.  This for depth-firstness: forms that
@@ -443,13 +436,6 @@
 	   ;; This can turn (save-excursion ...) into (save-excursion) which
 	   ;; will be optimized away in the lap-optimize pass.
 	   (cons fn (byte-optimize-body (cdr form) for-effect)))
-
-	  ((eq fn 'with-output-to-temp-buffer)
-	   ;; this is just like the above, except for the first argument.
-	   (cons fn
-	     (cons
-	      (byte-optimize-form (nth 1 form) nil)
-	      (byte-optimize-body (cdr (cdr form)) for-effect))))
 
 	  ((eq fn 'if)
 	   (when (< (length form) 3)
@@ -530,6 +516,15 @@
           ;; Needed as long as we run byte-optimize-form after cconv.
           ((eq fn 'internal-make-closure) form)
 
+	  ((eq (car-safe fn) 'lambda)
+	   (let ((newform (byte-compile-unfold-lambda form)))
+	     (if (eq newform form)
+		 ;; Some error occurred, avoid infinite recursion
+		 form
+	       (byte-optimize-form newform for-effect))))
+
+	  ((eq (car-safe fn) 'closure) form)
+
           ((byte-code-function-p fn)
            (cons fn (mapcar #'byte-optimize-form (cdr form))))
 
@@ -554,23 +549,10 @@
 	   ;; Otherwise, no args can be considered to be for-effect,
 	   ;; even if the called function is for-effect, because we
 	   ;; don't know anything about that function.
-	   (let ((args (mapcar #'byte-optimize-form (cdr form))))
-	     (if (and (get fn 'pure)
-		      (byte-optimize-all-constp args))
-                 (let ((arg-values (mapcar #'eval args)))
-                   (condition-case nil
-                       (list 'quote (apply fn arg-values))
-                     (error (cons fn args))))
-	       (cons fn args)))))))
-
-(defun byte-optimize-all-constp (list)
-  "Non-nil if all elements of LIST satisfy `macroexp-const-p'."
-  (let ((constant t))
-    (while (and list constant)
-      (unless (macroexp-const-p (car list))
-	(setq constant nil))
-      (setq list (cdr list)))
-    constant))
+	   (let ((form (cons fn (mapcar #'byte-optimize-form (cdr form)))))
+	     (if (get fn 'pure)
+		 (byte-optimize-constant-args form)
+	       form))))))
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
@@ -747,22 +729,6 @@
        ((equal args (cdr form)) form)
        (t (cons '- args))))))
 
-(defun byte-optimize-1+ (form)
-  (let ((args (cdr form)))
-    (when (null (cdr args))
-      (let ((n (car args)))
-        (when (numberp n)
-          (setq form (1+ n))))))
-  form)
-
-(defun byte-optimize-1- (form)
-  (let ((args (cdr form)))
-    (when (null (cdr args))
-      (let ((n (car args)))
-        (when (numberp n)
-          (setq form (1- n))))))
-  form)
-
 (defun byte-optimize-multiply (form)
   (let* ((args (remq 1 (byte-opt--arith-reduce #'* 1 (cdr form)))))
     (cond
@@ -802,7 +768,7 @@
     (condition-case ()
         (list 'quote (eval form))
       (error form)))
-   (t ;; This can enable some lapcode optimizations.
+   (t ;; Moving the constant to the end can enable some lapcode optimizations.
     (list (car form) (nth 2 form) (nth 1 form)))))
 
 (defun byte-optimize-constant-args (form)
@@ -901,37 +867,34 @@
         form          ; No improvement.
       (cons 'concat (nreverse newargs)))))
 
-(put 'identity 'byte-optimizer 'byte-optimize-identity)
-(put 'memq 'byte-optimizer 'byte-optimize-memq)
-(put 'memql  'byte-optimizer 'byte-optimize-member)
-(put 'member 'byte-optimizer 'byte-optimize-member)
-(put 'assoc 'byte-optimizer 'byte-optimize-assoc)
-(put 'rassoc 'byte-optimizer 'byte-optimize-assoc)
+(put 'identity 'byte-optimizer #'byte-optimize-identity)
+(put 'memq 'byte-optimizer #'byte-optimize-memq)
+(put 'memql  'byte-optimizer #'byte-optimize-member)
+(put 'member 'byte-optimizer #'byte-optimize-member)
+(put 'assoc 'byte-optimizer #'byte-optimize-assoc)
+(put 'rassoc 'byte-optimizer #'byte-optimize-assoc)
 
-(put '+   'byte-optimizer 'byte-optimize-plus)
-(put '*   'byte-optimizer 'byte-optimize-multiply)
-(put '-   'byte-optimizer 'byte-optimize-minus)
-(put '/   'byte-optimizer 'byte-optimize-divide)
-(put 'max 'byte-optimizer 'byte-optimize-associative-math)
-(put 'min 'byte-optimizer 'byte-optimize-associative-math)
+(put '+   'byte-optimizer #'byte-optimize-plus)
+(put '*   'byte-optimizer #'byte-optimize-multiply)
+(put '-   'byte-optimizer #'byte-optimize-minus)
+(put '/   'byte-optimizer #'byte-optimize-divide)
+(put 'max 'byte-optimizer #'byte-optimize-associative-math)
+(put 'min 'byte-optimizer #'byte-optimize-associative-math)
 
-(put '=   'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'eq  'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'eql   'byte-optimizer 'byte-optimize-equal)
-(put 'equal 'byte-optimizer 'byte-optimize-equal)
-(put 'string= 'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'string-equal 'byte-optimizer 'byte-optimize-binary-predicate)
+(put '=   'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'eq  'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'eql   'byte-optimizer #'byte-optimize-equal)
+(put 'equal 'byte-optimizer #'byte-optimize-equal)
+(put 'string= 'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'string-equal 'byte-optimizer #'byte-optimize-binary-predicate)
 
-(put '1+  'byte-optimizer 'byte-optimize-1+)
-(put '1-  'byte-optimizer 'byte-optimize-1-)
-
-(put 'concat 'byte-optimizer 'byte-optimize-concat)
+(put 'concat 'byte-optimizer #'byte-optimize-concat)
 
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
 ;; I think this may some times be necessary to reduce ie (quote 5) to 5,
 ;; so arithmetic optimizers recognize the numeric constant.  - Hallvard
-(put 'quote 'byte-optimizer 'byte-optimize-quote)
+(put 'quote 'byte-optimizer #'byte-optimize-quote)
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
 	  (and (symbolp (nth 1 form))
@@ -1049,16 +1012,16 @@
   (if (nth 1 form)
       form))
 
-(put 'and   'byte-optimizer 'byte-optimize-and)
-(put 'or    'byte-optimizer 'byte-optimize-or)
-(put 'cond  'byte-optimizer 'byte-optimize-cond)
-(put 'if    'byte-optimizer 'byte-optimize-if)
-(put 'while 'byte-optimizer 'byte-optimize-while)
+(put 'and   'byte-optimizer #'byte-optimize-and)
+(put 'or    'byte-optimizer #'byte-optimize-or)
+(put 'cond  'byte-optimizer #'byte-optimize-cond)
+(put 'if    'byte-optimizer #'byte-optimize-if)
+(put 'while 'byte-optimizer #'byte-optimize-while)
 
 ;; byte-compile-negation-optimizer lives in bytecomp.el
-(put '/= 'byte-optimizer 'byte-compile-negation-optimizer)
-(put 'atom 'byte-optimizer 'byte-compile-negation-optimizer)
-(put 'nlistp 'byte-optimizer 'byte-compile-negation-optimizer)
+(put '/= 'byte-optimizer #'byte-compile-negation-optimizer)
+(put 'atom 'byte-optimizer #'byte-compile-negation-optimizer)
+(put 'nlistp 'byte-optimizer #'byte-compile-negation-optimizer)
 
 
 (defun byte-optimize-funcall (form)
@@ -1086,12 +1049,12 @@
 	      nil))
 	form)))
 
-(put 'funcall 'byte-optimizer 'byte-optimize-funcall)
-(put 'apply   'byte-optimizer 'byte-optimize-apply)
+(put 'funcall 'byte-optimizer #'byte-optimize-funcall)
+(put 'apply   'byte-optimizer #'byte-optimize-apply)
 
 
-(put 'let 'byte-optimizer 'byte-optimize-letX)
-(put 'let* 'byte-optimizer 'byte-optimize-letX)
+(put 'let 'byte-optimizer #'byte-optimize-letX)
+(put 'let* 'byte-optimizer #'byte-optimize-letX)
 (defun byte-optimize-letX (form)
   (cond ((null (nth 1 form))
 	 ;; No bindings
@@ -1107,7 +1070,7 @@
 	   (list 'let* (reverse (cdr binds)) (nth 1 (car binds)) nil)))))
 
 
-(put 'nth 'byte-optimizer 'byte-optimize-nth)
+(put 'nth 'byte-optimizer #'byte-optimize-nth)
 (defun byte-optimize-nth (form)
   (if (= (safe-length form) 3)
       (if (memq (nth 1 form) '(0 1))
@@ -1117,7 +1080,7 @@
 	form)
     form))
 
-(put 'nthcdr 'byte-optimizer 'byte-optimize-nthcdr)
+(put 'nthcdr 'byte-optimizer #'byte-optimize-nthcdr)
 (defun byte-optimize-nthcdr (form)
   (if (= (safe-length form) 3)
       (if (memq (nth 1 form) '(0 1 2))
@@ -1133,7 +1096,7 @@
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
 
-(put 'set 'byte-optimizer 'byte-optimize-set)
+(put 'set 'byte-optimizer #'byte-optimize-set)
 (defun byte-optimize-set (form)
   (let ((var (car-safe (cdr-safe form))))
     (cond

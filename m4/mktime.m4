@@ -1,4 +1,4 @@
-# serial 31
+# serial 32
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2020 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -33,15 +33,15 @@ AC_DEFUN([gl_FUNC_MKTIME_WORKS],
   AC_CHECK_DECLS_ONCE([alarm])
   AC_CHECK_FUNCS_ONCE([tzset])
   AC_REQUIRE([gl_MULTIARCH])
-  if test $APPLE_UNIVERSAL_BUILD = 1; then
-    # A universal build on Apple Mac OS X platforms.
-    # The test result would be 'yes' in 32-bit mode and 'no' in 64-bit mode.
-    # But we need a configuration result that is valid in both modes.
-    gl_cv_func_working_mktime=no
-  fi
   AC_CACHE_CHECK([for working mktime], [gl_cv_func_working_mktime],
-    [AC_RUN_IFELSE(
-       [AC_LANG_SOURCE(
+    [if test $APPLE_UNIVERSAL_BUILD = 1; then
+       # A universal build on Apple Mac OS X platforms.
+       # The test result would be 'yes' in 32-bit mode and 'no' in 64-bit mode.
+       # But we need a configuration result that is valid in both modes.
+       gl_cv_func_working_mktime="guessing no"
+     else
+       AC_RUN_IFELSE(
+         [AC_LANG_SOURCE(
 [[/* Test program from Paul Eggert and Tony Leneis.  */
 #include <limits.h>
 #include <stdlib.h>
@@ -242,14 +242,15 @@ main ()
     result |= 64;
   return result;
 }]])],
-       [gl_cv_func_working_mktime=yes],
-       [gl_cv_func_working_mktime=no],
-       [case "$host_os" in
-                  # Guess no on native Windows.
-          mingw*) gl_cv_func_working_mktime="guessing no" ;;
-          *)      gl_cv_func_working_mktime="$gl_cross_guess_normal" ;;
-        esac
-       ])
+         [gl_cv_func_working_mktime=yes],
+         [gl_cv_func_working_mktime=no],
+         [case "$host_os" in
+                    # Guess no on native Windows.
+            mingw*) gl_cv_func_working_mktime="guessing no" ;;
+            *)      gl_cv_func_working_mktime="$gl_cross_guess_normal" ;;
+          esac
+         ])
+     fi
     ])
 ])
 

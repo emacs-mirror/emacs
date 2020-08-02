@@ -596,7 +596,7 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
       if (cmp_it.id >= 0
 	  || (scan == cmp_it.stop_pos
 	      && composition_reseat_it (&cmp_it, scan, scan_byte, end,
-					w, NEUTRAL_DIR, NULL, Qnil)))
+					w, -1, NULL, Qnil)))
 	composition_update_it (&cmp_it, scan, scan_byte, Qnil);
       if (cmp_it.id >= 0)
 	{
@@ -1504,7 +1504,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 	  if (cmp_it.id >= 0
 	      || (pos == cmp_it.stop_pos
 		  && composition_reseat_it (&cmp_it, pos, pos_byte, to, win,
-					    NEUTRAL_DIR, NULL, Qnil)))
+					    -1, NULL, Qnil)))
 	    composition_update_it (&cmp_it, pos, pos_byte, Qnil);
 	  if (cmp_it.id >= 0)
 	    {

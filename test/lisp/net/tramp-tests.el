@@ -4256,8 +4256,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; there's an indication for a signal describing string.
 	    (let ((process-file-return-signal-string t))
 	      (should
-	       (string-equal
-		"Interrupt"
+	       (string-match
+		"Interrupt\\|Signal 2"
 		(process-file
 		 (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
 		 nil nil nil "-c" "kill -2 $$"))))
@@ -4933,16 +4933,16 @@ INPUT, if non-nil, is a string sent to the process."
       (setenv "INSIDE_EMACS")
       (should
        (string-equal
-	(format "%s,tramp:%s" emacs-version tramp-version)
-	(funcall this-shell-command-to-string "echo -n ${INSIDE_EMACS:-bla}")))
+	(format "%s,tramp:%s\n" emacs-version tramp-version)
+	(funcall this-shell-command-to-string "echo ${INSIDE_EMACS:-bla}")))
       (let ((process-environment
 	     (cons (format "INSIDE_EMACS=%s,foo" emacs-version)
 		   process-environment)))
 	(should
 	 (string-equal
-	  (format "%s,foo,tramp:%s" emacs-version tramp-version)
+	  (format "%s,foo,tramp:%s\n" emacs-version tramp-version)
 	  (funcall
-	   this-shell-command-to-string "echo -n ${INSIDE_EMACS:-bla}"))))
+	   this-shell-command-to-string "echo ${INSIDE_EMACS:-bla}"))))
 
       ;; Set a value.
       (let ((process-environment
@@ -4952,7 +4952,7 @@ INPUT, if non-nil, is a string sent to the process."
 	 (string-match
 	  "foo"
 	  (funcall
-	   this-shell-command-to-string (format "echo -n ${%s:-bla}" envvar)))))
+	   this-shell-command-to-string (format "echo ${%s:-bla}" envvar)))))
 
       ;; Set the empty value.
       (let ((process-environment
@@ -4962,7 +4962,7 @@ INPUT, if non-nil, is a string sent to the process."
 	 (string-match
 	  "bla"
 	  (funcall
-	   this-shell-command-to-string (format "echo -n ${%s:-bla}" envvar))))
+	   this-shell-command-to-string (format "echo ${%s:-bla}" envvar))))
 	;; Variable is set.
 	(should
 	 (string-match
@@ -4979,15 +4979,14 @@ INPUT, if non-nil, is a string sent to the process."
 	 (string-match
 	  "foo"
 	  (funcall
-	   this-shell-command-to-string (format "echo -n ${%s:-bla}" envvar))))
+	   this-shell-command-to-string (format "echo ${%s:-bla}" envvar))))
 	(let ((process-environment (cons envvar process-environment)))
 	  ;; Variable is unset.
 	  (should
 	   (string-match
 	    "bla"
 	    (funcall
-	     this-shell-command-to-string
-	     (format "echo -n ${%s:-bla}" envvar))))
+	     this-shell-command-to-string (format "echo ${%s:-bla}" envvar))))
 	  ;; Variable is unset.
 	  (should-not
 	   (string-match
@@ -5026,7 +5025,7 @@ INPUT, if non-nil, is a string sent to the process."
 	  (should
 	   (string-match
 	    (number-to-string port)
-	    (shell-command-to-string (format "echo -n $%s" envvar))))))
+	    (shell-command-to-string (format "echo $%s" envvar))))))
 
     ;; Cleanup.
     (dolist (dir '("/mock:localhost#11111:" "/mock:localhost#22222:"))
@@ -6051,6 +6050,12 @@ Use the `ls' command."
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))
 		       (unencodable-char-position
 			0 (length x) file-name-coding-system nil x)))
+	     ;; Filter out not displayable characters.
+	     (setq x (mapconcat
+		      (lambda (y)
+			(and (char-displayable-p y) (char-to-string y)))
+		      x ""))
+             (not (string-empty-p x))
 	     ;; ?\n and ?/ shouldn't be part of any file name.  ?\t,
 	     ;; ?. and ?? do not work for "smb" method.
 	     (replace-regexp-in-string "[\t\n/.?]" "" x)))

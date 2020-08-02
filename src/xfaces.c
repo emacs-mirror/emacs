@@ -6475,7 +6475,8 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 int
 face_for_overlay_string (struct window *w, ptrdiff_t pos,
 			 ptrdiff_t *endptr, ptrdiff_t limit,
-			 bool mouse, Lisp_Object overlay)
+			 bool mouse, Lisp_Object overlay,
+			 enum lface_attribute_index attr_filter)
 {
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
@@ -6514,7 +6515,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
-    merge_face_ref (w, f, prop, attrs, true, NULL, 0);
+    merge_face_ref (w, f, prop, attrs, true, NULL, attr_filter);
 
   *endptr = endpos;
 

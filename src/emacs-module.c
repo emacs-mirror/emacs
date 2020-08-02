@@ -84,6 +84,10 @@ To add a new module function, proceed as follows:
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#include <sanitizer/lsan_interface.h>
+#endif
+
 #include "lisp.h"
 #include "bignum.h"
 #include "dynlib.h"
@@ -190,7 +194,7 @@ struct emacs_runtime_private
 /* Forward declarations.  */
 
 static Lisp_Object value_to_lisp (emacs_value);
-static emacs_value allocate_emacs_value (emacs_env *, struct emacs_value_storage *, Lisp_Object);
+static emacs_value allocate_emacs_value (emacs_env *, Lisp_Object);
 static emacs_value lisp_to_value (emacs_env *, Lisp_Object);
 static enum emacs_funcall_exit module_non_local_exit_check (emacs_env *);
 static void module_assert_thread (void);
@@ -1095,7 +1099,16 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
      for two different runtime objects are guaranteed to be distinct,
      which we can use for checking the liveness of runtime
      pointers.  */
-  struct emacs_runtime *rt = module_assertions ? xmalloc (sizeof *rt) : &rt_pub;
+  struct emacs_runtime *rt;
+  if (module_assertions)
+    {
+      rt = xmalloc (sizeof *rt);
+#ifdef HAVE___LSAN_IGNORE_OBJECT
+      __lsan_ignore_object (rt);
+#endif
+    }
+  else
+    rt = &rt_pub;
   rt->size = sizeof *rt;
   rt->private_members = &rt_priv;
   rt->get_environment = module_get_environment;
@@ -1321,7 +1334,7 @@ lisp_to_value (emacs_env *env, Lisp_Object o)
   struct emacs_env_private *p = env->private_members;
   if (p->pending_non_local_exit != emacs_funcall_exit_return)
     return NULL;
-  return allocate_emacs_value (env, &p->storage, o);
+  return allocate_emacs_value (env, o);
 }
 
 /* Must be called for each frame before it can be used for allocation.  */
@@ -1358,9 +1371,9 @@ finalize_storage (struct emacs_value_storage *storage)
 /* Allocate a new value from STORAGE and stores OBJ in it.  Return
    NULL if allocation fails and use ENV for non local exit reporting.  */
 static emacs_value
-allocate_emacs_value (emacs_env *env, struct emacs_value_storage *storage,
-		      Lisp_Object obj)
+allocate_emacs_value (emacs_env *env, Lisp_Object obj)
 {
+  struct emacs_value_storage *storage = &env->private_members->storage;
   eassert (storage->current);
   eassert (storage->current->offset < value_frame_size);
   eassert (! storage->current->next);
@@ -1411,7 +1424,12 @@ static emacs_env *
 initialize_environment (emacs_env *env, struct emacs_env_private *priv)
 {
   if (module_assertions)
+    {
       env = xmalloc (sizeof *env);
+#ifdef HAVE___LSAN_IGNORE_OBJECT
+      __lsan_ignore_object (env);
+#endif
+    }
 
   priv->pending_non_local_exit = emacs_funcall_exit_return;
   initialize_storage (&priv->storage);

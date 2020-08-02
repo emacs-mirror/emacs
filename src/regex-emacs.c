@@ -29,6 +29,10 @@
 
 #include <stdlib.h>
 
+#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
+#include <sanitizer/lsan_interface.h>
+#endif
+
 #include "character.h"
 #include "buffer.h"
 #include "syntax.h"
@@ -1757,6 +1761,9 @@ regex_compile (re_char *pattern, ptrdiff_t size,
   /* Initialize the compile stack.  */
   compile_stack.stack = xmalloc (INIT_COMPILE_STACK_SIZE
 				 * sizeof *compile_stack.stack);
+#ifdef HAVE___LSAN_IGNORE_OBJECT
+  __lsan_ignore_object (compile_stack.stack);
+#endif
   compile_stack.size = INIT_COMPILE_STACK_SIZE;
   compile_stack.avail = 0;
 

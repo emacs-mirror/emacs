@@ -2350,6 +2350,7 @@ a buffer local variable."
 
 ;; For compatibility.
 (defun comint-read-noecho (prompt &optional _ignore)
+  (declare (obsolete read-passwd "28.1"))
   (read-passwd prompt))
 
 ;; These three functions are for entering text you don't want echoed or

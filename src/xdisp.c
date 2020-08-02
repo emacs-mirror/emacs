@@ -4339,7 +4339,7 @@ face_at_pos (const struct it *it, enum lface_attribute_index attr_filter)
 	                               (IT_CHARPOS (*it)
 				        + TEXT_PROP_DISTANCE_LIMIT),
 	                               false,
-	                               from_overlay);
+	                               from_overlay, attr_filter);
 	}
       else
 	{

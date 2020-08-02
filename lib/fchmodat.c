@@ -98,7 +98,7 @@ fchmodat (int dir, char const *file, mode_t mode, int flags)
           return -1;
         }
 
-#   if defined __linux__ || defined __ANDROID__
+#   if defined __linux__ || defined __ANDROID__ || defined __CYGWIN__
       static char const fmt[] = "/proc/self/fd/%d";
       char buf[sizeof fmt - sizeof "%d" + INT_BUFSIZE_BOUND (int)];
       sprintf (buf, fmt, fd);

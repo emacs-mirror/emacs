@@ -256,7 +256,7 @@ FPIC_CFLAGS = -fPIC
 endif
 
 GMP_H = @GMP_H@
-LIB_GMP = @LIB_GMP@
+LIBGMP = @LIBGMP@
 
 MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
@@ -271,7 +271,7 @@ src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
 $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	$(AM_V_at)${MKDIR_P} $(dir $@)
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
-	  -o $@ $< $(LIB_GMP) \
+	  -o $@ $< $(LIBGMP) \
 	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
 	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
 endif

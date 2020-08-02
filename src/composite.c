@@ -1167,7 +1167,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
    character to check, and CHARPOS and BYTEPOS are indices in the
    string.  In that case, FACE must not be NULL.  BIDI_LEVEL is the bidi
    embedding level of the current paragraph, and is used to calculate the
-   direction argument to pass to the font shaper.
+   direction argument to pass to the font shaper; value of -1 means the
+   caller doesn't know the embedding level (used by callers which didn't
+   invoke the display routines that perform bidi-display-reordering).
 
    If the character is composed, setup members of CMP_IT (id, nglyphs,
    from, to, reversed_p), and return true.  Otherwise, update
@@ -1213,7 +1215,9 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	continue;
       if (charpos < endpos)
 	{
-	  if ((bidi_level & 1) == 0)
+	  if (bidi_level < 0)
+	    direction = Qnil;
+	  else if ((bidi_level & 1) == 0)
 	    direction = QL2R;
 	  else
 	    direction = QR2L;
@@ -1250,7 +1254,16 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	      else
 		bpos = CHAR_TO_BYTE (cpos);
 	    }
-	  if ((bidi_level & 1) == 0)
+	  /* The bidi_level < 0 case below strictly speaking should
+	     never happen, since we get here when bidi scan direction
+	     is backward in the buffer, which can only happen if the
+	     display routines were called to perform the bidi
+	     reordering.  But it doesn't harm to test for that, and
+	     avoid someon raising their brows and thinking it's a
+	     subtle bug...  */
+	  if (bidi_level < 0)
+	    direction = Qnil;
+	  else if ((bidi_level & 1) == 0)
 	    direction = QL2R;
 	  else
 	    direction = QR2L;
