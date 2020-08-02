@@ -432,9 +432,8 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
             (&define                    ; this means we are defining something
              [&or name ("setf" name :name setf)]
              ;; ^^ This is the methods symbol
-             [ &rest atom ]         ; Multiple qualifiers are allowed.
-                                    ; Like in CLOS spec, we support
-                                    ; any non-list values.
+             [ &rest cl-generic-method-qualifier ]
+             ;; Multiple qualifiers are allowed.
              cl-generic-method-args     ; arguments
              lambda-doc                 ; documentation string
              def-body)))                ; part to be debugged

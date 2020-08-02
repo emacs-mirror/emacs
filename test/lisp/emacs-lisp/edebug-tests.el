@@ -938,5 +938,27 @@ test and possibly others should be updated."
     "g"
     (should (equal edebug-tests-@-result '(0 1))))))
 
+(ert-deftest edebug-cl-defmethod-qualifier ()
+  "Check that secondary `cl-defmethod' forms don't stomp over
+primary ones (Bug#42671)."
+  (with-temp-buffer
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (defined-symbols ())
+           (edebug-new-definition-function
+            (lambda (def-name)
+              (push def-name defined-symbols)
+              (edebug-new-definition def-name))))
+      (dolist (form '((cl-defmethod edebug-cl-defmethod-qualifier ((_ number)))
+                      (cl-defmethod edebug-cl-defmethod-qualifier
+                        :around ((_ number)))))
+        (print form (current-buffer)))
+      (eval-buffer)
+      (should
+       (equal
+        defined-symbols
+        (list (intern "edebug-cl-defmethod-qualifier :around ((_ number))")
+              (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

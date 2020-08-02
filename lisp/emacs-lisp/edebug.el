@@ -1731,6 +1731,8 @@ contains a circular object."
 		;; Less frequently used:
 		;; (function . edebug-match-function)
 		(lambda-expr . edebug-match-lambda-expr)
+                (cl-generic-method-qualifier
+                 . edebug-match-cl-generic-method-qualifier)
                 (cl-generic-method-args . edebug-match-cl-generic-method-args)
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
@@ -2034,6 +2036,16 @@ contains a circular object."
 	    (intern (format "%s@%s" edebug-def-name spec))
 	  spec))
   nil)
+
+(defun edebug-match-cl-generic-method-qualifier (cursor)
+  "Match a QUALIFIER for `cl-defmethod' at CURSOR."
+  (let ((args (edebug-top-element-required cursor "Expected qualifier")))
+    ;; Like in CLOS spec, we support any non-list values.
+    (unless (atom args) (edebug-no-match cursor "Atom expected"))
+    ;; Append the arguments to `edebug-def-name' (Bug#42671).
+    (setq edebug-def-name (intern (format "%s %s" edebug-def-name args)))
+    (edebug-move-cursor cursor)
+    (list args)))
 
 (defun edebug-match-cl-generic-method-args (cursor)
   (let ((args (edebug-top-element-required cursor "Expected arguments")))
