@@ -818,13 +818,21 @@ was inserted."
 		      (- (nth 2 edges) (nth 0 edges))))
 	 (max-height (when edges
 		       (- (nth 3 edges) (nth 1 edges))))
-	 (type (if (image--imagemagick-wanted-p filename)
-		   'imagemagick
-		 (image-type file-or-data nil data-p)))
 	 (inhibit-read-only t)
 	 (buffer-undo-list t)
 	 (modified (buffer-modified-p))
-	 props image)
+	 props image type)
+
+    ;; If the data in the current buffer isn't from an existing file,
+    ;; but we have a file name (this happens when visiting images from
+    ;; a zip file, for instance), provide a type hint based on the
+    ;; suffix.
+    (when (and data-p filename)
+      (setq data-p (intern (format "image/%s"
+                                   (file-name-extension filename)))))
+    (setq type (if (image--imagemagick-wanted-p filename)
+		   'imagemagick
+		 (image-type file-or-data nil data-p)))
 
     ;; Get the rotation data from the file, if any.
     (when (zerop image-transform-rotation) ; don't reset modified value
@@ -841,10 +849,13 @@ was inserted."
     ;; :scale 1: If we do not set this, create-image will apply
     ;; default scaling based on font size.
     (setq image (if (not edges)
-		    (create-image file-or-data type data-p :scale 1)
+		    (create-image file-or-data type data-p :scale 1
+                                  :format (and filename data-p))
 		  (create-image file-or-data type data-p :scale 1
 				:max-width max-width
-				:max-height max-height)))
+				:max-height max-height
+                                ;; Type hint.
+                                :format (and filename data-p))))
 
     ;; Discard any stale image data before looking it up again.
     (image-flush image)
