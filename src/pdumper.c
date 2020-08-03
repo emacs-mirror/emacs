@@ -4680,15 +4680,15 @@ dump_mmap_contiguous_heap (struct dump_memory_map *maps, int nr_maps,
      Beware: the simple patch 2019-03-11T15:20:54Z!eggert@cs.ucla.edu
      is worse, as it sometimes frees this storage twice.  */
   struct dump_memory_map_heap_control_block *cb = calloc (1, sizeof (*cb));
-
-  char *mem;
   if (!cb)
     goto out;
+  __lsan_ignore_object (cb);
+
   cb->refcount = 1;
   cb->mem = malloc (total_size);
   if (!cb->mem)
     goto out;
-  mem = cb->mem;
+  char *mem = cb->mem;
   for (int i = 0; i < nr_maps; ++i)
     {
       struct dump_memory_map *map = &maps[i];
