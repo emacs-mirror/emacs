@@ -255,8 +255,7 @@
 ;; `so-long-mode', completely bypassing the automated decision process.
 ;; Refer to M-: (info "(emacs) Specifying File Variables") RET
 ;;
-;; If so-long itself is causing problems, it can be inhibited by setting the
-;; `so-long-enabled' variable to nil, or by disabling the global mode with
+;; If so-long itself causes problems, disable the automated behaviour with
 ;; M-- M-x global-so-long-mode, or M-: (global-so-long-mode 0)
 
 ;; * Example configuration
@@ -413,7 +412,6 @@
 ;;       - Added mode-line indicator, user option `so-long-mode-line-label',
 ;;         and faces `so-long-mode-line-active', `so-long-mode-line-inactive'.
 ;;       - New help commands `so-long-commentary' and `so-long-customize'.
-;;       - Renamed `so-long-mode-enabled' to `so-long-enabled'.
 ;;       - Refactored the default hook values using variable overrides
 ;;         (and returning all the hooks to nil default values).
 ;;       - Performance improvements for `so-long-detected-long-line-p'.
@@ -453,9 +451,14 @@
 (declare-function longlines-mode "longlines")
 (defvar longlines-mode)
 (defvar so-long-enabled nil
-  "Set to nil to prevent `so-long' from being triggered automatically.
-
-Has no effect if `global-so-long-mode' is not enabled.")
+  ;; This was initially a renaming of the old `so-long-mode-enabled' and
+  ;; documented as "Set to nil to prevent `so-long' from being triggered
+  ;; automatically."; however `so-long--ensure-enabled' may forcibly re-enable
+  ;; it contrary to the user's expectations, so for the present this should be
+  ;; considered internal-use only (with `global-so-long-mode' the interface
+  ;; for enabling or disabling the automated behaviour).  FIXME: Establish a
+  ;; way to support the original use-case, or rename to `so-long--enabled'.
+  "Internal use.  Non-nil when any so-long functionality has been used.")
 
 (defvar-local so-long--active nil ; internal use
   "Non-nil when `so-long' mitigations are in effect.")
@@ -1920,7 +1923,7 @@ If it appears in `%s', you should remove it."
 ; LocalWords:  defadvice nadvice whitespace ie bos eos eobp origmode un Un setq
 ; LocalWords:  docstring auf Wiedersehen longlines alist autoload Refactored Inc
 ; LocalWords:  MERCHANTABILITY RET REGEXP VAR ELPA WS mitigations EmacsWiki eval
-; LocalWords:  rx filename filenames js defun bidi bpa prog
+; LocalWords:  rx filename filenames js defun bidi bpa prog FIXME
 
 ;; So long, farewell, auf Wiedersehen, goodbye
 ;; You have to go, this code is minified
