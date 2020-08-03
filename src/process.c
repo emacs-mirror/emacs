@@ -5491,6 +5491,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	}
       else
 	{
+#ifdef HAVE_GNUTLS
+	  int tls_nfds;
+	  fd_set tls_available;
+#endif
 	  /* Set the timeout for adaptive read buffering if any
 	     process has non-zero read_output_skip and non-zero
 	     read_output_delay, and we are not reading output for a
@@ -5560,7 +5564,36 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
-/* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+#ifdef HAVE_GNUTLS
+          /* GnuTLS buffers data internally. We need to check if some
+	     data is available in the buffers manually before the select.
+	     And if so, we need to skip the select which could block. */
+	  FD_ZERO (&tls_available);
+	  tls_nfds = 0;
+	  for (channel = 0; channel < FD_SETSIZE; ++channel)
+	    if (! NILP (chan_process[channel])
+		&& FD_ISSET (channel, &Available))
+	      {
+		struct Lisp_Process *p = XPROCESS (chan_process[channel]);
+		if (p
+		    && p->gnutls_p && p->gnutls_state
+		    && emacs_gnutls_record_check_pending (p->gnutls_state) > 0)
+		  {
+		    tls_nfds++;
+		    eassert (p->infd == channel);
+		    FD_SET (p->infd, &tls_available);
+		  }
+	      }
+	  /* If wait_proc is somebody else, we have to wait in select
+	     as usual.  Otherwise, clobber the timeout. */
+	  if (tls_nfds > 0
+	      && (!wait_proc ||
+		  (wait_proc->infd >= 0
+		   && FD_ISSET (wait_proc->infd, &tls_available))))
+	    timeout = make_timespec (0, 0);
+#endif
+
+	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
@@ -5578,59 +5611,21 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif	/* !HAVE_GLIB */
 
 #ifdef HAVE_GNUTLS
-          /* GnuTLS buffers data internally.  In lowat mode it leaves
-             some data in the TCP buffers so that select works, but
-             with custom pull/push functions we need to check if some
-             data is available in the buffers manually.  */
-          if (nfds == 0)
+	  /* Merge tls_available into Available. */
+	  if (tls_nfds > 0)
 	    {
-	      fd_set tls_available;
-	      int set = 0;
-
-	      FD_ZERO (&tls_available);
-	      if (! wait_proc)
+	      if (nfds == 0 || (nfds < 0 && errno == EINTR))
 		{
-		  /* We're not waiting on a specific process, so loop
-		     through all the channels and check for data.
-		     This is a workaround needed for some versions of
-		     the gnutls library -- 2.12.14 has been confirmed
-		     to need it.  */
-		  for (channel = 0; channel < FD_SETSIZE; ++channel)
-		    if (! NILP (chan_process[channel]))
-		      {
-			struct Lisp_Process *p =
-			  XPROCESS (chan_process[channel]);
-			if (p && p->gnutls_p && p->gnutls_state
-			    && ((emacs_gnutls_record_check_pending
-				 (p->gnutls_state))
-				> 0))
-			  {
-			    nfds++;
-			    eassert (p->infd == channel);
-			    FD_SET (p->infd, &tls_available);
-			    set++;
-			  }
-		      }
+		  /* Fast path, just copy. */
+		  nfds = tls_nfds;
+		  Available = tls_available;
 		}
-	      else
-		{
-		  /* Check this specific channel.  */
-		  if (wait_proc->gnutls_p /* Check for valid process.  */
-		      && wait_proc->gnutls_state
-		      /* Do we have pending data?  */
-		      && ((emacs_gnutls_record_check_pending
-			   (wait_proc->gnutls_state))
-			  > 0))
-		    {
-		      nfds = 1;
-		      eassert (0 <= wait_proc->infd);
-		      /* Set to Available.  */
-		      FD_SET (wait_proc->infd, &tls_available);
-		      set++;
-		    }
-		}
-	      if (set)
-		Available = tls_available;
+	      else if (nfds > 0)
+		/* Slow path, merge one by one.  Note: nfds does not need
+		   to be accurate, just positive is enough. */
+		for (channel = 0; channel < FD_SETSIZE; ++channel)
+		  if (FD_ISSET(channel, &tls_available))
+		    FD_SET(channel, &Available);
 	    }
 #endif
 	}
