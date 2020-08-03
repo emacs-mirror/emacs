@@ -993,12 +993,12 @@ static void handle_line_prefix (struct it *);
 static void handle_stop_backwards (struct it *, ptrdiff_t);
 static void unwind_with_echo_area_buffer (Lisp_Object);
 static Lisp_Object with_echo_area_buffer_unwind_data (struct window *);
-static bool current_message_1 (ptrdiff_t, Lisp_Object);
-static bool truncate_message_1 (ptrdiff_t, Lisp_Object);
+static bool current_message_1 (void *, Lisp_Object);
+static bool truncate_message_1 (void *, Lisp_Object);
 static void set_message (Lisp_Object);
-static bool set_message_1 (ptrdiff_t, Lisp_Object);
-static bool display_echo_area_1 (ptrdiff_t, Lisp_Object);
-static bool resize_mini_window_1 (ptrdiff_t, Lisp_Object);
+static bool set_message_1 (void *, Lisp_Object);
+static bool display_echo_area_1 (void *, Lisp_Object);
+static bool resize_mini_window_1 (void *, Lisp_Object);
 static void unwind_redisplay (void);
 static void extend_face_to_end_of_line (struct it *);
 static intmax_t message_log_check_duplicate (ptrdiff_t, ptrdiff_t);
@@ -11278,8 +11278,8 @@ ensure_echo_area_buffers (void)
 
 static bool
 with_echo_area_buffer (struct window *w, int which,
-		       bool (*fn) (ptrdiff_t, Lisp_Object),
-		       ptrdiff_t a1, Lisp_Object a2)
+		       bool (*fn) (void *, Lisp_Object),
+		       void *a1, Lisp_Object a2)
 {
   Lisp_Object buffer;
   bool this_one, the_other, clear_buffer_p, rc;
@@ -11550,8 +11550,7 @@ display_echo_area (struct window *w)
 
   window_height_changed_p
     = with_echo_area_buffer (w, display_last_displayed_message_p,
-			     display_echo_area_1,
-			     (intptr_t) w, Qnil);
+			     display_echo_area_1, w, Qnil);
 
   if (no_message_p)
     echo_area_buffer[i] = Qnil;
@@ -11568,10 +11567,9 @@ display_echo_area (struct window *w)
    Value is true if height of W was changed.  */
 
 static bool
-display_echo_area_1 (ptrdiff_t a1, Lisp_Object a2)
+display_echo_area_1 (void *a1, Lisp_Object a2)
 {
-  intptr_t i1 = a1;
-  struct window *w = (struct window *) i1;
+  struct window *w = a1;
   Lisp_Object window;
   struct text_pos start;
 
@@ -11612,7 +11610,7 @@ resize_echo_area_exactly (void)
       struct window *w = XWINDOW (echo_area_window);
       Lisp_Object resize_exactly = (minibuf_level == 0 ? Qt : Qnil);
       bool resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
-					      (intptr_t) w, resize_exactly);
+					      w, resize_exactly);
       if (resized_p)
 	{
 	  windows_or_buffers_changed = 42;
@@ -11630,10 +11628,9 @@ resize_echo_area_exactly (void)
    returns.  */
 
 static bool
-resize_mini_window_1 (ptrdiff_t a1, Lisp_Object exactly)
+resize_mini_window_1 (void *a1, Lisp_Object exactly)
 {
-  intptr_t i1 = a1;
-  return resize_mini_window ((struct window *) i1, !NILP (exactly));
+  return resize_mini_window (a1, !NILP (exactly));
 }
 
 
@@ -11769,8 +11766,7 @@ current_message (void)
     msg = Qnil;
   else
     {
-      with_echo_area_buffer (0, 0, current_message_1,
-			     (intptr_t) &msg, Qnil);
+      with_echo_area_buffer (0, 0, current_message_1, &msg, Qnil);
       if (NILP (msg))
 	echo_area_buffer[0] = Qnil;
     }
@@ -11780,10 +11776,9 @@ current_message (void)
 
 
 static bool
-current_message_1 (ptrdiff_t a1, Lisp_Object a2)
+current_message_1 (void *a1, Lisp_Object a2)
 {
-  intptr_t i1 = a1;
-  Lisp_Object *msg = (Lisp_Object *) i1;
+  Lisp_Object *msg = a1;
 
   if (Z > BEG)
     *msg = make_buffer_string (BEG, Z, true);
@@ -11857,7 +11852,8 @@ truncate_echo_area (ptrdiff_t nchars)
 	 just an informative message; if the frame hasn't really been
 	 initialized yet, just toss it.  */
       if (sf->glyphs_initialized_p)
-	with_echo_area_buffer (0, 0, truncate_message_1, nchars, Qnil);
+	with_echo_area_buffer (0, 0, truncate_message_1,
+			       (void *) (intptr_t) nchars, Qnil);
     }
 }
 
@@ -11866,8 +11862,9 @@ truncate_echo_area (ptrdiff_t nchars)
    message to at most NCHARS characters.  */
 
 static bool
-truncate_message_1 (ptrdiff_t nchars, Lisp_Object a2)
+truncate_message_1 (void *a1, Lisp_Object a2)
 {
+  intptr_t nchars = (intptr_t) a1;
   if (BEG + nchars < Z)
     del_range (BEG + nchars, Z);
   if (Z == BEG)
@@ -11919,7 +11916,7 @@ set_message (Lisp_Object string)
    This function is called with the echo area buffer being current.  */
 
 static bool
-set_message_1 (ptrdiff_t a1, Lisp_Object string)
+set_message_1 (void *a1, Lisp_Object string)
 {
   eassert (STRINGP (string));
 
