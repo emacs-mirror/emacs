@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <unistd.h>
 
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
-#include <sanitizer/lsan_interface.h>
-#endif
-
 #include <verify.h>
 
 #include "lisp.h"
@@ -5087,9 +5083,7 @@ enlarge_buffer_text (struct buffer *b, ptrdiff_t delta)
 #else
   p = xrealloc (b->text->beg, new_nbytes);
 #endif
-#ifdef HAVE___LSAN_IGNORE_OBJECT
   __lsan_ignore_object (p);
-#endif
 
   if (p == NULL)
     {

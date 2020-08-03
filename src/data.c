@@ -23,10 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stdio.h>
 
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
-#include <sanitizer/lsan_interface.h>
-#endif
-
 #include <byteswap.h>
 #include <count-one-bits.h>
 #include <count-trailing-zeros.h>
@@ -1788,9 +1784,7 @@ make_blv (struct Lisp_Symbol *sym, bool forwarded,
   set_blv_defcell (blv, tem);
   set_blv_valcell (blv, tem);
   set_blv_found (blv, false);
-#ifdef HAVE___LSAN_IGNORE_OBJECT
   __lsan_ignore_object (blv);
-#endif
   return blv;
 }
 

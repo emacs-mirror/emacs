@@ -4789,6 +4789,17 @@ lispstpcpy (char *dest, Lisp_Object string)
   return dest + len;
 }
 
+#if (defined HAVE___LSAN_IGNORE_OBJECT \
+     && defined HAVE_SANITIZER_LSAN_INTERFACE_H)
+# include <sanitizer/lsan_interface.h>
+#else
+/* Treat *P as a non-leak.  */
+INLINE void
+__lsan_ignore_object (void const *p)
+{
+}
+#endif
+
 extern void xputenv (const char *);
 
 extern char *egetenv_internal (const char *, ptrdiff_t);
