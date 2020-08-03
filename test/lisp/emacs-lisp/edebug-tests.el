@@ -1000,5 +1000,37 @@ clashes (Bug#41853)."
                        inner@cl-flet@10005
                        edebug-tests-cl-flet-2))))))
 
+(ert-deftest edebug-tests-duplicate-symbol-backtrack ()
+  "Check that Edebug doesn't create duplicate symbols when
+backtracking (Bug#42701)."
+  (with-temp-buffer
+    (dolist (form '((require 'subr-x)
+                    (defun edebug-tests-duplicate-symbol-backtrack ()
+                      (if-let (x (funcall (lambda (y) 1) 2)) 3 4))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      ;; The anonymous symbols are uninterned.  Use their names so we
+      ;; can perform the assertion.  The names should still be unique.
+      (should (equal (mapcar #'symbol-name (reverse instrumented-names))
+                     ;; The outer definition comes after the inner
+                     ;; ones because its body ends later.
+                     ;; FIXME: There are twice as many inner
+                     ;; definitions as expected due to Bug#42701.
+                     ;; Once that bug is fixed, remove the duplicates.
+                     '("edebug-anon10000"
+                       "edebug-anon10001"
+                       "edebug-tests-duplicate-symbol-backtrack"))))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

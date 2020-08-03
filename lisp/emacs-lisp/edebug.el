@@ -1240,6 +1240,13 @@ purpose by adding an entry to this alist, and setting
   ;; since it wraps the list of forms with a call to `edebug-enter'.
   ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
   ;; Do this after parsing since that may find a name.
+  (when (string-match-p (rx bos "edebug-anon" (+ digit) eos)
+                        (symbol-name edebug-old-def-name))
+    ;; FIXME: Due to Bug#42701, we reset an anonymous name so that
+    ;; backtracking doesn't generate duplicate definitions.  It would
+    ;; be better to not define wrappers in the case of a non-matching
+    ;; specification branch to begin with.
+    (setq edebug-old-def-name nil))
   (setq edebug-def-name
 	(or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
   `(edebug-enter
