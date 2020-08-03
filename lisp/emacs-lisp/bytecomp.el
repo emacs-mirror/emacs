@@ -3733,7 +3733,7 @@ discarding."
 ;; Compile a function that accepts one or more args and is right-associative.
 ;; We do it by left-associativity so that the operations
 ;; are done in the same order as in interpreted code.
-;; We treat the one-arg case, as in (+ x), like (+ x 0).
+;; We treat the one-arg case, as in (+ x), like (* x 1).
 ;; in order to convert markers to numbers, and trigger expected errors.
 (defun byte-compile-associative (form)
   (if (cdr form)
@@ -3748,8 +3748,8 @@ discarding."
 	  (setq args (copy-sequence (cdr form)))
 	  (byte-compile-form (car args))
 	  (setq args (cdr args))
-	  (or args (setq args '(0)
-			 opcode (get '+ 'byte-opcode)))
+	  (or args (setq args '(1)
+			 opcode (get '* 'byte-opcode)))
 	  (dolist (arg args)
 	    (byte-compile-form arg)
 	    (byte-compile-out opcode 0))))
