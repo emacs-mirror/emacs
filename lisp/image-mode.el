@@ -614,21 +614,23 @@ Key bindings:
   (if (not (image-get-display-property))
       (progn
         (when (condition-case err
-                (progn
-	          (image-toggle-display-image)
-                  t)
-              (unknown-image-type
-               (image-mode-as-text)
-               (funcall
-                (if (called-interactively-p 'any) 'error 'message)
-                "Unknown image type; consider switching `image-use-external-converter' on")
-               nil)
-              (error
-               (image-mode-as-text)
-               (funcall
-                (if (called-interactively-p 'any) 'error 'message)
-                "Cannot display image: %s" (cdr err))
-               nil))
+                  (progn
+	            (image-toggle-display-image)
+                    t)
+                (unknown-image-type
+                 (image-mode-as-text)
+                 (funcall
+                  (if (called-interactively-p 'any) 'error 'message)
+                  (if image-use-external-converter
+                      "Unknown image type"
+                    "Unknown image type; consider switching `image-use-external-converter' on"))
+                 nil)
+                (error
+                 (image-mode-as-text)
+                 (funcall
+                  (if (called-interactively-p 'any) 'error 'message)
+                  "Cannot display image: %s" (cdr err))
+                 nil))
 	  ;; If attempt to display the image fails.
 	  (if (not (image-get-display-property))
 	      (error "Invalid image"))
