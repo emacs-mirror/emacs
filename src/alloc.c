@@ -4625,7 +4625,7 @@ mark_maybe_object (Lisp_Object obj)
 #endif
 
   int type_tag = XTYPE (obj);
-  intptr_t offset;
+  intptr_t pointer_word_tag = LISP_WORD_TAG (type_tag), offset, ipo;
 
   switch (type_tag)
     {
@@ -4641,19 +4641,8 @@ mark_maybe_object (Lisp_Object obj)
       break;
     }
 
-  bool overflow
-    = INT_SUBTRACT_WRAPV (offset, LISP_WORD_TAG (type_tag), &offset);
-#if !defined WIDE_EMACS_INT || USE_LSB_TAG
-  /* If we don't use wide integers, then `intptr_t' should always be
-     large enough to not overflow.  Furthermore, when using the least
-     significant bits as tag bits, the tag is small enough to not
-     overflow either.  */
-  eassert (!overflow);
-#else
-  (void) overflow;
-#endif
-  INT_ADD_WRAPV (offset, (intptr_t) (char *) XLP (obj), &offset);
-  void *po = (char *) offset;
+  INT_ADD_WRAPV ((intptr_t) XLP (obj), offset - pointer_word_tag, &ipo);
+  void *po = (void *) ipo;
 
   /* If the pointer is in the dump image and the dump has a record
      of the object starting at the place where the pointer points, we
@@ -4856,7 +4845,7 @@ mark_memory (void const *start, void const *end)
 
   for (pp = start; (void const *) pp < end; pp += GC_POINTER_ALIGNMENT)
     {
-      char *p = *(char *const *) pp;
+      void *p = *(void *const *) pp;
       mark_maybe_pointer (p);
 
       /* Unmask any struct Lisp_Symbol pointer that make_lisp_symbol
@@ -4864,8 +4853,9 @@ mark_memory (void const *start, void const *end)
 	 On a host with 32-bit pointers and 64-bit Lisp_Objects,
 	 a Lisp_Object might be split into registers saved into
 	 non-adjacent words and P might be the low-order word's value.  */
-      p = (char *) ((uintptr_t) p + (uintptr_t) lispsym);
-      mark_maybe_pointer (p);
+      intptr_t ip;
+      INT_ADD_WRAPV ((intptr_t) p, (intptr_t) lispsym, &ip);
+      mark_maybe_pointer ((void *) ip);
 
       verify (alignof (Lisp_Object) % GC_POINTER_ALIGNMENT == 0);
       if (alignof (Lisp_Object) == GC_POINTER_ALIGNMENT
