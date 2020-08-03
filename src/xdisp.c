@@ -19234,9 +19234,8 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
 	     seems to give wrong results.  We don't want to recenter
 	     when the last line is partly visible, we want to allow
 	     that case to be handled in the usual way.  */
-	  || (it_charpos < ZV	/* if EOB is visible, disable bottom margin */
-	      && w->cursor.y > (it.last_visible_y - partial_line_height (&it)
-				- this_scroll_margin - 1)))
+	  || w->cursor.y > (it.last_visible_y - partial_line_height (&it)
+			    - this_scroll_margin - 1))
 	{
 	  w->cursor.vpos = -1;
 	  clear_glyph_matrix (w->desired_matrix);
