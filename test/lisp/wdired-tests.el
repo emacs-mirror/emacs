@@ -132,7 +132,7 @@ wdired-mode."
 (declare-function dired-smart-shell-command "dired-x"
                   (command &optional output-buffer error-buffer))
 
-(ert-deftest wdired-test-bug34915 ()
+(defun wdired-test-bug34915 ()
   "Test editing when dired-listing-switches includes -F.
 Appended file indicators should not count as part of the file
 name, either before or after editing.  Since
@@ -143,6 +143,7 @@ wdired-get-filename before and after editing."
   (let* ((test-dir (make-temp-file "test-dir-" t))
          (server-socket-dir test-dir)
          (dired-listing-switches "-Fl")
+         (dired-ls-F-marks-symlinks (eq system-type 'darwin))
          (buf (find-file-noselect test-dir)))
     (unwind-protect
         (progn
