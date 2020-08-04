@@ -606,7 +606,7 @@ In this test, encrypt-to-self variables are set to lists."
        (list (cons "C3999CF1268DBEA2" "EF25402B479DC6E2")
 	     (cons "F7E79AB7AE31D471" "4035D59B5F88E9FC"))))))
 
-(ert-deftest mml-secure-en-decrypt-sign-1 ()
+(ert-deftest mml-first-secure-en-decrypt-sign-1 ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
   (mml-secure-test-key-fixture
