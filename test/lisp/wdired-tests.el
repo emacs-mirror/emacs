@@ -132,7 +132,7 @@ wdired-mode."
 (declare-function dired-smart-shell-command "dired-x"
                   (command &optional output-buffer error-buffer))
 
-(defun wdired-test-bug34915 ()
+(ert-deftest wdired-test-bug34915 ()
   "Test editing when dired-listing-switches includes -F.
 Appended file indicators should not count as part of the file
 name, either before or after editing.  Since
