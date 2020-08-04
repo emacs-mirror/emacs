@@ -142,8 +142,8 @@
                          ;; IPv4 localhost addresses start with 127.
                          (= (elt address 0) 127))
                     (and (= (length address) 9)
-                         ;; IPv6 localhost addresses start with 0.
-                         (= (elt address 0) 0)))
+                         ;; IPv6 localhost address.
+                         (equal address [0 0 0 0 0 0 0 1 0])))
            return t))
 
 (ert-deftest echo-server-with-dns ()
