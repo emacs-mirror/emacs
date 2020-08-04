@@ -59,6 +59,11 @@ shaping, so 'configure' now recommends that combination.
 It was declared obsolete in Emacs 27.1.
 
 ---
+** Support for building with '-fcheck-pointer-bounds' has been removed.
+GCC has withdrawn the '-fcheck-pointer-bounds' option and support for
+its implementation has been removed from the Linux kernel.
+
+---
 ** Emacs no longer supports old OpenBSD systems.
 OpenBSD 5.3 and older releases are no longer supported, as they lack
 proper pty support that Emacs needs.
