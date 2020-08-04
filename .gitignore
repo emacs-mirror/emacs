@@ -152,6 +152,7 @@ test/manual/etags/regexfile
 test/manual/etags/ETAGS
 test/manual/etags/CTAGS
 test/manual/indent/*.new
+test/data/mml-sec/random_seed
 
 # ctags, etags.
 TAGS
