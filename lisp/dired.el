@@ -125,7 +125,7 @@ For more details, see Info node `(emacs)ls in Lisp'."
   "Informs Dired about how `ls -lF' marks symbolic links.
 Set this to t if `ls' (or whatever program is specified by
 `insert-directory-program') with `-lF' marks the symbolic link
-itself with a trailing @ (usually the case under Ultrix).
+itself with a trailing @ (usually the case under Ultrix and macOS).
 
 Example: if `ln -s foo bar; ls -F bar' gives `bar -> foo', set it to
 nil (the default), if it gives `bar@ -> foo', set it to t.
