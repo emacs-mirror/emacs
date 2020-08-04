@@ -2053,6 +2053,13 @@ The temporary directory on the remote host.  If not specified, the
 default value is @t{"/data/local/tmp"} for the @option{adb} method,
 @t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
 
+@item @t{"direct-async-process"}
+
+When this property is non-@code{nil}, an alternative, more performant
+implementation of @code{make-process} and
+@code{start-file-process} is applied.  @ref{Improving performance of
+asynchronous remote processes} for a discussion of constraints.
+
 @item @t{"posix"}
 
 Connections using the @option{smb} method check, whether the remote
@@ -2458,10 +2465,9 @@ overwrite as follows:
 
 @lisp
 @group
-(add-to-list
- 'tramp-connection-properties
- `(,(regexp-quote "192.168.0.1")
-   "remote-copy-args" (("-l") ("%r"))))
+(add-to-list 'tramp-connection-properties
+             `(,(regexp-quote "192.168.0.1")
+               "remote-copy-args" (("-l") ("%r"))))
 @end group
 @end lisp
 
@@ -3527,6 +3533,70 @@ To open @command{powershell} as a remote shell, use this:
 @end lisp
 
 
+@anchor{Improving performance of asynchronous remote processes}
+@subsection Improving performance of asynchronous remote processes
+@cindex Asynchronous remote processes
+@findex make-process
+@findex start-file-process
+
+@value{tramp}'s implementation of @code{make-process} and
+@code{start-file-process} requires a serious overhead for
+initialization, every process invocation.  This is needed for handling
+interactive dialogues when connecting the remote host (like providing
+a password), and initial environment setup.
+
+Sometimes, this is not needed.  Instead of starting a remote shell and
+running the command afterwards, it is sufficient to run the command
+directly.  @value{tramp} supports this by an alternative
+implementation of @code{make-process} and @code{start-file-process}.
+This is triggered by the connection property
+@t{"direct-async-process"}, @xref{Predefined connection information},
+which must be set to a non-@code{nil} value.  Example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "@trampfn{ssh,user@@host,}")
+                   "direct-async-process" t))
+@end group
+@end lisp
+
+However, this approach has different limitations:
+
+@itemize
+@item
+It works only for connection methods defined in @file{tramp-sh.el} and
+@file{tramp-adb.el}.
+
+@item
+It does not support multi-hop methods.
+
+@item
+It does not support interactive user authentication, like password
+handling.
+
+@item
+It does not support a separated error stream.
+
+@item
+It cannot be killed via @code{interrupt-process}.
+
+@item
+It does not report the remote terminal name via @code{process-tty-name}.
+
+@item
+It does not use @code{tramp-remote-path} and
+@code{tramp-remote-process-environment}.
+
+@item
+It does not set environment variable @env{INSIDE_EMACS}.
+@end itemize
+
+In order to gain even more performance, it is recommended to bind
+@code{tramp-verbose} to 0 when running @code{make-process} or
+@code{start-file-process}.
+
+
 @node Cleanup remote connections
 @section Cleanup remote connections
 @cindex cleanup
@@ -4555,9 +4625,8 @@ Abbreviation list expansion can be used to reduce typing long file names:
 
 @lisp
 @group
-(add-to-list
- 'directory-abbrev-alist
- '("^/xy" . "@trampfn{ssh,news@@news.my.domain,/opt/news/etc/}"))
+(add-to-list 'directory-abbrev-alist
+             '("^/xy" . "@trampfn{ssh,news@@news.my.domain,/opt/news/etc/}"))
 @end group
 @end lisp
 
