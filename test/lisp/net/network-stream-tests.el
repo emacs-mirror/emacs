@@ -136,7 +136,20 @@
      (t
       ))))
 
+(defun network-test--resolve-system-name ()
+  (cl-loop for address in (network-lookup-address-info (system-name))
+           when (or (and (= (length address) 5)
+                         ;; IPv4 localhost addresses start with 127.
+                         (= (elt address 0) 127))
+                    (and (= (length address) 9)
+                         ;; IPv6 localhost addresses start with 0.
+                         (= (elt address 0) 0)))
+           return t))
+
 (ert-deftest echo-server-with-dns ()
+  (unless (network-test--resolve-system-name)
+    (ert-skip "Can't test resolver for (system-name)"))
+
   (let* ((server (make-server (system-name)))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
