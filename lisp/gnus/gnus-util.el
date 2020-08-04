@@ -1654,6 +1654,7 @@ The first found will be returned if a file has hard or symbolic links."
   "To each element of LIST apply PREDICATE.
 Return nil if LIST is no list or is empty or some test returns nil;
 otherwise, return t."
+  (declare (obsolete nil "28.1"))
   (when (and list (listp list))
     (let ((result (mapcar predicate list)))
       (not (memq nil result)))))
