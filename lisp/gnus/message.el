@@ -8693,8 +8693,8 @@ used to take the screenshot."
     (set-mark (point))
     (insert-image
      (create-image image 'png t
-		   :max-width (* (frame-pixel-width) 0.8)
-		   :max-height (* (frame-pixel-height) 0.8)
+		   :max-width (truncate (* (frame-pixel-width) 0.8))
+		   :max-height (truncate (* (frame-pixel-height) 0.8))
 		   :scale 1)
      (format "<#part type=\"image/png\" disposition=inline content-transfer-encoding=base64 raw=t>\n%s\n<#/part>"
 	     ;; Get a base64 version of the image -- this avoids later
