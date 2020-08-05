@@ -527,6 +527,21 @@ TIME is modified and returned."
 
   time)
 
+(defun decoded-time-period (time)
+  "Interpret DECODED as a period and return its length in seconds.
+For computational purposes, years are 365 days long and months
+are 30 days long."
+  (+ (if (consp (decoded-time-second time))
+         ;; Fractional second.
+         (/ (float (car (decoded-time-second time)))
+            (cdr (decoded-time-second time)))
+       (or (decoded-time-second time) 0))
+     (* (or (decoded-time-minute time) 0) 60)
+     (* (or (decoded-time-hour time) 0) 60 60)
+     (* (or (decoded-time-day time) 0) 60 60 24)
+     (* (or (decoded-time-month time) 0) 60 60 24 30)
+     (* (or (decoded-time-year time) 0) 60 60 24 365)))
+
 (provide 'time-date)
 
 ;;; time-date.el ends here

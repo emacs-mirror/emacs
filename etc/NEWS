@@ -731,6 +731,11 @@ optional argument specifying whether to follow symbolic links.
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".
 
+---
+** The new function 'decoded-time-period' has been added.
+It interprets a decoded time structure as a period and returns the
+equivalent period in seconds.
+
 +++
 ** The new function 'dom-remove-attribute' has been added.
 
