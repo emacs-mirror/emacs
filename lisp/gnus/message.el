@@ -8694,9 +8694,12 @@ used to take the screenshot."
     (insert-image
      (create-image image 'png t
 		   :max-width (* (frame-pixel-width) 0.8)
-		   :max-height (* (frame-pixel-height) 0.8))
+		   :max-height (* (frame-pixel-height) 0.8)
+		   :scale 1)
      (format "<#part type=\"image/png\" disposition=inline content-transfer-encoding=base64 raw=t>\n%s\n<#/part>"
-	     ;; Get a base64 version of the image.
+	     ;; Get a base64 version of the image -- this avoids later
+	     ;; complications if we're auto-saving the buffer and
+	     ;; restoring from a file.
 	     (with-temp-buffer
 	       (set-buffer-multibyte nil)
 	       (insert image)
