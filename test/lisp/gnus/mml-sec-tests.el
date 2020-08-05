@@ -606,7 +606,7 @@ In this test, encrypt-to-self variables are set to lists."
        (list (cons "C3999CF1268DBEA2" "EF25402B479DC6E2")
 	     (cons "F7E79AB7AE31D471" "4035D59B5F88E9FC"))))))
 
-(ert-deftest mml-first-secure-en-decrypt-sign-1 ()
+(ert-deftest mml-secure-en-decrypt-sign-1-1-single ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
   (mml-secure-test-key-fixture
@@ -626,17 +626,28 @@ In this test, just multiple encryption and signing keys may be available."
 	 ;; customized choice for both keys
 	 (mml-secure-test-en-decrypt
 	  method "sub@example.org" "sub@example.org" 1 t)
-	 )
+	 )))))
 
+(ert-deftest mml-secure-en-decrypt-sign-1-2-double ()
+  "Sign and encrypt message; then decrypt and test for expected result.
+In this test, just multiple encryption and signing keys may be available."
+  (mml-secure-test-key-fixture
+   (lambda ()
+     (let ((mml-secure-openpgp-sign-with-sender t)
+	   (mml-secure-smime-sign-with-sender t))
        ;; Now use both keys to sign.  The customized one via sign-with-sender,
        ;; the other one via the following setting.
        (let ((mml-secure-openpgp-signers '("F7E79AB7AE31D471"))
 	     (mml-secure-smime-signers '("0x5F88E9FC")))
 	 (dolist (method (enc-sign-standards) nil)
 	   (mml-secure-test-en-decrypt
-	    method "no-exp@example.org" "sub@example.org" 2 t)
-	 )))
+	    method "no-exp@example.org" "sub@example.org" 2 t)))))))
 
+(ert-deftest mml-secure-en-decrypt-sign-1-3-double ()
+  "Sign and encrypt message; then decrypt and test for expected result.
+In this test, just multiple encryption and signing keys may be available."
+  (mml-secure-test-key-fixture
+   (lambda ()
      ;; Now use both keys for sub@example.org to sign an e-mail from
      ;; a different address (without associated keys).
      (let ((mml-secure-openpgp-sign-with-sender nil)
@@ -646,8 +657,7 @@ In this test, just multiple encryption and signing keys may be available."
 	   (mml-secure-smime-signers '("0x5F88E9FC" "0x479DC6E2")))
        (dolist (method (enc-sign-standards) nil)
 	 (mml-secure-test-en-decrypt
-	  method "no-exp@example.org" "no-keys@example.org" 2 t)
-	 )))))
+	  method "no-exp@example.org" "no-keys@example.org" 2 t))))))
 
 (ert-deftest mml-secure-en-decrypt-sign-2 ()
   "Sign and encrypt message; then decrypt and test for expected result.
