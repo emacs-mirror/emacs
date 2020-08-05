@@ -952,13 +952,17 @@ With a prefix argument, kill that many lines starting with the current line.
   "Kill all marked lines (not the files).
 With a prefix argument, kill that many lines starting with the current line.
 \(A negative argument kills backward.)
+
 If you use this command with a prefix argument to kill the line
 for a file that is a directory, which you have inserted in the
 Dired buffer as a subdirectory, then it deletes that subdirectory
 from the buffer as well.
+
 To kill an entire subdirectory \(without killing its line in the
 parent directory), go to its directory header line and use this
-command with a prefix argument (the value does not matter)."
+command with a prefix argument (the value does not matter).
+
+To undo the killing, the undo command can be used as normally."
   ;; Returns count of killed lines.  FMT="" suppresses message.
   (interactive "P")
   (if arg
