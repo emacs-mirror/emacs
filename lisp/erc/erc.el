@@ -1630,9 +1630,10 @@ symbol, it may have these values:
                           (and (erc-server-buffer-p)
                                (not (erc-server-process-alive)))))
                    ;; Channel buffer; check that it's from the right server.
-                   (with-current-buffer (get-buffer candidate)
-                     (and (string= erc-session-server server)
-                          (erc-port-equal erc-session-port port)))))
+                   (and target
+                        (with-current-buffer (get-buffer candidate)
+                          (and (string= erc-session-server server)
+                               (erc-port-equal erc-session-port port))))))
           (setq buffer-name candidate)))
     ;; if buffer-name is unset, neither candidate worked out for us,
     ;; fallback to the old <N> uniquification method:
