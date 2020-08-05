@@ -49,7 +49,10 @@
   "If non-nil, copy to kill-ring upon mouse adjustments of the region.
 
 This affects `mouse-save-then-kill' (\\[mouse-save-then-kill]) in
-addition to mouse drags."
+addition to mouse drags.
+
+This variable applies only to mouse adjustments in Emacs, not
+selecting and adjusting regions in other windows."
   :type 'boolean
   :version "24.1")
 
