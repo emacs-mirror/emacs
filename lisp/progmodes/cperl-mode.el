@@ -6786,6 +6786,7 @@ Use as
   (or topdir
       (setq topdir default-directory))
   (let ((tags-file-name "TAGS")
+        (inhibit-read-only t)
 	(case-fold-search nil)
 	xs rel)
     (save-excursion
