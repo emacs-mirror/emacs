@@ -135,7 +135,8 @@ A prefix argument of -1 says to wrap around region, even if not highlighted.
 A prefix argument of zero says to wrap around zero words---that is, nothing.
 This is a way of overriding the use of a highlighted region.")
        (interactive "*P\nP")
-       (skeleton-proxy-new ',skeleton str arg))))
+       (atomic-change-group
+         (skeleton-proxy-new ',skeleton str arg)))))
 
 ;;;###autoload
 (defun skeleton-proxy-new (skeleton &optional str arg)
