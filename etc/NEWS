@@ -590,6 +590,12 @@ Previously 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
+** erc
+
+---
+*** The /ignore command will now ask for a timeout to stop ignoring the user.
+Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
+
 ** Battery
 
 ---

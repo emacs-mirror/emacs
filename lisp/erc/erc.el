@@ -63,6 +63,8 @@
 (require 'thingatpt)
 (require 'auth-source)
 (require 'erc-compat)
+(require 'time-date)
+(require 'iso8601)
 (eval-when-compile (require 'subr-x))
 
 (defvar erc-official-location
@@ -2905,6 +2907,44 @@ therefore has to contain the command itself as well."
   (erc-server-send (substring line 1))
   t)
 
+(defvar erc--read-time-period-history nil)
+
+(defun erc--read-time-period (prompt)
+  "Read a time period on the \"2h\" format.
+If there's no letter spec, the input is interpreted as a number of seconds.
+
+If input is blank, this function returns nil.  Otherwise it
+returns the time spec converted to a number of seconds."
+  (let ((period (string-trim
+                 (read-string prompt nil 'erc--read-time-period-history))))
+    (cond
+     ;; Blank input.
+     ((zerop (length period))
+      nil)
+     ;; All-number -- interpret as seconds.
+     ((string-match-p "\\`[0-9]+\\'" period)
+      (string-to-number period))
+     ;; Parse as a time spec.
+     (t
+      (let ((time (condition-case nil
+                      (iso8601-parse-duration
+                       (concat (cond
+                                ((string-match-p "\\`P" (upcase period))
+                                 ;; Somebody typed in a full ISO8601 period.
+                                 (upcase period))
+                                ((string-match-p "[YD]" (upcase period))
+                                 ;; If we have a year/day element,
+                                 ;; we have a full spec.
+                                 "P")
+                                (t
+                                 ;; Otherwise it's just a sub-day spec.
+                                 "PT"))
+                               (upcase period)))
+                    (wrong-type-argument nil))))
+        (unless time
+          (user-error "%s is not a valid time period" period))
+        (decoded-time-period time))))))
+
 (defun erc-cmd-IGNORE (&optional user)
   "Ignore USER.  This should be a regexp matching nick!user@host.
 If no USER argument is specified, list the contents of `erc-ignore-list'."
@@ -2914,10 +2954,18 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
                    (y-or-n-p (format "Use regexp-quoted form (%s) instead? "
                                      quoted)))
           (setq user quoted))
-        (erc-display-line
-         (erc-make-notice (format "Now ignoring %s" user))
-         'active)
-        (erc-with-server-buffer (add-to-list 'erc-ignore-list user)))
+        (let ((timeout
+               (erc--read-time-period
+                "Add a timeout? (Blank for no, or a time spec like 2h): "))
+              (buffer (current-buffer)))
+          (when timeout
+            (run-at-time timeout nil
+                         (lambda ()
+                           (erc--unignore-user user buffer))))
+          (erc-display-line
+           (erc-make-notice (format "Now ignoring %s" user))
+           'active)
+          (erc-with-server-buffer (add-to-list 'erc-ignore-list user))))
     (if (null (erc-with-server-buffer erc-ignore-list))
         (erc-display-line (erc-make-notice "Ignore list is empty") 'active)
       (erc-display-line (erc-make-notice "Ignore list:") 'active)
@@ -2941,12 +2989,17 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
          (erc-make-notice (format "%s is not currently ignored!" user))
          'active)))
     (when ignored-nick
+      (erc--unignore-user user (current-buffer))))
+  t)
+
+(defun erc--unignore-user (user buffer)
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
       (erc-display-line
        (erc-make-notice (format "No longer ignoring %s" user))
        'active)
       (erc-with-server-buffer
-        (setq erc-ignore-list (delete ignored-nick erc-ignore-list)))))
-  t)
+        (setq erc-ignore-list (delete user erc-ignore-list))))))
 
 (defun erc-cmd-CLEAR ()
   "Clear the window content."
