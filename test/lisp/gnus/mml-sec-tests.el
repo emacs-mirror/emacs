@@ -36,6 +36,9 @@ Mostly, the empty passphrase is used.  However, the keys for
  \"No Expiry two UIDs\" have the passphrase \"Passphrase\" (for OpenPGP as well
  as S/MIME).")
 
+(defun test-conf ()
+  (ignore-errors (epg-configuration)))
+
 (defun enc-standards ()
   (if with-smime '(enc-pgp enc-pgp-mime enc-smime)
     '(enc-pgp enc-pgp-mime)))
@@ -200,6 +203,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-key-checks ()
   "Test mml-secure-check-user-id and mml-secure-check-sub-key on sample keys."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let* ((context (epg-make-context 'OpenPGP))
@@ -267,6 +271,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-find-usable-keys-1 ()
   "Make sure that expired and disabled keys and revoked UIDs are not used."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let ((context (epg-make-context 'OpenPGP)))
@@ -305,6 +310,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-find-usable-keys-2 ()
   "Test different ways to search for keys."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let ((context (epg-make-context 'OpenPGP)))
@@ -356,6 +362,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-select-preferred-keys-1 ()
   "If only one key exists for an e-mail address, it is the preferred one."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let ((context (epg-make-context 'OpenPGP)))
@@ -366,6 +373,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-select-preferred-keys-2 ()
   "If multiple keys exists for an e-mail address, customization is necessary."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let* ((context (epg-make-context 'OpenPGP))
@@ -392,6 +400,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-select-preferred-keys-3 ()
   "Expired customized keys are removed if multiple keys are available."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let ((context (epg-make-context 'OpenPGP))
@@ -416,6 +425,7 @@ In both cases, the first key is customized for signing and encryption."
 
 (ert-deftest mml-secure-select-preferred-keys-4 ()
   "Multiple keys can be recorded per recipient or signature."
+  (skip-unless (test-conf))
   (mml-secure-test-fixture
    (lambda ()
      (let ((pcontext (epg-make-context 'OpenPGP))
@@ -559,6 +569,7 @@ If optional EXPECTFAIL is non-nil, a decryption failure is expected."
 (ert-deftest mml-secure-en-decrypt-1 ()
   "Encrypt message; then decrypt and test for expected result.
 In this test, the single matching key is chosen automatically."
+  (skip-unless (test-conf))
   (dolist (method (enc-standards) nil)
     ;; no-exp@example.org with single encryption key
     (mml-secure-test-en-decrypt
@@ -568,6 +579,7 @@ In this test, the single matching key is chosen automatically."
 (ert-deftest mml-secure-en-decrypt-2 ()
   "Encrypt message; then decrypt and test for expected result.
 In this test, the encryption key needs to fixed among multiple ones."
+  (skip-unless (test-conf))
   ;; sub@example.org with multiple candidate keys,
   ;; fixture customizes preferred ones.
   (mml-secure-test-key-fixture
@@ -580,6 +592,7 @@ In this test, the encryption key needs to fixed among multiple ones."
 (ert-deftest mml-secure-en-decrypt-3 ()
   "Encrypt message; then decrypt and test for expected result.
 In this test, encrypt-to-self variables are set to t."
+  (skip-unless (test-conf))
   ;; sub@example.org with multiple candidate keys,
   ;; fixture customizes preferred ones.
   (mml-secure-test-key-fixture
@@ -595,6 +608,7 @@ In this test, encrypt-to-self variables are set to t."
 (ert-deftest mml-secure-en-decrypt-4 ()
   "Encrypt message; then decrypt and test for expected result.
 In this test, encrypt-to-self variables are set to lists."
+  (skip-unless (test-conf))
   ;; Send from sub@example.org, which has two keys; encrypt to both.
   (let ((mml-secure-openpgp-encrypt-to-self
 	 '("C3999CF1268DBEA2" "F7E79AB7AE31D471"))
@@ -609,6 +623,7 @@ In this test, encrypt-to-self variables are set to lists."
 (ert-deftest mml-secure-en-decrypt-sign-1-1-single ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      (let ((mml-secure-openpgp-sign-with-sender t)
@@ -631,6 +646,7 @@ In this test, just multiple encryption and signing keys may be available."
 (ert-deftest mml-secure-en-decrypt-sign-1-2-double ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      (let ((mml-secure-openpgp-sign-with-sender t)
@@ -646,6 +662,7 @@ In this test, just multiple encryption and signing keys may be available."
 (ert-deftest mml-secure-en-decrypt-sign-1-3-double ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      ;; Now use both keys for sub@example.org to sign an e-mail from
@@ -662,6 +679,7 @@ In this test, just multiple encryption and signing keys may be available."
 (ert-deftest mml-secure-en-decrypt-sign-2 ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, lists of encryption and signing keys are customized."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      (let ((mml-secure-key-preferences
@@ -695,6 +713,7 @@ In this test, lists of encryption and signing keys are customized."
 (ert-deftest mml-secure-en-decrypt-sign-3 ()
   "Sign and encrypt message; then decrypt and test for expected result.
 Use sign-with-sender and encrypt-to-self."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      (let ((mml-secure-openpgp-sign-with-sender t)
@@ -710,6 +729,7 @@ Use sign-with-sender and encrypt-to-self."
 
 (ert-deftest mml-secure-sign-verify-1 ()
   "Sign message with sender; then verify and test for expected result."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      (dolist (method (sign-standards) nil)
@@ -731,6 +751,7 @@ Use sign-with-sender and encrypt-to-self."
 
 (ert-deftest mml-secure-sign-verify-2 ()
   "Sign message without sender; then verify and test for expected result."
+  (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
      (dolist (method (sign-standards) nil)
@@ -762,6 +783,7 @@ Use sign-with-sender and encrypt-to-self."
 (ert-deftest mml-secure-sign-verify-3 ()
   "Try to sign message with expired OpenPGP subkey, which raises an error.
 With Ma Gnus v0.14 and earlier a signature would be created with a wrong key."
+  (skip-unless (test-conf))
   (should-error
    (mml-secure-test-key-fixture
     (lambda ()
@@ -784,6 +806,7 @@ With Ma Gnus v0.14 and earlier a signature would be created with a wrong key."
 In this test, a key is used that requires the passphrase \"Passphrase\".
 In the first decryption this passphrase is hardcoded, in the second one it
  is taken from a cache."
+  (skip-unless (test-conf))
   (ert-skip "Requires passphrase")
   (mml-secure-test-key-fixture
    (lambda ()
@@ -814,6 +837,7 @@ So the second decryption fails."
 
 (ert-deftest mml-secure-en-decrypt-passphrase-no-cache-openpgp-todo ()
   "Passphrase caching with OpenPGP only for GnuPG 1.x."
+  (skip-unless (test-conf))
   (skip-unless (string< (cdr (assq 'version (epg-configuration))) "2"))
   (mml-secure-en-decrypt-passphrase-no-cache 'enc-pgp)
   (mml-secure-en-decrypt-passphrase-no-cache 'enc-pgp-mime))
@@ -821,6 +845,7 @@ So the second decryption fails."
 (ert-deftest mml-secure-en-decrypt-passphrase-no-cache-smime-todo ()
   "Passphrase caching does not work with S/MIME (and gpgsm)."
   :expected-result :failed
+  (skip-unless (test-conf))
   (if with-smime
       (mml-secure-en-decrypt-passphrase-no-cache 'enc-smime)
     (should nil)))
