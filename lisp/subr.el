@@ -883,6 +883,10 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
+;; Declare before first use of `save-match-data',
+;; where it is used internally.
+(defvar save-match-data-internal)
+
 (defun kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string in the format returned by commands such
@@ -4104,8 +4108,6 @@ MODES is as for `set-default-file-modes'."
 
 
 ;;; Matching and match data.
-
-(defvar save-match-data-internal)
 
 ;; We use save-match-data-internal as the local variable because
 ;; that works ok in practice (people should not use that variable elsewhere).
