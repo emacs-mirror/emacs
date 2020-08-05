@@ -883,6 +883,18 @@ is a list, valid members are @code{type}, @code{description} and
 @code{nil}, don't ask for options.  If it is @code{t}, ask the user
 whether or not to specify options.
 
+@vindex message-screenshot-command
+@findex message-insert-screenshot
+@cindex screenshots
+@kindex C-c C-p
+If your system supports it, you can also insert screenshots directly
+into the Message buffer.  The @kbd{C-c C-p}
+(@code{message-insert-screenshot}) command inserts the image into the
+buffer as an @acronym{MML} part, and puts an image text property on
+top.  The @code{message-screenshot-command} variable says what
+external command to use to take the screenshot.  It defaults to
+@code{"import png:-"}, which is an ImageMagick command.
+
 You can also create arbitrarily complex multiparts using the @acronym{MML}
 language (@pxref{Composing, , Composing, emacs-mime, The Emacs MIME
 Manual}).

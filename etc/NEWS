@@ -228,6 +228,14 @@ The names of the commands 'gnus-slave', 'gnus-slave-no-server' and
 *** The 'W Q' summary mode command now takes a numerical prefix to
 allow adjusting the fill width.
 
++++
+*** New variable 'mm-inline-font-lock'.
+This variable is supposed to be bound by callers to determine whether
+inline MIME parts (that support it) are supposed to be font-locked or
+not.
+
+** Message
+
 ---
 *** Change to default value of 'message-draft-headers' user option.
 The 'Date' symbol has been removed from the default value, meaning that
@@ -237,10 +245,10 @@ from when it is first saved or delayed, add the symbol 'Date' back to
 this user option.
 
 +++
-*** New variable 'mm-inline-font-lock'.
-This variable is supposed to be bound by callers to determine whether
-inline MIME parts (that support it) are supposed to be font-locked or
-not.
+*** New command to take screenshots.
+In Message mode buffers, the 'C-c C-p' ('message-insert-screenshot')
+command has been added.  It depends on using an external program to
+take the actual screenshot, and defaults to ImageMagick "import".
 
 ** Help
 

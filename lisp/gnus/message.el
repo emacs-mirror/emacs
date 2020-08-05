@@ -303,6 +303,13 @@ any confusion."
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
 
+(defcustom message-screenshot-command '("import" "png:-")
+  "Command to take a screenshot.
+The command should insert a PNG in the current buffer."
+  :group 'message-various
+  :type '(list string)
+  :version "28.1")
+
 ;;; Start of variables adopted from `message-utils.el'.
 
 (defcustom message-subject-trailing-was-query t
@@ -2810,6 +2817,7 @@ systematically send encrypted emails when possible."
   (define-key message-mode-map [remap split-line]  'message-split-line)
 
   (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
+  (define-key message-mode-map "\C-c\C-p" 'message-insert-screenshot)
 
   (define-key message-mode-map "\C-a" 'message-beginning-of-line)
   (define-key message-mode-map "\t" 'message-tab)
@@ -2839,6 +2847,8 @@ systematically send encrypted emails when possible."
      :active (message-mark-active-p) :help "Mark region with enclosing tags"]
     ["Insert File Marked..." message-mark-insert-file
      :help "Insert file at point marked with enclosing tags"]
+    ["Attach File..." mml-attach-file t]
+    ["Insert Screenshot" message-insert-screenshot t]
     "----"
     ["Send Message" message-send-and-exit :help "Send this message"]
     ["Postpone Message" message-dont-send
@@ -8651,6 +8661,49 @@ Used in `message-simplify-recipients'."
 	      :max-height (truncate
 			   (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
 	     string)))))))
+
+(defun message-insert-screenshot (delay)
+  "Take a screenshot and insert in the current buffer.
+DELAY (the numeric prefix) says how many seconds to wait before
+starting the screenshotting process.
+
+The `message-screenshot-command' variable says what command is
+used to take the screenshot."
+  (interactive "p")
+  (unless (executable-find (car message-screenshot-command))
+    (error "Can't find %s to take the screenshot"
+	   (car message-screenshot-command)))
+  (cl-decf delay)
+  (unless (zerop delay)
+    (dotimes (i delay)
+      (message "Sleeping %d second%s..."
+	       (- delay i)
+	       (if (= (- delay i) 1)
+		   ""
+		 "s"))
+      (sleep-for 1)))
+  (message "Take screenshot")
+  (let ((image
+	 (with-temp-buffer
+	   (set-buffer-multibyte nil)
+	   (apply #'call-process
+		  (car message-screenshot-command) nil (current-buffer) nil
+		  (cdr message-screenshot-command))
+	   (buffer-string))))
+    (set-mark (point))
+    (insert-image
+     (create-image image 'png t
+		   :max-width (* (frame-pixel-width) 0.8)
+		   :max-height (* (frame-pixel-height) 0.8))
+     (format "<#part type=\"image/png\" disposition=inline content-transfer-encoding=base64 raw=t>\n%s\n<#/part>"
+	     ;; Get a base64 version of the image.
+	     (with-temp-buffer
+	       (set-buffer-multibyte nil)
+	       (insert image)
+	       (base64-encode-region (point-min) (point-max) t)
+	       (buffer-string))))
+    (insert "\n\n")
+    (message "")))
 
 (provide 'message)
 
