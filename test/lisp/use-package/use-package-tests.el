@@ -1940,6 +1940,18 @@
       (define-prefix-command 'my/map)
       (bind-key "<f1>" 'my/map nil nil))))
 
+
+(ert-deftest bind-key/845 ()
+  (defvar test-map (make-keymap))
+  (bind-key "<f1>" 'ignore 'test-map)
+  (should (eq (lookup-key test-map (kbd "<f1>")) 'ignore))
+  (let ((binding (cl-find "<f1>" personal-keybindings :test 'string= :key 'caar)))
+    (message "test-map %s" test-map)
+    (message "binding %s" binding)
+    (should (eq (cdar binding) 'test-map))
+    (should (eq (nth 1 binding) 'ignore))
+    (should (eq (nth 2 binding) nil))))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t
