@@ -5900,6 +5900,9 @@ motion_notify_event (GtkWidget * widget, GdkEvent * event,
   struct pgtk_display_info *dpyinfo;
   Mouse_HLInfo *hlinfo;
 
+  /* This is needed to make pointer visible when motion_notify event */
+  pending_signals = true;
+
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
