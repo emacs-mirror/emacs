@@ -659,6 +659,13 @@ custom rules, see the variables 'bug-reference-setup-from-vc-alist',
 'bug-reference-setup-from-mail-alist', and
 'bug-reference-setup-from-irc-alist'.
 
+** HTML Mode
+
+---
+*** A new skeleton for adding relative URLs has been added.
+It's bound to the 'C-c C-c f' keystroke, and prompts for a local file
+name.
+
 
 * New Modes and Packages in Emacs 28.1
 
