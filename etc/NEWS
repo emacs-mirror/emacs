@@ -254,7 +254,7 @@ An emacs-mail.desktop file has been included, suitable for installing
 in desktop directories like /usr/share/applications.  Clicking on a
 mailto: link in other applications will then open Emacs with headers
 filled out according to the link, e.g.
-"mailto:larsi@gnus.org;subject=This+is+a+test".
+"mailto:larsi@gnus.org?subject=This+is+a+test".
 
 ---
 *** Change to default value of 'message-draft-headers' user option.

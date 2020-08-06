@@ -547,7 +547,7 @@ This will start Emacs, and then run the @code{message-mailto}
 command.  It will parse the given @acronym{URL}, and set up a Message
 buffer with the given parameters.
 
-For instance, @samp{mailto:larsi@@gnus.org;subject=This+is+a+test}
+For instance, @samp{mailto:larsi@@gnus.org?subject=This+is+a+test}
 will open a Message buffer with the @samp{To:} header filled in with
 @samp{"larsi@@gnus.org"} and the @samp{Subject:} header with
 @samp{"This is a test"}.
