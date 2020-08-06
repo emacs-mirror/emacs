@@ -192,6 +192,7 @@ and then start moving it leftwards.")
 (defvar snake-null-map
   (let ((map (make-sparse-keymap 'snake-null-map)))
     (define-key map "n"		'snake-start-game)
+    (define-key map "q"         'quit-window)
     map)
   "Keymap for finished Snake games.")
 
