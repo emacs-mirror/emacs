@@ -5851,6 +5851,7 @@ all parts."
       (setq gnus-tmp-type-long (concat " --- " gnus-tmp-type-long)))
     (when (and (zerop gnus-tmp-length)
                ;; Only nnimap supports partial fetches so far.
+               nnimap-fetch-partial-articles
                (string-match "^nnimap\\+" gnus-newsgroup-name))
       (setq gnus-tmp-type-long
             (concat
