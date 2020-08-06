@@ -2105,7 +2105,7 @@ To improve performance and accuracy of remote file access,
 @file{/usr/bin}, which are reasonable for most hosts.  To accommodate
 differences in hosts and paths, for example, @file{/bin:/usr/bin} on
 Debian GNU/Linux or
-@file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin} on
+@file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/developerstudio12.6/bin} on
 Solaris, @value{tramp} queries the remote host with @command{getconf
 PATH} and updates the symbol @code{tramp-default-remote-path}.
 

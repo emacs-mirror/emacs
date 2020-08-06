@@ -1014,8 +1014,8 @@ To undo the killing, the undo command can be used as normally."
 (defvar dired-compress-file-suffixes
   '(
     ;; "tar -zxf" isn't used because it's not available on the
-    ;; Solaris10 version of tar. Solaris10 becomes obsolete in 2021.
-    ;; Same thing on AIX 7.1.
+    ;; Solaris 10 version of tar (obsolete in 2024?).
+    ;; Same thing on AIX 7.1 (obsolete 2023?) and 7.2 (obsolete 2022?).
     ("\\.tar\\.gz\\'" "" "gzip -dc %i | tar -xf -")
     ("\\.tgz\\'" "" "gzip -dc %i | tar -xf -")
     ("\\.gz\\'" "" "gunzip")

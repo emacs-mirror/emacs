@@ -81,25 +81,26 @@ the list at the end of this file.
 
 ** Solaris
 
-  On Solaris it is also possible to use either GCC or Solaris Studio
-  to build Emacs, by pointing ./configure to the right compiler:
+  On Solaris it is also possible to use either GCC or Oracle Developer
+  Studio to build Emacs, by pointing ./configure to the right compiler:
 
-    ./configure CC='/usr/sfw/bin/gcc'  # GCC
-    ./configure CC='cc'                # Solaris Studio
+    ./configure                # Defaults to 'gcc' if available.
+    ./configure CC='cc'        # Oracle Developer Studio
 
-  On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
-  sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
-  /usr/ucb.  (Most free software packages have the same requirement on
-  Solaris.)  With this compiler, use '/opt/SUNWspro/bin/cc -E' as the
+  On Solaris, do not use /usr/ucb/cc.  Use Oracle Developer Studio.
+  Make sure that /usr/ccs/bin and the Oracle Developer Studio bin
+  directory (e.g., /opt/developerstudio12.6/bin) are in your PATH
+  before /usr/ucb.  (Most free software packages have the same
+  requirement on Solaris.)  With this compiler, use 'cc -E' as the
   preprocessor.  If this inserts extra whitespace into its output (see
-  the PROBLEMS file) then add the option '-Xs'.
+  the PROBLEMS file), add the option '-Xs'.
 
   To build a 64-bit Emacs (with larger maximum buffer size) on a
-  Solaris system which supports 64-bit executables, specify the -m64
+  Solaris system that defaults to 32-bit executables, specify the -m64
   compiler option.  For example:
 
-    ./configure CC='/usr/sfw/bin/gcc -m64'  # GCC
-    ./configure CC='cc -m64'                # Solaris Studio
+    ./configure CC='gcc -m64'  # GCC
+    ./configure CC='cc -m64'   # Oracle Developer Studio
 
 
 * Obsolete platforms

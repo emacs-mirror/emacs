@@ -2222,6 +2222,7 @@ We list bugs in current versions here.  See also the section on legacy
 systems.
 
 *** On Solaris 10, Emacs crashes during the build process.
+(This applies only with './configure --with-unexec=yes', which is rare.)
 This was reported for Emacs 25.2 on i386-pc-solaris2.10 with Sun
 Studio 12 (Sun C 5.9) and with Oracle Developer Studio 12.6 (Sun C
 5.15), and intermittently for sparc-sun-solaris2.10 with Oracle
@@ -2238,66 +2239,6 @@ Solaris.  See Bug#26638.
 
 This is a Solaris feature (at least on Intel x86 cpus).  Type C-r
 C-r C-t, to toggle whether C-x gets through to Emacs.
-
-*** Problem with remote X server on Suns.
-
-On a Sun, running Emacs on one machine with the X server on another
-may not work if you have used the unshared system libraries.  This
-is because the unshared libraries fail to use YP for host name lookup.
-As a result, the host name you specify may not be recognized.
-
-*** Solaris 2.6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
-
-We suspect that this is a bug in the X libraries provided by
-Sun.  There is a report that one of these patches fixes the bug and
-makes the problem stop:
-
-105216-01 105393-01 105518-01 105621-01 105665-01 105615-02 105216-02
-105667-01 105401-08 105615-03 105621-02 105686-02 105736-01 105755-03
-106033-01 105379-01 105786-01 105181-04 105379-03 105786-04 105845-01
-105284-05 105669-02 105837-01 105837-02 105558-01 106125-02 105407-01
-
-Another person using a newer system (kernel patch level Generic_105181-06)
-suspects that the bug was fixed by one of these more recent patches:
-
-106040-07  SunOS 5.6: X Input & Output Method patch
-106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
-105284-12  Motif 1.2.7: sparc Runtime library patch
-
-*** Solaris 7 or 8: Emacs reports a BadAtom error (from X)
-
-This happens when Emacs was built on some other version of Solaris.
-Rebuild it on Solaris 8.
-
-*** When using M-x dbx with the SparcWorks debugger, the 'up' and 'down'
-commands do not move the arrow in Emacs.
-
-You can fix this by adding the following line to '~/.dbxinit':
-
- dbxenv output_short_file_name off
-
-*** On Solaris, CTRL-t is ignored by Emacs when you use
-the fr.ISO-8859-15 locale (and maybe other related locales).
-
-You can fix this by editing the file:
-
-        /usr/openwin/lib/locale/iso8859-15/Compose
-
-Near the bottom there is a line that reads:
-
-        Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
-
-while it should read:
-
-        Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
-
-Note the lower case <t>.  Changing this line should make C-t work.
-
-*** On Solaris, Emacs fails to set menu-bar-update-hook on startup, with error
-"Error in menu-bar-update-hook: (error Point before start of properties)".
-This seems to be a GCC optimization bug that occurs for GCC 4.1.2 (-g
-and -g -O2) and GCC 4.2.3 (-g -O and -g -O2).  You can fix this by
-compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
 
 * Runtime problems specific to MS-Windows
 
@@ -2733,13 +2674,13 @@ Libxpm is available for macOS as part of the XQuartz project.
 
 This indicates a mismatch between the C compiler and preprocessor that
 configure is using.  For example, on Solaris 10 trying to use
-CC=/opt/SUNWspro/bin/cc (the Sun Studio compiler) together with
-CPP=/usr/ccs/lib/cpp can result in errors of this form (you may also
-see the error '"/usr/include/sys/isa_defs.h", line 500: undefined control').
+CC=/opt/developerstudio12.6/bin/cc (the Oracle Developer Studio
+compiler) together with CPP=/usr/lib/cpp can result in errors of
+this form.
 
 The solution is to tell configure to use the correct C preprocessor
-for your C compiler (CPP="/opt/SUNWspro/bin/cc -E" in the above
-example).
+for your C compiler (CPP="/opt/developerstudio12.6/bin/cc -E" in the
+above example).
 
 ** Compilation
 
@@ -3110,7 +3051,69 @@ This section covers bugs reported on very old hardware or software.
 If you are using hardware and an operating system shipped after 2000,
 it is unlikely you will see any of these.
 
-*** Solaris 2.x
+** Solaris
+
+*** Problem with remote X server on Suns.
+
+On a Sun, running Emacs on one machine with the X server on another
+may not work if you have used the unshared system libraries.  This
+is because the unshared libraries fail to use YP for host name lookup.
+As a result, the host name you specify may not be recognized.
+
+*** Solaris 2.6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
+
+We suspect that this is a bug in the X libraries provided by
+Sun.  There is a report that one of these patches fixes the bug and
+makes the problem stop:
+
+105216-01 105393-01 105518-01 105621-01 105665-01 105615-02 105216-02
+105667-01 105401-08 105615-03 105621-02 105686-02 105736-01 105755-03
+106033-01 105379-01 105786-01 105181-04 105379-03 105786-04 105845-01
+105284-05 105669-02 105837-01 105837-02 105558-01 106125-02 105407-01
+
+Another person using a newer system (kernel patch level Generic_105181-06)
+suspects that the bug was fixed by one of these more recent patches:
+
+106040-07  SunOS 5.6: X Input & Output Method patch
+106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
+105284-12  Motif 1.2.7: sparc Runtime library patch
+
+*** Solaris 7 or 8: Emacs reports a BadAtom error (from X)
+
+This happens when Emacs was built on some other version of Solaris.
+Rebuild it on Solaris 8.
+
+*** When using M-x dbx with the SparcWorks debugger, the 'up' and 'down'
+commands do not move the arrow in Emacs.
+
+You can fix this by adding the following line to '~/.dbxinit':
+
+ dbxenv output_short_file_name off
+
+*** On Solaris, CTRL-t is ignored by Emacs when you use
+the fr.ISO-8859-15 locale (and maybe other related locales).
+
+You can fix this by editing the file:
+
+        /usr/openwin/lib/locale/iso8859-15/Compose
+
+Near the bottom there is a line that reads:
+
+        Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
+
+while it should read:
+
+        Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
+
+Note the lower case <t>.  Changing this line should make C-t work.
+
+*** On Solaris, Emacs fails to set menu-bar-update-hook on startup, with error
+"Error in menu-bar-update-hook: (error Point before start of properties)".
+This seems to be a GCC optimization bug that occurs for GCC 4.1.2 (-g
+and -g -O2) and GCC 4.2.3 (-g -O and -g -O2).  You can fix this by
+compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
+
+*** Other legacy Solaris problems
 
 **** Strange results from format %d in a few cases, on a Sun.
 
