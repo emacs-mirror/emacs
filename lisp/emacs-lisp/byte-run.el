@@ -576,13 +576,26 @@ Otherwise, return nil.  For internal use only."
                         (mapconcat (lambda (char) (format "`?\\%c'" char))
                                    sorted ", ")))))
 
+(defun byte-compile-info (string &optional message type)
+  "Format STRING in a way that looks pleasing in the compilation output.
+If MESSAGE, output the message, too.
+
+If TYPE, it should be a string that says what the information
+type is.  This defaults to \"INFO\"."
+  (let ((string (format "  %-9s%s" (or type "INFO") string)))
+    (when message
+      (message "%s" string))
+    string))
+
 (defun byte-compile-info-string (&rest args)
   "Format ARGS in a way that looks pleasing in the compilation output."
-  (format "  %-9s%s" "INFO" (apply #'format args)))
+  (declare (obsolete byte-compile-info "28.1"))
+  (byte-compile-info (apply #'format args)))
 
 (defun byte-compile-info-message (&rest args)
   "Message format ARGS in a way that looks pleasing in the compilation output."
-  (message "%s" (apply #'byte-compile-info-string args)))
+  (declare (obsolete byte-compile-info "28.1"))
+  (byte-compile-info (apply #'format args) t))
 
 
 ;; I nuked this because it's not a good idea for users to think of using it.
