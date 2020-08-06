@@ -1170,8 +1170,8 @@ write its autoloads into the specified file instead."
 (defun batch-update-autoloads--summary (strings)
   (let ((message ""))
     (while strings
-      (when (> (length (concat message " " (car strings))) 68)
-        (byte-compile-info message t "SCRAPE")
+      (when (> (length (concat message " " (car strings))) 64)
+        (byte-compile-info (concat message " ...") t "SCRAPE")
         (setq message ""))
       (setq message (if (zerop (length message))
                         (car strings)
