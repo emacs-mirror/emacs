@@ -6998,15 +6998,28 @@ want to get rid of this query permanently.")))
 
       ;; Build the header alist.  Allow the user to be asked whether
       ;; or not to reply to all recipients in a wide reply.
-      (setq follow-to (list (cons 'To (cdr (pop recipients)))))
-      (when (and recipients
-		 (or (not message-wide-reply-confirm-recipients)
-		     (y-or-n-p "Reply to all recipients? ")))
-	(setq recipients (mapconcat
-			  (lambda (addr) (cdr addr)) recipients ", "))
-	(if (string-match "^ +" recipients)
-	    (setq recipients (substring recipients (match-end 0))))
-	(push (cons 'Cc recipients) follow-to)))
+      (when (or (< (length recipients) 2)
+		(not message-wide-reply-confirm-recipients)
+		(y-or-n-p "Reply to all recipients? "))
+	(if never-mct
+	    ;; The author has requested never to get a (wide)
+	    ;; response, so put everybody else into the To header.
+	    ;; This avoids looking as if we're To-in somebody else in
+	    ;; specific, and just Cc-in the rest.
+	    (setq follow-to (list
+			     (cons 'To
+				   (mapconcat
+				    (lambda (addr)
+				      (cdr addr)) recipients ", "))))
+	  ;; Put the first recipient in the To header.
+	  (setq follow-to (list (cons 'To (cdr (pop recipients)))))
+	  ;; Put the rest of the recipients in Cc.
+	  (when recipients
+	    (setq recipients (mapconcat
+			      (lambda (addr) (cdr addr)) recipients ", "))
+	    (if (string-match "^ +" recipients)
+		(setq recipients (substring recipients (match-end 0))))
+	    (push (cons 'Cc recipients) follow-to)))))
     follow-to))
 
 (defun message-prune-recipients (recipients)

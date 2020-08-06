@@ -236,6 +236,16 @@ not.
 
 ** Message
 
+---
+*** A change to how Mail-Copies-To: never is handled.
+If a user has specified Mail-Copies-To: never, and Message was asked
+to do a "wide reply", some other arbitrary recipient would end up in
+the resulting To header, while the remaining recipients would be put
+in the Cc header.  This is somewhat misleading, as it looks like
+you're responding to a specific person in particular.  This has been
+changed so that all the recipients are put in the To header in these
+instances.
+
 +++
 *** New function to start Emacs in Message mode to send an email.
 Emacs can be defined as a handler for the "x-scheme-handler/mailto"
