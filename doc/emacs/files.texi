@@ -2149,7 +2149,12 @@ To reset all transformations to the initial state, use
 @findex image-previous-file
 You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
 (@code{image-previous-file}) to visit the next image file and the
-previous image file in the same directory, respectively.
+previous image file in the same directory, respectively.  These
+commands will consult the ``parent'' dired buffer to determine what
+the next/previous image file is.  These commands also work when
+opening a file from archive files (like zip or tar files), and will
+then instead consult the archive mode buffer.  If neither an archive
+nor a dired ``parent'' buffer can be found, a dired buffer is opened.
 
 @findex image-mode-mark-file
 @findex image-mode-unmark-file

@@ -989,6 +989,53 @@ using `make-temp-file', and the generated name is returned."
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))
 
+(defun archive-goto-file (file)
+  "Go to FILE in the current buffer.
+FILE should be a relative file name.  If FILE can't be found,
+return nil.  Otherwise point is returned."
+  (let ((start (point))
+        found)
+    (goto-char (point-min))
+    (while (and (not found)
+                (not (eobp)))
+      (forward-line 1)
+      (when-let ((descr (archive-get-descr t)))
+        (when (equal (archive--file-desc-ext-file-name descr) file)
+          (setq found t))))
+    (if (not found)
+        (progn
+          (goto-char start)
+          nil)
+      (point))))
+
+(defun archive-next-file-displayer (file regexp n)
+  "Return a closure to display the next file after FILE that matches REGEXP."
+  (let ((short (replace-regexp-in-string "\\`.*:" "" file))
+        next)
+    (archive-goto-file short)
+    (while (and (not next)
+                ;; Stop if we reach the end/start of the buffer.
+                (if (> n 0)
+                    (not (eobp))
+                  (not (save-excursion
+                         (beginning-of-line)
+                         (bobp)))))
+      (archive-next-line n)
+      (when-let ((descr (archive-get-descr t)))
+        (let ((candidate (archive--file-desc-ext-file-name descr))
+              (buffer (current-buffer)))
+          (when (and candidate
+                     (string-match-p regexp candidate))
+            (setq next (lambda ()
+                         (kill-buffer (current-buffer))
+                         (switch-to-buffer buffer)
+                         (archive-extract)))))))
+    (unless next
+      ;; If we didn't find a next/prev file, then restore
+      ;; point.
+      (archive-goto-file short))
+    next))
+
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
   (interactive (list nil last-input-event))

@@ -922,6 +922,56 @@ actually appear on disk when you save the tar-file's buffer."
           (setq buffer-undo-list nil))))
     buffer))
 
+(defun tar-goto-file (file)
+  "Go to FILE in the current buffer.
+FILE should be a relative file name.  If FILE can't be found,
+return nil.  Otherwise point is returned."
+  (let ((start (point))
+        found)
+    (goto-char (point-min))
+    (while (and (not found)
+                (not (eobp)))
+      (forward-line 1)
+      (when-let ((descriptor (ignore-errors (tar-get-descriptor))))
+        (when (equal (tar-header-name descriptor) file)
+          (setq found t))))
+    (if (not found)
+        (progn
+          (goto-char start)
+          nil)
+      (point))))
+
+(defun tar-next-file-displayer (file regexp n)
+  "Return a closure to display the next file after FILE that matches REGEXP."
+  (let ((short (replace-regexp-in-string "\\`.*!" "" file))
+        next)
+    ;; The tar buffer chops off leading "./", so do the same
+    ;; here.
+    (setq short (replace-regexp-in-string "\\`\\./" "" file))
+    (tar-goto-file short)
+    (while (and (not next)
+                ;; Stop if we reach the end/start of the buffer.
+                (if (> n 0)
+                    (not (eobp))
+                  (not (save-excursion
+                         (beginning-of-line)
+                         (bobp)))))
+      (tar-next-line n)
+      (when-let ((descriptor (ignore-errors (tar-get-descriptor))))
+        (let ((candidate (tar-header-name descriptor))
+              (buffer (current-buffer)))
+          (when (and candidate
+                     (string-match-p regexp candidate))
+            (setq next (lambda ()
+                         (kill-buffer (current-buffer))
+                         (switch-to-buffer buffer)
+                         (tar-extract)))))))
+    (unless next
+      ;; If we didn't find a next/prev file, then restore
+      ;; point.
+      (tar-goto-file short))
+    next))
+
 (defun tar-extract (&optional other-window-p)
   "In Tar mode, extract this entry of the tar file into its own buffer."
   (interactive)

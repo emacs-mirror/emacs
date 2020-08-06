@@ -40,6 +40,7 @@
 
 (require 'image)
 (require 'exif)
+(require 'dired)
 (eval-when-compile (require 'cl-lib))
 
 ;;; Image mode window-info management.
@@ -1085,28 +1086,87 @@ replacing the current Image mode buffer."
     (error "The buffer is not in Image mode"))
   (unless buffer-file-name
     (error "The current image is not associated with a file"))
-  (let* ((file (file-name-nondirectory buffer-file-name))
-	 (images (image-mode--images-in-directory file))
-	 (idx 0))
-    (catch 'image-visit-next-file
-      (dolist (f images)
-	(if (string= f file)
-	    (throw 'image-visit-next-file (1+ idx)))
-	(setq idx (1+ idx))))
-    (setq idx (mod (+ idx (or n 1)) (length images)))
-    (let ((image (nth idx images))
-          (dir (file-name-directory buffer-file-name)))
-      (find-alternate-file image)
-      ;; If we have dired buffer(s) open to where this image is, then
-      ;; place point on it.
+  (let ((next (image-mode--next-file buffer-file-name n)))
+    (unless next
+      (user-error "No %s file in this directory"
+                  (if (> n 0)
+                      "next"
+                    "prev")))
+    (if (stringp next)
+        (find-alternate-file next)
+      (funcall next))))
+
+(defun image-mode--directory-buffers (file)
+  "Return a alist of type/buffer for all \"parent\" buffers to image FILE.
+This is normally a list of dired buffers, but can also be archive and
+tar mode buffers."
+  (let ((buffers nil)
+        (dir (file-name-directory file)))
+    (cond
+     ((and (boundp 'tar-superior-buffer)
+	   tar-superior-buffer)
+      (when (buffer-live-p tar-superior-buffer)
+        (push (cons 'tar tar-superior-buffer) buffers)))
+     ((and (boundp 'archive-superior-buffer)
+	   archive-superior-buffer)
+      (when (buffer-live-p archive-superior-buffer)
+        (push (cons 'archive archive-superior-buffer) buffers)))
+     (t
+      ;; Find a dired buffer.
       (dolist (buffer (buffer-list))
-	(with-current-buffer buffer
-	  (when (and (derived-mode-p 'dired-mode)
+        (with-current-buffer buffer
+          (when (and (derived-mode-p 'dired-mode)
 	             (equal (file-truename dir)
 		            (file-truename default-directory)))
-            (save-window-excursion
-              (switch-to-buffer (current-buffer) t t)
-              (dired-goto-file (expand-file-name image dir)))))))))
+            (push (cons 'dired (current-buffer)) buffers))))
+      ;; If we can't find any buffers to navigate in, we open a dired
+      ;; buffer.
+      (unless buffers
+        (push (cons 'dired (find-file-noselect dir)) buffers)
+        (message "Opened a dired buffer on %s" dir))))
+    buffers))
+
+(declare-function archive-next-file-displayer "arc-mode")
+(declare-function tar-next-file-displayer "tar-mode")
+
+(defun image-mode--next-file (file n)
+  "Go to the next image file in the parent buffer of FILE.
+This is typically a dired buffer, but may also be a tar/archive buffer.
+Return the next image file from that buffer.
+If N is negative, go to the previous file."
+  (let ((regexp (image-file-name-regexp))
+        (buffers (image-mode--directory-buffers file))
+        next)
+    (dolist (buffer buffers)
+      ;; We do this traversal for all the dired buffers open on this
+      ;; directory.  There probably is just one, but we want to move
+      ;; point in all of them.
+      (save-window-excursion
+        (switch-to-buffer (cdr buffer) t t)
+        (cl-case (car buffer)
+          ('dired
+           (dired-goto-file file)
+           (let (found)
+             (while (and (not found)
+                         ;; Stop if we reach the end/start of the buffer.
+                         (if (> n 0)
+                             (not (eobp))
+                           (not (bobp))))
+               (dired-next-line n)
+               (let ((candidate (dired-get-filename nil t)))
+                 (when (and candidate
+                            (string-match-p regexp candidate))
+                   (setq found candidate))))
+             (if found
+                 (setq next found)
+               ;; If we didn't find a next/prev file, then restore
+               ;; point.
+               (dired-goto-file file))))
+          ('archive
+           (setq next (archive-next-file-displayer file regexp n)))
+          ('tar
+           (setq next (tar-next-file-displayer file regexp n))))))
+    next))
 
 (defun image-previous-file (&optional n)
   "Visit the preceding image in the same directory as the current file.
