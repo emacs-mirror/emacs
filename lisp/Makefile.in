@@ -196,7 +196,6 @@ $(lisp)/finder-inf.el:
 
 autoloads .PHONY: $(lisp)/loaddefs.el
 $(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
-	@echo Directories for loaddefs: ${SUBDIRS_ALMOST}
 	$(AM_V_GEN)$(emacs) -l autoload \
 	    --eval '(setq autoload-ensure-writable t)' \
 	    --eval '(setq autoload-builtin-package-versions t)' \
