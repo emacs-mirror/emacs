@@ -298,12 +298,12 @@ part.  This is for the internal use, you should never modify the value.")
 	;; We have a part that already has a transfer encoding.  Undo
 	;; that so that we don't double-encode later.
 	(when (and raw
-		   (cdr (assq 'content-transfer-encoding tag)))
+		   (cdr (assq 'data-encoding tag)))
 	  (with-temp-buffer
 	    (set-buffer-multibyte nil)
 	    (insert contents)
 	    (mm-decode-content-transfer-encoding
-	     (intern (cdr (assq 'content-transfer-encoding tag)))
+	     (intern (cdr (assq 'data-encoding tag)))
 	     (cdr (assq 'type tag)))
 	    (setq contents (buffer-string))))
 	(when (and (not raw) (memq nil charsets))

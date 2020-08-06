@@ -693,8 +693,17 @@ Valid values are @samp{inline} and @samp{attachment}
 
 @item encoding
 Valid values are @samp{7bit}, @samp{8bit}, @samp{quoted-printable} and
-@samp{base64} (@code{Content-Transfer-Encoding}). @xref{Charset
-Translation}.
+@samp{base64}.  @xref{Charset
+Translation}.  This parameter says what
+@code{Content-Transfer-Encoding} to use when sending the part, and is
+normally computed automatically.
+
+@item data-encoding
+This parameter says what encoding has been used on the data, and the
+data will be decoded before use.  Valid values are
+@samp{quoted-printable} and @samp{base64}.  This is useful when you
+have a part with binary data (for instance an image) inserted directly
+into the Message buffer inside the @samp{"<#part>...<#/part>"} tags.
 
 @item description
 A description of the part (@code{Content-Description}).
