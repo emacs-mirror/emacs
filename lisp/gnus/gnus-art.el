@@ -8341,6 +8341,7 @@ url is put as the `gnus-button-url' overlay property on the button."
        (and (match-end 6) (list (string-to-number (match-string 6 address))))))))
 
 (defun gnus-url-parse-query-string (query &optional downcase)
+  (declare (obsolete message-parse-mailto-url "28.1"))
   (let (retval pairs cur key val)
     (setq pairs (split-string query "&"))
     (while pairs
@@ -8360,31 +8361,8 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defun gnus-url-mailto (url)
   ;; Send mail to someone
-  (setq url (replace-regexp-in-string "\n" " " url))
-  (when (string-match "mailto:/*\\(.*\\)" url)
-    (setq url (substring url (match-beginning 1) nil)))
-  (let* ((args (gnus-url-parse-query-string
-		(if (string-match "^\\?" url)
-		    (substring url 1)
-		  (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
-		      (concat "to=" (match-string 1 url) "&"
-			      (match-string 2 url))
-		    (concat "to=" url)))))
-         (subject (cdr-safe (assoc "subject" args)))
-         func)
-    (gnus-msg-mail)
-    (while args
-      (setq func (intern-soft (concat "message-goto-" (downcase (caar args)))))
-      (if (fboundp func)
-	  (funcall func)
-	(message-position-on-field (caar args)))
-      (insert (replace-regexp-in-string
-	       "\r\n" "\n"
-	       (mapconcat #'identity (reverse (cdar args)) ", ") nil t))
-      (setq args (cdr args)))
-    (if subject
-	(message-goto-body)
-      (message-goto-subject))))
+  (gnus-msg-mail)
+  (message-mailto-1 url))
 
 (defun gnus-button-embedded-url (address)
   "Activate ADDRESS with `browse-url'."

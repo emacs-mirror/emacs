@@ -8708,6 +8708,63 @@ used to take the screenshot."
     (insert "\n\n")
     (message "")))
 
+(declare-function gnus-url-unhex-string "gnus-util")
+
+(defun message-parse-mailto-url (url)
+  "Parse a mailto: url."
+  (setq url (replace-regexp-in-string "\n" " " url))
+  (when (string-match "mailto:/*\\(.*\\)" url)
+    (setq url (substring url (match-beginning 1) nil)))
+  (setq url (if (string-match "^\\?" url)
+		(substring url 1)
+	      (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
+		  (concat "to=" (match-string 1 url) "&"
+			  (match-string 2 url))
+		(concat "to=" url))))
+  (let (retval pairs cur key val)
+    (setq pairs (split-string url "&"))
+    (while pairs
+      (setq cur (car pairs)
+	    pairs (cdr pairs))
+      (if (not (string-match "=" cur))
+	  nil                           ; Grace
+	(setq key (downcase (gnus-url-unhex-string
+			     (substring cur 0 (match-beginning 0))))
+	      val (gnus-url-unhex-string (substring cur (match-end 0) nil) t))
+	(setq cur (assoc key retval))
+	(if cur
+	    (setcdr cur (cons val (cdr cur)))
+	  (setq retval (cons (list key val) retval)))))
+    retval))
+
+;;;###autoload
+(defun message-mailto ()
+  "Function to be run to parse command line mailto: links.
+This is meant to be used for MIME handlers: Setting the handler
+for \"x-scheme-handler/mailto;\" to \"emacs -fn message-mailto %u\"
+will then start up Emacs ready to compose mail."
+  (interactive)
+  ;; <a href="mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body">Send email</a>
+  (message-mail)
+  (message-mailto-1 (car command-line-args-left))
+  (setq command-line-args-left (cdr command-line-args-left)))
+
+(defun message-mailto-1 (url)
+  (let ((args (message-parse-mailto-url url)))
+    (dolist (arg args)
+      (unless (equal (car arg) "body")
+	(message-position-on-field (capitalize (car arg)))
+	(insert (replace-regexp-in-string
+		 "\r\n" "\n"
+		 (mapconcat #'identity (reverse (cdr arg)) ", ") nil t))))
+    (when (assoc "body" args)
+      (message-goto-body)
+      (dolist (body (cdr (assoc "body" args)))
+	(insert body "\n")))
+    (if (assoc "subject" args)
+	(message-goto-body)
+      (message-goto-subject))))
+
 (provide 'message)
 
 (run-hooks 'message-load-hook)

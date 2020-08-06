@@ -99,6 +99,7 @@ sending it.
 * Resending::            Resending a mail message.
 * Bouncing::             Bouncing a mail message.
 * Mailing Lists::        Send mail to mailing lists.
+* System Mailer Setup::  Using Message as the system mailer.
 @end menu
 
 You can customize the Message Mode tool bar, see @kbd{M-x
@@ -528,6 +529,29 @@ Gnus will prompt you for an action.
 It is considered good netiquette to honor MFT, as it is assumed the
 fellow who posted a message knows where the followups need to go
 better than you do.
+
+
+@node System Mailer Setup
+@section System Mailer Setup
+@cindex mailto:
+
+Emacs can be set up as the system mailer, so that Emacs is opened when
+you click on @samp{mailto:} links in other programs.
+
+How this is done varies from system to system, but commonly there's a
+way to set the default application for a @acronym{MIME} type, and the
+relevant type here is @samp{x-scheme-handler/mailto;}.
+
+The application to start should be @samp{"emacs -f message-mailto %u"}.
+This will start Emacs, and then run the @code{message-mailto}
+command.  It will parse the given @acronym{URL}, and set up a Message
+buffer with the given parameters.
+
+For instance, @samp{mailto:larsi@@gnus.org;subject=This+is+a+test}
+will open a Message buffer with the @samp{To:} header filled in with
+@samp{"larsi@@gnus.org"} and the @samp{Subject:} header with
+@samp{"This is a test"}.
+
 
 @node Commands
 @chapter Commands

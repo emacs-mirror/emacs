@@ -236,6 +236,16 @@ not.
 
 ** Message
 
++++
+*** New function to start Emacs in Message mode to send an email.
+Emacs can be defined as a handler for the "x-scheme-handler/mailto"
+MIME type with the following command: "emacs -f message-mailto %u".
+An emacs-mail.desktop file has been included, suitable for installing
+in desktop directories like /usr/share/applications.  Clicking on a
+mailto: link in other applications will then open Emacs with headers
+filled out according to the link, e.g.
+"mailto:larsi@gnus.org;subject=This+is+a+test".
+
 ---
 *** Change to default value of 'message-draft-headers' user option.
 The 'Date' symbol has been removed from the default value, meaning that
