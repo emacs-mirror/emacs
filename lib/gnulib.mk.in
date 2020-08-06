@@ -246,9 +246,10 @@ GL_GENERATE_ALLOCA_H = @GL_GENERATE_ALLOCA_H@
 GL_GENERATE_BYTESWAP_H = @GL_GENERATE_BYTESWAP_H@
 GL_GENERATE_ERRNO_H = @GL_GENERATE_ERRNO_H@
 GL_GENERATE_EXECINFO_H = @GL_GENERATE_EXECINFO_H@
-GL_GENERATE_GMP_H = @GL_GENERATE_GMP_H@
+GL_GENERATE_GMP_GMP_H = @GL_GENERATE_GMP_GMP_H@
 GL_GENERATE_IEEE754_H = @GL_GENERATE_IEEE754_H@
 GL_GENERATE_LIMITS_H = @GL_GENERATE_LIMITS_H@
+GL_GENERATE_MINI_GMP_H = @GL_GENERATE_MINI_GMP_H@
 GL_GENERATE_STDALIGN_H = @GL_GENERATE_STDALIGN_H@
 GL_GENERATE_STDDEF_H = @GL_GENERATE_STDDEF_H@
 GL_GENERATE_STDINT_H = @GL_GENERATE_STDINT_H@
@@ -1085,7 +1086,6 @@ gamedir = @gamedir@
 gamegroup = @gamegroup@
 gameuser = @gameuser@
 gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7 = @gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7@
-gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9 = @gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9@
 gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b = @gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b@
 gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31 = @gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31@
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c = @gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c@
@@ -2021,14 +2021,21 @@ ifeq (,$(OMIT_GNULIB_MODULE_libgmp))
 
 BUILT_SOURCES += $(GMP_H)
 
+ifneq (,$(GL_GENERATE_MINI_GMP_H))
 # Build gmp.h as a wrapper for mini-gmp.h when using mini-gmp.
-ifneq (,$(GL_GENERATE_GMP_H))
 gmp.h: $(top_builddir)/config.status
 	echo '#include "mini-gmp.h"' >$@-t
 	mv $@-t $@
 else
+ifneq (,$(GL_GENERATE_GMP_GMP_H))
+# Build gmp.h as a wrapper for gmp/gmp.h.
+gmp.h: $(top_builddir)/config.status
+	echo '#include <gmp/gmp.h>' >$@-t
+	mv $@-t $@
+else
 gmp.h: $(top_builddir)/config.status
 	rm -f $@
+endif
 endif
 MOSTLYCLEANFILES += gmp.h gmp.h-t
 

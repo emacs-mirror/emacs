@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 52
+# gnulib-common.m4 serial 53
 dnl Copyright (C) 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -300,7 +300,9 @@ AC_DEFUN([gl_COMMON_BODY], [
 #define _GL_ASYNC_SAFE
 ])
   AH_VERBATIM([micro_optimizations],
-[/* _GL_CMP (n1, n2) performs a three-valued comparison on n1 vs. n2.
+[/* _GL_CMP (n1, n2) performs a three-valued comparison on n1 vs. n2, where
+   n1 and n2 are expressions without side effects, that evaluate to real
+   numbers (excluding NaN).
    It returns
      1  if n1 > n2
      0  if n1 == n2

@@ -38,7 +38,8 @@ extern "C" {
    expand to code that computes the number of leading zeros of the local
    variable 'x' of type TYPE (an unsigned integer type) and return it
    from the current function.  */
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) \
+    || (__clang_major__ >= 4)
 # define COUNT_LEADING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)                \
   return x ? BUILTIN (x) : CHAR_BIT * sizeof x;
 #elif _MSC_VER

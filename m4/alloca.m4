@@ -1,4 +1,4 @@
-# alloca.m4 serial 16
+# alloca.m4 serial 17
 dnl Copyright (C) 2002-2004, 2006-2007, 2009-2020 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -50,10 +50,13 @@ AC_DEFUN([gl_FUNC_ALLOCA],
 # STACK_DIRECTION is already handled by AC_FUNC_ALLOCA.
 AC_DEFUN([gl_PREREQ_ALLOCA], [:])
 
-# This works around a bug in autoconf <= 2.68.
-# See <https://lists.gnu.org/r/bug-gnulib/2011-06/msg00277.html> and
-# <https://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commitdiff;h=6cd9f12520b0d6f76d3230d7565feba1ecf29497>.
-# Also it has a simplification that is not yet in Autoconf.
+m4_version_prereq([2.70], [], [
+
+# This works around a bug in autoconf <= 2.68 and has simplifications
+# from 2.70.  See:
+# https://lists.gnu.org/r/bug-gnulib/2011-06/msg00277.html
+# https://git.savannah.gnu.org/cgit/autoconf.git/commit/?id=6cd9f12520b0d6f76d3230d7565feba1ecf29497
+# https://git.savannah.gnu.org/cgit/autoconf.git/commit/?id=15edf7fd8094fd14a89d9891dd72a9624762597a
 
 # _AC_LIBOBJ_ALLOCA
 # -----------------
@@ -101,4 +104,5 @@ AH_VERBATIM([STACK_DIRECTION],
         STACK_DIRECTION = 0 => direction of growth unknown */
 @%:@undef STACK_DIRECTION])dnl
 AC_DEFINE_UNQUOTED(STACK_DIRECTION, $ac_cv_c_stack_direction)
+])
 ])
