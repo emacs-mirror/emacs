@@ -1978,6 +1978,10 @@ Optional arg HOW-TO determines how to treat the target.
 	(apply (car into-dir) operation rfn-list fn-list target (cdr into-dir))
       (if (not (or dired-one-file into-dir))
 	  (error "Marked %s: target must be a directory: %s" operation target))
+      (if (and (not (file-directory-p (car fn-list)))
+               (not (file-directory-p target))
+               (directory-name-p target))
+          (error "%s: Target directory does not exist: %s" operation target))
       ;; rename-file bombs when moving directories unless we do this:
       (or into-dir (setq target (directory-file-name target)))
       (dired-create-files
