@@ -82,6 +82,7 @@
 (ert-deftest cconv-tests-cl-iter-defun-:documentation ()
   "Docstring for cl-iter-defun can be specified with :documentation."
   ;; FIXME: See Bug#28557.
+  :tags '(:unstable)
   :expected-result :failed
   (should (string= (documentation 'cconv-tests-cl-iter-defun)
                    "cl-iter-defun documentation"))
@@ -94,6 +95,7 @@
 (ert-deftest cconv-tests-iter-defun-:documentation ()
   "Docstring for iter-defun can be specified with :documentation."
   ;; FIXME: See Bug#28557.
+  :tags '(:unstable)
   :expected-result :failed
   (should (string= (documentation 'cconv-tests-iter-defun)
                    "iter-defun documentation"))
