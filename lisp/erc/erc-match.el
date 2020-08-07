@@ -577,9 +577,9 @@ See `erc-log-match-format'."
     (with-current-buffer buffer
       (unless buffer-already
 	(insert " == Type \"q\" to dismiss messages ==\n")
-	(erc-view-mode-enter nil (lambda (buffer)
-				   (when (y-or-n-p "Discard messages? ")
-				     (kill-buffer buffer)))))
+	(view-mode-enter nil (lambda (buffer)
+			       (when (y-or-n-p "Discard messages? ")
+				 (kill-buffer buffer)))))
       buffer)))
 
 (defun erc-log-matches-come-back (proc parsed)

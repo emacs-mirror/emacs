@@ -71,13 +71,13 @@
 (defun erc-list-make-string (channel users topic)
   (concat
    channel
-   (erc-propertize " "
-		   'display (list 'space :align-to erc-list-nusers-column)
-		   'face 'fixed-pitch)
+   (propertize " "
+	       'display (list 'space :align-to erc-list-nusers-column)
+	       'face 'fixed-pitch)
    users
-   (erc-propertize " "
-		   'display (list 'space :align-to erc-list-topic-column)
-		   'face 'fixed-pitch)
+   (propertize " "
+	       'display (list 'space :align-to erc-list-topic-column)
+	       'face 'fixed-pitch)
    topic))
 
 ;; Insert a record into the list buffer.
@@ -143,19 +143,19 @@
 
 ;; Helper function that makes a buttonized column header.
 (defun erc-list-button (title column)
-  (erc-propertize title
-		  'column-number column
-		  'help-echo "mouse-1: sort by column"
-		  'mouse-face 'header-line-highlight
-		  'keymap erc-list-menu-sort-button-map))
+  (propertize title
+	      'column-number column
+	      'help-echo "mouse-1: sort by column"
+	      'mouse-face 'header-line-highlight
+	      'keymap erc-list-menu-sort-button-map))
 
 (define-derived-mode erc-list-menu-mode special-mode "ERC-List"
   "Major mode for editing a list of irc channels."
   (setq header-line-format
 	(concat
-	 (erc-propertize " "
-			 'display '(space :align-to 0)
-			 'face 'fixed-pitch)
+	 (propertize " "
+		     'display '(space :align-to 0)
+		     'face 'fixed-pitch)
 	 (erc-list-make-string (erc-list-button "Channel" 1)
 			       (erc-list-button "# Users" 2)
 			       "Topic")))

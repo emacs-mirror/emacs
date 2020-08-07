@@ -1863,7 +1863,7 @@ buffer rather than a server buffer.")
   ;; modify `transforms' to specify what needs to be changed
   ;; each item is in the format '(old . new)
   (let ((transforms '((pcomplete . completion))))
-    (erc-delete-dups
+    (delete-dups
      (mapcar (lambda (m) (or (cdr (assoc m transforms)) m))
              mods))))
 
@@ -2316,7 +2316,7 @@ and appears in face `erc-input-face' in the buffer."
                             (setq result (concat result network-name
                                                  " << " line "\n")))
                           result)
-                      (erc-propertize
+                      (propertize
                        (concat network-name " >> " string
                                (if (/= ?\n
                                        (aref string
@@ -2339,7 +2339,7 @@ If ARG is non-nil, show the *erc-protocol* buffer."
   (interactive "P")
   (let* ((buf (get-buffer-create "*erc-protocol*")))
     (with-current-buffer buf
-      (erc-view-mode-enter)
+      (view-mode-enter)
       (when (null (current-local-map))
         (let ((inhibit-read-only t))
           (insert (erc-make-notice "This buffer displays all IRC protocol traffic exchanged with each server.\n"))
@@ -2773,7 +2773,7 @@ See also `erc-server-send'."
 
 (defun erc-get-arglist (fun)
   "Return the argument list of a function without the parens."
-  (let ((arglist (format "%S" (erc-function-arglist fun))))
+  (let ((arglist (format "%S" (help-function-arglist fun))))
     (if (string-match "\\`(\\(.*\\))\\'" arglist)
         (match-string 1 arglist)
       arglist)))
@@ -3558,7 +3558,7 @@ If S is non-nil, it will be used as the quit reason."
 If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
-          (erc-replace-regexp-in-string "\n" "" (yow))
+          (replace-regexp-in-string "\n" "" (yow))
         (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-quit-reason-zippy "it will be removed." "24.4")
@@ -3585,7 +3585,7 @@ If S is non-nil, it will be used as the part reason."
 If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
-          (erc-replace-regexp-in-string "\n" "" (yow))
+          (replace-regexp-in-string "\n" "" (yow))
         (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-part-reason-zippy "it will be removed." "24.4")
@@ -4001,13 +4001,13 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
         ;; Do not extend the text properties when typing at the end
         ;; of the prompt, but stuff typed in front of the prompt
         ;; shall remain part of the prompt.
-        (setq prompt (erc-propertize prompt
-                                     'start-open t ; XEmacs
-                                     'rear-nonsticky t ; Emacs
-                                     'erc-prompt t
-                                     'field t
-                                     'front-sticky t
-                                     'read-only t))
+        (setq prompt (propertize prompt
+                                 'start-open t ; XEmacs
+                                 'rear-nonsticky t ; Emacs
+                                 'erc-prompt t
+                                 'field t
+                                 'front-sticky t
+                                 'read-only t))
         (erc-put-text-property 0 (1- (length prompt))
                                'font-lock-face (or face 'erc-prompt-face)
                                prompt)
@@ -4390,15 +4390,15 @@ See also `erc-format-nick-function'."
 (defun erc-get-user-mode-prefix (user)
   (when user
     (cond ((erc-channel-user-owner-p user)
-           (erc-propertize "~" 'help-echo "owner"))
+           (propertize "~" 'help-echo "owner"))
           ((erc-channel-user-admin-p user)
-           (erc-propertize "&" 'help-echo "admin"))
+           (propertize "&" 'help-echo "admin"))
           ((erc-channel-user-op-p user)
-           (erc-propertize "@" 'help-echo "operator"))
+           (propertize "@" 'help-echo "operator"))
           ((erc-channel-user-halfop-p user)
-           (erc-propertize "%" 'help-echo "half-op"))
+           (propertize "%" 'help-echo "half-op"))
           ((erc-channel-user-voice-p user)
-           (erc-propertize "+" 'help-echo "voice"))
+           (propertize "+" 'help-echo "voice"))
           (t ""))))
 
 (defun erc-format-@nick (&optional user _channel-data)
@@ -4409,7 +4409,7 @@ prefix.  Use CHANNEL-DATA to determine op and voice status.  See
 also `erc-format-nick-function'."
   (when user
     (let ((nick (erc-server-user-nickname user)))
-      (concat (erc-propertize
+      (concat (propertize
                (erc-get-user-mode-prefix nick)
                'font-lock-face 'erc-nick-prefix-face)
 	      nick))))
@@ -4422,12 +4422,12 @@ also `erc-format-nick-function'."
              (nick (erc-current-nick))
              (mode (erc-get-user-mode-prefix nick)))
         (concat
-         (erc-propertize open 'font-lock-face 'erc-default-face)
-         (erc-propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
-         (erc-propertize nick 'font-lock-face 'erc-my-nick-face)
-         (erc-propertize close 'font-lock-face 'erc-default-face)))
+         (propertize open 'font-lock-face 'erc-default-face)
+         (propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
+         (propertize nick 'font-lock-face 'erc-my-nick-face)
+         (propertize close 'font-lock-face 'erc-default-face)))
     (let ((prefix "> "))
-      (erc-propertize prefix 'font-lock-face 'erc-default-face))))
+      (propertize prefix 'font-lock-face 'erc-default-face))))
 
 (defun erc-echo-notice-in-default-buffer (s parsed buffer _sender)
   "Echos a private notice in the default buffer, namely the
@@ -6489,16 +6489,16 @@ if `erc-away' is non-nil."
                                     (fill-region (point-min) (point-max))
                                     (buffer-string))))
                    (setq header-line-format
-                         (erc-replace-regexp-in-string
+                         (replace-regexp-in-string
                           "%"
                           "%%"
                           (if face
-                              (erc-propertize header 'help-echo help-echo
-                                              'face face)
-                            (erc-propertize header 'help-echo help-echo))))))
+                              (propertize header 'help-echo help-echo
+                                          'face face)
+                            (propertize header 'help-echo help-echo))))))
                 (t (setq header-line-format
                          (if face
-                             (erc-propertize header 'face face)
+                             (propertize header 'face face)
                            header)))))))
     (force-mode-line-update)))
 
@@ -6765,7 +6765,7 @@ functions."
               nick user host channel
               (if (not (string= reason ""))
                   (format ": %s"
-                          (erc-replace-regexp-in-string "%" "%%" reason))
+                          (replace-regexp-in-string "%" "%%" reason))
                 "")))))
 
 

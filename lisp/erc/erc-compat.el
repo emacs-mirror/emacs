@@ -43,12 +43,12 @@ Return the same string, if the encoding operation is trivial.
 See `erc-encoding-coding-alist'."
   (encode-coding-string s coding-system t))
 
-(defalias 'erc-propertize 'propertize)
-(defalias 'erc-view-mode-enter 'view-mode-enter)
+(define-obsolete-function-alias 'erc-propertize #'propertize "28.1")
+(define-obsolete-function-alias 'erc-view-mode-enter #'view-mode-enter "28.1")
 (autoload 'help-function-arglist "help-fns")
-(defalias 'erc-function-arglist 'help-function-arglist)
-(defalias 'erc-delete-dups 'delete-dups)
-(defalias 'erc-replace-regexp-in-string 'replace-regexp-in-string)
+(define-obsolete-function-alias 'erc-function-arglist #'help-function-arglist "28.1")
+(define-obsolete-function-alias 'erc-delete-dups #'delete-dups "28.1")
+(define-obsolete-function-alias 'erc-replace-regexp-in-string #'replace-regexp-in-string "28.1")
 
 (defun erc-set-write-file-functions (new-val)
   (set (make-local-variable 'write-file-functions) new-val))
