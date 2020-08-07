@@ -5753,7 +5753,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	      (if (eq (char-after (match-beginning 2)) ?%)
 		  'cperl-hash-face
 		'cperl-array-face)
-	      t)			; arrays and hashes
+	      nil)			; arrays and hashes
 	     ("\\(\\([$@]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)"
 	      1
 	      (if (= (- (match-end 2) (match-beginning 2)) 1)
