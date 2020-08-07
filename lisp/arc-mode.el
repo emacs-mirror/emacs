@@ -391,6 +391,7 @@ file.  Archive and member name will be added."
     (define-key map "e" 'archive-extract)
     (define-key map "f" 'archive-extract)
     (define-key map "\C-m" 'archive-extract)
+    (define-key map "C" 'archive-copy-file)
     (define-key map "m" 'archive-mark)
     (define-key map "n" 'archive-next-line)
     (define-key map "\C-n" 'archive-next-line)
@@ -430,6 +431,9 @@ file.  Archive and member name will be added."
     (define-key map [menu-bar immediate view]
       '(menu-item "View This File" archive-view
                   :help "Display file at cursor in View Mode"))
+    (define-key map [menu-bar immediate view]
+      '(menu-item "Copy This File" archive-copy-file
+                  :help "Copy file at cursor to another location"))
     (define-key map [menu-bar immediate display]
       '(menu-item "Display in Other Window" archive-display-other-window
                   :help "Display file at cursor in another window"))
@@ -1036,6 +1040,26 @@ return nil.  Otherwise point is returned."
       (archive-goto-file short))
     next))
 
+(defun archive-copy-file (file new-name)
+  "Copy file under point to a different location."
+  (interactive
+   (let ((name (archive--file-desc-ext-file-name (archive-get-descr))))
+     (list name
+           (read-file-name (format "Copy %s to: " name)))))
+  (when (file-directory-p new-name)
+    (setq new-name (expand-file-name file new-name)))
+  (when (and (file-exists-p new-name)
+             (not (yes-or-no-p (format "%s already exists; overwrite? "
+                                       new-name))))
+    (user-error "Not overwriting %s" new-name))
+  (let* ((descr (archive-get-descr))
+         (archive (buffer-file-name))
+         (extractor (archive-name "extract"))
+         (ename (archive--file-desc-ext-file-name descr)))
+    (with-temp-buffer
+      (archive--extract-file extractor archive ename)
+      (write-region (point-min) (point-max) new-name))))
+
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
   (interactive (list nil last-input-event))
@@ -1077,26 +1101,7 @@ return nil.  Otherwise point is returned."
           (setq archive-subfile-mode descr)
 	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
-	       (null
-		(let (;; We may have to encode the file name argument for
-		      ;; external programs.
-		      (coding-system-for-write
-		       (and enable-multibyte-characters
-			    archive-file-name-coding-system))
-		      ;; We read an archive member by no-conversion at
-		      ;; first, then decode appropriately by calling
-		      ;; archive-set-buffer-as-visiting-file later.
-		      (coding-system-for-read 'no-conversion)
-		      ;; Avoid changing dir mtime by lock_file
-		      (create-lockfiles nil))
-		  (condition-case err
-		      (if (fboundp extractor)
-			  (funcall extractor archive ename)
-			(archive-*-extract archive ename
-					   (symbol-value extractor)))
-		    (error
-		     (ding (message "%s" (error-message-string err)))
-		     nil))))
+	       (null (archive--extract-file extractor archive ename))
 	       just-created)
 	      (progn
 		(set-buffer-modified-p nil)
@@ -1128,6 +1133,27 @@ return nil.  Otherwise point is returned."
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
            (t (switch-to-buffer buffer))))))
+
+(defun archive--extract-file (extractor archive ename)
+  (let (;; We may have to encode the file name argument for
+	;; external programs.
+	(coding-system-for-write
+	 (and enable-multibyte-characters
+	      archive-file-name-coding-system))
+	;; We read an archive member by no-conversion at
+	;; first, then decode appropriately by calling
+	;; archive-set-buffer-as-visiting-file later.
+	(coding-system-for-read 'no-conversion)
+	;; Avoid changing dir mtime by lock_file
+	(create-lockfiles nil))
+    (condition-case err
+	(if (fboundp extractor)
+	    (funcall extractor archive ename)
+	  (archive-*-extract archive ename
+			     (symbol-value extractor)))
+      (error
+       (ding (message "%s" (error-message-string err)))
+       nil))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))

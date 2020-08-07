@@ -175,6 +175,11 @@ and variables.
 'archive-hideshow-column'.  These let you control which columns are
 displayed and which are kept hidden.
 
+---
+*** New command bound to 'C': 'archive-copy-file'
+This command extracts the file under point and writes the data to a
+file.
+
 ** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
