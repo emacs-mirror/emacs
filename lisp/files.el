@@ -2683,8 +2683,6 @@ since only a single case-insensitive search through the alist is made."
      ("\\.p\\'" . pascal-mode)
      ("\\.pas\\'" . pascal-mode)
      ("\\.\\(dpr\\|DPR\\)\\'" . delphi-mode)
-     ("\\.ad[abs]\\'" . ada-mode)
-     ("\\.ad[bs]\\.dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
      ("Imakefile\\'" . makefile-imake-mode)
      ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
