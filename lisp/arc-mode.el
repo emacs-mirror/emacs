@@ -1041,7 +1041,9 @@ return nil.  Otherwise point is returned."
     next))
 
 (defun archive-copy-file (file new-name)
-  "Copy file under point to a different location."
+  "Copy FILE to a location specified by NEW-NAME.
+Interactively, FILE is the file at point, and the function prompts
+for NEW-NAME."
   (interactive
    (let ((name (archive--file-desc-ext-file-name (archive-get-descr))))
      (list name
