@@ -2565,21 +2565,18 @@ before calling this function on it, like this.
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause enternotify and focus events.  */
     frame_set_mouse_position (XFRAME (frame), xval, yval);
-#else
-#if defined (MSDOS)
+#elif defined MSDOS
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
       mouse_moveto (xval, yval);
     }
+#elif defined HAVE_GPM
+  Fselect_frame (frame, Qnil);
+  term_mouse_moveto (xval, yval);
 #else
-#ifdef HAVE_GPM
-    {
-      Fselect_frame (frame, Qnil);
-      term_mouse_moveto (xval, yval);
-    }
-#endif
-#endif
+  (void) xval;
+  (void) yval;
 #endif
 
   return Qnil;
@@ -2606,21 +2603,18 @@ before calling this function on it, like this.
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause enternotify and focus events.  */
     frame_set_mouse_pixel_position (XFRAME (frame), xval, yval);
-#else
-#if defined (MSDOS)
+#elif defined MSDOS
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
       mouse_moveto (xval, yval);
     }
+#elif defined HAVE_GPM
+  Fselect_frame (frame, Qnil);
+  term_mouse_moveto (xval, yval);
 #else
-#ifdef HAVE_GPM
-    {
-      Fselect_frame (frame, Qnil);
-      term_mouse_moveto (xval, yval);
-    }
-#endif
-#endif
+  (void) xval;
+  (void) yval;
 #endif
 
   return Qnil;
@@ -3657,6 +3651,9 @@ bottom edge of FRAME's display.  */)
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_TERMINAL (f)->set_frame_offset_hook)
 	FRAME_TERMINAL (f)->set_frame_offset_hook (f, xval, yval, 1);
+#else
+      (void) xval;
+      (void) yval;
 #endif
     }
 
