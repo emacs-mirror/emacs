@@ -459,10 +459,10 @@ The new default value is 2000000 (2 megabytes).
 ** Whitespace mode
 
 +++
-*** A new style has been added: 'missing-newline-at-eof'
-If present in 'whitespace-style' (and it is now by default), the final
-character in the buffer will be highlighted unless it's a newline
-character.
+*** New style 'missing-newline-at-eof'.
+If present in 'whitespace-style' (as it is by default), the final
+character in the buffer will be highlighted if the buffer doesn't end
+with a newline.
 
 ** Texinfo
 
