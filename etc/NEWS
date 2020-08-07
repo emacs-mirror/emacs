@@ -451,6 +451,13 @@ to substitute spaces in regexp search.
 *** The default value of 'hi-lock-highlight-range' was enlarged.
 The new default value is 2000000 (2 megabytes).
 
+** Whitespace mode
+
+*** A new style has been added: 'missing-newline-at-eof'
+If present in 'whitespace-style' (and it is now by default), the final
+character in the buffer will be highlighted unless it's a newline
+character.
+
 ** Texinfo
 
 ---
