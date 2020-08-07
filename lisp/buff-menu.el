@@ -488,8 +488,9 @@ Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted
 (defun Buffer-menu-select ()
   "Select this line's buffer; also, display buffers marked with `>'.
 You can mark buffers with the \\<Buffer-menu-mode-map>`\\[Buffer-menu-mark]' command.
+
 This command deletes and replaces all the previously existing windows
-in the selected frame."
+in the selected frame, and will remove any marks."
   (interactive)
   (let* ((this-buffer (Buffer-menu-buffer t))
 	 (menu-buffer (current-buffer))
