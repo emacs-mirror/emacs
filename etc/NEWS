@@ -547,6 +547,9 @@ either an internal or external browser.
 
 *** Support for the conkeror browser is now obsolete.
 
+*** Support for the Mosaic browser has been removed.
+This support has been obsolete since 25.1.
+
 ** SHR
 
 ---

@@ -425,25 +425,6 @@ Passing an interactive argument to \\[browse-url], or specific browser
 commands reverses the effect of this variable."
   :type 'boolean)
 
-(defcustom browse-url-mosaic-program "xmosaic"
-  "The name by which to invoke Mosaic (or mMosaic)."
-  :type 'string
-  :version "20.3")
-
-(make-obsolete-variable 'browse-url-mosaic-program nil "25.1")
-
-(defcustom browse-url-mosaic-arguments nil
-  "A list of strings to pass to Mosaic as arguments."
-  :type '(repeat (string :tag "Argument")))
-
-(make-obsolete-variable 'browse-url-mosaic-arguments nil "25.1")
-
-(defcustom browse-url-mosaic-pidfile "~/.mosaicpid"
-  "The name of the pidfile created by Mosaic."
-  :type 'string)
-
-(make-obsolete-variable 'browse-url-mosaic-pidfile nil "25.1")
-
 (defcustom browse-url-conkeror-program "conkeror"
   "The name by which to invoke Conkeror."
   :type 'string
@@ -497,22 +478,6 @@ Used by the `browse-url-of-file' command."
 (defcustom browse-url-of-file-hook nil
   "Hook run after `browse-url-of-file' has asked a browser to load a file."
   :type 'hook)
-
-(defcustom browse-url-CCI-port 3003
-  "Port to access XMosaic via CCI.
-This can be any number between 1024 and 65535 but must correspond to
-the value set in the browser."
-  :type 'integer)
-
-(make-obsolete-variable 'browse-url-CCI-port nil "25.1")
-
-(defcustom browse-url-CCI-host "localhost"
-  "Host to access XMosaic via CCI.
-This should be the host name of the machine running XMosaic with CCI
-enabled.  The port number should be set in `browse-url-CCI-port'."
-  :type 'string)
-
-(make-obsolete-variable 'browse-url-CCI-host nil "25.1")
 
 (defvar browse-url-temp-file-name nil)
 (make-variable-buffer-local 'browse-url-temp-file-name)
@@ -1075,8 +1040,6 @@ instead of `browse-url-new-window-flag'."
 ;;;    ((executable-find browse-url-galeon-program) 'browse-url-galeon)
     ((executable-find browse-url-kde-program) 'browse-url-kde)
 ;;;    ((executable-find browse-url-netscape-program) 'browse-url-netscape)
-;;;    ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
-;;;    ((executable-find browse-url-conkeror-program) 'browse-url-conkeror)
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
@@ -1443,93 +1406,6 @@ used instead of `browse-url-new-window-flag'."
 	  (list "--raise" url))))
 
 (function-put 'browse-url-gnome-moz 'browse-url-browser-kind 'external)
-
-;; --- Mosaic ---
-
-;;;###autoload
-(defun browse-url-mosaic (url &optional new-window)
-  "Ask the XMosaic WWW browser to load URL.
-
-Default to the URL around or before point.  The strings in variable
-`browse-url-mosaic-arguments' are also passed to Mosaic and the
-program is invoked according to the variable
-`browse-url-mosaic-program'.
-
-When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new Mosaic window, otherwise use a
-random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-flag'.
-
-When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'."
-  (declare (obsolete nil "25.1"))
-  (interactive (browse-url-interactive-arg "Mosaic URL: "))
-  (let ((pidfile (expand-file-name browse-url-mosaic-pidfile))
-	pid)
-    (if (file-readable-p pidfile)
-        (with-temp-buffer
-          (insert-file-contents pidfile)
-	  (setq pid (read (current-buffer)))))
-    (if (and (integerp pid) (zerop (signal-process pid 0))) ; Mosaic running
-        (progn
-          (with-temp-buffer
-            (insert (if (browse-url-maybe-new-window new-window)
-                        "newwin\n"
-                      "goto\n")
-                    url "\n")
-            (with-file-modes ?\700
-              (if (file-exists-p
-                   (setq pidfile (format "/tmp/Mosaic.%d" pid)))
-                  (delete-file pidfile))
-              ;; https://debbugs.gnu.org/17428.  Use O_EXCL.
-              (write-region nil nil pidfile nil 'silent nil 'excl)))
-	  ;; Send signal SIGUSR to Mosaic
-	  (message "Signaling Mosaic...")
-	  (signal-process pid 'SIGUSR1)
-	  ;; Or you could try:
-	  ;; (call-process "kill" nil 0 nil "-USR1" (int-to-string pid))
-	  (message "Signaling Mosaic...done"))
-      ;; Mosaic not running - start it
-      (message "Starting %s..." browse-url-mosaic-program)
-      (apply 'start-process "xmosaic" nil browse-url-mosaic-program
-	     (append browse-url-mosaic-arguments (list url)))
-      (message "Starting %s...done" browse-url-mosaic-program))))
-
-(function-put 'browse-url-mosaic 'browse-url-browser-kind 'external)
-
-;; --- Mosaic using CCI ---
-
-;;;###autoload
-(defun browse-url-cci (url &optional new-window)
-  "Ask the XMosaic WWW browser to load URL.
-Default to the URL around or before point.
-
-This function only works for XMosaic version 2.5 or later.  You must
-select `CCI' from XMosaic's File menu, set the CCI Port Address to the
-value of variable `browse-url-CCI-port', and enable `Accept requests'.
-
-When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new browser window, otherwise use a
-random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-flag'.
-
-When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'."
-  (declare (obsolete nil "25.1"))
-  (interactive (browse-url-interactive-arg "Mosaic URL: "))
-  (open-network-stream "browse-url" " *browse-url*"
-		       browse-url-CCI-host browse-url-CCI-port)
-  ;; Todo: start browser if fails
-  (process-send-string "browse-url"
-		       (concat "get url (" url ") output "
-			       (if (browse-url-maybe-new-window new-window)
-				   "new"
-				 "current")
-			       "\r\n"))
-  (process-send-string "browse-url" "disconnect\r\n")
-  (delete-process "browse-url"))
-
-(function-put 'browse-url-cci 'browse-url-browser-kind 'external)
 
 ;; --- Conkeror ---
 ;;;###autoload
