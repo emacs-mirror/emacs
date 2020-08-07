@@ -122,6 +122,11 @@ horizontal movements now stop at the edge of the board.
 ** Autosaving via 'auto-save-visited-mode' can now be inhibited by
 setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
+** New commands to describe buttons and widgets have been added.
+'describe-widget' (on a widget) will pop up a help buffer and give a
+description of the properties.  Likewise 'describe-button' does the
+same for a button.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 

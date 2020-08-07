@@ -555,6 +555,51 @@ Returns the button found."
   (interactive "p\nd\nd")
   (forward-button (- n) wrap display-message no-error))
 
+(defun button--describe (properties)
+  "Describe a button's PROPERTIES (an alist) in a *Help* buffer.
+This is a helper function for `button-describe', in order to be possible to
+use `help-setup-xref'.
+
+Each element of PROPERTIES should be of the form (PROPERTY . VALUE)."
+  (help-setup-xref (list #'button--describe properties)
+                   (called-interactively-p 'interactive))
+  (with-help-window (help-buffer)
+    (with-current-buffer (help-buffer)
+      (insert (format-message "This button's type is `%s'."
+                              (alist-get 'type properties)))
+      (dolist (prop '(action mouse-action))
+        (let ((name (symbol-name prop))
+              (val (alist-get prop properties)))
+          (when (functionp val)
+            (insert "\n\n"
+                    (propertize (capitalize name) 'face 'bold)
+                    "\nThe " name " of this button is")
+            (if (symbolp val)
+                (progn
+                  (insert (format-message " `%s',\nwhich is " val))
+                  (describe-function-1 val))
+              (insert "\n")
+              (princ val))))))))
+
+(defun button-describe (&optional button-or-pos)
+  "Display a buffer with information about the button at point.
+
+When called from Lisp, pass BUTTON-OR-POS as the button to describe, or a
+buffer position where a button is present.  If BUTTON-OR-POS is nil, the
+button at point is the button to describe."
+  (interactive "d")
+  (let* ((button (cond ((integer-or-marker-p button-or-pos)
+                        (button-at button-or-pos))
+                       ((null button-or-pos) (button-at (point)))
+                       ((overlayp button-or-pos) button-or-pos)))
+         (props (and button
+                     (mapcar (lambda (prop)
+                               (cons prop (button-get button prop)))
+                             '(type action mouse-action)))))
+    (when props
+      (button--describe props)
+      t)))
+
 (provide 'button)
 
 ;;; button.el ends here

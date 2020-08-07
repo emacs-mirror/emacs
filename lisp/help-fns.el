@@ -1769,6 +1769,50 @@ documentation for the major and minor modes of that buffer."
   ;; For the sake of IELM and maybe others
   nil)
 
+;; Widgets.
+
+(defvar describe-widget-functions
+  '(button-describe widget-describe)
+  "A list of functions for `describe-widget' to call.
+Each function should take one argument, a buffer position, and return
+non-nil if it described a widget at that position.")
+
+;;;###autoload
+(defun describe-widget (&optional pos)
+  "Display a buffer with information about a widget.
+You can use this command to describe buttons (e.g., the links in a *Help*
+buffer), editable fields of the customization buffers, etc.
+
+Interactively, click on a widget to describe it, or hit RET to describe the
+widget at point.
+
+When called from Lisp, POS may be a buffer position or a mouse position list.
+
+Calls each function of the list `describe-widget-functions' in turn, until
+one of them returns non-nil."
+  (interactive
+   (list
+    (let ((key
+           (read-key
+            "Click on a widget, or hit RET to describe the widget at point")))
+      (cond ((eq key ?\C-m) (point))
+            ((and (mouse-event-p key)
+                  (eq (event-basic-type key) 'mouse-1)
+                  (equal (event-modifiers key) '(click)))
+             (event-end key))
+            ((eq key ?\C-g) (signal 'quit nil))
+            (t (user-error "You didn't specify a widget"))))))
+  (let (buf)
+    ;; Allow describing a widget in a different window.
+    (when (posnp pos)
+      (setq buf (window-buffer (posn-window pos))
+            pos (posn-point pos)))
+    (with-current-buffer (or buf (current-buffer))
+      (unless (cl-some (lambda (fun) (when (fboundp fun) (funcall fun pos)))
+                       describe-widget-functions)
+        (message "No widget found at that position")))))
+
+
 ;;; Replacements for old lib-src/ programs.  Don't seem especially useful.
 
 ;; Replaces lib-src/digest-doc.c.
