@@ -464,8 +464,12 @@ see).
 POS defaults to point, except when `push-button' is invoked
 interactively as the result of a mouse-event, in which case, the
 mouse event is used.
+
 If there's no button at POS, do nothing and return nil, otherwise
-return t."
+return t.
+
+To get a description of what function will called when pushing a
+butting, use the `button-describe' command."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
   (if (and (not (integerp pos)) (eventp pos))
