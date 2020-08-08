@@ -130,6 +130,14 @@ same for a button.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Miscellaneous
+
+---
+*** The width of the buffer-name column in 'list-buffers' is now dynamic.
+The width now depends of the width of the window, but will never be
+wider than the length of the longest buffer name, except that it will
+never be narrower than 19 characters.
+
 ** Windows
 
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.

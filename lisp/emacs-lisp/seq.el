@@ -492,6 +492,7 @@ keys.  Keys are compared using `equal'."
 SEQUENCE must be a sequence of numbers or markers."
   (apply #'min (seq-into sequence 'list)))
 
+;;;###autoload
 (cl-defgeneric seq-max (sequence)
   "Return the largest element of SEQUENCE.
 SEQUENCE must be a sequence of numbers or markers."
