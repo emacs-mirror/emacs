@@ -1544,7 +1544,7 @@ This means reset VARIABLE.  (The argument IGNORED is ignored)."
 (defun custom-add-choice (variable choice)
   "Add CHOICE to the custom type of VARIABLE.
 If a choice with the same tag already exists, no action is taken."
-  (let ((choices (get 'tab-bar-new-tab-choice 'custom-type)))
+  (let ((choices (get variable 'custom-type)))
     (unless (eq (car choices) 'choice)
       (error "Not a choice type: %s" choices))
     (unless (seq-find (lambda (elem)
@@ -1553,7 +1553,7 @@ If a choice with the same tag already exists, no action is taken."
                       (cdr choices))
       ;; Put the new choice at the end.
       (put variable 'custom-type
-           (append (get variable 'custom-type) (list choice))))))
+           (append choices (list choice))))))
 
 ;;; The End.
 
