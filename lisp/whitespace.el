@@ -594,7 +594,7 @@ line.  Used when `whitespace-style' includes the value `indentation'.")
 
 (defface whitespace-missing-newline-at-eof
   '((((class mono)) :inverse-video t :weight bold :underline t)
-    (t :background "red" :foreground "firebrick"))
+    (t :background "#d0d040" :foreground "black"))
   "Face used to visualize missing newline at the end of the file.")
 
 (defvar whitespace-empty 'whitespace-empty
@@ -2137,7 +2137,13 @@ resultant list will be returned."
               1 whitespace-space-after-tab t)))
        ,@(when (memq 'missing-newline-at-eof whitespace-active-style)
            ;; Show missing newline.
-           `(("[^\n]\\'" 0 'whitespace-missing-newline-at-eof t)))))
+           `(("[^\n]\\'" 0
+              ;; Don't mark the end of the buffer is point is there --
+              ;; it probably means that the user is typing something
+              ;; at the end of the buffer.
+              (and (/= whitespace-point (point-max))
+                   'whitespace-missing-newline-at-eof)
+              t)))))
     (font-lock-add-keywords nil whitespace-font-lock-keywords t)
     (font-lock-flush)))
 
