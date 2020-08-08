@@ -297,6 +297,7 @@ The value of this variable is checked as part of loading Outline mode.
 After that, changing the prefix key requires manipulating keymaps."
   :type 'key-sequence
   :group 'outlines
+  :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (define-key outline-minor-mode-map outline-minor-mode-prefix nil)
          (define-key outline-minor-mode-map val outline-mode-prefix-map)
