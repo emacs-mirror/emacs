@@ -782,6 +782,11 @@ have now been removed.
 
 * Lisp Changes in Emacs 28.1
 
+---
+** New function 'custom-add-choice'.
+This function can be used by modes to add elements to the
+'choice' customization type of a variable.
+
 +++
 ** New function 'file-modes-number-to-symbolic' to convert a numeric
 file mode specification into symbolic form.
