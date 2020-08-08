@@ -53,6 +53,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_block_end_with_return
 #undef gcc_jit_block_end_with_void_return
 #undef gcc_jit_context_acquire
+#undef gcc_jit_context_add_driver_option
 #undef gcc_jit_context_compile_to_file
 #undef gcc_jit_context_dump_reproducer_to_file
 #undef gcc_jit_context_dump_to_file
@@ -118,6 +119,8 @@ DEF_DLL_FN (const char *, gcc_jit_context_get_first_error,
 DEF_DLL_FN (gcc_jit_block *, gcc_jit_function_new_block,
             (gcc_jit_function *func, const char *name));
 DEF_DLL_FN (gcc_jit_context *, gcc_jit_context_acquire, (void));
+DEF_DLL_FN (void, gcc_jit_context_add_driver_option,
+            (gcc_jit_context *ctxt, const char *optname));
 DEF_DLL_FN (gcc_jit_field *, gcc_jit_context_new_field,
             (gcc_jit_context *ctxt, gcc_jit_location *loc, gcc_jit_type *type,
              const char *name));
@@ -255,6 +258,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_block_end_with_return);
   LOAD_DLL_FN (library, gcc_jit_block_end_with_void_return);
   LOAD_DLL_FN (library, gcc_jit_context_acquire);
+  LOAD_DLL_FN (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN (library, gcc_jit_context_compile_to_file);
   LOAD_DLL_FN (library, gcc_jit_context_dump_reproducer_to_file);
   LOAD_DLL_FN (library, gcc_jit_context_dump_to_file);
@@ -316,6 +320,7 @@ init_gccjit_functions (void)
 #define gcc_jit_block_end_with_return fn_gcc_jit_block_end_with_return
 #define gcc_jit_block_end_with_void_return fn_gcc_jit_block_end_with_void_return
 #define gcc_jit_context_acquire fn_gcc_jit_context_acquire
+#define gcc_jit_context_add_driver_option fn_gcc_jit_context_add_driver_option
 #define gcc_jit_context_compile_to_file fn_gcc_jit_context_compile_to_file
 #define gcc_jit_context_dump_reproducer_to_file fn_gcc_jit_context_dump_reproducer_to_file
 #define gcc_jit_context_dump_to_file fn_gcc_jit_context_dump_to_file
@@ -4029,6 +4034,26 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
 }
 
 static void
+add_driver_options ()
+{
+  Lisp_Object options = Fsymbol_value (Qcomp_native_driver_options);
+
+#ifdef LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option
+  while (CONSP (options))
+    {
+      gcc_jit_context_add_driver_option (comp.ctxt, SSDATA (XCAR (options)));
+      options = XCDR (options);
+    }
+#else
+  if (CONSP (options))
+    {
+      xsignal1 (Qnative_compiler_error,
+                build_string ("Customizing native compiler options via `comp-native-driver-options' is only available on libgccjit version 9 and above."));
+    }
+#endif
+}
+
+static void
 restore_sigmask (void)
 {
   pthread_sigmask (SIG_SETMASK, &saved_sigset, 0);
@@ -4095,6 +4120,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
      relocation structs has to be already defined.  */
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     compile_function (HASH_VALUE (func_h, i));
+
+  add_driver_options ();
 
   if (COMP_DEBUG)
       gcc_jit_context_dump_to_file (comp.ctxt,
@@ -4872,6 +4899,7 @@ syms_of_comp (void)
 	       doc: /* If t compile asyncronously every .elc file loaded.  */);
   DEFSYM (Qcomp_speed, "comp-speed");
   DEFSYM (Qcomp_debug, "comp-debug");
+  DEFSYM (Qcomp_native_driver_options, "comp-native-driver-options");
 
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
