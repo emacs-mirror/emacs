@@ -2737,6 +2737,64 @@ systematically send encrypted emails when possible."
   (when (message-all-epg-keys-available-p)
     (mml-secure-message-sign-encrypt)))
 
+(defcustom message-openpgp-header nil
+  "Specification for \"OpenPGP\" header.
+
+Otherwise, the variable must be a
+list with three elements, all strings:
+- Key ID, in hexadecimal form
+- Key URL or ASCII armoured key.
+- Protection preference, one of: \"unprotected\", \"sign\",
+  \"encrypt\" or \"signencrypt\".
+
+Each value may be nil, in which case it won't be inserted. If all
+the values are nil, or `message-openpgp-header' is nil itself,
+don't insert any header."
+  :type '(choice
+	  (const nil :tag "Don't add OpenPGP header")
+	  (list (choice (string :tag "ID")
+			(const nil :tag "No ID"))
+		(choice (string :tag "Key")
+			(const nil :tag "No Key"))
+		(choice (other nil :tag "None")
+			(const "unprotected" :tag "Unprotected")
+			(const "sign" :tag "Sign")
+			(const "encrypt" :tag "Encrypt")
+			(const "signencrypt" :tag "Sign and Encrypt"))))
+  :version "28.1")
+
+(defun messasge-add-openpgp-header ()
+  "Add OpenPGP header to point to public key.
+
+Header will be constructed as specified in `message-openpgp-header'.
+
+Consider adding this function to `message-send-hook'."
+  ;; See https://tools.ietf.org/html/draft-josefsson-openpgp-mailnews-header
+  (when (and message-openpgp-header
+	     (or (nth 0 message-openpgp-header)
+		 (nth 1 message-openpgp-header)
+		 (nth 2 message-openpgp-header)))
+    (with-temp-buffer
+      (insert "OpenPGP: ")
+      ;; add ID
+      (let (need-sep)
+	(when (nth 0 message-openpgp-header)
+	  (insert "id=" (nth 0 message-openpgp-header))
+	  (setq need-sep t))
+	;; add URL
+	(when (nth 1 message-openpgp-header)
+	  (when need-sep (insert "; "))
+	  (if (string-match-p ";")
+	      (insert "url=\"" (nth 1 message-openpgp-header) "\"")
+	    (insert "url=\"" (nth 1 message-openpgp-header) "\""))
+	  (setq need-sep t))
+	;; add preference
+	(when (nth 2 message-openpgp-header)
+	  (when need-sep (insert "; "))
+	  (insert "preference=" (nth 2 message-openpgp-header))))
+      ;; insert header
+      (message-add-header (buffer-string)))))
+
 
 
 ;;;
