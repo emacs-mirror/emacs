@@ -77,9 +77,9 @@ but will never be narrower than 19 characters."
        ;; This gives 19 on an 80 column window, and take up
        ;; proportionally more space as the window widens.
        (min (truncate (/ (window-width) 4.2))
-            (seq-max (mapcar (lambda (b)
-                               (length (buffer-name b)))
-                             buffers)))))
+            (apply #'max 0 (mapcar (lambda (b)
+                                     (length (buffer-name b)))
+                                   buffers)))))
 
 (defcustom Buffer-menu-name-width #'Buffer-menu--dynamic-name-width
   "Width of buffer name column in the Buffer Menu.
