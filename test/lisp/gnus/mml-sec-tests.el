@@ -623,6 +623,7 @@ In this test, encrypt-to-self variables are set to lists."
 (ert-deftest mml-secure-en-decrypt-sign-1-1-single ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
+  :tags '(:unstable)
   (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
