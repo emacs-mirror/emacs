@@ -220,7 +220,8 @@ in the *Help* buffer."
 
 @group
     ;; @r{Display the data.}
-    (help-setup-xref (list 'describe-symbols pattern) (interactive-p))
+    (help-setup-xref (list 'describe-symbols pattern)
+                 (called-interactively-p 'interactive))
     (with-help-window (help-buffer)
       (mapcar describe-func (sort sym-list 'string<)))))
 @end group

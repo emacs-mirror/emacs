@@ -1229,7 +1229,7 @@ purpose by adding an entry to this alist, and setting
   "Wrap the FORMS of a definition body."
   (if edebug-def-interactive
       `(let ((,(edebug-interactive-p-name)
-	      (interactive-p)))
+	      (called-interactively-p 'interactive)))
 	 ,(edebug-make-enter-wrapper forms))
     (edebug-make-enter-wrapper forms)))
 

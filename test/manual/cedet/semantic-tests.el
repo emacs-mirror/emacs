@@ -235,7 +235,7 @@ Analyze the area between BEG and END."
       (set-buffer buff)
       (semantic-lex-spp-write-test)
       (kill-buffer buff)
-      (when (not (interactive-p))
+      (when (not (called-interactively-p 'interactive))
         (kill-buffer "*SPP Write Test*"))
       )))
 
@@ -276,7 +276,7 @@ tag that contains point, and return that."
        target (lambda (start end prefix) (setq Lcount (1+ Lcount)))
        (semantic-tag-start tag)
        (semantic-tag-end tag))
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(message "Found %d occurrences of %s in %.2f seconds"
 		 Lcount (semantic-tag-name target)
 		 (semantic-elapsed-time start nil)))
