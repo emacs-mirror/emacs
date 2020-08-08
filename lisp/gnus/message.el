@@ -2763,7 +2763,7 @@ will not be inserted."
 			(const "signencrypt" :tag "Sign and Encrypt"))))
   :version "28.1")
 
-(defun messasge-add-openpgp-header ()
+(defun message-add-openpgp-header ()
   "Add OpenPGP header to point to public key.
 
 Header will be constructed as specified in `message-openpgp-header'.

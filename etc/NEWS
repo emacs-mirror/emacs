@@ -249,7 +249,7 @@ not.
 +++
 *** Message now supports the OpenPGP header.
 To generate these headers, add the new function
-'messasge-add-openpgp-header' to 'message-send-hook'.  The header will
+'message-add-openpgp-header' to 'message-send-hook'.  The header will
 be generated according to the new 'message-openpgp-header' variable.
 
 ---
