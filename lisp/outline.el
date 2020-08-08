@@ -295,7 +295,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   "Prefix key to use for Outline commands in Outline minor mode.
 The value of this variable is checked as part of loading Outline mode.
 After that, changing the prefix key requires manipulating keymaps."
-  :type 'string
+  :type 'key-sequence
   :group 'outlines
   :set (lambda (sym val)
          (define-key outline-minor-mode-map outline-minor-mode-prefix nil)
