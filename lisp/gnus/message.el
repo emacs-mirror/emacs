@@ -2738,18 +2738,18 @@ systematically send encrypted emails when possible."
     (mml-secure-message-sign-encrypt)))
 
 (defcustom message-openpgp-header nil
-  "Specification for \"OpenPGP\" header.
+  "Specification for the \"OpenPGP\" header of outgoing messages.
 
-Otherwise, the variable must be a
-list with three elements, all strings:
-- Key ID, in hexadecimal form
-- Key URL or ASCII armoured key.
+The value must be a list of three elements, all strings:
+- Key ID, in hexadecimal form;
+- Key URL or ASCII armoured key; and
 - Protection preference, one of: \"unprotected\", \"sign\",
   \"encrypt\" or \"signencrypt\".
 
-Each value may be nil, in which case it won't be inserted. If all
-the values are nil, or `message-openpgp-header' is nil itself,
-don't insert any header."
+Each of the elements may be nil, in which case its part in the
+OpenPGP header will be left out.  If all the values are nil,
+or `message-openpgp-header' is itself nil, the OpenPGP header
+will not be inserted."
   :type '(choice
 	  (const nil :tag "Don't add OpenPGP header")
 	  (list (choice (string :tag "ID")

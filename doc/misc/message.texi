@@ -1256,7 +1256,7 @@ according to two different standards, namely @acronym{PGP} or
 @subsection OpenPGP Header
 
 The @samp{OpenPGP} header can be used to provide information about the
-sender's OpenPGP key.  This is a formalisation and modernisation of
+sender's OpenPGP key.  This is a formalization and modernization of
 the non-standard @samp{X-PGP-Key} (etc.) headers that have been in use
 for a long time.  For more details, see
 @uref{https://tools.ietf.org/html/draft-josefsson-openpgp-mailnews-header}.
@@ -1268,9 +1268,10 @@ To use this in Message, say:
 (add-hook 'message-send-hook 'messasge-add-openpgp-header)
 @end lisp
 
-Then customize the @code{message-openpgp-header} variable according to
+@noindent
+then customize the @code{message-openpgp-header} variable according to
 your PGP setup.  The variable is a list of the key ID, the key URL or
-ASCII armoured, and the protection preference, one of
+ASCII armored key, and the protection preference, one of
 @samp{"unprotected"}, @samp{"sign"}, @samp{"encrypt"} or
 @samp{"signencrypt"}.
 
