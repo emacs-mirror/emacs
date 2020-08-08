@@ -138,6 +138,10 @@ The width now depends of the width of the window, but will never be
 wider than the length of the longest buffer name, except that it will
 never be narrower than 19 characters.
 
+*** Bookmarks can now be targets for new tabs.
+When the 'bookmark.el' library is loaded, a customize choice is added
+to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
+
 ** Windows
 
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.

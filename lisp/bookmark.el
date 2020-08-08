@@ -1667,6 +1667,19 @@ Don't affect the buffer ring order."
 
 
 ;;;###autoload
+(defun bookmark-bmenu-get-buffer ()
+  "Return the Bookmark List, building it if it doesn't exists.
+Don't affect the buffer ring order."
+  (or (get-buffer bookmark-bmenu-buffer)
+      (save-excursion
+	(save-window-excursion
+	  (bookmark-bmenu-list)
+	  (get-buffer bookmark-bmenu-buffer)))))
+
+(custom-add-choice 'tab-bar-new-tab-choice
+                   '(const :tag "Bookmark List" bookmark-bmenu-get-buffer))
+
+;;;###autoload
 (defun bookmark-bmenu-list ()
   "Display a list of existing bookmarks.
 The list is displayed in a buffer named `*Bookmark List*'.
