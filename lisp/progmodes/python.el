@@ -1070,11 +1070,18 @@ possibilities can be narrowed to specific indentation points."
         (`(:no-indent . ,_) (prog-first-column)) ; usually 0
         (`(,(or :after-line
                 :after-comment
-                :inside-string
                 :after-backslash) . ,start)
          ;; Copy previous indentation.
          (goto-char start)
          (current-indentation))
+        (`(,(or :inside-string
+                :inside-docstring) . ,start)
+         ;; Copy previous indentation inside string
+         (let ((prev (progn (forward-line -1)
+                            (current-indentation)))
+               (base (progn (goto-char start)
+                            (current-column))))
+           (sort (delete-dups (list 0 prev base)) #'<)))
         (`(,(or :inside-paren-at-closing-paren
                 :inside-paren-at-closing-nested-paren) . ,start)
          (goto-char (+ 1 start))
@@ -1083,12 +1090,6 @@ possibilities can be narrowed to specific indentation points."
              (current-indentation)
            ;; Align with opening paren.
            (current-column)))
-        (`(:inside-docstring . ,start)
-         (let* ((line-indentation (current-indentation))
-                (base-indent (progn
-                               (goto-char start)
-                               (current-indentation))))
-           (max line-indentation base-indent)))
         (`(,(or :after-block-start
                 :after-backslash-first-line
                 :after-backslash-assignment-continuation
