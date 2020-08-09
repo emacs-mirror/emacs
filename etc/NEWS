@@ -604,6 +604,12 @@ mode buffer.
 ** EWW
 
 +++
+*** New Emacs command line convenience function.
+The 'eww-browse' command has been added, which allows you to register
+Emacs as a MIME handler for "text/x-uri", and will call eww on the
+supplied URL.  Usage example: emacs -f eww-browse https://gnu.org
+
++++
 *** 'eww-download-directory' will now use the XDG location, if defined.
 However, if "~/Downloads/" already exists, that will continue to be
 used.

@@ -277,6 +277,24 @@ This list can be customized via `eww-suggest-uris'."
     (nreverse uris)))
 
 ;;;###autoload
+(defun eww-browse ()
+  "Function to be run to parse command line URLs.
+This is meant to be used for MIME handlers or command line use.
+
+Setting the handler for \"text/x-uri;\" to
+\"emacs -f eww-browse %u\" will then start up Emacs and call eww
+to browse the url.
+
+This can also be used on the command line directly:
+
+ emacs -f eww-browse https://gnu.org
+
+will start Emacs and browse the GNU web site."
+  (interactive)
+  (eww (pop command-line-args-left)))
+
+
+;;;###autoload
 (defun eww (url &optional arg buffer)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
