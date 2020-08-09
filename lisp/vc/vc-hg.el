@@ -186,6 +186,16 @@ highlighting the Log View buffer."
   :group 'vc-hg
   :version "24.5")
 
+(defcustom vc-hg-create-bookmark t
+  "This controls whether `vc-create-tag' will create a bookmark or branch.
+If nil, named branch will be created.
+If t, bookmark will be created.
+If `ask', you will be prompted for a branch type."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Ask" ask))
+  :version "28.1")
+
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -625,10 +635,18 @@ Optional arg REVISION is a revision to annotate from."
 ;;; Tag system
 
 (defun vc-hg-create-tag (dir name branchp)
-  "Attach the tag NAME to the state of the working copy."
+  "Create tag NAME in repo in DIR.  Create branch if BRANCHP.
+Variable `vc-hg-create-bookmark' controls what kind of branch will be created."
   (let ((default-directory dir))
-    (and (vc-hg-command nil 0 nil "status")
-         (vc-hg-command nil 0 nil (if branchp "bookmark" "tag") name))))
+    (vc-hg-command nil 0 nil
+                   (if branchp
+                       (if (if (eq vc-hg-create-bookmark 'ask)
+                               (yes-or-no-p "Create bookmark instead of branch? ")
+                             vc-hg-create-bookmark)
+                           "bookmark"
+                         "branch")
+                     "tag")
+                   name)))
 
 (defun vc-hg-retrieve-tag (dir name _update)
   "Retrieve the version tagged by NAME of all registered files at or below DIR."

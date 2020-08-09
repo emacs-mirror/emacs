@@ -232,6 +232,10 @@ their 'default-directory' under VC.
 *** Support for bookmark.el.
 Bookmark locations can refer to VC directory buffers.
 
+---
+*** New user option 'vc-hg-create-bookmark' controls whether a bookmark
+or branch will be created when you invoke 'C-u C-x v s' ('vc-create-tag').
+
 ** Gnus
 
 ---
