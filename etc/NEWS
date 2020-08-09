@@ -236,6 +236,11 @@ Bookmark locations can refer to VC directory buffers.
 *** New user option 'vc-hg-create-bookmark' controls whether a bookmark
 or branch will be created when you invoke 'C-u C-x v s' ('vc-create-tag').
 
+---
+*** 'vc-hg' now uses 'hg summary' command to populate extra 'vc-dir'
+headers.
+
+
 ** Gnus
 
 ---

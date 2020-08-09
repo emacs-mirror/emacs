@@ -1384,25 +1384,28 @@ REV is the revision to check out into WORKFILE."
   (vc-run-delayed
     (vc-hg-after-dir-status update-function)))
 
-(defun vc-hg-dir-extra-header (name &rest commands)
-  (concat (propertize name 'face 'font-lock-type-face)
-          (propertize
-           (with-temp-buffer
-             (apply 'vc-hg-command (current-buffer) 0 nil commands)
-             (buffer-substring-no-properties (point-min) (1- (point-max))))
-           'face 'font-lock-variable-name-face)))
-
 (defun vc-hg-dir-extra-headers (dir)
-  "Generate extra status headers for a Mercurial tree."
+  "Generate extra status headers for a repository in DIR.
+This runs the command \"hg summary\"."
   (let ((default-directory dir))
-    (concat
-     (vc-hg-dir-extra-header "Root       : " "root") "\n"
-     (vc-hg-dir-extra-header "Branch     : " "id" "-b") "\n"
-     (vc-hg-dir-extra-header "Tags       : " "id" "-t") ; "\n"
-     ;; these change after each commit
-     ;; (vc-hg-dir-extra-header "Local num  : " "id" "-n") "\n"
-     ;; (vc-hg-dir-extra-header "Global id  : " "id" "-i")
-     )))
+    (with-temp-buffer
+      (vc-hg-command t 0 nil "summary")
+      (goto-char (point-min))
+      (mapconcat
+       #'identity
+       (let (result)
+         (while (not (eobp))
+           (push
+            (let ((entry (if (looking-at "\\([^ ].*\\): \\(.*\\)")
+                             (cons (capitalize (match-string 1)) (match-string 2))
+                           (cons "" (buffer-substring (point) (line-end-position))))))
+              (concat
+               (propertize (format "%-11s: " (car entry)) 'face 'font-lock-type-face)
+               (propertize (cdr entry) 'face 'font-lock-variable-name-face)))
+            result)
+           (forward-line))
+         (nreverse result))
+       "\n"))))
 
 (defun vc-hg-log-incoming (buffer remote-location)
   (vc-setup-buffer buffer)
