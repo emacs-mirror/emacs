@@ -194,6 +194,13 @@ The presence of a space between an open paren and a symbol now is
 taken as a statement by the programmer that this should be indented
 as a data list rather than as a piece of code.
 
+** Calendar
+
+*** New variable 'calendar-use-numeric-time-zones' to use numeric time zones.
+If non-nil, functions that display time zones (like the 'S' command in
+calendar mode that displays the sunrise time) will display time zones
+like "+0100" instead of "CET".
+
 ** Dired
 
 *** New user option 'dired-mark-region' affects all Dired commands

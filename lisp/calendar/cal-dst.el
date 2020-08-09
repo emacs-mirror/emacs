@@ -350,17 +350,29 @@ If the locale never uses daylight saving time, set this to 0."
   :group 'calendar-dst)
 
 (defcustom calendar-standard-time-zone-name
-  (or (nth 2 calendar-current-time-zone-cache) "EST")
+  (if calendar-use-numeric-time-zones
+      (if calendar-current-time-zone-cache
+          (format-time-string
+           "%z" 0 (* 60 (car calendar-current-time-zone-cache)))
+        "+0000")
+    (or (nth 2 calendar-current-time-zone-cache) "EST"))
   "Abbreviated name of standard time zone at `calendar-location-name'.
 For example, \"EST\" in New York City, \"PST\" for Los Angeles."
   :type 'string
+  :version "28.1"
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-time-zone-name
-  (or (nth 3 calendar-current-time-zone-cache) "EDT")
+  (if calendar-use-numeric-time-zones
+      (if calendar-current-time-zone-cache
+          (format-time-string
+           "%z" 0 (* 60 (cadr calendar-current-time-zone-cache)))
+        "+0000")
+    (or (nth 3 calendar-current-time-zone-cache) "EDT"))
   "Abbreviated name of daylight saving time zone at `calendar-location-name'.
 For example, \"EDT\" in New York City, \"PDT\" for Los Angeles."
   :type 'string
+  :version "28.1"
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-savings-starts-time
