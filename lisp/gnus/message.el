@@ -8817,8 +8817,7 @@ will then start up Emacs ready to compose mail."
   (interactive)
   ;; <a href="mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body">Send email</a>
   (message-mail)
-  (message-mailto-1 (car command-line-args-left))
-  (setq command-line-args-left (cdr command-line-args-left)))
+  (message-mailto-1 (pop command-line-args-left)))
 
 (defun message-mailto-1 (url)
   (let ((args (message-parse-mailto-url url)))
