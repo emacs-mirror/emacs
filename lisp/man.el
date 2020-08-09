@@ -836,7 +836,8 @@ POS defaults to `point'."
 ;; ======================================================================
 ;; Top level command and background process sentinel
 
-;; For compatibility with older versions.
+;; This alias was originally for compatibility with older versions.
+;; Some users got used to having it, so we will not remove it.
 ;;;###autoload
 (defalias 'manual-entry 'man)
 
