@@ -918,29 +918,56 @@ values.  It is much better to convert such comments to documentation
 strings, though.
 
 @item ;;;
-Comments that start with three semicolons, @samp{;;;}, should start at
-the left margin.  We use them
-for comments which should be considered a
-heading by Outline minor mode.  By default, comments starting with
-at least three semicolons (followed by a single space and a
-non-whitespace character) are considered headings, comments starting
-with two or fewer are not.  Historically, triple-semicolon comments have
-also been used for commenting out lines within a function, but this use
-is discouraged.
 
-When commenting out entire functions, use two semicolons.
+Comments that start with three (or more) semicolons, @samp{;;;},
+should start at the left margin.  We use them for comments that should
+be considered a heading by Outline minor mode.  By default, comments
+starting with at least three semicolons (followed by a single space
+and a non-whitespace character) are considered section headings,
+comments starting with two or fewer are not.
 
-@item ;;;;
-Comments that start with four (or more) semicolons, @samp{;;;;},
-should be aligned to the left margin and are used for headings of
-major sections of a program.  For example:
+(Historically, triple-semicolon comments have also been used for
+commenting out lines within a function, but this use is discouraged in
+favor of using just two semicolons.  This also applies when commenting
+out entire functions; when doing that use two semicolons as well.)
+
+Three semicolons are used for top-level sections, four for
+sub-sections, five for sub-sub-sections and so on.
+
+Typically libraries have at least four top-level sections.  For
+example when the bodies of all of these sections are hidden:
 
 @smallexample
-;;;; The kill ring
+@group
+;;; backquote.el --- implement the ` Lisp construct...
+;;; Commentary:...
+;;; Code:...
+;;; backquote.el ends here
+@end group
 @end smallexample
 
-If you wish to have sub-headings under these heading, use more
-semicolons to nest these sub-headings.
+(In a sense the last line is not a section heading as it must
+never be followed by any text; after all it marks the end of the
+file.)
+
+For longer libraries it is advisable to split the code into multiple
+sections.  This can be done by splitting the @samp{Code:} section into
+multiple sub-sections.  Even though that was the only recommended
+approach for a long time, many people have chosen to use multiple
+top-level code sections instead.  You may chose either style.
+
+Using multiple top-level code sections has the advanatage that it
+avoids introducing an additional nesting level but it also means that
+the section named @samp{Code} does not contain all the code, which is
+awkward.  To avoid that, you should put no code at all inside that
+section; that way it can be considered a seperator instead of a
+section heading.
+
+Finally, we recommend that you don't end headings with a colon or any
+other punctuation for that matter.  For historic reasons the
+@samp{Code:} and @samp{Commentary:} headings end with a colon, but we
+recommend that you don't do the same for other headings anyway.
+
 @end table
 
 @noindent
