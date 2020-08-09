@@ -34,23 +34,20 @@
   :group 'mode-line
   :group 'mail)
 
-
 (defcustom display-time-mail-file nil
   "File name of mail inbox file, for indicating existence of new mail.
 Non-nil and not a string means don't check for mail; nil means use
 default, which is system-dependent, and is the same as used by Rmail."
   :type '(choice (const :tag "None" none)
 		 (const :tag "Default" nil)
-		 (file :format "%v"))
-  :group 'display-time)
+		 (file :format "%v")))
 
 (defcustom display-time-mail-directory nil
   "Name of mail inbox directory, for indicating existence of new mail.
 Any nonempty regular file in the directory is regarded as newly arrived mail.
 If nil, do not check a directory for arriving mail."
   :type '(choice (const :tag "None" nil)
-		 (directory :format "%v"))
-  :group 'display-time)
+		 (directory :format "%v")))
 
 (defcustom display-time-mail-function nil
   "Function to call, for indicating existence of new mail.
@@ -58,8 +55,7 @@ If nil, that means use the default method: check that the file
 specified by `display-time-mail-file' is nonempty or that the
 directory `display-time-mail-directory' contains nonempty files."
   :type '(choice (const :tag "Default" nil)
-		 (function))
-  :group 'display-time)
+		 (function)))
 
 (defcustom display-time-default-load-average 0
   "Which load average value will be shown in the mode line.
@@ -74,8 +70,7 @@ The value can be one of:
   :type '(choice (const :tag "1 minute load" 0)
 		 (const :tag "5 minutes load" 1)
 		 (const :tag "15 minutes load" 2)
-		 (const :tag "None" nil))
-  :group 'display-time)
+		 (const :tag "None" nil)))
 
 (defvar display-time-load-average nil
   "Value of the system's load average currently shown on the mode line.
@@ -85,27 +80,23 @@ This is an internal variable; setting it has no effect.")
 
 (defcustom display-time-load-average-threshold 0.1
   "Load-average values below this value won't be shown in the mode line."
-  :type 'number
-  :group 'display-time)
+  :type 'number)
 
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
 Non-nil means \\[display-time] should display day and date as well as time."
-  :type 'boolean
-  :group 'display-time)
+  :type 'boolean)
 
 (defvar display-time-timer nil)
 
 (defcustom display-time-interval 60
   "Seconds between updates of time in the mode line."
-  :type 'integer
-  :group 'display-time)
+  :type 'integer)
 
 (defcustom display-time-24hr-format nil
   "Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
 A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
-  :type 'boolean
-  :group 'display-time)
+  :type 'boolean)
 
 (defvar display-time-string nil
   "String used in mode lines to display a time string.
@@ -115,105 +106,11 @@ It should not be set directly, but is instead updated by the
 
 (defcustom display-time-hook nil
   "List of functions to be called when the time is updated on the mode line."
-  :type 'hook
-  :group 'display-time)
+  :type 'hook)
 
 (defvar display-time-server-down-time nil
    "Time when mail file's file system was recorded to be down.
 If that file system seems to be up, the value is nil.")
-
-(defgroup world-clock nil
-  "Display a world clock."
-  :group 'display-time)
-
-(defcustom zoneinfo-style-world-list
-  '(("America/Los_Angeles" "Seattle")
-    ("America/New_York" "New York")
-    ("Europe/London" "London")
-    ("Europe/Paris" "Paris")
-    ("Asia/Calcutta" "Bangalore")
-    ("Asia/Tokyo" "Tokyo"))
-  "Alist of zoneinfo-style time zones and places for `world-clock'.
-Each element has the form (TIMEZONE LABEL).
-TIMEZONE should be a string of the form AREA/LOCATION, where AREA is
-the name of a region -- a continent or ocean, and LOCATION is the name
-of a specific location, e.g., a city, within that region.
-LABEL is a string to display as the label of that TIMEZONE's time."
-  :group 'world-clock
-  :type '(repeat (list string string))
-  :version "23.1")
-
-(defcustom legacy-style-world-list
-  '(("PST8PDT" "Seattle")
-    ("EST5EDT" "New York")
-    ("GMT0BST" "London")
-    ("CET-1CDT" "Paris")
-    ("IST-5:30" "Bangalore")
-    ("JST-9" "Tokyo"))
-  "Alist of traditional-style time zones and places for `world-clock'.
-Each element has the form (TIMEZONE LABEL).
-TIMEZONE should be a string of the form:
-
-     std[+|-]offset[dst[offset][,date[/time],date[/time]]]
-
-See the documentation of the TZ environment variable on your system,
-for more details about the format of TIMEZONE.
-LABEL is a string to display as the label of that TIMEZONE's time."
-  :group 'world-clock
-  :type '(repeat (list string string))
-  :version "23.1")
-
-(defcustom world-clock-list t
-  "Alist of time zones and places for `world-clock' to display.
-Each element has the form (TIMEZONE LABEL).
-TIMEZONE should be in a format supported by your system.  See the
-documentation of `zoneinfo-style-world-list' and
-`legacy-style-world-list' for two widely used formats.  LABEL is
-a string to display as the label of that TIMEZONE's time.
-
-If the value is t instead of an alist, use the value of
-`zoneinfo-style-world-list' if it works on this platform, and of
-`legacy-style-world-list' otherwise."
-  :group 'world-clock
-  :type '(choice (const :tag "Default" t)
-                 (repeat :tag "List of zones and labels"
-                         (list (string :tag "Zone") (string :tag "Label"))))
-  :version "28.1")
-
-(defun time--display-world-list ()
-  (if (listp world-clock-list)
-      world-clock-list
-    ;; Determine if zoneinfo style timezones are supported by testing that
-    ;; America/New York and Europe/London return different timezones.
-    (let ((nyt (format-time-string "%z" nil "America/New_York"))
-	  (gmt (format-time-string "%z" nil "Europe/London")))
-      (if (string-equal nyt gmt)
-	  legacy-style-world-list
-	zoneinfo-style-world-list))))
-
-(defcustom world-clock-time-format "%A %d %B %R %Z"
-  "Time format for `world-clock', see `format-time-string'."
-  :group 'world-clock
-  :type 'string
-  :version "28.1")
-
-(defcustom world-clock-buffer-name "*wclock*"
-  "Name of the `world-clock' buffer."
-  :group 'world-clock
-  :type 'string
-  :version "28.1")
-
-(defcustom world-clock-timer-enable t
-  "If non-nil, a timer will update the `world-clock' buffer."
-  :group 'world-clock
-  :type 'boolean
-  :version "28.1")
-
-(defcustom world-clock-timer-second 60
-  "Interval in seconds for updating the `world-clock' buffer."
-  :group 'world-clock
-  :type 'integer
-  :version "28.1")
 
 ;;;###autoload
 (defun display-time ()
@@ -251,14 +148,12 @@ See `display-time-use-mail-icon' and `display-time-mail-face'.")
   "Non-nil means use an icon as mail indicator on a graphic display.
 Otherwise use `display-time-mail-string'.  The icon may consume less
 of the mode line.  It is specified by `display-time-mail-icon'."
-  :group 'display-time
   :type 'boolean)
 
 ;; Fixme: maybe default to the character if we can display Unicode.
 (defcustom display-time-mail-string "Mail"
   "String to use as the mail indicator in `display-time-string-forms'.
 This can use the Unicode letter character if you can display it."
-  :group 'display-time
   :version "22.1"
   :type '(choice (const "Mail")
 		 ;; Use :tag here because the Lucid menu won't display
@@ -272,8 +167,7 @@ See the function `format-time-string' for an explanation of
 how to write this string.  If this is nil, the defaults
 depend on `display-time-day-and-date' and `display-time-24hr-format'."
   :type '(choice (const :tag "Default" nil)
-		 string)
-  :group 'display-time)
+		 string))
 
 (defcustom display-time-string-forms
   '((if (and (not display-time-format) display-time-day-and-date)
@@ -327,8 +221,7 @@ For example:
     (if mail \" Mail\" \"\"))
 
 would give mode line times like `94/12/30 21:07:48 (UTC)'."
-  :type '(repeat sexp)
-  :group 'display-time)
+  :type '(repeat sexp))
 
 (defun display-time-event-handler ()
   (display-time-update)
@@ -535,6 +428,92 @@ runs the normal hook `display-time-hook' after each update."
 
 
 ;;; World clock
+
+(defgroup world-clock nil
+  "Display a world clock."
+  :group 'display-time)
+
+(defcustom zoneinfo-style-world-list
+  '(("America/Los_Angeles" "Seattle")
+    ("America/New_York" "New York")
+    ("Europe/London" "London")
+    ("Europe/Paris" "Paris")
+    ("Asia/Calcutta" "Bangalore")
+    ("Asia/Tokyo" "Tokyo"))
+  "Alist of zoneinfo-style time zones and places for `world-clock'.
+Each element has the form (TIMEZONE LABEL).
+TIMEZONE should be a string of the form AREA/LOCATION, where AREA is
+the name of a region -- a continent or ocean, and LOCATION is the name
+of a specific location, e.g., a city, within that region.
+LABEL is a string to display as the label of that TIMEZONE's time."
+  :type '(repeat (list string string))
+  :version "23.1")
+
+(defcustom legacy-style-world-list
+  '(("PST8PDT" "Seattle")
+    ("EST5EDT" "New York")
+    ("GMT0BST" "London")
+    ("CET-1CDT" "Paris")
+    ("IST-5:30" "Bangalore")
+    ("JST-9" "Tokyo"))
+  "Alist of traditional-style time zones and places for `world-clock'.
+Each element has the form (TIMEZONE LABEL).
+TIMEZONE should be a string of the form:
+
+     std[+|-]offset[dst[offset][,date[/time],date[/time]]]
+
+See the documentation of the TZ environment variable on your system,
+for more details about the format of TIMEZONE.
+LABEL is a string to display as the label of that TIMEZONE's time."
+  :type '(repeat (list string string))
+  :version "23.1")
+
+(defcustom world-clock-list t
+  "Alist of time zones and places for `world-clock' to display.
+Each element has the form (TIMEZONE LABEL).
+TIMEZONE should be in a format supported by your system.  See the
+documentation of `zoneinfo-style-world-list' and
+`legacy-style-world-list' for two widely used formats.  LABEL is
+a string to display as the label of that TIMEZONE's time.
+
+If the value is t instead of an alist, use the value of
+`zoneinfo-style-world-list' if it works on this platform, and of
+`legacy-style-world-list' otherwise."
+  :type '(choice (const :tag "Default" t)
+                 (repeat :tag "List of zones and labels"
+                         (list (string :tag "Zone") (string :tag "Label"))))
+  :version "28.1")
+
+(defun time--display-world-list ()
+  (if (listp world-clock-list)
+      world-clock-list
+    ;; Determine if zoneinfo style timezones are supported by testing that
+    ;; America/New York and Europe/London return different timezones.
+    (let ((nyt (format-time-string "%z" nil "America/New_York"))
+	  (gmt (format-time-string "%z" nil "Europe/London")))
+      (if (string-equal nyt gmt)
+	  legacy-style-world-list
+	zoneinfo-style-world-list))))
+
+(defcustom world-clock-time-format "%A %d %B %R %Z"
+  "Time format for `world-clock', see `format-time-string'."
+  :type 'string
+  :version "28.1")
+
+(defcustom world-clock-buffer-name "*wclock*"
+  "Name of the `world-clock' buffer."
+  :type 'string
+  :version "28.1")
+
+(defcustom world-clock-timer-enable t
+  "If non-nil, a timer will update the `world-clock' buffer."
+  :type 'boolean
+  :version "28.1")
+
+(defcustom world-clock-timer-second 60
+  "Interval in seconds for updating the `world-clock' buffer."
+  :type 'integer
+  :version "28.1")
 
 (defface world-clock-label
   '((t :inherit font-lock-variable-name-face))
