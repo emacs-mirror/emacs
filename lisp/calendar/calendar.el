@@ -1063,7 +1063,7 @@ calendar."
 
 (defcustom calendar-use-numeric-time-zones nil
   "If nil, use symbolic time zones like \"CET\" when displaying dates.
-If non-nil, use numeric time zines like \"+0100\"."
+If non-nil, use numeric time zones like \"+0100\"."
   :type 'boolean
   :version "28.1"
   :group 'calendar)
