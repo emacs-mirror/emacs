@@ -81,9 +81,11 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 * Changes in Emacs 28.1
 
 +++
-** The new constants 'shell-command-buffer-name' and
+** New variables that hold default buffer names for shell output.
+The new constants 'shell-command-buffer-name' and
 'shell-command-buffer-name-async' store the default buffer names
-for the output of shell commands.
+for the output of, respectively, synchronous and async shell
+commands.
 
 ** Support for '(box . SIZE)' 'cursor-type'.
 By default, 'box' cursor always has a filled box shape.  But if you
@@ -201,6 +203,7 @@ as a data list rather than as a piece of code.
 
 ** Calendar
 
++++
 *** New variable 'calendar-use-numeric-time-zones' to use numeric time zones.
 If non-nil, functions that display time zones (like the 'S' command in
 calendar mode that displays the sunrise time) will display time zones
@@ -233,12 +236,12 @@ their 'default-directory' under VC.
 Bookmark locations can refer to VC directory buffers.
 
 ---
-*** New user option 'vc-hg-create-bookmark' controls whether a bookmark
-or branch will be created when you invoke 'C-u C-x v s' ('vc-create-tag').
+*** New user option 'vc-hg-create-bookmark'.
+It controls whether a bookmark or branch will be created when you
+invoke 'C-u C-x v s' ('vc-create-tag').
 
 ---
-*** 'vc-hg' now uses 'hg summary' command to populate extra 'vc-dir'
-headers.
+*** 'vc-hg' now uses 'hg summary' to populate extra 'vc-dir' headers.
 
 
 ** Gnus

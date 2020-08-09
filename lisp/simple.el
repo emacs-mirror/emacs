@@ -3441,8 +3441,9 @@ to `shell-command-history'."
 (defcustom async-shell-command-buffer 'confirm-new-buffer
   "What to do when the output buffer is used by another shell command.
 This option specifies how to resolve the conflict where a new command
-wants to direct its output to the buffer `shell-command-buffer-name-async',
-but this buffer is already taken by another running shell command.
+wants to direct its output to the buffer whose name is stored
+in `shell-command-buffer-name-async', but that buffer is already
+taken by another running shell command.
 
 The value `confirm-kill-process' is used to ask for confirmation before
 killing the already running process and running a new process
@@ -3593,14 +3594,18 @@ whose `car' is BUFFER."
 Like `shell-command', but adds `&' at the end of COMMAND
 to execute it asynchronously.
 
-The output appears in the buffer `shell-command-buffer-name-async'.
-That buffer is in shell mode.
+The output appears in the buffer whose name is stored in the
+variable `shell-command-buffer-name-async'.  That buffer is in
+shell mode.
 
 You can configure `async-shell-command-buffer' to specify what to do
-when the `shell-command-buffer-name-async' buffer is already taken by another
-running shell command.  To run COMMAND without displaying the output
-in a window you can configure `display-buffer-alist' to use the action
-`display-buffer-no-window' for the buffer `shell-command-buffer-name-async'.
+when the buffer specified by `shell-command-buffer-name-async' is
+already taken by another running shell command.
+
+To run COMMAND without displaying the output in a window you can
+configure `display-buffer-alist' to use the action
+`display-buffer-no-window' for the buffer given by
+`shell-command-buffer-name-async'.
 
 In Elisp, you will often be better served by calling `start-process'
 directly, since it offers more control and does not impose the use of
@@ -3636,16 +3641,18 @@ If `shell-command-prompt-show-cwd' is non-nil, show the current
 directory in the prompt.
 
 If COMMAND ends in `&', execute it asynchronously.
-The output appears in the buffer `shell-command-buffer-name-async'.
-That buffer is in shell mode.  You can also use
-`async-shell-command' that automatically adds `&'.
+The output appears in the buffer whose name is specified
+by `shell-command-buffer-name-async'.  That buffer is in shell
+mode.  You can also use `async-shell-command' that automatically
+adds `&'.
 
 Otherwise, COMMAND is executed synchronously.  The output appears in
-the buffer `shell-command-buffer-name'.  If the output is short enough to
-display in the echo area (which is determined by the variables
-`resize-mini-windows' and `max-mini-window-height'), it is shown
-there, but it is nonetheless available in buffer `*Shell Command
-Output*' even though that buffer is not automatically displayed.
+the buffer named by `shell-command-buffer-name'.  If the output is
+short enough to display in the echo area (which is determined by the
+variables `resize-mini-windows' and `max-mini-window-height'), it is
+shown there, but it is nonetheless available in buffer named by
+`shell-command-buffer-name' even though that buffer is not
+automatically displayed.
 
 To specify a coding system for converting non-ASCII characters
 in the shell command output, use \\[universal-coding-system-argument] \
@@ -3916,9 +3923,9 @@ and are used only if a pop-up buffer is displayed."
 				      error-buffer display-error-buffer
 				      region-noncontiguous-p)
   "Execute string COMMAND in inferior shell with region as input.
-Normally display output (if any) in temp buffer `shell-command-buffer-name';
-Prefix arg means replace the region with it.  Return the exit code of
-COMMAND.
+Normally display output (if any) in temp buffer specified
+by `shell-command-buffer-name'; prefix arg means replace the region
+with it.  Return the exit code of COMMAND.
 
 To specify a coding system for converting non-ASCII characters
 in the input and output to the shell command, use \\[universal-coding-system-argument]
@@ -3935,7 +3942,7 @@ in the echo area or in a buffer.
 If the output is short enough to display in the echo area
 \(determined by the variable `max-mini-window-height' if
 `resize-mini-windows' is non-nil), it is shown there.
-Otherwise it is displayed in the buffer `shell-command-buffer-name'.
+Otherwise it is displayed in the buffer named by `shell-command-buffer-name'.
 The output is available in that buffer in both cases.
 
 If there is output and an error, a message about the error
@@ -3945,7 +3952,7 @@ Optional fourth arg OUTPUT-BUFFER specifies where to put the
 command's output.  If the value is a buffer or buffer name,
 erase that buffer and insert the output there; a non-nil value of
 `shell-command-dont-erase-buffer' prevent to erase the buffer.
-If the value is nil, use the buffer `shell-command-buffer-name'.
+If the value is nil, use the buffer specified by `shell-command-buffer-name'.
 Any other non-nil value means to insert the output in the
 current buffer after START.
 

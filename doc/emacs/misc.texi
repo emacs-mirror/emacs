@@ -807,7 +807,7 @@ old region and replaces it with the output from the shell command.
 see what keys are in the buffer.  If the buffer contains a GnuPG key,
 type @kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents
 to @command{gpg}.  This will output the list of keys to the
-buffer named @code{shell-command-buffer-name}.
+buffer whose name is the value of @code{shell-command-buffer-name}.
 
 @vindex shell-file-name
   The above commands use the shell specified by the variable
