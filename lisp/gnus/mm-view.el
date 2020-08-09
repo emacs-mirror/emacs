@@ -59,10 +59,15 @@
   "The attributes of renderer types for text/html.")
 
 (defcustom mm-fill-flowed t
-  "If non-nil a format=flowed article will be displayed flowed."
+  "If non-nil, format=flowed articles will be displayed flowed."
   :type 'boolean
   :version "22.1"
   :group 'mime-display)
+
+;; Not a defcustom, since it's usually overridden by the callers of
+;; the mm functions.
+(defvar mm-inline-font-lock t
+  "If non-nil, do font locking of inline media types that support it.")
 
 (defcustom mm-inline-large-images-proportion 0.9
   "Maximum proportion large images can occupy in the buffer.
@@ -502,7 +507,8 @@ If MODE is not set, try to find mode automatically."
 	      (delay-mode-hooks (set-auto-mode))
 	      (setq mode major-mode)))
 	  ;; Do not fontify if the guess mode is fundamental.
-	  (unless (eq major-mode 'fundamental-mode)
+	  (when (and (not (eq major-mode 'fundamental-mode))
+		     mm-inline-font-lock)
 	    (font-lock-ensure))))
       (setq text (buffer-string))
       (when (eq mode 'diff-mode)

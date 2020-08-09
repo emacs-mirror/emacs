@@ -2001,12 +2001,13 @@ is greater than 10.
   (skip-unless (tramp--test-enabled))
 
   ;; Multi hops are allowed for inline methods only.
-  (should-error
-   (file-remote-p "/ssh:user1@host1|method:user2@host2:/path/to/file")
-   :type 'user-error)
-  (should-error
-   (file-remote-p "/method:user1@host1|ssh:user2@host2:/path/to/file")
-   :type 'user-error)
+  (let (non-essential)
+    (should-error
+     (expand-file-name "/ssh:user1@host1|method:user2@host2:/path/to/file")
+     :type 'user-error)
+    (should-error
+     (expand-file-name "/method:user1@host1|ssh:user2@host2:/path/to/file")
+     :type 'user-error))
 
   ;; Samba does not support file names with periods followed by
   ;; spaces, and trailing periods or spaces.
@@ -5681,9 +5682,8 @@ This does not support special file names."
 
 (defun tramp--test-sh-p ()
   "Check, whether the remote host runs a based method from tramp-sh.el."
-  (eq
-   (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
-   'tramp-sh-file-name-handler))
+  (tramp-sh-file-name-handler-p
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)))
 
 (defun tramp--test-sudoedit-p ()
   "Check, whether the sudoedit method is used."

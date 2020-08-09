@@ -170,11 +170,11 @@ PARSED is an `erc-parsed' response struct."
                (string-match "^\\([-\\+]\\)\\(.+\\)$" msg))
       (setf (erc-response.contents parsed)
             (if erc-capab-identify-mode
-                (erc-propertize (match-string 2 msg)
-                                'erc-identified
-                                (if (string= (match-string 1 msg) "+")
-                                    1
-                                  0))
+                (propertize (match-string 2 msg)
+                            'erc-identified
+                            (if (string= (match-string 1 msg) "+")
+                                1
+                              0))
               (match-string 2 msg)))
       nil)))
 
@@ -190,9 +190,9 @@ PARSED is an `erc-parsed' response struct."
                  ;; assuming the first use of `nickname' is the sender's nick
                  (re-search-forward (regexp-quote nickname) nil t))
         (goto-char (match-beginning 0))
-        (insert (erc-propertize erc-capab-identify-prefix
-                                'font-lock-face
-                                'erc-capab-identify-unidentified))))))
+        (insert (propertize erc-capab-identify-prefix
+                            'font-lock-face
+                            'erc-capab-identify-unidentified))))))
 
 (defun erc-capab-identify-get-unidentified-nickname (parsed)
   "Return the nickname of the user if unidentified.

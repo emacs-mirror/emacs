@@ -648,14 +648,23 @@
 	  (setq args (cons (car rest) args)))
       (setq rest (cdr rest)))
     (if (cdr constants)
-	(if args
-	    (list (car form)
-		  (apply (car form) constants)
-		  (if (cdr args)
-		      (cons (car form) (nreverse args))
-		      (car args)))
-	    (apply (car form) constants))
-	form)))
+        (let ((const (apply (car form) (nreverse constants))))
+	  (if args
+	      (append (list (car form) const)
+                      (nreverse args))
+	    const))
+      form)))
+
+(defun byte-optimize-min-max (form)
+  "Optimize `min' and `max'."
+  (let ((opt (byte-optimize-associative-math form)))
+    (if (and (consp opt) (memq (car opt) '(min max))
+             (= (length opt) 4))
+        ;; (OP x y z) -> (OP (OP x y) z), in order to use binary byte ops.
+        (list (car opt)
+              (list (car opt) (nth 1 opt) (nth 2 opt))
+              (nth 3 opt))
+      opt)))
 
 ;; Use OP to reduce any leading prefix of constant numbers in the list
 ;; (cons ACCUM ARGS) down to a single number, and return the
@@ -878,8 +887,8 @@
 (put '*   'byte-optimizer #'byte-optimize-multiply)
 (put '-   'byte-optimizer #'byte-optimize-minus)
 (put '/   'byte-optimizer #'byte-optimize-divide)
-(put 'max 'byte-optimizer #'byte-optimize-associative-math)
-(put 'min 'byte-optimizer #'byte-optimize-associative-math)
+(put 'max 'byte-optimizer #'byte-optimize-min-max)
+(put 'min 'byte-optimizer #'byte-optimize-min-max)
 
 (put '=   'byte-optimizer #'byte-optimize-binary-predicate)
 (put 'eq  'byte-optimizer #'byte-optimize-binary-predicate)

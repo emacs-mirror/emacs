@@ -52,6 +52,7 @@ modify this GNU manual.''
 * Overview::
 * Basics::
 * Advanced::
+* Command Line::
 
 Appendices
 * History and Acknowledgments::
@@ -336,6 +337,21 @@ will be passed through @code{substitute-command-keys} upon each use,
 thus allowing for the use of the usual substitutions, such as
 @code{\[eww-reload]} for the current key binding of the
 @code{eww-reload} command.
+
+@node Command Line
+@chapter Command Line Usage
+
+It can be convenient to start eww directly from the command line.  The
+@code{eww-browse} function can be used for that:
+
+@example
+emacs -f eww-browse https://gnu.org
+@end example
+
+This also allows registering Emacs as a @acronym{MIME} handler for the
+@samp{"text/x-uri"} media type.  How to do that varies between
+systems, but typically you'd register the handler to call @samp{"emacs
+-f eww-browse %u"}.
 
 @node History and Acknowledgments
 @appendix History and Acknowledgments

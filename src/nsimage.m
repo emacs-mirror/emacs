@@ -199,6 +199,12 @@ ns_image_set_transform (void *img, double m[3][3])
   [(EmacsImage *)img setTransform:m];
 }
 
+void
+ns_image_set_smoothing (void *img, bool smooth)
+{
+  [(EmacsImage *)img setSmoothing:smooth];
+}
+
 unsigned long
 ns_get_pixel (void *img, int x, int y)
 {
@@ -590,5 +596,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     = { m[0][0], m[0][1], m[1][0], m[1][1], m[2][0], m[2][1]};
   [transform setTransformStruct:tm];
 }
+
+- (void)setSmoothing: (BOOL) s
+{
+  smoothing = s;
+}
+
 
 @end

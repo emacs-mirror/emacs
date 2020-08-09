@@ -59,6 +59,11 @@ shaping, so 'configure' now recommends that combination.
 It was declared obsolete in Emacs 27.1.
 
 ---
+** Support for building with '-fcheck-pointer-bounds' has been removed.
+GCC has withdrawn the '-fcheck-pointer-bounds' option and support for
+its implementation has been removed from the Linux kernel.
+
+---
 ** Emacs no longer supports old OpenBSD systems.
 OpenBSD 5.3 and older releases are no longer supported, as they lack
 proper pty support that Emacs needs.
@@ -74,6 +79,11 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 
 * Changes in Emacs 28.1
+
++++
+** The new constants 'shell-command-buffer-name' and
+'shell-command-buffer-name-async' store the default buffer names
+for the output of shell commands.
 
 ** Support for '(box . SIZE)' 'cursor-type'.
 By default, 'box' cursor always has a filled box shape.  But if you
@@ -116,6 +126,11 @@ horizontal movements now stop at the edge of the board.
 
 ** Autosaving via 'auto-save-visited-mode' can now be inhibited by
 setting the variable 'auto-save-visited-mode' buffer-locally to nil.
+
+** New commands to describe buttons and widgets have been added.
+'widget-describe' (on a widget) will pop up a help buffer and give a
+description of the properties.  Likewise 'button-describe' does the
+same for a button.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
@@ -170,6 +185,11 @@ and variables.
 'archive-hideshow-column'.  These let you control which columns are
 displayed and which are kept hidden.
 
+---
+*** New command bound to 'C': 'archive-copy-file'
+This command extracts the file under point and writes the data to a
+file.
+
 ** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
@@ -178,6 +198,13 @@ displayed and which are kept hidden.
 The presence of a space between an open paren and a symbol now is
 taken as a statement by the programmer that this should be indented
 as a data list rather than as a piece of code.
+
+** Calendar
+
+*** New variable 'calendar-use-numeric-time-zones' to use numeric time zones.
+If non-nil, functions that display time zones (like the 'S' command in
+calendar mode that displays the sunrise time) will display time zones
+like "+0100" instead of "CET".
 
 ** Dired
 
@@ -205,6 +232,15 @@ their 'default-directory' under VC.
 *** Support for bookmark.el.
 Bookmark locations can refer to VC directory buffers.
 
+---
+*** New user option 'vc-hg-create-bookmark' controls whether a bookmark
+or branch will be created when you invoke 'C-u C-x v s' ('vc-create-tag').
+
+---
+*** 'vc-hg' now uses 'hg summary' command to populate extra 'vc-dir'
+headers.
+
+
 ** Gnus
 
 ---
@@ -223,6 +259,40 @@ The names of the commands 'gnus-slave', 'gnus-slave-no-server' and
 *** The 'W Q' summary mode command now takes a numerical prefix to
 allow adjusting the fill width.
 
++++
+*** New variable 'mm-inline-font-lock'.
+This variable is supposed to be bound by callers to determine whether
+inline MIME parts (that support it) are supposed to be font-locked or
+not.
+
+** Message
+
++++
+*** Message now supports the OpenPGP header.
+To generate these headers, add the new function
+'message-add-openpgp-header' to 'message-send-hook'.  The header will
+be generated according to the new 'message-openpgp-header' variable.
+
+---
+*** A change to how Mail-Copies-To: never is handled.
+If a user has specified Mail-Copies-To: never, and Message was asked
+to do a "wide reply", some other arbitrary recipient would end up in
+the resulting To header, while the remaining recipients would be put
+in the Cc header.  This is somewhat misleading, as it looks like
+you're responding to a specific person in particular.  This has been
+changed so that all the recipients are put in the To header in these
+instances.
+
++++
+*** New function to start Emacs in Message mode to send an email.
+Emacs can be defined as a handler for the "x-scheme-handler/mailto"
+MIME type with the following command: "emacs -f message-mailto %u".
+An emacs-mail.desktop file has been included, suitable for installing
+in desktop directories like /usr/share/applications.  Clicking on a
+mailto: link in other applications will then open Emacs with headers
+filled out according to the link, e.g.
+"mailto:larsi@gnus.org?subject=This+is+a+test".
+
 ---
 *** Change to default value of 'message-draft-headers' user option.
 The 'Date' symbol has been removed from the default value, meaning that
@@ -230,6 +300,12 @@ draft or delayed messages will get a date reflecting when the message
 was sent.  To restore the original behavior of dating a message
 from when it is first saved or delayed, add the symbol 'Date' back to
 this user option.
+
++++
+*** New command to take screenshots.
+In Message mode buffers, the 'C-c C-p' ('message-insert-screenshot')
+command has been added.  It depends on using an external program to
+take the actual screenshot, and defaults to ImageMagick "import".
 
 ** Help
 
@@ -259,6 +335,10 @@ To revert to the previous behaviour,
 *** Edebug specification lists can use the new keyword '&error', which
 unconditionally aborts the current edebug instrumentation with the
 supplied error message.
+
+*** Edebug specification lists can use the new keyword ':unique',
+which appends a unique suffix to the Edebug name of the current
+definition.
 
 +++
 ** ElDoc
@@ -313,6 +393,16 @@ like cell phones, tablets or cameras.
 This command marks a remote directory to contain only encrypted files.
 See the "(tramp) Keeping files encrypted" node of the Tramp manual for
 details.  This feature is experimental.
+
++++
+*** Support of direct asynchronous process invocation.
+When Tramp connection property "direct-async-process" is set to
+non-nil for a given connection, 'make-process' and 'start-file-process'
+calls are performed directly as in "ssh ... <command>".  This avoids
+initialization performance penalties.  See the "(tramp) Improving
+performance of asynchronous remote processes" node of the Tramp manual
+for details, and also for a discussion or restrictions.  This feature
+is experimental.
 
 ** Tempo
 
@@ -398,6 +488,14 @@ to substitute spaces in regexp search.
 *** The default value of 'hi-lock-highlight-range' was enlarged.
 The new default value is 2000000 (2 megabytes).
 
+** Whitespace mode
+
++++
+*** New style 'missing-newline-at-eof'.
+If present in 'whitespace-style' (as it is by default), the final
+character in the buffer will be highlighted if the buffer doesn't end
+with a newline.
+
 ** Texinfo
 
 ---
@@ -476,6 +574,9 @@ either an internal or external browser.
 
 *** Support for the conkeror browser is now obsolete.
 
+*** Support for the Mosaic browser has been removed.
+This support has been obsolete since 25.1.
+
 ** SHR
 
 ---
@@ -505,7 +606,22 @@ took more than two seconds to display.  The new algorithm maintains a
 decaying average of delays, and if this number gets too high, the
 animation is stopped.
 
++++
+*** The 'n' and 'p' commands (next/previous image) now respects dired order.
+These commands would previously display the next/previous image in
+alphabetical order, but will now find the "parent" dired buffer and
+select the next/previous image file according to how the files are
+sorted there.  The commands have also been extended to work when the
+"parent" buffer is an archive mode (i.e., zip file or the like) or tar
+mode buffer.
+
 ** EWW
+
++++
+*** New Emacs command line convenience function.
+The 'eww-browse' command has been added, which allows you to register
+Emacs as a MIME handler for "text/x-uri", and will call eww on the
+supplied URL.  Usage example: emacs -f eww-browse https://gnu.org
 
 +++
 *** 'eww-download-directory' will now use the XDG location, if defined.
@@ -565,6 +681,12 @@ Previously 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
+** erc
+
+---
+*** The /ignore command will now ask for a timeout to stop ignoring the user.
+Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
+
 ** Battery
 
 ---
@@ -600,6 +722,34 @@ network in rcirc and ERC buffers.  All mechanisms are extensible with
 custom rules, see the variables 'bug-reference-setup-from-vc-alist',
 'bug-reference-setup-from-mail-alist', and
 'bug-reference-setup-from-irc-alist'.
+
+** HTML Mode
+
+---
+*** A new skeleton for adding relative URLs has been added.
+It's bound to the 'C-c C-c f' keystroke, and prompts for a local file
+name.
+
+---
+** Recentf
+The recentf files are no longer backed up.
+
+
+** Miscellaneous
+
+*** The new library hierarchy.el has been added.
+It's a library to create, query, navigate and display hierarchy
+structures.
+
+---
+*** The width of the buffer-name column in 'list-buffers' is now dynamic.
+The width now depends of the width of the window, but will never be
+wider than the length of the longest buffer name, except that it will
+never be narrower than 19 characters.
+
+*** Bookmarks can now be targets for new tabs.
+When the 'bookmark.el' library is loaded, a customize choice is added
+to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -678,6 +828,11 @@ have now been removed.
 
 * Lisp Changes in Emacs 28.1
 
+---
+** New function 'custom-add-choice'.
+This function can be used by modes to add elements to the
+'choice' customization type of a variable.
+
 +++
 ** New function 'file-modes-number-to-symbolic' to convert a numeric
 file mode specification into symbolic form.
@@ -705,6 +860,11 @@ optional argument specifying whether to follow symbolic links.
 
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".
+
+---
+** The new function 'decoded-time-period' has been added.
+It interprets a decoded time structure as a period and returns the
+equivalent period in seconds.
 
 +++
 ** The new function 'dom-remove-attribute' has been added.

@@ -577,6 +577,63 @@ respectively."
       (if (and widget (funcall function widget maparg))
 	  (setq overlays nil)))))
 
+(defun widget-describe (&optional widget-or-pos)
+  "Describe the widget at point.
+Displays a buffer with information about the widget (e.g., its actions) as well
+as a link to browse all the properties of the widget.
+
+This command resolves the indirection of widgets running the action of its
+parents, so the real action executed can be known.
+
+When called from Lisp, pass WIDGET-OR-POS as the widget to describe,
+or a buffer position where a widget is present.  If WIDGET-OR-POS is nil,
+the widget at point is the widget to describe."
+  (interactive "d")
+  (require 'wid-browse) ; The widget-browse widget.
+  (let ((widget (if (widgetp widget-or-pos)
+                    widget-or-pos
+                  (widget-at widget-or-pos)))
+        props)
+    (when widget
+      (help-setup-xref (list #'widget-describe widget)
+                       (called-interactively-p 'interactive))
+      (setq props (list (cons 'action (widget--resolve-parent-action widget))
+                        (cons 'mouse-down-action
+                              (widget-get widget :mouse-down-action))))
+      (with-help-window (help-buffer)
+        (with-current-buffer (help-buffer)
+          (widget-insert "This widget's type is ")
+          (widget-create 'widget-browse :format "%[%v%]\n%d"
+                         :doc (get (car widget) 'widget-documentation)
+                         :help-echo "Browse this widget's properties"
+                         widget)
+          (dolist (action '(action mouse-down-action))
+            (let ((name (symbol-name action))
+                  (val (alist-get action props)))
+              (when (functionp val)
+                (widget-insert "\n\n" (propertize (capitalize name) 'face 'bold)
+                               "'\nThe " name " of this widget is")
+                (if (symbolp val)
+                    (progn (widget-insert " ")
+                           (widget-create 'function-link :value val
+                                          :button-prefix "" :button-suffix ""
+                                          :help-echo "Describe this function"))
+                  (widget-insert "\n")
+                  (princ val)))))))
+      (widget-setup)
+      t)))
+
+(defun widget--resolve-parent-action (widget)
+  "Resolve the real action of WIDGET up its inheritance chain.
+Follow the WIDGET's parents, until its :action is no longer
+`widget-parent-action', and return its value."
+  (let ((action (widget-get widget :action))
+        (parent (widget-get widget :parent)))
+    (while (eq action 'widget-parent-action)
+      (setq parent (widget-get parent :parent)
+            action (widget-get parent :action)))
+    action))
+
 ;;; Images.
 
 (defcustom widget-image-directory (file-name-as-directory

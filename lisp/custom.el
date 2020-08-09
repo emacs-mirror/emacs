@@ -1541,6 +1541,20 @@ Each of the arguments ARGS has this form:
 This means reset VARIABLE.  (The argument IGNORED is ignored)."
     (apply #'custom-theme-reset-variables 'user args))
 
+(defun custom-add-choice (variable choice)
+  "Add CHOICE to the custom type of VARIABLE.
+If a choice with the same tag already exists, no action is taken."
+  (let ((choices (get variable 'custom-type)))
+    (unless (eq (car choices) 'choice)
+      (error "Not a choice type: %s" choices))
+    (unless (seq-find (lambda (elem)
+                        (equal (caddr (member :tag elem))
+                               (caddr (member :tag choice))))
+                      (cdr choices))
+      ;; Put the new choice at the end.
+      (put variable 'custom-type
+           (append choices (list choice))))))
+
 ;;; The End.
 
 (provide 'custom)

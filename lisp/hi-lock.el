@@ -812,7 +812,9 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
               (setq hi-lock-interactive-patterns
                     (cdr hi-lock-interactive-patterns)
                     hi-lock-interactive-lighters
-                    (cdr hi-lock-interactive-lighters)))))))))
+                    (cdr hi-lock-interactive-lighters))))
+          (when (or (> search-start (point-min)) (< search-end (point-max)))
+            (message "Hi-lock added only in range %d-%d" search-start search-end)))))))
 
 (defun hi-lock-set-file-patterns (patterns)
   "Replace file patterns list with PATTERNS and refontify."

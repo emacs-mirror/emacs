@@ -3369,6 +3369,14 @@ which is defined in the `warnings' library.\n")
     (setq buffer-undo-list nil)
     t))
 
+;;;; Shell commands
+
+(defconst shell-command-buffer-name "*Shell Command Output*"
+  "Name of the output buffer for shell commands.")
+
+(defconst shell-command-buffer-name-async "*Async Shell Command*"
+  "Name of the output buffer for asynchronous shell commands.")
+
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.
 
@@ -3433,7 +3441,7 @@ to `shell-command-history'."
 (defcustom async-shell-command-buffer 'confirm-new-buffer
   "What to do when the output buffer is used by another shell command.
 This option specifies how to resolve the conflict where a new command
-wants to direct its output to the buffer `*Async Shell Command*',
+wants to direct its output to the buffer `shell-command-buffer-name-async',
 but this buffer is already taken by another running shell command.
 
 The value `confirm-kill-process' is used to ask for confirmation before
@@ -3585,14 +3593,14 @@ whose `car' is BUFFER."
 Like `shell-command', but adds `&' at the end of COMMAND
 to execute it asynchronously.
 
-The output appears in the buffer `*Async Shell Command*'.
+The output appears in the buffer `shell-command-buffer-name-async'.
 That buffer is in shell mode.
 
 You can configure `async-shell-command-buffer' to specify what to do
-when the `*Async Shell Command*' buffer is already taken by another
+when the `shell-command-buffer-name-async' buffer is already taken by another
 running shell command.  To run COMMAND without displaying the output
 in a window you can configure `display-buffer-alist' to use the action
-`display-buffer-no-window' for the buffer `*Async Shell Command*'.
+`display-buffer-no-window' for the buffer `shell-command-buffer-name-async'.
 
 In Elisp, you will often be better served by calling `start-process'
 directly, since it offers more control and does not impose the use of
@@ -3628,12 +3636,12 @@ If `shell-command-prompt-show-cwd' is non-nil, show the current
 directory in the prompt.
 
 If COMMAND ends in `&', execute it asynchronously.
-The output appears in the buffer `*Async Shell Command*'.
+The output appears in the buffer `shell-command-buffer-name-async'.
 That buffer is in shell mode.  You can also use
 `async-shell-command' that automatically adds `&'.
 
 Otherwise, COMMAND is executed synchronously.  The output appears in
-the buffer `*Shell Command Output*'.  If the output is short enough to
+the buffer `shell-command-buffer-name'.  If the output is short enough to
 display in the echo area (which is determined by the variables
 `resize-mini-windows' and `max-mini-window-height'), it is shown
 there, but it is nonetheless available in buffer `*Shell Command
@@ -3756,7 +3764,7 @@ impose the use of a shell (with its need to quote arguments)."
 	  (if (string-match "[ \t]*&[ \t]*\\'" command)
 	      ;; Command ending with ampersand means asynchronous.
               (let* ((buffer (get-buffer-create
-                              (or output-buffer "*Async Shell Command*")))
+                              (or output-buffer shell-command-buffer-name-async)))
                      (bname (buffer-name buffer))
                      (proc (get-buffer-process buffer))
                      (directory default-directory))
@@ -3908,7 +3916,7 @@ and are used only if a pop-up buffer is displayed."
 				      error-buffer display-error-buffer
 				      region-noncontiguous-p)
   "Execute string COMMAND in inferior shell with region as input.
-Normally display output (if any) in temp buffer `*Shell Command Output*';
+Normally display output (if any) in temp buffer `shell-command-buffer-name';
 Prefix arg means replace the region with it.  Return the exit code of
 COMMAND.
 
@@ -3927,7 +3935,7 @@ in the echo area or in a buffer.
 If the output is short enough to display in the echo area
 \(determined by the variable `max-mini-window-height' if
 `resize-mini-windows' is non-nil), it is shown there.
-Otherwise it is displayed in the buffer `*Shell Command Output*'.
+Otherwise it is displayed in the buffer `shell-command-buffer-name'.
 The output is available in that buffer in both cases.
 
 If there is output and an error, a message about the error
@@ -3937,7 +3945,7 @@ Optional fourth arg OUTPUT-BUFFER specifies where to put the
 command's output.  If the value is a buffer or buffer name,
 erase that buffer and insert the output there; a non-nil value of
 `shell-command-dont-erase-buffer' prevent to erase the buffer.
-If the value is nil, use the buffer `*Shell Command Output*'.
+If the value is nil, use the buffer `shell-command-buffer-name'.
 Any other non-nil value means to insert the output in the
 current buffer after START.
 
@@ -4006,7 +4014,7 @@ characters."
             (funcall region-insert-function output))
            (t
             (let ((buffer (get-buffer-create
-                           (or output-buffer "*Shell Command Output*"))))
+                           (or output-buffer shell-command-buffer-name))))
               (with-current-buffer buffer
                 (erase-buffer)
                 (funcall region-insert-function output))
@@ -4025,7 +4033,7 @@ characters."
                                            (list t error-file)
                                          t)))
             ;; It is rude to delete a buffer that the command is not using.
-            ;; (let ((shell-buffer (get-buffer "*Shell Command Output*")))
+            ;; (let ((shell-buffer (get-buffer shell-command-buffer-name)))
             ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
             ;; 	 (kill-buffer shell-buffer)))
             ;; Don't muck with mark unless REPLACE says we should.
@@ -4033,12 +4041,13 @@ characters."
         ;; No prefix argument: put the output in a temp buffer,
         ;; replacing its entire contents.
         (let ((buffer (get-buffer-create
-                       (or output-buffer "*Shell Command Output*"))))
+                       (or output-buffer shell-command-buffer-name))))
           (set-buffer-major-mode buffer) ; Enable globalized modes (bug#38111)
           (unwind-protect
               (if (and (eq buffer (current-buffer))
                        (or (memq shell-command-dont-erase-buffer '(nil erase))
-                           (and (not (eq buffer (get-buffer "*Shell Command Output*")))
+                           (and (not (eq buffer (get-buffer
+                                                 shell-command-buffer-name)))
                                 (not (region-active-p)))))
                   ;; If the input is the same buffer as the output,
                   ;; delete everything but the specified region,

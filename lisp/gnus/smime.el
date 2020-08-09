@@ -185,6 +185,9 @@ and the files themselves should be in PEM format."
   :version "22.1"
   :type '(choice (const :tag "Triple DES" "-des3")
 		 (const :tag "DES"  "-des")
+		 (const :tag "AES 256 bits" "-aes256")
+		 (const :tag "AES 192 bits" "-aes192")
+		 (const :tag "AES 128 bits" "-aes128")
 		 (const :tag "RC2 40 bits" "-rc2-40")
 		 (const :tag "RC2 64 bits" "-rc2-64")
 		 (const :tag "RC2 128 bits" "-rc2-128"))

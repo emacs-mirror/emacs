@@ -283,7 +283,8 @@
   '(face
     tabs spaces trailing lines space-before-tab newline
     indentation empty space-after-tab
-    space-mark tab-mark newline-mark)
+    space-mark tab-mark newline-mark
+    missing-newline-at-eof)
   "Specify which kind of blank is visualized.
 
 It's a list containing some or all of the following values:
@@ -323,6 +324,11 @@ It's a list containing some or all of the following values:
 			`whitespace-style'.
 
    newline		NEWLINEs are visualized via faces.
+			It has effect only if `face' (see above)
+			is present in `whitespace-style'.
+
+   missing-newline-at-eof Missing newline at the end of the file is
+                        visualized via faces.
 			It has effect only if `face' (see above)
 			is present in `whitespace-style'.
 
@@ -586,6 +592,10 @@ line.  Used when `whitespace-style' includes the value `indentation'.")
   "Face used to visualize big indentation."
   :group 'whitespace)
 
+(defface whitespace-missing-newline-at-eof
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "#d0d040" :foreground "black"))
+  "Face used to visualize missing newline at the end of the file.")
 
 (defvar whitespace-empty 'whitespace-empty
   "Symbol face used to visualize empty lines at beginning and/or end of buffer.
@@ -1700,6 +1710,8 @@ cleaning up these problems."
                           (whitespace-space-after-tab-regexp 'tab))
                          ((eq (car option) 'space-after-tab::space)
                           (whitespace-space-after-tab-regexp 'space))
+                         ((eq (car option) 'missing-newline-at-eof)
+                          "[^\n]\\'")
                          (t
                           (cdr option)))))
                    (when (re-search-forward regexp rend t)
@@ -2122,7 +2134,16 @@ resultant list will be returned."
                 ((memq 'space-after-tab::space whitespace-active-style)
                  ;; Show SPACEs after TAB (TABs).
                  (whitespace-space-after-tab-regexp 'space)))
-              1 whitespace-space-after-tab t)))))
+              1 whitespace-space-after-tab t)))
+       ,@(when (memq 'missing-newline-at-eof whitespace-active-style)
+           ;; Show missing newline.
+           `(("[^\n]\\'" 0
+              ;; Don't mark the end of the buffer is point is there --
+              ;; it probably means that the user is typing something
+              ;; at the end of the buffer.
+              (and (/= whitespace-point (point-max))
+                   'whitespace-missing-newline-at-eof)
+              t)))))
     (font-lock-add-keywords nil whitespace-font-lock-keywords t)
     (font-lock-flush)))
 

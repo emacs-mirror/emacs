@@ -346,7 +346,7 @@ AC_DEFUN([gl_INIT],
   AC_REQUIRE([gl_LARGEFILE])
   gl___INLINE
   gl_LIBGMP
-  if test -n "$GMP_H"; then
+  if test $HAVE_LIBGMP != yes; then
     AC_LIBOBJ([mini-gmp-gnulib])
   fi
   gl_LIMITS_H

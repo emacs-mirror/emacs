@@ -209,7 +209,6 @@ Returns nil if nothing was entered."
 
 (defun solar-setup ()
   "Prompt for `calendar-longitude', `calendar-latitude', `calendar-time-zone'."
-  (beep)
   (or calendar-longitude
       (setq calendar-longitude
             (solar-get-number
@@ -840,7 +839,9 @@ This function is suitable for execution in an init file."
                             "E" "W"))))))
          (calendar-standard-time-zone-name
           (if (< arg 16) calendar-standard-time-zone-name
-            (cond ((zerop calendar-time-zone) "UTC")
+            (cond ((zerop calendar-time-zone)
+                   (if calendar-use-numeric-time-zones
+                       "+0100" "UTC"))
                   ((< calendar-time-zone 0)
                    (format "UTC%dmin" calendar-time-zone))
                   (t  (format "UTC+%dmin" calendar-time-zone)))))
@@ -1013,7 +1014,10 @@ Requires floating point."
   (let* ((m displayed-month)
          (y displayed-year)
          (calendar-standard-time-zone-name
-          (if calendar-time-zone calendar-standard-time-zone-name "UTC"))
+          (cond
+           (calendar-time-zone calendar-standard-time-zone-name)
+           (calendar-use-numeric-time-zones "+0100")
+           (t "UTC")))
          (calendar-daylight-savings-starts
           (if calendar-time-zone calendar-daylight-savings-starts))
          (calendar-daylight-savings-ends

@@ -96,8 +96,10 @@ It is used for TCP/IP devices."
 (tramp--with-startup
  (add-to-list 'tramp-methods
 	      `(,tramp-adb-method
-	        (tramp-tmpdir            "/data/local/tmp")
-                (tramp-default-port      5555)))
+                (tramp-login-program ,tramp-adb-program)
+                (tramp-login-args    (("shell")))
+	        (tramp-tmpdir        "/data/local/tmp")
+                (tramp-default-port  5555)))
 
  (add-to-list 'tramp-default-host-alist `(,tramp-adb-method nil ""))
 
@@ -885,158 +887,163 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; The complete STDERR buffer is available only when the process has
 ;; terminated.
 (defun tramp-adb-handle-make-process (&rest args)
-  "Like `make-process' for Tramp files."
-  (when args
-    (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-      (let ((name (plist-get args :name))
-	    (buffer (plist-get args :buffer))
-	    (command (plist-get args :command))
-	    (coding (plist-get args :coding))
-	    (noquery (plist-get args :noquery))
-	    (connection-type (plist-get args :connection-type))
-	    (filter (plist-get args :filter))
-	    (sentinel (plist-get args :sentinel))
-	    (stderr (plist-get args :stderr)))
-	(unless (stringp name)
-	  (signal 'wrong-type-argument (list #'stringp name)))
-	(unless (or (null buffer) (bufferp buffer) (stringp buffer))
-	  (signal 'wrong-type-argument (list #'stringp buffer)))
-	(unless (consp command)
-	  (signal 'wrong-type-argument (list #'consp command)))
-	(unless (or (null coding)
-		    (and (symbolp coding) (memq coding coding-system-list))
-		    (and (consp coding)
-			 (memq (car coding) coding-system-list)
-			 (memq (cdr coding) coding-system-list)))
-	  (signal 'wrong-type-argument (list #'symbolp coding)))
-	(unless (or (null connection-type) (memq connection-type '(pipe pty)))
-	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
-	(unless (or (null filter) (functionp filter))
-	  (signal 'wrong-type-argument (list #'functionp filter)))
-	(unless (or (null sentinel) (functionp sentinel))
-	  (signal 'wrong-type-argument (list #'functionp sentinel)))
-	(unless (or (null stderr) (bufferp stderr) (stringp stderr))
-	  (signal 'wrong-type-argument (list #'stringp stderr)))
-	(when (and (stringp stderr) (tramp-tramp-file-p stderr)
-		   (not (tramp-equal-remote default-directory stderr)))
-	  (signal 'file-error (list "Wrong stderr" stderr)))
+  "Like `make-process' for Tramp files.
+If connection property \"direct-async-process\" is non-nil, an
+alternative implementation will be used."
+  (if (tramp-get-connection-property
+       (tramp-dissect-file-name default-directory) "direct-async-process" nil)
+      (apply #'tramp-handle-make-process args)
+    (when args
+      (with-parsed-tramp-file-name (expand-file-name default-directory) nil
+	(let ((name (plist-get args :name))
+	      (buffer (plist-get args :buffer))
+	      (command (plist-get args :command))
+	      (coding (plist-get args :coding))
+	      (noquery (plist-get args :noquery))
+	      (connection-type (plist-get args :connection-type))
+	      (filter (plist-get args :filter))
+	      (sentinel (plist-get args :sentinel))
+	      (stderr (plist-get args :stderr)))
+	  (unless (stringp name)
+	    (signal 'wrong-type-argument (list #'stringp name)))
+	  (unless (or (null buffer) (bufferp buffer) (stringp buffer))
+	    (signal 'wrong-type-argument (list #'stringp buffer)))
+	  (unless (consp command)
+	    (signal 'wrong-type-argument (list #'consp command)))
+	  (unless (or (null coding)
+		      (and (symbolp coding) (memq coding coding-system-list))
+		      (and (consp coding)
+			   (memq (car coding) coding-system-list)
+			   (memq (cdr coding) coding-system-list)))
+	    (signal 'wrong-type-argument (list #'symbolp coding)))
+	  (unless (or (null connection-type) (memq connection-type '(pipe pty)))
+	    (signal 'wrong-type-argument (list #'symbolp connection-type)))
+	  (unless (or (null filter) (functionp filter))
+	    (signal 'wrong-type-argument (list #'functionp filter)))
+	  (unless (or (null sentinel) (functionp sentinel))
+	    (signal 'wrong-type-argument (list #'functionp sentinel)))
+	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
+	    (signal 'wrong-type-argument (list #'stringp stderr)))
+	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
+		     (not (tramp-equal-remote default-directory stderr)))
+	    (signal 'file-error (list "Wrong stderr" stderr)))
 
-	(let* ((buffer
-		(if buffer
-		    (get-buffer-create buffer)
-		  ;; BUFFER can be nil.  We use a temporary buffer.
-		  (generate-new-buffer tramp-temp-buffer-name)))
-	       ;; STDERR can also be a file name.
-	       (tmpstderr
-		(and stderr
-		     (if (and (stringp stderr) (tramp-tramp-file-p stderr))
-			 (tramp-unquote-file-local-name stderr)
-		       (tramp-make-tramp-temp-file v))))
-	       (remote-tmpstderr
-		(and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
-	       (program (car command))
-	       (args (cdr command))
-	       (command
-		(format "cd %s && exec %s %s"
-			(tramp-shell-quote-argument localname)
-			(if tmpstderr (format "2>'%s'" tmpstderr) "")
-			(mapconcat #'tramp-shell-quote-argument
-				   (cons program args) " ")))
-	       (tramp-process-connection-type
-		(or (null program) tramp-process-connection-type))
-	       (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-	       (name1 name)
-	       (i 0))
+	  (let* ((buffer
+		  (if buffer
+		      (get-buffer-create buffer)
+		    ;; BUFFER can be nil.  We use a temporary buffer.
+		    (generate-new-buffer tramp-temp-buffer-name)))
+		 ;; STDERR can also be a file name.
+		 (tmpstderr
+		  (and stderr
+		       (if (and (stringp stderr) (tramp-tramp-file-p stderr))
+			   (tramp-unquote-file-local-name stderr)
+			 (tramp-make-tramp-temp-file v))))
+		 (remote-tmpstderr
+		  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
+		 (program (car command))
+		 (args (cdr command))
+		 (command
+		  (format "cd %s && exec %s %s"
+			  (tramp-shell-quote-argument localname)
+			  (if tmpstderr (format "2>'%s'" tmpstderr) "")
+			  (mapconcat #'tramp-shell-quote-argument
+				     (cons program args) " ")))
+		 (tramp-process-connection-type
+		  (or (null program) tramp-process-connection-type))
+		 (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+		 (name1 name)
+		 (i 0))
 
-	  (while (get-process name1)
-	    ;; NAME must be unique as process name.
-	    (setq i (1+ i)
-		  name1 (format "%s<%d>" name i)))
-	  (setq name name1)
-	  ;; Set the new process properties.
-	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property v "process-buffer" buffer)
+	    (while (get-process name1)
+	      ;; NAME must be unique as process name.
+	      (setq i (1+ i)
+		    name1 (format "%s<%d>" name i)))
+	    (setq name name1)
+	    ;; Set the new process properties.
+	    (tramp-set-connection-property v "process-name" name)
+	    (tramp-set-connection-property v "process-buffer" buffer)
 
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (unwind-protect
-		;; We catch this event.  Otherwise, `make-process'
-		;; could be called on the local host.
-		(save-excursion
-		  (save-restriction
-		    ;; Activate narrowing in order to save BUFFER
-		    ;; contents.  Clear also the modification time;
-		    ;; otherwise we might be interrupted by
-		    ;; `verify-visited-file-modtime'.
-		    (let ((buffer-undo-list t)
-			  (inhibit-read-only t))
-		      (clear-visited-file-modtime)
-		      (narrow-to-region (point-max) (point-max))
-		      ;; We call `tramp-adb-maybe-open-connection', in
-		      ;; order to cleanup the prompt afterwards.
-		      (tramp-adb-maybe-open-connection v)
-		      (delete-region (point-min) (point-max))
-		      ;; Send the command.
-		      (let* ((p (tramp-get-connection-process v)))
-                        (tramp-adb-send-command v command nil t) ; nooutput
-			;; Set sentinel and filter.
-			(when sentinel
-			  (set-process-sentinel p sentinel))
-			(when filter
-			  (set-process-filter p filter))
-			;; Set query flag and process marker for this
-			;; process.  We ignore errors, because the
-			;; process could have finished already.
-			(ignore-errors
-			  (set-process-query-on-exit-flag p (null noquery))
-			  (set-marker (process-mark p) (point)))
-			;; We must flush them here already; otherwise
-			;; `rename-file', `delete-file' or
-			;; `insert-file-contents' will fail.
-			(tramp-flush-connection-property v "process-name")
-			(tramp-flush-connection-property v "process-buffer")
-			;; Copy tmpstderr file.
-			(when (and (stringp stderr)
-				   (not (tramp-tramp-file-p stderr)))
-			  (add-function
-			   :after (process-sentinel p)
-			   (lambda (_proc _msg)
-			     (rename-file remote-tmpstderr stderr))))
-			;; Read initial output.  Remove the first line,
-			;; which is the command echo.
-			(while
-			    (progn
-			      (goto-char (point-min))
-			      (not (re-search-forward "[\n]" nil t)))
-			  (tramp-accept-process-output p 0))
-			(delete-region (point-min) (point))
-			;; Provide error buffer.  This shows only
-			;; initial error messages; messages arriving
-			;; later on will be inserted when the process
-			;; is deleted.  The temporary file will exist
-			;; until the process is deleted.
-			(when (bufferp stderr)
-			  (with-current-buffer stderr
-			    (insert-file-contents-literally
-			     remote-tmpstderr 'visit))
-			  ;; Delete tmpstderr file.
-			  (add-function
-			   :after (process-sentinel p)
-			   (lambda (_proc _msg)
-			     (with-current-buffer stderr
-			       (insert-file-contents-literally
-				remote-tmpstderr 'visit nil nil 'replace))
-			     (delete-file remote-tmpstderr))))
-			;; Return process.
-			p))))
+	    (with-current-buffer (tramp-get-connection-buffer v)
+	      (unwind-protect
+		  ;; We catch this event.  Otherwise, `make-process'
+		  ;; could be called on the local host.
+		  (save-excursion
+		    (save-restriction
+		      ;; Activate narrowing in order to save BUFFER
+		      ;; contents.  Clear also the modification time;
+		      ;; otherwise we might be interrupted by
+		      ;; `verify-visited-file-modtime'.
+		      (let ((buffer-undo-list t)
+			    (inhibit-read-only t))
+			(clear-visited-file-modtime)
+			(narrow-to-region (point-max) (point-max))
+			;; We call `tramp-adb-maybe-open-connection',
+			;; in order to cleanup the prompt afterwards.
+			(tramp-adb-maybe-open-connection v)
+			(delete-region (point-min) (point-max))
+			;; Send the command.
+			(let* ((p (tramp-get-connection-process v)))
+                          (tramp-adb-send-command v command nil t) ; nooutput
+			  ;; Set sentinel and filter.
+			  (when sentinel
+			    (set-process-sentinel p sentinel))
+			  (when filter
+			    (set-process-filter p filter))
+			  ;; Set query flag and process marker for
+			  ;; this process.  We ignore errors, because
+			  ;; the process could have finished already.
+			  (ignore-errors
+			    (set-process-query-on-exit-flag p (null noquery))
+			    (set-marker (process-mark p) (point)))
+			  ;; We must flush them here already;
+			  ;; otherwise `rename-file', `delete-file' or
+			  ;; `insert-file-contents' will fail.
+			  (tramp-flush-connection-property v "process-name")
+			  (tramp-flush-connection-property v "process-buffer")
+			  ;; Copy tmpstderr file.
+			  (when (and (stringp stderr)
+				     (not (tramp-tramp-file-p stderr)))
+			    (add-function
+			     :after (process-sentinel p)
+			     (lambda (_proc _msg)
+			       (rename-file remote-tmpstderr stderr))))
+			  ;; Read initial output.  Remove the first
+			  ;; line, which is the command echo.
+			  (while
+			      (progn
+				(goto-char (point-min))
+				(not (re-search-forward "[\n]" nil t)))
+			    (tramp-accept-process-output p 0))
+			  (delete-region (point-min) (point))
+			  ;; Provide error buffer.  This shows only
+			  ;; initial error messages; messages arriving
+			  ;; later on will be inserted when the
+			  ;; process is deleted.  The temporary file
+			  ;; will exist until the process is deleted.
+			  (when (bufferp stderr)
+			    (with-current-buffer stderr
+			      (insert-file-contents-literally
+			       remote-tmpstderr 'visit))
+			    ;; Delete tmpstderr file.
+			    (add-function
+			     :after (process-sentinel p)
+			     (lambda (_proc _msg)
+			       (with-current-buffer stderr
+				 (insert-file-contents-literally
+				  remote-tmpstderr 'visit nil nil 'replace))
+			       (delete-file remote-tmpstderr))))
+			  ;; Return process.
+			  p))))
 
-	      ;; Save exit.
-	      (if (string-match-p tramp-temp-buffer-name (buffer-name))
-		  (ignore-errors
-		    (set-process-buffer (tramp-get-connection-process v) nil)
-		    (kill-buffer (current-buffer)))
-		(set-buffer-modified-p bmp))
-	      (tramp-flush-connection-property v "process-name")
-	      (tramp-flush-connection-property v "process-buffer"))))))))
+		;; Save exit.
+		(if (string-match-p tramp-temp-buffer-name (buffer-name))
+		    (ignore-errors
+		      (set-process-buffer (tramp-get-connection-process v) nil)
+		      (kill-buffer (current-buffer)))
+		  (set-buffer-modified-p bmp))
+		(tramp-flush-connection-property v "process-name")
+		(tramp-flush-connection-property v "process-buffer")))))))))
 
 (defun tramp-adb-handle-exec-path ()
   "Like `exec-path' for Tramp files."
@@ -1252,6 +1259,14 @@ connection if a previous connection has died for some reason."
 	     p "prompt" (regexp-quote (format "///%s#$" prompt)))
 	    (tramp-adb-send-command
 	     vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
+
+	    ;; Disable line editing.
+	    (tramp-adb-send-command
+	     vec "set +o vi +o vi-esccomplete +o vi-tabcomplete +o emacs")
+
+	    ;; Dump option settings in the traces.
+	    (when (>= tramp-verbose 9)
+	      (tramp-adb-send-command vec "set -o"))
 
 	    ;; Check whether the properties have been changed.  If
 	    ;; yes, this is a strong indication that we must expire all

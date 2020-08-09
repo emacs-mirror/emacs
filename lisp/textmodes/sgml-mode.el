@@ -1806,6 +1806,7 @@ This takes effect when first loading the library.")
     (define-key map "\C-c\C-cc" 'html-checkboxes)
     (define-key map "\C-c\C-cl" 'html-list-item)
     (define-key map "\C-c\C-ch" 'html-href-anchor)
+    (define-key map "\C-c\C-cf" 'html-href-anchor-file)
     (define-key map "\C-c\C-cn" 'html-name-anchor)
     (define-key map "\C-c\C-c#" 'html-id-anchor)
     (define-key map "\C-c\C-ci" 'html-image)
@@ -1818,6 +1819,7 @@ This takes effect when first loading the library.")
       (define-key map "\C-cc" 'html-checkboxes)
       (define-key map "\C-cl" 'html-list-item)
       (define-key map "\C-ch" 'html-href-anchor)
+      (define-key map "\C-cf" 'html-href-anchor-file)
       (define-key map "\C-cn" 'html-name-anchor)
       (define-key map "\C-c#" 'html-id-anchor)
       (define-key map "\C-ci" 'html-image)
@@ -1845,7 +1847,8 @@ This takes effect when first loading the library.")
     (define-key menu-map "\n" '("Line Break" . html-line))
     (define-key menu-map "\r" '("Paragraph" . html-paragraph))
     (define-key menu-map "i" '("Image" . html-image))
-    (define-key menu-map "h" '("Href Anchor" . html-href-anchor))
+    (define-key menu-map "h" '("Href Anchor URL" . html-href-anchor))
+    (define-key menu-map "f" '("Href Anchor File" . html-href-anchor-file))
     (define-key menu-map "n" '("Name Anchor" . html-name-anchor))
     (define-key menu-map "#" '("ID Anchor" . html-id-anchor))
     map)
@@ -2451,6 +2454,11 @@ HTML Autoview mode is a buffer-local minor mode for use with
   "HTML anchor tag with href attribute."
   "URL: "
   ;; '(setq input "http:")
+  "<a href=\"" str "\">" _ "</a>")
+
+(define-skeleton html-href-anchor-file
+  "HTML anchor tag with href attribute (from a local file)."
+  (file-relative-name (read-file-name "File name: ") default-directory)
   "<a href=\"" str "\">" _ "</a>")
 
 (define-skeleton html-name-anchor

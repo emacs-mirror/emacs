@@ -64,6 +64,11 @@ protect against "make" variable expansion):
 
     make <filename> SELECTOR='"foo$$"'
 
+In case you want to use the symbol name of a test as selector, you can
+use it directly:
+
+    make <filename> SELECTOR='test-foo-remote'
+
 Note that although the test files are always compiled (unless they set
 no-byte-compile), the source files will be run when expensive or
 unstable tests are involved, to give nicer backtraces.  To run the

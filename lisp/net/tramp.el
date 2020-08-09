@@ -1482,10 +1482,7 @@ default values are used."
 	    (tramp-user-error
 	     v "Method `%s' is not known." method))
 	  ;; Only some methods from tramp-sh.el do support multi-hops.
-	  (when (and
-		 hop
-		 (or (not (tramp-get-method-parameter v 'tramp-login-program))
-		     (tramp-get-method-parameter v 'tramp-copy-program)))
+	  (unless (or (null hop) nodefault non-essential (tramp-multi-hop-p v))
 	    (tramp-user-error
 	     v "Method `%s' is not supported for multi-hops." method)))))))
 
@@ -1499,8 +1496,7 @@ See `tramp-dissect-file-name' for details."
 		     tramp-postfix-host-format name))
 	    nodefault)))
     ;; Only some methods from tramp-sh.el do support multi-hops.
-    (when (or (not (tramp-get-method-parameter v 'tramp-login-program))
-	      (tramp-get-method-parameter v 'tramp-copy-program))
+    (unless (or nodefault non-essential (tramp-multi-hop-p v))
       (tramp-user-error
        v "Method `%s' is not supported for multi-hops."
        (tramp-file-name-method v)))
@@ -3519,13 +3515,10 @@ User is always nil."
 
 		    ;; When we shall insert only a part of the file, we
 		    ;; copy this part.  This works only for the shell file
-		    ;; name handlers.
+		    ;; name handlers.  It doesn't work for crypted files.
 		    (when (and (or beg end)
-			       ;; Direct actions aren't possible for
-			       ;; crypted directories.
-			       (null tramp-crypt-enabled)
-			       (tramp-get-method-parameter
-				v 'tramp-login-program))
+			       (tramp-sh-file-name-handler-p v)
+			       (null tramp-crypt-enabled))
 		      (setq remote-copy (tramp-make-tramp-temp-file v))
 		      ;; This is defined in tramp-sh.el.  Let's assume
 		      ;; this is loaded already.
@@ -3640,6 +3633,152 @@ User is always nil."
 		(load local-copy noerror t nosuffix must-suffix)
 	      (delete-file local-copy)))))
       t)))
+;; We use BUFFER also as connection buffer during setup. Because of
+;; this, its original contents must be saved, and restored once
+;; connection has been setup.
+(defun tramp-handle-make-process (&rest args)
+  "An alternative `make-process' implementation for Tramp files."
+  (when args
+    (with-parsed-tramp-file-name (expand-file-name default-directory) nil
+      (let ((name (plist-get args :name))
+	    (buffer (plist-get args :buffer))
+	    (command (plist-get args :command))
+	    (coding (plist-get args :coding))
+	    (noquery (plist-get args :noquery))
+	    (connection-type (plist-get args :connection-type))
+	    (filter (plist-get args :filter))
+	    (sentinel (plist-get args :sentinel))
+	    (stderr (plist-get args :stderr)))
+	(unless (stringp name)
+	  (signal 'wrong-type-argument (list #'stringp name)))
+	(unless (or (null buffer) (bufferp buffer) (stringp buffer))
+	  (signal 'wrong-type-argument (list #'stringp buffer)))
+	(unless (consp command)
+	  (signal 'wrong-type-argument (list #'consp command)))
+	(unless (or (null coding)
+		    (and (symbolp coding) (memq coding coding-system-list))
+		    (and (consp coding)
+			 (memq (car coding) coding-system-list)
+			 (memq (cdr coding) coding-system-list)))
+	  (signal 'wrong-type-argument (list #'symbolp coding)))
+	(unless (or (null connection-type) (memq connection-type '(pipe pty)))
+	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
+	(unless (or (null filter) (functionp filter))
+	  (signal 'wrong-type-argument (list #'functionp filter)))
+	(unless (or (null sentinel) (functionp sentinel))
+	  (signal 'wrong-type-argument (list #'functionp sentinel)))
+	(unless (or (null stderr) (bufferp stderr) (stringp stderr))
+	  (signal 'wrong-type-argument (list #'stringp stderr)))
+	(when (and (stringp stderr) (tramp-tramp-file-p stderr)
+		   (not (tramp-equal-remote default-directory stderr)))
+	  (signal 'file-error (list "Wrong stderr" stderr)))
+
+	(let* ((buffer
+		(if buffer
+		    (get-buffer-create buffer)
+		  ;; BUFFER can be nil.  We use a temporary buffer.
+		  (generate-new-buffer tramp-temp-buffer-name)))
+	       (command (append `("cd" ,localname "&&")
+				(mapcar #'tramp-shell-quote-argument command)))
+	       (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	       (name1 name)
+	       (i 0)
+	       ;; We do not want to raise an error when `make-process'
+	       ;; has been started several times in `eshell' and
+	       ;; friends.
+	       tramp-current-connection
+	       p)
+
+	  (while (get-process name1)
+	    ;; NAME must be unique as process name.
+	    (setq i (1+ i)
+		  name1 (format "%s<%d>" name i)))
+	  (setq name name1)
+	  ;; Set the new process properties.
+	  (tramp-set-connection-property v "process-name" name)
+	  (tramp-set-connection-property v "process-buffer" buffer)
+
+	  (with-current-buffer (tramp-get-connection-buffer v)
+	    (unwind-protect
+		(let* ((login-program
+			(tramp-get-method-parameter v 'tramp-login-program))
+		       (login-args
+			(tramp-get-method-parameter v 'tramp-login-args))
+		       (async-args
+			(tramp-get-method-parameter v 'tramp-async-args))
+		       ;; We don't create the temporary file.  In
+		       ;; fact, it is just a prefix for the
+		       ;; ControlPath option of ssh; the real
+		       ;; temporary file has another name, and it is
+		       ;; created and protected by ssh.  It is also
+		       ;; removed by ssh when the connection is
+		       ;; closed.  The temporary file name is cached
+		       ;; in the main connection process, therefore
+		       ;; we cannot use `tramp-get-connection-process'.
+		       (tmpfile
+			(when (tramp-sh-file-name-handler-p v)
+			  (with-tramp-connection-property
+			      (tramp-get-process v) "temp-file"
+			    (tramp-compat-make-temp-name))))
+		       (options
+			(when (tramp-sh-file-name-handler-p v)
+			  (tramp-compat-funcall
+			   'tramp-ssh-controlmaster-options v)))
+		       spec)
+
+		  ;; Replace `login-args' place holders.
+		  (setq
+		   spec (format-spec-make ?t tmpfile)
+		   options (format-spec (or options "") spec)
+		   spec (format-spec-make
+			 ?h (or host "") ?u (or user "") ?p (or port "")
+			 ?c options ?l "")
+		   ;; Add arguments for asynchronous processes.
+		   login-args (append async-args login-args)
+		   ;; Expand format spec.
+		   login-args
+		   (tramp-compat-flatten-tree
+		    (mapcar
+		     (lambda (x)
+		       (setq x (mapcar (lambda (y) (format-spec y spec)) x))
+		       (unless (member "" x) x))
+		     login-args))
+		   ;; Split ControlMaster options.
+		   login-args
+		   (tramp-compat-flatten-tree
+		    (mapcar (lambda (x) (split-string x " ")) login-args))
+		   p (apply
+		      #'start-process
+		      name buffer login-program (append login-args command)))
+
+		  (tramp-message v 6 "%s" (string-join (process-command p) " "))
+		  ;; Set sentinel and filter.
+		  (when sentinel
+		    (set-process-sentinel p sentinel))
+		  (when filter
+		    (set-process-filter p filter))
+		  ;; Set query flag and process marker for this
+		  ;; process.  We ignore errors, because the
+		  ;; process could have finished already.
+		  (ignore-errors
+		    (set-process-query-on-exit-flag p (null noquery))
+		    (set-marker (process-mark p) (point)))
+		  ;; We must flush them here already; otherwise
+		  ;; `rename-file', `delete-file' or
+		  ;; `insert-file-contents' will fail.
+		  (tramp-flush-connection-property v "process-name")
+		  (tramp-flush-connection-property v "process-buffer")
+		  ;; Return process.
+		  p)
+
+	      ;; Save exit.
+	      (if (string-match-p tramp-temp-buffer-name (buffer-name))
+		  (ignore-errors
+		    (set-process-buffer p nil)
+		    (kill-buffer (current-buffer)))
+		(set-buffer-modified-p bmp))
+	      (tramp-flush-connection-property v "process-name")
+	      (tramp-flush-connection-property v "process-buffer"))))))))
 
 (defun tramp-handle-make-symbolic-link
   (target linkname &optional ok-if-already-exists)
@@ -3676,8 +3815,8 @@ support symbolic links."
 	    (current-buffer))
 	   (t (get-buffer-create
 	       (if asynchronous
-		   "*Async Shell Command*"
-		 "*Shell Command Output*")))))
+		   shell-command-buffer-name-async
+		 shell-command-buffer-name)))))
 	 (error-buffer
 	  (cond
 	   ((bufferp error-buffer) error-buffer)
@@ -4706,7 +4845,7 @@ This handles also chrooted environments, which are not regarded as local."
      ;; The method shall be applied to one of the shell file name
      ;; handlers.  `tramp-local-host-p' is also called for "smb" and
      ;; alike, where it must fail.
-     (tramp-get-method-parameter vec 'tramp-login-program)
+     (tramp-sh-file-name-handler-p vec)
      ;; Direct actions aren't possible for crypted directories.
      (null tramp-crypt-enabled)
      ;; The local temp directory must be writable for the other user.

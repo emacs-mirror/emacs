@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
-#include "ptr-bounds.h"
 #include "syntax.h"
 #include "window.h"
 
@@ -47,7 +46,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    indirect threaded, using GCC's computed goto extension.  This code,
    as currently implemented, is incompatible with BYTE_CODE_SAFE and
    BYTE_CODE_METER.  */
-#if (defined __GNUC__ && !defined __STRICT_ANSI__ && !defined __CHKP__ \
+#if (defined __GNUC__ && !defined __STRICT_ANSI__ \
      && !BYTE_CODE_SAFE && !defined BYTE_CODE_METER)
 #define BYTE_CODE_THREADED
 #endif
@@ -368,14 +367,12 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   USE_SAFE_ALLOCA;
   void *alloc;
   SAFE_ALLOCA_LISP_EXTRA (alloc, stack_items, bytestr_length);
-  ptrdiff_t item_bytes = stack_items * word_size;
-  Lisp_Object *stack_base = ptr_bounds_clip (alloc, item_bytes);
+  Lisp_Object *stack_base = alloc;
   Lisp_Object *top = stack_base;
   *top = vector; /* Ensure VECTOR survives GC (Bug#33014).  */
   Lisp_Object *stack_lim = stack_base + stack_items;
-  unsigned char *bytestr_data = alloc;
-  bytestr_data = ptr_bounds_clip (bytestr_data + item_bytes, bytestr_length);
-  memcpy (bytestr_data, SDATA (bytestr), bytestr_length);
+  unsigned char const *bytestr_data = memcpy (stack_lim,
+					      SDATA (bytestr), bytestr_length);
   unsigned char const *pc = bytestr_data;
   ptrdiff_t count = SPECPDL_INDEX ();
 

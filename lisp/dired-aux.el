@@ -688,7 +688,7 @@ are executed in the background on each file sequentially waiting
 for each command to terminate before running the next command.
 In shell syntax this means separating the individual commands with `;'.
 
-The output appears in the buffer `*Async Shell Command*'."
+The output appears in the buffer `shell-command-buffer-name-async'."
   (interactive
    (let ((files (dired-get-marked-files t current-prefix-arg nil nil t)))
      (list
@@ -727,7 +727,7 @@ it, write `*\"\"' in place of just `*'.  This is equivalent to just
 
 If COMMAND ends in `&', `;', or `;&', it is executed in the
 background asynchronously, and the output appears in the buffer
-`*Async Shell Command*'.  When operating on multiple files and COMMAND
+`shell-command-buffer-name-async'.  When operating on multiple files and COMMAND
 ends in `&', the shell command is executed on each file in parallel.
 However, when COMMAND ends in `;' or `;&' then commands are executed
 in the background on each file sequentially waiting for each command
@@ -735,7 +735,7 @@ to terminate before running the next command.  You can also use
 `dired-do-async-shell-command' that automatically adds `&'.
 
 Otherwise, COMMAND is executed synchronously, and the output
-appears in the buffer `*Shell Command Output*'.
+appears in the buffer `shell-command-buffer-name'.
 
 This feature does not try to redisplay Dired buffers afterward, as
 there's no telling what files COMMAND may have changed.
@@ -952,13 +952,17 @@ With a prefix argument, kill that many lines starting with the current line.
   "Kill all marked lines (not the files).
 With a prefix argument, kill that many lines starting with the current line.
 \(A negative argument kills backward.)
+
 If you use this command with a prefix argument to kill the line
 for a file that is a directory, which you have inserted in the
 Dired buffer as a subdirectory, then it deletes that subdirectory
 from the buffer as well.
+
 To kill an entire subdirectory \(without killing its line in the
 parent directory), go to its directory header line and use this
-command with a prefix argument (the value does not matter)."
+command with a prefix argument (the value does not matter).
+
+To undo the killing, the undo command can be used as normally."
   ;; Returns count of killed lines.  FMT="" suppresses message.
   (interactive "P")
   (if arg
@@ -1010,8 +1014,8 @@ command with a prefix argument (the value does not matter)."
 (defvar dired-compress-file-suffixes
   '(
     ;; "tar -zxf" isn't used because it's not available on the
-    ;; Solaris10 version of tar. Solaris10 becomes obsolete in 2021.
-    ;; Same thing on AIX 7.1.
+    ;; Solaris 10 version of tar (obsolete in 2024?).
+    ;; Same thing on AIX 7.1 (obsolete 2023?) and 7.2 (obsolete 2022?).
     ("\\.tar\\.gz\\'" "" "gzip -dc %i | tar -xf -")
     ("\\.tgz\\'" "" "gzip -dc %i | tar -xf -")
     ("\\.gz\\'" "" "gunzip")
@@ -1974,6 +1978,10 @@ Optional arg HOW-TO determines how to treat the target.
 	(apply (car into-dir) operation rfn-list fn-list target (cdr into-dir))
       (if (not (or dired-one-file into-dir))
 	  (error "Marked %s: target must be a directory: %s" operation target))
+      (if (and (not (file-directory-p (car fn-list)))
+               (not (file-directory-p target))
+               (directory-name-p target))
+          (error "%s: Target directory does not exist: %s" operation target))
       ;; rename-file bombs when moving directories unless we do this:
       (or into-dir (setq target (directory-file-name target)))
       (dired-create-files

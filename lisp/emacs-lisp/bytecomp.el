@@ -3659,10 +3659,10 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler (% byte-rem)	2)
 (byte-defop-compiler aset		3)
 
-(byte-defop-compiler max		byte-compile-associative)
-(byte-defop-compiler min		byte-compile-associative)
-(byte-defop-compiler (+ byte-plus)	byte-compile-associative)
-(byte-defop-compiler (* byte-mult)	byte-compile-associative)
+(byte-defop-compiler max		byte-compile-min-max)
+(byte-defop-compiler min		byte-compile-min-max)
+(byte-defop-compiler (+ byte-plus)	byte-compile-variadic-numeric)
+(byte-defop-compiler (* byte-mult)	byte-compile-variadic-numeric)
 
 ;;####(byte-defop-compiler move-to-column	1)
 (byte-defop-compiler-1 interactive byte-compile-noop)
@@ -3809,30 +3809,36 @@ discarding."
   (if byte-compile--for-effect (setq byte-compile--for-effect nil)
     (byte-compile-out 'byte-constant (nth 1 form))))
 
-;; Compile a function that accepts one or more args and is right-associative.
-;; We do it by left-associativity so that the operations
-;; are done in the same order as in interpreted code.
-;; We treat the one-arg case, as in (+ x), like (+ x 0).
-;; in order to convert markers to numbers, and trigger expected errors.
-(defun byte-compile-associative (form)
+;; Compile a pure function that accepts zero or more numeric arguments
+;; and has an opcode for the binary case.
+;; Single-argument calls are assumed to be numeric identity and are
+;; compiled as (* x 1) in order to convert markers to numbers and
+;; trigger type errors.
+(defun byte-compile-variadic-numeric (form)
+  (pcase (length form)
+    (1
+     ;; No args: use the identity value for the operation.
+     (byte-compile-constant (eval form)))
+    (2
+     ;; One arg: compile (OP x) as (* x 1). This is identity for
+     ;; all numerical values including -0.0, infinities and NaNs.
+     (byte-compile-form (nth 1 form))
+     (byte-compile-constant 1)
+     (byte-compile-out (get '* 'byte-opcode) 0))
+    (3
+     (byte-compile-form (nth 1 form))
+     (byte-compile-form (nth 2 form))
+     (byte-compile-out (get (car form) 'byte-opcode) 0))
+    (_
+     ;; >2 args: compile as a single function call.
+     (byte-compile-normal-call form))))
+
+(defun byte-compile-min-max (form)
+  "Byte-compile calls to `min' or `max'."
   (if (cdr form)
-      (let ((opcode (get (car form) 'byte-opcode))
-	    args)
-	(if (and (< 3 (length form))
-		 (memq opcode (list (get '+ 'byte-opcode)
-				    (get '* 'byte-opcode))))
-	    ;; Don't use binary operations for > 2 operands, as that
-	    ;; may cause overflow/truncation in float operations.
-	    (byte-compile-normal-call form)
-	  (setq args (copy-sequence (cdr form)))
-	  (byte-compile-form (car args))
-	  (setq args (cdr args))
-	  (or args (setq args '(0)
-			 opcode (get '+ 'byte-opcode)))
-	  (dolist (arg args)
-	    (byte-compile-form arg)
-	    (byte-compile-out opcode 0))))
-    (byte-compile-constant (eval form))))
+      (byte-compile-variadic-numeric form)
+    ;; No args: warn and emit code that raises an error when executed.
+    (byte-compile-normal-call form)))
 
 
 ;; more complicated compiler macros
@@ -3847,7 +3853,7 @@ discarding."
 (byte-defop-compiler indent-to)
 (byte-defop-compiler insert)
 (byte-defop-compiler-1 function byte-compile-function-form)
-(byte-defop-compiler-1 - byte-compile-minus)
+(byte-defop-compiler (- byte-diff) byte-compile-minus)
 (byte-defop-compiler (/ byte-quo) byte-compile-quo)
 (byte-defop-compiler nconc)
 
@@ -3914,30 +3920,17 @@ discarding."
 	  ((byte-compile-normal-call form)))))
 
 (defun byte-compile-minus (form)
-  (let ((len (length form)))
-    (cond
-     ((= 1 len) (byte-compile-constant 0))
-     ((= 2 len)
-      (byte-compile-form (cadr form))
-      (byte-compile-out 'byte-negate 0))
-     ((= 3 len)
-      (byte-compile-form (nth 1 form))
-      (byte-compile-form (nth 2 form))
-      (byte-compile-out 'byte-diff 0))
-     ;; Don't use binary operations for > 2 operands, as that may
-     ;; cause overflow/truncation in float operations.
-     (t (byte-compile-normal-call form)))))
+  (if (/= (length form) 2)
+      (byte-compile-variadic-numeric form)
+    (byte-compile-form (cadr form))
+    (byte-compile-out 'byte-negate 0)))
 
 (defun byte-compile-quo (form)
-  (let ((len (length form)))
-    (cond ((< len 2)
-	   (byte-compile-subr-wrong-args form "1 or more"))
-	  ((= len 3)
-	   (byte-compile-two-args form))
-	  (t
-	   ;; Don't use binary operations for > 2 operands, as that
-	   ;; may cause overflow/truncation in float operations.
-	   (byte-compile-normal-call form)))))
+  (if (= (length form) 3)
+      (byte-compile-two-args form)
+    ;; N-ary `/' is not the left-reduction of binary `/' because if any
+    ;; argument is a float, then everything is done in floating-point.
+    (byte-compile-normal-call form)))
 
 (defun byte-compile-nconc (form)
   (let ((len (length form)))

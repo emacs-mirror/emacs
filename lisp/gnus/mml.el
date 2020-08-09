@@ -295,6 +295,17 @@ part.  This is for the internal use, you should never modify the value.")
 			(t
 			 (mm-find-mime-charset-region point (point)
 						      mm-hack-charsets))))
+	;; We have a part that already has a transfer encoding.  Undo
+	;; that so that we don't double-encode later.
+	(when (and raw
+		   (cdr (assq 'data-encoding tag)))
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert contents)
+	    (mm-decode-content-transfer-encoding
+	     (intern (cdr (assq 'data-encoding tag)))
+	     (cdr (assq 'type tag)))
+	    (setq contents (buffer-string))))
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
 		  (message-options-get 'unknown-encoding)
@@ -313,8 +324,8 @@ Message contains characters with unknown encoding.  Really send? ")
 		(eq 'mml (car tag))
 		(< (length charsets) 2))
 	    (if (or (not no-markup-p)
+		    ;; Don't create blank parts.
 		    (string-match "[^ \t\r\n]" contents))
-		;; Don't create blank parts.
 		(push (nconc tag (list (cons 'contents contents)))
 		      struct))
 	  (let ((nstruct (mml-parse-singlepart-with-multiple-charsets

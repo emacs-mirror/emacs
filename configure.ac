@@ -749,44 +749,21 @@ case "${canonical}" in
     opsys=aix4-2
   ;;
 
-  ## Suns
-  *-sun-solaris* \
-    | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
-    | x86_64-*-solaris2*    | x86_64-*-sunos5*)
+  ## Solaris
+  *-*-solaris* | *-*-sunos*)
     case "${canonical}" in
       i[3456]86-*-* )   ;;
       amd64-*-*|x86_64-*-*) ;;
       sparc* )		;;
       * )		unported=yes ;;
     esac
-    case "${canonical}" in
-      *-sunos5.[1-9][0-9]* | *-solaris2.[1-9][0-9]* )
-		opsys=sol2-10
-		emacs_check_sunpro_c=yes
-		;;
-      *-sunos5.[1-5]* | *-solaris2.[1-5]* ) unported=yes ;;
-      ## Note that Emacs 23.1's NEWS said the following would be dropped.
-      *-sunos5.6* | *-solaris2.6* )
-		opsys=sol2-6
-		RANLIB="ar -ts"
-		;;
-      ## 5.7 EOL Aug 2008, 5.8 EOL Mar 2012.
-      *-sunos5.[7-9]* | *-solaris2.[7-9]* )
-		opsys=sol2-6
-		emacs_check_sunpro_c=yes
-		;;
-    esac
+    opsys=solaris
     ## Watch out for a compiler that we know will not work.
-    case "${canonical}" in
-     *-solaris* | *-sunos5* )
-		if [ "x$CC" = x/usr/ucb/cc ]; then
-		  ## /usr/ucb/cc doesn't work;
-		  ## we should find some other compiler that does work.
-		  unset CC
-		fi
-		;;
-      *) ;;
-    esac
+    if [ "$CC" = /usr/ucb/cc ]; then
+      ## /usr/ucb/cc doesn't work;
+      ## we should find some other compiler that does work.
+      unset CC
+    fi
   ;;
 
   ## QNX Neutrino
@@ -1477,14 +1454,11 @@ case "$opsys" in
   mingw32)
    UNEXEC_OBJ=unexw32.o
    ;;
-  sol2-10)
+  solaris)
    # Use the Solaris dldump() function, called from unexsol.c, to dump
    # emacs, instead of the generic ELF dump code found in unexelf.c.
    # The resulting binary has a complete symbol table, and is better
    # for debugging and other observability tools (debuggers, pstack, etc).
-   #
-   # It is likely that dldump() works with older Solaris too, but this has
-   # not been tested, so for now this change is for Solaris 10 or newer.
    UNEXEC_OBJ=unexsol.o
    ;;
   *)
@@ -1587,7 +1561,7 @@ case "$opsys" in
 
   qnxnto) LIBS_SYSTEM="-lsocket" ;;
 
-  sol2*) LIBS_SYSTEM="-lsocket -lnsl" ;;
+  solaris) LIBS_SYSTEM="-lsocket -lnsl" ;;
 
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
@@ -1648,7 +1622,7 @@ case $opsys in
     SYSTEM_TYPE=berkeley-unix
     ;;
 
-  sol2* | unixware )
+  solaris | unixware )
     SYSTEM_TYPE=usg-unix-v
     ;;
 
@@ -2292,7 +2266,7 @@ system_malloc=yes
 test $with_unexec = yes &&
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
-  darwin | mingw32 | nacl | sol2-10) ;;
+  darwin | mingw32 | nacl | solaris) ;;
   cygwin | qnxnto | freebsd)
 	  hybrid_malloc=yes
           system_malloc= ;;
@@ -2428,7 +2402,7 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
     # need special flags to disable these optimizations. For example, the
     # definition of 'errno' in <errno.h>.
     case $opsys in
-      hpux* | sol*)
+      hpux* | solaris)
 	AC_DEFINE([_REENTRANT], 1,
 	  [Define to 1 if your system requires this in multithreaded code.]);;
       aix4-2)
@@ -2558,7 +2532,7 @@ fail;
     ## inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
     ## XIM support.
     case "$opsys" in
-      sol2-*) : ;;
+      solaris) : ;;
       *) AC_DEFINE(HAVE_X11R6_XIM, 1,
            [Define if you have usable X11R6-style XIM support.])
          ;;
@@ -4600,11 +4574,13 @@ AC_CHECK_HEADERS(valgrind/valgrind.h)
 
 AC_CHECK_MEMBERS([struct unipair.unicode], [], [], [[#include <linux/kd.h>]])
 
-AC_CHECK_FUNCS_ONCE([sbrk])
+AC_CHECK_FUNCS_ONCE([__lsan_ignore_object sbrk])
 
 AC_FUNC_FORK
 
-AC_CHECK_FUNCS(snprintf __lsan_ignore_object)
+dnl AC_CHECK_FUNCS_ONCE wouldn’t be right for snprintf, which needs
+dnl the current CFLAGS etc.
+AC_CHECK_FUNCS(snprintf)
 
 dnl Check for glib.  This differs from other library checks in that
 dnl Emacs need not link to glib unless some other library is already
@@ -4778,7 +4754,7 @@ if test "$USE_X_TOOLKIT" != "none"; then
 fi
 
 case $opsys in
-  sol2* | unixware )
+  solaris | unixware )
     dnl Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
     dnl instead, there's a system variable _sys_nsig.  Unfortunately, we
     dnl need the constant to dimension an array.  So wire in the appropriate
@@ -4791,7 +4767,7 @@ emacs_broken_SIGIO=no
 
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-  hpux* | nacl | openbsd | sol2* | unixware )
+  hpux* | nacl | openbsd | solaris | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -4840,7 +4816,7 @@ case $opsys in
 esac
 
 case $opsys in
-  gnu-* | sol2-10 )
+  gnu-* | solaris )
     dnl FIXME Can't we test if this exists (eg /proc/$$)?
     AC_DEFINE(HAVE_PROCFS, 1, [Define if you have the /proc filesystem.])
   ;;
@@ -4969,7 +4945,7 @@ case $opsys in
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [sprintf (pty_name, "/dev/pty/tty%c%x", c, i);])
     ;;
 
-  sol2* )
+  solaris )
     dnl On SysVr4, grantpt(3) forks a subprocess, so do not use
     dnl O_CLOEXEC when opening the pty, and keep the SIGCHLD handler
     dnl from intercepting that death.  If any child but grantpt's should die
@@ -4979,7 +4955,7 @@ case $opsys in
     ;;
 
   unixware )
-    dnl Comments are as per sol2*.
+    dnl Comments are as per solaris.
     AC_DEFINE(PTY_OPEN, [fd = open (pty_name, O_RDWR | O_NONBLOCK)])
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
@@ -4987,7 +4963,7 @@ esac
 
 
 case $opsys in
-  sol2* | unixware )
+  solaris | unixware )
     dnl This change means that we don't loop through allocate_pty too
     dnl many times in the (rare) event of a failure.
     AC_DEFINE(FIRST_PTY_LETTER, ['z'])
@@ -5082,7 +5058,7 @@ if test x$GCC = xyes; then
    AC_DEFINE(GC_SETJMP_WORKS, 1)
 else
   case $opsys in
-    aix* | dragonfly | freebsd | netbsd | openbsd | sol2* )
+    aix* | dragonfly | freebsd | netbsd | openbsd | solaris )
       AC_DEFINE(GC_SETJMP_WORKS, 1)
       ;;
   esac
@@ -5129,7 +5105,7 @@ case $emacs_cv_func_sigsetjmp,$emacs_cv_alternate_stack,$opsys in
 esac
 
 case $opsys in
-  sol2* | unixware )
+  solaris | unixware )
     dnl TIOCGPGRP is broken in SysVr4, so we can't send signals to PTY
     dnl subprocesses the usual way.  But TIOCSIGNAL does work for PTYs,
     dnl and this is all we need.
@@ -5139,7 +5115,7 @@ esac
 
 
 case $opsys in
-  hpux* | sol2* )
+  hpux* | solaris )
     dnl Used in xfaces.c.
     AC_DEFINE(XOS_NEEDS_TIME_H, 1, [Compensate for a bug in Xos.h on
       some systems, where it requires time.h.])
@@ -5194,7 +5170,7 @@ case $opsys in
     fi
     ;;
 
-  sol2*)
+  solaris)
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5_4, [])
     AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
@@ -5259,7 +5235,7 @@ case $opsys in
       reopen it in the child.])
     ;;
 
-  sol2-10)
+  solaris)
     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
       on Solaris.])
     ;;

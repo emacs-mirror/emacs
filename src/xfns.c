@@ -2652,7 +2652,7 @@ create_frame_xic (struct frame *f)
     goto out;
 
   xim = FRAME_X_XIM (f);
-  if (!xim)
+  if (!xim || ! FRAME_X_XIM_STYLES(f))
     goto out;
 
   /* Determine XIC style.  */

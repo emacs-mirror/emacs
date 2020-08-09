@@ -109,4 +109,18 @@
 (ert-deftest test-time-since ()
   (should (time-equal-p 0 (time-since nil))))
 
+(ert-deftest test-time-decoded-period ()
+  (should (equal (decoded-time-period '(nil nil 1 nil nil nil nil nil nil))
+                 3600))
+
+  (should (equal (decoded-time-period '(1 0 0 0 0 0 nil nil nil)) 1))
+  (should (equal (decoded-time-period '(0 1 0 0 0 0 nil nil nil)) 60))
+  (should (equal (decoded-time-period '(0 0 1 0 0 0 nil nil nil)) 3600))
+  (should (equal (decoded-time-period '(0 0 0 1 0 0 nil nil nil)) 86400))
+  (should (equal (decoded-time-period '(0 0 0 0 1 0 nil nil nil)) 2592000))
+  (should (equal (decoded-time-period '(0 0 0 0 0 1 nil nil nil)) 31536000))
+
+  (should (equal (decoded-time-period '((135 . 10) 0 0 0 0 0 nil nil nil))
+                 13.5)))
+
 ;;; time-date-tests.el ends here

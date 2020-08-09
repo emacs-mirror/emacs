@@ -894,8 +894,8 @@ verify (GCALIGNED (struct Lisp_Symbol));
    convert it to a Lisp_Word.  */
 #if LISP_WORDS_ARE_POINTERS
 /* untagged_ptr is a pointer so that the compiler knows that TAG_PTR
-   yields a pointer; this can help with gcc -fcheck-pointer-bounds.
-   It is char * so that adding a tag uses simple machine addition.  */
+   yields a pointer.  It is char * so that adding a tag uses simple
+   machine addition.  */
 typedef char *untagged_ptr;
 typedef uintptr_t Lisp_Word_tag;
 #else
@@ -923,13 +923,9 @@ typedef EMACS_UINT Lisp_Word_tag;
    when using a debugger like GDB, on older platforms where the debug
    format does not represent C macros.  However, they are unbounded
    and would just be asking for trouble if checking pointer bounds.  */
-#ifdef __CHKP__
-# define DEFINE_LISP_SYMBOL(name)
-#else
-# define DEFINE_LISP_SYMBOL(name) \
-   DEFINE_GDB_SYMBOL_BEGIN (Lisp_Object, name) \
-   DEFINE_GDB_SYMBOL_END (LISPSYM_INITIALLY (name))
-#endif
+#define DEFINE_LISP_SYMBOL(name) \
+  DEFINE_GDB_SYMBOL_BEGIN (Lisp_Object, name) \
+  DEFINE_GDB_SYMBOL_END (LISPSYM_INITIALLY (name))
 
 /* The index of the C-defined Lisp symbol SYM.
    This can be used in a static initializer.  */
@@ -1003,30 +999,15 @@ XSYMBOL (Lisp_Object a)
   eassert (SYMBOLP (a));
   intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol, struct Lisp_Symbol);
   void *p = (char *) lispsym + i;
-#ifdef __CHKP__
-  /* Bypass pointer checking.  Although this could be improved it is
-     probably not worth the trouble.  */
-  p = __builtin___bnd_set_ptr_bounds (p, sizeof (struct Lisp_Symbol));
-#endif
   return p;
 }
 
 INLINE Lisp_Object
 make_lisp_symbol (struct Lisp_Symbol *sym)
 {
-#ifdef __CHKP__
-  /* Although '__builtin___bnd_narrow_ptr_bounds (sym, sym, sizeof *sym)'
-     should be more efficient, it runs afoul of GCC bug 83251
-     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83251>.
-     Also, attempting to call __builtin___bnd_chk_ptr_bounds (sym, sizeof *sym)
-     here seems to trigger a GCC bug, as yet undiagnosed.  */
-  char *addr = __builtin___bnd_set_ptr_bounds (sym, sizeof *sym);
-  char *symoffset = addr - (intptr_t) lispsym;
-#else
-  /* If !__CHKP__, GCC 7 x86-64 generates faster code if lispsym is
+  /* GCC 7 x86-64 generates faster code if lispsym is
      cast to char * rather than to intptr_t.  */
   char *symoffset = (char *) ((char *) sym - (char *) lispsym);
-#endif
   Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
   eassert (XSYMBOL (a) == sym);
   return a;
@@ -4836,6 +4817,17 @@ lispstpcpy (char *dest, Lisp_Object string)
   memcpy (dest, SDATA (string), len + 1);
   return dest + len;
 }
+
+#if (defined HAVE___LSAN_IGNORE_OBJECT \
+     && defined HAVE_SANITIZER_LSAN_INTERFACE_H)
+# include <sanitizer/lsan_interface.h>
+#else
+/* Treat *P as a non-leak.  */
+INLINE void
+__lsan_ignore_object (void const *p)
+{
+}
+#endif
 
 extern void xputenv (const char *);
 

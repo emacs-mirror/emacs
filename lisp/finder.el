@@ -197,7 +197,7 @@ from; the default is `load-path'."
                                    (cons d f))
                                  (directory-files d nil el-file-regexp))))
          (progress (make-progress-reporter
-                    (byte-compile-info-string "Scanning files for finder")
+                    (byte-compile-info "Scanning files for finder")
                     0 (length files)))
 	 package-override base-name ; processed
 	 summary keywords package version entry desc)

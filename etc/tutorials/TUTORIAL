@@ -612,11 +612,11 @@ but it also means that you need a convenient way to save the first
 file's buffer.  Having to switch back to that buffer, in order to save
 it with C-x C-s, would be a nuisance.  So we have
 
-	C-x s     Save some buffers
+	C-x s     Save some buffers to their files
 
-C-x s asks you about each buffer which contains changes that you have
-not saved.  It asks you, for each such buffer, whether to save the
-buffer.
+C-x s asks you about each file-visiting buffer which contains changes
+that you have not saved.  It asks you, for each such buffer, whether
+to save the buffer to its file.
 
 >> Insert a line of text, then type C-x s.
    It should ask you whether to save the buffer named TUTORIAL.
@@ -660,8 +660,8 @@ as by a mail handling utility.
 There are many C-x commands.  Here is a list of the ones you have learned:
 
 	C-x C-f		Find file
-	C-x C-s		Save file
-	C-x s		Save some buffers
+	C-x C-s		Save buffer to file
+	C-x s		Save some buffers to their files
 	C-x C-b		List buffers
 	C-x b		Switch buffer
 	C-x C-c		Quit Emacs
@@ -1081,7 +1081,7 @@ corresponding command names (such as C-x C-f beside find-file).
 You can learn more about Emacs by reading its manual, either as a
 printed book, or inside Emacs (use the Help menu or type C-h r).
 Two features that you may like especially are completion, which saves
-typing, and dired, which simplifies file handling.
+typing, and Dired, which simplifies file handling.
 
 Completion is a way to avoid unnecessary typing.  For instance, if you
 want to switch to the *Messages* buffer, you can type C-x b *M<Tab>

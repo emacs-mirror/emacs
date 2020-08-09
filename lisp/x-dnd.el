@@ -1,4 +1,4 @@
-;;; x-dnd.el --- drag and drop support for X
+;;; x-dnd.el --- drag and drop support for X  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
@@ -32,7 +32,7 @@
 (require 'dnd)
 
 ;;; Customizable variables
-(defcustom x-dnd-test-function 'x-dnd-default-test-function
+(defcustom x-dnd-test-function #'x-dnd-default-test-function
   "The function drag and drop uses to determine if to accept or reject a drop.
 The function takes three arguments, WINDOW, ACTION and TYPES.
 WINDOW is where the mouse is when the function is called.  WINDOW may be a

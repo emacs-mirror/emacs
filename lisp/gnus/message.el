@@ -303,6 +303,13 @@ any confusion."
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
 
+(defcustom message-screenshot-command '("import" "png:-")
+  "Command to take a screenshot.
+The command should insert a PNG in the current buffer."
+  :group 'message-various
+  :type '(list string)
+  :version "28.1")
+
 ;;; Start of variables adopted from `message-utils.el'.
 
 (defcustom message-subject-trailing-was-query t
@@ -2730,6 +2737,64 @@ systematically send encrypted emails when possible."
   (when (message-all-epg-keys-available-p)
     (mml-secure-message-sign-encrypt)))
 
+(defcustom message-openpgp-header nil
+  "Specification for the \"OpenPGP\" header of outgoing messages.
+
+The value must be a list of three elements, all strings:
+- Key ID, in hexadecimal form;
+- Key URL or ASCII armoured key; and
+- Protection preference, one of: \"unprotected\", \"sign\",
+  \"encrypt\" or \"signencrypt\".
+
+Each of the elements may be nil, in which case its part in the
+OpenPGP header will be left out.  If all the values are nil,
+or `message-openpgp-header' is itself nil, the OpenPGP header
+will not be inserted."
+  :type '(choice
+	  (const nil :tag "Don't add OpenPGP header")
+	  (list (choice (string :tag "ID")
+			(const nil :tag "No ID"))
+		(choice (string :tag "Key")
+			(const nil :tag "No Key"))
+		(choice (other nil :tag "None")
+			(const "unprotected" :tag "Unprotected")
+			(const "sign" :tag "Sign")
+			(const "encrypt" :tag "Encrypt")
+			(const "signencrypt" :tag "Sign and Encrypt"))))
+  :version "28.1")
+
+(defun message-add-openpgp-header ()
+  "Add OpenPGP header to point to public key.
+
+Header will be constructed as specified in `message-openpgp-header'.
+
+Consider adding this function to `message-send-hook'."
+  ;; See https://tools.ietf.org/html/draft-josefsson-openpgp-mailnews-header
+  (when (and message-openpgp-header
+	     (or (nth 0 message-openpgp-header)
+		 (nth 1 message-openpgp-header)
+		 (nth 2 message-openpgp-header)))
+    (with-temp-buffer
+      (insert "OpenPGP: ")
+      ;; add ID
+      (let (need-sep)
+	(when (nth 0 message-openpgp-header)
+	  (insert "id=" (nth 0 message-openpgp-header))
+	  (setq need-sep t))
+	;; add URL
+	(when (nth 1 message-openpgp-header)
+	  (when need-sep (insert "; "))
+	  (if (string-match-p ";")
+	      (insert "url=\"" (nth 1 message-openpgp-header) "\"")
+	    (insert "url=\"" (nth 1 message-openpgp-header) "\""))
+	  (setq need-sep t))
+	;; add preference
+	(when (nth 2 message-openpgp-header)
+	  (when need-sep (insert "; "))
+	  (insert "preference=" (nth 2 message-openpgp-header))))
+      ;; insert header
+      (message-add-header (buffer-string)))))
+
 
 
 ;;;
@@ -2810,6 +2875,7 @@ systematically send encrypted emails when possible."
   (define-key message-mode-map [remap split-line]  'message-split-line)
 
   (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
+  (define-key message-mode-map "\C-c\C-p" 'message-insert-screenshot)
 
   (define-key message-mode-map "\C-a" 'message-beginning-of-line)
   (define-key message-mode-map "\t" 'message-tab)
@@ -2839,6 +2905,8 @@ systematically send encrypted emails when possible."
      :active (message-mark-active-p) :help "Mark region with enclosing tags"]
     ["Insert File Marked..." message-mark-insert-file
      :help "Insert file at point marked with enclosing tags"]
+    ["Attach File..." mml-attach-file t]
+    ["Insert Screenshot" message-insert-screenshot t]
     "----"
     ["Send Message" message-send-and-exit :help "Send this message"]
     ["Postpone Message" message-dont-send
@@ -6988,15 +7056,28 @@ want to get rid of this query permanently.")))
 
       ;; Build the header alist.  Allow the user to be asked whether
       ;; or not to reply to all recipients in a wide reply.
-      (setq follow-to (list (cons 'To (cdr (pop recipients)))))
-      (when (and recipients
-		 (or (not message-wide-reply-confirm-recipients)
-		     (y-or-n-p "Reply to all recipients? ")))
-	(setq recipients (mapconcat
-			  (lambda (addr) (cdr addr)) recipients ", "))
-	(if (string-match "^ +" recipients)
-	    (setq recipients (substring recipients (match-end 0))))
-	(push (cons 'Cc recipients) follow-to)))
+      (when (or (< (length recipients) 2)
+		(not message-wide-reply-confirm-recipients)
+		(y-or-n-p "Reply to all recipients? "))
+	(if never-mct
+	    ;; The author has requested never to get a (wide)
+	    ;; response, so put everybody else into the To header.
+	    ;; This avoids looking as if we're To-in somebody else in
+	    ;; specific, and just Cc-in the rest.
+	    (setq follow-to (list
+			     (cons 'To
+				   (mapconcat
+				    (lambda (addr)
+				      (cdr addr)) recipients ", "))))
+	  ;; Put the first recipient in the To header.
+	  (setq follow-to (list (cons 'To (cdr (pop recipients)))))
+	  ;; Put the rest of the recipients in Cc.
+	  (when recipients
+	    (setq recipients (mapconcat
+			      (lambda (addr) (cdr addr)) recipients ", "))
+	    (if (string-match "^ +" recipients)
+		(setq recipients (substring recipients (match-end 0))))
+	    (push (cons 'Cc recipients) follow-to)))))
     follow-to))
 
 (defun message-prune-recipients (recipients)
@@ -8651,6 +8732,108 @@ Used in `message-simplify-recipients'."
 	      :max-height (truncate
 			   (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
 	     string)))))))
+
+(defun message-insert-screenshot (delay)
+  "Take a screenshot and insert in the current buffer.
+DELAY (the numeric prefix) says how many seconds to wait before
+starting the screenshotting process.
+
+The `message-screenshot-command' variable says what command is
+used to take the screenshot."
+  (interactive "p")
+  (unless (executable-find (car message-screenshot-command))
+    (error "Can't find %s to take the screenshot"
+	   (car message-screenshot-command)))
+  (cl-decf delay)
+  (unless (zerop delay)
+    (dotimes (i delay)
+      (message "Sleeping %d second%s..."
+	       (- delay i)
+	       (if (= (- delay i) 1)
+		   ""
+		 "s"))
+      (sleep-for 1)))
+  (message "Take screenshot")
+  (let ((image
+	 (with-temp-buffer
+	   (set-buffer-multibyte nil)
+	   (apply #'call-process
+		  (car message-screenshot-command) nil (current-buffer) nil
+		  (cdr message-screenshot-command))
+	   (buffer-string))))
+    (set-mark (point))
+    (insert-image
+     (create-image image 'png t
+		   :max-width (truncate (* (frame-pixel-width) 0.8))
+		   :max-height (truncate (* (frame-pixel-height) 0.8))
+		   :scale 1)
+     (format "<#part type=\"image/png\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+	     ;; Get a base64 version of the image -- this avoids later
+	     ;; complications if we're auto-saving the buffer and
+	     ;; restoring from a file.
+	     (with-temp-buffer
+	       (set-buffer-multibyte nil)
+	       (insert image)
+	       (base64-encode-region (point-min) (point-max) t)
+	       (buffer-string))))
+    (insert "\n\n")
+    (message "")))
+
+(declare-function gnus-url-unhex-string "gnus-util")
+
+(defun message-parse-mailto-url (url)
+  "Parse a mailto: url."
+  (setq url (replace-regexp-in-string "\n" " " url))
+  (when (string-match "mailto:/*\\(.*\\)" url)
+    (setq url (substring url (match-beginning 1) nil)))
+  (setq url (if (string-match "^\\?" url)
+		(substring url 1)
+	      (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
+		  (concat "to=" (match-string 1 url) "&"
+			  (match-string 2 url))
+		(concat "to=" url))))
+  (let (retval pairs cur key val)
+    (setq pairs (split-string url "&"))
+    (while pairs
+      (setq cur (car pairs)
+	    pairs (cdr pairs))
+      (if (not (string-match "=" cur))
+	  nil                           ; Grace
+	(setq key (downcase (gnus-url-unhex-string
+			     (substring cur 0 (match-beginning 0))))
+	      val (gnus-url-unhex-string (substring cur (match-end 0) nil) t))
+	(setq cur (assoc key retval))
+	(if cur
+	    (setcdr cur (cons val (cdr cur)))
+	  (setq retval (cons (list key val) retval)))))
+    retval))
+
+;;;###autoload
+(defun message-mailto ()
+  "Command to parse command line mailto: links.
+This is meant to be used for MIME handlers: Setting the handler
+for \"x-scheme-handler/mailto;\" to \"emacs -f message-mailto %u\"
+will then start up Emacs ready to compose mail."
+  (interactive)
+  ;; <a href="mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body">Send email</a>
+  (message-mail)
+  (message-mailto-1 (pop command-line-args-left)))
+
+(defun message-mailto-1 (url)
+  (let ((args (message-parse-mailto-url url)))
+    (dolist (arg args)
+      (unless (equal (car arg) "body")
+	(message-position-on-field (capitalize (car arg)))
+	(insert (replace-regexp-in-string
+		 "\r\n" "\n"
+		 (mapconcat #'identity (reverse (cdr arg)) ", ") nil t))))
+    (when (assoc "body" args)
+      (message-goto-body)
+      (dolist (body (cdr (assoc "body" args)))
+	(insert body "\n")))
+    (if (assoc "subject" args)
+	(message-goto-body)
+      (message-goto-subject))))
 
 (provide 'message)
 

@@ -84,10 +84,6 @@ To add a new module function, proceed as follows:
 #include <stdlib.h>
 #include <time.h>
 
-#ifdef HAVE_SANITIZER_LSAN_INTERFACE_H
-#include <sanitizer/lsan_interface.h>
-#endif
-
 #include "lisp.h"
 #include "bignum.h"
 #include "dynlib.h"
@@ -1103,9 +1099,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   if (module_assertions)
     {
       rt = xmalloc (sizeof *rt);
-#ifdef HAVE___LSAN_IGNORE_OBJECT
       __lsan_ignore_object (rt);
-#endif
     }
   else
     rt = &rt_pub;
@@ -1426,9 +1420,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   if (module_assertions)
     {
       env = xmalloc (sizeof *env);
-#ifdef HAVE___LSAN_IGNORE_OBJECT
       __lsan_ignore_object (env);
-#endif
     }
 
   priv->pending_non_local_exit = emacs_funcall_exit_return;

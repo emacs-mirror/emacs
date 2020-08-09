@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include "lisp.h"
-#include "ptr-bounds.h"
 #include "termchar.h"
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
@@ -4891,12 +4890,6 @@ scrolling (struct frame *frame)
   unsigned *new_hash = old_hash + height;
   int *draw_cost = (int *) (new_hash + height);
   int *old_draw_cost = draw_cost + height;
-  old_hash = ptr_bounds_clip (old_hash, height * sizeof *old_hash);
-  new_hash = ptr_bounds_clip (new_hash, height * sizeof *new_hash);
-  draw_cost = ptr_bounds_clip (draw_cost, height * sizeof *draw_cost);
-  old_draw_cost = ptr_bounds_clip (old_draw_cost,
-				   height * sizeof *old_draw_cost);
-
   eassert (current_matrix);
 
   /* Compute hash codes of all the lines.  Also calculate number of

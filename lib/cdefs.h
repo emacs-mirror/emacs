@@ -401,7 +401,7 @@
 # endif
 #endif
 
-#if __GNUC__ >= 3
+#if (__GNUC__ >= 3) || (__clang_major__ >= 4)
 # define __glibc_unlikely(cond)	__builtin_expect ((cond), 0)
 # define __glibc_likely(cond)	__builtin_expect ((cond), 1)
 #else

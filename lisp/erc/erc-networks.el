@@ -812,7 +812,7 @@ As an example:
   (let* ((completion-ignore-case t)
 	 (net (intern
 	       (completing-read "Network: "
-				(erc-delete-dups
+				(delete-dups
 				 (mapcar (lambda (x)
 					   (list (symbol-name (nth 1 x))))
 					 erc-server-alist)))))

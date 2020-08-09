@@ -640,6 +640,7 @@ typedef id instancetype;
   unsigned long xbm_fg;
 @public
   NSAffineTransform *transform;
+  BOOL smoothing;
 }
 + (instancetype)allocInitFromFile: (Lisp_Object)file;
 - (void)dealloc;
@@ -658,6 +659,7 @@ typedef id instancetype;
 - (Lisp_Object)getMetadata;
 - (BOOL)setFrame: (unsigned int) index;
 - (void)setTransform: (double[3][3]) m;
+- (void)setSmoothing: (BOOL)s;
 @end
 
 
@@ -1200,6 +1202,7 @@ extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
 extern void ns_image_set_size (void *img, int width, int height);
 extern void ns_image_set_transform (void *img, double m[3][3]);
+extern void ns_image_set_smoothing (void *img, bool smooth);
 extern unsigned long ns_get_pixel (void *img, int x, int y);
 extern void ns_put_pixel (void *img, int x, int y, unsigned long argb);
 extern void ns_set_alpha (void *img, int x, int y, unsigned char a);

@@ -67,7 +67,7 @@
 
 (defconst scss-at-ids
   '("at-root" "content" "debug" "each" "else" "else if" "error" "extend"
-    "for" "function" "if" "import" "include" "mixin" "return" "warn"
+    "for" "function" "if" "import" "include" "mixin" "return" "use" "warn"
     "while")
   "Additional identifiers that appear in the form @foo in SCSS.")
 

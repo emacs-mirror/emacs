@@ -1166,7 +1166,9 @@ Save the result in `project-list-file' if the list of projects has changed."
   (project--ensure-read-project-list)
   (let ((dir (project-root pr)))
     (unless (equal (caar project--list) dir)
-      (setq project--list (assoc-delete-all dir project--list))
+      (dolist (ent project--list)
+        (when (equal dir (car ent))
+          (setq project--list (delq ent project--list))))
       (push (list dir) project--list)
       (project--write-project-list))))
 
@@ -1176,8 +1178,8 @@ If the directory was in the list before the removal, save the
 result in `project-list-file'.  Announce the project's removal
 from the list."
   (project--ensure-read-project-list)
-  (when (assoc pr-dir project--list)
-    (setq project--list (assoc-delete-all pr-dir project--list))
+  (when-let ((ent (assoc pr-dir project--list)))
+    (setq project--list (delq ent project--list))
     (message "Project `%s' not found; removed from list" pr-dir)
     (project--write-project-list)))
 

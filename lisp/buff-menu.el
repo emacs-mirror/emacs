@@ -69,11 +69,26 @@ minus `Buffer-menu-size-width'.  This use is deprecated."
 			"use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead."
 			"24.3")
 
-(defcustom Buffer-menu-name-width 19
-  "Width of buffer name column in the Buffer Menu."
-  :type 'number
+(defun Buffer-menu--dynamic-name-width (buffers)
+  "Return a name column width based on the current window width.
+The width will never exceed the actual width of the buffer names,
+but will never be narrower than 19 characters."
+  (max 19
+       ;; This gives 19 on an 80 column window, and take up
+       ;; proportionally more space as the window widens.
+       (min (truncate (/ (window-width) 4.2))
+            (apply #'max 0 (mapcar (lambda (b)
+                                     (length (buffer-name b)))
+                                   buffers)))))
+
+(defcustom Buffer-menu-name-width #'Buffer-menu--dynamic-name-width
+  "Width of buffer name column in the Buffer Menu.
+This can either be a number (used directly) or a function that
+will be called with the list of buffers and should return a
+number."
+  :type '(choice function number)
   :group 'Buffer-menu
-  :version "24.3")
+  :version "28.1")
 
 (defcustom Buffer-menu-size-width 7
   "Width of buffer size column in the Buffer Menu."
@@ -488,8 +503,9 @@ Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted
 (defun Buffer-menu-select ()
   "Select this line's buffer; also, display buffers marked with `>'.
 You can mark buffers with the \\<Buffer-menu-mode-map>`\\[Buffer-menu-mark]' command.
+
 This command deletes and replaces all the previously existing windows
-in the selected frame."
+in the selected frame, and will remove any marks."
   (interactive)
   (let* ((this-buffer (Buffer-menu-buffer t))
 	 (menu-buffer (current-buffer))
@@ -645,25 +661,11 @@ means list those buffers and no others."
 
 (defun list-buffers--refresh (&optional buffer-list old-buffer)
   ;; Set up `tabulated-list-format'.
-  (let ((name-width Buffer-menu-name-width)
-	(size-width Buffer-menu-size-width)
+  (let ((size-width Buffer-menu-size-width)
         (marked-buffers (Buffer-menu-marked-buffers))
         (buffer-menu-buffer (current-buffer))
 	(show-non-file (not Buffer-menu-files-only))
-	entries)
-    ;; Handle obsolete variable:
-    (if Buffer-menu-buffer+size-width
-	(setq name-width (- Buffer-menu-buffer+size-width size-width)))
-    (setq tabulated-list-format
-	  (vector '("C" 1 t :pad-right 0)
-		  '("R" 1 t :pad-right 0)
-		  '("M" 1 t)
-		  `("Buffer" ,name-width t)
-		  `("Size" ,size-width tabulated-list-entry-size->
-                    :right-align t)
-		  `("Mode" ,Buffer-menu-mode-width t)
-		  '("File" 1 t)))
-    (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
+	entries name-width)
     ;; Collect info for each buffer we're interested in.
     (dolist (buffer (or buffer-list
 			(buffer-list (if Buffer-menu-use-frame-buffer-list
@@ -693,6 +695,22 @@ means list those buffers and no others."
 							      nil nil buffer)))
 				(Buffer-menu--pretty-file-name file)))
 		  entries)))))
+    (setq name-width (if (functionp Buffer-menu-name-width)
+                         (funcall Buffer-menu-name-width (mapcar #'car entries))
+                       Buffer-menu-name-width))
+    ;; Handle obsolete variable:
+    (if Buffer-menu-buffer+size-width
+	(setq name-width (- Buffer-menu-buffer+size-width size-width)))
+    (setq tabulated-list-format
+	  (vector '("C" 1 t :pad-right 0)
+		  '("R" 1 t :pad-right 0)
+		  '("M" 1 t)
+		  `("Buffer" ,name-width t)
+		  `("Size" ,size-width tabulated-list-entry-size->
+                    :right-align t)
+		  `("Mode" ,Buffer-menu-mode-width t)
+		  '("File" 1 t)))
+    (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
     (setq tabulated-list-entries (nreverse entries)))
   (tabulated-list-init-header))
 

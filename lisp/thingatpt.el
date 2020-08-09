@@ -334,7 +334,7 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
       ;; may contain parentheses but may not contain spaces (RFC3986).
       (let* ((allowed-chars "--:=&?$+@-Z_[:alpha:]~#,%;*()!'")
 	     (skip-before "^[0-9a-zA-Z]")
-	     (skip-after  ":;.,!?")
+	     (skip-after  ":;.,!?'")
 	     (pt (point))
 	     (beg (save-excursion
 		    (skip-chars-backward allowed-chars)

@@ -5572,6 +5572,15 @@ The value, @var{width}, specifies the width of the image, in pixels.
 @item :height @var{height}
 The value, @var{height}, specifies the height of the image, in pixels.
 
+Note that @code{:width} and @code{:height} can only be used if passing
+in data that doesn't specify the width and height (e.g., a string or a
+vector containing the bits of the image).  @acronym{XBM} files usually
+specify this themselves, and it's an error to use these two properties
+on these files.  Also note that @code{:width} and @code{:height} are
+used by most other image formats to specify what the displayed image
+is supposed to be, which usually means performing some sort of
+scaling.  This isn't supported for @acronym{XBM} images.
+
 @item :stride @var{stride}
 The number of bool vector entries stored for each row; the smallest
 multiple of 8 greater than or equal to @var{width}.

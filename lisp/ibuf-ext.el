@@ -504,7 +504,7 @@ format.  See `ibuffer-update-saved-filters-format' and
   (ibuffer-forward-line 0))
 
 (defun ibuffer--maybe-erase-shell-cmd-output ()
-  (let ((buf (get-buffer "*Shell Command Output*")))
+  (let ((buf (get-buffer shell-command-buffer-name)))
     (when (and (buffer-live-p buf)
                (not shell-command-dont-erase-buffer)
                (not (zerop (buffer-size buf))))
@@ -517,7 +517,7 @@ format.  See `ibuffer-update-saved-filters-format' and
    :opstring "Shell command executed on"
    :before (ibuffer--maybe-erase-shell-cmd-output)
    :modifier-p nil)
-  (let ((out-buf (get-buffer-create "*Shell Command Output*")))
+  (let ((out-buf (get-buffer-create shell-command-buffer-name)))
     (with-current-buffer out-buf (goto-char (point-max)))
     (call-shell-region (point-min) (point-max)
                        command nil out-buf)))
@@ -542,7 +542,7 @@ format.  See `ibuffer-update-saved-filters-format' and
    :modifier-p nil)
   (let ((file (and (not (buffer-modified-p))
                    buffer-file-name))
-        (out-buf (get-buffer-create "*Shell Command Output*")))
+        (out-buf (get-buffer-create shell-command-buffer-name)))
     (unless (and file (file-exists-p file))
       (setq file
             (make-temp-file
