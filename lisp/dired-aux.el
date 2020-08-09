@@ -688,7 +688,7 @@ are executed in the background on each file sequentially waiting
 for each command to terminate before running the next command.
 In shell syntax this means separating the individual commands with `;'.
 
-The output appears in the buffer `*Async Shell Command*'."
+The output appears in the buffer `shell-command-buffer-name-async'."
   (interactive
    (let ((files (dired-get-marked-files t current-prefix-arg nil nil t)))
      (list
@@ -727,7 +727,7 @@ it, write `*\"\"' in place of just `*'.  This is equivalent to just
 
 If COMMAND ends in `&', `;', or `;&', it is executed in the
 background asynchronously, and the output appears in the buffer
-`*Async Shell Command*'.  When operating on multiple files and COMMAND
+`shell-command-buffer-name-async'.  When operating on multiple files and COMMAND
 ends in `&', the shell command is executed on each file in parallel.
 However, when COMMAND ends in `;' or `;&' then commands are executed
 in the background on each file sequentially waiting for each command
@@ -735,7 +735,7 @@ to terminate before running the next command.  You can also use
 `dired-do-async-shell-command' that automatically adds `&'.
 
 Otherwise, COMMAND is executed synchronously, and the output
-appears in the buffer `*Shell Command Output*'.
+appears in the buffer `shell-command-buffer-name'.
 
 This feature does not try to redisplay Dired buffers afterward, as
 there's no telling what files COMMAND may have changed.

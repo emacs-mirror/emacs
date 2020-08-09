@@ -12284,7 +12284,7 @@ no matter what the properties `:decode' and `:headers' are."
   (interactive (gnus-interactive "P\ny"))
   (require 'gnus-art)
   (let* ((articles (gnus-summary-work-articles n))
-	 (result-buffer "*Shell Command Output*")
+	 (result-buffer shell-command-buffer-name)
 	 (all-headers (not (memq sym '(nil r))))
 	 (gnus-save-all-headers (or all-headers gnus-save-all-headers))
 	 (raw (eq sym 'r))

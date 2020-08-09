@@ -3815,8 +3815,8 @@ support symbolic links."
 	    (current-buffer))
 	   (t (get-buffer-create
 	       (if asynchronous
-		   "*Async Shell Command*"
-		 "*Shell Command Output*")))))
+		   shell-command-buffer-name-async
+		 shell-command-buffer-name)))))
 	 (error-buffer
 	  (cond
 	   ((bufferp error-buffer) error-buffer)
