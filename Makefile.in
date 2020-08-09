@@ -714,6 +714,13 @@ install-etc:
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"; \
 	rm -f $${tmp}
+	tmp=etc/emacsclient.tmpdesktop; rm -f $${tmp}; \
+	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
+	sed -e "/^Exec=emacsclient/ s|emacsclient|${bindir}/$${client_name}|" \
+	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
+	  ${srcdir}/etc/emacsclient.desktop > $${tmp}; \
+	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/$${client_name}.desktop"; \
+	rm -f $${tmp}
 	umask 022; ${MKDIR_P} "$(DESTDIR)${appdatadir}"
 	tmp=etc/emacs.tmpappdata; rm -f $${tmp}; \
 	sed -e "s/emacs\.desktop/${EMACS_NAME}.desktop/" \
