@@ -209,7 +209,6 @@ Returns nil if nothing was entered."
 
 (defun solar-setup ()
   "Prompt for `calendar-longitude', `calendar-latitude', `calendar-time-zone'."
-  (beep)
   (or calendar-longitude
       (setq calendar-longitude
             (solar-get-number
