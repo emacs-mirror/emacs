@@ -479,9 +479,7 @@ lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
     {
       intmax_t low = TYPE_MINIMUM (json_int_t);
       intmax_t high = TYPE_MAXIMUM (json_int_t);
-      intmax_t value;
-      if (! (integer_to_intmax (lisp, &value) && low <= value && value <= high))
-        args_out_of_range_3 (lisp, make_int (low), make_int (high));
+      intmax_t value = check_integer_range (lisp, low, high);
       return json_check (json_integer (value));
     }
   else if (FLOATP (lisp))
