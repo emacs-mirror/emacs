@@ -4230,7 +4230,6 @@ must tell Emacs.  Here's how to do that in your init file:
   ;; escaped apostrophes within strings:
   (setq-local syntax-propertize-function
               sql--syntax-propertize-escaped-apostrophe)
-  (setq-local parse-sexp-lookup-properties t) ; just to make sure it is used
   ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
   (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591
