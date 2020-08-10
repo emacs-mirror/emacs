@@ -1508,22 +1508,6 @@ Based on `comint-mode-map'.")
     table)
   "Syntax table used in `sql-mode' and `sql-interactive-mode'.")
 
-;;; Syntax Properties
-
-;; `sql--syntax-propertize-escaped-apostrophe', as follows, was
-;; (analysed and) adapted from `pascal--syntax-propertize' in
-;; pascal.el because basic syntax parsing cannot handle the SQL ''
-;; construct within strings.
-
-(defconst sql--syntax-propertize-escaped-apostrophe
-  (syntax-propertize-rules
-   ("''"
-    (0
-     (if (save-excursion (nth 3 (syntax-ppss (match-beginning 0))))
-	 (string-to-syntax ".")
-       (forward-char -1)
-       nil)))))
-
 ;; Font lock support
 
 (defvar sql-mode-font-lock-object-name
@@ -4226,10 +4210,18 @@ must tell Emacs.  Here's how to do that in your init file:
   (setq-local abbrev-all-caps 1)
   ;; Contains the name of database objects
   (set (make-local-variable 'sql-contains-names) t)
-  ;; Activate punctuation syntax table property for
-  ;; escaped apostrophes within strings:
   (setq-local syntax-propertize-function
-              sql--syntax-propertize-escaped-apostrophe)
+              (syntax-propertize-rules
+               ;; Handle escaped apostrophes within strings.
+               ("''"
+                (0
+                 (if (save-excursion (nth 3 (syntax-ppss (match-beginning 0))))
+	             (string-to-syntax ".")
+                   (forward-char -1)
+                   nil)))
+               ;; Propertize rules to not have /- and -* start comments.
+               ("\\(/-\\)" (1 "."))
+               ("\\(-\\*\\)" (1 "."))))
   ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
   (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591
