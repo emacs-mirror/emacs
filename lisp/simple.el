@@ -1619,6 +1619,10 @@ display the result of expression evaluation."
   "Hook run by `eval-expression' when entering the minibuffer.")
 
 (defun read--expression (prompt &optional initial-contents)
+  "Read an Emacs Lisp expression from the minibuffer.
+
+PROMPT and optional argument INITIAL-CONTENTS do the same as in
+function `read-from-minibuffer'."
   (let ((minibuffer-completing-symbol t))
     (minibuffer-with-setup-hook
         (lambda ()
@@ -1629,10 +1633,51 @@ display the result of expression evaluation."
           (set-syntax-table emacs-lisp-mode-syntax-table)
           (add-hook 'completion-at-point-functions
                     #'elisp-completion-at-point nil t)
+          (local-set-key "\r" 'read--expression-try-read)
+          (local-set-key "\n" 'read--expression-try-read)
           (run-hooks 'eval-expression-minibuffer-setup-hook))
       (read-from-minibuffer prompt initial-contents
                             read-expression-map t
                             'read-expression-history))))
+
+(defun read--expression-try-read ()
+  "Try to read an Emacs Lisp expression in the minibuffer.
+
+Exit the minibuffer if successful, else report the error to the
+user and move point to the location of the error.  If point is
+not already at the location of the error, push a mark before
+moving point."
+  (interactive)
+  (unless (> (minibuffer-depth) 0)
+    (error "Minibuffer must be active"))
+  (if (let* ((contents (minibuffer-contents))
+             (error-point nil))
+        (with-temp-buffer
+          (condition-case err
+              (progn
+                (insert contents)
+                (goto-char (point-min))
+                ;; `read' will signal errors like "End of file during
+                ;; parsing" and "Invalid read syntax".
+                (read (current-buffer))
+                ;; Since `read' does not signal the "Trailing garbage
+                ;; following expression" error, we check for trailing
+                ;; garbage ourselves.
+                (or (progn
+                      ;; This check is similar to what `string_to_object'
+                      ;; does in minibuf.c.
+                      (skip-chars-forward " \t\n")
+                      (= (point) (point-max)))
+                    (error "Trailing garbage following expression")))
+            (error
+             (setq error-point (+ (length (minibuffer-prompt)) (point)))
+             (with-current-buffer (window-buffer (minibuffer-window))
+               (unless (= (point) error-point)
+                 (push-mark))
+               (goto-char error-point)
+               (minibuffer-message (error-message-string err)))
+             nil))))
+      (exit-minibuffer)))
 
 (defun eval-expression-get-print-arguments (prefix-argument)
   "Get arguments for commands that print an expression result.

@@ -101,6 +101,13 @@ deprecated.  Errors in the Inscript method were corrected.
 
 * Editing Changes in Emacs 28.1
 
+---
+** 'eval-expression' now no longer signals an error on incomplete expressions.
+Previously, typing 'M-: ( RET' would result in Emacs saying "End of
+file during parsing" and dropping out of the minibuffer.  The user
+would have to type 'M-: M-p' to edit and redo the expression.  Now
+Emacs will echo the message and allow the user to continue editing.
+
 +++
 ** New command 'undo-redo'.
 It undoes previous undo commands, but doesn't record itself as an
