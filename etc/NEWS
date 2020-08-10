@@ -98,6 +98,10 @@ dimension.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.
 
+---
+** Rudimentary support for the 'st' terminal emulator.
+Emacs now supports 256 color display on the 'st' terminal emulator.
+
 
 * Editing Changes in Emacs 28.1
 
