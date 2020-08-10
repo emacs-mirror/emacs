@@ -1971,6 +1971,42 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w,
     x_clear_glyph_string_rect (s, x, y, w, h);
 }
 
+static void
+x_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
+		 int src_x, int src_y, int width, int height,
+		 int dest_x, int dest_y, bool overlay_p)
+{
+  cairo_t *cr = pgtk_begin_cr_clip (f);
+
+  if (overlay_p)
+    cairo_rectangle (cr, dest_x, dest_y, width, height);
+  else
+    {
+      pgtk_set_cr_source_with_gc_background (f, gc);
+      cairo_rectangle (cr, dest_x, dest_y, width, height);
+      cairo_fill_preserve (cr);
+    }
+
+  cairo_translate (cr, dest_x - src_x, dest_y - src_y);
+
+  cairo_surface_t *surface;
+  cairo_pattern_get_surface (image, &surface);
+  cairo_format_t format = cairo_image_surface_get_format (surface);
+  if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
+    {
+      cairo_set_source (cr, image);
+      cairo_fill (cr);
+    }
+  else
+    {
+      pgtk_set_cr_source_with_gc_foreground (f, gc);
+      cairo_clip (cr);
+      cairo_mask (cr, image);
+    }
+
+  pgtk_end_cr_clip (f);
+}
+
 /* Draw foreground of image glyph string S.  */
 
 static void
@@ -1982,7 +2018,8 @@ x_draw_image_foreground (struct glyph_string *s)
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p && s->slice.x == 0)
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
     x += max (s->face->box_vertical_line_width, 0);
 
   /* If there is a margin around the image, adjust x- and y-position
@@ -1992,9 +2029,35 @@ x_draw_image_foreground (struct glyph_string *s)
   if (s->slice.y == 0)
     y += s->img->vmargin;
 
-  /* Draw a rectangle if image could not be loaded.  */
-  pgtk_draw_rectangle (s->f, s->xgcv.foreground, x, y,
-		       s->slice.width - 1, s->slice.height - 1);
+  if (s->img->cr_data)
+    {
+      cairo_t *cr = pgtk_begin_cr_clip (s->f);
+      x_set_glyph_string_clipping (s, cr);
+      x_cr_draw_image (s->f, &s->xgcv, s->img->cr_data,
+		       s->slice.x, s->slice.y, s->slice.width, s->slice.height,
+		       x, y, true);
+      if (!s->img->mask)
+	{
+	  /* When the image has a mask, we can expect that at
+	     least part of a mouse highlight or a block cursor will
+	     be visible.  If the image doesn't have a mask, make
+	     a block cursor visible by drawing a rectangle around
+	     the image.  I believe it's looking better if we do
+	     nothing here for mouse-face.  */
+	  if (s->hl == DRAW_CURSOR)
+	    {
+	      int relief = eabs (s->img->relief);
+	      pgtk_draw_rectangle (s->f, s->xgcv.foreground, x - relief, y - relief,
+				   s->slice.width + relief*2 - 1,
+				   s->slice.height + relief*2 - 1);
+	    }
+	}
+      pgtk_end_cr_clip (s->f);
+    }
+  else
+    /* Draw a rectangle if image could not be loaded.  */
+    pgtk_draw_rectangle (s->f, s->xgcv.foreground, x, y,
+			 s->slice.width - 1, s->slice.height - 1);
 }
 
 /* Draw image glyph string S.
@@ -2033,19 +2096,15 @@ x_draw_image_glyph_string (struct glyph_string *s)
       || s->img->vmargin
       || s->img->mask
       || s->img->pixmap == 0
-      || s->stippled_p || s->width != s->background_width)
+      || s->width != s->background_width)
     {
-      if (s->img->mask)
-	{
-	  fill_background (s, s->x, s->y, s->background_width, s->height);
-	}
-      else
 	{
 	  int x = s->x;
 	  int y = s->y;
 	  int width = s->background_width;
 
-	  if (s->first_glyph->left_box_line_p && s->slice.x == 0)
+	  if (s->first_glyph->left_box_line_p
+	      && s->slice.x == 0)
 	    {
 	      x += box_line_hwidth;
 	      width -= box_line_hwidth;
@@ -2054,33 +2113,19 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	  if (s->slice.y == 0)
 	    y += box_line_vwidth;
 
-	  fill_background (s, x, y, width, height);
+	  x_draw_glyph_string_bg_rect (s, x, y, width, height);
 	}
 
       s->background_filled_p = true;
     }
 
   /* Draw the foreground.  */
-  if (s->img->cr_data)
-    {
-      cairo_t *cr = pgtk_begin_cr_clip (s->f);
-
-      int x = s->x + s->img->hmargin;
-      int y = s->y + s->img->vmargin;
-      int width = s->background_width;
-
-      cairo_translate (cr, x - s->slice.x, y - s->slice.y);
-      cairo_set_source (cr, s->img->cr_data);
-      cairo_rectangle (cr, 0, 0, width, height);
-      cairo_fill (cr);
-      pgtk_end_cr_clip (s->f);
-    }
-  else
-    x_draw_image_foreground (s);
+  x_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
   if (s->img->relief
-      || s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
+      || s->hl == DRAW_IMAGE_RAISED
+      || s->hl == DRAW_IMAGE_SUNKEN)
     x_draw_image_relief (s);
 }
 
