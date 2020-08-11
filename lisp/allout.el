@@ -2484,20 +2484,16 @@ Outermost is first."
              (allout-back-to-current-heading)
              (allout-end-of-current-line))
             (t
-             (if (not (allout-mark-active-p))
+             (if (not mark-active)
                  (push-mark))
              (allout-end-of-entry))))))
+
 ;;;_   > allout-mark-active-p ()
 (defun allout-mark-active-p ()
   "True if the mark is currently or always active."
-  ;; `(cond (boundp...))' (or `(if ...)') invokes special byte-compiler
-  ;; provisions, at least in GNU Emacs to prevent warnings about lack of,
-  ;; eg, region-active-p.
-  (cond ((boundp 'mark-active)
-         mark-active)
-        ((fboundp 'region-active-p)
-         (region-active-p))
-        (t)))
+  (declare (obsolete nil "28.1"))
+  mark-active)
+
 ;;;_   > allout-next-heading ()
 (defsubst allout-next-heading ()
   "Move to the heading for the topic (possibly invisible) after this one.
