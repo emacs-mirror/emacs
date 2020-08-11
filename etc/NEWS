@@ -222,6 +222,12 @@ like "+0100" instead of "CET".
 
 ** Dired
 
++++
+*** New used option 'dired-copy-dereference'.
+If set, Dired will dereferences symbolic links when copying.  This can
+be switched off on a per-usage basis by providing 'dired-do-copy' with
+a 'C-u' prefix.
+
 *** New user option 'dired-mark-region' affects all Dired commands
 that mark files.  When non-nil and the region is active in Transient
 Mark mode, then Dired commands operate only on files in the active

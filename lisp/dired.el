@@ -216,6 +216,12 @@ The target is used in the prompt for file copy, rename etc."
   :type 'boolean
   :group 'dired)
 
+(defcustom dired-copy-dereference nil
+  "If non-nil, Dired dereferences symlinks when copying them.
+This is similar to the \"-L\" option for the \"cp\" shell command."
+  :type 'boolean
+  :group 'dired)
+                                        ;
 ; These variables were deleted and the replacements are on files.el.
 ; We leave aliases behind for back-compatibility.
 (define-obsolete-variable-alias 'dired-free-space-program

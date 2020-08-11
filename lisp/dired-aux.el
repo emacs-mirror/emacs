@@ -1604,7 +1604,7 @@ Special value `always' suppresses confirmation."
 (defun dired-copy-file (from to ok-flag)
   (dired-handle-overwrite to)
   (dired-copy-file-recursive from to ok-flag dired-copy-preserve-time t
-			     dired-recursive-copies))
+                             dired-recursive-copies dired-copy-dereference))
 
 (declare-function make-symbolic-link "fileio.c")
 
@@ -1627,7 +1627,8 @@ If `ask', ask for user confirmation."
         (dired-create-directory dir))))
 
 (defun dired-copy-file-recursive (from to ok-flag &optional
-				       preserve-time top recursive)
+                                       preserve-time top recursive
+                                       dereference)
   (when (and (eq t (file-attribute-type (file-attributes from)))
 	     (file-in-directory-p to from))
     (error "Cannot copy `%s' into its subdirectory `%s'" from to))
@@ -1639,7 +1640,8 @@ If `ask', ask for user confirmation."
 	(copy-directory from to preserve-time)
       (or top (dired-handle-overwrite to))
       (condition-case err
-	  (if (stringp (file-attribute-type attrs))
+	  (if (and (not dereference)
+                   (stringp (file-attribute-type attrs)))
 	      ;; It is a symlink
 	      (make-symbolic-link (file-attribute-type attrs) to ok-flag)
             (dired-maybe-create-dirs (file-name-directory to))
@@ -2165,6 +2167,9 @@ See HOW-TO argument for `dired-do-create-files'.")
 ;;;###autoload
 (defun dired-do-copy (&optional arg)
   "Copy all marked (or next ARG) files, or copy the current file.
+ARG has to be numeric for above functionality.  See
+`dired-get-marked-files' for more details.
+
 When operating on just the current file, prompt for the new name.
 
 When operating on multiple or marked files, prompt for a target
@@ -2178,10 +2183,18 @@ If `dired-copy-preserve-time' is non-nil, this command preserves
 the modification time of each old file in the copy, similar to
 the \"-p\" option for the \"cp\" shell command.
 
-This command copies symbolic links by creating new ones, similar
-to the \"-d\" option for the \"cp\" shell command."
+This command copies symbolic links by creating new ones,
+similar to the \"-d\" option for the \"cp\" shell command.
+But if `dired-copy-dereference' is non-nil, the symbolic
+links are dereferenced and then copied, similar to the \"-L\"
+option for the \"cp\" shell command.  If ARG is a cons with
+element 4 (`\\[universal-argument]'), the inverted value of
+`dired-copy-dereference' will be used."
   (interactive "P")
-  (let ((dired-recursive-copies dired-recursive-copies))
+  (let ((dired-recursive-copies dired-recursive-copies)
+        (dired-copy-dereference (if (equal arg '(4))
+                                    (not dired-copy-dereference)
+                                  dired-copy-dereference)))
     (dired-do-create-files 'copy #'dired-copy-file
 			   "Copy"
 			   arg dired-keep-marker-copy
