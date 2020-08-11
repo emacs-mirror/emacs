@@ -964,11 +964,9 @@ dump_queue_init (struct dump_queue *dump_queue)
 static bool
 dump_queue_empty_p (struct dump_queue *dump_queue)
 {
-  bool is_empty =
-    EQ (Fhash_table_count (dump_queue->sequence_numbers),
-        make_fixnum (0));
-  eassert (EQ (Fhash_table_count (dump_queue->sequence_numbers),
-               Fhash_table_count (dump_queue->link_weights)));
+  ptrdiff_t count = XHASH_TABLE (dump_queue->sequence_numbers)->count;
+  bool is_empty = count == 0;
+  eassert (count == XFIXNAT (Fhash_table_count (dump_queue->link_weights)));
   if (!is_empty)
     {
       eassert (!dump_tailq_empty_p (&dump_queue->zero_weight_objects)
@@ -2643,7 +2641,7 @@ hash_table_contents (struct Lisp_Hash_Table *h)
 static dump_off
 dump_hash_table_list (struct dump_context *ctx)
 {
-  if (CONSP (ctx->hash_tables))
+  if (!NILP (ctx->hash_tables))
     return dump_object (ctx, CALLN (Fapply, Qvector, ctx->hash_tables));
   else
     return 0;
@@ -2652,20 +2650,20 @@ dump_hash_table_list (struct dump_context *ctx)
 static void
 hash_table_freeze (struct Lisp_Hash_Table *h)
 {
-  ptrdiff_t nkeys = XFIXNAT (Flength (h->key_and_value)) / 2;
+  ptrdiff_t npairs = ASIZE (h->key_and_value) / 2;
   h->key_and_value = hash_table_contents (h);
-  h->next_free = (nkeys == h->count ? -1 : h->count);
-  h->index = Flength (h->index);
-  h->next = h->hash = make_fixnum (nkeys);
+  h->next = h->hash = make_fixnum (npairs);
+  h->index = make_fixnum (ASIZE (h->index));
+  h->next_free = (npairs == h->count ? -1 : h->count);
 }
 
 static void
 hash_table_thaw (Lisp_Object hash)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
-  h->index = Fmake_vector (h->index, make_fixnum (-1));
-  h->hash = Fmake_vector (h->hash, Qnil);
+  h->hash = make_nil_vector (XFIXNUM (h->hash));
   h->next = Fmake_vector (h->next, make_fixnum (-1));
+  h->index = Fmake_vector (h->index, make_fixnum (-1));
 
   hash_table_rehash (hash);
 }
