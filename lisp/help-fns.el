@@ -364,6 +364,7 @@ suitable file is found, return nil."
 	  (help-C-file-name type 'subr)
 	'C-source))
      ((and (not file-name) (symbolp object)
+           (eq type 'defvar)
 	   (integerp (get object 'variable-documentation)))
       ;; A variable defined in C.  The form is from `describe-variable'.
       (if (get-buffer " *DOC*")
