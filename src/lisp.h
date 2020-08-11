@@ -3947,7 +3947,8 @@ make_uninit_sub_char_table (int depth, int min_char)
   return v;
 }
 
-/* Make a vector of SIZE nils.  */
+/* Make a vector of SIZE nils - faster than make_vector (size, Qnil)
+   if the OS already cleared the new memory.  */
 
 INLINE Lisp_Object
 make_nil_vector (ptrdiff_t size)

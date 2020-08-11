@@ -2664,7 +2664,9 @@ static void
 hash_table_thaw (Lisp_Object hash)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
-  h->hash = Fmake_vector (h->hash, Qnil);
+  ALLOW_IMPLICIT_CONVERSION;
+  h->hash = make_nil_vector (XFIXNUM (h->hash));
+  DISALLOW_IMPLICIT_CONVERSION;
   h->next = Fmake_vector (h->next, make_fixnum (-1));
   h->index = Fmake_vector (h->index, make_fixnum (-1));
 

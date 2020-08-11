@@ -2048,7 +2048,7 @@ syms_of_timefns (void)
   defsubr (&Scurrent_time_zone);
   defsubr (&Sset_time_zone_rule);
 
-  flt_radix_power = make_vector (flt_radix_power_size, Qnil);
+  flt_radix_power = make_nil_vector (flt_radix_power_size);
   staticpro (&flt_radix_power);
 
 #ifdef NEED_ZTRILLION_INIT
