@@ -3814,9 +3814,12 @@ support symbolic links."
 	    (setq current-buffer-p t)
 	    (current-buffer))
 	   (t (get-buffer-create
+	       ;; These variables have been introduced with Emacs 28.1.
 	       (if asynchronous
-		   shell-command-buffer-name-async
-		 shell-command-buffer-name)))))
+		   (or (bound-and-true-p shell-command-buffer-name-async)
+		       "*Async Shell Command*")
+		 (or (bound-and-true-p shell-command-buffer-name)
+		     "*Shell Command Output*"))))))
 	 (error-buffer
 	  (cond
 	   ((bufferp error-buffer) error-buffer)
