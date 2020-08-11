@@ -5448,11 +5448,9 @@ header and body.  The elements of that list are:
 				 (cdr format)))))))
       ;; Put the list with first at front, to last at back:
       (nreverse result))))
-;;;_   > allout-region-active-p ()
-(defmacro allout-region-active-p ()
-  (cond ((fboundp 'use-region-p) '(use-region-p))
-        ((fboundp 'region-active-p) '(region-active-p))
-        (t 'mark-active)))
+
+(define-obsolete-function-alias 'allout-region-active-p 'region-active-p "28.1")
+
 ;;_   > allout-process-exposed (&optional func from to frombuf
 ;;;					    tobuf format)
 (defun allout-process-exposed (&optional func from to frombuf tobuf
@@ -5485,7 +5483,7 @@ Defaults:
 					; defaulting if necessary:
   (if (not func) (setq func 'allout-insert-listified))
   (if (not (and from to))
-      (if (allout-region-active-p)
+      (if (region-active-p)
 	  (setq from (region-beginning) to (region-end))
 	(setq from (point-min) to (point-max))))
   (if frombuf
