@@ -207,12 +207,8 @@ Interactively, URL defaults to the string looking like a url around point."
   (let*
       ((xwidget-event-type (nth 1 last-input-event))
        (xwidget (nth 2 last-input-event))
-       ;;(xwidget-callback (xwidget-get xwidget 'callback))
-       ;;TODO stopped working for some reason
-       )
-    ;;(funcall  xwidget-callback xwidget xwidget-event-type)
-    (message "xw callback %s" xwidget)
-    (funcall  'xwidget-webkit-callback xwidget xwidget-event-type)))
+       (xwidget-callback (xwidget-get xwidget 'callback)))
+    (funcall xwidget-callback xwidget xwidget-event-type)))
 
 (defun xwidget-webkit-callback (xwidget xwidget-event-type)
   "Callback for xwidgets.
@@ -481,10 +477,11 @@ For example, use this to display an anchor."
   (add-to-list 'window-size-change-functions
                'xwidget-webkit-adjust-size-in-frame))
 
-(defun xwidget-webkit-new-session (url)
+(defun xwidget-webkit-new-session (url &optional callback)
   "Create a new webkit session buffer with URL."
   (let*
       ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
+       (callback (or callback #'xwidget-webkit-callback))
        xw)
     (setq xwidget-webkit-last-session-buffer (switch-to-buffer
                                               (get-buffer-create bufname)))
@@ -494,7 +491,7 @@ For example, use this to display an anchor."
     (setq xw (xwidget-insert 1 'webkit bufname
                              (window-pixel-width)
                              (window-pixel-height)))
-    (xwidget-put xw 'callback 'xwidget-webkit-callback)
+    (xwidget-put xw 'callback callback)
     (xwidget-webkit-mode)
     (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))
 
