@@ -4250,14 +4250,16 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
    Normally there's never a need to recompute hashes.
    This is done only on first access to a hash-table loaded from
    the "pdump", because the objects' addresses may have changed, thus
-   affecting their hash.  */
+   affecting their hashes.  */
 void
 hash_table_rehash (Lisp_Object hash)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
+  ptrdiff_t i, count = h->count;
+
   /* Recompute the actual hash codes for each entry in the table.
      Order is still invalid.  */
-  for (ptrdiff_t i = 0; i < h->count; ++i)
+  for (i = 0; i < count; i++)
     {
       Lisp_Object key = HASH_KEY (h, i);
       Lisp_Object hash_code = h->test.hashfn (key, h);
@@ -4268,7 +4270,8 @@ hash_table_rehash (Lisp_Object hash)
       eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
     }
 
-  for (ptrdiff_t i = h->count; i < ASIZE (h->next) - 1; i++)
+  ptrdiff_t size = ASIZE (h->next);
+  for (; i + 1 < size; i++)
     set_hash_next_slot (h, i, i + 1);
 }
 
@@ -4892,7 +4895,6 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
   (Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-
   return make_fixnum (h->count);
 }
 
