@@ -309,13 +309,6 @@ Must be set before loading use-package."
                          lisp-imenu-generic-expression)))))
   :group 'use-package)
 
-(defconst use-package-font-lock-keywords
-  '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
-     (1 font-lock-keyword-face)
-     (2 font-lock-constant-face nil t))))
-
-(font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
-
 (defcustom use-package-compute-statistics nil
   "If non-nil, compute statistics concerned use-package declarations.
 View the statistical report using `use-package-report'. Note that
