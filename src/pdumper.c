@@ -141,6 +141,9 @@ static int nr_remembered_data = 0;
 typedef int_least32_t dump_off;
 #define DUMP_OFF_MIN INT_LEAST32_MIN
 #define DUMP_OFF_MAX INT_LEAST32_MAX
+#define PRIdDUMP_OFF PRIdLEAST32
+
+enum { EMACS_INT_XDIGITS = (EMACS_INT_WIDTH + 3) / 4 };
 
 static void ATTRIBUTE_FORMAT ((printf, 1, 2))
 dump_trace (const char *fmt, ...)
@@ -553,8 +556,8 @@ struct dump_context
   /* List of hash tables that have been dumped.  */
   Lisp_Object hash_tables;
 
-  unsigned number_hot_relocations;
-  unsigned number_discardable_relocations;
+  dump_off number_hot_relocations;
+  dump_off number_discardable_relocations;
 };
 
 /* These special values for use as offsets in dump_remember_object and
@@ -1007,9 +1010,9 @@ dump_queue_enqueue (struct dump_queue *dump_queue,
   if (NILP (weights))
     {
       /* Object is new.  */
-      dump_trace ("new object %016x weight=%u\n",
-                  (unsigned) XLI (object),
-                  (unsigned) weight.value);
+      EMACS_UINT uobj = XLI (object);
+      dump_trace ("new object %0*"pI"x weight=%d\n", EMACS_INT_XDIGITS, uobj,
+		  weight.value);
 
       if (weight.value == WEIGHT_NONE.value)
         {
@@ -1224,17 +1227,15 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 	       + dump_tailq_length (&dump_queue->one_weight_normal_objects)
 	       + dump_tailq_length (&dump_queue->one_weight_strong_objects)));
 
-  bool dump_object_counts = true;
-  if (dump_object_counts)
-    dump_trace
-      ("dump_queue_dequeue basis=%d fancy=%u zero=%u "
-       "normal=%u strong=%u hash=%u\n",
-       basis,
-       (unsigned) dump_tailq_length (&dump_queue->fancy_weight_objects),
-       (unsigned) dump_tailq_length (&dump_queue->zero_weight_objects),
-       (unsigned) dump_tailq_length (&dump_queue->one_weight_normal_objects),
-       (unsigned) dump_tailq_length (&dump_queue->one_weight_strong_objects),
-       (unsigned) XFIXNUM (Fhash_table_count (dump_queue->link_weights)));
+  dump_trace
+    (("dump_queue_dequeue basis=%"PRIdDUMP_OFF" fancy=%"PRIdPTR
+      " zero=%"PRIdPTR" normal=%"PRIdPTR" strong=%"PRIdPTR" hash=%td\n"),
+     basis,
+     dump_tailq_length (&dump_queue->fancy_weight_objects),
+     dump_tailq_length (&dump_queue->zero_weight_objects),
+     dump_tailq_length (&dump_queue->one_weight_normal_objects),
+     dump_tailq_length (&dump_queue->one_weight_strong_objects),
+     XHASH_TABLE (dump_queue->link_weights)->count);
 
   static const int nr_candidates = 3;
   struct candidate
@@ -1307,10 +1308,10 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
   else
     emacs_abort ();
 
-  dump_trace ("  result score=%f src=%s object=%016x\n",
+  EMACS_UINT uresult = XLI (result);
+  dump_trace ("  result score=%f src=%s object=%0*"pI"x\n",
               best < 0 ? -1.0 : (double) candidates[best].score,
-              src,
-              (unsigned) XLI (result));
+	      src, EMACS_INT_XDIGITS, uresult);
 
   {
     Lisp_Object weights = Fgethash (result, dump_queue->link_weights, Qnil);
@@ -4162,9 +4163,9 @@ types.  */)
      of the dump.  */
   drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
 		    &ctx->dump_relocs, &ctx->header.dump_relocs);
-  unsigned number_hot_relocations = ctx->number_hot_relocations;
+  dump_off number_hot_relocations = ctx->number_hot_relocations;
   ctx->number_hot_relocations = 0;
-  unsigned number_discardable_relocations = ctx->number_discardable_relocations;
+  dump_off number_discardable_relocations = ctx->number_discardable_relocations;
   ctx->number_discardable_relocations = 0;
   drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
 		    &ctx->object_starts, &ctx->header.object_starts);
@@ -4188,14 +4189,17 @@ types.  */)
   dump_seek (ctx, 0);
   dump_write (ctx, &ctx->header, sizeof (ctx->header));
 
+  dump_off
+    header_bytes = header_end - header_start,
+    hot_bytes = hot_end - hot_start,
+    discardable_bytes = discardable_end - ctx->header.discardable_start,
+    cold_bytes = cold_end - ctx->header.cold_start;
   fprintf (stderr,
 	   ("Dump complete\n"
-	    "Byte counts: header=%lu hot=%lu discardable=%lu cold=%lu\n"
-	    "Reloc counts: hot=%u discardable=%u\n"),
-           (unsigned long) (header_end - header_start),
-           (unsigned long) (hot_end - hot_start),
-           (unsigned long) (discardable_end - ctx->header.discardable_start),
-           (unsigned long) (cold_end - ctx->header.cold_start),
+	    "Byte counts: header=%"PRIdDUMP_OFF" hot=%"PRIdDUMP_OFF
+	    " discardable=%"PRIdDUMP_OFF" cold=%"PRIdDUMP_OFF"\n"
+	    "Reloc counts: hot=%"PRIdDUMP_OFF" discardable=%"PRIdDUMP_OFF"\n"),
+	   header_bytes, hot_bytes, discardable_bytes, cold_bytes,
            number_hot_relocations,
            number_discardable_relocations);
 
