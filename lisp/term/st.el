@@ -1,5 +1,13 @@
 ;;; st.el --- terminal initialization for st  -*- lexical-binding:t -*-
+
 ;; Copyright (C) 2020 Free Software Foundation, Inc.
+
+;;; Commentary:
+
+;; Support for the st terminal emulator.
+;; https://st.suckless.org/
+
+;;; Code:
 
 (require 'term/xterm)
 
