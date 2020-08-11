@@ -271,10 +271,6 @@
 (require 'easymenu)
 (require 'align)
 
-(eval-when-compile
-  (or (fboundp 'use-region-p)
-      (defsubst use-region-p () (region-exists-p))))
-
 (defgroup prolog nil
   "Editing and running Prolog and Mercury files."
   :group 'languages)
