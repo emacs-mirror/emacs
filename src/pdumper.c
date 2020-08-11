@@ -105,17 +105,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # define VM_SUPPORTED 0
 #endif
 
-/* PDUMPER_CHECK_REHASHING being true causes the portable dumper to
-   check, for each hash table it dumps, that the hash table means the
-   same thing after rehashing.  */
-#ifndef PDUMPER_CHECK_REHASHING
-# if ENABLE_CHECKING
-#  define PDUMPER_CHECK_REHASHING 1
-# else
-#  define PDUMPER_CHECK_REHASHING 0
-# endif
-#endif
-
 /* Require an architecture in which pointers, ptrdiff_t and intptr_t
    are the same size and have the same layout, and where bytes have
    eight bits --- that is, a general-purpose computer made after 1990.
@@ -401,6 +390,8 @@ struct dump_header
      The start of the cold region is always aligned on a page
      boundary.  */
   dump_off cold_start;
+
+  dump_off hash_list;
 };
 
 /* Double-ended singly linked list.  */
@@ -557,6 +548,8 @@ struct dump_context
      in the cold section.  The actual Lisp_Bignum objects are normal
      heap objects.  */
   Lisp_Object bignum_data;
+
+  Lisp_Object hash_tables;
 
   unsigned number_hot_relocations;
   unsigned number_discardable_relocations;
@@ -2616,78 +2609,62 @@ dump_vectorlike_generic (struct dump_context *ctx,
   return offset;
 }
 
-/* Determine whether the hash table's hash order is stable
-   across dump and load.  If it is, we don't have to trigger
-   a rehash on access.  */
-static bool
-dump_hash_table_stable_p (const struct Lisp_Hash_Table *hash)
-{
-  if (hash->test.hashfn == hashfn_user_defined)
-    error ("cannot dump hash tables with user-defined tests");  /* Bug#36769 */
-  bool is_eql = hash->test.hashfn == hashfn_eql;
-  bool is_equal = hash->test.hashfn == hashfn_equal;
-  ptrdiff_t size = HASH_TABLE_SIZE (hash);
-  for (ptrdiff_t i = 0; i < size; ++i)
-    {
-      Lisp_Object key =  HASH_KEY (hash, i);
-      if (!EQ (key, Qunbound))
-        {
-	  bool key_stable = (dump_builtin_symbol_p (key)
-			     || FIXNUMP (key)
-			     || (is_equal
-			         && (STRINGP (key) || BOOL_VECTOR_P (key)))
-			     || ((is_equal || is_eql)
-			         && (FLOATP (key) || BIGNUMP (key))));
-          if (!key_stable)
-            return false;
-        }
-    }
-
-  return true;
-}
-
-/* Return a list of (KEY . VALUE) pairs in the given hash table.  */
+/* Return a vector of KEY, VALUE pairs in the given hash table H.  The
+   first H->count pairs are valid, the rest is left as nil.  */
 static Lisp_Object
-hash_table_contents (Lisp_Object table)
+hash_table_contents (struct Lisp_Hash_Table *h)
 {
+  if (h->test.hashfn == hashfn_user_defined)
+    error ("cannot dump hash tables with user-defined tests");  /* Bug#36769 */
   Lisp_Object contents = Qnil;
-  struct Lisp_Hash_Table *h = XHASH_TABLE (table);
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+
+  /* Make sure key_and_value ends up in the same order; charset.c
+     relies on it by expecting hash table indices to stay constant
+     across the dump.  */
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h) - h->count; i++)
     {
-      Lisp_Object key =  HASH_KEY (h, i);
-      if (!EQ (key, Qunbound))
-        dump_push (&contents, Fcons (key, HASH_VALUE (h, i)));
+      dump_push (&contents, Qnil);
+      dump_push (&contents, Qunbound);
     }
-  return Fnreverse (contents);
+
+  for (ptrdiff_t i = HASH_TABLE_SIZE (h) - 1; i >= 0; --i)
+    if (!NILP (HASH_HASH (h, i)))
+      {
+	dump_push (&contents, HASH_VALUE (h, i));
+	dump_push (&contents, HASH_KEY (h, i));
+      }
+
+  return CALLN (Fapply, Qvector, contents);
 }
 
-/* Copy the given hash table, rehash it, and make sure that we can
-   look up all the values in the original.  */
-static void
-check_hash_table_rehash (Lisp_Object table_orig)
+static dump_off
+dump_hash_table_list (struct dump_context *ctx)
 {
-  ptrdiff_t count = XHASH_TABLE (table_orig)->count;
-  hash_rehash_if_needed (XHASH_TABLE (table_orig));
-  Lisp_Object table_rehashed = Fcopy_hash_table (table_orig);
-  eassert (!hash_rehash_needed_p (XHASH_TABLE (table_rehashed)));
-  XHASH_TABLE (table_rehashed)->hash = Qnil;
-  eassert (count == 0 || hash_rehash_needed_p (XHASH_TABLE (table_rehashed)));
-  hash_rehash_if_needed (XHASH_TABLE (table_rehashed));
-  eassert (!hash_rehash_needed_p (XHASH_TABLE (table_rehashed)));
-  Lisp_Object expected_contents = hash_table_contents (table_orig);
-  while (!NILP (expected_contents))
-    {
-      Lisp_Object key_value_pair = dump_pop (&expected_contents);
-      Lisp_Object key = XCAR (key_value_pair);
-      Lisp_Object expected_value = XCDR (key_value_pair);
-      Lisp_Object arbitrary = Qdump_emacs_portable__sort_predicate_copied;
-      Lisp_Object found_value = Fgethash (key, table_rehashed, arbitrary);
-      eassert (EQ (expected_value, found_value));
-      Fremhash (key, table_rehashed);
-    }
+  if (CONSP (ctx->hash_tables))
+    return dump_object (ctx, CALLN (Fapply, Qvector, ctx->hash_tables));
+  else
+    return 0;
+}
 
-  eassert (EQ (Fhash_table_count (table_rehashed),
-               make_fixnum (0)));
+static void
+hash_table_freeze (struct Lisp_Hash_Table *h)
+{
+  ptrdiff_t nkeys = XFIXNAT (Flength (h->key_and_value)) / 2;
+  h->key_and_value = hash_table_contents (h);
+  h->next_free = (nkeys == h->count ? -1 : h->count);
+  h->index = Flength (h->index);
+  h->next = h->hash = make_fixnum (nkeys);
+}
+
+static void
+hash_table_thaw (Lisp_Object hash)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
+  h->index = Fmake_vector (h->index, make_fixnum (-1));
+  h->hash = Fmake_vector (h->hash, Qnil);
+  h->next = Fmake_vector (h->next, make_fixnum (-1));
+
+  hash_table_rehash (hash);
 }
 
 static dump_off
@@ -2699,51 +2676,11 @@ dump_hash_table (struct dump_context *ctx,
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
-  bool is_stable = dump_hash_table_stable_p (hash_in);
-  /* If the hash table is likely to be modified in memory (either
-     because we need to rehash, and thus toggle hash->count, or
-     because we need to assemble a list of weak tables) punt the hash
-     table to the end of the dump, where we can lump all such hash
-     tables together.  */
-  if (!(is_stable || !NILP (hash_in->weak))
-      && ctx->flags.defer_hash_tables)
-    {
-      if (offset != DUMP_OBJECT_ON_HASH_TABLE_QUEUE)
-        {
-	  eassert (offset == DUMP_OBJECT_ON_NORMAL_QUEUE
-		   || offset == DUMP_OBJECT_NOT_SEEN);
-          /* We still want to dump the actual keys and values now.  */
-          dump_enqueue_object (ctx, hash_in->key_and_value, WEIGHT_NONE);
-          /* We'll get to the rest later.  */
-          offset = DUMP_OBJECT_ON_HASH_TABLE_QUEUE;
-          dump_remember_object (ctx, object, offset);
-          dump_push (&ctx->deferred_hash_tables, object);
-        }
-      return offset;
-    }
-
-  if (PDUMPER_CHECK_REHASHING)
-    check_hash_table_rehash (make_lisp_ptr ((void *) hash_in, Lisp_Vectorlike));
-
   struct Lisp_Hash_Table hash_munged = *hash_in;
   struct Lisp_Hash_Table *hash = &hash_munged;
 
-  /* Remember to rehash this hash table on first access.  After a
-     dump reload, the hash table values will have changed, so we'll
-     need to rebuild the index.
-
-     TODO: for EQ and EQL hash tables, it should be possible to rehash
-     here using the preferred load address of the dump, eliminating
-     the need to rehash-on-access if we can load the dump where we
-     want.  */
-  if (hash->count > 0 && !is_stable)
-    /* Hash codes will have to be recomputed anyway, so let's not dump them.
-       Also set `hash` to nil for hash_rehash_needed_p.
-       We could also refrain from dumping the `next' and `index' vectors,
-       except that `next' is currently used for HASH_TABLE_SIZE and
-       we'd have to rebuild the next_free list as well as adjust
-       sweep_weak_hash_table for the case where there's no `index'.  */
-    hash->hash = Qnil;
+  hash_table_freeze (hash);
+  dump_push (&ctx->hash_tables, object);
 
   START_DUMP_PVEC (ctx, &hash->header, struct Lisp_Hash_Table, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &hash->header);
@@ -4151,6 +4088,19 @@ types.  */)
 	 || !NILP (ctx->deferred_hash_tables)
 	 || !NILP (ctx->deferred_symbols));
 
+  ctx->header.hash_list = ctx->offset;
+  dump_hash_table_list (ctx);
+
+  do
+    {
+      dump_drain_deferred_hash_tables (ctx);
+      dump_drain_deferred_symbols (ctx);
+      dump_drain_normal_queue (ctx);
+    }
+  while (!dump_queue_empty_p (&ctx->dump_queue)
+	 || !NILP (ctx->deferred_hash_tables)
+	 || !NILP (ctx->deferred_symbols));
+
   dump_sort_copied_objects (ctx);
 
   /* While we copy built-in symbols into the Emacs image, these
@@ -5302,6 +5252,9 @@ enum dump_section
    NUMBER_DUMP_SECTIONS,
   };
 
+/* Pointer to a stack variable to avoid having to staticpro it.  */
+static Lisp_Object *pdumper_hashes = &zero_vector;
+
 /* Load a dump from DUMP_FILENAME.  Return an error code.
 
    N.B. We run very early in initialization, so we can't use lisp,
@@ -5448,6 +5401,15 @@ pdumper_load (const char *dump_filename)
   for (int i = 0; i < ARRAYELTS (sections); ++i)
     dump_mmap_reset (&sections[i]);
 
+  Lisp_Object hashes = zero_vector;
+  if (header->hash_list)
+    {
+      struct Lisp_Vector *hash_tables =
+	((struct Lisp_Vector *)(dump_base + header->hash_list));
+      XSETVECTOR (hashes, hash_tables);
+    }
+
+  pdumper_hashes = &hashes;
   /* Run the functions Emacs registered for doing post-dump-load
      initialization.  */
   for (int i = 0; i < nr_dump_hooks; ++i)
@@ -5518,6 +5480,19 @@ Value is nil if this session was not started using a dump file.*/)
 #endif /* HAVE_PDUMPER */
 
 
+static void
+thaw_hash_tables (void)
+{
+  Lisp_Object hash_tables = *pdumper_hashes;
+  for (ptrdiff_t i = 0; i < ASIZE (hash_tables); i++)
+    hash_table_thaw (AREF (hash_tables, i));
+}
+
+void
+init_pdumper_once (void)
+{
+  pdumper_do_now_and_after_load (thaw_hash_tables);
+}
 
 void
 syms_of_pdumper (void)

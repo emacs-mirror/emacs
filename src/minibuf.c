@@ -1212,9 +1212,6 @@ is used to further constrain the set of candidates.  */)
       bucket = AREF (collection, idx);
     }
 
-  if (HASH_TABLE_P (collection))
-    hash_rehash_if_needed (XHASH_TABLE (collection));
-
   while (1)
     {
       /* Get the next element of the alist, obarray, or hash-table.  */
