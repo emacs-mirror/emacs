@@ -244,9 +244,7 @@ If RADIX is nil or if the yanked string already has a calc radix prefix, the
 yanked string will be passed on directly to the Calculator buffer without any
 alteration."
   (interactive "P")
-  (calc-yank-internal radix (if (fboundp 'current-kill)
-                                (current-kill 0 t)
-                              (car kill-ring-yank-pointer))))
+  (calc-yank-internal radix (current-kill 0 t)))
 
 ;;; The Calc set- and get-register commands are modified versions of functions
 ;;; in register.el
