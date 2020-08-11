@@ -757,6 +757,15 @@ name.
 ** Recentf
 The recentf files are no longer backed up.
 
+** Calc
+
+---
+*** The behaviour when doing forward-delete has been changed.
+Previously, using the 'C-d' command would delete the final number in
+the input field, no matter where point was.  This has been changed to
+work more traditionally, with 'C-d' deleting the next character.
+Likewise, point isn't moved to the end of the string before inserting
+digits.
 
 ** Miscellaneous
 
