@@ -729,10 +729,9 @@ See the Eshell Info manual, which is distributed with Emacs.
 minibuffer and executes it as a shell command, in a subshell made just
 for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
-either in the echo area (if it is short), or in an Emacs buffer,
-displayed in another window (if the output is long).  The name of
-this buffer is taken from the constant @code{shell-command-buffer-name}.
-The variables @code{resize-mini-windows} and
+either in the echo area (if it is short), or in the @samp{"*Shell
+Command Output*"} (@code{shell-command-buffer-name}) buffer (if the
+output is long).  The variables @code{resize-mini-windows} and
 @code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
 Emacs should consider the output to be too long for the echo area.
 
@@ -766,10 +765,11 @@ which is impossible to ignore.
 You can also type @kbd{M-&} (@code{async-shell-command}) to execute a
 shell command asynchronously; this is exactly like calling @kbd{M-!}
 with a trailing @samp{&}, except that you do not need the @samp{&}.
-The constant @code{shell-command-buffer-name-async} stores the name
-of the default output buffer for asynchronous shell commands.
-Emacs inserts the output into this buffer as it comes in,
-whether or not the buffer is visible in a window.
+The output from asynchronous shell commands, by default, goes into the
+@samp{"*Async Shell Command*"} buffer
+(@code{shell-command-buffer-name-async}).  Emacs inserts the output
+into this buffer as it comes in, whether or not the buffer is visible
+in a window.
 
 @vindex async-shell-command-buffer
   If you want to run more than one asynchronous shell command at the
