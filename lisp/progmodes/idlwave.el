@@ -2092,11 +2092,7 @@ Returns point if comment found and nil otherwise."
            (backward-char 1)
            (point)))))
 
-(defun idlwave-region-active-p ()
-  "Should we operate on an active region?"
-  (if (fboundp 'use-region-p)
-      (use-region-p)
-    (region-active-p)))
+(define-obsolete-function-alias 'idlwave-region-active-p 'use-region-p "28.1")
 
 (defun idlwave-show-matching-quote ()
   "Insert quote and show matching quote if this is end of a string."
