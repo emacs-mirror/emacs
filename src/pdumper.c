@@ -2678,7 +2678,7 @@ dump_hash_table (struct dump_context *ctx,
                  Lisp_Object object,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_12AFBF47AF
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_6D63EDB618
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
