@@ -482,7 +482,8 @@ is called as a function to find the defun's end."
 		  (if (looking-at "\\s<\\|\n")
 		      (forward-line 1))))))
     (funcall end-of-defun-function)
-    (funcall skip)
+    (when (<= arg 1)
+      (funcall skip))
     (cond
      ((> arg 0)
       ;; Moving forward.
