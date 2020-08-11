@@ -294,91 +294,40 @@ See `eshell-needs-pipe'."
 	    delete-exited-processes))
 	 (process-environment (eshell-environment-variables))
 	 proc decoding encoding changed)
-    (cond
-     ((fboundp 'start-file-process)
-      (setq proc
-	    (let ((process-connection-type
-		   (unless (eshell-needs-pipe-p command)
-		     process-connection-type))
-		  (command (file-local-name (expand-file-name command))))
-	      (apply #'start-file-process
-		     (file-name-nondirectory command) nil command args)))
-      (eshell-record-process-object proc)
-      (set-process-buffer proc (current-buffer))
-      (set-process-filter proc (if (eshell-interactive-output-p)
-	                           #'eshell-output-filter
-                                 #'eshell-insertion-filter))
-      (set-process-sentinel proc #'eshell-sentinel)
-      (run-hook-with-args 'eshell-exec-hook proc)
-      (when (fboundp 'process-coding-system)
-	(let ((coding-systems (process-coding-system proc)))
-	  (setq decoding (car coding-systems)
-		encoding (cdr coding-systems)))
-	;; If start-process decided to use some coding system for
-	;; decoding data sent from the process and the coding system
-	;; doesn't specify EOL conversion, we had better convert CRLF
-	;; to LF.
-	(if (vectorp (coding-system-eol-type decoding))
-	    (setq decoding (coding-system-change-eol-conversion decoding 'dos)
-		  changed t))
-	;; Even if start-process left the coding system for encoding
-	;; data sent from the process undecided, we had better use the
-	;; same one as what we use for decoding.  But, we should
-	;; suppress EOL conversion.
-	(if (and decoding (not encoding))
-	    (setq encoding (coding-system-change-eol-conversion decoding 'unix)
-		  changed t))
-	(if changed
-	    (set-process-coding-system proc decoding encoding))))
-     (t
-      ;; No async subprocesses...
-      (let ((oldbuf (current-buffer))
-	    (interact-p (eshell-interactive-output-p))
-	    lbeg lend line proc-buf exit-status)
-	(and (not (markerp eshell-last-sync-output-start))
-	     (setq eshell-last-sync-output-start (point-marker)))
-	(setq proc-buf
-	      (set-buffer (get-buffer-create eshell-scratch-buffer)))
-	(erase-buffer)
-	(set-buffer oldbuf)
-	(run-hook-with-args 'eshell-exec-hook command)
-	(setq exit-status
-	      (apply #'call-process-region
-		     (append (list eshell-last-sync-output-start (point)
-				   command t
-				   eshell-scratch-buffer nil)
-			     args)))
-	;; When in a pipeline, record the place where the output of
-	;; this process will begin.
-	(and (bound-and-true-p eshell-in-pipeline-p)
-	     (set-marker eshell-last-sync-output-start (point)))
-	;; Simulate the effect of the process filter.
-	(when (numberp exit-status)
-	  (set-buffer proc-buf)
-	  (goto-char (point-min))
-	  (setq lbeg (point))
-	  (while (eq 0 (forward-line 1))
-	    (setq lend (point)
-		  line (buffer-substring-no-properties lbeg lend))
-	    (set-buffer oldbuf)
-	    (if interact-p
-		(eshell-output-filter nil line)
-	      (eshell-output-object line))
-	    (setq lbeg lend)
-	    (set-buffer proc-buf))
-	  (set-buffer oldbuf))
-        (require 'esh-mode)
-        (declare-function eshell-update-markers "esh-mode" (pmark))
-        (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
-	(eshell-update-markers eshell-last-output-end)
-	;; Simulate the effect of eshell-sentinel.
-	(eshell-close-handles (if (numberp exit-status) exit-status -1))
-	(eshell-kill-process-function command exit-status)
-	(or (bound-and-true-p eshell-in-pipeline-p)
-	    (setq eshell-last-sync-output-start nil))
-	(if (not (numberp exit-status))
-	  (error "%s: external command failed: %s" command exit-status))
-	(setq proc t))))
+    (setq proc
+	  (let ((process-connection-type
+		 (unless (eshell-needs-pipe-p command)
+		   process-connection-type))
+		(command (file-local-name (expand-file-name command))))
+	    (apply #'start-file-process
+		   (file-name-nondirectory command) nil command args)))
+    (eshell-record-process-object proc)
+    (set-process-buffer proc (current-buffer))
+    (set-process-filter proc (if (eshell-interactive-output-p)
+	                         #'eshell-output-filter
+                               #'eshell-insertion-filter))
+    (set-process-sentinel proc #'eshell-sentinel)
+    (run-hook-with-args 'eshell-exec-hook proc)
+    (when (fboundp 'process-coding-system)
+      (let ((coding-systems (process-coding-system proc)))
+	(setq decoding (car coding-systems)
+	      encoding (cdr coding-systems)))
+      ;; If start-process decided to use some coding system for
+      ;; decoding data sent from the process and the coding system
+      ;; doesn't specify EOL conversion, we had better convert CRLF
+      ;; to LF.
+      (if (vectorp (coding-system-eol-type decoding))
+	  (setq decoding (coding-system-change-eol-conversion decoding 'dos)
+		changed t))
+      ;; Even if start-process left the coding system for encoding
+      ;; data sent from the process undecided, we had better use the
+      ;; same one as what we use for decoding.  But, we should
+      ;; suppress EOL conversion.
+      (if (and decoding (not encoding))
+	  (setq encoding (coding-system-change-eol-conversion decoding 'unix)
+		changed t))
+      (if changed
+	  (set-process-coding-system proc decoding encoding)))
     proc))
 
 (defun eshell-insertion-filter (proc string)
