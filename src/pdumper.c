@@ -5065,14 +5065,13 @@ dump_read_all (int fd, void *buf, size_t bytes_to_read)
 {
   /* We don't want to use emacs_read, since that relies on the lisp
      world, and we're not in the lisp world yet.  */
-  eassert (bytes_to_read <= SSIZE_MAX);
   size_t bytes_read = 0;
   while (bytes_read < bytes_to_read)
     {
-      /* Some platforms accept only int-sized values to read.  */
-      unsigned chunk_to_read = INT_MAX;
-      if (bytes_to_read - bytes_read < chunk_to_read)
-	chunk_to_read = (unsigned) (bytes_to_read - bytes_read);
+      /* Some platforms accept only int-sized values to read.
+         Round this down to a page size (see MAX_RW_COUNT in sysdep.c).  */
+      int max_rw_count = INT_MAX >> 18 << 18;
+      size_t chunk_to_read = min (bytes_to_read - bytes_read, max_rw_count);
       ssize_t chunk = read (fd, (char *) buf + bytes_read, chunk_to_read);
       if (chunk < 0)
         return chunk;
