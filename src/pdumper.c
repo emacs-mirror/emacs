@@ -391,6 +391,7 @@ struct dump_header
      boundary.  */
   dump_off cold_start;
 
+  /* Offset of a vector of the dumped hash tables.  */
   dump_off hash_list;
 };
 
@@ -549,6 +550,7 @@ struct dump_context
      heap objects.  */
   Lisp_Object bignum_data;
 
+  /* List of hash tables that have been dumped.  */
   Lisp_Object hash_tables;
 
   unsigned number_hot_relocations;
@@ -2610,7 +2612,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
 }
 
 /* Return a vector of KEY, VALUE pairs in the given hash table H.  The
-   first H->count pairs are valid, the rest is left as nil.  */
+   first H->count pairs are valid, and the rest are unbound.  */
 static Lisp_Object
 hash_table_contents (struct Lisp_Hash_Table *h)
 {
@@ -5405,8 +5407,8 @@ pdumper_load (const char *dump_filename)
   if (header->hash_list)
     {
       struct Lisp_Vector *hash_tables =
-	((struct Lisp_Vector *)(dump_base + header->hash_list));
-      XSETVECTOR (hashes, hash_tables);
+	(struct Lisp_Vector *) (dump_base + header->hash_list);
+      hashes = make_lisp_ptr (hash_tables, Lisp_Vectorlike);
     }
 
   pdumper_hashes = &hashes;
