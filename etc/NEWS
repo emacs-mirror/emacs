@@ -868,6 +868,10 @@ have now been removed.
 
 * Lisp Changes in Emacs 28.1
 
++++
+** The 'count-lines' function now takes an optional parameter to
+ignore invisible lines.
+
 ---
 ** New function 'custom-add-choice'.
 This function can be used by modes to add elements to the

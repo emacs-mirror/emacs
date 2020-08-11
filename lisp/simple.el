@@ -1366,28 +1366,47 @@ END, without printing any message."
 	  (message "line %d (narrowed line %d)"
 		   (+ n (line-number-at-pos start) -1) n))))))
 
-(defun count-lines (start end)
+(defun count-lines (start end &optional ignore-invisible-lines)
   "Return number of lines between START and END.
-This is usually the number of newlines between them,
-but can be one more if START is not equal to END
-and the greater of them is not at the start of a line."
+This is usually the number of newlines between them, but can be
+one more if START is not equal to END and the greater of them is
+not at the start of a line.
+
+When IGNORE-INVISIBLE-LINES is non-nil, invisible lines are not
+included in the count."
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
       (goto-char (point-min))
-      (if (eq selective-display t)
-	  (save-match-data
-	    (let ((done 0))
-                     (while (re-search-forward "[\n\C-m]" nil t 40)
-                       (setq done (+ 40 done)))
-                     (while (re-search-forward "[\n\C-m]" nil t 1)
-                       (setq done (+ 1 done)))
-                     (goto-char (point-max))
-                     (if (and (/= start end)
-		       (not (bolp)))
-		  (1+ done)
-		done)))
-	(- (buffer-size) (forward-line (buffer-size)))))))
+      (cond ((and (not ignore-invisible-lines)
+                  (eq selective-display t))
+	     (save-match-data
+	       (let ((done 0))
+		 (while (re-search-forward "\n\\|\r[^\n]" nil t 40)
+		   (setq done (+ 40 done)))
+		 (while (re-search-forward "\n\\|\r[^\n]" nil t 1)
+		   (setq done (+ 1 done)))
+		 (goto-char (point-max))
+		 (if (and (/= start end)
+			  (not (bolp)))
+		     (1+ done)
+		   done))))
+	    (ignore-invisible-lines
+	     (save-match-data
+	       (- (buffer-size)
+                  (forward-line (buffer-size))
+		  (let ((invisible-count 0)
+		        prop)
+		    (goto-char (point-min))
+		    (while (re-search-forward "\n\\|\r[^\n]" nil t)
+		      (setq prop (get-char-property (1- (point)) 'invisible))
+		      (if (if (eq buffer-invisibility-spec t)
+			      prop
+			    (or (memq prop buffer-invisibility-spec)
+			        (assq prop buffer-invisibility-spec)))
+			  (setq invisible-count (1+ invisible-count))))
+		    invisible-count))))
+	    (t (- (buffer-size) (forward-line (buffer-size))))))))
 
 (defun line-number-at-pos (&optional pos absolute)
   "Return buffer line number at position POS.
