@@ -735,8 +735,6 @@ contents are sent to the process as its initial input.
 If PROGRAM is a string, any more args are arguments to PROGRAM.
 
 Return the (possibly newly created) process buffer."
-  (or (fboundp 'start-file-process)
-      (error "Multi-processing is not supported for this system"))
   (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
   ;; If no process, or nuked process, crank up a new one and put buffer in
   ;; comint mode.  Otherwise, leave buffer and existing process alone.
