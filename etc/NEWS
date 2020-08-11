@@ -522,6 +522,14 @@ with a newline.
 *** New user option 'texinfo-texi2dvi-options'.
 This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
 
+---
+*** New commands for moving in and between environments.
+An "environment" is something that ends with @end.  The commands are
+'C-c C-c C-f' (next end), 'C-c C-c C-b' (previous end),
+'C-c C-c C-n' (next start) and 'C-c C-c C-p' (previous start), as well
+as 'C-c .', which will alternate between the start end the end of the
+current environment.
+
 ** Rmail
 
 ---
