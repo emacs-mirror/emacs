@@ -2617,25 +2617,28 @@ hash_table_contents (struct Lisp_Hash_Table *h)
 {
   if (h->test.hashfn == hashfn_user_defined)
     error ("cannot dump hash tables with user-defined tests");  /* Bug#36769 */
-  Lisp_Object contents = Qnil;
+
+  ptrdiff_t size = HASH_TABLE_SIZE (h);
+  Lisp_Object key_and_value = make_uninit_vector (2 * size);
+  ptrdiff_t n = 0;
 
   /* Make sure key_and_value ends up in the same order; charset.c
      relies on it by expecting hash table indices to stay constant
      across the dump.  */
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h) - h->count; i++)
-    {
-      dump_push (&contents, Qnil);
-      dump_push (&contents, Qunbound);
-    }
-
-  for (ptrdiff_t i = HASH_TABLE_SIZE (h) - 1; i >= 0; --i)
+  for (ptrdiff_t i = 0; i < size; i++)
     if (!NILP (HASH_HASH (h, i)))
       {
-	dump_push (&contents, HASH_VALUE (h, i));
-	dump_push (&contents, HASH_KEY (h, i));
+	ASET (key_and_value, n++, HASH_KEY (h, i));
+	ASET (key_and_value, n++, HASH_VALUE (h, i));
       }
 
-  return CALLN (Fapply, Qvector, contents);
+  while (n < 2 * size)
+    {
+      ASET (key_and_value, n++, Qunbound);
+      ASET (key_and_value, n++, Qnil);
+    }
+
+  return key_and_value;
 }
 
 static dump_off
