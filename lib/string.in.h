@@ -55,7 +55,7 @@
 /* The __attribute__ feature is available in gcc versions 2.5 and later.
    The attribute __pure__ was added in gcc 2.96.  */
 #ifndef _GL_ATTRIBUTE_PURE
-# if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)
+# if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96) || defined __clang__
 #  define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
 # else
 #  define _GL_ATTRIBUTE_PURE /* empty */
@@ -329,7 +329,8 @@ _GL_WARN_ON_USE (stpncpy, "stpncpy is unportable - "
    GB18030 and the character to be searched is a digit.  */
 # undef strchr
 /* Assume strchr is always declared.  */
-_GL_WARN_ON_USE_CXX (strchr, const char *, (const char *, int),
+_GL_WARN_ON_USE_CXX (strchr,
+                     const char *, char *, (const char *, int),
                      "strchr cannot work correctly on character strings "
                      "in some multibyte locales - "
                      "use mbschr if you care about internationalization");
@@ -524,7 +525,8 @@ _GL_CXXALIASWARN (strpbrk);
    locale encoding is GB18030 and one of the characters to be searched is a
    digit.  */
 #  undef strpbrk
-_GL_WARN_ON_USE_CXX (strpbrk, const char *, (const char *, const char *),
+_GL_WARN_ON_USE_CXX (strpbrk,
+                     const char *, char *, (const char *, const char *),
                      "strpbrk cannot work correctly on character strings "
                      "in multibyte locales - "
                      "use mbspbrk if you care about internationalization");
@@ -532,7 +534,8 @@ _GL_WARN_ON_USE_CXX (strpbrk, const char *, (const char *, const char *),
 #elif defined GNULIB_POSIXCHECK
 # undef strpbrk
 # if HAVE_RAW_DECL_STRPBRK
-_GL_WARN_ON_USE_CXX (strpbrk, const char *, (const char *, const char *),
+_GL_WARN_ON_USE_CXX (strpbrk,
+                     const char *, char *, (const char *, const char *),
                      "strpbrk is unportable - "
                      "use gnulib module strpbrk for portability");
 # endif
@@ -553,7 +556,8 @@ _GL_WARN_ON_USE (strspn, "strspn cannot work correctly on character strings "
    GB18030 and the character to be searched is a digit.  */
 # undef strrchr
 /* Assume strrchr is always declared.  */
-_GL_WARN_ON_USE_CXX (strrchr, const char *, (const char *, int),
+_GL_WARN_ON_USE_CXX (strrchr,
+                     const char *, char *, (const char *, int),
                      "strrchr cannot work correctly on character strings "
                      "in some multibyte locales - "
                      "use mbsrchr if you care about internationalization");
