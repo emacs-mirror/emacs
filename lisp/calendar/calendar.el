@@ -1061,10 +1061,12 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
-(defcustom calendar-use-numeric-time-zones nil
-  "If nil, use symbolic time zones like \"CET\" when displaying dates.
-If non-nil, use numeric time zones like \"+0100\"."
-  :type 'boolean
+;; fixme should have a :set that changes calendar-standard-time-zone-name etc.
+(defcustom calendar-time-zone-style 'symbolic
+  "Your preferred style for time zones.
+If 'numeric, use numeric time zones like \"+0100\".
+Otherwise, use symbolic time zones like \"CET\"."
+  :type '(choice (const numeric) (other symbolic))
   :version "28.1"
   :group 'calendar)
 

@@ -215,15 +215,14 @@ as a data list rather than as a piece of code.
 ** Calendar
 
 +++
-*** New variable 'calendar-use-numeric-time-zones' to use numeric time zones.
-If non-nil, functions that display time zones (like the 'S' command in
-calendar mode that displays the sunrise time) will display time zones
-like "+0100" instead of "CET".
+*** New user option 'calendar-time-zone-style'.
+If 'numeric, calendar functions (eg calendar-sunrise-sunset) that display
+time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
 +++
-*** New used option 'dired-copy-dereference'.
+*** New user option 'dired-copy-dereference'.
 If set, Dired will dereferences symbolic links when copying.  This can
 be switched off on a per-usage basis by providing 'dired-do-copy' with
 a 'C-u' prefix.

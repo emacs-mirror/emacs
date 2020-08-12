@@ -350,7 +350,7 @@ If the locale never uses daylight saving time, set this to 0."
   :group 'calendar-dst)
 
 (defcustom calendar-standard-time-zone-name
-  (if calendar-use-numeric-time-zones
+  (if (eq calendar-time-zone-style 'numeric)
       (if calendar-current-time-zone-cache
           (format-time-string
            "%z" 0 (* 60 (car calendar-current-time-zone-cache)))
@@ -360,10 +360,11 @@ If the locale never uses daylight saving time, set this to 0."
 For example, \"EST\" in New York City, \"PST\" for Los Angeles."
   :type 'string
   :version "28.1"
+  :set-after '(calendar-time-zone-style)
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-time-zone-name
-  (if calendar-use-numeric-time-zones
+  (if (eq calendar-time-zone-style 'numeric)
       (if calendar-current-time-zone-cache
           (format-time-string
            "%z" 0 (* 60 (cadr calendar-current-time-zone-cache)))
@@ -373,6 +374,7 @@ For example, \"EST\" in New York City, \"PST\" for Los Angeles."
 For example, \"EDT\" in New York City, \"PDT\" for Los Angeles."
   :type 'string
   :version "28.1"
+  :set-after '(calendar-time-zone-style)
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-savings-starts-time
