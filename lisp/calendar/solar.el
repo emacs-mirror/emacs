@@ -841,7 +841,7 @@ This function is suitable for execution in an init file."
           (if (< arg 16) calendar-standard-time-zone-name
             (cond ((zerop calendar-time-zone)
                    (if (eq calendar-time-zone-style 'numeric)
-                       "+0100" "UTC"))
+                       "+0000" "UTC"))
                   ((< calendar-time-zone 0)
                    (format "UTC%dmin" calendar-time-zone))
                   (t  (format "UTC+%dmin" calendar-time-zone)))))
@@ -1016,7 +1016,7 @@ Requires floating point."
          (calendar-standard-time-zone-name
           (cond
            (calendar-time-zone calendar-standard-time-zone-name)
-           ((eq calendar-time-zone-style 'numeric) "+0100")
+           ((eq calendar-time-zone-style 'numeric) "+0000")
            (t "UTC")))
          (calendar-daylight-savings-starts
           (if calendar-time-zone calendar-daylight-savings-starts))
