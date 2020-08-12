@@ -288,6 +288,12 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                    (xwidget-webkit-show-id-or-named-element
                     xwidget
                     (match-string 1 strarg)))))
+            ;; TODO: Response handling other than download.
+            ((eq xwidget-event-type 'download-callback)
+             (let ((url  (nth 3 last-input-event))
+                   (mime-type (nth 4 last-input-event))
+                   (file-name (nth 5 last-input-event)))
+               (xwidget-webkit-save-as-file url mime-type file-name)))
             ((eq xwidget-event-type 'javascript-callback)
              (let ((proc (nth 3 last-input-event))
                    (arg  (nth 4 last-input-event)))
@@ -307,6 +313,32 @@ If non-nil, plugins are enabled.  Otherwise, disabled."))
               #'xwidget-webkit-bookmark-make-record)
   ;; Keep track of [vh]scroll when switching buffers
   (image-mode-setup-winprops))
+
+;;; Download, save as file.
+
+(defcustom xwidget-webkit-download-dir "~/Downloads/"
+  "Directory where download file saved."
+  :version "27.1"
+  :type 'file)
+
+(defun xwidget-webkit-save-as-file (url mime-type file-name)
+  "For XWIDGET webkit, save URL of MIME-TYPE to location specified by user.
+FILE-NAME combined with `xwidget-webkit-download-dir' is the default file name
+of the prompt when reading.  When the file name the user specified is a
+directory, URL is saved at the specified directory as FILE-NAME."
+  (let ((save-name (read-file-name
+                    (format "Save URL `%s' of type `%s' in file/directory: "
+                            url mime-type)
+                    xwidget-webkit-download-dir
+                    (when file-name
+                      (expand-file-name
+                       file-name
+                       xwidget-webkit-download-dir)))))
+    (if (file-directory-p save-name)
+        (setq save-name
+              (expand-file-name (file-name-nondirectory file-name) save-name)))
+    (setq xwidget-webkit-download-dir (file-name-directory save-name))
+    (url-copy-file url save-name t)))
 
 ;;; Bookmarks integration
 

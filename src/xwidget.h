@@ -154,6 +154,11 @@ void store_xwidget_event_string (struct xwidget *xw,
                                  const char *eventname,
                                  const char *eventstr);
 
+void store_xwidget_download_callback_event (struct xwidget *xw,
+                                            const char *url,
+                                            const char *mimetype,
+                                            const char *filename);
+
 void store_xwidget_js_callback_event (struct xwidget *xw,
                                       Lisp_Object proc,
                                       Lisp_Object argument);

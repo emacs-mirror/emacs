@@ -121,6 +121,18 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse
 decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 {
+  if (!navigationResponse.canShowMIMEType)
+    {
+      NSString *url = navigationResponse.response.URL.absoluteString;
+      NSString *mimetype = navigationResponse.response.MIMEType;
+      NSString *filename = navigationResponse.response.suggestedFilename;
+      decisionHandler (WKNavigationResponsePolicyCancel);
+      store_xwidget_download_callback_event (self.xw,
+                                             url.UTF8String,
+                                             mimetype.UTF8String,
+                                             filename.UTF8String);
+      return;
+    }
   decisionHandler (WKNavigationResponsePolicyAllow);
 
   self.urlScriptBlocked[navigationResponse.response.URL] =
