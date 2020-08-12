@@ -790,6 +790,29 @@ never be narrower than 19 characters.
 When the 'bookmark.el' library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
+
+** xwidget-webkit mode
+
+*** New xwidget functions
+'xwidget-webkit-uri' (return the current URL), 'xwidget-webkit-title'
+(return the current title), and 'xwidget-webkit-goto-history' (goto a
+point in history).
+
+*** Pixel-based scrolling
+The 'xwidget-webkit-scroll-up', 'xwidget-webkit-scroll-down' commands
+now supports scrolling arbitrary pixel values.  It now treats the
+optional 2nd argument as the pixel values to scroll.
+
+*** New commands for scrolling
+The new commands 'xwidget-webkit-scroll-up-line',
+'xwidget-webkit-scroll-down-line', 'xwidget-webkit-scroll-forward',
+'xwidget-webkit-scroll-backward' can be used to scroll webkit by the
+height of lines or width of chars.
+
+*** New user option 'xwidget-webkit-bookmark-jump-new-session'.
+When non-nil, use a new xwidget webkit session after bookmark jump.
+Otherwise, it will use 'xwidget-webkit-last-session'.
+
 
 * New Modes and Packages in Emacs 28.1
 

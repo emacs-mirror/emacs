@@ -749,6 +749,36 @@ xwidget_is_web_view (struct xwidget *xw)
       return Qnil;							\
     }
 
+DEFUN ("xwidget-webkit-uri",
+       Fxwidget_webkit_uri, Sxwidget_webkit_uri,
+       1, 1, 0,
+       doc: /* Get the current URL of XWIDGET webkit.  */)
+  (Lisp_Object xwidget)
+{
+  WEBKIT_FN_INIT ();
+#ifdef USE_GTK
+  WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
+  return build_string (webkit_web_view_get_uri (wkwv));
+#elif defined NS_IMPL_COCOA
+  return nsxwidget_webkit_uri (xw);
+#endif
+}
+
+DEFUN ("xwidget-webkit-title",
+       Fxwidget_webkit_title, Sxwidget_webkit_title,
+       1, 1, 0,
+       doc: /* Get the current title of XWIDGET webkit.  */)
+  (Lisp_Object xwidget)
+{
+  WEBKIT_FN_INIT ();
+#ifdef USE_GTK
+  WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
+  return build_string (webkit_web_view_get_title (wkwv));
+#elif defined NS_IMPL_COCOA
+  return nsxwidget_webkit_title (xw);
+#endif
+}
+
 DEFUN ("xwidget-webkit-goto-uri",
        Fxwidget_webkit_goto_uri, Sxwidget_webkit_goto_uri,
        2, 2, 0,
@@ -762,6 +792,31 @@ DEFUN ("xwidget-webkit-goto-uri",
   webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr), SSDATA (uri));
 #elif defined NS_IMPL_COCOA
   nsxwidget_webkit_goto_uri (xw, SSDATA (uri));
+#endif
+  return Qnil;
+}
+
+DEFUN ("xwidget-webkit-goto-history",
+       Fxwidget_webkit_goto_history, Sxwidget_webkit_goto_history,
+       2, 2, 0,
+       doc: /* Make the XWIDGET webkit load REL-POS (-1, 0, 1) page in browse history.  */)
+  (Lisp_Object xwidget, Lisp_Object rel_pos)
+{
+  WEBKIT_FN_INIT ();
+  /* Should be one of -1, 0, 1 */
+  if (XFIXNUM (rel_pos) < -1 || XFIXNUM (rel_pos) > 1)
+    args_out_of_range_3 (rel_pos, make_fixnum (-1), make_fixnum (1));
+
+#ifdef USE_GTK
+  WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
+  switch (XFIXNAT (rel_pos))
+    {
+    case -1: webkit_web_view_go_back (wkwv); break;
+    case 0: webkit_web_view_reload (wkwv); break;
+    case 1: webkit_web_view_go_forward (wkwv); break;
+    }
+#elif defined NS_IMPL_COCOA
+  nsxwidget_webkit_goto_history (xw, XFIXNAT (rel_pos));
 #endif
   return Qnil;
 }
@@ -1106,7 +1161,10 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_query_on_exit_flag);
   defsubr (&Sset_xwidget_query_on_exit_flag);
 
+  defsubr (&Sxwidget_webkit_uri);
+  defsubr (&Sxwidget_webkit_title);
   defsubr (&Sxwidget_webkit_goto_uri);
+  defsubr (&Sxwidget_webkit_goto_history);
   defsubr (&Sxwidget_webkit_zoom);
   defsubr (&Sxwidget_webkit_execute_script);
   DEFSYM (Qwebkit, "webkit");

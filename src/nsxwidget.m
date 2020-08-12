@@ -292,6 +292,21 @@ nsxwidget_is_web_view (struct xwidget *xw)
   return xw->xwWidget != NULL &&
     [xw->xwWidget isKindOfClass:WKWebView.class];
 }
+
+Lisp_Object
+nsxwidget_webkit_uri (struct xwidget *xw)
+{
+  XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
+  return build_string_with_nsstr (xwWebView.URL.absoluteString);
+}
+
+Lisp_Object
+nsxwidget_webkit_title (struct xwidget *xw)
+{
+  XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
+  return build_string_with_nsstr (xwWebView.title);
+}
+
 /* @Note ATS - Need application transport security in 'Info.plist' or
    remote pages will not loaded.  */
 void
@@ -302,6 +317,17 @@ nsxwidget_webkit_goto_uri (struct xwidget *xw, const char *uri)
   NSURL *url = [NSURL URLWithString:urlString];
   NSURLRequest *urlRequest = [NSURLRequest requestWithURL:url];
   [xwWebView loadRequest:urlRequest];
+}
+
+void
+nsxwidget_webkit_goto_history (struct xwidget *xw, int rel_pos)
+{
+  XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
+  switch (rel_pos) {
+  case -1: [xwWebView goBack]; break;
+  case 0: [xwWebView reload]; break;
+  case 1: [xwWebView goForward]; break;
+  }
 }
 
 void

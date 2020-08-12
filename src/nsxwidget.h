@@ -32,7 +32,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Functions for xwidget webkit.  */
 
 bool nsxwidget_is_web_view (struct xwidget *xw);
+Lisp_Object nsxwidget_webkit_uri (struct xwidget *xw);
+Lisp_Object nsxwidget_webkit_title (struct xwidget *xw);
 void nsxwidget_webkit_goto_uri (struct xwidget *xw, const char *uri);
+void nsxwidget_webkit_goto_history (struct xwidget *xw, int rel_pos);
 void nsxwidget_webkit_zoom (struct xwidget *xw, double zoom_change);
 void nsxwidget_webkit_execute_script (struct xwidget *xw, const char *script,
                                       Lisp_Object fun);
