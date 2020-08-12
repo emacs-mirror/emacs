@@ -1105,16 +1105,7 @@ If no one is selected, default secret key is used.  "
 				 'start-open t
 				 'end-open t)))))
 
-(defalias 'epa--derived-mode-p
-  (if (fboundp 'derived-mode-p)
-      #'derived-mode-p
-    (lambda (&rest modes)
-      "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
-      (let ((parent major-mode))
-        (while (and (not (memq parent modes))
-                    (setq parent (get parent 'derived-mode-parent))))
-        parent))))
+(define-obsolete-function-alias 'epa--derived-mode-p 'derived-mode-p "28.1")
 
 ;;;###autoload
 (defun epa-encrypt-region (start end recipients sign signers)
@@ -1227,7 +1218,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
-    ;; FIXME: Why not use the (otherwise unused) epa--derived-mode-p?
+    ;; FIXME: Why not use the derived-mode-p?
     (if (eq major-mode 'epa-key-list-mode)
 	(apply #'epa--list-keys epa-list-keys-arguments))))
 
