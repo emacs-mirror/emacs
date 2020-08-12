@@ -55,7 +55,7 @@
   (face-background face nil t))
 
 
-(defalias 'ps-frame-parameter 'frame-parameter)
+(define-obsolete-function-alias 'ps-frame-parameter #'frame-parameter "28.1")
 
 ;; Return t if the device (which can be changed during an emacs session) can
 ;; handle colors.  This function is not yet implemented for GNU emacs.
