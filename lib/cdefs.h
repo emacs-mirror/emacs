@@ -167,8 +167,8 @@
 #if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && !defined __HP_cc
 # define __flexarr	[]
 # define __glibc_c99_flexarr_available 1
-#elif __GNUC_PREREQ (2,97)
-/* GCC 2.97 supports C99 flexible array members as an extension,
+#elif __GNUC_PREREQ (2,97) || defined __clang__
+/* GCC 2.97 and clang support C99 flexible array members as an extension,
    even when in C89 mode or compiling C++ (any version).  */
 # define __flexarr	[]
 # define __glibc_c99_flexarr_available 1
@@ -399,8 +399,10 @@
 # define __extension__		/* Ignore */
 #endif
 
-/* __restrict is known in EGCS 1.2 and above. */
-#if !__GNUC_PREREQ (2,92)
+/* __restrict is known in EGCS 1.2 and above, and in clang.
+   It works also in C++ mode (outside of arrays), but only when spelled
+   as '__restrict', not 'restrict'.  */
+#if !(__GNUC_PREREQ (2,92) || __clang_major__ >= 3)
 # if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #  define __restrict	restrict
 # else
@@ -410,8 +412,9 @@
 
 /* ISO C99 also allows to declare arrays as non-overlapping.  The syntax is
      array_name[restrict]
-   GCC 3.1 supports this.  */
-#if __GNUC_PREREQ (3,1) && !defined __GNUG__
+   GCC 3.1 and clang support this.
+   This syntax is not usable in C++ mode.  */
+#if (__GNUC_PREREQ (3,1) || __clang_major__ >= 3) && !defined __cplusplus
 # define __restrict_arr	__restrict
 #else
 # ifdef __GNUC__
