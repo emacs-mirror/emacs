@@ -722,10 +722,7 @@ disables numbering maintenance."
   :group 'allout)
 (make-variable-buffer-local 'allout-numbered-bullet)
 ;;;###autoload
-(put 'allout-numbered-bullet 'safe-local-variable
-     (if (fboundp 'string-or-null-p)
-         'string-or-null-p
-       (lambda (x) (or (stringp x) (null x)))))
+(put 'allout-numbered-bullet 'safe-local-variable 'string-or-null-p)
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -734,10 +731,7 @@ Set this var to the bullet you want to use for file cross-references."
   :type '(choice (const nil) string)
   :group 'allout)
 ;;;###autoload
-(put 'allout-file-xref-bullet 'safe-local-variable
-     (if (fboundp 'string-or-null-p)
-         'string-or-null-p
-       (lambda (x) (or (stringp x) (null x)))))
+(put 'allout-file-xref-bullet 'safe-local-variable 'string-or-null-p)
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "Presentation-format white-space padding factor, for greater indent."
