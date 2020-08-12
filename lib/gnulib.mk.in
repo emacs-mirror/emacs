@@ -116,7 +116,6 @@
 #  ieee754-h \
 #  ignore-value \
 #  intprops \
-#  inttypes \
 #  largefile \
 #  libgmp \
 #  lstat \

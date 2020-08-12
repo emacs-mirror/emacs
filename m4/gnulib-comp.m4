@@ -113,7 +113,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
-  # Code from module inttypes:
   # Code from module inttypes-incomplete:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
@@ -343,7 +342,6 @@ AC_DEFUN([gl_INIT],
   fi
   gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
   gl_IEEE754_H
-  gl_INTTYPES_H
   gl_INTTYPES_INCOMPLETE
   AC_REQUIRE([gl_LARGEFILE])
   gl___INLINE
