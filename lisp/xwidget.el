@@ -99,6 +99,24 @@ Interactively, URL defaults to the string looking like a url around point."
         (xwidget-webkit-new-session url)
       (xwidget-webkit-goto-url url))))
 
+(defun xwidget-webkit-clone-and-split-below ()
+  "Clone current URL into a new widget place in new window below.
+Get the URL of current session, then browse to the URL
+in `split-window-below' with a new xwidget webkit session."
+  (interactive)
+  (let ((url (xwidget-webkit-current-url)))
+    (with-selected-window (split-window-below)
+      (xwidget-webkit-new-session url))))
+
+(defun xwidget-webkit-clone-and-split-right ()
+  "Clone current URL into a new widget place in new window right.
+Get the URL of current session, then browse to the URL
+in `split-window-right' with a new xwidget webkit session."
+  (interactive)
+  (let ((url (xwidget-webkit-current-url)))
+    (with-selected-window (split-window-right)
+      (xwidget-webkit-new-session url))))
+
 ;;todo.
 ;; - check that the webkit support is compiled in
 (defvar xwidget-webkit-mode-map
@@ -222,9 +240,9 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
               xwidget "document.title"
               (lambda (title)
                 (xwidget-log "webkit finished loading: '%s'" title)
-                ;;TODO - check the native/internal scroll
-                ;;(xwidget-adjust-size-to-content xwidget)
-                (xwidget-webkit-adjust-size-to-window xwidget)
+                ;; Do not adjust webkit size to window here, the
+                ;; selected window can be the mini-buffer window
+                ;; unwantedly.
                 (rename-buffer (format "*xwidget webkit: %s *" title))))
              (pop-to-buffer (current-buffer)))
             ((eq xwidget-event-type 'decide-policy)
@@ -240,6 +258,11 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
             (t (xwidget-log "unhandled event:%s" xwidget-event-type))))))
 
 (defvar bookmark-make-record-function)
+(when (memq window-system '(mac ns))
+  (defvar xwidget-webkit-enable-plugins nil
+    "Enable plugins for xwidget webkit.
+If non-nil, plugins are enabled.  Otherwise, disabled."))
+
 (define-derived-mode xwidget-webkit-mode
     special-mode "xwidget-webkit" "Xwidget webkit view mode."
     (setq buffer-read-only t)

@@ -958,6 +958,18 @@ convert them to a list '(R G B)' of primary color values.
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
+---
+** On macOS, Xwidget is now supported.
+If Emacs was built with xwidget support, you can access the embedded
+webkit browser with 'M-x xwidget-webkit-browse-url'.  Viewing two
+instances of xwidget webkit is not supported.
+
+*** New functions for xwidget-webkit mode
+'xwidget-webkit-clone-and-split-below',
+'xwidget-webkit-clone-and-split-right'.
+
+*** New variable 'xwidget-webkit-enable-plugins'.
+
 +++
 ** On macOS, Emacs can now load dynamic modules with a ".dylib" suffix.
 'module-file-suffix' now has the value ".dylib" on macOS, but the
@@ -997,6 +1009,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
 
 
 Local variables:

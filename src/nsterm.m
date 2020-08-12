@@ -49,6 +49,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "nsterm.h"
 #include "systime.h"
 #include "character.h"
+#include "xwidget.h"
 #include "fontset.h"
 #include "composite.h"
 #include "ccl.h"
@@ -2600,7 +2601,8 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 }
 
 static int
-ns_note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
+ns_note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y,
+			BOOL dragging)
 /*   ------------------------------------------------------------------------
      Called by EmacsView on mouseMovement events.  Passes on
      to emacs mainstream code if we moved off of a rect of interest
@@ -2609,17 +2611,24 @@ ns_note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   NSRect *r;
+  BOOL force_update = NO;
 
   // NSTRACE ("note_mouse_movement");
 
   dpyinfo->last_mouse_motion_frame = frame;
   r = &dpyinfo->last_mouse_glyph;
 
+  /* If the last rect is too large (ex, xwidget webkit), update at
+     every move, or resizing by dragging modeline or vertical split is
+     very hard to make its way.  */
+  if (dragging && (r->size.width > 32 || r->size.height > 32))
+    force_update = YES;
+
   /* Note, this doesn't get called for enter/leave, since we don't have a
      position.  Those are taken care of in the corresponding NSView methods.  */
 
   /* Has movement gone beyond last rect we were tracking?  */
-  if (x < r->origin.x || x >= r->origin.x + r->size.width
+  if (force_update || x < r->origin.x || x >= r->origin.x + r->size.width
       || y < r->origin.y || y >= r->origin.y + r->size.height)
     {
       ns_update_begin (frame);
@@ -4366,6 +4375,10 @@ ns_draw_glyph_string (struct glyph_string *s)
       ns_focus (s->f, r, n);
       ns_dumpglyphs_image (s, r[0]);
       ns_unfocus (s->f);
+      break;
+
+    case XWIDGET_GLYPH:
+      x_draw_xwidget_glyph_string (s);
       break;
 
     case STRETCH_GLYPH:
@@ -7065,6 +7078,7 @@ not_in_argv (NSString *arg)
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   Lisp_Object frame;
   NSPoint pt;
+  BOOL dragging;
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "[EmacsView mouseMoved:]");
 
@@ -7107,7 +7121,8 @@ not_in_argv (NSString *arg)
       last_mouse_window = window;
     }
 
-  if (!ns_note_mouse_movement (emacsframe, pt.x, pt.y))
+  dragging = (e.type == NSEventTypeLeftMouseDragged);
+  if (!ns_note_mouse_movement (emacsframe, pt.x, pt.y, dragging))
     help_echo_string = previous_help_echo_string;
 
   XSETFRAME (frame, emacsframe);

@@ -489,7 +489,7 @@ otherwise for the first of 'inotify', 'kqueue' or 'gfile' that is usable.])
  [with_file_notification=$with_features])
 
 OPTION_DEFAULT_OFF([xwidgets],
-  [enable use of some gtk widgets in Emacs buffers (requires gtk3)])
+  [enable use of xwidgets in Emacs buffers (requires gtk3 or macOS Cocoa)])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -2754,20 +2754,34 @@ fi
 
 
 dnl Enable xwidgets if GTK3 and WebKitGTK+ are available.
+dnl Enable xwidgets if macOS Cocoa and WebKit framework are available.
 HAVE_XWIDGETS=no
 XWIDGETS_OBJ=
 if test "$with_xwidgets" != "no"; then
-  test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none" ||
-    AC_MSG_ERROR([xwidgets requested but gtk3 not used.])
+  if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
+    WEBKIT_REQUIRED=2.12
+    WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
+    EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
+    HAVE_XWIDGETS=$HAVE_WEBKIT
+    XWIDGETS_OBJ="xwidget.o"
+  elif test "${NS_IMPL_COCOA}" = "yes"; then
+    dnl FIXME: Check framework WebKit2
+    dnl WEBKIT_REQUIRED=M.m.p
+    WEBKIT_LIBS="-Wl,-framework -Wl,WebKit"
+    WEBKIT_CFLAGS="-I/System/Library/Frameworks/WebKit.framework/Headers"
+    HAVE_WEBKIT="yes"
+    HAVE_XWIDGETS=$HAVE_WEBKIT
+    XWIDGETS_OBJ="xwidget.o"
+    NS_OBJC_OBJ="$NS_OBJC_OBJ nsxwidget.o"
+    dnl Update NS_OBJC_OBJ with added nsxwidget.o
+    AC_SUBST(NS_OBJC_OBJ)
+  else
+    AC_MSG_ERROR([xwidgets requested, it requires GTK3 as X window toolkit or macOS Cocoa as window system.])
+  fi
 
-  WEBKIT_REQUIRED=2.12
-  WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
-  EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
-  HAVE_XWIDGETS=$HAVE_WEBKIT
   test $HAVE_XWIDGETS = yes ||
-    AC_MSG_ERROR([xwidgets requested but WebKitGTK+ not found.])
+    AC_MSG_ERROR([xwidgets requested but WebKitGTK+ or WebKit framework not found.])
 
-  XWIDGETS_OBJ=xwidget.o
   AC_DEFINE([HAVE_XWIDGETS], 1, [Define to 1 if you have xwidgets support.])
 fi
 AC_SUBST(XWIDGETS_OBJ)
@@ -5688,7 +5702,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs directly use zlib?                           ${HAVE_ZLIB}
   Does Emacs have dynamic modules support?                ${HAVE_MODULES}
   Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}
-  Does Emacs support Xwidgets (requires gtk3)?            ${HAVE_XWIDGETS}
+  Does Emacs support Xwidgets?                            ${HAVE_XWIDGETS}
   Does Emacs have threading support in lisp?              ${threads_enabled}
   Does Emacs support the portable dumper?                 ${with_pdumper}
   Does Emacs support legacy unexec dumping?               ${with_unexec}
