@@ -752,10 +752,16 @@ resulting list of directory names.  For an empty path element (i.e.,
 a leading or trailing separator, or two adjacent separators), return
 nil (meaning `default-directory') as the associated list element."
   (when (stringp search-path)
-    (mapcar (lambda (f)
-	      (if (equal "" f) nil
-		(substitute-in-file-name (file-name-as-directory f))))
-	    (split-string search-path path-separator))))
+    (let ((spath (substitute-env-vars search-path)))
+      (mapcar (lambda (f)
+                (if (equal "" f) nil
+                  (let ((dir (expand-file-name (file-name-as-directory f))))
+                    ;; Previous implementation used `substitute-in-file-name'
+                    ;; which collapse multiple "/" in front.  Do the same for
+                    ;; backward compatibility.
+                    (if (string-match "\\`/+" dir)
+                        (substring dir (1- (match-end 0))) dir))))
+              (split-string spath path-separator)))))
 
 (defun cd-absolute (dir)
   "Change current directory to given absolute file name DIR."
