@@ -3835,7 +3835,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
       (set-buffer output-buffer)
       (goto-char (point-min))
       ;; Skip past the command, if it was echoed
-      (and (looking-at command)
+      (and (looking-at (regexp-quote command))
 	   (forward-line))
       (while (and (not (eobp))
 		  (re-search-forward regexp nil t))
