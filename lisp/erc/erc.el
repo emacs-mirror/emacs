@@ -1608,36 +1608,47 @@ symbol, it may have these values:
 (defun erc-generate-new-buffer-name (server port target)
   "Create a new buffer name based on the arguments."
   (when (numberp port) (setq port (number-to-string port)))
-  (let ((buf-name (or target
-                      (or (let ((name (concat server ":" port)))
-                            (when (> (length name) 1)
-                              name))
-                          ;; This fallback should in fact never happen
-                          "*erc-server-buffer*")))
-        buffer-name)
+  (let* ((buf-name (or target
+                       (let ((name (concat server ":" port)))
+                         (when (> (length name) 1)
+                           name))
+                       ;; This fallback should in fact never happen.
+                       "*erc-server-buffer*"))
+         (full-buf-name (concat buf-name "/" server))
+         (dup-buf-name (buffer-name (car (erc-channel-list nil))))
+         buffer-name)
     ;; Reuse existing buffers, but not if the buffer is a connected server
     ;; buffer and not if its associated with a different server than the
     ;; current ERC buffer.
-    ;; if buf-name is taken by a different connection (or by something !erc)
-    ;; then see if "buf-name/server" meets the same criteria
-    (dolist (candidate (list buf-name (concat buf-name "/" server)))
-      (if (and (not buffer-name)
-               erc-reuse-buffers
-               (or (not (get-buffer candidate))
-                   ;; Looking for a server buffer, so there's no target.
-                   (and (not target)
-                        (with-current-buffer (get-buffer candidate)
-                          (and (erc-server-buffer-p)
-                               (not (erc-server-process-alive)))))
-                   ;; Channel buffer; check that it's from the right server.
-                   (and target
-                        (with-current-buffer (get-buffer candidate)
-                          (and (string= erc-session-server server)
-                               (erc-port-equal erc-session-port port))))))
-          (setq buffer-name candidate)))
-    ;; if buffer-name is unset, neither candidate worked out for us,
+    ;; If buf-name is taken by a different connection (or by something !erc)
+    ;; then see if "buf-name/server" meets the same criteria.
+    (if (and dup-buf-name (string-match-p (concat buf-name "/") dup-buf-name))
+        (setq buffer-name full-buf-name) ; ERC buffer with full name already exists.
+      (dolist (candidate (list buf-name full-buf-name))
+        (if (and (not buffer-name)
+                 erc-reuse-buffers
+                 (or (not (get-buffer candidate))
+                     ;; Looking for a server buffer, so there's no target.
+                     (and (not target)
+                          (with-current-buffer (get-buffer candidate)
+                            (and (erc-server-buffer-p)
+                                 (not (erc-server-process-alive)))))
+                     ;; Channel buffer; check that it's from the right server.
+                     (and target
+                          (with-current-buffer (get-buffer candidate)
+                            (and (string= erc-session-server server)
+                                 (erc-port-equal erc-session-port port))))))
+            (setq buffer-name candidate)
+          (when (and (not buffer-name) (get-buffer buf-name) erc-reuse-buffers)
+            ;; A new buffer will be created with the name buf-name/server, rename
+            ;; the existing name-duplicated buffer with the same format as well.
+            (with-current-buffer (get-buffer buf-name)
+              (when (derived-mode-p 'erc-mode) ; ensure it's an erc buffer
+                (rename-buffer
+                 (concat buf-name "/" (or erc-session-server erc-server-announced-name)))))))))
+    ;; If buffer-name is unset, neither candidate worked out for us,
     ;; fallback to the old <N> uniquification method:
-    (or buffer-name (generate-new-buffer-name (concat buf-name "/" server)))))
+    (or buffer-name (generate-new-buffer-name full-buf-name))))
 
 (defun erc-get-buffer-create (server port target)
   "Create a new buffer based on the arguments."
@@ -3153,16 +3164,18 @@ were most recently invited.  See also `invitation'."
       (setq chnl (erc-ensure-channel-name channel)))
     (when chnl
       ;; Prevent double joining of same channel on same server.
-      (let ((joined-channels
-             (mapcar #'(lambda (chanbuf)
-                         (with-current-buffer chanbuf (erc-default-target)))
-                     (erc-channel-list erc-server-process))))
-        (if (erc-member-ignore-case chnl joined-channels)
-            (switch-to-buffer (car (erc-member-ignore-case chnl
-                                                           joined-channels)))
-	  (let ((server (with-current-buffer (process-buffer erc-server-process)
-			  (or erc-session-server erc-server-announced-name))))
-	    (erc-server-join-channel server chnl key))))))
+      (let* ((joined-channels
+              (mapcar #'(lambda (chanbuf)
+                          (with-current-buffer chanbuf (erc-default-target)))
+                      (erc-channel-list erc-server-process)))
+             (server (with-current-buffer (process-buffer erc-server-process)
+		       (or erc-session-server erc-server-announced-name)))
+             (chnl-name (car (erc-member-ignore-case chnl joined-channels))))
+        (if chnl-name
+            (switch-to-buffer (if (get-buffer chnl-name)
+                                  chnl-name
+                                (concat chnl-name "/" server)))
+	  (erc-server-join-channel server chnl key)))))
   t)
 
 (defalias 'erc-cmd-CHANNEL 'erc-cmd-JOIN)
