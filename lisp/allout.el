@@ -410,8 +410,7 @@ where auto-fill occurs."
   :group 'allout)
 (make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
-(put 'allout-use-hanging-indents 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
+(put 'allout-use-hanging-indents 'safe-local-variable 'booleanp)
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
 				    'text)
@@ -440,8 +439,7 @@ just the header."
   :group 'allout)
 (make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
-(put 'allout-show-bodies 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
+(put 'allout-show-bodies 'safe-local-variable 'booleanp)
 
 ;;;_  = allout-beginning-of-line-cycles
 (defcustom allout-beginning-of-line-cycles t
@@ -662,8 +660,7 @@ are always respected by the topic maneuvering functions."
   :group 'allout)
 (make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
-(put 'allout-old-style-prefixes 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
+(put 'allout-old-style-prefixes 'safe-local-variable 'booleanp)
 ;;;_  = allout-stylish-prefixes -- alternating bullets
 (defcustom allout-stylish-prefixes t
   "Do fancy stuff with topic prefix bullets according to level, etc.
@@ -711,8 +708,7 @@ is non-nil."
   :group 'allout)
 (make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
-(put 'allout-stylish-prefixes 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
+(put 'allout-stylish-prefixes 'safe-local-variable 'booleanp)
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
