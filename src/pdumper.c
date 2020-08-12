@@ -71,17 +71,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_PDUMPER
 
 #if GNUC_PREREQ (4, 7, 0)
-# pragma GCC diagnostic error "-Wconversion"
-# pragma GCC diagnostic ignored "-Wsign-conversion"
 # pragma GCC diagnostic error "-Wshadow"
-# define ALLOW_IMPLICIT_CONVERSION                       \
-  _Pragma ("GCC diagnostic push")                        \
-  _Pragma ("GCC diagnostic ignored \"-Wconversion\"")
-# define DISALLOW_IMPLICIT_CONVERSION \
-  _Pragma ("GCC diagnostic pop")
-#else
-# define ALLOW_IMPLICIT_CONVERSION ((void) 0)
-# define DISALLOW_IMPLICIT_CONVERSION ((void) 0)
 #endif
 
 #define VM_POSIX 1
@@ -316,9 +306,7 @@ static void
 dump_reloc_set_offset (struct dump_reloc *reloc, dump_off offset)
 {
   eassert (offset >= 0);
-  ALLOW_IMPLICIT_CONVERSION;
   reloc->raw_offset = offset >> DUMP_RELOC_ALIGNMENT_BITS;
-  DISALLOW_IMPLICIT_CONVERSION;
   if (dump_reloc_get_offset (*reloc) != offset)
     error ("dump relocation out of range");
 }
@@ -744,10 +732,7 @@ dump_off_from_lisp (Lisp_Object value)
 {
   intmax_t n = intmax_t_from_lisp (value);
   eassert (DUMP_OFF_MIN <= n && n <= DUMP_OFF_MAX);
-  ALLOW_IMPLICIT_CONVERSION;
-  dump_off converted = n;
-  DISALLOW_IMPLICIT_CONVERSION;
-  return converted;
+  return n;
 }
 
 static Lisp_Object
@@ -1994,11 +1979,7 @@ static dump_off
 finish_dump_pvec (struct dump_context *ctx,
                   union vectorlike_header *out_hdr)
 {
-  ALLOW_IMPLICIT_CONVERSION;
-  dump_off result = dump_object_finish (ctx, out_hdr,
-					vectorlike_nbytes (out_hdr));
-  DISALLOW_IMPLICIT_CONVERSION;
-  return result;
+  return dump_object_finish (ctx, out_hdr, vectorlike_nbytes (out_hdr));
 }
 
 static void
@@ -2664,9 +2645,7 @@ static void
 hash_table_thaw (Lisp_Object hash)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
-  ALLOW_IMPLICIT_CONVERSION;
   h->hash = make_nil_vector (XFIXNUM (h->hash));
-  DISALLOW_IMPLICIT_CONVERSION;
   h->next = Fmake_vector (h->next, make_fixnum (-1));
   h->index = Fmake_vector (h->index, make_fixnum (-1));
 
@@ -3298,9 +3277,7 @@ static void
 dump_cold_charset (struct dump_context *ctx, Lisp_Object data)
 {
   /* Dump charset lookup tables.  */
-  ALLOW_IMPLICIT_CONVERSION;
   int cs_i = XFIXNUM (XCAR (data));
-  DISALLOW_IMPLICIT_CONVERSION;
   dump_off cs_dump_offset = dump_off_from_lisp (XCDR (data));
   dump_remember_fixup_ptr_raw
     (ctx,
@@ -3608,9 +3585,7 @@ static struct emacs_reloc
 decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
 {
   struct emacs_reloc reloc = {0};
-  ALLOW_IMPLICIT_CONVERSION;
   int type = XFIXNUM (dump_pop (&lreloc));
-  DISALLOW_IMPLICIT_CONVERSION;
   reloc.emacs_offset = dump_off_from_lisp (dump_pop (&lreloc));
   dump_check_emacs_off (reloc.emacs_offset);
   switch (type)
@@ -3621,9 +3596,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
         reloc.u.dump_offset = dump_off_from_lisp (dump_pop (&lreloc));
         dump_check_dump_off (ctx, reloc.u.dump_offset);
         dump_off length = dump_off_from_lisp (dump_pop (&lreloc));
-        ALLOW_IMPLICIT_CONVERSION;
         reloc.length = length;
-        DISALLOW_IMPLICIT_CONVERSION;
         if (reloc.length != length)
           error ("relocation copy length too large");
       }
@@ -3634,9 +3607,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
         intmax_t value = intmax_t_from_lisp (dump_pop (&lreloc));
         dump_off size = dump_off_from_lisp (dump_pop (&lreloc));
         reloc.u.immediate = value;
-        ALLOW_IMPLICIT_CONVERSION;
         reloc.length = size;
-        DISALLOW_IMPLICIT_CONVERSION;
         eassert (reloc.length == size);
       }
       break;
@@ -3661,9 +3632,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
            RELOC_EMACS_IMMEDIATE relocation instead.  */
         eassert (!dump_object_self_representing_p (target_value));
         int tag_type = XTYPE (target_value);
-        ALLOW_IMPLICIT_CONVERSION;
         reloc.length = tag_type;
-        DISALLOW_IMPLICIT_CONVERSION;
         eassert (reloc.length == tag_type);
 
         if (type == RELOC_EMACS_EMACS_LV)
@@ -3738,9 +3707,7 @@ dump_merge_emacs_relocs (Lisp_Object lreloc_a, Lisp_Object lreloc_b)
     return Qnil;
 
   dump_off new_length = reloc_a.length + reloc_b.length;
-  ALLOW_IMPLICIT_CONVERSION;
   reloc_a.length = new_length;
-  DISALLOW_IMPLICIT_CONVERSION;
   if (reloc_a.length != new_length)
     return Qnil; /* Overflow */
 
@@ -5074,7 +5041,7 @@ dump_read_all (int fd, void *buf, size_t bytes_to_read)
       /* Some platforms accept only int-sized values to read.
          Round this down to a page size (see MAX_RW_COUNT in sysdep.c).  */
       int max_rw_count = INT_MAX >> 18 << 18;
-      size_t chunk_to_read = min (bytes_to_read - bytes_read, max_rw_count);
+      int chunk_to_read = min (bytes_to_read - bytes_read, max_rw_count);
       ssize_t chunk = read (fd, (char *) buf + bytes_read, chunk_to_read);
       if (chunk < 0)
         return chunk;
