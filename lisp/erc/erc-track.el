@@ -36,7 +36,6 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'erc)
-(require 'erc-compat)
 (require 'erc-match)
 
 ;;; Code:

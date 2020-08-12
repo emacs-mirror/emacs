@@ -721,6 +721,11 @@ Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
 *** ERC now recognizes C-] for italic text.
 Italic text is displayed in the new 'erc-italic-face'.
 
+---
+*** The erc-compat.el library is now marked obsolete.
+This file contained ERC compatibility code for Emacs 21 and XEmacs
+which is no longer needed.
+
 ** Battery
 
 ---

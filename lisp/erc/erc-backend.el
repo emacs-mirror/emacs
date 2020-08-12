@@ -98,7 +98,6 @@
 
 ;;; Code:
 
-(require 'erc-compat)
 (eval-when-compile (require 'cl-lib))
 ;; There's a fairly strong mutual dependency between erc.el and erc-backend.el.
 ;; Luckily, erc.el does not need erc-backend.el for macroexpansion whereas the
@@ -782,7 +781,7 @@ value of `erc-server-coding-system'."
           (pop precedence))
         (when precedence
           (setq coding (car precedence)))))
-    (erc-decode-coding-string str coding)))
+    (decode-coding-string str coding t)))
 
 ;; proposed name, not used by anything yet
 (defun erc-send-line (text display-fn)

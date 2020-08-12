@@ -181,7 +181,7 @@ nick from `erc-last-ison' to prevent any further notifications."
   (let ((nick (erc-extract-nick (erc-response.sender parsed))))
     (when (and (erc-member-ignore-case nick erc-notify-list)
 	       (erc-member-ignore-case nick erc-last-ison))
-      (setq erc-last-ison (erc-delete-if
+      (setq erc-last-ison (cl-delete-if
 			   (let ((nick-down (erc-downcase nick)))
 			     (lambda (el)
 			       (string= nick-down (erc-downcase el))))

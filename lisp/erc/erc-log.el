@@ -267,7 +267,7 @@ The current buffer is given by BUFFER."
     (with-current-buffer buffer
       (auto-save-mode -1)
       (setq buffer-file-name nil)
-      (erc-set-write-file-functions '(erc-save-buffer-in-logs))
+      (set (make-local-variable 'write-file-functions) '(erc-save-buffer-in-logs))
       (when erc-log-insert-log-on-open
 	(ignore-errors
 	  (save-excursion

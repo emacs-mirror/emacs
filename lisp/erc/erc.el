@@ -57,12 +57,12 @@
 
 (load "erc-loaddefs" nil t)
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'font-lock)
+(require 'format-spec)
 (require 'pp)
 (require 'thingatpt)
 (require 'auth-source)
-(require 'erc-compat)
 (require 'time-date)
 (require 'iso8601)
 (eval-when-compile (require 'subr-x))
@@ -877,8 +877,8 @@ See `erc-server-flood-margin' for other flood-related parameters.")
 ;; Script parameters
 
 (defcustom erc-startup-file-list
-  (list (concat erc-user-emacs-directory ".ercrc.el")
-        (concat erc-user-emacs-directory ".ercrc")
+  (list (concat user-emacs-directory ".ercrc.el")
+        (concat user-emacs-directory ".ercrc")
         "~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
   "List of files to try for a startup script.
 The first existent and readable one will get executed.
@@ -1306,7 +1306,7 @@ Example:
          (enable (intern (format "erc-%s-enable" (downcase sn))))
          (disable (intern (format "erc-%s-disable" (downcase sn)))))
     `(progn
-       (erc-define-minor-mode
+       (define-minor-mode
         ,mode
         ,(format "Toggle ERC %S mode.
 With a prefix argument ARG, enable %s if ARG is positive,
@@ -2688,7 +2688,7 @@ displayed hostnames."
 otherwise `erc-server-announced-name'.  SERVER is matched against
 `erc-common-server-suffixes'."
   (when server
-    (or (cdar (erc-remove-if-not
+    (or (cdar (cl-remove-if-not
                (lambda (net) (string-match (car net) server))
                erc-common-server-suffixes))
         erc-server-announced-name)))
@@ -3725,8 +3725,9 @@ the message given by REASON."
                                                       x-toolkit-scroll-bars)))
                                "")
                              (if (featurep 'multi-tty) ", multi-tty" ""))
-                            (if erc-emacs-build-time
-                                (concat " of " erc-emacs-build-time)
+                            (if emacs-build-time
+                                (concat " of " (format-time-string
+                                                "%Y-%m-%d" emacs-build-time))
                               "")))
   t)
 
@@ -4573,7 +4574,7 @@ See also: `erc-echo-notice-in-user-buffers',
                 ((string-match "^-" mode)
                  ;; Remove the unbanned masks from the ban list
                  (setq erc-channel-banlist
-                       (erc-delete-if
+                       (cl-delete-if
                         #'(lambda (y)
                             (member (upcase (cdr y))
                                     (mapcar #'upcase
@@ -4594,7 +4595,7 @@ See also: `erc-echo-notice-in-user-buffers',
   "Group LIST into sublists of length N."
   (cond ((null list) nil)
         ((null (nthcdr n list)) (list list))
-        (t (cons (erc-subseq list 0 n) (erc-group-list (nthcdr n list) n)))))
+        (t (cons (cl-subseq list 0 n) (erc-group-list (nthcdr n list) n)))))
 
 
 ;;; MOTD numreplies
@@ -6183,8 +6184,7 @@ non-nil value is found.
           output        (apply #'format format-args))
     ;; Change all "1 units" to "1 unit".
     (while (string-match "\\([^0-9]\\|^\\)1 \\S-+\\(s\\)" output)
-      (setq output (erc-replace-match-subexpression-in-string
-                    "" output (match-string 2 output) 2 (match-beginning 2))))
+      (setq output (replace-match "" nil nil output 2)))
     output))
 
 

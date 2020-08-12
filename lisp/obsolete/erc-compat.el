@@ -5,6 +5,7 @@
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; URL: https://www.emacswiki.org/emacs/ERC
+;; Obsolete-since: 28.1
 
 ;; This file is part of GNU Emacs.
 

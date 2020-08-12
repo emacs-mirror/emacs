@@ -41,7 +41,6 @@
 
 (require 'pcomplete)
 (require 'erc)
-(require 'erc-compat)
 (require 'time-date)
 
 (defgroup erc-pcomplete nil
