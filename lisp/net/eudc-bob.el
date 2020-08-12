@@ -71,7 +71,7 @@
   `("EUDC Sound Menu"
     ["---" nil nil]
     ["Play sound" eudc-bob-play-sound-at-point
-     (fboundp 'play-sound)]
+     (fboundp 'play-sound-internal)]
     ,@(cdr (cdr eudc-bob-generic-menu))))
 
 (defun eudc-jump-to-event (event)
@@ -197,7 +197,7 @@ display a button."
   (let (sound)
     (if (null (setq sound (eudc-bob-get-overlay-prop 'object-data)))
 	(error "No sound data available here")
-      (unless (fboundp 'play-sound)
+      (unless (fboundp 'play-sound-internal)
 	(error "Playing sounds not supported on this system"))
       (play-sound (list 'sound :data sound)))))
 
