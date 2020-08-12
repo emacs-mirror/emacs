@@ -339,8 +339,7 @@ if it had been inserted from a file named URL."
         (decode-coding-inserted-region (point-min) (point) url
                                        visit beg end replace))
       (let ((inserted (car size-and-charset)))
-        (list url (or (and (fboundp 'after-insert-file-set-coding)
-                           (after-insert-file-set-coding inserted visit))
+        (list url (or (after-insert-file-set-coding inserted visit)
                       inserted))))))
 
 ;;;###autoload
