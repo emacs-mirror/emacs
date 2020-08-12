@@ -207,6 +207,7 @@ See `allout-widgets-mode' for allout widgets mode features."
   :version "24.1"
   :type 'plist
   :group 'allout-widgets)
+(make-obsolete-variable 'allout-widgets-item-image-properties-xemacs nil "28.1")
 ;;;_  . Developer
 ;;;_   = allout-widgets-run-unit-tests-on-load
 (defcustom allout-widgets-run-unit-tests-on-load nil
@@ -1509,8 +1510,7 @@ recursive operation."
   ;; the actual location of the item text:
   :location       'allout-item-location
 
-  :button-keymap  allout-item-icon-keymap ; XEmacs
-  :keymap         allout-item-icon-keymap        ; Emacs
+  :keymap         allout-item-icon-keymap
 
   ;; Element regions:
   :guides-span         nil
@@ -2328,15 +2328,13 @@ We use a caching strategy, so the caller doesn't need to do so."
         (allout-widgets-copy-list (cadr got))
       (while (and types (not got))
         (setq got
-              (allout-find-image
+              (find-image
                (list (append (list :type (car types)
                                    :file (concat use-dir
                                                  (symbol-name name)
                                                  "." (symbol-name
                                                       (car types))))
-                             (if (featurep 'xemacs)
-                                 allout-widgets-item-image-properties-xemacs
-                               allout-widgets-item-image-properties-emacs)
+                             allout-widgets-item-image-properties-emacs
                              ))))
         (setq types (cdr types)))
       (if got
@@ -2357,11 +2355,7 @@ We use a caching strategy, so the caller doesn't need to do so."
          'frame-property)
         (t nil)))
 ;;;_  > allout-find-image (specs)
-(defalias 'allout-find-image
-  (if (fboundp 'find-image)
-      'find-image
-    nil)                                ; aka, not-yet-implemented for xemacs.
-)
+(define-obsolete-function-alias 'allout-find-image #'find-image "28.1")
 ;;;_  > allout-widgets-copy-list (list)
 (defun allout-widgets-copy-list (list)
   ;; duplicated from cl.el 'copy-list' as of 2008-08-17
