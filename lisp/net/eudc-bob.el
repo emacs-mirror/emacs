@@ -214,8 +214,7 @@ display a button."
   (let ((data (eudc-bob-get-overlay-prop 'object-data))
 	(buffer (generate-new-buffer "*eudc-tmp*")))
     (save-excursion
-      (if (fboundp 'set-buffer-file-coding-system)
-	  (set-buffer-file-coding-system 'binary))
+      (set-buffer-file-coding-system 'binary)
       (set-buffer buffer)
       (set-buffer-multibyte nil)
       (insert data)
@@ -231,8 +230,7 @@ display a button."
 	viewer)
     (condition-case nil
 	(save-excursion
-	  (if (fboundp 'set-buffer-file-coding-system)
-	      (set-buffer-file-coding-system 'binary))
+	  (set-buffer-file-coding-system 'binary)
 	  (set-buffer buffer)
 	  (insert data)
 	  (setq program (completing-read "Viewer: " eudc-external-viewers))
