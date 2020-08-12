@@ -1249,13 +1249,8 @@ checking of documentation strings.
 
 ;;; Subst utils
 ;;
-(defsubst checkdoc-run-hooks (hookvar &rest args)
-  "Run hooks in HOOKVAR with ARGS."
-  (if (fboundp 'run-hook-with-args-until-success)
-      (apply #'run-hook-with-args-until-success hookvar args)
-    ;; This method was similar to above.  We ignore the warning
-    ;; since we will use the above for future Emacs versions
-    (apply #'run-hook-with-args hookvar args)))
+(define-obsolete-function-alias 'checkdoc-run-hooks
+  #'run-hook-with-args-until-success "28.1")
 
 (defsubst checkdoc-create-common-verbs-regexp ()
   "Rebuild the contents of `checkdoc-common-verbs-regexp'."
@@ -1873,7 +1868,7 @@ Replace with \"%s\"? " original replace)
      ;; and reliance on the Ispell program.
      (checkdoc-ispell-docstring-engine e take-notes)
      ;; User supplied checks
-     (save-excursion (checkdoc-run-hooks 'checkdoc-style-functions fp e))
+     (save-excursion (run-hook-with-args-until-success 'checkdoc-style-functions fp e))
      ;; Done!
      )))
 
@@ -2384,7 +2379,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; Generic Full-file checks (should be comment related)
-	(checkdoc-run-hooks 'checkdoc-comment-style-functions)
+	(run-hook-with-args-until-success 'checkdoc-comment-style-functions)
 	err))
       ;; Done with full file comment checks
       err)))
