@@ -3561,7 +3561,13 @@ which must be set to a non-@code{nil} value.  Example:
 @end group
 @end lisp
 
-However, this approach has different limitations:
+Using direct asynchronous processes in @value{tramp} is not possible,
+if the remote host is connected via multiple hops
+(@pxref{Multi-hops}), or the @code{make-process} /
+@code{start-file-process} call uses a stderr stream.  In this case,
+@value{tramp} falls back to its classical implementation.
+
+Furthermore, this approach has the following limitations:
 
 @itemize
 @item
@@ -3569,14 +3575,8 @@ It works only for connection methods defined in @file{tramp-sh.el} and
 @file{tramp-adb.el}.
 
 @item
-It does not support multi-hop methods.
-
-@item
 It does not support interactive user authentication, like password
 handling.
-
-@item
-It does not support a separated error stream.
 
 @item
 It cannot be killed via @code{interrupt-process}.
@@ -3594,7 +3594,10 @@ It does not set environment variable @env{INSIDE_EMACS}.
 
 In order to gain even more performance, it is recommended to bind
 @code{tramp-verbose} to 0 when running @code{make-process} or
-@code{start-file-process}.
+@code{start-file-process}.  Furthermore, you might set
+@code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
+bypass @value{tramp}'s handling of the @code{ControlMaster} options,
+and use your own settings in @file{~/.ssh/config}.
 
 
 @node Cleanup remote connections
