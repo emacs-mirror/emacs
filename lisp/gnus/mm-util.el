@@ -131,10 +131,6 @@ is not available."
   (cond
    ((null charset)
     charset)
-   ;; Running in a non-MULE environment.
-   ((or (null (mm-get-coding-system-list))
-	(not (fboundp 'coding-system-get)))
-    charset)
    ;; Check override list quite early.  Should only used for decoding, not for
    ;; encoding!
    ((and allow-override
