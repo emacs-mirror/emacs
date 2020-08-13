@@ -242,6 +242,22 @@
     (should (= (cl-the integer (cl-incf side-effect)) 1))
     (should (= side-effect 1))))
 
+(ert-deftest cl-lib-test-incf ()
+  (let ((var 0))
+    (should (= (cl-incf var) 1))
+    (should (= var 1)))
+  (let ((alist))
+    (should (= (cl-incf (alist-get 'a alist 0)) 1))
+    (should (= (alist-get 'a alist 0) 1))))
+
+(ert-deftest cl-lib-test-decf ()
+  (let ((var 1))
+    (should (= (cl-decf var) 0))
+    (should (= var 0)))
+  (let ((alist))
+    (should (= (cl-decf (alist-get 'a alist 0)) -1))
+    (should (= (alist-get 'a alist 0) -1))))
+
 (ert-deftest cl-lib-test-plusp ()
   (should-not (cl-plusp -1.0e+INF))
   (should-not (cl-plusp -1.5e2))
