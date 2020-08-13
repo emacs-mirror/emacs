@@ -255,8 +255,7 @@
 ;; `so-long-mode', completely bypassing the automated decision process.
 ;; Refer to M-: (info "(emacs) Specifying File Variables") RET
 ;;
-;; If so-long itself is causing problems, it can be inhibited by setting the
-;; `so-long-enabled' variable to nil, or by disabling the global mode with
+;; If so-long itself causes problems, disable the automated behaviour with
 ;; M-- M-x global-so-long-mode, or M-: (global-so-long-mode 0)
 
 ;; * Example configuration
@@ -281,6 +280,43 @@
 ;;     (mapc (apply-partially #'add-to-list 'so-long-variable-overrides)
 ;;           '((show-trailing-whitespace . nil)
 ;;             (truncate-lines . nil))))
+
+;; * Mode-specific configuration
+;; -----------------------------
+;; The `so-long-predicate' function is called in the context of the buffer's
+;; original major mode, and therefore major mode hooks can be used to control
+;; the criteria for calling `so-long' in any given mode (plus its derivatives)
+;; by setting buffer-local values for the variables in question.  This includes
+;; `so-long-predicate' itself, as well as any variables used by the predicate
+;; when determining the result.  By default this means `so-long-max-lines',
+;; `so-long-skip-leading-comments', and `so-long-threshold'.  E.g.:
+;;
+;;   (add-hook 'js-mode-hook 'my-js-mode-hook)
+;;
+;;   (defun my-js-mode-hook ()
+;;     "Custom `js-mode' behaviours."
+;;     (setq-local so-long-max-lines 100)
+;;     (setq-local so-long-threshold 1000))
+;;
+;; `so-long-variable-overrides' and `so-long-minor-modes' may also be given
+;; buffer-local values in order to apply different settings to different types
+;; of file.  For example, the Bidirectional Parentheses Algorithm does not apply
+;; to `<' and `>' characters by default, and therefore one might prefer to not
+;; set `bidi-inhibit-bpa' in XML files, on the basis that XML files with long
+;; lines are less likely to trigger BPA-related performance problems:
+;;
+;;   (add-hook 'nxml-mode-hook 'my-nxml-mode-hook)
+;;
+;;   (defun my-nxml-mode-hook ()
+;;     "Custom `nxml-mode' behaviours."
+;;     (require 'so-long)
+;;     (setq-local so-long-variable-overrides
+;;                 (remove '(bidi-inhibit-bpa . t) so-long-variable-overrides)))
+;;
+;; Finally, note that setting `so-long-target-modes' to nil buffer-locally in
+;; a major mode hook would prevent that mode from ever being targeted.  With
+;; `prog-mode' being targeted by default, specific derivatives of `prog-mode'
+;; could therefore be un-targeted if desired.
 
 ;; * Other ways of using so-long
 ;; -----------------------------
@@ -376,7 +412,6 @@
 ;;       - Added mode-line indicator, user option `so-long-mode-line-label',
 ;;         and faces `so-long-mode-line-active', `so-long-mode-line-inactive'.
 ;;       - New help commands `so-long-commentary' and `so-long-customize'.
-;;       - Renamed `so-long-mode-enabled' to `so-long-enabled'.
 ;;       - Refactored the default hook values using variable overrides
 ;;         (and returning all the hooks to nil default values).
 ;;       - Performance improvements for `so-long-detected-long-line-p'.
@@ -416,9 +451,14 @@
 (declare-function longlines-mode "longlines")
 (defvar longlines-mode)
 (defvar so-long-enabled nil
-  "Set to nil to prevent `so-long' from being triggered automatically.
-
-Has no effect if `global-so-long-mode' is not enabled.")
+  ;; This was initially a renaming of the old `so-long-mode-enabled' and
+  ;; documented as "Set to nil to prevent `so-long' from being triggered
+  ;; automatically."; however `so-long--ensure-enabled' may forcibly re-enable
+  ;; it contrary to the user's expectations, so for the present this should be
+  ;; considered internal-use only (with `global-so-long-mode' the interface
+  ;; for enabling or disabling the automated behaviour).  FIXME: Establish a
+  ;; way to support the original use-case, or rename to `so-long--enabled'.
+  "Internal use.  Non-nil when any so-long functionality has been used.")
 
 (defvar-local so-long--active nil ; internal use
   "Non-nil when `so-long' mitigations are in effect.")
@@ -886,9 +926,15 @@ buffer-local."
 Stores the existing value for each entry in `so-long-variable-overrides'.
 Stores the name of each enabled mode from the list `so-long-minor-modes'.
 
+The lists themselves are also remembered, so that major mode hooks can
+provide buffer-local modifications which are still accessible after changing
+to `so-long-mode'.
+
 If RESET is non-nil, remove any existing values before storing the new ones."
   (when reset
     (setq so-long-original-values nil))
+  (so-long-remember 'so-long-variable-overrides)
+  (so-long-remember 'so-long-minor-modes)
   (dolist (ovar so-long-variable-overrides)
     (so-long-remember (car ovar)))
   (dolist (mode so-long-minor-modes)
@@ -1288,7 +1334,7 @@ Calls `so-long-disable-minor-modes' and `so-long-override-variables'."
 
 (defun so-long-disable-minor-modes ()
   "Disable any active minor modes listed in `so-long-minor-modes'."
-  (dolist (mode so-long-minor-modes)
+  (dolist (mode (so-long-original 'so-long-minor-modes))
     (when (and (boundp mode) mode)
       (funcall mode 0))))
 
@@ -1304,7 +1350,7 @@ The modes are enabled in accordance with what was remembered in `so-long'."
 
 (defun so-long-override-variables ()
   "Set the buffer-local values defined by `so-long-variable-overrides'."
-  (dolist (ovar so-long-variable-overrides)
+  (dolist (ovar (so-long-original 'so-long-variable-overrides))
     (set (make-local-variable (car ovar)) (cdr ovar))))
 
 (defun so-long-restore-variables ()
@@ -1879,7 +1925,7 @@ If it appears in `%s', you should remove it."
 ; LocalWords:  defadvice nadvice whitespace ie bos eos eobp origmode un Un setq
 ; LocalWords:  docstring auf Wiedersehen longlines alist autoload Refactored Inc
 ; LocalWords:  MERCHANTABILITY RET REGEXP VAR ELPA WS mitigations EmacsWiki eval
-; LocalWords:  rx filename filenames bidi bpa
+; LocalWords:  rx filename filenames js defun bidi bpa prog FIXME
 
 ;; So long, farewell, auf Wiedersehen, goodbye
 ;; You have to go, this code is minified

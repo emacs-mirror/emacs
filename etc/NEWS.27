@@ -595,7 +595,7 @@ the node "(emacs) Directory Variables" of the user manual.
 
 ** Network connections using 'local' can now use IPv6.
 'make-network-process' now uses the correct loopback address when
-asked to use ':host 'local' and ':family 'ipv6'.
+asked to use ":host 'local" and ":family 'ipv6".
 
 ** The new function 'replace-region-contents' replaces the current
 region using a given replacement-function in a non-destructive manner

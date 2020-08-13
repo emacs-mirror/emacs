@@ -31062,7 +31062,7 @@ values), despite potential performance issues, type \\[so-long-revert].
 
 Use \\[so-long-commentary] for more information.
 
-Use \\[so-long-customize] to configure the behavior.
+Use \\[so-long-customize] to configure the behaviour.
 
 \(fn)" t nil)
 
@@ -31099,7 +31099,7 @@ or call the function `global-so-long-mode'.")
 (custom-autoload 'global-so-long-mode "so-long" nil)
 
 (autoload 'global-so-long-mode "so-long" "\
-Toggle automated performance mitigation for files with long lines.
+Toggle automated performance mitigations for files with long lines.
 
 If called interactively, enable Global So-Long mode if ARG is
 positive, and disable it if ARG is zero or negative.  If called from
@@ -31118,7 +31118,7 @@ When such files are detected by `so-long-predicate', we invoke the selected
 
 Use \\[so-long-commentary] for more information.
 
-Use \\[so-long-customize] to configure the behavior.
+Use \\[so-long-customize] to configure the behaviour.
 
 \(fn &optional ARG)" t nil)
 
