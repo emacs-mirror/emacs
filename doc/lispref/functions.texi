@@ -267,7 +267,8 @@ reason functions are defined to start with @code{lambda} is so that
 other lists, intended for other uses, will not accidentally be valid as
 functions.
 
-  The second element is a list of symbols---the argument variable names.
+  The second element is a list of symbols---the argument variable
+names (@pxref{Argument List}).
 This is called the @dfn{lambda list}.  When a Lisp function is called,
 the argument values are matched up against the variables in the lambda
 list, which are given local bindings with the values provided.
@@ -342,7 +343,7 @@ stored as symbol function definitions to produce named functions
 (@pxref{Function Names}).
 
 @node Argument List
-@subsection Other Features of Argument Lists
+@subsection Features of Argument Lists
 @kindex wrong-number-of-arguments
 @cindex argument binding
 @cindex binding arguments
@@ -583,8 +584,8 @@ a function.
 @defmac defun name args [doc] [declare] [interactive] body@dots{}
 @code{defun} is the usual way to define new Lisp functions.  It
 defines the symbol @var{name} as a function with argument list
-@var{args} and body forms given by @var{body}.  Neither @var{name} nor
-@var{args} should be quoted.
+@var{args} (@pxref{Argument List}) and body forms given by @var{body}.
+Neither @var{name} nor @var{args} should be quoted.
 
 @var{doc}, if present, should be a string specifying the function's
 documentation string (@pxref{Function Documentation}).  @var{declare},
