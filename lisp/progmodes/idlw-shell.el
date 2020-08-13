@@ -2745,7 +2745,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	     ;; event.  mouse-drag-track does so.
 	     (if drag-track 'mouse-drag-track 'mouse-drag-region)))
        (funcall tracker event)
-       (idlwave-shell-print (if (idlwave-region-active-p) '(4) nil)
+       (idlwave-shell-print (if (region-active-p) '(4) nil)
 			    ,help ,ev))))
 
 ;; Begin terrible hack section -- XEmacs tests for button2 explicitly
@@ -2830,7 +2830,7 @@ from `idlwave-shell-examine-alist' via mini-buffer shortcut key."
       (cond
        ((equal arg '(16))
 	(setq expr (read-string "Expression: ")))
-       ((and (or arg (idlwave-region-active-p))
+       ((and (or arg (region-active-p))
 	     (< (- (region-end) (region-beginning)) 2000))
 	(setq beg (region-beginning)
 	      end (region-end)))

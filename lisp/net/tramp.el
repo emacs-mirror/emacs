@@ -3633,18 +3633,29 @@ User is always nil."
 		(load local-copy noerror t nosuffix must-suffix)
 	      (delete-file local-copy)))))
       t)))
+
+(defun tramp-direct-async-process-p (&rest args)
+  "Whether direct async `make-process' can be called."
+  (let ((v (tramp-dissect-file-name default-directory)))
+    (and (tramp-get-connection-property v"direct-async-process" nil)
+	   (not (tramp-multi-hop-p v))
+	   (not (plist-get args :stderr)))))
+
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
 (defun tramp-handle-make-process (&rest args)
-  "An alternative `make-process' implementation for Tramp files."
+  "An alternative `make-process' implementation for Tramp files.
+It does not support `:stderr'."
   (when args
     (with-parsed-tramp-file-name (expand-file-name default-directory) nil
       (let ((name (plist-get args :name))
 	    (buffer (plist-get args :buffer))
 	    (command (plist-get args :command))
+	    ;; FIXME: `:coding' shall be used.
 	    (coding (plist-get args :coding))
 	    (noquery (plist-get args :noquery))
+	    ;; FIXME: `:connection-type' shall be used.
 	    (connection-type (plist-get args :connection-type))
 	    (filter (plist-get args :filter))
 	    (sentinel (plist-get args :sentinel))
@@ -3667,11 +3678,12 @@ User is always nil."
 	  (signal 'wrong-type-argument (list #'functionp filter)))
 	(unless (or (null sentinel) (functionp sentinel))
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
-	(unless (or (null stderr) (bufferp stderr) (stringp stderr))
-	  (signal 'wrong-type-argument (list #'stringp stderr)))
-	(when (and (stringp stderr) (tramp-tramp-file-p stderr)
-		   (not (tramp-equal-remote default-directory stderr)))
-	  (signal 'file-error (list "Wrong stderr" stderr)))
+	(when stderr
+	  (signal
+	   'user-error
+	   (list
+	    "Stderr not supported for direct remote asynchronous processes"
+	    stderr)))
 
 	(let* ((buffer
 		(if buffer
@@ -3698,9 +3710,12 @@ User is always nil."
 	  (tramp-set-connection-property v "process-name" name)
 	  (tramp-set-connection-property v "process-buffer" buffer)
 
+	  ;; Check for `tramp-sh-file-name-handler', because something
+	  ;; is different between tramp-adb.el and tramp-sh.el.
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (unwind-protect
-		(let* ((login-program
+		(let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
+		       (login-program
 			(tramp-get-method-parameter v 'tramp-login-program))
 		       (login-args
 			(tramp-get-method-parameter v 'tramp-login-args))
@@ -3716,12 +3731,12 @@ User is always nil."
 		       ;; in the main connection process, therefore
 		       ;; we cannot use `tramp-get-connection-process'.
 		       (tmpfile
-			(when (tramp-sh-file-name-handler-p v)
+			(when sh-file-name-handler-p
 			  (with-tramp-connection-property
 			      (tramp-get-process v) "temp-file"
 			    (tramp-compat-make-temp-name))))
 		       (options
-			(when (tramp-sh-file-name-handler-p v)
+			(when sh-file-name-handler-p
 			  (tramp-compat-funcall
 			   'tramp-ssh-controlmaster-options v)))
 		       spec)
@@ -3814,9 +3829,12 @@ support symbolic links."
 	    (setq current-buffer-p t)
 	    (current-buffer))
 	   (t (get-buffer-create
+	       ;; These variables have been introduced with Emacs 28.1.
 	       (if asynchronous
-		   shell-command-buffer-name-async
-		 shell-command-buffer-name)))))
+		   (or (bound-and-true-p shell-command-buffer-name-async)
+		       "*Async Shell Command*")
+		 (or (bound-and-true-p shell-command-buffer-name)
+		     "*Shell Command Output*"))))))
 	 (error-buffer
 	  (cond
 	   ((bufferp error-buffer) error-buffer)

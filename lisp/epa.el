@@ -21,6 +21,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epg)
 (require 'font-lock)
@@ -29,6 +30,8 @@
   (require 'subr-x)
   (require 'wid-edit))
 (require 'derived)
+
+;;; Options
 
 (defgroup epa nil
   "The EasyPG Assistant"
@@ -72,6 +75,8 @@ The command `epa-mail-encrypt' uses this."
   :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
   :group 'epa
   :version "24.4")
+
+;;; Faces
 
 (defgroup epa-faces nil
   "Faces for epa-mode."
@@ -145,6 +150,8 @@ The command `epa-mail-encrypt' uses this."
   :version "28.1"
   :type '(repeat (cons symbol face))
   :group 'epa-faces)
+
+;;; Variables
 
 (defvar epa-font-lock-keywords
   '(("^\\*"
@@ -252,6 +259,8 @@ You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-exit-buffer-function #'quit-window)
 
+;;; Key Widget
+
 (define-widget 'epa-key 'push-button
   "Button for representing an epg-key object."
   :format "%[%v%]"
@@ -293,6 +302,8 @@ You should bind this variable with `let', but do not set it globally.")
 	  (epg-sub-key-id (car (epg-key-sub-key-list
 				(widget-get widget :value))))))
 
+;;; Modes
+
 (define-derived-mode epa-key-list-mode special-mode "EPA Keys"
   "Major mode for `epa-list-keys'."
   (buffer-disable-undo)
@@ -316,6 +327,9 @@ You should bind this variable with `let', but do not set it globally.")
   (setq truncate-lines t
 	buffer-read-only t))
 
+;;; Commands
+;;;; Marking
+
 (defun epa-mark-key (&optional arg)
   "Mark a key on the current line.
 If ARG is non-nil, unmark the key."
@@ -338,10 +352,14 @@ If ARG is non-nil, mark the key."
   (interactive "P")
   (epa-mark-key (not arg)))
 
+;;;; Quitting
+
 (defun epa-exit-buffer ()
   "Exit the current buffer using `epa-exit-buffer-function'."
   (interactive)
   (funcall epa-exit-buffer-function))
+
+;;;; Listing and Selecting
 
 (defun epa--insert-keys (keys)
   (save-excursion
@@ -505,6 +523,8 @@ If SECRET is non-nil, list secret keys instead of public keys."
   (let ((keys (epg-list-keys context names secret)))
     (epa--select-keys prompt keys)))
 
+;;;; Key Details
+
 (defun epa-show-key ()
   "Show a key on the current line."
   (interactive)
@@ -590,6 +610,8 @@ If SECRET is non-nil, list secret keys instead of public keys."
       (setq pointer (cdr pointer)))
     (goto-char (point-min))
     (pop-to-buffer (current-buffer))))
+
+;;;; Encryption and Signatures
 
 (defun epa-display-info (info)
   (if epa-popup-info-window
@@ -1105,16 +1127,7 @@ If no one is selected, default secret key is used.  "
 				 'start-open t
 				 'end-open t)))))
 
-(defalias 'epa--derived-mode-p
-  (if (fboundp 'derived-mode-p)
-      #'derived-mode-p
-    (lambda (&rest modes)
-      "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
-      (let ((parent major-mode))
-        (while (and (not (memq parent modes))
-                    (setq parent (get parent 'derived-mode-parent))))
-        parent))))
+(define-obsolete-function-alias 'epa--derived-mode-p 'derived-mode-p "28.1")
 
 ;;;###autoload
 (defun epa-encrypt-region (start end recipients sign signers)
@@ -1191,6 +1204,8 @@ If no one is selected, symmetric encryption will be performed.  ")
 				 'start-open t
 				 'end-open t)))))
 
+;;;; Key Management
+
 ;;;###autoload
 (defun epa-delete-keys (keys &optional allow-secret)
   "Delete selected KEYS."
@@ -1227,7 +1242,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
-    ;; FIXME: Why not use the (otherwise unused) epa--derived-mode-p?
+    ;; FIXME: Why not use the derived-mode-p?
     (if (eq major-mode 'epa-key-list-mode)
 	(apply #'epa--list-keys epa-list-keys-arguments))))
 

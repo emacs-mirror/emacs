@@ -1513,21 +1513,6 @@ This default should work without changes."
 (defsubst ediff-nonempty-string-p (string)
   (and (stringp string) (not (string= string ""))))
 
-(unless (fboundp 'subst-char-in-string)
-  (defun subst-char-in-string (fromchar tochar string &optional inplace)
-    "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
-Unless optional argument INPLACE is non-nil, return a new string."
-    (let ((i (length string))
-	  (newstr (if inplace string (copy-sequence string))))
-      (while (> i 0)
-	(setq i (1- i))
-	(if (eq (aref newstr i) fromchar)
-	    (aset newstr i tochar)))
-      newstr)))
-
-(unless (fboundp 'format-message)
-  (defalias 'format-message 'format))
-
 (defun ediff-abbrev-jobname (jobname)
   (cond ((eq jobname 'ediff-directories)
 	 "Compare two directories")

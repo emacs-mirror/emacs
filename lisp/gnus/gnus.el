@@ -1029,8 +1029,7 @@ Check the NNTPSERVER environment variable and the
 
 ;; `M-x customize-variable RET gnus-select-method RET' should work without
 ;; starting or even loading Gnus.
-;;;###autoload(when (fboundp 'custom-autoload)
-;;;###autoload  (custom-autoload 'gnus-select-method "gnus"))
+;;;###autoload(custom-autoload 'gnus-select-method "gnus")
 
 (defcustom gnus-select-method
   (list 'nntp (or (gnus-getenv-nntpserver)

@@ -150,34 +150,16 @@
 ;; otherwise it just parses the yanked string.
 ;; Modified to use Emacs 19 extended concept of kill-ring. -- daveg 12/15/96
 ;;;###autoload
-(defun calc-yank (radix)
-  "Yank a value into the Calculator buffer.
+(defun calc-yank-internal (radix thing-raw)
+  "Internal common implementation for yank functions.
 
-Valid numeric prefixes for RADIX: 0, 2, 6, 8
-No radix notation is prepended for any other numeric prefix.
-
-If RADIX is 2, prepend \"2#\"  - Binary.
-If RADIX is 8, prepend \"8#\"  - Octal.
-If RADIX is 0, prepend \"10#\" - Decimal.
-If RADIX is 6, prepend \"16#\" - Hexadecimal.
-
-If RADIX is a non-nil list (created using \\[universal-argument]), the user
-will be prompted to enter the radix in the minibuffer.
-
-If RADIX is nil or if the yanked string already has a calc radix prefix, the
-yanked string will be passed on directly to the Calculator buffer without any
-alteration."
-  (interactive "P")
+This function is used by both `calc-yank' and `calc-yank-mouse-primary'."
   (calc-wrapper
    (calc-pop-push-record-list
     0 "yank"
     (let* (radix-num
            radix-notation
            valid-num-regexp
-           (thing-raw
-            (if (fboundp 'current-kill)
-                (current-kill 0 t)
-              (car kill-ring-yank-pointer)))
            (thing
             (if (or (null radix)
                     ;; Match examples: -2#10, 10\n(10#10,01)
@@ -231,6 +213,38 @@ alteration."
                         (error "Bad format in yanked data")
                       val))
                 val))))))))
+
+;;;###autoload
+(defun calc-yank-mouse-primary (radix)
+  "Yank the current primary selection into the Calculator buffer.
+See `calc-yank' for details about RADIX."
+  (interactive "P")
+  (if (or select-enable-primary
+          select-enable-clipboard)
+      (calc-yank-internal radix (gui-get-primary-selection))
+    ;; Yank from the kill ring.
+    (calc-yank radix)))
+
+;;;###autoload
+(defun calc-yank (radix)
+  "Yank a value into the Calculator buffer.
+
+Valid numeric prefixes for RADIX: 0, 2, 6, 8
+No radix notation is prepended for any other numeric prefix.
+
+If RADIX is 2, prepend \"2#\"  - Binary.
+If RADIX is 8, prepend \"8#\"  - Octal.
+If RADIX is 0, prepend \"10#\" - Decimal.
+If RADIX is 6, prepend \"16#\" - Hexadecimal.
+
+If RADIX is a non-nil list (created using \\[universal-argument]), the user
+will be prompted to enter the radix in the minibuffer.
+
+If RADIX is nil or if the yanked string already has a calc radix prefix, the
+yanked string will be passed on directly to the Calculator buffer without any
+alteration."
+  (interactive "P")
+  (calc-yank-internal radix (current-kill 0 t)))
 
 ;;; The Calc set- and get-register commands are modified versions of functions
 ;;; in register.el

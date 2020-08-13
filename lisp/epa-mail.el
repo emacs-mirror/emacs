@@ -1,4 +1,5 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,12 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epa)
 (require 'mail-utils)
+
+;;; Local Mode
 
 (defvar epa-mail-mode-map
   (let ((keymap (make-sparse-keymap)))
@@ -50,6 +54,8 @@
   "A minor-mode for composing encrypted/clearsigned mails."
   nil " epa-mail" epa-mail-mode-map)
 
+;;; Utilities
+
 (defun epa-mail--find-usable-key (keys usage)
   "Find a usable key from KEYS for USAGE.
 USAGE would be `sign' or `encrypt'."
@@ -63,6 +69,8 @@ USAGE would be `sign' or `encrypt'."
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+;;; Commands
 
 ;;;###autoload
 (defun epa-mail-decrypt ()
@@ -240,6 +248,8 @@ The buffer is expected to contain a mail message."
   (declare (interactive-only t))
   (interactive)
   (epa-import-armor-in-region (point-min) (point-max)))
+
+;;; Global Mode
 
 ;;;###autoload
 (define-minor-mode epa-global-mail-mode

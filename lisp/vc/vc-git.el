@@ -243,7 +243,7 @@ toggle display of the entire list."
                ;; path specs.
                ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
                (name (file-relative-name file dir))
-               (str (ignore-errors
+               (str (with-demoted-errors "Error: %S"
                       (cd dir)
                       (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
                       ;; If result is empty, use ls-tree to check for deleted

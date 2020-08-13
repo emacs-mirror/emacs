@@ -153,18 +153,20 @@ This function is run from `erc-nickserv-identified-hook'."
 			      'erc-autojoin-channels-delayed
 			      server nick (current-buffer))))
     ;; `erc-autojoin-timing' is `connect':
-    (dolist (l erc-autojoin-channels-alist)
-      (when (string-match (car l) server)
-	(let ((server (or erc-session-server erc-server-announced-name)))
+    (let ((server (or erc-session-server erc-server-announced-name)))
+      (dolist (l erc-autojoin-channels-alist)
+        (when (string-match-p (car l) server)
 	  (dolist (chan (cdr l))
-	    (let ((buffer (erc-get-buffer chan)))
-	      ;; Only auto-join the channels that we aren't already in
-	      ;; using a different nick.
+	    (let ((buffer
+                   (car (erc-buffer-filter
+                         (lambda ()
+                           (let ((current (erc-default-target)))
+                             (and (stringp current)
+                                  (string-match-p (car l)
+                                                  (or erc-session-server erc-server-announced-name))
+                                  (string-equal (erc-downcase chan)
+                                                (erc-downcase current)))))))))
 	      (when (or (not buffer)
-			;; If the same channel is joined on another
-			;; server the best-effort is to just join
-			(not (string-match (car l)
-					   (process-name erc-server-process)))
 			(not (with-current-buffer buffer
 			       (erc-server-process-alive))))
 		(erc-server-join-channel server chan))))))))

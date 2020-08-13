@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This file defines korean hanja table and symbol table.
+;; This file defines the Korean Hanja table and symbol table.
 
 ;;; Code:
 
@@ -31,7 +31,7 @@
 
 (defvar hanja-table nil
   "A char table for Hanja characters.
-It maps a hangul character to a list of the corresponding Hanja characters.
+It maps a Hangul character to a list of the corresponding Hanja characters.
 Each element of the list has the form CHAR or (CHAR . STRING)
 where CHAR is a Hanja character and STRING is the meaning of that
 character.  This variable is initialized by `hanja-init-load'.")

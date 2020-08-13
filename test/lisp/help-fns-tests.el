@@ -160,4 +160,15 @@ Return first line of the output of (describe-function-1 FUNC)."
   (with-current-buffer "*Help*"
     (should (looking-at "^help-fns-test--describe-keymap-foo is"))))
 
+;;; Tests for find-lisp-object-file-name
+(ert-deftest help-fns-test-bug24697-function-search ()
+  (should-not (find-lisp-object-file-name 'tab-width 1)))
+
+(ert-deftest help-fns-test-bug24697-non-internal-variable ()
+  (let ((help-fns--test-var (make-symbol "help-fns--test-var")))
+    ;; simulate an internal variable
+    (put help-fns--test-var 'variable-documentation 1)
+    (should-not (find-lisp-object-file-name help-fns--test-var 'defface))
+    (should-not (find-lisp-object-file-name help-fns--test-var 1))))
+
 ;;; help-fns-tests.el ends here

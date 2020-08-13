@@ -625,10 +625,9 @@ your time zone.  Emacs displays the times of sunrise and sunset
 @emph{corrected for daylight saving time}.  @xref{Daylight Saving},
 for how daylight saving time is determined.
 
-@vindex calendar-use-numeric-time-zones
+@vindex calendar-time-zone-style
   If you want to display numerical time zones (like @samp{"+0100"})
-instead of symbolic time zones (like @samp{"CET"}), set the
-@code{calendar-use-numeric-time-zones} variable to non-@code{nil}.
+instead of symbolic ones (like @samp{"CET"}), set this to @code{numeric}.
 
   As a user, you might find it convenient to set the calendar location
 variables for your usual physical location in your @file{.emacs} file.

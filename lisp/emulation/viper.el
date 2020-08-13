@@ -695,9 +695,6 @@ It also can't undo some Viper settings."
     'mark-even-if-inactive viper-saved-non-viper-variables))
 
   ;; Ideally, we would like to be able to de-localize local variables
-  (unless
-      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (viper-delocalize-var 'minor-mode-map-alist))
   (viper-delocalize-var 'require-final-newline)
 
   ;; deactivate all advices done by Viper.
@@ -705,11 +702,9 @@ It also can't undo some Viper settings."
 
   (setq viper-mode nil)
 
-  (when (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (setq emulation-mode-map-alists
-	  (delq 'viper--intercept-key-maps
-		(delq 'viper--key-maps emulation-mode-map-alists))
-	  ))
+  (setq emulation-mode-map-alists
+	(delq 'viper--intercept-key-maps
+	      (delq 'viper--key-maps emulation-mode-map-alists)))
 
   (viper-delocalize-var 'viper-vi-minibuffer-minor-mode)
   (viper-delocalize-var 'viper-insert-minibuffer-minor-mode)
@@ -943,13 +938,11 @@ Two differences:
     (setq viper-vi-state-cursor-color color-name)))
 
 
-  (when (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    ;; needs to be as early as possible
-    (add-to-ordered-list
-     'emulation-mode-map-alists 'viper--intercept-key-maps 100)
-    ;; needs to be after cua-mode
-    (add-to-ordered-list 'emulation-mode-map-alists 'viper--key-maps 500)
-    )
+  ;; needs to be as early as possible
+  (add-to-ordered-list
+   'emulation-mode-map-alists 'viper--intercept-key-maps 100)
+  ;; needs to be after cua-mode
+  (add-to-ordered-list 'emulation-mode-map-alists 'viper--key-maps 500)
 
   ;; Emacs shell, ange-ftp, and comint-based modes
   (add-hook 'comint-mode-hook #'viper-comint-mode-hook) ; comint
@@ -1062,10 +1055,7 @@ This may be needed if the previous `:map' command terminated abnormally."
   (viper--advice-add 'add-minor-mode :after
    (lambda (&rest _)
     "Run viper-normalize-minor-mode-map-alist after adding a minor mode."
-    (viper-normalize-minor-mode-map-alist)
-    (unless
-	(and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-      (setq-default minor-mode-map-alist minor-mode-map-alist))))
+    (viper-normalize-minor-mode-map-alist)))
 
   ;; catch frame switching event
   (if (viper-window-display-p)
@@ -1253,12 +1243,7 @@ These two lines must come in the order given."))
   ;; Without setting the default, new buffers that come up in emacs mode have
   ;; minor-mode-map-alist = nil, unless we call viper-change-state-*
   (when (eq viper-current-state 'emacs-state)
-    (viper-change-state-to-emacs)
-    (unless
-        (and (fboundp 'add-to-ordered-list)
-             (boundp 'emulation-mode-map-alists))
-      (setq-default minor-mode-map-alist minor-mode-map-alist))
-    )
+    (viper-change-state-to-emacs))
 
   (if (this-major-mode-requires-vi-state major-mode)
       (viper-mode))

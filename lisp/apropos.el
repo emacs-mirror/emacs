@@ -543,6 +543,20 @@ will be buffer-local when set."
                                  (and (local-variable-if-set-p symbol)
                                       (get symbol 'variable-documentation)))))
 
+;;;###autoload
+(defun apropos-function (pattern)
+  "Show functions that match PATTERN.
+
+PATTERN can be a word, a list of words (separated by spaces),
+or a regexp (using some regexp special characters).  If it is a word,
+search for matches for that word as a substring.  If it is a list of words,
+search for matches for any two (or more) of those words.
+
+This is the same as running `apropos-command' with a \\[universal-argument] prefix,
+or a non-nil `apropos-do-all' argument."
+  (interactive (list (apropos-read-pattern "function")))
+  (apropos-command pattern t))
+
 ;; For auld lang syne:
 ;;;###autoload
 (defalias 'command-apropos 'apropos-command)

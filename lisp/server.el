@@ -274,10 +274,11 @@ the \"-f\" switch otherwise."
   (if internal--daemon-sockname
       (file-name-directory internal--daemon-sockname)
     (and (featurep 'make-network-process '(:family local))
-	 (let ((xdg_runtime_dir (getenv "XDG_RUNTIME_DIR")))
-	   (if xdg_runtime_dir
-	       (format "%s/emacs" xdg_runtime_dir)
-	     (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))))))
+	 (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
+	   (if runtime-dir
+	       (expand-file-name "emacs" runtime-dir)
+	     (expand-file-name (format "emacs%d" (user-uid))
+                               (or (getenv "TMPDIR") "/tmp"))))))
   "The directory in which to place the server socket.
 If local sockets are not supported, this is nil.")
 

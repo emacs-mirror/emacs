@@ -1,4 +1,4 @@
-;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
+;;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-1997, 2001-2020 Free Software Foundation, Inc.
 
@@ -606,9 +606,8 @@ Don't try to split prefixes that are already longer than that.")
                                prefix file dropped)
                       nil))))
               prefixes)))
-        `(if (fboundp 'register-definition-prefixes)
-             (register-definition-prefixes ,file ',(sort (delq nil strings)
-							 'string<)))))))
+        `(register-definition-prefixes ,file ',(sort (delq nil strings)
+						     'string<))))))
 
 (defun autoload--setup-output (otherbuf outbuf absfile load-name)
   (let ((outbuf

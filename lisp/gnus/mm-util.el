@@ -131,10 +131,6 @@ is not available."
   (cond
    ((null charset)
     charset)
-   ;; Running in a non-MULE environment.
-   ((or (null (mm-get-coding-system-list))
-	(not (fboundp 'coding-system-get)))
-    charset)
    ;; Check override list quite early.  Should only used for decoding, not for
    ;; encoding!
    ((and allow-override
@@ -295,77 +291,16 @@ superset of iso-8859-1."
 (defvar mm-universal-coding-system mm-auto-save-coding-system
   "The universal coding system.")
 
-;; Fixme: some of the cars here aren't valid MIME charsets.  That
-;; should only matter with XEmacs, though.
 (defvar mm-mime-mule-charset-alist
-  '((us-ascii ascii)
-    (iso-8859-1 latin-iso8859-1)
-    (iso-8859-2 latin-iso8859-2)
-    (iso-8859-3 latin-iso8859-3)
-    (iso-8859-4 latin-iso8859-4)
-    (iso-8859-5 cyrillic-iso8859-5)
-    ;; Non-mule (X)Emacs uses the last mule-charset for 8bit characters.
-    ;; The fake mule-charset, gnus-koi8-r, tells Gnus that the default
-    ;; charset is koi8-r, not iso-8859-5.
-    (koi8-r cyrillic-iso8859-5 gnus-koi8-r)
-    (iso-8859-6 arabic-iso8859-6)
-    (iso-8859-7 greek-iso8859-7)
-    (iso-8859-8 hebrew-iso8859-8)
-    (iso-8859-9 latin-iso8859-9)
-    (iso-8859-14 latin-iso8859-14)
-    (iso-8859-15 latin-iso8859-15)
-    (viscii vietnamese-viscii-lower)
-    (iso-2022-jp latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978)
-    (euc-kr korean-ksc5601)
-    (gb2312 chinese-gb2312)
-    (gbk chinese-gbk)
-    (gb18030 gb18030-2-byte
-	     gb18030-4-byte-bmp gb18030-4-byte-smp
-	     gb18030-4-byte-ext-1 gb18030-4-byte-ext-2)
-    (big5 chinese-big5-1 chinese-big5-2)
-    (tibetan tibetan)
-    (thai-tis620 thai-tis620)
-    (windows-1251 cyrillic-iso8859-5)
-    (iso-2022-7bit ethiopic arabic-1-column arabic-2-column)
-    (iso-2022-jp-2 latin-iso8859-1 greek-iso8859-7
-		   latin-jisx0201 japanese-jisx0208-1978
-		   chinese-gb2312 japanese-jisx0208
-		   korean-ksc5601 japanese-jisx0212)
-    (iso-2022-int-1 latin-iso8859-1 greek-iso8859-7
-		    latin-jisx0201 japanese-jisx0208-1978
-		    chinese-gb2312 japanese-jisx0208
-		    korean-ksc5601 japanese-jisx0212
-		    chinese-cns11643-1 chinese-cns11643-2)
-    (iso-2022-int-1 latin-iso8859-1 latin-iso8859-2
-		    cyrillic-iso8859-5 greek-iso8859-7
-		    latin-jisx0201 japanese-jisx0208-1978
-		    chinese-gb2312 japanese-jisx0208
-		    korean-ksc5601 japanese-jisx0212
-		    chinese-cns11643-1 chinese-cns11643-2
-		    chinese-cns11643-3 chinese-cns11643-4
-		    chinese-cns11643-5 chinese-cns11643-6
-		    chinese-cns11643-7)
-    (iso-2022-jp-3 latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
-		   japanese-jisx0213-1 japanese-jisx0213-2)
-    (shift_jis latin-jisx0201 katakana-jisx0201 japanese-jisx0208)
-    (utf-8))
-  "Alist of MIME-charset/MULE-charsets.")
-
-;; Correct by construction, but should be unnecessary for Emacs:
-(when (and (fboundp 'coding-system-list)
-	   (fboundp 'sort-coding-systems))
-  (let ((css (sort-coding-systems (coding-system-list 'base-only)))
-	cs mime mule alist)
-    (while css
-      (setq cs (pop css)
-	    mime (or (coding-system-get cs :mime-charset) ; Emacs 23 (unicode)
-		     (coding-system-get cs 'mime-charset)))
+  (let (mime mule alist)
+    (dolist (cs (sort-coding-systems (coding-system-list 'base-only)))
+      (setq mime (coding-system-get cs 'mime-charset))
       (when (and mime
-		 (not (eq t (setq mule
-				  (coding-system-get cs 'safe-charsets))))
+		 (not (eq t (setq mule (coding-system-get cs 'safe-charsets))))
 		 (not (assq mime alist)))
 	(push (cons mime (delq 'ascii mule)) alist)))
-    (setq mm-mime-mule-charset-alist (nreverse alist))))
+    (nreverse alist))
+  "Alist of MIME-charset/MULE-charsets.")
 
 (defvar mm-hack-charsets '(iso-8859-15 iso-2022-jp-2)
   "A list of special charsets.

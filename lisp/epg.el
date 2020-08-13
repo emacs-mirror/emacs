@@ -1,4 +1,5 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
+
 ;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,14 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Prelude
 
 (require 'epg-config)
 (eval-when-compile (require 'cl-lib))
+
+(define-error 'epg-error "GPG error")
+
+;;; Variables
 
 (defvar epg-user-id nil
   "GnuPG ID of your default identity.")
@@ -40,6 +46,8 @@
 (defvar epg-debug-buffer nil)
 (defvar epg-agent-file nil)
 (defvar epg-agent-mtime nil)
+
+;;; Enums
 
 ;; from gnupg/common/openpgpdefs.h
 (defconst epg-cipher-algorithm-alist
@@ -123,7 +131,7 @@
 
 (defconst epg-no-data-reason-alist
   '((1 . "No armored data")
-    (2 . "Expected a packet but did not found one")
+    (2 . "Expected a packet but did not find one")
     (3 . "Invalid packet found, this may indicate a non OpenPGP message")
     (4 . "Signature expected but not found")))
 
@@ -169,7 +177,8 @@
 
 (defvar epg-prompt-alist nil)
 
-(define-error 'epg-error "GPG error")
+;;; Structs
+;;;; Data Struct
 
 (cl-defstruct (epg-data
                (:constructor nil)
@@ -179,6 +188,8 @@
                (:predicate nil))
   (file nil :read-only t)
   (string nil :read-only t))
+
+;;;; Context Struct
 
 (cl-defstruct (epg-context
                (:constructor nil)
@@ -217,6 +228,8 @@
   (pinentry-mode epg-pinentry-mode)
   (error-output "")
   error-buffer)
+
+;;;; Context Methods
 
 ;; This is not an alias, just so we can mark it as autoloaded.
 ;;;###autoload
@@ -280,6 +293,8 @@ callback data (if any)."
   "Set the list of key-id for signing."
   (declare (obsolete setf "25.1"))
   (setf (epg-context-signers context) signers))
+
+;;;; Other Structs
 
 (cl-defstruct (epg-signature
                (:constructor nil)
@@ -385,6 +400,8 @@ callback data (if any)."
   secret-unchanged not-imported
   imports)
 
+;;; Functions
+
 (defun epg-context-result-for (context name)
   "Return the result of CONTEXT associated with NAME."
   (cdr (assq name (epg-context-result context))))
@@ -404,37 +421,28 @@ callback data (if any)."
 	 (pubkey-algorithm (epg-signature-pubkey-algorithm signature))
 	 (key-id (epg-signature-key-id signature)))
     (concat
-     (cond ((eq (epg-signature-status signature) 'good)
-	    "Good signature from ")
-	   ((eq (epg-signature-status signature) 'bad)
-	    "Bad signature from ")
-	   ((eq (epg-signature-status signature) 'expired)
-	    "Expired signature from ")
-	   ((eq (epg-signature-status signature) 'expired-key)
-	    "Signature made by expired key ")
-	   ((eq (epg-signature-status signature) 'revoked-key)
-	    "Signature made by revoked key ")
-	   ((eq (epg-signature-status signature) 'no-pubkey)
-	    "No public key for "))
+     (cl-case (epg-signature-status signature)
+       (good "Good signature from ")
+       (bad "Bad signature from ")
+       (expired "Expired signature from ")
+       (expired-key "Signature made by expired key ")
+       (revoked-key "Signature made by revoked key ")
+       (no-pubkey "No public key for "))
      key-id
-     (if user-id
-	 (concat " "
-		 (if (stringp user-id)
-		     (epg--decode-percent-escape-as-utf-8 user-id)
-		   (epg-decode-dn user-id)))
-       "")
-     (if (epg-signature-validity signature)
-	 (format " (trust %s)"  (epg-signature-validity signature))
-       "")
-     (if (epg-signature-creation-time signature)
-	 (format-time-string " created at %Y-%m-%dT%T%z"
-			     (epg-signature-creation-time signature))
-       "")
-     (if pubkey-algorithm
-	 (concat " using "
-		 (or (cdr (assq pubkey-algorithm epg-pubkey-algorithm-alist))
-		     (format "(unknown algorithm %d)" pubkey-algorithm)))
-       ""))))
+     (and user-id
+	  (concat " "
+		  (if (stringp user-id)
+		      (epg--decode-percent-escape-as-utf-8 user-id)
+		    (epg-decode-dn user-id))))
+     (and (epg-signature-validity signature)
+	  (format " (trust %s)"  (epg-signature-validity signature)))
+     (and (epg-signature-creation-time signature)
+	  (format-time-string " created at %Y-%m-%dT%T%z"
+			      (epg-signature-creation-time signature)))
+     (and pubkey-algorithm
+	  (concat " using "
+		  (or (cdr (assq pubkey-algorithm epg-pubkey-algorithm-alist))
+		      (format "(unknown algorithm %d)" pubkey-algorithm)))))))
 
 (defun epg-verify-result-to-string (verify-result)
   "Convert VERIFY-RESULT to a human readable string."
@@ -859,6 +867,8 @@ callback data (if any)."
 		  (format "Untrusted key %s %s.  Use anyway? " key-id user-id))
 	      "Use untrusted key anyway? ")))
 
+;;; Status Functions
+
 (defun epg--status-GET_BOOL (context string)
   (let (inhibit-quit)
     (condition-case nil
@@ -1234,6 +1244,8 @@ callback data (if any)."
 			     (epg-context-result-for context 'import-status)))
     (epg-context-set-result-for context 'import-status nil)))
 
+;;; Functions
+
 (defun epg-passphrase-callback-function (context key-id _handback)
   (declare (obsolete epa-passphrase-callback-function "23.1"))
   (if (eq key-id 'SYM)
@@ -1302,6 +1314,8 @@ callback data (if any)."
    (epg--time-from-seconds (aref line 5))
    (if (aref line 6)
        (epg--time-from-seconds (aref line 6)))))
+
+;;; Public Functions
 
 (defun epg-list-keys (context &optional name mode)
   "Return a list of epg-key objects matched with NAME.
@@ -2031,6 +2045,8 @@ If you are unsure, use synchronous version of this function
 		      (list "Edit key failed"
 			    (epg-errors-to-string errors))))))
     (epg-reset context)))
+
+;;; Decode Functions
 
 (defun epg--decode-percent-escape (string)
   (setq string (encode-coding-string string 'raw-text))

@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This file contains definitions of Indian language environments, and
-;; setups for displaying the scrtipts used there.
+;; setups for displaying the scripts used there.
 
 ;;; Code:
 

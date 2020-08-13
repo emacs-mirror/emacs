@@ -2790,8 +2790,7 @@ the result will be a local, non-Tramp, file name."
 STDERR can also be a file name.  If connection property
 \"direct-async-process\" is non-nil, an alternative
 implementation will be used."
-  (if (tramp-get-connection-property
-       (tramp-dissect-file-name default-directory) "direct-async-process" nil)
+  (if (tramp-direct-async-process-p args)
       (apply #'tramp-handle-make-process args)
     (when args
       (with-parsed-tramp-file-name (expand-file-name default-directory) nil

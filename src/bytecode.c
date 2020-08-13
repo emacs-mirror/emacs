@@ -1401,7 +1401,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
             Lisp_Object v1 = POP;
             ptrdiff_t i;
             struct Lisp_Hash_Table *h = XHASH_TABLE (jmp_table);
-            hash_rehash_if_needed (h);
 
             /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
                here. */

@@ -232,6 +232,10 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   "ERC bold face."
   :group 'erc-faces)
 
+(defface erc-italic-face '((t :slant italic))
+  "ERC italic face."
+  :group 'erc-faces)
+
 (defface erc-inverse-face
   '((t :foreground "White" :background "Black"))
   "ERC inverse face."
@@ -383,6 +387,7 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
               (erc-controls-strip s))
              (erc-interpret-controls-p
               (let ((boldp nil)
+                    (italicp nil)
                     (inversep nil)
                     (underlinep nil)
                     (fg nil)
@@ -401,6 +406,8 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                            (setq bg bg-color))
                           ((string= control "\C-b")
                            (setq boldp (not boldp)))
+                          ((string= control "\C-]")
+                           (setq italicp (not italicp)))
                           ((string= control "\C-v")
                            (setq inversep (not inversep)))
                           ((string= control "\C-_")
@@ -413,13 +420,14 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                              (ding)))
                           ((string= control "\C-o")
                            (setq boldp nil
+                                 italicp nil
                                  inversep nil
                                  underlinep nil
                                  fg nil
                                  bg nil))
                           (t nil))
                     (erc-controls-propertize
-                     start end boldp inversep underlinep fg bg s)))
+                     start end boldp italicp inversep underlinep fg bg s)))
                 s))
              (t s)))))
 
@@ -432,13 +440,13 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
       s)))
 
 (defvar erc-controls-remove-regexp
-  "\C-b\\|\C-_\\|\C-v\\|\C-g\\|\C-o\\|\C-c[0-9]?[0-9]?\\(,[0-9][0-9]?\\)?"
+  "\C-b\\|\C-]\\|\C-_\\|\C-v\\|\C-g\\|\C-o\\|\C-c[0-9]?[0-9]?\\(,[0-9][0-9]?\\)?"
   "Regular expression which matches control characters to remove.")
 
 (defvar erc-controls-highlight-regexp
-  (concat "\\(\C-b\\|\C-v\\|\C-_\\|\C-g\\|\C-o\\|"
+  (concat "\\(\C-b\\|\C-]\\|\C-v\\|\C-_\\|\C-g\\|\C-o\\|"
           "\C-c\\([0-9][0-9]?\\)?\\(,\\([0-9][0-9]?\\)\\)?\\)"
-          "\\([^\C-b\C-v\C-_\C-c\C-g\C-o\n]*\\)")
+          "\\([^\C-b\C-]\C-v\C-_\C-c\C-g\C-o\n]*\\)")
   "Regular expression which matches control chars and the text to highlight.")
 
 (defun erc-controls-highlight ()
@@ -451,6 +459,7 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
            (replace-match "")))
         (erc-interpret-controls-p
          (let ((boldp nil)
+               (italicp nil)
                (inversep nil)
                (underlinep nil)
                (fg nil)
@@ -467,6 +476,8 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
                       (setq bg bg-color))
                      ((string= control "\C-b")
                       (setq boldp (not boldp)))
+                     ((string= control "\C-]")
+                      (setq italicp (not italicp)))
                      ((string= control "\C-v")
                       (setq inversep (not inversep)))
                      ((string= control "\C-_")
@@ -479,16 +490,17 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
                         (ding)))
                      ((string= control "\C-o")
                       (setq boldp nil
+                            italicp nil
                             inversep nil
                             underlinep nil
                             fg nil
                             bg nil))
                      (t nil))
                (erc-controls-propertize start end
-                                        boldp inversep underlinep fg bg)))))
+                                        boldp italicp inversep underlinep fg bg)))))
         (t nil)))
 
-(defun erc-controls-propertize (from to boldp inversep underlinep fg bg
+(defun erc-controls-propertize (from to boldp italicp inversep underlinep fg bg
                                      &optional str)
   "Prepend properties from IRC control characters between FROM and TO.
 If optional argument STR is provided, apply to STR, otherwise prepend properties
@@ -499,6 +511,9 @@ to a region in the current buffer."
    'font-lock-face
    (append (if boldp
                '(erc-bold-face)
+             nil)
+           (if italicp
+               '(erc-italic-face)
              nil)
            (if inversep
                '(erc-inverse-face)

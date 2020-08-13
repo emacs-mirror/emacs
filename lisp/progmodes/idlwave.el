@@ -154,21 +154,6 @@
 (eval-when-compile (require 'cl-lib))
 (require 'idlw-help)
 
-;; For XEmacs
-(unless (fboundp 'line-beginning-position)
-  (defalias 'line-beginning-position 'point-at-bol))
-(unless (fboundp 'line-end-position)
-  (defalias 'line-end-position 'point-at-eol))
-(unless (fboundp 'char-valid-p)
-  (defalias 'char-valid-p 'characterp))
-(unless (fboundp 'match-string-no-properties)
-  (defalias 'match-string-no-properties 'match-string))
-
-(if (not (fboundp 'cancel-timer))
-    (condition-case nil
-	(require 'timer)
-      (error nil)))
-
 (declare-function idlwave-shell-get-path-info "idlw-shell")
 (declare-function idlwave-shell-temp-file "idlw-shell")
 (declare-function idlwave-shell-is-running "idlw-shell")
@@ -2092,11 +2077,7 @@ Returns point if comment found and nil otherwise."
            (backward-char 1)
            (point)))))
 
-(defun idlwave-region-active-p ()
-  "Should we operate on an active region?"
-  (if (fboundp 'use-region-p)
-      (use-region-p)
-    (region-active-p)))
+(define-obsolete-function-alias 'idlwave-region-active-p 'use-region-p "28.1")
 
 (defun idlwave-show-matching-quote ()
   "Insert quote and show matching quote if this is end of a string."

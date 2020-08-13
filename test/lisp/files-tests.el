@@ -190,7 +190,6 @@ form.")
 
 (ert-deftest files-tests-bug-21454 ()
   "Test for https://debbugs.gnu.org/21454 ."
-  :expected-result :failed
   (let ((input-result
          '(("/foo/bar//baz/:/bar/foo/baz//" nil ("/foo/bar/baz/" "/bar/foo/baz/"))
            ("/foo/bar/:/bar/qux/:/qux/foo" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
@@ -1361,6 +1360,10 @@ See <https://debbugs.gnu.org/36401>."
       (insert "My-Tag")
       (normal-mode)
       (should (not (eq major-mode 'text-mode))))))
+
+(ert-deftest files-colon-path ()
+  (should (equal (parse-colon-path "/foo//bar/baz")
+                 '("/foo/bar/baz/"))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

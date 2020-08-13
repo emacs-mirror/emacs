@@ -836,9 +836,10 @@ POS defaults to `point'."
 ;; ======================================================================
 ;; Top level command and background process sentinel
 
-;; For compatibility with older versions.
+;; This alias was originally for compatibility with older versions.
+;; Some users got used to having it, so we will not remove it.
 ;;;###autoload
-(define-obsolete-function-alias 'manual-entry 'man "28.1")
+(defalias 'manual-entry 'man)
 
 (defvar Man-completion-cache nil
   ;; On my machine, "man -k" is so fast that a cache makes no sense,

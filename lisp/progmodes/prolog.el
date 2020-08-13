@@ -271,10 +271,6 @@
 (require 'easymenu)
 (require 'align)
 
-(eval-when-compile
-  (or (fboundp 'use-region-p)
-      (defsubst use-region-p () (region-exists-p))))
-
 (defgroup prolog nil
   "Editing and running Prolog and Mercury files."
   :group 'languages)
@@ -2751,20 +2747,6 @@ When called with prefix argument ARG, disable zipping instead."
                   (nth 0 state)
                   (nth 1 state)))
         ))))
-
-;; For backward compatibility. Stolen from custom.el.
-(or (fboundp 'match-string)
-    ;; Introduced in Emacs 19.29.
-    (defun match-string (num &optional string)
-  "Return string of text matched by last search.
-NUM specifies which parenthesized expression in the last regexp.
- Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
-Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
-  (if (match-beginning num)
-      (if string
-          (substring string (match-beginning num) (match-end num))
-        (buffer-substring (match-beginning num) (match-end num))))))
 
 (defun prolog-pred-start ()
   "Return the starting point of the first clause of the current predicate."

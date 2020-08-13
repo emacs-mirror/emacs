@@ -619,7 +619,12 @@ buffer."
       ;; Bypass a bug in certain versions of bash.
       (when (string-equal shell "bash")
         (add-hook 'comint-preoutput-filter-functions
-                  #'shell-filter-ctrl-a-ctrl-b nil t)))
+                  #'shell-filter-ctrl-a-ctrl-b nil t))
+
+      ;; Skip extended history for zsh.
+      (when (string-equal shell "zsh")
+        (setq-local comint-input-ring-file-prefix
+                    ": [[:digit:]]+:[[:digit:]]+;")))
     (comint-read-input-ring t)))
 
 (defun shell-apply-ansi-color (beg end face)
