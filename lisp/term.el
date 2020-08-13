@@ -501,6 +501,13 @@ This variable is buffer-local."
   :type 'boolean
   :group 'term)
 
+(defcustom term-scroll-snap-to-bottom t
+  "Control whether to keep the prompt at the bottom of the window.
+If non-nil, when the prompt is visible within the window, then
+scroll so that the prompt is on the bottom on any input or
+output."
+  :type 'boolean)
+
 (defcustom term-scroll-show-maximum-output nil
   "Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
@@ -3108,15 +3115,19 @@ See `term-prompt-regexp'."
 				    (or (eq scroll 'this) (not save-point)))
 			       (and (eq scroll 'others)
 				    (not (eq selected win))))
-		       (goto-char term-home-marker)
-		       (recenter 0)
+		       (when term-scroll-snap-to-bottom
+		         (goto-char term-home-marker)
+		         (recenter 0))
 		       (goto-char (process-mark proc))
 		       (if (not (pos-visible-in-window-p (point) win))
 			   (recenter -1)))
 		     ;; Optionally scroll so that the text
 		     ;; ends at the bottom of the window.
 		     (when (and term-scroll-show-maximum-output
-				(>= (point) (process-mark proc)))
+				(>= (point) (process-mark proc))
+				(or term-scroll-snap-to-bottom
+				    (not (pos-visible-in-window-p
+                                          (point-max) win))))
 		       (save-excursion
 			 (goto-char (point-max))
 			 (recenter -1)))))

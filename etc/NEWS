@@ -780,6 +780,12 @@ digits.
 
 ** Miscellaneous
 
+---
+*** New variable 'term-scroll-snap-to-bottom'
+term will, by default, recenter the buffer so that the prompt on the
+final line in the window.  Setting this new variable to nil inhibits
+this behavior.
+
 *** The new library hierarchy.el has been added.
 It's a library to create, query, navigate and display hierarchy
 structures.
