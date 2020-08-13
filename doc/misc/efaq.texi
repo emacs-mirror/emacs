@@ -3464,7 +3464,6 @@ see @ref{Packages that do not come with Emacs}.
 @cindex Finding other packages
 @cindex Lisp packages that do not come with Emacs
 @cindex Packages, those that do not come with Emacs
-@cindex Emacs Lisp List
 @cindex Emacs Lisp Archive
 
 The easiest way to add more features to your Emacs is to use the
@@ -3499,10 +3498,6 @@ where people can post or announce their extensions to Emacs.
 The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
 additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an
 alternative wiki for Emacs.
-
-@uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs
-Lisp List (ELL)}, has pointers to many Emacs Lisp files, but at time
-of writing it is no longer being updated.
 
 It is impossible for us to list here all the sites that offer Emacs
 Lisp packages.  If you are interested in a specific feature, then
