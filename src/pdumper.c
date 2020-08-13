@@ -3416,18 +3416,14 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
      subr_offset + dump_offsetof (struct Lisp_Subr, symbol_name),
      ctx->offset);
   const char *symbol_name = XSUBR (subr)->symbol_name;
-  ALLOW_IMPLICIT_CONVERSION;
   dump_write (ctx, symbol_name, 1 + strlen (symbol_name));
-  DISALLOW_IMPLICIT_CONVERSION;
 
   dump_remember_fixup_ptr_raw
     (ctx,
      subr_offset + dump_offsetof (struct Lisp_Subr, native_c_name[0]),
      ctx->offset);
   const char *c_name = XSUBR (subr)->native_c_name[0];
-  ALLOW_IMPLICIT_CONVERSION;
   dump_write (ctx, c_name, 1 + strlen (c_name));
-  DISALLOW_IMPLICIT_CONVERSION;
 }
 
 static void
