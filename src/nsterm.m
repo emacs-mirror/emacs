@@ -8424,25 +8424,17 @@ not_in_argv (NSString *arg)
 
 
 - (void)windowDidChangeBackingProperties:(NSNotification *)notification
-  /* Update the drawing buffer when the backing scale factor changes.  */
+  /* Update the drawing buffer when the backing properties change.  */
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
   if (! [self wantsUpdateLayer])
     return;
 
-  CGFloat old = [[[notification userInfo]
-                    objectForKey:@"NSBackingPropertyOldScaleFactorKey"]
-                  doubleValue];
-  CGFloat new = [[self window] backingScaleFactor];
-
-  if (old != new)
-    {
-      NSRect frame = [self frame];
-      [self createDrawingBuffer];
-      ns_clear_frame (emacsframe);
-      expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
-    }
+  NSRect frame = [self frame];
+  [self createDrawingBuffer];
+  ns_clear_frame (emacsframe);
+  expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
 }
 #endif /* NS_DRAW_TO_BUFFER */
 
