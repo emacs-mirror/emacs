@@ -5281,12 +5281,13 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  XNATIVE_COMP_UNIT (subr->native_comp_u[0]);
 	if (!comp_u->handle)
-	  error ("can't relocate native subr with not loaded compilation unit");
+	  error ("NULL handle in compilation unit %s", SSDATA (comp_u->file));
 	const char *c_name = subr->native_c_name[0];
 	eassert (c_name);
 	void *func = dynlib_sym (comp_u->handle, c_name);
 	if (!func)
-	  error ("can't find function in compilation unit");
+	  error ("can't find function \"%s\" in compilation unit %s", c_name,
+		 SSDATA (comp_u->file));
 	subr->function.a0 = func;
 	Lisp_Object lambda_data_idx =
 	  Fgethash (build_string (c_name), comp_u->lambda_c_name_idx_h, Qnil);
