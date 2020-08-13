@@ -435,8 +435,8 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
       (should (eq compilation-num-errors-found 94))
-      (should (eq compilation-num-warnings-found 37))
-      (should (eq compilation-num-infos-found 26)))))
+      (should (eq compilation-num-warnings-found 35))
+      (should (eq compilation-num-infos-found 28)))))
 
 (ert-deftest compile-test-grep-regexps ()
   "Test the `grep-regexp-alist' regexps.
