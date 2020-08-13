@@ -4901,7 +4901,13 @@ syms_of_comp (void)
 #ifdef HAVE_NATIVE_COMP
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("comp-deferred-compilation", comp_deferred_compilation,
-	       doc: /* If t compile asyncronously every .elc file loaded.  */);
+	       doc: /* If non-nil compile asyncronously all .elc files
+being loaded.
+
+Once compilation happened each function definition is updated to the
+native compiled one.  */);
+  comp_deferred_compilation = true;
+
   DEFSYM (Qcomp_speed, "comp-speed");
   DEFSYM (Qcomp_debug, "comp-debug");
 

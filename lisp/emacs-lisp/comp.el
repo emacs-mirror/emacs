@@ -41,13 +41,6 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-deferred-compilation nil
-  "If non-nil compile asyncronously all .elc files being loaded.
-Once compilation happened each function definition is updated to
-the native compiled one."
-  :type 'boolean
-  :group 'comp)
-
 (defcustom comp-speed 2
   "Compiler optimization level.  From -1 to 3.
 - -1 functions are kept in bytecode form and no native compilation is performed.
