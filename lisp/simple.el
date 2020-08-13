@@ -247,7 +247,7 @@ from which next-error navigated, and a target buffer TO-BUFFER."
                                                         extra-test-exclusive)
   "Try the current buffer when outside navigation.
 But return nil if we navigated to the current buffer by the means
-of `next-error' command.  Othewise, return it if it's next-error
+of `next-error' command.  Otherwise, return it if it's next-error
 capable."
   ;; Check that next-error-buffer has no buffer-local value
   ;; (i.e. we never navigated to the current buffer from another),

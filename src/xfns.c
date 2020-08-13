@@ -8035,7 +8035,7 @@ If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
 always trigger an immediate resize of the child frame.  This method is
 deprecated by GTK and may not work in future versions of that toolkit.
 It also may freeze Emacs when used with other desktop environments.  It
-avoids, however, the unpleasent flicker induced by the hiding approach.
+avoids, however, the unpleasant flicker induced by the hiding approach.
 
 This variable is considered a temporary workaround and will be hopefully
 eliminated in future versions of Emacs.  */);

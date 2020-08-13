@@ -255,9 +255,9 @@ Left-fold the list L, starting with X, by the binary function F."
   x)
 
 (defun rx--normalise-or-arg (form)
-  "Normalise the `or' argument FORM.
+  "Normalize the `or' argument FORM.
 Characters become strings, user-definitions and `eval' forms are expanded,
-and `or' forms are normalised recursively."
+and `or' forms are normalized recursively."
   (cond ((characterp form)
          (char-to-string form))
         ((and (consp form) (memq (car form) '(or |)))
