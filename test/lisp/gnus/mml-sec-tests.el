@@ -681,6 +681,7 @@ In this test, just multiple encryption and signing keys may be available."
 (ert-deftest mml-secure-en-decrypt-sign-2 ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, lists of encryption and signing keys are customized."
+  :tags '(:unstable)
   (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
