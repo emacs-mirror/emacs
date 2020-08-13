@@ -292,12 +292,13 @@ if non-nil)."
                          (find-library-suffixes)
                          "\\|"))
          (table (cl-loop for dir in (or find-function-source-path load-path)
-                         when (file-readable-p dir)
+                         for dir-or-default = (or dir default-directory)
+                         when (file-readable-p dir-or-default)
                          append (mapcar
                                  (lambda (file)
                                    (replace-regexp-in-string suffix-regexp
                                                              "" file))
-                                 (directory-files dir nil
+                                 (directory-files dir-or-default nil
                                                   suffix-regexp))))
          (def (if (eq (function-called-at-point) 'require)
                   ;; `function-called-at-point' may return 'require
