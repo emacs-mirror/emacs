@@ -506,6 +506,7 @@ This variable is buffer-local."
 If non-nil, when the prompt is visible within the window, then
 scroll so that the prompt is on the bottom on any input or
 output."
+  :version "28.1"
   :type 'boolean)
 
 (defcustom term-scroll-show-maximum-output nil
