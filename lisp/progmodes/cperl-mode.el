@@ -3979,6 +3979,9 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 				    (and (eq (preceding-char) ?.)
 					 (eq (char-after (- (point) 2)) ?.))
 				    (bobp))
+				;; { $a++ / $b } doesn't start a regex, nor does $a--
+				(not (and (memq (preceding-char) '(?+ ?-))
+					  (eq (preceding-char) (char-before (1- (point))))))
 				;;  m|blah| ? foo : bar;
 				(not
 				 (and (eq c ?\?)
