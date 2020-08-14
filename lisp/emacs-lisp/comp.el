@@ -2608,13 +2608,16 @@ display a message."
                             (message "Compiling %s..." ,source-file)
                             (native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
-                   (_ (progn
-                        (comp-log "\n")
-                        (comp-log (prin1-to-string expr))))
                    (temp-file (make-temp-file
                                (concat "emacs-async-comp-"
                                        (file-name-base source-file) "-")
-                               nil ".el" (prin1-to-string expr)))
+                               nil ".el"))
+                   (expr-string (prin1-to-string expr))
+                   (_ (progn
+                        (with-temp-file temp-file
+                          (insert expr-string))
+                        (comp-log "\n")
+                        (comp-log expr-string)))
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
