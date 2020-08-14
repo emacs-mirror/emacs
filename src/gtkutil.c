@@ -1355,9 +1355,10 @@ xg_create_frame_widgets (struct frame *f)
   else
     wtop = gtk_window_new (type);
 #else
-  if (!NILP(f->parent_frame)) {
-    type = GTK_WINDOW_POPUP;
-  }
+  if (!NILP(f->parent_frame) || f->tooltip)
+    {
+      type = GTK_WINDOW_POPUP;
+    }
   wtop = gtk_window_new (type);
   gtk_widget_add_events(wtop, GDK_ALL_EVENTS_MASK);
 #endif

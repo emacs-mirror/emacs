@@ -6369,6 +6369,13 @@ drag_data_received (GtkWidget * widget, GdkDragContext * context,
 void
 pgtk_set_event_handler (struct frame *f)
 {
+  if (f->tooltip)
+    {
+      g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "draw",
+			G_CALLBACK (pgtk_handle_draw), NULL);
+      return;
+    }
+
   gtk_drag_dest_set (FRAME_GTK_WIDGET (f), GTK_DEST_DEFAULT_ALL, NULL, 0,
 		     GDK_ACTION_COPY);
   gtk_drag_dest_add_uri_targets (FRAME_GTK_WIDGET (f));
