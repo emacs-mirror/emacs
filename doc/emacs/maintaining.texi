@@ -1798,8 +1798,7 @@ buffers as candidates for completion.
 buffers that belong to the project, to keep your Emacs session
 smaller.  The command @kbd{C-x p k} (@code{project-kill-buffers})
 accomplishes that: it kills all the buffers that belong to the current
-project, except if @code{project-kill-buffer-conditions} tells
-otherwise.
+project that satisfy any of @code{project-kill-buffer-conditions}.
 
 @node Switching Projects
 @subsection Switching Projects
