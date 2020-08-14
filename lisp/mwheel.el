@@ -162,23 +162,18 @@ Also see `mouse-wheel-tilt-scroll'."
   :type 'boolean
   :version "26.1")
 
-(eval-and-compile
-  (if (fboundp 'event-button)
-      (fset 'mwheel-event-button 'event-button)
-    (defun mwheel-event-button (event)
-      (let ((x (event-basic-type event)))
-	;; Map mouse-wheel events to appropriate buttons
-	(if (eq 'mouse-wheel x)
-	    (let ((amount (car (cdr (cdr (cdr event))))))
-	      (if (< amount 0)
-		  mouse-wheel-up-event
-		mouse-wheel-down-event))
-	  x))))
+(defun mwheel-event-button (event)
+  (let ((x (event-basic-type event)))
+    ;; Map mouse-wheel events to appropriate buttons
+    (if (eq 'mouse-wheel x)
+        (let ((amount (car (cdr (cdr (cdr event))))))
+          (if (< amount 0)
+              mouse-wheel-up-event
+            mouse-wheel-down-event))
+      x)))
 
-  (if (fboundp 'event-window)
-      (fset 'mwheel-event-window 'event-window)
-    (defun mwheel-event-window (event)
-      (posn-window (event-start event)))))
+(defun mwheel-event-window (event)
+  (posn-window (event-start event)))
 
 (defvar mwheel-inhibit-click-event-timer nil
   "Timer running while mouse wheel click event is inhibited.")
