@@ -790,10 +790,6 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
 		THEFILE=$< $<c
 
-%.eln: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
-	@$(MAKE)  $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
-		THEFILE=$< $<n
-
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.
 ## If empty it is ignored; the parent makefile can set it to some other value.

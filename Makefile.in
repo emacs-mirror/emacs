@@ -863,6 +863,7 @@ clean: $(clean_dirs:=_clean)
 	[ ! -d test ] || $(MAKE) -C test $@
 	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
+	-rm -rf eln-cache
 
 ### 'bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
