@@ -75,7 +75,11 @@ everything preceding the ~/ is discarded so the interactive
 selection process starts again from the user's $HOME.")
 
 (defcustom icomplete-show-matches-on-no-input nil
-  "When non-nil, show completions when first prompting for input."
+  "When non-nil, show completions when first prompting for input.
+This also means that if you traverse the list of completions with
+commands like `C-.' and just hit `C-j' (enter) without typing any
+characters, the match under point will be chosen instead of the
+default."
   :type 'boolean
   :version "24.4")
 
@@ -709,7 +713,10 @@ matches exist."
 		(push comp prospects)
 	      (setq limit t))))
 	(setq prospects (nreverse prospects))
-	;; Decorate first of the prospects.
+        ;; Return the first match if the user hits enter.
+        (when icomplete-show-matches-on-no-input
+          (setq completion-content-when-empty (car prospects)))
+        ;; Decorate first of the prospects.
 	(when prospects
 	  (let ((first (copy-sequence (pop prospects))))
 	    (put-text-property 0 (length first)

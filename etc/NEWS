@@ -786,6 +786,12 @@ digits.
 ** Miscellaneous
 
 ---
+*** 'icomplete-show-matches-on-no-input' behavior change
+Previously, choosing a different completion with commands like 'C-.'
+and then hitting enter would choose the default completion.  Doung
+this will now choose the completion under point.
+
+---
 *** New user option 'term-scroll-snap-to-bottom'.
 By default, 'term' and 'ansi-term' will now recenter the buffer so
 that the prompt is on the final line in the window.  Setting this new
