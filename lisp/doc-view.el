@@ -435,6 +435,9 @@ Typically \"page-%s.png\".")
     (define-key map (kbd "c m")       'doc-view-set-slice-using-mouse)
     (define-key map (kbd "c b")       'doc-view-set-slice-from-bounding-box)
     (define-key map (kbd "c r")       'doc-view-reset-slice)
+    ;; Centering the image
+    (define-key map (kbd "c h")       'doc-view-center-page-horizontally)
+    (define-key map (kbd "c v")       'doc-view-center-page-vertically)
     ;; Searching
     (define-key map (kbd "C-s")       'doc-view-search)
     (define-key map (kbd "<find>")    'doc-view-search)
@@ -920,6 +923,32 @@ Resize the containing frame if needed."
              nil))))
     (when new-frame-params
       (modify-frame-parameters (selected-frame) new-frame-params))))
+
+(defun doc-view-center-page-horizontally ()
+  "Center page horizontally when page is wider than window."
+  (interactive)
+  (let ((page-width (car (image-size (doc-view-current-image) 'pixel)))
+        (window-width (window-body-width nil 'pixel))
+        ;; How much do we scroll in order to center the page?
+        (pixel-hscroll 0)
+        ;; How many pixels are there in a column?
+        (col-in-pixel (/ (window-body-width nil 'pixel)
+                         (window-body-width nil))))
+    (when (> page-width window-width)
+      (setq pixel-hscroll (/ (- page-width window-width) 2))
+      (set-window-hscroll (selected-window)
+                          (/ pixel-hscroll col-in-pixel)))))
+
+(defun doc-view-center-page-vertically ()
+  "Center page vertically when page is wider than window."
+  (interactive)
+  (let ((page-height (cdr (image-size (doc-view-current-image) 'pixel)))
+        (window-height (window-body-height nil 'pixel))
+        ;; How much do we scroll in order to center the page?
+        (pixel-scroll 0))
+    (when (> page-height window-height)
+      (setq pixel-scroll (/ (- page-height window-height) 2))
+      (set-window-vscroll (selected-window) pixel-scroll 'pixel))))
 
 (defun doc-view-reconvert-doc ()
   "Reconvert the current document.

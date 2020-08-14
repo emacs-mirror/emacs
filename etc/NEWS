@@ -786,6 +786,11 @@ digits.
 ** Miscellaneous
 
 ---
+*** Two new commands for centering in 'doc-view-mode'
+'c h' will now center the page horizonally, and 'c v' will center the
+page vertically.
+
+---
 *** 'icomplete-show-matches-on-no-input' behavior change
 Previously, choosing a different completion with commands like 'C-.'
 and then hitting enter would choose the default completion.  Doung
