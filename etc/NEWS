@@ -786,15 +786,16 @@ digits.
 ** Miscellaneous
 
 ---
-*** Two new commands for centering in 'doc-view-mode'
-'c h' will now center the page horizonally, and 'c v' will center the
-page vertically.
+*** Two new commands for centering in 'doc-view-mode'.
+The new commands 'doc-view-center-page-horizontally' (bound to 'c h')
+and 'doc-view-center-page-vertically' (bound to 'c v') center the page
+horizontally and vertically, respectively.
 
 ---
-*** 'icomplete-show-matches-on-no-input' behavior change
+*** Change in meaning of 'icomplete-show-matches-on-no-input'.
 Previously, choosing a different completion with commands like 'C-.'
-and then hitting enter would choose the default completion.  Doung
-this will now choose the completion under point.
+and then hitting RET would choose the default completion.  Doing this
+will now choose the completion under point instead.
 
 ---
 *** New user option 'term-scroll-snap-to-bottom'.
