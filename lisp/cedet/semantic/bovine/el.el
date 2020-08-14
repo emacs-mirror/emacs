@@ -420,7 +420,6 @@ Return a bovination list to use."
 	 :parent (symbol-name (nth 2 form))
 	 :documentation (semantic-elisp-do-doc (nth 4 form))
 	 )))
-  define-mode-overload-implementation ;; obsoleted
   define-mode-local-override
   )
 

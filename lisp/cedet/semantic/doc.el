@@ -93,8 +93,7 @@ just the lexical token and not the string."
 Attempt to strip out comment syntactic sugar.
 Argument NOSNARF means don't modify the found text.
 If NOSNARF is `lex', then return the lex token."
-  (let* ((semantic-ignore-comments nil)
-	 (semantic-lex-analyzer #'semantic-comment-lexer))
+  (let* ((semantic-lex-analyzer #'semantic-comment-lexer))
     (if (memq nosnarf '(lex flex)) ;; keep `flex' for compatibility
 	(car (semantic-lex (point) (1+ (point))))
       (let ((ct (semantic-lex-token-text

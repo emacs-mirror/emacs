@@ -69,10 +69,6 @@ database, which can be saved for future Emacs sessions."
     (dolist (elt semanticdb-hooks)
       (remove-hook (cadr elt) (car elt)))))
 
-(semantic-varalias-obsolete 'semanticdb-mode-hooks
-			    'global-semanticdb-minor-mode-hook "23.2")
-
-
 (defun semanticdb-toggle-global-mode ()
   "Toggle use of the Semantic Database feature.
 Update the environment of Semantic enabled buffers accordingly."

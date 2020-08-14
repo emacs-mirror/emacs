@@ -43,11 +43,6 @@
   "Extra lookahead token.
 When non-nil it is directly returned by `wisent-lex-function'.")
 
-;; Maintain this alias for compatibility until all WY grammars have
-;; been translated again to Elisp code.
-(semantic-alias-obsolete 'wisent-lex-make-token-table
-                         'semantic-lex-make-type-table "23.2")
-
 (defmacro wisent-lex-eoi ()
   "Return an End-Of-Input lexical token.
 The EOI token is like this: ($EOI \"\" POINT-MAX . POINT-MAX)."

@@ -88,8 +88,6 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-expand-type-members)
-(semantic-varalias-obsolete 'semantic-imenu-expand-type-parts
-                            'semantic-imenu-expand-type-members "23.2")
 
 (defcustom semantic-imenu-bucketize-type-members t
   "Non-nil if members of a type should be grouped into buckets.
@@ -98,8 +96,6 @@ Overridden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-bucketize-type-members)
-(semantic-varalias-obsolete 'semantic-imenu-bucketize-type-parts
-                            'semantic-imenu-bucketize-type-members "23.2")
 
 (defcustom semantic-imenu-sort-bucket-function nil
   "Function to use when sorting tags in the buckets of functions.
@@ -145,8 +141,6 @@ Tags of those classes will be given submenu with children.
 By default, a `type' has interesting children.  In Texinfo, however, a
 `section' has interesting children.")
 (make-variable-buffer-local 'semantic-imenu-expandable-tag-classes)
-(semantic-varalias-obsolete 'semantic-imenu-expandable-token
-                            'semantic-imenu-expandable-tag-classes "23.2")
 
 ;;; Code:
 (defun semantic-imenu-tag-overlay (tag)

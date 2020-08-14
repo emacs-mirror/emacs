@@ -173,6 +173,7 @@ Remove self from `post-command-hook' if it is empty."
 ;;
 (defun semantic-overload-symbol-from-function (name)
   "Return the symbol for overload used by NAME, the defined symbol."
+  (declare (obsolete define-obsolete-function-alias "28.1"))
   (let ((sym-name (symbol-name name)))
     (if (string-match "^semantic-" sym-name)
 	(intern (substring sym-name (match-end 0)))
@@ -182,6 +183,7 @@ Remove self from `post-command-hook' if it is empty."
   "Make OLDFNALIAS an alias for NEWFN.
 Mark OLDFNALIAS as obsolete, such that the byte compiler
 will throw a warning when it encounters this symbol."
+  (declare (obsolete define-obsolete-function-alias "28.1"))
   (defalias oldfnalias newfn)
   (make-obsolete oldfnalias newfn when)
   (when (and (mode-local--function-overload-p newfn)
@@ -196,13 +198,14 @@ will throw a warning when it encounters this symbol."
      "%s: `%s' obsoletes overload `%s'"
      byte-compile-current-file
      newfn
-     (semantic-overload-symbol-from-function oldfnalias))
-    ))
+     (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
+       (semantic-overload-symbol-from-function oldfnalias)))))
 
 (defun semantic-varalias-obsolete (oldvaralias newvar when)
   "Make OLDVARALIAS an alias for variable NEWVAR.
 Mark OLDVARALIAS as obsolete, such that the byte compiler
 will throw a warning when it encounters this symbol."
+  (declare (obsolete define-obsolete-variable-alias "28.1"))
   (make-obsolete-variable oldvaralias newvar when)
   (condition-case nil
       (defvaralias oldvaralias newvar)
@@ -255,9 +258,6 @@ FUNCTION does not have arguments.  When FUNCTION is entered
   (mode-local-map-file-buffers function #'semantic-active-p))
 
 (defalias 'semantic-map-mode-buffers 'mode-local-map-mode-buffers)
-
-(semantic-alias-obsolete 'define-mode-overload-implementation
-                         'define-mode-local-override "23.2")
 
 (defun semantic-install-function-overrides (overrides &optional transient)
   "Install the function OVERRIDES in the specified environment.
@@ -396,13 +396,10 @@ into `mode-local-init-hook'." file filename)
 ;; 		 "define-lex-regex-type-analyzer"
 ;; 		 "define-lex-string-type-analyzer"
 ;; 		 "define-lex-block-type-analyzer"
-;; 		 ;;"define-mode-overload-implementation"
 ;; 		 ;;"define-semantic-child-mode"
 ;; 		 "define-semantic-idle-service"
 ;; 		 "define-semantic-decoration-style"
 ;; 		 "define-wisent-lexer"
-;; 		 "semantic-alias-obsolete"
-;; 		 "semantic-varalias-obsolete"
 ;; 		 "semantic-make-obsolete-overload"
 ;; 		 "defcustom-mode-local-semantic-dependency-system-include-path"
 ;; 		 ))
