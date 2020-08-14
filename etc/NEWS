@@ -231,10 +231,11 @@ it won't work right without some adjustment:
 
 ** Emacs now notifies systemd when startup finishes or shutdown begins.
 Units that are ordered after 'emacs.service' will only be started
-after Emacs has finished initialization and is ready for use.
-(If your Emacs is installed in a non-standard location and you copied the
-emacs.service file to e.g. "~/.config/systemd/user/", you will need to copy
-the new version of the file again.)
+after Emacs has finished initialization and is ready for use, and
+Emacs needs to be built with systemd support.  (If your Emacs is
+installed in a non-standard location and you copied the emacs.service
+file to e.g. "~/.config/systemd/user/", you will need to copy the new
+version of the file again.)
 
 
 * Changes in Emacs 27.1
