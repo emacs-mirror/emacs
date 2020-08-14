@@ -4971,8 +4971,9 @@ first line or header line, and for breadcrumb links.")
 			       "mouse-2: go to this node")
 		  'mouse-face 'highlight)))
 	      (when (or not-fontified-p fontify-visited-p)
-		(add-face-text-property
+		(put-text-property
 		 (match-beginning 1) (match-end 1)
+                 'font-lock-face
                  ;; Display visited menu items in a different face
                  (if (and Info-fontify-visited-nodes
                           (save-match-data
@@ -5001,9 +5002,7 @@ first line or header line, and for breadcrumb links.")
 						  (caar hl))))
 				    (setq res (car hl) hl nil)
 				  (setq hl (cdr hl))))
-                              res)))
-                     'info-xref-visited 'info-xref)
-                 'append))
+                              res))) 'info-xref-visited 'info-xref)))
 	      (when (and not-fontified-p
 			 (memq Info-hide-note-references '(t hide))
 			 (not (Info-index-node)))
