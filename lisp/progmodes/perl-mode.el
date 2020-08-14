@@ -214,7 +214,9 @@
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
             (regexp-opt perl--syntax-exp-intro-keywords)
-            "\\|[-?:.,;|&+*=!~({[]\\|\\(^\\)\\)[ \t\n]*")))
+            "\\|[?:.,;|&*=!~({[]"
+            "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
+            "\\|\\(^\\)\\)[ \t\n]*")))
 
 (defun perl-syntax-propertize-function (start end)
   (let ((case-fold-search nil))
