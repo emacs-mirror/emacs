@@ -740,8 +740,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
 OpenDocument format)."
   (and (display-graphic-p)
-       (or (image-type-available-p 'imagemagick)
-	   (image-type-available-p 'png))
+       (image-type-available-p 'png)
        (cond
 	((eq type 'dvi)
 	 (and (doc-view-mode-p 'pdf)
@@ -769,10 +768,7 @@ OpenDocument format)."
 (defun doc-view-enlarge (factor)
   "Enlarge the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
-  (if (and doc-view-scale-internally
-           (eq (plist-get (cdr (doc-view-current-image)) :type)
-               'imagemagick))
-      ;; ImageMagick supports on-the-fly-rescaling.
+  (if doc-view-scale-internally
       (let ((new (ceiling (* factor doc-view-image-width))))
         (unless (equal new doc-view-image-width)
           (setq-local doc-view-image-width new)
@@ -792,9 +788,7 @@ OpenDocument format)."
 (defun doc-view-scale-reset ()
   "Reset the document size/zoom level to the initial one."
   (interactive)
-  (if (and doc-view-scale-internally
-           (eq (plist-get (cdr (doc-view-current-image)) :type)
-               'imagemagick))
+  (if doc-view-scale-internally
       (progn
 	(kill-local-variable 'doc-view-image-width)
 	(doc-view-insert-image
@@ -1393,12 +1387,11 @@ ARGS is a list of image descriptors."
     ;; Only insert the image if the buffer is visible.
     (when (window-live-p (overlay-get ol 'window))
       (let* ((image (if (and file (file-readable-p file))
-			(if (not (and doc-view-scale-internally
-				      (fboundp 'imagemagick-types)))
+			(if (not doc-view-scale-internally)
 			    (apply #'create-image file doc-view--image-type nil args)
 			  (unless (member :width args)
 			    (setq args `(,@args :width ,doc-view-image-width)))
-			  (apply #'create-image file 'imagemagick nil args))))
+			  (apply #'create-image file doc-view--image-type nil args))))
 	     (slice (doc-view-current-slice))
 	     (img-width (and image (car (image-size image))))
 	     (displayed-img-width (if (and image slice)
