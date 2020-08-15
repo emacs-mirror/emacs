@@ -1747,22 +1747,42 @@ changing the value of a sequence `foo'.  */)
 {
   if (VECTORP (seq))
     {
-      ptrdiff_t i, n;
+      ptrdiff_t n = 0;
+      ptrdiff_t size = ASIZE (seq);
+      ptrdiff_t neqbits_words = ((size + BITS_PER_BITS_WORD - 1)
+				 / BITS_PER_BITS_WORD);
+      USE_SAFE_ALLOCA;
+      bits_word *neqbits = SAFE_ALLOCA (neqbits_words * sizeof *neqbits);
+      bits_word neqword = 0;
 
-      for (i = n = 0; i < ASIZE (seq); ++i)
-	if (NILP (Fequal (AREF (seq, i), elt)))
-	  ++n;
-
-      if (n != ASIZE (seq))
+      for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  struct Lisp_Vector *p = allocate_nil_vector (n);
+	  bool neq = NILP (Fequal (AREF (seq, i), elt));
+	  n += neq;
+	  neqbits[i / BITS_PER_BITS_WORD] = neqword = (neqword << 1) + neq;
+	}
 
-	  for (i = n = 0; i < ASIZE (seq); ++i)
-	    if (NILP (Fequal (AREF (seq, i), elt)))
-	      p->contents[n++] = AREF (seq, i);
+      if (n != size)
+	{
+	  struct Lisp_Vector *p = allocate_vector (n);
+
+	  if (n != 0)
+	    {
+	      ptrdiff_t j = 0;
+	      for (ptrdiff_t i = 0; ; i++)
+		if (neqbits[i / BITS_PER_BITS_WORD]
+		    & ((bits_word) 1 << (i % BITS_PER_BITS_WORD)))
+		  {
+		    p->contents[j++] = AREF (seq, i);
+		    if (j == n)
+		      break;
+		  }
+	    }
 
 	  XSETVECTOR (seq, p);
 	}
+
+      SAFE_FREE ();
     }
   else if (STRINGP (seq))
     {
