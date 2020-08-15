@@ -2748,9 +2748,9 @@ queued with LOAD %"
                                   comp-deferred-compilation-black-list)))
           (let* ((out-filename (comp-el-to-eln-filename file))
                  (out-dir (file-name-directory out-filename)))
-            (if (or (file-writable-p out-filename)
-                    (and (not (file-exists-p out-dir))
-                         (file-writable-p (substring out-dir 0 -1))))
+            (unless (file-exists-p out-dir)
+              (make-directory out-dir t))
+            (if (file-writable-p out-filename)
                 (setf comp-files-queue
                       (append comp-files-queue `((,file . ,load))))
               (display-warning 'comp
