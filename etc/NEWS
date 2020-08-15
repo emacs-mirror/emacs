@@ -726,6 +726,13 @@ Italic text is displayed in the new 'erc-italic-face'.
 This file contained ERC compatibility code for Emacs 21 and XEmacs
 which is no longer needed.
 
+---
+*** erc-match.el now supports 'message' highlight type (not including the nick).
+The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
+'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
+'erc-dangerous-host-highlight-type' variables now support a 'message'
+type for highlighting the entire message but not the sender's nick.
+
 ** Battery
 
 ---
