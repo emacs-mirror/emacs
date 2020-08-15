@@ -792,7 +792,7 @@ use instead of the default @code{equal}.
 @example
 @group
 (seq-contains-p '(symbol1 symbol2) 'symbol1)
-@result{} symbol1
+@result{} t
 @end group
 @group
 (seq-contains-p '(symbol1 symbol2) 'symbol3)
