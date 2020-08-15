@@ -1749,38 +1749,17 @@ changing the value of a sequence `foo'.  */)
     {
       ptrdiff_t n = 0;
       ptrdiff_t size = ASIZE (seq);
-      ptrdiff_t neqbits_words = ((size + BITS_PER_BITS_WORD - 1)
-				 / BITS_PER_BITS_WORD);
       USE_SAFE_ALLOCA;
-      bits_word *neqbits = SAFE_ALLOCA (neqbits_words * sizeof *neqbits);
-      bits_word neqword = 0;
+      Lisp_Object *kept = SAFE_ALLOCA (size * sizeof *kept);
 
       for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  bool neq = NILP (Fequal (AREF (seq, i), elt));
-	  n += neq;
-	  neqbits[i / BITS_PER_BITS_WORD] = neqword = (neqword << 1) + neq;
+	  kept[n] = AREF (seq, i);
+	  n += NILP (Fequal (AREF (seq, i), elt));
 	}
 
       if (n != size)
-	{
-	  struct Lisp_Vector *p = allocate_vector (n);
-
-	  if (n != 0)
-	    {
-	      ptrdiff_t j = 0;
-	      for (ptrdiff_t i = 0; ; i++)
-		if (neqbits[i / BITS_PER_BITS_WORD]
-		    & ((bits_word) 1 << (i % BITS_PER_BITS_WORD)))
-		  {
-		    p->contents[j++] = AREF (seq, i);
-		    if (j == n)
-		      break;
-		  }
-	    }
-
-	  XSETVECTOR (seq, p);
-	}
+	seq = Fvector (n, kept);
 
       SAFE_FREE ();
     }
