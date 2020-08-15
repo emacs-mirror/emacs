@@ -1766,6 +1766,9 @@ changing the value of a sequence `foo'.  */)
     }
   else if (STRINGP (seq))
     {
+      if (!CHARACTERP (elt))
+	return seq;
+
       ptrdiff_t i, ibyte, nchars, nbytes, cbytes;
       int c;
 
@@ -1784,7 +1787,7 @@ changing the value of a sequence `foo'.  */)
 	      cbytes = 1;
 	    }
 
-	  if (!FIXNUMP (elt) || c != XFIXNUM (elt))
+	  if (c != XFIXNUM (elt))
 	    {
 	      ++nchars;
 	      nbytes += cbytes;
@@ -1814,7 +1817,7 @@ changing the value of a sequence `foo'.  */)
 		  cbytes = 1;
 		}
 
-	      if (!FIXNUMP (elt) || c != XFIXNUM (elt))
+	      if (c != XFIXNUM (elt))
 		{
 		  unsigned char *from = SDATA (seq) + ibyte;
 		  unsigned char *to   = SDATA (tem) + nbytes;
