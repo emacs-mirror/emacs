@@ -467,6 +467,11 @@ Customize this option to nil if you want the previous behavior."
   :type 'boolean
   :group 'term)
 
+(defcustom term-set-terminal-size nil
+  "If non-nil, set the LINES and COLUMNS environment variables."
+  :type 'boolean
+  :version "28.1")
+
 (defcustom term-char-mode-point-at-process-mark t
   "If non-nil, keep point at the process mark in char mode.
 
@@ -1551,9 +1556,12 @@ Nil if unknown.")
 	   (format term-termcap-format "TERMCAP="
 		   term-term-name term-height term-width)
 
-	   (format "INSIDE_EMACS=%s,term:%s" emacs-version term-protocol-version)
-	   (format "LINES=%d" term-height)
-	   (format "COLUMNS=%d" term-width))
+	   (format "INSIDE_EMACS=%s,term:%s"
+                   emacs-version term-protocol-version))
+          (when term-set-terminal-size
+            (list
+             (format "LINES=%d" term-height)
+	     (format "COLUMNS=%d" term-width)))
 	  process-environment))
 	(process-connection-type t)
 	;; We should suppress conversion of end-of-line format.

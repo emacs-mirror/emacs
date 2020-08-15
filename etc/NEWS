@@ -797,6 +797,22 @@ work more traditionally, with 'C-d' deleting the next character.
 Likewise, point isn't moved to the end of the string before inserting
 digits.
 
+** term-mode
+
+---
+*** New user option 'term-scroll-snap-to-bottom'.
+By default, 'term' and 'ansi-term' will now recenter the buffer so
+that the prompt is on the final line in the window.  Setting this new
+user option to nil inhibits this behavior.
+
+---
+*** New user option 'term-set-terminal-size'
+If non-nil, the LINES and COLUMNS environment variables will be set
+based on the current window size.  In previous versions of Emacs, this
+was always done (and that could lead to odd displays when resizing the
+window after starting).  This variable defaults to nil.
+
+
 ** Miscellaneous
 
 ---
@@ -821,12 +837,6 @@ horizontally and vertically, respectively.
 Previously, choosing a different completion with commands like 'C-.'
 and then hitting RET would choose the default completion.  Doing this
 will now choose the completion under point instead.
-
----
-*** New user option 'term-scroll-snap-to-bottom'.
-By default, 'term' and 'ansi-term' will now recenter the buffer so
-that the prompt is on the final line in the window.  Setting this new
-user option to nil inhibits this behavior.
 
 *** The new library hierarchy.el has been added.
 It's a library to create, query, navigate and display hierarchy
