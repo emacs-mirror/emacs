@@ -445,12 +445,14 @@ use @code{flyspell-region} or @code{flyspell-buffer} for that.
 @findex flyspell-correct-word-before-point
   When Flyspell mode highlights a word as misspelled, you can click on
 it with @kbd{mouse-2} (@code{flyspell-correct-word}) to display a menu
-of possible corrections and actions.  In addition, @kbd{C-.} or
+of possible corrections and actions.  If you want this menu on
+@kbd{mouse-3} instead, customize the variable
+@code{flyspell-correct-on-mouse-3}.  In addition, @kbd{C-.} or
 @kbd{@key{ESC}-@key{TAB}} (@code{flyspell-auto-correct-word}) will
 propose various successive corrections for the word at point, and
-@w{@kbd{C-c $}} (@code{flyspell-correct-word-before-point}) will pop up a
-menu of possible corrections.  Of course, you can always correct the
-misspelled word by editing it manually in any way you like.
+@w{@kbd{C-c $}} (@code{flyspell-correct-word-before-point}) will pop
+up a menu of possible corrections.  Of course, you can always correct
+the misspelled word by editing it manually in any way you like.
 
 @findex flyspell-prog-mode
   Flyspell Prog mode works just like ordinary Flyspell mode, except

@@ -445,6 +445,22 @@ like <img alt=\"Some thing.\">."
     map)
   "Minor mode keymap for Flyspell mode--for the whole buffer.")
 
+;; correct on mouse 3
+(defun flyspell--set-correct-on-mouse-3 (var value)
+  (set-default var value)
+  (if value
+      (progn (define-key flyspell-mouse-map [mouse-2] nil)
+             (define-key flyspell-mouse-map [mouse-3] 'flyspell-correct-word))
+    (define-key flyspell-mouse-map [mouse-2] 'flyspell-correct-word)
+    (define-key flyspell-mouse-map [mouse-3] nil)))
+
+(defcustom flyspell-correct-on-mouse-3 nil
+  "Non-nil means to bind `mouse-3' to `flyspell-correct-word'.
+If this is set, also unbind `mouse-2'."
+  :type 'boolean
+  :set 'flyspell--set-correct-on-mouse-3
+  :version "28.1")
+
 ;; dash character machinery
 (defvar flyspell-consider-dash-as-word-delimiter-flag nil
   "Non-nil means that the `-' char is considered as a word delimiter.")
@@ -514,7 +530,10 @@ in your init file.
   :group 'flyspell
   (if flyspell-mode
       (condition-case err
-	  (flyspell-mode-on)
+          (progn
+            (when flyspell-correct-on-mouse-3
+              (flyspell--set-correct-on-mouse-3 'flyspell-correct-on-mouse-3 t))
+	    (flyspell-mode-on))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))

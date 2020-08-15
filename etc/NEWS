@@ -875,6 +875,16 @@ height of lines or width of chars.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
 
+** Flyspell mode
+
++++
+*** Corrections and actions menu can be optionally bound to mouse-3.
+When Flyspell mode highlights a word as misspelled, you can click on
+it to display a menu of possible corrections and actions.  You can now
+easily bind this menu to mouse-3 (usually the right mouse button)
+instead of mouse-2 (the default) by customizing the new option
+'flyspell-correct-on-mouse-3'.
+
 
 * New Modes and Packages in Emacs 28.1
 
