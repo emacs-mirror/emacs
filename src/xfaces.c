@@ -1572,22 +1572,18 @@ the face font sort order.  */)
   for (i = nfonts - 1; i >= 0; --i)
     {
       Lisp_Object font = AREF (vec, i);
-      Lisp_Object v = make_uninit_vector (8);
-      int point;
-      Lisp_Object spacing;
-
-      ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
-      ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
-      point = PIXEL_TO_POINT (XFIXNUM (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      FRAME_RES_Y (f));
-      ASET (v, 2, make_fixnum (point));
-      ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
-      ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
-      spacing = Ffont_get (font, QCspacing);
-      ASET (v, 5, (NILP (spacing) || EQ (spacing, Qp)) ? Qnil : Qt);
-      ASET (v, 6, Ffont_xlfd_name (font, Qnil));
-      ASET (v, 7, AREF (font, FONT_REGISTRY_INDEX));
-
+      int point = PIXEL_TO_POINT (XFIXNUM (AREF (font, FONT_SIZE_INDEX)) * 10,
+				  FRAME_RES_Y (f));
+      Lisp_Object spacing = Ffont_get (font, QCspacing);
+      Lisp_Object v = CALLN (Fvector,
+			     AREF (font, FONT_FAMILY_INDEX),
+			     FONT_WIDTH_SYMBOLIC (font),
+			     make_fixnum (point),
+			     FONT_WEIGHT_SYMBOLIC (font),
+			     FONT_SLANT_SYMBOLIC (font),
+			     NILP (spacing) || EQ (spacing, Qp) ? Qnil : Qt,
+			     Ffont_xlfd_name (font, Qnil),
+			     AREF (font, FONT_REGISTRY_INDEX));
       result = Fcons (v, result);
     }
 

@@ -2219,15 +2219,8 @@ Return index number of the registered CCL program.  */)
     /* Extend the table.  */
     Vccl_program_table = larger_vector (Vccl_program_table, 1, -1);
 
-  {
-    Lisp_Object elt = make_uninit_vector (4);
-
-    ASET (elt, 0, name);
-    ASET (elt, 1, ccl_prog);
-    ASET (elt, 2, resolved);
-    ASET (elt, 3, Qt);
-    ASET (Vccl_program_table, idx, elt);
-  }
+  ASET (Vccl_program_table, idx,
+	CALLN (Fvector, name, ccl_prog, resolved, Qt));
 
   Fput (name, Qccl_program_idx, make_fixnum (idx));
   return make_fixnum (idx);

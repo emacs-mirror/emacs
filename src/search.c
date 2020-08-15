@@ -3306,9 +3306,7 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
     }
 
   /* Construct the value and return it.  */
-  val = make_uninit_vector (2);
-  ASET (val, 0, cache_newlines);
-  ASET (val, 1, buf_newlines);
+  val = CALLN (Fvector, cache_newlines, buf_newlines);
 
   if (old != NULL)
     set_buffer_internal_1 (old);

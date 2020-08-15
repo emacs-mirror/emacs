@@ -2826,14 +2826,10 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       LGLYPH_SET_ASCENT (lglyph, g->g.ascent >> 6);
       LGLYPH_SET_DESCENT (lglyph, g->g.descent >> 6);
       if (g->g.adjusted)
-	{
-	  Lisp_Object vec = make_uninit_vector (3);
-
-	  ASET (vec, 0, make_fixnum (g->g.xoff >> 6));
-	  ASET (vec, 1, make_fixnum (g->g.yoff >> 6));
-	  ASET (vec, 2, make_fixnum (g->g.xadv >> 6));
-	  LGLYPH_SET_ADJUSTMENT (lglyph, vec);
-	}
+	LGLYPH_SET_ADJUSTMENT (lglyph, CALLN (Fvector,
+					      make_fixnum (g->g.xoff >> 6),
+					      make_fixnum (g->g.yoff >> 6),
+					      make_fixnum (g->g.xadv >> 6)));
     }
   return make_fixnum (i);
 }

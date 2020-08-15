@@ -6196,10 +6196,10 @@ Otherwise, the return value is a vector with the following fields:
     {
       XFree (tmp_data);
 
-      prop_attr = make_uninit_vector (3);
-      ASET (prop_attr, 0, make_fixnum (actual_type));
-      ASET (prop_attr, 1, make_fixnum (actual_format));
-      ASET (prop_attr, 2, make_fixnum (bytes_remaining / (actual_format >> 3)));
+      prop_attr = CALLN (Fvector,
+			 make_fixnum (actual_type),
+			 make_fixnum (actual_format),
+			 make_fixnum (bytes_remaining / (actual_format >> 3)));
     }
 
   unblock_input ();
