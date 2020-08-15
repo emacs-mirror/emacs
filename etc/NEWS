@@ -793,6 +793,11 @@ digits.
 ** Miscellaneous
 
 ---
+*** New variable 'ffap-file-name-with-spaces'.
+If non-nil, 'find-file-at-point' and friends will try to guess more
+expansively to identify a file name with spaces.
+
+---
 *** Two new commands for centering in 'doc-view-mode'.
 The new commands 'doc-view-center-page-horizontally' (bound to 'c h')
 and 'doc-view-center-page-vertically' (bound to 'c v') center the page
