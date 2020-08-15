@@ -1755,7 +1755,7 @@ changing the value of a sequence `foo'.  */)
 
       if (n != ASIZE (seq))
 	{
-	  struct Lisp_Vector *p = allocate_vector (n);
+	  struct Lisp_Vector *p = allocate_nil_vector (n);
 
 	  for (i = n = 0; i < ASIZE (seq); ++i)
 	    if (NILP (Fequal (AREF (seq, i), elt)))

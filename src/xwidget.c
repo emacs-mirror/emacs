@@ -343,7 +343,7 @@ webkit_js_to_lisp (JSCValue *value)
 	memory_full (SIZE_MAX);
 
       ptrdiff_t n = dlen;
-      struct Lisp_Vector *p = allocate_vector (n);
+      struct Lisp_Vector *p = allocate_nil_vector (n);
 
       for (ptrdiff_t i = 0; i < n; ++i)
 	{
@@ -361,7 +361,7 @@ webkit_js_to_lisp (JSCValue *value)
       Lisp_Object obj;
       if (PTRDIFF_MAX < n)
 	memory_full (n);
-      struct Lisp_Vector *p = allocate_vector (n);
+      struct Lisp_Vector *p = allocate_nil_vector (n);
 
       for (ptrdiff_t i = 0; i < n; ++i)
 	{

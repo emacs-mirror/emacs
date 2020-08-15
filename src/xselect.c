@@ -1594,7 +1594,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
 	return x_atom_to_symbol (dpyinfo, (Atom) idata[0]);
       else
 	{
-	  Lisp_Object v = make_uninit_vector (size / sizeof (int));
+	  Lisp_Object v = make_nil_vector (size / sizeof (int));
 
 	  for (i = 0; i < size / sizeof (int); i++)
 	    ASET (v, i, x_atom_to_symbol (dpyinfo, (Atom) idata[i]));
@@ -1653,7 +1653,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
   else
     {
       ptrdiff_t i;
-      Lisp_Object v = make_uninit_vector (size / X_LONG_SIZE);
+      Lisp_Object v = make_nil_vector (size / X_LONG_SIZE);
 
       if (type == XA_INTEGER)
         {
@@ -1860,7 +1860,7 @@ clean_local_selection_data (Lisp_Object obj)
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (AREF (obj, 0));
-      copy = make_uninit_vector (size);
+      copy = make_nil_vector (size);
       for (i = 0; i < size; i++)
 	ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;

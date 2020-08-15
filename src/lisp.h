@@ -3916,7 +3916,6 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
-extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
 extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
 
 /* Make an uninitialized vector for SIZE objects.  NOTE: you must
@@ -3926,7 +3925,11 @@ extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
    v = make_uninit_vector (3);
    ASET (v, 0, obj0);
    ASET (v, 1, Ffunction_can_gc ());
-   ASET (v, 2, obj1);  */
+   ASET (v, 2, obj1);
+
+   allocate_vector has a similar problem.  */
+
+extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
 
 INLINE Lisp_Object
 make_uninit_vector (ptrdiff_t size)

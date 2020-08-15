@@ -4889,7 +4889,7 @@ the corresponding element is nil.  */)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (font_object);
   ptrdiff_t len;
-  Lisp_Object *chars, vec;
+  Lisp_Object *chars;
   USE_SAFE_ALLOCA;
 
   if (NILP (object))
@@ -4957,7 +4957,7 @@ the corresponding element is nil.  */)
   else
     wrong_type_argument (Qarrayp, object);
 
-  vec = make_uninit_vector (len);
+  Lisp_Object vec = make_nil_vector (len);
   for (ptrdiff_t i = 0; i < len; i++)
     {
       Lisp_Object g;
@@ -5203,7 +5203,7 @@ If the named font cannot be opened and loaded, return nil.  */)
 static Lisp_Object
 build_style_table (const struct table_entry *entry, int nelement)
 {
-  Lisp_Object table = make_uninit_vector (nelement);
+  Lisp_Object table = make_nil_vector (nelement);
   for (int i = 0; i < nelement; i++)
     {
       int j;
