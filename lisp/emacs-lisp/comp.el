@@ -2568,6 +2568,8 @@ display a message."
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
          when (or comp-always-compile
+                  load ; Always compile when the compilation is
+                       ; commanded for late load.
                   (file-newer-than-file-p source-file
                                           (comp-el-to-eln-filename source-file)))
          do (let* ((expr `(progn
