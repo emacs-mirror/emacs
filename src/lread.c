@@ -1099,7 +1099,7 @@ close_infile_unwind (void *arg)
   infile = prev_infile;
 }
 
-static Lisp_Object
+static ATTRIBUTE_UNUSED Lisp_Object
 parent_directory (Lisp_Object directory)
 {
   return Ffile_name_directory (Fsubstring (directory,
