@@ -36,6 +36,7 @@
 (require 'gv)
 (require 'rx)
 (require 'subr-x)
+(require 'warnings)
 
 (defgroup comp nil
   "Emacs Lisp native compiler."
