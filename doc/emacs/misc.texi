@@ -245,13 +245,13 @@ Do an incremental search on the selected article buffer
 (@code{gnus-summary-isearch-article}), as if you switched to the
 buffer and typed @kbd{C-s} (@pxref{Incremental Search}).
 
-@kindex M-s @r{(Gnus Summary mode)}
+@kindex M-s M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
 @item M-s @var{regexp} @key{RET}
 Search forward for articles containing a match for @var{regexp}
 (@code{gnus-summary-search-article-forward}).
 
-@kindex M-r @r{(Gnus Summary mode)}
+@kindex M-s M-r @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-backward
 @item M-r @var{regexp} @key{RET}
 Search back for articles containing a match for @var{regexp}

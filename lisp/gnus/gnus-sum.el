@@ -1913,7 +1913,8 @@ increase the score of each group you read."
   "," gnus-summary-best-unread-article
   "[" gnus-summary-prev-unseen-article
   "]" gnus-summary-next-unseen-article
-  "\M-s" gnus-summary-search-article-forward
+  "\M-s\M-s" gnus-summary-search-article-forward
+  "\M-s\M-r" gnus-summary-search-article-backward
   "\M-r" gnus-summary-search-article-backward
   "\M-S" gnus-summary-repeat-search-article-forward
   "\M-R" gnus-summary-repeat-search-article-backward

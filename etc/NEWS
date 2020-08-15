@@ -262,6 +262,13 @@ invoke 'C-u C-x v s' ('vc-create-tag').
 
 ** Gnus
 
++++
+*** The key binding of 'gnus-summary-search-article-forward' has changed.
+This command was previously on 'M-s' and shadowed the global 'M-s'
+search prefix.  The command has now been moved to 'M-s M-s'.  (For
+consistency, the 'M-s M-r' key binding has been added for the
+'gnus-summary-search-article-backward' command.)
+
 ---
 *** The value of "all" in the 'large-newsgroup-initial' group parameter changes.
 It was previously nil, which didn't work, because nil is
