@@ -1420,10 +1420,12 @@ Intended for `eldoc-documentation-functions' (which see)."
 (defun elisp-eldoc-var-docstring (callback &rest _ignored)
   "Document variable at point.
 Intended for `eldoc-documentation-functions' (which see)."
-  (let ((sym (elisp--current-symbol)))
-    (when sym (funcall callback (elisp-get-var-docstring sym)
-                       :thing sym
-                       :face 'font-lock-variable-name-face))))
+  (let* ((sym (elisp--current-symbol))
+        (docstring (and sym (elisp-get-var-docstring sym))))
+    (when docstring
+      (funcall callback docstring
+               :thing sym
+               :face 'font-lock-variable-name-face))))
 
 (defun elisp-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
