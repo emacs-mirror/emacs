@@ -3867,6 +3867,8 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
   (Lisp_Object file_name, Lisp_Object base_dir)
 {
   CHECK_STRING (file_name);
+  if (suffix_p (file_name, ".gz"))
+    file_name = Fsubstring (file_name, Qnil, make_fixnum (-3));
   file_name = Fexpand_file_name (file_name, Qnil);
   Lisp_Object hashed = Fsubstring (comp_hash_string (file_name), Qnil,
 				   make_fixnum (ELN_FILENAME_HASH_LEN));
@@ -4494,7 +4496,11 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     concat2 (CALL1I (file-name-sans-extension, Vload_true_file_name),
 	     build_pure_c_string (".el"));
   if (NILP (Ffile_exists_p (src)))
-    return;
+    {
+      src = concat2 (src, build_pure_c_string (".gz"));
+      if (NILP (Ffile_exists_p (src)))
+	return;
+    }
 
   /* This is to have deferred compilaiton able to compile comp
      dependecies breaking circularity.  */

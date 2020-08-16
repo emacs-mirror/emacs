@@ -137,6 +137,9 @@ before compilation.  Usable to modify the compiler environment."
 (defvar comp-dry-run nil
   "When non nil run everything but the C back-end.")
 
+(defconst comp-valid-source-re (rx ".el" (? ".gz") eos)
+  "Regexp to match filename of valid input source files.")
+
 (defconst comp-log-buffer-name "*Native-compile-Log*"
   "Name of the native-compiler log buffer.")
 
@@ -2564,7 +2567,7 @@ display a message."
         (cl-loop
          for (source-file . load) = (pop comp-files-queue)
          while source-file
-         do (cl-assert (string-match-p (rx ".el" eos) source-file) nil
+         do (cl-assert (string-match-p comp-valid-source-re source-file) nil
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
          when (or comp-always-compile
@@ -2724,8 +2727,8 @@ LOAD can be nil t or 'late."
     (dolist (path paths)
       (cond ((file-directory-p path)
              (dolist (file (if recursively
-                               (directory-files-recursively path (rx ".el" eos))
-                             (directory-files path t (rx ".el" eos))))
+                               (directory-files-recursively path comp-valid-source-re)
+                             (directory-files path t comp-valid-source-re)))
                (push file files)))
             ((file-exists-p path) (push path files))
             (t (signal 'native-compiler-error
