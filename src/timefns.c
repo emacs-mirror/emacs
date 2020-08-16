@@ -1312,11 +1312,12 @@ or (if you need time as a string) `format-time-string'.  */)
    ((size_t) -1) for MAXSIZE.
 
    This function behaves like nstrftime, except it allows NUL
-   bytes in FORMAT and it does not support nanoseconds.  */
+   bytes in FORMAT.  */
 static size_t
 emacs_nmemftime (char *s, size_t maxsize, const char *format,
 		 size_t format_len, const struct tm *tp, timezone_t tz, int ns)
 {
+  int saved_errno = errno;
   size_t total = 0;
 
   /* Loop through all the NUL-terminated strings in the format
@@ -1326,30 +1327,25 @@ emacs_nmemftime (char *s, size_t maxsize, const char *format,
      '\0' byte so we must invoke it separately for each such string.  */
   for (;;)
     {
-      size_t len;
-      size_t result;
-
+      errno = 0;
+      size_t result = nstrftime (s, maxsize, format, tp, tz, ns);
+      if (result == 0 && errno != 0)
+	return result;
       if (s)
-	s[0] = '\1';
-
-      result = nstrftime (s, maxsize, format, tp, tz, ns);
-
-      if (s)
-	{
-	  if (result == 0 && s[0] != '\0')
-	    return 0;
-	  s += result + 1;
-	}
+	s += result + 1;
 
       maxsize -= result + 1;
       total += result;
-      len = strlen (format);
+      size_t len = strlen (format);
       if (len == format_len)
-	return total;
+	break;
       total++;
       format += len + 1;
       format_len -= len + 1;
     }
+
+  errno = saved_errno;
+  return total;
 }
 
 static Lisp_Object
@@ -1379,10 +1375,11 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 
   while (true)
     {
-      buf[0] = '\1';
+      errno = 0;
       len = emacs_nmemftime (buf, size, format, formatlen, tmp, tz, ns);
-      if ((0 < len && len < size) || (len == 0 && buf[0] == '\0'))
+      if (len != 0 || errno == 0)
 	break;
+      eassert (errno == ERANGE);
 
       /* Buffer was too small, so make it bigger and try again.  */
       len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tmp, tz, ns);
