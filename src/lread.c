@@ -1615,7 +1615,8 @@ maybe_swap_for_eln (Lisp_Object *filename, int *fd, struct timespec mtime)
 #ifdef HAVE_NATIVE_COMP
   struct stat eln_st;
 
-  if (!suffix_p (*filename, ".elc"))
+  if (load_no_native
+      || !suffix_p (*filename, ".elc"))
     return;
 
   /* Search eln in the eln-cache directories.  */
@@ -5155,6 +5156,11 @@ newest.
 Note that if you customize this, obviously it will not affect files
 that are loaded before your customizations are read!  */);
   load_prefer_newer = 0;
+
+  DEFVAR_BOOL ("load-no-native", load_no_native,
+               doc: /* Do not try to load the a .eln file in place of
+		       a .elc one.  */);
+  load_no_native = false;
 
   /* Vsource_directory was initialized in init_lread.  */
 
