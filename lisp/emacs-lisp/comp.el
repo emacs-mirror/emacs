@@ -2613,7 +2613,7 @@ display a message."
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
-                                  comp-native-driver-options ,comp-native-driver-options
+                                  comp-native-driver-options ',comp-native-driver-options
                                   load-path ',load-path)
                             ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
