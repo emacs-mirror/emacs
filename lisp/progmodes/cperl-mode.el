@@ -451,8 +451,7 @@ Older version of this page was called `perl5', newer `perl'."
   :type 'string
   :group 'cperl-help-system)
 
-(defcustom cperl-use-syntax-table-text-property
-  (boundp 'parse-sexp-lookup-properties)
+(defcustom cperl-use-syntax-table-text-property t
   "Non-nil means CPerl sets up and uses `syntax-table' text property."
   :type 'boolean
   :group 'cperl-speed)
@@ -535,8 +534,7 @@ One should tune up `cperl-close-paren-offset' as well."
   :type 'boolean
   :group 'cperl-indentation-details)
 
-(defcustom cperl-syntaxify-by-font-lock
-  (boundp 'parse-sexp-lookup-properties)
+(defcustom cperl-syntaxify-by-font-lock t
   "Non-nil means that CPerl uses the `font-lock' routines for syntaxification."
   :type '(choice (const message) boolean)
   :group 'cperl-speed)
@@ -1081,10 +1079,6 @@ versions of Emacs."
       (define-key map [(control ?c) (control ?h) ?v]
 	;;(concat (char-to-string help-char) "v") ; does not work
 	'cperl-get-help))
-    (or (boundp 'fill-paragraph-function)
-        (substitute-key-definition
-         'fill-paragraph 'cperl-fill-paragraph
-         map global-map))
     (substitute-key-definition
      'indent-sexp 'cperl-indent-exp
      map global-map)
@@ -1637,9 +1631,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 	       "\\)"
 	       cperl-maybe-white-and-comment-rex))
   (set (make-local-variable 'comment-indent-function) #'cperl-comment-indent)
-  (and (boundp 'fill-paragraph-function)
-       (set (make-local-variable 'fill-paragraph-function)
-            #'cperl-fill-paragraph))
+  (set (make-local-variable 'fill-paragraph-function)
+       #'cperl-fill-paragraph)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'indent-region-function) #'cperl-indent-region)
   ;;(setq auto-fill-function #'cperl-do-auto-fill) ; Need to switch on and off!
@@ -1701,13 +1694,8 @@ or as help on variables `cperl-tips', `cperl-problems',
                 ;;  to make font-lock think that font-lock-syntactic-keywords
                 ;;  are defined.
 		'(t)))))
-  (if (boundp 'font-lock-multiline)	; Newer font-lock; use its facilities
-      (progn
-	(setq cperl-font-lock-multiline t) ; Not localized...
-	(set (make-local-variable 'font-lock-multiline) t))
-    (set (make-local-variable 'font-lock-fontify-region-function)
-         ;; not present with old Emacs
-	 #'cperl-font-lock-fontify-region-function))
+  (setq cperl-font-lock-multiline t) ; Not localized...
+  (set (make-local-variable 'font-lock-multiline) t)
   (set (make-local-variable 'font-lock-fontify-region-function)
        #'cperl-font-lock-fontify-region-function)
   (make-local-variable 'cperl-old-style)
@@ -5451,8 +5439,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
   (cond ((featurep 'ps-print)
 	 (or cperl-faces-init
 	     (progn
-	       (and (boundp 'font-lock-multiline)
-		    (setq cperl-font-lock-multiline t))
+	       (setq cperl-font-lock-multiline t)
 	       (cperl-init-faces))))
 	((not cperl-faces-init)
 	 (add-hook 'font-lock-mode-hook
@@ -5499,12 +5486,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
   (condition-case errs
       (progn
 	(require 'font-lock)
-	(and (fboundp 'font-lock-fontify-anchored-keywords)
-	     (featurep 'font-lock-extra)
-	     (message "You have an obsolete package `font-lock-extra'.  Install `choose-color'."))
 	(let (t-font-lock-keywords t-font-lock-keywords-1 font-lock-anchored)
-	  (if (fboundp 'font-lock-fontify-anchored-keywords)
-	      (setq font-lock-anchored t))
+	  (setq font-lock-anchored t)
 	  (setq
 	   t-font-lock-keywords
 	   (list
@@ -6857,7 +6840,7 @@ Use as
 	      (insert (cperl-find-tags file xs topdir))))))
       (if inbuffer nil			; Delegate to the caller
 	(save-buffer 0)			; No backup
-	(if (fboundp 'initialize-new-tags-table) ; Do we need something special in XEmacs?
+	(if (fboundp 'initialize-new-tags-table)
 	    (initialize-new-tags-table))))))
 
 (defvar cperl-tags-hier-regexp-list
