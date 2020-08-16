@@ -49,7 +49,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <cygwin/fs.h>
 #endif
 
-#if defined DARWIN_OS || defined __FreeBSD__
+#if defined DARWIN_OS || defined __FreeBSD__ || defined __OpenBSD__
 # include <sys/sysctl.h>
 #endif
 
@@ -3061,37 +3061,43 @@ list_system_processes (void)
   return proclist;
 }
 
-#elif defined DARWIN_OS || defined __FreeBSD__
+#elif defined DARWIN_OS || defined __FreeBSD__ || defined __OpenBSD__
 
 Lisp_Object
 list_system_processes (void)
 {
 #ifdef DARWIN_OS
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
+#elif defined __OpenBSD__
+  int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0,
+    sizeof (struct kinfo_proc), 4096};
 #else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
 #endif
   size_t len;
+  size_t mibsize = sizeof mib / sizeof mib[0];
   struct kinfo_proc *procs;
   size_t i;
 
   Lisp_Object proclist = Qnil;
 
-  if (sysctl (mib, 3, NULL, &len, NULL, 0) != 0 || len == 0)
+  if (sysctl (mib, mibsize, NULL, &len, NULL, 0) != 0 || len == 0)
     return proclist;
 
   procs = xmalloc (len);
-  if (sysctl (mib, 3, procs, &len, NULL, 0) != 0 || len == 0)
+  if (sysctl (mib, mibsize, procs, &len, NULL, 0) != 0 || len == 0)
     {
       xfree (procs);
       return proclist;
     }
 
-  len /= sizeof (struct kinfo_proc);
+  len /= sizeof procs[0];
   for (i = 0; i < len; i++)
     {
 #ifdef DARWIN_OS
       proclist = Fcons (INT_TO_INTEGER (procs[i].kp_proc.p_pid), proclist);
+#elif defined __OpenBSD__
+      proclist = Fcons (INT_TO_INTEGER (procs[i].p_pid), proclist);
 #else
       proclist = Fcons (INT_TO_INTEGER (procs[i].ki_pid), proclist);
 #endif
