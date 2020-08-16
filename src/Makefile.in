@@ -587,7 +587,7 @@ endif
 ifeq ($(DUMPING),pdumper)
 $(pdmp): emacs$(EXEEXT)
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --lisp-dest $(LISP_DESTDIR)
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	cp -f $@ $(bootstrap_pdmp)
 endif
 

@@ -4529,6 +4529,27 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 /* Functions used to load eln files.  */
 /**************************************/
 
+/* Fixup the system eln-cache dir.  This is the last entry in
+   `comp-eln-load-path'.  */
+void
+fixup_eln_load_path (Lisp_Object directory)
+{
+  Lisp_Object last_cell = Qnil;
+  Lisp_Object tmp = Vcomp_eln_load_path;
+  FOR_EACH_TAIL (tmp)
+    if (CONSP (tmp))
+      last_cell = tmp;
+
+  Lisp_Object eln_cache_sys =
+    Ffile_name_directory (concat2 (Vinvocation_directory,
+				   directory));
+  /* One directory up...  */
+  eln_cache_sys =
+    Ffile_name_directory (Fsubstring (eln_cache_sys, Qnil,
+				      make_fixnum (-1)));
+  Fsetcar (last_cell, eln_cache_sys);
+}
+
 typedef char *(*comp_lit_str_func) (void);
 
 /* Deserialize read and return static object.  */

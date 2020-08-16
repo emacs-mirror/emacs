@@ -108,6 +108,8 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
@@ -330,6 +332,8 @@ CONFIG_STATUS_FILES_IN = \
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
+ELN_DESTDIR = "$(DESTDIR)${libexecdir}/emacs/${version}/${configuration}/"
+
 all: ${SUBDIR} info
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 etc-emacsver
@@ -422,7 +426,7 @@ dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 src: Makefile
 	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' BIN_DESTDIR='$(DESTDIR)${bindir}/' \
-		 LISP_DESTDIR='$(DESTDIR)${lispdir}/' all
+		 ELN_DESTDIR='$(ELN_DESTDIR)' all
 
 blessmail: Makefile src
 	$(MAKE) -C lib-src maybe-blessmail
@@ -462,14 +466,14 @@ $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
 # ==================== Installation ====================
 
 .PHONY: install install-arch-dep install-arch-indep install-etcdoc install-info
-.PHONY: install-man install-etc install-strip install-$(NTDIR)
+.PHONY: install-man install-etc install-strip install-$(NTDIR) install-eln
 .PHONY: uninstall uninstall-$(NTDIR)
 
 ## If we let lib-src do its own installation, that means we
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail
+install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -752,6 +756,12 @@ install-etc:
 	    || exit 1; \
 	  done ; \
 	done
+
+### Install native compiled Lisp files.
+install-eln:
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	find eln-cache -type f -exec ${INSTALL_DATA} -D "{}" "$(ELN_DESTDIR){}" \;
+endif
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:

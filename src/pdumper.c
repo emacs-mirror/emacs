@@ -5249,23 +5249,12 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	      {
 		fclose (file);
 		installation_state = INSTALLED;
-		/* FIXME  Vcomp_eln_load_path = ?? */
+		fixup_eln_load_path (XCAR (comp_u->file));
 	      }
 	    else
 	      {
 		installation_state = LOCAL_BUILD;
-		/* Fixup `comp-eln-load-path' so emacs can be invoked
-		   position independently.  */
-		Lisp_Object eln_cache_sys =
-		  Ffile_name_directory (concat2 (Vinvocation_directory,
-						 XCDR (comp_u->file)));
-		/* One directory up...  */
-		eln_cache_sys =
-		  Ffile_name_directory (Fsubstring (eln_cache_sys, Qnil,
-						    make_fixnum (-1)));
-		/* FIXME for subsequent dumps we should fixup only the
-		   last entry.  */
-		Vcomp_eln_load_path = Fcons (eln_cache_sys, Qnil);
+		fixup_eln_load_path (XCDR (comp_u->file));
 	      }
 	  }
 
