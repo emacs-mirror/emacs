@@ -230,26 +230,20 @@ display a button."
 	(coding-system-for-write 'binary)) ;Inhibit EOL conversion.
     (write-region data nil filename)))
 
-(defun eudc-bob-pipe-object-to-external-program ()
+(defun eudc-bob-pipe-object-to-external-program (program)
   "Pipe the object data of the button at point to an external program."
-  (interactive)
+  (interactive (list (completing-read "Viewer: " eudc-external-viewers)))
   (let ((data (eudc-bob-get-overlay-prop 'object-data))
-	(buffer (generate-new-buffer "*eudc-tmp*"))
-	program
-	viewer)
-    (condition-case nil
-	(save-excursion
-	  (set-buffer-file-coding-system 'binary)
-	  (set-buffer buffer)
-	  (insert data)
-	  (setq program (completing-read "Viewer: " eudc-external-viewers))
-	  (if (setq viewer (assoc program eudc-external-viewers))
-	      (call-process-region (point-min) (point-max)
-				   (car (cdr viewer))
-				   (cdr (cdr viewer)))
-	    (call-process-region (point-min) (point-max) program)))
-      (error
-       (kill-buffer buffer)))))
+	(viewer (assoc program eudc-external-viewers)))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (insert data)
+      (let ((coding-system-for-write 'binary)) ;Inhibit EOL conversion
+	(if viewer
+	    (call-process-region (point-min) (point-max)
+			         (car (cdr viewer))
+			         (cdr (cdr viewer)))
+	  (call-process-region (point-min) (point-max) program))))))
 
 (defun eudc-bob-menu ()
   "Retrieve the menu attached to a binary object."
