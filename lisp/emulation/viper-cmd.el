@@ -694,7 +694,7 @@
 ARG is used as the prefix value for the executed command.  If
 EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
-  (if (viper= (viper-last-command-char) ?\\)
+  (if (viper= last-command-event ?\\)
       (message "Switched to EMACS state for the next command..."))
   (viper-escape-to-state arg events 'emacs-state))
 
@@ -1149,7 +1149,7 @@ as a Meta key and any number of multiple escapes are allowed."
   "Begin numeric argument for the next command."
   (interactive "P")
   (viper-prefix-arg-value
-   (viper-last-command-char) (if (consp arg) (cdr arg) nil)))
+   last-command-event (if (consp arg) (cdr arg) nil)))
 
 (defun viper-command-argument (arg)
   "Accept a motion command as an argument."
@@ -1157,7 +1157,7 @@ as a Meta key and any number of multiple escapes are allowed."
   (let ((viper-intermediate-command 'viper-command-argument))
     (condition-case nil
 	(viper-prefix-arg-com
-	 (viper-last-command-char)
+	 last-command-event
 	 (cond ((null arg) nil)
 	       ((consp arg) (car arg))
 	       ((integerp arg) arg)
@@ -1598,9 +1598,9 @@ invokes the command before that, etc."
 		   (pos-visible-in-window-p before-undo-pt))
 	      (progn
 		(push-mark (point-marker) t)
-		(viper-sit-for-short 300)
+		(sit-for 0.3)
 		(goto-char undo-end-posn)
-		(viper-sit-for-short 300)
+		(sit-for 0.3)
 		(if (pos-visible-in-window-p undo-beg-posn)
 		    (goto-char before-undo-pt)
 		  (goto-char undo-beg-posn)))
@@ -1908,7 +1908,7 @@ Undo previous insertion and inserts new."
   "Exit minibuffer Viper way."
   (interactive)
   (let (command)
-    (setq command (local-key-binding (char-to-string (viper-last-command-char))))
+    (setq command (local-key-binding (char-to-string last-command-event)))
     (run-hooks 'viper-minibuffer-exit-hook)
     (if command
 	(command-execute command)
