@@ -1,4 +1,4 @@
-# serial 6
+# serial 7
 # See if we need to provide utimensat replacement.
 
 dnl Copyright (C) 2009-2020 Free Software Foundation, Inc.
@@ -23,7 +23,8 @@ AC_DEFUN([gl_FUNC_UTIMENSAT],
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-]],         [[int result = 0;
+]GL_MDA_DEFINES],
+            [[int result = 0;
               const char *f = "conftest.file";
               if (close (creat (f, 0600)))
                 return 1;

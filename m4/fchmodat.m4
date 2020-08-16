@@ -1,4 +1,4 @@
-# fchmodat.m4 serial 4
+# fchmodat.m4 serial 5
 dnl Copyright (C) 2004-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -40,7 +40,7 @@ AC_DEFUN([gl_FUNC_FCHMODAT],
               #ifndef S_IRWXO
                #define S_IRWXO 0007
               #endif
-            ]],
+            ]GL_MDA_DEFINES],
             [[
               int permissive = S_IRWXU | S_IRWXG | S_IRWXO;
               int desired = S_IRUSR | S_IWUSR;

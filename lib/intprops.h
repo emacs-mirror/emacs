@@ -396,7 +396,7 @@
    For now, assume all versions of GCC-like compilers generate bogus
    warnings for _Generic.  This matters only for compilers that
    lack relevant builtins.  */
-#if __GNUC__
+#if __GNUC__ || defined __clang__
 # define _GL__GENERIC_BOGUS 1
 #else
 # define _GL__GENERIC_BOGUS 0

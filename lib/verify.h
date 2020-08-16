@@ -23,11 +23,15 @@
 
 /* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert (R, DIAGNOSTIC)
    works as per C11.  This is supported by GCC 4.6.0 and later, in C
-   mode.
+   mode, and by clang (also in C++ mode).
 
    Define _GL_HAVE__STATIC_ASSERT1 to 1 if _Static_assert (R) works as
-   per C2X, and define _GL_HAVE_STATIC_ASSERT1 if static_assert (R)
-   works as per C++17.  This is supported by GCC 9.1 and later.
+   per C2X.  This is supported by GCC 9.1 and later, and by clang in
+   C++1z mode.
+
+   Define _GL_HAVE_STATIC_ASSERT1 if static_assert (R) works as per
+   C++17.  This is supported by GCC 9.1 and later, and by clang in
+   C++1z mode.
 
    Support compilers claiming conformance to the relevant standard,
    and also support GCC when not pedantic.  If we were willing to slow
@@ -35,7 +39,8 @@
    since this affects only the quality of diagnostics, why bother?  */
 #ifndef __cplusplus
 # if (201112L <= __STDC_VERSION__ \
-      || (!defined __STRICT_ANSI__ && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)))
+      || (!defined __STRICT_ANSI__ \
+          && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || 4 <= __clang_major__)))
 #  define _GL_HAVE__STATIC_ASSERT 1
 # endif
 # if (202000L <= __STDC_VERSION__ \
@@ -43,7 +48,15 @@
 #  define _GL_HAVE__STATIC_ASSERT1 1
 # endif
 #else
-# if 201703L <= __cplusplus || 9 <= __GNUC__
+# if 4 <= __clang_major__
+#  define _GL_HAVE__STATIC_ASSERT 1
+# endif
+# if 4 <= __clang_major__ && 201411 <= __cpp_static_assert
+#  define _GL_HAVE__STATIC_ASSERT1 1
+# endif
+# if 201703L <= __cplusplus \
+     || 9 <= __GNUC__ \
+     || (4 <= __clang_major__ && 201411 <= __cpp_static_assert)
 #  define _GL_HAVE_STATIC_ASSERT1 1
 # endif
 #endif

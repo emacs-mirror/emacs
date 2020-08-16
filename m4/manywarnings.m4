@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 20
+# manywarnings.m4 serial 21
 dnl Copyright (C) 2008-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -39,8 +39,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
 [_AC_LANG_DISPATCH([$0], _AC_LANG, $@)])
 
 # Specialization for _AC_LANG = C.
-# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
-m4_defun([gl_MANYWARN_ALL_GCC(C)],
+AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
 [
   AC_LANG_PUSH([C])
 
@@ -210,8 +209,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
 ])
 
 # Specialization for _AC_LANG = C++.
-# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
-m4_defun([gl_MANYWARN_ALL_GCC(C++)],
+AC_DEFUN([gl_MANYWARN_ALL_GCC(C++)],
 [
   gl_MANYWARN_ALL_GCC_CXX_IMPL([$1])
 ])

@@ -1,4 +1,4 @@
-# pthread_sigmask.m4 serial 18
+# pthread_sigmask.m4 serial 19
 dnl Copyright (C) 2011-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -220,6 +220,7 @@ int main ()
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+]GL_MDA_DEFINES[
 static volatile int sigint_occurred;
 static void
 sigint_handler (int sig)
