@@ -2041,7 +2041,8 @@ The value is non-nil if there were no errors, nil if errors."
 	(with-current-buffer output-buffer
 	  (goto-char (point-max))
 	  (insert "\n")			; aaah, unix.
-	  (if (file-writable-p target-file)
+	  (if (or (file-writable-p target-file)
+                  byte-native-compiling)
 	      ;; We must disable any code conversion here.
 	      (progn
 		(let* ((coding-system-for-write 'no-conversion)
@@ -2050,7 +2051,8 @@ The value is non-nil if there were no errors, nil if errors."
 		       ;; parallel bootstrap), it does not risk getting a
 		       ;; half-finished file.  (Bug#4196)
 		       (tempfile
-			(make-temp-file (expand-file-name target-file)))
+			(make-temp-file (when (file-writable-p target-file)
+                                          (expand-file-name target-file))))
 		       (default-modes (default-file-modes))
 		       (temp-modes (logand default-modes #o600))
 		       (desired-modes (logand default-modes #o666))
