@@ -1809,7 +1809,8 @@ bool_vector_uchar_data (Lisp_Object a)
 INLINE bool
 bool_vector_bitref (Lisp_Object a, EMACS_INT i)
 {
-  eassume (0 <= i && i < bool_vector_size (a));
+  eassume (0 <= i);
+  eassert (i < bool_vector_size (a));
   return !! (bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR]
 	     & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR)));
 }
@@ -1825,11 +1826,11 @@ bool_vector_ref (Lisp_Object a, EMACS_INT i)
 INLINE void
 bool_vector_set (Lisp_Object a, EMACS_INT i, bool b)
 {
-  unsigned char *addr;
+  eassume (0 <= i);
+  eassert (i < bool_vector_size (a));
 
-  eassume (0 <= i && i < bool_vector_size (a));
-  addr = &bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR];
-
+  unsigned char *addr
+    = &bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR];
   if (b)
     *addr |= 1 << (i % BOOL_VECTOR_BITS_PER_CHAR);
   else
@@ -3915,7 +3916,6 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
-extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
 extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
 
 /* Make an uninitialized vector for SIZE objects.  NOTE: you must
@@ -3925,7 +3925,11 @@ extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
    v = make_uninit_vector (3);
    ASET (v, 0, obj0);
    ASET (v, 1, Ffunction_can_gc ());
-   ASET (v, 2, obj1);  */
+   ASET (v, 2, obj1);
+
+   allocate_vector has a similar problem.  */
+
+extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
 
 INLINE Lisp_Object
 make_uninit_vector (ptrdiff_t size)

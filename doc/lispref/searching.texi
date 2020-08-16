@@ -342,7 +342,7 @@ this choice, the rest of the regexp matches successfully.
 long time, if they lead to ambiguous matching.  For
 example, trying to match the regular expression @samp{\(x+y*\)*a}
 against the string @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could
-take hours before it ultimately fails.  Emacs must try each way of
+take hours before it ultimately fails.  Emacs may try each way of
 grouping the @samp{x}s before concluding that none of them can work.
 In general, avoid expressions that can match the same string in
 multiple ways.

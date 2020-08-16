@@ -1939,7 +1939,7 @@ syms_of_composite (void)
   staticpro (&gstring_hash_table);
 
   staticpro (&gstring_work_headers);
-  gstring_work_headers = make_uninit_vector (8);
+  gstring_work_headers = make_nil_vector (8);
   for (i = 0; i < 8; i++)
     ASET (gstring_work_headers, i, make_nil_vector (i + 2));
   staticpro (&gstring_work);

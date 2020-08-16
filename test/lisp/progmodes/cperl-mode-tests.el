@@ -16,16 +16,17 @@
 
 ;;; Code:
 
-(defun cperl-test-face (text regexp)
-  "Returns the face of the first character matched by REGEXP in TEXT."
+(defvar cperl-test-mode #'cperl-mode)
+
+(defun cperl-test-ppss (text regexp)
+  "Return the `syntax-ppss' of the first character matched by REGEXP in TEXT."
   (interactive)
   (with-temp-buffer
-      (insert text)
-      (cperl-mode)
-      (font-lock-ensure (point-min) (point-max))
-      (goto-char (point-min))
-      (re-search-forward regexp)
-      (get-text-property (match-beginning 0) 'face)))
+    (insert text)
+    (funcall cperl-test-mode)
+    (goto-char (point-min))
+    (re-search-forward regexp)
+    (syntax-ppss)))
 
 (ert-deftest cperl-mode-test-bug-42168 ()
   "Verify that '/' is a division after ++ or --, not a regexp.
@@ -37,14 +38,14 @@ have a face property."
   ;; The next two Perl expressions have divisions.  Perl "punctuation"
   ;; operators don't get a face.
   (let ((code "{ $a++ / $b }"))
-    (should (equal (cperl-test-face code "/" ) nil)))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) nil)))
   (let ((code "{ $a-- / $b }"))
-    (should (equal (cperl-test-face code "/" ) nil)))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) nil)))
   ;; The next two Perl expressions have regular expressions.  The
   ;; delimiter of a RE is fontified with font-lock-constant-face.
   (let ((code "{ $a+ / $b } # /"))
-    (should (equal (cperl-test-face code "/" ) font-lock-constant-face)))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) 7)))
   (let ((code "{ $a- / $b } # /"))
-    (should (equal (cperl-test-face code "/" ) font-lock-constant-face))))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) 7))))
 
 ;;; cperl-mode-tests.el ends here

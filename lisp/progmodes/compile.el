@@ -2417,12 +2417,9 @@ and runs `compilation-filter-hook'."
                                                 &optional object limit)
   (let (parsed res)
     (while (progn
-             ;; We parse the buffer here "on-demand" by chunks of 500 chars.
-             ;; But we could also just parse the whole buffer.
              (compilation--ensure-parse
               (setq parsed (max compilation--parsed
-                                (min (+ position 500)
-                                     (or limit (point-max))))))
+                                (or limit (point-max)))))
              (and (or (not (setq res (next-single-property-change
                                       position prop object limit)))
                       (eq res limit))

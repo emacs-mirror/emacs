@@ -192,16 +192,14 @@ sk	Miroslav Vaško
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
-1. Gnus binds 'M-s' to 'gnus-summary-search-article-forward'.
-
-2. Minibuffer binds 'M-s' to 'next-matching-history-element'
+1. Minibuffer binds 'M-s' to 'next-matching-history-element'
    (not useful any more since C-s can now search in the history).
 
-3. PCL-CVS binds 'M-s' to 'cvs-status', and log-edit-mode binds it to
+2. PCL-CVS binds 'M-s' to 'cvs-status', and log-edit-mode binds it to
    'log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding 'M-s' are useless in these modes.
 
-4. Rmail binds '\es' to 'rmail-search'/'rmail-summary-search'.
+3. Rmail binds '\es' to 'rmail-search'/'rmail-summary-search'.
 
 
 * DOCUMENTATION

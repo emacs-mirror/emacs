@@ -57,7 +57,6 @@
 (defcustom flyspell-highlight-flag t
   "How Flyspell should indicate misspelled words.
 Non-nil means use highlight, nil means use minibuffer messages."
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-mark-duplications-flag t
@@ -65,12 +64,10 @@ Non-nil means use highlight, nil means use minibuffer messages."
 See `flyspell-mark-duplications-exceptions' to add exceptions to this rule.
 Detection of repeated words is not implemented in
 \"large\" regions; see variable `flyspell-large-region'."
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-case-fold-duplications t
   "Non-nil means Flyspell matches duplicate words case-insensitively."
-  :group 'flyspell
   :type 'boolean
   :version "27.1")
 
@@ -87,7 +84,6 @@ dictionary name (`ispell-local-dictionary' or
 
 EXCEPTION-LIST is a list of strings.  The checked word is
 downcased before comparing with these exceptions."
-  :group 'flyspell
   :type '(alist :key-type (choice (const :tag "All dictionaries" nil)
 				  regexp)
 		:value-type (repeat string))
@@ -97,7 +93,6 @@ downcased before comparing with these exceptions."
   "If non-nil, sort the corrections before popping them.
 The sorting is controlled by the `flyspell-sort-corrections-function'
 variable, and defaults to sorting alphabetically."
-  :group 'flyspell
   :version "21.1"
   :type 'boolean)
 
@@ -109,8 +104,7 @@ function takes three parameters -- the two correction candidates
 to be sorted, and the third parameter is the word that's being
 corrected."
   :version "26.1"
-  :type 'function
-  :group 'flyspell)
+  :type 'function)
 
 (defun flyspell-sort-corrections-alphabetically (corr1 corr2 _)
   (string< corr1 corr2))
@@ -130,14 +124,12 @@ Flyspell uses a different face (`flyspell-duplicate') to highlight it.
 This variable specifies how far to search to find such a duplicate.
 -1 means no limit (search the whole buffer).
 0 means do not search for duplicate unrecognized spellings."
-  :group 'flyspell
   :version "24.5"			; -1 -> 400000
   :type '(choice (const :tag "no limit" -1)
 		 number))
 
 (defcustom flyspell-delay 3
   "The number of seconds to wait before checking, after a \"delayed\" command."
-  :group 'flyspell
   :type 'number)
 
 (defcustom flyspell-persistent-highlight t
@@ -147,12 +139,10 @@ is highlighted, and the highlight is turned off as soon as point moves
 off the misspelled word.
 
 Make sure this variable is non-nil if you use `flyspell-region'."
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-highlight-properties t
   "Non-nil means highlight incorrect words even if a property exists for this word."
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-default-delayed-commands
@@ -164,7 +154,6 @@ Make sure this variable is non-nil if you use `flyspell-region'."
     backward-delete-char-untabify)
   "The standard list of delayed commands for Flyspell.
 See `flyspell-delayed-commands'."
-  :group 'flyspell
   :version "21.1"
   :type '(repeat (symbol)))
 
@@ -172,7 +161,6 @@ See `flyspell-delayed-commands'."
   "List of commands that are \"delayed\" for Flyspell mode.
 After these commands, Flyspell checking is delayed for a short time,
 whose length is specified by `flyspell-delay'."
-  :group 'flyspell
   :type '(repeat (symbol)))
 
 (defcustom flyspell-default-deplacement-commands
@@ -182,7 +170,6 @@ whose length is specified by `flyspell-delay'."
     scroll-down)
   "The standard list of deplacement commands for Flyspell.
 See variable `flyspell-deplacement-commands'."
-  :group 'flyspell
   :version "21.1"
   :type '(repeat (symbol)))
 
@@ -190,18 +177,15 @@ See variable `flyspell-deplacement-commands'."
   "List of commands that are \"deplacement\" for Flyspell mode.
 After these commands, Flyspell checking is performed only if the previous
 command was not the very same command."
-  :group 'flyspell
   :version "21.1"
   :type '(repeat (symbol)))
 
 (defcustom flyspell-issue-welcome-flag t
   "Non-nil means that Flyspell should display a welcome message when started."
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-issue-message-flag t
   "Non-nil means that Flyspell emits messages when checking words."
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-incorrect-hook nil
@@ -213,7 +197,6 @@ of possible corrections as returned by `ispell-parse-output'.
 
 If any of the functions return non-nil, the word is not highlighted as
 incorrect."
-  :group 'flyspell
   :version "21.1"
   :type 'hook)
 
@@ -225,14 +208,12 @@ when flyspell is started, the value of that variable is used instead
 of `flyspell-default-dictionary' to select the default dictionary.
 Otherwise, if `flyspell-default-dictionary' is nil, it means to use
 Ispell's ultimate default dictionary."
-  :group 'flyspell
   :version "21.1"
   :type '(choice string (const :tag "Default" nil)))
 
 (defcustom flyspell-tex-command-regexp
   "\\(\\(begin\\|end\\)[ \t]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\)[ \t]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)"
   "A string that is the regular expression that matches TeX commands."
-  :group 'flyspell
   :version "21.1"
   :type 'regexp)
 
@@ -241,34 +222,29 @@ Ispell's ultimate default dictionary."
 TeX math environments are discovered by `texmathp', implemented
 inside AUCTeX package.  That package may be found at
 URL `https://www.gnu.org/software/auctex/'"
-  :group 'flyspell
   :type 'boolean)
 
 (defcustom flyspell-dictionaries-that-consider-dash-as-word-delimiter
   '("francais" "deutsch8" "norsk")
   "List of dictionary names that consider `-' as word delimiter."
-  :group 'flyspell
   :version "21.1"
   :type '(repeat (string)))
 
 (defcustom flyspell-abbrev-p
   nil
   "If non-nil, add correction to abbreviation table."
-  :group 'flyspell
   :version "21.1"
   :type 'boolean)
 
 (defcustom flyspell-use-global-abbrev-table-p
   nil
   "If non-nil, prefer global abbrev table to local abbrev table."
-  :group 'flyspell
   :version "21.1"
   :type 'boolean)
 
 (defcustom flyspell-mode-line-string " Fly"
   "String displayed on the mode line when flyspell is active.
 Set this to nil if you don't want a mode line indicator."
-  :group 'flyspell
   :type '(choice string (const :tag "None" nil)))
 
 (defcustom flyspell-large-region 1000
@@ -282,30 +258,25 @@ Doubled words are not detected in a large region, because Ispell
 does not check for them.
 
 If this variable is nil, all regions are treated as small."
-  :group 'flyspell
   :version "21.1"
   :type '(choice number (const :tag "All small" nil)))
 
 (defcustom flyspell-insert-function (function insert)
   "Function for inserting word by flyspell upon correction."
-  :group 'flyspell
   :type 'function)
 
 (defcustom flyspell-before-incorrect-word-string nil
   "String used to indicate an incorrect word starting."
-  :group 'flyspell
   :type '(choice string (const nil)))
 
 (defcustom flyspell-after-incorrect-word-string nil
   "String used to indicate an incorrect word ending."
-  :group 'flyspell
   :type '(choice string (const nil)))
 
 (defvar flyspell-mode-map)
 
 (defcustom flyspell-use-meta-tab t
   "Non-nil means that flyspell uses M-TAB to correct word."
-  :group 'flyspell
   :type 'boolean
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -316,8 +287,7 @@ If this variable is nil, all regions are treated as small."
 (defcustom flyspell-auto-correct-binding
   [(control ?\;)]
   "The key binding for flyspell auto correction."
-  :type 'key-sequence
-  :group 'flyspell)
+  :type 'key-sequence)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    Mode specific options                                            */
@@ -475,6 +445,22 @@ like <img alt=\"Some thing.\">."
     map)
   "Minor mode keymap for Flyspell mode--for the whole buffer.")
 
+;; correct on mouse 3
+(defun flyspell--set-correct-on-mouse-3 (var value)
+  (set-default var value)
+  (if value
+      (progn (define-key flyspell-mouse-map [mouse-2] nil)
+             (define-key flyspell-mouse-map [mouse-3] 'flyspell-correct-word))
+    (define-key flyspell-mouse-map [mouse-2] 'flyspell-correct-word)
+    (define-key flyspell-mouse-map [mouse-3] nil)))
+
+(defcustom flyspell-correct-on-mouse-3 nil
+  "Non-nil means to bind `mouse-3' to `flyspell-correct-word'.
+If this is set, also unbind `mouse-2'."
+  :type 'boolean
+  :set 'flyspell--set-correct-on-mouse-3
+  :version "28.1")
+
 ;; dash character machinery
 (defvar flyspell-consider-dash-as-word-delimiter-flag nil
   "Non-nil means that the `-' char is considered as a word delimiter.")
@@ -493,8 +479,7 @@ like <img alt=\"Some thing.\">."
     (t
      :underline t :inherit error))
   "Flyspell face for misspelled words."
-  :version "24.4"
-  :group 'flyspell)
+  :version "24.4")
 
 (defface flyspell-duplicate
   '((((supports :underline (:style wave)))
@@ -503,8 +488,7 @@ like <img alt=\"Some thing.\">."
      :underline t :inherit warning))
   "Flyspell face for words that appear twice in a row.
 See also `flyspell-duplicate-distance'."
-  :version "24.4"
-  :group 'flyspell)
+  :version "24.4")
 
 (defvar flyspell-overlay nil)
 
@@ -546,7 +530,10 @@ in your init file.
   :group 'flyspell
   (if flyspell-mode
       (condition-case err
-	  (flyspell-mode-on)
+          (progn
+            (when flyspell-correct-on-mouse-3
+              (flyspell--set-correct-on-mouse-3 'flyspell-correct-on-mouse-3 t))
+	    (flyspell-mode-on))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))

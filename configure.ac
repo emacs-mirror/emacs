@@ -219,6 +219,21 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
     m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=no])dnl
 ])dnl
 
+dnl OPTION_DEFAULT_IFAVAILABLE(NAME, HELP-STRING)
+dnl Create a new --with option that defaults to 'ifavailable'.
+dnl NAME is the base name of the option.  The shell variable with_NAME
+dnl   will be set to either the user's value (if the option is
+dnl   specified; 'yes' for a plain --with-NAME) or to 'ifavailable' (if the
+dnl   option is not specified).  Note that the shell variable name is
+dnl   constructed as autoconf does, by replacing non-alphanumeric
+dnl   characters with "_".
+dnl HELP-STRING is the help text for the option.
+AC_DEFUN([OPTION_DEFAULT_IFAVAILABLE], [dnl
+  AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[],[dnl
+    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=ifavailable])dnl
+])dnl
+
+
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to $with_features.
 dnl NAME is the base name of the option.  The shell variable with_NAME
@@ -438,7 +453,7 @@ OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
-OPTION_DEFAULT_ON([json], [don't compile with native JSON support])
+OPTION_DEFAULT_IFAVAILABLE([json], [don't compile with native JSON support])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([harfbuzz],[don't use HarfBuzz for text shaping])
@@ -708,7 +723,7 @@ case "${canonical}" in
   *-apple-darwin* )
     case "${canonical}" in
       *-apple-darwin[0-9].*) unported=yes ;;
-      i[3456]86-* | x86_64-* )  ;;
+      i[3456]86-* | x86_64-* | arm-* )  ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
@@ -2926,7 +2941,7 @@ AC_SUBST(LIBSYSTEMD_CFLAGS)
 HAVE_JSON=no
 JSON_OBJ=
 
-if test "${with_json}" = yes; then
+if test "${with_json}" != no; then
   EMACS_CHECK_MODULES([JSON], [jansson >= 2.7],
     [HAVE_JSON=yes], [HAVE_JSON=no])
   if test "${HAVE_JSON}" = yes; then
@@ -3876,6 +3891,11 @@ case $with_gnutls,$HAVE_GNUTLS in
   no,* | ifavailable,* | *,yes) ;;
   *) MISSING="$MISSING gnutls"
      WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-gnutls=ifavailable";;
+esac
+case $with_json,$HAVE_JSON in
+  no,* | ifavailable,* | *,yes) ;;
+  *) MISSING="$MISSING json"
+     WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-json=ifavailable";;
 esac
 if test "X${MISSING}" != X; then
   AC_MSG_ERROR([The following required libraries were not found:

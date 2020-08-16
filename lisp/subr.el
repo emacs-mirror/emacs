@@ -1649,7 +1649,8 @@ be a list of the form returned by `event-start' and `event-end'."
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
 
-(defalias 'user-original-login-name 'user-login-name)
+(define-obsolete-function-alias 'user-original-login-name
+  'user-login-name "28.1")
 
 
 ;;;; Hook manipulation functions.

@@ -262,6 +262,13 @@ invoke 'C-u C-x v s' ('vc-create-tag').
 
 ** Gnus
 
++++
+*** The key binding of 'gnus-summary-search-article-forward' has changed.
+This command was previously on 'M-s' and shadowed the global 'M-s'
+search prefix.  The command has now been moved to 'M-s M-s'.  (For
+consistency, the 'M-s M-r' key binding has been added for the
+'gnus-summary-search-article-backward' command.)
+
 ---
 *** The value of "all" in the 'large-newsgroup-initial' group parameter changes.
 It was previously nil, which didn't work, because nil is
@@ -726,6 +733,13 @@ Italic text is displayed in the new 'erc-italic-face'.
 This file contained ERC compatibility code for Emacs 21 and XEmacs
 which is no longer needed.
 
+---
+*** erc-match.el now supports 'message' highlight type (not including the nick).
+The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
+'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
+'erc-dangerous-host-highlight-type' variables now support a 'message'
+type for highlighting the entire message but not the sender's nick.
+
 ** Battery
 
 ---
@@ -783,19 +797,46 @@ work more traditionally, with 'C-d' deleting the next character.
 Likewise, point isn't moved to the end of the string before inserting
 digits.
 
-** Miscellaneous
-
----
-*** 'icomplete-show-matches-on-no-input' behavior change
-Previously, choosing a different completion with commands like 'C-.'
-and then hitting enter would choose the default completion.  Doung
-this will now choose the completion under point.
+** term-mode
 
 ---
 *** New user option 'term-scroll-snap-to-bottom'.
 By default, 'term' and 'ansi-term' will now recenter the buffer so
 that the prompt is on the final line in the window.  Setting this new
 user option to nil inhibits this behavior.
+
+---
+*** New user option 'term-set-terminal-size'
+If non-nil, the LINES and COLUMNS environment variables will be set
+based on the current window size.  In previous versions of Emacs, this
+was always done (and that could lead to odd displays when resizing the
+window after starting).  This variable defaults to nil.
+
+
+** Miscellaneous
+
+---
+*** Killing virtual ido buffers interactively will make them go away.
+Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
+do anything.  This has now been changed, and killing virtual buffers
+with that command will remove the buffer from recentf.
+
+---
+*** New variable 'ffap-file-name-with-spaces'.
+If non-nil, 'find-file-at-point' and friends will try to guess more
+expansively to identify a file name with spaces.
+
+---
+*** Two new commands for centering in 'doc-view-mode'.
+The new commands 'doc-view-center-page-horizontally' (bound to 'c h')
+and 'doc-view-center-page-vertically' (bound to 'c v') center the page
+horizontally and vertically, respectively.
+
+---
+*** Change in meaning of 'icomplete-show-matches-on-no-input'.
+Previously, choosing a different completion with commands like 'C-.'
+and then hitting RET would choose the default completion.  Doing this
+will now choose the completion under point instead.
 
 *** The new library hierarchy.el has been added.
 It's a library to create, query, navigate and display hierarchy
@@ -833,6 +874,16 @@ height of lines or width of chars.
 *** New user option 'xwidget-webkit-bookmark-jump-new-session'.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
+
+** Flyspell mode
+
++++
+*** Corrections and actions menu can be optionally bound to mouse-3.
+When Flyspell mode highlights a word as misspelled, you can click on
+it to display a menu of possible corrections and actions.  You can now
+easily bind this menu to mouse-3 (usually the right mouse button)
+instead of mouse-2 (the default) by customizing the new option
+'flyspell-correct-on-mouse-3'.
 
 
 * New Modes and Packages in Emacs 28.1

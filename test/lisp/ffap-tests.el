@@ -77,6 +77,46 @@ left alone when opening a URL in an external browser."
     (should (compare-window-configurations (current-window-configuration) old))
     (should (equal urls '("https://www.gnu.org")))))
 
+(defun ffap-test-string (space string)
+  (let ((ffap-file-name-with-spaces space))
+    (with-temp-buffer
+      (insert string)
+      (goto-char (point-min))
+      (forward-char 10)
+      (ffap-string-at-point))))
+
+(ert-deftest ffap-test-with-spaces ()
+  (should
+   (equal
+    (ffap-test-string
+     t "c:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program here.txt")
+    "/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program here.txt"))
+  (should
+   (equal
+    (ffap-test-string
+     nil "c:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program here.txt")
+    "c:/Program"))
+  (should
+   (equal
+    (ffap-test-string
+     t "c:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program Files/Hummingbird/")
+    "/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program Files/Hummingbird/"))
+  (should
+   (equal
+    (ffap-test-string
+     t "c:\\Program Files\\Open Text Evaluation Media\\Open Text Exceed 14 x86\\Program Files\\Hummingbird\\")
+    "\\Program Files\\Open Text Evaluation Media\\Open Text Exceed 14 x86\\Program Files\\Hummingbird\\"))
+  (should
+   (equal
+    (ffap-test-string
+     t "c:\\Program Files\\Freescale\\CW for MPC55xx and MPC56xx 2.10\\PowerPC_EABI_Tools\\Command_Line_Tools\\CLT_Usage_Notes.txt")
+    "\\Program Files\\Freescale\\CW for MPC55xx and MPC56xx 2.10\\PowerPC_EABI_Tools\\Command_Line_Tools\\CLT_Usage_Notes.txt"))
+  (should
+   (equal
+    (ffap-test-string
+     t "C:\\temp\\program.log on Windows or /var/log/program.log on Unix.")
+    "\\temp\\program.log")))
+
 (provide 'ffap-tests)
 
 ;;; ffap-tests.el ends here

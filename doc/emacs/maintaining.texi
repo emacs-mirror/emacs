@@ -1793,13 +1793,12 @@ for a buffer to switch and considering only the current project's
 buffers as candidates for completion.
 
 @findex project-kill-buffers
-@vindex project-kill-buffers-ignores
+@vindex project-kill-buffer-conditions
   When you finish working on the project, you may wish to kill all the
 buffers that belong to the project, to keep your Emacs session
 smaller.  The command @kbd{C-x p k} (@code{project-kill-buffers})
 accomplishes that: it kills all the buffers that belong to the current
-project, except if @code{project-kill-buffers-ignores} tells
-otherwise.
+project that satisfy any of @code{project-kill-buffer-conditions}.
 
 @node Switching Projects
 @subsection Switching Projects

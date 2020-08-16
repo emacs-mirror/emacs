@@ -895,3 +895,9 @@
   ;; This does not test randomness; it's merely a format check.
   (should (string-match "\\`[0-9a-f]\\{128\\}\\'"
                         (secure-hash 'sha512 'iv-auto 100))))
+
+(ert-deftest test-vector-delete ()
+  (let ((v1 (make-vector 1000 1)))
+    (should (equal (delete t [nil t]) [nil]))
+    (should (equal (delete 1 v1) (vector)))
+    (should (equal (delete 2 v1) v1))))

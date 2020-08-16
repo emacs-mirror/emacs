@@ -1,8 +1,8 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.5.0
-;; Package-Requires: ((emacs "26.3"))
+;; Version: 0.5.1
+;; Package-Requires: ((emacs "26.3") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
 ;; not compatible with the version of Emacs recorded above.
@@ -730,24 +730,6 @@ pattern to search for."
     (unless xrefs
       (user-error "No matches for: %s" regexp))
     xrefs))
-
-(defun project--process-file-region (start end program
-                                     &optional buffer display
-                                     &rest args)
-  ;; FIXME: This branching shouldn't be necessary, but
-  ;; call-process-region *is* measurably faster, even for a program
-  ;; doing some actual work (for a period of time). Even though
-  ;; call-process-region also creates a temp file internally
-  ;; (http://lists.gnu.org/archive/html/emacs-devel/2019-01/msg00211.html).
-  (if (not (file-remote-p default-directory))
-      (apply #'call-process-region
-             start end program nil buffer display args)
-    (let ((infile (make-temp-file "ppfr")))
-      (unwind-protect
-          (progn
-            (write-region start end infile nil 'silent)
-            (apply #'process-file program infile buffer display args))
-        (delete-file infile)))))
 
 (defun project--read-regexp ()
   (let ((sym (thing-at-point 'symbol)))

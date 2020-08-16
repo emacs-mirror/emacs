@@ -131,31 +131,37 @@ lines."
             (goto-char (match-end 0))
             (unless (looking-at " ")
               (insert " "))
-            (end-of-line)
-            (when (and (not (eobp))
-                       (save-excursion
-                         (forward-line 1)
-                         (looking-at (format "\\(%s ?\\)[^>]" prefix))))
-              ;; Delete the newline and the quote at the start of the
-              ;; next line.
-              (delete-region (point) (match-end 1))
-              (ignore-errors
+            (while (and (eq (char-before (line-end-position)) ?\s)
+                        (not (eobp))
+                        (save-excursion
+                          (forward-line 1)
+                          (looking-at (format "\\(%s ?\\)[^>]" prefix))))
+              (end-of-line)
+              (when (and (not (eobp))
+                         (save-excursion
+                           (forward-line 1)
+                           (looking-at (format "\\(%s ?\\)[^>]" prefix))))
+                ;; Delete the newline and the quote at the start of the
+                ;; next line.
+                (delete-region (point) (match-end 1))))
+                (ignore-errors
 		  (let ((fill-prefix (concat prefix " "))
 		        adaptive-fill-mode)
 		    (fill-region (line-beginning-position)
                                  (line-end-position)
-			         'left 'nosqueeze))))))
-         (t
+			         'left 'nosqueeze)))))
+          (t
           ;; Delete the newline.
           (when (eq (following-char) ?\s)
             (delete-char 1))
           ;; Hack: Don't do the flowing on the signature line.
           (when (and (not (looking-at "-- $"))
                      (eq (char-before (line-end-position)) ?\s))
-            (end-of-line)
-            (when delete-space
-              (delete-char -1))
-            (delete-char 1)
+            (while (eq (char-before (line-end-position)) ?\s)
+              (end-of-line)
+              (when delete-space
+                (delete-char -1))
+              (delete-char 1))
             (ignore-errors
 		(let ((fill-prefix ""))
 		  (fill-region (line-beginning-position)

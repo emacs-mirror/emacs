@@ -7555,7 +7555,7 @@ get_next_display_element (struct it *it)
 		  /* Merge `nobreak-space' into the current face.  */
 		  face_id = merge_faces (it->w, Qnobreak_space, 0,
 					 it->face_id);
-		  XSETINT (it->ctl_chars[0], ' ');
+		  XSETINT (it->ctl_chars[0], it->c);
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -7568,7 +7568,7 @@ get_next_display_element (struct it *it)
 		  /* Merge `nobreak-space' into the current face.  */
 		  face_id = merge_faces (it->w, Qnobreak_hyphen, 0,
 					 it->face_id);
-		  XSETINT (it->ctl_chars[0], '-');
+		  XSETINT (it->ctl_chars[0], it->c);
 		  ctl_len = 1;
 		  goto display_control;
 		}

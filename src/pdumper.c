@@ -4802,14 +4802,19 @@ struct dump_bitset
 };
 
 static bool
-dump_bitset_init (struct dump_bitset *bitset, size_t number_bits)
+dump_bitsets_init (struct dump_bitset bitset[2], size_t number_bits)
 {
-  int xword_size = sizeof (bitset->bits[0]);
+  int xword_size = sizeof (bitset[0].bits[0]);
   int bits_per_word = xword_size * CHAR_BIT;
   ptrdiff_t words_needed = divide_round_up (number_bits, bits_per_word);
-  bitset->number_words = words_needed;
-  bitset->bits = calloc (words_needed, xword_size);
-  return bitset->bits != NULL;
+  dump_bitset_word *bits = calloc (words_needed, 2 * xword_size);
+  if (!bits)
+    return false;
+  bitset[0].bits = bits;
+  bitset[0].number_words = bitset[1].number_words = words_needed;
+  bitset[1].bits = memset (bits + words_needed, UCHAR_MAX,
+			   words_needed * xword_size);
+  return true;
 }
 
 static dump_bitset_word *
@@ -4870,7 +4875,7 @@ struct pdumper_loaded_dump_private
   /* Copy of the header we read from the dump.  */
   struct dump_header header;
   /* Mark bits for objects in the dump; used during GC.  */
-  struct dump_bitset mark_bits;
+  struct dump_bitset mark_bits, last_mark_bits;
   /* Time taken to load the dump.  */
   double load_time;
   /* Dump file name.  */
@@ -4993,6 +4998,10 @@ pdumper_find_object_type_impl (const void *obj)
   dump_off offset = ptrdiff_t_to_dump_off ((uintptr_t) obj - dump_public.start);
   if (offset % DUMP_ALIGNMENT != 0)
     return PDUMPER_NO_OBJECT;
+  ptrdiff_t bitno = offset / DUMP_ALIGNMENT;
+  if (offset < dump_private.header.cold_start
+      && !dump_bitset_bit_set_p (&dump_private.last_mark_bits, bitno))
+    return PDUMPER_NO_OBJECT;
   const struct dump_reloc *reloc =
     dump_find_relocation (&dump_private.header.object_starts, offset);
   return (reloc != NULL && dump_reloc_get_offset (*reloc) == offset)
@@ -5021,12 +5030,16 @@ pdumper_set_marked_impl (const void *obj)
   eassert (offset < dump_private.header.cold_start);
   eassert (offset < dump_private.header.discardable_start);
   ptrdiff_t bitno = offset / DUMP_ALIGNMENT;
+  eassert (dump_bitset_bit_set_p (&dump_private.last_mark_bits, bitno));
   dump_bitset_set_bit (&dump_private.mark_bits, bitno);
 }
 
 void
 pdumper_clear_marks_impl (void)
 {
+  dump_bitset_word *swap = dump_private.last_mark_bits.bits;
+  dump_private.last_mark_bits.bits = dump_private.mark_bits.bits;
+  dump_private.mark_bits.bits = swap;
   dump_bitset_clear (&dump_private.mark_bits);
 }
 
@@ -5243,7 +5256,7 @@ pdumper_load (const char *dump_filename)
   int dump_page_size;
   dump_off adj_discardable_start;
 
-  struct dump_bitset mark_bits;
+  struct dump_bitset mark_bits[2];
   size_t mark_bits_needed;
 
   struct dump_header header_buf = { 0 };
@@ -5357,7 +5370,7 @@ pdumper_load (const char *dump_filename)
   err = PDUMPER_LOAD_ERROR;
   mark_bits_needed =
     divide_round_up (header->discardable_start, DUMP_ALIGNMENT);
-  if (!dump_bitset_init (&mark_bits, mark_bits_needed))
+  if (!dump_bitsets_init (mark_bits, mark_bits_needed))
     goto out;
 
   /* Point of no return.  */
@@ -5365,7 +5378,8 @@ pdumper_load (const char *dump_filename)
   dump_base = (uintptr_t) sections[DS_HOT].mapping;
   gflags.dumped_with_pdumper_ = true;
   dump_private.header = *header;
-  dump_private.mark_bits = mark_bits;
+  dump_private.mark_bits = mark_bits[0];
+  dump_private.last_mark_bits = mark_bits[1];
   dump_public.start = dump_base;
   dump_public.end = dump_public.start + dump_size;
 

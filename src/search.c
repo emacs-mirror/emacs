@@ -3271,7 +3271,7 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
 		TYPE_MAXIMUM (ptrdiff_t), &nl_count_cache, NULL, true);
 
   /* Create vector and populate it.  */
-  cache_newlines = make_uninit_vector (nl_count_cache);
+  cache_newlines = make_vector (nl_count_cache, make_fixnum (-1));
 
   if (nl_count_cache)
     {
@@ -3285,15 +3285,12 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
 	    break;
 	  ASET (cache_newlines, i, make_fixnum (found - 1));
 	}
-      /* Fill the rest of slots with an invalid position.  */
-      for ( ; i < nl_count_cache; i++)
-	ASET (cache_newlines, i, make_fixnum (-1));
     }
 
   /* Now do the same, but without using the cache.  */
   find_newline1 (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
 		 TYPE_MAXIMUM (ptrdiff_t), &nl_count_buf, NULL, true);
-  buf_newlines = make_uninit_vector (nl_count_buf);
+  buf_newlines = make_vector (nl_count_buf, make_fixnum (-1));
   if (nl_count_buf)
     {
       for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
@@ -3306,14 +3303,10 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
 	    break;
 	  ASET (buf_newlines, i, make_fixnum (found - 1));
 	}
-      for ( ; i < nl_count_buf; i++)
-	ASET (buf_newlines, i, make_fixnum (-1));
     }
 
   /* Construct the value and return it.  */
-  val = make_uninit_vector (2);
-  ASET (val, 0, cache_newlines);
-  ASET (val, 1, buf_newlines);
+  val = CALLN (Fvector, cache_newlines, buf_newlines);
 
   if (old != NULL)
     set_buffer_internal_1 (old);
