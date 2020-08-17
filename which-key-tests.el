@@ -148,6 +148,13 @@
                ("e e e" . "eee")
                ("f" . "{ - C-f"))))))
 
+(ert-deftest which-key-test--nil-replacement ()
+  (let ((which-key-replacement-alist
+         '(((nil . "winum-select-window-[1-9]") . t))))
+    (should (equal
+             (which-key--maybe-replace '("C-c C-c" . "winum-select-window-1"))
+             '()))))
+
 (ert-deftest which-key-test--key-sorting ()
   (let ((keys '(("a" . "z")
                 ("A" . "Z")
