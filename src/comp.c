@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <signal.h>
 #include <libgccjit.h>
+#include <epaths.h>
 
 #include "puresize.h"
 #include "window.h"
@@ -3860,29 +3861,68 @@ compile_function (Lisp_Object func)
 /* Entry points exposed to lisp.  */
 /**********************************/
 
+/* In use by Fcomp_el_to_eln_filename.  */
+static Lisp_Object loadsearch_re_list;
+
 DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
        Scomp_el_to_eln_filename, 1, 2, 0,
        doc: /* Given a source file return the corresponding .eln true filename.
 If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
-  (Lisp_Object file_name, Lisp_Object base_dir)
+  (Lisp_Object filename, Lisp_Object base_dir)
 {
-  CHECK_STRING (file_name);
-  if (suffix_p (file_name, ".gz"))
-    file_name = Fsubstring (file_name, Qnil, make_fixnum (-3));
-  file_name = Fexpand_file_name (file_name, Qnil);
-  Lisp_Object hashed = Fsubstring (comp_hash_string (file_name), Qnil,
-				   make_fixnum (ELN_FILENAME_HASH_LEN));
-  file_name = concat2 (Ffile_name_nondirectory (Fsubstring (file_name, Qnil,
+  CHECK_STRING (filename);
+
+  if (suffix_p (filename, ".gz"))
+    filename = Fsubstring (filename, Qnil, make_fixnum (-3));
+  filename = Fexpand_file_name (filename, Qnil);
+
+  /* We create eln filenames with an hash in order to look-up these
+     starting from the source filename, IOW have a relation
+     /absolute/path/filename.el -> eln-cache/filename-hash.eln.
+
+     As installing .eln files compiled during the build changes their
+     absolute path we need an hashing mechanism that is not sensitive
+     to that.  For this we replace if match PATH_DUMPLOADSEARCH or
+     PATH_LOADSEARCH with '//' before generating the hash.
+
+     Another approach would be to hash using the source file content
+     but this may have a measurable performance impact.  */
+
+  if (NILP (loadsearch_re_list))
+    {
+      Lisp_Object loadsearch_list =
+	Fcons (build_string (PATH_DUMPLOADSEARCH),
+	       Fcons (build_string (PATH_LOADSEARCH), Qnil));
+      FOR_EACH_TAIL (loadsearch_list)
+	loadsearch_re_list =
+	  Fcons (Fregexp_quote (XCAR (loadsearch_list)), loadsearch_re_list);
+    }
+  Lisp_Object loadsearch_res = loadsearch_re_list;
+  FOR_EACH_TAIL (loadsearch_res)
+    {
+      Lisp_Object match_idx =
+	Fstring_match (XCAR (loadsearch_res), filename, Qnil);
+      if (EQ (match_idx, make_fixnum (0)))
+	{
+	  filename =
+	    Freplace_match (build_string ("//"), Qt, Qt, filename, Qnil);
+	  break;
+	}
+    }
+
+  Lisp_Object hash = Fsubstring (comp_hash_string (filename), Qnil,
+				 make_fixnum (ELN_FILENAME_HASH_LEN));
+  filename = concat2 (Ffile_name_nondirectory (Fsubstring (filename, Qnil,
 							   make_fixnum (-3))),
 		       build_string ("-"));
-  file_name = concat3 (file_name, hashed, build_string (NATIVE_ELISP_SUFFIX));
+  filename = concat3 (filename, hash, build_string (NATIVE_ELISP_SUFFIX));
   if (NILP (base_dir))
     base_dir = XCAR (Vcomp_eln_load_path);
 
   if (!file_name_absolute_p (SSDATA (base_dir)))
     base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
 
-  return Fexpand_file_name (file_name,
+  return Fexpand_file_name (filename,
 			    concat2 (base_dir, Vcomp_native_path_postfix));
 }
 
@@ -5055,6 +5095,8 @@ native compiled one.  */);
   comp.emitter_dispatcher = Qnil;
   staticpro (&delayed_sources);
   delayed_sources = Qnil;
+  staticpro (&loadsearch_re_list);
+  loadsearch_re_list = Qnil;
 
 #ifdef WINDOWSNT
   staticpro (&all_loaded_comp_units_h);
