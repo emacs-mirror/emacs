@@ -1001,6 +1001,12 @@ have now been removed.
 ignore invisible lines.
 
 ---
+** 'count-words' now crosses field boundaries.
+Originally, 'count-words' would stop counting at the first field
+boundary it encountered; now it keeps counting all the way to the
+region's (or buffer's) end.
+
+---
 ** New function 'custom-add-choice'.
 This function can be used by modes to add elements to the
 'choice' customization type of a variable.
