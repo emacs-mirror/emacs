@@ -1947,6 +1947,11 @@ The value of the new 'sender' slot (if a string) is used to set gpg's
 'mml-secure-openpgp-sign-with-sender'.  See gpg(1) manual page about
 "--sender" for more information.
 
+*** 'epg-find-configuration' no longer finds GnuPG 2.0 through 2.1.5.
+Previously, it found these versions by mistake.  The intent was to
+find GnuPG 2.1.6 or later, or find GnuPG 1.4.3 or later within the
+GnuPG 1 series.
+
 ** Rmail
 
 *** New user option 'rmail-output-reset-deleted-flag'.
