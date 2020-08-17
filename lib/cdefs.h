@@ -148,7 +148,7 @@
 # define __warnattr(msg) __attribute__((__warning__ (msg)))
 # define __errordecl(name, msg) \
   extern void name (void) __attribute__((__error__ (msg)))
-#elif __glibc_clang_has_attribute (__diagnose_if__)
+#elif __glibc_clang_has_attribute (__diagnose_if__) && 0 /* fails on Fedora 31 with Clang 9.  */
 # define __warndecl(name, msg) \
   extern void name (void) __attribute__((__diagnose_if__ (1, msg, "warning")))
 # define __warnattr(msg) __attribute__((__diagnose_if__ (1, msg, "warning")))
