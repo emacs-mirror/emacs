@@ -4,7 +4,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
-;; Version: 1.6
+;; Version: 1.7
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
 ;; Created: 2019-01-12
@@ -108,7 +108,7 @@ RECOMPILE all the benchmark folder when non nil."
 		   sources))
 	   ;; Load
 	   (mapc #'load (mapcar (if native-comp
-				    #'comp-output-filename
+				    #'comp-el-to-eln-filename
 				  #'file-name-sans-extension)
 				sources))
 	   (cl-loop for test in tests
