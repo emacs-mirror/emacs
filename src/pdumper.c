@@ -4999,7 +4999,7 @@ pdumper_find_object_type_impl (const void *obj)
   if (offset % DUMP_ALIGNMENT != 0)
     return PDUMPER_NO_OBJECT;
   ptrdiff_t bitno = offset / DUMP_ALIGNMENT;
-  if (offset < dump_private.header.cold_start
+  if (offset < dump_private.header.discardable_start
       && !dump_bitset_bit_set_p (&dump_private.last_mark_bits, bitno))
     return PDUMPER_NO_OBJECT;
   const struct dump_reloc *reloc =
