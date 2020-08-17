@@ -1026,7 +1026,10 @@ AS_IF([test $gl_gcc_warnings = no],
     [# Use -fanalyzer and related options only if --enable-gcc-warnings,
      # as they slow GCC considerably.
      nw="$nw -fanalyzer -Wno-analyzer-double-free -Wno-analyzer-malloc-leak"
-     nw="$nw -Wno-analyzer-null-dereference -Wno-analyzer-use-after-free"])
+     nw="$nw -Wno-analyzer-null-dereference -Wno-analyzer-use-after-free"
+     # Use -Wsuggest-attribute=malloc only if --enable-gcc-warnings,
+     # as it doesn't flag code that is wrong in any way.
+     nw="$nw -Wsuggest-attribute=malloc"])
 
   nw="$nw -Wcast-align=strict"      # Emacs is tricky with pointers.
   nw="$nw -Wduplicated-branches"    # Too many false alarms
