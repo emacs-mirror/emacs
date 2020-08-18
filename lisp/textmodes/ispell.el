@@ -673,9 +673,7 @@ Otherwise returns the library directory name, if that is defined."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (interactive "p")
-  (let ((default-directory (or (and (boundp 'temporary-file-directory)
-				    temporary-file-directory)
-			       default-directory))
+  (let ((default-directory (or temporary-file-directory default-directory))
 	(get-config-var
 	 (lambda (var)
 	   (when (re-search-forward
