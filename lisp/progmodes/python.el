@@ -283,24 +283,6 @@
   :link '(emacs-commentary-link "python"))
 
 
-;;; 24.x Compat
-
-
-(eval-and-compile
-  (unless (fboundp 'prog-first-column)
-    (defun prog-first-column ()
-      0))
-  (unless (fboundp 'file-local-name)
-    (defun file-local-name (file)
-      "Return the local name component of FILE.
-It returns a file name which can be used directly as argument of
-`process-file', `start-file-process', or `shell-command'."
-      (or (file-remote-p file 'localname) file))))
-
-;; In Emacs 24.3 and earlier, `define-derived-mode' does not define
-;; the hook variable, it only puts documentation on the symbol.
-(defvar inferior-python-mode-hook)
-
 
 ;;; Bindings
 
