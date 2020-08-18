@@ -328,9 +328,8 @@ important."
 
 (defun erc-track-remove-from-mode-line ()
   "Remove `erc-track-modified-channels' from the mode-line."
-  (when (boundp 'mode-line-modes)
-    (setq mode-line-modes
-	  (remove '(t erc-modified-channels-object) mode-line-modes)))
+  (setq mode-line-modes
+	(remove '(t erc-modified-channels-object) mode-line-modes))
   (when (consp global-mode-string)
     (setq global-mode-string
 	  (delq 'erc-modified-channels-object global-mode-string))))
@@ -340,12 +339,10 @@ important."
 See `erc-track-position-in-mode-line' for possible values."
   ;; CVS Emacs has a new format string, and global-mode-string
   ;; is very far to the right.
-  (cond ((and (eq position 'before-modes)
-	      (boundp 'mode-line-modes))
+  (cond ((eq position 'before-modes)
 	 (add-to-list 'mode-line-modes
 		      '(t erc-modified-channels-object)))
-	((and (eq position 'after-modes)
-	      (boundp 'mode-line-modes))
+	((eq position 'after-modes)
 	 (add-to-list 'mode-line-modes
 		      '(t erc-modified-channels-object) t))
 	((eq position t)
