@@ -6275,10 +6275,6 @@ If FACE is not a valid face name, use default face."
   (goto-char to))
 
 
-;; Ensure that face-list is fbound.
-(or (fboundp 'face-list) (defalias 'face-list 'list-faces))
-
-
 (defun ps-build-reference-face-lists ()
   (setq ps-print-face-alist nil)
   (if ps-auto-font-detect
