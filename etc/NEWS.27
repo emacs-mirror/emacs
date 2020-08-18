@@ -202,10 +202,11 @@ it won't work right without some adjustment:
 
 ** Emacs now notifies systemd when startup finishes or shutdown begins.
 Units that are ordered after 'emacs.service' will only be started
-after Emacs has finished initialization and is ready for use.
-(If your Emacs is installed in a non-standard location and you copied the
-emacs.service file to e.g. "~/.config/systemd/user/", you will need to copy
-the new version of the file again.)
+after Emacs has finished initialization and is ready for use, and
+Emacs needs to be built with systemd support.  (If your Emacs is
+installed in a non-standard location and you copied the emacs.service
+file to e.g. "~/.config/systemd/user/", you will need to copy the new
+version of the file again.)
 
 
 * Changes in Emacs 27.1
@@ -1916,6 +1917,11 @@ The value of the new 'sender' slot (if a string) is used to set gpg's
 "--sender" option.  This feature is used by
 'mml-secure-openpgp-sign-with-sender'.  See gpg(1) manual page about
 "--sender" for more information.
+
+*** 'epg-find-configuration' no longer finds GnuPG 2.0 through 2.1.5.
+Previously, it found these versions by mistake.  The intent was to
+find GnuPG 2.1.6 or later, or find GnuPG 1.4.3 or later within the
+GnuPG 1 series.
 
 ** Rmail
 

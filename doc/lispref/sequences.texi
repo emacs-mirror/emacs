@@ -791,11 +791,11 @@ use instead of the default @code{equal}.
 
 @example
 @group
-(seq-contains '(symbol1 symbol2) 'symbol1)
-@result{} symbol1
+(seq-contains-p '(symbol1 symbol2) 'symbol1)
+@result{} t
 @end group
 @group
-(seq-contains '(symbol1 symbol2) 'symbol3)
+(seq-contains-p '(symbol1 symbol2) 'symbol3)
 @result{} nil
 @end group
 @end example

@@ -8760,6 +8760,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case FocusIn:
+      /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
+         minimized/iconified windows; thus, for those WMs we won't get
+         a MapNotify when unminimizing/deconifying.  Check here if we
+         are deconizing a window (Bug42655). */
+      f = any;
+      if (f && FRAME_ICONIFIED_P (f))
+	{
+          SET_FRAME_VISIBLE (f, 1);
+          SET_FRAME_ICONIFIED (f, false);
+          f->output_data.x->has_been_visible = true;
+          inev.ie.kind = DEICONIFY_EVENT;
+          XSETFRAME (inev.ie.frame_or_window, f);
+        }
+
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
       goto OTHER;
 
