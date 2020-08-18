@@ -447,7 +447,7 @@ use @code{flyspell-region} or @code{flyspell-buffer} for that.
 it with @kbd{mouse-2} (@code{flyspell-correct-word}) to display a menu
 of possible corrections and actions.  If you want this menu on
 @kbd{mouse-3} instead, customize the variable
-@code{flyspell-correct-on-mouse-3}.  In addition, @kbd{C-.} or
+@code{flyspell-use-mouse-3-for-menu}.  In addition, @kbd{C-.} or
 @kbd{@key{ESC}-@key{TAB}} (@code{flyspell-auto-correct-word}) will
 propose various successive corrections for the word at point, and
 @w{@kbd{C-c $}} (@code{flyspell-correct-word-before-point}) will pop

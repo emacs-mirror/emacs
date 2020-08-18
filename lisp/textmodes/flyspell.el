@@ -446,19 +446,19 @@ like <img alt=\"Some thing.\">."
   "Minor mode keymap for Flyspell mode--for the whole buffer.")
 
 ;; correct on mouse 3
-(defun flyspell--set-correct-on-mouse-3 (var value)
+(defun flyspell--set-use-mouse-3-for-menu (var value)
   (set-default var value)
   (if value
       (progn (define-key flyspell-mouse-map [mouse-2] nil)
-             (define-key flyspell-mouse-map [mouse-3] 'flyspell-correct-word))
+             (define-key flyspell-mouse-map [down-mouse-3] 'flyspell-correct-word))
     (define-key flyspell-mouse-map [mouse-2] 'flyspell-correct-word)
-    (define-key flyspell-mouse-map [mouse-3] nil)))
+    (define-key flyspell-mouse-map [down-mouse-3] nil)))
 
-(defcustom flyspell-correct-on-mouse-3 nil
+(defcustom flyspell-use-mouse-3-for-menu nil
   "Non-nil means to bind `mouse-3' to `flyspell-correct-word'.
 If this is set, also unbind `mouse-2'."
   :type 'boolean
-  :set 'flyspell--set-correct-on-mouse-3
+  :set 'flyspell--set-use-mouse-3-for-menu
   :version "28.1")
 
 ;; dash character machinery
@@ -531,8 +531,8 @@ in your init file.
   (if flyspell-mode
       (condition-case err
           (progn
-            (when flyspell-correct-on-mouse-3
-              (flyspell--set-correct-on-mouse-3 'flyspell-correct-on-mouse-3 t))
+            (when flyspell-use-mouse-3-for-menu
+              (flyspell--set-use-mouse-3-for-menu 'flyspell-use-mouse-3-for-menu t))
 	    (flyspell-mode-on))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
