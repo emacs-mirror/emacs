@@ -1573,9 +1573,8 @@ This default should work without changes."
 
 
 (defun ediff-convert-standard-filename (fname)
-  (if (fboundp 'convert-standard-filename)
-      (convert-standard-filename fname)
-    fname))
+  (declare (obsolete convert-standard-filename "28.1"))
+  (convert-standard-filename fname))
 
 (define-obsolete-function-alias 'ediff-with-syntax-table
   #'with-syntax-table "27.1")

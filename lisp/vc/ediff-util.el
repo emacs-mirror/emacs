@@ -240,18 +240,16 @@ to invocation.")
 			     startup-hooks setup-parameters
 			     &optional merge-buffer-file)
   (run-hooks 'ediff-before-setup-hook)
-  ;; ediff-convert-standard-filename puts file names in the form appropriate
+  ;; convert-standard-filename puts file names in the form appropriate
   ;; for the OS at hand.
-  (setq file-A (ediff-convert-standard-filename (expand-file-name file-A)))
-  (setq file-B (ediff-convert-standard-filename (expand-file-name file-B)))
+  (setq file-A (convert-standard-filename (expand-file-name file-A)))
+  (setq file-B (convert-standard-filename (expand-file-name file-B)))
   (if (stringp file-C)
-      (setq file-C
-	    (ediff-convert-standard-filename (expand-file-name file-C))))
+      (setq file-C (convert-standard-filename (expand-file-name file-C))))
   (if (stringp merge-buffer-file)
       (progn
 	(setq merge-buffer-file
-	      (ediff-convert-standard-filename
-	       (expand-file-name merge-buffer-file)))
+	      (convert-standard-filename (expand-file-name merge-buffer-file)))
 	;; check the directory exists
 	(or (file-exists-p (file-name-directory merge-buffer-file))
 	    (error "Directory %s given as place to save the merge doesn't exist"
@@ -3132,7 +3130,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; Also, save buffer from START to END in the file.
 ;; START defaults to (point-min), END to (point-max)
 (defun ediff-make-temp-file (buff &optional prefix given-file start end)
-  (let* ((p (ediff-convert-standard-filename (or prefix "ediff")))
+  (let* ((p (convert-standard-filename (or prefix "ediff")))
 	 (short-p p)
 	 (coding-system-for-write ediff-coding-system-for-write)
 	 f short-f)
