@@ -2642,12 +2642,17 @@ and no others."
   "Return t if WINDOW is the currently active minibuffer window."
   (and (window-live-p window) (eq window (active-minibuffer-window))))
 
-(defun count-windows (&optional minibuf)
+(defun count-windows (&optional minibuf all-frames)
    "Return the number of live windows on the selected frame.
+
 The optional argument MINIBUF specifies whether the minibuffer
-window shall be counted.  See `walk-windows' for the precise
-meaning of this argument."
-   (length (window-list-1 nil minibuf)))
+window is included in the count.
+
+If ALL-FRAMES is non-nil, count the windows in all frames instead
+just the selected frame.
+
+See `walk-windows' for the precise meaning of this argument."
+   (length (window-list-1 nil minibuf all-frames)))
 
 ;;; Resizing windows.
 (defun window--size-to-pixel (window size &optional horizontal pixelwise round-maybe)
