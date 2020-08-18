@@ -401,26 +401,15 @@ ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 ns_set_name_internal (struct frame *f, Lisp_Object name)
 {
-  Lisp_Object encoded_name, encoded_icon_name;
-  NSString *str;
   NSView *view = FRAME_NS_VIEW (f);
-
-
-  encoded_name = ENCODE_UTF_8 (name);
-
-  str = [NSString stringWithUTF8String: SSDATA (encoded_name)];
-
+  NSString *str = [NSString stringWithLispString: name];
 
   /* Don't change the name if it's already NAME.  */
   if (! [[[view window] title] isEqualToString: str])
     [[view window] setTitle: str];
 
-  if (!STRINGP (f->icon_name))
-    encoded_icon_name = encoded_name;
-  else
-    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
-
-  str = [NSString stringWithUTF8String: SSDATA (encoded_icon_name)];
+  if (STRINGP (f->icon_name))
+    str = [NSString stringWithLispString: f->icon_name];
 
   if ([[view window] miniwindowTitle]
       && ! [[[view window] miniwindowTitle] isEqualToString: str])
@@ -3030,6 +3019,54 @@ DEFUN ("ns-show-character-palette",
 
 #endif
 
+
+/* Whether N bytes at STR are in the [0,127] range.  */
+static bool
+all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
+{
+  for (ptrdiff_t i = 0; i < n; i++)
+    if (str[i] < 1 || str[i] > 127)
+      return false;
+  return true;
+}
+
+@implementation NSString (EmacsString)
+/* Make an NSString from a Lisp string.  */
++ (NSString *)stringWithLispString:(Lisp_Object)string
+{
+  /* Shortcut for the common case.  */
+  if (all_nonzero_ascii (SDATA (string), SBYTES (string)))
+    return [NSString stringWithCString: SSDATA (string)
+                              encoding: NSASCIIStringEncoding];
+  string = string_to_multibyte (string);
+
+  /* Now the string is multibyte; convert to UTF-16.  */
+  unichar *chars = xmalloc (4 * SCHARS (string));
+  unichar *d = chars;
+  const unsigned char *s = SDATA (string);
+  const unsigned char *end = s + SBYTES (string);
+  while (s < end)
+    {
+      int c = string_char_advance (&s);
+      /* We pass unpaired surrogates through, because they are typically
+         handled fairly well by the NS libraries (displayed with distinct
+         glyphs etc).  */
+      if (c <= 0xffff)
+        *d++ = c;
+      else if (c <= 0x10ffff)
+        {
+          *d++ = 0xd800 + (c & 0x3ff);
+          *d++ = 0xdc00 + ((c - 0x10000) >> 10);
+        }
+      else
+        *d++ = 0xfffd;          /* Not valid for UTF-16.  */
+    }
+  NSString *str = [NSString stringWithCharacters: chars
+                                          length: d - chars];
+  xfree (chars);
+  return str;
+}
+@end
 
 /* ==========================================================================
 

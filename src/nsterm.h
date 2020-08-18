@@ -361,6 +361,11 @@ typedef id instancetype;
 
 @end
 
+
+@interface NSString (EmacsString)
++ (NSString *)stringWithLispString:(Lisp_Object)string;
+@end
+
 /* ==========================================================================
 
    The Emacs application
