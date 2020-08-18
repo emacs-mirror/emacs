@@ -5890,7 +5890,8 @@ If WINDOW-ID is non-nil, change the property of that window instead
       elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
       data = xnmalloc (nelements, elsize);
 
-      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
+      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, nelements,
+                            element_format);
     }
   else
     {
