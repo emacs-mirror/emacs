@@ -347,6 +347,10 @@ INSIDE SECTION: ARG HANDLER ONE")
       ;; Load the application templates, and make sure we can find them.
       (srecode-load-tables-for-mode major-mode 'tests)
 
+      (dolist (table (oref (srecode-table) tables))
+        (when (gethash "test" (oref table contexthash))
+          (oset table project default-directory)))
+
       (setq temp (srecode-template-get-table (srecode-table)
 					     "test-project"
 					     "test"
