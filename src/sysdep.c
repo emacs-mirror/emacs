@@ -53,6 +53,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <sys/sysctl.h>
 #endif
 
+#ifdef DARWIN_OS
+# include <libproc.h>
+#endif
+
 #ifdef __FreeBSD__
 /* Sparc/ARM machine/frame.h has 'struct frame' which conflicts with Emacs's
    'struct frame', so rename it.  */
@@ -3871,8 +3875,21 @@ system_process_attributes (Lisp_Object pid)
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
+  char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+  char *comm;
+
+  if (proc_pidpath (proc_id, pathbuf, sizeof(pathbuf)) > 0)
+    {
+      if ((comm = strrchr (pathbuf, '/')))
+        comm++;
+      else
+        comm = pathbuf;
+    }
+  else
+    comm = proc.kp_proc.p_comm;
+
   decoded_comm = (code_convert_string_norecord
-		  (build_unibyte_string (proc.kp_proc.p_comm),
+		  (build_unibyte_string (comm),
 		   Vlocale_coding_system, 0));
 
   attrs = Fcons (Fcons (Qcomm, decoded_comm), attrs);
