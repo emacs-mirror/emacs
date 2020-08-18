@@ -556,10 +556,7 @@ If a window system is unavailable, calls `hfy-fallback-color-values'."
        '(1 2 3))
     ;;(message ">> %s" color)
     (if window-system
-        (if (fboundp 'color-values)
-            (color-values color)
-          ;;(message "[%S]" window-system)
-          (x-color-values color))
+        (color-values color)
       ;; blarg - tty colors are no good - go fetch some X colors:
       (hfy-fallback-color-values color))))
 (define-obsolete-function-alias 'hfy-colour-vals #'hfy-color-vals "27.1")
