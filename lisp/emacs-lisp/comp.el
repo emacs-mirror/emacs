@@ -2580,6 +2580,7 @@ display a message."
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
+                                  comp-eln-load-path ',comp-eln-load-path
                                   load-path ',load-path)
                             ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
