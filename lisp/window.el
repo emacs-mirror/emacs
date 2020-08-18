@@ -5729,10 +5729,10 @@ window."
 WINDOW defaults to the selected window.  DIRECTION can be
 nil (i.e. any), `height' or `width'."
   (with-current-buffer (window-buffer window)
-    (when (and (boundp 'window-size-fixed) window-size-fixed)
-      (not (and direction
-		(member (cons direction window-size-fixed)
-			'((height . width) (width . height))))))))
+    (and window-size-fixed
+         (not (and direction
+		   (member (cons direction window-size-fixed)
+			   '((height . width) (width . height))))))))
 
 ;;; A different solution to balance-windows.
 (defvar window-area-factor 1
