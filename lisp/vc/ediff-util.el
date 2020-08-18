@@ -3069,10 +3069,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 
 ;; for compatibility
-(defmacro ediff-minibuffer-with-setup-hook (fun &rest body)
-  `(if (fboundp 'minibuffer-with-setup-hook)
-       (minibuffer-with-setup-hook ,fun ,@body)
-     ,@body))
+(define-obsolete-function-alias 'ediff-minibuffer-with-setup-hook
+  #'minibuffer-with-setup-hook "28.1")
 
 ;; This is adapted from a similar function in `emerge.el'.
 ;; PROMPT should not have a trailing ': ', so that it can be modified
@@ -3101,7 +3099,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 			(and default-file (list default-file))
 			default-dir)))
 	f)
-    (setq f (ediff-minibuffer-with-setup-hook
+    (setq f (minibuffer-with-setup-hook
 		(lambda () (when defaults
 			     (setq minibuffer-default defaults)))
 	      (read-file-name
