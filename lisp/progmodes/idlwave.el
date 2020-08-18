@@ -7007,8 +7007,7 @@ The key which is associated with each option is generated automatically.
 First, the strings are checked for preselected keys, like in \"[P]rint\".
 If these don't exist, a letter in the string is automatically selected."
   (let* ((alist (symbol-value sym))
-         (temp-buffer-show-hook (if (fboundp 'fit-window-to-buffer)
-				    '(fit-window-to-buffer)))
+         (temp-buffer-show-hook '(fit-window-to-buffer))
          keys-alist char)
     ;; First check the cache
     (if (and (eq (symbol-value sym) (get sym :one-key-alist-last)))
