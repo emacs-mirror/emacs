@@ -2751,16 +2751,17 @@ OpenPGP header will be left out.  If all the values are nil,
 or `message-openpgp-header' is itself nil, the OpenPGP header
 will not be inserted."
   :type '(choice
-	  (const nil :tag "Don't add OpenPGP header")
-	  (list (choice (string :tag "ID")
-			(const nil :tag "No ID"))
+	  (const :tag "Don't add OpenPGP header" nil)
+	  (list :tag "Use OpenPGP header"
+		(choice (string :tag "ID")
+			(const :tag "No ID" nil))
 		(choice (string :tag "Key")
-			(const nil :tag "No Key"))
-		(choice (other nil :tag "None")
-			(const "unprotected" :tag "Unprotected")
-			(const "sign" :tag "Sign")
-			(const "encrypt" :tag "Encrypt")
-			(const "signencrypt" :tag "Sign and Encrypt"))))
+			(const :tag "No Key" nil))
+		(choice (other :tag "None" nil)
+			(const :tag "Unprotected" "unprotected")
+			(const :tag "Sign" "sign")
+			(const :tag "Encrypt" "encrypt")
+			(const :tag "Sign and Encrypt" "signencrypt"))))
   :version "28.1")
 
 (defun message-add-openpgp-header ()
@@ -2768,32 +2769,34 @@ will not be inserted."
 
 Header will be constructed as specified in `message-openpgp-header'.
 
-Consider adding this function to `message-send-hook'."
+Consider adding this function to `message-header-setup-hook'"
   ;; See https://tools.ietf.org/html/draft-josefsson-openpgp-mailnews-header
   (when (and message-openpgp-header
 	     (or (nth 0 message-openpgp-header)
 		 (nth 1 message-openpgp-header)
 		 (nth 2 message-openpgp-header)))
-    (with-temp-buffer
-      (insert "OpenPGP: ")
-      ;; add ID
-      (let (need-sep)
-	(when (nth 0 message-openpgp-header)
-	  (insert "id=" (nth 0 message-openpgp-header))
-	  (setq need-sep t))
-	;; add URL
-	(when (nth 1 message-openpgp-header)
-	  (when need-sep (insert "; "))
-	  (if (string-match-p ";")
-	      (insert "url=\"" (nth 1 message-openpgp-header) "\"")
-	    (insert "url=\"" (nth 1 message-openpgp-header) "\""))
-	  (setq need-sep t))
-	;; add preference
-	(when (nth 2 message-openpgp-header)
-	  (when need-sep (insert "; "))
-	  (insert "preference=" (nth 2 message-openpgp-header))))
-      ;; insert header
-      (message-add-header (buffer-string)))))
+    (message-add-header
+     (with-temp-buffer
+       (insert "OpenPGP: ")
+       ;; add ID
+       (let (need-sep)
+	 (when (nth 0 message-openpgp-header)
+	   (insert "id=" (nth 0 message-openpgp-header))
+	   (setq need-sep t))
+	 ;; add URL
+	 (when (nth 1 message-openpgp-header)
+	   (when need-sep (insert "; "))
+	   (if (string-match-p ";")
+	       (insert "url=\"" (nth 1 message-openpgp-header) "\"")
+	     (insert "url=\"" (nth 1 message-openpgp-header) "\""))
+	   (setq need-sep t))
+	 ;; add preference
+	 (when (nth 2 message-openpgp-header)
+	   (when need-sep (insert "; "))
+	   (insert "preference=" (nth 2 message-openpgp-header))))
+       ;; insert header
+       (buffer-string)))
+    (message-sort-headers)))
 
 
 
