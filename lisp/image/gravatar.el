@@ -151,10 +151,11 @@ to track whether you're reading a specific mail."
   (save-match-data
     (if (not (string-match ".+@\\(.+\\)" addr))
         (funcall callback "https://seccdn.libravatar.org/avatar")
-      (let* ((domain (match-string 1 addr))
-             (records '(("_avatars-sec" . "https")
-                        ("_avatars" . "http")))
-             (func
+      (let ((domain (match-string 1 addr))
+            (records '(("_avatars-sec" . "https")
+                       ("_avatars" . "http")))
+            func)
+        (setq func
               (lambda (result)
                 (cond
                  ((and
@@ -205,7 +206,7 @@ to track whether you're reading a specific mail."
                    (concat (caar records) "._tcp." domain)
                    func 'SRV))
                  (t                     ;fallback
-                  (funcall callback "https://seccdn.libravatar.org/avatar"))))))
+                  (funcall callback "https://seccdn.libravatar.org/avatar")))))
         (dns-query-asynchronous
          (concat (caar records) "._tcp." domain)
          func 'SRV t)))))
