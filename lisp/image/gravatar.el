@@ -39,6 +39,7 @@
   "Whether to cache retrieved gravatars."
   :type 'boolean
   :group 'gravatar)
+(make-obsolete-variable 'gravatar-automatic-caching nil "28.1")
 
 (defcustom gravatar-cache-ttl 2592000
   "Time to live in seconds for gravatar cache entries.
@@ -48,6 +49,7 @@ is retrieved anew.  The default value is 30 days."
   ;; Restricted :type to number of seconds.
   :version "27.1"
   :group 'gravatar)
+(make-obsolete-variable 'gravatar-cache-ttl nil "28.1")
 
 (defcustom gravatar-rating "g"
   "Most explicit Gravatar rating level to allow.
@@ -206,19 +208,50 @@ to track whether you're reading a specific mail."
          (search-forward "\n\n" nil t)
          (buffer-substring (point) (point-max)))))
 
+(defvar gravatar--cache (make-hash-table :test 'equal)
+  "Cache for gravatars.")
+
 ;;;###autoload
 (defun gravatar-retrieve (mail-address callback &optional cbargs)
   "Asynchronously retrieve a gravatar for MAIL-ADDRESS.
 When finished, call CALLBACK as (apply CALLBACK GRAVATAR CBARGS),
 where GRAVATAR is either an image descriptor, or the symbol
 `error' if the retrieval failed."
-  (gravatar-build-url
-   mail-address
-   (lambda (url)
-     (if (url-cache-expired url gravatar-cache-ttl)
-         (url-retrieve url #'gravatar-retrieved (list callback cbargs) t)
-       (with-current-buffer (url-fetch-from-cache url)
-         (gravatar-retrieved () callback cbargs))))))
+  (let ((cached (gethash mail-address gravatar--cache)))
+    (gravatar--prune-cache)
+    (if cached
+        (apply callback (cdr cached) cbargs)
+      ;; Nothing in the cache, fetch it.
+      (gravatar-build-url
+       mail-address
+       (lambda (url)
+         (url-retrieve
+          url
+          (lambda (status)
+            (let* ((data (and (not (plist-get status :error))
+                              (gravatar-get-data)))
+                   (image (and data (create-image data nil t))))
+              ;; Store the image in the cache.
+              (when image
+                (setf (gethash mail-address gravatar--cache)
+                      (cons (time-convert (current-time) 'integer)
+                            image)))
+              (prog1
+                  (apply callback (if data image 'error) cbargs)
+                (kill-buffer))))
+          nil t))))))
+
+(defun gravatar--prune-cache ()
+  (let ((expired nil)
+        (time (- (time-convert (current-time) 'integer)
+                 ;; Twelve hours.
+                 (* 12 60 60))))
+    (maphash (lambda (key val)
+               (when (< (car val) time)
+                 (push key expired)))
+             gravatar--cache)
+    (dolist (key expired)
+      (remhash key gravatar--cache))))
 
 ;;;###autoload
 (defun gravatar-retrieve-synchronously (mail-address)
@@ -229,10 +262,8 @@ retrieval failed."
     (gravatar-build-url mail-address (lambda (u) (setq url u)))
     (while (not url)
       (sleep-for 0.01))
-    (with-current-buffer (if (url-cache-expired url gravatar-cache-ttl)
-                             (url-retrieve-synchronously url t)
-                           (url-fetch-from-cache url))
-      (gravatar-retrieved () #'identity))))
+    (with-current-buffer (url-retrieve-synchronously url t)
+      (gravatar-retrieved nil #'identity))))
 
 (defun gravatar-retrieved (status cb &optional cbargs)
   "Handle Gravatar response data in current buffer.
@@ -241,10 +272,6 @@ an image descriptor, or the symbol `error' on failure.
 This function is intended as a callback for `url-retrieve'."
   (let ((data (unless (plist-get status :error)
                 (gravatar-get-data))))
-    (and data                      ; Only cache on success.
-         url-current-object        ; Only cache if not already cached.
-         gravatar-automatic-caching
-         (url-store-in-cache))
     (prog1 (apply cb (if data (create-image data nil t) 'error) cbargs)
       (kill-buffer))))
 
