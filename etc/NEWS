@@ -816,6 +816,10 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
+*** 'count-windows' now takes an optional parameter ALL-FRAMES.
+The semantics are as with 'walk-windows'.
+
+---
 *** Killing virtual ido buffers interactively will make them go away.
 Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
 do anything.  This has now been changed, and killing virtual buffers
