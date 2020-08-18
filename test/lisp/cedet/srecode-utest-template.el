@@ -323,7 +323,6 @@ INSIDE SECTION: ARG HANDLER ONE")
 
 (ert-deftest srecode-utest-project ()
   "Test that project filtering works."
-  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
   (save-excursion
     (let ((testbuff (find-file-noselect srecode-utest-testfile))
 	  (temp nil))
