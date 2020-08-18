@@ -180,8 +180,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    present (non-empty) only if the corresponding display margin is
    shown in the window.  If the glyph array for a marginal area is not
    present its beginning and end coincide, i.e. such arrays are
-   actually empty (they contain no glyphs).  Frame glyph matrics, used
-   on text-mode terminals (see below) never have marginal areas, they
+   actually empty (they contain no glyphs).  Frame glyph matrices, used
+   on text-mode terminals (see below) never have marginal areas; they
    treat the entire frame-wide row of glyphs as a single large "text
    area".
 

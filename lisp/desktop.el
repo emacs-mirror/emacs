@@ -1037,7 +1037,7 @@ file.
 
 To upgrade a version 206 file to version 208, call this command
 explicitly with a prefix argument: \\[universal-argument] \\[desktop-save].
-If you are upgrading from Emacs 24 or older, we recommed to do
+If you are upgrading from Emacs 24 or older, we recommend to do
 this once you decide you no longer need compatibility with versions
 of Emacs before 25.1.
 
