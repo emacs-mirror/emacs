@@ -1142,19 +1142,52 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_expr_self:
 	  switch (op)
 	    {
-	    case CCL_PLUS: reg[rrr] += i; break;
-	    case CCL_MINUS: reg[rrr] -= i; break;
-	    case CCL_MUL: reg[rrr] *= i; break;
-	    case CCL_DIV: reg[rrr] /= i; break;
+	    case CCL_PLUS: INT_ADD_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_MINUS: INT_SUBTRACT_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_MUL: INT_MULTIPLY_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_DIV:
+	      if (!i)
+		CCL_INVALID_CMD;
+	      if (!INT_DIVIDE_OVERFLOW (reg[rrr], i))
+		reg[rrr] /= i;
+	      break;
 	    case CCL_MOD: reg[rrr] %= i; break;
+	      if (!i)
+		CCL_INVALID_CMD;
+	      reg[rrr] = i == -1 ? 0 : reg[rrr] % i;
+	      break;
 	    case CCL_AND: reg[rrr] &= i; break;
 	    case CCL_OR: reg[rrr] |= i; break;
 	    case CCL_XOR: reg[rrr] ^= i; break;
-	    case CCL_LSH: reg[rrr] <<= i; break;
-	    case CCL_RSH: reg[rrr] >>= i; break;
-	    case CCL_LSH8: reg[rrr] <<= 8; reg[rrr] |= i; break;
+	    case CCL_LSH:
+	      if (i < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = i < UINT_WIDTH ? (unsigned) reg[rrr] << i : 0;
+	      break;
+	    case CCL_RSH:
+	      if (i < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = reg[rrr] >> min (i, INT_WIDTH - 1);
+	      break;
+	    case CCL_LSH8:
+	      reg[rrr] = (unsigned) reg[rrr] << 8;
+	      reg[rrr] |= i;
+	      break;
 	    case CCL_RSH8: reg[7] = reg[rrr] & 0xFF; reg[rrr] >>= 8; break;
-	    case CCL_DIVMOD: reg[7] = reg[rrr] % i; reg[rrr] /= i; break;
+	    case CCL_DIVMOD:
+	      if (!i)
+		CCL_INVALID_CMD;
+	      if (i == -1)
+		{
+		  reg[7] = 0;
+		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		}
+	      else
+		{
+		  reg[7] = reg[rrr] % i;
+		  reg[rrr] /= i;
+		}
+	      break;
 	    case CCL_LS: reg[rrr] = reg[rrr] < i; break;
 	    case CCL_GT: reg[rrr] = reg[rrr] > i; break;
 	    case CCL_EQ: reg[rrr] = reg[rrr] == i; break;
@@ -1204,19 +1237,52 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_set_expr:
 	  switch (op)
 	    {
-	    case CCL_PLUS: reg[rrr] = i + j; break;
-	    case CCL_MINUS: reg[rrr] = i - j; break;
-	    case CCL_MUL: reg[rrr] = i * j; break;
-	    case CCL_DIV: reg[rrr] = i / j; break;
-	    case CCL_MOD: reg[rrr] = i % j; break;
+	    case CCL_PLUS: INT_ADD_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_MINUS: INT_SUBTRACT_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_MUL: INT_MULTIPLY_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_DIV:
+	      if (!j)
+		CCL_INVALID_CMD;
+	      if (!INT_DIVIDE_OVERFLOW (i, j))
+		i /= j;
+	      reg[rrr] = i;
+	      break;
+	    case CCL_MOD:
+	      if (!j)
+		CCL_INVALID_CMD;
+	      reg[rrr] = j == -1 ? 0 : i % j;
+	      break;
 	    case CCL_AND: reg[rrr] = i & j; break;
 	    case CCL_OR: reg[rrr] = i | j; break;
 	    case CCL_XOR: reg[rrr] = i ^ j; break;
-	    case CCL_LSH: reg[rrr] = i << j; break;
-	    case CCL_RSH: reg[rrr] = i >> j; break;
-	    case CCL_LSH8: reg[rrr] = (i << 8) | j; break;
+	    case CCL_LSH:
+	      if (j < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = j < UINT_WIDTH ? (unsigned) i << j : 0;
+	      break;
+	    case CCL_RSH:
+	      if (j < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = i >> min (j, INT_WIDTH - 1);
+	      break;
+	    case CCL_LSH8:
+	      reg[rrr] = ((unsigned) i << 8) | j;
+	      break;
 	    case CCL_RSH8: reg[rrr] = i >> 8; reg[7] = i & 0xFF; break;
-	    case CCL_DIVMOD: reg[rrr] = i / j; reg[7] = i % j; break;
+	    case CCL_DIVMOD:
+	      if (!j)
+		CCL_INVALID_CMD;
+	      if (j == -1)
+		{
+		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		  reg[7] = 0;
+		}
+	      else
+		{
+		  reg[rrr] = i / j;
+		  reg[7] = i % j;
+		}
+	      break;
 	    case CCL_LS: reg[rrr] = i < j; break;
 	    case CCL_GT: reg[rrr] = i > j; break;
 	    case CCL_EQ: reg[rrr] = i == j; break;
@@ -1225,7 +1291,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    case CCL_NE: reg[rrr] = i != j; break;
 	    case CCL_DECODE_SJIS:
 	      {
-		i = (i << 8) | j;
+		i = ((unsigned) i << 8) | j;
 		SJIS_TO_JIS (i);
 		reg[rrr] = i >> 8;
 		reg[7] = i & 0xFF;
@@ -1233,7 +1299,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      }
 	    case CCL_ENCODE_SJIS:
 	      {
-		i = (i << 8) | j;
+		i = ((unsigned) i << 8) | j;
 		JIS_TO_SJIS (i);
 		reg[rrr] = i >> 8;
 		reg[7] = i & 0xFF;
