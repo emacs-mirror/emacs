@@ -786,14 +786,11 @@ Otherwise return the normal value."
 (defun viper-check-minibuffer-overlay ()
   (if (overlayp viper-minibuffer-overlay)
       (move-overlay
-       viper-minibuffer-overlay
-       (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
-       (1+ (buffer-size)))
+       viper-minibuffer-overlay (minibuffer-prompt-end) (1+ (buffer-size)))
     (setq viper-minibuffer-overlay
 	  ;; make overlay open-ended
 	  (make-overlay
-	   (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
-	   (1+ (buffer-size))
+	   (minibuffer-prompt-end) (1+ (buffer-size))
 	   (current-buffer) nil 'rear-advance))))
 
 

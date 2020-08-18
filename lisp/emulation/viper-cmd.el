@@ -1886,15 +1886,11 @@ Undo previous insertion and inserts new."
     (or unread-command-events
 	executing-kbd-macro
 	(sit-for 840))
-    (if (fboundp 'minibuffer-prompt-end)
-	(delete-region (minibuffer-prompt-end) (point-max))
-      (erase-buffer))
+    (delete-region (minibuffer-prompt-end) (point-max))
     (insert viper-initial)))
 
 (defsubst viper-minibuffer-real-start ()
-  (if (fboundp 'minibuffer-prompt-end)
-      (minibuffer-prompt-end)
-    (point-min)))
+  (minibuffer-prompt-end))
 
 (defun viper-minibuffer-post-command-hook()
   (when (active-minibuffer-window)
@@ -4738,8 +4734,7 @@ Please, specify your level now: "))
 	(viper-color-display-p (if (viper-window-display-p)
 			      (viper-color-display-p)
                               'non-x))
-        (viper-frame-parameters (if (fboundp 'frame-parameters)
-                                    (frame-parameters (selected-frame))))
+        (viper-frame-parameters (frame-parameters (selected-frame)))
 	(viper-minibuffer-emacs-face (if (viper-has-face-support-p)
                                          (facep
                                           viper-minibuffer-emacs-face)
