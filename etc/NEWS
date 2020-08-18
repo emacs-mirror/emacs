@@ -816,6 +816,11 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
+*** 'M-x report-emacs-bug' will no longer include "Recent messages" section.
+These were taken from the "*Messages*" buffer, and may inadvertently
+leak information from the reporting user.
+
+---
 *** 'count-windows' now takes an optional parameter ALL-FRAMES.
 The semantics are as with 'walk-windows'.
 

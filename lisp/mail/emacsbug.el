@@ -324,18 +324,6 @@ usually do not have translators for other languages.\n\n")))
     (let ((os (ignore-errors (report-emacs-bug--os-description))))
       (if (stringp os)
           (insert "System Description: " os "\n\n")))
-    (let ((message-buf (get-buffer "*Messages*")))
-      (if message-buf
-	  (let (beg-pos
-		(end-pos message-end-point))
-	    (with-current-buffer message-buf
-	      (goto-char end-pos)
-	      (forward-line -10)
-	      (setq beg-pos (point)))
-            (terpri (current-buffer) t)
-	    (insert "Recent messages:\n")
-	    (insert-buffer-substring message-buf beg-pos end-pos))))
-    (insert "\n")
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n 'configure "
