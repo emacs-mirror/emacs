@@ -183,16 +183,8 @@ macro `defcustom-mode-local-semantic-dependency-system-include-path'."
 ;;
 ;; methods for finding files on a provided path.
 (defmacro semantic--dependency-find-file-on-path (file path)
-  (if (fboundp 'locate-file)
-      `(locate-file ,file ,path)
-    `(let ((p ,path)
-	   (found nil))
-       (while (and p (not found))
-	 (let ((f (expand-file-name ,file (car p))))
-	   (if (file-exists-p f)
-	       (setq found f)))
-	 (setq p (cdr p)))
-       found)))
+  (declare (obsolete locate-file "28.1"))
+  `(locate-file ,file ,path))
 
 (defvar ede-minor-mode)
 (defvar ede-object)
@@ -216,11 +208,11 @@ provided mode, not from the current major mode."
     (when (file-exists-p file)
       (setq found file))
     (when (and (not found) (not systemp))
-      (setq found (semantic--dependency-find-file-on-path file locp)))
+      (setq found (locate-file file locp)))
     (when (and (not found) edesys)
-      (setq found (semantic--dependency-find-file-on-path file edesys)))
+      (setq found (locate-file file edesys)))
     (when (not found)
-      (setq found (semantic--dependency-find-file-on-path file sysp)))
+      (setq found (locate-file file sysp)))
     (if found (expand-file-name found))))
 
 
