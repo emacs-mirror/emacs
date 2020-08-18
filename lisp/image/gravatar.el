@@ -151,25 +151,64 @@ to track whether you're reading a specific mail."
   (save-match-data
     (if (not (string-match ".+@\\(.+\\)" addr))
         (funcall callback "https://seccdn.libravatar.org/avatar")
-      (let ((domain (match-string 1 addr))
-            (records '(("_avatars-sec" . "https")
-                       ("_avatars" . "http")))
-            func)
-        (setq func
+      (let* ((domain (match-string 1 addr))
+             (records '(("_avatars-sec" . "https")
+                        ("_avatars" . "http")))
+             (func
               (lambda (result)
                 (cond
-                 (result
-                  (funcall callback (format "%s://%s/avatar"
-                                            (cdar records) result)))
-                 ((> (length records) 1)
-                  (pop records)
+                 ((and
+                   result               ;there is a result
+                   (let* ((data (mapcar (lambda (record)
+                                          (dns-get 'data (cdr record)))
+                                        (dns-get 'answers result)))
+                          (priorities (mapcar (lambda (r)
+                                                (dns-get 'priority r))
+                                              data))
+                          (max-priority (if priorities
+                                            (apply #'max priorities)
+                                          0))
+                          (sum 0) top)
+                     ;; Attempt to find all records with the same maximal
+                     ;; priority, and calculate the sum of their weights.
+                     (dolist (ent data)
+                       (when (= max-priority (dns-get 'priority ent))
+                         (setq sum (+ sum (dns-get 'weight ent)))
+                         (push ent top)))
+                     ;; In case there is more than one maximal priority
+                     ;; record, choose one at random, while taking the
+                     ;; individual record weights into consideration.
+                     (catch 'done
+                       (dolist (ent top)
+                         (when (and (or (= 0 sum)
+                                        (<= 0 (random sum)
+                                            (dns-get 'weight ent)))
+                                    ;; Ensure that port and domain data are
+                                    ;; valid. In case non of the results
+                                    ;; were valid, `catch' will evaluate to
+                                    ;; nil, and the next cond clause will be
+                                    ;; tested.
+                                    (<= 1 (dns-get 'port ent) 65535)
+                                    (string-match-p "\\`[-.0-9A-Za-z]+\\'"
+                                                    (dns-get 'target ent)))
+                           (funcall callback
+                                    (url-normalize-url
+                                     (format "%s://%s:%s/avatar"
+                                             (cdar records)
+                                             (dns-get 'target ent)
+                                             (dns-get 'port ent))))
+                           (throw 'done t))
+                         (setq sum (- sum (dns-get 'weight ent))))))))
+                 ((setq records (cdr records))
+                  ;; In case there are at least two methods.
                   (dns-query-asynchronous
                    (concat (caar records) "._tcp." domain)
                    func 'SRV))
-                 (t
-                  (funcall callback "https://seccdn.libravatar.org/avatar")))))
+                 (t                     ;fallback
+                  (funcall callback "https://seccdn.libravatar.org/avatar"))))))
         (dns-query-asynchronous
-         (concat (caar records) "._tcp." domain) func 'SRV)))))
+         (concat (caar records) "._tcp." domain)
+         func 'SRV t)))))
 
 (defun gravatar-hash (mail-address)
   "Return the Gravatar hash for MAIL-ADDRESS."
