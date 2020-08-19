@@ -200,7 +200,9 @@
     (save-excursion
       (ignore-errors
         (goto-char pos)
-        (or (eql (char-before) ?\')
+        ;; '(lambda ..) is not a funcall position, but #'(lambda ...) is.
+        (or (and (eql (char-before) ?\')
+                 (not (eql (char-before (1- (point))) ?#)))
             (let* ((ppss (syntax-ppss))
                    (paren-posns (nth 9 ppss))
                    (parent
