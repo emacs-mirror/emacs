@@ -1118,6 +1118,7 @@ Otherwise, return a new string (without any text properties)."
              (t (forward-char 1)))))
         (buffer-string)))))
 
+(defvar help--keymaps-seen nil)
 (defun describe-map-tree (startmap partial shadow prefix title no-menu
                                    transl always-title mention-shadow)
   "Insert a description of the key bindings in STARTMAP.
@@ -1202,6 +1203,169 @@ Any inserted text ends in two newlines (used by
       (setq maps (cdr maps)))
     (when print-title
       (princ "\n"))))
+
+(defun help--shadow-lookup (keymap key accept-default remap)
+  "Like `lookup-key', but with command remapping.
+Return nil if the key sequence is too long."
+  ;; Converted from shadow_lookup in keymap.c.
+  (let ((value (lookup-key keymap key accept-default)))
+    (cond ((and (fixnump value) (<= 0 value)))
+          ((and value remap (symbolp value))
+           (or (command-remapping value nil keymap)
+               value))
+          (t value))))
+
+(defvar help--previous-description-column 0)
+(defun help--describe-command (definition)
+  ;; Converted from describe_command in keymap.c.
+  ;; If column 16 is no good, go to col 32;
+  ;; but don't push beyond that--go to next line instead.
+  (let* ((column (current-column))
+         (description-column (cond ((> column 30)
+                                    (insert "\n")
+                                    32)
+                                   ((or (> column 14)
+                                        (and (> column 10)
+                                             (= help--previous-description-column 32)))
+                                    32)
+                                   (t 16))))
+    (indent-to description-column 1)
+    (setq help--previous-description-column description-column)
+    (cond ((symbolp definition)
+           (insert (symbol-name definition) "\n"))
+          ((or (stringp definition) (vectorp definition))
+           (insert "Keyboard Macro\n"))
+          ((keymapp definition)
+           (insert "Prefix Command\n"))
+          (t (insert "??\n")))))
+
+(defun help--describe-translation (definition)
+  ;; Converted from describe_translation in keymap.c.
+  (indent-to 16 1)
+  (cond ((symbolp definition)
+         (insert (symbol-name definition) "\n"))
+        ((or (stringp definition) (vectorp definition))
+         (insert (key-description definition nil) "\n"))
+        ((keymapp definition)
+         (insert "Prefix Command\n"))
+        (t (insert "??\n"))))
+
+(defun help--describe-map-compare (a b)
+  (let ((a (car a))
+        (b (car b)))
+    (cond ((and (fixnump a) (fixnump b)) (< a b))
+          ;; ((and (not (fixnump a)) (fixnump b)) nil) ; not needed
+          ((and (fixnump a) (not (fixnump b))) t)
+          ((and (symbolp a) (symbolp b))
+           ;; Sort the keystroke names in the "natural" way, with (for
+           ;; instance) "<f2>" coming between "<f1>" and "<f11>".
+           (string-version-lessp (symbol-name a) (symbol-name b)))
+          (t nil))))
+
+(defun describe-map (map prefix transl partial shadow nomenu mention-shadow)
+  "Describe the contents of keymap MAP.
+Assume that this keymap itself is reached by the sequence of
+prefix keys PREFIX (a string or vector).
+
+TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
+`describe-map-tree'."
+  ;; Converted from describe_map in keymap.c.
+  (let* ((suppress (and partial 'suppress-keymap))
+         (map (keymap-canonicalize map))
+         (tail map)
+         (first t)
+         done vect)
+    (while (and (consp tail) (not done))
+      (cond ((or (vectorp (car tail)) (char-table-p (car tail)))
+             (describe-vector-internal (car tail) prefix transl partial
+                                       shadow map t mention-shadow))
+            ((consp (car tail))
+             (let ((event (caar tail))
+                   definition this-shadowed)
+               ;; Ignore bindings whose "prefix" are not really
+               ;; valid events. (We get these in the frames and
+               ;; buffers menu.)
+               (and (or (symbolp event) (fixnump event))
+                    (not (and nomenu (eq event 'menu-bar)))
+                    ;; Don't show undefined commands or suppressed
+                    ;; commands.
+                    (setq definition (keymap--get-keyelt (cdr (car tail)) nil))
+                    (or (not (symbolp definition))
+                        (null (get definition suppress)))
+                    ;; Don't show a command that isn't really
+                    ;; visible because a local definition of the
+                    ;; same key shadows it.
+                    (or (not shadow)
+                        (let ((tem (help--shadow-lookup shadow (vector event) t nil)))
+                          (cond ((null tem) t)
+                                ;; If both bindings are keymaps,
+                                ;; this key is a prefix key, so
+                                ;; don't say it is shadowed.
+                                ((and (keymapp definition) (keymapp tem)) t)
+                                ;; Avoid generating duplicate
+                                ;; entries if the shadowed binding
+                                ;; has the same definition.
+                                ((and mention-shadow (not (eq tem definition)))
+                                 (setq this-shadowed t))
+                                (t nil))))
+                    (push (list event definition this-shadowed) vect))))
+            ((eq (car tail) 'keymap)
+             ;; The same keymap might be in the structure twice, if
+             ;; we're using an inherited keymap.  So skip anything
+             ;; we've already encountered.
+             (let ((tem (assq tail help--keymaps-seen)))
+               (if (and (consp tem)
+                        (equal (car tem) prefix))
+                   (setq done t)
+                 (push (cons tail prefix) help--keymaps-seen)))))
+      (setq tail (cdr tail)))
+    ;; If we found some sparse map events, sort them.
+    (let ((vect (sort vect 'help--describe-map-compare)))
+      ;; Now output them in sorted order.
+      (while vect
+        (let* ((elem (car vect))
+               (start (car elem))
+               (definition (cadr elem))
+               (shadowed (caddr elem))
+               (end start))
+          (when first
+            (setq help--previous-description-column 0)
+            (insert "\n")
+            (setq first nil))
+          ;; Find consecutive chars that are identically defined.
+          (when (fixnump start)
+            (while (and (cdr vect)
+                        (let ((this-event (caar vect))
+                              (this-definition (cadar vect))
+                              (this-shadowed (caddar vect))
+                              (next-event (caar (cdr vect)))
+                              (next-definition (cadar (cdr vect)))
+                              (next-shadowed (caddar (cdr vect))))
+                          (and (eq next-event (1+ this-event))
+                               (equal next-definition this-definition)
+                               (eq this-shadowed next-shadowed))))
+              (setq vect (cdr vect))
+              (setq end (caar vect))))
+          ;; Now START .. END is the range to describe next.
+          ;; Insert the string to describe the event START.
+          (insert (key-description (vector start) prefix))
+          (when (not (eq start end))
+            (insert " .. " (key-description (vector end) prefix)))
+          ;; Print a description of the definition of this character.
+          ;; Called function will take care of spacing out far enough
+          ;; for alignment purposes.
+          (if transl
+              (help--describe-translation definition)
+            (help--describe-command definition))
+          ;; Print a description of the definition of this character.
+          ;; elt_describer will take care of spacing out far enough for
+          ;; alignment purposes.
+          (when shadowed
+            (goto-char (max (1- (point)) (point-min)))
+            (insert "\n  (this binding is currently shadowed)")
+            (goto-char (min (1+ (point)) (point-max)))))
+        ;; Next item in list.
+        (setq vect (cdr vect))))))
 
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))

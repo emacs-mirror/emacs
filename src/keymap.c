@@ -679,6 +679,23 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
   return Qnil;
 }
 
+DEFUN ("keymap--get-keyelt", Fkeymap__get_keyelt, Skeymap__get_keyelt, 2, 2, 0,
+       doc: /* Given OBJECT which was found in a slot in a keymap,
+trace indirect definitions to get the actual definition of that slot.
+An indirect definition is a list of the form
+(KEYMAP . INDEX), where KEYMAP is a keymap or a symbol defined as one
+and INDEX is the object to look up in KEYMAP to yield the definition.
+
+Also if OBJECT has a menu string as the first element,
+remove that.  Also remove a menu help string as second element.
+
+If AUTOLOAD, load autoloadable keymaps
+that are referred to with indirection.  */)
+  (Lisp_Object object, Lisp_Object autoload)
+{
+  return get_keyelt (object, NILP (autoload) ? false : true);
+}
+
 /* Given OBJECT which was found in a slot in a keymap,
    trace indirect definitions to get the actual definition of that slot.
    An indirect definition is a list of the form
@@ -2915,37 +2932,6 @@ You type        Translation\n\
 
    Any inserted text ends in two newlines (used by `help-make-xrefs').  */
 
-DEFUN ("describe-map-tree-old", Fdescribe_map_tree_old, Sdescribe_map_tree_old, 1, 8, 0,
-       doc: /* This is just temporary.  */)
-  (Lisp_Object startmap, Lisp_Object partial, Lisp_Object shadow,
-   Lisp_Object prefix, Lisp_Object title, Lisp_Object nomenu,
-   Lisp_Object transl, Lisp_Object always_title)
-{
-  ptrdiff_t count = SPECPDL_INDEX ();
-  char *title_string;
-
-  if ( !NILP (title) )
-    {
-      CHECK_STRING (title);
-      title_string = SSDATA(title);
-    }
-  else
-    {
-      title_string = NULL;
-    }
-
-  bool b_partial = NILP (partial) ? false : true;
-  bool b_nomenu = NILP (nomenu) ? false : true;
-  bool b_transl = NILP (transl) ? false : true;
-  bool b_always_title = NILP (always_title) ? false : true;
-
-  /* specbind (Qstandard_output, Fcurrent_buffer ()); */
-  describe_map_tree (startmap, b_partial, shadow, prefix, title_string,
-		     b_nomenu, b_transl, b_always_title, true);
-
-  return unbind_to (count, Qnil);
-}
-
 void
 describe_map_tree (Lisp_Object startmap, bool partial, Lisp_Object shadow,
 		   Lisp_Object prefix, const char *title, bool nomenu,
@@ -3129,27 +3115,6 @@ describe_map_compare (const void *aa, const void *bb)
        instance) "<f2>" coming between "<f1>" and "<f11>".  */
     return string_version_cmp (SYMBOL_NAME (a->event), SYMBOL_NAME (b->event));
   return 0;
-}
-
-DEFUN ("describe-map", Fdescribe_map, Sdescribe_map, 1, 7, 0,
-       doc: /* This is a temporary definition preparing the transition
-of this function to Lisp.  */)
-  (Lisp_Object map, Lisp_Object prefix,
-   Lisp_Object transl, Lisp_Object partial, Lisp_Object shadow,
-   Lisp_Object nomenu, Lisp_Object mention_shadow)
-{
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  bool b_transl = NILP(transl) ? false : true;
-  bool b_partial = NILP (partial) ? false : true;
-  bool b_nomenu = NILP (nomenu) ? false : true;
-  bool b_mention_shadow = NILP (mention_shadow) ? false : true;
-  describe_map (map, prefix,
-		b_transl ? describe_translation : describe_command,
-		b_partial, shadow, &Vhelp__keymaps_seen,
-		b_nomenu, b_mention_shadow);
-
-  return unbind_to (count, Qnil);
 }
 
 /* Describe the contents of map MAP, assuming that this map itself is
@@ -3360,6 +3325,28 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
   describe_vector (vector, Qnil, describer, describe_vector_princ, 0,
 		   Qnil, Qnil, 0, 0);
 
+  return unbind_to (count, Qnil);
+}
+
+DEFUN ("describe-vector-internal", Fdescribe_vector_internal, Sdescribe_vector_internal, 8, 8, 0,
+       doc: /* Insert a description of contents of VECTOR.  */)
+  (Lisp_Object vector, Lisp_Object prefix, Lisp_Object transl,
+   Lisp_Object partial, Lisp_Object shadow, Lisp_Object entire_map,
+   Lisp_Object keymap_p, Lisp_Object mention_shadow)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+  specbind (Qstandard_output, Fcurrent_buffer ());
+  CHECK_VECTOR_OR_CHAR_TABLE (vector);
+
+  bool b_transl = NILP (transl) ? false : true;
+  bool b_partial = NILP (partial) ? false : true;
+  bool b_keymap_p = NILP (keymap_p) ? false : true;
+  bool b_mention_shadow = NILP (mention_shadow) ? false : true;
+
+  describe_vector (vector, prefix, Qnil,
+		   b_transl ? describe_translation : describe_command,
+		   b_partial, shadow, entire_map,
+		   b_keymap_p, b_mention_shadow);
   return unbind_to (count, Qnil);
 }
 
@@ -3706,10 +3693,6 @@ exists, bindings using keys without modifiers (or only with meta) will
 be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
-  DEFVAR_LISP ("help--keymaps-seen", Vhelp__keymaps_seen,
-	       doc: /* List of seen keymaps.
-This is used for internal purposes only.  */);
-  Vhelp__keymaps_seen = Qnil;
 
   DEFSYM (Qmenu_bar, "menu-bar");
   DEFSYM (Qmode_line, "mode-line");
@@ -3764,9 +3747,9 @@ This is used for internal purposes only.  */);
   defsubr (&Scurrent_active_maps);
   defsubr (&Saccessible_keymaps);
   defsubr (&Skey_description);
-  defsubr (&Sdescribe_map_tree_old);
-  defsubr (&Sdescribe_map);
+  defsubr (&Skeymap__get_keyelt);
   defsubr (&Sdescribe_vector);
+  defsubr (&Sdescribe_vector_internal);
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
