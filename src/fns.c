@@ -1747,25 +1747,27 @@ changing the value of a sequence `foo'.  */)
 {
   if (VECTORP (seq))
     {
-      ptrdiff_t i, n;
+      ptrdiff_t n = 0;
+      ptrdiff_t size = ASIZE (seq);
+      USE_SAFE_ALLOCA;
+      Lisp_Object *kept = SAFE_ALLOCA (size * sizeof *kept);
 
-      for (i = n = 0; i < ASIZE (seq); ++i)
-	if (NILP (Fequal (AREF (seq, i), elt)))
-	  ++n;
-
-      if (n != ASIZE (seq))
+      for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  struct Lisp_Vector *p = allocate_vector (n);
-
-	  for (i = n = 0; i < ASIZE (seq); ++i)
-	    if (NILP (Fequal (AREF (seq, i), elt)))
-	      p->contents[n++] = AREF (seq, i);
-
-	  XSETVECTOR (seq, p);
+	  kept[n] = AREF (seq, i);
+	  n += NILP (Fequal (AREF (seq, i), elt));
 	}
+
+      if (n != size)
+	seq = Fvector (n, kept);
+
+      SAFE_FREE ();
     }
   else if (STRINGP (seq))
     {
+      if (!CHARACTERP (elt))
+	return seq;
+
       ptrdiff_t i, ibyte, nchars, nbytes, cbytes;
       int c;
 
@@ -1784,7 +1786,7 @@ changing the value of a sequence `foo'.  */)
 	      cbytes = 1;
 	    }
 
-	  if (!FIXNUMP (elt) || c != XFIXNUM (elt))
+	  if (c != XFIXNUM (elt))
 	    {
 	      ++nchars;
 	      nbytes += cbytes;
@@ -1814,7 +1816,7 @@ changing the value of a sequence `foo'.  */)
 		  cbytes = 1;
 		}
 
-	      if (!FIXNUMP (elt) || c != XFIXNUM (elt))
+	      if (c != XFIXNUM (elt))
 		{
 		  unsigned char *from = SDATA (seq) + ibyte;
 		  unsigned char *to   = SDATA (tem) + nbytes;

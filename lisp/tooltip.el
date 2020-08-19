@@ -167,8 +167,6 @@ This variable has effect only on GUI frames."
 
 ;;; Variables that are not customizable.
 
-(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
-
 (defvar tooltip-functions nil
   "Functions to call to display tooltips.
 Each function is called with one argument EVENT which is a copy

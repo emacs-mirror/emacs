@@ -2640,7 +2640,7 @@ Assumes that `idlwave-shell-sources-alist' contains an entry for that module."
     (if (or (not source-file)
 	    (not (file-regular-p source-file))
 	    (not (setq buf
-		       (or (idlwave-get-buffer-visiting source-file)
+                       (or (find-buffer-visiting source-file)
 			   (find-file-noselect source-file)))))
 	(progn
 	  (message "The source file for module %s is probably not compiled"
@@ -3241,8 +3241,7 @@ Does not work for a region with multiline blocks - use
   "Delete the temporary files and kill associated buffers."
   (if (stringp idlwave-shell-temp-pro-file)
       (condition-case nil
-	  (let ((buf (idlwave-get-buffer-visiting
-		      idlwave-shell-temp-pro-file)))
+          (let ((buf (find-buffer-visiting idlwave-shell-temp-pro-file)))
 	    (if (buffer-live-p buf)
 		(kill-buffer buf))
 	    (delete-file idlwave-shell-temp-pro-file))
@@ -3788,7 +3787,7 @@ handled by this command."
       (save-buffer)
       (setq idlwave-shell-last-save-and-action-file (buffer-file-name)))
      (idlwave-shell-last-save-and-action-file
-      (if (setq buf (idlwave-get-buffer-visiting
+      (if (setq buf (find-buffer-visiting
 		     idlwave-shell-last-save-and-action-file))
 	  (with-current-buffer buf
 	    (save-buffer))))

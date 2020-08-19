@@ -1523,8 +1523,10 @@ Removes badly formatted data and ignored directories."
   (remove-function read-file-name-function #'ido-read-file-name)
   (remove-function read-buffer-function #'ido-read-buffer)
   (when ido-everywhere
-    (add-function :override read-file-name-function #'ido-read-file-name)
-    (add-function :override read-buffer-function #'ido-read-buffer)))
+    (if (not ido-mode)
+        (ido-mode 'both)
+      (add-function :override read-file-name-function #'ido-read-file-name)
+      (add-function :override read-buffer-function #'ido-read-buffer))))
 
 (defvar ido-minor-mode-map-entry nil)
 
@@ -2216,7 +2218,10 @@ If cursor is not at the end of the user input, move to end of input."
        ((and ido-enable-virtual-buffers
 	     ido-virtual-buffers
 	     (setq filename (assoc buf ido-virtual-buffers)))
-	(ido-visit-buffer (find-file-noselect (cdr filename)) method t))
+        (if (eq method 'kill)
+            (setq recentf-list
+	          (delete (cdr filename) recentf-list))
+	  (ido-visit-buffer (find-file-noselect (cdr filename)) method t)))
 
        ((and (eq ido-create-new-buffer 'prompt)
 	     (null require-match)
@@ -4073,6 +4078,7 @@ Record command in `command-history' if optional RECORD is non-nil."
       (setq buffer (buffer-name buffer)))
   (let (win newframe)
     (cond
+     ;; "Killing" of virtual buffers is handled in `ido-buffer-internal'.
      ((eq method 'kill)
       (if record
 	  (ido-record-command 'kill-buffer buffer))

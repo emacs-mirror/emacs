@@ -229,9 +229,6 @@ commands.")
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
-(define-obsolete-variable-alias 'buffer-menu-mode-hook
-  'Buffer-menu-mode-hook "23.1")
-
 (define-derived-mode Buffer-menu-mode tabulated-list-mode "Buffer Menu"
   "Major mode for Buffer Menu buffers.
 The Buffer Menu is invoked by the commands \\[list-buffers],

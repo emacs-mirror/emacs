@@ -123,6 +123,12 @@ _GL_WARN_ON_USE (ffsll, "ffsll is not portable - use the ffsll module");
 #endif
 
 
+#if defined _WIN32 && !defined __CYGWIN__
+# undef memccpy
+# define memccpy _memccpy
+#endif
+
+
 /* Return the first instance of C within N bytes of S, or NULL.  */
 #if @GNULIB_MEMCHR@
 # if @REPLACE_MEMCHR@
@@ -384,6 +390,12 @@ _GL_WARN_ON_USE (strchrnul, "strchrnul is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (strdup, char *, (char const *__s) _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (strdup, char *, (char const *__s));
+# elif defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strdup
+#   define strdup _strdup
+#  endif
+_GL_CXXALIAS_MDA (strdup, char *, (char const *__s));
 # else
 #  if defined __cplusplus && defined GNULIB_NAMESPACE && defined strdup
     /* strdup exists as a function and as a macro.  Get rid of the macro.  */
@@ -401,6 +413,9 @@ _GL_CXXALIASWARN (strdup);
 _GL_WARN_ON_USE (strdup, "strdup is unportable - "
                  "use gnulib module strdup for portability");
 # endif
+#elif defined _WIN32 && !defined __CYGWIN__
+# undef strdup
+# define strdup _strdup
 #endif
 
 /* Append no more than N characters from SRC onto DEST.  */

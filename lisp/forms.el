@@ -504,12 +504,9 @@ Commands:                        Equivalent keys in read-only mode:
 	(setq forms-new-record-filter nil)
 	(setq forms-modified-record-filter nil)
 
-	;; If running Emacs 19 under X, setup faces to show read-only and
-	;; read-write fields.
-	(if (fboundp 'make-face)
-	    (progn
-	      (make-local-variable 'forms-ro-face)
-	      (make-local-variable 'forms-rw-face)))
+	;; Setup faces to show read-only and read-write fields.
+	(make-local-variable 'forms-ro-face)
+	(make-local-variable 'forms-rw-face)
 
 	;; eval the buffer, should set variables
 	;;(message "forms: processing control file...")
@@ -609,16 +606,14 @@ Commands:                        Equivalent keys in read-only mode:
   (setq forms--mode-setup t)
 
   ;; Copy desired faces to the actual variables used by the forms formatter.
-  (if (fboundp 'make-face)
+  (make-local-variable 'forms--ro-face)
+  (make-local-variable 'forms--rw-face)
+  (if forms-read-only
       (progn
-	(make-local-variable 'forms--ro-face)
-	(make-local-variable 'forms--rw-face)
-	(if forms-read-only
-	    (progn
-	      (setq forms--ro-face forms-ro-face)
-	      (setq forms--rw-face forms-ro-face))
-	  (setq forms--ro-face forms-ro-face)
-	  (setq forms--rw-face forms-rw-face))))
+	(setq forms--ro-face forms-ro-face)
+	(setq forms--rw-face forms-ro-face))
+    (setq forms--ro-face forms-ro-face)
+    (setq forms--rw-face forms-rw-face))
 
   ;; Make more local variables.
   (make-local-variable 'forms--file-buffer)

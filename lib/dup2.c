@@ -52,7 +52,7 @@ dup2_nothrow (int fd, int desired_fd)
 
   TRY_MSVC_INVAL
     {
-      result = dup2 (fd, desired_fd);
+      result = _dup2 (fd, desired_fd);
     }
   CATCH_MSVC_INVAL
     {
@@ -64,7 +64,7 @@ dup2_nothrow (int fd, int desired_fd)
   return result;
 }
 # else
-#  define dup2_nothrow dup2
+#  define dup2_nothrow _dup2
 # endif
 
 static int

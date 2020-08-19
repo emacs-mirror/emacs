@@ -105,9 +105,7 @@ Useful if new Emacs is used on B&W display.")
                                       (car cl)
                                     "white"))
           (set-face-foreground nf "black")
-          (if (and chart-face-use-pixmaps
-                   pl
-                   (fboundp 'set-face-background-pixmap))
+          (if (and chart-face-use-pixmaps pl)
               (condition-case nil
                   (set-face-background-pixmap nf (car pl))
                 (error (message "Cannot set background pixmap %s" (car pl)))))

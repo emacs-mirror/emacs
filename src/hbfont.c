@@ -594,13 +594,10 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
       yoff = - lround (pos[i].y_offset * position_unit);
       wadjust = lround (pos[i].x_advance * position_unit);
       if (xoff || yoff || wadjust != metrics.width)
-	{
-	  Lisp_Object vec = make_uninit_vector (3);
-	  ASET (vec, 0, make_fixnum (xoff));
-	  ASET (vec, 1, make_fixnum (yoff));
-	  ASET (vec, 2, make_fixnum (wadjust));
-	  LGLYPH_SET_ADJUSTMENT (lglyph, vec);
-	}
+	LGLYPH_SET_ADJUSTMENT (lglyph, CALLN (Fvector,
+					      make_fixnum (xoff),
+					      make_fixnum (yoff),
+					      make_fixnum (wadjust)));
     }
 
   return make_fixnum (glyph_len);

@@ -98,7 +98,7 @@ considered related."
 ;;; Code
 
 (defsubst viper-multiclick-p ()
-  (not (viper-sit-for-short viper-multiclick-timeout t)))
+  (not (sit-for (/ viper-multiclick-timeout 1000.0) t)))
 
 ;; Returns window where click occurs
 (defun viper-mouse-click-window (click)

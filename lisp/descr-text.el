@@ -141,8 +141,7 @@ otherwise."
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
-	 ;; If button.el is not loaded, we have no buttons in the text.
-	 (button (and (fboundp 'button-at) (button-at pos)))
+	 (button (button-at pos))
 	 (button-type (and button (button-type button)))
 	 (button-label (and button (button-label button)))
 	 (widget (or wid-field wid-button wid-doc)))

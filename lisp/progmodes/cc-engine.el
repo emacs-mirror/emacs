@@ -384,7 +384,7 @@ comment at the start of cc-engine.el for more info."
 	      c-macro-cache-syntactic nil
 	      c-macro-cache-no-comment nil))
       (save-match-data
-	(let ((safe-pos (point)))	; a point ouside any literal.
+	(let ((safe-pos (point)))	; a point outside any literal.
 	  ;; Move over stuff followed by a multiline block comment lacking
 	  ;; escaped newlines each time around this loop.
 	  (while

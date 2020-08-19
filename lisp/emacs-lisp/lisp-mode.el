@@ -200,7 +200,9 @@
     (save-excursion
       (ignore-errors
         (goto-char pos)
-        (or (eql (char-before) ?\')
+        ;; '(lambda ..) is not a funcall position, but #'(lambda ...) is.
+        (or (and (eql (char-before) ?\')
+                 (not (eql (char-before (1- (point))) ?#)))
             (let* ((ppss (syntax-ppss))
                    (paren-posns (nth 9 ppss))
                    (parent
@@ -784,8 +786,6 @@ or to switch back to an existing one."
             (goto-char pt)
             nil)))
       (comment-indent-default)))
-
-(define-obsolete-function-alias 'lisp-mode-auto-fill 'do-auto-fill "23.1")
 
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."

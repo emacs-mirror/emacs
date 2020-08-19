@@ -2605,6 +2605,7 @@ the function or facility is available, like this:
 (if (fboundp 'blink-cursor-mode)
     (blink-cursor-mode 0))
 
+@c FIXME: Find better example since `set-coding-priority' is removed.
 (if (boundp 'coding-category-utf-8)
     (set-coding-priority '(coding-category-utf-8)))
 @end example

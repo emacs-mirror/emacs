@@ -83,10 +83,8 @@ input and write the converted data to its standard output."
   "^[^:]...............................................................$")
 (defconst binhex-end-line ":$")		; unused
 
-(defvar binhex-temporary-file-directory
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp/")))
+(make-obsolete-variable 'binhex-temporary-file-directory
+                        'temporary-file-directory "28.1")
 
 (defun binhex-insert-char (char &optional count ignored buffer)
   "Insert COUNT copies of CHARACTER into BUFFER."
@@ -285,7 +283,7 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	(file-name (expand-file-name
 		    (concat (binhex-decode-region-internal start end t)
 			    ".data")
-		    binhex-temporary-file-directory)))
+		    temporary-file-directory)))
     (save-excursion
       (goto-char start)
       (when (re-search-forward binhex-begin-line nil t)
@@ -296,7 +294,7 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 				  (generate-new-buffer " *binhex-work*")))
 		(buffer-disable-undo work-buffer)
 		(insert-buffer-substring cbuf firstline end)
-		(cd binhex-temporary-file-directory)
+		(cd temporary-file-directory)
 		(apply 'call-process-region
 		       (point-min)
 		       (point-max)

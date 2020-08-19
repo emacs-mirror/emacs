@@ -329,7 +329,6 @@ Whether the passphrase is cached at all is controlled by
   (autoload 'epg-verify-string "epg")
   (autoload 'epg-sign-string "epg")
   (autoload 'epg-encrypt-string "epg")
-  (autoload 'epg-passphrase-callback-function "epg")
   (autoload 'epg-context-set-passphrase-callback "epg")
   (autoload 'epg-sub-key-fingerprint "epg")
   (autoload 'epg-configuration "epg-config")

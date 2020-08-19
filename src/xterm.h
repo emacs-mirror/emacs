@@ -1207,6 +1207,7 @@ extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
                                   void *,
+				  int,
                                   int);
 extern Lisp_Object x_property_data_to_lisp (struct frame *,
                                             const unsigned char *,

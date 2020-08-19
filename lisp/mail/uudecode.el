@@ -61,10 +61,8 @@ input and write the converted data to its standard output."
       (setq str (concat str "[^a-z]")))
     (concat str ".?$")))
 
-(defvar uudecode-temporary-file-directory
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp")))
+(make-obsolete-variable 'uudecode-temporary-file-directory
+                        'temporary-file-directory "28.1")
 
 ;;;###autoload
 (defun uudecode-decode-region-external (start end &optional file-name)
@@ -86,13 +84,7 @@ used is specified by `uudecode-decoder-program'."
 					       (match-string 1)))))
 	(setq tempfile (if file-name
 			   (expand-file-name file-name)
-			   (if (fboundp 'make-temp-file)
-			       (let ((temporary-file-directory
-				      uudecode-temporary-file-directory))
-				 (make-temp-file "uu"))
-			     (expand-file-name
-			      (make-temp-name "uu")
-			      uudecode-temporary-file-directory))))
+			 (make-temp-file "uu")))
 	(let ((cdir default-directory)
 	      (default-process-coding-system nil))
 	  (unwind-protect

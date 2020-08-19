@@ -1258,7 +1258,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	     is backward in the buffer, which can only happen if the
 	     display routines were called to perform the bidi
 	     reordering.  But it doesn't harm to test for that, and
-	     avoid someon raising their brows and thinking it's a
+	     avoid someone raising their brows and thinking it's a
 	     subtle bug...  */
 	  if (bidi_level < 0)
 	    direction = Qnil;
@@ -1939,7 +1939,7 @@ syms_of_composite (void)
   staticpro (&gstring_hash_table);
 
   staticpro (&gstring_work_headers);
-  gstring_work_headers = make_uninit_vector (8);
+  gstring_work_headers = make_nil_vector (8);
   for (i = 0; i < 8; i++)
     ASET (gstring_work_headers, i, make_nil_vector (i + 2));
   staticpro (&gstring_work);

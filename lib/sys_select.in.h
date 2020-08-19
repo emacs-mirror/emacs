@@ -177,14 +177,14 @@ rpl_fd_isset (SOCKET fd, fd_set * set)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef close
 #   define close close_used_without_including_unistd_h
-#  else
+#  elif !defined __clang__
     _GL_WARN_ON_USE (close,
                      "close() used without including <unistd.h>");
 #  endif
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef gethostname
 #   define gethostname gethostname_used_without_including_unistd_h
-#  else
+#  elif !defined __clang__
     _GL_WARN_ON_USE (gethostname,
                      "gethostname() used without including <unistd.h>");
 #  endif
@@ -219,7 +219,7 @@ rpl_fd_isset (SOCKET fd, fd_set * set)
 #   define setsockopt          setsockopt_used_without_including_sys_socket_h
 #   undef shutdown
 #   define shutdown            shutdown_used_without_including_sys_socket_h
-#  else
+#  elif !defined __clang__
     _GL_WARN_ON_USE (socket,
                      "socket() used without including <sys/socket.h>");
     _GL_WARN_ON_USE (connect,

@@ -217,6 +217,21 @@ _GL_WARN_ON_USE (canonicalize_file_name,
 # endif
 #endif
 
+#if defined _WIN32 && !defined __CYGWIN__
+# undef ecvt
+# define ecvt _ecvt
+#endif
+
+#if defined _WIN32 && !defined __CYGWIN__
+# undef fcvt
+# define fcvt _fcvt
+#endif
+
+#if defined _WIN32 && !defined __CYGWIN__
+# undef gcvt
+# define gcvt _gcvt
+#endif
+
 #if @GNULIB_GETLOADAVG@
 /* Store max(NELEM,3) load average numbers in LOADAVG[].
    The three numbers are the load average of the last 1 minute, the last 5
@@ -468,6 +483,11 @@ _GL_WARN_ON_USE (mkstemps, "mkstemps is unportable - "
 # endif
 #endif
 
+#if defined _WIN32 && !defined __CYGWIN__
+# undef mktemp
+# define mktemp _mktemp
+#endif
+
 #if @GNULIB_POSIX_OPENPT@
 /* Return an FD open to the master side of a pseudo-terminal.  Flags should
    include O_RDWR, and may also include O_NOCTTY.  */
@@ -546,10 +566,19 @@ _GL_WARN_ON_USE (ptsname_r, "ptsname_r is not portable - "
 #  endif
 _GL_FUNCDECL_RPL (putenv, int, (char *string) _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (putenv, int, (char *string));
+# elif defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef putenv
+#   define putenv _putenv
+#  endif
+_GL_CXXALIAS_MDA (putenv, int, (char *string));
 # else
 _GL_CXXALIAS_SYS (putenv, int, (char *string));
 # endif
 _GL_CXXALIASWARN (putenv);
+#elif defined _WIN32 && !defined __CYGWIN__
+# undef putenv
+# define putenv _putenv
 #endif
 
 #if @GNULIB_QSORT_R@

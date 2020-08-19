@@ -4847,21 +4847,18 @@ If the font is not OpenType font, CAPABILITY is nil.  */)
   (Lisp_Object font_object)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (font_object);
-  Lisp_Object val = make_uninit_vector (9);
-
-  ASET (val, 0, AREF (font_object, FONT_NAME_INDEX));
-  ASET (val, 1, AREF (font_object, FONT_FILE_INDEX));
-  ASET (val, 2, make_fixnum (font->pixel_size));
-  ASET (val, 3, make_fixnum (font->max_width));
-  ASET (val, 4, make_fixnum (font->ascent));
-  ASET (val, 5, make_fixnum (font->descent));
-  ASET (val, 6, make_fixnum (font->space_width));
-  ASET (val, 7, make_fixnum (font->average_width));
-  if (font->driver->otf_capability)
-    ASET (val, 8, Fcons (Qopentype, font->driver->otf_capability (font)));
-  else
-    ASET (val, 8, Qnil);
-  return val;
+  return CALLN (Fvector,
+		AREF (font_object, FONT_NAME_INDEX),
+		AREF (font_object, FONT_FILE_INDEX),
+		make_fixnum (font->pixel_size),
+		make_fixnum (font->max_width),
+		make_fixnum (font->ascent),
+		make_fixnum (font->descent),
+		make_fixnum (font->space_width),
+		make_fixnum (font->average_width),
+		(font->driver->otf_capability
+		 ? Fcons (Qopentype, font->driver->otf_capability (font))
+		 : Qnil));
 }
 
 DEFUN ("font-get-glyphs", Ffont_get_glyphs, Sfont_get_glyphs, 3, 4, 0,
@@ -4889,7 +4886,7 @@ the corresponding element is nil.  */)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (font_object);
   ptrdiff_t len;
-  Lisp_Object *chars, vec;
+  Lisp_Object *chars;
   USE_SAFE_ALLOCA;
 
   if (NILP (object))
@@ -4957,7 +4954,7 @@ the corresponding element is nil.  */)
   else
     wrong_type_argument (Qarrayp, object);
 
-  vec = make_uninit_vector (len);
+  Lisp_Object vec = make_nil_vector (len);
   for (ptrdiff_t i = 0; i < len; i++)
     {
       Lisp_Object g;
@@ -5168,24 +5165,23 @@ If the named font cannot be opened and loaded, return nil.  */)
     return Qnil;
   font = XFONT_OBJECT (font_object);
 
-  info = make_uninit_vector (14);
-  ASET (info, 0, AREF (font_object, FONT_NAME_INDEX));
-  ASET (info, 1, AREF (font_object, FONT_FULLNAME_INDEX));
-  ASET (info, 2, make_fixnum (font->pixel_size));
-  ASET (info, 3, make_fixnum (font->height));
-  ASET (info, 4, make_fixnum (font->baseline_offset));
-  ASET (info, 5, make_fixnum (font->relative_compose));
-  ASET (info, 6, make_fixnum (font->default_ascent));
-  ASET (info, 7, make_fixnum (font->max_width));
-  ASET (info, 8, make_fixnum (font->ascent));
-  ASET (info, 9, make_fixnum (font->descent));
-  ASET (info, 10, make_fixnum (font->space_width));
-  ASET (info, 11, make_fixnum (font->average_width));
-  ASET (info, 12, AREF (font_object, FONT_FILE_INDEX));
-  if (font->driver->otf_capability)
-    ASET (info, 13, Fcons (Qopentype, font->driver->otf_capability (font)));
-  else
-    ASET (info, 13, Qnil);
+  info = CALLN (Fvector,
+		AREF (font_object, FONT_NAME_INDEX),
+		AREF (font_object, FONT_FULLNAME_INDEX),
+		make_fixnum (font->pixel_size),
+		make_fixnum (font->height),
+		make_fixnum (font->baseline_offset),
+		make_fixnum (font->relative_compose),
+		make_fixnum (font->default_ascent),
+		make_fixnum (font->max_width),
+		make_fixnum (font->ascent),
+		make_fixnum (font->descent),
+		make_fixnum (font->space_width),
+		make_fixnum (font->average_width),
+		AREF (font_object, FONT_FILE_INDEX),
+		(font->driver->otf_capability
+		 ? Fcons (Qopentype, font->driver->otf_capability (font))
+		 : Qnil));
 
 #if 0
   /* As font_object is still in FONT_OBJLIST of the entity, we can't
@@ -5203,7 +5199,7 @@ If the named font cannot be opened and loaded, return nil.  */)
 static Lisp_Object
 build_style_table (const struct table_entry *entry, int nelement)
 {
-  Lisp_Object table = make_uninit_vector (nelement);
+  Lisp_Object table = make_nil_vector (nelement);
   for (int i = 0; i < nelement; i++)
     {
       int j;
@@ -5494,10 +5490,8 @@ This variable cannot be set; trying to do so will signal an error.  */);
   make_symbol_constant (intern_c_string ("font-width-table"));
 
   staticpro (&font_style_table);
-  font_style_table = make_uninit_vector (3);
-  ASET (font_style_table, 0, Vfont_weight_table);
-  ASET (font_style_table, 1, Vfont_slant_table);
-  ASET (font_style_table, 2, Vfont_width_table);
+  font_style_table = CALLN (Fvector, Vfont_weight_table, Vfont_slant_table,
+			    Vfont_width_table);
 
   DEFVAR_LISP ("font-log", Vfont_log, doc: /*
 A list that logs font-related actions and results, for debugging.

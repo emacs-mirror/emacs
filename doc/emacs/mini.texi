@@ -518,6 +518,13 @@ between @samp{foo} and @samp{bar}, that matches
 @samp{@var{a}foo@var{b}bar@var{c}}, where @var{a}, @var{b}, and
 @var{c} can be any string including the empty string.
 
+@item flex
+@cindex @code{flex}, completion style
+This aggressive completion style, also known as @code{flx} or
+@code{fuzzy} or @code{scatter} completion, attempts to complete using
+in-order substrings.  For example, it can consider @samp{foo} to match
+@samp{frodo} or @samp{fbarbazoo}.
+
 @item initials
 @cindex @code{initials}, completion style
 This very aggressive completion style attempts to complete acronyms

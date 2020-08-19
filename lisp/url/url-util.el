@@ -569,31 +569,6 @@ Has a preference for looking backward when not directly on a symbol."
 	  (setq url nil))
       url)))
 
-(defun url-generate-unique-filename (&optional fmt)
-  "Generate a unique filename in `url-temporary-directory'."
-  (declare (obsolete make-temp-file "23.1"))
-  ;; This variable is obsolete, but so is this function.
-  (let ((tempdir (with-no-warnings url-temporary-directory)))
-    (if (not fmt)
-	(let ((base (format "url-tmp.%d" (user-real-uid)))
-	      (fname "")
-	      (x 0))
-	  (setq fname (format "%s%d" base x))
-	  (while (file-exists-p
-		  (expand-file-name fname tempdir))
-	    (setq x (1+ x)
-		  fname (concat base (int-to-string x))))
-	  (expand-file-name fname tempdir))
-      (let ((base (concat "url" (int-to-string (user-real-uid))))
-	    (fname "")
-	    (x 0))
-	(setq fname (format fmt (concat base (int-to-string x))))
-	(while (file-exists-p
-		(expand-file-name fname tempdir))
-	  (setq x (1+ x)
-		fname (format fmt (concat base (int-to-string x)))))
-	(expand-file-name fname tempdir)))))
-
 (defun url-extract-mime-headers ()
   "Set `url-current-mime-headers' in current buffer."
   (save-excursion

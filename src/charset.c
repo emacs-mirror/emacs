@@ -1035,12 +1035,9 @@ usage: (define-charset-internal ...)  */)
       CHECK_FIXNAT (parent_max_code);
       parent_code_offset = Fnth (make_fixnum (3), val);
       CHECK_FIXNUM (parent_code_offset);
-      val = make_uninit_vector (4);
-      ASET (val, 0, make_fixnum (parent_charset->id));
-      ASET (val, 1, parent_min_code);
-      ASET (val, 2, parent_max_code);
-      ASET (val, 3, parent_code_offset);
-      ASET (attrs, charset_subset, val);
+      ASET (attrs, charset_subset,
+	    CALLN (Fvector, make_fixnum (parent_charset->id),
+		   parent_min_code, parent_max_code, parent_code_offset));
 
       charset.method = CHARSET_METHOD_SUBSET;
       /* Here, we just copy the parent's fast_map.  It's not accurate,

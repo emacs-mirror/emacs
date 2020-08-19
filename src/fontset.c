@@ -252,14 +252,13 @@ set_fontset_fallback (Lisp_Object fontset, Lisp_Object fallback)
 
 #define BASE_FONTSET_P(fontset) (NILP (FONTSET_BASE (fontset)))
 
-/* Macros for FONT-DEF and RFONT-DEF of fontset.  */
-#define FONT_DEF_NEW(font_def, font_spec, encoding, repertory)	\
-  do {								\
-    (font_def) = make_uninit_vector (3);			\
-    ASET ((font_def), 0, font_spec);				\
-    ASET ((font_def), 1, encoding);				\
-    ASET ((font_def), 2, repertory);				\
-  } while (0)
+/* Definitions for FONT-DEF and RFONT-DEF of fontset.  */
+static Lisp_Object
+font_def_new (Lisp_Object font_spec, Lisp_Object encoding,
+	      Lisp_Object repertory)
+{
+  return CALLN (Fvector, font_spec, encoding, repertory);
+}
 
 #define FONT_DEF_SPEC(font_def) AREF (font_def, 0)
 #define FONT_DEF_ENCODING(font_def) AREF (font_def, 1)
@@ -1547,7 +1546,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	      repertory = CHARSET_SYMBOL_ID (repertory);
 	    }
 	}
-      FONT_DEF_NEW (font_def, font_spec, encoding, repertory);
+      font_def = font_def_new (font_spec, encoding, repertory);
     }
   else
     font_def = Qnil;
@@ -1619,14 +1618,8 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 
   if (charset)
     {
-      Lisp_Object arg;
-
-      arg = make_uninit_vector (5);
-      ASET (arg, 0, fontset);
-      ASET (arg, 1, font_def);
-      ASET (arg, 2, add);
-      ASET (arg, 3, ascii_changed ? Qt : Qnil);
-      ASET (arg, 4, range_list);
+      Lisp_Object arg = CALLN (Fvector, fontset, font_def, add,
+			       ascii_changed ? Qt : Qnil, range_list);
 
       map_charset_chars (set_fontset_font, Qnil, arg, charset,
 			 CHARSET_MIN_CODE (charset),

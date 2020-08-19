@@ -287,14 +287,6 @@
 ;;;
 ;;;  User Configurable Variables
 ;;;
-(defcustom tpu-have-ispell t
-  "Non-nil means `tpu-spell-check' uses `ispell-region' for spell checking.
-Otherwise, use `spell-region'."
-  :type 'boolean
-  :group 'tpu)
-(make-obsolete-variable 'tpu-have-ispell "the `spell' package is obsolete."
-                        "23.1")
-
 (defcustom tpu-kill-buffers-silently nil
   "If non-nil, TPU-edt kills modified buffers without asking."
   :type 'boolean
@@ -315,7 +307,6 @@ Otherwise, use `spell-region'."
 ;;;  Global Keymaps
 ;;;
 
-(define-obsolete-variable-alias 'GOLD-map 'tpu-gold-map "23.1")
 (defvar tpu-gold-map
   (let ((map (make-keymap)))
     ;; Previously we used escape sequences here.  We now instead presume
@@ -892,8 +883,7 @@ With argument, fill and justify."
 if no region is selected."
   (interactive)
   (let ((m (tpu-mark)))
-    (apply (if tpu-have-ispell 'ispell-region
-             'spell-region)
+    (apply 'ispell-region
            (if m
                (if (> m (point)) (list (point) m)
                  (list m (point)))

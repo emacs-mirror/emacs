@@ -1,4 +1,4 @@
-# alloca.m4 serial 17
+# alloca.m4 serial 18
 dnl Copyright (C) 2002-2004, 2006-2007, 2009-2020 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -102,7 +102,7 @@ AH_VERBATIM([STACK_DIRECTION],
         STACK_DIRECTION > 0 => grows toward higher addresses
         STACK_DIRECTION < 0 => grows toward lower addresses
         STACK_DIRECTION = 0 => direction of growth unknown */
-@%:@undef STACK_DIRECTION])dnl
+#undef STACK_DIRECTION])dnl
 AC_DEFINE_UNQUOTED(STACK_DIRECTION, $ac_cv_c_stack_direction)
 ])
 ])

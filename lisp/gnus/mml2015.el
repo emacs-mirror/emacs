@@ -712,7 +712,6 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-verify-string "epg")
 (autoload 'epg-sign-string "epg")
 (autoload 'epg-encrypt-string "epg")
-(autoload 'epg-passphrase-callback-function "epg")
 (autoload 'epg-context-set-passphrase-callback "epg")
 (autoload 'epg-key-sub-key-list "epg")
 (autoload 'epg-sub-key-capability "epg")

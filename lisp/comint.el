@@ -223,6 +223,13 @@ This variable is buffer-local."
 		 (other :tag "on" t))
   :group 'comint)
 
+(defcustom comint-highlight-input t
+  "If non-nil, highlight input with `comint-highlight-input' face.
+Otherwise keep the original highlighting untouched."
+  :version "28.1"
+  :type 'boolean
+  :group 'comint)
+
 (defface comint-highlight-input '((t (:weight bold)))
   "Face to use to highlight user input."
   :group 'comint)
@@ -1897,9 +1904,10 @@ Similarly for Soar, Scheme, etc."
               (end (if no-newline (point) (1- (point)))))
           (with-silent-modifications
             (when (> end beg)
-              (add-text-properties beg end
-                                   '(front-sticky t
-                                     font-lock-face comint-highlight-input))
+              (when comint-highlight-input
+                (add-text-properties beg end
+                                     '( font-lock-face comint-highlight-input
+                                        front-sticky t )))
               (unless comint-use-prompt-regexp
                 ;; Give old user input a field property of `input', to
                 ;; distinguish it from both process output and unsent
@@ -3852,7 +3860,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
       (set-buffer output-buffer)
       (goto-char (point-min))
       ;; Skip past the command, if it was echoed
-      (and (looking-at command)
+      (and (looking-at (regexp-quote command))
 	   (forward-line))
       (while (and (not (eobp))
 		  (re-search-forward regexp nil t))

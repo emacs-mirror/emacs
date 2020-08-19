@@ -3856,7 +3856,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 (defun ps-color-scale (color)
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
   (mapcar #'(lambda (value) (/ value ps-print-color-scale))
-	  (ps-color-values color)))
+	  (color-values color)))
 
 
 (defun ps-face-underlined-p (face)
@@ -5752,7 +5752,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	;; evaluated at dump-time because X isn't initialized.
 	ps-color-p            (and ps-print-color-p (ps-color-device))
 	ps-print-color-scale  (if ps-color-p
-				  (float (car (ps-color-values "white")))
+				  (float (car (color-values "white")))
 				1.0)
 	ps-default-background (ps-rgb-color
 			       (cond
@@ -6273,10 +6273,6 @@ If FACE is not a valid face name, use default face."
 			   face))
        fg-color bg-color (ash effect -2)))))
   (goto-char to))
-
-
-;; Ensure that face-list is fbound.
-(or (fboundp 'face-list) (defalias 'face-list 'list-faces))
 
 
 (defun ps-build-reference-face-lists ()

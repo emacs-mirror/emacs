@@ -419,27 +419,6 @@ EMACSLOADPATH overrides which directories the function "load" will search.
 If you observe strange problems, check for this variable in your
 environment.
 
-*** Using epop3.el package causes Emacs to signal an error.
-
-The error message might be something like this:
-
-  "Lisp nesting exceeds max-lisp-eval-depth"
-
-This happens because epop3 redefines the function gethash, which is a
-built-in primitive beginning with Emacs 21.1.  We don't have a patch
-for epop3 to fix it, but perhaps a newer version of epop3 corrects that.
-
-*** Buffers from 'with-output-to-temp-buffer' get set up in Help mode.
-
-Changes in Emacs 20.4 to the hooks used by that function cause
-problems for some packages, specifically BBDB.  See the function's
-documentation for the hooks involved.  BBDB 2.00.06 fixes the problem.
-
-*** The Hyperbole package causes *Help* buffers not to be displayed in
-Help mode due to setting 'temp-buffer-show-hook' rather than using
-'add-hook'.  Using '(add-hook 'temp-buffer-show-hook 'help-mode-finish)'
-after loading Hyperbole should fix this.
-
 ** Keyboard problems
 
 *** Unable to enter the M-| key on some German keyboards.
@@ -574,13 +553,6 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 For example, simply moving through a file that contains hundreds of
 thousands of characters per line is slow, and consumes a lot of CPU.
 This is a known limitation of Emacs with no solution at this time.
-
-*** Emacs uses 100% of CPU time
-
-This was a known problem with some old versions of the Semantic package.
-The solution was to upgrade Semantic to version 2.0pre4 (distributed
-with CEDET 1.0pre4) or later.  Note that Emacs includes Semantic since
-23.2, and this issue does not apply to the included version.
 
 *** Display artifacts on GUI frames on X-based systems.
 
@@ -1952,11 +1924,6 @@ A few versions of the Linux kernel have timer bugs that break CPU
 profiling; see Bug#34235.  To fix the problem, upgrade to one of the
 kernel versions 4.14.97, 4.19.19, or 4.20.6, or later.
 
-*** GNU/Linux: Process output is corrupted.
-
-There is a bug in Linux kernel 2.6.10 PTYs that can cause emacs to
-read corrupted process output.
-
 *** GNU/Linux: Remote access to CVS with SSH causes file corruption.
 
 If you access a remote CVS repository via SSH, files may be corrupted
@@ -2739,11 +2706,6 @@ The symbol is sendmmsg@FBSD_1.4.  This is due to a faulty libgio
 library on these systems.  The solution is to reconfigure Emacs while
 disabling all the features that require libgio: rsvg, dbus, gconf, and
 imagemagick.
-
-*** Building Emacs for Cygwin can fail with GCC 3
-
-As of Emacs 22.1, there have been stability problems with Cygwin
-builds of Emacs using GCC 3.  Cygwin users are advised to use GCC 4.
 
 *** Building Emacs 23.3 and later will fail under Cygwin 1.5.19
 

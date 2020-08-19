@@ -672,9 +672,30 @@ Currently this means either text/html or application/xhtml+xml."
   (setq header-line-format
 	(and eww-header-line-format
 	     (let ((title (plist-get eww-data :title))
-		   (peer (plist-get eww-data :peer)))
+		   (peer (plist-get eww-data :peer))
+                   (url (plist-get eww-data :url)))
 	       (when (zerop (length title))
 		 (setq title "[untitled]"))
+               ;; Limit the length of the title so that the host name
+               ;; of the URL is always visible.
+               (when url
+                 (let* ((parsed (url-generic-parse-url url))
+                        (host-length (length (format "%s://%s"
+                                                     (url-type parsed)
+                                                     (url-host parsed))))
+                        (width (window-width)))
+                   (cond
+                    ;; The host bit is wider than the window, so nix
+                    ;; the title.
+                    ((> (+ host-length 5) width)
+                     (setq title ""))
+                    ;; Trim the title.
+                    ((> (+ (length title) host-length 2) width)
+                     (setq title (concat
+                                  (substring title 0 (- width
+                                                        host-length
+                                                        5))
+                                  "..."))))))
 	       ;; This connection has is https.
 	       (when peer
 		 (setq title
@@ -686,7 +707,7 @@ Currently this means either text/html or application/xhtml+xml."
 		"%" "%%"
 		(format-spec
 		 eww-header-line-format
-		 `((?u . ,(or (plist-get eww-data :url) ""))
+		 `((?u . ,(or url ""))
 		   (?t . ,title))))))))
 
 (defun eww-tag-title (dom)

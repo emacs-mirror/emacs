@@ -100,6 +100,13 @@
   (should (equal (url-expand-file-name "foo#bar" "http://host/foobar") "http://host/foo#bar"))
   (should (equal (url-expand-file-name "foo#bar" "http://host/foobar/") "http://host/foobar/foo#bar")))
 
+(ert-deftest url-expand-file-name/relative-resolution-file-url ()
+  "RFC 3986, Section 5.4 Reference Resolution Examples / Section 5.4.1. Normal Examples"
+  (should (equal (url-expand-file-name "bar.html"          "file:///a/b/c/foo.html") "file:///a/b/c/bar.html"))
+  (should (equal (url-expand-file-name "bar.html"          "file:///a/b/c/")         "file:///a/b/c/bar.html"))
+  (should (equal (url-expand-file-name "../d/bar.html"     "file:///a/b/c/")         "file:///a/b/d/bar.html"))
+  (should (equal (url-expand-file-name "../d/bar.html"     "file:///a/b/c/foo.html") "file:///a/b/d/bar.html")))
+
 (provide 'url-expand-tests)
 
 ;;; url-expand-tests.el ends here

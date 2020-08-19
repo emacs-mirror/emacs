@@ -199,7 +199,7 @@ and variables.
 displayed and which are kept hidden.
 
 ---
-*** New command bound to 'C': 'archive-copy-file'
+*** New command bound to 'C': 'archive-copy-file'.
 This command extracts the file under point and writes the data to a
 file.
 
@@ -216,16 +216,16 @@ as a data list rather than as a piece of code.
 
 +++
 *** New user option 'calendar-time-zone-style'.
-If 'numeric, calendar functions (eg calendar-sunrise-sunset) that display
+If 'numeric', calendar functions (eg 'calendar-sunrise-sunset') that display
 time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
 +++
 *** New user option 'dired-copy-dereference'.
-If set, Dired will dereferences symbolic links when copying.  This can
-be switched off on a per-usage basis by providing 'dired-do-copy' with
-a 'C-u' prefix.
+If set to non-nil, Dired will dereference symbolic links when copying.
+This can be switched off on a per-usage basis by providing
+'dired-do-copy' with a 'C-u' prefix.
 
 *** New user option 'dired-mark-region' affects all Dired commands
 that mark files.  When non-nil and the region is active in Transient
@@ -259,8 +259,19 @@ invoke 'C-u C-x v s' ('vc-create-tag').
 ---
 *** 'vc-hg' now uses 'hg summary' to populate extra 'vc-dir' headers.
 
+---
+*** New variable 'vc-git-revision-complete-only-branches'
+If non-nil, only branches and remotes are considered when doing
+completion over branch names.
 
 ** Gnus
+
++++
+*** The key binding of 'gnus-summary-search-article-forward' has changed.
+This command was previously on 'M-s' and shadowed the global 'M-s'
+search prefix.  The command has now been moved to 'M-s M-s'.  (For
+consistency, the 'M-s M-r' key binding has been added for the
+'gnus-summary-search-article-backward' command.)
 
 ---
 *** The value of "all" in the 'large-newsgroup-initial' group parameter changes.
@@ -293,23 +304,23 @@ To generate these headers, add the new function
 be generated according to the new 'message-openpgp-header' variable.
 
 ---
-*** A change to how Mail-Copies-To: never is handled.
-If a user has specified Mail-Copies-To: never, and Message was asked
+*** A change to how "Mail-Copies-To: never" is handled.
+If a user has specified "Mail-Copies-To: never", and Message was asked
 to do a "wide reply", some other arbitrary recipient would end up in
-the resulting To header, while the remaining recipients would be put
-in the Cc header.  This is somewhat misleading, as it looks like
+the resulting "To" header, while the remaining recipients would be put
+in the "Cc" header.  This is somewhat misleading, as it looks like
 you're responding to a specific person in particular.  This has been
-changed so that all the recipients are put in the To header in these
+changed so that all the recipients are put in the "To" header in these
 instances.
 
 +++
 *** New function to start Emacs in Message mode to send an email.
 Emacs can be defined as a handler for the "x-scheme-handler/mailto"
 MIME type with the following command: "emacs -f message-mailto %u".
-An emacs-mail.desktop file has been included, suitable for installing
-in desktop directories like /usr/share/applications.  Clicking on a
-mailto: link in other applications will then open Emacs with headers
-filled out according to the link, e.g.
+An "emacs-mail.desktop" file has been included, suitable for
+installing in desktop directories like "/usr/share/applications".
+Clicking on a 'mailto:' link in other applications will then open
+Emacs with headers filled out according to the link, e.g.
 "mailto:larsi@gnus.org?subject=This+is+a+test".
 
 ---
@@ -324,7 +335,7 @@ this user option.
 *** New command to take screenshots.
 In Message mode buffers, the 'C-c C-p' ('message-insert-screenshot')
 command has been added.  It depends on using an external program to
-take the actual screenshot, and defaults to ImageMagick "import".
+take the actual screenshot, and defaults to "ImageMagick import".
 
 ** Help
 
@@ -345,7 +356,7 @@ This file was a compatibility kludge which is no longer needed.
 
 ---
 ** Lisp mode now uses 'common-lisp-indent-function'.
-To revert to the previous behaviour,
+To revert to the previous behavior,
 '(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
 
 ** Edebug
@@ -491,7 +502,7 @@ Defaults to 'libravatar', with 'unicornify' and 'gravatar' as options.
 
 *** Regexp matching of messages is now case-sensitive by default.
 The variable 'compilation-error-case-fold-search' can be set for
-case-insensitive matching of messages when the old behaviour is
+case-insensitive matching of messages when the old behavior is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
@@ -523,10 +534,10 @@ This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
 
 ---
 *** New commands for moving in and between environments.
-An "environment" is something that ends with @end.  The commands are
+An "environment" is something that ends with '@end'.  The commands are
 'C-c C-c C-f' (next end), 'C-c C-c C-b' (previous end),
 'C-c C-c C-n' (next start) and 'C-c C-c C-p' (previous start), as well
-as 'C-c .', which will alternate between the start end the end of the
+as 'C-c .', which will alternate between the start and the end of the
 current environment.
 
 ** Rmail
@@ -650,8 +661,8 @@ mode buffer.
 +++
 *** New Emacs command line convenience function.
 The 'eww-browse' command has been added, which allows you to register
-Emacs as a MIME handler for "text/x-uri", and will call eww on the
-supplied URL.  Usage example: emacs -f eww-browse https://gnu.org
+Emacs as a MIME handler for "text/x-uri", and will call 'eww' on the
+supplied URL.  Usage example: "emacs -f eww-browse https://gnu.org".
 
 +++
 *** 'eww-download-directory' will now use the XDG location, if defined.
@@ -714,12 +725,24 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 ** erc
 
 ---
-*** The /ignore command will now ask for a timeout to stop ignoring the user.
+*** The '/ignore' command will now ask for a timeout to stop ignoring the user.
 Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
 
 ---
-*** ERC now recognizes C-] for italic text.
+*** ERC now recognizes 'C-]' for italic text.
 Italic text is displayed in the new 'erc-italic-face'.
+
+---
+*** The erc-compat.el library is now marked obsolete.
+This file contained ERC compatibility code for Emacs 21 and XEmacs
+which is no longer needed.
+
+---
+*** erc-match.el now supports 'message' highlight type (not including the nick).
+The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
+'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
+'erc-dangerous-host-highlight-type' variables now support a 'message'
+type for highlighting the entire message but not the sender's nick.
 
 ** Battery
 
@@ -771,18 +794,68 @@ The recentf files are no longer backed up.
 ** Calc
 
 ---
-*** The behaviour when doing forward-delete has been changed.
+*** The behavior when doing forward-delete has been changed.
 Previously, using the 'C-d' command would delete the final number in
 the input field, no matter where point was.  This has been changed to
 work more traditionally, with 'C-d' deleting the next character.
 Likewise, point isn't moved to the end of the string before inserting
 digits.
 
+** term-mode
+
+---
+*** New user option 'term-scroll-snap-to-bottom'.
+By default, 'term' and 'ansi-term' will now recenter the buffer so
+that the prompt is on the final line in the window.  Setting this new
+user option to nil inhibits this behavior.
+
+---
+*** New user option 'term-set-terminal-size'
+If non-nil, the 'LINES' and 'COLUMNS' environment variables will be set
+based on the current window size.  In previous versions of Emacs, this
+was always done (and that could lead to odd displays when resizing the
+window after starting).  This variable defaults to nil.
+
+
 ** Miscellaneous
 
-*** The new library hierarchy.el has been added.
-It's a library to create, query, navigate and display hierarchy
-structures.
+---
+*** 'C-s' in 'M-x' now searches over completions again.
+In Emacs 23, typing 'M-x' ('read-extended-command') and then 'C-s' (to
+do an interactive search) would search over possible completions.
+This was lost in Emacs 24, but is now back again.
+
+---
+*** 'M-x report-emacs-bug' will no longer include "Recent messages" section.
+These were taken from the "*Messages*" buffer, and may inadvertently
+leak information from the reporting user.
+
+---
+*** 'count-windows' now takes an optional parameter ALL-FRAMES.
+The semantics are as with 'walk-windows'.
+
+---
+*** Killing virtual ido buffers interactively will make them go away.
+Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
+do anything.  This has now been changed, and killing virtual buffers
+with that command will remove the buffer from recentf.
+
+---
+*** New variable 'ffap-file-name-with-spaces'.
+If non-nil, 'find-file-at-point' and friends will try to guess more
+expansively to identify a file name with spaces.
+
+---
+*** Two new commands for centering in 'doc-view-mode'.
+The new commands 'doc-view-center-page-horizontally' (bound to 'c h')
+and 'doc-view-center-page-vertically' (bound to 'c v') center the page
+horizontally and vertically, respectively.
+
+---
+*** Change in meaning of 'icomplete-show-matches-on-no-input'.
+Previously, choosing a different completion with commands like 'C-.'
+and then hitting 'RET' would choose the default completion.  Doing this
+will now choose the completion under point instead.
 
 ---
 *** The width of the buffer-name column in 'list-buffers' is now dynamic.
@@ -791,23 +864,23 @@ wider than the length of the longest buffer name, except that it will
 never be narrower than 19 characters.
 
 *** Bookmarks can now be targets for new tabs.
-When the 'bookmark.el' library is loaded, a customize choice is added
+When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
 
 ** xwidget-webkit mode
 
-*** New xwidget functions
+*** New xwidget functions.
 'xwidget-webkit-uri' (return the current URL), 'xwidget-webkit-title'
 (return the current title), and 'xwidget-webkit-goto-history' (goto a
 point in history).
 
-*** Pixel-based scrolling
+*** Pixel-based scrolling.
 The 'xwidget-webkit-scroll-up', 'xwidget-webkit-scroll-down' commands
 now supports scrolling arbitrary pixel values.  It now treats the
 optional 2nd argument as the pixel values to scroll.
 
-*** New commands for scrolling
+*** New commands for scrolling.
 The new commands 'xwidget-webkit-scroll-up-line',
 'xwidget-webkit-scroll-down-line', 'xwidget-webkit-scroll-forward',
 'xwidget-webkit-scroll-backward' can be used to scroll webkit by the
@@ -816,6 +889,41 @@ height of lines or width of chars.
 *** New user option 'xwidget-webkit-bookmark-jump-new-session'.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
+
+** Flyspell mode
+
++++
+*** Corrections and actions menu can be optionally bound to 'mouse-3'.
+When Flyspell mode highlights a word as misspelled, you can click on
+it to display a menu of possible corrections and actions.  You can now
+easily bind this menu to 'down-mouse-3' (usually the right mouse button)
+instead of 'mouse-2' (the default) by customizing the new user option
+'flyspell-use-mouse-3-for-menu'.
+
+** Time
+
+---
+*** 'display-time-world' has been renamed to 'world-clock'.
+'world-clock' creates a buffer with an updating time display using
+several time zones.  It is hoped that the new names are more
+discoverable.
+
+The following functions have been renamed:
+
+  'display-time-world'         to 'world-clock'
+  'display-time-world-mode'    to 'world-clock-mode'
+  'display-time-world-display' to 'world-clock-display'
+  'display-time-world-timer'   to 'world-clock-update'
+
+The following user options have been renamed:
+
+  'display-time-world-list'         to 'world-clock-list'
+  'display-time-world-time-format'  to 'world-clock-time-format'
+  'display-time-world-buffer-name'  to 'world-clock-buffer-name'
+  'display-time-world-timer-enable' to 'world-clock-timer-enable'
+  'display-time-world-timer-second' to 'world-clock-timer-second'
+
+The old names are now obsolete.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -826,6 +934,10 @@ The new command 'lisp-data-mode' enables a major mode for buffers
 composed of Lisp symbolic expressions that do not form a computer
 program.  The ".dir-locals.el" file is automatically set to use this
 mode, as are other data files produced by Emacs.
+
+** hierarchy.el
+
+It's a library to create, query, navigate and display hierarchy structures.
 
 
 * Incompatible Editing Changes in Emacs 28.1
@@ -889,7 +1001,41 @@ have now been removed.
 
 ---
 ** Some libraries obsolete since Emacs 23 have been removed:
-'ledit.el', 'lmenu.el', 'lucid.el and 'old-whitespace.el'.
+ledit.el, lmenu.el, lucid.el and old-whitespace.el.
+
+---
+** Some functions and variables obsolete since Emacs 23 have been removed:
+
+'GOLD-map', 'bookmark-jump-noselect',
+'bookmark-read-annotation-text-func', 'buffer-menu-mode-hook',
+'char-coding-system-table', 'char-valid-p', 'charset-bytes',
+'charset-id', 'charset-list' (function), 'complete-in-turn',
+'completion-common-substring', 'crm-minibuffer-complete',
+'crm-minibuffer-complete-and-exit', 'crm-minibuffer-completion-help',
+'custom-mode', 'custom-mode-hook', 'detect-coding-with-priority',
+'dirtrack-debug' (function), 'dirtrack-debug-toggle',
+'dynamic-completion-table',
+'easy-menu-precalculate-equivalent-keybindings',
+'epa-display-verify-result', 'epg-passphrase-callback-function',
+'eshell-report-bug', 'ffap-bug', 'ffap-submit-bug', 'forward-point',
+'generic-char-p', 'global-highlight-changes', 'hi-lock-face-history',
+'hi-lock-regexp-history', 'highlight-changes-active-string',
+'highlight-changes-initial-state', 'highlight-changes-passive-string',
+'ispell-aspell-supports-utf8', 'lisp-mode-auto-fill',
+'locate-file-completion', 'make-coding-system',
+'minibuffer-local-must-match-filename-map', 'mouse-major-mode-menu',
+'mouse-popup-menubar', 'mouse-popup-menubar-stuff',
+'newsticker-groups-filename', 'non-iso-charset-alist',
+'nonascii-insert-offset', 'nonascii-translation-table',
+'password-read-and-add', 'pre-abbrev-expand-hook',
+'process-filter-multibyte-p', 'remember-buffer' (function),
+'rmail-message-filter', 'set-coding-priority',
+'set-process-filter-multibyte', 'shell-dirtrack-toggle',
+'t-mouse-mode', 'tooltip-hook', 'tpu-have-ispell',
+'url-generate-unique-filename', 'url-temporary-directory',
+'vc-arch-command', 'vc-default-working-revision' (variable),
+'vc-mtn-command', 'vc-revert-buffer', 'vc-workfile-version',
+'vcursor-toggle-vcursor-map', 'w32-focus-frame', 'w32-select-font'.
 
 
 * Lisp Changes in Emacs 28.1
@@ -897,6 +1043,12 @@ have now been removed.
 +++
 ** The 'count-lines' function now takes an optional parameter to
 ignore invisible lines.
+
+---
+** 'count-words' now crosses field boundaries.
+Originally, 'count-words' would stop counting at the first field
+boundary it encountered; now it keeps counting all the way to the
+region's (or buffer's) end.
 
 ---
 ** New function 'custom-add-choice'.
@@ -1038,7 +1190,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
 
 
 Local variables:

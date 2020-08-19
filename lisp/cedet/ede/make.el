@@ -32,29 +32,15 @@
 
 (declare-function inversion-check-version "inversion")
 
-(if (fboundp 'locate-file)
-    (defsubst ede--find-executable (exec)
-      "Return an expanded file name for a program EXEC on the exec path."
-      (locate-file exec exec-path))
-
-  ;; Else, older version of Emacs.
-
-  (defsubst ede--find-executable (exec)
-    "Return an expanded file name for a program EXEC on the exec path."
-    (let ((p exec-path)
-	  (found nil))
-      (while (and p (not found))
-        (let ((f (expand-file-name exec (car p))))
-	  (if (file-exists-p f)
-	      (setq found f)))
-        (setq p (cdr p)))
-      found))
-  )
+(defsubst ede--find-executable (exec)
+  "Return an expanded file name for a program EXEC on the exec path."
+  (declare (obsolete locate-file "28.1"))
+  (locate-file exec exec-path))
 
 (defvar ede-make-min-version "3.0"
   "Minimum version of GNU make required.")
 
-(defcustom ede-make-command (cond ((ede--find-executable "gmake")
+(defcustom ede-make-command (cond ((executable-find "gmake")
 				   "gmake")
 				  (t "make")) ;; What to do?
   "The MAKE command to use for EDE when compiling.

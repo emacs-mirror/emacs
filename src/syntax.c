@@ -3617,9 +3617,9 @@ init_syntax_once (void)
   DEFSYM (Qsyntax_table, "syntax-table");
 
   /* Create objects which can be shared among syntax tables.  */
-  Vsyntax_code_object = make_uninit_vector (Smax);
+  Vsyntax_code_object = make_nil_vector (Smax);
   for (i = 0; i < Smax; i++)
-    ASET (Vsyntax_code_object, i, Fcons (make_fixnum (i), Qnil));
+    ASET (Vsyntax_code_object, i, list1 (make_fixnum (i)));
 
   /* Now we are ready to set up this property, so we can
      create syntax tables.  */

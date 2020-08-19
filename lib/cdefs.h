@@ -85,7 +85,7 @@
 #  define __NTH(fct)	__attribute__ ((__nothrow__ __LEAF)) fct
 #  define __NTHNL(fct)  __attribute__ ((__nothrow__)) fct
 # else
-#  if defined __cplusplus && __GNUC_PREREQ (2,8)
+#  if defined __cplusplus && (__GNUC_PREREQ (2,8) || __clang_major >= 4)
 #   define __THROW	throw ()
 #   define __THROWNL	throw ()
 #   define __NTH(fct)	__LEAF_ATTR fct throw ()
@@ -148,7 +148,7 @@
 # define __warnattr(msg) __attribute__((__warning__ (msg)))
 # define __errordecl(name, msg) \
   extern void name (void) __attribute__((__error__ (msg)))
-#elif __glibc_clang_has_attribute (__diagnose_if__)
+#elif __glibc_clang_has_attribute (__diagnose_if__) && 0 /* fails on Fedora 31 with Clang 9.  */
 # define __warndecl(name, msg) \
   extern void name (void) __attribute__((__diagnose_if__ (1, msg, "warning")))
 # define __warnattr(msg) __attribute__((__diagnose_if__ (1, msg, "warning")))
@@ -194,7 +194,7 @@
    Example:
    int __REDIRECT(setpgrp, (__pid_t pid, __pid_t pgrp), setpgid); */
 
-#if defined __GNUC__ && __GNUC__ >= 2
+#if (defined __GNUC__ && __GNUC__ >= 2) || (__clang_major__ >= 4)
 
 # define __REDIRECT(name, proto, alias) name proto __asm__ (__ASMNAME (#alias))
 # ifdef __cplusplus
@@ -465,7 +465,8 @@
 
 #if (!defined _Static_assert && !defined __cplusplus \
      && (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) < 201112 \
-     && (!__GNUC_PREREQ (4, 6) || defined __STRICT_ANSI__))
+     && (!(__GNUC_PREREQ (4, 6) || __clang_major__ >= 4) \
+         || defined __STRICT_ANSI__))
 # define _Static_assert(expr, diagnostic) \
     extern int (*__Static_assert_function (void)) \
       [!!sizeof (struct { int __error_if_negative: (expr) ? 2 : -1; })]

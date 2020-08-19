@@ -990,9 +990,6 @@ this feature; see the function `dirtrack-mode'."
       (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
     (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
 
-(define-obsolete-function-alias 'shell-dirtrack-toggle #'shell-dirtrack-mode
-  "23.1")
-
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
   (cd dir)
@@ -1038,25 +1035,41 @@ command again."
 	  (accept-process-output proc)
 	  (goto-char pt)))
       (goto-char pmark) (delete-char 1) ; remove the extra newline
-      ;; That's the dirlist. grab it & parse it.
-      (let* ((dl (buffer-substring (match-beginning 2) (1- (match-end 2))))
-	     (dl-len (length dl))
-	     (ds '())			; new dir stack
-	     (i 0))
-	(while (< i dl-len)
-	  ;; regexp = optional whitespace, (non-whitespace), optional whitespace
-	  (string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
-	  (setq ds (cons (concat comint-file-name-prefix
-				 (substring dl (match-beginning 1)
-					    (match-end 1)))
-			 ds))
-	  (setq i (match-end 0)))
-	(let ((ds (nreverse ds)))
-	  (with-demoted-errors "Couldn't cd: %s"
-	    (shell-cd (car ds))
-	    (setq shell-dirstack (cdr ds)
-		  shell-last-dir (car shell-dirstack))
-	    (shell-dirstack-message)))))
+      ;; That's the dirlist.  Grab it & parse it.
+      (let* ((dls (buffer-substring-no-properties
+                   (match-beginning 0) (1- (match-end 0))))
+             (dlsl nil)
+             (pos 0)
+             (ds nil))
+        ;; Split the dirlist into whitespace and non-whitespace chunks.
+        ;; dlsl will be a reversed list of tokens.
+        (while (string-match "\\(\\S-+\\|\\s-+\\)" dls pos)
+          (push (match-string 1 dls) dlsl)
+          (setq pos (match-end 1)))
+
+        ;; Prepend trailing entries until they form an existing directory,
+        ;; whitespace and all.  Discard the next whitespace and repeat.
+        (while dlsl
+          (let ((newelt "")
+                tem1 tem2)
+            (while newelt
+              ;; We need tem1 because we don't want to prepend
+              ;; `comint-file-name-prefix' repeatedly into newelt via tem2.
+              (setq tem1 (pop dlsl)
+                    tem2 (concat comint-file-name-prefix tem1 newelt))
+              (cond ((file-directory-p tem2)
+                     (push tem2 ds)
+                     (when (string= " " (car dlsl))
+                       (pop dlsl))
+                     (setq newelt nil))
+                    (t
+                     (setq newelt (concat tem1 newelt)))))))
+
+        (with-demoted-errors "Couldn't cd: %s"
+          (shell-cd (car ds))
+          (setq shell-dirstack (cdr ds)
+                shell-last-dir (car shell-dirstack))
+          (shell-dirstack-message))))
     (if started-at-pmark (goto-char (marker-position pmark)))))
 
 ;; For your typing convenience:

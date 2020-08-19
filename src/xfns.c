@@ -5890,7 +5890,8 @@ If WINDOW-ID is non-nil, change the property of that window instead
       elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
       data = xnmalloc (nelements, elsize);
 
-      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
+      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, nelements,
+                            element_format);
     }
   else
     {
@@ -6196,10 +6197,10 @@ Otherwise, the return value is a vector with the following fields:
     {
       XFree (tmp_data);
 
-      prop_attr = make_uninit_vector (3);
-      ASET (prop_attr, 0, make_fixnum (actual_type));
-      ASET (prop_attr, 1, make_fixnum (actual_format));
-      ASET (prop_attr, 2, make_fixnum (bytes_remaining / (actual_format >> 3)));
+      prop_attr = CALLN (Fvector,
+			 make_fixnum (actual_type),
+			 make_fixnum (actual_format),
+			 make_fixnum (bytes_remaining / (actual_format >> 3)));
     }
 
   unblock_input ();
@@ -8027,7 +8028,7 @@ If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
 always trigger an immediate resize of the child frame.  This method is
 deprecated by GTK and may not work in future versions of that toolkit.
 It also may freeze Emacs when used with other desktop environments.  It
-avoids, however, the unpleasent flicker induced by the hiding approach.
+avoids, however, the unpleasant flicker induced by the hiding approach.
 
 This variable is considered a temporary workaround and will be hopefully
 eliminated in future versions of Emacs.  */);

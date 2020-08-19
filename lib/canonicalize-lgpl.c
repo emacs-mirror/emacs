@@ -52,7 +52,9 @@
 # include "pathmax.h"
 # include "malloca.h"
 # include "filename.h"
-# if HAVE_GETCWD
+# if defined _WIN32 && !defined __CYGWIN__
+#  define __getcwd _getcwd
+# elif HAVE_GETCWD
 #  if IN_RELOCWRAPPER
     /* When building the relocatable program wrapper, use the system's getcwd
        function, not the gnulib override, otherwise we would get a link error.

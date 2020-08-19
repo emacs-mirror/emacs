@@ -11029,14 +11029,14 @@ Go to the Gnus info node (@code{gnus-info-find-node}).
 
 @table @kbd
 
-@item M-s
-@kindex M-s @r{(Summary)}
+@item M-s M-s
+@kindex M-s M-s @r{(Summary)}
 @findex gnus-summary-search-article-forward
 Search through all subsequent (raw) articles for a regexp
 (@code{gnus-summary-search-article-forward}).
 
-@item M-r
-@kindex M-r @r{(Summary)}
+@item M-s M-r
+@kindex M-s M-r @r{(Summary)}
 @findex gnus-summary-search-article-backward
 Search through all previous (raw) articles for a regexp
 (@code{gnus-summary-search-article-backward}).

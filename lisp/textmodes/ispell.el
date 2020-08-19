@@ -621,15 +621,6 @@ For Aspell, non-nil also means to try to automatically find its dictionaries.
 Earlier Aspell versions do not consistently support charset encoding.  Handling
 this would require some extra guessing in `ispell-aspell-find-dictionary'.")
 
-(defvar ispell-aspell-supports-utf8 nil
-  "Non-nil if Aspell has consistent command line UTF-8 support.  Obsolete.
-ispell.el and flyspell.el will use for this purpose the more generic
-variable `ispell-encoding8-command' for both Aspell and Hunspell.  Is left
-here just for backwards compatibility.")
-
-(make-obsolete-variable 'ispell-aspell-supports-utf8
-                        'ispell-encoding8-command "23.1")
-
 (defvar ispell-dicts-name2locale-equivs-alist
   '(("american"      "en_US")
     ("brasileiro"    "pt_BR")
@@ -682,9 +673,7 @@ Otherwise returns the library directory name, if that is defined."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (interactive "p")
-  (let ((default-directory (or (and (boundp 'temporary-file-directory)
-				    temporary-file-directory)
-			       default-directory))
+  (let ((default-directory (or temporary-file-directory default-directory))
 	(get-config-var
 	 (lambda (var)
 	   (when (re-search-forward
@@ -3734,8 +3723,7 @@ looking for a dictionary, please see the distribution of the GNU ispell
 program, or do an Internet search; there are various dictionaries
 available on the net."
   (interactive)
-  (if (and (boundp 'transient-mark-mode) transient-mark-mode
-	   (boundp 'mark-active) mark-active)
+  (if (and transient-mark-mode mark-active)
       (ispell-region (region-beginning) (region-end))
     (ispell-buffer)))
 

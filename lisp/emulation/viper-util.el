@@ -786,14 +786,11 @@ Otherwise return the normal value."
 (defun viper-check-minibuffer-overlay ()
   (if (overlayp viper-minibuffer-overlay)
       (move-overlay
-       viper-minibuffer-overlay
-       (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
-       (1+ (buffer-size)))
+       viper-minibuffer-overlay (minibuffer-prompt-end) (1+ (buffer-size)))
     (setq viper-minibuffer-overlay
 	  ;; make overlay open-ended
 	  (make-overlay
-	   (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
-	   (1+ (buffer-size))
+	   (minibuffer-prompt-end) (1+ (buffer-size))
 	   (current-buffer) nil 'rear-advance))))
 
 
@@ -808,9 +805,8 @@ Otherwise return the normal value."
 (define-obsolete-function-alias 'viper-abbreviate-file-name
   'abbreviate-file-name "27.1")
 
-;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg
-;; in sit-for, so this function smooths out the differences.
 (defsubst viper-sit-for-short (val &optional nodisp)
+  (declare (obsolete nil "28.1"))
   (sit-for (/ val 1000.0) nodisp))
 
 ;; EVENT may be a single event of a sequence of events
@@ -868,11 +864,10 @@ Otherwise return the normal value."
 
 ;; Uses different timeouts for ESC-sequences and others
 (defun viper-fast-keysequence-p ()
-  (not (viper-sit-for-short
-	(if (viper-ESC-event-p last-input-event)
-	    (viper-ESC-keyseq-timeout)
-	  viper-fast-keyseq-timeout)
-	t)))
+  (not (sit-for (/ (if (viper-ESC-event-p last-input-event)
+	               (viper-ESC-keyseq-timeout)
+	             viper-fast-keyseq-timeout) 1000.0)
+	        t)))
 
 (define-obsolete-function-alias 'viper-read-event-convert-to-char
   'read-event "27.1")
@@ -920,6 +915,7 @@ Otherwise return the normal value."
       basis)))
 
 (defun viper-last-command-char ()
+  (declare (obsolete nil "28.1"))
   last-command-event)
 
 (defun viper-key-to-emacs-key (key)

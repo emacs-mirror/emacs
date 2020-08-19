@@ -10856,20 +10856,17 @@ HIGHESTP non-nil means just return the highest priority one.  */)
   return Fnreverse (val);
 }
 
-static const char *const suffixes[] = { "-unix", "-dos", "-mac" };
-
 static Lisp_Object
 make_subsidiaries (Lisp_Object base)
 {
-  Lisp_Object subsidiaries;
+  static char const suffixes[][8] = { "-unix", "-dos", "-mac" };
   ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
   USE_SAFE_ALLOCA;
   char *buf = SAFE_ALLOCA (base_name_len + 6);
-  int i;
 
   memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);
-  subsidiaries = make_uninit_vector (3);
-  for (i = 0; i < 3; i++)
+  Lisp_Object subsidiaries = make_nil_vector (3);
+  for (int i = 0; i < 3; i++)
     {
       strcpy (buf + base_name_len, suffixes[i]);
       ASET (subsidiaries, i, intern (buf));
@@ -11829,8 +11826,7 @@ Each element is one element list of coding system name.
 This variable is given to `completing-read' as COLLECTION argument.
 
 Do not alter the value of this variable manually.  This variable should be
-updated by the functions `make-coding-system' and
-`define-coding-system-alias'.  */);
+updated by `define-coding-system-alias'.  */);
   Vcoding_system_alist = Qnil;
 
   DEFVAR_LISP ("coding-category-list", Vcoding_category_list,

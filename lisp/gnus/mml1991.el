@@ -242,7 +242,6 @@ Whether the passphrase is cached at all is controlled by
 (defvar epg-user-id-alist)
 
 (autoload 'epg-make-context "epg")
-(autoload 'epg-passphrase-callback-function "epg")
 (autoload 'epa-select-keys "epa")
 (autoload 'epg-list-keys "epg")
 (autoload 'epg-context-set-armor "epg")

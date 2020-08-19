@@ -1,4 +1,4 @@
-# serial 35
+# serial 36
 
 # Copyright (C) 1996-1997, 1999-2007, 2009-2020 Free Software Foundation, Inc.
 #
@@ -16,8 +16,6 @@ AC_DEFUN([gl_FUNC_GNU_STRFTIME],
  AC_REQUIRE([AC_STRUCT_TIMEZONE])
 
  AC_REQUIRE([gl_TM_GMTOFF])
-
- AC_CHECK_FUNCS_ONCE([tzset])
 
  AC_DEFINE([my_strftime], [nstrftime],
    [Define to the name of the strftime replacement function.])

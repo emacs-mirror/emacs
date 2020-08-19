@@ -2518,7 +2518,7 @@ fixed, visit it in a buffer."
                                '((?+ . (left-fringe diff-fringe-add diff-indicator-added))
                                  (?- . (left-fringe diff-fringe-del diff-indicator-removed))
                                  (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
-                                 (?\s . (left-fringe diff-fringe-nul))))))
+                                 (?\s . (left-fringe diff-fringe-nul fringe))))))
           (put-text-property (match-beginning 0) (match-end 0) 'display spec))))
     ;; Mimicks the output of Magit's diff.
     ;; FIXME: This has only been tested with Git's diff output.

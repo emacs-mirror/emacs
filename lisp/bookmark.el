@@ -923,8 +923,6 @@ annotations."
 	  "#  Date:    " (current-time-string) "\n"))
 
 
-(define-obsolete-variable-alias 'bookmark-read-annotation-text-func
-  'bookmark-edit-annotation-text-func "23.1")
 (defvar bookmark-edit-annotation-text-func 'bookmark-default-annotation-text
   "Function to return default text to use for a bookmark annotation.
 It takes one argument, the name of the bookmark, as a string.")
@@ -1142,17 +1140,6 @@ DISPLAY-FUNC would be `switch-to-buffer-other-window'."
                                    bookmark-current-bookmark)))
   (let ((pop-up-frames t))
     (bookmark-jump-other-window bookmark)))
-
-(defun bookmark-jump-noselect (bookmark)
-  "Return the location pointed to by BOOKMARK (see `bookmark-jump').
-The return value has the form (BUFFER . POINT).
-
-Note: this function is deprecated and is present for Emacs 22
-compatibility only."
-  (declare (obsolete bookmark-handle-bookmark "23.1"))
-  (save-excursion
-    (bookmark-handle-bookmark bookmark)
-    (cons (current-buffer) (point))))
 
 (defun bookmark-handle-bookmark (bookmark-name-or-record)
   "Call BOOKMARK-NAME-OR-RECORD's handler or `bookmark-default-handler'

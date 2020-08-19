@@ -35,7 +35,6 @@
 ;;; Code:
 
 (require 'erc)
-(require 'erc-compat)
 
 (defgroup erc-stamp nil
   "For long conversation on IRC it is sometimes quite

@@ -4527,7 +4527,7 @@ end
   (let* ((ebnf-tree tree)
          (ps-color-p           (and ebnf-color-p (ps-color-device)))
 	 (ps-print-color-scale (if ps-color-p
-				   (float (car (ps-color-values "white")))
+				   (float (car (color-values "white")))
 				 1.0))
 	 (ebnf-total           (length ebnf-tree))
 	 (ebnf-nprod           0)
@@ -4629,7 +4629,7 @@ end
   (let* ((ebnf-tree tree)
          (ps-color-p           (and ebnf-color-p (ps-color-device)))
 	 (ps-print-color-scale (if ps-color-p
-				   (float (car (ps-color-values "white")))
+				   (float (car (color-values "white")))
 				 1.0))
 	 ps-zebra-stripes ps-line-number ps-razzle-dazzle
 	 ps-print-hook

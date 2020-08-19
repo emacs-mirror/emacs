@@ -366,9 +366,13 @@ instead of running the @code{mouse-save-then-kill} command, rebind
 @kbd{mouse-3} by adding the following line to your init file
 (@pxref{Init Rebinding}):
 
-@c FIXME: `mouse-popup-menubar-stuff' is obsolete since 23.1.
 @smallexample
-(global-set-key [mouse-3] 'mouse-popup-menubar-stuff)
+(global-set-key [mouse-3]
+  '(menu-item "Menu Bar" ignore
+    :filter (lambda (_)
+              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+                  (mouse-menu-bar-map)
+                (mouse-menu-major-mode-map)))))
 @end smallexample
 
 @node Mode Line Mouse

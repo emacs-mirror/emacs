@@ -365,24 +365,24 @@ bytecompiled code, and their results compared.")
 (defun bytecomp-check-1 (pat)
   "Return non-nil if PAT is the same whether directly evalled or compiled."
   (let ((warning-minimum-log-level :emergency)
-	(byte-compile-warnings nil)
-	(v0 (condition-case nil
+        (byte-compile-warnings nil)
+	(v0 (condition-case err
 		(eval pat)
-	      (error 'bytecomp-check-error)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error 'bytecomp-check-error))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (equal v0 v1)))
 
 (put 'bytecomp-check-1 'ert-explainer 'bytecomp-explain-1)
 
 (defun bytecomp-explain-1 (pat)
-  (let ((v0 (condition-case nil
+  (let ((v0 (condition-case err
 		(eval pat)
-	      (error 'bytecomp-check-error)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error 'bytecomp-check-error))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
 	    pat v0 v1)))
 
@@ -405,12 +405,12 @@ Subtests signal errors if something goes wrong."
 	(print-quoted t)
 	v0 v1)
     (dolist (pat byte-opt-testsuite-arith-data)
-      (condition-case nil
+      (condition-case err
 	  (setq v0 (eval pat))
-	(error (setq v0 'bytecomp-check-error)))
-      (condition-case nil
+	(error (setq v0 (list 'bytecomp-check-error (car err)))))
+      (condition-case err
 	  (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
-	(error (setq v1 'bytecomp-check-error)))
+	(error (setq v1 (list 'bytecomp-check-error (car err)))))
       (insert (format "%s" pat))
       (indent-to-column 65)
       (if (equal v0 v1)
@@ -479,6 +479,7 @@ Subtests signal errors if something goes wrong."
 (ert-deftest bytecomp-tests--warnings ()
   (with-current-buffer (get-buffer-create "*Compile-Log*")
     (let ((inhibit-read-only t)) (erase-buffer)))
+  (mapc #'fmakunbound '(my-test0 my--test11 my--test12 my--test2))
   (test-byte-comp-compile-and-load t
     '(progn
        (defun my-test0 ()
@@ -564,25 +565,25 @@ bytecompiled code, and their results compared.")
   "Return non-nil if PAT is the same whether directly evalled or compiled."
   (let ((warning-minimum-log-level :emergency)
 	(byte-compile-warnings nil)
-	(v0 (condition-case nil
+	(v0 (condition-case err
 		(eval pat t)
-	      (error 'bytecomp-check-error)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (let ((lexical-binding t))
                            (byte-compile `(lambda nil ,pat))))
-	      (error 'bytecomp-check-error))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (equal v0 v1)))
 
 (put 'bytecomp-lexbind-check-1 'ert-explainer 'bytecomp-lexbind-explain-1)
 
 (defun bytecomp-lexbind-explain-1 (pat)
-  (let ((v0 (condition-case nil
+  (let ((v0 (condition-case err
 		(eval pat t)
-	      (error 'bytecomp-check-error)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (let ((lexical-binding t))
                            (byte-compile (list 'lambda nil pat))))
-	      (error 'bytecomp-check-error))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
 	    pat v0 v1)))
 

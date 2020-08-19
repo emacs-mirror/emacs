@@ -38,7 +38,7 @@
   :group 'erc)
 
 ;;;###autoload(autoload 'erc-fill-mode "erc-fill" nil t)
-(erc-define-minor-mode erc-fill-mode
+(define-minor-mode erc-fill-mode
   "Toggle ERC fill mode.
 With a prefix argument ARG, enable ERC fill mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable

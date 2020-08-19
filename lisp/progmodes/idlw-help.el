@@ -267,7 +267,6 @@ support."
 (declare-function idlwave-find-class-definition "idlwave")
 (declare-function idlwave-find-inherited-class "idlwave")
 (declare-function idlwave-find-struct-tag "idlwave")
-(declare-function idlwave-get-buffer-visiting "idlwave")
 (declare-function idlwave-in-quote "idlwave")
 (declare-function idlwave-make-full-name "idlwave")
 (declare-function idlwave-members-only "idlwave")
@@ -880,7 +879,7 @@ This function can be used as `idlwave-extra-help-function'."
 	  (setq in-buf ; structure-tag completion is always in current buffer
 		(if struct-tag
 		    idlwave-current-tags-buffer
-		  (idlwave-get-buffer-visiting file)))
+                  (find-buffer-visiting file)))
 	  ;; see if file is in a visited buffer, insert those contents
 	  (if in-buf
 	      (progn

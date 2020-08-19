@@ -515,7 +515,14 @@ Returns nil if they are."
                        `(cdr ,cdr-x)
                      (cl-assert (equal a b) t)
                      nil))))))))
-      ((pred arrayp)
+      ((pred cl-struct-p)
+       (cl-loop for slot in (cl-struct-slot-info (type-of a))
+                for ai across a
+                for bi across b
+                for xf = (ert--explain-equal-rec ai bi)
+                do (when xf (cl-return `(struct-field ,(car slot) ,xf)))
+                finally (cl-assert (equal a b) t)))
+      ((or (pred arrayp) (pred recordp))
        ;; For mixed unibyte/multibyte string comparisons, make both multibyte.
        (when (and (stringp a)
                   (xor (multibyte-string-p a) (multibyte-string-p b)))

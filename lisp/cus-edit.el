@@ -801,16 +801,19 @@ has been executed, nil otherwise."
 If a setting was edited and set before, this saves it.  If a
 setting was merely edited before, this sets it then saves it."
   (interactive)
-  (when (custom-command-apply
-	 (lambda (child)
-	   (when (memq (widget-get child :custom-state)
-		       '(modified set changed rogue))
-	     (widget-apply child :custom-mark-to-save)))
-	 "Save all settings in this buffer? " t)
-    ;; Save changes to buffer and redraw.
-    (custom-save-all)
-    (dolist (child custom-options)
-      (widget-apply child :custom-state-set-and-redraw))))
+  (let (edited-widgets)
+    (when (custom-command-apply
+	   (lambda (child)
+	     (when (memq (widget-get child :custom-state)
+		         '(modified set changed rogue))
+               (push child edited-widgets)
+	       (widget-apply child :custom-mark-to-save)))
+	   "Save all settings in this buffer? " t)
+      ;; Save changes to buffer.
+      (custom-save-all)
+      ;; Redraw and recalculate the state when necessary.
+      (dolist (widget edited-widgets)
+        (widget-apply widget :custom-state-set-and-redraw)))))
 
 (defun custom-reset (_widget &optional event)
   "Select item from reset menu."
@@ -4868,8 +4871,6 @@ If several parents are listed, go to the first of them."
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))
 
-(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
-
 (defcustom Custom-mode-hook nil
   "Hook called when entering Custom mode."
   :type 'hook
@@ -4939,8 +4940,6 @@ if that value is non-nil."
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
 
 (put 'Custom-mode 'mode-class 'special)
-
-(define-obsolete-function-alias 'custom-mode 'Custom-mode "23.1")
 
 ;;; The End.
 

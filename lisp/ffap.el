@@ -1109,6 +1109,121 @@ The arguments CHARS, BEG and END are handled as described in
   ;; Added at suggestion of RHOGEE (for ff-paths), 7/24/95.
   "Last string returned by the function `ffap-string-at-point'.")
 
+(defcustom ffap-file-name-with-spaces nil
+  "If non-nil, enable looking for paths with spaces in `ffap-string-at-point'.
+Enabling this variable may lead to `find-file-at-point' guessing
+wrong more often when trying to find a file name intermingled
+with normal text, but can be useful when working on systems that
+normally use spaces in file names (like Microsoft Windows and the
+like)."
+  :type 'boolean
+  :version "28.1")
+
+(defun ffap-search-backward-file-end (&optional dir-separator end)
+  "Search backward position point where file would probably end.
+Optional DIR-SEPARATOR defaults to \"/\". The search maximum is
+`line-end-position' or optional END point.
+
+Suppose the cursor is somewhere that might be near end of file,
+the guessing would position point before punctuation (like comma)
+after the file extension:
+
+  C:\temp\file.log, which contain ....
+  =============================== (before)
+  ---------------- (after)
+
+
+  C:\temp\file.log on Windows or /tmp/file.log on Unix
+  =============================== (before)
+  ---------------- (after)
+
+The strategy is to search backward until DIR-SEPARATOR which defaults to
+\"/\" and then take educated guesses.
+
+Move point and return point if an adjustment was done."
+  (unless dir-separator
+    (setq dir-separator "/"))
+  (let ((opoint (point))
+	point punct end whitespace-p)
+    (when (re-search-backward
+	   (regexp-quote dir-separator) (line-beginning-position) t)
+      ;; Move to the beginning of the match..
+      (forward-char 1)
+      ;; ... until typical punctuation.
+      (when (re-search-forward "\\([][<>()\"'`,.:;]\\)"
+			       (or end
+				   (line-end-position))
+			       t)
+	(setq end (match-end 0))
+	(setq punct (match-string 1))
+	(setq whitespace-p (looking-at "[ \t\r\n]\\|$"))
+	(goto-char end)
+	(cond
+	 ((and (string-equal punct ".")
+	       whitespace-p)            ;end of sentence
+	  (setq point (1- (point))))
+	 ((and (string-equal punct ".")
+	       (looking-at "[a-zA-Z0-9.]+")) ;possibly file extension
+	  (setq point (match-end 0)))
+	 (t
+	  (setq point (point)))))
+      (goto-char opoint)
+      (when point
+	(goto-char point)
+	point))))
+
+(defun ffap-search-forward-file-end (&optional dir-separator)
+  "Search DIR-SEPARATOR and position point at file's maximum ending.
+This includes spaces.
+Optional DIR-SEPARATOR defaults to \"/\".
+Call `ffap-search-backward-file-end' to refine the ending point."
+  (unless dir-separator
+    (setq dir-separator "/"))
+  (let* ((chars                         ;expected chars in file name
+	  (concat "[^][^<>()\"'`;,#*|"
+		  ;; exclude the opposite as we know the separator
+		  (if (string-equal dir-separator "/")
+		      "\\\\"
+		    "/")
+		  "\t\r\n]"))
+	 (re (concat
+	      chars "*"
+	      (if dir-separator
+		  (regexp-quote dir-separator)
+		"/")
+	      chars "*")))
+    (when (looking-at re)
+      (goto-char (match-end 0)))))
+
+(defun ffap-dir-separator-near-point ()
+  "Search backward and forward for closest slash or backlash in line.
+Return string slash or backslash. Point is moved to closest position."
+  (let ((point (point))
+	str pos)
+    (when (looking-at ".*?/")
+      (setq str "/"
+	    pos (match-end 0)))
+    (when (and (looking-at ".*?\\\\")
+               (or (null pos)
+	           (< (match-end 0) pos)))
+      (setq str "\\"
+	    pos (match-end 0)))
+    (goto-char point)
+    (when (and (re-search-backward "/" (line-beginning-position) t)
+               (or (null pos)
+	           (< (- point (point)) (- pos point))))
+      (setq str "/"
+	    pos (1+ (point)))) ;1+ to keep cursor at the end of char
+    (goto-char point)
+    (when (and (re-search-backward "\\\\" (line-beginning-position) t)
+               (or (null pos)
+		   (< (- point (point)) (- pos point))))
+      (setq str "\\"
+	    pos (1+ (point))))
+    (when pos
+      (goto-char pos))
+    str))
+
 (defun ffap-string-at-point (&optional mode)
   "Return a string of characters from around point.
 
@@ -1128,7 +1243,8 @@ Set the variables `ffap-string-at-point' and
 
 When the region is active and larger than `ffap-max-region-length',
 return an empty string, and set `ffap-string-at-point-region' to '(1 1)."
-  (let* ((args
+  (let* (dir-separator
+         (args
 	  (cdr
 	   (or (assq (or mode major-mode) ffap-string-at-point-mode-alist)
 	       (assq 'file ffap-string-at-point-mode-alist))))
@@ -1137,14 +1253,25 @@ return an empty string, and set `ffap-string-at-point-region' to '(1 1)."
          (beg (if region-selected
 		  (region-beginning)
 		(save-excursion
-		  (skip-chars-backward (car args))
-		  (skip-chars-forward (nth 1 args) pt)
+	          (if (and ffap-file-name-with-spaces
+			   (memq mode '(nil file)))
+		      (when (setq dir-separator (ffap-dir-separator-near-point))
+		        (while (re-search-backward
+			        (regexp-quote dir-separator)
+			        (line-beginning-position) t)
+		          (goto-char (match-beginning 0))))
+		    (skip-chars-backward (car args))
+		    (skip-chars-forward (nth 1 args) pt))
 		  (point))))
          (end (if region-selected
 		  (region-end)
 		(save-excursion
 		  (skip-chars-forward (car args))
 		  (skip-chars-backward (nth 2 args) pt)
+	          (when (and ffap-file-name-with-spaces
+			     (memq mode '(nil file)))
+		    (ffap-search-forward-file-end dir-separator)
+		    (ffap-search-backward-file-end dir-separator))
 		  (point))))
          (region-len (- (max beg end) (min beg end))))
 
@@ -1823,12 +1950,6 @@ Only intended for interactive use."
     (find-file-at-point filename)))
 
 (defalias 'find-file-literally-at-point 'ffap-literally)
-
-
-;;; Bug Reporter:
-
-(define-obsolete-function-alias 'ffap-bug 'report-emacs-bug "23.1")
-(define-obsolete-function-alias 'ffap-submit-bug 'report-emacs-bug "23.1")
 
 
 ;;; Hooks for Gnus, VM, Rmail:

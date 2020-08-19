@@ -69,7 +69,6 @@
 
 (require 'md4)
 (require 'hmac-md5)
-(require 'calc)
 
 (defgroup ntlm nil
   "NTLM (NT LanManager) authentication."
@@ -133,32 +132,27 @@ is not given."
 	    domain				;buffer field
 	    ))))
 
-(defun ntlm-compute-timestamp ()
-  "Compute an NTLMv2 timestamp.
+(defun ntlm--time-to-timestamp (time)
+  "Convert TIME to an NTLMv2 timestamp.
 Return a unibyte string representing the number of tenths of a
 microsecond since January 1, 1601 as a 64-bit little-endian
-signed integer."
-  ;; FIXME: This can likely be significantly simplified using the new
-  ;; bignums support!
-  (let* ((s-to-tenths-of-us "mul(add(lsh($1,16),$2),10000000)")
-	 (us-to-tenths-of-us "mul($3,10)")
-	 (ps-to-tenths-of-us "idiv($4,100000)")
-	 (tenths-of-us-since-jan-1-1601
-	  (apply #'calc-eval (concat "add(add(add("
-				    s-to-tenths-of-us ","
-				    us-to-tenths-of-us "),"
-				    ps-to-tenths-of-us "),"
-				    ;; tenths of microseconds between
-				    ;; 1601-01-01 and 1970-01-01
-				    "116444736000000000)")
-		 'rawnum (time-convert nil 'list)))
-	 result-bytes)
-    (dotimes (_byte 8)
-      (push (calc-eval "and($1,16#FF)" 'rawnum tenths-of-us-since-jan-1-1601)
-	    result-bytes)
-      (setq tenths-of-us-since-jan-1-1601
-	    (calc-eval "rsh($1,8,64)" 'rawnum tenths-of-us-since-jan-1-1601)))
-    (apply #'unibyte-string (nreverse result-bytes))))
+signed integer.  TIME must be on the form (HIGH LOW USEC PSEC)."
+  (let* ((s (+ (ash (nth 0 time) 16) (nth 1 time)))
+         (us (nth 2 time))
+         (ps (nth 3 time))
+         (tenths-of-us-since-jan-1-1601
+          (+ (* s 10000000) (* us 10) (/ ps 100000)
+	     ;; tenths of microseconds between 1601-01-01 and 1970-01-01
+	     116444736000000000)))
+    (apply #'unibyte-string
+           (mapcar (lambda (i)
+                     (logand (ash tenths-of-us-since-jan-1-1601 (* i -8))
+                             #xff))
+                   (number-sequence 0 7)))))
+
+(defun ntlm-compute-timestamp ()
+  "Current time as an NTLMv2 timestamp, as a unibyte string."
+  (ntlm--time-to-timestamp (time-convert nil 'list)))
 
 (defun ntlm-generate-nonce ()
   "Generate a random nonce, not to be used more than once.

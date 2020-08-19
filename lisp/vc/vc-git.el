@@ -210,6 +210,16 @@ toggle display of the entire list."
                               widget))))
   :version "27.1")
 
+(defcustom vc-git-revision-complete-only-branches nil
+  "Control whether tags are returned by revision completion for Git.
+
+When non-nil, only branches and remotes will be returned by
+`vc-git-revision-completion-table'.  This is used by various VC
+commands when completing branch names.  When nil, tags are also
+included in the completions."
+  :type 'boolean
+  :version "28.1")
+
 ;; History of Git commands.
 (defvar vc-git-history nil)
 
@@ -1415,9 +1425,11 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (with-temp-buffer
       (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
       (goto-char (point-min))
-      (while (re-search-forward "^refs/\\(heads\\|tags\\|remotes\\)/\\(.*\\)$"
-                                nil t)
-        (push (match-string 2) table)))
+      (let ((regexp (if vc-git-revision-complete-only-branches
+                        "^refs/\\(heads\\|remotes\\)/\\(.*\\)$"
+                      "^refs/\\(heads\\|tags\\|remotes\\)/\\(.*\\)$")))
+        (while (re-search-forward regexp nil t)
+          (push (match-string 2) table))))
     table))
 
 (defun vc-git-revision-completion-table (files)

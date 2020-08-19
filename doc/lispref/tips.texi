@@ -956,7 +956,7 @@ multiple sub-sections.  Even though that was the only recommended
 approach for a long time, many people have chosen to use multiple
 top-level code sections instead.  You may chose either style.
 
-Using multiple top-level code sections has the advanatage that it
+Using multiple top-level code sections has the advantage that it
 avoids introducing an additional nesting level but it also means that
 the section named @samp{Code} does not contain all the code, which is
 awkward.  To avoid that, you should put no code at all inside that

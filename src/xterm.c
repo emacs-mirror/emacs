@@ -8760,6 +8760,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case FocusIn:
+      /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
+         minimized/iconified windows; thus, for those WMs we won't get
+         a MapNotify when unminimizing/deconifying.  Check here if we
+         are deconizing a window (Bug42655). */
+      f = any;
+      if (f && FRAME_ICONIFIED_P (f))
+	{
+          SET_FRAME_VISIBLE (f, 1);
+          SET_FRAME_ICONIFIED (f, false);
+          f->output_data.x->has_been_visible = true;
+          inev.ie.kind = DEICONIFY_EVENT;
+          XSETFRAME (inev.ie.frame_or_window, f);
+        }
+
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
       goto OTHER;
 
@@ -9906,6 +9920,13 @@ void
 x_uncatch_errors (void)
 {
   struct x_error_message_stack *tmp;
+
+  /* In rare situations when running Emacs run in daemon mode,
+     shutting down an emacsclient via delete-frame can cause
+     x_uncatch_errors to be called when x_error_message is set to
+     NULL.  */
+  if (x_error_message == NULL)
+    return;
 
   block_input ();
 

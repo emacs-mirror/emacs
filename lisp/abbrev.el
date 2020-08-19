@@ -517,14 +517,6 @@ It is nil if the abbrev has already been unexpanded.")
 ;;   "Local (mode-specific) abbrev table of current buffer.")
 ;; (make-variable-buffer-local 'local-abbrev-table)
 
-(defcustom pre-abbrev-expand-hook nil
-  "Function or functions to be called before abbrev expansion is done.
-This is the first thing that `expand-abbrev' does, and so this may change
-the current abbrev table before abbrev lookup happens."
-  :type 'hook
-  :group 'abbrev-mode)
-(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-function "23.1")
-
 (defun clear-abbrev-table (table)
   "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
   (setq abbrevs-changed t)
@@ -836,12 +828,10 @@ Takes no argument and should return the abbrev symbol if expansion took place.")
 (defun expand-abbrev ()
   "Expand the abbrev before point, if there is an abbrev there.
 Effective when explicitly called even when `abbrev-mode' is nil.
-Before doing anything else, runs `pre-abbrev-expand-hook'.
 Calls the value of `abbrev-expand-function' with no argument to do
 the work, and returns whatever it does.  (That return value should
 be the abbrev symbol if expansion occurred, else nil.)"
   (interactive)
-  (run-hooks 'pre-abbrev-expand-hook)
   (funcall abbrev-expand-function))
 
 (defun abbrev--default-expand ()

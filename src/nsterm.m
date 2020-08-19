@@ -7669,11 +7669,8 @@ not_in_argv (NSString *arg)
   /* macOS Sierra automatically enables tabbed windows.  We can't
      allow this to be enabled until it's available on a Free system.
      Currently it only happens by accident and is buggy anyway.  */
-#if defined (NS_IMPL_COCOA) \
-  && MAC_OS_X_VERSION_MAX_ALLOWED >= 101200
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#ifdef NS_IMPL_COCOA
   if ([win respondsToSelector: @selector(setTabbingMode:)])
-#endif
     [win setTabbingMode: NSWindowTabbingModeDisallowed];
 #endif
 
@@ -8424,25 +8421,17 @@ not_in_argv (NSString *arg)
 
 
 - (void)windowDidChangeBackingProperties:(NSNotification *)notification
-  /* Update the drawing buffer when the backing scale factor changes.  */
+  /* Update the drawing buffer when the backing properties change.  */
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
   if (! [self wantsUpdateLayer])
     return;
 
-  CGFloat old = [[[notification userInfo]
-                    objectForKey:@"NSBackingPropertyOldScaleFactorKey"]
-                  doubleValue];
-  CGFloat new = [[self window] backingScaleFactor];
-
-  if (old != new)
-    {
-      NSRect frame = [self frame];
-      [self createDrawingBuffer];
-      ns_clear_frame (emacsframe);
-      expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
-    }
+  NSRect frame = [self frame];
+  [self createDrawingBuffer];
+  ns_clear_frame (emacsframe);
+  expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
 }
 #endif /* NS_DRAW_TO_BUFFER */
 

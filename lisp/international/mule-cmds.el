@@ -2968,11 +2968,6 @@ on encoding."
 ;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
 (make-obsolete 'unify-8859-on-decoding-mode "don't use it." "23.1")
 
-(defvar nonascii-insert-offset 0)
-(make-obsolete-variable 'nonascii-insert-offset "do not use it." "23.1")
-(defvar nonascii-translation-table nil)
-(make-obsolete-variable 'nonascii-translation-table "do not use it." "23.1")
-
 (defvar ucs-names nil
   "Hash table of cached CHAR-NAME keys to CHAR-CODE values.")
 

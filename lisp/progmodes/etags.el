@@ -1424,6 +1424,10 @@ hits the start of file."
 	  (goto-func goto-tag-location-function)
 	  tag tag-info pt)
     (forward-line 1)
+    ;; Exuberant ctags add a line starting with the DEL character;
+    ;; skip past it.
+    (when (looking-at "\177")
+      (forward-line 1))
     (while (not (or (eobp) (looking-at "\f")))
       ;; We used to use explicit tags when available, but the current goto-func
       ;; can only handle implicit tags.

@@ -803,17 +803,23 @@ valid_image_p (Lisp_Object object)
     {
       Lisp_Object tail = XCDR (object);
       FOR_EACH_TAIL_SAFE (tail)
-	if (EQ (XCAR (tail), QCtype))
-	  {
-	    tail = XCDR (tail);
-	    if (CONSP (tail))
-	      {
-		struct image_type const *type = lookup_image_type (XCAR (tail));
-		if (type)
-		  return type->valid_p (object);
-	      }
-	    break;
-	  }
+	{
+	  if (EQ (XCAR (tail), QCtype))
+	    {
+	      tail = XCDR (tail);
+	      if (CONSP (tail))
+		{
+		  struct image_type const *type =
+		    lookup_image_type (XCAR (tail));
+		  if (type)
+		    return type->valid_p (object);
+		}
+	      break;
+	    }
+	  tail = XCDR (tail);
+	  if (! CONSP (tail))
+	    return false;
+	}
     }
 
   return false;
@@ -899,7 +905,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
     return false;
 
   plist = XCDR (spec);
-  while (CONSP (plist))
+  FOR_EACH_TAIL_SAFE (plist)
     {
       Lisp_Object key, value;
 
@@ -913,7 +919,6 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
       if (!CONSP (plist))
 	return false;
       value = XCAR (plist);
-      plist = XCDR (plist);
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
@@ -921,7 +926,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
       if (i == nkeywords)
-	continue;
+	goto maybe_done;
 
       /* Record that we recognized the keyword.  If a keyword
 	 was found more than once, it's an error.  */
@@ -1009,14 +1014,20 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
       if (EQ (key, QCtype)
 	  && !(EQ (type, value) || EQ (type, Qnative_image)))
 	return false;
+
+    maybe_done:
+      if (EQ (XCDR (plist), Qnil))
+	{
+	  /* Check that all mandatory fields are present.  */
+	  for (i = 0; i < nkeywords; ++i)
+	    if (keywords[i].mandatory_p && keywords[i].count == 0)
+	      return false;
+
+	  return true;
+	}
     }
 
-  /* Check that all mandatory fields are present.  */
-  for (i = 0; i < nkeywords; ++i)
-    if (keywords[i].count < keywords[i].mandatory_p)
-      return false;
-
-  return NILP (plist);
+  return false;
 }
 
 
@@ -1031,9 +1042,8 @@ image_spec_value (Lisp_Object spec, Lisp_Object key, bool *found)
 
   eassert (valid_image_p (spec));
 
-  for (tail = XCDR (spec);
-       CONSP (tail) && CONSP (XCDR (tail));
-       tail = XCDR (XCDR (tail)))
+  tail = XCDR (spec);
+  FOR_EACH_TAIL_SAFE (tail)
     {
       if (EQ (XCAR (tail), key))
 	{
@@ -1041,6 +1051,9 @@ image_spec_value (Lisp_Object spec, Lisp_Object key, bool *found)
 	    *found = 1;
 	  return XCAR (XCDR (tail));
 	}
+      tail = XCDR (tail);
+      if (! CONSP (tail))
+	break;
     }
 
   if (found)
@@ -1584,6 +1597,16 @@ make_image_cache (void)
   return c;
 }
 
+/* Compare two lists (one of which must be proper), comparing each
+   element with `eq'.  */
+static bool
+equal_lists (Lisp_Object a, Lisp_Object b)
+{
+  while (CONSP (a) && CONSP (b) && EQ (XCAR (a), XCAR (b)))
+    a = XCDR (a), b = XCDR (b);
+
+  return EQ (a, b);
+}
 
 /* Find an image matching SPEC in the cache, and return it.  If no
    image is found, return NULL.  */
@@ -1610,7 +1633,7 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
 
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
-	&& !NILP (Fequal (img->spec, spec))
+	&& !equal_lists (img->spec, spec)
 	&& img->frame_foreground == FRAME_FOREGROUND_PIXEL (f)
 	&& img->frame_background == FRAME_BACKGROUND_PIXEL (f))
       break;

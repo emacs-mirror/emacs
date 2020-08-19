@@ -1265,7 +1265,7 @@ for a long time.  For more details, see
 To use this in Message, say:
 
 @lisp
-(add-hook 'message-send-hook 'message-add-openpgp-header)
+(add-hook 'message-header-setup-hook 'message-add-openpgp-header)
 @end lisp
 
 @noindent
