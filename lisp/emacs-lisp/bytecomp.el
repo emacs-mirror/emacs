@@ -4172,40 +4172,44 @@ Return (TAIL VAR TEST CASES), where:
         (switch-var nil)
         (switch-test 'eq))
     (while (pcase (car clauses)
-             (`((,fn ,expr1 ,expr2) . ,body)
+             (`((,(and fn (or 'eq 'eql 'equal)) ,expr1 ,expr2) . ,body)
               (let* ((vars (byte-compile--cond-vars expr1 expr2))
                      (var (car vars))
                      (value (cdr vars)))
                 (and var (or (eq var switch-var) (not switch-var))
-                     (cond
-                      ((memq fn '(eq eql equal))
+                     (progn
                        (setq switch-var var)
                        (setq switch-test
                              (byte-compile--common-test switch-test fn))
                        (unless (member value keys)
                          (push value keys)
                          (push (cons (list value) (or body '(t))) cases))
-                       t)
-                      ((and (memq fn '(memq memql member))
-                            (listp value)
-                            ;; Require a non-empty body, since the member
-                            ;; function value depends on the switch
-                            ;; argument.
-                            body)
-                       (setq switch-var var)
-                       (setq switch-test
-                             (byte-compile--common-test
-                              switch-test (cdr (assq fn '((memq   . eq)
-                                                          (memql  . eql)
-                                                          (member . equal))))))
-                       (let ((vals nil))
-                         (dolist (elem value)
-                           (unless (funcall fn elem keys)
-                             (push elem vals)))
-                         (when vals
-                           (setq keys (append vals keys))
-                           (push (cons (nreverse vals) body) cases)))
-                       t))))))
+                       t))))
+             (`((,(and fn (or 'memq 'memql 'member)) ,var ,expr) . ,body)
+              (and (symbolp var)
+                   (or (eq var switch-var) (not switch-var))
+                   (macroexp-const-p expr)
+                   ;; Require a non-empty body, since the member
+                   ;; function value depends on the switch argument.
+                   body
+                   (let ((value (eval expr)))
+                     (and (proper-list-p value)
+                          (progn
+                            (setq switch-var var)
+                            (setq switch-test
+                                  (byte-compile--common-test
+                                   switch-test
+                                   (cdr (assq fn '((memq   . eq)
+                                                   (memql  . eql)
+                                                   (member . equal))))))
+                            (let ((vals nil))
+                              (dolist (elem value)
+                                (unless (funcall fn elem keys)
+                                  (push elem vals)))
+                              (when vals
+                                (setq keys (append vals keys))
+                                (push (cons (nreverse vals) body) cases)))
+                            t))))))
       (setq clauses (cdr clauses)))
     ;; Assume that a single switch is cheaper than two or more discrete
     ;; compare clauses.  This could be tuned, possibly taking into

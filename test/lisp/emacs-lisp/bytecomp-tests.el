@@ -347,7 +347,20 @@
                                 ((eq x 't) 99)
                                 (t 999))))
             '((a c) (b c) (7 c) (-3 c) (nil nil) (t c) (q c) (r c) (s c)
-              (t c) (x "a") (x "c") (x c) (x d) (x e))))
+              (t c) (x "a") (x "c") (x c) (x d) (x e)))
+
+    (mapcar (lambda (x) (cond ((member '(a . b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a . b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((memq '(a . b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a . b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((member '(a b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((memq '(a b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a b)) a b (c) (d))))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")
