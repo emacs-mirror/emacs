@@ -3872,13 +3872,26 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 {
   CHECK_STRING (filename);
 
+  if (NILP (Ffile_exists_p (filename)))
+    xsignal1 (Qfile_missing, filename);
+
+  Lisp_Object last_mod_time =
+    Fnth (make_fixnum (5), Ffile_attributes (filename, Qnil));
+
   if (suffix_p (filename, ".gz"))
     filename = Fsubstring (filename, Qnil, make_fixnum (-3));
   filename = Fexpand_file_name (filename, Qnil);
 
   /* We create eln filenames with an hash in order to look-up these
      starting from the source filename, IOW have a relation
-     /absolute/path/filename.el -> eln-cache/filename-hash.eln.
+
+     /absolute/path/filename.el + last_mod_time ->
+     eln-cache/filename-hash.eln.
+
+     'dlopen' can return the same handle if two shared with the same
+     filename are loaded in two different times (even if the first was
+     deleted!).  To prevent this scenario the last modification time
+     of the source file is included in the hashing algorithm.
 
      As installing .eln files compiled during the build changes their
      absolute path we need an hashing mechanism that is not sensitive
@@ -3910,7 +3923,9 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 	}
     }
 
-  Lisp_Object hash = Fsubstring (comp_hash_string (filename), Qnil,
+  Lisp_Object hash_input =
+    concat2 (filename, Fprin1_to_string (last_mod_time, Qnil));
+  Lisp_Object hash = Fsubstring (comp_hash_string (hash_input), Qnil,
 				 make_fixnum (ELN_FILENAME_HASH_LEN));
   filename = concat2 (Ffile_name_nondirectory (Fsubstring (filename, Qnil,
 							   make_fixnum (-3))),

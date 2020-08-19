@@ -1635,19 +1635,13 @@ maybe_swap_for_eln (Lisp_Object *filename, int *fd, struct timespec mtime)
 	    emacs_close (eln_fd);
 	  else
 	    {
-	      struct timespec eln_mtime = get_stat_mtime (&eln_st);
-	      if (timespec_cmp (eln_mtime, mtime) > 0)
-		{
-		  *filename = eln_name;
-		  emacs_close (*fd);
-		  *fd = eln_fd;
-		  /* Store the eln -> el relation.  */
-		  Fputhash (Ffile_name_nondirectory (eln_name),
-			    el_name, Vcomp_eln_to_el_h);
-		  return;
-		}
-	      else
-		emacs_close (eln_fd);
+	      *filename = eln_name;
+	      emacs_close (*fd);
+	      *fd = eln_fd;
+	      /* Store the eln -> el relation.  */
+	      Fputhash (Ffile_name_nondirectory (eln_name),
+			el_name, Vcomp_eln_to_el_h);
+	      return;
 	    }
 	}
     }
