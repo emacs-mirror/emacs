@@ -820,6 +820,12 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
+*** 'C-s' in 'M-x' now searches over completions again.
+In Emacs 23, typing 'M-x' ('read-extended-command') and then 'C-s' (to
+do an interactive search) would search over possible completions.
+This was lost in Emacs 24, but is now back again.
+
+---
 *** 'M-x report-emacs-bug' will no longer include "Recent messages" section.
 These were taken from the "*Messages*" buffer, and may inadvertently
 leak information from the reporting user.

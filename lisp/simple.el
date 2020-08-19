@@ -1847,9 +1847,15 @@ to get different commands to edit and resubmit."
 	     (lambda ()
 	       ;; Get a command name at point in the original buffer
 	       ;; to propose it after M-n.
-	       (with-current-buffer (window-buffer (minibuffer-selected-window))
-		 (and (commandp (function-called-at-point))
-		      (format "%S" (function-called-at-point)))))))
+	       (let ((def (with-current-buffer
+			      (window-buffer (minibuffer-selected-window))
+			    (and (commandp (function-called-at-point))
+				 (format "%S" (function-called-at-point)))))
+		     (all (sort (minibuffer-default-add-completions)
+				(lambda (a b) (string< a b)))))
+		 (if def
+		     (cons def (delete def all))
+		   all)))))
     ;; Read a string, completing from and restricting to the set of
     ;; all defined commands.  Don't provide any initial input.
     ;; Save the command read on the extended-command history list.
