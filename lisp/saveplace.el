@@ -1,4 +1,4 @@
-;;; saveplace.el --- automatically save place in files
+;;; saveplace.el --- automatically save place in files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
@@ -41,7 +41,6 @@
 (defgroup save-place nil
   "Automatically save place in files."
   :group 'data)
-
 
 (defvar save-place-alist nil
   "Alist of saved places to go back to when revisiting files.
@@ -175,10 +174,11 @@ file:
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
 (defun save-place-to-alist ()
-  ;; put filename and point in a cons box and then cons that onto the
-  ;; front of the save-place-alist, if save-place-mode is non-nil.
-  ;; Otherwise, just delete that file from the alist.
-  ;; first check to make sure alist has been loaded in from the master
+  "Add current buffer filename and position to `save-place-alist'.
+Put filename and point in a cons box and then cons that onto the
+front of the `save-place-alist', if `save-place-mode' is non-nil.
+Otherwise, just delete that file from the alist."
+  ;; First check to make sure alist has been loaded in from the master
   ;; file.  If not, do so, then feel free to modify the alist.  It
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))

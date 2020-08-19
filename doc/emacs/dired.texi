@@ -694,6 +694,14 @@ The variable @code{dired-recursive-copies} controls whether to copy
 directories recursively (like @samp{cp -r}).  The default is
 @code{top}, which means to ask before recursively copying a directory.
 
+@vindex dired-copy-dereference
+@cindex follow symbolic links
+@cindex dereference symbolic links
+The variable @code{dired-copy-dereference} controls whether to copy
+symbolic links as links or after dereferencing (like @samp{cp -L}).
+The default is @code{nil}, which means that the symbolic links are
+copied by creating new ones.
+
 @item D
 @findex dired-do-delete
 @kindex D @r{(Dired)}

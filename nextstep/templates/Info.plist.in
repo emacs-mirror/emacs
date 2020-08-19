@@ -675,8 +675,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 	</array>
 	<key>NSAppleScriptEnabled</key>
 	<string>YES</string>
-        <key>NSAppleEventsUsageDescription</key>
-        <string>Emacs requires permission to send AppleEvents to other applications.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Emacs requires permission to send AppleEvents to other applications.</string>
+	<!-- For xwidget webkit to browse remote url,
+	     but this set no restriction at all.  Consult apple's documentation
+	     for detail information about `NSApplicationDefinedMask'. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
         <key>NSDesktopFolderUsageDescription</key>
         <string>Emacs requires permission to access the Desktop folder.</string>
         <key>NSDocumentsFolderUsageDescription</key>

@@ -51,7 +51,7 @@
 ;; also the variable `font-lock-maximum-size'.  Support modes for Font Lock
 ;; mode can be used to speed up Font Lock mode.  See `font-lock-support-mode'.
 
-;;; How Font Lock mode fontifies:
+;;;; How Font Lock mode fontifies:
 
 ;; When Font Lock mode is turned on in a buffer, it (a) fontifies the entire
 ;; buffer and (b) installs one of its fontification functions on one of the
@@ -96,7 +96,7 @@
 ;; some syntactic parsers for common languages and a son-of-font-lock.el could
 ;; use them rather then relying so heavily on the keyword (regexp) pass.
 
-;;; How Font Lock mode supports modes or is supported by modes:
+;;;; How Font Lock mode supports modes or is supported by modes:
 
 ;; Modes that support Font Lock mode do so by defining one or more variables
 ;; whose values specify the fontification.  Font Lock mode knows of these
@@ -112,7 +112,7 @@
 ;; Font Lock mode fontification behavior can be modified in a number of ways.
 ;; See the below comments and the comments distributed throughout this file.
 
-;;; Constructing patterns:
+;;;; Constructing patterns:
 
 ;; See the documentation for the variable `font-lock-keywords'.
 ;;
@@ -120,7 +120,7 @@
 ;; `font-lock-syntactic-keywords' can be generated via the function
 ;; `regexp-opt'.
 
-;;; Adding patterns for modes that already support Font Lock:
+;;;; Adding patterns for modes that already support Font Lock:
 
 ;; Though Font Lock highlighting patterns already exist for many modes, it's
 ;; likely there's something that you want fontified that currently isn't, even
@@ -135,7 +135,7 @@
 ;; other variables.  For example, additional C types can be specified via the
 ;; variable `c-font-lock-extra-types'.
 
-;;; Adding patterns for modes that do not support Font Lock:
+;;;; Adding patterns for modes that do not support Font Lock:
 
 ;; Not all modes support Font Lock mode.  If you (as a user of the mode) add
 ;; patterns for a new mode, you must define in your ~/.emacs a variable or
@@ -155,7 +155,7 @@
 ;;     (set (make-local-variable 'font-lock-defaults)
 ;;          '(foo-font-lock-keywords t))))
 
-;;; Adding Font Lock support for modes:
+;;;; Adding Font Lock support for modes:
 
 ;; Of course, it would be better that the mode already supports Font Lock mode.
 ;; The package author would do something similar to above.  The mode must
@@ -986,7 +986,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	((bound-and-true-p lazy-lock-mode)
 	 (lazy-lock-after-unfontify-buffer))))
 
-;;; End of Font Lock Support mode.
+;; End of Font Lock Support mode.
 
 ;;; Fontification functions.
 
@@ -1393,7 +1393,7 @@ delimit the region to fontify."
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
-;;; End of Fontification functions.
+;; End of Fontification functions.
 
 ;;; Additional text property functions.
 
@@ -1485,7 +1485,7 @@ Optional argument OBJECT is the string or buffer containing the text."
 		      (put-text-property start next prop new object))))))
       (setq start (text-property-not-all next end prop nil object)))))
 
-;;; End of Additional text property functions.
+;; End of Additional text property functions.
 
 ;;; Syntactic regexp fontification functions.
 
@@ -1591,7 +1591,7 @@ START should be at the beginning of a line."
 	  (setq highlights (cdr highlights))))
       (setq keywords (cdr keywords)))))
 
-;;; End of Syntactic regexp fontification functions.
+;; End of Syntactic regexp fontification functions.
 
 ;;; Syntactic fontification functions.
 
@@ -1650,7 +1650,7 @@ START should be at the beginning of a line."
         (setq state (parse-partial-sexp (point) end nil nil state
 				        'syntax-table))))))
 
-;;; End of Syntactic fontification functions.
+;; End of Syntactic fontification functions.
 
 ;;; Keyword regexp fontification functions.
 
@@ -1784,9 +1784,9 @@ LOUDLY, if non-nil, allows progress-meter bar."
       (setq keywords (cdr keywords)))
     (set-marker pos nil)))
 
-;;; End of Keyword regexp fontification functions.
+;; End of Keyword regexp fontification functions.
 
-;; Various functions.
+;;; Various functions.
 
 (defun font-lock-compile-keywords (keywords &optional syntactic-keywords)
   "Compile KEYWORDS into the form (t KEYWORDS COMPILED...)
@@ -2102,7 +2102,7 @@ Sets various variables using `font-lock-defaults' and
   "Font Lock mode face used to highlight grouping constructs in Lisp regexps."
   :group 'font-lock-faces)
 
-;;; End of Color etc. support.
+;; End of Color etc. support.
 
 ;;; Menu support.
 
@@ -2204,7 +2204,7 @@ Sets various variables using `font-lock-defaults' and
 ;;  ;; Deactivate less/more fontification entries.
 ;;  (setq font-lock-fontify-level nil))
 
-;;; End of Menu support.
+;; End of Menu support.
 
 ;;; Various regexp information shared by several modes.
 ;; ;; Information specific to a single mode should go in its load library.

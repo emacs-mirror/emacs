@@ -1,4 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,12 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epa)
 (require 'epa-hook)
+
+;;; Options
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
   "If non-nil, cache passphrase for symmetric encryption.
@@ -49,6 +53,8 @@ encryption is used."
 		 (const :tag "Don't ask" silent))
   :group 'epa-file)
 
+;;; Other
+
 (defvar epa-file-passphrase-alist nil)
 
 (defun epa-file-passphrase-callback-function (context key-id file)
@@ -71,6 +77,8 @@ encryption is used."
 		(setcdr entry (copy-sequence passphrase))
 		passphrase))))
     (epa-passphrase-callback-function context key-id file)))
+
+;;; File Handler
 
 (defvar epa-inhibit nil
   "Non-nil means don't try to decrypt .gpg files when operating on them.")
@@ -151,17 +159,25 @@ encryption is used."
 			(nth 3 error)))
 	     (let ((exists (file-exists-p local-file)))
 	       (when exists
-		 ;; Hack to prevent find-file from opening empty buffer
-		 ;; when decryption failed (bug#6568).  See the place
-		 ;; where `find-file-not-found-functions' are called in
-		 ;; `find-file-noselect-1'.
-		 (setq-local epa-file-error error)
-		 (add-hook 'find-file-not-found-functions
-			   'epa-file--find-file-not-found-function
-			   nil t)
-		 (epa-display-error context))
-	       (signal (if exists 'file-error 'file-missing)
-		       (cons "Opening input file" (cdr error))))))
+		 (epa-display-error context)
+                 ;; When the .gpg file isn't an encrypted file (e.g.,
+                 ;; it's a keyring.gpg file instead), then gpg will
+                 ;; say "Unexpected exit" as the error message.  In
+                 ;; that case, just display the bytes.
+                 (if (equal (caddr error) "Unexpected; Exit")
+                     (setq string (with-temp-buffer
+                                    (insert-file-contents-literally local-file)
+                                    (buffer-string)))
+		   ;; Hack to prevent find-file from opening empty buffer
+		   ;; when decryption failed (bug#6568).  See the place
+		   ;; where `find-file-not-found-functions' are called in
+		   ;; `find-file-noselect-1'.
+		   (setq-local epa-file-error error)
+		   (add-hook 'find-file-not-found-functions
+			     'epa-file--find-file-not-found-function
+			     nil t)
+	           (signal (if exists 'file-error 'file-missing)
+		           (cons "Opening input file" (cdr error))))))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
 	  (setq-local epa-file-encrypt-to
                       (mapcar #'car (epg-context-result-for
@@ -302,6 +318,8 @@ If no one is selected, symmetric encryption will be performed.  "
 	    (stringp visit))
 	(message "Wrote %s" buffer-file-name))))
 (put 'write-region 'epa-file 'epa-file-write-region)
+
+;;; Commands
 
 (defun epa-file-select-keys ()
   "Select recipients for encryption."

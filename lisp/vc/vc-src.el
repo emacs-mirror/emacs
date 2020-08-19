@@ -146,6 +146,20 @@ For a description of possible values, see `vc-check-master-templates'."
 (progn
 (defun vc-src-registered (f) (vc-default-registered 'src f)))
 
+(defun vc-src--parse-state (out)
+  (when (null (string-match "does not exist or is unreadable" out))
+    (let ((state (aref out 0)))
+      (cond
+       ;; FIXME: What to do about L code?
+       ((eq state ?.) 'up-to-date)
+       ((eq state ?A) 'added)
+       ((eq state ?M) 'edited)
+       ((eq state ?I) 'ignored)
+       ((eq state ?R) 'removed)
+       ((eq state ?!) 'missing)
+       ((eq state ??) 'unregistered)
+       (t 'up-to-date)))))
+
 (defun vc-src-state (file)
   "SRC-specific version of `vc-state'."
   (let*
@@ -163,32 +177,41 @@ For a description of possible values, see `vc-check-master-templates'."
 		       "status" "-a" (file-relative-name file))
 		    (error nil)))))))
     (when (eq 0 status)
-      (when (null (string-match "does not exist or is unreadable" out))
-	(let ((state (aref out 0)))
-	  (cond
-	   ;; FIXME: What to do about A and L codes?
-	   ((eq state ?.) 'up-to-date)
-	   ((eq state ?A) 'added)
-	   ((eq state ?M) 'edited)
-	   ((eq state ?I) 'ignored)
-	   ((eq state ?R) 'removed)
-	   ((eq state ?!) 'missing)
-	   ((eq state ??) 'unregistered)
-	   (t 'up-to-date)))))))
+      (vc-src--parse-state out))))
 
 (autoload 'vc-expand-dirs "vc")
 
 (defun vc-src-dir-status-files (dir files update-function)
-  ;; FIXME: Use one src status -a call for this
-  (if (not files) (setq files (vc-expand-dirs (list dir) 'SRC)))
-  (let ((result nil))
-    (dolist (file files)
-      (let ((state (vc-state file))
-	    (frel (file-relative-name file)))
-	(when (and (eq (vc-backend file) 'SRC)
-		   (not (eq state 'up-to-date)))
-	  (push (list frel state) result))))
-    (funcall update-function result)))
+  (let* ((result nil)
+         (status nil)
+         (default-directory (or dir default-directory))
+         (out
+          (with-output-to-string
+            (with-current-buffer standard-output
+              (setq status
+                    (ignore-errors
+                      (apply
+                       #'process-file vc-src-program nil t nil
+                       "status" "-a"
+                       (mapcar #'file-relative-name files)))))))
+         dlist)
+    (when (eq 0 status)
+      (dolist (line (split-string out "[\n\r]" t))
+        (let* ((pair (split-string line "[\t]" t))
+               (state (vc-src--parse-state (car pair)))
+               (frel (cadr pair)))
+          (if (file-directory-p frel)
+              (push frel dlist)
+            (when (not (eq state 'up-to-date))
+              (push (list frel state) result)))))
+      (dolist (drel dlist)
+        (let ((dresult (vc-src-dir-status-files
+                        (expand-file-name drel) nil #'identity)))
+          (dolist (dres dresult)
+            (push (list (concat (file-name-as-directory drel) (car dres))
+                        (cadr dres))
+                  result))))
+      (funcall update-function result))))
 
 (defun vc-src-command (buffer file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-src.el.

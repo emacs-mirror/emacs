@@ -423,7 +423,7 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                      #'(lambda (elt)
                          (eq (plist-get elt :type) 'CHAT))
                      erc-dcc-list)))
-     ('close (erc-delete-dups
+     ('close (delete-dups
               (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
                       erc-dcc-list)))
      ('get (mapcar #'erc-dcc-nick
@@ -636,8 +636,8 @@ that subcommand."
 
 (define-inline erc-dcc-unquote-filename (filename)
   (inline-quote
-   (erc-replace-regexp-in-string "\\\\\\\\" "\\"
-                                 (erc-replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t)))
+   (replace-regexp-in-string "\\\\\\\\" "\\"
+                             (replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t)))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -1193,8 +1193,8 @@ other client."
         (setq posn (match-end 0))
         (erc-display-message
          nil nil proc
-         'dcc-chat-privmsg ?n (erc-propertize erc-dcc-from 'font-lock-face
-                                              'erc-nick-default-face) ?m line))
+         'dcc-chat-privmsg ?n (propertize erc-dcc-from 'font-lock-face
+                                          'erc-nick-default-face) ?m line))
       (setq erc-dcc-unprocessed-output (substring str posn)))))
 
 (defun erc-dcc-chat-buffer-killed ()

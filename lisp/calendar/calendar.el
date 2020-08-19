@@ -1061,6 +1061,15 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+;; fixme should have a :set that changes calendar-standard-time-zone-name etc.
+(defcustom calendar-time-zone-style 'symbolic
+  "Your preferred style for time zones.
+If 'numeric, use numeric time zones like \"+0100\".
+Otherwise, use symbolic time zones like \"CET\"."
+  :type '(choice (const numeric) (other symbolic))
+  :version "28.1"
+  :group 'calendar)
+
 ;;; End of user options.
 
 (calendar-recompute-layout-variables)

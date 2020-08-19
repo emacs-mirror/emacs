@@ -53,6 +53,7 @@
 ;; See http://www.ietf.org/rfc/rfc2554.txt
 
 ;;; Code:
+;;; Dependencies
 
 (require 'sendmail)
 (require 'auth-source)
@@ -61,11 +62,11 @@
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
 
-;;;
+;;; Options
+
 (defgroup smtpmail nil
   "SMTP protocol for sending mail."
   :group 'mail)
-
 
 (defcustom smtpmail-default-smtp-server nil
   "Specify default SMTP server.
@@ -172,8 +173,7 @@ mean \"try again\"."
   :type 'integer
   :version "27.1")
 
-;; End of customizable variables.
-
+;;; Variables
 
 (defvar smtpmail-address-buffer)
 (defvar smtpmail-recipient-address-list)
@@ -191,6 +191,8 @@ for `smtpmail-try-auth-method'.")
 
 (defvar smtpmail-mail-address nil
   "Value to use for envelope-from address for mail from ambient buffer.")
+
+;;; Functions
 
 ;;;###autoload
 (defun smtpmail-send-it ()

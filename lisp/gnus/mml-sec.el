@@ -665,8 +665,9 @@ The passphrase is read and cached."
 			 (epg-user-id-string uid))))
 		 (equal (downcase (car (mail-header-parse-address
 					(epg-user-id-string uid))))
-			(downcase (car (mail-header-parse-address
-					recipient))))
+			(downcase (or (car (mail-header-parse-address
+					    recipient))
+				      recipient)))
 		 (not (memq (epg-user-id-validity uid)
 			    '(revoked expired))))
 	    (throw 'break t))))))
@@ -937,6 +938,10 @@ If no one is selected, symmetric encryption will be performed.  "
        (signal (car error) (cdr error))))
     cipher))
 
+;; Should probably be removed and the interface should be different.
+(defvar mml-secure-allow-signing-with-unknown-recipient nil
+  "Variable to bind to allow automatic recipient selection.")
+
 (defun mml-secure-epg-sign (protocol mode)
   ;; Based on code appearing inside mml2015-epg-sign.
   (let* ((context (epg-make-context protocol))
@@ -953,7 +958,8 @@ If no one is selected, symmetric encryption will be performed.  "
         ;; then there's no point advising the user to examine it.  If
         ;; there are any other variables worth examining, please
         ;; improve this error message by having it mention them.
-        (error "Couldn't find any signer names%s" maybe-msg)))
+	(unless mml-secure-allow-signing-with-unknown-recipient
+          (error "Couldn't find any signer names%s" maybe-msg))))
     (when (eq 'OpenPGP protocol)
       (setf (epg-context-armor context) t)
       (setf (epg-context-textmode context) t)

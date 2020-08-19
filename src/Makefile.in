@@ -438,6 +438,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o \
+  nsxwidget.o \
   w32.o w32console.o w32cygwinx.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
@@ -586,7 +587,7 @@ endif
 ifeq ($(DUMPING),pdumper)
 $(pdmp): emacs$(EXEEXT)
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --lisp-dest $(LISP_DESTDIR)
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	cp -f $@ $(bootstrap_pdmp)
 endif
 
@@ -788,10 +789,6 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 %.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
 		THEFILE=$< $<c
-
-%.eln: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
-	@$(MAKE)  $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
-		THEFILE=$< $<n
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.

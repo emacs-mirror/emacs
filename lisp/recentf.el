@@ -1289,7 +1289,8 @@ Write data into the file specified by `recentf-save-file'."
         (insert "\n\n;; Local Variables:\n"
                 (format ";; coding: %s\n" recentf-save-file-coding-system)
                 ";; End:\n")
-        (write-file (expand-file-name recentf-save-file))
+        (write-region (point-min) (point-max)
+                      (expand-file-name recentf-save-file))
         (when recentf-save-file-modes
           (set-file-modes recentf-save-file recentf-save-file-modes))
         nil)

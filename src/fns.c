@@ -4248,50 +4248,31 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
 /* Recompute the hashes (and hence also the "next" pointers).
    Normally there's never a need to recompute hashes.
-   This is done only on first-access to a hash-table loaded from
-   the "pdump", because the object's addresses may have changed, thus
-   affecting their hash.  */
+   This is done only on first access to a hash-table loaded from
+   the "pdump", because the objects' addresses may have changed, thus
+   affecting their hashes.  */
 void
-hash_table_rehash (struct Lisp_Hash_Table *h)
+hash_table_rehash (Lisp_Object hash)
 {
-  ptrdiff_t size = HASH_TABLE_SIZE (h);
-
-  /* These structures may have been purecopied and shared
-     (bug#36447).  */
-  Lisp_Object hash = make_nil_vector (size);
-  h->next = Fcopy_sequence (h->next);
-  h->index = Fcopy_sequence (h->index);
+  struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
+  ptrdiff_t i, count = h->count;
 
   /* Recompute the actual hash codes for each entry in the table.
      Order is still invalid.  */
-  for (ptrdiff_t i = 0; i < size; ++i)
+  for (i = 0; i < count; i++)
     {
       Lisp_Object key = HASH_KEY (h, i);
-      if (!EQ (key, Qunbound))
-        ASET (hash, i, h->test.hashfn (key, h));
+      Lisp_Object hash_code = h->test.hashfn (key, h);
+      ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
+      set_hash_hash_slot (h, i, hash_code);
+      set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+      set_hash_index_slot (h, start_of_bucket, i);
+      eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
     }
 
-  /* Reset the index so that any slot we don't fill below is marked
-     invalid.  */
-  Ffillarray (h->index, make_fixnum (-1));
-
-  /* Rebuild the collision chains.  */
-  for (ptrdiff_t i = 0; i < size; ++i)
-    if (!NILP (AREF (hash, i)))
-      {
-        EMACS_UINT hash_code = XUFIXNUM (AREF (hash, i));
-        ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
-        set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
-        set_hash_index_slot (h, start_of_bucket, i);
-        eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
-      }
-
-  /* Finally, mark the hash table as having a valid hash order.
-     Do this last so that if we're interrupted, we retry on next
-     access. */
-  eassert (hash_rehash_needed_p (h));
-  h->hash = hash;
-  eassert (!hash_rehash_needed_p (h));
+  ptrdiff_t size = ASIZE (h->next);
+  for (; i + 1 < size; i++)
+    set_hash_next_slot (h, i, i + 1);
 }
 
 /* Lookup KEY in hash table H.  If HASH is non-null, return in *HASH
@@ -4302,8 +4283,6 @@ ptrdiff_t
 hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object *hash)
 {
   ptrdiff_t start_of_bucket, i;
-
-  hash_rehash_if_needed (h);
 
   Lisp_Object hash_code = h->test.hashfn (key, h);
   if (hash)
@@ -4339,8 +4318,6 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 {
   ptrdiff_t start_of_bucket, i;
 
-  hash_rehash_if_needed (h);
-
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
   h->count++;
@@ -4372,8 +4349,6 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   Lisp_Object hash_code = h->test.hashfn (key, h);
   ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
   ptrdiff_t prev = -1;
-
-  hash_rehash_if_needed (h);
 
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
        0 <= i;
@@ -4415,8 +4390,7 @@ hash_clear (struct Lisp_Hash_Table *h)
   if (h->count > 0)
     {
       ptrdiff_t size = HASH_TABLE_SIZE (h);
-      if (!hash_rehash_needed_p (h))
-	memclear (xvector_contents (h->hash), size * word_size);
+      memclear (xvector_contents (h->hash), size * word_size);
       for (ptrdiff_t i = 0; i < size; i++)
 	{
 	  set_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
@@ -4452,9 +4426,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
   for (ptrdiff_t bucket = 0; bucket < n; ++bucket)
     {
       /* Follow collision chain, removing entries that don't survive
-         this garbage collection.  It's okay if hash_rehash_needed_p
-         (h) is true, since we're operating entirely on the cached
-         hash values. */
+         this garbage collection.  */
       ptrdiff_t prev = -1;
       ptrdiff_t next;
       for (ptrdiff_t i = HASH_INDEX (h, bucket); 0 <= i; i = next)
@@ -4499,7 +4471,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
                     set_hash_hash_slot (h, i, Qnil);
 
                   eassert (h->count != 0);
-                  h->count += h->count > 0 ? -1 : 1;
+                  h->count--;
                 }
 	      else
 		{
@@ -4923,7 +4895,6 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
   (Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  eassert (h->count >= 0);
   return make_fixnum (h->count);
 }
 

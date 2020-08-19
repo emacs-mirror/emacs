@@ -233,6 +233,13 @@ template <int w>
 
 /* @assert.h omit start@  */
 
+#if defined __has_builtin
+/* <https://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions> */
+# define _GL_HAS_BUILTIN_ASSUME __has_builtin (__builtin_assume)
+#else
+# define _GL_HAS_BUILTIN_ASSUME 0
+#endif
+
 #if 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
 # define _GL_HAS_BUILTIN_TRAP 1
 #elif defined __has_builtin
@@ -294,7 +301,9 @@ template <int w>
    diagnostics, performance can suffer if R uses hard-to-optimize
    features such as function calls not inlined by the compiler.  */
 
-#if _GL_HAS_BUILTIN_UNREACHABLE
+#if _GL_HAS_BUILTIN_ASSUME
+# define assume(R) __builtin_assume (R)
+#elif _GL_HAS_BUILTIN_UNREACHABLE
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
 #elif 1200 <= _MSC_VER
 # define assume(R) __assume (R)

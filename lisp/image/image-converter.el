@@ -42,6 +42,9 @@ installed on the system."
 (defvar image-converter-regexp nil
   "A regexp that matches the file name suffixes that can be converted.")
 
+(defvar image-converter-file-name-extensions nil
+  "A list of file name suffixes that can be converted.")
+
 (defvar image-converter--converters
   '((graphicsmagick :command ("gm" "convert") :probe ("-list" "format"))
     (ffmpeg :command "ffmpeg" :probe "-decoders")
@@ -58,9 +61,11 @@ is a string, it should be a MIME format string like
   (unless image-converter
     (image-converter--find-converter))
   ;; When image-converter was customized
-  (if (and image-converter (not image-converter-regexp))
-      (when-let ((formats (image-converter--probe image-converter)))
-        (setq image-converter-regexp (concat "\\." (regexp-opt formats) "\\'"))))
+  (when (and image-converter (not image-converter-regexp))
+    (when-let ((formats (image-converter--probe image-converter)))
+      (setq image-converter-regexp
+            (concat "\\." (regexp-opt formats) "\\'"))
+      (setq image-converter-file-name-extensions formats)))
   (and image-converter
        (or (and (not data-p)
                 (string-match image-converter-regexp source))
@@ -183,7 +188,8 @@ data is returned as a string."
     (dolist (elem image-converter--converters)
       (when-let ((formats (image-converter--probe (car elem))))
         (setq image-converter (car elem)
-              image-converter-regexp (concat "\\." (regexp-opt formats) "\\'"))
+              image-converter-regexp (concat "\\." (regexp-opt formats) "\\'")
+              image-converter-file-name-extensions formats)
         (throw 'done image-converter)))))
 
 (cl-defmethod image-converter--convert ((type (eql graphicsmagick)) source

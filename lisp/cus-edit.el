@@ -4841,7 +4841,10 @@ The format is suitable for use with `easy-menu-define'."
   (error "You can't edit this part of the Custom buffer"))
 
 (defun Custom-newline (pos &optional event)
-  "Invoke button at POS, or refuse to allow editing of Custom buffer."
+  "Invoke button at POS, or refuse to allow editing of Custom buffer.
+
+To see what function the widget will call, use the
+`widget-describe' command."
   (interactive "@d")
   (let ((button (get-char-property pos 'button)))
     ;; If there is no button at point, then use the one at the start

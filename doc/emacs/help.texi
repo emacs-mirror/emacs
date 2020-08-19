@@ -220,6 +220,16 @@ documentation string of the command it runs.
 command is not on any key, that means you must use @kbd{M-x} to run
 it.  @kbd{C-h w} runs the command @code{where-is}.
 
+@findex button-describe
+@findex widget-describe
+  Some modes in Emacs use various buttons (@pxref{Buttons,,,elisp, The
+Emacs Lisp Reference Manual}) and widgets
+(@pxref{Introduction,,,widget, Emacs Widgets}) that can be clicked to
+perform some action.  To find out what function is ultimately invoked
+by these buttons, Emacs provides the @code{button-describe} and
+@code{widget-describe} commands, that should be run with point over
+the button.
+
 @node Name Help
 @section Help by Command or Variable Name
 

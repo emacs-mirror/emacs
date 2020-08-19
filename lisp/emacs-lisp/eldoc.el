@@ -289,13 +289,13 @@ Otherwise work like `message'."
 	     (or (window-in-direction 'above (minibuffer-window))
 		 (minibuffer-selected-window)
 		 (get-largest-window)))
-    (when mode-line-format
-	  (unless (and (listp mode-line-format)
-		       (assq 'eldoc-mode-line-string mode-line-format))
+          (when (and mode-line-format
+                     (not (and (listp mode-line-format)
+                               (assq 'eldoc-mode-line-string mode-line-format))))
 	    (setq mode-line-format
 		  (list "" '(eldoc-mode-line-string
 			     (" " eldoc-mode-line-string " "))
-			mode-line-format))))
+			mode-line-format)))
           (setq eldoc-mode-line-string
                 (when (stringp format-string)
                   (apply #'format-message format-string args)))

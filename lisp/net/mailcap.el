@@ -269,11 +269,6 @@ is consulted."
       (viewer . "display %s")
       (type . "image/*")
       (test   . (eq window-system 'x))
-      ("needsx11"))
-     (".*"
-      (viewer . "ee %s")
-      (type . "image/*")
-      (test   . (eq window-system 'x))
       ("needsx11")))
     ("text"
      ("plain"

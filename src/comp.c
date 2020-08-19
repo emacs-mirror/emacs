@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <signal.h>
 #include <libgccjit.h>
+#include <epaths.h>
 
 #include "puresize.h"
 #include "window.h"
@@ -398,6 +399,8 @@ load_gccjit_if_necessary (bool mandatory)
 }
 
 
+#define ELN_FILENAME_HASH_LEN 64
+
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -639,6 +642,16 @@ format_string (const char *format, ...)
   return scratch_area;
 }
 
+static Lisp_Object
+comp_hash_string (Lisp_Object string)
+{
+  Lisp_Object digest = make_uninit_string (SHA512_DIGEST_SIZE * 2);
+  sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
+  hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
+
+  return digest;
+}
+
 /* Produce a key hashing Vcomp_subr_list.  */
 
 void
@@ -646,10 +659,7 @@ hash_native_abi (void)
 {
   Lisp_Object string = Fmapconcat (intern_c_string ("subr-name"),
 				   Vcomp_subr_list, build_string (" "));
-  Lisp_Object digest = make_uninit_string (SHA512_DIGEST_SIZE * 2);
-
-  sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
-  hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
+  Lisp_Object digest = comp_hash_string (string);
 
   /* Check runs once.  */
   eassert (NILP (Vcomp_abi_hash));
@@ -657,8 +667,7 @@ hash_native_abi (void)
   /* If 10 characters are usually sufficient for git I guess 16 are
      fine for us here.  */
   Vcomp_native_path_postfix =
-    concat3 (make_string ("eln-", 4),
-	     Vsystem_configuration,
+    concat2 (Vsystem_configuration,
 	     concat2 (make_string ("-", 1),
 		      Fsubstring_no_properties (Vcomp_abi_hash,
 						make_fixnum (0),
@@ -3857,6 +3866,71 @@ compile_function (Lisp_Object func)
 /* Entry points exposed to lisp.  */
 /**********************************/
 
+/* In use by Fcomp_el_to_eln_filename.  */
+static Lisp_Object loadsearch_re_list;
+
+DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
+       Scomp_el_to_eln_filename, 1, 2, 0,
+       doc: /* Given a source file return the corresponding .eln true filename.
+If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
+  (Lisp_Object filename, Lisp_Object base_dir)
+{
+  CHECK_STRING (filename);
+
+  if (suffix_p (filename, ".gz"))
+    filename = Fsubstring (filename, Qnil, make_fixnum (-3));
+  filename = Fexpand_file_name (filename, Qnil);
+
+  /* We create eln filenames with an hash in order to look-up these
+     starting from the source filename, IOW have a relation
+     /absolute/path/filename.el -> eln-cache/filename-hash.eln.
+
+     As installing .eln files compiled during the build changes their
+     absolute path we need an hashing mechanism that is not sensitive
+     to that.  For this we replace if match PATH_DUMPLOADSEARCH or
+     PATH_LOADSEARCH with '//' before generating the hash.
+
+     Another approach would be to hash using the source file content
+     but this may have a measurable performance impact.  */
+
+  if (NILP (loadsearch_re_list))
+    {
+      Lisp_Object loadsearch_list =
+	Fcons (build_string (PATH_DUMPLOADSEARCH),
+	       Fcons (build_string (PATH_LOADSEARCH), Qnil));
+      FOR_EACH_TAIL (loadsearch_list)
+	loadsearch_re_list =
+	  Fcons (Fregexp_quote (XCAR (loadsearch_list)), loadsearch_re_list);
+    }
+  Lisp_Object loadsearch_res = loadsearch_re_list;
+  FOR_EACH_TAIL (loadsearch_res)
+    {
+      Lisp_Object match_idx =
+	Fstring_match (XCAR (loadsearch_res), filename, Qnil);
+      if (EQ (match_idx, make_fixnum (0)))
+	{
+	  filename =
+	    Freplace_match (build_string ("//"), Qt, Qt, filename, Qnil);
+	  break;
+	}
+    }
+
+  Lisp_Object hash = Fsubstring (comp_hash_string (filename), Qnil,
+				 make_fixnum (ELN_FILENAME_HASH_LEN));
+  filename = concat2 (Ffile_name_nondirectory (Fsubstring (filename, Qnil,
+							   make_fixnum (-3))),
+		       build_string ("-"));
+  filename = concat3 (filename, hash, build_string (NATIVE_ELISP_SUFFIX));
+  if (NILP (base_dir))
+    base_dir = XCAR (Vcomp_eln_load_path);
+
+  if (!file_name_absolute_p (SSDATA (base_dir)))
+    base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
+
+  return Fexpand_file_name (filename,
+			    concat2 (base_dir, Vcomp_native_path_postfix));
+}
+
 DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        0, 0, 0,
        doc: /* Initialize the native compiler context. Return t on success.  */)
@@ -4073,11 +4147,12 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
        doc: /* Compile as native code the current context to file.  */)
-  (Lisp_Object base_name)
+  (Lisp_Object file_name)
 {
   load_gccjit_if_necessary (true);
 
-  CHECK_STRING (base_name);
+  CHECK_STRING (file_name);
+  Lisp_Object base_name = Fsubstring (file_name, Qnil, make_fixnum (-4));
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
@@ -4141,19 +4216,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
 
-  Lisp_Object out_file = CALLN (Fconcat, base_name, dot_so);
   Lisp_Object tmp_file =
     Fmake_temp_file_internal (base_name, Qnil, dot_so, Qnil);
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
-  CALL2I (comp--replace-output-file, out_file, tmp_file);
+  CALL2I (comp--replace-output-file, file_name, tmp_file);
 
   if (!noninteractive)
     unbind_to (count, Qnil);
 
-  return out_file;
+  return file_name;
 }
 
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
@@ -4498,7 +4572,11 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     concat2 (CALL1I (file-name-sans-extension, Vload_true_file_name),
 	     build_pure_c_string (".el"));
   if (NILP (Ffile_exists_p (src)))
-    return;
+    {
+      src = concat2 (src, build_pure_c_string (".gz"));
+      if (NILP (Ffile_exists_p (src)))
+	return;
+    }
 
   /* This is to have deferred compilaiton able to compile comp
      dependecies breaking circularity.  */
@@ -4532,6 +4610,27 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 /**************************************/
 /* Functions used to load eln files.  */
 /**************************************/
+
+/* Fixup the system eln-cache dir.  This is the last entry in
+   `comp-eln-load-path'.  */
+void
+fixup_eln_load_path (Lisp_Object directory)
+{
+  Lisp_Object last_cell = Qnil;
+  Lisp_Object tmp = Vcomp_eln_load_path;
+  FOR_EACH_TAIL (tmp)
+    if (CONSP (tmp))
+      last_cell = tmp;
+
+  Lisp_Object eln_cache_sys =
+    Ffile_name_directory (concat2 (Vinvocation_directory,
+				   directory));
+  /* One directory up...  */
+  eln_cache_sys =
+    Ffile_name_directory (Fsubstring (eln_cache_sys, Qnil,
+				      make_fixnum (-1)));
+  Fsetcar (last_cell, eln_cache_sys);
+}
 
 typedef char *(*comp_lit_str_func) (void);
 
@@ -4905,7 +5004,13 @@ syms_of_comp (void)
 #ifdef HAVE_NATIVE_COMP
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("comp-deferred-compilation", comp_deferred_compilation,
-	       doc: /* If t compile asyncronously every .elc file loaded.  */);
+	       doc: /* If non-nil compile asyncronously all .elc files
+being loaded.
+
+Once compilation happened each function definition is updated to the
+native compiled one.  */);
+  comp_deferred_compilation = true;
+
   DEFSYM (Qcomp_speed, "comp-speed");
   DEFSYM (Qcomp_debug, "comp-debug");
   DEFSYM (Qcomp_native_driver_options, "comp-native-driver-options");
@@ -5008,6 +5113,7 @@ syms_of_comp (void)
         build_pure_c_string ("eln file inconsistent with current runtime "
 			     "configuration, please recompile"));
 
+  defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
@@ -5026,6 +5132,8 @@ syms_of_comp (void)
   comp.emitter_dispatcher = Qnil;
   staticpro (&delayed_sources);
   delayed_sources = Qnil;
+  staticpro (&loadsearch_re_list);
+  loadsearch_re_list = Qnil;
 
 #ifdef WINDOWSNT
   staticpro (&all_loaded_comp_units_h);
@@ -5051,6 +5159,22 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-name -> function-value.  For
 		       internal use during  */);
   Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
+
+  DEFVAR_LISP ("comp-eln-to-el-h", Vcomp_eln_to_el_h,
+	       doc: /* Hash table eln-filename -> el-filename.  */);
+  Vcomp_eln_to_el_h = CALLN (Fmake_hash_table, QCtest, Qequal);
+
+  DEFVAR_LISP ("comp-eln-load-path", Vcomp_eln_load_path,
+	       doc: /* List of eln cache directories.
+
+If a directory is non absolute is assumed to be relative to
+`invocation-directory'.
+The last directory of this list is assumed to be the system one.  */);
+
+  /* Temporary value in use for boostrap.  We can't do better as
+     `invocation-directory' is still unset, will be fixed up during
+     dump reload.  */
+  Vcomp_eln_load_path = Fcons (build_string ("../eln-cache/"), Qnil);
 
 #endif /* #ifdef HAVE_NATIVE_COMP */
 

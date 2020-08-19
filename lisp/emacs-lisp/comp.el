@@ -36,17 +36,11 @@
 (require 'gv)
 (require 'rx)
 (require 'subr-x)
+(require 'warnings)
 
 (defgroup comp nil
   "Emacs Lisp native compiler."
   :group 'lisp)
-
-(defcustom comp-deferred-compilation nil
-  "If t compile asyncronously all lexically bound .elc files being loaded.
-Once compilation happened each function definition is updated to
-the native compiled one."
-  :type 'boolean
-  :group 'comp)
 
 (defcustom comp-speed 2
   "Compiler optimization level.  From -1 to 3.
@@ -152,6 +146,9 @@ and above."
 
 (defvar comp-dry-run nil
   "When non nil run everything but the C back-end.")
+
+(defconst comp-valid-source-re (rx ".el" (? ".gz") eos)
+  "Regexp to match filename of valid input source files.")
 
 (defconst comp-log-buffer-name "*Native-compile-Log*"
   "Name of the native-compiler log buffer.")
@@ -578,28 +575,6 @@ VERBOSITY is a number between 0 and 3."
           edges)))
 
 
-
-(defun comp-output-directory (src)
-  "Return the compilation direcotry for source SRC."
-  (let* ((src (if (symbolp src) (symbol-name src) src))
-         (expanded-filename (expand-file-name src)))
-    (file-name-as-directory
-     (concat (file-name-directory expanded-filename)
-             comp-native-path-postfix))))
-
-(defun comp-output-base-filename (src)
-  "Output filename sans extention for SRC file being native compiled."
-  (let* ((src (if (symbolp src) (symbol-name src) src))
-         (expanded-filename (expand-file-name src))
-         (output-dir (comp-output-directory src))
-         (output-filename
-          (file-name-sans-extension
-           (file-name-nondirectory expanded-filename))))
-    (expand-file-name output-filename output-dir)))
-
-(defun comp-output-filename (src)
-  "Output filename for SRC file being native compiled."
-  (concat (comp-output-base-filename src) ".eln"))
 
 (defmacro comp-loop-insn-in-block (basic-block &rest body)
   "Loop over all insns in BASIC-BLOCK executning BODY.
@@ -2496,7 +2471,7 @@ Prepare every function for final compilation and drive the C back-end."
     (unless (file-exists-p dir)
       ;; In case it's created in the meanwhile.
       (ignore-error 'file-already-exists
-        (make-directory dir)))
+        (make-directory dir t)))
     (unless comp-dry-run
       (comp--compile-ctxt-to-file name))))
 
@@ -2602,30 +2577,36 @@ display a message."
         (cl-loop
          for (source-file . load) = (pop comp-files-queue)
          while source-file
-         do (cl-assert (string-match-p (rx ".el" eos) source-file) nil
+         do (cl-assert (string-match-p comp-valid-source-re source-file) nil
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
          when (or comp-always-compile
+                  load ; Always compile when the compilation is
+                       ; commanded for late load.
                   (file-newer-than-file-p source-file
-                                          (comp-output-filename source-file)))
+                                          (comp-el-to-eln-filename source-file)))
          do (let* ((expr `(progn
                             (require 'comp)
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
                                   comp-native-driver-options ',comp-native-driver-options
+                                  comp-eln-load-path ',comp-eln-load-path
                                   load-path ',load-path)
                             ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
                             (native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
-                   (_ (progn
-                        (comp-log "\n")
-                        (comp-log (prin1-to-string expr))))
                    (temp-file (make-temp-file
                                (concat "emacs-async-comp-"
                                        (file-name-base source-file) "-")
-                               nil ".el" (prin1-to-string expr)))
+                               nil ".el"))
+                   (expr-string (prin1-to-string expr))
+                   (_ (progn
+                        (with-temp-file temp-file
+                          (insert expr-string))
+                        (comp-log "\n")
+                        (comp-log expr-string)))
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
@@ -2644,7 +2625,7 @@ display a message."
                                (when (and load1
                                           (zerop (process-exit-status process)))
                                  (native-elisp-load
-                                  (comp-output-filename source-file1)
+                                  (comp-el-to-eln-filename source-file1)
                                   (eq load1 'late)))
                                (comp-run-async-workers)))))
               (puthash source-file process comp-async-compilations))
@@ -2684,7 +2665,11 @@ Return the compilation unit file name."
          (byte-compile-debug t)
          (comp-ctxt
           (make-comp-ctxt
-           :output (comp-output-base-filename function-or-file)
+           :output (comp-el-to-eln-filename (if (symbolp function-or-file)
+                                                (symbol-name function-or-file)
+                                              function-or-file)
+                                            (when byte-native-for-bootstrap
+                                              (car (last comp-eln-load-path))))
            :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
@@ -2754,8 +2739,8 @@ LOAD can be nil t or 'late."
     (dolist (path paths)
       (cond ((file-directory-p path)
              (dolist (file (if recursively
-                               (directory-files-recursively path (rx ".el" eos))
-                             (directory-files path t (rx ".el" eos))))
+                               (directory-files-recursively path comp-valid-source-re)
+                             (directory-files path t comp-valid-source-re)))
                (push file files)))
             ((file-exists-p path) (push path files))
             (t (signal 'native-compiler-error
@@ -2778,11 +2763,11 @@ queued with LOAD %"
                     (and (eq load 'late)
                          (cl-some (lambda (re) (string-match re file))
                                   comp-deferred-compilation-black-list)))
-          (let ((out-dir (comp-output-directory file))
-                (out-filename (comp-output-filename file)))
-            (if (or (file-writable-p out-filename)
-                    (and (not (file-exists-p out-dir))
-                         (file-writable-p (substring out-dir 0 -1))))
+          (let* ((out-filename (comp-el-to-eln-filename file))
+                 (out-dir (file-name-directory out-filename)))
+            (unless (file-exists-p out-dir)
+              (make-directory out-dir t))
+            (if (file-writable-p out-filename)
                 (setf comp-files-queue
                       (append comp-files-queue `((,file . ,load))))
               (display-warning 'comp

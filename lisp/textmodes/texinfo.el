@@ -482,6 +482,13 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     (define-key map "\C-c\C-ce"    'texinfo-insert-@end)
     (define-key map "\C-c\C-cd"    'texinfo-insert-@dfn)
     (define-key map "\C-c\C-cc"    'texinfo-insert-@code)
+
+    ;; bindings for environment movement
+    (define-key map "\C-c."        'texinfo-to-environment-bounds)
+    (define-key map "\C-c\C-c\C-f" 'texinfo-next-environment-end)
+    (define-key map "\C-c\C-c\C-b" 'texinfo-previous-environment-end)
+    (define-key map "\C-c\C-c\C-n" 'texinfo-next-environment-start)
+    (define-key map "\C-c\C-c\C-p" 'texinfo-previous-environment-start)
     map))
 
 (easy-menu-define texinfo-mode-menu
@@ -1071,6 +1078,70 @@ You are prompted for the job number (use a number shown by a previous
   ;;               " "
   ;;               job-number"\n"))
   (tex-recenter-output-buffer nil))
+
+(defun texinfo-to-environment-bounds ()
+  "Move point alternately to the start and end of a Texinfo environment.
+Do nothing when outside of an environment.  This command does not
+handle nested environments."
+  (interactive)
+  (cond ((save-excursion
+	   (forward-line 0)
+	   (looking-at texinfo-environment-regexp))
+	 (if (save-excursion
+	       (forward-line 0)
+	       (looking-at "^@end"))
+	     (texinfo-previous-environment-start)
+	   (texinfo-next-environment-end)))
+	((save-excursion
+	   (and (re-search-backward texinfo-environment-regexp nil t)
+		(not (looking-at "^@end"))))
+	 (texinfo-previous-environment-start))
+	;; Otherwise, point is outside of an environment, so do nothing.
+	))
+
+(defun texinfo-next-environment-start ()
+  "Move forward to the beginning of a Texinfo environment."
+  (interactive)
+  (if (looking-at texinfo-environment-regexp)
+      (forward-line 1))
+  (while (and (re-search-forward texinfo-environment-regexp nil t)
+	      (save-excursion
+		(goto-char (match-beginning 0))
+		(looking-at "@end"))))
+  (if (save-excursion
+	(forward-line 0)
+	(looking-at texinfo-environment-regexp))
+      (forward-line 0)))
+
+(defun texinfo-previous-environment-start ()
+  "Move back to the beginning of the previous Texinfo environment."
+  (interactive)
+  (while (and (re-search-backward texinfo-environment-regexp nil t)
+	      (save-excursion
+		(goto-char (match-beginning 0))
+		(looking-at "@end")))))
+
+(defun texinfo-next-environment-end ()
+  "Move forward to the beginning of the next @end line of an environment."
+  (interactive)
+  (if (looking-at "^@end")
+      (forward-line 1))
+  (while (and (re-search-forward texinfo-environment-regexp nil t)
+	      (save-excursion
+		(goto-char (match-beginning 0))
+		(not (looking-at "^@end")))))
+  (if (save-excursion
+	(forward-line 0)
+	(looking-at "^@end"))
+      (forward-line 0)))
+
+(defun texinfo-previous-environment-end ()
+  "Move backward to the beginning of the next @end line of an environment."
+  (interactive)
+  (while (and (re-search-backward texinfo-environment-regexp nil t)
+	      (save-excursion
+		(goto-char (match-beginning 0))
+		(not (looking-at "@end"))))))
 
 (provide 'texinfo)
 

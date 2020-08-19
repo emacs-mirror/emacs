@@ -367,6 +367,61 @@ start."
 "
     "Test buffer for `mark-defun'."))
 
+;;; end-of-defun
+
+(ert-deftest end-of-defun-twice ()
+  "Test behavior of prefix arg for `end-of-defun' (Bug#24427).
+Calling `end-of-defun' twice should be the same as a prefix arg
+of two."
+  (setq last-command nil)
+  (cl-flet ((eod2 (lambda ()
+                    (goto-char (point-min))
+                    (end-of-defun)
+                    (end-of-defun)
+                    (let ((pt-eod2 (point)))
+                      (goto-char (point-min))
+                      (end-of-defun 2)
+                      (should (= (point) pt-eod2))))))
+    (with-temp-buffer
+      (insert "\
+\(defun a ())
+
+\(defun b ())
+
+\(defun c ())")
+      (eod2))
+    (with-temp-buffer
+      (insert "\
+\(defun a ())
+\(defun b ())
+\(defun c ())")
+      (eod2)))
+  (elisp-tests-with-temp-buffer ";; Comment header
+
+\(defun func-1 (arg)
+  \"docstring\"
+  body)
+=!p1=
+;; Comment before a defun
+\(defun func-2 (arg)
+  \"docstring\"
+  body)
+
+\(defun func-3 (arg)
+  \"docstring\"
+  body)
+=!p2=(defun func-4 (arg)
+  \"docstring\"
+  body)
+
+;; end
+"
+    (goto-char p1)
+    (end-of-defun 2)
+    (should (= (point) p2))))
+
+;;; mark-defun
+
 (ert-deftest mark-defun-no-arg-region-inactive ()
   "Test `mark-defun' with no prefix argument and inactive
 region."

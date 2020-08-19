@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 52
+# gnulib-common.m4 serial 55
 dnl Copyright (C) 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -45,7 +45,7 @@ AC_DEFUN([gl_COMMON_BODY], [
                 ? 6000000 <= __apple_build_version__ \
                 : 3 < __clang_major__ + (5 <= __clang_minor__))))
    /* _Noreturn works as-is.  */
-# elif _GL_GNUC_PREREQ (2, 8) || 0x5110 <= __SUNPRO_C
+# elif _GL_GNUC_PREREQ (2, 8) || defined __clang__ || 0x5110 <= __SUNPRO_C
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
@@ -76,6 +76,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 # define _GL_ATTR_cold _GL_GNUC_PREREQ (4, 3)
 # define _GL_ATTR_const _GL_GNUC_PREREQ (2, 95)
 # define _GL_ATTR_deprecated _GL_GNUC_PREREQ (3, 1)
+# define _GL_ATTR_diagnose_if 0
 # define _GL_ATTR_error _GL_GNUC_PREREQ (4, 3)
 # define _GL_ATTR_externally_visible _GL_GNUC_PREREQ (4, 1)
 # define _GL_ATTR_fallthrough _GL_GNUC_PREREQ (7, 0)
@@ -149,6 +150,9 @@ AC_DEFUN([gl_COMMON_BODY], [
 #if _GL_HAS_ATTRIBUTE (error)
 # define _GL_ATTRIBUTE_ERROR(msg) __attribute__ ((__error__ (msg)))
 # define _GL_ATTRIBUTE_WARNING(msg) __attribute__ ((__warning__ (msg)))
+#elif _GL_HAS_ATTRIBUTE (diagnose_if)
+# define _GL_ATTRIBUTE_ERROR(msg) __attribute__ ((__diagnose_if__ (1, msg, "error")))
+# define _GL_ATTRIBUTE_WARNING(msg) __attribute__ ((__diagnose_if__ (1, msg, "warning")))
 #else
 # define _GL_ATTRIBUTE_ERROR(msg)
 # define _GL_ATTRIBUTE_WARNING(msg)
@@ -300,7 +304,9 @@ AC_DEFUN([gl_COMMON_BODY], [
 #define _GL_ASYNC_SAFE
 ])
   AH_VERBATIM([micro_optimizations],
-[/* _GL_CMP (n1, n2) performs a three-valued comparison on n1 vs. n2.
+[/* _GL_CMP (n1, n2) performs a three-valued comparison on n1 vs. n2, where
+   n1 and n2 are expressions without side effects, that evaluate to real
+   numbers (excluding NaN).
    It returns
      1  if n1 > n2
      0  if n1 == n2

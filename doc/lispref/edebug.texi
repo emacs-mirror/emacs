@@ -1438,6 +1438,16 @@ name component for the definition.  You can use this to add a unique,
 static component to the name of the definition.  It may be used more
 than once.
 
+@item :unique
+This construct is like @code{:name}, but generates unique names.  It
+does not match an argument.  The element following @code{:unique}
+should be a string; it is used as the prefix for an additional name
+component for the definition.  You can use this to add a unique,
+dynamic component to the name of the definition.  This is useful for
+macros that can define the same symbol multiple times in different
+scopes, such as @code{cl-flet}; @ref{Function Bindings,,,cl}.  It may
+be used more than once.
+
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.
 However, lambda-list keywords (symbols starting with @samp{&})

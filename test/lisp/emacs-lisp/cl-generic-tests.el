@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'cl-generic)
+(require 'edebug)
 
 ;; Don't indirectly require `cl-lib' at run-time.
 (eval-when-compile (require 'ert))
@@ -248,6 +249,43 @@
   "`method-files' returns nil if asked to find a method which doesn't exist."
   (should-not (cl--generic-method-files 'cl-generic-tests--undefined-generic))
   (should-not (cl--generic-method-files 'cl-generic-tests--generic-without-methods)))
+
+(ert-deftest cl-defgeneric/edebug/method ()
+  "Check that `:method' forms in `cl-defgeneric' create unique
+Edebug symbols (Bug#42672)."
+  (with-temp-buffer
+    (dolist (form '((cl-defgeneric cl-defgeneric/edebug/method/1 (_)
+                      (:method ((_ number)) 1)
+                      (:method ((_ string)) 2)
+                      (:method :around ((_ number)) 3))
+                    (cl-defgeneric cl-defgeneric/edebug/method/2 (_)
+                      (:method ((_ number)) 3))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      (should (equal
+               (reverse instrumented-names)
+               ;; The generic function definitions come after the
+               ;; method definitions because their body ends later.
+               ;; FIXME: We'd rather have names such as
+               ;; `cl-defgeneric/edebug/method/1 ((_ number))', but
+               ;; that requires further changes to Edebug.
+               (list (intern "cl-generic-:method@10000 ((_ number))")
+                     (intern "cl-generic-:method@10001 ((_ string))")
+                     (intern "cl-generic-:method@10002 :around ((_ number))")
+                     'cl-defgeneric/edebug/method/1
+                     (intern "cl-generic-:method@10003 ((_ number))")
+                     'cl-defgeneric/edebug/method/2))))))
 
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

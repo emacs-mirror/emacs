@@ -643,7 +643,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
     ("\\([^ =\n\r]+\\)=\\([^ \n\r]*\\)"
      (1 font-lock-variable-name-face)
      (2 font-lock-keyword-face)))
-  '("inventory")
+  '("inventory\\'")
   (list
    (function
     (lambda ()

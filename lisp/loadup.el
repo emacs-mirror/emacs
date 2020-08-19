@@ -449,33 +449,33 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
-(when (native-comp-available-p)
+(when (boundp 'comp-ctxt)
   ;; Fix the compilation unit filename to have it working when
   ;; when installed or if the source directory got moved.  This is set to be
   ;; a pair in the form: (rel-path-from-install-bin . rel-path-from-local-bin).
   (let ((h (make-hash-table :test #'eq))
-        (lisp-src-dir (expand-file-name (concat default-directory "../lisp")))
         (bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
-        (lisp-dest-dir (cadr (member "--lisp-dest" command-line-args))))
-    (mapatoms (lambda (s)
-                (let ((f (symbol-function s)))
-                  (when (subr-native-elisp-p f)
-                    (puthash (subr-native-comp-unit f) nil h)))))
-    (maphash (lambda (cu _)
-               (native-comp-unit-set-file
-                cu
-	        (cons
-                 ;; Relative path from the installed binary.
-                 (file-relative-name
-                  (concat lisp-dest-dir
-			  (replace-regexp-in-string
-                           (regexp-quote lisp-src-dir) ""
-                           (native-comp-unit-file cu)))
-		  bin-dest-dir)
-                 ;; Relative path from the built uninstalled binary.
-                 (file-relative-name (native-comp-unit-file cu)
-                                     invocation-directory))))
-	     h)))
+        (eln-dest-dir (cadr (member "--eln-dest" command-line-args))))
+    (when (and bin-dest-dir eln-dest-dir)
+      (setq eln-dest-dir
+            (concat eln-dest-dir "eln-cache/" comp-native-path-postfix "/"))
+      (mapatoms (lambda (s)
+                  (let ((f (symbol-function s)))
+                    (when (subr-native-elisp-p f)
+                      (puthash (subr-native-comp-unit f) nil h)))))
+      (maphash (lambda (cu _)
+                 (native-comp-unit-set-file
+                  cu
+	          (cons
+                   ;; Relative path from the installed binary.
+                   (file-relative-name (concat eln-dest-dir
+                                               (file-name-nondirectory
+                                                (native-comp-unit-file cu)))
+                                       bin-dest-dir)
+                   ;; Relative path from the built uninstalled binary.
+                   (file-relative-name (native-comp-unit-file cu)
+                                       invocation-directory))))
+	       h))))
 
 (when (hash-table-p purify-flag)
   (let ((strings 0)

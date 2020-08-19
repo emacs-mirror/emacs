@@ -1504,11 +1504,17 @@ set_local_socket (char const *server_name)
 		"%s: (Be careful: XDG_RUNTIME_DIR is security-related.)\n"),
 	       progname, sockdirname, progname);
 	}
-      message (true,
-	       ("%s: can't find socket; have you started the server?\n"
-		"%s: To start the server in Emacs,"
-		" type \"M-x server-start\".\n"),
-	       progname, progname);
+
+      /* If there's an alternate editor and the user has requested
+	 --quiet, don't output the warning. */
+      if (!quiet || !alternate_editor)
+	{
+	  message (true,
+		   ("%s: can't find socket; have you started the server?\n"
+		    "%s: To start the server in Emacs,"
+		    " type \"M-x server-start\".\n"),
+		   progname, progname);
+	}
     }
   else
     message (true, "%s: can't stat %s: %s\n",

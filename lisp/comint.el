@@ -249,6 +249,10 @@ to set this in a mode hook, rather than customize the default value."
 		 file)
   :group 'comint)
 
+(defvar comint-input-ring-file-prefix nil
+  "The prefix to skip when parsing the input ring file.
+This is useful in Zsh when the extended_history option is on.")
+
 (defcustom comint-scroll-to-bottom-on-input nil
   "Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
@@ -731,7 +735,7 @@ contents are sent to the process as its initial input.
 If PROGRAM is a string, any more args are arguments to PROGRAM.
 
 Return the (possibly newly created) process buffer."
-  (or (fboundp 'start-file-process)
+  (or (fboundp 'make-process)
       (error "Multi-processing is not supported for this system"))
   (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
   ;; If no process, or nuked process, crank up a new one and put buffer in
@@ -987,8 +991,20 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                            (setq end (match-beginning 0)))
                  (setq start
                        (if (re-search-backward ring-separator nil t)
-                           (match-end 0)
-                         (point-min)))
+                           (progn
+                             (when (and comint-input-ring-file-prefix
+                                        (looking-at
+                                         comint-input-ring-file-prefix))
+                               ;; Skip zsh extended_history stamps
+                               (goto-char (match-end 0)))
+                             (match-end 0))
+                         (progn
+                           (goto-char (point-min))
+                           (when (and comint-input-ring-file-prefix
+                                      (looking-at
+                                       comint-input-ring-file-prefix))
+                             (goto-char (match-end 0)))
+                           (point))))
                  (setq history (buffer-substring start end))
                  (goto-char start)
                  (when (and (not (string-match history-ignore history))

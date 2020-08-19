@@ -289,12 +289,19 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 	(list (list nil (concat "^\\(?:" outline-regexp "\\).*$") 0)))
   (add-hook 'change-major-mode-hook 'outline-show-all nil t))
 
+(defvar outline-minor-mode-map)
+
 (defcustom outline-minor-mode-prefix "\C-c@"
   "Prefix key to use for Outline commands in Outline minor mode.
 The value of this variable is checked as part of loading Outline mode.
 After that, changing the prefix key requires manipulating keymaps."
-  :type 'string
-  :group 'outlines)
+  :type 'key-sequence
+  :group 'outlines
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (define-key outline-minor-mode-map outline-minor-mode-prefix nil)
+         (define-key outline-minor-mode-map val outline-mode-prefix-map)
+         (set-default sym val)))
 
 ;;;###autoload
 (define-minor-mode outline-minor-mode

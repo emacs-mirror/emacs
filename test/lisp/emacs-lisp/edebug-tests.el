@@ -938,5 +938,99 @@ test and possibly others should be updated."
     "g"
     (should (equal edebug-tests-@-result '(0 1))))))
 
+(ert-deftest edebug-cl-defmethod-qualifier ()
+  "Check that secondary `cl-defmethod' forms don't stomp over
+primary ones (Bug#42671)."
+  (with-temp-buffer
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (defined-symbols ())
+           (edebug-new-definition-function
+            (lambda (def-name)
+              (push def-name defined-symbols)
+              (edebug-new-definition def-name))))
+      (dolist (form '((cl-defmethod edebug-cl-defmethod-qualifier ((_ number)))
+                      (cl-defmethod edebug-cl-defmethod-qualifier
+                        :around ((_ number)))))
+        (print form (current-buffer)))
+      (eval-buffer)
+      (should
+       (equal
+        defined-symbols
+        (list (intern "edebug-cl-defmethod-qualifier :around ((_ number))")
+              (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
+
+(ert-deftest edebug-tests-cl-flet ()
+  "Check that Edebug can instrument `cl-flet' forms without name
+clashes (Bug#41853)."
+  (with-temp-buffer
+    (dolist (form '((defun edebug-tests-cl-flet-1 ()
+                      (cl-flet ((inner () 0)) (message "Hi"))
+                      (cl-flet ((inner () 1)) (inner)))
+                    (defun edebug-tests-cl-flet-2 ()
+                      (cl-flet ((inner () 2)) (inner)))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      (should (equal (reverse instrumented-names)
+                     ;; The outer definitions come after the inner
+                     ;; ones because their body ends later.
+                     ;; FIXME: There are twice as many inner
+                     ;; definitions as expected due to Bug#41988.
+                     ;; Once that bug is fixed, remove the duplicates.
+                     ;; FIXME: We'd rather have names such as
+                     ;; `edebug-tests-cl-flet-1@inner@cl-flet@10000',
+                     ;; but that requires further changes to Edebug.
+                     '(inner@cl-flet@10000
+                       inner@cl-flet@10001
+                       inner@cl-flet@10002
+                       inner@cl-flet@10003
+                       edebug-tests-cl-flet-1
+                       inner@cl-flet@10004
+                       inner@cl-flet@10005
+                       edebug-tests-cl-flet-2))))))
+
+(ert-deftest edebug-tests-duplicate-symbol-backtrack ()
+  "Check that Edebug doesn't create duplicate symbols when
+backtracking (Bug#42701)."
+  (with-temp-buffer
+    (dolist (form '((require 'subr-x)
+                    (defun edebug-tests-duplicate-symbol-backtrack ()
+                      (if-let (x (funcall (lambda (y) 1) 2)) 3 4))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      ;; The anonymous symbols are uninterned.  Use their names so we
+      ;; can perform the assertion.  The names should still be unique.
+      (should (equal (mapcar #'symbol-name (reverse instrumented-names))
+                     ;; The outer definition comes after the inner
+                     ;; ones because its body ends later.
+                     ;; FIXME: There are twice as many inner
+                     ;; definitions as expected due to Bug#42701.
+                     ;; Once that bug is fixed, remove the duplicates.
+                     '("edebug-anon10000"
+                       "edebug-anon10001"
+                       "edebug-tests-duplicate-symbol-backtrack"))))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

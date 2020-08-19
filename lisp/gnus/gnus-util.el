@@ -455,9 +455,7 @@ displayed in the echo area."
 			   (> message-log-max 0)
 			   (/= (length str) 0))
 		  (setq time (current-time))
-		  (with-current-buffer (if (fboundp 'messages-buffer)
-					   (messages-buffer)
-					 (get-buffer-create "*Messages*"))
+		  (with-current-buffer (messages-buffer)
 		    (goto-char (point-max))
 		    (let ((inhibit-read-only t))
 		      (insert ,timestamp str "\n")
@@ -1654,6 +1652,7 @@ The first found will be returned if a file has hard or symbolic links."
   "To each element of LIST apply PREDICATE.
 Return nil if LIST is no list or is empty or some test returns nil;
 otherwise, return t."
+  (declare (obsolete nil "28.1"))
   (when (and list (listp list))
     (let ((result (mapcar predicate list)))
       (not (memq nil result)))))

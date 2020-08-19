@@ -1334,6 +1334,10 @@ customize the variable @code{whitespace-line-column}.
 @item newline
 Highlight newlines.
 
+@item missing-newline-at-eof
+Highlight the final character if the buffer doesn't end with a newline
+character.
+
 @item empty
 Highlight empty lines at the beginning and/or end of the buffer.
 

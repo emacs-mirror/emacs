@@ -68,13 +68,11 @@
 
 ;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
 ;; run major mode hooks.
-(defalias 'semantic-run-mode-hooks
-  (if (fboundp 'run-mode-hooks)
-      'run-mode-hooks
-    'run-hooks))
+(define-obsolete-function-alias 'semantic-run-mode-hooks 'run-mode-hooks "28.1")
 
-  ;; Fancy compat usage now handled in cedet-compat
-(defalias 'semantic-subst-char-in-string 'subst-char-in-string)
+;; Fancy compat usage now handled in cedet-compat
+(define-obsolete-function-alias 'semantic-subst-char-in-string
+  'subst-char-in-string "28.1")
 
 (defun semantic-delete-overlay-maybe (overlay)
   "Delete OVERLAY if it is a semantic token overlay."

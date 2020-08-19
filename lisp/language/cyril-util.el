@@ -47,7 +47,7 @@
 
 ;;;###autoload
 (defun standard-display-cyrillic-translit (&optional cyrillic-language)
-  "Display a cyrillic buffer using a transliteration.
+  "Display a Cyrillic buffer using a transliteration.
 For readability, the table is slightly
 different from the one used for the input method `cyrillic-translit'.
 

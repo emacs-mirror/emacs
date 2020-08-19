@@ -44,7 +44,7 @@
 # endif
 #endif
 #ifndef alloca
-# ifdef __GNUC__
+# if defined __GNUC__ || (__clang_major__ >= 4)
 #  define alloca __builtin_alloca
 # elif defined _AIX
 #  define alloca __alloca

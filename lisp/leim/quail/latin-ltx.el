@@ -242,12 +242,14 @@ system, including many technical ones.  Examples:
  ((lambda (name char)
     ;; "GREEK SMALL LETTER PHI" (which is \phi) and "GREEK PHI SYMBOL"
     ;; (which is \varphi) are reversed in `ucs-names', so we define
-    ;; them manually.
-    (unless (string-match-p "\\<PHI\\>" name)
+    ;; them manually.  Also ignore "GREEK SMALL LETTER EPSILON" and
+    ;; add the correct value for \epsilon manually.
+    (unless (string-match-p "\\<\\(?:PHI\\|GREEK SMALL LETTER EPSILON\\)\\>" name)
       (concat "\\" (funcall (if (match-end 1) #' capitalize #'downcase)
                             (match-string 2 name)))))
   "\\`GREEK \\(?:SMALL\\|CAPITA\\(L\\)\\) LETTER \\([^- ]+\\)\\'")
 
+ ("\\epsilon" ?ϵ)
  ("\\phi" ?ϕ)
  ("\\Box" ?□)
  ("\\Bumpeq" ?≎)
@@ -641,6 +643,7 @@ system, including many technical ones.  Examples:
       (concat "\\var" (downcase (match-string 1 name)))))
   "\\`GREEK \\([^- ]+\\) SYMBOL\\'")
 
+ ("\\varepsilon" ?ε)
  ("\\varphi" ?φ)
  ("\\varprime" ?′)
  ("\\varpropto" ?∝)

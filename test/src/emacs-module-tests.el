@@ -24,6 +24,7 @@
 ;; module in test/data/emacs-module.
 
 ;;; Code:
+;;; Prelude
 
 (require 'cl-lib)
 (require 'ert)
@@ -48,9 +49,7 @@
 (cl-defmethod emacs-module-tests--generic ((_ user-ptr))
   'user-ptr)
 
-;;
-;; Basic tests.
-;;
+;;; Basic tests
 
 (ert-deftest mod-test-sum-test ()
   (should (= (mod-test-sum 1 2) 3))
@@ -103,9 +102,7 @@ changes."
                  ">" eos)
              (prin1-to-string func)))))
 
-;;
-;; Non-local exists (throw, signal).
-;;
+;;; Non-local exists (throw, signal)
 
 (ert-deftest mod-test-non-local-exit-signal-test ()
   (should-error (mod-test-signal))
@@ -142,9 +139,7 @@ changes."
   (should (equal (mod-test-non-local-exit-funcall (lambda () (throw 'tag 32)))
                  '(throw tag 32))))
 
-;;
-;; String tests.
-;;
+;;; String tests
 
 (defun multiply-string (s n)
   "Return N copies of S concatenated together."
@@ -168,9 +163,7 @@ changes."
 (ert-deftest mod-test-string-a-to-b-test ()
   (should (string= (mod-test-string-a-to-b "aaa") "bbb")))
 
-;;
-;; User-pointer tests.
-;;
+;;; User-pointer tests
 
 (ert-deftest mod-test-userptr-fun-test ()
   (let* ((n 42)
@@ -184,9 +177,7 @@ changes."
 
 ;; TODO: try to test finalizer
 
-;;
-;; Vector tests.
-;;
+;;; Vector tests
 
 (ert-deftest mod-test-vector-test ()
   (dolist (s '(2 10 100 1000))

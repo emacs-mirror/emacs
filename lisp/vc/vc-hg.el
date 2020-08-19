@@ -186,6 +186,16 @@ highlighting the Log View buffer."
   :group 'vc-hg
   :version "24.5")
 
+(defcustom vc-hg-create-bookmark t
+  "This controls whether `vc-create-tag' will create a bookmark or branch.
+If nil, named branch will be created.
+If t, bookmark will be created.
+If `ask', you will be prompted for a branch type."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Ask" ask))
+  :version "28.1")
+
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -625,10 +635,18 @@ Optional arg REVISION is a revision to annotate from."
 ;;; Tag system
 
 (defun vc-hg-create-tag (dir name branchp)
-  "Attach the tag NAME to the state of the working copy."
+  "Create tag NAME in repo in DIR.  Create branch if BRANCHP.
+Variable `vc-hg-create-bookmark' controls what kind of branch will be created."
   (let ((default-directory dir))
-    (and (vc-hg-command nil 0 nil "status")
-         (vc-hg-command nil 0 nil (if branchp "bookmark" "tag") name))))
+    (vc-hg-command nil 0 nil
+                   (if branchp
+                       (if (if (eq vc-hg-create-bookmark 'ask)
+                               (yes-or-no-p "Create bookmark instead of branch? ")
+                             vc-hg-create-bookmark)
+                           "bookmark"
+                         "branch")
+                     "tag")
+                   name)))
 
 (defun vc-hg-retrieve-tag (dir name _update)
   "Retrieve the version tagged by NAME of all registered files at or below DIR."
@@ -1366,25 +1384,28 @@ REV is the revision to check out into WORKFILE."
   (vc-run-delayed
     (vc-hg-after-dir-status update-function)))
 
-(defun vc-hg-dir-extra-header (name &rest commands)
-  (concat (propertize name 'face 'font-lock-type-face)
-          (propertize
-           (with-temp-buffer
-             (apply 'vc-hg-command (current-buffer) 0 nil commands)
-             (buffer-substring-no-properties (point-min) (1- (point-max))))
-           'face 'font-lock-variable-name-face)))
-
 (defun vc-hg-dir-extra-headers (dir)
-  "Generate extra status headers for a Mercurial tree."
+  "Generate extra status headers for a repository in DIR.
+This runs the command \"hg summary\"."
   (let ((default-directory dir))
-    (concat
-     (vc-hg-dir-extra-header "Root       : " "root") "\n"
-     (vc-hg-dir-extra-header "Branch     : " "id" "-b") "\n"
-     (vc-hg-dir-extra-header "Tags       : " "id" "-t") ; "\n"
-     ;; these change after each commit
-     ;; (vc-hg-dir-extra-header "Local num  : " "id" "-n") "\n"
-     ;; (vc-hg-dir-extra-header "Global id  : " "id" "-i")
-     )))
+    (with-temp-buffer
+      (vc-hg-command t 0 nil "summary")
+      (goto-char (point-min))
+      (mapconcat
+       #'identity
+       (let (result)
+         (while (not (eobp))
+           (push
+            (let ((entry (if (looking-at "\\([^ ].*\\): \\(.*\\)")
+                             (cons (capitalize (match-string 1)) (match-string 2))
+                           (cons "" (buffer-substring (point) (line-end-position))))))
+              (concat
+               (propertize (format "%-11s: " (car entry)) 'face 'font-lock-type-face)
+               (propertize (cdr entry) 'face 'font-lock-variable-name-face)))
+            result)
+           (forward-line))
+         (nreverse result))
+       "\n"))))
 
 (defun vc-hg-log-incoming (buffer remote-location)
   (vc-setup-buffer buffer)

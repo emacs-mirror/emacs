@@ -466,24 +466,7 @@
 			   (assoc major-mode viper-emacs-state-modifier-alist)))
 			 (cdr
 			  (assoc major-mode viper-emacs-state-modifier-alist))
-		       viper-empty-keymap))
-	       ))
-
-  ;; This var is not local in Emacs, so we make it local.  It must be local
-  ;; because although the stack of minor modes can be the same for all buffers,
-  ;; the associated *keymaps* can be different.  In Viper,
-  ;; viper-vi-local-user-map, viper-insert-local-user-map, and others can have
-  ;; different keymaps for different buffers.  Also, the keymaps associated
-  ;; with viper-vi/insert-state-modifier-minor-mode can be different.
-  ;; ***This is needed only in case emulation-mode-map-alists is not defined.
-  ;; In emacs with emulation-mode-map-alists, nothing needs to be done
-  (unless
-      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (set (make-local-variable 'minor-mode-map-alist)
-         (viper-append-filter-alist
-          (append viper--intercept-key-maps viper--key-maps)
-          minor-mode-map-alist)))
-  )
+		       viper-empty-keymap)))))
 
 
 
@@ -893,16 +876,7 @@ LOAD-FILE is the name of the file where the specific minor mode is defined.
 Suffixes such as .el or .elc should be stripped."
 
   (interactive "sEnter name of the load file: ")
-
-  (eval-after-load load-file '(viper-normalize-minor-mode-map-alist))
-
-  ;; Change the default for minor-mode-map-alist each time a harnessed minor
-  ;; mode adds its own keymap to the a-list.
-  (unless
-      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (eval-after-load
-	load-file '(setq-default minor-mode-map-alist minor-mode-map-alist)))
-  )
+  (eval-after-load load-file '(viper-normalize-minor-mode-map-alist)))
 
 
 (defun viper-ESC (arg)
@@ -4721,8 +4695,7 @@ Please, specify your level now: "))
   (interactive "cViper register to point: ")
   (let ((val (get-register char)))
     (cond
-     ((and (fboundp 'frame-configuration-p)
-	   (frame-configuration-p val))
+     ((frame-configuration-p val)
       (set-frame-configuration val))
      ((window-configuration-p val)
       (set-window-configuration val))

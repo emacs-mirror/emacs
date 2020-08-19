@@ -312,7 +312,8 @@ status will be retrieved from the first matching attendee record."
 
       (unless (gnus-icalendar-find-if (lambda (x) (string-match "^ATTENDEE" x))
 				      reply-event-lines)
-        (error "Could not find an event attendee matching given identity"))
+        (lwarn 'gnus-icalendar :warning
+               "Could not find an event attendee matching given identity"))
 
       (mapconcat #'identity `("BEGIN:VEVENT"
                               ,@(nreverse reply-event-lines)

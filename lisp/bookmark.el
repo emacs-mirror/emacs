@@ -200,6 +200,7 @@ A non-nil value may result in truncated bookmark names."
     (define-key map "f" 'bookmark-insert-location) ;"f"ind
     (define-key map "r" 'bookmark-rename)
     (define-key map "d" 'bookmark-delete)
+    (define-key map "D" 'bookmark-delete-all)
     (define-key map "l" 'bookmark-load)
     (define-key map "w" 'bookmark-write)
     (define-key map "s" 'bookmark-save)
@@ -1374,6 +1375,23 @@ probably because we were called from there."
     (bookmark-save)))
 
 
+;;;###autoload
+(defun bookmark-delete-all (&optional no-confirm)
+  "Permanently delete all bookmarks.
+If optional argument NO-CONFIRM is non-nil, don't ask for
+confirmation."
+  (interactive "P")
+  (when (or no-confirm
+            (yes-or-no-p "Permanently delete all bookmarks? "))
+    (bookmark-maybe-load-default-file)
+    (setq bookmark-alist-modification-count
+          (+ bookmark-alist-modification-count (length bookmark-alist)))
+    (setq bookmark-alist nil)
+    (bookmark-bmenu-surreptitiously-rebuild-list)
+    (when (bookmark-time-to-save-p)
+      (bookmark-save))))
+
+
 (defun bookmark-time-to-save-p (&optional final-time)
   "Return t if it is time to save bookmarks to disk, nil otherwise.
 Optional argument FINAL-TIME means this is being called when Emacs
@@ -1600,12 +1618,15 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
     (define-key map "\C-d" 'bookmark-bmenu-delete-backwards)
     (define-key map "x" 'bookmark-bmenu-execute-deletions)
     (define-key map "d" 'bookmark-bmenu-delete)
+    (define-key map "D" 'bookmark-bmenu-delete-all)
     (define-key map " " 'next-line)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
     (define-key map "\177" 'bookmark-bmenu-backup-unmark)
     (define-key map "u" 'bookmark-bmenu-unmark)
+    (define-key map "U" 'bookmark-bmenu-unmark-all)
     (define-key map "m" 'bookmark-bmenu-mark)
+    (define-key map "M" 'bookmark-bmenu-mark-all)
     (define-key map "l" 'bookmark-bmenu-load)
     (define-key map "r" 'bookmark-bmenu-rename)
     (define-key map "R" 'bookmark-bmenu-relocate)
@@ -1627,8 +1648,10 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
     ["Select Marked Bookmarks" bookmark-bmenu-select t]
     "---"
     ["Mark Bookmark" bookmark-bmenu-mark t]
+    ["Mark all Bookmarks" bookmark-bmenu-mark-all t]
     ["Unmark Bookmark" bookmark-bmenu-unmark  t]
     ["Unmark Backwards" bookmark-bmenu-backup-unmark  t]
+    ["Unmark all Bookmarks" bookmark-bmenu-unmark-all  t]
     ["Toggle Display of Filenames" bookmark-bmenu-toggle-filenames  t]
     ["Display Location of Bookmark" bookmark-bmenu-locate  t]
     "---"
@@ -1636,6 +1659,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
      ["Rename Bookmark" bookmark-bmenu-rename  t]
      ["Relocate Bookmark's File" bookmark-bmenu-relocate  t]
      ["Mark Bookmark for Deletion" bookmark-bmenu-delete  t]
+     ["Mark all Bookmarks for Deletion" bookmark-bmenu-delete-all  t]
      ["Delete Marked Bookmarks" bookmark-bmenu-execute-deletions  t])
     ("Annotations"
      ["Show Annotation for Current Bookmark" bookmark-bmenu-show-annotation  t]
@@ -1665,6 +1689,19 @@ Don't affect the buffer ring order."
         (save-window-excursion
           (bookmark-bmenu-list)))))
 
+
+;;;###autoload
+(defun bookmark-bmenu-get-buffer ()
+  "Return the Bookmark List, building it if it doesn't exists.
+Don't affect the buffer ring order."
+  (or (get-buffer bookmark-bmenu-buffer)
+      (save-excursion
+	(save-window-excursion
+	  (bookmark-bmenu-list)
+	  (get-buffer bookmark-bmenu-buffer)))))
+
+(custom-add-choice 'tab-bar-new-tab-choice
+                   '(const :tag "Bookmark List" bookmark-bmenu-get-buffer))
 
 ;;;###autoload
 (defun bookmark-bmenu-list ()
@@ -1748,6 +1785,7 @@ Letters do not insert themselves; instead, they are commands.
 Bookmark names preceded by a \"*\" have annotations.
 \\<bookmark-bmenu-mode-map>
 \\[bookmark-bmenu-mark] -- mark bookmark to be displayed.
+\\[bookmark-bmenu-mark-all] -- mark all listed bookmarks to be displayed.
 \\[bookmark-bmenu-select] -- select bookmark of line point is on.
   Also show bookmarks marked using m in other windows.
 \\[bookmark-bmenu-toggle-filenames] -- toggle displaying of filenames (they may obscure long bookmark names).
@@ -1764,13 +1802,15 @@ Bookmark names preceded by a \"*\" have annotations.
 \\[bookmark-bmenu-relocate] -- relocate this bookmark's file (prompts for new file).
 \\[bookmark-bmenu-delete] -- mark this bookmark to be deleted, and move down.
 \\[bookmark-bmenu-delete-backwards] -- mark this bookmark to be deleted, and move up.
-\\[bookmark-bmenu-execute-deletions] -- delete bookmarks marked with `\\[bookmark-bmenu-delete]'.
+\\[bookmark-bmenu-delete-all] -- mark all listed bookmarks as to be deleted.
+\\[bookmark-bmenu-execute-deletions] -- delete bookmarks marked with `\\[bookmark-bmenu-delete]' or `\\[bookmark-bmenu-delete-all]'.
 \\[bookmark-bmenu-save] -- save the current bookmark list in the default file.
   With a prefix arg, prompts for a file to save in.
 \\[bookmark-bmenu-load] -- load in a file of bookmarks (prompts for file.)
 \\[bookmark-bmenu-unmark] -- remove all kinds of marks from current line.
   With prefix argument, also move up one line.
 \\[bookmark-bmenu-backup-unmark] -- back up a line and remove marks.
+\\[bookmark-bmenu-unmark-all] -- remove all kinds of marks from all listed bookmarks.
 \\[bookmark-bmenu-show-annotation] -- show the annotation, if it exists, for the current bookmark
   in another buffer.
 \\[bookmark-bmenu-show-all-annotations] -- show the annotations of all bookmarks in another buffer.
@@ -1937,9 +1977,23 @@ If the annotation does not exist, do nothing."
      (bookmark-bmenu-ensure-position))))
 
 
+(defun bookmark-bmenu-mark-all ()
+  "Mark all listed bookmarks to be displayed by \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-select]."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (bookmark-bmenu-ensure-position)
+    (with-buffer-modified-unmodified
+     (let ((inhibit-read-only t))
+       (while (not (eobp))
+         (delete-char 1)
+         (insert ?>)
+         (forward-line 1))))))
+
+
 (defun bookmark-bmenu-select ()
   "Select this line's bookmark; also display bookmarks marked with `>'.
-You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mark] command."
+You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mark] or \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mark-all] commands."
   (interactive)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (menu (current-buffer))
@@ -2108,6 +2162,20 @@ Optional BACKUP means move up."
   (bookmark-bmenu-ensure-position))
 
 
+(defun bookmark-bmenu-unmark-all ()
+  "Cancel all requested operations on all listed bookmarks."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (bookmark-bmenu-ensure-position)
+    (with-buffer-modified-unmodified
+     (let ((inhibit-read-only t))
+       (while (not (eobp))
+         (delete-char 1)
+         (insert " ")
+         (forward-line 1))))))
+
+
 (defun bookmark-bmenu-delete ()
   "Mark bookmark on this line to be deleted.
 To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions]."
@@ -2131,6 +2199,22 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (bookmark-bmenu-ensure-position)
   (forward-line 1)
   (bookmark-bmenu-ensure-position))
+
+
+(defun bookmark-bmenu-delete-all ()
+  "Mark all listed bookmarks as to be deleted.
+To remove all deletion marks, use \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-unmark-all].
+To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions]."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (bookmark-bmenu-ensure-position)
+    (with-buffer-modified-unmodified
+     (let ((inhibit-read-only t))
+       (while (not (eobp))
+         (delete-char 1)
+         (insert ?D)
+         (forward-line 1))))))
 
 
 (defun bookmark-bmenu-execute-deletions ()
@@ -2292,6 +2376,9 @@ strings returned are not."
     (bindings--define-key map [delete]
       '(menu-item "Delete Bookmark..." bookmark-delete
 		  :help "Delete a bookmark from the bookmark list"))
+    (bindings--define-key map [delete-all]
+      '(menu-item "Delete all Bookmarks..." bookmark-delete-all
+		  :help "Delete all bookmarks from the bookmark list"))
     (bindings--define-key map [rename]
       '(menu-item "Rename Bookmark..." bookmark-rename
 		  :help "Change the name of a bookmark"))

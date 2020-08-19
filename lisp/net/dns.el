@@ -316,8 +316,6 @@ If TCP-P, the first two bytes of the packet will be the length field."
   "Return false if we need to recheck the list of DNS servers."
   (and dns-servers
        (or (eq dns-servers-valid-for-interfaces t)
-	   ;; `network-interface-list' was introduced in Emacs 22.1.
-	   (not (fboundp 'network-interface-list))
 	   (equal dns-servers-valid-for-interfaces
 		  (network-interface-list)))))
 
@@ -339,8 +337,7 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
           (when (re-search-forward
 	   "^Address:[ \t]*\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\|[[:xdigit:]:]*\\)" nil t)
 	      (setq dns-servers (list (match-string 1)))))))
-  (when (fboundp 'network-interface-list)
-    (setq dns-servers-valid-for-interfaces (network-interface-list))))
+  (setq dns-servers-valid-for-interfaces (network-interface-list)))
 
 (defun dns-read-txt (string)
   (if (> (length string) 1)

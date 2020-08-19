@@ -2016,7 +2016,12 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (&define name function-form) (cl-defun)])
+           (debug ((&rest [&or (&define name :unique "cl-flet@" function-form)
+                               (&define name :unique "cl-flet@"
+                                        cl-lambda-list
+                                        cl-declarations-or-string
+                                        [&optional ("interactive" interactive)]
+                                        def-body)])
                    cl-declarations body)))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)

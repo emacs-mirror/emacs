@@ -101,6 +101,8 @@ extern void dispose_all_remaining_comp_units (void);
 
 extern void clean_package_user_dir_of_old_comp_units (void);
 
+extern void fixup_eln_load_path (Lisp_Object directory);
+
 #else /* #ifdef HAVE_NATIVE_COMP */
 
 static inline void

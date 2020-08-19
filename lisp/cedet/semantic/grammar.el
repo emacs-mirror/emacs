@@ -1251,6 +1251,7 @@ common grammar menu."
   "Setup an XEmacs grammar menu in variable SYMBOL.
 MODE-MENU is an optional specific menu whose items are appended to the
 common grammar menu."
+  (declare (obsolete nil "28.1"))
   (let ((items (make-symbol "items"))
         (path (make-symbol "path")))
     `(progn

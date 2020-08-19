@@ -2687,9 +2687,9 @@ Emacs is restarted by the session manager.
 
 @group
 (defun save-yourself-test ()
-  (insert "(save-current-buffer
-  (switch-to-buffer \"*scratch*\")
-  (insert \"I am restored\"))")
+  (insert
+   (format "%S" '(with-current-buffer "*scratch*"
+                   (insert "I am restored"))))
   nil)
 @end group
 @end example

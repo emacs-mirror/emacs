@@ -22,6 +22,10 @@
 
 ;;; Commentary:
 
+;; Unit tests for generator.el.
+
+;;; Code:
+
 (require 'generator)
 (require 'ert)
 (require 'cl-lib)

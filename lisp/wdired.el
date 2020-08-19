@@ -609,7 +609,10 @@ Optional arguments are ignored."
 (defun wdired--restore-dired-filename-prop (beg end _len)
   (save-match-data
     (save-excursion
-      (let ((lep (line-end-position)))
+      (let ((lep (line-end-position))
+            (used-F (dired-check-switches
+                     dired-actual-switches
+                     "F" "classify")))
         (beginning-of-line)
         (when (re-search-forward
                directory-listing-before-filename-regexp lep t)
@@ -623,13 +626,17 @@ Optional arguments are ignored."
                          (and (re-search-backward
                                dired-permission-flags-regexp nil t)
                               (looking-at "l")
-                              (search-forward " -> " lep t))
+                              ;; macOS and Ultrix adds "@" to the end
+                              ;; of symlinks when using -F.
+                              (if (and used-F
+                                       dired-ls-F-marks-symlinks)
+                                  (re-search-forward "@? -> " lep t)
+                                (search-forward " -> " lep t)))
                          ;; When dired-listing-switches includes "F"
                          ;; or "classify", don't treat appended
                          ;; indicator characters as part of the file
                          ;; name (bug#34915).
-                         (and (dired-check-switches dired-actual-switches
-                                                    "F" "classify")
+                         (and used-F
                               (re-search-forward "[*/@|=>]$" lep t)))
                         (goto-char (match-beginning 0))
                       lep))

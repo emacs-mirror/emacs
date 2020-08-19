@@ -143,6 +143,7 @@ wdired-get-filename before and after editing."
   (let* ((test-dir (make-temp-file "test-dir-" t))
          (server-socket-dir test-dir)
          (dired-listing-switches "-Fl")
+         (dired-ls-F-marks-symlinks (eq system-type 'darwin))
          (buf (find-file-noselect test-dir)))
     (unwind-protect
         (progn

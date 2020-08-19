@@ -99,6 +99,7 @@ sending it.
 * Resending::            Resending a mail message.
 * Bouncing::             Bouncing a mail message.
 * Mailing Lists::        Send mail to mailing lists.
+* System Mailer Setup::  Using Message as the system mailer.
 @end menu
 
 You can customize the Message Mode tool bar, see @kbd{M-x
@@ -529,6 +530,29 @@ It is considered good netiquette to honor MFT, as it is assumed the
 fellow who posted a message knows where the followups need to go
 better than you do.
 
+
+@node System Mailer Setup
+@section System Mailer Setup
+@cindex mailto:
+
+Emacs can be set up as the system mailer, so that Emacs is opened when
+you click on @samp{mailto:} links in other programs.
+
+How this is done varies from system to system, but commonly there's a
+way to set the default application for a @acronym{MIME} type, and the
+relevant type here is @samp{x-scheme-handler/mailto;}.
+
+The application to start should be @samp{"emacs -f message-mailto %u"}.
+This will start Emacs, and then run the @code{message-mailto}
+command.  It will parse the given @acronym{URL}, and set up a Message
+buffer with the given parameters.
+
+For instance, @samp{mailto:larsi@@gnus.org?subject=This+is+a+test}
+will open a Message buffer with the @samp{To:} header filled in with
+@samp{"larsi@@gnus.org"} and the @samp{Subject:} header with
+@samp{"This is a test"}.
+
+
 @node Commands
 @chapter Commands
 
@@ -883,6 +907,18 @@ is a list, valid members are @code{type}, @code{description} and
 @code{nil}, don't ask for options.  If it is @code{t}, ask the user
 whether or not to specify options.
 
+@vindex message-screenshot-command
+@findex message-insert-screenshot
+@cindex screenshots
+@kindex C-c C-p
+If your system supports it, you can also insert screenshots directly
+into the Message buffer.  The @kbd{C-c C-p}
+(@code{message-insert-screenshot}) command inserts the image into the
+buffer as an @acronym{MML} part, and puts an image text property on
+top.  The @code{message-screenshot-command} variable says what
+external command to use to take the screenshot.  It defaults to
+@code{"import png:-"}, which is an ImageMagick command.
+
 You can also create arbitrarily complex multiparts using the @acronym{MML}
 language (@pxref{Composing, , Composing, emacs-mime, The Emacs MIME
 Manual}).
@@ -1006,6 +1042,7 @@ and/or encrypted messages as explained in the following.
 * Signing and encryption::      Signing and encrypting commands.
 * Using S/MIME::                Using S/MIME
 * Using OpenPGP::               Using OpenPGP
+* OpenPGP Header::              Adding OpenPGP headers to messages.
 * Passphrase caching::          How to cache passphrases
 * PGP Compatibility::           Compatibility with older implementations
 * Encrypt-to-self::             Reading your own encrypted messages
@@ -1214,6 +1251,29 @@ according to two different standards, namely @acronym{PGP} or
 @code{mml-default-encrypt-method} and
 @code{mml-default-sign-method} determine which variant to prefer,
 @acronym{PGP/MIME} by default.
+
+@node OpenPGP Header
+@subsection OpenPGP Header
+
+The @samp{OpenPGP} header can be used to provide information about the
+sender's OpenPGP key.  This is a formalization and modernization of
+the non-standard @samp{X-PGP-Key} (etc.) headers that have been in use
+for a long time.  For more details, see
+@uref{https://tools.ietf.org/html/draft-josefsson-openpgp-mailnews-header}.
+
+@vindex message-openpgp-header
+To use this in Message, say:
+
+@lisp
+(add-hook 'message-send-hook 'message-add-openpgp-header)
+@end lisp
+
+@noindent
+then customize the @code{message-openpgp-header} variable according to
+your PGP setup.  The variable is a list of the key ID, the key URL or
+ASCII armored key, and the protection preference, one of
+@samp{"unprotected"}, @samp{"sign"}, @samp{"encrypt"} or
+@samp{"signencrypt"}.
 
 @node Passphrase caching
 @subsection Passphrase caching

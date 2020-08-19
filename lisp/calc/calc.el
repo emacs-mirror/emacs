@@ -1087,8 +1087,26 @@ Used by `calc-user-invocation'.")
 	  (append (where-is-internal 'delete-backward-char global-map)
 		  (where-is-internal 'backward-delete-char global-map)
 		  (where-is-internal 'backward-delete-char-untabify global-map)
-		  '("\C-d"))
-	'("\177" "\C-d")))
+		  '("\177"))
+	'("\177")))
+
+(mapc (lambda (x)
+        (ignore-errors
+          (define-key calc-digit-map x 'calcDigit-delchar)
+          (define-key calc-mode-map x 'calc-pop)
+          (define-key calc-mode-map
+            (if (and (vectorp x) (featurep 'xemacs))
+                (if (= (length x) 1)
+                    (vector (if (consp (aref x 0))
+                                (cons 'meta (aref x 0))
+                              (list 'meta (aref x 0))))
+                  "\e\C-d")
+              (vconcat "\e" x))
+            'calc-pop-above)))
+      (if calc-scan-for-dels
+          (append (where-is-internal 'delete-forward-char global-map)
+                  '("\C-d"))
+        '("\C-d")))
 
 (defvar calc-dispatch-map
   (let ((map (make-keymap)))
@@ -2343,7 +2361,6 @@ the United States."
 
 (defun calcDigit-key ()
   (interactive)
-  (goto-char (point-max))
   (if (or (and (memq last-command-event '(?+ ?-))
 	       (> (buffer-size) 0)
 	       (/= (preceding-char) ?e))
@@ -2386,8 +2403,7 @@ the United States."
 	    (delete-char 1))
 	(if (looking-at "-")
 	    (delete-char 1)
-	  (insert "-")))
-      (goto-char (point-max)))
+	  (insert "-"))))
      ((eq last-command-event ?p)
       (if (or (calc-minibuffer-contains ".*\\+/-.*")
 	      (calc-minibuffer-contains ".*mod.*")
@@ -2440,17 +2456,9 @@ the United States."
   (setq calc-prev-prev-char calc-prev-char
 	calc-prev-char last-command-event))
 
-
 (defun calcDigit-backspace ()
   (interactive)
-  (goto-char (point-max))
-  (cond ((calc-minibuffer-contains ".* \\+/- \\'")
-	 (backward-delete-char 5))
-	((calc-minibuffer-contains ".* mod \\'")
-	 (backward-delete-char 5))
-	((calc-minibuffer-contains ".* \\'")
-	 (backward-delete-char 2))
-	((eq last-command 'calcDigit-start)
+  (cond ((eq last-command 'calcDigit-start)
 	 (erase-buffer))
 	(t (backward-delete-char 1)))
   (if (= (calc-minibuffer-size) 0)
@@ -2925,6 +2933,20 @@ the United States."
 		     (- (- (nth 2 a) (nth 2 b)) ldiff))))
 
 
+(defun calcDigit-delchar ()
+  (interactive)
+  (cond ((looking-at-p " \\+/- \\'")
+         (delete-char 5))
+	((looking-at-p " mod \\'")
+	 (delete-char 5))
+	((looking-at-p " \\'")
+	 (delete-char 2))
+	((eq last-command 'calcDigit-start)
+	 (erase-buffer))
+	(t (unless (eobp) (delete-char 1))))
+  (when (= (calc-minibuffer-size) 0)
+    (setq last-command-event 13)
+    (calcDigit-nondigit)))
 
 
 (defvar math-comp-selected)

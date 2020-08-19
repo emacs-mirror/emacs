@@ -554,7 +554,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 
 (defvar vc-svn-program)
 (defun vc-test--svn-enabled ()
-  (executable-find vc-svn-program))
+  (and (executable-find "svnadmin")
+       (executable-find vc-svn-program)))
 
 (defun vc-test--sccs-enabled ()
   (executable-find "sccs"))

@@ -2373,12 +2373,10 @@ and runs `compilation-filter-hook'."
 	  (set-marker min nil)
 	  (set-marker max nil))))))
 
-;;; test if a buffer is a compilation buffer, assuming we're in the buffer
 (defsubst compilation-buffer-internal-p ()
   "Test if inside a compilation buffer."
   (local-variable-p 'compilation-locs))
 
-;;; test if a buffer is a compilation buffer, using compilation-buffer-internal-p
 (defsubst compilation-buffer-p (buffer)
   "Test if BUFFER is a compilation buffer."
   (with-current-buffer buffer

@@ -391,6 +391,7 @@ file.  Archive and member name will be added."
     (define-key map "e" 'archive-extract)
     (define-key map "f" 'archive-extract)
     (define-key map "\C-m" 'archive-extract)
+    (define-key map "C" 'archive-copy-file)
     (define-key map "m" 'archive-mark)
     (define-key map "n" 'archive-next-line)
     (define-key map "\C-n" 'archive-next-line)
@@ -430,6 +431,9 @@ file.  Archive and member name will be added."
     (define-key map [menu-bar immediate view]
       '(menu-item "View This File" archive-view
                   :help "Display file at cursor in View Mode"))
+    (define-key map [menu-bar immediate view]
+      '(menu-item "Copy This File" archive-copy-file
+                  :help "Copy file at cursor to another location"))
     (define-key map [menu-bar immediate display]
       '(menu-item "Display in Other Window" archive-display-other-window
                   :help "Display file at cursor in another window"))
@@ -989,6 +993,75 @@ using `make-temp-file', and the generated name is returned."
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))
 
+(defun archive-goto-file (file)
+  "Go to FILE in the current buffer.
+FILE should be a relative file name.  If FILE can't be found,
+return nil.  Otherwise point is returned."
+  (let ((start (point))
+        found)
+    (goto-char (point-min))
+    (while (and (not found)
+                (not (eobp)))
+      (forward-line 1)
+      (when-let ((descr (archive-get-descr t)))
+        (when (equal (archive--file-desc-ext-file-name descr) file)
+          (setq found t))))
+    (if (not found)
+        (progn
+          (goto-char start)
+          nil)
+      (point))))
+
+(defun archive-next-file-displayer (file regexp n)
+  "Return a closure to display the next file after FILE that matches REGEXP."
+  (let ((short (replace-regexp-in-string "\\`.*:" "" file))
+        next)
+    (archive-goto-file short)
+    (while (and (not next)
+                ;; Stop if we reach the end/start of the buffer.
+                (if (> n 0)
+                    (not (eobp))
+                  (not (save-excursion
+                         (beginning-of-line)
+                         (bobp)))))
+      (archive-next-line n)
+      (when-let ((descr (archive-get-descr t)))
+        (let ((candidate (archive--file-desc-ext-file-name descr))
+              (buffer (current-buffer)))
+          (when (and candidate
+                     (string-match-p regexp candidate))
+            (setq next (lambda ()
+                         (kill-buffer (current-buffer))
+                         (switch-to-buffer buffer)
+                         (archive-extract)))))))
+    (unless next
+      ;; If we didn't find a next/prev file, then restore
+      ;; point.
+      (archive-goto-file short))
+    next))
+
+(defun archive-copy-file (file new-name)
+  "Copy FILE to a location specified by NEW-NAME.
+Interactively, FILE is the file at point, and the function prompts
+for NEW-NAME."
+  (interactive
+   (let ((name (archive--file-desc-ext-file-name (archive-get-descr))))
+     (list name
+           (read-file-name (format "Copy %s to: " name)))))
+  (when (file-directory-p new-name)
+    (setq new-name (expand-file-name file new-name)))
+  (when (and (file-exists-p new-name)
+             (not (yes-or-no-p (format "%s already exists; overwrite? "
+                                       new-name))))
+    (user-error "Not overwriting %s" new-name))
+  (let* ((descr (archive-get-descr))
+         (archive (buffer-file-name))
+         (extractor (archive-name "extract"))
+         (ename (archive--file-desc-ext-file-name descr)))
+    (with-temp-buffer
+      (archive--extract-file extractor archive ename)
+      (write-region (point-min) (point-max) new-name))))
+
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
   (interactive (list nil last-input-event))
@@ -1030,26 +1103,7 @@ using `make-temp-file', and the generated name is returned."
           (setq archive-subfile-mode descr)
 	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
-	       (null
-		(let (;; We may have to encode the file name argument for
-		      ;; external programs.
-		      (coding-system-for-write
-		       (and enable-multibyte-characters
-			    archive-file-name-coding-system))
-		      ;; We read an archive member by no-conversion at
-		      ;; first, then decode appropriately by calling
-		      ;; archive-set-buffer-as-visiting-file later.
-		      (coding-system-for-read 'no-conversion)
-		      ;; Avoid changing dir mtime by lock_file
-		      (create-lockfiles nil))
-		  (condition-case err
-		      (if (fboundp extractor)
-			  (funcall extractor archive ename)
-			(archive-*-extract archive ename
-					   (symbol-value extractor)))
-		    (error
-		     (ding (message "%s" (error-message-string err)))
-		     nil))))
+	       (null (archive--extract-file extractor archive ename))
 	       just-created)
 	      (progn
 		(set-buffer-modified-p nil)
@@ -1081,6 +1135,27 @@ using `make-temp-file', and the generated name is returned."
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
            (t (switch-to-buffer buffer))))))
+
+(defun archive--extract-file (extractor archive ename)
+  (let (;; We may have to encode the file name argument for
+	;; external programs.
+	(coding-system-for-write
+	 (and enable-multibyte-characters
+	      archive-file-name-coding-system))
+	;; We read an archive member by no-conversion at
+	;; first, then decode appropriately by calling
+	;; archive-set-buffer-as-visiting-file later.
+	(coding-system-for-read 'no-conversion)
+	;; Avoid changing dir mtime by lock_file
+	(create-lockfiles nil))
+    (condition-case err
+	(if (fboundp extractor)
+	    (funcall extractor archive ename)
+	  (archive-*-extract archive ename
+			     (symbol-value extractor)))
+      (error
+       (ding (message "%s" (error-message-string err)))
+       nil))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))

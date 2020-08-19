@@ -371,33 +371,50 @@ See `forward-paragraph' for more information."
 
 (defun mark-paragraph (&optional arg allow-extend)
   "Put point at beginning of this paragraph, mark at end.
-The paragraph marked is the one that contains point or follows point.
+The paragraph marked is the one that contains point or follows
+point.
 
-With argument ARG, puts mark at end of a following paragraph, so that
-the number of paragraphs marked equals ARG.
+With argument ARG, puts mark at the end of this or a following
+paragraph, so that the number of paragraphs marked equals ARG.
 
-If ARG is negative, point is put at end of this paragraph, mark is put
-at beginning of this or a previous paragraph.
+If ARG is negative, point is put at the end of this paragraph,
+mark is put at the beginning of this or a previous paragraph.
 
 Interactively (or if ALLOW-EXTEND is non-nil), if this command is
-repeated or (in Transient Mark mode) if the mark is active,
-it marks the next ARG paragraphs after the ones already marked."
-  (interactive "p\np")
-  (unless arg (setq arg 1))
-  (when (zerop arg)
-    (error "Cannot mark zero paragraphs"))
-  (cond ((and allow-extend
-	      (or (and (eq last-command this-command) (mark t))
-		  (and transient-mark-mode mark-active)))
-	 (set-mark
-	  (save-excursion
-	    (goto-char (mark))
-	    (forward-paragraph arg)
-	    (point))))
-	(t
-	 (forward-paragraph arg)
-	 (push-mark nil t t)
-	 (backward-paragraph arg))))
+repeated or (in Transient Mark mode) if the mark is active, it
+marks the next ARG paragraphs after the region already marked.
+This also means when activating the mark immediately before using
+this command, the current paragraph is only marked from point."
+  (interactive "P\np")
+  (let ((numeric-arg (prefix-numeric-value arg)))
+    (cond ((zerop numeric-arg))
+	  ((and allow-extend
+		(or (and (eq last-command this-command) mark-active)
+		    (region-active-p)))
+	   (if arg
+	       (setq arg numeric-arg)
+	     (if (< (mark) (point))
+		 (setq arg -1)
+	       (setq arg 1)))
+	   (set-mark
+	    (save-excursion
+	      (goto-char (mark))
+	      (forward-paragraph arg)
+	      (point))))
+	  ;; don't activate the mark when at eob
+	  ((and (eobp) (> numeric-arg 0)))
+	  (t
+	   (unless (save-excursion
+		     (forward-line 0)
+		     (looking-at  paragraph-start))
+	     (backward-paragraph (cond ((> numeric-arg 0) 1)
+                                       ((< numeric-arg 0) -1)
+                                       (t 0))))
+	   (push-mark
+	    (save-excursion
+	      (forward-paragraph numeric-arg)
+	      (point))
+            t t)))))
 
 (defun kill-paragraph (arg)
   "Kill forward to end of paragraph.

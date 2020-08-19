@@ -2053,6 +2053,13 @@ The temporary directory on the remote host.  If not specified, the
 default value is @t{"/data/local/tmp"} for the @option{adb} method,
 @t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
 
+@item @t{"direct-async-process"}
+
+When this property is non-@code{nil}, an alternative, more performant
+implementation of @code{make-process} and
+@code{start-file-process} is applied.  @ref{Improving performance of
+asynchronous remote processes} for a discussion of constraints.
+
 @item @t{"posix"}
 
 Connections using the @option{smb} method check, whether the remote
@@ -2098,7 +2105,7 @@ To improve performance and accuracy of remote file access,
 @file{/usr/bin}, which are reasonable for most hosts.  To accommodate
 differences in hosts and paths, for example, @file{/bin:/usr/bin} on
 Debian GNU/Linux or
-@file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin} on
+@file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/developerstudio12.6/bin} on
 Solaris, @value{tramp} queries the remote host with @command{getconf
 PATH} and updates the symbol @code{tramp-default-remote-path}.
 
@@ -2458,10 +2465,9 @@ overwrite as follows:
 
 @lisp
 @group
-(add-to-list
- 'tramp-connection-properties
- `(,(regexp-quote "192.168.0.1")
-   "remote-copy-args" (("-l") ("%r"))))
+(add-to-list 'tramp-connection-properties
+             `(,(regexp-quote "192.168.0.1")
+               "remote-copy-args" (("-l") ("%r"))))
 @end group
 @end lisp
 
@@ -3372,8 +3378,8 @@ host.  Example:
 @end group
 @end example
 
-@command{tail} command outputs continuously to the local buffer,
-@file{*Async Shell Command*}
+@command{tail} command outputs continuously to the local buffer whose
+name is the value of the variable @code{shell-command-buffer-name-async}.
 
 @kbd{M-x auto-revert-tail-mode @key{RET}} runs similarly showing
 continuous output.
@@ -3525,6 +3531,73 @@ To open @command{powershell} as a remote shell, use this:
       explicit-powershell-args '("-file" "-"))
 @end group
 @end lisp
+
+
+@anchor{Improving performance of asynchronous remote processes}
+@subsection Improving performance of asynchronous remote processes
+@cindex Asynchronous remote processes
+@findex make-process
+@findex start-file-process
+
+@value{tramp}'s implementation of @code{make-process} and
+@code{start-file-process} requires a serious overhead for
+initialization, every process invocation.  This is needed for handling
+interactive dialogues when connecting the remote host (like providing
+a password), and initial environment setup.
+
+Sometimes, this is not needed.  Instead of starting a remote shell and
+running the command afterwards, it is sufficient to run the command
+directly.  @value{tramp} supports this by an alternative
+implementation of @code{make-process} and @code{start-file-process}.
+This is triggered by the connection property
+@t{"direct-async-process"}, @xref{Predefined connection information},
+which must be set to a non-@code{nil} value.  Example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "@trampfn{ssh,user@@host,}")
+                   "direct-async-process" t))
+@end group
+@end lisp
+
+Using direct asynchronous processes in @value{tramp} is not possible,
+if the remote host is connected via multiple hops
+(@pxref{Multi-hops}), or the @code{make-process} /
+@code{start-file-process} call uses a stderr stream.  In this case,
+@value{tramp} falls back to its classical implementation.
+
+Furthermore, this approach has the following limitations:
+
+@itemize
+@item
+It works only for connection methods defined in @file{tramp-sh.el} and
+@file{tramp-adb.el}.
+
+@item
+It does not support interactive user authentication, like password
+handling.
+
+@item
+It cannot be killed via @code{interrupt-process}.
+
+@item
+It does not report the remote terminal name via @code{process-tty-name}.
+
+@item
+It does not use @code{tramp-remote-path} and
+@code{tramp-remote-process-environment}.
+
+@item
+It does not set environment variable @env{INSIDE_EMACS}.
+@end itemize
+
+In order to gain even more performance, it is recommended to bind
+@code{tramp-verbose} to 0 when running @code{make-process} or
+@code{start-file-process}.  Furthermore, you might set
+@code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
+bypass @value{tramp}'s handling of the @code{ControlMaster} options,
+and use your own settings in @file{~/.ssh/config}.
 
 
 @node Cleanup remote connections
@@ -4555,9 +4628,8 @@ Abbreviation list expansion can be used to reduce typing long file names:
 
 @lisp
 @group
-(add-to-list
- 'directory-abbrev-alist
- '("^/xy" . "@trampfn{ssh,news@@news.my.domain,/opt/news/etc/}"))
+(add-to-list 'directory-abbrev-alist
+             '("^/xy" . "@trampfn{ssh,news@@news.my.domain,/opt/news/etc/}"))
 @end group
 @end lisp
 

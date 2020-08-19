@@ -455,7 +455,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :prompt-regexp "^mysql> "
      :prompt-length 6
      :prompt-cont-regexp "^    -> "
-     :syntax-alist ((?# . "< b"))
+     :syntax-alist ((?# . "< b") (?\\ . "\\"))
      :input-filter sql-remove-tabs-filter)
 
     (oracle
@@ -4187,7 +4187,7 @@ must tell Emacs.  Here's how to do that in your init file:
 
 \(add-hook \\='sql-mode-hook
           (lambda ()
-	    (modify-syntax-entry ?\\\\ \".\" sql-mode-syntax-table)))"
+	    (modify-syntax-entry ?\\\\ \"\\\\\" sql-mode-syntax-table)))"
   :abbrev-table sql-mode-abbrev-table
 
   (if sql-mode-menu
@@ -4210,6 +4210,18 @@ must tell Emacs.  Here's how to do that in your init file:
   (setq-local abbrev-all-caps 1)
   ;; Contains the name of database objects
   (set (make-local-variable 'sql-contains-names) t)
+  (setq-local syntax-propertize-function
+              (syntax-propertize-rules
+               ;; Handle escaped apostrophes within strings.
+               ("''"
+                (0
+                 (if (save-excursion (nth 3 (syntax-ppss (match-beginning 0))))
+	             (string-to-syntax ".")
+                   (forward-char -1)
+                   nil)))
+               ;; Propertize rules to not have /- and -* start comments.
+               ("\\(/-\\)" (1 "."))
+               ("\\(-\\*\\)" (1 "."))))
   ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
   (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591

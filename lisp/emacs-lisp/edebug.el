@@ -1240,6 +1240,13 @@ purpose by adding an entry to this alist, and setting
   ;; since it wraps the list of forms with a call to `edebug-enter'.
   ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
   ;; Do this after parsing since that may find a name.
+  (when (string-match-p (rx bos "edebug-anon" (+ digit) eos)
+                        (symbol-name edebug-old-def-name))
+    ;; FIXME: Due to Bug#42701, we reset an anonymous name so that
+    ;; backtracking doesn't generate duplicate definitions.  It would
+    ;; be better to not define wrappers in the case of a non-matching
+    ;; specification branch to begin with.
+    (setq edebug-old-def-name nil))
   (setq edebug-def-name
 	(or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
   `(edebug-enter
@@ -1725,12 +1732,15 @@ contains a circular object."
 		(&define . edebug-match-&define)
 		(name . edebug-match-name)
 		(:name . edebug-match-colon-name)
+                (:unique . edebug-match-:unique)
 		(arg . edebug-match-arg)
 		(def-body . edebug-match-def-body)
 		(def-form . edebug-match-def-form)
 		;; Less frequently used:
 		;; (function . edebug-match-function)
 		(lambda-expr . edebug-match-lambda-expr)
+                (cl-generic-method-qualifier
+                 . edebug-match-cl-generic-method-qualifier)
                 (cl-generic-method-args . edebug-match-cl-generic-method-args)
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
@@ -2034,6 +2044,27 @@ contains a circular object."
 	    (intern (format "%s@%s" edebug-def-name spec))
 	  spec))
   nil)
+
+(defun edebug-match-:unique (_cursor spec)
+  "Match a `:unique PREFIX' specifier.
+SPEC is the symbol name prefix for `gensym'."
+  (let ((suffix (gensym spec)))
+    (setq edebug-def-name
+	  (if edebug-def-name
+	      ;; Construct a new name by appending to previous name.
+	      (intern (format "%s@%s" edebug-def-name suffix))
+	    suffix)))
+  nil)
+
+(defun edebug-match-cl-generic-method-qualifier (cursor)
+  "Match a QUALIFIER for `cl-defmethod' at CURSOR."
+  (let ((args (edebug-top-element-required cursor "Expected qualifier")))
+    ;; Like in CLOS spec, we support any non-list values.
+    (unless (atom args) (edebug-no-match cursor "Atom expected"))
+    ;; Append the arguments to `edebug-def-name' (Bug#42671).
+    (setq edebug-def-name (intern (format "%s %s" edebug-def-name args)))
+    (edebug-move-cursor cursor)
+    (list args)))
 
 (defun edebug-match-cl-generic-method-args (cursor)
   (let ((args (edebug-top-element-required cursor "Expected arguments")))

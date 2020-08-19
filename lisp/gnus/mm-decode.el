@@ -1680,6 +1680,12 @@ If RECURSIVE, search recursively."
 		    (t (y-or-n-p
 			(format "Decrypt (S/MIME) part? "))))
 		   (mm-view-pkcs7 parts from))
+	  (goto-char (point-min))
+	  ;; The encrypted document is a MIME part, and may use either
+	  ;; CRLF (Outlook and the like) or newlines for end-of-line
+	  ;; markers.  Translate from CRLF.
+	  (while (search-forward "\r\n" nil t)
+	    (replace-match "\n"))
 	  ;; Normally there will be a Content-type header here, but
 	  ;; some mailers don't add that to the encrypted part, which
 	  ;; makes the subsequent re-dissection fail here.

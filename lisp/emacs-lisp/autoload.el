@@ -1,4 +1,4 @@
-;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
+;;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-1997, 2001-2020 Free Software Foundation, Inc.
 
@@ -606,9 +606,8 @@ Don't try to split prefixes that are already longer than that.")
                                prefix file dropped)
                       nil))))
               prefixes)))
-        `(if (fboundp 'register-definition-prefixes)
-             (register-definition-prefixes ,file ',(sort (delq nil strings)
-							 'string<)))))))
+        `(register-definition-prefixes ,file ',(sort (delq nil strings)
+						     'string<))))))
 
 (defun autoload--setup-output (otherbuf outbuf absfile load-name)
   (let ((outbuf
@@ -1126,7 +1125,7 @@ write its autoloads into the specified file instead."
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (let ((no-autoloads-time (or last-time '(0 0 0 0)))
             (progress (make-progress-reporter
-                       (byte-compile-info-string
+                       (byte-compile-info
                         (concat "Scraping files for "
                                 (file-relative-name
                                  generated-autoload-file)))
@@ -1169,6 +1168,19 @@ write its autoloads into the specified file instead."
       ;; file-local autoload-generated-file settings.
       (autoload-save-buffers))))
 
+(defun batch-update-autoloads--summary (strings)
+  (let ((message ""))
+    (while strings
+      (when (> (length (concat message " " (car strings))) 64)
+        (byte-compile-info (concat message " ...") t "SCRAPE")
+        (setq message ""))
+      (setq message (if (zerop (length message))
+                        (car strings)
+                      (concat message " " (car strings))))
+      (setq strings (cdr strings)))
+    (when (> (length message) 0)
+      (byte-compile-info message t "SCRAPE"))))
+
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
@@ -1192,6 +1204,7 @@ should be non-nil)."
 	    (or (string-match "\\`site-" file)
 		(push (expand-file-name file) autoload-excludes)))))))
   (let ((args command-line-args-left))
+    (batch-update-autoloads--summary args)
     (setq command-line-args-left nil)
     (apply #'update-directory-autoloads args)))
 

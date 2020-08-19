@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "frame.h"
-#include "ptr-bounds.h"
 #include "window.h"
 #include "dispextern.h"
 #include "buffer.h"
@@ -1607,9 +1606,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   fb.dynamic = true;
 
   xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
-  fb.bits = b = ((unsigned short *)
-		 ptr_bounds_clip (xfb + 1, fb.height * BYTES_PER_BITMAP_ROW));
-  xfb = ptr_bounds_clip (xfb, sizeof *xfb);
+  fb.bits = b = (unsigned short *) (xfb + 1);
 
   j = 0;
   while (j < fb.height)

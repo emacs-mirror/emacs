@@ -8,7 +8,7 @@ Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
 
 [Service]
 Type=notify
-ExecStart=emacs --fg-daemon
+ExecStart=@emacs emacsd --fg-daemon
 ExecStop=emacsclient --eval "(kill-emacs)"
 # The location of the SSH auth socket varies by distribution, and some
 # set it from PAM, so don't override by default.
