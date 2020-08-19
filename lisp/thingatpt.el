@@ -258,7 +258,7 @@ E.g.:
 
 ;;  Filenames
 
-(defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
+(defvar thing-at-point-file-name-chars "-@~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
 
 (define-thing-chars filename thing-at-point-file-name-chars)
