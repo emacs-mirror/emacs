@@ -1489,8 +1489,7 @@ Defaults to the server buffer."
 (define-derived-mode erc-mode fundamental-mode "ERC"
   "Major mode for Emacs IRC."
   (setq local-abbrev-table erc-mode-abbrev-table)
-  (when (boundp 'next-line-add-newlines)
-    (set (make-local-variable 'next-line-add-newlines) nil))
+  (set (make-local-variable 'next-line-add-newlines) nil)
   (setq line-move-ignore-invisible t)
   (set (make-local-variable 'paragraph-separate)
        (concat "\C-l\\|\\(^" (regexp-quote (erc-prompt)) "\\)"))
