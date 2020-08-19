@@ -251,7 +251,7 @@ read_minibuf_noninteractive (Lisp_Object prompt, bool expflag,
   else
     {
       xfree (line);
-      error ("Error reading from stdin");
+      xsignal1 (Qend_of_file, build_string ("Error reading from stdin"));
     }
 
   /* If Lisp form desired instead of string, parse it.  */
