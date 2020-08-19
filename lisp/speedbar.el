@@ -3240,19 +3240,21 @@ With universal argument ARG, flush cached data."
   "Expand the line under the cursor and all descendants.
 Optional argument ARG indicates that any cache should be flushed."
   (interactive "P")
-  (speedbar-expand-line arg)
-  ;; Now, inside the area expanded here, expand all subnodes of
-  ;; the same descendant type.
-  (save-excursion
-    (speedbar-next 1) ;; Move into the list.
-    (let ((err nil))
-      (while (not err)
-	(condition-case nil
-	    (progn
-	      (speedbar-expand-line-descendants arg)
-	      (speedbar-restricted-next 1))
-	  (error (setq err t))))))
-  )
+  (save-restriction
+    (narrow-to-region (line-beginning-position)
+                      (line-beginning-position 2))
+    (speedbar-expand-line arg)
+    ;; Now, inside the area expanded here, expand all subnodes of
+    ;; the same descendant type.
+    (save-excursion
+      (speedbar-next 1) ;; Move into the list.
+      (let ((err nil))
+        (while (not err)
+	  (condition-case nil
+	      (progn
+	        (speedbar-expand-line-descendants arg)
+	        (speedbar-restricted-next 1))
+	    (error (setq err t))))))))
 
 (defun speedbar-contract-line-descendants ()
   "Expand the line under the cursor and all descendants."
