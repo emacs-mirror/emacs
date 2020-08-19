@@ -2791,6 +2791,7 @@ variable.
          python-shell-comint-watch-for-first-prompt-output-filter
          python-comint-postoutput-scroll-to-bottom
          comint-watch-for-password-prompt))
+  (setq-local comint-highlight-input nil)
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-shell-compilation-regexp-alist)
   (add-hook 'completion-at-point-functions
