@@ -4123,23 +4123,34 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
 }
 
 static void
-add_driver_options ()
+add_driver_options (void)
 {
   Lisp_Object options = Fsymbol_value (Qcomp_native_driver_options);
 
-#ifdef LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option
-  while (CONSP (options))
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option) \
+  || defined (WINDOWSNT)
+#pragma GCC diagnostic ignored "-Waddress"
+  if (gcc_jit_context_add_driver_option)
     {
-      gcc_jit_context_add_driver_option (comp.ctxt, SSDATA (XCAR (options)));
-      options = XCDR (options);
+      while (CONSP (options))
+        {
+          gcc_jit_context_add_driver_option (comp.ctxt,
+					     SSDATA (XCAR (options)));
+          options = XCDR (options);
+        }
+
+      return;
     }
-#else
+#pragma GCC diagnostic pop
+#endif
   if (CONSP (options))
     {
       xsignal1 (Qnative_compiler_error,
-                build_string ("Customizing native compiler options via `comp-native-driver-options' is only available on libgccjit version 9 and above."));
+                build_string ("Customizing native compiler options"
+                              " via `comp-native-driver-options' is"
+                              " only available on libgccjit version 9"
+                              " and above."));
     }
-#endif
 }
 
 static void
