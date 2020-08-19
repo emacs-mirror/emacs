@@ -1564,7 +1564,7 @@ invokes the command before that, etc."
 
 ;; Hook used in viper-undo
 (defun viper-after-change-undo-hook (beg end _len)
-  (if (and (boundp 'undo-in-progress) undo-in-progress)
+  (if undo-in-progress
       (setq undo-beg-posn beg
 	    undo-end-posn (or end beg))
     ;; some other hooks may be changing various text properties in
