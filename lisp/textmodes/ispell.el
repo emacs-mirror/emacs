@@ -3723,8 +3723,7 @@ looking for a dictionary, please see the distribution of the GNU ispell
 program, or do an Internet search; there are various dictionaries
 available on the net."
   (interactive)
-  (if (and (boundp 'transient-mark-mode) transient-mark-mode
-	   (boundp 'mark-active) mark-active)
+  (if (and transient-mark-mode mark-active)
       (ispell-region (region-beginning) (region-end))
     (ispell-buffer)))
 
