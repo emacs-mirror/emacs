@@ -3445,6 +3445,7 @@ if that value is non-nil.
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-via-font-lock
         bibtex-font-lock-syntactic-keywords))
+  (bibtex-set-dialect nil t)
   ;; Allow `bibtex-dialect' as a file-local variable.
   (add-hook 'hack-local-variables-hook #'bibtex-set-dialect nil t))
 
