@@ -9921,6 +9921,13 @@ x_uncatch_errors (void)
 {
   struct x_error_message_stack *tmp;
 
+  /* In rare situations when running Emacs run in daemon mode,
+     shutting down an emacsclient via delete-frame can cause
+     x_uncatch_errors to be called when x_error_message is set to
+     NULL.  */
+  if (x_error_message == NULL)
+    return;
+
   block_input ();
 
   /* The display may have been closed before this function is called.
