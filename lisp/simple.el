@@ -1852,7 +1852,7 @@ to get different commands to edit and resubmit."
 			    (and (commandp (function-called-at-point))
 				 (format "%S" (function-called-at-point)))))
 		     (all (sort (minibuffer-default-add-completions)
-				(lambda (a b) (string< a b)))))
+                                #'string<)))
 		 (if def
 		     (cons def (delete def all))
 		   all)))))

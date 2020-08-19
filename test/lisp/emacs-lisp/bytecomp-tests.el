@@ -479,8 +479,7 @@ Subtests signal errors if something goes wrong."
 (ert-deftest bytecomp-tests--warnings ()
   (with-current-buffer (get-buffer-create "*Compile-Log*")
     (let ((inhibit-read-only t)) (erase-buffer)))
-  (dolist (f '(my-test0 my--test11 my--test12 my--test2))
-    (fset f nil))
+  (mapc #'fmakunbound '(my-test0 my--test11 my--test12 my--test2))
   (test-byte-comp-compile-and-load t
     '(progn
        (defun my-test0 ()
