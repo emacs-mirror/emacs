@@ -259,6 +259,10 @@ invoke 'C-u C-x v s' ('vc-create-tag').
 ---
 *** 'vc-hg' now uses 'hg summary' to populate extra 'vc-dir' headers.
 
+---
+*** New variable 'vc-git-revision-complete-only-branches'
+If non-nil, only branches and remotes are considered when doing
+completion over branch names.
 
 ** Gnus
 
