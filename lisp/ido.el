@@ -1523,8 +1523,10 @@ Removes badly formatted data and ignored directories."
   (remove-function read-file-name-function #'ido-read-file-name)
   (remove-function read-buffer-function #'ido-read-buffer)
   (when ido-everywhere
-    (add-function :override read-file-name-function #'ido-read-file-name)
-    (add-function :override read-buffer-function #'ido-read-buffer)))
+    (if (not ido-mode)
+        (ido-mode 'both)
+      (add-function :override read-file-name-function #'ido-read-file-name)
+      (add-function :override read-buffer-function #'ido-read-buffer))))
 
 (defvar ido-minor-mode-map-entry nil)
 
