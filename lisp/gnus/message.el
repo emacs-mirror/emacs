@@ -4852,6 +4852,7 @@ Each line should be no more than 79 characters long."
 (defvar smtpmail-smtp-server)
 (defvar smtpmail-smtp-service)
 (defvar smtpmail-smtp-user)
+(defvar smtpmail-stream-type)
 
 (defun message-multi-smtp-send-mail ()
   "Send the current buffer to `message-send-mail-function'.
