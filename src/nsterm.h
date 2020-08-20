@@ -364,6 +364,7 @@ typedef id instancetype;
 
 @interface NSString (EmacsString)
 + (NSString *)stringWithLispString:(Lisp_Object)string;
+- (Lisp_Object)lispString;
 @end
 
 /* ==========================================================================
