@@ -6497,7 +6497,7 @@ When called without a prefix argument, header value spanning
 multiple lines is treated as a single line.  Otherwise, even if
 N is 1, when point is on a continuation header line, it will be
 moved to the beginning "
-  (interactive "p")
+  (interactive "^p")
   (cond
    ;; Go to beginning of header or beginning of line.
    ((and message-beginning-of-line (message-point-in-header-p))
