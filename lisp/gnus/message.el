@@ -854,7 +854,8 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; differently (bug#36937).
   nil
   "Non-nil means don't add \"-f username\" to the sendmail command line.
-Doing so would be even more evil than leaving it out."
+See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
+of what the \"-f\" parameter does."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
