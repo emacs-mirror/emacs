@@ -612,6 +612,15 @@ Key bindings:
   (setq major-mode 'image-mode)
   (setq image-transform-resize image-auto-resize)
 
+  ;; Bail out early if we have no image data.
+  (if (zerop (buffer-size))
+      (funcall (if (called-interactively-p 'any) 'error 'message)
+               (if (file-exists-p buffer-file-name)
+                   "Empty file"
+                 "(New file)"))
+    (image-mode--display)))
+
+(defun image-mode--display ()
   (if (not (image-get-display-property))
       (progn
         (when (condition-case err
