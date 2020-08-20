@@ -4870,6 +4870,11 @@ that instead."
 	(let* ((smtpmail-smtp-server (nth 1 method))
 	       (service (nth 2 method))
 	       (port (string-to-number service))
+	       ;; If we're talking to the TLS SMTP port, then force a
+	       ;; TLS connection.
+	       (smtpmail-stream-type (if (= port 465)
+					 'tls
+				       smtpmail-stream-type))
 	       (smtpmail-smtp-service (if (> port 0) port service))
 	       (smtpmail-smtp-user (or (nth 3 method) smtpmail-smtp-user)))
 	  (message-smtpmail-send-it)))
