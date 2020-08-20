@@ -4466,6 +4466,7 @@ conformance."
 		      ,(format
 			"Replace non-printable characters with \"%s\" and send"
 			message-replacement-char))
+		  (?u "url-encode" "Use URL %hex encoding")
 		  (?s "send" "Send as is without removing anything")
 		  (?e "edit" "Continue editing")))))
 	(if (eq choice ?e)
@@ -4487,11 +4488,17 @@ conformance."
 						     control-1))
 			   (not (get-text-property
 				 (point) 'untranslated-utf-8)))))
-	    (if (eq choice ?i)
-		(message-kill-all-overlays)
+	    (cond
+	     ((eq choice ?i)
+	      (message-kill-all-overlays))
+	     ((eq choice ?u)
+	      (let ((char (get-byte (point))))
+		(delete-char 1)
+		(insert (format "%%%x" char))))
+	     (t
 	      (delete-char 1)
 	      (when (eq choice ?r)
-		(insert message-replacement-char))))
+		(insert message-replacement-char)))))
 	  (forward-char)
 	  (skip-chars-forward mm-7bit-chars)))))
   (message-check 'bogus-recipient
