@@ -1988,8 +1988,7 @@ revision of the file otherwise."
                  (diff-find-source-location other-file reverse)))
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
-      (when buffer (next-error-found buffer (current-buffer)))
-      (diff-hunk-status-msg line-offset (xor reverse switched) t))))
+      (when buffer (next-error-found buffer (current-buffer))))))
 
 
 (defun diff-current-defun ()
