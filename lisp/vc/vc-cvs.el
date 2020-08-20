@@ -337,6 +337,8 @@ its parents."
                   (directory-file-name dir))))
     (eq dir t)))
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
 (defun vc-cvs-checkin (files comment &optional rev)
   "CVS-specific version of `vc-backend-checkin'."
   (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
