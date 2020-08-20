@@ -2945,6 +2945,9 @@ browse-url @key{RET}}.
 @table @kbd
 @item M-x goto-address-mode
 Activate URLs and e-mail addresses in the current buffer.
+
+@item M-x global-goto-address-mode
+Activate @code{goto-address-mode} in all buffers.
 @end table
 
 @kindex C-c RET @r{(Goto Address mode)}

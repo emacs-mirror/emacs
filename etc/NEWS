@@ -820,6 +820,10 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
++++
+*** New global mode 'global-goto-address-mode'
+This will enable 'goto-address-mode' in all buffers.
+
 ---
 *** 'C-s' in 'M-x' now searches over completions again.
 In Emacs 23, typing 'M-x' ('read-extended-command') and then 'C-s' (to
