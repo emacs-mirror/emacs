@@ -4430,7 +4430,7 @@ conformance."
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
     (let (char found choice nul-chars)
-      (message-goto-body)
+      (goto-char (point-min))
       (setq nul-chars (save-excursion
 			(search-forward "\000" nil t)))
       (while (progn
@@ -4470,7 +4470,7 @@ conformance."
 		  (?e "edit" "Continue editing")))))
 	(if (eq choice ?e)
 	  (error "Non-printable characters"))
-	(message-goto-body)
+	(goto-char (point-min))
 	(skip-chars-forward mm-7bit-chars)
 	(while (not (eobp))
 	  (when (let ((char (char-after)))
@@ -4811,7 +4811,7 @@ If you always want Gnus to send messages in one piece, set
 	       message-courtesy-message)))
           ;; If this was set, `sendmail-program' takes care of encoding.
           (unless message-inhibit-body-encoding
-            ;; Let's make sure we encoded all the body.
+            ;; Let's make sure we encoded everything in the buffer.
             (cl-assert (save-excursion
                          (goto-char (point-min))
                          (not (re-search-forward "[^\000-\377]" nil t)))))
