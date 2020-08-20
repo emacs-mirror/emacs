@@ -401,10 +401,10 @@ changes in daylight saving time are not taken into account."
     (when (decoded-time-year delta)
       (cl-incf (decoded-time-year time) (decoded-time-year delta)))
 
-    ;; Months are pretty simple.
+    ;; Months are pretty simple, but start at 1 (for January).
     (when (decoded-time-month delta)
-      (let ((new (+ (decoded-time-month time) (decoded-time-month delta))))
-        (setf (decoded-time-month time) (mod new 12))
+      (let ((new (+ (1- (decoded-time-month time)) (decoded-time-month delta))))
+        (setf (decoded-time-month time) (1+ (mod new 12)))
         (cl-incf (decoded-time-year time) (/ new 12))))
 
     ;; Adjust for month length (as described in the doc string).
