@@ -7021,15 +7021,16 @@ rests."
 	    (setq done t)))))))
 
 (defun move-beginning-of-line (arg)
-  "Move point to beginning of current line as displayed.
-\(If there's an image in the line, this disregards newlines
-that are part of the text that the image rests on.)
+  "Move point to visible beginning of current logical line.
+This disregards any invisible newline characters.
 
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 \(But if the buffer doesn't end in a newline, it stops at the
 beginning of the last line.)
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
+
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
+For motion by visual lines, see `beginning-of-visual-line'."
   (interactive "^p")
   (or arg (setq arg 1))
 

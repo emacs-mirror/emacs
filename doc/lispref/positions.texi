@@ -332,6 +332,8 @@ if provided; otherwise @var{n} defaults to @code{nil}.
 @node Text Lines
 @subsection Motion by Text Lines
 @cindex lines
+@cindex logical lines, moving by
+@cindex physical lines, moving by
 
   Text lines are portions of the buffer delimited by newline characters,
 which are regarded as part of the previous line.  The first text line
@@ -518,6 +520,7 @@ beginning or end of a line.
 @node Screen Lines
 @subsection Motion by Screen Lines
 @cindex screen lines, moving by
+@cindex visual lines, moving by
 
   The line functions in the previous section count text lines, delimited
 only by newline characters.  By contrast, these functions count screen

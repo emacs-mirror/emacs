@@ -707,7 +707,8 @@ If the scan reaches the end of the buffer, return that position.
 
 This function ignores text display directionality; it returns the
 position of the first character in logical order, i.e. the smallest
-character position on the line.
+character position on the logical line.  See `vertical-motion' for
+movement by screen lines.
 
 This function constrains the returned position to the current field
 unless that position would be on a different line from the original,
