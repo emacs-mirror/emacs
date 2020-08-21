@@ -2477,7 +2477,9 @@ is not active."
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
   (interactive
-   (list (read-from-minibuffer (format "Rename `%s' to: " (symbol-at-point)))))
+   (list (read-from-minibuffer (format "Rename `%s' to: " (symbol-at-point))
+                               nil nil nil nil
+                               (symbol-name (symbol-at-point)))))
   (unless (eglot--server-capable :renameProvider)
     (eglot--error "Server can't rename!"))
   (eglot--apply-workspace-edit
