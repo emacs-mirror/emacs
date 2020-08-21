@@ -820,6 +820,10 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** 'hs-special-modes-alist' is now also heeded for modes derived from
+the modes in that list.
+
 +++
 *** New global mode 'global-goto-address-mode'
 This will enable 'goto-address-mode' in all buffers.
