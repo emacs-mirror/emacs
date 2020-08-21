@@ -821,6 +821,10 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
+*** New 'diff-mode' font locking face 'diff-error'.
+This face is used for error messages from diff.
+
+---
 *** 'hs-minor-mode' now heeds 'hs-special-modes-alist' for derived modes.
 The settings in 'hs-special-modes-alist' now also affect modes derived
 from those mentioned in that alist.
