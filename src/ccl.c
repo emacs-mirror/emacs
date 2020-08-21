@@ -1374,7 +1374,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		    if (! (IN_INT_RANGE (eop) && CHARACTERP (opl)))
 		      CCL_INVALID_CMD;
 		    reg[RRR] = charset_unicode;
-		    reg[rrr] = eop;
+		    reg[rrr] = XFIXNUM (opl);
 		    reg[7] = 1; /* r7 true for success */
 		  }
 		else
