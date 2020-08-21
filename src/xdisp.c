@@ -12565,6 +12565,11 @@ gui_consider_frame_title (Lisp_Object frame)
       display_mode_element (&it, 0, -1, -1, fmt, Qnil, false);
       len = MODE_LINE_NOPROP_LEN (title_start);
       title = mode_line_noprop_buf + title_start;
+      /* Make sure that any raw bytes in the title are properly
+         represented by their multibyte sequences.  */
+      ptrdiff_t nchars = 0;
+      len = str_as_multibyte (title, mode_line_noprop_buf_end - title,
+                              len, &nchars);
       unbind_to (count, Qnil);
 
       /* Set the title only if it's changed.  This avoids consing in
@@ -12576,9 +12581,10 @@ gui_consider_frame_title (Lisp_Object frame)
            || SBYTES (f->name) != len
            || memcmp (title, SDATA (f->name), len) != 0)
           && FRAME_TERMINAL (f)->implicit_set_name_hook)
-	FRAME_TERMINAL (f)->implicit_set_name_hook (f,
-                                                    make_string (title, len),
-                                                    Qnil);
+        {
+          Lisp_Object title_string = make_multibyte_string (title, nchars, len);
+          FRAME_TERMINAL (f)->implicit_set_name_hook (f, title_string, Qnil);
+        }
     }
 }
 
