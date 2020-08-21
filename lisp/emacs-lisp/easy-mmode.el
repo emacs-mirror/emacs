@@ -87,7 +87,10 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 If called interactively, enable %s if ARG is positive, and
 disable it if ARG is zero or negative.  If called from Lisp,
 also enable the mode if ARG is omitted or nil, and toggle it
-if ARG is `toggle'; disable the mode otherwise.")
+if ARG is `toggle'; disable the mode otherwise.
+
+The mode's hook is called both when the mode is enabled and when
+it is disabled.")
 
 (defun easy-mmode--mode-docstring (doc mode-pretty-name keymap-sym)
   (let ((doc (or doc (format "Toggle %s on or off.
