@@ -296,6 +296,11 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New option 'gnus-dbus-close-on-sleep'
+On systems with D-Bus support, it is now possible to register a signal
+to close all Gnus servers before the system sleeps.
+
++++
 *** The key binding of 'gnus-summary-search-article-forward' has changed.
 This command was previously on 'M-s' and shadowed the global 'M-s'
 search prefix.  The command has now been moved to 'M-s M-s'.  (For

@@ -292,6 +292,10 @@ is restarted, and sometimes reloaded."
   :link '(custom-manual "(gnus)Exiting Gnus")
   :group 'gnus)
 
+(defgroup gnus-dbus nil
+  "D-Bus integration for Gnus."
+  :group 'gnus)
+
 (defconst gnus-version-number "5.13"
   "Version number for this version of Gnus.")
 

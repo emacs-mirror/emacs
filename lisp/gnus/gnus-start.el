@@ -31,6 +31,7 @@
 (require 'gnus-range)
 (require 'gnus-util)
 (require 'gnus-cloud)
+(require 'gnus-dbus)
 (autoload 'message-make-date "message")
 (autoload 'gnus-agent-read-servers-validate "gnus-agent")
 (autoload 'gnus-agent-save-local "gnus-agent")
@@ -798,6 +799,8 @@ prompt the user for the name of an NNTP server to use."
 	  (gnus-run-hooks 'gnus-setup-news-hook)
 	  (when gnus-agent
 	    (gnus-request-create-group "queue" '(nndraft "")))
+	  (when gnus-dbus-close-on-sleep
+	    (gnus-dbus-register-sleep-signal))
 	  (gnus-start-draft-setup)
 	  ;; Generate the group buffer.
 	  (gnus-group-list-groups level)
