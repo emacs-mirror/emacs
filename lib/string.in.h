@@ -1045,6 +1045,21 @@ _GL_WARN_ON_USE (strerror_r, "strerror_r is unportable - "
 # endif
 #endif
 
+/* Return an abbreviation string for the signal number SIG.  */
+#if @GNULIB_SIGABBREV_NP@
+# if ! @HAVE_SIGABBREV_NP@
+_GL_FUNCDECL_SYS (sigabbrev_np, const char *, (int sig));
+# endif
+_GL_CXXALIAS_SYS (sigabbrev_np, const char *, (int sig));
+_GL_CXXALIASWARN (sigabbrev_np);
+#elif defined GNULIB_POSIXCHECK
+# undef sigabbrev_np
+# if HAVE_RAW_DECL_SIGABBREV_NP
+_GL_WARN_ON_USE (sigabbrev_np, "sigabbrev_np is unportable - "
+                 "use gnulib module sigabbrev_np for portability");
+# endif
+#endif
+
 #if @GNULIB_STRSIGNAL@
 # if @REPLACE_STRSIGNAL@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
