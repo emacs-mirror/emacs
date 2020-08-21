@@ -29,4 +29,6 @@ extern int xg_select (int max_fds,
 		      fd_set *rfds, fd_set *wfds, fd_set *efds,
 		      struct timespec *timeout, sigset_t *sigmask);
 
+extern void release_select_lock (void);
+
 #endif /* XGSELECT_H */
