@@ -4122,6 +4122,23 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
+DEFUN ("comp-native-driver-options-available-p", Fcomp_native_driver_options_available_p,
+       Scomp_native_driver_options_available_p,
+       0, 0, 0,
+       doc: /* Return t if `comp-native-driver-options' can be used.  */)
+  (void)
+{
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
+  || defined (WINDOWSNT)
+#pragma GCC diagnostic ignored "-Waddress"
+  if (gcc_jit_context_add_driver_option)
+    return Qt;
+#pragma GCC diagnostic pop
+#endif
+  return Qnil;
+}
+
+
 static void
 add_driver_options (void)
 {
@@ -5123,6 +5140,7 @@ native compiled one.  */);
 			     "configuration, please recompile"));
 
   defsubr (&Scomp_el_to_eln_filename);
+  defsubr (&Scomp_native_driver_options_available_p);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
