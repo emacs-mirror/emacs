@@ -848,6 +848,52 @@ should display the previously current (or default) todo file."
      (should (equal todo-current-todo-file todo-test-file-1))
      (delete-file (concat file "~")))))
 
+(ert-deftest todo-test-edit-item-date-month ()
+  "Test incrementing and decrementing the month of an item's date.
+If the change in month crosses a year boundary, the year of the
+item's date should be adjusted accordingly."
+  (with-todo-test
+   (todo-test--show 4)
+   (let ((current-prefix-arg t)         ; For todo-edit-item--header.
+         (get-date (lambda ()
+                     (save-excursion
+                       (todo-date-string-matcher (line-end-position))
+                       (buffer-substring-no-properties (match-beginning 1)
+                                                       (match-end 0))))))
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 0)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 1)
+     (should (equal (funcall get-date) "Feb 1, 2020"))
+     (todo-edit-item--header 'month -1)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month -1)
+     (should (equal (funcall get-date) "Dec 1, 2019"))
+     (todo-edit-item--header 'month 1)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 12)
+     (should (equal (funcall get-date) "Jan 1, 2021"))
+     (todo-edit-item--header 'month -12)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month -13)
+     (should (equal (funcall get-date) "Dec 1, 2018"))
+     (todo-edit-item--header 'month 7)
+     (should (equal (funcall get-date) "Jul 1, 2019"))
+     (todo-edit-item--header 'month 6)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 23)
+     (should (equal (funcall get-date) "Dec 1, 2021"))
+     (todo-edit-item--header 'month -23)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 24)
+     (should (equal (funcall get-date) "Jan 1, 2022"))
+     (todo-edit-item--header 'month -24)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 25)
+     (should (equal (funcall get-date) "Feb 1, 2022"))
+     (todo-edit-item--header 'month -25)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     )))
 
 (provide 'todo-mode-tests)
 ;;; todo-mode-tests.el ends here
