@@ -352,6 +352,7 @@ from the document.")
 	    nndoc-group-alist)
       (setq nndoc-dissection-alist nil)
       (with-current-buffer nndoc-current-buffer
+	(set-buffer-multibyte nil)
 	(erase-buffer)
 	(condition-case error
 	    (if (and (stringp nndoc-address)
