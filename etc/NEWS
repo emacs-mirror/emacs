@@ -821,8 +821,9 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
-*** 'hs-special-modes-alist' is now also heeded for modes derived from
-the modes in that list.
+*** 'hs-minor-mode' now heeds 'hs-special-modes-alist' for derived modes.
+The settings in 'hs-special-modes-alist' now also affect modes derived
+from those mentioned in that alist.
 
 +++
 *** New global mode 'global-goto-address-mode'
