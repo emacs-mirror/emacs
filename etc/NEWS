@@ -664,6 +664,14 @@ sorted there.  The commands have also been extended to work when the
 "parent" buffer is an archive mode (i.e., zip file or the like) or tar
 mode buffer.
 
+---
+*** 'image-converter' is now restricted to formats in 'auto-mode-alist'.
+When using external image converters, the external program is queried
+for what formats it supports.  This list may contain formats that are
+problematic in some contexts (like PDFs), so this list is now filtered
+based on 'auto-mode-alist'.  Only file names that map to 'image-mode'
+are now supported.
+
 ** EWW
 
 +++

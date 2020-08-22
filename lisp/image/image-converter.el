@@ -33,8 +33,15 @@
   "Type of the external image converter to use.
 The value should a symbol, either `imagemagick', `graphicsmagick',
 or `ffmpeg'.
+
 If nil, Emacs will try to find one of the supported converters
-installed on the system."
+installed on the system.
+
+The actual range of image formats that will be converted depends
+on what image formats the chosen converter reports being able to
+handle.  `auto-mode-alist' is then used to further filter what
+formats that are to be supported: Only the suffixes that map to
+`image-mode' will be handled."
   :group 'image
   :type 'symbol
   :version "27.1")
@@ -186,11 +193,24 @@ data is returned as a string."
   "Find an installed image converter."
   (catch 'done
     (dolist (elem image-converter--converters)
-      (when-let ((formats (image-converter--probe (car elem))))
+      (when-let ((formats (image-converter--filter-formats
+                           (image-converter--probe (car elem)))))
         (setq image-converter (car elem)
               image-converter-regexp (concat "\\." (regexp-opt formats) "\\'")
               image-converter-file-name-extensions formats)
         (throw 'done image-converter)))))
+
+(defun image-converter--filter-formats (suffixes)
+  "Filter SUFFIXES based on `auto-mode-alist'.
+Only suffixes that map to `image-mode' are returned."
+  (cl-loop with case-fold-search = (if (not auto-mode-case-fold)
+                                       nil
+                                     t)
+           for suffix in suffixes
+           when (eq (cdr (assoc (concat "foo." suffix) auto-mode-alist
+                                #'string-match))
+                    'image-mode)
+           collect suffix))
 
 (cl-defmethod image-converter--convert ((type (eql graphicsmagick)) source
                                         image-format)
