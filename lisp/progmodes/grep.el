@@ -170,9 +170,9 @@ In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
 \\[customize] or call the function `grep-apply-setting'.
 
-This variable can either be a string, or a cons on the
+This variable can either be a string, or a cons of the
 form (COMMAND . POSITION).  In the latter case, COMMAND will be
-used as the default command, and point will be placed on POSITION
+used as the default command, and point will be placed at POSITION
 for easier editing."
   :type '(choice string
                  (cons string integer)
