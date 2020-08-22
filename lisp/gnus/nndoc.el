@@ -352,8 +352,8 @@ from the document.")
 	    nndoc-group-alist)
       (setq nndoc-dissection-alist nil)
       (with-current-buffer nndoc-current-buffer
-	(set-buffer-multibyte nil)
 	(erase-buffer)
+	(set-buffer-multibyte nil)
 	(condition-case error
 	    (if (and (stringp nndoc-address)
 		     (string-match nndoc-binary-file-names nndoc-address))
