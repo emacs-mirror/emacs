@@ -48,7 +48,8 @@
 
 (ert-deftest gnus-icalendar-parse ()
   "test"
-  (let ((event (gnus-icalendar-tests--get-ical-event "
+  (let ((tz (getenv "TZ"))
+        (event (gnus-icalendar-tests--get-ical-event "
 BEGIN:VCALENDAR
 PRODID:-//Google Inc//Google Calendar 70.9054//EN
 VERSION:2.0
@@ -94,22 +95,29 @@ END:VEVENT
 END:VCALENDAR
 ")))
 
-    (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
-    (should (not (gnus-icalendar-event:recurring-p event)))
-    (should (string= (gnus-icalendar-event:start event) "2020-12-08 15:00"))
-    (with-slots (organizer summary description location end-time uid rsvp participation-type) event
-        (should (string= organizer "liveintent.com_3bm6fh805bme9uoeliqcle1sag@group.calendar.google.com"))
-        (should (string= summary "Townhall | All Company Meeting"))
-        (should (string= description "In this meeting\, we will cover topics from product and engineering presentations and demos to new hire announcements to watching the late"))
-        (should (string= location "New York-22-Town Hall Space (250) [Chrome Box]"))
-        (should (string= (format-time-string "%Y-%m-%d %H:%M" end-time) "2020-12-08 16:00"))
-        (should (string= uid "iipdt88slddpeu7hheuu09sfmd@google.com"))
-        (should (not rsvp))
-(should (eq participation-type 'non-participant)))))
+    (unwind-protect
+        (progn
+          ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+          (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
+          (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
+          (should (not (gnus-icalendar-event:recurring-p event)))
+          (should (string= (gnus-icalendar-event:start event) "2020-12-08 15:00"))
+          (with-slots (organizer summary description location end-time uid rsvp participation-type) event
+                      (should (string= organizer "liveintent.com_3bm6fh805bme9uoeliqcle1sag@group.calendar.google.com"))
+                      (should (string= summary "Townhall | All Company Meeting"))
+                      (should (string= description "In this meeting\, we will cover topics from product and engineering presentations and demos to new hire announcements to watching the late"))
+                      (should (string= location "New York-22-Town Hall Space (250) [Chrome Box]"))
+                      (should (string= (format-time-string "%Y-%m-%d %H:%M" end-time) "2020-12-08 16:00"))
+                      (should (string= uid "iipdt88slddpeu7hheuu09sfmd@google.com"))
+                      (should (not rsvp))
+                      (should (eq participation-type 'non-participant))))
+      (setenv "TZ" tz))))
 
 (ert-deftest gnus-icalendary-byday ()
   ""
-  (let ((event (gnus-icalendar-tests--get-ical-event "
+  (let ((tz (getenv "TZ"))
+        (event (gnus-icalendar-tests--get-ical-event "
 BEGIN:VCALENDAR
 PRODID:Zimbra-Calendar-Provider
 VERSION:2.0
@@ -156,6 +164,11 @@ END:VALARM
 END:VEVENT
 END:VCALENDAR" (list "Mark Hershberger"))))
 
+    (unwind-protect
+        (progn
+          ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+          (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
     (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
     (should (gnus-icalendar-event:recurring-p event))
     (should (string= (gnus-icalendar-event:recurring-interval event) "1"))
@@ -174,8 +187,8 @@ END:VCALENDAR" (list "Mark Hershberger"))))
 <2020-07-27 15:00-15:30 +1w>
 <2020-07-28 15:00-15:30 +1w>
 <2020-07-29 15:00-15:30 +1w>
-<2020-07-30 15:00-15:30 +1w>"))
-    ))
+<2020-07-30 15:00-15:30 +1w>")))
+      (setenv "TZ" tz))))
 
 
 ;; (VCALENDAR nil
