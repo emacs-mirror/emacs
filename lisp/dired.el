@@ -88,7 +88,8 @@ Note that the implementations of globstar have small differences
 between shells.  You must check your shell documentation to see
 what to expect."
   :type 'boolean
-  :group 'dired)
+  :group 'dired
+  :version "28.1")
 
 (defconst dired-enable-globstar-in-shell
   '(("ksh" . "set -G")

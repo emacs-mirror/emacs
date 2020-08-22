@@ -230,9 +230,12 @@ time zones will use a form like "+0100" instead of "CET".
 
 +++
 *** New user option 'dired-maybe-use-globstar'.
-If set, enables globstar in shells that support this feature.  The new
-variable 'dired-enable-globstar-in-shell' lists which shells can have
-globstar enabled.
+If set, enables globstar (recursive globbing) in shells that support
+this feature, but turn it off by default.  This allows producing
+directory listings with files matching a wildcard in all the
+subdirectories of a given directory.  The new variable
+'dired-enable-globstar-in-shell' lists which shells can have globstar
+enabled, and how to enable it.
 
 +++
 *** New user option 'dired-copy-dereference'.
