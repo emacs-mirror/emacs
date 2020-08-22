@@ -79,6 +79,24 @@ The former lists all the files with extension @samp{.el} in directory
 @samp{foo}.  The latter lists the files with extension @samp{.el}
 in all the subdirectories of @samp{foo}.
 
+When the system shell supports globstar and it's enabled, then you
+can use recursive globbing:
+
+@example
+C-x d  ~/foo/**/*.el  @key{RET}
+@end example
+
+This command lists all the files with extension @samp{.el} descending
+recursively in all the subdirectories of @samp{foo}.  Note that there
+are small differences in the implementation of globstar between shells.
+Check your shell manual to know the expected behavior.
+
+@vindex dired-maybe-use-globstar
+@vindex dired-enable-globstar-in-shell
+If the shell supports globstar and disables it by default, you
+can still enable this feature with @code{dired-maybe-use-globstar} if
+the shell is included in @code{dired-enable-globstar-in-shell}.
+
 The usual history and completion commands can be used in the minibuffer;
 in particular, @kbd{M-n} puts the name of the visited file (if any) in
 the minibuffer (@pxref{Minibuffer History}).

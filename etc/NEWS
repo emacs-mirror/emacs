@@ -229,6 +229,12 @@ time zones will use a form like "+0100" instead of "CET".
 ** Dired
 
 +++
+*** New user option 'dired-maybe-use-globstar'.
+If set, enables globstar in shells that support this feature.  The new
+variable 'dired-enable-globstar-in-shell' lists which shells can have
+globstar enabled.
+
++++
 *** New user option 'dired-copy-dereference'.
 If set to non-nil, Dired will dereference symbolic links when copying.
 This can be switched off on a per-usage basis by providing
