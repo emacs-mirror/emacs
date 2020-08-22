@@ -50,11 +50,17 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+
 ALL_CFLAGS= \
   $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) $(DEPFLAGS) \
   $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
   -I. -I../src -I$(srcdir) -I$(srcdir)/../src \
   $(if $(patsubst e-%,,$(notdir $<)),,-Demacs)
+
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ALL_CFLAGS += -DGL_COMPILE_CRYPTO_STREAM
+endif
 
 SYSTEM_TYPE = @SYSTEM_TYPE@
 ifeq ($(SYSTEM_TYPE),windows-nt)

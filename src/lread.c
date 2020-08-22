@@ -1623,10 +1623,17 @@ maybe_swap_for_eln (Lisp_Object *filename, int *fd, struct timespec mtime)
   Lisp_Object eln_path_tail = Vcomp_eln_load_path;
   FOR_EACH_TAIL_SAFE (eln_path_tail)
     {
-      Lisp_Object el_name =
+      Lisp_Object src_name =
 	Fsubstring (*filename, Qnil, make_fixnum (-1));
+      if (NILP (Ffile_exists_p (src_name)))
+	{
+	  src_name = concat2 (src_name, build_string (".gz"));
+	  if (NILP (Ffile_exists_p (src_name)))
+	    /* Can't find the corresponding source file.  */
+	    return;
+	}
       Lisp_Object eln_name =
-	Fcomp_el_to_eln_filename (el_name, XCAR (eln_path_tail));
+	Fcomp_el_to_eln_filename (src_name, XCAR (eln_path_tail));
       int eln_fd = emacs_open (SSDATA (ENCODE_FILE (eln_name)), O_RDONLY, 0);
 
       if (eln_fd > 0)
@@ -1643,7 +1650,7 @@ maybe_swap_for_eln (Lisp_Object *filename, int *fd, struct timespec mtime)
 		  *fd = eln_fd;
 		  /* Store the eln -> el relation.  */
 		  Fputhash (Ffile_name_nondirectory (eln_name),
-			    el_name, Vcomp_eln_to_el_h);
+			    src_name, Vcomp_eln_to_el_h);
 		  return;
 		}
 	      else

@@ -36,7 +36,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dynlib.h"
 #include "buffer.h"
 #include "blockinput.h"
-#include "sha512.h"
+#include "md5.h"
+#include "sysstdio.h"
+#include "zlib.h"
 
 
 /********************************/
@@ -394,8 +396,6 @@ load_gccjit_if_necessary (bool mandatory)
 }
 
 
-#define ELN_FILENAME_HASH_LEN 64
-
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -640,9 +640,123 @@ format_string (const char *format, ...)
 static Lisp_Object
 comp_hash_string (Lisp_Object string)
 {
-  Lisp_Object digest = make_uninit_string (SHA512_DIGEST_SIZE * 2);
-  sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
-  hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
+  Lisp_Object digest = make_uninit_string (MD5_DIGEST_SIZE * 2);
+  md5_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
+  hexbuf_digest (SSDATA (digest), SDATA (digest), MD5_DIGEST_SIZE);
+
+  return digest;
+}
+
+#define MD5_BLOCKSIZE 32768 /* From md5.c  */
+
+static char acc_buff[2 * MD5_BLOCKSIZE];
+static size_t acc_size;
+
+static void
+accumulate_and_process_md5 (void *data, size_t len, struct md5_ctx *ctxt)
+{
+  eassert (len <= MD5_BLOCKSIZE);
+  /* We may optimize this saving some of these memcpy/move using
+     directly the outer buffers but so far I'll not bother.  */
+  memcpy (acc_buff + acc_size, data, len);
+  acc_size += len;
+  if (acc_size >= MD5_BLOCKSIZE)
+    {
+      acc_size -= MD5_BLOCKSIZE;
+      md5_process_block (acc_buff, MD5_BLOCKSIZE, ctxt);
+      memmove (acc_buff, acc_buff + MD5_BLOCKSIZE, acc_size);
+    }
+}
+
+static void
+final_process_md5 (struct md5_ctx *ctxt)
+{
+  if (acc_size)
+    {
+      md5_process_bytes (acc_buff, acc_size, ctxt);
+      acc_size = 0;
+    }
+}
+
+static int
+md5_gz_stream (FILE *source, void *resblock)
+{
+  z_stream stream;
+  unsigned char in[MD5_BLOCKSIZE];
+  unsigned char out[MD5_BLOCKSIZE];
+
+  eassert (!acc_size);
+
+  struct md5_ctx ctx;
+  md5_init_ctx (&ctx);
+
+  /* allocate inflate state */
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.opaque = Z_NULL;
+  stream.avail_in = 0;
+  stream.next_in = Z_NULL;
+  int res = inflateInit2 (&stream, MAX_WBITS + 32);
+  if (res != Z_OK)
+    return -1;
+
+  do {
+    stream.avail_in = fread (in, 1, MD5_BLOCKSIZE, source);
+    if (ferror (source)) {
+      inflateEnd (&stream);
+      return -1;
+    }
+    if (stream.avail_in == 0)
+      break;
+    stream.next_in = in;
+
+    do {
+      stream.avail_out = MD5_BLOCKSIZE;
+      stream.next_out = out;
+      res = inflate (&stream, Z_NO_FLUSH);
+
+      if (res != Z_OK && res != Z_STREAM_END)
+	return -1;
+
+      accumulate_and_process_md5 (out, MD5_BLOCKSIZE - stream.avail_out, &ctx);
+    } while (!stream.avail_out);
+
+  } while (res != Z_STREAM_END);
+
+  final_process_md5 (&ctx);
+  inflateEnd (&stream);
+
+  if (res != Z_STREAM_END)
+    return -1;
+
+  md5_finish_ctx (&ctx, resblock);
+
+  return 0;
+}
+#undef MD5_BLOCKSIZE
+
+static Lisp_Object
+comp_hash_source_file (Lisp_Object filename)
+{
+  /* Can't use Finsert_file_contents + Fbuffer_hash as this is called
+     by Fcomp_el_to_eln_filename too early during bootstrap.  */
+  bool is_gz = suffix_p (filename, ".gz");
+  FILE *f = emacs_fopen (SSDATA (filename), is_gz ? "rb" : "r");
+
+  if (!f)
+    report_file_error ("Opening source file", filename);
+
+  Lisp_Object digest = make_uninit_string (MD5_DIGEST_SIZE * 2);
+
+  int res = is_gz
+    ? md5_gz_stream (f, SSDATA (digest))
+    : md5_stream (f, SSDATA (digest));
+  fclose (f);
+
+  if (res)
+    xsignal2 (Qfile_notify_error, build_string ("hashing failed"), filename);
+
+  hexbuf_digest (SSDATA (digest), SSDATA (digest), MD5_DIGEST_SIZE);
 
   return digest;
 }
@@ -3872,21 +3986,36 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 {
   CHECK_STRING (filename);
 
+  filename = Fexpand_file_name (filename, Qnil);
+
+  if (NILP (Ffile_exists_p (filename)))
+    xsignal1 (Qfile_missing, filename);
+
+  Lisp_Object content_hash = comp_hash_source_file (filename);
+
   if (suffix_p (filename, ".gz"))
     filename = Fsubstring (filename, Qnil, make_fixnum (-3));
-  filename = Fexpand_file_name (filename, Qnil);
 
   /* We create eln filenames with an hash in order to look-up these
      starting from the source filename, IOW have a relation
-     /absolute/path/filename.el -> eln-cache/filename-hash.eln.
+
+     /absolute/path/filename.el + content ->
+     eln-cache/filename-path_hash-content_hash.eln.
+
+     'dlopen' can return the same handle if two shared with the same
+     filename are loaded in two different times (even if the first was
+     deleted!).  To prevent this scenario the source file content is
+     included in the hashing algorithm.
+
+     As at any point in time no more then one file can exist with the
+     same filename, should be possibile to clean up all
+     filename-path_hash-* except the most recent one (or the new one
+     being recompiled).
 
      As installing .eln files compiled during the build changes their
      absolute path we need an hashing mechanism that is not sensitive
      to that.  For this we replace if match PATH_DUMPLOADSEARCH or
-     PATH_LOADSEARCH with '//' before generating the hash.
-
-     Another approach would be to hash using the source file content
-     but this may have a measurable performance impact.  */
+     PATH_LOADSEARCH with '//' before generating the hash.  */
 
   if (NILP (loadsearch_re_list))
     {
@@ -3909,12 +4038,12 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 	  break;
 	}
     }
-
-  Lisp_Object hash = Fsubstring (comp_hash_string (filename), Qnil,
-				 make_fixnum (ELN_FILENAME_HASH_LEN));
+  Lisp_Object separator = build_string ("-");
+  Lisp_Object path_hash = comp_hash_string (filename);
   filename = concat2 (Ffile_name_nondirectory (Fsubstring (filename, Qnil,
 							   make_fixnum (-3))),
-		       build_string ("-"));
+		      separator);
+  Lisp_Object hash = concat3 (path_hash, separator, content_hash);
   filename = concat3 (filename, hash, build_string (NATIVE_ELISP_SUFFIX));
   if (NILP (base_dir))
     base_dir = XCAR (Vcomp_eln_load_path);

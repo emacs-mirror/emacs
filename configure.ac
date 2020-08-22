@@ -3787,6 +3787,12 @@ Here instructions on how to compile and install libgccjit from source:
 HAVE_NATIVE_COMP=no
 LIBGCCJIT_LIB=
 if test "${with_nativecomp}" != "no"; then
+    if test "${HAVE_PDUMPER}" = no; then
+       AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+    fi
+    if test "${HAVE_ZLIB}" = no; then
+       AC_MSG_ERROR(['--with-nativecomp' requires zlib])
+    fi
     emacs_save_LIBS=$LIBS
     LIBS="-lgccjit"
     AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken],
@@ -3799,9 +3805,6 @@ if test "${with_nativecomp}" != "no"; then
     fi
     NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
-fi
-if test "${HAVE_NATIVE_COMP}" = yes && test "${HAVE_PDUMPER}" = no; then
-   AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
 fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
