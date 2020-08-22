@@ -102,6 +102,13 @@ deprecated.  Errors in the Inscript method were corrected.
 ** Rudimentary support for the 'st' terminal emulator.
 Emacs now supports 256 color display on the 'st' terminal emulator.
 
+---
+** Mouse wheel scrolling now works on more parts of frame's display.
+When using 'mwheel-mode', the mouse wheel will now scroll also when
+the mouse cursor is on the scroll bars, fringes, margins, header line,
+and mode line.  ('mwheel-mode' is enabled by default on most graphical
+displays.)
+
 
 * Editing Changes in Emacs 28.1
 
