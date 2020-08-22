@@ -210,27 +210,10 @@ pgtk_im_filter_keypress (struct frame *f, GdkEventKey * ev)
   return false;
 }
 
-void
-pgtk_im_init (struct pgtk_display_info *dpyinfo)
+static void
+pgtk_im_use_context (struct pgtk_display_info *dpyinfo, bool use_p)
 {
-  dpyinfo->im.context = NULL;
-}
-
-void
-pgtk_im_finish (struct pgtk_display_info *dpyinfo)
-{
-  if (dpyinfo->im.context != NULL)
-    g_object_unref (dpyinfo->im.context);
-  dpyinfo->im.context = NULL;
-}
-
-DEFUN ("pgtk-use-im-context", Fpgtk_use_im_context, Spgtk_use_im_context, 1, 2, 0,
-       doc: /* Set whether use Gtk's im context. */)
-  (Lisp_Object use_p, Lisp_Object terminal)
-{
-  struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
-
-  if (NILP (use_p))
+  if (!use_p)
     {
       if (dpyinfo->im.context != NULL)
 	{
@@ -269,6 +252,31 @@ DEFUN ("pgtk-use-im-context", Fpgtk_use_im_context, Spgtk_use_im_context, 1, 2, 
 	    pgtk_im_focus_in (dpyinfo->im.focused_frame);
 	}
     }
+}
+
+void
+pgtk_im_init (struct pgtk_display_info *dpyinfo)
+{
+  dpyinfo->im.context = NULL;
+
+  pgtk_im_use_context (dpyinfo, !NILP (Vpgtk_use_im_context_on_new_connection));
+}
+
+void
+pgtk_im_finish (struct pgtk_display_info *dpyinfo)
+{
+  if (dpyinfo->im.context != NULL)
+    g_object_unref (dpyinfo->im.context);
+  dpyinfo->im.context = NULL;
+}
+
+DEFUN ("pgtk-use-im-context", Fpgtk_use_im_context, Spgtk_use_im_context, 1, 2, 0,
+       doc: /* Set whether to use GtkIMContext. */)
+  (Lisp_Object use_p, Lisp_Object terminal)
+{
+  struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
+
+  pgtk_im_use_context (dpyinfo, !NILP (use_p));
 
   return Qnil;
 }
@@ -282,4 +290,10 @@ syms_of_pgtkim (void)
   DEFSYM (Qul, "ul");
   DEFSYM (Qfg, "fg");
   DEFSYM (Qbg, "bg");
+
+  DEFVAR_LISP ("pgtk-use-im-context-on-new-connection", Vpgtk_use_im_context_on_new_connection,
+	       doc: /* Whether to use GtkIMContext on a new connection.
+If you want to change it after connection, use the `pgtk-use-im-context'
+function.  */ );
+  Vpgtk_use_im_context_on_new_connection = Qt;
 }

@@ -398,6 +398,14 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     (overlay-put ov 'before-string ovstr)
     (setq pgtk-preedit-overlay ov)))
 
+
+(add-hook 'after-init-hook
+          (function
+           (lambda ()
+             (when (eq window-system 'pgtk)
+               (pgtk-use-im-context pgtk-use-im-context-on-new-connection)))))
+
+
 (provide 'pgtk-win)
 (provide 'term/pgtk-win)
 
