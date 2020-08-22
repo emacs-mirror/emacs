@@ -28,7 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "keyboard.h"
 
-#ifdef HAVE_GLIB
+#if defined HAVE_GLIB && ! defined (HAVE_NS)
 #include <xgselect.h>
 #else
 #define release_select_lock() do { } while (0)
