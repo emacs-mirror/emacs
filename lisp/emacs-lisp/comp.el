@@ -2654,11 +2654,11 @@ Return the compilation unit file name."
          (byte-compile-debug t)
          (comp-ctxt
           (make-comp-ctxt
-           :output (comp-el-to-eln-filename (if (symbolp function-or-file)
-                                                (symbol-name function-or-file)
-                                              function-or-file)
-                                            (when byte-native-for-bootstrap
-                                              (car (last comp-eln-load-path))))
+           :output (if (symbolp function-or-file)
+                       (make-temp-file (symbol-name function-or-file) nil ".eln")
+                     (comp-el-to-eln-filename function-or-file
+                                              (when byte-native-for-bootstrap
+                                                (car (last comp-eln-load-path)))))
            :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
