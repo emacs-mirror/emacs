@@ -3328,28 +3328,6 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
   return unbind_to (count, Qnil);
 }
 
-DEFUN ("describe-vector-internal", Fdescribe_vector_internal, Sdescribe_vector_internal, 8, 8, 0,
-       doc: /* Insert a description of contents of VECTOR.  */)
-  (Lisp_Object vector, Lisp_Object prefix, Lisp_Object transl,
-   Lisp_Object partial, Lisp_Object shadow, Lisp_Object entire_map,
-   Lisp_Object keymap_p, Lisp_Object mention_shadow)
-{
-  ptrdiff_t count = SPECPDL_INDEX ();
-  specbind (Qstandard_output, Fcurrent_buffer ());
-  CHECK_VECTOR_OR_CHAR_TABLE (vector);
-
-  bool b_transl = NILP (transl) ? false : true;
-  bool b_partial = NILP (partial) ? false : true;
-  bool b_keymap_p = NILP (keymap_p) ? false : true;
-  bool b_mention_shadow = NILP (mention_shadow) ? false : true;
-
-  describe_vector (vector, prefix, Qnil,
-		   b_transl ? describe_translation : describe_command,
-		   b_partial, shadow, entire_map,
-		   b_keymap_p, b_mention_shadow);
-  return unbind_to (count, Qnil);
-}
-
 /* Insert in the current buffer a description of the contents of VECTOR.
    We call ELT_DESCRIBER to insert the description of one value found
    in VECTOR.
@@ -3749,7 +3727,6 @@ be preferred.  */);
   defsubr (&Skey_description);
   defsubr (&Skeymap__get_keyelt);
   defsubr (&Sdescribe_vector);
-  defsubr (&Sdescribe_vector_internal);
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
