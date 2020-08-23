@@ -510,22 +510,27 @@ Object format introspection
     class's discretion: the stepper function must handle this
     case.
 
-    .. note::
-
-        This function is intended for heap analysis, tuning, and
-        debugging, not for frequent use in production.
-
     .. warning::
+
+        The callback function must obey the restrictions documented
+        under :c:type:`mps_formatted_objects_stepper_t`.
 
         If a garbage collection is currently in progress (that is, if
         the arena is in the :term:`clamped <clamped state>` or
         :term:`unclamped state`), then only objects that are known to
         be currently valid are visited.
 
-        For the most reliable results, ensure the arena is in the
-        :term:`parked state` by calling :c:func:`mps_arena_park`
-        before calling this function (and release it by calling
-        :c:func:`mps_arena_release` afterwards, if desired).
+        If you need to be certain that all objects are visited, or if
+        the callback function needs to follow references from the
+        object to automatically managed memory, you must ensure that
+        the arena is in the :term:`parked state` by calling
+        :c:func:`mps_arena_park` before calling this function (and
+        release it by calling :c:func:`mps_arena_release` afterwards,
+        if desired).
+
+        If your application has requirements for introspection that
+        can't be met under these restrictions, :ref:`contact us
+        <contact>`.
 
 
 .. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
@@ -554,6 +559,10 @@ Object format introspection
     b. memory managed by the MPS that is in pools that do not protect
        their contents;
 
-    c. memory not managed by the MPS;
+    c. memory not managed by the MPS.
 
-    It must not access other memory managed by the MPS.
+    It must not:
+
+    d. access other memory managed by the MPS;
+
+    e. modify any of the references in the object.
