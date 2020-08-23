@@ -3056,9 +3056,9 @@ struct image
      if necessary.  */
   unsigned long background;
 
-  /* Foreground and background colors of the frame on which the image
+  /* Foreground and background colors of the face on which the image
      is created.  */
-  unsigned long frame_foreground, frame_background;
+  unsigned long face_foreground, face_background;
 
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
@@ -3475,7 +3475,7 @@ void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
 bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
-ptrdiff_t lookup_image (struct frame *, Lisp_Object);
+ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);
 
 #if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS
 #define RGB_PIXEL_COLOR unsigned long

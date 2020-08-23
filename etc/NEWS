@@ -688,6 +688,22 @@ problematic in some contexts (like PDFs), so this list is now filtered
 based on 'auto-mode-alist'.  Only file names that map to 'image-mode'
 are now supported.
 
+---
+*** The background and foreground of images now default to face colors.
+When an image doesn't specify a foreground or background color, Emacs
+now uses colors from the face used to draw the surrounding text
+instead of the frame's default colors.
+
+To load images with the default frame colors use the ':foreground' and
+':background' image attributes, for example:
+
+    (create-image "filename" nil nil
+                  :foreground (face-attribute 'default :foreground)
+                  :background (face-attribute 'default :background))
+
+This change only affects image types that support foreground and
+background colors or transparency, such as xbm, pbm, svg, png and gif.
+
 ** EWW
 
 +++

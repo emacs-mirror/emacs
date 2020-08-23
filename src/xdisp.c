@@ -5771,7 +5771,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       else
 	{
 	  it->what = IT_IMAGE;
-	  it->image_id = lookup_image (it->f, value);
+	  it->image_id = lookup_image (it->f, value, it->face_id);
 	  it->position = start_pos;
 	  it->object = NILP (object) ? it->w->contents : object;
 	  it->method = GET_FROM_IMAGE;
@@ -22517,7 +22517,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
   else if (IMAGEP (prop))
     {
       it->what = IT_IMAGE;
-      it->image_id = lookup_image (it->f, prop);
+      it->image_id = lookup_image (it->f, prop, it->face_id);
       it->method = GET_FROM_IMAGE;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -27431,7 +27431,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	  if (FRAME_WINDOW_P (it->f)
 	      && valid_image_p (prop))
 	    {
-	      ptrdiff_t id = lookup_image (it->f, prop);
+	      ptrdiff_t id = lookup_image (it->f, prop, it->face_id);
 	      struct image *img = IMAGE_FROM_ID (it->f, id);
 
 	      return OK_PIXELS (width_p ? img->width : img->height);

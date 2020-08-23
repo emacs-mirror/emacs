@@ -1092,7 +1092,7 @@ update_frame_tool_bar (struct frame *f)
           continue;
         }
 
-      img_id = lookup_image (f, image);
+      img_id = lookup_image (f, image, -1);
       img = IMAGE_FROM_ID (f, img_id);
       prepare_image_for_display (f, img);
 

@@ -48,24 +48,24 @@
   (let ((image "<svg height='30' width='30'>
                   <rect x='0' y='0' width='10' height='10'/>
                   <rect x='10' y='10' width='10' height='10'
-                        style='fill:none;stroke-width:1;stroke:#000'/>
-                  <line x1='10' y1='10' x2='20' y2='20' style='stroke:#000'/>
-                  <line x1='20' y1='10' x2='10' y2='20' style='stroke:#000'/>
+                        style='fill:none;stroke-width:1;stroke:currentColor'/>
+                  <line x1='10' y1='10' x2='20' y2='20' style='stroke:currentColor'/>
+                  <line x1='20' y1='10' x2='10' y2='20' style='stroke:currentColor'/>
                   <rect x='20' y='20' width='10' height='10'
-                        style='fill:none;stroke-width:1;stroke:#000'/>
+                        style='fill:none;stroke-width:1;stroke:currentColor'/>
                 </svg>")
         (top-left "<svg height='10' width='10'>
                      <rect x='0' y='0' width='10' height='10'/>
                    </svg>")
         (middle "<svg height='10' width='10'>
                    <rect x='0' y='0' width='10' height='10'
-                         style='fill:none;stroke-width:1;stroke:#000'/>
-                   <line x1='0' y1='0' x2='10' y2='10' style='stroke:#000'/>
-                   <line x1='10' y1='0' x2='0' y2='10' style='stroke:#000'/>
+                         style='fill:none;stroke-width:1;stroke:currentColor'/>
+                   <line x1='0' y1='0' x2='10' y2='10' style='stroke:currentColor'/>
+                   <line x1='10' y1='0' x2='0' y2='10' style='stroke:currentColor'/>
                  </svg>")
         (bottom-right "<svg height='10' width='10'>
                          <rect x='0' y='0' width='10' height='10'
-                               style='fill:none;stroke-width:1;stroke:#000'/>
+                               style='fill:none;stroke-width:1;stroke:currentColor'/>
                        </svg>"))
     (insert-header "Test Crop: cropping an image (only works with ImageMagick)")
     (insert-test "all params" top-left image '(:crop (10 10 0 0)))
@@ -77,23 +77,23 @@
 (defun test-scaling ()
   (let ((image "<svg height='10' width='10'>
                   <rect x='0' y='0' width='10' height='10'
-                        style='fill:none;stroke-width:1;stroke:#000'/>
-                  <line x1='0' y1='0' x2='10' y2='10' style='stroke:#000'/>
-                  <line x1='10' y1='0' x2='0' y2='10' style='stroke:#000'/>
+                        style='fill:none;stroke-width:1;stroke:currentColor'/>
+                  <line x1='0' y1='0' x2='10' y2='10' style='stroke:currentColor'/>
+                  <line x1='10' y1='0' x2='0' y2='10' style='stroke:currentColor'/>
                 </svg>")
         (large "<svg height='20' width='20'>
                   <rect x='0' y='0' width='20' height='20'
-                        style='fill:none;stroke-width:2;stroke:#000'/>
+                        style='fill:none;stroke-width:2;stroke:currentColor'/>
                   <line x1='0' y1='0' x2='20' y2='20'
-                        style='stroke-width:2;stroke:#000'/>
+                        style='stroke-width:2;stroke:currentColor'/>
                   <line x1='20' y1='0' x2='0' y2='20'
-                        style='stroke-width:2;stroke:#000'/>
+                        style='stroke-width:2;stroke:currentColor'/>
                 </svg>")
         (small "<svg height='5' width='5'>
                   <rect x='0' y='0' width='4' height='4'
-                        style='fill:none;stroke-width:1;stroke:#000'/>
-                  <line x1='0' y1='0' x2='4' y2='4' style='stroke:#000'/>
-                  <line x1='4' y1='0' x2='0' y2='4' style='stroke:#000'/>
+                        style='fill:none;stroke-width:1;stroke:currentColor'/>
+                  <line x1='0' y1='0' x2='4' y2='4' style='stroke:currentColor'/>
+                  <line x1='4' y1='0' x2='0' y2='4' style='stroke:currentColor'/>
                 </svg>"))
     (insert-header "Test Scaling: resize an image (pixelization may occur)")
     (insert-test "1x" image image '(:scale 1))
@@ -107,27 +107,27 @@
 (defun test-scaling-rotation ()
   (let ((image "<svg height='20' width='20'>
                   <rect x='0' y='0' width='20' height='20'
-                        style='fill:none;stroke-width:1;stroke:#000'/>
+                        style='fill:none;stroke-width:1;stroke:currentColor'/>
                   <rect x='0' y='0' width='10' height='10'
-                        style='fill:#000'/>
+                        style='fill:currentColor'/>
                 </svg>")
         (x2-90 "<svg height='40' width='40'>
                   <rect x='0' y='0' width='40' height='40'
-                        style='fill:none;stroke-width:1;stroke:#000'/>
+                        style='fill:none;stroke-width:1;stroke:currentColor'/>
                   <rect x='20' y='0' width='20' height='20'
-                        style='fill:#000'/>
+                        style='fill:currentColor'/>
                 </svg>")
         (x2--90 "<svg height='40' width='40'>
                    <rect x='0' y='0' width='40' height='40'
-                         style='fill:none;stroke-width:1;stroke:#000'/>
+                         style='fill:none;stroke-width:1;stroke:currentColor'/>
                    <rect x='0' y='20' width='20' height='20'
-                         style='fill:#000'/>
+                         style='fill:currentColor'/>
                  </svg>")
         (x0.5-180 "<svg height='10' width='10'>
                      <rect x='0' y='0' width='10' height='10'
-                           style='fill:none;stroke-width:1;stroke:#000'/>
+                           style='fill:none;stroke-width:1;stroke:currentColor'/>
                      <rect x='5' y='5' width='5' height='5'
-                           style='fill:#000'/>
+                           style='fill:currentColor'/>
                    </svg>"))
     (insert-header "Test Scaling and Rotation: resize and rotate an image (pixelization may occur)")
     (insert-test "1x, 0 degrees" image image '(:scale 1 :rotation 0))
