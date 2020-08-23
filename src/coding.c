@@ -10895,7 +10895,10 @@ usage: (define-coding-system-internal ...)  */)
   ASET (attrs, coding_attr_base_name, name);
 
   Lisp_Object val = args[coding_arg_mnemonic];
-  if (! STRINGP (val))
+  /* decode_mode_spec_coding assumes the mnemonic is a single character.  */
+  if (STRINGP (val))
+    val = make_fixnum (STRING_CHAR (SDATA (val)));
+  else
     CHECK_CHARACTER (val);
   ASET (attrs, coding_attr_mnemonic, val);
 
@@ -11408,7 +11411,10 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
   attrs = AREF (spec, 0);
   if (EQ (prop, QCmnemonic))
     {
-      if (! STRINGP (val))
+      /* decode_mode_spec_coding assumes the mnemonic is a single character.  */
+      if (STRINGP (val))
+	val = make_fixnum (STRING_CHAR (SDATA (val)));
+      else
 	CHECK_CHARACTER (val);
       ASET (attrs, coding_attr_mnemonic, val);
     }

@@ -25637,6 +25637,11 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		    spec = decode_mode_spec (it->w, c, field, &string);
 		    eassert (NILP (string) || STRINGP (string));
 		    multibyte = !NILP (string) && STRING_MULTIBYTE (string);
+		    /* Non-ASCII characters in SPEC should cause mode-line
+		       element be displayed as a multibyte string.  */
+		    ptrdiff_t nbytes = strlen (spec);
+		    if (multibyte_chars_in_text (spec, nbytes) != nbytes)
+		      multibyte = true;
 
 		    switch (mode_line_target)
 		      {
@@ -26255,9 +26260,10 @@ decode_mode_spec_coding (Lisp_Object coding_system, char *buf, bool eol_flag)
       attrs = AREF (val, 0);
       eolvalue = AREF (val, 2);
 
-      *buf++ = multibyte
-	? XFIXNAT (CODING_ATTR_MNEMONIC (attrs))
-	: ' ';
+      if (multibyte)
+	buf += CHAR_STRING (XFIXNAT (CODING_ATTR_MNEMONIC (attrs)), buf);
+      else
+	*buf++ = ' ';
 
       if (eol_flag)
 	{
