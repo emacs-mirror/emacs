@@ -17,6 +17,7 @@ import re
 import shutil
 import sys
 
+from sphinx.util import logging
 from sphinx.util.console import bold
 
 TYPES = '''
@@ -142,15 +143,17 @@ def newer(src, target):
             or os.path.getmtime(target) < os.path.getmtime(src)
             or os.path.getmtime(target) < os.path.getmtime(__file__))
 
+logger = logging.getLogger(__name__)
+
 # Mini-make
 def convert_updated(app):
-    app.info(bold('converting MPS design documents'))
+    logger.info(bold('converting MPS design documents'))
     for design in glob.iglob('../design/*.txt'):
         name = os.path.splitext(os.path.basename(design))[0]
         if name == 'index': continue
         converted = 'source/design/%s.rst' % name
         if newer(design, converted):
-            app.info('converting design %s' % name)
+            logger.info('converting design %s' % name)
             convert_file(name, design, converted)
     diagrams = chain(*[glob.iglob('../design/*.' + ext)
                        for ext in 'png svg'.split()])
