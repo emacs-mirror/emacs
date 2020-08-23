@@ -1060,6 +1060,21 @@ _GL_WARN_ON_USE (sigabbrev_np, "sigabbrev_np is unportable - "
 # endif
 #endif
 
+/* Return an English description string for the signal number SIG.  */
+#if @GNULIB_SIGDESCR_NP@
+# if ! @HAVE_SIGDESCR_NP@
+_GL_FUNCDECL_SYS (sigdescr_np, const char *, (int sig));
+# endif
+_GL_CXXALIAS_SYS (sigdescr_np, const char *, (int sig));
+_GL_CXXALIASWARN (sigdescr_np);
+#elif defined GNULIB_POSIXCHECK
+# undef sigdescr_np
+# if HAVE_RAW_DECL_SIGDESCR_NP
+_GL_WARN_ON_USE (sigdescr_np, "sigdescr_np is unportable - "
+                 "use gnulib module sigdescr_np for portability");
+# endif
+#endif
+
 #if @GNULIB_STRSIGNAL@
 # if @REPLACE_STRSIGNAL@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
