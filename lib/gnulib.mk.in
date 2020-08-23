@@ -136,6 +136,7 @@
 #  readlinkat \
 #  regex \
 #  sig2str \
+#  sigdescr_np \
 #  socklen \
 #  stat-time \
 #  std-gnu11 \
@@ -2313,6 +2314,17 @@ EXTRA_libgnu_a_SOURCES += sig2str.c
 
 endif
 ## end   gnulib module sig2str
+
+## begin gnulib module sigdescr_np
+ifeq (,$(OMIT_GNULIB_MODULE_sigdescr_np))
+
+
+EXTRA_DIST += sigdescr_np.c
+
+EXTRA_libgnu_a_SOURCES += sigdescr_np.c
+
+endif
+## end   gnulib module sigdescr_np
 
 ## begin gnulib module signal-h
 ifeq (,$(OMIT_GNULIB_MODULE_signal-h))
