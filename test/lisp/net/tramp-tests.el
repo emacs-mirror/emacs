@@ -4229,6 +4229,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
 
+  (tramp--test-instrument-test-case 10
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let* ((tmp-name (tramp--test-make-temp-name nil quoted))
 	   (fnnd (file-name-nondirectory tmp-name))
@@ -4289,7 +4290,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should-not (get-buffer-window (current-buffer) t))))
 
 	;; Cleanup.
-	(ignore-errors (delete-file tmp-name))))))
+	(ignore-errors (delete-file tmp-name)))))))
 
 ;; Must be a command, because used as `sigusr' handler.
 (defun tramp--test-timeout-handler (&rest _ignore)
