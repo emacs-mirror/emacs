@@ -98,6 +98,7 @@
        '("mock"
 	 (tramp-login-program        "sh")
 	 (tramp-login-args           (("-i")))
+	 (tramp-direct-async-args    (("-c")))
 	 (tramp-remote-shell         "/bin/sh")
 	 (tramp-remote-shell-args    ("-c"))
 	 (tramp-connection-timeout   10)))
@@ -4326,9 +4327,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    ;; We cannot use `string-equal', because tramp-adb.el
-	    ;; echoes also the sent string.
-	    (should (string-match "\\`foo" (buffer-string))))
+	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4347,7 +4346,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-equal (buffer-string) "foo")))
+	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -4369,12 +4368,34 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    ;; We cannot use `string-equal', because tramp-adb.el
-	    ;; echoes also the sent string.
-	    (should (string-match "\\`foo" (buffer-string))))
+	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc))))))
+
+(defmacro tramp--test--deftest-direct-async-process
+    (test docstring &optional unstable)
+  "Define ert `TEST-direct-async' for direct async processes.
+If UNSTABLE is non-nil, the test is tagged as `:unstable'."
+  (declare (indent 1))
+  `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
+     ,docstring
+     :tags (if ,unstable '(:expensive-test :unstable) '(:expensive-test))
+     (skip-unless (tramp--test-enabled))
+     (let ((default-directory  tramp-test-temporary-file-directory)
+	   (ert-test (ert-get-test ',test))
+	   (tramp-connection-properties
+	    (cons '(nil "direct-async-process" t) tramp-connection-properties)))
+       (skip-unless (tramp-direct-async-process-p))
+       ;; We do expect an established connection already,
+       ;; `file-truename' does it by side-effect.  Suppress
+       ;; `tramp--test-enabled', in order to keep the connection.
+       (cl-letf (((symbol-function #'tramp--test-enabled) (lambda nil t)))
+	 (file-truename tramp-test-temporary-file-directory)
+	 (funcall (ert-test-body ert-test))))))
+
+(tramp--test--deftest-direct-async-process tramp-test29-start-file-process
+  "Check direct async `start-file-process'.")
 
 (ert-deftest tramp-test30-make-process ()
   "Check `make-process'."
@@ -4408,9 +4429,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    ;; We cannot use `string-equal', because tramp-adb.el
-	    ;; echoes also the sent string.
-	    (should (string-match "\\`foo" (buffer-string))))
+	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4431,7 +4450,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-equal (buffer-string) "foo")))
+	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -4457,9 +4476,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (not (string-match "foo" (buffer-string)))
 		(while (accept-process-output proc 0 nil t))))
-	    ;; We cannot use `string-equal', because tramp-adb.el
-	    ;; echoes also the sent string.
-	    (should (string-match "\\`foo" (buffer-string))))
+	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4483,10 +4500,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (accept-process-output proc 0 nil t)))
-	    ;; We cannot use `string-equal', because tramp-adb.el
-	    ;; echoes also the sent string.  And a remote macOS sends
-	    ;; a slightly modified string.  On MS Windows,
-	    ;; `delete-process' sends an unknown signal.
 	    (should
 	     (string-match
 	      (if (eq system-type 'windows-nt)
@@ -4497,55 +4510,60 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(ignore-errors (delete-process proc)))
 
       ;; Process with stderr buffer.
-      (let ((stderr (generate-new-buffer "*stderr*")))
-	(unwind-protect
-	    (with-temp-buffer
-	      (setq proc
-		    (with-no-warnings
-		      (make-process
-		       :name "test5" :buffer (current-buffer)
-		       :command '("cat" "/does-not-exist")
-		       :stderr stderr
-		       :file-handler t)))
-	      (should (processp proc))
-	      ;; Read stderr.
-	      (with-timeout (10 (tramp--test-timeout-handler))
-		(while (accept-process-output proc 0 nil t)))
-	      (delete-process proc)
-	      (with-current-buffer stderr
-		(should
-		 (string-match
-		  "cat:.* No such file or directory" (buffer-string)))))
+      (unless (tramp-direct-async-process-p)
+	(let ((stderr (generate-new-buffer "*stderr*")))
+	  (unwind-protect
+	      (with-temp-buffer
+		(setq proc
+		      (with-no-warnings
+			(make-process
+			 :name "test5" :buffer (current-buffer)
+			 :command '("cat" "/does-not-exist")
+			 :stderr stderr
+			 :file-handler t)))
+		(should (processp proc))
+		;; Read stderr.
+		(with-timeout (10 (tramp--test-timeout-handler))
+		  (while (accept-process-output proc 0 nil t)))
+		(delete-process proc)
+		(with-current-buffer stderr
+		  (should
+		   (string-match
+		    "cat:.* No such file or directory" (buffer-string)))))
 
-	  ;; Cleanup.
-	  (ignore-errors (delete-process proc))
-	  (ignore-errors (kill-buffer stderr))))
+	    ;; Cleanup.
+	    (ignore-errors (delete-process proc))
+	    (ignore-errors (kill-buffer stderr)))))
 
       ;; Process with stderr file.
-      (dolist (tmpfile `(,tmp-name1 ,tmp-name2))
-	(unwind-protect
-	    (with-temp-buffer
-	      (setq proc
-		    (with-no-warnings
-		      (make-process
-		       :name "test6" :buffer (current-buffer)
-		       :command '("cat" "/does-not-exist")
-		       :stderr tmpfile
-		       :file-handler t)))
-	      (should (processp proc))
-	      ;; Read stderr.
-	      (with-timeout (10 (tramp--test-timeout-handler))
-		(while (accept-process-output proc nil nil t)))
-	      (delete-process proc)
+      (unless (tramp-direct-async-process-p)
+	(dolist (tmpfile `(,tmp-name1 ,tmp-name2))
+	  (unwind-protect
 	      (with-temp-buffer
-		(insert-file-contents tmpfile)
-		(should
-		 (string-match
-		  "cat:.* No such file or directory" (buffer-string)))))
+		(setq proc
+		      (with-no-warnings
+			(make-process
+			 :name "test6" :buffer (current-buffer)
+			 :command '("cat" "/does-not-exist")
+			 :stderr tmpfile
+			 :file-handler t)))
+		(should (processp proc))
+		;; Read stderr.
+		(with-timeout (10 (tramp--test-timeout-handler))
+		  (while (accept-process-output proc nil nil t)))
+		(delete-process proc)
+		(with-temp-buffer
+		  (insert-file-contents tmpfile)
+		  (should
+		   (string-match
+		    "cat:.* No such file or directory" (buffer-string)))))
 
-	  ;; Cleanup.
-	  (ignore-errors (delete-process proc))
-	  (ignore-errors (delete-file tmpfile)))))))
+	    ;; Cleanup.
+	    (ignore-errors (delete-process proc))
+	    (ignore-errors (delete-file tmpfile))))))))
+
+(tramp--test--deftest-direct-async-process tramp-test30-make-process
+  "Check direct async `make-process'.")
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."

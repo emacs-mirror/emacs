@@ -239,7 +239,7 @@ included in the file name portion, @value{tramp} sends the login name
 followed by a newline.
 
 @item
-The remote host may then prompt for a password or pass phrase (for
+The remote host may then prompt for a password or passphrase (for
 @command{rsh} or for @command{telnet}).  @value{tramp} displays the
 password prompt in the minibuffer.  @value{tramp} then sends whatever
 is entered to the remote host, followed by a newline.
@@ -3563,9 +3563,8 @@ which must be set to a non-@code{nil} value.  Example:
 
 Using direct asynchronous processes in @value{tramp} is not possible,
 if the remote host is connected via multiple hops
-(@pxref{Multi-hops}), or the @code{make-process} /
-@code{start-file-process} call uses a stderr stream.  In this case,
-@value{tramp} falls back to its classical implementation.
+(@pxref{Multi-hops}).  In this case, @value{tramp} falls back to its
+classical implementation.
 
 Furthermore, this approach has the following limitations:
 
@@ -3575,14 +3574,19 @@ It works only for connection methods defined in @file{tramp-sh.el} and
 @file{tramp-adb.el}.
 
 @item
-It does not support interactive user authentication, like password
-handling.
+It does not support interactive user authentication.  With
+@option{ssh}-based methods, this can be avoided by using a password
+agent like @command{ssh-agent}, using public key authentication, or
+using @code{ControlMaster} options.
 
 @item
 It cannot be killed via @code{interrupt-process}.
 
 @item
 It does not report the remote terminal name via @code{process-tty-name}.
+
+@item
+It does not set process property @code{remote-pid}.
 
 @item
 It does not use @code{tramp-remote-path} and
