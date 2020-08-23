@@ -4188,7 +4188,7 @@ Both should not be used to define a buffer-local dictionary."
     (let (line-okay search done found)
       (while (not done)
         (let ((case-fold-search nil))
-          (setq search (search-forward ispell-words-keyword nil 'move)
+          (setq search (search-forward ispell-words-keyword nil t)
 	      found (or found search)
 	      line-okay (< (+ (length word) 1 ; 1 for space after word..
 			      (progn (end-of-line) (current-column)))
@@ -4199,8 +4199,10 @@ Both should not be used to define a buffer-local dictionary."
 	      (setq done t)
 	      (if (null search)
 		  (progn
-		    (open-line 1)
-		    (unless found (newline))
+		    (if found (insert "\n")  ;; after an existing LocalWords
+                      (goto-char (point-max)) ;; no LocalWords, go to end of file
+                      (open-line 1)
+                      (newline))
 		    (insert (if comment-start
                                 (concat
                                   (progn

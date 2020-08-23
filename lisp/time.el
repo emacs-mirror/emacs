@@ -421,8 +421,6 @@ runs the normal hook `display-time-hook' after each update."
   #'world-clock-mode "28.1")
 (define-obsolete-function-alias 'display-time-world-display
   #'world-clock-display "28.1")
-(define-obsolete-function-alias 'display-time-world
-  #'world-clock "28.1")
 (define-obsolete-function-alias 'display-time-world-timer
   #'world-clock-update "28.1")
 
@@ -522,7 +520,7 @@ If the value is t instead of an alist, use the value of
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `world-clock'."
-  (setq revert-buffer-function #'world-clock-update)
+  (setq-local revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
 
 (defun world-clock-display (alist)
@@ -550,6 +548,10 @@ See `world-clock'."
                       (cdr timedata))))
     (delete-char -1))
   (goto-char (point-min)))
+
+;; Old name -- preserved for backwards compatibility.
+;;;###autoload
+(defalias 'display-time-world #'world-clock)
 
 ;;;###autoload
 (defun world-clock ()

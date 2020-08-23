@@ -182,4 +182,6 @@ the context of text formatting."
 	      (aref (char-category-set (preceding-char)) ?<))
 	  (kinsoku-shorter linebeg))))
 
+(provide 'kinsoku)
+
 ;;; kinsoku.el ends here

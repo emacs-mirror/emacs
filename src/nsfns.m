@@ -390,37 +390,25 @@ ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   /* Don't change the name if it's already NAME.  */
   if ([[view window] miniwindowTitle]
       && ([[[view window] miniwindowTitle]
-             isEqualToString: [NSString stringWithUTF8String:
-					  SSDATA (arg)]]))
+             isEqualToString: [NSString stringWithLispString:arg]]))
     return;
 
   [[view window] setMiniwindowTitle:
-        [NSString stringWithUTF8String: SSDATA (arg)]];
+        [NSString stringWithLispString:arg]];
 }
 
 static void
 ns_set_name_internal (struct frame *f, Lisp_Object name)
 {
-  Lisp_Object encoded_name, encoded_icon_name;
-  NSString *str;
   NSView *view = FRAME_NS_VIEW (f);
-
-
-  encoded_name = ENCODE_UTF_8 (name);
-
-  str = [NSString stringWithUTF8String: SSDATA (encoded_name)];
-
+  NSString *str = [NSString stringWithLispString: name];
 
   /* Don't change the name if it's already NAME.  */
   if (! [[[view window] title] isEqualToString: str])
     [[view window] setTitle: str];
 
-  if (!STRINGP (f->icon_name))
-    encoded_icon_name = encoded_name;
-  else
-    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
-
-  str = [NSString stringWithUTF8String: SSDATA (encoded_icon_name)];
+  if (STRINGP (f->icon_name))
+    str = [NSString stringWithLispString: f->icon_name];
 
   if ([[view window] miniwindowTitle]
       && ! [[[view window] miniwindowTitle] isEqualToString: str])
@@ -448,7 +436,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
     return;
 
   if (NILP (name))
-    name = build_string ([ns_app_name UTF8String]);
+    name = [ns_app_name lispString];
   else
     CHECK_STRING (name);
 
@@ -487,7 +475,7 @@ ns_set_represented_filename (struct frame *f)
     {
       encoded_filename = ENCODE_UTF_8 (filename);
 
-      fstr = [NSString stringWithUTF8String: SSDATA (encoded_filename)];
+      fstr = [NSString stringWithLispString:encoded_filename];
       if (fstr == nil) fstr = @"";
     }
   else
@@ -734,7 +722,7 @@ ns_implicitly_set_icon_type (struct frame *f)
   block_input ();
   pool = [[NSAutoreleasePool alloc] init];
   if (f->output_data.ns->miniimage
-      && [[NSString stringWithUTF8String: SSDATA (f->name)]
+      && [[NSString stringWithLispString:f->name]
                isEqualToString: [(NSImage *)f->output_data.ns->miniimage name]])
     {
       [pool release];
@@ -759,7 +747,7 @@ ns_implicitly_set_icon_type (struct frame *f)
       if (SYMBOLP (elt) && EQ (elt, Qt) && SSDATA (f->name)[0] == '/')
         {
           NSString *str
-	     = [NSString stringWithUTF8String: SSDATA (f->name)];
+	     = [NSString stringWithLispString:f->name];
           if ([[NSFileManager defaultManager] fileExistsAtPath: str])
             image = [[[NSWorkspace sharedWorkspace] iconForFile: str] retain];
         }
@@ -771,8 +759,7 @@ ns_implicitly_set_icon_type (struct frame *f)
           image = [EmacsImage allocInitFromFile: XCDR (elt)];
           if (image == nil)
             image = [[NSImage imageNamed:
-                               [NSString stringWithUTF8String:
-					    SSDATA (XCDR (elt))]] retain];
+                               [NSString stringWithLispString:XCDR (elt)]] retain];
         }
     }
 
@@ -816,8 +803,7 @@ ns_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   image = [EmacsImage allocInitFromFile: arg];
   if (image == nil)
-    image =[NSImage imageNamed: [NSString stringWithUTF8String:
-                                            SSDATA (arg)]];
+    image =[NSImage imageNamed: [NSString stringWithLispString:arg]];
 
   if (image == nil)
     {
@@ -851,20 +837,18 @@ ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static Lisp_Object
 ns_appkit_version_str (void)
 {
-  char tmp[256];
+  NSString *tmp;
 
 #ifdef NS_IMPL_GNUSTEP
-  sprintf(tmp, "gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION));
+  tmp = [NSString stringWithFormat:@"gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION)];
 #elif defined (NS_IMPL_COCOA)
-  NSString *osversion
-    = [[NSProcessInfo processInfo] operatingSystemVersionString];
-  sprintf(tmp, "appkit-%.2f %s",
-          NSAppKitVersionNumber,
-          [osversion UTF8String]);
+  tmp = [NSString stringWithFormat:@"appkit-%.2f %@",
+                  NSAppKitVersionNumber,
+                  [[NSProcessInfo processInfo] operatingSystemVersionString]];
 #else
-  tmp = "ns-unknown";
+  tmp = [NSString initWithUTF8String:@"ns-unknown"];
 #endif
-  return build_string (tmp);
+  return [tmp lispString];
 }
 
 
@@ -1168,7 +1152,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
     {
-      fset_name (f, build_string ([ns_app_name UTF8String]));
+      fset_name (f, [ns_app_name lispString]);
       f->explicit_name = 0;
     }
   else
@@ -1609,12 +1593,12 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   Lisp_Object fname = Qnil;
 
   NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
-    [NSString stringWithUTF8String: SSDATA (prompt)];
+    [NSString stringWithLispString:prompt];
   NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithUTF8String: SSDATA (BVAR (current_buffer, directory))] :
-    [NSString stringWithUTF8String: SSDATA (dir)];
+    [NSString stringWithLispString:BVAR (current_buffer, directory)] :
+    [NSString stringWithLispString:dir];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
-    [NSString stringWithUTF8String: SSDATA (init)];
+    [NSString stringWithLispString:init];
   NSEvent *nxev;
 
   check_window_system (NULL);
@@ -1690,7 +1674,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     {
       NSString *str = ns_filename_from_panel (panel);
       if (! str) str = ns_directory_from_panel (panel);
-      if (str) fname = build_string ([str UTF8String]);
+      if (str) fname = [str lispString];
     }
 
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
@@ -1720,7 +1704,7 @@ If OWNER is nil, Emacs is assumed.  */)
 
   check_window_system (NULL);
   if (NILP (owner))
-    owner = build_string([ns_app_name UTF8String]);
+    owner = [ns_app_name lispString];
   CHECK_STRING (name);
 
   value = ns_get_defaults_value (SSDATA (name));
@@ -1739,20 +1723,19 @@ If VALUE is nil, the default is removed.  */)
 {
   check_window_system (NULL);
   if (NILP (owner))
-    owner = build_string ([ns_app_name UTF8String]);
+    owner = [ns_app_name lispString];
   CHECK_STRING (name);
   if (NILP (value))
     {
       [[NSUserDefaults standardUserDefaults] removeObjectForKey:
-                         [NSString stringWithUTF8String: SSDATA (name)]];
+                         [NSString stringWithLispString:name]];
     }
   else
     {
       CHECK_STRING (value);
       [[NSUserDefaults standardUserDefaults] setObject:
-                [NSString stringWithUTF8String: SSDATA (value)]
-                                        forKey: [NSString stringWithUTF8String:
-                                                         SSDATA (name)]];
+                [NSString stringWithLispString:value]
+                                        forKey: [NSString stringWithLispString:name]];
     }
 
   return Qnil;
@@ -2044,7 +2027,7 @@ The optional argument FRAME is currently ignored.  */)
           NSEnumerator *cnames = [[clist allKeys] reverseObjectEnumerator];
           NSString *cname;
           while ((cname = [cnames nextObject]))
-            list = Fcons (build_string ([cname UTF8String]), list);
+            list = Fcons ([cname lispString], list);
 /*           for (i = [[clist allKeys] count] - 1; i >= 0; i--)
                list = Fcons (build_string ([[[clist allKeys] objectAtIndex: i]
                                              UTF8String]), list); */
@@ -2092,13 +2075,11 @@ there was no result.  */)
 {
   id pb;
   NSString *svcName;
-  char *utfStr;
 
   CHECK_STRING (service);
   check_window_system (NULL);
 
-  utfStr = SSDATA (service);
-  svcName = [NSString stringWithUTF8String: utfStr];
+  svcName = [NSString stringWithLispString:service];
 
   pb =[NSPasteboard pasteboardWithUniqueName];
   ns_string_to_pasteboard (pb, send);
@@ -2128,7 +2109,7 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 
   NSAppleScript *scriptObject =
     [[NSAppleScript alloc] initWithSource:
-			     [NSString stringWithUTF8String: SSDATA (script)]];
+			     [NSString stringWithLispString:script]];
 
   returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
   [scriptObject release];
@@ -2151,7 +2132,7 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 	    {
 	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
 	      if (desc)
-		*result = build_string([[desc stringValue] UTF8String]);
+		*result = [[desc stringValue] lispString];
 	    }
 	  else
             {
@@ -3030,6 +3011,60 @@ DEFUN ("ns-show-character-palette",
 
 #endif
 
+
+/* Whether N bytes at STR are in the [0,127] range.  */
+static bool
+all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
+{
+  for (ptrdiff_t i = 0; i < n; i++)
+    if (str[i] < 1 || str[i] > 127)
+      return false;
+  return true;
+}
+
+@implementation NSString (EmacsString)
+/* Make an NSString from a Lisp string.  */
++ (NSString *)stringWithLispString:(Lisp_Object)string
+{
+  /* Shortcut for the common case.  */
+  if (all_nonzero_ascii (SDATA (string), SBYTES (string)))
+    return [NSString stringWithCString: SSDATA (string)
+                              encoding: NSASCIIStringEncoding];
+  string = string_to_multibyte (string);
+
+  /* Now the string is multibyte; convert to UTF-16.  */
+  unichar *chars = xmalloc (4 * SCHARS (string));
+  unichar *d = chars;
+  const unsigned char *s = SDATA (string);
+  const unsigned char *end = s + SBYTES (string);
+  while (s < end)
+    {
+      int c = string_char_advance (&s);
+      /* We pass unpaired surrogates through, because they are typically
+         handled fairly well by the NS libraries (displayed with distinct
+         glyphs etc).  */
+      if (c <= 0xffff)
+        *d++ = c;
+      else if (c <= 0x10ffff)
+        {
+          *d++ = 0xd800 + ((c - 0x10000) >> 10);
+          *d++ = 0xdc00 + (c & 0x3ff);
+        }
+      else
+        *d++ = 0xfffd;          /* Not valid for UTF-16.  */
+    }
+  NSString *str = [NSString stringWithCharacters: chars
+                                          length: d - chars];
+  xfree (chars);
+  return str;
+}
+
+/* Make a Lisp string from an NSString.  */
+- (Lisp_Object)lispString
+{
+  return build_string ([self UTF8String]);
+}
+@end
 
 /* ==========================================================================
 

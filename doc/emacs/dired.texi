@@ -79,6 +79,29 @@ The former lists all the files with extension @samp{.el} in directory
 @samp{foo}.  The latter lists the files with extension @samp{.el}
 in all the subdirectories of @samp{foo}.
 
+@cindex globstar, in Dired
+On Posix systems, when the system shell supports @dfn{globstar}, a
+recursive globbing feature, and that support is enabled, you can use
+recursive globbing in Dired:
+
+@example
+C-x d  ~/foo/**/*.el  @key{RET}
+@end example
+
+This command produces a directory listing with all the files with
+extension @samp{.el}, descending recursively in all the subdirectories
+of @samp{foo}.  Note that there are small differences in the
+implementation of globstar between different shells.  Check your shell
+manual to know the expected behavior.
+
+@vindex dired-maybe-use-globstar
+@vindex dired-enable-globstar-in-shell
+If the shell supports globstar, but that support is disabled by
+default, you can still let Dired use this feature by customizing
+@code{dired-maybe-use-globstar} to a non-@code{nil} value; then Dired
+will enable globstar for those shells for which it knows how (see
+@code{dired-enable-globstar-in-shell} for the list of those shells).
+
 The usual history and completion commands can be used in the minibuffer;
 in particular, @kbd{M-n} puts the name of the visited file (if any) in
 the minibuffer (@pxref{Minibuffer History}).

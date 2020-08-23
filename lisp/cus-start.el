@@ -98,6 +98,11 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (word-wrap display boolean)
+             (word-wrap-by-category
+              display boolean "28.1"
+              :set (lambda (symbol value)
+                     (set-default symbol value)
+                     (when value (require 'kinsoku))))
 	     (selective-display-ellipses display boolean)
 	     (indicate-empty-lines fringe boolean)
 	     (indicate-buffer-boundaries

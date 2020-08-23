@@ -355,6 +355,18 @@ This is a helper function for `mouse-wheel-mode'."
     (when (memq (lookup-key (current-global-map) key) funs)
       (global-unset-key key))))
 
+(defun mouse-wheel--create-scroll-keys (binding event)
+  "Return list of key vectors for BINDING and EVENT.
+BINDING is an element in `mouse-wheel-scroll-amount'.  EVENT is
+an event used for scrolling, such as `mouse-wheel-down-event'."
+  (let ((prefixes (list 'left-margin 'right-margin
+                        'left-fringe 'right-fringe
+                        'vertical-scroll-bar 'horizontal-scroll-bar
+                        'mode-line 'header-line)))
+    (cons (vector event)                  ; default case: no prefix.
+          (when (not (consp binding))
+            (mapcar (lambda (prefix) (vector prefix event)) prefixes)))))
+
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support (Mouse Wheel mode)."
   :init-value t
@@ -379,14 +391,16 @@ This is a helper function for `mouse-wheel-mode'."
        ;; Bindings for changing font size.
        ((and (consp binding) (eq (cdr binding) 'text-scale))
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
+          ;; Add binding.
           (let ((key `[,(list (caar binding) event)]))
             (global-set-key key 'mouse-wheel-text-scale)
             (push key mwheel-installed-text-scale-bindings))))
        ;; Bindings for scrolling.
        (t
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
-                             mouse-wheel-right-event mouse-wheel-left-event))
-          (let ((key `[(,@(if (consp binding) (car binding)) ,event)]))
+                             mouse-wheel-left-event mouse-wheel-right-event))
+          (dolist (key (mouse-wheel--create-scroll-keys binding event))
+            ;; Add binding.
             (global-set-key key 'mwheel-scroll)
             (push key mwheel-installed-bindings))))))))
 

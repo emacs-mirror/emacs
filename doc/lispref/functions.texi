@@ -2163,15 +2163,24 @@ the backquote (@pxref{Backquote}), but quotes code and accepts only
 @end defmac
 
 @defmac inline-letevals (bindings@dots{}) body@dots{}
-This is similar to @code{let} (@pxref{Local Variables}): it sets up
-local variables as specified by @var{bindings}, and then evaluates
-@var{body} with those bindings in effect.  Each element of
-@var{bindings} should be either a symbol or a list of the form
-@w{@code{(@var{var} @var{expr})}}; the result is to evaluate
-@var{expr} and bind @var{var} to the result.  The tail of
-@var{bindings} can be either @code{nil} or a symbol which should hold
-a list of arguments, in which case each argument is evaluated, and the
-symbol is bound to the resulting list.
+This provides a convenient way to ensure that the arguments to an
+inlined function are evaluated exactly once, as well as to create
+local variables.
+
+It's similar to @code{let} (@pxref{Local Variables}): It sets up local
+variables as specified by @var{bindings}, and then evaluates
+@var{body} with those bindings in effect.
+
+Each element of @var{bindings} should be either a symbol or a list of
+the form @w{@code{(@var{var} @var{expr})}}; the result is to evaluate
+@var{expr} and bind @var{var} to the result.  However, when an element
+of @var{bindings} is just a symbol @var{var}, the result of evaluating
+@var{var} is re-bound to @var{var} (which is quite different from the
+way @code{let} works).
+
+The tail of @var{bindings} can be either @code{nil} or a symbol which
+should hold a list of arguments, in which case each argument is
+evaluated, and the symbol is bound to the resulting list.
 @end defmac
 
 @defmac inline-const-p expression

@@ -854,7 +854,8 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; differently (bug#36937).
   nil
   "Non-nil means don't add \"-f username\" to the sendmail command line.
-Doing so would be even more evil than leaving it out."
+See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
+of what the \"-f\" parameter does."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
@@ -4429,7 +4430,7 @@ conformance."
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
     (let (char found choice nul-chars)
-      (message-goto-body)
+      (goto-char (point-min))
       (setq nul-chars (save-excursion
 			(search-forward "\000" nil t)))
       (while (progn
@@ -4465,11 +4466,12 @@ conformance."
 		      ,(format
 			"Replace non-printable characters with \"%s\" and send"
 			message-replacement-char))
+		  (?u "url-encode" "Use URL %hex encoding")
 		  (?s "send" "Send as is without removing anything")
 		  (?e "edit" "Continue editing")))))
 	(if (eq choice ?e)
 	  (error "Non-printable characters"))
-	(message-goto-body)
+	(goto-char (point-min))
 	(skip-chars-forward mm-7bit-chars)
 	(while (not (eobp))
 	  (when (let ((char (char-after)))
@@ -4486,11 +4488,17 @@ conformance."
 						     control-1))
 			   (not (get-text-property
 				 (point) 'untranslated-utf-8)))))
-	    (if (eq choice ?i)
-		(message-kill-all-overlays)
+	    (cond
+	     ((eq choice ?i)
+	      (message-kill-all-overlays))
+	     ((eq choice ?u)
+	      (let ((char (get-byte (point))))
+		(delete-char 1)
+		(insert (format "%%%x" char))))
+	     (t
 	      (delete-char 1)
 	      (when (eq choice ?r)
-		(insert message-replacement-char))))
+		(insert message-replacement-char)))))
 	  (forward-char)
 	  (skip-chars-forward mm-7bit-chars)))))
   (message-check 'bogus-recipient
@@ -4810,7 +4818,7 @@ If you always want Gnus to send messages in one piece, set
 	       message-courtesy-message)))
           ;; If this was set, `sendmail-program' takes care of encoding.
           (unless message-inhibit-body-encoding
-            ;; Let's make sure we encoded all the body.
+            ;; Let's make sure we encoded everything in the buffer.
             (cl-assert (save-excursion
                          (goto-char (point-min))
                          (not (re-search-forward "[^\000-\377]" nil t)))))
@@ -4844,6 +4852,7 @@ Each line should be no more than 79 characters long."
 (defvar smtpmail-smtp-server)
 (defvar smtpmail-smtp-service)
 (defvar smtpmail-smtp-user)
+(defvar smtpmail-stream-type)
 
 (defun message-multi-smtp-send-mail ()
   "Send the current buffer to `message-send-mail-function'.
@@ -4862,6 +4871,11 @@ that instead."
 	(let* ((smtpmail-smtp-server (nth 1 method))
 	       (service (nth 2 method))
 	       (port (string-to-number service))
+	       ;; If we're talking to the TLS SMTP port, then force a
+	       ;; TLS connection.
+	       (smtpmail-stream-type (if (= port 465)
+					 'tls
+				       smtpmail-stream-type))
 	       (smtpmail-smtp-service (if (> port 0) port service))
 	       (smtpmail-smtp-user (or (nth 3 method) smtpmail-smtp-user)))
 	  (message-smtpmail-send-it)))
@@ -6496,7 +6510,7 @@ When called without a prefix argument, header value spanning
 multiple lines is treated as a single line.  Otherwise, even if
 N is 1, when point is on a continuation header line, it will be
 moved to the beginning "
-  (interactive "p")
+  (interactive "^p")
   (cond
    ;; Go to beginning of header or beginning of line.
    ((and message-beginning-of-line (message-point-in-header-p))

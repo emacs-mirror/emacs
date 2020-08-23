@@ -2416,15 +2416,17 @@ previous element of the minibuffer history in the minibuffer."
 				    (goto-char (1- (minibuffer-prompt-end)))
 				    (current-column))))
 	     (move-to-column old-column))
-	 ;; Put the cursor at the end of the visual line instead of the
-	 ;; logical line, so the next `previous-line-or-history-element'
-	 ;; would move to the previous history element, not to a possible upper
-	 ;; visual line from the end of logical line in `line-move-visual' mode.
-	 (end-of-visual-line)
-	 ;; Since `end-of-visual-line' puts the cursor at the beginning
-	 ;; of the next visual line, move it one char back to the end
-	 ;; of the first visual line (bug#22544).
-	 (unless (eolp) (backward-char 1)))))))
+	 (if (not line-move-visual) ; Handle logical lines (bug#42862)
+	     (end-of-line)
+	   ;; Put the cursor at the end of the visual line instead of the
+	   ;; logical line, so the next `previous-line-or-history-element'
+	   ;; would move to the previous history element, not to a possible upper
+	   ;; visual line from the end of logical line in `line-move-visual' mode.
+	   (end-of-visual-line)
+	   ;; Since `end-of-visual-line' puts the cursor at the beginning
+	   ;; of the next visual line, move it one char back to the end
+	   ;; of the first visual line (bug#22544).
+	   (unless (eolp) (backward-char 1))))))))
 
 (defun next-complete-history-element (n)
   "Get next history element that completes the minibuffer before the point.
@@ -7019,15 +7021,16 @@ rests."
 	    (setq done t)))))))
 
 (defun move-beginning-of-line (arg)
-  "Move point to beginning of current line as displayed.
-\(If there's an image in the line, this disregards newlines
-that are part of the text that the image rests on.)
+  "Move point to visible beginning of current logical line.
+This disregards any invisible newline characters.
 
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 \(But if the buffer doesn't end in a newline, it stops at the
 beginning of the last line.)
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
+
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
+For motion by visual lines, see `beginning-of-visual-line'."
   (interactive "^p")
   (or arg (setq arg 1))
 

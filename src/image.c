@@ -1633,7 +1633,7 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
 
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
-	&& !equal_lists (img->spec, spec)
+	&& equal_lists (img->spec, spec)
 	&& img->frame_foreground == FRAME_FOREGROUND_PIXEL (f)
 	&& img->frame_background == FRAME_BACKGROUND_PIXEL (f))
       break;

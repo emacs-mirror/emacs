@@ -280,6 +280,16 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
       (widen)
       (goto-address-unfontify (point-min) (point-max)))))
 
+(defun goto-addr-mode--turn-on ()
+  (when (not goto-address-mode)
+    (goto-address-mode 1)))
+
+;;;###autoload
+(define-globalized-minor-mode global-goto-address-mode
+  goto-address-mode goto-addr-mode--turn-on
+  :group 'goto-address
+  :version "28.1")
+
 ;;;###autoload
 (define-minor-mode goto-address-prog-mode
   "Like `goto-address-mode', but only for comments and strings."

@@ -1654,7 +1654,10 @@ you specify a filter function to handle the output.  BUFFER may be
 also nil, meaning that this process is not associated with any buffer.
 
 :command COMMAND -- COMMAND is a list starting with the program file
-name, followed by strings to give to the program as arguments.
+name, followed by strings to give to the program as arguments.  If the
+program file name is not an absolute file name, `make-process' will
+look for the program file name in `exec-path' (which is a list of
+directories).
 
 :coding CODING -- If CODING is a symbol, it specifies the coding
 system used for both reading and writing for this process.  If CODING

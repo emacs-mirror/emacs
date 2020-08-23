@@ -1,4 +1,4 @@
-;;; vera-mode.el --- major mode for editing Vera files
+;;; vera-mode.el --- major mode for editing Vera files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
@@ -33,9 +33,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Commentary:
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; This package provides a simple Emacs major mode for editing Vera code.
 ;; It includes the following features:
@@ -44,37 +42,10 @@
 ;;   - Indentation
 ;;   - Word/keyword completion
 ;;   - Block commenting
-;;   - Works under GNU Emacs and XEmacs
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Documentation
 
 ;; See comment string of function `vera-mode' or type `C-h m' in Emacs.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Installation
-
-;; Prerequisites:  GNU Emacs 20.X/21.X, XEmacs 20.X/21.X
-
-;; Put `vera-mode.el' into the `site-lisp' directory of your Emacs installation
-;; or into an arbitrary directory that is added to the load path by the
-;; following line in your Emacs start-up file (`.emacs'):
-
-;;   (setq load-path (cons (expand-file-name "<directory-name>") load-path))
-
-;; If you already have the compiled `vera-mode.elc' file, put it in the same
-;; directory.  Otherwise, byte-compile the source file:
-;;   Emacs:  M-x byte-compile-file  ->  vera-mode.el
-;;   Unix:   emacs -batch -q -no-site-file -f batch-byte-compile vera-mode.el
-
-;; Add the following lines to the `site-start.el' file in the `site-lisp'
-;; directory of your Emacs installation or to your Emacs start-up file
-;; (`.emacs'):
-
-;;   (autoload 'vera-mode "vera-mode" "Vera Mode" t)
-;;   (setq auto-mode-alist (cons '("\\.vr[hi]?\\'" . vera-mode) auto-mode-alist))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Code:
 
@@ -90,16 +61,14 @@
 
 (defcustom vera-basic-offset 2
   "Amount of basic offset used for indentation."
-  :type 'integer
-  :group 'vera)
+  :type 'integer)
 
 (defcustom vera-underscore-is-part-of-word nil
   "Non-nil means consider the underscore character `_' as part of word.
 An identifier containing underscores is then treated as a single word in
 select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise."
-  :type 'boolean
-  :group 'vera)
+  :type 'boolean)
 (make-obsolete-variable 'vera-underscore-is-part-of-word
                         'superword-mode "24.4")
 
@@ -110,8 +79,7 @@ else if not at beginning of line then insert tab,
 else if last command was a `TAB' or `RET' then dedent one step,
 else indent current line.
 If nil, TAB always indents current line."
-  :type 'boolean
-  :group 'vera)
+  :type 'boolean)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -125,9 +93,6 @@ If nil, TAB always indents current line."
   (let ((map (make-sparse-keymap)))
     ;; Backspace/delete key bindings.
     (define-key map [backspace] 'backward-delete-char-untabify)
-    (unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
-      (define-key map [delete]       'delete-char)
-      (define-key map [(meta delete)] 'kill-word))
     ;; Standard key bindings.
     (define-key map "\M-e"     'vera-forward-statement)
     (define-key map "\M-a"     'vera-backward-statement)
@@ -227,9 +192,7 @@ If nil, TAB always indents current line."
     (modify-syntax-entry ?\{ "(}"   syntax-table)
     (modify-syntax-entry ?\} "){"   syntax-table)
     ;; comment
-    (if (featurep 'xemacs)
-	(modify-syntax-entry ?\/ ". 1456" syntax-table) ; XEmacs
-      (modify-syntax-entry ?\/ ". 124b" syntax-table)) ; Emacs
+    (modify-syntax-entry ?\/ ". 124b" syntax-table)
     (modify-syntax-entry ?\* ". 23" syntax-table)
     ;; newline and CR
     (modify-syntax-entry ?\n "> b"    syntax-table)
@@ -314,8 +277,6 @@ Key bindings:
   ;; initialize font locking
   (set (make-local-variable 'font-lock-defaults)
        '(vera-font-lock-keywords nil nil ((?\_ . "w"))))
-  ;; add menu (XEmacs)
-  (easy-menu-add vera-mode-menu)
   ;; miscellaneous
   (message "Vera Mode %s.  Type C-c C-h for documentation." vera-version))
 
@@ -541,12 +502,6 @@ Key bindings:
    "RVM_SCHEDULER_IS_XACTOR" "RVM_BROADCAST_IS_XACTOR"
   )
   "List of Vera-RVM predefined constants.")
-
-;; `regexp-opt' undefined (`xemacs-devel' not installed)
-(unless (fboundp 'regexp-opt)
-  (defun regexp-opt (strings &optional paren)
-    (let ((open (if paren "\\(" "")) (close (if paren "\\)" "")))
-      (concat open (mapconcat 'regexp-quote strings "\\|") close))))
 
 (defconst vera-keywords-regexp
   (concat "\\<\\(" (regexp-opt vera-keywords) "\\)\\>")
@@ -796,10 +751,7 @@ This function does not modify point or mark."
 
 (defun vera-skip-forward-literal ()
   "Skip forward literal and return t if within one."
-  (let ((state (save-excursion
-                 (if (fboundp 'syntax-ppss)
-                     (syntax-ppss)
-                   (parse-partial-sexp (point-min) (point))))))
+  (let ((state (save-excursion (syntax-ppss))))
     (when (nth 8 state)
       ;; Inside a string or comment.
       (goto-char (nth 8 state))
@@ -814,10 +766,7 @@ This function does not modify point or mark."
 
 (defun vera-skip-backward-literal ()
   "Skip backward literal and return t if within one."
-  (let ((state (save-excursion
-                 (if (fboundp 'syntax-ppss)
-                     (syntax-ppss)
-                   (parse-partial-sexp (point-min) (point))))))
+  (let ((state (save-excursion (syntax-ppss))))
     (when (nth 8 state)
       ;; Inside a string or comment.
       (goto-char (nth 8 state))
@@ -1232,6 +1181,8 @@ Calls `indent-region' for whole buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; electrifications
 
+(defvar hippie-expand-only-buffers)
+
 (defun vera-electric-tab (&optional prefix)
   "Do what I mean (indent, expand, tab, change indent, etc..).
 If preceding character is part of a word or a paren then `hippie-expand',
@@ -1243,7 +1194,7 @@ If `vera-intelligent-tab' is nil, always indent line."
   (interactive "*P")
   (if vera-intelligent-tab
       (progn
-	(cond ((and (not (featurep 'xemacs)) (use-region-p))
+	(cond ((use-region-p)
 	       (vera-indent-region (region-beginning) (region-end) nil))
 	      ((memq (char-syntax (preceding-char)) '(?w ?_))
 	       (let ((case-fold-search t)

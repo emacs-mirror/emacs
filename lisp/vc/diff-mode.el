@@ -392,6 +392,12 @@ well."
   '((t :inherit diff-file-header))
   "`diff-mode' face used to highlight nonexistent files in recursive diffs.")
 
+(defface diff-error
+  '((((class color))
+     :foreground "red" :background "black" :weight bold)
+    (t :weight bold))
+  "`diff-mode' face for error messages from diff.")
+
 (defconst diff-yank-handler '(diff-yank-function))
 (defun diff-yank-function (text)
   ;; FIXME: the yank-handler is now called separately on each piece of text
@@ -472,6 +478,7 @@ and the face `diff-added' for added lines.")
     ("^\\(#\\)\\(.*\\)"
      (1 font-lock-comment-delimiter-face)
      (2 font-lock-comment-face))
+    ("^diff: .*" (0 'diff-error))
     ("^[^-=+*!<>#].*\n" (0 'diff-context))
     (,#'diff--font-lock-syntax)
     (,#'diff--font-lock-prettify)
@@ -1988,8 +1995,7 @@ revision of the file otherwise."
                  (diff-find-source-location other-file reverse)))
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
-      (when buffer (next-error-found buffer (current-buffer)))
-      (diff-hunk-status-msg line-offset (xor reverse switched) t))))
+      (when buffer (next-error-found buffer (current-buffer))))))
 
 
 (defun diff-current-defun ()

@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2020 Free Software Foundation, Inc.
 
-timestamp='2020-07-10'
+timestamp='2020-08-17'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -1278,7 +1278,7 @@ esac
 
 # Decode manufacturer-specific aliases for certain operating systems.
 
-if [ x$basic_os != x ]
+if test x$basic_os != x
 then
 
 # First recognize some ad-hoc caes, or perhaps split kernel-os, or else just

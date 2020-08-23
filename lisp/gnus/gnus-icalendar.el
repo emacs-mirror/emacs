@@ -138,6 +138,22 @@
     (or (match-string 1 rrule)
         default-interval)))
 
+(cl-defmethod gnus-icalendar-event:recurring-days ((event gnus-icalendar-event))
+  "Return, when available, the week day numbers on which the EVENT recurs."
+  (let ((rrule (gnus-icalendar-event:recur event))
+        (weekday-map '(("SU" . 0)
+                       ("MO" . 1)
+                       ("TU" . 2)
+                       ("WE" . 3)
+                       ("TH" . 4)
+                       ("FR" . 5)
+                       ("SA" . 6))))
+    (when (string-match "BYDAY=\\([^;]+\\)" rrule)
+      (let ((bydays (split-string (match-string 1 rrule) ",")))
+        (seq-map
+         (lambda (x) (cdr (assoc x weekday-map)))
+         (seq-filter (lambda (x) (string-match "^[A-Z]\\{2\\}$" x)) bydays))))))
+
 (cl-defmethod gnus-icalendar-event:start ((event gnus-icalendar-event))
   (format-time-string "%Y-%m-%d %H:%M" (gnus-icalendar-event:start-time event)))
 
@@ -401,21 +417,26 @@ Return nil for non-recurring EVENT."
       (when org-freq
         (format "+%s%s" (gnus-icalendar-event:recurring-interval event) org-freq)))))
 
-(cl-defmethod gnus-icalendar-event:org-timestamp ((event gnus-icalendar-event))
-  "Build `org-mode' timestamp from EVENT start/end dates and recurrence info."
-  (let* ((start (gnus-icalendar-event:start-time event))
-         (end (gnus-icalendar-event:end-time event))
-         (start-date (format-time-string "%Y-%m-%d" start))
+(defun gnus-icalendar--find-day (start-date end-date day)
+  (let ((time-1-day 86400))
+    (if (= (decoded-time-weekday (decode-time start-date))
+           day)
+        (list start-date end-date)
+      (gnus-icalendar--find-day (time-add start-date time-1-day)
+				(time-add end-date time-1-day)
+				day))))
+
+(defun gnus-icalendar-event--org-timestamp (start end org-repeat)
+  (let* ((start-date (format-time-string "%Y-%m-%d" start))
          (start-time (format-time-string "%H:%M" start))
          (start-at-midnight (string= start-time "00:00"))
          (end-date (format-time-string "%Y-%m-%d" end))
          (end-time (format-time-string "%H:%M" end))
          (end-at-midnight (string= end-time "00:00"))
          (start-end-date-diff
-	  (time-to-number-of-days (time-subtract
-				   (org-time-string-to-time end-date)
-				   (org-time-string-to-time start-date))))
-         (org-repeat (gnus-icalendar-event:org-repeat event))
+	  (time-to-number-of-days
+	   (time-subtract (org-time-string-to-time end-date)
+			  (org-time-string-to-time start-date))))
          (repeat (if org-repeat (concat " " org-repeat) ""))
 	 (time-1-day 86400))
 
@@ -446,7 +467,31 @@ Return nil for non-recurring EVENT."
      ;; A .:. - A .:. -> A .:.-.:.
      ;; A .:. - B .:.
      ((zerop start-end-date-diff) (format "<%s %s-%s%s>" start-date start-time end-time repeat))
-     (t (format "<%s %s>--<%s %s>" start-date start-time end-date end-time)))))
+     (t (format "<%s %s>--<%s %s>" start-date start-time end-date end-time))))
+  )
+
+(cl-defmethod gnus-icalendar-event:org-timestamp ((event gnus-icalendar-event))
+  "Build `org-mode' timestamp from EVENT start/end dates and recurrence info."
+  ;; if org-repeat +1d or +1w and byday: generate one timestamp per
+  ;; byday, starting at start-date. Change +1d to +7d.
+  (let ((start (gnus-icalendar-event:start-time event))
+        (end (gnus-icalendar-event:end-time event))
+        (org-repeat (gnus-icalendar-event:org-repeat event))
+        (recurring-days (gnus-icalendar-event:recurring-days event)))
+    (if (and (or (string= org-repeat "+1d")
+                 (string= org-repeat "+1w"))
+             recurring-days)
+      (let ((repeat "+1w")
+            (dates (seq-sort-by
+		    'car
+		    'time-less-p
+		    (seq-map (lambda (x)
+			       (gnus-icalendar--find-day start end x))
+			     recurring-days))))
+        (mapconcat (lambda (x)
+		     (gnus-icalendar-event--org-timestamp (car x) (cadr x)
+							  repeat)) dates "\n"))
+      (gnus-icalendar-event--org-timestamp start end org-repeat))))
 
 (defun gnus-icalendar--format-summary-line (summary &optional location)
   (if location
@@ -757,7 +802,7 @@ These will be used to retrieve the RSVP information from ical events."
     `(let ((,charset (cdr (assoc 'charset (mm-handle-type ,handle)))))
        (with-temp-buffer
          (mm-insert-part ,handle)
-         (when (string= (downcase ,charset) "utf-8")
+         (when (and ,charset (string= (downcase ,charset) "utf-8"))
            (decode-coding-region (point-min) (point-max) 'utf-8))
          ,@body))))
 

@@ -337,32 +337,35 @@ its parents."
                   (directory-file-name dir))))
     (eq dir t)))
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
 (defun vc-cvs-checkin (files comment &optional rev)
   "CVS-specific version of `vc-backend-checkin'."
- (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
-   (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
+  (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
+    (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
-     ;; If the input revision is a valid symbolic tag name, we create it
-     ;; as a branch, commit and switch to it.
-     (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
-     (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
-     (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
+      ;; If the input revision is a valid symbolic tag name, we create it
+      ;; as a branch, commit and switch to it.
+      (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
+      (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
+      (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
 	    files)))
-  (let ((status (apply 'vc-cvs-command nil 1 files
-		       "ci" (if rev (concat "-r" rev))
-                       (concat "-m" comment)
-		       (vc-switches 'CVS 'checkin))))
+  (let ((status (apply
+                 'vc-cvs-command nil 1 files
+		 "ci" (if rev (concat "-r" rev))
+                 (concat "-m" (car (log-edit-extract-headers nil comment)))
+		 (vc-switches 'CVS 'checkin))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (when (not (zerop status))
       ;; Check checkin problem.
       (cond
        ((re-search-forward "Up-to-date check failed" nil t)
-	(mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
+        (mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
 	      files)
         (error "%s" (substitute-command-keys
-                (concat "Up-to-date check failed: "
-                        "type \\[vc-next-action] to merge in changes"))))
+                     (concat "Up-to-date check failed: "
+                             "type \\[vc-next-action] to merge in changes"))))
        (t
         (pop-to-buffer (current-buffer))
         (goto-char (point-min))
@@ -372,7 +375,7 @@ its parents."
     ;; Otherwise we can't necessarily tell what goes with what; clear
     ;; its properties so they have to be refetched.
     (if (= (length files) 1)
-	(vc-file-setprop
+        (vc-file-setprop
 	 (car files) 'vc-working-revision
 	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
       (mapc 'vc-file-clearprops files))
@@ -385,7 +388,7 @@ its parents."
     ;; if this was an explicit check-in (does not include creation of
     ;; a branch), remove the sticky tag.
     (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
-	(vc-cvs-command nil 0 files "update" "-A"))))
+        (vc-cvs-command nil 0 files "update" "-A"))))
 
 (defun vc-cvs-find-revision (file rev buffer)
   (apply 'vc-cvs-command

@@ -5909,7 +5909,7 @@ ns_term_shutdown (int sig)
 
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_OPEN_FILE_LINE;
-  ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
+  ns_input_file = append2 (ns_input_file, [fileName lispString]);
   ns_input_line = Qnil; /* can be start or cons start,end */
   emacs_event->modifiers =0;
   EV_TRAILER (theEvent);
@@ -6273,8 +6273,7 @@ not_in_argv (NSString *arg)
                  error: (NSString **)error
 {
   [ns_pending_service_names addObject: userData];
-  [ns_pending_service_args addObject: [NSString stringWithUTF8String:
-      SSDATA (ns_string_from_pasteboard (pboard))]];
+  [ns_pending_service_args addObject: [NSString stringWithLispString:ns_string_from_pasteboard (pboard)]];
 }
 
 
@@ -6291,8 +6290,8 @@ not_in_argv (NSString *arg)
 
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_SPI_SERVICE_CALL;
-  ns_input_spi_name = build_string ([name UTF8String]);
-  ns_input_spi_arg = build_string ([arg UTF8String]);
+  ns_input_spi_name = [name lispString];
+  ns_input_spi_arg = [arg lispString];
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
   EV_TRAILER (theEvent);
 
@@ -6374,7 +6373,7 @@ not_in_argv (NSString *arg)
 
       size = [newFont pointSize];
       ns_input_fontsize = make_fixnum (lrint (size));
-      ns_input_font = build_string ([[newFont familyName] UTF8String]);
+      ns_input_font = [[newFont familyName] lispString];
       EV_TRAILER (e);
     }
 }
@@ -6685,7 +6684,7 @@ not_in_argv (NSString *arg)
   processingCompose = YES;
   [workingText release];
   workingText = [str copy];
-  ns_working_text = build_string ([workingText UTF8String]);
+  ns_working_text = [workingText lispString];
 
   emacs_event->kind = NS_TEXT_EVENT;
   emacs_event->code = KEY_NS_PUT_WORKING_TEXT;
@@ -7605,7 +7604,7 @@ not_in_argv (NSString *arg)
   tem = f->icon_name;
   if (!NILP (tem))
     [win setMiniwindowTitle:
-           [NSString stringWithUTF8String: SSDATA (tem)]];
+           [NSString stringWithLispString:tem]];
 
   if (FRAME_PARENT_FRAME (f) != NULL)
     {
@@ -8609,7 +8608,7 @@ not_in_argv (NSString *arg)
 
       fenum = [files objectEnumerator];
       while ( (file = [fenum nextObject]) )
-        strings = Fcons (build_string ([file UTF8String]), strings);
+        strings = Fcons ([file lispString], strings);
     }
   else if ([type isEqualToString: NSURLPboardType])
     {
@@ -8618,7 +8617,7 @@ not_in_argv (NSString *arg)
 
       type_sym = Qurl;
 
-      strings = list1 (build_string ([[url absoluteString] UTF8String]));
+      strings = list1 ([[url absoluteString] lispString]);
     }
   else if ([type isEqualToString: NSStringPboardType]
            || [type isEqualToString: NSTabularTextPboardType])
@@ -8630,7 +8629,7 @@ not_in_argv (NSString *arg)
 
       type_sym = Qnil;
 
-      strings = list1 (build_string ([data UTF8String]));
+      strings = list1 ([data lispString]);
     }
   else
     {
@@ -8802,9 +8801,7 @@ not_in_argv (NSString *arg)
         }
       if (STRINGP (str))
         {
-          const char *utfStr = SSDATA (str);
-          NSString *nsStr = [NSString stringWithUTF8String: utfStr];
-          return nsStr;
+          return [NSString stringWithLispString:str];
         }
     }
 

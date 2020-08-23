@@ -28,6 +28,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "keyboard.h"
 
+#if defined HAVE_GLIB && ! defined (HAVE_NS)
+#include <xgselect.h>
+#else
+#define release_select_lock() do { } while (0)
+#endif
+
 union aligned_thread_state
 {
   struct thread_state s;
@@ -585,6 +591,8 @@ really_call_select (void *arg)
 
   sa->result = (sa->func) (sa->max_fds, sa->rfds, sa->wfds, sa->efds,
 			   sa->timeout, sa->sigmask);
+
+  release_select_lock ();
 
   block_interrupt_signal (&oldset);
   /* If we were interrupted by C-g while inside sa->func above, the

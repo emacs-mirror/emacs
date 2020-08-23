@@ -162,6 +162,10 @@ included in this list.  Suggested properties are `keymap',
 `local-map', `button' and `kbd-help'.  Any value other than t or
 a non-empty list disables the feature.
 
+The text printed from the `help-echo' property is often only
+relevant when using the mouse.  The presence of a `kbd-help'
+property guarantees that non mouse specific help is available.
+
 This variable only takes effect after a call to
 `help-at-pt-set-timer'.  The help gets printed after Emacs has
 been idle for `help-at-pt-timer-delay' seconds.  You can call

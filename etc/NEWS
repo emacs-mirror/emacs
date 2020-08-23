@@ -93,6 +93,13 @@ specify 'cursor-type' to be '(box . SIZE)', the cursor becomes a hollow
 box if the point is on an image larger than 'SIZE' pixels in any
 dimension.
 
++++
+** New custom option 'word-wrap-by-category'.
+When word-wrap is enabled, and this option is non-nil, that allows
+Emacs to break lines after more characters than just whitespace
+characters.  In particular, this significantly improves word-wrapping
+for CJK text mixed with Latin text.
+
 ---
 *** Improved language transliteration in Malayalam input methods.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
@@ -101,6 +108,13 @@ deprecated.  Errors in the Inscript method were corrected.
 ---
 ** Rudimentary support for the 'st' terminal emulator.
 Emacs now supports 256 color display on the 'st' terminal emulator.
+
+---
+** Mouse wheel scrolling now works on more parts of frame's display.
+When using 'mwheel-mode', the mouse wheel will now scroll also when
+the mouse cursor is on the scroll bars, fringes, margins, header line,
+and mode line.  ('mwheel-mode' is enabled by default on most graphical
+displays.)
 
 
 * Editing Changes in Emacs 28.1
@@ -222,6 +236,15 @@ time zones will use a form like "+0100" instead of "CET".
 ** Dired
 
 +++
+*** New user option 'dired-maybe-use-globstar'.
+If set, enables globstar (recursive globbing) in shells that support
+this feature, but turn it off by default.  This allows producing
+directory listings with files matching a wildcard in all the
+subdirectories of a given directory.  The new variable
+'dired-enable-globstar-in-shell' lists which shells can have globstar
+enabled, and how to enable it.
+
++++
 *** New user option 'dired-copy-dereference'.
 If set to non-nil, Dired will dereference symbolic links when copying.
 This can be switched off on a per-usage basis by providing
@@ -260,9 +283,10 @@ invoke 'C-u C-x v s' ('vc-create-tag').
 *** 'vc-hg' now uses 'hg summary' to populate extra 'vc-dir' headers.
 
 ---
-*** New variable 'vc-git-revision-complete-only-branches'
+*** New variable 'vc-git-revision-complete-only-branches'.
 If non-nil, only branches and remotes are considered when doing
-completion over branch names.
+completion over Git branch names.  The default is nil, which causes
+tags to be considered as well.
 
 ** Gnus
 
@@ -464,7 +488,7 @@ key             binding
 / /             package-menu-filter-clear
 
 ---
-+++ Column widths in 'list-packages' display can now be customized.
+*** Column widths in 'list-packages' display can now be customized.
 See the new user options 'package-name-column-width',
 'package-version-column-width', 'package-status-column-width', and
 'package-archive-column-width'.
@@ -656,6 +680,14 @@ sorted there.  The commands have also been extended to work when the
 "parent" buffer is an archive mode (i.e., zip file or the like) or tar
 mode buffer.
 
+---
+*** 'image-converter' is now restricted to formats in 'auto-mode-alist'.
+When using external image converters, the external program is queried
+for what formats it supports.  This list may contain formats that are
+problematic in some contexts (like PDFs), so this list is now filtered
+based on 'auto-mode-alist'.  Only file names that map to 'image-mode'
+are now supported.
+
 ** EWW
 
 +++
@@ -818,6 +850,19 @@ window after starting).  This variable defaults to nil.
 
 
 ** Miscellaneous
+
+---
+*** New 'diff-mode' font locking face 'diff-error'.
+This face is used for error messages from diff.
+
+---
+*** 'hs-minor-mode' now heeds 'hs-special-modes-alist' for derived modes.
+The settings in 'hs-special-modes-alist' now also affect modes derived
+from those mentioned in that alist.
+
++++
+*** New global mode 'global-goto-address-mode'
+This will enable 'goto-address-mode' in all buffers.
 
 ---
 *** 'C-s' in 'M-x' now searches over completions again.

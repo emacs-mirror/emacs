@@ -77,6 +77,27 @@ If nil, `dired-listing-switches' is used."
    :type '(choice (const :tag "Use dired-listing-switches" nil)
                   (string :tag "Switches")))
 
+(defcustom dired-maybe-use-globstar nil
+  "If non-nil, enable globstar if the shell supports it.
+Some shells enable this feature by default (e.g. zsh or fish).
+
+See `dired-enable-globstar-in-shell' for a list of shells
+that support globstar and disable it by default.
+
+Note that the implementations of globstar have small differences
+between shells.  You must check your shell documentation to see
+what to expect."
+  :type 'boolean
+  :group 'dired
+  :version "28.1")
+
+(defconst dired-enable-globstar-in-shell
+  '(("ksh" . "set -G")
+    ("bash" . "shopt -s globstar"))
+  "Alist of (SHELL . COMMAND), where COMMAND enables globstar in SHELL.
+If `dired-maybe-use-globstar' is non-nil, then `dired-insert-directory'
+checks this alist to enable globstar in the shell subprocess.")
+
 (defcustom dired-chown-program
   (purecopy (cond ((executable-find "chown") "chown")
                   ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
@@ -1470,6 +1491,13 @@ see `dired-use-ls-dired' for more details.")
                                  (executable-find explicit-shell-file-name))
                             (executable-find "sh")))
                     (switch (if remotep "-c" shell-command-switch)))
+               ;; Enable globstar
+               (when-let ((globstar dired-maybe-use-globstar)
+                          (enable-it
+                           (assoc-default
+                            (file-truename sh) dired-enable-globstar-in-shell
+                            (lambda (reg shell) (string-match reg shell)))))
+                 (setq script (format "%s; %s" enable-it script)))
                (unless
                    (zerop
                     (process-file sh nil (current-buffer) nil switch script))
