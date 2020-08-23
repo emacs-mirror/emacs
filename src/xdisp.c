@@ -12568,8 +12568,8 @@ gui_consider_frame_title (Lisp_Object frame)
       /* Make sure that any raw bytes in the title are properly
          represented by their multibyte sequences.  */
       ptrdiff_t nchars = 0;
-      len = str_as_multibyte (title, mode_line_noprop_buf_end - title,
-                              len, &nchars);
+      len = str_as_multibyte ((unsigned char *)title,
+			      mode_line_noprop_buf_end - title, len, &nchars);
       unbind_to (count, Qnil);
 
       /* Set the title only if it's changed.  This avoids consing in
