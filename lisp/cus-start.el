@@ -102,7 +102,7 @@
               display boolean "28.1"
               :set (lambda (symbol value)
                      (set-default symbol value)
-                     (when value (load "kinsoku.el"))))
+                     (when value (require 'kinsoku))))
 	     (selective-display-ellipses display boolean)
 	     (indicate-empty-lines fringe boolean)
 	     (indicate-buffer-boundaries
