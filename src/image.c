@@ -758,10 +758,10 @@ struct image_type
 
   /* Load IMG which is used on frame F from information contained in
      IMG->spec.  Value is true if successful.  */
-  bool (*load) (struct frame *f, struct image *img);
+  bool (*load_img) (struct frame *f, struct image *img);
 
   /* Free resources of image IMG which is used on frame F.  */
-  void (*free) (struct frame *f, struct image *img);
+  void (*free_img) (struct frame *f, struct image *img);
 
 #ifdef WINDOWSNT
   /* Initialization function (used for dynamic loading of image
@@ -1197,13 +1197,8 @@ free_image (struct frame *f, struct image *img)
         XRenderFreePicture (FRAME_X_DISPLAY (f), img->mask_picture);
 #endif
 
-      /* Windows NT redefines 'free', but in this file, we need to
-         avoid the redefinition.  */
-#ifdef WINDOWSNT
-#undef free
-#endif
       /* Free resources, then free IMG.  */
-      img->type->free (f, img);
+      img->type->free_img (f, img);
       xfree (img);
     }
 }
@@ -1249,7 +1244,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
   if (img->pixmap == NO_PIXMAP && !img->load_failed_p)
-    img->load_failed_p = ! img->type->load (f, img);
+    img->load_failed_p = ! img->type->load_img (f, img);
 
 #ifdef USE_CAIRO
   if (!img->load_failed_p)
@@ -1266,7 +1261,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
 	  if (img->cr_data == NULL)
 	    {
 	      img->load_failed_p = 1;
-	      img->type->free (f, img);
+	      img->type->free_img (f, img);
 	    }
 	}
       unblock_input ();
@@ -2361,7 +2356,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       cache_image (f, img);
       img->face_foreground = foreground;
       img->face_background = background;
-      img->load_failed_p = ! img->type->load (f, img);
+      img->load_failed_p = ! img->type->load_img (f, img);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
