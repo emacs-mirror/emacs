@@ -1877,9 +1877,6 @@ determines whether case is significant or ignored.  */)
 #undef EQUAL
 #define USE_HEURISTIC
 
-/* Counter used to rarely_quit in replace-buffer-contents.  */
-static unsigned short rbc_quitcounter;
-
 #define XVECREF_YVECREF_EQUAL(ctx, xoff, yoff)  \
   buffer_chars_equal ((ctx), (xoff), (yoff))
 
@@ -1900,7 +1897,8 @@ static unsigned short rbc_quitcounter;
   unsigned char *deletions;                     \
   unsigned char *insertions;			\
   struct timespec time_limit;			\
-  unsigned int early_abort_tests;
+  sys_jmp_buf jmp;				\
+  unsigned short quitcounter;
 
 #define NOTE_DELETE(ctx, xoff) set_bit ((ctx)->deletions, (xoff))
 #define NOTE_INSERT(ctx, yoff) set_bit ((ctx)->insertions, (yoff))
@@ -2029,14 +2027,17 @@ nil.  */)
     .heuristic = true,
     .too_expensive = XFIXNUM (max_costs),
     .time_limit = time_limit,
-    .early_abort_tests = 0
   };
   memclear (ctx.deletions, del_bytes);
   memclear (ctx.insertions, ins_bytes);
 
   /* compareseq requires indices to be zero-based.  We add BEGV back
      later.  */
-  bool early_abort = compareseq (0, size_a, 0, size_b, false, &ctx);
+  bool early_abort;
+  if (! sys_setjmp (ctx.jmp))
+    early_abort = compareseq (0, size_a, 0, size_b, false, &ctx);
+  else
+    early_abort = true;
 
   if (early_abort)
     {
@@ -2045,8 +2046,6 @@ nil.  */)
       SAFE_FREE_UNBIND_TO (count, Qnil);
       return Qnil;
     }
-
-  rbc_quitcounter = 0;
 
   Fundo_boundary ();
   bool modification_hooks_inhibited = false;
@@ -2071,8 +2070,7 @@ nil.  */)
      walk backwards, we don’t have to keep the positions in sync.  */
   while (i >= 0 || j >= 0)
     {
-      /* Allow the user to quit if this gets too slow.  */
-      rarely_quit (++rbc_quitcounter);
+      rarely_quit (++ctx.quitcounter);
 
       /* Check whether there is a change (insertion or deletion)
          before the current position.  */
@@ -2086,8 +2084,6 @@ nil.  */)
             --i;
 	  while (j > 0 && bit_is_set (ctx.insertions, j - 1))
             --j;
-
-	  rarely_quit (rbc_quitcounter++);
 
           ptrdiff_t beg_a = min_a + i;
           ptrdiff_t beg_b = min_b + j;
@@ -2108,7 +2104,6 @@ nil.  */)
     }
 
   SAFE_FREE_UNBIND_TO (count, Qnil);
-  rbc_quitcounter = 0;
 
   if (modification_hooks_inhibited)
     {
@@ -2155,11 +2150,15 @@ static bool
 buffer_chars_equal (struct context *ctx,
                     ptrdiff_t pos_a, ptrdiff_t pos_b)
 {
+  if (!++ctx->quitcounter)
+    {
+      maybe_quit ();
+      if (compareseq_early_abort (ctx))
+	sys_longjmp (ctx->jmp, 1);
+    }
+
   pos_a += ctx->beg_a;
   pos_b += ctx->beg_b;
-
-  /* Allow the user to escape out of a slow compareseq call.  */
-  rarely_quit (++rbc_quitcounter);
 
   ptrdiff_t bpos_a =
     ctx->a_unibyte ? pos_a : buf_charpos_to_bytepos (ctx->buffer_a, pos_a);
