@@ -1900,8 +1900,8 @@ determines whether case is significant or ignored.  */)
   sys_jmp_buf jmp;				\
   unsigned short quitcounter;
 
-#define NOTE_DELETE(ctx, xoff) set_bit ((ctx)->deletions, (xoff))
-#define NOTE_INSERT(ctx, yoff) set_bit ((ctx)->insertions, (yoff))
+#define NOTE_DELETE(ctx, xoff) set_bit ((ctx)->deletions, xoff)
+#define NOTE_INSERT(ctx, yoff) set_bit ((ctx)->insertions, yoff)
 #define EARLY_ABORT(ctx) compareseq_early_abort (ctx)
 
 struct context;
@@ -1954,6 +1954,28 @@ nil.  */)
   if (a == b)
     error ("Cannot replace a buffer with itself");
 
+  ptrdiff_t too_expensive;
+  if (NILP (max_costs))
+    too_expensive = 1000000;
+  else if (FIXNUMP (max_costs))
+    too_expensive = clip_to_bounds (0, XFIXNUM (max_costs), PTRDIFF_MAX);
+  else
+    {
+      CHECK_INTEGER (max_costs);
+      too_expensive = NILP (Fnatnump (max_costs)) ? 0 : PTRDIFF_MAX;
+    }
+
+  struct timespec time_limit = make_timespec (0, -1);
+  if (!NILP (max_secs))
+    {
+      struct timespec
+	tlim = timespec_add (current_timespec (),
+			     lisp_time_argument (max_secs)),
+	tmax = make_timespec (TYPE_MAXIMUM (time_t), TIMESPEC_HZ - 1);
+      if (timespec_cmp (tlim, tmax) < 0)
+	time_limit = tlim;
+    }
+
   ptrdiff_t min_a = BEGV;
   ptrdiff_t min_b = BUF_BEGV (b);
   ptrdiff_t size_a = ZV - min_a;
@@ -1983,36 +2005,24 @@ nil.  */)
 
   ptrdiff_t count = SPECPDL_INDEX ();
 
+
+  ptrdiff_t diags = size_a + size_b + 3;
+  ptrdiff_t del_bytes = size_a / CHAR_BIT + 1;
+  ptrdiff_t ins_bytes = size_b / CHAR_BIT + 1;
+  ptrdiff_t *buffer;
+  ptrdiff_t bytes_needed;
+  if (INT_MULTIPLY_WRAPV (diags, 2 * sizeof *buffer, &bytes_needed)
+      || INT_ADD_WRAPV (del_bytes + ins_bytes, bytes_needed, &bytes_needed))
+    memory_full (SIZE_MAX);
+  USE_SAFE_ALLOCA;
+  buffer = SAFE_ALLOCA (bytes_needed);
+  unsigned char *deletions_insertions = memset (buffer + 2 * diags, 0,
+						del_bytes + ins_bytes);
+
   /* FIXME: It is not documented how to initialize the contents of the
      context structure.  This code cargo-cults from the existing
      caller in src/analyze.c of GNU Diffutils, which appears to
      work.  */
-
-  ptrdiff_t diags = size_a + size_b + 3;
-  ptrdiff_t *buffer;
-  USE_SAFE_ALLOCA;
-  SAFE_NALLOCA (buffer, 2, diags);
-
-  if (NILP (max_costs))
-    XSETFASTINT (max_costs, 1000000);
-  else
-    CHECK_FIXNUM (max_costs);
-
-  struct timespec time_limit = make_timespec (0, -1);
-  if (!NILP (max_secs))
-    {
-      struct timespec
-	tlim = timespec_add (current_timespec (),
-			     lisp_time_argument (max_secs)),
-	tmax = make_timespec (TYPE_MAXIMUM (time_t), TIMESPEC_HZ - 1);
-      if (timespec_cmp (tlim, tmax) < 0)
-	time_limit = tlim;
-    }
-
-  /* Micro-optimization: Casting to size_t generates much better
-     code.  */
-  ptrdiff_t del_bytes = (size_t) size_a / CHAR_BIT + 1;
-  ptrdiff_t ins_bytes = (size_t) size_b / CHAR_BIT + 1;
   struct context ctx = {
     .buffer_a = a,
     .buffer_b = b,
@@ -2020,16 +2030,14 @@ nil.  */)
     .beg_b = min_b,
     .a_unibyte = BUF_ZV (a) == BUF_ZV_BYTE (a),
     .b_unibyte = BUF_ZV (b) == BUF_ZV_BYTE (b),
-    .deletions = SAFE_ALLOCA (del_bytes),
-    .insertions = SAFE_ALLOCA (ins_bytes),
+    .deletions = deletions_insertions,
+    .insertions = deletions_insertions + del_bytes,
     .fdiag = buffer + size_b + 1,
     .bdiag = buffer + diags + size_b + 1,
     .heuristic = true,
-    .too_expensive = XFIXNUM (max_costs),
+    .too_expensive = too_expensive,
     .time_limit = time_limit,
   };
-  memclear (ctx.deletions, del_bytes);
-  memclear (ctx.insertions, ins_bytes);
 
   /* compareseq requires indices to be zero-based.  We add BEGV back
      later.  */
@@ -2074,8 +2082,8 @@ nil.  */)
 
       /* Check whether there is a change (insertion or deletion)
          before the current position.  */
-      if ((i > 0 && bit_is_set (ctx.deletions, i - 1)) ||
-          (j > 0 && bit_is_set (ctx.insertions, j - 1)))
+      if ((i > 0 && bit_is_set (ctx.deletions, i - 1))
+	  || (j > 0 && bit_is_set (ctx.insertions, j - 1)))
 	{
           ptrdiff_t end_a = min_a + i;
           ptrdiff_t end_b = min_b + j;
@@ -2117,21 +2125,15 @@ nil.  */)
 static void
 set_bit (unsigned char *a, ptrdiff_t i)
 {
-  eassert (i >= 0);
-  /* Micro-optimization: Casting to size_t generates much better
-     code.  */
-  size_t j = i;
-  a[j / CHAR_BIT] |= (1 << (j % CHAR_BIT));
+  eassume (0 <= i);
+  a[i / CHAR_BIT] |= (1 << (i % CHAR_BIT));
 }
 
 static bool
 bit_is_set (const unsigned char *a, ptrdiff_t i)
 {
-  eassert (i >= 0);
-  /* Micro-optimization: Casting to size_t generates much better
-     code.  */
-  size_t j = i;
-  return a[j / CHAR_BIT] & (1 << (j % CHAR_BIT));
+  eassume (0 <= i);
+  return a[i / CHAR_BIT] & (1 << (i % CHAR_BIT));
 }
 
 /* Return true if the characters at position POS_A of buffer
