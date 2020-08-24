@@ -4146,13 +4146,12 @@ add_driver_options (void)
 
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option) \
   || defined (WINDOWSNT)
-#pragma GCC diagnostic ignored "-Waddress"
   load_gccjit_if_necessary (true);
-  FOR_EACH_TAIL (options)
-    gcc_jit_context_add_driver_option (comp.ctxt,
-				       SSDATA (XCAR (options)));
+  if (!NILP (Fcomp_native_driver_options_available_p ()))
+    FOR_EACH_TAIL (options)
+      gcc_jit_context_add_driver_option (comp.ctxt,
+					 SSDATA (XCAR (options)));
   return;
-#pragma GCC diagnostic pop
 #endif
   if (CONSP (options))
     xsignal1 (Qnative_compiler_error,
