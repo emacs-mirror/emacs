@@ -259,7 +259,6 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_block_end_with_return);
   LOAD_DLL_FN (library, gcc_jit_block_end_with_void_return);
   LOAD_DLL_FN (library, gcc_jit_context_acquire);
-  LOAD_DLL_FN (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN (library, gcc_jit_context_compile_to_file);
   LOAD_DLL_FN (library, gcc_jit_context_dump_reproducer_to_file);
   LOAD_DLL_FN (library, gcc_jit_context_dump_to_file);
@@ -305,6 +304,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_as_type);
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
+  LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_minor);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_patchlevel);
