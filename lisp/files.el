@@ -5655,25 +5655,27 @@ like `write-region' does."
 
 (defun file-newest-backup (filename)
   "Return most recent backup file for FILENAME or nil if no backups exist."
+  (car (file-backup-file-names filename)))
+
+(defun file-backup-file-names (filename)
+  "Return a list of backup files for FILENAME.
+The list will be sorted by newness."
   ;; `make-backup-file-name' will get us the right directory for
   ;; ordinary or numeric backups.  It might create a directory for
   ;; backups as a side-effect, according to `backup-directory-alist'.
   (let* ((filename (file-name-sans-versions
 		    (make-backup-file-name (expand-file-name filename))))
-	 (file (file-name-nondirectory filename))
-	 (dir  (file-name-directory    filename))
-	 (comp (file-name-all-completions file dir))
-         (newest nil)
-         tem)
-    (while comp
-      (setq tem (pop comp))
-      (cond ((and (backup-file-name-p tem)
-                  (string= (file-name-sans-versions tem) file))
-             (setq tem (concat dir tem))
-             (if (or (null newest)
-                     (file-newer-than-file-p tem newest))
-                 (setq newest tem)))))
-    newest))
+         (dir (file-name-directory filename)))
+    (sort
+     (seq-filter
+      (lambda (candidate)
+        (and (backup-file-name-p candidate)
+             (string= (file-name-sans-versions candidate) filename)))
+      (mapcar
+       (lambda (file)
+         (concat dir file))
+       (file-name-all-completions (file-name-nondirectory filename) dir)))
+     #'file-newer-than-file-p)))
 
 (defun rename-uniquely ()
   "Rename current buffer to a similar name not already taken.

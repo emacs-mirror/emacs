@@ -1108,6 +1108,10 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
+---
+*** New function 'file-backup-file-names'.
+This function returns all backup file names for the file in question.
+
 +++
 ** The 'count-lines' function now takes an optional parameter to
 ignore invisible lines.
