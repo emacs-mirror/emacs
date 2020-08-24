@@ -53,7 +53,7 @@
 
 (ert-deftest feature-gmp ()
   (should
-   (string-match-p "GMP" system-configuration-options)))
+   (string-match-p "GMP" system-configuration-features)))
 
 (ert-deftest feature-module ()
   (should (fboundp 'module-load)))
