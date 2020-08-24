@@ -57,6 +57,15 @@ Interface changes
    .. _struct: https://docs.python.org/3/library/struct.html#struct.unpack
 
 
+Other changes
+.............
+
+#. On FreeBSD and Linux, if the MPS handles a signal while the client
+   program is blocked in a system call, the system call is
+   automatically restarted and does not fail with ``EINTR``. See
+   :ref:`topic-thread-signal`.
+
+
 .. _release-notes-1.117:
 
 Release 1.117.0
