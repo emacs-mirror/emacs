@@ -3557,7 +3557,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; `tmp-name3' is a local file name.  Therefore, the link
 	    ;; target remains unchanged, even if quoted.
 	    ;; `make-symbolic-link' might not be permitted on w32 systems.
-	    (unless (tramp--test-windows-nt)
+	    (unless (tramp--test-windows-nt-p)
 	      (make-symbolic-link tmp-name1 tmp-name3)
 	      (should
 	       (string-equal tmp-name1 (file-symlink-p tmp-name3))))
@@ -3671,7 +3671,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		 (concat (file-remote-p tmp-name2) penguin)))))
 	    ;; `tmp-name3' is a local file name.
 	    ;; `make-symbolic-link' might not be permitted on w32 systems.
-	    (unless (tramp--test-windows-nt)
+	    (unless (tramp--test-windows-nt-p)
 	      (make-symbolic-link tmp-name1 tmp-name3)
 	      (should (file-symlink-p tmp-name3))
               (should-not (string-equal tmp-name3 (file-truename tmp-name3)))
@@ -4230,7 +4230,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
 
-  (tramp--test-instrument-test-case 10
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let* ((tmp-name (tramp--test-make-temp-name nil quoted))
 	   (fnnd (file-name-nondirectory tmp-name))
@@ -4291,7 +4290,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should-not (get-buffer-window (current-buffer) t))))
 
 	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))))))
+	(ignore-errors (delete-file tmp-name))))))
 
 ;; Must be a command, because used as `sigusr' handler.
 (defun tramp--test-timeout-handler (&rest _ignore)
@@ -4375,7 +4374,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defmacro tramp--test--deftest-direct-async-process
     (test docstring &optional unstable)
-  "Define ert `TEST-direct-async' for direct async processes.
+  "Define ert test `TEST-direct-async' for direct async processes.
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
@@ -5708,11 +5707,11 @@ This does not support special file names."
   "Check, whether the sudoedit method is used."
   (tramp-sudoedit-file-name-p tramp-test-temporary-file-directory))
 
-(defun tramp--test-windows-nt ()
+(defun tramp--test-windows-nt-p ()
   "Check, whether the locale host runs MS Windows."
   (eq system-type 'windows-nt))
 
-(defun tramp--test-windows-nt-and-batch ()
+(defun tramp--test-windows-nt-and-batch-p ()
   "Check, whether the locale host runs MS Windows in batch mode.
 This does not support special characters."
   (and (eq system-type 'windows-nt) noninteractive))
@@ -6019,7 +6018,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch)))
+  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
 
   (let ((tramp-connection-properties
@@ -6085,7 +6084,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch)))
+  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6100,7 +6099,7 @@ Use the `stat' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch)))
+  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6122,7 +6121,7 @@ Use the `perl' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch)))
+  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6147,7 +6146,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch)))
+  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6242,7 +6241,7 @@ process sentinels.  They shall not disturb each other."
 	   (shell-file-name (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
 	   ;; It doesn't work on w32 systems.
 	   (watchdog
-	    (unless (tramp--test-windows-nt)
+	    (unless (tramp--test-windows-nt-p)
               (start-process-shell-command
                "*watchdog*" nil
                (format
@@ -6610,7 +6609,8 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
 ;;   do not work properly for `nextcloud'.
-;; * Implement `tramp-test31-interrupt-process' for `adb'.
+;; * Implement `tramp-test31-interrupt-process' for `adb' and for
+;;   direct async processes.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
 
