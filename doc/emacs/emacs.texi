@@ -1285,11 +1285,12 @@ programmer, but if you are not interested in customizing, you can
 ignore the customization hints.
 
   This is primarily a reference manual, but can also be used as a
-primer.  If you are new to Emacs, we recommend you start with
-the integrated, learn-by-doing tutorial, before reading the manual.  To
-run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
-describes commands, tells you when to try them, and explains the
-results.  The tutorial is available in several languages.
+primer.  If you are new to Emacs, we recommend you start with the
+integrated, learn-by-doing tutorial, before reading the manual.  To
+run the tutorial, start Emacs and type @kbd{C-h t} (which is ``control
+h and then t'').  The tutorial describes commands, tells you when to
+try them, and explains the results.  The tutorial is available in
+several languages.
 
   On first reading, just skim chapters 1 and 2, which describe the
 notational conventions of the manual and the general appearance of the
