@@ -50,9 +50,27 @@ Functions
 
 _`.fun.setup`: ``ProtSetup()`` installs a signal handler for the
 signal ``SIGSEGV`` to catch and handle protection faults (this handler
-is the function ``sigHandle()``). The previous handler is recorded (in
-the variable ``sigNext``, see `.data.signext`_) so that it can be
-reached from ``sigHandle()`` if it fails to handle the fault.
+is the function ``sigHandle()``).
+
+_`.fun.setup.previous`: The previous handler is recorded (in the
+variable ``sigNext``, see `.data.signext`_) so that it can be reached
+from ``sigHandle()`` if it fails to handle the fault.
+
+_`.fun.setup.restart`: We set the ``SA_RESTART`` flag when installing
+the signal handler so that if the mutator gets a protection fault
+while blocked in a system call, the system call is automatically
+restarted after the signal is handled, instead of failing with
+``EINTR``. Note that unlike the corresponding case in the thread
+management subsystem (see design.mps.thread-manager.req.thread.intr_)
+we are unsure if this case can actually arise: the ``SIGSEGV`` from a
+protection fault is delivered to the thread that accessed the
+protected memory, but in all the cases we have checked, if this access
+occurred during a blocking system call such as a ``read()`` with the
+buffer in protected memory, the system call fails with ``EFAULT`` and
+is not restarted. However, it costs us nothing to set the
+``SA_RESTART`` flag.
+
+.. _design.mps.thread-manager.req.thread.intr: thread-manager#.req.thread.intr
 
 _`.fun.set`: ``ProtSet()`` uses ``mprotect()`` to adjust the
 protection for pages.
