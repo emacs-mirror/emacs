@@ -1188,6 +1188,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/open-slash.m4
   m4/open.m4
   m4/pathmax.m4
+  m4/pid_t.m4
   m4/pipe2.m4
   m4/pselect.m4
   m4/pthread_sigmask.m4
