@@ -614,9 +614,6 @@ the name is considered already unique; only the second substitution
     (select-window (active-minibuffer-window))
     (file-cache-minibuffer-complete nil)))
 
-(define-obsolete-function-alias 'file-cache-mouse-choose-completion
-  #'file-cache-choose-completion "23.2")
-
 (defun file-cache-complete  ()
   "Complete the word at point, using the filecache."
   (interactive)

@@ -417,20 +417,6 @@ The variable `rmail-highlighted-headers' specifies which headers."
   :group 'rmail-headers
   :version "22.1")
 
-;; This was removed in Emacs 23.1 with no notification, an unnecessary
-;; incompatible change.
-(defcustom rmail-highlight-face 'rmail-highlight
-  "Face used by Rmail for highlighting headers."
-  ;; Note that nil doesn't actually mean use the default face, it
-  ;; means use either bold or highlight. It's not worth fixing this
-  ;; now that this is obsolete.
-  :type '(choice (const :tag "Default" nil)
-		 face)
-  :group 'rmail-headers)
-(make-obsolete-variable 'rmail-highlight-face
-			"customize the face `rmail-highlight' instead."
-			"23.2")
-
 (defface rmail-header-name
   '((t (:inherit font-lock-function-name-face)))
   "Face to use for highlighting the header names.
@@ -3012,7 +2998,7 @@ using the coding system CODING."
 
 (defun rmail-highlight-headers ()
   "Highlight the headers specified by `rmail-highlighted-headers'.
-Uses the face specified by `rmail-highlight-face'."
+Uses the face `rmail-highlight'."
   (if rmail-highlighted-headers
       (save-excursion
 	(search-forward "\n\n" nil 'move)
@@ -3020,11 +3006,7 @@ Uses the face specified by `rmail-highlight-face'."
 	  (narrow-to-region (point-min) (point))
 	  (let ((case-fold-search t)
 		(inhibit-read-only t)
-		;; When rmail-highlight-face is removed, just
-		;; use 'rmail-highlight here.
-		(face (or rmail-highlight-face
-			  (if (face-differs-from-default-p 'bold)
-			      'bold 'highlight)))
+		(face 'rmail-highlight)
 		;; List of overlays to reuse.
 		(overlays rmail-overlay-list))
 	    (goto-char (point-min))

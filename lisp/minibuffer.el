@@ -2539,11 +2539,6 @@ same as `substitute-in-file-name'."
               all))))))
     (file-error nil)))               ;PCM often calls with invalid directories.
 
-(defvar read-file-name-predicate nil
-  "Current predicate used by `read-file-name-internal'.")
-(make-obsolete-variable 'read-file-name-predicate
-                        "use the regular PRED argument" "23.2")
-
 (defun completion--sifn-requote (upos qstr)
   ;; We're looking for `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)

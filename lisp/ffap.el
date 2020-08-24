@@ -110,8 +110,6 @@
 (require 'url-parse)
 (require 'thingatpt)
 
-(define-obsolete-variable-alias 'ffap-version 'emacs-version "23.2")
-
 (defgroup ffap nil
   "Find file or URL at point."
   :group 'matching

@@ -7042,12 +7042,10 @@ If these don't exist, a letter in the string is automatically selected."
   #'idlwave-make-modified-completion-map "28.1")
 
 (defun idlwave-make-modified-completion-map (old-map)
-  "Replace `choose-completion' and `mouse-choose-completion' in OLD-MAP."
+  "Replace `choose-completion' in OLD-MAP."
   (let ((new-map (copy-keymap old-map)))
     (substitute-key-definition
      'choose-completion 'idlwave-choose-completion new-map)
-    (substitute-key-definition
-     'mouse-choose-completion 'idlwave-mouse-choose-completion new-map)
     (define-key new-map [mouse-3] 'idlwave-mouse-completion-help)
     new-map))
 
@@ -7056,10 +7054,8 @@ If these don't exist, a letter in the string is automatically selected."
   (interactive (list last-nonmenu-event))
   (apply 'idlwave-choose 'choose-completion args))
 
-(defun idlwave-mouse-choose-completion (&rest args)
-  "Click on an alternative in the `*Completions*' buffer to choose it."
-  (interactive "e")
-  (apply 'idlwave-choose 'mouse-choose-completion args))
+(define-obsolete-function-alias 'idlwave-mouse-choose-completion
+  #'idlwave-choose-completion "28.1")
 
 ;;----------------------------------------------------------------------
 ;;----------------------------------------------------------------------

@@ -316,28 +316,6 @@ PREVPOS is the variable in which we store the last position displayed."
 )
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; Some examples of functions utilizing the framework of this
-;;;; package.
-;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; FIXME: This was the only imenu-example-* definition actually used,
-;; by cperl-mode.el.  Now cperl-mode has its own copy, so these can
-;; all be removed.
-(defun imenu-example--name-and-position ()
-  "Return the current/previous sexp and its (beginning) location.
-Don't move point."
-  (declare (obsolete "use your own function instead." "23.2"))
-  (save-excursion
-    (forward-sexp -1)
-    ;; [ydi] modified for imenu-use-markers
-    (let ((beg (if imenu-use-markers (point-marker) (point)))
-	  (end (progn (forward-sexp) (point))))
-      (cons (buffer-substring beg end)
-	    beg))))
-
 ;;;
 ;;; Lisp
 ;;;

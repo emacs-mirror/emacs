@@ -695,7 +695,7 @@ imenu."
     (define-key map "\e\C-e" 'antlr-end-of-rule)
     (define-key map "\C-c\C-a" 'antlr-beginning-of-body)
     (define-key map "\C-c\C-e" 'antlr-end-of-body)
-    (define-key map "\C-c\C-f" 'c-forward-into-nomenclature)
+    (define-key map "\C-c\C-f" 'subword-forward)
     (define-key map "\C-c\C-b" 'c-backward-into-nomenclature)
     (define-key map "\C-c\C-c" 'comment-region)
     (define-key map "\C-c\C-v" 'antlr-hide-actions)
@@ -745,7 +745,7 @@ imenu."
      ["Backward Statement" c-beginning-of-statement t]
      ["Forward Statement" c-end-of-statement t]
      ["Backward Into Nomencl." c-backward-into-nomenclature t]
-     ["Forward Into Nomencl." c-forward-into-nomenclature t])
+     ["Forward Into Nomencl." subword-forward t])
     ["Indent Region" indent-region
      :active (and (not buffer-read-only) (c-region-is-active-p))]
     ["Comment Out Region" comment-region

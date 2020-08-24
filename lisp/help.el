@@ -131,7 +131,6 @@ This is a list
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
-(define-obsolete-function-alias 'print-help-return-message 'help-print-return-message "23.2")
 (defun help-print-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
 This function assumes that `standard-output' is the help buffer.

@@ -62,8 +62,7 @@
 ;; The outline menubar additions provide quick reference to many of the
 ;; features.  See the docstring of the variables `allout-layout' and
 ;; `allout-auto-activation' for details on automatic activation of
-;; `allout-mode' as a minor mode.  (`allout-init' is deprecated in favor of
-;; a purely customization-based method.)
+;; `allout-mode' as a minor mode.
 ;;
 ;; Note -- the lines beginning with `;;;_' are outline topic headers.
 ;;        Customize `allout-auto-activation' to enable, then revisit this
@@ -1627,18 +1626,6 @@ non-nil in a lasting way.")
   "If t, `allout-mode's last deactivation was deliberate.
 So `allout-post-command-business' should not reactivate it...")
 (make-variable-buffer-local 'allout-explicitly-deactivated)
-;;;_  > allout-init (mode)
-(defun allout-init (mode)
-  "DEPRECATED - configure allout activation by customizing
-`allout-auto-activation'.  This function remains around, limited
-from what it did before, for backwards compatibility.
-
-MODE is the activation mode - see `allout-auto-activation' for
-valid values."
-  (declare (obsolete allout-auto-activation "23.3"))
-  (customize-set-variable 'allout-auto-activation (format "%s" mode))
-  (format "%s" mode))
-
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."

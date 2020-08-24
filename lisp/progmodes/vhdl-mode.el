@@ -2304,10 +2304,6 @@ Ignore byte-compiler warnings you might see."
     (defvaralias 'vhdl-last-input-event 'last-input-char)
   (defvaralias 'vhdl-last-input-event 'last-input-event))
 
-;; `help-print-return-message' changed to `print-help-return-message' in Emacs
-;;;(unless (fboundp 'help-print-return-message)
-;;;  (defalias 'help-print-return-message 'print-help-return-message))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Compatibility with older VHDL Mode versions
 

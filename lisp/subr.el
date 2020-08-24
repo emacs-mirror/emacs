@@ -4670,13 +4670,6 @@ This function is called directly from the C code."
   ;; Finally, run any other hook.
   (run-hook-with-args 'after-load-functions abs-file))
 
-(defun eval-next-after-load (file)
-  "Read the following input sexp, and run it whenever FILE is loaded.
-This makes or adds to an entry on `after-load-alist'.
-FILE should be the name of a library, with no directory name."
-  (declare (obsolete eval-after-load "23.2"))
-  (eval-after-load file (read)))
-
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
