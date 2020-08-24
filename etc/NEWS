@@ -235,6 +235,11 @@ time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
+*** '=' ('dired-diff') will now put all backup files into the 'M-n' history.
+When using '=' on a file with backup files, the default file to use
+when diffing the newest backup file.  You can now use 'M-n' to quickly
+select a different backup file instead.
+
 +++
 *** New user option 'dired-maybe-use-globstar'.
 If set, enables globstar (recursive globbing) in shells that support
