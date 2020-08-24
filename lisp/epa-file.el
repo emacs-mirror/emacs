@@ -175,9 +175,9 @@ encryption is used."
 		   (setq-local epa-file-error error)
 		   (add-hook 'find-file-not-found-functions
 			     'epa-file--find-file-not-found-function
-			     nil t)
-	           (signal (if exists 'file-error 'file-missing)
-		           (cons "Opening input file" (cdr error))))))))
+			     nil t)))
+	       (signal (if exists 'file-error 'file-missing)
+		       (cons "Opening input file" (cdr error))))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
 	  (setq-local epa-file-encrypt-to
                       (mapcar #'car (epg-context-result-for
