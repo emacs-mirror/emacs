@@ -414,10 +414,15 @@ version that the caller should consider deleting now.
 @end smallexample
 @end defun
 
-@c Emacs 19 feature
+@defun file-backup-file-names filename
+This function returns a list of all the backup file names for
+@var{filename}, or @code{nil} if there are none.  The files are sorted
+so that the most recent backup file comes first in the list.
+@end defun
+
 @defun file-newest-backup filename
-This function returns the name of the most recent backup file for
-@var{filename}, or @code{nil} if that file has no backup files.
+This function returns the first element of the list returned by
+@code{file-backup-file-names}.
 
 Some file comparison commands use this function so that they can
 automatically compare a file with its most recent backup.

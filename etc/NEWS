@@ -1113,7 +1113,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
----
++++
 *** New function 'file-backup-file-names'.
 This function returns the list of file names of all the backup files
 of its file argument.
