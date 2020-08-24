@@ -4122,10 +4122,12 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
-DEFUN ("comp-native-driver-options-available-p", Fcomp_native_driver_options_available_p,
-       Scomp_native_driver_options_available_p,
+DEFUN ("comp-native-driver-options-effective-p",
+       Fcomp_native_driver_options_effective_p,
+       Scomp_native_driver_options_effective_p,
        0, 0, 0,
-       doc: /* Return t if `comp-native-driver-options' can be used.  */)
+       doc: /* Return t if `comp-native-driver-options' is
+	       effective nil otherwise.  */)
   (void)
 {
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
@@ -4147,7 +4149,7 @@ add_driver_options (void)
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option) \
   || defined (WINDOWSNT)
   load_gccjit_if_necessary (true);
-  if (!NILP (Fcomp_native_driver_options_available_p ()))
+  if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
       gcc_jit_context_add_driver_option (comp.ctxt,
 					 SSDATA (XCAR (options)));
@@ -5139,7 +5141,7 @@ native compiled one.  */);
 			     "configuration, please recompile"));
 
   defsubr (&Scomp_el_to_eln_filename);
-  defsubr (&Scomp_native_driver_options_available_p);
+  defsubr (&Scomp_native_driver_options_effective_p);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
