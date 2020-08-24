@@ -2244,8 +2244,15 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Shell Command..." dired-do-shell-command
 		  :help "Run a shell command on current or marked files"))
     (define-key map [menu-bar operate delete]
-      '(menu-item "Delete" dired-do-delete
-		  :help "Delete current file or all marked files"))
+      `(menu-item "Delete"
+                  ,(let ((menu (make-sparse-keymap "Delete")))
+                     (define-key menu [delete-flagged]
+                       '(menu-item "Delete Flagged Files" dired-do-flagged-delete
+                                   :help "Delete all files flagged for deletion (D)"))
+                     (define-key menu [delete-marked]
+                       '(menu-item "Delete Marked (Not Flagged) Files" dired-do-delete
+                                   :help "Delete current file or all marked files (excluding flagged files)"))
+                     menu)))
     (define-key map [menu-bar operate rename]
       '(menu-item "Rename to..." dired-do-rename
 		  :help "Rename current file or move marked files"))
