@@ -5659,7 +5659,8 @@ like `write-region' does."
 
 (defun file-backup-file-names (filename)
   "Return a list of backup files for FILENAME.
-The list will be sorted by newness."
+The list will be sorted by modification time so that the most
+recent files are first."
   ;; `make-backup-file-name' will get us the right directory for
   ;; ordinary or numeric backups.  It might create a directory for
   ;; backups as a side-effect, according to `backup-directory-alist'.

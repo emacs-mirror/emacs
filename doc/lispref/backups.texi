@@ -417,7 +417,8 @@ version that the caller should consider deleting now.
 @defun file-backup-file-names filename
 This function returns a list of all the backup file names for
 @var{filename}, or @code{nil} if there are none.  The files are sorted
-so that the most recent backup file comes first in the list.
+by modification time, descending, so that the most recent files are
+first.
 @end defun
 
 @defun file-newest-backup filename
