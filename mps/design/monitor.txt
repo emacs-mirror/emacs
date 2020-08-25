@@ -21,6 +21,8 @@ by collating the program's telemetry output.
 
 _`.readership`: This document is intended for any MPS user.
 
+_`.source`: This is based on [GDR_2018-06-27]_.
+
 
 Requirements
 ------------

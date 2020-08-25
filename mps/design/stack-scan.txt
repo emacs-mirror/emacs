@@ -32,7 +32,8 @@ design.mps.thread-manager.if.scan_.
 .. _design.mps.thread-manager.if.scan: thread-manager#.if.scan
 
 _`.origin`: This design was originally proposed in
-mail.richard.2012-08-03.14-36_.
+mail.richard.2012-08-03.14-36_. Calling conventions for supported
+platforms are documented in [Fog]_ and [x86_64_registers]_.
 
 .. _mail.richard.2012-08-03.14-36: https://info.ravenbrook.com/mail/2012/08/03/14-36-35/0/
 

@@ -24,6 +24,8 @@ ways the MPS detects corruption or the passing of illegal data is using
 *signatures*.  This simple technique has proved invaluable at catching
 defects early.
 
+This is based on [RB_1995-08-25]_.
+
 
 Overview
 --------
