@@ -3277,7 +3277,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 	  ptrdiff_t pt = max (PT - 1, BEG);
 
 	  SET_PT (pt);
-	  insert_string ("\n  (that binding is currently shadowed by another mode)");
+	  insert_string ("\n  (this binding is currently shadowed)");
 	  pt = min (PT + 1, Z);
 	  SET_PT (pt);
 	}
