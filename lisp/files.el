@@ -5575,7 +5575,7 @@ change the additional actions you can take on files."
                                             (regexp-quote
                                              (file-name-nondirectory
                                               buffer-file-name))
-                                            "<[0-9]+>\\'")
+                                            "<[^>]*>\\'")
                                     (buffer-name buffer)))
                                   ;; The buffer name is similar to the
                                   ;; file name.
