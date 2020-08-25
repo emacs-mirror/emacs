@@ -8,14 +8,14 @@ Implementing malloc and free
 ============================
 
 The MPS function :c:func:`mps_free` is unlike the Standard C Library
-function :c:func:`free` in that it takes a ``size`` argument. That's
-because it's nearly always the case that either the size of a block is
-known statically based on its type (for example, a structure), or else
-the size of the block is easily computed from information that needs
-to be stored anyway (for example, a vector), and so memory can be
-saved by not storing the size separately. It's also better for virtual
-memory performance, as a block does not have to be touched in order
-to free it.
+function :c:func:`free` in that it takes a :c:data:`size` argument.
+That's because it's nearly always the case that either the size of a
+block is known statically based on its type (for example, a
+structure), or else the size of the block is easily computed from
+information that needs to be stored anyway (for example, a vector),
+and so memory can be saved by not storing the size separately. It's
+also better for virtual memory performance, as a block does not have
+to be touched in order to free it.
 
 But sometimes you need to interact with :term:`foreign code` which
 requires :c:func:`malloc` and :c:func:`free` (or a pair of functions
@@ -52,9 +52,9 @@ block into its header, like this::
         }
     }
 
-The ``alignment`` member of ``union header_u`` ensures that
-allocations are aligned to the platform's :term:`natural alignment`
-(see :ref:`guide-lang-alignment`).
+The :c:member:`alignment` member of the :c:type:`header_u` union
+ensures that allocations are aligned to the platform's :term:`natural
+alignment` (see :ref:`guide-lang-alignment`).
 
 The pool needs to belong to a :term:`manually managed <manual memory
 management>` pool class, for example :ref:`pool-mvff` (or its

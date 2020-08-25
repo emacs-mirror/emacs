@@ -125,7 +125,7 @@ Similar difficulties can arise even when adapting code written for
 other garbage collectors. For example, here's the function
 |setarrayvector|_ from Lua_:
 
-.. |setarrayvector| replace:: ``setarrayvector()``
+.. |setarrayvector| replace:: :c:func:`setarrayvector`
 .. _setarrayvector: https://www.lua.org/source/5.2/ltable.c.html#setarrayvector
 .. _Lua: https://www.lua.org/
 

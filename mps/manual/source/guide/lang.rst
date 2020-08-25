@@ -49,9 +49,9 @@ This simple interpreter allocates two kinds of objects on the
 #. The global symbol table: a hash table consisting of a vector of
    pointers to strings.
 
-A Scheme object (whose type is not necessarily known) is represented by
-an ``obj_t``, which is a pointer to a union of every type in the
-language::
+A Scheme object (whose type is not necessarily known) is represented
+by an :c:type:`obj_t`, which is a pointer to a union of every type in
+the language::
 
     typedef union obj_u *obj_t;
     typedef union obj_u {
@@ -70,9 +70,9 @@ language::
     } obj_s;
 
 Each of these types is a structure whose first word is a number
-specifying the type of the object (``TYPE_PAIR`` for pairs,
-``TYPE_SYMBOL`` for symbols, and so on). For example, pairs are
-represented by a pointer to the structure ``pair_s`` defined as
+specifying the type of the object (:c:data:`TYPE_PAIR` for pairs,
+:c:data:`TYPE_SYMBOL` for symbols, and so on). For example, pairs are
+represented by a pointer to the structure :c:type:`pair_s` defined as
 follows::
 
     typedef struct pair_s {
@@ -82,8 +82,8 @@ follows::
 
 Because the first word of every object is its type, functions can
 operate on objects generically, testing ``TYPE(obj)`` as necessary
-(which is a macro for ``obj->type.type``). For example, the
-``print()`` function is implemented like this::
+(which is a macro for ``obj->type.type``). For example, the ``print``
+function is implemented like this::
 
     static void print(obj_t obj, unsigned depth, FILE *stream)
     {
@@ -101,7 +101,8 @@ operate on objects generically, testing ``TYPE(obj)`` as necessary
     }
 
 Each constructor allocates memory for the new object by calling
-``malloc``. For example, ``make_pair`` is the constructor for pairs::
+:c:func:`malloc`. For example, :c:func:`make_pair` is the constructor
+for pairs::
 
     static obj_t make_pair(obj_t car, obj_t cdr)
     {
@@ -192,11 +193,12 @@ some other value if it failed.
     The MPS is designed to co-operate with other memory managers, so
     when integrating your language with the MPS you need not feel
     obliged to move all your memory management to the MPS: you can
-    continue to use ``malloc`` and ``free`` to manage some of your
-    memory, for example, while using the MPS for the rest.
+    continue to use :c:func:`malloc` and :c:func:`free` to manage some
+    of your memory, for example, while using the MPS for the rest.
 
     The toy Scheme interpreter illustrates this by continuing to use
-    ``malloc`` and ``free`` to manage its global symbol table.
+    :c:func:`malloc` and :c:func:`free` to manage its global symbol
+    table.
 
 .. topics::
 
@@ -291,7 +293,7 @@ alignment is hard to do portably, because it depends on the target
 architecture and on the way the compiler lays out its structures in
 memory. Here are some things you might try:
 
-#. Some modern compilers support the ``alignof`` operator::
+#. Some modern compilers support the :c:func:`alignof` operator::
 
         #define ALIGNMENT alignof(obj_s)
 
@@ -378,15 +380,16 @@ Here's the scan method for the toy Scheme interpreter::
         return MPS_RES_OK;
     }
 
-The scan method receives a :term:`scan state` (``ss``) argument, and
-the block of memory to scan, from ``base`` (inclusive) to ``limit``
-(exclusive). This block of memory is known to be packed with objects
-belonging to the object format, and so the scan method loops over the
-objects in the block, dispatching on the type of each object, and then
-updating ``base`` to point to the next object in the block.
+The scan method receives a :term:`scan state` (:c:data:`ss`) argument,
+and the block of memory to scan, from :c:data:`base` (inclusive) to
+:c:data:`limit` (exclusive). This block of memory is known to be packed
+with objects belonging to the object format, and so the scan method
+loops over the objects in the block, dispatching on the type of each
+object, and then updating :c:data:`base` to point to the next object in the
+block.
 
-For each reference in an object ``obj_scan`` fixes it by calling
-:c:func:`MPS_FIX12` via the macro ``FIX``, which is defined as
+For each reference in an object :c:func:`obj_scan` fixes it by calling
+:c:func:`MPS_FIX12` via the macro :c:func:`FIX`, which is defined as
 follows::
 
     #define FIX(ref)                                                        \
@@ -467,10 +470,11 @@ Here's the skip method for the toy Scheme interpreter::
         return base;
     }
 
-The argument ``base`` is the address to the base of the object. The
-skip method must return the address of the base of the "next object":
-in formats of variant A like this one, this is the address just past
-the end of the object, rounded up to the object format's alignment.
+The argument :c:data:`base` is the address to the base of the object.
+The skip method must return the address of the base of the "next
+object": in formats of variant A like this one, this is the address
+just past the end of the object, rounded up to the object format's
+alignment.
 
 .. topics::
 
@@ -551,11 +555,12 @@ Here's the forward method for the toy Scheme interpreter::
         }
     }
 
-The argument ``old`` is the old address of the object, and ``new`` is
-the location to which it has been moved.
+The argument :c:data:`old` is the old address of the object, and
+:c:data:`new` is the location to which it has been moved.
 
 The forwarding objects must be scannable and skippable, so the
-following code must be added to ``obj_scan`` and ``obj_skip``::
+following code must be added to :c:func:`obj_scan` and
+:c:func:`obj_skip`::
 
     case TYPE_FWD:
         base = (char *)base + ALIGN_WORD(obj->fwd.size);
@@ -567,10 +572,11 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
 .. note::
 
     Objects that consist of a single word present a problem for the
-    design of the forwarding object. In the toy Scheme interpreter, this
-    happens on some 64-bit platforms, where a pointer is 8 bytes long,
-    and a ``character_s`` object (which consists of a 4-byte ``int``
-    and a 1-byte ``char``) is also 8 bytes long.
+    design of the forwarding object. In the toy Scheme interpreter,
+    this happens on some 64-bit platforms, where a pointer is 8 bytes
+    long, and a :c:type:`character_s` object (which consists of a
+    4-byte :c:type:`int` and a 1-byte :c:type:`char`) is also 8 bytes
+    long.
 
     There are a couple of solutions to this problem:
 
@@ -621,7 +627,7 @@ Here's the is-forwarded method for the toy Scheme interpreter::
     }
 
 It receives the address of an object, and returns the address to which
-that object was moved, or ``NULL`` if the object was not moved.
+that object was moved, or :c:macro:`NULL` if the object was not moved.
 
 .. topics::
 
@@ -679,10 +685,12 @@ Here's the padding method::
         }
     }
 
-The argument ``addr`` is the address at which the padding object must be created, and ``size`` is its size in bytes: this will always be a multiple of the alignment of the object format.
+The argument :c:data:`addr` is the address at which the padding object
+must be created, and :c:data:`size` is its size in bytes: this will
+always be a multiple of the alignment of the object format.
 
 The padding objects must be scannable and skippable, so the following
-code must be added to ``obj_scan`` and ``obj_skip``::
+code must be added to :c:func:`obj_scan` and :c:func:`obj_skip`::
 
     case TYPE_PAD:
         base = (char *)base + ALIGN_OBJ(obj->pad.size);
@@ -831,10 +839,10 @@ The fourth argument is the :term:`root mode`, which tells the MPS
 whether it is allowed to place a :term:`barrier (1)` on the root. The
 root mode ``0`` means that it is not allowed.
 
-The sixth and seventh arguments (here ``NULL`` and ``0``) are passed
-to the root scanning function where they are received as the
-parameters ``p`` and ``s`` respectively. In this case there was no
-need to use them.
+The sixth and seventh arguments (here :c:macro:`NULL` and ``0``) are
+passed to the root scanning function where they are received as the
+parameters :c:data:`p` and :c:data:`s` respectively. In this case
+there was no need to use them.
 
 What about the global symbol table? This is trickier, because it gets
 rehashed from time to time, and during the rehashing process there are
@@ -924,8 +932,8 @@ changes size::
           symbol table.
 
     2. The root might be scanned as soon as it is registered, so it is
-       important to fill it with scannable references (``NULL`` in
-       this case) before registering it.
+       important to fill it with scannable references (:c:macro:`NULL`
+       in this case) before registering it.
 
     3. The order of operations at the end is important: the old root
        must be de-registered before its memory is freed.
@@ -981,11 +989,11 @@ as a root by calling :c:func:`mps_root_create_thread`::
 
 In order to scan the control stack, the MPS needs to know where the
 :term:`cold end` of the stack is, and that's the role of the
-``marker`` variable: the compiler places it on the stack, so its
+:c:data:`marker` variable: the compiler places it on the stack, so its
 address is a position within the stack. As long as you don't exit from
 this function while the MPS is running, your program's active local
-variables will always be placed on the stack after ``marker``, and so
-will be scanned for references by the MPS.
+variables will always be placed on the stack after :c:data:`marker`,
+and so will be scanned for references by the MPS.
 
 .. topics::
 
@@ -1030,9 +1038,9 @@ management>` pools cannot, because of the following problem::
 Because the MPS is :term:`asynchronous <asynchronous garbage
 collector>`, it might scan any reachable object at any time, including
 immediately after the object has been allocated. In this case, if the
-MPS attempts to scan ``obj`` at the indicated point, the object's
-``type`` field will be uninitialized, and so the :term:`scan method`
-may abort.
+MPS attempts to scan :c:data:`obj` at the indicated point, the object's
+:c:member:`type` field will be uninitialized, and so the :term:`scan
+method` may abort.
 
 The MPS solves this problem via the fast, nearly lock-free
 :ref:`topic-allocation-point-protocol`. This needs an additional
@@ -1078,10 +1086,10 @@ However, there's a second problem::
 
         } while (!mps_commit(obj_ap, addr, size));
 
-Because ``obj`` is not yet committed, the MPS won't scan it, and that
-means that it won't discover that it contains references to ``car``
-and ``cdr``, and so won't update these references to point to their
-new locations.
+Because :c:data:`obj` is not yet committed, the MPS won't scan it, and
+that means that it won't discover that it contains references to
+:c:data:`car` and :c:data:`cdr`, and so won't update these references to
+point to their new locations.
 
 In such a circumstance (that is, when objects have moved since you
 called :c:func:`mps_reserve`), :c:func:`mps_commit` returns false, and

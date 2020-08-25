@@ -31,7 +31,7 @@ known as :term:`finalization`.
 Any block in an :term:`automatically managed <automatic memory
 management>` :term:`pool` can be registered for finalization by calling
 :c:func:`mps_finalize`. In the toy Scheme interpreter, this can be done
-in ``make_port``:
+in :c:func:`make_port`:
 
 .. code-block:: c
    :emphasize-lines: 18
@@ -142,8 +142,9 @@ releasing the resource (here, the Scheme function
 But this raises the possibility that a port will be closed twice: once
 via ``close-input-port`` and a second time via finalization. So it's
 necessary to make ports robust against being closed multiple times.
-The toy Scheme interpreter does so by setting ``stream`` to ``NULL``:
-this ensures that the file handle won't be closed more than once.
+The toy Scheme interpreter does so by setting :c:data:`stream` to
+:c:macro:`NULL`: this ensures that the file handle won't be closed
+more than once.
 
 .. code-block:: c
     :emphasize-lines: 6
@@ -342,7 +343,8 @@ function :c:func:`mps_ld_isstale` tells you if a block whose
 location you depended upon since the last call to
 :c:func:`mps_ld_reset` might have moved.
 
-In the toy Scheme interpreter this behaviour is encapsulated into ``table_find``:
+In the toy Scheme interpreter this behaviour is encapsulated into
+:c:func:`table_find`:
 
 .. code-block:: c
     :emphasize-lines: 7
@@ -362,33 +364,35 @@ In the toy Scheme interpreter this behaviour is encapsulated into ``table_find``
 
 It's important to test :c:func:`mps_ld_isstale` only in case of
 failure. The function may report a false positive (returning true
-despite the block not having moved). So if ``key`` has not moved, then
-if you tested :c:func:`mps_ld_isstale` first, it might return true and
-so you'd end up unnecessarily rehashing the whole table. (It's
-crucial, however, to actually test that ``key`` appears in the table,
-not just that some key with the same hash does.)
+despite the block not having moved). So if :c:data:`key` has not moved,
+then if you tested :c:func:`mps_ld_isstale` first, it might return
+true and so you'd end up unnecessarily rehashing the whole table.
+(It's crucial, however, to actually test that :c:data:`key` appears in
+the table, not just that some key with the same hash does.)
 
 When a table is rehashed, call :c:func:`mps_ld_reset` to clear the
-location dependency, and then :c:func:`mps_ld_add` for each key before it is added back to the table.
+location dependency, and then :c:func:`mps_ld_add` for each key before
+it is added back to the table.
 
 .. note::
 
     After :c:func:`mps_ld_isstale` has returned true, and after
-    rehashing the table, I don't just repeat the usual lookup by calling
-    ``buckets_find``. That's because the table might have become stale
-    again already.
+    rehashing the table, I don't just repeat the usual lookup by
+    calling :c:func:`buckets_find`. That's because the table might
+    have become stale again already.
 
-    Instead, ``table_rehash`` finds and returns the bucket containing
-    ``key``. (Since it has to loop over all the entries in the table
-    anyway, it might as well find this bucket too.)
+    Instead, :c:func:`table_rehash` finds and returns the bucket
+    containing :c:data:`key`. (Since it has to loop over all the
+    entries in the table anyway, it might as well find this bucket
+    too.)
 
 By adding the line::
 
     puts("stale!");
 
-in ``table_find`` after :c:func:`mps_ld_isstale` returns true, it's
-possible to see when the location dependency becomes stale and the
-table has to be rehashed:
+in :c:func:`table_find` after :c:func:`mps_ld_isstale` returns true,
+it's possible to see when the location dependency becomes stale and
+the table has to be rehashed:
 
 .. code-block:: none
     :emphasize-lines: 21, 23
@@ -660,10 +664,10 @@ code highlighted:
        that even if you are confident that you will always initialize
        this field, you still have to guard access to it, as here.
 
-    3. This hash table implementation uses ``NULL`` to mean "never
-       used" and ``obj_deleted`` to mean "formerly used but then
-       deleted". So when a key is splatted it is necessary to replace
-       it with ``obj_deleted``.
+    3. This hash table implementation uses :c:macro:`NULL` to mean
+       "never used" and :c:data:`obj_deleted` to mean "formerly used
+       but then deleted". So when a key is splatted it is necessary to
+       replace it with :c:data:`obj_deleted`.
 
 The :term:`skip method` is straightforward::
 
@@ -712,8 +716,8 @@ By adding the line::
 
     puts("splat!");
 
-at the point in ``buckets_scan`` where the splatting of a weak reference
-is detected, we can see this happening:
+at the point in :c:func:`buckets_scan` where the splatting of a weak
+reference is detected, we can see this happening:
 
 .. code-block:: none
 
@@ -781,7 +785,7 @@ Here's the new symbol structure::
         obj_t name;                   /* its name (a string) */
     } symbol_s;
 
-and the new implementation of ``intern``::
+and the new implementation of :c:func:`intern`::
 
     static obj_t intern_string(obj_t name)
     {
@@ -815,11 +819,11 @@ to be registered once (not :ref:`every time it is rehashed
 .. note::
 
      The order of operations is important here. The global variable
-     ``symtab`` must be registered as a root before creating the symbol
-     table, otherwise the symbol table might be collected in the
-     interval between creation and registration. But we must also ensure
-     that ``symtab`` is valid (that is, scannable) before registering it
-     (in this case, by setting it to ``NULL``).
+     :c:data:`symtab` must be registered as a root before creating the
+     symbol table, otherwise the symbol table might be collected in
+     the interval between creation and registration. But we must also
+     ensure that :c:data:`symtab` is valid (that is, scannable) before
+     registering it (in this case, by setting it to :c:macro:`NULL`).
 
 By printing ``splat!`` when the splatting of a weak reference is
 detected by the scan method, we can see when symbols are dying:
@@ -870,8 +874,9 @@ and its :term:`allocation point`::
     static mps_pool_t leaf_pool;    /* pool for leaf objects */
     static mps_ap_t leaf_ap;        /* allocation point for leaf objects */
 
-Second, the leaf objects must be allocated on ``leaf_ap`` instead of
-``obj_ap``. And third, the pool and its allocation point must be created::
+Second, the leaf objects must be allocated on :c:data:`leaf_ap` instead
+of :c:data:`obj_ap`. And third, the pool and its allocation point must
+be created::
 
     /* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to
        manage the leaf objects. */
