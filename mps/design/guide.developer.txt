@@ -19,6 +19,8 @@ Introduction
 _`.intro`: This is an introduction to the Memory Pool System (MPS) for
 new developers.
 
+_`.source`: This is based on [APT_2018-09-17]_.
+
 
 What to read first
 ------------------
@@ -52,7 +54,7 @@ References
 Document History
 ----------------
 
-2018-09-18  GDR_  Created based on [APT_2018-09-17]_.
+- 2018-09-18  GDR_  Created based on [APT_2018-09-17]_.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

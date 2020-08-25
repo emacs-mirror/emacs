@@ -20,6 +20,8 @@ Memory Pool System (MPS).
 
 _`.readership`: This document is intended for developers of the MPS.
 
+_`.source`: This is based on [job003975]_.
+
 
 Overview
 --------

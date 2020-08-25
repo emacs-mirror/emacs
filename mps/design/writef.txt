@@ -134,9 +134,9 @@ methods. At the moment it's a simple bit of code -- let's keep it that
 way.
 
 _`.function`: The ``F`` code is used for function pointers. The C
-standard defines conversion between pointer-to-function types
-(§6.3.2.3.8), but it does not define conversion between pointers to
-functions and pointers to data. To work around this, the bytes of
+standard [C1999c]_ defines conversion between pointer-to-function
+types (§6.3.2.3.8), but it does not define conversion between pointers
+to functions and pointers to data. To work around this, the bytes of
 their representation are written sequentially, and may have a
 different endianness to other pointer types. This output could be
 smarter, or even look up function names, but see `.snazzy`_. The
@@ -147,6 +147,16 @@ Options`_.
 
 .. _job004156: https://www.ravenbrook.com/project/mps/issue/job004156/
 .. _GCC Warning Options: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+
+
+
+References
+----------
+
+.. [C1999c]
+   International Standard ISO/IEC 9899:1999;
+   "Programming languages — C";
+   <http://www.open-std.org/jtc1/sc22/WG14/www/docs/n1256.pdf>
 
 
 Document History

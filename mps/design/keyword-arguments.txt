@@ -23,6 +23,8 @@ parameters.
 
 Starting with version 1.112, the MPS uses an idiom for keyword arguments.
 
+The keyword argument design was originally proposed in [RB_2012-05-24]_.
+
 
 Overview
 --------
