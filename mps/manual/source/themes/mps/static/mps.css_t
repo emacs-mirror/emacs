@@ -152,7 +152,7 @@ pre, tt, code, a.mpstag {
     font-size: 100%;
 }
 
-.note tt, .warning tt, tt {
+tt, code {
     background: transparent;
 }
 
@@ -218,6 +218,14 @@ div.body li>p:last-child {
 /* Don't space out the the table of contents. */
 li.toctree-l1, li.toctree-l2, li.toctree-l3 {
     padding-top: 0 !important;
+}
+
+/* Override background-color for code elements. */
+.sphinxsidebar code {
+    background-color: {{ theme_sidebarbgcolor }};
+}
+.note code, .admonition code {
+    background-color: {{ theme_codebgcolor }};
 }
 
 /* Format the glossary index in two columns. */
