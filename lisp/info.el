@@ -2309,7 +2309,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 	  (progn (beginning-of-line) (if (looking-at "^\\* ") (forward-char 2)))
 	(goto-char p)
 	(Info-restore-point Info-history))))
-  ;; If scroll-conservatively is non-zerop and less than 101, display
+  ;; If scroll-conservatively is non-zero and less than 101, display
   ;; as much of the superior node above the target line as possible.
   (when (< 0 scroll-conservatively 101)
     (recenter)))
