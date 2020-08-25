@@ -3071,9 +3071,17 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
     o1))
 
 (defun remove-overlays (&optional beg end name val)
-  "Clear BEG and END of overlays whose property NAME has value VAL.
-Overlays might be moved and/or split.
-BEG and END default respectively to the beginning and end of buffer."
+  "Remove overlays between BEG and END that have property NAME with value VAL.
+Overlays might be moved and/or split.  If any targeted overlays
+start before BEG, the overlays will be altered so that they end
+at BEG.  Likewise, if the targeted overlays end after END, they
+will be altered so that they start at END.  Overlays that start
+at or after BEG and end before END will be removed completely.
+
+BEG and END default respectively to the beginning and end of the
+buffer.
+Values are compared with `eq'.
+If either NAME or VAL are specified, both should be specified."
   ;; This speeds up the loops over overlays.
   (unless beg (setq beg (point-min)))
   (unless end (setq end (point-max)))
