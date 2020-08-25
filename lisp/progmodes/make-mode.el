@@ -316,7 +316,7 @@ not be enclosed in { } or ( )."
 (defconst makefile-gmake-statements
   `("-sinclude" "sinclude"		; makefile-makepp-statements takes rest
     "ifdef" "ifndef" "ifeq" "ifneq" "-include" "define" "endef" "export"
-    "override define" "override" "unexport" "vpath"
+    "override define" "override" "unexport" "vpath" "undefine"
     ,@(cdr makefile-automake-statements))
   "List of keywords understood by gmake.")
 
