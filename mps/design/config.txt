@@ -583,9 +583,6 @@ References
    Brooksby; Ravenbrook Limited; 2013-09-13;
    <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>.
 
-.. [PP_2005-03-01] "MPS platforms"; Pekka Pirinen; Global Graphics;
-   2005-03-01; <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/>.
-
 
 Document History
 ----------------
