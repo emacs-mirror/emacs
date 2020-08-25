@@ -5566,10 +5566,28 @@ change the additional actions you can take on files."
                             t
                           (setq queried t)
                           (if (buffer-file-name buffer)
-                              (format "Save file %s? "
-                                      (buffer-file-name buffer))
-                            (format "Save buffer %s? "
-                                    (buffer-name buffer))))))
+                              (if (or
+                                   (equal (buffer-name buffer)
+                                          (file-name-nondirectory
+                                           (buffer-file-name buffer)))
+                                   (string-match
+                                    (concat "\\<"
+                                            (regexp-quote
+                                             (file-name-nondirectory
+                                              buffer-file-name))
+                                            "<[0-9]+>\\'")
+                                    (buffer-name buffer)))
+                                  ;; The buffer name is similar to the
+                                  ;; file name.
+                                  (format "Save file %s? "
+                                          (buffer-file-name buffer))
+                                ;; The buffer and file names are
+                                ;; dissimilar; display both.
+                                (format "Save file %s (buffer %s)? "
+                                        (buffer-file-name buffer)
+                                        (buffer-name buffer)))
+                            ;; No file name
+                            (format "Save buffer %s? " (buffer-name buffer))))))
                  (lambda (buffer)
                    (with-current-buffer buffer
                      (save-buffer)))
