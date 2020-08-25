@@ -228,6 +228,12 @@ li.toctree-l1, li.toctree-l2, li.toctree-l3 {
     background-color: {{ theme_codebgcolor }};
 }
 
+/* Margin before and after table. */
+table.docutils {
+    margin-topic: 1.1ex;
+    margin-bottom: 1.1ex;
+}
+
 /* Format the glossary index in two columns. */
 
 div#memory-management-glossary div#all {
