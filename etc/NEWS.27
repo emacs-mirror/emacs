@@ -24,7 +24,6 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 27.1
 
----
 ** Emacs now uses GMP, the GNU Multiple Precision library.
 By default, if 'configure' does not find a suitable libgmp, it
 arranges for the included mini-gmp library to be built and used.
@@ -58,7 +57,6 @@ that building with Cairo enabled results in using Pango instead of
 libXft for font support, and that Pango 1.44 has removed support for
 bitmapped fonts.
 
-+++
 ** Emacs now uses a "portable dumper" instead of unexec.
 This improves compatibility with memory allocation on modern systems,
 and in particular better supports the Address Space Layout

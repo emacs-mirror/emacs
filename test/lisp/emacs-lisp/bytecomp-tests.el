@@ -354,10 +354,18 @@
             '((a c) (b c) (7 c) (-3 c) (nil nil) (t c) (q c) (r c) (s c)
               (t c) (x "a") (x "c") (x c) (x d) (x e)))
 
-    ;; `substring' bytecode generation (bug#39709).
-    (substring "abcdef")
-    (substring "abcdef" 2)
-    (substring "abcdef" 3 2))
+    (mapcar (lambda (x) (cond ((member '(a . b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a . b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((memq '(a . b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a . b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((member '(a b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((memq '(a b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a b)) a b (c) (d))))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")
