@@ -60,8 +60,8 @@ Requirements
 
 _`.req.source`: Derived from [RB_2013-05-09]_.
 
-_`.req.easy`: It must be easy to read and write documentation must
-using standard text editors. Barriers to documentation must be low.
+_`.req.easy`: It must be easy to read and write documentation using
+standard text editors. Barriers to documentation must be low.
 
 _`.req.presentation`: It must be possible to process documentation
 into presentation formats, for example web pages.
@@ -179,11 +179,11 @@ and should contain a comma-separated, alphabetically ordered, list of
 ``:term:`` roles referring to glossary entries with similar meaning to
 the entry but which are not synonyms for it (`.ext.aka`_).
 
-_`.ext.specific`: The ``mps:specific`` directive an "In the MPS"
-section. This should be used in a glossary entry, and should contain
-an explanation of how the glossary entry pertains to the MPS. If the
-term is idiosyncratic to the MPS, for example "spare committed memory"
-then the entire glossary entry should consist of a single
+_`.ext.specific`: The ``mps:specific`` directive generates an "In the
+MPS" section. This should be used in a glossary entry, and should
+contain an explanation of how the glossary entry pertains to the MPS.
+If the term is idiosyncratic to the MPS, for example "spare committed
+memory" then the entire glossary entry should consist of a single
 ``mps:specific`` directive to make it clear that the term is not in
 general use.
 
@@ -222,7 +222,7 @@ for example::
 
 is translated into a ``:c:func:`` role::
 
-    This saves a separate call to :c:func:`LandDelete()`, and uses the
+    This saves a separate call to :c:func:`LandDelete`, and uses the
     knowledge of exactly where we found the range.
 
 _`.fmt.type-ref`: The name of an MPS type formatted as code, for
