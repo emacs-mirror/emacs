@@ -1315,7 +1315,7 @@ ones, in case fg and bg are nil."
 				  t))
 	(when bg
 	  (add-face-text-property start end
-				  (list :background (car new-colors))
+				  (list :background (car new-colors) :extend t)
 				  t)))
       new-colors)))
 
@@ -2250,7 +2250,7 @@ flags that control whether to collect or render objects."
                           (not background))
                  (setq background (cadr elem))))
              (and background
-                  (list :background background))))))
+                  (list :background background :extend t))))))
 
 (defun shr-expand-alignments (start end)
   (while (< (setq start (next-single-property-change
