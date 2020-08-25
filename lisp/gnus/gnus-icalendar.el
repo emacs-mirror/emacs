@@ -148,7 +148,7 @@
                        ("TH" . 4)
                        ("FR" . 5)
                        ("SA" . 6))))
-    (when (string-match "BYDAY=\\([^;]+\\)" rrule)
+    (when (and rrule (string-match "BYDAY=\\([^;]+\\)" rrule))
       (let ((bydays (split-string (match-string 1 rrule) ",")))
         (seq-map
          (lambda (x) (cdr (assoc x weekday-map)))
