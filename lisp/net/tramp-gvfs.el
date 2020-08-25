@@ -121,7 +121,10 @@
 	 (autoload 'zeroconf-init "zeroconf")
 	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
-	 (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
+	 (or ;; Until Emacs 25, `process-attributes' could crash Emacs
+	     ;; for some processes.  Better we don't check.
+	     (<= emacs-major-version 25)
+	     (tramp-compat-process-running-p "gvfs-fuse-daemon")
 	     (tramp-compat-process-running-p "gvfsd-fuse"))))
   "Non-nil when GVFS is available.")
 
@@ -728,6 +731,10 @@ is no information where to trace the message.")
     (tramp-error tramp-gvfs-dbus-event-vector 'file-error "%s" (cadr err))))
 
 (add-hook 'dbus-event-error-functions #'tramp-gvfs-dbus-event-error)
+(add-hook
+ 'tramp-gvfs-unload-hook
+ (lambda ()
+   (remove-hook 'dbus-event-error-functions #'tramp-gvfs-dbus-event-error)))
 
 
 ;; File name primitives.
@@ -1301,10 +1308,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   (size (cdr (assoc "filesystem::size" attr)))
 	   (used (cdr (assoc "filesystem::used" attr)))
 	   (free (cdr (assoc "filesystem::free" attr))))
-      (when (and (stringp size) (stringp used) (stringp free))
-	(list (string-to-number size)
-	      (- (string-to-number size) (string-to-number used))
-	      (string-to-number free))))))
+      (when (or size used free)
+	(list (string-to-number (or size "0"))
+	      (string-to-number (or free "0"))
+	      (- (string-to-number (or size "0"))
+		 (string-to-number (or used "0"))))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -1341,7 +1349,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-run-real-handler
      #'rename-file (list filename newname ok-if-already-exists))))
 
-(defun tramp-gvfs-handle-set-file-modes (filename mode)
+(defun tramp-gvfs-handle-set-file-modes (filename mode &optional _flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -1350,7 +1358,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
      (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
      "unix::mode" (number-to-string mode))))
 
-(defun tramp-gvfs-handle-set-file-times (filename &optional time)
+(defun tramp-gvfs-handle-set-file-times (filename &optional time _flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)

@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.3
+;; Version: 2.4.5-pre
 ;; Package-Requires: ((emacs "24.4"))
 ;; Package-Type: multi
 ;; URL: https://savannah.gnu.org/projects/tramp
@@ -37,7 +37,7 @@
 ;; For more detailed instructions, please see the info file.
 ;;
 ;; Notes:
-;; -----
+;; ------
 ;;
 ;; Also see the todo list at the bottom of this file.
 ;;
@@ -46,6 +46,7 @@
 ;;
 ;; There's a mailing list for this, as well.  Its name is:
 ;;            tramp-devel@gnu.org
+
 ;; You can use the Web to subscribe, under the following URL:
 ;;            https://lists.gnu.org/mailman/listinfo/tramp-devel
 ;;
@@ -1347,6 +1348,11 @@ of `process-file', `start-file-process', or `shell-command'."
            (match-string (nth 4 tramp-file-name-structure) name))
       (tramp-compat-file-local-name name)))
 
+;; The localname can be quoted with "/:".  Extract this.
+(defun tramp-unquote-file-local-name (name)
+  "Return unquoted localname of NAME."
+  (tramp-compat-file-name-unquote (tramp-file-local-name name)))
+
 (defun tramp-find-method (method user host)
   "Return the right method string to use depending on USER and HOST.
 This is METHOD, if non-nil.  Otherwise, do a lookup in
@@ -1592,7 +1598,7 @@ necessary only.  This function will be used in file name completion."
 		  tramp-prefix-ipv6-format host tramp-postfix-ipv6-format)
 	       host)
 	     tramp-postfix-host-format))
-	  (when localname localname)))
+	  localname))
 
 (defun tramp-get-buffer (vec &optional dont-create)
   "Get the connection buffer to be used for VEC.
@@ -1648,7 +1654,7 @@ version, the function does nothing."
   "Set connection-local variables in the current buffer.
 If connection-local variables are not supported by this Emacs
 version, the function does nothing."
-  (when (file-remote-p default-directory)
+  (when (tramp-tramp-file-p default-directory)
     ;; `hack-connection-local-variables-apply' exists since Emacs 26.1.
     (tramp-compat-funcall
      'hack-connection-local-variables-apply
@@ -2864,7 +2870,7 @@ User is always nil."
   (let ((default-directory (tramp-compat-temporary-file-directory)))
     (when (file-readable-p filename)
       (with-temp-buffer
-	(insert-file-contents filename)
+	(insert-file-contents-literally filename)
 	(goto-char (point-min))
         (cl-loop while (not (eobp)) collect (funcall function))))))
 
@@ -3199,7 +3205,7 @@ User is always nil."
       (copy-file filename tmpfile 'ok-if-already-exists 'keep-time)
       tmpfile)))
 
-(defun tramp-handle-file-modes (filename)
+(defun tramp-handle-file-modes (filename &optional _flag)
   "Like `file-modes' for Tramp files."
   ;; Starting with Emacs 25.1, `when-let' can be used.
   (let ((attrs (file-attributes (or (file-truename filename) filename))))
@@ -3247,7 +3253,7 @@ User is always nil."
 		  ;; lower case letters.  This avoids us to create a
 		  ;; temporary file.
 		  (while (and (string-match-p
-			       "[a-z]" (tramp-compat-file-local-name candidate))
+			       "[a-z]" (tramp-file-local-name candidate))
 			      (not (file-exists-p candidate)))
 		    (setq candidate
 			  (directory-file-name
@@ -3257,8 +3263,7 @@ User is always nil."
 		  ;; to Emacs 26+ like `file-name-case-insensitive-p',
 		  ;; so there is no compatibility problem calling it.
 		  (unless
-		      (string-match-p
-		       "[a-z]" (tramp-compat-file-local-name candidate))
+		      (string-match-p "[a-z]" (tramp-file-local-name candidate))
 		    (setq tmpfile
 			  (let ((default-directory
 				  (file-name-directory filename)))
@@ -3271,7 +3276,7 @@ User is always nil."
 		      (file-exists-p
 		       (concat
 			(file-remote-p candidate)
-			(upcase (tramp-compat-file-local-name candidate))))
+			(upcase (tramp-file-local-name candidate))))
 		    ;; Cleanup.
 		    (when tmpfile (delete-file tmpfile)))))))))))
 
@@ -3413,7 +3418,7 @@ User is always nil."
 	       (tramp-error
 		v1 'file-error
 		"Maximum number (%d) of symlinks exceeded" numchase-limit)))
-	   (tramp-compat-file-local-name (directory-file-name result)))))))))
+	   (tramp-file-local-name (directory-file-name result)))))))))
 
 (defun tramp-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -3645,10 +3650,16 @@ support symbolic links."
   (let* ((asynchronous (string-match-p "[ \t]*&[ \t]*\\'" command))
 	 (command (substring command 0 asynchronous))
 	 current-buffer-p
+	 (output-buffer-p output-buffer)
 	 (output-buffer
 	  (cond
-	   ((bufferp output-buffer) output-buffer)
-	   ((stringp output-buffer) (get-buffer-create output-buffer))
+	   ((bufferp output-buffer)
+	    (setq current-buffer-p (eq (current-buffer) output-buffer))
+	    output-buffer)
+	   ((stringp output-buffer)
+	    (setq current-buffer-p
+		  (eq (buffer-name (current-buffer)) output-buffer))
+	    (get-buffer-create output-buffer))
 	   (output-buffer
 	    (setq current-buffer-p t)
 	    (current-buffer))
@@ -3660,13 +3671,19 @@ support symbolic links."
 	  (cond
 	   ((bufferp error-buffer) error-buffer)
 	   ((stringp error-buffer) (get-buffer-create error-buffer))))
+	 (error-file
+	  (and error-buffer
+	       (with-parsed-tramp-file-name default-directory nil
+		 (tramp-make-tramp-file-name
+		  v (tramp-make-tramp-temp-file v)))))
 	 (bname (buffer-name output-buffer))
 	 (p (get-buffer-process output-buffer))
+	 (dir default-directory)
 	 buffer)
 
     ;; The following code is taken from `shell-command', slightly
     ;; adapted.  Shouldn't it be factored out?
-    (when p
+    (when (and (integerp asynchronous) p)
       (cond
        ((eq async-shell-command-buffer 'confirm-kill-process)
 	;; If will kill a process, query first.
@@ -3698,22 +3715,25 @@ support symbolic links."
 	  (rename-uniquely))
         (setq output-buffer (get-buffer-create bname)))))
 
-    (setq buffer (if (and (not asynchronous) error-buffer)
-		     (with-parsed-tramp-file-name default-directory nil
-		       (list output-buffer
-			     (tramp-make-tramp-file-name
-			      v (tramp-make-tramp-temp-file v))))
-		   output-buffer))
-
-    (if current-buffer-p
-	(progn
-	  (barf-if-buffer-read-only)
-	  (push-mark nil t))
+    (unless output-buffer-p
       (with-current-buffer output-buffer
+	(setq default-directory dir)))
+
+    (setq buffer (if error-file (list output-buffer error-file) output-buffer))
+
+    (with-current-buffer output-buffer
+      (when current-buffer-p
+	(barf-if-buffer-read-only)
+	(push-mark nil t))
+      ;; `shell-command-save-pos-or-erase' has been introduced with
+      ;; Emacs 27.1.
+      (if (fboundp 'shell-command-save-pos-or-erase)
+	  (tramp-compat-funcall
+	   'shell-command-save-pos-or-erase current-buffer-p)
 	(setq buffer-read-only nil)
 	(erase-buffer)))
 
-    (if (and (not current-buffer-p) (integerp asynchronous))
+    (if (integerp asynchronous)
 	(let ((tramp-remote-process-environment
 	       ;; `async-shell-command-width' has been introduced with
 	       ;; Emacs 27.1.
@@ -3726,42 +3746,68 @@ support symbolic links."
 	      ;; Run the process.
 	      (setq p (start-file-process-shell-command
 		       (buffer-name output-buffer) buffer command))
-	    ;; Display output.
-	    (with-current-buffer output-buffer
-	      (display-buffer output-buffer '(nil (allow-no-window . t)))
-	      (setq mode-line-process '(":%s"))
-	      (shell-mode)
-	      (set-process-sentinel p #'shell-command-sentinel)
-	      (set-process-filter p #'comint-output-filter))))
+	    ;; Insert error messages if they were separated.
+	    (when error-file
+	      (with-current-buffer error-buffer
+		(insert-file-contents-literally error-file)))
+	    (if (process-live-p p)
+	      ;; Display output.
+	      (with-current-buffer output-buffer
+		(setq mode-line-process '(":%s"))
+		(unless (eq major-mode 'shell-mode)
+		  (shell-mode))
+		(set-process-filter p #'comint-output-filter)
+		(set-process-sentinel p #'shell-command-sentinel)
+		(when error-file
+		  (add-function
+		   :after (process-sentinel p)
+		   (lambda (_proc _string)
+		     (with-current-buffer error-buffer
+		       (insert-file-contents-literally
+			error-file nil nil nil 'replace))
+		     (delete-file error-file))))
+		(display-buffer output-buffer '(nil (allow-no-window . t))))
+
+	      (when error-file
+		(delete-file error-file)))))
 
       (prog1
 	  ;; Run the process.
 	  (process-file-shell-command command nil buffer nil)
 	;; Insert error messages if they were separated.
-	(when (listp buffer)
+	(when error-file
 	  (with-current-buffer error-buffer
-	    (insert-file-contents (cadr buffer)))
-	  (delete-file (cadr buffer)))
+	    (insert-file-contents-literally error-file))
+	  (delete-file error-file))
 	(if current-buffer-p
 	    ;; This is like exchange-point-and-mark, but doesn't
 	    ;; activate the mark.  It is cleaner to avoid activation,
 	    ;; even though the command loop would deactivate the mark
 	    ;; because we inserted text.
-	    (goto-char (prog1 (mark t)
-			 (set-marker (mark-marker) (point)
-				     (current-buffer))))
+	    (progn
+	      (goto-char (prog1 (mark t)
+			   (set-marker (mark-marker) (point)
+				       (current-buffer))))
+              ;; `shell-command-set-point-after-cmd' has been
+	      ;; introduced with Emacs 27.1.
+	      (if (fboundp 'shell-command-set-point-after-cmd)
+		  (tramp-compat-funcall
+		   'shell-command-set-point-after-cmd)))
 	  ;; There's some output, display it.
 	  (when (with-current-buffer output-buffer (> (point-max) (point-min)))
 	    (display-message-or-buffer output-buffer)))))))
 
 (defun tramp-handle-start-file-process (name buffer program &rest args)
-  "Like `start-file-process' for Tramp files."
+  "Like `start-file-process' for Tramp files.
+BUFFER might be a list, in this case STDERR is separated."
   ;; `make-process' knows the `:file-handler' argument since Emacs 27.1 only.
   (tramp-file-name-handler
    'make-process
    :name name
-   :buffer buffer
+   :buffer (if (consp buffer) (car buffer) buffer)
    :command (and program (cons program args))
+   ;; `shell-command' adds an errfile to `buffer'.
+   :stderr (when (consp buffer) (cadr buffer))
    :noquery nil
    :file-handler t))
 
@@ -4044,6 +4090,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 (defun tramp-action-process-alive (proc _vec)
   "Check, whether a process has finished."
   (unless (process-live-p proc)
+    ;; There might be pending output.
+    (while (tramp-accept-process-output proc 0))
     (throw 'tramp-action 'process-died)))
 
 (defun tramp-action-out-of-band (proc vec)
@@ -4362,7 +4410,7 @@ would yield t.  On the other hand, the following check results in nil:
   (tramp-equal-remote \"/sudo::/etc\" \"/su::/etc\")
 
 If both files are local, the function returns t."
-  (or (and (null (file-remote-p file1)) (null (file-remote-p file2)))
+  (or (and (null (tramp-tramp-file-p file1)) (null (tramp-tramp-file-p file2)))
       (and (tramp-tramp-file-p file1) (tramp-tramp-file-p file2)
 	   (string-equal (file-remote-p file1) (file-remote-p file2)))))
 
@@ -4632,7 +4680,7 @@ This handles also chrooted environments, which are not regarded as local."
 	   (tramp-make-tramp-file-name
 	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
       (or (and (file-directory-p dir) (file-writable-p dir)
-	       (tramp-compat-file-local-name dir))
+	       (tramp-file-local-name dir))
 	  (tramp-error vec 'file-error "Directory %s not accessible" dir))
       dir)))
 
@@ -4655,7 +4703,7 @@ Return the local name of the temporary file."
 	(set-file-modes result #o0700)))
 
     ;; Return the local part.
-    (with-parsed-tramp-file-name result nil localname)))
+    (tramp-file-local-name result)))
 
 (defun tramp-delete-temp-file-function ()
   "Remove temporary files related to current buffer."
@@ -4682,7 +4730,7 @@ this file, if that variable is non-nil."
 
   (let ((system-type
 	 (if (and (stringp tramp-auto-save-directory)
-		  (file-remote-p tramp-auto-save-directory))
+		  (tramp-tramp-file-p tramp-auto-save-directory))
 	     'not-windows
 	   system-type))
 	(auto-save-file-name-transforms
@@ -4824,7 +4872,12 @@ verbosity of 6."
   "Read a password from user (compat function).
 Consults the auth-source package.
 Invokes `password-read' if available, `read-passwd' else."
-  (let* ((case-fold-search t)
+  (let* (;; If `auth-sources' contains "~/.authinfo.gpg", and
+	 ;; `exec-path' contains a relative file name like ".", it
+	 ;; could happen that the "gpg" command is not found.  So we
+	 ;; adapt `default-directory'.  (Bug#39389, Bug#39489)
+	 (default-directory (tramp-compat-temporary-file-directory))
+	 (case-fold-search t)
 	 (key (tramp-make-tramp-file-name
 	       ;; In tramp-sh.el, we must use "password-vector" due to
 	       ;; multi-hop.
@@ -4976,10 +5029,12 @@ name of a process or buffer, or nil to default to the current buffer."
 	  (tramp-error proc 'error "Process %s is not active" proc)
 	(tramp-message proc 5 "Interrupt process %s with pid %s" proc pid)
 	;; This is for tramp-sh.el.  Other backends do not support this (yet).
+	;; Not all "kill" implementations support process groups by
+	;; negative pid, so we try both variants.
 	(tramp-compat-funcall
 	 'tramp-send-command
 	 (process-get proc 'vector)
-	 (format "kill -2 -%d" pid))
+	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>/dev/null" pid pid))
 	;; Wait, until the process has disappeared.  If it doesn't,
 	;; fall back to the default implementation.
         (while (tramp-accept-process-output proc 0))

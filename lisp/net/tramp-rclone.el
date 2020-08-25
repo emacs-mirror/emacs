@@ -478,7 +478,18 @@ file names."
 	   (with-tramp-connection-property
 	       (tramp-get-connection-process vec) "rclone-pid"
 	     (catch 'pid
-	       (dolist (pid (list-system-processes)) ;; "pidof rclone" ?
+	       (dolist
+		   (pid
+		    ;; Until Emacs 25, `process-attributes' could
+		    ;; crash Emacs for some processes.  So we use
+		    ;; "pidof", which might not work everywhere.
+		    (if (<= emacs-major-version 25)
+			(let ((default-directory temporary-file-directory))
+			  (mapcar
+			   #'string-to-number
+			   (split-string
+			    (shell-command-to-string "pidof rclone"))))
+		      (list-system-processes)))
 		 (and (string-match-p
 		       (regexp-quote
 			(format "rclone mount %s:" (tramp-file-name-host vec)))
@@ -564,7 +575,7 @@ connection if a previous connection has died for some reason."
 		 ,(tramp-rclone-mount-point vec)
 		 ;; This could be nil.
 		 ,(tramp-get-method-parameter vec 'tramp-mount-args))))
-	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'localname)))
+	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
 	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
 
 	;; Mark it as connected.

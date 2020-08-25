@@ -75,11 +75,22 @@
 
 ;;;###tramp-autoload
 (defcustom tramp-smb-conf "/dev/null"
-  "Path of the smb.conf file.
-If it is nil, no smb.conf will be added to the `tramp-smb-program'
+  "Path of the \"smb.conf\" file.
+If it is nil, no \"smb.conf\" will be added to the `tramp-smb-program'
 call, letting the SMB client use the default one."
   :group 'tramp
   :type '(choice (const nil) (file :must-match t)))
+
+;;;###tramp-autoload
+(defcustom tramp-smb-options nil
+  "List of additional options.
+They are added to the `tramp-smb-program' call via \"--option '...'\".
+
+For example, if the deprecated SMB1 protocol shall be used, add to
+this variable (\"client min protocol=NT1\") ."
+  :group 'tramp
+  :type '(repeat string)
+  :version "27.2")
 
 (defvar tramp-smb-version nil
   "Version string of the SMB client.")
@@ -135,6 +146,7 @@ call, letting the SMB client use the default one."
 	 "NT_STATUS_HOST_UNREACHABLE"
 	 "NT_STATUS_IMAGE_ALREADY_LOADED"
 	 "NT_STATUS_INVALID_LEVEL"
+	 "NT_STATUS_INVALID_PARAMETER"
 	 "NT_STATUS_INVALID_PARAMETER_MIX"
 	 "NT_STATUS_IO_TIMEOUT"
 	 "NT_STATUS_LOGON_FAILURE"
@@ -461,7 +473,8 @@ pass to the OPERATION."
 			       (expand-file-name
 				tramp-temp-name-prefix
 				(tramp-compat-temporary-file-directory))))
-		   (args      (list (concat "//" host "/" share) "-E")))
+		   (args      (list (concat "//" host "/" share) "-E"))
+		   (options   tramp-smb-options))
 
 	      (if (not (zerop (length user)))
 		  (setq args (append args (list "-U" user)))
@@ -471,6 +484,10 @@ pass to the OPERATION."
 	      (when port   (setq args (append args (list "-p" port))))
 	      (when tramp-smb-conf
 		(setq args (append args (list "-s" tramp-smb-conf))))
+	      (while options
+		(setq args
+		      (append args `("--option" ,(format "%s" (car options))))
+		      options (cdr options)))
 	      (setq args
 		    (if t1
 			;; Source is remote.
@@ -760,7 +777,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (let* ((share     (tramp-smb-get-share v))
 		 (localname (replace-regexp-in-string
 			     "\\\\" "/" (tramp-smb-get-localname v)))
-		 (args      (list (concat "//" host "/" share) "-E")))
+		 (args      (list (concat "//" host "/" share) "-E"))
+		 (options   tramp-smb-options))
 
 	    (if (not (zerop (length user)))
 		(setq args (append args (list "-U" user)))
@@ -770,6 +788,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (when port   (setq args (append args (list "-p" port))))
 	    (when tramp-smb-conf
 	      (setq args (append args (list "-s" tramp-smb-conf))))
+	    (while options
+	      (setq args
+		    (append args `("--option" ,(format "%s" (car options))))
+		    options (cdr options)))
 	    (setq
 	     args
 	     (append args (list (tramp-unquote-shell-quote-argument localname)
@@ -1188,9 +1210,7 @@ component is used as the target of the symlink."
       (let ((non-essential t))
 	(when (and (tramp-tramp-file-p target)
 		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target
-		(tramp-file-name-localname
-		 (tramp-dissect-file-name (expand-file-name target))))))
+	  (setq target (tramp-file-local-name (expand-file-name target)))))
 
       ;; If TARGET is still remote, quote it.
       (if (tramp-tramp-file-p target)
@@ -1244,7 +1264,7 @@ component is used as the target of the symlink."
 	(setq infile (expand-file-name infile))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (with-parsed-tramp-file-name infile nil localname))
+	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input))
@@ -1414,7 +1434,8 @@ component is used as the target of the symlink."
 			   "\\\\" "/" (tramp-smb-get-localname v)))
 	       (args      (list (concat "//" host "/" share) "-E" "-S"
 				(replace-regexp-in-string
-				 "\n" "," acl-string))))
+				 "\n" "," acl-string)))
+	       (options   tramp-smb-options))
 
 	  (if (not (zerop (length user)))
 	      (setq args (append args (list "-U" user)))
@@ -1424,6 +1445,10 @@ component is used as the target of the symlink."
 	  (when port   (setq args (append args (list "-p" port))))
 	  (when tramp-smb-conf
 	    (setq args (append args (list "-s" tramp-smb-conf))))
+	  (while options
+	    (setq args
+		  (append args `("--option" ,(format "%s" (car options))))
+		  options (cdr options)))
 	  (setq
 	   args
 	   (append args (list (tramp-unquote-shell-quote-argument localname)
@@ -1468,7 +1493,7 @@ component is used as the target of the symlink."
 	    (tramp-flush-connection-property v "process-name")
 	    (tramp-flush-connection-property v "process-buffer")))))))
 
-(defun tramp-smb-handle-set-file-modes (filename mode)
+(defun tramp-smb-handle-set-file-modes (filename mode &optional _flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (when (tramp-smb-get-cifs-capabilities v)
@@ -1557,9 +1582,6 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    ;; We must also flush the cache of the directory, because
-    ;; `file-attributes' reads the values from there.
-    (tramp-flush-file-properties v localname)
     (let ((curbuf (current-buffer))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
       (when (and append (file-exists-p filename))
@@ -1578,6 +1600,10 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 			       tmpfile (tramp-smb-get-localname v)))
 	      (tramp-error v 'file-error "Cannot write `%s'" filename))
 	  (delete-file tmpfile)))
+
+      ;; We must also flush the cache of the directory, because
+      ;; `file-attributes' reads the values from there.
+      (tramp-flush-file-properties v localname)
 
       (unless (equal curbuf (current-buffer))
 	(tramp-error
@@ -1949,6 +1975,7 @@ If ARGUMENT is non-nil, use it as argument for
 	       (host   (tramp-file-name-host vec))
 	       (domain (tramp-file-name-domain vec))
 	       (port   (tramp-file-name-port vec))
+	       (options tramp-smb-options)
 	       args)
 
 	  (cond
@@ -1967,6 +1994,10 @@ If ARGUMENT is non-nil, use it as argument for
 	  (when port   (setq args (append args (list "-p" port))))
 	  (when tramp-smb-conf
 	    (setq args (append args (list "-s" tramp-smb-conf))))
+	  (while options
+	    (setq args
+		  (append args `("--option" ,(format "%s" (car options))))
+		  options (cdr options)))
 	  (when argument
 	    (setq args (append args (list argument))))
 
@@ -2132,7 +2163,5 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 ;;
 ;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
-;;
-;; * Ignore case in file names.
 
 ;;; tramp-smb.el ends here

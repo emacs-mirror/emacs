@@ -358,7 +358,7 @@ The remote connection identified by SOURCE is flushed by
 
   ;; Append local file name if none is specified.
   (when (string-equal (file-remote-p target) target)
-    (setq target (concat target (file-remote-p source 'localname))))
+    (setq target (concat target (tramp-file-local-name source))))
   ;; Make them directory names.
   (setq source (directory-file-name source)
 	target (directory-file-name target))
