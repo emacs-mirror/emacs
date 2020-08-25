@@ -538,7 +538,7 @@ it_char_has_category(struct it *it, int cat)
 static bool
 char_can_wrap_before (struct it *it)
 {
-  if (!Vword_wrap_by_category)
+  if (!word_wrap_by_category)
     return !IT_DISPLAYING_WHITESPACE (it);
 
   /* For CJK (LTR) text in RTL paragraph, EOL and BOL are flipped.
@@ -560,7 +560,7 @@ char_can_wrap_before (struct it *it)
 static bool
 char_can_wrap_after (struct it *it)
 {
-  if (!Vword_wrap_by_category)
+  if (!word_wrap_by_category)
     return IT_DISPLAYING_WHITESPACE (it);
 
   /* For CJK (LTR) text in RTL paragraph, EOL and BOL are flipped.
@@ -589,7 +589,7 @@ char_can_wrap_after (struct it *it)
 static int
 fill_column_indicator_column (struct it *it, int char_width)
 {
-  if (Vdisplay_fill_column_indicator
+  if (display_fill_column_indicator
       && !it->w->pseudo_window_p
       && it->continuation_lines_width == 0
       && CHARACTERP (Vdisplay_fill_column_indicator_character))
@@ -21929,7 +21929,7 @@ extend_face_to_end_of_line (struct it *it)
       && !face->stipple
 #endif
       && !it->glyph_row->reversed_p
-      && !Vdisplay_fill_column_indicator)
+      && !display_fill_column_indicator)
     return;
 
   /* Set the glyph row flag indicating that the face of the last glyph
@@ -34772,7 +34772,7 @@ A value of nil means to respect the value of `truncate-lines'.
 If `word-wrap' is enabled, you might want to reduce this.  */);
   Vtruncate_partial_width_windows = make_fixnum (50);
 
-  DEFVAR_BOOL("word-wrap-by-category", Vword_wrap_by_category, doc: /*
+  DEFVAR_BOOL("word-wrap-by-category", word_wrap_by_category, doc: /*
     Non-nil means also wrap after characters of a certain category.
 Normally when `word-wrap' is on, Emacs only breaks lines after
 whitespace characters.  When this option is turned on, Emacs also
@@ -34787,7 +34787,7 @@ when breaking lines.  That means characters with the ">" category
 don't appear at the beginning of a line (e.g., FULLWIDTH COMMA), and
 characters with the "<" category don't appear at the end of a line
 (e.g., LEFT DOUBLE ANGLE BRACKET).  */);
-  Vword_wrap_by_category = false;
+  word_wrap_by_category = false;
 
   DEFVAR_LISP ("line-number-display-limit", Vline_number_display_limit,
     doc: /* Maximum buffer size for which line number should be displayed.
@@ -35184,10 +35184,10 @@ It has no effect when set to 0, or when line numbers are not absolute.  */);
   DEFSYM (Qdisplay_line_numbers_offset, "display-line-numbers-offset");
   Fmake_variable_buffer_local (Qdisplay_line_numbers_offset);
 
-  DEFVAR_BOOL ("display-fill-column-indicator", Vdisplay_fill_column_indicator,
+  DEFVAR_BOOL ("display-fill-column-indicator", display_fill_column_indicator,
     doc: /* Non-nil means display the fill column indicator.
 See Info node `Displaying Boundaries' for details.  */);
-  Vdisplay_fill_column_indicator = false;
+  display_fill_column_indicator = false;
   DEFSYM (Qdisplay_fill_column_indicator, "display-fill-column-indicator");
   Fmake_variable_buffer_local (Qdisplay_fill_column_indicator);
 

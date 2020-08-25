@@ -807,7 +807,7 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 
       /* Ignore escaped characters, except comment-enders which cannot
          be escaped.  */
-      if ((Vcomment_end_can_be_escaped || code != Sendcomment)
+      if ((comment_end_can_be_escaped || code != Sendcomment)
           && char_quoted (from, from_byte))
 	continue;
 
@@ -2336,7 +2336,7 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == style
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ?
 	      (nesting > 0 && --nesting == 0) : nesting < 0)
-          && !(Vcomment_end_can_be_escaped && char_quoted (from, from_byte)))
+          && !(comment_end_can_be_escaped && char_quoted (from, from_byte)))
 	/* We have encountered a comment end of the same style
 	   as the comment sequence which began this comment
 	   section.  */
@@ -2569,7 +2569,7 @@ between them, return t; otherwise return nil.  */)
 	    }
 	  else if (code == Sendcomment)
 	    {
-              found = (!quoted || !Vcomment_end_can_be_escaped)
+              found = (!quoted || !comment_end_can_be_escaped)
                 && back_comment (from, from_byte, stop, comnested, comstyle,
                                  &out_charpos, &out_bytepos);
 	      if (!found)
@@ -3760,9 +3760,9 @@ character of that word.
 In both cases, LIMIT bounds the search. */);
   Vfind_word_boundary_function_table = Fmake_char_table (Qnil, Qnil);
 
-  DEFVAR_BOOL ("comment-end-can-be-escaped", Vcomment_end_can_be_escaped,
+  DEFVAR_BOOL ("comment-end-can-be-escaped", comment_end_can_be_escaped,
                doc: /* Non-nil means an escaped ender inside a comment doesn't end the comment.  */);
-  Vcomment_end_can_be_escaped = 0;
+  comment_end_can_be_escaped = false;
   DEFSYM (Qcomment_end_can_be_escaped, "comment-end-can-be-escaped");
   Fmake_variable_buffer_local (Qcomment_end_can_be_escaped);
 

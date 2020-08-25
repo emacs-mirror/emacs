@@ -768,7 +768,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 #if defined HAVE_XFT && defined FC_COLOR
   /* We really don't like color fonts, they cause Xft crashes.  See
      Bug#30874.  */
-  if (Vxft_ignore_color_fonts
+  if (xft_ignore_color_fonts
       && ! FcPatternAddBool (pattern, FC_COLOR, FcFalse))
     goto err;
 #endif
@@ -911,7 +911,7 @@ ftfont_list (struct frame *f, Lisp_Object spec)
            returns them even when it shouldn't really do so, so we
            need to manually skip them here (Bug#37786).  */
         FcBool b;
-        if (Vxft_ignore_color_fonts
+        if (xft_ignore_color_fonts
             && FcPatternGetBool (fontset->fonts[i], FC_COLOR, 0, &b)
             == FcResultMatch && b != FcFalse)
             continue;
