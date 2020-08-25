@@ -35,12 +35,12 @@ General debugging advice
       single: variety; cool
 
    Build the :term:`cool` :term:`variety` of the MPS (by defining the
-   preprocessor constant ``CONFIG_VAR_COOL``, for example by setting
-   ``-DCONFIG_VAR_COOL`` on the GCC or Clang command line). This
-   variety contains many internal consistency checks (including such
-   checks on the :term:`critical path`, which make it too slow for use
-   in production), and can generate profiling output in the form of
-   the :term:`telemetry stream`.
+   preprocessor constant :c:macro:`CONFIG_VAR_COOL`, for example by
+   setting ``-DCONFIG_VAR_COOL`` on the GCC or Clang command line).
+   This variety contains many internal consistency checks (including
+   such checks on the :term:`critical path`, which make it too slow
+   for use in production), and can generate profiling output in the
+   form of the :term:`telemetry stream`.
 
 #. If your program triggers an assertion failure in the MPS, consult
    :ref:`topic-error-cause` for suggestions as to the possible cause.
@@ -74,10 +74,10 @@ General debugging advice
       single: debugger
       single: abort
 
-   Run your test case inside the debugger. Use ``assert`` and
-   ``abort`` in your error handler (rather than ``exit``) so that you
-   can enter the debugger with the contents of the control stack
-   available for inspection.
+   Run your test case inside the debugger. Use :c:func:`assert` and
+   :c:func:`abort` in your error handler (rather than :c:func:`exit`)
+   so that you can enter the debugger with the contents of the control
+   stack available for inspection.
 
 #. .. index::
       single: barrier; handling in GDB
@@ -265,10 +265,10 @@ might have forgotten to fix the first element of a pair:
 This means that as far as the MPS is concerned, the first element of
 the pair is :term:`unreachable` and so :term:`dead`, so after
 collecting the region of memory containing this object, the space will
-be reused for other objects. So ``CAR(obj)`` might end up pointing to
-the start of a valid object (but the wrong one), or to the middle of a
-valid object, or to an unused region of memory, or into an MPS
-internal control structure.
+be reused for other objects. So ``CAR(obj)`` might end up
+pointing to the start of a valid object (but the wrong one), or to the
+middle of a valid object, or to an unused region of memory, or into an
+MPS internal control structure.
 
 The reproducible test case is simple. Run a garbage collection by
 calling ``(gc)`` and then evaluate any expression::
@@ -349,13 +349,13 @@ it's this frame that's corrupt:
     (gdb) print frame->type.type
     $2 = 13
 
-The number 13 is the value ``TYPE_PAD``. So instead of the expected
-pair, ``frame`` points to a :term:`padding object`.
+The number 13 is the value :c:data:`TYPE_PAD`. So instead of the
+expected pair, :c:data:`frame` points to a :term:`padding object`.
 
 You might guess at this point that the frame had not been fixed, and
-since you know that the frame is referenced by the ``car`` of the
-first pair in the environment, that's the suspect reference. But in a
-more complex situation this might not yet be clear. In such a
+since you know that the frame is referenced by the :c:member:`car` of
+the first pair in the environment, that's the suspect reference. But
+in a more complex situation this might not yet be clear. In such a
 situation it can be useful to look at the sequence of events leading
 up to the detection of the error. See :ref:`topic-telemetry`.
 
@@ -368,8 +368,9 @@ up to the detection of the error. See :ref:`topic-telemetry`.
 Example: allocating with wrong size
 -----------------------------------
 
-Here's another kind of mistake: an off-by-one error in ``make_string``
-leading to the allocation of string objects with the wrong size:
+Here's another kind of mistake: an off-by-one error in
+:c:func:`make_string` leading to the allocation of string objects with
+the wrong size:
 
 .. code-block:: c
     :emphasize-lines: 5
@@ -478,8 +479,8 @@ look at nearby memory. ::
 You can see that this is a block containing mostly pairs (which have
 tag 0 and consist of three words), though you can see an operator
 (with tag 4) near the bottom. But what's that at the start of the
-block, where ``obj``\'s tag should be? It looks like a pointer. So
-what's in the memory just below ``obj``? Let's look at the previous
+block, where :c:data:`obj`\'s tag should be? It looks like a pointer. So
+what's in the memory just below :c:data:`obj`? Let's look at the previous
 few words::
 
     (gdb) x/10g (mps_word_t*)obj-8
@@ -489,11 +490,11 @@ few words::
     0x1003f9b78:        0x0000000000000000      0x0000000000000000
     0x1003f9b88:        0x00000001003f9b70      0x00000001003fb000
 
-Yes: there's a pair (with tag 0) at ``0x1003f9b80``. So it looks as
-though the previous object was allocated with one size, but skipped
+Yes: there's a pair (with tag 0) at ``0x1003f9b80``. So it looks
+as though the previous object was allocated with one size, but skipped
 with a different size. The previous object being the string (with tag
 5) at ``0x1003f9b70`` which has length 0 and so is three words long as
-far as ``obj_skip`` is concerned::
+far as :c:func:`obj_skip` is concerned::
 
     (gdb) print obj_skip(0x1003f9b70)
     $2 = (mps_addr_t) 0x1003f9b88
