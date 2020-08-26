@@ -467,27 +467,26 @@ non-@code{nil} and @code{buffer-saved-size} (see below) is non-zero.
 @end deffn
 
 @defvar auto-save-file-name-transforms
-This variable lists transforms to apply to buffer file name before
-making auto-save file name.
+This variable lists transforms to apply to buffer's file name before
+making the auto-save file name.
 
-Each transform is a list of the form @code{(@var{regexp}
-@var{replacement} [@var{uniquify}])}: @var{regexp} is a regular
-expression to match against the file name.  If it matches,
+Each transform is a list of the form @w{@code{(@var{regexp}
+@var{replacement} [@var{uniquify}])}}.  @var{regexp} is a regular
+expression to match against the file name; if it matches,
 @code{replace-match} is used to replace the matching part with
 @var{replacement}.  If the optional element @var{uniquify} is non-nil,
-the auto-save file name is constructed by taking the directory part of
-the replaced file-name, concatenated with the buffer file name with
-all directory separators changed to @samp{!} to prevent clashes.  This
-will not work correctly if your filesystem truncates the resulting
-name.
+the auto-save file name is constructed by concatenating the directory
+part of the transformed file name with the buffer's file name in which
+all directory separators were changed to @samp{!} to prevent clashes.
+(This will not work correctly if your filesystem truncates the
+resulting name.)
 
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
 no further transforms are tried.
 
-The default value is set up to put the auto-save file into the
-temporary directory (@pxref{Unique File Names}) for editing a
-remote file.
+The default value is set up to put the auto-save files of remote files
+into the temporary directory (@pxref{Unique File Names}).
 
 On MS-DOS filesystems without long names this variable is always
 ignored.
