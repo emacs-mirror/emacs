@@ -3923,8 +3923,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
      attempt) by a subexpression part of the pattern, that is, the
      regnum-th regstart pointer points to where in the pattern we began
      matching and the regnum-th regend points to right after where we
-     stopped matching the regnum-th subexpression.  (The zeroth register
-     keeps track of what the whole pattern matches.)  */
+     stopped matching the regnum-th subexpression.  */
   re_char **regstart UNINIT, **regend UNINIT;
 
   /* The following record the register info as found in the above
@@ -3973,20 +3972,21 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   /* Do not bother to initialize all the register variables if there are
      no groups in the pattern, as it takes a fair amount of time.  If
      there are groups, we include space for register 0 (the whole
-     pattern), even though we never use it, since it simplifies the
-     array indexing.  We should fix this.  */
-  if (bufp->re_nsub)
+     pattern) in REGSTART[0], even though we never use it, to avoid
+     the undefined behavior of subtracting 1 from REGSTART.  */
+  ptrdiff_t re_nsub = num_regs - 1;
+  if (0 < re_nsub)
     {
-      regstart = SAFE_ALLOCA (num_regs * 4 * sizeof *regstart);
+      regstart = SAFE_ALLOCA ((re_nsub * 4 + 1) * sizeof *regstart);
       regend = regstart + num_regs;
-      best_regstart = regend + num_regs;
-      best_regend = best_regstart + num_regs;
-    }
+      best_regstart = regend + re_nsub;
+      best_regend = best_regstart + re_nsub;
 
-  /* Initialize subexpression text positions to -1 to mark ones that no
-     start_memory/stop_memory has been seen for.  */
-  for (ptrdiff_t reg = 1; reg < num_regs; reg++)
-    regstart[reg] = regend[reg] = NULL;
+      /* Initialize subexpression text positions to unset, to mark ones
+	 that no start_memory/stop_memory has been seen for.  */
+      for (re_char **apos = regstart + 1; apos < best_regstart + 1; apos++)
+	*apos = NULL;
+    }
 
   /* We move 'string1' into 'string2' if the latter's empty -- but not if
      'string1' is null.  */
