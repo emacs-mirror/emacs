@@ -1283,6 +1283,27 @@ scroll the window of possible completions."
                           minibuffer-completion-table
                           minibuffer-completion-predicate)))
 
+
+(defun minibuffer-tab-through-completions-default ()
+  "Default action in `minibuffer-scroll-window' WINDOW.
+This is called when *Completions* window is already visible."
+  (let ((window minibuffer-scroll-window))
+    (with-current-buffer (window-buffer window)
+      (if (pos-visible-in-window-p (point-max) window)
+          ;; If end is in view, scroll up to the beginning.
+          (set-window-start window (point-min) nil)
+        ;; Else scroll down one screen.
+        (with-selected-window window
+	  (scroll-up)))
+      nil)))
+
+(defvar minibuffer-tab-through-completions-function
+  #'minibuffer-tab-through-completions-default
+  "Function to execute when requested completion.
+This is used when *Completions* frame is already visible and the
+completions command is called again.  This function receives the
+window to execute commands as a paramenter.")
+
 (defun completion--in-region-1 (beg end)
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
@@ -1290,21 +1311,14 @@ scroll the window of possible completions."
   (unless (eq 'completion-at-point last-command)
     (completion--flush-all-sorted-completions)
     (setq minibuffer-scroll-window nil))
-
   (cond
    ;; If there's a fresh completion window with a live buffer,
    ;; and this command is repeated, scroll that window.
    ((and (window-live-p minibuffer-scroll-window)
          (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
-    (let ((window minibuffer-scroll-window))
-      (with-current-buffer (window-buffer window)
-        (if (pos-visible-in-window-p (point-max) window)
-            ;; If end is in view, scroll up to the beginning.
-            (set-window-start window (point-min) nil)
-          ;; Else scroll down one screen.
-          (with-selected-window window
-	    (scroll-up)))
-        nil)))
+    ;; Action to perform when pressing tab and completions are shown.
+    (funcall minibuffer-tab-through-completions-function)
+    nil)
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)
     (minibuffer-force-complete beg end)
