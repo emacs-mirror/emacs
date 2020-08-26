@@ -38,18 +38,10 @@
       (setq event (gnus-icalendar-event-from-buffer (buffer-name) participant)))
     event))
 
-(defun icalendar-tests--get-ical-event (ical-string)
-  "Return iCalendar event for ICAL-STRING."
-  (save-excursion
-    (with-temp-buffer
-      (insert ical-string)
-      (goto-char (point-min))
-      (car (icalendar--read-element nil nil)))))
-
 (ert-deftest gnus-icalendar-parse ()
   "test"
   (let ((tz (getenv "TZ"))
-        (event (gnus-icalendar-tests--get-ical-event "
+        (event (gnus-icalendar-tests--get-ical-event "\
 BEGIN:VCALENDAR
 PRODID:-//Google Inc//Google Calendar 70.9054//EN
 VERSION:2.0
@@ -83,7 +75,7 @@ UID:iipdt88slddpeu7hheuu09sfmd@google.com
 X-MICROSOFT-CDO-OWNERAPPTID:-362490173
 RECURRENCE-ID;TZID=America/New_York:20201208T091500
 CREATED:20200309T134939Z
-DESCRIPTION:In this meeting\, we will cover topics from product and enginee
+DESCRIPTION:In this meeting\\, we will cover topics from product and enginee
  ring presentations and demos to new hire announcements to watching the late
 LAST-MODIFIED:20200728T182852Z
 LOCATION:New York-22-Town Hall Space (250) [Chrome Box]
@@ -106,7 +98,7 @@ END:VCALENDAR
           (with-slots (organizer summary description location end-time uid rsvp participation-type) event
                       (should (string= organizer "liveintent.com_3bm6fh805bme9uoeliqcle1sag@group.calendar.google.com"))
                       (should (string= summary "Townhall | All Company Meeting"))
-                      (should (string= description "In this meeting\, we will cover topics from product and engineering presentations and demos to new hire announcements to watching the late"))
+                      (should (string= description "In this meeting, we will cover topics from product and engineering presentations and demos to new hire announcements to watching the late"))
                       (should (string= location "New York-22-Town Hall Space (250) [Chrome Box]"))
                       (should (string= (format-time-string "%Y-%m-%d %H:%M" end-time) "2020-12-08 16:00"))
                       (should (string= uid "iipdt88slddpeu7hheuu09sfmd@google.com"))
@@ -117,7 +109,7 @@ END:VCALENDAR
 (ert-deftest gnus-icalendary-byday ()
   ""
   (let ((tz (getenv "TZ"))
-        (event (gnus-icalendar-tests--get-ical-event "
+        (event (gnus-icalendar-tests--get-ical-event "\
 BEGIN:VCALENDAR
 PRODID:Zimbra-Calendar-Provider
 VERSION:2.0
@@ -142,7 +134,7 @@ END:VTIMEZONE
 BEGIN:VEVENT
 UID:903a5415-9067-4f63-b499-1b6205f49c88
 RRULE:FREQ=DAILY;UNTIL=20200825T035959Z;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR
-SUMMARY:appointment every weekday\, start jul 24\, 2020\, end aug 24\, 2020
+SUMMARY:appointment every weekday\\, start jul 24\\, 2020\\, end aug 24\\, 2020
 ATTENDEE;CN=Mark Hershberger;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP
  =TRUE:mailto:hexmode <at> gmail.com
 ORGANIZER;CN=Mark A. Hershberger:mailto:mah <at> nichework.com
@@ -175,7 +167,7 @@ END:VCALENDAR" (list "Mark Hershberger"))))
     (should (string= (gnus-icalendar-event:start event) "2020-07-24 15:00"))
     (with-slots (organizer summary description location end-time uid rsvp participation-type) event
       (should (string= organizer "mah <at> nichework.com"))
-      (should (string= summary "appointment every weekday\, start jul 24\, 2020\, end aug 24\, 2020"))
+      (should (string= summary "appointment every weekday, start jul 24, 2020, end aug 24, 2020"))
       (should (string= description "The following is a new meeting request:"))
       (should (null location))
       (should (string= (format-time-string "%Y-%m-%d %H:%M" end-time) "2020-07-24 15:30"))
