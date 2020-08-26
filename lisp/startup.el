@@ -642,16 +642,13 @@ It is the default value of the variable `top-level'."
 	 (list (default-value 'user-full-name)))
     ;; If the PWD environment variable isn't accurate, delete it.
     (let ((pwd (getenv "PWD")))
-      (and (stringp pwd)
-	   ;; Use FOO/., so that if FOO is a symlink, file-attributes
-	   ;; describes the directory linked to, not FOO itself.
+      (and pwd
 	   (or (and default-directory
 		    (ignore-errors
 		      (equal (file-attributes
-			      (concat (file-name-as-directory pwd) "."))
+			      (file-name-as-directory pwd))
 			     (file-attributes
-			      (concat (file-name-as-directory default-directory)
-				      ".")))))
+			      (file-name-as-directory default-directory)))))
 	       (setq process-environment
 		     (delete (concat "PWD=" pwd)
 			     process-environment)))))
