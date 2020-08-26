@@ -2131,16 +2131,16 @@ is greater than 10.
       (expand-file-name "/method:host:/path/../file") "/method:host:/file"))
     (should
      (string-equal
-      (expand-file-name "/method:host:/path/.") "/method:host:/path"))
+      (expand-file-name "/method:host:/path/.") "/method:host:/path/"))
     (should
      (string-equal
       (expand-file-name "/method:host:/path/..") "/method:host:/"))
     (should
      (string-equal
-      (expand-file-name "." "/method:host:/path/") "/method:host:/path"))
+      (expand-file-name "." "/method:host:/path/") "/method:host:/path/"))
     (should
      (string-equal
-      (expand-file-name "" "/method:host:/path/") "/method:host:/path"))
+      (expand-file-name "" "/method:host:/path/") "/method:host:/path/"))
     ;; Quoting local part.
     (should
      (string-equal
@@ -2155,12 +2155,9 @@ is greater than 10.
       "/method:host:/:/~/path/file"))))
 
 ;; The following test is inspired by Bug#26911 and Bug#34834.  They
-;; are rather bugs in `expand-file-name', and it fails for all Emacs
-;; versions.  Test added for later, when they are fixed.
+;; were bugs in `expand-file-name'.
 (ert-deftest tramp-test05-expand-file-name-relative ()
   "Check `expand-file-name'."
-  ;; Mark as failed until bug has been fixed.
-  :expected-result :failed
   (skip-unless (tramp--test-enabled))
 
   ;; These are the methods the test doesn't fail.

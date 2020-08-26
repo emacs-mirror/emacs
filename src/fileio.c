@@ -1065,7 +1065,7 @@ the root directory.  */)
 #endif /* WINDOWSNT */
 #endif /* DOS_NT */
 
-  /* If nm is absolute, look for `/./' or `/../' or `//''sequences; if
+  /* If nm is absolute, look for "/./" or "/../" or "//" sequences; if
      none are found, we can probably return right away.  We will avoid
      allocating a new string if name is already fully expanded.  */
   if (
@@ -1398,7 +1398,7 @@ the root directory.  */)
 
   if (newdir)
     {
-      if (nm[0] == 0 || IS_DIRECTORY_SEP (nm[0]))
+      if (IS_DIRECTORY_SEP (nm[0]))
 	{
 #ifdef DOS_NT
 	  /* If newdir is effectively "C:/", then the drive letter will have
@@ -1433,14 +1433,16 @@ the root directory.  */)
 	  {
 	    *o++ = *p++;
 	  }
-	else if (p[1] == '.'
-		 && (IS_DIRECTORY_SEP (p[2])
-		     || p[2] == 0))
+	else if (p[1] == '.' && IS_DIRECTORY_SEP (p[2]))
 	  {
-	    /* If "/." is the entire filename, keep the "/".  Otherwise,
-	       just delete the whole "/.".  */
-	    if (o == target && p[2] == '\0')
-	      *o++ = *p;
+	    /* Replace "/./" with "/".  */
+	    p += 2;
+	  }
+	else if (p[1] == '.' && !p[2])
+	  {
+	    /* At the end of the file name, replace "/." with "/".
+	       The trailing "/" is for symlinks.  */
+	    *o++ = *p;
 	    p += 2;
 	  }
 	else if (p[1] == '.' && p[2] == '.'
@@ -1459,18 +1461,23 @@ the root directory.  */)
 #ifdef WINDOWSNT
 	    char *prev_o = o;
 #endif
-	    while (o != target && (--o, !IS_DIRECTORY_SEP (*o)))
-	      continue;
+	    while (o != target)
+	      {
+		o--;
+		if (IS_DIRECTORY_SEP (*o))
+		  {
+		    /* Keep "/" at the end of the name, for symlinks.  */
+		    o += p[3] == 0;
+
+		    break;
+		  }
+	      }
 #ifdef WINDOWSNT
 	    /* Don't go below server level in UNC filenames.  */
 	    if (o == target + 1 && IS_DIRECTORY_SEP (*o)
 		&& IS_DIRECTORY_SEP (*target))
 	      o = prev_o;
-	    else
 #endif
-	    /* Keep initial / only if this is the whole name.  */
-	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
-	      ++o;
 	    p += 3;
 	  }
 	else if (IS_DIRECTORY_SEP (p[1])

@@ -108,6 +108,17 @@ Also check that an encoding error can appear in a symlink."
       (should (equal (expand-file-name "~/bar") "x:/foo/bar")))
     (setenv "HOME" old-home)))
 
+(ert-deftest fileio-tests--expand-file-name-trailing-slash ()
+  (dolist (fooslashalias '("foo/" "foo//" "foo/." "foo//." "foo///././."
+                           "foo/a/.."))
+    (should (equal (expand-file-name fooslashalias "/") "/foo/"))
+    (should (equal (expand-file-name (concat "/" fooslashalias)) "/foo/")))
+  (should (equal (expand-file-name "." "/usr/spool/") "/usr/spool/"))
+  (should (equal (expand-file-name "" "/usr/spool/") "/usr/spool/"))
+  ;; Trailing "B/C/.." means B must be a directory.
+  (should (equal (expand-file-name "/a/b/c/..") "/a/b/"))
+  (should (equal (expand-file-name "/a/b/c/../") "/a/b/")))
+
 (ert-deftest fileio-tests--insert-file-interrupt ()
   (let ((text "-*- coding: binary -*-\n\xc3\xc3help")
         f)
