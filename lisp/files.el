@@ -7070,6 +7070,8 @@ normally equivalent short `-D' option is just passed on to
                              ((stringp switches) (concat switches " -d"))
                              ((member "-d" switches) switches)
                              (t (append switches '("-d"))))))
+		    (if (string-match "\\`~" file)
+			(setq file (expand-file-name file)))
 		    (apply 'call-process
 			   insert-directory-program nil t nil
 			   (append
@@ -7080,14 +7082,7 @@ normally equivalent short `-D' option is just passed on to
 				(split-string-and-unquote switches)))
 			    ;; Avoid lossage if FILE starts with `-'.
 			    '("--")
-			    (progn
-			      (if (string-match "\\`~" file)
-				  (setq file (expand-file-name file)))
-			      (list
-			       (if full-directory-p
-				   ;; (concat (file-name-as-directory file) ".")
-                                   file
-				 file))))))))
+			    (list file))))))
 
 	  ;; If we got "//DIRED//" in the output, it means we got a real
 	  ;; directory listing, even if `ls' returned nonzero.
