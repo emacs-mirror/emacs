@@ -466,6 +466,33 @@ Auto Save mode is enabled if @code{buffer-auto-save-file-name} is
 non-@code{nil} and @code{buffer-saved-size} (see below) is non-zero.
 @end deffn
 
+@defvar auto-save-file-name-transforms
+This variable lists transforms to apply to buffer file name before
+making auto-save file name.
+
+Each transform is a list of the form @code{(@var{regexp}
+@var{replacement} [@var{uniquify}])}: @var{regexp} is a regular
+expression to match against the file name.  If it matches,
+@code{replace-match} is used to replace the matching part with
+@var{replacement}.  If the optional element @var{uniquify} is non-nil,
+the auto-save file name is constructed by taking the directory part of
+the replaced file-name, concatenated with the buffer file name with
+all directory separators changed to @samp{!} to prevent clashes.  This
+will not work correctly if your filesystem truncates the resulting
+name.
+
+All the transforms in the list are tried, in the order they are listed.
+When one transform applies, its result is final;
+no further transforms are tried.
+
+The default value is set up to put the auto-save file into the
+temporary directory (@pxref{Unique File Names}) for editing a
+remote file.
+
+On MS-DOS filesystems without long names this variable is always
+ignored.
+@end defvar
+
 @defun auto-save-file-name-p filename
 This function returns a non-@code{nil} value if @var{filename} is a
 string that could be the name of an auto-save file.  It assumes
@@ -487,21 +514,6 @@ name.  The argument @var{filename} should not contain a directory part.
      @result{} nil
 @end group
 @end example
-
-The standard definition of this function is as follows:
-
-@example
-@group
-(defun auto-save-file-name-p (filename)
-  "Return non-nil if FILENAME can be yielded by..."
-  (string-match "^#.*#$" filename))
-@end group
-@end example
-
-This function exists so that you can customize it if you wish to
-change the naming convention for auto-save files.  If you redefine it,
-be sure to redefine the function @code{make-auto-save-file-name}
-correspondingly.
 @end defun
 
 @defun make-auto-save-file-name
@@ -517,31 +529,6 @@ function should check that variable first.
      @result{} "/xcssun/users/rms/lewis/#backups.texi#"
 @end group
 @end example
-
-Here is a simplified version of the standard definition of this
-function:
-
-@example
-@group
-(defun make-auto-save-file-name ()
-  "Return file name to use for auto-saves \
-of current buffer.."
-  (if buffer-file-name
-@end group
-@group
-      (concat
-       (file-name-directory buffer-file-name)
-       "#"
-       (file-name-nondirectory buffer-file-name)
-       "#")
-    (expand-file-name
-     (concat "#%" (buffer-name) "#"))))
-@end group
-@end example
-
-This exists as a separate function so that you can redefine it to
-customize the naming convention for auto-save files.  Be sure to
-change @code{auto-save-file-name-p} in a corresponding way.
 @end defun
 
 @defopt auto-save-visited-file-name
