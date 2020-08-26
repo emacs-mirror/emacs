@@ -608,7 +608,10 @@ buffer."
                    (user-error "No reference at point")))
          (xref--current-item xref))
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
-    (next-error-found buffer (current-buffer))))
+    (if (fboundp 'next-error-found)
+        (next-error-found buffer (current-buffer))
+      ;; Emacs < 27
+      (setq next-error-last-buffer buffer))))
 
 (defun xref-quit-and-goto-xref ()
   "Quit *xref* buffer, then jump to xref on current line."
