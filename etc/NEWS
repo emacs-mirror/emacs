@@ -1317,6 +1317,14 @@ This face is used for error messages from 'diff'.
 *** New command 'diff-refresh-hunk'.
 This new command (bound to 'C-c C-l') regenerates the current hunk.
 
+** Completions
+
+---
+*** New option 'minibuffer-tab-through-completions-function'
+This contains the function to call when completions are shown and
+the *Completions* is already visible already.  The variable contains
+the default value 'minibuffer-tab-through-completions-default'.
+
 ** Miscellaneous
 
 ---

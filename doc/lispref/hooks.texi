@@ -182,6 +182,9 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 @itemx minibuffer-exit-hook
 @xref{Minibuffer Misc}.
 
+@item completion-setup-hook
+@xref{Minibuffer Misc}.
+
 @item mouse-leave-buffer-hook
 @vindex mouse-leave-buffer-hook
 Hook run when about to switch windows with a mouse command.

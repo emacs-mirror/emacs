@@ -2617,6 +2617,12 @@ This is a normal hook that is run whenever the minibuffer is exited.
 @xref{Hooks}.
 @end defvar
 
+@defvar completion-setup-hook
+This is a normal hook that is run every time the Completions buffer is
+shown or created.
+@xref{Hooks}.
+@end defvar
+
 @defvar minibuffer-help-form
 @anchor{Definition of minibuffer-help-form}
 The current value of this variable is used to rebind @code{help-form}
