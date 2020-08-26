@@ -3864,6 +3864,10 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		     re_char *string2, ptrdiff_t size2,
 		     ptrdiff_t pos, struct re_registers *regs, ptrdiff_t stop)
 {
+  eassume (0 <= size1);
+  eassume (0 <= size2);
+  eassume (0 <= pos && pos <= stop && stop <= size1 + size2);
+
   /* General temporaries.  */
   int mcnt;
 
@@ -3977,14 +3981,6 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
       regend = regstart + num_regs;
       best_regstart = regend + num_regs;
       best_regend = best_regstart + num_regs;
-    }
-
-  /* The starting position is bogus.  */
-  if (pos < 0 || pos > size1 + size2)
-    {
-      unbind_to (count, Qnil);
-      SAFE_FREE ();
-      return -1;
     }
 
   /* Initialize subexpression text positions to -1 to mark ones that no
