@@ -979,10 +979,11 @@ while (REMAINING_AVAIL_SLOTS <= space) {				\
 do {									\
   char *destination;							\
   intptr_t n = num;							\
+  eassert (0 < n && n < num_regs);					\
+  eassert (REG_UNSET (regstart[n]) <= REG_UNSET (regend[n]));		\
   ENSURE_FAIL_STACK(3);							\
   DEBUG_PRINT ("    Push reg %"PRIdPTR" (spanning %p -> %p)\n",		\
 	       n, regstart[n], regend[n]);				\
-  eassert (REG_UNSET (regstart[n]) <= REG_UNSET (regend[n]));		\
   PUSH_FAILURE_POINTER (regstart[n]);					\
   PUSH_FAILURE_POINTER (regend[n]);					\
   PUSH_FAILURE_INT (n);							\
@@ -1018,6 +1019,7 @@ do {									\
     }									\
   else									\
     {									\
+      eassert (0 < pfreg && pfreg < num_regs);				\
       regend[pfreg] = POP_FAILURE_POINTER ();				\
       regstart[pfreg] = POP_FAILURE_POINTER ();				\
       eassert (REG_UNSET (regstart[pfreg]) <= REG_UNSET (regend[pfreg])); \
@@ -4375,6 +4377,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	   registers data structure) under the register number.  */
 	case start_memory:
 	  DEBUG_PRINT ("EXECUTING start_memory %d:\n", *p);
+	  eassert (0 < *p && *p < num_regs);
 
 	  /* In case we need to undo this operation (via backtracking).  */
 	  PUSH_FAILURE_REG (*p);
@@ -4392,6 +4395,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	case stop_memory:
 	  DEBUG_PRINT ("EXECUTING stop_memory %d:\n", *p);
 
+	  eassert (0 < *p && *p < num_regs);
 	  eassert (!REG_UNSET (regstart[*p]));
 	  /* Strictly speaking, there should be code such as:
 
@@ -4424,6 +4428,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    DEBUG_PRINT ("EXECUTING duplicate %d.\n", regno);
 
 	    /* Can't back reference a group which we've never matched.  */
+	    eassert (0 < regno && regno < num_regs);
 	    eassert (REG_UNSET (regstart[regno]) <= REG_UNSET (regend[regno]));
 	    if (REG_UNSET (regend[regno]))
 	      goto fail;
