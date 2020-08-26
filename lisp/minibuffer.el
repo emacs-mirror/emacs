@@ -3028,6 +3028,19 @@ the commands start with a \"-\" or a SPC."
   :version "24.1"
   :type 'boolean)
 
+(defcustom minibuffer-default-prompt-format " (default %s)"
+  "Format string used to output \"default\" values.
+When prompting for input, there will often be a default value,
+leading to prompts like \"Number of articles (default 50): \".
+The \"default\" part of that prompt is controlled by this
+variable, and can be set to, for instance, \" [%s]\" if you want
+a shorter displayed prompt, or \"\", if you don't want to display
+the default at all.
+
+This variable is used by the `format-prompt' function."
+  :version "28.1"
+  :type 'string)
+
 (defun completion-pcm--pattern-trivial-p (pattern)
   (and (stringp (car pattern))
        ;; It can be followed by `point' and "" and still be trivial.
@@ -3844,6 +3857,19 @@ the minibuffer was activated, and execute the forms."
   (interactive "^P")
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
+
+(defun format-prompt (prompt default &rest format-args)
+  "Format PROMPT with DEFAULT according to `minibuffer-default-prompt-format'.
+If FORMAT-ARGS is nil, PROMPT is used as a plain string.  If
+FORMAT-ARGS is non-nil, PROMPT is used as a format control
+string, and FORMAT-ARGS are the arguments to be substituted into
+it.  See `format' for details."
+  (concat
+   (if (null format-args)
+       prompt
+     (apply #'format prompt format-args))
+   (format minibuffer-default-prompt-format default)
+   ": "))
 
 (provide 'minibuffer)
 

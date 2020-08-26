@@ -886,6 +886,16 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
++++
+*** The user can now customize how \"default\" values are prompted for.
+The new utility function 'format-prompt' has been added which uses the
+new 'minibuffer-default-prompt-format' variable to format \"default\"
+prompts.  This means that prompts that look like "Enter a number
+(default 10)" can be customized to look like, for instance, "Enter a
+number [10]", or not have the default displayed at all, like "Enter a
+number".  (This requires that all callers are altered to user
+'format-prompt', though.)
+
 ---
 *** New 'diff-mode' font locking face 'diff-error'.
 This face is used for error messages from diff.
