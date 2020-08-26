@@ -2775,6 +2775,8 @@ Because of ambiguities, this should be concatenated with something like
               ;; Go back to the start node (for the next completion).
               (unless (equal Info-current-node orignode)
                 (Info-goto-node orignode))
+              ;; Sort list alphabetically.
+              (setq completions (nreverse completions))
               ;; Update the cache.
               (setq Info-complete-cache
 		   (list Info-current-file Info-current-node
