@@ -1,4 +1,4 @@
-;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
+;;; completions-highlight.el --- highlight and natural move throw *Completions* buffer -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Free Software Foundation, Inc.
 
@@ -28,19 +28,11 @@
 ;; interacting with Zle from zsh shell.
 
 ;; The package intents to implement such functionalities without using
-;; hacks or complex functions.  And using the default Emacs Completion
+;; hacks or complex functions.  And using the default Emacs *Completions*
 ;; infrastructure.
 
 
 ;;; Code:
-
-;; minibuffer part
-
-;; (defcustom minibuffer-tab-go-completion t
-;;   "If a second `TAB' jump to completion buffer."
-;;   :type 'boolean
-;;   :version "28.1"
-;;   :group 'completion)
 
 (require 'simple)
 (require 'minibuffer)
@@ -51,6 +43,8 @@
 (defvar minibuffer-tab-through-completions-function-save nil
   "Saves the the original value of completion-in-minibuffer-scroll-window.")
 
+;; *Completions* side commands
+
 (defun completions-highlight-this-completion (&optional n)
   "Highlight the completion under point or near.
 N is set to 1 if not specified."
@@ -58,8 +52,6 @@ N is set to 1 if not specified."
 	      1))
   (next-completion n)
   (completions-highlight-next-completion (* -1 n)))
-
-;; *Completions* side commands
 
 (defun completions-highlight-next-completion (n)
   "Move to and highlight the next item in the completion list.
