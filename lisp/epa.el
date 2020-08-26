@@ -255,18 +255,25 @@ You should bind this variable with `let', but do not set it globally.")
         (validity (epg-sub-key-validity (car (epg-key-sub-key-list key)))))
     (propertize
      (concat
-      (format "%c "
-	      (if (epg-sub-key-validity primary-sub-key)
-		  (car (rassq (epg-sub-key-validity primary-sub-key)
-			      epg-key-validity-alist))
-	        ? ))
-      (epg-sub-key-id primary-sub-key)
-      " "
-      (if primary-user-id
-	  (if (stringp (epg-user-id-string primary-user-id))
-	      (epg-user-id-string primary-user-id)
-	    (epg-decode-dn (epg-user-id-string primary-user-id)))
-        ""))
+      (propertize
+       (format "%c "
+	       (if (epg-sub-key-validity primary-sub-key)
+		   (car (rassq (epg-sub-key-validity primary-sub-key)
+			       epg-key-validity-alist))
+	         ? ))
+       'help-echo (format "Validity: %s"
+                          (epg-sub-key-validity primary-sub-key)))
+      (propertize
+       (concat
+        (epg-sub-key-id primary-sub-key)
+        " "
+        (if primary-user-id
+	    (if (stringp (epg-user-id-string primary-user-id))
+	        (epg-user-id-string primary-user-id)
+	      (epg-decode-dn (epg-user-id-string primary-user-id)))
+          ""))
+       'help-echo (format "Show %s"
+	                  (epg-sub-key-id (car (epg-key-sub-key-list key))))))
      'face
      (if validity
          (cdr (assq validity epa-validity-face-alist))
@@ -334,9 +341,7 @@ If ARG is non-nil, mark the key."
     (insert
      (propertize
       (concat "  " (epa--button-key-text key))
-      'epa-key key
-      'help-echo (format "Show %s"
-	                 (epg-sub-key-id (car (epg-key-sub-key-list key))))))
+      'epa-key key))
     (insert "\n")))
 
 (defun epa--list-keys (name secret &optional doc)
