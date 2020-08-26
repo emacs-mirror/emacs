@@ -1096,28 +1096,38 @@ to dictionaries found, and will remove aliases from the list
 in `ispell-dicts-name2locale-equivs-alist' if an explicit
 dictionary from that list was found."
   (let ((hunspell-found-dicts
-	 (split-string
-	  (with-temp-buffer
-	    (ispell-call-process ispell-program-name
-				 null-device
-				 t
-				 nil
-                                 "-D"
-                                 ;; Use -a to prevent Hunspell from
-                                 ;; trying to initialize its
-                                 ;; curses/termcap UI, which causes it
-                                 ;; to crash or fail to start in some
-                                 ;; MS-Windows ports.
-                                 "-a"
-                                 ;; Hunspell 1.7.0 (and later?) won't
-                                 ;; show LOADED DICTIONARY unless
-                                 ;; there's at least one file argument
-                                 ;; on the command line.  So we feed
-                                 ;; it with the null device.
-				 null-device)
-	    (buffer-string))
-	  "[\n\r]+"
-	  t))
+         (seq-filter
+          (lambda (str)
+            (when (string-match
+                   ;; Hunspell gives this error when there is some
+                   ;; installation problem, for example if $LANG is unset.
+                   (concat "^Can't open affix or dictionary files "
+                           "for dictionary named \"default\".$")
+                   str)
+              (user-error "Hunspell error (is $LANG unset?): %s" str))
+            (file-name-absolute-p str))
+          (split-string
+           (with-temp-buffer
+             (ispell-call-process ispell-program-name
+                            null-device
+                            t
+                            nil
+                            "-D"
+                            ;; Use -a to prevent Hunspell from
+                            ;; trying to initialize its
+                            ;; curses/termcap UI, which causes it
+                            ;; to crash or fail to start in some
+                            ;; MS-Windows ports.
+                            "-a"
+                            ;; Hunspell 1.7.0 (and later?) won't
+                            ;; show LOADED DICTIONARY unless
+                            ;; there's at least one file argument
+                            ;; on the command line.  So we feed
+                            ;; it with the null device.
+                            null-device)
+             (buffer-string))
+           "[\n\r]+"
+           t)))
 	hunspell-default-dict
 	hunspell-default-dict-entry
 	hunspell-multi-dict)
