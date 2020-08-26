@@ -929,7 +929,7 @@ typedef struct
    ? 0									\
    : ((fail_stack).stack						\
       = REGEX_REALLOCATE ((fail_stack).stack,				\
-	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
+	  (fail_stack).avail * sizeof (fail_stack_elt_t),		\
           min (emacs_re_max_failures * TYPICAL_FAILURE_SIZE,                  \
                ((fail_stack).size * FAIL_STACK_GROWTH_FACTOR))          \
           * sizeof (fail_stack_elt_t)),                                 \
