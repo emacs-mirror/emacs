@@ -963,6 +963,16 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 
 (defun xref--show-xrefs (fetcher display-action)
   (xref--push-markers)
+  (unless (functionp fetcher)
+    ;; Old convention.
+    (let ((xrefs fetcher))
+      (setq fetcher
+            (lambda ()
+              (if (eq xrefs 'called-already)
+                  (user-error "Refresh is not supported")
+                (prog1
+                    xrefs
+                  (setq xrefs 'called-already)))))))
   (funcall xref-show-xrefs-function fetcher
            `((window . ,(selected-window))
              (display-action . ,display-action))))
