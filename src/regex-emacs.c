@@ -969,7 +969,11 @@ typedef struct
 #define ENSURE_FAIL_STACK(space)					\
 while (REMAINING_AVAIL_SLOTS <= space) {				\
   if (!GROW_FAIL_STACK (fail_stack))					\
-    return -2;								\
+    {									\
+      unbind_to (count, Qnil);						\
+      SAFE_FREE ();							\
+      return -2;							\
+    }									\
   DEBUG_PRINT ("\n  Doubled stack; size now: %td\n", fail_stack.size);	\
   DEBUG_PRINT ("	 slots available: %td\n", REMAINING_AVAIL_SLOTS);\
 }
