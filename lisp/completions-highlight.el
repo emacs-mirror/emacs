@@ -43,6 +43,12 @@
 (defvar minibuffer-tab-through-completions-function-save nil
   "Saves the the original value of completion-in-minibuffer-scroll-window.")
 
+(defvar completions-highlight-minibuffer-map-save nil
+  "Saves the minibuffer current-localmap to restore it disabling the mode.")
+
+(defvar completions-highlight-completions-map-save nil
+  "Saves the Completions current-localmap to restore it disabling the mode.")
+
 ;; *Completions* side commands
 
 (defun completions-highlight-this-completion (&optional n)
@@ -173,31 +179,60 @@ suffix."
           (add-face-text-property cursor-pos (+ cursor-pos suffix-len) 'shadow)
           (goto-char cursor-pos))))))
 
-(defmacro completions-highlight-minibufer-bindings (set)
+
+(defvar completions-highlight-minibuffer-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [right] 'minibuffer-next-completion)
+    (define-key map [left] 'minibuffer-previous-completion)
+    (define-key map [down] 'minibuffer-next-line-completion)
+    (define-key map [up] 'minibuffer-previous-line-completion)
+    map)
+  "Keymap used in minibuffer while *Completions* is active.")
+
+(defvar completions-highlight-completions-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-g" 'quit-window)
+
+    (define-key map [up] 'completions-highlight-previous-line-completion)
+    (define-key map "\C-p" 'completions-highlight-previous-line-completion)
+    (define-key map [down] 'completions-highlight-next-line-completion)
+    (define-key map "\C-n" 'completions-highlight-next-line-completion)
+
+    (define-key map [right] 'completions-highlight-next-completion)
+    (define-key map "\C-f" 'completions-highlight-next-completion)
+    (define-key map [left] 'completions-highlight-previous-completion)
+    (define-key map "\C-b" 'completions-highlight-previous-completion)
+    map)
+  "Keymap used in *Completions* while highlighting candidates.")
+
+
+(defun completions-highlight-minibuffer-bindings (set)
   "Add extra/remove keybindings to `minibuffer-local-must-match-map'.
 When SET is nil the bindings are removed."
-  `(progn
-     (define-key minibuffer-local-must-match-map [right] ,(and set ''minibuffer-next-completion))
-     (define-key minibuffer-local-must-match-map [left] ,(and set ''minibuffer-previous-completion))
-     (define-key minibuffer-local-must-match-map [down] ,(and set ''minibuffer-next-line-completion))
-     (define-key minibuffer-local-must-match-map [up] ,(and set ''minibuffer-previous-line-completion))))
+  (if set
+      (let ((local-map (current-local-map)))
+        (setq completions-highlight-minibuffer-map-save local-map)
+        (set-keymap-parent completions-highlight-minibuffer-map local-map)
+        (use-local-map completions-highlight-minibuffer-map))
+
+    (use-local-map completions-highlight-minibuffer-map-save)))
 
 
-(defmacro completions-highlight-completion-bindings (set)
+(defun completions-highlight-completions-bindings (set)
   "Add extra keybindings to `completion-list-mode-map'.
 When SET is nil the bindings are removed."
-  `(progn
-     (define-key completion-list-mode-map "\C-g" ,(and set ''quit-window))
+  (if set
+      (unless (keymap-parent completions-highlight-completions-map)
+        (let ((local-map (current-local-map)))
+          (setq completions-highlight-completions-map-save local-map)
+          (set-keymap-parent completions-highlight-completions-map local-map)
+          (use-local-map completions-highlight-completions-map)))
 
-     (define-key completion-list-mode-map [up] ,(and set ''completions-highlight-previous-line-completion))
-     (define-key completion-list-mode-map "\C-p" ,(and set ''completions-highlight-previous-line-completion))
-     (define-key completion-list-mode-map [down] ,(and set ''completions-highlight-next-line-completion))
-     (define-key completion-list-mode-map "\C-n" ,(and set ''completions-highlight-next-line-completion))
-
-     (define-key completion-list-mode-map [right] ,(and set ''completions-highlight-next-completion))
-     (define-key completion-list-mode-map "\C-f" ,(and set ''completions-highlight-next-completion))
-     (define-key completion-list-mode-map [left] ,(and set ''completions-highlight-previous-completion))
-     (define-key completion-list-mode-map "\C-b" ,(and set ''completions-highlight-previous-completion))))
+    ;; Set is called already inside *Completions* but unset not
+    (when-let ((parent (keymap-parent completions-highlight-completions-map))
+               (buffer (get-buffer "*Completions*")))
+      (with-current-buffer buffer
+        (use-local-map completions-highlight-completions-map-save)))))
 
 
 (defun completions-highlight-minibuffer-tab-through-completions ()
@@ -241,17 +276,19 @@ It is called when showing the *Completions* buffer."
       (add-hook 'pre-command-hook
 		#'completions-highlight-completions-pre-command-hook nil t)
       (add-hook 'isearch-mode-end-hook
-		#'completions-highlight-this-completion nil t)))
+		#'completions-highlight-this-completion nil t)
+
+      (completions-highlight-completions-bindings t)))
 
   (add-hook 'pre-command-hook
 	    #'completions-highlight-minibuffer-pre-command-hook nil t)
 
-  (completions-highlight-minibufer-bindings t))
+  (completions-highlight-minibuffer-bindings t))
 
 (defun completions-highlight-exit ()
   "Function to call when disabling the `completion-highlight-mode' mode.
 It is called when hiding the *Completions* buffer."
-  (completions-highlight-minibufer-bindings nil))
+  (completions-highlight-minibuffer-bindings nil))
 
 (define-minor-mode completions-highlight-mode
   "Completion highlight mode to enable candidates highlight in the minibuffer."
@@ -277,7 +314,7 @@ It is called when hiding the *Completions* buffer."
     (remove-hook 'completion-setup-hook #'completions-highlight-setup)
     (remove-hook 'minibuffer-hide-completions-hook #'completions-highlight-exit)
 
-    (completions-highlight-completion-bindings nil)))
+    (completions-highlight-completions-bindings nil)))
 
 (provide 'completions-highlight)
 ;;; completions-highlight.el ends here
