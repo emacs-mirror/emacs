@@ -42,6 +42,11 @@ default.  We strongly recommend building with HarBuzz support.  'x' is
 still a valid backend.
 
 ---
+** Building without double buffering support.
+configure --with-xdbe=no can now be used to disable double buffering
+at build time.
+
+---
 ** 'configure' now warns about building with libXft support.
 libXft is unmaintained, and causes a number of problems with modern
 fonts including but not limited to crashes; support for it may be

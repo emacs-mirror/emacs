@@ -463,6 +463,7 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif/Xaw3d/GTK toolkit scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[at runtime, default X11 XIM to off])
+OPTION_DEFAULT_ON([xdbe],[don't use X11 double buffering support])
 AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
 [use Nextstep (macOS Cocoa or GNUstep) windowing system.
 On by default on macOS.])],[],[with_ns=maybe])
@@ -4023,11 +4024,13 @@ AC_SUBST(XFIXES_LIBS)
 ### Use Xdbe (-lXdbe) if available
 HAVE_XDBE=no
 if test "${HAVE_X11}" = "yes"; then
-  AC_CHECK_HEADER(X11/extensions/Xdbe.h,
-    [AC_CHECK_LIB(Xext, XdbeAllocateBackBufferName, HAVE_XDBE=yes)],
-    [],
-    [#include <X11/Xlib.h>
-    ])
+  if test "${with_xdbe}" != "no"; then
+    AC_CHECK_HEADER(X11/extensions/Xdbe.h,
+      [AC_CHECK_LIB(Xext, XdbeAllocateBackBufferName, HAVE_XDBE=yes)],
+      [],
+      [#include <X11/Xlib.h>
+      ])
+  fi
   if test $HAVE_XDBE = yes; then
     XDBE_LIBS=-lXext
   fi
