@@ -982,6 +982,7 @@ do {									\
   ENSURE_FAIL_STACK(3);							\
   DEBUG_PRINT ("    Push reg %"PRIdPTR" (spanning %p -> %p)\n",		\
 	       n, regstart[n], regend[n]);				\
+  eassert (REG_UNSET (regstart[n]) <= REG_UNSET (regend[n]));		\
   PUSH_FAILURE_POINTER (regstart[n]);					\
   PUSH_FAILURE_POINTER (regend[n]);					\
   PUSH_FAILURE_INT (n);							\
@@ -1019,6 +1020,7 @@ do {									\
     {									\
       regend[pfreg] = POP_FAILURE_POINTER ();				\
       regstart[pfreg] = POP_FAILURE_POINTER ();				\
+      eassert (REG_UNSET (regstart[pfreg]) <= REG_UNSET (regend[pfreg])); \
       DEBUG_PRINT ("     Pop reg %ld (spanning %p -> %p)\n",		\
 		   pfreg, regstart[pfreg], regend[pfreg]);		\
     }									\
@@ -4122,6 +4124,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		    {
 		      regstart[reg] = best_regstart[reg];
 		      regend[reg] = best_regend[reg];
+		      eassert (REG_UNSET (regstart[reg])
+			       <= REG_UNSET (regend[reg]));
 		    }
 		}
 	    } /* d != end_match_2 */
@@ -4169,7 +4173,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	      for (ptrdiff_t reg = 1; reg < num_regs; reg++)
 		{
-		  if (REG_UNSET (regstart[reg]) || REG_UNSET (regend[reg]))
+		  eassert (REG_UNSET (regstart[reg])
+			   <= REG_UNSET (regend[reg]));
+		  if (REG_UNSET (regend[reg]))
 		    regs->start[reg] = regs->end[reg] = -1;
 		  else
 		    {
@@ -4374,7 +4380,6 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	  PUSH_FAILURE_REG (*p);
 
 	  regstart[*p] = d;
-	  regend[*p] = NULL;	/* probably unnecessary.  -sm  */
 	  DEBUG_PRINT ("  regstart: %td\n", POINTER_TO_OFFSET (regstart[*p]));
 
 	  /* Move past the register number and inner group count.  */
@@ -4419,7 +4424,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    DEBUG_PRINT ("EXECUTING duplicate %d.\n", regno);
 
 	    /* Can't back reference a group which we've never matched.  */
-	    if (REG_UNSET (regstart[regno]) || REG_UNSET (regend[regno]))
+	    eassert (REG_UNSET (regstart[regno]) <= REG_UNSET (regend[regno]));
+	    if (REG_UNSET (regend[regno]))
 	      goto fail;
 
 	    /* Where in input to try to start matching.  */
