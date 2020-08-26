@@ -320,7 +320,9 @@ template <int w>
    based on __builtin_unreachable does not.  (GCC so far has only
    __builtin_unreachable.)  */
 #if _GL_HAS_BUILTIN_ASSUME
-/* Use a temporary variable, to avoid a clang warning
+/* Use __builtin_constant_p to help clang's data-flow analysis for the case
+   assume (0).
+   Use a temporary variable, to avoid a clang warning
    "the argument to '__builtin_assume' has side effects that will be discarded"
    if R contains invocations of functions not marked as 'const'.
    The type of the temporary variable can't be __typeof__ (R), because that
@@ -328,12 +330,16 @@ template <int w>
    instead.  */
 # if defined __cplusplus
 #  define assume(R) \
-     ((void) ({ bool _gl_verify_temp = (R); \
-                __builtin_assume (_gl_verify_temp); }))
+     (__builtin_constant_p (R) && !(R) \
+      ? (void) __builtin_unreachable () \
+      : (void) ({ bool _gl_verify_temp = (R); \
+                  __builtin_assume (_gl_verify_temp); }))
 # else
 #  define assume(R) \
-     ((void) ({ _Bool _gl_verify_temp = (R); \
-                __builtin_assume (_gl_verify_temp); }))
+     (__builtin_constant_p (R) && !(R) \
+      ? (void) __builtin_unreachable () \
+      : (void) ({ _Bool _gl_verify_temp = (R); \
+                  __builtin_assume (_gl_verify_temp); }))
 # endif
 #elif _GL_HAS_BUILTIN_UNREACHABLE
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
