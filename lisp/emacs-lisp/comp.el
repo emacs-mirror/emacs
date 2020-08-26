@@ -134,6 +134,16 @@ before compilation.  Usable to modify the compiler environment."
   :type 'list
   :group 'comp)
 
+(defcustom comp-native-driver-options nil
+  "Options passed verbatim to the native compiler's backend driver.
+Note that not all options are meaningful; typically only the options
+affecting the assembler and linker are likely to be useful.
+
+Passing these options is only available in libgccjit version 9
+and above."
+  :type 'list
+  :group 'comp)
+
 (defvar comp-dry-run nil
   "When non nil run everything but the C back-end.")
 
@@ -2581,6 +2591,8 @@ display a message."
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
                                   comp-eln-load-path ',comp-eln-load-path
+                                  comp-native-driver-options
+                                  ',comp-native-driver-options
                                   load-path ',load-path)
                             ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
