@@ -387,9 +387,13 @@ like <img alt=\"Some thing.\">."
 ;;*---------------------------------------------------------------------*/
 ;;*    Programming mode                                                 */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-prog-text-faces
+(defcustom flyspell-prog-text-faces
   '(font-lock-string-face font-lock-comment-face font-lock-doc-face)
-  "Faces corresponding to text in programming-mode buffers.")
+  "Faces corresponding to text in programming-mode buffers."
+  :type '(set (const font-lock-string-face)
+              (const font-lock-comment-face)
+              (const font-lock-doc-face))
+  :version "28.1")
 
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
