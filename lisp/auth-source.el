@@ -2073,7 +2073,9 @@ entries for git.gnus.org:
                                 (setcar
                                  (cdr secret)
                                  (let ((v (car (cdr secret))))
-                                   (lambda () v))))
+                                   (if (functionp v)
+                                       (lambda () (funcall v plist))
+                                   (lambda () v)))))
                             plist))
                         items))
          ;; ensure each item has each key in `returned-keys'
