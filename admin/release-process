@@ -41,17 +41,17 @@ released in the next release cycle.  From time to time, the master
 branches merges bugfix commits from the "emacs-NN" branch.
 See admin/gitmerge.el.
 
-* RELEASE-CRITICAL BUGS
+* RELEASE-BLOCKING BUGS
 
 Emacs uses the "blocking" feature of Debbugs for bugs that need to be
 addressed in the next release.
 
-Currently, bug#39200 is the tracking bug for release of 27.1 and
+Currently, bug#43018 is the tracking bug for release of 27.2 and
 bug#39202 is the tracking bug for release 28.1.  Say bug#123 needs
-to be fixed for Emacs 27.1.  Send a message to control@debbugs.gnu.org
+to be fixed for Emacs 27.2.  Send a message to control@debbugs.gnu.org
 that says:
 
-   block 39200 by 123
+  block 43018 by 123
 
 Change "block" to "unblock" to remove a bug from the list.  Closed
 bugs are not listed as blockers, so you do not need to explicitly
@@ -59,9 +59,17 @@ unblock one that has been closed.  You may need to force an update of
 the tracking bug with ctrl-f5/shift-reload to see the latest version.
 
 If you use the debbugs package from GNU ELPA, you can apply the
-following form to see all bugs which block a given release:
+following command to see all bugs which block a given release:
 
-  (debbugs-gnu-emacs-release-blocking-reports "27.1")
+  (debbugs-gnu-emacs-release-blocking-reports "27.2")
+
+The following command from admin/admin.el sends a reminder message
+about release-blocking bugs to the <emacs-devel@gnu.org> mailing list:
+
+  (reminder-for-release-blocking-bugs "27.2")
+
+It is recommended to send this reminder message once a month.  Once the
+pretest has started, a reminder message once a week is appropriate.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
