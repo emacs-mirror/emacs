@@ -2120,16 +2120,19 @@ properly.  BODY shall not contain a timeout."
       (expand-file-name "/method:host:/path/../file") "/method:host:/file"))
     (should
      (string-equal
-      (expand-file-name "/method:host:/path/.") "/method:host:/path"))
+      (expand-file-name "/method:host:/path/.")
+      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
     (should
      (string-equal
       (expand-file-name "/method:host:/path/..") "/method:host:/"))
     (should
      (string-equal
-      (expand-file-name "." "/method:host:/path/") "/method:host:/path"))
+      (expand-file-name "." "/method:host:/path/")
+      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
     (should
      (string-equal
-      (expand-file-name "" "/method:host:/path/") "/method:host:/path"))
+      (expand-file-name "" "/method:host:/path/")
+      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
     ;; Quoting local part.
     (should
      (string-equal
@@ -2145,11 +2148,10 @@ properly.  BODY shall not contain a timeout."
 
 ;; The following test is inspired by Bug#26911 and Bug#34834.  They
 ;; are rather bugs in `expand-file-name', and it fails for all Emacs
-;; versions.  Test added for later, when they are fixed.
+;; versions prior 28.1.  Test added for later, when they are fixed.
 (ert-deftest tramp-test05-expand-file-name-relative ()
   "Check `expand-file-name'."
-  ;; Mark as failed until bug has been fixed.
-  :expected-result :failed
+  :expected-result (if (>= emacs-major-version 28) :passed :failed)
   (skip-unless (tramp--test-enabled))
 
   ;; These are the methods the test doesn't fail.
@@ -5507,6 +5509,12 @@ variables, so we check the Emacs version directly."
 Some semantics has been changed for there, w/o new functions or
 variables, so we check the Emacs version directly."
   (>= emacs-major-version 27))
+
+(defun tramp--test-emacs28-p ()
+  "Check for Emacs version >= 28.1.
+Some semantics has been changed for there, w/o new functions or
+variables, so we check the Emacs version directly."
+  (>= emacs-major-version 28))
 
 (defun tramp--test-adb-p ()
   "Check, whether the remote host runs Android.
