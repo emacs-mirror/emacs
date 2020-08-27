@@ -36,10 +36,24 @@
 (defvar minibuffer-eldef-shorten-default)
 
 (defun minibuffer-default--in-prompt-regexps ()
-  `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
-     1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
-    ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
-    ("\\( \\[.*\\]\\):? *\\'" 1)))
+  (cons
+   (list
+    (concat
+     "\\("
+     (if (string-match "%s" minibuffer-default-prompt-format)
+         (concat
+          (regexp-quote (substring minibuffer-default-prompt-format
+                                   0 (match-beginning 0)))
+          ".*"
+          (regexp-quote (substring minibuffer-default-prompt-format
+                                   (match-end 0))))
+       (regexp-quote minibuffer-default-prompt-format))
+     ": *\\)")
+    1)
+   `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
+      1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
+     ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
+     ("\\( \\[.*\\]\\):? *\\'" 1))))
 
 (defcustom minibuffer-eldef-shorten-default nil
   "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts."
