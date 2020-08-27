@@ -844,6 +844,78 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
     error ("Invalid scroll-bar-background.");
 }
 
+
+/***********************************************************************
+			       Printing
+ ***********************************************************************/
+
+
+DEFUN ("x-export-frames", Fx_export_frames, Sx_export_frames, 0, 2, 0,
+       doc: /* Return image data of FRAMES in TYPE format.
+FRAMES should be nil (the selected frame), a frame, or a list of
+frames (each of which corresponds to one page).  Each frame should be
+visible.  Optional arg TYPE should be either `pdf' (default), `png',
+`postscript', or `svg'.  Supported types are determined by the
+compile-time configuration of cairo.
+
+Note: Text drawn with the `x' font backend is shown with hollow boxes
+unless TYPE is `png'.  */)
+     (Lisp_Object frames, Lisp_Object type)
+{
+  Lisp_Object rest, tmp;
+  cairo_surface_type_t surface_type;
+
+  if (!CONSP (frames))
+    frames = list1 (frames);
+
+  tmp = Qnil;
+  for (rest = frames; CONSP (rest); rest = XCDR (rest))
+    {
+      struct frame *f = decode_window_system_frame (XCAR (rest));
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      if (!FRAME_VISIBLE_P (f))
+	error ("Frames to be exported must be visible.");
+      tmp = Fcons (frame, tmp);
+    }
+  frames = Fnreverse (tmp);
+
+#ifdef CAIRO_HAS_PDF_SURFACE
+  if (NILP (type) || EQ (type, Qpdf))
+    surface_type = CAIRO_SURFACE_TYPE_PDF;
+  else
+#endif
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (EQ (type, Qpng))
+    {
+      if (!NILP (XCDR (frames)))
+	error ("PNG export cannot handle multiple frames.");
+      surface_type = CAIRO_SURFACE_TYPE_IMAGE;
+    }
+  else
+#endif
+#ifdef CAIRO_HAS_PS_SURFACE
+  if (EQ (type, Qpostscript))
+    surface_type = CAIRO_SURFACE_TYPE_PS;
+  else
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+  if (EQ (type, Qsvg))
+    {
+      /* For now, we stick to SVG 1.1.  */
+      if (!NILP (XCDR (frames)))
+	error ("SVG export cannot handle multiple frames.");
+      surface_type = CAIRO_SURFACE_TYPE_SVG;
+    }
+  else
+#endif
+    error ("Unsupported export type");
+
+  return pgtk_cr_export_frames (frames, surface_type);
+}
+
+
 /* Note: see frame.c for template, also where generic functions are impl */
 frame_parm_handler pgtk_frame_parm_handlers[] = {
   gui_set_autoraise,		/* generic OK */
@@ -3673,7 +3745,7 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
 
-  // defsubr (&Spgtk_export_frames);
+  defsubr (&Sx_export_frames);
   defsubr (&Spgtk_page_setup_dialog);
   defsubr (&Spgtk_get_page_setup);
   defsubr (&Spgtk_print_frames_dialog);

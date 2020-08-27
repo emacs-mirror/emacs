@@ -28,6 +28,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <gtk/gtk.h>
 
+#ifdef CAIRO_HAS_PDF_SURFACE
+#include <cairo-pdf.h>
+#endif
+#ifdef CAIRO_HAS_PS_SURFACE
+#include <cairo-ps.h>
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+#include <cairo-svg.h>
+#endif
+
 // #define PGTK_DEBUG 1
 
 #ifdef PGTK_DEBUG
@@ -574,6 +584,7 @@ extern void pgtk_set_cr_source_with_color (struct frame *f,
 					   unsigned long color);
 extern void pgtk_cr_draw_frame (cairo_t * cr, struct frame *f);
 extern void pgtk_cr_destroy_frame_context (struct frame *f);
+extern Lisp_Object pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type);
 
 /* Defined in pgtkmenu.c */
 extern Lisp_Object pgtk_popup_dialog (struct frame *f, Lisp_Object header,

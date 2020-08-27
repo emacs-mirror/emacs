@@ -7045,6 +7045,17 @@ pgtk_cr_draw_frame (cairo_t * cr, struct frame *f)
   cairo_paint (cr);
 }
 
+static cairo_status_t
+pgtk_cr_accumulate_data (void *closure, const unsigned char *data,
+		      unsigned int length)
+{
+  Lisp_Object *acc = (Lisp_Object *) closure;
+
+  *acc = Fcons (make_unibyte_string ((char const *) data, length), *acc);
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
 void
 pgtk_cr_destroy_frame_context (struct frame *f)
 {
@@ -7055,6 +7066,110 @@ pgtk_cr_destroy_frame_context (struct frame *f)
       FRAME_CR_CONTEXT (f) = NULL;
     }
 }
+
+static void
+pgtk_cr_destroy (void *cr)
+{
+  block_input ();
+  cairo_destroy (cr);
+  unblock_input ();
+}
+
+
+
+Lisp_Object
+pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
+{
+  struct frame *f;
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  int width, height;
+  void (*surface_set_size_func) (cairo_surface_t *, double, double) = NULL;
+  Lisp_Object acc = Qnil;
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  specbind (Qredisplay_dont_pause, Qt);
+  redisplay_preserve_echo_area (31);
+
+  f = XFRAME (XCAR (frames));
+  frames = XCDR (frames);
+  width = FRAME_PIXEL_WIDTH (f);
+  height = FRAME_PIXEL_HEIGHT (f);
+
+  block_input ();
+#ifdef CAIRO_HAS_PDF_SURFACE
+  if (surface_type == CAIRO_SURFACE_TYPE_PDF)
+    {
+      surface = cairo_pdf_surface_create_for_stream (pgtk_cr_accumulate_data, &acc,
+						     width, height);
+      surface_set_size_func = cairo_pdf_surface_set_size;
+    }
+  else
+#endif
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (surface_type == CAIRO_SURFACE_TYPE_IMAGE)
+    surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
+  else
+#endif
+#ifdef CAIRO_HAS_PS_SURFACE
+  if (surface_type == CAIRO_SURFACE_TYPE_PS)
+    {
+      surface = cairo_ps_surface_create_for_stream (pgtk_cr_accumulate_data, &acc,
+						    width, height);
+      surface_set_size_func = cairo_ps_surface_set_size;
+    }
+  else
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+  if (surface_type == CAIRO_SURFACE_TYPE_SVG)
+    surface = cairo_svg_surface_create_for_stream (pgtk_cr_accumulate_data, &acc,
+						   width, height);
+  else
+#endif
+    abort ();
+
+  cr = cairo_create (surface);
+  cairo_surface_destroy (surface);
+  record_unwind_protect_ptr (pgtk_cr_destroy, cr);
+
+  while (1)
+    {
+      cairo_t *saved_cr = FRAME_CR_CONTEXT (f);
+      FRAME_CR_CONTEXT (f) = cr;
+      pgtk_clear_area (f, 0, 0, width, height);
+      expose_frame (f, 0, 0, width, height);
+      FRAME_CR_CONTEXT (f) = saved_cr;
+
+      if (NILP (frames))
+	break;
+
+      cairo_surface_show_page (surface);
+      f = XFRAME (XCAR (frames));
+      frames = XCDR (frames);
+      width = FRAME_PIXEL_WIDTH (f);
+      height = FRAME_PIXEL_HEIGHT (f);
+      if (surface_set_size_func)
+	(*surface_set_size_func) (surface, width, height);
+
+      unblock_input ();
+      maybe_quit ();
+      block_input ();
+    }
+
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (surface_type == CAIRO_SURFACE_TYPE_IMAGE)
+    {
+      cairo_surface_flush (surface);
+      cairo_surface_write_to_png_stream (surface, pgtk_cr_accumulate_data, &acc);
+    }
+#endif
+  unblock_input ();
+
+  unbind_to (count, Qnil);
+
+  return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
+}
+
 
 void
 init_pgtkterm (void)
