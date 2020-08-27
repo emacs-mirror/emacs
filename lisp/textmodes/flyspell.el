@@ -533,7 +533,7 @@ in your init file.
           (progn
             (when flyspell-use-mouse-3-for-menu
               (flyspell--set-use-mouse-3-for-menu 'flyspell-use-mouse-3-for-menu t))
-            (flyspell-mode-on t))
+            (flyspell-mode-on (called-interactively-p 'interactive)))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))
