@@ -398,8 +398,8 @@ like <img alt=\"Some thing.\">."
     (let ((f (get-text-property (1- (point)) 'face)))
       (memq f flyspell-prog-text-faces))))
 
-;; Records the binding of M-TAB in effect before flyspell was activated.
-(defvar flyspell--prev-meta-tab-binding)
+(defvar flyspell--prev-meta-tab-binding nil
+  "Records the binding of M-TAB in effect before flyspell was activated.")
 
 ;;;###autoload
 (defun flyspell-prog-mode ()
@@ -550,12 +550,9 @@ in your init file.
 
 (custom-add-option 'text-mode-hook 'turn-on-flyspell)
 
-;;*---------------------------------------------------------------------*/
-;;*    flyspell-buffers ...                                             */
-;;*    -------------------------------------------------------------    */
-;;*    For remembering buffers running flyspell                         */
-;;*---------------------------------------------------------------------*/
-(defvar flyspell-buffers nil)
+(defvar flyspell-buffers nil
+  "For remembering buffers running flyspell")
+(make-obsolete-variable 'flyspell-buffers "not used." "28.1")
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-minibuffer-p ...                                        */
