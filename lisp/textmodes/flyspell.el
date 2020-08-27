@@ -533,7 +533,7 @@ in your init file.
           (progn
             (when flyspell-use-mouse-3-for-menu
               (flyspell--set-use-mouse-3-for-menu 'flyspell-use-mouse-3-for-menu t))
-	    (flyspell-mode-on))
+            (flyspell-mode-on t))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))
@@ -611,8 +611,12 @@ in your init file.
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode-on ...                                             */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-mode-on ()
-  "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
+(defun flyspell-mode-on (&optional show-msg)
+  "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead.
+
+If optional argument SHOW-MSG is non-nil, show a welcome message
+if `flyspell-issue-message-flag' and `flyspell-issue-welcome-flag'
+are both non-nil."
   (ispell-set-spellchecker-params) ; Initialize variables and dicts alists
   (setq ispell-highlight-face 'flyspell-incorrect)
   ;; local dictionaries setup
@@ -644,16 +648,17 @@ in your init file.
 	(setq flyspell-generic-check-word-predicate mode-predicate)))
   ;; the welcome message
   (if (and flyspell-issue-message-flag
-	   flyspell-issue-welcome-flag
-           (called-interactively-p 'interactive))
+           flyspell-issue-welcome-flag
+           show-msg)
       (let* ((binding (where-is-internal 'flyspell-auto-correct-word
                                          nil 'non-ascii))
              (mouse-button (if flyspell-use-mouse-3-for-menu
                                "Mouse-3" "Mouse-2")))
-        (message "Welcome to Flyspell. Use %s to correct words."
-                 (if binding
-                     (format "%s or %s" (key-description binding) mouse-button)
-                   (format "%s" mouse-button))))))
+        (message (format-message
+                  "Welcome to Flyspell. Use %s to correct words."
+                  (if binding
+                      (format "`%s' or `%s'" (key-description binding) mouse-button)
+                    (format "`%s'" mouse-button)))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-delay-commands ...                                      */
