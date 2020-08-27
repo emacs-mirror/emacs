@@ -2131,16 +2131,19 @@ is greater than 10.
       (expand-file-name "/method:host:/path/../file") "/method:host:/file"))
     (should
      (string-equal
-      (expand-file-name "/method:host:/path/.") "/method:host:/path/"))
+      (expand-file-name "/method:host:/path/.")
+      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
     (should
      (string-equal
       (expand-file-name "/method:host:/path/..") "/method:host:/"))
     (should
      (string-equal
-      (expand-file-name "." "/method:host:/path/") "/method:host:/path/"))
+      (expand-file-name "." "/method:host:/path/")
+      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
     (should
      (string-equal
-      (expand-file-name "" "/method:host:/path/") "/method:host:/path/"))
+      (expand-file-name "" "/method:host:/path/")
+      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
     ;; Quoting local part.
     (should
      (string-equal
@@ -2159,14 +2162,8 @@ is greater than 10.
 (ert-deftest tramp-test05-expand-file-name-relative ()
   "Check `expand-file-name'."
   (skip-unless (tramp--test-enabled))
-
-  ;; These are the methods the test doesn't fail.
-  (when (or (tramp--test-adb-p) (tramp--test-ange-ftp-p) (tramp--test-gvfs-p)
-	    (tramp--test-rclone-p)
-	    (tramp--test-smb-p))
-    (setf (ert-test-expected-result-type
-	   (ert-get-test 'tramp-test05-expand-file-name-relative))
-	  :passed))
+  ;; The bugs are fixed in Emacs 28.1.
+  (skip-unless (tramp--test-emacs28-p))
 
   (should
    (string-equal
