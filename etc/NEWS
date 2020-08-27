@@ -241,8 +241,7 @@ time zones will use a form like "+0100" instead of "CET".
 ** Dired
 
 ---
-*** Broken and circular links are shown with the new
-    'dired-broken-symlink' face.
+*** Broken and circular links are shown with the 'dired-broken-symlink' face.
 
 *** '=' ('dired-diff') will now put all backup files into the 'M-n' history.
 When using '=' on a file with backup files, the default file to use
