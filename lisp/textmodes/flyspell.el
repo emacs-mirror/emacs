@@ -645,14 +645,15 @@ in your init file.
   ;; the welcome message
   (if (and flyspell-issue-message-flag
 	   flyspell-issue-welcome-flag
-	   (called-interactively-p 'interactive))
-      (let ((binding (where-is-internal 'flyspell-auto-correct-word
-					nil 'non-ascii)))
-	(message "%s"
-	 (if binding
-	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
-		     (key-description binding))
-	   "Welcome to flyspell. Use Mouse-2 to correct words.")))))
+           (called-interactively-p 'interactive))
+      (let* ((binding (where-is-internal 'flyspell-auto-correct-word
+                                         nil 'non-ascii))
+             (mouse-button (if flyspell-use-mouse-3-for-menu
+                               "Mouse-3" "Mouse-2")))
+        (message "Welcome to Flyspell. Use %s to correct words"
+                 (if binding
+                     (format "%s or %s" (key-description binding) mouse-button)
+                   (format "%s" mouse-button))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-delay-commands ...                                      */
@@ -1802,7 +1803,9 @@ for the overlay."
     (overlay-put overlay 'mouse-face mouse-face)
     (overlay-put overlay 'flyspell-overlay t)
     (overlay-put overlay 'evaporate t)
-    (overlay-put overlay 'help-echo "mouse-2: correct word at point")
+    (overlay-put overlay 'help-echo (concat (if flyspell-use-mouse-3-for-menu
+                                                "mouse-3"
+                                              "mouse-2") ": correct word at point"))
     ;; If misspelled text has a 'keymap' property, let that remain in
     ;; effect for the bindings that flyspell-mouse-map doesn't override.
     (set-keymap-parent flyspell-mouse-map (get-char-property beg 'keymap))
