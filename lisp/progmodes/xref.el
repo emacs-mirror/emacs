@@ -961,7 +961,7 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 
 (defvar xref--read-pattern-history nil)
 
-(defun xref--show-xrefs (fetcher display-action)
+(defun xref--show-xrefs (fetcher display-action &optional _always-show-list)
   (xref--push-markers)
   (unless (functionp fetcher)
     ;; Old convention.
