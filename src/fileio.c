@@ -827,9 +827,9 @@ the root directory.  */)
   ptrdiff_t tlen;
 #ifdef DOS_NT
   int drive = 0;
-  bool collapse_newdir = true;
   bool is_escaped = 0;
 #endif /* DOS_NT */
+  bool collapse_newdir = true;
   ptrdiff_t length, nbytes;
   Lisp_Object handler, result, handled_name;
   bool multibyte;
@@ -1183,9 +1183,7 @@ the root directory.  */)
 	      newdir = SSDATA (hdir);
 	      newdirlim = newdir + SBYTES (hdir);
 	    }
-#ifdef DOS_NT
 	  collapse_newdir = false;
-#endif
 	}
       else			/* ~user/filename */
 	{
@@ -1205,9 +1203,7 @@ the root directory.  */)
 
 	      while (*++nm && !IS_DIRECTORY_SEP (*nm))
 		continue;
-#ifdef DOS_NT
 	      collapse_newdir = false;
-#endif
 	    }
 
 	  /* If we don't find a user of that name, leave the name
@@ -1374,12 +1370,7 @@ the root directory.  */)
     }
 #endif /* DOS_NT */
 
-  /* Ignore any slash at the end of newdir, unless newdir is
-     just "/" or "//".  */
   length = newdirlim - newdir;
-  while (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
-	 && ! (length == 2 && IS_DIRECTORY_SEP (newdir[0])))
-    length--;
 
   /* Now concatenate the directory and name to new space in the stack frame.  */
   tlen = length + file_name_as_directory_slop + (nmlim - nm) + 1;
@@ -1398,25 +1389,22 @@ the root directory.  */)
 
   if (newdir)
     {
-      if (IS_DIRECTORY_SEP (nm[0]))
+      if (!collapse_newdir)
 	{
-#ifdef DOS_NT
-	  /* If newdir is effectively "C:/", then the drive letter will have
-	     been stripped and newdir will be "/".  Concatenating with an
-	     absolute directory in nm produces "//", which will then be
-	     incorrectly treated as a network share.  Ignore newdir in
-	     this case (keeping the drive letter).  */
-	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0])
-		&& newdir[1] == '\0'))
-#endif
-	    {
-	      memcpy (target, newdir, length);
-	      target[length] = 0;
-	      nbytes = length;
-	    }
+	  /* With ~ or ~user, leave NEWDIR as-is to avoid transforming
+	     it from a symlink (or a regular file!) into a directory.  */
+	  memcpy (target, newdir, length);
+	  nbytes = length;
 	}
       else
 	nbytes = file_name_as_directory (target, newdir, length, multibyte);
+
+      /* If TARGET ends in a directory separator, omit leading
+	 directory separators from NM so that concatenating a TARGET "/"
+	 to an NM "/foo" does not result in the incorrect "//foo".  */
+      if (nbytes && IS_DIRECTORY_SEP (target[nbytes - 1]))
+	while (IS_DIRECTORY_SEP (nm[0]))
+	  nm++;
     }
 
   memcpy (target + nbytes, nm, nmlim - nm + 1);

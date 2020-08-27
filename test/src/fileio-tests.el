@@ -108,6 +108,14 @@ Also check that an encoding error can appear in a symlink."
       (should (equal (expand-file-name "~/bar") "x:/foo/bar")))
     (setenv "HOME" old-home)))
 
+(ert-deftest fileio-tests--HOME-trailing-slash ()
+  "Test that expand-file-name of \"~\" respects trailing slash."
+  (let ((old-home (getenv "HOME")))
+    (dolist (home '("/a/b/c" "/a/b/c/"))
+      (setenv "HOME" home)
+      (should (equal (expand-file-name "~") (expand-file-name home))))
+    (setenv "HOME" old-home)))
+
 (ert-deftest fileio-tests--expand-file-name-trailing-slash ()
   (dolist (fooslashalias '("foo/" "foo//" "foo/." "foo//." "foo///././."
                            "foo/a/.."))
