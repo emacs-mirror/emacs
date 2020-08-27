@@ -650,7 +650,7 @@ in your init file.
                                          nil 'non-ascii))
              (mouse-button (if flyspell-use-mouse-3-for-menu
                                "Mouse-3" "Mouse-2")))
-        (message "Welcome to Flyspell. Use %s to correct words"
+        (message "Welcome to Flyspell. Use %s to correct words."
                  (if binding
                      (format "%s or %s" (key-description binding) mouse-button)
                    (format "%s" mouse-button))))))
