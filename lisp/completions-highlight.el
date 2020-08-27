@@ -211,9 +211,12 @@ suffix."
 When SET is nil the bindings are removed."
   (if set
       (let ((local-map (current-local-map)))
-        (setq completions-highlight-minibuffer-map-save local-map)
-        (set-keymap-parent completions-highlight-minibuffer-map local-map)
-        (use-local-map completions-highlight-minibuffer-map))
+        (unless (eq local-map completions-highlight-minibuffer-map)
+          (setq completions-highlight-minibuffer-map-save local-map)
+          (unless (eq local-map
+                      (keymap-parent completions-highlight-minibuffer-map))
+            (set-keymap-parent completions-highlight-minibuffer-map local-map))
+          (use-local-map completions-highlight-minibuffer-map)))
 
     (use-local-map completions-highlight-minibuffer-map-save)))
 
@@ -222,11 +225,11 @@ When SET is nil the bindings are removed."
   "Add extra keybindings to `completion-list-mode-map'.
 When SET is nil the bindings are removed."
   (if set
-      (unless (keymap-parent completions-highlight-completions-map)
         (let ((local-map (current-local-map)))
-          (setq completions-highlight-completions-map-save local-map)
-          (set-keymap-parent completions-highlight-completions-map local-map)
-          (use-local-map completions-highlight-completions-map)))
+          (unless (eq local-map completions-highlight-completions-map)
+            (setq completions-highlight-completions-map-save local-map)
+            (set-keymap-parent completions-highlight-completions-map local-map)
+            (use-local-map completions-highlight-completions-map)))
 
     ;; Set is called already inside *Completions* but unset not
     (when-let ((parent (keymap-parent completions-highlight-completions-map))
