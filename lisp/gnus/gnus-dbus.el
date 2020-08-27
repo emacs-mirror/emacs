@@ -44,7 +44,7 @@ Used to unregister the signal.")
   "Use `dbus-register-signal' to close servers on sleep."
   (when (featurep 'dbusbind)
     (setq gnus-dbus-sleep-registration-object
-	  (dbus-register-signal :session
+	  (dbus-register-signal :system
 				"org.freedesktop.login1"
 				"/org/freedesktop/login1"
 				"org.freedesktop.login1.Manager"
