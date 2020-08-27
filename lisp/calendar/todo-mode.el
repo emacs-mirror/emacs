@@ -6440,8 +6440,7 @@ Filtered Items mode following todo (not done) items."
     ("i"	     todo-insert-item)
     ("k"	     todo-delete-item)
     ("m"	     todo-move-item)
-    ("u"	     todo-item-undone)
-    ([remap newline] newline-and-indent))
+    ("u"	     todo-item-undone))
   "List of key bindings for Todo mode only.")
 
 (defvar todo-key-bindings-t+a+f
@@ -6507,7 +6506,6 @@ Filtered Items mode following todo (not done) items."
 (defvar todo-edit-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-x\C-q" 'todo-edit-quit)
-    (define-key map [remap newline] 'newline-and-indent)
     map)
   "Todo Edit mode keymap.")
 
@@ -6666,7 +6664,6 @@ Added to `window-configuration-change-hook' in Todo mode."
   (setq-local font-lock-defaults '(todo-font-lock-keywords t))
   (setq-local revert-buffer-function #'todo-revert-buffer)
   (setq-local tab-width todo-indent-to-here)
-  (setq-local indent-line-function #'todo-indent)
   (when todo-wrap-lines
     (visual-line-mode)
     (setq wrap-prefix (make-string todo-indent-to-here 32))))
@@ -6741,6 +6738,7 @@ Added to `window-configuration-change-hook' in Todo mode."
 
 \\{todo-edit-mode-map}"
   (todo-modes-set-1)
+  (setq-local indent-line-function #'todo-indent)
   (if (> (buffer-size) (- (point-max) (point-min)))
       ;; Editing one item in an indirect buffer, so buffer-file-name is nil.
       (setq-local todo-current-todo-file todo-global-current-todo-file)
