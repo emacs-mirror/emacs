@@ -1477,8 +1477,10 @@ Return t if the file exists and loads successfully.  */)
 	 same folder of their respective sources therfore not to break
 	 packages we fake `load-file-name' here.  The non faked
 	 version of it is `load-true-file-name'. */
-      specbind (Qload_file_name, Fgethash (Ffile_name_nondirectory (found),
-					   Vcomp_eln_to_el_h, Qnil));
+      Lisp_Object el_name = Fgethash (Ffile_name_nondirectory (found),
+				      Vcomp_eln_to_el_h, Qnil);
+      specbind (Qload_file_name,
+		NILP (el_name) ? Qnil : concat2 (el_name, build_string ("c")));
     }
   else
     specbind (Qload_file_name, found);
