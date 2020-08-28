@@ -917,7 +917,7 @@ Bibliography
 
 * .. _BROOKSBY02:
 
-  Richard Brooksby. 2002. "`The Memory Pool System: Thirty person-years of memory management development goes Open Source <http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>`_". ISMM'02.
+  Richard Brooksby. 2002. "`The Memory Pool System: Thirty person-years of memory management development goes Open Source <https://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>`_". ISMM'02.
 
   .. admonition:: Abstract
 

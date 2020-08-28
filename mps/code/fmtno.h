@@ -26,7 +26,7 @@ extern mps_res_t no_fmt(mps_fmt_t *, mps_arena_t);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are

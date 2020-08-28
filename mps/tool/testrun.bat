@@ -88,7 +88,7 @@ exit /b
 
 @rem C. COPYRIGHT AND LICENSE
 @rem
-@rem Copyright (C) 2013-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+@rem Copyright (C) 2013-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
 @rem
 @rem Redistribution and use in source and binary forms, with or without
 @rem modification, are permitted provided that the following conditions are

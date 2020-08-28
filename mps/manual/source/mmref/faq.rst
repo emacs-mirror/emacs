@@ -22,7 +22,7 @@ garbage collection>` for :term:`C` exist as add-on libraries.
 
 .. link::
 
-    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+    `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
@@ -131,7 +131,7 @@ semi-conservative garbage collectors for C++.
 
 .. link::
 
-    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+    `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
@@ -169,7 +169,7 @@ can try is to add a :term:`garbage collector`.
 
 .. link::
 
-    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+    `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
@@ -410,7 +410,7 @@ Memory Pool System, or the Boehm–Demers–Weiser collector.
 
 .. link::
 
-    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+    `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
     `GC-LIST FAQ <http://iecc.com/gclist/GC-faq.html>`_.
 
@@ -427,7 +427,7 @@ natively.
 
 .. link::
 
-    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+    `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 

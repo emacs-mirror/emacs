@@ -52,6 +52,6 @@ collection>`), and we are happy to provide advanced :term:`memory
 management` solutions to language and application developers through
 our `consulting service`_.
 
-.. _Ravenbrook Limited: http://www.ravenbrook.com/
-.. _consulting service: http://www.ravenbrook.com/services/mm/
-.. _Memory Pool System: http://www.ravenbrook.com/project/mps/
+.. _Ravenbrook Limited: https://www.ravenbrook.com/
+.. _consulting service: https://www.ravenbrook.com/services/mm/
+.. _Memory Pool System: https://www.ravenbrook.com/project/mps/

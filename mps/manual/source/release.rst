@@ -391,8 +391,8 @@ Other changes
    X, but also has a significant effect on Linux. See job003371_ and
    job003975_.
 
-   .. _job003371: http://www.ravenbrook.com/project/mps/issue/job003371/
-   .. _job003975: http://www.ravenbrook.com/project/mps/issue/job003975/
+   .. _job003371: https://www.ravenbrook.com/project/mps/issue/job003371/
+   .. _job003975: https://www.ravenbrook.com/project/mps/issue/job003975/
 
 
 .. _release-notes-1.114:
