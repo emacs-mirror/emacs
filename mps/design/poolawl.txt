@@ -490,15 +490,15 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

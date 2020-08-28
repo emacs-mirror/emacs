@@ -1,5 +1,5 @@
 #                              Ravenbrook
-#                     <http://www.ravenbrook.com/>
+#                     <https://www.ravenbrook.com/>
 #
 #                P4.PY -- PYTHON INTERFACE TO PERFORCE
 #
@@ -242,7 +242,7 @@ def parse_datetime(s):
 #
 # C. COPYRIGHT AND LICENCE
 #
-# Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are

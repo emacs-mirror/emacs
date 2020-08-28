@@ -583,7 +583,7 @@ PACKAGE_TARNAME='mps-kit'
 PACKAGE_VERSION='release/1.118.0'
 PACKAGE_STRING='Memory Pool System Kit release/1.118.0'
 PACKAGE_BUGREPORT='mps-questions@ravenbrook.com'
-PACKAGE_URL='http://www.ravenbrook.com/project/mps/'
+PACKAGE_URL='https://www.ravenbrook.com/project/mps/'
 
 ac_unique_file="code/mps.c"
 # Factoring default headers for most tests.
@@ -1328,7 +1328,7 @@ Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
 
 Report bugs to <mps-questions@ravenbrook.com>.
-Memory Pool System Kit home page: <http://www.ravenbrook.com/project/mps/>.
+Memory Pool System Kit home page: <https://www.ravenbrook.com/project/mps/>.
 _ACEOF
 ac_status=$?
 fi
@@ -4225,7 +4225,7 @@ Configuration files:
 $config_files
 
 Report bugs to <mps-questions@ravenbrook.com>.
-Memory Pool System Kit home page: <http://www.ravenbrook.com/project/mps/>."
+Memory Pool System Kit home page: <https://www.ravenbrook.com/project/mps/>."
 
 _ACEOF
 cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
@@ -4805,7 +4805,7 @@ echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are

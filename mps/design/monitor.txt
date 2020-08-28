@@ -166,7 +166,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2018-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2018–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

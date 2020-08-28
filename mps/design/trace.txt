@@ -146,7 +146,7 @@ whether the reference is to a white segment.
     table from address to white segment, rather than indirecting
     through the chunk and the tract. See job003796_.
 
-.. _job003796: http://www.ravenbrook.com/project/mps/issue/job003796/
+.. _job003796: https://www.ravenbrook.com/project/mps/issue/job003796/
 
 _`.fix.noaver`: ``AVER()`` statements in the code add bulk to the code
 (reducing I-cache efficacy) and add branches to the path (polluting
@@ -286,14 +286,14 @@ Document History
 
 - 2013-05-22 GDR_ Converted to reStructuredText.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

@@ -460,7 +460,7 @@ void scheme_fmt(mps_fmt_t *fmt)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are

@@ -87,7 +87,7 @@ Memory management in various languages
 
         .. link::
 
-            `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+            `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
             `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
             `C standardization <http://www.open-std.org/jtc1/sc22/wg14/>`_, 
             `comp.lang.c Frequently Asked Questions <http://c-faq.com/>`_.
@@ -224,7 +224,7 @@ Memory management in various languages
 
         .. link::
 
-            `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+            `Memory Pool System <https://www.ravenbrook.com/project/mps/>`_,
             `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
             `comp.lang.c++ FAQ <http://www.parashift.com/c++-faq/>`_,
             `C++ standardization <http://www.open-std.org/jtc1/sc22/wg21/>`_.

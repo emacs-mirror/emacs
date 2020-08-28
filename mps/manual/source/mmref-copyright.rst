@@ -8,7 +8,7 @@ Use subject to copyright restrictions
 The copyright in The Memory Management Reference is owned by
 `Ravenbrook Limited`_.
 
-.. _Ravenbrook Limited: http://www.ravenbrook.com/
+.. _Ravenbrook Limited: https://www.ravenbrook.com/
 
 Permission to copy part or all of The Memory Management Reference for
 personal or classroom use is granted without fee, provided that copies

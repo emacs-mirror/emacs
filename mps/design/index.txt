@@ -199,7 +199,7 @@ References
    Richard Brooksby;
    Ravenbrook Limited;
    2002-06-18;
-   <http://www.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo>.
+   <https://www.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo>.
 
 
 Document History
@@ -224,16 +224,16 @@ Document History
 - 2016-03-22    RB_     Add write-barier.
 - 2016-03-27    RB_     Goodbye pool MV *sniff*.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb
-.. _NB: http://www.ravenbrook.com/consultants/nb
-.. _GDR: http://www.ravenbrook.com/consultants/gdr
+.. _RB: https://www.ravenbrook.com/consultants/rb
+.. _NB: https://www.ravenbrook.com/consultants/nb
+.. _GDR: https://www.ravenbrook.com/consultants/gdr
 .. _reST: http://docutils.sourceforge.net/rst.html
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2002-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2002–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

@@ -154,7 +154,7 @@ Ensure that the branch appears correctly at:
 
 #. the internal index at https://info.ravenbrook.com/project/mps/version
 
-#. the external index at http://www.ravenbrook.com/project/mps/version
+#. the external index at https://www.ravenbrook.com/project/mps/version
 
 #. the GitHub mirror at https://github.com/Ravenbrook/mps/branches
 
@@ -164,7 +164,7 @@ A. References
 
 .. [RB_1999-05-20] Richard Brooksby; "Product Quality Through Change
    Management"; Ravenbrook Limited; 1999-05-20;
-   http://www.ravenbrook.com/doc/1999/05/20/pqtcm/
+   https://www.ravenbrook.com/doc/1999/05/20/pqtcm/
 
 
 B. Document History
@@ -192,7 +192,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2002-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2002–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

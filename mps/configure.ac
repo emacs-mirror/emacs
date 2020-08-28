@@ -19,7 +19,7 @@ AC_INIT([Memory Pool System Kit],
         m4_esyscmd_s([sed -n '/^#define MPS_RELEASE "\(.*\)"$/{s/.*"\(.*\)"/\1/;p;}' code/version.c]),
         [mps-questions@ravenbrook.com],
         [mps-kit],
-        [http://www.ravenbrook.com/project/mps/])
+        [https://www.ravenbrook.com/project/mps/])
 AC_CONFIG_AUX_DIR(tool/autoconf/build-aux)
 AC_CONFIG_SRCDIR([code/mps.c])
 
@@ -176,7 +176,7 @@ echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are

@@ -35,13 +35,13 @@ Checklist
 _`.test`: If a new feature has been added to the code, is there a test
 case? Example: job003923_.
 
-.. _job003923: http://www.ravenbrook.com/project/mps/issue/job003923/
+.. _job003923: https://www.ravenbrook.com/project/mps/issue/job003923/
 
 _`.unwind`: If code has been updated in a function that unwinds its
 state in failure cases, have the failure cases been updated to
 correspond? Example: job003922_. See `.diff`_.
 
-.. _job003922: http://www.ravenbrook.com/project/mps/issue/job003922/
+.. _job003922: https://www.ravenbrook.com/project/mps/issue/job003922/
 
 
 
@@ -50,13 +50,13 @@ Document History
 
 2015-08-10  GDR_  Created.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2015-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2015–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

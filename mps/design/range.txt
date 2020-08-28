@@ -132,14 +132,14 @@ Document history
 - 2014-01-15 GDR_ Added ``RangeContains()``.
 - 2016-03-27 RB_ Addded ``RangeSetBase()`` and ``RangeSetLimit()``.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

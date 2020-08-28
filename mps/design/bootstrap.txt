@@ -94,14 +94,14 @@ Document History
 - 2016-02-25 RB_ Improving description of arena free land bootstrap
   and cross-referencing from source code.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2015-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2015–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

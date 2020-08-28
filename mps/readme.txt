@@ -26,7 +26,7 @@ implementing specialized memory management policies.
 The MPS has been in development since 1994 and deployed in successful
 commercial products since 1997. Bugs are almost unknown in production.
 It is under continuous development and support by `Ravenbrook
-<http://www.ravenbrook.com/>`__.
+<https://www.ravenbrook.com/>`__.
 
 The MPS is distributed under the BSD 2-clause open source license (see
 `<license.txt>`_).
@@ -93,7 +93,7 @@ Getting help
 ------------
 
 You can obtain expert professional support for the MPS from `Ravenbrook
-Limited <http://www.ravenbrook.com/>`__, the developers of the MPS, who
+Limited <https://www.ravenbrook.com/>`__, the developers of the MPS, who
 have many years of experience in commercial memory management systems.
 Write to us at mps-questions@ravenbrook.com for more information.
 
@@ -139,7 +139,7 @@ Document History
 Copyright and Licence
 ---------------------
 
-Copyright © 2001–2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2001–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
