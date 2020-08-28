@@ -111,7 +111,10 @@ Also check that an encoding error can appear in a symlink."
 (ert-deftest fileio-tests--HOME-trailing-slash ()
   "Test that expand-file-name of \"~\" respects trailing slash."
   (let ((old-home (getenv "HOME")))
-    (dolist (home '("/a/b/c" "/a/b/c/"))
+    (dolist (home
+             (if (memq system-type '(windows-nt ms-dos))
+                 '("c:/a/b/c" "c:/a/b/c/")
+               '("/a/b/c" "/a/b/c/")))
       (setenv "HOME" home)
       (should (equal (expand-file-name "~") (expand-file-name home))))
     (setenv "HOME" old-home)))
@@ -119,13 +122,26 @@ Also check that an encoding error can appear in a symlink."
 (ert-deftest fileio-tests--expand-file-name-trailing-slash ()
   (dolist (fooslashalias '("foo/" "foo//" "foo/." "foo//." "foo///././."
                            "foo/a/.."))
-    (should (equal (expand-file-name fooslashalias "/") "/foo/"))
-    (should (equal (expand-file-name (concat "/" fooslashalias)) "/foo/")))
-  (should (equal (expand-file-name "." "/usr/spool/") "/usr/spool/"))
-  (should (equal (expand-file-name "" "/usr/spool/") "/usr/spool/"))
+    (if (memq system-type '(windows-nt ms-dos))
+        (progn
+          (should (equal (expand-file-name fooslashalias "c:/") "c:/foo/"))
+          (should (equal (expand-file-name (concat "c:/" fooslashalias))
+                         "c:/foo/"))
+          (should (equal (expand-file-name "." "c:/usr/spool/")
+                         "c:/usr/spool/"))
+          (should (equal (expand-file-name "" "c:/usr/spool/")
+                         "c:/usr/spool/")))
+      (should (equal (expand-file-name fooslashalias "/") "/foo/"))
+      (should (equal (expand-file-name (concat "/" fooslashalias)) "/foo/"))
+      (should (equal (expand-file-name "." "/usr/spool/") "/usr/spool/"))
+      (should (equal (expand-file-name "" "/usr/spool/") "/usr/spool/"))))
   ;; Trailing "B/C/.." means B must be a directory.
-  (should (equal (expand-file-name "/a/b/c/..") "/a/b/"))
-  (should (equal (expand-file-name "/a/b/c/../") "/a/b/")))
+  (if (memq system-type '(windows-nt ms-dos))
+      (progn
+        (should (equal (expand-file-name "c:/a/b/c/..") "c:/a/b/"))
+        (should (equal (expand-file-name "c:/a/b/c/../") "c:/a/b/")))
+    (should (equal (expand-file-name "/a/b/c/..") "/a/b/"))
+    (should (equal (expand-file-name "/a/b/c/../") "/a/b/"))))
 
 (ert-deftest fileio-tests--insert-file-interrupt ()
   (let ((text "-*- coding: binary -*-\n\xc3\xc3help")
