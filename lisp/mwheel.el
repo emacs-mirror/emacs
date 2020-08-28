@@ -25,8 +25,8 @@
 ;; Under X11/X.Org, the wheel events are sent as button4/button5
 ;; events.
 
-;; It is already enabled by default on most graphical displays.  You
-;; can toggle it with M-x mouse-wheel-mode.
+;; Mouse wheel support is already enabled by default on most graphical
+;; displays.  You can toggle it using `M-x mouse-wheel-mode'.
 
 ;;; Code:
 
