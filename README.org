@@ -4,6 +4,11 @@
 
 ** Recent Changes
 
+*** 2020-08-28: Added =which-key-add-keymap-based-replacements=
+    This function provides an alternative interface allowing replacements to be
+    stored directly in keymaps, allowing one to avoid using
+    =which-key-replacement-alist=, which may cause performance issues when it
+    gets very big.
 *** 2019-08-01: Added =which-key-show-early-on-C-h=
     Allows one to trigger =which-key= on demand, rather than automatically. See
     the docstring and [[#manual-activation][Manual Activation]].
@@ -29,6 +34,7 @@
 ** Table of Contents                                                  :TOC_3:
 - [[#which-key][which-key]]
   - [[#recent-changes][Recent Changes]]
+    - [[#2020-08-28-added-which-key-add-keymap-based-replacements][2020-08-28: Added =which-key-add-keymap-based-replacements=]]
     - [[#2019-08-01-added-which-key-show-early-on-c-h][2019-08-01: Added =which-key-show-early-on-C-h=]]
     - [[#2017-12-13-added-which-key-enable-extended-define-key][2017-12-13: Added =which-key-enable-extended-define-key=]]
     - [[#2017-11-13-added-which-key-show-major-mode][2017-11-13: Added =which-key-show-major-mode=]]
@@ -255,7 +261,7 @@
     idea of behind each alist is that you specify a selection string in the
     =car= of each cons cell and the replacement string in the =cdr=.
 
-**** Automatic
+**** Automatic ("keymap-based") replacement
      A newer option is to set =which-key-enable-extended-define-key= which
      advises =define-key= to allow which-key to pre-process its arguments. The
      statement
@@ -272,6 +278,26 @@
      #+BEGIN_SRC emacs-lisp
      (define-key some-map "b" '("bar-prefix"))
      #+END_SRC
+
+     If you do not want to enable the advise on =define-key=, you may also use
+     =which-key-add-keymap-based-replacements=. The above examples can be
+     alternatively written as
+
+     #+BEGIN_SRC emacs-lisp
+     (which-key-add-keymap-based-replacements some-map
+       "f" '("foo" . long-name-for-command-foo)
+       ;; or
+       ;; "f" "foo"
+       "b" '("bar-prefix")
+       ;; or
+       ;; "b" "bar-prefix"
+     )
+     #+END_SRC
+
+     Note that while the alternative methods below use
+     =which-key-replacement-alist=, the "keymap-based" replacements store
+     replacements in the keymaps themselves, so should avoid performance issues
+     when =which-key-replacement-alist= becomes very large.
 
 **** "Key-Based" replacement
      Using this method, the description of a key is replaced using a string that

@@ -913,6 +913,41 @@ but more functional."
 ;;; Helper functions to modify replacement lists.
 
 ;;;###autoload
+(defun which-key-add-keymap-based-replacements (keymap key replacement &rest more)
+  "Replace the description of KEY using REPLACEMENT in KEYMAP.
+KEY should take a format suitable for use in
+`kbd'. REPLACEMENT is the string to use to describe the
+command associated with KEY in the KEYMAP. You may also use a
+cons cell of the form \(STRING . COMMAND\) for each REPLACEMENT,
+where STRING is the replacement string and COMMAND is a symbol
+corresponding to the intended command to be replaced. In the
+latter case, which-key will verify the intended command before
+performing the replacement. COMMAND should be nil if the binding
+corresponds to a key prefix. For example,
+
+\(which-key-add-keymap-based-replacements global-map
+  \"C-x w\" \"Save as\"\)
+
+and
+
+\(which-key-add-keymap-based-replacements global-map
+  \"C-x w\" '\(\"Save as\" . write-file\)\)
+
+both have the same effect for the \"C-x C-w\" key binding, but
+the latter causes which-key to verify that the key sequence is
+actually bound to write-file before performing the replacement."
+  (while key
+    (let ((string (if (stringp replacement)
+                      replacement
+                    (car-safe replacement)))
+          (command (cdr-safe replacement)))
+      (define-key keymap (which-key--pseudo-key (kbd key))
+        `(which-key ,(cons string command))))
+    (setq key (pop more)
+          replacement (pop more))))
+(put 'which-key-add-keymap-based-replacements 'lisp-indent-function 'defun)
+
+;;;###autoload
 (defun which-key-add-key-based-replacements
     (key-sequence replacement &rest more)
   "Replace the description of KEY-SEQUENCE with REPLACEMENT.
@@ -1462,19 +1497,18 @@ local bindings coming first. Within these categories order using
                                (cdr key-binding)))))))
 
 (defun which-key--get-pseudo-binding (key-binding &optional prefix)
-  (let* ((pseudo-binding
-          (key-binding (which-key--pseudo-key (kbd (car key-binding)) prefix)))
-         (pseudo-binding (when pseudo-binding (cadr pseudo-binding)))
-         (pseudo-desc (when pseudo-binding (car pseudo-binding)))
-         (pseudo-def (when pseudo-binding (cdr pseudo-binding)))
-         (real-def (key-binding (kbd (car key-binding))))
-         ;; treat keymaps as if they're nil bindings. This creates the
-         ;; possibility that we rename the wrong binding but this seems
-         ;; unlikely.
-         (real-def (unless (keymapp real-def) real-def)))
-    (when (and pseudo-binding
-               (eq pseudo-def real-def))
-      (cons (car key-binding) pseudo-desc))))
+  (let* ((key (kbd (car key-binding)))
+         (pseudo-binding (key-binding (which-key--pseudo-key key prefix))))
+    (when pseudo-binding
+      (let* ((command-replacement (cadr pseudo-binding))
+             (pseudo-desc (car command-replacement))
+             (pseudo-def (cdr command-replacement)))
+        (when (and (stringp pseudo-desc)
+                   (or (null pseudo-def)
+                       ;; don't verify keymaps
+                       (keymapp pseudo-def)
+                       (eq pseudo-def (key-binding key))))
+          (cons (car key-binding) pseudo-desc))))))
 
 (defsubst which-key--replace-in-binding (key-binding repl)
   (cond ((or (not (consp repl)) (null (cdr repl)))
