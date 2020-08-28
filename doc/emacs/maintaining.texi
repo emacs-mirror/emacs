@@ -1693,6 +1693,12 @@ Start Eshell in the current project's root directory
 @item C-x p c
 Run compilation in the current project's root directory
 (@code{project-compile}).
+@item C-x p !
+Run shell command in the current project's root directory
+(@code{project-shell-command}).
+@item C-x p &
+Run shell command asynchronously in the current project's root
+directory (@code{project-async-shell-command}).
 @end table
 
   Emacs provides commands for handling project files conveniently.
@@ -1769,6 +1775,14 @@ directory.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
 @findex project-compile
   The command @kbd{C-x p c} (@code{project-compile}) runs compilation
 (@pxref{Compilation}) in the current project's root directory.
+
+@findex project-shell-command
+  The command @kbd{C-x p !} (@code{project-shell-command}) runs
+@code{shell-command} in the current project's root directory.
+
+@findex project-async-shell-command
+  The command @kbd{C-x p &} (@code{project-async-shell-command}) runs
+@code{async-shell-command} in the current project's root directory.
 
 @node Project Buffer Commands
 @subsection Project Commands That Operate on Buffers
