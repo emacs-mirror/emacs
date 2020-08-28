@@ -2024,8 +2024,12 @@ is greater than 10.
   "Check `substitute-in-file-name'."
   (skip-unless (eq tramp-syntax 'default))
 
-  ;; Suppress method name check.
-  (let ((tramp-methods (cons '("method") tramp-methods)))
+  ;; Suppress method name check.  We cannot use the string "foo" as
+  ;; user name, because (substitute-in-string "/~foo") returns
+  ;; different values depending on the existence of user "foo" (see
+  ;; Bug#43052).
+  (let ((tramp-methods (cons '("method") tramp-methods))
+        (foo (downcase (md5 (current-time-string)))))
     (should
      (string-equal (substitute-in-file-name "/method:host:///foo") "/foo"))
     (should
@@ -2057,36 +2061,40 @@ is greater than 10.
     ;; Emacs 25, occasionally. No idea what's up.
     (when (tramp--test-emacs26-p)
       (should
-       (string-equal (substitute-in-file-name "/method:host://~foo") "/~foo"))
+       (string-equal
+	(substitute-in-file-name (concat "/method:host://~" foo))
+	(concat "/~" foo)))
       (should
        (string-equal
-	(substitute-in-file-name "/method:host:/~foo") "/method:host:/~foo"))
+	(substitute-in-file-name (concat "/method:host:/~" foo))
+	(concat "/method:host:/~" foo)))
       (should
        (string-equal
-	(substitute-in-file-name "/method:host:/path//~foo") "/~foo"))
+	(substitute-in-file-name (concat "/method:host:/path//~" foo))
+	(concat "/~" foo)))
       ;; (substitute-in-file-name "/path/~foo") expands only for a local
       ;; user "foo" to "/~foo"".  Otherwise, it doesn't expand.
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/path/~foo") "/method:host:/path/~foo"))
+	(substitute-in-file-name (concat "/method:host:/path/~" foo))
+	(concat "/method:host:/path/~" foo)))
       ;; Quoting local part.
       (should
        (string-equal
-	(substitute-in-file-name "/method:host:/://~foo")
-	"/method:host:/://~foo"))
+	(substitute-in-file-name (concat "/method:host:/://~" foo))
+	(concat "/method:host:/://~" foo)))
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/:/~foo") "/method:host:/:/~foo"))
+	(substitute-in-file-name (concat "/method:host:/:/~" foo))
+	(concat "/method:host:/:/~" foo)))
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/:/path//~foo") "/method:host:/:/path//~foo"))
+	(substitute-in-file-name (concat "/method:host:/:/path//~" foo))
+	(concat "/method:host:/:/path//~" foo)))
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/:/path/~foo") "/method:host:/:/path/~foo")))
+	(substitute-in-file-name (concat "/method:host:/:/path/~" foo))
+	(concat "/method:host:/:/path/~" foo))))
 
     (let (process-environment)
       (should
