@@ -4876,7 +4876,7 @@ Returns some position at the last line."
       ;;  }? continue
       ;;  blah; }
       (if (not
-	   (or (looking-at "[ \t]*\\(els\\(e\\|if\\)\\|continue\\|if\\|while\\|for\\(each\\)?\\|until\\)")
+	   (or (looking-at "[ \t]*\\(els\\(e\\|if\\)\\|continue\\|if\\|while\\|for\\(each\\)?\\|unless\\|until\\)\\_>")
 	       (setq have-brace (save-excursion (search-forward "}" ee t)))))
 	  nil				; Do not need to do anything
 	;; Looking at:
@@ -4884,7 +4884,7 @@ Returns some position at the last line."
 	;; else
 	(if cperl-merge-trailing-else
 	    (if (looking-at
-		 "[ \t]*}[ \t]*\n[ \t\n]*\\(els\\(e\\|if\\)\\|continue\\)\\>")
+		 "[ \t]*}[ \t]*\n[ \t\n]*\\(els\\(e\\|if\\)\\|continue\\)\\_>")
 		(progn
 		  (search-forward "}")
 		  (setq p (point))
@@ -4892,7 +4892,7 @@ Returns some position at the last line."
 		  (delete-region p (point))
 	      (insert (make-string cperl-indent-region-fix-constructs ?\s))
 		  (beginning-of-line)))
-	  (if (looking-at "[ \t]*}[ \t]*\\(els\\(e\\|if\\)\\|continue\\)\\>")
+	  (if (looking-at "[ \t]*}[ \t]*\\(els\\(e\\|if\\)\\|continue\\)\\_>")
 	      (save-excursion
 		  (search-forward "}")
 		  (delete-horizontal-space)
@@ -4904,7 +4904,7 @@ Returns some position at the last line."
 			(setq ret (point)))))))
 	;; Looking at:
 	;; }     else
-	(if (looking-at "[ \t]*}\\(\t*\\|[ \t][ \t]+\\)\\<\\(els\\(e\\|if\\)\\|continue\\)\\>")
+	(if (looking-at "[ \t]*}\\(\t*\\|[ \t][ \t]+\\)\\<\\(els\\(e\\|if\\)\\|continue\\)\\_>")
 	    (progn
 	      (search-forward "}")
 	      (delete-horizontal-space)
