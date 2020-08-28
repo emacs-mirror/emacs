@@ -68,7 +68,8 @@ Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
-(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
+(define-obsolete-variable-alias 'display-warning-minimum-level
+  'warning-minimum-level "28.1")
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
@@ -78,7 +79,8 @@ is not immediately displayed.  See also `warning-minimum-log-level'."
                  (const :warning) (const :debug))
   :version "22.1")
 
-(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
+(define-obsolete-variable-alias 'log-warning-minimum-level
+  'warning-minimum-log-level "28.1")
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
