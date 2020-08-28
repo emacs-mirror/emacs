@@ -398,15 +398,15 @@ Document History
 - 2016-03-19 RB_ Updated for separate queued flag on segments, changes
   of invariants, cross-references, and ideas for future improvement.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
