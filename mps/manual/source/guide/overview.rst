@@ -25,17 +25,9 @@ commercial products since 1997. Bugs are almost unknown in production.
 It is under continuous development and support by `Ravenbrook
 <https://www.ravenbrook.com/>`_.
 
-The MPS is distributed under an :ref:`open source license
-<license>`. The license is designed to make it possible for you to use
-the MPS in your own projects, provided that you either don't
-distribute your product, or your product is open source too.
 
-If the licensing terms aren't suitable for you (for example, you're
-developing a closed-source commercial product or a compiler run-time
-system) you can easily license the MPS under different terms from
-Ravenbrook by arrangement. Please :ref:`contact us <contact>` at
-`mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
-for details.
+The MPS is distributed under the BSD 2-clause :ref:`open source license
+<license>`.
 
 .. comment: Keep this section synchronized with readme.txt
 

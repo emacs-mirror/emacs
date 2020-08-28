@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
  * language <https://en.wikipedia.org/wiki/Scheme_%28programming_language%29>.
@@ -25,7 +25,7 @@
  * MPS TO DO LIST
  * - make an mps_perror
  *
- * 
+ *
  * SCHEME TO DO LIST
  * - unbounded integers, other number types.
  * - named let.
@@ -838,7 +838,7 @@ static size_t table_size(obj_t tbl)
 /* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
  * during this process, update 'key_bucket' to be the index of the
  * bucket containing 'key' and return true, otherwise return false.
- * 
+ *
  * %%MPS: When re-hashing the table we reset the associated location
  * dependency and re-add a dependency on each object in the table.
  * This is because the table gets re-hashed when the locations of
@@ -954,7 +954,7 @@ static void table_delete(obj_t tbl, obj_t key)
   assert(TYPE(tbl) == TYPE_TABLE);
   if(table_find(tbl, key, 0, &b)
      && tbl->table.keys->bucket[b] != obj_unused
-     && tbl->table.keys->bucket[b] != obj_deleted) 
+     && tbl->table.keys->bucket[b] != obj_deleted)
   {
     tbl->table.keys->bucket[b] = obj_deleted;
     tbl->table.keys->deleted
@@ -1010,11 +1010,11 @@ static void print(obj_t obj, long depth, FILE *stream)
     case TYPE_INTEGER: {
       fprintf(stream, "%ld", obj->integer.integer);
     } break;
-    
+
     case TYPE_SYMBOL: {
       fputs(symbol_name(obj), stream);
     } break;
-    
+
     case TYPE_SPECIAL: {
       fputs(obj->special.name, stream);
     } break;
@@ -1038,7 +1038,7 @@ static void print(obj_t obj, long depth, FILE *stream)
       }
       putc('"', stream);
     } break;
-    
+
     case TYPE_PROMISE: {
       assert(CAR(obj) == obj_true || CAR(obj) == obj_false);
       fprintf(stream, "#[%sevaluated promise ",
@@ -1101,7 +1101,7 @@ static void print(obj_t obj, long depth, FILE *stream)
       }
       putc(')', stream);
     } break;
-    
+
     case TYPE_VECTOR: {
       fputs("#(", stream);
       if(depth == 0)
@@ -1149,11 +1149,11 @@ static void print(obj_t obj, long depth, FILE *stream)
       }
       putc(']', stream);
     } break;
-    
+
     case TYPE_CHARACTER: {
       fprintf(stream, "#\\%c", obj->character.c);
     } break;
-    
+
     default:
       assert(0);
       abort();
@@ -1350,7 +1350,7 @@ static obj_t read_(FILE *stream)
 
   if(isdigit(c))
     return read_integer(stream, c);
-  
+
   switch(c) {
     case '\'': return read_quote(stream, c);
     case '`':  return read_quasiquote(stream, c);
@@ -1451,7 +1451,7 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
        TYPE(exp) == TYPE_CHARACTER ||
        TYPE(exp) == TYPE_OPERATOR)
       return exp;
-  
+
     /* symbol lookup */
     if(TYPE(exp) == TYPE_SYMBOL) {
       obj_t binding = lookup(env, exp);
@@ -1459,7 +1459,7 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
         error("eval: unbound symbol \"%s\"", symbol_name(exp));
       return CDR(binding);
     }
-    
+
     if(TYPE(exp) != TYPE_PAIR) {
       error("eval: unknown syntax");
       return obj_error;
@@ -1662,7 +1662,7 @@ static obj_t entry_interpret(obj_t env, obj_t op_env, obj_t operator, obj_t oper
   obj_t arguments, fun_env, fun_op_env;
 
   assert(TYPE(operator) == TYPE_OPERATOR);
-  
+
   /* Make a new frame so that bindings are local to the function. */
   /* Arguments will be bound in this new frame. */
   fun_env = make_pair(obj_empty, operator->operator.env);
@@ -1926,7 +1926,7 @@ static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
-/* entry_do -- (do ((<var> <init> <step1>) ...) (<test> <exp> ...) <command> ...) 
+/* entry_do -- (do ((<var> <init> <step1>) ...) (<test> <exp> ...) <command> ...)
  * Do is an iteration construct. It specifies a set of variables to be
  * bound, how they are to be initialized at the start, and how they
  * are to be updated on each iteration. When a termination condition
@@ -2204,7 +2204,7 @@ static obj_t entry_eqvp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* (eq? <obj1> <obj2>) 
+/* (eq? <obj1> <obj2>)
  * Eq? is similar to eqv? except that in some cases it is capable of
  * discerning distinctions finer than those detectable by eqv?.
  * See R4RS 6.2.
@@ -3323,7 +3323,7 @@ static obj_t entry_string_equalp(obj_t env, obj_t op_env, obj_t operator, obj_t 
 
 /* (substring string start end)
  * String must be a string, and start and end must be exact integers
- * satisfying 
+ * satisfying
  *     0 <= start <= end <= (string-length string).
  * Substring returns a newly allocated string formed from the
  * characters of string beginning with index start (inclusive) and
@@ -3801,7 +3801,7 @@ static struct {const char *name; entry_t entry;} optab[] = {
   {"delay", entry_delay},
   {"quasiquote", entry_quasiquote}
 };
-  
+
 
 /* function table */
 
@@ -4250,7 +4250,7 @@ static void mps_chat(void)
     mps_bool_t b;
     b = mps_message_get(&message, arena, type);
     assert(b); /* we just checked there was one */
-    
+
     if (type == mps_message_type_gc_start()) {
       printf("Collection started.\n");
       printf("  Why: %s\n", mps_message_gc_start_why(arena, message));
@@ -4321,7 +4321,7 @@ static int start(int argc, char *argv[])
   if(!setjmp(*error_handler)) {
     for(i = 0; i < LENGTH(sptab); ++i)
       *sptab[i].varp = make_special(sptab[i].name);
-  
+
     /* We must register the global variable 'symtab' as a root before
        creating the symbol table, otherwise the symbol table might be
        collected in the interval between creation and
@@ -4386,7 +4386,7 @@ static int start(int argc, char *argv[])
        print some messages.  Completely optional. */
     mps_message_type_enable(arena, mps_message_type_gc());
     mps_message_type_enable(arena, mps_message_type_gc_start());
-    
+
     puts("MPS Toy Scheme Example\n"
          "The prompt shows total allocated bytes and number of collections.\n"
          "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
@@ -4427,7 +4427,7 @@ static int start(int argc, char *argv[])
  * two members are the capacity of the generation in kilobytes, and the
  * mortality, the proportion of objects in the generation that you expect
  * to survive a collection of that generation.
- * 
+ *
  * These numbers are *hints* to the MPS that it may use to make decisions
  * about when and what to collect: nothing will go wrong (other than
  * suboptimal performance) if you make poor choices. See topic/collection.
@@ -4453,7 +4453,7 @@ int main(int argc, char *argv[])
   int exit_code;
   void *marker = &marker;
   int ch;
-  
+
   while ((ch = getopt(argc, argv, "m:")) != -1)
     switch (ch) {
     case 'm': {
@@ -4593,7 +4593,7 @@ int main(int argc, char *argv[])
      in the main thread. See the section "Thread roots" in
      topic/root. */
   exit_code = start(argc, argv);
-  
+
   /* Cleaning up the MPS object with destroy methods will allow the MPS to
      check final consistency and warn you about bugs.  It also allows the
      MPS to flush buffers for debugging data, etc.  It's good practise
@@ -4619,41 +4619,29 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2001-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

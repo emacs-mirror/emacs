@@ -237,7 +237,7 @@ might not invoke the corresponding internal function.
 _`.fn.client.pop`: ``mps_ap_frame_pop()`` is used by clients to invoke
 the *FramePop* operation. For lightweight frames, this might not
 invoke the corresponding internal function.
-       
+
 ``mps_res_t mps_ap_frame_select(mps_ap_t buf, mps_frame_t frame)``
 
 _`.fn.client.select`: This following function is used by clients to
@@ -255,7 +255,7 @@ _`.fn.client.in-frame`: This function is used by clients to invoke the
 
 ``mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t class)``
 
-_`.fn.client.set`: This function is used by clients to invoke the 
+_`.fn.client.set`: This function is used by clients to invoke the
 *SetFrameClass* operation.
 
 ``mps_frame_class_t mps_alloc_frame_class_stack(void)``
@@ -297,16 +297,16 @@ _`.fn.select-addr`: A pool method of this type is called to invoke the
 
 ``typedef Res (*PoolFrameHasAddrMethod)(Bool *inframeReturn, Pool pool, Seg seg, Addr *addrref, AllocFrame frame)``
 
-_`.fn.in-frame`: A pool method of this type is called to invoke the 
+_`.fn.in-frame`: A pool method of this type is called to invoke the
 *FrameHasAddr* operation.
 
 ``typedef Res (*PoolSetFrameClassMethod)(Pool pool, Buffer buf, AllocFrameClass class)``
 
-_`.fn.set`: A pool method of this type is called to invoke the 
+_`.fn.set`: A pool method of this type is called to invoke the
 *SetFrameClass* operation.
 
 
-Lightweight frames 
+Lightweight frames
 -------------------
 
 Overview
@@ -348,7 +348,7 @@ Implementation
 _`.lw-frame.push`: The external *FramePush* operation
 ``mps_ap_frame_push()`` performs the following operations::
 
-    IF ap->init != ap->alloc 
+    IF ap->init != ap->alloc
        FAIL
     ELSE IF ap->init < ap->limit
        *frame_o = ap->init;
@@ -369,7 +369,7 @@ at the beginning.
 _`.lw-frame.pop`: The external *FramePop* operation
 (``mps_ap_frame_pop()``) performs the following operations::
 
-    IF ap->init != ap->alloc 
+    IF ap->init != ap->alloc
        FAIL
     ELSE IF BufferBase(ap) <= frame AND frame < ap->init
        ap->init = ap->alloc = frame;
@@ -402,41 +402,27 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
-All rights reserved. This is an open source license. Contact
-Ravenbrook for commercial licensing options.
+Copyright © 2013-2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-#. Redistributions of source code must retain the above copyright
+1. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-#. Redistributions in binary form must reproduce the above copyright
+2. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-#. Redistributions in any form must be accompanied by information on how
-   to obtain complete source code for this software and any
-   accompanying software that uses this software.  The source code must
-   either be included in the distribution or be available for no more than
-   the cost of distribution plus a nominal fee, and must be freely
-   redistributable under reasonable conditions.  For an executable file,
-   complete source code means the source code for all modules it contains.
-   It does not include source code for modules or files that typically
-   accompany the major components of the operating system on which the
-   executable file runs.
-
-**This software is provided by the copyright holders and contributors
-"as is" and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.**
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

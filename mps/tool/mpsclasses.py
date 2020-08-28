@@ -2,9 +2,9 @@
 
 # mpsclasses.py: show the MPS class hierarchy
 # $Id$
-# Copyright (c) 2007 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2007-2020 Ravenbrook Limited.  See end of file for license.
 
-# This file parses MPS C source for MPS class definitions 
+# This file parses MPS C source for MPS class definitions
 # (DEFINE_CLASS() et al), and prints out the class hierarchy.
 #
 # USAGE:
@@ -173,20 +173,20 @@ def main():
     for child in CChildListfromName[CT.name]:
       CT.descendants += calc_descendants_tree(child)
     return CT.descendants + 1
-  
+
   def show_tree(CT, prefix):
     CT.show(prefix)
     CChildListfromName[CT.name].sort(ChildrenSort)
     for child in CChildListfromName[CT.name]:
       show_tree(child, prefix + ": ")
-  
+
   try:
     while True:
       C = next_C(lines)
-      
+
       # with C
       #C.show()
-      
+
       if C.name not in CChildListfromName:
         CChildListfromName[C.name] = []
       if C.parentname == None:
@@ -195,16 +195,16 @@ def main():
         if C.parentname not in CChildListfromName:
           CChildListfromName[C.parentname] = []
         CChildListfromName[C.parentname].append(C)
-      
+
       C = None
-      
+
   except NoMoreInput:
     assert(C == None)
-  
+
   tot = 0
   for CT in tops:
     tot += calc_descendants_tree(CT)
-  
+
   tops.sort(ChildrenSort)
   for CT in tops:
     show_tree(CT, "")
@@ -213,7 +213,7 @@ def main():
 
 def next_C(lines):
   """find the next class definition C"""
-  
+
   # .DIME -- find next DEFINE_CLASS
   for l in lines:
     match_D = term_D.patt.search(l)
@@ -229,7 +229,7 @@ def next_C(lines):
   # with match_D
   #term_D.show(match_D)
   C = MPSClass(match_D)
-  
+
   # D.IME -- find next InheritFrom, Mixin, or End
   for l in lines:
     for t in (term_D, term_I, term_M, term_E):
@@ -258,40 +258,29 @@ if __name__ == "__main__":
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
-# All rights reserved.  This is an open source license.  Contact
-# Ravenbrook for commercial licensing options.
-# 
+# Copyright (C) 2007-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-# 
+#    notice, this list of conditions and the following disclaimer.
+#
 # 2. Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-# 
-# 3. Redistributions in any form must be accompanied by information on how
-# to obtain complete source code for this software and any accompanying
-# software that uses this software.  The source code must either be
-# included in the distribution or be available for no more than the cost
-# of distribution plus a nominal fee, and must be freely redistributable
-# under reasonable conditions.  For an executable file, complete source
-# code means the source code for all modules it contains. It does not
-# include source code for modules or files that typically accompany the
-# major components of the operating system on which the executable file
-# runs.
-# 
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the
+#   distribution.
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 # IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-# PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
