@@ -2,9 +2,9 @@
 #
 #            TESTEMSCRIPTEN -- TEST THE MPS WITH EMSCRIPTEN
 #             Gareth Rees, Ravenbrook Limited, 2014-04-17
-# 
+#
 # $Id$
-# Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
+# Copyright (c) 2014-2020 Ravenbrook Limited. See end of file for license.
 #
 #
 # 1. INTRODUCTION
@@ -23,7 +23,7 @@
 # may need to run:
 #
 #     port select --set python python27
-# 
+#
 # You need to have a program "python2" on your path (which runs Python
 # 2.7.3), so on OS X with MacPorts you need to run:
 #
@@ -60,7 +60,7 @@ checkout () {
         echo "cloning $REMOTE into $REPO."
         git clone --recursive -- "$REMOTE" "$REPO"
     fi
-    ( 
+    (
         cd -- "$REPO"
         git pull
     )
@@ -102,11 +102,11 @@ checkout emscripten-fastcomp "$FASTCOMP_REMOTE"
 # B. DOCUMENT HISTORY
 #
 # 2014-04-17 GDR Created based on [EMSCRIPTEN] and [FASTCOMP].
-#
+# 2020-07-29 PNJ Updated licence.
 #
 # C. COPYRIGHT AND LICENCE
 #
-# Copyright (c) 2014 Ravenbrook Ltd.  All rights reserved.
+# Copyright (C) 2014-2020 Ravenbrook Limited <http://www.ravenbrook.com/>.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -116,21 +116,21 @@ checkout emscripten-fastcomp "$FASTCOMP_REMOTE"
 #    notice, this list of conditions and the following disclaimer.
 #
 # 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the
-#    distribution.
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the
+#   distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
 # $Id$
