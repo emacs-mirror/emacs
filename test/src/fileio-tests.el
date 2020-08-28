@@ -98,26 +98,24 @@ Also check that an encoding error can appear in a symlink."
 
 (ert-deftest fileio-tests--relative-HOME ()
   "Test that expand-file-name works even when HOME is relative."
-  (let ((old-home (getenv "HOME")))
+  (let ((process-environment (copy-sequence process-environment)))
     (setenv "HOME" "a/b/c")
     (should (equal (expand-file-name "~/foo")
                    (expand-file-name "a/b/c/foo")))
     (when (memq system-type '(ms-dos windows-nt))
       ;; Test expansion of drive-relative file names.
       (setenv "HOME" "x:foo")
-      (should (equal (expand-file-name "~/bar") "x:/foo/bar")))
-    (setenv "HOME" old-home)))
+      (should (equal (expand-file-name "~/bar") "x:/foo/bar")))))
 
 (ert-deftest fileio-tests--HOME-trailing-slash ()
   "Test that expand-file-name of \"~\" respects trailing slash."
-  (let ((old-home (getenv "HOME")))
+  (let ((process-environment (copy-sequence process-environment)))
     (dolist (home
              (if (memq system-type '(windows-nt ms-dos))
                  '("c:/a/b/c" "c:/a/b/c/")
                '("/a/b/c" "/a/b/c/")))
       (setenv "HOME" home)
-      (should (equal (expand-file-name "~") (expand-file-name home))))
-    (setenv "HOME" old-home)))
+      (should (equal (expand-file-name "~") (expand-file-name home))))))
 
 (ert-deftest fileio-tests--expand-file-name-trailing-slash ()
   (dolist (fooslashalias '("foo/" "foo//" "foo/." "foo//." "foo///././."
