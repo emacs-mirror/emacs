@@ -252,44 +252,41 @@ being pedantic."
 	    (error
              "Invalid object: %s is not an object of class %s nor a subclass"
              (car ret) class))
-	  (setq ret (eieio-persistent-convert-list-to-object ret))
+          (setq ret (eieio-persistent-make-instance (car ret) (cdr ret)))
 	  (oset ret file filename))
       (kill-buffer " *tmp eieio read*"))
     ret))
 
-(defun eieio-persistent-convert-list-to-object (inputlist)
-  "Convert the INPUTLIST, representing object creation to an object.
-While it is possible to just `eval' the INPUTLIST, this code instead
-validates the existing list, and explicitly creates objects instead of
-calling eval.  This avoids the possibility of accidentally running
-malicious code.
+(cl-defgeneric eieio-persistent-make-instance (objclass inputlist)
+  "Convert INPUTLIST, representing slot values, to an instance of OBJCLASS.
+Clean slot values, and possibly recursively create additional
+objects found there."
+  (:method
+   ((objclass (subclass eieio-default-superclass)) inputlist)
 
-Note: This function recurses when a slot of :type of some object is
-identified, and needing more object creation."
-  (let ((objclass (nth 0 inputlist))
-        ;; Earlier versions of `object-write' added a string name for
-        ;; the object, now obsolete.
-        (slots (nthcdr
-                (if (stringp (nth 1 inputlist)) 2 1)
-                inputlist))
-	(createslots nil))
-    ;; If OBJCLASS is an eieio autoload object, then we need to
-    ;; load it (we don't need the return value).
-    (eieio--full-class-object objclass)
-    (while slots
-      (let ((initarg (car slots))
-	    (value (car (cdr slots))))
+   (let ((slots (if (stringp (car inputlist))
+                    ;; Earlier versions of `object-write' added a
+                    ;; string name for the object, now obsolete.
+                    (cdr inputlist)
+                  inputlist))
+         (createslots nil))
+     ;; If OBJCLASS is an eieio autoload object, then we need to
+     ;; load it (we don't need the return value).
+     (eieio--full-class-object objclass)
+     (while slots
+       (let ((initarg (car slots))
+	     (value (car (cdr slots))))
 
-	;; Strip out quotes, list functions, and update object
-	;; constructors as needed.
-	(setq value (eieio-persistent-fix-value value))
+	 ;; Strip out quotes, list functions, and update object
+	 ;; constructors as needed.
+	 (setq value (eieio-persistent-fix-value value))
 
-	(push initarg createslots)
-	(push value createslots))
+	 (push initarg createslots)
+	 (push value createslots))
 
-      (setq slots (cdr (cdr slots))))
+       (setq slots (cdr (cdr slots))))
 
-    (apply #'make-instance objclass (nreverse createslots))))
+     (apply #'make-instance objclass (nreverse createslots)))))
 
 (defun eieio-persistent-fix-value (proposed-value)
   "Fix PROPOSED-VALUE.
@@ -323,7 +320,8 @@ tables, and vectors."
 		;; in.
 		(let ((objlist nil))
 		  (dolist (subobj (cdr proposed-value))
-		    (push (eieio-persistent-convert-list-to-object subobj)
+		    (push (eieio-persistent-make-instance
+                           (car subobj) (cdr subobj))
 			  objlist))
 		  ;; return the list of objects ... reversed.
 		  (nreverse objlist)))
@@ -331,8 +329,8 @@ tables, and vectors."
 	       ;; saved here.  Recurse and evaluate that
 	       ;; sub-object.
 	       ((class-p (car proposed-value))
-		(eieio-persistent-convert-list-to-object
-		 proposed-value))
+		(eieio-persistent-make-instance
+		 (car proposed-value) (cdr proposed-value)))
 	       (t
 		proposed-value)))
         ;; For hash-tables and vectors, the top-level `read' will not
@@ -345,8 +343,8 @@ tables, and vectors."
           (lambda (key value)
             (setf (gethash key proposed-value)
                   (if (class-p (car-safe value))
-                      (eieio-persistent-convert-list-to-object
-                       value)
+                      (eieio-persistent-make-instance
+                       (car value) (cdr value))
                     (eieio-persistent-fix-value value))))
           proposed-value)
          proposed-value)
@@ -356,8 +354,8 @@ tables, and vectors."
            (let ((val (aref proposed-value i)))
              (aset proposed-value i
                    (if (class-p (car-safe val))
-                       (eieio-persistent-convert-list-to-object
-                        val)
+                       (eieio-persistent-make-instance
+                        (car val) (cdr val))
                      (eieio-persistent-fix-value val)))))
          proposed-value)
 
