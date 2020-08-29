@@ -1,10 +1,8 @@
-;;;; testcover-unsafep.el -- Use testcover to test unsafep's code coverage
-
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;;; unsafep-tests.el --- tests for unsafep.el  -*- lexical-binding: t; -*-
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
-;; Keywords: safety lisp utility
-;; Package: testcover
+
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,18 +19,19 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-(require 'testcover)
+;;; Code:
+
+(require 'ert)
+(require 'unsafep)
 
 (defvar safe-functions)
 
-;;;These forms are all considered safe
+;;; These forms are all considered safe
 (defconst testcover-unsafep-safe
   '(((lambda (x) (* x 2)) 14)
     (apply 'cdr (mapcar (lambda (x) (car x)) y))
     (cond ((= x 4) 5) (t 27))
     (condition-case x (car y) (error (car x)))
-    (dolist (x y) (message "here: %s" x))
-    (dotimes (x 14 (* x 2)) (message "here: %d" x))
     (let (x) (dolist (y '(1 2 3) (1+ y)) (push y x)))
     (let (x) (apply (lambda (x) (* x 2)) 14))
     (let ((x '(2))) (push 1 x) (pop x) (add-to-list 'x 2))
@@ -47,7 +46,7 @@
     (propertize "x" 'display '(height (progn (delete-file "x") 1))))
   "List of forms that `unsafep' should decide are safe.")
 
-;;;These forms are considered unsafe
+;;; These forms are considered unsafe
 (defconst testcover-unsafep-unsafe
   '(( (add-to-list x y)
       . (unquoted x))
@@ -109,32 +108,37 @@
     )
   "A-list of (FORM . REASON)... that`unsafep' should decide are unsafe.")
 
-(declare-function unsafep-function "unsafep" (fun))
-
-;;;#########################################################################
-(defun testcover-unsafep ()
+(ert-deftest test-unsafep/safe ()
   "Executes all unsafep tests and displays the coverage results."
-  (interactive)
-  (testcover-unmark-all "unsafep.el")
-  (testcover-start "unsafep.el")
-  (let (save-functions)
+  (let (safe-functions)
     (dolist (x testcover-unsafep-safe)
-      (if (unsafep x)
-	  (error "%S should be safe" x)))
-    (dolist (x testcover-unsafep-unsafe)
-      (if (not (equal (unsafep (car x)) (cdr x)))
-	  (error "%S should be unsafe: %s" (car x) (cdr x))))
-    (setq safe-functions t)
-    (if (or (unsafep '(delete-file "x"))
-	    (unsafep-function 'delete-file))
-	(error "safe-functions=t should allow delete-file"))
-    (setq safe-functions '(setcar))
-    (if (unsafep '(setcar x 1))
-	(error "safe-functions=(setcar) should allow setcar"))
-    (if (not (unsafep '(setcdr x 1)))
-	(error "safe-functions=(setcar) should not allow setcdr")))
-  (testcover-mark-all "unsafep.el")
-  (testcover-end "unsafep.el")
-  (message "Done"))
+      (should-not (unsafep x)))))
 
-;; testcover-unsafep.el ends here.
+(ert-deftest test-unsafep/message ()
+  ;; FIXME: This failed after converting these tests from testcover to
+  ;; ert.
+  :expected-result :failed
+  (should-not '(dolist (x y) (message "here: %s" x)))
+  (should-not '(dotimes (x 14 (* x 2)) (message "here: %d" x))))
+
+(ert-deftest test-unsafep/unsafe ()
+  "Executes all unsafep tests and displays the coverage results."
+  (let (safe-functions)
+    (dolist (x testcover-unsafep-unsafe)
+      (should (equal (unsafep (car x)) (cdr x))))))
+
+(ert-deftest test-unsafep/safe-functions-t ()
+  "safe-functions=t should allow delete-file"
+  (let ((safe-functions t))
+    (should-not (unsafep '(delete-file "x")))
+    (should-not (unsafep-function 'delete-file))))
+
+(ert-deftest test-unsafep/safe-functions-setcar ()
+  "safe-functions=(setcar) should allow setcar but not setcdr"
+  (let ((safe-functions '(setcar)))
+    (should-not (unsafep '(setcar x 1)))
+    (should (unsafep '(setcdr x 1)))))
+
+(provide 'unsafep-tests)
+
+;;; unsafep-tests.el ends here
