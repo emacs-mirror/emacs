@@ -2335,6 +2335,10 @@ read-only buffer.  @xref{Buffer Modification}.
 @item %&
 @samp{*} if the buffer is modified, and @samp{-} otherwise.
 
+@item %@@
+@samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
+Expansion}) is on a remote machine, and @samp{-} otherwise.
+
 @item %[
 An indication of the depth of recursive editing levels (not counting
 minibuffer levels): one @samp{[} for each editing level.
@@ -2352,16 +2356,13 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following two @code{%}-constructs are still supported, but they are
-obsolete, since you can get the same results with the variables
-@code{mode-name} and @code{global-mode-string}.
+The following @code{%}-construct is still supported, but it is
+obsolete, since you can get the same result using the variable
+@code{mode-name}.
 
 @table @code
 @item %m
 The value of @code{mode-name}.
-
-@item %M
-The value of @code{global-mode-string}.
 @end table
 
 @node Properties in Mode
