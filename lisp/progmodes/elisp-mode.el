@@ -1421,7 +1421,7 @@ Intended for `eldoc-documentation-functions' (which see)."
   "Document variable at point.
 Intended for `eldoc-documentation-functions' (which see)."
   (let* ((sym (elisp--current-symbol))
-        (docstring (and sym (elisp-get-var-docstring sym))))
+         (docstring (and sym (elisp-get-var-docstring sym))))
     (when docstring
       (funcall callback docstring
                :thing sym
