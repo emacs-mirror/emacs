@@ -1,4 +1,4 @@
-;;; snake.el --- implementation of Snake for Emacs
+;;; snake.el --- implementation of Snake for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 
