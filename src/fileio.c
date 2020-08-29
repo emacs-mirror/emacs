@@ -1372,6 +1372,14 @@ the root directory.  */)
 
   length = newdirlim - newdir;
 
+#ifdef DOS_NT
+  /* Ignore any slash at the end of newdir, unless newdir is
+     just "/" or "//".  */
+  while (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
+	 && ! (length == 2 && IS_DIRECTORY_SEP (newdir[0])))
+    length--;
+#endif
+
   /* Now concatenate the directory and name to new space in the stack frame.  */
   tlen = length + file_name_as_directory_slop + (nmlim - nm) + 1;
   eassert (tlen >= file_name_as_directory_slop + 1);
@@ -1388,22 +1396,40 @@ the root directory.  */)
 
   if (newdir)
     {
-      if (!collapse_newdir)
+#ifndef DOS_NT
+      bool treat_as_absolute = !collapse_newdir;
+#else
+      bool treat_as_absolute = !nm[0] || IS_DIRECTORY_SEP (nm[0]);
+#endif
+      if (treat_as_absolute)
 	{
-	  /* With ~ or ~user, leave NEWDIR as-is to avoid transforming
-	     it from a symlink (or a regular file!) into a directory.  */
-	  memcpy (target, newdir, length);
-	  nbytes = length;
+#ifdef DOS_NT
+	  /* If newdir is effectively "C:/", then the drive letter will have
+	     been stripped and newdir will be "/".  Concatenating with an
+	     absolute directory in nm produces "//", which will then be
+	     incorrectly treated as a network share.  Ignore newdir in
+	     this case (keeping the drive letter).  */
+	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0])
+		&& newdir[1] == '\0'))
+#endif
+	    {
+	      /* With ~ or ~user, leave NEWDIR as-is to avoid transforming
+		 it from a symlink (or a regular file!) into a directory.  */
+	      memcpy (target, newdir, length);
+	      nbytes = length;
+	    }
 	}
       else
 	nbytes = file_name_as_directory (target, newdir, length, multibyte);
 
+#ifndef DOS_NT
       /* If TARGET ends in a directory separator, omit leading
 	 directory separators from NM so that concatenating a TARGET "/"
 	 to an NM "/foo" does not result in the incorrect "//foo".  */
       if (nbytes && IS_DIRECTORY_SEP (target[nbytes - 1]))
 	while (IS_DIRECTORY_SEP (nm[0]))
 	  nm++;
+#endif
     }
 
   memcpy (target + nbytes, nm, nmlim - nm + 1);
@@ -1420,6 +1446,7 @@ the root directory.  */)
 	  {
 	    *o++ = *p++;
 	  }
+#ifndef DOS_NT
 	else if (p[1] == '.' && IS_DIRECTORY_SEP (p[2]))
 	  {
 	    /* Replace "/./" with "/".  */
@@ -1432,6 +1459,18 @@ the root directory.  */)
 	    *o++ = *p;
 	    p += 2;
 	  }
+#else
+	else if (p[1] == '.'
+		 && (IS_DIRECTORY_SEP (p[2])
+		     || p[2] == 0))
+	  {
+	    /* If "/." is the entire filename, keep the "/".  Otherwise,
+	       just delete the whole "/.".  */
+	    if (o == target && p[2] == '\0')
+	      *o++ = *p;
+	    p += 2;
+	  }
+#endif
 	else if (p[1] == '.' && p[2] == '.'
 		 /* `/../' is the "superroot" on certain file systems.
 		    Turned off on DOS_NT systems because they have no
@@ -1445,9 +1484,7 @@ the root directory.  */)
 #endif
 		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	  {
-#ifdef WINDOWSNT
-	    char *prev_o = o;
-#endif
+#ifndef DOS_NT
 	    while (o != target)
 	      {
 		o--;
@@ -1459,11 +1496,22 @@ the root directory.  */)
 		    break;
 		  }
 	      }
-#ifdef WINDOWSNT
+#else
+# ifdef WINDOWSNT
+	    char *prev_o = o;
+# endif
+	    while (o != target && (--o, !IS_DIRECTORY_SEP (*o)))
+	      continue;
+# ifdef WINDOWSNT
 	    /* Don't go below server level in UNC filenames.  */
 	    if (o == target + 1 && IS_DIRECTORY_SEP (*o)
 		&& IS_DIRECTORY_SEP (*target))
 	      o = prev_o;
+	    else
+# endif
+	    /* Keep initial / only if this is the whole name.  */
+	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
+	      ++o;
 #endif
 	    p += 3;
 	  }
