@@ -350,8 +350,8 @@ in the way. Example::
       X(RampCOLLECTING,     "collecting ramp")
 
 
-History
--------
+Document History
+----------------
 
 - 2007-06-04  DRJ_  Adopted from Harlequin MMinfo version and edited.
 
