@@ -38,7 +38,7 @@
 ;;   "Calculate something complicated at point, and return it."
 ;;   (interactive) ;; function not normally interactive
 ;;   (let ((stuff (do-stuff)))
-;;     (when (interactive-p)
+;;     (when (called-interactively-p 'interactive)
 ;;       (data-debug-show-stuff stuff "myStuff"))
 ;;     stuff))
 

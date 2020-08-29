@@ -1360,7 +1360,7 @@ If not set, `default-directory' will be used."
 	  (value (pop plist)))
       (when value
 	;; Quote VALUE if it contains suspicious characters.
-	(when (string-match "[\"'\\~/*;() \t\n[:multibyte:]]" value)
+	(when (string-match "[][\"'\\~/*;()<>= \t\n[:multibyte:]]" value)
 	  (setq value (with-output-to-string
 			(let (print-escape-nonascii)
 			  (prin1 value)))))

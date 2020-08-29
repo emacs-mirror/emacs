@@ -246,6 +246,13 @@ template <int w>
 
 /* @assert.h omit start@  */
 
+#if defined __has_builtin
+/* <https://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions> */
+# define _GL_HAS_BUILTIN_ASSUME __has_builtin (__builtin_assume)
+#else
+# define _GL_HAS_BUILTIN_ASSUME 0
+#endif
+
 #if 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
 # define _GL_HAS_BUILTIN_TRAP 1
 #elif defined __has_builtin
@@ -305,14 +312,36 @@ template <int w>
 
    Although assuming R can help a compiler generate better code or
    diagnostics, performance can suffer if R uses hard-to-optimize
-   features such as function calls not inlined by the compiler.
+   features such as function calls not inlined by the compiler.  */
 
-   Avoid Clang’s __builtin_assume, as clang 9.0.1 -Wassume can
-   generate a bogus diagnostic "the argument to '__builtin_assume' has
-   side effects that will be discarded" even when the argument has no
-   side effects.  */
-
-#if _GL_HAS_BUILTIN_UNREACHABLE
+/* Use __builtin_assume in preference to __builtin_unreachable, because
+   in clang versions 8.0.x and older, the definition based on
+   __builtin_assume has an effect on optimizations, whereas the definition
+   based on __builtin_unreachable does not.  (GCC so far has only
+   __builtin_unreachable.)  */
+#if _GL_HAS_BUILTIN_ASSUME
+/* Use __builtin_constant_p to help clang's data-flow analysis for the case
+   assume (0).
+   Use a temporary variable, to avoid a clang warning
+   "the argument to '__builtin_assume' has side effects that will be discarded"
+   if R contains invocations of functions not marked as 'const'.
+   The type of the temporary variable can't be __typeof__ (R), because that
+   does not work on bit field expressions.  Use '_Bool' or 'bool' as type
+   instead.  */
+# if defined __cplusplus
+#  define assume(R) \
+     (__builtin_constant_p (R) && !(R) \
+      ? (void) __builtin_unreachable () \
+      : (void) ({ bool _gl_verify_temp = (R); \
+                  __builtin_assume (_gl_verify_temp); }))
+# else
+#  define assume(R) \
+     (__builtin_constant_p (R) && !(R) \
+      ? (void) __builtin_unreachable () \
+      : (void) ({ _Bool _gl_verify_temp = (R); \
+                  __builtin_assume (_gl_verify_temp); }))
+# endif
+#elif _GL_HAS_BUILTIN_UNREACHABLE
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
 #elif 1200 <= _MSC_VER
 # define assume(R) __assume (R)

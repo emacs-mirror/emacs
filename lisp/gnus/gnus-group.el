@@ -4300,8 +4300,7 @@ The hook `gnus-suspend-gnus-hook' is called before actually suspending."
     ;; Closing all the backends is useful (for instance) when when the
     ;; IP addresses have changed and you need to reconnect.
     (dolist (elem gnus-opened-servers)
-      (gnus-close-server (car elem))
-      (setcar (cdr elem) 'closed))
+      (gnus-close-server (car elem)))
     (when group-buf
       (bury-buffer group-buf)
       (delete-windows-on group-buf t))))

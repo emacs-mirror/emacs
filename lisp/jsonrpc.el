@@ -329,7 +329,10 @@ ignored."
                            :method method
                            :params params))
 
-(defconst jrpc-default-request-timeout 10
+(define-obsolete-variable-alias 'jrpc-default-request-timeout
+  'jsonrpc-default-request-timeout "28.1")
+
+(defconst jsonrpc-default-request-timeout 10
   "Time in seconds before timing out a JSONRPC request.")
 
 
@@ -617,7 +620,7 @@ With optional CLEANUP, kill any associated buffers."
                                     params
                                     &rest args
                                     &key success-fn error-fn timeout-fn
-                                    (timeout jrpc-default-request-timeout)
+                                    (timeout jsonrpc-default-request-timeout)
                                     (deferred nil))
   "Does actual work for `jsonrpc-async-request'.
 

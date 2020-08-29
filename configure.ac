@@ -463,6 +463,7 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif/Xaw3d/GTK toolkit scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[at runtime, default X11 XIM to off])
+OPTION_DEFAULT_ON([xdbe],[don't use X11 double buffering support])
 AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
 [use Nextstep (macOS Cocoa or GNUstep) windowing system.
 On by default on macOS.])],[],[with_ns=maybe])
@@ -1773,13 +1774,6 @@ dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define 'bool'.
 AC_CHECK_HEADERS(term.h, , , -)
 AC_HEADER_TIME
-AC_CHECK_DECLS([sys_siglist], [], [], [[#include <signal.h>
-			              ]])
-if test $ac_cv_have_decl_sys_siglist != yes; then
-  # For Tru64, at least:
-  AC_CHECK_DECLS([__sys_siglist], [], [], [[#include <signal.h>
-			                  ]])
-fi
 AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS_ONCE(sys/socket.h)
@@ -1907,7 +1901,8 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-GNU_OBJC_CFLAGS=
+# Recent versions of GCC don't use C99 to compile Obj-C.
+GNU_OBJC_CFLAGS="-std=c99"
 LIBS_GNUSTEP=
 if test "${with_ns}" != no; then
   # macfont.o requires macuvs.h which is absent after 'make extraclean',
@@ -1923,7 +1918,7 @@ if test "${with_ns}" != no; then
   elif flags=$( (gnustep-config --objc-flags) 2>/dev/null); then
      NS_IMPL_GNUSTEP=yes
      NS_GNUSTEP_CONFIG=yes
-     GNU_OBJC_CFLAGS=$flags
+     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS $flags"
      LIBS_GNUSTEP=$(gnustep-config --gui-libs) || exit
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
@@ -1968,7 +1963,7 @@ fail;
        dnl _NATIVE_OBJC_EXCEPTIONS is used by the GNUstep headers.
        AC_DEFINE(_NATIVE_OBJC_EXCEPTIONS, 1,
          [Define if GNUstep uses ObjC exceptions.])
-       GNU_OBJC_CFLAGS="-fobjc-exceptions"
+       GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fobjc-exceptions"
      fi
   fi
   if test $NS_IMPL_GNUSTEP = yes; then
@@ -4121,11 +4116,13 @@ AC_SUBST(XFIXES_LIBS)
 ### Use Xdbe (-lXdbe) if available
 HAVE_XDBE=no
 if test "${HAVE_X11}" = "yes"; then
-  AC_CHECK_HEADER(X11/extensions/Xdbe.h,
-    [AC_CHECK_LIB(Xext, XdbeAllocateBackBufferName, HAVE_XDBE=yes)],
-    [],
-    [#include <X11/Xlib.h>
-    ])
+  if test "${with_xdbe}" != "no"; then
+    AC_CHECK_HEADER(X11/extensions/Xdbe.h,
+      [AC_CHECK_LIB(Xext, XdbeAllocateBackBufferName, HAVE_XDBE=yes)],
+      [],
+      [#include <X11/Xlib.h>
+      ])
+  fi
   if test $HAVE_XDBE = yes; then
     XDBE_LIBS=-lXext
   fi

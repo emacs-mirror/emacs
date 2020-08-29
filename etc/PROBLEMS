@@ -1602,6 +1602,12 @@ even if you should be able to paste, and similar).
 You can get back menus on each frame by starting emacs like this:
 % env UBUNTU_MENUPROXY= emacs
 
+*** Mouse click coordinates not recognized correctly on multiple monitors.
+
+This happens on the proprietary X server ASTEC-X when the number of
+monitors is changed after the server has started.  A workaround is to
+restart the X server after the monitor configuration has been changed.
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.

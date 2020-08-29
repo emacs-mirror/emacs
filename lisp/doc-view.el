@@ -1320,26 +1320,31 @@ dragging it to its bottom-right corner.  See also
 
 (defun doc-view-get-bounding-box ()
   "Get the BoundingBox information of the current page."
-  (let* ((page (doc-view-current-page))
-	 (doc (let ((cache-doc (doc-view-current-cache-doc-pdf)))
-		(if (file-exists-p cache-doc)
-		    cache-doc
-		  doc-view--buffer-file-name)))
-	 (o (shell-command-to-string
-	     (concat doc-view-ghostscript-program
-		     " -dSAFER -dBATCH -dNOPAUSE -q -sDEVICE=bbox "
-		     (format "-dFirstPage=%s -dLastPage=%s %s"
-			     page page doc)))))
-    (save-match-data
-      (when (string-match (concat "%%BoundingBox: "
-				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "
-				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\)")
-                          o)
-	(mapcar #'string-to-number
-		(list (match-string 1 o)
-		      (match-string 2 o)
-		      (match-string 3 o)
-		      (match-string 4 o)))))))
+  (let ((page (doc-view-current-page))
+	(doc (let ((cache-doc (doc-view-current-cache-doc-pdf)))
+	       (if (file-exists-p cache-doc)
+		   cache-doc
+		 doc-view--buffer-file-name))))
+    (with-temp-buffer
+      (when (eq 0 (ignore-errors
+		    (process-file doc-view-ghostscript-program nil t
+				  nil "-dSAFER" "-dBATCH" "-dNOPAUSE" "-q"
+				  "-sDEVICE=bbox"
+				  (format "-dFirstPage=%s" page)
+				  (format "-dLastPage=%s" page)
+				  doc)))
+	(goto-char (point-min))
+	(save-match-data
+	  (when (re-search-forward
+		 (concat "%%BoundingBox: "
+			 "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "
+			 "\\([[:digit:]]+\\) \\([[:digit:]]+\\)")
+                 nil t)
+	    (mapcar #'string-to-number
+		    (list (match-string 1)
+			  (match-string 2)
+			  (match-string 3)
+			  (match-string 4)))))))))
 
 (defvar doc-view-paper-sizes
   '((a4 595 842)

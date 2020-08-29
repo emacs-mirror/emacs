@@ -267,6 +267,8 @@
      3 nil 29 "test_main.cpp")
     ("1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int"
      3 nil 29 "test_main.cpp")
+    ("C:\\tmp\\test.cpp(101,11): error C4101: 'bias0123': unreferenced local variable [C:\\tmp\\project.vcxproj]"
+     1 11 101 "C:\\tmp\\test.cpp")
     ;; watcom
     ("..\\src\\ctrl\\lister.c(109): Error! E1009: Expecting ';' but found '{'"
      1 nil 109 "..\\src\\ctrl\\lister.c")
@@ -434,7 +436,7 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 94))
+      (should (eq compilation-num-errors-found 95))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))
 

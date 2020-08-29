@@ -411,6 +411,34 @@ following bindings, in addition to those of @code{minibuffer-local-map}:
 @end table
 @end defvar
 
+@vindex minibuffer-default-prompt-format
+@defun format-prompt prompt default &rest format-args
+Format @var{prompt} with default value @var{default} according to the
+@code{minibuffer-default-prompt-format} variable.
+
+@code{minibuffer-default-prompt-format} is a format string (defaulting
+to @samp{" (default %s)"} that says how the ``default'' bit in prompts
+like @samp{"Local filename (default somefile): "} are to be formatted.
+
+To allow the users to customize how this is displayed, code that
+prompts the user for a value (and has a default) should look something
+along the lines of this code snippet:
+
+@lisp
+(read-file-name
+ (format-prompt "Local filename" file)
+ nil file)
+@end lisp
+
+If @var{format-args} is @code{nil}, @var{prompt} is used as a literal
+string.  If @var{format-args} is non-@code{nil}, @var{prompt} is used
+as a format control string, and @var{prompt} and @var{format-args} are
+passed to @code{format} (@pxref{Formatting Strings}).
+
+@code{minibuffer-default-prompt-format} can be @samp{""}, in which
+case no default values are displayed.
+@end defun
+
 @node Object from Minibuffer
 @section Reading Lisp Objects with the Minibuffer
 @cindex minibuffer input, reading lisp objects

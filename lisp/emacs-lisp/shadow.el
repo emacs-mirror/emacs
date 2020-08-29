@@ -55,9 +55,6 @@
   :prefix "load-path-shadows-"
   :group 'lisp)
 
-(define-obsolete-variable-alias 'shadows-compare-text-p
-  'load-path-shadows-compare-text "23.3")
-
 (defcustom load-path-shadows-compare-text nil
   "If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."

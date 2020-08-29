@@ -225,8 +225,6 @@
 ;;---------------------------------------------------------------------------
 ;; user-configurable variables
 
-(require 'cl-lib)
-
 (defgroup hideshow nil
   "Minor mode for hiding and showing program and comment blocks."
   :prefix "hs-"
@@ -654,9 +652,7 @@ Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
 function; and adjust-block-beginning function."
   (if (and (bound-and-true-p comment-start)
            (bound-and-true-p comment-end))
-      (let* ((lookup (cl-assoc-if (lambda (mode)
-				    (derived-mode-p major-mode mode))
-				  hs-special-modes-alist))
+      (let* ((lookup (assoc major-mode hs-special-modes-alist))
              (start-elem (or (nth 1 lookup) "\\s(")))
         (if (listp start-elem)
             ;; handle (START-REGEXP MDATA-SELECT)

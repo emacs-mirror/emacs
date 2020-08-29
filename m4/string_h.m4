@@ -5,7 +5,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 25
+# serial 26
 
 # Written by Paul Eggert.
 
@@ -28,7 +28,7 @@ AC_DEFUN([gl_HEADER_STRING_H_BODY],
     ]],
     [ffsl ffsll memmem mempcpy memrchr rawmemchr stpcpy stpncpy strchrnul
      strdup strncat strndup strnlen strpbrk strsep strcasestr strtok_r
-     strerror_r sigabbrev_np strsignal strverscmp])
+     strerror_r sigabbrev_np sigdescr_np strsignal strverscmp])
 
   AC_REQUIRE([AC_C_RESTRICT])
 ])
@@ -81,6 +81,7 @@ AC_DEFUN([gl_HEADER_STRING_H_DEFAULTS],
   GNULIB_STRERROR=0;    AC_SUBST([GNULIB_STRERROR])
   GNULIB_STRERROR_R=0;  AC_SUBST([GNULIB_STRERROR_R])
   GNULIB_SIGABBREV_NP=0;AC_SUBST([GNULIB_SIGABBREV_NP])
+  GNULIB_SIGDESCR_NP=0; AC_SUBST([GNULIB_SIGDESCR_NP])
   GNULIB_STRSIGNAL=0;   AC_SUBST([GNULIB_STRSIGNAL])
   GNULIB_STRVERSCMP=0;  AC_SUBST([GNULIB_STRVERSCMP])
   HAVE_MBSLEN=0;        AC_SUBST([HAVE_MBSLEN])
@@ -104,6 +105,7 @@ AC_DEFUN([gl_HEADER_STRING_H_DEFAULTS],
   HAVE_DECL_STRTOK_R=1;         AC_SUBST([HAVE_DECL_STRTOK_R])
   HAVE_DECL_STRERROR_R=1;       AC_SUBST([HAVE_DECL_STRERROR_R])
   HAVE_SIGABBREV_NP=1;          AC_SUBST([HAVE_SIGABBREV_NP])
+  HAVE_SIGDESCR_NP=1;           AC_SUBST([HAVE_SIGDESCR_NP])
   HAVE_DECL_STRSIGNAL=1;        AC_SUBST([HAVE_DECL_STRSIGNAL])
   HAVE_STRVERSCMP=1;            AC_SUBST([HAVE_STRVERSCMP])
   REPLACE_MEMCHR=0;             AC_SUBST([REPLACE_MEMCHR])

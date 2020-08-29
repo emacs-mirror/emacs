@@ -827,9 +827,9 @@ the root directory.  */)
   ptrdiff_t tlen;
 #ifdef DOS_NT
   int drive = 0;
-  bool collapse_newdir = true;
   bool is_escaped = 0;
 #endif /* DOS_NT */
+  bool collapse_newdir = true;
   ptrdiff_t length, nbytes;
   Lisp_Object handler, result, handled_name;
   bool multibyte;
@@ -1065,7 +1065,7 @@ the root directory.  */)
 #endif /* WINDOWSNT */
 #endif /* DOS_NT */
 
-  /* If nm is absolute, look for `/./' or `/../' or `//''sequences; if
+  /* If nm is absolute, look for "/./" or "/../" or "//" sequences; if
      none are found, we can probably return right away.  We will avoid
      allocating a new string if name is already fully expanded.  */
   if (
@@ -1183,9 +1183,7 @@ the root directory.  */)
 	      newdir = SSDATA (hdir);
 	      newdirlim = newdir + SBYTES (hdir);
 	    }
-#ifdef DOS_NT
 	  collapse_newdir = false;
-#endif
 	}
       else			/* ~user/filename */
 	{
@@ -1205,9 +1203,7 @@ the root directory.  */)
 
 	      while (*++nm && !IS_DIRECTORY_SEP (*nm))
 		continue;
-#ifdef DOS_NT
 	      collapse_newdir = false;
-#endif
 	    }
 
 	  /* If we don't find a user of that name, leave the name
@@ -1374,12 +1370,15 @@ the root directory.  */)
     }
 #endif /* DOS_NT */
 
+  length = newdirlim - newdir;
+
+#ifdef DOS_NT
   /* Ignore any slash at the end of newdir, unless newdir is
      just "/" or "//".  */
-  length = newdirlim - newdir;
   while (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
 	 && ! (length == 2 && IS_DIRECTORY_SEP (newdir[0])))
     length--;
+#endif
 
   /* Now concatenate the directory and name to new space in the stack frame.  */
   tlen = length + file_name_as_directory_slop + (nmlim - nm) + 1;
@@ -1393,12 +1392,16 @@ the root directory.  */)
 #else  /* not DOS_NT */
   target = SAFE_ALLOCA (tlen);
 #endif /* not DOS_NT */
-  *target = 0;
   nbytes = 0;
 
   if (newdir)
     {
-      if (nm[0] == 0 || IS_DIRECTORY_SEP (nm[0]))
+#ifndef DOS_NT
+      bool treat_as_absolute = !collapse_newdir;
+#else
+      bool treat_as_absolute = !nm[0] || IS_DIRECTORY_SEP (nm[0]);
+#endif
+      if (treat_as_absolute)
 	{
 #ifdef DOS_NT
 	  /* If newdir is effectively "C:/", then the drive letter will have
@@ -1410,13 +1413,23 @@ the root directory.  */)
 		&& newdir[1] == '\0'))
 #endif
 	    {
+	      /* With ~ or ~user, leave NEWDIR as-is to avoid transforming
+		 it from a symlink (or a regular file!) into a directory.  */
 	      memcpy (target, newdir, length);
-	      target[length] = 0;
 	      nbytes = length;
 	    }
 	}
       else
 	nbytes = file_name_as_directory (target, newdir, length, multibyte);
+
+#ifndef DOS_NT
+      /* If TARGET ends in a directory separator, omit leading
+	 directory separators from NM so that concatenating a TARGET "/"
+	 to an NM "/foo" does not result in the incorrect "//foo".  */
+      if (nbytes && IS_DIRECTORY_SEP (target[nbytes - 1]))
+	while (IS_DIRECTORY_SEP (nm[0]))
+	  nm++;
+#endif
     }
 
   memcpy (target + nbytes, nm, nmlim - nm + 1);
@@ -1433,6 +1446,20 @@ the root directory.  */)
 	  {
 	    *o++ = *p++;
 	  }
+#ifndef DOS_NT
+	else if (p[1] == '.' && IS_DIRECTORY_SEP (p[2]))
+	  {
+	    /* Replace "/./" with "/".  */
+	    p += 2;
+	  }
+	else if (p[1] == '.' && !p[2])
+	  {
+	    /* At the end of the file name, replace "/." with "/".
+	       The trailing "/" is for symlinks.  */
+	    *o++ = *p;
+	    p += 2;
+	  }
+#else
 	else if (p[1] == '.'
 		 && (IS_DIRECTORY_SEP (p[2])
 		     || p[2] == 0))
@@ -1443,6 +1470,7 @@ the root directory.  */)
 	      *o++ = *p;
 	    p += 2;
 	  }
+#endif
 	else if (p[1] == '.' && p[2] == '.'
 		 /* `/../' is the "superroot" on certain file systems.
 		    Turned off on DOS_NT systems because they have no
@@ -1456,21 +1484,35 @@ the root directory.  */)
 #endif
 		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	  {
-#ifdef WINDOWSNT
+#ifndef DOS_NT
+	    while (o != target)
+	      {
+		o--;
+		if (IS_DIRECTORY_SEP (*o))
+		  {
+		    /* Keep "/" at the end of the name, for symlinks.  */
+		    o += p[3] == 0;
+
+		    break;
+		  }
+	      }
+#else
+# ifdef WINDOWSNT
 	    char *prev_o = o;
-#endif
+# endif
 	    while (o != target && (--o, !IS_DIRECTORY_SEP (*o)))
 	      continue;
-#ifdef WINDOWSNT
+# ifdef WINDOWSNT
 	    /* Don't go below server level in UNC filenames.  */
 	    if (o == target + 1 && IS_DIRECTORY_SEP (*o)
 		&& IS_DIRECTORY_SEP (*target))
 	      o = prev_o;
 	    else
-#endif
+# endif
 	    /* Keep initial / only if this is the whole name.  */
 	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
 	      ++o;
+#endif
 	    p += 3;
 	  }
 	else if (IS_DIRECTORY_SEP (p[1])

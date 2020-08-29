@@ -581,6 +581,8 @@ DIRS must contain directory names."
 ;;;###autoload
 (defvar project-prefix-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "!" 'project-shell-command)
+    (define-key map "&" 'project-async-shell-command)
     (define-key map "f" 'project-find-file)
     (define-key map "F" 'project-or-external-find-file)
     (define-key map "b" 'project-switch-to-buffer)
@@ -881,6 +883,20 @@ if one already exists."
     (if (and eshell-buffer (not current-prefix-arg))
         (pop-to-buffer eshell-buffer)
       (eshell t))))
+
+;;;###autoload
+(defun project-async-shell-command ()
+  "Run `async-shell-command' in the current project's root directory."
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    (call-interactively #'async-shell-command)))
+
+;;;###autoload
+(defun project-shell-command ()
+  "Run `shell-command' in the current project's root directory."
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    (call-interactively #'shell-command)))
 
 (declare-function fileloop-continue "fileloop" ())
 

@@ -1554,19 +1554,6 @@ left out."
 (declare-function c-backward-subword "ext:cc-subword" (&optional arg))
 
 ;; "nomenclature" functions + c-scope-operator.
-(defun c-forward-into-nomenclature (&optional arg)
-  "Compatibility alias for `c-forward-subword'."
-  (interactive "p")
-  (if (fboundp 'subword-mode)
-      (progn
-        (require 'subword)
-        (subword-forward arg))
-    (require 'cc-subword)
-    (c-forward-subword arg)))
-(make-obsolete 'c-forward-into-nomenclature
-               (if (fboundp 'subword-mode) 'subword-forward 'c-forward-subword)
-               "23.2")
-
 (defun c-backward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-backward-subword'."
   (interactive "p")

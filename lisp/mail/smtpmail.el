@@ -512,8 +512,9 @@ for `smtpmail-try-auth-method'.")
 	(if port
 	    (format "%s" port)
 	  "smtp"))
-  (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
-	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
+  (let* ((mechs (smtpmail-intersection
+                 (cdr-safe (assoc 'auth supported-extensions))
+                 smtpmail-auth-supported))
 	 (auth-source-creation-prompts
           '((user  . "SMTP user name for %h: ")
             (secret . "SMTP password for %u@%h: ")))
@@ -526,6 +527,7 @@ for `smtpmail-try-auth-method'.")
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
+         (mech (or (plist-get auth-info :smtp-auth) (car mechs)))
          (user (plist-get auth-info :user))
          (password (plist-get auth-info :secret))
 	 (save-function (and ask-for-password

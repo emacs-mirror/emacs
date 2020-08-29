@@ -25,10 +25,7 @@
 
 (require 'epg)
 (require 'font-lock)
-(require 'widget)
-(eval-when-compile
-  (require 'subr-x)
-  (require 'wid-edit))
+(eval-when-compile (require 'subr-x))
 (require 'derived)
 
 ;;; Options
@@ -153,14 +150,6 @@ The command `epa-mail-encrypt' uses this."
 
 ;;; Variables
 
-(defvar epa-font-lock-keywords
-  '(("^\\*"
-     (0 'epa-mark))
-    ("^\t\\([^\t:]+:\\)[ \t]*\\(.*\\)$"
-     (1 'epa-field-name)
-     (2 'epa-field-body)))
-  "Default expressions to addon in epa-mode.")
-
 (defconst epa-pubkey-algorithm-letter-alist
   '((1 . ?R)
     (2 . ?r)
@@ -197,8 +186,9 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-key-list-mode-map
   (let ((keymap (make-sparse-keymap))
 	(menu-map (make-sparse-keymap)))
-    (set-keymap-parent keymap widget-keymap)
     (define-key keymap "\C-m" 'epa-show-key)
+    (define-key keymap [?\t] 'forward-button)
+    (define-key keymap [backtab] 'backward-button)
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -259,48 +249,35 @@ You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-exit-buffer-function #'quit-window)
 
-;;; Key Widget
-
-(define-widget 'epa-key 'push-button
-  "Button for representing an epg-key object."
-  :format "%[%v%]"
-  :button-face-get 'epa--key-widget-button-face-get
-  :value-create 'epa--key-widget-value-create
-  :action 'epa--key-widget-action
-  :help-echo 'epa--key-widget-help-echo)
-
-(defun epa--key-widget-action (widget &optional _event)
-  (save-selected-window
-    (epa--show-key (widget-get widget :value))))
-
-(defun epa--key-widget-value-create (widget)
-  (let* ((key (widget-get widget :value))
-	 (primary-sub-key (car (epg-key-sub-key-list key)))
-	 (primary-user-id (car (epg-key-user-id-list key))))
-    (insert (format "%c "
-		    (if (epg-sub-key-validity primary-sub-key)
-			(car (rassq (epg-sub-key-validity primary-sub-key)
-				    epg-key-validity-alist))
-		      ? ))
-	    (epg-sub-key-id primary-sub-key)
-	    " "
-	    (if primary-user-id
-		(if (stringp (epg-user-id-string primary-user-id))
-		    (epg-user-id-string primary-user-id)
-		  (epg-decode-dn (epg-user-id-string primary-user-id)))
-	      ""))))
-
-(defun epa--key-widget-button-face-get (widget)
-  (let ((validity (epg-sub-key-validity (car (epg-key-sub-key-list
-					      (widget-get widget :value))))))
-    (if validity
-	(cdr (assq validity epa-validity-face-alist))
-      'default)))
-
-(defun epa--key-widget-help-echo (widget)
-  (format "Show %s"
-	  (epg-sub-key-id (car (epg-key-sub-key-list
-				(widget-get widget :value))))))
+(defun epa--button-key-text (key)
+  (let ((primary-sub-key (car (epg-key-sub-key-list key)))
+	(primary-user-id (car (epg-key-user-id-list key)))
+        (validity (epg-sub-key-validity (car (epg-key-sub-key-list key)))))
+    (propertize
+     (concat
+      (propertize
+       (format "%c "
+	       (if (epg-sub-key-validity primary-sub-key)
+		   (car (rassq (epg-sub-key-validity primary-sub-key)
+			       epg-key-validity-alist))
+	         ? ))
+       'help-echo (format "Validity: %s"
+                          (epg-sub-key-validity primary-sub-key)))
+      (propertize
+       (concat
+        (epg-sub-key-id primary-sub-key)
+        " "
+        (if primary-user-id
+	    (if (stringp (epg-user-id-string primary-user-id))
+	        (epg-user-id-string primary-user-id)
+	      (epg-decode-dn (epg-user-id-string primary-user-id)))
+          ""))
+       'help-echo (format "Show %s"
+	                  (epg-sub-key-id (car (epg-key-sub-key-list key))))))
+     'face
+     (if validity
+         (cdr (assq validity epa-validity-face-alist))
+       'default))))
 
 ;;; Modes
 
@@ -309,7 +286,6 @@ You should bind this variable with `let', but do not set it globally.")
   (buffer-disable-undo)
   (setq truncate-lines t
 	buffer-read-only t)
-  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   (make-local-variable 'epa-exit-buffer-function)
   (setq-local revert-buffer-function #'epa--key-list-revert-buffer))
 
@@ -318,7 +294,6 @@ You should bind this variable with `let', but do not set it globally.")
   (buffer-disable-undo)
   (setq truncate-lines t
 	buffer-read-only t)
-  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   (make-local-variable 'epa-exit-buffer-function))
 
 (define-derived-mode epa-info-mode special-mode "EPA Info"
@@ -362,28 +337,12 @@ If ARG is non-nil, mark the key."
 ;;;; Listing and Selecting
 
 (defun epa--insert-keys (keys)
-  (save-excursion
-    (save-restriction
-      (narrow-to-region (point) (point))
-      (let (point)
-	(while keys
-	  (setq point (point))
-	  (insert "  ")
-	  (add-text-properties point (point)
-			       (list 'epa-key (car keys)
-				     'front-sticky nil
-				     'rear-nonsticky t
-				     'start-open t
-				     'end-open t))
-	  (widget-create 'epa-key :value (car keys))
-	  (insert "\n")
-	  (setq keys (cdr keys))))
-      (add-text-properties (point-min) (point-max)
-			   (list 'epa-list-keys t
-				 'front-sticky nil
-				 'rear-nonsticky t
-				 'start-open t
-				 'end-open t)))))
+  (dolist (key keys)
+    (insert
+     (propertize
+      (concat "  " (epa--button-key-text key))
+      'epa-key key))
+    (insert "\n")))
 
 (defun epa--list-keys (name secret &optional doc)
   "NAME specifies which key to list.
@@ -420,8 +379,7 @@ DOC is documentation text to insert at the start."
 			 (point-max)))
       (goto-char point))
 
-    (epa--insert-keys (epg-list-keys context name secret))
-    (widget-setup))
+    (epa--insert-keys (epg-list-keys context name secret)))
   (make-local-variable 'epa-list-keys-arguments)
   (setq epa-list-keys-arguments (list name secret))
   (goto-char (point-min))
@@ -488,20 +446,13 @@ q  trust status questionable.  -  trust status unspecified.
 	      (substitute-command-keys "\
 - `\\[epa-mark-key]' to mark a key on the line
 - `\\[epa-unmark-key]' to unmark a key on the line\n"))
-      (widget-create 'push-button
-		     :notify (lambda (&rest _ignore) (abort-recursive-edit))
-		     :help-echo
-		     "Click here or \\[abort-recursive-edit] to cancel"
-		     "Cancel")
-      (widget-create 'push-button
-		     :notify (lambda (&rest _ignore) (exit-recursive-edit))
-		     :help-echo
-		     "Click here or \\[exit-recursive-edit] to finish"
-		     "OK")
+      (insert-button "[Cancel]"
+                     'action (lambda (_button) (abort-recursive-edit)))
+      (insert " ")
+      (insert-button "[OK]"
+                     'action (lambda (_button) (exit-recursive-edit)))
       (insert "\n\n")
       (epa--insert-keys keys)
-      (widget-setup)
-      (set-keymap-parent (current-local-map) widget-keymap)
       (setq epa-exit-buffer-function #'abort-recursive-edit)
       (goto-char (point-min))
       (let ((display-buffer-mark-dedicated 'soft))

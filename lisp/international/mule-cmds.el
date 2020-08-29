@@ -2070,12 +2070,6 @@ See `set-language-info-alist' for use in programs."
   "Do various unibyte-mode setups for language environment LANGUAGE-NAME."
   (set-display-table-and-terminal-coding-system language-name))
 
-(defun princ-list (&rest args)
-  "Print all arguments with `princ', then print \"\\n\"."
-  (declare (obsolete "use mapc and princ instead." "23.3"))
-  (mapc #'princ args)
-  (princ "\n"))
-
 (put 'describe-specified-language-support 'apropos-inhibit t)
 
 ;; Print language-specific information such as input methods,

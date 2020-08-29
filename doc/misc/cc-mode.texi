@@ -1024,9 +1024,7 @@ These key sequences are not bound in AWK Mode, which doesn't have
 preprocessor statements.
 
 @item @kbd{M-x c-backward-into-nomenclature}
-@itemx @kbd{M-x c-forward-into-nomenclature}
 @findex c-backward-into-nomenclature
-@findex c-forward-into-nomenclature
 @findex backward-into-nomenclature @r{(c-)}
 @findex forward-into-nomenclature @r{(c-)}
 A popular programming style, especially for object-oriented languages

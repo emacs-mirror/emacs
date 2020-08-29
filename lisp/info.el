@@ -2308,7 +2308,11 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 		nil t))
 	  (progn (beginning-of-line) (if (looking-at "^\\* ") (forward-char 2)))
 	(goto-char p)
-	(Info-restore-point Info-history)))))
+	(Info-restore-point Info-history))))
+  ;; If scroll-conservatively is non-zero and less than 101, display
+  ;; as much of the superior node above the target line as possible.
+  (when (< 0 scroll-conservatively 101)
+    (recenter)))
 
 (defun Info-history-back ()
   "Go back in the history to the last node visited."
@@ -2771,6 +2775,8 @@ Because of ambiguities, this should be concatenated with something like
               ;; Go back to the start node (for the next completion).
               (unless (equal Info-current-node orignode)
                 (Info-goto-node orignode))
+              ;; Arrange list to be in order found in node.
+              (setq completions (nreverse completions))
               ;; Update the cache.
               (setq Info-complete-cache
 		   (list Info-current-file Info-current-node

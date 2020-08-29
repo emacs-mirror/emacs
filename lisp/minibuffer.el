@@ -2539,11 +2539,6 @@ same as `substitute-in-file-name'."
               all))))))
     (file-error nil)))               ;PCM often calls with invalid directories.
 
-(defvar read-file-name-predicate nil
-  "Current predicate used by `read-file-name-internal'.")
-(make-obsolete-variable 'read-file-name-predicate
-                        "use the regular PRED argument" "23.2")
-
 (defun completion--sifn-requote (upos qstr)
   ;; We're looking for `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
@@ -3032,6 +3027,19 @@ if nil, it will list all possible commands in *Completions* because none of
 the commands start with a \"-\" or a SPC."
   :version "24.1"
   :type 'boolean)
+
+(defcustom minibuffer-default-prompt-format " (default %s)"
+  "Format string used to output \"default\" values.
+When prompting for input, there will often be a default value,
+leading to prompts like \"Number of articles (default 50): \".
+The \"default\" part of that prompt is controlled by this
+variable, and can be set to, for instance, \" [%s]\" if you want
+a shorter displayed prompt, or \"\", if you don't want to display
+the default at all.
+
+This variable is used by the `format-prompt' function."
+  :version "28.1"
+  :type 'string)
 
 (defun completion-pcm--pattern-trivial-p (pattern)
   (and (stringp (car pattern))
@@ -3849,6 +3857,19 @@ the minibuffer was activated, and execute the forms."
   (interactive "^P")
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
+
+(defun format-prompt (prompt default &rest format-args)
+  "Format PROMPT with DEFAULT according to `minibuffer-default-prompt-format'.
+If FORMAT-ARGS is nil, PROMPT is used as a plain string.  If
+FORMAT-ARGS is non-nil, PROMPT is used as a format control
+string, and FORMAT-ARGS are the arguments to be substituted into
+it.  See `format' for details."
+  (concat
+   (if (null format-args)
+       prompt
+     (apply #'format prompt format-args))
+   (format minibuffer-default-prompt-format default)
+   ": "))
 
 (provide 'minibuffer)
 

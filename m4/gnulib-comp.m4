@@ -145,6 +145,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module regex:
   # Code from module root-uid:
   # Code from module sig2str:
+  # Code from module sigdescr_np:
   # Code from module signal-h:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -424,6 +425,11 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([sig2str])
     gl_PREREQ_SIG2STR
   fi
+  gl_FUNC_SIGDESCR_NP
+  if test $HAVE_SIGDESCR_NP = 0; then
+    AC_LIBOBJ([sigdescr_np])
+  fi
+  gl_STRING_MODULE_INDICATOR([sigdescr_np])
   gl_SIGNAL_H
   gl_TYPE_SOCKLEN_T
   gt_TYPE_SSIZE_T
@@ -1059,6 +1065,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha512.h
   lib/sig2str.c
   lib/sig2str.h
+  lib/sigdescr_np.c
   lib/signal.in.h
   lib/stat-time.c
   lib/stat-time.h
@@ -1181,6 +1188,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/open-slash.m4
   m4/open.m4
   m4/pathmax.m4
+  m4/pid_t.m4
   m4/pipe2.m4
   m4/pselect.m4
   m4/pthread_sigmask.m4
@@ -1191,6 +1199,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sha256.m4
   m4/sha512.m4
   m4/sig2str.m4
+  m4/sigdescr_np.m4
   m4/signal_h.m4
   m4/socklen.m4
   m4/ssize_t.m4

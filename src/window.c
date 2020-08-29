@@ -5462,7 +5462,7 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 
   wset_redisplay (XWINDOW (window));
 
-  if (whole && Vfast_but_imprecise_scrolling)
+  if (whole && fast_but_imprecise_scrolling)
     specbind (Qfontification_functions, Qnil);
 
   /* On GUI frames, use the pixel-based version which is much slower
@@ -8398,7 +8398,7 @@ pixelwise even if this option is nil.  */);
   window_resize_pixelwise = false;
 
   DEFVAR_BOOL ("fast-but-imprecise-scrolling",
-               Vfast_but_imprecise_scrolling,
+               fast_but_imprecise_scrolling,
                doc: /* When non-nil, accelerate scrolling operations.
 This comes into play when scrolling rapidly over previously
 unfontified buffer regions.  Only those portions of the buffer which
@@ -8406,7 +8406,7 @@ are actually going to be displayed get fontified.
 
 Note that this optimization can cause the portion of the buffer
 displayed after a scrolling operation to be somewhat inaccurate.  */);
-  Vfast_but_imprecise_scrolling = false;
+  fast_but_imprecise_scrolling = false;
 
   defsubr (&Sselected_window);
   defsubr (&Sold_selected_window);

@@ -136,6 +136,7 @@
 #  readlinkat \
 #  regex \
 #  sig2str \
+#  sigdescr_np \
 #  socklen \
 #  stat-time \
 #  std-gnu11 \
@@ -426,6 +427,7 @@ GNULIB_SETENV = @GNULIB_SETENV@
 GNULIB_SETHOSTNAME = @GNULIB_SETHOSTNAME@
 GNULIB_SIGABBREV_NP = @GNULIB_SIGABBREV_NP@
 GNULIB_SIGACTION = @GNULIB_SIGACTION@
+GNULIB_SIGDESCR_NP = @GNULIB_SIGDESCR_NP@
 GNULIB_SIGNAL_H_SIGPIPE = @GNULIB_SIGNAL_H_SIGPIPE@
 GNULIB_SIGPROCMASK = @GNULIB_SIGPROCMASK@
 GNULIB_SLEEP = @GNULIB_SLEEP@
@@ -647,6 +649,7 @@ HAVE_SETHOSTNAME = @HAVE_SETHOSTNAME@
 HAVE_SETSTATE = @HAVE_SETSTATE@
 HAVE_SIGABBREV_NP = @HAVE_SIGABBREV_NP@
 HAVE_SIGACTION = @HAVE_SIGACTION@
+HAVE_SIGDESCR_NP = @HAVE_SIGDESCR_NP@
 HAVE_SIGHANDLER_T = @HAVE_SIGHANDLER_T@
 HAVE_SIGINFO_T = @HAVE_SIGINFO_T@
 HAVE_SIGNED_SIG_ATOMIC_T = @HAVE_SIGNED_SIG_ATOMIC_T@
@@ -2312,6 +2315,17 @@ EXTRA_libgnu_a_SOURCES += sig2str.c
 endif
 ## end   gnulib module sig2str
 
+## begin gnulib module sigdescr_np
+ifeq (,$(OMIT_GNULIB_MODULE_sigdescr_np))
+
+
+EXTRA_DIST += sigdescr_np.c
+
+EXTRA_libgnu_a_SOURCES += sigdescr_np.c
+
+endif
+## end   gnulib module sigdescr_np
+
 ## begin gnulib module signal-h
 ifeq (,$(OMIT_GNULIB_MODULE_signal-h))
 
@@ -2846,6 +2860,7 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_STRERROR''@/$(GNULIB_STRERROR)/g' \
 	      -e 's/@''GNULIB_STRERROR_R''@/$(GNULIB_STRERROR_R)/g' \
 	      -e 's/@''GNULIB_SIGABBREV_NP''@/$(GNULIB_SIGABBREV_NP)/g' \
+	      -e 's/@''GNULIB_SIGDESCR_NP''@/$(GNULIB_SIGDESCR_NP)/g' \
 	      -e 's/@''GNULIB_STRSIGNAL''@/$(GNULIB_STRSIGNAL)/g' \
 	      -e 's/@''GNULIB_STRVERSCMP''@/$(GNULIB_STRVERSCMP)/g' \
 	      < $(srcdir)/string.in.h | \
@@ -2869,6 +2884,7 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_DECL_STRTOK_R''@|$(HAVE_DECL_STRTOK_R)|g' \
 	      -e 's|@''HAVE_DECL_STRERROR_R''@|$(HAVE_DECL_STRERROR_R)|g' \
 	      -e 's|@''HAVE_SIGABBREV_NP''@|$(HAVE_SIGABBREV_NP)|g' \
+	      -e 's|@''HAVE_SIGDESCR_NP''@|$(HAVE_SIGDESCR_NP)|g' \
 	      -e 's|@''HAVE_DECL_STRSIGNAL''@|$(HAVE_DECL_STRSIGNAL)|g' \
 	      -e 's|@''HAVE_STRVERSCMP''@|$(HAVE_STRVERSCMP)|g' \
 	      -e 's|@''REPLACE_MEMCHR''@|$(REPLACE_MEMCHR)|g' \

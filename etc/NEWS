@@ -42,6 +42,11 @@ default.  We strongly recommend building with HarBuzz support.  'x' is
 still a valid backend.
 
 ---
+** Building without double buffering support.
+configure --with-xdbe=no can now be used to disable double buffering
+at build time.
+
+---
 ** 'configure' now warns about building with libXft support.
 libXft is unmaintained, and causes a number of problems with modern
 fonts including but not limited to crashes; support for it may be
@@ -235,6 +240,14 @@ time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
+---
+*** Broken and circular links are shown with the 'dired-broken-symlink' face.
+
+*** '=' ('dired-diff') will now put all backup files into the 'M-n' history.
+When using '=' on a file with backup files, the default file to use
+for diffing is the newest backup file.  You can now use 'M-n' to quickly
+select a different backup file instead.
+
 +++
 *** New user option 'dired-maybe-use-globstar'.
 If set, enables globstar (recursive globbing) in shells that support
@@ -289,6 +302,11 @@ completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
 
 ** Gnus
+
++++
+*** New option 'gnus-dbus-close-on-sleep'
+On systems with D-Bus support, it is now possible to register a signal
+to close all Gnus servers before the system sleeps.
 
 +++
 *** The key binding of 'gnus-summary-search-article-forward' has changed.
@@ -370,6 +388,15 @@ take the actual screenshot, and defaults to "ImageMagick import".
 *** The command 'view-lossage' can now be invoked from the menu bar.
 The menu-bar Help menu now has a "Show Recent Inputs" item under the
 "Describe" sub-menu.
+
+** Ispell
+
++++
+*** 'ispell-comments-and-strings' now accepts START and END arguments,
+defaulting to active region when used interactively.
+
++++
+*** New command 'ispell-comment-or-string-at-point' is provided.
 
 ---
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
@@ -530,6 +557,9 @@ case-insensitive matching of messages when the old behavior is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
+---
+*** Messages from Visual Studio that mention column numbers are now recognized.
+
 ** Hi Lock mode
 
 ---
@@ -688,6 +718,22 @@ problematic in some contexts (like PDFs), so this list is now filtered
 based on 'auto-mode-alist'.  Only file names that map to 'image-mode'
 are now supported.
 
+---
+*** The background and foreground of images now default to face colors.
+When an image doesn't specify a foreground or background color, Emacs
+now uses colors from the face used to draw the surrounding text
+instead of the frame's default colors.
+
+To load images with the default frame colors use the ':foreground' and
+':background' image attributes, for example:
+
+    (create-image "filename" nil nil
+                  :foreground (face-attribute 'default :foreground)
+                  :background (face-attribute 'default :background))
+
+This change only affects image types that support foreground and
+background colors or transparency, such as xbm, pbm, svg, png and gif.
+
 ** EWW
 
 +++
@@ -734,6 +780,11 @@ directory.
 *** New command 'project-switch-project'.
 This command lets you "switch" to another project and run a project
 command chosen from a dispatch menu.
+
++++
+*** New commands 'project-shell-command' and 'project-async-shell-command'.
+These commands run 'shell-command' and 'async-shell-command' in a
+project's root directory, respectively.
 
 +++
 *** New user option 'project-list-file'.
@@ -851,14 +902,19 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
++++
+*** The user can now customize how \"default\" values are prompted for.
+The new utility function 'format-prompt' has been added which uses the
+new 'minibuffer-default-prompt-format' variable to format \"default\"
+prompts.  This means that prompts that look like "Enter a number
+(default 10)" can be customized to look like, for instance, "Enter a
+number [10]", or not have the default displayed at all, like "Enter a
+number".  (This requires that all callers are altered to user
+'format-prompt', though.)
+
 ---
 *** New 'diff-mode' font locking face 'diff-error'.
 This face is used for error messages from diff.
-
----
-*** 'hs-minor-mode' now heeds 'hs-special-modes-alist' for derived modes.
-The settings in 'hs-special-modes-alist' now also affect modes derived
-from those mentioned in that alist.
 
 +++
 *** New global mode 'global-goto-address-mode'
@@ -984,6 +1040,11 @@ mode, as are other data files produced by Emacs.
 
 It's a library to create, query, navigate and display hierarchy structures.
 
+** New themes 'modus-vivendi' and 'modus-operandi'.
+These themes are designed for colour-contrast accessibility.  You can
+load the new themes using 'M-x customize-themes' or 'load-theme' from
+your init file.
+
 
 * Incompatible Editing Changes in Emacs 28.1
 
@@ -1050,33 +1111,40 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 ---
 ** Some functions and variables obsolete since Emacs 23 have been removed:
-
-'GOLD-map', 'bookmark-jump-noselect',
+'GOLD-map', 'advertised-xscheme-send-previous-expression',
+'allout-init', 'bookmark-jump-noselect',
 'bookmark-read-annotation-text-func', 'buffer-menu-mode-hook',
-'char-coding-system-table', 'char-valid-p', 'charset-bytes',
-'charset-id', 'charset-list' (function), 'complete-in-turn',
-'completion-common-substring', 'crm-minibuffer-complete',
-'crm-minibuffer-complete-and-exit', 'crm-minibuffer-completion-help',
-'custom-mode', 'custom-mode-hook', 'detect-coding-with-priority',
-'dirtrack-debug' (function), 'dirtrack-debug-toggle',
-'dynamic-completion-table',
+'c-forward-into-nomenclature', 'char-coding-system-table',
+'char-valid-p', 'charset-bytes', 'charset-id', 'charset-list'
+(function), 'choose-completion-delete-max-match', 'complete-in-turn',
+'completion-base-size', 'completion-common-substring',
+'crm-minibuffer-complete', 'crm-minibuffer-complete-and-exit',
+'crm-minibuffer-completion-help', 'custom-mode', 'custom-mode-hook',
+'detect-coding-with-priority', 'dirtrack-debug' (function),
+'dirtrack-debug-toggle', 'dynamic-completion-table',
 'easy-menu-precalculate-equivalent-keybindings',
 'epa-display-verify-result', 'epg-passphrase-callback-function',
-'eshell-report-bug', 'ffap-bug', 'ffap-submit-bug', 'forward-point',
-'generic-char-p', 'global-highlight-changes', 'hi-lock-face-history',
+'eshell-report-bug', 'eval-next-after-load', 'exchange-dot-and-mark',
+'ffap-bug', 'ffap-submit-bug', 'ffap-version',
+'file-cache-choose-completion', 'forward-point', 'generic-char-p',
+'global-highlight-changes', 'hi-lock-face-history',
 'hi-lock-regexp-history', 'highlight-changes-active-string',
 'highlight-changes-initial-state', 'highlight-changes-passive-string',
+'image-mode-maybe', 'imenu-example--name-and-position',
 'ispell-aspell-supports-utf8', 'lisp-mode-auto-fill',
 'locate-file-completion', 'make-coding-system',
-'minibuffer-local-must-match-filename-map', 'mouse-major-mode-menu',
-'mouse-popup-menubar', 'mouse-popup-menubar-stuff',
-'newsticker-groups-filename', 'non-iso-charset-alist',
-'nonascii-insert-offset', 'nonascii-translation-table',
-'password-read-and-add', 'pre-abbrev-expand-hook',
-'process-filter-multibyte-p', 'remember-buffer' (function),
+'minibuffer-local-must-match-filename-map', 'mouse-choose-completion',
+'mouse-major-mode-menu', 'mouse-popup-menubar',
+'mouse-popup-menubar-stuff', 'newsticker-groups-filename',
+'non-iso-charset-alist', 'nonascii-insert-offset',
+'nonascii-translation-table', 'password-read-and-add',
+'pre-abbrev-expand-hook', 'princ-list', 'print-help-return-message',
+'process-filter-multibyte-p', 'read-file-name-predicate',
+'remember-buffer' (function), 'rmail-highlight-face',
 'rmail-message-filter', 'set-coding-priority',
-'set-process-filter-multibyte', 'shell-dirtrack-toggle',
-'t-mouse-mode', 'tooltip-hook', 'tpu-have-ispell',
+'set-process-filter-multibyte', 'shadows-compare-text-p',
+'shell-dirtrack-toggle', 't-mouse-mode',
+'term-dynamic-simple-complete', 'tooltip-hook', 'tpu-have-ispell',
 'url-generate-unique-filename', 'url-temporary-directory',
 'vc-arch-command', 'vc-default-working-revision' (variable),
 'vc-mtn-command', 'vc-revert-buffer', 'vc-workfile-version',
@@ -1084,6 +1152,11 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+*** New function 'file-backup-file-names'.
+This function returns the list of file names of all the backup files
+of its file argument.
 
 +++
 ** The 'count-lines' function now takes an optional parameter to
@@ -1099,6 +1172,12 @@ region's (or buffer's) end.
 ** New function 'custom-add-choice'.
 This function can be used by modes to add elements to the
 'choice' customization type of a variable.
+
++++
+** 'expand-file-name' no longer omits a trailing slash if the omission
+changes the filename's meaning.  E.g., (expand-file-name "/a/b/.") now
+returns "/a/b/" not "/a/b", which might be misinterpreted as the name
+of a symbolic link rather than of the directory it points to.
 
 +++
 ** New function 'file-modes-number-to-symbolic' to convert a numeric

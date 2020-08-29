@@ -44,6 +44,7 @@
 ;;   ispell-buffer
 ;;   ispell-message
 ;;   ispell-comments-and-strings
+;;   ispell-comment-or-string-at-point
 ;;   ispell-continue
 ;;   ispell-complete-word
 ;;   ispell-complete-word-interior-frag
@@ -1095,28 +1096,38 @@ to dictionaries found, and will remove aliases from the list
 in `ispell-dicts-name2locale-equivs-alist' if an explicit
 dictionary from that list was found."
   (let ((hunspell-found-dicts
-	 (split-string
-	  (with-temp-buffer
-	    (ispell-call-process ispell-program-name
-				 null-device
-				 t
-				 nil
-                                 "-D"
-                                 ;; Use -a to prevent Hunspell from
-                                 ;; trying to initialize its
-                                 ;; curses/termcap UI, which causes it
-                                 ;; to crash or fail to start in some
-                                 ;; MS-Windows ports.
-                                 "-a"
-                                 ;; Hunspell 1.7.0 (and later?) won't
-                                 ;; show LOADED DICTIONARY unless
-                                 ;; there's at least one file argument
-                                 ;; on the command line.  So we feed
-                                 ;; it with the null device.
-				 null-device)
-	    (buffer-string))
-	  "[\n\r]+"
-	  t))
+         (seq-filter
+          (lambda (str)
+            (when (string-match
+                   ;; Hunspell gives this error when there is some
+                   ;; installation problem, for example if $LANG is unset.
+                   (concat "^Can't open affix or dictionary files "
+                           "for dictionary named \"default\".$")
+                   str)
+              (user-error "Hunspell error (is $LANG unset?): %s" str))
+            (file-name-absolute-p str))
+          (split-string
+           (with-temp-buffer
+             (ispell-call-process ispell-program-name
+                            null-device
+                            t
+                            nil
+                            "-D"
+                            ;; Use -a to prevent Hunspell from
+                            ;; trying to initialize its
+                            ;; curses/termcap UI, which causes it
+                            ;; to crash or fail to start in some
+                            ;; MS-Windows ports.
+                            "-a"
+                            ;; Hunspell 1.7.0 (and later?) won't
+                            ;; show LOADED DICTIONARY unless
+                            ;; there's at least one file argument
+                            ;; on the command line.  So we feed
+                            ;; it with the null device.
+                            null-device)
+             (buffer-string))
+           "[\n\r]+"
+           t)))
 	hunspell-default-dict
 	hunspell-default-dict-entry
 	hunspell-multi-dict)
@@ -3580,24 +3591,40 @@ Returns the sum SHIFT due to changes in word replacements."
 
 
 ;;;###autoload
-(defun ispell-comments-and-strings ()
-  "Check comments and strings in the current buffer for spelling errors."
-  (interactive)
-  (goto-char (point-min))
+(defun ispell-comments-and-strings (&optional start end)
+  "Check comments and strings in the current buffer for spelling errors.
+If called interactively with an active region, check only comments and
+strings in the region.
+When called from Lisp, START and END buffer positions can be provided
+to limit the check."
+  (interactive (when (use-region-p) (list (region-beginning) (region-end))))
+  (unless end (setq end (point-max)))
+  (goto-char (or start (point-min)))
   (let (state done)
     (while (not done)
       (setq done t)
-      (setq state (parse-partial-sexp (point) (point-max)
-				      nil nil state 'syntax-table))
+      (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
       (if (or (nth 3 state) (nth 4 state))
 	  (let ((start (point)))
-	    (setq state (parse-partial-sexp start (point-max)
+	    (setq state (parse-partial-sexp start end
 					    nil nil state 'syntax-table))
 	    (if (or (nth 3 state) (nth 4 state))
 		(error "Unterminated string or comment"))
 	    (save-excursion
 	      (setq done (not (ispell-region start (point))))))))))
 
+;;;###autoload
+(defun ispell-comment-or-string-at-point ()
+  "Check the comment or string containing point for spelling errors."
+  (interactive)
+  (save-excursion
+    (let ((state (syntax-ppss)))
+      (if (or (nth 3 state) (nth 4 state))
+          (ispell-region (nth 8 state)
+                         (progn (parse-partial-sexp (point) (point-max)
+                                                    nil nil state 'syntax-table)
+                                (point)))
+        (user-error "Not inside a string or comment")))))
 
 ;;;###autoload
 (defun ispell-buffer ()

@@ -506,9 +506,7 @@ This will generate compile-time constants from BINDINGS."
           (1 font-lock-constant-face prepend))
          ;; Uninterned symbols, e.g., (defpackage #:my-package ...)
          ;; must come before keywords below to have effect
-         (,(concat "\\(#:\\)\\(" lisp-mode-symbol-regexp "\\)")
-           (1 font-lock-comment-delimiter-face)
-           (2 font-lock-doc-face))
+         (,(concat "#:" lisp-mode-symbol-regexp "") 0 font-lock-builtin-face)
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))

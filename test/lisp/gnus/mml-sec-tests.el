@@ -37,7 +37,7 @@ Mostly, the empty passphrase is used.  However, the keys for
  as S/MIME).")
 
 (defun test-conf ()
-  (ignore-errors (epg-configuration)))
+  (ignore-errors (epg-find-configuration 'OpenPGP)))
 
 (defun enc-standards ()
   (if with-smime '(enc-pgp enc-pgp-mime enc-smime)
@@ -647,6 +647,7 @@ In this test, just multiple encryption and signing keys may be available."
 (ert-deftest mml-secure-en-decrypt-sign-1-2-double ()
   "Sign and encrypt message; then decrypt and test for expected result.
 In this test, just multiple encryption and signing keys may be available."
+  :tags '(:unstable)
   (skip-unless (test-conf))
   (mml-secure-test-key-fixture
    (lambda ()
@@ -842,7 +843,8 @@ So the second decryption fails."
 (ert-deftest mml-secure-en-decrypt-passphrase-no-cache-openpgp-todo ()
   "Passphrase caching with OpenPGP only for GnuPG 1.x."
   (skip-unless (test-conf))
-  (skip-unless (string< (cdr (assq 'version (epg-configuration))) "2"))
+  (skip-unless (string< (cdr (assq 'version (epg-find-configuration 'OpenPGP)))
+			"2"))
   (mml-secure-en-decrypt-passphrase-no-cache 'enc-pgp)
   (mml-secure-en-decrypt-passphrase-no-cache 'enc-pgp-mime))
 
@@ -884,7 +886,7 @@ So the second decryption fails."
 (defun mml-secure-run-tests-with-gpg2 ()
   "Run all tests with gpg2 instead of gpg."
   (let* ((epg-gpg-program "gpg2"); ~/local/gnupg-2.1.9/PLAY/inst/bin/gpg2
-	 (gpg-version (cdr (assq 'version (epg-configuration))))
+	 (gpg-version (cdr (assq 'version (epg-find-configuration 'OpenPGP))))
 	 ;; Empty passphrases do not seem to work with gpgsm in 2.1.x:
 	 ;; https://lists.gnupg.org/pipermail/gnupg-users/2015-October/054575.html
 	 (with-smime (string< gpg-version "2.1")))

@@ -5521,11 +5521,11 @@ footprint in sessions that use lots of different fonts.  */);
 #endif
 
   DEFVAR_BOOL ("xft-ignore-color-fonts",
-	       Vxft_ignore_color_fonts,
+	       xft_ignore_color_fonts,
 	       doc: /*
 Non-nil means don't query fontconfig for color fonts, since they often
 cause Xft crashes.  Only has an effect in Xft builds.  */);
-  Vxft_ignore_color_fonts = 1;
+  xft_ignore_color_fonts = true;
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_FREETYPE

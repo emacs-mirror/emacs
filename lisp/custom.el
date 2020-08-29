@@ -758,6 +758,9 @@ Return non-nil if the `customized-value' property actually changed."
 	(progn (put symbol 'customized-value (list (custom-quote value)))
 	       (custom-push-theme 'theme-value symbol 'user 'set
 				  (custom-quote value)))
+      (custom-push-theme 'theme-value symbol 'user
+                         (if (get symbol 'saved-value) 'set 'reset)
+                         (custom-quote value))
       (put symbol 'customized-value nil))
     ;; Changed?
     (not (equal customized (get symbol 'customized-value)))))

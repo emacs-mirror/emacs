@@ -134,7 +134,20 @@ the string of command switches used as the third argument of `diff'."
                               (file-name-directory default)
                             (dired-current-directory))
 			(dired-dwim-target-directory)))
-	  (defaults (dired-dwim-target-defaults (list current) target-dir)))
+	  (defaults (append
+                     (if (backup-file-name-p current)
+                         ;; This is a backup file -- put the other
+                         ;; main file, and the other backup files into
+                         ;; the `M-n' list.
+                         (delete (expand-file-name current)
+                                 (cons (expand-file-name
+                                        (file-name-sans-versions current))
+                                       (file-backup-file-names
+                                        (file-name-sans-versions current))))
+                       ;; Non-backup file -- use the backup files as
+                       ;; `M-n' candidates.
+                       (file-backup-file-names current))
+                     (dired-dwim-target-defaults (list current) target-dir))))
      (list
       (minibuffer-with-setup-hook
 	  (lambda ()

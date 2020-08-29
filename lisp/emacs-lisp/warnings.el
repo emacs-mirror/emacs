@@ -1,4 +1,4 @@
-;;; warnings.el --- log and display warnings
+;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -68,25 +68,25 @@ Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
-(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
+(define-obsolete-variable-alias 'display-warning-minimum-level
+  'warning-minimum-level "28.1")
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
 the warning is logged in the warnings buffer, but the buffer
 is not immediately displayed.  See also `warning-minimum-log-level'."
-  :group 'warnings
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
 
-(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
+(define-obsolete-variable-alias 'log-warning-minimum-level
+  'warning-minimum-log-level "28.1")
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
 the warning is completely ignored.
 Value must be lower or equal than `warning-minimum-level',
 because warnings not logged aren't displayed either."
-  :group 'warnings
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
@@ -100,7 +100,6 @@ Thus, (foo bar) as an element matches (foo bar)
 or (foo bar ANYTHING...) as TYPE.
 If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it."
-  :group 'warnings
   :type '(repeat (repeat symbol))
   :version "22.1")
 
@@ -115,7 +114,6 @@ or (foo bar ANYTHING...) as TYPE.
 If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
-  :group 'warnings
   :type '(repeat (repeat symbol))
   :version "22.1")
 

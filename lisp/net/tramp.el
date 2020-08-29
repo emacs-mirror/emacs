@@ -248,6 +248,10 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     parameters to suppress diagnostic messages, in order not to
     tamper the process output.
 
+  * `tramp-direct-async-args'
+    An additional argument when a direct asynchronous process is
+    started.  Used so far only in the \"mock\" method of tramp-tests.el.
+
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of scp or the name of
@@ -3733,26 +3737,29 @@ User is always nil."
 
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."
-  (let ((v (tramp-dissect-file-name default-directory)))
-    (and (tramp-get-connection-property v "direct-async-process" nil)
-	 (= (length (tramp-compute-multi-hops v)) 1)
-	 (not (plist-get args :stderr)))))
+  (let ((v (tramp-dissect-file-name default-directory))
+	(buffer (plist-get args :buffer))
+	(stderr (plist-get args :stderr)))
+    (and ;; It has been indicated.
+         (tramp-get-connection-property v "direct-async-process" nil)
+	 ;; There's no multi-hop.
+	 (or (not (tramp-multi-hop-p v))
+	     (= (length (tramp-compute-multi-hops v)) 1))
+	 ;; There's no remote stdout or stderr file.
+	 (or (not (stringp buffer)) (not (tramp-tramp-file-p buffer)))
+	 (or (not (stringp stderr)) (not (tramp-tramp-file-p stderr))))))
 
-;; We use BUFFER also as connection buffer during setup. Because of
-;; this, its original contents must be saved, and restored once
-;; connection has been setup.
 (defun tramp-handle-make-process (&rest args)
   "An alternative `make-process' implementation for Tramp files.
 It does not support `:stderr'."
   (when args
     (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-      (let ((name (plist-get args :name))
+      (let ((default-directory (tramp-compat-temporary-file-directory))
+	    (name (plist-get args :name))
 	    (buffer (plist-get args :buffer))
 	    (command (plist-get args :command))
-	    ;; FIXME: `:coding' shall be used.
 	    (coding (plist-get args :coding))
 	    (noquery (plist-get args :noquery))
-	    ;; FIXME: `:connection-type' shall be used.
 	    (connection-type (plist-get args :connection-type))
 	    (filter (plist-get args :filter))
 	    (sentinel (plist-get args :sentinel))
@@ -3775,122 +3782,77 @@ It does not support `:stderr'."
 	  (signal 'wrong-type-argument (list #'functionp filter)))
 	(unless (or (null sentinel) (functionp sentinel))
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
-	(when stderr
-	  (signal
-	   'user-error
-	   (list
-	    "Stderr not supported for direct remote asynchronous processes"
-	    stderr)))
+	(unless (or (null stderr) (bufferp stderr))
+	  (signal 'wrong-type-argument (list #'stringp stderr)))
 
 	(let* ((buffer
 		(if buffer
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
-	       (command (append `("cd" ,localname "&&")
-				(mapcar #'tramp-shell-quote-argument command)))
-	       (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-	       (name1 name)
-	       (i 0)
-	       ;; We do not want to raise an error when `make-process'
-	       ;; has been started several times in `eshell' and
-	       ;; friends.
-	       tramp-current-connection
-	       p)
-
-	  (while (get-process name1)
-	    ;; NAME must be unique as process name.
-	    (setq i (1+ i)
-		  name1 (format "%s<%d>" name i)))
-	  (setq name name1)
-	  ;; Set the new process properties.
-	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property v "process-buffer" buffer)
+	       (command
+		(mapconcat
+		 #'identity (append `("cd" ,localname "&&") command) " ")))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-adb.el and tramp-sh.el.
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (unwind-protect
-		(let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
-		       (login-program
-			(tramp-get-method-parameter v 'tramp-login-program))
-		       (login-args
-			(tramp-get-method-parameter v 'tramp-login-args))
-		       (async-args
-			(tramp-get-method-parameter v 'tramp-async-args))
-		       ;; We don't create the temporary file.  In
-		       ;; fact, it is just a prefix for the
-		       ;; ControlPath option of ssh; the real
-		       ;; temporary file has another name, and it is
-		       ;; created and protected by ssh.  It is also
-		       ;; removed by ssh when the connection is
-		       ;; closed.  The temporary file name is cached
-		       ;; in the main connection process, therefore
-		       ;; we cannot use `tramp-get-connection-process'.
-		       (tmpfile
-			(when sh-file-name-handler-p
-			  (with-tramp-connection-property
-			      (tramp-get-process v) "temp-file"
-			    (tramp-compat-make-temp-name))))
-		       (options
-			(when sh-file-name-handler-p
-			  (tramp-compat-funcall
-			   'tramp-ssh-controlmaster-options v)))
-		       spec)
+	  (let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
+		 (login-program
+		  (tramp-get-method-parameter v 'tramp-login-program))
+		 (login-args
+		  (tramp-get-method-parameter v 'tramp-login-args))
+		 (async-args
+		  (tramp-get-method-parameter v 'tramp-async-args))
+		 (direct-async-args
+		  (tramp-get-method-parameter v 'tramp-direct-async-args))
+		 ;; We don't create the temporary file.  In fact, it
+		 ;; is just a prefix for the ControlPath option of
+		 ;; ssh; the real temporary file has another name, and
+		 ;; it is created and protected by ssh.  It is also
+		 ;; removed by ssh when the connection is closed.  The
+		 ;; temporary file name is cached in the main
+		 ;; connection process, therefore we cannot use
+		 ;; `tramp-get-connection-process'.
+		 (tmpfile
+		  (when sh-file-name-handler-p
+		    (with-tramp-connection-property
+			(tramp-get-process v) "temp-file"
+		      (tramp-compat-make-temp-name))))
+		 (options
+		  (when sh-file-name-handler-p
+		    (tramp-compat-funcall
+		     'tramp-ssh-controlmaster-options v)))
+		 spec p)
 
-		  ;; Replace `login-args' place holders.
-		  (setq
-		   spec (format-spec-make ?t tmpfile)
-		   options (format-spec (or options "") spec)
-		   spec (format-spec-make
-			 ?h (or host "") ?u (or user "") ?p (or port "")
-			 ?c options ?l "")
-		   ;; Add arguments for asynchronous processes.
-		   login-args (append async-args login-args)
-		   ;; Expand format spec.
-		   login-args
-		   (tramp-compat-flatten-tree
-		    (mapcar
-		     (lambda (x)
-		       (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-		       (unless (member "" x) x))
-		     login-args))
-		   ;; Split ControlMaster options.
-		   login-args
-		   (tramp-compat-flatten-tree
-		    (mapcar (lambda (x) (split-string x " ")) login-args))
-		   p (apply
-		      #'start-process
-		      name buffer login-program (append login-args command)))
+	    ;; Replace `login-args' place holders.
+	    (setq
+	     spec (format-spec-make ?t tmpfile)
+	     options (format-spec (or options "") spec)
+	     spec (format-spec-make
+		   ?h (or host "") ?u (or user "") ?p (or port "")
+		   ?c options ?l "")
+	     ;; Add arguments for asynchronous processes.
+	     login-args (append async-args direct-async-args login-args)
+	     ;; Expand format spec.
+	     login-args
+	     (tramp-compat-flatten-tree
+	      (mapcar
+	       (lambda (x)
+		 (setq x (mapcar (lambda (y) (format-spec y spec)) x))
+		 (unless (member "" x) x))
+	       login-args))
+	     ;; Split ControlMaster options.
+	     login-args
+	     (tramp-compat-flatten-tree
+	      (mapcar (lambda (x) (split-string x " ")) login-args))
+	     p (make-process
+		:name name :buffer buffer
+		:command (append `(,login-program) login-args `(,command))
+		:coding coding :noquery noquery :connection-type connection-type
+		:filter filter :sentinel sentinel :stderr stderr))
 
-		  (tramp-message v 6 "%s" (string-join (process-command p) " "))
-		  ;; Set sentinel and filter.
-		  (when sentinel
-		    (set-process-sentinel p sentinel))
-		  (when filter
-		    (set-process-filter p filter))
-		  ;; Set query flag and process marker for this
-		  ;; process.  We ignore errors, because the
-		  ;; process could have finished already.
-		  (ignore-errors
-		    (set-process-query-on-exit-flag p (null noquery))
-		    (set-marker (process-mark p) (point)))
-		  ;; We must flush them here already; otherwise
-		  ;; `rename-file', `delete-file' or
-		  ;; `insert-file-contents' will fail.
-		  (tramp-flush-connection-property v "process-name")
-		  (tramp-flush-connection-property v "process-buffer")
-		  ;; Return process.
-		  p)
-
-	      ;; Save exit.
-	      (if (string-match-p tramp-temp-buffer-name (buffer-name))
-		  (ignore-errors
-		    (set-process-buffer p nil)
-		    (kill-buffer (current-buffer)))
-		(set-buffer-modified-p bmp))
-	      (tramp-flush-connection-property v "process-name")
-	      (tramp-flush-connection-property v "process-buffer"))))))))
+	    (tramp-message v 6 "%s" (string-join (process-command p) " "))
+	    p))))))
 
 (defun tramp-handle-make-symbolic-link
   (target linkname &optional ok-if-already-exists)

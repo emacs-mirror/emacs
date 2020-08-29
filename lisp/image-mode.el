@@ -718,7 +718,7 @@ A non-mage major mode found from `auto-mode-alist' or fundamental mode
 displays an image file as text."
   ;; image-mode-as-text = normal-mode + image-minor-mode
   (let ((previous-image-type image-type)) ; preserve `image-type'
-    (major-mode-restore '(image-mode image-mode-maybe image-mode-as-text))
+    (major-mode-restore '(image-mode image-mode-as-text))
     ;; Restore `image-type' after `kill-all-local-variables' in `normal-mode'.
     (setq image-type previous-image-type)
     ;; Enable image minor mode with `C-c C-c'.
@@ -767,8 +767,6 @@ on these modes."
                   "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as ")
                  (if (image-get-display-property)
                      "text" "an image or hex") ".")))
-
-(define-obsolete-function-alias 'image-mode-maybe 'image-mode "23.2")
 
 (defun image-toggle-display-text ()
   "Show the image file as text.

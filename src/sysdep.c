@@ -1761,24 +1761,6 @@ deliver_thread_signal (int sig, signal_handler_t handler)
   errno = old_errno;
 }
 
-#if !HAVE_DECL_SYS_SIGLIST
-# undef sys_siglist
-# ifdef _sys_siglist
-#  define sys_siglist _sys_siglist
-# elif HAVE_DECL___SYS_SIGLIST
-#  define sys_siglist __sys_siglist
-# else
-#  define sys_siglist my_sys_siglist
-static char const *sys_siglist[NSIG];
-# endif
-#endif
-
-#ifdef _sys_nsig
-# define sys_siglist_entries _sys_nsig
-#else
-# define sys_siglist_entries NSIG
-#endif
-
 /* Handle bus errors, invalid instruction, etc.  */
 static void
 handle_fatal_signal (int sig)
@@ -1969,143 +1951,6 @@ init_signals (void)
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
   main_thread_id = pthread_self ();
 #endif
-
-#if !HAVE_DECL_SYS_SIGLIST && !defined _sys_siglist
-  if (! initialized)
-    {
-      sys_siglist[SIGABRT] = "Aborted";
-# ifdef SIGAIO
-      sys_siglist[SIGAIO] = "LAN I/O interrupt";
-# endif
-      sys_siglist[SIGALRM] = "Alarm clock";
-# ifdef SIGBUS
-      sys_siglist[SIGBUS] = "Bus error";
-# endif
-# ifdef SIGCHLD
-      sys_siglist[SIGCHLD] = "Child status changed";
-# endif
-# ifdef SIGCONT
-      sys_siglist[SIGCONT] = "Continued";
-# endif
-# ifdef SIGDANGER
-      sys_siglist[SIGDANGER] = "Swap space dangerously low";
-# endif
-# ifdef SIGDGNOTIFY
-      sys_siglist[SIGDGNOTIFY] = "Notification message in queue";
-# endif
-# ifdef SIGEMT
-      sys_siglist[SIGEMT] = "Emulation trap";
-# endif
-      sys_siglist[SIGFPE] = "Arithmetic exception";
-# ifdef SIGFREEZE
-      sys_siglist[SIGFREEZE] = "SIGFREEZE";
-# endif
-# ifdef SIGGRANT
-      sys_siglist[SIGGRANT] = "Monitor mode granted";
-# endif
-      sys_siglist[SIGHUP] = "Hangup";
-      sys_siglist[SIGILL] = "Illegal instruction";
-      sys_siglist[SIGINT] = "Interrupt";
-# ifdef SIGIO
-      sys_siglist[SIGIO] = "I/O possible";
-# endif
-# ifdef SIGIOINT
-      sys_siglist[SIGIOINT] = "I/O intervention required";
-# endif
-# ifdef SIGIOT
-      sys_siglist[SIGIOT] = "IOT trap";
-# endif
-      sys_siglist[SIGKILL] = "Killed";
-# ifdef SIGLOST
-      sys_siglist[SIGLOST] = "Resource lost";
-# endif
-# ifdef SIGLWP
-      sys_siglist[SIGLWP] = "SIGLWP";
-# endif
-# ifdef SIGMSG
-      sys_siglist[SIGMSG] = "Monitor mode data available";
-# endif
-# ifdef SIGPHONE
-      sys_siglist[SIGWIND] = "SIGPHONE";
-# endif
-      sys_siglist[SIGPIPE] = "Broken pipe";
-# ifdef SIGPOLL
-      sys_siglist[SIGPOLL] = "Pollable event occurred";
-# endif
-# ifdef SIGPROF
-      sys_siglist[SIGPROF] = "Profiling timer expired";
-# endif
-# ifdef SIGPTY
-      sys_siglist[SIGPTY] = "PTY I/O interrupt";
-# endif
-# ifdef SIGPWR
-      sys_siglist[SIGPWR] = "Power-fail restart";
-# endif
-      sys_siglist[SIGQUIT] = "Quit";
-# ifdef SIGRETRACT
-      sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
-# endif
-# ifdef SIGSAK
-      sys_siglist[SIGSAK] = "Secure attention";
-# endif
-      sys_siglist[SIGSEGV] = "Segmentation violation";
-# ifdef SIGSOUND
-      sys_siglist[SIGSOUND] = "Sound completed";
-# endif
-# ifdef SIGSTOP
-      sys_siglist[SIGSTOP] = "Stopped (signal)";
-# endif
-# ifdef SIGSTP
-      sys_siglist[SIGSTP] = "Stopped (user)";
-# endif
-# ifdef SIGSYS
-      sys_siglist[SIGSYS] = "Bad argument to system call";
-# endif
-      sys_siglist[SIGTERM] = "Terminated";
-# ifdef SIGTHAW
-      sys_siglist[SIGTHAW] = "SIGTHAW";
-# endif
-# ifdef SIGTRAP
-      sys_siglist[SIGTRAP] = "Trace/breakpoint trap";
-# endif
-# ifdef SIGTSTP
-      sys_siglist[SIGTSTP] = "Stopped (user)";
-# endif
-# ifdef SIGTTIN
-      sys_siglist[SIGTTIN] = "Stopped (tty input)";
-# endif
-# ifdef SIGTTOU
-      sys_siglist[SIGTTOU] = "Stopped (tty output)";
-# endif
-# ifdef SIGURG
-      sys_siglist[SIGURG] = "Urgent I/O condition";
-# endif
-# ifdef SIGUSR1
-      sys_siglist[SIGUSR1] = "User defined signal 1";
-# endif
-# ifdef SIGUSR2
-      sys_siglist[SIGUSR2] = "User defined signal 2";
-# endif
-# ifdef SIGVTALRM
-      sys_siglist[SIGVTALRM] = "Virtual timer expired";
-# endif
-# ifdef SIGWAITING
-      sys_siglist[SIGWAITING] = "Process's LWPs are blocked";
-# endif
-# ifdef SIGWINCH
-      sys_siglist[SIGWINCH] = "Window size changed";
-# endif
-# ifdef SIGWIND
-      sys_siglist[SIGWIND] = "SIGWIND";
-# endif
-# ifdef SIGXCPU
-      sys_siglist[SIGXCPU] = "CPU time limit exceeded";
-# endif
-# ifdef SIGXFSZ
-      sys_siglist[SIGXFSZ] = "File size limit exceeded";
-# endif
-    }
-#endif /* !HAVE_DECL_SYS_SIGLIST && !_sys_siglist */
 
   /* Don't alter signal handlers if dumping.  On some machines,
      changing signal handlers sets static data that would make signals
@@ -2762,15 +2607,13 @@ renameat_noreplace (int srcfd, char const *src, int dstfd, char const *dst)
 #endif
 }
 
-/* Like strsignal, except async-signal-safe, and this function typically
+/* Like strsignal, except async-signal-safe, and this function
    returns a string in the C locale rather than the current locale.  */
 char const *
 safe_strsignal (int code)
 {
-  char const *signame = 0;
+  char const *signame = sigdescr_np (code);
 
-  if (0 <= code && code < sys_siglist_entries)
-    signame = sys_siglist[code];
   if (! signame)
     signame = "Unknown signal";
 

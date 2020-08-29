@@ -2303,9 +2303,6 @@ and selects that window."
     ;; Few buffers--put them all in one pane.
     (list (cons title alist))))
 
-(define-obsolete-function-alias
-  'mouse-choose-completion 'choose-completion "23.2")
-
 ;; Font selection.
 
 (defun font-menu-add-default ()

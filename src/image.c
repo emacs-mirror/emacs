@@ -758,10 +758,10 @@ struct image_type
 
   /* Load IMG which is used on frame F from information contained in
      IMG->spec.  Value is true if successful.  */
-  bool (*load) (struct frame *f, struct image *img);
+  bool (*load_img) (struct frame *f, struct image *img);
 
   /* Free resources of image IMG which is used on frame F.  */
-  void (*free) (struct frame *f, struct image *img);
+  void (*free_img) (struct frame *f, struct image *img);
 
 #ifdef WINDOWSNT
   /* Initialization function (used for dynamic loading of image
@@ -1081,7 +1081,7 @@ calling this function.  */)
   if (valid_image_p (spec))
     {
       struct frame *f = decode_window_system_frame (frame);
-      ptrdiff_t id = lookup_image (f, spec);
+      ptrdiff_t id = lookup_image (f, spec, -1);
       struct image *img = IMAGE_FROM_ID (f, id);
       int width = img->width + 2 * img->hmargin;
       int height = img->height + 2 * img->vmargin;
@@ -1111,7 +1111,7 @@ or omitted means use the selected frame.  */)
   if (valid_image_p (spec))
     {
       struct frame *f = decode_window_system_frame (frame);
-      ptrdiff_t id = lookup_image (f, spec);
+      ptrdiff_t id = lookup_image (f, spec, -1);
       struct image *img = IMAGE_FROM_ID (f, id);
       if (img->mask)
 	mask = Qt;
@@ -1134,7 +1134,7 @@ or omitted means use the selected frame.  */)
   if (valid_image_p (spec))
     {
       struct frame *f = decode_window_system_frame (frame);
-      ptrdiff_t id = lookup_image (f, spec);
+      ptrdiff_t id = lookup_image (f, spec, -1);
       struct image *img = IMAGE_FROM_ID (f, id);
       ext = img->lisp_data;
     }
@@ -1197,13 +1197,8 @@ free_image (struct frame *f, struct image *img)
         XRenderFreePicture (FRAME_X_DISPLAY (f), img->mask_picture);
 #endif
 
-      /* Windows NT redefines 'free', but in this file, we need to
-         avoid the redefinition.  */
-#ifdef WINDOWSNT
-#undef free
-#endif
       /* Free resources, then free IMG.  */
-      img->type->free (f, img);
+      img->type->free_img (f, img);
       xfree (img);
     }
 }
@@ -1249,7 +1244,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
   if (img->pixmap == NO_PIXMAP && !img->load_failed_p)
-    img->load_failed_p = ! img->type->load (f, img);
+    img->load_failed_p = ! img->type->load_img (f, img);
 
 #ifdef USE_CAIRO
   if (!img->load_failed_p)
@@ -1266,7 +1261,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
 	  if (img->cr_data == NULL)
 	    {
 	      img->load_failed_p = 1;
-	      img->type->free (f, img);
+	      img->type->free_img (f, img);
 	    }
 	}
       unblock_input ();
@@ -1611,7 +1606,9 @@ equal_lists (Lisp_Object a, Lisp_Object b)
 /* Find an image matching SPEC in the cache, and return it.  If no
    image is found, return NULL.  */
 static struct image *
-search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
+search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
+                    unsigned long foreground, unsigned long background,
+                    bool ignore_colors)
 {
   struct image *img;
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
@@ -1634,8 +1631,8 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
 	&& equal_lists (img->spec, spec)
-	&& img->frame_foreground == FRAME_FOREGROUND_PIXEL (f)
-	&& img->frame_background == FRAME_BACKGROUND_PIXEL (f))
+	&& (ignore_colors || (img->face_foreground == foreground
+                              && img->face_background == background)))
       break;
   return img;
 }
@@ -1646,8 +1643,13 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
 static void
 uncache_image (struct frame *f, Lisp_Object spec)
 {
-  struct image *img = search_image_cache (f, spec, sxhash (spec));
-  if (img)
+  struct image *img;
+
+  /* Because the background colors are based on the current face, we
+     can have multiple copies of an image with the same spec. We want
+     to remove them all to ensure the user doesn't see an old version
+     of the image when the face changes.  */
+  while ((img = search_image_cache (f, spec, sxhash (spec), 0, 0, true)))
     {
       free_image (f, img);
       /* As display glyphs may still be referring to the image ID, we
@@ -2133,7 +2135,17 @@ image_set_transform (struct frame *f, struct image *img)
 
   /* Determine size.  */
   int width, height;
-  compute_image_size (img->width, img->height, img->spec, &width, &height);
+
+#ifdef HAVE_RSVG
+  /* SVGs are pre-scaled to the correct size.  */
+  if (EQ (image_spec_value (img->spec, QCtype, NULL), Qsvg))
+    {
+      width = img->width;
+      height = img->height;
+    }
+  else
+#endif
+    compute_image_size (img->width, img->height, img->spec, &width, &height);
 
   /* Determine rotation.  */
   double rotation = 0.0;
@@ -2312,10 +2324,15 @@ image_set_transform (struct frame *f, struct image *img)
    SPEC must be a valid Lisp image specification (see valid_image_p).  */
 
 ptrdiff_t
-lookup_image (struct frame *f, Lisp_Object spec)
+lookup_image (struct frame *f, Lisp_Object spec, int face_id)
 {
   struct image *img;
   EMACS_UINT hash;
+
+  struct face *face = (face_id >= 0) ? FACE_FROM_ID (f, face_id)
+    : FACE_FROM_ID (f, DEFAULT_FACE_ID);
+  unsigned long foreground = FACE_COLOR_TO_PIXEL (face->foreground, f);
+  unsigned long background = FACE_COLOR_TO_PIXEL (face->background, f);
 
   /* F must be a window-system frame, and SPEC must be a valid image
      specification.  */
@@ -2324,7 +2341,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec);
-  img = search_image_cache (f, spec, hash);
+  img = search_image_cache (f, spec, hash, foreground, background, true);
   if (img && img->load_failed_p)
     {
       free_image (f, img);
@@ -2337,9 +2354,9 @@ lookup_image (struct frame *f, Lisp_Object spec)
       block_input ();
       img = make_image (spec, hash);
       cache_image (f, img);
-      img->load_failed_p = ! img->type->load (f, img);
-      img->frame_foreground = FRAME_FOREGROUND_PIXEL (f);
-      img->frame_background = FRAME_BACKGROUND_PIXEL (f);
+      img->face_foreground = foreground;
+      img->face_background = background;
+      img->load_failed_p = ! img->type->load_img (f, img);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
@@ -2393,8 +2410,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	      if (!NILP (bg))
 		{
 		  img->background
-		    = image_alloc_image_color (f, img, bg,
-                                               FRAME_BACKGROUND_PIXEL (f));
+		    = image_alloc_image_color (f, img, bg, background);
 		  img->background_valid = 1;
 		}
 	    }
@@ -3667,8 +3683,8 @@ xbm_load_image (struct frame *f, struct image *img, char *contents, char *end)
 			     &data, 0);
   if (rc)
     {
-      unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
-      unsigned long background = FRAME_BACKGROUND_PIXEL (f);
+      unsigned long foreground = img->face_foreground;
+      unsigned long background = img->face_background;
       bool non_default_colors = 0;
       Lisp_Object value;
 
@@ -3764,8 +3780,8 @@ xbm_load (struct frame *f, struct image *img)
     {
       struct image_keyword fmt[XBM_LAST];
       Lisp_Object data;
-      unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
-      unsigned long background = FRAME_BACKGROUND_PIXEL (f);
+      unsigned long foreground = img->face_foreground;
+      unsigned long background = img->face_background;
       bool non_default_colors = 0;
       char *bits;
       bool parsed_p;
@@ -6125,8 +6141,8 @@ pbm_load (struct frame *f, struct image *img)
       unsigned char c = 0;
       int g;
       struct image_keyword fmt[PBM_LAST];
-      unsigned long fg = FRAME_FOREGROUND_PIXEL (f);
-      unsigned long bg = FRAME_BACKGROUND_PIXEL (f);
+      unsigned long fg = img->face_foreground;
+      unsigned long bg = img->face_background;
       /* Parse the image specification.  */
       memcpy (fmt, pbm_format, sizeof fmt);
       parse_image_spec (img->spec, fmt, PBM_LAST, Qpbm);
@@ -9433,6 +9449,7 @@ enum svg_keyword_index
   SVG_ALGORITHM,
   SVG_HEURISTIC_MASK,
   SVG_MASK,
+  SVG_FOREGROUND,
   SVG_BACKGROUND,
   SVG_LAST
 };
@@ -9451,6 +9468,7 @@ static const struct image_keyword svg_format[SVG_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
@@ -9715,12 +9733,16 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   int height;
   const guint8 *pixels;
   int rowstride;
+  char *wrapped_contents = NULL;
+  ptrdiff_t wrapped_size;
 
 #if ! GLIB_CHECK_VERSION (2, 36, 0)
   /* g_type_init is a glib function that must be called prior to
      using gnome type library functions (obsolete since 2.36.0).  */
   g_type_init ();
 #endif
+
+  /* Parse the unmodified SVG data so we can get its initial size.  */
 
 #if LIBRSVG_CHECK_VERSION (2, 32, 0)
   GInputStream *input_stream
@@ -9750,6 +9772,105 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   rsvg_handle_write (rsvg_handle, (unsigned char *) contents, size, &err);
   if (err) goto rsvg_error;
 
+  /* The parsing is complete, rsvg_handle is ready to be used, close
+     it for further writes.  */
+  rsvg_handle_close (rsvg_handle, &err);
+  if (err) goto rsvg_error;
+#endif
+
+  /* Get the image dimensions.  */
+  rsvg_handle_get_dimensions (rsvg_handle, &dimension_data);
+
+  /* We are now done with the unmodified data.  */
+  g_object_unref (rsvg_handle);
+
+  /* Calculate the final image size.  */
+  compute_image_size (dimension_data.width, dimension_data.height,
+                      img->spec, &width, &height);
+
+  /* Wrap the SVG data in another SVG.  This allows us to set the
+     width and height, as well as modify the foreground and background
+     colors.  */
+  {
+    Lisp_Object value;
+    unsigned long foreground = img->face_foreground;
+    unsigned long background = img->face_background;
+
+    Lisp_Object encoded_contents
+      = Fbase64_encode_string (make_unibyte_string (contents, size), Qt);
+
+    /* The wrapper sets the foreground color, width and height, and
+       viewBox must contain the dimensions of the original image.  It
+       also draws a rectangle over the whole space, set to the
+       background color, before including the original image.  This
+       acts to set the background color, instead of leaving it
+       transparent.  */
+    const char *wrapper =
+      "<svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
+      "xmlns:xi=\"http://www.w3.org/2001/XInclude\" "
+      "style=\"color: #%06X; fill: currentColor;\" "
+      "width=\"%d\" height=\"%d\" preserveAspectRatio=\"none\" "
+      "viewBox=\"0 0 %d %d\">"
+      "<rect width=\"100%%\" height=\"100%%\" fill=\"#%06X\"/>"
+      "<xi:include href=\"data:image/svg+xml;base64,%s\"></xi:include>"
+      "</svg>";
+
+    /* FIXME: I've added 64 in the hope it will cover the size of the
+       width and height strings and things.  */
+    int buffer_size = SBYTES (encoded_contents) + strlen (wrapper) + 64;
+
+    value = image_spec_value (img->spec, QCforeground, NULL);
+    if (!NILP (value))
+      foreground = image_alloc_image_color (f, img, value, img->face_foreground);
+    value = image_spec_value (img->spec, QCbackground, NULL);
+    if (!NILP (value))
+      {
+        background = image_alloc_image_color (f, img, value, img->face_background);
+        img->background = background;
+        img->background_valid = 1;
+      }
+
+    wrapped_contents = malloc (buffer_size);
+
+    if (!wrapped_contents
+        || buffer_size <= snprintf (wrapped_contents, buffer_size, wrapper,
+                                    foreground & 0xFFFFFF, width, height,
+                                    dimension_data.width, dimension_data.height,
+                                    background & 0xFFFFFF, SSDATA (encoded_contents)))
+      goto rsvg_error;
+
+    wrapped_size = strlen (wrapped_contents);
+  }
+
+  /* Now we parse the wrapped version.  */
+
+#if LIBRSVG_CHECK_VERSION (2, 32, 0)
+  input_stream = g_memory_input_stream_new_from_data (wrapped_contents, wrapped_size, NULL);
+  base_file = filename ? g_file_new_for_path (filename) : NULL;
+  rsvg_handle = rsvg_handle_new_from_stream_sync (input_stream, base_file,
+						  RSVG_HANDLE_FLAGS_NONE,
+						  NULL, &err);
+  if (base_file)
+    g_object_unref (base_file);
+  g_object_unref (input_stream);
+
+  /* Check rsvg_handle too, to avoid librsvg 2.40.13 bug (Bug#36773#26).  */
+  if (!rsvg_handle || err) goto rsvg_error;
+#else
+  /* Make a handle to a new rsvg object.  */
+  rsvg_handle = rsvg_handle_new ();
+  eassume (rsvg_handle);
+
+  /* Set base_uri for properly handling referenced images (via 'href').
+     See rsvg bug 596114 - "image refs are relative to curdir, not .svg file"
+     <https://gitlab.gnome.org/GNOME/librsvg/issues/33>. */
+  if (filename)
+    rsvg_handle_set_base_uri (rsvg_handle, filename);
+
+  /* Parse the contents argument and fill in the rsvg_handle.  */
+  rsvg_handle_write (rsvg_handle, (unsigned char *) wrapped_contents, wrapped_size, &err);
+  if (err) goto rsvg_error;
+
   /* The parsing is complete, rsvg_handle is ready to used, close it
      for further writes.  */
   rsvg_handle_close (rsvg_handle, &err);
@@ -9768,6 +9889,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   pixbuf = rsvg_handle_get_pixbuf (rsvg_handle);
   if (!pixbuf) goto rsvg_error;
   g_object_unref (rsvg_handle);
+  free (wrapped_contents);
 
   /* Extract some meta data from the svg handle.  */
   width     = gdk_pixbuf_get_width (pixbuf);
@@ -9792,25 +9914,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
     init_color_table ();
 
-    /* Handle alpha channel by combining the image with a background
-       color.  */
-    Emacs_Color background;
-    Lisp_Object specified_bg = image_spec_value (img->spec, QCbackground, NULL);
-    if (!STRINGP (specified_bg)
-	|| !FRAME_TERMINAL (f)->defined_color_hook (f,
-                                                    SSDATA (specified_bg),
-                                                    &background,
-                                                    false,
-                                                    false))
-      FRAME_TERMINAL (f)->query_frame_background_color (f, &background);
-
-    /* SVG pixmaps specify transparency in the last byte, so right
-       shift 8 bits to get rid of it, since emacs doesn't support
-       transparency.  */
-    background.red   >>= 8;
-    background.green >>= 8;
-    background.blue  >>= 8;
-
     /* This loop handles opacity values, since Emacs assumes
        non-transparent images.  Each pixel must be "flattened" by
        calculating the resulting color, given the transparency of the
@@ -9822,16 +9925,11 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 	    int red     = *pixels++;
 	    int green   = *pixels++;
 	    int blue    = *pixels++;
-	    int opacity = *pixels++;
 
-	    red   = ((red * opacity)
-		     + (background.red * ((1 << 8) - opacity)));
-	    green = ((green * opacity)
-		     + (background.green * ((1 << 8) - opacity)));
-	    blue  = ((blue * opacity)
-		     + (background.blue * ((1 << 8) - opacity)));
+            /* Skip opacity.  */
+	    pixels++;
 
-	    PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, red, green, blue));
+	    PUT_PIXEL (ximg, x, y, lookup_rgb_color (f, red << 8, green << 8, blue << 8));
 	  }
 
 	pixels += rowstride - 4 * width;
@@ -9861,6 +9959,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
  rsvg_error:
   if (rsvg_handle)
     g_object_unref (rsvg_handle);
+  if (wrapped_contents)
+    free (wrapped_contents);
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
   image_error ("Error parsing SVG image `%s'", img->spec);
@@ -10159,7 +10259,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0,
   ptrdiff_t id = -1;
 
   if (valid_image_p (spec))
-    id = lookup_image (SELECTED_FRAME (), spec);
+    id = lookup_image (SELECTED_FRAME (), spec, -1);
 
   debug_print (spec);
   return make_fixnum (id);

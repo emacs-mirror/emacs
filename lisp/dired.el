@@ -534,6 +534,14 @@ Subexpression 2 must end right before the \\n.")
 (defvar dired-symlink-face 'dired-symlink
   "Face name used for symbolic links.")
 
+(defface dired-broken-symlink
+  '((((class color))
+     :foreground "yellow1" :background "red1" :weight bold)
+    (t :weight bold :slant italic :underline t))
+  "Face used for broken symbolic links."
+  :group 'dired-faces
+  :version "28.1")
+
 (defface dired-special
   '((t (:inherit font-lock-variable-name-face)))
   "Face used for sockets, pipes, block devices and char devices."
@@ -596,6 +604,20 @@ Subexpression 2 must end right before the \\n.")
    ;; Subdirectories.
    (list dired-re-dir
 	 '(".+" (dired-move-to-filename) nil (0 dired-directory-face)))
+   ;;
+   ;; Broken Symbolic link.
+   (list dired-re-sym
+         (list (lambda (end)
+                 (let* ((file (dired-file-name-at-point))
+                        (truename (ignore-errors (file-truename file))))
+                   ;; either not existent target or circular link
+                   (and (not (and truename (file-exists-p truename)))
+                        (search-forward-regexp "\\(.+\\) \\(->\\) ?\\(.+\\)" end t))))
+               '(dired-move-to-filename)
+               nil
+               '(1 'dired-broken-symlink)
+               '(2 dired-symlink-face)
+               '(3 'dired-broken-symlink)))
    ;;
    ;; Symbolic link to a directory.
    (list dired-re-sym
@@ -2244,8 +2266,15 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Shell Command..." dired-do-shell-command
 		  :help "Run a shell command on current or marked files"))
     (define-key map [menu-bar operate delete]
-      '(menu-item "Delete" dired-do-delete
-		  :help "Delete current file or all marked files"))
+      `(menu-item "Delete"
+                  ,(let ((menu (make-sparse-keymap "Delete")))
+                     (define-key menu [delete-flagged]
+                       '(menu-item "Delete Flagged Files" dired-do-flagged-delete
+                                   :help "Delete all files flagged for deletion (D)"))
+                     (define-key menu [delete-marked]
+                       '(menu-item "Delete Marked (Not Flagged) Files" dired-do-delete
+                                   :help "Delete current file or all marked files (excluding flagged files)"))
+                     menu)))
     (define-key map [menu-bar operate rename]
       '(menu-item "Rename to..." dired-do-rename
 		  :help "Rename current file or move marked files"))

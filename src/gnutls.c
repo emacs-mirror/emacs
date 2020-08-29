@@ -2298,6 +2298,8 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
 # endif
 }
 
+static Lisp_Object cipher_cache;
+
 static Lisp_Object
 gnutls_symmetric (bool encrypting, Lisp_Object cipher,
                   Lisp_Object key, Lisp_Object iv,
@@ -2329,7 +2331,9 @@ gnutls_symmetric (bool encrypting, Lisp_Object cipher,
 
   if (SYMBOLP (cipher))
     {
-      info = Fassq (cipher, Fgnutls_ciphers ());
+      if (NILP (cipher_cache))
+	cipher_cache = Fgnutls_ciphers ();
+      info = Fassq (cipher, cipher_cache);
       if (!CONSP (info))
 	xsignal2 (Qerror,
 		  build_string ("GnuTLS cipher is invalid or not found"),
@@ -2914,6 +2918,9 @@ level in the ones.  For builds without libgnutls, the value is -1.  */);
   defsubr (&Sgnutls_hash_digest);
   defsubr (&Sgnutls_symmetric_encrypt);
   defsubr (&Sgnutls_symmetric_decrypt);
+
+  cipher_cache = Qnil;
+  staticpro (&cipher_cache);
 #endif
 
   DEFVAR_INT ("gnutls-log-level", global_gnutls_log_level,

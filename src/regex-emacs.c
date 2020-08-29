@@ -929,7 +929,7 @@ typedef struct
    ? 0									\
    : ((fail_stack).stack						\
       = REGEX_REALLOCATE ((fail_stack).stack,				\
-	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
+	  (fail_stack).avail * sizeof (fail_stack_elt_t),		\
           min (emacs_re_max_failures * TYPICAL_FAILURE_SIZE,                  \
                ((fail_stack).size * FAIL_STACK_GROWTH_FACTOR))          \
           * sizeof (fail_stack_elt_t)),                                 \
@@ -969,7 +969,11 @@ typedef struct
 #define ENSURE_FAIL_STACK(space)					\
 while (REMAINING_AVAIL_SLOTS <= space) {				\
   if (!GROW_FAIL_STACK (fail_stack))					\
-    return -2;								\
+    {									\
+      unbind_to (count, Qnil);						\
+      SAFE_FREE ();							\
+      return -2;							\
+    }									\
   DEBUG_PRINT ("\n  Doubled stack; size now: %td\n", fail_stack.size);	\
   DEBUG_PRINT ("	 slots available: %td\n", REMAINING_AVAIL_SLOTS);\
 }
@@ -979,6 +983,8 @@ while (REMAINING_AVAIL_SLOTS <= space) {				\
 do {									\
   char *destination;							\
   intptr_t n = num;							\
+  eassert (0 < n && n < num_regs);					\
+  eassert (REG_UNSET (regstart[n]) <= REG_UNSET (regend[n]));		\
   ENSURE_FAIL_STACK(3);							\
   DEBUG_PRINT ("    Push reg %"PRIdPTR" (spanning %p -> %p)\n",		\
 	       n, regstart[n], regend[n]);				\
@@ -1017,8 +1023,10 @@ do {									\
     }									\
   else									\
     {									\
+      eassert (0 < pfreg && pfreg < num_regs);				\
       regend[pfreg] = POP_FAILURE_POINTER ();				\
       regstart[pfreg] = POP_FAILURE_POINTER ();				\
+      eassert (REG_UNSET (regstart[pfreg]) <= REG_UNSET (regend[pfreg])); \
       DEBUG_PRINT ("     Pop reg %ld (spanning %p -> %p)\n",		\
 		   pfreg, regstart[pfreg], regend[pfreg]);		\
     }									\
@@ -3864,6 +3872,10 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		     re_char *string2, ptrdiff_t size2,
 		     ptrdiff_t pos, struct re_registers *regs, ptrdiff_t stop)
 {
+  eassume (0 <= size1);
+  eassume (0 <= size2);
+  eassume (0 <= pos && pos <= stop && stop <= size1 + size2);
+
   /* General temporaries.  */
   int mcnt;
 
@@ -3919,8 +3931,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
      attempt) by a subexpression part of the pattern, that is, the
      regnum-th regstart pointer points to where in the pattern we began
      matching and the regnum-th regend points to right after where we
-     stopped matching the regnum-th subexpression.  (The zeroth register
-     keeps track of what the whole pattern matches.)  */
+     stopped matching the regnum-th subexpression.  */
   re_char **regstart UNINIT, **regend UNINIT;
 
   /* The following record the register info as found in the above
@@ -3969,28 +3980,21 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   /* Do not bother to initialize all the register variables if there are
      no groups in the pattern, as it takes a fair amount of time.  If
      there are groups, we include space for register 0 (the whole
-     pattern), even though we never use it, since it simplifies the
-     array indexing.  We should fix this.  */
-  if (bufp->re_nsub)
+     pattern) in REGSTART[0], even though we never use it, to avoid
+     the undefined behavior of subtracting 1 from REGSTART.  */
+  ptrdiff_t re_nsub = num_regs - 1;
+  if (0 < re_nsub)
     {
-      regstart = SAFE_ALLOCA (num_regs * 4 * sizeof *regstart);
+      regstart = SAFE_ALLOCA ((re_nsub * 4 + 1) * sizeof *regstart);
       regend = regstart + num_regs;
-      best_regstart = regend + num_regs;
-      best_regend = best_regstart + num_regs;
-    }
+      best_regstart = regend + re_nsub;
+      best_regend = best_regstart + re_nsub;
 
-  /* The starting position is bogus.  */
-  if (pos < 0 || pos > size1 + size2)
-    {
-      unbind_to (count, Qnil);
-      SAFE_FREE ();
-      return -1;
+      /* Initialize subexpression text positions to unset, to mark ones
+	 that no start_memory/stop_memory has been seen for.  */
+      for (re_char **apos = regstart + 1; apos < best_regstart + 1; apos++)
+	*apos = NULL;
     }
-
-  /* Initialize subexpression text positions to -1 to mark ones that no
-     start_memory/stop_memory has been seen for.  */
-  for (ptrdiff_t reg = 1; reg < num_regs; reg++)
-    regstart[reg] = regend[reg] = NULL;
 
   /* We move 'string1' into 'string2' if the latter's empty -- but not if
      'string1' is null.  */
@@ -4126,6 +4130,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		    {
 		      regstart[reg] = best_regstart[reg];
 		      regend[reg] = best_regend[reg];
+		      eassert (REG_UNSET (regstart[reg])
+			       <= REG_UNSET (regend[reg]));
 		    }
 		}
 	    } /* d != end_match_2 */
@@ -4173,7 +4179,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	      for (ptrdiff_t reg = 1; reg < num_regs; reg++)
 		{
-		  if (REG_UNSET (regstart[reg]) || REG_UNSET (regend[reg]))
+		  eassert (REG_UNSET (regstart[reg])
+			   <= REG_UNSET (regend[reg]));
+		  if (REG_UNSET (regend[reg]))
 		    regs->start[reg] = regs->end[reg] = -1;
 		  else
 		    {
@@ -4373,12 +4381,12 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	   registers data structure) under the register number.  */
 	case start_memory:
 	  DEBUG_PRINT ("EXECUTING start_memory %d:\n", *p);
+	  eassert (0 < *p && *p < num_regs);
 
 	  /* In case we need to undo this operation (via backtracking).  */
 	  PUSH_FAILURE_REG (*p);
 
 	  regstart[*p] = d;
-	  regend[*p] = NULL;	/* probably unnecessary.  -sm  */
 	  DEBUG_PRINT ("  regstart: %td\n", POINTER_TO_OFFSET (regstart[*p]));
 
 	  /* Move past the register number and inner group count.  */
@@ -4391,6 +4399,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	case stop_memory:
 	  DEBUG_PRINT ("EXECUTING stop_memory %d:\n", *p);
 
+	  eassert (0 < *p && *p < num_regs);
 	  eassert (!REG_UNSET (regstart[*p]));
 	  /* Strictly speaking, there should be code such as:
 
@@ -4423,7 +4432,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    DEBUG_PRINT ("EXECUTING duplicate %d.\n", regno);
 
 	    /* Can't back reference a group which we've never matched.  */
-	    if (REG_UNSET (regstart[regno]) || REG_UNSET (regend[regno]))
+	    eassert (0 < regno && regno < num_regs);
+	    eassert (REG_UNSET (regstart[regno]) <= REG_UNSET (regend[regno]));
+	    if (REG_UNSET (regend[regno]))
 	      goto fail;
 
 	    /* Where in input to try to start matching.  */

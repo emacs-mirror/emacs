@@ -527,9 +527,12 @@ This macro only makes sense when used in a place."
          (gv-letplace (dgetter dsetter) d
            (funcall do
                     `(cons ,agetter ,dgetter)
-                    (lambda (v) `(progn
-                              ,(funcall asetter `(car ,v))
-                              ,(funcall dsetter `(cdr ,v)))))))))
+                    (lambda (v)
+                      (macroexp-let2 nil v v
+                        `(progn
+                           ,(funcall asetter `(car ,v))
+                           ,(funcall dsetter `(cdr ,v))
+                           ,v))))))))
 
 (put 'logand 'gv-expander
      (lambda (do place &rest masks)
@@ -539,9 +542,12 @@ This macro only makes sense when used in a place."
            (funcall
             do `(logand ,getter ,mask)
             (lambda (v)
-              (funcall setter
-                       `(logior (logand ,v ,mask)
-                                (logand ,getter (lognot ,mask))))))))))
+              (macroexp-let2 nil v v
+                `(progn
+                   ,(funcall setter
+                             `(logior (logand ,v ,mask)
+                                      (logand ,getter (lognot ,mask))))
+                   ,v))))))))
 
 ;;; References
 

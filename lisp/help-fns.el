@@ -152,7 +152,7 @@ When called from lisp, FUNCTION may also be a function object."
           (enable-recursive-minibuffers t)
           (val (completing-read
                 (if fn
-                    (format "Describe function (default %s): " fn)
+                    (format-prompt "Describe function" fn)
                   "Describe function: ")
                 #'help--symbol-completion-table
                 (lambda (f) (or (fboundp f) (get f 'function-documentation)))

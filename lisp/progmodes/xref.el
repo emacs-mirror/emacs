@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -608,7 +608,10 @@ buffer."
                    (user-error "No reference at point")))
          (xref--current-item xref))
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
-    (next-error-found buffer (current-buffer))))
+    (if (fboundp 'next-error-found)
+        (next-error-found buffer (current-buffer))
+      ;; Emacs < 27
+      (setq next-error-last-buffer buffer))))
 
 (defun xref-quit-and-goto-xref ()
   "Quit *xref* buffer, then jump to xref on current line."
@@ -958,8 +961,18 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 
 (defvar xref--read-pattern-history nil)
 
-(defun xref--show-xrefs (fetcher display-action)
+(defun xref--show-xrefs (fetcher display-action &optional _always-show-list)
   (xref--push-markers)
+  (unless (functionp fetcher)
+    ;; Old convention.
+    (let ((xrefs fetcher))
+      (setq fetcher
+            (lambda ()
+              (if (eq xrefs 'called-already)
+                  (user-error "Refresh is not supported")
+                (prog1
+                    xrefs
+                  (setq xrefs 'called-already)))))))
   (funcall xref-show-xrefs-function fetcher
            `((window . ,(selected-window))
              (display-action . ,display-action))))

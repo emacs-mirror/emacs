@@ -100,3 +100,29 @@ test-native-bootstrap-speed2:
     - ./configure --without-makeinfo --with-nativecomp
     - make bootstrap NATIVE_FAST_BOOT=1
   timeout: 8 hours
+
+test-gnustep:
+  stage: test
+  # This tests the GNUstep build process
+  only:
+    changes:
+      - .gitlab-ci.yml
+      - configure.ac
+      - src/nsfns.m
+      - src/nsfont.m
+      - src/nsgui.h
+      - src/nsimage.m
+      - src/nsmenu.m
+      - src/nsselect.m
+      - src/nsterm.h
+      - src/nsterm.m
+      - src/nsxwidget.h
+      - src/nsxwidget.m
+      - src/macfont.h
+      - src/macfont.m
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 gnustep-devel
+    - ./autogen.sh autoconf
+    - ./configure --without-makeinfo --with-ns
+    - make bootstrap
+    - make install
