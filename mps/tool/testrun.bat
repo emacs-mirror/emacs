@@ -98,9 +98,9 @@ exit /b
 @rem    notice, this list of conditions and the following disclaimer.
 @rem
 @rem 2. Redistributions in binary form must reproduce the above copyright
-@rem   notice, this list of conditions and the following disclaimer in the
-@rem   documentation and/or other materials provided with the
-@rem   distribution.
+@rem    notice, this list of conditions and the following disclaimer in the
+@rem    documentation and/or other materials provided with the
+@rem    distribution.
 @rem
 @rem THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 @rem IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
