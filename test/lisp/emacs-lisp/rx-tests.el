@@ -56,9 +56,12 @@
 (ert-deftest rx-def-in-or ()
   (rx-let ((a b)
            (b (or "abc" c))
-           (c ?a))
+           (c ?a)
+           (d (any "a-z")))
     (should (equal (rx (or a (| "ab" "abcde") "abcd"))
-                   "\\(?:a\\(?:b\\(?:c\\(?:de?\\)?\\)?\\)?\\)"))))
+                   "\\(?:a\\(?:b\\(?:c\\(?:de?\\)?\\)?\\)?\\)"))
+    (should (equal (rx (or ?m (not d)))
+                   "[^a-ln-z]"))))
 
 (ert-deftest rx-char-any ()
   "Test character alternatives with `]' and `-' (Bug#25123)."
@@ -132,8 +135,8 @@
   ;; relint suppression: Single-character range .f-f
   ;; relint suppression: Range .--/. overlaps previous .-
   ;; relint suppression: Range .\*--. overlaps previous .--/
-  (should (equal (rx (any "-a" "c-" "f-f" "--/*--"))
-                 "[*-/acf]"))
+  (should (equal (rx (any "-a" "c-" "f-f" "--/*--") (any "," "-" "A"))
+                 "[*-/acf][,A-]"))
   (should (equal (rx (any "]-a" ?-) (not (any "]-a" ?-)))
                  "[]-a-][^]-a-]"))
   (should (equal (rx (any "--]") (not (any "--]"))
@@ -394,6 +397,8 @@
                  "ab")))
 
 (ert-deftest rx-literal ()
+  (should (equal (rx (literal "$a"))
+                 "\\$a"))
   (should (equal (rx (literal (char-to-string 42)) nonl)
                  "\\*."))
   (let ((x "a+b"))
