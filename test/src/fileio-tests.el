@@ -109,6 +109,9 @@ Also check that an encoding error can appear in a symlink."
 
 (ert-deftest fileio-tests--HOME-trailing-slash ()
   "Test that expand-file-name of \"~\" respects trailing slash."
+  :expected-result (if (memq system-type '(windows-nt ms-dos))
+                       :failed
+                     :passed)
   (let ((process-environment (copy-sequence process-environment)))
     (dolist (home
              (if (memq system-type '(windows-nt ms-dos))
