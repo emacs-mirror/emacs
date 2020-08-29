@@ -1799,7 +1799,7 @@ if __name__ == '__main__':
     exit(main())
 
 
-# C. COPYRIGHT AND LICENCE
+# C. COPYRIGHT AND LICENSE
 #
 # Copyright (C) 2018-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
 #

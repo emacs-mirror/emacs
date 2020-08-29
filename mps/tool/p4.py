@@ -240,7 +240,7 @@ def parse_datetime(s):
 # 2018-10-22 GDR Add parse_datetime function.
 #
 #
-# C. COPYRIGHT AND LICENCE
+# C. COPYRIGHT AND LICENSE
 #
 # Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
 #
