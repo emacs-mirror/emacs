@@ -322,7 +322,9 @@ Check that the resulting binaries do not differ."
 (ert-deftest comp-tests-doc ()
   (should (string= (documentation #'comp-tests-doc-f)
                    "A nice docstring"))
-  (should (string-match "\\.*.eln\\'" (symbol-file #'comp-tests-doc-f))))
+  ;; Check a preloaded function, we can't use `comp-tests-doc-f' now
+  ;; as this is loaded manually with no .elc.
+  (should (string-match "\\.*.elc\\'" (symbol-file #'error))))
 
 (ert-deftest comp-test-interactive-form ()
   (should (equal (interactive-form #'comp-test-interactive-form0-f)
