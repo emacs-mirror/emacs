@@ -1002,7 +1002,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'after-change-functions 'flymake-after-change-function nil t)
     (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
-    (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function nil t)
+    (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
 
     ;; If Flymake happened to be alrady already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
