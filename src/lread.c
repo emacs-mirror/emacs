@@ -3261,7 +3261,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  goto retry;
 	}
       if (c == '$')
-	return Vload_true_file_name;
+	return Vload_file_name;
       if (c == '\'')
 	return list2 (Qfunction, read0 (readcharfun));
       /* #:foo is the uninterned symbol named foo.  */
@@ -4062,7 +4062,7 @@ read_list (bool flag, Lisp_Object readcharfun)
       first_in_list = 0;
 
       /* While building, if the list starts with #$, treat it specially.  */
-      if (EQ (elt, Vload_true_file_name)
+      if (EQ (elt, Vload_file_name)
 	  && ! NILP (elt)
 	  && !NILP (Vpurify_flag))
 	{
@@ -4083,7 +4083,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	      elt = concat2 (dot_dot_lisp, Ffile_name_nondirectory (elt));
 	    }
 	}
-      else if (EQ (elt, Vload_true_file_name)
+      else if (EQ (elt, Vload_file_name)
 	       && ! NILP (elt)
 	       && load_force_doc_strings)
 	doc_reference = 2;
@@ -5039,8 +5039,10 @@ directory.  These file names are converted to absolute at startup.  */);
 
   DEFVAR_LISP ("load-file-name", Vload_file_name,
 	       doc: /* Full name of file being loaded by `load'.
-In case a .eln file is being loaded this is unreliable and `load-true-file-name'
-should be used instead.  */);
+
+In case of native code being loaded this is indicating the
+corresponding bytecode filename.  Use `load-true-file-name' to obtain
+the .eln filename.  */);
   Vload_file_name = Qnil;
 
   DEFVAR_LISP ("load-true-file-name", Vload_true_file_name,
