@@ -125,18 +125,15 @@
 
 (defcustom mspools-update nil
   "Non-nil means update *spools* buffer after visiting any folder."
-  :type 'boolean
-  :group 'mspools)
+  :type 'boolean)
 
 (defcustom mspools-suffix "spool"
   "Extension used for spool files (not including full stop)."
-  :type 'string
-  :group 'mspools)
+  :type 'string)
 
 (defcustom mspools-using-vm  (fboundp 'vm)
   "Non-nil if VM is used as mail reader, otherwise RMAIL is used."
-  :type 'boolean
-  :group 'mspools)
+  :type 'boolean)
 
 (defcustom mspools-folder-directory
   (if (boundp 'vm-folder-directory)
@@ -144,8 +141,7 @@
     "~/MAIL/")
   "Directory where mail folders are kept.  Ensure it has a trailing /.
 Defaults to `vm-folder-directory' if bound else to ~/MAIL/."
-  :type 'directory
-  :group 'mspools)
+  :type 'directory)
 
 (defcustom mspools-vm-system-mail (or (getenv "MAIL")
 				      (concat rmail-spool-directory
@@ -156,8 +152,7 @@ without it.  By default this will be set to the environment variable
 $MAIL.  Otherwise it will use `rmail-spool-directory' to guess where
 your primary spool is.  If this fails, set it to something like
 /usr/spool/mail/login-name."
-  :type 'file
-  :group 'mspools)
+  :type 'file)
 
 ;;; Internal Variables
 
