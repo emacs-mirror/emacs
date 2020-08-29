@@ -1,4 +1,4 @@
-;;; bibtex-tests.el --- Test suite for bibtex.
+;;; bibtex-tests.el --- Test suite for bibtex.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 

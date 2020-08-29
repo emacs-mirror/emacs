@@ -1,4 +1,4 @@
-;;; tests/eshell-tests.el --- Eshell test suite
+;;; tests/eshell-tests.el --- Eshell test suite  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -60,6 +60,8 @@
   "Insert a command at the end of the buffer."
   (eshell-insert-command text func)
   (eshell-match-result regexp))
+
+(defvar eshell-history-file-name)
 
 (defun eshell-test-command-result (command)
   "Like `eshell-command-result', but not using HOME."
