@@ -4613,10 +4613,10 @@ This function makes or adds to an entry on `after-load-alist'."
                ;; So add an indirection to make sure that `func' is really run
                ;; "after-load" in case the provide call happens early.
                (lambda ()
-                 (if (not load-true-file-name)
+                 (if (not load-file-name)
                      ;; Not being provided from a file, run func right now.
                      (funcall func)
-                   (let ((lfn load-true-file-name)
+                   (let ((lfn load-file-name)
                          ;; Don't use letrec, because equal (in
                          ;; add/remove-hook) would get trapped in a cycle.
                          (fun (make-symbol "eval-after-load-helper")))

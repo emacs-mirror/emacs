@@ -1322,10 +1322,23 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qlexical_binding, Qnil);
 
   /* Get the name for load-history.  */
+  Lisp_Object found_for_hist;
+  if (is_native_elisp)
+    {
+      /* Reconstruct the .elc filename.  */
+      Lisp_Object src_name = Fgethash (Ffile_name_nondirectory (found),
+				       Vcomp_eln_to_el_h, Qnil);
+      if (suffix_p (src_name, "el.gz"))
+	src_name = Fsubstring (src_name, make_fixnum (0), make_fixnum (-3));
+      found_for_hist = concat2 (src_name, build_string ("c"));
+    }
+  else
+    found_for_hist = found;
+
   hist_file_name = (! NILP (Vpurify_flag)
                     ? concat2 (Ffile_name_directory (file),
-                               Ffile_name_nondirectory (found))
-                    : found) ;
+                               Ffile_name_nondirectory (found_for_hist))
+                    : found_for_hist);
 
   version = -1;
 
@@ -1504,13 +1517,6 @@ Return t if the file exists and loads successfully.  */)
     {
 #ifdef HAVE_NATIVE_COMP
       specbind (Qcurrent_load_list, Qnil);
-      if (!NILP (Vpurify_flag))
-	{
-	  Lisp_Object base = concat2 (parent_directory (Vinvocation_directory),
-				      build_string ("lisp/"));
-	  Lisp_Object offset = Flength (base);
-	  hist_file_name = Fsubstring (found, offset, Qnil);
-	}
       LOADHIST_ATTACH (hist_file_name);
       Fnative_elisp_load (found, Qnil);
       build_load_history (hist_file_name, true);
