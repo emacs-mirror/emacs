@@ -1384,7 +1384,6 @@ the root directory.  */)
 #else  /* not DOS_NT */
   target = SAFE_ALLOCA (tlen);
 #endif /* not DOS_NT */
-  *target = 0;
   nbytes = 0;
 
   if (newdir)
