@@ -73,18 +73,10 @@ test-gnustep:
     changes:
       - .gitlab-ci.yml
       - configure.ac
-      - src/nsfns.m
-      - src/nsfont.m
-      - src/nsgui.h
-      - src/nsimage.m
-      - src/nsmenu.m
-      - src/nsselect.m
-      - src/nsterm.h
-      - src/nsterm.m
-      - src/nsxwidget.h
-      - src/nsxwidget.m
-      - src/macfont.h
-      - src/macfont.m
+      - src/ns*.{h,m}
+      - src/macfont.{h,m}
+      - lisp/term/ns-win.el
+      - nextstep/**/*
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 gnustep-devel
     - ./autogen.sh autoconf
