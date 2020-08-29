@@ -97,7 +97,7 @@ extern void GenDescEndTrace(GenDesc gen, Trace trace);
 extern void GenDescCondemned(GenDesc gen, Trace trace, Size size);
 extern void GenDescSurvived(GenDesc gen, Trace trace, Size forwarded, Size preservedInPlace);
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
-#define GenDescOfTraceRing(node, tr) PARENT(GenDescStruct, trace, &RING_ELT(GenTrace, traceRing, node)[-tr->ti])
+#define GenDescOfTraceRing(node, tr) PARENT(GenDescStruct, trace, RING_ELT(GenTrace, traceRing, node) - (tr)->ti)
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
                        GenParam params);
