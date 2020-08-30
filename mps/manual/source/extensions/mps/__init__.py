@@ -14,9 +14,10 @@ from docutils.parsers.rst.directives.admonitions import BaseAdmonition
 from sphinx import addnodes
 from sphinx.directives.other import VersionChange
 from sphinx.domains import Domain
+from sphinx.domains.changeset import versionlabels
+from sphinx.locale import admonitionlabels
 from sphinx.roles import XRefRole
 from sphinx.util.nodes import set_source_info, process_index_entry
-from sphinx.locale import admonitionlabels, versionlabels
 
 from . import designs
 
