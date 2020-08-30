@@ -135,7 +135,7 @@ void ProtSetup(void)
 
   sa.sa_sigaction = sigHandle;
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_SIGINFO;
+  sa.sa_flags = SA_SIGINFO | SA_RESTART;
 
   result = sigaction(PROT_SIGNAL, &sa, &sigNext);
   AVER(result == 0);
