@@ -151,9 +151,7 @@ When called from lisp, FUNCTION may also be a function object."
    (let* ((fn (function-called-at-point))
           (enable-recursive-minibuffers t)
           (val (completing-read
-                (if fn
-                    (format-prompt "Describe function" fn)
-                  "Describe function: ")
+                (format-prompt "Describe function" fn)
                 #'help--symbol-completion-table
                 (lambda (f) (or (fboundp f) (get f 'function-documentation)))
                 t nil nil
