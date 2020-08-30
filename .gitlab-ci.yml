@@ -40,6 +40,32 @@ stages:
 test-all:
   # This tests also file monitor libraries inotify and inotifywatch.
   stage: test
+  only:
+    changes:
+      - "Makefile.in"
+      - .gitlab-ci.yml
+      - aclocal.m4
+      - autogen.sh
+      - configure.ac
+      - lisp/*.el
+      - lisp/**/*.el
+      - src/*.{h,m}
+      - test/lisp/*.el
+      - test/lisp/**/*.el
+      - test/src/*.el
+  except:
+    changes:
+      # gfilemonitor, kqueue
+      - src/gfilenotify.c
+      - src/kqueue.c
+      # MS Windows
+      - lisp/w32*.el
+      - lisp/term/w32*.el
+      - src/w32*.{h,m}
+      # GNUstep
+      - lisp/term/ns-win.el
+      - src/ns*.{h,m}
+      - src/macfont.{h,m}
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 inotify-tools
     - ./autogen.sh autoconf
