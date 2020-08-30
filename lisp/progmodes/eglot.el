@@ -100,7 +100,7 @@
                                   typescript-mode)
                                  . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
-				(php-mode . ("php" "vendor/felixfbecker/\
+				                        (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php"))
                                 ((c++-mode c-mode) . ("ccls"))
                                 ((caml-mode tuareg-mode reason-mode)
@@ -108,7 +108,7 @@ language-server/bin/php-language-server.php"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port"
                                     :autoport))
-                                (haskell-mode . ("hie-wrapper"))
+                                (haskell-mode . ("hie-wrapper" "--lsp"))
                                 (elm-mode . ("elm-language-server"))
                                 (kotlin-mode . ("kotlin-language-server"))
                                 (go-mode . ("gopls"))
