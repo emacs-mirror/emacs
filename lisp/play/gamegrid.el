@@ -265,12 +265,7 @@ format."
   (set-face-foreground face color)
   (set-face-background face color)
   (gamegrid-set-font face)
-  (condition-case nil
-      (set-face-background-pixmap face [nothing]);; XEmacs
-    (error nil))
-  (condition-case nil
-      (set-face-background-pixmap face nil);; Emacs
-    (error nil)))
+  (set-face-background-pixmap face nil))
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
