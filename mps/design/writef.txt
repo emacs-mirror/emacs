@@ -145,6 +145,7 @@ particular type ``void (*)(void)`` is chosen because in GCC
 from ``-Wcast-function-type``. See job004156_ and `GCC Warning
 Options`_.
 
+.. _job004156: https://www.ravenbrook.com/project/mps/issue/job004156/
 .. _GCC Warning Options: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 
 
