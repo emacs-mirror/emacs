@@ -3374,7 +3374,7 @@ CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
            -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"
-CFLAGS_LL="$CFLAGS_GC -Wno-invalid-offsetof"
+CFLAGS_LL="$CFLAGS_GC"
 
 # Make sure we can run config.sub.
 $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
