@@ -1,16 +1,18 @@
 /*
 TEST_HEADER
  id = $Id$
- summary = regression test for GitHub issue #9
+ summary = regression test for GitHub issues #9 and #10
  language = c
  link = testlib.o myfmt.o
  parameters =
 END_HEADER
 */
 
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#define _POSIX_C_SOURCE 199309L /* for nanosleep */
 
 #include "testlib.h"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
 
 static void test(void *stack_pointer)
 {
@@ -19,12 +21,9 @@ static void test(void *stack_pointer)
 
 #else
 
-#define _POSIX_C_SOURCE 199309L /* for nanosleep */
-
 #include "mpsavm.h"
 #include "mpscamc.h"
 #include "myfmt.h"
-#include "testlib.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -64,6 +63,7 @@ static void *thread_fn(void *arg)
   die(mps_thread_reg(&thread, data->arena), "mps_thread_reg");
   e = sem_post(data->sem);
   asserts(e == 0, "sem_post: %s", strerror(errno));
+  errno = ETOOMANYREFS;
 
   /* There is a race here: if MPS goes ahead with the collection on
    * the main thread and manages to signal this thread before the
@@ -80,6 +80,9 @@ static void *thread_fn(void *arg)
    */
   e = read(data->fd, &c, 1);
   asserts(e == 1, "read: %d: %s", e, strerror(errno));
+
+  /* Check that the MPS's signal handlers did not modify errno. */
+  asserts(errno == ETOOMANYREFS, "errno=%d", errno);
   mps_thread_dereg(thread);
   return NULL;
 }
