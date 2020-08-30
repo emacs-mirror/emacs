@@ -71,9 +71,11 @@ static void suspendSignalHandler(int sig,
                                  siginfo_t *info,
                                  void *uap)
 {
+  ERRNO_SAVE {
     sigset_t signal_set;
     ucontext_t ucontext;
     MutatorContextStruct context;
+    int status;
 
     AVER(sig == PTHREADEXT_SIGSUSPEND);
     UNUSED(sig);
@@ -86,12 +88,17 @@ static void suspendSignalHandler(int sig,
     MutatorContextInitThread(&context, &ucontext);
     suspendingVictim->context = &context;
     /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
-    sigfillset(&signal_set);
-    sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
-    sem_post(&pthreadextSem);
-    sigsuspend(&signal_set);
+    status = sigfillset(&signal_set);
+    AVER(status == 0);
+    status = sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
+    AVER(status == 0);
+    status = sem_post(&pthreadextSem);
+    AVER(status == 0);
+    status = sigsuspend(&signal_set);
+    AVER(status == -1);
 
     /* Once here, the resume signal handler has run to completion. */
+  } ERRNO_RESTORE;
 }
 
 
@@ -102,8 +109,10 @@ static void suspendSignalHandler(int sig,
 
 static void resumeSignalHandler(int sig)
 {
+  ERRNO_SAVE {
     AVER(sig == PTHREADEXT_SIGRESUME);
     UNUSED(sig);
+  } ERRNO_RESTORE;
 }
 
 /* PThreadextModuleInit -- Initialize the PThreadext module

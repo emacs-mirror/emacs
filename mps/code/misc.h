@@ -235,6 +235,16 @@ typedef const struct SrcIdStruct {
 #define BS_BITFIELD(ty, s)      BITFIELD(ty ## Set, (s), ty ## LIMIT)
 
 
+/* Save and restore errno. See <design/thread-manager#.sol.thread.errno>
+ *
+ * These macros must be used after #include <errno.h> so that errno is
+ * defined.
+ */
+
+#define ERRNO_SAVE BEGIN int _saved_errno = errno; BEGIN
+#define ERRNO_RESTORE END; errno = _saved_errno; END
+
+
 #endif /* misc_h */
 
 

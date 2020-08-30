@@ -65,6 +65,11 @@ Other changes
    automatically restarted and does not fail with ``EINTR``. See
    :ref:`topic-thread-signal`.
 
+#. On FreeBSD and Linux, the MPS signal handlers no longer modify
+   ``errno``. See `GitHub issue #10`_.
+
+   .. _GitHub issue #10: https://github.com/Ravenbrook/mps/issues/10
+
 
 .. _release-notes-1.117:
 

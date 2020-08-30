@@ -28,6 +28,7 @@
 
 #include "prmcix.h"
 
+#include <errno.h>     /* for errno */
 #include <signal.h>    /* for many functions */
 #include <ucontext.h>  /* for ucontext_t */
 #include <unistd.h>    /* for getpid */
@@ -71,47 +72,55 @@ static struct sigaction sigNext;
 
 static void sigHandle(int sig, siginfo_t *info, void *uap)  /* .sigh.args */
 {
-  int e;
-  /* sigset renamed to asigset due to clash with global on Darwin. */
-  sigset_t asigset, oldset;
-  struct sigaction sa;
+  ERRNO_SAVE {
+    int e;
+    /* sigset renamed to asigset due to clash with global on Darwin. */
+    sigset_t asigset, oldset;
+    struct sigaction sa;
 
-  AVER(sig == PROT_SIGNAL);
+    AVER(sig == PROT_SIGNAL);
 
-  if(info->si_code == SEGV_ACCERR) {  /* .sigh.check */
-    AccessSet mode;
-    Addr base;
-    MutatorContextStruct context;
+    if (info->si_code == SEGV_ACCERR) {  /* .sigh.check */
+      AccessSet mode;
+      Addr base;
+      MutatorContextStruct context;
 
-    MutatorContextInitFault(&context, info, (ucontext_t *)uap);
+      MutatorContextInitFault(&context, info, (ucontext_t *)uap);
 
-    mode = AccessREAD | AccessWRITE; /* .sigh.mode */
+      mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 
-    /* We assume that the access is for one word at the address. */
-    base = (Addr)info->si_addr;   /* .sigh.addr */
+      /* We assume that the access is for one word at the address. */
+      base = (Addr)info->si_addr;   /* .sigh.addr */
 
-    /* Offer each protection structure the opportunity to handle the */
-    /* exception.  If it succeeds, then allow the mutator to continue. */
-    if(ArenaAccess(base, mode, &context))
-      return;
-  }
+      /* Offer each protection structure the opportunity to handle the */
+      /* exception.  If it succeeds, then allow the mutator to continue. */
+      if (ArenaAccess(base, mode, &context))
+        goto done;
+    }
 
-  /* The exception was not handled by any known protection structure, */
-  /* so throw it to the previously installed handler.  That handler won't */
-  /* get an accurate context (the MPS would fail if it were the second in */
-  /* line) but it's the best we can do. */
+    /* The exception was not handled by any known protection structure, */
+    /* so throw it to the previously installed handler.  That handler won't */
+    /* get an accurate context (the MPS would fail if it were the second in */
+    /* line) but it's the best we can do. */
 
-  e = sigaction(PROT_SIGNAL, &sigNext, &sa);
-  AVER(e == 0);
-  sigemptyset(&asigset);
-  sigaddset(&asigset, PROT_SIGNAL);
-  e = sigprocmask(SIG_UNBLOCK, &asigset, &oldset);
-  AVER(e == 0);
-  kill(getpid(), PROT_SIGNAL);
-  e = sigprocmask(SIG_SETMASK, &oldset, NULL);
-  AVER(e == 0);
-  e = sigaction(PROT_SIGNAL, &sa, NULL);
-  AVER(e == 0);
+    e = sigaction(PROT_SIGNAL, &sigNext, &sa);
+    AVER(e == 0);
+    e = sigemptyset(&asigset);
+    AVER(e == 0);
+    e = sigaddset(&asigset, PROT_SIGNAL);
+    AVER(e == 0);
+    e = sigprocmask(SIG_UNBLOCK, &asigset, &oldset);
+    AVER(e == 0);
+    e = kill(getpid(), PROT_SIGNAL);
+    AVER(e == 0);
+    e = sigprocmask(SIG_SETMASK, &oldset, NULL);
+    AVER(e == 0);
+    e = sigaction(PROT_SIGNAL, &sa, NULL);
+    AVER(e == 0);
+
+  done:
+    ;
+  } ERRNO_RESTORE;
 }
 
 
@@ -134,7 +143,8 @@ void ProtSetup(void)
   int result;
 
   sa.sa_sigaction = sigHandle;
-  sigemptyset(&sa.sa_mask);
+  result = sigemptyset(&sa.sa_mask);
+  AVER(result == 0);
   sa.sa_flags = SA_SIGINFO | SA_RESTART;
 
   result = sigaction(PROT_SIGNAL, &sa, &sigNext);

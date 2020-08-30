@@ -70,6 +70,14 @@ blocked in a system call. (See `GitHub issue #9`_.)
 
 .. _GitHub issue #9: https://github.com/ravenbrook/mps/issues/9
 
+_`.req.thread.errno`: It would be nice if on POSIX systems the MPS
+does not cause system calls in the mutator to update ``errno`` due to
+the MPS thread-management signals being delivered while the mutator is
+blocked in a system call, and the MPS signal handlers updating
+``errno``. (See `GitHub issue #10`_.)
+
+.. _GitHub issue #10: https://github.com/ravenbrook/mps/issues/10
+
 
 Design
 ------
@@ -120,6 +128,13 @@ users in the reference manual.
 
 .. |signal| replace:: signal(7)
 .. _signal: https://man7.org/linux/man-pages/man7/signal.7.html
+
+_`.sol.thread.errno`: The POSIX specification for sigaction_ says,
+"Note in particular that even the "safe" functions may modify
+``errno``; the signal-catching function, if not executing as an
+independent thread, should save and restore its value." All MPS
+signals handlers therefore save and restore ``errno`` using the macros
+``ERRNO_SAVE`` and ``ERRNO_RESTORE``.
 
 
 Interface
