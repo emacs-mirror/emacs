@@ -63,6 +63,13 @@ request.dylan.160022_ and request.mps.160093_.)
 .. _request.dylan.160022: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160022
 .. _request.mps.160093: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160093/
 
+_`.req.thread.intr`: It would be nice if on POSIX systems the MPS does
+not cause system calls in the mutator to fail with EINTR due to the
+MPS thread-management signals being delivered while the mutator is
+blocked in a system call. (See `GitHub issue #9`_.)
+
+.. _GitHub issue #9: https://github.com/ravenbrook/mps/issues/9
+
 
 Design
 ------
@@ -94,6 +101,25 @@ _`.sol.thread.term.attempt`: Nonetheless, the thread manager makes a
 "best effort" to continue running after detecting a terminated thread,
 by moving the thread to a ring of dead threads, and avoiding scanning
 it. This might allow a malfunctioning client program to limp along.
+
+_`.sol.thread.intr`: The POSIX specification for sigaction_ says that
+if the ``SA_RESTART`` flag is set, and if "a function specified as
+interruptible is interrupted by this signal, the function shall
+restart and shall not fail with ``EINTR`` unless otherwise specified."
+
+.. |sigaction| replace:: ``sigaction()``
+.. _sigaction: https://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html
+
+_`.sol.thread.intr.linux`: Linux does not fully implement the POSIX
+specification, so that some system calls are "never restarted after
+being interrupted by a signal handler, regardless of the use of
+SA_RESTART; they always fail with the error EINTR when interrupted by
+a signal handler". The exceptional calls are listed in the |signal|_
+manual. There is nothing that the MPS can do about this except to warn
+users in the reference manual.
+
+.. |signal| replace:: signal(7)
+.. _signal: https://man7.org/linux/man-pages/man7/signal.7.html
 
 
 Interface
