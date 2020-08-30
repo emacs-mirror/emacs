@@ -951,7 +951,8 @@ changes (in a non-trivial way).  This function does not check for that."
      (lambda () ; posthook
        (goto-char (point-min))
        (mail-position-on-field "subject")
-       (insert (format "Release-blocking bugs for Emacs %s" version))
+       (insert (format "Reminder: release-blocking bugs for Emacs %s (%s)"
+                       version (format-time-string "%F" nil "UTC0")))
        (mail-text)
        (delete-region (point) (point-max))
        (insert "

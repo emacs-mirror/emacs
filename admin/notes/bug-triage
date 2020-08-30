@@ -11,7 +11,11 @@ interface via org-mode.
 The goal of this triage is to prune down the list of old bugs, closing
 the ones that are not reproducible on the current release.
 
-  1. To start, enter debbugs mode (either debbugs-gnu, debbugs-org, or via the
+  0. To start, check the most relevant bugs blocking a release by
+     calling debbugs-gnu-emacs-release-blocking-reports.  If you want
+     to check this for another Emacs version but the next-to-be-released-one,
+     use the "C-u" prefix.
+  1. After that, enter debbugs mode (either debbugs-gnu, debbugs-org, or via the
      web browser), and accept the default list option of bugs that have severity
      serious, important, or normal.
   2. For each bug, we want to primarily make sure it is still
@@ -20,7 +24,7 @@ the ones that are not reproducible on the current release.
      suggested checklist to follow for handling these bugs, along with
      example replies.  Closing, tagging, etc., are done
      with debbugs control messages, which in debbugs-gnu is initiated
-     with a "C".
+     with a "C" or "E".
      [ ] Read the mail thread for the bug.  Find out if anyone has
          been able to reproduce this on the current release.  If
          someone has been able to, then your work is finished for this
@@ -87,7 +91,7 @@ necessary information for others to act on.
 For each new bug, ask the following questions:
 
   1. Is the bug report written in a way to be easy to reproduce (starts from
-     emacs -Q, etc.)?  If not, ask the reporter to try and reproduce it on an
+     "emacs -Q", etc.)?  If not, ask the reporter to try and reproduce it on an
      emacs without customization.
   2. Is the bug report written against the latest emacs?  If not, try to
      reproduce on the latest version, and if it can't be reproduced, ask the
