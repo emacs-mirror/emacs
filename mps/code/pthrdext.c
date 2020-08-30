@@ -140,9 +140,9 @@ static void PThreadextModuleInit(void)
     status = sigaddset(&pthreadext_sigsuspend.sa_mask, PTHREADEXT_SIGRESUME);
     AVER(status == 0);
 
-    pthreadext_sigsuspend.sa_flags = SA_SIGINFO;
+    pthreadext_sigsuspend.sa_flags = SA_SIGINFO | SA_RESTART;
     pthreadext_sigsuspend.sa_sigaction = suspendSignalHandler;
-    pthreadext_sigresume.sa_flags = 0;
+    pthreadext_sigresume.sa_flags = SA_RESTART;
     pthreadext_sigresume.sa_handler = resumeSignalHandler;
     status = sigemptyset(&pthreadext_sigresume.sa_mask);
     AVER(status == 0);

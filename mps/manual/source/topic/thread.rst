@@ -94,6 +94,18 @@ Signal and exception handling issues
 
             cc -DCONFIG_PTHREADEXT_SIGSUSPEND=SIGUSR2 -c mps.c
 
+    The MPS sets the :c:data:`SA_RESTART` flag when installing the
+    handlers for these signals, so that most blocking system calls are
+    automatically restarted after the delivery of the signal. However,
+    on Linux, not all blocking system calls are automatically
+    restarted after a signal is handle, so the :term:`client program`
+    must be prepared to handle :c:data:`EINTR` from :c:func:`poll`,
+    :c:func:`nanosleep` and so on. See the |signal|_ manual for a list
+    of affected system calls.
+
+    .. |signal| replace:: signal(7)
+    .. _signal: https://man7.org/linux/man-pages/man7/signal.7.html
+
 .. warning::
 
     The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
