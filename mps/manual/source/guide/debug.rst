@@ -73,26 +73,47 @@ General debugging advice
 #. .. index::
       single: debugger
       single: abort
-      single: barrier; handling in debugger
 
    Run your test case inside the debugger. Use ``assert`` and
    ``abort`` in your error handler (rather than ``exit``) so that you
    can enter the debugger with the contents of the control stack
    available for inspection.
 
-   You may need to make sure that the debugger isn't entered on
-   :term:`barrier (1)` hits (because the MPS uses barriers to protect
-   parts of memory, and barrier hits are common and expected).
+#. .. index::
+      single: barrier; handling in GDB
+      single: signal; handling in GDB
 
-   If you are using GDB on Linux or FreeBSD, run this command::
+   If you are using GDB on FreeBSD or Linux, you may want to avoid
+   stopping on :term:`barrier (1)` hits, because the MPS uses barriers
+   to protect parts of memory, and barrier hits are common and
+   expected. To avoid stopping on a barrier hit, run::
 
         handle SIGSEGV pass nostop noprint
 
-   On these operating systems, you can add this command to your
-   ``.gdbinit`` if you always want it to be run.
+   You can add this command to your ``.gdbinit`` if you always want it
+   to be run.
 
-   On macOS, barrier hits do not use signals and so do not enter the
-   debugger.
+   On macOS and Windows, barrier hits do not use signals and so do not
+   enter the debugger.
+
+#. .. index::
+      single: thread; handling in GDB
+
+   Similarly, if you are using GDB on FreeBSD or Linux, and if the
+   :term:`client program` is multi-threaded, you may want to avoid
+   stopping when the MPS suspends and resumes threads by delivering
+   signals to them. To avoid stopping on thread suspension and
+   resumption, run::
+
+        handle SIGXCPU pass nostop noprint
+        handle SIGXFSZ pass nostop noprint
+
+   If you have configured these signals as described under
+   :ref:`topic-thread-signal`, you will need to adjust the signal
+   names accordingly.
+
+   On macOS and Windows, thread suspension and resumption does not use
+   signals and so does not enter the debugger.
 
 #. .. index::
        single: postmortem debugging
