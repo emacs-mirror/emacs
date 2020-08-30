@@ -1,4 +1,4 @@
-;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
+;;; life.el --- John Horton Conway's Game of Life  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1988, 2001-2020 Free Software Foundation, Inc.
 
@@ -135,10 +135,24 @@
 ;; (scroll-up) and (scroll-down) when trying to center the display.
 (defvar life-window-start nil)
 
+(defvar life--max-width nil
+  "If non-nil, restrict width to this positive integer. ")
+
+(defvar life--max-height nil
+  "If non-nil, restrict height to this positive integer. ")
+
 ;; For mode line
 (defvar life-current-generation nil)
 ;; Sadly, mode-line-format won't display numbers.
 (defvar life-generation-string nil)
+
+(defun life--tick ()
+  "Game tick for `life'."
+  (let ((inhibit-quit t)
+        (inhibit-read-only t))
+    (life-grim-reaper)
+    (life-expand-plane-if-needed)
+    (life-increment-generation)))
 
 ;;;###autoload
 (defun life (&optional step-time)
@@ -158,12 +172,8 @@ sleep in seconds."
   (life-setup)
   (catch 'life-exit
     (while t
-      (let ((inhibit-quit t)
-	    (inhibit-read-only t))
-        (life-display-generation step-time)
-	(life-grim-reaper)
-	(life-expand-plane-if-needed)
-	(life-increment-generation)))))
+      (life-display-generation step-time)
+      (life--tick))))
 
 (define-derived-mode life-mode special-mode "Life"
   "Major mode for the buffer of `life'."
@@ -174,7 +184,8 @@ sleep in seconds."
   (setq-local life-generation-string "0")
   (setq-local mode-line-buffer-identification '("Life: generation "
                                                 life-generation-string))
-  (setq-local fill-column (1- (window-width)))
+  (setq-local fill-column (min (or life--max-width most-positive-fixnum)
+                               (1- (window-width))))
   (setq-local life-window-start 1)
   (buffer-disable-undo))
 
@@ -196,7 +207,8 @@ sleep in seconds."
 	(indent-to n)
 	(forward-line)))
     ;; center the pattern vertically
-    (let ((n (/ (- (1- (window-height))
+    (let ((n (/ (- (min (or life--max-height most-positive-fixnum)
+                        (1- (window-height)))
 		   (count-lines (point-min) (point-max)))
 		2)))
       (goto-char (point-min))
