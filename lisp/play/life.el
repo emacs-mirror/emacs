@@ -29,6 +29,15 @@
 
 ;;; Code:
 
+(defgroup life nil
+  "Conway's Game of Life."
+  :group 'games)
+
+(defcustom life-step-time 0.5
+  "Time to sleep between steps (generations)."
+  :type 'number
+  :version "28.1")
+
 (defvar life-patterns
   [("@@@" " @@" "@@@")
    ("@@@ @@@" "@@  @@ " "@@@ @@@")
@@ -54,6 +63,7 @@
     "               @@")
    ("@@@@@@@@@" "@   @   @" "@ @@@@@ @" "@ @   @ @" "@@@   @@@"
     "@ @   @ @" "@ @@@@@ @" "@   @   @" "@@@@@@@@@")
+   ;; Glider Gun (infinite, Bill Gosper, 1970)
    ("                        @           "
     "                      @ @           "
     "            @@      @@            @@"
@@ -74,7 +84,26 @@
     "   @@"
     " @@ @"
     "@ @ @")
-   ("@@@@@@@@ @@@@@   @@@      @@@@@@@ @@@@@")]
+   ("@@@@@@@@ @@@@@   @@@      @@@@@@@ @@@@@")
+   ;; Pentadecathlon (period 15, John Conway, 1970)
+   ("  @    @  "
+    "@@ @@@@ @@"
+    "  @    @  ")
+   ;; Queen Bee Shuttle (period 30, Bill Gosper, 1970)
+   ("         @            "
+    "       @ @            "
+    "      @ @             "
+    "@@   @  @           @@"
+    "@@    @ @           @@"
+    "       @ @            "
+    "         @            ")
+   ;; 2x Figure eight (period 8, Simon Norton, 1970)
+   ("@@@            @@@   "
+    "@@@            @@@   "
+    "@@@            @@@   "
+    "   @@@            @@@"
+    "   @@@            @@@"
+    "   @@@            @@@")]
   "Vector of rectangles containing some Life startup patterns.")
 
 ;; Macros are used macros for manifest constants instead of variables
@@ -112,19 +141,26 @@
 (defvar life-generation-string nil)
 
 ;;;###autoload
-(defun life (&optional sleeptime)
+(defun life (&optional step-time)
   "Run Conway's Life simulation.
-The starting pattern is randomly selected.  Prefix arg (optional first
-arg non-nil from a program) is the number of seconds to sleep between
-generations (this defaults to 1)."
-  (interactive "p")
-  (or sleeptime (setq sleeptime 1))
+The starting pattern is randomly selected from `life-patterns'.
+
+Prefix arg is the number of tenths of a second to sleep between
+generations (the default is `life-step-time').
+
+When called from Lisp, optional argument STEP-TIME is the time to
+sleep in seconds."
+  (interactive "P")
+  (setq step-time (or (and step-time (/ (if (consp step-time)
+                                            (car step-time)
+                                          step-time) 10.0))
+                      life-step-time))
   (life-setup)
   (catch 'life-exit
     (while t
       (let ((inhibit-quit t)
 	    (inhibit-read-only t))
-	(life-display-generation sleeptime)
+        (life-display-generation step-time)
 	(life-grim-reaper)
 	(life-expand-plane-if-needed)
 	(life-increment-generation)))))
@@ -144,10 +180,10 @@ generations (this defaults to 1)."
 
 (defun life-setup ()
   (switch-to-buffer (get-buffer-create "*Life*") t)
-  (erase-buffer)
-  (life-mode)
   ;; stuff in the random pattern
   (let ((inhibit-read-only t))
+    (erase-buffer)
+    (life-mode)
     (life-insert-random-pattern)
     ;; make sure (life-life-char) is used throughout
     (goto-char (point-min))
@@ -276,12 +312,12 @@ generations (this defaults to 1)."
 	 (insert ?\n)
 	 (setq life-window-start (+ life-window-start fill-column 1)))))
 
-(defun life-display-generation (sleeptime)
+(defun life-display-generation (step-time)
   (goto-char life-window-start)
   (recenter 0)
 
   ;; Redisplay; if the user has hit a key, exit the loop.
-  (or (and (sit-for sleeptime) (< 0 sleeptime))
+  (or (and (sit-for step-time) (< 0 step-time))
       (not (input-pending-p))
       (throw 'life-exit nil)))
 
