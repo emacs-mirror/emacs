@@ -671,7 +671,7 @@ clashes."
          (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func-l :name function-name
                                  :c-name c-name
-                                 :doc (documentation f)
+                                 :doc (documentation f t)
                                  :int-spec (interactive-form f)
                                  :speed (comp-spill-speed function-name)
                                  :pure (comp-spill-decl-spec function-name
@@ -720,7 +720,7 @@ clashes."
                    (make-comp-func-d :lambda-list (aref byte-func 0)))))
       (setf (comp-func-name func) name
             (comp-func-byte-func func) byte-func
-            (comp-func-doc func) (documentation byte-func)
+            (comp-func-doc func) (documentation byte-func t)
             (comp-func-int-spec func) (interactive-form byte-func)
             (comp-func-c-name func) c-name
             (comp-func-lap func) lap
