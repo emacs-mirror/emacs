@@ -951,8 +951,8 @@ Arena introspection and debugging
 
     * :c:func:`mps_addr_fmt`: determine the :term:`object format` to
       which an address belongs;
-    * :c:func:`mps_arena_formatted_objects_walk`: visit all
-      :term:`formatted objects` in an arena;
+    * :c:func:`mps_pool_walk`: visit all areas of :term:`formatted
+      objects` in a :term:`pool`;
     * :c:func:`mps_arena_roots_walk`: visit all references in
       :term:`roots` registered with an arena; and
     * :c:func:`mps_addr_pool`: determine the :term:`pool` to which an
