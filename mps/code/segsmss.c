@@ -723,9 +723,8 @@ static mps_addr_t make(void)
 
 /* test -- the actual stress test */
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena)
 {
-  mps_arena_t arena;
   mps_fmt_t format;
   mps_root_t exactRoot, ambigRoot;
   size_t lastStep = 0, i, r;
@@ -735,9 +734,6 @@ static void *test(void *arg, size_t s)
   const char *indent = "    ";
   mps_chain_t chain;
   static mps_gen_param_s genParam = {1024, 0.2};
-
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, 1, &genParam), "chain_create");
@@ -825,8 +821,6 @@ static void *test(void *arg, size_t s)
   mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
-
-  return NULL;
 }
 
 
@@ -834,14 +828,13 @@ int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_thr_t thread;
-  void *r;
 
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  mps_tramp(&r, test, arena, 0);
+  test(arena);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

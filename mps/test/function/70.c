@@ -14,7 +14,6 @@ static void test(void *stack_pointer)
 {
  mps_arena_t arena;
 
- comment("Entered trampoline");
  mmqa_pause(10);
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
  comment("Created arena");
@@ -32,7 +31,6 @@ int main(void)
  comment("Started");
  mmqa_pause(10);
  run_test(test);
- comment("Left trampoline");
  mmqa_pause(10);
  pass();
  return 0;
