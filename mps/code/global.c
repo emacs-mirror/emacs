@@ -188,11 +188,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(BoolCheck(arenaGlobals->bufferLogging));
   CHECKD_NOSIG(Ring, &arenaGlobals->poolRing);
   CHECKD_NOSIG(Ring, &arenaGlobals->rootRing);
-  CHECKD_NOSIG(Ring, &arenaGlobals->rememberedSummaryRing);
-  CHECKL(arenaGlobals->rememberedSummaryIndex < RememberedSummaryBLOCK);
-  /* <code/global.c#remembered.summary> RingIsSingle imples index == 0 */
-  CHECKL(!RingIsSingle(&arenaGlobals->rememberedSummaryRing) ||
-    arenaGlobals->rememberedSummaryIndex == 0);
   CHECKD_NOSIG(Ring, &arena->formatRing);
   CHECKD_NOSIG(Ring, &arena->messageRing);
   if (arena->enabledMessageTypes != NULL)
@@ -315,8 +310,6 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->systemPools = (Count)3;
   RingInit(&arenaGlobals->rootRing);
   arenaGlobals->rootSerial = (Serial)0;
-  RingInit(&arenaGlobals->rememberedSummaryRing);
-  arenaGlobals->rememberedSummaryIndex = 0;
 
   RingInit(&arena->threadRing);
   RingInit(&arena->deadRing);
@@ -550,14 +543,6 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
   AVER(RingLength(&arenaGlobals->poolRing) == arenaGlobals->systemPools); /* <design/check/#.common> */
-}
-
-
-Ring GlobalsRememberedSummaryRing(Globals global)
-{
-  AVERT(Globals, global);
-
-  return &global->rememberedSummaryRing;
 }
 
 

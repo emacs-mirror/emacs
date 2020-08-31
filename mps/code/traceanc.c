@@ -17,8 +17,6 @@
  *   - TraceIdMessages.  Pre-allocated messages for traceid.
  *
  *   - ArenaRelease, ArenaClamp, ArenaPark.
- *
- *   - ArenaExposeRemember and ArenaRestoreProtection.
  */
 
 #include "mpm.h"
@@ -514,10 +512,6 @@ void TraceIdMessagesDestroy(Arena arena, TraceId ti)
  */
 
 
-/* Forward Declarations */
-static void arenaForgetProtection(Globals globals);
-
-
 /* ArenaClamp -- clamp the arena (no optional collection increments) */
 
 void ArenaClamp(Globals globals)
@@ -533,7 +527,6 @@ void ArenaClamp(Globals globals)
 void ArenaRelease(Globals globals)
 {
   AVERT(Globals, globals);
-  arenaForgetProtection(globals);
   globals->clamped = FALSE;
   ArenaPoll(globals);
 }
@@ -581,9 +574,7 @@ void ArenaPark(Globals globals)
  * corrupted.
  *
  * After calling this function memory may not be in a consistent
- * state, so it is not safe to continue running the MPS. If you need
- * to expose memory but continue running the MPS, use
- * ArenaExposeRemember instead.
+ * state, so it is not safe to continue running the MPS.
  */
 
 static void arenaExpose(Arena arena)
@@ -666,167 +657,6 @@ Res ArenaCollect(Globals globals, TraceStartWhy why)
   return ResOK;
 }
 
-
-
-/* --------  ExposeRemember and RestoreProtection  -------- */
-
-
-/* Low level stuff for Expose / Remember / Restore */
-
-typedef struct RememberedSummaryBlockStruct {
-  RingStruct globalRing;        /* link on globals->rememberedSummaryRing */
-  struct SummaryPair {
-    Addr base;
-    RefSet summary;
-  } the[RememberedSummaryBLOCK];
-} RememberedSummaryBlockStruct;
-
-typedef struct RememberedSummaryBlockStruct *RememberedSummaryBlock;
-
-static void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block)
-{
-  size_t i;
-
-  RingInit(&block->globalRing);
-  for(i = 0; i < RememberedSummaryBLOCK; ++ i) {
-    block->the[i].base = (Addr)0;
-    block->the[i].summary = RefSetUNIV;
-  }
-}
-
-static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
-{
-  Arena arena;
-  RememberedSummaryBlock block;
-
-  AVER(summary != RefSetUNIV);
-
-  arena = GlobalsArena(global);
-
-  if(global->rememberedSummaryIndex == 0) {
-    void *p;
-    RememberedSummaryBlock newBlock;
-    int res;
-
-    res = ControlAlloc(&p, arena, sizeof *newBlock);
-    if(res != ResOK) {
-      return res;
-    }
-    newBlock = p;
-    rememberedSummaryBlockInit(newBlock);
-    RingAppend(GlobalsRememberedSummaryRing(global),
-      &newBlock->globalRing);
-  }
-  block = RING_ELT(RememberedSummaryBlock, globalRing,
-    RingPrev(GlobalsRememberedSummaryRing(global)));
-  AVER(global->rememberedSummaryIndex < RememberedSummaryBLOCK);
-  AVER(block->the[global->rememberedSummaryIndex].base == (Addr)0);
-  AVER(block->the[global->rememberedSummaryIndex].summary == RefSetUNIV);
-  block->the[global->rememberedSummaryIndex].base = base;
-  block->the[global->rememberedSummaryIndex].summary = summary;
-  ++ global->rememberedSummaryIndex;
-  if(global->rememberedSummaryIndex >= RememberedSummaryBLOCK) {
-    AVER(global->rememberedSummaryIndex == RememberedSummaryBLOCK);
-    global->rememberedSummaryIndex = 0;
-  }
-
-  return ResOK;
-}
-
-/* ArenaExposeRemember -- park arena and then lift all protection
-   barriers.  Parameter 'remember' specifies whether to remember the
-   protection state or not (for later restoration with
-   ArenaRestoreProtection).
-   */
-void ArenaExposeRemember(Globals globals, Bool remember)
-{
-  Seg seg;
-  Arena arena;
-
-  AVERT(Globals, globals);
-  AVERT(Bool, remember);
-
-  ArenaPark(globals);
-
-  arena = GlobalsArena(globals);
-  if(SegFirst(&seg, arena)) {
-    Addr base;
-
-    do {
-      base = SegBase(seg);
-      if (IsA(GCSeg, seg)) {
-        if(remember) {
-          RefSet summary;
-
-          summary = SegSummary(seg);
-          if(summary != RefSetUNIV) {
-            Res res = arenaRememberSummaryOne(globals, base, summary);
-            if(res != ResOK) {
-              /* If we got an error then stop trying to remember any
-              protections. */
-              remember = 0;
-            }
-          }
-        }
-        SegSetSummary(seg, RefSetUNIV);
-        AVER(SegSM(seg) == AccessSetEMPTY);
-      }
-    } while(SegNext(&seg, arena, seg));
-  }
-}
-
-void ArenaRestoreProtection(Globals globals)
-{
-  Ring node, next;
-  Arena arena;
-
-  arena = GlobalsArena(globals);
-
-  RING_FOR(node, GlobalsRememberedSummaryRing(globals), next) {
-    RememberedSummaryBlock block =
-      RING_ELT(RememberedSummaryBlock, globalRing, node);
-    size_t i;
-
-    for(i = 0; i < RememberedSummaryBLOCK; ++ i) {
-      Seg seg;
-      Bool b;
-
-      if(block->the[i].base == (Addr)0) {
-        AVER(block->the[i].summary == RefSetUNIV);
-        continue;
-      }
-      b = SegOfAddr(&seg, arena, block->the[i].base);
-      if(b && SegBase(seg) == block->the[i].base) {
-        AVER(IsA(GCSeg, seg));
-        SegSetSummary(seg, block->the[i].summary);
-      } else {
-        /* Either seg has gone or moved, both of which are */
-        /* client errors. */
-        NOTREACHED;
-      }
-    }
-  }
-
-  arenaForgetProtection(globals);
-}
-
-static void arenaForgetProtection(Globals globals)
-{
-  Ring node, next;
-  Arena arena;
-
-  arena = GlobalsArena(globals);
-  /* Setting this early means that we preserve the invariant
-     <code/global.c#remembered.summary> */
-  globals->rememberedSummaryIndex = 0;
-  RING_FOR(node, GlobalsRememberedSummaryRing(globals), next) {
-    RememberedSummaryBlock block =
-      RING_ELT(RememberedSummaryBlock, globalRing, node);
-
-    RingRemove(node);
-    ControlFree(arena, block, sizeof *block);
-  }
-}
 
 /* C. COPYRIGHT AND LICENSE
  *

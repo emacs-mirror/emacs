@@ -292,29 +292,6 @@ void mps_arena_postmortem(mps_arena_t arena)
 }
 
 
-void mps_arena_expose(mps_arena_t arena)
-{
-  ArenaEnter(arena);
-  ArenaExposeRemember(ArenaGlobals(arena), FALSE);
-  ArenaLeave(arena);
-}
-
-/* Null implementations of remember and restore */
-void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
-{
-  ArenaEnter(arena);
-  ArenaExposeRemember(ArenaGlobals(arena), TRUE);
-  ArenaLeave(arena);
-}
-
-void mps_arena_unsafe_restore_protection(mps_arena_t arena)
-{
-  ArenaEnter(arena);
-  ArenaRestoreProtection(ArenaGlobals(arena));
-  ArenaLeave(arena);
-}
-
-
 mps_res_t mps_arena_start_collect(mps_arena_t arena)
 {
   Res res;

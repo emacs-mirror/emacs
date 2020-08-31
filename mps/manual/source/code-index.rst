@@ -334,8 +334,6 @@ awlut.c           :ref:`pool-awl` unit test.
 awluthe.c         :ref:`pool-awl` unit test (using in-band headers).
 awlutth.c         :ref:`pool-awl` unit test (using multiple threads).
 btcv.c            Bit table coverage test.
-exposet0.c        :c:func:`mps_arena_expose` test.
-expt825.c         Regression test for job000825_.
 finalcv.c         :ref:`topic-finalization` coverage test.
 finaltest.c       :ref:`topic-finalization` test.
 forktest.c        :ref:`topic-thread-fork` test.
