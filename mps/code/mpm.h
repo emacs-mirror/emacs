@@ -360,6 +360,7 @@ extern void ScanStateFinish(ScanState ss);
 extern Bool ScanStateCheck(ScanState ss);
 extern void ScanStateSetSummary(ScanState ss, RefSet summary);
 extern RefSet ScanStateSummary(ScanState ss);
+extern void ScanStateUpdateSummary(ScanState ss, Seg seg, Bool wasTotal);
 
 /* See impl.h.mpmst.ss */
 #define ScanStateZoneShift(ss)             ((Shift)(ss)->ss_s._zs)
