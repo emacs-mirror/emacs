@@ -368,13 +368,19 @@ via the generic function ``SegReclaim()``.
 
 _`.method.walk`: The ``walk`` method must call the visitor function
 ``f`` (along with its closure parameters ``v`` and ``s`` and the
-format ``format``) once for each of the *black* objects in the
-segment ``seg``. Padding objects may or may not be included in the
-walk, at the segment's discretion: it is the responsibility of the
-client program to handle them. Forwarding objects must not be included
-in the walk. Segment classes need not provide this method. This
-method is called by the genetic function ``SegWalk()``, which is
-called by the heap walker ``mps_arena_formatted_objects_walk()``.
+format ``format``) once for each of the *black* objects in the segment
+``seg``. Padding objects may or may not be included in the walk, at
+the segment's discretion: it is the responsibility of the client
+program to handle them. Forwarding objects must not be included in the
+walk. Segment classes need not provide this method. This method is
+called by the generic function ``SegWalk()``, which is called by the
+deprecated public functions ``mps_arena_formatted_objects_walk()`` and
+``mps_amc_apply()``.
+
+_`.method.walk.deprecated`: The ``walk`` method is deprecated along
+with the public functions ``mps_arena_formatted_objects_walk()`` and
+``mps_amc_apply()`` and will be removed along with them in a future
+release.
 
 ``typedef void (*SegFlipMethod)(Seg seg, Trace trace)``
 
