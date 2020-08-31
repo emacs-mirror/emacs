@@ -6247,7 +6247,6 @@ mark_vectorlike (union vectorlike_header *header)
 {
   struct Lisp_Vector *ptr = (struct Lisp_Vector *) header;
   ptrdiff_t size = ptr->header.size;
-  ptrdiff_t i;
 
   eassert (!vector_marked_p (ptr));
 
@@ -6262,8 +6261,7 @@ mark_vectorlike (union vectorlike_header *header)
      the number of Lisp_Object fields that we should trace.
      The distinction is used e.g. by Lisp_Process which places extra
      non-Lisp_Object fields at the end of the structure...  */
-  for (i = 0; i < size; i++) /* ...and then mark its elements.  */
-    mark_object (ptr->contents[i]);
+  mark_objects (ptr->contents, size);
 }
 
 /* Like mark_vectorlike but optimized for char-tables (and
@@ -6362,8 +6360,7 @@ mark_face_cache (struct face_cache *c)
 {
   if (c)
     {
-      int i, j;
-      for (i = 0; i < c->used; ++i)
+      for (int i = 0; i < c->used; i++)
 	{
 	  struct face *face = FACE_FROM_ID_OR_NULL (c->f, i);
 
@@ -6372,8 +6369,7 @@ mark_face_cache (struct face_cache *c)
 	      if (face->font && !vectorlike_marked_p (&face->font->header))
 		mark_vectorlike (&face->font->header);
 
-	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
-		mark_object (face->lface[j]);
+	      mark_objects (face->lface, LFACE_VECTOR_SIZE);
 	    }
 	}
     }

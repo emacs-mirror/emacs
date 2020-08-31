@@ -1733,11 +1733,7 @@ If nil, also continue lines which are exactly as wide as the window.  */);
 void
 mark_fringe_data (void)
 {
-  int i;
-
-  for (i = 0; i < max_fringe_bitmaps; i++)
-    if (!NILP (fringe_faces[i]))
-      mark_object (fringe_faces[i]);
+  mark_objects (fringe_faces, max_fringe_bitmaps);
 }
 
 /* Initialize this module when Emacs starts.  */

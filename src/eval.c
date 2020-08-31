@@ -3974,8 +3974,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	    mark_object (backtrace_function (pdl));
 	    if (nargs == UNEVALLED)
 	      nargs = 1;
-	    while (nargs--)
-	      mark_object (backtrace_args (pdl)[nargs]);
+	    mark_objects (backtrace_args (pdl), nargs);
 	  }
 	  break;
 
