@@ -3997,7 +3997,7 @@ looks like this:
 @smallexample
 @group
 (if (equal characteristic "fierce")
-    (message "It is a tiger!")))
+    (message "It is a tiger!"))
 @end group
 @end smallexample
 
