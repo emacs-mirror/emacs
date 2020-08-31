@@ -582,6 +582,13 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (equal '(2 . many)
                  (func-arity #'comp-tests-ffuncall-callee-opt-rest-dyn-f))))
 
+(ert-deftest comp-tests-dynamic-help-arglist ()
+  "Test `help-function-arglist' works on lisp/d (bug#42572)."
+  (should (equal (help-function-arglist
+                  (symbol-function #'comp-tests-ffuncall-callee-opt-rest-dyn-f)
+                  t)
+                 '(a b &optional c &rest d))))
+
 (ert-deftest comp-tests-cl-macro-exp ()
   "Verify CL macro expansion (bug#42088)."
   (should (equal (comp-tests-cl-macro-exp-f) '(a b))))
