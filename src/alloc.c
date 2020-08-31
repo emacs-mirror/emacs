@@ -4536,23 +4536,39 @@ live_symbol_p (struct mem_node *m, void *p)
 }
 
 
-/* Return true if P is a pointer to a live Lisp float on
-   the heap.  M is a pointer to the mem_block for P.  */
+/* If P is a (possibly-tagged) pointer to a live Lisp_Float on the
+   heap, return the address of the Lisp_Float.  Otherwise, return NULL.
+   M is a pointer to the mem_block for P.  */
 
-static bool
-live_float_p (struct mem_node *m, void *p)
+static struct Lisp_Float *
+live_float_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_FLOAT);
   struct float_block *b = m->start;
   char *cp = p;
   ptrdiff_t offset = cp - (char *) &b->floats[0];
 
-  /* P must point to the start of a Lisp_Float and not be
-     one of the unused cells in the current float block.  */
-  return (0 <= offset && offset < sizeof b->floats
-	  && offset % sizeof b->floats[0] == 0
+  /* P must point to (or be a tagged pointer to) the start of a
+     Lisp_Float and not be one of the unused cells in the current
+     float block.  */
+  if (0 <= offset && offset < sizeof b->floats)
+    {
+      int off = offset % sizeof b->floats[0];
+      if ((off == Lisp_Float || off == 0)
 	  && (b != float_block
-	      || offset / sizeof b->floats[0] < float_block_index));
+	      || offset / sizeof b->floats[0] < float_block_index))
+	{
+	  p = cp - off;
+	  return p;
+	}
+    }
+  return NULL;
+}
+
+static bool
+live_float_p (struct mem_node *m, void *p)
+{
+  return live_float_holding (m, p) == p;
 }
 
 /* If P is a pointer to a live, large vector-like object, return the object.
@@ -4762,9 +4778,12 @@ mark_maybe_pointer (void *p)
 	  break;
 
 	case MEM_TYPE_FLOAT:
-	  if (! live_float_p (m, p))
-	    return;
-	  obj = make_lisp_ptr (p, Lisp_Float);
+	  {
+	    struct Lisp_Float *h = live_float_holding (m, p);
+	    if (!h)
+	      return;
+	    obj = make_lisp_ptr (h, Lisp_Float);
+	  }
 	  break;
 
 	case MEM_TYPE_VECTORLIKE:
