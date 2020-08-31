@@ -711,10 +711,7 @@ extern mps_res_t mps_stack_scan_ambig(mps_ss_t, mps_thr_t,
                                       void *, size_t);
 
 
-/* Protection Trampoline and Thread Registration */
-
-typedef void *(*mps_tramp_t)(void *, size_t);
-extern void (mps_tramp)(void **, mps_tramp_t, void *, size_t);
+/* Thread Registration */
 
 extern mps_res_t mps_thread_reg(mps_thr_t *, mps_arena_t);
 extern void mps_thread_dereg(mps_thr_t);

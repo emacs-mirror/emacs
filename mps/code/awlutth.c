@@ -233,13 +233,13 @@ struct guff_s {
   mps_thr_t thr;
 };
 
-/* v serves two purposes:
+/* guff serves two purposes:
  * A pseudo stack base for the stack root.
  * Pointer to a guff structure, which packages some values needed
  * (arena and thr mostly) */
-static void *setup(void *v, size_t s)
+ATTRIBUTE_NOINLINE
+static void setup(struct guff_s *guff)
 {
-  struct guff_s *guff;
   mps_arena_t arena;
   mps_pool_t leafpool;
   mps_pool_t tablepool;
@@ -249,12 +249,10 @@ static void *setup(void *v, size_t s)
   mps_root_t stack;
   mps_thr_t thr;
 
-  guff = (struct guff_s *)v;
-  (void)s;
   arena = guff->arena;
   thr = guff->thr;
 
-  die(mps_root_create_thread(&stack, arena, thr, v),
+  die(mps_root_create_thread(&stack, arena, thr, guff),
       "Root Create\n");
   die(mps_fmt_create_A(&dylanfmt, arena, dylan_fmt_A()),
       "Format Create\n");
@@ -285,25 +283,22 @@ static void *setup(void *v, size_t s)
   mps_fmt_destroy(dylanweakfmt);
   mps_fmt_destroy(dylanfmt);
   mps_root_destroy(stack);
-
-  return NULL;
 }
 
 
 static void *setup_thr(void *v)
 {
   struct guff_s guff;
-  mps_arena_t arena = (mps_arena_t)v;
+  mps_arena_t arena = v;
   mps_thr_t thread;
-  void *r;
 
   die(mps_thread_reg(&thread, arena), "thread_reg");
   guff.arena = arena;
   guff.thr = thread;
-  mps_tramp(&r, setup, &guff, 0);
+  setup(&guff);
   mps_thread_dereg(thread);
 
-  return r;
+  return NULL;
 }
 
 

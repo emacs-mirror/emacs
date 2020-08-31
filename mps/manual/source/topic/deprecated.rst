@@ -847,53 +847,6 @@ Deprecated in version 1.111
     ============  ==============  =============
 
 
-.. c:function:: void mps_tramp(void **r_o, mps_tramp_t f, void *p, size_t s)
-
-    .. deprecated::
-
-        The MPS trampoline is no longer required on any operating
-        system supported by the MPS.
-
-    Call a function via the MPS trampoline.
-
-    ``r_o`` points to a location that will store the result of calling
-    ``f``.
-
-    ``f`` is the function to call.
-
-    ``p`` and ``s`` are arguments that will be passed to ``f`` each
-    time it is called. This is intended to make it easy to pass, for
-    example, an array and its size as parameters.
-
-    The MPS relies on :term:`barriers (1)` to protect memory
-    that is in an inconsistent state. On some operating systems,
-    barrier hits generate exceptions that have to be caught by a
-    handler that is on the stack. On these operating systems, any code
-    that uses memory managed by the MPS must be called from inside
-    such an exception handler, that is, inside a call to
-    :c:func:`mps_tramp`.
-
-    If you have multiple threads that run code that uses memory
-    managed by the MPS, each thread must execute such code inside a
-    call to :c:func:`mps_tramp`.
-
-
-.. index::
-   single: trampoline
-
-.. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
-
-    .. deprecated::
-
-        The MPS trampoline is no longer required on any operating
-        system supported by the MPS.
-
-    The type of a function called by :c:func:`mps_tramp`.
-
-    ``p`` and ``s`` are the corresponding arguments that were passed
-    to :c:func:`mps_tramp`.
-
-
 .. c:function:: void mps_arena_expose(mps_arena_t arena)
 
     .. deprecated::

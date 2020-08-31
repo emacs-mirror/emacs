@@ -34,7 +34,7 @@
  *
  * main() has the list of testscripts.
  *
- * testscriptA() sets up a new arena and trampolines to testscriptB().
+ * testscriptA() sets up a new arena and calls testscriptB().
  *
  * testscriptB() creates pools and objects for this test script.
  *
@@ -704,21 +704,16 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 }
 
 
-/* testscriptB -- create pools and objects; call testscriptC
- *
- * Is called via mps_tramp, so matches mps_tramp_t function prototype,
- * and use trampDataStruct to pass parameters.
- */
+/* testscriptB -- create pools and objects; call testscriptC */
 
-typedef struct trampDataStruct {
+typedef struct testDataStruct {
   mps_arena_t arena;
   mps_thr_t thr;
   const char *script;
-} trampDataStruct;
+} testDataStruct;
 
-static void *testscriptB(void *arg, size_t s)
+static void testscriptB(testDataStruct *testData)
 {
-  trampDataStruct trampData;
   mps_arena_t arena;
   mps_thr_t thr;
   const char *script;
@@ -731,11 +726,9 @@ static void *testscriptB(void *arg, size_t s)
   mps_ap_t ap;
   void *stack_starts_here;  /* stack scanning starts here */
 
-  Insist(s == sizeof(trampDataStruct));
-  trampData = *(trampDataStruct*)arg;
-  arena = trampData.arena;
-  thr = trampData.thr;
-  script = trampData.script;
+  arena = testData->arena;
+  thr = testData->thr;
+  script = testData->script;
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -781,12 +774,10 @@ static void *testscriptB(void *arg, size_t s)
   mps_pool_destroy(amc);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
-
-  return NULL;
 }
 
 
-/* testscriptA -- create arena, thr, and tramp; call testscriptB
+/* testscriptA -- create arena and thr; call testscriptB
  */
 static void testscriptA(const char *script)
 {
@@ -794,9 +785,7 @@ static void testscriptA(const char *script)
   int si, sb;  /* sscanf items, sscanf bytes */
   unsigned long arenasize = 0;
   mps_thr_t thr;
-  mps_tramp_t trampFunction;
-  trampDataStruct trampData;
-  void *trampResult;
+  testDataStruct testData;
 
   si = sscanf(script, "Arena(size %lu)%n", &arenasize, &sb);
   cdie(si == 1, "bad script command: Arena(size %%lu)");
@@ -815,13 +804,11 @@ static void testscriptA(const char *script)
   /* thr: used to stop/restart multiple threads */
   die(mps_thread_reg(&thr, arena), "thread");
 
-  /* tramp: used for protection (barrier hits) */
   /* call testscriptB! */
-  trampFunction = testscriptB;
-  trampData.arena = arena;
-  trampData.thr = thr;
-  trampData.script = script;
-  mps_tramp(&trampResult, trampFunction, &trampData, sizeof trampData);
+  testData.arena = arena;
+  testData.thr = thr;
+  testData.script = script;
+  testscriptB(&testData);
 
   mps_thread_dereg(thr);
   mps_arena_destroy(arena);
