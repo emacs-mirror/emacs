@@ -220,12 +220,12 @@ li.toctree-l1, li.toctree-l2, li.toctree-l3 {
     padding-top: 0 !important;
 }
 
-/* Override background-color for code elements. */
+/* Override background for code elements. */
 .sphinxsidebar code {
-    background-color: {{ theme_sidebarbgcolor }};
+    background: {{ theme_sidebarbgcolor }};
 }
 .note code, .admonition code {
-    background-color: {{ theme_codebgcolor }};
+    background: {{ theme_codebgcolor }};
 }
 
 /* Margin before and after table. */
