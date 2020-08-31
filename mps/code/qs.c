@@ -326,14 +326,11 @@ static void validate(void)
 }
 
 
-static void *go(void *p, size_t s)
+static void test(void)
 {
   mps_fmt_t format;
   mps_chain_t chain;
   mps_addr_t base;
-
-  testlib_unused(p);
-  testlib_unused(s);
 
   die(mps_pool_create_k(&mpool, arena, mps_class_mvff(), mps_args_none),
       "pool create");
@@ -373,8 +370,6 @@ static void *go(void *p, size_t s)
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
   mps_arena_release(arena);
-
-  return NULL;
 }
 
 
@@ -520,14 +515,11 @@ static void copy(mps_addr_t object, mps_addr_t to)
 
 int main(int argc, char *argv[])
 {
-  void *r;
-
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-
-  mps_tramp(&r, &go, NULL, 0);
+  test();
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);

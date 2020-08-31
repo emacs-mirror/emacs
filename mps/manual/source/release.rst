@@ -41,6 +41,11 @@ Interface changes
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`
    instead.
 
+#. The deprecated function :c:func:`mps_tramp` has been removed. The
+   MPS has had no need for a trampoline, and client programs have not
+   needed to take any special precautions before calling functions in
+   the MPS, since version 1.111.
+
 #. The keyword argument ``MPS_KEY_SPARE_COMMIT_LIMIT`` to
    :c:func:`mps_arena_create_k`, and the functions
    :c:func:`mps_arena_spare_commit_limit` and

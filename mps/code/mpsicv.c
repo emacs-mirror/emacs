@@ -358,9 +358,8 @@ static void arena_commit_test(mps_arena_t arena)
 }
 
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena)
 {
-  mps_arena_t arena;
   mps_fmt_t format;
   mps_chain_t chain;
   mps_root_t exactAreaRoot, exactTableRoot, ambigAreaRoot, ambigTableRoot,
@@ -379,9 +378,6 @@ static void *test(void *arg, size_t s)
   mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
   size_t rampCount = 0;
   mps_res_t res;
-
-  arena = (mps_arena_t)arg;
-  testlib_unused(s);
 
   if (rnd() & 1) {
     printf("Using auto_header format.\n");
@@ -573,8 +569,6 @@ static void *test(void *arg, size_t s)
   mps_pool_destroy(amcpool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
-
-  return NULL;
 }
 
 
@@ -586,7 +580,6 @@ int main(int argc, char *argv[])
   mps_arena_t arena;
   mps_thr_t thread;
   mps_root_t reg_root;
-  void *r;
   void *marker = &marker;
 
   testlib_init(argc, argv);
@@ -622,7 +615,7 @@ int main(int argc, char *argv[])
     break;
   }
 
-  mps_tramp(&r, test, arena, 0);
+  test(arena);
   switch (rnd() % 2) {
   default:
   case 0:

@@ -114,20 +114,16 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
 
 /* test -- the body of the test */
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena)
 {
   mps_addr_t busy_init;
   mps_ap_t busy_ap;
-  mps_arena_t arena;
   mps_chain_t chain;
   mps_fmt_t format;
   mps_root_t exactRoot, ambigRoot;
   mps_word_t collections;
   size_t i;
   unsigned long objs;
-
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
 
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -230,15 +226,12 @@ static void *test(void *arg, size_t s)
   mps_pool_destroy(pool_g);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
-
-  return NULL;
 }
 
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_thr_t thread;
-  void *r;
 
   testlib_init(argc, argv);
 
@@ -247,7 +240,7 @@ int main(int argc, char *argv[])
   mps_message_type_enable(arena, mps_message_type_gc());
   die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  mps_tramp(&r, test, arena, 0);
+  test(arena);
   mps_thread_dereg(thread);
   report(arena);
   mps_arena_destroy(arena);

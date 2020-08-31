@@ -133,7 +133,7 @@ static void register_indirect_tree(mps_word_t tree, mps_arena_t arena)
 
 static void *root[rootCOUNT];
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena)
 {
   mps_ap_t ap;
   mps_fmt_t fmt;
@@ -141,12 +141,8 @@ static void *test(void *arg, size_t s)
   mps_word_t finals;
   mps_pool_t amc;
   mps_root_t mps_root;
-  mps_arena_t arena;
   mps_message_t message;
   size_t i;
-
-  arena = (mps_arena_t)arg;
-  (void)s;
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -256,8 +252,6 @@ static void *test(void *arg, size_t s)
   mps_pool_destroy(amc);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
-
-  return NULL;
 }
 
 
@@ -265,14 +259,13 @@ int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_thr_t thread;
-  void *r;
 
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
   die(mps_thread_reg(&thread, arena), "thread_reg\n");
-  mps_tramp(&r, test, arena, 0);
+  test(arena);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

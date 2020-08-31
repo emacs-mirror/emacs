@@ -61,8 +61,7 @@ because the wrapper will be a root.
 
 _`.req.nofault`: The memory containing objects managed by the pool
 must not be protected. The client must be allowed to access these
-objects without using the MPS trampoline (the exception mechanism,
-q.v.).
+objects without hitting an MPS barrier.
 
 
 Overview

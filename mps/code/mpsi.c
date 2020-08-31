@@ -1630,18 +1630,6 @@ void mps_root_destroy(mps_root_t mps_root)
 }
 
 
-void (mps_tramp)(void **r_o,
-                 void *(*f)(void *p, size_t s),
-                 void *p, size_t s)
-{
-  AVER(r_o != NULL);
-  AVER(FUNCHECK(f));
-  /* Can't check p and s as they are interpreted by the client */
-
-  *r_o = (*f)(p, s);
-}
-
-
 mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t arena)
 {
   Thread thread;
