@@ -4539,9 +4539,9 @@ live_symbol_holding (struct mem_node *m, void *p)
       ptrdiff_t off = offset % sizeof b->symbols[0];
       if (off == Lisp_Symbol
 
-	  /* Use u's offset since '|| off == 0' would run afoul of gcc
+	  /* Plain '|| off == 0' would run afoul of GCC 10.2
 	     -Wlogical-op, as Lisp_Symbol happens to be zero.  */
-	  || off == offsetof (struct Lisp_Symbol, u)
+	  || (Lisp_Symbol != 0 && off == 0)
 
 	  || off == offsetof (struct Lisp_Symbol, u.s.name)
 	  || off == offsetof (struct Lisp_Symbol, u.s.val)
