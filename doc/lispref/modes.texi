@@ -2039,7 +2039,7 @@ be useful for Shell mode (in reality, Shell mode does not set
    "%n"
    ")%]--"
 @group
-   '(which-func-mode ("" which-func-format "--"))
+   '(which-function-mode ("" which-func-format "--"))
    '(line-number-mode "L%l--")
    '(column-number-mode "C%c--")
    '(-3 "%p")))
@@ -2047,8 +2047,8 @@ be useful for Shell mode (in reality, Shell mode does not set
 @end example
 
 @noindent
-(The variables @code{line-number-mode}, @code{column-number-mode}
-and @code{which-func-mode} enable particular minor modes; as usual,
+(The variables @code{line-number-mode}, @code{column-number-mode} and
+@code{which-function-mode} enable particular minor modes; as usual,
 these variable names are also the minor mode command names.)
 
 @node Mode Line Variables
@@ -2190,7 +2190,7 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-func-mode} minor mode if set,
+the mode line just after the @code{which-function-mode} minor mode if set,
 else after @code{mode-line-modes}.  The command @code{display-time} sets
 @code{global-mode-string} to refer to the variable
 @code{display-time-string}, which holds a string containing the time and
@@ -2219,7 +2219,7 @@ specifies addition of text properties.
  "   "
 @group
  mode-line-modes
- (which-func-mode ("" which-func-format "--"))
+ (which-function-mode ("" which-func-format "--"))
  (global-mode-string ("--" global-mode-string))
  "-%-")
 @end group
@@ -2327,6 +2327,10 @@ read-only buffer.  @xref{Buffer Modification}.
 @item %&
 @samp{*} if the buffer is modified, and @samp{-} otherwise.
 
+@item %@@
+@samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
+Expansion}) is on a remote machine, and @samp{-} otherwise.
+
 @item %[
 An indication of the depth of recursive editing levels (not counting
 minibuffer levels): one @samp{[} for each editing level.
@@ -2344,16 +2348,13 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following two @code{%}-constructs are still supported, but they are
-obsolete, since you can get the same results with the variables
-@code{mode-name} and @code{global-mode-string}.
+The following @code{%}-construct is still supported, but it is
+obsolete, since you can get the same result using the variable
+@code{mode-name}.
 
 @table @code
 @item %m
 The value of @code{mode-name}.
-
-@item %M
-The value of @code{global-mode-string}.
 @end table
 
 @node Properties in Mode

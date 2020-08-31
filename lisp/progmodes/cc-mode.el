@@ -1204,7 +1204,7 @@ Note that the style variables are always made local to the buffer."
     (while (progn
 	     (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
 	     (unless (bobp)
-	       (c-clear-char-property (1- (point)) 'syntax-table))
+	       (c-clear-syn-tab (1- (point))))
 	     (setq st-pos (point))
 	     (and (< (point) end)
 		  (not (eq (char-before) ?\")))))
@@ -1237,7 +1237,7 @@ Note that the style variables are always made local to the buffer."
 	     t)
 	    (t
 	     ;; At a significant "
-	     (c-clear-char-property (1- (point)) 'syntax-table)
+	     (c-clear-syn-tab (1- (point)))
 	     (setq pos-ll (c-literal-limits)
 		   pos-lt (c-literal-type pos-ll))
 	     nil)))
@@ -1245,7 +1245,7 @@ Note that the style variables are always made local to the buffer."
       (cond
        ((bobp))
        ((eq pos-lt 'string)
-	(c-put-char-property (1- (point)) 'syntax-table '(15)))
+	(c-put-syn-tab (1- (point)) '(15)))
        (t nil)))))
 
 (defun c-put-syn-tab (pos value)
