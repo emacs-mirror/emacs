@@ -627,10 +627,6 @@
 /* I count 4 function calls to scan, 10 to copy. */
 #define TraceCopyScanRATIO (1.5)
 
-/* Chosen so that the RememberedSummaryBlockStruct packs nicely into
-   pages */
-#define RememberedSummaryBLOCK 15
-
 
 /* Events
  *

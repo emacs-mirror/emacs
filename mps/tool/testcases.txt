@@ -16,8 +16,6 @@ awlutth        =T
 btcv
 bttest         =N                interactive
 djbench        =N                benchmark
-exposet0       =P
-expt825
 finalcv        =P
 finaltest      =P
 forktest       =X

@@ -73,8 +73,6 @@ TEST_TARGETS=\
     btcv.exe \
     bttest.exe \
     djbench.exe \
-    exposet0.exe \
-    expt825.exe \
     finalcv.exe \
     finaltest.exe \
     fotest.exe \
