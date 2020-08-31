@@ -37,6 +37,8 @@ Bool ScanStateCheck(ScanState ss)
   ZoneSet white;
 
   CHECKS(ScanState, ss);
+  CHECKL(FUNCHECK(ss->formatScan));
+  /* Can't check ss->formatScanClosure. */
   CHECKL(FUNCHECK(ss->fix));
   /* Can't check ss->fixClosure. */
   CHECKL(ScanStateZoneShift(ss) == ss->arena->zoneShift);
@@ -53,6 +55,23 @@ Bool ScanStateCheck(ScanState ss)
   CHECKL(BoolCheck(ss->wasMarked));
   /* @@@@ checks for counts missing */
   return TRUE;
+}
+
+
+/* traceNoScan -- Area scan method that must not be called. */
+
+static mps_res_t traceNoScan(mps_ss_t ss, void *base, void *limit, void *closure)
+{
+  UNUSED(ss);
+
+  AVER(base != NULL);
+  AVER(limit != NULL);
+  AVER(base < limit);
+  AVER(closure == UNUSED_POINTER);
+
+  NOTREACHED;
+
+  return MPS_RES_UNIMPL;
 }
 
 
@@ -91,6 +110,8 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   if (ss->fix == SegFix && ArenaEmergency(arena))
         ss->fix = SegFixEmergency;
 
+  ss->formatScan = traceNoScan;
+  ss->formatScanClosure = UNUSED_POINTER;
   ss->rank = rank;
   ss->traces = ts;
   ScanStateSetZoneShift(ss, arena->zoneShift);
@@ -111,6 +132,40 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   ss->sig = ScanStateSig;
 
   AVERT(ScanState, ss);
+}
+
+
+/* traceFormatScan -- Area scan method that dispatches to a format scan.
+ *
+ * This is a wrapper for formatted object scanning functions, which
+ * should not otherwise be called directly from within the MPS.
+ */
+static mps_res_t traceFormatScan(mps_ss_t mps_ss, void *base, void *limit, void *closure)
+{
+  Format format = closure;
+
+  AVER_CRITICAL(base != NULL);
+  AVER_CRITICAL(limit != NULL);
+  AVER_CRITICAL(base < limit);
+  AVERT_CRITICAL(Format, format);
+
+  return format->scan(mps_ss, base, limit);
+}
+
+
+/* ScanStateInitSeg -- Initialize a ScanState object for scanning a segment */
+
+void ScanStateInitSeg(ScanState ss, TraceSet ts, Arena arena,
+                      Rank rank, ZoneSet white, Seg seg)
+{
+  Format format;
+  AVERT(Seg, seg);
+
+  ScanStateInit(ss, ts, arena, rank, white);
+  if (PoolFormat(&format, SegPool(seg))) {
+    ss->formatScan = traceFormatScan;
+    ss->formatScanClosure = format;
+  }
 }
 
 
@@ -1141,7 +1196,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
   } else {      /* scan it */
     ScanStateStruct ssStruct;
     ScanState ss = &ssStruct;
-    ScanStateInit(ss, ts, arena, rank, white);
+    ScanStateInitSeg(ss, ts, arena, rank, white, seg);
 
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
@@ -1473,16 +1528,36 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 }
 
 
+/* TraceScanFormat -- scan a formatted area of memory for references
+ *
+ * This is a wrapper for format scanning functions, which should not
+ * otherwise be called directly from within the MPS.  This function
+ * checks arguments and takes care of accounting for the scanned
+ * memory.
+ */
+Res TraceScanFormat(ScanState ss, Addr base, Addr limit)
+{
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(base != NULL);
+  AVER_CRITICAL(limit != NULL);
+  AVER_CRITICAL(base < limit);
+
+  /* scannedSize is accumulated whether or not ss->formatScan
+   * succeeds, so it's safe to accumulate now so that we can tail-call
+   * ss->formatScan. */
+  ss->scannedSize += AddrOffset(base, limit);
+
+  return ss->formatScan(&ss->ss_s, base, limit, ss->formatScanClosure);
+}
+
+
 /* TraceScanArea -- scan an area of memory for references
  *
  * This is a wrapper for area scanning functions, which should not
  * otherwise be called directly from within the MPS.  This function
  * checks arguments and takes care of accounting for the scanned
  * memory.
- *
- * c.f. FormatScan()
  */
-
 Res TraceScanArea(ScanState ss, Word *base, Word *limit,
                   mps_area_scan_t scan_area,
                   void *closure)

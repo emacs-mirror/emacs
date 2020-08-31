@@ -354,6 +354,8 @@ extern const char *MessageNoGCStartWhy(Message message);
 
 extern void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
                           Rank rank, ZoneSet white);
+extern void ScanStateInitSeg(ScanState ss, TraceSet ts, Arena arena,
+                             Rank rank, ZoneSet white, Seg seg);
 extern void ScanStateFinish(ScanState ss);
 extern Bool ScanStateCheck(ScanState ss);
 extern void ScanStateSetSummary(ScanState ss, RefSet summary);
@@ -449,6 +451,7 @@ extern void TraceIdMessagesDestroy(Arena arena, TraceId ti);
     } \
   END
 
+extern Res TraceScanFormat(ScanState ss, Addr base, Addr limit);
 extern Res TraceScanArea(ScanState ss, Word *base, Word *limit,
                          mps_area_scan_t scan_area,
                          void *closure);
@@ -808,7 +811,6 @@ extern Res FormatCreate(Format *formatReturn, Arena arena, ArgList args);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth);
-extern Res FormatScan(Format format, ScanState ss, Addr base, Addr limit);
 
 
 /* Reference Interface -- see <code/ref.c> */
