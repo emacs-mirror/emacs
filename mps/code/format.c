@@ -191,36 +191,6 @@ Arena FormatArena(Format format)
 }
 
 
-/* FormatScan -- scan formatted objects for references
- *
- * This is a wrapper for formatted objects scanning functions, which
- * should not otherwise be called directly from within the MPS.  This
- * function checks arguments and takes care of accounting for the
- * scanned memory.
- *
- * c.f. TraceScanArea()
- */
-
-Res FormatScan(Format format, ScanState ss, Addr base, Addr limit)
-{
-  /* TODO: How critical are these? */
-  AVERT_CRITICAL(Format, format);
-  AVERT_CRITICAL(ScanState, ss);
-  AVER_CRITICAL(base != NULL);
-  AVER_CRITICAL(limit != NULL);
-  AVER_CRITICAL(base < limit);
-
-  /* TODO: EVENT here? */
-
-  /* scannedSize is accumulated whether or not format->scan succeeds,
-     so it's safe to accumulate now so that we can tail-call
-     format->scan. */
-  ss->scannedSize += AddrOffset(base, limit);
-
-  return format->scan(&ss->ss_s, base, limit);
-}
-
-
 /* FormatDescribe -- describe a format */
 
 Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
