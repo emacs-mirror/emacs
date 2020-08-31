@@ -1305,10 +1305,9 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
   /* @@@@ This isn't quite right for multiple traces. */
   if (closure->scanAllObjects || AMS_IS_GREY(seg, i)) {
-    res = FormatScan(format,
-                     closure->ss,
-                     AddrAdd(p, format->headerSize),
-                     AddrAdd(next, format->headerSize));
+    res = TraceScanFormat(closure->ss,
+                          AddrAdd(p, format->headerSize),
+                          AddrAdd(next, format->headerSize));
     if (res != ResOK)
       return res;
     if (!closure->scanAllObjects) {
@@ -1393,7 +1392,7 @@ static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
             next = AddrAdd(p, alignment);
           }
           j = PoolIndexOfAddr(SegBase(seg), pool, next);
-          res = FormatScan(format, ss, clientP, clientNext);
+          res = TraceScanFormat(ss, clientP, clientNext);
           if (res != ResOK) {
             /* <design/poolams#.marked.scan.fail> */
             amsseg->marksChanged = TRUE;
