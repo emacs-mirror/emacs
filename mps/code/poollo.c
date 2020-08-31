@@ -71,6 +71,7 @@ static Bool loSegBufferFill(Addr *baseReturn, Addr *limitReturn,
                             Seg seg, Size size, RankSet rankSet);
 static void loSegBufferEmpty(Seg seg, Buffer buffer);
 static Res loSegWhiten(Seg seg, Trace trace);
+static Res loSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static Res loSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void loSegReclaim(Seg seg, Trace trace);
 static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
@@ -89,6 +90,7 @@ DEFINE_CLASS(Seg, LOSeg, klass)
   klass->bufferFill = loSegBufferFill;
   klass->bufferEmpty = loSegBufferEmpty;
   klass->whiten = loSegWhiten;
+  klass->scan = loSegScan;
   klass->fix = loSegFix;
   klass->fixEmergency = loSegFix;
   klass->reclaim = loSegReclaim;
@@ -641,6 +643,62 @@ static Res loSegWhiten(Seg seg, Trace trace)
                      PoolGrainsSize(pool, loseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
+
+  return ResOK;
+}
+
+
+static Res loSegScan(Bool *totalReturn, Seg seg, ScanState ss)
+{
+  LOSeg loseg = MustBeA(LOSeg, seg);
+  Pool pool = SegPool(seg);
+  Addr p, base, limit;
+  Buffer buffer;
+  Bool hasBuffer = SegBuffer(&buffer, seg);
+  Format format = NULL; /* suppress "may be used uninitialized" warning */
+  Bool b;
+
+  AVER(totalReturn != NULL);
+  AVERT(Seg, seg);
+  AVERT(ScanState, ss);
+
+  base = SegBase(seg);
+  limit = SegLimit(seg);
+
+  b = PoolFormat(&format, pool);
+  AVER(b);
+
+  p = base;
+  while (p < limit) {
+    Addr q;
+    Index i;
+
+    if (hasBuffer) {
+      if (p == BufferScanLimit(buffer)
+          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
+        /* skip over buffered area */
+        p = BufferLimit(buffer);
+        continue;
+      }
+      /* since we skip over the buffered area we are always */
+      /* either before the buffer, or after it, never in it */
+      AVER(p < BufferGetInit(buffer) || BufferLimit(buffer) <= p);
+    }
+    i = PoolIndexOfAddr(base, pool, p);
+    if (!BTGet(loseg->alloc, i)) {
+      p = AddrAdd(p, PoolAlignment(pool));
+      continue;
+    }
+    q = (*format->skip)(AddrAdd(p, format->headerSize));
+    q = AddrSub(q, format->headerSize);
+    if (BTGet(loseg->mark, i)) {
+      Res res = TraceScanFormat(ss, p, q);
+      if (res != ResOK)
+        return res;
+    }
+    p = q;
+  }
+  AVER(p == limit);
 
   return ResOK;
 }

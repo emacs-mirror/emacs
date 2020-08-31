@@ -381,6 +381,123 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
 }
 
 
+/* walkNoFix -- third-stage fix function for poolWalk.
+ *
+ * The second-stage fix is not called via poolWalk; so this is not
+ * called either. The NOTREACHED checks that this is the case.
+ */
+static Res walkNoFix(Seg seg, ScanState ss, Addr *refIO)
+{
+  AVERT(Seg, seg);
+  AVERT(ScanState, ss);
+  AVER(refIO != NULL);
+
+  NOTREACHED;
+
+  return ResUNIMPL;
+}
+
+
+/* poolWalkScan -- format scanner for poolWalk */
+
+static mps_res_t poolWalkScan(mps_ss_t mps_ss, void *base, void *limit)
+{
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+
+  AVERT(ScanState, ss);
+  AVER(base != NULL);
+  AVER(limit != NULL);
+  AVER(base < limit);
+
+  return ss->areaScan(mps_ss, base, limit, ss->areaScanClosure);
+}
+
+
+/* poolWalk -- walk formatted areas in a pool
+ *
+ * See <design/walk>.
+ */
+
+static Res poolWalk(Arena arena, Pool pool, mps_area_scan_t area_scan, void *closure)
+{
+  Trace trace;
+  TraceSet ts;
+  ScanStateStruct ss;
+  Ring node, nextNode;
+  Res res = ResOK;
+
+  AVERT(Arena, arena);
+  AVERT(Pool, pool);
+  AVER(FUNCHECK(area_scan));
+  /* closure is arbitrary and can't be checked */
+
+  AVER(ArenaGlobals(arena)->clamped);          /* .assume.parked */
+  AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
+
+  /* Synthesize a flipped trace with an empty white set. The empty
+   * white set means that the MPS_FIX1 test will always fail and
+   * _mps_fix2 will never be called. */
+  res = TraceCreate(&trace, arena, TraceStartWhyWALK);
+  /* Fail if no trace available. Unlikely due to .assume.parked. */
+  if (res != ResOK)
+    return res;
+  trace->white = ZoneSetEMPTY;
+  trace->state = TraceFLIPPED;
+  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
+  ts = TraceSetSingle(trace);
+
+  ScanStateInit(&ss, ts, arena, RankEXACT, trace->white);
+  ss.formatScan = poolWalkScan;
+  ss.areaScan = area_scan;
+  ss.areaScanClosure = closure;
+  ss.fix = walkNoFix;
+
+  RING_FOR(node, &pool->segRing, nextNode) {
+    Bool wasTotal;
+    Seg seg = SegOfPoolRing(node);
+    Bool needSummary = SegRankSet(seg) != RankSetEMPTY;
+
+    if (needSummary)
+      ScanStateSetSummary(&ss, RefSetEMPTY);
+
+    /* Expose the segment to make sure we can scan it. */
+    ShieldExpose(arena, seg);
+    res = SegScan(&wasTotal, seg, &ss);
+    ShieldCover(arena, seg);
+
+    if (needSummary)
+      ScanStateUpdateSummary(&ss, seg, res == ResOK && wasTotal);
+
+    if (res != ResOK)
+      break;
+  }
+
+  ScanStateFinish(&ss);
+  trace->state = TraceFINISHED;
+  TraceDestroyFinished(trace);
+  AVER(!ArenaEmergency(arena)); /* There was no allocation. */
+
+  return res;
+}
+
+
+mps_res_t mps_pool_walk(mps_pool_t pool, mps_area_scan_t area_scan, void *closure)
+{
+  Arena arena;
+  Res res;
+
+  AVER(TESTT(Pool, pool));
+  arena = PoolArena(pool);
+  ArenaEnter(arena);
+  AVER(FUNCHECK(area_scan));
+  /* closure is arbitrary and can't be checked */
+
+  res = poolWalk(arena, pool, area_scan, closure);
+  ArenaLeave(arena);
+  return res;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
