@@ -4680,97 +4680,6 @@ live_small_vector_p (struct mem_node *m, void *p)
   return live_small_vector_holding (m, p) == p;
 }
 
-/* Mark OBJ if we can prove it's a Lisp_Object.  */
-
-static void
-mark_maybe_object (Lisp_Object obj)
-{
-#if USE_VALGRIND
-  VALGRIND_MAKE_MEM_DEFINED (&obj, sizeof (obj));
-#endif
-
-  int type_tag = XTYPE (obj);
-  intptr_t pointer_word_tag = LISP_WORD_TAG (type_tag), offset, ipo;
-
-  switch (type_tag)
-    {
-    case_Lisp_Int: case Lisp_Type_Unused0:
-      return;
-
-    case Lisp_Symbol:
-      offset = (intptr_t) lispsym;
-      break;
-
-    default:
-      offset = 0;
-      break;
-    }
-
-  INT_ADD_WRAPV ((intptr_t) XLP (obj), offset - pointer_word_tag, &ipo);
-  void *po = (void *) ipo;
-
-  /* If the pointer is in the dump image and the dump has a record
-     of the object starting at the place where the pointer points, we
-     definitely have an object.  If the pointer is in the dump image
-     and the dump has no idea what the pointer is pointing at, we
-     definitely _don't_ have an object.  */
-  if (pdumper_object_p (po))
-    {
-      /* Don't use pdumper_object_p_precise here! It doesn't check the
-         tag bits. OBJ here might be complete garbage, so we need to
-         verify both the pointer and the tag.  */
-      if (pdumper_find_object_type (po) == type_tag)
-        mark_object (obj);
-      return;
-    }
-
-  struct mem_node *m = mem_find (po);
-
-  if (m != MEM_NIL)
-    {
-      bool mark_p = false;
-
-      switch (type_tag)
-	{
-	case Lisp_String:
-	  mark_p = m->type == MEM_TYPE_STRING && live_string_p (m, po);
-	  break;
-
-	case Lisp_Cons:
-	  mark_p = m->type == MEM_TYPE_CONS && live_cons_p (m, po);
-	  break;
-
-	case Lisp_Symbol:
-	  mark_p = m->type == MEM_TYPE_SYMBOL && live_symbol_p (m, po);
-	  break;
-
-	case Lisp_Float:
-	  mark_p = m->type == MEM_TYPE_FLOAT && live_float_p (m, po);
-	  break;
-
-	case Lisp_Vectorlike:
-	  mark_p = (m->type == MEM_TYPE_VECTOR_BLOCK
-		    ? live_small_vector_p (m, po)
-		    : (m->type == MEM_TYPE_VECTORLIKE
-		       && live_large_vector_p (m, po)));
-	  break;
-
-	default:
-	  eassume (false);
-	}
-
-      if (mark_p)
-	mark_object (obj);
-    }
-}
-
-void
-mark_maybe_objects (Lisp_Object const *array, ptrdiff_t nelts)
-{
-  for (Lisp_Object const *lim = array + nelts; array < lim; array++)
-    mark_maybe_object (*array);
-}
-
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
@@ -4783,14 +4692,21 @@ mark_maybe_pointer (void *p)
   VALGRIND_MAKE_MEM_DEFINED (&p, sizeof (p));
 #endif
 
+  /* If the pointer is in the dump image and the dump has a record
+     of the object starting at the place where the pointer points, we
+     definitely have an object.  If the pointer is in the dump image
+     and the dump has no idea what the pointer is pointing at, we
+     definitely _don't_ have an object.  */
   if (pdumper_object_p (p))
     {
+      /* Don't use pdumper_object_p_precise here! It doesn't check the
+         tag bits. OBJ here might be complete garbage, so we need to
+         verify both the pointer and the tag.  */
       int type = pdumper_find_object_type (p);
       if (pdumper_valid_object_type_p (type))
         mark_object (type == Lisp_Symbol
                      ? make_lisp_symbol (p)
                      : make_lisp_ptr (p, type));
-      /* See mark_maybe_object for why we can confidently return.  */
       return;
     }
 
@@ -6568,6 +6484,13 @@ mark_hash_table (struct Lisp_Vector *ptr)
       weak_hash_tables = h;
       set_vector_marked (XVECTOR (h->key_and_value));
     }
+}
+
+void
+mark_objects (Lisp_Object *obj, ptrdiff_t n)
+{
+  for (ptrdiff_t i = 0; i < n; i++)
+    mark_object (obj[i]);
 }
 
 /* Determine type of generic Lisp_Object and mark it accordingly.
