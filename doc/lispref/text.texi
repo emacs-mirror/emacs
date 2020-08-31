@@ -5154,6 +5154,11 @@ Utility functions:
 @item dom-pp @var{dom} &optional @var{remove-empty}
 Pretty-print @var{dom} at point.  If @var{remove-empty}, don't print
 textual nodes that just contain white-space.
+
+@item dom-print @var{dom} &optional @var{pretty} @var{xml}
+Print @var{dom} at point.  If @var{xml} is non-@code{nil}, print as
+@acronym{XML}; otherwise, print as @acronym{HTML}.  If @var{pretty} is
+non-@code{nil}, indent the @acronym{HTML}/@acronym{XML} logically.
 @end table
 
 

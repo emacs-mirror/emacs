@@ -1215,6 +1215,9 @@ equivalent period in seconds.
 +++
 ** The new function 'dom-remove-attribute' has been added.
 
++++
+** The new function 'dom-print' has been added.
+
 ---
 ** 'make-network-process', 'make-serial-process' ':coding' behavior change.
 Previously, passing ':coding nil' to either of these functions would
