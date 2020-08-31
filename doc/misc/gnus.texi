@@ -839,7 +839,6 @@ Formatting Variables
 * Formatting Fonts::            Making the formatting look colorful and nice.
 * Positioning Point::           Moving point to a position after an operation.
 * Tabulation::                  Tabulating your output.
-* Wide Characters::             Dealing with wide characters.
 
 Image Enhancements
 
@@ -22356,7 +22355,6 @@ lots of percentages everywhere.
 * Formatting Fonts::            Making the formatting look colorful and nice.
 * Positioning Point::           Moving point to a position after an operation.
 * Tabulation::                  Tabulating your output.
-* Wide Characters::             Dealing with wide characters.
 @end menu
 
 Currently Gnus uses the following formatting variables:
@@ -22609,23 +22607,6 @@ This is the soft tabulator.
 @samp{%-50=} will insert space characters to pad the line up to column
 50.  If the text is already past column 50, the excess text past column
 50 will be removed.  This is the hard tabulator.
-
-
-@node Wide Characters
-@subsection Wide Characters
-
-Fixed width fonts in most countries have characters of the same width.
-Some countries, however, use Latin characters mixed with wider
-characters---most notable East Asian countries.
-
-The problem is that when formatting, Gnus assumes that if a string is 10
-characters wide, it'll be 10 Latin characters wide on the screen.  In
-these countries, that's not true.
-
-@vindex gnus-use-correct-string-widths
-To help fix this, you can set @code{gnus-use-correct-string-widths} to
-@code{t}.  This makes buffer generation slower, but the results will be
-prettier.  The default value is @code{nil}.
 
 
 @node Window Layout
