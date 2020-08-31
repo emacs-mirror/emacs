@@ -47,6 +47,7 @@ test-all:
       - aclocal.m4
       - autogen.sh
       - configure.ac
+      - lib/*.{h,c}
       - lisp/*.el
       - lisp/**/*.el
       - src/*.{h,c}
