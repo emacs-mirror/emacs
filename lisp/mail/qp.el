@@ -125,7 +125,7 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     (format "=%02X" (char-after))
+	     (format "=%02X" (get-byte))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.
       (goto-char (point-min))
@@ -134,7 +134,7 @@ encode lines starting with \"From\"."
 	(while (not (eolp))
 	  (insert
 	   (prog1
-	       (format "=%02X" (char-after))
+	       (format "=%02X" (get-byte))
 	     (delete-char 1)))))
       (let ((ultra
 	     (and (boundp 'mm-use-ultra-safe-encoding)
