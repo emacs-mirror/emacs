@@ -1328,9 +1328,15 @@ Return t if the file exists and loads successfully.  */)
       /* Reconstruct the .elc filename.  */
       Lisp_Object src_name = Fgethash (Ffile_name_nondirectory (found),
 				       Vcomp_eln_to_el_h, Qnil);
-      if (suffix_p (src_name, "el.gz"))
-	src_name = Fsubstring (src_name, make_fixnum (0), make_fixnum (-3));
-      found_for_hist = concat2 (src_name, build_string ("c"));
+      if (NILP (src_name))
+	/* Manual eln load.  */
+	found_for_hist = found;
+      else
+	{
+	  if (suffix_p (src_name, "el.gz"))
+	    src_name = Fsubstring (src_name, make_fixnum (0), make_fixnum (-3));
+	  found_for_hist = concat2 (src_name, build_string ("c"));
+	}
     }
   else
     found_for_hist = found;
