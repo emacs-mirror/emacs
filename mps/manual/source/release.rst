@@ -39,6 +39,11 @@ New features
    experimental: the implementation is likely to change in future
    versions of the MPS. See :ref:`design-monitor`.
 
+#. The new function :c:func:`mps_pool_walk` visits all areas of
+   :term:`formatted objects` in a pool using the
+   :ref:`topic-scanning-protocol`. This allows the client program to
+   safely update references in the visited objects.
+
 
 Interface changes
 .................
@@ -88,6 +93,9 @@ Interface changes
 
    .. |unpack| replace:: :py:func:`struct.unpack`
    .. _unpack: https://docs.python.org/3/library/struct.html#struct.unpack
+
+#. The function :c:func:`mps_formatted_objects_walk` is deprecated in
+   favour of the new function :c:func:`mps_pool_walk`.
 
 
 Other changes

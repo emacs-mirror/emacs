@@ -40,8 +40,7 @@ Bool FormatCheck(Format format)
 
 /* FormatNo methods -- default values for format keyword arguments */
 
-static mps_res_t FormatNoScan(mps_ss_t mps_ss, mps_addr_t base,
-                              mps_addr_t limit)
+mps_res_t FormatNoScan(mps_ss_t mps_ss, mps_addr_t base, mps_addr_t limit)
 {
     UNUSED(mps_ss);
     UNUSED(base);

@@ -96,7 +96,6 @@ Args  Locals  Function
    4       0  ``SegScan()``
    4       5  ``amcSegScan()``
    3       0  ``TraceScanFormat()``
-   4       1  ``traceFormatScan()``
    3     ≤64  ``format->scan()``
    3       0  ``SegFix()``
    4      15  ``amcSegFix()``
@@ -114,12 +113,12 @@ Args  Locals  Function
    3       7  ``SplaySplay()``
    4       8  ``SplaySplitDown()``
    3       0  ``SplayZig()``
- 115    ≤259  **Total**
+ 111    ≤258  **Total**
 ====  ======  ========================
 
 We expect that a compiler will not need to push all local variables
 onto the stack, but even in the case where it pushes all of them, this
-call requires no more than 374 words of stack space.
+call requires no more than 369 words of stack space.
 
 This isn't necessarily the deepest call into the MPS (the MPS's
 modular design and class system makes it hard to do a complete
