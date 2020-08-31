@@ -2047,7 +2047,7 @@ be useful for Shell mode (in reality, Shell mode does not set
    "%n"
    ")%]--"
 @group
-   '(which-func-mode ("" which-func-format "--"))
+   '(which-function-mode ("" which-func-format "--"))
    '(line-number-mode "L%l--")
    '(column-number-mode "C%c--")
    '(-3 "%p")))
@@ -2055,8 +2055,8 @@ be useful for Shell mode (in reality, Shell mode does not set
 @end example
 
 @noindent
-(The variables @code{line-number-mode}, @code{column-number-mode}
-and @code{which-func-mode} enable particular minor modes; as usual,
+(The variables @code{line-number-mode}, @code{column-number-mode} and
+@code{which-function-mode} enable particular minor modes; as usual,
 these variable names are also the minor mode command names.)
 
 @node Mode Line Variables
@@ -2198,7 +2198,7 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-func-mode} minor mode if set,
+the mode line just after the @code{which-function-mode} minor mode if set,
 else after @code{mode-line-modes}.  The command @code{display-time} sets
 @code{global-mode-string} to refer to the variable
 @code{display-time-string}, which holds a string containing the time and
@@ -2227,7 +2227,7 @@ specifies addition of text properties.
  "   "
 @group
  mode-line-modes
- (which-func-mode ("" which-func-format "--"))
+ (which-function-mode ("" which-func-format "--"))
  (global-mode-string ("--" global-mode-string))
  "-%-")
 @end group
