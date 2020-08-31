@@ -498,6 +498,7 @@ extern mps_res_t mps_pool_create_k(mps_pool_t *, mps_arena_t,
 extern void mps_pool_destroy(mps_pool_t);
 extern size_t mps_pool_total_size(mps_pool_t);
 extern size_t mps_pool_free_size(mps_pool_t);
+extern mps_res_t mps_pool_walk(mps_pool_t, mps_area_scan_t, void *);
 
 
 /* Chains */

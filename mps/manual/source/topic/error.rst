@@ -67,6 +67,7 @@ assume that any MPS function that returns a result code can return
     * :c:macro:`MPS_RES_PARAM`: an invalid parameter was passed.
 
 
+.. _topic-result-codes:
 
 Result codes
 ------------
