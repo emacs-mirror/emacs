@@ -4868,11 +4868,6 @@ mark_memory (void const *start, void const *end)
       intptr_t ip;
       INT_ADD_WRAPV ((intptr_t) p, (intptr_t) lispsym, &ip);
       mark_maybe_pointer ((void *) ip);
-
-      verify (alignof (Lisp_Object) % GC_POINTER_ALIGNMENT == 0);
-      if (alignof (Lisp_Object) == GC_POINTER_ALIGNMENT
-	  || (uintptr_t) pp % alignof (Lisp_Object) == 0)
-	mark_maybe_object (*(Lisp_Object const *) pp);
     }
 }
 
