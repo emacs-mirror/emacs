@@ -1169,6 +1169,34 @@ RefSet ScanStateSummary(ScanState ss)
 }
 
 
+/* ScanStateUpdateSummary -- update segment summary after scan
+ *
+ * wasTotal is TRUE if we know that all references were scanned, FALSE
+ * if some references might not have been scanned.
+ */
+void ScanStateUpdateSummary(ScanState ss, Seg seg, Bool wasTotal)
+{
+  RefSet summary;
+
+  AVERT(ScanState, ss);
+  AVERT(Seg, seg);
+  AVERT(Bool, wasTotal);
+
+  /* Only apply the write barrier if it is not deferred. */
+  if (seg->defer == 0) {
+    /* If we scanned every reference in the segment then we have a
+       complete summary we can set. Otherwise, we just have
+       information about more zones that the segment refers to. */
+    if (wasTotal)
+      summary = ScanStateSummary(ss);
+    else
+      summary = RefSetUnion(SegSummary(seg), ScanStateSummary(ss));
+  } else {
+    summary = RefSetUNIV;
+  }
+  SegSetSummary(seg, summary);
+}
+
 /* traceScanSegRes -- scan a segment to remove greyness
  *
  * @@@@ During scanning, the segment should be write-shielded to prevent
@@ -1181,7 +1209,6 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
   Bool wasTotal;
   ZoneSet white;
   Res res;
-  RefSet summary;
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
@@ -1238,20 +1265,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
         seg->defer = WB_DEFER_DELAY;
     }
 
-    /* Only apply the write barrier if it is not deferred. */
-    if (seg->defer == 0) {
-      /* If we scanned every reference in the segment then we have a
-         complete summary we can set. Otherwise, we just have
-         information about more zones that the segment refers to. */
-      if (res == ResOK && wasTotal)
-        summary = ScanStateSummary(ss);
-      else
-        summary = RefSetUnion(SegSummary(seg), ScanStateSummary(ss));
-    } else {
-      summary = RefSetUNIV;
-    }
-    SegSetSummary(seg, summary);
-
+    ScanStateUpdateSummary(ss, seg, res == ResOK && wasTotal);
     ScanStateFinish(ss);
   }
 
