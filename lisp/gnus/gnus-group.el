@@ -2411,7 +2411,8 @@ the bug number, and browsing the URL must return mbox output."
   (require 'bug-reference)
   (let ((def (cond ((thing-at-point-looking-at bug-reference-bug-regexp 500)
                     (match-string 2))
-                   ((number-at-point)))))
+                   ((and (number-at-point)
+                         (abs (number-at-point)))))))
     ;; Pass DEF as the value of COLLECTION instead of DEF because:
     ;; a) null input should not cause DEF to be returned and
     ;; b) TAB and M-n still work this way.
