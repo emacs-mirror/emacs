@@ -1099,12 +1099,22 @@ close_infile_unwind (void *arg)
   infile = prev_infile;
 }
 
-static ATTRIBUTE_UNUSED Lisp_Object
-parent_directory (Lisp_Object directory)
+/* Compute the filename we want in `load-history' and `load-file-name'.  */
+
+static Lisp_Object
+compute_found_effective (Lisp_Object found)
 {
-  return Ffile_name_directory (Fsubstring (directory,
-					   make_fixnum (0),
-					   Fsub1 (Flength (directory))));
+  /* Reconstruct the .elc filename.  */
+  Lisp_Object src_name =
+    Fgethash (Ffile_name_nondirectory (found), Vcomp_eln_to_el_h, Qnil);
+
+  if (NILP (src_name))
+    /* Manual eln load.  */
+    return found;
+
+  if (suffix_p (src_name, "el.gz"))
+    src_name = Fsubstring (src_name, make_fixnum (0), make_fixnum (-3));
+  return concat2 (src_name, build_string ("c"));
 }
 
 DEFUN ("load", Fload, Sload, 1, 5, 0,
@@ -1321,30 +1331,15 @@ Return t if the file exists and loads successfully.  */)
      Vload_source_file_function.  */
   specbind (Qlexical_binding, Qnil);
 
-  /* Get the name for load-history.  */
-  Lisp_Object found_for_hist;
-  if (is_native_elisp)
-    {
-      /* Reconstruct the .elc filename.  */
-      Lisp_Object src_name = Fgethash (Ffile_name_nondirectory (found),
-				       Vcomp_eln_to_el_h, Qnil);
-      if (NILP (src_name))
-	/* Manual eln load.  */
-	found_for_hist = found;
-      else
-	{
-	  if (suffix_p (src_name, "el.gz"))
-	    src_name = Fsubstring (src_name, make_fixnum (0), make_fixnum (-3));
-	  found_for_hist = concat2 (src_name, build_string ("c"));
-	}
-    }
-  else
-    found_for_hist = found;
+  Lisp_Object found_eff =
+    is_native_elisp
+    ? compute_found_effective (found)
+    : found;
 
   hist_file_name = (! NILP (Vpurify_flag)
                     ? concat2 (Ffile_name_directory (file),
-                               Ffile_name_nondirectory (found_for_hist))
-                    : found_for_hist);
+                               Ffile_name_nondirectory (found_eff))
+                    : found_eff);
 
   version = -1;
 
@@ -1489,20 +1484,7 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  if (is_native_elisp)
-    {
-      /* Many packages use `load-file-name' as a way to obtain the
-	 package location (see bug#40099).  .eln files are not in the
-	 same folder of their respective sources therfore not to break
-	 packages we fake `load-file-name' here.  The non faked
-	 version of it is `load-true-file-name'. */
-      Lisp_Object el_name = Fgethash (Ffile_name_nondirectory (found),
-				      Vcomp_eln_to_el_h, Qnil);
-      specbind (Qload_file_name,
-		NILP (el_name) ? Qnil : concat2 (el_name, build_string ("c")));
-    }
-  else
-    specbind (Qload_file_name, found);
+  specbind (Qload_file_name, found_eff);
   specbind (Qload_true_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
