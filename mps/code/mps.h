@@ -797,8 +797,6 @@ extern mps_res_t mps_scan_area_masked(mps_ss_t, void *, void *, void *);
 extern mps_res_t mps_scan_area_tagged(mps_ss_t, void *, void *, void *);
 extern mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t, void *, void *, void *);
 
-extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
-
 #define MPS_SCAN_BEGIN(ss) \
   MPS_BEGIN \
     mps_ss_t _ss = (ss); \
