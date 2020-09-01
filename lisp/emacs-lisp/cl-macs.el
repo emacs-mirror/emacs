@@ -2329,6 +2329,14 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 (defmacro cl-the (type form)
   "Return FORM.  If type-checking is enabled, assert that it is of TYPE."
   (declare (indent 1) (debug (cl-type-spec form)))
+  ;; When native compiling possibly add the appropriate type hint.
+  (when (and (boundp 'byte-native-compiling)
+             byte-native-compiling)
+    (setf form
+          (cl-case type
+            (fixnum `(comp-hint-fixnum ,form))
+            (cons `(comp-hint-cons ,form))
+            (otherwise form))))
   (if (not (or (not (cl--compiling-file))
                (< cl--optimize-speed 3)
                (= cl--optimize-safety 3)))
