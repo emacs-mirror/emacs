@@ -265,28 +265,28 @@ hold on to suitable pages. Optional.
 Analysis
 --------
 
-_`.anal.sw`: Almost any placement policy would be an improvement on
+_`.analysis.sw`: Almost any placement policy would be an improvement on
 the current SW one.
 
-_`.anal.cause-and-effect`: The locus manager doesn't usually need to
+_`.analysis.cause-and-effect`: The locus manager doesn't usually need to
 know *why* things need to be differentiable, disjoint, contiguous, and
 so on. Abstracting the reason away from the interface makes it more
 generic, more likely to have serendipitous new uses. Attributes
 described by a quantity (deathtime, size, etc.) are an exception to
 this, because we can't devise a common measure.
 
-_`.anal.stable`: The strategy must be stable: it must avoid repeated
+_`.analysis.stable`: The strategy must be stable: it must avoid repeated
 recomputation, especially the kind that switches between alternatives
 with a short period (repeated "bites" out the same region or
 flip-flopping between two regions).
 
-_`.anal.fragmentation`: There's some call to avoid fragmentation in
+_`.analysis.fragmentation`: There's some call to avoid fragmentation in
 cohorts that don't need strict contiguity, but this is not a separate
 requirement, since fragmentation is a global condition, and can only
 be ameliorated if there's a global strategy that clumps allocations
 together.
 
-_`.anal.deathtime`: Cohorts with good death-time clumping of their
+_`.analysis.deathtime`: Cohorts with good death-time clumping of their
 objects could use some locality of tract allocation, because it
 increases the chances of creating large holes in the address space
 (for other allocation to use). OTOH. many cohorts will not do multiple
@@ -299,7 +299,7 @@ the locus manager will not know it, therefore this requirement should
 be pursued by requesting allocation next to a particular tract (which
 we already have a requirement for).
 
-_`.anal.asymmetrical`: The strategy has to be asymmetrical with
+_`.analysis.asymmetrical`: The strategy has to be asymmetrical with
 respect to cohorts growing and shrinking. The reason of this asymmetry
 is that it can choose where to grow, but it cannot choose where to
 shrink (except in a small way by growing with good locality).

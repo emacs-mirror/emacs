@@ -103,7 +103,7 @@ the registry.
 Analysis
 --------
 
-_`.anal`: The proposed order of development, with summary of
+_`.analysis`: The proposed order of development, with summary of
 requirements impact is as follows (★ for positive impact, ⇓ for
 negative impact):
 

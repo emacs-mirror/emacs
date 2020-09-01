@@ -522,7 +522,7 @@ static Res MVTOversizeFill(Addr *baseReturn,
    * now so as to avoid the more severe fragmentation that we believe
    * would result if we used these for allocation. See
    * <design/poolmvt#.arch.fragmentation.internal> and
-   * <design/poolmvt#.anal.policy.size>.)
+   * <design/poolmvt#.analysis.policy.size>.)
    */
   mvt->available -= alignedSize - minSize;
   mvt->unavailable += alignedSize - minSize;

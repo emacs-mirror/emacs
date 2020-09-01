@@ -56,7 +56,7 @@ _`.req.perf`: Performance should not be unreasonably hindered.
 Analysis
 --------
 
-_`.anal.simple`: To have the code functioning correctly it should be
+_`.analysis.simple`: To have the code functioning correctly it should be
 easy to change correctly. So a simple approach is desirable. We have
 to also ensure that performance is not unreasonably downgraded.
 
@@ -74,14 +74,14 @@ _`.lock-cost`: The cost of locking in performance terms are:
 - _`.lock-cost.wait`: the time wasted by one thread being blocked on
   another thread.
 
-_`.anal.perf.signif`: `.lock-cost.pause`_ is significant if there are
+_`.analysis.perf.signif`: `.lock-cost.pause`_ is significant if there are
 MPS functions that take a long time. Using more locks, e.g. having a
 lock per pool as well as a lock per arena, is a way of decreasing the
 locking conflict between threads (`.lock-cost.pause`_ and
 `.lock-cost.wait`_). However this could increase
 `.lock-cost.overhead`_ significantly.
 
-_`.anal.perf.work`: But all MPS functions imply a small work-load
+_`.analysis.perf.work`: But all MPS functions imply a small work-load
 unless a collection is taking place. In the case of a collection, in
 practice and certainly in the near future, all threads will most
 likely be suspended while the collection work is going on. (The pages
@@ -89,7 +89,7 @@ being scanned will need to be unprotected which implies the mutator
 will have to be stopped.) We also have to remember that unless we are
 running on genuine multiprocessor `.lock-cost.wait`_ is irrelevant.
 
-_`.anal.perf.alloc`: During typical use we expect that it is
+_`.analysis.perf.alloc`: During typical use we expect that it is
 allocation that is the most frequent activity. Allocation buffers
 (design.mps.buffer_) are designed to allow allocation in concurrent
 threads without needing a lock. So the most significant time a thread
@@ -99,7 +99,7 @@ as a separate buffer will be required for each thread.
 
 .. _design.mps.buffer: buffer
 
-_`.anal.perf.lock`: So overall the performance cost of locking is, I
+_`.analysis.perf.lock`: So overall the performance cost of locking is, I
 estimate, most significantly the overhead of calling the locking
 functions. Hence it would be undesirable from a performance point of
 view to have more than one lock.
@@ -108,7 +108,7 @@ view to have more than one lock.
 Recursive vs binary locks
 .........................
 
-_`.anal.reentrance`: The simplest way to lock the code safely is to
+_`.analysis.reentrance`: The simplest way to lock the code safely is to
 define which code runs inside or outside the lock. Calling from the
 outside to the inside implies a lock has to be claimed. Returning
 means the lock has to be released. Control flow from outside to
@@ -131,7 +131,7 @@ ways to implement this:
    - more code
    - slightly easier to reason about
 
-_`.anal.strategy`: It seems that the `.recursive`_ strategy is the
+_`.analysis.strategy`: It seems that the `.recursive`_ strategy is the
 easiest to implement first, but could be evolved into a `.binary`_
 strategy. (That evolution has now happened. tony 1999-08-31).
 
@@ -141,26 +141,26 @@ Fork safety
 
 In order to support ``fork()``, we need to solve the following problems:
 
-_`.anal.fork.lock`: Any MPS lock might be held by another thread at
+_`.analysis.fork.lock`: Any MPS lock might be held by another thread at
 the point where ``fork()`` is called. The lock would be protecting the
 integrity of some data structure. But in the child the thread holding
 the lock no longer exists, and so there is no way to restore the
 integrity.
 
-_`.anal.fork.threads`: In the child process after a ``fork()``, there
+_`.analysis.fork.threads`: In the child process after a ``fork()``, there
 is only one thread, which is a copy of the thread that called
 ``fork()`` in the parent process. All other threads no longer exist.
 But the MPS maintains references to these threads, via the
 ``ThreadStruct`` object` created by calls to ``mps_thread_reg()``. If
 we try to communicate with these threads it will fail or crash.
 
-_`.anal.fork.exc-thread`: On macOS, the MPS handles protection faults
+_`.analysis.fork.exc-thread`: On macOS, the MPS handles protection faults
 using a dedicated thread. But in the child process after a ``fork()``,
 this dedicated thread no longer exists. Also, the Mach port on which
 the dedicated thread receives its messages does not exist in the child
 either.
 
-_`.anal.fork.mach-port`: On macOS, the MPS identifies threads via
+_`.analysis.fork.mach-port`: On macOS, the MPS identifies threads via
 their Mach port numbers, which are stashed in the ``ThreadStruct`` and
 used to identify the current thread, for example in
 ``ThreadSuspend()``. But in the child process after ``fork()`` the

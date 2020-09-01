@@ -119,14 +119,14 @@ simply nest at top of stack.
 .. _design.mps.pthreadext.req.suspend.protection: pthreadext#.req.suspend.protection
 
 _`.threads.async`: POSIX imposes some restrictions on signal handler
-functions (see design.mps.pthreadext.anal.signal.safety_). Basically
+functions (see design.mps.pthreadext.analysis.signal.safety_). Basically
 the rules say the behaviour of almost all POSIX functions inside a
 signal handler is undefined, except for a handful of functions which
 are known to be "async-signal safe". However, if it's known that the
 signal didn't happen inside a POSIX function, then it is safe to call
 arbitrary POSIX functions inside a handler.
 
-.. _design.mps.pthreadext.anal.signal.safety: pthreadext#.anal.signal.safety
+.. _design.mps.pthreadext.analysis.signal.safety: pthreadext#.analysis.signal.safety
 
 _`.threads.async.protection`: If the signal handler is invoked because
 of an MPS access, then we know the access must have been caused by

@@ -91,7 +91,7 @@ and stack must be recorded when the mutator enters the MPS, if there
 is a possibility that the MPS might need to know the mutator context.
 
 _`.sol.entry-points.fragile`: The analysis of which entry points might
-need to save the context (see `.anal.entry-points`_ below) is fragile.
+need to save the context (see `.analysis.entry-points`_ below) is fragile.
 It might be incorrect now, or become incomplete if we refactor the
 internals of tracing and polling. As a defence against errors of this
 form, ``StackScan()`` asserts that the context was saved, but if the
@@ -170,7 +170,7 @@ introduces a dependency on that library.
 Analysis
 --------
 
-_`.anal.setjmp`: The [C1990]_ standard says:
+_`.analysis.setjmp`: The [C1990]_ standard says:
 
     An invocation of the ``setjmp`` macro shall appear only in one of
     the following contexts:
@@ -195,7 +195,7 @@ And the [C1999]_ standard adds:
     If the invocation appears in any other context, the behavior is
     undefined.
 
-_`.anal.entry-points`: Here's a reverse call graph (in the master
+_`.analysis.entry-points`: Here's a reverse call graph (in the master
 sources at changelevel 189652) showing which entry points might call
 ``StackScan()`` and so need to record the stack context::
 
