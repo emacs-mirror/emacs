@@ -859,7 +859,7 @@ exceeding this limit is abbreviated with an ellipsis.  A value of
 These are the values for @code{print-length} and @code{print-level}
 used by @code{eval-expression}, and thus, indirectly, by many
 interactive evaluation commands (@pxref{Lisp Eval,, Evaluating
-Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
+Emacs Lisp Expressions, emacs, The GNU Emacs Manual}).
 @end defopt
 
   These variables are used for detecting and reporting circular

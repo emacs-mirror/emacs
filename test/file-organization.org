@@ -1,10 +1,10 @@
-#+TITLE: The Location of Emacs-Lisp Tests
+#+TITLE: The Location of Emacs Lisp Tests
 
 
 
 * The Main Emacs Repository
 
-The Emacs repository contains a very large number of Emacs-Lisp files, many of
+The Emacs repository contains a very large number of Emacs Lisp files, many of
 which pre-date both formal package support for Emacs and automated unit
 testing.
 

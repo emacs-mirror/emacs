@@ -71,7 +71,7 @@ uses considerably less memory."
                  (const :tag "Write directly to file" nil)))
 
 (defcustom gnus-init-file (nnheader-concat gnus-home-directory ".gnus")
-  "Your Gnus Emacs-Lisp startup file name.
+  "Your Gnus Emacs Lisp startup file name.
 If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type 'file)
@@ -82,7 +82,7 @@ If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
 	       (directory-file-name installation-directory))
 	      "site-lisp/gnus-init")
     (error nil))
-  "The site-wide Gnus Emacs-Lisp startup file name, or nil if none.
+  "The site-wide Gnus Emacs Lisp startup file name, or nil if none.
 If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type '(choice file (const nil)))
