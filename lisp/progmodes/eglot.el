@@ -508,7 +508,7 @@ treated as in `eglot-dbind'."
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'"
-  (:method (_s) nil)) ; blank default
+  (:method (_s) eglot--{})) ; blank default
 
 (cl-defgeneric eglot-register-capability (server method id &rest params)
   "Ask SERVER to register capability METHOD marked with ID."
@@ -581,7 +581,7 @@ treated as in `eglot-dbind'."
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :publishDiagnostics `(:relatedInformation :json-false))
-            :experimental (list))))
+            :experimental eglot--{})))
 
 (defclass eglot-lsp-server (jsonrpc-process-connection)
   ((project-nickname
