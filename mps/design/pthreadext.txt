@@ -77,14 +77,14 @@ manner.
 Analysis
 --------
 
-_`.anal.suspend`: Thread suspension is inherently asynchronous. MPS
+_`.analysis.suspend`: Thread suspension is inherently asynchronous. MPS
 needs to be able to suspend another thread without prior knowledge of
 the code that thread is running. (That is, we can't rely on
 cooperation between threads.) The only asynchronous communication
 available on POSIX is via signals -- so the suspend and resume
 mechanism must ultimately be built from signals.
 
-_`.anal.signal.safety`: POSIX imposes some restrictions on what a
+_`.analysis.signal.safety`: POSIX imposes some restrictions on what a
 signal handler function might do when invoked asynchronously (see the
 sigaction_ documentation, and search for the string "reentrant"). In
 summary, a small number of POSIX functions are defined to be
@@ -98,24 +98,24 @@ followups for some further analysis.
 .. _mail.tony.1999-08-24.15-40: https://info.ravenbrook.com/project/mps/mail/1999/08/24/15-40/0.txt
 .. _sigaction: https://pubs.opengroup.org/onlinepubs/007908799/xsh/sigaction.html
 
-_`.anal.signal.safety.implication`: Since we can't assume that we
+_`.analysis.signal.safety.implication`: Since we can't assume that we
 won't attempt to suspend a thread while it is running an unsafe
 function, we must limit the use of POSIX functions in the suspend
 signal handler to those which are designed to be "async-signal safe".
 One of the few such functions related to synchronization is
 ``sem_post()``.
 
-_`.anal.signal.example`: An example of how to suspend threads in POSIX
+_`.analysis.signal.example`: An example of how to suspend threads in POSIX
 was posted to newsgroup comp.programming.threads in August 1999
 [Lau_1999-08-16]_. The code in the post was written by David Butenhof, who
 contributed some comments on his implementation [Butenhof_1999-08-16]_
 
-_`.anal.signal.linux-hack`: In the current implementation of Linux
+_`.analysis.signal.linux-hack`: In the current implementation of Linux
 Pthreads, it would be possible to implement suspend/resume using
 ``SIGSTOP`` and ``SIGCONT``. This is, however, nonportable and will
 probably stop working on Linux at some point.
 
-_`.anal.component`: There is no known way to meet the requirements
+_`.analysis.component`: There is no known way to meet the requirements
 above in a way which cooperates with another component in the system
 which also provides its own mechanism to suspend and resume threads.
 The best bet for achieving this is to provide the functionality in
@@ -123,7 +123,7 @@ shared low-level component which may be used by MPS and other clients.
 This will require some discussion with other potential clients and/or
 standards bodies.
 
-_`.anal.component.dylan`: Note that such cooperation is actually a
+_`.analysis.component.dylan`: Note that such cooperation is actually a
 requirement for Dylan (req.dylan.dc.env.self), though this is not a
 problem, since all the Dylan components share the MPS mechanism.
 
@@ -257,7 +257,7 @@ the other object is linked into the ``idRing`` of the target.
 
 _`.impl.suspend.not-suspended`: If the thread is not already
 suspended, then we forcibly suspend it using a technique similar to
-Butenhof's (see `.anal.signal.example`_): First we set the victim
+Butenhof's (see `.analysis.signal.example`_): First we set the victim
 variable (see `.impl.global.victim`_) to indicate the target object.
 Then we send the signal ``PTHREADEXT_SIGSUSPEND`` to the thread (see
 `.impl.signals`_), and wait on the semaphore for it to indicate that
@@ -293,7 +293,7 @@ the id ring.
 
 _`.impl.resume.not-also`: If the thread is not also suspended on
 behalf of another ``PThreadext``, then the thread is resumed using the
-technique proposed by Butenhof (see `.anal.signal.example`_). I.e. we
+technique proposed by Butenhof (see `.analysis.signal.example`_). I.e. we
 send it the signal ``PTHREADEXT_SIGRESUME`` (see `.impl.signals`_) and
 expect it to wake up. If this operation fails (for example, because of
 thread termination) we unlock the mutex and return ``ResFAIL``.

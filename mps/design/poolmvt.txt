@@ -307,7 +307,7 @@ _`.arch.abq`: The available block queue holds blocks that have
 coalesced sufficiently to reach reuse size.
 
 _`.arch.abq.reuse.size`: A multiple of the quantum of virtual memory
-is used as the reuse size (`.anal.policy.size`_).
+is used as the reuse size (`.analysis.policy.size`_).
 
 _`.arch.abq.fifo`: It is a FIFO queue (recently coalesced blocks go to
 the tail of the queue, blocks are taken from the head of the queue for
@@ -385,7 +385,7 @@ overlapping frees.
 _`.arch.dependency.loci`: The architecture depends on the arena being
 able to efficiently provide segments of varying sizes without
 excessive fragmentation. The locus mechanism should satisfy this
-dependency. (See `.anal.strategy.risk`_.)
+dependency. (See `.analysis.strategy.risk`_.)
 
 _`.arch.dependency.mfs`: The architecture internal data structures
 depend on efficient manual management of small, fixed-sized objects (2
@@ -455,17 +455,17 @@ should not be delivered to clients until thoroughly tested.
 Analysis
 --------
 
-_`.anal.discard`: We have discarded many traditional solutions based
+_`.analysis.discard`: We have discarded many traditional solutions based
 on experience and analysis in paper.wil95(1). In particular, managing
 the free list as a linear list arranged by address or size and basing
 policy on searching such a linear list in a particular direction, from
 a particular starting point, using fit and/or immediacy as criteria.
 We believe that none of these solutions is derived from considering
 the root of the problem to be solved (as described in
-`.anal.strategy`_), although their behavior as analyzed by Wilson
+`.analysis.strategy`_), although their behavior as analyzed by Wilson
 gives several insights.
 
-_`.anal.strategy`: For any program to run in the minimum required
+_`.analysis.strategy`: For any program to run in the minimum required
 memory (with minimal overhead -- we discard solutions such as
 compression for now), fragmentation must be eliminated. To eliminate
 fragmentation, simply place blocks in memory so that they die "in
@@ -475,18 +475,18 @@ deathtime and exploit them to approximate the ideal. Initially we
 believe birth time and type (as approximated by size) will be useful
 attributes to explore.
 
-_`.anal.strategy.perform`: To meet `.req.attr.performance`_, the
+_`.analysis.strategy.perform`: To meet `.req.attr.performance`_, the
 implementation of `.sol.strategy`_ must be competitive in both time
 and space.
 
-_`.anal.strategy.risk`: The current MPS segment substrate can cause
+_`.analysis.strategy.risk`: The current MPS segment substrate can cause
 internal fragmentation which an individual pool can do nothing about.
 We expect that request.epcore.170193.sugg.loci_ will be implemented to
 remove this risk.
 
 .. _`request.epcore.170193.sugg.loci`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193/
 
-_`.anal.policy`: Deferred coalescing, when taken to the extreme will
+_`.analysis.policy`: Deferred coalescing, when taken to the extreme will
 not minimize the memory consumption of a program, as no memory would
 ever be reused. Eager reuse appears to lead to more fragmentation,
 whereas delayed reuse appears to reduce fragmentation
@@ -496,10 +496,10 @@ they reach a (configurable) size. We believe that this policy along
 with the policy of segregating allocations by death time, will greatly
 reduce fragmentation.
 
-_`.anal.policy.risk`: This policy could lead to pathological behavior
+_`.analysis.policy.risk`: This policy could lead to pathological behavior
 if allocations cannot be successfully segregated.
 
-_`.anal.policy.allocate.segregate`: This policy has some similarities
+_`.analysis.policy.allocate.segregate`: This policy has some similarities
 to CustomAlloc (paper.grun92(1)). CustomAlloc segregates objects by
 size classes, and then within those classes chooses a different
 allocator depending on whether that size class has a stable or
@@ -511,7 +511,7 @@ application and tuning the allocator according to those profiles.
 Although we intend to support such tuning, we do not want to require
 it.
 
-_`.anal.policy.reallocate`: For reallocation, `.req.fun.suballocate`_
+_`.analysis.policy.reallocate`: For reallocation, `.req.fun.suballocate`_
 can be used to free the remainder if a block is made smaller. Doing so
 will cause the freed block to obey `.sol.policy.allocate`_ (that is,
 the freed block will not be treated specially, it will be subject to
@@ -523,7 +523,7 @@ subsequent copy. If each object that will be reallocated can be given
 its own allocation point until its final reallocation, the allocation
 point can be used to hold released or spare storage.
 
-_`.anal.policy.size`: We believe that this will take advantage of the
+_`.analysis.policy.size`: We believe that this will take advantage of the
 underlying virtual memory system's ability to compact the physical
 memory footprint of the program by discarding free fragments that
 align with the virtual memory quantum. (In a VM system one can
@@ -531,7 +531,7 @@ approximate compaction by sparse mapping. If every other page of a
 segment is unused, the unused pages can be unmapped, freeing up
 physical memory that can be mapped to a new contiguous vm range.)
 
-_`.anal.mech.free-list`: The literature (paper.grun92(1),
+_`.analysis.mech.free-list`: The literature (paper.grun92(1),
 paper.vo96(0)) indicate that `.sol.mech.free-list.cartesian-tree`_
 provides a space-efficient implementation at some cost in speed.
 `.sol.mech.free-list.splay-tree`_ is faster but less space-efficient.
@@ -543,13 +543,13 @@ objects of varying death times. Instead we intend to use a free list
 mechanism to support fast coalescing, deferring reuse of blocks until
 a minimum size has been reached.
 
-_`.anal.mech.allocate.optimize-small`: Wilson (paper.wil95(1)) notes
+_`.analysis.mech.allocate.optimize-small`: Wilson (paper.wil95(1)) notes
 that small blocks typically have short lifetimes and that overall
 performance is improved if you optimize the management of small
 blocks, e.g., `.sol.mech.allocate.lookup-table`_ for all small blocks.
 We believe that `.sol.mech.allocate.buffer`_ does exactly that.
 
-_`.anal.mech.allocate.optimize-new`: Wilson (paper.wil95(1)) reports
+_`.analysis.mech.allocate.optimize-new`: Wilson (paper.wil95(1)) reports
 some benefit from "preserving wilderness", that is, when a block of
 memory must be requested from the system to satisfy an allocation,
 only the minimum amount of that block is used, the remainder is
