@@ -432,9 +432,9 @@ extern void TraceIdMessagesDestroy(Arena arena, TraceId ti);
    *(refIO) = SCANref, \
    SCANres)
 
-/* Equivalent to <code/mps.h> MPS_FIX */
+/* Equivalent to <code/mps.h> MPS_FIX12 */
 
-#define TRACE_FIX(ss, refIO) \
+#define TRACE_FIX12(ss, refIO) \
   (TRACE_FIX1(ss, *(refIO)) ? TRACE_FIX2(ss, refIO) : ResOK)
 
 /* Equivalent to <code/mps.h> MPS_SCAN_END */

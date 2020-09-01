@@ -1431,7 +1431,7 @@ static Res traceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena,
   ShieldExpose(arena, seg);
 
   TRACE_SCAN_BEGIN(&ss) {
-    res = TRACE_FIX(&ss, refIO);
+    res = TRACE_FIX12(&ss, refIO);
   } TRACE_SCAN_END(&ss);
   ss.scannedSize = sizeof *refIO;
 

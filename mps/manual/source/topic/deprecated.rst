@@ -740,33 +740,6 @@ Deprecated in version 1.112
 Deprecated in version 1.111
 ...........................
 
-.. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
-
-    .. deprecated::
-
-        Use :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` instead.
-
-    :term:`Fix` a :term:`reference`.
-
-    This is a function equivalent to::
-
-        MPS_SCAN_BEGIN(ss);
-        res = MPS_FIX12(ss, ref_io);
-        MPS_SCAN_END(ss);
-        return res;
-
-    Because :term:`scanning <scan>` is an operation on the
-    :term:`critical path`, we recommend that you use
-    :c:func:`MPS_FIX12` (or :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`)
-    to ensure that the "stage 1 fix" is inlined.
-
-    .. note::
-
-        If you call this between :c:func:`MPS_SCAN_BEGIN` and
-        :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL` to
-        ensure that the scan state is passed correctly.
-
-
 .. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask)
 
     .. deprecated::
