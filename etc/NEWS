@@ -379,6 +379,14 @@ In Message mode buffers, the 'C-c C-p' ('message-insert-screenshot')
 command has been added.  It depends on using an external program to
 take the actual screenshot, and defaults to "ImageMagick import".
 
+
+** Smtpmail
+
++++
+*** Allow direct selection of smtp authentication mechanism.
+A server entry retrieved by auth-source can request a desired smtp
+authentication mechanism by setting a value for the key 'smtp-auth'.
+
 ** Help
 
 +++
