@@ -532,11 +532,6 @@ extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
 
-/* mps_ap_fill_with_reservoir_permit is deprecated */
-extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *,
-                                                   mps_ap_t,
-                                                   size_t);
-
 extern mps_res_t (mps_ap_frame_push)(mps_frame_t *, mps_ap_t);
 extern mps_res_t (mps_ap_frame_pop)(mps_ap_t, mps_frame_t);
 
@@ -562,7 +557,7 @@ extern void mps_sac_flush(mps_sac_t);
 extern mps_res_t mps_sac_fill(mps_addr_t *, mps_sac_t, size_t, mps_bool_t);
 extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 
-#define MPS_SAC_ALLOC_FAST(res_o, p_o, sac, size, has_reservoir_permit) \
+#define MPS_SAC_ALLOC_FAST(res_o, p_o, sac, size, unused) \
   MPS_BEGIN \
     size_t _mps_i, _mps_s; \
     \
@@ -582,8 +577,7 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
       --(sac)->_freelists[_mps_i]._count; \
       (res_o) = MPS_RES_OK; \
     } else \
-      (res_o) = mps_sac_fill(&(p_o), sac, _mps_s, \
-                             has_reservoir_permit); \
+      (res_o) = mps_sac_fill(&(p_o), sac, _mps_s, unused); \
   MPS_END
 
 #define MPS_SAC_FREE_FAST(sac, p, size) \
@@ -610,19 +604,9 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
   MPS_END
 
 /* backward compatibility */
-#define MPS_SAC_ALLOC(res_o, p_o, sac, size, has_reservoir_permit) \
-      MPS_SAC_ALLOC_FAST(res_o, p_o, sac, size, has_reservoir_permit)
+#define MPS_SAC_ALLOC(res_o, p_o, sac, size, unused) \
+      MPS_SAC_ALLOC_FAST(res_o, p_o, sac, size, unused)
 #define MPS_SAC_FREE(sac, p, size) MPS_SAC_FREE_FAST(sac, p, size)
-
-
-/* Low memory reservoir (deprecated) */
-
-extern void mps_reservoir_limit_set(mps_arena_t, size_t);
-extern size_t mps_reservoir_limit(mps_arena_t);
-extern size_t mps_reservoir_available(mps_arena_t);
-extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
-                                                   mps_ap_t,
-                                                   size_t);
 
 
 /* Reserve Macros */
@@ -649,9 +633,6 @@ extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
     } else \
       (_res_v) = mps_ap_fill(&(_p_v), _mps_ap, _size); \
   MPS_END
-
-
-#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK MPS_RESERVE_BLOCK
 
 
 /* Commit Macros */
