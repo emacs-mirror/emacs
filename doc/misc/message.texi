@@ -2296,8 +2296,11 @@ String to mark the end of some inserted text.
 String to be inserted at the end of the message buffer.  If @code{t}
 (which is the default), the @code{message-signature-file} file will be
 inserted instead.  If a function, the result from the function will be
-used instead.  If a form, the result from the form will be used instead.
-If this variable is @code{nil}, no signature will be inserted at all.
+used instead.  If a form, the result from the form will be used
+instead.  If this variable is @code{nil}, no signature will be
+inserted at all, but you can still insert your
+@code{message-signature-file} by hand when desired, using the
+@kbd{C-c C-w} (@code{message-insert-signature}) command.
 
 @item message-signature-file
 @vindex message-signature-file
