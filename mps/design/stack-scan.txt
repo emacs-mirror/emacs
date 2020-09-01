@@ -214,7 +214,6 @@ sources at changelevel 189652) showing which entry points might call
          │         │   └ArenaPoll
          │         │     ├mps_alloc
          │         │     ├mps_ap_fill
-         │         │     ├mps_ap_fill_with_reservoir_permit
          │         │     ├mps_ap_alloc_pattern_end
          │         │     ├mps_ap_alloc_pattern_reset
          │         │     └ArenaRelease
@@ -233,7 +232,6 @@ sources at changelevel 189652) showing which entry points might call
 
 So the entry points that need to save the stack context are
 ``mps_arena_step()``, ``mps_alloc()``, ``mps_ap_fill()``,
-``mps_ap_fill_with_reservoir_permit()``,
 ``mps_ap_alloc_pattern_end()``, ``mps_ap_alloc_pattern_reset()``,
 ``mps_arena_release()``, ``mps_arena_start_collect()``,
 ``mps_arena_collect()``, and ``mps_arena_roots_walk()``.

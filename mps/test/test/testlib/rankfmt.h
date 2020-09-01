@@ -116,15 +116,6 @@ mycell *allocdumb(mps_ap_t ap, size_t bytes, mps_rank_t rank);
 mps_res_t allocrone(mycell **rvar, mps_ap_t ap, int size, mps_rank_t rank);
 mps_res_t allocrdumb(mycell **rvar, mps_ap_t ap, size_t bytes, mps_rank_t rank);
 
-mycell *reservoir_allocone(mps_ap_t ap, int size, mps_rank_t rank);
-mycell *reservoir_allocdumb(mps_ap_t ap, size_t bytes, mps_rank_t rank);
-
-mps_res_t reservoir_allocrone(mycell **rvar, mps_ap_t ap, int size,
-                              mps_rank_t rank);
-mps_res_t reservoir_allocrdumb(mycell **rvar, mps_ap_t ap, size_t bytes,
-                               mps_rank_t rank);
-
-
 mps_addr_t getdata(mycell *obj);
 mps_addr_t getassociated(mps_addr_t addr);
 

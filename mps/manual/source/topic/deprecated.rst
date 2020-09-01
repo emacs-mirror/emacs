@@ -69,15 +69,6 @@ Deprecated in version 1.118
 Deprecated in version 1.115
 ...........................
 
-.. c:function:: mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
-
-    .. deprecated::
-
-        Identical to :c:func:`mps_ap_fill`, which should be used
-        instead. Formerly, this function gave the MPS permission to
-        draw on the ‘low-memory reservoir’, but this no longer exists.
-
-
 .. c:type:: typedef mps_pool_class_t mps_class_t
 
     .. deprecated::
@@ -141,41 +132,6 @@ Deprecated in version 1.115
 
     Returns the total size of the pool, in :term:`bytes (1)`. This
     is the sum of allocated space and free space.
-
-
-.. c:function:: mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
-
-    .. deprecated::
-
-        Identical to :c:func:`mps_reserve`, which should be used
-        instead. Formerly, this function gave the MPS permission to
-        draw on the ‘low-memory reservoir’, but this no longer
-        exists.
-
-
-.. c:function:: void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
-
-    .. deprecated::
-
-        Has no effect. Formerly, it updated the recommended size of
-        the ‘low-memory reservoir’, but this no longer exists.
-
-
-.. c:function:: size_t mps_reservoir_limit(mps_arena_t arena)
-
-    .. deprecated::
-
-        Returns zero. Formerly, it returned the recommended size of
-        the ‘low-memory reservoir’, but this no longer exists.
-
-
-.. c:function:: size_t mps_reservoir_available(mps_arena_t arena)
-
-    .. deprecated::
-
-        Returns zero. Formerly, it returned the size of the available
-        memory in the ‘low-memory reservoir’, but this no longer
-        exists.
 
 
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)

@@ -254,7 +254,7 @@ Cache interface
 Allocation interface
 --------------------
 
-.. c:function:: mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
+.. c:function:: mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t sac, size_t size, mps_bool_t unused)
 
     Allocate a :term:`block` using a :term:`segregated allocation
     cache`. If no suitable block exists in the cache, ask for more
@@ -269,7 +269,7 @@ Allocation interface
     have to be one of the :term:`size classes` of the cache; nor does
     it have to be aligned.
 
-    ``has_reservoir_permit`` is obsolete.  Pass false.
+    ``unused`` is obsolete.  Pass false.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     address of the allocated block is ``*p_o``. The allocated block
@@ -315,7 +315,7 @@ Allocation interface
            :ref:`topic-interface-pun` for more details.
 
 
-.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
+.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t unused)
 
     A macro alternative to :c:func:`mps_sac_alloc`. It is faster than
     the function, but generates more code, does less checking.
