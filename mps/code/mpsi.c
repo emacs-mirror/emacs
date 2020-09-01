@@ -1663,17 +1663,6 @@ mps_bool_t mps_ld_isstale_any(mps_ld_t ld, mps_arena_t arena)
   return (mps_bool_t)b;
 }
 
-mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
-{
-  mps_res_t res;
-
-  MPS_SCAN_BEGIN(mps_ss) {
-    res = MPS_FIX12(mps_ss, ref_io);
-  } MPS_SCAN_END(mps_ss);
-
-  return res;
-}
-
 mps_word_t mps_collections(mps_arena_t arena)
 {
   return ArenaEpoch(arena); /* thread safe: see <code/arena.h#epoch.ts> */

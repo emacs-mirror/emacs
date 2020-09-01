@@ -274,8 +274,15 @@ static void addr_pool_test(mps_arena_t arena,
 
 static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
 {
+  mps_res_t res;
+  mps_addr_t *ref = p;
   testlib_unused(s);
-  return mps_fix(ss, (mps_addr_t *)p);
+
+  MPS_SCAN_BEGIN(ss) {
+    res = MPS_FIX12(ss, ref);
+  } MPS_SCAN_END(ss);
+
+  return res;
 }
 
 

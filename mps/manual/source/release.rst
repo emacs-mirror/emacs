@@ -58,6 +58,9 @@ Interface changes
    :c:func:`mps_reservoir_limit_set` and
    :c:func:`mps_reserve_with_reservoir_permit`, have been removed.
 
+#. The deprecated function :c:func:`mps_fix` has been removed. Use
+   the macro :c:func:`MPS_FIX12` instead.
+
 #. The keyword argument ``MPS_KEY_SPARE_COMMIT_LIMIT`` to
    :c:func:`mps_arena_create_k`, and the functions
    :c:func:`mps_arena_spare_commit_limit` and
