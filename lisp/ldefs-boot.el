@@ -7250,7 +7250,7 @@ file.
 
 To upgrade a version 206 file to version 208, call this command
 explicitly with a prefix argument: \\[universal-argument] \\[desktop-save].
-If you are upgrading from Emacs 24 or older, we recommed to do
+If you are upgrading from Emacs 24 or older, we recommend to do
 this once you decide you no longer need compatibility with versions
 of Emacs before 25.1.
 
@@ -34508,7 +34508,7 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
-(push (purecopy '(tramp 2 4 3)) package--builtin-versions)
+(push (purecopy '(tramp 2 4 5 -1)) package--builtin-versions)
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
