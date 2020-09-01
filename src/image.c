@@ -9830,7 +9830,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
         img->background_valid = 1;
       }
 
-    wrapped_contents = malloc (buffer_size);
+    wrapped_contents = xmalloc (buffer_size);
 
     if (!wrapped_contents
         || buffer_size <= snprintf (wrapped_contents, buffer_size, wrapper,
@@ -9889,7 +9889,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   pixbuf = rsvg_handle_get_pixbuf (rsvg_handle);
   if (!pixbuf) goto rsvg_error;
   g_object_unref (rsvg_handle);
-  free (wrapped_contents);
+  xfree (wrapped_contents);
 
   /* Extract some meta data from the svg handle.  */
   width     = gdk_pixbuf_get_width (pixbuf);
@@ -9960,7 +9960,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (rsvg_handle)
     g_object_unref (rsvg_handle);
   if (wrapped_contents)
-    free (wrapped_contents);
+    xfree (wrapped_contents);
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
   image_error ("Error parsing SVG image `%s'", img->spec);
