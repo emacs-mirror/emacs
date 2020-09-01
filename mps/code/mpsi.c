@@ -936,15 +936,6 @@ mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 }
 
 
-
-mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o,
-                                            mps_ap_t mps_ap, size_t size)
-{
-  return mps_reserve(p_o, mps_ap, size);
-}
-
-
-
 /* mps_commit -- commit initialized object, finishing allocation
  *
  * .commit.call: mps_commit does not call BufferCommit, but instead uses
@@ -1104,13 +1095,6 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 }
 
 
-mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
-                                            size_t size)
-{
-  return mps_ap_fill(p_o, mps_ap, size);
-}
-
-
 /* mps_ap_trip -- called by mps_commit when an AP is tripped
  *
  * .ap.trip.internal: mps_ap_trip is normally invoked by the
@@ -1206,7 +1190,7 @@ void mps_sac_flush(mps_sac_t mps_sac)
 /* mps_sac_fill -- alloc an object, and perhaps fill the cache */
 
 mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
-                       mps_bool_t has_reservoir_permit)
+                       mps_bool_t unused)
 {
   SAC sac = SACOfExternalSAC(mps_sac);
   Arena arena;
@@ -1216,7 +1200,7 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   AVER(p_o != NULL);
   AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
-  UNUSED(has_reservoir_permit); /* deprecated */
+  UNUSED(unused);
 
   ArenaEnter(arena);
 
@@ -1252,7 +1236,7 @@ void mps_sac_empty(mps_sac_t mps_sac, mps_addr_t p, size_t size)
 /* mps_sac_alloc -- alloc an object, using cached space if possible */
 
 mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
-                        mps_bool_t has_reservoir_permit)
+                        mps_bool_t unused)
 {
   Res res;
 
@@ -1260,7 +1244,7 @@ mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   AVER(TESTT(SAC, SACOfExternalSAC(mps_sac)));
   AVER(size > 0);
 
-  MPS_SAC_ALLOC_FAST(res, *p_o, mps_sac, size, (has_reservoir_permit != 0));
+  MPS_SAC_ALLOC_FAST(res, *p_o, mps_sac, size, (unused != 0));
   return (mps_res_t)res;
 }
 
@@ -2067,37 +2051,6 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
   ArenaLeave(arena);
 
   return MPS_RES_OK;
-}
-
-
-/* Low memory reservoir (deprecated -- see job003985) */
-
-
-/* mps_reservoir_limit_set -- set the reservoir size */
-
-void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
-{
-  UNUSED(arena);
-  UNUSED(size);
-  NOOP;
-}
-
-
-/* mps_reservoir_limit -- return the reservoir size */
-
-size_t mps_reservoir_limit(mps_arena_t arena)
-{
-  UNUSED(arena);
-  return 0;
-}
-
-
-/* mps_reservoir_available -- return memory available in the reservoir */
-
-size_t mps_reservoir_available(mps_arena_t arena)
-{
-  UNUSED(arena);
-  return 0;
 }
 
 

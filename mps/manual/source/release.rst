@@ -52,6 +52,12 @@ Interface changes
    removed. If you need access to protected memory for debugging a
    fatal error, use :c:func:`mps_arena_postmortem` instead.
 
+#. The deprecated reservoir functions
+   :c:func:`mps_ap_fill_with_reservoir_permit`,
+   :c:func:`mps_reservoir_available`, :c:func:`mps_reservoir_limit`,
+   :c:func:`mps_reservoir_limit_set` and
+   :c:func:`mps_reserve_with_reservoir_permit`, have been removed.
+
 #. The keyword argument ``MPS_KEY_SPARE_COMMIT_LIMIT`` to
    :c:func:`mps_arena_create_k`, and the functions
    :c:func:`mps_arena_spare_commit_limit` and
