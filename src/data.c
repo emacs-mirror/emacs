@@ -884,26 +884,17 @@ function, nil otherwise.  */)
 
 #ifdef HAVE_NATIVE_COMP
 
-DEFUN ("subr-native-dyn-p", Fsubr_native_dyn_p,
-       Ssubr_native_dyn_p, 1, 1, 0,
-       doc: /* Return t if the subr is native compiled lisp/d
-function, nil otherwise.  */)
-  (Lisp_Object subr)
-{
-  return SUBR_NATIVE_COMPILED_DYNP (subr) ? Qt : Qnil;
-}
-
 DEFUN ("subr-native-lambda-list", Fsubr_native_lambda_list,
        Ssubr_native_lambda_list, 1, 1, 0,
-       doc: /* Return the lambda list of native compiled lisp/d
-function.  */)
+       doc: /* Return the lambda list for a native compiled lisp/d
+function or t otherwise.  */)
   (Lisp_Object subr)
 {
   CHECK_SUBR (subr);
 
   return SUBR_NATIVE_COMPILED_DYNP (subr)
     ? XSUBR (subr)->lambda_list[0]
-    : Qnil;
+    : Qt;
 }
 
 DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
@@ -4051,7 +4042,6 @@ syms_of_data (void)
   defsubr (&Ssubr_name);
   defsubr (&Ssubr_native_elisp_p);
 #ifdef HAVE_NATIVE_COMP
-  defsubr (&Ssubr_native_dyn_p);
   defsubr (&Ssubr_native_lambda_list);
   defsubr (&Ssubr_native_comp_unit);
   defsubr (&Snative_comp_unit_file);
