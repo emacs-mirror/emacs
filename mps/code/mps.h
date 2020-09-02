@@ -516,7 +516,6 @@ extern void mps_chain_destroy(mps_chain_t);
 /* Manual Allocation */
 
 extern mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);
-extern mps_res_t mps_alloc_v(mps_addr_t *, mps_pool_t, size_t, va_list);
 extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
 
