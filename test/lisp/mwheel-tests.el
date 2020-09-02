@@ -22,6 +22,12 @@
 (require 'ert)
 (require 'mwheel)
 
+(ert-deftest mwheel-test-enable/disable ()
+  (mouse-wheel-mode 1)
+  (should (eq (lookup-key (current-global-map) '[mouse-4]) 'mwheel-scroll))
+  (mouse-wheel-mode -1)
+  (should (eq (lookup-key (current-global-map) '[mouse-4]) nil)))
+
 (ert-deftest mwheel-test--create-scroll-keys ()
   (should (equal (mouse-wheel--create-scroll-keys 10 'mouse-4)
                  '([mouse-4]
