@@ -173,21 +173,6 @@ static mps_addr_t make_no_inline(void)
 }
 
 
-/* alloc_v_test -- test mps_alloc_v */
-
-static void alloc_v_test(mps_pool_t pool, ...)
-{
-  void *p;
-  size_t size = 32;
-  va_list args;
-
-  va_start(args, pool);
-  die(mps_alloc_v(&p, pool, size, args), "alloc_v");
-  va_end(args);
-  mps_free(pool, p, size);
-}
-
-
 static void pool_create_v_test(mps_arena_t arena, ...)
 {
   va_list args;
@@ -542,7 +527,6 @@ static void test(mps_arena_t arena)
   mps_arena_release(arena);
 
   mps_free(mv, alloced_obj, 32);
-  alloc_v_test(mv);
 
   mps_arena_park(arena);
   mps_pool_destroy(mv);

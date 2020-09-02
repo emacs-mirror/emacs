@@ -785,7 +785,6 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
     AVER_CRITICAL(size > 0);
     /* Note: class may allow unaligned size, see */
     /* <design/pool#.method.alloc.size.align>. */
-    /* Rest ignored, see .varargs. */
 
     res = PoolAlloc(&p, pool, size);
 
@@ -796,19 +795,6 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
     return (mps_res_t)res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
-}
-
-
-/* mps_alloc_v -- allocate in pool with varargs.  Deprecated in 1.112. */
-
-mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
-                      va_list args)
-{
-  mps_res_t res;
-
-  UNUSED(args); /* See .varargs. */
-  res = mps_alloc(p_o, mps_pool, size);
-  return res;
 }
 
 
