@@ -1484,15 +1484,19 @@ clients from discovering the still incomplete interface."
 
   ;; Create a hash table entry.  We use nil for the unique name,
   ;; because the property might be accessed from anybody.
-  (let ((key (list :property bus interface property))
-	(val
-	 (list
+  (let* ((key (list :property bus interface property))
+         ;; Remove possible existing entry, because it must be overwritten.
+         (val (seq-remove
+               (lambda (item)
+                 (equal (butlast item) (list nil service path)))
+               (gethash key dbus-registered-objects-table)))
+	 (entry
 	  (list
 	   nil service path
 	   (cons
 	    (if emits-signal (list access :emits-signal) (list access))
-	    value)))))
-    (puthash key val dbus-registered-objects-table)
+	    value))))
+    (puthash key (cons entry val) dbus-registered-objects-table)
 
     ;; Return the object.
     (list key (list service path))))
@@ -1509,9 +1513,15 @@ It will be registered for all objects created by `dbus-register-property'."
     (cond
      ;; "Get" returns a variant.
      ((string-equal method "Get")
-      (let ((entry (gethash (list :property bus interface property)
-			    dbus-registered-objects-table)))
-	(when (string-equal path (nth 2 (car entry)))
+      (let ((entry
+             ;; Remove entries not belonging to this case.
+             (seq-remove
+              (lambda (item)
+                (not (string-equal (nth 2 item) path)))
+              (gethash (list :property bus interface property)
+		       dbus-registered-objects-table))))
+
+        (when (string-equal path (nth 2 (car entry)))
 	  `((:variant ,(cdar (last (car entry))))))))
 
      ;; "Set" expects a variant.
