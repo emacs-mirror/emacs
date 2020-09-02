@@ -1,4 +1,4 @@
-;;; mwheel.el --- Wheel mouse support
+;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 ;; Keywords: mouse
