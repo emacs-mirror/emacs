@@ -590,25 +590,25 @@ END:VEVENT
   (should (equal '(0 0 0 7 0 0)
                  (icalendar--decode-isoduration "P7D")))
 
-  ;; testcase: 7 days, one second -- to be fixed with bug#34315
-  ;; (should (equal '(1 0 0 7 0 0)
-  ;; (icalendar--decode-isoduration "P7DT1S")))
+  ;; testcase: 7 days, one second -- see bug#34315
+  (should (equal '(1 0 0 7 0 0)
+                 (icalendar--decode-isoduration "P7DT1S")))
 
   ;; testcase: 3 hours, 2 minutes, one second
   (should (equal '(1 2 3 0 0 0)
                  (icalendar--decode-isoduration "PT3H2M1S")))
 
-  ;; testcase: 99 days, 3 hours, 2 minutes, one second  -- to be fixed with bug#34315
-  ;; (should (equal '(1 2 3 99 0 0)
-  ;; (icalendar--decode-isoduration "P99DT3H2M1S")))
+  ;; testcase: 99 days, 3 hours, 2 minutes, one second  -- see bug#34315
+  (should (equal '(1 2 3 99 0 0)
+                 (icalendar--decode-isoduration "P99DT3H2M1S")))
 
   ;; testcase: 2 weeks
   (should (equal '(0 0 0 14 0 0)
                  (icalendar--decode-isoduration "P2W")))
 
-  ;; testcase: rfc2445, section 4.3.6: 15 days, 5 hours and 20 seconds  -- to be fixed with bug#34315
-  ;; (should (equal '(20 0 5 15 0 0)
-  ;; (icalendar--decode-isoduration "P15DT5H0M20S")))
+  ;; testcase: rfc2445, section 4.3.6: 15 days, 5 hours and 20 seconds  -- see bug#34315
+  (should (equal '(20 0 5 15 0 0)
+                 (icalendar--decode-isoduration "P15DT5H0M20S")))
 
   ;; testcase: rfc2445, section 4.3.6: 7 weeks
   (should (equal '(0 0 0 49 0 0)
