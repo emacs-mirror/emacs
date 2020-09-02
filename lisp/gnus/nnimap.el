@@ -986,7 +986,10 @@ textual parts.")
                 (when (and (car result) (not can-move))
                   (nnimap-delete-article article))
                 (cons internal-move-group
-                      (or (nnimap-find-uid-response "COPYUID" (caddr result))
+                      (or (nnimap-find-uid-response
+			   "COPYUID"
+			   ;; Server gives different responses for MOVE and COPY.
+			   (if can-move (caddr result) (cadr result)))
                           (nnimap-find-article-by-message-id
                            internal-move-group server message-id
                            nnimap-request-articles-find-limit)))))
