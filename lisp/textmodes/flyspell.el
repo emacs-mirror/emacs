@@ -1904,7 +1904,7 @@ before point that's highlighted as misspelled."
 	  (while (and (setq pos (previous-overlay-change pos))
 		      (not (= pos pos1)))
 	    (setq pos1 pos)
-	    (if (> pos (point-min))
+	    (if (>= pos (point-min))
 		(progn
 		  (setq ovs (overlays-at pos))
 		  (while (consp ovs)
