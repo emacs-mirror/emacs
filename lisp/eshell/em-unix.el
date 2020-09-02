@@ -787,9 +787,9 @@ external command."
 
 ;; completions rules for some common UNIX commands
 
-(defsubst eshell-complete-hostname ()
-  "Complete a command that wants a hostname for an argument."
-  (pcomplete-here (eshell-read-host-names)))
+(autoload 'pcmpl-unix-complete-hostname "pcmpl-unix")
+(define-obsolete-function-alias 'eshell-complete-hostname
+  #'pcmpl-unix-complete-hostname "28.1")
 
 (defun eshell-complete-host-reference ()
   "If there is a host reference, complete it."
@@ -798,26 +798,7 @@ external command."
     (when (setq index (string-match "@[a-z.]*\\'" arg))
       (setq pcomplete-stub (substring arg (1+ index))
 	    pcomplete-last-completion-raw t)
-      (throw 'pcomplete-completions (eshell-read-host-names)))))
-
-(defalias 'pcomplete/ftp    'eshell-complete-hostname)
-(defalias 'pcomplete/ncftp  'eshell-complete-hostname)
-(defalias 'pcomplete/ping   'eshell-complete-hostname)
-(defalias 'pcomplete/rlogin 'eshell-complete-hostname)
-
-(defun pcomplete/telnet ()
-  (require 'pcmpl-unix)
-  (pcomplete-opt "xl(pcmpl-unix-user-names)")
-  (eshell-complete-hostname))
-
-(defun pcomplete/rsh ()
-  "Complete `rsh', which, after the user and hostname, is like xargs."
-  (require 'pcmpl-unix)
-  (pcomplete-opt "l(pcmpl-unix-user-names)")
-  (eshell-complete-hostname)
-  (pcomplete-here (funcall pcomplete-command-completion-function))
-  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
-	       pcomplete-default-completion-function)))
+      (throw 'pcomplete-completions (pcomplete-read-host-names)))))
 
 (defvar block-size)
 (defvar by-bytes)

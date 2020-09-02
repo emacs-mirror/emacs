@@ -217,6 +217,29 @@ Includes files as well as host names followed by a colon."
                                        (pcmpl-ssh-hosts)))))))
                 (complete-with-action action table string pred))))))
 
+(defsubst pcmpl-unix-complete-hostname ()
+  "Complete a command that wants a hostname for an argument."
+  (pcomplete-here (pcomplete-read-host-names)))
+
+(defalias 'pcomplete/ftp    'pcmpl-unix-complete-hostname)
+(defalias 'pcomplete/ncftp  'pcmpl-unix-complete-hostname)
+(defalias 'pcomplete/ping   'pcmpl-unix-complete-hostname)
+(defalias 'pcomplete/rlogin 'pcmpl-unix-complete-hostname)
+
+;;;###autoload
+(defun pcomplete/telnet ()
+  (pcomplete-opt "xl(pcmpl-unix-user-names)")
+  (pcmpl-unix-complete-hostname))
+
+;;;###autoload
+(defun pcomplete/rsh ()
+  "Complete `rsh', which, after the user and hostname, is like xargs."
+  (pcomplete-opt "l(pcmpl-unix-user-names)")
+  (pcmpl-unix-complete-hostname)
+  (pcomplete-here (funcall pcomplete-command-completion-function))
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+               pcomplete-default-completion-function)))
+
 (provide 'pcmpl-unix)
 
 ;;; pcmpl-unix.el ends here
