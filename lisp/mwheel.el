@@ -363,8 +363,11 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
                         'left-fringe 'right-fringe
                         'vertical-scroll-bar 'horizontal-scroll-bar
                         'mode-line 'header-line)))
-    (cons (vector event)                  ; default case: no prefix.
-          (when (not (consp binding))
+    (if (consp binding)
+        ;; With modifiers, bind only the buffer area (no prefix).
+        (list `[(,@(car binding) ,event)])
+      ;; No modifier: bind also some non-buffer areas of the screen.
+      (cons (vector event)
             (mapcar (lambda (prefix) (vector prefix event)) prefixes)))))
 
 (define-minor-mode mouse-wheel-mode
