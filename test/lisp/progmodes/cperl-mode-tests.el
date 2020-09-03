@@ -33,6 +33,8 @@
 
 (defvar cperl-test-mode #'cperl-mode)
 
+(require 'cperl-mode)
+
 (defun cperl-test-ppss (text regexp)
   "Return the `syntax-ppss' of the first character matched by REGEXP in TEXT."
   (interactive)
@@ -62,5 +64,26 @@ have a face property."
     (should (equal (nth 8 (cperl-test-ppss code "/")) 7)))
   (let ((code "{ $a- / $b } # /"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) 7))))
+
+(ert-deftest cperl-mode-test-bug-16368 ()
+  "Verify that `cperl-forward-group-in-re' doesn't hide errors."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((code "/(\\d{4})(?{2}/;")     ; the regex from the bug report
+        (result))
+    (with-temp-buffer
+      (insert code)
+      (goto-char 9)
+      (setq result (cperl-forward-group-in-re))
+      (should (equal (car result) 'scan-error))
+      (should (equal (nth 1 result) "Unbalanced parentheses"))
+      (should (= (point) 9))))        ; point remains unchanged on error
+  (let ((code "/(\\d{4})(?{2})/;")    ; here all parens are balanced
+        (result))
+    (with-temp-buffer
+      (insert code)
+      (goto-char 9)
+      (setq result (cperl-forward-group-in-re))
+      (should (equal result nil))
+      (should (= (point) 15)))))      ; point has skipped the group
 
 ;;; cperl-mode-tests.el ends here

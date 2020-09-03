@@ -3241,8 +3241,8 @@ Return the error message (if any).  Does not work if delimiter is `)'.
 Works before syntax recognition is done."
   ;; Works *before* syntax recognition is done
   (or st-l (setq st-l (list nil)))	; Avoid overwriting '()
-  (let (st b reset-st)
-    (condition-case b
+  (let (st result reset-st)
+    (condition-case err
 	(progn
 	  (setq st (cperl-cached-syntax-table st-l))
 	  (modify-syntax-entry ?\( "()" st)
@@ -3250,8 +3250,7 @@ Works before syntax recognition is done."
 	  (setq reset-st (syntax-table))
 	  (set-syntax-table st)
 	  (forward-sexp 1))
-      (error (message
-	      "cperl-forward-group-in-re: error %s" b)))
+      (error (setq result err)))
     ;; now restore the initial state
     (if st
 	(progn
@@ -3259,7 +3258,7 @@ Works before syntax recognition is done."
 	  (modify-syntax-entry ?\) "." st)))
     (if reset-st
 	(set-syntax-table reset-st))
-    b))
+    result))
 
 
 (defvar font-lock-string-face)
