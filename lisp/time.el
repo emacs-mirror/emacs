@@ -523,6 +523,8 @@ See `world-clock'."
   (setq-local revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
 
+(defvar world-clock-timer nil)
+
 (defun world-clock-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
   (let ((inhibit-read-only t)
@@ -561,11 +563,19 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
   (interactive)
   (when (and world-clock-timer-enable
              (not (get-buffer world-clock-buffer-name)))
-    (run-at-time t world-clock-timer-second #'world-clock-update))
+    (setq world-clock-timer
+          (run-at-time t world-clock-timer-second #'world-clock-update))
+    (add-hook 'kill-buffer-hook #'world-clock-cancel-timer))
   (pop-to-buffer world-clock-buffer-name)
   (world-clock-display (time--display-world-list))
   (world-clock-mode)
   (fit-window-to-buffer))
+
+(defun world-clock-cancel-timer ()
+  "Cancel the world clock timer."
+  (when world-clock-timer
+    (cancel-timer world-clock-timer)
+    (setq world-clock-timer nil)))
 
 (defun world-clock-update (&optional _arg _noconfirm)
   "Update the `world-clock' buffer."
