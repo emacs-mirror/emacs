@@ -1346,8 +1346,6 @@ For old-style locking-based version control systems, like RCS:
        nil t)))))
   (vc-call-backend backend 'create-repo))
 
-(declare-function vc-dir-move-to-goal-column "vc-dir" ())
-
 ;;;###autoload
 (defun vc-register (&optional vc-fileset comment)
   "Register into a version control system.
@@ -1398,8 +1396,6 @@ first backend that could register the file is used."
 
        (vc-resynch-buffer file t t))
      files)
-    (when (derived-mode-p 'vc-dir-mode)
-      (vc-dir-move-to-goal-column))
     (message "Registering %s... done" files)))
 
 (defun vc-register-with (backend)
