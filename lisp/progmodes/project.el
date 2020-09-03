@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.5.1
+;; Version: 0.5.2
 ;; Package-Requires: ((emacs "26.3") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -667,7 +667,9 @@ The following commands are available:
   (interactive)
   (project--other-place-command '((display-buffer-in-new-tab))))
 
-;;;###autoload (define-key tab-prefix-map "p" #'project-other-tab-command)
+;;;###autoload
+(when (bound-and-true-p tab-prefix-map)
+  (define-key tab-prefix-map "p" #'project-other-tab-command))
 
 (declare-function grep-read-files "grep")
 (declare-function xref--show-xrefs "xref")
