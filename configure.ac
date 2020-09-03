@@ -1900,8 +1900,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-# Recent versions of GCC don't use C99 to compile Obj-C.
-GNU_OBJC_CFLAGS="-std=c99"
+GNU_OBJC_CFLAGS=""
 LIBS_GNUSTEP=
 if test "${with_ns}" != no; then
   # macfont.o requires macuvs.h which is absent after 'make extraclean',
@@ -1917,7 +1916,7 @@ if test "${with_ns}" != no; then
   elif flags=$( (gnustep-config --objc-flags) 2>/dev/null); then
      NS_IMPL_GNUSTEP=yes
      NS_GNUSTEP_CONFIG=yes
-     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS $flags"
+     GNU_OBJC_CFLAGS="$flags"
      LIBS_GNUSTEP=$(gnustep-config --gui-libs) || exit
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
@@ -2067,6 +2066,20 @@ if test "${HAVE_NS}" = yes; then
     AC_DEFINE(NATIVE_OBJC_INSTANCETYPE, 1,
               [Define if ObjC compiler supports instancetype natively.])
   fi
+
+  AC_CACHE_CHECK(
+    [if the Objective C compiler defaults to C99],
+    [emacs_cv_objc_c99],
+    [AC_LANG_PUSH([Objective C])
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
+       emacs_cv_objc_c99=yes,
+       emacs_cv_objc_c99=no)
+     AC_LANG_POP([Objective C])])
+
+   if test x$emacs_cv_objc_c99 = xno ; then
+     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -std=c99"
+   fi
 fi
 
 HAVE_W32=no
