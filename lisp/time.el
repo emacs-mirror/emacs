@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 (defgroup display-time nil
   "Display time and load in mode line of Emacs."
   :group 'mode-line
@@ -523,8 +525,6 @@ See `world-clock'."
   (setq-local revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
 
-(defvar world-clock-timer nil)
-
 (defun world-clock-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
   (let ((inhibit-read-only t)
@@ -561,34 +561,31 @@ See `world-clock'."
 The variable `world-clock-list' specifies which time zones to use.
 To turn off the world time display, go to the window and type `\\[quit-window]'."
   (interactive)
-  (when (and world-clock-timer-enable
-             (not (get-buffer world-clock-buffer-name)))
-    (setq world-clock-timer
-          (run-at-time t world-clock-timer-second #'world-clock-update))
-    (add-hook 'kill-buffer-hook #'world-clock-cancel-timer))
-  (pop-to-buffer world-clock-buffer-name)
+  (if-let ((buffer (get-buffer world-clock-buffer-name)))
+      (pop-to-buffer buffer)
+    (pop-to-buffer world-clock-buffer-name)
+    (when world-clock-timer-enable
+      (run-at-time t world-clock-timer-second #'world-clock-update)
+      (add-hook 'kill-buffer-hook #'world-clock-cancel-timer nil t)))
   (world-clock-display (time--display-world-list))
   (world-clock-mode)
   (fit-window-to-buffer))
 
 (defun world-clock-cancel-timer ()
   "Cancel the world clock timer."
-  (when world-clock-timer
-    (cancel-timer world-clock-timer)
-    (setq world-clock-timer nil)))
+  (let ((list timer-list))
+    (while list
+      (let ((elt (pop list)))
+        (when (equal (symbol-name (timer--function elt))
+                     "world-clock-update")
+          (cancel-timer elt))))))
 
 (defun world-clock-update (&optional _arg _noconfirm)
   "Update the `world-clock' buffer."
   (if (get-buffer world-clock-buffer-name)
       (with-current-buffer (get-buffer world-clock-buffer-name)
         (world-clock-display (time--display-world-list)))
-    ;; cancel timer
-    (let ((list timer-list))
-      (while list
-        (let ((elt (pop list)))
-          (when (equal (symbol-name (timer--function elt))
-		       "world-clock-update")
-            (cancel-timer elt)))))))
+    (world-clock-cancel-timer)))
 
 ;;;###autoload
 (defun emacs-uptime (&optional format)
