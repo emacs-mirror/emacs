@@ -329,6 +329,8 @@ and the hook `eshell-exit-hook'."
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 
+  (set (make-local-variable 'bookmark-make-record-function)
+       'eshell-bookmark-make-record)
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
   (set (make-local-variable 'list-buffers-directory)
@@ -1014,6 +1016,29 @@ This function could be in the list `eshell-output-filter-functions'."
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-ansi-color)
+
+;;; Bookmark support:
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+
+(defun eshell-bookmark-name ()
+  (format "eshell-%s"
+          (file-name-nondirectory
+           (directory-file-name
+            (file-name-directory default-directory)))))
+
+(defun eshell-bookmark-make-record ()
+  "Create a bookmark for the current Eshell buffer."
+  `(,(eshell-bookmark-name)
+    (location . ,default-directory)
+    (handler . eshell-bookmark-jump)))
+
+(defun eshell-bookmark-jump (bookmark)
+  "Default bookmark handler for Eshell buffers."
+  (let ((default-directory (bookmark-prop-get bookmark 'location)))
+    (eshell)))
 
 (provide 'esh-mode)
 ;;; esh-mode.el ends here
