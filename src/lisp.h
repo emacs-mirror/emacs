@@ -3756,12 +3756,12 @@ extern AVOID memory_full (size_t);
 extern AVOID buffer_memory_full (ptrdiff_t);
 extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
-extern void mark_objects (Lisp_Object *, ptrdiff_t);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 extern void refill_memory_reserve (void);
 #endif
 extern void alloc_unexec_pre (void);
 extern void alloc_unexec_post (void);
+extern void mark_maybe_objects (Lisp_Object const *, ptrdiff_t);
 extern void mark_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
 
@@ -4873,10 +4873,7 @@ safe_free_unbind_to (ptrdiff_t count, ptrdiff_t sa_count, Lisp_Object val)
       (buf) = AVAIL_ALLOCA (alloca_nbytes);		       \
     else						       \
       {							       \
-	/* Although only the first nelt words need clearing,   \
-	   typically EXTRA is 0 or small so just use xzalloc;  \
-	   this is simpler and often faster.  */	       \
-	(buf) = xzalloc (alloca_nbytes);		       \
+	(buf) = xmalloc (alloca_nbytes);		       \
 	record_unwind_protect_array (buf, nelt);	       \
       }							       \
   } while (false)

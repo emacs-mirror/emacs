@@ -12475,11 +12475,13 @@ keys_of_keyboard (void)
 void
 mark_kboards (void)
 {
-  for (KBOARD *kb = all_kboards; kb; kb = kb->next_kboard)
+  KBOARD *kb;
+  Lisp_Object *p;
+  for (kb = all_kboards; kb; kb = kb->next_kboard)
     {
       if (kb->kbd_macro_buffer)
-	mark_objects (kb->kbd_macro_buffer,
-		      kb->kbd_macro_ptr - kb->kbd_macro_buffer);
+        for (p = kb->kbd_macro_buffer; p < kb->kbd_macro_ptr; p++)
+          mark_object (*p);
       mark_object (KVAR (kb, Voverriding_terminal_local_map));
       mark_object (KVAR (kb, Vlast_command));
       mark_object (KVAR (kb, Vreal_last_command));
