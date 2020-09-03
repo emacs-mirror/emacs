@@ -9532,7 +9532,7 @@ move_it_in_display_line_to (struct it *it,
 			 we can't wrap here.  Therefore, wrap_it
 			 (previously found wrap-point) _is_ relevant
 			 in that case.  */
-		      && !(moved_forward && char_can_wrap_before (it)))
+		      && (!moved_forward || char_can_wrap_before (it)))
 		    {
 		      /* If we've found TO_X, go back there, as we now
 			 know the last word fits on this screen line.  */
