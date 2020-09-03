@@ -2139,19 +2139,16 @@ is greater than 10.
       (expand-file-name "/method:host:/path/../file") "/method:host:/file"))
     (should
      (string-equal
-      (expand-file-name "/method:host:/path/.")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "/method:host:/path/.") "/method:host:/path"))
     (should
      (string-equal
       (expand-file-name "/method:host:/path/..") "/method:host:/"))
     (should
      (string-equal
-      (expand-file-name "." "/method:host:/path/")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "." "/method:host:/path/") "/method:host:/path"))
     (should
      (string-equal
-      (expand-file-name "" "/method:host:/path/")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "" "/method:host:/path/") "/method:host:/path"))
     ;; Quoting local part.
     (should
      (string-equal

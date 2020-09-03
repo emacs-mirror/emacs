@@ -1182,12 +1182,6 @@ This function can be used by modes to add elements to the
 'choice' customization type of a variable.
 
 +++
-** 'expand-file-name' no longer omits a trailing slash if the omission
-changes the filename's meaning.  E.g., (expand-file-name "/a/b/.") now
-returns "/a/b/" not "/a/b", which might be misinterpreted as the name
-of a symbolic link rather than of the directory it points to.
-
-+++
 ** New function 'file-modes-number-to-symbolic' to convert a numeric
 file mode specification into symbolic form.
 
