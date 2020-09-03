@@ -1477,6 +1477,26 @@ nil is returned."
 	       (nreverse result))
 	(push (cons (car dict) (cl-caadr dict)) result)))))
 
+(defun dbus-get-this-registered-property (bus _service path interface property)
+  "Return PROPERTY entry of `dbus-registered-objects-table'.
+Filter out not matching PATH."
+  ;; Remove entries not belonging to this case.
+  (seq-remove
+   (lambda (item)
+     (not (string-equal path (nth 2 item))))
+   (gethash (list :property bus interface property)
+            dbus-registered-objects-table)))
+
+(defun dbus-get-other-registered-property (bus _service path interface property)
+  "Return PROPERTY entry of `dbus-registered-objects-table'.
+Filter out matching PATH."
+  ;; Remove matching entries.
+  (seq-remove
+   (lambda (item)
+     (string-equal path (nth 2 item)))
+   (gethash (list :property bus interface property)
+            dbus-registered-objects-table)))
+
 (defun dbus-register-property
   (bus service path interface property access value
    &optional emits-signal dont-register-service)
@@ -1543,12 +1563,14 @@ clients from discovering the still incomplete interface."
   ;; because the property might be accessed from anybody.
   (let ((key (list :property bus interface property))
 	(val
-	 (list
+         (cons
 	  (list
 	   nil service path
 	   (cons
 	    (if emits-signal (list access :emits-signal) (list access))
-	    value)))))
+	    value))
+          (dbus-get-other-registered-property
+           bus service path interface property))))
     (puthash key val dbus-registered-objects-table)
 
     ;; Return the object.
@@ -1566,16 +1588,16 @@ It will be registered for all objects created by `dbus-register-property'."
     (cond
      ;; "Get" returns a variant.
      ((string-equal method "Get")
-      (let ((entry (gethash (list :property bus interface property)
-			    dbus-registered-objects-table)))
+      (let ((entry (dbus-get-this-registered-property
+                    bus service path interface property)))
 	(when (string-equal path (nth 2 (car entry)))
 	  `((:variant ,(cdar (last (car entry))))))))
 
      ;; "Set" expects a variant.
      ((string-equal method "Set")
       (let* ((value (caar (cddr args)))
-	     (entry (gethash (list :property bus interface property)
-			     dbus-registered-objects-table))
+	     (entry (dbus-get-this-registered-property
+                     bus service path interface property))
 	     ;; The value of the hash table is a list; in case of
 	     ;; properties it contains just one element (UNAME SERVICE
 	     ;; PATH OBJECT).  OBJECT is a cons cell of a list, which
@@ -1590,8 +1612,10 @@ It will be registered for all objects created by `dbus-register-property'."
 	  (signal 'dbus-error
 		  (list "Property not writable at path" property path)))
 	(puthash (list :property bus interface property)
-		 (list (append (butlast (car entry))
-			       (list (cons (car object) value))))
+		 (cons (append (butlast (car entry))
+			       (list (cons (car object) value)))
+                       (dbus-get-other-registered-property
+                        bus service path interface property))
 		 dbus-registered-objects-table)
 	;; Send the "PropertiesChanged" signal.
 	(when (member :emits-signal (car object))
@@ -1607,14 +1631,15 @@ It will be registered for all objects created by `dbus-register-property'."
       (let (result)
 	(maphash
 	 (lambda (key val)
-	   (when (and (equal (butlast key) (list :property bus interface))
-		      (string-equal path (nth 2 (car val)))
-		      (not (functionp (car (last (car val))))))
-	     (push
-	      (list :dict-entry
-		    (car (last key))
-		    (list :variant (cdar (last (car val)))))
-              result)))
+           (dolist (item val)
+	     (when (and (equal (butlast key) (list :property bus interface))
+		        (string-equal path (nth 2 item))
+		        (not (functionp (car (last item)))))
+	       (push
+	        (list :dict-entry
+		      (car (last key))
+		      (list :variant (cdar (last item))))
+                result))))
 	 dbus-registered-objects-table)
 	;; Return the result, or an empty array.
 	(list :array (or result '(:signature "{sv}"))))))))
