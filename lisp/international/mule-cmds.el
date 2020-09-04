@@ -3017,7 +3017,7 @@ on encoding."
                 ;; spelling, but others don't.  Add the traditional
                 ;; spelling for more convenient completion.
                 (when (and (not old-name) new-name
-                           (string-match "LAMDA" new-name))
+                           (string-match "\\<LAMDA\\>" new-name))
                   (puthash (replace-match "LAMBDA" t t new-name) c names))
 	        (setq c (1+ c))))))
         ;; Special case for "BELL" which is apparently the only char which
