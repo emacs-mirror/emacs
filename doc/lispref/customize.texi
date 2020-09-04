@@ -1197,6 +1197,13 @@ current value is valid for the widget.  Otherwise, it should return
 the widget containing the invalid data, and set that widget's
 @code{:error} property to a string explaining the error.
 
+@item :type-error @var{string}
+@kindex type-error@r{, customization keyword}
+@var{string} should be a string that describes why a value doesn't
+match the type, as determined by the @code{:match} function.  When the
+@code{:match} function returns @code{nil}, the widget's @code{:error}
+property will be set to @var{string}.
+
 @ignore
 @item :indent @var{columns}
 Indent this item by @var{columns} columns.  The indentation is used for
