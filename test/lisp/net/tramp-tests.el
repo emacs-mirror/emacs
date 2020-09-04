@@ -2057,8 +2057,8 @@ properly.  BODY shall not contain a timeout."
       ;; user "foo" to "/~foo"".  Otherwise, it doesn't expand.
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/path/~foo") "/method:host:/path/~foo"))
+	(substitute-in-file-name "/method:host:/path/~foo")
+	"/method:host:/path/~foo"))
       ;; Quoting local part.
       (should
        (string-equal
@@ -2070,12 +2070,12 @@ properly.  BODY shall not contain a timeout."
 	 "/method:host:/:/~foo") "/method:host:/:/~foo"))
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/:/path//~foo") "/method:host:/:/path//~foo"))
+	(substitute-in-file-name "/method:host:/:/path//~foo")
+	"/method:host:/:/path//~foo"))
       (should
        (string-equal
-	(substitute-in-file-name
-	 "/method:host:/:/path/~foo") "/method:host:/:/path/~foo")))
+	(substitute-in-file-name "/method:host:/:/path/~foo")
+	"/method:host:/:/path/~foo")))
 
     (let (process-environment)
       (should
@@ -2120,19 +2120,16 @@ properly.  BODY shall not contain a timeout."
       (expand-file-name "/method:host:/path/../file") "/method:host:/file"))
     (should
      (string-equal
-      (expand-file-name "/method:host:/path/.")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "/method:host:/path/.") "/method:host:/path"))
     (should
      (string-equal
       (expand-file-name "/method:host:/path/..") "/method:host:/"))
     (should
      (string-equal
-      (expand-file-name "." "/method:host:/path/")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "." "/method:host:/path/") "/method:host:/path"))
     (should
      (string-equal
-      (expand-file-name "" "/method:host:/path/")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "" "/method:host:/path/") "/method:host:/path"))
     ;; Quoting local part.
     (should
      (string-equal
