@@ -1689,7 +1689,8 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
 	 (set-visited-file-name newname nil t)))
   (dired-remove-file file)
   ;; See if it's an inserted subdir, and rename that, too.
-  (dired-rename-subdir file newname))
+  (when (file-directory-p file)
+    (dired-rename-subdir file newname)))
 
 (defun dired-rename-subdir (from-dir to-dir)
   (setq from-dir (file-name-as-directory from-dir)
