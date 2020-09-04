@@ -263,27 +263,29 @@
 
 **** Automatic ("keymap-based") replacement
      A newer option is to set =which-key-enable-extended-define-key= which
-     advises =define-key= to allow which-key to pre-process its arguments. The
-     statement
+     advises =define-key= to allow which-key to pre-process its arguments. With
+     this option enabled, the statement
 
      #+BEGIN_SRC emacs-lisp
-     (define-key some-map "f" '("foo" . long-name-for-command-foo))
+     (define-key some-map "f" '("foo" . command-foo))
      #+END_SRC
 
-     is valid in Emacs. Setting this variable makes which-key automatically
-     replace the corresponding command name with the text in the string. A nice
-     example is in naming prefixes. The following binds "b" to =nil= and names
-     the binding as a prefix.
+     will both bind the command =command-foo= to "f" in =some-map= and tell
+     which-key to use the string "foo" for this command. This also works with
+     naming prefixes if you use =nil= for the command. The following binds "b"
+     to =nil= and names the binding as a prefix.
 
      #+BEGIN_SRC emacs-lisp
      (define-key some-map "b" '("bar-prefix"))
      #+END_SRC
 
      If you do not want to enable the advise on =define-key=, you may also use
-     =which-key-add-keymap-based-replacements=. The above examples can be
+     =which-key-add-keymap-based-replacements=. The first example can be
      alternatively written as
 
      #+BEGIN_SRC emacs-lisp
+     (define-key some-map "f" 'command-foo)
+     (define-key some-map "b" some-prefix-map)
      (which-key-add-keymap-based-replacements some-map
        "f" '("foo" . long-name-for-command-foo)
        ;; or
@@ -294,10 +296,15 @@
      )
      #+END_SRC
 
-     Note that while the alternative methods below use
-     =which-key-replacement-alist=, the "keymap-based" replacements store
-     replacements in the keymaps themselves, so should avoid performance issues
-     when =which-key-replacement-alist= becomes very large.
+     Note that =which-key-add-keymap-based-replacements= will not bind a
+     command, so =define-key= must still be used.
+
+     There are other methods of telling which-key to replace command names,
+     which are described next. The keymap-based replacements should be the most
+     performant since they use built-in functionality of emacs. However, the
+     alternatives can be more flexible in telling which-key how and when to
+     replace text. They can be used simultaneously, but which-key will give
+     precedence to the keymap-based replacement when it exists.
 
 **** "Key-Based" replacement
      Using this method, the description of a key is replaced using a string that
