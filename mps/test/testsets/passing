@@ -133,7 +133,7 @@ function/140.c
 function/144.c
 % 145-146 -- no such test
 function/147.c
-% function/148.c -- failed on inc4: wanted = 1, was 0 @@@@
+function/148.c
 % 149 -- no such test
 function/150.c
 function/151.c
