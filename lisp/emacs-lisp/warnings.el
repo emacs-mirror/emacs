@@ -200,6 +200,21 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     ;; we return t.
     some-match))
 
+(define-button-type 'warning-suppress-warning
+  'action #'warning-suppress-action
+  'help-echo "mouse-2, RET: Don't display this warning automatically")
+(defun warning-suppress-action (button)
+  (customize-save-variable 'warning-suppress-types
+                           (cons (list (button-get button 'warning-type))
+                                 warning-suppress-types)))
+(define-button-type 'warning-suppress-log-warning
+  'action #'warning-suppress-log-action
+  'help-echo "mouse-2, RET: Don't log this warning")
+(defun warning-suppress-log-action (button)
+  (customize-save-variable 'warning-suppress-log-types
+                           (cons (list (button-get button 'warning-type))
+                                 warning-suppress-types)))
+
 ;;;###autoload
 (defun display-warning (type message &optional level buffer-name)
   "Display a warning message, MESSAGE.
@@ -227,7 +242,12 @@ See the `warnings' custom group for user customization features.
 
 See also `warning-series', `warning-prefix-function',
 `warning-fill-prefix', and `warning-fill-column' for additional
-programming features."
+programming features.
+
+This will also display buttons allowing the user to permanently
+disable automatic display of the warning or disable the warning
+entirely by setting `warning-suppress-types' or
+`warning-suppress-log-types' on their behalf."
   (if (not (or after-init-time noninteractive (daemonp)))
       ;; Ensure warnings that happen early in the startup sequence
       ;; are visible when startup completes (bug#20792).
@@ -272,6 +292,14 @@ programming features."
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
+              (insert " ")
+              (insert-button "Disable showing"
+                             'type 'warning-suppress-warning
+                             'warning-type type)
+              (insert " ")
+              (insert-button "Disable logging"
+                             'type 'warning-suppress-log-warning
+                             'warning-type type)
               (funcall newline)
 	      (when (and warning-fill-prefix (not (string-match "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)

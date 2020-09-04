@@ -167,6 +167,14 @@ same for a button.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+---
+** Specific warnings can now be disabled from the warning buffer.
+When a warning is displayed to the user, the resulting buffer now has
+buttons which allow making permanent changes to the treatment of that
+warning.  Automatic showing of the warning can be disabled (although
+it is still logged to the *Messages* buffer), or the warning can be
+disabled entirely.
+
 ** mspool.el
 ---
 *** Autoload the main entry point 'mspool-show'
