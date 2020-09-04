@@ -461,10 +461,12 @@ non-nil means return old filename."
 
 (defun wdired-do-renames (renames)
   "Perform RENAMES in parallel."
-  (let ((residue ())
-        (progress nil)
-        (errors 0)
-        (overwrite (or (not wdired-confirm-overwrite) 1)))
+  (let* ((residue ())
+         (progress nil)
+         (errors 0)
+         (total (1- (length renames)))
+         (prep (make-progress-reporter "Renaming" 0 total))
+         (overwrite (or (not wdired-confirm-overwrite) 1)))
     (while (or renames
                ;; We've done one round through the renames, we have found
                ;; some residue, but we also made some progress, so maybe
@@ -472,6 +474,7 @@ non-nil means return old filename."
                (prog1 (setq renames residue)
                  (setq progress nil)
                  (setq residue nil)))
+      (progress-reporter-update prep (- total (length renames)))
       (let* ((rename (pop renames))
              (file-new (cdr rename)))
         (cond
@@ -519,6 +522,7 @@ non-nil means return old filename."
                  (dired-log "Rename `%s' to `%s' failed:\n%s\n"
                             file-ori file-new
                             err)))))))))
+    (progress-reporter-done prep)
     errors))
 
 (defun wdired-create-parentdirs (file-new)
