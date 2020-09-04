@@ -853,12 +853,6 @@ be used directly.")
           (cons (car list) (list :type type :data data)))
        list)))
 
-(let ((command (format "%s" this-command)))
-  (when (string-match "gnus" command)
-    (if (eq 'gnus-other-frame this-command)
-	(gnus-get-buffer-create gnus-group-buffer)
-      (gnus-splash))))
-
 ;;; Do the rest.
 
 (require 'gnus-util)
