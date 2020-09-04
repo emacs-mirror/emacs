@@ -332,7 +332,7 @@ CONFIG_STATUS_FILES_IN = \
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
-ELN_DESTDIR = "$(DESTDIR)${libexecdir}/emacs/${version}/${configuration}/"
+ELN_DESTDIR = "$(DESTDIR)${libdir}/emacs/"
 
 all: ${SUBDIR} info
 
@@ -760,7 +760,7 @@ install-etc:
 ### Install native compiled Lisp files.
 install-eln:
 ifeq ($(HAVE_NATIVE_COMP),yes)
-	find eln-cache -type f -exec ${INSTALL_DATA} -D "{}" "$(ELN_DESTDIR){}" \;
+	find native-lisp -type f -exec ${INSTALL_DATA} -D "{}" "$(ELN_DESTDIR){}" \;
 endif
 
 ### Build Emacs and install it, stripping binaries while installing them.
@@ -873,7 +873,7 @@ clean: $(clean_dirs:=_clean)
 	[ ! -d test ] || $(MAKE) -C test $@
 	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
-	-rm -rf eln-cache
+	-rm -rf native-lisp
 
 ### 'bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.

@@ -771,21 +771,19 @@ comp_hash_source_file (Lisp_Object filename)
 void
 hash_native_abi (void)
 {
-  Lisp_Object string = Fmapconcat (intern_c_string ("subr-name"),
-				   Vcomp_subr_list, build_string (" "));
-  Lisp_Object digest = comp_hash_string (string);
-
   /* Check runs once.  */
   eassert (NILP (Vcomp_abi_hash));
-  Vcomp_abi_hash = digest;
-  /* If 10 characters are usually sufficient for git I guess 16 are
-     fine for us here.  */
-  Vcomp_native_path_postfix =
-    concat2 (Vsystem_configuration,
-	     concat2 (make_string ("-", 1),
-		      Fsubstring_no_properties (Vcomp_abi_hash,
-						make_fixnum (0),
-						make_fixnum (16))));
+
+  Vcomp_abi_hash =
+    comp_hash_string (Fmapconcat (intern_c_string ("subr-name"),
+				  Vcomp_subr_list, build_string ("")));
+  Lisp_Object separator = build_string ("-");
+  Vcomp_native_version_dir =
+    concat3 (Vemacs_version,
+	     separator,
+	     concat3 (Vsystem_configuration,
+		      separator,
+		      Vcomp_abi_hash));
 }
 
 static void
@@ -4057,7 +4055,7 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
     base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
 
   return Fexpand_file_name (filename,
-			    concat2 (base_dir, Vcomp_native_path_postfix));
+			    concat2 (base_dir, Vcomp_native_version_dir));
 }
 
 DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
@@ -5293,9 +5291,9 @@ native compiled one.  */);
   DEFVAR_LISP ("comp-abi-hash", Vcomp_abi_hash,
 	       doc: /* String signing the ABI exposed to .eln files.  */);
   Vcomp_abi_hash = Qnil;
-  DEFVAR_LISP ("comp-native-path-postfix", Vcomp_native_path_postfix,
-	       doc: /* Postifix to be added to the .eln compilation path.  */);
-  Vcomp_native_path_postfix = Qnil;
+  DEFVAR_LISP ("comp-native-version-dir", Vcomp_native_version_dir,
+	       doc: /* Directory in use to disambiguate eln compatibility.  */);
+  Vcomp_native_version_dir = Qnil;
 
   DEFVAR_LISP ("comp-deferred-pending-h", Vcomp_deferred_pending_h,
 	       doc: /* Hash table symbol-name -> function-value.  For
@@ -5316,7 +5314,7 @@ The last directory of this list is assumed to be the system one.  */);
   /* Temporary value in use for boostrap.  We can't do better as
      `invocation-directory' is still unset, will be fixed up during
      dump reload.  */
-  Vcomp_eln_load_path = Fcons (build_string ("../eln-cache/"), Qnil);
+  Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
 #endif /* #ifdef HAVE_NATIVE_COMP */
 

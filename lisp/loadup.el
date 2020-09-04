@@ -458,7 +458,7 @@ lost after dumping")))
         (eln-dest-dir (cadr (member "--eln-dest" command-line-args))))
     (when (and bin-dest-dir eln-dest-dir)
       (setq eln-dest-dir
-            (concat eln-dest-dir "eln-cache/" comp-native-path-postfix "/"))
+            (concat eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
       (mapatoms (lambda (s)
                   (let ((f (symbol-function s)))
                     (when (subr-native-elisp-p f)
