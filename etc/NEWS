@@ -167,6 +167,9 @@ same for a button.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** mspool.el
+---
+*** Autoload the main entry point 'mspool-show'
 ** Windows
 
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.
