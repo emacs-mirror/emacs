@@ -1,4 +1,4 @@
-;; -*- lexical-binding: t; -*-
+;;; bench/pcase.el --- Exercise code using pcase  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Free Software Foundation, Inc.
 
@@ -17,9 +17,27 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+(eval-and-compile
+  ;; ¡FIXME!  The GNUmakefile of elpa.git uses:
+  ;;
+  ;;    ... -L $(dir $@) -f batch-byte-compile $<
+  ;;
+  ;; to compile each file.  This is handy for some cases such as files in
+  ;; `contrib' subdirectories but for this `pcase.el' file it causes this
+  ;; `pcase.el' to hide the *real* `pcase.el'.  So we workaround this problem
+  ;; here by removing the offending element from `load-path'.  Yuck!
+  ;;
+  ;; We should probably change GNUmakefile instead so it doesn't forcefully
+  ;; add the directory to `load-path', e.g. make this dependent on the
+  ;; presence of special file like `.dont-add-to-load-path'. 
+  (when load-file-name
+    (setq load-path (remove (file-name-directory load-file-name) load-path))))
+
 ;;; Commentary:
 
 ;; Apply a simple pattern match defined with pcase on the element of a list.
+
+;;; Code:
 
 (require 'cl-lib)
 
