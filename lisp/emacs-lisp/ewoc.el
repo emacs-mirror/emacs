@@ -205,15 +205,26 @@ NODE and leaving the new node's start there.  Return the new node."
 
 (defun ewoc--refresh-node (pp node dll)
   "Redisplay the element represented by NODE using the pretty-printer PP."
-  (let ((inhibit-read-only t)
-        (m (ewoc--node-start-marker node))
-        (R (ewoc--node-right node)))
-    ;; First, remove the string from the buffer:
-    (delete-region m (ewoc--node-start-marker R))
-    ;; Calculate and insert the string.
-    (goto-char m)
-    (funcall pp (ewoc--node-data node))
-    (ewoc--adjust m (point) R dll)))
+  (let* ((m (ewoc--node-start-marker node))
+         (R (ewoc--node-right node))
+         (end (ewoc--node-start-marker R))
+         (inhibit-read-only t)
+         (offset (if (= (point) end)
+                     'end
+                   (when (< m (point) end)
+                     (- (point) m)))))
+    (save-excursion
+      ;; First, remove the string from the buffer:
+      (delete-region m end)
+      ;; Calculate and insert the string.
+      (goto-char m)
+      (funcall pp (ewoc--node-data node))
+      (setq end (point))
+      (ewoc--adjust m (point) R dll))
+    (when offset
+      (goto-char (if (eq offset 'end)
+                     end
+                   (min (+ m offset) (1- end)))))))
 
 (defun ewoc--wrap (func)
   (lambda (data)
@@ -342,11 +353,10 @@ arguments will be passed to MAP-FUNCTION."
       ((footer (ewoc--footer ewoc))
        (pp (ewoc--pretty-printer ewoc))
        (node (ewoc--node-nth dll 1)))
-    (save-excursion
-      (while (not (eq node footer))
-        (if (apply map-function (ewoc--node-data node) args)
-            (ewoc--refresh-node pp node dll))
-        (setq node (ewoc--node-next dll node))))))
+    (while (not (eq node footer))
+      (if (apply map-function (ewoc--node-data node) args)
+          (ewoc--refresh-node pp node dll))
+      (setq node (ewoc--node-next dll node)))))
 
 (defun ewoc-delete (ewoc &rest nodes)
   "Delete NODES from EWOC."
@@ -461,9 +471,8 @@ If the EWOC is empty, nil is returned."
 Delete current text first, thus effecting a \"refresh\"."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((pp (ewoc--pretty-printer ewoc)))
-    (save-excursion
-      (dolist (node nodes)
-        (ewoc--refresh-node pp node dll)))))
+    (dolist (node nodes)
+      (ewoc--refresh-node pp node dll))))
 
 (defun ewoc-goto-prev (ewoc arg)
   "Move point to the ARGth previous element in EWOC.
@@ -566,9 +575,8 @@ Return nil if the buffer has been deleted."
        (hf-pp (ewoc--hf-pp ewoc)))
     (setf (ewoc--node-data head) header
           (ewoc--node-data foot) footer)
-    (save-excursion
-      (ewoc--refresh-node hf-pp head dll)
-      (ewoc--refresh-node hf-pp foot dll))))
+    (ewoc--refresh-node hf-pp head dll)
+    (ewoc--refresh-node hf-pp foot dll)))
 
 
 (provide 'ewoc)
