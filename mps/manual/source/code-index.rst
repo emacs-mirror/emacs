@@ -249,6 +249,7 @@ File         Description
 ===========  ==================================================================
 eventcnv.c   :ref:`telemetry-mpseventcnv`.
 eventsql.c   :ref:`telemetry-mpseventsql`.
+eventpy.c    :ref:`telemetry-mpseventpy`.
 eventtxt.c   :ref:`telemetry-mpseventtxt`.
 getopt.h     Command-line option interface. Adapted from FreeBSD.
 getoptl.c    Command-line option implementation. Adapted from FreeBSD.
