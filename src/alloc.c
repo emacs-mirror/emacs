@@ -4457,9 +4457,17 @@ live_string_holding (struct mem_node *m, void *p)
      must not be on the free-list.  */
   if (0 <= offset && offset < sizeof b->strings)
     {
-      struct Lisp_String *s = p = cp -= offset % sizeof b->strings[0];
-      if (s->u.s.data)
-	return s;
+      ptrdiff_t off = offset % sizeof b->strings[0];
+      if (off == Lisp_String
+	  || off == 0
+	  || off == offsetof (struct Lisp_String, u.s.size_byte)
+	  || off == offsetof (struct Lisp_String, u.s.intervals)
+	  || off == offsetof (struct Lisp_String, u.s.data))
+	{
+	  struct Lisp_String *s = p = cp -= off;
+	  if (s->u.s.data)
+	    return s;
+	}
     }
   return NULL;
 }
@@ -4489,9 +4497,15 @@ live_cons_holding (struct mem_node *m, void *p)
       && (b != cons_block
 	  || offset / sizeof b->conses[0] < cons_block_index))
     {
-      struct Lisp_Cons *s = p = cp -= offset % sizeof b->conses[0];
-      if (!deadp (s->u.s.car))
-	return s;
+      ptrdiff_t off = offset % sizeof b->conses[0];
+      if (off == Lisp_Cons
+	  || off == 0
+	  || off == offsetof (struct Lisp_Cons, u.s.u.cdr))
+	{
+	  struct Lisp_Cons *s = p = cp -= off;
+	  if (!deadp (s->u.s.car))
+	    return s;
+	}
     }
   return NULL;
 }
@@ -4522,9 +4536,23 @@ live_symbol_holding (struct mem_node *m, void *p)
       && (b != symbol_block
 	  || offset / sizeof b->symbols[0] < symbol_block_index))
     {
-      struct Lisp_Symbol *s = p = cp -= offset % sizeof b->symbols[0];
-      if (!deadp (s->u.s.function))
-	return s;
+      ptrdiff_t off = offset % sizeof b->symbols[0];
+      if (off == Lisp_Symbol
+
+	  /* Plain '|| off == 0' would run afoul of GCC 10.2
+	     -Wlogical-op, as Lisp_Symbol happens to be zero.  */
+	  || (Lisp_Symbol != 0 && off == 0)
+
+	  || off == offsetof (struct Lisp_Symbol, u.s.name)
+	  || off == offsetof (struct Lisp_Symbol, u.s.val)
+	  || off == offsetof (struct Lisp_Symbol, u.s.function)
+	  || off == offsetof (struct Lisp_Symbol, u.s.plist)
+	  || off == offsetof (struct Lisp_Symbol, u.s.next))
+	{
+	  struct Lisp_Symbol *s = p = cp -= off;
+	  if (!deadp (s->u.s.function))
+	    return s;
+	}
     }
   return NULL;
 }
@@ -4536,23 +4564,70 @@ live_symbol_p (struct mem_node *m, void *p)
 }
 
 
-/* Return true if P is a pointer to a live Lisp float on
-   the heap.  M is a pointer to the mem_block for P.  */
+/* If P is a (possibly-tagged) pointer to a live Lisp_Float on the
+   heap, return the address of the Lisp_Float.  Otherwise, return NULL.
+   M is a pointer to the mem_block for P.  */
 
-static bool
-live_float_p (struct mem_node *m, void *p)
+static struct Lisp_Float *
+live_float_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_FLOAT);
   struct float_block *b = m->start;
   char *cp = p;
   ptrdiff_t offset = cp - (char *) &b->floats[0];
 
-  /* P must point to the start of a Lisp_Float and not be
-     one of the unused cells in the current float block.  */
-  return (0 <= offset && offset < sizeof b->floats
-	  && offset % sizeof b->floats[0] == 0
+  /* P must point to (or be a tagged pointer to) the start of a
+     Lisp_Float and not be one of the unused cells in the current
+     float block.  */
+  if (0 <= offset && offset < sizeof b->floats)
+    {
+      int off = offset % sizeof b->floats[0];
+      if ((off == Lisp_Float || off == 0)
 	  && (b != float_block
-	      || offset / sizeof b->floats[0] < float_block_index));
+	      || offset / sizeof b->floats[0] < float_block_index))
+	{
+	  p = cp - off;
+	  return p;
+	}
+    }
+  return NULL;
+}
+
+static bool
+live_float_p (struct mem_node *m, void *p)
+{
+  return live_float_holding (m, p) == p;
+}
+
+/* Return VECTOR if P points within it, NULL otherwise.  */
+
+static struct Lisp_Vector *
+live_vector_pointer (struct Lisp_Vector *vector, void *p)
+{
+  void *vvector = vector;
+  char *cvector = vvector;
+  char *cp = p;
+  ptrdiff_t offset = cp - cvector;
+  return ((offset == Lisp_Vectorlike
+	   || offset == 0
+	   || (sizeof vector->header <= offset
+	       && offset < vector_nbytes (vector)
+	       && (! (vector->header.size & PSEUDOVECTOR_FLAG)
+		   ? (offsetof (struct Lisp_Vector, contents) <= offset
+		      && (((offset - offsetof (struct Lisp_Vector, contents))
+			   % word_size)
+			  == 0))
+		   /* For non-bool-vector pseudovectors, treat any pointer
+		      past the header as valid since it's too much of a pain
+		      to write special-case code for every pseudovector.  */
+		   : (! PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BOOL_VECTOR)
+		      || offset == offsetof (struct Lisp_Bool_Vector, size)
+		      || (offsetof (struct Lisp_Bool_Vector, data) <= offset
+			  && (((offset
+				- offsetof (struct Lisp_Bool_Vector, data))
+			       % sizeof (bits_word))
+			      == 0))))))
+	  ? vector : NULL);
 }
 
 /* If P is a pointer to a live, large vector-like object, return the object.
@@ -4563,10 +4638,7 @@ static struct Lisp_Vector *
 live_large_vector_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_VECTORLIKE);
-  struct Lisp_Vector *vp = p;
-  struct Lisp_Vector *vector = large_vector_vec (m->start);
-  struct Lisp_Vector *next = ADVANCE (vector, vector_nbytes (vector));
-  return vector <= vp && vp < next ? vector : NULL;
+  return live_vector_pointer (large_vector_vec (m->start), p);
 }
 
 static bool
@@ -4596,7 +4668,7 @@ live_small_vector_holding (struct mem_node *m, void *p)
     {
       struct Lisp_Vector *next = ADVANCE (vector, vector_nbytes (vector));
       if (vp < next && !PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE))
-	return vector;
+	return live_vector_pointer (vector, vp);
       vector = next;
     }
   return NULL;
@@ -4606,97 +4678,6 @@ static bool
 live_small_vector_p (struct mem_node *m, void *p)
 {
   return live_small_vector_holding (m, p) == p;
-}
-
-/* Mark OBJ if we can prove it's a Lisp_Object.  */
-
-static void
-mark_maybe_object (Lisp_Object obj)
-{
-#if USE_VALGRIND
-  VALGRIND_MAKE_MEM_DEFINED (&obj, sizeof (obj));
-#endif
-
-  int type_tag = XTYPE (obj);
-  intptr_t pointer_word_tag = LISP_WORD_TAG (type_tag), offset, ipo;
-
-  switch (type_tag)
-    {
-    case_Lisp_Int: case Lisp_Type_Unused0:
-      return;
-
-    case Lisp_Symbol:
-      offset = (intptr_t) lispsym;
-      break;
-
-    default:
-      offset = 0;
-      break;
-    }
-
-  INT_ADD_WRAPV ((intptr_t) XLP (obj), offset - pointer_word_tag, &ipo);
-  void *po = (void *) ipo;
-
-  /* If the pointer is in the dump image and the dump has a record
-     of the object starting at the place where the pointer points, we
-     definitely have an object.  If the pointer is in the dump image
-     and the dump has no idea what the pointer is pointing at, we
-     definitely _don't_ have an object.  */
-  if (pdumper_object_p (po))
-    {
-      /* Don't use pdumper_object_p_precise here! It doesn't check the
-         tag bits. OBJ here might be complete garbage, so we need to
-         verify both the pointer and the tag.  */
-      if (pdumper_find_object_type (po) == type_tag)
-        mark_object (obj);
-      return;
-    }
-
-  struct mem_node *m = mem_find (po);
-
-  if (m != MEM_NIL)
-    {
-      bool mark_p = false;
-
-      switch (type_tag)
-	{
-	case Lisp_String:
-	  mark_p = m->type == MEM_TYPE_STRING && live_string_p (m, po);
-	  break;
-
-	case Lisp_Cons:
-	  mark_p = m->type == MEM_TYPE_CONS && live_cons_p (m, po);
-	  break;
-
-	case Lisp_Symbol:
-	  mark_p = m->type == MEM_TYPE_SYMBOL && live_symbol_p (m, po);
-	  break;
-
-	case Lisp_Float:
-	  mark_p = m->type == MEM_TYPE_FLOAT && live_float_p (m, po);
-	  break;
-
-	case Lisp_Vectorlike:
-	  mark_p = (m->type == MEM_TYPE_VECTOR_BLOCK
-		    ? live_small_vector_p (m, po)
-		    : (m->type == MEM_TYPE_VECTORLIKE
-		       && live_large_vector_p (m, po)));
-	  break;
-
-	default:
-	  eassume (false);
-	}
-
-      if (mark_p)
-	mark_object (obj);
-    }
-}
-
-void
-mark_maybe_objects (Lisp_Object const *array, ptrdiff_t nelts)
-{
-  for (Lisp_Object const *lim = array + nelts; array < lim; array++)
-    mark_maybe_object (*array);
 }
 
 /* If P points to Lisp data, mark that as live if it isn't already
@@ -4711,14 +4692,21 @@ mark_maybe_pointer (void *p)
   VALGRIND_MAKE_MEM_DEFINED (&p, sizeof (p));
 #endif
 
+  /* If the pointer is in the dump image and the dump has a record
+     of the object starting at the place where the pointer points, we
+     definitely have an object.  If the pointer is in the dump image
+     and the dump has no idea what the pointer is pointing at, we
+     definitely _don't_ have an object.  */
   if (pdumper_object_p (p))
     {
+      /* Don't use pdumper_object_p_precise here! It doesn't check the
+         tag bits. OBJ here might be complete garbage, so we need to
+         verify both the pointer and the tag.  */
       int type = pdumper_find_object_type (p);
       if (pdumper_valid_object_type_p (type))
         mark_object (type == Lisp_Symbol
                      ? make_lisp_symbol (p)
                      : make_lisp_ptr (p, type));
-      /* See mark_maybe_object for why we can confidently return.  */
       return;
     }
 
@@ -4762,9 +4750,12 @@ mark_maybe_pointer (void *p)
 	  break;
 
 	case MEM_TYPE_FLOAT:
-	  if (! live_float_p (m, p))
-	    return;
-	  obj = make_lisp_ptr (p, Lisp_Float);
+	  {
+	    struct Lisp_Float *h = live_float_holding (m, p);
+	    if (!h)
+	      return;
+	    obj = make_lisp_ptr (h, Lisp_Float);
+	  }
 	  break;
 
 	case MEM_TYPE_VECTORLIKE:
@@ -4849,11 +4840,6 @@ mark_memory (void const *start, void const *end)
       intptr_t ip;
       INT_ADD_WRAPV ((intptr_t) p, (intptr_t) lispsym, &ip);
       mark_maybe_pointer ((void *) ip);
-
-      verify (alignof (Lisp_Object) % GC_POINTER_ALIGNMENT == 0);
-      if (alignof (Lisp_Object) == GC_POINTER_ALIGNMENT
-	  || (uintptr_t) pp % alignof (Lisp_Object) == 0)
-	mark_maybe_object (*(Lisp_Object const *) pp);
     }
 }
 
@@ -6261,7 +6247,6 @@ mark_vectorlike (union vectorlike_header *header)
 {
   struct Lisp_Vector *ptr = (struct Lisp_Vector *) header;
   ptrdiff_t size = ptr->header.size;
-  ptrdiff_t i;
 
   eassert (!vector_marked_p (ptr));
 
@@ -6276,8 +6261,7 @@ mark_vectorlike (union vectorlike_header *header)
      the number of Lisp_Object fields that we should trace.
      The distinction is used e.g. by Lisp_Process which places extra
      non-Lisp_Object fields at the end of the structure...  */
-  for (i = 0; i < size; i++) /* ...and then mark its elements.  */
-    mark_object (ptr->contents[i]);
+  mark_objects (ptr->contents, size);
 }
 
 /* Like mark_vectorlike but optimized for char-tables (and
@@ -6376,8 +6360,7 @@ mark_face_cache (struct face_cache *c)
 {
   if (c)
     {
-      int i, j;
-      for (i = 0; i < c->used; ++i)
+      for (int i = 0; i < c->used; i++)
 	{
 	  struct face *face = FACE_FROM_ID_OR_NULL (c->f, i);
 
@@ -6386,8 +6369,7 @@ mark_face_cache (struct face_cache *c)
 	      if (face->font && !vectorlike_marked_p (&face->font->header))
 		mark_vectorlike (&face->font->header);
 
-	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
-		mark_object (face->lface[j]);
+	      mark_objects (face->lface, LFACE_VECTOR_SIZE);
 	    }
 	}
     }
@@ -6498,6 +6480,13 @@ mark_hash_table (struct Lisp_Vector *ptr)
       weak_hash_tables = h;
       set_vector_marked (XVECTOR (h->key_and_value));
     }
+}
+
+void
+mark_objects (Lisp_Object *obj, ptrdiff_t n)
+{
+  for (ptrdiff_t i = 0; i < n; i++)
+    mark_object (obj[i]);
 }
 
 /* Determine type of generic Lisp_Object and mark it accordingly.
