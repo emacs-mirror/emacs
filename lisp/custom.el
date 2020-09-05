@@ -907,7 +907,15 @@ See `custom-known-themes' for a list of known themes."
 		     (boundp symbol))
 	    (let ((sv  (get symbol 'standard-value))
 		  (val (symbol-value symbol)))
-	      (unless (and sv (equal (eval (car sv)) val))
+	      (unless (or
+                       ;; We only do this trick if the current value
+                       ;; is different from the standard value.
+                       (and sv (equal (eval (car sv)) val))
+                       ;; And we don't do it if we would end up recording
+                       ;; the same value for the user theme.  This way we avoid
+                       ;; having ((user VALUE) (changed VALUE)).  That would be
+                       ;; useless, because we don't disable the user theme.
+                       (and (eq theme 'user) (equal (custom-quote val) value)))
 		(setq old `((changed ,(custom-quote val))))))))
 	(put symbol prop (cons (list theme value) old)))
       (put theme 'theme-settings
@@ -1368,13 +1376,14 @@ function runs.  To disable other themes, use `disable-theme'."
 		       obarray (lambda (sym) (get sym 'theme-settings)) t))))
   (unless (custom-theme-p theme)
     (error "Undefined Custom theme %s" theme))
-  (let ((settings (get theme 'theme-settings)))
+  (let ((settings (get theme 'theme-settings)) ; '(prop symbol theme value)
+        ;; We are enabling the theme, so don't inhibit enabling it.  (Bug#34027)
+        (custom--inhibit-theme-enable nil))
     ;; Loop through theme settings, recalculating vars/faces.
     (dolist (s settings)
       (let* ((prop (car s))
-	     (symbol (cadr s))
-	     (spec-list (get symbol prop)))
-	(put symbol prop (cons (cddr s) (assq-delete-all theme spec-list)))
+	     (symbol (cadr s)))
+        (custom-push-theme prop symbol theme 'set (nth 3 s))
 	(cond
 	 ((eq prop 'theme-face)
 	  (custom-theme-recalc-face symbol))
@@ -1443,7 +1452,7 @@ See `custom-enabled-themes' for a list of enabled themes."
 	(let* ((prop   (car s))
 	       (symbol (cadr s))
 	       (val (assq-delete-all theme (get symbol prop))))
-	  (put symbol prop val)
+          (custom-push-theme prop symbol theme 'reset)
 	  (cond
 	   ((eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol))
