@@ -1451,7 +1451,9 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 				     (plist-get (cdr elem) :value))))
 			input)))
 	 (display
-	  (completing-read "Change value: " options nil 'require-match))
+	  (completing-read "Change value: " options nil 'require-match
+                           nil nil (car (rassoc (plist-get input :value)
+                                                options))))
 	 (inhibit-read-only t))
     (plist-put input :value (cdr (assoc-string display options t)))
     (goto-char
