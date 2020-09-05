@@ -1160,7 +1160,7 @@ This command does not work if you use short group names."
 	(if (search-forward "\n\n" e t) (setq e (1- (point)))))
       (with-temp-buffer
 	(insert-buffer-substring buf b e)
-	(let ((headers (nnheader-parse-naked-head)))
+	(let ((headers (nnheader-parse-head t)))
 	  (setf (mail-header-chars  headers) chars)
 	  (setf (mail-header-number headers) number)
 	  headers)))))

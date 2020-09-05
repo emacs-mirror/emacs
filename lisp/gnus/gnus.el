@@ -1607,7 +1607,7 @@ total number of articles in the group.")
  :variable-default (mapcar
                     (lambda (g) (list g t))
                     '("delayed$" "drafts$" "queue$" "INBOX$"
-                      "^nnmairix:" "^nnir:" "archive"))
+                      "^nnmairix:" "^nnselect:" "archive"))
  :variable-document
  "Groups in which the registry should be turned off."
  :variable-group gnus-registry
@@ -3153,7 +3153,10 @@ that that variable is buffer-local to the summary buffers."
 
 (defun gnus-kill-ephemeral-group (group)
   "Remove ephemeral GROUP from relevant structures."
-  (remhash group gnus-newsrc-hashtb))
+  (remhash group gnus-newsrc-hashtb)
+    (setq gnus-newsrc-alist
+	(delq (assoc group gnus-newsrc-alist)
+              gnus-newsrc-alist)))
 
 (defun gnus-simplify-mode-line ()
   "Make mode lines a bit simpler."

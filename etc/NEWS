@@ -317,7 +317,24 @@ tags to be considered as well.
 ** Gnus
 
 +++
-*** New user option 'gnus-dbus-close-on-sleep'.
+*** New backend 'nnselect'
+The newly added nnselect backend allows creating groups from an
+arbitrary list of articles that may come from multiple groups and
+servers. These groups generally behave like any other group: they may
+be ephemeral or persistent, and allow article marking, moving,
+deletion, etc. Nnselect groups may be created like any other group,
+but there is also a convenience function for the common case of
+obtaining the list of articles as a result of a search:
+'gnus-group-make-search-group' (G g) that will prompt for an nnir
+search query and create a dedicated group for that search.  As part of
+this addition, the variable 'nnir-summary-line-format' has been
+removed; it's functionality is now available directly in the
+'gnus-summary-line-format' 'G' and 'g' specs. The variable
+'gnus-refer-thread-use-nnir' has been renamed
+'gnus-refer-thread-use-search'.
+
++++
+*** New user option 'gnus-dbus-close-on-sleep'
 On systems with D-Bus support, it is now possible to register a signal
 to close all Gnus servers before the system sleeps.
 

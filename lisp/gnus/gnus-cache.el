@@ -186,7 +186,7 @@ it's not cached."
 		(gnus-cache-update-file-total-fetched-for group file))
 	      (setq lines-chars (nnheader-get-lines-and-char))
 	      (nnheader-remove-body)
-	      (setq headers (nnheader-parse-naked-head))
+	      (setq headers (nnheader-parse-head t))
 	      (setf (mail-header-number headers) number)
 	      (setf (mail-header-lines headers) (car lines-chars))
 	      (setf (mail-header-chars headers) (cadr lines-chars))

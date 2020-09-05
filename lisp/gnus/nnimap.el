@@ -1686,7 +1686,7 @@ If LIMIT, first try to limit the search to the N last articles."
         (gnus-add-to-range
          (gnus-add-to-range
           (gnus-range-add (gnus-info-read info)
-		          vanished)
+			  vanished)
 	  (cdr (assq '%Flagged flags)))
 	 (cdr (assq '%Seen flags))))
   (let ((marks (gnus-info-marks info)))
@@ -1851,15 +1851,15 @@ If LIMIT, first try to limit the search to the N last articles."
   (setq nnimap-status-string "Read-only server")
   nil)
 
-(defvar gnus-refer-thread-use-nnir) ;; gnus-sum.el
+(defvar gnus-refer-thread-use-search) ;; gnus-sum.el
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
-(autoload 'nnir-search-thread "nnir")
+(autoload 'nnselect-search-thread "nnselect")
 
 (deffoo nnimap-request-thread (header &optional group server)
-  (if gnus-refer-thread-use-nnir
-      (nnir-search-thread header)
+  (if gnus-refer-thread-use-search
+      (nnselect-search-thread header)
     (when (nnimap-change-group group server)
       (let* ((cmd (nnimap-make-thread-query header))
              (result (with-current-buffer (nnimap-buffer)
