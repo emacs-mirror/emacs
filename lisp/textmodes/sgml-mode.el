@@ -46,7 +46,8 @@
 
 (defcustom sgml-basic-offset 2
   "Specifies the basic indentation level for `sgml-indent-line'."
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom sgml-attribute-offset 0
   "Specifies a delta for attribute indentation in `sgml-indent-line'.
