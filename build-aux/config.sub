@@ -1277,6 +1277,7 @@ case $vendor in
 esac
 
 # Decode manufacturer-specific aliases for certain operating systems.
+
 if test x$basic_os != x
 then
 
