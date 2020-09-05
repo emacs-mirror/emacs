@@ -298,7 +298,8 @@ If optional argument QUERY is non-nil, query for the help mode."
 	 (enable-recursive-minibuffers t)
 	 (value (completing-read
 		 (if default
-		     (format "Describe %s (default %s): " topic default)
+		     (format "Describe %s (default %s): " topic
+                             (substring-no-properties default))
 		   (format "Describe %s: " topic))
 		 completions nil nil nil 'info-lookup-history default)))
     (list (if (equal value "") default value) mode)))
@@ -648,6 +649,9 @@ Return nil if there is nothing appropriate in the buffer near point."
 		     (> end beg)))
 	    (buffer-substring-no-properties beg end)))))
     (error nil)))
+;; We don't need this anymore, because now Custom inserts the unlispified name
+;; in the buffer.  (Bug#41905)
+(make-obsolete 'info-lookup-guess-custom-symbol nil "28.1")
 
 (defun info-lookup-guess-gdb-script-symbol ()
   "Get symbol at point in GDB script buffers."
@@ -1065,7 +1069,6 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'Custom-mode
  :ignore-case t
  :regexp "[^][()`'‘’,:\" \t\n]+"
- :parse-rule 'info-lookup-guess-custom-symbol
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
