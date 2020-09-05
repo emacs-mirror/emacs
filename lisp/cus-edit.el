@@ -561,7 +561,8 @@ value unless you are sure you know what it does."
 	   (unless no-suffix
 	     (goto-char (point-max))
 	     (insert "..."))
-	   (buffer-string)))))
+	   (propertize (symbol-name symbol)
+                       'display (buffer-string))))))
 
 (defcustom custom-unlispify-tag-names t
   "Display tag names as words instead of symbols if non-nil."
