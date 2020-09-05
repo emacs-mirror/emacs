@@ -4968,6 +4968,15 @@ The address (from the @code{From} header).  This works the same way as
 the @code{a} spec.
 @item L
 Number of lines in the article.
+@item Z
+Retrieval Score Value (RSV) of the article; nil if not in an nnselect
+group.
+@item G
+Originating group name of the article; nil if not in an nnselect
+group.
+@item g
+Short form of the originating group name of the article; nil if not in
+an nnselect group.
 @item c
 Number of characters in the article.  This specifier is not supported
 in some methods (like nnfolder).

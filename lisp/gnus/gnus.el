@@ -2705,6 +2705,11 @@ with some simple extensions.
 %k          Pretty-printed version of the above (string)
             For example, \"1.2k\" or \"0.4M\".
 %L          Number of lines in the article (integer)
+%Z          RSV of the article; nil if not in an nnselect group (integer)
+%G          Originating group name for the article; nil if not
+            in an nnselect group (string)
+%g          Short from  of the originating group name for the article;
+            nil if not in an nnselect group (string)
 %I          Indentation based on thread level (a string of
             spaces)
 %B          A complex trn-style thread tree (string)
