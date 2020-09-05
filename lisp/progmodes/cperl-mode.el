@@ -5776,8 +5776,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		  t-font-lock-keywords)
 		cperl-font-lock-keywords cperl-font-lock-keywords-1
 		cperl-font-lock-keywords-2 (append
-					   cperl-font-lock-keywords-1
-					   t-font-lock-keywords-1)))
+					   t-font-lock-keywords-1
+					   cperl-font-lock-keywords-1)))
 	(if (fboundp 'ps-print-buffer) (cperl-ps-print-init))
 	(if (or (featurep 'choose-color) (featurep 'font-lock-extra))
 	    (eval			; Avoid a warning
