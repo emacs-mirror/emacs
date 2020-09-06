@@ -231,7 +231,7 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 pgtk_set_name_internal (struct frame *f, Lisp_Object name)
 {
-  if (FRAME_GTK_WIDGET (f))
+  if (FRAME_GTK_OUTER_WIDGET (f))
     {
       block_input ();
       {
@@ -1523,18 +1523,32 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       struct frame *p = XFRAME (parent_frame);
 
       block_input ();
+
       PGTK_TRACE ("x_set_parent_frame x: %d, y: %d", f->left_pos, f->top_pos);
-      gtk_window_set_transient_for (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-				    GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (p)));
-      gtk_window_set_attached_to (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-				  FRAME_GTK_WIDGET (p));
-      gtk_window_set_destroy_with_parent (GTK_WINDOW
-					  (FRAME_GTK_OUTER_WIDGET (f)), TRUE);
-      gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+      GtkWidget *fixed = FRAME_GTK_WIDGET (f);
+      GtkWidget *fixed_of_p = FRAME_GTK_WIDGET (p);
+      GtkWidget *whbox_of_f = gtk_widget_get_parent (fixed);
+      g_object_ref (fixed);
+      gtk_container_remove (GTK_CONTAINER (whbox_of_f), fixed);
+      gtk_fixed_put (GTK_FIXED (fixed_of_p), fixed, f->left_pos, f->top_pos);
+      gtk_widget_show_all (fixed);
+      g_object_unref (fixed);
+
+      gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
+      FRAME_GTK_OUTER_WIDGET (f) = NULL;
+      FRAME_OUTPUT_DATA (f)->vbox_widget = NULL;
+      FRAME_OUTPUT_DATA (f)->hbox_widget = NULL;
+      FRAME_OUTPUT_DATA (f)->menubar_widget = NULL;
+      FRAME_OUTPUT_DATA (f)->toolbar_widget = NULL;
+      FRAME_OUTPUT_DATA (f)->ttip_widget = NULL;
+      FRAME_OUTPUT_DATA (f)->ttip_lbl = NULL;
+      FRAME_OUTPUT_DATA (f)->ttip_window = NULL;
+
       unblock_input ();
     }
 
-  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 
   gui_default_parameter (f, parms, Qno_focus_on_map, Qnil,
 			 NULL, NULL, RES_TYPE_BOOLEAN);
@@ -3298,8 +3312,15 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   /* Get these here because they can't be got in configure_event(). */
   int left_pos, top_pos;
-  gtk_window_get_position (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   &left_pos, &top_pos);
+  if (FRAME_GTK_OUTER_WIDGET (f)) {
+    gtk_window_get_position (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     &left_pos, &top_pos);
+  } else {
+    GtkAllocation alloc;
+    gtk_widget_get_allocation (FRAME_GTK_WIDGET (f), &alloc);
+    left_pos = alloc.x;
+    top_pos = alloc.y;
+  }
 
   int native_left = left_pos + border;
   int native_top = top_pos + border + title_height;
@@ -3647,6 +3668,8 @@ syms_of_pgtkfns (void)
   DEFSYM (Qframe_title_format, "frame-title-format");
   DEFSYM (Qicon_title_format, "icon-title-format");
   DEFSYM (Qdark, "dark");
+  DEFSYM (Qhide, "hide");
+  DEFSYM (Qresize_mode, "resize-mode");
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
 	       doc: /* A string indicating the foreground color of the cursor box.  */);
@@ -3798,6 +3821,28 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
     doc: /* Maximum size for tooltips.
 Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
+
+  DEFVAR_LISP ("x-gtk-resize-child-frames", x_gtk_resize_child_frames,
+    doc: /* If non-nil, resize child frames specially with GTK builds.
+If this is nil, resize child frames like any other frames.  This is the
+default and usually works with most desktops.  Some desktop environments
+(GNOME shell in particular when using the mutter window manager),
+however, may refuse to resize a child frame when Emacs is built with
+GTK3.  For those environments, the two settings below are provided.
+
+If this equals the symbol 'hide', Emacs temporarily hides the child
+frame during resizing.  This approach seems to work reliably, may
+however induce some flicker when the frame is made visible again.
+
+If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
+always trigger an immediate resize of the child frame.  This method is
+deprecated by GTK and may not work in future versions of that toolkit.
+It also may freeze Emacs when used with other desktop environments.  It
+avoids, however, the unpleasant flicker induced by the hiding approach.
+
+This variable is considered a temporary workaround and will be hopefully
+eliminated in future versions of Emacs.  */);
+  x_gtk_resize_child_frames = Qnil;
 
 
   DEFSYM (Qmono, "mono");

@@ -60,6 +60,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "xsettings.h"
 #include "pgtkselect.h"
+#include "emacsgtkfixed.h"
 
 #define STORE_KEYSYM_FOR_DEBUG(keysym) ((void)0)
 
@@ -227,10 +228,10 @@ x_free_frame_resources (struct frame *f)
 
   if (FRAME_X_OUTPUT (f)->border_color_css_provider != NULL)
     {
-      GtkStyleContext *ctxt =
-	gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+      GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
       GtkCssProvider *old = FRAME_X_OUTPUT (f)->border_color_css_provider;
       gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (old));
+      g_object_unref (old);
       FRAME_X_OUTPUT (f)->border_color_css_provider = NULL;
     }
 
@@ -250,7 +251,7 @@ x_free_frame_resources (struct frame *f)
       FRAME_X_OUTPUT (f)->scrollbar_background_css_provider = NULL;
     }
 
-  gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
+  gtk_widget_destroy (FRAME_WIDGET (f));
 
   if (FRAME_X_OUTPUT (f)->cr_surface_visible_bell != NULL)
     {
@@ -286,6 +287,80 @@ x_destroy_window (struct frame *f)
   dpyinfo->reference_count--;
 }
 
+/* Calculate the absolute position in frame F
+   from its current recorded position values and gravity.  */
+
+static void
+x_calc_absolute_position (struct frame *f)
+{
+  int flags = f->size_hint_flags;
+  struct frame *p = FRAME_PARENT_FRAME (f);
+
+  /* We have nothing to do if the current position
+     is already for the top-left corner.  */
+  if (! ((flags & XNegative) || (flags & YNegative)))
+    return;
+
+  /* Treat negative positions as relative to the leftmost bottommost
+     position that fits on the screen.  */
+  if ((flags & XNegative) && (f->left_pos <= 0))
+    {
+      int width = FRAME_PIXEL_WIDTH (f);
+
+      /* A frame that has been visible at least once should have outer
+	 edges.  */
+      if (f->output_data.pgtk->has_been_visible && !p)
+	{
+	  Lisp_Object frame;
+	  Lisp_Object edges = Qnil;
+
+	  XSETFRAME (frame, f);
+	  edges = Fpgtk_frame_edges (frame, Qouter_edges);
+	  if (!NILP (edges))
+	    width = (XFIXNUM (Fnth (make_fixnum (2), edges))
+		     - XFIXNUM (Fnth (make_fixnum (0), edges)));
+	}
+
+      if (p)
+	f->left_pos = (FRAME_PIXEL_WIDTH (p) - width - 2 * f->border_width
+		       + f->left_pos);
+      else
+	f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
+		       - width + f->left_pos);
+
+    }
+
+  if ((flags & YNegative) && (f->top_pos <= 0))
+    {
+      int height = FRAME_PIXEL_HEIGHT (f);
+
+      if (f->output_data.pgtk->has_been_visible && !p)
+	{
+	  Lisp_Object frame;
+	  Lisp_Object edges = Qnil;
+
+	  XSETFRAME (frame, f);
+	  if (NILP (edges))
+	    edges = Fpgtk_frame_edges (frame, Qouter_edges);
+	  if (!NILP (edges))
+	    height = (XFIXNUM (Fnth (make_fixnum (3), edges))
+		      - XFIXNUM (Fnth (make_fixnum (1), edges)));
+	}
+
+      if (p)
+	f->top_pos = (FRAME_PIXEL_HEIGHT (p) - height - 2 * f->border_width
+		       + f->top_pos);
+      else
+	f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
+		      - height + f->top_pos);
+  }
+
+  /* The left_pos and top_pos
+     are now relative to the top and left screen edges,
+     so the flags should correspond.  */
+  f->size_hint_flags &= ~ (XNegative | YNegative);
+}
+
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
    to really change the position, and 0 when calling from
    x_make_frame_visible (in that case, XOFF and YOFF are the current
@@ -300,48 +375,60 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 {
   PGTK_TRACE ("x_set_offset: %d,%d,%d.", xoff, yoff, change_gravity);
 
-  struct frame *parent = FRAME_PARENT_FRAME (f);
-  GtkAllocation a = { 0 };
-  int surface_pos_x = 0;
-  int surface_pos_y = 0;
-
-  if (parent)
-    {
-      /* determing the "height" of the titlebar, by finding the
-	 location of the "emacsfixed" widget on the surface/window */
-      GtkWidget *w = FRAME_GTK_WIDGET (parent);
-      gtk_widget_get_allocation (w, &a);
-    }
+  int modified_top, modified_left;
 
   if (change_gravity > 0)
     {
-      f->size_hint_flags &= ~(XNegative | YNegative);
-      f->left_pos = xoff;
       f->top_pos = yoff;
-
+      f->left_pos = xoff;
+      f->size_hint_flags &= ~ (XNegative | YNegative);
       if (xoff < 0)
-	{
-	  f->size_hint_flags |= XNegative;
-	}
+	f->size_hint_flags |= XNegative;
       if (yoff < 0)
-	{
-	  f->size_hint_flags |= YNegative;
-	}
+	f->size_hint_flags |= YNegative;
       f->win_gravity = NorthWestGravity;
     }
 
-  block_input ();
-  surface_pos_y = f->top_pos + a.y;
-  surface_pos_x = f->left_pos + a.x;
+  x_calc_absolute_position (f);
 
-  /* When a position change was requested and the outer GTK widget
-     has been realized already, leave it to gtk_window_move to DTRT
-     and return.  Used for Bug#25851 and Bug#25943.  */
-  if (change_gravity != 0 && FRAME_GTK_OUTER_WIDGET (f))
+  block_input ();
+  x_wm_set_size_hint (f, 0, false);
+
+  if (x_gtk_use_window_move)
     {
-      PGTK_TRACE ("x_set_offset: move to %d,%d.", surface_pos_x, surface_pos_y);
+      if (change_gravity != 0)
+	{
+	  if (FRAME_GTK_OUTER_WIDGET (f))
+	    {
+	      gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			       f->left_pos, f->top_pos);
+	    }
+	  else
+	    {
+	      GtkWidget *fixed = FRAME_GTK_WIDGET (f);
+	      GtkWidget *parent = gtk_widget_get_parent (fixed);
+	      gtk_fixed_move (GTK_FIXED (parent), fixed,
+			      f->left_pos, f->top_pos);
+	    }
+	}
+      unblock_input ();
+      return;
+    }
+
+  modified_left = f->left_pos;
+  modified_top = f->top_pos;
+
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    {
       gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       surface_pos_x, surface_pos_y);
+		       modified_left, modified_top);
+    }
+  else
+    {
+      GtkWidget *fixed = FRAME_GTK_WIDGET (f);
+      GtkWidget *parent = gtk_widget_get_parent (fixed);
+      gtk_fixed_move (GTK_FIXED (parent), fixed,
+		      modified_left, modified_top);
     }
 
   unblock_input ();
@@ -397,7 +484,7 @@ pgtk_set_window_size (struct frame *f,
   x_wm_set_size_hint (f, 0, 0);
   xg_frame_set_char_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth),
 			  FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight));
-  gtk_widget_queue_resize (FRAME_GTK_OUTER_WIDGET (f));
+  gtk_widget_queue_resize (FRAME_WIDGET (f));
 
   unblock_input ();
 }
@@ -488,8 +575,9 @@ pgtk_make_frame_visible (struct frame *f)
 
   if (!FRAME_VISIBLE_P (f))
     {
-      gtk_widget_show (win);
-      gtk_window_deiconify (GTK_WINDOW (win));
+      gtk_widget_show (FRAME_WIDGET (f));
+      if (win)
+	gtk_window_deiconify (GTK_WINDOW (win));
 
       if (FLOATP (Vpgtk_wait_for_event_timeout))
 	{
@@ -498,7 +586,7 @@ pgtk_make_frame_visible (struct frame *f)
 	  int found = 0;
 	  int timed_out = 0;
 	  gulong id =
-	    g_signal_connect (win, "map-event",
+	    g_signal_connect (FRAME_WIDGET (f), "map-event",
 			      G_CALLBACK
 			      (pgtk_make_frame_visible_wait_for_map_event_cb),
 			      &found);
@@ -508,7 +596,7 @@ pgtk_make_frame_visible (struct frame *f)
 			   &timed_out);
 	  while (!found && !timed_out)
 	    gtk_main_iteration ();
-	  g_signal_handler_disconnect (win, id);
+	  g_signal_handler_disconnect (FRAME_WIDGET (f), id);
 	  if (!timed_out)
 	    g_source_remove (src);
 	}
@@ -524,9 +612,7 @@ pgtk_make_frame_invisible (struct frame *f)
 {
   PGTK_TRACE ("pgtk_make_frame_invisible");
 
-  GtkWidget *win = FRAME_OUTPUT_DATA (f)->widget;
-
-  gtk_widget_hide (win);
+  gtk_widget_hide (FRAME_WIDGET (f));
 
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, false);
@@ -668,25 +754,89 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
    -------------------------------------------------------------------------- */
 {
   struct frame *p = NULL;
-  PGTK_TRACE ("x_set_parent_frame x: %d, y: %d", f->left_pos, f->top_pos);
 
   if (!NILP (new_value)
       && (!FRAMEP (new_value)
-	  || !FRAME_LIVE_P (p = XFRAME (new_value)) || !FRAME_PGTK_P (p)))
+	  || !FRAME_LIVE_P (p = XFRAME (new_value))
+	  || !FRAME_PGTK_P (p)))
     {
       store_frame_param (f, Qparent_frame, old_value);
       error ("Invalid specification of `parent-frame'");
     }
 
-  if (p != FRAME_PARENT_FRAME (f) && (p != NULL))
+  if (p != FRAME_PARENT_FRAME (f))
     {
       block_input ();
-      gtk_window_set_transient_for (FRAME_NATIVE_WINDOW (f),
-				    FRAME_NATIVE_WINDOW (p));
-      gtk_window_set_attached_to (FRAME_NATIVE_WINDOW (f),
-				  FRAME_GTK_WIDGET (p));
-      gtk_window_move (FRAME_NATIVE_WINDOW (f), f->left_pos, f->top_pos);
-      gtk_window_set_keep_above (FRAME_NATIVE_WINDOW (f), true);
+
+      if (p != NULL)
+	{
+	  if (FRAME_DISPLAY_INFO (f) != FRAME_DISPLAY_INFO (p))
+	    error ("Cross display reparent.");
+	}
+
+      GtkWidget *fixed = FRAME_GTK_WIDGET (f);
+
+      GtkAllocation alloc;
+      gtk_widget_get_allocation(fixed, &alloc);
+      g_object_ref (fixed);
+
+      GtkCssProvider *provider = FRAME_X_OUTPUT (f)->border_color_css_provider;
+
+      {
+	GtkWidget *whbox_of_f = gtk_widget_get_parent (fixed);
+	gtk_container_remove (GTK_CONTAINER (whbox_of_f), fixed);
+
+	GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
+	gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (provider));
+
+	if (FRAME_GTK_OUTER_WIDGET (f))
+	  {
+	    gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
+	    FRAME_GTK_OUTER_WIDGET (f) = NULL;
+	    FRAME_OUTPUT_DATA (f)->vbox_widget = NULL;
+	    FRAME_OUTPUT_DATA (f)->hbox_widget = NULL;
+	    FRAME_OUTPUT_DATA (f)->menubar_widget = NULL;
+	    FRAME_OUTPUT_DATA (f)->toolbar_widget = NULL;
+	    FRAME_OUTPUT_DATA (f)->ttip_widget = NULL;
+	    FRAME_OUTPUT_DATA (f)->ttip_lbl = NULL;
+	    FRAME_OUTPUT_DATA (f)->ttip_window = NULL;
+	  }
+      }
+
+      if (p == NULL)
+	{
+	  xg_create_frame_outer_widgets (f);
+	  pgtk_set_event_handler (f);
+	  gtk_box_pack_start (GTK_BOX (f->output_data.pgtk->hbox_widget), fixed, TRUE, TRUE, 0);
+	  f->output_data.pgtk->preferred_width = alloc.width;
+	  f->output_data.pgtk->preferred_height = alloc.height;
+	  x_wm_set_size_hint (f, 0, 0);
+	  xg_frame_set_char_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, alloc.width),
+				  FRAME_PIXEL_TO_TEXT_HEIGHT (f, alloc.height));
+	  gtk_widget_queue_resize (FRAME_WIDGET (f));
+	  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+	}
+      else
+	{
+	  GtkWidget *fixed_of_p = FRAME_GTK_WIDGET (p);
+	  gtk_fixed_put (GTK_FIXED (fixed_of_p), fixed, f->left_pos, f->top_pos);
+	  gtk_widget_set_size_request (fixed, alloc.width, alloc.height);
+	  gtk_widget_show_all (fixed);
+	}
+
+      GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
+      gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (provider),
+				      GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+      g_object_unref (fixed);
+
+      if (FRAME_GTK_OUTER_WIDGET (f)) {
+	if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	  gtk_container_set_resize_mode
+	    (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
+	     p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+      }
+
       unblock_input ();
 
       fset_parent_frame (f, new_value);
@@ -747,6 +897,9 @@ x_set_z_group (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   /* doesn't work on wayland. */
   PGTK_TRACE ("x_set_z_group");
+
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
 
   if (NILP (new_value))
     {
@@ -2900,8 +3053,10 @@ pgtk_bitmap_icon (struct frame *f, Lisp_Object file)
 bool
 pgtk_text_icon (struct frame *f, const char *icon_name)
 {
-  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), NULL);
-  gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), icon_name);
+  if (FRAME_GTK_OUTER_WIDGET (f)) {
+    gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), NULL);
+    gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), icon_name);
+  }
 
   return false;
 }
@@ -4392,6 +4547,9 @@ pgtk_judge_scroll_bars (struct frame *f)
 static void
 set_fullscreen_state (struct frame *f)
 {
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
+
   GtkWindow *widget = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
   switch (f->want_fullscreen)
     {
@@ -4571,24 +4729,27 @@ frame_highlight (struct frame *f)
      using that same window-manager binary for ever.  Let's not crash just
      because of this (bug#9310).  */
 
+  GtkWidget *w = FRAME_WIDGET (f);
+
   char *css =
     g_strdup_printf ("decoration { border: solid %dpx #%06x; }",
 		     f->border_width,
-		     (unsigned int) FRAME_X_OUTPUT (f)->
-		     border_pixel & 0x00ffffff);
-  GtkStyleContext *ctxt =
-    gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+		     (unsigned int) FRAME_X_OUTPUT (f)->border_pixel & 0x00ffffff);
+
+  GtkStyleContext *ctxt = gtk_widget_get_style_context (w);
   GtkCssProvider *css_provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_data (css_provider, css, -1, NULL);
   gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (css_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
-  g_object_unref (css_provider);
   g_free (css);
 
   GtkCssProvider *old = FRAME_X_OUTPUT (f)->border_color_css_provider;
   FRAME_X_OUTPUT (f)->border_color_css_provider = css_provider;
   if (old != NULL)
-    gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (old));
+    {
+      gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (old));
+      g_object_unref (old);
+    }
 
   unblock_input ();
   gui_update_cursor (f, true);
@@ -4605,22 +4766,26 @@ frame_unhighlight (struct frame *f)
   block_input ();
   /* Same as above for XSetWindowBorder (bug#9310).  */
 
+  GtkWidget *w = FRAME_WIDGET (f);
+
   char *css =
     g_strdup_printf ("decoration { border: dotted %dpx #ffffff; }",
 		     f->border_width);
-  GtkStyleContext *ctxt =
-    gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+
+  GtkStyleContext *ctxt = gtk_widget_get_style_context (w);
   GtkCssProvider *css_provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_data (css_provider, css, -1, NULL);
   gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (css_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
-  g_object_unref (css_provider);
   g_free (css);
 
   GtkCssProvider *old = FRAME_X_OUTPUT (f)->border_color_css_provider;
   FRAME_X_OUTPUT (f)->border_color_css_provider = css_provider;
   if (old != NULL)
-    gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (old));
+    {
+      gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (old));
+      g_object_unref (old);
+    }
 
   unblock_input ();
   gui_update_cursor (f, true);
@@ -4793,6 +4958,7 @@ struct pgtk_window_is_of_frame_recursive_t
 {
   GdkWindow *window;
   bool result;
+  GtkWidget *emacs_gtk_fixed;	// stop on emacsgtkfixed other than this.
 };
 
 static void
@@ -4803,15 +4969,19 @@ pgtk_window_is_of_frame_recursive (GtkWidget * widget, gpointer data)
   if (datap->result)
     return;
 
+  if (EMACS_IS_FIXED (widget) && widget != datap->emacs_gtk_fixed)
+    return;
+
   if (gtk_widget_get_window (widget) == datap->window)
     {
       datap->result = true;
       return;
     }
 
-  if (GTK_IS_CONTAINER (widget))
+  if (GTK_IS_CONTAINER (widget)) {
     gtk_container_foreach (GTK_CONTAINER (widget),
 			   pgtk_window_is_of_frame_recursive, datap);
+  }
 }
 
 static bool
@@ -4820,7 +4990,8 @@ pgtk_window_is_of_frame (struct frame *f, GdkWindow * window)
   struct pgtk_window_is_of_frame_recursive_t data;
   data.window = window;
   data.result = false;
-  pgtk_window_is_of_frame_recursive (FRAME_GTK_OUTER_WIDGET (f), &data);
+  data.emacs_gtk_fixed = FRAME_GTK_WIDGET (f);
+  pgtk_window_is_of_frame_recursive (FRAME_WIDGET (f), &data);
   return data.result;
 }
 
@@ -5068,6 +5239,8 @@ pgtk_clear_under_internal_border (struct frame *f)
     }
 }
 
+#ifdef HAVE_PGTK
+
 static void
 print_widget_tree_recursive (GtkWidget * w, gpointer user_data)
 {
@@ -5108,6 +5281,8 @@ print_widget_tree (GtkWidget * w)
   print_widget_tree_recursive (w, indent);
 }
 
+#endif
+
 static gboolean
 pgtk_handle_draw (GtkWidget * widget, cairo_t * cr, gpointer * data)
 {
@@ -5115,7 +5290,9 @@ pgtk_handle_draw (GtkWidget * widget, cairo_t * cr, gpointer * data)
 
   PGTK_TRACE ("pgtk_handle_draw");
 
+#ifdef HAVE_PGTK
   print_widget_tree (widget);
+#endif
 
   GdkWindow *win = gtk_widget_get_window (widget);
 
@@ -6385,11 +6562,11 @@ pgtk_set_event_handler (struct frame *f)
 		    NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "delete-event",
 		    G_CALLBACK (delete_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "map-event",
-		    G_CALLBACK (map_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "event",
 		    G_CALLBACK (pgtk_handle_event), NULL);
 
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "map-event",
+		    G_CALLBACK (map_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "size-allocate",
 		    G_CALLBACK (size_allocate), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-press-event",

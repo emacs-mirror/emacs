@@ -1060,8 +1060,20 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   if (FRAME_PIXEL_HEIGHT (f) == 0)
     return;
 
+#ifndef HAVE_PGTK
   gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 		       &gwidth, &gheight);
+#else
+  if (FRAME_GTK_OUTER_WIDGET (f)) {
+    gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			 &gwidth, &gheight);
+  } else {
+    GtkAllocation alloc;
+    gtk_widget_get_allocation (FRAME_GTK_WIDGET (f), &alloc);
+    gwidth = alloc.width;
+    gheight = alloc.height;
+  }
+#endif
 
   /* Do this before resize, as we don't know yet if we will be resized.  */
   FRAME_RIF (f)->clear_under_internal_border (f);
@@ -1101,11 +1113,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
     {
       was_visible = true;
-#ifndef HAVE_PGTK
       hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
-#else
-      hide_child_frame = true;
-#endif // !HAVE_PGTK
 
       if (totalwidth != gwidth || totalheight != gheight)
 	{
@@ -1116,17 +1124,35 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
           if (hide_child_frame)
             {
               block_input ();
+#ifndef HAVE_PGTK
               gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
+#else
+	      gtk_widget_hide (FRAME_WIDGET (f));
+#endif
               unblock_input ();
             }
 
+#ifndef HAVE_PGTK
 	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			     totalwidth, totalheight);
+#else
+	  if (FRAME_GTK_OUTER_WIDGET (f)) {
+	    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			       totalwidth, totalheight);
+	  } else {
+	    gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+					 totalwidth, totalheight);
+	  }
+#endif
 
           if (hide_child_frame)
             {
               block_input ();
+#ifndef HAVE_PGTK
               gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+#else
+	      gtk_widget_show_all (FRAME_WIDGET (f));
+#endif
               unblock_input ();
             }
 
@@ -1138,8 +1164,18 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
 	 list2i (totalwidth, totalheight));
+#ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, totalheight);
+#else
+      if (FRAME_GTK_OUTER_WIDGET (f)) {
+	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			   totalwidth, totalheight);
+      } else {
+	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				     totalwidth, totalheight);
+      }
+#endif
       fullscreen = Qnil;
     }
 
@@ -1355,7 +1391,7 @@ xg_create_frame_widgets (struct frame *f)
   else
     wtop = gtk_window_new (type);
 #else
-  if (!NILP(f->parent_frame) || f->tooltip)
+  if (f->tooltip)
     {
       type = GTK_WINDOW_POPUP;
     }
@@ -1545,6 +1581,107 @@ xg_create_frame_widgets (struct frame *f)
 
   return 1;
 }
+
+#ifdef HAVE_PGTK
+void
+xg_create_frame_outer_widgets (struct frame *f)
+{
+  GtkWidget *wtop;
+  GtkWidget *wvbox, *whbox;
+  GtkWindowType type = GTK_WINDOW_TOPLEVEL;
+  char *title = 0;
+
+  PGTK_TRACE ("xg_create_frame_outer_widgets.");
+  block_input ();
+
+  wtop = gtk_window_new (type);
+  gtk_widget_add_events(wtop, GDK_ALL_EVENTS_MASK);
+
+  xg_set_screen (wtop, f);
+
+  wvbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  whbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_set_homogeneous (GTK_BOX (wvbox), FALSE);
+  gtk_box_set_homogeneous (GTK_BOX (whbox), FALSE);
+
+  /* Use same names as the Xt port does.  I.e. Emacs.pane.emacs by default */
+  gtk_widget_set_name (wtop, EMACS_CLASS);
+  gtk_widget_set_name (wvbox, "pane");
+
+  /* If this frame has a title or name, set it in the title bar.  */
+  if (! NILP (f->title))
+    title = SSDATA (ENCODE_UTF_8 (f->title));
+  else if (! NILP (f->name))
+    title = SSDATA (ENCODE_UTF_8 (f->name));
+
+  if (title)
+    gtk_window_set_title (GTK_WINDOW (wtop), title);
+
+  if (FRAME_UNDECORATED (f))
+    {
+      gtk_window_set_decorated (GTK_WINDOW (wtop), FALSE);
+      store_frame_param (f, Qundecorated, Qt);
+    }
+
+  FRAME_GTK_OUTER_WIDGET (f) = wtop;
+  f->output_data.xp->vbox_widget = wvbox;
+  f->output_data.xp->hbox_widget = whbox;
+
+  gtk_container_add (GTK_CONTAINER (wtop), wvbox);
+  gtk_box_pack_start (GTK_BOX (wvbox), whbox, TRUE, TRUE, 0);
+
+  if (FRAME_EXTERNAL_TOOL_BAR (f))
+    update_frame_tool_bar (f);
+
+#if ! GTK_CHECK_VERSION (3, 22, 0)
+  gtk_window_set_wmclass (GTK_WINDOW (wtop),
+                          SSDATA (Vx_resource_name),
+                          SSDATA (Vx_resource_class));
+#endif
+
+  /* Convert our geometry parameters into a geometry string
+     and specify it.
+     GTK will itself handle calculating the real position this way.  */
+  xg_set_geometry (f);
+  f->win_gravity
+    = gtk_window_get_gravity (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+
+  gtk_window_set_resizable (GTK_WINDOW (wtop), TRUE);
+
+  if (FRAME_OVERRIDE_REDIRECT (f))
+    {
+      GdkWindow *gwin = gtk_widget_get_window (wtop);
+
+      if (gwin)
+	gdk_window_set_override_redirect (gwin, TRUE);
+    }
+
+  /* Steal a tool tip window we can move ourselves.  */
+  f->output_data.xp->ttip_widget = 0;
+  f->output_data.xp->ttip_lbl = 0;
+  f->output_data.xp->ttip_window = 0;
+  gtk_widget_set_tooltip_text (wtop, "Dummy text");
+  g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
+
+  {
+    GdkScreen *screen = gtk_widget_get_screen (wtop);
+    GtkSettings *gs = gtk_settings_get_for_screen (screen);
+    /* Only connect this signal once per screen.  */
+    if (! g_signal_handler_find (G_OBJECT (gs),
+                                 G_SIGNAL_MATCH_FUNC,
+                                 0, 0, 0,
+                                 (gpointer) G_CALLBACK (style_changed_cb),
+                                 0))
+      {
+        g_signal_connect (G_OBJECT (gs), "notify::gtk-theme-name",
+                          G_CALLBACK (style_changed_cb),
+                          gdk_screen_get_display (screen));
+      }
+  }
+
+  unblock_input ();
+}
+#endif
 
 void
 xg_free_frame_widgets (struct frame *f)
@@ -1784,10 +1921,17 @@ void
 xg_set_skip_taskbar (struct frame *f, Lisp_Object skip_taskbar)
 {
   block_input ();
+#ifndef HAVE_PGTK
   if (FRAME_GTK_WIDGET (f))
     gdk_window_set_skip_taskbar_hint
       (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
        NILP (skip_taskbar) ? FALSE : TRUE);
+#else
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gdk_window_set_skip_taskbar_hint
+      (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+       NILP (skip_taskbar) ? FALSE : TRUE);
+#endif
   unblock_input ();
 }
 
@@ -1812,7 +1956,13 @@ void
 xg_set_no_accept_focus (struct frame *f, Lisp_Object no_accept_focus)
 {
   block_input ();
-  if (FRAME_GTK_WIDGET (f))
+  if (
+#ifndef HAVE_PGTK
+      FRAME_GTK_WIDGET (f)
+#else
+      FRAME_GTK_OUTER_WIDGET (f)
+#endif
+      )
     {
       GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
       gboolean g_no_accept_focus = NILP (no_accept_focus) ? TRUE : FALSE;

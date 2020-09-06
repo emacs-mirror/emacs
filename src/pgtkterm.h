@@ -428,6 +428,9 @@ enum
 #define FRAME_FONT(f)             (FRAME_X_OUTPUT(f)->font)
 #define FRAME_GTK_OUTER_WIDGET(f) (FRAME_X_OUTPUT(f)->widget)
 #define FRAME_GTK_WIDGET(f)       (FRAME_X_OUTPUT(f)->edit_widget)
+#define FRAME_WIDGET(f)           (FRAME_GTK_OUTER_WIDGET(f) ?		\
+                                   FRAME_GTK_OUTER_WIDGET(f) :		\
+                                   FRAME_GTK_WIDGET(f))
 
 /* aliases */
 #define FRAME_PGTK_VIEW(f)         FRAME_GTK_WIDGET(f)
