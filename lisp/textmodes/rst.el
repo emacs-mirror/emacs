@@ -2363,7 +2363,7 @@ If user selects enumerations, a further prompt is given.  User need to
 input a starting item, for example 'e' for 'A)' style.  The position is
 also arranged by `rst-insert-list-new-tag'."
   (let* ((itemstyle (completing-read
-		     "Select preferred item style [#.]: "
+		     (format-prompt "Select preferred item style" "#.")
 		     rst-initial-items nil t nil nil "#."))
 	 (cnt (if (string-match (rst-re 'cntexp-tag) itemstyle)
 		  (match-string 0 itemstyle)))

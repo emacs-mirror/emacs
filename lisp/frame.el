@@ -1412,12 +1412,12 @@ as though the font-related attributes of the `default' face had been
 \"set in this session\", so that the font is applied to future frames."
   (interactive
    (let* ((completion-ignore-case t)
-	  (font (completing-read "Font name: "
+          (default (frame-parameter nil 'font))
+	  (font (completing-read (format-prompt "Font name" default)
 				 ;; x-list-fonts will fail with an error
 				 ;; if this frame doesn't support fonts.
 				 (x-list-fonts "*" nil (selected-frame))
-                                 nil nil nil nil
-                                 (frame-parameter nil 'font))))
+                                 nil nil nil nil default)))
      (list font current-prefix-arg nil)))
   (when (or (stringp font) (fontp font))
     (let* ((this-frame (selected-frame))

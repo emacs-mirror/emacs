@@ -665,7 +665,8 @@ to get the name of the last visited tab, the second last, and so on."
    (let* ((recent-tabs (mapcar (lambda (tab)
                                  (alist-get 'name tab))
                                (tab-bar--tabs-recent))))
-     (list (completing-read "Switch to tab by name (default recent): "
+     (list (completing-read (format-prompt "Switch to tab by name"
+                                           (car recent-tabs))
                             recent-tabs nil nil nil nil recent-tabs))))
   (tab-bar-select-tab (1+ (or (tab-bar--tab-index-by-name name) 0))))
 
