@@ -605,6 +605,13 @@ may arrange for it to be produced asynchronously.  The results of all
 doc string functions are accessible to the user through the user
 option 'eldoc-documentation-strategy'.
 
+*** New hook 'eldoc-display-functions'.
+This hook is intended to be used for displaying doc string.  The
+functions receive the docstrings composed according to
+`eldoc-documentation-strategy' and are tasked with displaying it to
+the user.  Examples of such functions would use the echo area, a
+separate buffer or a tooltip.
+
 +++
 *** New user option 'eldoc-documentation-strategy'.
 The built-in choices available for this user option let users compose
