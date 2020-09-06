@@ -4726,9 +4726,8 @@ name in `todo-directory'.  See also the documentation string of
 	      (todo-convert-legacy-date-time)))
 	    (forward-line))
 	  (setq file (concat todo-directory
-			     (read-string
-			      (format "Save file as (default \"%s\"): " default)
-			      nil nil default)
+			     (read-string (format-prompt "Save file as" default)
+			                  nil nil default)
 			     ".todo"))
 	  (unless (file-exists-p todo-directory)
 	    (make-directory todo-directory))
