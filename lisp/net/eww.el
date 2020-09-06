@@ -1450,14 +1450,13 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 			       (cons (plist-get (cdr elem) :display)
 				     (plist-get (cdr elem) :value))))
 			input)))
-	 (display
-	  (completing-read "Change value: " options nil 'require-match
-                           nil nil (car (rassoc (plist-get input :value)
-                                                options))))
+	 (display (completing-read "Change value: " options nil 'require-match))
 	 (inhibit-read-only t))
-    (plist-put input :value (cdr (assoc-string display options t)))
-    (goto-char
-     (eww-update-field display))))
+    ;; If the user doesn't enter anything, don't change anything.
+    (when (> (length display) 0)
+      (plist-put input :value (cdr (assoc-string display options t)))
+      (goto-char
+       (eww-update-field display)))))
 
 (defun eww-update-field (string &optional offset)
   (unless offset
