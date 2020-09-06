@@ -41,6 +41,33 @@ stages:
 # test-all:
 #   # This tests also file monitor libraries inotify and inotifywatch.
 #   stage: test
+#   only:
+#     changes:
+#       - "Makefile.in"
+#       - .gitlab-ci.yml
+#       - aclocal.m4
+#       - autogen.sh
+#       - configure.ac
+#       - lib/*.{h,c}
+#       - lisp/*.el
+#       - lisp/**/*.el
+#       - src/*.{h,c}
+#       - test/lisp/*.el
+#       - test/lisp/**/*.el
+#       - test/src/*.el
+#   except:
+#     changes:
+#       # gfilemonitor, kqueue
+#       - src/gfilenotify.c
+#       - src/kqueue.c
+#       # MS Windows
+#       - lisp/w32*.el
+#       - lisp/term/w32*.el
+#       - src/w32*.{h,c}
+#       # GNUstep
+#       - lisp/term/ns-win.el
+#       - src/ns*.{h,m}
+#       - src/macfont.{h,m}
 #   script:
 #     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 inotify-tools
 #     - ./autogen.sh autoconf
@@ -108,18 +135,10 @@ test-gnustep:
     changes:
       - .gitlab-ci.yml
       - configure.ac
-      - src/nsfns.m
-      - src/nsfont.m
-      - src/nsgui.h
-      - src/nsimage.m
-      - src/nsmenu.m
-      - src/nsselect.m
-      - src/nsterm.h
-      - src/nsterm.m
-      - src/nsxwidget.h
-      - src/nsxwidget.m
-      - src/macfont.h
-      - src/macfont.m
+      - src/ns*.{h,m}
+      - src/macfont.{h,m}
+      - lisp/term/ns-win.el
+      - nextstep/**/*
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 gnustep-devel
     - ./autogen.sh autoconf

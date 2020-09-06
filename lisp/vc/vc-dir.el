@@ -451,7 +451,11 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		      (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
 		      (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
 		      (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		      (ewoc-invalidate vc-ewoc node))
+                      ;; `ewoc-invalidate' will kill line and insert new text,
+                      ;; let's keep point column.
+                      (let ((p (point)))
+		        (ewoc-invalidate vc-ewoc node)
+                        (goto-char p)))
 		  ;; If the state is nil, the file does not exist
 		  ;; anymore, so remember the entry so we can remove
 		  ;; it after we are done inserting all ENTRIES.

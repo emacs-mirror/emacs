@@ -928,13 +928,15 @@ changes (in a non-trivial way).  This function does not check for that."
 (defun reminder-for-release-blocking-bugs (version)
   "Submit a reminder message for release-blocking bugs of Emacs VERSION."
   (interactive
-    (list (completing-read
-	   "Emacs release: "
-	   (mapcar #'identity debbugs-gnu-emacs-blocking-reports)
-	   nil t debbugs-gnu-emacs-current-release)))
+   (list (progn
+           (require 'debbugs-gnu)
+           (completing-read
+	    "Emacs release: "
+	    (mapcar #'identity debbugs-gnu-emacs-blocking-reports)
+	    nil t debbugs-gnu-emacs-current-release))))
 
-  (require 'reporter)
   (require 'debbugs-gnu)
+  (require 'reporter)
 
   (when-let ((id (alist-get version debbugs-gnu-emacs-blocking-reports
                             nil nil #'string-equal))
@@ -949,7 +951,8 @@ changes (in a non-trivial way).  This function does not check for that."
      (lambda () ; posthook
        (goto-char (point-min))
        (mail-position-on-field "subject")
-       (insert (format "Release-blocking bugs for Emacs %s" version))
+       (insert (format "Reminder: release-blocking bugs for Emacs %s (%s)"
+                       version (format-time-string "%F" nil "UTC0")))
        (mail-text)
        (delete-region (point) (point-max))
        (insert "

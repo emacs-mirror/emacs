@@ -267,10 +267,12 @@ file, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
 The process by which the SMTP library authenticates you to the server
 is known as ``Simple Authentication and Security Layer'' (SASL).
 There are various SASL mechanisms, and this library supports three of
-them: CRAM-MD5, PLAIN, and LOGIN@.  It tries each of them, in that order,
-until one succeeds.  The first uses a form of encryption to obscure
-your password, while the other two do not.
-
+them: CRAM-MD5, PLAIN, and LOGIN, where the first uses a form of
+encryption to obscure your password, while the other two do not.  It
+tries each of them, in that order, until one succeeds.  You can
+override this by assigning a specific authentication mechanism to a
+server by including a key @code{smtp-auth} with the value of your
+preferred mechanism in the appropriate @file{~/.authinfo} entry.
 
 @node Encryption
 @chapter Encryption

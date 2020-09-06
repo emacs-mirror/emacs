@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.8.0
+;; Version: 1.10.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -573,7 +573,8 @@ Meant as a value for `eldoc-documentation-strategy'."
                       (let* ((callback (eldoc--make-callback :enthusiast))
                              (str (funcall f callback)))
                         (if (stringp str) (funcall callback str))
-                        nil))))
+                        nil)))
+  t)
 
 ;; JT@2020-07-10: ElDoc is pre-loaded, so in Emacs < 28 we can't
 ;; make the "old" `eldoc-documentation-function' point to the new
@@ -739,14 +740,14 @@ should endeavour to display the docstrings eventually produced."
                  (when (and string (cl-loop for (p) in docs-registered
                                             never (< p pos)))
                    (setq docs-registered '())
-                   (register-doc pos string plist)
-                   (when (and (timerp eldoc--enthusiasm-curbing-timer)
-                              (memq eldoc--enthusiasm-curbing-timer
-                                    timer-list))
-                     (cancel-timer eldoc--enthusiasm-curbing-timer))
-                   (setq eldoc--enthusiasm-curbing-timer
-                         (run-at-time (unless (zerop pos) 0.3)
-                                      nil #'display-doc)))
+                   (register-doc pos string plist))
+                 (when (and (timerp eldoc--enthusiasm-curbing-timer)
+                            (memq eldoc--enthusiasm-curbing-timer
+                                  timer-list))
+                   (cancel-timer eldoc--enthusiasm-curbing-timer))
+                 (setq eldoc--enthusiasm-curbing-timer
+                       (run-at-time (unless (zerop pos) 0.3)
+                                    nil #'display-doc))
                  t))
               (:patient
                (cl-incf want)

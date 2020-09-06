@@ -2908,12 +2908,12 @@ You can then feed the file name(s) to other commands with \\[yank]."
 ;; Keeping Dired buffers in sync with the filesystem and with each other
 
 (defun dired-buffers-for-dir (dir &optional file)
-;; Return a list of buffers for DIR (top level or in-situ subdir).
-;; If FILE is non-nil, include only those whose wildcard pattern (if any)
-;; matches FILE.
-;; The list is in reverse order of buffer creation, most recent last.
-;; As a side effect, killed dired buffers for DIR are removed from
-;; dired-buffers.
+  "Return a list of buffers for DIR (top level or in-situ subdir).
+If FILE is non-nil, include only those whose wildcard pattern (if any)
+matches FILE.
+The list is in reverse order of buffer creation, most recent last.
+As a side effect, killed dired buffers for DIR are removed from
+dired-buffers."
   (setq dir (file-name-as-directory dir))
   (let (result buf)
     (dolist (elt dired-buffers)
@@ -3462,18 +3462,28 @@ Return list of buffers where FUN succeeded (i.e., returned non-nil)."
   (let (success-list)
     (dolist (buf (dired-buffers-for-dir (expand-file-name directory) file))
       (with-current-buffer buf
-	(if (apply fun args)
-	    (push buf success-list))))
+	(when (apply fun args)
+	  (push (buffer-name buf) success-list))))
     ;; FIXME: AFAICT, this return value is not used by any of the callers!
     success-list))
 
 ;; Delete the entry for FILE from
-(defun dired-delete-entry (file)
+(defun dired-remove-entry (file)
+  "Remove entry FILE in the current dired buffer.
+Note this doesn't delete FILE in the file system.
+See `dired-delete-file' in case you wish that."
   (save-excursion
     (and (dired-goto-file file)
 	 (let ((inhibit-read-only t))
 	   (delete-region (progn (beginning-of-line) (point))
-			  (save-excursion (forward-line 1) (point))))))
+			  (line-beginning-position 2))))))
+
+(defun dired-delete-entry (file)
+  "Remove entry FILE in the current dired buffer.
+Like `dired-remove-entry' followed by `dired-clean-up-after-deletion'.
+Note this doesn't delete FILE in the file system.
+See `dired-delete-file' in case you wish that."
+  (dired-remove-entry file)
   (dired-clean-up-after-deletion file))
 
 (defvar dired-clean-up-buffers-too)

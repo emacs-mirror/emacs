@@ -766,7 +766,7 @@ article number.  This function is called narrowed to an article."
 	 (if (re-search-forward "\n\r?\n" nil t)
 	     (1- (point))
 	   (point-max))))
-      (let ((headers (nnheader-parse-naked-head)))
+      (let ((headers (nnheader-parse-head t)))
 	(setf (mail-header-chars  headers) chars)
 	(setf (mail-header-number headers) number)
 	headers))))

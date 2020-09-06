@@ -1,4 +1,4 @@
-;;; rmailmm.el --- tests for mail/rmailmm.el
+;;; rmailmm-tests.el --- Tests for rmailmm.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
@@ -19,27 +19,42 @@
 
 ;;; Commentary:
 
+;; Converted to ert from previous manual tests.
+
+;; FIXME: Some of these still lack a condition for success.
+
 ;;; Code:
 
+(require 'ert)
 (require 'rmailmm)
 
-(defun rmailmm-test-handler ()
+(ert-deftest rmailmm-test-handler ()
   "Test of a mail using no MIME parts at all."
   (let ((mail "To: alex@gnu.org
 Content-Type: text/plain; charset=koi8-r
 Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
 
-\372\304\322\301\327\323\324\327\325\312\324\305\41"))
-    (switch-to-buffer (get-buffer-create "*test*"))
-    (erase-buffer)
-    (set-buffer-multibyte nil)
-    (insert mail)
-    (rmail-mime-show t)
-    (set-buffer-multibyte t)))
+\372\304\322\301\327\323\324\327\325\312\324\305\41")
+        (correct "To: alex@gnu.org
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
 
-(defun rmailmm-test-bulk-handler ()
+Здравствуйте!
+"))
+    (with-temp-buffer
+      (erase-buffer)
+      (set-buffer-multibyte nil)
+      (insert mail)
+      (rmail-mime-show t)
+      (set-buffer-multibyte t)
+      (should (equal (buffer-string) correct)))))
+
+;;;; FIXME: This doesn't seem to be working.
+(ert-deftest rmailmm-test-bulk-handler ()
   "Test of a mail used as an example in RFC 2183."
+  :tags '(:unstable)
   (let ((mail "Content-Type: image/jpeg
 Content-Disposition: attachment; filename=genome.jpeg;
   modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";
@@ -54,13 +69,17 @@ WATQdRUvAK0Bnmshmtn79PpaLBbbOZkjKvRnjRZoRswOkG1wFchKew2g9wXVJVZL/m4+B+vv
 UDwbgUEAUmk2Zyg101d6PhCDySgAvTvDgKiuOrc4dLxUb7UMnhGIexyI+d6U+ABuNAP4Simx
 lgAAAABJRU5ErkJggg==
 "))
-    (switch-to-buffer (get-buffer-create "*test*"))
-    (erase-buffer)
-    (insert mail)
-    (rmail-mime-show)))
+    (with-temp-buffer
+      (erase-buffer)
+      (insert mail)
+      (rmail-mime-show)
+      ;; FIXME: What is the condition for success?
+      )))
 
-(defun rmailmm-test-multipart-handler ()
+;; FIXME: Has no condition for success -- see below.
+(ert-deftest rmailmm-test-multipart-handler ()
   "Test of a mail used as an example in RFC 2046."
+  :tags '(:unstable)
   (let ((mail "From: Nathaniel Borenstein <nsb@bellcore.com>
 To: Ned Freed <ned@innosoft.com>
 Date: Sun, 21 Mar 1993 23:56:48 -0800 (PST)
@@ -88,6 +107,11 @@ This is the epilogue.  It is also to be ignored."))
     (switch-to-buffer (get-buffer-create "*test*"))
     (erase-buffer)
     (insert mail)
-    (rmail-mime-show t)))
+    (rmail-mime-show t)
+    ;; FIXME: What is the condition for success?
+    (should nil) ; expected fail for now
+    ))
 
-;;; rmailmm.el ends here
+(provide 'rmailmm-tests)
+
+;; rmailmm-tests.el ends here

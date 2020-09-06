@@ -482,9 +482,7 @@ For details, see `tramp-rename-files'."
 (defun tramp-bug ()
   "Submit a bug report to the Tramp developers."
   (interactive)
-  (let ((reporter-prompt-for-summary-p t)
-	;; In rare cases, it could contain the password.  So we make it nil.
-	tramp-password-save-function)
+  (let ((reporter-prompt-for-summary-p t))
     (reporter-submit-bug-report
      tramp-bug-report-address	  ; to-address
      (format "tramp (%s %s/%s)" ; package name and version
@@ -492,10 +490,11 @@ For details, see `tramp-rename-files'."
      (sort
       (delq nil (mapcar
 	(lambda (x)
-	  (and x (boundp x) (cons x 'tramp-reporter-dump-variable)))
+	  (and x (boundp x) (not (get x 'tramp-suppress-trace))
+	       (cons x 'tramp-reporter-dump-variable)))
 	(append
 	 (mapcar #'intern (all-completions "tramp-" obarray #'boundp))
-	 ;; Non-tramp variables of interest.
+	 ;; Non-Tramp variables of interest.
 	 '(shell-prompt-pattern
 	   backup-by-copying
 	   backup-by-copying-when-linked
@@ -552,11 +551,11 @@ buffer in your bug report.
 		 (string-match-p
 		  (concat "[^" (bound-and-true-p mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
-	  (set
-	   varsym
-	   (format
-	    "(decode-coding-string (base64-decode-string \"%s\") 'raw-text)"
-	    (base64-encode-string (encode-coding-string val 'raw-text)))))))
+	  (set varsym
+	       `(decode-coding-string
+		 (base64-decode-string
+		  ,(base64-encode-string (encode-coding-string val 'raw-text)))
+		 'raw-text)))))
 
     ;; Dump variable.
     (reporter-dump-variable varsym mailbuf)

@@ -1462,7 +1462,15 @@ cons cell, @var{handler} can return this object directly, instead of
 returning a list containing the object.
 
 If @var{handler} returns a reply message with an empty argument list,
-@var{handler} must return the symbol @code{:ignore}.
+@var{handler} must return the symbol @code{:ignore} in order
+to distinguish it from @code{nil} (the boolean false).
+
+If @var{handler} detects an error, it shall return the list
+@code{(:error @var{ERROR-NAME} @var{ERROR-MESSAGE)}}.
+@var{ERROR-NAME} is a namespaced string which characterizes the error
+type, and @var{ERROR-MESSAGE} is a free text string.  Alternatively,
+any Emacs signal @code{dbus-error} in @var{handler} raises a D-Bus
+error message with the error name @samp{org.freedesktop.DBus.Error.Failed}.
 
 When @var{dont-register-service} is non-@code{nil}, the known name
 @var{service} is not registered.  This means that other D-Bus clients
@@ -1512,17 +1520,20 @@ could use the command line tool @code{dbus-send} in a shell:
       boolean true
 @end example
 
-You can indicate an error by raising the Emacs signal
-@code{dbus-error}.  The handler above could be changed like this:
+You can indicate an error by returning an @code{:error} list reply, or
+by raising the Emacs signal @code{dbus-error}.  The handler above
+could be changed like this:
 
 @lisp
 (defun my-dbus-method-handler (&rest args)
-  (unless (and (= (length args) 1) (stringp (car args)))
-    (signal 'dbus-error (list (format "Wrong argument list: %S" args))))
-  (condition-case err
-      (find-file (car args))
-    (error (signal 'dbus-error (cdr err))))
-  t)
+  (if (not (and (= (length args) 1) (stringp (car args))))
+      (list :error
+            "org.freedesktop.TextEditor.Error.InvalidArgs"
+            (format "Wrong argument list: %S" args))
+    (condition-case err
+        (find-file (car args))
+      (error (signal 'dbus-error (cdr err))))
+    t))
 @end lisp
 
 The test then runs
@@ -1534,8 +1545,19 @@ The test then runs
     "org.freedesktop.TextEditor.OpenFile" \
     string:"/etc/hosts" string:"/etc/passwd"
 
-@print{} Error org.freedesktop.DBus.Error.Failed:
+@print{} Error org.freedesktop.TextEditor.Error.InvalidArgs:
    Wrong argument list: ("/etc/hosts" "/etc/passwd")
+@end example
+
+@example
+# dbus-send --session --print-reply \
+    --dest="org.freedesktop.TextEditor" \
+    "/org/freedesktop/TextEditor" \
+    "org.freedesktop.TextEditor.OpenFile" \
+    string:"/etc/crypttab"
+
+@print{} Error org.freedesktop.DBus.Error.Failed:
+   D-Bus error: "File is not readable", "/etc/crypttab"
 @end example
 @end defun
 
@@ -1556,14 +1578,16 @@ discussion of @var{dont-register-service} below).
 @var{property} is the name of the property of @var{interface}.
 
 @var{access} indicates, whether the property can be changed by other
-services via D-Bus.  It must be either the symbol @code{:read} or
-@code{:readwrite}.  @var{value} is the initial value of the property,
-it can be of any valid type (@xref{dbus-call-method}, for details).
+services via D-Bus.  It must be either the symbol @code{:read},
+@code{:write} or @code{:readwrite}.  @var{value} is the initial value
+of the property, it can be of any valid type (@xref{dbus-call-method},
+for details).
 
 If @var{property} already exists on @var{path}, it will be
 overwritten.  For properties with access type @code{:read} this is the
 only way to change their values.  Properties with access type
-@code{:readwrite} can be changed by @code{dbus-set-property}.
+@code{:write} or @code{:readwrite} can be changed by
+@code{dbus-set-property}.
 
 The interface @samp{org.freedesktop.DBus.Properties} is added to
 @var{path}, including a default handler for the @samp{Get},

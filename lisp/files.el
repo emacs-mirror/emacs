@@ -5577,7 +5577,7 @@ change the additional actions you can take on files."
                                     (concat "\\<"
                                             (regexp-quote
                                              (file-name-nondirectory
-                                              buffer-file-name))
+                                              (buffer-file-name buffer)))
                                             "<[^>]*>\\'")
                                     (buffer-name buffer)))
                                   ;; The buffer name is similar to the

@@ -2685,7 +2685,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 		    :sample-face (if obsolete
 				     'custom-variable-obsolete
 				   'custom-variable-tag)
-		    tag)
+		    :tag tag)
 		   buttons)
 	     (push (widget-create-child-and-convert
 		    widget type

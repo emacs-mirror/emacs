@@ -641,7 +641,7 @@ Select Methods
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * Other Sources::               Reading directories, files.
-* Combined Groups::             Combining groups into one group.
+* Virtual Groups::              Combining articles from multiple sources.
 * Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
 
@@ -716,9 +716,10 @@ Document Groups
 
 * Document Server Internals::   How to add your own document types.
 
-Combined Groups
+Virtual Groups
 
-* Virtual Groups::              Combining articles from many groups.
+* Selection Groups::            Articles selected from many places.
+* Combined Groups::             Combining multiple  groups.
 
 Email Based Diary
 
@@ -4967,6 +4968,15 @@ The address (from the @code{From} header).  This works the same way as
 the @code{a} spec.
 @item L
 Number of lines in the article.
+@item Z
+Retrieval Score Value (RSV) of the article; nil if not in an nnselect
+group.
+@item G
+Originating group name of the article; nil if not in an nnselect
+group.
+@item g
+Short form of the originating group name of the article; nil if not in
+an nnselect group.
 @item c
 Number of characters in the article.  This specifier is not supported
 in some methods (like nnfolder).
@@ -10407,12 +10417,20 @@ article (@code{gnus-summary-refer-references}).
 @findex gnus-summary-refer-thread
 @kindex A T @r{(Summary)}
 Display the full thread where the current article appears
-(@code{gnus-summary-refer-thread}).  This command has to fetch all the
-headers in the current group to work, so it usually takes a while.  If
-you do it often, you may consider setting @code{gnus-fetch-old-headers}
-to @code{invisible} (@pxref{Filling In Threads}).  This won't have any
-visible effects normally, but it'll make this command work a whole lot
-faster.  Of course, it'll make group entry somewhat slow.
+(@code{gnus-summary-refer-thread}). By default this command looks for
+articles only in the current group. Some backends (currently only
+'nnimap) know how to find articles in the thread directly. In other
+cases each header in the current group must be fetched and examined,
+so it usually takes a while.  If you do it often, you may consider
+setting @code{gnus-fetch-old-headers} to @code{invisible}
+(@pxref{Filling In Threads}).  This won't have any visible effects
+normally, but it'll make this command work a whole lot faster.  Of
+course, it'll make group entry somewhat slow.
+
+@vindex gnus-refer-thread-use-search
+If @code{gnus-refer-thread-use-search} is non-nil then those backends
+that know how to find threads directly will search not just in the
+current group but all groups on the same server.
 
 @vindex gnus-refer-thread-limit
 The @code{gnus-refer-thread-limit} variable says how many old (i.e.,
@@ -10420,6 +10438,15 @@ articles before the first displayed in the current group) headers to
 fetch when doing this command.  The default is 200.  If @code{t}, all
 the available headers will be fetched.  This variable can be overridden
 by giving the @kbd{A T} command a numerical prefix.
+
+@vindex gnus-refer-thread-limit-to-thread
+In most cases @code{gnus-refer-thread} adds any articles it finds to
+the current summary buffer. (When @code{gnus-refer-thread-use-search}
+is true and the initial referral starts from a summary buffer for a
+non-virtual group this may not be possible. In this case a new summary
+buffer is created holding a virtual group with the result of the thread
+search). If @code{gnus-refer-thread-limit-to-thread} is non-nil then
+the summary buffer will be limited to articles in the thread.
 
 @item M-^ (Summary)
 @findex gnus-summary-refer-article
@@ -13262,7 +13289,7 @@ The different methods all have their peculiarities, of course.
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * Other Sources::               Reading directories, files.
-* Combined Groups::             Combining groups into one group.
+* Virtual Groups::              Combining articles and groups together.
 * Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
 @end menu
@@ -17834,19 +17861,133 @@ methods, but want to only use secondary ones:
 @end lisp
 
 
-@node Combined Groups
-@section Combined Groups
+@node Virtual Groups
+@section Virtual Groups
 
-Gnus allows combining a mixture of all the other group types into bigger
-groups.
+Gnus allows combining articles from many sources, and combinations of
+whole groups together into virtual groups.
 
 @menu
-* Virtual Groups::              Combining articles from many groups.
+* Selection Groups::            Combining articles from many groups.
+* Combined Groups::             Combining  multiple  groups.
 @end menu
 
 
-@node Virtual Groups
-@subsection Virtual Groups
+@node Selection Groups
+@subsection Select Groups
+@cindex nnselect
+@cindex select groups
+@cindex selecting articles
+
+
+Gnus provides the @dfn{nnselect} method for creating virtual groups
+composed of collections of messages, even when these messages come
+from groups that span multiple servers and backends. For the most part
+these virtual groups behave like any other group: messages may be
+threaded, marked, moved, deleted, copied, etc.; groups may be
+ephemeral or persistent; groups may be created via
+@code{gnus-group-make-group} or browsed as foreign via
+@code{gnus-group-browse-foreign-server}.
+
+The key to using an nnselect group is specifying the messages to
+include. Each nnselect group has a group parameter
+@code{nnselect-specs} which is an alist with two elements: a function
+@code{nnselect-function}; and arguments @code{nnselect-args} to be
+passed to the function, if any.
+
+The function @code{nnselect-function} must return a vector. Each
+element of this vector is in turn a 3-element vector corresponding to
+one message. The 3 elements are: the fully-qualified group name; the
+message number; and a "score" that can be used for additional
+sorting. The values for the score are arbitrary, and are not used
+directly by the nnselect method---they may, for example, all be set to
+100.
+
+Here is an example:
+
+@lisp
+ (nnselect-specs
+  (nnselect-function . identity)
+  (nnselect-args .
+	 [["nnimap+work:mail" 595 100]
+	  ["nnimap+home:sent" 223 100]
+          ["nntp+news.gmane.org:gmane.emacs.gnus.general" 23666 100]]))
+@end lisp
+
+The function is the identity and the argument is just the list of
+messages to include in the virtual group.
+
+Or we may wish to create a group from the results of a search query:
+
+@lisp
+ (nnselect-specs
+  (nnselect-function . nnir-run-query)
+  (nnselect-args
+   (nnir-query-spec
+    (query . "FLAGGED")
+    (criteria . ""))
+   (nnir-group-spec
+    ("nnimap:home")
+    ("nnimap:work"))))
+@end lisp
+
+This creates a group including all flagged messages from all groups on
+two imap servers, "home" and "work".
+
+And one last example. Here is a function that runs a search query to
+find all message that have been received recently from certain groups:
+
+@lisp
+(defun my-recent-email (args)
+  (let ((query-spec
+         (list
+          (cons 'query
+                (format-time-string "SENTSINCE %d-%b-%Y"
+                                    (time-subtract (current-time)
+                                                   (days-to-time (car args)))))
+          (cons 'criteria "")))
+        (group-spec  (cadr args)))
+    (nnir-run-query   (cons 'nnir-specs
+                            (list (cons 'nnir-query-spec query-spec)
+                                  (cons 'nnir-group-spec group-spec))))))
+@end lisp
+
+Then an nnselect-specs
+
+@lisp
+ (nnselect-specs
+  (nnselect-function . my-recent-email)
+  (nnselect-args . (7 (("nnimap:home") ("nnimap:work")))))
+@end lisp
+
+will provide a group composed of all messages on the home and work
+servers received in the last 7 days.
+
+Refreshing the selection of an nnselect group by running the
+@code{nnselect-function} may take a long time to
+complete. Consequently nnselect groups are not refreshed by default
+when @code{gnus-group-get-new-news} is invoked. In those cases where
+running the function is not too time-consuming, a non-nil group
+parameter of @code{nnselect-rescan} will allow automatic refreshing. A
+refresh can always be invoked manually through
+@code{gnus-group-get-new-news-this-group}.
+
+The nnir interface (@pxref{nnir}) includes engines for searching a
+variety of backends. While the details of each search engine vary, the
+result of an nnir search is always a vector of the sort used by the
+nnselect method, and the results of nnir queries are usually viewed
+using an nnselect group. Indeed the standard search function
+@code{gnus-group-read-ephemeral-search-group} just creates an
+ephemeral nnselect group with the appropriate nnir query as the
+@code{nnselect-specs}.  nnir originally included both the search
+engines and the glue to connect search results to gnus. Over time this
+glue evolved into the nnselect method. The two had
+a mostly amicable parting so that nnselect could pursue its dream of
+becoming a fully functioning backend, but occasional conflicts may
+still linger.
+
+@node Combined Groups
+@subsection Combined Groups
 @cindex nnvirtual
 @cindex virtual groups
 @cindex merging groups
@@ -21238,14 +21379,26 @@ four days, Gnus will decay the scores four times, for instance.
 @chapter Searching
 @cindex searching
 
-FIXME: Add a brief overview of Gnus search capabilities.  A brief
-comparison of nnir, nnmairix, contrib/gnus-namazu would be nice
-as well.
+FIXME: A brief comparison of nnir, nnmairix, contrib/gnus-namazu would
+be nice.
 
-This chapter describes tools for searching groups and servers for
-articles matching a query and then retrieving those articles.  Gnus
-provides a simpler mechanism for searching through articles in a summary buffer
-to find those matching a pattern. @xref{Searching for Articles}.
+Gnus has various ways of finding articles that match certain criteria
+(from a particular author, on a certain subject, etc). The simplest
+method is to enter a group and then either "limit" the summary buffer
+to the desired articles using the limiting commands (@xref{Limiting}),
+or searching through messages in the summary buffer (@xref{Searching
+for Articles}).
+
+Limiting commands and summary buffer searching work on subsets of the
+articles already fetched from the servers, and these commands won’t
+query the server for additional articles.  While simple, these methods
+are therefore inadequate if the desired articles span multiple groups,
+or if the group is so large that fetching all articles is
+impractical. Many backends (such as imap, notmuch, namazu, etc.)
+provide their own facilities to search for articles directly on the
+server and gnus can take advantage of these methods.  This chapter
+describes tools for searching groups and servers for articles matching
+a query.
 
 @menu
 * nnir::                     Searching with various engines.
@@ -21275,7 +21428,7 @@ through mail and news repositories.  Different backends (like
 interface.
 
 The @code{nnimap} search engine should work with no configuration.
-Other engines require a local index that needs to be created and
+Other engines may require a local index that needs to be created and
 maintained outside of Gnus.
 
 
@@ -21283,23 +21436,19 @@ maintained outside of Gnus.
 @subsection Basic Usage
 
 In the group buffer typing @kbd{G G} will search the group on the
-current line by calling @code{gnus-group-make-nnir-group}.  This prompts
-for a query string, creates an ephemeral @code{nnir} group containing
+current line by calling @code{gnus-group-make-search-group}.  This prompts
+for a query string, creates an ephemeral @code{nnselect} group containing
 the articles that match this query, and takes you to a summary buffer
 showing these articles.  Articles may then be read, moved and deleted
 using the usual commands.
 
-The @code{nnir} group made in this way is an @code{ephemeral} group,
-and some changes are not permanent: aside from reading, moving, and
-deleting, you can't act on the original article.  But there is an
-alternative: you can @emph{warp} (i.e., jump) to the original group
-for the article on the current line with @kbd{A W}, aka
-@code{gnus-warp-to-article}.  Even better, the function
-@code{gnus-summary-refer-thread}, bound by default in summary buffers
-to @kbd{A T}, will first warp to the original group before it works
-its magic and includes all the articles in the thread.  From here you
-can read, move and delete articles, but also copy them, alter article
-marks, whatever.  Go nuts.
+The @code{nnselect} group made in this way is an @code{ephemeral}
+group, and will disappear upon exit from the group.  However changes
+made in the group are permanently reflected in the real groups from
+which the articles are drawn.  It is occasionally convenient to view
+articles found through searching in their original group. You can
+@emph{warp} (i.e., jump) to the original group for the article on the
+current line with @kbd{A W}, aka @code{gnus-warp-to-article}.
 
 You say you want to search more than just the group on the current line?
 No problem: just process-mark the groups you want to search.  You want
@@ -21307,14 +21456,14 @@ even more?  Calling for an nnir search with the cursor on a topic heading
 will search all the groups under that heading.
 
 Still not enough?  OK, in the server buffer
-@code{gnus-group-make-nnir-group} (now bound to @kbd{G}) will search all
-groups from the server on the current line.  Too much?  Want to ignore
-certain groups when searching, like spam groups?  Just customize
-@code{nnir-ignored-newsgroups}.
+@code{gnus-group-make-search-group} (now bound to @kbd{G}) will search
+all groups from the server on the current line.  Too much?  Want to
+ignore certain groups when searching, like spam groups?  Just
+customize @code{nnir-ignored-newsgroups}.
 
 One more thing: individual search engines may have special search
 features.  You can access these special features by giving a prefix-arg
-to @code{gnus-group-make-nnir-group}.  If you are searching multiple
+to @code{gnus-group-make-search-group}.  If you are searching multiple
 groups with different search engines you will be prompted for the
 special search features for each engine separately.
 
@@ -21371,8 +21520,7 @@ variable is set to use the @code{imap} engine for all servers using the
 your servers with an @code{nnimap} backend you could change this to
 
 @lisp
-'((nnimap . namazu)
-  (nntp . gmane))
+'((nnimap . namazu))
 @end lisp
 
 @node The imap Engine
@@ -21575,7 +21723,7 @@ This engine is obsolete.
 
 @item nnir-method-default-engines
 Alist of pairs of server backends and search engines.  The default
-associations are
+association is
 @example
 (nnimap . imap)
 @end example
@@ -21583,32 +21731,6 @@ associations are
 @item nnir-ignored-newsgroups
 A regexp to match newsgroups in the active file that should be skipped
 when searching all groups on a server.
-
-@item nnir-summary-line-format
-The format specification to be used for lines in an nnir summary buffer.
-All the items from @code{gnus-summary-line-format} are available, along with
-three items unique to nnir summary buffers:
-
-@example
-%Z    Search retrieval score value (integer)
-%G    Article original full group name (string)
-%g    Article original short group name (string)
-@end example
-
-If @code{nil} (the default) this will use @code{gnus-summary-line-format}.
-
-@item nnir-retrieve-headers-override-function
-If non-@code{nil}, a function that retrieves article headers rather than using
-the gnus built-in function.  This function takes an article list and
-group as arguments and populates the @code{nntp-server-buffer} with the
-retrieved headers.  It should then return either 'nov or 'headers
-indicating the retrieved header format.  Failure to retrieve headers
-should return @code{nil}.
-
-If this variable is @code{nil}, or if the provided function returns
-@code{nil} for a search result, @code{gnus-retrieve-headers} will be
-called instead."
-
 
 @end table
 

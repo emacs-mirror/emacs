@@ -1,4 +1,4 @@
-;;; hierarchy-tests.el --- Tests for hierarchy.el
+;;; hierarchy-tests.el --- Tests for hierarchy.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2019 Damien Cassou
 
@@ -274,7 +274,7 @@
                    '(dove pigeon dolphin cow)))))
 
 (ert-deftest hierarchy-leafs-includes-lonely-roots ()
-  (let ((parentfn (lambda (item) nil))
+  (let ((parentfn (lambda (_) nil))
         (hierarchy (hierarchy-new)))
     (hierarchy-add-tree hierarchy 'foo parentfn)
     (should (equal (hierarchy-leafs hierarchy)

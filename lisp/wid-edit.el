@@ -3161,6 +3161,15 @@ It reads a file name from an editable text field."
   :completions (completion-table-case-fold
                 #'completion-file-name-table
                 (not read-file-name-completion-ignore-case))
+  :match (lambda (widget value)
+           (or (not (widget-get widget :must-match))
+               (file-exists-p value)))
+  :validate (lambda (widget)
+              (let ((value (widget-value widget)))
+                (unless (widget-apply widget :match value)
+                  (widget-put widget
+                              :error (format "File %s does not exist" value))
+                  widget)))
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
   ;; Doesn't work well with terminating newline.

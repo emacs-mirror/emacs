@@ -72,51 +72,43 @@
 
 (defcustom eshell-mode-unload-hook nil
   "A hook that gets run when `eshell-mode' is unloaded."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-mode-hook nil
   "A hook that gets run when `eshell-mode' is entered."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-first-time-mode-hook nil
   "A hook that gets run the first time `eshell-mode' is entered.
 That is to say, the first time during an Emacs session."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-exit-hook nil
   "A hook that is run whenever `eshell' is exited.
 This hook is only run if exiting actually kills the buffer."
   :version "24.1"                       ; removed eshell-query-kill-processes
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-kill-on-exit t
   "If non-nil, kill the Eshell buffer on the `exit' command.
 Otherwise, the buffer will simply be buried."
-  :type 'boolean
-  :group 'eshell-mode)
+  :type 'boolean)
 
 (defcustom eshell-input-filter-functions nil
   "Functions to call before input is processed.
 The input is contained in the region from `eshell-last-input-start' to
 `eshell-last-input-end'."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-send-direct-to-subprocesses nil
   "If t, send any input immediately to a subprocess."
-  :type 'boolean
-  :group 'eshell-mode)
+  :type 'boolean)
 
 (defcustom eshell-expand-input-functions nil
   "Functions to call before input is parsed.
 Each function is passed two arguments, which bounds the region of the
 current input text."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-scroll-to-bottom-on-input nil
   "Controls whether input to interpreter causes window to scroll.
@@ -126,8 +118,7 @@ buffer.  If `this', scroll only the selected window.
 See `eshell-preinput-scroll-to-bottom'."
   :type '(radio (const :tag "Do not scroll Eshell windows" nil)
 		(const :tag "Scroll all windows showing the buffer" all)
-		(const :tag "Scroll only the selected window" this))
-  :group 'eshell-mode)
+                (const :tag "Scroll only the selected window" this)))
 
 (defcustom eshell-scroll-to-bottom-on-output nil
   "Controls whether interpreter output causes window to scroll.
@@ -140,8 +131,7 @@ See variable `eshell-scroll-show-maximum-output' and function
   :type '(radio (const :tag "Do not scroll Eshell windows" nil)
 		(const :tag "Scroll all windows showing the buffer" all)
 		(const :tag "Scroll only the selected window" this)
-		(const :tag "Scroll all windows other than selected" others))
-  :group 'eshell-mode)
+                (const :tag "Scroll all windows other than selected" others)))
 
 (defcustom eshell-scroll-show-maximum-output t
   "Controls how interpreter output causes window to scroll.
@@ -149,16 +139,14 @@ If non-nil, then show the maximum output when the window is scrolled.
 
 See variable `eshell-scroll-to-bottom-on-output' and function
 `eshell-postoutput-scroll-to-bottom'."
-  :type 'boolean
-  :group 'eshell-mode)
+  :type 'boolean)
 
 (defcustom eshell-buffer-maximum-lines 1024
   "The maximum size in lines for eshell buffers.
 Eshell buffers are truncated from the top to be no greater than this
 number, if the function `eshell-truncate-buffer' is on
 `eshell-output-filter-functions'."
-  :type 'integer
-  :group 'eshell-mode)
+  :type 'integer)
 
 (defcustom eshell-output-filter-functions
   '(eshell-postoutput-scroll-to-bottom
@@ -168,36 +156,31 @@ number, if the function `eshell-truncate-buffer' is on
   "Functions to call before output is displayed.
 These functions are only called for output that is displayed
 interactively, and not for output which is redirected."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-preoutput-filter-functions nil
   "Functions to call before output is inserted into the buffer.
 These functions get one argument, a string containing the text to be
 inserted.  They return the string as it should be inserted."
-  :type 'hook
-  :group 'eshell-mode)
+  :type 'hook)
 
 (defcustom eshell-password-prompt-regexp
   (format "\\(%s\\)[^:：៖]*[:：៖]\\s *\\'" (regexp-opt password-word-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
-  :version "27.1"
-  :group 'eshell-mode)
+  :version "27.1")
 
 (defcustom eshell-skip-prompt-function nil
   "A function called from beginning of line to skip the prompt."
-  :type '(choice (const nil) function)
-  :group 'eshell-mode)
+  :type '(choice (const nil) function))
 
 (define-obsolete-variable-alias 'eshell-status-in-modeline
   'eshell-status-in-mode-line "24.3")
 
 (defcustom eshell-status-in-mode-line t
   "If non-nil, let the user know a command is running in the mode line."
-  :type 'boolean
-  :group 'eshell-mode)
+  :type 'boolean)
 
 (defcustom eshell-directory-name
   (locate-user-emacs-file "eshell/" ".eshell/")
@@ -329,6 +312,8 @@ and the hook `eshell-exit-hook'."
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 
+  (set (make-local-variable 'bookmark-make-record-function)
+       'eshell-bookmark-make-record)
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
   (set (make-local-variable 'list-buffers-directory)
@@ -1014,6 +999,29 @@ This function could be in the list `eshell-output-filter-functions'."
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-ansi-color)
+
+;;; Bookmark support:
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+
+(defun eshell-bookmark-name ()
+  (format "eshell-%s"
+          (file-name-nondirectory
+           (directory-file-name
+            (file-name-directory default-directory)))))
+
+(defun eshell-bookmark-make-record ()
+  "Create a bookmark for the current Eshell buffer."
+  `(,(eshell-bookmark-name)
+    (location . ,default-directory)
+    (handler . eshell-bookmark-jump)))
+
+(defun eshell-bookmark-jump (bookmark)
+  "Default bookmark handler for Eshell buffers."
+  (let ((default-directory (bookmark-prop-get bookmark 'location)))
+    (eshell)))
 
 (provide 'esh-mode)
 ;;; esh-mode.el ends here

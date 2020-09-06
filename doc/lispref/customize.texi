@@ -358,6 +358,10 @@ This is meaningful only for certain types, currently including
 @code{hook}, @code{plist} and @code{alist}.  See the definition of the
 individual types for a description of how to use @code{:options}.
 
+Re-evaluating a @code{defcustom} form with a different @code{:options}
+value does not clear the values added by previous evaluations, or
+added by calls to @code{custom-add-frequent-value} (see below).
+
 @item :set @var{setfunction}
 @kindex set@r{, @code{defcustom} keyword}
 Specify @var{setfunction} as the way to change the value of this
@@ -485,6 +489,10 @@ list of reasonable values.
 
 The precise effect of adding a value depends on the customization type
 of @var{symbol}.
+
+Since evaluating a @code{defcustom} form does not clear values added
+previously, Lisp programs can use this function to add values for user
+options not yet defined.
 @end defun
 
 Internally, @code{defcustom} uses the symbol property
@@ -1188,6 +1196,13 @@ widget as an argument, and should return @code{nil} if the widget's
 current value is valid for the widget.  Otherwise, it should return
 the widget containing the invalid data, and set that widget's
 @code{:error} property to a string explaining the error.
+
+@item :type-error @var{string}
+@kindex type-error@r{, customization keyword}
+@var{string} should be a string that describes why a value doesn't
+match the type, as determined by the @code{:match} function.  When the
+@code{:match} function returns @code{nil}, the widget's @code{:error}
+property will be set to @var{string}.
 
 @ignore
 @item :indent @var{columns}

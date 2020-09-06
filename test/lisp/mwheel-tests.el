@@ -22,17 +22,25 @@
 (require 'ert)
 (require 'mwheel)
 
+(ert-deftest mwheel-test-enable/disable ()
+  (mouse-wheel-mode 1)
+  (should (eq (lookup-key (current-global-map) '[mouse-4]) 'mwheel-scroll))
+  (mouse-wheel-mode -1)
+  (should (eq (lookup-key (current-global-map) '[mouse-4]) nil)))
+
 (ert-deftest mwheel-test--create-scroll-keys ()
-  (should (equal (mouse-wheel--create-scroll-keys 10 'mouse-1)
-                 '([mouse-1]
-                   [left-margin mouse-1] [right-margin mouse-1]
-                   [left-fringe mouse-1] [right-fringe mouse-1]
-                   [vertical-scroll-bar mouse-1] [horizontal-scroll-bar mouse-1]
-                   [mode-line mouse-1] [header-line mouse-1])))
+  (should (equal (mouse-wheel--create-scroll-keys 10 'mouse-4)
+                 '([mouse-4]
+                   [left-margin mouse-4] [right-margin mouse-4]
+                   [left-fringe mouse-4] [right-fringe mouse-4]
+                   [vertical-scroll-bar mouse-4] [horizontal-scroll-bar mouse-4]
+                   [mode-line mouse-4] [header-line mouse-4])))
   ;; Don't bind modifiers outside of buffer area (e.g. for fringes).
-  (should (equal (mouse-wheel--create-scroll-keys '((shift) . 1) 'mouse-1)
-                 '([mouse-1])))
+  (should (equal (mouse-wheel--create-scroll-keys '((shift) . 1) 'mouse-4)
+                 '([(shift mouse-4)])))
   (should (equal (mouse-wheel--create-scroll-keys '((control) . 9) 'mouse-7)
-                 '([mouse-7]))))
+                 '([(control mouse-7)])))
+  (should (equal (mouse-wheel--create-scroll-keys '((meta) . 5) 'mouse-5)
+                 '([(meta mouse-5)]))))
 
 ;;; mwheel-tests.el ends here

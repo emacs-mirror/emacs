@@ -1148,12 +1148,13 @@ POS and RES.")
 	    (setcdr l1 (cons (list ,key) l2)))))))
 
 (defun compilation-auto-jump (buffer pos)
-  (with-current-buffer buffer
-    (goto-char pos)
-    (let ((win (get-buffer-window buffer 0)))
-      (if win (set-window-point win pos)))
-    (if compilation-auto-jump-to-first-error
-	(compile-goto-error))))
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (goto-char pos)
+      (let ((win (get-buffer-window buffer 0)))
+        (if win (set-window-point win pos)))
+      (if compilation-auto-jump-to-first-error
+	  (compile-goto-error)))))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
@@ -2064,6 +2065,8 @@ Returns the compilation buffer created."
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "n" 'next-error-no-select)
+    (define-key map "p" 'previous-error-no-select)
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
     (define-key map "g" 'recompile) ; revert

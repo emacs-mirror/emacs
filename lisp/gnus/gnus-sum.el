@@ -85,8 +85,8 @@
 (autoload 'gnus-article-outlook-unwrap-lines "deuglify" nil t)
 (autoload 'gnus-article-outlook-repair-attribution "deuglify" nil t)
 (autoload 'gnus-article-outlook-rearrange-citation "deuglify" nil t)
-(autoload 'nnir-article-rsv "nnir" nil nil 'macro)
-(autoload 'nnir-article-group "nnir" nil nil 'macro)
+(autoload 'nnselect-article-rsv "nnselect" nil nil)
+(autoload 'nnselect-article-group "nnselect" nil nil)
 
 (defcustom gnus-kill-summary-on-exit t
   "If non-nil, kill the summary buffer when you exit from it.
@@ -144,9 +144,9 @@ If t, fetch all the available old headers."
   :type '(choice number
 		 (sexp :menu-tag "other" t)))
 
-(defcustom gnus-refer-thread-use-nnir nil
-  "Use nnir to search an entire server when referring threads.
-A nil value will only search for thread-related articles in the
+(defcustom gnus-refer-thread-use-search nil
+  "Search an entire server when referring threads. A
+nil value will only search for thread-related articles in the
 current group."
   :version "24.1"
   :group 'gnus-thread
@@ -884,6 +884,7 @@ controls how articles are sorted."
                           (function-item gnus-article-sort-by-subject)
                           (function-item gnus-article-sort-by-date)
                           (function-item gnus-article-sort-by-score)
+                          (function-item gnus-article-sort-by-rsv)
                           (function-item gnus-article-sort-by-random)
                           (function :tag "other"))
                   (boolean :tag "Reverse order"))))
@@ -927,6 +928,7 @@ subthreads, customize `gnus-subthread-sort-functions'."
                    (function-item gnus-thread-sort-by-subject)
                    (function-item gnus-thread-sort-by-date)
                    (function-item gnus-thread-sort-by-score)
+                   (function-item gnus-thread-sort-by-rsv)
                    (function-item gnus-thread-sort-by-most-recent-number)
                    (function-item gnus-thread-sort-by-most-recent-date)
                    (function-item gnus-thread-sort-by-random)
@@ -1433,16 +1435,13 @@ the normal Gnus MIME machinery."
     (?c (or (mail-header-chars gnus-tmp-header) 0) ?d)
     (?k (gnus-summary-line-message-size gnus-tmp-header) ?s)
     (?L gnus-tmp-lines ?s)
-    (?Z (or (nnir-article-rsv (mail-header-number gnus-tmp-header))
-	    0)
-        ?d)
-    (?G (or (nnir-article-group (mail-header-number gnus-tmp-header))
-	    "")
-        ?s)
+    (?Z (or (nnselect-article-rsv (mail-header-number gnus-tmp-header))
+	    0) ?d)
+    (?G (or (nnselect-article-group (mail-header-number gnus-tmp-header))
+	    "") ?s)
     (?g (or (gnus-group-short-name
-	     (nnir-article-group (mail-header-number gnus-tmp-header)))
-	    "")
-        ?s)
+	     (nnselect-article-group (mail-header-number gnus-tmp-header)))
+	    "") ?s)
     (?O gnus-tmp-downloaded ?c)
     (?I gnus-tmp-indentation ?s)
     (?T (if (= gnus-tmp-level 0) "" (make-string (frame-width) ? )) ?s)
@@ -1619,6 +1618,8 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
 
 (defvar gnus-newsgroup-sparse nil)
 
+(defvar gnus-newsgroup-selection nil)
+
 (defvar gnus-current-article nil)
 (defvar gnus-article-current nil)
 (defvar gnus-current-headers nil)
@@ -1652,6 +1653,8 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     gnus-newsgroup-downloadable
     gnus-newsgroup-undownloaded
     gnus-newsgroup-unsendable
+
+    gnus-newsgroup-selection
 
     gnus-newsgroup-begin gnus-newsgroup-end
     gnus-newsgroup-last-rmail gnus-newsgroup-last-mail
@@ -4532,48 +4535,14 @@ Returns HEADER if it was entered in the DEPENDENCIES.  Returns nil otherwise."
 ;; This function has to be called with point after the article number
 ;; on the beginning of the line.
 (defsubst gnus-nov-parse-line (number dependencies &optional force-new)
-  (let ((eol (point-at-eol))
-	header references in-reply-to)
-
+  (let (header)
     ;; overview: [num subject from date id refs chars lines misc]
     (unwind-protect
-	(let (x)
-	  (narrow-to-region (point) eol)
-	  (unless (eobp)
-	    (forward-char))
-
-	  (setq header
-		(make-full-mail-header
-		 number			; number
-		 (condition-case ()	; subject
-		     (gnus-remove-odd-characters
-		      (funcall gnus-decode-encoded-word-function
-			       (setq x (nnheader-nov-field))))
-		   (error x))
-		 (condition-case ()	; from
-		     (gnus-remove-odd-characters
-		      (funcall gnus-decode-encoded-address-function
-			       (setq x (nnheader-nov-field))))
-		   (error x))
-		 (nnheader-nov-field)	; date
-		 (nnheader-nov-read-message-id number)	; id
-		 (setq references (nnheader-nov-field))	; refs
-		 (nnheader-nov-read-integer) ; chars
-		 (nnheader-nov-read-integer) ; lines
-		 (unless (eobp)
-		   (if (looking-at "Xref: ")
-		       (goto-char (match-end 0)))
-		   (nnheader-nov-field)) ; Xref
-		 (nnheader-nov-parse-extra)))) ; extra
-
+	(narrow-to-region (point) (point-at-eol))
+      (unless (eobp)
+	(forward-char))
+      (setq header (nnheader-parse-nov number))
       (widen))
-
-    (when (and (string= references "")
-	       (setq in-reply-to (mail-header-extra header))
-	       (setq in-reply-to (cdr (assq 'In-Reply-To in-reply-to))))
-      (setf (mail-header-references header)
-            (gnus-extract-message-id-from-in-reply-to in-reply-to)))
-
     (when gnus-alter-header-function
       (funcall gnus-alter-header-function header))
     (gnus-dependencies-add-header header dependencies force-new)))
@@ -5102,6 +5071,17 @@ using some other form will lead to serious barfage."
 (defun gnus-thread-sort-by-date (h1 h2)
   "Sort threads by root article date."
   (gnus-article-sort-by-date
+   (gnus-thread-header h1) (gnus-thread-header h2)))
+
+(defsubst gnus-article-sort-by-rsv (h1 h2)
+  "Sort articles by rsv."
+  (when gnus-newsgroup-selection
+    (< (nnselect-article-rsv (mail-header-number h1))
+       (nnselect-article-rsv (mail-header-number h2)))))
+
+(defun gnus-thread-sort-by-rsv (h1 h2)
+  "Sort threads by root article rsv."
+  (gnus-article-sort-by-rsv
    (gnus-thread-header h1) (gnus-thread-header h2)))
 
 (defsubst gnus-article-sort-by-score (h1 h2)
@@ -5634,22 +5614,32 @@ or a straight list of headers."
   "Fetch headers of ARTICLES."
   (gnus-message 7 "Fetching headers for %s..." gnus-newsgroup-name)
   (prog1
-      (if (eq 'nov
-	      (setq gnus-headers-retrieved-by
-		    (gnus-retrieve-headers
-		     articles gnus-newsgroup-name
-		     (or limit
-			 ;; We might want to fetch old headers, but
-			 ;; not if there is only 1 article.
-			 (and (or (and
-				   (not (eq gnus-fetch-old-headers 'some))
-				   (not (numberp gnus-fetch-old-headers)))
-				  (> (length articles) 1))
-			      gnus-fetch-old-headers)))))
-	  (gnus-get-newsgroup-headers-xover
-	   articles force-new dependencies gnus-newsgroup-name t)
-	(gnus-get-newsgroup-headers dependencies force-new))
-    (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
+      (pcase (setq gnus-headers-retrieved-by
+		   (gnus-retrieve-headers
+		    articles gnus-newsgroup-name
+		    (or limit
+			;; We might want to fetch old headers, but
+			;; not if there is only 1 article.
+			(and (or (and
+				  (not (eq gnus-fetch-old-headers 'some))
+				  (not (numberp gnus-fetch-old-headers)))
+				 (> (length articles) 1))
+			     gnus-fetch-old-headers))))
+    ('nov
+     (gnus-get-newsgroup-headers-xover
+      articles force-new dependencies gnus-newsgroup-name t))
+    ('headers
+     (gnus-get-newsgroup-headers dependencies force-new))
+    ((pred listp)
+     (let ((dependencies
+	    (or dependencies
+		(with-current-buffer gnus-summary-buffer
+		  gnus-newsgroup-dependencies))))
+     (delq nil (mapcar   #'(lambda (header)
+			     (gnus-dependencies-add-header
+			      header dependencies force-new))
+			 gnus-headers-retrieved-by)))))
+  (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
 
 (defun gnus-select-newsgroup (group &optional read-all select-articles)
   "Select newsgroup GROUP.
@@ -6405,12 +6395,11 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	  (gnus-group-update-group group t))))))
 
 (defun gnus-get-newsgroup-headers (&optional dependencies force-new)
-  (let ((cur nntp-server-buffer)
-	(dependencies
+  (let ((dependencies
 	 (or dependencies
 	     (with-current-buffer gnus-summary-buffer
 	       gnus-newsgroup-dependencies)))
-	headers id end ref number
+	headers
 	(mail-parse-charset gnus-newsgroup-charset)
 	(mail-parse-ignored-charsets
 	 (save-current-buffer (condition-case nil
@@ -6418,146 +6407,15 @@ The resulting hash table is returned, or nil if no Xrefs were found."
                                 (error))
                               gnus-newsgroup-ignored-charsets)))
     (with-current-buffer nntp-server-buffer
-      ;; Translate all TAB characters into SPACE characters.
-      (subst-char-in-region (point-min) (point-max) ?\t ?  t)
-      (subst-char-in-region (point-min) (point-max) ?\r ?  t)
-      (ietf-drums-unfold-fws)
       (gnus-run-hooks 'gnus-parse-headers-hook)
-      (let ((case-fold-search t)
-	    in-reply-to header p lines chars)
+      (let ((nnmail-extra-headers gnus-extra-headers)
+	    header)
 	(goto-char (point-min))
-	;; Search to the beginning of the next header.  Error messages
-	;; do not begin with 2 or 3.
-	(while (re-search-forward "^[23][0-9]+ " nil t)
-	  (setq id nil
-		ref nil)
-	  ;; This implementation of this function, with nine
-	  ;; search-forwards instead of the one re-search-forward and
-	  ;; a case (which basically was the old function) is actually
-	  ;; about twice as fast, even though it looks messier.  You
-	  ;; can't have everything, I guess.  Speed and elegance
-	  ;; doesn't always go hand in hand.
-	  (setq
-	   header
-	   (make-full-mail-header
-	    ;; Number.
-	    (prog1
-		(setq number (read cur))
-	      (end-of-line)
-	      (setq p (point))
-	      (narrow-to-region (point)
-				(or (and (search-forward "\n.\n" nil t)
-					 (- (point) 2))
-				    (point))))
-	    ;; Subject.
-	    (progn
-	      (goto-char p)
-	      (if (search-forward "\nsubject:" nil t)
-		  (funcall gnus-decode-encoded-word-function
-			   (nnheader-header-value))
-		"(none)"))
-	    ;; From.
-	    (progn
-	      (goto-char p)
-	      (if (search-forward "\nfrom:" nil t)
-		  (funcall gnus-decode-encoded-address-function
-			   (nnheader-header-value))
-		"(nobody)"))
-	    ;; Date.
-	    (progn
-	      (goto-char p)
-	      (if (search-forward "\ndate:" nil t)
-		  (nnheader-header-value) ""))
-	    ;; Message-ID.
-	    (progn
-	      (goto-char p)
-	      (setq id (if (re-search-forward
-			    "^message-id: *\\(<[^\n\t> ]+>\\)" nil t)
-			   ;; We do it this way to make sure the Message-ID
-			   ;; is (somewhat) syntactically valid.
-			   (buffer-substring (match-beginning 1)
-					     (match-end 1))
-			 ;; If there was no message-id, we just fake one
-			 ;; to make subsequent routines simpler.
-			 (nnheader-generate-fake-message-id number))))
-	    ;; References.
-	    (progn
-	      (goto-char p)
-	      (if (search-forward "\nreferences:" nil t)
-		  (progn
-		    (setq end (point))
-		    (prog1
-			(nnheader-header-value)
-		      (setq ref
-			    (buffer-substring
-			     (progn
-			       (end-of-line)
-			       (search-backward ">" end t)
-			       (1+ (point)))
-			     (progn
-			       (search-backward "<" end t)
-			       (point))))))
-		;; Get the references from the in-reply-to header if there
-		;; were no references and the in-reply-to header looks
-		;; promising.
-		(if (and (search-forward "\nin-reply-to:" nil t)
-			 (setq in-reply-to (nnheader-header-value))
-			 (string-match "<[^>]+>" in-reply-to))
-		    (let (ref2)
-		      (setq ref (substring in-reply-to (match-beginning 0)
-					   (match-end 0)))
-		      (while (string-match "<[^>]+>" in-reply-to (match-end 0))
-			(setq ref2 (substring in-reply-to (match-beginning 0)
-					      (match-end 0)))
-			(when (> (length ref2) (length ref))
-			  (setq ref ref2)))
-		      ref)
-		  (setq ref nil))))
-	    ;; Chars.
-	    (progn
-	      (goto-char p)
-	      (if (search-forward "\nchars: " nil t)
-		  (if (numberp (setq chars (ignore-errors (read cur))))
-		      chars -1)
-		-1))
-	    ;; Lines.
-	    (progn
-	      (goto-char p)
-	      (if (search-forward "\nlines: " nil t)
-		  (if (numberp (setq lines (ignore-errors (read cur))))
-		      lines -1)
-		-1))
-	    ;; Xref.
-	    (progn
-	      (goto-char p)
-	      (and (search-forward "\nxref:" nil t)
-		   (nnheader-header-value)))
-	    ;; Extra.
-	    (when gnus-extra-headers
-	      (let ((extra gnus-extra-headers)
-		    out)
-		(while extra
-		  (goto-char p)
-		  (when (search-forward
-			 (concat "\n" (symbol-name (car extra)) ":") nil t)
-		    (push (cons (car extra) (nnheader-header-value))
-			  out))
-		  (pop extra))
-		out))))
-	  (when (equal id ref)
-	    (setq ref nil))
-
-	  (when gnus-alter-header-function
-	    (funcall gnus-alter-header-function header)
-	    (setq id (mail-header-id header)
-		  ref (gnus-parent-id (mail-header-references header))))
-
+	(while (setq header (nnheader-parse-head))
 	  (when (setq header
 		      (gnus-dependencies-add-header
 		       header dependencies force-new))
-	    (push header headers))
-	  (goto-char (point-max))
-	  (widen))
+	    (push header headers)))
 	(nreverse headers)))))
 
 ;; Goes through the xover lines and returns a list of vectors
@@ -8702,7 +8560,8 @@ SCORE."
 When called interactively, ID is the Message-ID of the current
 article.  If thread-only is non-nil limit the summary buffer to
 these articles."
-  (interactive (list (mail-header-id (gnus-summary-article-header))))
+  (interactive (list (mail-header-id (gnus-summary-article-header))
+		     current-prefix-arg))
   (let ((articles (gnus-articles-in-thread
 		   (gnus-id-to-thread (gnus-root-id id))))
 	;;we REALLY want the whole thread---this prevents cut-threads
@@ -9125,13 +8984,13 @@ Return the number of articles fetched."
     result))
 
 (defun gnus-summary-refer-thread (&optional limit)
-  "Fetch all articles in the current thread.  For backends
-that know how to search for threads (currently only 'nnimap)
-a non-numeric prefix arg will use nnir to search the entire
+  "Fetch all articles in the current thread. For backends that
+know how to search for threads (currently only 'nnimap) a
+non-numeric prefix arg will search the entire
 server; without a prefix arg only the current group is
-searched.  If the variable `gnus-refer-thread-use-nnir' is
-non-nil the prefix arg has the reverse meaning.  If no
-backend-specific `request-thread' function is available fetch
+searched. If the variable `gnus-refer-thread-use-search' is
+non-nil the prefix arg has the reverse meaning. If no
+backend-specific 'request-thread function is available fetch
 LIMIT (the numerical prefix) old headers.  If LIMIT is
 non-numeric or nil fetch the number specified by the
 `gnus-refer-thread-limit' variable."
@@ -9141,9 +9000,9 @@ non-numeric or nil fetch the number specified by the
 	 (gnus-inhibit-demon t)
 	 (gnus-summary-ignore-duplicates t)
 	 (gnus-read-all-available-headers t)
-	 (gnus-refer-thread-use-nnir
+	 (gnus-refer-thread-use-search
 	  (if (and (not (null limit)) (listp limit))
-	      (not gnus-refer-thread-use-nnir) gnus-refer-thread-use-nnir))
+	      (not gnus-refer-thread-use-search) gnus-refer-thread-use-search))
 	 (new-headers
 	  (if (gnus-check-backend-function
 	       'request-thread gnus-newsgroup-name)
@@ -9284,9 +9143,9 @@ non-numeric or nil fetch the number specified by the
       (dolist (method gnus-refer-article-method)
 	(push (if (eq 'current method)
 		  gnus-current-select-method
-		(if (eq 'nnir (car method))
+		(if (eq 'nnselect (car method))
 		    (list
-		     'nnir
+		     'nnselect
 		     (or (cadr method)
 			 (gnus-method-to-server gnus-current-select-method)))
 		  method))

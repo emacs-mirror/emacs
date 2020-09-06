@@ -1,4 +1,4 @@
-;;; js-tests.el --- Test suite for js-mode
+;;; js-tests.el --- Test suite for js-mode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 

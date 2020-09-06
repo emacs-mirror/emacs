@@ -1,4 +1,4 @@
-;;; editfns-tests.el -- tests for editfns.c
+;;; editfns-tests.el -- tests for editfns.c  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
@@ -124,8 +124,8 @@
   "Validate character position to byte position translation."
   (let ((bytes '()))
     (dotimes (pos len)
-      (setq bytes (add-to-list 'bytes (position-bytes (1+ pos)) t)))
-    bytes))
+      (push (position-bytes (1+ pos)) bytes))
+    (nreverse bytes)))
 
 (ert-deftest transpose-ascii-regions-test ()
   (with-temp-buffer

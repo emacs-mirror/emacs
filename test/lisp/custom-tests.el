@@ -99,7 +99,6 @@
 ;; This is demonstrating bug#34027.
 (ert-deftest custom--test-theme-variables ()
   "Test variables setting with enabling / disabling a custom theme."
-  :expected-result :failed
   ;; We load custom-resources/custom--test-theme.el.
   (let ((custom-theme-load-path
          `(,(expand-file-name "custom-resources" (file-name-directory #$)))))
@@ -115,15 +114,10 @@
     (should (equal custom--test-user-option 'baz))
     (should (equal custom--test-variable 'baz))
 
+    ;; Enable and then disable.
     (enable-theme 'custom--test)
-    ;; The variables have the theme values.
-    (should (equal custom--test-user-option 'bar))
-    (should (equal custom--test-variable 'bar))
-
     (disable-theme 'custom--test)
     ;; The variables should have the changed values, by reverting.
-    ;; This doesn't work as expected.  Instead, they have their
-    ;; initial values `foo'.
     (should (equal custom--test-user-option 'baz))
     (should (equal custom--test-variable 'baz))))
 

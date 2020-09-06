@@ -751,10 +751,10 @@ size, and full-buffer size."
               (face (get-text-property (point) 'face)))
           ;; Extend the background to the end of the line.
           (insert ?\n)
-          (when face
-            (put-text-property (1- (point)) (point)
-                               'face (shr-face-background face)))
 	  (shr-indent)
+          (when face
+            (put-text-property gap-start (point)
+                               'face (shr-face-background face)))
           (when (and (> (1- gap-start) (point-min))
                      (get-text-property (point) 'shr-url)
                      ;; The link on both sides of the newline are the

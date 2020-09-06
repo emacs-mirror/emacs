@@ -5,7 +5,7 @@
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Felix E. Klee <felix.klee@inka.de>
 ;; Keywords: image
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((emacs "25"))
 
 ;; This file is part of GNU Emacs.

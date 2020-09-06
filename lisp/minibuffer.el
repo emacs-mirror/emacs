@@ -3863,12 +3863,16 @@ the minibuffer was activated, and execute the forms."
 If FORMAT-ARGS is nil, PROMPT is used as a plain string.  If
 FORMAT-ARGS is non-nil, PROMPT is used as a format control
 string, and FORMAT-ARGS are the arguments to be substituted into
-it.  See `format' for details."
+it.  See `format' for details.
+
+If DEFAULT is nil, no \"default value\" string is included in the
+return value."
   (concat
    (if (null format-args)
        prompt
      (apply #'format prompt format-args))
-   (format minibuffer-default-prompt-format default)
+   (and default
+        (format minibuffer-default-prompt-format default))
    ": "))
 
 (provide 'minibuffer)

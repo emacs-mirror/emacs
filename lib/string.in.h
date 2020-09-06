@@ -1045,6 +1045,30 @@ _GL_WARN_ON_USE (strerror_r, "strerror_r is unportable - "
 # endif
 #endif
 
+/* Return the name of the system error code ERRNUM.  */
+#if @GNULIB_STRERRORNAME_NP@
+# if @REPLACE_STRERRORNAME_NP@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strerrorname_np
+#   define strerrorname_np rpl_strerrorname_np
+#  endif
+_GL_FUNCDECL_RPL (strerrorname_np, const char *, (int errnum));
+_GL_CXXALIAS_RPL (strerrorname_np, const char *, (int errnum));
+# else
+#  if !@HAVE_STRERRORNAME_NP@
+_GL_FUNCDECL_SYS (strerrorname_np, const char *, (int errnum));
+#  endif
+_GL_CXXALIAS_SYS (strerrorname_np, const char *, (int errnum));
+# endif
+_GL_CXXALIASWARN (strerrorname_np);
+#elif defined GNULIB_POSIXCHECK
+# undef strerrorname_np
+# if HAVE_RAW_DECL_STRERRORNAME_NP
+_GL_WARN_ON_USE (strerrorname_np, "strerrorname_np is unportable - "
+                 "use gnulib module strerrorname_np for portability");
+# endif
+#endif
+
 /* Return an abbreviation string for the signal number SIG.  */
 #if @GNULIB_SIGABBREV_NP@
 # if ! @HAVE_SIGABBREV_NP@

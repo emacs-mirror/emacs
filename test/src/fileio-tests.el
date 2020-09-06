@@ -107,40 +107,6 @@ Also check that an encoding error can appear in a symlink."
       (setenv "HOME" "x:foo")
       (should (equal (expand-file-name "~/bar") "x:/foo/bar")))))
 
-(ert-deftest fileio-tests--HOME-trailing-slash ()
-  "Test that expand-file-name of \"~\" respects trailing slash."
-  (let ((process-environment (copy-sequence process-environment)))
-    (dolist (home
-             (if (memq system-type '(windows-nt ms-dos))
-                 '("c:/a/b/c" "c:/a/b/c/")
-               '("/a/b/c" "/a/b/c/")))
-      (setenv "HOME" home)
-      (should (equal (expand-file-name "~") (expand-file-name home))))))
-
-(ert-deftest fileio-tests--expand-file-name-trailing-slash ()
-  (dolist (fooslashalias '("foo/" "foo//" "foo/." "foo//." "foo///././."
-                           "foo/a/.."))
-    (if (memq system-type '(windows-nt ms-dos))
-        (progn
-          (should (equal (expand-file-name fooslashalias "c:/") "c:/foo/"))
-          (should (equal (expand-file-name (concat "c:/" fooslashalias))
-                         "c:/foo/"))
-          (should (equal (expand-file-name "." "c:/usr/spool/")
-                         "c:/usr/spool/"))
-          (should (equal (expand-file-name "" "c:/usr/spool/")
-                         "c:/usr/spool/")))
-      (should (equal (expand-file-name fooslashalias "/") "/foo/"))
-      (should (equal (expand-file-name (concat "/" fooslashalias)) "/foo/"))
-      (should (equal (expand-file-name "." "/usr/spool/") "/usr/spool/"))
-      (should (equal (expand-file-name "" "/usr/spool/") "/usr/spool/"))))
-  ;; Trailing "B/C/.." means B must be a directory.
-  (if (memq system-type '(windows-nt ms-dos))
-      (progn
-        (should (equal (expand-file-name "c:/a/b/c/..") "c:/a/b/"))
-        (should (equal (expand-file-name "c:/a/b/c/../") "c:/a/b/")))
-    (should (equal (expand-file-name "/a/b/c/..") "/a/b/"))
-    (should (equal (expand-file-name "/a/b/c/../") "/a/b/"))))
-
 (ert-deftest fileio-tests--insert-file-interrupt ()
   (let ((text "-*- coding: binary -*-\n\xc3\xc3help")
         f)

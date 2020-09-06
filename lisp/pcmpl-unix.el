@@ -1,4 +1,4 @@
-;;; pcmpl-unix.el --- standard UNIX completions
+;;; pcmpl-unix.el --- standard UNIX completions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -155,12 +155,14 @@ documentation), this function returns nil."
       (let ((host-re "\\(?:\\([-.[:alnum:]]+\\)\\|\\[\\([-.[:alnum:]]+\\)\\]:[0-9]+\\)[, ]")
             ssh-hosts-list)
         (while (re-search-forward (concat "^ *" host-re) nil t)
-          (add-to-list 'ssh-hosts-list (concat (match-string 1)
-                                               (match-string 2)))
+          (push (concat (match-string 1)
+                        (match-string 2))
+                ssh-hosts-list)
           (while (and (eq (char-before) ?,)
                       (re-search-forward host-re (line-end-position) t))
-            (add-to-list 'ssh-hosts-list (concat (match-string 1)
-                                                 (match-string 2)))))
+            (push  (concat (match-string 1)
+                           (match-string 2))
+                   ssh-hosts-list)))
         ssh-hosts-list))))
 
 (defun pcmpl-ssh-config-hosts ()
@@ -173,7 +175,7 @@ documentation), this function returns nil."
             (case-fold-search t))
         (while (re-search-forward "^ *host\\(name\\)? +\\([-.[:alnum:]]+\\)"
                                   nil t)
-          (add-to-list 'ssh-hosts-list (match-string 2)))
+          (push (match-string 2) ssh-hosts-list))
         ssh-hosts-list))))
 
 (defun pcmpl-ssh-hosts ()
@@ -181,7 +183,7 @@ documentation), this function returns nil."
 Uses both `pcmpl-ssh-config-file' and `pcmpl-ssh-known-hosts-file'."
   (let ((hosts (pcmpl-ssh-known-hosts)))
     (dolist (h (pcmpl-ssh-config-hosts))
-      (add-to-list 'hosts h))
+      (push h hosts))
     hosts))
 
 ;;;###autoload

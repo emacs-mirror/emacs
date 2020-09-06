@@ -33,7 +33,7 @@ By mailing commands to control@debbugs.gnu.org.  Place commands at the
 start of the message body, one per line.
 
 severity 123 serious|important|normal|minor|wishlist
-tags 123 moreinfo|unreproducible|wontfix|patch
+tags 123 moreinfo|unreproducible|wontfix|patch|notabug
 
 * More detailed information
 
@@ -185,7 +185,7 @@ Basically, reply only to the numbered bug address (and any individual
 people's addresses). Do not send mail direct to bug-gnu-emacs or
 emacs-pretest-bug unless you are reporting a new bug.
 
-** To close bug #123 (for example), send mail
+** To close bug#123 (for example), send mail
 
 To: 123-done@debbugs.gnu.org
 
@@ -260,7 +260,7 @@ reopen 123
 
 *** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 The available tags are:
-patch wontfix moreinfo unreproducible fixed notabug security confirmed
+patch wontfix moreinfo unreproducible fixed notabug help security confirmed easy
 See https://debbugs.gnu.org/Developer#tags
 The list of tags can be prefixed with +, - or =, meaning to add (the
 default), remove, or reset the tags. E.g.:
@@ -290,10 +290,9 @@ limited, predefined set of normal tags are available (see above).
 
 2) A usertag is associated with a specific user.  This is normally
 an email address (with an "@" sign and least 4 characters after the "@"),
-but on debbugs.gnu.org, the definition is less strict - anything with
-5 or more alphanumeric characters will work.  For personal tags,
+but on debbugs.gnu.org, it can also be a package name.  For personal tags,
 using an email address is still recommended.  Please only use the
-"emacs" user, or other short users, for "official" tags.
+"emacs" user for "official" tags.
 
 You set usertags in the same way as tags, by talking to the control server.
 One difference is that you can also specify the associated user.
@@ -307,7 +306,7 @@ a) In a control message:
 user emacs      # or email@example.com
 usertags 1234 any-tag-you-like
 
-This will add a usertag "any-tag-you-like" to bug 1234.  The tag will
+This will add a usertag "any-tag-you-like" to bug#1234.  The tag will
 be associated with the user "emacs".  If you omit the first line,
 the tag will be associated with your email address.
 

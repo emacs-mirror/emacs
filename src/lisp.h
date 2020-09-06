@@ -339,24 +339,20 @@ typedef EMACS_INT Lisp_Word;
 #  define lisp_h_XLI(o) ((EMACS_INT) (o))
 #  define lisp_h_XIL(i) ((Lisp_Object) (i))
 #  define lisp_h_XLP(o) ((void *) (o))
-#  define lisp_h_XPL(p) ((Lisp_Object) (p))
 # else
 #  define lisp_h_XLI(o) (o)
 #  define lisp_h_XIL(i) (i)
 #  define lisp_h_XLP(o) ((void *) (uintptr_t) (o))
-#  define lisp_h_XPL(p) ((Lisp_Object) (uintptr_t) (p))
 # endif
 #else
 # if LISP_WORDS_ARE_POINTERS
 #  define lisp_h_XLI(o) ((EMACS_INT) (o).i)
 #  define lisp_h_XIL(i) ((Lisp_Object) {(Lisp_Word) (i)})
 #  define lisp_h_XLP(o) ((void *) (o).i)
-#  define lisp_h_XPL(p) lisp_h_XIL (p)
 # else
 #  define lisp_h_XLI(o) ((o).i)
 #  define lisp_h_XIL(i) ((Lisp_Object) {i})
 #  define lisp_h_XLP(o) ((void *) (uintptr_t) (o).i)
-#  define lisp_h_XPL(p) ((Lisp_Object) {(uintptr_t) (p)})
 # endif
 #endif
 
@@ -425,7 +421,6 @@ typedef EMACS_INT Lisp_Word;
 # define XLI(o) lisp_h_XLI (o)
 # define XIL(i) lisp_h_XIL (i)
 # define XLP(o) lisp_h_XLP (o)
-# define XPL(p) lisp_h_XPL (p)
 # define CHECK_FIXNUM(x) lisp_h_CHECK_FIXNUM (x)
 # define CHECK_SYMBOL(x) lisp_h_CHECK_SYMBOL (x)
 # define CHECK_TYPE(ok, predicate, x) lisp_h_CHECK_TYPE (ok, predicate, x)
@@ -734,12 +729,6 @@ INLINE void *
 (XLP) (Lisp_Object o)
 {
   return lisp_h_XLP (o);
-}
-
-INLINE Lisp_Object
-(XPL) (void *p)
-{
-  return lisp_h_XPL (p);
 }
 
 /* Extract A's type.  */
@@ -3778,12 +3767,12 @@ extern AVOID memory_full (size_t);
 extern AVOID buffer_memory_full (ptrdiff_t);
 extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
+extern void mark_objects (Lisp_Object *, ptrdiff_t);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 extern void refill_memory_reserve (void);
 #endif
 extern void alloc_unexec_pre (void);
 extern void alloc_unexec_post (void);
-extern void mark_maybe_objects (Lisp_Object const *, ptrdiff_t);
 extern void mark_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
 
@@ -4932,7 +4921,10 @@ safe_free_unbind_to (ptrdiff_t count, ptrdiff_t sa_count, Lisp_Object val)
       (buf) = AVAIL_ALLOCA (alloca_nbytes);		       \
     else						       \
       {							       \
-	(buf) = xmalloc (alloca_nbytes);		       \
+	/* Although only the first nelt words need clearing,   \
+	   typically EXTRA is 0 or small so just use xzalloc;  \
+	   this is simpler and often faster.  */	       \
+	(buf) = xzalloc (alloca_nbytes);		       \
 	record_unwind_protect_array (buf, nelt);	       \
       }							       \
   } while (false)

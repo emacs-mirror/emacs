@@ -1261,6 +1261,7 @@ usage: (dbus-message-internal &rest REST)  */)
   Lisp_Object path = Qnil;
   Lisp_Object interface = Qnil;
   Lisp_Object member = Qnil;
+  Lisp_Object error_name = Qnil;
   Lisp_Object result;
   DBusConnection *connection;
   DBusMessage *dmessage;
@@ -1298,7 +1299,9 @@ usage: (dbus-message-internal &rest REST)  */)
   else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
     {
       serial = xd_extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
-      count = 4;
+      if (mtype == DBUS_MESSAGE_TYPE_ERROR)
+	error_name = args[4];
+      count = (mtype == DBUS_MESSAGE_TYPE_ERROR) ? 5 : 4;
     }
 
   /* Check parameters.  */
@@ -1341,13 +1344,22 @@ usage: (dbus-message-internal &rest REST)  */)
 			XD_OBJECT_TO_STRING (interface),
 			XD_OBJECT_TO_STRING (member));
       break;
-    default: /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
+    case DBUS_MESSAGE_TYPE_METHOD_RETURN:
       ui_serial = serial;
       XD_DEBUG_MESSAGE ("%s %s %s %u",
 			XD_MESSAGE_TYPE_TO_STRING (mtype),
 			XD_OBJECT_TO_STRING (bus),
 			XD_OBJECT_TO_STRING (service),
 			ui_serial);
+       break;
+    default: /* DBUS_MESSAGE_TYPE_ERROR  */
+      ui_serial = serial;
+      XD_DEBUG_MESSAGE ("%s %s %s %u %s",
+			XD_MESSAGE_TYPE_TO_STRING (mtype),
+			XD_OBJECT_TO_STRING (bus),
+			XD_OBJECT_TO_STRING (service),
+			ui_serial,
+			XD_OBJECT_TO_STRING (error_name));
     }
 
   /* Retrieve bus address.  */
@@ -1406,7 +1418,7 @@ usage: (dbus-message-internal &rest REST)  */)
 	XD_SIGNAL1 (build_string ("Unable to create a return message"));
 
       if ((mtype == DBUS_MESSAGE_TYPE_ERROR)
-	  && (!dbus_message_set_error_name (dmessage, DBUS_ERROR_FAILED)))
+	  && (!dbus_message_set_error_name (dmessage, SSDATA (error_name))))
 	XD_SIGNAL1 (build_string ("Unable to create an error message"));
     }
 

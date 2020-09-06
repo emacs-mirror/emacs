@@ -2438,26 +2438,14 @@ This is for the sake of filesystems that have the concept of a
 superroot above the root directory @file{/}.  On other filesystems,
 @file{/../} is interpreted exactly the same as @file{/}.
 
-If a filename must be that of a directory, its expansion must be too.
-For example, if a filename ends in @samp{/} or @samp{/.} or @samp{/..}
-then its expansion ends in @samp{/} so that it cannot be
-misinterpreted as the name of a symbolic link:
-
-@example
-@group
-(expand-file-name "/a///b//.")
-     @result{} "/a/b/"
-@end group
-@end example
-
 Expanding @file{.} or the empty string returns the default directory:
 
 @example
 @group
 (expand-file-name "." "/usr/spool/")
-     @result{} "/usr/spool/"
+     @result{} "/usr/spool"
 (expand-file-name "" "/usr/spool/")
-     @result{} "/usr/spool/"
+     @result{} "/usr/spool"
 @end group
 @end example
 

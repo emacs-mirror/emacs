@@ -80,6 +80,7 @@
 (eval-and-compile ;; So it's also available in tramp-loaddefs.el!
   (defvar tramp--startup-hook nil
     "Forms to be executed at the end of tramp.el.")
+  (put 'tramp--startup-hook 'tramp-suppress-trace t)
 
   (defmacro tramp--with-startup (&rest body)
     "Schedule BODY to be executed at the end of tramp.el."
@@ -1241,6 +1242,7 @@ the (optional) timestamp of last activity on this connection.")
   "Password save function.
 Will be called once the password has been verified by successful
 authentication.")
+(put 'tramp-password-save-function 'tramp-suppress-trace t)
 
 (defconst tramp-completion-file-name-handler-alist
   '((file-name-all-completions

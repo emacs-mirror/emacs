@@ -1,4 +1,4 @@
-;;; fns-tests.el --- tests for src/fns.c
+;;; fns-tests.el --- tests for src/fns.c  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
@@ -229,8 +229,8 @@
   (require 'info)
   (should (equal (func-arity 'Info-goto-node) '(1 . 3)))
   (should (equal (func-arity (lambda (&rest x))) '(0 . many)))
-  (should (equal (func-arity (eval (lambda (x &optional y)) nil)) '(1 . 2)))
-  (should (equal (func-arity (eval (lambda (x &optional y)) t)) '(1 . 2)))
+  (should (equal (func-arity (eval '(lambda (x &optional y)) nil)) '(1 . 2)))
+  (should (equal (func-arity (eval '(lambda (x &optional y)) t)) '(1 . 2)))
   (should (equal (func-arity 'let) '(1 . unevalled))))
 
 (defun fns-tests--string-repeat (s o)

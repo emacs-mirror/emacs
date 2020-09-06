@@ -183,6 +183,7 @@
 (ert-deftest icalendar--parse-vtimezone ()
   "Test method for `icalendar--parse-vtimezone'."
   (let (vtimezone result)
+    ;; testcase: valid timezone with rrule
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
 TZID:thename
 BEGIN:STANDARD
@@ -204,6 +205,8 @@ END:VTIMEZONE
     (message (cdr result))
     (should (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00"
                      (cdr result)))
+
+    ;; testcase: name of tz contains comma
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
 TZID:anothername, with a comma
 BEGIN:STANDARD
@@ -225,7 +228,8 @@ END:VTIMEZONE
     (message (cdr result))
     (should (string= "STD-02:00DST-03:00,M3.2.1/03:00:00,M10.2.1/04:00:00"
                      (cdr result)))
-    ;; offsetfrom = offsetto
+
+    ;; testcase: offsetfrom = offsetto
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
 TZID:Kolkata, Chennai, Mumbai, New Delhi
 X-MICROSOFT-CDO-TZID:23
@@ -245,7 +249,10 @@ END:VTIMEZONE
     (should (string= "Kolkata, Chennai, Mumbai, New Delhi" (car result)))
     (message (cdr result))
     (should (string= "STD-05:30DST-05:30,M1.1.1/00:00:00,M1.1.1/00:00:00"
-                     (cdr result)))))
+                     (cdr result)))
+
+    ;; FIXME: add testcase that covers changes for fix of bug#34315
+    ))
 
 (ert-deftest icalendar--convert-ordinary-to-ical ()
   "Test method for `icalendar--convert-ordinary-to-ical'."
@@ -482,17 +489,132 @@ END:VEVENT
           (should (equal '(0 0 10 1 8 2013 4 t 10800)
                          (icalendar--decode-isodatetime "20130801T100000")))
 
+          ;; testcase: no time zone in input, shift by -1 days
+          ;; 1 Jan 2013 10:00 -> 31 Dec 2012
+          (should (equal '(0 0 10 31 12 2012 1 nil 7200)
+                         (icalendar--decode-isodatetime "20130101T100000" -1)))
+          ;; 1 Aug 2013 10:00 (DST) -> 31 Jul 2012 (DST)
+          (should (equal '(0 0 10 31 7 2013 3 t 10800)
+                         (icalendar--decode-isodatetime "20130801T100000" -1)))
+
+
           ;; testcase: UTC time zone specifier in input -> convert to local time
-          ;; 31 Dec 2013 23:00 UTC -> 1 Jan 2013 01:00 EET
+          ;; 31 Dec 2013 23:00 UTC -> 1 Jan 2014 01:00 EET
           (should (equal '(0 0 1 1 1 2014 3 nil 7200)
                          (icalendar--decode-isodatetime "20131231T230000Z")))
           ;; 1 Aug 2013 10:00 UTC -> 1 Aug 2013 13:00 EEST
           (should (equal '(0 0 13 1 8 2013 4 t 10800)
                          (icalendar--decode-isodatetime "20130801T100000Z")))
 
+          ;; testcase: override timezone with Central European Time, 1 Jan 2013 10:00 -> 1 Jan 2013 11:00
+          (should (equal '(0 0 11 1 1 2013 2 nil 7200)
+                         (icalendar--decode-isodatetime "20130101T100000" nil
+                                                        '(3600 "CET"))))
+          ;; testcase: override timezone (UTC-02:00), 1 Jan 2013 10:00 -> 1 Jan 2013 14:00
+          (should (equal '(0 0 14 1 1 2013 2 nil 7200)
+                         (icalendar--decode-isodatetime "20130101T100000" nil -7200)))
+
+          ;; FIXME: add testcase that covers changes for fix of bug#34315
+
           )
       ;; restore time-zone even if something went terribly wrong
-      (setenv "TZ" tz)))  )
+      (setenv "TZ" tz))))
+
+(ert-deftest icalendar--convert-tz-offset ()
+  "Test `icalendar--convert-tz-offset'."
+  (let ((tz (getenv "TZ")))
+    (unwind-protect
+	(progn
+	  ;; Use Eastern European Time (UTC+2, UTC+3 daylight saving)
+	  (setenv "TZ" "EET-2EEST,M3.5.0/3,M10.5.0/4")
+
+          ;; testcase: artificial input
+          (should (equal '("DST-03:00" . "M5.1.1/01:23:45")
+                         (icalendar--convert-tz-offset
+                          '((DTSTART nil "________T012345") ;
+                            (TZOFFSETFROM nil "+0200")
+                            (TZOFFSETTO nil "+0300")
+                            (RRULE nil "FREQ=YEARLY;INTERVAL=1;BYDAY=1MO;BYMONTH=5"))
+                          t)))
+
+          ;; testcase: Europe/Berlin Standard
+          (should (equal '("STD-01:00" . "M10.5.0/03:00:00")
+                         (icalendar--convert-tz-offset
+                          '((TZOFFSETFROM nil "+0200")
+                            (TZOFFSETTO nil "+0100")
+                            (TZNAME nil CET)
+                            (DTSTART nil "19701025T030000")
+                            (RRULE nil "FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU"))
+                          nil)))
+
+          ;; testcase: Europe/Berlin DST
+          (should (equal '("DST-02:00" . "M3.5.0/02:00:00")
+                         (icalendar--convert-tz-offset
+                          '((TZOFFSETFROM nil "+0100")
+                            (TZOFFSETTO nil "+0200")
+                            (TZNAME nil CEST)
+                            (DTSTART nil "19700329T020000")
+                            (RRULE nil "FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU"))
+                          t)))
+
+          ;; testcase: dtstart is mandatory
+          (should (null (icalendar--convert-tz-offset
+                          '((TZOFFSETFROM nil "+0100")
+                            (TZOFFSETTO nil "+0200")
+                            (RRULE nil "FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU"))
+                          t)))
+
+          ;; FIXME: rrule and rdate are NOT mandatory!  Must fix code
+          ;; before activating these testcases
+          ;; ;; testcase: no rrule and no rdate => no result
+          ;; (should (null (icalendar--convert-tz-offset
+          ;;                 '((TZOFFSETFROM nil "+0100")
+          ;;                   (TZOFFSETTO nil "+0200")
+          ;;                   (DTSTART nil "19700329T020000"))
+          ;;                 t)))
+          ;; ;; testcase: no rrule with rdate => no result
+          ;; (should (null (icalendar--convert-tz-offset
+          ;;                 '((TZOFFSETFROM nil "+0100")
+          ;;                   (TZOFFSETTO nil "+0200")
+          ;;                   (DTSTART nil "18840101T000000")
+          ;;                   (RDATE nil "18840101T000000"))
+          ;;                 t)))
+          )
+      ;; restore time-zone even if something went terribly wrong
+      (setenv "TZ" tz))))
+
+(ert-deftest icalendar--decode-isoduration ()
+  "Test `icalendar--decode-isoduration'."
+
+  ;; testcase: 7 days
+  (should (equal '(0 0 0 7 0 0)
+                 (icalendar--decode-isoduration "P7D")))
+
+  ;; testcase: 7 days, one second -- see bug#34315
+  (should (equal '(1 0 0 7 0 0)
+                 (icalendar--decode-isoduration "P7DT1S")))
+
+  ;; testcase: 3 hours, 2 minutes, one second
+  (should (equal '(1 2 3 0 0 0)
+                 (icalendar--decode-isoduration "PT3H2M1S")))
+
+  ;; testcase: 99 days, 3 hours, 2 minutes, one second  -- see bug#34315
+  (should (equal '(1 2 3 99 0 0)
+                 (icalendar--decode-isoduration "P99DT3H2M1S")))
+
+  ;; testcase: 2 weeks
+  (should (equal '(0 0 0 14 0 0)
+                 (icalendar--decode-isoduration "P2W")))
+
+  ;; testcase: rfc2445, section 4.3.6: 15 days, 5 hours and 20 seconds  -- see bug#34315
+  (should (equal '(20 0 5 15 0 0)
+                 (icalendar--decode-isoduration "P15DT5H0M20S")))
+
+  ;; testcase: rfc2445, section 4.3.6: 7 weeks
+  (should (equal '(0 0 0 49 0 0)
+                 (icalendar--decode-isoduration "P7W")))
+  )
+
 
 ;; ======================================================================
 ;; Export tests

@@ -853,12 +853,6 @@ be used directly.")
           (cons (car list) (list :type type :data data)))
        list)))
 
-(let ((command (format "%s" this-command)))
-  (when (string-match "gnus" command)
-    (if (eq 'gnus-other-frame this-command)
-	(gnus-get-buffer-create gnus-group-buffer)
-      (gnus-splash))))
-
 ;;; Do the rest.
 
 (require 'gnus-util)
@@ -1613,7 +1607,7 @@ total number of articles in the group.")
  :variable-default (mapcar
                     (lambda (g) (list g t))
                     '("delayed$" "drafts$" "queue$" "INBOX$"
-                      "^nnmairix:" "^nnir:" "archive"))
+                      "^nnmairix:" "^nnselect:" "archive"))
  :variable-document
  "Groups in which the registry should be turned off."
  :variable-group gnus-registry
@@ -2711,6 +2705,11 @@ with some simple extensions.
 %k          Pretty-printed version of the above (string)
             For example, \"1.2k\" or \"0.4M\".
 %L          Number of lines in the article (integer)
+%Z          RSV of the article; nil if not in an nnselect group (integer)
+%G          Originating group name for the article; nil if not
+            in an nnselect group (string)
+%g          Short from  of the originating group name for the article;
+            nil if not in an nnselect group (string)
 %I          Indentation based on thread level (a string of
             spaces)
 %B          A complex trn-style thread tree (string)
@@ -3159,7 +3158,10 @@ that that variable is buffer-local to the summary buffers."
 
 (defun gnus-kill-ephemeral-group (group)
   "Remove ephemeral GROUP from relevant structures."
-  (remhash group gnus-newsrc-hashtb))
+  (remhash group gnus-newsrc-hashtb)
+    (setq gnus-newsrc-alist
+	(delq (assoc group gnus-newsrc-alist)
+              gnus-newsrc-alist)))
 
 (defun gnus-simplify-mode-line ()
   "Make mode lines a bit simpler."

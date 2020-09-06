@@ -43,7 +43,7 @@ still a valid backend.
 
 ---
 ** Building without double buffering support.
-configure --with-xdbe=no can now be used to disable double buffering
+'configure --with-xdbe=no' can now be used to disable double buffering
 at build time.
 
 ---
@@ -99,14 +99,14 @@ box if the point is on an image larger than 'SIZE' pixels in any
 dimension.
 
 +++
-** New custom option 'word-wrap-by-category'.
+** New user option 'word-wrap-by-category'.
 When word-wrap is enabled, and this option is non-nil, that allows
 Emacs to break lines after more characters than just whitespace
 characters.  In particular, this significantly improves word-wrapping
 for CJK text mixed with Latin text.
 
 ---
-*** Improved language transliteration in Malayalam input methods.
+** Improved language transliteration in Malayalam input methods.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.
 
@@ -166,6 +166,19 @@ same for a button.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+---
+** Specific warnings can now be disabled from the warning buffer.
+When a warning is displayed to the user, the resulting buffer now has
+buttons which allow making permanent changes to the treatment of that
+warning.  Automatic showing of the warning can be disabled (although
+it is still logged to the *Messages* buffer), or the warning can be
+disabled entirely.
+
+** mspool.el
+
+---
+*** Autoload the main entry point 'mspool-show'.
 
 ** Windows
 
@@ -296,7 +309,7 @@ invoke 'C-u C-x v s' ('vc-create-tag').
 *** 'vc-hg' now uses 'hg summary' to populate extra 'vc-dir' headers.
 
 ---
-*** New variable 'vc-git-revision-complete-only-branches'.
+*** New user option 'vc-git-revision-complete-only-branches'.
 If non-nil, only branches and remotes are considered when doing
 completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
@@ -304,7 +317,24 @@ tags to be considered as well.
 ** Gnus
 
 +++
-*** New option 'gnus-dbus-close-on-sleep'
+*** New backend 'nnselect'.
+The newly added 'nnselect' backend allows creating groups from an
+arbitrary list of articles that may come from multiple groups and
+servers.  These groups generally behave like any other group: they may
+be ephemeral or persistent, and allow article marking, moving,
+deletion, etc.  'nnselect' groups may be created like any other group,
+but there is also a convenience function for the common case of
+obtaining the list of articles as a result of a search:
+'gnus-group-make-search-group' ('G g') that will prompt for an 'nnir'
+search query and create a dedicated group for that search.  As part of
+this addition, the user option 'nnir-summary-line-format' has been
+removed; it's functionality is now available directly in the
+'gnus-summary-line-format' '%G' and '%g' specs.  The user option
+'gnus-refer-thread-use-nnir' has been renamed to
+'gnus-refer-thread-use-search'.
+
++++
+*** New user option 'gnus-dbus-close-on-sleep'.
 On systems with D-Bus support, it is now possible to register a signal
 to close all Gnus servers before the system sleeps.
 
@@ -378,6 +408,13 @@ this user option.
 In Message mode buffers, the 'C-c C-p' ('message-insert-screenshot')
 command has been added.  It depends on using an external program to
 take the actual screenshot, and defaults to "ImageMagick import".
+
+** Smtpmail
+
++++
+*** Allow direct selection of smtp authentication mechanism.
+A server entry retrieved by auth-source can request a desired smtp
+authentication mechanism by setting a value for the key 'smtp-auth'.
 
 ** Help
 
@@ -899,17 +936,16 @@ based on the current window size.  In previous versions of Emacs, this
 was always done (and that could lead to odd displays when resizing the
 window after starting).  This variable defaults to nil.
 
-
 ** Miscellaneous
 
 +++
-*** The user can now customize how \"default\" values are prompted for.
+*** The user can now customize how "default" values are prompted for.
 The new utility function 'format-prompt' has been added which uses the
-new 'minibuffer-default-prompt-format' variable to format \"default\"
+new 'minibuffer-default-prompt-format' user option to format "default"
 prompts.  This means that prompts that look like "Enter a number
 (default 10)" can be customized to look like, for instance, "Enter a
 number [10]", or not have the default displayed at all, like "Enter a
-number".  (This requires that all callers are altered to user
+number".  (This requires that all callers are altered to use
 'format-prompt', though.)
 
 ---
@@ -917,7 +953,7 @@ number".  (This requires that all callers are altered to user
 This face is used for error messages from diff.
 
 +++
-*** New global mode 'global-goto-address-mode'
+*** New global mode 'global-goto-address-mode'.
 This will enable 'goto-address-mode' in all buffers.
 
 ---
@@ -967,7 +1003,6 @@ never be narrower than 19 characters.
 *** Bookmarks can now be targets for new tabs.
 When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
-
 
 ** xwidget-webkit mode
 
@@ -1025,6 +1060,14 @@ The following user options have been renamed:
   'display-time-world-timer-second' to 'world-clock-timer-second'
 
 The old names are now obsolete.
+
+** D-Bus
+
++++
+*** Registered properties can have the new access type ':write'.
+
++++
+*** In case of problems, handlers can emit proper D-Bus error messages now.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -1115,12 +1158,12 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'allout-init', 'bookmark-jump-noselect',
 'bookmark-read-annotation-text-func', 'buffer-menu-mode-hook',
 'c-forward-into-nomenclature', 'char-coding-system-table',
-'char-valid-p', 'charset-bytes', 'charset-id', 'charset-list'
-(function), 'choose-completion-delete-max-match', 'complete-in-turn',
+'char-valid-p', 'charset-bytes', 'charset-id', 'charset-list',
+'choose-completion-delete-max-match', 'complete-in-turn',
 'completion-base-size', 'completion-common-substring',
 'crm-minibuffer-complete', 'crm-minibuffer-complete-and-exit',
 'crm-minibuffer-completion-help', 'custom-mode', 'custom-mode-hook',
-'detect-coding-with-priority', 'dirtrack-debug' (function),
+'detect-coding-with-priority', 'dirtrack-debug',
 'dirtrack-debug-toggle', 'dynamic-completion-table',
 'easy-menu-precalculate-equivalent-keybindings',
 'epa-display-verify-result', 'epg-passphrase-callback-function',
@@ -1140,10 +1183,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'nonascii-translation-table', 'password-read-and-add',
 'pre-abbrev-expand-hook', 'princ-list', 'print-help-return-message',
 'process-filter-multibyte-p', 'read-file-name-predicate',
-'remember-buffer' (function), 'rmail-highlight-face',
-'rmail-message-filter', 'set-coding-priority',
-'set-process-filter-multibyte', 'shadows-compare-text-p',
-'shell-dirtrack-toggle', 't-mouse-mode',
+'remember-buffer', 'rmail-highlight-face', 'rmail-message-filter',
+'set-coding-priority', 'set-process-filter-multibyte',
+'shadows-compare-text-p', 'shell-dirtrack-toggle', 't-mouse-mode',
 'term-dynamic-simple-complete', 'tooltip-hook', 'tpu-have-ispell',
 'url-generate-unique-filename', 'url-temporary-directory',
 'vc-arch-command', 'vc-default-working-revision' (variable),
@@ -1172,12 +1214,6 @@ region's (or buffer's) end.
 ** New function 'custom-add-choice'.
 This function can be used by modes to add elements to the
 'choice' customization type of a variable.
-
-+++
-** 'expand-file-name' no longer omits a trailing slash if the omission
-changes the filename's meaning.  E.g., (expand-file-name "/a/b/.") now
-returns "/a/b/" not "/a/b", which might be misinterpreted as the name
-of a symbolic link rather than of the directory it points to.
 
 +++
 ** New function 'file-modes-number-to-symbolic' to convert a numeric
@@ -1214,6 +1250,9 @@ equivalent period in seconds.
 
 +++
 ** The new function 'dom-remove-attribute' has been added.
+
++++
+** The new function 'dom-print' has been added.
 
 ---
 ** 'make-network-process', 'make-serial-process' ':coding' behavior change.

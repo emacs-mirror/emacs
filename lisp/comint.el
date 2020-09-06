@@ -2423,11 +2423,13 @@ Security bug: your string can still be temporarily recovered with
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
 Looks for a match to `comint-password-prompt-regexp' in order
-to detect the need to (prompt and) send a password.
+to detect the need to (prompt and) send a password.  Ignores any
+carriage returns (\\r) in STRING.
 
 This function could be in the list `comint-output-filter-functions'."
   (when (let ((case-fold-search t))
-	  (string-match comint-password-prompt-regexp string))
+	  (string-match comint-password-prompt-regexp
+                        (replace-regexp-in-string "\r" "" string)))
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
     (let ((comint--prompt-recursion-depth (1+ comint--prompt-recursion-depth)))

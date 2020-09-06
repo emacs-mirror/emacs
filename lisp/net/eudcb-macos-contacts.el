@@ -96,7 +96,8 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 		   (name (nth 0 args))
 		   (email (nth 1 args)))
 	      (setq result (cons `((name . ,name)
-				   (email . ,email)) result))))
+				   (email . ,email))
+				 result))))
 	(forward-line))
       result)))
 

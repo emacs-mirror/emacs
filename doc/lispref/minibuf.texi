@@ -437,6 +437,9 @@ passed to @code{format} (@pxref{Formatting Strings}).
 
 @code{minibuffer-default-prompt-format} can be @samp{""}, in which
 case no default values are displayed.
+
+If @var{default} is @code{nil}, there is no default value, and
+therefore no ``default value'' string is included in the result value.
 @end defun
 
 @node Object from Minibuffer

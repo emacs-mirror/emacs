@@ -1,4 +1,4 @@
-;;; mwheel.el --- Wheel mouse support
+;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 ;; Keywords: mouse
@@ -344,16 +344,24 @@ non-Windows systems."
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
-(defvar mwheel-installed-bindings nil)
-(defvar mwheel-installed-text-scale-bindings nil)
+(defvar mouse-wheel--installed-bindings-alist nil
+  "Alist of all installed mouse wheel key bindings.")
 
-(defun mouse-wheel--remove-bindings (bindings funs)
-  "Remove key BINDINGS if they're bound to any function in FUNS.
-BINDINGS is a list of key bindings, FUNS is a list of functions.
+(defun mouse-wheel--add-binding (key fun)
+  "Bind mouse wheel button KEY to function FUN.
+Save it for later removal by `mouse-wheel--remove-bindings'."
+  (global-set-key key fun)
+  (push (cons key fun) mouse-wheel--installed-bindings-alist))
+
+(defun mouse-wheel--remove-bindings ()
+  "Remove all mouse wheel key bindings.
 This is a helper function for `mouse-wheel-mode'."
-  (dolist (key bindings)
-    (when (memq (lookup-key (current-global-map) key) funs)
-      (global-unset-key key))))
+  (dolist (binding mouse-wheel--installed-bindings-alist)
+    (let ((key (car binding))
+          (fun (cdr binding)))
+     (when (eq (lookup-key (current-global-map) key) fun)
+       (global-unset-key key))))
+  (setq mouse-wheel--installed-bindings-alist nil))
 
 (defun mouse-wheel--create-scroll-keys (binding event)
   "Return list of key vectors for BINDING and EVENT.
@@ -363,8 +371,11 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
                         'left-fringe 'right-fringe
                         'vertical-scroll-bar 'horizontal-scroll-bar
                         'mode-line 'header-line)))
-    (cons (vector event)                  ; default case: no prefix.
-          (when (not (consp binding))
+    (if (consp binding)
+        ;; With modifiers, bind only the buffer area (no prefix).
+        (list `[(,@(car binding) ,event)])
+      ;; No modifier: bind also some non-buffer areas of the screen.
+      (cons (vector event)
             (mapcar (lambda (prefix) (vector prefix event)) prefixes)))))
 
 (define-minor-mode mouse-wheel-mode
@@ -378,12 +389,7 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
   :global t
   :group 'mouse
   ;; Remove previous bindings, if any.
-  (mouse-wheel--remove-bindings mwheel-installed-bindings
-                                '(mwheel-scroll))
-  (mouse-wheel--remove-bindings mwheel-installed-text-scale-bindings
-                                '(mouse-wheel-text-scale))
-  (setq mwheel-installed-bindings nil)
-  (setq mwheel-installed-text-scale-bindings nil)
+  (mouse-wheel--remove-bindings)
   ;; Setup bindings as needed.
   (when mouse-wheel-mode
     (dolist (binding mouse-wheel-scroll-amount)
@@ -391,18 +397,16 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
        ;; Bindings for changing font size.
        ((and (consp binding) (eq (cdr binding) 'text-scale))
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
-          ;; Add binding.
-          (let ((key `[,(list (caar binding) event)]))
-            (global-set-key key 'mouse-wheel-text-scale)
-            (push key mwheel-installed-text-scale-bindings))))
+          (mouse-wheel--add-binding `[,(list (caar binding) event)]
+                                    'mouse-wheel-text-scale)))
        ;; Bindings for scrolling.
        (t
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
                              mouse-wheel-left-event mouse-wheel-right-event))
           (dolist (key (mouse-wheel--create-scroll-keys binding event))
-            ;; Add binding.
-            (global-set-key key 'mwheel-scroll)
-            (push key mwheel-installed-bindings))))))))
+            (mouse-wheel--add-binding key 'mwheel-scroll))))))))
+
+;;; Obsolete.
 
 ;;; Compatibility entry point
 ;; preloaded ;;;###autoload
@@ -410,6 +414,12 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
   "Enable mouse wheel support."
   (declare (obsolete mouse-wheel-mode "27.1"))
   (mouse-wheel-mode (if uninstall -1 1)))
+
+(defvar mwheel-installed-bindings nil)
+(make-obsolete-variable 'mwheel-installed-bindings nil "28.1")
+
+(defvar mwheel-installed-text-scale-bindings nil)
+(make-obsolete-variable 'mwheel-installed-text-scale-bindings nil "28.1")
 
 (provide 'mwheel)
 

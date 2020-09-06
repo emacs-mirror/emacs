@@ -57,9 +57,7 @@
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
 (declare-function tramp-list-tramp-buffers "tramp-cmds")
-(declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
-(declare-function tramp-time-diff "tramp")
 (defvar ange-ftp-make-backup-files)
 (defvar auto-save-file-name-transforms)
 (defvar tramp-connection-properties)
@@ -2139,19 +2137,16 @@ is greater than 10.
       (expand-file-name "/method:host:/path/../file") "/method:host:/file"))
     (should
      (string-equal
-      (expand-file-name "/method:host:/path/.")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "/method:host:/path/.") "/method:host:/path"))
     (should
      (string-equal
       (expand-file-name "/method:host:/path/..") "/method:host:/"))
     (should
      (string-equal
-      (expand-file-name "." "/method:host:/path/")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "." "/method:host:/path/") "/method:host:/path"))
     (should
      (string-equal
-      (expand-file-name "" "/method:host:/path/")
-      (if (tramp--test-emacs28-p) "/method:host:/path/" "/method:host:/path")))
+      (expand-file-name "" "/method:host:/path/") "/method:host:/path"))
     ;; Quoting local part.
     (should
      (string-equal
@@ -4501,11 +4496,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (accept-process-output proc 0 nil t)))
-	    (should
-	     (string-match
-	      (if (eq system-type 'windows-nt)
-		  "unknown signal\n\\'" "killed.*\n\\'")
-	      (buffer-string))))
+	    ;; On some MS Windows systems, it returns "unknown signal".
+	    (should (string-match "unknown signal\\|killed" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))

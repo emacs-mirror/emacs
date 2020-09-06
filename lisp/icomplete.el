@@ -715,7 +715,7 @@ matches exist."
 	(setq prospects (nreverse prospects))
         ;; Return the first match if the user hits enter.
         (when icomplete-show-matches-on-no-input
-          (setq completion-content-when-empty (car prospects)))
+          (setq-local completion-content-when-empty (car prospects)))
         ;; Decorate first of the prospects.
 	(when prospects
 	  (let ((first (copy-sequence (pop prospects))))

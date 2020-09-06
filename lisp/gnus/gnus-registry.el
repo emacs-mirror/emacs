@@ -427,6 +427,8 @@ This is not required after changing `gnus-registry-cache-file'."
     (gnus-message 4 "Removed %d ignored entries from the Gnus registry"
                   (- old-size (registry-size db)))))
 
+(declare-function gnus-nnselect-group-p "nnselect" (group))
+(declare-function nnselect-article-group "nnselect" (article))
 ;; article move/copy/spool/delete actions
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
@@ -437,7 +439,10 @@ This is not required after changing `gnus-registry-cache-file'."
                       (or (cdr-safe (assq 'To extra)) "")))
          (sender (nth 0 (gnus-registry-extract-addresses
                          (mail-header-from data-header))))
-         (from (gnus-group-guess-full-name-from-command-method from))
+         (from (gnus-group-guess-full-name-from-command-method
+                (if (gnus-nnselect-group-p from)
+                    (nnselect-article-group (mail-header-number data-header))
+                  from)))
          (to (if to (gnus-group-guess-full-name-from-command-method to) nil)))
     (gnus-message 7 "Gnus registry: article %s %s from %s to %s"
                   id (if method "respooling" "going") from to)
@@ -788,7 +793,7 @@ Consults `gnus-registry-unfollowed-groups' and
 Consults `gnus-registry-ignored-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group
-       (or (gnus-grep-in-list
+       (or (gnus-virtual-group-p group) (gnus-grep-in-list
             group
             (delq nil (mapcar (lambda (g)
                                 (cond
@@ -1218,7 +1223,7 @@ is `ask', ask the user; or if `gnus-registry-install' is non-nil, enable it."
       (gnus-registry-initialize)))
   gnus-registry-enabled)
 
-;; largely based on nnir-warp-to-article
+;; largely based on nnselect-warp-to-article
 (defun gnus-try-warping-via-registry ()
   "Try to warp via the registry.
 This will be done via the current article's source group based on
@@ -1242,7 +1247,7 @@ data stored in the registry."
                       (gnus-ephemeral-group-p group) ;; any ephemeral group
                       (memq (car (gnus-find-method-for-group group))
 			    ;; Specific methods; this list may need to expand.
-                            '(nnir)))
+                            '(nnselect)))
 
             ;; remember that we've seen this group already
             (push group seen-groups)
