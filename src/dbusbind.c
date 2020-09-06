@@ -1508,7 +1508,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   int mtype;
   dbus_uint32_t serial;
   unsigned int ui_serial;
-  const char *uname, *path, *interface, *member;
+  const char *uname, *path, *interface, *member, *error_name;
 
   dmessage = dbus_connection_pop_message (connection);
 
@@ -1544,10 +1544,11 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   path = dbus_message_get_path (dmessage);
   interface = dbus_message_get_interface (dmessage);
   member = dbus_message_get_member (dmessage);
+  error_name =dbus_message_get_error_name (dmessage);
 
-  XD_DEBUG_MESSAGE ("Event received: %s %u %s %s %s %s %s",
+  XD_DEBUG_MESSAGE ("Event received: %s %u %s %s %s %s %s %s",
 		    XD_MESSAGE_TYPE_TO_STRING (mtype),
-		    ui_serial, uname, path, interface, member,
+		    ui_serial, uname, path, interface, member, error_name,
 		    XD_OBJECT_TO_STRING (args));
 
   if (mtype == DBUS_MESSAGE_TYPE_INVALID)
@@ -1571,7 +1572,10 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       EVENT_INIT (event);
       event.kind = DBUS_EVENT;
       event.frame_or_window = Qnil;
-      event.arg = Fcons (value, args);
+      event.arg =
+	Fcons (value,
+	       (mtype == DBUS_MESSAGE_TYPE_ERROR)
+	       ? (Fcons (build_string (error_name), args)) : args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */

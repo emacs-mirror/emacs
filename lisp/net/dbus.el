@@ -565,8 +565,9 @@ placed in the queue.
 `:already-owner': Service is already the primary owner."
 
   ;; Add Peer handler.
-  (dbus-register-method bus service nil dbus-interface-peer "Ping"
-                        #'dbus-peer-handler 'dont-register)
+  (dbus-register-method
+   bus service nil dbus-interface-peer "Ping"
+   #'dbus-peer-handler 'dont-register)
 
   ;; Add ObjectManager handler.
   (dbus-register-method
@@ -1423,7 +1424,7 @@ be \"out\"."
 (defun dbus-get-property (bus service path interface property)
   "Return the value of PROPERTY of INTERFACE.
 It will be checked at BUS, SERVICE, PATH.  The result can be any
-valid D-Bus value, or nil if there is no PROPERTY."
+valid D-Bus value, or nil if there is no PROPERTY, or PROPERTY cannot be read."
   (dbus-ignore-errors
    ;; "Get" returns a variant, so we must use the `car'.
    (car
@@ -1440,8 +1441,11 @@ successfully set return VALUE.  Otherwise, return nil."
    (dbus-call-method
     bus service path dbus-interface-properties
     "Set" :timeout 500 interface property (list :variant value))
-   ;; Return VALUE.
-   (dbus-get-property bus service path interface property)))
+   ;; Return VALUE.  The property could have the `:write' access type,
+   ;; so we ignore errors in `dbus-get-property'.
+   (or
+    (dbus-ignore-errors (dbus-get-property bus service path interface property))
+    value)))
 
 (defun dbus-get-all-properties (bus service path interface)
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.
@@ -1465,7 +1469,8 @@ Filter out not matching PATH."
    (gethash (list :property bus interface property)
             dbus-registered-objects-table)))
 
-(defun dbus-get-other-registered-property (bus _service path interface property)
+(defun dbus-get-other-registered-properties
+    (bus _service path interface property)
   "Return PROPERTY entry of `dbus-registered-objects-table'.
 Filter out matching PATH."
   ;; Remove matching entries.
@@ -1551,7 +1556,7 @@ clients from discovering the still incomplete interface."
 	   (cons
 	    (if emits-signal (list access :emits-signal) (list access))
 	    value))
-          (dbus-get-other-registered-property
+          (dbus-get-other-registered-properties
            bus service path interface property))))
     (puthash key val dbus-registered-objects-table)
 
@@ -1578,7 +1583,7 @@ It will be registered for all objects created by `dbus-register-property'."
           `(:error ,dbus-error-invalid-args
             ,(format-message
               "No such property \"%s\" at path \"%s\"" property path)))
-         ((eq (car object) :write)
+         ((memq :write (car object))
           `(:error ,dbus-error-access-denied
             ,(format-message
               "Property \"%s\" at path \"%s\" is not readable" property path)))
@@ -1596,14 +1601,14 @@ It will be registered for all objects created by `dbus-register-property'."
           `(:error ,dbus-error-invalid-args
             ,(format-message
               "No such property \"%s\" at path \"%s\"" property path)))
-         ((eq (car object) :read)
+         ((memq :read (car object))
           `(:error ,dbus-error-property-read-only
             ,(format-message
               "Property \"%s\" at path \"%s\" is not writable" property path)))
          (t (puthash (list :property bus interface property)
 		     (cons (append (butlast (car entry))
 			           (list (cons (car object) value)))
-                           (dbus-get-other-registered-property
+                           (dbus-get-other-registered-properties
                             bus service path interface property))
 		     dbus-registered-objects-table)
 	    ;; Send the "PropertiesChanged" signal.
@@ -1625,15 +1630,17 @@ It will be registered for all objects created by `dbus-register-property'."
       (let (result)
 	(maphash
 	 (lambda (key val)
-           (dolist (item val)
-	     (when (and (equal (butlast key) (list :property bus interface))
-		        (string-equal path (nth 2 item))
-		        (not (functionp (car (last item)))))
-	       (push
-	        (list :dict-entry
-		      (car (last key))
-		      (list :variant (cdar (last item))))
-                result))))
+           (when (consp val)
+             (dolist (item val)
+	       (when (and (equal (butlast key) (list :property bus interface))
+		          (string-equal path (nth 2 item))
+		          (consp (car (last item)))
+                          (not (memq :write (caar (last item)))))
+	         (push
+	          (list :dict-entry
+		        (car (last key))
+		        (list :variant (cdar (last item))))
+                  result)))))
 	 dbus-registered-objects-table)
 	;; Return the result, or an empty array.
 	(list :array (or result '(:signature "{sv}"))))))))
