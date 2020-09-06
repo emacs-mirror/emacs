@@ -4372,7 +4372,7 @@ Also, delete any process that is exited or signaled."
 		    ((thread-name (process-thread p)))
 		    (t "--")))
 		  (cmd
-		   (if (memq type '(network serial))
+		   (if (memq type '(network serial pipe))
 		       (let ((contact (process-contact p t t)))
 			 (if (eq type 'network)
 			     (format "(%s %s)"
