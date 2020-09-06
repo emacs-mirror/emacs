@@ -882,8 +882,6 @@ function, nil otherwise.  */)
   return SUBR_NATIVE_COMPILEDP (object) ? Qt : Qnil;
 }
 
-#ifdef HAVE_NATIVE_COMP
-
 DEFUN ("subr-native-lambda-list", Fsubr_native_lambda_list,
        Ssubr_native_lambda_list, 1, 1, 0,
        doc: /* Return the lambda list for a native compiled lisp/d
@@ -896,6 +894,8 @@ function or t otherwise.  */)
     ? XSUBR (subr)->lambda_list[0]
     : Qt;
 }
+
+#ifdef HAVE_NATIVE_COMP
 
 DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
        Ssubr_native_comp_unit, 1, 1, 0,
