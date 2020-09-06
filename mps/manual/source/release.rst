@@ -51,10 +51,10 @@ Interface changes
 #. The format of the :term:`telemetry stream` has changed: Booleans
    are no longer packed into bitfields, but are emitted as unsigned
    bytes. This makes it possible to decode the telemetry stream using
-   the Python function |struct|_.
+   the Python function |unpack|_.
 
-   .. |struct| replace:: ``struct.unpack``
-   .. _struct: https://docs.python.org/3/library/struct.html#struct.unpack
+   .. |unpack| replace:: :py:func:`struct.unpack`
+   .. _unpack: https://docs.python.org/3/library/struct.html#struct.unpack
 
 
 Other changes
@@ -149,7 +149,7 @@ New features
    longer convenient to test against them.) See
    :ref:`guide-overview-platforms`.
 
-   .. _LinuxThreads: http://pauillac.inria.fr/~xleroy/linuxthreads/
+   .. _LinuxThreads: https://en.wikipedia.org/wiki/LinuxThreads
 
 #. New function :c:func:`mps_arena_postmortem` assists with postmortem
    debugging.

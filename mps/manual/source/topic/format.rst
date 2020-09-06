@@ -244,12 +244,15 @@ Cautions
 
    a. call library code;
 
-   b. perform a non-local exit (for example, by throwing an exception,
+   b. access MPS-managed memory in pools that protect their contents;
+
+   c. perform a non-local exit (for example, by throwing an exception,
       or calling :c:func:`longjmp`);
 
-   c. call any functions or macros in the MPS other than the fix
-      macros :c:func:`MPS_FIX1`, :c:func:`MPS_FIX12`, and
-      :c:func:`MPS_FIX2`.
+   d. call any functions or macros in the MPS other than
+      :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_SCAN_END`,
+      :c:func:`MPS_FIX1`, :c:func:`MPS_FIX12`, :c:func:`MPS_FIX2`, and
+      :c:func:`MPS_FIX_CALL`.
 
    It's permissible to call other functions in the client program, but
    see :c:func:`MPS_FIX_CALL` for a restriction on passing the
@@ -260,12 +263,9 @@ Cautions
    a. memory inside the object or block that they have been asked to
       look at;
 
-   b. memory managed by the MPS that is in pools that do not protect
-      their contents;
+   b. MPS-managed memory in pools that do not protect their contents;
 
-   c. memory not managed by the MPS;
-
-   They must not access other memory managed by the MPS.
+   c. memory not managed by the MPS.
 
 
 .. index::

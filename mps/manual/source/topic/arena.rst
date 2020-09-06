@@ -36,10 +36,8 @@ other.
 .. note::
 
     The MPS allows creation of multiple arenas, but you would only do
-    this in unusual circumstances. It might be useful to have two
-    active arenas and to try different things out in them, or you
-    might be in the process of integrating two pieces of software that
-    each independently uses the MPS.
+    this in unusual circumstances, for example during the integration
+    of two pieces of software that each independently uses the MPS.
 
     Arenas do not normally interact, but they compete with each other
     for resources, and references from one arena to another are not
@@ -389,7 +387,11 @@ Arena properties
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    See :c:func:`mps_arena_spare` for details.
+    To effectively remove any commit limit, pass the maximum value of
+    the :c:type:`size_t` type for the :c:var:`limit` argument, that
+    is, ``((size_t)-1)``, or :c:macro:`SIZE_MAX` in C99 or later.
+
+    See :c:func:`mps_arena_commit_limit` for details.
 
 
 .. c:function:: size_t mps_arena_committed(mps_arena_t arena)
