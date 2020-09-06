@@ -947,6 +947,12 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** 'icomplete-show-matches-on-no-input' behavior change
+Previously, choosing a different completion with commands like 'C-.'
+and then hitting enter would choose the default completion.  Doing
+this will now choose the completion under point.
+
 +++
 *** The user can now customize how "default" values are prompted for.
 The new utility function 'format-prompt' has been added which uses the
