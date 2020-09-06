@@ -109,8 +109,6 @@ _`.abbr.cbs`: CBS = Coalescing Block Structure
 
 _`.abbr.mps`: MPS = Memory Pool System
 
-_`.abbr.mv`: MV = Manual-Variable
-
 _`.abbr.ps`: PS = PostScript
 
 
@@ -953,10 +951,6 @@ Testing
 _`.test.component`: Components `.impl.c.splay`_, `.impl.c.cbs`_, and
 `.impl.c.abq`_ will be subjected to individual component tests to
 verify their functionality.
-
-_`.test.regression`: All tests applied to MV (design.mps.poolmv) and
-EPDL (design.mps.poolepdl(0)) will be applied to poolmvt to ensure
-that mvt is at least as functional as the pools it is replacing.
 
 _`.test.qa`: Once poolmvt is integrated into the MPS, the standard MPS
 QA tests will be applied to poolmvt prior to each release.
