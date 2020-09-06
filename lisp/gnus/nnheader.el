@@ -195,8 +195,8 @@ on your system, you could say something like:
 
 
 (defsubst nnheader-head-make-header (number)
-  "Using data of type 'head in the current buffer
-  return a full mail header with article NUMBER."
+  "Return a full mail header with article NUMBER.
+Do this using data of type `head' in the current buffer."
   (let ((p (point-min))
 	(cur (current-buffer))
 	in-reply-to chars lines end ref)
@@ -306,14 +306,13 @@ on your system, you could say something like:
 	 out)))))
 
 (defun nnheader-parse-head (&optional naked temp)
-  "Parse data of type 'header in the current buffer and return a
-  mail header, modifying the buffer contents in the process. The
-  buffer is assumed to begin each header with an \"Article
-  retrieved\" line with an article number; If NAKED is non-nil
-  this line is assumed absent, and the buffer should contain a
-  single header's worth of data. If TEMP is non-nil the data is
-  first copied to a temporary buffer leaving the original buffer
-  untouched."
+  "Parse data of type `header' in the current buffer and return a mail header.
+Modify the buffer contents in the process.  The buffer is assumed
+to begin each header with an \"Article retrieved\" line with an
+article number; if NAKED is non-nil this line is assumed absent,
+and the buffer should contain a single header's worth of data.
+If TEMP is non-nil the data is first copied to a temporary buffer
+leaving the original buffer untouched."
   (let ((cur (current-buffer))
 	(num 0)
 	(beg (point-min))
@@ -326,22 +325,22 @@ on your system, you could say something like:
 		(setq num (read cur)
 		      beg (point)
 		      end (if (search-forward "\n.\n" nil t)
-			      (goto-char  (- (point) 2))
+                              (goto-char (- (point) 2))
 			    (point)))))
-      ;; When TEMP copy the data to a temporary buffer
+      ;; When TEMP copy the data to a temporary buffer.
       (if temp
 	  (progn
 	    (set-buffer (setq buf (generate-new-buffer " *nnheader-temp*")))
 	    (insert-buffer-substring cur beg end))
-	;; Otherwise just narrow to the data
+        ;; Otherwise just narrow to the data.
 	(narrow-to-region beg end))
       (let ((case-fold-search t)
 	    (buffer-read-only nil)
 	    header)
 	(nnheader-remove-cr-followed-by-lf)
 	(ietf-drums-unfold-fws)
-	(subst-char-in-region (point-min) (point-max) ?\t ?  t)
-	(subst-char-in-region (point-min) (point-max) ?\r ?  t)
+        (subst-char-in-region (point-min) (point-max) ?\t ?\s t)
+        (subst-char-in-region (point-min) (point-max) ?\r ?\s t)
 	(goto-char (point-min))
 	(insert "\n")
 	(setq header (nnheader-head-make-header num))

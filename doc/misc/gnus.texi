@@ -10417,12 +10417,12 @@ article (@code{gnus-summary-refer-references}).
 @findex gnus-summary-refer-thread
 @kindex A T @r{(Summary)}
 Display the full thread where the current article appears
-(@code{gnus-summary-refer-thread}). By default this command looks for
-articles only in the current group. Some backends (currently only
-'nnimap) know how to find articles in the thread directly. In other
-cases each header in the current group must be fetched and examined,
-so it usually takes a while.  If you do it often, you may consider
-setting @code{gnus-fetch-old-headers} to @code{invisible}
+(@code{gnus-summary-refer-thread}).  By default this command looks for
+articles only in the current group.  Some backends (currently only
+@code{nnimap}) know how to find articles in the thread directly.  In
+other cases each header in the current group must be fetched and
+examined, so it usually takes a while.  If you do it often, you may
+consider setting @code{gnus-fetch-old-headers} to @code{invisible}
 (@pxref{Filling In Threads}).  This won't have any visible effects
 normally, but it'll make this command work a whole lot faster.  Of
 course, it'll make group entry somewhat slow.
@@ -10441,12 +10441,13 @@ by giving the @kbd{A T} command a numerical prefix.
 
 @vindex gnus-refer-thread-limit-to-thread
 In most cases @code{gnus-refer-thread} adds any articles it finds to
-the current summary buffer. (When @code{gnus-refer-thread-use-search}
+the current summary buffer.  (When @code{gnus-refer-thread-use-search}
 is true and the initial referral starts from a summary buffer for a
-non-virtual group this may not be possible. In this case a new summary
-buffer is created holding a virtual group with the result of the thread
-search). If @code{gnus-refer-thread-limit-to-thread} is non-nil then
-the summary buffer will be limited to articles in the thread.
+non-virtual group this may not be possible.  In this case a new
+summary buffer is created holding a virtual group with the result of
+the thread search.)  If @code{gnus-refer-thread-limit-to-thread} is
+non-nil then the summary buffer will be limited to articles in the
+thread.
 
 @item M-^ (Summary)
 @findex gnus-summary-refer-article
@@ -17869,7 +17870,7 @@ whole groups together into virtual groups.
 
 @menu
 * Selection Groups::            Combining articles from many groups.
-* Combined Groups::             Combining  multiple  groups.
+* Combined Groups::             Combining multiple groups.
 @end menu
 
 
@@ -17882,36 +17883,35 @@ whole groups together into virtual groups.
 
 Gnus provides the @dfn{nnselect} method for creating virtual groups
 composed of collections of messages, even when these messages come
-from groups that span multiple servers and backends. For the most part
-these virtual groups behave like any other group: messages may be
+from groups that span multiple servers and backends.  For the most
+part these virtual groups behave like any other group: messages may be
 threaded, marked, moved, deleted, copied, etc.; groups may be
 ephemeral or persistent; groups may be created via
 @code{gnus-group-make-group} or browsed as foreign via
 @code{gnus-group-browse-foreign-server}.
 
 The key to using an nnselect group is specifying the messages to
-include. Each nnselect group has a group parameter
+include.  Each nnselect group has a group parameter
 @code{nnselect-specs} which is an alist with two elements: a function
 @code{nnselect-function}; and arguments @code{nnselect-args} to be
 passed to the function, if any.
 
-The function @code{nnselect-function} must return a vector. Each
+The function @code{nnselect-function} must return a vector.  Each
 element of this vector is in turn a 3-element vector corresponding to
-one message. The 3 elements are: the fully-qualified group name; the
-message number; and a "score" that can be used for additional
-sorting. The values for the score are arbitrary, and are not used
-directly by the nnselect method---they may, for example, all be set to
-100.
+one message.  The 3 elements are: the fully-qualified group name; the
+message number; and a "score" that can be used for additional sorting.
+The values for the score are arbitrary, and are not used directly by
+the nnselect method---they may, for example, all be set to 100.
 
 Here is an example:
 
 @lisp
- (nnselect-specs
-  (nnselect-function . identity)
-  (nnselect-args .
-	 [["nnimap+work:mail" 595 100]
-	  ["nnimap+home:sent" 223 100]
-          ["nntp+news.gmane.org:gmane.emacs.gnus.general" 23666 100]]))
+(nnselect-specs
+ (nnselect-function . identity)
+ (nnselect-args
+  . [["nnimap+work:mail" 595 100]
+     ["nnimap+home:sent" 223 100]
+     ["nntp+news.gmane.org:gmane.emacs.gnus.general" 23666 100]]))
 @end lisp
 
 The function is the identity and the argument is just the list of
@@ -17920,21 +17920,21 @@ messages to include in the virtual group.
 Or we may wish to create a group from the results of a search query:
 
 @lisp
- (nnselect-specs
-  (nnselect-function . nnir-run-query)
-  (nnselect-args
-   (nnir-query-spec
-    (query . "FLAGGED")
-    (criteria . ""))
-   (nnir-group-spec
-    ("nnimap:home")
-    ("nnimap:work"))))
+(nnselect-specs
+ (nnselect-function . nnir-run-query)
+ (nnselect-args
+  (nnir-query-spec
+   (query . "FLAGGED")
+   (criteria . ""))
+  (nnir-group-spec
+   ("nnimap:home")
+   ("nnimap:work"))))
 @end lisp
 
 This creates a group including all flagged messages from all groups on
-two imap servers, "home" and "work".
+two IMAP servers, "home" and "work".
 
-And one last example. Here is a function that runs a search query to
+And one last example.  Here is a function that runs a search query to
 find all message that have been received recently from certain groups:
 
 @lisp
@@ -17946,45 +17946,44 @@ find all message that have been received recently from certain groups:
                                     (time-subtract (current-time)
                                                    (days-to-time (car args)))))
           (cons 'criteria "")))
-        (group-spec  (cadr args)))
-    (nnir-run-query   (cons 'nnir-specs
-                            (list (cons 'nnir-query-spec query-spec)
-                                  (cons 'nnir-group-spec group-spec))))))
+        (group-spec (cadr args)))
+    (nnir-run-query (cons 'nnir-specs
+                          (list (cons 'nnir-query-spec query-spec)
+                                (cons 'nnir-group-spec group-spec))))))
 @end lisp
 
-Then an nnselect-specs
+Then the following @code{nnselect-specs}:
 
 @lisp
- (nnselect-specs
-  (nnselect-function . my-recent-email)
-  (nnselect-args . (7 (("nnimap:home") ("nnimap:work")))))
+(nnselect-specs
+ (nnselect-function . my-recent-email)
+ (nnselect-args . (7 (("nnimap:home") ("nnimap:work")))))
 @end lisp
 
 will provide a group composed of all messages on the home and work
 servers received in the last 7 days.
 
 Refreshing the selection of an nnselect group by running the
-@code{nnselect-function} may take a long time to
-complete. Consequently nnselect groups are not refreshed by default
-when @code{gnus-group-get-new-news} is invoked. In those cases where
-running the function is not too time-consuming, a non-nil group
-parameter of @code{nnselect-rescan} will allow automatic refreshing. A
-refresh can always be invoked manually through
+@code{nnselect-function} may take a long time to complete.
+Consequently nnselect groups are not refreshed by default when
+@code{gnus-group-get-new-news} is invoked.  In those cases where
+running the function is not too time-consuming, a non-@code{nil} group
+parameter of @code{nnselect-rescan} will allow automatic refreshing.
+A refresh can always be invoked manually through
 @code{gnus-group-get-new-news-this-group}.
 
 The nnir interface (@pxref{nnir}) includes engines for searching a
-variety of backends. While the details of each search engine vary, the
-result of an nnir search is always a vector of the sort used by the
-nnselect method, and the results of nnir queries are usually viewed
-using an nnselect group. Indeed the standard search function
+variety of backends.  While the details of each search engine vary,
+the result of an nnir search is always a vector of the sort used by
+the nnselect method, and the results of nnir queries are usually
+viewed using an nnselect group.  Indeed the standard search function
 @code{gnus-group-read-ephemeral-search-group} just creates an
 ephemeral nnselect group with the appropriate nnir query as the
 @code{nnselect-specs}.  nnir originally included both the search
-engines and the glue to connect search results to gnus. Over time this
-glue evolved into the nnselect method. The two had
-a mostly amicable parting so that nnselect could pursue its dream of
-becoming a fully functioning backend, but occasional conflicts may
-still linger.
+engines and the glue to connect search results to gnus.  Over time
+this glue evolved into the nnselect method.  The two had a mostly
+amicable parting so that nnselect could pursue its dream of becoming a
+fully functioning backend, but occasional conflicts may still linger.
 
 @node Combined Groups
 @subsection Combined Groups
@@ -21383,22 +21382,21 @@ FIXME: A brief comparison of nnir, nnmairix, contrib/gnus-namazu would
 be nice.
 
 Gnus has various ways of finding articles that match certain criteria
-(from a particular author, on a certain subject, etc). The simplest
+(from a particular author, on a certain subject, etc.).  The simplest
 method is to enter a group and then either "limit" the summary buffer
 to the desired articles using the limiting commands (@xref{Limiting}),
 or searching through messages in the summary buffer (@xref{Searching
 for Articles}).
 
 Limiting commands and summary buffer searching work on subsets of the
-articles already fetched from the servers, and these commands won’t
+articles already fetched from the servers, and these commands won't
 query the server for additional articles.  While simple, these methods
 are therefore inadequate if the desired articles span multiple groups,
-or if the group is so large that fetching all articles is
-impractical. Many backends (such as imap, notmuch, namazu, etc.)
-provide their own facilities to search for articles directly on the
-server and gnus can take advantage of these methods.  This chapter
-describes tools for searching groups and servers for articles matching
-a query.
+or if the group is so large that fetching all articles is impractical.
+Many backends (such as imap, notmuch, namazu, etc.) provide their own
+facilities to search for articles directly on the server and Gnus can
+take advantage of these methods.  This chapter describes tools for
+searching groups and servers for articles matching a query.
 
 @menu
 * nnir::                     Searching with various engines.
@@ -21446,7 +21444,7 @@ The @code{nnselect} group made in this way is an @code{ephemeral}
 group, and will disappear upon exit from the group.  However changes
 made in the group are permanently reflected in the real groups from
 which the articles are drawn.  It is occasionally convenient to view
-articles found through searching in their original group. You can
+articles found through searching in their original group.  You can
 @emph{warp} (i.e., jump) to the original group for the article on the
 current line with @kbd{A W}, aka @code{gnus-warp-to-article}.
 

@@ -55,7 +55,7 @@
 ;; 'nnir-group-spec is a list with the specification of the
 ;; groups/servers to search.  The format of the 'nnir-group-spec is
 ;; (("server1" ("group11" "group12")) ("server2" ("group21"
-;; "group22"))). If any of the group lists is absent then all groups
+;; "group22"))).  If any of the group lists is absent then all groups
 ;; on that server are searched.
 
 ;; The output of `nnir-run-query' is a vector, each element of which
@@ -335,7 +335,7 @@ Instead, use this:
 
 (defcustom nnir-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from HyREX file names to get group names.
-Restulting names have '/' in place  of '.'.
+Resulting names have '/' in place of '.'.
 
 For example, suppose that HyREX returns file names such as
 \"/home/john/Mail/mail/misc/42\".  For this example, use the following
@@ -1094,7 +1094,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                   (nnir-artitem-rsv y)))))))))
 
 (defun nnir-run-notmuch (query server &optional groups)
-  "Run QUERY with  GROUPS from SERVER  against notmuch.
+  "Run QUERY with GROUPS from SERVER against notmuch.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually).  If GROUPS is a list of group names, use them to
 construct path: search terms (see the variable

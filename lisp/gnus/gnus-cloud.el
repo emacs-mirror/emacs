@@ -414,8 +414,7 @@ When FULL is t, upload everything, not just a difference from the last full."
 	(while (setq head (nnheader-parse-head))
           (when gnus-alter-header-function
             (funcall gnus-alter-header-function head))
-          (push head headers))
-	))
+          (push head headers))))
     (sort (nreverse headers)
           (lambda (h1 h2)
             (> (gnus-cloud-chunk-sequence (mail-header-subject h1))

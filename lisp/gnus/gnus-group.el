@@ -3185,23 +3185,23 @@ mail messages or news articles in files that have numeric names."
 	       (cons 'nnselect-args
 		     (nnir-make-specs nnir-extra-parms specs)))))))))
 
-(defun gnus-group-read-ephemeral-search-group (nnir-extra-parms	&optional specs)
-  "Create an nnselect group based on a search.  Prompt for a
-search query and determine the groups to search as follows: if
-called from the *Server* buffer search all groups belonging to
-the server on the current line; if called from the *Group* buffer
-search any marked groups, or the group on the current line, or
-all the groups under the current topic. Calling with a prefix-arg
-prompts for additional search-engine specific constraints. A
-non-nil `specs' arg must be an alist with `nnir-query-spec' and
-`nnir-group-spec' keys, and skips all prompting."
+(defun gnus-group-read-ephemeral-search-group (nnir-extra-parms &optional specs)
+  "Create an nnselect group based on a search.
+Prompt for a search query and determine the groups to search as
+follows: if called from the *Server* buffer search all groups
+belonging to the server on the current line; if called from the
+*Group* buffer search any marked groups, or the group on the
+current line, or all the groups under the current topic.  Calling
+with a prefix arg prompts for additional search-engine specific
+constraints.  A non-nil SPECS arg must be an alist with
+`nnir-query-spec' and `nnir-group-spec' keys, and skips all
+prompting."
   (interactive "P")
   (gnus-group-read-ephemeral-group
    (concat "nnselect-" (message-unique-id))
    (list 'nnselect "nnselect")
    nil
    (cons (current-buffer) gnus-current-window-configuration)
-					;     nil
    nil nil
    (list
     (cons 'nnselect-specs

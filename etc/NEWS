@@ -328,8 +328,8 @@ obtaining the list of articles as a result of a search:
 'gnus-group-make-search-group' ('G g') that will prompt for an 'nnir'
 search query and create a dedicated group for that search.  As part of
 this addition, the user option 'nnir-summary-line-format' has been
-removed; it's functionality is now available directly in the
-'gnus-summary-line-format' '%G' and '%g' specs.  The user option
+removed; its functionality is now available directly in the
+'gnus-summary-line-format' specs '%G' and '%g'.  The user option
 'gnus-refer-thread-use-nnir' has been renamed to
 'gnus-refer-thread-use-search'.
 

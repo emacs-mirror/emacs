@@ -3159,7 +3159,7 @@ that that variable is buffer-local to the summary buffers."
 (defun gnus-kill-ephemeral-group (group)
   "Remove ephemeral GROUP from relevant structures."
   (remhash group gnus-newsrc-hashtb)
-    (setq gnus-newsrc-alist
+  (setq gnus-newsrc-alist
 	(delq (assoc group gnus-newsrc-alist)
               gnus-newsrc-alist)))
 

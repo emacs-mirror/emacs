@@ -145,8 +145,8 @@ If t, fetch all the available old headers."
 		 (sexp :menu-tag "other" t)))
 
 (defcustom gnus-refer-thread-use-search nil
-  "Search an entire server when referring threads. A
-nil value will only search for thread-related articles in the
+  "Search an entire server when referring threads.
+A nil value will only search for thread-related articles in the
 current group."
   :version "24.1"
   :group 'gnus-thread
@@ -8984,16 +8984,15 @@ Return the number of articles fetched."
     result))
 
 (defun gnus-summary-refer-thread (&optional limit)
-  "Fetch all articles in the current thread. For backends that
-know how to search for threads (currently only 'nnimap) a
-non-numeric prefix arg will search the entire
-server; without a prefix arg only the current group is
-searched. If the variable `gnus-refer-thread-use-search' is
-non-nil the prefix arg has the reverse meaning. If no
-backend-specific 'request-thread function is available fetch
-LIMIT (the numerical prefix) old headers.  If LIMIT is
-non-numeric or nil fetch the number specified by the
-`gnus-refer-thread-limit' variable."
+  "Fetch all articles in the current thread.
+For backends that know how to search for threads (currently only
+`nnimap') a non-numeric prefix arg will search the entire server;
+without a prefix arg only the current group is searched.  If the
+variable `gnus-refer-thread-use-search' is non-nil the prefix arg
+has the reverse meaning.  If no backend-specific `request-thread'
+function is available fetch LIMIT (the numerical prefix) old
+headers.  If LIMIT is non-numeric or nil fetch the number
+specified by the `gnus-refer-thread-limit' variable."
   (interactive "P")
   (let* ((header (gnus-summary-article-header))
 	 (id (mail-header-id header))
