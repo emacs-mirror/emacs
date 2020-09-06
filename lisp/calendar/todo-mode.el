@@ -4076,7 +4076,9 @@ regexp items."
 			((equal (file-name-extension f) "todt") "top")
 			((equal (file-name-extension f) "tody") "diary"))))
 	(push (cons (concat sf-name " (" type ")") f) falist)))
-    (setq file (completing-read "Choose a filtered items file: " falist nil t nil
+    (setq file (completing-read (format-prompt "Choose a filtered items file"
+                                               (caar falist))
+                                falist nil t nil
                                 'todo--fifiles-history (caar falist)))
     (setq file (cdr (assoc-string file falist)))
     (find-file file)

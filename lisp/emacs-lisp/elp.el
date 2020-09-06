@@ -342,9 +342,9 @@ Use optional LIST if provided instead."
   (interactive
    (list
     (intern
-     (completing-read "Master function: " obarray
-                      #'elp--instrumented-p
-                      t nil nil (if elp-master (symbol-name elp-master))))))
+     (let ((default (if elp-master (symbol-name elp-master))))
+       (completing-read (format-prompt "Master function" default)
+                        obarray #'elp--instrumented-p t nil nil default)))))
   ;; When there's a master function, recording is turned off by default.
   (setq elp-master funsym
 	elp-record-p nil)
