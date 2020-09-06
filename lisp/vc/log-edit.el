@@ -244,7 +244,9 @@ If the optional argument STRIDE is present, that is a step-width to use
 when going through the comment ring."
   ;; Why substring rather than regexp ?   -sm
   (interactive
-   (list (read-string "Comment substring: " nil nil log-edit-last-comment-match)))
+   (list (read-string (format-prompt "Comment substring"
+                                     log-edit-last-comment-match)
+                      nil nil log-edit-last-comment-match)))
   (unless stride (setq stride 1))
   (if (string= str "")
       (setq str log-edit-last-comment-match)
@@ -261,7 +263,9 @@ when going through the comment ring."
 (defun log-edit-comment-search-forward (str)
   "Search forwards through comment history for a substring match of STR."
   (interactive
-   (list (read-string "Comment substring: " nil nil log-edit-last-comment-match)))
+   (list (read-string (format-prompt "Comment substring"
+                                     log-edit-last-comment-match)
+                      nil nil log-edit-last-comment-match)))
   (log-edit-comment-search-backward str -1))
 
 (defun log-edit-comment-to-change-log (&optional whoami file-name)

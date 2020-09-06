@@ -2371,21 +2371,23 @@ also arranged by `rst-insert-list-new-tag'."
 	  (save-match-data
 	    (cond
 	     ((equal cnt "a")
-	      (let ((itemno (read-string "Give starting value [a]: "
-					 nil nil "a")))
+	      (let ((itemno (read-string
+                             (format-prompt "Give starting value" "a")
+			     nil nil "a")))
 		(downcase (substring itemno 0 1))))
 	     ((equal cnt "A")
-	      (let ((itemno (read-string "Give starting value [A]: "
-					 nil nil "A")))
+	      (let ((itemno (read-string
+                             (format-prompt "Give starting value" "A")
+			     nil nil "A")))
 		(upcase (substring itemno 0 1))))
 	     ((equal cnt "I")
-	      (let ((itemno (read-number "Give starting value [1]: " 1)))
+	      (let ((itemno (read-number "Give starting value: " 1)))
 		(rst-arabic-to-roman itemno)))
 	     ((equal cnt "i")
-	      (let ((itemno (read-number "Give starting value [1]: " 1)))
+	      (let ((itemno (read-number "Give starting value: " 1)))
 		(downcase (rst-arabic-to-roman itemno))))
 	     ((equal cnt "1")
-	      (let ((itemno (read-number "Give starting value [1]: " 1)))
+	      (let ((itemno (read-number "Give starting value: " 1)))
 		(number-to-string itemno)))))))
     (if no
 	(setq itemstyle (replace-match no t t itemstyle)))

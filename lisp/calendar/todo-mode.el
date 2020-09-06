@@ -6110,11 +6110,12 @@ Valid time strings are those matching `diary-time-regexp'.
 Typing `<return>' at the prompt returns the current time, if the
 user option `todo-always-add-time-string' is non-nil, otherwise
 the empty string (i.e., no time string)."
-  (let (valid answer)
+  (let ((default (when todo-always-add-time-string
+		   (format-time-string "%H:%M")))
+        valid answer)
     (while (not valid)
-      (setq answer (read-string "Enter a clock time: " nil nil
-				(when todo-always-add-time-string
-				  (format-time-string "%H:%M"))))
+      (setq answer (read-string (format-prompt "Enter a clock time" default)
+                                nil nil default))
       (when (or (string= "" answer)
 		(string-match diary-time-regexp answer))
 	(setq valid t)))

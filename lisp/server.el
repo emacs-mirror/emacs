@@ -728,7 +728,8 @@ If server is running, it is first stopped.
 NAME defaults to `server-name'.  With argument, ask for NAME."
   (interactive
    (list (if current-prefix-arg
-	     (read-string "Server name: " nil nil server-name))))
+	     (read-string (format-prompt "Server name" server-name)
+                          nil nil server-name))))
   (when server-mode (with-temp-message nil (server-mode -1)))
   (let ((file (expand-file-name (or name server-name)
 				(if server-use-tcp

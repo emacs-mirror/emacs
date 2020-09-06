@@ -1581,8 +1581,9 @@ When called interactively, prompt for the name of the frame.
 On text terminals, the frame name is displayed on the mode line.
 On graphical displays, it is displayed on the frame's title bar."
   (interactive
-   (list (read-string "Frame name: " nil nil
-                      (cdr (assq 'name (frame-parameters))))))
+   (let ((default (cdr (assq 'name (frame-parameters)))))
+     (list (read-string (format-prompt "Frame name" default) nil nil
+                        default))))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
 
