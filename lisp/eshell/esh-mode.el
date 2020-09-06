@@ -1018,6 +1018,7 @@ This function could be in the list `eshell-output-filter-functions'."
     (location . ,default-directory)
     (handler . eshell-bookmark-jump)))
 
+;;;###autoload
 (defun eshell-bookmark-jump (bookmark)
   "Default bookmark handler for Eshell buffers."
   (let ((default-directory (bookmark-prop-get bookmark 'location)))
