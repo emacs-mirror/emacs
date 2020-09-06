@@ -166,15 +166,11 @@ your own local BBDB (@pxref{Creating BBDB Records})
 @node macOS Contacts
 @section macOS Contacts
 
-macOS Contacts is the rolodex-like application that ships with the
-macOS operating system@footnote{Apple have changed the names of their
-operating system and some applications over time.  macOS used to be
-called Mac OS X in the past, and the Contacts application was
-previously called Address Book.}.
-
-EUDC considers macOS Contacts as a directory server back end just like
-LDAP, though the macOS Contacts application always resides locally on
-your machine.
+This EUDC back end considers macOS Contacts as a directory server just
+like LDAP, though the macOS Contacts application always runs locally
+on your machine.  The Contacts application was previously called
+Address Book; the EUDC macOS Contacts back end also works on those
+older versions.
 
 
 @node Installation
