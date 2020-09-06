@@ -4916,20 +4916,35 @@ DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
 
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
-       doc: /* Load native elisp code FILE.
+       doc: /* Load native elisp code FILENAME.
 	       LATE_LOAD has to be non nil when loading for deferred
 	       compilation.  */)
-  (Lisp_Object file, Lisp_Object late_load)
+  (Lisp_Object filename, Lisp_Object late_load)
 {
-  CHECK_STRING (file);
-  if (NILP (Ffile_exists_p (file)))
+  CHECK_STRING (filename);
+  if (NILP (Ffile_exists_p (filename)))
     xsignal2 (Qnative_lisp_load_failed, build_string ("file does not exists"),
-	      file);
+	      filename);
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
-  comp_u->handle = dynlib_open (SSDATA (file));
+  if (!NILP (Fgethash (filename, all_loaded_comp_units_h, Qnil)))
+    {
+      /* If in this session there was ever a file loaded with this
+	 name rename before loading it to make sure we always get a
+	 new handle!  */
+      Lisp_Object tmp_filename =
+	Fmake_temp_file_internal (filename, make_fixnum (0),
+				  build_string (".eln"), Qnil);
+      Frename_file (filename, tmp_filename, Qnil);
+      comp_u->handle = dynlib_open (SSDATA (tmp_filename));
+      Frename_file (tmp_filename, filename, Qnil);
+    }
+  else
+    comp_u->handle = dynlib_open (SSDATA (filename));
+
   if (!comp_u->handle)
-    xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
-  comp_u->file = file;
+    xsignal2 (Qnative_lisp_load_failed, filename,
+	      build_string (dynlib_error ()));
+  comp_u->file = filename;
   comp_u->data_vec = Qnil;
   comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
   comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
