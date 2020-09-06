@@ -1466,9 +1466,9 @@ If @var{handler} returns a reply message with an empty argument list,
 to distinguish it from @code{nil} (the boolean false).
 
 If @var{handler} detects an error, it shall return the list
-@code{(:error @var{ERROR-NAME} @var{ERROR-MESSAGE)}}.
-@var{ERROR-NAME} is a namespaced string which characterizes the error
-type, and @var{ERROR-MESSAGE} is a free text string.  Alternatively,
+@code{(:error @var{error-name} @var{error-message)}}.
+@var{error-name} is a namespaced string which characterizes the error
+type, and @var{error-message} is a free text string.  Alternatively,
 any Emacs signal @code{dbus-error} in @var{handler} raises a D-Bus
 error message with the error name @samp{org.freedesktop.DBus.Error.Failed}.
 

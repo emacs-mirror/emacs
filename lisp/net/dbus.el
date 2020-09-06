@@ -802,7 +802,7 @@ received.  It must accept the input arguments of METHOD.  The
 return value of HANDLER is used for composing the returning D-Bus
 message.  If HANDLER returns a reply message with an empty
 argument list, HANDLER must return the symbol `:ignore' in order
-to distinguish it from `nil' (the boolean false).
+to distinguish it from nil (the boolean false).
 
 If HANDLER detects an error, it shall return the list `(:error
 ERROR-NAME ERROR-MESSAGE)'.  ERROR-NAME is a namespaced string
@@ -1459,9 +1459,9 @@ nil is returned."
   "Return PROPERTY entry of `dbus-registered-objects-table'.
 Filter out not matching PATH."
   ;; Remove entries not belonging to this case.
-  (seq-remove
+  (seq-filter
    (lambda (item)
-     (not (string-equal path (nth 2 item))))
+     (string-equal path (nth 2 item)))
    (gethash (list :property bus interface property)
             dbus-registered-objects-table)))
 
