@@ -4278,8 +4278,7 @@ well as the newer ports COM10 and higher."
                  ;; `prompt': The most recently used port is provided as
                  ;; the default value, which is used when the user
                  ;; simply presses return.
-                 (if (stringp h) (format "Serial port (default %s): " h)
-                   "Serial port: ")
+                 (format-prompt "Serial port" h)
                  ;; `directory': Most systems have their serial ports
                  ;; in the same directory, so start in the directory
                  ;; of the most recently used port, or in a reasonable
@@ -4294,8 +4293,7 @@ well as the newer ports COM10 and higher."
                  ;; serial port.
                  "")
               (read-from-minibuffer
-               (if (stringp h) (format "Serial port (default %s): " h)
-                 "Serial port: ")
+               (format-prompt "Serial port" h)
                nil nil nil '(file-name-history . 1) nil nil))))
     (if (or (null x) (and (stringp x) (zerop (length x))))
         (setq x h)
@@ -4317,7 +4315,7 @@ Try to be nice by providing useful defaults and history."
              (cond ((string= h serial-no-speed)
                     "Speed (default nil = set by port): ")
                    (h
-                    (format "Speed (default %s b/s): " h))
+                    (format-prompt "Speed" (format "%s b/s" h)))
                    (t
 		    (format "Speed (b/s): ")))
              nil nil nil '(history . 1) nil nil)))

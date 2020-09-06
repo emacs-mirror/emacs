@@ -529,7 +529,7 @@ This also saves the value of `send-mail-function' via Customize."
 	    (display-buffer (current-buffer))
 	    (let ((completion-ignore-case t))
               (completing-read
-               (format "Send mail via (default %s): " (caar options))
+               (format-prompt "Send mail via" (caar options))
                options nil 'require-match nil nil (car options))))))
     ;; Return the choice.
     (cdr (assoc-string choice options t))))

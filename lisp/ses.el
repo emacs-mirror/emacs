@@ -2540,10 +2540,8 @@ cell formula was unsafe and user declined confirmation."
            (if (equal initial "\"")
                (progn
                  (if (not (stringp curval)) (setq curval nil))
-                 (read-string (if curval
-                                  (format "String Cell %s (default %s): "
-                                          ses--curcell curval)
-                                (format "String Cell %s: " ses--curcell))
+                 (read-string (format-prompt "String Cell %s"
+                                             curval ses--curcell)
                               nil 'ses-read-string-history curval))
              (read-from-minibuffer
               (format "Cell %s: " ses--curcell)
@@ -3007,9 +3005,9 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
      (list col
 	   (if current-prefix-arg
 	       (prefix-numeric-value current-prefix-arg)
-	     (read-from-minibuffer (format "Column %s width (default %d): "
-					   (ses-column-letter col)
-					   (ses-col-width col))
+	     (read-from-minibuffer (format-prompt "Column %s width"
+					          (ses-col-width col)
+					          (ses-column-letter col))
 				   nil  ; No initial contents.
 				   nil  ; No override keymap.
 				   t    ; Convert to Lisp object.

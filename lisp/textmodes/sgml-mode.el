@@ -779,7 +779,7 @@ If you like tags and attributes in uppercase, customize
            (setq sgml-tag-last
 		 (completing-read
 		  (if (> (length sgml-tag-last) 0)
-		      (format "Tag (default %s): " sgml-tag-last)
+		      (format-prompt "Tag" sgml-tag-last)
 		    "Tag: ")
 		  sgml-tag-alist nil nil nil 'sgml-tag-history sgml-tag-last)))
   ?< str |
@@ -878,9 +878,7 @@ With prefix argument, only self insert."
    (list (let ((def (save-excursion
 		      (if (eq (following-char) ?<) (forward-char))
 		      (sgml-beginning-of-tag))))
-	   (completing-read (if def
-				(format "Tag (default %s): " def)
-			      "Tag: ")
+	   (completing-read (format-prompt "Tag" def)
 			    sgml-tag-alist nil nil nil
 			    'sgml-tag-history def))))
   (or (and tag (> (length tag) 0))

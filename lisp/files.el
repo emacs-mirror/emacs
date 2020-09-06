@@ -1563,8 +1563,8 @@ use with M-x."
 		(and (not (memq 'eight-bit-control charsets))
 		     (not (memq 'eight-bit-graphic charsets)))))
 	 (setq from-coding (read-coding-system
-			    (format "Recode filename %s from (default %s): "
-				    filename default-coding)
+			    (format-prompt "Recode filename %s from"
+				           filename default-coding)
 			    default-coding))
        (setq from-coding (read-coding-system
 			  (format "Recode filename %s from: " filename))))
@@ -1576,8 +1576,8 @@ use with M-x."
 			  (format "Recode filename %s from %s to: "
 				  filename from-coding)))
        (setq to-coding (read-coding-system
-			(format "Recode filename %s from %s to (default %s): "
-				filename from-coding default-coding)
+			(format-prompt "Recode filename %s from %s to"
+				       default-coding filename from-coding)
 			default-coding)))
      (list filename from-coding to-coding)))
 

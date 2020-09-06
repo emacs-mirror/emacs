@@ -1276,11 +1276,7 @@ String must be longer than `completion-prefix-min-length'."
 
 (defun interactive-completion-string-reader (prompt)
   (let* ((default (symbol-under-or-before-point))
-	 (new-prompt
-	  (if default
-	      (format "%s (default %s): " prompt default)
-	      (format "%s: " prompt)))
-	 (read (completing-read new-prompt cmpl-obarray)))
+	 (read (completing-read (format-prompt prompt default) cmpl-obarray)))
     (if (zerop (length read)) (setq read (or default "")))
     (list read)))
 

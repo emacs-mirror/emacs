@@ -489,7 +489,7 @@ Optional argument SYNTAX must be specified if called non-interactively."
   (interactive
    (list (intern
 	  (completing-read
-	   (format "Select syntax (default %s): " reb-re-syntax)
+	   (format-prompt "Select syntax" reb-re-syntax)
 	   '(read string sregex rx)
 	   nil t nil nil (symbol-name reb-re-syntax)
            'reb-change-syntax-hist))))

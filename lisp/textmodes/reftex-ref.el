@@ -861,9 +861,7 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
 	 (default (when (looking-back "\\\\\\(?:page\\)?ref{[-a-zA-Z0-9_*.:]*"
                                       (line-beginning-position))
 		    (reftex-this-word "-a-zA-Z0-9_*.:")))
-         (label (completing-read (if default
-				     (format "Label (default %s): " default)
-				   "Label: ")
+         (label (completing-read (format-prompt "Label" default)
 				 docstruct
                                  (lambda (x) (stringp (car x))) t nil nil
 				 default))

@@ -2206,8 +2206,7 @@ Shell script files can cause this function be called automatically
 when the file is visited by having a `sh-shell' file-local variable
 whose value is the shell name (don't quote it)."
   (interactive (list (completing-read
-                      (format "Shell (default %s): "
-                              sh-shell-file)
+                      (format-prompt "Shell" sh-shell-file)
                       ;; This used to use interpreter-mode-alist, but that is
                       ;; no longer appropriate now that uses regexps.
                       ;; Maybe there could be a separate variable that lists

@@ -667,7 +667,7 @@ With a numeric prefix ARG, go back ARG comments."
   "Prompt for a change log name."
   (let* ((default (change-log-name))
 	 (name (expand-file-name
-		(read-file-name (format "Log file (default %s): " default)
+		(read-file-name (format-prompt "Log file" default)
 				nil default))))
     ;; Handle something that is syntactically a directory name.
     ;; Look for ChangeLog or whatever in that directory.

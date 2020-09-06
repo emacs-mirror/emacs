@@ -9389,10 +9389,10 @@ default."
 	    (cond ((= (length urls) 1)
 		   (car urls))
 		  ((> (length urls) 1)
-		   (completing-read (format "URL to browse (default %s): "
-					    (gnus-shorten-url (car urls) 40))
-				    urls nil t nil nil
-				    (car urls)))))
+		   (completing-read
+		    (format-prompt "URL to browse"
+				   (gnus-shorten-url (car urls) 40))
+		    urls nil t nil nil (car urls)))))
       (if target
 	  (if external
 	      (funcall browse-url-secondary-browser-function target)

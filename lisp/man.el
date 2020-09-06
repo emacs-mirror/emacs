@@ -1014,10 +1014,9 @@ to auto-complete your input based on the installed manual pages."
 		(completion-ignore-case t)
 		Man-completion-cache    ;Don't cache across calls.
 		(input (completing-read
-			(format "Manual entry%s"
-				(if (string= default-entry "")
-				    ": "
-				  (format " (default %s): " default-entry)))
+			(format-prompt "Manual entry"
+                                       (and (not (equal default-entry ""))
+                                            default-entry))
                         'Man-completion-table
 			nil nil nil 'Man-topic-history default-entry)))
 	   (if (string= input "")

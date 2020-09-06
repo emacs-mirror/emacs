@@ -300,9 +300,8 @@ The functions come in the following groups.
 Store the name in the parameter-variable DEFAULT-NAME-VAR.
 PROMPT is a string to be shown when the user is asked for a name."
  (let ((encoding
-        (completing-read
-         (format "%s (default %s): " prompt (symbol-value default-name-var))
-         ogonek-name-encoding-alist nil t)))
+        (completing-read (format-prompt prompt (symbol-value default-name-var))
+                         ogonek-name-encoding-alist nil t)))
   ;; change the default name to the one just read, and
   ;; return the new default as the name you read
   (set default-name-var
@@ -314,8 +313,7 @@ The result is stored in the variable DEFAULT-PREFIX-VAR.
 PROMPT is a string to be shown when the user is asked for a new prefix."
   (let ((prefix-string
          (read-string
-          (format "%s (default %s): " prompt
-                  (char-to-string (eval default-prefix-var))))))
+          (format-prompt prompt (char-to-string (eval default-prefix-var))))))
     (if (> (length prefix-string) 1)
         (error "! Only one character expected")
       ;; set the default prefix character to the one just read

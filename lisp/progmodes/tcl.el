@@ -1346,9 +1346,8 @@ Prefix argument means invert sense of `tcl-use-smart-word-finder'."
 		       (not tcl-use-smart-word-finder)
 		     tcl-use-smart-word-finder))))
 	(completing-read
-	 (if (or (null word) (string= word ""))
-	     "Help on Tcl command: "
-	   (format "Help on Tcl command (default %s): " word))
+         (format-prompt "Help on Tcl command: "
+                        (and (not (equal word "")) word))
 	 tcl-help-alist nil t nil nil word)))
     current-prefix-arg))
   (if (not (equal tcl-help-directory-list tcl-help-saved-dirs))

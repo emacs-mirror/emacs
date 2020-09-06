@@ -153,10 +153,8 @@ the string of command switches used as the third argument of `diff'."
 	  (lambda ()
 	    (set (make-local-variable 'minibuffer-default-add-function) nil)
 	    (setq minibuffer-default defaults))
-	(read-file-name
-	 (format "Diff %s with%s: " current
-		 (if default (format " (default %s)" default) ""))
-	 target-dir default t))
+	(read-file-name (format-prompt "Diff %s with" default current)
+	                target-dir default t))
       (if current-prefix-arg
 	  (read-string "Options for diff: "
 		       (if (stringp diff-switches)

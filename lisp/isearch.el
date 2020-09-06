@@ -2337,7 +2337,7 @@ characters in that string."
 		   (with-isearch-suspended
 		    (setq regexp-collect
 			  (read-regexp
-			   (format "Regexp to collect (default %s): " default)
+			   (format-prompt "Regexp to collect" default)
 			   default 'occur-collect-regexp-history)))
 		   regexp-collect))
 	     ;; Otherwise normal occur takes numerical prefix argument.

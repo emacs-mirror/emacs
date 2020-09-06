@@ -1212,10 +1212,7 @@ Value is the new attribute value."
   (setq name (concat (upcase (substring name 0 1)) (substring name 1)))
   (let* ((completion-ignore-case t)
 	 (value (completing-read
-                 (format-message (if default
-                                     "%s for face `%s' (default %s): "
-                                   "%s for face `%s': ")
-                                 name face default)
+                 (format-prompt "%s for face `%s'" default name face)
 		 completion-alist nil nil nil nil default)))
     (if (equal value "") default value)))
 

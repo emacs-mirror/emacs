@@ -470,17 +470,19 @@
       (setq defv (calc-invent-independent-variables nv)))
   (or defc
       (setq defc (calc-invent-parameter-variables nc defv)))
-  (let ((vars (read-string (format "Fitting variables (default %s; %s): "
-				   (mapconcat 'symbol-name
-					      (mapcar (function (lambda (v)
-								  (nth 1 v)))
-						      defv)
-					      ",")
-				   (mapconcat 'symbol-name
-					      (mapcar (function (lambda (v)
-								  (nth 1 v)))
-						      defc)
-					      ","))))
+  (let ((vars (read-string (format-prompt
+                            "Fitting variables"
+                            (format "%s; %s)"
+				    (mapconcat 'symbol-name
+					       (mapcar (function (lambda (v)
+								   (nth 1 v)))
+						       defv)
+					       ",")
+				    (mapconcat 'symbol-name
+					       (mapcar (function (lambda (v)
+								   (nth 1 v)))
+						       defc)
+					       ",")))))
 	(coefs nil))
     (setq vars (if (string-match "\\[" vars)
 		   (math-read-expr vars)

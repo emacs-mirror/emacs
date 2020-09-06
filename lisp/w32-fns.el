@@ -202,8 +202,7 @@ This function is provided for backward compatibility, since
   (interactive
    (list (let ((default locale-coding-system))
            (read-coding-system
-            (format "Coding system for system calls (default %s): "
-                    default)
+            (format-prompt "Coding system for system calls" default)
             default))))
   (check-coding-system coding-system)
   (setq locale-coding-system coding-system))

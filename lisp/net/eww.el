@@ -307,11 +307,10 @@ If BUFFER, the data to be rendered is in that buffer.  In that
 case, this function doesn't actually fetch URL.  BUFFER will be
 killed after rendering."
   (interactive
-   (let* ((uris (eww-suggested-uris))
-	  (prompt (concat "Enter URL or keywords"
-			  (if uris (format " (default %s)" (car uris)) "")
-			  ": ")))
-     (list (read-string prompt nil 'eww-prompt-history uris)
+   (let ((uris (eww-suggested-uris)))
+     (list (read-string (format-prompt "Enter URL or keywords"
+                                       (and uris (car uris)))
+                        nil 'eww-prompt-history uris)
            (prefix-numeric-value current-prefix-arg))))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window

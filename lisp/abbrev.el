@@ -209,8 +209,7 @@ it defaults to the value of `abbrev-file-name'.
 Optional second argument QUIETLY non-nil means don't display a message."
   (interactive
    (list
-    (read-file-name (format "Read abbrev file (default %s): "
-			    abbrev-file-name)
+    (read-file-name (format-prompt "Read abbrev file" abbrev-file-name)
 		    nil abbrev-file-name t)))
   (load (or file abbrev-file-name) nil quietly)
   (setq abbrevs-changed nil))

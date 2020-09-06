@@ -336,9 +336,9 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
              (list (expand-file-name
                     (if (eq major-mode 'bibtex-mode)
                         (read-file-name
-                         (format ".bib file (default %s): "
-                                 (file-name-nondirectory
-                                  (buffer-file-name)))
+                         (format-prompt ".bib file"
+                                        (file-name-nondirectory
+                                         (buffer-file-name)))
                          (file-name-directory (buffer-file-name))
                          (file-name-nondirectory (buffer-file-name))
                          t)

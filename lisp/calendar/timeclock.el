@@ -597,9 +597,9 @@ arguments of `completing-read'."
 (defun timeclock-ask-for-project ()
   "Ask the user for the project they are clocking into."
   (completing-read
-   (format "Clock into which project (default %s): "
-	   (or timeclock-last-project
-	       (car timeclock-project-list)))
+   (format-prompt "Clock into which project"
+	          (or timeclock-last-project
+	              (car timeclock-project-list)))
    timeclock-project-list
    nil nil nil nil
    (or timeclock-last-project

@@ -126,8 +126,8 @@
 (defun calc-word-size (n)
   (interactive "P")
   (calc-wrapper
-   (or n (setq n (read-string (format "Binary word size: (default %d) "
-				      calc-word-size))))
+   (or n (setq n (read-string (format-prompt "Binary word size"
+                                             calc-word-size))))
    (setq n (if (stringp n)
 	       (if (equal n "")
 		   calc-word-size

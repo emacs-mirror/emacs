@@ -428,11 +428,11 @@
 (defun calc-edit-variable (&optional var)
   (interactive)
   (calc-wrapper
-   (or var (setq var (calc-read-var-name
-		      (if calc-last-edited-variable
-			  (format "Edit (default %s): "
-				  (calc-var-name calc-last-edited-variable))
-			"Edit: "))))
+   (unless var
+     (setq var (calc-read-var-name
+                (format-prompt "Edit" (and calc-last-edited-variable
+				           (calc-var-name
+                                            calc-last-edited-variable))))))
    (or var (setq var calc-last-edited-variable))
    (if var
        (let* ((value (calc-var-value var)))

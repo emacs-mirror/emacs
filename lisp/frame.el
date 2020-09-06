@@ -733,7 +733,7 @@ argument PARAMETERS specifies additional frame parameters."
    (list
     (let* ((default (cdr (assq 'name (frame-monitor-attributes)))))
       (completing-read
-       (format "Make frame on monitor (default %s): " default)
+       (format-prompt "Make frame on monitor" default)
        (or (delq nil (mapcar (lambda (a)
                                (cdr (assq 'name a)))
                              (display-monitor-attributes-list)))
@@ -760,7 +760,7 @@ If DISPLAY is nil, that stands for the selected frame's display."
    (list
     (let* ((default (frame-parameter nil 'display))
            (display (completing-read
-                     (format "Close display (default %s): " default)
+                     (format-prompt "Close display" default)
                      (delete-dups
                       (mapcar (lambda (frame)
                                 (frame-parameter frame 'display))
@@ -1130,7 +1130,7 @@ If there is no frame by that name, signal an error."
    (let* ((frame-names-alist (make-frame-names-alist))
 	   (default (car (car frame-names-alist)))
 	   (input (completing-read
-		   (format "Select Frame (default %s): " default)
+		   (format-prompt "Select Frame" default)
 		   frame-names-alist nil t nil 'frame-name-history)))
      (if (= (length input) 0)
 	 (list default)

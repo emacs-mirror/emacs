@@ -2757,15 +2757,14 @@ Otherwise, signal an error."
 	 alternative-default-dir
 	 (not (string-equal alternative-default-dir
 			    (file-name-directory A-file))))
-    (read-file-name (format "%s (default %s): "
-			    prompt (file-name-nondirectory A-file))
+    (read-file-name (format-prompt prompt (file-name-nondirectory A-file))
 		    alternative-default-dir
 		    (concat alternative-default-dir
 			    (file-name-nondirectory A-file))
 		    (and must-match 'confirm)))
    ;; If there is a default file, use it.
    (default-file
-     (read-file-name (format "%s (default %s): " prompt default-file)
+     (read-file-name (format-prompt prompt default-file)
 		     ;; If emerge-default-last-directories is set, use the
 		     ;; directory from the same argument of the last call of
 		     ;; Emerge as the default for this argument.

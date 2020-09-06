@@ -803,7 +803,7 @@ still there, in order, if the topmost one is ever deleted."
          (let ((str
                 (or name
                     (read-from-minibuffer
-                     (format "%s (default %s): " prompt default)
+                     (format-prompt prompt default)
                      nil
                      bookmark-minibuffer-read-name-map
                      nil nil defaults))))

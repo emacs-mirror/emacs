@@ -1883,12 +1883,9 @@ on what is seen near point."
    (list
     (let* ((sym (css--mdn-find-symbol))
 	   (enable-recursive-minibuffers t)
-	   (value (completing-read
-		   (if sym
-		       (format "Describe CSS symbol (default %s): " sym)
-		     "Describe CSS symbol: ")
-		   css--mdn-completion-list nil nil nil
-		   'css--mdn-lookup-history sym)))
+	   (value (completing-read (format-prompt "Describe CSS symbol" sym)
+		                   css--mdn-completion-list nil nil nil
+		                   'css--mdn-lookup-history sym)))
       (if (equal value "") sym value))))
   (when symbol
     ;; If we see a single-colon pseudo-element like ":after", turn it

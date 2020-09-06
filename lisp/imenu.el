@@ -765,10 +765,13 @@ Return one of the entries in index-alist or nil."
 	    index-alist))))
     (when (stringp name)
       (setq name (or (imenu-find-default name prepared-index-alist) name)))
-    (cond (prompt)
-	  ((and name (imenu--in-alist name prepared-index-alist))
-	   (setq prompt (format "Index item (default %s): " name)))
-	  (t (setq prompt "Index item: ")))
+    (unless prompt
+      (setq prompt (format-prompt
+                    "Index item"
+	            (and name
+                         (imenu--in-alist name prepared-index-alist)
+                         ;; Default to `name' if it's in the alist.
+                         name))))
     (let ((minibuffer-setup-hook minibuffer-setup-hook))
       ;; Display the completion buffer.
       (if (not imenu-eager-completion-buffer)

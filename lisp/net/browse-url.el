@@ -922,7 +922,7 @@ opposite of the browser kind of `browse-url-browser-function'."
                        'external
                      'internal))
           (k (intern (completing-read
-                      (format "Browser kind (default %s): " default)
+                      (format-prompt "Browser kind" default)
                       '(internal external)
                       nil t nil nil
                       default))))

@@ -297,9 +297,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	 (completion-ignore-case (info-lookup->ignore-case topic mode))
 	 (enable-recursive-minibuffers t)
 	 (value (completing-read
-		 (if default
-		     (format "Describe %s (default %s): " topic default)
-		   (format "Describe %s: " topic))
+		 (format-prompt "Describe %s" default topic)
 		 completions nil nil nil 'info-lookup-history default)))
     (list (if (equal value "") default value) mode)))
 

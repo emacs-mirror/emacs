@@ -1247,7 +1247,7 @@ Internal use only.")
           (concat "\\(?:" completion-pcm--delim-wild-regex
                   "\\|\\([[:alpha:]]\\)[[:digit:]]\\)"))
          (cs (completing-read
-              (format "Coding system for saving file (default %s): " default)
+              (format-prompt "Coding system for saving file" default)
               combined-table
               nil t nil 'coding-system-history
               (if default (symbol-name default)))))
@@ -1350,8 +1350,7 @@ graphical terminals."
 				 default-terminal-coding-system)
 			    default-terminal-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for terminal display (default %s): "
-		    default)
+	    (format-prompt "Coding system for terminal display" default)
 	    default))))
   (if (and (not coding-system)
 	   (not (terminal-coding-system)))
@@ -1384,8 +1383,7 @@ graphical terminals."
 		(default (if (eq (coding-system-type coding) 'raw-text)
 			     default-keyboard-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for keyboard input (default %s): "
-		    default)
+	    (format-prompt "Coding system for keyboard input" default)
 	    default))))
   (let ((coding-type (coding-system-type coding-system))
 	(saved-meta-mode
@@ -1480,10 +1478,8 @@ the text is encoded or decoded by CODING-SYSTEM."
 This setting is effective for the next communication only."
   (interactive
    (list (read-coding-system
-	  (if last-next-selection-coding-system
-	      (format "Coding system for the next selection (default %S): "
-		      last-next-selection-coding-system)
-	    "Coding system for the next selection: ")
+	  (format-prompt "Coding system for the next selection"
+		         last-next-selection-coding-system)
 	  last-next-selection-coding-system)))
   (if coding-system
       (setq last-next-selection-coding-system coding-system)
@@ -2170,8 +2166,7 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	 (read-coding-system "Text was really in: ")
 	 (let ((coding (or buffer-file-coding-system last-coding-system-used)))
 	   (read-coding-system
-	    (concat "But was interpreted as"
-		    (if coding (format " (default %S): " coding) ": "))
+	    (format-prompt "But was interpreted as" coding)
 	    coding))))
   (or (and new-coding coding)
       (error "Coding system not specified"))

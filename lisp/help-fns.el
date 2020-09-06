@@ -922,10 +922,7 @@ it is displayed along with the global value."
          (orig-buffer (current-buffer))
 	 val)
      (setq val (completing-read
-                (if (symbolp v)
-                    (format
-                     "Describe variable (default %s): " v)
-                  "Describe variable: ")
+                (format-prompt "Describe variable" (and (symbolp v) v))
                 #'help--symbol-completion-table
                 (lambda (vv)
                   ;; In case the variable only exists in the buffer
@@ -1422,10 +1419,8 @@ current buffer and the selected frame, respectively."
           (v-or-f (if found v-or-f (function-called-at-point)))
           (found (or found v-or-f))
           (enable-recursive-minibuffers t)
-          (val (completing-read (if found
-				    (format
-                                     "Describe symbol (default %s): " v-or-f)
-				  "Describe symbol: ")
+          (val (completing-read (format-prompt "Describe symbol"
+                                               (and found v-or-f))
 				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
@@ -1601,7 +1596,7 @@ keymap value."
   (interactive
    (let* ((km (help-fns--most-relevant-active-keymap))
           (val (completing-read
-                (format "Keymap (default %s): " km)
+                (format-prompt "Keymap" km)
                 obarray
                 (lambda (m) (and (boundp m) (keymapp (symbol-value m))))
                 t nil 'keymap-name-history

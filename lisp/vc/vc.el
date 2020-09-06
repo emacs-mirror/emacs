@@ -2516,11 +2516,8 @@ with its diffs (if the underlying VCS supports that)."
    (cond
     ((eq current-prefix-arg 1)
      (let* ((default (thing-at-point 'word t))
-	    (revision (read-string
-		       (if default
-			   (format "Revision to show (default %s): " default)
-			 "Revision to show: ")
-		       nil nil default)))
+	    (revision (read-string (format-prompt "Revision to show" default)
+		                   nil nil default)))
        (list 1 revision)))
     ((numberp current-prefix-arg)
      (list current-prefix-arg))

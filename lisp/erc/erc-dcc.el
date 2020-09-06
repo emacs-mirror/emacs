@@ -516,8 +516,8 @@ PROC is the server process."
          (filename (or file (plist-get elt :file) "unknown")))
     (if elt
         (let* ((file (read-file-name
-                      (format "Local filename (default %s): "
-                              (file-name-nondirectory filename))
+                      (format-prompt "Local filename"
+                                     (file-name-nondirectory filename))
                       (or erc-dcc-get-default-directory
                           default-directory)
                       (expand-file-name (file-name-nondirectory filename)

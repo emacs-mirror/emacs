@@ -510,7 +510,8 @@
 	       (if window-system (concat "-" (upcase (symbol-name window-system))))
 	       "-keys")))
     (set-visited-file-name
-     (read-file-name (format "Save key mapping to file (default %s): " file) nil file)))
+     (read-file-name (format-prompt "Save key mapping to file" file)
+                     nil file)))
   (save-buffer)
 
   (message "That's it!  Press any key to exit")

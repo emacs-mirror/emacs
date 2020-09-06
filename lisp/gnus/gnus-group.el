@@ -2416,9 +2416,8 @@ the bug number, and browsing the URL must return mbox output."
     ;; Pass DEF as the value of COLLECTION instead of DEF because:
     ;; a) null input should not cause DEF to be returned and
     ;; b) TAB and M-n still work this way.
-    (or (completing-read-multiple
-	 (format "Bug IDs%s: " (if def (format " (default %s)" def) ""))
-	 (and def (list (format "%s" def))))
+    (or (completing-read-multiple (format-prompt "Bug IDs" def)
+				  (and def (list (format "%s" def))))
 	def)))
 
 (defun gnus-read-ephemeral-bug-group (ids mbox-url &optional window-conf)
@@ -3744,9 +3743,8 @@ Uses the process/prefix convention."
 	(error "No group on the current line"))
       (string-to-number
        (let ((s (read-string
-		 (format "Level (default %s): "
-			 (or (gnus-group-group-level)
-			     gnus-level-default-subscribed)))))
+		 (format-prompt "Level" (or (gnus-group-group-level)
+					    gnus-level-default-subscribed)))))
 	 (if (string-match "^\\s-*$" s)
 	     (int-to-string (or (gnus-group-group-level)
 				gnus-level-default-subscribed))

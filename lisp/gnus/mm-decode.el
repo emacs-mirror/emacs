@@ -1364,10 +1364,7 @@ PROMPT overrides the default one used to ask user for a file name."
 	  (setq file
 		(read-file-name
 		 (or prompt
-		     (format "Save MIME part to%s: "
-			     (if filename
-				 (format " (default %s)" filename)
-			       "")))
+		     (format-prompt "Save MIME part to" filename))
 		 (or directory mm-default-directory default-directory)
 		 (expand-file-name
 		  (or filename "")

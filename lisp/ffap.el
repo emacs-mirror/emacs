@@ -1751,7 +1751,7 @@ Function CONT is applied to the entry chosen by the user."
 	;; Bug: prompting may assume unique strings, no "".
 	(setq choice
 	      (completing-read
-	       (format "%s (default %s): " title (car (car alist)))
+	       (format-prompt title (car (car alist)))
 	       alist nil t
 	       ;; (cons (car (car alist)) 0)
 	       nil)))
