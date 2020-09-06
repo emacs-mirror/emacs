@@ -2505,31 +2505,52 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Some entry point support code.
 
-(defun comp--replace-output-file (outfile tmpfile)
-  "Replace OUTFILE with TMPFILE.
-Takes the necessary steps when dealing with shared libraries that
-may be loaded into Emacs"
+;;;###autoload
+(defun comp-clean-up-stale-eln (file)
+  "Given FILE remove all the .eln files in `comp-eln-load-path'
+sharing the original source filename (including FILE)."
+  (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos) file)
+  (cl-loop
+   with filename-hash = (match-string 1 file)
+   with regexp = (rx-to-string
+                  `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
+   for dir in (butlast comp-eln-load-path) ; Skip last dir.
+   do (cl-loop
+       for f in (directory-files (concat dir comp-native-version-dir) t regexp
+                                 t)
+       do (comp-delete-or-replace-file f))))
+
+(defun comp-delete-or-replace-file (oldfile &optional newfile)
+  "Replace OLDFILE with NEWFILE.
+When NEWFILE is nil just delete OLDFILE.
+Takes the necessary steps when dealing with OLDFILE being a
+shared libraries that may be currently loaded by a running Emacs
+session."
   (cond ((eq 'windows-nt system-type)
-         (ignore-errors (delete-file outfile))
-         (let ((retry t))
-           (while retry
-             (setf retry nil)
+         (ignore-errors (delete-file oldfile))
+         (while
              (condition-case _
                  (progn
-                   ;; outfile maybe recreated by another Emacs in
+                   ;; oldfile maybe recreated by another Emacs in
                    ;; between the following two rename-file calls
-                   (if (file-exists-p outfile)
-                       (rename-file outfile (make-temp-file-internal
-                                             (file-name-sans-extension outfile)
+                   (if (file-exists-p oldfile)
+                       (rename-file oldfile (make-temp-file-internal
+                                             (file-name-sans-extension oldfile)
                                              nil ".eln.old" nil)
                                     t))
-                   (rename-file tmpfile outfile nil))
-               (file-already-exists (setf retry t))))))
+                   (when newfile
+                     (rename-file newfile oldfile nil))
+                   ;; Keep on trying.
+                   nil)
+               (file-already-exists
+                ;; Done
+                t))))
         ;; Remove the old eln instead of copying the new one into it
         ;; to get a new inode and prevent crashes in case the old one
         ;; is currently loaded.
-        (t (delete-file outfile)
-           (rename-file tmpfile outfile))))
+        (t (delete-file oldfile)
+           (when newfile
+             (rename-file newfile oldfile)))))
 
 (defvar comp-files-queue ()
   "List of Elisp files to be compiled.")

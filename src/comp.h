@@ -54,13 +54,6 @@ struct Lisp_Native_Comp_Unit
   bool loaded_once;
   bool load_ongoing;
   dynlib_handle_ptr handle;
-#ifdef WINDOWSNT
-  /* We need to store a copy of the original file name in memory that
-     is not subject to GC because the function to dispose native
-     compilation units is called by the GC.  By that time the `file'
-     string may have been sweeped. */
-  char *cfile;
-#endif
 } GCALIGNED_STRUCT;
 
 #ifdef HAVE_NATIVE_COMP
@@ -92,14 +85,7 @@ extern void syms_of_comp (void);
 extern void maybe_defer_native_compilation (Lisp_Object function_name,
 					    Lisp_Object definition);
 
-extern void dispose_comp_unit (struct Lisp_Native_Comp_Unit * comp_unit,
-			       bool delay);
-
-extern void finish_delayed_disposal_of_comp_units (void);
-
-extern void dispose_all_remaining_comp_units (void);
-
-extern void clean_package_user_dir_of_old_comp_units (void);
+extern void eln_load_path_final_clean_up (void);
 
 extern void fixup_eln_load_path (Lisp_Object directory);
 
@@ -111,24 +97,6 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 {}
 
 extern void syms_of_comp (void);
-
-static inline void
-dispose_comp_unit (struct Lisp_Native_Comp_Unit * comp_handle, bool delay)
-{
-  eassert (false);
-}
-
-static inline void
-dispose_all_remaining_comp_units (void)
-{}
-
-static inline void
-clean_package_user_dir_of_old_comp_units (void)
-{}
-
-static inline void
-finish_delayed_disposal_of_comp_units (void)
-{}
 
 #endif /* #ifdef HAVE_NATIVE_COMP */
 
