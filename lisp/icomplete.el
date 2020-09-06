@@ -469,6 +469,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
        with beg = (icomplete--field-beg)
        with end = (icomplete--field-end)
        with all = (completion-all-sorted-completions beg end)
+       ;; First, establish the "bubble up" predicates.
        for fn in (cond ((and minibuffer-default
                              (stringp minibuffer-default) ; bug#38992
                              (= (icomplete--field-end) (icomplete--field-beg)))
@@ -493,14 +494,18 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                         ;; what vanilla Emacs and `ido-mode' both do.
                         `(,(lambda (comp)
                              (string= "./" comp)))))
-       thereis (cl-loop
-                for l on all
-                while (consp (cdr l))
-                for comp = (cadr l)
-                when (funcall fn comp)
-                do (setf (cdr l) (cddr l))
-                and return
-                (completion--cache-all-sorted-completions beg end (cons comp all)))
+       ;; Now, look for a completion matching one of those predicates
+       ;; to bubble up (unless that completion is already on top).
+       thereis (or
+                (and (funcall fn (car all)) all)
+                (cl-loop
+                 for l on all
+                 while (consp (cdr l))
+                 for comp = (cadr l)
+                 when (funcall fn comp)
+                 do (setf (cdr l) (cddr l))
+                 and return
+                 (completion--cache-all-sorted-completions beg end (cons comp all))))
        finally return all)))
 
 
