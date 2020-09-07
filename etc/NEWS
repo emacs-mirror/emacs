@@ -869,6 +869,10 @@ The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-dangerous-host-highlight-type' variables now support a 'message'
 type for highlighting the entire message but not the sender's nick.
 
+*** erc-status-sidebar.el is now part of ERC.
+The 'erc-status-sidebar' package which provides a HexChat-like
+activity overview sidebar for joined IRC channels is now part of ERC.
+
 ** Battery
 
 ---
