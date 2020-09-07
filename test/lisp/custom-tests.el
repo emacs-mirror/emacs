@@ -101,7 +101,9 @@
   "Test variables setting with enabling / disabling a custom theme."
   ;; We load custom-resources/custom--test-theme.el.
   (let ((custom-theme-load-path
-         `(,(expand-file-name "custom-resources" (file-name-directory #$)))))
+         `(,(expand-file-name
+	     "custom-resources"
+	     (expand-file-name "lisp" (getenv "EMACS_TEST_DIRECTORY"))))))
     (load-theme 'custom--test 'no-confirm 'no-enable)
     ;; The variables have still their initial values.
     (should (equal custom--test-user-option 'foo))
