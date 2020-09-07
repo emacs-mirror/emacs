@@ -1,4 +1,4 @@
-;;; package-test.el --- Tests for the Emacs package system  -*- lexical-binding:t -*-
+;;; package-tests.el --- Tests for the Emacs package system  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
@@ -805,4 +805,4 @@ Must called from within a `tar-mode' buffer."
 
 (provide 'package-test)
 
-;;; package-test.el ends here
+;;; package-tests.el ends here
