@@ -667,41 +667,73 @@ Currently this means either text/html or application/xhtml+xml."
                            eww-image-link-keymap
                          eww-link-keymap))))
 
+(defun eww--limit-string-pixelwise (string pixels)
+  (if (not pixels)
+      string
+    (with-temp-buffer
+      (insert string)
+      (if (< (eww--pixel-column) pixels)
+	  string
+	;; Iterate to find appropriate length.
+	(while (and (> (eww--pixel-column) pixels)
+		    (not (bobp)))
+	  (forward-char -1))
+	;; Return at least one character.
+	(buffer-substring (point-min) (max (point)
+					   (1+ (point-min))))))))
+
+(defun eww--pixel-column ()
+  (if (not (get-buffer-window (current-buffer)))
+      (save-window-excursion
+        ;; Avoid errors if the selected window is a dedicated one,
+        ;; and they just want to insert a document into it.
+        (set-window-dedicated-p nil nil)
+	(set-window-buffer nil (current-buffer))
+	(car (window-text-pixel-size nil (line-beginning-position) (point))))
+    (car (window-text-pixel-size nil (line-beginning-position) (point)))))
+
 (defun eww-update-header-line-format ()
   (setq header-line-format
 	(and eww-header-line-format
-	     (let ((title (plist-get eww-data :title))
+	     (let ((title (propertize (plist-get eww-data :title)
+                                      'face 'variable-pitch))
 		   (peer (plist-get eww-data :peer))
-                   (url (plist-get eww-data :url)))
+                   (url (propertize (plist-get eww-data :url)
+                                    'face 'variable-pitch)))
 	       (when (zerop (length title))
-		 (setq title "[untitled]"))
+		 (setq title (propertize  "[untitled]" 'face 'variable-pitch)))
+	       ;; This connection has is https.
+	       (when peer
+                 (add-face-text-property 0 (length title)
+				         (if (plist-get peer :warnings)
+				             'eww-invalid-certificate
+				           'eww-valid-certificate)
+                                         t title))
                ;; Limit the length of the title so that the host name
                ;; of the URL is always visible.
                (when url
                  (let* ((parsed (url-generic-parse-url url))
-                        (host-length (length (format "%s://%s"
-                                                     (url-type parsed)
-                                                     (url-host parsed))))
-                        (width (window-width)))
+                        (host-length (shr-string-pixel-width
+                                      (format "%s://%s" (url-type parsed)
+                                              (url-host parsed))))
+                        (width (window-width nil t)))
                    (cond
                     ;; The host bit is wider than the window, so nix
                     ;; the title.
-                    ((> (+ host-length 5) width)
+                    ((> (+ host-length (shr-string-pixel-width "xxxxx")) width)
                      (setq title ""))
                     ;; Trim the title.
-                    ((> (+ (length title) host-length 2) width)
-                     (setq title (concat
-                                  (substring title 0 (- width
-                                                        host-length
-                                                        5))
-                                  "..."))))))
-	       ;; This connection has is https.
-	       (when peer
-		 (setq title
-		       (propertize title 'face
-				   (if (plist-get peer :warnings)
-				       'eww-invalid-certificate
-				     'eww-valid-certificate))))
+                    ((> (+ (shr-string-pixel-width (concat title "xx"))
+                           host-length)
+                        width)
+                     (setq title
+                           (concat
+                            (eww--limit-string-pixelwise
+                             title (- width host-length
+                                      (shr-string-pixel-width
+                                       (propertize "...: " 'face
+                                                   'variable-pitch))))
+                            (propertize "..." 'face 'variable-pitch)))))))
 	       (replace-regexp-in-string
 		"%" "%%"
 		(format-spec
