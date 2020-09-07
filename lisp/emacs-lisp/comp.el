@@ -2516,8 +2516,9 @@ sharing the original source filename (including FILE)."
                   `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
    for dir in (butlast comp-eln-load-path) ; Skip last dir.
    do (cl-loop
-       for f in (directory-files (concat dir comp-native-version-dir) t regexp
-                                 t)
+       with full-dir = (concat dir comp-native-version-dir)
+       for f in (when (file-exists-p full-dir)
+		  (directory-files full-dir t regexp t))
        do (comp-delete-or-replace-file f))))
 
 (defun comp-delete-or-replace-file (oldfile &optional newfile)
