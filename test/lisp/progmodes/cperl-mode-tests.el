@@ -31,6 +31,7 @@
 (defvar cperl-test-mode #'cperl-mode)
 
 (require 'cperl-mode)
+(require 'ert)
 
 (defvar cperl-mode-tests-data-directory
   (expand-file-name "lisp/progmodes/cperl-mode-resources"
