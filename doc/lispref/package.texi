@@ -332,10 +332,22 @@ installing user.  (This is true for Emacs code in general, not just
 for packages.)  So you should ensure that your archive is
 well-maintained and keep the hosting system secure.
 
-  One way to increase the security of your packages is to @dfn{sign}
-them using a cryptographic key.  If you have generated a
-private/public gpg key pair, you can use gpg to sign the package like
-this:
+  To increase the security of your packages, you should distribute
+package checksums in the package metadata file
+@file{archive-contents}.  You should also @dfn{sign} the package
+metadata file using a cryptographic key.  Finally, it is important to
+include creation and expiration timestamps information in that file.
+
+  Signing individual packages is also supported, but considered
+obsolete.  It provides less security than package checksums, signing
+the @file{archive-contents} file, and creation and expiration
+timestamps does when used together.  More specifically, signing
+individual packages does not protect against ``replay attacks''.  Note
+that distributing signatures for individual packages is still
+recommended to support Emacs versions older than 28.1.
+
+  If you have generated a private/public gpg key pair, you can use gpg
+to sign a package or the @file{archive-contents} file like this:
 
 @c FIXME EasyPG / package-x way to do this.
 @example
@@ -370,6 +382,9 @@ following queries:
 Return a lisp form describing the archive contents. The form is a list
 of 'package-desc' structures (see @file{package.el}), except the first
 element of the list is the archive version.
+
+@item archive-contents.sig
+Return the signature for @file{archive-contents}.
 
 @item <package name>-readme.txt
 Return the long description of the package.

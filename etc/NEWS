@@ -882,6 +882,11 @@ For improved security, you might want to set this to 't' or
 before setting these values, or you will be unable to install
 packages.
 
+*** Support expiration of package archive metadata.
+When a package archive distributes a last-updated and expiration
+timestamp, they will automatically be used to verify that distributed
+packages are not out of date.
+
 ** gdb-mi
 
 +++

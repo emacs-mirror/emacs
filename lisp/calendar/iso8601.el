@@ -114,6 +114,7 @@
          iso8601--duration-week-match
          iso8601--duration-combined-match)))
 
+;;;###autoload
 (defun iso8601-parse (string &optional form)
   "Parse an ISO 8601 date/time string and return a `decode-time' structure.
 

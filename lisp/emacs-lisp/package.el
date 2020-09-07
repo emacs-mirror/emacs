@@ -360,6 +360,15 @@ should normally not be used since it will decrease security."
   :risky t
   :version "28.1")
 
+(defcustom package-check-timestamp t
+  "Non-nil means to verify the package archive timestamp.
+
+Note that setting this to nil is intended for debugging, and
+should normally not be used since it will decrease security."
+  :type 'boolean
+  :risky t
+  :version "28.1")
+
 (defcustom package-check-signature 'allow-unsigned
   "Non-nil means to check package signatures when installing.
 More specifically the value can be:
@@ -449,6 +458,7 @@ synchronously."
 (define-error 'bad-size "Package size mismatch" 'package-error)
 (define-error 'bad-signature "Failed to verify signature" 'package-error)
 (define-error 'bad-checksum "Failed to verify checksum" 'package-error)
+(define-error 'bad-timestamp "Failed to verify timestamp" 'package-error)
 
 
 ;;; `package-desc' object definition
@@ -1812,6 +1822,100 @@ Once it's empty, run `package--post-download-archives-hook'."
     (message "Package refresh done")
     (run-hooks 'package--post-download-archives-hook)))
 
+(defun package--parse-header-from-buffer (header name)
+  "Find and return \"archive-contents\" HEADER for archive NAME.
+This function assumes that the current buffer contains the
+\"archive-contents\" file.
+
+A valid header looks like: \";; HEADER: <TIMESTAMP>\"
+
+Where <TIMESTAMP> is a valid ISO-8601 (RFC 3339) date.  If there
+is such a line but <TIMESTAMP> is invalid, show a warning and
+return nil.  If there is no valid header, return nil."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward (concat "^;; " header ": *\\(.+?\\) *$") nil t)
+      (condition-case-unless-debug nil
+          (encode-time (iso8601-parse (match-string 1)))
+        (lwarn '(package timestamp)
+               (list (format "Malformed timestamp for archive `%s': `%s'"
+                             name (match-string 1))))))))
+
+(defun package--parse-valid-until-from-buffer (name)
+  "Find and return \"Valid-Until\" header for archive NAME."
+  (package--parse-header-from-buffer "Valid-Until" name))
+
+(defun package--parse-last-updated-from-buffer (name)
+  "Find and return \"Last-Updated\" header for archive NAME."
+  (package--parse-header-from-buffer "Last-Updated" name))
+
+(defun package--archive-verify-timestamp (new old name)
+  "Return t if timestamp NEW is more recent than OLD for archive NAME.
+Signal error otherwise.
+Warn if NEW is in the future."
+  ;; If timestamp is missing on cached (old) file, do nothing here.
+  ;; This package archive recently introduced support for timestamps.
+  ;; We will require a timestamp for that archive in future updates.
+  (if old
+      (cond
+       ((not new)
+        (signal 'bad-timestamp
+                (list (format-message
+                       (concat
+                        "New archive contents for `%s' missing "
+                        "timestamp, refusing to proceed")
+                       name))))
+       ((time-less-p new old)
+        (signal 'bad-timestamp
+                (list (format-message
+                       (concat
+                        "New archive contents for `%s' older than "
+                        "cached, refusing to proceed")
+                       name))))
+       ((time-less-p (current-time) new)
+        (signal 'bad-timestamp
+                (list (format-message
+                       (concat
+                        "New archive contents for `%s' is "
+                        "in the future: %s")
+                       name (format-time-string "%c" new)))))
+       ;; Check ok, return t.
+       (t))
+    t))
+
+(defun package--archive-verify-not-expired (timestamp name)
+  "Return t if TIMESTAMP has not yet expired for archive NAME.
+Signal error otherwise."
+  (unless (time-less-p (current-time) timestamp)
+    (signal 'bad-timestamp
+            (list (format-message
+                   (concat
+                    "Package archive `%s' has sent "
+                    "an expired `archive-contents' file")
+                   name)))))
+
+(defun package--check-archive-timestamp (name)
+  "Verify timestamp of \"archive-contents\" file for archive NAME.
+Compare the archive timestamp of the previously downloaded
+\"archive-contents\" file to the timestamp in the current buffer.
+Signal error if the old timestamp is more recent than the new one.
+
+Do nothing if there is no previously downloaded file, if such a
+file exists but does not contain any timestamp, or if
+`package-check-timestamp' is nil."
+  (let ((old-file (expand-file-name
+                   (concat "archives/" name "/archive-contents")
+                   package-user-dir)))
+    (when (and package-check-timestamp
+               (file-readable-p old-file))
+      (let ((old (with-temp-buffer
+                   (insert-file-contents old-file)
+                   (package--parse-last-updated-from-buffer name)))
+            (new (package--parse-last-updated-from-buffer name))
+            (new-expires (package--parse-valid-until-from-buffer name)))
+        (package--archive-verify-timestamp new old name)
+        (package--archive-verify-not-expired new-expires name)))))
+
 (defun package--download-one-archive (archive file &optional async)
   "Retrieve an archive file FILE from ARCHIVE, and cache it.
 ARCHIVE should be a cons cell of the form (NAME . LOCATION),
@@ -1825,6 +1929,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
            (content (buffer-string))
            (dir (expand-file-name (concat "archives/" name) package-user-dir))
            (local-file (expand-file-name file dir)))
+      (package--check-archive-timestamp name)
       (when (listp (read content))
         (make-directory dir t)
         (if (or (not (package-check-signature))
