@@ -1665,12 +1665,14 @@ If RECURSIVE, search recursively."
   (let ((type (car ctl))
 	(subtype (cadr (split-string (car ctl) "/")))
 	(mm-security-handle ctl) ;; (car CTL) is the type.
+	(smime-type (cdr (assq 'smime-type (mm-handle-type parts))))
 	protocol func functest)
     (cond
      ((or (equal type "application/x-pkcs7-mime")
 	  (equal type "application/pkcs7-mime"))
       (with-temp-buffer
 	(when (and (cond
+		    ((equal smime-type "signed-data") t)
 		    ((eq mm-decrypt-option 'never) nil)
 		    ((eq mm-decrypt-option 'always) t)
 		    ((eq mm-decrypt-option 'known) t)
@@ -1691,7 +1693,21 @@ If RECURSIVE, search recursively."
 	    (unless (mail-fetch-field "content-type")
 	      (goto-char (point-max))
 	      (insert "Content-type: text/plain\n\n")))
-	  (setq parts (mm-dissect-buffer t)))))
+	  (setq parts
+		(if (equal smime-type "signed-data")
+		    (list (propertize
+			   "multipart/signed"
+			   'protocol "application/pkcs7-signature"
+			   'gnus-info
+			   (format
+			    "%s:%s"
+			    (get-text-property 0 'gnus-info
+					       (car mm-security-handle))
+			    (get-text-property 0 'gnus-details
+					       (car mm-security-handle))))
+			  (mm-dissect-buffer t)
+			  parts)
+		  (mm-dissect-buffer t))))))
      ((equal subtype "signed")
       (unless (and (setq protocol
 			 (mm-handle-multipart-ctl-parameter ctl 'protocol))
