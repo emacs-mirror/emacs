@@ -315,8 +315,7 @@ affect point."
   "Load Gnus bookmarks from FILE (which must be in bookmark format)."
   (interactive
    (list (read-file-name
-          (format "Load Gnus bookmarks from: (%s) "
-                  gnus-bookmark-default-file)
+          (format-prompt "Load Gnus bookmarks from" gnus-bookmark-default-file)
           "~/" gnus-bookmark-default-file 'confirm)))
   (setq file (expand-file-name file))
   (if (file-readable-p file)

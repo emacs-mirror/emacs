@@ -896,8 +896,9 @@ ERROR can be a string with the error message."
 	    (if (next-read-file-uses-dialog-p)
 		(read-directory-name (format "Dired %s(directory): " str)
 				     nil default-directory nil)
-	      (read-file-name (format "Dired %s(directory): " str)
-			      nil default-directory nil)))))
+	      (read-file-name (format-prompt "Dired %s(directory)"
+                                             default-directory str)
+			      nil default-directory)))))
 
 ;; We want to switch to a more sophisticated version of
 ;; dired-read-dir-and-switches like the following, if there is a way

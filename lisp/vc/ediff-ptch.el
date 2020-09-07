@@ -499,15 +499,11 @@ are two possible targets for this %spatch.  However, these files do not exist."
 	patch-file-name)
     (setq patch-file-name
 	  (read-file-name
-	   (format "Patch is in file%s: "
-		   (cond ((and buffer-file-name
+	   (format-prompt "Patch is in file"
+		          (and buffer-file-name
 			       (equal (expand-file-name dir)
-				      (file-name-directory buffer-file-name)))
-			  (concat
-			   " (default "
-			   (file-name-nondirectory buffer-file-name)
-			   ")"))
-			 (t "")))
+				      (file-name-directory buffer-file-name))
+			       (file-name-nondirectory buffer-file-name)))
 	   dir buffer-file-name 'must-match))
     (if (file-directory-p patch-file-name)
 	(error "Patch file cannot be a directory: %s" patch-file-name)
