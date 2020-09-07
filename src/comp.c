@@ -4353,10 +4353,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   if (COMP_DEBUG > 2)
     gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
-  AUTO_STRING (dot_eln, NATIVE_ELISP_SUFFIX);
-
   Lisp_Object tmp_file =
-    Fmake_temp_file_internal (base_name, Qnil, dot_eln, Qnil);
+    Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
