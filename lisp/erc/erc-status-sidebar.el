@@ -1,10 +1,9 @@
-;;; erc-status-sidebar.el --- Hexchat-like activity overview for ERC
+;;; erc-status-sidebar.el --- HexChat-like activity overview for ERC
 
 ;; Copyright (C) 2017, 2020 Free Software Foundation, Inc.
 
 ;; Author: Andrew Barbarello
-;; Version: 0.1
-;; Package-Requires: ((emacs "24.5") (seq "2.3"))
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; URL: https://github.com/drewbarbs/erc-status-sidebar
 
 ;; This file is part of GNU Emacs.
@@ -24,10 +23,10 @@
 
 ;;; Commentary:
 
-;; This package is provides a hexchat-like status bar for joined
-;; channels in ERC.  It relies on the `erc-track' module, and displays
-;; all of the same information that `erc-track' does in the mode line,
-;; but in an alternative format in form of a sidebar.
+;; This package provides a HexChat-like sidebar for joined channels in
+;; ERC.  It relies on the `erc-track' module, and displays all of the
+;; same information that `erc-track' does in the mode line, but in an
+;; alternative format in form of a sidebar.
 
 ;; Shout out to sidebar.el <https://github.com/sebastiencs/sidebar.el>
 ;; and outline-toc.el <https://github.com/abingham/outline-toc.el> for
@@ -268,7 +267,7 @@ hooks that invoke it with arguments."
                #'erc-status-sidebar-set-window-preserve-size))
 
 (defun erc-status-sidebar-set-window-preserve-size ()
-  "Tell Emacs to preserve the current height/width of the ERC statusbar window.
+  "Tell Emacs to preserve the current height/width of the ERC sidebar window.
 
 Note that preserve status needs to be reset when the window is
 manually resized, so `erc-status-sidebar-mode' adds this function
