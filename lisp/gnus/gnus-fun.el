@@ -181,7 +181,6 @@ different input formats."
 	      (gnus-message 9 "Length %d; trying quant %d"
 			    (length attempt) quant))
 	  (setq done t)))
-      (setq a attempt)
       (if done
 	  (mm-with-unibyte-buffer
 	    (insert attempt)
