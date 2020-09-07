@@ -238,6 +238,9 @@ as `(keyfunc member)' and the corresponding element is just
   "Virtual groups in Gnus with arbitrary selection methods."
   :group 'gnus)
 
+(define-obsolete-variable-alias 'nnir-retrieve-headers-override-function
+  'nnselect-retrieve-headers-override-function "28.1")
+
 (defcustom nnselect-retrieve-headers-override-function nil
   "A function that retrieves article headers for ARTICLES from GROUP.
 The retrieved headers should populate the `nntp-server-buffer'.
@@ -245,8 +248,7 @@ Returns either the retrieved header format 'nov or 'headers.
 
 If this variable is nil, or if the provided function returns nil,
   `gnus-retrieve-headers' will be called instead."
-  :version "24.1" :type '(function) :group 'nnselect)
-
+  :version "28.1" :type '(function) :group 'nnselect)
 
 ;; Gnus backend interface functions.
 

@@ -3185,6 +3185,9 @@ mail messages or news articles in files that have numeric names."
 	       (cons 'nnselect-args
 		     (nnir-make-specs nnir-extra-parms specs)))))))))
 
+(define-obsolete-function-alias 'gnus-group-make-nnir-group
+  'gnus-group-read-ephemeral-search-group "28.1")
+
 (defun gnus-group-read-ephemeral-search-group (nnir-extra-parms &optional specs)
   "Create an nnselect group based on a search.
 Prompt for a search query and determine the groups to search as

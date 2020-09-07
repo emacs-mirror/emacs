@@ -144,11 +144,14 @@ If t, fetch all the available old headers."
   :type '(choice number
 		 (sexp :menu-tag "other" t)))
 
+(define-obsolete-variable-alias 'gnus-refer-thread-use-nnir
+  'gnus-refer-thread-use-search "28.1")
+
 (defcustom gnus-refer-thread-use-search nil
   "Search an entire server when referring threads.
 A nil value will only search for thread-related articles in the
 current group."
-  :version "24.1"
+  :version "28.1"
   :group 'gnus-thread
   :type 'boolean)
 

@@ -211,6 +211,26 @@ By default this is the name of an email header field.")
   "Search groups in Gnus with assorted search engines."
   :group 'gnus)
 
+(make-obsolete-variable 'nnir-summary-line-format "The formating
+specs previously unique to this variable may now be set in
+'gnus-summary-line-format." "28.1")
+
+(defcustom nnir-summary-line-format nil
+  "The format specification of the lines in an nnir summary buffer.
+
+All the items from `gnus-summary-line-format' are available, along
+with three items unique to nnir summary buffers:
+
+%Z    Search retrieval score value (integer)
+%G    Article original full group name (string)
+%g    Article original short group name (string)
+
+If nil this will use `gnus-summary-line-format'."
+  :version "24.1"
+  :type '(choice (const :tag "gnus-summary-line-format" nil) string)
+  :group 'nnir)
+
+
 (defcustom nnir-ignored-newsgroups ""
   "Newsgroups to skip when searching.
 Any newsgroup in the active file matching this regexp will be
