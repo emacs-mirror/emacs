@@ -764,11 +764,15 @@ from the tab line."
 (global-set-key [tab-line mouse-5]    'tab-line-hscroll-right)
 (global-set-key [tab-line wheel-up]   'tab-line-hscroll-left)
 (global-set-key [tab-line wheel-down] 'tab-line-hscroll-right)
+(global-set-key [tab-line wheel-left] 'tab-line-hscroll-left)
+(global-set-key [tab-line wheel-right] 'tab-line-hscroll-right)
 
 (global-set-key [tab-line S-mouse-4]    'tab-line-switch-to-prev-tab)
 (global-set-key [tab-line S-mouse-5]    'tab-line-switch-to-next-tab)
 (global-set-key [tab-line S-wheel-up]   'tab-line-switch-to-prev-tab)
 (global-set-key [tab-line S-wheel-down] 'tab-line-switch-to-next-tab)
+(global-set-key [tab-line S-wheel-left] 'tab-line-switch-to-prev-tab)
+(global-set-key [tab-line S-wheel-right] 'tab-line-switch-to-next-tab)
 
 
 (provide 'tab-line)

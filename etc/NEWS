@@ -206,6 +206,11 @@ of the next command to be displayed in a new tab.
 Show/hide the tab bar independently for each frame, according to the
 value of 'tab-bar-show'.
 
+---
+*** The tabs in the tab line can now be scrolled using horizontal scroll.
+If your mouse or trackpad supports it, you can now scroll tabs when
+the mouse pointer is in the tab line by scrolling left or right.
+
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 
