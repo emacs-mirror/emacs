@@ -4359,7 +4359,10 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
-  CALL1I (comp-clean-up-stale-eln, file_name);
+  /* FIXME: this if workaround a cc-bytecomp compilation issue
+     appearing on the Docker build that must be investigated.  */
+  if (NILP (Fsymbol_value(intern_c_string ("byte-native-for-bootstrap"))))
+    CALL1I (comp-clean-up-stale-eln, file_name);
   CALL2I (comp-delete-or-replace-file, file_name, tmp_file);
 
   if (!noninteractive)
