@@ -1370,9 +1370,12 @@ If FORMAT, also format the current score file."
 	       (setq
 		err
 		(cond
-		 ((if (member (downcase type) '("lines" "chars"))
-		      (not (numberp (car s)))
-		    (not (stringp (car s))))
+		 ((cond ((member (downcase type) '("lines" "chars"))
+			 (not (numberp (car s))))
+			((string= (downcase type) "date")
+			 (not (or (numberp (car s))
+				  (stringp (car s)))))
+			(t (not (stringp (car s)))))
 		  (format "Invalid match %s in %s" (car s) file))
 		 ((and (cadr s) (not (integerp (cadr s))))
 		  (format "Non-integer score %s in %s" (cadr s) file))
@@ -1690,9 +1693,19 @@ score in `gnus-newsgroup-scored' by SCORE."
 	   ((eq type 'after)
 	    (setq match-func 'string<
 		  match (gnus-date-iso8601 (nth 0 kill))))
+	   ((eq type '<)
+	    (setq type 'after
+		  match-func 'gnus-string>
+		  match (gnus-time-iso8601
+			 (time-add (current-time) (* 86400 (nth 0 kill))))))
 	   ((eq type 'before)
 	    (setq match-func 'gnus-string>
 		  match (gnus-date-iso8601 (nth 0 kill))))
+	   ((eq type '>)
+	    (setq type 'before
+		  match-func 'gnus-string>
+		  match (gnus-time-iso8601
+			 (time-add (current-time) (* -86400 (nth 0 kill))))))
 	   ((eq type 'at)
 	    (setq match-func 'string=
 		  match (gnus-date-iso8601 (nth 0 kill))))

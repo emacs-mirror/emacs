@@ -20347,6 +20347,24 @@ this will match articles that were posted when it was April 1st where
 the article was posted from.  Time zones are such wholesome fun for the
 whole family, eh?)
 
+Finally, two actually useful match types for dates: @code{<} and
+@code{>}.  These will allow scoring on the relative age (in days) of
+the articles.  Here's an example score file using the method:
+
+@example
+(("date"
+  (7 10 nil <)
+  (7 -10 nil >)
+  (14 -10 nil >)))
+@end example
+
+This results in articles less than a week old getting a 10 point
+increase, articles older than a week getting a 10 point decrease, and
+articles older than two weeks getting a cumulative 20 point decrease.
+
+The day can also be a floating point number: To score articles less
+than an hour old, you can say @samp{(0.04 10 nil <)}.
+
 @item Head, Body, All
 These three match keys use the same match types as the @code{From} (etc.)@:
 header uses.
