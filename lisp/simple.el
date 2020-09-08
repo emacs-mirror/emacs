@@ -2200,12 +2200,12 @@ Normally, history elements are matched case-insensitively if
 makes the search case-sensitive."
   (interactive
    (let* ((enable-recursive-minibuffers t)
-	  (regexp (read-from-minibuffer
-                   (format-prompt "Next element matching (regexp)"
-                                  (car minibuffer-history-search-history))
-		   nil minibuffer-local-map nil
-		   'minibuffer-history-search-history
-                   (car minibuffer-history-search-history))))
+	  (regexp (read-from-minibuffer "Next element matching (regexp): "
+					nil
+					minibuffer-local-map
+					nil
+					'minibuffer-history-search-history
+ 					(car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history

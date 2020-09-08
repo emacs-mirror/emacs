@@ -1028,7 +1028,7 @@ function `tab-bar-tab-name-function'."
           (tab-index (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))
           (tab-name (alist-get 'name (nth (1- tab-index) tabs))))
      (list (read-from-minibuffer
-            (format-prompt "New name for tab" tab-name)
+            "New name for tab (leave blank for automatic naming): "
             nil nil nil nil tab-name)
            current-prefix-arg)))
   (let* ((tabs (funcall tab-bar-tabs-function))
@@ -1057,7 +1057,7 @@ function `tab-bar-tab-name-function'."
                                               (alist-get 'name tab))
                                             (funcall tab-bar-tabs-function)))))
      (list tab-name (read-from-minibuffer
-                     (format-prompt "New name for tab" tab-name)
+                     "New name for tab (leave blank for automatic naming): "
                      nil nil nil nil tab-name))))
   (tab-bar-rename-tab new-name (1+ (tab-bar--tab-index-by-name tab-name))))
 
