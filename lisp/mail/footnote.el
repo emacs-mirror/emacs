@@ -5,7 +5,7 @@
 ;; Author: Steven L Baur <steve@xemacs.org> (1997-2011)
 ;;         Boruch Baum <boruch_baum@gmx.com> (2017-)
 ;; Keywords: mail, news
-;; Version: 0.19
+;; Old-Version: 0.19
 
 ;; This file is part of GNU Emacs.
 

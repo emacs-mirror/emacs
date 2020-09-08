@@ -4,7 +4,7 @@
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Keywords:     mouse
-;; Version:	 1.2.6
+;; Old-Version:	 1.2.6
 ;; Release-date: 6-Aug-2004
 ;; Location:     http://www.lysator.liu.se/~tab/artist/
 

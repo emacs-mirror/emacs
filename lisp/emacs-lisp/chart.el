@@ -4,7 +4,7 @@
 ;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.2
+;; Old-Version: 0.2
 ;; Keywords: OO, chart, graph
 
 ;; This file is part of GNU Emacs.
