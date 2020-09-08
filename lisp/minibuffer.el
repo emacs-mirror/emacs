@@ -3859,6 +3859,9 @@ FORMAT-ARGS is non-nil, PROMPT is used as a format control
 string, and FORMAT-ARGS are the arguments to be substituted into
 it.  See `format' for details.
 
+If DEFAULT is a list, the first element is used as the default.
+If not, the element is used as is.
+
 If DEFAULT is nil, no \"default value\" string is included in the
 return value."
   (concat
@@ -3866,7 +3869,10 @@ return value."
        prompt
      (apply #'format prompt format-args))
    (and default
-        (format minibuffer-default-prompt-format default))
+        (format minibuffer-default-prompt-format
+                (if (consp default)
+                    (car default)
+                  default)))
    ": "))
 
 (provide 'minibuffer)
