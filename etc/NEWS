@@ -953,9 +953,9 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
-*** 'icomplete-show-matches-on-no-input' behavior change
+*** 'icomplete-show-matches-on-no-input' behavior change.
 Previously, choosing a different completion with commands like 'C-.'
-and then hitting enter would choose the default completion.  Doing
+and then hitting  'RET' would choose the default completion.  Doing
 this will now choose the completion under point.
 
 +++
@@ -1084,10 +1084,19 @@ The old names are now obsolete.
 ** D-Bus
 
 +++
+*** Property values can be typed explicitly.
+'dbus-register-property' and 'dbus-set-property' accept now optional
+type symbols.
+
++++
 *** Registered properties can have the new access type ':write'.
 
 +++
 *** In case of problems, handlers can emit proper D-Bus error messages now.
+
+---
+*** D-Bus errors, which have been converted from incoming D-Bus error
+messages, contain the error name of that message now.
 
 
 * New Modes and Packages in Emacs 28.1
