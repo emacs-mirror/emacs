@@ -122,7 +122,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 /*fprintf (stderr, "ns_update_menubar: frame: %p\tdeep: %d\tsub: %p\n", f, deep_p, submenu); */
 
   block_input ();
-  pool = [[NSAutoreleasePool alloc] init];
 
   /* Menu may have been created automatically; if so, discard it.  */
   if ([menu isKindOfClass: [EmacsMenu class]] == NO)
@@ -240,7 +239,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
                   [[submenu title] UTF8String]);
 	  discard_menu_items ();
 	  unbind_to (specpdl_count, Qnil);
-          [pool release];
           unblock_input ();
 	  return;
         }
@@ -298,7 +296,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
               free_menubar_widget_value_tree (first_wv);
               discard_menu_items ();
               unbind_to (specpdl_count, Qnil);
-              [pool release];
               unblock_input ();
               return;
             }
@@ -364,7 +361,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
       if (NILP (items))
         {
           free_menubar_widget_value_tree (first_wv);
-          [pool release];
           unblock_input ();
           return;
         }
@@ -395,7 +391,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
           if (i == n)
             {
               free_menubar_widget_value_tree (first_wv);
-              [pool release];
               unblock_input ();
               return;
             }
@@ -454,7 +449,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   if (needsSet)
     [NSApp setMainMenu: menu];
 
-  [pool release];
   unblock_input ();
 
 }
