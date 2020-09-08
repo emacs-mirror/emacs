@@ -1252,7 +1252,7 @@ The following usages are expected:
 
 `dbus-method-error-internal':
   (dbus-message-internal
-    dbus-message-type-error BUS SERVICE SERIAL &rest ARGS)
+    dbus-message-type-error BUS SERVICE SERIAL ERROR-NAME &rest ARGS)
 
 usage: (dbus-message-internal &rest REST)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -1572,10 +1572,9 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       EVENT_INIT (event);
       event.kind = DBUS_EVENT;
       event.frame_or_window = Qnil;
-      event.arg =
-	Fcons (value,
-	       (mtype == DBUS_MESSAGE_TYPE_ERROR)
-	       ? (Fcons (build_string (error_name), args)) : args);
+      event.arg = Fcons (value,
+			 (mtype == DBUS_MESSAGE_TYPE_ERROR)
+			 ? (Fcons (build_string (error_name), args)) : args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1748,7 +1747,8 @@ syms_of_dbusbind (void)
   DEFSYM (QCstruct, ":struct");
   DEFSYM (QCdict_entry, ":dict-entry");
 
-  /* Lisp symbols of objects in `dbus-registered-objects-table'.  */
+  /* Lisp symbols of objects in `dbus-registered-objects-table'.
+     `:property', which does exist there as well, is not used here.  */
   DEFSYM (QCserial, ":serial");
   DEFSYM (QCmethod, ":method");
   DEFSYM (QCsignal, ":signal");
@@ -1826,8 +1826,8 @@ registered methods and properties, UNAME is nil.  PATH is the object
 path of the sending object.  All of them can be nil, which means a
 wildcard then.  OBJECT is either the handler to be called when a D-Bus
 message, which matches the key criteria, arrives (TYPE `:method' and
-`:signal'), or a cons cell containing the value of the property (TYPE
-`:property').
+`:signal'), or a list containing the value of the property and its
+attributes (TYPE `:property').
 
 For entries of type `:signal', there is also a fifth element RULE,
 which keeps the match string the signal is registered with.

@@ -168,6 +168,19 @@ See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
   (concat dbus-error-dbus ".PropertyReadOnly")
   "Property you tried to set is read-only.")
 
+(defconst dbus-error-unknown-interface
+  (concat dbus-error-dbus ".UnknownInterface")
+  "Interface you invoked a method on isn't known by the object.")
+
+(defconst dbus-error-unknown-method (concat dbus-error-dbus ".UnknownMethod")
+  "Method name you invoked isn't known by the object you invoked it on.")
+
+(defconst dbus-error-unknown-object (concat dbus-error-dbus ".UnknownObject")
+  "Object you invoked a method on isn't known.")
+
+(defconst dbus-error-unknown-property (concat dbus-error-dbus ".UnknownProperty")
+  "Property you tried to access isn't known by the object.")
+
 
 ;;; Emacs defaults.
 (defconst dbus-service-emacs "org.gnu.Emacs"
@@ -1184,7 +1197,8 @@ check whether SERVICE is already running, you can instead write
   "Default handler for the \"org.freedesktop.DBus.Peer\" interface.
 It will be registered for all objects created by `dbus-register-service'."
   (let* ((last-input-event last-input-event)
-	 (method (dbus-event-member-name last-input-event)))
+	 (method (dbus-event-member-name last-input-event))
+	 (path (dbus-event-path-name last-input-event)))
     (cond
      ;; "Ping" does not return an output parameter.
      ((string-equal method "Ping")
@@ -1194,7 +1208,11 @@ It will be registered for all objects created by `dbus-register-service'."
       (signal
        'dbus-error
        (list
-	(format "%s.GetMachineId not implemented" dbus-interface-peer)))))))
+	(format "%s.GetMachineId not implemented" dbus-interface-peer))))
+     (t `(:error ,dbus-error-unknown-method
+          ,(format-message
+            "No such method \"%s.%s\" at path \"%s\""
+            dbus-interface-peer method path))))))
 
 
 ;;; D-Bus introspection.
@@ -1386,37 +1404,38 @@ string and a member of the list returned by
 
 (defun dbus-introspect-get-signature
   (bus service path interface name &optional direction)
-  "Return signature of a `method' or `signal' represented by NAME as a string.
+  "Return signature of a `method', `property' or `signal' represented by NAME.
 If NAME is a `method', DIRECTION can be either \"in\" or \"out\".
 If DIRECTION is nil, \"in\" is assumed.
 
-If NAME is a `signal', and DIRECTION is non-nil, DIRECTION must
-be \"out\"."
+If NAME is a `signal' or a `property', DIRECTION is ignored."
   ;; For methods, we use "in" as default direction.
   (let ((object (or (dbus-introspect-get-method
 		     bus service path interface name)
 		    (dbus-introspect-get-signal
+		     bus service path interface name)
+		    (dbus-introspect-get-property
 		     bus service path interface name))))
-    (when (and (string-equal
-		"method" (dbus-introspect-get-attribute object "name"))
-	       (not (stringp direction)))
+    (when (and (eq 'method (car object)) (not (stringp direction)))
       (setq direction "in"))
     ;; In signals, no direction is given.
-    (when (string-equal "signal" (dbus-introspect-get-attribute object "name"))
+    (when (eq 'signal (car object))
       (setq direction nil))
     ;; Collect the signatures.
-    (mapconcat
-     (lambda (x)
-       (let ((arg (dbus-introspect-get-argument
-                   bus service path interface name x)))
-         (if (or (not (stringp direction))
-                 (string-equal
-                  direction
-                  (dbus-introspect-get-attribute arg "direction")))
-             (dbus-introspect-get-attribute arg "type")
-           "")))
-     (dbus-introspect-get-argument-names bus service path interface name)
-     "")))
+    (if (eq 'property (car object))
+        (dbus-introspect-get-attribute object "type")
+      (mapconcat
+       (lambda (x)
+         (let ((arg (dbus-introspect-get-argument
+                     bus service path interface name x)))
+           (if (or (not (stringp direction))
+                   (string-equal
+                    direction
+                    (dbus-introspect-get-attribute arg "direction")))
+               (dbus-introspect-get-attribute arg "type")
+             "")))
+       (dbus-introspect-get-argument-names bus service path interface name)
+       ""))))
 
 
 ;;; D-Bus properties.
@@ -1432,20 +1451,23 @@ valid D-Bus value, or nil if there is no PROPERTY, or PROPERTY cannot be read."
      bus service path dbus-interface-properties
      "Get" :timeout 500 interface property))))
 
-(defun dbus-set-property (bus service path interface property value)
+(defun dbus-set-property (bus service path interface property &rest args)
   "Set value of PROPERTY of INTERFACE to VALUE.
-It will be checked at BUS, SERVICE, PATH.  When the value is
-successfully set return VALUE.  Otherwise, return nil."
+It will be checked at BUS, SERVICE, PATH.  VALUE can be preceded
+by a TYPE symbol.  When the value is successfully set return
+VALUE.  Otherwise, return nil.
+
+\(dbus-set-property BUS SERVICE PATH INTERFACE PROPERTY [TYPE] VALUE)"
   (dbus-ignore-errors
    ;; "Set" requires a variant.
    (dbus-call-method
     bus service path dbus-interface-properties
-    "Set" :timeout 500 interface property (list :variant value))
+    "Set" :timeout 500 interface property (cons :variant args))
    ;; Return VALUE.  The property could have the `:write' access type,
    ;; so we ignore errors in `dbus-get-property'.
-   (or
-    (dbus-ignore-errors (dbus-get-property bus service path interface property))
-    value)))
+   (dbus-ignore-errors
+     (or (dbus-get-property bus service path interface property)
+         (if (symbolp (car args)) (cadr args) (car args))))))
 
 (defun dbus-get-all-properties (bus service path interface)
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.
@@ -1481,8 +1503,7 @@ Filter out matching PATH."
             dbus-registered-objects-table)))
 
 (defun dbus-register-property
-  (bus service path interface property access value
-   &optional emits-signal dont-register-service)
+    (bus service path interface property access &rest args)
   "Register PROPERTY on the D-Bus BUS.
 
 BUS is either a Lisp symbol, `:system' or `:session', or a string
@@ -1496,9 +1517,11 @@ discussion of DONT-REGISTER-SERVICE below).  INTERFACE is the
 name of the interface used at PATH, PROPERTY is the name of the
 property of INTERFACE.  ACCESS indicates, whether the property
 can be changed by other services via D-Bus.  It must be either
-the symbol `:read', `:write' or `:readwrite'.  VALUE is the
-initial value of the property, it can be of any valid type (see
-`dbus-call-method' for details).
+the symbol `:read', `:write' or `:readwrite'.
+
+VALUE is the initial value of the property, it can be of any
+valid type (see `dbus-call-method' for details).  VALUE can be
+preceded by a TYPE symbol.
 
 If PROPERTY already exists on PATH, it will be overwritten.  For
 properties with access type `:read' this is the only way to
@@ -1516,52 +1539,72 @@ not registered.  This means that other D-Bus clients have no way
 of noticing the newly registered property.  When interfaces are
 constructed incrementally by adding single methods or properties
 at a time, DONT-REGISTER-SERVICE can be used to prevent other
-clients from discovering the still incomplete interface."
-  (unless (member access '(:read :write :readwrite))
-    (signal 'wrong-type-argument (list "Access type invalid" access)))
+clients from discovering the still incomplete interface.
 
-  ;; Add handlers for the three property-related methods.
-  (dbus-register-method
-   bus service path dbus-interface-properties "Get"
-   #'dbus-property-handler 'dont-register)
-  (dbus-register-method
-   bus service path dbus-interface-properties "GetAll"
-   #'dbus-property-handler 'dont-register)
-  (dbus-register-method
-   bus service path dbus-interface-properties "Set"
-   #'dbus-property-handler 'dont-register)
+\(dbus-register-property BUS SERVICE PATH INTERFACE PROPERTY ACCESS \
+[TYPE] VALUE &optional EMITS-SIGNAL DONT-REGISTER-SERVICE)"
+  (let ((type (when (symbolp (car args)) (pop args)))
+        (value (pop args))
+        (emits-signal (pop args))
+        (dont-register-service (pop args)))
+    (unless (member access '(:read :write :readwrite))
+      (signal 'wrong-type-argument (list "Access type invalid" access)))
+    (unless type
+      (setq type
+            (cond
+             ((memq value '(t nil)) :boolean)
+             ((natnump value) :uint32)
+             ((fixnump value) :int32)
+             ((floatp value) :double)
+             ((stringp value) :string)
+             (t
+              (signal 'wrong-type-argument (list "Value type invalid" value))))))
 
-  ;; Register SERVICE.
-  (unless (or dont-register-service (member service (dbus-list-names bus)))
-    (dbus-register-service bus service))
+    ;; Add handlers for the three property-related methods.
+    (dbus-register-method
+     bus service path dbus-interface-properties "Get"
+     #'dbus-property-handler 'dont-register)
+    (dbus-register-method
+     bus service path dbus-interface-properties "GetAll"
+     #'dbus-property-handler 'dont-register)
+    (dbus-register-method
+     bus service path dbus-interface-properties "Set"
+     #'dbus-property-handler 'dont-register)
 
-  ;; Send the PropertiesChanged signal.
-  (when emits-signal
-    (dbus-send-signal
-     bus service path dbus-interface-properties "PropertiesChanged"
-     (if (member access '(:read :readwrite))
-         `(:array (:dict-entry ,property (:variant ,value)))
-       '(:array: :signature "{sv}"))
-     (if (eq access :write)
-         `(:array ,property)
-       '(:array))))
+    ;; Register SERVICE.
+    (unless (or dont-register-service (member service (dbus-list-names bus)))
+      (dbus-register-service bus service))
 
-  ;; Create a hash table entry.  We use nil for the unique name,
-  ;; because the property might be accessed from anybody.
-  (let ((key (list :property bus interface property))
-	(val
-         (cons
-	  (list
-	   nil service path
-	   (cons
-	    (if emits-signal (list access :emits-signal) (list access))
-	    value))
-          (dbus-get-other-registered-properties
-           bus service path interface property))))
-    (puthash key val dbus-registered-objects-table)
+    ;; Send the PropertiesChanged signal.
+    (when emits-signal
+      (dbus-send-signal
+       bus service path dbus-interface-properties "PropertiesChanged"
+       (if (member access '(:read :readwrite))
+           `(:array
+             (:dict-entry
+              ,property
+              ,(if type (list :variant type value) (list :variant value))))
+         '(:array: :signature "{sv}"))
+       (if (eq access :write)
+           `(:array ,property)
+         '(:array))))
 
-    ;; Return the object.
-    (list key (list service path))))
+    ;; Create a hash table entry.  We use nil for the unique name,
+    ;; because the property might be accessed from anybody.
+    (let ((key (list :property bus interface property))
+	  (val
+           (cons
+	    (list
+	     nil service path
+	     (cons
+	      (if emits-signal (list access :emits-signal) (list access))
+	      (if type (list type value) (list value))))
+            (dbus-get-other-registered-properties
+             bus service path interface property))))
+      (puthash key val dbus-registered-objects-table)
+
+      ;; Return the object.
+      (list key (list service path)))))
 
 (defun dbus-property-handler (&rest args)
   "Default handler for the \"org.freedesktop.DBus.Properties\" interface.
@@ -1580,7 +1623,7 @@ It will be registered for all objects created by `dbus-register-property'."
              (object (car (last (car entry)))))
         (cond
          ((not (consp object))
-          `(:error ,dbus-error-invalid-args
+          `(:error ,dbus-error-unknown-property
             ,(format-message
               "No such property \"%s\" at path \"%s\"" property path)))
          ((memq :write (car object))
@@ -1588,7 +1631,7 @@ It will be registered for all objects created by `dbus-register-property'."
             ,(format-message
               "Property \"%s\" at path \"%s\" is not readable" property path)))
 	 ;; Return the result.
-         (t `((:variant ,(cdar (last (car entry)))))))))
+         (t (list :variant (cdar (last (car entry))))))))
 
      ;; "Set" expects a variant.
      ((string-equal method "Set")
@@ -1598,7 +1641,7 @@ It will be registered for all objects created by `dbus-register-property'."
 	     (object (car (last (car entry)))))
         (cond
          ((not (consp object))
-          `(:error ,dbus-error-invalid-args
+          `(:error ,dbus-error-unknown-property
             ,(format-message
               "No such property \"%s\" at path \"%s\"" property path)))
          ((memq :read (car object))
@@ -1606,8 +1649,10 @@ It will be registered for all objects created by `dbus-register-property'."
             ,(format-message
               "Property \"%s\" at path \"%s\" is not writable" property path)))
          (t (puthash (list :property bus interface property)
-		     (cons (append (butlast (car entry))
-			           (list (cons (car object) value)))
+		     (cons (append
+                            (butlast (car entry))
+                            ;; Reuse ACCESS und TYPE from registration.
+			    (list (list (car object) (cadr object) value)))
                            (dbus-get-other-registered-properties
                             bus service path interface property))
 		     dbus-registered-objects-table)
@@ -1639,11 +1684,16 @@ It will be registered for all objects created by `dbus-register-property'."
 	         (push
 	          (list :dict-entry
 		        (car (last key))
-		        (list :variant (cdar (last item))))
+		        (cons :variant (cdar (last item))))
                   result)))))
 	 dbus-registered-objects-table)
 	;; Return the result, or an empty array.
-	(list :array (or result '(:signature "{sv}"))))))))
+	(list :array (or result '(:signature "{sv}")))))
+
+     (t `(:error ,dbus-error-unknown-method
+          ,(format-message
+            "No such method \"%s.%s\" at path \"%s\""
+            dbus-interface-properties method path))))))
 
 
 ;;; D-Bus object manager.
@@ -1848,6 +1898,8 @@ this connection to those buses."
 
 ;; * Implement org.freedesktop.DBus.ObjectManager.InterfacesAdded and
 ;;   org.freedesktop.DBus.ObjectManager.InterfacesRemoved.
+;;
+;; * Cache introspection data.
 ;;
 ;; * Run handlers in own threads.
 
