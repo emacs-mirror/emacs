@@ -53,16 +53,7 @@ If `complete', TAB first tries to indent the current line, and if the line
 was already indented, then try to complete the thing at point.
 
 Some programming language modes have their own variable to control this,
-e.g., `c-tab-always-indent', and do not respect this variable.
-
-If you want the TAB key to always insert a literal TAB character,
-this can't be controlled by setting this variable.  Instead you
-could say something like:
-
-\(setq overriding-terminal-local-map
-      (let ((map (make-sparse-keymap)))
-        (define-key map [?\t] 'self-insert-command)
-        map))"
+e.g., `c-tab-always-indent', and do not respect this variable."
   :group 'indent
   :type '(choice
 	  (const :tag "Always indent" t)
