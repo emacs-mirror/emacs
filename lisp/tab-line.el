@@ -693,8 +693,8 @@ Its effect is the same as using the `next-buffer' command
 (defcustom tab-line-switch-cycling nil
   "Enable cycling tab switch.
 If non-nil, `tab-line-switch-to-prev-tab' in the first tab
-switches to the last tab and `tab-line-switch-to-next-tab' in the last
-tab swithces to the first tab."
+switches to the last tab and `tab-line-switch-to-next-tab' in the
+last tab switches to the first tab."
   :type 'boolean
   :group 'tab-line
   :version "28.1")
