@@ -508,6 +508,7 @@ Message buffer where you can explain more about the patch."
   (insert "\n\n\n")
   (emacs-bug--system-description)
   (mml-attach-file file "text/patch" nil "attachment")
+  (message-add-header "X-Debbugs-Tags: patch")
   (message-goto-body)
   (message "Write a description of the patch and use `C-c C-c' to send it")
   (message-add-action
