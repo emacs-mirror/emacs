@@ -658,7 +658,10 @@ Its effect is the same as using the `previous-buffer' command
                        (if (bufferp tab)
                            (eq buffer tab)
                          (eq buffer (cdr (assq 'buffer tab)))))))
-               (tab (if pos (nth (1- pos) tabs)))
+               (tab (if pos
+                        (if (and tab-line-switch-cycling (<= pos 0))
+                            (nth (1- (length tabs)) tabs)
+                          (nth (1- pos) tabs))))
                (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
           (when (bufferp buffer)
             (switch-to-buffer buffer)))))))
@@ -679,10 +682,22 @@ Its effect is the same as using the `next-buffer' command
                        (if (bufferp tab)
                            (eq buffer tab)
                          (eq buffer (cdr (assq 'buffer tab)))))))
-               (tab (if pos (nth (1+ pos) tabs)))
+               (tab (if pos
+                        (if (and tab-line-switch-cycling (<= (length tabs) (1+ pos)))
+                            (car tabs)
+                          (nth (1+ pos) tabs))))
                (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
           (when (bufferp buffer)
             (switch-to-buffer buffer)))))))
+
+(defcustom tab-line-switch-cycling nil
+  "Enable cycling tab switch.
+If non-nil, `tab-line-switch-to-prev-tab' in the first tab
+switches to the last tab and `tab-line-switch-to-next-tab' in the last
+tab swithces to the first tab."
+  :type 'boolean
+  :group 'tab-line
+  :version "28.1")
 
 
 (defcustom tab-line-close-tab-function 'bury-buffer
