@@ -585,7 +585,7 @@ This regexp must match both `tramp-initial-end-of-output' and
 The regexp should match at end of buffer.
 
 This variable is, by default, initialised from
-`password-word-equivalents' when tramp is loaded, and it is
+`password-word-equivalents' when Tramp is loaded, and it is
 usually more convenient to add new passphrases to that variable
 instead of altering this variable.
 

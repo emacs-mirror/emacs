@@ -2280,6 +2280,12 @@ example below:
 @end group
 @end lisp
 
+@vindex password-word-equivalents
+This variable is, by default, initialised from
+@code{password-word-equivalents} when @value{tramp} is loaded, and it
+is usually more convenient to add new passphrases to that variable
+instead of altering this variable.
+
 Similar localization may be necessary for handling wrong password
 prompts, for which @value{tramp} uses @code{tramp-wrong-passwd-regexp}.
 
