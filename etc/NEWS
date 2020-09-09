@@ -959,6 +959,11 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
+*** New command 'submit-emacs-patch'
+This works along the lines of 'report-emacs-bug', but is more geared
+towards sending a patch to the Emacs issue tracker.
+
++++
 *** New minor mode 'button-mode'.
 This minor mode does nothing else than install 'button-buffer-map' as
 a minor mode map (which binds the TAB/S-TAB key bindings to navigate

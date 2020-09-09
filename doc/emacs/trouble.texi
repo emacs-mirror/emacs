@@ -721,18 +721,24 @@ will be sent to the Emacs maintainers at
 @ifhtml
 @url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}.
 @end ifhtml
-(If you want to suggest an improvement or new feature, use the same
-address.)  If you cannot send mail from inside Emacs, you can copy the
+If you cannot send mail from inside Emacs, you can copy the
 text of your report to your normal mail client (if your system
 supports it, you can type @kbd{C-c M-i} to have Emacs do this for you)
 and send it to that address.  Or you can simply send an email to that
 address describing the problem.
 
-Your report will be sent to the @samp{bug-gnu-emacs} mailing list, and
-stored in the GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Please
-include a valid reply email address, in case we need to ask you for
-more information about your report.  Submissions are moderated, so
-there may be a delay before your report appears.
+If you want to submit code to Emacs (to fix a problem or implement a
+new feature), the easiest way to do this is to send a patch to the
+Emacs issue tracker.  This is done with the @kbd{M-x
+submit-emacs-patch} command, and works much the same as when reporting
+bugs.
+
+In any case, your report will be sent to the @samp{bug-gnu-emacs}
+mailing list, and stored in the GNU Bug Tracker at
+@url{https://debbugs.gnu.org}.  Please include a valid reply email
+address, in case we need to ask you for more information about your
+report.  Submissions are moderated, so there may be a delay before
+your report appears.
 
 You do not need to know how the GNU Bug Tracker works in order to
 report a bug, but if you want to, you can read the tracker's online
