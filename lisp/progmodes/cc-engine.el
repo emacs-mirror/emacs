@@ -9102,7 +9102,7 @@ This function might do hidden buffer changes."
   (let
       ((cdd-pos (point)) cdd-next-pos cdd-id-start cdd-id-end
        cdd-decl-res cdd-got-func cdd-got-type cdd-got-init
-       c-last-identifier-range cdd-exhausted)
+       c-last-identifier-range cdd-exhausted cdd-after-block)
 
     ;; The following `while' applies `cdd-function' to a single declarator id
     ;; each time round.  It loops only when CDD-LIST is non-nil.
@@ -9155,23 +9155,25 @@ This function might do hidden buffer changes."
 		 (c-forward-syntactic-ws cdd-limit)
 	       (setq cdd-exhausted t)))	; unbalanced parens
 
-	    (cdd-got-init	; "=" sign OR opening "(", "[", or "{"
-	     ;; Skip an initializer expression.  If we're at a '='
-	     ;; then accept a brace list directly after it to cope
-	     ;; with array initializers.  Otherwise stop at braces
-	     ;; to avoid going past full function and class blocks.
-	     (if (and (if (and (eq cdd-got-init ?=)
-			       (= (c-forward-token-2 1 nil cdd-limit) 0)
-			       (looking-at "{"))
-			  (c-go-list-forward (point) cdd-limit)
-			t)
-		      ;; FIXME: Should look for c-decl-end markers here;
-		      ;; we might go far into the following declarations
-		      ;; in e.g. ObjC mode (see e.g. methods-4.m).
-		      (c-syntactic-re-search-forward "[;,{]" cdd-limit 'move t))
+	    (cdd-got-init		; "=" sign OR opening "(", "[", or "("
+	     ;; Skip an initializer expression in braces, whether or not (in
+	     ;; C++ Mode) preceded by an "=".  Be careful that the brace list
+	     ;; isn't a code block or a struct (etc.) block.
+	     (cond
+	      ((and (eq cdd-got-init ?=)
+		    (zerop (c-forward-token-2 1 nil  cdd-limit))
+		    (eq (char-after) ?{)
+		    (c-go-list-forward (point) cdd-limit)))
+	      ((and (eq cdd-got-init ?{)
+		    c-recognize-bare-brace-inits
+		    (setq cdd-after-block
+			  (save-excursion
+			    (c-go-list-forward (point) cdd-limit)))
+		    (not (c-looking-at-statement-block)))
+	       (goto-char cdd-after-block)))
+	     (if (c-syntactic-re-search-forward "[;,{]" cdd-limit 'move t)
 		 (backward-char)
-	       (setq cdd-exhausted t)
-	       ))
+	       (setq cdd-exhausted t)))
 
 	    (t (c-forward-syntactic-ws cdd-limit)))
 
@@ -11749,7 +11751,22 @@ comment at the start of cc-engine.el for more info."
 			   (save-excursion (c-backward-syntactic-ws) (point))
 			   nil nil))
 		    (and (consp res)
-			 (eq (car res) after-type-id-pos))))))
+			 (cond
+			  ((eq (car res) after-type-id-pos))
+			  ((> (car res) after-type-id-pos) nil)
+			  (t
+			   (catch 'find-decl
+			     (save-excursion
+			       (goto-char (car res))
+			       (c-do-declarators
+				(point-max) t nil nil
+				(lambda (id-start id-end tok not-top func init)
+				  (cond
+				   ((> id-start after-type-id-pos)
+				    (throw 'find-decl nil))
+				   ((eq id-start after-type-id-pos)
+				    (throw 'find-decl t)))))
+			       nil)))))))))
 	  (cons bufpos (or in-paren inexpr-brace-list)))
 	 ((or (eq (char-after) ?\;)
 	      ;; Brace lists can't contain a semicolon, so we're done.
