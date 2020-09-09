@@ -1541,8 +1541,8 @@ The following man commands are available in the buffer.  Try
 
 \\[man]       Prompt to retrieve a new manpage.
 \\[Man-follow-manual-reference]       Retrieve reference in SEE ALSO section.
-\\[Man-next-manpage]   Jump to next manpage in circular list.
-\\[Man-previous-manpage]   Jump to previous manpage in circular list.
+\\[Man-next-manpage]     Jump to next manpage in circular list.
+\\[Man-previous-manpage]     Jump to previous manpage in circular list.
 \\[Man-next-section]       Jump to next manpage section.
 \\[Man-previous-section]       Jump to previous manpage section.
 \\[Man-goto-section]       Go to a manpage section.
