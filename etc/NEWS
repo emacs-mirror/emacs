@@ -958,6 +958,13 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
++++
+*** New minor mode 'button-mode'.
+This minor mode does nothing else than install 'button-buffer-map' as
+a minor mode map (which binds the TAB/S-TAB key bindings to navigate
+to buttons), and can be used in any view-mode-like buffer that has
+buttons in it.
+
 ---
 *** 'icomplete-show-matches-on-no-input' behavior change.
 Previously, choosing a different completion with commands like 'C-.'

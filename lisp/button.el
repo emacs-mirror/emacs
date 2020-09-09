@@ -78,6 +78,10 @@
   "Keymap useful for buffers containing buttons.
 Mode-specific keymaps may want to use this as their parent keymap.")
 
+(define-minor-mode button-mode
+  "A minor mode for navigating to buttons with the TAB key."
+  :keymap button-buffer-map)
+
 ;; Default properties for buttons.
 (put 'default-button 'face 'button)
 (put 'default-button 'mouse-face 'highlight)
