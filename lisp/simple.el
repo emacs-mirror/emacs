@@ -1881,22 +1881,17 @@ to get different commands to edit and resubmit."
 	   '(metadata
 	     (annotation-function . read-extended-command--annotation)
 	     (category . command))
-         (let ((pred
-                (if (memq action '(nil t))
-                    ;; Exclude obsolete commands from completions.
-                    (lambda (sym)
-                      (and (funcall pred sym)
-                           (or (equal string (symbol-name sym))
-                               (not (get sym 'byte-obsolete-info)))))
-                  pred)))
-           (complete-with-action action obarray string pred))))
+         (complete-with-action action obarray string pred)))
      #'commandp t nil 'extended-command-history)))
 
 (defun read-extended-command--annotation (command-name)
-  (let* ((function (and (stringp command-name) (intern-soft command-name)))
-         (binding (where-is-internal function overriding-local-map t)))
-    (when (and binding (not (stringp binding)))
-      (format " (%s)" (key-description binding)))))
+  (let* ((fun (and (stringp command-name) (intern-soft command-name)))
+         (binding (where-is-internal fun overriding-local-map t))
+         (obsolete (get fun 'byte-obsolete-info)))
+    (cond (obsolete
+           (format " (%s)" (car obsolete)))
+          ((and binding (not (stringp binding)))
+           (format " (%s)" (key-description binding))))))
 
 (defcustom suggest-key-bindings t
   "Non-nil means show the equivalent key-binding when M-x command has one.
