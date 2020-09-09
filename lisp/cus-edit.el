@@ -408,10 +408,6 @@ Use group `text' for this instead.  This group is deprecated."
   "Input from the menus."
   :group 'environment)
 
-(defgroup dnd nil
-  "Handling data from drag and drop."
-  :group 'environment)
-
 (defgroup auto-save nil
   "Preventing accidental loss of data."
   :group 'files)

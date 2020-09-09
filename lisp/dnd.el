@@ -1,4 +1,4 @@
-;;; dnd.el --- drag and drop support
+;;; dnd.el --- drag and drop support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
@@ -33,6 +33,9 @@
 
 ;;; Customizable variables
 
+(defgroup dnd nil
+  "Handling data from drag and drop."
+  :group 'environment)
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
@@ -54,14 +57,13 @@ If no match is found, the URL is inserted as text by calling `dnd-insert-text'.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
   :version "22.1"
-  :type '(repeat (cons (regexp) (function)))
-  :group 'dnd)
+  :type '(repeat (cons (regexp) (function))))
 
 
 (defcustom dnd-open-remote-file-function
   (if (eq system-type 'windows-nt)
-      'dnd-open-local-file
-    'dnd-open-remote-url)
+      #'dnd-open-local-file
+    #'dnd-open-remote-url)
   "The function to call when opening a file on a remote machine.
 The function will be called with two arguments, URI and ACTION.
 See `dnd-open-file' for details.
@@ -71,15 +73,13 @@ Predefined functions are `dnd-open-local-file' and `dnd-open-remote-url'.
 is the default on MS-Windows.  `dnd-open-remote-url' uses `url-handler-mode'
 and is the default except for MS-Windows."
   :version "22.1"
-  :type 'function
-  :group 'dnd)
+  :type 'function)
 
 
 (defcustom dnd-open-file-other-window nil
   "If non-nil, always use find-file-other-window to open dropped files."
   :version "22.1"
-  :type 'boolean
-  :group 'dnd)
+  :type 'boolean)
 
 
 ;; Functions
@@ -133,7 +133,8 @@ Return nil if URI is not a local file."
 		     (string-equal sysname-no-dot hostname)))
 	(concat "file://" (substring uri (+ 7 (length hostname))))))))
 
-(defsubst dnd-unescape-uri (uri)
+(defun dnd--unescape-uri (uri)
+  ;; Merge with corresponding code in URL library.
   (replace-regexp-in-string
    "%[[:xdigit:]][[:xdigit:]]"
    (lambda (arg)
@@ -157,7 +158,7 @@ Return nil if URI is not a local file."
 		    'utf-8
 		  (or file-name-coding-system
 		      default-file-name-coding-system))))
-    (and f (setq f (decode-coding-string (dnd-unescape-uri f) coding)))
+    (and f (setq f (decode-coding-string (dnd--unescape-uri f) coding)))
     (when (and f must-exist (not (file-readable-p f)))
       (setq f nil))
     f))
