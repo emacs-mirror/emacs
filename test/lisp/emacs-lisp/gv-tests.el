@@ -156,6 +156,46 @@ its getter (Bug#41853)."
       (eval-buffer)))
   (should (equal (get 'gv-setter-edebug 'gv-setter-edebug-prop) '(123))))
 
+(ert-deftest gv-plist-get ()
+  (require 'cl-lib)
+
+  ;; Simple setf usage for plist-get.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (setf (plist-get target :b) "modify")
+                   target)
+                 '(:a "a" :b "modify" :c "c")))
+
+  ;; Other function (cl-rotatef) usage for plist-get.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (cl-rotatef (plist-get target :b) (plist-get target :c))
+                   target)
+                 '(:a "a" :b "c" :c "b")))
+
+  ;; Add new key value pair at top of list if setf for missing key.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (setf (plist-get target :d) "modify")
+                   target)
+                 '(:d "modify" :a "a" :b "b" :c "c")))
+
+  ;; Rotate with missing value.
+  ;; The value corresponding to the missing key is assumed to be nil.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (cl-rotatef (plist-get target :b) (plist-get target :d))
+                   target)
+                 '(:d "b" :a "a" :b nil :c "c")))
+
+  ;; Simple setf usage for plist-get. (symbol plist)
+  (should (equal (let ((target '(a "a" b "b" c "c")))
+                   (setf (plist-get target 'b) "modify")
+                   target)
+                 '(a "a" b "modify" c "c")))
+
+  ;; Other function (cl-rotatef) usage for plist-get. (symbol plist)
+  (should (equal (let ((target '(a "a" b "b" c "c")))
+                   (cl-rotatef (plist-get target 'b) (plist-get target 'c))
+                   target)
+                 '(a "a" b "c" c "b"))))
+
 ;; `ert-deftest' messes up macroexpansion when the test file itself is
 ;; compiled (see Bug #24402).
 
