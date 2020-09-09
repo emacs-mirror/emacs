@@ -59,7 +59,7 @@ another.  An overview of D-Bus can be found at
 * Type Conversion::             Mapping Lisp types and D-Bus types.
 * Synchronous Methods::         Calling methods in a blocking way.
 * Asynchronous Methods::        Calling methods non-blocking.
-* Receiving Method Calls::      Offering own methods.
+* Register Objects::            Offering own services.
 * Signals::                     Sending and receiving signals.
 * Alternative Buses::           Alternative buses and environments.
 * Errors and Events::           Errors and events.
@@ -1341,10 +1341,14 @@ message arrives, and @var{handler} is called.  Example:
 @end defun
 
 
-@node Receiving Method Calls
-@chapter Offering own methods.
+@node Register Objects
+@chapter Offering own services.
 @cindex method calls, returning
 @cindex returning method calls
+
+You can offer an own service in D-Bus, which will be visible by other
+D-Bus clients.  See @uref{https://dbus.freedesktop.org/doc/dbus-api-design.html}
+for a discussion of the design.
 
 In order to register methods on the D-Bus, Emacs has to request a well
 known name on the D-Bus under which it will be available for other

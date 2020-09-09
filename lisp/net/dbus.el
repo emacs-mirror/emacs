@@ -1780,7 +1780,7 @@ It will be registered for all objects created by `dbus-register-service'."
       ;; Check for object path wildcard interfaces.
       (maphash
        (lambda (key val)
-	 (when (and (equal (butlast key 2) (list :method bus))
+	 (when (and (equal (butlast key 2) (list :property bus))
 		    (null (nth 2 (car-safe val))))
 	   (push (nth 2 key) interfaces)))
        dbus-registered-objects-table)
@@ -1789,7 +1789,7 @@ It will be registered for all objects created by `dbus-register-service'."
       (maphash
        (lambda (key val)
 	 (let ((object (or (nth 2 (car-safe val)) "")))
-	   (when (and (equal (butlast key 2) (list :method bus))
+	   (when (and (equal (butlast key 2) (list :property bus))
 		      (string-prefix-p path object))
 	     (dolist (interface (cons (nth 2 key) interfaces))
 	       (unless (assoc object result)

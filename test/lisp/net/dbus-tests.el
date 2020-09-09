@@ -348,17 +348,18 @@ This includes initialization and closing the bus."
                 dbus--test-interface)))
           (should (string-equal (cdr (assoc property1 result)) "foo"))
           (should (string-equal (cdr (assoc property3 result)) "/baz/baz"))
-          (should-not (assoc property2 result))))
+          (should-not (assoc property2 result)))
 
-        ;; FIXME: This is wrong! The properties are missing.
-        ;; (should
-        ;;  (equal
-        ;;   (dbus-get-all-managed-objects
-        ;;    :session dbus--test-service dbus--test-path)
-        ;;   `((,dbus--test-path
-        ;;      ((,dbus-interface-peer)
-        ;;       (,dbus-interface-objectmanager)
-        ;;       (,dbus-interface-properties)))))))
+        ;; `dbus-get-all-managed-objects'.  We cannot retrieve a value for
+        ;; the property with `:write' access type.
+        (let ((result
+               (dbus-get-all-managed-objects
+                :session dbus--test-service dbus--test-path)))
+          (should (setq result (cadr (assoc dbus--test-path result))))
+          (should (setq result (cadr (assoc dbus--test-interface result))))
+          (should (string-equal (cdr (assoc property1 result)) "foo"))
+          (should (string-equal (cdr (assoc property3 result)) "/baz/baz"))
+          (should-not (assoc property2 result))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
@@ -488,13 +489,33 @@ This includes initialization and closing the bus."
           (should (string-equal (cdr (assoc property1 result)) "foofoo"))
           (should (string-equal (cdr (assoc property2 result)) "barbar"))
           (should-not (assoc property3 result)))
+
         (let ((result
                (dbus-get-all-properties
                 :session dbus--test-service
                 (concat dbus--test-path dbus--test-path) dbus--test-interface)))
           (should (string-equal (cdr (assoc property2 result)) "foofoo"))
           (should (string-equal (cdr (assoc property3 result)) "barbar"))
-          (should-not (assoc property1 result))))
+          (should-not (assoc property1 result)))
+
+        ;; Final check with `dbus-get-all-managed-objects'.
+        (let ((result
+               (dbus-get-all-managed-objects :session dbus--test-service "/"))
+              result1)
+          (should (setq result1 (cadr (assoc dbus--test-path result))))
+          (should (setq result1 (cadr (assoc dbus--test-interface result1))))
+          (should (string-equal (cdr (assoc property1 result1)) "foofoo"))
+          (should (string-equal (cdr (assoc property2 result1)) "barbar"))
+          (should-not (assoc property3 result1))
+
+          (should
+           (setq
+            result1
+            (cadr (assoc (concat dbus--test-path dbus--test-path) result))))
+          (should (setq result1 (cadr (assoc dbus--test-interface result1))))
+          (should (string-equal (cdr (assoc property2 result1)) "foofoo"))
+          (should (string-equal (cdr (assoc property3 result1)) "barbar"))
+          (should-not (assoc property1 result1))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
