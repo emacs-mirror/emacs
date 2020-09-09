@@ -642,6 +642,15 @@ using the `previous-buffer' command."
       (with-selected-window window
         (switch-to-buffer buffer))))))
 
+(defcustom tab-line-switch-cycling nil
+  "Enable cycling tab switch.
+If non-nil, `tab-line-switch-to-prev-tab' in the first tab
+switches to the last tab and `tab-line-switch-to-next-tab' in the
+last tab switches to the first tab."
+  :type 'boolean
+  :group 'tab-line
+  :version "28.1")
+
 (defun tab-line-switch-to-prev-tab (&optional mouse-event)
   "Switch to the previous tab.
 Its effect is the same as using the `previous-buffer' command
@@ -689,15 +698,6 @@ Its effect is the same as using the `next-buffer' command
                (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
           (when (bufferp buffer)
             (switch-to-buffer buffer)))))))
-
-(defcustom tab-line-switch-cycling nil
-  "Enable cycling tab switch.
-If non-nil, `tab-line-switch-to-prev-tab' in the first tab
-switches to the last tab and `tab-line-switch-to-next-tab' in the
-last tab switches to the first tab."
-  :type 'boolean
-  :group 'tab-line
-  :version "28.1")
 
 
 (defcustom tab-line-close-tab-function 'bury-buffer
