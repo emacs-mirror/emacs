@@ -1887,8 +1887,11 @@ to get different commands to edit and resubmit."
 (defun read-extended-command--annotation (command-name)
   (let* ((fun (and (stringp command-name) (intern-soft command-name)))
          (binding (where-is-internal fun overriding-local-map t))
-         (obsolete (get fun 'byte-obsolete-info)))
-    (cond (obsolete
+         (obsolete (get fun 'byte-obsolete-info))
+         (alias (symbol-function fun)))
+    (cond ((symbolp alias)
+           (format " (%s)" alias))
+          (obsolete
            (format " (%s)" (car obsolete)))
           ((and binding (not (stringp binding)))
            (format " (%s)" (key-description binding))))))
