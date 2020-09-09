@@ -87,6 +87,7 @@
 (autoload 'gnus-article-outlook-rearrange-citation "deuglify" nil t)
 (autoload 'nnselect-article-rsv "nnselect" nil nil)
 (autoload 'nnselect-article-group "nnselect" nil nil)
+(autoload 'gnus-nnselect-group-p "nnselect" nil nil)
 
 (defcustom gnus-kill-summary-on-exit t
   "If non-nil, kill the summary buffer when you exit from it.
@@ -1989,6 +1990,7 @@ increase the score of each group you read."
   "\M-K" gnus-summary-edit-global-kill
   ;; "V" gnus-version
   "\C-c\C-d" gnus-summary-describe-group
+  "\C-c\C-p" gnus-summary-make-group-from-search
   "q" gnus-summary-exit
   "Q" gnus-summary-exit-no-update
   "\C-c\C-i" gnus-info-find-node
@@ -7119,6 +7121,21 @@ The prefix argument ALL means to select all articles."
 	     (equal info
 		    (setq info (copy-sequence (gnus-get-info group))
 			  info (delq (gnus-info-params info) info))))))))))
+
+(defun gnus-summary-make-group-from-search ()
+  "Make a persistent group from the current ephemeral search group."
+  (interactive)
+  (if (not (gnus-nnselect-group-p gnus-newsgroup-name))
+      (gnus-message 3 "%s is not a search group" gnus-newsgroup-name)
+    (let ((name (gnus-read-group "Group name: ")))
+      (with-current-buffer gnus-group-buffer
+	(gnus-group-make-group
+	 name
+	 (list 'nnselect "nnselect")
+	 nil
+	 (list (cons 'nnselect-specs
+		     (gnus-group-get-parameter gnus-newsgroup-name
+					       'nnselect-specs t))))))))
 
 (defun gnus-summary-save-newsrc (&optional force)
   "Save the current number of read/marked articles in the dribble buffer.
