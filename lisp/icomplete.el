@@ -171,7 +171,7 @@ icompletion is occurring."
            (car completion-all-sorted-completions)
            (eql (icomplete--field-end) (icomplete--field-beg)))
       (icomplete-force-complete-and-exit)
-    (exit-minibuffer)))
+    (minibuffer-complete-and-exit)))
 
 (defun icomplete-force-complete-and-exit ()
   "Complete the minibuffer with the longest possible match and exit.
