@@ -418,6 +418,21 @@ If this variable is nil, or if the provided function returns nil,
 	  to-newsgroup		; Not respooling
 	  (gnus-group-real-name to-newsgroup)))))
 
+(deffoo nnselect-request-replace-article
+    (article _group buffer &optional no-encode)
+  (pcase-let ((`[,artgroup ,artnumber ,artrsv]
+	       (with-current-buffer gnus-summary-buffer
+		 (nnselect-artlist-article gnus-newsgroup-selection article))))
+    (unless (gnus-check-backend-function
+	     'request-replace-article artgroup)
+      (user-error "The group %s does not support article editing" artgroup))
+    (let ((newart
+	   (gnus-request-replace-article artnumber artgroup buffer no-encode)))
+      (with-current-buffer gnus-summary-buffer
+	(cl-nsubstitute `[,artgroup ,newart ,artrsv]
+			`[,artgroup ,artnumber ,artrsv]
+			gnus-newsgroup-selection
+			:test #'equal :count 1)))))
 
 (deffoo nnselect-request-expire-articles
     (articles _group &optional _server force)
