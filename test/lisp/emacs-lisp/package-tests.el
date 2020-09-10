@@ -492,6 +492,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-update-archives-async ()
   "Test updating package archives asynchronously."
+  :tags '(:expensive-test)
   (skip-unless (executable-find "python2"))
   (let* ((package-menu-async t)
          (default-directory package-test-data-dir)

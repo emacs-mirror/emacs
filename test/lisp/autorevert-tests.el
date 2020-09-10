@@ -156,6 +156,7 @@ This expects `auto-revert--messages' to be bound by
   "Check autorevert for a file."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
+  :tags '(:expensive-test)
   (let ((tmpfile (make-temp-file "auto-revert-test"))
         buf)
     (unwind-protect
@@ -356,6 +357,7 @@ This expects `auto-revert--messages' to be bound by
   "Check autorevert tail mode."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
+  :tags '(:expensive-test)
   (let ((tmpfile (make-temp-file "auto-revert-test"))
         buf)
     (unwind-protect
@@ -394,6 +396,7 @@ This expects `auto-revert--messages' to be bound by
   "Check autorevert for dired."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
+  :tags '(:expensive-test)
   (let* ((tmpfile (make-temp-file "auto-revert-test"))
          (name (file-name-nondirectory tmpfile))
          buf)

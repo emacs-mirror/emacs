@@ -125,6 +125,7 @@
 Per definition, all files are identical on the different hosts of
 a cluster (or site).  This is not tested here; it must be
 guaranteed by the originator of a cluster definition."
+  :tags '(:expensive-test)
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))
   (skip-unless (file-remote-p shadow-test-remote-temporary-file-directory))
 
@@ -865,6 +866,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test09-shadow-copy-files ()
   "Check that needed shadow files are copied."
+  :tags '(:expensive-test)
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))
   (skip-unless (file-remote-p shadow-test-remote-temporary-file-directory))
   (skip-unless (file-writable-p shadow-test-remote-temporary-file-directory))

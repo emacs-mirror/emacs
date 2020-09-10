@@ -46,7 +46,7 @@
 ;;;###autoload
 (ert-deftest semantic-test-c-preprocessor-simulation ()
   "Run parsing test for C from the test directory."
-  (interactive)
+  :tags '(:expensive-test)
   (semantic-mode 1)
   (dolist (fp semantic-utest-c-comparisons)
     (let* ((semantic-lex-c-nested-namespace-ignore-second nil)
