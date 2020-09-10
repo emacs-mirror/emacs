@@ -30,6 +30,12 @@
 (require 'ert)
 (require 'seq)
 
+(defvar css-mode-tests-data-dir
+  (file-truename
+   (expand-file-name "css-mode-resources/"
+                     (file-name-directory (or load-file-name
+                                              buffer-file-name)))))
+
 (ert-deftest css-test-property-values ()
   ;; The `float' property has a flat value list.
   (should
@@ -410,6 +416,14 @@
                                       (backward-word)
                                       (point))
                                     "black")))))
+
+(ert-deftest css-mode-test-indent ()
+  (with-current-buffer
+      (find-file-noselect (expand-file-name "test-indent.css"
+                                            css-mode-tests-data-dir))
+    (let ((orig (buffer-string)))
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
 
 (provide 'css-mode-tests)
 ;;; css-mode-tests.el ends here
