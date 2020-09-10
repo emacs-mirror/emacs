@@ -145,9 +145,13 @@ Possible values are:
 
 (defun diff-no-select (old new &optional switches no-async buf)
   ;; Noninteractive helper for creating and reverting diff buffers
-  "Compare the OLD and NEW file/buffer, and return a diff buffer.
+  "Compare the OLD and NEW file/buffer.
 
-See `diff' for the meaning of the arguments."
+If BUF is nil, the \"*Diff*\" buffer will be used as the diff
+buffer.  If non-nil, BUF will be used as the diff buffer.  The
+buffer used will be returned by this value.
+
+See `diff' for the meaning of the SWITCHES and NO-ASYNC arguments."
   (unless (bufferp new) (setq new (expand-file-name new)))
   (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
