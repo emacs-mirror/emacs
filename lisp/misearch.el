@@ -317,7 +317,7 @@ Every next/previous file in the defined sequence is visited by
   "Return a list of files specified interactively, one by one."
   ;; Most code from `multi-occur'.
   (let* ((files (list (read-file-name
-                       (format-prompt "First file to search: "
+                       (format-prompt "First file to search"
                                       (file-name-nondirectory buffer-file-name))
 		       default-directory buffer-file-name)))
 	 (file nil))

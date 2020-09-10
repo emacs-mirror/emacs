@@ -472,7 +472,7 @@
       (setq defc (calc-invent-parameter-variables nc defv)))
   (let ((vars (read-string (format-prompt
                             "Fitting variables"
-                            (format "%s; %s)"
+                            (format "%s; %s"
 				    (mapconcat 'symbol-name
 					       (mapcar (function (lambda (v)
 								   (nth 1 v)))
