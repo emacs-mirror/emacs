@@ -4912,6 +4912,18 @@ DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
   return Qnil;
 }
 
+static bool
+file_in_eln_sys_dir (Lisp_Object filename)
+{
+  Lisp_Object eln_sys_dir = Qnil;
+  Lisp_Object tmp = Vcomp_eln_load_path;
+  FOR_EACH_TAIL (tmp)
+    eln_sys_dir = XCAR (tmp);
+  return !NILP (Fstring_match (Fregexp_quote (Fexpand_file_name (eln_sys_dir,
+								 Qnil)),
+			       Fexpand_file_name (filename, Qnil), Qnil));
+}
+
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILENAME.
@@ -4926,6 +4938,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
 
   if (!NILP (Fgethash (filename, all_loaded_comp_units_h, Qnil))
+      && !file_in_eln_sys_dir (filename)
       && !NILP (Ffile_writable_p (filename)))
     {
       /* If in this session there was ever a file loaded with this
