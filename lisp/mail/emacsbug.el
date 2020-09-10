@@ -305,30 +305,7 @@ usually do not have translators for other languages.\n\n")))
     (let ((txt (delete-and-extract-region (1+ user-point) (point))))
       (insert (propertize "\n" 'display txt)))
 
-    (insert "\nIn " (emacs-version))
-    (if emacs-build-system
-        (insert " built on " emacs-build-system))
-    (insert "\n")
-
-    (if (stringp emacs-repository-version)
-	(insert "Repository revision: " emacs-repository-version "\n"))
-    (if (stringp emacs-repository-branch)
-	(insert "Repository branch: " emacs-repository-branch "\n"))
-    (if (fboundp 'x-server-vendor)
-	(condition-case nil
-            ;; This is used not only for X11 but also W32 and others.
-	    (insert "Windowing system distributor '" (x-server-vendor)
-                    "', version "
-		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
-	  (error t)))
-    (let ((os (ignore-errors (report-emacs-bug--os-description))))
-      (if (stringp os)
-          (insert "System Description: " os "\n\n")))
-    (when (and system-configuration-options
-	       (not (equal system-configuration-options "")))
-      (insert "Configured using:\n 'configure "
-	      system-configuration-options "'\n\n")
-      (fill-region (line-beginning-position -1) (point)))
+    (emacs-bug--system-description)
     (insert "Configured features:\n" system-configuration-features "\n\n")
     (fill-region (line-beginning-position -1) (point))
     (insert "Important settings:\n")
@@ -409,6 +386,32 @@ usually do not have translators for other languages.\n\n")))
           (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
+(defun emacs-bug--system-description ()
+  (insert "\nIn " (emacs-version))
+  (if emacs-build-system
+      (insert " built on " emacs-build-system))
+  (insert "\n")
+
+  (if (stringp emacs-repository-version)
+      (insert "Repository revision: " emacs-repository-version "\n"))
+  (if (stringp emacs-repository-branch)
+      (insert "Repository branch: " emacs-repository-branch "\n"))
+  (if (fboundp 'x-server-vendor)
+      (condition-case nil
+          ;; This is used not only for X11 but also W32 and others.
+	  (insert "Windowing system distributor '" (x-server-vendor)
+                  "', version "
+		  (mapconcat 'number-to-string (x-server-version) ".") "\n")
+	(error t)))
+  (let ((os (ignore-errors (report-emacs-bug--os-description))))
+    (if (stringp os)
+        (insert "System Description: " os "\n\n")))
+  (when (and system-configuration-options
+	     (not (equal system-configuration-options "")))
+    (insert "Configured using:\n 'configure "
+	    system-configuration-options "'\n\n")
+    (fill-region (line-beginning-position -1) (point))))
+
 (define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.3")
 
 (defun report-emacs-bug-hook ()
@@ -475,6 +478,46 @@ and send the mail again%s."
       (when (get-buffer-window help)
         (quit-window nil (get-buffer-window help))))))
 
+;;;###autoload
+(defun submit-emacs-patch (subject file)
+  "Send an Emacs patch to the Emacs maintainers.
+Interactively, you will be prompted for SUBJECT and a patch FILE
+name (which will be attached to the mail).  You will end up in a
+Message buffer where you can explain more about the patch."
+  (interactive "sThis patch is about: \nfPatch file name: ")
+  (switch-to-buffer "*Patch Help*")
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (insert "Thank you for considering submitting a patch to the Emacs project.\n\n"
+            "Please describe what the patch fixes (or, if it's a new feature, what it\n"
+            "implements) in the mail buffer below.  When done, use the `C-c C-c' command\n"
+            "to send the patch as an email to the Emacs issue tracker.\n\n"
+            "If this is the first time you've submitted an Emacs patch, please\n"
+            "read the ")
+    (insert-text-button
+     "CONTRIBUTE"
+     'action (lambda (_)
+               (view-buffer
+                (find-file-noselect
+                 (expand-file-name "CONTRIBUTE" installation-directory)))))
+    (insert " file first.\n")
+    (goto-char (point-min))
+    (view-mode 1)
+    (button-mode 1))
+  (message-mail-other-window report-emacs-bug-address subject)
+  (insert "\n\n\n")
+  (emacs-bug--system-description)
+  (mml-attach-file file "text/patch" nil "attachment")
+  (message-add-header "X-Debbugs-Tags: patch")
+  (message-goto-body)
+  (message "Write a description of the patch and use `C-c C-c' to send it")
+  (message-add-action
+   (lambda ()
+     ;; Bury the help buffer (if it's shown).
+     (when-let ((help (get-buffer "*Patch Help*")))
+       (when (get-buffer-window help)
+         (quit-window nil (get-buffer-window help)))))
+   'send))
 
 (provide 'emacsbug)
 

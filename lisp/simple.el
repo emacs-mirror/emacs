@@ -2129,11 +2129,9 @@ See also `minibuffer-history-case-insensitive-variables'."
   (interactive
    (let* ((enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer
-                   (format "Previous element matching regexp%s: "
-                           (if minibuffer-history-search-history
-                               (format " (default %s)"
-                                       (car minibuffer-history-search-history))
-                             ""))
+                   (format-prompt "Previous element matching regexp"
+                                  (and minibuffer-history-search-history
+                                       (car minibuffer-history-search-history)))
 		   nil minibuffer-local-map nil
 		   'minibuffer-history-search-history
 		   (car minibuffer-history-search-history))))
@@ -4374,7 +4372,7 @@ Also, delete any process that is exited or signaled."
 		    ((thread-name (process-thread p)))
 		    (t "--")))
 		  (cmd
-		   (if (memq type '(network serial))
+		   (if (memq type '(network serial pipe))
 		       (let ((contact (process-contact p t t)))
 			 (if (eq type 'network)
 			     (format "(%s %s)"
@@ -8312,7 +8310,7 @@ makes it easier to edit it."
   (interactive
    (let* ((default-var (variable-at-point))
           (var (if (custom-variable-p default-var)
-		   (read-variable (format "Set variable (default %s): " default-var)
+		   (read-variable (format-prompt "Set variable" default-var)
 				  default-var)
 		 (read-variable "Set variable: ")))
 	  (minibuffer-help-form `(describe-variable ',var))

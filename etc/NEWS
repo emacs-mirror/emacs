@@ -206,6 +206,11 @@ of the next command to be displayed in a new tab.
 Show/hide the tab bar independently for each frame, according to the
 value of 'tab-bar-show'.
 
+---
+*** The tabs in the tab line can now be scrolled using horizontal scroll.
+If your mouse or trackpad supports it, you can now scroll tabs when
+the mouse pointer is in the tab line by scrolling left or right.
+
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 
@@ -317,19 +322,30 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New scoring types for the Date header.
+You can now score based on the relative age of an article with the new
+'<' and '>' date scoring types.
+
++++
 *** New backend 'nnselect'.
 The newly added 'nnselect' backend allows creating groups from an
 arbitrary list of articles that may come from multiple groups and
 servers.  These groups generally behave like any other group: they may
 be ephemeral or persistent, and allow article marking, moving,
 deletion, etc.  'nnselect' groups may be created like any other group,
-but there is also a convenience function for the common case of
+but there are three convenience functions for the common case of
 obtaining the list of articles as a result of a search:
 'gnus-group-make-search-group' ('G g') that will prompt for an 'nnir'
-search query and create a dedicated group for that search.  As part of
-this addition, the user option 'nnir-summary-line-format' has been
-removed; it's functionality is now available directly in the
-'gnus-summary-line-format' '%G' and '%g' specs.  The user option
+search query and create a persistent group for that search;
+'gnus-group-read-ephemeral-search-group' ('G G') that will prompt for
+an 'nnir' search query and create an ephemeral group for that search;
+and 'gnus-summary-make-group-from-search' ('C-c C-p') that will create
+a persistent group with the search parameters of a current ephemeral
+search group.
+
+As part of this addition, the user option 'nnir-summary-line-format'
+has been removed; its functionality is now available directly in the
+'gnus-summary-line-format' specs '%G' and '%g'.  The user option
 'gnus-refer-thread-use-nnir' has been renamed to
 'gnus-refer-thread-use-search'.
 
@@ -864,6 +880,10 @@ The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-dangerous-host-highlight-type' variables now support a 'message'
 type for highlighting the entire message but not the sender's nick.
 
+*** erc-status-sidebar.el is now part of ERC.
+The 'erc-status-sidebar' package which provides a HexChat-like
+activity overview sidebar for joined IRC channels is now part of ERC.
+
 ** Battery
 
 ---
@@ -937,6 +957,24 @@ was always done (and that could lead to odd displays when resizing the
 window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
+
++++
+*** New command 'submit-emacs-patch'
+This works along the lines of 'report-emacs-bug', but is more geared
+towards sending a patch to the Emacs issue tracker.
+
++++
+*** New minor mode 'button-mode'.
+This minor mode does nothing else than install 'button-buffer-map' as
+a minor mode map (which binds the TAB/S-TAB key bindings to navigate
+to buttons), and can be used in any view-mode-like buffer that has
+buttons in it.
+
+---
+*** 'icomplete-show-matches-on-no-input' behavior change.
+Previously, choosing a different completion with commands like 'C-.'
+and then hitting  'RET' would choose the default completion.  Doing
+this will now choose the completion under point.
 
 +++
 *** The user can now customize how "default" values are prompted for.
@@ -1064,10 +1102,19 @@ The old names are now obsolete.
 ** D-Bus
 
 +++
+*** Property values can be typed explicitly.
+'dbus-register-property' and 'dbus-set-property' accept now optional
+type symbols.
+
++++
 *** Registered properties can have the new access type ':write'.
 
 +++
 *** In case of problems, handlers can emit proper D-Bus error messages now.
+
+---
+*** D-Bus errors, which have been converted from incoming D-Bus error
+messages, contain the error name of that message now.
 
 
 * New Modes and Packages in Emacs 28.1

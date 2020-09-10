@@ -35,7 +35,6 @@
 (require 'gnus-cloud)
 
 (autoload 'gnus-group-read-ephemeral-search-group "nnselect")
-;;(autoload 'gnus-group-make-permanent-search-group "nnselect")
 
 (defcustom gnus-server-exit-hook nil
   "Hook run when exiting the server buffer."

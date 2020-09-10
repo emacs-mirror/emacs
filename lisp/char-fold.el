@@ -324,6 +324,13 @@ from which to start."
     (while (< i end)
       (pcase (aref string i)
         (?\s (setq spaces (1+ spaces)))
+        ((pred (lambda (c) (and char-fold-symmetric
+                                (if isearch-regexp
+                                    isearch-regexp-lax-whitespace
+                                  isearch-lax-whitespace)
+                                (stringp search-whitespace-regexp)
+                                (string-match-p search-whitespace-regexp (char-to-string c)))))
+         (setq spaces (1+ spaces)))
         (c (when (> spaces 0)
              (push (char-fold--make-space-string spaces) out)
              (setq spaces 0))

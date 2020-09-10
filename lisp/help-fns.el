@@ -929,10 +929,7 @@ it is displayed along with the global value."
          (orig-buffer (current-buffer))
 	 val)
      (setq val (completing-read
-                (if (symbolp v)
-                    (format
-                     "Describe variable (default %s): " v)
-                  "Describe variable: ")
+                (format-prompt "Describe variable" (and (symbolp v) v))
                 #'help--symbol-completion-table
                 (lambda (vv)
                   ;; In case the variable only exists in the buffer
@@ -1429,10 +1426,8 @@ current buffer and the selected frame, respectively."
           (v-or-f (if found v-or-f (function-called-at-point)))
           (found (or found v-or-f))
           (enable-recursive-minibuffers t)
-          (val (completing-read (if found
-				    (format
-                                     "Describe symbol (default %s): " v-or-f)
-				  "Describe symbol: ")
+          (val (completing-read (format-prompt "Describe symbol"
+                                               (and found v-or-f))
 				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
@@ -1608,7 +1603,7 @@ keymap value."
   (interactive
    (let* ((km (help-fns--most-relevant-active-keymap))
           (val (completing-read
-                (format "Keymap (default %s): " km)
+                (format-prompt "Keymap" km)
                 obarray
                 (lambda (m) (and (boundp m) (keymapp (symbol-value m))))
                 t nil 'keymap-name-history
@@ -1825,8 +1820,9 @@ one of them returns non-nil."
 ;;;###autoload
 (defun doc-file-to-man (file)
   "Produce an nroff buffer containing the doc-strings from the DOC file."
-  (interactive (list (read-file-name "Name of DOC file: " doc-directory
-                                     internal-doc-file-name t)))
+  (interactive (list (read-file-name (format-prompt "Name of DOC file"
+                                                    internal-doc-file-name)
+                                     doc-directory internal-doc-file-name t)))
   (or (file-readable-p file)
       (error "Cannot read file `%s'" file))
   (pop-to-buffer (generate-new-buffer "*man-doc*"))
@@ -1855,8 +1851,9 @@ one of them returns non-nil."
 ;;;###autoload
 (defun doc-file-to-info (file)
   "Produce a texinfo buffer with sorted doc-strings from the DOC file."
-  (interactive (list (read-file-name "Name of DOC file: " doc-directory
-                                     internal-doc-file-name t)))
+  (interactive (list (read-file-name (format-prompt "Name of DOC file"
+                                                    internal-doc-file-name)
+                                     doc-directory internal-doc-file-name t)))
   (or (file-readable-p file)
       (error "Cannot read file `%s'" file))
   (let ((i 0) type name doc alist)

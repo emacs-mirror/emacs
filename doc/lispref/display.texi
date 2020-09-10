@@ -6926,6 +6926,9 @@ such as @code{forward-button} and @code{backward-button} are
 additionally available in the keymap stored in
 @code{button-buffer-map}; a mode which uses buttons may want to use
 @code{button-buffer-map} as a parent keymap for its keymap.
+Alternatively, the @code{button-mode} can be switched on for much the
+same effect: It's a minor mode that does nothing else than install
+@code{button-buffer-map} as a minor mode keymap.
 
 If the button has a non-@code{nil} @code{follow-link} property, and
 @code{mouse-1-click-follows-link} is set, a quick @key{mouse-1} click

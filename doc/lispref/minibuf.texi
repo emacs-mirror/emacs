@@ -440,6 +440,8 @@ case no default values are displayed.
 
 If @var{default} is @code{nil}, there is no default value, and
 therefore no ``default value'' string is included in the result value.
+If @var{default} is a non-@code{nil} list, the first element of the
+list is used in the prompt.
 @end defun
 
 @node Object from Minibuffer

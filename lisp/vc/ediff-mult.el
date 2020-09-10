@@ -1807,11 +1807,9 @@ all marked sessions must be active."
 		 (ediff-show-meta-buffer session-buf)
 	       (setq regexp
 		     (read-string
-		      (if (stringp default-regexp)
-			  (format
-			   "Filter filenames through regular expression (default %s): "
-			   default-regexp)
-			"Filter filenames through regular expression: ")
+                      (format-prompt
+                       "Filter filenames through regular expression"
+                       default-regexp)
 		      nil
 		      'ediff-filtering-regexp-history
 		      (eval ediff-default-filtering-regexp t)))

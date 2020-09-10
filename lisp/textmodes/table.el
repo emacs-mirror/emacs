@@ -1824,11 +1824,11 @@ See `table-insert-row' and `table-insert-column'."
      (list (intern (let ((completion-ignore-case t)
 			 (default (car table-insert-row-column-history)))
 		     (downcase (completing-read
-				(format "Insert %s row%s/column%s (default %s): "
-					(if (> n 1) (format "%d" n) "a")
-					(if (> n 1) "s" "")
-					(if (> n 1) "s" "")
-					default)
+				(format-prompt
+                                 "Insert %s row%s/column%s" default
+				 (if (> n 1) (format "%d" n) "a")
+				 (if (> n 1) "s" "")
+				 (if (> n 1) "s" ""))
 				'(("row") ("column"))
 				nil t nil 'table-insert-row-column-history default))))
 	   n)))
@@ -2534,7 +2534,7 @@ DIRECTION is one of symbols; right, left, above or below."
 				 (caar direction-list)))
 	   (completion-ignore-case t))
       (intern (downcase (completing-read
-			 (format "Span into (default %s): " default-direction)
+			 (format-prompt "Span into" default-direction)
 			 direction-list
 			 nil t nil 'table-cell-span-direction-history default-direction))))))
   (unless (memq direction '(right left above below))
@@ -2697,7 +2697,7 @@ Creates a cell on the left and a cell on the right of the current point location
 				   ("Title"
 				    ("Split" . "split") ("Left" . "left") ("Right" . "right"))))
 		 (downcase (completing-read
-			    (format "Existing cell contents to (default %s): " default)
+			    (format-prompt "Existing cell contents to" default)
 			    '(("split") ("left") ("right"))
 			    nil t nil 'table-cell-split-contents-to-history default)))))))
     (unless (eq contents-to 'split)
@@ -2769,7 +2769,7 @@ ORIENTATION is a symbol either horizontally or vertically."
 	   (completion-ignore-case t)
 	   (default (car table-cell-split-orientation-history)))
       (intern (downcase (completing-read
-			 (format "Split orientation (default %s): " default)
+			 (format-prompt "Split orientation" default)
 			 '(("horizontally") ("vertically"))
 			 nil t nil 'table-cell-split-orientation-history default))))))
   (unless (memq orientation '(horizontally vertically))
@@ -2789,7 +2789,7 @@ WHAT is a symbol `cell', `row' or `column'.  JUSTIFY is a symbol
 		(completion-ignore-case t)
 		(default (car table-target-history)))
 	   (intern (downcase (completing-read
-			      (format "Justify what (default %s): " default)
+			      (format-prompt "Justify what" default)
 			      '(("cell") ("row") ("column"))
 			      nil t nil 'table-target-history default))))
 	 (table--query-justification)))
@@ -2943,7 +2943,7 @@ CALS (DocBook DTD):
 	  (completion-ignore-case t)
 	  (default (car table-source-language-history))
 	  (language (downcase (completing-read
-			       (format "Language (default %s): " default)
+			       (format-prompt "Language" default)
 			       table-source-languages
 			       nil t nil 'table-source-language-history default))))
      (list
@@ -3366,7 +3366,7 @@ Example:
 	   (let* ((completion-ignore-case t)
 		  (default (car table-sequence-justify-history)))
 	     (intern (downcase (completing-read
-				(format "Justify (default %s): " default)
+				(format-prompt "Justify" default)
 				'(("left") ("center") ("right"))
 				nil t nil 'table-sequence-justify-history default)))))))
   (unless (or (called-interactively-p 'interactive) (table--probe-cell))
@@ -3668,7 +3668,7 @@ companion command to `table-capture' this way.
 	(if (and (string= col-delim-regexp "") (string= row-delim-regexp "")) 'left
 	  (intern
 	   (downcase (completing-read
-		      (format "Justify (default %s): " default)
+		      (format-prompt "Justify" default)
 		      '(("left") ("center") ("right"))
 		      nil t nil 'table-capture-justify-history default)))))
       (if (and (string= col-delim-regexp "") (string= row-delim-regexp "")) "1"
@@ -4253,9 +4253,8 @@ cache buffer into the designated cell in the table buffer."
 PROMPT-HISTORY is a cons cell which car is the prompt string and the
 cdr is the history symbol."
   (let ((default (car (symbol-value (cdr prompt-history)))))
-    (read-from-minibuffer
-     (format "%s (default %s): " (car prompt-history) default)
-     "" nil nil (cdr prompt-history) default))
+    (read-from-minibuffer (format-prompt (car prompt-history) default)
+                          "" nil nil (cdr prompt-history) default))
   (car (symbol-value (cdr prompt-history))))
 
 (defun table--buffer-substring-and-trim (beg end)
@@ -4312,7 +4311,7 @@ Returns the coordinate of the final point location."
   (let* ((completion-ignore-case t)
 	 (default (car table-justify-history)))
     (intern (downcase (completing-read
-		       (format "Justify (default %s): " default)
+		       (format-prompt "Justify" default)
 		       '(("left") ("center") ("right") ("top") ("middle") ("bottom") ("none"))
 		       nil t nil 'table-justify-history default)))))
 

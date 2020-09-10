@@ -51,6 +51,25 @@ ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 			  (defalias sym e))))
 	'(defcustom defface defgroup)))
 
+(defun custom--get-def (expr)
+  (if (not (memq (car-safe expr)
+                 '( define-minor-mode define-globalized-minor-mode)))
+      expr
+    ;; For define-minor-mode, we don't want to evaluate the whole
+    ;; expression, because it tends to define functions which aren't
+    ;; usable (because they call other functions that were skipped).
+    ;; Concretely it gave us an error
+    ;; "void-function bug-reference--run-auto-setup"
+    ;; when subsequently loading `cus-load.el'.
+    (let ((es (list (macroexpand-all expr)))
+          defs)
+      (while es
+        (let ((e (pop es)))
+          (pcase e
+            (`(progn . ,exps) (setq es (append exps es)))
+            (`(custom-declare-variable . ,_) (push e defs)))))
+      (macroexp-progn (nreverse defs)))))
+
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
@@ -100,15 +119,19 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                   (setq name (intern name)))
               (condition-case nil
                   (while (re-search-forward
-                          "^(def\\(custom\\|face\\|group\\)" nil t)
+                          "^(def\\(custom\\|face\\|group\\|ine\\(?:-globalized\\)?-minor-mode\\)" nil t)
                     (beginning-of-line)
                     (let ((type (match-string 1))
-			  (expr (read (current-buffer))))
+			  (expr (custom--get-def (read (current-buffer)))))
                       (condition-case nil
-                          (let ((custom-dont-initialize t))
+                          (let ((custom-dont-initialize t)
+                                (sym (nth 1 expr)))
+                            (put (if (eq (car-safe sym) 'quote)
+                                     (cadr sym)
+                                   sym)
+                                 'custom-where name)
                             ;; Eval to get the 'custom-group, -tag,
                             ;; -version, group-documentation etc properties.
-                            (put (nth 1 expr) 'custom-where name)
                             (eval expr))
                         ;; Eval failed for some reason.  Eg maybe the
                         ;; defcustom uses something defined earlier
@@ -149,7 +172,8 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (when found
 		      (push (cons (symbol-name symbol)
 				  (with-output-to-string
-				    (prin1 (sort found 'string<)))) alist))))))
+				    (prin1 (sort found #'string<))))
+			    alist))))))
     (dolist (e (sort alist (lambda (e1 e2) (string< (car e1) (car e2)))))
       (insert "(put '" (car e) " 'custom-loads '" (cdr e) ")\n")))
   (insert "\

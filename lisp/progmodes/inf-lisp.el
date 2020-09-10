@@ -554,10 +554,7 @@ Used by these commands to determine defaults."
 
 ;;; Reads a string from the user.
 (defun lisp-symprompt (prompt default)
-  (list (let* ((prompt (if default
-			   (format "%s (default %s): " prompt default)
-			 (concat prompt ": ")))
-	       (ans (read-string prompt)))
+  (list (let ((ans (read-string (format-prompt prompt default))))
 	  (if (zerop (length ans)) default ans))))
 
 

@@ -77,7 +77,7 @@ selection process starts again from the user's $HOME.")
 (defcustom icomplete-show-matches-on-no-input nil
   "When non-nil, show completions when first prompting for input.
 This also means that if you traverse the list of completions with
-commands like `C-.' and just hit `C-j' (enter) without typing any
+commands like `C-.' and just hit RET without typing any
 characters, the match under point will be chosen instead of the
 default."
   :type 'boolean
@@ -157,11 +157,21 @@ icompletion is occurring."
 (defvar icomplete-minibuffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\M-\t] 'icomplete-force-complete)
+    (define-key map [remap minibuffer-complete-and-exit] 'icomplete-ret)
     (define-key map [?\C-j]  'icomplete-force-complete-and-exit)
     (define-key map [?\C-.]  'icomplete-forward-completions)
     (define-key map [?\C-,]  'icomplete-backward-completions)
     map)
   "Keymap used by `icomplete-mode' in the minibuffer.")
+
+(defun icomplete-ret ()
+  "Exit minibuffer for icomplete."
+  (interactive)
+  (if (and icomplete-show-matches-on-no-input
+           (car completion-all-sorted-completions)
+           (eql (icomplete--field-end) (icomplete--field-beg)))
+      (icomplete-force-complete-and-exit)
+    (minibuffer-complete-and-exit)))
 
 (defun icomplete-force-complete-and-exit ()
   "Complete the minibuffer with the longest possible match and exit.
@@ -469,38 +479,80 @@ Usually run by inclusion in `minibuffer-setup-hook'."
        with beg = (icomplete--field-beg)
        with end = (icomplete--field-end)
        with all = (completion-all-sorted-completions beg end)
+       ;; Icomplete mode re-sorts candidates, bubbling the default to
+       ;; top if it's found somewhere down the list.  This loop's
+       ;; iteration variable, `fn' iterates through these "bubble up
+       ;; predicates" which may vary depending on specific
+       ;; `completing-read' invocations, described below:
        for fn in (cond ((and minibuffer-default
                              (stringp minibuffer-default) ; bug#38992
                              (= (icomplete--field-end) (icomplete--field-beg)))
-                        ;; When we have a non-nil string default and
-                        ;; no input whatsoever: we want to make sure
-                        ;; that default is bubbled to the top so that
-                        ;; `icomplete-force-complete-and-exit' will
-                        ;; select it (do that even if the match
-                        ;; doesn't match the completion perfectly.
-                        `(,(lambda (comp)
+                        ;; Here, we have a non-nil string default and
+                        ;; no input whatsoever.  We want to make sure
+                        ;; that the default is bubbled to the top so
+                        ;; that `icomplete-force-complete-and-exit'
+                        ;; will select it.  We want to do that even if
+                        ;; the match doesn't match the completion
+                        ;; perfectly.
+                        ;;
+                        `(;; The first predicate ensures that:
+                          ;;
+                          ;; (completing-read "thing? " '("foo" "bar")
+                          ;;                  nil nil nil nil "bar")
+                          ;;
+                          ;; Has "bar" at the top, so RET will select
+                          ;; it, as desired.
+                          ,(lambda (comp)
                              (equal minibuffer-default comp))
+                          ;; Why do we need this second predicate?
+                          ;; Because that'll make things like M-x man
+                          ;; RET RET, when invoked with point on the
+                          ;; "bar" word, behave correctly.  There, the
+                          ;; default doesn't quite match any
+                          ;; candidate. So:
+                          ;;
+                          ;; (completing-read "Man entry? " '("foo(1)" "bar(1)")
+                          ;;                  nil nil nil nil "bar")
+                          ;;
+                          ;; Will place "bar(1)" on top, and RET will
+                          ;; select it -- again, as desired.
+                          ;;
+                          ;; FIXME: it's arguable that this second
+                          ;; behaviour should be a property of the
+                          ;; completion table and not the completion
+                          ;; frontend such as we have done
+                          ;; here. However, it seems generically
+                          ;; useful for a very broad spectrum of
+                          ;; cases.
                           ,(lambda (comp)
                              (string-prefix-p minibuffer-default comp))))
                        ((and fido-mode
                              (not minibuffer-default)
                              (eq (icomplete--category) 'file))
-                        ;; `fido-mode' has some extra file-sorting
-                        ;; semantics even if there isn't a default,
-                        ;; which is to bubble "./" to the top if it
-                        ;; exists.  This makes M-x dired RET RET go to
-                        ;; the directory of current file, which is
-                        ;; what vanilla Emacs and `ido-mode' both do.
+                        ;; When there isn't a default, `fido-mode'
+                        ;; specifically also has some extra
+                        ;; file-sorting semantics inherited from Ido.
+                        ;; Those make the directory "./" bubble to the
+                        ;; top (if it exists).  This makes M-x dired
+                        ;; RET RET go to the directory of current
+                        ;; file, which is non-Icomplete vanilla Emacs
+                        ;; and `ido-mode' both do.
                         `(,(lambda (comp)
                              (string= "./" comp)))))
-       thereis (cl-loop
-                for l on all
-                while (consp (cdr l))
-                for comp = (cadr l)
-                when (funcall fn comp)
-                do (setf (cdr l) (cddr l))
-                and return
-                (completion--cache-all-sorted-completions beg end (cons comp all)))
+       ;; After we have setup the predicates, look for a completion
+       ;; matching one of them and bubble up it, destructively on
+       ;; `completion-all-sorted-completions' (unless that completion
+       ;; happens to be already on top).
+       thereis (or
+                (and (funcall fn (car all)) all)
+                (cl-loop
+                 for l on all
+                 while (consp (cdr l))
+                 for comp = (cadr l)
+                 when (funcall fn comp)
+                 do (setf (cdr l) (cddr l))
+                 and return
+                 (completion--cache-all-sorted-completions beg end (cons comp all))))
        finally return all)))
 
 
@@ -713,10 +765,7 @@ matches exist."
 		(push comp prospects)
 	      (setq limit t))))
 	(setq prospects (nreverse prospects))
-        ;; Return the first match if the user hits enter.
-        (when icomplete-show-matches-on-no-input
-          (setq-local completion-content-when-empty (car prospects)))
-        ;; Decorate first of the prospects.
+	;; Decorate first of the prospects.
 	(when prospects
 	  (let ((first (copy-sequence (pop prospects))))
 	    (put-text-property 0 (length first)

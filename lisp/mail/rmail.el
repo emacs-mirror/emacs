@@ -39,6 +39,7 @@
 
 (require 'mail-utils)
 (require 'rfc2047)
+(require 'auth-source)
 
 (require 'rmail-loaddefs)
 
@@ -1884,7 +1885,8 @@ interactively."
 		(when rmail-remote-password-required
 		  (setq got-password (not (rmail-have-password)))
 		  (setq supplied-password (rmail-get-remote-password
-					   (string-match "^imaps?" proto))))
+					   (string-match "^imaps?" proto)
+                                           user host)))
 	      ;; FIXME
 	      ;; The password is embedded.  Strip it out since movemail
 	      ;; does not really like it, in spite of the movemail spec.
@@ -1904,14 +1906,12 @@ interactively."
 
    ((string-match "^po:\\([^:]+\\)\\(:\\(.*\\)\\)?" file)
     (let (got-password supplied-password
-          ;; (proto "pop")
-	  ;; (user  (match-string 1 file))
-	  ;; (host  (match-string 3 file))
-          )
+	  (user (match-string 1 file))
+	  (host (match-string 3 file)))
 
       (when rmail-remote-password-required
 	(setq got-password (not (rmail-have-password)))
-	(setq supplied-password (rmail-get-remote-password nil)))
+	(setq supplied-password (rmail-get-remote-password nil user host)))
 
       (list file "pop" supplied-password got-password)))
 
@@ -4461,15 +4461,30 @@ TEXT and INDENT are not used."
     (setq rmail-remote-password nil)
     (setq rmail-encoded-remote-password nil)))
 
-(defun rmail-get-remote-password (imap)
-  "Get the password for retrieving mail from a POP or IMAP server.  If none
-has been set, then prompt the user for one."
+(defun rmail-get-remote-password (imap user host)
+  "Get the password for retrieving mail from a POP or IMAP server.
+If none has been set, the password is found via auth-source. If
+you use ~/.authinfo as your auth-source backend, then put
+something like the following in that file:
+
+machine mymachine login myloginname password mypassword
+
+If auth-source search yields no result, prompt the user for the
+password."
   (when (not rmail-encoded-remote-password)
     (if (not rmail-remote-password)
-	(setq rmail-remote-password
-	      (read-passwd (if imap
-			       "IMAP password: "
-			     "POP password: "))))
+        (setq rmail-remote-password
+              (let ((found (nth 0 (auth-source-search
+                                   :max 1 :user user :host host
+                                   :require '(:secret)))))
+                (if found
+                    (let ((secret (plist-get found :secret)))
+                      (if (functionp secret)
+                          (funcall secret)
+                        secret))
+                  (read-passwd (if imap
+                                   "IMAP password: "
+                                 "POP password: "))))))
     (rmail-set-remote-password rmail-remote-password)
     (setq rmail-remote-password nil))
   (rmail-encode-string rmail-encoded-remote-password (emacs-pid)))

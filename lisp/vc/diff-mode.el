@@ -911,10 +911,11 @@ like \(diff-merge-strings \"b/foo\" \"b/bar\" \"/a/c/foo\")."
 If the OLD prefix arg is passed, tell the file NAME of the old file."
   (interactive
    (let* ((old current-prefix-arg)
-	  (fs (diff-hunk-file-names current-prefix-arg)))
+	  (fs (diff-hunk-file-names current-prefix-arg))
+          (default (diff-find-file-name old 'noprompt)))
      (unless fs (error "No file name to look for"))
-     (list old (read-file-name (format "File for %s: " (car fs))
-			       nil (diff-find-file-name old 'noprompt) t))))
+     (list old (read-file-name (format-prompt "File for %s" default (car fs))
+			       nil default t))))
   (let ((fs (diff-hunk-file-names old)))
     (unless fs (error "No file name to look for"))
     (push (cons fs name) diff-remembered-files-alist)))

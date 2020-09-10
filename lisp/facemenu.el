@@ -445,7 +445,7 @@ sets the CHARSET property of the character at point."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
 		       (read-charset
-                        (format "Use charset (default %s): " (charset-after))
+                        (format-prompt "Use charset" (charset-after))
                         (charset-after)))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-beginning))

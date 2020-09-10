@@ -625,7 +625,7 @@ SERVER-PLIST is the property list for the server."
         (default (or (plist-get server-plist :encryption)
                      "plain")))
     (intern
-     (completing-read (format "Encryption (default %s): " default)
+     (completing-read (format-prompt "Encryption" default)
                       choices nil t nil nil default))))
 
 (defun rcirc-keepalive ()

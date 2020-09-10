@@ -657,10 +657,7 @@ then remove all hi-lock highlighting."
                                         (car pattern)))
                                   hi-lock-interactive-patterns))))
        (list
-        (completing-read (if (null defaults)
-                             "Regexp to unhighlight: "
-                           (format "Regexp to unhighlight (default %s): "
-                                   (car defaults)))
+        (completing-read (format-prompt "Regexp to unhighlight" (car defaults))
                          (mapcar (lambda (pattern)
                                    (cons (or (car (rassq pattern hi-lock-interactive-lighters))
                                              (car pattern))
@@ -747,8 +744,7 @@ with completion and history."
           (if (and hi-lock-auto-select-face (not current-prefix-arg))
 	(setq face (or (pop hi-lock--unused-faces) (car defaults)))
       (setq face (completing-read
-		  (format "Highlight using face (default %s): "
-			  (car defaults))
+		  (format-prompt "Highlight using face" (car defaults))
 		  obarray 'facep t nil 'face-name-history defaults))
       ;; Update list of un-used faces.
       (setq hi-lock--unused-faces (remove face hi-lock--unused-faces))

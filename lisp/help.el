@@ -178,7 +178,7 @@ Do not call this in the scope of `with-help-window'."
 		     (if (same-window-p (buffer-name standard-output))
 			 ;; Say how to scroll this window.
 			 (substitute-command-keys
-			  "\\[scroll-up] to scroll the help.")
+                          "\\[scroll-up-command] to scroll the help.")
 		       ;; Say how to scroll some other window.
 		       (substitute-command-keys
 			"\\[scroll-other-window] to scroll the help."))))))))
@@ -364,7 +364,7 @@ With argument, display info only for the selected version."
 	      (sort (delete-dups res) #'string>)))
 	   (current (car all-versions)))
       (setq version (completing-read
-		     (format "Read NEWS for the version (default %s): " current)
+		     (format-prompt "Read NEWS for the version" current)
 		     all-versions nil nil nil nil current))
       (if (integerp (string-to-number version))
 	  (setq version (string-to-number version))
@@ -533,12 +533,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
    (let ((fn (function-called-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read
-		(if fn
-		    (format "Where is command (default %s): " fn)
-		  "Where is command: ")
-		obarray 'commandp t nil nil
-		(and fn (symbol-name fn))))
+     (setq val (completing-read (format-prompt "Where is command" fn)
+		                obarray 'commandp t nil nil
+		                (and fn (symbol-name fn))))
      (list (unless (equal val "") (intern val))
 	   current-prefix-arg)))
   (unless definition (error "No command"))
@@ -1134,7 +1131,7 @@ window."
 	   ".")
 	  ((eq scroll 'other)
 	   ", \\[scroll-other-window] to scroll help.")
-	  (scroll ", \\[scroll-up] to scroll help."))))
+          (scroll ", \\[scroll-up-command] to scroll help."))))
     (message "%s"
      (substitute-command-keys (concat quit-part scroll-part)))))
 

@@ -408,10 +408,6 @@ Use group `text' for this instead.  This group is deprecated."
   "Input from the menus."
   :group 'environment)
 
-(defgroup dnd nil
-  "Handling data from drag and drop."
-  :group 'environment)
-
 (defgroup auto-save nil
   "Preventing accidental loss of data."
   :group 'files)
@@ -485,10 +481,8 @@ Return a list suitable for use in `interactive'."
 	  (default (and (symbolp v) (custom-variable-p v) (symbol-name v)))
 	  (enable-recursive-minibuffers t)
 	  val)
-     (setq val (completing-read
-		(if default (format "Customize variable (default %s): " default)
-		  "Customize variable: ")
-		obarray 'custom-variable-p t nil nil default))
+     (setq val (completing-read (format-prompt "Customize variable" default)
+		                obarray 'custom-variable-p t nil nil default))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
@@ -561,7 +555,7 @@ value unless you are sure you know what it does."
 	   (unless no-suffix
 	     (goto-char (point-max))
 	     (insert "..."))
-	   (buffer-string)))))
+	   (propertize (buffer-string) 'custom-data symbol)))))
 
 (defcustom custom-unlispify-tag-names t
   "Display tag names as words instead of symbols if non-nil."
@@ -1084,9 +1078,7 @@ for the MODE to customize."
       (if (and group (not current-prefix-arg))
 	  major-mode
 	(intern
-	 (completing-read (if group
-			      (format "Mode (default %s): " major-mode)
-			    "Mode: ")
+	 (completing-read (format-prompt "Mode" (and group major-mode))
 			  obarray
 			  'custom-group-of-mode
 			  t nil nil (if group (symbol-name major-mode))))))))
@@ -1219,8 +1211,8 @@ that were added or redefined since that version."
   (interactive
    (list
     (read-from-minibuffer
-     (format "Customize options changed, since version (default %s): "
-	     customize-changed-options-previous-release))))
+     (format-prompt "Customize options changed, since version"
+	            customize-changed-options-previous-release))))
   (if (equal since-version "")
       (setq since-version nil)
     (unless (condition-case nil

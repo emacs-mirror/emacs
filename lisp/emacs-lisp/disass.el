@@ -59,10 +59,9 @@ If OBJECT is not already compiled, we compile it, but do not
 redefine OBJECT if it is a symbol."
   (interactive
    (let* ((fn (function-called-at-point))
-          (prompt (if fn (format "Disassemble function (default %s): " fn)
-                    "Disassemble function: "))
           (def (and fn (symbol-name fn))))
-     (list (intern (completing-read prompt obarray 'fboundp t nil nil def))
+     (list (intern (completing-read (format-prompt "Disassemble function" fn)
+                                    obarray 'fboundp t nil nil def))
            nil 0 t)))
   (if (and (consp object) (not (functionp object)))
       (setq object `(lambda () ,object)))

@@ -1150,9 +1150,9 @@ The numbers are formatted according to the FORMAT string."
    (list (if current-prefix-arg
              (prefix-numeric-value current-prefix-arg)
            (string-to-number
-            (read-string "Start value: (0) " nil nil "0")))
+            (read-string (format-prompt "Start value" 0) nil nil "0")))
          (string-to-number
-          (read-string "Increment: (1) " nil nil "1"))
+          (read-string (format-prompt "Increment" 1) nil nil "1"))
          (read-string (concat "Format: (" cua--rectangle-seq-format ") "))))
   (if (= (length format) 0)
       (setq format cua--rectangle-seq-format)

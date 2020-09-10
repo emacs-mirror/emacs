@@ -209,8 +209,7 @@ it defaults to the value of `abbrev-file-name'.
 Optional second argument QUIETLY non-nil means don't display a message."
   (interactive
    (list
-    (read-file-name (format "Read abbrev file (default %s): "
-			    abbrev-file-name)
+    (read-file-name (format-prompt "Read abbrev file" abbrev-file-name)
 		    nil abbrev-file-name t)))
   (load (or file abbrev-file-name) nil quietly)
   (setq abbrevs-changed nil))
@@ -234,7 +233,7 @@ If VERBOSE is non-nil, display a message indicating where abbrevs
 have been saved."
   (interactive
    (list
-    (read-file-name "Write abbrev file: "
+    (read-file-name (format-prompt "Write abbrev file" abbrev-file-name)
 		    (file-name-directory (expand-file-name abbrev-file-name))
 		    abbrev-file-name)))
   (or (and file (> (length file) 0))
@@ -263,7 +262,7 @@ have been saved."
 (defun abbrev-edit-save-to-file (file)
   "Save all user-level abbrev definitions in current buffer to FILE."
   (interactive
-   (list (read-file-name "Save abbrevs to file: "
+   (list (read-file-name (format-prompt "Save abbrevs to file" abbrev-file-name)
 			 (file-name-directory
 			  (expand-file-name abbrev-file-name))
 			 abbrev-file-name)))

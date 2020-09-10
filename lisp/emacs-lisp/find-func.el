@@ -319,9 +319,7 @@ if non-nil)."
                 (thing-at-point 'symbol))))
     (when (and def (not (test-completion def table)))
       (setq def nil))
-    (completing-read (if def
-                         (format "Library name (default %s): " def)
-                       "Library name: ")
+    (completing-read (format-prompt "Library name" def)
                      table nil nil nil nil def)))
 
 ;;;###autoload
@@ -489,12 +487,10 @@ otherwise uses `variable-at-point'."
          (prompt-type (cdr (assq type '((nil . "function")
                                         (defvar . "variable")
                                         (defface . "face")))))
-         (prompt (concat "Find " prompt-type
-                         (and symb (format " (default %s)" symb))
-                         ": "))
          (enable-recursive-minibuffers t))
     (list (intern (completing-read
-                   prompt obarray predicate
+                   (format-prompt "Find %s" symb prompt-type)
+                   obarray predicate
                    t nil nil (and symb (symbol-name symb)))))))
 
 (defun find-function-do-it (symbol type switch-fn)

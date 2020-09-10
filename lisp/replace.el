@@ -208,12 +208,15 @@ wants to replace FROM with TO."
 	   (minibuffer-allow-text-properties t) ; separator uses text-properties
 	   (prompt
 	    (cond ((and query-replace-defaults separator)
-                   (format "%s (default %s): " prompt (car minibuffer-history)))
+                   (format-prompt prompt (car minibuffer-history)))
                   (query-replace-defaults
-                   (format "%s (default %s -> %s): " prompt
-                           (query-replace-descr (caar query-replace-defaults))
-                           (query-replace-descr (cdar query-replace-defaults))))
-                  (t (format "%s: " prompt))))
+                   (format-prompt
+                    prompt (format "%s -> %s"
+                                   (query-replace-descr
+                                    (caar query-replace-defaults))
+                                   (query-replace-descr
+                                    (cdar query-replace-defaults)))))
+                  (t (format-prompt prompt nil))))
 	   (from
 	    ;; The save-excursion here is in case the user marks and copies
 	    ;; a region in order to specify the minibuffer input.
@@ -1487,7 +1490,7 @@ which means to discard all text properties."
 		;; Get the regexp for collection pattern.
 		(let ((default (car occur-collect-regexp-history)))
 		  (read-regexp
-		   (format "Regexp to collect (default %s): " default)
+		   (format-prompt "Regexp to collect" default)
 		   default 'occur-collect-regexp-history)))
 	    ;; Otherwise normal occur takes numerical prefix argument.
 	    (when current-prefix-arg

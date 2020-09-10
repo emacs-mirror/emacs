@@ -198,14 +198,13 @@ Must be greater than 1."
   :type 'integer
   :group 'ispell)
 
-;; XXX Add enchant to this list once enchant >= 2.1.0 is widespread.
-;; Before that, adding it is useless, as if it is found, it will just
-;; cause an error; and one of the other spelling engines below is
-;; almost certainly installed in any case, for enchant to use.
 (defcustom ispell-program-name
   (or (executable-find "aspell")
       (executable-find "ispell")
       (executable-find "hunspell")
+      ;; Enchant is commonly installed as `enchant-2', so use this
+      ;; name and avoid old versions of `enchant'.
+      (executable-find "enchant-2")
       "ispell")
   "Program invoked by \\[ispell-word] and \\[ispell-region] commands."
   :type 'string
@@ -330,7 +329,7 @@ The function must take one string argument and return a string."
   :group 'ispell)
 
 ;; FIXME framepop.el last updated c 2003 (?),
-;; probably something else replaces it these days.
+;; use posframe.
 (defcustom ispell-use-framepop-p nil
   "When non-nil ispell uses framepop to display choices in a dedicated frame.
 You can set this variable to dynamically use framepop if you are in a
@@ -1237,11 +1236,11 @@ If LANG is omitted, get the extra word characters for the default language."
   "Find Enchant's dictionaries, and record in `ispell-enchant-dictionary-alist'."
   (let* ((dictionaries
 	  (split-string
-	   (ispell--call-enchant-lsmod "-list-dicts" (buffer-string)) " ([^)]+)\n"))
+	   (ispell--call-enchant-lsmod "-list-dicts") " ([^)]+)\n" t))
          (found
           (mapcar #'(lambda (lang)
                       `(,lang "[[:alpha:]]" "[^[:alpha:]]"
-                              ,(ispell--get-extra-word-characters) t nil nil utf-8))
+                              ,(ispell--get-extra-word-characters lang) t nil nil utf-8))
                   dictionaries)))
     ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
     ;; which have no element in FOUND at all.

@@ -327,21 +327,19 @@ See also the functions:
              (when file
                (file-name-extension file))))
          (suffix
-          (read-string (format "%s extension%s: "
-                               (if (equal current-prefix-arg '(4))
-                                   "UNmarking"
-                                 "Marking")
-                               (if default
-                                   (format " (default %s)" default)
-                                 "")) nil nil default))
+          (read-string (format-prompt
+                        "%s extension" default
+                        (if (equal current-prefix-arg '(4))
+                            "UNmarking"
+                          "Marking"))
+                       nil nil default))
          (marker
           (pcase current-prefix-arg
             ('(4) ?\s)
             ('(16)
              (let* ((dflt (char-to-string dired-marker-char))
                     (input (read-string
-                            (format
-                             "Marker character to use (default %s): " dflt)
+                            (format-prompt "Marker character to use" dflt)
                             nil nil dflt)))
                (aref input 0)))
             (_ dired-marker-char))))

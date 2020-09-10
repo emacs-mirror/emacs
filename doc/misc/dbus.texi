@@ -59,7 +59,7 @@ another.  An overview of D-Bus can be found at
 * Type Conversion::             Mapping Lisp types and D-Bus types.
 * Synchronous Methods::         Calling methods in a blocking way.
 * Asynchronous Methods::        Calling methods non-blocking.
-* Receiving Method Calls::      Offering own methods.
+* Register Objects::            Offering own services.
 * Signals::                     Sending and receiving signals.
 * Alternative Buses::           Alternative buses and environments.
 * Errors and Events::           Errors and events.
@@ -744,16 +744,17 @@ result can be any valid D-Bus value, or @code{nil} if there is no
 @end lisp
 @end defun
 
-@defun dbus-set-property bus service path interface property value
+@defun dbus-set-property bus service path interface property [type] value
 This function sets the value of @var{property} of @var{interface} to
 @var{value}.  It will be checked at @var{bus}, @var{service},
-@var{path}.  When the value is successfully set, this function returns
-@var{value}.  Otherwise, it returns @code{nil}.  Example:
+@var{path}.  @var{value} can be preceded by a @var{type} symbol.  When
+the value is successfully set, this function returns @var{value}.
+Otherwise, it returns @code{nil}.  Example:
 
 @lisp
 (dbus-set-property
  :session "org.kde.kaccess" "/MainApplication"
- "com.trolltech.Qt.QApplication" "doubleClickInterval" 500)
+ "com.trolltech.Qt.QApplication" "doubleClickInterval" :uint16 500)
 
 @result{} 500
 @end lisp
@@ -1340,10 +1341,14 @@ message arrives, and @var{handler} is called.  Example:
 @end defun
 
 
-@node Receiving Method Calls
-@chapter Offering own methods.
+@node Register Objects
+@chapter Offering own services.
 @cindex method calls, returning
 @cindex returning method calls
+
+You can offer an own service in D-Bus, which will be visible by other
+D-Bus clients.  See @uref{https://dbus.freedesktop.org/doc/dbus-api-design.html}
+for a discussion of the design.
 
 In order to register methods on the D-Bus, Emacs has to request a well
 known name on the D-Bus under which it will be available for other
@@ -1466,9 +1471,9 @@ If @var{handler} returns a reply message with an empty argument list,
 to distinguish it from @code{nil} (the boolean false).
 
 If @var{handler} detects an error, it shall return the list
-@code{(:error @var{ERROR-NAME} @var{ERROR-MESSAGE)}}.
-@var{ERROR-NAME} is a namespaced string which characterizes the error
-type, and @var{ERROR-MESSAGE} is a free text string.  Alternatively,
+@code{(:error @var{error-name} @var{error-message)}}.
+@var{error-name} is a namespaced string which characterizes the error
+type, and @var{error-message} is a free text string.  Alternatively,
 any Emacs signal @code{dbus-error} in @var{handler} raises a D-Bus
 error message with the error name @samp{org.freedesktop.DBus.Error.Failed}.
 
@@ -1561,7 +1566,7 @@ The test then runs
 @end example
 @end defun
 
-@defun dbus-register-property bus service path interface property access value &optional emits-signal dont-register-service
+@defun dbus-register-property bus service path interface property access [type] value &optional emits-signal dont-register-service
 With this function, an application declares a @var{property} on the D-Bus
 @var{bus}.
 
@@ -1579,9 +1584,11 @@ discussion of @var{dont-register-service} below).
 
 @var{access} indicates, whether the property can be changed by other
 services via D-Bus.  It must be either the symbol @code{:read},
-@code{:write} or @code{:readwrite}.  @var{value} is the initial value
-of the property, it can be of any valid type (@xref{dbus-call-method},
-for details).
+@code{:write} or @code{:readwrite}.
+
+@var{value} is the initial value of the property, it can be of any
+valid type (@xref{dbus-call-method}, for details).  @var{value} can be
+preceded by a @var{type} symbol.
 
 If @var{property} already exists on @var{path}, it will be
 overwritten.  For properties with access type @code{:read} this is the

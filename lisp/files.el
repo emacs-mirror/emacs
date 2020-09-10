@@ -1566,8 +1566,8 @@ use with M-x."
 		(and (not (memq 'eight-bit-control charsets))
 		     (not (memq 'eight-bit-graphic charsets)))))
 	 (setq from-coding (read-coding-system
-			    (format "Recode filename %s from (default %s): "
-				    filename default-coding)
+			    (format-prompt "Recode filename %s from"
+				           filename default-coding)
 			    default-coding))
        (setq from-coding (read-coding-system
 			  (format "Recode filename %s from: " filename))))
@@ -1579,8 +1579,8 @@ use with M-x."
 			  (format "Recode filename %s from %s to: "
 				  filename from-coding)))
        (setq to-coding (read-coding-system
-			(format "Recode filename %s from %s to (default %s): "
-				filename from-coding default-coding)
+			(format-prompt "Recode filename %s from %s to"
+				       default-coding filename from-coding)
 			default-coding)))
      (list filename from-coding to-coding)))
 
@@ -4530,13 +4530,12 @@ Interactively, confirmation is required unless you supply a prefix argument."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
-	     (read-file-name "Write file: "
-			     nil nil nil nil)
-	   (read-file-name "Write file: " default-directory
-			   (expand-file-name
-			    (file-name-nondirectory (buffer-name))
-			    default-directory)
-			   nil nil))
+	     (read-file-name "Write file: ")
+	   (read-file-name
+            (format-prompt "Write file" (file-name-nondirectory (buffer-name)))
+            default-directory
+	    (expand-file-name (file-name-nondirectory (buffer-name))
+                              default-directory)))
 	 (not current-prefix-arg)))
   (or (null filename) (string-equal filename "")
       (progn
@@ -5274,10 +5273,13 @@ Before and after saving the buffer, this function runs
 	    (unless (run-hook-with-args-until-success 'write-contents-functions)
               ;; If buffer has no file name, ask user for one.
               (or buffer-file-name
-                  (let ((filename
-                         (expand-file-name
-                          (read-file-name "File to save in: "
-                                          nil (expand-file-name (buffer-name))))))
+                  (let* ((default (expand-file-name (buffer-name)))
+                         (filename
+                          (expand-file-name
+                           (read-file-name
+                            (format-prompt "File to save in"
+                                           (file-name-nondirectory default))
+                            nil default))))
                     (if (file-exists-p filename)
                         (if (file-directory-p filename)
                             ;; Signal an error if the user specified the name of an

@@ -378,7 +378,7 @@ area of a spreadsheet.")
 ;;  "Side-effect variables".  They are set in one function, altered in
 ;;  another as a side effect, then read back by the first, as a way of
 ;;  passing back more than one value.  These declarations are just to make
-;;  the compiler happy, and to conform to standard Emacs-Lisp practice (I
+;;  the compiler happy, and to conform to standard Emacs Lisp practice (I
 ;;  think the make-local-variable trick above is cleaner).
 ;;
 
@@ -2540,10 +2540,8 @@ cell formula was unsafe and user declined confirmation."
            (if (equal initial "\"")
                (progn
                  (if (not (stringp curval)) (setq curval nil))
-                 (read-string (if curval
-                                  (format "String Cell %s (default %s): "
-                                          ses--curcell curval)
-                                (format "String Cell %s: " ses--curcell))
+                 (read-string (format-prompt "String Cell %s"
+                                             curval ses--curcell)
                               nil 'ses-read-string-history curval))
              (read-from-minibuffer
               (format "Cell %s: " ses--curcell)
@@ -3007,9 +3005,9 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
      (list col
 	   (if current-prefix-arg
 	       (prefix-numeric-value current-prefix-arg)
-	     (read-from-minibuffer (format "Column %s width (default %d): "
-					   (ses-column-letter col)
-					   (ses-col-width col))
+	     (read-from-minibuffer (format-prompt "Column %s width"
+					          (ses-col-width col)
+					          (ses-column-letter col))
 				   nil  ; No initial contents.
 				   nil  ; No override keymap.
 				   t    ; Convert to Lisp object.

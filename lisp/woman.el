@@ -1277,14 +1277,11 @@ cache to be re-read."
 				  (test-completion
 				   word-at-point woman-topic-all-completions))
 			 word-at-point)))
-		(completing-read
-		 (if default
-		     (format "Manual entry (default %s): " default)
-		   "Manual entry: ")
-		 woman-topic-all-completions nil 1
-		 nil
-		 'woman-topic-history
-		 default))))
+		(completing-read (format-prompt "Manual entry" default)
+		                 woman-topic-all-completions nil 1
+		                 nil
+		                 'woman-topic-history
+		                 default))))
     ;; Note that completing-read always returns a string.
     (unless (= (length topic) 0)
       (cond

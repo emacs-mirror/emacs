@@ -816,7 +816,7 @@ If MODE is `cpu' or `cpu+mem', time-based profiler will be started.
 Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
   (interactive
    (list (if (not (fboundp 'profiler-cpu-start)) 'mem
-           (intern (completing-read "Mode (default cpu): "
+           (intern (completing-read (format-prompt "Mode" "cpu")
                                     '("cpu" "mem" "cpu+mem")
                                     nil t nil nil "cpu")))))
   (cl-ecase mode

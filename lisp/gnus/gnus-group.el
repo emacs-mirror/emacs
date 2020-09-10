@@ -2416,9 +2416,8 @@ the bug number, and browsing the URL must return mbox output."
     ;; Pass DEF as the value of COLLECTION instead of DEF because:
     ;; a) null input should not cause DEF to be returned and
     ;; b) TAB and M-n still work this way.
-    (or (completing-read-multiple
-	 (format "Bug IDs%s: " (if def (format " (default %s)" def) ""))
-	 (and def (list (format "%s" def))))
+    (or (completing-read-multiple (format-prompt "Bug IDs" def)
+				  (and def (list (format "%s" def))))
 	def)))
 
 (defun gnus-read-ephemeral-bug-group (ids mbox-url &optional window-conf)
@@ -3186,23 +3185,26 @@ mail messages or news articles in files that have numeric names."
 	       (cons 'nnselect-args
 		     (nnir-make-specs nnir-extra-parms specs)))))))))
 
-(defun gnus-group-read-ephemeral-search-group (nnir-extra-parms	&optional specs)
-  "Create an nnselect group based on a search.  Prompt for a
-search query and determine the groups to search as follows: if
-called from the *Server* buffer search all groups belonging to
-the server on the current line; if called from the *Group* buffer
-search any marked groups, or the group on the current line, or
-all the groups under the current topic. Calling with a prefix-arg
-prompts for additional search-engine specific constraints. A
-non-nil `specs' arg must be an alist with `nnir-query-spec' and
-`nnir-group-spec' keys, and skips all prompting."
+(define-obsolete-function-alias 'gnus-group-make-nnir-group
+  'gnus-group-read-ephemeral-search-group "28.1")
+
+(defun gnus-group-read-ephemeral-search-group (nnir-extra-parms &optional specs)
+  "Create an nnselect group based on a search.
+Prompt for a search query and determine the groups to search as
+follows: if called from the *Server* buffer search all groups
+belonging to the server on the current line; if called from the
+*Group* buffer search any marked groups, or the group on the
+current line, or all the groups under the current topic.  Calling
+with a prefix arg prompts for additional search-engine specific
+constraints.  A non-nil SPECS arg must be an alist with
+`nnir-query-spec' and `nnir-group-spec' keys, and skips all
+prompting."
   (interactive "P")
   (gnus-group-read-ephemeral-group
    (concat "nnselect-" (message-unique-id))
    (list 'nnselect "nnselect")
    nil
    (cons (current-buffer) gnus-current-window-configuration)
-					;     nil
    nil nil
    (list
     (cons 'nnselect-specs
@@ -3744,9 +3746,8 @@ Uses the process/prefix convention."
 	(error "No group on the current line"))
       (string-to-number
        (let ((s (read-string
-		 (format "Level (default %s): "
-			 (or (gnus-group-group-level)
-			     gnus-level-default-subscribed)))))
+		 (format-prompt "Level" (or (gnus-group-group-level)
+					    gnus-level-default-subscribed)))))
 	 (if (string-match "^\\s-*$" s)
 	     (int-to-string (or (gnus-group-group-level)
 				gnus-level-default-subscribed))

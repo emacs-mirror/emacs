@@ -2750,7 +2750,9 @@ If stopped, start playback."
      (if current-prefix-arg
          ;; FIXME: We should provide some completion here, especially for the
          ;; case where the user specifies a local socket/file name.
-         (setq mpc-host (read-string "MPD host and port: " nil nil mpc-host)))
+         (setq mpc-host (read-string
+                         (format-prompt "MPD host and port" mpc-host)
+                         nil nil mpc-host)))
      nil))
   (let* ((song-buf (mpc-songs-buf))
          (song-win (get-buffer-window song-buf 0)))

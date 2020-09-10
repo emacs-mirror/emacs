@@ -3702,6 +3702,20 @@ Foo bar = gnu;"
   c++ t)
 (c-lang-defvar c-recognize-paren-inits (c-lang-const c-recognize-paren-inits))
 
+(c-lang-defconst c-recognize-bare-brace-inits
+  "Non-nil means that brace initializers without \"=\" exist,
+i.e. constructs like
+
+int foo[] {1, 2, 3};
+
+in addition to the more classic
+
+int foo[] = {1, 2, 3};"
+  t nil
+  c++ t)
+(c-lang-defvar c-recognize-bare-brace-inits
+	       (c-lang-const c-recognize-bare-brace-inits))
+
 (c-lang-defconst c-recognize-paren-inexpr-blocks
   "Non-nil to recognize gcc style in-expression blocks,
 i.e. compound statements surrounded by parentheses inside expressions."

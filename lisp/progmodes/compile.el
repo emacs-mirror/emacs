@@ -2913,11 +2913,8 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
 	    (and w (progn (compilation-set-window w marker)
                           (compilation-set-overlay-arrow w))))
           (let* ((name (read-file-name
-                        (format "Find this %s in%s: "
-                                compilation-error
-                                (if filename
-                                    (format " (default %s)" filename)
-                                  ""))
+                        (format-prompt "Find this %s in"
+                                       filename compilation-error)
                         spec-dir filename t nil
                         ;; The predicate below is fine when called from
                         ;; minibuffer-complete-and-exit, but it's too

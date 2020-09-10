@@ -2348,10 +2348,7 @@ will be deleted."
          (setq guess nil))
        (setq packages (mapcar #'symbol-name packages))
        (let ((val
-              (completing-read (if guess
-                                   (format "Describe package (default %s): "
-                                           guess)
-                                 "Describe package: ")
+              (completing-read (format-prompt "Describe package" guess)
                                packages nil t nil nil (when guess
                                                         (symbol-name guess)))))
          (list (and (> (length val) 0) (intern val)))))))

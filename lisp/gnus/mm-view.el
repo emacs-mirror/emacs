@@ -597,8 +597,16 @@ If MODE is not set, try to find mode automatically."
 	 (with-temp-buffer
 	   (insert-buffer-substring (mm-handle-buffer handle))
 	   (goto-char (point-min))
-	   (let ((part (base64-decode-string (buffer-string))))
-	     (epg-verify-string (epg-make-context 'CMS) part))))
+	   (let ((part (base64-decode-string (buffer-string)))
+		 (context (epg-make-context 'CMS)))
+	     (prog1
+		 (epg-verify-string context part)
+	       (let ((result (car (epg-context-result-for context 'verify))))
+		 (mm-sec-status
+		  'gnus-info (epg-signature-status result)
+		  'gnus-details
+		  (format "%s:%s" (epg-signature-validity result)
+			  (epg-signature-key-id result))))))))
       (with-temp-buffer
 	(insert "MIME-Version: 1.0\n")
 	(mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")

@@ -18,16 +18,16 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This is a "virtual" backend that allows an aribtrary list of
-;; articles to be treated as a gnus group.  An nnselect group uses an
-;; nnselect-spec group parameter to specify this list of
-;; articles.  nnselect-spec is an alist with two keys:
-;; nnselect-function, whose value should be a function that returns
-;; the list of articles, and nnselect-args.  The function will be
+;; This is a "virtual" backend that allows an arbitrary list of
+;; articles to be treated as a Gnus group.  An nnselect group uses an
+;; `nnselect-spec' group parameter to specify this list of
+;; articles.  `nnselect-spec' is an alist with two keys:
+;; `nnselect-function', whose value should be a function that returns
+;; the list of articles, and `nnselect-args'.  The function will be
 ;; applied to the arguments to generate the list of articles.  The
 ;; return value should be a vector, each element of which should in
 ;; turn be a vector of three elements: a real prefixed group name, an
@@ -238,6 +238,9 @@ as `(keyfunc member)' and the corresponding element is just
   "Virtual groups in Gnus with arbitrary selection methods."
   :group 'gnus)
 
+(define-obsolete-variable-alias 'nnir-retrieve-headers-override-function
+  'nnselect-retrieve-headers-override-function "28.1")
+
 (defcustom nnselect-retrieve-headers-override-function nil
   "A function that retrieves article headers for ARTICLES from GROUP.
 The retrieved headers should populate the `nntp-server-buffer'.
@@ -245,8 +248,7 @@ Returns either the retrieved header format 'nov or 'headers.
 
 If this variable is nil, or if the provided function returns nil,
   `gnus-retrieve-headers' will be called instead."
-  :version "24.1" :type '(function) :group 'nnselect)
-
+  :version "28.1" :type '(function) :group 'nnselect)
 
 ;; Gnus backend interface functions.
 

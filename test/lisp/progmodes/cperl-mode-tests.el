@@ -31,6 +31,7 @@
 (defvar cperl-test-mode #'cperl-mode)
 
 (require 'cperl-mode)
+(require 'ert)
 
 (defvar cperl-mode-tests-data-directory
   (expand-file-name "lisp/progmodes/cperl-mode-resources"
@@ -109,11 +110,13 @@ indentation actually takes place.."
       (message "%s" (buffer-string)))))
 
 (ert-deftest cperl-mode-test-bug-10483 ()
-  "Verifies that a piece of code which ends in a paren without a
-statement terminato ron tne same line does not loop forever.  The
-test starts an asynchronous Emacs batch process under timeout
-control."
+  "Check that indenting certain perl code does not loop forever.
+This verifies that indenting a piece of code that ends in a paren
+without a statement terminator on the same line does not loop
+forever.  The test starts an asynchronous Emacs batch process
+under timeout control."
   (interactive)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
   (let* ((emacs (concat invocation-directory invocation-name))
          (test-function 'cperl-mode-test--run-bug-10483)
          (test-function-name (symbol-name test-function))

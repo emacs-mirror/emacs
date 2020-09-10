@@ -6306,8 +6306,7 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
   (interactive
    (let* ((default (cperl-word-at-point))
 	  (read (read-string
-		 (format "Find doc for Perl function (default %s): "
-			 default))))
+		 (format-prompt "Find doc for Perl function" default))))
      (list (if (equal read "")
 	       default
 	     read))))
@@ -8266,10 +8265,7 @@ the appropriate statement modifier."
   (interactive
    (list (let* ((default-entry (cperl-word-at-point))
                 (input (read-string
-                        (format "perldoc entry%s: "
-                                (if (string= default-entry "")
-                                    ""
-                                  (format " (default %s)" default-entry))))))
+                        (format-prompt "perldoc entry" default-entry))))
            (if (string= input "")
                (if (string= default-entry "")
                    (error "No perldoc args given")

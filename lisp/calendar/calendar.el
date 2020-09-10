@@ -994,7 +994,7 @@ pre-existing calendar windows."
   "Set the style of calendar and diary dates to STYLE (a symbol).
 The valid styles are described in the documentation of `calendar-date-style'."
   (interactive (list (intern
-                      (completing-read "Date style: "
+                      (completing-read (format-prompt "Date style" "american")
                                        '("american" "european" "iso") nil t
                                        nil nil "american"))))
   (or (memq style '(american european iso))

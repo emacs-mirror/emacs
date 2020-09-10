@@ -2369,12 +2369,8 @@ In effect it sets the `fill-prefix' when inside comments and then calls
    ;; in prolog-help-function-i
    (t
     (let* ((word (prolog-atom-under-point))
-           (predicate (read-string
-                       (format "Help on predicate%s: "
-                               (if word
-                                   (concat " (default " word ")")
-                                 ""))
-                       nil nil word))
+           (predicate (read-string (format-prompt "Help on predicate" word)
+                                   nil nil word))
            ;;point
            )
       (if prolog-help-function-i

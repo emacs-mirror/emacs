@@ -1356,21 +1356,17 @@ the string PROPERTY."
 
 (defun css--complete-property-value ()
   "Complete property value at point."
-  (let ((property
-         (save-excursion
-           (re-search-backward ":[^/]" (line-beginning-position) t)
-           (when (eq (char-after) ?:)
-             (let ((property-end (point)))
-               (skip-chars-backward "-[:alnum:]")
-               (let ((prop (buffer-substring (point) property-end)))
-                 (car (member prop css-property-ids))))))))
+  (let ((property (and (looking-back "\\([[:alnum:]-]+\\):[^/][^;]*"
+                                     (line-beginning-position) t)
+                       (member (match-string-no-properties 1)
+                               css-property-ids))))
     (when property
       (let ((end (point)))
         (save-excursion
           (skip-chars-backward "[:graph:]")
           (list (point) end
                 (append '("inherit" "initial" "unset")
-                        (css--property-values property))))))))
+                        (css--property-values (car property)))))))))
 
 (defvar css--html-tags (mapcar #'car html-tag-alist)
   "List of HTML tags.
@@ -1883,12 +1879,9 @@ on what is seen near point."
    (list
     (let* ((sym (css--mdn-find-symbol))
 	   (enable-recursive-minibuffers t)
-	   (value (completing-read
-		   (if sym
-		       (format "Describe CSS symbol (default %s): " sym)
-		     "Describe CSS symbol: ")
-		   css--mdn-completion-list nil nil nil
-		   'css--mdn-lookup-history sym)))
+	   (value (completing-read (format-prompt "Describe CSS symbol" sym)
+		                   css--mdn-completion-list nil nil nil
+		                   'css--mdn-lookup-history sym)))
       (if (equal value "") sym value))))
   (when symbol
     ;; If we see a single-colon pseudo-element like ":after", turn it

@@ -2120,10 +2120,9 @@ position corresponding to each rule."
                         (throw 'found (list kind token
                                             (or (nth 3 rewrite) res)))))))))
          (default-new (smie-config--guess-value sig))
-         (newstr (read-string (format "Adjust rule (%S %S -> %S) to%s: "
-                                      (nth 0 sig) (nth 1 sig) (nth 2 sig)
-                                      (if (not default-new) ""
-                                        (format " (default %S)" default-new)))
+         (newstr (read-string (format-prompt
+                               "Adjust rule (%S %S -> %S) to" default-new
+                               (nth 0 sig) (nth 1 sig) (nth 2 sig))
                               nil nil (format "%S" default-new)))
          (new (car (read-from-string newstr))))
     (let ((old (rassoc sig smie-config--buffer-local)))

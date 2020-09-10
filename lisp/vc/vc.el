@@ -953,10 +953,9 @@ use."
 	      ;; repository, make sure it's a parent of
 	      ;; file.
 	      (read-file-name
-	       (format "create %s repository in: " bk)
+	       (format-prompt "create %s repository in" def-dir bk)
 	       default-directory def-dir t nil
 	       (lambda (arg)
-		 (message "arg %s" arg)
 		 (and (file-directory-p arg)
 		      (string-prefix-p (expand-file-name arg) def-dir)))))))
 	   (let ((default-directory repo-dir))
@@ -2516,11 +2515,8 @@ with its diffs (if the underlying VCS supports that)."
    (cond
     ((eq current-prefix-arg 1)
      (let* ((default (thing-at-point 'word t))
-	    (revision (read-string
-		       (if default
-			   (format "Revision to show (default %s): " default)
-			 "Revision to show: ")
-		       nil nil default)))
+	    (revision (read-string (format-prompt "Revision to show" default)
+		                   nil nil default)))
        (list 1 revision)))
     ((numberp current-prefix-arg)
      (list current-prefix-arg))
@@ -2903,10 +2899,10 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
   "Delete file and mark it as such in the version control system.
 If called interactively, read FILE, defaulting to the current
 buffer's file name if it's under version control."
-  (interactive (list (read-file-name "VC delete file: " nil
-                                     (when (vc-backend buffer-file-name)
-                                       buffer-file-name)
-                                     t)))
+  (interactive (list (let ((default (when (vc-backend buffer-file-name)
+                                      buffer-file-name)))
+                       (read-file-name "VC delete file" default)
+                       nil default t)))
   (setq file (expand-file-name file))
   (let ((buf (get-file-buffer file))
         (backend (vc-backend file)))
@@ -2947,9 +2943,10 @@ buffer's file name if it's under version control."
   "Rename file OLD to NEW in both work area and repository.
 If called interactively, read OLD and NEW, defaulting OLD to the
 current buffer's file name if it's under version control."
-  (interactive (list (read-file-name "VC rename file: " nil
-                                     (when (vc-backend buffer-file-name)
-                                       buffer-file-name) t)
+  (interactive (list (let ((default (when (vc-backend buffer-file-name)
+                                      buffer-file-name)))
+                       (read-file-name (format-prompt "VC rename file" default)
+                                       nil default t))
                      (read-file-name "Rename to: ")))
   ;; in CL I would have said (setq new (merge-pathnames new old))
   (let ((old-base (file-name-nondirectory old)))

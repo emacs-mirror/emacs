@@ -1048,10 +1048,9 @@ directory and makes this the current buffer's default directory."
                  (save-excursion
                    (skip-syntax-backward "-(")
                    (thing-at-point 'symbol)))))
-    (completing-read
-     (format (if def "Function (default %s): " "Function: ") def)
-     (inferior-octave-completion-table)
-     nil nil nil nil def)))
+    (completing-read (format-prompt "Function" def)
+                     (inferior-octave-completion-table)
+                     nil nil nil nil def)))
 
 (defun octave-goto-function-definition (fn)
   "Go to the function definition of FN in current buffer."
@@ -1172,10 +1171,7 @@ q: Don't fix\n" func file))
                               (min (line-end-position 4) end)
                               t)
                          (match-string 1))))
-           (old-func (read-string (format (if old-func
-                                              "Name to replace (default %s): "
-                                            "Name to replace: ")
-                                          old-func)
+           (old-func (read-string (format-prompt "Name to replace" old-func)
                                   nil nil old-func)))
       (if (and func old-func (not (equal func old-func)))
           (perform-replace old-func func 'query
@@ -1454,7 +1450,7 @@ The block marked is the one that contains point or follows point."
 Prompt for the function's name, arguments and return values (to be
 entered without parens)."
   (let* ((defname (file-name-sans-extension (buffer-name)))
-         (name (read-string (format "Function name (default %s): " defname)
+         (name (read-string (format-prompt "Function name" defname)
                             nil nil defname))
          (args (read-string "Arguments: "))
          (vals (read-string "Return values: ")))

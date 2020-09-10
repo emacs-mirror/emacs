@@ -1014,10 +1014,9 @@ to auto-complete your input based on the installed manual pages."
 		(completion-ignore-case t)
 		Man-completion-cache    ;Don't cache across calls.
 		(input (completing-read
-			(format "Manual entry%s"
-				(if (string= default-entry "")
-				    ": "
-				  (format " (default %s): " default-entry)))
+			(format-prompt "Manual entry"
+                                       (and (not (equal default-entry ""))
+                                            default-entry))
                         'Man-completion-table
 			nil nil nil 'Man-topic-history default-entry)))
 	   (if (string= input "")
@@ -1542,8 +1541,8 @@ The following man commands are available in the buffer.  Try
 
 \\[man]       Prompt to retrieve a new manpage.
 \\[Man-follow-manual-reference]       Retrieve reference in SEE ALSO section.
-\\[Man-next-manpage]   Jump to next manpage in circular list.
-\\[Man-previous-manpage]   Jump to previous manpage in circular list.
+\\[Man-next-manpage]     Jump to next manpage in circular list.
+\\[Man-previous-manpage]     Jump to previous manpage in circular list.
 \\[Man-next-section]       Jump to next manpage section.
 \\[Man-previous-section]       Jump to previous manpage section.
 \\[Man-goto-section]       Go to a manpage section.

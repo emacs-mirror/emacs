@@ -55,7 +55,7 @@
 ;; 'nnir-group-spec is a list with the specification of the
 ;; groups/servers to search.  The format of the 'nnir-group-spec is
 ;; (("server1" ("group11" "group12")) ("server2" ("group21"
-;; "group22"))). If any of the group lists is absent then all groups
+;; "group22"))).  If any of the group lists is absent then all groups
 ;; on that server are searched.
 
 ;; The output of `nnir-run-query' is a vector, each element of which
@@ -211,6 +211,26 @@ By default this is the name of an email header field.")
   "Search groups in Gnus with assorted search engines."
   :group 'gnus)
 
+(make-obsolete-variable 'nnir-summary-line-format "The formating
+specs previously unique to this variable may now be set in
+'gnus-summary-line-format." "28.1")
+
+(defcustom nnir-summary-line-format nil
+  "The format specification of the lines in an nnir summary buffer.
+
+All the items from `gnus-summary-line-format' are available, along
+with three items unique to nnir summary buffers:
+
+%Z    Search retrieval score value (integer)
+%G    Article original full group name (string)
+%g    Article original short group name (string)
+
+If nil this will use `gnus-summary-line-format'."
+  :version "24.1"
+  :type '(choice (const :tag "gnus-summary-line-format" nil) string)
+  :group 'nnir)
+
+
 (defcustom nnir-ignored-newsgroups ""
   "Newsgroups to skip when searching.
 Any newsgroup in the active file matching this regexp will be
@@ -335,7 +355,7 @@ Instead, use this:
 
 (defcustom nnir-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from HyREX file names to get group names.
-Restulting names have '/' in place  of '.'.
+Resulting names have '/' in place of '.'.
 
 For example, suppose that HyREX returns file names such as
 \"/home/john/Mail/mail/misc/42\".  For this example, use the following
@@ -1094,7 +1114,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                   (nnir-artitem-rsv y)))))))))
 
 (defun nnir-run-notmuch (query server &optional groups)
-  "Run QUERY with  GROUPS from SERVER  against notmuch.
+  "Run QUERY with GROUPS from SERVER against notmuch.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually).  If GROUPS is a list of group names, use them to
 construct path: search terms (see the variable

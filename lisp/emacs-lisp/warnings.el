@@ -292,14 +292,17 @@ entirely by setting `warning-suppress-types' or
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
-              (insert " ")
-              (insert-button "Disable showing"
-                             'type 'warning-suppress-warning
-                             'warning-type type)
-              (insert " ")
-              (insert-button "Disable logging"
-                             'type 'warning-suppress-log-warning
-                             'warning-type type)
+              ;; Don't output the buttons when doing batch compilation
+              ;; and similar.
+              (unless noninteractive
+                (insert " ")
+                (insert-button "Disable showing"
+                               'type 'warning-suppress-warning
+                               'warning-type type)
+                (insert " ")
+                (insert-button "Disable logging"
+                               'type 'warning-suppress-log-warning
+                               'warning-type type))
               (funcall newline)
 	      (when (and warning-fill-prefix (not (string-match "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)

@@ -57,12 +57,13 @@ See Info node `Displaying Boundaries' for details."
       (progn
         (setq display-fill-column-indicator t)
         (unless display-fill-column-indicator-character
-          (if (and (char-displayable-p ?\u2502)
-                   (or (not (display-graphic-p))
-                       (eq (aref (query-font (car (internal-char-font nil ?\u2502))) 0)
-                           (face-font 'default))))
-              (setq display-fill-column-indicator-character ?\u2502)
-            (setq display-fill-column-indicator-character ?|))))
+          (setq display-fill-column-indicator-character
+                (if (and (char-displayable-p ?\u2502)
+                         (or (not (display-graphic-p))
+                             (eq (aref (query-font (car (internal-char-font nil ?\u2502))) 0)
+                                 (face-font 'default))))
+                    ?\u2502
+                  ?|))))
     (setq display-fill-column-indicator nil)))
 
 (defun display-fill-column-indicator--turn-on ()

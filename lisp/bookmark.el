@@ -803,7 +803,7 @@ still there, in order, if the topmost one is ever deleted."
          (let ((str
                 (or name
                     (read-from-minibuffer
-                     (format "%s (default %s): " prompt default)
+                     (format-prompt prompt default)
                      nil
                      bookmark-minibuffer-read-name-map
                      nil nil defaults))))
@@ -1425,8 +1425,8 @@ for a file, defaulting to the file defined by variable
                              bookmark-default-file)))
             (if parg
                 ;; This should be part of the `interactive' spec.
-                (read-file-name (format "File to save bookmarks in: (%s) "
-                                        default)
+                (read-file-name (format-prompt "File to save bookmarks in"
+                                               default)
                                 (file-name-directory default) default)
               default))))
   (bookmark-write-file file)
@@ -1538,7 +1538,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
 		   (or (car bookmark-bookmarks-timestamp)
 		       (expand-file-name bookmark-default-file))))
 	 (prefix current-prefix-arg))
-     (list (read-file-name (format "Load bookmarks from: (%s) " default)
+     (list (read-file-name (format-prompt "Load bookmarks from" default)
 			   (file-name-directory default) default 'confirm)
 	   prefix nil prefix)))
   (let* ((file (expand-file-name file))

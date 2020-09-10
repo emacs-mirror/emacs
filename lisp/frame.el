@@ -733,7 +733,7 @@ argument PARAMETERS specifies additional frame parameters."
    (list
     (let* ((default (cdr (assq 'name (frame-monitor-attributes)))))
       (completing-read
-       (format "Make frame on monitor (default %s): " default)
+       (format-prompt "Make frame on monitor" default)
        (or (delq nil (mapcar (lambda (a)
                                (cdr (assq 'name a)))
                              (display-monitor-attributes-list)))
@@ -760,7 +760,7 @@ If DISPLAY is nil, that stands for the selected frame's display."
    (list
     (let* ((default (frame-parameter nil 'display))
            (display (completing-read
-                     (format "Close display (default %s): " default)
+                     (format-prompt "Close display" default)
                      (delete-dups
                       (mapcar (lambda (frame)
                                 (frame-parameter frame 'display))
@@ -1130,7 +1130,7 @@ If there is no frame by that name, signal an error."
    (let* ((frame-names-alist (make-frame-names-alist))
 	   (default (car (car frame-names-alist)))
 	   (input (completing-read
-		   (format "Select Frame (default %s): " default)
+		   (format-prompt "Select Frame" default)
 		   frame-names-alist nil t nil 'frame-name-history)))
      (if (= (length input) 0)
 	 (list default)
@@ -1412,12 +1412,12 @@ as though the font-related attributes of the `default' face had been
 \"set in this session\", so that the font is applied to future frames."
   (interactive
    (let* ((completion-ignore-case t)
-	  (font (completing-read "Font name: "
+          (default (frame-parameter nil 'font))
+	  (font (completing-read (format-prompt "Font name" default)
 				 ;; x-list-fonts will fail with an error
 				 ;; if this frame doesn't support fonts.
 				 (x-list-fonts "*" nil (selected-frame))
-                                 nil nil nil nil
-                                 (frame-parameter nil 'font))))
+                                 nil nil nil nil default)))
      (list font current-prefix-arg nil)))
   (when (or (stringp font) (fontp font))
     (let* ((this-frame (selected-frame))
@@ -1581,8 +1581,9 @@ When called interactively, prompt for the name of the frame.
 On text terminals, the frame name is displayed on the mode line.
 On graphical displays, it is displayed on the frame's title bar."
   (interactive
-   (list (read-string "Frame name: " nil nil
-                      (cdr (assq 'name (frame-parameters))))))
+   (let ((default (cdr (assq 'name (frame-parameters)))))
+     (list (read-string (format-prompt "Frame name" default) nil nil
+                        default))))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
 

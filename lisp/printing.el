@@ -5284,22 +5284,18 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-interactive-n-up (mess)
-  (or (stringp mess) (setq mess "*"))
-  (save-match-data
-    (let* ((fmt-prompt "%s[%s] N-up printing (default 1): ")
-	   (prompt "")
-	   (str (read-string (format fmt-prompt prompt mess) nil nil "1"))
-	   int)
-      (while (if (string-match "^\\s *[0-9]+$" str)
-		 (setq int (string-to-number str)
-		       prompt (cond ((< int 1)   "Integer below 1; ")
-				    ((> int 100) "Integer above 100; ")
-				    (t           nil)))
-	       (setq prompt "Invalid integer syntax; "))
-	(ding)
-	(setq str
-	      (read-string (format fmt-prompt prompt mess) str nil "1")))
-      int)))
+  (unless (stringp mess)
+    (setq mess "*"))
+  (let (int)
+    (while (or (< (setq int (read-number (format "[%s] N-up printing:" mess) 1))
+                  0)
+               (> int 100))
+      (if (< int 0)
+	  (message "Integer below 1")
+	(message "Integer above 100"))
+      (sit-for 1)
+      (ding))
+    int))
 
 
 (defun pr-interactive-dir (mess)
@@ -5323,7 +5319,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-interactive-regexp (mess)
-  (read-string (format "[%s] File regexp to print: " mess) nil nil ""))
+  (read-string (format "[%s] File regexp to print: " mess)))
 
 
 (defun pr-interactive-dir-args (mess)

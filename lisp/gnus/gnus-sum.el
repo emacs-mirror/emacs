@@ -87,6 +87,7 @@
 (autoload 'gnus-article-outlook-rearrange-citation "deuglify" nil t)
 (autoload 'nnselect-article-rsv "nnselect" nil nil)
 (autoload 'nnselect-article-group "nnselect" nil nil)
+(autoload 'gnus-nnselect-group-p "nnselect" nil nil)
 
 (defcustom gnus-kill-summary-on-exit t
   "If non-nil, kill the summary buffer when you exit from it.
@@ -144,11 +145,14 @@ If t, fetch all the available old headers."
   :type '(choice number
 		 (sexp :menu-tag "other" t)))
 
+(define-obsolete-variable-alias 'gnus-refer-thread-use-nnir
+  'gnus-refer-thread-use-search "28.1")
+
 (defcustom gnus-refer-thread-use-search nil
-  "Search an entire server when referring threads. A
-nil value will only search for thread-related articles in the
+  "Search an entire server when referring threads.
+A nil value will only search for thread-related articles in the
 current group."
-  :version "24.1"
+  :version "28.1"
   :group 'gnus-thread
   :type 'boolean)
 
@@ -1986,6 +1990,7 @@ increase the score of each group you read."
   "\M-K" gnus-summary-edit-global-kill
   ;; "V" gnus-version
   "\C-c\C-d" gnus-summary-describe-group
+  "\C-c\C-p" gnus-summary-make-group-from-search
   "q" gnus-summary-exit
   "Q" gnus-summary-exit-no-update
   "\C-c\C-i" gnus-info-find-node
@@ -7117,6 +7122,21 @@ The prefix argument ALL means to select all articles."
 		    (setq info (copy-sequence (gnus-get-info group))
 			  info (delq (gnus-info-params info) info))))))))))
 
+(defun gnus-summary-make-group-from-search ()
+  "Make a persistent group from the current ephemeral search group."
+  (interactive)
+  (if (not (gnus-nnselect-group-p gnus-newsgroup-name))
+      (gnus-message 3 "%s is not a search group" gnus-newsgroup-name)
+    (let ((name (gnus-read-group "Group name: ")))
+      (with-current-buffer gnus-group-buffer
+	(gnus-group-make-group
+	 name
+	 (list 'nnselect "nnselect")
+	 nil
+	 (list (cons 'nnselect-specs
+		     (gnus-group-get-parameter gnus-newsgroup-name
+					       'nnselect-specs t))))))))
+
 (defun gnus-summary-save-newsrc (&optional force)
   "Save the current number of read/marked articles in the dribble buffer.
 The dribble buffer will then be saved.
@@ -8984,16 +9004,15 @@ Return the number of articles fetched."
     result))
 
 (defun gnus-summary-refer-thread (&optional limit)
-  "Fetch all articles in the current thread. For backends that
-know how to search for threads (currently only 'nnimap) a
-non-numeric prefix arg will search the entire
-server; without a prefix arg only the current group is
-searched. If the variable `gnus-refer-thread-use-search' is
-non-nil the prefix arg has the reverse meaning. If no
-backend-specific 'request-thread function is available fetch
-LIMIT (the numerical prefix) old headers.  If LIMIT is
-non-numeric or nil fetch the number specified by the
-`gnus-refer-thread-limit' variable."
+  "Fetch all articles in the current thread.
+For backends that know how to search for threads (currently only
+`nnimap') a non-numeric prefix arg will search the entire server;
+without a prefix arg only the current group is searched.  If the
+variable `gnus-refer-thread-use-search' is non-nil the prefix arg
+has the reverse meaning.  If no backend-specific `request-thread'
+function is available fetch LIMIT (the numerical prefix) old
+headers.  If LIMIT is non-numeric or nil fetch the number
+specified by the `gnus-refer-thread-limit' variable."
   (interactive "P")
   (let* ((header (gnus-summary-article-header))
 	 (id (mail-header-id header))
@@ -9389,10 +9408,10 @@ default."
 	    (cond ((= (length urls) 1)
 		   (car urls))
 		  ((> (length urls) 1)
-		   (completing-read (format "URL to browse (default %s): "
-					    (gnus-shorten-url (car urls) 40))
-				    urls nil t nil nil
-				    (car urls)))))
+		   (completing-read
+		    (format-prompt "URL to browse"
+				   (gnus-shorten-url (car urls) 40))
+		    urls nil t nil nil (car urls)))))
       (if target
 	  (if external
 	      (funcall browse-url-secondary-browser-function target)

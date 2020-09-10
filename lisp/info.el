@@ -1995,12 +1995,9 @@ the Top node in FILENAME."
   "Search for REGEXP, starting from point, and select node it's found in.
 If DIRECTION is `backward', search in the reverse direction."
   (interactive (list (read-string
-		      (if Info-search-history
-			  (format "Regexp search%s (default %s): "
-				  (if case-fold-search "" " case-sensitively")
-				  (car Info-search-history))
-			(format "Regexp search%s: "
-				(if case-fold-search "" " case-sensitively")))
+                      (format-prompt
+                       "Regexp search%s" (car Info-search-history)
+		       (if case-fold-search "" " case-sensitively"))
 		      nil 'Info-search-history)))
   (deactivate-mark)
   (when (equal regexp "")
@@ -2124,12 +2121,9 @@ If DIRECTION is `backward', search in the reverse direction."
 (defun Info-search-backward (regexp &optional bound noerror count)
   "Search for REGEXP in the reverse direction."
   (interactive (list (read-string
-		      (if Info-search-history
-			  (format "Regexp search%s backward (default %s): "
-				  (if case-fold-search "" " case-sensitively")
-				  (car Info-search-history))
-			(format "Regexp search%s backward: "
-				(if case-fold-search "" " case-sensitively")))
+                      (format-prompt
+                       "Regexp search%s backward" (car Info-search-history)
+		       (if case-fold-search "" " case-sensitively"))
 		      nil 'Info-search-history)))
   (Info-search regexp bound noerror count 'backward))
 
@@ -2816,10 +2810,7 @@ new buffer."
        (while (null item)
 	 (setq item (let ((completion-ignore-case t)
 			  (Info-complete-menu-buffer (current-buffer)))
-		      (completing-read (if default
-					   (format "Menu item (default %s): "
-						   default)
-					 "Menu item: ")
+		      (completing-read (format-prompt "Menu item" default)
 				       #'Info-complete-menu-item nil t nil nil
                                        default))))
        (list item current-prefix-arg))))

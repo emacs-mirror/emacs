@@ -325,9 +325,7 @@ wrong, use this command again to toggle back to the right mode."
 				'undecided))
 		       buffer-file-coding-system)))
      (list (read-coding-system
-	    (if default
-		(format "Coding system for following command (default %s): " default)
-	      "Coding system for following command: ")
+            (format-prompt "Coding system for following command" default)
 	    default))))
   (prefix-command-preserve-state)
   (setq mule-cmds--prefixed-command-next-coding-system coding-system)
@@ -613,9 +611,8 @@ When called from a program, the value is the position of the unencodable
 character found, or nil if all characters are encodable."
   (interactive
    (list (let ((default (or buffer-file-coding-system 'us-ascii)))
-	   (read-coding-system
-	    (format "Coding-system (default %s): " default)
-	    default))))
+	   (read-coding-system (format-prompt "Coding-system" default)
+	                       default))))
   (let ((pos (unencodable-char-position (point) (point-max) coding-system)))
     (if pos
 	(goto-char (1+ pos))
@@ -804,9 +801,8 @@ or specify any other coding system (and risk losing\n\
 
       ;; Read a coding system.
       (setq coding-system
-	    (read-coding-system
-	     (format "Select coding system (default %s): " default)
-	     default))
+	    (read-coding-system (format-prompt "Select coding system" default)
+	                        default))
       (setq last-coding-system-specified coding-system))
 
     (kill-buffer "*Warning*")

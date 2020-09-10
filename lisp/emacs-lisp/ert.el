@@ -1635,9 +1635,7 @@ Signals an error if no test name was read."
                     nil)))
     (ert-test (setq default (ert-test-name default))))
   (when add-default-to-prompt
-    (setq prompt (if (null default)
-                     (format "%s: " prompt)
-                   (format "%s (default %s): " prompt default))))
+    (setq prompt (format-prompt prompt default)))
   (let ((input (completing-read prompt obarray #'ert-test-boundp
                                 t nil history default nil)))
     ;; completing-read returns an empty string if default was nil and
@@ -2023,9 +2021,7 @@ and how to display message."
                             (car ert--selector-history)
                           "t")))
            (read
-            (completing-read (if (null default)
-                                 "Run tests: "
-                               (format "Run tests (default %s): " default))
+            (completing-read (format-prompt "Run tests" default)
                              obarray #'ert-test-boundp nil nil
                              'ert--selector-history default nil)))
          nil))

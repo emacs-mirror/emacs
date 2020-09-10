@@ -1759,8 +1759,9 @@ This is based on `speedbar-initial-expansion-list-name' referencing
   "Change speedbar's default expansion list to NEW-DEFAULT."
   (interactive
    (list
-    (completing-read (format "Speedbar Mode (default %s): "
-			     speedbar-previously-used-expansion-list-name)
+    (completing-read (format-prompt
+                      "Speedbar Mode"
+		      speedbar-previously-used-expansion-list-name)
 		     speedbar-initial-expansion-mode-alist
 		     nil t "" nil
 		     speedbar-previously-used-expansion-list-name)))
