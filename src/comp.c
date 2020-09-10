@@ -4924,17 +4924,24 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
     xsignal2 (Qnative_lisp_load_failed, build_string ("file does not exists"),
 	      filename);
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
-  if (!NILP (Fgethash (filename, all_loaded_comp_units_h, Qnil)))
+
+  if (!NILP (Fgethash (filename, all_loaded_comp_units_h, Qnil))
+      && !NILP (Ffile_writable_p (filename)))
     {
       /* If in this session there was ever a file loaded with this
 	 name rename before loading it to make sure we always get a
 	 new handle!  */
       Lisp_Object tmp_filename =
-	Fmake_temp_file_internal (filename, make_fixnum (0),
-				  build_string (".eln"), Qnil);
-      Frename_file (filename, tmp_filename, Qnil);
-      comp_u->handle = dynlib_open (SSDATA (tmp_filename));
-      Frename_file (tmp_filename, filename, Qnil);
+	Fmake_temp_file_internal (filename, Qnil, build_string (".eln.tmp"),
+				  Qnil);
+      if (NILP (Ffile_writable_p (tmp_filename)))
+	comp_u->handle = dynlib_open (SSDATA (filename));
+      else
+	{
+	  Frename_file (filename, tmp_filename, Qt);
+	  comp_u->handle = dynlib_open (SSDATA (tmp_filename));
+	  Frename_file (tmp_filename, filename, Qnil);
+	}
     }
   else
     comp_u->handle = dynlib_open (SSDATA (filename));
