@@ -536,6 +536,12 @@
     (if (featurep 'ns)
         (bindings--define-key menu [separator-undo] menu-bar-separator))
 
+    (bindings--define-key menu [undo-redo]
+      '(menu-item "Redo" undo-redo
+                  :enable (and (not buffer-read-only)
+                           (undo--last-change-was-undo-p buffer-undo-list))
+                  :help "Undo last undo"))
+
     (bindings--define-key menu [undo]
       '(menu-item "Undo" undo
                   :enable (and (not buffer-read-only)
