@@ -302,3 +302,7 @@ to the `window-configuration-change-hook'."
 
 (provide 'erc-status-sidebar)
 ;;; erc-status-sidebar.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
+;; End:
