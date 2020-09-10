@@ -1824,10 +1824,11 @@ SERVICE PATH OBJECT [RULE]) ...).  SERVICE is the service name as
 registered, UNAME is the corresponding unique name.  In case of
 registered methods and properties, UNAME is nil.  PATH is the object
 path of the sending object.  All of them can be nil, which means a
-wildcard then.  OBJECT is either the handler to be called when a D-Bus
-message, which matches the key criteria, arrives (TYPE `:method' and
-`:signal'), or a list containing the value of the property and its
-attributes (TYPE `:property').
+wildcard then.
+
+OBJECT is either the handler to be called when a D-Bus message, which
+matches the key criteria, arrives (TYPE `:method' and `:signal'), or a
+list (ACCESS EMITS-SIGNAL SIGNATURE VALUE) for TYPE `:property'.
 
 For entries of type `:signal', there is also a fifth element RULE,
 which keeps the match string the signal is registered with.

@@ -41,7 +41,7 @@
 (defconst dbus--test-path "/org/gnu/Emacs/TestDBus"
   "Test object path.")
 
-(defconst dbus--test-interface "org.gnu.Emacs.TestDBus"
+(defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
 
 (defun dbus--test-availability (bus)
@@ -249,6 +249,7 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+;; TODO: Test emits-signal, unregister.
 (ert-deftest dbus-test05-register-property ()
   "Check property registration for an own service."
   (skip-unless dbus--test-enabled-session-bus)
@@ -271,7 +272,7 @@ This includes initialization and closing the bus."
           (dbus-register-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property1 :read "foo")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property1)
+          `((:property :session ,dbus--test-interface ,property1)
             (,dbus--test-service ,dbus--test-path))))
         (should
          (string-equal
@@ -296,7 +297,7 @@ This includes initialization and closing the bus."
           (dbus-register-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property2 :write "bar")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property2)
+          `((:property :session ,dbus--test-interface ,property2)
             (,dbus--test-service ,dbus--test-path))))
         (should-not ;; Due to `:write' access type.
          (dbus-get-property
@@ -319,7 +320,7 @@ This includes initialization and closing the bus."
           (dbus-register-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property3 :readwrite :object-path "/baz")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property3)
+          `((:property :session ,dbus--test-interface ,property3)
             (,dbus--test-service ,dbus--test-path))))
         (should
          (string-equal
@@ -381,14 +382,14 @@ This includes initialization and closing the bus."
           (dbus-register-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property1 :readwrite "foo")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property1)
+          `((:property :session ,dbus--test-interface ,property1)
             (,dbus--test-service ,dbus--test-path))))
         (should
          (equal
           (dbus-register-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property2 :readwrite "bar")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property2)
+          `((:property :session ,dbus--test-interface ,property2)
             (,dbus--test-service ,dbus--test-path))))
         (should
          (string-equal
@@ -434,14 +435,14 @@ This includes initialization and closing the bus."
           (dbus-register-property
            :session dbus--test-service (concat dbus--test-path dbus--test-path)
            dbus--test-interface property2 :readwrite "foo")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property2)
+          `((:property :session ,dbus--test-interface ,property2)
             (,dbus--test-service ,(concat dbus--test-path dbus--test-path)))))
         (should
          (equal
           (dbus-register-property
            :session dbus--test-service (concat dbus--test-path dbus--test-path)
            dbus--test-interface property3 :readwrite "bar")
-          `((:property :session "org.gnu.Emacs.TestDBus" ,property3)
+          `((:property :session ,dbus--test-interface ,property3)
             (,dbus--test-service ,(concat dbus--test-path dbus--test-path)))))
         (should
          (string-equal

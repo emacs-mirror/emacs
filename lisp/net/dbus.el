@@ -1462,7 +1462,7 @@ VALUE.  Otherwise, return nil.
    ;; "Set" requires a variant.
    (dbus-call-method
     bus service path dbus-interface-properties
-    "Set" :timeout 500 interface property (cons :variant args))
+    "Set" :timeout 500 interface property (list :variant args))
    ;; Return VALUE.  The property could have the `:write' access type,
    ;; so we ignore errors in `dbus-get-property'.
    (dbus-ignore-errors
@@ -1543,13 +1543,15 @@ clients from discovering the still incomplete interface.
 
 \(dbus-register-property BUS SERVICE PATH INTERFACE PROPERTY ACCESS \
 [TYPE] VALUE &optional EMITS-SIGNAL DONT-REGISTER-SERVICE)"
-  (let ((type (when (symbolp (car args)) (pop args)))
+  (let ((signature "s") ;; FIXME: For the time being.
+        ;; Read basic type symbol.
+        (type (when (symbolp (car args)) (pop args)))
         (value (pop args))
         (emits-signal (pop args))
         (dont-register-service (pop args)))
     (unless (member access '(:read :write :readwrite))
       (signal 'wrong-type-argument (list "Access type invalid" access)))
-    (unless type
+    (unless (or type (consp value))
       (setq type
             (cond
              ((memq value '(t nil)) :boolean)
@@ -1559,6 +1561,8 @@ clients from discovering the still incomplete interface.
              ((stringp value) :string)
              (t
               (signal 'wrong-type-argument (list "Value type invalid" value))))))
+    (unless (consp value)
+      (setq value (list type value)))
 
     ;; Add handlers for the three property-related methods.
     (dbus-register-method
@@ -1579,12 +1583,14 @@ clients from discovering the still incomplete interface.
     (when emits-signal
       (dbus-send-signal
        bus service path dbus-interface-properties "PropertiesChanged"
-       (if (member access '(:read :readwrite))
-           `(:array
-             (:dict-entry
-              ,property
-              ,(if type (list :variant type value) (list :variant value))))
-         '(:array: :signature "{sv}"))
+       ;; changed_properties.
+       (if (eq access :write)
+           '(:array: :signature "{sv}")
+         `(:array
+           (:dict-entry
+            ,property
+            ,(if type (list :variant type value) (list :variant value)))))
+       ;; invalidated_properties.
        (if (eq access :write)
            `(:array ,property)
          '(:array))))
@@ -1595,10 +1601,7 @@ clients from discovering the still incomplete interface.
 	  (val
            (cons
 	    (list
-	     nil service path
-	     (cons
-	      (if emits-signal (list access :emits-signal) (list access))
-	      (if type (list type value) (list value))))
+	     nil service path (list access emits-signal signature value))
             (dbus-get-other-registered-properties
              bus service path interface property))))
       (puthash key val dbus-registered-objects-table)
@@ -1626,16 +1629,19 @@ It will be registered for all objects created by `dbus-register-property'."
           `(:error ,dbus-error-unknown-property
             ,(format-message
               "No such property \"%s\" at path \"%s\"" property path)))
-         ((memq :write (car object))
+         ((eq :write (car object))
           `(:error ,dbus-error-access-denied
             ,(format-message
               "Property \"%s\" at path \"%s\" is not readable" property path)))
-	 ;; Return the result.
-         (t (list :variant (cdar (last (car entry))))))))
+	 ;; Return the result.  Since variant is a list, we must embed
+	 ;; it into another list.
+         (t (list (if (eq :array (car (nth 3 object)))
+                      (list :variant (nth 3 object))
+                    (cons :variant (nth 3 object))))))))
 
-     ;; "Set" expects a variant.
+     ;; "Set" expects the same type as registered.
      ((string-equal method "Set")
-      (let* ((value (caar (cddr args)))
+      (let* ((value (caar (nth 2 args)))
 	     (entry (dbus-get-this-registered-property
                      bus service path interface property))
 	     (object (car (last (car entry)))))
@@ -1644,27 +1650,30 @@ It will be registered for all objects created by `dbus-register-property'."
           `(:error ,dbus-error-unknown-property
             ,(format-message
               "No such property \"%s\" at path \"%s\"" property path)))
-         ((memq :read (car object))
+         ((eq :read (car object))
           `(:error ,dbus-error-property-read-only
             ,(format-message
               "Property \"%s\" at path \"%s\" is not writable" property path)))
-         (t (puthash (list :property bus interface property)
+         (t (unless (consp value)
+              (setq value (list (car (nth 3 object)) value)))
+            (puthash (list :property bus interface property)
 		     (cons (append
                             (butlast (car entry))
-                            ;; Reuse ACCESS und TYPE from registration.
-			    (list (list (car object) (cadr object) value)))
+                            ;; Reuse ACCESS, EMITS-SIGNAL and TYPE.
+			    (list (append (butlast object) (list value))))
                            (dbus-get-other-registered-properties
                             bus service path interface property))
 		     dbus-registered-objects-table)
 	    ;; Send the "PropertiesChanged" signal.
-	    (when (member :emits-signal (car object))
+	    (when (nth 1 object)
 	      (dbus-send-signal
 	       bus service path dbus-interface-properties "PropertiesChanged"
-	       (if (or (member :read (car object))
-                       (member :readwrite (car object)))
-                   `(:array (:dict-entry ,property (:variant ,value)))
-                 '(:array: :signature "{sv}"))
-               (if (eq (car object) :write)
+               ;; changed_properties.
+	       (if (eq :write (car object))
+                   '(:array: :signature "{sv}")
+                 `(:array (:dict-entry ,property (:variant ,value))))
+               ;; invalidated_properties.
+               (if (eq :write (car object))
                    `(:array ,property)
                  '(:array))))
             ;; Return empty reply.
@@ -1677,18 +1686,22 @@ It will be registered for all objects created by `dbus-register-property'."
 	 (lambda (key val)
            (when (consp val)
              (dolist (item val)
-	       (when (and (equal (butlast key) (list :property bus interface))
-		          (string-equal path (nth 2 item))
-		          (consp (car (last item)))
-                          (not (memq :write (caar (last item)))))
-	         (push
-	          (list :dict-entry
-		        (car (last key))
-		        (cons :variant (cdar (last item))))
-                  result)))))
+               (let ((object (car (last item))))
+	         (when (and (equal (butlast key) (list :property bus interface))
+		            (string-equal path (nth 2 item))
+		            (consp object)
+                            (not (eq :write (car object))))
+	           (push
+	            (list :dict-entry
+                          (car (last key))
+                          (if (eq :array (car (nth 3 object)))
+                              (list :variant (nth 3 object))
+                            (cons :variant (nth 3 object))))
+                    result))))))
 	 dbus-registered-objects-table)
-	;; Return the result, or an empty array.
-	(list :array (or result '(:signature "{sv}")))))
+	;; Return the result, or an empty array.  An array must be
+	;; embedded in a list.
+	(list (cons :array (or result '(:signature "{sv}"))))))
 
      (t `(:error ,dbus-error-unknown-method
           ,(format-message
@@ -1895,6 +1908,8 @@ this connection to those buses."
 (provide 'dbus)
 
 ;;; TODO:
+
+;; Support other compound properties but array.
 
 ;; * Implement org.freedesktop.DBus.ObjectManager.InterfacesAdded and
 ;;   org.freedesktop.DBus.ObjectManager.InterfacesRemoved.
