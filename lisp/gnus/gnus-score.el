@@ -1695,9 +1695,10 @@ score in `gnus-newsgroup-scored' by SCORE."
 		  match (gnus-date-iso8601 (nth 0 kill))))
 	   ((eq type '<)
 	    (setq type 'after
-		  match-func 'gnus-string>
+		  match-func 'string<
 		  match (gnus-time-iso8601
-			 (time-add (current-time) (* 86400 (nth 0 kill))))))
+			 (time-subtract (current-time)
+					(* 86400 (nth 0 kill))))))
 	   ((eq type 'before)
 	    (setq match-func 'gnus-string>
 		  match (gnus-date-iso8601 (nth 0 kill))))
@@ -1705,7 +1706,8 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (setq type 'before
 		  match-func 'gnus-string>
 		  match (gnus-time-iso8601
-			 (time-add (current-time) (* -86400 (nth 0 kill))))))
+			 (time-subtract (current-time)
+					(* 86400 (nth 0 kill))))))
 	   ((eq type 'at)
 	    (setq match-func 'string=
 		  match (gnus-date-iso8601 (nth 0 kill))))
