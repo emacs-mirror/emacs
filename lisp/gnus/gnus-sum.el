@@ -10708,6 +10708,7 @@ groups."
 	    ;; We only have to update this line.
 	    (save-excursion
 	      (save-restriction
+		(nnheader-ms-strip-cr)
 		(message-narrow-to-head)
 		(let ((head (buffer-substring-no-properties
 			     (point-min) (point-max)))
