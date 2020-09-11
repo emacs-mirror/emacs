@@ -107,7 +107,7 @@ test-native-bootstrap-speed0:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
-    - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
+    - make bootstrap NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
   timeout: 8 hours
 
 test-native-bootstrap-speed1:
@@ -116,7 +116,7 @@ test-native-bootstrap-speed1:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
-    - make bootstrap NATIVE_FAST_BOOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
+    - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
   timeout: 8 hours
 
 test-native-bootstrap-speed2:
@@ -125,7 +125,7 @@ test-native-bootstrap-speed2:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
-    - make bootstrap NATIVE_FAST_BOOT=1
+    - make bootstrap
   timeout: 8 hours
 
 test-gnustep:
