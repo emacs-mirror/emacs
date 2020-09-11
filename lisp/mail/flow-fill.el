@@ -157,7 +157,8 @@ lines."
           ;; Hack: Don't do the flowing on the signature line.
           (when (and (not (looking-at "-- $"))
                      (eq (char-before (line-end-position)) ?\s))
-            (while (eq (char-before (line-end-position)) ?\s)
+            (while (and (not (eobp))
+                        (eq (char-before (line-end-position)) ?\s))
               (end-of-line)
               (when delete-space
                 (delete-char -1))
