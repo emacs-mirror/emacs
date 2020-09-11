@@ -1399,7 +1399,7 @@ border of the two cases."
                ;; fudge for trail is: -3 (added to len-long)
                ;; (width  ) for trail
                (factor (if (> width (+ len-long fudge)) len-long len-short))
-               (size   (/ (- width factor) 2))
+               (size   (max (/ (- width factor) 2) 0))
                (fill (make-string size ?-))
                (pre  (replace-regexp-in-string ".$" " " fill))
                (post (replace-regexp-in-string "^." " " fill)))
