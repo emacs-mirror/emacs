@@ -3452,12 +3452,10 @@ See Info node `(calc)Defining Functions'."
 (defun calc-clear-unread-commands ()
   (setq unread-command-events nil))
 
-(defcalcmodevar math-2-word-size
-  (math-read-number-simple "4294967296")
+(defcalcmodevar math-2-word-size 4294967296
   "Two to the power of `calc-word-size'.")
 
-(defcalcmodevar math-half-2-word-size
-  (math-read-number-simple "2147483648")
+(defcalcmodevar math-half-2-word-size 2147483648
   "One-half of two to the power of `calc-word-size'.")
 
 (when calc-always-load-extensions

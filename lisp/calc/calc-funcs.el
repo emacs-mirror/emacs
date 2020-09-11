@@ -816,25 +816,25 @@
   (list
    (list 'frac
          -174611
-         (math-read-number-simple "802857662698291200000"))
+         802857662698291200000)
    (list 'frac
          43867
-         (math-read-number-simple "5109094217170944000"))
+         5109094217170944000)
    (list 'frac
          -3617
-         (math-read-number-simple "10670622842880000"))
+         10670622842880000)
    (list 'frac
          1
-         (math-read-number-simple "74724249600"))
+         74724249600)
    (list 'frac
          -691
-         (math-read-number-simple "1307674368000"))
+         1307674368000)
    (list 'frac
          1
-         (math-read-number-simple "47900160"))
+         47900160)
    (list 'frac
          -1
-         (math-read-number-simple "1209600"))
+         1209600)
    (list 'frac
          1
          30240)
