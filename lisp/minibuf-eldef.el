@@ -48,7 +48,7 @@
           (regexp-quote (substring minibuffer-default-prompt-format
                                    (match-end 0))))
        (regexp-quote minibuffer-default-prompt-format))
-     ": *\\)")
+     "\\): ")
     1)
    `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
       1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
