@@ -2549,7 +2549,7 @@ emit_static_object (const char *name, Lisp_Object obj)
       gcc_jit_context_new_struct_type (comp.ctxt,
 				       NULL,
 				       format_string ("%s_struct", name),
-				       2, fields));
+				       ARRAYELTS (fields), fields));
 
   gcc_jit_lvalue *data_struct =
     gcc_jit_context_new_global (comp.ctxt,
