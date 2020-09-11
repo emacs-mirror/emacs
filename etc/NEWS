@@ -959,14 +959,14 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
-*** New command 'submit-emacs-patch'
+*** New command 'submit-emacs-patch'.
 This works along the lines of 'report-emacs-bug', but is more geared
 towards sending a patch to the Emacs issue tracker.
 
 +++
 *** New minor mode 'button-mode'.
 This minor mode does nothing else than install 'button-buffer-map' as
-a minor mode map (which binds the TAB/S-TAB key bindings to navigate
+a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
 to buttons), and can be used in any view-mode-like buffer that has
 buttons in it.
 
@@ -1112,9 +1112,11 @@ type symbols.
 +++
 *** In case of problems, handlers can emit proper D-Bus error messages now.
 
----
++++
 *** D-Bus errors, which have been converted from incoming D-Bus error
-messages, contain the error name of that message now.
+messages, contain the error name of that message now.  They can be
+made visible by setting user variable 'dbus-show-dbus-errors' to
+non-nil, even if protected by 'dbus-ignore-errors' otherwise.
 
 
 * New Modes and Packages in Emacs 28.1

@@ -55,6 +55,9 @@
 
 ;;; D-Bus constants.
 
+(defconst dbus-compound-types '(:array :variant :struct :dict-entry)
+  "D-Bus compound types, represented as list.")
+
 (defconst dbus-service-dbus "org.freedesktop.DBus"
   "The bus name used to talk to the bus itself.")
 
@@ -151,6 +154,17 @@ See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-inter
 
 ;;; Default D-Bus errors.
 
+(defgroup dbus nil
+  "Elisp bindings for D-Bus."
+  :group 'comm
+  :link '(custom-manual "(dbus)Top")
+  :version "28.1")
+
+(defcustom dbus-show-dbus-errors nil
+  "Propagate incoming D-Bus error messages."
+  :version "28.1"
+  :type 'boolean)
+
 (defconst dbus-error-dbus "org.freedesktop.DBus.Error"
   "The namespace for default error names.
 See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
@@ -183,6 +197,7 @@ See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
 
 
 ;;; Emacs defaults.
+
 (defconst dbus-service-emacs "org.gnu.Emacs"
   "The well known service name of Emacs.")
 
@@ -199,11 +214,17 @@ shall be subdirectories of this path.")
 
 (defmacro dbus-ignore-errors (&rest body)
   "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
-Otherwise, return result of last form in BODY, or all other errors."
+Signals also D-Bus error when `dbus-show-dbus-errors' is non-nil
+and a D-Bus error message has arrived.  Otherwise, return result
+of last form in BODY, or all other errors."
   (declare (indent 0) (debug t))
   `(condition-case err
        (progn ,@body)
-     (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
+     (dbus-error
+      (when (or dbus-debug
+                (and dbus-show-dbus-errors
+                     (= dbus-message-type-error (nth 2 last-input-event))))
+        (signal (car err) (cdr err))))))
 
 (defvar dbus-event-error-functions '(dbus-notice-synchronous-call-errors)
   "Functions to be called when a D-Bus error happens in the event handler.
@@ -1454,8 +1475,9 @@ valid D-Bus value, or nil if there is no PROPERTY, or PROPERTY cannot be read."
 (defun dbus-set-property (bus service path interface property &rest args)
   "Set value of PROPERTY of INTERFACE to VALUE.
 It will be checked at BUS, SERVICE, PATH.  VALUE can be preceded
-by a TYPE symbol.  When the value is successfully set return
-VALUE.  Otherwise, return nil.
+by a TYPE symbol.  When the value is successfully set, and the
+property's access type is not `:write', return VALUE.  Otherwise,
+return nil.
 
 \(dbus-set-property BUS SERVICE PATH INTERFACE PROPERTY [TYPE] VALUE)"
   (dbus-ignore-errors
@@ -1463,11 +1485,9 @@ VALUE.  Otherwise, return nil.
    (dbus-call-method
     bus service path dbus-interface-properties
     "Set" :timeout 500 interface property (list :variant args))
-   ;; Return VALUE.  The property could have the `:write' access type,
-   ;; so we ignore errors in `dbus-get-property'.
-   (dbus-ignore-errors
-     (or (dbus-get-property bus service path interface property)
-         (if (symbolp (car args)) (cadr args) (car args))))))
+   ;; Return VALUE.
+   (or (dbus-get-property bus service path interface property)
+       (if (symbolp (car args)) (cadr args) (car args)))))
 
 (defun dbus-get-all-properties (bus service path interface)
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.
@@ -1635,11 +1655,11 @@ It will be registered for all objects created by `dbus-register-property'."
               "Property \"%s\" at path \"%s\" is not readable" property path)))
 	 ;; Return the result.  Since variant is a list, we must embed
 	 ;; it into another list.
-         (t (list (if (eq :array (car (nth 3 object)))
+         (t (list (if (memq (car (nth 3 object)) dbus-compound-types)
                       (list :variant (nth 3 object))
                     (cons :variant (nth 3 object))))))))
 
-     ;; "Set" expects the same type as registered.
+     ;; "Set" expects the same type as registered.  FIXME: Implement!
      ((string-equal method "Set")
       (let* ((value (caar (nth 2 args)))
 	     (entry (dbus-get-this-registered-property
@@ -1694,7 +1714,7 @@ It will be registered for all objects created by `dbus-register-property'."
 	           (push
 	            (list :dict-entry
                           (car (last key))
-                          (if (eq :array (car (nth 3 object)))
+                          (if (memq (car (nth 3 object)) dbus-compound-types)
                               (list :variant (nth 3 object))
                             (cons :variant (nth 3 object))))
                     result))))))
@@ -1909,8 +1929,8 @@ this connection to those buses."
 
 ;;; TODO:
 
-;; Support other compound properties but array.
-
+;; * Check property type in org.freedesktop.DBus.Properties.Set.
+;;
 ;; * Implement org.freedesktop.DBus.ObjectManager.InterfacesAdded and
 ;;   org.freedesktop.DBus.ObjectManager.InterfacesRemoved.
 ;;

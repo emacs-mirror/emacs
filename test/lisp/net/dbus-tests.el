@@ -25,6 +25,8 @@
 (defvar dbus-debug nil)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
+(setq dbus-show-dbus-errors nil)
+
 (defconst dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)
        (dbus-ignore-errors (dbus-get-unique-name :session)))
@@ -109,8 +111,16 @@
   (should-not (member dbus--test-service (dbus-list-known-names bus)))
 
   ;; `dbus-service-dbus' is reserved for the BUS itself.
-  (should-error (dbus-register-service bus dbus-service-dbus))
-  (should-error (dbus-unregister-service bus dbus-service-dbus)))
+  (should
+   (equal
+    (butlast
+     (should-error (dbus-register-service bus dbus-service-dbus)))
+    `(dbus-error ,dbus-error-invalid-args)))
+  (should
+   (equal
+    (butlast
+     (should-error (dbus-unregister-service bus dbus-service-dbus)))
+    `(dbus-error ,dbus-error-invalid-args))))
 
 (ert-deftest dbus-test02-register-service-session ()
   "Check service registration at `:session' bus."
@@ -258,13 +268,8 @@ This includes initialization and closing the bus."
   (unwind-protect
       (let ((property1 "Property1")
             (property2 "Property2")
-            (property3 "Property3"))
-
-        ;; Not registered property.
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property1))
+            (property3 "Property3")
+            (property4 "Property4"))
 
         ;; `:read' property.
         (should
@@ -280,10 +285,22 @@ This includes initialization and closing the bus."
            :session dbus--test-service dbus--test-path
            dbus--test-interface property1)
           "foo"))
-        (should-not ;; Due to `:read' access type.
+        ;; Due to `:read' access type, we don't get a proper reply
+        ;; from `dbus-set-property'.
+        (should-not
          (dbus-set-property
           :session dbus--test-service dbus--test-path
           dbus--test-interface property1 "foofoo"))
+        (let ((dbus-show-dbus-errors t))
+          (should
+           (equal
+            ;; We don't care the error message text.
+            (butlast
+             (should-error
+              (dbus-set-property
+               :session dbus--test-service dbus--test-path
+               dbus--test-interface property1 "foofoo")))
+            `(dbus-error ,dbus-error-property-read-only))))
         (should
          (string-equal
           (dbus-get-property
@@ -299,10 +316,22 @@ This includes initialization and closing the bus."
            dbus--test-interface property2 :write "bar")
           `((:property :session ,dbus--test-interface ,property2)
             (,dbus--test-service ,dbus--test-path))))
-        (should-not ;; Due to `:write' access type.
+        ;; Due to `:write' access type, we don't get a proper reply
+        ;; from `dbus-get-property'.
+        (should-not
          (dbus-get-property
           :session dbus--test-service dbus--test-path
           dbus--test-interface property2))
+        (let ((dbus-show-dbus-errors t))
+          (should
+           (equal
+            ;; We don't care the error message text.
+            (butlast
+             (should-error
+              (dbus-get-property
+               :session dbus--test-service dbus--test-path
+               dbus--test-interface property2)))
+            `(dbus-error ,dbus-error-access-denied))))
         (should
          (string-equal
           (dbus-set-property
@@ -340,6 +369,36 @@ This includes initialization and closing the bus."
            :session dbus--test-service dbus--test-path
            dbus--test-interface property3)
           "/baz/baz"))
+
+        ;; Not registered property.
+        (should-not
+         (dbus-get-property
+          :session dbus--test-service dbus--test-path
+          dbus--test-interface property4))
+        (let ((dbus-show-dbus-errors t))
+          (should
+           (equal
+            ;; We don't care the error message text.
+            (butlast
+             (should-error
+              (dbus-get-property
+               :session dbus--test-service dbus--test-path
+               dbus--test-interface property4)))
+            `(dbus-error ,dbus-error-unknown-property))))
+        (should-not
+         (dbus-set-property
+          :session dbus--test-service dbus--test-path
+          dbus--test-interface property4 "foobarbaz"))
+        (let ((dbus-show-dbus-errors t))
+          (should
+           (equal
+            ;; We don't care the error message text.
+            (butlast
+             (should-error
+              (dbus-set-property
+               :session dbus--test-service dbus--test-path
+               dbus--test-interface property4 "foobarbaz")))
+            `(dbus-error ,dbus-error-unknown-property))))
 
         ;; `dbus-get-all-properties'.  We cannot retrieve a value for
         ;; the property with `:write' access type.
