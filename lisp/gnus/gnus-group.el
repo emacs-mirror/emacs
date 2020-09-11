@@ -3166,30 +3166,13 @@ mail messages or news articles in files that have numeric names."
      (list 'nndir (gnus-group-real-name group) (list 'nndir-directory dir)))))
 
 
-(autoload 'nnir-make-specs "nnir")
+(autoload 'nnir-read-parms "nnir")
+(autoload 'nnir-server-to-search-engine "nnir")
 (autoload 'gnus-group-topic-name "gnus-topic")
 
 ;; Temporary to make group creation easier
 (defun gnus-group-make-search-group (nnir-extra-parms &optional specs)
-  (interactive "P")
-  (let ((name (gnus-read-group "Group name: ")))
-    (with-current-buffer gnus-group-buffer
-      (gnus-group-make-group
-       name
-       (list 'nnselect "nnselect")
-       nil
-       (list
-	(cons 'nnselect-specs
-	      (list
-	       (cons 'nnselect-function 'nnir-run-query)
-	       (cons 'nnselect-args
-		     (nnir-make-specs nnir-extra-parms specs)))))))))
-
-(define-obsolete-function-alias 'gnus-group-make-nnir-group
-  'gnus-group-read-ephemeral-search-group "28.1")
-
-(defun gnus-group-read-ephemeral-search-group (nnir-extra-parms &optional specs)
-  "Create an nnselect group based on a search.
+  "Make a group based on a search.
 Prompt for a search query and determine the groups to search as
 follows: if called from the *Server* buffer search all groups
 belonging to the server on the current line; if called from the
@@ -3200,19 +3183,96 @@ constraints.  A non-nil SPECS arg must be an alist with
 `nnir-query-spec' and `nnir-group-spec' keys, and skips all
 prompting."
   (interactive "P")
-  (gnus-group-read-ephemeral-group
-   (concat "nnselect-" (message-unique-id))
-   (list 'nnselect "nnselect")
-   nil
-   (cons (current-buffer) gnus-current-window-configuration)
-   nil nil
-   (list
-    (cons 'nnselect-specs
-	  (list
-	   (cons 'nnselect-function 'nnir-run-query)
-	   (cons 'nnselect-args
-		 (nnir-make-specs nnir-extra-parms specs))))
-    (cons 'nnselect-artlist nil))))
+  (let ((name (gnus-read-group "Group name: ")))
+    (with-current-buffer gnus-group-buffer
+      (let* ((group-spec
+	      (or
+	       (cdr (assq 'nnir-group-spec specs))
+	       (if (gnus-server-server-name)
+		   (list (list (gnus-server-server-name)))
+		 (seq-group-by
+		  (lambda (elt) (gnus-group-server elt))
+		  (or gnus-group-marked
+		      (if (gnus-group-group-name)
+			  (list (gnus-group-group-name))
+			(cdr
+			 (assoc (gnus-group-topic-name) gnus-topic-alist))))))))
+	     (query-spec
+	      (or
+	       (cdr (assq 'nnir-query-spec specs))
+	       (apply
+		'append
+		(list (cons 'query
+			    (read-string "Query: " nil 'nnir-search-history)))
+		(when nnir-extra-parms
+		  (mapcar
+		   (lambda (x)
+		     (nnir-read-parms (nnir-server-to-search-engine (car x))))
+		   group-spec))))))
+	(gnus-group-make-group
+	 name
+	 (list 'nnselect "nnselect")
+	 nil
+	 (list
+	  (cons 'nnselect-specs
+		(list
+		 (cons 'nnselect-function 'nnir-run-query)
+		 (cons 'nnselect-args
+		       (list (cons 'nnir-query-spec query-spec)
+			     (cons 'nnir-group-spec group-spec)))))
+	  (cons 'nnselect-artlist nil)))))))
+
+(define-obsolete-function-alias 'gnus-group-make-nnir-group
+  'gnus-group-read-ephemeral-search-group "28.1")
+
+(defun gnus-group-read-ephemeral-search-group (nnir-extra-parms &optional specs)
+  "Read an nnselect group based on a search.
+Prompt for a search query and determine the groups to search as
+follows: if called from the *Server* buffer search all groups
+belonging to the server on the current line; if called from the
+*Group* buffer search any marked groups, or the group on the
+current line, or all the groups under the current topic.  Calling
+with a prefix arg prompts for additional search-engine specific
+constraints.  A non-nil SPECS arg must be an alist with
+`nnir-query-spec' and `nnir-group-spec' keys, and skips all
+prompting."
+  (interactive "P")
+  (let* ((group-spec
+	  (or (cdr (assq 'nnir-group-spec specs))
+	      (if (gnus-server-server-name)
+		  (list (list (gnus-server-server-name)))
+		(seq-group-by
+		 (lambda (elt) (gnus-group-server elt))
+		 (or gnus-group-marked
+		     (if (gnus-group-group-name)
+			 (list (gnus-group-group-name))
+		       (cdr
+			(assoc (gnus-group-topic-name) gnus-topic-alist))))))))
+	 (query-spec
+	  (or (cdr (assq 'nnir-query-spec specs))
+	      (apply
+	       'append
+	       (list (cons 'query
+			   (read-string "Query: " nil 'nnir-search-history)))
+	       (when nnir-extra-parms
+		 (mapcar
+		  (lambda (x)
+		    (nnir-read-parms (nnir-server-to-search-engine (car x))))
+		  group-spec))))))
+    (gnus-group-read-ephemeral-group
+     (concat "nnselect-" (message-unique-id))
+     (list 'nnselect "nnselect")
+     nil
+     (cons (current-buffer) gnus-current-window-configuration)
+     nil nil
+     (list
+      (cons 'nnselect-specs
+	    (list
+	     (cons 'nnselect-function 'nnir-run-query)
+	     (cons 'nnselect-args
+		   (list (cons 'nnir-query-spec query-spec)
+			 (cons 'nnir-group-spec group-spec)))))
+      (cons 'nnselect-artlist nil)))))
 
 (defun gnus-group-add-to-virtual (n vgroup)
   "Add the current group to a virtual group."

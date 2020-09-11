@@ -105,9 +105,7 @@
 		    (gnus-uncompress-sequence artseq)) selection)))
       selection)))
 
-(defun nnselect-group-server (group)
-  "Return the server for GROUP."
-  (gnus-group-server group))
+(make-obsolete 'nnselect-group-server 'gnus-group-server "28.1")
 
 ;; Data type article list.
 
