@@ -2752,7 +2752,8 @@ Contrary to `undo', this will not redo a previous undo."
   (let ((undo-no-redo t)) (undo arg)))
 
 (defun undo-redo (&optional arg)
-  "Undo the last ARG undos."
+  "Undo the last ARG undos, i.e., redo the last ARG changes.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "*p")
   (cond
    ((not (undo--last-change-was-undo-p buffer-undo-list))
