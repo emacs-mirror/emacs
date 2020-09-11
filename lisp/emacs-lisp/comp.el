@@ -2731,7 +2731,7 @@ Ultra cheap impersonation of `batch-byte-compile'."
   "As `batch-byte-compile' but used for booststrap.
 Always generate elc files too and handle native compiler expected errors."
   (comp-ensure-native-compiler)
-  (if (equal (getenv "NATIVE_DISABLE") "1")
+  (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
     (cl-assert (= 1 (length command-line-args-left)))
     (let ((byte-native-for-bootstrap t)

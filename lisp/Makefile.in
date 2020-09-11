@@ -38,6 +38,9 @@ AM_V_ELC = $(am__v_ELC_@AM_V@)
 am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
 ifeq ($(HAVE_NATIVE_COMP),yes)
 am__v_ELC_0 = @echo " ELC+ELN  " $@;
+ifndef NATIVE_FULL_AOT
+NATIVE_SKIP_NONDUMP = 1
+endif
 else
 am__v_ELC_0 = @echo "  ELC     " $@;
 endif
@@ -353,7 +356,7 @@ compile-main: gen-lisp compile-clean
 	done | xargs $(XARGS_LIMIT) echo) |	     \
 	while read chunk; do			     \
 	  $(MAKE) compile-targets		     \
-		  NATIVE_DISABLE=$(NATIVE_FAST_BOOT) \
+		  NATIVE_DISABLED=$(NATIVE_SKIP_NONDUMP) \
 		  TARGETS="$$chunk";		     \
 	done
 
