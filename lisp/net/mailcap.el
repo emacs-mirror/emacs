@@ -1138,6 +1138,7 @@ For instance, \"foo.png\" will result in \"image/png\"."
           (unwind-protect
               (let ((coding-system-for-write 'binary))
                 (write-region (point-min) (point-max) file nil 'silent)
+                (delete-region (point-min) (point-max))
                 (shell-command (format method file)))
             (when (file-exists-p file)
               (delete-file file))))
