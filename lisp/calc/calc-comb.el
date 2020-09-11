@@ -439,12 +439,25 @@
 	   (math-div (calcFunc-fact (math-float n))
 		     (math-mul (calcFunc-fact m)
 			       (calcFunc-fact (math-sub n m))))))
-	((math-negp m) 0)
-	((math-negp n)
-	 (let ((val (calcFunc-choose (math-add (math-add n m) -1) m)))
+        ;; For the extension to negative integer arguments we follow
+        ;; M. J. Kronenburg, The Binomial Coefficient for Negative Arguments,
+        ;; arXiv:1105.3689v2
+        ((and (math-negp n) (not (math-negp m)))
+         ;; n<0≤m: (n choose m) = (-1)^m (-n+m-1 choose m)
+	 (let ((val (calcFunc-choose (math-add (math-sub m n) -1) m)))
 	   (if (math-evenp (math-trunc m))
 	       val
 	     (math-neg val))))
+        ((and (math-negp n) (math-num-integerp n))
+         (if (math-lessp n m)
+             0
+           ;; m≤n<0: (n choose m) = (-1)^(n-m) (-m-1 choose n-m)
+           (let ((val (calcFunc-choose (math-sub (math-neg m) 1)
+                                       (math-sub n m))))
+             (if (math-evenp (math-sub n m))
+                 val
+               (math-neg val)))))
+	((math-negp m) 0)
 	((and (math-num-integerp n)
 	      (Math-lessp n m))
 	 0)
@@ -461,20 +474,23 @@
 	       (math-choose-float-iter tm n 1 1)))))))
 
 (defun math-choose-iter (m n i c)
-  (if (and (= (% i 5) 1) (> i 5))
+  (while (<= i m)
+    (when (and (= (% i 5) 1) (> i 5))
       (math-working (format "choose(%d)" (1- i)) c))
-  (if (<= i m)
-      (math-choose-iter m (1- n) (1+ i)
-			(math-quotient (math-mul c n) i))
-    c))
+    (setq c (math-quotient (math-mul c n) i))
+    (setq n (1- n))
+    (setq i (1+ i)))
+  c)
 
 (defun math-choose-float-iter (count n i c)
-  (if (= (% i 5) 1)
+  (while (> count 0)
+    (when (= (% i 5) 1)
       (math-working (format "choose(%d)" (1- i)) c))
-  (if (> count 0)
-      (math-choose-float-iter (1- count) (math-sub n 1) (1+ i)
-			      (math-div (math-mul c n) i))
-    c))
+    (setq c (math-div (math-mul c n) i))
+    (setq n (math-sub n 1))
+    (setq i (1+ i))
+    (setq count (1- count)))
+  c)
 
 
 ;;; Stirling numbers.

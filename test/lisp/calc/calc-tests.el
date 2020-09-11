@@ -391,6 +391,73 @@ An existing calc stack is reused, otherwise a new one is created."
                     (var n var-n) -1 1))
                  8)))
 
+(defun calc-tests--fac (n)
+  (apply #'* (number-sequence 1 n)))
+
+(defun calc-tests--choose (n k)
+  "N choose K, reference implementation."
+  (cond
+   ((and (integerp n) (integerp k))
+    (if (<= 0 n)
+        (if (<= 0 k n)
+            (/ (calc-tests--fac n)
+               (* (calc-tests--fac k) (calc-tests--fac (- n k))))
+          0)    ; 0≤n<k
+      ;; n<0, n and k integers: use extension from M. J. Kronenburg
+      (cond
+       ((<= 0 k)
+        (* (expt -1 k)
+           (calc-tests--choose (+ (- n) k -1) k)))
+       ((<= k n)
+        (* (expt -1 (- n k))
+           (calc-tests--choose (+ (- k) -1) (- n k))))
+       (t  ; n<k<0
+        0))))
+   ((natnump k)
+    ;; Generalisation for any n, integral k≥0: use falling product
+    (/ (apply '* (number-sequence n (- n (1- k)) -1))
+       (calc-tests--fac k)))
+   (t (error "case not covered"))))
+
+(defun calc-tests--check-choose (n k)
+  (equal (calcFunc-choose n k)
+         (calc-tests--choose n k)))
+
+(defun calc-tests--explain-choose (n k)
+  (let ((got (calcFunc-choose n k))
+        (expected (calc-tests--choose n k)))
+    (format "(calcFunc-choose %d %d) => %S, expected %S" n k got expected)))
+
+(put 'calc-tests--check-choose 'ert-explainer 'calc-tests--explain-choose)
+
+(defun calc-tests--calc-to-number (x)
+  "Convert a Calc object to a Lisp number."
+  (pcase x
+    ((pred numberp) x)
+    (`(frac ,p ,q) (/ (float p) q))
+    (`(float ,m ,e) (* m (expt 10 e)))
+    (_ (error "calc object not converted: %S" x))))
+
+(ert-deftest calc-choose ()
+  "Test computation of binomial coefficients (bug#16999)."
+  ;; Integral arguments
+  (dolist (n (number-sequence -6 6))
+    (dolist (k (number-sequence -6 6))
+      (should (calc-tests--check-choose n k))))
+
+  ;; Fractional n, natural k
+  (should (equal (calc-tests--calc-to-number
+                  (calcFunc-choose '(frac 15 2) 3))
+                 (calc-tests--choose 7.5 3)))
+
+  (should (equal (calc-tests--calc-to-number
+                  (calcFunc-choose '(frac 1 2) 2))
+                 (calc-tests--choose 0.5 2)))
+
+  (should (equal (calc-tests--calc-to-number
+                  (calcFunc-choose '(frac -15 2) 3))
+                 (calc-tests--choose -7.5 3))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
