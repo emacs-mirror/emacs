@@ -5478,15 +5478,15 @@ w32_read_socket (struct terminal *terminal,
 		  /* Windows can send us a SIZE_MAXIMIZED message even
 		     when fullscreen is fullboth.  The following is a
 		     simple hack to check that based on the fact that
-		     only a maximized fullscreen frame should have both
-		     top/left outside the screen.  */
+		     only a maximized fullscreen frame should have top
+		     or left outside the screen.  */
 		  if (EQ (fullscreen, Qfullwidth) || EQ (fullscreen, Qfullheight)
 		      || NILP (fullscreen))
 		      {
 			int x, y;
 
 			w32_real_positions (f, &x, &y);
-			if (x < 0 && y < 0)
+			if (x < 0 || y < 0)
 			  store_frame_param (f, Qfullscreen, Qmaximized);
 		      }
 		  }
