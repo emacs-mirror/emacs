@@ -4528,7 +4528,7 @@ Interactively with prefix argument, read FILE-NAME."
                   (dired-insert-subdir (file-name-directory file))
                   (dired-goto-file file))
                 ;; Toggle omitting, if it is on, and try again.
-                (when dired-omit-mode
+                (when (bound-and-true-p dired-omit-mode)
                   (dired-omit-mode)
                   (dired-goto-file file)))))))))
 
