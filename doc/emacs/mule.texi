@@ -1215,11 +1215,8 @@ system can encode.
 
   If @code{file-name-coding-system} is @code{nil}, Emacs uses a
 default coding system determined by the selected language environment,
-and stored in the @code{default-file-name-coding-system} variable.
-@c FIXME?  Is this correct?  What is the "default language environment"?
-In the default language environment, non-@acronym{ASCII} characters in
-file names are not encoded specially; they appear in the file system
-using the internal Emacs representation.
+and stored in the @code{default-file-name-coding-system} variable
+(normally UTF-8).
 
 @cindex file-name encoding, MS-Windows
 @vindex w32-unicode-filenames

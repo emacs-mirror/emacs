@@ -1799,13 +1799,11 @@ The default status is as follows:
    'raw-text)
 
   (set-default-coding-systems nil)
-  (setq default-sendmail-coding-system 'iso-latin-1)
-  ;; On Darwin systems, this should be utf-8-unix, but when this file is loaded
-  ;; that is not yet defined, so we set it in set-locale-environment instead.
-  ;; [Actually, it seems to work fine to use utf-8-unix here, and not just
-  ;; on Darwin.  The previous comment seems to be outdated?
-  ;; See patch at https://debbugs.gnu.org/15803 ]
-  (setq default-file-name-coding-system 'iso-latin-1-unix)
+  (setq default-sendmail-coding-system 'utf-8)
+  (setq default-file-name-coding-system (if (memq system-type
+                                                  '(window-nt ms-dos))
+                                            'iso-latin-1-unix
+                                          'utf-8-unix))
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
   ;; carefully by the user, or by the startup code, to deal with the
@@ -1821,8 +1819,10 @@ The default status is as follows:
 	(input-coding
 	 (condition-case nil
 	     (coding-system-change-text-conversion
-	      (cdr default-process-coding-system) 'iso-latin-1)
-	   (coding-system-error 'iso-latin-1))))
+	      (cdr default-process-coding-system)
+	      (if (memq system-type '(window-nt ms-dos)) 'iso-latin-1 'utf-8))
+	   (coding-system-error
+	    (if (memq system-type '(window-nt ms-dos)) 'iso-latin-1 'utf-8)))))
     (setq default-process-coding-system
 	  (cons output-coding input-coding)))
 

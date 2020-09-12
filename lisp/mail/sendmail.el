@@ -975,7 +975,7 @@ but lower priority than the local value of `buffer-file-coding-system'.
 See also the function `select-message-coding-system'.")
 
 ;;;###autoload
-(defvar default-sendmail-coding-system 'iso-latin-1
+(defvar default-sendmail-coding-system 'utf-8
   "Default coding system for encoding the outgoing mail.
 This variable is used only when `sendmail-coding-system' is nil.
 
