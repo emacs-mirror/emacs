@@ -148,7 +148,8 @@ Possible values are:
   "Compare the OLD and NEW file/buffer.
 If the optional SWITCHES is nil, the switches specified in the
 variable ‘diff-switches’ are passed to the diff command,
-otherwise SWITCHES is used.
+otherwise SWITCHES is used.  SWITCHES can be a string or a list
+of strings.
 
 If NO-ASYNC is non-nil, call diff synchronously.
 
