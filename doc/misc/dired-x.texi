@@ -150,10 +150,8 @@ Commands using file marking
 
 @noindent
 @file{dired-x.el} binds some functions to keys in Dired Mode (@pxref{Key
-Index}) and also binds @kbd{C-x C-j} and @kbd{C-x 4 C-j} @emph{globally} to
-@code{dired-jump} (@pxref{Miscellaneous Commands}).  Optionally, it
-also binds @kbd{C-x C-f} and @kbd{C-x 4 C-f} to
-@code{dired-x-find-file} and @code{dired-x-find-file-other-window},
+Index}).  Optionally, it also binds @kbd{C-x C-f} and @kbd{C-x 4 C-f}
+to @code{dired-x-find-file} and @code{dired-x-find-file-other-window},
 respectively (@pxref{Find File At Point}).
 
 @node Technical Details
@@ -204,31 +202,9 @@ when you first type @kbd{C-x d}).
 
 @ifnottex
 @menu
-* Optional Installation Dired Jump::
 * Optional Installation File At Point::
 @end menu
 @end ifnottex
-
-@node Optional Installation Dired Jump
-@section Optional Installation Dired Jump
-
-@cindex autoloading @code{dired-jump} and @code{dired-jump-other-window}
-
-In order to have @code{dired-jump} and @code{dired-jump-other-window}
-(@pxref{Miscellaneous Commands}) work @emph{before} @code{dired} and
-@code{dired-x} have been properly loaded you should set-up an autoload
-for these functions.  In your @file{.emacs} file put
-
-@example
-(autoload 'dired-jump "dired-x"
-  "Jump to Dired buffer corresponding to current buffer." t)
-
-(autoload 'dired-jump-other-window "dired-x"
-  "Like \\[dired-jump] (dired-jump) but in other window." t)
-
-(define-key global-map "\C-x\C-j" 'dired-jump)
-(define-key global-map "\C-x4\C-j" 'dired-jump-other-window)
-@end example
 
 @node Optional Installation File At Point
 @section Optional Installation File At Point
@@ -918,28 +894,6 @@ inserted subdirectories.
 @end table
 
 @table @code
-
-@item dired-jump
-@findex dired-jump
-@kindex C-x C-j
-@cindex jumping to Dired listing containing file.
-Bound to @kbd{C-x C-j}.  Jump back to Dired: If in a file, edit the current
-directory and move to file's line.  If in Dired already, pop up a level and
-go to old directory's line.  In case the proper Dired file line cannot be
-found, refresh the Dired buffer and try again.
-
-@item dired-jump-other-window
-@findex dired-jump-other-window
-@kindex C-x 4 C-j
-Bound to @kbd{C-x 4 C-j}. Like @code{dired-jump}, but to other window.
-
-These functions can be autoloaded so they work even though @file{dired-x.el}
-has not been loaded yet (@pxref{Optional Installation Dired Jump}).
-
-@vindex dired-bind-jump
-If the variable @code{dired-bind-jump} is @code{nil}, @code{dired-jump} will not be
-bound to @kbd{C-x C-j} and @code{dired-jump-other-window} will not be bound to
-@kbd{C-x 4 C-j}.
 
 @item dired-vm
 @cindex reading mail.

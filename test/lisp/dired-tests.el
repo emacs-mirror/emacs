@@ -24,11 +24,11 @@
 (ert-deftest dired-autoload ()
   "Tests to see whether dired-x has been autoloaded"
   (should
-   (fboundp 'dired-jump))
+   (fboundp 'dired-do-relsymlink))
   (should
    (autoloadp
     (symbol-function
-     'dired-jump))))
+     'dired-do-relsymlink))))
 
 (ert-deftest dired-test-bug22694 ()
   "Test for https://debbugs.gnu.org/22694 ."

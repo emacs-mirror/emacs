@@ -290,6 +290,19 @@ details of marking the file at the end of the region.
 *** State changing VC operations are supported in Dired on files and
 directories with the help of new command 'dired-vc-next-action'.
 
++++
+*** 'dired-jump' and 'dired-jump-other-window' moved from dired-x to dired.
+The 'dired-jump' and 'dired-jump-other-window' commands have been
+moved from the 'dired-x' package to 'dired'.  The user option
+'dired-bind-jump' no longer has any effect and is now obsolete.
+The commands are now bound to 'C-x C-j' and 'C-x 4 C-j' by default.
+
+To get the old behavior of 'dired-bind-jump' back and unbind the above
+keys, add the following to your Init file:
+
+(global-set-key "\C-x\C-j" nil)
+(global-set-key "\C-x4\C-j" nil)
+
 ** Change Logs and VC
 
 *** More VC commands can be used from non-file buffers.

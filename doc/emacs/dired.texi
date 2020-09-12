@@ -109,6 +109,16 @@ the minibuffer (@pxref{Minibuffer History}).
   You can also invoke Dired by giving @kbd{C-x C-f} (@code{find-file})
 a directory's name.
 
+@findex dired-jump
+@findex dired-jump-other-window
+@kindex C-x C-j
+@kindex C-x 4 C-j
+  Typing @kbd{C-x C-j} (@code{dired-jump}) in any buffer will open a
+Dired buffer and move point to the line corresponding to the current
+file.  In Dired, move up a level and go to the previous directory's
+line.  Typing @kbd{C-x 4 C-j} (@code{dired-jump-other-window} has the
+same effect but opens a new window for the Dired buffer.
+
   The variable @code{dired-listing-switches} specifies the options to
 give to @command{ls} for listing the directory; this string
 @emph{must} contain @samp{-l}.  If you use a prefix argument with the
