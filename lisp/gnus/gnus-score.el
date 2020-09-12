@@ -862,6 +862,18 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
 	    (setq match (string-to-number match)))
       (set-text-properties 0 (length match) nil match))
 
+    ;; Modify match and type for article age scoring.
+    (if (string= "date" (nth 0 (assoc header gnus-header-index)))
+	(let ((age (string-to-number match)))
+	  (if (or (< age 0)
+		  (string= "0" match))
+	      (user-error "Article age must be a positive number"))
+	  (setq match age
+		type (cond ((eq type 'after)
+			    '<)
+			   ((eq type 'before)
+			    '>)))))
+
     (unless (eq date 'now)
       ;; Add the score entry to the score file.
       (when (= score gnus-score-interactive-default-score)
