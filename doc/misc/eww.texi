@@ -221,9 +221,7 @@ use the Chromium browser, you could say something like this:
 
 @lisp
 (setq eww-retrieve-command
-      '("chromium" "--headless"
-		    "--virtual-time-budget=3000"
-		    "--dump-dom"))
+      '("chromium" "--headless" "--dump-dom"))
 @end lisp
 
 The command should return the @acronym{HTML} on standard output, and
