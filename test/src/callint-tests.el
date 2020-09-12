@@ -29,7 +29,8 @@
 
 (ert-deftest call-interactively/incomplete-multibyte-sequence ()
   "Check that Bug#30004 is fixed."
-  (let ((data (should-error (call-interactively (lambda () (interactive "\xFF"))))))
+  (let* ((text-quoting-style 'grave)
+         (data (should-error (call-interactively (lambda () (interactive "\xFF"))))))
     (should
      (equal
       (cdr data)

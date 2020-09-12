@@ -309,7 +309,8 @@ local reference."
 (ert-deftest module/describe-function-1 ()
   "Check that Bug#30163 is fixed."
   (with-temp-buffer
-    (let ((standard-output (current-buffer)))
+    (let ((standard-output (current-buffer))
+          (text-quoting-style 'grave))
       (describe-function-1 #'mod-test-sum)
       (goto-char (point-min))
       (while (re-search-forward "`[^']*/data/emacs-module/" nil t)
