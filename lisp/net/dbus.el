@@ -178,6 +178,9 @@ See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
 (defconst dbus-error-invalid-args (concat dbus-error-dbus ".InvalidArgs")
   "Invalid arguments passed to a method call.")
 
+(defconst dbus-error-no-reply (concat dbus-error-dbus ".NoReply")
+  "No reply to a message expecting one, usually means a timeout occurred.")
+
 (defconst dbus-error-property-read-only
   (concat dbus-error-dbus ".PropertyReadOnly")
   "Property you tried to set is read-only.")
@@ -369,23 +372,24 @@ object is returned instead of a list containing this single Lisp object.
 
     (puthash key result dbus-return-values-table)
     (unwind-protect
-         (progn
-           (with-timeout ((if timeout (/ timeout 1000.0) 25)
-                          (signal 'dbus-error (list "call timed out")))
-             (while (eq (car result) :pending)
-               (let ((event (let ((inhibit-redisplay t) unread-command-events)
-                              (read-event nil nil check-interval))))
-		 (when event
-		   (if (ignore-errors (dbus-check-event event))
-		       (setf result (gethash key dbus-return-values-table))
-		     (setf unread-command-events
-			   (nconc unread-command-events
-				  (cons event nil)))))
-                 (when (< check-interval 1)
-                   (setf check-interval (* check-interval 1.05))))))
-           (when (eq (car result) :error)
-             (signal (cadr result) (cddr result)))
-           (cdr result))
+        (progn
+          (with-timeout
+              ((if timeout (/ timeout 1000.0) 25)
+               (signal 'dbus-error `(,dbus-error-no-reply "Call timed out")))
+            (while (eq (car result) :pending)
+              (let ((event (let ((inhibit-redisplay t) unread-command-events)
+                             (read-event nil nil check-interval))))
+		(when event
+		  (if (ignore-errors (dbus-check-event event))
+		      (setf result (gethash key dbus-return-values-table))
+		    (setf unread-command-events
+			  (nconc unread-command-events
+				 (cons event nil)))))
+                (when (< check-interval 1)
+                  (setf check-interval (* check-interval 1.05))))))
+          (when (eq (car result) :error)
+            (signal (cadr result) (cddr result)))
+          (cdr result))
       (remhash key dbus-return-values-table))))
 
 (defun dbus-call-method-asynchronously
@@ -430,7 +434,7 @@ Example:
 
 \(dbus-call-method-asynchronously
  :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
- \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
+ \"org.freedesktop.Hal.Device\" \"GetPropertyString\" #\\='message
  \"system.kernel.machine\")
 
   -| i686
@@ -710,7 +714,7 @@ Example:
 
 \(dbus-register-signal
  :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
- \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
+ \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" #\\='my-signal-handler)
 
   => ((:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
       (\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
@@ -922,16 +926,19 @@ association to the service from D-Bus."
 		      (progn
 			(maphash
 			 (lambda (k v)
-			   (dolist (e v)
-			     (ignore-errors
-			       (and
-				;; Bus.
-				(equal bus (cadr k))
-				;; Service.
-				(string-equal service (cadr e))
-				;; Non-empty object path.
-				(nth 2 e)
-				(throw :found t)))))
+                           (when (consp v)
+			     (dolist (e v)
+			       (ignore-errors
+			         (and
+                                  ;; Type.
+                                  (eq type (car k))
+				  ;; Bus.
+				  (equal bus (cadr k))
+				  ;; Service.
+				  (string-equal service (cadr e))
+				  ;; Non-empty object path.
+				  (nth 2 e)
+				  (throw :found t))))))
 			 dbus-registered-objects-table)
 			nil))))
       (dbus-unregister-service bus service))
@@ -1933,6 +1940,8 @@ this connection to those buses."
 ;;
 ;; * Implement org.freedesktop.DBus.ObjectManager.InterfacesAdded and
 ;;   org.freedesktop.DBus.ObjectManager.InterfacesRemoved.
+;;
+;; * Implement org.freedesktop.DBus.Monitoring.BecomeMonitor.
 ;;
 ;; * Cache introspection data.
 ;;
