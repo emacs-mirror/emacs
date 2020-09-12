@@ -362,20 +362,26 @@ killed after rendering."
   (if (null eww-retrieve-command)
       (url-retrieve url #'eww-render
                     (list url nil (current-buffer)))
-    (let ((buffer (generate-new-buffer " *eww retrieve*")))
+    (let ((buffer (generate-new-buffer " *eww retrieve*"))
+          (error-buffer (generate-new-buffer " *eww error*")))
       (with-current-buffer buffer
         (set-buffer-multibyte nil)
         (make-process
          :name "*eww fetch*"
          :buffer (current-buffer)
-         :stderr (get-buffer-create " *eww error*")
+         :stderr error-buffer
          :command (append eww-retrieve-command (list url))
          :sentinel (lambda (process _)
                      (unless (process-live-p process)
-                       (with-current-buffer buffer
-                         (goto-char (point-min))
-                         (insert "Content-type: text/html; charset=utf-8\n\n")
-                         (apply #'funcall callback nil cbargs)))))))))
+                       (when (buffer-live-p error-buffer)
+                         (when (get-buffer-process error-buffer)
+                           (delete-process (get-buffer-process error-buffer) ))
+                         (kill-buffer error-buffer))
+                       (when (buffer-live-p buffer)
+                         (with-current-buffer buffer
+                           (goto-char (point-min))
+                           (insert "Content-type: text/html; charset=utf-8\n\n")
+                           (apply #'funcall callback nil cbargs))))))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
