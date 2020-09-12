@@ -809,6 +809,11 @@ background colors or transparency, such as xbm, pbm, svg, png and gif.
 ** EWW
 
 +++
+*** New variable 'eww-retrieve-command'.
+This can be used to download data via an external command.  If nil
+(the default), then 'url-retrieve' is used.
+
++++
 *** New Emacs command line convenience function.
 The 'eww-browse' command has been added, which allows you to register
 Emacs as a MIME handler for "text/x-uri", and will call 'eww' on the

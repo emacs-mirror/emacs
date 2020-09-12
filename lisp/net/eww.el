@@ -134,6 +134,15 @@ The string will be passed through `substitute-command-keys'."
   :type '(choice (const :tag "Unlimited" nil)
                  integer))
 
+(defcustom eww-retrieve-command nil
+  "Command to retrieve an URL via an external program.
+If nil, `url-retrieve' is used to download the data.  If non-nil,
+this should be a list where the first item is the program, and
+the rest are the arguments."
+  :version "28.1"
+  :type '(choice (const :tag "Use `url-retrieve'" nil)
+                 (list string)))
+
 (defcustom eww-use-external-browser-for-content-type
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
   "Always use external browser for specified content-type."
@@ -346,8 +355,27 @@ killed after rendering."
         (let ((eww-buffer (current-buffer)))
           (with-current-buffer buffer
             (eww-render nil url nil eww-buffer)))
-      (url-retrieve url #'eww-render
+      (eww-retrieve url #'eww-render
                     (list url nil (current-buffer))))))
+
+(defun eww-retrieve (url callback cbargs)
+  (if (null eww-retrieve-command)
+      (url-retrieve url #'eww-render
+                    (list url nil (current-buffer)))
+    (let ((buffer (generate-new-buffer " *eww retrieve*")))
+      (with-current-buffer buffer
+        (set-buffer-multibyte nil)
+        (make-process
+         :name "*eww fetch*"
+         :buffer (current-buffer)
+         :stderr (get-buffer-create " *eww error*")
+         :command (append eww-retrieve-command (list url))
+         :sentinel (lambda (process _)
+                     (unless (process-live-p process)
+                       (with-current-buffer buffer
+                         (goto-char (point-min))
+                         (insert "Content-type: text/html; charset=utf-8\n\n")
+                         (apply #'funcall callback nil cbargs)))))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
@@ -1117,7 +1145,7 @@ just re-display the HTML already fetched."
 	  (eww-display-html 'utf-8 url (plist-get eww-data :dom)
 			    (point) (current-buffer)))
       (let ((url-mime-accept-string eww-accept-content-types))
-        (url-retrieve url #'eww-render
+        (eww-retrieve url #'eww-render
 		      (list url (point) (current-buffer) encode))))))
 
 ;; Form support.
