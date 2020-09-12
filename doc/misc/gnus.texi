@@ -21401,8 +21401,8 @@ be nice.
 Gnus has various ways of finding articles that match certain criteria
 (from a particular author, on a certain subject, etc.).  The simplest
 method is to enter a group and then either "limit" the summary buffer
-to the desired articles using the limiting commands (@xref{Limiting}),
-or searching through messages in the summary buffer (@xref{Searching
+to the desired articles using the limiting commands (@pxref{Limiting}),
+or searching through messages in the summary buffer (@pxref{Searching
 for Articles}).
 
 Limiting commands and summary buffer searching work on subsets of the
