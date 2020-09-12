@@ -2266,7 +2266,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 (defun c-fl-decl-end (pos)
   ;; If POS is inside a declarator, return the end of the token that follows
   ;; the declarator, otherwise return nil.  POS being in a literal does not
-  ;; count as being in a declarator (on pragmatic grounds).
+  ;; count as being in a declarator (on pragmatic grounds).  POINT is not
+  ;; preserved.
   (goto-char pos)
   (let ((lit-start (c-literal-start))
 	enclosing-attribute pos1)
@@ -2279,12 +2280,31 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	(let ((lim (save-excursion
 		     (and (c-beginning-of-macro)
 			  (progn (c-end-of-macro) (point))))))
-	  (when (and (c-forward-declarator lim)
-		     (or (not (eq (char-after) ?\())
-			 (c-go-list-forward nil lim))
-		     (eq (c-forward-token-2 1 nil lim) 0))
-	    (c-backward-syntactic-ws)
-	    (point)))))))
+	  (and (c-forward-declarator lim)
+	       (if (eq (char-after) ?\()
+		   (and
+		    (c-go-list-forward nil lim)
+		    (progn (c-forward-syntactic-ws lim)
+			   (not (eobp)))
+		    (progn
+		      (if (looking-at c-symbol-char-key)
+			  ;; Deal with baz (foo((bar)) type var), where
+			  ;; foo((bar)) is not semantically valid.  The result
+			  ;; must be after var).
+			  (and
+			   (goto-char pos)
+			   (setq pos1 (c-on-identifier))
+			   (goto-char pos1)
+			   (progn
+			     (c-backward-syntactic-ws)
+			     (eq (char-before) ?\())
+			   (c-fl-decl-end (1- (point))))
+			(c-backward-syntactic-ws)
+			(point))))
+		 (and (progn (c-forward-syntactic-ws lim)
+			     (not (eobp)))
+		      (c-backward-syntactic-ws)
+		      (point)))))))))
 
 (defun c-change-expand-fl-region (_beg _end _old-len)
   ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock

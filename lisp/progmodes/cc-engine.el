@@ -2238,7 +2238,7 @@ comment at the start of cc-engine.el for more info."
 
 	     ((and c-opt-cpp-prefix
 		   (looking-at c-noise-macro-name-re))
-	      ;; Skip over a noise macro.
+	      ;; Skip over a noise macro without parens.
 	      (goto-char (match-end 1))
 	      (not (eobp)))
 
@@ -9130,6 +9130,12 @@ This function might do hidden buffer changes."
 				  (catch 'is-function
 				    (while
 					(progn
+					  (while
+					      (cond
+					       ((looking-at c-decl-hangon-key)
+						(c-forward-keyword-clause 1))
+					       ((looking-at c-noise-macro-with-parens-name-re)
+						(c-forward-noise-clause))))
 					  (if (eq (char-after) ?\))
 					      (throw 'is-function t))
 					  (setq cdd-got-type (c-forward-type))
@@ -9782,6 +9788,16 @@ This function might do hidden buffer changes."
 				  (save-excursion
 				    (goto-char after-paren-pos)
 				    (c-forward-syntactic-ws)
+				    (progn
+				      (while
+					  (cond
+					   ((and
+					     c-opt-cpp-prefix
+					     (looking-at c-noise-macro-with-parens-name-re))
+					    (c-forward-noise-clause))
+					   ((looking-at c-decl-hangon-key)
+					    (c-forward-keyword-clause 1))))
+				      t)
 				    (or (c-forward-type)
 					;; Recognize a top-level typeless
 					;; function declaration in C.
