@@ -363,13 +363,12 @@ You don't need this.  (See bytecomp.el commentary for more details.)
   (or (memq (get name 'byte-optimizer)
 	    '(nil byte-compile-inline-expand))
       (error "`%s' is a primitive" name))
+  ;; Never native-compile defsubsts as we need the byte
+  ;; definition in `byte-compile-unfold-bcf' to perform the
+  ;; inlining (Bug#42664).
+  (byte-run--set-speed name nil -1)
   `(prog1
-       (defun ,name ,arglist
-         ;; Never native-compile defsubsts as we need the byte
-         ;; definition in `byte-compile-unfold-bcf' to perform the
-         ;; inlining (Bug#42664).
-         (declare (speed -1))
-         ,@body)
+       (defun ,name ,arglist ,@body)
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
