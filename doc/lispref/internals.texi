@@ -1425,27 +1425,45 @@ violations of the above requirements.  @xref{Initial Options,,,emacs,
 The GNU Emacs Manual}.
 
 Using the module @acronym{API}, it is possible to define more complex
-function and data types: interactive functions, inline functions,
-macros, etc.  However, the resulting C code will be cumbersome and
-hard to read.  Therefore, we recommend that you limit the module code
-which creates functions and data structures to the absolute minimum,
-and leave the rest for a Lisp package that will accompany your module,
-because doing these additional tasks in Lisp is much easier, and will
-produce a much more readable code.  For example, given a module
-function @code{module-func} defined as above, one way of making an
-interactive command @code{module-cmd} based on it is with the
-following simple Lisp wrapper:
+function and data types: inline functions, macros, etc.  However, the
+resulting C code will be cumbersome and hard to read.  Therefore, we
+recommend that you limit the module code which creates functions and
+data structures to the absolute minimum, and leave the rest for a Lisp
+package that will accompany your module, because doing these
+additional tasks in Lisp is much easier, and will produce a much more
+readable code.  For example, given a module function
+@code{module-func} defined as above, one way of making a macro
+@code{module-macro} based on it is with the following simple Lisp
+wrapper:
 
 @lisp
-(defun module-cmd (&rest args)
-  "Documentation string for the command."
-  (interactive @var{spec})
-  (apply 'module-func args))
+(defmacro module-macro (&rest args)
+  "Documentation string for the macro."
+  (module-func args))
 @end lisp
 
 The Lisp package which goes with your module could then load the
 module using the @code{load} primitive (@pxref{Dynamic Modules}) when
 the package is loaded into Emacs.
+
+By default, module functions created by @code{make_function} are not
+interactive.  To make them interactive, you can use the following
+function.
+
+@deftypefun void make_interactive (emacs_env *@var{env}, emacs_value @var{function}, emacs_value @var{spec})
+This function, which is available since Emacs 28, makes the function
+@var{function} interactive using the interactive specification
+@var{spec}.  Emacs interprets @var{spec} like the argument to the
+@code{interactive} form.  @ref{Using Interactive}, and
+@pxref{Interactive Codes}.  @var{function} must be an Emacs module
+function returned by @code{make_function}.
+@end deftypefun
+
+Note that there is no native module support for retrieving the
+interactive specification of a module function.  Use the function
+@code{interactive-form} for that.  @ref{Using Interactive}.  It is not
+possible to make a module function non-interactive once you have made
+it interactive using @code{make_interactive}.
 
 @anchor{Module Function Finalizers}
 If you want to run some code when a module function object (i.e., an

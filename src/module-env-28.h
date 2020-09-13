@@ -12,3 +12,7 @@
 
   int (*open_channel) (emacs_env *env, emacs_value pipe_process)
     EMACS_ATTRIBUTE_NONNULL (1);
+
+  void (*make_interactive) (emacs_env *env, emacs_value function,
+                            emacs_value spec)
+    EMACS_ATTRIBUTE_NONNULL (1);

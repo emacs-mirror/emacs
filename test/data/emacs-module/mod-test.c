@@ -673,6 +673,14 @@ Fmod_test_async_pipe (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return env->intern (env, "nil");
 }
 
+static emacs_value
+Fmod_test_identity (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                    void *data)
+{
+  assert (nargs == 1);
+  return args[0];
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -763,6 +771,19 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-async-pipe", Fmod_test_async_pipe, 1, 1, NULL, NULL);
 
 #undef DEFUN
+
+  emacs_value constant_fn
+    = env->make_function (env, 0, 0, Fmod_test_return_t, NULL, NULL);
+  env->make_interactive (env, constant_fn, env->intern (env, "nil"));
+  bind_function (env, "mod-test-return-t-int", constant_fn);
+
+  emacs_value identity_fn
+    = env->make_function (env, 1, 1, Fmod_test_identity, NULL, NULL);
+  const char *interactive_spec = "i";
+  env->make_interactive (env, identity_fn,
+                         env->make_string (env, interactive_spec,
+                                           strlen (interactive_spec)));
+  bind_function (env, "mod-test-identity", identity_fn);
 
   provide (env, "mod-test");
   return 0;

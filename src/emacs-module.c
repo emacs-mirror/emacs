@@ -551,7 +551,7 @@ struct Lisp_Module_Function
   union vectorlike_header header;
 
   /* Fields traced by GC; these must come first.  */
-  Lisp_Object documentation;
+  Lisp_Object documentation, interactive_form;
 
   /* Fields ignored by GC.  */
   ptrdiff_t min_arity, max_arity;
@@ -564,7 +564,7 @@ static struct Lisp_Module_Function *
 allocate_module_function (void)
 {
   return ALLOCATE_PSEUDOVECTOR (struct Lisp_Module_Function,
-                                documentation, PVEC_MODULE_FUNCTION);
+                                interactive_form, PVEC_MODULE_FUNCTION);
 }
 
 #define XSET_MODULE_FUNCTION(var, ptr) \
@@ -628,6 +628,24 @@ module_finalize_function (const struct Lisp_Module_Function *func)
 {
   if (func->finalizer != NULL)
     func->finalizer (func->data);
+}
+
+static void
+module_make_interactive (emacs_env *env, emacs_value function, emacs_value spec)
+{
+  MODULE_FUNCTION_BEGIN ();
+  Lisp_Object lisp_fun = value_to_lisp (function);
+  CHECK_MODULE_FUNCTION (lisp_fun);
+  Lisp_Object lisp_spec = value_to_lisp (spec);
+  /* Normalize (interactive nil) to (interactive). */
+  XMODULE_FUNCTION (lisp_fun)->interactive_form
+    = NILP (lisp_spec) ? list1 (Qinteractive) : list2 (Qinteractive, lisp_spec);
+}
+
+Lisp_Object
+module_function_interactive_form (const struct Lisp_Module_Function *fun)
+{
+  return fun->interactive_form;
 }
 
 static emacs_value
@@ -1463,6 +1481,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->get_function_finalizer = module_get_function_finalizer;
   env->set_function_finalizer = module_set_function_finalizer;
   env->open_channel = module_open_channel;
+  env->make_interactive = module_make_interactive;
   Vmodule_environments = Fcons (make_mint_ptr (env), Vmodule_environments);
   return env;
 }
