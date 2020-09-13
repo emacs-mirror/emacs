@@ -206,6 +206,11 @@ youthfulness
 
 (ert-deftest diff-mode-test-font-lock ()
   "Check font-locking of diff hunks."
+  ;; See comments in diff-hunk-file-names about nonascii.
+  ;; In such cases, the diff-font-lock-syntax portion of this fails.
+  :expected-result (if (string-match-p "[[:nonascii:]]"
+                                       diff-mode-tests--datadir)
+                       :failed :passed)
   (skip-unless (executable-find shell-file-name))
   (skip-unless (executable-find diff-command))
   (let ((default-directory diff-mode-tests--datadir)
@@ -244,6 +249,7 @@ youthfulness
                  111 124 (face diff-context)
                  124 127 (face diff-context))))
 
+      ;; Test diff-font-lock-syntax.
       (should (equal (mapcar (lambda (o)
                                (list (- (overlay-start o) diff-beg)
                                      (- (overlay-end o) diff-beg)
@@ -267,6 +273,9 @@ youthfulness
 
 (ert-deftest diff-mode-test-font-lock-syntax-one-line ()
   "Check diff syntax highlighting for one line with no newline at end."
+  :expected-result (if (string-match-p "[[:nonascii:]]"
+                                       diff-mode-tests--datadir)
+                       :failed :passed)
   (skip-unless (executable-find shell-file-name))
   (skip-unless (executable-find diff-command))
   (let ((default-directory diff-mode-tests--datadir)
