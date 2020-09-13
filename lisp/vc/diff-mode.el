@@ -2173,9 +2173,10 @@ Return new point, if it was moved."
              (smerge-refine-regions beg-del beg-add beg-add end-add
                                     nil #'diff-refine-preproc props-r props-a)))))
       ('context
-       (let* ((middle (save-excursion (re-search-forward "^---" end)))
+       (let* ((middle (save-excursion (re-search-forward "^---" end t)))
               (other middle))
-         (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
+         (while (and middle
+		     (re-search-forward "^\\(?:!.*\n\\)+" middle t))
            (smerge-refine-regions (match-beginning 0) (match-end 0)
                                   (save-excursion
                                     (goto-char other)
