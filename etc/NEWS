@@ -85,6 +85,13 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+---
+** Support for the 'strike-through' face attribute on TTY frames.
+If your terminal's termcap or terminfo database entry has the 'smxx'
+capability defined, Emacs will now emit the prescribed escape
+sequences necessary to render faces with the 'strike-through'
+attribute on TTY frames.
+
 +++
 *** Emacs now defaults to UTF-8 instead of ISO-8859-1.
 This is only for the default, where the user has set no 'LANG' (or
