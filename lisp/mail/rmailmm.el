@@ -269,7 +269,7 @@ TRUNCATED is non-nil if the text of this entity was truncated."
 	(unless (y-or-n-p "This entity is truncated; save anyway? ")
 	  (error "Aborted")))
     (setq filename (expand-file-name
-		    (read-file-name (format-prompt "Save as" filename)
+		    (read-file-name (format "Save as (default: %s): " filename)
 				    directory
 				    (expand-file-name filename directory))
 		    directory))
