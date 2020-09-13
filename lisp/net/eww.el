@@ -730,8 +730,7 @@ Currently this means either text/html or application/xhtml+xml."
   (setq header-line-format
 	(and eww-header-line-format
 	     (let ((peer (plist-get eww-data :peer))
-                   (url (propertize (plist-get eww-data :url)
-                                    'face 'variable-pitch))
+                   (url (plist-get eww-data :url))
                    (title (propertize
                            (if (zerop (length (plist-get eww-data :title)))
 		               "[untitled]"
@@ -747,10 +746,13 @@ Currently this means either text/html or application/xhtml+xml."
                ;; Limit the length of the title so that the host name
                ;; of the URL is always visible.
                (when url
+                 (setq url (propertize url 'face 'variable-pitch))
                  (let* ((parsed (url-generic-parse-url url))
                         (host-length (shr-string-pixel-width
-                                      (format "%s://%s" (url-type parsed)
-                                              (url-host parsed))))
+                                      (propertize
+                                       (format "%s://%s" (url-type parsed)
+                                               (url-host parsed))
+                                       'face 'variable-pitch)))
                         (width (window-width nil t)))
                    (cond
                     ;; The host bit is wider than the window, so nix
