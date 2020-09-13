@@ -373,6 +373,9 @@ This variable can also be set per-server."
 
 ;; Options for search language parsing.
 
+(add-to-list 'completion-category-defaults
+	     `(gnus-search-key (styles basic partial-completion)))
+
 (defcustom gnus-search-expandable-keys
   '("from" "subject" "to" "cc" "bcc" "body" "recipient" "date"
     "mark" "contact" "contact-from" "contact-to" "before" "after"
@@ -517,7 +520,7 @@ typically be silently ignored."
 	   (null halt))
       (list 'or term (gnus-search-query-next-expr 2)))
      ;; Handle 'near operator.
-     ((and (eq next 'near))
+     ((eq next 'near)
       (let ((near-next (gnus-search-query-next-expr 2)))
 	(if (and (stringp term)
 		 (stringp near-next))
@@ -1232,7 +1235,7 @@ Other capabilities could be tested here."
   "Known IMAP search keys, excluding booleans and date keys.")
 
 (cl-defmethod gnus-search-transform ((_ gnus-search-imap)
-					       (_query null))
+				     (_query null))
   "ALL")
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
@@ -1263,7 +1266,6 @@ Other capabilities could be tested here."
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
 						(expr (head not)))
   "Transform IMAP NOT.
-
 If the term to be negated is a flag, then use the appropriate UN*
 boolean instead."
   (if (eql (caadr expr) 'mark)
@@ -1280,10 +1282,9 @@ boolean instead."
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
 						(expr list))
   "Handle a search keyword for IMAP.
-
-   Search keyword.  All IMAP search keywords that take a value
-   are supported directly.  Keywords that are boolean are
-   supported through other means (usually the \"mark\" keyword)."
+Search keyword.  All IMAP search keywords that take a value are
+supported directly.  Keywords that are boolean are supported
+through other means (usually the \"mark\" keyword)."
   (let ((fuzzy-supported (slot-value engine 'fuzzy))
 	(fuzzy ""))
     (cl-case (car expr)
@@ -1340,7 +1341,6 @@ boolean instead."
 (cl-defmethod gnus-search-imap-handle-date ((_engine gnus-search-imap)
 				     (date list))
   "Turn DATE into a date string recognizable by IMAP.
-
 While other search engines can interpret partially-qualified
 dates such as a plain \"January\", IMAP requires an absolute
 date.
@@ -1414,7 +1414,6 @@ of whichever date elements are present."
 
 (cl-defgeneric gnus-search-indexed-parse-output (engine server &optional groups)
   "Parse the results of ENGINE's query against SERVER in GROUPS.
-
 Locally-indexed search engines return results as a list of
 filenames, sometimes with additional information.  Returns a list
 of viable results, in the form of a list of [group article score]
@@ -1422,14 +1421,12 @@ vectors.")
 
 (cl-defgeneric gnus-search-index-extract (engine)
   "Extract a single article result from the current buffer.
-
 Returns a list of two values: a file name, and a relevancy score.
 Advances point to the beginning of the next result.")
 
 (cl-defmethod gnus-search-run-search ((engine gnus-search-indexed)
 				      server query groups)
   "Run QUERY against SERVER using ENGINE.
-
 This method is common to all indexed search engines.
 
 Returns a list of [group article score] vectors."
@@ -1479,8 +1476,8 @@ Returns a list of [group article score] vectors."
 	(when (and (file-readable-p f-name)
 		   (null (file-directory-p f-name))
 		   (or (null groups)
-			(and (gnus-search-single-p query)
-			     (alist-get 'thread query))
+		       (and (gnus-search-single-p query)
+			    (alist-get 'thread query))
 		       (string-match-p group-regexp f-name)))
 	  (push (list f-name score) artlist))))
     ;; Are we running an additional grep query?
@@ -1614,7 +1611,7 @@ fudges a relevancy score of 100."
 
 ;; I can't tell if this is actually necessary.
 (cl-defmethod gnus-search-run-search :around ((_e gnus-search-namazu)
-				       _server _query _groups)
+					      _server _query _groups)
   (let ((process-environment (copy-sequence process-environment)))
     (setenv "LC_MESSAGES" "C")
     (cl-call-next-method)))
@@ -1634,7 +1631,6 @@ fudges a relevancy score of 100."
 
 (cl-defmethod gnus-search-indexed-extract ((engine gnus-search-namazu))
   "Extract a single message result for Namazu.
-
 Namazu provides a little more information, for instance a score."
 
   (when (re-search-forward
@@ -1727,17 +1723,13 @@ Namazu provides a little more information, for instance a score."
 	(while (process-live-p proc)
 	  (accept-process-output proc))
 	(while (re-search-forward "^thread:\\([^ ]+\\)" (point-max) t)
-	  (push (match-string 1) thread-ids))
-	;; All of the following is to make sure that the secondary
-	;; search ignores the original search query, and instead uses
-	;; our new thread query.
-	(setf (alist-get 'thread query) nil
-	      (alist-get 'raw query) t
-	      groups nil
-	      (alist-get 'query query)
-	      (mapconcat (lambda (thrd) (concat "thread:" thrd))
-			 thread-ids " or ")))))
-  (cl-call-next-method engine server query groups))
+	  (push (match-string 1) thread-ids)))))
+  (cl-call-next-method
+   engine server
+   ;; Completely replace the query with our new thread-based one.
+   (mapconcat (lambda (thrd) (concat "thread:" thrd))
+	      thread-ids " or ")
+   nil))
 
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-notmuch)
 						  (qstring string)
@@ -1766,7 +1758,6 @@ Namazu provides a little more information, for instance a score."
 (cl-defmethod gnus-search-transform ((engine gnus-search-mairix)
 				     (query list))
   "Transform QUERY for a Mairix engine.
-
 Because Mairix doesn't accept parenthesized expressions, nor
 \"or\" statements between different keys, results may differ from
 other engines.  We unpeel parenthesized expressions, and just
@@ -1784,7 +1775,6 @@ cross our fingers for the rest of it."
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-mairix)
 						(expr (head not)))
   "Transform Mairix \"not\".
-
 Mairix negation requires a \"~\" preceding string search terms,
 and \"-\" before marks."
   (let ((next (gnus-search-transform-expression engine (cadr expr))))
@@ -1798,7 +1788,6 @@ and \"-\" before marks."
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-mairix)
 						(expr (head or)))
   "Handle Mairix \"or\" statement.
-
 Mairix only accepts \"or\" expressions on homogenous keys.  We
 cast \"or\" expressions on heterogenous keys as \"and\", which
 isn't quite right, but it's the best we can do.  For date keys,
@@ -1867,7 +1856,6 @@ only keep one of the terms."
 
 (defun gnus-search-mairix-treat-string (str)
   "Treat string for wildcards.
-
 Mairix accepts trailing wildcards, but not leading.  Also remove
 double quotes."
   (replace-regexp-in-string
@@ -1876,7 +1864,6 @@ double quotes."
 
 (defun gnus-search-mairix-handle-size (expr)
   "Format a mairix size search.
-
 Assume \"size\" key is equal to \"larger\"."
   (format
    (if (eql (car expr) 'smaller)
