@@ -89,11 +89,6 @@ unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
 ## To run tests under a debugger, set this to eg: "gdb --args".
 GDB =
 
-# The locale to run tests under.  Tests should work if this is set to
-# any supported locale.  Use the C locale by default, as it should be
-# supported everywhere.
-TEST_LOCALE = C
-
 # Set this to 'yes' to run the tests in an interactive instance.
 TEST_INTERACTIVE ?= no
 
@@ -128,7 +123,7 @@ endif
 
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= LC_ALL=$(TEST_LOCALE) \
+emacs = EMACSLOADPATH= \
  EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
  $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 
