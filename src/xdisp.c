@@ -34831,8 +34831,7 @@ and is used only on frames for which no explicit name has been set
      Oracle Developer Studio 12.6.  */
   Lisp_Object icon_title_name_format
     = pure_list (empty_unibyte_string,
-		 intern_c_string ("invocation-name"),
-		 build_pure_c_string ("@"),
+		 build_pure_c_string ("%b - GNU Emacs at "),
 		 intern_c_string ("system-name"));
   Vicon_title_format
     = Vframe_title_format

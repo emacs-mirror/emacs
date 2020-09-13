@@ -127,6 +127,17 @@ the mouse cursor is on the scroll bars, fringes, margins, header line,
 and mode line.  ('mwheel-mode' is enabled by default on most graphical
 displays.)
 
+---
+** The default value of 'frame-title-format' and icon-title-format' has changed.
+These variables are used to display the title bar of visible frames
+and the title bar of an iconified frame.  They now show the name of
+the current buffer and the text "GNU Emacs" instead of the value of
+'invocation-name'.  To get the old behavior back, add the following to
+your Init file:
+
+    (setq frame-title-format '(multiple-frames "%b"
+                              ("" invocation-name "@" system-name)))
+
 
 * Editing Changes in Emacs 28.1
 
