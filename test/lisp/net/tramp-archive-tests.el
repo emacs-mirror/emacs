@@ -48,6 +48,12 @@
    (expand-file-name "foo.tar.gz" tramp-archive-test-resource-directory))
   "The test file archive.")
 
+(defun tramp-archive-test-file-archive-hexlified ()
+    "Return hexlified `tramp-archive-test-file-archive'.
+Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
+  (let* ((url-unreserved-chars (cons ?/ url-unreserved-chars)))
+    (url-hexify-string tramp-archive-test-file-archive)))
+
 (defconst tramp-archive-test-archive
   (file-name-as-directory tramp-archive-test-file-archive)
   "The test archive.")
@@ -174,7 +180,8 @@ variables, so we check the Emacs version directly."
       (should
        (string-equal
 	host
-	(url-hexify-string (concat "file://" tramp-archive-test-file-archive))))
+	(url-hexify-string
+	 (concat "file://" (tramp-archive-test-file-archive-hexlified)))))
       (should-not port)
       (should (string-equal localname "/"))
       (should (string-equal archive tramp-archive-test-file-archive)))
@@ -193,7 +200,8 @@ variables, so we check the Emacs version directly."
       (should
        (string-equal
 	host
-	(url-hexify-string (concat "file://" tramp-archive-test-file-archive))))
+	(url-hexify-string
+	 (concat "file://" (tramp-archive-test-file-archive-hexlified)))))
       (should-not port)
       (should (string-equal localname "/foo"))
       (should (string-equal archive tramp-archive-test-file-archive)))
@@ -237,7 +245,8 @@ variables, so we check the Emacs version directly."
 		    ;; archive boundaries.  So we must cut the
 		    ;; trailing slash ourselves.
 		    (substring
-		     (file-name-directory tramp-archive-test-file-archive)
+		     (file-name-directory
+		      (tramp-archive-test-file-archive-hexlified))
 		     0 -1)))
 		  nil "/"))
 		(file-name-nondirectory tramp-archive-test-file-archive)))))
