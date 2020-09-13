@@ -82,7 +82,9 @@ instead of gpg-agent."
 	      ;; not look in the proper places otherwise, see:
 	      ;; https://bugs.gnupg.org/gnupg/issue2126
 	      (setenv "GNUPGHOME" epg-gpg-home-directory)
-	      (funcall body))
+              (unwind-protect
+	          (funcall body)
+                (mml-sec-test--kill-gpg-agent)))
 	  (error
 	   (setenv "GPG_AGENT_INFO" agent-info)
 	   (setenv "GNUPGHOME" gpghome)
@@ -902,5 +904,17 @@ So the second decryption fails."
     "Skip S/MIME tests (as they require manual passphrase entry)."
   (let ((with-smime nil))
     (ert-run-tests-batch)))
+
+(defun mml-sec-test--kill-gpg-agent ()
+  (dolist (pid (list-system-processes))
+    (let ((atts (process-attributes pid)))
+      (when (and (equal (cdr (assq 'user atts)) (user-login-name))
+                 (equal (cdr (assq 'comm atts)) "gpg-agent")
+                 (string-match
+                  (concat "homedir.*"
+                          (regexp-quote (expand-file-name "test/data/mml-sec"
+                                                          source-directory)))
+                  (cdr (assq 'args atts))))
+        (call-process "kill" nil nil nil (format "%d" pid))))))
 
 ;;; mml-sec-tests.el ends here
