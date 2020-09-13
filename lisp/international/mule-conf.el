@@ -1508,6 +1508,7 @@ for decoding and encoding files, process I/O, etc."
   :mime-charset 'us-ascii)
 
 (define-coding-system-alias 'iso-safe 'us-ascii)
+(define-coding-system-alias 'ascii 'us-ascii)
 
 (define-coding-system 'utf-7
   "UTF-7 encoding of Unicode (RFC 2152)."

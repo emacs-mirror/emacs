@@ -1295,6 +1295,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
+---
+*** 'ascii' is now a coding system alias for 'us-ascii'.
+
 +++
 *** New function 'file-backup-file-names'.
 This function returns the list of file names of all the backup files
