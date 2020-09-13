@@ -1521,7 +1521,7 @@ mail status in mode line"))
     (bindings--define-key menu [cua-mode]
       (menu-bar-make-mm-toggle
        cua-mode
-       "Use CUA Keys (Cut/Paste with C-x/C-c/C-v)"
+       "Cut/Paste with C-x/C-c/C-v (CUA Mode)"
        "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
        (:visible (or (not (boundp 'cua-enable-cua-keys))
 		     cua-enable-cua-keys))))
