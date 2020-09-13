@@ -3162,8 +3162,9 @@ It reads a file name from an editable text field."
                 #'completion-file-name-table
                 (not read-file-name-completion-ignore-case))
   :match (lambda (widget value)
-           (or (not (widget-get widget :must-match))
-               (file-exists-p value)))
+           (and (stringp value)
+                (or (not (widget-get widget :must-match))
+                    (file-exists-p value))))
   :validate (lambda (widget)
               (let ((value (widget-value widget)))
                 (unless (widget-apply widget :match value)

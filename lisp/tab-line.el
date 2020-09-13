@@ -646,7 +646,8 @@ using the `previous-buffer' command."
   "Enable cycling tab switch.
 If non-nil, `tab-line-switch-to-prev-tab' in the first tab
 switches to the last tab and `tab-line-switch-to-next-tab' in the
-last tab switches to the first tab."
+last tab switches to the first tab.  This variable is not consulted
+when `tab-line-tabs-function' is `tab-line-tabs-window-buffers'."
   :type 'boolean
   :group 'tab-line
   :version "28.1")

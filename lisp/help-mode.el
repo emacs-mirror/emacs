@@ -308,7 +308,7 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function
   (lambda (file pos)
-    (pop-to-buffer (find-file-noselect file))
+    (view-buffer-other-window (find-file-noselect file))
     (goto-char pos))
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
 

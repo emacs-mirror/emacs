@@ -1382,6 +1382,29 @@ Notations:  3.14e6     3.14 * 10^6
     (set-keymap-parent map calc-mode-map)
     map))
 
+(defun calc--header-line (long short width &optional fudge)
+  "Return a Calc header line appropriate for the buffer width.
+
+LONG is a desired text for a wide window, SHORT is a desired
+abbreviated text, and width is the buffer width, which will be
+some fraction of the 'parent' window width (At the time of
+writing, 2/3 for calc, 1/3 for trail). The optional FUDGE is a
+trial-and-error adjustment number for the edge-cases at the
+border of the two cases."
+  ;; TODO: This could be called as part of a 'window-resize' hook.
+  (setq header-line-format
+        (let* ((len-long (length long))
+               (len-short (length short))
+               (fudge (or fudge 0))
+               ;; fudge for trail is: -3 (added to len-long)
+               ;; (width  ) for trail
+               (factor (if (> width (+ len-long fudge)) len-long len-short))
+               (size   (max (/ (- width factor) 2) 0))
+               (fill (make-string size ?-))
+               (pre  (replace-regexp-in-string ".$" " " fill))
+               (post (replace-regexp-in-string "^." " " fill)))
+          (concat pre (if (= factor len-long) long short) post))))
+
 (define-derived-mode calc-trail-mode fundamental-mode "Calc Trail"
   "Calc Trail mode.
 This mode is used by the *Calc Trail* buffer, which records all results
@@ -1396,9 +1419,9 @@ commands given here will actually operate on the *Calculator* stack."
   (setq buffer-read-only t)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (when (= (buffer-size) 0)
-    (let ((inhibit-read-only t))
-      (insert (propertize "Emacs Calculator Trail\n" 'face 'italic)))))
+  (when calc-show-banner
+    (calc--header-line "Emacs Calculator Trail" "Calc Trail"
+                       (/ (window-width) 3) -3)))
 
 (defun calc-create-buffer ()
   "Create and initialize a buffer for the Calculator."
@@ -1451,7 +1474,6 @@ commands given here will actually operate on the *Calculator* stack."
                 (pop-to-buffer (current-buffer)))))))
       (with-current-buffer (calc-trail-buffer)
         (and calc-display-trail
-             (= (window-width) (frame-width))
              (calc-trail-display 1 t)))
       (message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit")
       (run-hooks 'calc-start-hook)
@@ -1986,13 +2008,11 @@ See calc-keypad for details."
 	      (calc-any-evaltos nil))
 	 (setq calc-any-selections nil)
 	 (erase-buffer)
-	 (when calc-show-banner
-	   (insert (propertize "--- Emacs Calculator Mode ---\n"
-			       'face 'italic)))
+         (when calc-show-banner
+           (calc--header-line  "Emacs Calculator Mode" "Emacs Calc"
+                       (* 2 (/ (window-width) 3)) -3))
 	 (while thing
 	   (goto-char (point-min))
-	   (when calc-show-banner
-	     (forward-line 1))
 	   (insert (math-format-stack-value (car thing)) "\n")
 	   (setq thing (cdr thing)))
 	 (calc-renumber-stack)
@@ -2076,7 +2096,6 @@ the United States."
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
       (with-current-buffer calc-trail-buffer
 	(goto-char (point-min))
-	(forward-line 1)
 	(setq calc-trail-pointer (point-marker))))
   calc-trail-buffer)
 
@@ -2144,10 +2163,8 @@ the United States."
   (if (derived-mode-p 'calc-trail-mode)
       (progn
 	(beginning-of-line)
-	(if (bobp)
-	    (forward-line 1)
-	  (if (eobp)
-	      (forward-line -1)))
+	(if (eobp)
+            (forward-line -1))
 	(if (or (bobp) (eobp))
 	    (setq overlay-arrow-position nil)   ; trail is empty
 	  (set-marker calc-trail-pointer (point) (current-buffer))
@@ -2161,7 +2178,7 @@ the United States."
 	    (if win
 		(save-excursion
 		  (forward-line (/ (window-height win) 2))
-		  (forward-line (- 1 (window-height win)))
+		  (forward-line (- 2 (window-height win)))
 		  (set-window-start win (point))
 		  (set-window-point win (+ calc-trail-pointer 4))
 		  (set-buffer calc-main-buffer)
@@ -3435,12 +3452,10 @@ See Info node `(calc)Defining Functions'."
 (defun calc-clear-unread-commands ()
   (setq unread-command-events nil))
 
-(defcalcmodevar math-2-word-size
-  (math-read-number-simple "4294967296")
+(defcalcmodevar math-2-word-size 4294967296
   "Two to the power of `calc-word-size'.")
 
-(defcalcmodevar math-half-2-word-size
-  (math-read-number-simple "2147483648")
+(defcalcmodevar math-half-2-word-size 2147483648
   "One-half of two to the power of `calc-word-size'.")
 
 (when calc-always-load-extensions

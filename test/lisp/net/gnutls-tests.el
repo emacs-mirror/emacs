@@ -241,6 +241,7 @@
 
 (ert-deftest test-gnutls-005-aead-ciphers ()
   "Test the GnuTLS AEAD ciphers"
+  :tags '(:expensive-test)
   (skip-unless (memq 'AEAD-ciphers (gnutls-available-p)))
   (setq gnutls-tests-message-prefix "AEAD verification: ")
   (let ((keys '("mykey" "mykey2"))

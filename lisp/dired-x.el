@@ -64,21 +64,8 @@ mbox format, and so cannot be distinguished in this way."
   :type 'boolean
   :group 'dired-keys)
 
-(defcustom dired-bind-jump t
-  "Non-nil means bind `dired-jump' to C-x C-j, otherwise do not.
-Setting this variable directly after dired-x is loaded has no effect -
-use \\[customize]."
-  :type 'boolean
-  :set (lambda (sym val)
-         (if (set sym val)
-             (progn
-               (define-key ctl-x-map "\C-j" 'dired-jump)
-               (define-key ctl-x-4-map "\C-j" 'dired-jump-other-window))
-           (if (eq 'dired-jump (lookup-key ctl-x-map "\C-j"))
-               (define-key ctl-x-map "\C-j" nil))
-           (if (eq 'dired-jump-other-window (lookup-key ctl-x-4-map "\C-j"))
-               (define-key ctl-x-4-map "\C-j" nil))))
-  :group 'dired-keys)
+(defvar dired-bind-jump t)
+(make-obsolete-variable 'dired-bind-jump "not used." "28.1")
 
 (defcustom dired-bind-man t
   "Non-nil means bind `dired-man' to \"N\" in Dired, otherwise do not.
@@ -308,7 +295,6 @@ To see the options you can set, use M-x customize-group RET dired-x RET.
 See also the functions:
   `dired-flag-extension'
   `dired-virtual'
-  `dired-jump'
   `dired-man'
   `dired-vm'
   `dired-rmail'
@@ -446,68 +432,7 @@ See variables `dired-texinfo-unclean-extensions',
                                 dired-bibtex-unclean-extensions
                                 dired-tex-unclean-extensions
                                 (list ".dvi"))))
-
-(defvar archive-superior-buffer)
-(defvar tar-superior-buffer)
-;;; JUMP.
 
-;;;###autoload
-(defun dired-jump (&optional other-window file-name)
-  "Jump to Dired buffer corresponding to current buffer.
-If in a file, Dired the current directory and move to file's line.
-If in Dired already, pop up a level and goto old directory's line.
-In case the proper Dired file line cannot be found, refresh the dired
-buffer and try again.
-When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
-When FILE-NAME is non-nil, jump to its line in Dired.
-Interactively with prefix argument, read FILE-NAME."
-  (interactive
-   (list nil (and current-prefix-arg
-                  (read-file-name "Jump to Dired file: "))))
-  (cond
-   ((and (bound-and-true-p archive-subfile-mode)
-         (buffer-live-p archive-superior-buffer))
-    (switch-to-buffer archive-superior-buffer))
-   ((and (bound-and-true-p tar-subfile-mode)
-         (buffer-live-p tar-superior-buffer))
-    (switch-to-buffer tar-superior-buffer))
-   (t
-    ;; Expand file-name before `dired-goto-file' call:
-    ;; `dired-goto-file' requires its argument to be an absolute
-    ;; file name; the result of `read-file-name' could be
-    ;; an abbreviated file name (Bug#24409).
-    (let* ((file (or (and file-name (expand-file-name file-name))
-                     buffer-file-name))
-           (dir (if file (file-name-directory file) default-directory)))
-      (if (and (eq major-mode 'dired-mode) (null file-name))
-          (progn
-            (setq dir (dired-current-directory))
-            (dired-up-directory other-window)
-            (unless (dired-goto-file dir)
-              ;; refresh and try again
-              (dired-insert-subdir (file-name-directory dir))
-              (dired-goto-file dir)))
-        (if other-window
-            (dired-other-window dir)
-          (dired dir))
-        (if file
-            (or (dired-goto-file file)
-                ;; refresh and try again
-                (progn
-                  (dired-insert-subdir (file-name-directory file))
-                  (dired-goto-file file))
-                ;; Toggle omitting, if it is on, and try again.
-                (when dired-omit-mode
-                  (dired-omit-mode)
-                  (dired-goto-file file)))))))))
-
-;;;###autoload
-(defun dired-jump-other-window (&optional file-name)
-  "Like \\[dired-jump] (`dired-jump') but in other window."
-  (interactive
-   (list (and current-prefix-arg
-	      (read-file-name "Jump to Dired file: "))))
-  (dired-jump t file-name))
 
 ;;; OMITTING.
 

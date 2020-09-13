@@ -1,4 +1,4 @@
-;;; org-tests.el --- tests for org/org.el
+;;; org-tests.el --- tests for org/org.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 

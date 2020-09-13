@@ -1471,7 +1471,7 @@ If @var{handler} returns a reply message with an empty argument list,
 to distinguish it from @code{nil} (the boolean false).
 
 If @var{handler} detects an error, it shall return the list
-@code{(:error @var{error-name} @var{error-message)}}.
+@code{(:error @var{error-name} @var{error-message})}.
 @var{error-name} is a namespaced string which characterizes the error
 type, and @var{error-message} is a free text string.  Alternatively,
 any Emacs signal @code{dbus-error} in @var{handler} raises a D-Bus
@@ -2031,10 +2031,11 @@ This function returns the member name of the D-Bus object @var{event}
 is coming from.  It is either a signal name or a method name.
 @end defun
 
-D-Bus errors are not propagated during event handling, because it is
-usually not desired.  D-Bus errors in events can be made visible by
-setting the variable @code{dbus-debug} to @code{t}.  They can also be
-handled by a hook function.
+@vindex dbus-show-dbus-errors
+D-Bus error messages are not propagated during event handling, because
+it is usually not desired.  D-Bus errors in events can be made visible
+by setting the user option @code{dbus-show-dbus-errors} to
+non-@code{nil}.  They can also be handled by a hook function.
 
 @defvar dbus-event-error-functions
 This hook variable keeps a list of functions, which are called when a

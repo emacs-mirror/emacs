@@ -292,7 +292,7 @@ file the tag was in."
            (or (locate-dominating-file default-directory "TAGS")
                default-directory)))
      (list (read-file-name
-            (format-prompt "Visit tags table" "TAGS")
+            "Visit tags table (default TAGS): "
             ;; default to TAGS from default-directory up to root.
             default-tag-dir
             (expand-file-name "TAGS" default-tag-dir)
@@ -625,7 +625,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		  (car list))
 		;; Finally, prompt the user for a file name.
 		(expand-file-name
-		 (read-file-name (format-prompt "Visit tags table" "TAGS")
+		 (read-file-name "Visit tags table (default TAGS): "
 				 default-directory
 				 "TAGS"
 				 t))))))

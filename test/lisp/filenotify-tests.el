@@ -611,6 +611,7 @@ delivered."
 
 (ert-deftest file-notify-test03-events ()
   "Check file creation/change/removal notifications."
+  :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
   (unwind-protect
@@ -888,6 +889,7 @@ delivered."
 
 (ert-deftest file-notify-test04-autorevert ()
   "Check autorevert via file notification."
+  :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
@@ -983,6 +985,7 @@ delivered."
 
 (ert-deftest file-notify-test05-file-validity ()
   "Check `file-notify-valid-p' for files."
+  :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
   (unwind-protect
@@ -1235,6 +1238,7 @@ delivered."
 
 (ert-deftest file-notify-test08-backup ()
   "Check that backup keeps file notification."
+  :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
   (unwind-protect

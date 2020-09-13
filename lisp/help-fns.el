@@ -1820,9 +1820,8 @@ one of them returns non-nil."
 ;;;###autoload
 (defun doc-file-to-man (file)
   "Produce an nroff buffer containing the doc-strings from the DOC file."
-  (interactive (list (read-file-name (format-prompt "Name of DOC file"
-                                                    internal-doc-file-name)
-                                     doc-directory internal-doc-file-name t)))
+  (interactive (list (read-file-name "Name of DOC file: " doc-directory
+                                     internal-doc-file-name t)))
   (or (file-readable-p file)
       (error "Cannot read file `%s'" file))
   (pop-to-buffer (generate-new-buffer "*man-doc*"))
@@ -1851,9 +1850,8 @@ one of them returns non-nil."
 ;;;###autoload
 (defun doc-file-to-info (file)
   "Produce a texinfo buffer with sorted doc-strings from the DOC file."
-  (interactive (list (read-file-name (format-prompt "Name of DOC file"
-                                                    internal-doc-file-name)
-                                     doc-directory internal-doc-file-name t)))
+  (interactive (list (read-file-name "Name of DOC file: " doc-directory
+                                     internal-doc-file-name t)))
   (or (file-readable-p file)
       (error "Cannot read file `%s'" file))
   (let ((i 0) type name doc alist)

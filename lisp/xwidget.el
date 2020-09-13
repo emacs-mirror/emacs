@@ -326,15 +326,14 @@ If non-nil, plugins are enabled.  Otherwise, disabled."))
 FILE-NAME combined with `xwidget-webkit-download-dir' is the default file name
 of the prompt when reading.  When the file name the user specified is a
 directory, URL is saved at the specified directory as FILE-NAME."
-  (let* ((default (when file-name
-                    (expand-file-name
-                     file-name
-                     xwidget-webkit-download-dir)))
-         (save-name
-          (read-file-name
-           (format-prompt "Save URL `%s' of type `%s' in file/directory"
-                          default url mime-type)
-           xwidget-webkit-download-dir default)))
+  (let ((save-name (read-file-name
+                    (format "Save URL `%s' of type `%s' in file/directory: "
+                            url mime-type)
+                    xwidget-webkit-download-dir
+                    (when file-name
+                      (expand-file-name
+                       file-name
+                       xwidget-webkit-download-dir)))))
     (if (file-directory-p save-name)
         (setq save-name
               (expand-file-name (file-name-nondirectory file-name) save-name)))

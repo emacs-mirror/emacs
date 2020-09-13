@@ -101,9 +101,6 @@ PARENT can also be a `semanticdb-table' object."
    )
   )
 
-(make-obsolete-overload 'semantic-find-nonterminal
-                        'semantic-go-to-tag "23.2")
-
 ;;; Dependencies
 ;;
 ;; A tag which is of type 'include specifies a dependency.
@@ -175,9 +172,6 @@ Depends on `semantic-dependency-include-path' for searching.  Always searches
 	nil)
       )))
 
-(make-obsolete-overload 'semantic-find-dependency
-                        'semantic-dependency-tag-file "23.2")
-
 ;;; PROTOTYPE FILE
 ;;
 ;; In C, a function in the .c file often has a representation in a
@@ -198,13 +192,6 @@ file prototypes belong in."
      (with-current-buffer buffer
        (if (re-search-forward "::Header:: \\([a-zA-Z0-9.]+\\)" nil t)
            (match-string 1))))))
-
-(semantic-alias-obsolete 'semantic-find-nonterminal
-                         'semantic-go-to-tag "23.2")
-
-(semantic-alias-obsolete 'semantic-find-dependency
-                         'semantic-dependency-tag-file "23.2")
-
 
 (provide 'semantic/tag-file)
 

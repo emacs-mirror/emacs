@@ -116,6 +116,9 @@ is non-nil."
 (defcustom eshell-command-completions-alist
   '(("acroread" . "\\.pdf\\'")
     ("xpdf"     . "\\.pdf\\'")
+    ("gunzip"   . "\\.t?gz\\'")
+    ("bunzip2"  . "\\.t?bz2\\'")
+    ("unxz"     . "\\.t?xz\\'")
     ("ar"       . "\\.[ao]\\'")
     ("gcc"      . "\\.[Cc]\\([Cc]\\|[Pp][Pp]\\)?\\'")
     ("g++"      . "\\.[Cc]\\([Cc]\\|[Pp][Pp]\\)?\\'")

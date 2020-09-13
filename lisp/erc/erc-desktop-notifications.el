@@ -31,6 +31,7 @@
 (require 'erc)
 (require 'xml)
 (require 'notifications)
+(require 'erc-goodies)
 (require 'erc-match)
 (require 'dbus)
 
@@ -62,12 +63,12 @@ This will replace the last notification sent with this function."
   ;; setting the current buffer to the existing query buffer)
   (dbus-ignore-errors
     (setq erc-notifications-last-notification
-          (let ((channel (if privp (erc-get-buffer nick) (current-buffer))))
+          (let* ((channel (if privp (erc-get-buffer nick) (current-buffer)))
+                 (title (format "%s in %s" (xml-escape-string nick t) channel))
+                 (body (xml-escape-string (erc-controls-strip msg) t)))
             (notifications-notify :bus erc-notifications-bus
-                                  :title (format "%s in %s"
-                                                 (xml-escape-string nick)
-                                                 channel)
-                                  :body (xml-escape-string msg)
+                                  :title title
+                                  :body body
                                   :replaces-id erc-notifications-last-notification
                                   :app-icon erc-notifications-icon
                                   :actions '("default" "Switch to buffer")

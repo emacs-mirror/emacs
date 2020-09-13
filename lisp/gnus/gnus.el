@@ -3628,11 +3628,12 @@ If you call this function inside a loop, consider using the faster
 
 (defun gnus-group-get-parameter (group &optional symbol allow-list)
   "Return the group parameters for GROUP.
-If SYMBOL, return the value of that symbol in the group parameters.
-If ALLOW-LIST, also allow list as a result.
-Most functions should use `gnus-group-find-parameter', which
-also examines the topic parameters."
-  (let ((params (gnus-info-params (gnus-get-info group))))
+If SYMBOL, return the value of that symbol in the group
+parameters.  If ALLOW-LIST, also allow list as a result.  Most
+functions should use `gnus-group-find-parameter', which also
+examines the topic parameters.  GROUP can also be an info structure."
+  (let ((params (gnus-info-params (if (listp group) group
+				    (gnus-get-info group)))))
     (if symbol
 	(gnus-group-parameter-value params symbol allow-list)
       params)))

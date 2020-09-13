@@ -135,8 +135,9 @@
                     "--eval"
                     (prin1-to-string '(progn (setf (gv-test-foo gv-test-pair) 99)
                                              (message "%d" (car gv-test-pair)))))
-      (should (equal (buffer-string)
-                     "Symbol's function definition is void: \\(setf\\ gv-test-foo\\)\n")))))
+      (should (string-match
+               "\\`Symbol.s function definition is void: \\\\(setf\\\\ gv-test-foo\\\\)\n\\'"
+               (buffer-string))))))
 
 (ert-deftest gv-setter-edebug ()
   "Check that a setter can be defined and edebugged together with

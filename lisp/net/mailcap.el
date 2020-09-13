@@ -1133,11 +1133,15 @@ For instance, \"foo.png\" will result in \"image/png\"."
 `mailcap--computed-mime-data' determines the method to use."
   (let ((method (mailcap-mime-info type)))
     (if (stringp method)
-	(shell-command-on-region (point-min) (point-max)
-				 ;; Use stdin as the "%s".
-				 (format method "-")
-				 (current-buffer)
-				 t)
+        (let ((file (make-temp-file "emacs-mailcap" nil
+                                    (cadr (split-string type "/")))))
+          (unwind-protect
+              (let ((coding-system-for-write 'binary))
+                (write-region (point-min) (point-max) file nil 'silent)
+                (delete-region (point-min) (point-max))
+                (shell-command (format method file)))
+            (when (file-exists-p file)
+              (delete-file file))))
       (funcall method))))
 
 (provide 'mailcap)

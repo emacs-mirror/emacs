@@ -1383,6 +1383,9 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "'" 'expand-abbrev)
 (define-key ctl-x-map "\C-b" 'list-buffers)
 
+(define-key ctl-x-map "\C-j" 'dired-jump)
+(define-key ctl-x-4-map "\C-j" 'dired-jump-other-window)
+
 (define-key ctl-x-map "z" 'repeat)
 
 (define-key esc-map "\C-l" 'reposition-window)

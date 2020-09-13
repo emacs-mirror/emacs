@@ -121,9 +121,6 @@ incremental reparse.")
   "Hook run after the incremental parser fails.
 When this happens, the buffer is marked as needing a full reparse.")
 
-(semantic-varalias-obsolete 'semantic-edits-incremental-reparse-failed-hooks
-			    'semantic-edits-incremental-reparse-failed-hook "23.2")
-
 (defcustom semantic-edits-verbose-flag nil
   "Non-nil means the incremental parser is verbose.
 If nil, errors are still displayed, but informative messages are not."

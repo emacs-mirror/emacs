@@ -115,8 +115,6 @@
 
 ;;; Requirements:
 
-;; Artist requires Emacs 19.28 or higher.
-;;
 ;; Artist requires the `rect' package (which comes with Emacs) to be
 ;; loadable, unless the variable `artist-interface-with-rect' is set
 ;; to nil.
@@ -127,9 +125,6 @@
 
 ;;; Known bugs:
 
-;; The shifted operations are not available when drawing with the mouse
-;; in Emacs 19.29 and 19.30.
-;;
 ;; It is not possible to change between shifted and unshifted operation
 ;; while drawing with the mouse. (See the comment in the function
 ;; artist-shift-has-changed for further details.)

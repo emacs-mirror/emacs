@@ -4530,12 +4530,13 @@ Interactively, confirmation is required unless you supply a prefix argument."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
-	     (read-file-name "Write file: ")
-	   (read-file-name
-            (format-prompt "Write file" (file-name-nondirectory (buffer-name)))
-            default-directory
-	    (expand-file-name (file-name-nondirectory (buffer-name))
-                              default-directory)))
+	     (read-file-name "Write file: "
+			     nil nil nil nil)
+	   (read-file-name "Write file: " default-directory
+			   (expand-file-name
+			    (file-name-nondirectory (buffer-name))
+			    default-directory)
+			   nil nil))
 	 (not current-prefix-arg)))
   (or (null filename) (string-equal filename "")
       (progn
@@ -5273,13 +5274,10 @@ Before and after saving the buffer, this function runs
 	    (unless (run-hook-with-args-until-success 'write-contents-functions)
               ;; If buffer has no file name, ask user for one.
               (or buffer-file-name
-                  (let* ((default (expand-file-name (buffer-name)))
-                         (filename
-                          (expand-file-name
-                           (read-file-name
-                            (format-prompt "File to save in"
-                                           (file-name-nondirectory default))
-                            nil default))))
+                  (let ((filename
+                         (expand-file-name
+                          (read-file-name "File to save in: "
+                                          nil (expand-file-name (buffer-name))))))
                     (if (file-exists-p filename)
                         (if (file-directory-p filename)
                             ;; Signal an error if the user specified the name of an

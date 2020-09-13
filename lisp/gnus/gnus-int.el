@@ -365,6 +365,48 @@ If it is down, start it up (again)."
   (funcall (gnus-get-function gnus-command-method 'request-list)
 	   (nth 1 gnus-command-method)))
 
+(defun gnus-server-get-active (server &optional ignored)
+  "Return the active list for SERVER.
+Groups matching the IGNORED regexp are excluded."
+  (let ((method (gnus-server-to-method server))
+	groups)
+    (gnus-request-list method)
+    (with-current-buffer nntp-server-buffer
+      (let ((cur (current-buffer)))
+	(goto-char (point-min))
+	(unless (or (null ignored)
+		    (string= ignored ""))
+	  (delete-matching-lines ignored))
+	(if (eq (car method) 'nntp)
+	    (while (not (eobp))
+	      (ignore-errors
+		(push (gnus-group-full-name
+		       (buffer-substring
+			(point)
+			(progn
+			  (skip-chars-forward "^ \t")
+			  (point)))
+		       method)
+		      groups))
+	      (forward-line))
+	  (while (not (eobp))
+	    (ignore-errors
+	      (push (if (eq (char-after) ?\")
+			(gnus-group-full-name (read cur) method)
+		      (let ((p (point)) (name ""))
+			(skip-chars-forward "^ \t\\\\")
+			(setq name (buffer-substring p (point)))
+			(while (eq (char-after) ?\\)
+			  (setq p (1+ (point)))
+			  (forward-char 2)
+			  (skip-chars-forward "^ \t\\\\")
+			  (setq name (concat name (buffer-substring
+						   p (point)))))
+			(gnus-group-full-name name method)))
+		    groups))
+	    (forward-line)))))
+    groups))
+
 (defun gnus-finish-retrieve-group-infos (gnus-command-method infos data)
   "Read and update infos from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)

@@ -86,6 +86,12 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 * Changes in Emacs 28.1
 
 +++
+*** Emacs now defaults to UTF-8 instead of ISO-8859-1.
+This is only for the default, where the user has set no LANG (or
+similar) variable or environment.  This change should lead to no
+user-visible changes for normal usage.
+
++++
 ** New variables that hold default buffer names for shell output.
 The new constants 'shell-command-buffer-name' and
 'shell-command-buffer-name-async' store the default buffer names
@@ -163,6 +169,11 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 'widget-describe' (on a widget) will pop up a help buffer and give a
 description of the properties.  Likewise 'button-describe' does the
 same for a button.
+
+** Obsolete commands are no longer hidden from command completion.
+Completion of command names now considers obsolete aliases as
+candidates.  Invoking a command via an obsolete alias now mentions the
+obsolescence fact and shows the new name of the command.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
@@ -289,6 +300,19 @@ details of marking the file at the end of the region.
 
 *** State changing VC operations are supported in Dired on files and
 directories with the help of new command 'dired-vc-next-action'.
+
++++
+*** 'dired-jump' and 'dired-jump-other-window' moved from dired-x to dired.
+The 'dired-jump' and 'dired-jump-other-window' commands have been
+moved from the 'dired-x' package to 'dired'.  The user option
+'dired-bind-jump' no longer has any effect and is now obsolete.
+The commands are now bound to 'C-x C-j' and 'C-x 4 C-j' by default.
+
+To get the old behavior of 'dired-bind-jump' back and unbind the above
+keys, add the following to your Init file:
+
+(global-set-key "\C-x\C-j" nil)
+(global-set-key "\C-x4\C-j" nil)
 
 ** Change Logs and VC
 
@@ -790,6 +814,11 @@ background colors or transparency, such as xbm, pbm, svg, png and gif.
 ** EWW
 
 +++
+*** New variable 'eww-retrieve-command'.
+This can be used to download data via an external command.  If nil
+(the default), then 'url-retrieve' is used.
+
++++
 *** New Emacs command line convenience function.
 The 'eww-browse' command has been added, which allows you to register
 Emacs as a MIME handler for "text/x-uri", and will call 'eww' on the
@@ -959,14 +988,14 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
-*** New command 'submit-emacs-patch'
+*** New command 'submit-emacs-patch'.
 This works along the lines of 'report-emacs-bug', but is more geared
 towards sending a patch to the Emacs issue tracker.
 
 +++
 *** New minor mode 'button-mode'.
 This minor mode does nothing else than install 'button-buffer-map' as
-a minor mode map (which binds the TAB/S-TAB key bindings to navigate
+a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
 to buttons), and can be used in any view-mode-like buffer that has
 buttons in it.
 
@@ -1112,9 +1141,11 @@ type symbols.
 +++
 *** In case of problems, handlers can emit proper D-Bus error messages now.
 
----
++++
 *** D-Bus errors, which have been converted from incoming D-Bus error
-messages, contain the error name of that message now.
+messages, contain the error name of that message now.  They can be
+made visible by setting user variable 'dbus-show-dbus-errors' to
+non-nil, even if protected by 'dbus-ignore-errors' otherwise.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -1210,8 +1241,8 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'completion-base-size', 'completion-common-substring',
 'crm-minibuffer-complete', 'crm-minibuffer-complete-and-exit',
 'crm-minibuffer-completion-help', 'custom-mode', 'custom-mode-hook',
-'detect-coding-with-priority', 'dirtrack-debug',
-'dirtrack-debug-toggle', 'dynamic-completion-table',
+'define-mode-overload-implementation', 'detect-coding-with-priority',
+'dirtrack-debug', 'dirtrack-debug-toggle', 'dynamic-completion-table',
 'easy-menu-precalculate-equivalent-keybindings',
 'epa-display-verify-result', 'epg-passphrase-callback-function',
 'eshell-report-bug', 'eval-next-after-load', 'exchange-dot-and-mark',
@@ -1231,16 +1262,46 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'pre-abbrev-expand-hook', 'princ-list', 'print-help-return-message',
 'process-filter-multibyte-p', 'read-file-name-predicate',
 'remember-buffer', 'rmail-highlight-face', 'rmail-message-filter',
+'semantic-after-idle-scheduler-reparse-hooks',
+'semantic-after-toplevel-bovinate-hook',
+'semantic-before-idle-scheduler-reparse-hooks',
+'semantic-before-toplevel-bovination-hook',
+'semantic-bovinate-from-nonterminal-full',
+'semantic-bovinate-region-until-error', 'semantic-bovinate-toplevel',
+'semantic-bovination-working-type',
+'semantic-decorate-pending-decoration-hooks',
+'semantic-edits-incremental-reparse-failed-hooks',
+'semantic-eldoc-current-symbol-info', 'semantic-expand-nonterminal',
+'semantic-file-token-stream', 'semantic-find-dependency',
+'semantic-find-nonterminal', 'semantic-flex', 'semantic-flex-buffer',
+'semantic-flex-keyword-get', 'semantic-flex-keyword-p',
+'semantic-flex-keyword-put', 'semantic-flex-keywords',
+'semantic-flex-list', 'semantic-flex-make-keyword-table',
+'semantic-flex-map-keywords', 'semantic-flex-token-end',
+'semantic-flex-token-start', 'semantic-flex-token-text',
+'semantic-imenu-bucketize-type-parts',
+'semantic-imenu-expand-type-parts', 'semantic-imenu-expandable-token',
+'semantic-init-db-hooks)', 'semantic-init-hooks',
+'semantic-init-mode-hooks', 'semantic-java-prototype-nonterminal',
+'semantic-nonterminal-abstract', 'semantic-nonterminal-full-name',
+'semantic-nonterminal-leaf', 'semantic-nonterminal-protection',
+'semantic-something-to-stream', 'semantic-tag-make-assoc-list',
+'semantic-token-type-parent', 'semantic-toplevel-bovine-cache',
+'semantic-toplevel-bovine-table', 'semanticdb-mode-hooks',
 'set-coding-priority', 'set-process-filter-multibyte',
 'shadows-compare-text-p', 'shell-dirtrack-toggle', 't-mouse-mode',
 'term-dynamic-simple-complete', 'tooltip-hook', 'tpu-have-ispell',
 'url-generate-unique-filename', 'url-temporary-directory',
 'vc-arch-command', 'vc-default-working-revision' (variable),
 'vc-mtn-command', 'vc-revert-buffer', 'vc-workfile-version',
-'vcursor-toggle-vcursor-map', 'w32-focus-frame', 'w32-select-font'.
+'vcursor-toggle-vcursor-map', 'w32-focus-frame', 'w32-select-font',
+'wisent-lex-make-token-table'.
 
 
 * Lisp Changes in Emacs 28.1
+
+---
+*** 'ascii' is now a coding system alias for 'us-ascii'.
 
 +++
 *** New function 'file-backup-file-names'.

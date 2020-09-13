@@ -55,6 +55,7 @@ private:
 (defvar srecode-insert-getset-fully-automatic-flag) ; Silence byte-compiler.
 (ert-deftest srecode-utest-getset-output ()
   "Test various template insertion options."
+  :tags '(:expensive-test)
   (save-excursion
     (let ((testbuff (find-file-noselect srecode-utest-getset-testfile))
 	  (srecode-insert-getset-fully-automatic-flag t))

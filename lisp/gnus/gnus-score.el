@@ -862,6 +862,18 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
 	    (setq match (string-to-number match)))
       (set-text-properties 0 (length match) nil match))
 
+    ;; Modify match and type for article age scoring.
+    (if (string= "date" (nth 0 (assoc header gnus-header-index)))
+	(let ((age (string-to-number match)))
+	  (if (or (< age 0)
+		  (string= "0" match))
+	      (user-error "Article age must be a positive number"))
+	  (setq match age
+		type (cond ((eq type 'after)
+			    '<)
+			   ((eq type 'before)
+			    '>)))))
+
     (unless (eq date 'now)
       ;; Add the score entry to the score file.
       (when (= score gnus-score-interactive-default-score)
@@ -1695,9 +1707,10 @@ score in `gnus-newsgroup-scored' by SCORE."
 		  match (gnus-date-iso8601 (nth 0 kill))))
 	   ((eq type '<)
 	    (setq type 'after
-		  match-func 'gnus-string>
+		  match-func 'string<
 		  match (gnus-time-iso8601
-			 (time-add (current-time) (* 86400 (nth 0 kill))))))
+			 (time-subtract (current-time)
+					(* 86400 (nth 0 kill))))))
 	   ((eq type 'before)
 	    (setq match-func 'gnus-string>
 		  match (gnus-date-iso8601 (nth 0 kill))))
@@ -1705,7 +1718,8 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (setq type 'before
 		  match-func 'gnus-string>
 		  match (gnus-time-iso8601
-			 (time-add (current-time) (* -86400 (nth 0 kill))))))
+			 (time-subtract (current-time)
+					(* 86400 (nth 0 kill))))))
 	   ((eq type 'at)
 	    (setq match-func 'string=
 		  match (gnus-date-iso8601 (nth 0 kill))))

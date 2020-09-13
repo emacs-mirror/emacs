@@ -1,4 +1,4 @@
-;;; url-future-tests.el --- Test suite for url-future.
+;;; url-future-tests.el --- Test suite for url-future.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
@@ -25,31 +25,33 @@
 (require 'ert)
 (require 'url-future)
 
+(defvar url-future-tests--saver)
+
 (ert-deftest url-future-tests ()
-  (let* (saver
+  (let* (url-future-tests--saver
          (text "running future")
          (good (make-url-future :value (lambda () (format text))
-                                :callback (lambda (f) (set 'saver f))))
+                                :callback (lambda (f) (set 'url-future-tests--saver f))))
          (bad (make-url-future :value (lambda () (/ 1 0))
-                               :errorback (lambda (&rest d) (set 'saver d))))
+                               :errorback (lambda (&rest d) (set 'url-future-tests--saver d))))
          (tocancel (make-url-future :value (lambda () (/ 1 0))
-                                    :callback (lambda (f) (set 'saver f))
+                                    :callback (lambda (f) (set 'url-future-tests--saver f))
                                     :errorback (lambda (&rest d)
-                                                 (set 'saver d)))))
+                                                 (set 'url-future-tests--saver d)))))
     (should (equal good (url-future-call good)))
-    (should (equal good saver))
+    (should (equal good url-future-tests--saver))
     (should (equal text (url-future-value good)))
     (should (url-future-completed-p good))
     (should-error (url-future-call good))
-    (setq saver nil)
+    (setq url-future-tests--saver nil)
     (should (equal bad (url-future-call bad)))
     (should-error (url-future-call bad))
-    (should (equal saver (list bad '(arith-error))))
+    (should (equal url-future-tests--saver (list bad '(arith-error))))
     (should (url-future-errored-p bad))
-    (setq saver nil)
+    (setq url-future-tests--saver nil)
     (should (equal (url-future-cancel tocancel) tocancel))
     (should-error (url-future-call tocancel))
-    (should (null saver))
+    (should (null url-future-tests--saver))
     (should (url-future-cancelled-p tocancel))))
 
 (provide 'url-future-tests)

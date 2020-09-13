@@ -1015,7 +1015,10 @@ The first line is indented with the optional INDENT-STRING."
 
 (defalias 'xml-print 'xml-debug-print)
 
-(defun xml-escape-string (string)
+(defconst xml-invalid-characters-re
+  "[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]")
+
+(defun xml-escape-string (string &optional noerror)
   "Convert STRING into a string containing valid XML character data.
 Replace occurrences of &<>\\='\" in STRING with their default XML
 entity references (e.g., replace each & with &amp;).
@@ -1026,15 +1029,17 @@ restriction on \" or \\=', but we just substitute for these too
 \(as is permitted by the spec).
 
 If STRING contains characters that are invalid in XML (as defined
-by https://www.w3.org/TR/xml/#charsets), signal an error of type
-`xml-invalid-character'."
+by https://www.w3.org/TR/xml/#charsets), operate depending on the
+value of NOERROR: if it is non-nil, remove them; else, signal an
+error of type `xml-invalid-character'."
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
-    (when (re-search-forward
-           "[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]"
-           nil t)
-      (signal 'xml-invalid-character (list (char-before) (match-beginning 0))))
+    (while (re-search-forward xml-invalid-characters-re nil t)
+      (if noerror
+          (replace-match "")
+        (signal 'xml-invalid-character
+                (list (char-before) (match-beginning 0)))))
     (dolist (substitution '(("&" . "&amp;")
 			    ("<" . "&lt;")
 			    (">" . "&gt;")

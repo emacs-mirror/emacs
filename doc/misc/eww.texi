@@ -212,6 +212,22 @@ in an external browser by customizing
 @node Advanced
 @chapter Advanced
 
+@findex eww-retrieve-command
+  EWW normally uses @code{url-retrieve} to fetch the @acronym{HTML}
+before rendering it.  It can sometimes be convenient to use an
+external program to do this, and @code{eww-retrieve-command} should
+then be a list that specifies a command and the parameters.  For
+instance, to use the Chromium browser, you could say something like
+this:
+
+@lisp
+(setq eww-retrieve-command
+      '("chromium" "--headless" "--dump-dom"))
+@end lisp
+
+The command should return the @acronym{HTML} on standard output, and
+the data should use @acronym{UTF-8} as the charset.
+
 @findex eww-view-source
 @kindex v
 @cindex Viewing Source

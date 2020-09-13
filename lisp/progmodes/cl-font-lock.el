@@ -277,6 +277,7 @@
 (define-minor-mode cl-font-lock-built-in-mode
   "Highlight built-in functions, variables, and types in `lisp-mode'."
   :global t
+  :group 'tools
   (funcall
    (if cl-font-lock-built-in-mode
        #'font-lock-add-keywords

@@ -142,7 +142,7 @@ It ignores whitespaces, newlines and comments."
   "Return expansion of built-in ASSOC expression.
 ARGS are ASSOC's key value list."
   (let ((key t))
-    `(semantic-tag-make-assoc-list
+    `(semantic-tag-make-plist
       ,@(mapcar #'(lambda (i)
                     (prog1
                         (if key

@@ -551,9 +551,9 @@ See `world-clock'."
     (delete-char -1))
   (goto-char (point-min)))
 
-;; Old name -- preserved for backwards compatibility.
 ;;;###autoload
-(defalias 'display-time-world #'world-clock)
+(define-obsolete-function-alias 'display-time-world
+  #'world-clock "28.1")
 
 ;;;###autoload
 (defun world-clock ()

@@ -663,6 +663,7 @@ This can be needed when using code byte-compiled using the old
 macro-expansion of `cl-defstruct' that used vectors objects instead
 of record objects."
   :global t
+  :group 'tools
   (cond
    (cl-old-struct-compat-mode
     (advice-add 'type-of :around #'cl--old-struct-type-of))

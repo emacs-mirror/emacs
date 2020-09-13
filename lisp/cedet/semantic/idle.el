@@ -472,11 +472,6 @@ This hook is not protected from lexical errors.")
 If any hook function throws an error, this variable is reset to nil.
 This hook is not protected from lexical errors.")
 
-(semantic-varalias-obsolete 'semantic-before-idle-scheduler-reparse-hooks
-			    'semantic-before-idle-scheduler-reparse-hook "23.2")
-(semantic-varalias-obsolete 'semantic-after-idle-scheduler-reparse-hooks
-			    'semantic-after-idle-scheduler-reparse-hook "23.2")
-
 (defun semantic-idle-scheduler-refresh-tags ()
   "Refreshes the current buffer's tags.
 This is called by `semantic-idle-scheduler-function' to update the
@@ -733,10 +728,6 @@ specific to a major mode.  For example, in jde mode:
 
 (define-overloadable-function semantic-idle-summary-current-symbol-info ()
   "Return a string message describing the current context.")
-
-(make-obsolete-overload 'semantic-eldoc-current-symbol-info
-                        'semantic-idle-summary-current-symbol-info
-                        "23.2")
 
 (defcustom semantic-idle-summary-mode-hook nil
   "Hook run at the end of `semantic-idle-summary'."

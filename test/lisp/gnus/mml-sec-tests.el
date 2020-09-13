@@ -1,5 +1,5 @@
-;;; gnustest-mml-sec.el --- Tests mml-sec.el, see README-mml-secure.txt.
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;;; mml-sec-tests.el --- Tests mml-sec.el, see README-mml-secure.txt.  -*- lexical-binding:t -*-
+;; Copyright (C) 2015, 2020 Free Software Foundation, Inc.
 
 ;; Author: Jens Lechtenbörger <jens.lechtenboerger@fsfe.org>
 
@@ -51,6 +51,8 @@ Mostly, the empty passphrase is used.  However, the keys for
       '(sign-pgp sign-pgp-mime sign-smime)
     '(sign-pgp sign-pgp-mime)))
 
+(defvar mml-smime-use)
+
 (defun mml-secure-test-fixture (body &optional interactive)
   "Setup GnuPG home containing test keys and prepare environment for BODY.
 If optional INTERACTIVE is non-nil, allow questions to the user in case of
@@ -80,7 +82,9 @@ instead of gpg-agent."
 	      ;; not look in the proper places otherwise, see:
 	      ;; https://bugs.gnupg.org/gnupg/issue2126
 	      (setenv "GNUPGHOME" epg-gpg-home-directory)
-	      (funcall body))
+              (unwind-protect
+	          (funcall body)
+                (mml-sec-test--kill-gpg-agent)))
 	  (error
 	   (setenv "GPG_AGENT_INFO" agent-info)
 	   (setenv "GNUPGHOME" gpghome)
@@ -120,9 +124,9 @@ Subject: Test
 Pass optional INTERACTIVE to mml-secure-test-fixture."
   (mml-secure-test-fixture
    (lambda ()
-     (let ((context (if (memq method '(enc-smime enc-sign-smime sign-smime))
-			(epg-make-context 'CMS)
-		      (epg-make-context 'OpenPGP)))
+     (let ((_context (if (memq method '(enc-smime enc-sign-smime sign-smime))
+                         (epg-make-context 'CMS)
+                       (epg-make-context 'OpenPGP)))
 	   ;; Verify and decrypt by default.
 	   (mm-verify-option 'known)
 	   (mm-decrypt-option 'known)
@@ -546,6 +550,10 @@ Pass optional INTERACTIVE to mml-secure-test-mail-fixture."
 	       ))))))
    interactive))
 
+(defvar mml-smime-cache-passphrase)
+(defvar mml2015-cache-passphrase)
+(defvar mml1991-cache-passphrase)
+
 (defun mml-secure-test-en-decrypt-with-passphrase
     (method to from checksig jl-passphrase do-cache
 	    &optional enc-keys expectfail)
@@ -562,7 +570,7 @@ If optional EXPECTFAIL is non-nil, a decryption failure is expected."
 	(mml-smime-cache-passphrase do-cache)
 	)
     (cl-letf (((symbol-function 'read-passwd)
-	       (lambda (prompt &optional confirm default) jl-passphrase)))
+               (lambda (_prompt &optional _confirm _default) jl-passphrase)))
       (mml-secure-test-en-decrypt method to from checksig t enc-keys expectfail)
       )))
 
@@ -897,4 +905,16 @@ So the second decryption fails."
   (let ((with-smime nil))
     (ert-run-tests-batch)))
 
-;;; gnustest-mml-sec.el ends here
+(defun mml-sec-test--kill-gpg-agent ()
+  (dolist (pid (list-system-processes))
+    (let ((atts (process-attributes pid)))
+      (when (and (equal (cdr (assq 'user atts)) (user-login-name))
+                 (equal (cdr (assq 'comm atts)) "gpg-agent")
+                 (string-match
+                  (concat "homedir.*"
+                          (regexp-quote (expand-file-name "test/data/mml-sec"
+                                                          source-directory)))
+                  (cdr (assq 'args atts))))
+        (call-process "kill" nil nil nil (format "%d" pid))))))
+
+;;; mml-sec-tests.el ends here

@@ -549,6 +549,7 @@ construct the vector entries."
 
 ;;; Search Engine Interfaces:
 
+(autoload 'gnus-server-get-active "gnus-int")
 (autoload 'nnimap-change-group "nnimap")
 (declare-function nnimap-buffer "nnimap" ())
 (declare-function nnimap-command "nnimap" (&rest args))
@@ -567,7 +568,8 @@ extensions."
                         (cdr (assoc nnir-imap-default-search-key
                                     nnir-imap-search-arguments))))
           (gnus-inhibit-demon t)
-	  (groups (or groups (nnir-get-active srv))))
+	  (groups
+	   (or groups (gnus-server-get-active srv nnir-ignored-newsgroups))))
       (message "Opening server %s" server)
       (apply
        'vconcat
@@ -1205,7 +1207,8 @@ construct path: search terms (see the variable
 	 (directory (cadr (assoc sym (cddr method))))
 	 (regexp (cdr (assoc 'query query)))
 	 (grep-options (cdr (assoc 'grep-options query)))
-	 (grouplist (or grouplist (nnir-get-active server))))
+	 (grouplist
+	  (or grouplist (gnus-server-get-active server nnir-ignored-newsgroups))))
     (unless directory
       (error "No directory found in method specification of server %s"
 	     server))
@@ -1332,53 +1335,12 @@ environment unless NOT-GLOBAL is non-nil."
           ((and (not not-global) (boundp key)) (symbol-value key))
           (t nil))))
 
-(autoload 'gnus-request-list "gnus-int")
-
-(defun nnir-get-active (srv)
-  "Return the active list for SRV."
-  (let ((method (gnus-server-to-method srv))
-	groups)
-    (gnus-request-list method)
-    (with-current-buffer nntp-server-buffer
-      (let ((cur (current-buffer)))
-	(goto-char (point-min))
-	(unless (or (null nnir-ignored-newsgroups)
-		    (string= nnir-ignored-newsgroups ""))
-	  (delete-matching-lines nnir-ignored-newsgroups))
-	(if (eq (car method) 'nntp)
-	    (while (not (eobp))
-	      (ignore-errors
-		(push (gnus-group-full-name
-		       (buffer-substring
-			(point)
-			(progn
-			  (skip-chars-forward "^ \t")
-			  (point)))
-		       method)
-		      groups))
-	      (forward-line))
-	  (while (not (eobp))
-	    (ignore-errors
-	      (push (if (eq (char-after) ?\")
-			(gnus-group-full-name (read cur) method)
-		      (let ((p (point)) (name ""))
-			(skip-chars-forward "^ \t\\\\")
-			(setq name (buffer-substring p (point)))
-			(while (eq (char-after) ?\\)
-			  (setq p (1+ (point)))
-			  (forward-char 2)
-			  (skip-chars-forward "^ \t\\\\")
-			  (setq name (concat name (buffer-substring
-						   p (point)))))
-			(gnus-group-full-name name method)))
-		    groups))
-	    (forward-line)))))
-    groups))
-
-(autoload 'nnselect-categorize "nnselect" nil nil)
 (autoload 'gnus-group-topic-name "gnus-topic" nil nil)
 (defvar gnus-group-marked)
 (defvar gnus-topic-alist)
+
+(make-obsolete 'nnir-make-specs "This function should no longer
+be used." "28.1")
 
 (defun nnir-make-specs (nnir-extra-parms &optional specs)
   "Make the query-spec and group-spec for a search with NNIR-EXTRA-PARMS.
@@ -1387,12 +1349,12 @@ Query for the specs, or use SPECS."
 	  (or (cdr (assq 'nnir-group-spec specs))
 	      (if (gnus-server-server-name)
 		  (list (list (gnus-server-server-name)))
-		(nnselect-categorize
+		(seq-group-by
+		 (lambda (elt) (gnus-group-server elt))
 		 (or gnus-group-marked
 		     (if (gnus-group-group-name)
 			 (list (gnus-group-group-name))
-		       (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
-		 'nnselect-group-server))))
+		       (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))))))
 	 (query-spec
 	  (or (cdr (assq 'nnir-query-spec specs))
 	      (apply
@@ -1406,6 +1368,8 @@ Query for the specs, or use SPECS."
 		  group-spec))))))
     (list (cons 'nnir-query-spec query-spec)
 	  (cons 'nnir-group-spec group-spec))))
+
+(define-obsolete-function-alias 'nnir-get-active 'gnus-server-get-active "28.1")
 
 ;; The end.
 (provide 'nnir)
