@@ -3812,6 +3812,7 @@ has been fetched."
         t))))
 
 (defun gnus-agent-store-article (article group)
+  (declare (obsolete nil "28.1"))
   (let* ((gnus-command-method (gnus-find-method-for-group group))
 	 (file (gnus-agent-article-name (number-to-string article) group))
 	 (file-name-coding-system nnmail-pathname-coding-system)
