@@ -729,14 +729,15 @@ Currently this means either text/html or application/xhtml+xml."
 (defun eww-update-header-line-format ()
   (setq header-line-format
 	(and eww-header-line-format
-	     (let ((title (propertize (plist-get eww-data :title)
-                                      'face 'variable-pitch))
-		   (peer (plist-get eww-data :peer))
+	     (let ((peer (plist-get eww-data :peer))
                    (url (propertize (plist-get eww-data :url)
-                                    'face 'variable-pitch)))
-	       (when (zerop (length title))
-		 (setq title (propertize  "[untitled]" 'face 'variable-pitch)))
-	       ;; This connection has is https.
+                                    'face 'variable-pitch))
+                   (title (propertize
+                           (if (zerop (length (plist-get eww-data :title)))
+		               "[untitled]"
+                             (plist-get eww-data :title))
+                           'face 'variable-pitch)))
+	       ;; This connection is https.
 	       (when peer
                  (add-face-text-property 0 (length title)
 				         (if (plist-get peer :warnings)
