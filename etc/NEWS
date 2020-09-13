@@ -170,6 +170,11 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 description of the properties.  Likewise 'button-describe' does the
 same for a button.
 
+** Obsolete commands are no longer hidden from command completion.
+Completion of command names now considers obsolete aliases as
+candidates.  Invoking a command via an obsolete alias now mentions the
+obsolescence fact and shows the new name of the command.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
