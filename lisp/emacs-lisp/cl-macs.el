@@ -3437,6 +3437,10 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
           (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
 
 (cl-deftype extended-char () '(and character (not base-char)))
+;; Define fixnum so `cl-typep' recognize it and the type check emitted
+;; by `cl-the' is effective.
+(cl-deftype fixnum () 'fixnump)
+(cl-deftype bignum () 'bignump)
 
 ;;; Additional functions that we can now define because we've defined
 ;;; `cl-defsubst' and `cl-typep'.
