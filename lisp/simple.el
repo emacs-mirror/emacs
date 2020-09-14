@@ -2755,7 +2755,7 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "*p")
   (cond
    ((not (undo--last-change-was-undo-p buffer-undo-list))
-    (user-error "No undo to undo"))
+    (user-error "No undone changes to redo"))
    (t
     (let* ((ul buffer-undo-list)
            (new-ul
