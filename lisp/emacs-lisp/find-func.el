@@ -286,20 +286,10 @@ Interactively, prompt for LIBRARY using the one at or near point."
 A library name is the filename of an Emacs Lisp library located
 in a directory under `load-path' (or `find-function-source-path',
 if non-nil)."
-  (let* ((suffix-regexp (mapconcat
-                         (lambda (suffix)
-                           (concat (regexp-quote suffix) "\\'"))
-                         (find-library-suffixes)
-                         "\\|"))
-         (table (cl-loop for dir in (or find-function-source-path load-path)
-                         for dir-or-default = (or dir default-directory)
-                         when (file-readable-p dir-or-default)
-                         append (mapcar
-                                 (lambda (file)
-                                   (replace-regexp-in-string suffix-regexp
-                                                             "" file))
-                                 (directory-files dir-or-default nil
-                                                  suffix-regexp))))
+  (let* ((dirs (or find-function-source-path load-path))
+         (suffixes (find-library-suffixes))
+         (table (apply-partially 'locate-file-completion-table
+                                 dirs suffixes))
          (def (if (eq (function-called-at-point) 'require)
                   ;; `function-called-at-point' may return 'require
                   ;; with `point' anywhere on this line.  So wrap the
