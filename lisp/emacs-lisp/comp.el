@@ -810,9 +810,9 @@ Points to the next slot to be filled.")
 
 (defsubst comp-sp ()
   "Current stack pointer."
+  (declare (gv-setter (lambda (val)
+                        `(setf (comp-limplify-sp comp-pass) ,val))))
   (comp-limplify-sp comp-pass))
-(gv-define-setter comp-sp (value)
-  `(setf (comp-limplify-sp comp-pass) ,value))
 
 (defmacro comp-with-sp (sp &rest body)
   "Execute BODY setting the stack pointer to SP.
