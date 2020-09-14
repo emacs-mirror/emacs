@@ -1895,9 +1895,16 @@ saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
-    (when buffer-file-name (vc-buffer-sync not-urgent))
-    (vc-diff-internal t (vc-deduce-fileset t) nil nil
-		      (called-interactively-p 'interactive))))
+    (let ((fileset (vc-deduce-fileset t)))
+      (vc-buffer-sync-fileset fileset not-urgent)
+      (vc-diff-internal t fileset nil nil
+			(called-interactively-p 'interactive)))))
+
+(defun vc-buffer-sync-fileset (fileset not-urgent)
+  (dolist (filename (cadr fileset))
+    (when-let ((buffer (find-buffer-visiting filename)))
+      (with-current-buffer buffer
+	(vc-buffer-sync not-urgent)))))
 
 ;;;###autoload
 (defun vc-diff-mergebase (_files rev1 rev2)
