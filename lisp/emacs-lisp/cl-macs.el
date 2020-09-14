@@ -2347,6 +2347,26 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
                         (list ',type ,temp ',form)))
               ,temp))))
 
+;;;###autoload
+(or (assq 'cl-optimize defun-declarations-alist)
+    (let ((x (list 'cl-optimize #'cl--optimize)))
+      (push x macro-declarations-alist)
+      (push x defun-declarations-alist)))
+
+(defun cl--optimize (f _args &rest qualities)
+  "Serve 'cl-optimize' in function declarations.
+Example:
+(defun foo (x)
+  (declare (cl-optimize (speed 3) (safety 0)))
+  x)"
+  (cl-loop for (qly val) in qualities
+           do (cl-ecase qly
+                (speed
+                 (setf cl--optimize-speed val)
+                 (byte-run--set-speed f nil val))
+                (safety
+                 (setf cl--optimize-safety val)))))
+
 (defvar cl--proclaim-history t)    ; for future compilers
 (defvar cl--declare-stack t)       ; for future compilers
 
