@@ -1065,10 +1065,16 @@ in the last `cdr'."
 (defun completion--replace (beg end newtext)
   "Replace the buffer text between BEG and END with NEWTEXT.
 Moves point to the end of the new text."
-  ;; The properties on `newtext' include things like
-  ;; completions-first-difference, which we don't want to include
-  ;; upon insertion.
-  (set-text-properties 0 (length newtext) nil newtext)
+  ;; The properties on `newtext' include things like the
+  ;; `completions-first-difference' face, which we don't want to
+  ;; include upon insertion.
+  (if minibuffer-allow-text-properties
+      ;; If we're preserving properties, then just remove the faces
+      ;; and other properties added by the completion machinery.
+      (remove-text-properties 0 (length newtext) '(face completion-score)
+                              newtext)
+    ;; Remove all text properties.
+    (set-text-properties 0 (length newtext) nil newtext))
   ;; Maybe this should be in subr.el.
   ;; You'd think this is trivial to do, but details matter if you want
   ;; to keep markers "at the right place" and be robust in the face of

@@ -1190,6 +1190,12 @@ directory instead of the default directory.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
++++
+** Some properties from completion tables are now preserved.
+If 'minibuffer-allow-text-properties' is non-nil, doing completion
+over a table of strings with properties will no longer remove all the
+properties before returning.  This affects things like 'completing-read'.
+
 ** 'equal' no longer examines some contents of window configurations.
 Instead, it considers window configurations to be equal only if they
 are 'eq'.  To compare contents, use 'compare-window-configurations'
