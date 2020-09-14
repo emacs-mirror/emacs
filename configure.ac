@@ -703,7 +703,7 @@ case "${canonical}" in
   *-apple-darwin* )
     case "${canonical}" in
       *-apple-darwin[0-9].*) unported=yes ;;
-      i[3456]86-* | x86_64-* )  ;;
+      i[3456]86-* | x86_64-* | arm-* | aarch64-* )  ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
