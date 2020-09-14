@@ -2509,17 +2509,18 @@ Prepare every function for final compilation and drive the C back-end."
 (defun comp-clean-up-stale-eln (file)
   "Given FILE remove all the .eln files in `comp-eln-load-path'
 sharing the original source filename (including FILE)."
-  (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos) file)
-  (cl-loop
-   with filename-hash = (match-string 1 file)
-   with regexp = (rx-to-string
-                  `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
-   for dir in (butlast comp-eln-load-path) ; Skip last dir.
-   do (cl-loop
-       with full-dir = (concat dir comp-native-version-dir)
-       for f in (when (file-exists-p full-dir)
-		  (directory-files full-dir t regexp t))
-       do (comp-delete-or-replace-file f))))
+  (when (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos)
+                      file)
+    (cl-loop
+     with filename-hash = (match-string 1 file)
+     with regexp = (rx-to-string
+                    `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
+     for dir in (butlast comp-eln-load-path) ; Skip last dir.
+     do (cl-loop
+         with full-dir = (concat dir comp-native-version-dir)
+         for f in (when (file-exists-p full-dir)
+		    (directory-files full-dir t regexp t))
+         do (comp-delete-or-replace-file f)))))
 
 (defun comp-delete-or-replace-file (oldfile &optional newfile)
   "Replace OLDFILE with NEWFILE.
