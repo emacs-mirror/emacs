@@ -2718,12 +2718,6 @@ When called interactively and not on a subdir line, go to this subdir's line."
 	   (if (dired-get-subdir) 1 0))))
   (dired-next-subdir (- arg) no-error-if-not-found no-skip))
 
-(defun dired-subdir-min ()
-  (save-excursion
-    (if (not (dired-prev-subdir 0 t t))
-	(error "Not in a subdir!")
-      (point))))
-
 ;;;###autoload
 (defun dired-goto-subdir (dir)
   "Go to end of header line of DIR in this dired buffer.
@@ -2815,15 +2809,6 @@ Lower levels are unaffected."
       (error "At the bottom"))))
 
 ;;; hiding
-
-(defun dired-unhide-subdir ()
-  (with-silent-modifications
-    (dired--unhide (dired-subdir-min) (dired-subdir-max))))
-
-(defun dired-subdir-hidden-p (dir)
-  (save-excursion
-    (dired-goto-subdir dir)
-    (dired--hidden-p)))
 
 ;;;###autoload
 (defun dired-hide-subdir (arg)
