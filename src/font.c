@@ -5535,7 +5535,7 @@ cause Xft crashes.  Only has an effect in Xft builds.  */);
 
   DEFVAR_BOOL ("query-all-font-backends", query_all_font_backends,
                doc: /*
-If non-nil attempt to query all available font backends.
+If non-nil, attempt to query all available font backends.
 By default Emacs will stop searching for a matching font at the first
 match.  */);
   query_all_font_backends = false;
