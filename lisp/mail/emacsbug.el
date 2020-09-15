@@ -446,17 +446,20 @@ and send the mail again%s."
   ;; questions about From header validity if the user is going to
   ;; use mailclient, anyway.
   (when (or (and (derived-mode-p 'message-mode)
-		 (eq message-send-mail-function 'sendmail-query-once))
+		 (eq (message-default-send-mail-function) 'sendmail-query-once))
 	    (and (not (derived-mode-p 'message-mode))
 		 (eq send-mail-function 'sendmail-query-once)))
-    (sendmail-query-user-about-smtp)
+    (setq send-mail-function (sendmail-query-user-about-smtp))
     (when (derived-mode-p 'message-mode)
-      (setq message-send-mail-function (message-default-send-mail-function))))
+      (setq message-send-mail-function (message-default-send-mail-function))
+      (add-hook 'message-sent-hook
+                (lambda ()
+                  (when (y-or-n-p "Save this mail sending choice?")
+                    (customize-save-variable 'send-mail-function
+                                             send-mail-function))))))
   (or report-emacs-bug-no-confirmation
       ;; mailclient.el does not need a valid From
-      (if (derived-mode-p 'message-mode)
-	  (eq message-send-mail-function 'message-send-mail-with-mailclient)
-	(eq send-mail-function 'mailclient-send-it))
+      (eq send-mail-function 'mailclient-send-it)
       ;; Not narrowing to the headers, but that's OK.
       (let ((from (mail-fetch-field "From")))
 	(when (and (or (not from)
