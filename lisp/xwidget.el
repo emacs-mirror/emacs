@@ -318,7 +318,7 @@ If non-nil, plugins are enabled.  Otherwise, disabled."))
 
 (defcustom xwidget-webkit-download-dir "~/Downloads/"
   "Directory where download file saved."
-  :version "27.1"
+  :version "28.1"
   :type 'file)
 
 (defun xwidget-webkit-save-as-file (url mime-type file-name)
@@ -348,7 +348,7 @@ If non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use `xwidget-webkit-last-session'.
 When you set this variable to nil, consider further customization with
 `xwidget-webkit-last-session-buffer'."
-  :version "27.1"
+  :version "28.1"
   :type 'boolean)
 
 (defun xwidget-webkit-bookmark-make-record ()
