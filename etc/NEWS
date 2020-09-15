@@ -1425,6 +1425,12 @@ truncating precision field, such as "%.2a".
 This can be used to parse RGB color specs in several formats and
 convert them to a list '(R G B)' of primary color values.
 
+---
+** Variable 'uniquify-buffer-name-style' can now be a function.
+This variable can be one of the predefined styles or a function to
+personalize the uniquified buffer name.
+
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
