@@ -10184,4 +10184,6 @@ displaying that processes's buffer."
 (define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
 
+(provide 'window)
+
 ;;; window.el ends here
