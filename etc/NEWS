@@ -999,6 +999,14 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
+*** New variables to control the look of line/column numbers in the mode line.
+'mode-line-position-line-format' is the line number format (when
+'line-number-mode') is on, and 'mode-line-position-column-format' is
+the column number format (when 'column-number-mode') is on.  These are
+also used if both modes are on, which leads to the default in that
+case going from "(5,9)" to "(L5,C9)".
+
++++
 *** New command 'submit-emacs-patch'.
 This works along the lines of 'report-emacs-bug', but is more geared
 towards sending a patch to the Emacs issue tracker.

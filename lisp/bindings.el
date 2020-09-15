@@ -431,6 +431,24 @@ displayed in `mode-line-position', a component of the default
   :group 'mode-line)
 (put 'mode-line-percent-position 'risky-local-variable t)
 
+(defcustom mode-line-position-line-format "L%l"
+  "Format used to display line numbers in the mode line.
+This is used when `line-number-mode' is switched on.  The \"%l\"
+format spec will be replaced by the line number."
+  :type 'string
+  :version "28.1"
+  :group 'mode-line)
+
+(defcustom mode-line-position-column-format "C%c"
+  "Format used to display column numbers in the mode line.
+This is used when `column-number-mode' is switched on.  The
+\"%c\" format spec will be replaced by the column number, which
+is zero-based if `column-number-indicator-zero-based' is non-nil,
+and one-based if `column-number-indicator-zero-based' is nil."
+  :type 'string
+  :version "28.1"
+  :group 'mode-line)
+
 (defvar mode-line-position
   `((:propertize
      mode-line-percent-position
@@ -451,19 +469,24 @@ mouse-1: Display Line and Column Mode Menu")))
      ((column-number-mode
        (column-number-indicator-zero-based
         (10 ,(propertize
-              " (%l,%c)"
+              (format " (%s,%s)"
+                      mode-line-position-line-format
+                      mode-line-position-column-format)
               'local-map mode-line-column-line-number-mode-map
               'mouse-face 'mode-line-highlight
               'help-echo "Line number and Column number\n\
 mouse-1: Display Line and Column Mode Menu"))
         (10 ,(propertize
-              " (%l,%C)"
+              (format " (%s,%s)"
+                      mode-line-position-line-format
+                      (replace-in-string "%c" "%C"
+                                         mode-line-position-column-format))
               'local-map mode-line-column-line-number-mode-map
               'mouse-face 'mode-line-highlight
               'help-echo "Line number and Column number\n\
 mouse-1: Display Line and Column Mode Menu")))
        (6 ,(propertize
-	    " L%l"
+	    (format " %s" mode-line-position-line-format)
 	    'local-map mode-line-column-line-number-mode-map
 	    'mouse-face 'mode-line-highlight
 	    'help-echo "Line Number\n\
@@ -471,13 +494,14 @@ mouse-1: Display Line and Column Mode Menu"))))
      ((column-number-mode
        (column-number-indicator-zero-based
         (5 ,(propertize
-             " C%c"
+             (format " %s" mode-line-position-column-format)
              'local-map mode-line-column-line-number-mode-map
              'mouse-face 'mode-line-highlight
              'help-echo "Column number\n\
 mouse-1: Display Line and Column Mode Menu"))
         (5 ,(propertize
-             " C%C"
+             (format " %s" (replace-in-string "%c" "%C"
+                                              mode-line-position-column-format))
              'local-map mode-line-column-line-number-mode-map
              'mouse-face 'mode-line-highlight
              'help-echo "Column number\n\
