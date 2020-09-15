@@ -440,6 +440,15 @@ Default value of MODIFIERS is `shift'."
   (global-set-key (vector (append modifiers '(up)))    'windmove-up)
   (global-set-key (vector (append modifiers '(down)))  'windmove-down))
 
+;;;###autoload
+(defun windmove-remove-keybindings ()
+  "Restore default keybindings touched by `windmove-default-keybindings'."
+  (interactive)
+  (global-set-key (kbd "S-<right>") 'right-char)
+  (global-set-key (kbd "S-<left>") 'left-char)
+  (global-set-key (kbd "S-<up>") 'previous-line)
+  (global-set-key (kbd "S-<down>") 'next-line))
+
 
 ;;; Directional window display and selection
 
