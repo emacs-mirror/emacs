@@ -2542,7 +2542,7 @@ and replace them, the best way is to write an explicit loop using
 description of @code{replace-match}.
 
   However, replacing matches in a string is more complex, especially
-if you want to do it efficiently.  So Emacs provides a function to do
+if you want to do it efficiently.  So Emacs provides two functions to do
 this.
 
 @defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
@@ -2564,6 +2564,11 @@ passing the text of the match as its sole argument.  It collects the
 value @var{rep} returns and passes that to @code{replace-match} as the
 replacement string.  The match data at this point are the result
 of matching @var{regexp} against a substring of @var{string}.
+@end defun
+
+@defun replace-in-string fromstring tostring instring
+This function copies @var{instring} and replaces any occurrences of
+@var{fromstring} with @var{tostring}.
 @end defun
 
   If you want to write a command along the lines of @code{query-replace},
