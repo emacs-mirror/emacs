@@ -2363,7 +2363,8 @@ A fancy display is used on graphic displays, normal otherwise."
                (longopts
                 (append '("--funcall" "--load" "--insert" "--kill"
                           "--directory" "--eval" "--execute" "--no-splash"
-                          "--find-file" "--visit" "--file" "--no-desktop")
+                          "--find-file" "--visit" "--file" "--no-desktop"
+                          "--modern")
                         (mapcar (lambda (elt) (concat "-" (car elt)))
                                 command-switch-alist)))
                (line 0)
@@ -2513,6 +2514,9 @@ nil default-directory" name)
                      (or (stringp tem)
                          (error "File name omitted from `-insert' option"))
                      (insert-file-contents (command-line-normalize-file-name tem)))
+
+                    ((member argi '("-m" "-modern"))
+                     (modern-mode 1))
 
                     ((equal argi "-kill")
                      (kill-emacs t))

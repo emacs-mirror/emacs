@@ -2130,6 +2130,8 @@ static const struct standard_args standard_args[] =
   { "-color", "--color", 5, 0},
   { "-no-splash", "--no-splash", 3, 0 },
   { "-no-desktop", "--no-desktop", 3, 0 },
+  { "-m", "--modern", 0, 0 },
+  { "-modern", 0, 0, 0 },
   /* The following two must be just above the file-name args, to get
      them out of our way, but without mixing them with file names.  */
   { "-temacs", "--temacs", 1, 1 },
