@@ -25641,8 +25641,10 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		    /* Non-ASCII characters in SPEC should cause mode-line
 		       element be displayed as a multibyte string.  */
 		    ptrdiff_t nbytes = strlen (spec);
-		    if (multibyte_chars_in_text ((const unsigned char *)spec,
-						 nbytes) != nbytes)
+		    ptrdiff_t nchars, mb_nbytes;
+		    parse_str_as_multibyte ((const unsigned char *)spec, nbytes,
+					    &nchars, &mb_nbytes);
+		    if (!(nbytes == nchars || nbytes != mb_nbytes))
 		      multibyte = true;
 
 		    switch (mode_line_target)
