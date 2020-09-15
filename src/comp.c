@@ -4391,6 +4391,13 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
+  const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
+  if (err)
+    xsignal3 (Qnative_ice,
+	      build_string ("failed to compile"),
+	      file_name,
+	      build_string (err));
+
   CALL1I (comp-clean-up-stale-eln, file_name);
   CALL2I (comp-delete-or-replace-file, file_name, tmp_file);
 
