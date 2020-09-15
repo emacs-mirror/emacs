@@ -450,7 +450,13 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (replace-in-string "zot" "bar" "barfoozot")
                  "barfoobar"))
   (should (equal (replace-in-string "z" "bar" "barfoozot")
-                 "barfoobarot")))
+                 "barfoobarot"))
+  (should (equal (replace-in-string "zot" "bar" "zat")
+                 "zat"))
+  (should (equal (replace-in-string "azot" "bar" "zat")
+                 "zat"))
+  (should (equal (replace-in-string "azot" "bar" "azot")
+                 "bar")))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

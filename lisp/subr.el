@@ -4430,7 +4430,11 @@ This function returns a freshly created string."
                             (aref fromstring if)))
               (setq ii (1+ ii)
                     if (1+ if)))
-            (when (= if (length fromstring))
+            (if (not (= if (length fromstring)))
+                ;; We didn't have a match after all.
+                (setq i (1+ i))
+              ;; We had one, so gather the previous part and the
+              ;; substition.
               (when (not (= start i))
                 (push (substring instring start i) result))
               (push tostring result)
