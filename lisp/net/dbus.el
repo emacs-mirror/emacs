@@ -1016,8 +1016,9 @@ D-Bus message.  SERVICE and PATH are the unique name and the
 object path of the D-Bus object emitting the message.  INTERFACE
 and MEMBER denote the message which has been sent.  HANDLER is
 the function which has been registered for this message.  ARGS
-are the arguments passed to HANDLER, when it is called during
-event handling in `dbus-handle-event'.
+are the typed arguments as returned from the message.  They are
+passed to HANDLER without type information, when it is called
+during event handling in `dbus-handle-event'.
 
 This function signals a `dbus-error' if the event is not well
 formed."
@@ -1053,22 +1054,53 @@ formed."
 	       (functionp (nth 8 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
 
+(defun dbus-delete-types (&rest args)
+  "Delete type information from arguments retrieved via `dbus-handle-event'.
+Basic type arguments (TYPE VALUE) will be transformed into VALUE, and
+compound type arguments (TYPE VALUE) will be transformed into (VALUE)."
+  (car
+   (mapcar
+    (lambda (elt)
+      (cond
+       ((atom elt) elt)
+       ((memq (car elt) dbus-compound-types)
+        (mapcar #'dbus-delete-types (cdr elt)))
+       (t (cadr elt))))
+    args)))
+
+(defun dbus-flatten-types (arg)
+  "Flatten type information from argument retrieved via `dbus-handle-event'.
+Basic type arguments (TYPE VALUE) will be transformed into TYPE VALUE, and
+compound type arguments (TYPE VALUE) will be kept as is."
+  (let (result)
+    (dolist (elt arg)
+      (cond
+       ((atom elt) (push elt result))
+       ((and (not (memq (car elt) dbus-compound-types)))
+	(push (car elt) result)
+	(push (cadr elt) result))
+       (t
+	(push (cons (car elt) (dbus-flatten-types (cdr elt))) result))))
+    (nreverse result)))
+
 ;;;###autoload
 (defun dbus-handle-event (event)
   "Handle events from the D-Bus.
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
-part of the event, is called with arguments ARGS.
+part of the event, is called with arguments ARGS (without type information).
 If the HANDLER returns a `dbus-error', it is propagated as return message."
   (interactive "e")
   (condition-case err
-      (let (result)
+      (let (args result)
 	;; We ignore not well-formed events.
 	(dbus-check-event event)
+        ;; Remove type information.
+        (setq args (mapcar #'dbus-delete-types (nthcdr 9 event)))
 	;; Error messages must be propagated.
 	(when (= dbus-message-type-error (nth 2 event))
-	  (signal 'dbus-error (nthcdr 9 event)))
+	  (signal 'dbus-error args))
 	;; Apply the handler.
-	(setq result (apply (nth 8 event) (nthcdr 9 event)))
+	(setq result (apply (nth 8 event) args))
 	;; Return an (error) message when it is a message call.
 	(when (= dbus-message-type-method-call (nth 2 event))
 	  (dbus-ignore-errors
@@ -1491,7 +1523,7 @@ return nil.
    ;; "Set" requires a variant.
    (dbus-call-method
     bus service path dbus-interface-properties
-    "Set" :timeout 500 interface property (list :variant args))
+    "Set" :timeout 500 interface property (cons :variant args))
    ;; Return VALUE.
    (or (dbus-get-property bus service path interface property)
        (if (symbolp (car args)) (cadr args) (car args)))))
@@ -1570,8 +1602,7 @@ clients from discovering the still incomplete interface.
 
 \(dbus-register-property BUS SERVICE PATH INTERFACE PROPERTY ACCESS \
 [TYPE] VALUE &optional EMITS-SIGNAL DONT-REGISTER-SERVICE)"
-  (let ((signature "s") ;; FIXME: For the time being.
-        ;; Read basic type symbol.
+  (let (;; Read basic type symbol.
         (type (when (symbolp (car args)) (pop args)))
         (value (pop args))
         (emits-signal (pop args))
@@ -1590,6 +1621,8 @@ clients from discovering the still incomplete interface.
               (signal 'wrong-type-argument (list "Value type invalid" value))))))
     (unless (consp value)
       (setq value (list type value)))
+    (setq value (if (member (car value) dbus-compound-types)
+                    (list :variant value) (cons :variant value)))
 
     ;; Add handlers for the three property-related methods.
     (dbus-register-method
@@ -1627,8 +1660,7 @@ clients from discovering the still incomplete interface.
     (let ((key (list :property bus interface property))
 	  (val
            (cons
-	    (list
-	     nil service path (list access emits-signal signature value))
+	    (list nil service path (list access emits-signal value))
             (dbus-get-other-registered-properties
              bus service path interface property))))
       (puthash key val dbus-registered-objects-table)
@@ -1639,12 +1671,13 @@ clients from discovering the still incomplete interface.
 (defun dbus-property-handler (&rest args)
   "Default handler for the \"org.freedesktop.DBus.Properties\" interface.
 It will be registered for all objects created by `dbus-register-property'."
-  (let ((bus (dbus-event-bus-name last-input-event))
-	(service (dbus-event-service-name last-input-event))
-	(path (dbus-event-path-name last-input-event))
-	(method (dbus-event-member-name last-input-event))
-	(interface (car args))
-	(property (cadr args)))
+  (let* ((last-input-event last-input-event)
+         (bus (dbus-event-bus-name last-input-event))
+	 (service (dbus-event-service-name last-input-event))
+	 (path (dbus-event-path-name last-input-event))
+	 (method (dbus-event-member-name last-input-event))
+	 (interface (car args))
+	 (property (cadr args)))
     (cond
      ;; "Get" returns a variant.
      ((string-equal method "Get")
@@ -1662,13 +1695,11 @@ It will be registered for all objects created by `dbus-register-property'."
               "Property \"%s\" at path \"%s\" is not readable" property path)))
 	 ;; Return the result.  Since variant is a list, we must embed
 	 ;; it into another list.
-         (t (list (if (memq (car (nth 3 object)) dbus-compound-types)
-                      (list :variant (nth 3 object))
-                    (cons :variant (nth 3 object))))))))
+         (t (list (nth 2 object))))))
 
-     ;; "Set" expects the same type as registered.  FIXME: Implement!
+     ;; "Set" needs the third typed argument from `last-input-event'.
      ((string-equal method "Set")
-      (let* ((value (caar (nth 2 args)))
+      (let* ((value (nth 11 last-input-event))
 	     (entry (dbus-get-this-registered-property
                      bus service path interface property))
 	     (object (car (last (car entry)))))
@@ -1681,13 +1712,12 @@ It will be registered for all objects created by `dbus-register-property'."
           `(:error ,dbus-error-property-read-only
             ,(format-message
               "Property \"%s\" at path \"%s\" is not writable" property path)))
-         (t (unless (consp value)
-              (setq value (list (car (nth 3 object)) value)))
-            (puthash (list :property bus interface property)
+         (t (puthash (list :property bus interface property)
 		     (cons (append
                             (butlast (car entry))
-                            ;; Reuse ACCESS, EMITS-SIGNAL and TYPE.
-			    (list (append (butlast object) (list value))))
+                            ;; Reuse ACCESS and EMITS-SIGNAL.
+			    (list (append (butlast object)
+                                          (list (dbus-flatten-types value)))))
                            (dbus-get-other-registered-properties
                             bus service path interface property))
 		     dbus-registered-objects-table)
@@ -1719,11 +1749,7 @@ It will be registered for all objects created by `dbus-register-property'."
 		            (consp object)
                             (not (eq :write (car object))))
 	           (push
-	            (list :dict-entry
-                          (car (last key))
-                          (if (memq (car (nth 3 object)) dbus-compound-types)
-                              (list :variant (nth 3 object))
-                            (cons :variant (nth 3 object))))
+	            (list :dict-entry (car (last key)) (nth 2 object))
                     result))))))
 	 dbus-registered-objects-table)
 	;; Return the result, or an empty array.  An array must be

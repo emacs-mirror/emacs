@@ -87,7 +87,7 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 +++
 *** Emacs now defaults to UTF-8 instead of ISO-8859-1.
-This is only for the default, where the user has set no LANG (or
+This is only for the default, where the user has set no 'LANG' (or
 similar) variable or environment.  This change should lead to no
 user-visible changes for normal usage.
 
@@ -128,12 +128,12 @@ and mode line.  ('mwheel-mode' is enabled by default on most graphical
 displays.)
 
 ---
-** The default value of 'frame-title-format' and icon-title-format' has changed.
+** The default value of 'frame-title-format' and 'icon-title-format' has changed.
 These variables are used to display the title bar of visible frames
 and the title bar of an iconified frame.  They now show the name of
 the current buffer and the text "GNU Emacs" instead of the value of
 'invocation-name'.  To get the old behavior back, add the following to
-your Init file:
+your init file:
 
     (setq frame-title-format '(multiple-frames "%b"
                               ("" invocation-name "@" system-name)))
@@ -313,14 +313,14 @@ details of marking the file at the end of the region.
 directories with the help of new command 'dired-vc-next-action'.
 
 +++
-*** 'dired-jump' and 'dired-jump-other-window' moved from dired-x to dired.
+*** 'dired-jump' and 'dired-jump-other-window' moved from 'dired-x' to 'dired'.
 The 'dired-jump' and 'dired-jump-other-window' commands have been
 moved from the 'dired-x' package to 'dired'.  The user option
 'dired-bind-jump' no longer has any effect and is now obsolete.
 The commands are now bound to 'C-x C-j' and 'C-x 4 C-j' by default.
 
 To get the old behavior of 'dired-bind-jump' back and unbind the above
-keys, add the following to your Init file:
+keys, add the following to your init file:
 
 (global-set-key "\C-x\C-j" nil)
 (global-set-key "\C-x4\C-j" nil)
@@ -825,7 +825,7 @@ background colors or transparency, such as xbm, pbm, svg, png and gif.
 ** EWW
 
 +++
-*** New variable 'eww-retrieve-command'.
+*** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.
 
@@ -999,10 +999,10 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
-*** New variables to control the look of line/column numbers in the mode line.
+*** New user options to control the look of line/column numbers in the mode line.
 'mode-line-position-line-format' is the line number format (when
-'line-number-mode') is on, and 'mode-line-position-column-format' is
-the column number format (when 'column-number-mode') is on.  These are
+'line-number-mode' is on), and 'mode-line-position-column-format' is
+the column number format (when 'column-number-mode' is on).  These are
 also used if both modes are on, which leads to the default in that
 case going from "(5,9)" to "(L5,C9)".
 
@@ -1166,6 +1166,9 @@ messages, contain the error name of that message now.  They can be
 made visible by setting user variable 'dbus-show-dbus-errors' to
 non-nil, even if protected by 'dbus-ignore-errors' otherwise.
 
+---
+*** D-Bus events keep the type information of their arguments.
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -1306,7 +1309,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'semantic-flex-token-start', 'semantic-flex-token-text',
 'semantic-imenu-bucketize-type-parts',
 'semantic-imenu-expand-type-parts', 'semantic-imenu-expandable-token',
-'semantic-init-db-hooks)', 'semantic-init-hooks',
+'semantic-init-db-hooks', 'semantic-init-hooks',
 'semantic-init-mode-hooks', 'semantic-java-prototype-nonterminal',
 'semantic-nonterminal-abstract', 'semantic-nonterminal-full-name',
 'semantic-nonterminal-leaf', 'semantic-nonterminal-protection',
@@ -1367,8 +1370,8 @@ This removes the final remaining trace of old-style backquotes.
 'emacs_function' and 'emacs_finalizer' for module functions and
 finalizers, respectively.
 
-** Module functions can now be made interactive.  Use
-'make_interactive' to give a module function an interactive
+** Module functions can now be made interactive.
+Use 'make_interactive' to give a module function an interactive
 specification.
 
 ** Module functions can now install an optional finalizer that is
@@ -1440,8 +1443,8 @@ This can be used to parse RGB color specs in several formats and
 convert them to a list '(R G B)' of primary color values.
 
 ---
-** Variable 'uniquify-buffer-name-style' can now be a function.
-This variable can be one of the predefined styles or a function to
+** User option 'uniquify-buffer-name-style' can now be a function.
+This user option can be one of the predefined styles or a function to
 personalize the uniquified buffer name.
 
 

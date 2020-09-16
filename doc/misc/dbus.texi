@@ -1346,6 +1346,8 @@ message arrives, and @var{handler} is called.  Example:
 @cindex method calls, returning
 @cindex returning method calls
 
+@c https://wiki.ubuntu.com/DebuggingDBus
+
 You can offer an own service in D-Bus, which will be visible by other
 D-Bus clients.  See @uref{https://dbus.freedesktop.org/doc/dbus-api-design.html}
 for a discussion of the design.
@@ -1981,8 +1983,10 @@ of the D-Bus object emitting the message.  @var{interface} and
 @var{member} denote the message which has been sent.
 
 @var{handler} is the callback function which has been registered for
-this message (@pxref{Signals}).  When a @code{dbus-event} event
-arrives, @var{handler} is called with @var{args} as arguments.
+this message (@pxref{Signals}).  @var{args} are the typed arguments as
+returned from the message.  They are passed to @var{handler} without
+type information, when it is called during event handling in
+@code{dbus-handle-event}.
 
 In order to inspect the @code{dbus-event} data, you could extend the
 definition of the callback function in @ref{Signals}:
