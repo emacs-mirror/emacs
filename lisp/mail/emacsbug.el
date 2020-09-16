@@ -456,7 +456,8 @@ and send the mail again%s."
                 (lambda ()
                   (when (y-or-n-p "Save this mail sending choice?")
                     (customize-save-variable 'send-mail-function
-                                             send-mail-function))))))
+                                             send-mail-function)))
+                nil t)))
   (or report-emacs-bug-no-confirmation
       ;; mailclient.el does not need a valid From
       (eq send-mail-function 'mailclient-send-it)
