@@ -203,13 +203,13 @@ Also see `mouse-wheel-tilt-scroll'."
 (defvar mouse-wheel-left-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-left
-    (intern "mouse-6"))
+    'mouse-6)
   "Event used for scrolling left.")
 
 (defvar mouse-wheel-right-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-right
-    (intern "mouse-7"))
+    'mouse-7)
   "Event used for scrolling right.")
 
 (defun mouse-wheel--get-scroll-window (event)

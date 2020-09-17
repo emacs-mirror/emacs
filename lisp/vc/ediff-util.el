@@ -4129,10 +4129,10 @@ Mail anyway? (y or n) ")
     (ediff-with-current-buffer standard-output
       (fundamental-mode))
     (princ (format "\nCtl buffer: %S\n" ediff-control-buffer))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-A"))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-B"))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-C"))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-Ancestor"))
+    (ediff-print-diff-vector 'ediff-difference-vector-A)
+    (ediff-print-diff-vector 'ediff-difference-vector-B)
+    (ediff-print-diff-vector 'ediff-difference-vector-C)
+    (ediff-print-diff-vector 'ediff-difference-vector-Ancestor)
     ))
 
 
