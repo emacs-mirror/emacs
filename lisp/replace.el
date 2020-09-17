@@ -2953,6 +2953,8 @@ characters."
 			 (replace-dehighlight)
 			 (save-excursion (recursive-edit))
 			 (setq replaced t))
+                        ((commandp def t)
+                         (call-interactively def))
 			;; Note: we do not need to treat `exit-prefix'
 			;; specially here, since we reread
 			;; any unrecognized character.
