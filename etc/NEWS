@@ -366,6 +366,11 @@ You can now score based on the relative age of an article with the new
 '<' and '>' date scoring types.
 
 +++
+*** User-defined scoring is now possible.
+The new type is 'score-fn'.  More information in
+(Gnus)Score File Format.
+
++++
 *** New backend 'nnselect'.
 The newly added 'nnselect' backend allows creating groups from an
 arbitrary list of articles that may come from multiple groups and

@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'gnus)
 (require 'gnus-sum)
 (require 'gnus-art)
@@ -35,6 +33,7 @@
 (require 'message)
 (require 'score-mode)
 (require 'gmm-utils)
+(require 'cl-lib)
 
 (defcustom gnus-global-score-files nil
   "List of global score files and directories.
@@ -497,6 +496,7 @@ of the last successful match.")
     ("head" -1 gnus-score-body)
     ("body" -1 gnus-score-body)
     ("all" -1 gnus-score-body)
+    (score-fn -1 nil)
     ("followup" 2 gnus-score-followup)
     ("thread" 5 gnus-score-thread)))
 
@@ -1175,14 +1175,19 @@ If FORMAT, also format the current score file."
       (when format
 	(gnus-score-pretty-print))
       (when (consp rule) ;; the rule exists
-	(setq rule (mapconcat #'(lambda (obj)
-				  (regexp-quote (format "%S" obj)))
-			      rule
-			      sep))
+	(setq rule (if (symbolp (car rule))
+		       (format "(%S)" (car rule))
+		     (mapconcat #'(lambda (obj)
+				    (regexp-quote (format "%S" obj)))
+				rule
+				sep)))
 	(goto-char (point-min))
-	(re-search-forward rule nil t)
-	;; make it easy to use `kill-sexp':
-	(goto-char (1- (match-beginning 0)))))))
+	(let ((move (if (string-match "(.*)" rule)
+			0
+		      -1)))
+	  (re-search-forward rule nil t)
+	  ;; make it easy to use `kill-sexp':
+	  (goto-char (+ move (match-beginning 0))))))))
 
 (defun gnus-score-load-file (file)
   ;; Load score file FILE.  Returns a list a retrieved score-alists.
@@ -1232,6 +1237,7 @@ If FORMAT, also format the current score file."
     (let ((mark (car (gnus-score-get 'mark alist)))
 	  (expunge (car (gnus-score-get 'expunge alist)))
 	  (mark-and-expunge (car (gnus-score-get 'mark-and-expunge alist)))
+	  (score-fn (car (gnus-score-get 'score-fn alist)))
 	  (files (gnus-score-get 'files alist))
 	  (exclude-files (gnus-score-get 'exclude-files alist))
 	  (orphan (car (gnus-score-get 'orphan alist)))
@@ -1567,10 +1573,14 @@ If FORMAT, also format the current score file."
 			    (gnus-message
 			     7 "Scoring on headers or body skipped.")
 			    nil)
+			;; Run score-fn
+			(if (eq header 'score-fn)
+			    (setq new (gnus-score-func scores trace))
 			;; Call the scoring function for this type of "header".
 			(setq new (funcall (nth 2 entry) scores header
-					   now expire trace)))
+					   now expire trace))))
 		  (push new news))))
+
 	    (when (gnus-buffer-live-p gnus-summary-buffer)
 	      (let ((scored gnus-newsgroup-scored))
 		(with-current-buffer gnus-summary-buffer
@@ -1635,6 +1645,30 @@ score in `gnus-newsgroup-scored' by SCORE."
       (when (and id
 		 (not (string= id "")))
 	(gnus-score-lower-thread thread score)))))
+
+(defun gnus-score-func (scores &optional trace)
+  (dolist (alist scores)
+    (let ((articles gnus-scores-articles)
+	  (entries (assoc 'score-fn alist)))
+      (dolist (score-fn (cdr entries))
+	(let ((score-fn (car score-fn))
+	      article-alist score fn-score)
+	  (dolist (art articles)
+	    (setq article-alist
+		  (cl-pairlis
+		   '(number subject from date id
+			    refs chars lines xref extra)
+		   (car art))
+		  score (cdr art))
+	    (when (integerp (setq fn-score (funcall score-fn
+						    article-alist score)))
+	      (setcdr art (+ score fn-score)))
+	    (setq score (cdr art))
+	    (when (and trace
+		       (integerp fn-score))
+	      (push (cons (car-safe (rassq alist gnus-score-cache))
+			  (list score-fn fn-score))
+		    gnus-score-trace))))))))
 
 (defun gnus-score-integer (scores header now expire &optional trace)
   (let ((gnus-score-index (nth 1 (assoc header gnus-header-index)))
