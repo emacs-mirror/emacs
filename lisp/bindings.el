@@ -446,7 +446,7 @@ format spec will be replaced by the line number."
 This is used when `column-number-mode' is switched on.  The
 \"%c\" format spec will be replaced by the column number, which
 is zero-based if `column-number-indicator-zero-based' is non-nil,
-and one-based if `column-number-indicator-zero-based' is nil.."
+and one-based if `column-number-indicator-zero-based' is nil."
   :type 'form
   :version "28.1"
   :group 'mode-line)
