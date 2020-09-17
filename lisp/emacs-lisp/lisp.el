@@ -735,37 +735,12 @@ This command assumes point is not in a string or comment."
   (insert-pair arg ?\( ?\)))
 
 (defun delete-pair (&optional arg)
-  "Delete a pair of characters enclosing ARG sexps that follow point.
-A negative ARG deletes a pair around the preceding ARG sexps instead."
-  (interactive "P")
-  (if arg
-      (setq arg (prefix-numeric-value arg))
-    (setq arg 1))
-  (if (< arg 0)
-      (save-excursion
-	(skip-chars-backward " \t")
-	(save-excursion
-	  (let ((close-char (char-before)))
-	    (forward-sexp arg)
-	    (unless (member (list (char-after) close-char)
-			    (mapcar (lambda (p)
-				      (if (= (length p) 3) (cdr p) p))
-				    insert-pair-alist))
-	      (error "Not after matching pair"))
-	    (delete-char 1)))
-	(delete-char -1))
-    (save-excursion
-      (skip-chars-forward " \t")
-      (save-excursion
-	(let ((open-char (char-after)))
-	  (forward-sexp arg)
-	  (unless (member (list open-char (char-before))
-			  (mapcar (lambda (p)
-				    (if (= (length p) 3) (cdr p) p))
-				  insert-pair-alist))
-	    (error "Not before matching pair"))
-	  (delete-char -1)))
-      (delete-char 1))))
+  "Delete a pair of characters enclosing ARG sexps following point.
+A negative ARG deletes a pair of characters around preceding ARG sexps."
+  (interactive "p")
+  (unless arg (setq arg 1))
+  (save-excursion (forward-sexp arg) (delete-char (if (> arg 0) -1 1)))
+  (delete-char (if (> arg 0) 1 -1)))
 
 (defun raise-sexp (&optional arg)
   "Raise ARG sexps higher up the tree."
