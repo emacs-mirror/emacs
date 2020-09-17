@@ -978,7 +978,8 @@ If nil, point returns to its original position after invoking a button.")
 If nothing was called, return non-nil."
   (let* ((oevent event)
          (mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
-         newpoint pos)
+         (pos (widget-event-point event))
+         newpoint)
     (catch 'button-press-cancelled
       ;; Mouse click on a widget button.  Do the following
       ;; in a save-excursion so that the click on the button
