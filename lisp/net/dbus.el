@@ -51,6 +51,8 @@
 (unless (boundp 'dbus-debug)
   (defvar dbus-debug nil))
 
+(require 'seq)
+(require 'subr-x)
 (require 'xml)
 
 ;;; D-Bus constants.
@@ -169,11 +171,14 @@ See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-inter
   "The namespace for default error names.
 See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
 
-(defconst dbus-error-failed (concat dbus-error-dbus ".Failed")
-  "A generic error; \"something went wrong\" - see the error message for more.")
-
 (defconst dbus-error-access-denied (concat dbus-error-dbus ".AccessDenied")
   "Security restrictions don't allow doing what you're trying to do.")
+
+(defconst dbus-error-disconnected (concat dbus-error-dbus ".Disconnected")
+  "The connection is disconnected and you're trying to use it.")
+
+(defconst dbus-error-failed (concat dbus-error-dbus ".Failed")
+  "A generic error; \"something went wrong\" - see the error message for more.")
 
 (defconst dbus-error-invalid-args (concat dbus-error-dbus ".InvalidArgs")
   "Invalid arguments passed to a method call.")
@@ -184,6 +189,9 @@ See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
 (defconst dbus-error-property-read-only
   (concat dbus-error-dbus ".PropertyReadOnly")
   "Property you tried to set is read-only.")
+
+(defconst dbus-error-service-unknown (concat dbus-error-dbus ".ServiceUnknown")
+  "The bus doesn't know how to launch a service to supply the bus name you wanted.")
 
 (defconst dbus-error-unknown-interface
   (concat dbus-error-dbus ".UnknownInterface")
@@ -1526,7 +1534,7 @@ return nil.
     "Set" :timeout 500 interface property (cons :variant args))
    ;; Return VALUE.
    (or (dbus-get-property bus service path interface property)
-       (if (symbolp (car args)) (cadr args) (car args)))))
+       (if (keywordp (car args)) (cadr args) (car args)))))
 
 (defun dbus-get-all-properties (bus service path interface)
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.
@@ -1603,7 +1611,7 @@ clients from discovering the still incomplete interface.
 \(dbus-register-property BUS SERVICE PATH INTERFACE PROPERTY ACCESS \
 [TYPE] VALUE &optional EMITS-SIGNAL DONT-REGISTER-SERVICE)"
   (let (;; Read basic type symbol.
-        (type (when (symbolp (car args)) (pop args)))
+        (type (when (keywordp (car args)) (pop args)))
         (value (pop args))
         (emits-signal (pop args))
         (dont-register-service (pop args)))
@@ -1646,10 +1654,7 @@ clients from discovering the still incomplete interface.
        ;; changed_properties.
        (if (eq access :write)
            '(:array: :signature "{sv}")
-         `(:array
-           (:dict-entry
-            ,property
-            ,(if type (list :variant type value) (list :variant value)))))
+         `(:array (:dict-entry ,property ,value)))
        ;; invalidated_properties.
        (if (eq access :write)
            `(:array ,property)

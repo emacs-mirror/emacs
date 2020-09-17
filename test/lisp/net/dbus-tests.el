@@ -219,6 +219,17 @@ This includes initialization and closing the bus."
             (handler #'dbus--test-method-handler)
             registered)
 
+        ;; The service is not registered yet.
+        (should
+         (equal
+          (should-error
+           (dbus-call-method
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface method1 :timeout 10 "foo"))
+          `(dbus-error
+            ,dbus-error-service-unknown "The name is not activatable")))
+
+        ;; Register.
         (should
          (equal
           (setq
@@ -283,8 +294,61 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
-;; TODO: Test emits-signal.
-(ert-deftest dbus-test05-register-property ()
+(defvar dbus--test-signal-received nil
+  "Received signal value in `dbus--test-signal-handler'.")
+
+(defun dbus--test-signal-handler (&rest args)
+  "Signal handler for `dbus-test05-register-signal'."
+  (setq dbus--test-signal-received args))
+
+(ert-deftest dbus-test05-register-signal ()
+  "Check signal registration for an own service."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((member "Member")
+            (handler #'dbus--test-signal-handler)
+            registered)
+
+        ;; Register signal handler.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-signal
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface member handler))
+          `((:signal :session ,dbus--test-interface ,member)
+            (,dbus--test-service ,dbus--test-path ,handler))))
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+        (while (null dbus--test-signal-received)
+          (read-event nil nil 0.1))
+        (should (equal dbus--test-signal-received '("foo")))
+
+        ;; Send two arguments, compound types.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member
+         '(:array :byte 1 :byte 2 :byte 3) '(:variant :string "bar"))
+        (while (null dbus--test-signal-received)
+          (read-event nil nil 0.1))
+        (should (equal dbus--test-signal-received '((1 2 3) ("bar"))))
+
+        ;; Unregister signal.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test06-register-property ()
   "Check property registration for an own service."
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
@@ -470,7 +534,7 @@ This includes initialization and closing the bus."
     (dbus-unregister-service :session dbus--test-service)))
 
 ;; The following test is inspired by Bug#43146.
-(ert-deftest dbus-test05-register-property-several-paths ()
+(ert-deftest dbus-test06-register-property-several-paths ()
   "Check property registration for an own service at several paths."
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
@@ -621,6 +685,72 @@ This includes initialization and closing the bus."
           (should (string-equal (cdr (assoc property2 result1)) "foofoo"))
           (should (string-equal (cdr (assoc property3 result1)) "barbar"))
           (should-not (assoc property1 result1))))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test06-register-property-emits-signal ()
+  "Check property registration for an own service, including signalling."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((property "Property")
+            (handler #'dbus--test-signal-handler))
+
+        ;; Register signal handler.
+        (should
+         (equal
+          (dbus-register-signal
+           :session dbus--test-service dbus--test-path
+           dbus-interface-properties "PropertiesChanged" handler)
+          `((:signal :session ,dbus-interface-properties "PropertiesChanged")
+            (,dbus--test-service ,dbus--test-path ,handler))))
+
+        ;; Register property.
+        (setq dbus--test-signal-received nil)
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property :readwrite "foo" 'emits-signal)
+          `((:property :session ,dbus--test-interface ,property)
+            (,dbus--test-service ,dbus--test-path))))
+        (while (null dbus--test-signal-received)
+          (read-event nil nil 0.1))
+        ;; It returns two arguments, "changed_properties" (an array of
+        ;; dict entries) and "invalidated_properties" (an array of
+        ;; strings).
+        (should (equal dbus--test-signal-received `(((,property ("foo"))) ())))
+
+        (should
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property)
+          "foo"))
+
+        ;; Set property.  The new value shall be signalled.
+        (setq dbus--test-signal-received nil)
+        (should
+         (equal
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property
+           '(:array :byte 1 :byte 2 :byte 3))
+          '(1 2 3)))
+        (while (null dbus--test-signal-received)
+          (read-event nil nil 0.1))
+        (should
+         (equal
+          dbus--test-signal-received `(((,property ((((1) (2) (3)))))) ())))
+
+        (should
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property)
+          '(1 2 3))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
