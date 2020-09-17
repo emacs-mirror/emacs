@@ -1179,6 +1179,14 @@ non-nil, even if protected by 'dbus-ignore-errors' otherwise.
 ---
 *** D-Bus events keep the type information of their arguments.
 
+** CPerl Mode
+
+---
+*** The command 'cperl-set-style' offers the new value "PBP".
+This value customizes Emacs to use the style recommended in Damian
+Conway's book "Perl Best Practices" for indentation and formatting
+of conditionals.
+
 
 * New Modes and Packages in Emacs 28.1
 
