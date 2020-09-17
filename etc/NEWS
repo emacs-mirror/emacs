@@ -86,10 +86,6 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 * Changes in Emacs 28.1
 
 +++
-** The new command 'lossage-size' allow users to set the maximum
-number of keystrokes and commands recorded.
-
-+++
 *** Emacs now defaults to UTF-8 instead of ISO-8859-1.
 This is only for the default, where the user has set no 'LANG' (or
 similar) variable or environment.  This change should lead to no
@@ -480,6 +476,11 @@ authentication mechanism by setting a value for the key 'smtp-auth'.
 
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
+
++++
+** New command 'lossage-size'.
+It allows users to set the maximum number of keystrokes and commands
+recorded for the purpose of 'view-lossage'.
 
 ---
 *** The command 'view-lossage' can now be invoked from the menu bar.

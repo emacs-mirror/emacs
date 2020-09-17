@@ -6042,7 +6042,7 @@ make_lispy_event (struct input_event *event)
       }
 #endif
 
-#ifdef USE_FILE_NOTIFY
+#ifdef USE_FILE_NO101TIFY
     case FILE_NOTIFY_EVENT:
 #ifdef HAVE_W32NOTIFY
       /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
@@ -10414,7 +10414,8 @@ If CHECK-TIMERS is non-nil, timers that are ready to run will do so.  */)
 	  ? Qt : Qnil);
 }
 
-/* Reallocate recent_keys copying the keystrokes in the right order */
+/* Reallocate recent_keys copying the recorded keystrokes
+   in the right order.  */
 static void
 update_recent_keys (int new_size, int kept_keys)
 {
@@ -10439,10 +10440,10 @@ update_recent_keys (int new_size, int kept_keys)
 
 DEFUN ("lossage-size", Flossage_size, Slossage_size, 0, 1,
        "(list (read-number \"new-size: \" (lossage-size)))",
-       doc: /* Return the maximum number of saved keystrokes.
-Called with ARG, then set this limit to ARG and return it.
+       doc: /* Return or set the maximum number of keystrokes to save.
+If called with a non-nil ARG, set the limit to ARG and return it.
 
-The saved keystrokes are the records shown by `view-lossage'.  */)
+The saved keystrokes are shown by `view-lossage'.  */)
   (Lisp_Object arg)
 {
   if (NILP(arg))
