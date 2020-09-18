@@ -1931,7 +1931,8 @@ turn_on_face (struct frame *f, int face_id)
   if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (tty, NC_UNDERLINE))
     OUTPUT1_IF (tty, tty->TS_enter_underline_mode);
 
-  if (face->tty_strike_through_p && MAY_USE_WITH_COLORS_P (tty, NC_STRIKE_THROUGH))
+  if (face->tty_strike_through_p
+      && MAY_USE_WITH_COLORS_P (tty, NC_STRIKE_THROUGH))
     OUTPUT1_IF (tty, tty->TS_enter_strike_through_mode);
 
   if (tty->TN_max_colors > 0)
@@ -2010,12 +2011,20 @@ tty_capable_p (struct tty_display_info *tty, unsigned int caps)
   if ((caps & (cap)) && (!(TS) || !MAY_USE_WITH_COLORS_P(tty, NC_bit)))	\
     return 0;
 
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_INVERSE,	  tty->TS_standout_mode,		NC_REVERSE);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_UNDERLINE,	  tty->TS_enter_underline_mode,		NC_UNDERLINE);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_BOLD,		  tty->TS_enter_bold_mode,		NC_BOLD);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_DIM,		  tty->TS_enter_dim_mode,		NC_DIM);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_ITALIC,	  tty->TS_enter_italic_mode,		NC_ITALIC);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_STRIKE_THROUGH, tty->TS_enter_strike_through_mode,	NC_STRIKE_THROUGH);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_INVERSE,	  tty->TS_standout_mode, NC_REVERSE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_UNDERLINE,	  tty->TS_enter_underline_mode,
+		     NC_UNDERLINE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_BOLD,	  tty->TS_enter_bold_mode, NC_BOLD);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_DIM,	  tty->TS_enter_dim_mode, NC_DIM);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_ITALIC,	  tty->TS_enter_italic_mode, NC_ITALIC);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_STRIKE_THROUGH, tty->TS_enter_strike_through_mode,
+		     NC_STRIKE_THROUGH);
 
   /* We can do it!  */
   return 1;
