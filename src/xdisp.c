@@ -34830,8 +34830,10 @@ but does not change the fact they are interpreted as raw bytes.  */);
 
   DEFVAR_LISP ("max-mini-window-height", Vmax_mini_window_height,
     doc: /* Maximum height for resizing mini-windows (the minibuffer and the echo area).
-If a float, it specifies a fraction of the mini-window frame's height.
-If an integer, it specifies a number of lines.  */);
+If a float, it specifies the maximum height in units of the
+mini-window frame's height.
+If an integer, it specifies the maximum height in units of the
+mini-window frame's default font's height.  */);
   Vmax_mini_window_height = make_float (0.25);
 
   DEFVAR_LISP ("resize-mini-windows", Vresize_mini_windows,
