@@ -588,19 +588,23 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
     (world-clock-cancel-timer)))
 
 ;;;###autoload
-(defun emacs-uptime (&optional format)
+(defun emacs-uptime (&optional format here)
   "Return a string giving the uptime of this instance of Emacs.
 FORMAT is a string to format the result, using `format-seconds'.
-For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
-  (interactive)
+For example, the Unix uptime command format is \"%D, %z%2h:%.2m\".
+If the optional argument HERE is non-nil, insert string at
+point."
+  (interactive "i\nP")
   (let ((str
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
 			 (time-convert
 			  (time-since before-init-time)
 			  'integer))))
-    (if (called-interactively-p 'interactive)
-        (message "%s" str)
-      str)))
+    (if here
+        (insert str)
+      (if (called-interactively-p 'interactive)
+          (message "%s" str)
+        str))))
 
 ;;;###autoload
 (defun emacs-init-time ()
