@@ -801,7 +801,6 @@ After the tab is created, the hooks in
                           (nth to-index tabs)))
 
     (cond
-     (tab-bar-mode)
      ((eq tab-bar-show t)
       (tab-bar-mode 1))
      ((and (natnump tab-bar-show)
