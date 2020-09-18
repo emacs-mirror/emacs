@@ -1105,7 +1105,7 @@ identical.  Only the buffers that match a condition in
 `project-kill-buffer-conditions' will be killed.  If NO-CONFIRM
 is non-nil, the command will not ask the user for confirmation.
 NO-CONFIRM is always nil when the command is invoked
-interactivly."
+interactively."
   (interactive)
   (let* ((pr (project-current t))
          (bufs (project--buffers-to-kill pr)))
