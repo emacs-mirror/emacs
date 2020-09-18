@@ -1917,6 +1917,16 @@ If END is omitted, it defaults to the length of LIST."
   "Show the variable specified by WIDGET."
   (describe-variable (widget-value widget)))
 
+;;; The `face-link' Widget.
+
+(define-widget 'face-link 'link
+  "A link to an Emacs face."
+  :action 'widget-face-link-action)
+
+(defun widget-face-link-action (widget &optional _event)
+  "Show the variable specified by WIDGET."
+  (describe-face (widget-value widget)))
+
 ;;; The `file-link' Widget.
 
 (define-widget 'file-link 'link

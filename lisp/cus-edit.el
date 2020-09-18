@@ -3571,9 +3571,13 @@ the present value is saved to its :shown-value property instead."
             buttons)
       ;; Face name (tag).
       (insert " ")
-      (insert-text-button tag
-                          'action (lambda (&rest _x)
-                                    (find-face-definition symbol)))
+      (push (widget-create-child-and-convert
+             widget 'face-link
+	     :button-face 'link
+             :tag tag
+             :action (lambda (&rest _x)
+                       (find-face-definition symbol)))
+            buttons)
       (insert
        (cond ((eq custom-buffer-style 'face) " ")
 	     ((string-match-p "face\\'" tag)   ":")
