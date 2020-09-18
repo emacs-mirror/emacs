@@ -141,7 +141,7 @@ this should be a list where the first item is the program, and
 the rest are the arguments."
   :version "28.1"
   :type '(choice (const :tag "Use `url-retrieve'" nil)
-                 (list string)))
+                 (repeat string)))
 
 (defcustom eww-use-external-browser-for-content-type
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
