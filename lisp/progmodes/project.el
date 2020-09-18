@@ -1021,7 +1021,7 @@ Each condition is either:
   The car can be one of the following:
   * `major-mode': the buffer is killed if the buffer's major
     mode is eq to the cons-cell's cdr
-  * `defived-mode': the buffer is killed if the buffer's major
+  * `derived-mode': the buffer is killed if the buffer's major
     mode is derived from the major mode denoted by the cons-cell's
     cdr
   * `not': the cdr is interpreted as a negation of a condition.
