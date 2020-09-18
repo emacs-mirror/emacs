@@ -6814,9 +6814,7 @@ We assume the output has the format of `df'.
 The value of this variable must be just a command name or file name;
 if you want to specify options, use `directory-free-space-args'.
 
-A value of nil disables this feature.
-
-This variable is obsolete; Emacs no longer uses it."
+A value of nil disables this feature."
   :type '(choice (string :tag "Program") (const :tag "None" nil))
   :group 'dired)
 (make-obsolete-variable 'directory-free-space-program
