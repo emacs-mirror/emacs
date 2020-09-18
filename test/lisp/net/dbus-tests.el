@@ -222,12 +222,12 @@ This includes initialization and closing the bus."
         ;; The service is not registered yet.
         (should
          (equal
-          (should-error
-           (dbus-call-method
-            :session dbus--test-service dbus--test-path
-            dbus--test-interface method1 :timeout 10 "foo"))
-          `(dbus-error
-            ,dbus-error-service-unknown "The name is not activatable")))
+          (butlast
+           (should-error
+            (dbus-call-method
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface method1 :timeout 10 "foo")))
+           `(dbus-error ,dbus-error-service-unknown)))
 
         ;; Register.
         (should
@@ -283,7 +283,6 @@ This includes initialization and closing the bus."
         (should-not (dbus-unregister-object registered))
         (should
          (equal
-          ;; We don't care the error message text.
           (butlast
            (should-error
             (dbus-call-method
@@ -298,8 +297,12 @@ This includes initialization and closing the bus."
   "Received signal value in `dbus--test-signal-handler'.")
 
 (defun dbus--test-signal-handler (&rest args)
-  "Signal handler for `dbus-test05-register-signal'."
+  "Signal handler for `dbus-test*-signal'."
   (setq dbus--test-signal-received args))
+
+(defun dbus--test-timeout-handler (&rest _ignore)
+  "Timeout handler, reporting a failed test."
+  (ert-fail (format "`%s' timed out" (ert-test-name (ert-running-test)))))
 
 (ert-deftest dbus-test05-register-signal ()
   "Check signal registration for an own service."
@@ -327,8 +330,9 @@ This includes initialization and closing the bus."
         (dbus-send-signal
          :session dbus--test-service dbus--test-path
          dbus--test-interface member "foo")
-        (while (null dbus--test-signal-received)
-          (read-event nil nil 0.1))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
         (should (equal dbus--test-signal-received '("foo")))
 
         ;; Send two arguments, compound types.
@@ -337,8 +341,9 @@ This includes initialization and closing the bus."
          :session dbus--test-service dbus--test-path
          dbus--test-interface member
          '(:array :byte 1 :byte 2 :byte 3) '(:variant :string "bar"))
-        (while (null dbus--test-signal-received)
-          (read-event nil nil 0.1))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
         (should (equal dbus--test-signal-received '((1 2 3) ("bar"))))
 
         ;; Unregister signal.
@@ -385,7 +390,6 @@ This includes initialization and closing the bus."
         (let ((dbus-show-dbus-errors t))
           (should
            (equal
-            ;; We don't care the error message text.
             (butlast
              (should-error
               (dbus-set-property
@@ -416,7 +420,6 @@ This includes initialization and closing the bus."
         (let ((dbus-show-dbus-errors t))
           (should
            (equal
-            ;; We don't care the error message text.
             (butlast
              (should-error
               (dbus-get-property
@@ -469,7 +472,6 @@ This includes initialization and closing the bus."
         (let ((dbus-show-dbus-errors t))
           (should
            (equal
-            ;; We don't care the error message text.
             (butlast
              (should-error
               (dbus-get-property
@@ -483,7 +485,6 @@ This includes initialization and closing the bus."
         (let ((dbus-show-dbus-errors t))
           (should
            (equal
-            ;; We don't care the error message text.
             (butlast
              (should-error
               (dbus-set-property
@@ -522,7 +523,6 @@ This includes initialization and closing the bus."
         (let ((dbus-show-dbus-errors t))
           (should
            (equal
-            ;; We don't care the error message text.
             (butlast
              (should-error
               (dbus-get-property
@@ -716,8 +716,9 @@ This includes initialization and closing the bus."
            dbus--test-interface property :readwrite "foo" 'emits-signal)
           `((:property :session ,dbus--test-interface ,property)
             (,dbus--test-service ,dbus--test-path))))
-        (while (null dbus--test-signal-received)
-          (read-event nil nil 0.1))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
         ;; It returns two arguments, "changed_properties" (an array of
         ;; dict entries) and "invalidated_properties" (an array of
         ;; strings).
@@ -739,8 +740,9 @@ This includes initialization and closing the bus."
            dbus--test-interface property
            '(:array :byte 1 :byte 2 :byte 3))
           '(1 2 3)))
-        (while (null dbus--test-signal-received)
-          (read-event nil nil 0.1))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
         (should
          (equal
           dbus--test-signal-received `(((,property ((((1) (2) (3)))))) ())))
