@@ -534,6 +534,13 @@ that the symbol of the saver function, which is specified by
   :group 'gnus-article-saving
   :type 'regexp)
 
+(defcustom gnus-global-groups nil
+  "Groups that should be considered like \"news\" groups.
+This means that images will be automatically loaded, for instance."
+  :type '(repeat string)
+  :version "28.1"
+  :group 'gnus-article)
+
 ;; Note that "Rmail format" is mbox since Emacs 23, but Babyl before.
 (defcustom gnus-default-article-saver 'gnus-summary-save-in-rmail
   "A function to save articles in your favorite format.
@@ -7138,7 +7145,8 @@ If given a prefix, show the hidden text instead."
   "Allows images in newsgroups to be shown, blocks images in all
 other groups."
   (if (or (gnus-news-group-p group)
-	  (gnus-member-of-valid 'global group))
+	  (gnus-member-of-valid 'global group)
+	  (member group gnus-global-groups))
       ;; Block nothing in news groups.
       nil
     ;; Block everything anywhere else.

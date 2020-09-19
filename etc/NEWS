@@ -364,6 +364,14 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New variable 'gnus-global-groups'.
+Gnus handles private groups differently from public (i.e., NNTP-like)
+groups.  Most importantly, Gnus doesn't download external images from
+mail-like groups.  This can be overridden by putting group names in
+'gnus-global-groups': Any group present in that list will be treated
+like a public group.
+
++++
 *** New scoring types for the Date header.
 You can now score based on the relative age of an article with the new
 '<' and '>' date scoring types.

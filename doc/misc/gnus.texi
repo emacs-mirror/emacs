@@ -11979,6 +11979,11 @@ anything that isn't a newsgroup.  This means that no external images
 will be fetched as a result of reading mail, so that nobody can use
 web bugs (and the like) to track whether you've read email.
 
+@vindex gnus-global-groups
+If you have specific private groups that you want to have treated as
+if they were public groups, you can add the name of that group to the
+@code{gnus-global-groups} list.
+
 Also @pxref{Misc Article} for @code{gnus-inhibit-images}.
 
 @item gnus-html-cache-directory
