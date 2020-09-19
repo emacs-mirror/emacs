@@ -11537,7 +11537,7 @@ If ALL is non-nil, also mark ticked and dormant articles as read."
     (gnus-save-hidden-threads
       (let ((beg (point)))
 	;; We check that there are unread articles.
-	(when (or all (gnus-summary-find-next))
+	(when (or all (gnus-summary-last-article-p) (gnus-summary-find-next))
 	  (gnus-summary-catchup all t beg nil t)))))
   (gnus-summary-position-point))
 
