@@ -2663,6 +2663,86 @@ If FRAME is nil or not given, use the selected frame."
 
 (global-set-key [f10] 'menu-bar-open)
 
+(defun menu-bar-open-mouse (event)
+  "Open the menu bar for the menu item clicked on by the mouse.
+EVENT should be a mouse down or click event.
+
+Also see `menu-bar-open', which this calls.
+This command is to be used when you click the mouse in the menubar."
+  (interactive "e")
+  (let* ((x-position (car (posn-x-y (event-start event))))
+         (menu-bar-item-cons (menu-bar-item-at-x x-position)))
+    (menu-bar-open nil
+                   (if menu-bar-item-cons
+                       (cdr menu-bar-item-cons)
+                     0))))
+
+(defun menu-bar-keymap ()
+  "Return the current menu-bar keymap.
+
+The ordering of the return value respects `menu-bar-final-items'."
+  (let ((menu-bar '())
+        (menu-end '()))
+    (map-keymap
+     (lambda (key binding)
+       (let ((pos (seq-position menu-bar-final-items key))
+             (menu-item (cons key binding)))
+         (if pos
+             ;; If KEY is the name of an item that we want to put
+             ;; last, store it separately with explicit ordering for
+             ;; sorting.
+             (push (cons pos menu-item) menu-end)
+           (push menu-item menu-bar))))
+     (lookup-key (menu-bar-current-active-maps) [menu-bar]))
+    `(keymap ,@(nreverse menu-bar)
+             ,@(mapcar #'cdr (sort menu-end
+                                   (lambda (a b)
+                                     (< (car a) (car b))))))))
+
+(defun menu-bar-current-active-maps ()
+  "Return the current active maps in the order the menu bar displays them.
+This value does not take into account `menu-bar-final-items' as that applies
+per-item."
+  ;; current-active-maps returns maps in the order local then
+  ;; global. The menu bar displays items in the opposite order.
+  (cons 'keymap (nreverse (current-active-maps))))
+
+(defun menu-bar-item-at-x (x-position)
+  "Return a cons of the form (KEY . X) for a menu item.
+The returned X is the left X coordinate for that menu item.
+
+X-POSITION is the X coordinate being queried.  If nothing is clicked on,
+returns nil."
+  (let ((column 0)
+        (menu-bar (menu-bar-keymap))
+        prev-key
+        prev-column
+        found)
+    (catch 'done
+      (map-keymap
+       (lambda (key binding)
+         (when (> column x-position)
+           (setq found t)
+           (throw 'done nil))
+         (setq prev-key key)
+         (pcase binding
+           ((or `(,(and (pred stringp) name) . ,_) ;Simple menu item.
+                `(menu-item ,name ,_cmd            ;Extended menu item.
+                            . ,(and props
+                                    (guard (let ((visible
+                                                  (plist-get props :visible)))
+                                             (or (null visible)
+                                                 (eval visible)))))))
+            (setq prev-column column
+                  column (+ column (length name) 1)))))
+       menu-bar)
+      ;; Check the last menu item.
+      (when (> column x-position)
+        (setq found t)))
+    (if found
+        (cons prev-key prev-column)
+      nil)))
+
 (defun buffer-menu-open ()
   "Start key navigation of the buffer menu.
 This is the keyboard interface to \\[mouse-buffer-menu]."
