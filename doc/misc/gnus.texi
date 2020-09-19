@@ -19907,7 +19907,7 @@ Substring matching.
 Fuzzy matching (@pxref{Fuzzy Matching}).
 
 @item r
-Regexp matching
+Regexp matching.
 @end table
 
 @item date
@@ -19935,6 +19935,21 @@ Equal to number.
 @item >
 Greater than number.
 @end table
+
+@item body-strings
+
+These match types are available on the @samp{head} and @code{body}
+``header types''.
+
+@table @kbd
+
+@item z
+Substring matching.
+
+@item p
+Regexp matching.
+@end table
+
 @end table
 
 @item
@@ -19970,7 +19985,8 @@ To make things a bit more complicated, there are shortcuts.  If you use
 a capital letter on either the second or third keys, Gnus will use
 defaults for the remaining one or two keystrokes.  The defaults are
 ``substring'' and ``temporary''.  So @kbd{I A} is the same as @kbd{I a s
-t}, and @kbd{I a R} is the same as @kbd{I a r t}.
+t}, and @kbd{I a R} is the same as @kbd{I a r t}.  (These shortcuts
+are not available for the body matches.)
 
 These functions take both the numerical prefix and the symbolic prefix
 (@pxref{Symbolic Prefixes}).  A numerical prefix says how much to lower
