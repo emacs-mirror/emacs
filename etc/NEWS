@@ -193,6 +193,14 @@ Completion of command names now considers obsolete aliases as
 candidates.  Invoking a command via an obsolete alias now mentions the
 obsolescence fact and shows the new name of the command.
 
++++
+** New command 'revert-buffer-with-fine-grain'.
+Revert a buffer trying to be as non-destructive as possible,
+preserving markers, properties and overlays.  The new variable
+'revert-buffer-with-fine-grain-max-seconds' specifies the maximum
+number of seconds that 'revert-buffer-with-fine-grain' should spend
+trying to be non-destructive.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
