@@ -2709,13 +2709,14 @@ display a message."
 ;;; Compiler entry points.
 
 ;;;###autoload
-(defun native-compile (function-or-file &optional with-late-load)
+(defun native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
 This is the entry-point for the Emacs Lisp native compiler.
 FUNCTION-OR-FILE is a function symbol or a path to an Elisp file.
-When WITH-LATE-LOAD non Nil mark the compilation unit for late load
+When WITH-LATE-LOAD non-nil mark the compilation unit for late load
 once finished compiling (internal use only).
-Return the compilation unit file name."
+When OUTPUT is non-nil use it as filename for the compiled object.
+Return the compile object filename."
   (comp-ensure-native-compiler)
   (unless (or (functionp function-or-file)
               (stringp function-or-file))
@@ -2727,11 +2728,15 @@ Return the compilation unit file name."
          (byte-compile-debug t)
          (comp-ctxt
           (make-comp-ctxt
-           :output (if (symbolp function-or-file)
-                       (make-temp-file (symbol-name function-or-file) nil ".eln")
-                     (comp-el-to-eln-filename function-or-file
-                                              (when byte-native-for-bootstrap
-                                                (car (last comp-eln-load-path)))))
+           :output (or (when output
+                         (expand-file-name output))
+                       (if (symbolp function-or-file)
+                           (make-temp-file (symbol-name function-or-file) nil
+                                           ".eln")
+                         (comp-el-to-eln-filename
+                          function-or-file
+                          (when byte-native-for-bootstrap
+                            (car (last comp-eln-load-path))))))
            :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
