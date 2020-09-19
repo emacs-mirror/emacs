@@ -4102,6 +4102,39 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 			    concat2 (base_dir, Vcomp_native_version_dir));
 }
 
+DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,
+       Scomp__install_trampoline, 2, 2, 0,
+       doc: /* Install a TRAMPOLINE for primitive SUBR-NAME.  */)
+  (Lisp_Object subr_name, Lisp_Object trampoline)
+{
+  CHECK_SYMBOL (subr_name);
+  CHECK_SUBR (trampoline);
+  Lisp_Object orig_subr = Fsymbol_function (subr_name);
+  CHECK_SUBR (orig_subr);
+
+  /* FIXME: add a post dump load trampoline machinery to remove this
+     check.  */
+  if (will_dump_p ())
+    signal_error ("Trying to advice unexpected primitive before dumping",
+		  subr_name);
+
+  Lisp_Object subr_l = Vcomp_subr_list;
+  ptrdiff_t i = ARRAYELTS (helper_link_table);
+  FOR_EACH_TAIL (subr_l)
+    {
+      Lisp_Object subr = XCAR (subr_l);
+      if (EQ (subr, orig_subr))
+	{
+	  freloc.link_table[i] = XSUBR (trampoline)->function.a0;
+	  return Qt;
+	}
+      i++;
+    }
+    signal_error ("Trying to install trampoline for non existent subr",
+		  subr_name);
+    return Qnil;
+}
+
 DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        0, 0, 0,
        doc: /* Initialize the native compiler context. Return t on success.  */)
@@ -5162,6 +5195,7 @@ native compiled one.  */);
 
   defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp_native_driver_options_effective_p);
+  defsubr (&Scomp__install_trampoline);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
