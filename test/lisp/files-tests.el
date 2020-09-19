@@ -1365,5 +1365,17 @@ See <https://debbugs.gnu.org/36401>."
   (should (equal (parse-colon-path "/foo//bar/baz")
                  '("/foo/bar/baz/"))))
 
+(ert-deftest files-test-magic-mode-alist-doctype ()
+  "Test that DOCTYPE and variants put files in mhtml-mode."
+  (with-temp-buffer
+    (goto-char (point-min))
+    (insert "<!DOCTYPE html>")
+    (normal-mode)
+    (should (eq major-mode 'mhtml-mode))
+    (erase-buffer)
+    (insert "<!doctype html>")
+    (normal-mode)
+    (should (eq major-mode 'mhtml-mode))))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
