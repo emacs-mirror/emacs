@@ -92,14 +92,20 @@ default one, which is normally called @file{*eww*}.
 @findex eww-quit
 @findex eww-reload
 @findex eww-copy-page-url
+@findex shr-maybe-probe-and-copy-url
 @kindex q
 @kindex w
 @kindex g
   If loading the URL was successful the buffer @file{*eww*} is opened
 and the web page is rendered in it.  You can leave EWW by pressing
 @kbd{q} or exit the browser by calling @kbd{eww-quit}.  To reload the
-web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
-(@code{eww-copy-page-url}) will copy the current URL to the kill ring.
+web page hit @kbd{g} (@code{eww-reload}).
+
+  Pressing @kbd{w} when point is on a link will call
+@code{shr-maybe-probe-and-copy-url}, which copies this link's
+@acronym{URL} to the kill ring.  If point is not on a link, pressing
+@kbd{w} calls @code{eww-copy-page-url}, which will copy the current
+page's URL to the kill ring instead.
 
 @findex eww-open-in-new-buffer
 @kindex M-RET
