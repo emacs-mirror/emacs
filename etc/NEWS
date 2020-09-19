@@ -1015,6 +1015,12 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** New user option 'reveal-auto-hide'.
+If non-nil (the default), revealed text is automatically hidden when
+point leaves the text.  If nil, the text is not hidden again.  Instead
+`M-x reveal-hide-revealed' can be used to hide all the revealed text.
+
 +++
 *** New user options to control the look of line/column numbers in the mode line.
 'mode-line-position-line-format' is the line number format (when
