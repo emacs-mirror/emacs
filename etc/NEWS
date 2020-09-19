@@ -1139,6 +1139,10 @@ easily bind this menu to 'down-mouse-3' (usually the right mouse button)
 instead of 'mouse-2' (the default) by customizing the new user option
 'flyspell-use-mouse-3-for-menu'.
 
+---
+*** The current dictionary is now displayed in the minor mode lighter.
+Clicking the dictionary name changes the current dictionary.
+
 ** Time
 
 ---
