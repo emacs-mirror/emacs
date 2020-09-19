@@ -256,10 +256,11 @@ look in the standard syntax table to find the syntax of this
 character.
 
 @item Generic comment delimiters: @samp{!}
-Characters that start or end a special kind of comment.  @emph{Any}
-generic comment delimiter matches @emph{any} generic comment
-delimiter, but they cannot match a comment starter or comment ender;
-generic comment delimiters can only match each other.
+(This syntax class is also known as ``comment-fence''.)  Characters
+that start or end a special kind of comment.  @emph{Any} generic
+comment delimiter matches @emph{any} generic comment delimiter, but
+they cannot match a comment starter or comment ender; generic comment
+delimiters can only match each other.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You
@@ -268,10 +269,11 @@ first and last characters of the range @code{syntax-table} properties
 identifying them as generic comment delimiters.
 
 @item Generic string delimiters: @samp{|}
-Characters that start or end a string.  This class differs from the
-string quote class in that @emph{any} generic string delimiter can
-match any other generic string delimiter; but they do not match
-ordinary string quote characters.
+(This syntax class is also known as ``string-fence''.)  Characters
+that start or end a string.  This class differs from the string quote
+class in that @emph{any} generic string delimiter can match any other
+generic string delimiter; but they do not match ordinary string quote
+characters.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You
