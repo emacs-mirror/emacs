@@ -2956,6 +2956,7 @@ read_integer (Lisp_Object readcharfun, int radix,
   return unbind_to (count, string_to_number (read_buffer, radix, NULL));
 }
 
+Lisp_Object oblookup_considering_shorthand (Lisp_Object, Lisp_Object*);
 
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
@@ -3781,23 +3782,17 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    }
 	  else
 	    {
-	      /* Don't create the string object for the name unless
-		 we're going to retain it in a new symbol.
-
-		 Like intern_1 but supports multibyte names.  */
+	      /* Like intern_1 but supports multibyte names.  */
 	      Lisp_Object obarray = check_obarray (Vobarray);
-	      Lisp_Object tem = oblookup (obarray, read_buffer,
-					  nchars, nbytes);
+              Lisp_Object name
+		    = make_specified_string (read_buffer, nchars, nbytes,
+					     multibyte);
+	      Lisp_Object tem = oblookup_considering_shorthand (obarray, &name);
 
 	      if (SYMBOLP (tem))
 		result = tem;
 	      else
-		{
-		  Lisp_Object name
-		    = make_specified_string (read_buffer, nchars, nbytes,
-					     multibyte);
-		  result = intern_driver (name, obarray, tem);
-		}
+                result = intern_driver (name, obarray, tem);
 	    }
 
 	  if (EQ (Vread_with_symbol_positions, Qt)
@@ -4407,7 +4402,7 @@ it defaults to the value of `obarray'.  */)
   obarray = check_obarray (NILP (obarray) ? Vobarray : obarray);
   CHECK_STRING (string);
 
-  tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
+  tem = oblookup_considering_shorthand (obarray, &string);
   if (!SYMBOLP (tem))
     tem = intern_driver (NILP (Vpurify_flag) ? string : Fpurecopy (string),
 			 obarray, tem);
@@ -4435,7 +4430,7 @@ it defaults to the value of `obarray'.  */)
   else
     string = SYMBOL_NAME (name);
 
-  tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
+  tem = oblookup_considering_shorthand (obarray, &string);
   if (FIXNUMP (tem) || (SYMBOLP (name) && !EQ (name, tem)))
     return Qnil;
   else
@@ -4451,7 +4446,8 @@ OBARRAY, if nil, defaults to the value of the variable `obarray'.
 usage: (unintern NAME OBARRAY)  */)
   (Lisp_Object name, Lisp_Object obarray)
 {
-  register Lisp_Object string, tem;
+  register Lisp_Object tem;
+  Lisp_Object string;
   size_t hash;
 
   if (NILP (obarray)) obarray = Vobarray;
@@ -4465,9 +4461,7 @@ usage: (unintern NAME OBARRAY)  */)
       string = name;
     }
 
-  tem = oblookup (obarray, SSDATA (string),
-		  SCHARS (string),
-		  SBYTES (string));
+  tem = oblookup_considering_shorthand (obarray, &string);
   if (FIXNUMP (tem))
     return Qnil;
   /* If arg was a symbol, don't delete anything but that symbol itself.  */
@@ -4554,6 +4548,37 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   XSETINT (tem, hash);
   return tem;
 }
+
+Lisp_Object
+oblookup_considering_shorthand (Lisp_Object obarray, Lisp_Object* string)
+{
+  Lisp_Object original = *string; /* Save pointer to original string... */
+  Lisp_Object tail = Velisp_shorthands;
+  FOR_EACH_TAIL_SAFE(tail)
+    {
+      Lisp_Object pair = XCAR (tail);
+      if (!CONSP (pair)) goto undo;
+      Lisp_Object shorthand = XCAR (pair);
+      Lisp_Object longhand = XCDR (pair);
+      if (!STRINGP (shorthand) || !STRINGP (longhand)) goto undo;
+      Lisp_Object match = Fstring_match (shorthand, *string, Qnil);
+      if (!NILP(match)){
+        *string = Freplace_match(longhand, Qnil, Qnil, *string, Qnil);
+      }
+    }
+  goto fine;
+ undo:
+  {
+    static const char* warn =
+      "Fishy value of `elisp-shorthands'.  "
+      "Consider reviewing before evaluating code.";
+    message_dolog (warn, sizeof(warn), 0, 0);
+    *string = original;   /* ...so we can any failed trickery here. */
+  }
+ fine:
+  return oblookup(obarray, SSDATA (*string), SCHARS (*string), SBYTES (*string));
+}
+
 
 void
 map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
@@ -5310,4 +5335,8 @@ that are loaded before your customizations are read!  */);
   DEFSYM (Qrehash_threshold, "rehash-threshold");
 
   DEFSYM (Qchar_from_name, "char-from-name");
+
+  DEFVAR_LISP ("elisp-shorthands", Velisp_shorthands,
+          doc: /* Alist of known symbol name shorthands*/);
+  Velisp_shorthands = Qnil;
 }

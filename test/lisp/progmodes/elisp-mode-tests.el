@@ -1021,5 +1021,64 @@ evaluation of BODY."
     (should (equal (elisp--xref-infer-namespace p3) 'any))
     (should (equal (elisp--xref-infer-namespace p4) 'any))))
 
+
+(ert-deftest elisp-shorthand-read-buffer ()
+  (let* ((gsym (downcase (symbol-name (cl-gensym "sh-"))))
+         (shorthand-sname (format "s-%s" gsym))
+         (expected (intern (format "shorthand-longhand-%s" gsym))))
+    (cl-assert (not (intern-soft shorthand-sname)))
+    (should (equal (let ((elisp-shorthands
+                          '(("^s-" . "shorthand-longhand-"))))
+                     (with-temp-buffer
+                       (insert shorthand-sname)
+                       (goto-char (point-min))
+                       (read (current-buffer))))
+                   expected))
+    (should (not (intern-soft shorthand-sname)))))
+
+(ert-deftest elisp-shorthand-read-from-string ()
+  (let* ((gsym (downcase (symbol-name (cl-gensym "sh-"))))
+         (shorthand-sname (format "s-%s" gsym))
+         (expected (intern (format "shorthand-longhand-%s" gsym))))
+    (cl-assert (not (intern-soft shorthand-sname)))
+    (should (equal (let ((elisp-shorthands
+                          '(("^s-" . "shorthand-longhand-"))))
+                     (car (read-from-string shorthand-sname)))
+                   expected))
+    (should (not (intern-soft shorthand-sname)))))
+
+(defvar elisp--test-resources-dir
+  (expand-file-name "elisp-resources/"
+                    (file-name-directory
+                     (or load-file-name
+                         (error "this file needs to be loaded")))))
+
+(ert-deftest elisp-shorthand-load-a-file ()
+  (let ((test-file (expand-file-name "simple-shorthand-test.el"
+                                     elisp--test-resources-dir)))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (load test-file)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
+(ert-deftest elisp-shorthand-byte-compile-a-file ()
+
+  (let ((test-file (expand-file-name "simple-shorthand-test.el"
+                                     elisp--test-resources-dir))
+        (byte-compiled (expand-file-name "simple-shorthand-test.elc"
+                                         elisp--test-resources-dir)))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (byte-compile-file test-file)
+    (should-not (intern-soft "f-test"))
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (fboundp (intern-soft "elisp--foo-test")))
+    (load byte-compiled)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

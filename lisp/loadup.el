@@ -151,7 +151,7 @@
 ;; variable its advertised default value (it starts as nil, see
 ;; xdisp.c).
 (setq resize-mini-windows 'grow-only)
-(setq load-source-file-function #'load-with-code-conversion)
+(setq load-source-file-function #'load-with-shorthands-and-code-conversion)
 (load "files")
 
 ;; Load-time macro-expansion can only take effect after setting
