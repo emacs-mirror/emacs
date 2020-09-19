@@ -2543,6 +2543,81 @@ Prepare every function for final compilation and drive the C back-end."
   x)
 
 
+;; Primitive funciton advice machinery
+
+(defsubst comp-trampoline-sym (subr-name)
+  "Given SUBR-NAME return the trampoline function name."
+  (intern (concat "--subr-trampoline-" (symbol-name subr-name))))
+
+(defsubst comp-trampoline-filename (subr-name)
+  "Given SUBR-NAME return the filename containing the trampoline."
+  (concat (comp-c-func-name subr-name "subr-trampoline-" t) ".eln"))
+
+(defun comp-make-lambda-list-from-subr (subr)
+  "Given SUBR return the equivalent lambda-list."
+  (pcase-let ((`(,min . ,max) (subr-arity subr))
+              (lambda-list '()))
+    (cl-loop repeat min
+             do (push (gensym "arg") lambda-list))
+    (if (numberp max)
+        (cl-loop
+         initially (push '&optional lambda-list)
+         repeat (- max min)
+         do (push (gensym "arg") lambda-list))
+      (push '&rest lambda-list)
+      (push (gensym "arg") lambda-list))
+    (reverse lambda-list)))
+
+(defun comp-search-trampoline (subr-name)
+  "Search a trampoline file for SUBR-NAME.
+Return the its filename if found or nil otherwise."
+  (cl-loop
+   with rel-filename = (comp-trampoline-filename subr-name)
+   for dir in comp-eln-load-path
+   for filename = (expand-file-name rel-filename
+                                    (concat dir comp-native-version-dir))
+   when (file-exists-p filename)
+     do (cl-return filename)))
+
+(defun comp-tampoline-compile (subr-name)
+  "Synthesize and compile a trampoline for SUBR-NAME and return its filename."
+  (let ((trampoline-sym (comp-trampoline-sym subr-name))
+        (lambda-list (comp-make-lambda-list-from-subr
+                      (symbol-function subr-name)))
+        ;; Use speed 0 to maximize compilation speed and not to
+        ;; optimize away funcall calls!
+        (byte-optimize nil)
+        (comp-speed 0))
+    ;; The synthesized trampoline must expose the exact same ABI of
+    ;; the primitive we are replacing in the function reloc table.
+    (defalias trampoline-sym
+      `(closure nil ,lambda-list
+         (let ((f #',subr-name))
+           (,(if (memq '&rest lambda-list) 'apply 'funcall)
+            f
+            ,@(cl-loop
+               for arg in lambda-list
+               unless (memq arg '(&optional &rest))
+                 collect arg)))))
+    (native-compile trampoline-sym nil
+                    (expand-file-name (comp-trampoline-filename subr-name)
+                                      (concat (car comp-eln-load-path)
+                                              comp-native-version-dir)))))
+
+;;;###autoload
+(defun comp--subr-safe-advice (subr-name)
+  "Make SUBR-NAME effectively advice-able when called from native code."
+  (unless (memq subr-name comp-never-optimize-functions)
+    (let ((trampoline-sym (comp-trampoline-sym subr-name)))
+      (cl-assert (subr-primitive-p (symbol-function subr-name)))
+      (load (or (comp-search-trampoline subr-name)
+                (comp-tampoline-compile subr-name))
+            nil t)
+      (cl-assert
+       (subr-native-elisp-p (symbol-function trampoline-sym)))
+      (comp--install-trampoline subr-name (symbol-function trampoline-sym)))))
+
+
 ;; Some entry point support code.
 
 ;;;###autoload
