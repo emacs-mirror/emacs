@@ -61,7 +61,7 @@
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
-menu-bar-make-toggle\\)"
+menu-bar-make-toggle\\|menu-bar-make-toggle-command\\)"
    find-function-space-re
    "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")
   "The regexp used by `find-function' to search for a function definition.

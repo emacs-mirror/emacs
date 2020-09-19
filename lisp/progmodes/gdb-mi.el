@@ -4665,11 +4665,11 @@ SPLIT-HORIZONTAL and show BUF in the new window."
         (interactive)
         (customize-option 'gdb-switch-reasons))))
   (define-key menu [gdb-switch-when-another-stopped]
-    (menu-bar-make-toggle gdb-toggle-switch-when-another-stopped
-                          gdb-switch-when-another-stopped
-                          "Automatically switch to stopped thread"
-                          "GDB thread switching %s"
-                          "Switch to stopped thread"))
+    (menu-bar-make-toggle-command
+     gdb-toggle-switch-when-another-stopped
+     gdb-switch-when-another-stopped
+     "Automatically switch to stopped thread"
+     "GDB thread switching %s" "Switch to stopped thread"))
   (define-key gud-menu-map [mi]
     `(menu-item "GDB-MI" ,menu :visible (eq gud-minor-mode 'gdbmi))))
 
