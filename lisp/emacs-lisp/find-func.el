@@ -432,7 +432,7 @@ message about the whole chain of aliases."
     (cons function
           (cond
            ((autoloadp def) (nth 1 def))
-           ((and (subrp def) (not (subr-native-elisp-p def)))
+           ((subr-primitive-p def)
             (if lisp-only
                 (error "%s is a built-in function" function))
             (help-C-file-name def 'subr))
