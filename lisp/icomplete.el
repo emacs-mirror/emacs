@@ -50,6 +50,7 @@
 ;;; Code:
 
 (require 'rfn-eshadow) ; rfn-eshadow-overlay
+(require 'cl-lib)
 
 (defgroup icomplete nil
   "Show completions dynamically in minibuffer."
@@ -137,6 +138,19 @@ will constrain Emacs to a maximum minibuffer height of 3 lines when
 icompletion is occurring."
   :type 'hook
   :group 'icomplete)
+
+
+(defvar-local icomplete--ellipsis nil
+  "Ellipsis symbol to indicate continuation.")
+
+(defvar-local icomplete--list-indicators-format nil
+  "Indicator for when multiple prospects are available.
+means that further input is required to distinguish a single one")
+
+(defvar-local icomplete--prospects nil)
+(defvar-local icomplete--match-braket nil)
+(defvar-local icomplete--prospects-max-height nil)
+(defvar-local icomplete--lines-per-candidate 0)
 
 
 ;;;_* Initialization
@@ -437,6 +451,62 @@ Conditions are:
                (member table icomplete-with-completion-tables))))))
 
 ;;;_ > icomplete-minibuffer-setup ()
+
+(defun icomplete--vertical-prospects (prefix-len _determ comps)
+  "List of vertical completions limited."
+  ;; Max total rows to use, including the minibuffer content.
+  (let* (;; Needed for prospects-max-height-pixel
+         (single-line-height (line-pixel-height))
+         ;; in general this should be done for every line
+         (line-height (* icomplete--lines-per-candidate single-line-height))
+         (prospects-rows (+ (cdr (window-text-pixel-size))
+                            (* (cl-count ?\n icomplete--list-indicators-format) single-line-height)))
+         limit prospects comp comp-len)
+
+    (while (and comps (not limit))
+      (setq comp (substring (pop comps) prefix-len)
+            comp-len (> (length comp) 0))
+
+      (if comp-len
+           (setq prospects-rows (+ prospects-rows line-height)))
+
+      (if (< prospects-rows icomplete--prospects-max-height)
+          (if comp-len
+              (push comp prospects))
+        (push icomplete--ellipsis prospects)
+        (setq limit t)))
+    (nreverse prospects)))
+
+
+(defun icomplete--horizontal-prospects (prefix-len determ comps)
+  "List of horizontal completions limited."
+
+  (let* (;; Max total length to use, including the minibuffer content.
+         (separator-width (string-width icomplete-separator))
+         (prospects-len (+ (string-width (or determ (format icomplete--match-braket "")))
+                           (string-width icomplete-separator)
+                           (+ 2 (string-width icomplete--ellipsis)) ;; take {…} into account
+                           (string-width (buffer-string))))
+         (prospects-max-len (* (+ icomplete-prospects-height
+                                  ;; If the minibuffer content already uses up more than
+                                  ;; one line, increase the allowable space accordingly.
+                                  (/ prospects-len (window-width)))
+                               (window-width)))
+         limit prospects comp)
+
+    (while (and comps (not limit))
+      (setq comp (substring (pop comps) prefix-len))
+
+      (when (> (length comp) 0)
+          (setq prospects-len (+ prospects-len (string-width comp) separator-width)))
+
+      (if (< prospects-len prospects-max-len)
+          (push comp prospects)
+        (push icomplete--ellipsis prospects)
+        (setq limit t)))
+    (nreverse prospects)))
+
+
 (defun icomplete-minibuffer-setup ()
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
@@ -446,7 +516,29 @@ Usually run by inclusion in `minibuffer-setup-hook'."
     					 (current-local-map)))
     (add-hook 'pre-command-hook  #'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
-    (run-hooks 'icomplete-minibuffer-setup-hook)))
+    (run-hooks 'icomplete-minibuffer-setup-hook)
+
+    (setq icomplete--ellipsis (if (char-displayable-p ?…) "…" "...")
+          icomplete--lines-per-candidate (cl-count ?\n icomplete-separator))
+
+    (if (> icomplete--lines-per-candidate 0)
+        (setq-local icomplete--list-indicators-format " \n%s"
+                    icomplete--prospects 'icomplete--vertical-prospects
+                    icomplete--prospects-max-height
+                    (let ((minibuffer-parameter (frame-parameter nil 'minibuffer)))
+                      (min (cond
+                            ((eq minibuffer-parameter t)
+                             (if (floatp max-mini-window-height)
+                                 (* max-mini-window-height (frame-pixel-height))
+                               (* max-mini-window-height (frame-char-height))))
+                            ;; TODO: minibuffer-parameter can be nil, what to do then?.
+                            ((eq minibuffer-parameter 'only)
+                             (frame-pixel-height)))
+                           (* (+ 2 icomplete-prospects-height) (line-pixel-height)))))
+
+      (setq-local icomplete--list-indicators-format "{%s}"
+                  icomplete--prospects 'icomplete--horizontal-prospects))))
+
 
 (defvar icomplete--in-region-buffer nil)
 
@@ -639,8 +731,6 @@ one of (), [], or {} pairs.  The choice of brackets is as follows:
 
   (...) - a single prospect is identified and matching is enforced,
   [...] - a single prospect is identified but matching is optional, or
-  {...} - multiple prospects, separated by commas, are indicated, and
-          further input is required to distinguish a single one.
 
 If there are multiple possibilities, `icomplete-separator' separates them.
 
@@ -665,13 +755,13 @@ matches exist."
 	 (md (completion--field-metadata (icomplete--field-beg)))
 	 (comps (icomplete--sorted-completions))
          (last (if (consp comps) (last comps)))
-         (base-size (cdr last))
-         (open-bracket (if require-match "(" "["))
-         (close-bracket (if require-match ")" "]")))
+         (base-size (cdr last)))
+
+    (setq-local icomplete--match-braket (if require-match "(%s)" "[%s]"))
     ;; `concat'/`mapconcat' is the slow part.
     (if (not (consp comps))
 	(progn ;;(debug (format "Candidates=%S field=%S" candidates name))
-	  (format " %sNo matches%s" open-bracket close-bracket))
+	  (format icomplete--match-braket "No matches"))
       (if last (setcdr last nil))
       (let* ((most-try
               (if (and base-size (> base-size 0))
@@ -687,33 +777,18 @@ matches exist."
              ;; a prefix of most, or something else.
 	     (compare (compare-strings name nil nil
 				       most nil nil completion-ignore-case))
-	     (ellipsis (if (char-displayable-p ?…) "…" "..."))
 	     (determ (unless (or (eq t compare) (eq t most-try)
 				 (= (setq compare (1- (abs compare)))
 				    (length most)))
-		       (concat open-bracket
+		       (format icomplete--match-braket
 			       (cond
 				((= compare (length name))
                                  ;; Typical case: name is a prefix.
 				 (substring most compare))
                                 ;; Don't bother truncating if it doesn't gain
                                 ;; us at least 2 columns.
-				((< compare (+ 2 (string-width ellipsis))) most)
-				(t (concat ellipsis (substring most compare))))
-			       close-bracket)))
-	     ;;"-prospects" - more than one candidate
-	     (prospects-len (+ (string-width
-				(or determ (concat open-bracket close-bracket)))
-			       (string-width icomplete-separator)
-			       (+ 2 (string-width ellipsis)) ;; take {…} into account
-			       (string-width (buffer-string))))
-             (prospects-max
-              ;; Max total length to use, including the minibuffer content.
-              (* (+ icomplete-prospects-height
-                    ;; If the minibuffer content already uses up more than
-                    ;; one line, increase the allowable space accordingly.
-                    (/ prospects-len (window-width)))
-                 (window-width)))
+				((< compare (+ 2 (string-width icomplete--ellipsis))) most)
+				(t (concat icomplete--ellipsis (substring most compare)))))))
              ;; Find the common prefix among `comps'.
              ;; We can't use the optimization below because its assumptions
              ;; aren't always true, e.g. when completion-cycling (bug#10850):
@@ -725,12 +800,13 @@ matches exist."
 	     (prefix (when icomplete-hide-common-prefix
 		       (try-completion "" comps)))
              (prefix-len
-	      (and (stringp prefix)
+              (and icomplete-hide-common-prefix
+                   (stringp prefix)
                    ;; Only hide the prefix if the corresponding info
                    ;; is already displayed via `most'.
                    (string-prefix-p prefix most t)
-                   (length prefix))) ;;)
-	     prospects comp limit)
+                   (length prefix)))
+	     prospects)
 	(if (or (eq most-try t) (not (consp (cdr comps))))
 	    (setq prospects nil)
 	  (when (member name comps)
@@ -751,20 +827,11 @@ matches exist."
 	    ;; To circumvent all the above problems, provide a visual
 	    ;; cue to the user via an "empty string" in the try
 	    ;; completion field.
-	    (setq determ (concat open-bracket "" close-bracket)))
+	    (setq determ (format icomplete--match-braket "")))
 	  ;; Compute prospects for display.
-	  (while (and comps (not limit))
-	    (setq comp
-		  (if prefix-len (substring (car comps) prefix-len) (car comps))
-		  comps (cdr comps))
-	    (setq prospects-len
-                  (+ (string-width comp)
-		     (string-width icomplete-separator)
-		     prospects-len))
-	    (if (< prospects-len prospects-max)
-		(push comp prospects)
-	      (setq limit t))))
-	(setq prospects (nreverse prospects))
+          (setq prospects
+                (funcall icomplete--prospects prefix-len determ comps)))
+
 	;; Decorate first of the prospects.
 	(when prospects
 	  (let ((first (copy-sequence (pop prospects))))
@@ -776,10 +843,8 @@ matches exist."
         (if last (setcdr last base-size))
 	(if prospects
 	    (concat determ
-		    "{"
-		    (mapconcat 'identity prospects icomplete-separator)
-		    (and limit (concat icomplete-separator ellipsis))
-		    "}")
+                    (format icomplete--list-indicators-format
+                            (mapconcat 'identity prospects icomplete-separator)))
 	  (concat determ " [Matched]"))))))
 
 ;;; Iswitchb compatibility
