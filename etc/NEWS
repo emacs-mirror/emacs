@@ -1372,6 +1372,12 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** New function 'process-lines-ignore-status'.
+This is like 'process-lines', but does not signal an error if the
+return status is non-zero.  'process-lines-handling-status' has also
+been added, and takes a callback to handle the return status.
+
++++
 *** New function 'replace-in-string'.
 This function works along the line of 'replace-regexp-in-string', but
 matching on strings instead of regexps, and does not change the global
