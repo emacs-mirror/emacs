@@ -1524,6 +1524,9 @@ To turn this on, set the variable 'w32-use-native-image-API' to a
 non-nil value.  Please report any bugs you find while using the native
 image API via 'M-x report-emacs-bug'.
 
+---
+** The variable 'make-pointer-invisible' is now honored on macOS.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

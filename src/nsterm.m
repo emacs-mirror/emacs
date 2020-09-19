@@ -6449,7 +6449,7 @@ not_in_argv (NSString *arg)
   if (nsEvArray == nil)
     nsEvArray = [[NSMutableArray alloc] initWithCapacity: 1];
 
-  [NSCursor setHiddenUntilMouseMoves: YES];
+  [NSCursor setHiddenUntilMouseMoves:! NILP (Vmake_pointer_invisible)];
 
   if (hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight))
     {
