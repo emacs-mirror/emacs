@@ -49,51 +49,9 @@
 ;; that with the shorthands for other longer named symbols.
 
 ;;; Code:
-
 (require 'cl-lib)
 
-(defvar shorthand-shorthands nil)
 (put 'shorthand-shorthands 'safe-local-variable #'consp)
-
-(defun shorthand--expand-shorthand (form)
-  (cl-typecase form
-    (cons (setcar form (shorthand--expand-shorthand (car form)))
-          (setcdr form (shorthand--expand-shorthand (cdr form))))
-    (vector (cl-loop for i from 0 for e across form
-                     do (aset form i (shorthand--expand-shorthand e))))
-    (symbol (let* ((name (symbol-name form)))
-              (cl-loop for (short-pat . long-pat) in shorthand-shorthands
-                       when (string-match short-pat name)
-                       do (setq name (replace-match long-pat t nil name)))
-              (setq form (intern name))))
-    (string) (number)
-    (t       (message "[shorthand] unexpected %s" (type-of form))))
-  form)
-
-(defun shorthand-read-wrapper (wrappee stream &rest stuff)
-  "Read a form from STREAM.
-Do this in two steps, read the form while shadowing the global
-`obarray' so that symbols aren't just automatically interned into
-`obarray' as usual.  Then walk the form using
-`shorthand--expand-shorthand' and every time a symbol is found,
-apply the transformations of `shorthand-shorthands' to it before
-interning it the \"real\" global `obarray'.  This ensures that
-longhand, _not_ shorthand, versions of each symbol is interned."
-  (if (and load-file-name (string-match "\\.elc$" load-file-name))
-      (apply wrappee stream stuff)
-    (shorthand--expand-shorthand
-     (let ((obarray (obarray-make))) (apply wrappee stream stuff)))))
-
-(defun shorthand-intern-soft-wrapper (wrappee name &rest stuff)
-  "Tell if string NAME names an interned symbol.
-Even if NAME directly doesn't, its longhand expansion might."
-  (let ((res (apply wrappee name stuff)))
-    (or res (cl-loop
-             for (short-pat . long-pat) in shorthand-shorthands
-             thereis (apply wrappee
-                            (replace-regexp-in-string short-pat
-                                                      long-pat name)
-                            stuff)))))
 
 (defun shorthand-load-wrapper (wrappee file &rest stuff)
   "Load Elisp FILE, aware of file-local `shortand-shorthands'."
@@ -106,8 +64,6 @@ Even if NAME directly doesn't, its longhand expansion might."
     (let ((shorthand-shorthands file-local-shorthands))
       (apply wrappee file stuff))))
 
-(advice-add 'read        :around #'shorthand-read-wrapper)
-(advice-add 'intern-soft :around #'shorthand-intern-soft-wrapper)
 (advice-add 'load        :around #'shorthand-load-wrapper)
 
 (provide 'shorthand)
