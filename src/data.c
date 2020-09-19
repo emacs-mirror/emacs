@@ -88,12 +88,6 @@ XOBJFWD (lispfwd a)
 }
 
 static void
-CHECK_SUBR (Lisp_Object x)
-{
-  CHECK_TYPE (SUBRP (x), Qsubrp, x);
-}
-
-static void
 set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
 {
   eassert (found == !EQ (blv->defcell, blv->valcell));

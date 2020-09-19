@@ -2982,6 +2982,12 @@ CHECK_INTEGER (Lisp_Object x)
 {
   CHECK_TYPE (INTEGERP (x), Qnumberp, x);
 }
+
+INLINE void
+CHECK_SUBR (Lisp_Object x)
+{
+  CHECK_TYPE (SUBRP (x), Qsubrp, x);
+}
 
 
 /* If we're not dumping using the legacy dumper and we might be using
