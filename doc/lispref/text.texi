@@ -3069,7 +3069,7 @@ construct each part with @code{propertize} and then combine them with
 @code{buffer-substring-no-properties}, which copies text from the
 buffer but does not copy its properties.
 
-@findex with-silent-modifications
+@findex with-silent-modifications, and changes in text properties
   If you wish to add text properties to a buffer or remove them
 without marking the buffer as modified, you can wrap the calls above
 in the @code{with-silent-modifications} macro.  @xref{Buffer
