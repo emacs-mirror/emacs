@@ -4104,7 +4104,6 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
     {
       make_symbol_constant (sym);
       XSYMBOL (sym)->u.s.redirect = SYMBOL_PLAINVAL;
-      XSYMBOL (sym)->u.s.declared_special = true;
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
