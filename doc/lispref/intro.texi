@@ -249,7 +249,8 @@ indicated with @samp{@equiv{}}.
 
   Many of the examples in this manual print text when they are
 evaluated.  If you execute example code in a Lisp Interaction buffer
-(such as the buffer @file{*scratch*}), the printed text is inserted into
+(such as the buffer @file{*scratch*}) by typing @kbd{C-j} after the
+closing parenthesis of the example, the printed text is inserted into
 the buffer.  If you execute the example by other means (such as by
 evaluating the function @code{eval-region}), the printed text is
 displayed in the echo area.
