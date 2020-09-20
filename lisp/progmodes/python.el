@@ -5129,21 +5129,22 @@ point's current `syntax-ppss'."
              (>=
               2
               (let (last-backward-sexp-point)
-                (while (save-excursion
-                         (python-nav-backward-sexp)
-                         (setq backward-sexp-point (point))
-                         (and (= indentation (current-indentation))
-                              ;; Make sure we're always moving point.
-                              ;; If we get stuck in the same position
-                              ;; on consecutive loop iterations,
-                              ;; bail out.
-                              (prog1 (not (eql last-backward-sexp-point
-                                               backward-sexp-point))
-                                (setq last-backward-sexp-point
-                                      backward-sexp-point))
-                              (looking-at-p
-                               (concat "[uU]?[rR]?"
-                                       (python-rx string-delimiter)))))
+                (while (and (<= counter 2)
+                            (save-excursion
+                              (python-nav-backward-sexp)
+                              (setq backward-sexp-point (point))
+                              (and (= indentation (current-indentation))
+                                   ;; Make sure we're always moving point.
+                                   ;; If we get stuck in the same position
+                                   ;; on consecutive loop iterations,
+                                   ;; bail out.
+                                   (prog1 (not (eql last-backward-sexp-point
+                                                    backward-sexp-point))
+                                     (setq last-backward-sexp-point
+                                           backward-sexp-point))
+                                   (looking-at-p
+                                    (concat "[uU]?[rR]?"
+                                            (python-rx string-delimiter))))))
                   ;; Previous sexp was a string, restore point.
                   (goto-char backward-sexp-point)
                   (cl-incf counter))
