@@ -239,6 +239,9 @@ of the next command to be displayed in a new frame.
 It's bound to the command 'other-tab-prefix' that requests the buffer
 of the next command to be displayed in a new tab.
 
++++
+*** New command 'C-x t C-r' to open file read-only in other tab.
+
 *** The tab bar is frame-local when 'tab-bar-show' is a number.
 Show/hide the tab bar independently for each frame, according to the
 value of 'tab-bar-show'.

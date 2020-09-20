@@ -1926,6 +1926,14 @@ Only intended for interactive use."
     (ffap--toggle-read-only value)
     value))
 
+(defun ffap-read-only-other-tab (filename)
+  "Like `ffap', but put buffer in another tab and mark as read-only.
+Only intended for interactive use."
+  (interactive (list (ffap-prompter nil " read only other tab")))
+  (let ((value (window-buffer (ffap-other-tab filename))))
+    (ffap--toggle-read-only value)
+    value))
+
 (defun ffap-alternate-file (filename)
   "Like `ffap' and `find-alternate-file'.
 Only intended for interactive use."
