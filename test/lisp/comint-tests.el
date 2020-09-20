@@ -52,73 +52,41 @@
   (dolist (str comint-testsuite-password-strings)
     (should (string-match comint-password-prompt-regexp str))))
 
-(ert-deftest comint-test-no-password-function ()
-  "Test that `comint-password-function' not being set does not
-alter normal password flow."
-  (cl-letf
-      (((symbol-function 'read-passwd)
-        (lambda (_prompt &optional _confirm _default)
-          "PaSsWoRd123")))
-    (let ((cat (executable-find "cat")))
-      (when cat
+(defun comint-tests/test-password-function (password-function)
+  "PASSWORD-FUNCTION can return nil or a string."
+  (when-let ((cat (executable-find "cat")))
+    (let ((comint-password-function password-function))
+      (cl-letf (((symbol-function 'read-passwd)
+                 (lambda (&rest _args) "non-nil")))
         (with-temp-buffer
           (make-comint-in-buffer "test-comint-password" (current-buffer) cat)
           (let ((proc (get-buffer-process (current-buffer))))
             (set-process-query-on-exit-flag proc nil)
-            (comint-send-string proc "Password: ")
-            (comint-send-eof)
-            (while (accept-process-output proc 0.1 nil t))
-            (should (string-equal (buffer-substring-no-properties (point-min) (point-max))
-                                  "Password: PaSsWoRd123\n"))
-            (when (process-live-p proc)
-              (kill-process proc))
-            (accept-process-output proc 0 1 t)))))))
+            (set-process-query-on-exit-flag proc nil)
+            (comint-send-invisible "Password: ")
+            (accept-process-output proc 0.1)
+            (should (string-equal
+                     (buffer-substring-no-properties (point-min) (point-max))
+                     (concat (or (and password-function
+                                      (funcall password-function))
+                                 "non-nil")
+                             "\n")))))))))
+
+(ert-deftest comint-test-no-password-function ()
+  "Test that `comint-password-function' not being set does not
+alter normal password flow."
+  (comint-tests/test-password-function nil))
 
 (ert-deftest comint-test-password-function-with-value ()
   "Test that `comint-password-function' alters normal password
 flow.  Hook function returns alternative password."
-  (cl-letf
-      (((symbol-function 'read-passwd)
-        (lambda (_prompt &optional _confirm _default)
-          "PaSsWoRd123")))
-    (let ((cat (executable-find "cat"))
-          (comint-password-function (lambda (_prompt) "MaGiC-PaSsWoRd789")))
-      (when cat
-        (with-temp-buffer
-          (make-comint-in-buffer "test-comint-password" (current-buffer) cat)
-          (let ((proc (get-buffer-process (current-buffer))))
-            (set-process-query-on-exit-flag proc nil)
-            (comint-send-string proc "Password: ")
-            (comint-send-eof)
-            (while (accept-process-output proc 0.1 nil t))
-            (should (string-equal (buffer-substring-no-properties (point-min) (point-max))
-                                  "Password: MaGiC-PaSsWoRd789\n"))
-            (when (process-live-p proc)
-              (kill-process proc))
-            (accept-process-output proc 0 1 t)))))))
+  (comint-tests/test-password-function
+   (lambda (&rest _args) "MaGiC-PaSsWoRd789")))
 
 (ert-deftest comint-test-password-function-with-nil ()
   "Test that `comint-password-function' does not alter the normal
 password flow if it returns a nil value."
-  (cl-letf
-      (((symbol-function 'read-passwd)
-        (lambda (_prompt &optional _confirm _default)
-          "PaSsWoRd456")))
-    (let ((cat (executable-find "cat"))
-          (comint-password-function (lambda (_prompt) nil)))
-      (when cat
-        (with-temp-buffer
-          (make-comint-in-buffer "test-comint-password" (current-buffer) cat)
-          (let ((proc (get-buffer-process (current-buffer))))
-            (set-process-query-on-exit-flag proc nil)
-            (comint-send-string proc "Password: ")
-            (comint-send-eof)
-            (while (accept-process-output proc 0.1 nil t))
-            (should (string-equal (buffer-substring-no-properties (point-min) (point-max))
-                                  "Password: PaSsWoRd456\n"))
-            (when (process-live-p proc)
-              (kill-process proc))
-            (accept-process-output proc 0 1 t)))))))
+  (comint-tests/test-password-function #'ignore))
 
 ;; Local Variables:
 ;; no-byte-compile: t
