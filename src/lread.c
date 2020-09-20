@@ -4553,19 +4553,30 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 Lisp_Object
 oblookup_considering_shorthand (Lisp_Object obarray, Lisp_Object* string)
 {
+  Lisp_Object original = *string; /* Save pointer to original string... */
   Lisp_Object tail = Vshorthand_shorthands;
   FOR_EACH_TAIL_SAFE(tail)
     {
       Lisp_Object pair = XCAR (tail);
+      if (!CONSP (pair)) goto undo;
       Lisp_Object shorthand = XCAR (pair);
       Lisp_Object longhand = XCDR (pair);
-      CHECK_STRING (shorthand);
-      CHECK_STRING (longhand);
-      Lisp_Object match = Fstring_match(shorthand, *string, Qnil);
+      if (!STRINGP (shorthand) || !STRINGP (longhand)) goto undo;
+      Lisp_Object match = Fstring_match (shorthand, *string, Qnil);
       if (!NILP(match)){
         *string = Freplace_match(longhand, Qnil, Qnil, *string, Qnil);
       }
     }
+  goto fine;
+ undo:
+  {
+    static const char* warn =
+      "Fishy value of `shorthand-shorthands'.  "
+      "Consider reviewing before evaluating code.";
+    message_dolog (warn, sizeof(warn), 0, 0);
+    *string = original;   /* ...so we can any failed trickery here. */
+  }
+ fine:
   return oblookup(obarray, SSDATA (*string), SCHARS (*string), SBYTES (*string));
 }
 
