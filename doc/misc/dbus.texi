@@ -1036,7 +1036,7 @@ All basic D-Bus types based on a number are truncated to their type
 range.  For example, @code{:byte 1025} is equal to @code{:byte 1}.
 
 If typed explicitly, a non-@code{nil} boolean value like
-{@code{:boolean 'symbol} is handled like @code{t} or @code{:boolean t}.
+@code{:boolean 'symbol} is handled like @code{t} or @code{:boolean t}.
 
 A D-Bus compound type is always represented as a list.  The @sc{car}
 of this list can be the type symbol @code{:array}, @code{:variant},
