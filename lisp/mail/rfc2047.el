@@ -716,11 +716,13 @@ Point moves to the end of the region."
 	   (goto-char e)))))
 
 (defun rfc2047-fold-field ()
-  "Fold the current header field."
+  "Fold the current header field.
+Return the new end point."
   (save-excursion
     (save-restriction
       (rfc2047-narrow-to-field)
-      (rfc2047-fold-region (point-min) (point-max)))))
+      (rfc2047-fold-region (point-min) (point-max))
+      (point-max))))
 
 (defun rfc2047-fold-region (b e)
   "Fold long lines in region B to E."

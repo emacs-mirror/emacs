@@ -4843,10 +4843,10 @@ If you always want Gnus to send messages in one piece, set
 Each line should be no more than 79 characters long."
   (goto-char (point-min))
   (while (not (eobp))
-    (when (and (looking-at "[^:]+:")
-               (> (- (line-end-position) (point)) 79))
-      (mail-header-fold-field))
-    (forward-line 1)))
+    (if (and (looking-at "[^:]+:")
+             (> (- (line-end-position) (point)) 79))
+	(goto-char (mail-header-fold-field))
+      (forward-line 1))))
 
 (defvar sendmail-program)
 (defvar smtpmail-smtp-server)
