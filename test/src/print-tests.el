@@ -374,7 +374,7 @@ otherwise, use a different charset."
 
   (should
    (string-match
-    "data (99 99"
+    "data (99 99)"
     (let ((h (make-hash-table)))
       (dotimes (i 100)
         (puthash i i h))
