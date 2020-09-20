@@ -714,7 +714,8 @@ size, and full-buffer size."
       (forward-char 1))))
 
 (defun shr-fill-line ()
-  (let ((shr-indentation (get-text-property (point) 'shr-indentation))
+  (let ((shr-indentation (or (get-text-property (point) 'shr-indentation)
+                             shr-indentation))
 	(continuation (get-text-property
 		       (point) 'shr-continuation-indentation))
 	start)
