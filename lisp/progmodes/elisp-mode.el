@@ -2078,5 +2078,8 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (terpri)
     (pp collected)))
 
+
+(put 'elisp-shorthands 'safe-local-variable #'consp)
+
 (provide 'elisp-mode)
 ;;; elisp-mode.el ends here

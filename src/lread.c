@@ -4554,7 +4554,7 @@ Lisp_Object
 oblookup_considering_shorthand (Lisp_Object obarray, Lisp_Object* string)
 {
   Lisp_Object original = *string; /* Save pointer to original string... */
-  Lisp_Object tail = Vshorthand_shorthands;
+  Lisp_Object tail = Velisp_shorthands;
   FOR_EACH_TAIL_SAFE(tail)
     {
       Lisp_Object pair = XCAR (tail);
@@ -4571,7 +4571,7 @@ oblookup_considering_shorthand (Lisp_Object obarray, Lisp_Object* string)
  undo:
   {
     static const char* warn =
-      "Fishy value of `shorthand-shorthands'.  "
+      "Fishy value of `elisp-shorthands'.  "
       "Consider reviewing before evaluating code.";
     message_dolog (warn, sizeof(warn), 0, 0);
     *string = original;   /* ...so we can any failed trickery here. */
@@ -5337,8 +5337,8 @@ that are loaded before your customizations are read!  */);
 
   DEFSYM (Qchar_from_name, "char-from-name");
 
-  DEFVAR_LISP ("shorthand-shorthands", Vshorthand_shorthands,
+  DEFVAR_LISP ("elisp-shorthands", Velisp_shorthands,
           doc: /* Alist of known symbol name shorthands*/);
-  Vshorthand_shorthands = Qnil;
-  DEFSYM (Qshorthand_shorthands, "shorthand-shorthands");
+  Velisp_shorthands = Qnil;
+  DEFSYM (Qelisp_shorthands, "elisp-shorthands");
 }
