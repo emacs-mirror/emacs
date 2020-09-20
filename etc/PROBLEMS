@@ -918,6 +918,19 @@ index 5504171..431adf8 100644
 If you can't modify that file directly, copy it to the directory
 ~/.m17n.d/ (create it if it doesn't exist), and apply the patch.
 
+** On MS-Windows, some characters display as boxes with hex code.
+
+Also, some characters could display with wrong fonts.
+
+This can happen if Emacs was compiled without HarfBuzz support, and/or
+if the HarfBuzz DLLs are not available at run time.  Emacs will then
+fall back to the Uniscribe as its shaping engine; Uniscribe was
+deprecated by Microsoft, and sometimes fails to display correctly when
+modern fonts are used, such as Noto Emoji or Ebrima.
+
+The solution is to switch to a configuration that uses HarfBuzz as its
+shaping engine, where these problems don't exist.
+
 * Internationalization problems
 
 ** M-{ does not work on a Spanish PC keyboard.
