@@ -1269,6 +1269,10 @@ The following usages are expected:
   (dbus-message-internal
     dbus-message-type-error BUS SERVICE SERIAL ERROR-NAME &rest ARGS)
 
+`dbus-check-arguments': (does not send a message)
+  (dbus-message-internal
+    dbus-message-type-invalid BUS SERVICE &rest ARGS)
+
 usage: (dbus-message-internal &rest REST)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -1286,7 +1290,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_uint32_t serial = 0;
   unsigned int ui_serial;
   int timeout = -1;
-  ptrdiff_t count;
+  ptrdiff_t count, count0;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Initialize parameters.  */
@@ -1296,7 +1300,7 @@ usage: (dbus-message-internal &rest REST)  */)
   handler = Qnil;
 
   CHECK_FIXNAT (message_type);
-  if (! (DBUS_MESSAGE_TYPE_INVALID < XFIXNAT (message_type)
+  if (! (DBUS_MESSAGE_TYPE_INVALID <= XFIXNAT (message_type)
 	 && XFIXNAT (message_type) < DBUS_NUM_MESSAGE_TYPES))
     XD_SIGNAL2 (build_string ("Invalid message type"), message_type);
   mtype = XFIXNAT (message_type);
@@ -1311,13 +1315,16 @@ usage: (dbus-message-internal &rest REST)  */)
 	handler = args[6];
       count = (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL) ? 7 : 6;
     }
-  else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
+  else if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+	   || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       serial = xd_extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
       if (mtype == DBUS_MESSAGE_TYPE_ERROR)
 	error_name = args[4];
       count = (mtype == DBUS_MESSAGE_TYPE_ERROR) ? 5 : 4;
     }
+  else /* DBUS_MESSAGE_TYPE_INVALID  */
+    count = 3;
 
   /* Check parameters.  */
   XD_DBUS_VALIDATE_BUS_ADDRESS (bus);
@@ -1367,7 +1374,7 @@ usage: (dbus-message-internal &rest REST)  */)
 			XD_OBJECT_TO_STRING (service),
 			ui_serial);
        break;
-    default: /* DBUS_MESSAGE_TYPE_ERROR  */
+    case DBUS_MESSAGE_TYPE_ERROR:
       ui_serial = serial;
       XD_DEBUG_MESSAGE ("%s %s %s %u %s",
 			XD_MESSAGE_TYPE_TO_STRING (mtype),
@@ -1375,17 +1382,25 @@ usage: (dbus-message-internal &rest REST)  */)
 			XD_OBJECT_TO_STRING (service),
 			ui_serial,
 			XD_OBJECT_TO_STRING (error_name));
+      break;
+    default: /* DBUS_MESSAGE_TYPE_INVALID  */
+      XD_DEBUG_MESSAGE ("%s %s %s",
+			XD_MESSAGE_TYPE_TO_STRING (mtype),
+			XD_OBJECT_TO_STRING (bus),
+			XD_OBJECT_TO_STRING (service));
     }
 
   /* Retrieve bus address.  */
   connection = xd_get_connection_address (bus);
 
-  /* Create the D-Bus message.  */
-  dmessage = dbus_message_new (mtype);
+  /* Create the D-Bus message.  Since DBUS_MESSAGE_TYPE_INVALID is not
+     a valid message type, we mockup it with DBUS_MESSAGE_TYPE_SIGNAL.  */
+  dmessage = dbus_message_new
+    ((mtype == DBUS_MESSAGE_TYPE_INVALID) ? DBUS_MESSAGE_TYPE_SIGNAL : mtype);
   if (dmessage == NULL)
     XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
-  if (STRINGP (service))
+  if ((STRINGP (service)) && (mtype != DBUS_MESSAGE_TYPE_INVALID))
     {
       if (mtype != DBUS_MESSAGE_TYPE_SIGNAL)
 	/* Set destination.  */
@@ -1427,7 +1442,8 @@ usage: (dbus-message-internal &rest REST)  */)
 	XD_SIGNAL1 (build_string ("Unable to set the message parameter"));
     }
 
-  else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
+  else if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+	   || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       if (!dbus_message_set_reply_serial (dmessage, serial))
 	XD_SIGNAL1 (build_string ("Unable to create a return message"));
@@ -1449,6 +1465,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_message_iter_init_append (dmessage, &iter);
 
   /* Append parameters to the message.  */
+  count0 = count - 1;
   for (; count < nargs; ++count)
     {
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[count]);
@@ -1456,15 +1473,17 @@ usage: (dbus-message-internal &rest REST)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%"pD"d %s %s", count - 4,
+	  XD_DEBUG_MESSAGE ("Parameter%"pD"d: %s Parameter%"pD"d: %s",
+			    count - count0,
 			    XD_OBJECT_TO_STRING (args[count]),
+			    count + 1 - count0,
 			    XD_OBJECT_TO_STRING (args[count+1]));
 	  ++count;
 	}
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count]);
-	  XD_DEBUG_MESSAGE ("Parameter%"pD"d %s", count - 4,
+	  XD_DEBUG_MESSAGE ("Parameter%"pD"d: %s", count - count0,
 			    XD_OBJECT_TO_STRING (args[count]));
 	}
 
@@ -1475,7 +1494,10 @@ usage: (dbus-message-internal &rest REST)  */)
       xd_append_arg (dtype, args[count], &iter);
     }
 
-  if (!NILP (handler))
+  if (mtype == DBUS_MESSAGE_TYPE_INVALID)
+    result = Qt;
+
+  else if (!NILP (handler))
     {
       /* Send the message.  The message is just added to the outgoing
 	 message queue.  */
@@ -1500,7 +1522,8 @@ usage: (dbus-message-internal &rest REST)  */)
       result = Qnil;
     }
 
-  XD_DEBUG_MESSAGE ("Message sent: %s", XD_OBJECT_TO_STRING (result));
+  if (mtype != DBUS_MESSAGE_TYPE_INVALID)
+    XD_DEBUG_MESSAGE ("Message sent: %s", XD_OBJECT_TO_STRING (result));
 
   /* Cleanup.  */
   dbus_message_unref (dmessage);
@@ -1548,7 +1571,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
     }
 
   /* Read message type, message serial, unique name, object path,
-     interface and member from the message.  */
+     interface, member and error name from the message.  */
   mtype = dbus_message_get_type (dmessage);
   ui_serial = serial =
     ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
@@ -1590,7 +1613,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       event.arg =
 	Fcons (value,
 	       (mtype == DBUS_MESSAGE_TYPE_ERROR)
-	       ? Fcons (list2 (QCstring, build_string (error_name)), args) : args);
+	       ? Fcons (list2 (QCstring, build_string (error_name)), args)
+	       : args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */

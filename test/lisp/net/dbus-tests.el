@@ -25,8 +25,6 @@
 (defvar dbus-debug nil)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
-(setq dbus-show-dbus-errors nil)
-
 (defconst dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)
        (dbus-ignore-errors (dbus-get-unique-name :session)))
@@ -383,19 +381,14 @@ This includes initialization and closing the bus."
           "foo"))
         ;; Due to `:read' access type, we don't get a proper reply
         ;; from `dbus-set-property'.
-        (should-not
-         (dbus-set-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property1 "foofoo"))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            (butlast
-             (should-error
-              (dbus-set-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property1 "foofoo")))
-            `(dbus-error ,dbus-error-property-read-only))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-set-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property1 "foofoo")))
+          `(dbus-error ,dbus-error-property-read-only)))
         (should
          (string-equal
           (dbus-get-property
@@ -413,29 +406,29 @@ This includes initialization and closing the bus."
             (,dbus--test-service ,dbus--test-path))))
         ;; Due to `:write' access type, we don't get a proper reply
         ;; from `dbus-get-property'.
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property2))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            (butlast
-             (should-error
-              (dbus-get-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property2)))
-            `(dbus-error ,dbus-error-access-denied))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property2)))
+          `(dbus-error ,dbus-error-access-denied)))
         (should
          (string-equal
           (dbus-set-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property2 "barbar")
           "barbar"))
-        (should-not ;; Due to `:write' access type.
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property2))
+        ;; Still `:write' access type.
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property2)))
+          `(dbus-error ,dbus-error-access-denied)))
 
         ;; `:readwrite' property, typed value (Bug#43252).
         (should
@@ -465,32 +458,22 @@ This includes initialization and closing the bus."
           "/baz/baz"))
 
         ;; Not registered property.
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property4))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            (butlast
-             (should-error
-              (dbus-get-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property4)))
-            `(dbus-error ,dbus-error-unknown-property))))
-        (should-not
-         (dbus-set-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property4 "foobarbaz"))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            (butlast
-             (should-error
-              (dbus-set-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property4 "foobarbaz")))
-            `(dbus-error ,dbus-error-unknown-property))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property4)))
+          `(dbus-error ,dbus-error-unknown-property)))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-set-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property4 "foobarbaz")))
+          `(dbus-error ,dbus-error-unknown-property)))
 
         ;; `dbus-get-all-properties'.  We cannot retrieve a value for
         ;; the property with `:write' access type.
@@ -516,19 +499,14 @@ This includes initialization and closing the bus."
         ;; Unregister property.
         (should (dbus-unregister-object registered))
         (should-not (dbus-unregister-object registered))
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property1))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            (butlast
-             (should-error
-              (dbus-get-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property1)))
-            `(dbus-error ,dbus-error-unknown-property)))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property1)))
+          `(dbus-error ,dbus-error-unknown-property))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
@@ -745,7 +723,7 @@ This includes initialization and closing the bus."
             (read-event nil nil 0.1)))
         (should
          (equal
-          dbus--test-signal-received `(((,property ((((1) (2) (3)))))) ())))
+          dbus--test-signal-received `(((,property ((1 2 3)))) ())))
 
         (should
          (equal

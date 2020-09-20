@@ -162,11 +162,6 @@ See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-inter
   :link '(custom-manual "(dbus)Top")
   :version "28.1")
 
-(defcustom dbus-show-dbus-errors nil
-  "Propagate incoming D-Bus error messages."
-  :version "28.1"
-  :type 'boolean)
-
 (defconst dbus-error-dbus "org.freedesktop.DBus.Error"
   "The namespace for default error names.
 See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
@@ -225,17 +220,11 @@ shall be subdirectories of this path.")
 
 (defmacro dbus-ignore-errors (&rest body)
   "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
-Signals also D-Bus error when `dbus-show-dbus-errors' is non-nil
-and a D-Bus error message has arrived.  Otherwise, return result
-of last form in BODY, or all other errors."
+Otherwise, return result of last form in BODY, or all other errors."
   (declare (indent 0) (debug t))
   `(condition-case err
        (progn ,@body)
-     (dbus-error
-      (when (or dbus-debug
-                (and dbus-show-dbus-errors
-                     (= dbus-message-type-error (nth 2 last-input-event))))
-        (signal (car err) (cdr err))))))
+     (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 
 (defvar dbus-event-error-functions '(dbus-notice-synchronous-call-errors)
   "Functions to be called when a D-Bus error happens in the event handler.
@@ -547,6 +536,21 @@ This is an internal function, it shall not be used outside dbus.el."
 
   (apply #'dbus-message-internal dbus-message-type-error
 	 bus service serial error-name args))
+
+(defun dbus-check-arguments (bus service &rest args)
+  "Check arguments ARGS by side effect.
+BUS, SERVICE and ARGS have the same format as in `dbus-call-method'.
+Any wrong argument triggers a D-Bus error.  Otherwise, return t.
+This is an internal function, it shall not be used outside dbus.el."
+
+  (or (featurep 'dbusbind)
+      (signal 'dbus-error (list "Emacs not compiled with dbus support")))
+  (or (memq bus '(:system :session)) (stringp bus)
+      (signal 'wrong-type-argument (list 'keywordp bus)))
+  (or (stringp service)
+      (signal 'wrong-type-argument (list 'stringp service)))
+
+  (apply #'dbus-message-internal dbus-message-type-invalid bus service args))
 
 
 ;;; Hash table of registered functions.
@@ -1200,10 +1204,11 @@ function signals a `dbus-error' if the event is not well formed."
 BUS defaults to `:system' when nil or omitted.  The result is a
 list of strings, which is nil when there are no activatable
 service names at all."
-  (dbus-ignore-errors
-    (dbus-call-method
-     (or bus :system) dbus-service-dbus
-     dbus-path-dbus dbus-interface-dbus "ListActivatableNames")))
+  (let (dbus-debug)
+    (dbus-ignore-errors
+      (dbus-call-method
+       (or bus :system) dbus-service-dbus
+       dbus-path-dbus dbus-interface-dbus "ListActivatableNames"))))
 
 (defun dbus-list-names (bus)
   "Return the service names registered at D-Bus BUS.
@@ -1211,9 +1216,10 @@ The result is a list of strings, which is nil when there are no
 registered service names at all.  Well known names are strings
 like \"org.freedesktop.DBus\".  Names starting with \":\" are
 unique names for services."
-  (dbus-ignore-errors
-    (dbus-call-method
-     bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus "ListNames")))
+  (let (dbus-debug)
+    (dbus-ignore-errors
+      (dbus-call-method
+       bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus "ListNames"))))
 
 (defun dbus-list-known-names (bus)
   "Retrieve all services which correspond to a known name in BUS.
@@ -1226,18 +1232,20 @@ A service has a known name if it doesn't start with \":\"."
   "Return the unique names registered at D-Bus BUS and queued for SERVICE.
 The result is a list of strings, or nil when there are no queued
 name owner service names at all."
-  (dbus-ignore-errors
-    (dbus-call-method
-     bus dbus-service-dbus dbus-path-dbus
-     dbus-interface-dbus "ListQueuedOwners" service)))
+  (let (dbus-debug)
+    (dbus-ignore-errors
+      (dbus-call-method
+       bus dbus-service-dbus dbus-path-dbus
+       dbus-interface-dbus "ListQueuedOwners" service))))
 
 (defun dbus-get-name-owner (bus service)
   "Return the name owner of SERVICE registered at D-Bus BUS.
 The result is either a string, or nil if there is no name owner."
-  (dbus-ignore-errors
-    (dbus-call-method
-     bus dbus-service-dbus dbus-path-dbus
-     dbus-interface-dbus "GetNameOwner" service)))
+  (let (dbus-debug)
+    (dbus-ignore-errors
+      (dbus-call-method
+       bus dbus-service-dbus dbus-path-dbus
+       dbus-interface-dbus "GetNameOwner" service))))
 
 (defun dbus-ping (bus service &optional timeout)
   "Check whether SERVICE is registered for D-Bus BUS.
@@ -1307,10 +1315,11 @@ and PATH must be a valid object path.  The last two parameters
 are strings.  The result, the introspection data, is a string in
 XML format."
   ;; We don't want to raise errors.
-  (dbus-ignore-errors
-    (dbus-call-method
-     bus service path dbus-interface-introspectable "Introspect"
-     :timeout 1000)))
+  (let (dbus-debug)
+    (dbus-ignore-errors
+      (dbus-call-method
+       bus service path dbus-interface-introspectable "Introspect"
+       :timeout 1000))))
 
 (defalias 'dbus--parse-xml-buffer
   (if (libxml-available-p)
@@ -1512,12 +1521,11 @@ If NAME is a `signal' or a `property', DIRECTION is ignored."
   "Return the value of PROPERTY of INTERFACE.
 It will be checked at BUS, SERVICE, PATH.  The result can be any
 valid D-Bus value, or nil if there is no PROPERTY, or PROPERTY cannot be read."
-  (dbus-ignore-errors
-   ;; "Get" returns a variant, so we must use the `car'.
-   (car
-    (dbus-call-method
-     bus service path dbus-interface-properties
-     "Get" :timeout 500 interface property))))
+  ;; "Get" returns a variant, so we must use the `car'.
+  (car
+   (dbus-call-method
+    bus service path dbus-interface-properties
+    "Get" :timeout 500 interface property)))
 
 (defun dbus-set-property (bus service path interface property &rest args)
   "Set value of PROPERTY of INTERFACE to VALUE.
@@ -1527,26 +1535,30 @@ property's access type is not `:write', return VALUE.  Otherwise,
 return nil.
 
 \(dbus-set-property BUS SERVICE PATH INTERFACE PROPERTY [TYPE] VALUE)"
-  (dbus-ignore-errors
-   ;; "Set" requires a variant.
-   (dbus-call-method
-    bus service path dbus-interface-properties
-    "Set" :timeout 500 interface property (cons :variant args))
-   ;; Return VALUE.
-   (or (dbus-get-property bus service path interface property)
-       (if (keywordp (car args)) (cadr args) (car args)))))
+  ;; "Set" requires a variant.
+  (dbus-call-method
+   bus service path dbus-interface-properties
+   "Set" :timeout 500 interface property (cons :variant args))
+  ;; Return VALUE.
+  (condition-case err
+      (dbus-get-property bus service path interface property)
+    (dbus-error
+     (if (string-equal dbus-error-access-denied (cadr err))
+         (car args)
+       (signal (car err) (cdr err))))))
 
 (defun dbus-get-all-properties (bus service path interface)
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.
 The result is a list of entries.  Every entry is a cons of the
 name of the property, and its value.  If there are no properties,
 nil is returned."
-  (dbus-ignore-errors
-    ;; "GetAll" returns "a{sv}".
-    (mapcar (lambda (dict)
-              (cons (car dict) (caadr dict)))
-            (dbus-call-method bus service path dbus-interface-properties
-                              "GetAll" :timeout 500 interface))))
+  (let (dbus-debug)
+    (dbus-ignore-errors
+      ;; "GetAll" returns "a{sv}".
+      (mapcar (lambda (dict)
+                (cons (car dict) (caadr dict)))
+              (dbus-call-method bus service path dbus-interface-properties
+                                "GetAll" :timeout 500 interface)))))
 
 (defun dbus-get-this-registered-property (bus _service path interface property)
   "Return PROPERTY entry of `dbus-registered-objects-table'.
@@ -1631,6 +1643,7 @@ clients from discovering the still incomplete interface.
       (setq value (list type value)))
     (setq value (if (member (car value) dbus-compound-types)
                     (list :variant value) (cons :variant value)))
+    (dbus-check-arguments bus service value)
 
     ;; Add handlers for the three property-related methods.
     (dbus-register-method
@@ -1647,19 +1660,6 @@ clients from discovering the still incomplete interface.
     (unless (or dont-register-service (member service (dbus-list-names bus)))
       (dbus-register-service bus service))
 
-    ;; Send the PropertiesChanged signal.
-    (when emits-signal
-      (dbus-send-signal
-       bus service path dbus-interface-properties "PropertiesChanged"
-       ;; changed_properties.
-       (if (eq access :write)
-           '(:array: :signature "{sv}")
-         `(:array (:dict-entry ,property ,value)))
-       ;; invalidated_properties.
-       (if (eq access :write)
-           `(:array ,property)
-         '(:array))))
-
     ;; Create a hash table entry.  We use nil for the unique name,
     ;; because the property might be accessed from anybody.
     (let ((key (list :property bus interface property))
@@ -1669,6 +1669,14 @@ clients from discovering the still incomplete interface.
             (dbus-get-other-registered-properties
              bus service path interface property))))
       (puthash key val dbus-registered-objects-table)
+
+      ;; Set or Get the property, in order to validate the property's
+      ;; value and to send the PropertiesChanged signal.
+      (when (member service (dbus-list-names bus))
+        (if (eq access :read)
+            (dbus-get-property bus service path interface property)
+          (apply
+           #'dbus-set-property bus service path interface property (cdr value))))
 
       ;; Return the object.
       (list key (list service path)))))
@@ -1704,7 +1712,7 @@ It will be registered for all objects created by `dbus-register-property'."
 
      ;; "Set" needs the third typed argument from `last-input-event'.
      ((string-equal method "Set")
-      (let* ((value (nth 11 last-input-event))
+      (let* ((value (dbus-flatten-types (nth 11 last-input-event)))
 	     (entry (dbus-get-this-registered-property
                      bus service path interface property))
 	     (object (car (last (car entry)))))
@@ -1721,8 +1729,7 @@ It will be registered for all objects created by `dbus-register-property'."
 		     (cons (append
                             (butlast (car entry))
                             ;; Reuse ACCESS and EMITS-SIGNAL.
-			    (list (append (butlast object)
-                                          (list (dbus-flatten-types value)))))
+			    (list (append (butlast object) (list value))))
                            (dbus-get-other-registered-properties
                             bus service path interface property))
 		     dbus-registered-objects-table)
@@ -1733,7 +1740,7 @@ It will be registered for all objects created by `dbus-register-property'."
                ;; changed_properties.
 	       (if (eq :write (car object))
                    '(:array: :signature "{sv}")
-                 `(:array (:dict-entry ,property (:variant ,value))))
+                 `(:array (:dict-entry ,property ,value)))
                ;; invalidated_properties.
                (if (eq :write (car object))
                    `(:array ,property)
@@ -1804,10 +1811,11 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
     (let ((result
 	   ;; Direct call.  Fails, if the target does not support the
 	   ;; object manager interface.
-	   (dbus-ignore-errors
-	    (dbus-call-method
-	     bus service path dbus-interface-objectmanager
-	     "GetManagedObjects" :timeout 1000))))
+           (let (dbus-debug)
+	     (dbus-ignore-errors
+	       (dbus-call-method
+	        bus service path dbus-interface-objectmanager
+	        "GetManagedObjects" :timeout 1000)))))
 
       (if result
 	  ;; Massage the returned structure.

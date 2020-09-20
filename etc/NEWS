@@ -375,7 +375,7 @@ tags to be considered as well.
 ** Gnus
 
 +++
-*** New variable 'gnus-global-groups'.
+*** New user option 'gnus-global-groups'.
 Gnus handles private groups differently from public (i.e., NNTP-like)
 groups.  Most importantly, Gnus doesn't download external images from
 mail-like groups.  This can be overridden by putting group names in
@@ -389,8 +389,8 @@ You can now score based on the relative age of an article with the new
 
 +++
 *** User-defined scoring is now possible.
-The new type is 'score-fn'.  More information in
-(Gnus)Score File Format.
+The new type is 'score-fn'.  More information in the Gnus manual node
+"(gnus) Score File Format".
 
 +++
 *** New backend 'nnselect'.
@@ -1045,7 +1045,7 @@ whose default value is 5.
 *** New user option 'reveal-auto-hide'.
 If non-nil (the default), revealed text is automatically hidden when
 point leaves the text.  If nil, the text is not hidden again.  Instead
-`M-x reveal-hide-revealed' can be used to hide all the revealed text.
+'M-x reveal-hide-revealed' can be used to hide all the revealed text.
 
 +++
 *** New user options to control the look of line/column numbers in the mode line.
@@ -1205,7 +1205,7 @@ The old names are now obsolete.
 +++
 *** Property values can be typed explicitly.
 'dbus-register-property' and 'dbus-set-property' accept now optional
-type symbols.
+type symbols.  Both functions propagate D-Bus errors.
 
 +++
 *** Registered properties can have the new access type ':write'.
@@ -1215,9 +1215,7 @@ type symbols.
 
 +++
 *** D-Bus errors, which have been converted from incoming D-Bus error
-messages, contain the error name of that message now.  They can be
-made visible by setting user variable 'dbus-show-dbus-errors' to
-non-nil, even if protected by 'dbus-ignore-errors' otherwise.
+messages, contain the error name of that message now.
 
 ---
 *** D-Bus events keep the type information of their arguments.
@@ -1557,7 +1555,7 @@ non-nil value.  Please report any bugs you find while using the native
 image API via 'M-x report-emacs-bug'.
 
 ---
-** The variable 'make-pointer-invisible' is now honored on macOS.
+** The user option 'make-pointer-invisible' is now honored on macOS.
 
 
 ----------------------------------------------------------------------
