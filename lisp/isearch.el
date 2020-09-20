@@ -270,15 +270,15 @@ are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
   :type 'boolean)
 
 (defcustom search-highlight-submatches 5
-  "Highlight regexp subexpressions of the current regexp match.
-An integer means highlight regexp subexpressions up to the
-specified maximal number.
+  "Whether to highlight regexp subexpressions of the current regexp match.
+A positive integer N means highlight regexp subexpressions 1 to N.
 
-When 0, do not highlight regexp subexpressions.
+When 0, do not highlight regexp subexpressions.  A negative value is
+treated as zero.
 
-The faces used to do the highlights are named `isearch-group-1'
-and so on, and if you increase this variable from the default,
-you have to add more of these faces."
+The faces used to do the highlights are named `isearch-group-1',
+`isearch-group-2', and so on, and if you increase this variable from
+the default, you have to add more of these faces."
   :type 'integer
   :version "28.1")
 

@@ -1978,14 +1978,18 @@ using the @code{isearch} face.  This highlighting can be disabled by
 setting the variable @code{search-highlight} to @code{nil}.
 
 @vindex search-highlight-submatches
-  When searching for regular expressions (with @kbd{C-u C-s}, for
+  When searching for regular expressions (with @kbd{C-M-s}, for
 instance), subexpressions receive special highlighting depending on
-the @code{search-highlight-submatches} variable.  If this variable is
-zero, no special highlighting is done, but if this is larger than
-zero, subexpressions will be matched with
-@code{isearch-group-}@samp{X} faces.  For instance, when searching for
+the @code{search-highlight-submatches} variable.  If this variable's
+value is zero, no special highlighting is done, but if the value is a
+positive integer @var{n}, the strings matching the first @var{n}
+@samp{\( @dots{} \)} constructs (a.k.a.@: ``subexpressions'') in the
+regular expression will be highlighted with distinct faces, named
+@code{isearch-group-@var{n}}.  For instance, when searching for
 @samp{foo-\([0-9]+\)}, the part matched by @samp{[0-9]+} will be
-highlighted with the @code{isearch-group-1} face.
+highlighted with the @code{isearch-group-1} face if
+@code{search-highlight-submatches} is greater or equal to 1.  The
+default value of @code{search-highlight-submatches} is 5.
 
 @cindex lazy highlighting customizations
 @vindex isearch-lazy-highlight

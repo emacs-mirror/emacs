@@ -1036,9 +1036,10 @@ window after starting).  This variable defaults to nil.
 
 +++
 *** Interactive regular expression search now uses faces for sub-groups.
-'C-u C-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face on the
-part of the regexp that matches the sub-expression "[0-9]+".  This is
-controlled by the 'search-highlight-submatches' variable.
+E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
+on the part of the regexp that matches the sub-expression "[0-9]+".
+This is controlled by the 'search-highlight-submatches' variable,
+whose default value is 5.
 
 ---
 *** New user option 'reveal-auto-hide'.
