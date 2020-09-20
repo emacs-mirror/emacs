@@ -433,32 +433,32 @@ displayed in `mode-line-position', a component of the default
   :group 'mode-line)
 (put 'mode-line-percent-position 'risky-local-variable t)
 
-(defcustom mode-line-position-line-format '(-6 " L%l")
+(defcustom mode-line-position-line-format '(" L%l")
   "Format used to display line numbers in the mode line.
 This is used when `line-number-mode' is switched on.  The \"%l\"
 format spec will be replaced by the line number."
-  :type 'form
+  :type '(list string)
   :version "28.1"
   :group 'mode-line)
 
-(defcustom mode-line-position-column-format '(-6 " C%c")
+(defcustom mode-line-position-column-format '(" C%c")
   "Format used to display column numbers in the mode line.
 This is used when `column-number-mode' is switched on.  The
 \"%c\" format spec will be replaced by the column number, which
 is zero-based if `column-number-indicator-zero-based' is non-nil,
 and one-based if `column-number-indicator-zero-based' is nil."
-  :type 'form
+  :type '(list string)
   :version "28.1"
   :group 'mode-line)
 
-(defcustom mode-line-position-column-line-format '(-10 " (%l,%c)")
+(defcustom mode-line-position-column-line-format '(" (%l,%c)")
   "Format used to display combined line/column numbers in the mode line.
 This is used when `column-number-mode' and `line-number-mode' are
 switched on.  The \"%c\" format spec will be replaced by the
 column number, which is zero-based if
 `column-number-indicator-zero-based' is non-nil, and one-based if
 `column-number-indicator-zero-based' is nil."
-  :type 'form
+  :type '(list string)
   :version "28.1"
   :group 'mode-line)
 
@@ -487,27 +487,30 @@ mouse-1: Display Line and Column Mode Menu")))
     (line-number-mode
      ((column-number-mode
        (column-number-indicator-zero-based
-        (:propertize
-         mode-line-position-column-line-format
-         ,@mode-line-position--column-line-properties)
-        (:propertize
-         (,(car mode-line-position-column-line-format)
+        (10
+         (:propertize
+          mode-line-position-column-line-format
+          ,@mode-line-position--column-line-properties))
+        (10
+         (:propertize
           (:eval (replace-in-string
-                  "%c" "%C" (cadr mode-line-position-column-line-format))))
-         ,@mode-line-position--column-line-properties))
-       (:propertize
-	mode-line-position-line-format
-        ,@mode-line-position--column-line-properties)))
+                  "%c" "%C" (car mode-line-position-column-line-format)))
+          ,@mode-line-position--column-line-properties)))
+       (6
+        (:propertize
+	 mode-line-position-line-format
+         ,@mode-line-position--column-line-properties))))
      (column-number-mode
       (column-number-indicator-zero-based
-       (:propertize
-        mode-line-position-column-format
-        ,@mode-line-position--column-line-properties)
-       (:propertize
-        (,(car mode-line-position-column-format)
+       (6
+        (:propertize
+         mode-line-position-column-format
+         (,@mode-line-position--column-line-properties)))
+       (6
+        (:propertize
          (:eval (replace-in-string
-                 "%c" "%C" (cadr mode-line-position-column-format))))
-        ,@mode-line-position--column-line-properties)))))
+                 "%c" "%C" (car mode-line-position-column-format)))
+         ,@mode-line-position--column-line-properties))))))
   "Mode line construct for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
 buffer size, the line number and the column number.")
