@@ -5464,6 +5464,12 @@ pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *dpyinfo, int state)
 #define IsMiscFunctionKey(keysym) (0xff60 <= (keysym) && (keysym) < 0xff6c)
 #define IsKeypadKey(keysym)       (0xff80 <= (keysym) && (keysym) < 0xffbe)
 #define IsFunctionKey(keysym)     (0xffbe <= (keysym) && (keysym) < 0xffe1)
+#define IsModifierKey(keysym)							\
+  ((((keysym) >= GDK_KEY_Shift_L) && ((keysym) <= GDK_KEY_Hyper_R))		\
+   || (((keysym) >= GDK_KEY_ISO_Lock) && ((keysym) <= GDK_KEY_ISO_Level5_Lock))	\
+   || ((keysym) == GDK_KEY_Mode_switch)						\
+   || ((keysym) == GDK_KEY_Num_Lock))
+
 
 void
 pgtk_enqueue_string (struct frame *f, gchar * str)
@@ -5680,6 +5686,10 @@ key_press_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	   || (orig_keysym & (1 << 28))
 	   || (keysym != GDK_KEY_VoidSymbol && nbytes == 0))
 	  && !(event->key.is_modifier
+	       /* Gtk's modifier keys are different from Xlib's ones.
+		* I need to exclude them.
+		*/
+	       || IsModifierKey (orig_keysym)
 	       /* The symbols from GDK_KEY_ISO_Lock
 	          to GDK_KEY_ISO_Last_Group_Lock
 	          don't have real modifiers but
