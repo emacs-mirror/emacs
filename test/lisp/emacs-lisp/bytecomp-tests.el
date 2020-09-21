@@ -444,8 +444,8 @@ Subtests signal errors if something goes wrong."
            (if compile
                (let ((byte-compile-dest-file-function
                       (lambda (e) elcfile)))
-                 (byte-compile-file elfile t))
-             (load elfile nil 'nomessage)))
+                 (byte-compile-file elfile)))
+           (load elfile nil 'nomessage))
       (when elfile (delete-file elfile))
       (when elcfile (delete-file elcfile)))))
 (put 'test-byte-comp-compile-and-load 'lisp-indent-function 1)
@@ -646,7 +646,8 @@ literals (Bug#20852)."
                     (setq bytecomp-tests--foobar (bytecomp-tests--foobar))))
       (print form (current-buffer)))
     (write-region (point-min) (point-max) source nil 'silent)
-    (byte-compile-file source t)
+    (byte-compile-file source)
+    (load source)
     (should (equal bytecomp-tests--foobar (cons 1 2)))))
 
 (ert-deftest bytecomp-tests--test-no-warnings-with-advice ()

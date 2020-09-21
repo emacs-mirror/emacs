@@ -223,7 +223,8 @@ byte-compiled before it is loaded."
       (org-babel-tangle-file file tangled-file "emacs-lisp"))
     (if compile
 	(progn
-	  (byte-compile-file tangled-file 'load)
+          (byte-compile-file tangled-file)
+          (load tangled-file)
 	  (message "Compiled and loaded %s" tangled-file))
       (load-file tangled-file)
       (message "Loaded %s" tangled-file))))

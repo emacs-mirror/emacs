@@ -1392,7 +1392,7 @@ Argument ARG represents to force a refresh past any caches that may exist."
     (if (and (file-exists-p f) (string-match "\\.el\\'" f))
 	(progn
 	  (dframe-select-attached-frame speedbar-frame)
-	  (byte-compile-file f nil)
+          (byte-compile-file f)
 	  (select-frame sf)
 	  (speedbar-reset-scanners)))
     ))

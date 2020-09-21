@@ -164,7 +164,7 @@ echo area, but if @var{arg} is non-@code{nil}, it inserts the result
 in the current buffer after the form it has compiled.
 @end deffn
 
-@deffn Command byte-compile-file filename &optional load
+@deffn Command byte-compile-file filename
 This function compiles a file of Lisp code named @var{filename} into a
 file of byte-code.  The output file's name is made by changing the
 @samp{.el} suffix into @samp{.elc}; if @var{filename} does not end in
@@ -179,9 +179,6 @@ input file is read.
 
 This command returns @code{t} if there were no errors and @code{nil}
 otherwise.  When called interactively, it prompts for the file name.
-
-If @var{load} is non-@code{nil}, this command loads the compiled file
-after compiling it.  Interactively, @var{load} is the prefix argument.
 
 @example
 @group

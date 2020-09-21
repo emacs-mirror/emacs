@@ -1500,6 +1500,11 @@ This is no longer supported, and setting this variable has no effect.
 ** The macro 'with-displayed-buffer-window' is now obsolete.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 
++++
+** `byte-compile-file' optional argument LOAD is now obsolete.
+To load the file after byte-compiling, add a call to 'load' from Lisp
+or use 'M-x emacs-lisp-byte-compile-and-load' interactively.
+
 ** The metamail.el library is now marked obsolete.
 
 ---

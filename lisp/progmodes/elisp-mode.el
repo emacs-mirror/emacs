@@ -196,7 +196,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (if (and (buffer-modified-p)
 	   (y-or-n-p (format "Save buffer %s first? " (buffer-name))))
       (save-buffer))
-  (byte-recompile-file buffer-file-name nil 0 t))
+  (byte-recompile-file buffer-file-name nil 0)
+  (load buffer-file-name))
 
 (defun emacs-lisp-macroexpand ()
   "Macroexpand the form after point.
