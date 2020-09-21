@@ -294,6 +294,18 @@ Expected initialization file: `%s'\"
     (insert "\"\n")
     (lisp-indent-region (point-min) (point-max))))
 
+(ert-deftest lisp-indent-defun ()
+  (with-temp-buffer
+    (lisp-mode)
+    (let ((orig "(defun x ()
+  (print (quote ( thingy great
+		  stuff)))
+  (print (quote (thingy great
+			stuff))))"))
+      (insert orig)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
 
 ;;; Fontification
 
