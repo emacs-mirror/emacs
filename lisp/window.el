@@ -2173,7 +2173,7 @@ the font."
     (let* ((window-width (window-body-width window t))
 	   (font-width (window-font-width window face))
 	   (ncols (- (/ window-width font-width)
-                     (line-number-display-width 'columns))))
+                     (ceiling (line-number-display-width 'columns)))))
       (if (and (display-graphic-p)
 	       overflow-newline-into-fringe
                (not
