@@ -424,7 +424,7 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; causes the batch mode test to fail; the symbol shows up as
 ;; ‘this’. It passes in interactive tests, so I haven't been able to
 ;; track down the problem.
-(cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2)
+(cl-defmethod xref-elisp-generic-no-default ((_this xref-elisp-root-type) _arg2)
   "doc string generic no-default xref-elisp-root-type"
   "non-default for no-default")
 
@@ -436,11 +436,11 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; dispatching code.
   )
 
-(cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
+(cl-defgeneric xref-elisp-generic-co-located-default (_arg1 _arg2)
   "doc string generic co-located-default"
   "co-located default")
 
-(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
+(cl-defmethod xref-elisp-generic-co-located-default ((_this xref-elisp-root-type) _arg2)
   "doc string generic co-located-default xref-elisp-root-type"
   "non-default for co-located-default")
 
@@ -449,19 +449,19 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; default implementation provided separately
   )
 
-(cl-defmethod xref-elisp-generic-separate-default (arg1 arg2)
+(cl-defmethod xref-elisp-generic-separate-default (_arg1 _arg2)
   "doc string generic separate-default default"
   "separate default")
 
-(cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2)
+(cl-defmethod xref-elisp-generic-separate-default ((_this xref-elisp-root-type) _arg2)
   "doc string generic separate-default xref-elisp-root-type"
   "non-default for separate-default")
 
-(cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2)
+(cl-defmethod xref-elisp-generic-implicit-generic (_arg1 _arg2)
   "doc string generic implicit-generic default"
   "default for implicit generic")
 
-(cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2)
+(cl-defmethod xref-elisp-generic-implicit-generic ((_this xref-elisp-root-type) _arg2)
   "doc string generic implicit-generic xref-elisp-root-type"
   "non-default for implicit generic")
 
