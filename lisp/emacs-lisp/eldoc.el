@@ -67,6 +67,12 @@ If this variable is set to 0, no idle time is required."
 Changing the value requires toggling `eldoc-mode'."
   :type 'boolean)
 
+(defcustom eldoc-display-truncation-message t
+  "If non-nil, provide verbose help when a message has been truncated.
+If nil, truncated messages will just have \"...\" appended."
+  :type 'boolean
+  :version "28.1")
+
 ;;;###autoload
 (defcustom eldoc-minor-mode-string (purecopy " ElDoc")
   "String to display in mode line when ElDoc Mode is enabled; nil for none."
@@ -524,10 +530,13 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                     (cl-return
                      (concat
                       (buffer-substring (point-min) (point))
-                      (and truncated
+                      (and
+                       truncated
+                       (if eldoc-display-truncation-message
                            (format
                             "\n(Documentation truncated. Use `%s' to see rest)"
-                            (substitute-command-keys "\\[eldoc-doc-buffer]")))))))))
+                            (substitute-command-keys "\\[eldoc-doc-buffer]"))
+                         "..."))))))))
               ((= available 1)
                ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
                (with-current-buffer (eldoc-doc-buffer)
