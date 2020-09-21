@@ -11806,8 +11806,6 @@ will not be hidden."
 
 (defun gnus-summary-hide-thread ()
   "Hide thread subtrees.
-If PREDICATE is supplied, threads that satisfy this predicate
-will not be hidden.
 Returns nil if no threads were there to be hidden."
   (interactive)
   (beginning-of-line)
