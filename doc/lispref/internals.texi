@@ -1972,7 +1972,7 @@ ways.
 @cindex nonlocal exits, in modules
 
   Emacs Lisp supports nonlocal exits, whereby program control is
-transfered from one point in a program to another remote point.
+transferred from one point in a program to another remote point.
 @xref{Nonlocal Exits}.  Thus, Lisp functions called by your module
 might exit nonlocally by calling @code{signal} or @code{throw}, and
 your module functions must handle such nonlocal exits properly.  Such

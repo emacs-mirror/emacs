@@ -2674,7 +2674,7 @@ basename.)
 
 Emacs can also look in an XDG-compatible location for @file{init.el},
 the default is the directory @file{~/.config/emacs}.  This can be
-overriden by setting @env{XDG_CONFIG_HOME} in your environment, its
+overridden by setting @env{XDG_CONFIG_HOME} in your environment, its
 value replaces @file{~/.config} in the name of the default XDG init
 file.  However @file{~/.emacs.d}, @file{~/.emacs}, and
 @file{~/.emacs.el} are always preferred if they exist, which means

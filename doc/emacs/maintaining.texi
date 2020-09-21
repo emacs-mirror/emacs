@@ -1458,7 +1458,7 @@ working tree to match the branch you switch to.  Bazaar also supports
 co-located branches, in which case the @kbd{bzr switch} command
 will switch branches in the current directory.  With Subversion, you
 switch to another branch using the @kbd{svn switch} command.  With
-Mercurial, command @kbd{hg update} is used to swith to another
+Mercurial, command @kbd{hg update} is used to switch to another
 branch.
 
   The VC command to switch to another branch in the current directory
