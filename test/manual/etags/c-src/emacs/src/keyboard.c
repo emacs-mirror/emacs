@@ -5754,7 +5754,7 @@ make_lispy_event (struct input_event *event)
 	    ignore_mouse_drag_p = 0;
 	  }
 
-	/* Now we're releasing a button - check the co-ordinates to
+	/* Now we're releasing a button - check the coordinates to
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {

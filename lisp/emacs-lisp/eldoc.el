@@ -421,7 +421,7 @@ pairs of the form (:KEY VALUE :KEY2 VALUE2...).  KEY can be:
 
 * `:thing', VALUE is a short string or symbol designating what is
   being reported on.  The documentation display engine can elect
-  to remove this information depending on space contraints;
+  to remove this information depending on space constraints;
 
 * `:face', VALUE is a symbol designating a face to use when
   displaying `:thing''s value.
@@ -719,7 +719,7 @@ Other third-party strategy functions do not use
 produce callbacks to feed to `eldoc-documentation-function' and
 should endeavour to display the docstrings eventually produced."
   (let* (;; How many callbacks have been created by the strategy
-         ;; fucntion and passed to elements of
+         ;; function and passed to elements of
          ;; `eldoc-documentation-functions'.
          (howmany 0)
          ;; How many calls to callbacks we're still waiting on.  Used

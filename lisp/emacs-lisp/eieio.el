@@ -875,7 +875,7 @@ this object."
     ;; Now output readable lisp to recreate this object
     ;; It should look like this:
     ;; (<constructor> <name> <slot> <slot> ... )
-    ;; Each slot's slot is writen using its :writer.
+    ;; Each slot's slot is written using its :writer.
     (when eieio-print-indentation
       (princ (make-string (* eieio-print-depth 2) ? )))
     (princ "(")

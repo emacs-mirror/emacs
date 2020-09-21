@@ -96,7 +96,7 @@
 ;;    out.
 
 ;; Q: But how can I then make out the sub-expressions?
-;; A: Thats where the `sub-expression mode' comes in.  In it only the
+;; A: That's where the `sub-expression mode' comes in.  In it only the
 ;;    digit keys are assigned to perform an update that will flash the
 ;;    corresponding subexp only.
 

@@ -5696,7 +5696,7 @@ make_lispy_event (struct input_event *event)
 	    ignore_mouse_drag_p = false;
 	  }
 
-	/* Now we're releasing a button - check the co-ordinates to
+	/* Now we're releasing a button - check the coordinates to
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {
@@ -6644,7 +6644,7 @@ has the same base event type and all the specified modifiers.  */)
 DEFUN ("internal-handle-focus-in", Finternal_handle_focus_in,
        Sinternal_handle_focus_in, 1, 1, 0,
        doc: /* Internally handle focus-in events.
-This function potentially generates an artifical switch-frame event.  */)
+This function potentially generates an artificial switch-frame event.  */)
      (Lisp_Object event)
 {
   Lisp_Object frame;

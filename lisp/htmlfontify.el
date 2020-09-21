@@ -1034,7 +1034,7 @@ then the specification is returned unchanged."
    ((facep fn)
     (hfy-face-attr-for-class fn hfy-display-class))
    ;; FIXME: is this necessary? Faces can be symbols, but
-   ;; not symbols refering to other symbols?
+   ;; not symbols referring to other symbols?
    ((and (symbolp fn)
          (facep (symbol-value fn)))
     (hfy-face-attr-for-class

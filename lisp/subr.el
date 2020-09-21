@@ -4452,7 +4452,7 @@ This function returns a freshly created string."
                 ;; We didn't have a match after all.
                 (setq i (1+ i))
               ;; We had one, so gather the previous part and the
-              ;; substition.
+              ;; substitution.
               (when (not (= start i))
                 (push (substring instring start i) result))
               (push tostring result)

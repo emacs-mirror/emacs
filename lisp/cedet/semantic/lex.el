@@ -1069,7 +1069,7 @@ Only in effect if `debug-on-error' is also non-nil."
   "For SYNTAX, execute FORMS with protection for unterminated syntax.
 If FORMS throws an error, treat this as a syntax problem, and
 execute the unterminated syntax code.  FORMS should return a position.
-Irregardless of an error, the cursor should be moved to the end of
+Regardless of an error, the cursor should be moved to the end of
 the desired syntax, and a position returned.
 If `debug-on-error' is set, errors are not caught, so that you can
 debug them.

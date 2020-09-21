@@ -40,7 +40,7 @@
           (should-not (dired-do-shell-command "ls ? ./`?`" nil files)))
       (delete-file foo))))
 
-;; Auxiliar macro for `dired-test-bug28834': it binds
+;; Auxiliary macro for `dired-test-bug28834': it binds
 ;; `dired-create-destination-dirs' to CREATE-DIRS and execute BODY.
 ;; If YES-OR-NO is non-nil, it binds `yes-or-no-p' to
 ;; to avoid the prompt.

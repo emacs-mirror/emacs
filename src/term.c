@@ -2416,7 +2416,7 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
   pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
 
-  /* Save current cursor co-ordinates.  */
+  /* Save current cursor coordinates.  */
   save_y = curY (tty);
   save_x = curX (tty);
   cursor_to (f, pos_y, pos_x);

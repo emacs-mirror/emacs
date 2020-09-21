@@ -2547,7 +2547,7 @@ file names include non-ASCII characters."
 
 (defun gdb-gdb (_output-field)
   ;; This is needed because the "explore" command is not ended by the
-  ;; likes of "end" or "quit", but instead by a RET at the approriate
+  ;; likes of "end" or "quit", but instead by a RET at the appropriate
   ;; place, and we know we have exited "explore" when we get the
   ;; "(gdb)" prompt.
   (and (> gdb-control-level 0)

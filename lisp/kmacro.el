@@ -924,7 +924,7 @@ The ARG parameter is unused."
 		  nil
 		  (if kmacro-view-last-item
 		      (concat (cond ((= kmacro-view-item-no 2) "2nd")
-				    ((= kmacro-view-item-no 3) "3nd")
+				    ((= kmacro-view-item-no 3) "3rd")
 				    (t (format "%dth" kmacro-view-item-no)))
 			      " previous macro")
 		    "Last macro")))

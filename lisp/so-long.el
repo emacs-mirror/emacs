@@ -833,7 +833,7 @@ available in Emacs versions < 27).  For more information refer to info node
 `(emacs) Bidirectional Editing' and info node `(elisp) Bidirectional Display'.
 
 Buffers are made read-only by default to prevent potentially-slow editing from
-occurring inadvertantly, as buffers with excessively long lines are likely not
+occurring inadvertently, as buffers with excessively long lines are likely not
 intended to be edited manually."
   :type '(alist :key-type (variable :tag "Variable")
                 :value-type (sexp :tag "Value"))

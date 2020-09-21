@@ -98,7 +98,7 @@
 ;;
 ;; D. Sorting and Composition  of Smaller Blocks (`ucs-normalize-block-compose-chars')
 ;;
-;;    The block will be split to multiple samller blocks by starter
+;;    The block will be split to multiple smaller blocks by starter
 ;;    characters.  Each block is sorted, and composed if necessary.
 ;;
 ;; E. Composition of Entire Block (`ucs-normalize-compose-chars')

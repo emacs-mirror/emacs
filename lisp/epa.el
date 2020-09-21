@@ -400,7 +400,7 @@ DOC is documentation text to insert at the start."
 e  expired key.  n  never trust.  m  trust marginally.  u  trust ultimately.
 f  trust fully (keys you have signed, usually).
 q  trust status questionable.  -  trust status unspecified.
- See GPG documentaion for more explanation.
+ See GPG documentation for more explanation.
 \n"))
 
 ;;;###autoload

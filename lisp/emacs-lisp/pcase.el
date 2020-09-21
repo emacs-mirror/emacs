@@ -594,7 +594,7 @@ MATCH is the pattern that needs to be matched, of the form:
                    ((null (cdr else-alts)) (car else-alts))
                    (t (cons (car match) (nreverse else-alts)))))))
     ((memq match '(:pcase--succeed :pcase--fail)) (cons match match))
-    (t (error "Uknown MATCH %s" match))))
+    (t (error "Unknown MATCH %s" match))))
 
 (defun pcase--split-rest (sym splitter rest)
   (let ((then-rest '())
@@ -725,7 +725,7 @@ MATCH is the pattern that needs to be matched, of the form:
                   (pcase--app-subst-match match sym fun nsym))
                 (cdr match))))
    ((memq match '(:pcase--succeed :pcase--fail)) match)
-   (t (error "Uknown MATCH %s" match))))
+   (t (error "Unknown MATCH %s" match))))
 
 (defun pcase--app-subst-rest (rest sym fun nsym)
   (mapcar (lambda (branch)

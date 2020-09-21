@@ -3672,7 +3672,7 @@ highlighted range in the spreadsheet."
     ;; 'rowcol' corresponding to 'ses-cell' property of symbol
     ;; 'sym'. Both must be the same.
     (unless (eq sym old-name)
-      (error "Spreadsheet is broken, both symbols %S and %S refering to cell (%d,%d)" sym old-name row col))
+      (error "Spreadsheet is broken, both symbols %S and %S referring to cell (%d,%d)" sym old-name row col))
     (if new-rowcol
         ;; the new name is of A1 type, so we test that the coordinate
         ;; inferred from new name
@@ -3685,7 +3685,7 @@ highlighted range in the spreadsheet."
       (puthash new-name rowcol ses--named-cell-hashmap))
     (push `(ses-rename-cell ,old-name ,cell) buffer-undo-list)
     (cl-pushnew rowcol ses--deferred-write :test #'equal)
-    ;; Replace name by new name in formula of cells refering to renamed cell.
+    ;; Replace name by new name in formula of cells referring to renamed cell.
     (dolist (ref (ses-cell-references cell))
       (let* ((x (ses-sym-rowcol ref))
 	     (xcell  (ses-get-cell (car x) (cdr x))))

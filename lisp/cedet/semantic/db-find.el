@@ -1245,7 +1245,7 @@ See `semanticdb-find-translate-path' for details on PATH.
 The argument BRUTISH will be set so that searching includes all tables
 in the current project.
 FIND-FILE-MATCH indicates that any time a match is found, the file
-associated wit that tag should be loaded into a buffer."
+associated with that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
      (semanticdb-deep-find-tags-by-name-method table name tags))
@@ -1257,7 +1257,7 @@ See `semanticdb-find-translate-path' for details on PATH.
 The argument BRUTISH will be set so that searching includes all tables
 in the current project.
 FIND-FILE-MATCH indicates that any time a match is found, the file
-associated wit that tag should be loaded into a buffer."
+associated with that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
      (semanticdb-deep-find-tags-for-completion-method table prefix tags))

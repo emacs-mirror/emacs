@@ -1030,7 +1030,7 @@ Each condition is either:
   * `or': the cdr is a list of recursive conditions, of which at
     least one has to be met.
 
-If any of these conditions are satified for a buffer in the
+If any of these conditions are satisfied for a buffer in the
 current project, it will be killed."
   :type '(repeat (choice regexp function symbol
                          (cons :tag "Major mode"
@@ -1225,7 +1225,7 @@ command to run when KEY is pressed.  LABEL is used to distinguish
 the menu entries in the dispatch menu.")
 
 (defun project--keymap-prompt ()
-  "Return a prompt for the project swithing dispatch menu."
+  "Return a prompt for the project switching dispatch menu."
   (mapconcat
    (pcase-lambda (`(,key ,label))
      (format "[%s] %s"

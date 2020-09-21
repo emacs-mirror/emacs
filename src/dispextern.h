@@ -102,7 +102,7 @@ typedef XImage *Emacs_Pix_Context;
 #endif
 
 #ifdef USE_CAIRO
-/* Mininal version of XImage.  */
+/* Minimal version of XImage.  */
 typedef struct
 {
   int width, height;		/* size of image */

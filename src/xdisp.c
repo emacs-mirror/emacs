@@ -510,7 +510,7 @@ static Lisp_Object list_of_error;
 	       || *BYTE_POS_ADDR (IT_BYTEPOS (*it)) == '\t'))))
 
 /* These are the category sets we use.  They are defined by
-   kinsoku.el and chracters.el.  */
+   kinsoku.el and characters.el.  */
 #define NOT_AT_EOL '<'
 #define NOT_AT_BOL '>'
 #define LINE_BREAKABLE '|'
@@ -2230,7 +2230,7 @@ estimate_mode_line_height (struct frame *f, enum face_id face_id)
 }
 
 /* Given a pixel position (PIX_X, PIX_Y) on frame F, return glyph
-   co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle that the
+   coordinates in (*X, *Y).  Set *BOUNDS to the rectangle that the
    glyph at X, Y occupies, if BOUNDS != 0.  If NOCLIP, do
    not force the value into range.  */
 
@@ -3744,7 +3744,7 @@ init_to_row_end (struct it *it, struct window *w, struct glyph_row *row)
 	it->continuation_lines_width
 	  = row->continuation_lines_width + row->pixel_width;
       CHECK_IT (it);
-      /* Initializing IT in the presense of compositions in reordered
+      /* Initializing IT in the presence of compositions in reordered
 	 rows is tricky: row->end above will generally cause us to
 	 start at position that is not the first one in the logical
 	 order, and we might therefore miss the composition earlier in

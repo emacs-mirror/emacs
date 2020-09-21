@@ -217,7 +217,7 @@ If N is omitted or nil, scroll down by one line."
 (defun xwidget-webkit-scroll-forward (&optional n)
   "Scroll webkit horizontally by N chars.
 The width of char is calculated with `window-font-width'.
-If N is ommited or nil, scroll forwards by one char."
+If N is omitted or nil, scroll forwards by one char."
   (interactive "p")
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
@@ -227,7 +227,7 @@ If N is ommited or nil, scroll forwards by one char."
 (defun xwidget-webkit-scroll-backward (&optional n)
   "Scroll webkit back by N chars.
 The width of char is calculated with `window-font-width'.
-If N is ommited or nil, scroll backwards by one char."
+If N is omitted or nil, scroll backwards by one char."
   (interactive "p")
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)

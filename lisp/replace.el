@@ -1674,7 +1674,7 @@ See also `multi-occur'."
 
     (with-current-buffer occur-buf
       ;; Make the default-directory of the *Occur* buffer match that of
-      ;; the buffer where the occurences come from
+      ;; the buffer where the occurrences come from
       (setq default-directory source-buffer-default-directory)
       (if (stringp nlines)
 	  (fundamental-mode) ;; This is for collect operation.

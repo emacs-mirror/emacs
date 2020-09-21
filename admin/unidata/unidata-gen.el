@@ -77,7 +77,7 @@
 ;;	2nd: function to call to get a property value,
 ;;	     or an index number of C function to decode the value,
 ;;	     or nil if the value can be directly got from the table.
-;;	3nd: function to call to put a property value,
+;;	3rd: function to call to put a property value,
 ;;	     or an index number of C function to encode the value,
 ;;	     or nil if the value can be directly stored in the table.
 ;;	4th: function to call to get a description of a property value, or nil
@@ -1177,7 +1177,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata-describe-general-category (val)
   (cdr (assq val
-	     '((nil . "Uknown")
+	     '((nil . "Unknown")
 	       (Lu . "Letter, Uppercase")
 	       (Ll . "Letter, Lowercase")
 	       (Lt . "Letter, Titlecase")

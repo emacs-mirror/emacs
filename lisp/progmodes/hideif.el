@@ -301,7 +301,7 @@ Several variables affect how the hiding is done:
         ;; `hide-ifdef-env' is now a global variable.
         ;; We can still simulate the behavior of older hideif versions (i.e.
         ;; `hide-ifdef-env' being buffer local) by clearing this variable
-        ;; (C-c @ C) everytime before hiding current buffer.
+        ;; (C-c @ C) every time before hiding current buffer.
 ;;      (set (make-local-variable 'hide-ifdef-env)
 ;;           (default-value 'hide-ifdef-env))
         (set 'hide-ifdef-env (default-value 'hide-ifdef-env))
@@ -1490,7 +1490,7 @@ Refer to `hide-ifdef-expand-reinclusion-protection' for more details."
          (test (hif-canonicalize hif-ifx-regexp))
          (range (hif-find-range))
          (elifs (hif-range-elif range))
-         (if-part t) ; Everytime we start from if-part
+         (if-part t) ; Every time we start from if-part
          (complete nil))
     ;; (message "test = %s" test) (sit-for 1)
 
@@ -1650,7 +1650,7 @@ first arg will be `hif-etc'."
 ;; postponed the evaluation process one stage and store the "parsed tree"
 ;; into symbol database. The evaluation process was then "strings -> tokens
 ;; -> [parsed tree] -> value". Hideif therefore run slower since it need to
-;; evaluate the parsed tree everytime when trying to expand the symbol. These
+;; evaluate the parsed tree every time when trying to expand the symbol. These
 ;; temporarily code changes are obsolete and not in Emacs source repository.
 ;;
 ;; Furthermore, CPP did allow partial expression to be defined in several
@@ -1659,7 +1659,7 @@ first arg will be `hif-etc'."
 ;; further, otherwise those partial expression will be fail on parsing and
 ;; we'll miss all macros that reference it. The evaluation process thus
 ;; became "strings -> [tokens] -> parsed tree -> value." This degraded the
-;; performance since we need to parse tokens and evaluate them everytime
+;; performance since we need to parse tokens and evaluate them every time
 ;; when that symbol is referenced.
 ;;
 ;; In real cases I found a lot portion of macros are "simple macros" that

@@ -36,7 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    rendering techniques, which is used by GTK xwidget implementation;
    Specifically NSView level view sharing / copying is not working.
 
-   *** So only one view can be associcated with a model. ***
+   *** So only one view can be associated with a model. ***
 
    With this decision, implementation is plain and can expect best out
    of webkit2's rationale.  But process and session structures will

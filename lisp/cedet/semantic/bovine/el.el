@@ -649,7 +649,7 @@ define-mode-overload\\)\
 		 ))
 	(when fun
 	  ;; Do not return FUN IFF the cursor is on FUN.
-	  ;; Huh?  Thats because if cursor is on fun, it is
+	  ;; Huh?  That's because if cursor is on fun, it is
 	  ;; the current symbol, and not the current function.
 	  (if (save-excursion
 		(condition-case nil

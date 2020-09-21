@@ -1284,7 +1284,7 @@ won't merge conflict."
 
 (defcustom verilog-auto-inst-template-required nil
   "If non-nil, when creating a port with AUTOINST, require a template.
-Any port which does not have a template will be ommitted from the
+Any port which does not have a template will be omitted from the
 instantiation.
 
 If nil, if a port is not templated it will be inserted to connect

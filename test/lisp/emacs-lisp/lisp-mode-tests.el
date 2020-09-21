@@ -153,7 +153,7 @@ noindent\" 3
       (should (equal (buffer-string) str)))))
 
 (ert-deftest indent-sexp-stop-before-eol-non-lisp ()
-  "`indent-sexp' shouldn't be too agressive in non-Lisp modes."
+  "`indent-sexp' shouldn't be too aggressive in non-Lisp modes."
   ;; See https://debbugs.gnu.org/35286#13.
   (with-temp-buffer
     (prolog-mode)
