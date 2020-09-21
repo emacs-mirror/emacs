@@ -1054,9 +1054,29 @@ evaluation of BODY."
                          (error "this file needs to be loaded")))))
 
 (ert-deftest elisp-shorthand-load-a-file ()
-  (let ((load-path (cons elisp--test-resources-dir
-                         load-path)))
-    (load "simple-shorthand-test")
+  (let ((test-file (expand-file-name "simple-shorthand-test.el"
+                                     elisp--test-resources-dir)))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (load test-file)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
+(ert-deftest elisp-shorthand-byte-compile-a-file ()
+
+  (let ((test-file (expand-file-name "simple-shorthand-test.el"
+                                     elisp--test-resources-dir))
+        (byte-compiled (expand-file-name "simple-shorthand-test.elc"
+                                         elisp--test-resources-dir)))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (byte-compile-file test-file)
+    (should-not (intern-soft "f-test"))
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (fboundp (intern-soft "elisp--foo-test")))
+    (load byte-compiled)
     (should (intern-soft "elisp--foo-test"))
     (should-not (intern-soft "f-test"))))
 
