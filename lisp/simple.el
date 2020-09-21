@@ -516,7 +516,7 @@ This hook is run by `delete-selection-uses-region-p', which see.")
   "Propertized string representing a hard newline character.")
 
 (defun newline (&optional arg interactive)
-  "Insert a newline, and move to left margin of the new line if it's blank.
+   "Insert a newline, and move to left margin of the new line.
 With prefix argument ARG, insert that many newlines.
 
 If `electric-indent-mode' is enabled, this indents the final new line
@@ -553,7 +553,7 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
             (save-excursion
               (goto-char beforepos)
               (beginning-of-line)
-              (and (looking-at "[ \t]$")
+              (and (looking-at "[ \t]+$")
                    (> (current-left-margin) 0)
                    (delete-region (point)
                                   (line-end-position))))
