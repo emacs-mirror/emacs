@@ -2172,7 +2172,8 @@ the font."
   (with-selected-window (window-normalize-window window t)
     (let* ((window-width (window-body-width window t))
 	   (font-width (window-font-width window face))
-	   (ncols (/ window-width font-width)))
+	   (ncols (- (/ window-width font-width)
+                     (line-number-display-width 'columns))))
       (if (and (display-graphic-p)
 	       overflow-newline-into-fringe
                (not
