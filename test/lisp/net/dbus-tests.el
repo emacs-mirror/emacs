@@ -91,6 +91,275 @@
      (string-equal
       (dbus-unescape-from-identifier (dbus-escape-as-identifier mstr)) mstr))))
 
+(ert-deftest dbus-test01-basic-types ()
+  "Check basic D-Bus type arguments."
+  ;; Unknown keyword.
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :keyword)
+   :type 'wrong-type-argument)
+
+  ;; `:string'.
+  (should (dbus-check-arguments :session dbus--test-service "string"))
+  (should (dbus-check-arguments :session dbus--test-service :string "string"))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :string 0.5)
+   :type 'wrong-type-argument)
+
+  ;; `:object-path'.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service :object-path "/object/path"))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :object-path "string")
+   :type 'dbus-error)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :object-path 0.5)
+   :type 'wrong-type-argument)
+
+  ;; `:signature'.
+  (should (dbus-check-arguments :session dbus--test-service :signature "as"))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :signature "string")
+   :type 'dbus-error)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :signature 0.5)
+   :type 'wrong-type-argument)
+
+  ;; `:boolean'.
+  (should (dbus-check-arguments :session dbus--test-service nil))
+  (should (dbus-check-arguments :session dbus--test-service t))
+  (should (dbus-check-arguments :session dbus--test-service :boolean nil))
+  (should (dbus-check-arguments :session dbus--test-service :boolean t))
+  ;; Will be handled as `nil'.
+  (should (dbus-check-arguments :session dbus--test-service :boolean))
+  ;; Will be handled as `t'.
+  (should (dbus-check-arguments :session dbus--test-service :boolean 'whatever))
+
+  ;; `:byte'.
+  (should (dbus-check-arguments :session dbus--test-service :byte 0))
+  ;; Only the least significant byte is taken into account.
+  (should
+   (dbus-check-arguments :session dbus--test-service :byte most-positive-fixnum))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :byte -1)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :byte 0.5)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :byte "string")
+   :type 'wrong-type-argument)
+
+  ;; `:int16'.
+  (should (dbus-check-arguments :session dbus--test-service :int16 0))
+  (should (dbus-check-arguments :session dbus--test-service :int16 #x7fff))
+  (should (dbus-check-arguments :session dbus--test-service :int16 #x-8000))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 #x8000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 #x-8001)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 0.5)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:uint16'.
+  (should (dbus-check-arguments :session dbus--test-service :uint16 0))
+  (should (dbus-check-arguments :session dbus--test-service :uint16 #xffff))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 #x10000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 -1)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 0.5)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:int32'.
+  (should (dbus-check-arguments :session dbus--test-service :int32 0))
+  (should (dbus-check-arguments :session dbus--test-service :int32 #x7fffffff))
+  (should (dbus-check-arguments :session dbus--test-service :int32 #x-80000000))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 #x80000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 #x-80000001)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:uint32'.
+  (should (dbus-check-arguments :session dbus--test-service 0))
+  (should (dbus-check-arguments :session dbus--test-service :uint32 0))
+  (should (dbus-check-arguments :session dbus--test-service :uint32 #xffffffff))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 #x100000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 -1)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:int64'.
+  (should (dbus-check-arguments :session dbus--test-service :int64 0))
+  (should
+   (dbus-check-arguments :session dbus--test-service :int64 #x7fffffffffffffff))
+  (should
+   (dbus-check-arguments :session dbus--test-service :int64 #x-8000000000000000))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 #x8000000000000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 #x-8000000000000001)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:uint64'.
+  (should (dbus-check-arguments :session dbus--test-service :uint64 0))
+  (should
+   (dbus-check-arguments :session dbus--test-service :uint64 #xffffffffffffffff))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 #x10000000000000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 -1)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:double'.
+  (should (dbus-check-arguments :session dbus--test-service :double 0))
+  (should (dbus-check-arguments :session dbus--test-service :double 0.5))
+  (should (dbus-check-arguments :session dbus--test-service :double -0.5))
+  (should (dbus-check-arguments :session dbus--test-service :double -1))
+  ;; Shall both be supported?
+  (should (dbus-check-arguments :session dbus--test-service :double 1.0e+INF))
+  (should (dbus-check-arguments :session dbus--test-service :double 0.0e+NaN))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :double "string")
+   :type 'wrong-type-argument)
+
+  ;; `:unix-fd'.  Value range 0 .. 9.
+  (should (dbus-check-arguments :session dbus--test-service :unix-fd 0))
+  (should (dbus-check-arguments :session dbus--test-service :unix-fd 9))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd 10)
+   :type 'dbus-error)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd -1)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd "string")
+   :type 'wrong-type-argument))
+
+(ert-deftest dbus-test01-compound-types ()
+  "Check basic D-Bus type arguments."
+  ;; `:array'.  It contains several elements of the same type.
+  (should (dbus-check-arguments :session dbus--test-service '("string")))
+  (should (dbus-check-arguments :session dbus--test-service '(:array "string")))
+  (should
+   (dbus-check-arguments :session dbus--test-service '(:array :string "string")))
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:array :string "string1" "string2")))
+  ;; Empty array.
+  (should (dbus-check-arguments :session dbus--test-service '(:array)))
+  (should
+   (dbus-check-arguments :session dbus--test-service '(:array :signature "o")))
+  ;; Different element types.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array :string "string" :object-path "/object/path"))
+   :type 'wrong-type-argument)
+
+  ;; `:variant'.  It contains exactly one element.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:variant :string "string")))
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:variant (:array "string"))))
+  ;; More than one element.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:variant :string "string" :object-path "/object/path"))
+   :type 'wrong-type-argument)
+
+  ;; `:dict-entry'.  It must contain two elements; the first one must
+  ;; be of a basic type.  It must be an element of an array.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array (:dict-entry :string "string" :boolean t))))
+  ;; The second element is `nil' (implicitely).  FIXME: Is this right?
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:array (:dict-entry :string "string"))))
+  ;; Not two elements.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array (:dict-entry :string "string" :boolean t :boolean t)))
+   :type 'wrong-type-argument)
+  ;; The first element ist not of a basic type.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array (:dict-entry (:array :string "string") :boolean t)))
+   :type 'wrong-type-argument)
+  ;; It is not an element of an array.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service '(:dict-entry :string "string" :boolean t))
+   :type 'wrong-type-argument)
+  ;; Different dict entry types can be part of an array.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array
+      (:dict-entry :string "string1" :boolean t)
+      (:dict-entry :string "string2" :object-path "/object/path"))))
+
+  ;; `:struct'.  There is no restriction what could be an element of a struct.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:struct
+      :string "string"
+      :object-path "/object/path"
+      (:variant (:array :unix-fd 1 :unix-fd 2 :unix-fd 3 :unix-fd 4))))))
+
 (defun dbus--test-register-service (bus)
   "Check service registration at BUS."
   ;; Cleanup.

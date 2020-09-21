@@ -1660,6 +1660,19 @@ clients from discovering the still incomplete interface.
     (unless (or dont-register-service (member service (dbus-list-names bus)))
       (dbus-register-service bus service))
 
+    ;; Send the PropertiesChanged signal.
+    (when emits-signal
+      (dbus-send-signal
+       bus service path dbus-interface-properties "PropertiesChanged"
+       ;; changed_properties.
+       (if (eq access :write)
+           '(:array: :signature "{sv}")
+         `(:array (:dict-entry ,property ,value)))
+       ;; invalidated_properties.
+       (if (eq access :write)
+           `(:array ,property)
+         '(:array))))
+
     ;; Create a hash table entry.  We use nil for the unique name,
     ;; because the property might be accessed from anybody.
     (let ((key (list :property bus interface property))
@@ -1669,14 +1682,6 @@ clients from discovering the still incomplete interface.
             (dbus-get-other-registered-properties
              bus service path interface property))))
       (puthash key val dbus-registered-objects-table)
-
-      ;; Set or Get the property, in order to validate the property's
-      ;; value and to send the PropertiesChanged signal.
-      (when (member service (dbus-list-names bus))
-        (if (eq access :read)
-            (dbus-get-property bus service path interface property)
-          (apply
-           #'dbus-set-property bus service path interface property (cdr value))))
 
       ;; Return the object.
       (list key (list service path)))))

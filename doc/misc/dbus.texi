@@ -1025,15 +1025,16 @@ but different to
 (dbus-call-method @dots{} :int32 @var{nat-number} :signature @var{string})
 @end lisp
 
-The value for a byte D-Bus type can be any integer in the range 0
-through 255.  If a character is used as argument, modifiers
-represented outside this range are stripped off.  For example,
-@code{:byte ?x} is equal to @code{:byte ?\M-x}, but it is not equal to
-@code{:byte ?\C-x} or @code{:byte ?\M-\C-x}.  Signed and unsigned
-integer D-Bus types expect a corresponding integer value.
+The value for a D-Bus byte type can be any natural number.  If the
+number is larger than 255, it is truncated to the least significant
+byte.  For example, @code{:byte 1025} is equal to @code{:byte 1}.  If
+a character is used as argument, modifiers represented outside this
+range are stripped off.  For example, @code{:byte ?x} is equal to
+@code{:byte ?\M-x}, but it is not equal to @code{:byte ?\C-x} or
+@code{:byte ?\M-\C-x}.
 
-All basic D-Bus types based on a number are truncated to their type
-range.  For example, @code{:byte 1025} is equal to @code{:byte 1}.
+Signed and unsigned D-Bus integer types expect a corresponding integer
+value.  A unix file descriptor is restricted to the values 0@dots{}9.
 
 If typed explicitly, a non-@code{nil} boolean value like
 @code{:boolean 'symbol} is handled like @code{t} or @code{:boolean t}.
