@@ -432,14 +432,14 @@ Initialized lazily by `json-encode-string'.")
   ;; string length as our heuristic.  See also bug#20154.
   (if (and (< (length string) json--long-string-threshold)
            (not (string-match-p (rx json--escape) string)))
-      (concat "\"" string "\"")
+      (concat "\"" (substring-no-properties string) "\"")
     (with-current-buffer
         (or json--string-buffer
             (with-current-buffer (generate-new-buffer " *json-string*")
               ;; This seems to afford decent performance gains.
               (setq-local inhibit-modification-hooks t)
               (setq json--string-buffer (current-buffer))))
-      (insert ?\" string)
+      (insert ?\" (substring-no-properties string)) ; see bug#43549
       (goto-char (1+ (point-min)))
       (while (re-search-forward (rx json--escape) nil 'move)
         (let ((char (preceding-char)))
