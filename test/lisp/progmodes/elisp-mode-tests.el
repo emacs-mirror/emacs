@@ -810,5 +810,17 @@ to (xref-elisp-test-descr-to-target xref)."
     (insert "?\\N{HEAVY CHECK MARK}")
     (should (equal (elisp--preceding-sexp) ?\N{HEAVY CHECK MARK}))))
 
+(ert-deftest elisp-indent-basic ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((orig "(defun x ()
+  (print (quote ( thingy great
+		  stuff)))
+  (print (quote (thingy great
+			stuff))))"))
+      (insert orig)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here
