@@ -417,6 +417,8 @@
                                       (point))
                                     "black")))))
 
+;; TODO: Convert these into unit proper tests instead of using an
+;;       external file.
 (ert-deftest css-mode-test-indent ()
   (with-current-buffer
       (find-file-noselect (expand-file-name "test-indent.css"
