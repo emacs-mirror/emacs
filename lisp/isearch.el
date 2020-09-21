@@ -269,17 +269,12 @@ are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
   "Non-nil means incremental search highlights the current match."
   :type 'boolean)
 
-(defcustom search-highlight-submatches 5
+(defcustom search-highlight-submatches t
   "Whether to highlight regexp subexpressions of the current regexp match.
-A positive integer N means highlight regexp subexpressions 1 to N.
-
-When 0, do not highlight regexp subexpressions.  A negative value is
-treated as zero.
 
 The faces used to do the highlights are named `isearch-group-1',
-`isearch-group-2', and so on, and if you increase this variable from
-the default, you have to add more of these faces."
-  :type 'integer
+`isearch-group-2', and so on."
+  :type 'boolean
   :version "28.1")
 
 (defface isearch
@@ -3719,6 +3714,47 @@ since they have special meaning in a regexp."
   :group 'isearch
   :version "28.1")
 
+(defface isearch-group-6
+  '((((class color) (background light))
+     (:background "#500050" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#703050" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (sixth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-7
+  '((((class color) (background light))
+     (:background "#400040" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#602050" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (seventh sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-8
+  '((((class color) (background light))
+     (:background "#300030" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#501050" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (eighth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-9
+  '((((class color) (background light))
+     (:background "#200020" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#400040" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (ninth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+
 (defun isearch-highlight (beg end)
   (if search-highlight
       (if isearch-overlay
@@ -3729,13 +3765,12 @@ since they have special meaning in a regexp."
 	;; 1001 is higher than lazy's 1000 and ediff's 100+
 	(overlay-put isearch-overlay 'priority 1001)
 	(overlay-put isearch-overlay 'face isearch-face)))
-  (when (and (integerp search-highlight-submatches)
-	     (> search-highlight-submatches 0)
+  (when (and search-highlight-submatches
 	     isearch-regexp)
     (mapc 'delete-overlay isearch-submatches-overlays)
     (setq isearch-submatches-overlays nil)
     (let ((i 0) ov)
-      (while (<= i search-highlight-submatches)
+      (while (<= i 9)
 	(when (match-beginning i)
 	  (setq ov (make-overlay (match-beginning i) (match-end i)))
 	  (overlay-put ov 'face (intern-soft (format "isearch-group-%d" i)))
