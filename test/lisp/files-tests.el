@@ -1406,7 +1406,7 @@ The door of all subtleties!
 ")
 
 (ert-deftest files-tests-revert-buffer ()
-  "Test that revert-buffer is succesful."
+  "Test that revert-buffer is successful."
   (files-tests--with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)

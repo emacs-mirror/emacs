@@ -322,7 +322,7 @@
    (dbus-check-arguments
     :session dbus--test-service
     '(:array (:dict-entry :string "string" :boolean t))))
-  ;; The second element is `nil' (implicitely).  FIXME: Is this right?
+  ;; The second element is `nil' (implicitly).  FIXME: Is this right?
   (should
    (dbus-check-arguments
     :session dbus--test-service '(:array (:dict-entry :string "string"))))

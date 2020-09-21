@@ -1,7 +1,7 @@
 This is a test of `faceup', a regression test system for font-lock
 keywords. It should use major mode `faceup-test-mode'.
 
-«(help-echo):"Baloon tip: Fly smoothly!":«w:WARNING»»: The first word on this line should use
+«(help-echo):"Balloon tip: Fly smoothly!":«w:WARNING»»: The first word on this line should use
 `font-lock-warning-face', and a tooltip should be displayed if the
 mouse pointer is moved over it.
 
