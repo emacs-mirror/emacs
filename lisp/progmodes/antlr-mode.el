@@ -720,9 +720,8 @@ imenu."
   "Major mode menu."
   `("Antlr"
     ,@(if (cond-emacs-xemacs
-	   :EMACS (and antlr-options-use-submenus
-		       (>= emacs-major-version 21))
-	   :XEMACS antlr-options-use-submenus)
+           :EMACS antlr-options-use-submenus
+           :XEMACS antlr-options-use-submenus)
 	  `(("Insert File Option"
 	     :filter ,(lambda (x) (antlr-options-menu-filter 1 x)))
 	    ("Insert Grammar Option"
