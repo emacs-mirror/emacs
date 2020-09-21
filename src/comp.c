@@ -4054,18 +4054,30 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 
   if (NILP (loadsearch_re_list))
     {
-      Lisp_Object loadsearch_list =
-	Fcons (build_string (PATH_DUMPLOADSEARCH),
-	       Fcons (build_string (PATH_LOADSEARCH), Qnil));
-      FOR_EACH_TAIL (loadsearch_list)
-	loadsearch_re_list =
-	  Fcons (Fregexp_quote (XCAR (loadsearch_list)), loadsearch_re_list);
+      Lisp_Object sys_re;
+#ifdef __APPLE__
+      /* On MacOS we relax the match on PATH_LOADSEARCH making
+	 everything before ".app/" a wildcard.  This to obtain a
+	 self-contained Emacs.app (bug#43532).  */
+      char *c;
+      if ((c = strstr (PATH_LOADSEARCH, ".app/")))
+	sys_re =
+	  concat2 (build_string ("\\`[[:ascii:]]+"),
+		   Fregexp_quote (build_string (c)));
+      else
+	sys_re = Fregexp_quote (build_string (PATH_LOADSEARCH));
+#else
+      sys_re = Fregexp_quote (build_string (PATH_LOADSEARCH));
+#endif
+      loadsearch_re_list =
+	list2 (sys_re, Fregexp_quote (build_string (PATH_DUMPLOADSEARCH)));
     }
-  Lisp_Object loadsearch_res = loadsearch_re_list;
-  FOR_EACH_TAIL (loadsearch_res)
+
+  Lisp_Object lds_re_tail = loadsearch_re_list;
+  FOR_EACH_TAIL (lds_re_tail)
     {
       Lisp_Object match_idx =
-	Fstring_match (XCAR (loadsearch_res), filename, Qnil);
+	Fstring_match (XCAR (lds_re_tail), filename, Qnil);
       if (EQ (match_idx, make_fixnum (0)))
 	{
 	  filename =
