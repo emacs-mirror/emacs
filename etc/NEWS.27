@@ -622,7 +622,7 @@ same as the 'C-x C-+' and 'C-x C--' commands.
 This new command (which inserts an <a id="foo">_</a> skeleton) is
 bound to 'C-c C-c #'.
 
-** New command 'font-lock-refontify'.
+** New command 'font-lock-debug-fontify'.
 This is an interactive convenience function to be used when developing
 font locking for a mode.  It recomputes the font locking data and then
 re-fontifies the buffer.
