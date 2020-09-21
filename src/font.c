@@ -2810,7 +2810,13 @@ font_list_entities (struct frame *f, Lisp_Object spec)
 		|| ! NILP (Vface_ignored_fonts)))
 	  val = font_delete_unmatched (val, need_filtering ? spec : Qnil, size);
 	if (ASIZE (val) > 0)
-	  list = Fcons (val, list);
+          {
+            list = Fcons (val, list);
+            /* Querying further backends can be very slow, so we only do
+               it if the user has explicitly requested it (Bug#43177).  */
+            if (query_all_font_backends == false)
+              break;
+          }
       }
 
   list = Fnreverse (list);
@@ -5526,6 +5532,13 @@ footprint in sessions that use lots of different fonts.  */);
 Non-nil means don't query fontconfig for color fonts, since they often
 cause Xft crashes.  Only has an effect in Xft builds.  */);
   xft_ignore_color_fonts = true;
+
+  DEFVAR_BOOL ("query-all-font-backends", query_all_font_backends,
+               doc: /*
+If non-nil, attempt to query all available font backends.
+By default Emacs will stop searching for a matching font at the first
+match.  */);
+  query_all_font_backends = false;
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_FREETYPE

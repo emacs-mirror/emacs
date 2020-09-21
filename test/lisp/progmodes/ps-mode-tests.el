@@ -43,6 +43,30 @@
     (should (equal (buffer-string)
                    "foo\\220\\221\\222bar"))))
 
+(ert-deftest ps-mode-test-indent ()
+  ;; Converted from manual test.
+  (with-temp-buffer
+    (ps-mode)
+    ;; TODO: Should some of these be fontification tests as well?
+    (let ((orig "%!PS-2.0
+
+<< 23 45 >>                     %dictionary
+< 23 >                          %hex string
+<~a>a%a~>                       %base85 string
+(%)s
+(sf\(g>a)sdg)
+
+/foo {
+    <<
+	hello 2
+	3
+    >>
+} def
+"))
+      (insert orig)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
 (provide 'ps-mode-tests)
 
 ;;; ps-mode-tests.el ends here

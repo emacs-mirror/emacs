@@ -124,6 +124,11 @@ Link to the documentation of a variable; @var{variable} is a string
 which specifies the name of the variable to describe with
 @code{describe-variable} when the user invokes this link.
 
+@item (face-link @var{face})
+Link to the documentation of a face; @var{face} is a string which
+specifies the name of the face to describe with @code{describe-face}
+when the user invokes this link.
+
 @item (custom-group-link @var{group})
 Link to another customization group.  Invoking it creates a new
 customization buffer for @var{group}.

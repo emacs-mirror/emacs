@@ -801,7 +801,6 @@ After the tab is created, the hooks in
                           (nth to-index tabs)))
 
     (cond
-     (tab-bar-mode)
      ((eq tab-bar-show t)
       (tab-bar-mode 1))
      ((and (natnump tab-bar-show)
@@ -1567,6 +1566,20 @@ Like \\[find-file-other-frame] (which see), but creates a new tab."
           value)
       (switch-to-buffer-other-tab value))))
 
+(defun find-file-read-only-other-tab (filename &optional wildcards)
+  "Edit file FILENAME, in another tab, but don't allow changes.
+Like \\[find-file-other-frame] (which see), but creates a new tab.
+
+Like \\[find-file-other-tab], but marks buffer as read-only.
+Use \\[read-only-mode] to permit editing."
+  (interactive
+   (find-file-read-args "Find file read-only in other tab: "
+                        (confirm-nonexistent-file-or-buffer)))
+  (find-file--read-only (lambda (filename wildcards)
+                          (window-buffer
+                           (find-file-other-tab filename wildcards)))
+                        filename wildcards))
+
 (defun other-tab-prefix ()
   "Display the buffer of the next command in a new tab.
 The next buffer is the buffer displayed by the next command invoked
@@ -1596,6 +1609,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (define-key tab-prefix-map "b" 'switch-to-buffer-other-tab)
 (define-key tab-prefix-map "f" 'find-file-other-tab)
 (define-key tab-prefix-map "\C-f" 'find-file-other-tab)
+(define-key tab-prefix-map "\C-r" 'find-file-read-only-other-tab)
 (define-key tab-prefix-map "t" 'other-tab-prefix)
 
 

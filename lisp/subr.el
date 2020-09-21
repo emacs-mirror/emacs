@@ -2349,13 +2349,19 @@ use `start-file-process'."
 		 (if program
 		     (list :command (cons program program-args))))))
 
-(defun process-lines (program &rest args)
+(defun process-lines-handling-status (program status-handler &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
-Signal an error if the program returns with a non-zero exit status."
+If STATUS-HANDLER is non-NIL, it must be a function with one
+argument, which will be called with the exit status of the
+program before the output is collected.  If STATUS-HANDLER is
+NIL, an error is signalled if the program returns with a non-zero
+exit status."
   (with-temp-buffer
     (let ((status (apply 'call-process program nil (current-buffer) nil args)))
-      (unless (eq status 0)
-	(error "%s exited with status %s" program status))
+      (if status-handler
+	  (funcall status-handler status)
+	(unless (eq status 0)
+	  (error "%s exited with status %s" program status)))
       (goto-char (point-min))
       (let (lines)
 	(while (not (eobp))
@@ -2365,6 +2371,18 @@ Signal an error if the program returns with a non-zero exit status."
 			    lines))
 	  (forward-line 1))
 	(nreverse lines)))))
+
+(defun process-lines (program &rest args)
+  "Execute PROGRAM with ARGS, returning its output as a list of lines.
+Signal an error if the program returns with a non-zero exit status.
+Also see `process-lines-ignore-status'."
+  (apply #'process-lines-handling-status program nil args))
+
+(defun process-lines-ignore-status (program &rest args)
+  "Execute PROGRAM with ARGS, returning its output as a list of lines.
+The exit status of the program is ignored.
+Also see `process-lines'."
+  (apply #'process-lines-handling-status program #'identity args))
 
 (defun process-live-p (process)
   "Return non-nil if PROCESS is alive.
@@ -4415,6 +4433,40 @@ Unless optional argument INPLACE is non-nil, return a new string."
       (if (eq (aref newstr i) fromchar)
 	  (aset newstr i tochar)))
     newstr))
+
+(defun replace-in-string (fromstring tostring instring)
+  "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs.
+This function returns a freshly created string."
+  (declare (side-effect-free t))
+  (let ((i 0)
+        (start 0)
+        (result nil))
+    (while (< i (length instring))
+      (if (eq (aref instring i)
+              (aref fromstring 0))
+          ;; See if we're in a match.
+          (let ((ii i)
+                (if 0))
+            (while (and (< ii (length instring))
+                        (< if (length fromstring))
+                        (eq (aref instring ii)
+                            (aref fromstring if)))
+              (setq ii (1+ ii)
+                    if (1+ if)))
+            (if (not (= if (length fromstring)))
+                ;; We didn't have a match after all.
+                (setq i (1+ i))
+              ;; We had one, so gather the previous part and the
+              ;; substitution.
+              (when (not (= start i))
+                (push (substring instring start i) result))
+              (push tostring result)
+              (setq i ii
+                    start ii)))
+        (setq i (1+ i))))
+    (when (not (= start i))
+      (push (substring instring start i) result))
+    (apply #'concat (nreverse result))))
 
 (defun replace-regexp-in-string (regexp rep string &optional
 					fixedcase literal subexp start)

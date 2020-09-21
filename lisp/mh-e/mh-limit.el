@@ -148,7 +148,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   "Put all following messages with same subject in sequence 'subject.
 If arg ALL is t, move to beginning of folder buffer to collect all
 messages.
-If arg ALL is nil, collect only messages fron current one on forward.
+If arg ALL is nil, collect only messages from current one on forward.
 
 Return number of messages put in the sequence:
 
@@ -198,7 +198,7 @@ It would be desirable to avoid hard-coding this.")
 
 This function only works with an unthreaded folder. If arg ALL is
 t, move to beginning of folder buffer to collect all messages. If
-arg ALL is nil, collect only messages fron current one on
+arg ALL is nil, collect only messages from current one on
 forward.
 
 Return number of messages put in the sequence:

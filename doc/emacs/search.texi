@@ -1977,6 +1977,18 @@ performs case folding and lax-whitespace matching.
 using the @code{isearch} face.  This highlighting can be disabled by
 setting the variable @code{search-highlight} to @code{nil}.
 
+@vindex search-highlight-submatches
+  When searching for regular expressions (with @kbd{C-M-s}, for
+instance), subexpressions receive special highlighting depending on
+the @code{search-highlight-submatches} variable.  If this variable's
+value is @code{nil}, no special highlighting is done, but if the value
+is non-@code{nil}, text that matches @samp{\( @dots{} \)} constructs
+(a.k.a.@: ``subexpressions'') in the regular expression will be
+highlighted with distinct faces, named @code{isearch-group-@var{n}}.
+For instance, when searching for @samp{foo-\([0-9]+\)}, the part
+matched by @samp{[0-9]+} will be highlighted with the
+@code{isearch-group-1} face.
+
 @cindex lazy highlighting customizations
 @vindex isearch-lazy-highlight
 @cindex @code{lazy-highlight} face

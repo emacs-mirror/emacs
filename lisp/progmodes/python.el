@@ -2059,7 +2059,7 @@ that they are prioritized when looking for executables."
 When this variable is non-nil, values are exported into remote
 hosts PATH before starting processes.  Values defined in
 `python-shell-exec-path' will take precedence to paths defined
-here.  Normally you wont use this variable directly unless you
+here.  Normally you won't use this variable directly unless you
 plan to ensure a particular set of paths to all Python shell
 executed through tramp connections."
   :version "25.1"
@@ -4130,7 +4130,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
                 (goto-char (point-max)))
             (point-marker)))
          (multi-line-p
-          ;; Docstring styles may vary for oneliners and multi-liners.
+          ;; Docstring styles may vary for one-liners and multi-liners.
           (> (count-matches "\n" str-start-pos str-end-pos) 0))
          (delimiters-style
           (pcase python-fill-docstring-style
@@ -5129,21 +5129,22 @@ point's current `syntax-ppss'."
              (>=
               2
               (let (last-backward-sexp-point)
-                (while (save-excursion
-                         (python-nav-backward-sexp)
-                         (setq backward-sexp-point (point))
-                         (and (= indentation (current-indentation))
-                              ;; Make sure we're always moving point.
-                              ;; If we get stuck in the same position
-                              ;; on consecutive loop iterations,
-                              ;; bail out.
-                              (prog1 (not (eql last-backward-sexp-point
-                                               backward-sexp-point))
-                                (setq last-backward-sexp-point
-                                      backward-sexp-point))
-                              (looking-at-p
-                               (concat "[uU]?[rR]?"
-                                       (python-rx string-delimiter)))))
+                (while (and (<= counter 2)
+                            (save-excursion
+                              (python-nav-backward-sexp)
+                              (setq backward-sexp-point (point))
+                              (and (= indentation (current-indentation))
+                                   ;; Make sure we're always moving point.
+                                   ;; If we get stuck in the same position
+                                   ;; on consecutive loop iterations,
+                                   ;; bail out.
+                                   (prog1 (not (eql last-backward-sexp-point
+                                                    backward-sexp-point))
+                                     (setq last-backward-sexp-point
+                                           backward-sexp-point))
+                                   (looking-at-p
+                                    (concat "[uU]?[rR]?"
+                                            (python-rx string-delimiter))))))
                   ;; Previous sexp was a string, restore point.
                   (goto-char backward-sexp-point)
                   (cl-incf counter))
@@ -5335,7 +5336,7 @@ To use `flake8' you would set this to (\"flake8\" \"-\")."
   :group 'python-flymake
   :type '(repeat string))
 
-;; The default regexp accomodates for older pyflakes, which did not
+;; The default regexp accommodates for older pyflakes, which did not
 ;; report the column number, and at the same time it's compatible with
 ;; flake8 output, although it may be redefined to explicitly match the
 ;; TYPE
@@ -5535,7 +5536,7 @@ REPORT-FN is Flymake's callback function."
          (^ '(- (1+ (current-indentation))))))
 
   (with-no-warnings
-    ;; supress warnings about eldoc-documentation-function being obsolete
+    ;; suppress warnings about eldoc-documentation-function being obsolete
    (if (null eldoc-documentation-function)
        ;; Emacs<25
        (set (make-local-variable 'eldoc-documentation-function)

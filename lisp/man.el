@@ -1508,8 +1508,11 @@ manpage command."
 
       (when delete-buff
         (if (window-live-p (get-buffer-window Man-buffer t))
-            (quit-restore-window
-             (get-buffer-window Man-buffer t) 'kill)
+            (progn
+              (quit-restore-window
+               (get-buffer-window Man-buffer t) 'kill)
+              ;; Ensure that we end up in the correct window.
+              (select-window (old-selected-window)))
           (kill-buffer Man-buffer)))
 
       (when message

@@ -966,6 +966,15 @@ Value, if non-nil, is a list (interactive SPEC).  */)
       if (PVSIZE (fun) > COMPILED_INTERACTIVE)
 	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
     }
+#ifdef HAVE_MODULES
+  else if (MODULE_FUNCTIONP (fun))
+    {
+      Lisp_Object form
+        = module_function_interactive_form (XMODULE_FUNCTION (fun));
+      if (! NILP (form))
+        return form;
+    }
+#endif
   else if (AUTOLOADP (fun))
     return Finteractive_form (Fautoload_do_load (fun, cmd, Qnil));
   else if (CONSP (fun))

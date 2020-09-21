@@ -152,7 +152,7 @@
   ("EFnet: EU, PL, Warszawa" EFnet "irc.efnet.pl" 6667)
   ("EFnet: EU, RU, Moscow" EFnet "irc.rt.ru" ((6661 6669)))
   ("EFnet: EU, SE, Dalarna" EFnet "irc.du.se" ((6666 6669)))
-  ("EFnet: EU, SE, Gothenberg" EFnet "irc.hemmet.chalmers.se" ((6666 7000)))
+  ("EFnet: EU, SE, Gothenburg" EFnet "irc.hemmet.chalmers.se" ((6666 7000)))
   ("EFnet: EU, SE, Sweden" EFnet "irc.light.se" 6667)
   ("EFnet: EU, UK, London (carrier)" EFnet "irc.carrier1.net.uk" ((6666 6669)))
   ("EFnet: EU, UK, London (demon)" EFnet "efnet.demon.co.uk" ((6665 6669)))

@@ -953,7 +953,7 @@ This function can be used as a value of
       ;; exclusively, we could call the (now unused) argument
       ;; _CALLBACK with hints on how to shorten the string if needed,
       ;; or with multiple usable strings which ElDoc picks according
-      ;; to its space contraints.
+      ;; to its space constraints.
       (describe-char-eldoc--format
        ch
        (unless (eq eldoc-echo-area-use-multiline-p t)

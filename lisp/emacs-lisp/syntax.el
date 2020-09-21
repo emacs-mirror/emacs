@@ -65,8 +65,13 @@ cannot be handled just by the buffer's syntax-table.
 The specified function may call `syntax-ppss' on any position
 before END, but if it calls `syntax-ppss' on some
 position and later modifies the buffer on some earlier position,
-then it is its responsability to call `syntax-ppss-flush-cache' to flush
-the now obsolete ppss info from the cache.")
+then it is its responsibility to call `syntax-ppss-flush-cache' to flush
+the now obsolete ppss info from the cache.
+
+Note: When this variable is a function, it must apply _all_ the
+`syntax-table' properties needed in the given text interval.
+Using both this function and other means to apply these
+properties won't work properly.")
 
 (defvar syntax-propertize-chunk-size 500)
 

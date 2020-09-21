@@ -11537,7 +11537,7 @@ If ALL is non-nil, also mark ticked and dormant articles as read."
     (gnus-save-hidden-threads
       (let ((beg (point)))
 	;; We check that there are unread articles.
-	(when (or all (gnus-summary-find-next))
+	(when (or all (gnus-summary-last-article-p) (gnus-summary-find-next))
 	  (gnus-summary-catchup all t beg nil t)))))
   (gnus-summary-position-point))
 
@@ -11806,8 +11806,6 @@ will not be hidden."
 
 (defun gnus-summary-hide-thread ()
   "Hide thread subtrees.
-If PREDICATE is supplied, threads that satisfy this predicate
-will not be hidden.
 Returns nil if no threads were there to be hidden."
   (interactive)
   (beginning-of-line)
@@ -11828,9 +11826,9 @@ Returns nil if no threads were there to be hidden."
 		(overlay-put ol 'invisible 'gnus-sum)
 		(overlay-put ol 'evaporate t)))
 	    (gnus-summary-goto-subject article)
+	    ;; We moved backward past the start point (invisible thread?)
             (when (> start (point))
-              (message "Hiding the thread moved us backwards, aborting!")
-              (goto-char (point-max))))
+              (goto-char starteol)))
 	(goto-char start)
 	nil))))
 

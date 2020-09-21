@@ -11979,6 +11979,11 @@ anything that isn't a newsgroup.  This means that no external images
 will be fetched as a result of reading mail, so that nobody can use
 web bugs (and the like) to track whether you've read email.
 
+@vindex gnus-global-groups
+If you have specific private groups that you want to have treated as
+if they were public groups, you can add the name of that group to the
+@code{gnus-global-groups} list.
+
 Also @pxref{Misc Article} for @code{gnus-inhibit-images}.
 
 @item gnus-html-cache-directory
@@ -19907,7 +19912,7 @@ Substring matching.
 Fuzzy matching (@pxref{Fuzzy Matching}).
 
 @item r
-Regexp matching
+Regexp matching.
 @end table
 
 @item date
@@ -19935,6 +19940,21 @@ Equal to number.
 @item >
 Greater than number.
 @end table
+
+@item body-strings
+
+These match types are available on the @samp{head} and @code{body}
+``header types''.
+
+@table @kbd
+
+@item z
+Substring matching.
+
+@item p
+Regexp matching.
+@end table
+
 @end table
 
 @item
@@ -19970,7 +19990,8 @@ To make things a bit more complicated, there are shortcuts.  If you use
 a capital letter on either the second or third keys, Gnus will use
 defaults for the remaining one or two keystrokes.  The defaults are
 ``substring'' and ``temporary''.  So @kbd{I A} is the same as @kbd{I a s
-t}, and @kbd{I a R} is the same as @kbd{I a r t}.
+t}, and @kbd{I a R} is the same as @kbd{I a r t}.  (These shortcuts
+are not available for the body matches.)
 
 These functions take both the numerical prefix and the symbolic prefix
 (@pxref{Symbolic Prefixes}).  A numerical prefix says how much to lower
@@ -20394,6 +20415,36 @@ key will lead to creation of @file{ADAPT} files.)
 @end enumerate
 
 @cindex score file atoms
+@item score-fn
+The value of this entry should be one or more user-defined function
+names in parentheses. Each function will be called in order and the
+returned value is required to be an integer.
+
+@example
+(score-fn (custom-scoring))
+@end example
+
+The user-defined function is called with an associative list with the
+keys @code{number subject from date id refs chars lines xref extra}
+followed by the article's score before the function is run.
+
+The following (somewhat contrived) example shows how to use a
+user-defined function that increases an article's score by 10 if the
+year of the article's date is also mentioned in its subject.
+
+@example
+(defun custom-scoring (article-alist score)
+  (let ((subject (cdr (assoc 'subject article-alist)))
+        (date (cdr (assoc 'date article-alist))))
+    (if (string-match (number-to-string
+                       (nth 5 (parse-time-string date)))
+                      subject)
+        10)))
+@end example
+
+@code{score-fn} entries are permanent and can only be added or
+modified directly in the @code{SCORE} file.
+
 @item mark
 The value of this entry should be a number.  Any articles with a score
 lower than this number will be marked as read.

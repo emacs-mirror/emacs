@@ -555,7 +555,7 @@ size, and full-buffer size."
 	  ;; If the element was empty, we don't have anything to put the
 	  ;; anchor on.  So just insert a dummy character.
 	  (when (= start (point))
-            (insert ?*)
+            (insert ? )
             (put-text-property (1- (point)) (point) 'display ""))
           (put-text-property start (1+ start) 'shr-target-id id))
 	;; If style is set, then this node has set the color.
@@ -714,7 +714,8 @@ size, and full-buffer size."
       (forward-char 1))))
 
 (defun shr-fill-line ()
-  (let ((shr-indentation (get-text-property (point) 'shr-indentation))
+  (let ((shr-indentation (or (get-text-property (point) 'shr-indentation)
+                             shr-indentation))
 	(continuation (get-text-property
 		       (point) 'shr-continuation-indentation))
 	start)
@@ -931,6 +932,22 @@ size, and full-buffer size."
 	       (forward-line -1)
 	       (looking-at " *$")))
 	;; We're already at a new paragraph; do nothing.
+	)
+       ((and (not (bolp))
+             (save-excursion
+               (beginning-of-line)
+               (looking-at " *$"))
+	     (save-excursion
+	       (forward-line -1)
+	       (looking-at " *$"))
+             ;; Check all chars on the current line and see whether
+             ;; they're all placeholders.
+             (cl-loop for pos from (line-beginning-position) upto (1- (point))
+                      unless (get-text-property pos 'shr-target-id)
+                      return nil
+                      finally return t))
+	;; We have some invisible markers from <div id="foo"></div>;
+	;; do nothing.
 	)
        ((and prefix
 	     (= prefix (- (point) (line-beginning-position))))

@@ -44,12 +44,12 @@
          (concat
           (regexp-quote (substring minibuffer-default-prompt-format
                                    0 (match-beginning 0)))
-          ".*"
+          "\\(.*?\\)"
           (regexp-quote (substring minibuffer-default-prompt-format
                                    (match-end 0))))
        (regexp-quote minibuffer-default-prompt-format))
      "\\): ")
-    1)
+    1 (and minibuffer-eldef-shorten-default " [\\2]"))
    `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
       1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
      ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)

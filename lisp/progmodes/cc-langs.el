@@ -2339,6 +2339,16 @@ will be handled."
   t  (c-make-keywords-re t (c-lang-const c-typedef-decl-kwds)))
 (c-lang-defvar c-typedef-decl-key (c-lang-const c-typedef-decl-key))
 
+(c-lang-defconst c-using-kwds
+  "Keywords which behave like `using' in C++"
+  t nil
+  c++ '("using"))
+
+(c-lang-defconst c-using-key
+  ;; Regexp matching C++'s `using'.
+  t (c-make-keywords-re t (c-lang-const c-using-kwds)))
+(c-lang-defvar c-using-key (c-lang-const c-using-key))
+
 (c-lang-defconst c-typeless-decl-kwds
   "Keywords introducing declarations where the (first) identifier
 \(declarator) follows directly after the keyword, without any type.
@@ -2389,7 +2399,8 @@ will be handled."
   t    nil
   (c c++) '("auto" "extern" "inline" "register" "static")
   c++  (append '("constexpr" "explicit" "friend" "mutable" "template"
-		 "thread_local" "using" "virtual")
+		 "thread_local" "virtual")
+	       ;; "using" is now handled specially (2020-09-14).
 	       (c-lang-const c-modifier-kwds))
   objc '("auto" "bycopy" "byref" "extern" "in" "inout" "oneway" "out" "static")
   ;; FIXME: Some of those below ought to be on `c-other-decl-kwds' instead.

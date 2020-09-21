@@ -23,9 +23,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Define these variables that serve as global parameters to termcap,
    so that we do not need to conditionalize the places in Emacs
-   that set them.  */
+   that set them.  But don't do that for terminfo, as that could
+   cause link errors when using -fno-common.  */
 
+#if !TERMINFO
 char *UP, *BC, PC;
+#endif
 
 /* Interface to curses/terminfo library.
    Turns out that all of the terminfo-level routines look

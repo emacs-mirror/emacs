@@ -511,7 +511,6 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 \section{Tags}
 
 \key{find a tag (a definition)}{M-.}
-\key{find next occurrence of tag}{C-u M-.}
 \metax{specify a new tags file}{M-x visit-tags-table}
 
 \metax{regexp search on all files in tags table}{M-x tags-search}
@@ -562,8 +561,8 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 \key{quote regular expression special character {\it c\/}}{\\{\it c}}
 \key{alternative (``or'')}{\\|}
 \key{grouping}{\\( {\rm$\ldots$} \\)}
-\key{shy grouping}{\\(:? {\rm$\ldots$} \\)}
-\key{explicit numbered grouping}{\\(:NUM {\rm$\ldots$} \\)}
+\key{shy grouping}{\\(?: {\rm$\ldots$} \\)}
+\key{explicit numbered grouping}{\\(?NUM: {\rm$\ldots$} \\)}
 \key{same text as {\it n\/}th group}{\\{\it n}}
 \key{at word break}{\\b}
 \key{not at word break}{\\B}

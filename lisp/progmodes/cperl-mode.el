@@ -814,7 +814,7 @@ capable syntax engines).
 
 (defvar cperl-speed 'please-ignore-this-line
   "This is an incomplete compendium of what is available in other parts
-of CPerl documentation.  (Please inform me if I skept anything.)
+of CPerl documentation.  (Please inform me if I skipped anything.)
 
 There is a perception that CPerl is slower than alternatives.  This part
 of documentation is designed to overcome this misconception.
@@ -1234,6 +1234,7 @@ versions of Emacs."
 	  ["Auto fill" auto-fill-mode t])
 	 ("Indent styles..."
 	  ["CPerl" (cperl-set-style "CPerl") t]
+	  ["PBP" (cperl-set-style  "PBP") t]
 	  ["PerlStyle" (cperl-set-style "PerlStyle") t]
 	  ["GNU" (cperl-set-style "GNU") t]
 	  ["C++" (cperl-set-style "C++") t]
@@ -1553,12 +1554,12 @@ Variables controlling indentation style:
  `cperl-min-label-indent'
     Minimal indentation for line that is a label.
 
-Settings for classic indent-styles: K&R BSD=C++ GNU PerlStyle=Whitesmith
-  `cperl-indent-level'                5   4       2   4
-  `cperl-brace-offset'                0   0       0   0
-  `cperl-continued-brace-offset'     -5  -4       0   0
-  `cperl-label-offset'               -5  -4      -2  -4
-  `cperl-continued-statement-offset'  5   4       2   4
+Settings for classic indent-styles: K&R BSD=C++ GNU PBP PerlStyle=Whitesmith
+  `cperl-indent-level'                5   4       2   4   4
+  `cperl-brace-offset'                0   0       0   0   0
+  `cperl-continued-brace-offset'     -5  -4       0   0   0
+  `cperl-label-offset'               -5  -4      -2  -2  -4
+  `cperl-continued-statement-offset'  5   4       2   4   4
 
 CPerl knows several indentation styles, and may bulk set the
 corresponding variables.  Use \\[cperl-set-style] to do this.  Use
@@ -4485,7 +4486,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 				       'syntax-table cperl-st-cfence))))
 			      (setq was-subgr nil))
 			     (t		; (?#)-comment
-			      ;; Inside "(" and "\" arn't special in any way
+			      ;; Inside "(" and "\" aren't special in any way
 			      ;; Works also if the outside delimiters are ().
 			      (or;;(if (eq (char-after b) ?\) )
 			       ;;(re-search-forward
@@ -6046,7 +6047,19 @@ if (foo) {
   stop;
 }
 
-### PerlStyle	(=CPerl with 4 as indent)		4/0/0/-4/4/t/nil
+### PBP (=Perl Best Practices)				4/0/0/-4/4/nil/nil
+if (foo) {
+    bar
+	baz;
+  label:
+    {
+	boon;
+    }
+}
+else {
+    stop;
+}
+### PerlStyle	(=CPerl with 4 as indent)		4/0/0/-2/4/t/nil
 if (foo) {
     bar
 	baz;
@@ -6149,6 +6162,18 @@ else
      (cperl-extra-newline-before-brace-multiline .  nil)
      (cperl-merge-trailing-else	       .  t))
 
+    ("PBP"  ;; Perl Best Practices by Damian Conway
+     (cperl-indent-level               .  4)
+     (cperl-brace-offset               .  0)
+     (cperl-continued-brace-offset     .  0)
+     (cperl-label-offset               . -2)
+     (cperl-continued-statement-offset .  4)
+     (cperl-extra-newline-before-brace .  nil)
+     (cperl-extra-newline-before-brace-multiline .  nil)
+     (cperl-merge-trailing-else        .  nil)
+     (cperl-indent-parens-as-block     .  t)
+     (cperl-tab-always-indent          .  t))
+
     ("PerlStyle"			; CPerl with 4 as indent
      (cperl-indent-level               .  4)
      (cperl-brace-offset               .  0)
@@ -6220,7 +6245,8 @@ See examples in `cperl-style-examples'.")
   "Set CPerl mode variables to use one of several different indentation styles.
 The arguments are a string representing the desired style.
 The list of styles is in `cperl-style-alist', available styles
-are CPerl, PerlStyle, GNU, K&R, BSD, C++ and Whitesmith.
+are \"CPerl\", \"PBP\", \"PerlStyle\", \"GNU\", \"K&R\", \"BSD\", \"C++\"
+and \"Whitesmith\".
 
 The current value of style is memorized (unless there is a memorized
 data already), may be restored by `cperl-set-style-back'.

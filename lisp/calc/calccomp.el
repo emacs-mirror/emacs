@@ -1018,7 +1018,8 @@
 		    (make-string (+ w 2) ?\_))
 	    (list 'horiz
 		  (if (= h 1)
-		      "V"
+		      (if (char-displayable-p ?√)
+                          "√" "V")
 		    (append (list 'vleft (1- a))
 			    (make-list (1- h) " |")
 			    '("\\|")))

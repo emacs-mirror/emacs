@@ -603,6 +603,11 @@ This function works by calling @code{call-process}, so program output
 is decoded in the same way as for @code{call-process}.
 @end defun
 
+@defun process-lines-ignore-status program &rest args
+This function is just like @code{process-lines}, but does not signal
+an error if @var{program} exits with a non-zero exit status.
+@end defun
+
 @node Asynchronous Processes
 @section Creating an Asynchronous Process
 @cindex asynchronous subprocess

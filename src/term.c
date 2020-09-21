@@ -105,14 +105,14 @@ struct tty_display_info *tty_list;
 
 enum no_color_bit
 {
-  NC_STANDOUT	 = 1 << 0,
-  NC_UNDERLINE	 = 1 << 1,
-  NC_REVERSE	 = 1 << 2,
-  NC_ITALIC	 = 1 << 3,
-  NC_DIM	 = 1 << 4,
-  NC_BOLD	 = 1 << 5,
-  NC_INVIS	 = 1 << 6,
-  NC_PROTECT	 = 1 << 7
+  NC_STANDOUT		 = 1 << 0,
+  NC_UNDERLINE		 = 1 << 1,
+  NC_REVERSE		 = 1 << 2,
+  NC_ITALIC		 = 1 << 3,
+  NC_DIM		 = 1 << 4,
+  NC_BOLD		 = 1 << 5,
+  NC_STRIKE_THROUGH	 = 1 << 6,
+  NC_PROTECT		 = 1 << 7
 };
 
 /* internal state */
@@ -1931,6 +1931,10 @@ turn_on_face (struct frame *f, int face_id)
   if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (tty, NC_UNDERLINE))
     OUTPUT1_IF (tty, tty->TS_enter_underline_mode);
 
+  if (face->tty_strike_through_p
+      && MAY_USE_WITH_COLORS_P (tty, NC_STRIKE_THROUGH))
+    OUTPUT1_IF (tty, tty->TS_enter_strike_through_mode);
+
   if (tty->TN_max_colors > 0)
     {
       const char *ts;
@@ -1971,7 +1975,8 @@ turn_off_face (struct frame *f, int face_id)
       if (face->tty_bold_p
 	  || face->tty_italic_p
 	  || face->tty_reverse_p
-	  || face->tty_underline_p)
+	  || face->tty_underline_p
+	  || face->tty_strike_through_p)
 	{
 	  OUTPUT1_IF (tty, tty->TS_exit_attribute_mode);
 	  if (strcmp (tty->TS_exit_attribute_mode, tty->TS_end_standout_mode) == 0)
@@ -2006,11 +2011,20 @@ tty_capable_p (struct tty_display_info *tty, unsigned int caps)
   if ((caps & (cap)) && (!(TS) || !MAY_USE_WITH_COLORS_P(tty, NC_bit)))	\
     return 0;
 
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_INVERSE,	tty->TS_standout_mode, 	 	NC_REVERSE);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_UNDERLINE, 	tty->TS_enter_underline_mode, 	NC_UNDERLINE);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_BOLD, 	tty->TS_enter_bold_mode, 	NC_BOLD);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_DIM, 		tty->TS_enter_dim_mode, 	NC_DIM);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_ITALIC, 	tty->TS_enter_italic_mode, 	NC_ITALIC);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_INVERSE,	  tty->TS_standout_mode, NC_REVERSE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_UNDERLINE,	  tty->TS_enter_underline_mode,
+		     NC_UNDERLINE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_BOLD,	  tty->TS_enter_bold_mode, NC_BOLD);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_DIM,	  tty->TS_enter_dim_mode, NC_DIM);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_ITALIC,	  tty->TS_enter_italic_mode, NC_ITALIC);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_STRIKE_THROUGH, tty->TS_enter_strike_through_mode,
+		     NC_STRIKE_THROUGH);
 
   /* We can do it!  */
   return 1;
@@ -2402,7 +2416,7 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
   pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
 
-  /* Save current cursor co-ordinates.  */
+  /* Save current cursor coordinates.  */
   save_y = curY (tty);
   save_x = curX (tty);
   cursor_to (f, pos_y, pos_x);
@@ -4124,6 +4138,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TS_enter_alt_charset_mode = tgetstr ("as", address);
   tty->TS_exit_alt_charset_mode = tgetstr ("ae", address);
   tty->TS_exit_attribute_mode = tgetstr ("me", address);
+  tty->TS_enter_strike_through_mode = tgetstr ("smxx", address);
 
   MultiUp (tty) = tgetstr ("UP", address);
   MultiDown (tty) = tgetstr ("DO", address);

@@ -473,6 +473,7 @@ to undo insertion of text.)
 >> Kill this line with C-k, then type C-/ and it should reappear.
 
 C-_ is an alternative undo command; it works exactly the same as C-/.
+On some text terminals, you can omit the shift key when you type C-_.
 On some text terminals, typing C-/ actually sends C-_ to Emacs.
 Alternatively, C-x u also works exactly like C-/, but is a little less
 convenient to type.

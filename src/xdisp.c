@@ -510,7 +510,7 @@ static Lisp_Object list_of_error;
 	       || *BYTE_POS_ADDR (IT_BYTEPOS (*it)) == '\t'))))
 
 /* These are the category sets we use.  They are defined by
-   kinsoku.el and chracters.el.  */
+   kinsoku.el and characters.el.  */
 #define NOT_AT_EOL '<'
 #define NOT_AT_BOL '>'
 #define LINE_BREAKABLE '|'
@@ -2230,7 +2230,7 @@ estimate_mode_line_height (struct frame *f, enum face_id face_id)
 }
 
 /* Given a pixel position (PIX_X, PIX_Y) on frame F, return glyph
-   co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle that the
+   coordinates in (*X, *Y).  Set *BOUNDS to the rectangle that the
    glyph at X, Y occupies, if BOUNDS != 0.  If NOCLIP, do
    not force the value into range.  */
 
@@ -3744,7 +3744,7 @@ init_to_row_end (struct it *it, struct window *w, struct glyph_row *row)
 	it->continuation_lines_width
 	  = row->continuation_lines_width + row->pixel_width;
       CHECK_IT (it);
-      /* Initializing IT in the presense of compositions in reordered
+      /* Initializing IT in the presence of compositions in reordered
 	 rows is tricky: row->end above will generally cause us to
 	 start at position that is not the first one in the logical
 	 order, and we might therefore miss the composition earlier in
@@ -25641,8 +25641,10 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		    /* Non-ASCII characters in SPEC should cause mode-line
 		       element be displayed as a multibyte string.  */
 		    ptrdiff_t nbytes = strlen (spec);
-		    if (multibyte_chars_in_text ((const unsigned char *)spec,
-						 nbytes) != nbytes)
+		    ptrdiff_t nchars, mb_nbytes;
+		    parse_str_as_multibyte ((const unsigned char *)spec, nbytes,
+					    &nchars, &mb_nbytes);
+		    if (!(nbytes == nchars || nbytes != mb_nbytes))
 		      multibyte = true;
 
 		    switch (mode_line_target)
@@ -34831,8 +34833,7 @@ and is used only on frames for which no explicit name has been set
      Oracle Developer Studio 12.6.  */
   Lisp_Object icon_title_name_format
     = pure_list (empty_unibyte_string,
-		 intern_c_string ("invocation-name"),
-		 build_pure_c_string ("@"),
+		 build_pure_c_string ("%b - GNU Emacs at "),
 		 intern_c_string ("system-name"));
   Vicon_title_format
     = Vframe_title_format
@@ -35008,8 +35009,10 @@ but does not change the fact they are interpreted as raw bytes.  */);
 
   DEFVAR_LISP ("max-mini-window-height", Vmax_mini_window_height,
     doc: /* Maximum height for resizing mini-windows (the minibuffer and the echo area).
-If a float, it specifies a fraction of the mini-window frame's height.
-If an integer, it specifies a number of lines.  */);
+If a float, it specifies the maximum height in units of the
+mini-window frame's height.
+If an integer, it specifies the maximum height in units of the
+mini-window frame's default font's height.  */);
   Vmax_mini_window_height = make_float (0.25);
 
   DEFVAR_LISP ("resize-mini-windows", Vresize_mini_windows,

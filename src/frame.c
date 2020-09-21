@@ -6106,7 +6106,7 @@ when the mouse is over clickable text.  */);
   Vmouse_highlight = Qt;
 
   DEFVAR_LISP ("make-pointer-invisible", Vmake_pointer_invisible,
-               doc: /* If non-nil, make pointer invisible while typing.
+               doc: /* If non-nil, make mouse pointer invisible while typing.
 The pointer becomes visible again when the mouse is moved.  */);
   Vmake_pointer_invisible = Qt;
 

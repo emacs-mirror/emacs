@@ -2172,7 +2172,8 @@ the font."
   (with-selected-window (window-normalize-window window t)
     (let* ((window-width (window-body-width window t))
 	   (font-width (window-font-width window face))
-	   (ncols (/ window-width font-width)))
+	   (ncols (- (/ window-width font-width)
+                     (ceiling (line-number-display-width 'columns)))))
       (if (and (display-graphic-p)
 	       overflow-newline-into-fringe
                (not
@@ -10183,5 +10184,7 @@ displaying that processes's buffer."
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 (define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
+
+(provide 'window)
 
 ;;; window.el ends here

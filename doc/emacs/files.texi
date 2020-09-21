@@ -921,6 +921,7 @@ Manual}).  For customizations, see the Custom group @code{time-stamp}.
 @node Reverting
 @section Reverting a Buffer
 @findex revert-buffer
+@findex revert-buffer-with-fine-grain
 @cindex drastic changes
 @cindex reread a file
 
@@ -940,6 +941,19 @@ reverted changes as a single modification to the buffer's undo history
 (@pxref{Undo}).  Thus, after reverting, you can type @kbd{C-/} or its
 aliases to bring the reverted changes back, if you happen to change
 your mind.
+
+@vindex revert-buffer-with-fine-grain-max-seconds
+  To revert a buffer more conservatively, you can use the command
+@code{revert-buffer-with-fine-grain}.  This command acts like
+@code{revert-buffer}, but it tries to be as non-destructive as
+possible, making an effort to preserve all markers, properties and
+overlays in the buffer.  Since reverting this way can be very slow
+when you have made a large number of changes, you can modify the
+variable @code{revert-buffer-with-fine-grain-max-seconds} to
+specify a maximum amount of seconds that replacing the buffer
+contents this way should take.  Note that it is not ensured that the
+whole execution of @code{revert-buffer-with-fine-grain} won't take
+longer than this.
 
   Some kinds of buffers that are not associated with files, such as
 Dired buffers, can also be reverted.  For them, reverting means

@@ -416,67 +416,73 @@ usually do not have translators for other languages.\n\n")))
 
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
-  (save-excursion
-    (goto-char (point-max))
-    (skip-chars-backward " \t\n")
-    (and (= (- (point) (point-min))
-            (length report-emacs-bug-orig-text))
-         (string-equal (buffer-substring-no-properties (point-min) (point))
-                       report-emacs-bug-orig-text)
-         (error "No text entered in bug report"))
-    ;; Warning for novice users.
-    (when (and (string-match "bug-gnu-emacs@gnu\\.org" (mail-fetch-field "to"))
-               (not report-emacs-bug-no-confirmation)
-	       (not (yes-or-no-p
-		     "Send this bug report to the Emacs maintainers? ")))
-      (with-output-to-temp-buffer "*Bug Help*"
-	(princ (substitute-command-keys
-                (format "\
+  (goto-char (point-max))
+  (skip-chars-backward " \t\n")
+  (and (= (- (point) (point-min))
+          (length report-emacs-bug-orig-text))
+       (string-equal (buffer-substring-no-properties (point-min) (point))
+                     report-emacs-bug-orig-text)
+       (error "No text entered in bug report"))
+  ;; Warning for novice users.
+  (when (and (string-match "bug-gnu-emacs@gnu\\.org" (mail-fetch-field "to"))
+             (not report-emacs-bug-no-confirmation)
+	     (not (yes-or-no-p
+		   "Send this bug report to the Emacs maintainers? ")))
+    (with-output-to-temp-buffer "*Bug Help*"
+      (princ (substitute-command-keys
+              (format "\
 You invoked the command M-x report-emacs-bug,
 but you decided not to mail the bug report to the Emacs maintainers.
 
 If you want to mail it to someone else instead,
 please insert the proper e-mail address after \"To: \",
 and send the mail again%s."
-                        (if report-emacs-bug-send-command
-                            (format " using \\[%s]"
-                                    report-emacs-bug-send-command)
-                          "")))))
-      (error "M-x report-emacs-bug was canceled, please read *Bug Help* buffer"))
-    ;; Query the user for the SMTP method, so that we can skip
-    ;; questions about From header validity if the user is going to
-    ;; use mailclient, anyway.
-    (when (or (and (derived-mode-p 'message-mode)
-		   (eq message-send-mail-function 'sendmail-query-once))
-	      (and (not (derived-mode-p 'message-mode))
-		   (eq send-mail-function 'sendmail-query-once)))
-      (sendmail-query-user-about-smtp)
-      (when (derived-mode-p 'message-mode)
-	(setq message-send-mail-function (message-default-send-mail-function))))
-    (or report-emacs-bug-no-confirmation
-	;; mailclient.el does not need a valid From
-	(if (derived-mode-p 'message-mode)
-	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
-	  (eq send-mail-function 'mailclient-send-it))
-	;; Not narrowing to the headers, but that's OK.
-	(let ((from (mail-fetch-field "From")))
-	  (and (or (not from)
-		   (message-bogus-recipient-p from)
-		   ;; This is the default user-mail-address.  On today's
-		   ;; systems, it seems more likely to be wrong than right,
-		   ;; since most people don't run their own mail server.
-		   (string-match (format "\\<%s@%s\\>"
-					 (regexp-quote (user-login-name))
-					 (regexp-quote (system-name)))
-				 from))
-	       (not (yes-or-no-p
-		     (format-message "Is `%s' really your email address? "
-                                     from)))
-	       (error "Please edit the From address and try again"))))
-    ;; Bury the help buffer (if it's shown).
-    (when-let ((help (get-buffer "*Bug Help*")))
-      (when (get-buffer-window help)
-        (quit-window nil (get-buffer-window help))))))
+                      (if report-emacs-bug-send-command
+                          (format " using \\[%s]"
+                                  report-emacs-bug-send-command)
+                        "")))))
+    (error "M-x report-emacs-bug was canceled, please read *Bug Help* buffer"))
+  ;; Query the user for the SMTP method, so that we can skip
+  ;; questions about From header validity if the user is going to
+  ;; use mailclient, anyway.
+  (when (or (and (derived-mode-p 'message-mode)
+		 (eq (message-default-send-mail-function) 'sendmail-query-once))
+	    (and (not (derived-mode-p 'message-mode))
+		 (eq send-mail-function 'sendmail-query-once)))
+    (setq send-mail-function (sendmail-query-user-about-smtp))
+    (when (derived-mode-p 'message-mode)
+      (setq message-send-mail-function (message-default-send-mail-function))
+      (add-hook 'message-sent-hook
+                (lambda ()
+                  (when (y-or-n-p "Save this mail sending choice?")
+                    (customize-save-variable 'send-mail-function
+                                             send-mail-function)))
+                nil t)))
+  (or report-emacs-bug-no-confirmation
+      ;; mailclient.el does not need a valid From
+      (eq send-mail-function 'mailclient-send-it)
+      ;; Not narrowing to the headers, but that's OK.
+      (let ((from (mail-fetch-field "From")))
+	(when (and (or (not from)
+		       (message-bogus-recipient-p from)
+		       ;; This is the default user-mail-address.  On
+		       ;; today's systems, it seems more likely to
+		       ;; be wrong than right, since most people
+		       ;; don't run their own mail server.
+		       (string-match (format "\\<%s@%s\\>"
+					     (regexp-quote (user-login-name))
+					     (regexp-quote (system-name)))
+				     from))
+	           (not (yes-or-no-p
+		         (format-message "Is `%s' really your email address? "
+                                         from))))
+          (goto-char (point-min))
+          (re-search-forward "^From: " nil t)
+	  (error "Please edit the From address and try again"))))
+  ;; Bury the help buffer (if it's shown).
+  (when-let ((help (get-buffer "*Bug Help*")))
+    (when (get-buffer-window help)
+      (quit-window nil (get-buffer-window help)))))
 
 ;;;###autoload
 (defun submit-emacs-patch (subject file)

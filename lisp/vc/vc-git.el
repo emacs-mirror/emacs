@@ -1707,12 +1707,13 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-list ()
-  (delete
-   ""
-   (split-string
-    (replace-regexp-in-string
-     "^stash@" "             " (vc-git--run-command-string nil "stash" "list"))
-    "\n")))
+  (when-let ((out (vc-git--run-command-string nil "stash" "list")))
+    (delete
+     ""
+     (split-string
+      (replace-regexp-in-string
+       "^stash@" "             " out)
+      "\n"))))
 
 (defun vc-git-stash-get-at-point (point)
   (save-excursion

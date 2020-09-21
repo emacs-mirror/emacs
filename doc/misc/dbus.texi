@@ -732,8 +732,8 @@ A @var{property} value can be retrieved by the function
 @defun dbus-get-property bus service path interface property
 This function returns the value of @var{property} of @var{interface}.
 It will be checked at @var{bus}, @var{service}, @var{path}.  The
-result can be any valid D-Bus value, or @code{nil} if there is no
-@var{property}.  Example:
+result can be any valid D-Bus value.  If there is no @var{property},
+or @var{property} cannot be read, an error is raised.  Example:
 
 @lisp
 (dbus-get-property
@@ -749,7 +749,7 @@ This function sets the value of @var{property} of @var{interface} to
 @var{value}.  It will be checked at @var{bus}, @var{service},
 @var{path}.  @var{value} can be preceded by a @var{type} symbol.  When
 the value is successfully set, this function returns @var{value}.
-Otherwise, it returns @code{nil}.  Example:
+Example:
 
 @lisp
 (dbus-set-property
@@ -761,10 +761,11 @@ Otherwise, it returns @code{nil}.  Example:
 @end defun
 
 @defun dbus-get-all-properties bus service path interface
-This function returns all properties of @var{interface}.  It will be
-checked at @var{bus}, @var{service}, @var{path}.  The result is a list
-of cons.  Every cons contains the name of the property, and its value.
-If there are no properties, @code{nil} is returned.  Example:
+This function returns all readable properties of @var{interface}.  It
+will be checked at @var{bus}, @var{service}, @var{path}.  The result
+is a list of cons cells.  Every cons cell contains the name of the
+property, and its value.  If there are no properties, @code{nil} is
+returned.  Example:
 
 @lisp
 (dbus-get-all-properties
@@ -782,9 +783,9 @@ If there are no properties, @code{nil} is returned.  Example:
 @defun dbus-get-all-managed-objects bus service path
 This function returns all objects at @var{bus}, @var{service},
 @var{path}, and the children of @var{path}.  The result is a list of
-objects.  Every object is a cons of an existing path name, and the
-list of available interface objects.  An interface object is another
-cons, whose car is the interface name and cdr is the list of
+objects.  Every object is a cons cell of an existing path name, and
+the list of available interface objects.  An interface object is
+another cons, whose car is the interface name and cdr is the list of
 properties as returned by @code{dbus-get-all-properties} for that path
 and interface.  Example:
 
@@ -1024,12 +1025,19 @@ but different to
 (dbus-call-method @dots{} :int32 @var{nat-number} :signature @var{string})
 @end lisp
 
-The value for a byte D-Bus type can be any integer in the range 0
-through 255.  If a character is used as argument, modifiers
-represented outside this range are stripped off.  For example,
-@code{:byte ?x} is equal to @code{:byte ?\M-x}, but it is not equal to
-@code{:byte ?\C-x} or @code{:byte ?\M-\C-x}.  Signed and unsigned
-integer D-Bus types expect a corresponding integer value.
+The value for a D-Bus byte type can be any natural number.  If the
+number is larger than 255, it is truncated to the least significant
+byte.  For example, @code{:byte 1025} is equal to @code{:byte 1}.  If
+a character is used as argument, modifiers represented outside this
+range are stripped off.  For example, @code{:byte ?x} is equal to
+@code{:byte ?\M-x}, but it is not equal to @code{:byte ?\C-x} or
+@code{:byte ?\M-\C-x}.
+
+Signed and unsigned D-Bus integer types expect a corresponding integer
+value.  A unix file descriptor is restricted to the values 0@dots{}9.
+
+If typed explicitly, a non-@code{nil} boolean value like
+@code{:boolean 'symbol} is handled like @code{t} or @code{:boolean t}.
 
 A D-Bus compound type is always represented as a list.  The @sc{car}
 of this list can be the type symbol @code{:array}, @code{:variant},
@@ -1070,7 +1078,7 @@ elements of this array.  Example:
  (format                       ; Body.
   "This is a test notification, raised from\n%S" (emacs-version))
  '(:array)                     ; No actions (empty array of strings).
- '(:array :signature "@{sv@}") ; No hints
+ '(:array :signature "@{sv@}")   ; No hints
                                ; (empty array of dictionary entries).
  :int32 -1)                    ; Default timeout.
 
@@ -1345,6 +1353,8 @@ message arrives, and @var{handler} is called.  Example:
 @chapter Offering own services.
 @cindex method calls, returning
 @cindex returning method calls
+
+@c https://wiki.ubuntu.com/DebuggingDBus
 
 You can offer an own service in D-Bus, which will be visible by other
 D-Bus clients.  See @uref{https://dbus.freedesktop.org/doc/dbus-api-design.html}
@@ -1953,8 +1963,9 @@ appended to the @code{dbus-error}.
 
 @defspec dbus-ignore-errors forms@dots{}
 This executes @var{forms} exactly like a @code{progn}, except that
-@code{dbus-error} errors are ignored during the @var{forms}.  These
-errors can be made visible when @code{dbus-debug} is set to @code{t}.
+@code{dbus-error} errors are ignored during the @var{forms} (the macro
+returns @code{nil} then).  These errors can be made visible when
+@code{dbus-debug} is set to non-@code{nil}.
 @end defspec
 
 Incoming D-Bus messages are handled as Emacs events, @pxref{Misc
@@ -1981,8 +1992,10 @@ of the D-Bus object emitting the message.  @var{interface} and
 @var{member} denote the message which has been sent.
 
 @var{handler} is the callback function which has been registered for
-this message (@pxref{Signals}).  When a @code{dbus-event} event
-arrives, @var{handler} is called with @var{args} as arguments.
+this message (@pxref{Signals}).  @var{args} are the typed arguments as
+returned from the message.  They are passed to @var{handler} without
+type information, when it is called during event handling in
+@code{dbus-handle-event}.
 
 In order to inspect the @code{dbus-event} data, you could extend the
 definition of the callback function in @ref{Signals}:
@@ -2031,11 +2044,10 @@ This function returns the member name of the D-Bus object @var{event}
 is coming from.  It is either a signal name or a method name.
 @end defun
 
-@vindex dbus-show-dbus-errors
-D-Bus error messages are not propagated during event handling, because
-it is usually not desired.  D-Bus errors in events can be made visible
-by setting the user option @code{dbus-show-dbus-errors} to
-non-@code{nil}.  They can also be handled by a hook function.
+D-Bus errors are not propagated during event handling, because it is
+usually not desired.  D-Bus errors in events can be made visible by
+setting the variable @code{dbus-debug} to non-@code{nil}.  They can
+also be handled by a hook function.
 
 @defvar dbus-event-error-functions
 This hook variable keeps a list of functions, which are called when a

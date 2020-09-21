@@ -440,5 +440,23 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should-error (ignore-error foo
                   (read ""))))
 
+(ert-deftest replace-in-string ()
+  (should (equal (replace-in-string "foo" "bar" "zot")
+                 "zot"))
+  (should (equal (replace-in-string "foo" "bar" "foozot")
+                 "barzot"))
+  (should (equal (replace-in-string "foo" "bar" "barfoozot")
+                 "barbarzot"))
+  (should (equal (replace-in-string "zot" "bar" "barfoozot")
+                 "barfoobar"))
+  (should (equal (replace-in-string "z" "bar" "barfoozot")
+                 "barfoobarot"))
+  (should (equal (replace-in-string "zot" "bar" "zat")
+                 "zat"))
+  (should (equal (replace-in-string "azot" "bar" "zat")
+                 "zat"))
+  (should (equal (replace-in-string "azot" "bar" "azot")
+                 "bar")))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

@@ -61,7 +61,7 @@
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
-menu-bar-make-toggle\\)"
+menu-bar-make-toggle\\|menu-bar-make-toggle-command\\)"
    find-function-space-re
    "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")
   "The regexp used by `find-function' to search for a function definition.
@@ -290,20 +290,10 @@ Interactively, prompt for LIBRARY using the one at or near point."
 A library name is the filename of an Emacs Lisp library located
 in a directory under `load-path' (or `find-function-source-path',
 if non-nil)."
-  (let* ((suffix-regexp (mapconcat
-                         (lambda (suffix)
-                           (concat (regexp-quote suffix) "\\'"))
-                         (find-library-suffixes)
-                         "\\|"))
-         (table (cl-loop for dir in (or find-function-source-path load-path)
-                         for dir-or-default = (or dir default-directory)
-                         when (file-readable-p dir-or-default)
-                         append (mapcar
-                                 (lambda (file)
-                                   (replace-regexp-in-string suffix-regexp
-                                                             "" file))
-                                 (directory-files dir-or-default nil
-                                                  suffix-regexp))))
+  (let* ((dirs (or find-function-source-path load-path))
+         (suffixes (find-library-suffixes))
+         (table (apply-partially 'locate-file-completion-table
+                                 dirs suffixes))
          (def (if (eq (function-called-at-point) 'require)
                   ;; `function-called-at-point' may return 'require
                   ;; with `point' anywhere on this line.  So wrap the

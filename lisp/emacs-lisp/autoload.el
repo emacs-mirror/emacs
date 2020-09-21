@@ -260,6 +260,7 @@ expression, in which case we want to handle forms differently."
   "Visit the autoload file for the current buffer, and return its buffer."
   (let ((enable-local-variables :safe)
         (enable-local-eval nil)
+        (find-file-hook nil)
         (delay-mode-hooks t)
         (file (autoload-generated-file)))
     ;; We used to use `raw-text' to read this file, but this causes

@@ -60,24 +60,132 @@ Isolated means that STRING is surrounded by spaces or at the beginning/end
 of a string followed/prefixed with an space.
 The regexp capture the preceding blank, STRING and the following blank as
 the groups 1, 2 and 3 respectively."
-  (format "\\(\\`\\|[ \t]\\)\\(%s\\)\\([ \t]\\|\\'\\)" string))
+  (format "\\(?1:\\`\\|[ \t]\\)\\(?2:%s\\)\\(?3:[ \t]\\|\\'\\)" string))
 
-(defun dired--star-or-qmark-p (string match &optional keep)
+(defun dired--star-or-qmark-p (string match &optional keep start)
   "Return non-nil if STRING contains isolated MATCH or `\\=`?\\=`'.
 MATCH should be the strings \"?\", `\\=`?\\=`', \"*\" or nil.  The latter
 means STRING contains either \"?\" or `\\=`?\\=`' or \"*\".
 If optional arg KEEP is non-nil, then preserve the match data.  Otherwise,
 this function changes it and saves MATCH as the second match group.
+START is the position to start matching from.
 
 Isolated means that MATCH is surrounded by spaces or at the beginning/end
 of STRING followed/prefixed with an space.  A match to `\\=`?\\=`',
 isolated or not, is also valid."
-  (let ((regexps (list (dired-isolated-string-re (if match (regexp-quote match) "[*?]")))))
+  (let ((regexp (dired-isolated-string-re (if match (regexp-quote match) "[*?]"))))
     (when (or (null match) (equal match "?"))
-      (setq regexps (append (list "\\(\\)\\(`\\?`\\)\\(\\)") regexps)))
-    (cl-some (lambda (x)
-               (funcall (if keep #'string-match-p #'string-match) x string))
-             regexps)))
+      (cl-callf concat regexp "\\|\\(?1:\\)\\(?2:`\\?`\\)\\(?3:\\)"))
+    (funcall (if keep #'string-match-p #'string-match) regexp string start)))
+
+(defun dired--need-confirm-positions (command string)
+  "Search for non-isolated matches of STRING in COMMAND.
+Return a list of positions that match STRING, but would not be
+considered \"isolated\" by `dired--star-or-qmark-p'."
+  (cl-assert (= (length string) 1))
+  (let ((start 0)
+        (isolated-char-positions nil)
+        (confirm-positions nil)
+        (regexp (regexp-quote string)))
+    ;; Collect all ? and * surrounded by spaces and `?`.
+    (while (dired--star-or-qmark-p command string nil start)
+      (push (cons (match-beginning 2) (match-end 2))
+            isolated-char-positions)
+      (setq start (match-end 2)))
+    ;; Now collect any remaining ? and *.
+    (setq start 0)
+    (while (string-match regexp command start)
+      (unless (cl-member (match-beginning 0) isolated-char-positions
+                         :test (lambda (pos match)
+                                 (<= (car match) pos (cdr match))))
+        (push (match-beginning 0) confirm-positions))
+      (setq start (match-end 0)))
+    confirm-positions))
+
+(defun dired--mark-positions (positions)
+  (let ((markers (make-string
+                  (1+ (apply #'max positions))
+                  ?\s)))
+    (dolist (pos positions)
+      (setf (aref markers pos) ?^))
+    markers))
+
+(defun dired--highlight-no-subst-chars (positions command mark)
+  (cl-callf substring-no-properties command)
+  (dolist (pos positions)
+    (add-face-text-property pos (1+ pos) 'warning nil command))
+  (if mark
+      (concat command "\n" (dired--mark-positions positions))
+    command))
+
+(defun dired--no-subst-explain (buf char-positions command mark-positions)
+  (with-current-buffer buf
+    (erase-buffer)
+    (insert
+     (format-message "\
+If your command contains occurrences of `*' surrounded by
+whitespace, `dired-do-shell-command' substitutes them for the
+entire file list to process.  Otherwise, if your command contains
+occurrences of `?' surrounded by whitespace or `%s', Dired will
+run the command once for each file, substituting `?' for each
+file name.
+
+Your command contains occurrences of `%s' that will not be
+substituted, and will be passed through normally to the shell.
+
+%s
+
+(Press ^ to %s markers below these occurrences.)
+"
+   "`"
+   (string (aref command (car char-positions)))
+   (dired--highlight-no-subst-chars char-positions command mark-positions)
+   (if mark-positions "remove" "add")))))
+
+(defun dired--no-subst-ask (char nb-occur details)
+  (let ((hilit-char (propertize (string char) 'face 'warning))
+        (choices `(?y ?n ?? ,@(when details '(?^)))))
+    (read-char-from-minibuffer
+     (format-message
+      (ngettext
+       "%d occurrence of `%s' will not be substituted.  Proceed? (%s) "
+       "%d occurrences of `%s' will not be substituted.  Proceed? (%s) "
+       nb-occur)
+      nb-occur hilit-char (mapconcat #'string choices ", "))
+     choices)))
+
+(defun dired--no-subst-confirm (char-positions command)
+  (let ((help-buf (get-buffer-create "*Dired help*"))
+        (char (aref command (car char-positions)))
+        (nb-occur (length char-positions))
+        (done nil)
+        (details nil)
+        (markers nil)
+        proceed)
+    (unwind-protect
+        (save-window-excursion
+          (while (not done)
+            (cl-case (dired--no-subst-ask char nb-occur details)
+              (?y
+               (setq done t
+                     proceed t))
+              (?n
+               (setq done t
+                     proceed nil))
+              (??
+               (if details
+                   (progn
+                     (quit-window nil details)
+                     (setq details nil))
+                 (dired--no-subst-explain
+                  help-buf char-positions command markers)
+                 (setq details (display-buffer help-buf))))
+              (?^
+               (setq markers (not markers))
+               (dired--no-subst-explain
+                help-buf char-positions command markers)))))
+      (kill-buffer help-buf))
+    proceed))
 
 ;;;###autoload
 (defun dired-diff (file &optional switches)
@@ -772,28 +880,19 @@ prompted for the shell command to use interactively."
       (dired-read-shell-command "! on %s: " current-prefix-arg files)
       current-prefix-arg
       files)))
-  (cl-flet ((need-confirm-p
-             (cmd str)
-             (let ((res cmd)
-                   (regexp (regexp-quote str)))
-               ;; Drop all ? and * surrounded by spaces and `?`.
-               (while (and (string-match regexp res)
-                           (dired--star-or-qmark-p res str))
-                 (setq res (replace-match "" t t res 2)))
-               (string-match regexp res))))
   (let* ((on-each (not (dired--star-or-qmark-p command "*" 'keep)))
 	 (no-subst (not (dired--star-or-qmark-p command "?" 'keep)))
+         (confirmations nil)
          ;; Get confirmation for wildcards that may have been meant
          ;; to control substitution of a file name or the file name list.
-         (ok (cond ((not (or on-each no-subst))
-	            (error "You can not combine `*' and `?' substitution marks"))
-	           ((need-confirm-p command "*")
-	            (y-or-n-p (format-message
-			       "Confirm--do you mean to use `*' as a wildcard? ")))
-	           ((need-confirm-p command "?")
-	            (y-or-n-p (format-message
-			       "Confirm--do you mean to use `?' as a wildcard? ")))
-	           (t))))
+         (ok (cond
+              ((not (or on-each no-subst))
+               (error "You can not combine `*' and `?' substitution marks"))
+              ((setq confirmations (dired--need-confirm-positions command "*"))
+               (dired--no-subst-confirm confirmations command))
+              ((setq confirmations (dired--need-confirm-positions command "?"))
+               (dired--no-subst-confirm confirmations command))
+              (t))))
     (cond ((not ok) (message "Command canceled"))
           (t
            (if on-each
@@ -804,7 +903,7 @@ prompted for the shell command to use interactively."
 	                          nil file-list)
 	     ;; execute the shell command
 	     (dired-run-shell-command
-	      (dired-shell-stuff-it command file-list nil arg))))))))
+              (dired-shell-stuff-it command file-list nil arg)))))))
 
 ;; Might use {,} for bash or csh:
 (defvar dired-mark-prefix ""
@@ -2718,12 +2817,6 @@ When called interactively and not on a subdir line, go to this subdir's line."
 	   (if (dired-get-subdir) 1 0))))
   (dired-next-subdir (- arg) no-error-if-not-found no-skip))
 
-(defun dired-subdir-min ()
-  (save-excursion
-    (if (not (dired-prev-subdir 0 t t))
-	(error "Not in a subdir!")
-      (point))))
-
 ;;;###autoload
 (defun dired-goto-subdir (dir)
   "Go to end of header line of DIR in this dired buffer.
@@ -2815,15 +2908,6 @@ Lower levels are unaffected."
       (error "At the bottom"))))
 
 ;;; hiding
-
-(defun dired-unhide-subdir ()
-  (with-silent-modifications
-    (dired--unhide (dired-subdir-min) (dired-subdir-max))))
-
-(defun dired-subdir-hidden-p (dir)
-  (save-excursion
-    (dired-goto-subdir dir)
-    (dired--hidden-p)))
 
 ;;;###autoload
 (defun dired-hide-subdir (arg)

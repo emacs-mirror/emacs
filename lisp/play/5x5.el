@@ -582,7 +582,7 @@ Solutions are sorted from least to greatest Hamming weight."
 	       (math-sub dest org))))
 
 	   ;; transferm is the transfer matrix, ie it is the 25x25
-	   ;; matrix applied everytime a flip is carried out where a
+	   ;; matrix applied every time a flip is carried out where a
 	   ;; flip is defined by a 25x1 Dirac vector --- ie all zeros
 	   ;; but 1 in the position that is flipped.
 	   (transferm

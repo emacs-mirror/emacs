@@ -167,7 +167,7 @@
 
 (ert-deftest deferred-action-toolate ()
   :tags '(:expensive-test)
-  "Deferred request fails because noone clears the flag."
+  "Deferred request fails because no one clears the flag."
   (jsonrpc--with-emacsrpc-fixture (conn)
     (should-error
      (jsonrpc-request conn '+ [1 2]

@@ -129,36 +129,23 @@ static bool xd_in_read_queued_messages = 0;
 #define XD_BASIC_DBUS_TYPE(type)					\
   (dbus_type_is_valid (type) && dbus_type_is_basic (type))
 #else
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type == DBUS_TYPE_BYTE)						\
+   || (type == DBUS_TYPE_BOOLEAN)					\
+   || (type == DBUS_TYPE_INT16)						\
+   || (type == DBUS_TYPE_UINT16)					\
+   || (type == DBUS_TYPE_INT32)						\
+   || (type == DBUS_TYPE_UINT32)					\
+   || (type == DBUS_TYPE_INT64)						\
+   || (type == DBUS_TYPE_UINT64)					\
+   || (type == DBUS_TYPE_DOUBLE)					\
+   || (type == DBUS_TYPE_STRING)					\
+   || (type == DBUS_TYPE_OBJECT_PATH)					\
+   || (type == DBUS_TYPE_SIGNATURE)					\
 #ifdef DBUS_TYPE_UNIX_FD
-#define XD_BASIC_DBUS_TYPE(type)					\
-  ((type ==  DBUS_TYPE_BYTE)						\
-   || (type ==  DBUS_TYPE_BOOLEAN)					\
-   || (type ==  DBUS_TYPE_INT16)					\
-   || (type ==  DBUS_TYPE_UINT16)					\
-   || (type ==  DBUS_TYPE_INT32)					\
-   || (type ==  DBUS_TYPE_UINT32)					\
-   || (type ==  DBUS_TYPE_INT64)					\
-   || (type ==  DBUS_TYPE_UINT64)					\
-   || (type ==  DBUS_TYPE_DOUBLE)					\
-   || (type ==  DBUS_TYPE_STRING)					\
-   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
-   || (type ==  DBUS_TYPE_SIGNATURE)					\
-   || (type ==  DBUS_TYPE_UNIX_FD))
-#else
-#define XD_BASIC_DBUS_TYPE(type)					\
-  ((type ==  DBUS_TYPE_BYTE)						\
-   || (type ==  DBUS_TYPE_BOOLEAN)					\
-   || (type ==  DBUS_TYPE_INT16)					\
-   || (type ==  DBUS_TYPE_UINT16)					\
-   || (type ==  DBUS_TYPE_INT32)					\
-   || (type ==  DBUS_TYPE_UINT32)					\
-   || (type ==  DBUS_TYPE_INT64)					\
-   || (type ==  DBUS_TYPE_UINT64)					\
-   || (type ==  DBUS_TYPE_DOUBLE)					\
-   || (type ==  DBUS_TYPE_STRING)					\
-   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
-   || (type ==  DBUS_TYPE_SIGNATURE))
+   || (type == DBUS_TYPE_UNIX_FD)					\
 #endif
+   )
 #endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for
@@ -190,6 +177,33 @@ xd_symbol_to_dbus_type (Lisp_Object object)
      : EQ (object, QCstruct) ? DBUS_TYPE_STRUCT
      : EQ (object, QCdict_entry) ? DBUS_TYPE_DICT_ENTRY
      : DBUS_TYPE_INVALID);
+}
+
+/* Determine the Lisp symbol of DBusType.  */
+static Lisp_Object
+xd_dbus_type_to_symbol (int type)
+{
+  return
+    (type == DBUS_TYPE_BYTE) ? QCbyte
+    : (type == DBUS_TYPE_BOOLEAN) ? QCboolean
+    : (type == DBUS_TYPE_INT16) ? QCint16
+    : (type == DBUS_TYPE_UINT16) ? QCuint16
+    : (type == DBUS_TYPE_INT32) ? QCint32
+    : (type == DBUS_TYPE_UINT32) ? QCuint32
+    : (type == DBUS_TYPE_INT64) ? QCint64
+    : (type == DBUS_TYPE_UINT64) ? QCuint64
+    : (type == DBUS_TYPE_DOUBLE) ? QCdouble
+    : (type == DBUS_TYPE_STRING) ? QCstring
+    : (type == DBUS_TYPE_OBJECT_PATH) ? QCobject_path
+    : (type == DBUS_TYPE_SIGNATURE) ? QCsignature
+#ifdef DBUS_TYPE_UNIX_FD
+    : (type == DBUS_TYPE_UNIX_FD) ? QCunix_fd
+#endif
+    : (type == DBUS_TYPE_ARRAY) ? QCarray
+    : (type == DBUS_TYPE_VARIANT) ? QCvariant
+    : (type == DBUS_TYPE_STRUCT) ? QCstruct
+    : (type ==  DBUS_TYPE_DICT_ENTRY) ? QCdict_entry
+    : Qnil;
 }
 
 /* Check whether a Lisp symbol is a predefined D-Bus type symbol.  */
@@ -360,8 +374,8 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       break;
 
     case DBUS_TYPE_BOOLEAN:
-      if (!EQ (object, Qt) && !NILP (object))
-	wrong_type_argument (intern ("booleanp"), object);
+      /* Any non-nil object will be regarded as `t', so we don't apply
+	 further type check.  */
       sprintf (signature, "%c", dtype);
       break;
 
@@ -816,7 +830,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	val = val & 0xFF;
 	XD_DEBUG_MESSAGE ("%c %u", dtype, val);
-	return make_fixnum (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), make_fixnum (val));
       }
 
     case DBUS_TYPE_BOOLEAN:
@@ -824,7 +838,8 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_bool_t val;
 	dbus_message_iter_get_basic (iter, &val);
 	XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");
-	return (val == FALSE) ? Qnil : Qt;
+	return list2 (xd_dbus_type_to_symbol (dtype),
+		      (val == FALSE) ? Qnil : Qt);
       }
 
     case DBUS_TYPE_INT16:
@@ -834,7 +849,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
-	return make_fixnum (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), make_fixnum (val));
       }
 
     case DBUS_TYPE_UINT16:
@@ -844,7 +859,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
-	return make_fixnum (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), make_fixnum (val));
       }
 
     case DBUS_TYPE_INT32:
@@ -854,7 +869,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
-	return INT_TO_INTEGER (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), INT_TO_INTEGER (val));
       }
 
     case DBUS_TYPE_UINT32:
@@ -867,7 +882,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
-	return INT_TO_INTEGER (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), INT_TO_INTEGER (val));
       }
 
     case DBUS_TYPE_INT64:
@@ -876,7 +891,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	intmax_t pval = val;
 	XD_DEBUG_MESSAGE ("%c %"PRIdMAX, dtype, pval);
-	return INT_TO_INTEGER (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), INT_TO_INTEGER (val));
       }
 
     case DBUS_TYPE_UINT64:
@@ -885,7 +900,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	uintmax_t pval = val;
 	XD_DEBUG_MESSAGE ("%c %"PRIuMAX, dtype, pval);
-	return INT_TO_INTEGER (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), INT_TO_INTEGER (val));
       }
 
     case DBUS_TYPE_DOUBLE:
@@ -893,7 +908,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	double val;
 	dbus_message_iter_get_basic (iter, &val);
 	XD_DEBUG_MESSAGE ("%c %f", dtype, val);
-	return make_float (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), make_float (val));
       }
 
     case DBUS_TYPE_STRING:
@@ -903,7 +918,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	char *val;
 	dbus_message_iter_get_basic (iter, &val);
 	XD_DEBUG_MESSAGE ("%c %s", dtype, val);
-	return build_string (val);
+	return list2 (xd_dbus_type_to_symbol (dtype), build_string (val));
       }
 
     case DBUS_TYPE_ARRAY:
@@ -923,7 +938,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	    dbus_message_iter_next (&subiter);
 	  }
 	XD_DEBUG_MESSAGE ("%c %s", dtype, XD_OBJECT_TO_STRING (result));
-	return Fnreverse (result);
+	return Fcons (xd_dbus_type_to_symbol (dtype), Fnreverse (result));
       }
 
     default:
@@ -1254,6 +1269,10 @@ The following usages are expected:
   (dbus-message-internal
     dbus-message-type-error BUS SERVICE SERIAL ERROR-NAME &rest ARGS)
 
+`dbus-check-arguments': (does not send a message)
+  (dbus-message-internal
+    dbus-message-type-invalid BUS SERVICE &rest ARGS)
+
 usage: (dbus-message-internal &rest REST)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -1271,7 +1290,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_uint32_t serial = 0;
   unsigned int ui_serial;
   int timeout = -1;
-  ptrdiff_t count;
+  ptrdiff_t count, count0;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Initialize parameters.  */
@@ -1281,7 +1300,7 @@ usage: (dbus-message-internal &rest REST)  */)
   handler = Qnil;
 
   CHECK_FIXNAT (message_type);
-  if (! (DBUS_MESSAGE_TYPE_INVALID < XFIXNAT (message_type)
+  if (! (DBUS_MESSAGE_TYPE_INVALID <= XFIXNAT (message_type)
 	 && XFIXNAT (message_type) < DBUS_NUM_MESSAGE_TYPES))
     XD_SIGNAL2 (build_string ("Invalid message type"), message_type);
   mtype = XFIXNAT (message_type);
@@ -1296,13 +1315,16 @@ usage: (dbus-message-internal &rest REST)  */)
 	handler = args[6];
       count = (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL) ? 7 : 6;
     }
-  else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
+  else if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+	   || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       serial = xd_extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
       if (mtype == DBUS_MESSAGE_TYPE_ERROR)
 	error_name = args[4];
       count = (mtype == DBUS_MESSAGE_TYPE_ERROR) ? 5 : 4;
     }
+  else /* DBUS_MESSAGE_TYPE_INVALID  */
+    count = 3;
 
   /* Check parameters.  */
   XD_DBUS_VALIDATE_BUS_ADDRESS (bus);
@@ -1352,7 +1374,7 @@ usage: (dbus-message-internal &rest REST)  */)
 			XD_OBJECT_TO_STRING (service),
 			ui_serial);
        break;
-    default: /* DBUS_MESSAGE_TYPE_ERROR  */
+    case DBUS_MESSAGE_TYPE_ERROR:
       ui_serial = serial;
       XD_DEBUG_MESSAGE ("%s %s %s %u %s",
 			XD_MESSAGE_TYPE_TO_STRING (mtype),
@@ -1360,17 +1382,25 @@ usage: (dbus-message-internal &rest REST)  */)
 			XD_OBJECT_TO_STRING (service),
 			ui_serial,
 			XD_OBJECT_TO_STRING (error_name));
+      break;
+    default: /* DBUS_MESSAGE_TYPE_INVALID  */
+      XD_DEBUG_MESSAGE ("%s %s %s",
+			XD_MESSAGE_TYPE_TO_STRING (mtype),
+			XD_OBJECT_TO_STRING (bus),
+			XD_OBJECT_TO_STRING (service));
     }
 
   /* Retrieve bus address.  */
   connection = xd_get_connection_address (bus);
 
-  /* Create the D-Bus message.  */
-  dmessage = dbus_message_new (mtype);
+  /* Create the D-Bus message.  Since DBUS_MESSAGE_TYPE_INVALID is not
+     a valid message type, we mockup it with DBUS_MESSAGE_TYPE_SIGNAL.  */
+  dmessage = dbus_message_new
+    ((mtype == DBUS_MESSAGE_TYPE_INVALID) ? DBUS_MESSAGE_TYPE_SIGNAL : mtype);
   if (dmessage == NULL)
     XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
-  if (STRINGP (service))
+  if ((STRINGP (service)) && (mtype != DBUS_MESSAGE_TYPE_INVALID))
     {
       if (mtype != DBUS_MESSAGE_TYPE_SIGNAL)
 	/* Set destination.  */
@@ -1412,7 +1442,8 @@ usage: (dbus-message-internal &rest REST)  */)
 	XD_SIGNAL1 (build_string ("Unable to set the message parameter"));
     }
 
-  else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
+  else if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+	   || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       if (!dbus_message_set_reply_serial (dmessage, serial))
 	XD_SIGNAL1 (build_string ("Unable to create a return message"));
@@ -1434,6 +1465,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_message_iter_init_append (dmessage, &iter);
 
   /* Append parameters to the message.  */
+  count0 = count - 1;
   for (; count < nargs; ++count)
     {
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[count]);
@@ -1441,15 +1473,17 @@ usage: (dbus-message-internal &rest REST)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%"pD"d %s %s", count - 4,
+	  XD_DEBUG_MESSAGE ("Parameter%"pD"d: %s Parameter%"pD"d: %s",
+			    count - count0,
 			    XD_OBJECT_TO_STRING (args[count]),
+			    count + 1 - count0,
 			    XD_OBJECT_TO_STRING (args[count+1]));
 	  ++count;
 	}
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count]);
-	  XD_DEBUG_MESSAGE ("Parameter%"pD"d %s", count - 4,
+	  XD_DEBUG_MESSAGE ("Parameter%"pD"d: %s", count - count0,
 			    XD_OBJECT_TO_STRING (args[count]));
 	}
 
@@ -1460,7 +1494,10 @@ usage: (dbus-message-internal &rest REST)  */)
       xd_append_arg (dtype, args[count], &iter);
     }
 
-  if (!NILP (handler))
+  if (mtype == DBUS_MESSAGE_TYPE_INVALID)
+    result = Qt;
+
+  else if (!NILP (handler))
     {
       /* Send the message.  The message is just added to the outgoing
 	 message queue.  */
@@ -1485,7 +1522,8 @@ usage: (dbus-message-internal &rest REST)  */)
       result = Qnil;
     }
 
-  XD_DEBUG_MESSAGE ("Message sent: %s", XD_OBJECT_TO_STRING (result));
+  if (mtype != DBUS_MESSAGE_TYPE_INVALID)
+    XD_DEBUG_MESSAGE ("Message sent: %s", XD_OBJECT_TO_STRING (result));
 
   /* Cleanup.  */
   dbus_message_unref (dmessage);
@@ -1533,7 +1571,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
     }
 
   /* Read message type, message serial, unique name, object path,
-     interface and member from the message.  */
+     interface, member and error name from the message.  */
   mtype = dbus_message_get_type (dmessage);
   ui_serial = serial =
     ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
@@ -1544,7 +1582,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   path = dbus_message_get_path (dmessage);
   interface = dbus_message_get_interface (dmessage);
   member = dbus_message_get_member (dmessage);
-  error_name =dbus_message_get_error_name (dmessage);
+  error_name = dbus_message_get_error_name (dmessage);
 
   XD_DEBUG_MESSAGE ("Event received: %s %u %s %s %s %s %s %s",
 		    XD_MESSAGE_TYPE_TO_STRING (mtype),
@@ -1572,9 +1610,11 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       EVENT_INIT (event);
       event.kind = DBUS_EVENT;
       event.frame_or_window = Qnil;
-      event.arg = Fcons (value,
-			 (mtype == DBUS_MESSAGE_TYPE_ERROR)
-			 ? (Fcons (build_string (error_name), args)) : args);
+      event.arg =
+	Fcons (value,
+	       (mtype == DBUS_MESSAGE_TYPE_ERROR)
+	       ? Fcons (list2 (QCstring, build_string (error_name)), args)
+	       : args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1828,7 +1868,7 @@ wildcard then.
 
 OBJECT is either the handler to be called when a D-Bus message, which
 matches the key criteria, arrives (TYPE `:method' and `:signal'), or a
-list (ACCESS EMITS-SIGNAL SIGNATURE VALUE) for TYPE `:property'.
+list (ACCESS EMITS-SIGNAL VALUE) for TYPE `:property'.
 
 For entries of type `:signal', there is also a fifth element RULE,
 which keeps the match string the signal is registered with.

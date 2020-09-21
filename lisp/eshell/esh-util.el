@@ -51,9 +51,15 @@ similarly to external commands, as far as successful result output."
   :group 'eshell-util)
 
 (defcustom eshell-hosts-file "/etc/hosts"
-  "The name of the /etc/hosts file."
+  "The name of the /etc/hosts file.
+Use `pcomplete-hosts-file' instead; this variable is obsolete and
+has no effect."
   :type '(choice (const :tag "No hosts file" nil) file)
   :group 'eshell-util)
+;; Don't make it into an alias, because it doesn't really work with
+;; custom and risks creating duplicate entries.  Just point users to
+;; the other variable, which is less frustrating.
+(make-obsolete-variable 'eshell-hosts-file nil "28.1")
 
 (defcustom eshell-handle-errors t
   "If non-nil, Eshell will handle errors itself.
@@ -127,11 +133,14 @@ function `string-to-number'."
 (defvar eshell-user-timestamp nil
   "A timestamp of when the user file was read.")
 
-(defvar eshell-host-names nil
-  "A cache the names of frequently accessed hosts.")
+;;; Obsolete variables:
 
-(defvar eshell-host-timestamp nil
-  "A timestamp of when the hosts file was read.")
+(define-obsolete-variable-alias 'eshell-host-names
+  'pcomplete--host-name-cache "28.1")
+(define-obsolete-variable-alias 'eshell-host-timestamp
+  'pcomplete--host-name-cache-timestamp "28.1")
+(defvar pcomplete--host-name-cache)
+(defvar pcomplete--host-name-cache-timestamp)
 
 ;;; Functions:
 
@@ -479,37 +488,15 @@ list."
 
 (defalias 'eshell-user-name 'user-login-name)
 
-(defun eshell-read-hosts-file (filename)
-  "Read in the hosts from FILENAME, default `eshell-hosts-file'."
-  (let (hosts)
-    (with-temp-buffer
-      (insert-file-contents (or filename eshell-hosts-file))
-      (goto-char (point-min))
-      (while (re-search-forward
-              ;; "^ \t\\([^# \t\n]+\\)[ \t]+\\([^ \t\n]+\\)\\([ \t]*\\([^ \t\n]+\\)\\)?"
-	      "^[ \t]*\\([^# \t\n]+\\)[ \t]+\\([^ \t\n].+\\)" nil t)
-        (push (cons (match-string 1)
-                    (split-string (match-string 2)))
-              hosts)))
-    (nreverse hosts)))
-
-(defun eshell-read-hosts (file result-var timestamp-var)
-  "Read the contents of /etc/hosts for host names."
-  (if (or (not (symbol-value result-var))
-	  (not (symbol-value timestamp-var))
-	  (time-less-p
-	   (symbol-value timestamp-var)
-	   (file-attribute-modification-time (file-attributes file))))
-      (progn
-	(set result-var (apply #'nconc (eshell-read-hosts-file file)))
-	(set timestamp-var (current-time))))
-  (symbol-value result-var))
-
-(defun eshell-read-host-names ()
-  "Read the contents of /etc/hosts for host names."
-  (if eshell-hosts-file
-      (eshell-read-hosts eshell-hosts-file 'eshell-host-names
-			 'eshell-host-timestamp)))
+(autoload 'pcomplete-read-hosts-file "pcomplete")
+(autoload 'pcomplete-read-hosts "pcomplete")
+(autoload 'pcomplete-read-host-names "pcomplete")
+(define-obsolete-function-alias 'eshell-read-hosts-file
+  #'pcomplete-read-hosts-file "28.1")
+(define-obsolete-function-alias 'eshell-read-hosts
+  #'pcomplete-read-hosts "28.1")
+(define-obsolete-function-alias 'eshell-read-host-names
+  #'pcomplete-read-host-names "28.1")
 
 (defsubst eshell-copy-environment ()
   "Return an unrelated copy of `process-environment'."

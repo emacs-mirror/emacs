@@ -85,9 +85,16 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+---
+** Support for the 'strike-through' face attribute on TTY frames.
+If your terminal's termcap or terminfo database entry has the 'smxx'
+capability defined, Emacs will now emit the prescribed escape
+sequences necessary to render faces with the 'strike-through'
+attribute on TTY frames.
+
 +++
 *** Emacs now defaults to UTF-8 instead of ISO-8859-1.
-This is only for the default, where the user has set no LANG (or
+This is only for the default, where the user has set no 'LANG' (or
 similar) variable or environment.  This change should lead to no
 user-visible changes for normal usage.
 
@@ -126,6 +133,17 @@ When using 'mwheel-mode', the mouse wheel will now scroll also when
 the mouse cursor is on the scroll bars, fringes, margins, header line,
 and mode line.  ('mwheel-mode' is enabled by default on most graphical
 displays.)
+
+---
+** The default value of 'frame-title-format' and 'icon-title-format' has changed.
+These variables are used to display the title bar of visible frames
+and the title bar of an iconified frame.  They now show the name of
+the current buffer and the text "GNU Emacs" instead of the value of
+'invocation-name'.  To get the old behavior back, add the following to
+your init file:
+
+    (setq frame-title-format '(multiple-frames "%b"
+                              ("" invocation-name "@" system-name)))
 
 
 * Editing Changes in Emacs 28.1
@@ -175,6 +193,14 @@ Completion of command names now considers obsolete aliases as
 candidates.  Invoking a command via an obsolete alias now mentions the
 obsolescence fact and shows the new name of the command.
 
++++
+** New command 'revert-buffer-with-fine-grain'.
+Revert a buffer trying to be as non-destructive as possible,
+preserving markers, properties and overlays.  The new variable
+'revert-buffer-with-fine-grain-max-seconds' specifies the maximum
+number of seconds that 'revert-buffer-with-fine-grain' should spend
+trying to be non-destructive.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
@@ -212,6 +238,9 @@ of the next command to be displayed in a new frame.
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
 It's bound to the command 'other-tab-prefix' that requests the buffer
 of the next command to be displayed in a new tab.
+
++++
+*** New command 'C-x t C-r' to open file read-only in other tab.
 
 *** The tab bar is frame-local when 'tab-bar-show' is a number.
 Show/hide the tab bar independently for each frame, according to the
@@ -302,14 +331,14 @@ details of marking the file at the end of the region.
 directories with the help of new command 'dired-vc-next-action'.
 
 +++
-*** 'dired-jump' and 'dired-jump-other-window' moved from dired-x to dired.
+*** 'dired-jump' and 'dired-jump-other-window' moved from 'dired-x' to 'dired'.
 The 'dired-jump' and 'dired-jump-other-window' commands have been
 moved from the 'dired-x' package to 'dired'.  The user option
 'dired-bind-jump' no longer has any effect and is now obsolete.
 The commands are now bound to 'C-x C-j' and 'C-x 4 C-j' by default.
 
 To get the old behavior of 'dired-bind-jump' back and unbind the above
-keys, add the following to your Init file:
+keys, add the following to your init file:
 
 (global-set-key "\C-x\C-j" nil)
 (global-set-key "\C-x4\C-j" nil)
@@ -346,9 +375,22 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user option 'gnus-global-groups'.
+Gnus handles private groups differently from public (i.e., NNTP-like)
+groups.  Most importantly, Gnus doesn't download external images from
+mail-like groups.  This can be overridden by putting group names in
+'gnus-global-groups': Any group present in that list will be treated
+like a public group.
+
++++
 *** New scoring types for the Date header.
 You can now score based on the relative age of an article with the new
 '<' and '>' date scoring types.
+
++++
+*** User-defined scoring is now possible.
+The new type is 'score-fn'.  More information in the Gnus manual node
+"(gnus) Score File Format".
 
 +++
 *** New backend 'nnselect'.
@@ -461,6 +503,11 @@ authentication mechanism by setting a value for the key 'smtp-auth'.
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
++++
+** New command 'lossage-size'.
+It allows users to set the maximum number of keystrokes and commands
+recorded for the purpose of 'view-lossage'.
+
 ---
 *** The command 'view-lossage' can now be invoked from the menu bar.
 The menu-bar Help menu now has a "Show Recent Inputs" item under the
@@ -498,9 +545,16 @@ supplied error message.
 which appends a unique suffix to the Edebug name of the current
 definition.
 
-+++
 ** ElDoc
 
++++
+*** New user option 'eldoc-display-truncation-message'.
+If non-nil (the default), eldoc will display a message saying
+something like "(Documentation truncated. Use `M-x eldoc-doc-buffer'
+to see rest" when a message has been truncated.  If nil, truncated
+messages will be marked with just "..." at the end.
+
++++
 *** New hook 'eldoc-documentation-functions'.
 This hook is intended to be used for registering doc string functions.
 These functions don't need to produce the doc string right away, they
@@ -508,6 +562,7 @@ may arrange for it to be produced asynchronously.  The results of all
 doc string functions are accessible to the user through the user
 option 'eldoc-documentation-strategy'.
 
++++
 *** New user option 'eldoc-documentation-strategy'.
 The built-in choices available for this user option let users compose
 the results of 'eldoc-documentation-functions' in various ways, even
@@ -814,7 +869,7 @@ background colors or transparency, such as xbm, pbm, svg, png and gif.
 ** EWW
 
 +++
-*** New variable 'eww-retrieve-command'.
+*** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.
 
@@ -988,9 +1043,29 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
+*** Interactive regular expression search now uses faces for sub-groups.
+E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
+on the part of the regexp that matches the sub-expression "[0-9]+".
+This is controlled by the 'search-highlight-submatches' variable.
+
+---
+*** New user option 'reveal-auto-hide'.
+If non-nil (the default), revealed text is automatically hidden when
+point leaves the text.  If nil, the text is not hidden again.  Instead
+'M-x reveal-hide-revealed' can be used to hide all the revealed text.
+
++++
+*** New user options to control the look of line/column numbers in the mode line.
+'mode-line-position-line-format' is the line number format (when
+'line-number-mode' is on), 'mode-line-position-column-format' is
+the column number format (when 'column-number-mode' is on), and
+'mode-line-position-column-line-format' is the combined format (when
+both modes are on).
+
++++
 *** New command 'submit-emacs-patch'.
-This works along the lines of 'report-emacs-bug', but is more geared
-towards sending a patch to the Emacs issue tracker.
+This works like 'report-emacs-bug', but is more geared towards sending
+patches to the Emacs issue tracker.
 
 +++
 *** New minor mode 'button-mode'.
@@ -1103,6 +1178,10 @@ easily bind this menu to 'down-mouse-3' (usually the right mouse button)
 instead of 'mouse-2' (the default) by customizing the new user option
 'flyspell-use-mouse-3-for-menu'.
 
+---
+*** The current dictionary is now displayed in the minor mode lighter.
+Clicking the dictionary name changes the current dictionary.
+
 ** Time
 
 ---
@@ -1133,7 +1212,7 @@ The old names are now obsolete.
 +++
 *** Property values can be typed explicitly.
 'dbus-register-property' and 'dbus-set-property' accept now optional
-type symbols.
+type symbols.  Both functions propagate D-Bus errors.
 
 +++
 *** Registered properties can have the new access type ':write'.
@@ -1143,9 +1222,18 @@ type symbols.
 
 +++
 *** D-Bus errors, which have been converted from incoming D-Bus error
-messages, contain the error name of that message now.  They can be
-made visible by setting user variable 'dbus-show-dbus-errors' to
-non-nil, even if protected by 'dbus-ignore-errors' otherwise.
+messages, contain the error name of that message now.
+
+---
+*** D-Bus events keep the type information of their arguments.
+
+** CPerl Mode
+
+---
+*** The command 'cperl-set-style' offers the new value "PBP".
+This value customizes Emacs to use the style recommended in Damian
+Conway's book "Perl Best Practices" for indentation and formatting
+of conditionals.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -1178,6 +1266,12 @@ directory instead of the default directory.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
++++
+** Some properties from completion tables are now preserved.
+If 'minibuffer-allow-text-properties' is non-nil, doing completion
+over a table of strings with properties will no longer remove all the
+properties before returning.  This affects things like 'completing-read'.
 
 ** 'equal' no longer examines some contents of window configurations.
 Instead, it considers window configurations to be equal only if they
@@ -1281,7 +1375,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'semantic-flex-token-start', 'semantic-flex-token-text',
 'semantic-imenu-bucketize-type-parts',
 'semantic-imenu-expand-type-parts', 'semantic-imenu-expandable-token',
-'semantic-init-db-hooks)', 'semantic-init-hooks',
+'semantic-init-db-hooks', 'semantic-init-hooks',
 'semantic-init-mode-hooks', 'semantic-java-prototype-nonterminal',
 'semantic-nonterminal-abstract', 'semantic-nonterminal-full-name',
 'semantic-nonterminal-leaf', 'semantic-nonterminal-protection',
@@ -1299,6 +1393,18 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+*** New function 'process-lines-ignore-status'.
+This is like 'process-lines', but does not signal an error if the
+return status is non-zero.  'process-lines-handling-status' has also
+been added, and takes a callback to handle the return status.
+
++++
+*** New function 'replace-in-string'.
+This function works along the line of 'replace-regexp-in-string', but
+matching on strings instead of regexps, and does not change the global
+match state.
 
 ---
 *** 'ascii' is now a coding system alias for 'us-ascii'.
@@ -1335,6 +1441,10 @@ This removes the final remaining trace of old-style backquotes.
 ** The module header 'emacs-module.h' now contains type aliases
 'emacs_function' and 'emacs_finalizer' for module functions and
 finalizers, respectively.
+
+** Module functions can now be made interactive.
+Use 'make_interactive' to give a module function an interactive
+specification.
 
 ** Module functions can now install an optional finalizer that is
 called when the function object is garbage-collected.  Use
@@ -1404,6 +1514,12 @@ truncating precision field, such as "%.2a".
 This can be used to parse RGB color specs in several formats and
 convert them to a list '(R G B)' of primary color values.
 
+---
+** User option 'uniquify-buffer-name-style' can now be a function.
+This user option can be one of the predefined styles or a function to
+personalize the uniquified buffer name.
+
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
@@ -1444,6 +1560,9 @@ This feature is experimental, and needs to be turned on to be used.
 To turn this on, set the variable 'w32-use-native-image-API' to a
 non-nil value.  Please report any bugs you find while using the native
 image API via 'M-x report-emacs-bug'.
+
+---
+** The user option 'make-pointer-invisible' is now honored on macOS.
 
 
 ----------------------------------------------------------------------

@@ -269,6 +269,14 @@ are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
   "Non-nil means incremental search highlights the current match."
   :type 'boolean)
 
+(defcustom search-highlight-submatches t
+  "Whether to highlight regexp subexpressions of the current regexp match.
+
+The faces used to do the highlights are named `isearch-group-1',
+`isearch-group-2', and so on."
+  :type 'boolean
+  :version "28.1")
+
 (defface isearch
   '((((class color) (min-colors 88) (background light))
      ;; The background must not be too dark, for that means
@@ -3654,6 +3662,98 @@ since they have special meaning in a regexp."
 ;; Highlighting
 
 (defvar isearch-overlay nil)
+(defvar isearch-submatches-overlays nil)
+
+(defface isearch-group-1
+  '((((class color) (background light))
+     (:background "#ff00ff" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "palevioletred3" :foreground "brown4"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (first sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-2
+  '((((class color) (background light))
+     (:background "#d000d0" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#be698f" :foreground "black"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (second sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-3
+  '((((class color) (background light))
+     (:background "#a000a0" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#a06080" :foreground "brown4"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (third sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-4
+  '((((class color) (background light))
+     (:background "#800080" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#905070" :foreground "brown4"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (fourth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-5
+  '((((class color) (background light))
+     (:background "#600060" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#804060" :foreground "black"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (fifth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-6
+  '((((class color) (background light))
+     (:background "#500050" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#703050" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (sixth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-7
+  '((((class color) (background light))
+     (:background "#400040" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#602050" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (seventh sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-8
+  '((((class color) (background light))
+     (:background "#300030" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#501050" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (eighth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
+(defface isearch-group-9
+  '((((class color) (background light))
+     (:background "#200020" :foreground "lightskyblue1"))
+    (((class color) (background dark))
+     (:background "#400040" :foreground "white"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch sub-group matches (ninth sub-group)."
+  :group 'isearch
+  :version "28.1")
+
 
 (defun isearch-highlight (beg end)
   (if search-highlight
@@ -3664,11 +3764,27 @@ since they have special meaning in a regexp."
 	(setq isearch-overlay (make-overlay beg end))
 	;; 1001 is higher than lazy's 1000 and ediff's 100+
 	(overlay-put isearch-overlay 'priority 1001)
-	(overlay-put isearch-overlay 'face isearch-face))))
+	(overlay-put isearch-overlay 'face isearch-face)))
+  (when (and search-highlight-submatches
+	     isearch-regexp)
+    (mapc 'delete-overlay isearch-submatches-overlays)
+    (setq isearch-submatches-overlays nil)
+    (let ((i 0) ov)
+      (while (<= i 9)
+	(when (match-beginning i)
+	  (setq ov (make-overlay (match-beginning i) (match-end i)))
+	  (overlay-put ov 'face (intern-soft (format "isearch-group-%d" i)))
+	  (overlay-put ov 'priority 1002)
+	  (push ov isearch-submatches-overlays))
+	(setq i (1+ i))))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay
-    (delete-overlay isearch-overlay)))
+    (delete-overlay isearch-overlay))
+  (when search-highlight-submatches
+    (mapc 'delete-overlay isearch-submatches-overlays)
+    (setq isearch-submatches-overlays nil)))
+
 
 ;; isearch-lazy-highlight feature
 ;; by Bob Glickstein <http://www.zanshin.com/~bobg/>

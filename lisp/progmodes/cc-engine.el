@@ -2697,7 +2697,7 @@ comment at the start of cc-engine.el for more info."
   ;; or the car of the list is the "position element" of ELT, the position
   ;; where ELT is valid.
   ;;
-  ;; POINT is left at the postition for which the returned state is valid.  It
+  ;; POINT is left at the position for which the returned state is valid.  It
   ;; will be either the position element of ELT, or one character before
   ;; that.  (The latter happens in Emacs <= 25 and XEmacs, when ELT indicates
   ;; its position element directly follows a potential first character of a
@@ -2767,7 +2767,7 @@ comment at the start of cc-engine.el for more info."
 	      ((nth 3 state)		; A string
 	       (list (point) (nth 3 state) (nth 8 state)))
 	      ((and (nth 4 state)		 ; A comment
-		    (not (eq (nth 7 state) 'syntax-table))) ; but not a psuedo comment.
+		    (not (eq (nth 7 state) 'syntax-table))) ; but not a pseudo comment.
 	       (list (point)
 		     (if (eq (nth 7 state) 1) 'c++ 'c)
 		     (nth 8 state)))
@@ -2894,7 +2894,7 @@ comment at the start of cc-engine.el for more info."
 	(setq nc-list (cdr nc-list))))))
 
 (defun c-semi-get-near-cache-entry (here)
-  ;; Return the near cache entry at the highest postion before HERE, if any,
+  ;; Return the near cache entry at the highest position before HERE, if any,
   ;; or nil.  The near cache entry is of the form (POSITION . STATE), where
   ;; STATE has the form of a result of `parse-partial-sexp'.
   (let ((nc-pos-state
@@ -7170,7 +7170,7 @@ comment at the start of cc-engine.el for more info."
   ;; characters.)  If the raw string is not terminated, E\) and E\" are set to
   ;; nil.
   ;;
-  ;; Note: this function is dependant upon the correct syntax-table text
+  ;; Note: this function is dependent upon the correct syntax-table text
   ;; properties being set.
   (let ((state (c-semi-pp-to-literal (point)))
 	open-quote-pos open-paren-pos close-paren-pos close-quote-pos id)

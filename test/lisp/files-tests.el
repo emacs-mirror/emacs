@@ -1365,5 +1365,71 @@ See <https://debbugs.gnu.org/36401>."
   (should (equal (parse-colon-path "/foo//bar/baz")
                  '("/foo/bar/baz/"))))
 
+(ert-deftest files-test-magic-mode-alist-doctype ()
+  "Test that DOCTYPE and variants put files in mhtml-mode."
+  (with-temp-buffer
+    (goto-char (point-min))
+    (insert "<!DOCTYPE html>")
+    (normal-mode)
+    (should (eq major-mode 'mhtml-mode))
+    (erase-buffer)
+    (insert "<!doctype html>")
+    (normal-mode)
+    (should (eq major-mode 'mhtml-mode))))
+
+(defvar files-tests-lao "The Way that can be told of is not the eternal Way;
+The name that can be named is not the eternal name.
+The Nameless is the origin of Heaven and Earth;
+The Named is the mother of all things.
+Therefore let there always be non-being,
+  so we may see their subtlety,
+And let there always be being,
+  so we may see their outcome.
+The two are the same,
+But after they are produced,
+  they have different names.
+")
+
+(defvar files-tests-tzu "The Nameless is the origin of Heaven and Earth;
+The named is the mother of all things.
+
+Therefore let there always be non-being,
+  so we may see their subtlety,
+And let there always be being,
+  so we may see their outcome.
+The two are the same,
+But after they are produced,
+  they have different names.
+They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!
+")
+
+(ert-deftest files-tests-revert-buffer ()
+  "Test that revert-buffer is successful."
+  (files-tests--with-temp-file temp-file-name
+    (with-temp-buffer
+      (insert files-tests-lao)
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (revert-buffer t t t)
+      (should (compare-strings files-tests-lao nil nil
+                               (buffer-substring (point-min) (point-max))
+                               nil nil)))))
+
+(ert-deftest files-tests-revert-buffer-with-fine-grain ()
+  "Test that revert-buffer-with-fine-grain is successful."
+  (files-tests--with-temp-file temp-file-name
+    (with-temp-buffer
+      (insert files-tests-lao)
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (should (revert-buffer-with-fine-grain t t))
+      (should (compare-strings files-tests-lao nil nil
+                               (buffer-substring (point-min) (point-max))
+                               nil nil)))))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here

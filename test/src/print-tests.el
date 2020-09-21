@@ -355,5 +355,33 @@ otherwise, use a different charset."
     (setcdr err err)
     (should-error (error-message-string err) :type 'circular-list)))
 
+(print-tests--deftest print-hash-table-test ()
+  (should
+   (string-match
+    "data (2 3)"
+    (let ((h (make-hash-table)))
+      (puthash 1 2 h)
+      (puthash 2 3 h)
+      (remhash 1 h)
+      (format "%S" h))))
+
+  (should
+   (string-match
+    "data ()"
+    (let ((h (make-hash-table)))
+      (let ((print-length 0))
+        (format "%S" h)))))
+
+  (should
+   (string-match
+    "data (99 99)"
+    (let ((h (make-hash-table)))
+      (dotimes (i 100)
+        (puthash i i h))
+      (dotimes (i 99)
+        (remhash i h))
+      (let ((print-length 1))
+        (format "%S" h))))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here

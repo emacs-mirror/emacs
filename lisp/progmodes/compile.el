@@ -2090,8 +2090,7 @@ Returns the compilation buffer created."
       '(menu-item "Compile..." compile
 		  :help "Compile the program including the current buffer.  Default: run `make'"))
     map)
-  "Keymap for compilation log buffers.
-`compilation-minor-mode-map' is a parent of this.")
+  "Keymap for compilation log buffers.")
 
 (defvar compilation-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,

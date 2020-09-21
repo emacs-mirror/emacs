@@ -529,7 +529,21 @@ in your init file.
 
 \\[flyspell-region] checks all words inside a region.
 \\[flyspell-buffer] checks the whole buffer."
-  :lighter flyspell-mode-line-string
+  :lighter (flyspell-mode-line-string
+            ;; If `flyspell-mode-line-string' is nil, then nothing of
+            ;; the following is displayed in the mode line.
+            ((:propertize flyspell-mode-line-string)
+             (:propertize
+              (:eval
+	       (concat "/" (substring (or ispell-local-dictionary
+			                  ispell-dictionary
+                                          "--")
+                                      0 2)))
+              face bold
+              help-echo "mouse-1: Change dictionary"
+              local-map (keymap
+                         (mode-line keymap
+                                    (mouse-1 . ispell-change-dictionary))))))
   :keymap flyspell-mode-map
   :group 'flyspell
   (if flyspell-mode

@@ -2358,17 +2358,17 @@ during jdb initialization depending on the value of
 		(if (< n gud-jdb-lowest-stack-level)
 		    (progn (setq gud-jdb-lowest-stack-level n) t)))
 	    t)
-	  (if (setq file-found
-		    (gud-jdb-find-source (match-string 2 gud-marker-acc)))
-	      (setq gud-last-frame
-		    (cons file-found
-			  (string-to-number
-			   (let
-                               ((numstr (match-string 4 gud-marker-acc)))
-                             (if (string-match "[.,]" numstr)
-                                 (replace-match "" nil nil numstr)
-                               numstr)))))
-	    (message "Could not find source file.")))
+	  (let ((class (match-string 2 gud-marker-acc)))
+	    (if (setq file-found (gud-jdb-find-source class))
+	        (setq gud-last-frame
+		      (cons file-found
+			    (string-to-number
+			     (let
+                                 ((numstr (match-string 4 gud-marker-acc)))
+                               (if (string-match "[.,]" numstr)
+                                   (replace-match "" nil nil numstr)
+                                 numstr)))))
+	      (message "Could not find source file for %s" class))))
 
       ;; Set the accumulator to the remaining text.
       (setq gud-marker-acc (substring gud-marker-acc (match-end 0))))

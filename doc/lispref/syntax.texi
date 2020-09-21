@@ -256,10 +256,11 @@ look in the standard syntax table to find the syntax of this
 character.
 
 @item Generic comment delimiters: @samp{!}
-Characters that start or end a special kind of comment.  @emph{Any}
-generic comment delimiter matches @emph{any} generic comment
-delimiter, but they cannot match a comment starter or comment ender;
-generic comment delimiters can only match each other.
+(This syntax class is also known as ``comment-fence''.)  Characters
+that start or end a special kind of comment.  @emph{Any} generic
+comment delimiter matches @emph{any} generic comment delimiter, but
+they cannot match a comment starter or comment ender; generic comment
+delimiters can only match each other.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You
@@ -268,10 +269,11 @@ first and last characters of the range @code{syntax-table} properties
 identifying them as generic comment delimiters.
 
 @item Generic string delimiters: @samp{|}
-Characters that start or end a string.  This class differs from the
-string quote class in that @emph{any} generic string delimiter can
-match any other generic string delimiter; but they do not match
-ordinary string quote characters.
+(This syntax class is also known as ``string-fence''.)  Characters
+that start or end a string.  This class differs from the string quote
+class in that @emph{any} generic string delimiter can match any other
+generic string delimiter; but they do not match ordinary string quote
+characters.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You
@@ -575,6 +577,15 @@ position before @var{end}.  However, it should not call
 @code{syntax-ppss-flush-cache}; so, it is not allowed to call
 @code{syntax-ppss} on some position and later modify the buffer at an
 earlier position.
+
+@strong{Caution:} When this variable is non-@code{nil}, Emacs removes
+@code{syntax-table} text properties arbitrarily and relies on
+@code{syntax-propertize-function} to reapply them.  Thus if this
+facility is used at all, the function must apply @strong{all}
+@code{syntax-table} text properties used by the major mode.  In
+particular, Modes derived from a CC Mode mode must not use this
+variable, since CC Mode uses other means to apply and remove these
+text properties.
 @end defvar
 
 @defvar syntax-propertize-extend-region-functions

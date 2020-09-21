@@ -2166,6 +2166,29 @@ Mode line construct for miscellaneous information.  By default, this
 shows the information specified by @code{global-mode-string}.
 @end defvar
 
+@defvar mode-line-position-line-format
+The format used to display line numbers when @code{line-number-mode}
+(@pxref{Optional Mode Line,,, emacs, The GNU Emacs Manual}) is
+switched on.  @samp{%l} in the format will be replaced with the line
+number.
+@end defvar
+
+@defvar mode-line-position-column-format
+The format used to display column numbers when
+@code{column-number-mode} (@pxref{Optional Mode Line,,, emacs, The GNU
+Emacs Manual}) is switched on.  @samp{%c} in the format will be
+replaced with the column number, and this is zero-based if
+@code{column-number-indicator-zero-based} is non-@code{nil}, and
+one-based if @code{column-number-indicator-zero-based} is @code{nil}.
+@end defvar
+
+@defvar mode-line-position-column-line-format
+The format used to display column numbers when both
+@code{line-number-mode} and @code{column-number-mode} are switched on.
+See the previous two variables for the meaning of the @samp{%l} and
+@samp{%c} format specs.
+@end defvar
+
 @defvar minor-mode-alist
 @anchor{Definition of minor-mode-alist}
 This variable holds an association list whose elements specify how the

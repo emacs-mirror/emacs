@@ -3028,6 +3028,11 @@ point (@code{dired-at-point}).
 @code{find-file-read-only-other-frame}.
 @item C-x 5 d @var{directory} @key{RET}
 @code{ffap-dired-other-frame}, analogous to @code{dired-other-frame}.
+@kindex C-x t C-f @r{(FFAP)}
+@item C-x t C-f @var{filename} @key{return}
+@code{ffap-other-tab}, analogous to @code{find-file-other-tab}.
+@item C-x t C-r @var{filename} @key{return}
+@code{ffap-read-only-other-tab}, analogous to @code{find-file-read-only-other-tab}.
 @item M-x ffap-next
 Search buffer for next file name or URL, then find that file or URL.
 @item S-mouse-3

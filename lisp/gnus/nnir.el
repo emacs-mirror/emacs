@@ -211,7 +211,7 @@ By default this is the name of an email header field.")
   "Search groups in Gnus with assorted search engines."
   :group 'gnus)
 
-(make-obsolete-variable 'nnir-summary-line-format "The formating
+(make-obsolete-variable 'nnir-summary-line-format "The formatting
 specs previously unique to this variable may now be set in
 'gnus-summary-line-format." "28.1")
 

@@ -34,7 +34,7 @@ x = # "tot %q/to"; =
 # Regexp after whitelisted method.
 "abc".sub /b/, 'd'
 
-# Don't mis-match "sub" at the end of words.
+# Don't mismatch "sub" at the end of words.
 a = asub / aslb + bsub / bslb;
 
 # Highlight the regexp after "if".

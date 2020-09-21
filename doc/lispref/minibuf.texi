@@ -316,8 +316,22 @@ input before returning it.  However,
 @code{read-no-blanks-input} (see below), as well as
 @code{read-minibuffer} and related functions (@pxref{Object from
 Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
-functions that do minibuffer input with completion, discard text
-properties unconditionally, regardless of the value of this variable.
+functions that do minibuffer input with completion, remove the @code{face}
+property unconditionally, regardless of the value of this variable.
+
+If this variable is non-@code{nil}, most text properties on strings
+from the completion table are preserved---but only on the part of the
+strings that were completed.
+
+@lisp
+(let ((minibuffer-allow-text-properties t))
+  (completing-read "String: " (list (propertize "foobar" 'data 'zot))))
+=> #("foobar" 3 6 (data zot))
+@end lisp
+
+In this example, the user typed @samp{foo} and then hit the @kbd{TAB}
+key, so the text properties are only preserved on the last three
+characters.
 @end defvar
 
 @defvar minibuffer-local-map
@@ -2460,9 +2474,10 @@ changes size automatically.  In that case the window resizing commands
 
 @defopt max-mini-window-height
 This option provides a maximum height for resizing minibuffer windows
-automatically.  A floating-point number specifies a fraction of the
-frame's height; an integer specifies the maximum number of lines.  The
-default value is 0.25.
+automatically.  A floating-point number specifies the maximum height
+as a fraction of the frame's height; an integer specifies the maximum
+height in units of the frame's canonical character height
+(@pxref{Frame Font}).  The default value is 0.25.
 @end defopt
 
 Note that the values of the above two variables take effect at display

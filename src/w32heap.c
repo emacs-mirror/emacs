@@ -884,7 +884,7 @@ setrlimit (rlimit_resource_t rltype, const struct rlimit *rlp)
     {
     case RLIMIT_STACK:
     case RLIMIT_NOFILE:
-      /* We cannot modfy these limits, so we always fail.  */
+      /* We cannot modify these limits, so we always fail.  */
       errno = EPERM;
       break;
     default:

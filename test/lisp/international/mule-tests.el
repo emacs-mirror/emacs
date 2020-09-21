@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'ert-x)                        ;For `ert-run-keys'.
+
 (ert-deftest find-auto-coding--bug27391 ()
   "Check that Bug#27391 is fixed."
   (with-temp-buffer
@@ -41,12 +43,11 @@
   (should (not (multibyte-string-p (encode-coding-char ?a 'utf-8)))))
 
 (ert-deftest mule-cmds--test-universal-coding-system-argument ()
-  (skip-unless (not noninteractive))
   (should (equal "ccccccccccccccccab"
-                 (let ((enable-recursive-minibuffers t)
-                       (unread-command-events
-                        (append (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET") nil)))
-                   (read-string "prompt:")))))
+                 (let ((enable-recursive-minibuffers t))
+                   (ert-simulate-keys
+                       (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET")
+                     (read-string "prompt:"))))))
 
 (ert-deftest mule-utf-7 ()
   ;; utf-7 and utf-7-imap are not ASCII-compatible.

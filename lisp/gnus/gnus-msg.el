@@ -1352,8 +1352,10 @@ For the \"inline\" alternatives, also see the variable
 				      gcc)))
 	       (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n")))))))
 
-(defun gnus-summary-resend-message (address n)
-  "Resend the current article to ADDRESS."
+(defun gnus-summary-resend-message (address n &optional no-select)
+  "Resend the current article to ADDRESS.
+Uses the process/prefix convention.  If NO-SELECT, don't display
+the message before resending."
   (interactive
    (list (message-read-from-minibuffer
 	  "Resend message(s) to: "
@@ -1372,6 +1374,7 @@ For the \"inline\" alternatives, also see the variable
 					   'posting-style t))
 	(user-full-name user-full-name)
 	(user-mail-address user-mail-address)
+	(group gnus-newsgroup-name)
 	tem)
     (dolist (style styles)
       (when (stringp (cadr style))
@@ -1395,11 +1398,18 @@ For the \"inline\" alternatives, also see the variable
 			'(gnus-agent-possibly-do-gcc)
 		      '(gnus-inews-do-gcc)))))
     (dolist (article (gnus-summary-work-articles n))
-      (gnus-summary-select-article nil nil nil article)
-      (with-current-buffer gnus-original-article-buffer
-	(let ((gnus-gcc-externalize-attachments nil)
-	      (message-inhibit-body-encoding t))
-	  (message-resend address)))
+      (if no-select
+	  (with-current-buffer " *nntpd*"
+	    (erase-buffer)
+	    (gnus-request-article article group)
+	    (let ((gnus-gcc-externalize-attachments nil)
+		  (message-inhibit-body-encoding t))
+	      (message-resend address)))
+	(gnus-summary-select-article nil nil nil article)
+	(with-current-buffer gnus-original-article-buffer
+	  (let ((gnus-gcc-externalize-attachments nil)
+		(message-inhibit-body-encoding t))
+	    (message-resend address))))
       (gnus-summary-mark-article-as-forwarded article))))
 
 ;; From: Matthieu Moy <Matthieu.Moy@imag.fr>

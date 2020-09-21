@@ -1291,6 +1291,12 @@ ways.
 This abnormal hook holds documentation functions.  It acts as a
 collection of backends for ElDoc.  This is what modes should use to
 register their documentation functions with ElDoc.
+
+@vindex eldoc-display-truncation-message
+@item eldoc-display-truncation-message
+If non-@code{nil} (the default), display a verbose message about how
+to view a complete documentation (if it has been truncated in the echo
+area).  If @code{nil}, just mark truncated messages with @samp{...}.
 @end table
 
 @node Hideshow

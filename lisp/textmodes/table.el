@@ -3279,7 +3279,7 @@ Currently this method is for LaTeX only."
 		       (with-temp-buffer
 			 (insert line)
 			 (goto-char (point-min))
-			 (while (re-search-forward "\\([#$~_^%{}]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
+			 (while (re-search-forward "\\([#$~_^%{}&]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
 			   (if (match-beginning 1)
 			       (save-excursion
 				 (goto-char (match-beginning 1))

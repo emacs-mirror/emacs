@@ -2585,6 +2585,21 @@ Otherwise, display it in another buffer."
 
 ;;; Functions for extracting and manipulating file names in Dired buffers.
 
+(defun dired-unhide-subdir ()
+  (with-silent-modifications
+    (dired--unhide (dired-subdir-min) (dired-subdir-max))))
+
+(defun dired-subdir-hidden-p (dir)
+  (save-excursion
+    (dired-goto-subdir dir)
+    (dired--hidden-p)))
+
+(defun dired-subdir-min ()
+  (save-excursion
+    (if (not (dired-prev-subdir 0 t t))
+	(error "Not in a subdir!")
+      (point))))
+
 (defun dired-get-filename (&optional localp no-error-if-not-filep)
   "In Dired, return name of file mentioned on this line.
 Value returned normally includes the directory name.
@@ -2595,10 +2610,17 @@ it occurs in the buffer, and a value of t means construct name relative to
 Optional arg NO-ERROR-IF-NOT-FILEP means treat `.' and `..' as
 regular filenames and return nil if no filename on this line.
 Otherwise, an error occurs in these cases."
-  (let (case-fold-search file p1 p2 already-absolute)
+  (let ((hidden (and dired-subdir-alist
+                     (dired-subdir-hidden-p
+                      (dired-current-directory))))
+	case-fold-search file p1 p2 already-absolute)
+    (when hidden
+      (dired-unhide-subdir))
     (save-excursion
       (if (setq p1 (dired-move-to-filename (not no-error-if-not-filep)))
 	  (setq p2 (dired-move-to-end-of-filename no-error-if-not-filep))))
+    (when hidden
+      (dired-hide-subdir 1))
     ;; nil if no file on this line, but no-error-if-not-filep is t:
     (if (setq file (and p1 p2 (buffer-substring p1 p2)))
 	(progn

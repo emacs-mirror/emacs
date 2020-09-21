@@ -2547,7 +2547,7 @@ file names include non-ASCII characters."
 
 (defun gdb-gdb (_output-field)
   ;; This is needed because the "explore" command is not ended by the
-  ;; likes of "end" or "quit", but instead by a RET at the approriate
+  ;; likes of "end" or "quit", but instead by a RET at the appropriate
   ;; place, and we know we have exited "explore" when we get the
   ;; "(gdb)" prompt.
   (and (> gdb-control-level 0)
@@ -4665,11 +4665,11 @@ SPLIT-HORIZONTAL and show BUF in the new window."
         (interactive)
         (customize-option 'gdb-switch-reasons))))
   (define-key menu [gdb-switch-when-another-stopped]
-    (menu-bar-make-toggle gdb-toggle-switch-when-another-stopped
-                          gdb-switch-when-another-stopped
-                          "Automatically switch to stopped thread"
-                          "GDB thread switching %s"
-                          "Switch to stopped thread"))
+    (menu-bar-make-toggle-command
+     gdb-toggle-switch-when-another-stopped
+     gdb-switch-when-another-stopped
+     "Automatically switch to stopped thread"
+     "GDB thread switching %s" "Switch to stopped thread"))
   (define-key gud-menu-map [mi]
     `(menu-item "GDB-MI" ,menu :visible (eq gud-minor-mode 'gdbmi))))
 

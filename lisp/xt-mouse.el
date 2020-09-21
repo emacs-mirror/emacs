@@ -237,7 +237,10 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 		      (xterm-mouse--read-event-sequence extension))
 		     (t
 		      (error "Unsupported XTerm mouse protocol")))))
-    (when click
+    (when (and click
+               ;; In very obscure circumstances, the click may become
+               ;; invalid (see bug#17378).
+               (>= (nth 1 click) 0))
       (let* ((type (nth 0 click))
              (x    (nth 1 click))
              (y    (nth 2 click))

@@ -5217,7 +5217,6 @@ tty_supports_face_attributes_p (struct frame *f,
       || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX]))
     return false;
 
@@ -5282,6 +5281,15 @@ tty_supports_face_attributes_p (struct frame *f,
 	test_caps |= TTY_CAP_INVERSE;
     }
 
+  /* strike through */
+  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
+  if (!UNSPECIFIEDP (val))
+    {
+      if (face_attr_equal_p (val, def_attrs[LFACE_STRIKE_THROUGH_INDEX]))
+	return false;		/* same as default */
+      else
+	test_caps |= TTY_CAP_STRIKE_THROUGH;
+    }
 
   /* Color testing.  */
 
@@ -6244,6 +6252,8 @@ realize_tty_face (struct face_cache *cache,
     face->tty_underline_p = true;
   if (!NILP (attrs[LFACE_INVERSE_INDEX]))
     face->tty_reverse_p = true;
+  if (!NILP (attrs[LFACE_STRIKE_THROUGH_INDEX]))
+    face->tty_strike_through_p = true;
 
   /* Map color names to color indices.  */
   map_tty_color (f, face, LFACE_FOREGROUND_INDEX, &face_colors_defaulted);

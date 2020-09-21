@@ -6877,7 +6877,7 @@ w32_make_frame_visible (struct frame *f)
       /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
 	 causes unexpected behavior when unminimizing frames that were
 	 previously maximized.  But only SW_SHOWNORMAL works properly for
-	 frames that were truely hidden (using make-frame-invisible), so
+	 frames that were truly hidden (using make-frame-invisible), so
 	 we need it to avoid Bug#5482.  It seems that iconified is only
 	 set for minimized windows that are still visible, so use that to
 	 determine the appropriate flag to pass ShowWindow.  */

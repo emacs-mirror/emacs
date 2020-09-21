@@ -828,7 +828,7 @@ In the first decryption this passphrase is hardcoded, in the second one it
 	method "uid1@example.org" "sub@example.org" nil
 	;; Beware!  For passphrases copy-sequence is necessary, as they may
 	;; be erased, which actually changes the function's code and causes
-	;; multiple invokations to fail.  I was surprised...
+	;; multiple invocations to fail.  I was surprised...
 	(copy-sequence "Passphrase") t)
        (mml-secure-test-en-decrypt-with-passphrase
 	method "uid1@example.org" "sub@example.org" nil

@@ -305,7 +305,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   (let ((fun-map (make-hash-table :test 'profiler-function-equal))
         (parent-map (make-hash-table :test 'eq))
         (leftover-tree (profiler-make-calltree
-                        :entry (intern "...") :parent tree)))
+                        :entry '... :parent tree)))
     (push leftover-tree (profiler-calltree-children tree))
     (maphash
      (lambda (backtrace _count)

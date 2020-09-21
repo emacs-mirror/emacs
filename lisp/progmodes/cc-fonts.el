@@ -1073,17 +1073,18 @@ casts and declarations are fontified.  Used on level 2 and higher."
 (defun c-font-lock-declarators (limit list types not-top
 				      &optional template-class)
   ;; Assuming the point is at the start of a declarator in a declaration,
-  ;; fontify the identifier it declares.  (If TYPES is set, it does this via
-  ;; the macro `c-fontify-types-and-refs'.)
+  ;; fontify the identifier it declares.  (If TYPES is t, it does this via the
+  ;; macro `c-fontify-types-and-refs'.)
   ;;
   ;; If LIST is non-nil, also fontify the ids in any following declarators in
   ;; a comma separated list (e.g.  "foo" and "*bar" in "int foo = 17, *bar;");
   ;; additionally, mark the commas with c-type property 'c-decl-id-start or
   ;; 'c-decl-type-start (according to TYPES).  Stop at LIMIT.
   ;;
-  ;; If TYPES is non-nil, fontify all identifiers as types.  If NOT-TOP is
-  ;; non-nil, we are not at the top-level ("top-level" includes being directly
-  ;; inside a class or namespace, etc.).
+  ;; If TYPES is t, fontify all identifiers as types, if it is nil fontify as
+  ;; either variables or functions, otherwise TYPES is a face to use.  If
+  ;; NOT-TOP is non-nil, we are not at the top-level ("top-level" includes
+  ;; being directly inside a class or namespace, etc.).
   ;;
   ;; TEMPLATE-CLASS is non-nil when the declaration is in template delimiters
   ;; and was introduced by, e.g. "typename" or "class", such that if there is
@@ -1100,9 +1101,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ()
     (c-do-declarators
      limit list not-top
-     (if types 'c-decl-type-start 'c-decl-id-start)
+     (cond ((eq types t) 'c-decl-type-start)
+	   ((null types) 'c-decl-id-start))
      (lambda (id-start _id-end end-pos _not-top is-function init-char)
-       (if types
+       (if (eq types t)
 	   ;; Register and fontify the identifier as a type.
 	   (let ((c-promote-possible-types t))
 	     (goto-char id-start)
@@ -1121,9 +1123,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	   ;; `c-forward-declarator'.
 	   (c-put-font-lock-face (car c-last-identifier-range)
 	 			 (cdr c-last-identifier-range)
-	 			 (if is-function
-	 			     'font-lock-function-name-face
-	 			   'font-lock-variable-name-face))))
+				 (cond
+				  ((not (memq types '(nil t))) types)
+				  (is-function 'font-lock-function-name-face)
+				  (t 'font-lock-variable-name-face)))))
        (and template-class
 	    (eq init-char ?=)		; C++ "<class X = Y>"?
 	    (progn
@@ -1357,7 +1360,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				   'c-decl-id-start)))))
       (c-font-lock-declarators
        (min limit (point-max)) decl-list
-       (cadr decl-or-cast) (not toplev) template-class))
+       (not (null (cadr decl-or-cast)))
+       (not toplev) template-class))
 
     ;; A declaration has been successfully identified, so do all the
     ;; fontification of types and refs that've been recorded.
@@ -2004,6 +2008,9 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
       ,@(when (c-major-mode-is 'c++-mode)
 	  '(c-font-lock-c++-lambda-captures))
 
+      ,@(when (c-lang-const c-using-key)
+	  `(c-font-lock-c++-using))
+
       ;; The first two rules here mostly find occurrences that
       ;; `c-font-lock-declarations' has found already, but not
       ;; declarations containing blocks in the type (see note below).
@@ -2263,6 +2270,40 @@ need for `c-font-lock-extra-types'.")
 
 
 ;;; C++.
+(defun c-font-lock-c++-using (limit)
+  ;; Fontify any clauses starting with the keyword `using'.
+  ;;
+  ;; This function will be called from font-lock- for a region bounded by
+  ;; POINT and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; fontification".
+  (let (pos after-name)
+    (while (c-syntactic-re-search-forward c-using-key limit 'end)
+      (while  ; Do one declarator of a comma separated list, each time around.
+	  (progn
+	    (c-forward-syntactic-ws)
+	    (setq pos (point))		; token after "using".
+	    (when (and (c-on-identifier)
+		       (c-forward-name))
+	      (setq after-name (point))
+	      (cond
+	       ((eq (char-after) ?=)		; using foo = <type-id>;
+		(goto-char pos)
+		(c-font-lock-declarators limit nil t nil))
+	       ((save-excursion
+		  (and c-colon-type-list-re
+		       (c-go-up-list-backward)
+		       (eq (char-after) ?{)
+		       (eq (car (c-beginning-of-decl-1)) 'same)
+		       (looking-at c-colon-type-list-re)))
+		;; Inherited protected member: leave unfontified
+		)
+	       (t (goto-char pos)
+		  (c-font-lock-declarators limit nil c-label-face-name nil)))
+	      (eq (char-after) ?,)))
+	(forward-char)))		; over the comma.
+    nil))
 
 (defun c-font-lock-c++-new (limit)
   ;; FIXME!!!  Put in a comment about the context of this function's

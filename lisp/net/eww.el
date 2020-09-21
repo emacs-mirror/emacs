@@ -141,7 +141,7 @@ this should be a list where the first item is the program, and
 the rest are the arguments."
   :version "28.1"
   :type '(choice (const :tag "Use `url-retrieve'" nil)
-                 (list string)))
+                 (repeat string)))
 
 (defcustom eww-use-external-browser-for-content-type
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
@@ -730,8 +730,7 @@ Currently this means either text/html or application/xhtml+xml."
   (setq header-line-format
 	(and eww-header-line-format
 	     (let ((peer (plist-get eww-data :peer))
-                   (url (propertize (plist-get eww-data :url)
-                                    'face 'variable-pitch))
+                   (url (plist-get eww-data :url))
                    (title (propertize
                            (if (zerop (length (plist-get eww-data :title)))
 		               "[untitled]"
@@ -747,10 +746,13 @@ Currently this means either text/html or application/xhtml+xml."
                ;; Limit the length of the title so that the host name
                ;; of the URL is always visible.
                (when url
+                 (setq url (propertize url 'face 'variable-pitch))
                  (let* ((parsed (url-generic-parse-url url))
                         (host-length (shr-string-pixel-width
-                                      (format "%s://%s" (url-type parsed)
-                                              (url-host parsed))))
+                                      (propertize
+                                       (format "%s://%s" (url-type parsed)
+                                               (url-host parsed))
+                                       'face 'variable-pitch)))
                         (width (window-width nil t)))
                    (cond
                     ;; The host bit is wider than the window, so nix
@@ -1632,7 +1634,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	  (cond
 	   ((member (plist-get input :type) '("checkbox" "radio"))
 	    (when (plist-get input :checked)
-	      (push (cons name (plist-get input :value))
+              (push (cons name (or (plist-get input :value) "on"))
 		    values)))
 	   ((equal (plist-get input :type) "file")
             (when-let ((file (plist-get input :filename)))

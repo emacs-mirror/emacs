@@ -573,10 +573,13 @@ command works depend on the major mode.
 
 @kindex C-h l
 @findex view-lossage
+@findex lossage-size
   If something surprising happens, and you are not sure what you typed,
 use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays your last
-300 input keystrokes and the commands they invoked.  If you see
-commands that you are not familiar with, you can use @kbd{C-h k} or
+input keystrokes and the commands they invoked.  By default, Emacs
+stores the last 300 keystrokes; if you wish, you can change this number with
+the command @code{lossage-size}.
+If you see commands that you are not familiar with, you can use @kbd{C-h k} or
 @kbd{C-h f} to find out what they do.
 
 @kindex C-h e

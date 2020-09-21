@@ -24,6 +24,12 @@
 (require 'ert)
 (require 'ruby-mode)
 
+(defvar ruby-mode-tests-data-dir
+  (file-truename
+   (expand-file-name "ruby-mode-resources/"
+                     (file-name-directory (or load-file-name
+                                              buffer-file-name)))))
+
 (defmacro ruby-with-temp-buffer (contents &rest body)
   (declare (indent 1) (debug t))
   `(with-temp-buffer
@@ -842,6 +848,19 @@ VALUES-PLIST is a list with alternating index and value elements."
       (ruby--insert-coding-comment "utf-8")
       (should (string= "# encoding: utf-8\n\n" (buffer-string))))))
 
+;; TODO: Convert these into unit proper tests instead of using an
+;;       external file.
+(ert-deftest ruby--indent/converted-from-manual-test ()
+  :tags '(:expensive-test)
+  ;; Converted from manual test.
+  (let ((buf (find-file-noselect (expand-file-name "ruby.rb"
+                                                   ruby-mode-tests-data-dir))))
+    (unwind-protect
+        (with-current-buffer buf
+          (let ((orig (buffer-string)))
+            (indent-region (point-min) (point-max))
+            (should (equal (buffer-string) orig))))
+      (kill-buffer buf))))
 
 (provide 'ruby-mode-tests)
 

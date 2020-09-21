@@ -226,10 +226,10 @@ Specifically, start it when the saved buffer is actually displayed."
 (defcustom flymake-suppress-zero-counters :warning
   "Control appearance of zero-valued diagnostic counters in mode line.
 
-If set to t, supress all zero counters.  If set to a severity
+If set to t, suppress all zero counters.  If set to a severity
 symbol like `:warning' (the default) suppress zero counters less
 severe than that severity, according to `warning-numeric-level'.
-If set to nil, don't supress any zero counters."
+If set to nil, don't suppress any zero counters."
   :type 'symbol)
 
 (when (fboundp 'define-fringe-bitmap)
@@ -632,7 +632,7 @@ associated `flymake-category' return DEFAULT."
      for (ov-prop . value) in
      (append (reverse
               (flymake--diag-overlay-properties diagnostic))
-             (reverse ; ensure ealier props override later ones
+             (reverse ; ensure earlier props override later ones
               (flymake--lookup-type-property type 'flymake-overlay-control))
              (alist-get type flymake-diagnostic-types-alist))
      do (overlay-put ov ov-prop value))
@@ -1004,7 +1004,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
     (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
 
-    ;; If Flymake happened to be alrady already ON, we must cleanup
+    ;; If Flymake happened to be already already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
     ;; reinitializing `flymake--backend-state' in the next line.
     ;; See https://github.com/joaotavora/eglot/issues/223.

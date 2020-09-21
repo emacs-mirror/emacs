@@ -102,7 +102,7 @@ typedef XImage *Emacs_Pix_Context;
 #endif
 
 #ifdef USE_CAIRO
-/* Mininal version of XImage.  */
+/* Minimal version of XImage.  */
 typedef struct
 {
   int width, height;		/* size of image */
@@ -1744,6 +1744,7 @@ struct face
   bool_bf tty_italic_p : 1;
   bool_bf tty_underline_p : 1;
   bool_bf tty_reverse_p : 1;
+  bool_bf tty_strike_through_p : 1;
 
   /* True means that colors of this face may not be freed because they
      have been copied bitwise from a base face (see
@@ -3290,6 +3291,7 @@ enum tool_bar_item_image
 #define TTY_CAP_BOLD		0x04
 #define TTY_CAP_DIM		0x08
 #define TTY_CAP_ITALIC  	0x10
+#define TTY_CAP_STRIKE_THROUGH	0x20
 
 
 /***********************************************************************

@@ -697,6 +697,17 @@ forward order after the file name, as in @samp{file|top/middle}.  If
 @code{uniquify-buffer-name-style} is set to @code{nil}, the buffer
 names simply get @samp{<2>}, @samp{<3>}, etc.@: appended.
 
+  The value of @code{uniquify-buffer-name-style} can be set to a
+customized function with two arguments @var{base} and
+@var{extra-strings} where @var{base} is a string and
+@var{extra-strings} is a list of strings.  For example the current
+implementation for @code{post-forward-angle-brackets} could be:
+
+@example
+(defun my-post-forward-angle-brackets (base extra-string)
+  (concat base \"<\" (mapconcat #'identity extra-string \"/\") \">\"))
+@end example
+
   Which rule to follow for putting the directory names in the buffer
 name is not very important if you are going to @emph{look} at the
 buffer names before you type one.  But as an experienced user, if you

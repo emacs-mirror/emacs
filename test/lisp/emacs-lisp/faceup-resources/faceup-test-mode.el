@@ -44,7 +44,7 @@
      (0 (progn
           (add-text-properties (match-beginning 0)
                                (match-end 0)
-                               '(help-echo "Baloon tip: Fly smoothly!"))
+                               '(help-echo "Balloon tip: Fly smoothly!"))
           font-lock-warning-face))))
   "Highlight rules for `faceup-test-mode'.")
 

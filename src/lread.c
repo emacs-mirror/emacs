@@ -4221,6 +4221,9 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
     {
       make_symbol_constant (sym);
       XSYMBOL (sym)->u.s.redirect = SYMBOL_PLAINVAL;
+      /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
+	 in lexically bound elisp signal an error, as documented.  */
+      XSYMBOL (sym)->u.s.declared_special = true;
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 

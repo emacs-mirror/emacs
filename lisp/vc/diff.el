@@ -258,6 +258,8 @@ This requires the external program `diff' to be in your `exec-path'."
   (interactive "bBuffer: ")
   (let ((buf (get-buffer (or buffer (current-buffer)))))
     (with-current-buffer (or (buffer-base-buffer buf) buf)
+      (unless buffer-file-name
+        (error "Buffer is not visiting a file"))
       (diff buffer-file-name (current-buffer) nil 'noasync))))
 
 ;;;###autoload

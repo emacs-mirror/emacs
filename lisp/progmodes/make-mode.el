@@ -1413,7 +1413,7 @@ Fill comments, backslashed lines, and variable definitions specially."
   "Leave the browser and return to the makefile buffer."
   (interactive)
   (let ((my-client makefile-browser-client))
-    (setq makefile-browser-client nil)	; we quitted, so NO client!
+    (setq makefile-browser-client nil)	; we quit, so NO client!
     (set-buffer-modified-p nil)
     (quit-window t)
     (pop-to-buffer my-client)))

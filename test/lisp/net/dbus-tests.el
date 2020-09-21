@@ -25,8 +25,6 @@
 (defvar dbus-debug nil)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
-(setq dbus-show-dbus-errors nil)
-
 (defconst dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)
        (dbus-ignore-errors (dbus-get-unique-name :session)))
@@ -92,6 +90,275 @@
     (should-not
      (string-equal
       (dbus-unescape-from-identifier (dbus-escape-as-identifier mstr)) mstr))))
+
+(ert-deftest dbus-test01-basic-types ()
+  "Check basic D-Bus type arguments."
+  ;; Unknown keyword.
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :keyword)
+   :type 'wrong-type-argument)
+
+  ;; `:string'.
+  (should (dbus-check-arguments :session dbus--test-service "string"))
+  (should (dbus-check-arguments :session dbus--test-service :string "string"))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :string 0.5)
+   :type 'wrong-type-argument)
+
+  ;; `:object-path'.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service :object-path "/object/path"))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :object-path "string")
+   :type 'dbus-error)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :object-path 0.5)
+   :type 'wrong-type-argument)
+
+  ;; `:signature'.
+  (should (dbus-check-arguments :session dbus--test-service :signature "as"))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :signature "string")
+   :type 'dbus-error)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :signature 0.5)
+   :type 'wrong-type-argument)
+
+  ;; `:boolean'.
+  (should (dbus-check-arguments :session dbus--test-service nil))
+  (should (dbus-check-arguments :session dbus--test-service t))
+  (should (dbus-check-arguments :session dbus--test-service :boolean nil))
+  (should (dbus-check-arguments :session dbus--test-service :boolean t))
+  ;; Will be handled as `nil'.
+  (should (dbus-check-arguments :session dbus--test-service :boolean))
+  ;; Will be handled as `t'.
+  (should (dbus-check-arguments :session dbus--test-service :boolean 'whatever))
+
+  ;; `:byte'.
+  (should (dbus-check-arguments :session dbus--test-service :byte 0))
+  ;; Only the least significant byte is taken into account.
+  (should
+   (dbus-check-arguments :session dbus--test-service :byte most-positive-fixnum))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :byte -1)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :byte 0.5)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :byte "string")
+   :type 'wrong-type-argument)
+
+  ;; `:int16'.
+  (should (dbus-check-arguments :session dbus--test-service :int16 0))
+  (should (dbus-check-arguments :session dbus--test-service :int16 #x7fff))
+  (should (dbus-check-arguments :session dbus--test-service :int16 #x-8000))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 #x8000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 #x-8001)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 0.5)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int16 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:uint16'.
+  (should (dbus-check-arguments :session dbus--test-service :uint16 0))
+  (should (dbus-check-arguments :session dbus--test-service :uint16 #xffff))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 #x10000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 -1)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 0.5)
+   :type 'wrong-type-argument)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint16 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:int32'.
+  (should (dbus-check-arguments :session dbus--test-service :int32 0))
+  (should (dbus-check-arguments :session dbus--test-service :int32 #x7fffffff))
+  (should (dbus-check-arguments :session dbus--test-service :int32 #x-80000000))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 #x80000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 #x-80000001)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int32 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:uint32'.
+  (should (dbus-check-arguments :session dbus--test-service 0))
+  (should (dbus-check-arguments :session dbus--test-service :uint32 0))
+  (should (dbus-check-arguments :session dbus--test-service :uint32 #xffffffff))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 #x100000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 -1)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint32 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:int64'.
+  (should (dbus-check-arguments :session dbus--test-service :int64 0))
+  (should
+   (dbus-check-arguments :session dbus--test-service :int64 #x7fffffffffffffff))
+  (should
+   (dbus-check-arguments :session dbus--test-service :int64 #x-8000000000000000))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 #x8000000000000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 #x-8000000000000001)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :int64 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:uint64'.
+  (should (dbus-check-arguments :session dbus--test-service :uint64 0))
+  (should
+   (dbus-check-arguments :session dbus--test-service :uint64 #xffffffffffffffff))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 #x10000000000000000)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 -1)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :uint64 "string")
+   :type 'wrong-type-argument)
+
+  ;; `:double'.
+  (should (dbus-check-arguments :session dbus--test-service :double 0))
+  (should (dbus-check-arguments :session dbus--test-service :double 0.5))
+  (should (dbus-check-arguments :session dbus--test-service :double -0.5))
+  (should (dbus-check-arguments :session dbus--test-service :double -1))
+  ;; Shall both be supported?
+  (should (dbus-check-arguments :session dbus--test-service :double 1.0e+INF))
+  (should (dbus-check-arguments :session dbus--test-service :double 0.0e+NaN))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :double "string")
+   :type 'wrong-type-argument)
+
+  ;; `:unix-fd'.  Value range 0 .. 9.
+  (should (dbus-check-arguments :session dbus--test-service :unix-fd 0))
+  (should (dbus-check-arguments :session dbus--test-service :unix-fd 9))
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd 10)
+   :type 'dbus-error)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd -1)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd 0.5)
+   :type 'args-out-of-range)
+  (should-error
+   (dbus-check-arguments :session dbus--test-service :unix-fd "string")
+   :type 'wrong-type-argument))
+
+(ert-deftest dbus-test01-compound-types ()
+  "Check basic D-Bus type arguments."
+  ;; `:array'.  It contains several elements of the same type.
+  (should (dbus-check-arguments :session dbus--test-service '("string")))
+  (should (dbus-check-arguments :session dbus--test-service '(:array "string")))
+  (should
+   (dbus-check-arguments :session dbus--test-service '(:array :string "string")))
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:array :string "string1" "string2")))
+  ;; Empty array.
+  (should (dbus-check-arguments :session dbus--test-service '(:array)))
+  (should
+   (dbus-check-arguments :session dbus--test-service '(:array :signature "o")))
+  ;; Different element types.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array :string "string" :object-path "/object/path"))
+   :type 'wrong-type-argument)
+
+  ;; `:variant'.  It contains exactly one element.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:variant :string "string")))
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:variant (:array "string"))))
+  ;; More than one element.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:variant :string "string" :object-path "/object/path"))
+   :type 'wrong-type-argument)
+
+  ;; `:dict-entry'.  It must contain two elements; the first one must
+  ;; be of a basic type.  It must be an element of an array.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array (:dict-entry :string "string" :boolean t))))
+  ;; The second element is `nil' (implicitly).  FIXME: Is this right?
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:array (:dict-entry :string "string"))))
+  ;; Not two elements.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array (:dict-entry :string "string" :boolean t :boolean t)))
+   :type 'wrong-type-argument)
+  ;; The first element ist not of a basic type.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array (:dict-entry (:array :string "string") :boolean t)))
+   :type 'wrong-type-argument)
+  ;; It is not an element of an array.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service '(:dict-entry :string "string" :boolean t))
+   :type 'wrong-type-argument)
+  ;; Different dict entry types can be part of an array.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array
+      (:dict-entry :string "string1" :boolean t)
+      (:dict-entry :string "string2" :object-path "/object/path"))))
+
+  ;; `:struct'.  There is no restriction what could be an element of a struct.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:struct
+      :string "string"
+      :object-path "/object/path"
+      (:variant (:array :unix-fd 1 :unix-fd 2 :unix-fd 3 :unix-fd 4))))))
 
 (defun dbus--test-register-service (bus)
   "Check service registration at BUS."
@@ -219,6 +486,17 @@ This includes initialization and closing the bus."
             (handler #'dbus--test-method-handler)
             registered)
 
+        ;; The service is not registered yet.
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-call-method
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface method1 :timeout 10 "foo")))
+           `(dbus-error ,dbus-error-service-unknown)))
+
+        ;; Register.
         (should
          (equal
           (setq
@@ -272,7 +550,6 @@ This includes initialization and closing the bus."
         (should-not (dbus-unregister-object registered))
         (should
          (equal
-          ;; We don't care the error message text.
           (butlast
            (should-error
             (dbus-call-method
@@ -283,8 +560,67 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
-;; TODO: Test emits-signal.
-(ert-deftest dbus-test05-register-property ()
+(defvar dbus--test-signal-received nil
+  "Received signal value in `dbus--test-signal-handler'.")
+
+(defun dbus--test-signal-handler (&rest args)
+  "Signal handler for `dbus-test*-signal'."
+  (setq dbus--test-signal-received args))
+
+(defun dbus--test-timeout-handler (&rest _ignore)
+  "Timeout handler, reporting a failed test."
+  (ert-fail (format "`%s' timed out" (ert-test-name (ert-running-test)))))
+
+(ert-deftest dbus-test05-register-signal ()
+  "Check signal registration for an own service."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((member "Member")
+            (handler #'dbus--test-signal-handler)
+            registered)
+
+        ;; Register signal handler.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-signal
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface member handler))
+          `((:signal :session ,dbus--test-interface ,member)
+            (,dbus--test-service ,dbus--test-path ,handler))))
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should (equal dbus--test-signal-received '("foo")))
+
+        ;; Send two arguments, compound types.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member
+         '(:array :byte 1 :byte 2 :byte 3) '(:variant :string "bar"))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should (equal dbus--test-signal-received '((1 2 3) ("bar"))))
+
+        ;; Unregister signal.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test06-register-property ()
   "Check property registration for an own service."
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
@@ -314,20 +650,14 @@ This includes initialization and closing the bus."
           "foo"))
         ;; Due to `:read' access type, we don't get a proper reply
         ;; from `dbus-set-property'.
-        (should-not
-         (dbus-set-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property1 "foofoo"))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            ;; We don't care the error message text.
-            (butlast
-             (should-error
-              (dbus-set-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property1 "foofoo")))
-            `(dbus-error ,dbus-error-property-read-only))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-set-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property1 "foofoo")))
+          `(dbus-error ,dbus-error-property-read-only)))
         (should
          (string-equal
           (dbus-get-property
@@ -345,30 +675,29 @@ This includes initialization and closing the bus."
             (,dbus--test-service ,dbus--test-path))))
         ;; Due to `:write' access type, we don't get a proper reply
         ;; from `dbus-get-property'.
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property2))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            ;; We don't care the error message text.
-            (butlast
-             (should-error
-              (dbus-get-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property2)))
-            `(dbus-error ,dbus-error-access-denied))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property2)))
+          `(dbus-error ,dbus-error-access-denied)))
         (should
          (string-equal
           (dbus-set-property
            :session dbus--test-service dbus--test-path
            dbus--test-interface property2 "barbar")
           "barbar"))
-        (should-not ;; Due to `:write' access type.
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property2))
+        ;; Still `:write' access type.
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property2)))
+          `(dbus-error ,dbus-error-access-denied)))
 
         ;; `:readwrite' property, typed value (Bug#43252).
         (should
@@ -398,34 +727,22 @@ This includes initialization and closing the bus."
           "/baz/baz"))
 
         ;; Not registered property.
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property4))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            ;; We don't care the error message text.
-            (butlast
-             (should-error
-              (dbus-get-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property4)))
-            `(dbus-error ,dbus-error-unknown-property))))
-        (should-not
-         (dbus-set-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property4 "foobarbaz"))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            ;; We don't care the error message text.
-            (butlast
-             (should-error
-              (dbus-set-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property4 "foobarbaz")))
-            `(dbus-error ,dbus-error-unknown-property))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property4)))
+          `(dbus-error ,dbus-error-unknown-property)))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-set-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property4 "foobarbaz")))
+          `(dbus-error ,dbus-error-unknown-property)))
 
         ;; `dbus-get-all-properties'.  We cannot retrieve a value for
         ;; the property with `:write' access type.
@@ -451,26 +768,20 @@ This includes initialization and closing the bus."
         ;; Unregister property.
         (should (dbus-unregister-object registered))
         (should-not (dbus-unregister-object registered))
-        (should-not
-         (dbus-get-property
-          :session dbus--test-service dbus--test-path
-          dbus--test-interface property1))
-        (let ((dbus-show-dbus-errors t))
-          (should
-           (equal
-            ;; We don't care the error message text.
-            (butlast
-             (should-error
-              (dbus-get-property
-               :session dbus--test-service dbus--test-path
-               dbus--test-interface property1)))
-            `(dbus-error ,dbus-error-unknown-property)))))
+        (should
+         (equal
+          (butlast
+           (should-error
+            (dbus-get-property
+             :session dbus--test-service dbus--test-path
+             dbus--test-interface property1)))
+          `(dbus-error ,dbus-error-unknown-property))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
 ;; The following test is inspired by Bug#43146.
-(ert-deftest dbus-test05-register-property-several-paths ()
+(ert-deftest dbus-test06-register-property-several-paths ()
   "Check property registration for an own service at several paths."
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
@@ -621,6 +932,74 @@ This includes initialization and closing the bus."
           (should (string-equal (cdr (assoc property2 result1)) "foofoo"))
           (should (string-equal (cdr (assoc property3 result1)) "barbar"))
           (should-not (assoc property1 result1))))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test06-register-property-emits-signal ()
+  "Check property registration for an own service, including signalling."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((property "Property")
+            (handler #'dbus--test-signal-handler))
+
+        ;; Register signal handler.
+        (should
+         (equal
+          (dbus-register-signal
+           :session dbus--test-service dbus--test-path
+           dbus-interface-properties "PropertiesChanged" handler)
+          `((:signal :session ,dbus-interface-properties "PropertiesChanged")
+            (,dbus--test-service ,dbus--test-path ,handler))))
+
+        ;; Register property.
+        (setq dbus--test-signal-received nil)
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property :readwrite "foo" 'emits-signal)
+          `((:property :session ,dbus--test-interface ,property)
+            (,dbus--test-service ,dbus--test-path))))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        ;; It returns two arguments, "changed_properties" (an array of
+        ;; dict entries) and "invalidated_properties" (an array of
+        ;; strings).
+        (should (equal dbus--test-signal-received `(((,property ("foo"))) ())))
+
+        (should
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property)
+          "foo"))
+
+        ;; Set property.  The new value shall be signalled.
+        (setq dbus--test-signal-received nil)
+        (should
+         (equal
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property
+           '(:array :byte 1 :byte 2 :byte 3))
+          '(1 2 3)))
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should
+         (equal
+          dbus--test-signal-received `(((,property ((1 2 3)))) ())))
+
+        (should
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface property)
+          '(1 2 3))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))

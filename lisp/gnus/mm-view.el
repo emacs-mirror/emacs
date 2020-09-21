@@ -546,7 +546,7 @@ If MODE is not set, try to find mode automatically."
   (mm-display-inline-fontify handle 'shell-script-mode))
 
 (defun mm-display-javascript-inline (handle)
-  "Show JavsScript code from HANDLE inline."
+  "Show JavaScript code from HANDLE inline."
   (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)

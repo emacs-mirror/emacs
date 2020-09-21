@@ -3640,7 +3640,7 @@ get_wm_chars (HWND aWnd, int *buf, int buflen, int ignore_ctrl, int ctrl,
    non-Emacs window with the same language environment, and using (dead)keys
    there would change the value stored in the kernel, but not this value.  */
 /* A layout may emit deadkey=0.  It looks like this would reset the state
-   of the kernel's finite automaton (equivalent to emiting 0-length string,
+   of the kernel's finite automaton (equivalent to emitting 0-length string,
    which is otherwise impossible in the dead-key map of a layout).
    Be ready to treat the case when this delivers WM_(SYS)DEADCHAR. */
 static int after_deadkey = -1;
@@ -3701,7 +3701,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 	 of w32_get_key_modifiers ().  */
       wmsg.dwModifiers = w32_kbd_mods_to_emacs (console_modifiers, wParam);
 
-      /* What follows is just heuristics; the correct treatement requires
+      /* What follows is just heuristics; the correct treatment requires
 	 non-destructive ToUnicode():
 	   http://search.cpan.org/~ilyaz/UI-KeyboardLayout/lib/UI/KeyboardLayout.pm#Can_an_application_on_Windows_accept_keyboard_events?_Part_IV:_application-specific_modifiers
 
@@ -7001,7 +7001,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
      Frame parameters may be changed if .Xdefaults contains
      specifications for the default font.  For example, if there is an
      `Emacs.default.attributeBackground: pink', the `background-color'
-     attribute of the frame get's set, which let's the internal border
+     attribute of the frame gets set, which let's the internal border
      of the tooltip frame appear in pink.  Prevent this.  */
   {
     Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
@@ -7085,7 +7085,7 @@ compute_tip_xy (struct frame *f,
 
       /* If multiple monitor support is available, constrain the tip onto
 	 the current monitor. This improves the above by allowing negative
-	 co-ordinates if monitor positions are such that they are valid, and
+	 coordinates if monitor positions are such that they are valid, and
 	 snaps a tooltip onto a single monitor if we are close to the edge
 	 where it would otherwise flow onto the other monitor (or into
 	 nothingness if there is a gap in the overlap).  */
@@ -8079,7 +8079,7 @@ operations:
  \"pastelink\"
 	   - create a shortcut in DOCUMENT (which must be a directory)
 	       the file or directory whose name is in the clipboard.
- \"runas\"   - run DOCUMENT, which must be an excutable file, with
+ \"runas\"   - run DOCUMENT, which must be an executable file, with
 	       elevated privileges (a.k.a. \"as Administrator\").
  \"properties\"
 	   - open the property sheet dialog for DOCUMENT.

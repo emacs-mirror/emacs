@@ -3560,19 +3560,24 @@ the present value is saved to its :shown-value property instead."
 	  (widget-put widget :buttons buttons))
 
       ;; Draw an ordinary `custom-face' widget
-      (let ((opoint (point)))
-	;; Visibility indicator.
-	(push (widget-create-child-and-convert
-	       widget 'custom-visibility
-	       :help-echo "Hide or show this face."
-	       :on "Hide" :off "Show"
-	       :on-glyph "down" :off-glyph "right"
-	       :action 'custom-toggle-hide-face
-	       (not hiddenp))
-	      buttons)
-	;; Face name (tag).
-	(insert " " tag)
-	(widget-specify-sample widget opoint (point)))
+      ;; Visibility indicator.
+      (push (widget-create-child-and-convert
+             widget 'custom-visibility
+             :help-echo "Hide or show this face."
+             :on "Hide" :off "Show"
+             :on-glyph "down" :off-glyph "right"
+             :action 'custom-toggle-hide-face
+             (not hiddenp))
+            buttons)
+      ;; Face name (tag).
+      (insert " ")
+      (push (widget-create-child-and-convert
+             widget 'face-link
+	     :button-face 'link
+             :tag tag
+             :action (lambda (&rest _x)
+                       (find-face-definition symbol)))
+            buttons)
       (insert
        (cond ((eq custom-buffer-style 'face) " ")
 	     ((string-match-p "face\\'" tag)   ":")

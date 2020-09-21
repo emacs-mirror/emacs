@@ -663,31 +663,63 @@ PROPS are additional properties."
 	       :button (:toggle . (and (default-boundp ',fname)
 				       (default-value ',fname)))))
 
-(defmacro menu-bar-make-toggle (name variable doc message help &rest body)
+(defmacro menu-bar-make-toggle (command variable item-name message help
+                                        &rest body)
+  "Define a menu-bar toggle command.
+See `menu-bar-make-toggle-command', for which this is a
+compatability wrapper.  BODY is passed in as SETTING-SEXP in that macro."
+  (declare (obsolete menu-bar-make-toggle-command "28.1"))
+  `(menu-bar-make-toggle-command ,command ,variable ,item-name ,message ,help
+                                 ,(and body
+                                       `(progn
+                                          ,@body))))
+
+(defmacro menu-bar-make-toggle-command (command variable item-name message
+                                                help
+                                                &optional setting-sexp
+                                                &rest keywords)
+  "Define a menu-bar toggle command.
+COMMAND (a symbol) is the toggle command to define.
+
+VARIABLE (a symbol) is the variable to set.
+
+ITEM-NAME (a string) is the menu-item name.
+
+MESSAGE is a format string for the toggle message, with %s for the new
+status.
+
+HELP (a string) is the `:help' tooltip text and the doc string first
+line (minus final period) for the command.
+
+SETTING-SEXP is a Lisp sexp that sets VARIABLE, or it is nil meaning
+set it according to its `defcustom' or using `set-default'.
+
+KEYWORDS is a plist for `menu-item' for keywords other than `:help'."
   `(progn
-     (defun ,name (&optional interactively)
+     (defun ,command (&optional interactively)
        ,(concat "Toggle whether to " (downcase (substring help 0 1))
-		(substring help 1) ".
+                (substring help 1) ".
 In an interactive call, record this option as a candidate for saving
 by \"Save Options\" in Custom buffers.")
        (interactive "p")
-       (if ,(if body `(progn . ,body)
-	      `(progn
+       (if ,(if setting-sexp
+                `,setting-sexp
+              `(progn
 		 (custom-load-symbol ',variable)
 		 (let ((set (or (get ',variable 'custom-set) 'set-default))
 		       (get (or (get ',variable 'custom-get) 'default-value)))
 		   (funcall set ',variable (not (funcall get ',variable))))))
-	   (message ,message "enabled globally")
-  	 (message ,message "disabled globally"))
-       ;; The function `customize-mark-as-set' must only be called when
-       ;; a variable is set interactively, as the purpose is to mark it as
-       ;; a candidate for "Save Options", and we do not want to save options
-       ;; the user have already set explicitly in his init file.
-       (if interactively (customize-mark-as-set ',variable)))
-     '(menu-item ,doc ,name
-		 :help ,help
-		 :button (:toggle . (and (default-boundp ',variable)
-					 (default-value ',variable))))))
+           (message ,message "enabled globally")
+         (message ,message "disabled globally"))
+       ;; `customize-mark-as-set' must only be called when a variable is set
+       ;; interactively, because the purpose is to mark the variable as a
+       ;; candidate for `Save Options', and we do not want to save options that
+       ;; the user has already set explicitly in the init file.
+       (when interactively (customize-mark-as-set ',variable)))
+     '(menu-item ,item-name ,command :help ,help
+                 :button (:toggle . (and (default-boundp ',variable)
+                                         (default-value ',variable)))
+                 ,@keywords)))
 
 ;; Function for setting/saving default font.
 
@@ -959,10 +991,11 @@ The selected font will be the default on both the existing and future frames."
                   :help "Indicate buffer boundaries in fringe"))
 
     (bindings--define-key menu [indicate-empty-lines]
-      (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
-                            "Empty Line Indicators"
-                            "Indicating of empty lines %s"
-                            "Indicate trailing empty lines in fringe, globally"))
+      (menu-bar-make-toggle-command
+       toggle-indicate-empty-lines indicate-empty-lines
+       "Empty Line Indicators"
+       "Indicating of empty lines %s"
+       "Indicate trailing empty lines in fringe, globally"))
 
     (bindings--define-key menu [customize]
       '(menu-item "Customize Fringe" menu-bar-showhide-fringe-menu-customize
@@ -1407,7 +1440,7 @@ mail status in mode line"))
     (bindings--define-key menu [custom-separator]
       menu-bar-separator)
     (bindings--define-key menu [case-fold-search]
-      (menu-bar-make-toggle
+      (menu-bar-make-toggle-command
        toggle-case-fold-search case-fold-search
        "Ignore Case"
        "Case-Insensitive Search %s"
@@ -1438,7 +1471,7 @@ mail status in mode line"))
 
     (if (featurep 'system-font-setting)
         (bindings--define-key menu [menu-system-font]
-          (menu-bar-make-toggle
+          (menu-bar-make-toggle-command
            toggle-use-system-font font-use-system-font
            "Use System Font"
            "Use system font: %s"
@@ -1464,13 +1497,15 @@ mail status in mode line"))
       menu-bar-separator)
 
     (bindings--define-key menu [debug-on-quit]
-      (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
-                            "Enter Debugger on Quit/C-g" "Debug on Quit %s"
-                            "Enter Lisp debugger when C-g is pressed"))
+      (menu-bar-make-toggle-command
+       toggle-debug-on-quit debug-on-quit
+       "Enter Debugger on Quit/C-g" "Debug on Quit %s"
+       "Enter Lisp debugger when C-g is pressed"))
     (bindings--define-key menu [debug-on-error]
-      (menu-bar-make-toggle toggle-debug-on-error debug-on-error
-                            "Enter Debugger on Error" "Debug on Error %s"
-                            "Enter Lisp debugger when an error is signaled"))
+      (menu-bar-make-toggle-command
+       toggle-debug-on-error debug-on-error
+       "Enter Debugger on Error" "Debug on Error %s"
+       "Enter Lisp debugger when an error is signaled"))
     (bindings--define-key menu [debugger-separator]
       menu-bar-separator)
 
@@ -1483,31 +1518,33 @@ mail status in mode line"))
       menu-bar-separator)
 
     (bindings--define-key menu [save-desktop]
-      (menu-bar-make-toggle
+      (menu-bar-make-toggle-command
        toggle-save-desktop-globally desktop-save-mode
        "Save State between Sessions"
        "Saving desktop state %s"
        "Visit desktop of previous session when restarting Emacs"
-       (require 'desktop)
-       ;; Do it by name, to avoid a free-variable
-       ;; warning during byte compilation.
-       (set-default
-	'desktop-save-mode (not (symbol-value 'desktop-save-mode)))))
+       (progn
+         (require 'desktop)
+         ;; Do it by name, to avoid a free-variable
+         ;; warning during byte compilation.
+         (set-default
+	  'desktop-save-mode (not (symbol-value 'desktop-save-mode))))))
 
     (bindings--define-key menu [save-place]
-      (menu-bar-make-toggle
+      (menu-bar-make-toggle-command
        toggle-save-place-globally save-place-mode
        "Save Place in Files between Sessions"
        "Saving place in files %s"
        "Visit files of previous session when restarting Emacs"
-       (require 'saveplace)
-       ;; Do it by name, to avoid a free-variable
-       ;; warning during byte compilation.
-       (set-default
-	'save-place-mode (not (symbol-value 'save-place-mode)))))
+       (progn
+         (require 'saveplace)
+         ;; Do it by name, to avoid a free-variable
+         ;; warning during byte compilation.
+         (set-default
+	  'save-place-mode (not (symbol-value 'save-place-mode))))))
 
     (bindings--define-key menu [uniquify]
-      (menu-bar-make-toggle
+      (menu-bar-make-toggle-command
        toggle-uniquify-buffer-names uniquify-buffer-name-style
        "Use Directory Names in Buffer Names"
        "Directory name in buffer names (uniquify) %s"
@@ -1521,7 +1558,7 @@ mail status in mode line"))
     (bindings--define-key menu [cua-mode]
       (menu-bar-make-mm-toggle
        cua-mode
-       "Use CUA Keys (Cut/Paste with C-x/C-c/C-v)"
+       "Cut/Paste with C-x/C-c/C-v (CUA Mode)"
        "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
        (:visible (or (not (boundp 'cua-enable-cua-keys))
 		     cua-enable-cua-keys))))
@@ -2448,7 +2485,7 @@ created in the future."
 (put 'menu-bar-mode 'standard-value '(t))
 
 (defun toggle-menu-bar-mode-from-frame (&optional arg)
-  "Toggle menu bar on or off, based on the status of the current frame.
+  "Toggle display of the menu bar of the current frame.
 See `menu-bar-mode' for more information."
   (interactive (list (or current-prefix-arg 'toggle)))
   (if (eq arg 'toggle)

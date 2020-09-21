@@ -1425,7 +1425,7 @@ all.  This may very well take some time.")
 	(pop years)))
     (if years
 	;; Because we might not be limited in years, we must guard against
-	;; infinite loops. Appart from cases like Feb 31, there are probably
+	;; infinite loops. Apart from cases like Feb 31, there are probably
 	;; other ones, (no monday XXX 2nd etc). I don't know any algorithm to
 	;; decide this, so I assume that if we reach 10 years later, the
 	;; schedule is undecidable.

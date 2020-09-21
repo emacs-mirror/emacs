@@ -1021,7 +1021,7 @@ Each condition is either:
   The car can be one of the following:
   * `major-mode': the buffer is killed if the buffer's major
     mode is eq to the cons-cell's cdr
-  * `defived-mode': the buffer is killed if the buffer's major
+  * `derived-mode': the buffer is killed if the buffer's major
     mode is derived from the major mode denoted by the cons-cell's
     cdr
   * `not': the cdr is interpreted as a negation of a condition.
@@ -1030,7 +1030,7 @@ Each condition is either:
   * `or': the cdr is a list of recursive conditions, of which at
     least one has to be met.
 
-If any of these conditions are satified for a buffer in the
+If any of these conditions are satisfied for a buffer in the
 current project, it will be killed."
   :type '(repeat (choice regexp function symbol
                          (cons :tag "Major mode"
@@ -1105,7 +1105,7 @@ identical.  Only the buffers that match a condition in
 `project-kill-buffer-conditions' will be killed.  If NO-CONFIRM
 is non-nil, the command will not ask the user for confirmation.
 NO-CONFIRM is always nil when the command is invoked
-interactivly."
+interactively."
   (interactive)
   (let* ((pr (project-current t))
          (bufs (project--buffers-to-kill pr)))
@@ -1225,7 +1225,7 @@ command to run when KEY is pressed.  LABEL is used to distinguish
 the menu entries in the dispatch menu.")
 
 (defun project--keymap-prompt ()
-  "Return a prompt for the project swithing dispatch menu."
+  "Return a prompt for the project switching dispatch menu."
   (mapconcat
    (pcase-lambda (`(,key ,label))
      (format "[%s] %s"

@@ -973,86 +973,92 @@ Note that such modes will need to require wid-edit.")
   "If non-nil, `widget-button-click' moves point to a button after invoking it.
 If nil, point returns to its original position after invoking a button.")
 
+(defun widget-button--check-and-call-button (event button)
+  "Call BUTTON if BUTTON is a widget and EVENT is correct for it.
+If nothing was called, return non-nil."
+  (let* ((oevent event)
+         (mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
+         (pos (widget-event-point event))
+         newpoint)
+    (catch 'button-press-cancelled
+      ;; Mouse click on a widget button.  Do the following
+      ;; in a save-excursion so that the click on the button
+      ;; doesn't change point.
+      (save-selected-window
+        (select-window (posn-window (event-start event)))
+        (save-excursion
+	  (goto-char (posn-point (event-start event)))
+	  (let* ((overlay (widget-get button :button-overlay))
+	         (pressed-face (or (widget-get button :pressed-face)
+				   widget-button-pressed-face))
+	         (face (overlay-get overlay 'face))
+	         (mouse-face (overlay-get overlay 'mouse-face)))
+	    (unwind-protect
+	        ;; Read events, including mouse-movement
+	        ;; events, waiting for a release event.  If we
+	        ;; began with a mouse-1 event and receive a
+	        ;; movement event, that means the user wants
+	        ;; to perform drag-selection, so cancel the
+	        ;; button press and do the default mouse-1
+	        ;; action.  For mouse-2, just highlight/
+	        ;; unhighlight the button the mouse was
+	        ;; initially on when we move over it.
+	        (save-excursion
+		  (when face            ; avoid changing around image
+		    (overlay-put overlay 'face pressed-face)
+		    (overlay-put overlay 'mouse-face pressed-face))
+		  (unless (widget-apply button :mouse-down-action event)
+		    (let ((track-mouse t))
+		      (while (not (widget-button-release-event-p event))
+		        (setq event (read-event))
+		        (when (and mouse-1 (mouse-movement-p event))
+			  (push event unread-command-events)
+			  (setq event oevent)
+			  (throw 'button-press-cancelled t))
+		        (unless (or (integerp event)
+				    (memq (car event)
+                                          '(switch-frame select-window))
+				    (eq (car event) 'scroll-bar-movement))
+			  (setq pos (widget-event-point event))
+			  (if (and pos
+				   (eq (get-char-property pos 'button)
+				       button))
+			      (when face
+			        (overlay-put overlay 'face pressed-face)
+			        (overlay-put overlay 'mouse-face pressed-face))
+			    (overlay-put overlay 'face face)
+			    (overlay-put overlay 'mouse-face mouse-face))))))
+
+		  ;; When mouse is released over the button, run
+		  ;; its action function.
+		  (when (and pos (eq (get-char-property pos 'button) button))
+		    (goto-char pos)
+		    (widget-apply-action button event)
+		    (if widget-button-click-moves-point
+		        (setq newpoint (point)))))
+	      (overlay-put overlay 'face face)
+	      (overlay-put overlay 'mouse-face mouse-face))))
+
+        (when newpoint
+          (goto-char newpoint)))
+      nil)))
+
 (defun widget-button-click (event)
   "Invoke the button that the mouse is pointing at."
   (interactive "e")
   (if (widget-event-point event)
-      (let* ((oevent event)
-	     (mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
+      (let* ((mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
 	     (pos (widget-event-point event))
 	     (start (event-start event))
-	     (button (get-char-property
+             (button (get-char-property
 		      pos 'button (and (windowp (posn-window start))
-				       (window-buffer (posn-window start)))))
-	     newpoint)
-	(when (or (null button)
-		  (catch 'button-press-cancelled
-	      ;; Mouse click on a widget button.  Do the following
-	      ;; in a save-excursion so that the click on the button
-	      ;; doesn't change point.
-	      (save-selected-window
-		(select-window (posn-window (event-start event)))
-		(save-excursion
-		  (goto-char (posn-point (event-start event)))
-		  (let* ((overlay (widget-get button :button-overlay))
-			 (pressed-face (or (widget-get button :pressed-face)
-					   widget-button-pressed-face))
-			 (face (overlay-get overlay 'face))
-			 (mouse-face (overlay-get overlay 'mouse-face)))
-		    (unwind-protect
-			;; Read events, including mouse-movement
-			;; events, waiting for a release event.  If we
-			;; began with a mouse-1 event and receive a
-			;; movement event, that means the user wants
-			;; to perform drag-selection, so cancel the
-			;; button press and do the default mouse-1
-			;; action.  For mouse-2, just highlight/
-			;; unhighlight the button the mouse was
-			;; initially on when we move over it.
-			(save-excursion
-			  (when face	; avoid changing around image
-			    (overlay-put overlay 'face pressed-face)
-			    (overlay-put overlay 'mouse-face pressed-face))
-			  (unless (widget-apply button :mouse-down-action event)
-			    (let ((track-mouse t))
-			      (while (not (widget-button-release-event-p event))
-				(setq event (read-event))
-				(when (and mouse-1 (mouse-movement-p event))
-				  (push event unread-command-events)
-				  (setq event oevent)
-				  (throw 'button-press-cancelled t))
-				(unless (or (integerp event)
-					    (memq (car event) '(switch-frame select-window))
-					    (eq (car event) 'scroll-bar-movement))
-				  (setq pos (widget-event-point event))
-				  (if (and pos
-					   (eq (get-char-property pos 'button)
-					       button))
-				      (when face
-					(overlay-put overlay 'face pressed-face)
-					(overlay-put overlay 'mouse-face pressed-face))
-				    (overlay-put overlay 'face face)
-				    (overlay-put overlay 'mouse-face mouse-face))))))
+				       (window-buffer (posn-window start))))))
 
-			  ;; When mouse is released over the button, run
-			  ;; its action function.
-			  (when (and pos (eq (get-char-property pos 'button) button))
-			    (goto-char pos)
-			    (widget-apply-action button event)
-			    (if widget-button-click-moves-point
-				(setq newpoint (point)))))
-		      (overlay-put overlay 'face face)
-		      (overlay-put overlay 'mouse-face mouse-face))))
-
-		(if newpoint (goto-char newpoint))
-		;; This loses if the widget action switches windows. -- cyd
-		;; (unless (pos-visible-in-window-p (widget-event-point event))
-		;;   (mouse-set-point event)
-		;;   (beginning-of-line)
-		;;   (recenter))
-		)
-	      nil))
-	  (let ((up t) command)
+	(when (and (widget-get button :button-overlay)
+                   (or (null button)
+                       (widget-button--check-and-call-button event button)))
+	  (let ((up t)
+                command)
 	    ;; Mouse click not on a widget button.  Find the global
 	    ;; command to run, and check whether it is bound to an
 	    ;; up event.
@@ -1910,6 +1916,16 @@ If END is omitted, it defaults to the length of LIST."
 (defun widget-variable-link-action (widget &optional _event)
   "Show the variable specified by WIDGET."
   (describe-variable (widget-value widget)))
+
+;;; The `face-link' Widget.
+
+(define-widget 'face-link 'link
+  "A link to an Emacs face."
+  :action 'widget-face-link-action)
+
+(defun widget-face-link-action (widget &optional _event)
+  "Show the variable specified by WIDGET."
+  (describe-face (widget-value widget)))
 
 ;;; The `file-link' Widget.
 

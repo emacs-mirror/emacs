@@ -1834,7 +1834,7 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
 
   /* Now value is the Lisp_Object to which we want to point whether or
      not the field is a raw pointer (in which case we just synthesized
-     the Lisp_Object outselves) or a Lisp_Object (in which case we
+     the Lisp_Object ourselves) or a Lisp_Object (in which case we
      just copied the thing).  Add a fixup or relocation.  */
 
   intptr_t out_value;
@@ -1925,7 +1925,7 @@ dump_field_fixup_later (struct dump_context *ctx,
   (void) field_relpos (in_start, in_field);
 }
 
-/* Mark an output object field, which is as wide as a poiner, as being
+/* Mark an output object field, which is as wide as a pointer, as being
    fixed up to point to a specific offset in the dump.  */
 static void
 dump_field_ptr_to_dump_offset (struct dump_context *ctx,
