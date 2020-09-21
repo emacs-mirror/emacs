@@ -1875,7 +1875,7 @@ yylex (void)
 
 
 /* Actually local to matching_regexp.  These variables must be in
-   global scope for the case that `static' get's defined away.  */
+   global scope for the case that `static' gets defined away.  */
 
 static char *matching_regexp_buffer, *matching_regexp_end_buf;
 
