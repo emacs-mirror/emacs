@@ -8610,7 +8610,7 @@ not_in_argv (NSString *arg)
       while ( (file = [fenum nextObject]) )
         strings = Fcons ([file lispString], strings);
     }
-  else if ([type isEqualToString: NSURLPboardType])
+  else if ([type isEqualToString: NSPasteboardTypeURL])
     {
       NSURL *url = [NSURL URLFromPasteboard: pb];
       if (url == nil) return NO;
@@ -8619,8 +8619,8 @@ not_in_argv (NSString *arg)
 
       strings = list1 ([[url absoluteString] lispString]);
     }
-  else if ([type isEqualToString: NSStringPboardType]
-           || [type isEqualToString: NSTabularTextPboardType])
+  else if ([type isEqualToString: NSPasteboardTypeString]
+           || [type isEqualToString: NSPasteboardTypeTabularText])
     {
       NSString *data;
 

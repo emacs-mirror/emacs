@@ -2542,20 +2542,23 @@ between them, return t; otherwise return nil.  */)
 	      bool fence_found = 0;
 	      ptrdiff_t ini = from, ini_byte = from_byte;
 
-	      while (1)
+	      if (from > stop)
 		{
-		  dec_both (&from, &from_byte);
-		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-		  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
-		  if (SYNTAX (c) == Scomment_fence
-		      && !char_quoted (from, from_byte))
+		  while (1)
 		    {
-		      fence_found = 1;
-		      break;
+		      dec_both (&from, &from_byte);
+		      UPDATE_SYNTAX_TABLE_BACKWARD (from);
+		      c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+		      if (SYNTAX (c) == Scomment_fence
+			  && !char_quoted (from, from_byte))
+			{
+			  fence_found = 1;
+			  break;
+			}
+		      else if (from == stop)
+			break;
+		      rarely_quit (++quit_count);
 		    }
-		  else if (from == stop)
-		    break;
-		  rarely_quit (++quit_count);
 		}
 	      if (fence_found == 0)
 		{
