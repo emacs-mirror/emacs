@@ -106,7 +106,6 @@ only the name before the link arrow."
   "Test editing a file name without saving the change.
 Finding the new name should be possible while still in
 wdired-mode."
-  :expected-result (if (< emacs-major-version 27) :failed :passed)
   (let* ((test-dir (make-temp-file "test-dir-" t))
 	 (test-file (concat (file-name-as-directory test-dir) "foo.c"))
 	 (replace "bar")
