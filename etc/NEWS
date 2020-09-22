@@ -690,6 +690,9 @@ required, but the recommended solution is to use a correctly matching
 regexp instead.
 
 ---
+*** Messages from ShellCheck are now recognized.
+
+---
 *** Messages from Visual Studio that mention column numbers are now recognized.
 
 ** Hi Lock mode

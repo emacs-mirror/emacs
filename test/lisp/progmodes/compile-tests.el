@@ -324,6 +324,9 @@
      1 8 71 "/home/reto/test/group.xml")
     ("Warning: Start tag for undeclared element geroup\nin unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml"
      1 8 4 "/home/reto/test/group.xml")
+    ;; shellcheck
+    ("In autogen.sh line 48:"
+     1 nil 48 "autogen.sh")
     ;; sparc-pascal-file sparc-pascal-line sparc-pascal-example
     ("Thu May 14 10:46:12 1992  mom3.p:"
      1 nil nil "mom3.p")
@@ -436,7 +439,7 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 95))
+      (should (eq compilation-num-errors-found 96))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))
 
