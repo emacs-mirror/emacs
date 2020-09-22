@@ -678,8 +678,11 @@ size, and full-buffer size."
 	  (goto-char start)
 	  (when (looking-at "[ \t\n\r]+")
 	    (replace-match "" t t))
-	  (while (re-search-forward "[ \t\n\r]+" nil t)
+	  (while (re-search-forward "[\t\n\r]+" nil t)
 	    (replace-match " " t t))
+	  (goto-char start)
+          (while (re-search-forward "  +" nil t)
+            (replace-match " " t t))
           (shr--translate-insertion-chars)
 	  (goto-char (point-max)))
 	;; We may have removed everything we inserted if it was just
