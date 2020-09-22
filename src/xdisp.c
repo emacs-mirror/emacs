@@ -11809,6 +11809,16 @@ resize_mini_window (struct window *w, bool exact_p)
 	  height = (max_height / unit) * unit;
 	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
 	  move_it_vertically_backward (&it, height - unit);
+	  /* The following move is usually a no-op when the stuff
+	     displayed in the mini-window comes entirely from buffer
+	     text, but it is needed when some of it comes from overlay
+	     strings, especially when there's an after-string at ZV.
+	     This happens with some completion packages, like
+	     icomplete, ido-vertical, etc.  With those packages, if we
+	     don't force w->start to be at the beginning of a screen
+	     line, important parts of the stuff in the mini-window,
+	     such as user prompt, will be hidden from view.  */
+	  move_it_by_lines (&it, 0);
 	  start = it.current.pos;
 	}
       else
