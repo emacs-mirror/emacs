@@ -136,8 +136,7 @@
     (text-mode)
     (insert "\"foo\"")
     (goto-char (point-min))
-    (delete-pair)
-    (should (string-equal "fo\"" (buffer-string)))))
+    (should-error (delete-pair))))
 
 (ert-deftest lisp-delete-pair-quotes-text-mode-syntax-table ()
   "Test \\[delete-pair] with modified Text Mode syntax for #15014."
