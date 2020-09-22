@@ -632,15 +632,21 @@ This function has been overloaded in Nextstep.")
 (defvar ns-input-fontsize)
 
 (defun ns-respond-to-change-font ()
-  "Respond to changeFont: event, expecting `ns-input-font' and\n\
-`ns-input-fontsize' of new font."
+  "Set the font chosen in the font-picker panel.
+Respond to changeFont: event, expecting ns-input-font and
+ns-input-fontsize of new font."
   (interactive)
-  (modify-frame-parameters (selected-frame)
-                           (list (cons 'fontsize ns-input-fontsize)))
-  (modify-frame-parameters (selected-frame)
-                           (list (cons 'font ns-input-font)))
-  (set-frame-font ns-input-font))
-
+  (let ((face 'default))
+    (set-face-attribute face t
+                        :family ns-input-font
+                        :height (* 10 ns-input-fontsize))
+    (set-face-attribute face (selected-frame)
+                        :family ns-input-font
+                        :height (* 10 ns-input-fontsize))
+    (let ((spec (list (list t (face-attr-construct 'default)))))
+      (put face 'customized-face spec)
+      (custom-push-theme 'theme-face face 'user 'set spec)
+      (put face 'face-modified nil))))
 
 ;; Default fontset for macOS.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever
