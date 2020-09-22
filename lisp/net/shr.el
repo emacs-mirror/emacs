@@ -555,7 +555,10 @@ size, and full-buffer size."
 	  ;; If the element was empty, we don't have anything to put the
 	  ;; anchor on.  So just insert a dummy character.
 	  (when (= start (point))
-            (insert ? )
+            (if (not (bolp))
+                (insert ? )
+              (insert ? )
+              (shr-mark-fill start))
             (put-text-property (1- (point)) (point) 'display ""))
           (put-text-property start (1+ start) 'shr-target-id id))
 	;; If style is set, then this node has set the color.
