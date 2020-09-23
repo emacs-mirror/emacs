@@ -2601,7 +2601,8 @@ Return the its filename if found or nil otherwise."
 ;;;###autoload
 (defun comp--subr-safe-advice (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
-  (unless (memq subr-name comp-never-optimize-functions)
+  (unless (or (memq subr-name comp-never-optimize-functions)
+              (gethash subr-name comp-installed-trampolines-h))
     (let ((trampoline-sym (comp-trampoline-sym subr-name)))
       (cl-assert (subr-primitive-p (symbol-function subr-name)))
       (load (or (comp-search-trampoline subr-name)

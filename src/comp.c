@@ -4126,6 +4126,7 @@ DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,
       if (EQ (subr, orig_subr))
 	{
 	  freloc.link_table[i] = XSUBR (trampoline)->function.a0;
+	  Fputhash (subr_name, Qt, Vcomp_installed_trampolines_h);
 	  return Qt;
 	}
       i++;
@@ -5256,6 +5257,10 @@ The last directory of this list is assumed to be the system one.  */);
      `invocation-directory' is still unset, will be fixed up during
      dump reload.  */
   Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
+
+  DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
+	       doc: /* Hash table subr-name -> bool.  */);
+  Vcomp_installed_trampolines_h = CALLN (Fmake_hash_table);
 
 #endif /* #ifdef HAVE_NATIVE_COMP */
 
