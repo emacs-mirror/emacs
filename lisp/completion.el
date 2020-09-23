@@ -399,13 +399,6 @@ Used to decide whether to save completions.")
 		  :up)
 		 (t :neither))))))
 
-;; Tests -
-;; (cmpl-string-case-type "123ABCDEF456") --> :up
-;; (cmpl-string-case-type "123abcdef456") --> :down
-;; (cmpl-string-case-type "123aBcDeF456") --> :mixed
-;; (cmpl-string-case-type "123456")       --> :neither
-;; (cmpl-string-case-type "Abcde123")     --> :capitalized
-
 (defun cmpl-coerce-string-case (string case-type)
   (cond ((eq case-type :down) (downcase string))
 	((eq case-type :up) (upcase string))
@@ -423,12 +416,6 @@ Used to decide whether to save completions.")
 	   ;; If the found string is in some unusual case, just insert it
 	   ;; as is
 	   string-to-coerce))))
-
-;; Tests -
-;; (cmpl-merge-string-cases "AbCdEf456" "abc")     --> AbCdEf456
-;; (cmpl-merge-string-cases "abcdef456" "ABC")     --> ABCDEF456
-;; (cmpl-merge-string-cases "ABCDEF456" "Abc")     --> Abcdef456
-;; (cmpl-merge-string-cases "ABCDEF456" "abc")     --> abcdef456
 
 
 (defun cmpl-hours-since-origin ()
@@ -1226,45 +1213,6 @@ String must be longer than `completion-prefix-min-length'."
                      (set cmpl-db-prefix-symbol nil)))))
       (error "Unknown completion `%s'" completion-string))))
 
-;; Tests --
-;;  - Add and Find -
-;; (add-completion-to-head "banana")     --> ("banana" 0 nil 0)
-;; (find-exact-completion "banana")      --> ("banana" 0 nil 0)
-;; (find-exact-completion "bana")        --> nil
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banana" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))  --> (("banana" ...))
-;; (add-completion-to-head "banish")     --> ("banish" 0 nil 0)
-;; (find-exact-completion "banish")      --> ("banish" 0 nil 0)
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banish" ...) ("banana" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))  --> (("banana" ...))
-;; (add-completion-to-head "banana")     --> ("banana" 0 nil 0)
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banana" ...) ("banish" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))  --> (("banish" ...))
-;;
-;;  - Deleting -
-;; (add-completion-to-head "banner")     --> ("banner" 0 nil 0)
-;; (delete-completion "banner")
-;; (find-exact-completion "banner")      --> nil
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banana" ...) ("banish" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))  --> (("banish" ...))
-;; (add-completion-to-head "banner")     --> ("banner" 0 nil 0)
-;; (delete-completion "banana")
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banner" ...) ("banish" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))  --> (("banish" ...))
-;; (delete-completion "banner")
-;; (delete-completion "banish")
-;; (find-cmpl-prefix-entry "ban")        --> nil
-;; (delete-completion "banner")          --> error
-;;
-;; - Tail -
-;; (add-completion-to-tail-if-new "banana") --> ("banana" 0 nil 0)
-;; (car (find-cmpl-prefix-entry "ban"))     --> (("banana" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))     --> (("banana" ...))
-;; (add-completion-to-tail-if-new "banish") --> ("banish" 0 nil 0)
-;; (car (find-cmpl-prefix-entry "ban"))     -->(("banana" ...) ("banish" ...))
-;; (cdr (find-cmpl-prefix-entry "ban"))     -->(("banish" ...))
-;;
-
 
 ;;---------------------------------------------------------------------------
 ;; Database Update :: Interface level routines
@@ -1360,29 +1308,6 @@ Completions added this way will automatically be saved if
 	       (progn
 		 (set-completion-num-uses entry 1)
 		 (setq cmpl-completions-accepted-p t)))))))
-
-;; Tests --
-;;  - Add and Find -
-;; (add-completion "banana" 5 10)
-;; (find-exact-completion "banana")  --> ("banana" 5 10 0)
-;; (add-completion "banana" 6)
-;; (find-exact-completion "banana")  --> ("banana" 6 10 0)
-;; (add-completion "banish")
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banish" ...) ("banana" ...))
-;;
-;;  - Accepting -
-;; (setq completion-to-accept "banana")
-;; (accept-completion)
-;; (find-exact-completion "banana")      --> ("banana" 7 10)
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banana" ...) ("banish" ...))
-;; (setq completion-to-accept "banish")
-;; (add-completion "banner")
-;; (car (find-cmpl-prefix-entry "ban"))
-;;        --> (("banner" ...) ("banish" 1 ...) ("banana" 7 ...))
-;;
-;;  - Deleting -
-;; (kill-completion "banish")
-;; (car (find-cmpl-prefix-entry "ban"))  --> (("banner" ...) ("banana" ...))
 
 
 ;;---------------------------------------------------------------------------
@@ -1504,46 +1429,6 @@ If there are no more entries, try cdabbrev and then return only a string."
      (setq cmpl-next-possibility (next-cdabbrev)))
     ;; Completely unsuccessful, return nil
     ))
-
-;; Tests --
-;;  - Add and Find -
-;; (add-completion "banana")
-;; (completion-search-reset "ban")
-;; (completion-search-next 0)        --> "banana"
-;;
-;;  - Discrimination -
-;; (add-completion "cumberland")
-;; (add-completion "cumberbund")
-;; cumbering
-;; (completion-search-reset "cumb")
-;; (completion-search-peek t)        --> "cumberbund"
-;; (completion-search-next 0)        --> "cumberbund"
-;; (completion-search-peek t)        --> "cumberland"
-;; (completion-search-next 1)        --> "cumberland"
-;; (completion-search-peek nil)      --> nil
-;; (completion-search-next 2)        --> "cumbering"  {cdabbrev}
-;; (completion-search-next 3)        -->  nil or "cumming"{depends on context}
-;; (completion-search-next 1)        --> "cumberland"
-;; (completion-search-peek t)        --> "cumbering"  {cdabbrev}
-;;
-;;  - Accepting -
-;; (completion-search-next 1)        --> "cumberland"
-;; (setq completion-to-accept "cumberland")
-;; (completion-search-reset "foo")
-;; (completion-search-reset "cum")
-;; (completion-search-next 0)        --> "cumberland"
-;;
-;;  - Deleting -
-;; (kill-completion "cumberland")
-;; cummings
-;; (completion-search-reset "cum")
-;; (completion-search-next 0)        --> "cumberbund"
-;; (completion-search-next 1)        --> "cummings"
-;;
-;;  - Ignoring Capitalization -
-;; (completion-search-reset "CuMb")
-;; (completion-search-next 0)            --> "cumberbund"
-
 
 
 ;;-----------------------------------------------
@@ -1732,12 +1617,6 @@ Prefix args ::
 (defconst *lisp-def-regexp*
   "\n(\\(\\w*:\\)?def\\(\\w\\|\\s_\\)*\\s +(*"
   "A regexp that searches for Lisp definition form.")
-
-;; Tests -
-;;  (and (string-match *lisp-def-regexp* "\n(defun foo") (match-end 0)) -> 8
-;;  (and (string-match *lisp-def-regexp* "\n(si:def foo") (match-end 0)) -> 9
-;;  (and (string-match *lisp-def-regexp* "\n(def-bar foo")(match-end 0)) -> 10
-;;  (and (string-match *lisp-def-regexp* "\n(defun (foo") (match-end 0)) -> 9
 
 ;; Parses all the definition names from a Lisp mode buffer and adds them to
 ;; the completion database.
