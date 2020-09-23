@@ -1177,7 +1177,7 @@ ARG is passed to the first function."
       (maphash
        (lambda (group active)
 	 (when active
-	   (insert (format "%s %d %d y\n"
+	   (insert (format "%S %d %d y\n"
 			   (if full-names
 			       group
 			     (gnus-group-real-name group))
