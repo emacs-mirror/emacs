@@ -1127,13 +1127,9 @@ When BODY is auto guess function name form the LAP byte-code
 name.  Otherwise expect lname fnname."
     (pcase (car body)
       ('auto
-       (list `(comp-emit-set-call-subr
-               ',(comp-op-to-fun op-name)
-               ,sp-delta)))
+       `((comp-emit-set-call-subr ',(comp-op-to-fun op-name) ,sp-delta)))
       ((pred symbolp)
-       (list `(comp-emit-set-call-subr
-               ',(car body)
-               ,sp-delta)))
+       `((comp-emit-set-call-subr ',(car body) ,sp-delta)))
       (_ body))))
 
 (defmacro comp-op-case (&rest cases)
