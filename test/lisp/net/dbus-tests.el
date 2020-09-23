@@ -265,12 +265,13 @@
    (dbus-check-arguments :session dbus--test-service :double "string")
    :type 'wrong-type-argument)
 
-  ;; `:unix-fd'.  Value range 0 .. 9.
+  ;; `:unix-fd'.  UNIX file descriptors are transfered out-of-band.
+  ;; We do not support this, and so we cannot do much testing here for
+  ;; `:unix-fd' being an argument (which is an index to the file
+  ;; descriptor in the array of file descriptors that accompany the
+  ;; D-Bus message).  Mainly testing, that values out of `:uint32'
+  ;; type range fail.
   (should (dbus-check-arguments :session dbus--test-service :unix-fd 0))
-  (should (dbus-check-arguments :session dbus--test-service :unix-fd 9))
-  (should-error
-   (dbus-check-arguments :session dbus--test-service :unix-fd 10)
-   :type 'dbus-error)
   (should-error
    (dbus-check-arguments :session dbus--test-service :unix-fd -1)
    :type 'args-out-of-range)
