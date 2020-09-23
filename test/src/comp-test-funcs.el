@@ -337,6 +337,10 @@
         (concat head-padding (substring str from-idx idx)
 	        tail-padding ellipsis)))))
 
+(defun comp-test-primitive-advice-f (x y)
+  (declare (speed 2))
+  (+ x y))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

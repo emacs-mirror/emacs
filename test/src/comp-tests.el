@@ -375,6 +375,19 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (string= (comp-test-42360-f "Nel mezzo del " 18 0 32 "yyy" nil)
                    "Nel mezzo del     yyy")))
 
+(defvar comp-test-primitive-advice)
+(ert-deftest comp-test-primitive-advice ()
+  "Test effectiveness of primitve advicing."
+  (let (comp-test-primitive-advice
+        (f (lambda (&rest args)
+             (setq comp-test-primitive-advice args))))
+    (advice-add #'+ :before f)
+    (unwind-protect
+        (progn
+          (should (= (comp-test-primitive-advice-f 3 4) 7))
+          (should (equal comp-test-primitive-advice '(3 4))))
+      (advice-remove #'+ f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
