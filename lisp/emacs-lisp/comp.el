@@ -2516,12 +2516,14 @@ Prepare every function for final compilation and drive the C back-end."
       (with-temp-file temp-file
         (insert (prin1-to-string expr)))
       (with-temp-buffer
-        (if (zerop
-               (call-process (expand-file-name invocation-name
-                                               invocation-directory)
-                             nil t t "--batch" "-l" temp-file))
-            output
-          (signal 'native-compiler-error (buffer-string)))))))
+        (unwind-protect
+            (if (zerop
+                 (call-process (expand-file-name invocation-name
+                                                 invocation-directory)
+                               nil t t "--batch" "-l" temp-file))
+                output
+              (signal 'native-compiler-error (buffer-string)))
+          (comp-log-to-buffer (buffer-string)))))))
 
 
 ;;; Compiler type hints.
