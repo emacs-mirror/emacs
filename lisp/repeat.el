@@ -85,10 +85,6 @@
 ;;         C-x {    shrink-window-horizontally
 ;;         C-x }    enlarge-window-horizontally
 
-;; This command was first called `vi-dot', because
-;; it was inspired by the `.' command in the vi editor,
-;; but it was renamed to make its name more meaningful.
-
 ;;; Code:
 
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
