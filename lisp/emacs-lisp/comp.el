@@ -94,17 +94,11 @@ Skip if any is matching."
   :group 'comp)
 
 (defcustom comp-never-optimize-functions
-  '(;; Mandatory for Emacs to be working correctly
-    macroexpand scroll-down scroll-up narrow-to-region widen rename-buffer
-    make-indirect-buffer delete-file top-level abort-recursive-edit
-    ;; For user convenience
-    yes-or-no-p
-    ;; Make the Evil happy :/
-    read-key-sequence select-window set-window-buffer split-window-internal
-    use-global-map use-local-map)
-  "Primitive functions for which we do not perform trampoline optimization.
-This is especially useful for primitives known to be advised or
-redefined when compilation is performed at `comp-speed' > 0."
+  '(;; The following two are mandatory for Emacs to be working
+    ;; correctly (see comment in `advice--add-function'). DO NOT
+    ;; REMOVE.
+    macroexpand rename-buffer)
+  "Primitive functions for which we do not perform trampoline optimization."
   :type 'list
   :group 'comp)
 
