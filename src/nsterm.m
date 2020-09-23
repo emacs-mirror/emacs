@@ -3053,6 +3053,40 @@ ns_scroll_run (struct window *w, struct run *run)
 
 
 static void
+ns_clear_under_internal_border (struct frame *f)
+{
+  NSTRACE ("ns_clear_under_internal_border");
+
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+    {
+      int border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+      NSView *view = FRAME_NS_VIEW (f);
+      NSRect edge_rect, frame_rect = [view bounds];
+      NSRectEdge edge[] = {NSMinXEdge, NSMinYEdge, NSMaxXEdge, NSMaxYEdge};
+
+      int face_id =
+	!NILP (Vface_remapping_alist)
+	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	: INTERNAL_BORDER_FACE_ID;
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
+
+      if (!face)
+        face = FRAME_DEFAULT_FACE (f);
+
+      ns_focus (f, &frame_rect, 1);
+      [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+      for (int i = 0; i < 4 ; i++)
+        {
+          NSDivideRect (frame_rect, &edge_rect, &frame_rect, border_width, edge[i]);
+
+          NSRectFill (edge_rect);
+        }
+      ns_unfocus (f);
+    }
+}
+
+
+static void
 ns_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 /* --------------------------------------------------------------------------
     External (RIF): preparatory to fringe update after text was updated
@@ -3080,12 +3114,32 @@ ns_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	  height > 0))
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+      int face_id =
+        !NILP (Vface_remapping_alist)
+        ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+        : INTERNAL_BORDER_FACE_ID;
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
-      ns_clear_frame_area (f, 0, y, width, height);
-      ns_clear_frame_area (f,
-                           FRAME_PIXEL_WIDTH (f) - width,
-                           y, width, height);
+      if (face)
+        {
+          NSRect r = NSMakeRect (0, y, FRAME_PIXEL_WIDTH (f), height);
+          ns_focus (f, &r, 1);
+
+          [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+          NSRectFill (NSMakeRect (0, y, width, height));
+          NSRectFill (NSMakeRect (FRAME_PIXEL_WIDTH (f) - width,
+                                  y, width, height));
+
+          ns_unfocus (f);
+        }
+      else
+        {
+          ns_clear_frame_area (f, 0, y, width, height);
+          ns_clear_frame_area (f,
+                               FRAME_PIXEL_WIDTH (f) - width,
+                               y, width, height);
+        }
       unblock_input ();
     }
 }
@@ -5301,7 +5355,7 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_draw_glyph_string,
   ns_define_frame_cursor,
   ns_clear_frame_area,
-  0, /* clear_under_internal_border */
+  ns_clear_under_internal_border, /* clear_under_internal_border */
   ns_draw_window_cursor,
   ns_draw_vertical_window_border,
   ns_draw_window_divider,
