@@ -55,7 +55,7 @@ This affects `insert-parentheses' and `insert-pair'."
   "If non-nil, `forward-sexp' delegates to this function.
 Should take the same arguments and behave similarly to `forward-sexp'.")
 
-(defun forward-sexp (&optional arg user-error)
+(defun forward-sexp (&optional arg interactive)
   "Move forward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means move
 backward across N balanced expressions.  This command assumes
@@ -64,10 +64,10 @@ point is not in a string or comment.  Calls
 If unable to move over a sexp, signal `scan-error' with three
 arguments: a message, the start of the obstacle (usually a
 parenthesis or list marker of some kind), and end of the
-obstacle.  If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+obstacle.  If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
-  (if user-error
+  (if interactive
       (condition-case _
           (forward-sexp arg nil)
         (scan-error (user-error (if (> arg 0)
@@ -79,17 +79,17 @@ report errors as appropriate for an interactive command."
       (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
       (if (< arg 0) (backward-prefix-chars)))))
 
-(defun backward-sexp (&optional arg user-error)
+(defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
 move forward across N balanced expressions.
 This command assumes point is not in a string or comment.
 Uses `forward-sexp' to do the work.
-If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
   (or arg (setq arg 1))
-  (forward-sexp (- arg) user-error))
+  (forward-sexp (- arg) interactive))
 
 (defun mark-sexp (&optional arg allow-extend)
   "Set mark ARG sexps from point.
@@ -129,17 +129,17 @@ This command assumes point is not in a string or comment."
 	    (point))
 	  nil t))))
 
-(defun forward-list (&optional arg user-error)
+(defun forward-list (&optional arg interactive)
   "Move forward across one balanced group of parentheses.
 This command will also work on other parentheses-like expressions
 defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move backward across N groups of parentheses.
 This command assumes point is not in a string or comment.
-If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
-  (if user-error
+  (if interactive
       (condition-case _
           (forward-list arg nil)
         (scan-error (user-error (if (> arg 0)
@@ -148,30 +148,30 @@ report errors as appropriate for an interactive command."
     (or arg (setq arg 1))
     (goto-char (or (scan-lists (point) arg 0) (buffer-end arg)))))
 
-(defun backward-list (&optional arg user-error)
+(defun backward-list (&optional arg interactive)
   "Move backward across one balanced group of parentheses.
 This command will also work on other parentheses-like expressions
 defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move forward across N groups of parentheses.
 This command assumes point is not in a string or comment.
-If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
   (or arg (setq arg 1))
-  (forward-list (- arg) user-error))
+  (forward-list (- arg) interactive))
 
-(defun down-list (&optional arg user-error)
+(defun down-list (&optional arg interactive)
   "Move forward down one level of parentheses.
 This command will also work on other parentheses-like expressions
 defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
 This command assumes point is not in a string or comment.
-If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
-  (if user-error
+  (if interactive
       (condition-case _
           (down-list arg nil)
         (scan-error (user-error "At bottom level")))
@@ -272,15 +272,15 @@ point is unspecified."
               (signal (car err) (cdr err)))))))
       (setq arg (- arg inc)))))
 
-(defun kill-sexp (&optional arg user-error)
+(defun kill-sexp (&optional arg interactive)
   "Kill the sexp (balanced expression) following point.
 With ARG, kill that many sexps after point.
 Negative arg -N means kill N sexps before point.
 This command assumes point is not in a string or comment.
-If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "p\nd")
-  (if user-error
+  (if interactive
       (condition-case _
           (kill-sexp arg nil)
         (scan-error (user-error (if (> arg 0)
@@ -290,15 +290,15 @@ report errors as appropriate for an interactive command."
       (forward-sexp (or arg 1))
       (kill-region opoint (point)))))
 
-(defun backward-kill-sexp (&optional arg user-error)
+(defun backward-kill-sexp (&optional arg interactive)
   "Kill the sexp (balanced expression) preceding point.
 With ARG, kill that many sexps before point.
 Negative arg -N means kill N sexps after point.
 This command assumes point is not in a string or comment.
-If USER-ERROR is non-nil, as it is interactively,
-report errors as appropriate for an interactive command."
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
   (interactive "p\nd")
-  (kill-sexp (- (or arg 1)) user-error))
+  (kill-sexp (- (or arg 1)) interactive))
 
 ;; After Zmacs:
 (defun kill-backward-up-list (&optional arg)
