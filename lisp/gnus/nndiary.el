@@ -178,7 +178,7 @@ The hook functions will be called with the full group name as argument."
 (define-obsolete-variable-alias 'nndiary-request-update-info-hooks
   'nndiary-request-update-info-functions "24.3")
 (defcustom nndiary-request-update-info-functions nil
-  "Hook run after `nndiary-request-update-info-group' is executed.
+  "Hook run after `nndiary-request-update-info' is executed.
 The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)

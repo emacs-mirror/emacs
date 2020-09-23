@@ -540,7 +540,7 @@ and insert the results."
 ;;; tempo-forward-mark
 
 (defun tempo-forward-mark ()
-  "Jump to the next mark in `tempo-forward-mark-list'."
+  "Jump to the next mark in `tempo-marks'."
   (interactive)
   (let ((next-mark (catch 'found
 		     (mapc
@@ -558,7 +558,7 @@ and insert the results."
 ;;; tempo-backward-mark
 
 (defun tempo-backward-mark ()
-  "Jump to the previous mark in `tempo-back-mark-list'."
+  "Jump to the previous mark in `tempo-marks'."
   (interactive)
   (let ((prev-mark (catch 'found
 		     (let (last)

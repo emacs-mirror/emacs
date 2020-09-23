@@ -395,7 +395,7 @@ left-justification of the result.  Set to error-signal if `ses-call-printer'
 encountered an error during printing.  Otherwise nil.")
 
 (defvar ses-start-time nil
-  "Time when current operation started.  Used by `ses-time-check' to decide
+  "Time when current operation started.  Used by `ses--time-check' to decide
 when to emit a progress message.")
 
 

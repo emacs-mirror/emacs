@@ -840,7 +840,7 @@ multiplication factor for the current value."
 N=0 refers to the initial animation frame.
 COUNT is the total number of frames in the animation.
 TIME-ELAPSED is the total time that has elapsed since
-`image-animate-start' was called.
+`image-animate' was called.
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.

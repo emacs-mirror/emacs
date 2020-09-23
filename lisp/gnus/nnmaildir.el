@@ -1761,7 +1761,7 @@ This variable is set by `nnmaildir-request-article'.")
 	  nnmaildir--cur-server nil)
 
     ;; This slightly obscure invocation of `alist-get' removes SERVER from
-    ;; `nnmaildir-servers'.
+    ;; `nnmaildir--servers'.
     (setf (alist-get (nnmaildir--srv-address server)
 		     nnmaildir--servers server 'remove #'equal)
 	  server))

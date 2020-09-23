@@ -2095,7 +2095,7 @@ virtualenv."
   :group 'python)
 
 (defcustom python-shell-setup-codes nil
-  "List of code run by `python-shell-send-setup-codes'."
+  "List of code run by `python-shell-send-setup-code'."
   :type '(repeat symbol)
   :group 'python)
 
@@ -2383,9 +2383,11 @@ regexps: `python-shell-prompt-regexp',
 
 (defun python-shell-prompt-set-calculated-regexps ()
   "Detect and set input and output prompt regexps.
-Build and set the values for `python-shell-input-prompt-regexp'
-and `python-shell-output-prompt-regexp' using the values from
-`python-shell-prompt-regexp', `python-shell-prompt-block-regexp',
+Build and set the values for
+`python-shell--prompt-calculated-input-regexp' and
+`python-shell--prompt-calculated-output-regexp' using the values
+from `python-shell-prompt-regexp',
+`python-shell-prompt-block-regexp',
 `python-shell-prompt-pdb-regexp',
 `python-shell-prompt-output-regexp',
 `python-shell-prompt-input-regexps',
@@ -2447,7 +2449,7 @@ of `python-shell-buffer-name'."
 
 (defun python-shell-internal-get-process-name ()
   "Calculate the appropriate process name for Internal Python process.
-The name is calculated from `python-shell-global-buffer-name' and
+The name is calculated from `python-shell-buffer-name' and
 the `buffer-name'."
   (format "%s[%s]" python-shell-internal-buffer-name (buffer-name)))
 
@@ -4718,7 +4720,7 @@ customize how labels are formatted."
 (defun python-imenu-create-flat-index (&optional alist prefix)
   "Return flat outline of the current Python buffer for Imenu.
 Optional argument ALIST is the tree to be flattened; when nil
-`python-imenu-build-index' is used with
+`python-imenu-create-index' is used with
 `python-imenu-format-parent-item-jump-label-function'
 `python-imenu-format-parent-item-label-function'
 `python-imenu-format-item-label-function' set to

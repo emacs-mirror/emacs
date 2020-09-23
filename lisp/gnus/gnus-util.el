@@ -1379,7 +1379,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (autoload 'ido-completing-read "ido")
 (defun gnus-ido-completing-read (prompt collection &optional require-match
                                         initial-input history def)
-  "Call `ido-completing-read-function'."
+  "Call `ido-completing-read'."
   (ido-completing-read prompt collection nil require-match
 		       initial-input history def))
 

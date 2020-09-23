@@ -547,7 +547,7 @@ list."
 	string)))
 
 (defun eshell-directory-files-and-attributes (dir &optional full match nosort id-format)
-  "Make sure to use the handler for `directory-file-and-attributes'."
+  "Make sure to use the handler for `directory-files-and-attributes'."
   (let* ((dir (expand-file-name dir)))
     (if (string-equal (file-remote-p dir 'method) "ftp")
 	(let ((files (directory-files dir full match nosort)))

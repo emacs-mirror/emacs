@@ -210,7 +210,7 @@ All other elements will be nil."
 (defvar edebug-tests-thunks nil
   "List containing thunks to run after each command in a keyboard macro.")
 (defvar edebug-tests-kbd-macro-index nil
-  "Index into `edebug-tests-run-unpacked-kbd-macro's current keyboard macro.")
+  "Index into `edebug-tests-run-kbd-macro's current keyboard macro.")
 
 (defun edebug-tests-run-macro (kbdmac &rest thunks)
   "Run a keyboard macro and execute a thunk after each command in it.

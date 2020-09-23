@@ -86,7 +86,7 @@ SOURCE."
              (cond ((derived-mode-p 'c++-mode) "c++")
                    (t "c")))))
 
-(defvar-local flymake-cc--proc nil "Internal variable for `flymake-gcc'")
+(defvar-local flymake-cc--proc nil "Internal variable for `flymake-cc'")
 
 ;; forward declare this to shoosh compiler (instead of requiring
 ;; flymake-proc)

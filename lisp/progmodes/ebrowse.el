@@ -3616,7 +3616,7 @@ completion."
 ;;; Tags query replace & search
 
 (defvar ebrowse-tags-loop-form ()
-  "Form for `ebrowse-loop-continue'.
+  "Form for `ebrowse-tags-loop-continue'.
 Evaluated for each file in the tree.  If it returns nil, proceed
 with the next file.")
 

@@ -301,7 +301,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Keymap used by the RE Builder for the subexpression mode.")
 
 (defun reb-mode-common ()
-  "Setup functions common to functions `reb-mode' and `reb-mode-lisp'."
+  "Setup functions common to functions `reb-mode' and `reb-lisp-mode'."
 
   (setq	reb-mode-string  ""
 	reb-valid-string ""
@@ -513,7 +513,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
   (reb-update-overlays subexp))
 
 (defun reb-auto-update (_beg _end _lenold &optional force)
-  "Called from `after-update-functions' to update the display.
+  "Called from `after-change-functions' to update the display.
 BEG, END and LENOLD are passed in from the hook.
 An actual update is only done if the regexp has changed or if the
 optional fourth argument FORCE is non-nil."

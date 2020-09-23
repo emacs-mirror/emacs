@@ -753,7 +753,7 @@ for($i = 0; $i < $n; $i++)
         $stat[1]);
 }
 printf(\")\\n\");' \"$1\" \"$2\" 2>/dev/null"
-  "Perl script implementing `directory-files-attributes' as Lisp `read'able
+  "Perl script implementing `directory-files-and-attributes' as Lisp `read'able
 output.
 Escape sequence %s is replaced with name of Perl binary.
 This string is passed to `format', so percent characters need to be doubled.")

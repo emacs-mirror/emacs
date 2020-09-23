@@ -102,7 +102,7 @@
 ;; The default value (9) should be fine for most decent computers.
 ;; NOTE: This variable should not be set to a number less than 3.
 
-;; `strokes-display-strokes-buffer' will allow you to hide the strokes
+;; `strokes-use-strokes-buffer' will allow you to hide the strokes
 ;; buffer when doing simple strokes.  This is a speedup for slow
 ;; computers as well as people who don't want to see their strokes.
 
@@ -579,7 +579,7 @@ The grid is a square whose dimension is [0,GRID-RESOLUTION)."
 
 (defun strokes-fill-stroke (unfilled-stroke &optional force)
   "Fill in missing grid locations in the list of UNFILLED-STROKE.
-If FORCE is non-nil, then fill the stroke even if it's `stroke-click'.
+If FORCE is non-nil, then fill the stroke even if it's `strokes-click-p'.
 NOTE: This is where the global variable `strokes-last-stroke' is set."
   (setq strokes-last-stroke		; this is global
 	(if (and (strokes-click-p unfilled-stroke)
@@ -1629,7 +1629,7 @@ Optional FORCE non-nil will ignore the buffer's read-only status."
 	  ;; The comment below is what I'd have to do if I wanted to
 	  ;; deal with random newlines in the midst of the compressed
 	  ;; strings.  If I do this, I'll also have to change
-	  ;; `strokes-xpm-to-compress-string' to deal with the newline,
+          ;; `strokes-xpm-to-compressed-string' to deal with the newline,
 	  ;; and possibly other whitespace stuff.  YUCK!
 	  ;;      (while (re-search-forward "\\+/\\(\\w\\|\\)+/" nil t nil (get-buffer buffer))
 	  (while (with-current-buffer buffer

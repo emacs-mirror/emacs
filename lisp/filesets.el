@@ -52,7 +52,7 @@
 
 ;; BTW, if you close a fileset, files, which have been changed, will
 ;; be silently saved.  Change this behavior by setting
-;; `filesets-save-buffer-fn'.
+;; `filesets-save-buffer-function'.
 
 ;;; Supported modes for inclusion groups (`filesets-ingroup-patterns'):
 ;; - Elisp

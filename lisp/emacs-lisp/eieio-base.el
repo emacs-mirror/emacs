@@ -201,7 +201,7 @@ This is used with the `object-write' method.")
 	       "Saving this object should make backup files.
 Setting to nil will mean no backups are made."))
   "This special class enables persistence through save files
-Use the `object-save' method to write this object to disk.  The save
+Use the `object-write' method to write this object to disk.  The save
 format is Emacs Lisp code which calls the constructor for the saved
 object.  For this reason, only slots which do not have an `:initarg'
 specified will not be saved."

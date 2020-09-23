@@ -240,8 +240,8 @@ JSON object.
 The caller can expect SUCCESS-FN or ERROR-FN to be called with a
 JSONRPC `:result' or `:error' object, respectively.  If this
 doesn't happen after TIMEOUT seconds (defaults to
-`jsonrpc-request-timeout'), the caller can expect TIMEOUT-FN to be
-called with no arguments. The default values of SUCCESS-FN,
+`jrpc-default-request-timeout'), the caller can expect TIMEOUT-FN
+to be called with no arguments. The default values of SUCCESS-FN,
 ERROR-FN and TIMEOUT-FN simply log the events into
 `jsonrpc-events-buffer'.
 
@@ -606,7 +606,7 @@ TIMEOUT is nil)."
       (if (jsonrpc-connection-ready-p connection deferred)
           ;; Server is ready, we jump below and send it immediately.
           (remhash (list deferred buf) (jsonrpc--deferred-actions connection))
-        ;; Otherwise, save in `eglot--deferred-actions' and exit non-locally
+        ;; Otherwise, save in `jsonrpc--deferred-actions' and exit non-locally
         (unless old-id
           (jsonrpc--debug connection `(:deferring ,method :id ,id :params
                                                   ,params)))

@@ -598,7 +598,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
     (define-key map "\C-c\C-a\C-b" 'artist-submit-bug-report)
     (define-key map [menu-bar artist] (cons "Artist" artist-menu-map))
     map)
-  "Keymap for `artist-minor-mode'.")
+  "Keymap for `artist-mode'.")
 
 (defvar artist-replacement-table (make-vector 256 0)
   "Replacement table for `artist-replace-char'.")
@@ -1963,7 +1963,8 @@ Return a list (RETURN-CODE STDOUT STDERR)."
 
 (defsubst artist-get-char-at-xy (x y)
   "Return the character found at column X, row Y.
-Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
+Also updates the variables `artist-draw-region-min-y' and
+`artist-draw-region-max-y'."
   (artist-move-to-xy x y)
   (let ((curr-y (artist-current-line)))
     (setq artist-draw-region-min-y (min curr-y artist-draw-region-min-y))
@@ -5594,8 +5595,8 @@ The event, EV, is the mouse event."
 ;;         - artist-key-set-point-xxx for setting a point in the
 ;;           mode, to be called from `artist-key-set-point-common'.
 ;;
-;;         - artist-key-do-continuously-xxx to be called from
-;;           `artist-key-do-continuously-common' whenever the user
+;;         - artist-key-do-continously-xxx to be called from
+;;           `artist-key-do-continously-common' whenever the user
 ;;           moves around.
 ;;
 ;;         As for the artist-mouse-draw-xxx, these two functions must

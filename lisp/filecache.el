@@ -46,7 +46,7 @@
 ;;   * `file-cache-add-file-list': Adds a list of files to the cache
 ;;
 ;; The following functions use the regular expressions in
-;; `file-cache-delete-regexps' to eliminate unwanted files:
+;; `file-cache-filter-regexps' to eliminate unwanted files:
 ;;
 ;;   * `file-cache-add-directory': Adds the files in a directory to the
 ;;     cache.  You can also specify a regular expression to match the files

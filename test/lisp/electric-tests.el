@@ -867,7 +867,8 @@ baz\"\""
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 
 (ert-deftest electric-layout-control-reindentation ()
-  "Same as `e-l-int-main-kernel-style', but checking Bug#35254."
+  "Same as `emacs-lisp-int-main-kernel-style', but checking
+Bug#35254."
   (ert-with-test-buffer ()
     (plainer-c-mode)
     (electric-layout-local-mode 1)

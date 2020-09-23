@@ -2809,7 +2809,7 @@ The current mail message becomes the message displayed."
 	(with-current-buffer rmail-view-buffer
 	  ;; We give the view buffer a buffer-local value of
 	  ;; rmail-header-style based on the binding in effect when
-	  ;; this function is called; `rmail-toggle-headers' can
+          ;; this function is called; `rmail-toggle-header' can
 	  ;; inspect this value to determine how to toggle.
 	  (set (make-local-variable 'rmail-header-style) header-style)
           ;; In case viewing the previous message sets the paragraph

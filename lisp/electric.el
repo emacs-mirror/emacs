@@ -424,7 +424,7 @@ If multiple rules match, only first one is executed.")
                   ;;
                   ;; FIXME: when `newline'ing, we exceptionally
                   ;; prevent a specific behavior of
-                  ;; `eletric-pair-mode', that of opening an extra
+                  ;; `electric-pair-mode', that of opening an extra
                   ;; newline between newly inserted matching paris.
                   ;; In theory that behavior should be provided by
                   ;; `electric-layout-mode' instead, which should be
