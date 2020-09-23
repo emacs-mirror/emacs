@@ -328,6 +328,7 @@ If this variable is nil, or if the provided function returns nil,
 		    (nnheader-parse-nov))
 		   (forward-line 1)))
 		('headers
+		 (gnus-run-hooks 'gnus-parse-headers-hook)
 		 (let ((nnmail-extra-headers gnus-extra-headers))
 		   (goto-char (point-min))
 		   (while (not (eobp))
