@@ -328,11 +328,12 @@ If this variable is nil, or if the provided function returns nil,
 		    (nnheader-parse-nov))
 		   (forward-line 1)))
 		('headers
-		 (goto-char (point-min))
-		 (while (not (eobp))
-		   (nnselect-add-novitem
-		    (nnheader-parse-head))
-		   (forward-line 1)))
+		 (let ((nnmail-extra-headers gnus-extra-headers))
+		   (goto-char (point-min))
+		   (while (not (eobp))
+		     (nnselect-add-novitem
+		      (nnheader-parse-head))
+		     (forward-line 1))))
 		((pred listp)
 		 (dolist (novitem gnus-headers-retrieved-by)
 		   (nnselect-add-novitem novitem)))
