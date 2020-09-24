@@ -1259,7 +1259,11 @@ that uses or sets the mark."
                                    ;; In a narrowed buffer.
                                    (if relative " relative" " absolute"))
                                  buffer-prompt)
-                         (list default (line-number-at-pos))
+                         (list default (if (or relative (= (point-min) 1))
+                                           (line-number-at-pos)
+                                         (save-restriction
+                                           (widen)
+                                           (line-number-at-pos))))
                          'goto-line-history)
             buffer))))
 
