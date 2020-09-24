@@ -1416,6 +1416,11 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** New function 'string-search'.
+This function takes two string parameters and returns the position of
+the first instance of the first string in the latter.
+
++++
 *** New function 'process-lines-ignore-status'.
 This is like 'process-lines', but does not signal an error if the
 return status is non-zero.  'process-lines-handling-status' has also

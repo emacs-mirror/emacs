@@ -901,3 +901,26 @@
     (should (equal (delete t [nil t]) [nil]))
     (should (equal (delete 1 v1) (vector)))
     (should (equal (delete 2 v1) v1))))
+
+(ert-deftest string-search ()
+  (should (equal (string-search "zot" "foobarzot") 6))
+  (should (equal (string-search "foo" "foobarzot") 0))
+  (should (not (string-search "fooz" "foobarzot")))
+  (should (not (string-search "zot" "foobarzo")))
+
+  (should (equal
+           (string-search (make-string 2 130)
+	                  (concat "helló" (make-string 5 130 t) "bár"))
+           5))
+  (should (equal
+           (string-search (make-string 2 127)
+	                  (concat "helló" (make-string 5 127 t) "bár"))
+           5))
+
+  (should (equal (string-search "\377" "a\377ø") 1))
+  (should (equal (string-search "\377" "a\377a") 1))
+
+  (should (not (string-search (make-string 1 255) "a\377ø")))
+  (should (not (string-search (make-string 1 255) "a\377a")))
+
+  (should (equal (string-search "fóo" "zotfóo") 3)))

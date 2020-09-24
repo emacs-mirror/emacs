@@ -5454,6 +5454,51 @@ It should not be used for anything security-related.  See
   return make_digest_string (digest, SHA1_DIGEST_SIZE);
 }
 
+DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,
+       doc: /* Search for the string NEEDLE in the string HAYSTACK.
+The return value is the position of the first instance of NEEDLE in
+HAYSTACK.
+
+The optional START-POS argument says where to start searching in
+HAYSTACK.  If not given, start at the beginning. */)
+  (register Lisp_Object needle, Lisp_Object haystack, Lisp_Object start_pos)
+{
+  ptrdiff_t start_byte = 0, haybytes;
+  char *res = NULL, *haystart;
+
+  CHECK_STRING (needle);
+  CHECK_STRING (haystack);
+
+  if (!NILP (start_pos))
+    {
+      CHECK_FIXNUM (start_pos);
+      start_byte = string_char_to_byte (haystack, XFIXNUM (start_pos));
+    }
+
+  haystart = SSDATA (haystack) + start_byte;
+  haybytes = SBYTES (haystack) - start_byte;
+
+  if (STRING_MULTIBYTE (haystack) == STRING_MULTIBYTE (needle))
+    res = memmem (haystart, haybytes,
+		  SSDATA (needle), SBYTES (needle));
+  else if (STRING_MULTIBYTE (haystack) && !STRING_MULTIBYTE (needle))
+    {
+      Lisp_Object multi_needle = string_to_multibyte (needle);
+      res = memmem (haystart, haybytes,
+		    SSDATA (multi_needle), SBYTES (multi_needle));
+    }
+  else if (!STRING_MULTIBYTE (haystack) && STRING_MULTIBYTE (needle))
+    {
+      Lisp_Object uni_needle = Fstring_as_unibyte (needle);
+      res = memmem (haystart, haybytes,
+		    SSDATA (uni_needle), SBYTES (uni_needle));
+    }
+
+  if (! res)
+    return Qnil;
+
+  return make_int (string_byte_to_char (haystack, res - SSDATA (haystack)));
+}
 
 
 void
@@ -5494,6 +5539,7 @@ syms_of_fns (void)
   defsubr (&Sremhash);
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
+  defsubr (&Sstring_search);
 
   /* Crypto and hashing stuff.  */
   DEFSYM (Qiv_auto, "iv-auto");
