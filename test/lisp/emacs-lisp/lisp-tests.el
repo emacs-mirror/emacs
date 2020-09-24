@@ -295,7 +295,7 @@
   (lambda () (up-list 1 t t))
   (or "(1 '2 ( 2' 1 '2 ) 2' 1)")
   ;;   abcdefghijklmnopqrstuvwxy
-  i k x scan-error)
+  i k x user-error)
 
 (define-lisp-up-list-test backward-up-list-basic
   (lambda () (backward-up-list))
