@@ -11820,6 +11820,9 @@ resize_mini_window (struct window *w, bool exact_p)
 	     such as user prompt, will be hidden from view.  */
 	  move_it_by_lines (&it, 0);
 	  start = it.current.pos;
+	  /* Prevent redisplay_window from recentering, and thus from
+	     overriding the window-start point we computed here.  */
+	  w->start_at_line_beg = false;
 	}
       else
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
