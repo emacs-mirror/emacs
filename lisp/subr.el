@@ -4430,37 +4430,18 @@ Unless optional argument INPLACE is non-nil, return a new string."
     newstr))
 
 (defun replace-in-string (fromstring tostring instring)
-  "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs.
-This function returns a freshly created string."
-  (declare (side-effect-free t))
-  (let ((i 0)
-        (start 0)
-        (result nil))
-    (while (< i (length instring))
-      (if (eq (aref instring i)
-              (aref fromstring 0))
-          ;; See if we're in a match.
-          (let ((ii i)
-                (if 0))
-            (while (and (< ii (length instring))
-                        (< if (length fromstring))
-                        (eq (aref instring ii)
-                            (aref fromstring if)))
-              (setq ii (1+ ii)
-                    if (1+ if)))
-            (if (not (= if (length fromstring)))
-                ;; We didn't have a match after all.
-                (setq i (1+ i))
-              ;; We had one, so gather the previous part and the
-              ;; substitution.
-              (when (not (= start i))
-                (push (substring instring start i) result))
-              (push tostring result)
-              (setq i ii
-                    start ii)))
-        (setq i (1+ i))))
-    (when (not (= start i))
-      (push (substring instring start i) result))
+  "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
+  (declare (pure t))
+  (let ((start 0)
+        (result nil)
+        pos)
+    (while (setq pos (string-search fromstring instring start))
+      (unless (= start pos)
+        (push (substring instring start pos) result))
+      (push tostring result)
+      (setq start (+ start (length fromstring))))
+    (unless (= start pos)
+      (push (substring instring start pos) result))
     (apply #'concat (nreverse result))))
 
 (defun replace-regexp-in-string (regexp rep string &optional
