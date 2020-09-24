@@ -1277,6 +1277,10 @@ directory instead of the default directory.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+
+** 'set-process-buffer' now updates the process mark.
+The mark will be set to point to the end of the new buffer.
+
 +++
 ** Some properties from completion tables are now preserved.
 If 'minibuffer-allow-text-properties' is non-nil, doing completion
