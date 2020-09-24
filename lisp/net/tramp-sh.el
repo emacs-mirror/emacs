@@ -118,7 +118,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
 
 ;;;###tramp-autoload
 (defcustom tramp-use-ssh-controlmaster-options t
-  "Whether to use `tramp-ssh-controlmaster-options'."
+  "Whether to use `tramp-ssh-controlmaster-options'.
+Set it to nil, if you use Control* or Proxy* options in your ssh
+configuration."
   :group 'tramp
   :version "24.4"
   :type 'boolean)

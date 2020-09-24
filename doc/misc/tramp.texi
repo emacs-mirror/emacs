@@ -1622,7 +1622,7 @@ support this command.
 
 @subsection Tunneling with ssh
 
-With ssh, you could use the @code{ProxyCommand} entry in
+With @command{ssh}, you could use the @option{ProxyCommand} entry in
 @file{~/.ssh/config}:
 
 @example
@@ -1802,8 +1802,8 @@ in such files, it can return host names only.
 @item @code{tramp-parse-sconfig}
 @findex tramp-parse-sconfig
 
-This function returns the host nicknames defined by @code{Host} entries
-in @file{~/.ssh/config} style files.
+This function returns the host nicknames defined by @option{Host}
+entries in @file{~/.ssh/config} style files.
 
 @item @code{tramp-parse-shostkeys}
 @findex tramp-parse-shostkeys
@@ -2281,10 +2281,10 @@ example below:
 @end lisp
 
 @vindex password-word-equivalents
-This variable is, by default, initialised from
+This user option is, by default, initialised from
 @code{password-word-equivalents} when @value{tramp} is loaded, and it
-is usually more convenient to add new passphrases to that variable
-instead of altering this variable.
+is usually more convenient to add new passphrases to that user option
+instead of altering this user option.
 
 Similar localization may be necessary for handling wrong password
 prompts, for which @value{tramp} uses @code{tramp-wrong-passwd-regexp}.
@@ -2725,7 +2725,7 @@ corresponding password; otherwise there is no way to decrypt your
 encrypted files.
 
 @defopt tramp-crypt-save-encfs-config-remote
-If this user option is non-nil (the default), the @option{encfs}
+If this user option is non-@code{nil} (the default), the @option{encfs}
 configuration file @file{.encfs6.xml} is also kept in the encrypted
 remote directory.  It depends on you, whether you regard the password
 protection of this file as sufficient.  The advantage would be, that
@@ -3186,7 +3186,7 @@ or a string describing the signal, when the process has been
 interrupted.  Since it cannot be determined reliably whether a remote
 process has been interrupted, @code{process-file} returns always the
 exit code.  When the user option
-@code{process-file-return-signal-string} is non-nil,
+@code{process-file-return-signal-string} is non-@code{nil},
 @code{process-file} regards all exit codes greater than 128 as an
 indication that the process has been interrupted, and returns a
 respective string.
@@ -3317,8 +3317,8 @@ whatever reason, then replace @code{(getenv "DISPLAY")} with a
 hard-coded, fixed name.  Note that using @code{:0} for X11 display name
 here will not work as expected.
 
-An alternate approach is specify @code{ForwardX11 yes} or
-@code{ForwardX11Trusted yes} in @file{~/.ssh/config} on the local
+An alternate approach is specify @option{ForwardX11 yes} or
+@option{ForwardX11Trusted yes} in @file{~/.ssh/config} on the local
 host.
 
 
@@ -3392,22 +3392,22 @@ continuous output.
 
 @vindex shell-file-name
 @vindex shell-command-switch
-@code{shell-command} uses the variables @code{shell-file-name} and
-@code{shell-command-switch} in order to determine which shell to run.
-For remote hosts, their default values are @file{/bin/sh} and
-@option{-c}, respectively (except for the @option{adb} method, which
-uses @file{/system/bin/sh}).  Like the variables in the previous
-section, these variables can be changed via connection-local
-variables.
+@code{shell-command} uses the user option @code{shell-file-name} and
+the variable @code{shell-command-switch} in order to determine which
+shell to run.  For remote hosts, their default values are
+@file{/bin/sh} and @option{-c}, respectively (except for the
+@option{adb} method, which uses @file{/system/bin/sh}).  Like the
+variables in the previous section, these variables can be changed via
+connection-local variables.
 
 @vindex async-shell-command-width
 @vindex COLUMNS@r{, environment variable}
-If Emacs supports the variable @code{async-shell-command-width} (since
-@w{Emacs 27}), @value{tramp} cares about its value for asynchronous
-shell commands.  It specifies the number of display columns for
-command output.  For synchronous shell commands, a similar effect can
-be achieved by adding the environment variable @env{COLUMNS} to
-@code{tramp-remote-process-environment}.
+If Emacs supports the user option @code{async-shell-command-width}
+(since @w{Emacs 27}), @value{tramp} cares about its value for
+asynchronous shell commands.  It specifies the number of display
+columns for command output.  For synchronous shell commands, a similar
+effect can be achieved by adding the environment variable
+@env{COLUMNS} to @code{tramp-remote-process-environment}.
 
 
 @subsection Running @code{eshell} on a remote host
@@ -3583,7 +3583,7 @@ It works only for connection methods defined in @file{tramp-sh.el} and
 It does not support interactive user authentication.  With
 @option{ssh}-based methods, this can be avoided by using a password
 agent like @command{ssh-agent}, using public key authentication, or
-using @code{ControlMaster} options.
+using @option{ControlMaster} options.
 
 @item
 It cannot be killed via @code{interrupt-process}.
@@ -3606,7 +3606,7 @@ In order to gain even more performance, it is recommended to bind
 @code{tramp-verbose} to 0 when running @code{make-process} or
 @code{start-file-process}.  Furthermore, you might set
 @code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
-bypass @value{tramp}'s handling of the @code{ControlMaster} options,
+bypass @value{tramp}'s handling of the @option{ControlMaster} options,
 and use your own settings in @file{~/.ssh/config}.
 
 
@@ -3681,8 +3681,8 @@ On all buffers, which have a @code{buffer-file-name} matching
 prompted for modification in the minibuffer.  The buffers are marked
 modified, and must be saved explicitly.
 
-If user option @code{tramp-confirm-rename-file-names} is nil, changing
-the file name happens without confirmation.  This requires a
+If user option @code{tramp-confirm-rename-file-names} is @code{nil},
+changing the file name happens without confirmation.  This requires a
 matching entry in @code{tramp-default-rename-alist}.
 
 Remote buffers related to the remote connection identified by
@@ -3721,8 +3721,8 @@ Tramp infers by default, such as @samp{@trampfn{method,user@@host,}}).
 name of @code{source} when calling @code{tramp-rename-files}.
 
 @code{source} could also be a Lisp form, which will be evaluated.  The
-result must be a string or nil, which is interpreted as a regular
-expression which always matches.
+result must be a string or @code{nil}, which is interpreted as a
+regular expression which always matches.
 
 Example entries:
 
@@ -4302,17 +4302,17 @@ Host *
 
 
 @item
-@value{tramp} does not use default @command{ssh} @code{ControlPath}
+@value{tramp} does not use default @command{ssh} @option{ControlPath}
 
-@value{tramp} overwrites @code{ControlPath} settings when initiating
+@value{tramp} overwrites @option{ControlPath} settings when initiating
 @command{ssh} sessions.  @value{tramp} does this to fend off a stall
 if a master session opened outside the Emacs session is no longer
 open.  That is why @value{tramp} prompts for the password again even
 if there is an @command{ssh} already open.
 
 @vindex tramp-ssh-controlmaster-options
-Some @command{ssh} versions support a @code{ControlPersist} option,
-which allows you to set the @code{ControlPath} provided the variable
+Some @command{ssh} versions support a @option{ControlPersist} option,
+which allows you to set the @option{ControlPath} provided the variable
 @code{tramp-ssh-controlmaster-options} is customized as follows:
 
 @lisp
@@ -4337,12 +4337,16 @@ this @code{nil} setting:
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 @end lisp
 
+This shall also be set to @code{nil} if you use the
+@option{ProxyCommand} or @option{ProxyJump} options in your
+@command{ssh} configuration.
+
 
 @item
 On multi-hop connections, @value{tramp} does not use @command{ssh}
-@code{ControlMaster}
+@option{ControlMaster}
 
-In order to use the @code{ControlMaster} option, @value{tramp} must
+In order to use the @option{ControlMaster} option, @value{tramp} must
 check whether the @command{ssh} client supports this option.  This is
 only possible on the local host, for the first hop.  @value{tramp}
 does not use this option on proxy hosts.
@@ -4365,7 +4369,7 @@ supported on your proxy host.
 
 @item
 @value{tramp} does not connect to Samba or MS Windows hosts running
-SMB1 connection protocol.
+SMB1 connection protocol
 
 @vindex tramp-smb-options
 Recent versions of @command{smbclient} do not support old connection
@@ -4592,7 +4596,7 @@ completion can further reduce key strokes: @kbd{C-x C-f
 @value{prefix}ssh@value{postfixhop}x @key{TAB}}.
 
 @item
-Use environment variables to expand long strings
+Use environment variables to expand long strings:
 
 For long file names, set up environment variables that are expanded in
 the minibuffer.  Environment variables are set either outside Emacs or
