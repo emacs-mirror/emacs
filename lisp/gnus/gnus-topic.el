@@ -897,9 +897,7 @@ articles in the topic and its subtopics."
     (let ((inhibit-read-only t))
       (unless gnus-topic-inhibit-change-level
 	(gnus-group-goto-group (or (car (nth 1 previous)) group))
-	(when (and gnus-topic-mode
-		   gnus-topic-alist
-		   (not gnus-topic-inhibit-change-level))
+	(when (and gnus-topic-mode gnus-topic-alist (gnus-current-topic))
 	  ;; Remove the group from the topics.
 	  (if (and (< oldlevel gnus-level-zombie)
 		   (>= level gnus-level-zombie))
