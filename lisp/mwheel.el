@@ -85,7 +85,7 @@ set to the event sent when clicking on the mouse wheel button."
   :type 'number)
 
 (defcustom mouse-wheel-scroll-amount
-  '(5 ((shift) . 1) ((meta) . nil) ((control) . text-scale))
+  '(1 ((shift) . 5) ((meta) . nil) ((control) . text-scale))
   "Amount to scroll windows by when spinning the mouse wheel.
 This is an alist mapping the modifier key to the amount to scroll when
 the wheel is moved with the modifier key depressed.
@@ -125,7 +125,7 @@ scrolling."
                     (float :tag "Scroll fraction of window")
                     (const :tag "Change face size" :value text-scale)))))
   :set 'mouse-wheel-change-button
-  :version "27.1")
+  :version "28.1")
 
 (defcustom mouse-wheel-progressive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.

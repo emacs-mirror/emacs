@@ -135,6 +135,10 @@ and mode line.  ('mwheel-mode' is enabled by default on most graphical
 displays.)
 
 ---
+** Mouse wheel scrolling now defaults to one line at a time.
+Old default of five lines at a time is now bound to Shift modifier.
+
+---
 ** The default value of 'frame-title-format' and 'icon-title-format' has changed.
 These variables are used to display the title bar of visible frames
 and the title bar of an iconified frame.  They now show the name of
