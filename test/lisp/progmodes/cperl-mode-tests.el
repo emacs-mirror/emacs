@@ -32,14 +32,7 @@
 
 (require 'cperl-mode)
 (require 'ert)
-
-(defvar cperl-mode-tests-data-directory
-  (expand-file-name "lisp/progmodes/cperl-mode-resources"
-                    (or (getenv "EMACS_TEST_DIRECTORY")
-                        (expand-file-name "../../../"
-                                          (or load-file-name
-                                              buffer-file-name))))
-  "Directory containing cperl-mode test data.")
+(require 'ert-x)
 
 (defun cperl-test-ppss (text regexp)
   "Return the `syntax-ppss' of the first character matched by REGEXP in TEXT."
@@ -149,8 +142,7 @@ These exercise some standard blocks and also the special
 treatment for Perl expressions where a closing paren isn't the
 end of the statement."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
-  (let ((file (expand-file-name "cperl-indent-exp.pl"
-                                cperl-mode-tests-data-directory)))
+  (let ((file (ert-resource-file "cperl-indent-exp.pl")))
     (with-temp-buffer
       (insert-file-contents file)
       (goto-char (point-min))
@@ -179,8 +171,7 @@ end of the statement."
 Perl Best Practices sets some indentation values different from
   the defaults, and also wants an \"else\" or \"elsif\" keyword
   to align with the \"if\"."
-  (let ((file (expand-file-name "cperl-indent-styles.pl"
-                                cperl-mode-tests-data-directory)))
+  (let ((file (ert-resource-file "cperl-indent-styles.pl")))
     (with-temp-buffer
       (cperl-set-style "PBP")
       (insert-file-contents file)

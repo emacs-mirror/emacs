@@ -27,25 +27,12 @@
 ;; tests in tramp-tests.el.
 
 (require 'ert)
+(require 'ert-x)
 (require 'tramp-archive)
 (defvar tramp-copy-size-limit)
 (defvar tramp-persistency-file-name)
 
-(defconst tramp-archive-test-resource-directory
-  (let ((default-directory
-	  (if load-in-progress
-	      (file-name-directory load-file-name)
-	    default-directory)))
-    (cond
-     ((file-accessible-directory-p (expand-file-name "resources"))
-      (expand-file-name "resources"))
-     ((file-accessible-directory-p (expand-file-name "tramp-archive-resources"))
-      (expand-file-name "tramp-archive-resources"))))
-  "The resources directory test files are located in.")
-
-(defconst tramp-archive-test-file-archive
-  (file-truename
-   (expand-file-name "foo.tar.gz" tramp-archive-test-resource-directory))
+(defconst tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
   "The test file archive.")
 
 (defun tramp-archive-test-file-archive-hexlified ()
@@ -60,7 +47,7 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
 
 (defconst tramp-archive-test-directory
   (file-truename
-   (expand-file-name "foo.iso" tramp-archive-test-resource-directory))
+   (ert-resource-file "foo.iso"))
   "A directory file name, which looks like an archive.")
 
 (setq password-cache-expiry nil

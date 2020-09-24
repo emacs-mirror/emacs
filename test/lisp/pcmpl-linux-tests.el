@@ -22,25 +22,17 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'pcmpl-linux)
 
-(defvar pcmpl-linux-tests-data-dir
-  (file-truename
-   (expand-file-name "pcmpl-linux-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Base directory of pcmpl-linux-tests.el data files.")
-
 (ert-deftest pcmpl-linux-test-fs-types ()
-  (let ((pcmpl-linux-fs-modules-path-format (expand-file-name "fs"
-                                                   pcmpl-linux-tests-data-dir)))
+  (let ((pcmpl-linux-fs-modules-path-format (ert-resource-file "fs")))
     ;; FIXME: Shouldn't return "." and ".."
     (should (equal (pcmpl-linux-fs-types)
                    '("." ".." "ext4")))))
 
 (ert-deftest pcmpl-linux-test-mounted-directories ()
-  (let ((pcmpl-linux-mtab-file (expand-file-name "mtab"
-                                      pcmpl-linux-tests-data-dir)))
+  (let ((pcmpl-linux-mtab-file (ert-resource-file "mtab")))
     (should (equal (pcmpl-linux-mounted-directories)
                    '("/" "/dev" "/dev/pts" "/dev/shm" "/home/alice/.gvfs"
                      "/lib/modules/2.6.24-16-generic/volatile" "/proc" "/sys"

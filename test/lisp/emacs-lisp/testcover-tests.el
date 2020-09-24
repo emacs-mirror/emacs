@@ -31,25 +31,9 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'testcover)
 (require 'skeleton)
-
-;; Use `eval-and-compile' around all these definitions because they're
-;; used by the macro `testcover-tests-define-tests'.
-
-(eval-and-compile
-  (defvar testcover-tests-file-dir
-    (expand-file-name
-     "testcover-resources/"
-     (file-name-directory (or (bound-and-true-p byte-compile-current-file)
-                              load-file-name
-                              buffer-file-name)))
-    "Directory of the \"testcover-tests.el\" file."))
-
-(eval-and-compile
-  (defvar testcover-tests-test-cases
-    (expand-file-name "testcases.el" testcover-tests-file-dir)
-    "File containing marked up code to instrument and check."))
 
 ;; Convert Testcover's overlays to plain text.
 
@@ -149,7 +133,7 @@ Construct and return a list of `ert-deftest' forms.  See testcases.el
 for documentation of the test definition format."
     (let (results)
       (with-temp-buffer
-        (insert-file-contents testcover-tests-test-cases)
+        (insert-file-contents (ert-resource-file "testcases.el"))
         (goto-char (point-min))
         (while (re-search-forward
                 (concat "^;; ==== \\([^ ]+?\\) ====\n"

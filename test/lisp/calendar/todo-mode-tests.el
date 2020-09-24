@@ -28,19 +28,10 @@
 (require 'ert-x)
 (require 'todo-mode)
 
-(defvar todo-test-data-dir
-  (file-truename
-   (expand-file-name "todo-mode-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Base directory of todo-mode.el test data files.")
-
-(defvar todo-test-file-1 (expand-file-name "todo-test-1.todo"
-                                           todo-test-data-dir)
+(defvar todo-test-file-1 (ert-resource-file "todo-test-1.todo")
   "Todo mode test file.")
 
-(defvar todo-test-archive-1 (expand-file-name "todo-test-1.toda"
-                                              todo-test-data-dir)
+(defvar todo-test-archive-1 (ert-resource-file "todo-test-1.toda")
   "Todo Archive mode test file.")
 
 (defmacro with-todo-test (&rest body)
@@ -52,7 +43,7 @@
           (abbreviated-home-dir nil)
           (process-environment (cons (format "HOME=%s" todo-test-home)
                                      process-environment))
-          (todo-directory todo-test-data-dir)
+          (todo-directory (ert-resource-directory))
           (todo-default-todo-file (todo-short-file-name
 				   (car (funcall todo-files-function)))))
      (unwind-protect
@@ -815,7 +806,7 @@ buffer from which the editing command was invoked."
   "Add file FILE with category CAT to todo-files and show it.
 This provides a noninteractive API for todo-add-file for use in
 automatic testing."
-  (let ((file0 (file-truename (concat todo-test-data-dir file ".todo")))
+  (let ((file0 (ert-resource-file (concat file ".todo")))
         todo-add-item-if-new-category)  ; Don't need an item in cat.
     (cl-letf (((symbol-function 'todo-read-file-name)
                (lambda (_prompt) file0))
