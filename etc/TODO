@@ -924,7 +924,7 @@ features of that interface could be implemented NS.
 
 **** Smooth scrolling -- maybe not a good idea
 Today, by default, scrolling with a trackpad makes the text move in
-steps of one line.  (Scrolling with SHIFT scrolls five lines at a time.)
+steps of one line.  (Scrolling with SHIFT scrolls horizontally.)
 
 The "mac" port provides smooth, pixel-based, scrolling.  This is a very
 popular feature.  However, there are drawbacks to this method: what

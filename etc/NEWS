@@ -136,7 +136,10 @@ displays.)
 
 ---
 ** Mouse wheel scrolling now defaults to one line at a time.
-Old default of five lines at a time is now bound to Shift modifier.
+
++++
+** Mouse wheel scrolling with Shift modifier now scrolls horizontally.
+This works in text buffers and over images.
 
 ---
 ** The default value of 'frame-title-format' and 'icon-title-format' has changed.
