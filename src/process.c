@@ -1227,11 +1227,14 @@ Return BUFFER.  */)
   if (!NILP (buffer))
     CHECK_BUFFER (buffer);
   p = XPROCESS (process);
-  pset_buffer (p, buffer);
+  if (!EQ (p->buffer, buffer))
+    {
+      pset_buffer (p, buffer);
+      update_process_mark (p);
+    }
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
     pset_childp (p, Fplist_put (p->childp, QCbuffer, buffer));
   setup_process_coding_systems (process);
-  update_process_mark (p);
   return buffer;
 }
 
