@@ -643,7 +643,8 @@ and looks under `gdb-window-configuration-directory'.
 
 Note that this variable only takes effect when variable
 `gdb-many-windows' is t."
-  :type 'string
+  :type '(choice (const :tag "None" nil)
+                 string)
   :group 'gdb
   :version "28.1")
 

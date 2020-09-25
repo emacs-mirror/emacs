@@ -120,7 +120,7 @@ initializing a new crypted remote directory."
   "Whether to keep the encfs configuration file in the crypted remote directory."
   :group 'tramp
   :version "28.1"
-  :type 'booleanp)
+  :type 'boolean)
 
 ;;;###tramp-autoload
 (defvar tramp-crypt-directories nil

@@ -257,7 +257,8 @@ Returns either the retrieved header format 'nov or 'headers.
 
 If this variable is nil, or if the provided function returns nil,
   `gnus-retrieve-headers' will be called instead."
-  :version "28.1" :type '(function) :group 'nnselect)
+  :version "28.1"
+  :type '(repeat function))
 
 ;; Gnus backend interface functions.
 

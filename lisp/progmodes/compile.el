@@ -64,7 +64,8 @@ If nil, use Emacs default."
 If the replacement is nil, the file will not be considered an
 error after all.  If not nil, it should be a regexp replacement
 string."
-  :type '(repeat (list regexp string))
+  :type '(repeat (list regexp (choice (const :tag "No replacement" nil)
+                                      string)))
   :version "27.1")
 
 (defvar compilation-filter-hook nil

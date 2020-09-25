@@ -445,6 +445,8 @@ See also `whitespace-display-mappings' for documentation."
               (const :tag "(Face) Lines" lines)
               (const :tag "(Face) Lines, only overlong part" lines-tail)
               (const :tag "(Face) NEWLINEs" newline)
+              (const :tag "(Face) Missing newlines at EOB"
+                     missing-newline-at-eof)
               (const :tag "(Face) Empty Lines At BOB And/Or EOB" empty)
               (const :tag "(Face) Indentation SPACEs" indentation::tab)
               (const :tag "(Face) Indentation TABs"

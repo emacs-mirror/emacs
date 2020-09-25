@@ -838,11 +838,11 @@ host key."
         (setq w (locate-user-emacs-file (concat "sql-wallet" ext)
                                         (concat ".sql-wallet" ext)))
         (when (file-exists-p w)
-          (setq wallet w)))))
+          (setq wallet (list w))))))
   "Identification of the password wallet.
 See `sql-password-search-wallet-function' to understand how this value
 is used to locate the password wallet."
-  :type `(plist-get (symbol-plist 'auth-sources) 'custom-type)
+  :type (plist-get (symbol-plist 'auth-sources) 'custom-type)
   :version "27.1")
 
 (defvar sql-password-search-wallet-function #'sql-auth-source-search-wallet
