@@ -3194,10 +3194,12 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
   else
     {
       s->left_overhang = 0;
+#ifdef NS_IMPL_GNUSTEP
       if (EQ (font->driver->type, Qns))
         s->right_overhang = ((struct nsfont_info *)font)->ital ?
           FONT_HEIGHT (font) * 0.2 : 0;
       else
+#endif
         s->right_overhang = 0;
     }
 }
