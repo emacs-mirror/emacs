@@ -4439,8 +4439,8 @@ Unless optional argument INPLACE is non-nil, return a new string."
       (unless (= start pos)
         (push (substring instring start pos) result))
       (push tostring result)
-      (setq start (+ start (length fromstring))))
-    (unless (= start pos)
+      (setq start (+ pos (length fromstring))))
+    (unless (= start (length instring))
       (push (substring instring start pos) result))
     (apply #'concat (nreverse result))))
 

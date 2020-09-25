@@ -462,9 +462,9 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                  "foozotbar"))
 
   (should (equal (replace-in-string "\377" "x" "a\377b")
-                 "axxb"))
+                 "axb"))
   (should (equal (replace-in-string "\377" "x" "a\377ø")
-                 "axxø")))
+                 "axø")))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
