@@ -3805,7 +3805,7 @@ After one of this commands is sent to pdb, pdbtracking session is
 considered over.
 
 See `python-pdbtrack-activate' for pdbtracking session overview."
-  :type '(repeast string)
+  :type '(repeat string)
   :version "27.1")
 
 (defcustom python-pdbtrack-kill-buffers t
