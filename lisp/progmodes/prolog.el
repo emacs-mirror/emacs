@@ -1997,7 +1997,7 @@ Argument BOUND is a buffer position limiting searching."
          (if (eq prolog-system 'mercury)
              (list
               (regexp-opt prolog-directives-i 'words)
-              0 prolog-warning-face)))
+              0 'prolog-warning-face)))
         ;; Inferior mode specific patterns
         (prompt
          ;; FIXME: Should be handled by comint already.
