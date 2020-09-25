@@ -1173,7 +1173,8 @@
 	 degrees-to-radians
 	 radians-to-degrees rassq rassoc read-from-string regexp-quote
 	 region-beginning region-end reverse round
-	 sin sqrt string string< string= string-equal string-lessp string-to-char
+	 sin sqrt string string< string= string-equal string-lessp
+         string-search string-to-char
 	 string-to-number substring
 	 sxhash sxhash-equal sxhash-eq sxhash-eql
 	 symbol-function symbol-name symbol-plist symbol-value string-make-unibyte
