@@ -342,8 +342,7 @@ file.  Since that is a plaintext file, this could be dangerous."
                             (const :format "" :completion)
                             (sexp :tag ":completion")
                             (const :format "" :must-match)
-                            (restricted-sexp
-                             :match-alternatives (listp stringp))))
+                            (symbol :tag ":must-match")))
               (const port)))
 
 ;; SQL Product support
