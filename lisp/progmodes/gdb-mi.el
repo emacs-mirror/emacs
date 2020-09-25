@@ -650,7 +650,7 @@ Note that this variable only takes effect when variable
 
 (defcustom gdb-display-source-buffer-action '(nil . ((inhibit-same-window . t)))
   "`display-buffer' action used when GDB displays a source buffer."
-  :type 'list
+  :type 'sexp
   :group 'gdb
   :version "28.1")
 
