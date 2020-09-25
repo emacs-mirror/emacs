@@ -4432,6 +4432,8 @@ Unless optional argument INPLACE is non-nil, return a new string."
 (defun replace-in-string (fromstring tostring instring)
   "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
   (declare (pure t))
+  (when (equal fromstring "")
+    (signal 'wrong-length-argument fromstring))
   (let ((start 0)
         (result nil)
         pos)
