@@ -257,13 +257,12 @@ them right the first time, so here are guidelines for formatting them:
 - There is no standard or recommended way to identify revisions in
   ChangeLog entries.  Using Git SHA1 values limits the usability of
   the references to Git, and will become much less useful if Emacs
-  switches to a different VCS.  So we recommend against that.
+  switches to a different VCS.  So we recommend against doing only that.
 
   One way to identify revisions is by quoting their summary line.
-  Another is with an action stamp - an RFC3339 date followed by !
-  followed by the committer's email - for example,
-  "2014-01-16T05:43:35Z!esr@thyrsus.com".  Often, "my previous commit"
-  will suffice.
+  Prefixing the summary with the commit date can give useful context
+  (use 'git show -s "--pretty=format:%cd \"%s\"" --date=short HASH' to
+  produce that).  Often, "my previous commit" will suffice.
 
 - There is no need to mention files such as NEWS and MAINTAINERS, or
   to indicate regeneration of files such as 'lib/gnulib.mk', in the
