@@ -69,7 +69,9 @@ The characters copied are inserted in the buffer before point."
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point."
-  (interactive "p\ncZap up to char: ")
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+		     (read-char-from-minibuffer "Zap up to char: "
+						nil 'read-char-history)))
   (let ((direction (if (>= arg 0) 1 -1)))
     (kill-region (point)
 		 (progn

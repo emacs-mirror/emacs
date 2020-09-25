@@ -1064,6 +1064,13 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** 'zap-up-to-char' now uses 'read-char-from-minibuffer'.
+This allows navigating through the history of characters that have
+been input.  This is mostly useful for characters that have complex
+input methods where inputting the character again may involve many
+keystrokes.
+
 +++
 *** Interactive regular expression search now uses faces for sub-groups.
 E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
