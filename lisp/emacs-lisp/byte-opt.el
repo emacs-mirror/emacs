@@ -1264,6 +1264,7 @@
          floor ceiling round truncate
          ffloor fceiling fround ftruncate
          string= string-equal string< string-lessp
+         string-search
          consp atom listp nlistp propert-list-p
          sequencep arrayp vectorp stringp bool-vector-p hash-table-p
          null not

@@ -5456,15 +5456,18 @@ It should not be used for anything security-related.  See
 
 DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,
        doc: /* Search for the string NEEDLE in the string HAYSTACK.
-The return value is the position of the first instance of NEEDLE in
-HAYSTACK.
+The return value is the position of the first occurrence of NEEDLE in
+HAYSTACK, or nil if no match was found.
 
 The optional START-POS argument says where to start searching in
-HAYSTACK.  If not given, start at the beginning. */)
+HAYSTACK and defaults to zero (start at the beginning).
+It must be between zero and the length of HAYSTACK, inclusive.
+
+Case is always significant and text properties are ignored. */)
   (register Lisp_Object needle, Lisp_Object haystack, Lisp_Object start_pos)
 {
   ptrdiff_t start_byte = 0, haybytes;
-  char *res = NULL, *haystart;
+  char *res, *haystart;
 
   CHECK_STRING (needle);
   CHECK_STRING (haystack);
@@ -5472,7 +5475,10 @@ HAYSTACK.  If not given, start at the beginning. */)
   if (!NILP (start_pos))
     {
       CHECK_FIXNUM (start_pos);
-      start_byte = string_char_to_byte (haystack, XFIXNUM (start_pos));
+      EMACS_INT start = XFIXNUM (start_pos);
+      if (start < 0 || start > SCHARS (haystack))
+        xsignal1 (Qargs_out_of_range, start_pos);
+      start_byte = string_char_to_byte (haystack, start);
     }
 
   haystart = SSDATA (haystack) + start_byte;
@@ -5481,13 +5487,13 @@ HAYSTACK.  If not given, start at the beginning. */)
   if (STRING_MULTIBYTE (haystack) == STRING_MULTIBYTE (needle))
     res = memmem (haystart, haybytes,
 		  SSDATA (needle), SBYTES (needle));
-  else if (STRING_MULTIBYTE (haystack) && !STRING_MULTIBYTE (needle))
+  else if (STRING_MULTIBYTE (haystack))  /* unibyte needle */
     {
       Lisp_Object multi_needle = string_to_multibyte (needle);
       res = memmem (haystart, haybytes,
 		    SSDATA (multi_needle), SBYTES (multi_needle));
     }
-  else if (!STRING_MULTIBYTE (haystack) && STRING_MULTIBYTE (needle))
+  else                        /* unibyte haystack, multibyte needle */
     {
       Lisp_Object uni_needle = Fstring_as_unibyte (needle);
       res = memmem (haystart, haybytes,
