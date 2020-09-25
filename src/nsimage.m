@@ -36,6 +36,14 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "coding.h"
 
 
+#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MAX_ALLOWED < 1070
+# define COLORSPACE_NAME NSCalibratedRGBColorSpace
+#else
+# define COLORSPACE_NAME                                                \
+  ((ns_use_srgb_colorspace && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7) \
+   ? NSDeviceRGBColorSpace : NSCalibratedRGBColorSpace)
+#endif
+
 
 /* ==========================================================================
 
@@ -295,7 +303,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                                     pixelsWide: w pixelsHigh: h
                                     bitsPerSample: 8 samplesPerPixel: 4
                                     hasAlpha: YES isPlanar: YES
-                                    colorSpaceName: NSCalibratedRGBColorSpace
+                                    colorSpaceName: COLORSPACE_NAME
                                     bytesPerRow: w bitsPerPixel: 0];
 
   [bmRep getBitmapDataPlanes: planes];
@@ -415,7 +423,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                                   /* keep things simple for now */
                                   bitsPerSample: 8 samplesPerPixel: 4 /*RGB+A*/
                                   hasAlpha: YES isPlanar: YES
-                                  colorSpaceName: NSCalibratedRGBColorSpace
+                                  colorSpaceName: COLORSPACE_NAME
                                   bytesPerRow: width bitsPerPixel: 0];
 
   [bmRep getBitmapDataPlanes: pixmapData];

@@ -140,14 +140,9 @@ char const * nstrace_fullscreen_type_name (int fs_type)
 + (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
                          blue:(CGFloat)blue alpha:(CGFloat)alpha
 {
-#if defined (NS_IMPL_COCOA) \
-  && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   if (ns_use_srgb_colorspace
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      && [NSColor respondsToSelector:
-                    @selector(colorWithSRGBRed:green:blue:alpha:)]
-#endif
-      )
+      && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
     return [NSColor colorWithSRGBRed: red
                                green: green
                                 blue: blue
@@ -161,28 +156,12 @@ char const * nstrace_fullscreen_type_name (int fs_type)
 
 - (NSColor *)colorUsingDefaultColorSpace
 {
-  /* FIXME: We're checking for colorWithSRGBRed here so this will only
-     work in the same place as in the method above.  It should really
-     be a check whether we're on macOS 10.7 or above.  */
-#if defined (NS_IMPL_COCOA) \
-  && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  if ([NSColor respondsToSelector:
-                 @selector(colorWithSRGBRed:green:blue:alpha:)])
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+  if (ns_use_srgb_colorspace
+      && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
+    return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
 #endif
-    {
-      if (ns_use_srgb_colorspace)
-        return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
-      else
-        return [self colorUsingColorSpace: [NSColorSpace deviceRGBColorSpace]];
-    }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  else
-#endif
-#endif /* NS_IMPL_COCOA && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070  */
-#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  return [self colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-#endif
+  return [self colorUsingColorSpace: [NSColorSpace deviceRGBColorSpace]];
 }
 
 @end
@@ -2208,10 +2187,6 @@ ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
   EmacsWindow *window = (EmacsWindow *)[view window];
 
   NSTRACE ("ns_set_appearance");
-
-#ifndef NSAppKitVersionNumber10_10
-#define NSAppKitVersionNumber10_10 1343
-#endif
 
   if (NSAppKitVersionNumber < NSAppKitVersionNumber10_10)
     return;
