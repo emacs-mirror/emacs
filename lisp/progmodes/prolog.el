@@ -1913,6 +1913,8 @@ Argument BOUND is a buffer position limiting searching."
       (t (:underline t)))
     "Face name to use for compiler warnings."
     :group 'prolog-faces)
+  (define-obsolete-face-alias 'prolog-warning-face
+    'font-lock-warning-face "28.1")
   (defface prolog-builtin-face
     '((((class color) (background light)) (:foreground "Purple"))
       (((class color) (background dark)) (:foreground "Cyan"))
@@ -1922,15 +1924,11 @@ Argument BOUND is a buffer position limiting searching."
       (t (:bold t)))
     "Face name to use for compiler warnings."
     :group 'prolog-faces)
-  (defvar prolog-warning-face
-    (if (facep 'font-lock-warning-face)
-        'font-lock-warning-face
-      'prolog-warning-face)
+  (define-obsolete-face-alias 'prolog-builtin-face
+    'font-lock-builtin-face "28.1")
+  (defvar prolog-warning-face 'font-lock-warning-face
     "Face name to use for built in predicates.")
-  (defvar prolog-builtin-face
-    (if (facep 'font-lock-builtin-face)
-        'font-lock-builtin-face
-      'prolog-builtin-face)
+  (defvar prolog-builtin-face 'font-lock-builtin-face
     "Face name to use for built in predicates.")
   (defvar prolog-redo-face 'prolog-redo-face
     "Face name to use for redo trace lines.")
@@ -1999,7 +1997,7 @@ Argument BOUND is a buffer position limiting searching."
          (if (eq prolog-system 'mercury)
              (list
               (regexp-opt prolog-directives-i 'words)
-              0 'prolog-warning-face)))
+              0 prolog-warning-face)))
         ;; Inferior mode specific patterns
         (prompt
          ;; FIXME: Should be handled by comint already.
