@@ -147,4 +147,9 @@
                                (widget-apply field :value-to-internal origvalue)
                                "bar"))))))
 
+(ert-deftest check-for-wrong-custom-types ()
+  :tags '(:expensive-test)
+  (load (concat installation-directory "admin/cus-test.el"))
+  (should (null (cus-test-opts t))))
+
 ;;; custom-tests.el ends here
