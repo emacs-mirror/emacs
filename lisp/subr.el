@@ -4440,8 +4440,9 @@ Unless optional argument INPLACE is non-nil, return a new string."
         (push (substring instring start pos) result))
       (push tostring result)
       (setq start (+ pos (length fromstring))))
+    ;; Get any remaining bit.
     (unless (= start (length instring))
-      (push (substring instring start pos) result))
+      (push (substring instring start) result))
     (apply #'concat (nreverse result))))
 
 (defun replace-regexp-in-string (regexp rep string &optional
