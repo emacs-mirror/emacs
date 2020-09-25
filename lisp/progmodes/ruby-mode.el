@@ -142,12 +142,11 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   "Regexp to match symbols.")
 
 (defvar ruby-use-smie t)
+(make-obsolete-variable 'ruby-use-smie nil "28.1")
 
 (defvar ruby-mode-map
   (let ((map (make-sparse-keymap)))
     (unless ruby-use-smie
-      (define-key map (kbd "M-C-b") 'ruby-backward-sexp)
-      (define-key map (kbd "M-C-f") 'ruby-forward-sexp)
       (define-key map (kbd "M-C-q") 'ruby-indent-exp))
     (when ruby-use-smie
       (define-key map (kbd "M-C-d") 'smie-down-list))
@@ -170,14 +169,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     "--"
     ["Toggle String Quotes" ruby-toggle-string-quotes t]
     "--"
-    ["Backward Sexp" ruby-backward-sexp
-     :visible (not ruby-use-smie)]
-    ["Backward Sexp" backward-sexp
-     :visible ruby-use-smie]
-    ["Forward Sexp" ruby-forward-sexp
-     :visible (not ruby-use-smie)]
-    ["Forward Sexp" forward-sexp
-     :visible ruby-use-smie]
+    ["Backward Sexp" backward-sexp t]
+    ["Forward Sexp" forward-sexp t]
     ["Indent Sexp" ruby-indent-exp
      :visible (not ruby-use-smie)]
     ["Indent Sexp" prog-indent-sexp
@@ -741,10 +734,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
 (defun ruby-mode-variables ()
   "Set up initial buffer-local variables for Ruby mode."
   (setq indent-tabs-mode ruby-indent-tabs-mode)
-  (if ruby-use-smie
-      (smie-setup ruby-smie-grammar #'ruby-smie-rules
-                  :forward-token  #'ruby-smie--forward-token
-                  :backward-token #'ruby-smie--backward-token)
+  (smie-setup ruby-smie-grammar #'ruby-smie-rules
+              :forward-token  #'ruby-smie--forward-token
+              :backward-token #'ruby-smie--backward-token)
+  (unless ruby-use-smie
     (setq-local indent-line-function #'ruby-indent-line))
   (setq-local comment-start "# ")
   (setq-local comment-end "")
@@ -1378,7 +1371,8 @@ move forward."
 The defun begins at or after the point.  This function is called
 by `end-of-defun'."
   (interactive "p")
-  (ruby-forward-sexp)
+  (with-suppressed-warnings ((obsolete ruby-forward-sexp))
+    (ruby-forward-sexp))
   (let (case-fold-search)
     (when (looking-back (concat "^\\s *" ruby-block-end-re)
                         (line-beginning-position))
@@ -1467,11 +1461,14 @@ With ARG, move out of multiple blocks."
 (defun ruby-forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
 With ARG, do it many times.  Negative ARG means move backward."
+  (declare (obsolete forward-sexp "28.1"))
   ;; TODO: Document body
   (interactive "p")
   (cond
    (ruby-use-smie (forward-sexp arg))
-   ((and (numberp arg) (< arg 0)) (ruby-backward-sexp (- arg)))
+   ((and (numberp arg) (< arg 0))
+    (with-suppressed-warnings ((obsolete ruby-backward-sexp))
+      (ruby-backward-sexp (- arg))))
    (t
     (let ((i (or arg 1)))
       (condition-case nil
@@ -1515,11 +1512,14 @@ With ARG, do it many times.  Negative ARG means move backward."
 (defun ruby-backward-sexp (&optional arg)
   "Move backward across one balanced expression (sexp).
 With ARG, do it many times.  Negative ARG means move forward."
+  (declare (obsolete backward-sexp "28.1"))
   ;; TODO: Document body
   (interactive "p")
   (cond
    (ruby-use-smie (backward-sexp arg))
-   ((and (numberp arg) (< arg 0)) (ruby-forward-sexp (- arg)))
+   ((and (numberp arg) (< arg 0))
+    (with-suppressed-warnings ((obsolete ruby-forward-sexp))
+      (ruby-forward-sexp (- arg))))
    (t
     (let ((i (or arg 1)))
       (condition-case nil
@@ -1671,7 +1671,8 @@ See `add-log-current-defun-function'."
 (defun ruby-block-contains-point (pt)
   (save-excursion
     (save-match-data
-      (ruby-forward-sexp)
+      (with-suppressed-warnings ((obsolete ruby-forward-sexp))
+        (ruby-forward-sexp))
       (> (point) pt))))
 
 (defun ruby-brace-to-do-end (orig end)
@@ -1749,7 +1750,8 @@ If the result is do-end block, it will always be multiline."
                  (progn
                    (goto-char (or (match-beginning 1) (match-beginning 2)))
                    (setq beg (point))
-                   (save-match-data (ruby-forward-sexp))
+                   (with-suppressed-warnings ((obsolete ruby-forward-sexp))
+                     (save-match-data (ruby-forward-sexp)))
                    (setq end (point))
                    (> end start)))
             (if (match-beginning 1)

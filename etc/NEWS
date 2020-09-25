@@ -218,6 +218,11 @@ trying to be non-destructive.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Ruby mode
+*** 'ruby-use-smie' is declared obsolete
+SMIE is now always enabled and only 'ruby-use-smie' only controls
+whether indentation is done using SMIE or with the old ad-hoc code.
+
 ---
 ** Specific warnings can now be disabled from the warning buffer.
 When a warning is displayed to the user, the resulting buffer now has
