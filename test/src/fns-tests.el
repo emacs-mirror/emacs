@@ -166,6 +166,8 @@
   (should (equal (should-error (sort "cba" #'<) :type 'wrong-type-argument)
                  '(wrong-type-argument list-or-vector-p "cba"))))
 
+(defvar w32-collate-ignore-punctuation)
+
 (ert-deftest fns-tests-collate-sort ()
   (skip-unless (fns-tests--collate-enabled-p))
 
@@ -228,9 +230,9 @@
   (should (equal (func-arity 'format) '(1 . many)))
   (require 'info)
   (should (equal (func-arity 'Info-goto-node) '(1 . 3)))
-  (should (equal (func-arity (lambda (&rest x))) '(0 . many)))
-  (should (equal (func-arity (eval '(lambda (x &optional y)) nil)) '(1 . 2)))
-  (should (equal (func-arity (eval '(lambda (x &optional y)) t)) '(1 . 2)))
+  (should (equal (func-arity (lambda (&rest _x))) '(0 . many)))
+  (should (equal (func-arity (eval '(lambda (_x &optional y)) nil)) '(1 . 2)))
+  (should (equal (func-arity (eval '(lambda (_x &optional y)) t)) '(1 . 2)))
   (should (equal (func-arity 'let) '(1 . unevalled))))
 
 (defun fns-tests--string-repeat (s o)
