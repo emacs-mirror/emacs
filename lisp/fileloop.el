@@ -55,6 +55,9 @@
 (defvar fileloop--iterator iter-empty)
 (defvar fileloop--scan-function
   (lambda () (user-error "No operation in progress")))
+;; If the default value below is changed, the :enable form of
+;; tags-continue and tags-repl-continue in menu-bar.el will have to be
+;; updated accordingly.
 (defvar fileloop--operate-function #'ignore)
 (defvar fileloop--freshly-initialized nil)
 
