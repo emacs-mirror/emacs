@@ -3027,7 +3027,7 @@ SERVICE-URL should be provided when WS-Addressing is being used."
       (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope\n")
       (when (eq use 'encoded)
         (insert "    soapenc:encodingStyle=\"\
-https://schemas.xmlsoap.org/soap/encoding/\"\n"))
+http://schemas.xmlsoap.org/soap/encoding/\"\n"))
       (dolist (nstag soap-encoded-namespaces)
         (insert "    xmlns:" nstag "=\"")
         (let ((nsname (cdr (assoc nstag soap-well-known-xmlns))))
