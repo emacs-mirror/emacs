@@ -1271,6 +1271,16 @@ This value customizes Emacs to use the style recommended in Damian
 Conway's book "Perl Best Practices" for indentation and formatting
 of conditionals.
 
+** Abbrev mode
+
++++
+*** Abbrev can now suggest pre-existing abbrevs based on typed text.
+A new user option, 'abbrev-suggest', enables the new abbrev suggestion
+feature.  When enabled, if a user manually type a piece of text that
+could have been written by using an abbrev, a hint will be displayed
+in the echo area, mentioning the abbrev that could have been used
+instead.
+
 
 * New Modes and Packages in Emacs 28.1
 
