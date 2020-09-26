@@ -1057,9 +1057,8 @@ If nothing was called, return non-nil."
 		      pos 'button (and (windowp (posn-window start))
 				       (window-buffer (posn-window start))))))
 
-	(when (and (widget-get button :button-overlay)
-                   (or (null button)
-                       (widget-button--check-and-call-button event button)))
+	(when (or (null button)
+                  (widget-button--check-and-call-button event button))
 	  (let ((up t)
                 command)
 	    ;; Mouse click not on a widget button.  Find the global
