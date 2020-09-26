@@ -4429,7 +4429,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (aset newstr i tochar)))
     newstr))
 
-(defun replace-in-string (fromstring tostring instring)
+(defun string-replace (fromstring tostring instring)
   "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
   (declare (pure t))
   (when (equal fromstring "")

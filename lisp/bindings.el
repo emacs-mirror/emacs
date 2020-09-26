@@ -493,7 +493,7 @@ mouse-1: Display Line and Column Mode Menu")))
           ,@mode-line-position--column-line-properties))
         (10
          (:propertize
-          (:eval (replace-in-string
+          (:eval (string-replace
                   "%c" "%C" (car mode-line-position-column-line-format)))
           ,@mode-line-position--column-line-properties)))
        (6
@@ -508,7 +508,7 @@ mouse-1: Display Line and Column Mode Menu")))
          (,@mode-line-position--column-line-properties)))
        (6
         (:propertize
-         (:eval (replace-in-string
+         (:eval (string-replace
                  "%c" "%C" (car mode-line-position-column-format)))
          ,@mode-line-position--column-line-properties))))))
   "Mode line construct for displaying the position in the buffer.

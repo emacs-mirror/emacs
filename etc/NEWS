@@ -1455,7 +1455,7 @@ return status is non-zero.  'process-lines-handling-status' has also
 been added, and takes a callback to handle the return status.
 
 +++
-*** New function 'replace-in-string'.
+*** New function 'string-replace'.
 This function works along the line of 'replace-regexp-in-string', but
 matching on strings instead of regexps, and does not change the global
 match state.

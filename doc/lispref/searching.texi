@@ -2566,7 +2566,7 @@ replacement string.  The match data at this point are the result
 of matching @var{regexp} against a substring of @var{string}.
 @end defun
 
-@defun replace-in-string fromstring tostring instring
+@defun string-replace fromstring tostring instring
 This function copies @var{instring} and replaces any occurrences of
 @var{fromstring} with @var{tostring}.
 @end defun
