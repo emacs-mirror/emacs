@@ -68,7 +68,8 @@
 
 (defcustom erc-status-sidebar-header-line-format nil
   "Header line format for the status sidebar."
-  :type 'string
+  :type '(choice (const :tag "No header line" nil)
+                 string)
   :group 'erc-status-sidebar)
 
 (defcustom erc-status-sidebar-width 15

@@ -863,14 +863,12 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
          (setq apropos-accumulator (cons (list symb (apropos-score-str var) nil var)
                                          apropos-accumulator))))))
   (let ((apropos-multi-type  nil))
-    (if (> emacs-major-version 20)
-        (apropos-print
-         nil "\n----------------\n"
-         (format "Buffer `%s' has the following local variables\nmatching %s`%s':"
-                 (buffer-name buffer)
-                 (if (consp pattern) "keywords " "")
-                 pattern))
-      (apropos-print nil "\n----------------\n"))))
+    (apropos-print
+     nil "\n----------------\n"
+     (format "Buffer `%s' has the following local variables\nmatching %s`%s':"
+             (buffer-name buffer)
+             (if (consp pattern) "keywords " "")
+             pattern))))
 
 ;;;###autoload
 (defun apropos-documentation (pattern &optional do-all)

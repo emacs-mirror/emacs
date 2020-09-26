@@ -54,7 +54,7 @@
 < 23 >                          %hex string
 <~a>a%a~>                       %base85 string
 (%)s
-(sf\(g>a)sdg)
+(sf\\(g>a)sdg)
 
 /foo {
     <<

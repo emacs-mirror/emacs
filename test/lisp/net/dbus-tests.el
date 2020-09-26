@@ -4,18 +4,20 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -63,6 +65,7 @@
 
 (ert-deftest dbus-test01-type-conversion ()
   "Check type conversion functions."
+  (skip-unless dbus--test-enabled-session-bus)
   (let ((ustr "0123abc_xyz\x01\xff")
 	(mstr "Grüß Göttin"))
     (should
@@ -93,6 +96,7 @@
 
 (ert-deftest dbus-test01-basic-types ()
   "Check basic D-Bus type arguments."
+  (skip-unless dbus--test-enabled-session-bus)
   ;; Unknown keyword.
   (should-error
    (dbus-check-arguments :session dbus--test-service :keyword)
@@ -265,12 +269,13 @@
    (dbus-check-arguments :session dbus--test-service :double "string")
    :type 'wrong-type-argument)
 
-  ;; `:unix-fd'.  Value range 0 .. 9.
+  ;; `:unix-fd'.  UNIX file descriptors are transfered out-of-band.
+  ;; We do not support this, and so we cannot do much testing here for
+  ;; `:unix-fd' being an argument (which is an index to the file
+  ;; descriptor in the array of file descriptors that accompany the
+  ;; D-Bus message).  Mainly testing, that values out of `:uint32'
+  ;; type range fail.
   (should (dbus-check-arguments :session dbus--test-service :unix-fd 0))
-  (should (dbus-check-arguments :session dbus--test-service :unix-fd 9))
-  (should-error
-   (dbus-check-arguments :session dbus--test-service :unix-fd 10)
-   :type 'dbus-error)
   (should-error
    (dbus-check-arguments :session dbus--test-service :unix-fd -1)
    :type 'args-out-of-range)

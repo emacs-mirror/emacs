@@ -643,13 +643,14 @@ and looks under `gdb-window-configuration-directory'.
 
 Note that this variable only takes effect when variable
 `gdb-many-windows' is t."
-  :type 'string
+  :type '(choice (const :tag "None" nil)
+                 string)
   :group 'gdb
   :version "28.1")
 
 (defcustom gdb-display-source-buffer-action '(nil . ((inhibit-same-window . t)))
   "`display-buffer' action used when GDB displays a source buffer."
-  :type 'list
+  :type 'sexp
   :group 'gdb
   :version "28.1")
 

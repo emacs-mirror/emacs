@@ -203,11 +203,22 @@ as `(keyfunc member)' and the corresponding element is just
    (nnselect-categorize ,articles 'nnselect-article-group
 			'nnselect-article-id)))
 
-(define-inline numbers-by-group (articles)
+(define-inline numbers-by-group (articles &optional type)
   (inline-quote
-   (nnselect-categorize
-    ,articles 'nnselect-article-group 'nnselect-article-number)))
-
+   (cond
+    ((eq ,type 'range)
+     (nnselect-categorize (gnus-uncompress-range ,articles)
+			  'nnselect-article-group 'nnselect-article-number))
+    ((eq ,type 'tuple)
+     (nnselect-categorize ,articles
+			  #'(lambda (elem)
+			      (nnselect-article-group (car elem)))
+			  #'(lambda (elem)
+			      (cons (nnselect-article-number
+				     (car elem)) (cdr elem)))))
+    (t
+     (nnselect-categorize ,articles
+			  'nnselect-article-group 'nnselect-article-number)))))
 
 (defmacro nnselect-add-prefix (group)
   "Ensures that the GROUP has an nnselect prefix."
@@ -246,7 +257,8 @@ Returns either the retrieved header format 'nov or 'headers.
 
 If this variable is nil, or if the provided function returns nil,
   `gnus-retrieve-headers' will be called instead."
-  :version "28.1" :type '(function) :group 'nnselect)
+  :version "28.1"
+  :type '(repeat function))
 
 ;; Gnus backend interface functions.
 
@@ -328,11 +340,13 @@ If this variable is nil, or if the provided function returns nil,
 		    (nnheader-parse-nov))
 		   (forward-line 1)))
 		('headers
-		 (goto-char (point-min))
-		 (while (not (eobp))
-		   (nnselect-add-novitem
-		    (nnheader-parse-head))
-		   (forward-line 1)))
+		 (gnus-run-hooks 'gnus-parse-headers-hook)
+		 (let ((nnmail-extra-headers gnus-extra-headers))
+		   (goto-char (point-min))
+		   (while (not (eobp))
+		     (nnselect-add-novitem
+		      (nnheader-parse-head))
+		     (forward-line 1))))
 		((pred listp)
 		 (dolist (novitem gnus-headers-retrieved-by)
 		   (nnselect-add-novitem novitem)))
@@ -502,15 +516,15 @@ If this variable is nil, or if the provided function returns nil,
 	    (list (car artgroup)
 		  (gnus-compress-sequence (sort (cdr artgroup) '<))
 		  action marks))
-	  (numbers-by-group
-	   (gnus-uncompress-range range)))))
+	  (numbers-by-group range 'range))))
      actions)
     'car 'cdr)))
 
 (deffoo nnselect-request-update-info (group info &optional _server)
-  (let* ((group  (nnselect-add-prefix group))
-	 (gnus-newsgroup-selection (or gnus-newsgroup-selection
-				       (nnselect-get-artlist group))))
+  (let* ((group (nnselect-add-prefix group))
+	 (gnus-newsgroup-selection
+	  (or gnus-newsgroup-selection (nnselect-get-artlist group)))
+	 newmarks)
     (gnus-info-set-marks info nil)
     (setf (gnus-info-read info) nil)
     (pcase-dolist (`(,artgroup . ,nartids)
@@ -518,30 +532,56 @@ If this variable is nil, or if the provided function returns nil,
 		    (number-sequence 1 (nnselect-artlist-length
 					gnus-newsgroup-selection))))
       (let* ((gnus-newsgroup-active nil)
-	     (artids (cl-sort nartids '< :key 'car))
+	     (artids (cl-sort nartids #'< :key 'car))
 	     (group-info (gnus-get-info artgroup))
 	     (marks (gnus-info-marks group-info))
 	     (unread (gnus-uncompress-sequence
 		      (gnus-range-difference (gnus-active artgroup)
 					     (gnus-info-read group-info)))))
-	(gnus-atomic-progn
-	  (setf (gnus-info-read info)
-		(gnus-add-to-range
-		 (gnus-info-read info)
-		 (delq nil
-		       (mapcar
-			#'(lambda (art)
-			    (unless (memq (cdr art) unread) (car art)))
-			artids))))
-	  (pcase-dolist (`(,type . ,range) marks)
-	    (setq range (gnus-uncompress-sequence range))
-	    (gnus-add-marked-articles
-	     group type
-	     (delq nil
-		   (mapcar
-		    #'(lambda (art)
-			(when (memq (cdr art) range)
-			  (car art)))  artids)))))))
+	(setf (gnus-info-read info)
+	      (gnus-add-to-range
+	       (gnus-info-read info)
+	       (delq nil (mapcar
+			  #'(lambda (art)
+			      (unless (memq (cdr art) unread) (car art)))
+			  artids))))
+	(pcase-dolist (`(,type . ,mark-list) marks)
+	  (let ((mark-type (gnus-article-mark-to-type type)) new)
+	    (when
+		(setq new
+		      (delq nil
+			    (cond
+			     ((eq mark-type 'tuple)
+			      (mapcar
+			       #'(lambda (id)
+				   (let (mark)
+				     (when
+					 (setq mark (assq (cdr id) mark-list))
+				       (cons (car id) (cdr mark)))))
+			       artids))
+			     (t
+			      (setq mark-list
+				    (gnus-uncompress-range mark-list))
+			      (mapcar
+			       #'(lambda (id)
+				   (when (memq (cdr id) mark-list)
+				     (car id)))  artids)))))
+	      (let ((previous (alist-get type newmarks)))
+		(if previous
+		    (nconc previous new)
+		  (push (cons type new) newmarks))))))))
+
+    ;; Clean up the marks: compress lists;
+    (pcase-dolist (`(,type . ,mark-list) newmarks)
+      (let ((mark-type (gnus-article-mark-to-type type)))
+	(unless (eq mark-type 'tuple)
+	  (setf (alist-get type newmarks)
+		(gnus-compress-sequence mark-list)))))
+    ;; and ensure an unexist key.
+    (unless (assq 'unexist newmarks)
+      (push (cons 'unexist nil) newmarks))
+
+    (gnus-info-set-marks info newmarks)
     (gnus-set-active group (cons 1 (nnselect-artlist-length
 				    gnus-newsgroup-selection)))))
 
@@ -767,42 +807,61 @@ article came from is also searched."
   "Copy mark-lists from GROUP to the originating groups."
   (let ((select-unreads (numbers-by-group gnus-newsgroup-unreads))
 	(select-reads (numbers-by-group
-		       (gnus-uncompress-range
-			(gnus-info-read (gnus-get-info group)))))
+		       (gnus-info-read (gnus-get-info group)) 'range))
 	(select-unseen (numbers-by-group gnus-newsgroup-unseen))
-	(gnus-newsgroup-active nil)
-	mark-list type-list)
+	(gnus-newsgroup-active nil) mark-list)
+    ;; collect the set of marked article lists categorized by
+    ;; originating groups
     (pcase-dolist (`(,mark . ,type) gnus-article-mark-lists)
-      (when (setq type-list
-		  (symbol-value (intern (format "gnus-newsgroup-%s" mark))))
-	(push (cons type
-		    (numbers-by-group
-		     (gnus-uncompress-range type-list))) mark-list)))
+      (let (type-list)
+	(when (setq type-list
+		    (symbol-value (intern (format "gnus-newsgroup-%s" mark))))
+	  (push (cons
+		 type
+		 (numbers-by-group type-list (gnus-article-mark-to-type type)))
+		mark-list))))
+    ;; now work on each originating group one at a time
     (pcase-dolist (`(,artgroup . ,artlist)
 		   (numbers-by-group gnus-newsgroup-articles))
       (let* ((group-info (gnus-get-info artgroup))
 	     (old-unread (gnus-list-of-unread-articles artgroup))
-	     newmarked)
+	     newmarked delta-marks)
 	(when group-info
+	  ;; iterate over mark lists for this group
 	  (pcase-dolist (`(,_mark . ,type) gnus-article-mark-lists)
-	    (let ((select-type
-		   (sort
-		    (cdr (assoc artgroup  (alist-get type mark-list)))
-		    '<))  list)
-	      (setq list
-		    (gnus-uncompress-range
-		     (gnus-add-to-range
-		      (gnus-remove-from-range
-		       (alist-get type (gnus-info-marks group-info))
-		       artlist)
-		      select-type)))
+	    (let ((list (cdr (assoc artgroup  (alist-get type mark-list))))
+		  (mark-type (gnus-article-mark-to-type type)))
 
-	      (when list
-		;; Get rid of the entries of the articles that have the
-		;; default score.
-		(when (and (eq type 'score)
-			   gnus-save-score
-			   list)
+	      ;; When the backend can store marks we collect any
+	      ;; changes.  Unlike a normal group the mark lists only
+	      ;; include marks for articles we retrieved.
+	      (when (and (gnus-check-backend-function
+			  'request-set-mark artgroup)
+			 (not (gnus-article-unpropagatable-p type)))
+		(let* ((old (gnus-list-range-intersection
+			     artlist
+			     (alist-get type (gnus-info-marks group-info))))
+		       (del (gnus-remove-from-range (copy-tree old) list))
+		       (add (gnus-remove-from-range (copy-tree list) old)))
+		  (when add (push (list add 'add (list type)) delta-marks))
+		  (when del
+		    ;; Don't delete marks from outside the active range.
+		    ;; This shouldn't happen, but is a sanity check.
+		    (setq del (gnus-sorted-range-intersection
+			       (gnus-active artgroup) del))
+		    (push (list del 'del (list type)) delta-marks))))
+
+	      ;; Marked sets are of mark-type 'tuple, 'list, or
+	      ;; 'range. We merge the lists with what is already in
+	      ;; the original info to get full list of new marks. We
+	      ;; do this by removing all the articles we retrieved
+	      ;; from the full list, and then add back in the newly
+	      ;; marked ones.
+	      (cond
+	       ((eq mark-type 'tuple)
+		;; Get rid of the entries that have the default
+		;; score.
+		(when (and list (eq type 'score) gnus-save-score)
 		  (let* ((arts list)
 			 (prev (cons nil list))
 			 (all prev))
@@ -812,30 +871,41 @@ article came from is also searched."
 			  (setcdr prev (cdr arts))
 			(setq prev arts))
 		      (setq arts (cdr arts)))
-		    (setq list (cdr all)))))
-
-	      (when  (or (eq (gnus-article-mark-to-type type) 'list)
-			 (eq (gnus-article-mark-to-type type) 'range))
+		    (setq list (cdr all))))
+		;; now merge with the original list and sort just to
+		;; make sure
 		(setq list
-		      (gnus-compress-sequence  (sort list '<) t)))
+		      (sort (map-merge
+			     'list list
+			     (alist-get type (gnus-info-marks group-info)))
+			    (lambda (elt1 elt2)
+			      (< (car elt1) (car elt2))))))
+	       (t
+		(setq list
+		      (gnus-compress-sequence
+		       (gnus-sorted-union
+			(gnus-sorted-difference
+			 (gnus-uncompress-sequence
+			  (alist-get type (gnus-info-marks group-info)))
+			 artlist)
+			(sort list #'<)) t)))
 
-	      ;; When exiting the group, everything that's previously been
-	      ;; unseen is now seen.
-	      (when (eq  type 'seen)
-		(setq list (gnus-range-add
-			    list (cdr (assoc artgroup select-unseen)))))
+	       ;; When exiting the group, everything that's previously been
+	       ;; unseen is now seen.
+	       (when (eq  type 'seen)
+		 (setq list (gnus-range-add
+			     list (cdr (assoc artgroup select-unseen))))))
 
 	      (when (or list (eq  type 'unexist))
-		(push (cons  type list) newmarked))))
+		(push (cons  type list) newmarked)))) ;; end of mark-type loop
+
+	  (when delta-marks
+	    (unless (gnus-check-group artgroup)
+	      (error "Can't open server for %s" artgroup))
+	    (gnus-request-set-mark artgroup delta-marks))
 
 	  (gnus-atomic-progn
-	    ;; Enter these new marks into the info of the group.
-	    (if (nthcdr 3 group-info)
-		(setcar (nthcdr 3 group-info) newmarked)
-	      ;; Add the marks lists to the end of the info.
-	      (when newmarked
-		(setcdr (nthcdr 2 group-info) (list newmarked))))
-
+	    (gnus-info-set-marks group-info newmarked)
 	    ;; Cut off the end of the info if there's nothing else there.
 	    (let ((i 5))
 	      (while (and (> i 2)

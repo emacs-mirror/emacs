@@ -6727,8 +6727,7 @@ accumulate information on matching completions."
 	   (not super-classes)))    ; no possibilities for inheritance
       ;; In these cases, we do not have to do anything
       list
-    (let* ((do-prop (and (>= show-classes 0)
-			 (>= emacs-major-version 21)))
+    (let* ((do-prop (>= show-classes 0))
 	   (do-buf (not (= show-classes 0)))
 	   (do-dots t)
 	   (inherit (if (and (not (eq type 'class-tag)) super-classes)

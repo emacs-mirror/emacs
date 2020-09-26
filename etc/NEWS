@@ -135,6 +135,13 @@ and mode line.  ('mwheel-mode' is enabled by default on most graphical
 displays.)
 
 ---
+** Mouse wheel scrolling now defaults to one line at a time.
+
++++
+** Mouse wheel scrolling with Shift modifier now scrolls horizontally.
+This works in text buffers and over images.
+
+---
 ** The default value of 'frame-title-format' and 'icon-title-format' has changed.
 These variables are used to display the title bar of visible frames
 and the title bar of an iconified frame.  They now show the name of
@@ -172,6 +179,13 @@ Each buffer will keep a separate history of line numbers used with
 line numbers that were previously jumped to.
 
 +++
+** New command 'goto-line-relative' to use in a narrowed buffer.
+It moves point to the line relative to the accessible portion of the
+narrowed buffer.  'M-g M-g' in Info is rebound to this command.
+When 'widen-automatically' is non-nil, 'goto-line' widens the narrowed
+buffer to be able to move point to the inaccessible portion.
+
++++
 ** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'
 shows equivalent key bindings for all commands that have them.
 
@@ -203,6 +217,12 @@ trying to be non-destructive.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+** Ruby mode
+
+*** 'ruby-use-smie' is declared obsolete.
+SMIE is now always enabled and 'ruby-use-smie' only controls whether
+indentation is done using SMIE or with the old ad-hoc code.
 
 ---
 ** Specific warnings can now be disabled from the warning buffer.
@@ -468,7 +488,7 @@ changed so that all the recipients are put in the "To" header in these
 instances.
 
 +++
-*** New function to start Emacs in Message mode to send an email.
+*** New command to start Emacs in Message mode to send an email.
 Emacs can be defined as a handler for the "x-scheme-handler/mailto"
 MIME type with the following command: "emacs -f message-mailto %u".
 An "emacs-mail.desktop" file has been included, suitable for
@@ -551,7 +571,7 @@ definition.
 *** New user option 'eldoc-display-truncation-message'.
 If non-nil (the default), eldoc will display a message saying
 something like "(Documentation truncated. Use `M-x eldoc-doc-buffer'
-to see rest" when a message has been truncated.  If nil, truncated
+to see rest)" when a message has been truncated.  If nil, truncated
 messages will be marked with just "..." at the end.
 
 +++
@@ -633,7 +653,7 @@ equivalent to '(map (:sym sym))'.
 ** Package
 
 +++
-*** New functions to filter the package list.
+*** New commands to filter the package list.
 The filter command key bindings are as follows:
 
 key             binding
@@ -688,6 +708,9 @@ The variable 'compilation-error-case-fold-search' can be set for
 case-insensitive matching of messages when the old behavior is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
+
+---
+*** Messages from ShellCheck are now recognized.
 
 ---
 *** Messages from Visual Studio that mention column numbers are now recognized.
@@ -790,12 +813,12 @@ Formerly, one could do the same by setting
 'browse-url-browser-function' to such an alist.  This usage is still
 supported but deprecated.
 
-*** Categorization of browsing functions in internal vs. external.
-All standard browsing functions such as 'browse-url-firefox',
+*** Categorization of browsing commands in internal vs. external.
+All standard browsing commands such as 'browse-url-firefox',
 'browse-url-mail', or 'eww' have been categorized into internal (URL
 is browsed in Emacs) or external (an external application is spawned
 with the URL).  This is done by adding a 'browse-url-browser-kind'
-symbol property to the browsing functions.  With a new command
+symbol property to the browsing commands.  With a new command
 'browse-url-with-browser-kind', an URL can explicitly be browsed with
 either an internal or external browser.
 
@@ -874,7 +897,7 @@ This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.
 
 +++
-*** New Emacs command line convenience function.
+*** New Emacs command line convenience command.
 The 'eww-browse' command has been added, which allows you to register
 Emacs as a MIME handler for "text/x-uri", and will call 'eww' on the
 supplied URL.  Usage example: "emacs -f eww-browse https://gnu.org".
@@ -1042,11 +1065,18 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** 'zap-up-to-char' now uses 'read-char-from-minibuffer'.
+This allows navigating through the history of characters that have
+been input.  This is mostly useful for characters that have complex
+input methods where inputting the character again may involve many
+keystrokes.
+
 +++
 *** Interactive regular expression search now uses faces for sub-groups.
 E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
 on the part of the regexp that matches the sub-expression "[0-9]+".
-This is controlled by the 'search-highlight-submatches' variable.
+This is controlled by the 'search-highlight-submatches' user option.
 
 ---
 *** New user option 'reveal-auto-hide'.
@@ -1148,7 +1178,7 @@ to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
 ** xwidget-webkit mode
 
-*** New xwidget functions.
+*** New xwidget commands.
 'xwidget-webkit-uri' (return the current URL), 'xwidget-webkit-title'
 (return the current title), and 'xwidget-webkit-goto-history' (goto a
 point in history).
@@ -1190,7 +1220,7 @@ Clicking the dictionary name changes the current dictionary.
 several time zones.  It is hoped that the new names are more
 discoverable.
 
-The following functions have been renamed:
+The following commands have been renamed:
 
   'display-time-world'         to 'world-clock'
   'display-time-world-mode'    to 'world-clock-mode'
@@ -1225,7 +1255,13 @@ type symbols.  Both functions propagate D-Bus errors.
 messages, contain the error name of that message now.
 
 ---
-*** D-Bus events keep the type information of their arguments.
+*** D-Bus messages can be monitored with new function 'dbus-register-monitor'.
+
+---
+*** D-Bus events have changed their internal structure.
+They carry now the destination and the error-name of an event.  They
+also keep the type information of their arguments. Use the
+'dbus-event-*' accessor functions.
 
 ** CPerl Mode
 
@@ -1266,6 +1302,9 @@ directory instead of the default directory.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
+** 'set-process-buffer' now updates the process mark.
+The mark will be set to point to the end of the new buffer.
 
 +++
 ** Some properties from completion tables are now preserved.
@@ -1393,6 +1432,11 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+*** New function 'string-search'.
+This function takes two string parameters and returns the position of
+the first instance of the first string in the latter.
 
 +++
 *** New function 'process-lines-ignore-status'.

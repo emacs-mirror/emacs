@@ -924,16 +924,13 @@ features of that interface could be implemented NS.
 
 **** Smooth scrolling -- maybe not a good idea
 Today, by default, scrolling with a trackpad makes the text move in
-steps of five lines.  (Scrolling with SHIFT scrolls one line at a time.)
+steps of one line.  (Scrolling with SHIFT scrolls horizontally.)
 
 The "mac" port provides smooth, pixel-based, scrolling.  This is a very
-popular features.  However, there are drawbacks to this method: what
+popular feature.  However, there are drawbacks to this method: what
 happens if only a fraction of a line is visible at the top of a
 window, is the partially visible text considered part of the window or
 not?  (Technically, what should 'window-start' return.)
-
-An alternative would be to make one-line scrolling the default on NS
-(or in Emacs in general).
 
 Note: This feature might not be allowed to be implemented until also
 implemented in Emacs for a free system.

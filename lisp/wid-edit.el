@@ -303,12 +303,15 @@ the :notify function can't know the new value.")
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (when (= (char-before to) ?\n)
+    (when (and (or (> to (1+ from)) (null (widget-get widget :size)))
+               (= (char-before to) ?\n))
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
       ;; C-n/C-p act more naturally when entering/leaving the field.  We
-     ;; do this by making a small secondary overlay to contain just that
-      ;; one character.
+      ;; do this by making a small secondary overlay to contain just that
+      ;; one character.  BUT we only do this if there is more than one
+      ;; character (so we don't do this for the character widget),
+      ;; or if the size of the editable field isn't specified.
       (let ((overlay (make-overlay (1- to) to nil t nil)))
 	(overlay-put overlay 'field 'boundary)
         ;; We need the real field for tabbing.
@@ -3524,7 +3527,7 @@ To use this type, you must define :match or :match-alternatives."
   :value 0
   :size 1
   :format "%{%t%}: %v\n"
-  :valid-regexp "\\`.\\'"
+  :valid-regexp "\\`\\(.\\|\n\\)\\'"
   :error "This field should contain a single character"
   :value-get (lambda (w) (widget-field-value-get w t))
   :value-to-internal (lambda (_widget value)

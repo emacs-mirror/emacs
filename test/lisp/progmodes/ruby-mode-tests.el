@@ -848,8 +848,6 @@ VALUES-PLIST is a list with alternating index and value elements."
       (ruby--insert-coding-comment "utf-8")
       (should (string= "# encoding: utf-8\n\n" (buffer-string))))))
 
-;; TODO: Convert these into unit proper tests instead of using an
-;;       external file.
 (ert-deftest ruby--indent/converted-from-manual-test ()
   :tags '(:expensive-test)
   ;; Converted from manual test.

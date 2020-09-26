@@ -307,7 +307,7 @@ any confusion."
   "Command to take a screenshot.
 The command should insert a PNG in the current buffer."
   :group 'message-various
-  :type '(list string)
+  :type '(repeat string)
   :version "28.1")
 
 ;;; Start of variables adopted from `message-utils.el'.

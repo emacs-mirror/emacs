@@ -510,6 +510,10 @@ Honor most of `eldoc-echo-area-use-multiline-p'."
                 (> (+ (length single-doc) (length single-doc-sym) 2) width))
                single-doc)
               ((> available 1)
+               ;; The message takes one extra line, so if we don't
+               ;; display that, we have one extra line to use.
+               (unless eldoc-display-truncation-message
+                 (setq available (1+ available)))
                (with-current-buffer (eldoc-doc-buffer)
                  (cl-loop
                   initially

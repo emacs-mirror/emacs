@@ -144,6 +144,17 @@ See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-inter
 ;;   </signal>
 ;; </interface>
 
+(defconst dbus-interface-monitoring (concat dbus-interface-dbus ".Monitoring")
+  "The monitoring interface.
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#bus-messages-become-monitor'.")
+
+;; <interface name="org.freedesktop.DBus.Monitoring">
+;;   <method name="BecomeMonitor">
+;;     <arg name="rule" type="as" direction="in"/>
+;;     <arg name="flags" type="u" direction="in"/> ;; Not used, must be 0.
+;;   </method>
+;; </interface>
+
 (defconst dbus-interface-local (concat dbus-interface-dbus ".Local")
   "An interface whose methods can only be invoked by the local implementation.")
 
@@ -336,7 +347,8 @@ object is returned instead of a list containing this single Lisp object.
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (or (memq bus '(:system :session)) (stringp bus)
+  (or (memq bus '(:system :session :system-private :session-private))
+      (stringp bus)
       (signal 'wrong-type-argument (list 'keywordp bus)))
   (or (stringp service)
       (signal 'wrong-type-argument (list 'stringp service)))
@@ -440,7 +452,8 @@ Example:
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (or (memq bus '(:system :session)) (stringp bus)
+  (or (memq bus '(:system :session :system-private :session-private))
+      (stringp bus)
       (signal 'wrong-type-argument (list 'keywordp bus)))
   (or (stringp service)
       (signal 'wrong-type-argument (list 'stringp service)))
@@ -490,7 +503,8 @@ Example:
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (or (memq bus '(:system :session)) (stringp bus)
+  (or (memq bus '(:system :session :system-private :session-private))
+      (stringp bus)
       (signal 'wrong-type-argument (list 'keywordp bus)))
   (or (null service) (stringp service)
       (signal 'wrong-type-argument (list 'stringp service)))
@@ -510,7 +524,8 @@ This is an internal function, it shall not be used outside dbus.el."
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (or (memq bus '(:system :session)) (stringp bus)
+  (or (memq bus '(:system :session :system-private :session-private))
+      (stringp bus)
       (signal 'wrong-type-argument (list 'keywordp bus)))
   (or (stringp service)
       (signal 'wrong-type-argument (list 'stringp service)))
@@ -527,7 +542,8 @@ This is an internal function, it shall not be used outside dbus.el."
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (or (memq bus '(:system :session)) (stringp bus)
+  (or (memq bus '(:system :session :system-private :session-private))
+      (stringp bus)
       (signal 'wrong-type-argument (list 'keywordp bus)))
   (or (stringp service)
       (signal 'wrong-type-argument (list 'stringp service)))
@@ -545,7 +561,8 @@ This is an internal function, it shall not be used outside dbus.el."
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (or (memq bus '(:system :session)) (stringp bus)
+  (or (memq bus '(:system :session :system-private :session-private))
+      (stringp bus)
       (signal 'wrong-type-argument (list 'keywordp bus)))
   (or (stringp service)
       (signal 'wrong-type-argument (list 'stringp service)))
@@ -1018,19 +1035,29 @@ STRING must have been encoded with `dbus-escape-as-identifier'."
   "Check whether EVENT is a well formed D-Bus event.
 EVENT is a list which starts with symbol `dbus-event':
 
-  (dbus-event BUS TYPE SERIAL SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
+  (dbus-event BUS TYPE SERIAL SERVICE DESTINATION PATH
+              INTERFACE MEMBER HANDLER &rest ARGS)
 
 BUS identifies the D-Bus the message is coming from.  It is
-either a Lisp symbol, `:system' or `:session', or a string
-denoting the bus address.  TYPE is the D-Bus message type which
-has caused the event, SERIAL is the serial number of the received
-D-Bus message.  SERVICE and PATH are the unique name and the
-object path of the D-Bus object emitting the message.  INTERFACE
-and MEMBER denote the message which has been sent.  HANDLER is
-the function which has been registered for this message.  ARGS
-are the typed arguments as returned from the message.  They are
-passed to HANDLER without type information, when it is called
-during event handling in `dbus-handle-event'.
+either a Lisp symbol, `:system', `:session', `:systemp-private'
+or `:session-private', or a string denoting the bus address.
+
+TYPE is the D-Bus message type which has caused the event, SERIAL
+is the serial number of the received D-Bus message when TYPE is
+equal `dbus-message-type-method-return' or `dbus-message-type-error'.
+
+SERVICE and PATH are the unique name and the object path of the
+D-Bus object emitting the message.  DESTINATION is the D-Bus name
+the message is dedicated to, or nil in case thje message is a
+broadcast signal.
+
+INTERFACE and MEMBER denote the message which has been sent.
+When TYPE is `dbus-message-type-error', MEMBER is the error name.
+
+HANDLER is the function which has been registered for this
+message.  ARGS are the typed arguments as returned from the
+message.  They are passed to HANDLER without type information,
+when it is called during event handling in `dbus-handle-event'.
 
 This function signals a `dbus-error' if the event is not well
 formed."
@@ -1038,7 +1065,7 @@ formed."
   (unless (and (listp event)
 	       (eq (car event) 'dbus-event)
 	       ;; Bus symbol.
-	       (or (symbolp (nth 1 event))
+	       (or (keywordp (nth 1 event))
 		   (stringp (nth 1 event)))
 	       ;; Type.
 	       (and (natnump (nth 2 event))
@@ -1050,20 +1077,26 @@ formed."
 		   (= dbus-message-type-error (nth 2 event))
                    (or (stringp (nth 4 event))
                        (null (nth 4 event))))
+	       ;; Destination.
+	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
+                   (or (stringp (nth 5 event))
+                       (null (nth 5 event))))
 	       ;; Object path.
 	       (or (= dbus-message-type-method-return (nth 2 event))
 		   (= dbus-message-type-error (nth 2 event))
-		   (stringp (nth 5 event)))
+		   (stringp (nth 6 event)))
 	       ;; Interface.
 	       (or (= dbus-message-type-method-return (nth 2 event))
 		   (= dbus-message-type-error (nth 2 event))
-		   (stringp (nth 6 event)))
+		   (stringp (nth 7 event)))
 	       ;; Member.
 	       (or (= dbus-message-type-method-return (nth 2 event))
-		   (= dbus-message-type-error (nth 2 event))
-		   (stringp (nth 7 event)))
+		   (stringp (nth 8 event)))
 	       ;; Handler.
-	       (functionp (nth 8 event)))
+	       (functionp (nth 9 event))
+               ;; Arguments.
+               (listp (nthcdr 10 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
 
 (defun dbus-delete-types (&rest args)
@@ -1103,28 +1136,36 @@ part of the event, is called with arguments ARGS (without type information).
 If the HANDLER returns a `dbus-error', it is propagated as return message."
   (interactive "e")
   (condition-case err
-      (let (args result)
+      (let (monitor args result)
 	;; We ignore not well-formed events.
 	(dbus-check-event event)
         ;; Remove type information.
-        (setq args (mapcar #'dbus-delete-types (nthcdr 9 event)))
-	;; Error messages must be propagated.
-	(when (= dbus-message-type-error (nth 2 event))
-	  (signal 'dbus-error args))
-	;; Apply the handler.
-	(setq result (apply (nth 8 event) args))
-	;; Return an (error) message when it is a message call.
-	(when (= dbus-message-type-method-call (nth 2 event))
-	  (dbus-ignore-errors
-            (if (eq (car-safe result) :error)
-                (apply #'dbus-method-error-internal
-	               (nth 1 event) (nth 4 event) (nth 3 event) (cdr result))
-	      (if (eq result :ignore)
-		  (dbus-method-return-internal
-		   (nth 1 event) (nth 4 event) (nth 3 event))
-                (apply #'dbus-method-return-internal
-		       (nth 1 event) (nth 4 event) (nth 3 event)
-		       (if (consp result) result (list result))))))))
+        (setq args (mapcar #'dbus-delete-types (nthcdr 10 event)))
+        (setq monitor
+              (gethash
+               (list :monitor (nth 1 event)) dbus-registered-objects-table))
+        (if monitor
+            ;; A monitor event shall not trigger other operations, and
+            ;; it shall not trigger D-Bus errors.
+            (setq result (dbus-ignore-errors (apply (nth 9 event) args)))
+	  ;; Error messages must be propagated.  The error name is in
+	  ;; the member slot.
+	  (when (= dbus-message-type-error (nth 2 event))
+	    (signal 'dbus-error (cons (nth 8 event) args)))
+	  ;; Apply the handler.
+	  (setq result (apply (nth 9 event) args))
+	  ;; Return an (error) message when it is a message call.
+	  (when (= dbus-message-type-method-call (nth 2 event))
+	    (dbus-ignore-errors
+              (if (eq (car-safe result) :error)
+                  (apply #'dbus-method-error-internal
+	                 (nth 1 event) (nth 4 event) (nth 3 event) (cdr result))
+	        (if (eq result :ignore)
+		    (dbus-method-return-internal
+		     (nth 1 event) (nth 4 event) (nth 3 event))
+                  (apply #'dbus-method-return-internal
+		         (nth 1 event) (nth 4 event) (nth 3 event)
+		         (if (consp result) result (list result)))))))))
     ;; Error handling.
     (dbus-error
      ;; Return an error message when it is a message call.
@@ -1172,13 +1213,21 @@ formed."
   (dbus-check-event event)
   (nth 4 event))
 
+(defun dbus-event-destination-name (event)
+  "Return the name of the D-Bus object the event is dedicated to.
+The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
+This function signals a `dbus-error' if the event is not well
+formed."
+  (dbus-check-event event)
+  (nth 5 event))
+
 (defun dbus-event-path-name (event)
   "Return the object path of the D-Bus object the event is coming from.
 The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function signals a `dbus-error' if the event is not well
 formed."
   (dbus-check-event event)
-  (nth 5 event))
+  (nth 6 event))
 
 (defun dbus-event-interface-name (event)
   "Return the interface name of the D-Bus object the event is coming from.
@@ -1186,15 +1235,32 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function signals a `dbus-error' if the event is not well
 formed."
   (dbus-check-event event)
-  (nth 6 event))
+  (nth 7 event))
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
-It is either a signal name or a method name.  The result is a
-string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
-function signals a `dbus-error' if the event is not well formed."
+It is either a signal name, a method name or an error name.  The
+result is a string.  EVENT is a D-Bus event, see
+`dbus-check-event'.  This function signals a `dbus-error' if the
+event is not well formed."
   (dbus-check-event event)
-  (nth 7 event))
+  (nth 8 event))
+
+(defun dbus-event-handler (event)
+  "Return the handler the event is applied with.
+The result is a function.  EVENT is a D-Bus event, see
+`dbus-check-event'.  This function signals a `dbus-error' if the
+event is not well formed."
+  (dbus-check-event event)
+  (nth 9 event))
+
+(defun dbus-event-arguments (event)
+  "Return the arguments the event is carrying on.
+The result is a list of arguments.  EVENT is a D-Bus event, see
+`dbus-check-event'.  This function signals a `dbus-error' if the
+event is not well formed."
+  (dbus-check-event event)
+  (nthcdr 10 event))
 
 
 ;;; D-Bus registered names.
@@ -1717,7 +1783,7 @@ It will be registered for all objects created by `dbus-register-property'."
 
      ;; "Set" needs the third typed argument from `last-input-event'.
      ((string-equal method "Set")
-      (let* ((value (dbus-flatten-types (nth 11 last-input-event)))
+      (let* ((value (dbus-flatten-types (nth 12 last-input-event)))
 	     (entry (dbus-get-this-registered-property
                      bus service path interface property))
 	     (object (car (last (car entry)))))
@@ -1907,13 +1973,123 @@ It will be registered for all objects created by `dbus-register-service'."
 	 result)
 	'(:signature "{oa{sa{sv}}}"))))))
 
+(defun dbus-register-monitor
+    (bus &optional service path interface member handler &rest args)
+  "Register HANDLER for monitor events on the D-Bus BUS.
+
+BUS is either a Lisp symbol, `:system' or `:session', or a string
+denoting the bus address.
+
+SERVICE is the D-Bus service name of the D-Bus.  It must be a
+known name (see discussion of DONT-REGISTER-SERVICE below).
+
+PATH is the D-Bus object path SERVICE is registered at (see
+discussion of DONT-REGISTER-SERVICE below).  INTERFACE is the
+name of the interface used at PATH. MEMBER is either a method
+name, a signal name, or an error name.
+
+HANDLER is the function to be called when a monitor event
+arrives.  If nil, the default handler `dbus-monitor-handler' is
+applied.  It is called with ARGS as arguments."
+
+  (let ((bus-private (if (eq bus :system) :system-private
+                       (if (eq bus :session) :session-private bus)))
+        keyword type rule1 rule2 key key1 value)
+    (unless handler (setq handler #'dbus-monitor-handler))
+    ;; Read arguments.
+    (while args
+      (when (keywordp (setq keyword (pop args)))
+        (cond
+         ((eq :type keyword)
+          ;; Must be "signal", "method_call", "method_return", or "error".
+          (setq type (pop args))))))
+    ;; Compose rules.
+    (setq rule1
+          (or
+           (string-join
+            (delq nil
+                  (list (when service (format "sender='%s'" service))
+		        (when path (format "path='%s'" path))
+		        (when interface (format "interface='%s'" interface))
+		        (when member (format "member='%s'" member))
+		        (when type (format "type='%s'" type))))
+            ",")
+           "")
+          rule2
+          (when service
+            (string-join
+             (delq nil
+                   (list (format "destination='%s'" service)
+		         (when path (format "path='%s'" path))
+		         (when interface (format "interface='%s'" interface))
+		         (when member (format "member='%s'" member))
+		         (when type (format "type='%s'" type))))
+             ",")))
+
+    (unless (ignore-errors (dbus-get-unique-name bus-private))
+      (dbus-init-bus bus 'private))
+    (dbus-call-method
+     bus-private dbus-service-dbus dbus-path-dbus dbus-interface-monitoring
+     "BecomeMonitor"
+     (append `(:array :string ,rule1) (when rule2 `(:string ,rule2)))
+     :uint32 0)
+
+    (when dbus-debug (message "Matching rule \"%s\" created" rule1))
+
+    ;; Create a hash table entry.
+    (setq key (list :monitor bus-private)
+	  key1 (list nil nil nil handler)
+	  value (gethash key dbus-registered-objects-table))
+    (unless  (member key1 value)
+      (puthash key (cons key1 value) dbus-registered-objects-table))
+
+    (when dbus-debug (message "%s" dbus-registered-objects-table))
+
+    ;; Return the object.
+    (list key (list service path handler))))
+
+(defun dbus-monitor-handler (&rest _args)
+  "Default handler for the \"org.freedesktop.DBus.Monitoring.BecomeMonitor\" interface.
+It will be applied all objects created by `dbus-register-monitor'."
+  (with-current-buffer (get-buffer-create "*D-Bus Monitor*")
+    (special-mode)
+    (let* ((inhibit-read-only t)
+           (eobp (eobp))
+           (event last-input-event)
+           (type (dbus-event-message-type event))
+	   (sender (dbus-event-service-name event))
+	   (destination (dbus-event-destination-name event))
+           (serial (dbus-event-serial-number event))
+	   (path (dbus-event-path-name event))
+	   (interface (dbus-event-interface-name event))
+	   (member (dbus-event-member-name event))
+           (arguments (dbus-event-arguments event)))
+      (save-excursion
+        (goto-char (point-max))
+        (insert
+         (format
+          (concat
+           "%s sender=%s -> destination=%s serial=%s "
+           "path=%s interface=%s member=%s\n")
+          (cond
+           ((= type dbus-message-type-method-call) "method-call")
+           ((= type dbus-message-type-method-return) "method-return")
+           ((= type dbus-message-type-error) "error")
+           ((= type dbus-message-type-signal) "signal"))
+          sender destination serial path interface member))
+        (dolist (arg arguments)
+          (pp (dbus-flatten-types arg) (current-buffer)))
+        (insert "\n"))
+      (when eobp
+        (goto-char (point-max))))))
+
 (defun dbus-handle-bus-disconnect ()
   "React to a bus disconnection.
 BUS is the bus that disconnected.  This routine unregisters all
 handlers on the given bus and causes all synchronous calls
 pending at the time of disconnect to fail."
   (let ((bus (dbus-event-bus-name last-input-event))
-        (keys-to-remove))
+        keys-to-remove)
     (maphash
      (lambda (key value)
        (when (and (eq (nth 0 key) :serial)
@@ -1923,13 +2099,14 @@ pending at the time of disconnect to fail."
           (list 'dbus-event
                 bus
                 dbus-message-type-error
-                (nth 2 key)
-                nil
-                nil
-                nil
-                nil
-                value)
-          (list 'dbus-error "Bus disconnected" bus))
+                (nth 2 key) ; serial
+                nil         ; service
+                nil         ; destination
+                nil         ; path
+                nil         ; interface
+                nil         ; member
+                value)      ; handler
+          (list 'dbus-error dbus-error-disconnected  "Bus disconnected" bus))
          (push key keys-to-remove)))
      dbus-registered-objects-table)
     (dolist (key keys-to-remove)
@@ -1980,12 +2157,8 @@ this connection to those buses."
 
 ;;; TODO:
 
-;; * Check property type in org.freedesktop.DBus.Properties.Set.
-;;
 ;; * Implement org.freedesktop.DBus.ObjectManager.InterfacesAdded and
 ;;   org.freedesktop.DBus.ObjectManager.InterfacesRemoved.
-;;
-;; * Implement org.freedesktop.DBus.Monitoring.BecomeMonitor.
 ;;
 ;; * Cache introspection data.
 ;;

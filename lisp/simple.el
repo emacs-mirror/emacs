@@ -1231,7 +1231,43 @@ that uses or sets the mark."
   "History of values entered with `goto-line'.")
 (make-variable-buffer-local 'goto-line-history)
 
-(defun goto-line (line &optional buffer)
+(defun goto-line-read-args (&optional relative)
+  "Read arguments for `goto-line' related commands."
+  (if (and current-prefix-arg (not (consp current-prefix-arg)))
+      (list (prefix-numeric-value current-prefix-arg))
+    ;; Look for a default, a number in the buffer at point.
+    (let* ((default
+             (save-excursion
+               (skip-chars-backward "0-9")
+               (if (looking-at "[0-9]")
+                   (string-to-number
+                    (buffer-substring-no-properties
+                     (point)
+                     (progn (skip-chars-forward "0-9")
+                            (point)))))))
+           ;; Decide if we're switching buffers.
+           (buffer
+            (if (consp current-prefix-arg)
+                (other-buffer (current-buffer) t)))
+           (buffer-prompt
+            (if buffer
+                (concat " in " (buffer-name buffer))
+              "")))
+      ;; Read the argument, offering that number (if any) as default.
+      (list (read-number (format "Goto%s line%s: "
+                                 (if (= (point-min) 1) ""
+                                   ;; In a narrowed buffer.
+                                   (if relative " relative" " absolute"))
+                                 buffer-prompt)
+                         (list default (if (or relative (= (point-min) 1))
+                                           (line-number-at-pos)
+                                         (save-restriction
+                                           (widen)
+                                           (line-number-at-pos))))
+                         'goto-line-history)
+            buffer))))
+
+(defun goto-line (line &optional buffer relative)
   "Go to LINE, counting from line 1 at beginning of buffer.
 If called interactively, a numeric prefix argument specifies
 LINE; without a numeric prefix argument, read LINE from the
@@ -1240,6 +1276,13 @@ minibuffer.
 If optional argument BUFFER is non-nil, switch to that buffer and
 move to line LINE there.  If called interactively with \\[universal-argument]
 as argument, BUFFER is the most recently selected other buffer.
+
+If optional argument RELATIVE is non-nil, counting starts at the beginning
+of the accessible portion of the (potentially narrowed) buffer.
+
+If the variable `widen-automatically' is non-nil, cancel narrowing and
+leave all lines accessible.  If `widen-automatically' is nil, just move
+point to the edge of visible portion and don't change the buffer bounds.
 
 Prior to moving point, this function sets the mark (without
 activating it), unless Transient Mark mode is enabled and the
@@ -1252,32 +1295,7 @@ What you probably want instead is something like:
 If at all possible, an even better solution is to use char counts
 rather than line counts."
   (declare (interactive-only forward-line))
-  (interactive
-   (if (and current-prefix-arg (not (consp current-prefix-arg)))
-       (list (prefix-numeric-value current-prefix-arg))
-     ;; Look for a default, a number in the buffer at point.
-     (let* ((default
-	      (save-excursion
-		(skip-chars-backward "0-9")
-		(if (looking-at "[0-9]")
-		    (string-to-number
-		     (buffer-substring-no-properties
-		      (point)
-		      (progn (skip-chars-forward "0-9")
-			     (point)))))))
-	    ;; Decide if we're switching buffers.
-	    (buffer
-	     (if (consp current-prefix-arg)
-		 (other-buffer (current-buffer) t)))
-	    (buffer-prompt
-	     (if buffer
-		 (concat " in " (buffer-name buffer))
-	       "")))
-       ;; Read the argument, offering that number (if any) as default.
-       (list (read-number (format "Goto line%s: " buffer-prompt)
-                          (list default (line-number-at-pos))
-                          'goto-line-history)
-	     buffer))))
+  (interactive (goto-line-read-args))
   ;; Switch to the desired buffer, one way or another.
   (if buffer
       (let ((window (get-buffer-window buffer)))
@@ -1286,12 +1304,27 @@ rather than line counts."
   ;; Leave mark at previous position
   (or (region-active-p) (push-mark))
   ;; Move to the specified line number in that buffer.
-  (save-restriction
-    (widen)
+  (if (and (not relative) (not widen-automatically))
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (if (eq selective-display t)
+            (re-search-forward "[\n\C-m]" nil 'end (1- line))
+          (forward-line (1- line))))
+    (unless relative (widen))
     (goto-char (point-min))
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
+
+(defun goto-line-relative (line &optional buffer)
+  "Go to LINE, counting from line at (point-min).
+The line number is relative to the accessible portion of the narrowed
+buffer.  The argument BUFFER is the same as in the function `goto-line'."
+  (declare (interactive-only forward-line))
+  (interactive (goto-line-read-args t))
+  (with-suppressed-warnings ((interactive-only goto-line))
+    (goto-line line buffer t)))
 
 (defun count-words-region (start end &optional arg)
   "Count the number of words in the region.

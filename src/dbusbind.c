@@ -44,7 +44,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Alist of D-Bus buses we are polling for messages.
    The key is the symbol or string of the bus, and the value is the
-   connection address.  */
+   connection address.  For every bus, just one connection is counted.
+   If there shall be a second connection to the same bus, a different
+   symbol or string for the bus must be chosen.  On Lisp level, a bus
+   stands for the associated connection.  */
 static Lisp_Object xd_registered_buses;
 
 /* Whether we are reading a D-Bus event.  */
@@ -279,10 +282,13 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
     else								\
       {									\
 	CHECK_SYMBOL (bus);						\
-	if (!(EQ (bus, QCsystem) || EQ (bus, QCsession)))		\
+	if (!(EQ (bus, QCsystem) || EQ (bus, QCsession)			\
+	      || EQ (bus, QCsystem_private)				\
+	      || EQ (bus, QCsession_private)))				\
 	  XD_SIGNAL2 (build_string ("Wrong bus name"), bus);		\
 	/* We do not want to have an autolaunch for the session bus.  */ \
-	if (EQ (bus, QCsession) && session_bus_address == NULL)		\
+	if ((EQ (bus, QCsession) || EQ (bus, QCsession_private))	\
+	    && session_bus_address == NULL)				\
 	  XD_SIGNAL2 (build_string ("No connection to bus"), bus);	\
       }									\
   } while (0)
@@ -968,8 +974,9 @@ xd_lisp_dbus_to_dbus (Lisp_Object bus)
   return xmint_pointer (bus);
 }
 
-/* Return D-Bus connection address.  BUS is either a Lisp symbol,
-   :system or :session, or a string denoting the bus address.  */
+/* Return D-Bus connection address.
+   BUS is either a Lisp symbol, :system, :session, :system-private or
+   :session-private, or a string denoting the bus address.  */
 static DBusConnection *
 xd_get_connection_address (Lisp_Object bus)
 {
@@ -1031,7 +1038,8 @@ xd_add_watch (DBusWatch *watch, void *data)
 }
 
 /* Stop monitoring WATCH for possible I/O.
-   DATA is the used bus, either a string or QCsystem or QCsession.  */
+   DATA is the used bus, either a string or QCsystem, QCsession,
+   QCsystem_private or QCsession_private.  */
 static void
 xd_remove_watch (DBusWatch *watch, void *data)
 {
@@ -1046,7 +1054,7 @@ xd_remove_watch (DBusWatch *watch, void *data)
   /* Unset session environment.  */
 #if 0
   /* This is buggy, since unsetenv is not thread-safe.  */
-  if (XSYMBOL (QCsession) == data)
+  if (XSYMBOL (QCsession) == data) || (XSYMBOL (QCsession_private) == data)
     {
       XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
       unsetenv ("DBUS_SESSION_BUS_ADDRESS");
@@ -1120,6 +1128,11 @@ can be a string denoting the address of the corresponding bus.  For
 the system and session buses, this function is called when loading
 `dbus.el', there is no need to call it again.
 
+A special case is BUS being the symbol `:system-private' or
+`:session-private'.  These symbols still denote the system or session
+bus, but using a private connection.  They should not be used outside
+dbus.el.
+
 The function returns a number, which counts the connections this Emacs
 session has established to the BUS under the same unique name (see
 `dbus-get-unique-name').  It depends on the libraries Emacs is linked
@@ -1142,6 +1155,10 @@ this connection to those buses.  */)
   ptrdiff_t refcount;
 
   /* Check parameter.  */
+  if (!NILP (private))
+    bus = EQ (bus, QCsystem)
+      ? QCsystem_private
+      : EQ (bus, QCsession) ? QCsession_private : bus;
   XD_DBUS_VALIDATE_BUS_ADDRESS (bus);
 
   /* Close bus if it is already open.  */
@@ -1169,8 +1186,9 @@ this connection to those buses.  */)
 
       else
 	{
-	  DBusBusType bustype = (EQ (bus, QCsystem)
-				 ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION);
+	  DBusBusType bustype
+	    = EQ (bus, QCsystem) || EQ (bus, QCsystem_private)
+	    ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION;
 	  if (NILP (private))
 	    connection = dbus_bus_get (bustype, &derror);
 	  else
@@ -1184,9 +1202,9 @@ this connection to those buses.  */)
 	XD_SIGNAL2 (build_string ("No connection to bus"), bus);
 
       /* If it is not the system or session bus, we must register
-	 ourselves.  Otherwise, we have called dbus_bus_get, which has
-	 configured us to exit if the connection closes - we undo this
-	 setting.  */
+	 ourselves.  Otherwise, we have called dbus_bus_get{_private},
+	 which has configured us to exit if the connection closes - we
+	 undo this setting.  */
       if (STRINGP (bus))
 	dbus_bus_register (connection, &derror);
       else
@@ -1214,6 +1232,9 @@ this connection to those buses.  */)
       /* Cleanup.  */
       dbus_error_free (&derror);
     }
+
+  XD_DEBUG_MESSAGE ("Registered buses: %s",
+		    XD_OBJECT_TO_STRING (xd_registered_buses));
 
   /* Return reference counter.  */
   refcount = xd_get_connection_references (connection);
@@ -1533,8 +1554,8 @@ usage: (dbus-message-internal &rest REST)  */)
 }
 
 /* Read one queued incoming message of the D-Bus BUS.
-   BUS is either a Lisp symbol, :system or :session, or a string denoting
-   the bus address.  */
+   BUS is either a Lisp symbol, :system, :session, :system-private or
+   :session-private, or a string denoting the bus address.  */
 static void
 xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 {
@@ -1546,7 +1567,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   int mtype;
   dbus_uint32_t serial;
   unsigned int ui_serial;
-  const char *uname, *path, *interface, *member, *error_name;
+  const char *uname, *destination, *path, *interface, *member, *error_name;
 
   dmessage = dbus_connection_pop_message (connection);
 
@@ -1579,6 +1600,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
     ? dbus_message_get_reply_serial (dmessage)
     : dbus_message_get_serial (dmessage);
   uname = dbus_message_get_sender (dmessage);
+  destination = dbus_message_get_destination (dmessage);
   path = dbus_message_get_path (dmessage);
   interface = dbus_message_get_interface (dmessage);
   member = dbus_message_get_member (dmessage);
@@ -1586,7 +1608,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 
   XD_DEBUG_MESSAGE ("Event received: %s %u %s %s %s %s %s %s",
 		    XD_MESSAGE_TYPE_TO_STRING (mtype),
-		    ui_serial, uname, path, interface, member, error_name,
+		    ui_serial, uname, destination, path, interface,
+		    mtype == DBUS_MESSAGE_TYPE_ERROR ? error_name : member,
 		    XD_OBJECT_TO_STRING (args));
 
   if (mtype == DBUS_MESSAGE_TYPE_INVALID)
@@ -1601,7 +1624,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 
       /* There shall be exactly one entry.  Construct an event.  */
       if (NILP (value))
-	goto cleanup;
+	goto monitor;
 
       /* Remove the entry.  */
       Fremhash (key, Vdbus_registered_objects_table);
@@ -1610,11 +1633,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       EVENT_INIT (event);
       event.kind = DBUS_EVENT;
       event.frame_or_window = Qnil;
-      event.arg =
-	Fcons (value,
-	       (mtype == DBUS_MESSAGE_TYPE_ERROR)
-	       ? Fcons (list2 (QCstring, build_string (error_name)), args)
-	       : args);
+      /* Handler.  */
+      event.arg = Fcons (value, args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1622,7 +1642,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       /* Vdbus_registered_objects_table requires non-nil interface and
 	 member.  */
       if ((interface == NULL) || (member == NULL))
-	goto cleanup;
+	goto monitor;
 
       /* Search for a registered function of the message.  */
       key = list4 (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL ? QCmethod : QCsignal,
@@ -1647,6 +1667,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	      EVENT_INIT (event);
 	      event.kind = DBUS_EVENT;
 	      event.frame_or_window = Qnil;
+	      /* Handler.  */
 	      event.arg
 		= Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))), args);
 	      break;
@@ -1655,15 +1676,21 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	}
 
       if (NILP (value))
-	goto cleanup;
+	goto monitor;
     }
 
-  /* Add type, serial, uname, path, interface and member to the event.  */
-  event.arg = Fcons ((member == NULL ? Qnil : build_string (member)),
-		     event.arg);
+  /* Add type, serial, uname, destination, path, interface and member
+     or error_name to the event.  */
+  event.arg
+    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
+	     ? error_name == NULL ? Qnil : build_string (error_name)
+	     : member == NULL ? Qnil : build_string (member),
+	     event.arg);
   event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
 		     event.arg);
   event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
+		     event.arg);
+  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
 		     event.arg);
   event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
 		     event.arg);
@@ -1678,14 +1705,58 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 
   XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
 
+  /* Monitor.  */
+ monitor:
+  /* Search for a registered function of the message.  */
+  key = list2 (QCmonitor, bus);
+  value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
+
+  /* There shall be exactly one entry.  Construct an event.  */
+  if (NILP (value))
+    goto cleanup;
+
+  /* Construct an event.  */
+  EVENT_INIT (event);
+  event.kind = DBUS_EVENT;
+  event.frame_or_window = Qnil;
+
+  /* Add type, serial, uname, destination, path, interface, member
+     or error_name and handler to the event.  */
+  event.arg
+    = Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
+	     args);
+  event.arg
+    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
+	     ? error_name == NULL ? Qnil : build_string (error_name)
+	     : member == NULL ? Qnil : build_string (member),
+	     event.arg);
+  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
+		     event.arg);
+  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
+		     event.arg);
+  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
+		     event.arg);
+  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
+		     event.arg);
+  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
+  event.arg = Fcons (make_fixnum (mtype), event.arg);
+
+  /* Add the bus symbol to the event.  */
+  event.arg = Fcons (bus, event.arg);
+
+  /* Store it into the input event queue.  */
+  kbd_buffer_store_event (&event);
+
+  XD_DEBUG_MESSAGE ("Monitor event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+
   /* Cleanup.  */
  cleanup:
   dbus_message_unref (dmessage);
 }
 
 /* Read queued incoming messages of the D-Bus BUS.
-   BUS is either a Lisp symbol, :system or :session, or a string denoting
-   the bus address.  */
+   BUS is either a Lisp symbol, :system, :session, :system-private or
+   :session-private, or a string denoting the bus address.  */
 static Lisp_Object
 xd_read_message (Lisp_Object bus)
 {
@@ -1762,6 +1833,8 @@ syms_of_dbusbind (void)
   /* Lisp symbols of the system and session buses.  */
   DEFSYM (QCsystem, ":system");
   DEFSYM (QCsession, ":session");
+  DEFSYM (QCsystem_private, ":system-private");
+  DEFSYM (QCsession_private, ":session-private");
 
   /* Lisp symbol for method call timeout.  */
   DEFSYM (QCtimeout, ":timeout");
@@ -1788,10 +1861,11 @@ syms_of_dbusbind (void)
   DEFSYM (QCdict_entry, ":dict-entry");
 
   /* Lisp symbols of objects in `dbus-registered-objects-table'.
-     `:property', which does exist there as well, is not used here.  */
+     `:property', which does exist there as well, is not declared here.  */
   DEFSYM (QCserial, ":serial");
   DEFSYM (QCmethod, ":method");
   DEFSYM (QCsignal, ":signal");
+  DEFSYM (QCmonitor, ":monitor");
 
   DEFVAR_LISP ("dbus-compiled-version",
 	       Vdbus_compiled_version,
@@ -1867,8 +1941,9 @@ path of the sending object.  All of them can be nil, which means a
 wildcard then.
 
 OBJECT is either the handler to be called when a D-Bus message, which
-matches the key criteria, arrives (TYPE `:method' and `:signal'), or a
-list (ACCESS EMITS-SIGNAL VALUE) for TYPE `:property'.
+matches the key criteria, arrives (TYPE `:method', `:signal' and
+`:monitor'), or a list (ACCESS EMITS-SIGNAL VALUE) for TYPE
+`:property'.
 
 For entries of type `:signal', there is also a fifth element RULE,
 which keeps the match string the signal is registered with.

@@ -214,22 +214,24 @@ speed is linked to how fast you move the wheel.  This mode also
 supports increasing or decreasing the height of the default face, by
 default bound to scrolling with the @key{Ctrl} modifier.
 
+Emacs also supports horizontal scrolling with the @key{Shift} modifier.
+
 @vindex mouse-wheel-tilt-scroll
 @vindex mouse-wheel-flip-direction
-Emacs can also support horizontal scrolling if your mouse's wheel can
-be tilted, or if your touchpad supports it.  This feature is off by
-default; the variable @code{mouse-wheel-tilt-scroll} turns it on, if
-you customize it to a non-@code{nil} value.  By default, tilting the
-mouse wheel scrolls the window's view horizontally in the direction of
-the tilt: e.g., tilting to the right scrolls the window to the right,
-so that the text displayed in the window moves horizontally to the
-left.  If you'd like to reverse the direction of horizontal scrolling,
-customize the variable @code{mouse-wheel-flip-direction} to a
-non-@code{nil} value.
+If your mouse's wheel can be tilted, or if your touchpad supports it,
+then you can also enable horizontal scrolling by customizing the
+variable @code{mouse-wheel-tilt-scroll} to a non-@code{nil} value.
+By default, tilting the mouse wheel scrolls the window's view
+horizontally in the direction of the tilt: e.g., tilting to the right
+scrolls the window to the right, so that the text displayed in the
+window moves horizontally to the left.  If you'd like to reverse the
+direction of horizontal scrolling, customize the variable
+@code{mouse-wheel-flip-direction} to a non-@code{nil} value.
 
 When the mouse pointer is over an image in Image mode, @pxref{Image Mode},
 scrolling the mouse wheel with the @key{Ctrl} modifier scales the image
-under the mouse pointer.
+under the mouse pointer, and scrolling the mouse wheel with the
+@key{Shift} modifier scrolls the image horizontally.
 
 
 @node Word and Line Mouse

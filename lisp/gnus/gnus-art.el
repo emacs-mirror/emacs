@@ -274,6 +274,7 @@ This can also be a list of the above values."
 If it is a string, the command will be executed in a sub-shell
 asynchronously.  The compressed face will be piped to this command."
   :type '(choice string
+		 (const :tag "None" nil)
 		 (function-item gnus-display-x-face-in-from)
 		 function)
   :version "27.1"

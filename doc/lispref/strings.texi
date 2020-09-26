@@ -656,6 +656,16 @@ optional argument @var{ignore-case} is non-@code{nil}, the comparison
 ignores case differences.
 @end defun
 
+@defun string-search needle haystack &optional start-pos
+Return the position of the first instance of @var{needle} in
+@var{haystack}, both of which are strings.  If @var{start-pos} is
+non-@code{nil}, start searching from that position in @var{needle}.
+Return @code{nil} if no match was found.
+This function only considers the characters in the strings when doing
+the comparison; text properties are ignored.  Matching is always
+case-sensitive.
+@end defun
+
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
 This function compares a specified part of @var{string1} with a
 specified part of @var{string2}.  The specified part of @var{string1}

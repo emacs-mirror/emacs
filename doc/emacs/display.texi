@@ -1452,9 +1452,10 @@ the displayed column number to count from one, you may set
 @cindex narrowing, and line number display
   If you have narrowed the buffer (@pxref{Narrowing}), the displayed
 line number is relative to the accessible portion of the buffer.
-Thus, it isn't suitable as an argument to @code{goto-line}.  (Use
-@code{what-line} command to see the line number relative to the whole
-file.)
+Thus, it isn't suitable as an argument to @code{goto-line}.  (The
+command @code{what-line} shows the line number relative to the whole
+file.)  You can use @code{goto-line-relative} command to move point to
+the line relative to the accessible portion of the narrowed buffer.
 
 @vindex line-number-display-limit
   If the buffer is very large (larger than the value of

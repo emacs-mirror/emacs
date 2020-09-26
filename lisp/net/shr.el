@@ -555,7 +555,10 @@ size, and full-buffer size."
 	  ;; If the element was empty, we don't have anything to put the
 	  ;; anchor on.  So just insert a dummy character.
 	  (when (= start (point))
-            (insert ? )
+            (if (not (bolp))
+                (insert ? )
+              (insert ? )
+              (shr-mark-fill start))
             (put-text-property (1- (point)) (point) 'display ""))
           (put-text-property start (1+ start) 'shr-target-id id))
 	;; If style is set, then this node has set the color.
@@ -675,8 +678,11 @@ size, and full-buffer size."
 	  (goto-char start)
 	  (when (looking-at "[ \t\n\r]+")
 	    (replace-match "" t t))
-	  (while (re-search-forward "[ \t\n\r]+" nil t)
+	  (while (re-search-forward "[\t\n\r]+" nil t)
 	    (replace-match " " t t))
+	  (goto-char start)
+          (while (re-search-forward "  +" nil t)
+            (replace-match " " t t))
           (shr--translate-insertion-chars)
 	  (goto-char (point-max)))
 	;; We may have removed everything we inserted if it was just

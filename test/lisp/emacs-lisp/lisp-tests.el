@@ -136,8 +136,7 @@
     (text-mode)
     (insert "\"foo\"")
     (goto-char (point-min))
-    (delete-pair)
-    (should (string-equal "fo\"" (buffer-string)))))
+    (should-error (delete-pair))))
 
 (ert-deftest lisp-delete-pair-quotes-text-mode-syntax-table ()
   "Test \\[delete-pair] with modified Text Mode syntax for #15014."
@@ -296,7 +295,7 @@
   (lambda () (up-list 1 t t))
   (or "(1 '2 ( 2' 1 '2 ) 2' 1)")
   ;;   abcdefghijklmnopqrstuvwxy
-  i k x scan-error)
+  i k x user-error)
 
 (define-lisp-up-list-test backward-up-list-basic
   (lambda () (backward-up-list))

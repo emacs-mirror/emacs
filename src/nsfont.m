@@ -39,9 +39,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "pdumper.h"
 
 /* TODO: Drop once we can assume gnustep-gui 0.17.1.  */
-#ifdef NS_IMPL_GNUSTEP
 #import <AppKit/NSFontDescriptor.h>
-#endif
 
 #define NSFONT_TRACE 0
 #define LCD_SMOOTHING_MARGIN 2
@@ -237,12 +235,6 @@ ns_char_width (NSFont *sfont, int c)
   CGFloat w = -1.0;
   NSString *cstr = [NSString stringWithFormat: @"%c", c];
 
-#ifdef NS_IMPL_COCOA
-  NSGlyph glyph = [sfont glyphWithName: cstr];
-  if (glyph)
-    w = [sfont advancementForGlyph: glyph].width;
-#endif
-
   if (w < 0.0)
     {
       NSDictionary *attrsDictionary =
@@ -272,12 +264,6 @@ ns_ascii_average_width (NSFont *sfont)
 
       ascii_printable = [[NSString alloc] initWithFormat: @"%s", chars];
     }
-
-#ifdef NS_IMPL_COCOA
-  NSGlyph glyph = [sfont glyphWithName: ascii_printable];
-  if (glyph)
-    w = [sfont advancementForGlyph: glyph].width;
-#endif
 
   if (w < (CGFloat) 0.0)
     {
@@ -511,10 +497,6 @@ static NSSet
 	      }
             [charset release];
 	  }
-#ifdef NS_IMPL_COCOA
-	if ([families count] == 0)
-	    [families addObject: @"LastResort"];
-#endif
 	[scriptToFamilies setObject: families forKey: script];
       }
 
@@ -734,11 +716,6 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
                                 traits: traits & ~NSItalicFontMask
                                 weight: fixLeopardBug size: pixel_size];
     }
-#ifdef NS_IMPL_COCOA
-  /* LastResort not really a family */
-  if (nsfont == nil && [@"LastResort" isEqualToString: family])
-      nsfont = [NSFont fontWithName: @"LastResort" size: pixel_size];
-#endif
 
   if (nsfont == nil)
     {
@@ -765,12 +742,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   font_info->metrics = xzalloc (0x100 * sizeof *font_info->metrics);
 
   /* for metrics */
-#ifdef NS_IMPL_COCOA
-  sfont = [nsfont screenFontWithRenderingMode:
-                    NSFontAntialiasedIntegerAdvancementsRenderingMode];
-#else
   sfont = [nsfont screenFont];
-#endif
 
   if (sfont == nil)
     sfont = nsfont;
@@ -797,11 +769,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
      * intended.  */
     CGFloat adjusted_descender = [sfont descender] + 0.0001;
 
-#ifdef NS_IMPL_GNUSTEP
     font_info->nsfont = sfont;
-#else
-    font_info->nsfont = nsfont;
-#endif
     [font_info->nsfont retain];
 
     /* set up ns_font (defined in nsgui.h) */
@@ -833,32 +801,6 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     font_info->max_bounds.lbearing = lrint (brect.origin.x);
     font_info->max_bounds.rbearing =
       lrint (brect.size.width - (CGFloat) font_info->width);
-
-#ifdef NS_IMPL_COCOA
-    /* set up synthItal and the CG font */
-    font_info->synthItal = synthItal;
-    {
-      ATSFontRef atsFont = ATSFontFindFromPostScriptName
-        ((CFStringRef)[nsfont fontName], kATSOptionFlagsDefault);
-
-      if (atsFont == kATSFontRefUnspecified)
-        {
-          /* see if we can get it by dropping italic (then synthesizing) */
-          atsFont = ATSFontFindFromPostScriptName ((CFStringRef)
-              [[fontMgr convertFont: nsfont toNotHaveTrait: NSItalicFontMask]
-                fontName], kATSOptionFlagsDefault);
-          if (atsFont != kATSFontRefUnspecified)
-              font_info->synthItal = YES;
-          else
-            {
-              /* last resort fallback */
-              atsFont = ATSFontFindFromPostScriptName
-                ((CFStringRef)@"Monaco", kATSOptionFlagsDefault);
-            }
-        }
-      font_info->cgfont = CGFontCreateWithPlatformFont ((void *) &atsFont);
-    }
-#endif
 
     /* set up metrics portion of font struct */
     font->ascent = lrint([sfont ascender]);
@@ -901,9 +843,6 @@ nsfont_close (struct font *font)
       xfree (font_info->glyphs);
       xfree (font_info->metrics);
       [font_info->nsfont release];
-#ifdef NS_IMPL_COCOA
-      CGFontRelease (font_info->cgfont);
-#endif
       xfree (font_info->name);
       font_info->name = NULL;
     }
@@ -994,17 +933,12 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 {
   static unsigned char cbuf[1024];
   unsigned char *c = cbuf;
-#ifdef NS_IMPL_GNUSTEP
 #if GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION > 22
   static CGFloat advances[1024];
   CGFloat *adv = advances;
 #else
   static float advances[1024];
   float *adv = advances;
-#endif
-#else
-  static CGSize advances[1024];
-  CGSize *adv = advances;
 #endif
   struct face *face;
   NSRect r;
@@ -1073,11 +1007,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 		else
 		  {
 		    cwidth = LGLYPH_WADJUST (glyph);
-#ifdef NS_IMPL_GNUSTEP
 		    *(adv-1) += LGLYPH_XOFF (glyph);
-#else
-		    (*(adv-1)).width += LGLYPH_XOFF (glyph);
-#endif
 		  }
 	      }
           }
@@ -1088,12 +1018,8 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
             cwidth = font->metrics[hi][lo].width;
           }
         twidth += cwidth;
-#ifdef NS_IMPL_GNUSTEP
         *adv++ = cwidth;
         c += CHAR_STRING (*t, c); /* This converts the char to UTF-8.  */
-#else
-        (*adv++).width = cwidth;
-#endif
       }
     len = adv - advances;
     r.size.width = twidth;
@@ -1192,61 +1118,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     DPSgrestore (context);
   }
 
-#else  /* NS_IMPL_COCOA */
-  {
-    CGContextRef gcontext =
-      [[NSGraphicsContext currentContext] graphicsPort];
-    static CGAffineTransform fliptf;
-    static BOOL firstTime = YES;
-
-    if (firstTime)
-      {
-        firstTime = NO;
-        fliptf = CGAffineTransformMakeScale (1.0, -1.0);
-      }
-
-    CGContextSaveGState (gcontext);
-
-    // Used to be Fix2X (kATSItalicQDSkew), but Fix2X is deprecated
-    // and kATSItalicQDSkew is 0.25.
-    fliptf.c =  font->synthItal ? 0.25 : 0.0;
-
-    CGContextSetFont (gcontext, font->cgfont);
-    CGContextSetFontSize (gcontext, font->size);
-    if (NILP (ns_antialias_text) || font->size <= ns_antialias_threshold)
-      CGContextSetShouldAntialias (gcontext, 0);
-    else
-      CGContextSetShouldAntialias (gcontext, 1);
-
-    CGContextSetTextMatrix (gcontext, fliptf);
-
-    if (bgCol != nil)
-      {
-        /* foreground drawing; erase first to avoid overstrike */
-        [bgCol set];
-        CGContextSetTextDrawingMode (gcontext, kCGTextFillStroke);
-        CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b, advances, len);
-        CGContextSetTextDrawingMode (gcontext, kCGTextFill);
-      }
-
-    [col set];
-
-    CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + from,
-                                     advances, len);
-
-    if (face->overstrike)
-      {
-        CGContextSetTextPosition (gcontext, r.origin.x+0.5, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + from,
-                                         advances, len);
-      }
-
-    CGContextRestoreGState (gcontext);
-  }
-#endif  /* NS_IMPL_COCOA */
-
   unblock_input ();
   return to-from;
 }
@@ -1264,10 +1135,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 static void
 ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 {
-#ifdef NS_IMPL_COCOA
-  static EmacsGlyphStorage *glyphStorage;
-  static char firstTime = 1;
-#endif
   unichar *unichars = xmalloc (0x101 * sizeof (unichar));
   unsigned int i, g, idx;
   unsigned short *glyphs;
@@ -1277,14 +1144,6 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
             font_info, block);
 
   block_input ();
-
-#ifdef NS_IMPL_COCOA
-  if (firstTime)
-    {
-      firstTime = 0;
-      glyphStorage = [[EmacsGlyphStorage alloc] initWithCapacity: 0x100];
-    }
-#endif
 
   font_info->glyphs[block] = xmalloc (0x100 * sizeof (unsigned short));
   if (!unichars || !(font_info->glyphs[block]))
@@ -1299,38 +1158,16 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
   unichars[0x100] = 0;
 
   {
-#ifdef NS_IMPL_COCOA
-    NSString *allChars = [[NSString alloc]
-                               initWithCharactersNoCopy: unichars
-                                                 length: 0x100
-                                           freeWhenDone: NO];
-    NSGlyphGenerator *glyphGenerator = [NSGlyphGenerator sharedGlyphGenerator];
-    /* NSCharacterSet *coveredChars = [nsfont coveredCharacterSet]; */
-    unsigned int numGlyphs = [font_info->nsfont numberOfGlyphs];
-    NSUInteger gInd = 0, cInd = 0;
-
-    [glyphStorage setString: allChars font: font_info->nsfont];
-    [glyphGenerator generateGlyphsForGlyphStorage: glyphStorage
-                        desiredNumberOfCharacters: glyphStorage->maxChar
-                                       glyphIndex: &gInd characterIndex: &cInd];
-#endif
     glyphs = font_info->glyphs[block];
     for (i = 0; i < 0x100; i++, glyphs++)
       {
-#ifdef NS_IMPL_GNUSTEP
         g = unichars[i];
-#else
         g = glyphStorage->cglyphs[i];
         /* TODO: is this a good check?  Maybe need to use coveredChars.  */
         if (g > numGlyphs || g == NSNullGlyph)
           g = INVALID_GLYPH; /* Hopefully unused...  */
-#endif
         *glyphs = g;
       }
-
-#ifdef NS_IMPL_COCOA
-    [allChars release];
-#endif
   }
 
   unblock_input ();
@@ -1352,19 +1189,12 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
     fprintf (stderr, "%p\tComputing metrics for glyphs in block %d\n",
             font_info, block);
 
-#ifdef NS_IMPL_GNUSTEP
   /* not implemented yet (as of startup 0.18), so punt */
   if (numGlyphs == 0)
     numGlyphs = 0x10000;
-#endif
 
   block_input ();
-#ifdef NS_IMPL_COCOA
-  sfont = [font_info->nsfont screenFontWithRenderingMode:
-                      NSFontAntialiasedIntegerAdvancementsRenderingMode];
-#else
   sfont = [font_info->nsfont screenFont];
-#endif
 
   font_info->metrics[block] = xzalloc (0x100 * sizeof (struct font_metrics));
   if (!(font_info->metrics[block]))
@@ -1395,76 +1225,6 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
     }
   unblock_input ();
 }
-
-
-#ifdef NS_IMPL_COCOA
-/* Helper for font glyph setup.  */
-@implementation EmacsGlyphStorage
-
-- init
-{
-  return [self initWithCapacity: 1024];
-}
-
-- initWithCapacity: (unsigned long) c
-{
-  self = [super init];
-  maxChar = 0;
-  maxGlyph = 0;
-  dict = [NSMutableDictionary new];
-  cglyphs = xmalloc (c * sizeof (CGGlyph));
-  return self;
-}
-
-- (void) dealloc
-{
-  if (attrStr != nil)
-    [attrStr release];
-  [dict release];
-  xfree (cglyphs);
-  [super dealloc];
-}
-
-- (void) setString: (NSString *)str font: (NSFont *)font
-{
-  [dict setObject: font forKey: NSFontAttributeName];
-  if (attrStr != nil)
-    [attrStr release];
-  attrStr = [[NSAttributedString alloc] initWithString: str attributes: dict];
-  maxChar = [str length];
-  maxGlyph = 0;
-}
-
-/* NSGlyphStorage protocol */
-- (NSUInteger)layoutOptions
-{
-  return 0;
-}
-
-- (NSAttributedString *)attributedString
-{
-  return attrStr;
-}
-
-- (void)insertGlyphs: (const NSGlyph *)glyphs length: (NSUInteger)length
-        forStartingGlyphAtIndex: (NSUInteger)glyphIndex
-        characterIndex: (NSUInteger)charIndex
-{
-  len = glyphIndex+length;
-  for (i =glyphIndex; i<len; i++)
-    cglyphs[i] = glyphs[i-glyphIndex];
-  if (len > maxGlyph)
-    maxGlyph = len;
-}
-
-- (void)setIntAttribute: (NSInteger)attributeTag value: (NSInteger)val
-        forGlyphAtIndex: (NSUInteger)glyphIndex
-{
-  return;
-}
-
-@end
-#endif /* NS_IMPL_COCOA */
 
 
 /* Debugging */

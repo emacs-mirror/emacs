@@ -1993,25 +1993,11 @@ The replacement is used to convert tabs and new-lines to spaces."
 
 (defun artist-replace-chars (new-char count)
   "Replace characters at point with NEW-CHAR.  COUNT chars are replaced."
-  ;; Check that the variable exists first. The doc says it was added in 19.23.
-  (if (and (and (boundp 'emacs-major-version) (= emacs-major-version 20))
-	   (and (boundp 'emacs-minor-version) (<= emacs-minor-version 3)))
-      ;; This is a bug workaround for Emacs 20, versions up to 20.3:
-      ;; The self-insert-command doesn't care about the overwrite-mode,
-      ;; so the insertion is done in the same way as in picture mode.
-      ;; This seems to be a little bit slower.
-      (let* ((replaced-c (artist-get-replacement-char new-char))
-	     (replaced-s (make-string count replaced-c)))
-	(artist-move-to-xy (+ (artist-current-column) count)
-			   (artist-current-line))
-	(delete-char (- count))
-	(insert replaced-s))
-    ;; In emacs-19, the self-insert-command works better
-    (let ((overwrite-mode 'overwrite-mode-textual)
-	  (fill-column 32765)		; Large :-)
-	  (blink-matching-paren nil))
-      (setq last-command-event (artist-get-replacement-char new-char))
-      (self-insert-command count))))
+  (let ((overwrite-mode 'overwrite-mode-textual)
+        (fill-column 32765)		; Large :-)
+        (blink-matching-paren nil))
+    (setq last-command-event (artist-get-replacement-char new-char))
+    (self-insert-command count)))
 
 (defsubst artist-replace-string (string &optional see-thru)
   "Replace contents at point with STRING.

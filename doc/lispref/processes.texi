@@ -1576,7 +1576,8 @@ from previous output.
 @defun set-process-buffer process buffer
 This function sets the buffer associated with @var{process} to
 @var{buffer}.  If @var{buffer} is @code{nil}, the process becomes
-associated with no buffer.
+associated with no buffer; if non-@code{nil}, the process mark will be
+set to point to the end of @var{buffer}.
 @end defun
 
 @defun get-buffer-process buffer-or-name

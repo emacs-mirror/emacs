@@ -123,6 +123,9 @@ Return first line of the output of (describe-function-1 FUNC)."
     (goto-char (point-min))
     (should (looking-at "^font-lock-comment-face is "))))
 
+(defvar foo-test-map)
+(defvar help-fns-test--describe-keymap-foo)
+
 
 ;;; Tests for describe-keymap
 (ert-deftest help-fns-test-find-keymap-name ()

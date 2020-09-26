@@ -166,6 +166,8 @@
   (should (equal (should-error (sort "cba" #'<) :type 'wrong-type-argument)
                  '(wrong-type-argument list-or-vector-p "cba"))))
 
+(defvar w32-collate-ignore-punctuation)
+
 (ert-deftest fns-tests-collate-sort ()
   (skip-unless (fns-tests--collate-enabled-p))
 
@@ -228,9 +230,9 @@
   (should (equal (func-arity 'format) '(1 . many)))
   (require 'info)
   (should (equal (func-arity 'Info-goto-node) '(1 . 3)))
-  (should (equal (func-arity (lambda (&rest x))) '(0 . many)))
-  (should (equal (func-arity (eval '(lambda (x &optional y)) nil)) '(1 . 2)))
-  (should (equal (func-arity (eval '(lambda (x &optional y)) t)) '(1 . 2)))
+  (should (equal (func-arity (lambda (&rest _x))) '(0 . many)))
+  (should (equal (func-arity (eval '(lambda (_x &optional y)) nil)) '(1 . 2)))
+  (should (equal (func-arity (eval '(lambda (_x &optional y)) t)) '(1 . 2)))
   (should (equal (func-arity 'let) '(1 . unevalled))))
 
 (defun fns-tests--string-repeat (s o)
@@ -901,3 +903,54 @@
     (should (equal (delete t [nil t]) [nil]))
     (should (equal (delete 1 v1) (vector)))
     (should (equal (delete 2 v1) v1))))
+
+(ert-deftest string-search ()
+  (should (equal (string-search "zot" "foobarzot") 6))
+  (should (equal (string-search "foo" "foobarzot") 0))
+  (should (not (string-search "fooz" "foobarzot")))
+  (should (not (string-search "zot" "foobarzo")))
+  (should (equal (string-search "ab" "ab") 0))
+  (should (equal (string-search "ab\0" "ab") nil))
+  (should (equal (string-search "ab" "abababab" 3) 4))
+  (should (equal (string-search "ab" "ababac" 3) nil))
+  (let ((case-fold-search t))
+    (should (equal (string-search "ab" "AB") nil)))
+
+  (should (equal
+           (string-search (make-string 2 130)
+	                  (concat "helló" (make-string 5 130 t) "bár"))
+           5))
+  (should (equal
+           (string-search (make-string 2 127)
+	                  (concat "helló" (make-string 5 127 t) "bár"))
+           5))
+
+  (should (equal (string-search "\377" "a\377ø") 1))
+  (should (equal (string-search "\377" "a\377a") 1))
+
+  (should (not (string-search (make-string 1 255) "a\377ø")))
+  (should (not (string-search (make-string 1 255) "a\377a")))
+
+  (should (equal (string-search "fóo" "zotfóo") 3))
+
+  (should (equal (string-search (string-to-multibyte "\377") "ab\377c") 2))
+  (should (equal (string-search "\303" "aøb") nil))
+  (should (equal (string-search "\270" "aøb") nil))
+  ;; This test currently fails, but it shouldn't!
+  ;;(should (equal (string-search "ø" "\303\270") nil))
+
+  (should-error (string-search "a" "abc" -1))
+  (should-error (string-search "a" "abc" 4))
+  (should-error (string-search "a" "abc" 100000000000))
+
+  (should (equal (string-search "a" "aaa" 3) nil))
+  (should (equal (string-search "\0" "") nil))
+
+  (should (equal (string-search "" "") 0))
+  (should-error (string-search "" "" 1))
+  (should (equal (string-search "" "abc") 0))
+  (should (equal (string-search "" "abc" 2) 2))
+  (should (equal (string-search "" "abc" 3) 3))
+  (should-error (string-search "" "abc" 4))
+  (should-error (string-search "" "abc" -1))
+  )

@@ -187,18 +187,15 @@
   "Tests `ert-describe-test'."
   (save-window-excursion
     (ert-with-buffer-renamed ("*Help*")
-      (if (< emacs-major-version 24)
-          (should (equal (should-error (ert-describe-test 'ert-describe-test))
-                         '(error "Requires Emacs 24")))
-        (ert-describe-test 'ert-test-describe-test)
-        (with-current-buffer "*Help*"
-          (let ((case-fold-search nil))
-            (should (string-match (concat
-                                   "\\`ert-test-describe-test is a test"
-                                   " defined in"
-                                   " ['`‘]ert-x-tests.elc?['’]\\.\n\n"
-                                   "Tests ['`‘]ert-describe-test['’]\\.\n\\'")
-                                  (buffer-string)))))))))
+      (ert-describe-test 'ert-test-describe-test)
+      (with-current-buffer "*Help*"
+        (let ((case-fold-search nil))
+          (should (string-match (concat
+                                 "\\`ert-test-describe-test is a test"
+                                 " defined in"
+                                 " ['`‘]ert-x-tests.elc?['’]\\.\n\n"
+                                 "Tests ['`‘]ert-describe-test['’]\\.\n\\'")
+                                (buffer-string))))))))
 
 (ert-deftest ert-test-message-log-truncation ()
   :tags '(:causes-redisplay)

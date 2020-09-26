@@ -1716,6 +1716,7 @@ This is a specialization of `soap-encode-value' for
                      ((and (not (eq indicator 'choice))
                            (= instance-count 0)
                            (not (soap-xs-element-optional? element))
+                           (not (soap-xs-complex-type-optional? type))
                            (and (soap-xs-complex-type-p element-type)
                                 (not (soap-xs-complex-type-optional-p
                                       element-type))))

@@ -3796,7 +3796,7 @@ was `continue'.  This behavior slightly differentiates the `continue' command
 from the `exit' command listed in `python-pdbtrack-exit-command'.
 
 See `python-pdbtrack-activate' for pdbtracking session overview."
-  :type 'list
+  :type '(repeat string)
   :version "27.1")
 
 (defcustom python-pdbtrack-exit-command '("q" "quit" "exit")
@@ -3805,7 +3805,7 @@ After one of this commands is sent to pdb, pdbtracking session is
 considered over.
 
 See `python-pdbtrack-activate' for pdbtracking session overview."
-  :type 'list
+  :type '(repeat string)
   :version "27.1")
 
 (defcustom python-pdbtrack-kill-buffers t

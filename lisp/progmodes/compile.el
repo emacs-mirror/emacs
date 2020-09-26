@@ -64,7 +64,8 @@ If nil, use Emacs default."
 If the replacement is nil, the file will not be considered an
 error after all.  If not nil, it should be a regexp replacement
 string."
-  :type '(repeat (list regexp string))
+  :type '(repeat (list regexp (choice (const :tag "No replacement" nil)
+                                      string)))
   :version "27.1")
 
 (defvar compilation-filter-hook nil
@@ -448,6 +449,9 @@ during global destruction\\.$\\)" 1 2)
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
  \\([0-9]+\\) of file://\\(.+\\)"
      4 2 3 (1))
+
+    (shellcheck
+     "^In \\(.+\\) line \\([0-9]+\\):" 1 2)
 
     (sparc-pascal-file
      "^\\w\\w\\w \\w\\w\\w +[0-3]?[0-9] +[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\

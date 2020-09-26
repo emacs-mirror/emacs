@@ -776,12 +776,6 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
     (modify-syntax-entry ?> "." table)
     (modify-syntax-entry ?| "." table)
     (modify-syntax-entry ?\' "\"" table)
-
-    ;; Any better way to handle the 0'<char> construct?!?
-    (when (and prolog-char-quote-workaround
-               (not (fboundp 'syntax-propertize-rules)))
-      (modify-syntax-entry ?0 "\\" table))
-
     (modify-syntax-entry ?% "<" table)
     (modify-syntax-entry ?\n ">" table)
     (modify-syntax-entry ?* ". 23b" table)
@@ -1047,21 +1041,19 @@ VERSION is of the format (Major . Minor)"
       alist)))
 
 (defconst prolog-syntax-propertize-function
-  (when (fboundp 'syntax-propertize-rules)
-    (syntax-propertize-rules
-     ;; GNU Prolog only accepts 0'\' rather than 0'', but the only
-     ;; possible meaning of 0'' is rather clear.
-     ("\\<0\\(''?\\)"
-      (1 (unless (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
-           (string-to-syntax "_"))))
-     ;; We could check that we're not inside an atom, but I don't think
-     ;; that 'foo 8'z could be a valid syntax anyway, so why bother?
-     ("\\<[1-9][0-9]*\\('\\)[0-9a-zA-Z]" (1 "_"))
-     ;; Supposedly, ISO-Prolog wants \NNN\ for octal and \xNNN\ for hexadecimal
-     ;; escape sequences in atoms, so be careful not to let the terminating \
-     ;; escape a subsequent quote.
-     ("\\\\[x0-7][[:xdigit:]]*\\(\\\\\\)" (1 "_"))
-     )))
+  (syntax-propertize-rules
+   ;; GNU Prolog only accepts 0'\' rather than 0'', but the only
+   ;; possible meaning of 0'' is rather clear.
+   ("\\<0\\(''?\\)"
+    (1 (unless (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+         (string-to-syntax "_"))))
+   ;; We could check that we're not inside an atom, but I don't think
+   ;; that 'foo 8'z could be a valid syntax anyway, so why bother?
+   ("\\<[1-9][0-9]*\\('\\)[0-9a-zA-Z]" (1 "_"))
+   ;; Supposedly, ISO-Prolog wants \NNN\ for octal and \xNNN\ for hexadecimal
+   ;; escape sequences in atoms, so be careful not to let the terminating \
+   ;; escape a subsequent quote.
+   ("\\\\[x0-7][[:xdigit:]]*\\(\\\\\\)" (1 "_"))))
 
 (defun prolog-mode-variables ()
   "Set some common variables to Prolog code specific values."
@@ -1886,14 +1878,7 @@ Argument BOUND is a buffer position limiting searching."
                    bound t)))
     point))
 
-(defsubst prolog-face-name-p (facename)
-  ;; Return t if FACENAME is the name of a face.  This method is
-  ;; necessary since facep in XEmacs only returns t for the actual
-  ;; face objects (while it's only their names that are used just
-  ;; about anywhere else) without providing a predicate that tests
-  ;; face names.  This function (including the above commentary) is
-  ;; borrowed from cc-mode.
-  (memq facename (face-list)))
+(define-obsolete-function-alias 'prolog-face-name-p 'facep "28.1")
 
 ;; Set everything up
 (defun prolog-font-lock-keywords ()
@@ -1928,6 +1913,8 @@ Argument BOUND is a buffer position limiting searching."
       (t (:underline t)))
     "Face name to use for compiler warnings."
     :group 'prolog-faces)
+  (define-obsolete-face-alias 'prolog-warning-face
+    'font-lock-warning-face "28.1")
   (defface prolog-builtin-face
     '((((class color) (background light)) (:foreground "Purple"))
       (((class color) (background dark)) (:foreground "Cyan"))
@@ -1937,15 +1924,11 @@ Argument BOUND is a buffer position limiting searching."
       (t (:bold t)))
     "Face name to use for compiler warnings."
     :group 'prolog-faces)
-  (defvar prolog-warning-face
-    (if (prolog-face-name-p 'font-lock-warning-face)
-        'font-lock-warning-face
-      'prolog-warning-face)
+  (define-obsolete-face-alias 'prolog-builtin-face
+    'font-lock-builtin-face "28.1")
+  (defvar prolog-warning-face 'font-lock-warning-face
     "Face name to use for built in predicates.")
-  (defvar prolog-builtin-face
-    (if (prolog-face-name-p 'font-lock-builtin-face)
-        'font-lock-builtin-face
-      'prolog-builtin-face)
+  (defvar prolog-builtin-face 'font-lock-builtin-face
     "Face name to use for built in predicates.")
   (defvar prolog-redo-face 'prolog-redo-face
     "Face name to use for redo trace lines.")
@@ -2291,12 +2274,12 @@ between them)."
             (progn
               (goto-char cbeg)
               (search-forward-regexp "%+[ \t]*" end t)
-              (prolog-replace-in-string (buffer-substring beg (point))
-                                        "[^ \t%]" " "))
+              (replace-regexp-in-string "[^ \t%]" " "
+                                        (buffer-substring beg (point))))
           ;(goto-char beg)
           (if (search-forward-regexp "^[ \t]*\\(%+\\|\\*+\\|/\\*+\\)[ \t]*"
                                      end t)
-              (prolog-replace-in-string (buffer-substring beg (point)) "/" " ")
+              (replace-regexp-in-string "/" " " (buffer-substring beg (point)))
             (beginning-of-line)
             (when (search-forward-regexp "^[ \t]+" end t)
               (buffer-substring beg (point)))))))))
@@ -2336,11 +2319,10 @@ In effect it sets the `fill-prefix' when inside comments and then calls
     (do-auto-fill)
     ))
 
-(defalias 'prolog-replace-in-string
-  (if (fboundp 'replace-in-string)
-      #'replace-in-string
-    (lambda (str regexp newtext &optional literal)
-      (replace-regexp-in-string regexp newtext str nil literal))))
+(defun prolog-replace-in-string (str regexp newtext &optional literal)
+  (declare (obsolete replace-regexp-in-string "28.1"))
+  (replace-regexp-in-string regexp newtext str nil literal))
+
 
 ;;-------------------------------------------------------------------
 ;; Online help
@@ -3083,12 +3065,8 @@ The module name should be written manually just before the semi-colon."
   (insert "%%% -*- Module: ; -*-\n")
   (backward-char 6))
 
-(defalias 'prolog-uncomment-region
-  (if (fboundp 'uncomment-region) #'uncomment-region
-    (lambda (beg end)
-      "Uncomment the region between BEG and END."
-      (interactive "r")
-      (comment-region beg end -1))))
+(define-obsolete-function-alias 'prolog-uncomment-region
+  'uncomment-region "28.1")
 
 (defun prolog-indent-predicate ()
   "Indent the current predicate."
@@ -3374,7 +3352,7 @@ PREFIX is the prefix of the search regexp."
   "Commands for Prolog code manipulation."
   '("Prolog"
     ["Comment region" comment-region (use-region-p)]
-    ["Uncomment region" prolog-uncomment-region (use-region-p)]
+    ["Uncomment region" uncomment-region (use-region-p)]
     ["Add comment/move to comment" indent-for-comment t]
     ["Convert variables in region to '_'" prolog-variables-to-anonymous
      :active (use-region-p) :included (not (eq prolog-system 'mercury))]

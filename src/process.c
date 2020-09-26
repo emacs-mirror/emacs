@@ -1205,6 +1205,16 @@ not the name of the pty that Emacs uses to talk with that terminal.  */)
   return XPROCESS (process)->tty_name;
 }
 
+static void
+update_process_mark (struct Lisp_Process *p)
+{
+  Lisp_Object buffer = p->buffer;
+  if (BUFFERP (buffer))
+    set_marker_both (p->mark, buffer,
+		     BUF_ZV (XBUFFER (buffer)),
+		     BUF_ZV_BYTE (XBUFFER (buffer)));
+}
+
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
        2, 2, 0,
        doc: /* Set buffer associated with PROCESS to BUFFER (a buffer, or nil).
@@ -1217,7 +1227,11 @@ Return BUFFER.  */)
   if (!NILP (buffer))
     CHECK_BUFFER (buffer);
   p = XPROCESS (process);
-  pset_buffer (p, buffer);
+  if (!EQ (p->buffer, buffer))
+    {
+      pset_buffer (p, buffer);
+      update_process_mark (p);
+    }
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
     pset_childp (p, Fplist_put (p->childp, QCbuffer, buffer));
   setup_process_coding_systems (process);
@@ -1637,6 +1651,7 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
   return Fmapcar (Qcdr, Vprocess_alist);
 }
 
+
 /* Starting asynchronous inferior processes.  */
 
 DEFUN ("make-process", Fmake_process, Smake_process, 0, MANY, 0,
@@ -1805,10 +1820,7 @@ usage: (make-process &rest ARGS)  */)
        : EQ (Vprocess_adaptive_read_buffering, Qt) ? 1 : 2);
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (BUFFERP (buffer))
-    set_marker_both (XPROCESS (proc)->mark, buffer,
-		     BUF_ZV (XBUFFER (buffer)),
-		     BUF_ZV_BYTE (XBUFFER (buffer)));
+  update_process_mark (XPROCESS (proc));
 
   USE_SAFE_ALLOCA;
 
@@ -2453,10 +2465,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
        : EQ (Vprocess_adaptive_read_buffering, Qt) ? 1 : 2);
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (BUFFERP (buffer))
-    set_marker_both (p->mark, buffer,
-		     BUF_ZV (XBUFFER (buffer)),
-		     BUF_ZV_BYTE (XBUFFER (buffer)));
+  update_process_mark (p);
 
   {
     /* Setup coding systems for communicating with the network stream.  */
@@ -3182,12 +3191,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   if (!EQ (p->command, Qt))
     add_process_read_fd (fd);
 
-  if (BUFFERP (buffer))
-    {
-      set_marker_both (p->mark, buffer,
-		       BUF_ZV (XBUFFER (buffer)),
-		       BUF_ZV_BYTE (XBUFFER (buffer)));
-    }
+  update_process_mark (p);
 
   tem = Fplist_get (contact, QCcoding);
 
@@ -3664,10 +3668,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
     pset_status (p, Qlisten);
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (BUFFERP (p->buffer))
-    set_marker_both (p->mark, p->buffer,
-		     BUF_ZV (XBUFFER (p->buffer)),
-		     BUF_ZV_BYTE (XBUFFER (p->buffer)));
+  update_process_mark (p);
 
   if (p->is_non_blocking_client)
     {

@@ -635,6 +635,8 @@ FILE is created there."
   (save-excursion
     (setq file (expand-file-name file (or directory
 					  temporary-file-directory)))
+    (unless (file-exists-p (file-name-directory file))
+      (make-directory (file-name-directory file) t))
     (find-file-other-window file)
     (setq buffer-read-only nil)
     (goto-char (point-max))

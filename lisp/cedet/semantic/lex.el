@@ -1701,9 +1701,6 @@ If there is no error, then the last value of FORMS is returned."
     `(let* ((semantic-lex-unterminated-syntax-end-function
              (lambda (,syntax ,start ,end)
                (throw ',symbol ,syntax)))
-            ;; Delete the below when semantic-flex is fully retired.
-            (semantic-flex-unterminated-syntax-end-function
-             semantic-lex-unterminated-syntax-end-function)
             (,ret (catch ',symbol
                     (save-excursion
                       ,@forms

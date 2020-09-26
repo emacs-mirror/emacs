@@ -77,7 +77,6 @@
 
 ;;;_* Dependency loads
 (require 'overlay)
-(eval-when-compile (require 'cl-lib))
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
@@ -840,20 +839,6 @@ for restoring when all encryptions are established.")
 (defgroup allout-developer nil
   "Allout settings developers care about, including topic encryption and more."
   :group 'allout)
-;;;_  = allout-run-unit-tests-on-load
-(defcustom allout-run-unit-tests-on-load nil
-  "When non-nil, unit tests will be run at end of loading the allout module.
-
-Generally, allout code developers are the only ones who'll want to set this.
-
-\(If set, this makes it an even better practice to exercise changes by
-doing byte-compilation with a repeat count, so the file is loaded after
-compilation.)
-
-See `allout-run-unit-tests' to see what's run."
-  :type 'boolean
-  :group 'allout-developer)
-
 ;;;_ + Miscellaneous customization
 
 ;;;_  = allout-enable-file-variable-adjustment
@@ -6518,136 +6503,7 @@ If BEG is bigger than END we return 0."
     (isearch-repeat 'forward)
     (isearch-mode t)))
 
-;;;_ #11 Unit tests -- this should be last item before "Provide"
-;;;_  > allout-run-unit-tests ()
-(defun allout-run-unit-tests ()
-  "Run the various allout unit tests."
-  (message "Running allout tests...")
-  (allout-test-resumptions)
-  (message "Running allout tests...  Done.")
-  (sit-for .5))
-;;;_  : test resumptions:
-;;;_   > allout-tests-obliterate-variable (name)
-(defun allout-tests-obliterate-variable (name)
-  "Completely unbind variable with NAME."
-  (if (local-variable-p name (current-buffer)) (kill-local-variable name))
-  (while (boundp name) (makunbound name)))
-;;;_   > allout-test-resumptions ()
-(defvar allout-tests-globally-unbound nil
-  "Fodder for allout resumptions tests -- defvar just for byte compiler.")
-(defvar allout-tests-globally-true nil
-  "Fodder for allout resumptions tests -- defvar just for byte compiler.")
-(defvar allout-tests-locally-true nil
-  "Fodder for allout resumptions tests -- defvar just for byte compiler.")
-(defun allout-test-resumptions ()
-  ;; FIXME: Use ERT.
-  "Exercise allout resumptions."
-  ;; for each resumption case, we also test that the right local/global
-  ;; scopes are affected during resumption effects:
-
-  ;; ensure that previously unbound variables return to the unbound state.
-  (with-temp-buffer
-    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
-    (allout-add-resumptions '(allout-tests-globally-unbound t))
-    (cl-assert (not (default-boundp 'allout-tests-globally-unbound)))
-    (cl-assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
-    (cl-assert (boundp 'allout-tests-globally-unbound))
-    (cl-assert (equal allout-tests-globally-unbound t))
-    (allout-do-resumptions)
-    (cl-assert (not (local-variable-p 'allout-tests-globally-unbound
-                                   (current-buffer))))
-    (cl-assert (not (boundp 'allout-tests-globally-unbound))))
-
-  ;; ensure that variable with prior global value is resumed
-  (with-temp-buffer
-    (allout-tests-obliterate-variable 'allout-tests-globally-true)
-    (setq allout-tests-globally-true t)
-    (allout-add-resumptions '(allout-tests-globally-true nil))
-    (cl-assert (equal (default-value 'allout-tests-globally-true) t))
-    (cl-assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
-    (cl-assert (equal allout-tests-globally-true nil))
-    (allout-do-resumptions)
-    (cl-assert (not (local-variable-p 'allout-tests-globally-true
-                                   (current-buffer))))
-    (cl-assert (boundp 'allout-tests-globally-true))
-    (cl-assert (equal allout-tests-globally-true t)))
-
-  ;; ensure that prior local value is resumed
-  (with-temp-buffer
-    (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (set (make-local-variable 'allout-tests-locally-true) t)
-    (cl-assert (not (default-boundp 'allout-tests-locally-true))
-            nil (concat "Test setup mistake -- variable supposed to"
-                        " not have global binding, but it does."))
-    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer))
-            nil (concat "Test setup mistake -- variable supposed to have"
-                        " local binding, but it lacks one."))
-    (allout-add-resumptions '(allout-tests-locally-true nil))
-    (cl-assert (not (default-boundp 'allout-tests-locally-true)))
-    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (cl-assert (equal allout-tests-locally-true nil))
-    (allout-do-resumptions)
-    (cl-assert (boundp 'allout-tests-locally-true))
-    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (cl-assert (equal allout-tests-locally-true t))
-    (cl-assert (not (default-boundp 'allout-tests-locally-true))))
-
-  ;; ensure that last of multiple resumptions holds, for various scopes.
-  (with-temp-buffer
-    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
-    (allout-tests-obliterate-variable 'allout-tests-globally-true)
-    (setq allout-tests-globally-true t)
-    (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (set (make-local-variable 'allout-tests-locally-true) t)
-    (allout-add-resumptions '(allout-tests-globally-unbound t)
-                            '(allout-tests-globally-true nil)
-                            '(allout-tests-locally-true nil))
-    (allout-add-resumptions '(allout-tests-globally-unbound 2)
-                            '(allout-tests-globally-true 3)
-                            '(allout-tests-locally-true 4))
-    ;; reestablish many of the basic conditions are maintained after re-add:
-    (cl-assert (not (default-boundp 'allout-tests-globally-unbound)))
-    (cl-assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
-    (cl-assert (equal allout-tests-globally-unbound 2))
-    (cl-assert (default-boundp 'allout-tests-globally-true))
-    (cl-assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
-    (cl-assert (equal allout-tests-globally-true 3))
-    (cl-assert (not (default-boundp 'allout-tests-locally-true)))
-    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (cl-assert (equal allout-tests-locally-true 4))
-    (allout-do-resumptions)
-    (cl-assert (not (local-variable-p 'allout-tests-globally-unbound
-                                   (current-buffer))))
-    (cl-assert (not (boundp 'allout-tests-globally-unbound)))
-    (cl-assert (not (local-variable-p 'allout-tests-globally-true
-                                   (current-buffer))))
-    (cl-assert (boundp 'allout-tests-globally-true))
-    (cl-assert (equal allout-tests-globally-true t))
-    (cl-assert (boundp 'allout-tests-locally-true))
-    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (cl-assert (equal allout-tests-locally-true t))
-    (cl-assert (not (default-boundp 'allout-tests-locally-true))))
-
-  ;; ensure that deliberately unbinding registered variables doesn't foul things
-  (with-temp-buffer
-    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
-    (allout-tests-obliterate-variable 'allout-tests-globally-true)
-    (setq allout-tests-globally-true t)
-    (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (set (make-local-variable 'allout-tests-locally-true) t)
-    (allout-add-resumptions '(allout-tests-globally-unbound t)
-                            '(allout-tests-globally-true nil)
-                            '(allout-tests-locally-true nil))
-    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
-    (allout-tests-obliterate-variable 'allout-tests-globally-true)
-    (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (allout-do-resumptions))
-  )
-;;;_  % Run unit tests if `allout-run-unit-tests-after-load' is true:
-(when allout-run-unit-tests-on-load
-  (allout-run-unit-tests))
-
-;;;_ #12 Provide
+;;;_ #11 Provide
 (provide 'allout)
 
 ;;;_* Local emacs vars.

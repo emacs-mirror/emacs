@@ -456,7 +456,17 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (replace-in-string "azot" "bar" "zat")
                  "zat"))
   (should (equal (replace-in-string "azot" "bar" "azot")
-                 "bar")))
+                 "bar"))
+
+  (should (equal (replace-in-string "azot" "bar" "foozotbar")
+                 "foozotbar"))
+
+  (should (equal (replace-in-string "\377" "x" "a\377b")
+                 "axb"))
+  (should (equal (replace-in-string "\377" "x" "a\377ø")
+                 "axø"))
+
+  (should-error (replace-in-string "" "x" "abc")))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

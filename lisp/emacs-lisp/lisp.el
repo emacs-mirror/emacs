@@ -55,7 +55,7 @@ This affects `insert-parentheses' and `insert-pair'."
   "If non-nil, `forward-sexp' delegates to this function.
 Should take the same arguments and behave similarly to `forward-sexp'.")
 
-(defun forward-sexp (&optional arg)
+(defun forward-sexp (&optional arg interactive)
   "Move forward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means move
 backward across N balanced expressions.  This command assumes
@@ -64,23 +64,32 @@ point is not in a string or comment.  Calls
 If unable to move over a sexp, signal `scan-error' with three
 arguments: a message, the start of the obstacle (usually a
 parenthesis or list marker of some kind), and end of the
-obstacle."
-  (interactive "^p")
-  (or arg (setq arg 1))
-  (if forward-sexp-function
-      (funcall forward-sexp-function arg)
-    (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
-    (if (< arg 0) (backward-prefix-chars))))
+obstacle.  If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "^p\nd")
+  (if interactive
+      (condition-case _
+          (forward-sexp arg nil)
+        (scan-error (user-error (if (> arg 0)
+                                    "No next sexp"
+                                  "No previous sexp"))))
+    (or arg (setq arg 1))
+    (if forward-sexp-function
+        (funcall forward-sexp-function arg)
+      (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
+      (if (< arg 0) (backward-prefix-chars)))))
 
-(defun backward-sexp (&optional arg)
+(defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
 move forward across N balanced expressions.
 This command assumes point is not in a string or comment.
-Uses `forward-sexp' to do the work."
-  (interactive "^p")
+Uses `forward-sexp' to do the work.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "^p\nd")
   (or arg (setq arg 1))
-  (forward-sexp (- arg)))
+  (forward-sexp (- arg) interactive))
 
 (defun mark-sexp (&optional arg allow-extend)
   "Set mark ARG sexps from point.
@@ -99,50 +108,78 @@ This command assumes point is not in a string or comment."
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))
-	    (forward-sexp arg)
+            (condition-case error
+	        (forward-sexp arg)
+              (scan-error
+               (user-error (if (equal (cadr error)
+                                      "Containing expression ends prematurely")
+                               "No more sexp to select"
+                             (cadr error)))))
 	    (point))))
 	(t
 	 (push-mark
 	  (save-excursion
-	    (forward-sexp (prefix-numeric-value arg))
+            (condition-case error
+	        (forward-sexp (prefix-numeric-value arg))
+              (scan-error
+               (user-error (if (equal (cadr error)
+                                      "Containing expression ends prematurely")
+                               "No sexp to select"
+                             (cadr error)))))
 	    (point))
 	  nil t))))
 
-(defun forward-list (&optional arg)
+(defun forward-list (&optional arg interactive)
   "Move forward across one balanced group of parentheses.
 This command will also work on other parentheses-like expressions
 defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move backward across N groups of parentheses.
-This command assumes point is not in a string or comment."
-  (interactive "^p")
-  (or arg (setq arg 1))
-  (goto-char (or (scan-lists (point) arg 0) (buffer-end arg))))
+This command assumes point is not in a string or comment.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "^p\nd")
+  (if interactive
+      (condition-case _
+          (forward-list arg nil)
+        (scan-error (user-error (if (> arg 0)
+                                    "No next group"
+                                  "No previous group"))))
+    (or arg (setq arg 1))
+    (goto-char (or (scan-lists (point) arg 0) (buffer-end arg)))))
 
-(defun backward-list (&optional arg)
+(defun backward-list (&optional arg interactive)
   "Move backward across one balanced group of parentheses.
 This command will also work on other parentheses-like expressions
 defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move forward across N groups of parentheses.
-This command assumes point is not in a string or comment."
-  (interactive "^p")
+This command assumes point is not in a string or comment.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "^p\nd")
   (or arg (setq arg 1))
-  (forward-list (- arg)))
+  (forward-list (- arg) interactive))
 
-(defun down-list (&optional arg)
+(defun down-list (&optional arg interactive)
   "Move forward down one level of parentheses.
 This command will also work on other parentheses-like expressions
 defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
-This command assumes point is not in a string or comment."
-  (interactive "^p")
-  (or arg (setq arg 1))
-  (let ((inc (if (> arg 0) 1 -1)))
-    (while (/= arg 0)
-      (goto-char (or (scan-lists (point) inc -1) (buffer-end arg)))
-      (setq arg (- arg inc)))))
+This command assumes point is not in a string or comment.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "^p\nd")
+  (if interactive
+      (condition-case _
+          (down-list arg nil)
+        (scan-error (user-error "At bottom level")))
+    (or arg (setq arg 1))
+    (let ((inc (if (> arg 0) 1 -1)))
+      (while (/= arg 0)
+        (goto-char (or (scan-lists (point) inc -1) (buffer-end arg)))
+        (setq arg (- arg inc))))))
 
 (defun backward-up-list (&optional arg escape-strings no-syntax-crossing)
   "Move backward out of one level of parentheses.
@@ -229,26 +266,39 @@ point is unspecified."
                  (or (< inc 0)
                      (forward-comment 1))
                  (setf arg (+ arg inc)))
-            (signal (car err) (cdr err))))))
+            (if no-syntax-crossing
+                ;; Assume called interactively; don't signal an error.
+                (user-error "At top level")
+              (signal (car err) (cdr err)))))))
       (setq arg (- arg inc)))))
 
-(defun kill-sexp (&optional arg)
+(defun kill-sexp (&optional arg interactive)
   "Kill the sexp (balanced expression) following point.
 With ARG, kill that many sexps after point.
 Negative arg -N means kill N sexps before point.
-This command assumes point is not in a string or comment."
-  (interactive "p")
-  (let ((opoint (point)))
-    (forward-sexp (or arg 1))
-    (kill-region opoint (point))))
+This command assumes point is not in a string or comment.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "p\nd")
+  (if interactive
+      (condition-case _
+          (kill-sexp arg nil)
+        (scan-error (user-error (if (> arg 0)
+                                    "No next sexp"
+                                  "No previous sexp"))))
+    (let ((opoint (point)))
+      (forward-sexp (or arg 1))
+      (kill-region opoint (point)))))
 
-(defun backward-kill-sexp (&optional arg)
+(defun backward-kill-sexp (&optional arg interactive)
   "Kill the sexp (balanced expression) preceding point.
 With ARG, kill that many sexps before point.
 Negative arg -N means kill N sexps after point.
-This command assumes point is not in a string or comment."
-  (interactive "p")
-  (kill-sexp (- (or arg 1))))
+This command assumes point is not in a string or comment.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "p\nd")
+  (kill-sexp (- (or arg 1)) interactive))
 
 ;; After Zmacs:
 (defun kill-backward-up-list (&optional arg)
@@ -735,12 +785,37 @@ This command assumes point is not in a string or comment."
   (insert-pair arg ?\( ?\)))
 
 (defun delete-pair (&optional arg)
-  "Delete a pair of characters enclosing ARG sexps following point.
-A negative ARG deletes a pair of characters around preceding ARG sexps."
-  (interactive "p")
-  (unless arg (setq arg 1))
-  (save-excursion (forward-sexp arg) (delete-char (if (> arg 0) -1 1)))
-  (delete-char (if (> arg 0) 1 -1)))
+  "Delete a pair of characters enclosing ARG sexps that follow point.
+A negative ARG deletes a pair around the preceding ARG sexps instead."
+  (interactive "P")
+  (if arg
+      (setq arg (prefix-numeric-value arg))
+    (setq arg 1))
+  (if (< arg 0)
+      (save-excursion
+	(skip-chars-backward " \t")
+	(save-excursion
+	  (let ((close-char (char-before)))
+	    (forward-sexp arg)
+	    (unless (member (list (char-after) close-char)
+			    (mapcar (lambda (p)
+				      (if (= (length p) 3) (cdr p) p))
+				    insert-pair-alist))
+	      (error "Not after matching pair"))
+	    (delete-char 1)))
+	(delete-char -1))
+    (save-excursion
+      (skip-chars-forward " \t")
+      (save-excursion
+	(let ((open-char (char-after)))
+	  (forward-sexp arg)
+	  (unless (member (list open-char (char-before))
+			  (mapcar (lambda (p)
+				    (if (= (length p) 3) (cdr p) p))
+				  insert-pair-alist))
+	    (error "Not before matching pair"))
+	  (delete-char -1)))
+      (delete-char 1))))
 
 (defun raise-sexp (&optional arg)
   "Raise ARG sexps higher up the tree."

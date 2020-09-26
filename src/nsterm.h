@@ -718,22 +718,6 @@ typedef id instancetype;
 
    ========================================================================== */
 
-#ifdef NS_IMPL_COCOA
-/* rendering util */
-@interface EmacsGlyphStorage : NSObject <NSGlyphStorage>
-{
-@public
-  NSAttributedString *attrStr;
-  NSMutableDictionary *dict;
-  CGGlyph *cglyphs;
-  unsigned long maxChar, maxGlyph;
-  long i, len;
-}
-- (instancetype)initWithCapacity: (unsigned long) c;
-- (void) setString: (NSString *)str font: (NSFont *)font;
-@end
-#endif	/* NS_IMPL_COCOA */
-
 extern NSArray *ns_send_types, *ns_return_types;
 extern NSString *ns_app_name;
 extern EmacsMenu *svcsMenu;
@@ -811,6 +795,7 @@ struct ns_color_table
 #define GREEN16_FROM_ULONG(color) (GREEN_FROM_ULONG(color) * 0x101)
 #define BLUE16_FROM_ULONG(color) (BLUE_FROM_ULONG(color) * 0x101)
 
+#ifdef NS_IMPL_GNUSTEP
 /* this extends font backend font */
 struct nsfont_info
 {
@@ -827,14 +812,8 @@ struct nsfont_info
   float size;
 #ifdef __OBJC__
   NSFont *nsfont;
-#if defined (NS_IMPL_COCOA)
-  CGFontRef cgfont;
-#else /* GNUstep */
-  void *cgfont;
-#endif
 #else /* ! OBJC */
   void *nsfont;
-  void *cgfont;
 #endif
   char bold, ital;  /* convenience flags */
   char synthItal;
@@ -844,7 +823,7 @@ struct nsfont_info
   unsigned short **glyphs; /* map Unicode index to glyph */
   struct font_metrics **metrics;
 };
-
+#endif
 
 /* Initialized in ns_initialize_display_info ().  */
 struct ns_display_info
@@ -1107,7 +1086,7 @@ extern void ns_term_shutdown (int sig);
 #define NS_DUMPGLYPH_MOUSEFACE          3
 
 
-
+#ifdef NS_IMPL_GNUSTEP
 /* In nsfont, called from fontset.c */
 extern void nsfont_make_fontset_for_font (Lisp_Object name,
                                          Lisp_Object font_object);
@@ -1115,6 +1094,7 @@ extern void nsfont_make_fontset_for_font (Lisp_Object name,
 /* In nsfont, for debugging */
 struct glyph_string;
 void ns_dump_glyphstring (struct glyph_string *s) EXTERNALLY_VISIBLE;
+#endif
 
 /* Implemented in nsterm, published in or needed from nsfns.  */
 extern Lisp_Object ns_list_fonts (struct frame *f, Lisp_Object pattern,
@@ -1273,6 +1253,19 @@ extern char gnustep_base_version[];  /* version tracking */
 #define IN_BOUND(min, x, max) (((x) < (min)) \
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
+
+
+#ifdef NS_IMPL_COCOA
+/* Add some required AppKit version numbers if they're not defined.  */
+#ifndef NSAppKitVersionNumber10_7
+#define NSAppKitVersionNumber10_7 1138
+#endif
+
+#ifndef NSAppKitVersionNumber10_10
+#define NSAppKitVersionNumber10_10 1343
+#endif
+#endif /* NS_IMPL_COCOA */
+
 
 /* macOS 10.7 introduces some new constants.  */
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_7)

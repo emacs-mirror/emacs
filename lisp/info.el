@@ -4053,6 +4053,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "^" 'Info-up)
     (define-key map "," 'Info-index-next)
     (define-key map "\177" 'Info-scroll-down)
+    (define-key map [remap goto-line] 'goto-line-relative)
     (define-key map [mouse-2] 'Info-mouse-follow-nearest-node)
     (define-key map [follow-link] 'mouse-face)
     (define-key map [XF86Back] 'Info-history-back)
