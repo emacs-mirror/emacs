@@ -413,16 +413,9 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 
 /* Set `invocation-name' `invocation-directory'.  */
 
-void
+static void
 set_invocation_vars (char *argv0, char const *original_pwd)
 {
-  /* This function can be called from within pdumper or later during
-     boot.  No need to run it twice.  */
-  static bool double_run_guard;
-  if (double_run_guard)
-    return;
-  double_run_guard = true;
-
   Lisp_Object raw_name, handler;
   AUTO_STRING (slash_colon, "/:");
 
@@ -480,6 +473,25 @@ set_invocation_vars (char *argv0, char const *original_pwd)
     }
 }
 
+/* Initialize a number of variables (ultimately
+   'Vinvocation_directory') needed by pdumper to complete native code
+   load.  */
+
+void
+init_vars_for_load (char *argv0, char const *original_pwd)
+{
+  /* This function is called from within pdumper while loading (as
+     soon as we are able to allocate) or later during boot if pdumper
+     is not used.  No need to run it twice.  */
+  static bool double_run_guard;
+  if (double_run_guard)
+    return;
+  double_run_guard = true;
+
+  init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
+  set_invocation_vars (argv0, original_pwd);
+}
+
 
 /* Code for dealing with Lisp access to the Unix command line.  */
 static void
@@ -491,8 +503,6 @@ init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
 
   initial_argv = argv;
   initial_argc = argc;
-
-  set_invocation_vars (argv[0], original_pwd);
 
   Vinstallation_directory = Qnil;
 
@@ -1788,7 +1798,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* Init buffer storage and default directory of main buffer.  */
   init_buffer ();
 
-  init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
+  init_vars_for_load (argv[0], original_pwd);
 
   /* Must precede init_lread.  */
   init_cmdargs (argc, argv, skip_args, original_pwd);
