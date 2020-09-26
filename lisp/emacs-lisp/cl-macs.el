@@ -2359,6 +2359,8 @@ Example:
 (defun foo (x)
   (declare (cl-optimize (speed 3) (safety 0)))
   x)"
+  ;; FIXME this should make use of `cl--declare-stack' but I suspect
+  ;; this mechanism should be reviewed first.
   (cl-loop for (qly val) in qualities
            do (cl-ecase qly
                 (speed
