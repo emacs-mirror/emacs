@@ -174,6 +174,27 @@ Parser is called with and without 'symbol-qnames argument.")
                                  :type 'xml-invalid-character)
                    '(xml-invalid-character #x3FFFFF 3)))))
 
+(defvar xml-tests--data-with-comments
+  `(;; simple case
+    ("<?xml version=\"1.0\"?><foo baz=\"true\">bar</foo>"
+     . ((foo ((baz . "true")) "bar")))
+    ;; toplevel comments -- first document child must not get lost
+    (,(concat "<?xml version=\"1.0\"?><foo>bar</foo><!--comment-1-->"
+              "<!--comment-2-->")
+     . ((foo nil "bar")))
+    (,(concat "<?xml version=\"1.0\"?><!--comment-a--><foo a=\"b\">"
+              "<bar>blub</bar></foo><!--comment-b--><!--comment-c-->")
+     . ((foo ((a . "b")) (bar nil "blub")))))
+  "Alist of XML strings and their expected parse trees for discarded comments.")
+
+(ert-deftest xml-remove-comments ()
+  (dolist (test xml-tests--data-with-comments)
+    (erase-buffer)
+    (insert (car test))
+    (xml-remove-comments (point-min) (point-max))
+    (should (equal (cdr test)
+                   (xml-parse-region (point-min) (point-max))))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
