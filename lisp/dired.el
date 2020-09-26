@@ -1504,7 +1504,7 @@ see `dired-use-ls-dired' for more details.")
              ;; "--dired", so we cannot add it to the `process-file'
              ;; call for wildcards.
              (when (file-remote-p dir)
-               (setq switches (dired-replace-in-string "--dired" "" switches)))
+               (setq switches (string-replace "--dired" "" switches)))
              (let* ((default-directory (car dir-wildcard))
                     (script (format "ls %s %s" switches (cdr dir-wildcard)))
                     (remotep (file-remote-p dir))
@@ -4290,11 +4290,10 @@ With a prefix argument, edit the current listing switches instead."
   (dired-sort-set-mode-line)
   (revert-buffer))
 
-;; Some user code loads dired especially for this.
-;; Don't do that--use replace-regexp-in-string instead.
 (defun dired-replace-in-string (regexp newtext string)
   ;; Replace REGEXP with NEWTEXT everywhere in STRING and return result.
   ;; NEWTEXT is taken literally---no \\DIGIT escapes will be recognized.
+  (declare (obsolete replace-regexp-in-string "28.1"))
   (let ((result "") (start 0) mb me)
     (while (string-match regexp string start)
       (setq mb (match-beginning 0)

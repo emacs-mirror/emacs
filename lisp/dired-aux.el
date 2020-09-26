@@ -1802,7 +1802,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
 	(if (and buffer-file-name
 		 (dired-in-this-tree-p buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
-		  (to-file (dired-replace-in-string
+		  (to-file (replace-regexp-in-string
 			    (concat "^" (regexp-quote from-dir))
 			    to-dir
 			    buffer-file-name)))
@@ -1866,7 +1866,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
       ;; Update buffer-local dired-subdir-alist and dired-switches-alist
       (let ((cons (assoc-string (car elt) dired-switches-alist))
 	    (cur-dir (dired-normalize-subdir
-		      (dired-replace-in-string regexp newtext (car elt)))))
+		      (replace-regexp-in-string regexp newtext (car elt)))))
 	(setcar elt cur-dir)
 	(when cons (setcar cons cur-dir))))))
 
@@ -2612,7 +2612,7 @@ This function takes some pains to conform to `ls -lR' output."
 	(push (cons dirname switches) dired-switches-alist)))
     (when switches-have-R
       (dired-build-subdir-alist switches)
-      (setq switches (dired-replace-in-string "R" "" switches))
+      (setq switches (string-replace "R" "" switches))
       (dolist (cur-ass dired-subdir-alist)
 	(let ((cur-dir (car cur-ass)))
 	  (and (dired-in-this-tree-p cur-dir dirname)
@@ -2713,7 +2713,7 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
       (let ((dired-actual-switches
 	     (or switches
 		 dired-subdir-switches
-		 (dired-replace-in-string "R" "" dired-actual-switches))))
+		 (string-replace "R" "" dired-actual-switches))))
 	(if (equal dirname (car (car (last dired-subdir-alist))))
 	    ;; If doing the top level directory of the buffer,
 	    ;; redo it as specified in dired-directory.
