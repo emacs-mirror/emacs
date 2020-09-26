@@ -461,6 +461,9 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (string-replace "azot" "bar" "foozotbar")
                  "foozotbar"))
 
+  (should (equal (string-replace "fo" "bar" "lafofofozot")
+                 "labarbarbarzot"))
+
   (should (equal (string-replace "\377" "x" "a\377b")
                  "axb"))
   (should (equal (string-replace "\377" "x" "a\377ø")

@@ -5468,6 +5468,7 @@ Case is always significant and text properties are ignored. */)
 {
   ptrdiff_t start_byte = 0, haybytes;
   char *res, *haystart;
+  EMACS_INT start = 0;
 
   CHECK_STRING (needle);
   CHECK_STRING (haystack);
@@ -5475,11 +5476,16 @@ Case is always significant and text properties are ignored. */)
   if (!NILP (start_pos))
     {
       CHECK_FIXNUM (start_pos);
-      EMACS_INT start = XFIXNUM (start_pos);
+      start = XFIXNUM (start_pos);
       if (start < 0 || start > SCHARS (haystack))
         xsignal1 (Qargs_out_of_range, start_pos);
       start_byte = string_char_to_byte (haystack, start);
     }
+
+  /* If NEEDLE is longer than (the remaining length of) haystack, then
+     we can't have a match, and return early.  */
+  if (SCHARS (needle) > SCHARS (haystack) - start)
+    return Qnil;
 
   haystart = SSDATA (haystack) + start_byte;
   haybytes = SBYTES (haystack) - start_byte;
