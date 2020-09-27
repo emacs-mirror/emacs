@@ -29,27 +29,10 @@ static char *stringArg;
 static Count argCount;
 
 
-static void callControl(mps_word_t reset, mps_word_t flip)
-{
-  mps_word_t old, new;
-  old = mps_telemetry_control(reset, flip);
-  new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
-
-  printf(WORD_FORMAT " -> " WORD_FORMAT "\n",
-         (ulongest_t)old, (ulongest_t)new);
-}
-
-
-static void doControl(void)
-{
-  callControl(args[0], args[1]);
-}
-
-
-static void doRead(void)
+static void doGet(void)
 {
   mps_word_t old;
-  old = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
+  old = mps_telemetry_get();
 
   (void)printf(WORD_FORMAT "\n", (ulongest_t)old);
 }
@@ -57,19 +40,13 @@ static void doRead(void)
 
 static void doSet(void)
 {
-  callControl(args[0], args[0]);
+  mps_telemetry_set(args[0]);
 }
 
 
 static void doReset(void)
 {
-  callControl(args[0], (mps_word_t)0);
-}
-
-
-static void doFlip(void)
-{
-  callControl((mps_word_t)0, args[0]);
+  mps_telemetry_reset(args[0]);
 }
 
 
@@ -100,11 +77,9 @@ static void doQuit(void)
 
 static void doHelp(void)
 {
-  (void)printf("control <reset> <flip>   -> <old> <new>    Control filter\n"
-               "read                     -> <old>          Read filter\n"
+  (void)printf("get                      -> <old>          Get filter\n"
                "set <mask>               -> <old> <new>    Set filter\n"
-               "reset <mask>             -> <old> <new>    Reset filter\n"
-               "flip <mask>              -> <old> <new>    Toggle filter\n");
+               "reset <mask>             -> <old> <new>    Reset filter\n");
   (void)printf("intern <string>          -> <id>           Intern string\n"
                "label <address> <id>                       Label address\n"
                "flush                                      Flush buffer\n"
@@ -119,11 +94,9 @@ static struct commandShapeStruct {
   mps_bool_t string_arg;
   void (*fun)(void);
 } commandShapes[] = {
-  {"control", 2, 0, doControl},
-  {"read", 0, 0, doRead},
+  {"get", 0, 0, doGet},
   {"set", 1, 0, doSet},
   {"reset", 1, 0, doReset},
-  {"flip", 1, 0, doFlip},
   {"intern", 0, 1, doIntern},
   {"label", 2, 0, doLabel},
   {"flush", 0, 0, doFlush},

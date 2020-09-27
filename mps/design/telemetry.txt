@@ -386,8 +386,9 @@ where the variable is set to a space-separated list of names defined by ``EventK
 
 _`.control.just`: These controls are coarse, but very cheap.
 
-_`.control.external`: The MPS interface function
-``mps_telemetry_control`` can be used to change ``EventKindControl``.
+_`.control.external`: The MPS interface functions
+``mps_telemetry_set()`` and ``mps_telemetry_reset()`` can be used to
+change ``EventKindControl``.
 
 _`.control.tool`: The tools will be able to control
 ``EventKindControl``.

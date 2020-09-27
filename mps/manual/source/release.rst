@@ -61,6 +61,11 @@ Interface changes
 #. The deprecated function :c:func:`mps_fix` has been removed. Use
    the macro :c:func:`MPS_FIX12` instead.
 
+#. The deprecated function :c:func:`mps_telemetry_control` has been
+   removed. Use :c:func:`mps_telemetry_get`,
+   :c:func:`mps_telemetry_set` and :c:func:`mps_telemetry_reset`
+   instead.
+
 #. The keyword argument ``MPS_KEY_SPARE_COMMIT_LIMIT`` to
    :c:func:`mps_arena_create_k`, and the functions
    :c:func:`mps_arena_spare_commit_limit` and

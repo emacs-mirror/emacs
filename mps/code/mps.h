@@ -743,7 +743,6 @@ extern mps_res_t mps_definalize(mps_arena_t, mps_addr_t *);
 
 /* Telemetry */
 
-extern mps_word_t mps_telemetry_control(mps_word_t, mps_word_t);
 extern void mps_telemetry_set(mps_word_t);
 extern void mps_telemetry_reset(mps_word_t);
 extern mps_word_t mps_telemetry_get(void);
