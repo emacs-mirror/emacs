@@ -468,6 +468,19 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                  "axb"))
   (should (equal (string-replace "\377" "x" "a\377ø")
                  "axø"))
+  (should (equal (string-replace (string-to-multibyte "\377") "x" "a\377b")
+                 "axb"))
+  (should (equal (string-replace (string-to-multibyte "\377") "x" "a\377ø")
+                 "axø"))
+
+  (should (equal (string-replace "ana" "ANA" "ananas") "ANAnas"))
+
+  (should (equal (string-replace "a" "" "") ""))
+  (should (equal (string-replace "a" "" "aaaaa") ""))
+  (should (equal (string-replace "ab" "" "ababab") ""))
+  (should (equal (string-replace "ab" "" "abcabcabc") "ccc"))
+  (should (equal (string-replace "a" "aa" "aaa") "aaaaaa"))
+  (should (equal (string-replace "abc" "defg" "abc") "defg"))
 
   (should-error (string-replace "" "x" "abc")))
 
