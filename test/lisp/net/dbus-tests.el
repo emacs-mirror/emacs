@@ -66,6 +66,7 @@
 (ert-deftest dbus-test01-type-conversion ()
   "Check type conversion functions."
   (skip-unless dbus--test-enabled-session-bus)
+
   (let ((ustr "0123abc_xyz\x01\xff")
 	(mstr "Grüß Göttin"))
     (should
@@ -97,6 +98,7 @@
 (ert-deftest dbus-test01-basic-types ()
   "Check basic D-Bus type arguments."
   (skip-unless dbus--test-enabled-session-bus)
+
   ;; Unknown keyword.
   (should-error
    (dbus-check-arguments :session dbus--test-service :keyword)
@@ -288,6 +290,8 @@
 
 (ert-deftest dbus-test01-compound-types ()
   "Check basic D-Bus type arguments."
+  (skip-unless dbus--test-enabled-session-bus)
+
   ;; `:array'.  It contains several elements of the same type.
   (should (dbus-check-arguments :session dbus--test-service '("string")))
   (should (dbus-check-arguments :session dbus--test-service '(:array "string")))
@@ -327,6 +331,11 @@
    (dbus-check-arguments
     :session dbus--test-service
     '(:array (:dict-entry :string "string" :boolean t))))
+  ;; This is an alternative syntax.  FIXME: Shall this be supported?
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array :dict-entry (:string "string" :boolean t))))
   ;; The second element is `nil' (implicitly).  FIXME: Is this right?
   (should
    (dbus-check-arguments
