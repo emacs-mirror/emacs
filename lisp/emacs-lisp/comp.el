@@ -1920,7 +1920,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
         (`(fetch-handler . ,_)
          ;; Clobber all no matter what!
          (setf (aref frame slot-n) (make-comp-ssa-mvar :slot slot-n)))
-        (`(phi  ,n)
+        (`(phi ,n)
          (when (equal n slot-n)
            (new-lvalue)))
         (_
@@ -1958,7 +1958,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                                for e in (comp-block-in-edges b)
                                for b = (comp-edge-src e)
                                for in-frame = (comp-block-final-frame b)
-                               collect (aref in-frame slot-n)))))
+                               collect (cons (aref in-frame slot-n)
+                                             (comp-block-name b))))))
 
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
              do (cl-loop for (op . args) in (comp-block-insns b)
@@ -2105,7 +2106,7 @@ Forward propagate immediate involed in assignments."
      (setf (comp-mvar-const-vld lval) t
            (comp-mvar-constant lval) v
            (comp-mvar-type lval) (comp-strict-type-of v)))
-    (`(phi ,lval . ,rest)
+    (`(phi (,lval . _) . ,rest)
      ;; Forward const prop here.
      (when-let* ((vld (cl-every #'comp-mvar-const-vld rest))
                  (consts (mapcar #'comp-mvar-constant rest))
