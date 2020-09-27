@@ -10619,7 +10619,7 @@ include the height of both, if present, in the return value.  */)
       while (bpos > BEGV_BYTE)
 	{
 	  dec_both (&start, &bpos);
-	  c = FETCH_CHAR (bpos);
+	  c = FETCH_BYTE (bpos);
 	  if (!(c == ' ' || c == '\t'))
 	    break;
 	}
@@ -10641,7 +10641,7 @@ include the height of both, if present, in the return value.  */)
       while (bpos > BEGV_BYTE)
 	{
 	  dec_both (&end, &bpos);
-	  c = FETCH_CHAR (bpos);
+	  c = FETCH_BYTE (bpos);
 	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
 	    break;
 	}
@@ -22277,7 +22277,7 @@ trailing_whitespace_p (ptrdiff_t charpos)
   int c = 0;
 
   while (bytepos < ZV_BYTE
-	 && (c = FETCH_CHAR (bytepos),
+	 && (c = FETCH_BYTE (bytepos),
 	     c == ' ' || c == '\t'))
     ++bytepos;
 
