@@ -110,7 +110,7 @@ while [ $# -gt 0 ]; do
      ;;
 
     ## Include the test/ directory.
-    ## This is for backward compability to when --no-tests was the default.
+    ## This is for backward compatibility to when --no-tests was the default.
     "--tests")
       with_tests=yes
      ;;

@@ -22824,10 +22824,11 @@ display_count_lines_visually (struct it *it)
 	  SET_TEXT_POS (from, PT, PT_BYTE);
 	  to = IT_CHARPOS (*it);
 	}
-      start_display (&tem_it, it->w, from);
       /* Need to disable visual mode temporarily, since otherwise the
-	 call to move_it_to will cause infinite recursion.  */
+	 call to move_it_to below and inside start_display will cause
+	 infinite recursion.  */
       specbind (Qdisplay_line_numbers, Qrelative);
+      start_display (&tem_it, it->w, from);
       /* Some redisplay optimizations could invoke us very far from
 	 PT, which will make the caller painfully slow.  There should
 	 be no need to go too far beyond the window's bottom, as any

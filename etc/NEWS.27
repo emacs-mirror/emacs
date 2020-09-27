@@ -1101,7 +1101,7 @@ prefer to rely upon existing Emacs facilities for formatting code but
 the 'sql-indent' package provides facilities to aid more casual SQL
 developers layout queries and complex expressions.
 
-**** 'sql-use-indent-support' (default t) enables SQL indention support.
+**** 'sql-use-indent-support' (default t) enables SQL indentation support.
 The 'sql-indent' package from ELPA must be installed to get the
 indentation support in 'sql-mode' and 'sql-interactive-mode'.
 

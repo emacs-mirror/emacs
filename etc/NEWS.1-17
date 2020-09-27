@@ -1944,7 +1944,7 @@ It's Beat CCA Week.
     described by dot and mark, at its corners;
     the existing text is pushed to the right.
   clear-rectangle:
-    replace the rectangle described by dot ane mark
+    replace the rectangle described by dot and mark
     with blanks.  The previous text is deleted.
   delete-rectangle:
     delete the text of the specified rectangle,
