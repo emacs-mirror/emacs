@@ -1274,12 +1274,12 @@ of conditionals.
 ** Abbrev mode
 
 +++
-*** Abbrev can now suggest pre-existing abbrevs based on typed text.
+*** Emacs can now suggest to use an abbrev based on text you type.
 A new user option, 'abbrev-suggest', enables the new abbrev suggestion
-feature.  When enabled, if a user manually type a piece of text that
-could have been written by using an abbrev, a hint will be displayed
-in the echo area, mentioning the abbrev that could have been used
-instead.
+feature.  When enabled, if a user manually types a piece of text that
+could have saved enough typing by using an abbrev, a hint will be
+displayed in the echo area, mentioning the abbrev that could have been
+used instead.
 
 
 * New Modes and Packages in Emacs 28.1

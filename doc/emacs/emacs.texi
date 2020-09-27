@@ -908,6 +908,7 @@ Abbrevs
 * Abbrev Concepts::     Fundamentals of defined abbrevs.
 * Defining Abbrevs::    Defining an abbrev, so it will expand when typed.
 * Expanding Abbrevs::   Controlling expansion: prefixes, canceling expansion.
+* Abbrevs Suggestions:: Get automatic suggestions about defined abbrevs.
 * Editing Abbrevs::     Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.

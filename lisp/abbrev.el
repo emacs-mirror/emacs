@@ -825,22 +825,23 @@ see `define-abbrev' for details."
 Takes no argument and should return the abbrev symbol if expansion took place.")
 
 (defcustom abbrev-suggest nil
-  "Non-nil means suggest abbrevs to the user.
-By enabling this option, if abbrev mode is enabled and if the
-user has typed some text that exists as an abbrev, suggest to the
-user to use the abbrev by displaying a message in the echo area."
+  "Non-nil means suggest using abbrevs to save typing.
+When abbrev mode is active and this option is non-nil, Emacs will
+suggest in the echo area to use an existing abbrev if doing so
+will save enough typing.  See `abbrev-suggest-hint-threshold' for
+the definition of \"enough typing\"."
     :type 'boolean
     :version "28.1")
 
 (defcustom abbrev-suggest-hint-threshold 3
-  "Threshold for when to inform the user that there is an abbrev.
-The threshold is the number of characters that differ between the
-length of the abbrev and the length of the expansion.  The
-thinking is that if the expansion is only one or a few characters
+  "Threshold for when to suggest to use an abbrev to save typing.
+The threshold is the amount of typing, in terms of the number of
+characters, that would be saved by using the abbrev.  The
+thinking is that if the expansion is only a few characters
 longer than the abbrev, the benefit of informing the user is not
-that big.  If you always want to be informed, set this value to
-`0' or less.  This setting only applies if `abbrev-suggest' is
-non-nil."
+significant.  If you always want to be informed about existing
+abbrevs for the text you type, set this value to zero or less.
+This setting only applies if `abbrev-suggest' is non-nil."
     :type 'number
     :version "28.1")
 
@@ -945,7 +946,9 @@ typed."
       total))
 
 (defun abbrev-suggest-show-report ()
-  "Show the user a report of abbrevs he could have used."
+  "Show a buffer with the list of abbrevs you could have used.
+This shows the abbrevs you've \"missed\" because you typed the
+full text instead of the abbrevs that expand into that text."
   (interactive)
   (let ((totals (abbrev--suggest-get-totals))
 	(buf (get-buffer-create "*abbrev-suggest*")))
