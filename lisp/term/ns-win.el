@@ -513,15 +513,9 @@ string dropped into the current buffer."
     (set-frame-selected-window nil window)
     (raise-frame)
     (setq window (selected-window))
-    (cond ((memq 'ns-drag-operation-generic operations)
-           ;; Perform the default action for the type.
-           (if (eq type 'file)
-               (dolist (data objects)
-                 (dnd-handle-one-url window 'private (concat "file:" data)))
-             (dnd-insert-text window 'private string)))
-          ((memq 'ns-drag-operation-copy operations)
-           ;; Try to open the file/URL.  If type is nil, try to open
-           ;; it as a URL anyway.
+    (cond ((or (memq 'ns-drag-operation-generic operations)
+               (memq 'ns-drag-operation-copy operations))
+           ;; Perform the default/copy action.
            (dolist (data objects)
              (dnd-handle-one-url window 'private (if (eq type 'file)
                                                      (concat "file:" data)
