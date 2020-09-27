@@ -100,6 +100,13 @@ To change the default value, use \\[customize] or call the function
   :set #'grep-apply-setting
   :version "22.1")
 
+(defcustom grep-match-regexp "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m"
+  "Regular expression matching grep markers to highlight.
+It matches SGR ANSI escape sequences which are emitted by grep to
+color its output.  This variable is used in `grep-filter'."
+  :type 'regexp
+  :version "28.1")
+
 (defcustom grep-scroll-output nil
   "Non-nil to scroll the *grep* buffer window as output appears.
 
@@ -590,7 +597,7 @@ This function is called from `compilation-filter-hook'."
       (when (< (point) end)
         (setq end (copy-marker end))
         ;; Highlight grep matches and delete marking sequences.
-        (while (re-search-forward "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
+        (while (re-search-forward grep-match-regexp end 1)
           (replace-match (propertize (match-string 1)
                                      'face nil 'font-lock-face grep-match-face)
                          t t)
