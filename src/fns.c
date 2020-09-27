@@ -5457,16 +5457,11 @@ It should not be used for anything security-related.  See
 static bool
 string_ascii_p (Lisp_Object string)
 {
-  if (STRING_MULTIBYTE (string))
-    return SBYTES (string) == SCHARS (string);
-  else
-    {
-      ptrdiff_t nbytes = SBYTES (string);
-      for (ptrdiff_t i = 0; i < nbytes; i++)
-	if (SREF (string, i) > 127)
-	  return false;
-      return true;
-    }
+  ptrdiff_t nbytes = SBYTES (string);
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    if (SREF (string, i) > 127)
+      return false;
+  return true;
 }
 
 DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,
@@ -5505,9 +5500,14 @@ Case is always significant and text properties are ignored. */)
   haystart = SSDATA (haystack) + start_byte;
   haybytes = SBYTES (haystack) - start_byte;
 
-  if (STRING_MULTIBYTE (haystack) == STRING_MULTIBYTE (needle)
-      || string_ascii_p (needle)
-      || string_ascii_p (haystack))
+  /* We can do a direct byte-string search if both strings have the
+     same multibyteness, or if at least one of them consists of ASCII
+     characters only.  */
+  if (STRING_MULTIBYTE (haystack)
+      ? (STRING_MULTIBYTE (needle)
+         || SCHARS (haystack) == SBYTES (haystack) || string_ascii_p (needle))
+      : (!STRING_MULTIBYTE (needle)
+         || SCHARS (needle) == SBYTES (needle) || string_ascii_p (haystack)))
     res = memmem (haystart, haybytes,
 		  SSDATA (needle), SBYTES (needle));
   else if (STRING_MULTIBYTE (haystack))  /* unibyte needle */
@@ -5521,26 +5521,21 @@ Case is always significant and text properties are ignored. */)
       /* The only possible way we can find the multibyte needle in the
 	 unibyte stack (since we know that neither are pure-ASCII) is
 	 if they contain "raw bytes" (and no other non-ASCII chars.)  */
-      ptrdiff_t chars = SCHARS (needle);
-      const unsigned char *src = SDATA (needle);
+      ptrdiff_t nbytes = SBYTES (needle);
+      for (ptrdiff_t i = 0; i < nbytes; i++)
+        {
+          int c = SREF (needle, i);
+          if (CHAR_BYTE8_HEAD_P (c))
+            i++;                /* Skip raw byte.  */
+          else if (!ASCII_CHAR_P (c))
+            return Qnil;  /* Found a char that can't be in the haystack.  */
+        }
 
-      for (ptrdiff_t i = 0; i < chars; i++)
-	{
-	  int c = string_char_advance (&src);
-
-	  if (!CHAR_BYTE8_P (c)
-	      && !ASCII_CHAR_P (c))
-	    /* Found a char that can't be in the haystack.  */
-	    return Qnil;
-	}
-
-      {
-	/* "Raw bytes" (aka eighth-bit) are represented differently in
-	   multibyte and unibyte strings.  */
-	Lisp_Object uni_needle = Fstring_to_unibyte (needle);
-	res = memmem (haystart, haybytes,
-		      SSDATA (uni_needle), SBYTES (uni_needle));
-      }
+      /* "Raw bytes" (aka eighth-bit) are represented differently in
+         multibyte and unibyte strings.  */
+      Lisp_Object uni_needle = Fstring_to_unibyte (needle);
+      res = memmem (haystart, haybytes,
+                    SSDATA (uni_needle), SBYTES (uni_needle));
     }
 
   if (! res)
