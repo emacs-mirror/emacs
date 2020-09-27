@@ -953,4 +953,8 @@
   (should (equal (string-search "" "abc" 3) 3))
   (should-error (string-search "" "abc" 4))
   (should-error (string-search "" "abc" -1))
-  )
+
+  (should-not (string-search "ø" "foo\303\270"))
+  (should (equal (string-search (string-to-multibyte "o\303\270") "foo\303\270")
+                 2))
+  (should (equal (string-search "\303\270" "foo\303\270") 3)))
