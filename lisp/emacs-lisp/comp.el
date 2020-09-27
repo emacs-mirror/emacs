@@ -336,7 +336,7 @@ into it.")
   (dst nil :type comp-block)
   (number nil :type number
           :documentation "The index number corresponding to this edge in the
- edge vector."))
+ edge hash."))
 
 (defun comp-block-preds (basic-block)
   "Given BASIC-BLOCK return the list of its predecessors."
@@ -371,8 +371,8 @@ CFG is mutated by a pass.")
           :documentation "Basic block name -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
              :documentation "LAP lable -> LIMPLE basic block name.")
-  (edges () :type list
-         :documentation "List of edges connecting basic blocks.")
+  (edges-h (make-hash-table) :type hash-table
+         :documentation "Hash edge-num -> edge connecting basic two blocks.")
   (block-cnt-gen (funcall #'comp-gen-counter) :type function
                  :documentation "Generates block numbers.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
@@ -555,16 +555,16 @@ VERBOSITY is a number between 0 and 3."
 
 (defun comp-log-edges (func)
   "Log edges in FUNC."
-  (let ((edges (comp-func-edges func)))
+  (let ((edges (comp-func-edges-h func)))
     (comp-log (format "\nEdges in function: %s\n"
                       (comp-func-name func))
               2)
-    (mapc (lambda (e)
-            (comp-log (format "n: %d src: %s dst: %s\n"
-                              (comp-edge-number e)
-                              (comp-block-name (comp-edge-src e))
-                              (comp-block-name (comp-edge-dst e)))
-                      2))
+    (maphash (lambda (_ e)
+               (comp-log (format "n: %d src: %s dst: %s\n"
+                                 (comp-edge-number e)
+                                 (comp-block-name (comp-edge-src e))
+                                 (comp-block-name (comp-edge-dst e)))
+                         2))
           edges)))
 
 
@@ -1693,7 +1693,7 @@ into the C code forwarding the compilation unit."
 
 (defun comp-clean-ssa (f)
   "Clean-up SSA for funtion F."
-  (setf (comp-func-edges f) ())
+  (setf (comp-func-edges-h f) (make-hash-table))
   (cl-loop
    for b being each hash-value of (comp-func-blocks f)
    do (setf (comp-block-in-edges b) ()
@@ -1709,12 +1709,12 @@ into the C code forwarding the compilation unit."
 
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
-  (cl-flet ((edge-add (&rest args)
-              (push
-               (apply #'make--comp-edge
-                      :number (funcall (comp-func-edge-cnt-gen comp-func))
-                      args)
-               (comp-func-edges comp-func))))
+  (cl-flet ((edge-add (&rest args &aux (n (funcall
+                                           (comp-func-edge-cnt-gen comp-func))))
+                      (puthash
+                       n
+                       (apply #'make--comp-edge :number n args)
+                       (comp-func-edges-h comp-func))))
 
     (cl-loop with blocks = (comp-func-blocks comp-func)
              for bb being each hash-value of blocks
@@ -1738,18 +1738,16 @@ into the C code forwarding the compilation unit."
                            (list "block does not end with a branch"
                                  bb
                                  (comp-func-name comp-func)))))
-             finally
-             (setf (comp-func-edges comp-func)
-                   (nreverse (comp-func-edges comp-func)))
              ;; Update edge refs into blocks.
+             finally
              (cl-loop
-              for edge in (comp-func-edges comp-func)
+              for edge being the hash-value in (comp-func-edges-h comp-func)
               do
               (push edge
                     (comp-block-out-edges (comp-edge-src edge)))
               (push edge
                     (comp-block-in-edges (comp-edge-dst edge))))
-                     (comp-log-edges comp-func))))
+             (comp-log-edges comp-func))))
 
 (defun comp-collect-rev-post-order (basic-block)
   "Walk BASIC-BLOCK children and return their name in reversed post-order."
