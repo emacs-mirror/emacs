@@ -2371,6 +2371,8 @@ eval_sub (Lisp_Object form)
 DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
+With a single argument, call the argument's first element using the
+other elements as args.
 Thus, (apply \\='+ 1 2 \\='(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -2380,6 +2382,10 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   Lisp_Object spread_arg = args[nargs - 1];
   Lisp_Object fun = args[0];
   USE_SAFE_ALLOCA;
+
+  if (nargs == 1)
+    /* Special case: FUN is really a list of (FUNCTION . ARGS).  */
+    return CALLN (Fapply, CAR (fun), CDR (fun));
 
   ptrdiff_t numargs = list_length (spread_arg);
 
