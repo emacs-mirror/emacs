@@ -1455,19 +1455,19 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 +++
 *** New function 'string-search'.
 This function takes two string parameters and returns the position of
-the first instance of the first string in the latter.
-
-+++
-*** New function 'process-lines-ignore-status'.
-This is like 'process-lines', but does not signal an error if the
-return status is non-zero.  'process-lines-handling-status' has also
-been added, and takes a callback to handle the return status.
+the first instance of the former string in the latter.
 
 +++
 *** New function 'string-replace'.
 This function works along the line of 'replace-regexp-in-string', but
 matching on strings instead of regexps, and does not change the global
 match state.
+
++++
+*** New function 'process-lines-ignore-status'.
+This is like 'process-lines', but does not signal an error if the
+return status is non-zero.  'process-lines-handling-status' has also
+been added, and takes a callback to handle the return status.
 
 ---
 *** 'ascii' is now a coding system alias for 'us-ascii'.
