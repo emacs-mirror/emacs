@@ -5019,7 +5019,7 @@ file_in_eln_sys_dir (Lisp_Object filename)
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILENAME.
-	       LATE_LOAD has to be non nil when loading for deferred
+	       LATE_LOAD has to be non-nil when loading for deferred
 	       compilation.  */)
   (Lisp_Object filename, Lisp_Object late_load)
 {

@@ -139,7 +139,7 @@ and above."
   :group 'comp)
 
 (defvar comp-dry-run nil
-  "When non nil run everything but the C back-end.")
+  "When non-nil run everything but the C back-end.")
 
 (defconst comp-valid-source-re (rx ".el" (? ".gz") eos)
   "Regexp to match filename of valid input source files.")
@@ -271,7 +271,7 @@ This is tipically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
-                  :documentation "When non nil support late load."))
+                  :documentation "When non-nil support late load."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -321,7 +321,7 @@ Is in use to help the SSA rename pass."))
   "A basic block created from lap."
   ;; These two slots are used during limplification.
   (sp nil :type number
-      :documentation "When non nil indicates the sp value while entering
+      :documentation "When non-nil indicates the sp value while entering
 into it.")
   (addr nil :type number
         :documentation "Start block LAP address."))
@@ -407,10 +407,10 @@ structure.")
   (const-vld nil :type boolean
              :documentation "Valid signal for the following slot.")
   (constant nil
-            :documentation "When const-vld non nil this is used for holding
+            :documentation "When const-vld non-nil this is used for holding
  a value known at compile time.")
   (type nil :type symbol
-        :documentation "When non nil indicates the type when known at compile
+        :documentation "When non-nil indicates the type when known at compile
  time."))
 
 ;; Special vars used by some passes
@@ -881,7 +881,7 @@ STACK-OFF is the index of the first slot frame involved."
 
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
-If SSA non nil populate it of m-var in ssa form."
+If SSA non-nil populate it of m-var in ssa form."
   (cl-loop with v = (make-vector size nil)
            for i below size
            for mvar = (if ssa
@@ -1490,7 +1490,7 @@ These are stored in the reloc data array."
 
 (defun comp-limplify-top-level (for-late-load)
   "Create a limple function to modify the global environment at load.
-When FOR-LATE-LOAD is non nil the emitted function modifies only
+When FOR-LATE-LOAD is non-nil the emitted function modifies only
 function definition.
 
 Synthesize a function called 'top_level_run' that gets one single
@@ -1876,7 +1876,7 @@ into the C code forwarding the compilation unit."
 
 (defun comp-dom-tree-walker (bb pre-lambda post-lambda)
   "Dominator tree walker function starting from basic block BB.
-PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
+PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
   (when pre-lambda
     (funcall pre-lambda bb))
   (when-let ((out-edges (comp-block-out-edges bb)))
@@ -2043,7 +2043,7 @@ Forward propagate immediate involed in assignments."
         (comp-mvar-type lval) (comp-mvar-type rval)))
 
 (defsubst comp-function-optimizable-p (f args)
-  "Given function F called with ARGS return non nil when optimizable."
+  "Given function F called with ARGS return non-nil when optimizable."
   (and (cl-every #'comp-mvar-const-vld args)
        (comp-function-pure-p f)))
 
