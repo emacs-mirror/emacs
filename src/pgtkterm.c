@@ -72,6 +72,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
   ((f)->output_data.pgtk->cr_surface_desired_height)
 
+/* Non-zero means that a HELP_EVENT has been generated since Emacs
+   start.  */
+
+static bool any_help_event_p;
 
 struct pgtk_display_info *x_display_list;	/* Chain of existing displays */
 extern Lisp_Object tip_frame;
@@ -5795,12 +5799,18 @@ configure_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   struct frame *f = pgtk_any_window_to_frame (event->configure.window);
   if (f && widget == FRAME_GTK_OUTER_WIDGET (f))
     {
-      PGTK_TRACE ("%dx%d", event->configure.width, event->configure.height);
-      xg_frame_resized (f, event->configure.width, event->configure.height);
-      pgtk_cr_update_surface_desired_size (f, event->configure.width,
-					   event->configure.height);
+      if (any_help_event_p)
+	{
+	  Lisp_Object frame;
+	  if (f)
+	    XSETFRAME (frame, f);
+	  else
+	    frame = Qnil;
+	  help_echo_string = Qnil;
+	  gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+	}
     }
-  return TRUE;
+  return FALSE;
 }
 
 static gboolean
@@ -6016,6 +6026,18 @@ leave_notify_event (GtkWidget * widget, GdkEvent * event,
   if (event->crossing.detail != GDK_NOTIFY_INFERIOR
       && event->crossing.focus && !(focus_state & FOCUS_EXPLICIT))
     x_focus_changed (FALSE, FOCUS_IMPLICIT, dpyinfo, frame, &inev);
+
+  if (frame)
+    {
+      if (any_help_event_p)
+	{
+	  Lisp_Object frame_obj;
+	  XSETFRAME (frame_obj, frame);
+	  help_echo_string = Qnil;
+	  gen_help_event (Qnil, frame_obj, Qnil, Qnil, 0);
+	}
+    }
+
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
@@ -6218,20 +6240,15 @@ motion_notify_event (GtkWidget * widget, GdkEvent * event,
   if (do_help > 0)
     {
       Lisp_Object frame;
-      union buffered_input_event inev;
 
       if (f)
 	XSETFRAME (frame, f);
       else
 	frame = Qnil;
 
-      inev.ie.kind = HELP_EVENT;
-      inev.ie.frame_or_window = frame;
-      inev.ie.arg = help_echo_object;
-      inev.ie.x = help_echo_window;
-      inev.ie.y = help_echo_string;
-      inev.ie.timestamp = help_echo_pos;
-      evq_enqueue (&inev);
+      any_help_event_p = true;
+      gen_help_event (help_echo_string, frame, help_echo_window,
+		      help_echo_object, help_echo_pos);
     }
 
   return TRUE;
@@ -6574,6 +6591,8 @@ pgtk_set_event_handler (struct frame *f)
 		    G_CALLBACK (delete_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "event",
 		    G_CALLBACK (pgtk_handle_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "configure-event",
+		    G_CALLBACK (configure_event), NULL);
 
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "map-event",
 		    G_CALLBACK (map_event), NULL);
@@ -6688,6 +6707,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   if (!x_initialized)
     {
+      any_help_event_p = false;
+
       Fset_input_interrupt_mode (Qt);
       baud_rate = 19200;
 
