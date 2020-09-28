@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2020 Free Software Foundation, Inc.
 
-;; Author: Jan Tatarik <jtatarik@liveintent.com>
+;; Author: Jan Tatarik <jan.tatarik@gmail.com>
 ;; Keywords:
 
 ;; This file is part of GNU Emacs.
@@ -69,7 +69,7 @@ BEGIN:VEVENT
 DTSTART;TZID=America/New_York:20201208T090000
 DTEND;TZID=America/New_York:20201208T100000
 DTSTAMP:20200728T182853Z
-ORGANIZER;CN=Company Events:mailto:liveintent.com_3bm6fh805bme9uoeliqcle1sa
+ORGANIZER;CN=Company Events:mailto:anoncompany.com_3bm6fh805bme9uoeliqcle1sa
  g@group.calendar.google.com
 UID:iipdt88slddpeu7hheuu09sfmd@google.com
 X-MICROSOFT-CDO-OWNERAPPTID:-362490173
@@ -96,7 +96,7 @@ END:VCALENDAR
           (should (not (gnus-icalendar-event:recurring-p event)))
           (should (string= (gnus-icalendar-event:start event) "2020-12-08 15:00"))
           (with-slots (organizer summary description location end-time uid rsvp participation-type) event
-                      (should (string= organizer "liveintent.com_3bm6fh805bme9uoeliqcle1sag@group.calendar.google.com"))
+                      (should (string= organizer "anoncompany.com_3bm6fh805bme9uoeliqcle1sag@group.calendar.google.com"))
                       (should (string= summary "Townhall | All Company Meeting"))
                       (should (string= description "In this meeting, we will cover topics from product and engineering presentations and demos to new hire announcements to watching the late"))
                       (should (string= location "New York-22-Town Hall Space (250) [Chrome Box]"))
@@ -182,55 +182,78 @@ END:VCALENDAR" (list "Mark Hershberger"))))
 <2020-07-30 15:00-15:30 +1w>")))
       (setenv "TZ" tz))))
 
+(ert-deftest gnus-icalendary-weekly-byday ()
+  ""
+  (let ((tz (getenv "TZ"))
+        (event (gnus-icalendar-tests--get-ical-event "\
+BEGIN:VCALENDAR
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;TZID=Europe/Berlin:20200915T140000
+DTEND;TZID=Europe/Berlin:20200915T143000
+RRULE:FREQ=WEEKLY;BYDAY=FR,MO,TH,TU,WE
+DTSTAMP:20200915T120627Z
+ORGANIZER;CN=anon@anoncompany.com:mailto:anon@anoncompany.com
+UID:7b6g3m7iftuo90ei4ul00feqn_R20200915T120000@google.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE
+ ;CN=participant@anoncompany.com;X-NUM-GUESTS=0:mailto:participant@anoncompany.com
+CREATED:20200325T095723Z
+DESCRIPTION:Coffee talk
+LAST-MODIFIED:20200915T120623Z
+LOCATION:
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Casual coffee talk
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR" (list "participant@anoncompany.com"))))
 
-;; (VCALENDAR nil
-;; 	   ((PRODID nil "Zimbra-Calendar-Provider")
-;; 	    (VERSION nil "2.0")
-;; 	    (METHOD nil "REQUEST"))
-;; 	   ((VTIMEZONE nil
-;; 		       ((TZID nil "America/New_York"))
-;; 		       ((STANDARD nil
-;; 				  ((DTSTART nil "16010101T020000")
-;; 				   (TZOFFSETTO nil "-0500")
-;; 				   (TZOFFSETFROM nil "-0400")
-;; 				   (RRULE nil "FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTH=11;BYDAY=1SU")
-;; 				   (TZNAME nil "EST"))
-;; 				  nil)
-;; 			(DAYLIGHT nil
-;; 				  ((DTSTART nil "16010101T020000")
-;; 				   (TZOFFSETTO nil "-0400")
-;; 				   (TZOFFSETFROM nil "-0500")
-;; 				   (RRULE nil "FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTH=3;BYDAY=2SU")
-;; 				   (TZNAME nil "EDT"))
-;; 				  nil)))
-;; 	    (VEVENT nil
-;; 		    ((UID nil "903a5415-9067-4f63-b499-1b6205f49c88")
-;; 		     (RRULE nil "FREQ=DAILY;UNTIL=20200825T035959Z;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR")
-;; 		     (SUMMARY nil "appointment every weekday, start jul 24, 2020, end aug 24, 2020")
-;; 		     (ATTENDEE
-;; 		      (CN "Mark Hershberger" ROLE "REQ-PARTICIPANT" PARTSTAT "NEEDS-ACTION" CN "Mark A. Hershberger")
-;; 		      "mailto:mah <at> nichework.com")
-;; 		     (DTSTART
-;; 		      (TZID "America/New_York")
-;; 		      "20200724T090000")
-;; 		     (DTEND
-;; 		      (TZID "America/New_York")
-;; 		      "20200724T093000")
-;; 		     (STATUS nil "CONFIRMED")
-;; 		     (CLASS nil "PUBLIC")
-;; 		     (X-MICROSOFT-CDO-INTENDEDSTATUS nil "BUSY")
-;; 		     (TRANSP nil "OPAQUE")
-;; 		     (LAST-MODIFIED nil "20200719T150815Z")
-;; 		     (DTSTAMP nil "20200719T150815Z")
-;; 		     (SEQUENCE nil "0")
-;; 		     (DESCRIPTION nil "The following is a new meeting request:"))
-;; 		    ((VALARM nil
-;; 			     ((ACTION nil "DISPLAY")
-;; 			      (TRIGGER
-;; 			       (RELATED "START")
-;; 			       "-PT5M")
-;; 			      (DESCRIPTION nil "Reminder"))
-;; 			     nil)))))
+    (unwind-protect
+        (progn
+          ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+          (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
+          (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
+          (should (gnus-icalendar-event:recurring-p event))
+          (should (string= (gnus-icalendar-event:recurring-interval event) "1"))
+          (should (string= (gnus-icalendar-event:start event) "2020-09-15 14:00"))
+          (with-slots (organizer summary description location end-time uid rsvp participation-type) event
+            (should (string= organizer "anon@anoncompany.com"))
+            (should (string= summary "Casual coffee talk"))
+            (should (string= description "Coffee talk"))
+            (should (string= location ""))
+            (should (string= (format-time-string "%Y-%m-%d %H:%M" end-time) "2020-09-15 14:30"))
+            (should (string= uid "7b6g3m7iftuo90ei4ul00feqn_R20200915T120000@google.com"))
+            (should rsvp)
+            (should (eq participation-type 'required)))
+          (should (equal (sort (gnus-icalendar-event:recurring-days event) #'<) '(1 2 3 4 5)))
+          (should (string= (gnus-icalendar-event:org-timestamp event) "<2020-09-15 14:00-14:30 +1w>
+<2020-09-16 14:00-14:30 +1w>
+<2020-09-17 14:00-14:30 +1w>
+<2020-09-18 14:00-14:30 +1w>
+<2020-09-21 14:00-14:30 +1w>")))
+      (setenv "TZ" tz))))
 
 (provide 'gnus-icalendar-tests)
 ;;; gnus-icalendar-tests.el ends here
