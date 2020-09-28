@@ -167,8 +167,7 @@ See the functions `find-function' and `find-variable'."
 (defun find-library-suffixes ()
   (let ((suffixes nil))
     (dolist (suffix (get-load-suffixes) (nreverse suffixes))
-      (unless (string-match "el[cn]" suffix)
-        (push suffix suffixes)))))
+      (unless (string-match "elc" suffix) (push suffix suffixes)))))
 
 (defun find-library--load-name (library)
   (let ((name library))

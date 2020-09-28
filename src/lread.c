@@ -1056,25 +1056,8 @@ This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
     {
       Lisp_Object exts = Vload_file_rep_suffixes;
       Lisp_Object suffix = XCAR (suffixes);
-      bool native_code_suffix =
-	NATIVE_COMP_FLAG
-        && strcmp (NATIVE_ELISP_SUFFIX, SSDATA (suffix)) == 0;
-
-#ifdef HAVE_MODULES
-      native_code_suffix =
-	native_code_suffix || strcmp (MODULES_SUFFIX, SSDATA (suffix)) == 0;
-#ifdef MODULES_SECONDARY_SUFFIX
-      native_code_suffix =
-	native_code_suffix
-	|| strcmp (MODULES_SECONDARY_SUFFIX, SSDATA (suffix)) == 0;
-#endif
-#endif
-
-      if (native_code_suffix)
-	lst = Fcons (suffix, lst);
-      else
-        FOR_EACH_TAIL (exts)
-          lst = Fcons (concat2 (suffix, XCAR (exts)), lst);
+      FOR_EACH_TAIL (exts)
+	lst = Fcons (concat2 (suffix, XCAR (exts)), lst);
     }
   return Fnreverse (lst);
 }
@@ -1698,6 +1681,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   int last_errno = ENOENT;
   int save_fd = -1;
   USE_SAFE_ALLOCA;
+
   /* The last-modified time of the newest matching file found.
      Initialize it to something less than all valid timestamps.  */
   struct timespec save_mtime = make_timespec (TYPE_MINIMUM (time_t), -1);
@@ -1898,7 +1882,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		    /* We succeeded; return this descriptor and filename.  */
 		    if (storeptr)
 		      *storeptr = string;
-
 		    SAFE_FREE ();
 		    return fd;
 		  }

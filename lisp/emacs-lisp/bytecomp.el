@@ -5180,8 +5180,7 @@ Use with caution."
         (message "Can't find %s to refresh preloaded Lisp files" argv0)
       (dolist (f (reverse load-history))
         (setq f (car f))
-        (when (string-match "el[cn]\\'" f)
-          (setq f (substring f 0 -1)))
+        (if (string-match "elc\\'" f) (setq f (substring f 0 -1)))
         (when (and (file-readable-p f)
                    (file-newer-than-file-p f emacs-file)
                    ;; Don't reload the source version of the files below

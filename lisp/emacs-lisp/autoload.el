@@ -1047,7 +1047,7 @@ write its autoloads into the specified file instead."
                        ;; we don't want to depend on whether Emacs was
                        ;; built with or without modules support, nor
                        ;; what is the suffix for the underlying OS.
-		       (unless (string-match "\\.\\(elc\\|eln\\|so\\|dll\\)" suf)
+		       (unless (string-match "\\.\\(elc\\|so\\|dll\\)" suf)
                          (push suf tmp)))
                      (concat "\\`[^=.].*" (regexp-opt tmp t) "\\'")))
 	 (files (apply #'nconc
