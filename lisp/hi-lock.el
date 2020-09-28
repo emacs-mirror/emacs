@@ -484,7 +484,13 @@ the major mode specifies support for Font Lock."
   (interactive
    (list
     (hi-lock-regexp-okay
-     (read-regexp "Regexp to highlight" 'regexp-history-last))
+     (read-regexp "Regexp to highlight"
+                  (if (use-region-p)
+                      (prog1
+                          (buffer-substring (region-beginning)
+                                            (region-end))
+                        (deactivate-mark))
+                    'regexp-history-last)))
     (hi-lock-read-face-name)
     current-prefix-arg))
   (or (facep face) (setq face 'hi-yellow))
