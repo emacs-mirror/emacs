@@ -7,6 +7,7 @@
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, Perl
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This file is part of GNU Emacs.
 
@@ -74,6 +75,26 @@
 ;; likewise with m, tr, y, q, qX instead of s
 
 ;;; Code:
+
+;;; Compatibility with older versions (for publishing on ELPA)
+;; The following helpers allow cperl-mode.el to work with older
+;; versions of Emacs.
+;;
+;; Whenever the minimum version is bumped (see "Package-Requires"
+;; above), please eliminate the corresponding compatibility-helpers.
+;; Whenever you create a new compatibility-helper, please add it here.
+
+;; Available in Emacs 27.1: time-convert
+(defalias 'cperl--time-convert
+  (if (fboundp 'time-convert) 'time-convert
+    'encode-time))
+
+;; Available in Emacs 28: format-prompt
+(defalias 'cperl--format-prompt
+  (if (fboundp 'format-prompt) 'format-prompt
+    (lambda (msg default)
+      (if default (format "%s (default %s): " msg default)
+	(concat msg ": ")))))
 
 (eval-when-compile (require 'cl-lib))
 
@@ -6126,7 +6147,7 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
   (interactive
    (let* ((default (cperl-word-at-point))
 	  (read (read-string
-		 (format-prompt "Find doc for Perl function" default))))
+		 (cperl--format-prompt "Find doc for Perl function" default))))
      (list (if (equal read "")
 	       default
 	     read))))
@@ -8085,7 +8106,7 @@ the appropriate statement modifier."
   (interactive
    (list (let* ((default-entry (cperl-word-at-point))
                 (input (read-string
-                        (format-prompt "perldoc entry" default-entry))))
+                        (cperl--format-prompt "perldoc entry" default-entry))))
            (if (string= input "")
                (if (string= default-entry "")
                    (error "No perldoc args given")
@@ -8312,7 +8333,7 @@ start with default arguments, then refine the slowdown regions."
   (or l (setq l 1))
   (or step (setq step 500))
   (or lim (setq lim 40))
-  (let* ((timems (function (lambda () (car (time-convert nil 1000)))))
+  (let* ((timems (function (lambda () (car (cperl--time-convert nil 1000)))))
 	 (tt (funcall timems)) (c 0) delta tot)
     (goto-char (point-min))
     (forward-line (1- l))
