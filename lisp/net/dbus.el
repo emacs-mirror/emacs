@@ -2036,6 +2036,28 @@ either a method name, a signal name, or an error name."
     ;; Return the object.
     (list key key1)))
 
+(defconst dbus-monitor-method-call
+  (propertize "method-call" 'face 'font-lock-function-name-face)
+  "Text to be inserted for D-Bus method-call in monitor.")
+
+(defconst dbus-monitor-method-return
+  (propertize "method-return" 'face 'font-lock-function-name-face)
+  "Text to be inserted for D-Bus method-return in monitor.")
+
+(defconst dbus-monitor-error (propertize "error" 'face 'font-lock-warning-face)
+  "Text to be inserted for D-Bus error in monitor.")
+
+(defconst dbus-monitor-signal
+  (propertize "signal" 'face 'font-lock-type-face)
+  "Text to be inserted for D-Bus signal in monitor.")
+
+(defun dbus-monitor-goto-serial ()
+  "Goto D-Bus message with the same serial number."
+  (interactive)
+  (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
+  (when-let ((point (get-text-property (point) 'dbus-serial)))
+    (goto-char point)))
+
 (defun dbus-monitor-handler (&rest _args)
   "Default handler for the \"org.freedesktop.DBus.Monitoring.BecomeMonitor\" interface.
 It will be applied for all objects created by
@@ -2045,6 +2067,9 @@ It will be applied for all objects created by
     ;; Move forward and backward between messages.
     (local-set-key [?n] #'forward-paragraph)
     (local-set-key [?p] #'backward-paragraph)
+    ;; Follow serial links.
+    (local-set-key  (kbd "RET") #'dbus-monitor-goto-serial)
+    (local-set-key  [mouse-2] #'dbus-monitor-goto-serial)
     (let* ((inhibit-read-only t)
            (point (point))
            (eobp (eobp))
@@ -2056,20 +2081,47 @@ It will be applied for all objects created by
 	   (path (dbus-event-path-name event))
 	   (interface (dbus-event-interface-name event))
 	   (member (dbus-event-member-name event))
-           (arguments (dbus-event-arguments event)))
+           (arguments (dbus-event-arguments event))
+           (time (time-to-seconds (current-time))))
       (save-excursion
+        ;; Check for matching method-call.
+        (goto-char (point-max))
+        (when (and (or (= type dbus-message-type-method-return)
+                       (= type dbus-message-type-error))
+                   (re-search-backward
+                    (format
+                     (concat
+                      "^method-call time=\\(\\S-+\\) "
+                      ".*sender=%s .*serial=\\(%d\\) ")
+                     destination serial)
+                    nil 'noerror))
+          (setq serial
+                (propertize
+                 (match-string 2) 'dbus-serial (match-beginning 0)
+                 'help-echo "RET, mouse-1, mouse-2: goto method-call"
+                 'face 'link 'follow-link 'mouse-face 'mouse-face 'highlight)
+                time (format "%f (%f)" time (- time (read (match-string 1)))))
+          (set-text-properties
+           (match-beginning 2) (match-end 2)
+           `(dbus-serial ,(point-max)
+             help-echo
+             ,(format
+               "RET, mouse-1, mouse-2: goto %s"
+               (if (= type dbus-message-type-error) "error" "method-return"))
+             face link follow-link mouse-face mouse-face highlight)))
+        ;; Insert D-Bus message.
         (goto-char (point-max))
         (insert
          (format
           (concat
-           "%s sender=%s -> destination=%s serial=%s "
+           "%s time=%s sender=%s -> destination=%s serial=%s "
            "path=%s interface=%s member=%s\n")
           (cond
-           ((= type dbus-message-type-method-call) "method-call")
-           ((= type dbus-message-type-method-return) "method-return")
-           ((= type dbus-message-type-error) "error")
-           ((= type dbus-message-type-signal) "signal"))
-          sender destination serial path interface member))
+           ((= type dbus-message-type-method-call) dbus-monitor-method-call)
+           ((= type dbus-message-type-method-return) dbus-monitor-method-return)
+           ((= type dbus-message-type-error) dbus-monitor-error)
+           ((= type dbus-message-type-signal) dbus-monitor-signal))
+          time sender destination serial path interface member))
         (dolist (arg arguments)
           (pp (dbus-flatten-types arg) (current-buffer)))
         (insert "\n")
