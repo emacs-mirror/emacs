@@ -5348,6 +5348,11 @@ update_frame_tool_bar (struct frame *f)
   if (! FRAME_GTK_WIDGET (f))
     return;
 
+#ifdef HAVE_PGTK
+  if (! FRAME_GTK_OUTER_WIDGET (f))
+    return;
+#endif
+
   block_input ();
 
   if (RANGED_FIXNUMP (1, Vtool_bar_button_margin, INT_MAX))
