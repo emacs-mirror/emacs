@@ -2383,14 +2383,10 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   Lisp_Object fun = args[0];
   USE_SAFE_ALLOCA;
 
-  if (nargs == 1)
-    /* Special case: FUN is really a list of (FUNCTION . ARGS).  */
-    return CALLN (Fapply, CAR (fun), CDR (fun));
-
   ptrdiff_t numargs = list_length (spread_arg);
 
   if (numargs == 0)
-    return Ffuncall (nargs - 1, args);
+    return Ffuncall (max (1, nargs - 1), args);
   else if (numargs == 1)
     {
       args [nargs - 1] = XCAR (spread_arg);
