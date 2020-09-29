@@ -1338,7 +1338,13 @@ The following commands are accepted by the client:
                            "When done with this frame, type \\[delete-frame]")))
            ((not (null buffers))
             (run-hooks 'server-after-make-frame-hook)
-            (server-switch-buffer (car buffers) nil (cdr (car files)))
+            (server-switch-buffer
+             (car buffers) nil (cdr (car files))
+             ;; When triggered from "emacsclient -c", we popped up a
+             ;; new frame.  Ensure that we switch to the requested
+             ;; buffer in that frame, and not in some other frame
+             ;; where it may be displayed.
+             (plist-get (process-plist proc) 'frame))
             (run-hooks 'server-switch-hook)
             (unless nowait
               (message "%s" (substitute-command-keys
@@ -1568,7 +1574,8 @@ starts server process and that is all.  Invoked by \\[server-edit]."
    (server-clients (apply #'server-switch-buffer (server-done)))
    (t (message "No server editing buffers exist"))))
 
-(defun server-switch-buffer (&optional next-buffer killed-one filepos)
+(defun server-switch-buffer (&optional next-buffer killed-one filepos
+                                       this-frame-only)
   "Switch to another buffer, preferably one that has a client.
 Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it.
 
@@ -1602,7 +1609,8 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
       ;; OK, we know next-buffer is live, let's display and select it.
       (if (functionp server-window)
 	  (funcall server-window next-buffer)
-	(let ((win (get-buffer-window next-buffer 0)))
+	(let ((win (get-buffer-window next-buffer
+                                      (if this-frame-only nil 0))))
 	  (if (and win (not server-window))
 	      ;; The buffer is already displayed: just reuse the
 	      ;; window.  If FILEPOS is non-nil, use it to replace the
@@ -1620,7 +1628,8 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		     (setq server-window (make-frame)))
 		   (select-window (frame-selected-window server-window))))
 	    (when (window-minibuffer-p)
-	      (select-window (next-window nil 'nomini 0)))
+	      (select-window (next-window nil 'nomini
+                                          (if this-frame-only nil 0))))
 	    ;; Move to a non-dedicated window, if we have one.
 	    (when (window-dedicated-p)
 	      (select-window
