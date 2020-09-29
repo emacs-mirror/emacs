@@ -3316,6 +3316,8 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
     gtk_window_get_position (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			     &left_pos, &top_pos);
   } else {
+    if (FRAME_GTK_WIDGET (f) == NULL)
+      return Qnil;    /* This can occur while creating a frame. */
     GtkAllocation alloc;
     gtk_widget_get_allocation (FRAME_GTK_WIDGET (f), &alloc);
     left_pos = alloc.x;
