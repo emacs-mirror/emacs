@@ -2026,7 +2026,7 @@ either a method name, a signal name, or an error name."
 
     ;; Create a hash table entry.
     (setq key (list :monitor bus-private)
-	  key1 (list nil nil nil handler)
+	  key1 (list nil nil nil handler rule)
 	  value (gethash key dbus-registered-objects-table))
     (unless  (member key1 value)
       (puthash key (cons key1 value) dbus-registered-objects-table))
@@ -2060,8 +2060,11 @@ either a method name, a signal name, or an error name."
 
 (defun dbus-monitor-handler (&rest _args)
   "Default handler for the \"org.freedesktop.DBus.Monitoring.BecomeMonitor\" interface.
-It will be applied for all objects created by
-`dbus-register-monitor' which don't declare an own handler.."
+It will be applied for all objects created by `dbus-register-monitor'
+which don't declare an own handler.  The printed timestamps do
+not reflect the time the D-Bus message has passed the D-Bus
+daemon, it is rather the timestamp the corresponding D-Bus event
+has been handled by this function."
   (with-current-buffer (get-buffer-create "*D-Bus Monitor*")
     (special-mode)
     ;; Move forward and backward between messages.
@@ -2071,6 +2074,7 @@ It will be applied for all objects created by
     (local-set-key  (kbd "RET") #'dbus-monitor-goto-serial)
     (local-set-key  [mouse-2] #'dbus-monitor-goto-serial)
     (let* ((inhibit-read-only t)
+           (text-quoting-style 'grave)
            (point (point))
            (eobp (eobp))
            (event last-input-event)
