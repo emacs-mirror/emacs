@@ -2996,8 +2996,6 @@ reference multiRef parts which are external to RESPONSE-NODE."
 
 ;;;; SOAP type encoding
 
-;; FIXME: Use `cl-defmethod' (but this requires Emacs-25).
-
 (defun soap-encode-attributes (value type)
   "Encode XML attributes for VALUE according to TYPE.
 This is a generic function which determines the attribute encoder
