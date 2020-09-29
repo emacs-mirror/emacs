@@ -527,6 +527,11 @@ xwidget_osr_event_forward (GtkWidget *widget, GdkEvent *event,
      perhaps in xwgir_event_cb.  */
   gtk_main_do_event (eventcopy);
 
+#ifdef HAVE_PGTK
+  /* Pgtk code needs this event */
+  if (event->type == GDK_MOTION_NOTIFY)
+    return FALSE;
+#endif
   /* Don't propagate this event further.  */
   return TRUE;
 }
