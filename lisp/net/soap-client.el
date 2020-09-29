@@ -5,7 +5,7 @@
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.1.5
+;; Version: 3.2.0
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; Homepage: https://github.com/alex-hhh/emacs-soap-client
