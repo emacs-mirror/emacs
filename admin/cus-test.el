@@ -347,7 +347,7 @@ Optional argument ALL non-nil means list all (non-obsolete) Lisp files."
 	;; Hack to remove leading "./".
 	(mapcar (lambda (e) (substring e 2))
 		(apply 'process-lines find-program
-		       "-name" "obsolete" "-prune" "-o"
+		       "." "-name" "obsolete" "-prune" "-o"
 		       "-name" "[^.]*.el" ; ignore .dir-locals.el
 		       (if all
 			   '("-print")
