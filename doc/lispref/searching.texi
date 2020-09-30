@@ -2566,9 +2566,11 @@ replacement string.  The match data at this point are the result
 of matching @var{regexp} against a substring of @var{string}.
 @end defun
 
-@defun replace-in-string fromstring tostring instring
-This function copies @var{instring} and replaces any occurrences of
-@var{fromstring} with @var{tostring}.
+@defun string-replace fromstring tostring instring
+This function replaces all occurrences of @var{fromstring} with
+@var{tostring} in @var{instring} and returns the result.  It may
+return one of its arguments unchanged, a constant string or a new
+string.  Case is significant, and text properties are ignored.
 @end defun
 
   If you want to write a command along the lines of @code{query-replace},

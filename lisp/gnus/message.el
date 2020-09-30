@@ -4568,7 +4568,8 @@ This function could be useful in `message-setup-hook'."
 (custom-add-option 'message-setup-hook 'message-check-recipients)
 
 (defun message-add-action (action &rest types)
-  "Add ACTION to be performed when doing an exit of type TYPES."
+  "Add ACTION to be performed when doing an exit of type TYPES.
+Valid types are `send', `return', `exit', `kill' and `postpone'."
   (while types
     (add-to-list (intern (format "message-%s-actions" (pop types)))
 		 action)))

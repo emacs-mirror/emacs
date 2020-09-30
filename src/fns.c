@@ -5454,6 +5454,16 @@ It should not be used for anything security-related.  See
   return make_digest_string (digest, SHA1_DIGEST_SIZE);
 }
 
+static bool
+string_ascii_p (Lisp_Object string)
+{
+  ptrdiff_t nbytes = SBYTES (string);
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    if (SREF (string, i) > 127)
+      return false;
+  return true;
+}
+
 DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,
        doc: /* Search for the string NEEDLE in the string HAYSTACK.
 The return value is the position of the first occurrence of NEEDLE in
@@ -5468,6 +5478,7 @@ Case is always significant and text properties are ignored. */)
 {
   ptrdiff_t start_byte = 0, haybytes;
   char *res, *haystart;
+  EMACS_INT start = 0;
 
   CHECK_STRING (needle);
   CHECK_STRING (haystack);
@@ -5475,16 +5486,28 @@ Case is always significant and text properties are ignored. */)
   if (!NILP (start_pos))
     {
       CHECK_FIXNUM (start_pos);
-      EMACS_INT start = XFIXNUM (start_pos);
+      start = XFIXNUM (start_pos);
       if (start < 0 || start > SCHARS (haystack))
         xsignal1 (Qargs_out_of_range, start_pos);
       start_byte = string_char_to_byte (haystack, start);
     }
 
+  /* If NEEDLE is longer than (the remaining length of) haystack, then
+     we can't have a match, and return early.  */
+  if (SCHARS (needle) > SCHARS (haystack) - start)
+    return Qnil;
+
   haystart = SSDATA (haystack) + start_byte;
   haybytes = SBYTES (haystack) - start_byte;
 
-  if (STRING_MULTIBYTE (haystack) == STRING_MULTIBYTE (needle))
+  /* We can do a direct byte-string search if both strings have the
+     same multibyteness, or if at least one of them consists of ASCII
+     characters only.  */
+  if (STRING_MULTIBYTE (haystack)
+      ? (STRING_MULTIBYTE (needle)
+         || SCHARS (haystack) == SBYTES (haystack) || string_ascii_p (needle))
+      : (!STRING_MULTIBYTE (needle)
+         || SCHARS (needle) == SBYTES (needle) || string_ascii_p (haystack)))
     res = memmem (haystart, haybytes,
 		  SSDATA (needle), SBYTES (needle));
   else if (STRING_MULTIBYTE (haystack))  /* unibyte needle */
@@ -5495,9 +5518,24 @@ Case is always significant and text properties are ignored. */)
     }
   else                        /* unibyte haystack, multibyte needle */
     {
-      Lisp_Object uni_needle = Fstring_as_unibyte (needle);
+      /* The only possible way we can find the multibyte needle in the
+	 unibyte stack (since we know that neither are pure-ASCII) is
+	 if they contain "raw bytes" (and no other non-ASCII chars.)  */
+      ptrdiff_t nbytes = SBYTES (needle);
+      for (ptrdiff_t i = 0; i < nbytes; i++)
+        {
+          int c = SREF (needle, i);
+          if (CHAR_BYTE8_HEAD_P (c))
+            i++;                /* Skip raw byte.  */
+          else if (!ASCII_CHAR_P (c))
+            return Qnil;  /* Found a char that can't be in the haystack.  */
+        }
+
+      /* "Raw bytes" (aka eighth-bit) are represented differently in
+         multibyte and unibyte strings.  */
+      Lisp_Object uni_needle = Fstring_to_unibyte (needle);
       res = memmem (haystart, haybytes,
-		    SSDATA (uni_needle), SBYTES (uni_needle));
+                    SSDATA (uni_needle), SBYTES (uni_needle));
     }
 
   if (! res)

@@ -116,6 +116,10 @@ instead (which see).")
 				    function-list &optional docstring)
   "Create a new generic mode MODE.
 
+A \"generic\" mode is a simple major mode with basic support for
+comment syntax and Font Lock mode, but otherwise do not have a
+any special keystrokes or functionality available.
+
 MODE is the name of the command for the generic mode; don't quote it.
 The optional DOCSTRING is the documentation for the mode command.  If
 you do not supply it, `define-generic-mode' uses a default

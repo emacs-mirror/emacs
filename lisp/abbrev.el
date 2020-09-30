@@ -824,6 +824,145 @@ see `define-abbrev' for details."
   "Function that `expand-abbrev' uses to perform abbrev expansion.
 Takes no argument and should return the abbrev symbol if expansion took place.")
 
+(defcustom abbrev-suggest nil
+  "Non-nil means suggest using abbrevs to save typing.
+When abbrev mode is active and this option is non-nil, Emacs will
+suggest in the echo area to use an existing abbrev if doing so
+will save enough typing.  See `abbrev-suggest-hint-threshold' for
+the definition of \"enough typing\"."
+    :type 'boolean
+    :version "28.1")
+
+(defcustom abbrev-suggest-hint-threshold 3
+  "Threshold for when to suggest to use an abbrev to save typing.
+The threshold is the amount of typing, in terms of the number of
+characters, that would be saved by using the abbrev.  The
+thinking is that if the expansion is only a few characters
+longer than the abbrev, the benefit of informing the user is not
+significant.  If you always want to be informed about existing
+abbrevs for the text you type, set this value to zero or less.
+This setting only applies if `abbrev-suggest' is non-nil."
+    :type 'number
+    :version "28.1")
+
+(defun abbrev--suggest-get-active-tables-including-parents ()
+  "Return a list of all active abbrev tables, including parent tables."
+  (let* ((tables (abbrev--active-tables))
+	 (all tables))
+    (dolist (table tables)
+      (setq all (append (abbrev-table-get table :parents) all)))
+    all))
+
+(defun abbrev--suggest-get-active-abbrev-expansions ()
+  "Return a list of all the active abbrev expansions.
+Includes expansions from parent abbrev tables."
+    (let (expansions)
+      (dolist (table (abbrev--suggest-get-active-tables-including-parents))
+	(mapatoms (lambda (e)
+		    (let ((value (symbol-value (abbrev--symbol e table))))
+		      (when value
+                        (push (cons value (symbol-name e)) expansions))))
+		  table))
+      expansions))
+
+(defun abbrev--suggest-count-words (expansion)
+  "Return the number of words in EXPANSION.
+Expansion is a string of one or more words."
+    (length (split-string expansion " " t)))
+
+(defun abbrev--suggest-get-previous-words (n)
+  "Return the N words before point, spaces included."
+    (let ((end (point)))
+      (save-excursion
+	(backward-word n)
+	(replace-regexp-in-string
+	 "\\s " " "
+	 (buffer-substring-no-properties (point) end)))))
+
+(defun abbrev--suggest-above-threshold (expansion)
+  "Return non-nil if the abbrev in EXPANSION provides significant savings.
+A significant saving, here, is the difference in length between
+the abbrev and the abbrev expansion.  EXPANSION is a cons cell
+where the car is the expansion and the cdr is the abbrev."
+    (>= (- (length (car expansion))
+	   (length (cdr expansion)))
+	abbrev-suggest-hint-threshold))
+
+(defvar abbrev--suggest-saved-recommendations nil
+    "Keeps a list of expansions that have abbrevs defined.
+The user can show this list by calling
+`abbrev-suggest-show-report'.")
+
+(defun abbrev--suggest-inform-user (expansion)
+    "Display a message to the user about the existing abbrev.
+EXPANSION is a cons cell where the `car' is the expansion and the
+`cdr' is the abbrev."
+    (run-with-idle-timer
+     1 nil
+     (lambda ()
+       (message "You can write `%s' using the abbrev `%s'."
+                                   (car expansion) (cdr expansion))))
+    (push expansion abbrev--suggest-saved-recommendations))
+
+(defun abbrev--suggest-shortest-abbrev (new current)
+    "Return the shortest abbrev of NEW and CURRENT.
+NEW and CURRENT are cons cells where the `car' is the expansion
+and the `cdr' is the abbrev."
+    (if (not current)
+	new
+      (if (< (length (cdr new))
+	     (length (cdr current)))
+	  new
+	current)))
+
+(defun abbrev--suggest-maybe-suggest ()
+    "Suggest an abbrev to the user based on the word(s) before point.
+Uses `abbrev-suggest-hint-threshold' to find out if the user should be
+informed about the existing abbrev."
+    (let (words abbrev-found word-count)
+      (dolist (expansion (abbrev--suggest-get-active-abbrev-expansions))
+	(setq word-count (abbrev--suggest-count-words (car expansion))
+	      words (abbrev--suggest-get-previous-words word-count))
+	(let ((case-fold-search t))
+	  (when (and (> word-count 0)
+		     (string-match (car expansion) words)
+		     (abbrev--suggest-above-threshold expansion))
+	    (setq abbrev-found (abbrev--suggest-shortest-abbrev
+				expansion abbrev-found)))))
+      (when abbrev-found
+	(abbrev--suggest-inform-user abbrev-found))))
+
+(defun abbrev--suggest-get-totals ()
+    "Return a list of all expansions and how many times they were used.
+Each expansion is a cons cell where the `car' is the expansion
+and the `cdr' is the number of times the expansion has been
+typed."
+    (let (total cell)
+      (dolist (expansion abbrev--suggest-saved-recommendations)
+	(if (not (assoc (car expansion) total))
+	    (push (cons (car expansion) 1) total)
+	  (setq cell (assoc (car expansion) total))
+	  (setcdr cell (1+ (cdr cell)))))
+      total))
+
+(defun abbrev-suggest-show-report ()
+  "Show a buffer with the list of abbrevs you could have used.
+This shows the abbrevs you've \"missed\" because you typed the
+full text instead of the abbrevs that expand into that text."
+  (interactive)
+  (let ((totals (abbrev--suggest-get-totals))
+	(buf (get-buffer-create "*abbrev-suggest*")))
+    (set-buffer buf)
+    (erase-buffer)
+        (insert "** Abbrev expansion usage **
+
+Below is a list of expansions for which abbrevs are defined, and
+the number of times the expansion was typed manually.  To display
+and edit all abbrevs, type `M-x edit-abbrevs RET'\n\n")
+	(dolist (expansion totals)
+	  (insert (format " %s: %d\n" (car expansion) (cdr expansion))))
+	(display-buffer buf)))
+
 (defun expand-abbrev ()
   "Expand the abbrev before point, if there is an abbrev there.
 Effective when explicitly called even when `abbrev-mode' is nil.
@@ -831,7 +970,9 @@ Calls the value of `abbrev-expand-function' with no argument to do
 the work, and returns whatever it does.  (That return value should
 be the abbrev symbol if expansion occurred, else nil.)"
   (interactive)
-  (funcall abbrev-expand-function))
+  (or (funcall abbrev-expand-function)
+      (if abbrev-suggest
+          (abbrev--suggest-maybe-suggest))))
 
 (defun abbrev--default-expand ()
   "Default function to use for `abbrev-expand-function'.

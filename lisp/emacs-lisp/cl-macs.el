@@ -3182,6 +3182,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (buffer	. bufferp)
                  (character	. natnump)
                  (char-table	. char-table-p)
+                 (hash-table	. hash-table-p)
                  (cons		. consp)
                  (fixnum	. integerp)
                  (float		. floatp)

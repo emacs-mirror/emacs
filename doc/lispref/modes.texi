@@ -3293,7 +3293,7 @@ is disabled, @code{font-lock-face} has no effect on the display.
 also use the normal Font Lock machinery.  But if the mode does not use
 the normal Font Lock machinery, it should not set the variable
 @code{font-lock-defaults}.  In this case the @code{face} property will
-not be overriden, so using the @code{face} property could work too.
+not be overridden, so using the @code{face} property could work too.
 However, using @code{font-lock-face} is generally preferable as it
 allows the user to control the fontification by toggling
 @code{font-lock-mode}, and lets the code work regardless of whether

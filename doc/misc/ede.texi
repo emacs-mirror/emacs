@@ -2436,7 +2436,7 @@ Argument @var{THIS} is the project to convert @var{PATH} to.
 @end deffn
 
 @deffn Method ede-name :AFTER this
-Return the name of @var{THIS} targt.
+Return the name of @var{THIS} target.
 @end deffn
 
 @deffn Method ede-target-buffer-in-sourcelist :AFTER this buffer source

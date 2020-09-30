@@ -26,6 +26,7 @@
 
 (require 'epa)
 (require 'epa-hook)
+(eval-when-compile (require 'subr-x))
 
 ;;; Options
 
@@ -115,8 +116,17 @@ encryption is used."
   (let ((error epa-file-error))
     (save-window-excursion
       (kill-buffer))
-    (signal 'file-missing
-	    (cons "Opening input file" (cdr error)))))
+    (if (nth 3 error)
+        (user-error "Wrong passphrase: %s" (nth 3 error))
+      (signal 'file-missing
+	      (cons "Opening input file" (cdr error))))))
+
+(defun epa--wrong-password-p (context)
+  (let ((error-string (epg-context-error-output context)))
+    (and (string-match
+          "decryption failed: \\(Bad session key\\|No secret key\\)"
+          error-string)
+         (match-string 1 error-string))))
 
 (defvar last-coding-system-used)
 (defun epa-file-insert-file-contents (file &optional visit beg end replace)
@@ -159,7 +169,12 @@ encryption is used."
 			(nth 3 error)))
 	     (let ((exists (file-exists-p local-file)))
 	       (when exists
-		 (epa-display-error context)
+                 (if-let ((wrong-password (epa--wrong-password-p context)))
+                     ;; Don't display the *error* buffer if we just
+                     ;; have a wrong password; let the later error
+                     ;; handler notify the user.
+                     (setq error (append error (list wrong-password)))
+		   (epa-display-error context))
                  ;; When the .gpg file isn't an encrypted file (e.g.,
                  ;; it's a keyring.gpg file instead), then gpg will
                  ;; say "Unexpected exit" as the error message.  In

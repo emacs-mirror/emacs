@@ -1057,9 +1057,8 @@ If nothing was called, return non-nil."
 		      pos 'button (and (windowp (posn-window start))
 				       (window-buffer (posn-window start))))))
 
-	(when (and (widget-get button :button-overlay)
-                   (or (null button)
-                       (widget-button--check-and-call-button event button)))
+	(when (or (null button)
+                  (widget-button--check-and-call-button event button))
 	  (let ((up t)
                 command)
 	    ;; Mouse click not on a widget button.  Find the global
@@ -1370,7 +1369,8 @@ Unlike (get-char-property POS \\='field), this works with empty fields too."
 	     (signal 'text-read-only
 		     '("Attempt to change text outside editable field")))
 	    (widget-field-use-before-change
-	     (widget-apply from-field :notify from-field))))))
+	     (widget-apply from-field :notify
+                           from-field (list 'before-change from to)))))))
 
 (defun widget-add-change ()
   (remove-hook 'post-command-hook 'widget-add-change t)
@@ -1407,7 +1407,7 @@ Unlike (get-char-property POS \\='field), this works with empty fields too."
 				 (> (point) begin))
 		       (delete-char -1)))))))
 	(widget-specify-secret field))
-      (widget-apply field :notify field))))
+      (widget-apply field :notify field (list 'after-change from to)))))
 
 ;;; Widget Functions
 ;;
@@ -3533,13 +3533,70 @@ To use this type, you must define :match or :match-alternatives."
   :value-to-internal (lambda (_widget value)
 		       (if (stringp value)
 			   value
-			 (char-to-string value)))
+                         (let ((disp
+                                (widget-character--change-character-display
+                                 value)))
+                           (if disp
+                               (propertize (char-to-string value) 'display disp)
+                             (char-to-string value)))))
   :value-to-external (lambda (_widget value)
 		       (if (stringp value)
 			   (aref value 0)
 			 value))
   :match (lambda (_widget value)
-	   (characterp value)))
+	   (characterp value))
+  :notify #'widget-character-notify)
+
+;; Only some escape sequences, not all of them.  (Bug#15925)
+(defvar widget-character--escape-sequences-alist
+  '((?\t . ?t)
+    (?\n . ?n)
+    (?\s . ?s))
+  "Alist that associates escape sequences to a character.
+Each element has the form (ESCAPE-SEQUENCE . CHARACTER).
+
+The character widget uses this alist to display the
+non-printable character represented by ESCAPE-SEQUENCE as \\CHARACTER,
+since that makes it easier to see what's in the widget.")
+
+(defun widget-character--change-character-display (c)
+  "Return a string to represent the character C, or nil.
+
+The character widget represents some characters (e.g., the newline character
+or the tab character) specially, to make it easier for the user to see what's
+in it.  For those characters, return a string to display that character in a
+more user-friendly way.
+
+For the caller, nil should mean that it is good enough to use the return value
+of `char-to-string' for the representation of C."
+  (let ((char (alist-get c widget-character--escape-sequences-alist)))
+    (and char (propertize (format "\\%c" char) 'face 'escape-glyph))))
+
+(defun widget-character-notify (widget child &optional event)
+  "Notify function for the character widget.
+
+This function allows the widget character to better display some characters,
+like the newline character or the tab character."
+  (when (eq (car-safe event) 'after-change)
+    (let* ((start (nth 1 event))
+           (end (nth 2 event))
+           str)
+      (if (eql start end)
+          (when (char-equal (widget-value widget) ?\s)
+            ;; The character widget is not really empty:
+            ;; its value is a single space character.
+            ;; We need to propertize it again, if it became empty for a while.
+            (let ((ov (widget-get widget :field-overlay)))
+              (put-text-property
+               (overlay-start ov) (overlay-end ov)
+               'display (widget-character--change-character-display ?\s))))
+        (setq str (buffer-substring-no-properties start end))
+        ;; This assumes the user enters one character at a time,
+        ;; and does nothing crazy, like yanking a long string.
+        (let ((disp (widget-character--change-character-display (aref str 0))))
+          (when disp
+            (put-text-property start end 'display disp))))))
+  (widget-default-notify widget child event))
 
 (define-widget 'list 'group
   "A Lisp list."

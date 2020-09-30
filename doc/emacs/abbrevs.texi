@@ -28,6 +28,7 @@ Automatic Typing}.
 * Abbrev Concepts::   Fundamentals of defined abbrevs.
 * Defining Abbrevs::  Defining an abbrev, so it will expand when typed.
 * Expanding Abbrevs:: Controlling expansion: prefixes, canceling expansion.
+* Abbrevs Suggestions:: Get automatic suggestions about defined abbrevs.
 * Editing Abbrevs::   Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::    Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::   Abbreviations for words already in the buffer.
@@ -222,6 +223,38 @@ the function that @code{abbrev-expand-function} specifies.  By
 changing this function you can make arbitrary changes to
 the abbrev expansion.  @xref{Abbrev Expansion,,, elisp, The Emacs Lisp
 Reference Manual}.
+
+@node Abbrevs Suggestions
+@section Abbrevs Suggestions
+
+  You can get abbrev suggestions when you manually type text for which
+there is currently an active defined abbrev.  For example, if there is
+an abbrev @samp{foo} with the expansion @samp{find outer otter}, and
+you manually type @samp{find outer otter}, Emacs can notice this and
+show a hint in the echo area when you have stopped typing.
+
+@vindex abbrev-suggest
+  To enable the abbrev suggestion feature, customize the option
+@code{abbrev-suggest} to a non-@code{nil} value.
+
+@vindex abbrev-suggest-hint-threshold
+  The variable @code{abbrev-suggest-hint-threshold} controls when to
+suggest an abbrev to the user.  This variable defines the minimum
+savings (in terms of the number of characters the user will not have
+to type) required for Emacs to suggest using an abbrev.  For example,
+if the user types @samp{foo bar} (seven characters) and there is an
+abbrev @samp{fubar} defined (five characters), the user will not get
+any suggestion unless the threshold is set to the number 2 or lower.
+With the default value 3, the user would not get any suggestion in
+this example, because the savings in using the abbrev are below
+the threshold.  If you always want to get abbrev suggestions, set this
+variable's value to zero.
+
+@findex abbrev-suggest-show-report
+  The command @code{abbrev-suggest-show-report} displays a buffer with
+all the abbrev suggestions shown during the current editing session.
+This can be useful if you get several abbrev suggestions and don't
+remember them all.
 
 @node Editing Abbrevs
 @section Examining and Editing Abbrevs

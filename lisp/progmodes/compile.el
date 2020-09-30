@@ -33,6 +33,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'tool-bar)
 (require 'comint)
+(require 'text-property-search)
 
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
@@ -1573,7 +1574,14 @@ to `compilation-error-regexp-alist' if RULES is nil."
       ;; grep.el) don't need to flush-parse when they modify the buffer
       ;; in a way that impacts buffer positions but does not require
       ;; re-parsing.
-      (setq compilation--parsed (point-min-marker)))
+      (setq compilation--parsed
+            (set-marker (make-marker)
+                        (save-excursion
+                          (goto-char (point-min))
+                          (text-property-search-forward 'compilation-header-end)
+                          ;; If we have no end marker, this will be
+                          ;; `point-min' still.
+                          (point)))))
     (when (< compilation--parsed limit)
       (let ((start (max compilation--parsed (point-min))))
         (move-marker compilation--parsed limit)
@@ -1818,6 +1826,9 @@ Returns the compilation buffer created."
 			mode-name
 			(substring (current-time-string) 0 19))
 		command "\n")
+        ;; Mark the end of the header so that we don't interpret
+        ;; anything in it as an error.
+        (put-text-property (1- (point)) (point) 'compilation-header-end t)
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.

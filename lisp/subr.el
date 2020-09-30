@@ -193,9 +193,9 @@ except that PLACE is evaluated only once (after NEWELT)."
       (list 'setq place
             (list 'cons newelt place))
     (require 'macroexp)
-    (macroexp-let2 macroexp-copyable-p v newelt
+    (macroexp-let2 macroexp-copyable-p x newelt
       (gv-letplace (getter setter) place
-        (funcall setter `(cons ,v ,getter))))))
+        (funcall setter `(cons ,x ,getter))))))
 
 (defmacro pop (place)
   "Return the first element of PLACE's value, and remove it from the list.
@@ -4434,7 +4434,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (aset newstr i tochar)))
     newstr))
 
-(defun replace-in-string (fromstring tostring instring)
+(defun string-replace (fromstring tostring instring)
   "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
   (declare (pure t))
   (when (equal fromstring "")
@@ -4447,10 +4447,13 @@ Unless optional argument INPLACE is non-nil, return a new string."
         (push (substring instring start pos) result))
       (push tostring result)
       (setq start (+ pos (length fromstring))))
-    ;; Get any remaining bit.
-    (unless (= start (length instring))
-      (push (substring instring start) result))
-    (apply #'concat (nreverse result))))
+    (if (null result)
+        ;; No replacements were done, so just return the original string.
+        instring
+      ;; Get any remaining bit.
+      (unless (= start (length instring))
+        (push (substring instring start) result))
+      (apply #'concat (nreverse result)))))
 
 (defun replace-regexp-in-string (regexp rep string &optional
 					fixedcase literal subexp start)

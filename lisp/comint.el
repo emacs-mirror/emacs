@@ -820,18 +820,10 @@ series of processes in the same Comint buffer.  The hook
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
       ;; Feed it the startfile.
-      (cond (startfile
-	     ;;This is guaranteed to wait long enough
-	     ;;but has bad results if the comint does not prompt at all
-	     ;;	     (while (= size (buffer-size))
-	     ;;	       (sleep-for 1))
-	     ;;I hope 1 second is enough!
-	     (sleep-for 1)
-	     (goto-char (point-max))
-	     (insert-file-contents startfile)
-	     (setq startfile (buffer-substring (point) (point-max)))
-	     (delete-region (point) (point-max))
-	     (comint-send-string proc startfile)))
+      (when startfile
+        (comint-send-string proc (with-temp-buffer
+                                   (insert-file-contents startfile)
+                                   (buffer-string))))
       (run-hooks 'comint-exec-hook)
       buffer)))
 

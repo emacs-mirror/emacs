@@ -1044,19 +1044,22 @@
 (defun byte-optimize-apply (form)
   ;; If the last arg is a literal constant, turn this into a funcall.
   ;; The funcall optimizer can then transform (funcall 'foo ...) -> (foo ...).
-  (let ((fn (nth 1 form))
-	(last (nth (1- (length form)) form))) ; I think this really is fastest
-    (or (if (or (null last)
-		(eq (car-safe last) 'quote))
-	    (if (listp (nth 1 last))
-		(let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
-		  (nconc (list 'funcall fn) butlast
-			 (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
-	      (byte-compile-warn
-	       "last arg to apply can't be a literal atom: `%s'"
-	       (prin1-to-string last))
-	      nil))
-	form)))
+  (if (= (length form) 2)
+      ;; single-argument `apply' is not worth optimizing (bug#40968)
+      form
+    (let ((fn (nth 1 form))
+	  (last (nth (1- (length form)) form))) ; I think this really is fastest
+      (or (if (or (null last)
+		  (eq (car-safe last) 'quote))
+	      (if (listp (nth 1 last))
+		  (let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
+		    (nconc (list 'funcall fn) butlast
+			   (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
+	        (byte-compile-warn
+	         "last arg to apply can't be a literal atom: `%s'"
+	         (prin1-to-string last))
+	        nil))
+	  form))))
 
 (put 'funcall 'byte-optimizer #'byte-optimize-funcall)
 (put 'apply   'byte-optimizer #'byte-optimize-apply)

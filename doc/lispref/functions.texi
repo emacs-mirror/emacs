@@ -762,6 +762,11 @@ arguments, rather than a single list.  We say that @code{apply}
 @dfn{spreads} this list so that each individual element becomes an
 argument.
 
+@code{apply} with a single argument is special: the first element of
+the argument, which must be a non-empty list, is called as a function
+with the remaining elements as individual arguments.  Passing two or
+more arguments will be faster.
+
 @code{apply} returns the result of calling @var{function}.  As with
 @code{funcall}, @var{function} must either be a Lisp function or a
 primitive function; special forms and macros do not make sense in
@@ -788,6 +793,11 @@ primitive function; special forms and macros do not make sense in
 @group
 (apply 'append '((a b c) nil (x y z) nil))
      @result{} (a b c x y z)
+@end group
+
+@group
+(apply '(+ 3 4))
+     @result{} 7
 @end group
 @end example
 

@@ -913,6 +913,7 @@
   (should (equal (string-search "ab\0" "ab") nil))
   (should (equal (string-search "ab" "abababab" 3) 4))
   (should (equal (string-search "ab" "ababac" 3) nil))
+  (should (equal (string-search "aaa" "aa") nil))
   (let ((case-fold-search t))
     (should (equal (string-search "ab" "AB") nil)))
 
@@ -936,14 +937,16 @@
   (should (equal (string-search (string-to-multibyte "\377") "ab\377c") 2))
   (should (equal (string-search "\303" "aøb") nil))
   (should (equal (string-search "\270" "aøb") nil))
-  ;; This test currently fails, but it shouldn't!
-  ;;(should (equal (string-search "ø" "\303\270") nil))
+  (should (equal (string-search "ø" "\303\270") nil))
+
+  (should (equal (string-search "a\U00010f98z" "a\U00010f98a\U00010f98z") 2))
 
   (should-error (string-search "a" "abc" -1))
   (should-error (string-search "a" "abc" 4))
   (should-error (string-search "a" "abc" 100000000000))
 
   (should (equal (string-search "a" "aaa" 3) nil))
+  (should (equal (string-search "aa" "aa" 1) nil))
   (should (equal (string-search "\0" "") nil))
 
   (should (equal (string-search "" "") 0))
@@ -953,4 +956,23 @@
   (should (equal (string-search "" "abc" 3) 3))
   (should-error (string-search "" "abc" 4))
   (should-error (string-search "" "abc" -1))
-  )
+
+  (should-not (string-search "ø" "foo\303\270"))
+  (should-not (string-search "\303\270" "ø"))
+  (should-not (string-search "\370" "ø"))
+  (should-not (string-search (string-to-multibyte "\370") "ø"))
+  (should-not (string-search "ø" "\370"))
+  (should-not (string-search "ø" (string-to-multibyte "\370")))
+  (should-not (string-search "\303\270" "\370"))
+  (should-not (string-search (string-to-multibyte "\303\270") "\370"))
+  (should-not (string-search "\303\270" (string-to-multibyte "\370")))
+  (should-not (string-search (string-to-multibyte "\303\270")
+                             (string-to-multibyte "\370")))
+  (should-not (string-search "\370" "\303\270"))
+  (should-not (string-search (string-to-multibyte "\370") "\303\270"))
+  (should-not (string-search "\370" (string-to-multibyte "\303\270")))
+  (should-not (string-search (string-to-multibyte "\370")
+                             (string-to-multibyte "\303\270")))
+  (should (equal (string-search (string-to-multibyte "o\303\270") "foo\303\270")
+                 2))
+  (should (equal (string-search "\303\270" "foo\303\270") 3)))

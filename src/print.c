@@ -1940,7 +1940,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  ptrdiff_t i, i_byte;
 	  ptrdiff_t size_byte;
 	  /* True means we must ensure that the next character we output
-	     cannot be taken as part of a hex character escape.  */
+	     cannot be taken as part of a hex character escape.	 */
 	  bool need_nonhex = false;
 	  bool multibyte = STRING_MULTIBYTE (obj);
 
@@ -1987,25 +1987,29 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		  /* If we just had a hex escape, and this character
 		     could be taken as part of it,
 		     output `\ ' to prevent that.  */
-                  if (c_isxdigit (c))
-                    {
-                      if (need_nonhex)
-                        print_c_string ("\\ ", printcharfun);
-                      printchar (c, printcharfun);
-                    }
-                  else if (c == '\n' && print_escape_newlines
-                           ? (c = 'n', true)
-                           : c == '\f' && print_escape_newlines
-                           ? (c = 'f', true)
-                           : c == '\"' || c == '\\')
-                    {
-                      printchar ('\\', printcharfun);
-                      printchar (c, printcharfun);
-                    }
-                  else if (print_escape_control_characters && c_iscntrl (c))
+		  if (c_isxdigit (c))
+		    {
+		      if (need_nonhex)
+			print_c_string ("\\ ", printcharfun);
+		      printchar (c, printcharfun);
+		    }
+		  else if (c == '\n' && print_escape_newlines
+			   ? (c = 'n', true)
+			   : c == '\f' && print_escape_newlines
+			   ? (c = 'f', true)
+			   : c == '\"' || c == '\\')
+		    {
+		      printchar ('\\', printcharfun);
+		      printchar (c, printcharfun);
+		    }
+		  else if (print_escape_control_characters && c_iscntrl (c))
 		    octalout (c, SDATA (obj), i_byte, size_byte, printcharfun);
-                  else
-                    printchar (c, printcharfun);
+		  else if (!multibyte
+			   && SINGLE_BYTE_CHAR_P (c)
+			   && !ASCII_CHAR_P (c))
+		    printchar (BYTE8_TO_CHAR (c), printcharfun);
+		  else
+		    printchar (c, printcharfun);
 		  need_nonhex = false;
 		}
 	    }
@@ -2035,7 +2039,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			  && len == size_byte);
 
 	if (! NILP (Vprint_gensym)
-            && !SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (obj))
+	    && !SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (obj))
 	  print_c_string ("#:", printcharfun);
 	else if (size_byte == 0)
 	  {
@@ -2058,7 +2062,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		    || c == ',' || c == '.' || c == '`'
 		    || c == '[' || c == ']' || c == '?' || c <= 040
 		    || c == NO_BREAK_SPACE
-                    || confusing)
+		    || confusing)
 		  {
 		    printchar ('\\', printcharfun);
 		    confusing = false;
@@ -2123,7 +2127,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 		  if (!NILP (Vprint_circle))
 		    {
-		      /* With the print-circle feature.  */
+		      /* With the print-circle feature.	 */
 		      Lisp_Object num = Fgethash (obj, Vprint_number_table,
 						  Qnil);
 		      if (FIXNUMP (num))
@@ -2175,7 +2179,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
       {
 	int len;
 	/* We're in trouble if this happens!
-	   Probably should just emacs_abort ().  */
+	   Probably should just emacs_abort ().	 */
 	print_c_string ("#<EMACS BUG: INVALID DATATYPE ", printcharfun);
 	if (VECTORLIKEP (obj))
 	  len = sprintf (buf, "(PVEC 0x%08zx)", (size_t) ASIZE (obj));

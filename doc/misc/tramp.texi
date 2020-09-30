@@ -3150,7 +3150,7 @@ to user @code{root} on host @code{remotehost}, starting with an
 @option{ssh} session on host @code{remotehost}:
 @samp{@value{prefix}ssh@value{postfixhop}%h|su@value{postfixhop}remotehost@value{postfix}}.
 
-On the other hand, if a trailing hop does not specifiy a host name,
+On the other hand, if a trailing hop does not specify a host name,
 the host name of the previous hop is reused. Therefore, the following
 file name is equivalent to the previous example:
 @samp{@value{prefix}ssh@value{postfixhop}remotehost|su@value{postfixhop}@value{postfix}}.

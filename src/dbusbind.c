@@ -380,8 +380,9 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       break;
 
     case DBUS_TYPE_BOOLEAN:
-      /* Any non-nil object will be regarded as `t', so we don't apply
-	 further type check.  */
+      /* There must be an argument.  */
+      if (EQ (QCboolean, object))
+	wrong_type_argument (intern ("booleanp"), object);
       sprintf (signature, "%c", dtype);
       break;
 
@@ -405,6 +406,8 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
     case DBUS_TYPE_SIGNATURE:
+      /* We dont check the syntax of object path and signature.  This
+	 will be done by libdbus.  */
       CHECK_STRING (object);
       sprintf (signature, "%c", dtype);
       break;
@@ -615,6 +618,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_BOOLEAN:
+	/* There must be an argument.  */
+	if (EQ (QCboolean, object))
+	  wrong_type_argument (intern ("booleanp"), object);
 	{
 	  dbus_bool_t val = (NILP (object)) ? FALSE : TRUE;
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");
@@ -713,6 +719,8 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_STRING:
       case DBUS_TYPE_OBJECT_PATH:
       case DBUS_TYPE_SIGNATURE:
+	/* We dont check the syntax of object path and signature.
+	   This will be done by libdbus.  */
 	CHECK_STRING (object);
 	{
 	  /* We need to send a valid UTF-8 string.  We could encode `object'
@@ -1927,11 +1935,11 @@ and for calling handlers in case of non-blocking method call returns.
 
 In the first case, the key in the hash table is the list (TYPE BUS
 INTERFACE MEMBER).  TYPE is one of the Lisp symbols `:method',
-`:signal' or `:property'.  BUS is either a Lisp symbol, `:system' or
-`:session', or a string denoting the bus address.  INTERFACE is a
-string which denotes a D-Bus interface, and MEMBER, also a string, is
-either a method, a signal or a property INTERFACE is offering.  All
-arguments but BUS must not be nil.
+`:signal', `:property' or `:monitor'.  BUS is either a Lisp symbol,
+`:system', `:session', `:system-private' or `:session-private', or a
+string denoting the bus address.  INTERFACE is a string which denotes
+a D-Bus interface, and MEMBER, also a string, is either a method, a
+signal or a property INTERFACE is offering.  All arguments can be nil.
 
 The value in the hash table is a list of quadruple lists ((UNAME
 SERVICE PATH OBJECT [RULE]) ...).  SERVICE is the service name as

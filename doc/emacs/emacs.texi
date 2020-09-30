@@ -108,10 +108,9 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 @node Top
 @top The Emacs Editor
 
-Emacs is the extensible, customizable, self-documenting real-time
-display editor.  This manual describes how to edit with Emacs and
-some of the ways to customize it; it corresponds to GNU Emacs version
-@value{EMACSVER}.
+Emacs is the advanced, extensible, customizable, self-documenting
+editor.  This manual describes how to edit with Emacs and some of the
+ways to customize it; it corresponds to GNU Emacs version @value{EMACSVER}.
 
 @c See 'manual-html-mono' and 'manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
@@ -908,6 +907,7 @@ Abbrevs
 * Abbrev Concepts::     Fundamentals of defined abbrevs.
 * Defining Abbrevs::    Defining an abbrev, so it will expand when typed.
 * Expanding Abbrevs::   Controlling expansion: prefixes, canceling expansion.
+* Abbrevs Suggestions:: Get automatic suggestions about defined abbrevs.
 * Editing Abbrevs::     Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.

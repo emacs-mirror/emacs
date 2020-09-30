@@ -1757,7 +1757,7 @@ more then one article."
   (let ((archive-name
          (format
           "nnml:1.%s"
-          (replace-in-string gnus-newsgroup-name "^.*:" ""))))
+          (replace-regexp-in-string "^.*:" "" gnus-newsgroup-name))))
     (gnus-summary-copy-article n archive-name)))
 @end example
 @noindent

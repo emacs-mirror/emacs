@@ -5,7 +5,7 @@
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.1.5
+;; Version: 3.2.0
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; Homepage: https://github.com/alex-hhh/emacs-soap-client
@@ -551,30 +551,77 @@ This is a specialization of `soap-encode-value' for
         (soap-validate-xs-basic-type value-string type)
         (insert value-string)))))
 
-;; Inspired by rng-xsd-convert-date-time.
-(defun soap-decode-date-time (date-time-string datatype)
+(defun soap-decode-date-time (date-time-string &optional datatype)
   "Decode DATE-TIME-STRING as DATATYPE.
 DATE-TIME-STRING should be in ISO 8601 basic or extended format.
-DATATYPE is one of dateTime, time, date, gYearMonth, gYear,
-gMonthDay, gDay or gMonth.
+DATATYPE can be omitted, or one of the symbols dateTime, time,
+date, gYearMonth, gYear, gMonthDay, gDay, or gMonth.  If Emacs is
+a version that supports fractional seconds, DATATYPE can also be
+dateTime-subsecond, or time-subsecond.  On older versions of
+Emacs (prior to 27.1), which do not support fractional seconds,
+leaving DATATYPE nil means that subseconds in DATE-TIME-STRING
+will be ignored.
 
-Return a list in a format (SEC MINUTE HOUR DAY MONTH YEAR
-SEC-FRACTION DATATYPE ZONE).  This format is meant to be similar
-to that returned by `decode-time' (and compatible with
-`encode-time').  The differences are the SEC (seconds)
-field is always an integer, the DOW (day-of-week) field
-is replaced with SEC-FRACTION, a float representing the
-fractional seconds, and the DST (daylight savings time) field is
-replaced with DATATYPE, a symbol representing the XSD primitive
-datatype.  This symbol can be used to determine which fields
-apply and which don't when it's not already clear from context.
-For example a datatype of `time' means the year, month and day
+Return a list in a format identical or similar to that returned
+by `decode-time'.  The returned format is always compatible with
+`encode-time'.  If DATATYPE is omitted or nil, this function will
+return a list that has exactly the same format as that returned
+by `decode-time'.
+
+Note that on versions of Emacs that predate support for
+fractional seconds, `encode-time' will not notice the SUBSECOND
+field so it must be handled specially.
+
+The formats returned by this function are as follows, where _
+means \"should be ignored\":
+
+ DATATYPE   | Return format
+------------+----------------------------------------------------------------
+ nil        | (SECOND MINUTE HOUR DAY MONTH YEAR DOW       DST        UTCOFF)
+ dateTime   | (SECOND MINUTE HOUR DAY MONTH YEAR SUBSECOND dateTime   UTCOFF)
+ time       | (SECOND MINUTE HOUR _   _     _    SUBSECOND time       _)
+ date       | (_      _      _    DAY MONTH YEAR _         date       _)
+ gYearMonth | (_      _      _    _   MONTH YEAR _         gYearMonth _)
+ gYear      | (_      _      _    _   _     YEAR _         gYear      _)
+ gMonthDay  | (_      _      _    DAY MONTH _    _         gMonthDay  _)
+ gDay       | (_      _      _    DAY _     _    _         gDay       _)
+ gMonth     | (_      _      _    _   MONTH _    _         gMonth     _)
+
+When DATATYPE is dateTime or time, the DOW (day-of-week) field is
+replaced with SUBSECOND, a float representing the fractional
+seconds, and the DST (daylight savings time) field is replaced
+with DATATYPE, a symbol representing the XSD primitive datatype.
+This symbol can be used to determine which fields apply and which
+do not, when it is not already clear from context.  For example a
+datatype of `time' means the year, month, day and time zone
 fields should be ignored.
 
-This function will throw an error if DATE-TIME-STRING represents
-a leap second, since the XML Schema 1.1 standard explicitly
-disallows them."
-  (let* ((datetime-regexp (cadr (get datatype 'rng-xsd-convert)))
+New code that depends on Emacs 27.1 or newer anyway, and that
+wants dateTime or time but with the first argument with subsecond
+resolution, i.e., (TICKS . HZ), can set DATATYPE to
+dateTime-subsecond or time-subsecond respectively.  This function
+throws an error if dateTime-subsecond or time-subsecond is
+specified when Emacs does not support subsecond resolution.
+
+This function throws an error if DATE-TIME-STRING represents a
+leap second, since the XML Schema 1.1 standard does not support
+representing leap seconds."
+  (let* ((new-decode-time (condition-case nil
+                              (not (null
+                                    (with-no-warnings (decode-time nil nil t))))
+                            (wrong-number-of-arguments)))
+         (new-decode-time-second nil)
+         (no-support "This Emacs version does not support %s")
+         (datetime-regexp-type
+          (cl-case datatype
+            ((dateTime-subsecond time-subsecond)
+             (if new-decode-time
+                 (intern (replace-regexp-in-string
+                          "-subsecond" "" (symbol-name datatype)))
+               (error (format no-support (symbol-name datatype)))))
+            ((nil) 'dateTime)
+            (otherwise datatype)))
+         (datetime-regexp (cadr (get datetime-regexp-type 'rng-xsd-convert)))
          (year-sign (progn
                       (string-match datetime-regexp date-time-string)
                       (match-string 1 date-time-string)))
@@ -585,6 +632,7 @@ disallows them."
          (minute (match-string 6 date-time-string))
          (second (match-string 7 date-time-string))
          (second-fraction (match-string 8 date-time-string))
+         (time-zone nil)
          (has-time-zone (match-string 9 date-time-string))
          (time-zone-sign (match-string 10 date-time-string))
          (time-zone-hour (match-string 11 date-time-string))
@@ -605,11 +653,28 @@ disallows them."
           (if hour (string-to-number hour) 0))
     (setq minute
           (if minute (string-to-number minute) 0))
+    (when new-decode-time
+      (setq new-decode-time-second
+            (if second
+                (if second-fraction
+                    (let* ((second-fraction-significand
+                            (replace-regexp-in-string "\\." "" second-fraction))
+                           (hertz
+                            (expt 10 (length second-fraction-significand)))
+                           (ticks (+ (* hertz (string-to-number second))
+                                     (string-to-number
+                                      second-fraction-significand))))
+                      (cons ticks hertz))
+                  (cons second 1)))))
     (setq second
           (if second (string-to-number second) 0))
     (setq second-fraction
           (if second-fraction
-              (float (string-to-number second-fraction))
+              (progn
+                (when (and (not datatype) (not new-decode-time))
+                  (message
+                   "soap-decode-date-time: Discarding fractional seconds"))
+                (float (string-to-number second-fraction)))
             0.0))
     (setq has-time-zone (and has-time-zone t))
     (setq time-zone-sign
@@ -618,6 +683,14 @@ disallows them."
           (if time-zone-hour (string-to-number time-zone-hour) 0))
     (setq time-zone-minute
           (if time-zone-minute (string-to-number time-zone-minute) 0))
+    (setq time-zone (if has-time-zone
+                        (* (rng-xsd-time-to-seconds
+                            time-zone-hour
+                            time-zone-minute
+                            0)
+                           time-zone-sign)
+                      ;; UTC.
+                      0))
     (unless (and
              ;; XSD does not allow year 0.
              (> year 0)
@@ -635,18 +708,22 @@ disallows them."
              (>= time-zone-minute 0)
              (<= time-zone-minute 59))
       (error "Invalid or unsupported time: %s" date-time-string))
-    ;; Return a value in a format similar to that returned by decode-time, and
-    ;; suitable for (apply #'encode-time ...).
-    ;; FIXME: Nobody uses this idiosyncratic value.  Perhaps stop returning it?
-    (list second minute hour day month year second-fraction datatype
-          (if has-time-zone
-              (* (rng-xsd-time-to-seconds
-                  time-zone-hour
-                  time-zone-minute
-                  0)
-                 time-zone-sign)
-            ;; UTC.
-            0))))
+    ;; Return a value in a format identical or similar to that
+    ;; returned by decode-time, and always suitable for (apply
+    ;; #'encode-time ...).
+    (if datatype
+        (list (if (memq datatype '(dateTime-subsecond time-subsecond))
+                  new-decode-time-second
+                second)
+              minute hour day month year second-fraction datatype time-zone)
+      (let ((time
+             (apply
+              #'encode-time (list
+                             (if new-decode-time new-decode-time-second second)
+                             minute hour day month year nil nil time-zone))))
+        (if new-decode-time
+            (with-no-warnings (decode-time time nil t))
+          (decode-time time))))))
 
 (defun soap-decode-xs-basic-type (type node)
   "Use TYPE, a `soap-xs-basic-type', to decode the contents of NODE.
@@ -2919,8 +2996,6 @@ reference multiRef parts which are external to RESPONSE-NODE."
 
 ;;;; SOAP type encoding
 
-;; FIXME: Use `cl-defmethod' (but this requires Emacs-25).
-
 (defun soap-encode-attributes (value type)
   "Encode XML attributes for VALUE according to TYPE.
 This is a generic function which determines the attribute encoder
@@ -3028,7 +3103,7 @@ SERVICE-URL should be provided when WS-Addressing is being used."
       (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope\n")
       (when (eq use 'encoded)
         (insert "    soapenc:encodingStyle=\"\
-https://schemas.xmlsoap.org/soap/encoding/\"\n"))
+http://schemas.xmlsoap.org/soap/encoding/\"\n"))
       (dolist (nstag soap-encoded-namespaces)
         (insert "    xmlns:" nstag "=\"")
         (let ((nsname (cdr (assoc nstag soap-well-known-xmlns))))

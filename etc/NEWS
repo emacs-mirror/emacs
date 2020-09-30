@@ -518,6 +518,15 @@ take the actual screenshot, and defaults to "ImageMagick import".
 A server entry retrieved by auth-source can request a desired smtp
 authentication mechanism by setting a value for the key 'smtp-auth'.
 
+** Grep
+
++++
+*** New variable 'grep-match-regexp' matches grep markers to highlight.
+grep emits SGR ANSI escape sequences to color its output.  The new variable
+'grep-match-regexp' holds the regular expression to match the appropriate
+markers in order to provide highlighting in the source buffer.  The variable
+can be customized to accommodate other grep-like tools.
+
 ** Help
 
 +++
@@ -1271,6 +1280,16 @@ This value customizes Emacs to use the style recommended in Damian
 Conway's book "Perl Best Practices" for indentation and formatting
 of conditionals.
 
+** Abbrev mode
+
++++
+*** Emacs can now suggest to use an abbrev based on text you type.
+A new user option, 'abbrev-suggest', enables the new abbrev suggestion
+feature.  When enabled, if a user manually types a piece of text that
+could have saved enough typing by using an abbrev, a hint will be
+displayed in the echo area, mentioning the abbrev that could have been
+used instead.
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -1436,19 +1455,19 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 +++
 *** New function 'string-search'.
 This function takes two string parameters and returns the position of
-the first instance of the first string in the latter.
+the first instance of the former string in the latter.
+
++++
+*** New function 'string-replace'.
+This function works along the line of 'replace-regexp-in-string', but
+matching on strings instead of regexps, and does not change the global
+match state.
 
 +++
 *** New function 'process-lines-ignore-status'.
 This is like 'process-lines', but does not signal an error if the
 return status is non-zero.  'process-lines-handling-status' has also
 been added, and takes a callback to handle the return status.
-
-+++
-*** New function 'replace-in-string'.
-This function works along the line of 'replace-regexp-in-string', but
-matching on strings instead of regexps, and does not change the global
-match state.
 
 ---
 *** 'ascii' is now a coding system alias for 'us-ascii'.

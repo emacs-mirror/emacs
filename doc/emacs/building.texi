@@ -427,11 +427,16 @@ M-n}}, @key{RET}, and so forth, just like compilation errors.
 @xref{Compilation Mode}, for detailed description of commands and key
 bindings available in the @file{*grep*} buffer.
 
+@vindex grep-match-regexp
   Some grep programs accept a @samp{--color} option to output special
 markers around matches for the purpose of highlighting.  You can make
 use of this feature by setting @code{grep-highlight-matches} to
 @code{t}.  When displaying a match in the source buffer, the exact
 match will be highlighted, instead of the entire source line.
+Highlighting is provided via matching the @acronym{ANSI} escape
+sequences emitted by @command{grep}.  The matching of the sequences is
+controlled by @code{grep-match-regexp}, which can be customized to
+accommodate different @command{grep} programs.
 
   As with compilation commands (@pxref{Compilation}), while the grep
 command runs, the mode line shows the running number of matches found

@@ -390,7 +390,7 @@ internal_self_insert (int c, EMACS_INT n)
 		     by spaces so that the remaining text won't move.  */
 		  ptrdiff_t actual = PT_BYTE;
 		  actual -= prev_char_len (actual);
-		  if (FETCH_CHAR (actual) == '\t')
+		  if (FETCH_BYTE (actual) == '\t')
 		    /* Rather than add spaces, let's just keep the tab. */
 		    chars_to_delete--;
 		  else

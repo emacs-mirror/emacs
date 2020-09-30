@@ -333,6 +333,8 @@
 
     (bindings--define-key menu [tags-continue]
       '(menu-item "Continue Tags Search" fileloop-continue
+                  :enable (and (featurep 'fileloop)
+                               (not (eq fileloop--operate-function 'ignore)))
                   :help "Continue last tags search operation"))
     (bindings--define-key menu [tags-srch]
       '(menu-item "Search Tagged Files..." tags-search
@@ -382,6 +384,8 @@
   (let ((menu (make-sparse-keymap "Replace")))
     (bindings--define-key menu [tags-repl-continue]
       '(menu-item "Continue Replace" fileloop-continue
+                  :enable (and (featurep 'fileloop)
+                               (not (eq fileloop--operate-function 'ignore)))
                   :help "Continue last tags replace operation"))
     (bindings--define-key menu [tags-repl]
       '(menu-item "Replace in Tagged Files..." tags-query-replace

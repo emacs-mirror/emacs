@@ -8265,7 +8265,7 @@ different.
   Emacs provides a primitive that applications can use to detect
 instances of text whose bidirectional properties were overridden so as
 to make a left-to-right character display as if it were a
-right-to-left character, or vise versa.
+right-to-left character, or vice versa.
 
 @defun bidi-find-overridden-directionality from to &optional object
 This function looks at the text of the specified @var{object} between

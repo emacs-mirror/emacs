@@ -134,11 +134,11 @@
 (cl-defmethod gnus-icalendar-event:recurring-interval ((event gnus-icalendar-event))
   "Return recurring interval of EVENT."
   (let ((rrule (gnus-icalendar-event:recur event))
-        (default-interval 1))
+        (default-interval "1"))
 
-    (string-match "INTERVAL=\\([[:digit:]]+\\)" rrule)
-    (or (match-string 1 rrule)
-        default-interval)))
+    (if (string-match "INTERVAL=\\([[:digit:]]+\\)" rrule)
+        (match-string 1 rrule)
+      default-interval)))
 
 (cl-defmethod gnus-icalendar-event:recurring-days ((event gnus-icalendar-event))
   "Return, when available, the week day numbers on which the EVENT recurs."

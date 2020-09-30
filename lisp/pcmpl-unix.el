@@ -82,9 +82,13 @@ being via `pcmpl-ssh-known-hosts-file'."
 ;;;###autoload
 (defun pcomplete/xargs ()
   "Completion for `xargs'."
-  (pcomplete-here (funcall pcomplete-command-completion-function))
+  ;; FIXME: Add completion of xargs-specific arguments.
+  (funcall pcomplete-command-completion-function)
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
+
+;; FIXME: Add completion of sudo-specific arguments.
+(defalias 'pcomplete/sudo #'pcomplete/xargs)
 
 ;;;###autoload
 (defalias 'pcomplete/time 'pcomplete/xargs)

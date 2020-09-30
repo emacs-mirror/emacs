@@ -465,7 +465,7 @@ string containing the text contained between those positions (if any),
 after the change was performed.
 
 @item @code{:changes-start} and @code{:changes-end}
-The value is, repectively, the minimum and maximum buffer positions
+The value is, respectively, the minimum and maximum buffer positions
 touched by the recent changes.  These are provided for convenience and
 only if @code{:recent-changes} is also provided.
 

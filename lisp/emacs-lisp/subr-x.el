@@ -156,6 +156,7 @@ are non-nil, then the result is non-nil."
              ,@(or body `(,res))))
       `(let* () ,@(or body '(t))))))
 
+;;;###autoload
 (defmacro if-let (spec then &rest else)
   "Bind variables according to SPEC and evaluate THEN or ELSE.
 Evaluate each binding in turn, as in `let*', stopping if a

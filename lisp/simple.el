@@ -1533,7 +1533,11 @@ in *Help* buffer.  See also the command `describe-char'."
 	    encoded encoding-msg display-prop under-display)
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
-	    (setq coding (default-value 'buffer-file-coding-system)))
+	    (setq coding (or (default-value 'buffer-file-coding-system)
+                             ;; A nil value of `buffer-file-coding-system'
+                             ;; means "no conversion" which means each byte
+                             ;; is a char and vice versa.
+                             'binary)))
 	(if (eq (char-charset char) 'eight-bit)
 	    (setq encoding-msg
 		  (format "(%d, #o%o, #x%x%s, raw-byte)" char char char char-name-fmt))
