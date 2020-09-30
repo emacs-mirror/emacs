@@ -1208,7 +1208,7 @@ Returns t if successful."
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
 	  (and comint-completion-fignore
-	       (mapconcat (function (lambda (x) (concat (regexp-quote x) "\\'")))
+               (mapconcat (lambda (x) (concat (regexp-quote x) "\\'"))
 			  comint-completion-fignore "\\|")))
 	 (dir "") (comps-in-dir ())
 	 (file "") (abs-file-name "") (completions ()))

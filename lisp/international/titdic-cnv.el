@@ -795,7 +795,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	    (forward-line 1)))
 	(maphash #'(lambda (key val) (setq dic (cons (cons key val) dic)))
 		 table)))
-    (setq dic (sort dic (function (lambda (x y) (string< (car x ) (car y))))))
+    (setq dic (sort dic (lambda (x y) (string< (car x ) (car y)))))
     (dolist (elt dic)
       (insert (format "(%S\t%S)\n" (car elt) (cdr elt))))
     (let ((punctuation '((";" "$(0!'!2!"!#!.!/(B" "$(G!'!2!"!#!.!/(B")
@@ -956,7 +956,7 @@ method `chinese-tonepy' with which you must specify tones by digits
 			     (setq trans (mapconcat 'identity trans "")))))
 		     (setq dic (cons (cons key trans) dic)))
 		 table)))
-    (setq dic (sort dic (function (lambda (x y) (string< (car x) (car y))))))
+    (setq dic (sort dic (lambda (x y) (string< (car x) (car y)))))
     (goto-char (point-max))
     (insert (format "%S\n" "$A::WVJdHk!K!>WTH;!?!K(B
 

@@ -99,7 +99,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
     (load-library "isearch"))
 
 (define-key isearch-mode-map [ignore]
-  (function (lambda () (interactive) (isearch-update))))
+  (lambda () (interactive) (isearch-update)))
 
 (defun double-translate-key (prompt)
   ;; Translate input events using double map.

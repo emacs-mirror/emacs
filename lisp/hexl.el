@@ -886,7 +886,7 @@ and their encoded form is inserted byte by byte."
              (when (null encoded)
 	       (setq internal (encode-coding-string internal 'utf-8-emacs)
 	             internal-hex
-	             (mapconcat (function (lambda (c) (format "%x" c)))
+                     (mapconcat (lambda (c) (format "%x" c))
 			        internal " "))
 	       (if (yes-or-no-p
 		    (format-message
@@ -899,7 +899,7 @@ and their encoded form is inserted byte by byte."
 		  (substitute-command-keys "try \\[hexl-insert-hex-string]"))))
 	     (while (> num 0)
 	       (mapc
-		(function (lambda (c) (hexl-insert-char c 1))) encoded)
+                (lambda (c) (hexl-insert-char c 1)) encoded)
 	       (setq num (1- num))))))))
 
 (defun hexl-self-insert-command (arg)

@@ -73,8 +73,8 @@ Also store it in `find-gc-unsafe-list'."
   (find-unsafe-funcs 'Fgarbage_collect)
   (setq find-gc-unsafe-list
 	(sort find-gc-unsafe-list
-	      (function (lambda (x y)
-			  (string-lessp (car x) (car y)))))))
+              (lambda (x y)
+                (string-lessp (car x) (car y))))))
 
 ;;; This does a depth-first search to find all functions that can
 ;;; ultimately call the function "target".  The result is an a-list

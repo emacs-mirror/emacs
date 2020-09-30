@@ -1550,7 +1550,7 @@ as the result is undefined."
                                ,(append
                                  '(radio)
                                  (mapcar
-                                  (function (lambda (arg) `(const ,arg)))
+                                  (lambda (arg) `(const ,arg))
                                   (mapcar 'car mh-identity-list))))
                          (cons :tag "Fcc Field"
                                (const "fcc")
@@ -1577,7 +1577,7 @@ See `mh-identity-list'."
   :type (append
          '(radio)
          (cons '(const :tag "None" nil)
-               (mapcar (function (lambda (arg) `(const ,arg)))
+               (mapcar (lambda (arg) `(const ,arg))
                        (mapcar 'car mh-identity-list))))
   :group 'mh-identity
   :package-version '(MH-E . "7.1"))

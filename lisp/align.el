@@ -389,7 +389,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(^\\s-+[^( \t\n]\\|(\\(\\S-+\\)\\s-+\\)\\S-+\\(\\s-+\\)")
      (group    . 3)
      (modes    . align-lisp-modes)
-     (run-if   . ,(function (lambda () current-prefix-arg))))
+     (run-if   . ,(lambda () current-prefix-arg)))
 
     (lisp-alist-dot
      (regexp   . "\\(\\s-*\\)\\.\\(\\s-*\\)")
@@ -463,7 +463,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . ",\\(\\s-*\\)[^/ \t\n]")
      (repeat   . t)
      (modes    . align-c++-modes)
-     (run-if   . ,(function (lambda () current-prefix-arg))))
+     (run-if   . ,(lambda () current-prefix-arg)))
 					;      (valid
 					;       . ,(function
 					;	  (lambda ()
@@ -480,7 +480,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . ",\\(\\s-*\\)[^# \t\n]")
      (repeat   . t)
      (modes    . (append align-perl-modes '(python-mode)))
-     (run-if   . ,(function (lambda () current-prefix-arg))))
+     (run-if   . ,(lambda () current-prefix-arg)))
 
     (c++-comment
      (regexp   . "\\(\\s-*\\)\\(//.*\\|/\\*.*\\*/\\s-*\\)$")

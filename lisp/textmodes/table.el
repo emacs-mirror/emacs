@@ -3503,9 +3503,9 @@ column must consists from cells of same width."
       (let ((cell-list (table--vertical-cell-list 'top-to-bottom)))
 	(unless
 	    (and (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (car cell))))) cell-list))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (car cell)))) cell-list))
 		 (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (cdr cell))))) cell-list)))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (cdr cell)))) cell-list)))
 	  (error "Cells in this column are not in uniform width"))
 	(unless lu-coord
 	  (setq lu-coord (table--get-coordinate (caar cell-list))))
