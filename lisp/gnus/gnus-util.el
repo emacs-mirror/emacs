@@ -1368,7 +1368,7 @@ CRLF (RFC 5321 SMTP)."
   ;;   input (3.1, 3.3)
   ;; - if line-length is set, error on input exceeding the limit (3.1)
   ;; - reject characters outside base encoding (3.3, also section 12)
-  (let ((splitstr (split-string str "\\s-+" t)))
+  (let ((splitstr (split-string str "[\n\r \t]+" t)))
     (when (and reject-newlines (> (length splitstr) 1))
       (error "Invalid Base64 string"))
     (dolist (substr splitstr)
