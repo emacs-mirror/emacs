@@ -318,6 +318,12 @@ time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
++++
+*** New user option 'dired-switches-in-mode-line'.
+This variable controls how "ls" switches is displayed, and allows
+truncating or showing them as they are, in addition to "by name" and
+"by date".
+
 ---
 *** Broken and circular links are shown with the 'dired-broken-symlink' face.
 
