@@ -3665,91 +3665,91 @@ since they have special meaning in a regexp."
 (defvar isearch-submatches-overlays nil)
 
 (defface isearch-group-1
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#ff00ff" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "palevioletred3" :foreground "brown4"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (first sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-2
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#d000d0" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#be698f" :foreground "black"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (second sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-3
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#a000a0" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#a06080" :foreground "brown4"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (third sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-4
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#800080" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#905070" :foreground "brown4"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (fourth sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-5
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#600060" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#804060" :foreground "black"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (fifth sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-6
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#500050" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#703050" :foreground "white"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (sixth sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-7
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#400040" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#602050" :foreground "white"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (seventh sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-8
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#300030" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#501050" :foreground "white"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (eighth sub-group)."
   :group 'isearch
   :version "28.1")
 
 (defface isearch-group-9
-  '((((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "#200020" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "#400040" :foreground "white"))
-    (t (:inverse-video t)))
+    (t (:inherit isearch)))
   "Face for highlighting Isearch sub-group matches (ninth sub-group)."
   :group 'isearch
   :version "28.1")
