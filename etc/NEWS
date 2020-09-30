@@ -320,9 +320,10 @@ time zones will use a form like "+0100" instead of "CET".
 
 +++
 *** New user option 'dired-switches-in-mode-line'.
-This variable controls how "ls" switches is displayed, and allows
-truncating or showing them as they are, in addition to "by name" and
-"by date".
+This variable controls how 'ls' switches are displayed in the mode
+line, and allows truncating them (to preserve space on the mode line)
+or showing them literally, either instead of, or in addition to,
+displaying "by name" or "by date" sort order.
 
 ---
 *** Broken and circular links are shown with the 'dired-broken-symlink' face.
