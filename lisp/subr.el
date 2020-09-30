@@ -280,8 +280,11 @@ Then evaluate RESULT to get return value, default nil.
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers running from 0,
-inclusive, to COUNT, exclusive.  Then evaluate RESULT to get
-the return value (nil if RESULT is omitted).  Its use is deprecated.
+inclusive, to COUNT, exclusive.
+
+Finally RESULT is evaluated to get the return value (nil if
+RESULT is omitted).  Using RESULT is deprecated, and may result
+in compilation warnings about unused variables.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (indent 1) (debug dolist))
