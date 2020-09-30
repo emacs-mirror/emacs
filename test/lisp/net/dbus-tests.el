@@ -366,11 +366,11 @@
   (should
    (dbus-check-arguments
     :session dbus--test-service '(:variant (:array "string"))))
-  ;; No or more than one element.
-  ;; FIXME.
-  ;; (should-error
-  ;;  (dbus-check-arguments :session dbus--test-service '(:variant))
-  ;;  :type 'wrong-type-argument)
+  ;; Empty variant.
+  (should-error
+   (dbus-check-arguments :session dbus--test-service '(:variant))
+   :type 'wrong-type-argument)
+  ;; More than one element.
   (should-error
    (dbus-check-arguments
     :session dbus--test-service
@@ -382,20 +382,22 @@
   (should
    (dbus-check-arguments
     :session dbus--test-service
-    '(:array (:dict-entry :string "string" :boolean t))))
+    '(:array (:dict-entry :string "string" :boolean nil))))
   ;; This is an alternative syntax.  FIXME: Shall this be supported?
   (should
    (dbus-check-arguments
     :session dbus--test-service
     '(:array :dict-entry (:string "string" :boolean t))))
-  ;; FIXME: Must be errors.
-  ;; (should
-  ;;  (dbus-check-arguments
-  ;;   :session dbus--test-service '(:array (:dict-entry))))
-  ;; (should
-  ;;  (dbus-check-arguments
-  ;;   :session dbus--test-service '(:array (:dict-entry :string "string"))))
-  ;; Not two elements.
+  ;; Empty dict-entry.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service '(:array (:dict-entry)))
+   :type 'wrong-type-argument)
+  ;; One element.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service '(:array (:dict-entry :string "string")))
+   :type 'wrong-type-argument)
   (should-error
    (dbus-check-arguments
     :session dbus--test-service
@@ -412,25 +414,27 @@
    (dbus-check-arguments
     :session dbus--test-service '(:dict-entry :string "string" :boolean t))
    :type 'wrong-type-argument)
-  ;; FIXME:! This doesn't look right.
-  ;; Different dict entry types can be part of an array ???
-  (should
-   (dbus-check-arguments
-    :session dbus--test-service
-    '(:array
-      (:dict-entry :string "string1" :boolean t)
-      (:dict-entry :string "string2" :object-path "/object/path"))))
+  ;; Different dict entry types are not ched.  FIXME: Add check.
+  ;; (should-error
+  ;;  (dbus-check-arguments
+  ;;   :session dbus--test-service
+  ;;   '(:array
+  ;;     (:dict-entry :string "string1" :boolean t)
+  ;;     (:dict-entry :string "string2" :object-path "/object/path")))
+  ;;  :type 'wrong-type-argument)
 
   ;; `:struct'.  There is no restriction what could be an element of a struct.
-  ;; Empty struct.  FIXME: Is this right?
-  ;; (should (dbus-check-arguments :session dbus--test-service '(:struct)))
   (should
    (dbus-check-arguments
     :session dbus--test-service
     '(:struct
       :string "string"
       :object-path "/object/path"
-      (:variant (:array :unix-fd 1 :unix-fd 2 :unix-fd 3 :unix-fd 4))))))
+      (:variant (:array :unix-fd 1 :unix-fd 2 :unix-fd 3 :unix-fd 4)))))
+  ;; Empty struct.
+  (should-error
+   (dbus-check-arguments :session dbus--test-service '(:struct))
+   :type 'wrong-type-argument))
 
 (defun dbus--test-register-service (bus)
   "Check service registration at BUS."
