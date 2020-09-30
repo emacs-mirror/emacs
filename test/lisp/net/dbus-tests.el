@@ -632,6 +632,40 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(defun dbus--test-method-reentry-handler (&rest args)
+  "Method handler for `dbus-test04-method-reentry'."
+  (dbus-get-all-managed-objects :session dbus--test-service dbus--test-path)
+  42)
+
+(ert-deftest dbus-test04-method-reentry ()
+  "Check receiving method call while awaiting response.
+Ensure that incoming method calls are handled when call to `dbus-call-method'
+is in progress."
+  ;; Simulate application registration (Bug#43251)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((method "Rentry"))
+        (should
+         (equal
+          (dbus-register-method
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface method #'dbus--test-method-reentry-handler)
+          `((:method :session ,dbus--test-interface ,method)
+            (,dbus--test-service ,dbus--test-path
+             dbus--test-method-reentry-handler))))
+
+        (should
+         (=
+          (dbus-call-method
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface method)
+          42)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
 (ert-deftest dbus-test04-call-method-timeout ()
   "Verify `dbus-call-method' request timeout."
   :tags '(:expensive-test)
