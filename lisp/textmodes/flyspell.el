@@ -524,7 +524,7 @@ invoking `ispell-change-dictionary'.
 
 Consider using the `ispell-parser' to check your text.  For instance
 consider adding:
-\(add-hook \\='tex-mode-hook (function (lambda () (setq ispell-parser \\='tex))))
+\(add-hook \\='tex-mode-hook (lambda () (setq ispell-parser \\='tex)))
 in your init file.
 
 \\[flyspell-region] checks all words inside a region.
