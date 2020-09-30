@@ -4015,7 +4015,7 @@ static Lisp_Object loadsearch_re_list;
 
 DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
        Scomp_el_to_eln_filename, 1, 2, 0,
-       doc: /* Given a source file return the corresponding .eln true filename.
+       doc: /* Given a source FILENAME return the corresponding .eln filename.
 If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
   (Lisp_Object filename, Lisp_Object base_dir)
 {
@@ -4363,13 +4363,13 @@ restore_sigmask (void)
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
-       doc: /* Compile as native code the current context to file.  */)
-  (Lisp_Object file_name)
+       doc: /* Compile as native code the current context to file FILENAME.  */)
+  (Lisp_Object filename)
 {
   load_gccjit_if_necessary (true);
 
-  CHECK_STRING (file_name);
-  Lisp_Object base_name = Fsubstring (file_name, Qnil, make_fixnum (-4));
+  CHECK_STRING (filename);
+  Lisp_Object base_name = Fsubstring (filename, Qnil, make_fixnum (-4));
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
@@ -4441,16 +4441,16 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   if (err)
     xsignal3 (Qnative_ice,
 	      build_string ("failed to compile"),
-	      file_name,
+	      filename,
 	      build_string (err));
 
-  CALL1I (comp-clean-up-stale-eln, file_name);
-  CALL2I (comp-delete-or-replace-file, file_name, tmp_file);
+  CALL1I (comp-clean-up-stale-eln, filename);
+  CALL2I (comp-delete-or-replace-file, filename, tmp_file);
 
   if (!noninteractive)
     unbind_to (count, Qnil);
 
-  return file_name;
+  return filename;
 }
 
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
@@ -5068,7 +5068,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
 DEFUN ("native-comp-available-p", Fnative_comp_available_p,
        Snative_comp_available_p, 0, 0, 0,
        doc: /* Returns t if native compilation of Lisp files is available in
-this instance of Emacs. */)
+this instance of Emacs, nil otherwise.  */)
   (void)
 {
 #ifdef HAVE_NATIVE_COMP
