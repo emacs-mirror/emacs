@@ -871,6 +871,62 @@ This is an internal function used by Auto-Revert Mode."
       (restore-buffer-modified-p modified)))
   (set-visited-file-modtime))
 
+(defun auto-revert--buffer-candidates ()
+  "Return a prioritized list of buffers to maybe auto-revert.
+The differences between this return value and the reference
+variable `auto-revert-buffer-list' include: 1) this has more
+entries when in global-auto-revert-mode; 2) this prioritizes
+buffers not reverted last time due to user interruption. "
+  (let ((bufs (delq nil
+                    ;; Buffers with remote contents shall be reverted only
+                    ;; if the connection is established already.
+                    (mapcar
+                     (lambda (buf)
+                       (and (buffer-live-p buf)
+                            (with-current-buffer buf
+                              (and
+                               (or (not (file-remote-p default-directory))
+                                   (file-remote-p default-directory nil t))
+                               buf))))
+                     (auto-revert--polled-buffers))))
+        remaining new)
+    ;; Partition `bufs' into two halves depending on whether or not
+    ;; the buffers are in `auto-revert-remaining-buffers'.  The two
+    ;; halves are then re-joined with the "remaining" buffers at the
+    ;; head of the list.
+    (dolist (buf auto-revert-remaining-buffers)
+      (when (memq buf bufs)
+        (push buf remaining)))
+    (dolist (buf bufs)
+      (unless (memq buf remaining)
+        (push buf new)))
+    (nreverse (nconc new remaining))))
+
+(defun auto-revert-buffer (buf)
+  "Revert a single buffer.
+
+This is performed as specified by Auto-Revert and Global
+Auto-Revert Modes."
+  (if (not (buffer-live-p buf))
+      (auto-revert-remove-current-buffer buf)
+    (with-current-buffer buf
+      ;; Test if someone has turned off Auto-Revert Mode
+      ;; in a non-standard way, for example by changing
+      ;; major mode.
+      (when (and (not auto-revert-mode)
+                 (not auto-revert-tail-mode))
+        (auto-revert-remove-current-buffer))
+      (when (auto-revert-active-p)
+        ;; Enable file notification.
+        ;; Don't bother creating a notifier for non-file buffers
+        ;; unless it explicitly indicates that this works.
+        (when (and auto-revert-use-notify
+                   (not auto-revert-notify-watch-descriptor)
+                   (or buffer-file-name
+                       buffer-auto-revert-by-notification))
+          (auto-revert-notify-add-watch))
+        (auto-revert-handler)))))
+
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
 
@@ -894,66 +950,18 @@ are checked first the next time this function is called.
 This function is also responsible for removing buffers no longer in
 Auto-Revert Mode from `auto-revert-buffer-list', and for canceling
 the timer when no buffers need to be checked."
-
   (save-match-data
-    (let ((bufs (auto-revert--polled-buffers))
-	  remaining new)
-      ;; Buffers with remote contents shall be reverted only if the
-      ;; connection is established already.
-      (setq bufs (delq nil
-                       (mapcar
-                        (lambda (buf)
-                          (and (buffer-live-p buf)
-                               (with-current-buffer buf
-                                 (and
-                                  (or (not (file-remote-p default-directory))
-                                      (file-remote-p default-directory nil t))
-                                      buf))))
-                        bufs)))
-      ;; Partition `bufs' into two halves depending on whether or not
-      ;; the buffers are in `auto-revert-remaining-buffers'.  The two
-      ;; halves are then re-joined with the "remaining" buffers at the
-      ;; head of the list.
-      (dolist (buf auto-revert-remaining-buffers)
-	(if (memq buf bufs)
-	    (push buf remaining)))
-      (dolist (buf bufs)
-	(if (not (memq buf remaining))
-	    (push buf new)))
-      (setq bufs (nreverse (nconc new remaining)))
+    (let ((bufs (auto-revert--buffer-candidates)))
       (while (and bufs
 		  (not (and auto-revert-stop-on-user-input
 			    (input-pending-p))))
-	(let ((buf (car bufs)))
-          (if (not (buffer-live-p buf))
-              ;; Remove dead buffer from `auto-revert-buffer-list'.
-              (auto-revert-remove-current-buffer buf)
-            (with-current-buffer buf
-              ;; Test if someone has turned off Auto-Revert Mode
-              ;; in a non-standard way, for example by changing
-              ;; major mode.
-              (if (and (not auto-revert-mode)
-                       (not auto-revert-tail-mode)
-                       (memq buf auto-revert-buffer-list))
-                  (auto-revert-remove-current-buffer))
-              (when (auto-revert-active-p)
-                ;; Enable file notification.
-                ;; Don't bother creating a notifier for non-file buffers
-                ;; unless it explicitly indicates that this works.
-                (when (and auto-revert-use-notify
-                           (not auto-revert-notify-watch-descriptor)
-                           (or buffer-file-name
-                               buffer-auto-revert-by-notification))
-                  (auto-revert-notify-add-watch))
-                (auto-revert-handler)))))
-	(setq bufs (cdr bufs)))
+        (auto-revert-buffer (pop bufs)))
       (setq auto-revert-remaining-buffers bufs)
       ;; Check if we should cancel the timer.
       (unless (auto-revert--need-polling-p)
-        (if (timerp auto-revert-timer)
-            (cancel-timer auto-revert-timer))
+        (when (timerp auto-revert-timer)
+          (cancel-timer auto-revert-timer))
 	(setq auto-revert-timer nil)))))
-
 
 ;; The end:
 (provide 'autorevert)
