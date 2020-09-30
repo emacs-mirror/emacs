@@ -632,6 +632,28 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(ert-deftest dbus-test04-call-method-timeout ()
+  "Verify `dbus-call-method' request timeout."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((start (current-time)))
+        ;; Test timeout override for method call.
+        (should-error
+         (dbus-call-method
+          :session dbus--test-service dbus--test-path
+          dbus-interface-introspectable "Introspect" :timeout 2500)
+         :type 'dbus-error)
+
+        (should
+         (< 2.4 (float-time (time-since start)) 2.7)))
+
+        (dbus-unregister-service :session dbus--test-service)))
+
+
 (defvar dbus--test-signal-received nil
   "Received signal value in `dbus--test-signal-handler'.")
 
@@ -1759,6 +1781,22 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
          (< 0.0 (float-time (time-since start)) 1.0)))
 
     (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test07-introspection-timeout ()
+  "Verify introspection request timeouts."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((start (current-time)))
+        (dbus-introspect-xml :session dbus--test-service dbus--test-path)
+        ;; Introspection internal timeout is one second.
+        (should
+         (< 1.0 (float-time (time-since start)))))
+
+        (dbus-unregister-service :session dbus--test-service)))
 
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
