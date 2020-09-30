@@ -1870,8 +1870,8 @@ and ends on the last Sunday of October at 2 a.m."
       (and days (= day (car days))
 	   (setq holiday t)))
     (let* ((weekdays (nth 3 math-holidays-cache))
-	   (weeks (1- (/ (+ day 6) 7)))
-	   (wkday (- day 1 (* weeks 7))))
+           (weeks (/ day 7))
+           (wkday (mod day 7)))         ; Day of week: 0=Sunday, 6=Saturday
       (setq delta (+ delta (* weeks (length weekdays))))
       (while (and weekdays (< (car weekdays) wkday))
 	(setq weekdays (cdr weekdays)
@@ -1905,14 +1905,15 @@ and ends on the last Sunday of October at 2 a.m."
 	(setq delta (1+ delta)))
       (setq day (+ day delta)))
     (let* ((weekdays (nth 3 math-holidays-cache))
-	   (bweek (- 7 (length weekdays)))
-	   (weeks (1- (/ (+ day (1- bweek)) bweek)))
-	   (wkday (- day 1 (* weeks bweek)))
+           (bweek (- 7 (length weekdays)))  ; Business days in a week, 1..7.
+           (weeks (/ day bweek))            ; Whole weeks.
+           (wkday (mod day bweek))      ; Business day in last week, 0..bweek-1
 	   (w 0))
       (setq day (+ day (* weeks (length weekdays))))
+      ;; Add business days in the last week; `w' is weekday, 0..6.
       (while (if (memq w weekdays)
 		 (setq day (1+ day))
-	       (> (setq wkday (1- wkday)) 0))
+               (>= (setq wkday (1- wkday)) 0))
 	(setq w (1+ w)))
       (let ((hours (nth 7 math-holidays-cache)))
 	(if hours

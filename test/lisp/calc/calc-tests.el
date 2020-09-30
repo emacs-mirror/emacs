@@ -458,6 +458,82 @@ An existing calc stack is reused, otherwise a new one is created."
                   (calcFunc-choose '(frac -15 2) 3))
                  (calc-tests--choose -7.5 3))))
 
+(ert-deftest calc-business-days ()
+  (cl-flet ((m (s) (math-parse-date s))
+            (b+ (a b) (calcFunc-badd a b))
+            (b- (a b) (calcFunc-bsub a b)))
+    ;; Sanity check.
+    (should (equal (m "2020-09-07") '(date 737675)))
+
+    ;; Test with standard business days (Mon-Fri):
+    (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-08"))) ; Mon->Tue
+    (should (equal (b+ (m "2020-09-08") 1) (m "2020-09-09"))) ; Tue->Wed
+    (should (equal (b+ (m "2020-09-09") 1) (m "2020-09-10"))) ; Wed->Thu
+    (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-11"))) ; Thu->Fri
+    (should (equal (b+ (m "2020-09-11") 1) (m "2020-09-14"))) ; Fri->Mon
+
+    (should (equal (b+ (m "2020-09-07") 4) (m "2020-09-11"))) ; Mon->Fri
+    (should (equal (b+ (m "2020-09-07") 6) (m "2020-09-15"))) ; Mon->Tue
+
+    (should (equal (b+ (m "2020-09-12") 1) (m "2020-09-14"))) ; Sat->Mon
+    (should (equal (b+ (m "2020-09-13") 1) (m "2020-09-14"))) ; Sun->Mon
+
+    (should (equal (b- (m "2020-09-11") 1) (m "2020-09-10"))) ; Fri->Thu
+    (should (equal (b- (m "2020-09-10") 1) (m "2020-09-09"))) ; Thu->Wed
+    (should (equal (b- (m "2020-09-09") 1) (m "2020-09-08"))) ; Wed->Tue
+    (should (equal (b- (m "2020-09-08") 1) (m "2020-09-07"))) ; Tue->Mon
+    (should (equal (b- (m "2020-09-07") 1) (m "2020-09-04"))) ; Mon->Fri
+
+    (should (equal (b- (m "2020-09-11") 4) (m "2020-09-07"))) ; Fri->Mon
+    (should (equal (b- (m "2020-09-15") 6) (m "2020-09-07"))) ; Tue->Mon
+
+    (should (equal (b- (m "2020-09-12") 1) (m "2020-09-11"))) ; Sat->Fri
+    (should (equal (b- (m "2020-09-13") 1) (m "2020-09-11"))) ; Sun->Fri
+
+    ;; Stepping fractional days
+    (should (equal (b+ (m "2020-09-08 21:00") '(frac 1 2))
+                   (m "2020-09-09 09:00")))
+    (should (equal (b+ (m "2020-09-11 21:00") '(frac 1 2))
+                   (m "2020-09-14 09:00")))
+    (should (equal (b- (m "2020-09-08 21:00") '(frac 1 2))
+                   (m "2020-09-08 09:00")))
+    (should (equal (b- (m "2020-09-14 06:00") '(frac 1 2))
+                   (m "2020-09-11 18:00")))
+
+    ;; Test with a couple of extra days off:
+    (let ((var-Holidays (list 'vec
+                              '(var sat var-sat) '(var sun var-sun)
+                              (m "2020-09-09") (m "2020-09-11"))))
+
+      (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-08"))) ; Mon->Tue
+      (should (equal (b+ (m "2020-09-08") 1) (m "2020-09-10"))) ; Tue->Thu
+      (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-14"))) ; Thu->Mon
+      (should (equal (b+ (m "2020-09-14") 1) (m "2020-09-15"))) ; Mon->Tue
+      (should (equal (b+ (m "2020-09-15") 1) (m "2020-09-16"))) ; Tue->Wed
+
+      (should (equal (b- (m "2020-09-16") 1) (m "2020-09-15"))) ; Wed->Tue
+      (should (equal (b- (m "2020-09-15") 1) (m "2020-09-14"))) ; Tue->Mon
+      (should (equal (b- (m "2020-09-14") 1) (m "2020-09-10"))) ; Mon->Thu
+      (should (equal (b- (m "2020-09-10") 1) (m "2020-09-08"))) ; Thu->Tue
+      (should (equal (b- (m "2020-09-08") 1) (m "2020-09-07"))) ; Tue->Mon
+      )
+
+    ;; Test with odd non-business weekdays (Tue, Wed, Sat):
+    (let ((var-Holidays '(vec (var tue var-tue)
+                              (var wed var-wed)
+                              (var sat var-sat))))
+      (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-10"))) ; Mon->Thu
+      (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-11"))) ; Thu->Fri
+      (should (equal (b+ (m "2020-09-11") 1) (m "2020-09-13"))) ; Fri->Sun
+      (should (equal (b+ (m "2020-09-13") 1) (m "2020-09-14"))) ; Sun->Mon
+
+      (should (equal (b- (m "2020-09-14") 1) (m "2020-09-13"))) ; Mon->Sun
+      (should (equal (b- (m "2020-09-13") 1) (m "2020-09-11"))) ; Sun->Fri
+      (should (equal (b- (m "2020-09-11") 1) (m "2020-09-10"))) ; Fri->Thu
+      (should (equal (b- (m "2020-09-10") 1) (m "2020-09-07"))) ; Thu->Mon
+      )
+  ))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
