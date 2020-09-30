@@ -46,6 +46,13 @@
 (defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
 
+(defvar dbus--tests-dir
+  (file-truename
+   (expand-file-name "dbus-resources"
+                     (file-name-directory (or load-file-name
+                                              buffer-file-name))))
+  "Directory containing introspection test data file.")
+
 (defun dbus--test-availability (bus)
   "Test availability of D-Bus BUS."
   (should (dbus-list-names bus))
@@ -1463,6 +1470,294 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
          :type 'wrong-type-argument))
 
     ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(defun dbus--test-introspect ()
+  "Return test introspection string."
+  (when (string-equal dbus--test-path (dbus-event-path-name last-input-event))
+    (with-temp-buffer
+      (insert-file (expand-file-name "org.gnu.Emacs.TestDBus.xml" dbus--tests-dir))
+      (buffer-string))))
+
+(defsubst dbus--test-validate-interface
+  (iface-name expected-properties expected-methods expected-signals
+              expected-annotations)
+  "Validate an interface definition for `dbus-test07-introspection'.
+The argument IFACE-NAME is a string naming the interface to validate.
+The arguments EXPECTED-PROPERTIES, EXPECTED-METHODS, EXPECTED-SIGNALS, and
+EXPECTED-ANNOTATIONS represent the names of the interface's properties,
+methods, signals, and annotations, respectively."
+
+  (let ((interface
+         (dbus-introspect-get-interface
+          :session dbus--test-service dbus--test-path iface-name)))
+    (pcase-let ((`(interface ((name . ,name)) . ,rest) interface))
+      (should
+       (string-equal name iface-name))
+      (should
+       (string-equal name (dbus-introspect-get-attribute interface "name")))
+
+      (let (properties methods signals annotations)
+        (mapc (lambda (x)
+                (let ((name (dbus-introspect-get-attribute x "name")))
+                  (cond
+                   ((eq 'property (car x))   (push name properties))
+                   ((eq 'method (car x))     (push name methods))
+                   ((eq 'signal (car x))     (push name signals))
+                   ((eq 'annotation (car x)) (push name annotations)))))
+              rest)
+
+        (should
+         (equal
+          (nreverse properties)
+          expected-properties))
+        (should
+         (equal
+          (nreverse methods)
+          expected-methods))
+        (should
+         (equal
+          (nreverse signals)
+          expected-signals))
+        (should
+         (equal
+          (nreverse annotations)
+          expected-annotations))))))
+
+(defsubst dbus--test-validate-annotations (annotations expected-annotations)
+  "Validate a list of D-Bus ANNOTATIONS.
+Ensure each string in EXPECTED-ANNOTATIONS names an element of ANNOTATIONS.
+And ensure each ANNOTATIONS has a value attribute marked \"true\"."
+  (mapc
+   (lambda (annotation)
+     (let ((name (dbus-introspect-get-attribute annotation "name"))
+           (value (dbus-introspect-get-attribute annotation "value")))
+       (should
+        (member name expected-annotations))
+       (should
+        (equal value "true"))))
+   annotations))
+
+(defsubst dbus--test-validate-property
+  (interface property-name expected-annotations &rest expected-args)
+  "Validate a property definition for `dbus-test07-introspection'.
+
+The argument INTERFACE is a string naming the interface owning PROPERTY-NAME.
+The argument PROPERTY-NAME is a string naming the property to validate.
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the method or signal.
+The argument EXPECTED-ARGS is a list of expected arguments for the property."
+  (let* ((property
+          (dbus-introspect-get-property
+           :session dbus--test-service dbus--test-path interface property-name))
+         (name (dbus-introspect-get-attribute property "name"))
+         (type (dbus-introspect-get-attribute property "type"))
+         (access (dbus-introspect-get-attribute property "access"))
+         (expected (assoc-string name expected-args)))
+    (should expected)
+
+    (should
+     (string-equal name property-name))
+
+    (should
+     (string-equal
+      (nth 0 expected)
+      name))
+
+    (should
+     (string-equal
+      (nth 1 expected)
+      type))
+
+    (should
+     (string-equal
+      (nth 2 expected)
+      access))))
+
+(defsubst dbus--test-validate-m-or-s (tree expected-annotations expected-args)
+  "Validate a method or signal definition for `dbus-test07-introspection'.
+The argument TREE is an sexp returned from either `dbus-introspect-get-method'
+or `dbus-introspect-get-signal'
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the method or signal.
+The argument EXPECTED-ARGS is a list of expected arguments for
+the method or signal."
+  (let (args annotations)
+    (mapc (lambda (elem)
+            (let ((name (dbus-introspect-get-attribute elem "name")))
+              (cond
+               ((eq 'arg (car elem))   (push elem args))
+               ((eq 'annotation (car elem)) (push elem annotations)))))
+          tree)
+    (should
+     (equal
+      (nreverse args)
+      expected-args))
+    (dbus--test-validate-annotations annotations expected-annotations)))
+
+(defsubst dbus--test-validate-signal
+  (interface signal-name expected-annotations &rest expected-args)
+  "Validate a signal definition for `dbus-test07-introspection'.
+
+The argument INTERFACE is a string naming the interface owning SIGNAL-NAME.
+The argument SIGNAL-NAME is a string naming the signal to validate.
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the signal.
+The argument EXPECTED-ARGS is a list of expected arguments for the signal."
+  (let ((signal
+         (dbus-introspect-get-signal
+          :session dbus--test-service dbus--test-path interface signal-name)))
+    (pcase-let ((`(signal ((name . ,name)) . ,rest) signal))
+      (should
+       (string-equal name signal-name))
+      (should
+       (string-equal name (dbus-introspect-get-attribute signal "name")))
+      (dbus--test-validate-m-or-s rest expected-annotations expected-args))))
+
+
+(defsubst dbus--test-validate-method
+  (interface method-name expected-annotations &rest expected-args)
+  "Validate a method definition for `dbus-test07-introspection'.
+
+The argument INTERFACE is a string naming the interface owning METHOD-NAME.
+The argument METHOD-NAME is a string naming the method to validate.
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the method.
+The argument EXPECTED-ARGS is a list of expected arguments for the method."
+  (let ((method
+         (dbus-introspect-get-method
+          :session dbus--test-service dbus--test-path interface method-name)))
+    (pcase-let ((`(method ((name . ,name)) . ,rest) method))
+      (should
+       (string-equal name method-name))
+      (should
+       (string-equal name (dbus-introspect-get-attribute method "name")))
+      (dbus--test-validate-m-or-s rest expected-annotations expected-args))))
+
+(ert-deftest dbus-test07-introspection ()
+  "Register an Introspection interface then query it."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  ;; Prepare introspection response.
+  (dbus-register-method
+   :session dbus--test-service dbus--test-path dbus-interface-introspectable
+   "Introspect" 'dbus--test-introspect)
+  (dbus-register-method
+   :session dbus--test-service (concat dbus--test-path "/node0")
+   dbus-interface-introspectable
+   "Introspect" 'dbus--test-introspect)
+  (dbus-register-method
+   :session dbus--test-service (concat dbus--test-path "/node1")
+   dbus-interface-introspectable
+   "Introspect" 'dbus--test-introspect)
+  (unwind-protect
+      (let ((start (current-time)))
+        ;; dbus-introspect-get-node-names
+        (should
+         (equal
+          (dbus-introspect-get-node-names
+           :session dbus--test-service dbus--test-path)
+          '("node0" "node1")))
+
+        ;; dbus-introspect-get-all-nodes
+        (should
+         (equal
+          (dbus-introspect-get-all-nodes
+           :session dbus--test-service dbus--test-path)
+          (list dbus--test-path
+                (concat dbus--test-path "/node0")
+                (concat dbus--test-path "/node1"))))
+
+        ;; dbus-introspect-get-interface-names
+        (let ((interfaces
+               (dbus-introspect-get-interface-names
+                :session dbus--test-service dbus--test-path)))
+
+          (should
+           (equal
+            interfaces
+            `(,dbus-interface-introspectable
+              ,dbus-interface-properties
+              ,dbus--test-interface)))
+
+          (dbus--test-validate-interface
+           dbus-interface-introspectable nil '("Introspect") nil nil)
+
+          ;; dbus-introspect-get-interface via `dbus--test-validate-interface'
+          (dbus--test-validate-interface
+           dbus-interface-properties nil
+           '("Get" "Set" "GetAll") '("PropertiesChanged") nil)
+
+          (dbus--test-validate-interface
+           dbus--test-interface '("Connected" "Player")
+           '("Connect" "DeprecatedMethod0" "DeprecatedMethod1") nil
+           `(,dbus-annotation-deprecated)))
+
+        ;; dbus-introspect-get-method-names
+        (let ((methods
+               (dbus-introspect-get-method-names
+                :session dbus--test-service dbus--test-path
+                dbus--test-interface)))
+          (should
+           (equal
+            methods
+            '("Connect" "DeprecatedMethod0" "DeprecatedMethod1")))
+
+          ;; dbus-introspect-get-method via 'dbus--test-validate-method
+          (dbus--test-validate-method
+           dbus--test-interface "Connect" nil
+           '(arg ((name . "uuid")      (type . "s")     (direction . "in")))
+           '(arg ((name . "mode")      (type . "y")     (direction . "in")))
+           '(arg ((name . "options")   (type . "a{sv}") (direction . "in")))
+           '(arg ((name . "interface") (type . "s")     (direction . "out"))))
+
+          (dbus--test-validate-method
+           dbus--test-interface "DeprecatedMethod0"
+           `(,dbus-annotation-deprecated))
+
+          (dbus--test-validate-method
+           dbus--test-interface "DeprecatedMethod1"
+           `(,dbus-annotation-deprecated)))
+
+        ;; dbus-introspect-get-signal-names
+        (let ((signals
+               (dbus-introspect-get-signal-names
+                :session dbus--test-service dbus--test-path
+                dbus-interface-properties)))
+          (should
+           (equal
+            signals
+            '("PropertiesChanged")))
+
+          ;; dbus-introspect-get-signal via 'dbus--test-validate-signal
+          (dbus--test-validate-signal
+           dbus-interface-properties "PropertiesChanged" nil
+           '(arg ((name . "interface")              (type . "s")))
+           '(arg ((name . "changed_properties")     (type . "a{sv}")))
+           '(arg ((name . "invalidated_properties") (type . "as")))))
+
+        ;; dbus-intropct-get-property-names
+        (let ((properties
+               (dbus-introspect-get-property-names
+                :session dbus--test-service dbus--test-path
+                dbus--test-interface)))
+          (should
+           (equal
+            properties
+            '("Connected" "Player")))
+
+          ;; dbus-introspect-get-property via 'dbus--test-validate-property
+          (dbus--test-validate-property
+           dbus--test-interface "Connected" nil
+           '("Connected" "b" "read")
+           '("Player" "o" "read")))
+
+        ;; Elapsed time over a second suggests timeouts.
+        (should
+         (< 0.0 (float-time (time-since start)) 1.0)))
+
     (dbus-unregister-service :session dbus--test-service)))
 
 (defun dbus-test-all (&optional interactive)

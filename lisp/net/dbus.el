@@ -165,6 +165,9 @@ See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#bus-messages-b
 ;;   </signal>
 ;; </interface>
 
+(defconst dbus-annotation-deprecated (concat dbus-interface-dbus ".Deprecated")
+  "An annotation indicating a deprecated interface, method, signal, or property.")
+
 
 ;;; Default D-Bus errors.
 
