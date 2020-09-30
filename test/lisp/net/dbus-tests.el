@@ -46,7 +46,7 @@
 (defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
 
-(defvar dbus--tests-dir
+(defconst dbus--tests-dir
   (file-truename
    (expand-file-name "dbus-resources"
                      (file-name-directory (or load-file-name
@@ -632,7 +632,7 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
-(defun dbus--test-method-reentry-handler (&rest args)
+(defun dbus--test-method-reentry-handler (&rest _args)
   "Method handler for `dbus-test04-method-reentry'."
   (dbus-get-all-managed-objects :session dbus--test-service dbus--test-path)
   42)
@@ -641,12 +641,13 @@ This includes initialization and closing the bus."
   "Check receiving method call while awaiting response.
 Ensure that incoming method calls are handled when call to `dbus-call-method'
 is in progress."
-  ;; Simulate application registration (Bug#43251)
+  :tags '(:expensive-test)
+  ;; Simulate application registration.  (Bug#43251)
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
 
   (unwind-protect
-      (let ((method "Rentry"))
+      (let ((method "Reentry"))
         (should
          (equal
           (dbus-register-method
@@ -685,8 +686,8 @@ is in progress."
         (should
          (< 2.4 (float-time (time-since start)) 2.7)))
 
-        (dbus-unregister-service :session dbus--test-service)))
-
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
 
 (defvar dbus--test-signal-received nil
   "Received signal value in `dbus--test-signal-handler'.")
@@ -1180,7 +1181,6 @@ form `dbus-get-property' should return."
     (should (setq result1 (cadr (assoc dbus--test-interface result1))))
     (should (equal (cdr (assoc name result1)) expected))))
 
-
 (defsubst dbus--test-property (name &rest value-list)
   "Test a D-Bus property named by string argument NAME.
 The argument VALUE-LIST is a sequence of pairs, where each pair
@@ -1238,7 +1238,8 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
               ("six"
                ((4 5 6)))))
          '((:array
-            :dict-entry (:string "key0"  (:variant (:array :byte 7 :byte 8 :byte 9)))
+            :dict-entry
+            (:string "key0" (:variant (:array :byte 7 :byte 8 :byte 9)))
             :dict-entry ("key1" (:variant :string "value"))
             :dict-entry ("key2" (:variant :object-path "/node0/node1")))
            . (("key0"
@@ -1261,7 +1262,8 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
               ("nine"
                ((9 27 81)))))
          '((:array
-            (:dict-entry :string "key4"  (:variant (:array :byte 7 :byte 49 :byte 125)))
+            (:dict-entry
+             :string "key4" (:variant (:array :byte 7 :byte 49 :byte 125)))
             (:dict-entry "key5" (:variant :string "obsolete"))
             (:dict-entry "key6" (:variant :object-path "/node6/node7")))
            . (("key4"
@@ -1274,10 +1276,10 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
         (dbus--test-property
          "ByteDictionary"
          '((:array
-            (:dict-entry :byte 8 (:variant :string "byte-eight"))
+            (:dict-entry :byte  8 (:variant :string "byte-eight"))
             (:dict-entry :byte 16 (:variant :object-path "/byte/sixteen"))
             (:dict-entry :byte 48 (:variant (:array :byte 8 :byte 9 :byte 10))))
-           . ((8 ("byte-eight"))
+           . (( 8 ("byte-eight"))
               (16 ("/byte/sixteen"))
               (48 ((8 9 10))))))
 
@@ -1288,8 +1290,10 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
          '((:variant :uint32 1000000) . (1000000))
          '((:variant :object-path "/variant/path") . ("/variant/path"))
          '((:variant :signature "a{sa{sv}}") . ("a{sa{sv}}"))
-         '((:variant (:struct 42 "string" (:object-path "/structure/path") (:variant "last")))
-           . ((42 "string"  ("/structure/path") ("last")))))
+         '((:variant
+            (:struct
+             42 "string" (:object-path "/structure/path") (:variant "last")))
+           . ((42 "string" ("/structure/path") ("last")))))
 
         ;; Test that :read prevents writes.
         (should
@@ -1307,13 +1311,6 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
          :type 'dbus-error)
 
         (should                    ; Property value preserved on error.
-         (equal
-          (dbus-get-property
-           :session dbus--test-service dbus--test-path dbus--test-interface
-           "StringArray")
-          '("one" "two" "three")))
-
-        (should                 ; Verify property has registered value.
          (equal
           (dbus-get-property
            :session dbus--test-service dbus--test-path dbus--test-interface
@@ -1503,7 +1500,6 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
            "ByteValue")
           1024))
 
-
         (should                         ; Another change property type test.
          (equal
           (dbus-set-property
@@ -1532,7 +1528,8 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
   "Return test introspection string."
   (when (string-equal dbus--test-path (dbus-event-path-name last-input-event))
     (with-temp-buffer
-      (insert-file (expand-file-name "org.gnu.Emacs.TestDBus.xml" dbus--tests-dir))
+      (insert-file-contents-literally
+       (expand-file-name "org.gnu.Emacs.TestDBus.xml" dbus--tests-dir))
       (buffer-string))))
 
 (defsubst dbus--test-validate-interface
@@ -1595,7 +1592,7 @@ And ensure each ANNOTATIONS has a value attribute marked \"true\"."
    annotations))
 
 (defsubst dbus--test-validate-property
-  (interface property-name expected-annotations &rest expected-args)
+  (interface property-name _expected-annotations &rest expected-args)
   "Validate a property definition for `dbus-test07-introspection'.
 
 The argument INTERFACE is a string naming the interface owning PROPERTY-NAME.
@@ -1640,10 +1637,9 @@ The argument EXPECTED-ARGS is a list of expected arguments for
 the method or signal."
   (let (args annotations)
     (mapc (lambda (elem)
-            (let ((name (dbus-introspect-get-attribute elem "name")))
-              (cond
-               ((eq 'arg (car elem))   (push elem args))
-               ((eq 'annotation (car elem)) (push elem annotations)))))
+            (cond
+             ((eq 'arg (car elem)) (push elem args))
+             ((eq 'annotation (car elem)) (push elem annotations))))
           tree)
     (should
      (equal
@@ -1669,7 +1665,6 @@ The argument EXPECTED-ARGS is a list of expected arguments for the signal."
       (should
        (string-equal name (dbus-introspect-get-attribute signal "name")))
       (dbus--test-validate-m-or-s rest expected-annotations expected-args))))
-
 
 (defsubst dbus--test-validate-method
   (interface method-name expected-annotations &rest expected-args)
@@ -1741,7 +1736,7 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
           (dbus--test-validate-interface
            dbus-interface-introspectable nil '("Introspect") nil nil)
 
-          ;; dbus-introspect-get-interface via `dbus--test-validate-interface'
+          ;; dbus-introspect-get-interface via `dbus--test-validate-interface'.
           (dbus--test-validate-interface
            dbus-interface-properties nil
            '("Get" "Set" "GetAll") '("PropertiesChanged") nil)
@@ -1761,7 +1756,7 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
             methods
             '("Connect" "DeprecatedMethod0" "DeprecatedMethod1")))
 
-          ;; dbus-introspect-get-method via 'dbus--test-validate-method
+          ;; dbus-introspect-get-method via `dbus--test-validate-method'.
           (dbus--test-validate-method
            dbus--test-interface "Connect" nil
            '(arg ((name . "uuid")      (type . "s")     (direction . "in")))
@@ -1787,7 +1782,7 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
             signals
             '("PropertiesChanged")))
 
-          ;; dbus-introspect-get-signal via 'dbus--test-validate-signal
+          ;; dbus-introspect-get-signal via `dbus--test-validate-signal'.
           (dbus--test-validate-signal
            dbus-interface-properties "PropertiesChanged" nil
            '(arg ((name . "interface")              (type . "s")))
@@ -1804,7 +1799,7 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
             properties
             '("Connected" "Player")))
 
-          ;; dbus-introspect-get-property via 'dbus--test-validate-property
+          ;; dbus-introspect-get-property via `dbus--test-validate-property'.
           (dbus--test-validate-property
            dbus--test-interface "Connected" nil
            '("Connected" "b" "read")
@@ -1814,6 +1809,7 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
         (should
          (< 0.0 (float-time (time-since start)) 1.0)))
 
+    ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
 (ert-deftest dbus-test07-introspection-timeout ()
@@ -1830,7 +1826,8 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
         (should
          (< 1.0 (float-time (time-since start)))))
 
-        (dbus-unregister-service :session dbus--test-service)))
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
 
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
