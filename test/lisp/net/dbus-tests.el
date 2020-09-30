@@ -1069,6 +1069,402 @@ This includes initialization and closing the bus."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(defsubst dbus--test-run-property-test (selector name value expected)
+  "Generate a property test: register, set, get, getall sequence.
+This is a helper function for the macro `dbus--test-property'.
+The argument SELECTOR indicates whether the test should expand to
+`dbus-register-property' (if SELECTOR is `register') or
+`dbus-set-property' (if SELECTOR is `set').
+The argument NAME is the property name.
+The argument VALUE is the value to register or set.
+The argument EXPECTED is a transformed VALUE representing the
+form `dbus-get-property' should return."
+  (cond
+   ((eq selector 'register)
+    (should
+     (equal
+      (dbus-register-property
+       :session dbus--test-service dbus--test-path dbus--test-interface name
+       :readwrite value)
+      `((:property :session ,dbus--test-interface ,name)
+        (,dbus--test-service ,dbus--test-path)))))
+
+   ((eq selector 'set)
+    (should
+     (equal
+      (dbus-set-property
+       :session dbus--test-service dbus--test-path dbus--test-interface name
+       value)
+      expected)))
+
+   (t (signal 'wrong-type-argument "Selector should be 'register or 'set.")))
+
+  (should
+   (equal
+    (dbus-get-property
+     :session dbus--test-service dbus--test-path dbus--test-interface name)
+    expected))
+
+  (let ((result
+         (dbus-get-all-properties
+          :session dbus--test-service dbus--test-path dbus--test-interface)))
+    (should (equal (cdr (assoc name result)) expected)))
+
+  (let ((result
+         (dbus-get-all-managed-objects :session dbus--test-service "/"))
+        result1)
+    (should (setq result1 (cadr (assoc dbus--test-path result))))
+    (should (setq result1 (cadr (assoc dbus--test-interface result1))))
+    (should (equal (cdr (assoc name result1)) expected))))
+
+
+(defsubst dbus--test-property (name &rest value-list)
+  "Test a D-Bus property named by string argument NAME.
+The argument VALUE-LIST is a sequence of pairs, where each pair
+represents a value form and an expected returned value form.  The
+first pair in VALUES is used for `dbus-register-property'.
+Subsequent pairs of the list are tested with `dbus-set-property'."
+  (let ((values (car value-list)))
+    (dbus--test-run-property-test
+     'register name (car values) (cdr values)))
+  (dolist (values (cdr value-list))
+    (dbus--test-run-property-test
+     'set name (car values) (cdr values))))
+
+(ert-deftest dbus-test06-property-types ()
+  "Check property access and mutation for an own service."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (progn
+        (dbus--test-property
+         "ByteArray"
+         '((:array :byte 1 :byte 2 :byte 3) . (1 2 3))
+         '((:array :byte 4 :byte 5 :byte 6) . (4 5 6)))
+
+        (dbus--test-property
+         "StringArray"
+         '((:array "one" "two" :string "three") . ("one" "two" "three"))
+         '((:array :string "four" :string "five" "six") . ("four" "five" "six")))
+
+        (dbus--test-property
+         "ObjectArray"
+         '((:array
+            :object-path "/node00"
+            :object-path "/node01"
+            :object-path "/node0/node02")
+           . ("/node00" "/node01" "/node0/node02"))
+         '((:array
+            :object-path "/node10"
+            :object-path "/node11"
+            :object-path "/node0/node12")
+           . ("/node10" "/node11" "/node0/node12")))
+
+        (dbus--test-property
+         "Dictionary"
+         '((:array
+            :dict-entry (:string "four" (:variant :string "value of four"))
+            :dict-entry ("five" (:variant :object-path "/node0"))
+            :dict-entry ("six"  (:variant (:array :byte 4 :byte 5 :byte 6))))
+           . (("four"
+               ("value of four"))
+              ("five"
+               ("/node0"))
+              ("six"
+               ((4 5 6)))))
+         '((:array
+            :dict-entry (:string "key0"  (:variant (:array :byte 7 :byte 8 :byte 9)))
+            :dict-entry ("key1" (:variant :string "value"))
+            :dict-entry ("key2" (:variant :object-path "/node0/node1")))
+           . (("key0"
+               ((7 8 9)))
+              ("key1"
+               ("value"))
+              ("key2"
+               ("/node0/node1")))))
+
+        (dbus--test-property            ; Syntax emphasizing :dict compound type.
+         "Dictionary"
+         '((:array
+            (:dict-entry :string "seven" (:variant :string "value of seven"))
+            (:dict-entry "eight" (:variant :object-path "/node8"))
+            (:dict-entry "nine"  (:variant (:array :byte 9 :byte 27 :byte 81))))
+           . (("seven"
+               ("value of seven"))
+              ("eight"
+               ("/node8"))
+              ("nine"
+               ((9 27 81)))))
+         '((:array
+            (:dict-entry :string "key4"  (:variant (:array :byte 7 :byte 49 :byte 125)))
+            (:dict-entry "key5" (:variant :string "obsolete"))
+            (:dict-entry "key6" (:variant :object-path "/node6/node7")))
+           . (("key4"
+               ((7 49 125)))
+              ("key5"
+               ("obsolete"))
+              ("key6"
+               ("/node6/node7")))))
+
+        (dbus--test-property
+         "ByteDictionary"
+         '((:array
+            (:dict-entry :byte 8 (:variant :string "byte-eight"))
+            (:dict-entry :byte 16 (:variant :object-path "/byte/sixteen"))
+            (:dict-entry :byte 48 (:variant (:array :byte 8 :byte 9 :byte 10))))
+           . ((8 ("byte-eight"))
+              (16 ("/byte/sixteen"))
+              (48 ((8 9 10))))))
+
+        (dbus--test-property
+         "Variant"
+         '((:variant "Variant string") . ("Variant string"))
+         '((:variant :byte 42) . (42))
+         '((:variant :uint32 1000000) . (1000000))
+         '((:variant :object-path "/variant/path") . ("/variant/path"))
+         '((:variant :signature "a{sa{sv}}") . ("a{sa{sv}}"))
+         '((:variant (:struct 42 "string" (:object-path "/structure/path") (:variant "last")))
+           . ((42 "string"  ("/structure/path") ("last")))))
+
+        ;; Test that :read prevents writes.
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "StringArray" :read '(:array "one" "two" :string "three"))
+          `((:property :session ,dbus--test-interface "StringArray")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should-error          ; Cannot set property with :read access.
+         (dbus-set-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "StringArray" '(:array "seven" "eight" :string "nine"))
+         :type 'dbus-error)
+
+        (should                    ; Property value preserved on error.
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "StringArray")
+          '("one" "two" "three")))
+
+        (should                 ; Verify property has registered value.
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "StringArray")
+          '("one" "two" "three")))
+
+        ;; Test mismatched types in array.
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "MixedArray" :readwrite
+          '(:array
+            :object-path "/node00"
+            :string "/node01"
+            :object-path "/node0/node02"))
+         :type 'wrong-type-argument)
+
+        ;; Test in-range integer values.
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" :readwrite :byte 255)
+          `((:property :session ,dbus--test-interface "ByteValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          255))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ShortValue" :readwrite :int16 32767)
+          `((:property :session ,dbus--test-interface "ShortValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ShortValue")
+          32767))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UShortValue" :readwrite :uint16 65535)
+          `((:property :session ,dbus--test-interface "UShortValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UShortValue")
+          65535))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "IntValue" :readwrite :int32 2147483647)
+          `((:property :session ,dbus--test-interface "IntValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface "IntValue")
+          2147483647))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UIntValue" :readwrite :uint32 4294967295)
+          `((:property :session ,dbus--test-interface "UIntValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UIntValue")
+          4294967295))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "LongValue" :readwrite :int64 9223372036854775807)
+          `((:property :session ,dbus--test-interface "LongValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "LongValue")
+          9223372036854775807))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ULongValue" :readwrite :uint64 18446744073709551615)
+          `((:property :session ,dbus--test-interface "ULongValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ULongValue")
+          18446744073709551615))
+
+        ;; Test integer overflow.
+        (should
+         (=
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" :byte 520)
+          8))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          8))
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "ShortValue" :readwrite :int16 32800)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "UShortValue" :readwrite :uint16 65600)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "IntValue" :readwrite :int32 2147483700)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "UIntValue" :readwrite :uint32 4294967300)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "LongValue" :readwrite :int64 9223372036854775900)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "ULongValue" :readwrite :uint64 18446744073709551700)
+         :type 'args-out-of-range)
+
+        ;; dbus-set-property may change property type.
+        (should
+         (=
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" 1024)
+          1024))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          1024))
+
+
+        (should                         ; Another change property type test.
+         (equal
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" :boolean t)
+          t))
+
+        (should
+         (eq
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          t))
+
+        ;; Test invalid type specification.
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "InvalidType" :readwrite :keyword 128)
+         :type 'wrong-type-argument))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
   (interactive "p")
