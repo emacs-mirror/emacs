@@ -435,7 +435,7 @@ q  trust status questionable.  -  trust status unspecified.
   (unless (and epa-keys-buffer
                (buffer-live-p epa-keys-buffer))
     (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
-  (let ((conf (current-window-configuration)))
+  (save-window-excursion
     (with-current-buffer epa-keys-buffer
       (epa-key-list-mode)
       ;; C-c C-c is the usual way to finish the selection (bug#11159).
@@ -462,8 +462,7 @@ q  trust status questionable.  -  trust status unspecified.
 	  (progn
 	    (recursive-edit)
 	    (epa--marked-keys))
-        (kill-buffer epa-keys-buffer)
-        (set-window-configuration conf)))))
+        (kill-buffer epa-keys-buffer)))))
 
 ;;;###autoload
 (defun epa-select-keys (context prompt &optional names secret)
