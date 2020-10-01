@@ -7275,15 +7275,16 @@ Mode' for details."
   :lighter " Wrap"
   (if visual-line-mode
       (progn
-	(set (make-local-variable 'visual-line--saved-state) nil)
-	;; Save the local values of some variables, to be restored if
-	;; visual-line-mode is turned off.
-	(dolist (var '(line-move-visual truncate-lines
-		       truncate-partial-width-windows
-		       word-wrap fringe-indicator-alist))
-	  (if (local-variable-p var)
-	      (push (cons var (symbol-value var))
-		    visual-line--saved-state)))
+        (unless visual-line--saved-state
+	  (setq-local visual-line--saved-state (list nil))
+	  ;; Save the local values of some variables, to be restored if
+	  ;; visual-line-mode is turned off.
+	  (dolist (var '(line-move-visual truncate-lines
+		                          truncate-partial-width-windows
+		                          word-wrap fringe-indicator-alist))
+	    (if (local-variable-p var)
+	        (push (cons var (symbol-value var))
+		      visual-line--saved-state))))
 	(set (make-local-variable 'line-move-visual) t)
 	(set (make-local-variable 'truncate-partial-width-windows) nil)
 	(setq truncate-lines nil
@@ -7297,7 +7298,8 @@ Mode' for details."
     (kill-local-variable 'truncate-partial-width-windows)
     (kill-local-variable 'fringe-indicator-alist)
     (dolist (saved visual-line--saved-state)
-      (set (make-local-variable (car saved)) (cdr saved)))
+      (when (car saved)
+        (set (make-local-variable (car saved)) (cdr saved))))
     (kill-local-variable 'visual-line--saved-state)))
 
 (defun turn-on-visual-line-mode ()
