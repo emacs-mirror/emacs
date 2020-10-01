@@ -5659,7 +5659,7 @@ The result is a fixnum."
 	       (mail-file-babyl-p filename))
 	  ;; gnus-output-to-mail does the wrong thing with live, mbox
 	  ;; Rmail buffers in Emacs 23.
-	  ;; http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
+          ;; https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
 	  (let ((buff (find-buffer-visiting filename)))
 	    (and buff (with-current-buffer buff
 			(eq major-mode 'rmail-mode)))))
@@ -8591,7 +8591,7 @@ Meant for use on `completion-at-point-functions'."
 
 ;; FIXME: What is the most common term (circular letter, form letter, serial
 ;; letter, standard letter) for such kind of letter?  See also
-;; <http://en.wikipedia.org/wiki/Form_letter>
+;; <https://en.wikipedia.org/wiki/Form_letter>
 
 ;; FIXME: Maybe extent message-mode's font-lock support to recognize
 ;; `message-form-letter-separator', i.e. highlight each message like a single

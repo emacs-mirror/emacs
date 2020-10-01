@@ -75,7 +75,7 @@
 ;; ftp.lysator.liu.se in the directory /pub/emacs
 
 ;; There is also a WWW page at
-;; http://www.lysator.liu.se/~davidk/elisp/ which has some information
+;; https://www.lysator.liu.se/~davidk/elisp/ which has some information
 
 ;;; Known bugs:
 

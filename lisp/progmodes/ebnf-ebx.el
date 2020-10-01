@@ -38,7 +38,7 @@
 ;; ------------
 ;;
 ;;	See the URL:
-;;	`http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+;;	`https://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 ;;	(Extensible Markup Language (XML) 1.0 (Third Edition))
 ;;
 ;;

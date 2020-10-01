@@ -100,7 +100,7 @@
   "Identifiers for types of media.")
 
 (defconst css-property-alist
-  ;; CSS 2.1 properties (http://www.w3.org/TR/CSS21/propidx.html).
+  ;; CSS 2.1 properties (https://www.w3.org/TR/CSS21/propidx.html).
   ;;
   ;; Properties duplicated by any of the CSS3 modules below have been
   ;; removed.
@@ -190,7 +190,7 @@
     ("z-index" "auto" integer)
 
     ;; CSS Animations
-    ;; (http://www.w3.org/TR/css3-animations/#property-index)
+    ;; (https://www.w3.org/TR/css3-animations/#property-index)
     ("animation" single-animation-name time single-timing-function
      single-animation-iteration-count single-animation-direction
      single-animation-fill-mode single-animation-play-state)
@@ -204,7 +204,7 @@
     ("animation-timing-function" single-timing-function)
 
     ;; CSS Backgrounds and Borders Module Level 3
-    ;; (http://www.w3.org/TR/css3-background/#property-index)
+    ;; (https://www.w3.org/TR/css3-background/#property-index)
     ("background" bg-layer final-bg-layer)
     ("background-attachment" attachment)
     ("background-clip" box)
@@ -249,7 +249,7 @@
     ("box-shadow" "none" shadow)
 
     ;; CSS Basic User Interface Module Level 3 (CSS3 UI)
-    ;; (http://www.w3.org/TR/css3-ui/#property-index)
+    ;; (https://www.w3.org/TR/css3-ui/#property-index)
     ("box-sizing" "content-box" "border-box")
     ("caret-color" "auto" color)
     ("cursor" uri x y "auto" "default" "none" "context-menu" "help"
@@ -272,7 +272,7 @@
     ("text-overflow" "clip" "ellipsis" string)
 
     ;; CSS Color Module Level 3
-    ;; (http://www.w3.org/TR/css3-color/#property)
+    ;; (https://www.w3.org/TR/css3-color/#property)
     ("color" color)
     ("opacity" alphavalue)
 
@@ -304,7 +304,7 @@
     ("grid-template-rows" "none" track-list auto-track-list)
 
     ;; CSS Flexible Box Layout Module Level 1
-    ;; (http://www.w3.org/TR/css-flexbox-1/#property-index)
+    ;; (https://www.w3.org/TR/css-flexbox-1/#property-index)
     ("align-content" "flex-start" "flex-end" "center" "space-between"
      "space-around" "stretch")
     ("align-items" "flex-start" "flex-end" "center" "baseline"
@@ -323,7 +323,7 @@
     ("order" integer)
 
     ;; CSS Fonts Module Level 3
-    ;; (http://www.w3.org/TR/css3-fonts/#property-index)
+    ;; (https://www.w3.org/TR/css3-fonts/#property-index)
     ("font" font-style font-variant-css21 font-weight font-stretch
      font-size line-height font-family "caption" "icon" "menu"
      "message-box" "small-caption" "status-bar")
@@ -419,7 +419,7 @@
     ("columns" column-width column-count)
 
     ;; CSS Overflow Module Level 3
-    ;; (http://www.w3.org/TR/css-overflow-3/#property-index)
+    ;; (https://www.w3.org/TR/css-overflow-3/#property-index)
     ("max-lines" "none" integer)
     ("overflow" "visible" "hidden" "scroll" "auto" "paged-x" "paged-y"
      "paged-x-controls" "paged-y-controls" "fragments")
@@ -448,7 +448,7 @@
     ("text-underline-position" "auto" "under" "left" "right")
 
     ;; CSS Text Module Level 3
-    ;; (http://www.w3.org/TR/css3-text/#property-index)
+    ;; (https://www.w3.org/TR/css3-text/#property-index)
     ("hanging-punctuation" "none" "first" "force-end" "allow-end"
      "last")
     ("hyphens" "none" "manual" "auto")
@@ -470,7 +470,7 @@
     ("word-wrap" "normal" "break-word")
 
     ;; CSS Transforms Module Level 1
-    ;; (http://www.w3.org/TR/css3-2d-transforms/#property-index)
+    ;; (https://www.w3.org/TR/css3-2d-transforms/#property-index)
     ("backface-visibility" "visible" "hidden")
     ("perspective" "none" length)
     ("perspective-origin" "left" "center" "right" "top" "bottom"
@@ -481,7 +481,7 @@
     ("transform-style" "flat" "preserve-3d")
 
     ;; CSS Transitions
-    ;; (http://www.w3.org/TR/css3-transitions/#property-index)
+    ;; (https://www.w3.org/TR/css3-transitions/#property-index)
     ("transition" single-transition)
     ("transition-delay" time)
     ("transition-duration" time)
@@ -503,7 +503,7 @@
     ("writing-mode" "horizontal-tb" "vertical-rl" "vertical-lr")
 
     ;; Filter Effects Module Level 1
-    ;; (http://www.w3.org/TR/filter-effects/#property-index)
+    ;; (https://www.w3.org/TR/filter-effects/#property-index)
     ("color-interpolation-filters" "auto" "sRGB" "linearRGB")
     ("filter" "none" filter-function-list)
     ("flood-color" color)

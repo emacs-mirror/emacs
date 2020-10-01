@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This package provides an implementation of the Secret Service API
-;; <http://www.freedesktop.org/wiki/Specifications/secret-storage-spec>.
+;; <https://www.freedesktop.org/wiki/Specifications/secret-storage-spec>.
 ;; This API is meant to make GNOME-Keyring- and KWallet-like daemons
 ;; available under a common D-BUS interface and thus increase
 ;; interoperability between GNOME, KDE and other applications having

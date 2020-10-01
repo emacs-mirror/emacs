@@ -60,7 +60,7 @@
 ;; =============
 ;;
 ;; * The ImageMagick package.  Currently, `convert' and `mogrify' are
-;; used.  Find it here: http://www.imagemagick.org.
+;; used.  Find it here: https://www.imagemagick.org.
 ;;
 ;; * For non-lossy rotation of JPEG images, the JpegTRAN program is
 ;; needed.
@@ -205,7 +205,7 @@ the index.html page that image-dired creates."
   :group 'image-dired)
 
 (defcustom image-dired-gallery-image-root-url
-"http://your.own.server/image-diredpics"
+"https://your.own.server/image-diredpics"
   "URL where the full size images are to be found.
 Note that this path has to be configured in your web server.  Image-Dired
 expects to find pictures in this directory."
@@ -213,7 +213,7 @@ expects to find pictures in this directory."
   :group 'image-dired)
 
 (defcustom image-dired-gallery-thumb-image-root-url
-"http://your.own.server/image-diredthumbs"
+"https://your.own.server/image-diredthumbs"
   "URL where the thumbnail images are to be found.
 Note that this path has to be configured in your web server.  Image-Dired
 expects to find pictures in this directory."

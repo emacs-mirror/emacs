@@ -4,7 +4,7 @@
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/RubyMode
+;; URL: https://www.emacswiki.org/cgi-bin/wiki/RubyMode
 ;; Created: Fri Feb  4 14:49:13 JST 1994
 ;; Keywords: languages ruby
 ;; Version: 1.2

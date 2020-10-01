@@ -198,12 +198,12 @@ PAR is a number of a regexp grouping whose text will be passed to
                         :inline t
                         (integer :tag "Regexp section number")))))
 
-(defcustom erc-emacswiki-url "http://www.emacswiki.org/cgi-bin/wiki.pl?"
+(defcustom erc-emacswiki-url "https://www.emacswiki.org/cgi-bin/wiki.pl?"
   "URL of the EmacsWiki Homepage."
   :group 'erc-button
   :type 'string)
 
-(defcustom erc-emacswiki-lisp-url "http://www.emacswiki.org/elisp/"
+(defcustom erc-emacswiki-lisp-url "https://www.emacswiki.org/elisp/"
   "URL of the EmacsWiki ELisp area."
   :group 'erc-button
   :type 'string)

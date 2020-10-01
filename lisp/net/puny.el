@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Written by looking at
-;; http://stackoverflow.com/questions/183485/can-anyone-recommend-a-good-free-javascript-for-punycode-to-unicode-conversion
+;; https://stackoverflow.com/questions/183485/can-anyone-recommend-a-good-free-javascript-for-punycode-to-unicode-conversion
 
 ;;; Code:
 
@@ -196,12 +196,12 @@ For instance \"xn--bcher-kva\" => \"bücher\"."
         (cl-incf i)))
     (buffer-string)))
 
-;; http://www.unicode.org/reports/tr39/#Restriction_Level_Detection
-;; http://www.unicode.org/reports/tr31/#Table_Candidate_Characters_for_Inclusion_in_Identifiers
+;; https://www.unicode.org/reports/tr39/#Restriction_Level_Detection
+;; https://www.unicode.org/reports/tr31/#Table_Candidate_Characters_for_Inclusion_in_Identifiers
 
 (defun puny-highly-restrictive-string-p (string)
   "Say whether STRING is \"highly restrictive\" in the Unicode IDNA sense.
-See http://www.unicode.org/reports/tr39/#Restriction_Level_Detection
+See https://www.unicode.org/reports/tr39/#Restriction_Level_Detection
 for details.  The main idea is that if you're mixing
 scripts (like latin and cyrillic), you may confuse the user by
 using homographs."

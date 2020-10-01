@@ -49,7 +49,7 @@
 ;;
 ;; New versions of IDLWAVE, documentation, and more information available
 ;; from:
-;;                 http://github.com/jdtsmith/idlwave
+;;                 https://github.com/jdtsmith/idlwave
 ;;
 ;; INSTALLATION
 ;; ============

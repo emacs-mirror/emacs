@@ -8,7 +8,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Homepage: http://www.emacswiki.org/emacs/GDB-MI
+;; Homepage: https://www.emacswiki.org/emacs/GDB-MI
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

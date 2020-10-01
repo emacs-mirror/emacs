@@ -42,7 +42,7 @@
 ;; See documentation of function `bat-mode'.
 ;;
 ;; Separate package `dos-indent' (Matthew Fidler) provides rudimentary
-;; indentation, see http://www.emacswiki.org/emacs/dos-indent.el.
+;; indentation, see https://www.emacswiki.org/emacs/dos-indent.el.
 ;;
 ;; Acknowledgements:
 ;;

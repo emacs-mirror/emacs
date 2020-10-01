@@ -22,7 +22,7 @@
 ;;; Commentary:
 
 ;; IRC URLs are defined in
-;; http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt
+;; https://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt
 
 ;;; Code:
 

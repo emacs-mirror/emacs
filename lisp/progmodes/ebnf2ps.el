@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.4
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
 
@@ -326,7 +326,7 @@ Please send all bug fixes and enhancements to
 ;;			`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 ;;
 ;;    `abnf'		ebnf2ps recognizes the syntax described in the URL:
-;;			`http://www.ietf.org/rfc/rfc2234.txt'
+;;			`https://www.ietf.org/rfc/rfc2234.txt'
 ;;			("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
@@ -342,11 +342,11 @@ Please send all bug fixes and enhancements to
 ;;			`ebnf-yac-ignore-error-recovery'.
 ;;
 ;;    `ebnfx'		ebnf2ps recognizes the syntax described in the URL:
-;;		     `http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+;;		     `https://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 ;;		     ("Extensible Markup Language (XML) 1.0 (Third Edition)")
 ;;
 ;;    `dtd'		ebnf2ps recognizes the syntax described in the URL:
-;;			`http://www.w3.org/TR/2004/REC-xml-20040204/'
+;;			`https://www.w3.org/TR/2004/REC-xml-20040204/'
 ;;		     ("Extensible Markup Language (XML) 1.0 (Third Edition)")
 ;;
 ;; Any other value is treated as `ebnf'.
@@ -1779,7 +1779,7 @@ Valid values are:
 		`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 
    `abnf'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.ietf.org/rfc/rfc2234.txt'
+                `https://www.ietf.org/rfc/rfc2234.txt'
 		(\"Augmented BNF for Syntax Specifications: ABNF\").
 
    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
@@ -1795,11 +1795,11 @@ Valid values are:
 		`ebnf-yac-ignore-error-recovery'.
 
    `ebnfx'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+                `https://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 		(\"Extensible Markup Language (XML) 1.0 (Third Edition)\")
 
    `dtd'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.w3.org/TR/2004/REC-xml-20040204/'
+                `https://www.w3.org/TR/2004/REC-xml-20040204/'
 		(\"Extensible Markup Language (XML) 1.0 (Third Edition)\")
 
 Any other value is treated as `ebnf'."

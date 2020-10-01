@@ -38,7 +38,7 @@
 ;; -----------
 ;;
 ;;	See the URL:
-;;	`http://www.ietf.org/rfc/rfc2234.txt'
+;;	`https://www.ietf.org/rfc/rfc2234.txt'
 ;;	or
 ;;	`http://www.faqs.org/rfcs/rfc2234.html'
 ;;	or

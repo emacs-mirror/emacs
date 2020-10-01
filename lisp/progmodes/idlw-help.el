@@ -32,7 +32,7 @@
 ;; along with new versions of IDLWAVE, documentation, and more
 ;; information, at:
 ;;
-;;           http://github.com/jdtsmith/idlwave
+;;           https://github.com/jdtsmith/idlwave
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

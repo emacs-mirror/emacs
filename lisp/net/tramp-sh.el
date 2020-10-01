@@ -4408,7 +4408,7 @@ process to set up.  VEC specifies the connection."
 
     ;; IRIX64 bash expands "!" even when in single quotes.  This
     ;; destroys our shell functions, we must disable it.  See
-    ;; <http://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
+    ;; <https://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
     (when (string-match-p "^IRIX64" uname)
       (tramp-send-command vec "set +H" t))
 

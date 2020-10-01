@@ -1852,8 +1852,8 @@ place.  It affects how `mail-extract-address-components' works."
 ;;
 ;; Source: ISO 3166 Maintenance Agency
 ;; http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1-semic.txt
-;; http://www.iana.org/domain-names.htm
-;; http://www.iana.org/cctld/cctld-whois.htm
+;; https://www.iana.org/domain-names.htm
+;; https://www.iana.org/cctld/cctld-whois.htm
 ;; Latest change: 2007/11/15
 
 (defconst mail-extr-all-top-level-domains

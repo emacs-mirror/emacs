@@ -890,7 +890,7 @@ Argument BUFFER is the buffer of the retrieval process."
                   ;; Atom 1.0 feed.
 
                   ;; (and (eq 'feed (xml-node-name topnode))
-                  ;;      (string= "http://www.w3.org/2005/Atom"
+                  ;;      (string= "https://www.w3.org/2005/Atom"
                   ;;               (xml-get-attribute topnode 'xmlns)))
                   (setq image-url (newsticker--get-logo-url-atom-1.0 topnode))
                   (setq icon-url (newsticker--get-icon-url-atom-1.0 topnode))

@@ -771,7 +771,7 @@ This command uses `smbclient-program' to connect to HOST."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Full list is available at:
-;; http://www.iana.org/assignments/port-numbers
+;; https://www.iana.org/assignments/port-numbers
 (defvar network-connection-service-alist
   (list
     (cons 'echo          7)

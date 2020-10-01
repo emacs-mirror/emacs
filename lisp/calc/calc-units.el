@@ -37,14 +37,14 @@
 ;;; Updated April 2002 by Jochen Küpper
 
 ;;; Updated August 2007, using
-;;;     CODATA (http://physics.nist.gov/cuu/Constants/index.html)
-;;;     NIST   (http://physics.nist.gov/Pubs/SP811/appenB9.html)
+;;;     CODATA (https://physics.nist.gov/cuu/Constants/index.html)
+;;;     NIST   (https://physics.nist.gov/Pubs/SP811/appenB9.html)
 ;;;     ESUWM  (Encyclopaedia of Scientific Units, Weights and
 ;;;             Measures, by François Cardarelli)
 ;;; All conversions are exact unless otherwise noted.
 
 ;; CODATA values updated February 2016, using 2014 adjustment
-;; http://arxiv.org/pdf/1507.07956.pdf
+;; https://arxiv.org/pdf/1507.07956.pdf
 
 ;; Updated November 2018 for the redefinition of the SI
 ;; https://www.bipm.org/utils/en/pdf/CGPM/Draft-Resolution-A-EN.pdf
@@ -59,7 +59,7 @@
     ( mi      "5280 ft"              "Mile" )
     ( au      "149597870691. m"      "Astronomical Unit" nil
               "149597870691 m (*)")
-              ;; (approx) NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
+              ;; (approx) NASA JPL (https://neo.jpl.nasa.gov/glossary/au.html)
     ( lyr     "c yr"                 "Light Year" )
     ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
               "3.0856775854 10^16 m (*)") ;; (approx) ESUWM

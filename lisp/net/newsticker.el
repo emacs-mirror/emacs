@@ -54,7 +54,7 @@
 ;; as well as the following Atom formats:
 ;;  * Atom 0.3
 ;;  * Atom 1.0
-;;    (see http://www.ietf.org/internet-drafts/draft-ietf-atompub-format-11.txt)
+;;    (see https://www.ietf.org/internet-drafts/draft-ietf-atompub-format-11.txt)
 ;; That makes Newsticker.el an "Atom aggregator, "RSS reader", "RSS
 ;; aggregator", and "Feed Reader".
 

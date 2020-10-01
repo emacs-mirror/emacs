@@ -24,8 +24,8 @@
 
 ;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
 ;; `dvipdf' (comes with Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive)
-;; and `pdftotext', which comes with xpdf (http://www.foolabs.com/xpdf/) or
-;; poppler (http://poppler.freedesktop.org/).
+;; and `pdftotext', which comes with xpdf (https://www.foolabs.com/xpdf/) or
+;; poppler (https://poppler.freedesktop.org/).
 
 ;;; Commentary:
 

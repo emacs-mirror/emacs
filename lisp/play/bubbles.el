@@ -28,7 +28,7 @@
 ;; possible in as few moves as possible.
 
 ;; Bubbles is an implementation of the "Same Game", similar to "Same
-;; GNOME" and many others, see <http://en.wikipedia.org/wiki/SameGame>.
+;; GNOME" and many others, see <https://en.wikipedia.org/wiki/SameGame>.
 
 ;; Installation
 ;; ------------

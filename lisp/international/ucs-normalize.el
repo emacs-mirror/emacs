@@ -25,8 +25,8 @@
 ;; This program has passed the NormalizationTest-5.2.0.txt.
 ;;
 ;; References:
-;; http://www.unicode.org/reports/tr15/
-;; http://www.unicode.org/review/pr-29.html
+;; https://www.unicode.org/reports/tr15/
+;; https://www.unicode.org/review/pr-29.html
 ;;
 ;; HFS-Normalization:
 ;; Reference:
@@ -131,7 +131,7 @@
       #x1D1BF #x1D1C0)
    "Composition Exclusion List.
   This list is taken from
-    http://www.unicode.org/Public/UNIDATA/5.2/CompositionExclusions.txt")
+    https://www.unicode.org/Public/UNIDATA/5.2/CompositionExclusions.txt")
 
   ;; Unicode ranges that decompositions & combining characters are defined.
   (defvar check-range nil)

@@ -33,7 +33,7 @@
 ;; support.
 
 ;; The latest version is available from
-;; http://github.com/jrockway/cperl-mode
+;; https://github.com/jrockway/cperl-mode
 ;;
 ;; (perhaps in the moosex-declare branch)
 
