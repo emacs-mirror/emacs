@@ -598,6 +598,8 @@ instruction."
   (or (comp-spill-decl-spec function-name 'speed)
       comp-speed))
 
+;; Autoloaded as might by used by `disassemble-internal'.
+;;;###autoload
 (defun comp-c-func-name (name prefix &optional first)
   "Given NAME return a name suitable for the native code.
 Add PREFIX in front of it.  If FIRST is not nil pick the first
