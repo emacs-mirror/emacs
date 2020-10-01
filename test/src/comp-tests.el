@@ -46,6 +46,7 @@
 (ert-deftest comp-tests-bootstrap ()
   "Compile the compiler and load it to compile it-self.
 Check that the resulting binaries do not differ."
+  :tags '(:expensive-test)
   (let* ((comp-src (concat comp-test-directory
                            "../../lisp/emacs-lisp/comp.el"))
          (comp1-src (make-temp-file "stage1-" nil ".el"))
