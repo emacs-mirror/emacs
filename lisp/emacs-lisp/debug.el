@@ -320,6 +320,17 @@ the debugger will not be entered."
      (message "Error in debug printer: %S" err)
      (prin1 obj stream))))
 
+(make-obsolete 'debugger-insert-backtrace
+               "use a `backtrace-mode' buffer or `backtrace-to-string'."
+               "Emacs 27.1")
+
+(defun debugger-insert-backtrace (frames do-xrefs)
+  "Format and insert the backtrace FRAMES at point.
+Make functions into cross-reference buttons if DO-XREFS is non-nil."
+  (insert (if do-xrefs
+              (backtrace--to-string frames)
+            (backtrace-to-string frames))))
+
 (defun debugger-setup-buffer (args)
   "Initialize the `*Backtrace*' buffer for entry to the debugger.
 That buffer should be current already and in debugger-mode."
@@ -527,6 +538,8 @@ The environment used is the one when entering the activation frame at point."
           (let ((str (eval-expression-print-format val)))
             (if str (princ str t))))))))
 
+(defalias 'debugger-toggle-locals 'backtrace-toggle-locals)
+
 
 (defvar debugger-mode-map
   (let ((map (make-keymap)))
@@ -620,6 +633,8 @@ Complete list of commands:
     (message "%s"
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
+
+(defalias 'debug-help-follow 'backtrace-help-follow-symbol)
 
 
 ;; When you change this, you may also need to change the number of
