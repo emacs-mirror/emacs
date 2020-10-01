@@ -68,9 +68,6 @@ considered to be running if the newsticker timer list is not empty."
 ;; Hard-coding URLs like this is a recipe for propagating obsolete info.
 (defconst newsticker--raw-url-list-defaults
   '(
-    ;; 2017/12: no response.
-;;;    ("CNET News.com"
-;;;     "http://export.cnet.com/export/feeds/news/rss/1,11176,,00.xml")
     ("Debian Security Advisories"
     "http://www.debian.org/security/dsa.en.rdf")
     ("Debian Security Advisories - Long format"
@@ -81,11 +78,6 @@ considered to be running if the newsticker timer list is not empty."
     3600)
     ("LWN (Linux Weekly News)"
     "https://lwn.net/headlines/rss")
-    ;; Not updated since 2010.
-;;;    ("NY Times: Technology"
-;;;    "http://www.nytimes.com/services/xml/rss/userland/Technology.xml")
-;;;    ("NY Times"
-;;;    "http://www.nytimes.com/services/xml/rss/userland/HomePage.xml")
     ("Quote of the day"
     "http://feeds.feedburner.com/quotationspage/qotd"
     "07:00"
