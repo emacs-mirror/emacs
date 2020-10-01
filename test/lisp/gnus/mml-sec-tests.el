@@ -67,7 +67,6 @@ instead of gpg-agent."
 	(condition-case error
 	    (let ((epg-gpg-home-directory
                    (expand-file-name "test/data/mml-sec" source-directory))
-                  (mml-secure-allow-signing-with-unknown-recipient t)
 		  (mml-smime-use 'epg)
 		  ;; Create debug output in empty epg-debug-buffer.
 		  (epg-debug t)
