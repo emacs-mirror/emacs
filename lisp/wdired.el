@@ -913,9 +913,9 @@ Like original function but it skips read-only words."
         (if (= (length perms-new) 10)
             (progn
               (setq perm-tmp
-                    (int-to-string (wdired-perms-to-number perms-new)))
-              (unless (equal 0 (process-file dired-chmod-program
-					     nil nil nil perm-tmp filename))
+                    (string-to-number
+                     (int-to-string (wdired-perms-to-number perms-new)) 8))
+              (unless (set-file-modes filename perm-tmp)
                 (setq errors (1+ errors))
                 (dired-log "%s %s `%s' failed\n\n"
                            dired-chmod-program perm-tmp filename)))
