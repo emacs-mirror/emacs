@@ -7712,7 +7712,7 @@ indirectly called by the latter."
                (with-current-buffer (window-buffer window)
                  (cond ((memq major-mode allowed-modes)
                         'same)
-                       ((derived-mode-p allowed-modes)
+                       ((apply #'derived-mode-p allowed-modes)
                         'derived)))))
           (when (and mode?
                      (not (and inhibit-same-window-p
