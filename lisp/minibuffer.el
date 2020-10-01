@@ -3110,12 +3110,12 @@ or a symbol, see `completion-pcm--merge-completions'."
     (while p
       (pcase p
         (`(,(or 'any 'any-delim) point . ,rest) (setq p `(point . ,rest)))
-        ;; This is not just a performance improvement: it also turns
-        ;; a terminating `point' into an implicit `any', which
-        ;; affects the final position of point (because `point' gets
-        ;; turned into a non-greedy ".*?" regexp whereas we need
-        ;; it the be greedy when it's at the end, see bug#38458).
-        (`(,(pred symbolp)) (setq p nil)) ;Implicit terminating `any'.
+        ;; This is not just a performance improvement: it turns a
+        ;; terminating `point' into an implicit `any', which affects
+        ;; the final position of point (because `point' gets turned
+        ;; into a non-greedy ".*?" regexp whereas we need it to be
+        ;; greedy when it's at the end, see bug#38458).
+        (`(point) (setq p nil)) ;Implicit terminating `any'.
         (_ (push (pop p) n))))
     (nreverse n)))
 
