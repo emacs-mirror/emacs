@@ -988,7 +988,8 @@ Returns non-nil if the user has chosen to use SENDER."
 	 (signers (mml-secure-signers context signer-names))
 	 signature micalg)
     (unless signers
-      (if (mml-secure-sender-sign-query protocol sender)
+      (if (and (not noninteractive)
+	       (mml-secure-sender-sign-query protocol sender))
           (setq signer-names (mml-secure-signer-names protocol sender)
                 signers (mml-secure-signers context signer-names)))
       (unless signers
