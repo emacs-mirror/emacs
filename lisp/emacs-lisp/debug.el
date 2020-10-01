@@ -538,7 +538,8 @@ The environment used is the one when entering the activation frame at point."
           (let ((str (eval-expression-print-format val)))
             (if str (princ str t))))))))
 
-(defalias 'debugger-toggle-locals 'backtrace-toggle-locals)
+(define-obsolete-function-alias 'debugger-toggle-locals
+  'backtrace-toggle-locals "28.1")
 
 
 (defvar debugger-mode-map
@@ -634,7 +635,8 @@ Complete list of commands:
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
 
-(defalias 'debug-help-follow 'backtrace-help-follow-symbol)
+(define-obsolete-function-alias 'debug-help-follow
+  'backtrace-help-follow-symbol "28.1")
 
 
 ;; When you change this, you may also need to change the number of
