@@ -209,9 +209,12 @@ xd_dbus_type_to_symbol (int type)
     : Qnil;
 }
 
+#define XD_KEYWORDP(object) !NILP (Fkeywordp (object))
+
 /* Check whether a Lisp symbol is a predefined D-Bus type symbol.  */
 #define XD_DBUS_TYPE_P(object)						\
-  SYMBOLP (object) && ((xd_symbol_to_dbus_type (object) != DBUS_TYPE_INVALID))
+  XD_KEYWORDP (object) &&						\
+    ((xd_symbol_to_dbus_type (object) != DBUS_TYPE_INVALID))
 
 /* Determine the DBusType of a given Lisp OBJECT.  It is used to
    convert Lisp objects, being arguments of `dbus-call-method' or
@@ -1231,7 +1234,7 @@ this connection to those buses.  */)
 						xd_add_watch,
 						xd_remove_watch,
 						xd_toggle_watch,
-						SYMBOLP (bus)
+						XD_KEYWORDP (bus)
 						? (void *) XSYMBOL (bus)
 						: (void *) XSTRING (bus),
 						NULL))
@@ -1797,7 +1800,7 @@ xd_read_queued_messages (int fd, void *data)
     while (!NILP (busp))
       {
 	key = CAR_SAFE (CAR_SAFE (busp));
-	if ((SYMBOLP (key) && XSYMBOL (key) == data)
+	if ((XD_KEYWORDP (key) && XSYMBOL (key) == data)
 	    || (STRINGP (key) && XSTRING (key) == data))
 	  bus = key;
 	busp = CDR_SAFE (busp);
