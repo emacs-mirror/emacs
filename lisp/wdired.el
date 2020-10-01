@@ -344,7 +344,7 @@ non-nil means return old filename."
 	;; Don't unquote the old name, it wasn't quoted in the first place
         (and file (setq file (wdired-normalize-filename file (not old)))))
       (if (or no-dir old)
-	  file
+	  (if no-dir (file-relative-name file) file)
 	(and file (> (length file) 0)
              (concat (dired-current-directory) file))))))
 
