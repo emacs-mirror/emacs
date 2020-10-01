@@ -11854,11 +11854,11 @@ Render FILE using EWW.
 \(fn FILE)" t nil)
 
 (autoload 'eww-search-words "eww" "\
-Search the web for the text between BEG and END.
+Search the web for the text in the region.
 If region is active (and not whitespace), search the web for
-the text between BEG and END.  Else, prompt the user for a search
-string.  See the `eww-search-prefix' variable for the search
-engine used." t nil)
+the text between region beginning and end.  Else, prompt the
+user for a search string.  See the variable `eww-search-prefix'
+for the search engine used." t nil)
 
 (autoload 'eww-mode "eww" "\
 Mode for browsing the web.
@@ -16172,6 +16172,9 @@ Write interactively added patterns, if any, into buffer at point.
 Interactively added patterns are those normally specified using
 `highlight-regexp' and `highlight-lines-matching-regexp'; they can
 be found in variable `hi-lock-interactive-patterns'." t nil)
+
+(autoload 'hi-lock-find-patterns "hi-lock" "\
+Add patterns from the current buffer to the list of hi-lock patterns." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "hi-lock" '("hi-lock-" "turn-on-hi-lock-if-enabled")))
 
