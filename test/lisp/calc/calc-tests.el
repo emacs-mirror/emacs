@@ -534,6 +534,46 @@ An existing calc stack is reused, otherwise a new one is created."
       )
   ))
 
+(ert-deftest calc-unix-date ()
+  (let* ((d-1970-01-01 (math-parse-date "1970-01-01"))
+         (d-2020-09-07 (math-parse-date "2020-09-07"))
+         (d-1991-01-09-0600 (math-parse-date "1991-01-09 06:00")))
+    ;; calcFunc-unixtime (command "t U") converts a date value to Unix time,
+    ;; and a number to a date.
+    (should (equal d-1970-01-01 '(date 719163)))
+    (should (equal (calcFunc-unixtime d-1970-01-01 0) 0))
+    (should (equal (calc-tests--calc-to-number (cadr (calcFunc-unixtime 0 0)))
+                   (cadr d-1970-01-01)))
+    (should (equal (calcFunc-unixtime d-2020-09-07 0)
+                   (* (- (cadr d-2020-09-07)
+                         (cadr d-1970-01-01))
+                      86400)))
+    (should (equal (calcFunc-unixtime d-1991-01-09-0600 0)
+                   663400800))
+    (should (equal (calc-tests--calc-to-number
+                    (cadr (calcFunc-unixtime 663400800 0)))
+                   726841.25))
+
+    (let ((calc-date-format '(U)))
+      ;; Test parsing Unix time.
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "0")))
+                     719163))
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "469324800")))
+                     (+ 719163 (/ 469324800 86400))))
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "663400800")))
+                     726841.25))
+
+      ;; Test formatting Unix time.
+      (should (equal (math-format-date d-1970-01-01) "0"))
+      (should (equal (math-format-date d-2020-09-07)
+                     (number-to-string (* (- (cadr d-2020-09-07)
+                                             (cadr d-1970-01-01))
+                                          86400))))
+      (should (equal (math-format-date d-1991-01-09-0600) "663400800")))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
