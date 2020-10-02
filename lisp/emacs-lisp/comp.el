@@ -2593,17 +2593,25 @@ Return the its filename if found or nil otherwise."
     ;; the primitive we are replacing in the function reloc table.
     (defalias trampoline-sym
       `(closure nil ,lambda-list
-         (let ((f #',subr-name))
-           (,(if (memq '&rest lambda-list) 'apply 'funcall)
-            f
-            ,@(cl-loop
-               for arg in lambda-list
-               unless (memq arg '(&optional &rest))
-                 collect arg)))))
-    (native-compile trampoline-sym nil
-                    (expand-file-name (comp-trampoline-filename subr-name)
-                                      (concat (car comp-eln-load-path)
-                                              comp-native-version-dir)))))
+                (let ((f #',subr-name))
+                  (,(if (memq '&rest lambda-list) 'apply 'funcall)
+                   f
+                   ,@(cl-loop
+                      for arg in lambda-list
+                      unless (memq arg '(&optional &rest))
+                      collect arg)))))
+    (native-compile
+     trampoline-sym nil
+     (cl-loop
+      for dir in comp-eln-load-path
+      for f = (expand-file-name
+               (comp-trampoline-filename subr-name)
+               (concat dir
+                       comp-native-version-dir))
+      when (file-writable-p f)
+        do (cl-return f)
+      finally (error "Can't find a writable directory in \
+`comp-eln-load-path'")))))
 
 ;;;###autoload
 (defun comp-subr-safe-advice (subr-name)
