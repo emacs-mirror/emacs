@@ -5250,7 +5250,8 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  dump_ptr (dump_base, reloc_offset);
 	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 	if (!CONSP (comp_u->file))
-	  error ("Trying to load incoherent dumped .eln");
+	  error ("Trying to load incoherent dumped eln file %s",
+		 SSDATA (comp_u->file));
 
 	/* Check just once if this is a local build or Emacs was installed.  */
 	if (installation_state == UNKNOWN)
