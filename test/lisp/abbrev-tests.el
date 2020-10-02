@@ -279,7 +279,7 @@
   (let ((table (make-abbrev-table)))
     (with-temp-buffer
       (insert "some text foo ")
-      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "bar")))
+      (advice-flet ((read-string (lambda (&rest _) "bar")))
         (inverse-add-abbrev table "Global" 1)))
     (should (string= (abbrev-expansion "foo" table) "bar"))))
 
@@ -288,7 +288,7 @@
   (let ((table (make-abbrev-table)))
     (with-temp-buffer
       (insert "some text foo ")
-      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "bar")))
+      (advice-flet ((read-string (lambda (&rest _) "bar")))
         (inverse-add-abbrev table "Global" 2)))
     (should (string= (abbrev-expansion "text" table) "bar"))))
 
@@ -298,7 +298,7 @@
     (with-temp-buffer
       (insert "some     text foo")
       (goto-char (point-min))
-      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "bar")))
+      (advice-flet ((read-string (lambda (&rest _) "bar")))
         (inverse-add-abbrev table "Global" -1)))
     (should (string= (abbrev-expansion "text" table) "bar"))))
 

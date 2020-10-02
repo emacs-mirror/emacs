@@ -337,8 +337,8 @@ cf. Bug#25477."
 (ert-deftest subr-tests-bug22027 ()
   "Test for https://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)
-    (cl-letf (((symbol-function 'read-string)
-               (lambda (_prompt _init _hist def) def)))
+    (advice-flet ((read-string
+                   (lambda (_prompt _init _hist def) def)))
       (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default "")))
       (should (string= default res)))))
 

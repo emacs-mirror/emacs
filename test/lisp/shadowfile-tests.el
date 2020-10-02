@@ -138,10 +138,10 @@ guaranteed by the originator of a cluster definition."
     (unwind-protect
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
-	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest _args) (pop mocked-input)))
-		   ((symbol-function #'read-string)
-		    (lambda (&rest _args) (pop mocked-input))))
+	(advice-flet ((read-from-minibuffer
+		       (lambda (&rest _args) (pop mocked-input)))
+		      (read-string
+		       (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -255,10 +255,10 @@ guaranteed by the originator of a cluster definition."
     (unwind-protect
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
-	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest _args) (pop mocked-input)))
-		   ((symbol-function #'read-string)
-		    (lambda (&rest _args) (pop mocked-input))))
+	(advice-flet ((read-from-minibuffer
+		       (lambda (&rest _args) (pop mocked-input)))
+		      (read-string
+		       (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -608,10 +608,10 @@ guaranteed by the originator of a cluster definition."
     (unwind-protect
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
-	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest _args) (pop mocked-input)))
-		   ((symbol-function #'read-string)
-		    (lambda (&rest _args) (pop mocked-input))))
+	(advice-flet ((read-from-minibuffer
+		       (lambda (&rest _args) (pop mocked-input)))
+		      (read-string
+		       (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -669,10 +669,10 @@ guaranteed by the originator of a cluster definition."
     (unwind-protect
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
-	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest _args) (pop mocked-input)))
-		   ((symbol-function #'read-string)
-		    (lambda (&rest _args) (pop mocked-input))))
+	(advice-flet ((read-from-minibuffer
+		       (lambda (&rest _args) (pop mocked-input)))
+		      (read-string
+		       (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)

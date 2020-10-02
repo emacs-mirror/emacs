@@ -33,10 +33,12 @@
 
 (ert-deftest test-read-multiple-choice ()
   (dolist (char '(?y ?n))
-    (cl-letf* (((symbol-function #'read-event) (lambda () char))
-               (str (if (eq char ?y) "yes" "no")))
-      (should (equal (list char str)
-                     (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))
+    (let ((str (if (eq char ?y) "yes" "no")))
+      (advice-flet ((read-event
+                     (lambda () char)))
+        (should (equal (list char str)
+                       (read-multiple-choice "Do it? "
+                                             '((?y "yes") (?n "no")))))))))
 
 
 (provide 'rmc-tests)
