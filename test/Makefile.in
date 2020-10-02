@@ -70,6 +70,7 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
@@ -138,9 +139,15 @@ test_module_dir := data/emacs-module
 
 all: check
 
+ifeq ($(HAVE_NATIVE_COMP),yes)
 SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
 SELECTOR_EXPENSIVE = (not (tag :unstable))
 SELECTOR_ALL = t
+else
+SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))
+SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nativecomp)))
+SELECTOR_ALL = (not (tag :nativecomp))
+endif
 ifdef SELECTOR
 SELECTOR_ACTUAL=$(SELECTOR)
 else ifndef MAKECMDGOALS
