@@ -131,7 +131,6 @@
                  (make-directory bzrdir)
                  (expand-file-name "foo.el" bzrdir)))
          (default-directory (file-name-as-directory bzrdir))
-         (generated-autoload-file (expand-file-name "loaddefs.el" bzrdir))
          (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
@@ -148,7 +147,9 @@
           ;; causes bzr status to fail.  This simulates a broken bzr
           ;; installation.
           (delete-file ".bzr/checkout/dirstate")
-          (should (progn (update-directory-autoloads default-directory)
+          (should (progn (make-directory-autoloads
+                          default-directory
+                          (expand-file-name "loaddefs.el" bzrdir))
                          t)))
       (delete-directory homedir t))))
 

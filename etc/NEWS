@@ -1470,6 +1470,13 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** New command 'make-directory-autoloads'.
+This does the same as the old command 'update-directory-autoloads',
+but has different semantics: Instead of passing in the output file via
+the dynamically bound 'generated-autoload-file' variable, the output
+file is now a explicit parameter.
+
++++
 *** New function 'string-search'.
 This function takes two string parameters and returns the position of
 the first instance of the former string in the latter.
