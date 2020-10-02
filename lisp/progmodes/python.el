@@ -3074,7 +3074,7 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (define-obsolete-function-alias
   'python-send-string 'python-shell-internal-send-string "24.3")
 
-(defun python-shell-buffer-substring (start end &optional nomain)
+(defun python-shell-buffer-substring (start end &optional nomain no-cookie)
   "Send buffer substring from START to END formatted for shell.
 This is a wrapper over `buffer-substring' that takes care of
 different transformations for the code sent to be evaluated in
@@ -3100,12 +3100,13 @@ the python shell:
                               (goto-char start)
                               (python-util-forward-comment 1)
                               (current-indentation))))
-         (fillstr (when (not starts-at-point-min-p)
-                    (concat
-                     (format "# -*- coding: %s -*-\n" encoding)
-                     (make-string
-                      ;; Subtract 2 because of the coding cookie.
-                      (- (line-number-at-pos start) 2) ?\n)))))
+         (fillstr (and (not no-cookie)
+                       (not starts-at-point-min-p)
+                       (concat
+                        (format "# -*- coding: %s -*-\n" encoding)
+                        (make-string
+                         ;; Subtract 2 because of the coding cookie.
+                         (- (line-number-at-pos start) 2) ?\n)))))
     (with-temp-buffer
       (python-mode)
       (when fillstr
@@ -3144,7 +3145,8 @@ the python shell:
            (line-beginning-position) (line-end-position))))
       (buffer-substring-no-properties (point-min) (point-max)))))
 
-(defun python-shell-send-region (start end &optional send-main msg)
+(defun python-shell-send-region (start end &optional send-main msg
+                                       no-cookie)
   "Send the region delimited by START and END to inferior Python process.
 When optional argument SEND-MAIN is non-nil, allow execution of
 code inside blocks delimited by \"if __name__== \\='__main__\\=':\".
@@ -3154,7 +3156,8 @@ non-nil, forces display of a user-friendly message if there's no
 process running; defaults to t when called interactively."
   (interactive
    (list (region-beginning) (region-end) current-prefix-arg t))
-  (let* ((string (python-shell-buffer-substring start end (not send-main)))
+  (let* ((string (python-shell-buffer-substring start end (not send-main)
+                                                no-cookie))
          (process (python-shell-get-process-or-error msg))
          (original-string (buffer-substring-no-properties start end))
          (_ (string-match "\\`\n*\\(.*\\)" original-string)))
@@ -3178,7 +3181,7 @@ interactively."
     (python-shell-send-region
      (save-excursion (python-nav-beginning-of-statement))
      (save-excursion (python-nav-end-of-statement))
-     send-main msg)))
+     send-main msg t)))
 
 (defun python-shell-send-buffer (&optional send-main msg)
   "Send the entire buffer to inferior Python process.
