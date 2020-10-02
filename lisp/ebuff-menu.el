@@ -162,6 +162,7 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 	(message "")))
     (when select
       (set-buffer buffer)
+      (goto-char select)
       (let ((opoint (point-marker)))
 	(Buffer-menu-execute)
 	(goto-char (point-min))
