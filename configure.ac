@@ -453,7 +453,7 @@ OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
-OPTION_DEFAULT_IFAVAILABLE([json], [don't compile with native JSON support])
+OPTION_DEFAULT_IFAVAILABLE([json], [compile with native JSON support])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([harfbuzz],[don't use HarfBuzz for text shaping])
