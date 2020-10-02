@@ -922,11 +922,15 @@ Output stream used is value of `standard-output'."
   (princ (backtrace-to-string (backtrace-get-frames 'backtrace)))
   nil)
 
-(defun backtrace-to-string(&optional frames)
+(defun backtrace-to-string (&optional frames)
   "Format FRAMES, a list of `backtrace-frame' objects, for output.
 Return the result as a string.  If FRAMES is nil, use all
 function calls currently active."
-  (unless frames (setq frames (backtrace-get-frames 'backtrace-to-string)))
+  (substring-no-properties
+   (backtrace--to-string
+    (or frames (backtrace-get-frames 'backtrace-to-string)))))
+
+(defun backtrace--to-string (frames)
   (let ((backtrace-fontify nil))
     (with-temp-buffer
       (backtrace-mode)
@@ -934,8 +938,7 @@ function calls currently active."
             backtrace-frames frames
             backtrace-print-function #'cl-prin1)
       (backtrace-print)
-      (substring-no-properties (filter-buffer-substring (point-min)
-                                                        (point-max))))))
+      (filter-buffer-substring (point-min) (point-max)))))
 
 (provide 'backtrace)
 
