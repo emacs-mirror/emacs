@@ -356,6 +356,32 @@ of the piece of advice."
     (macroexp-let2 nil new `(advice--remove-function ,getter ,function)
       `(unless (eq ,new ,getter) ,(funcall setter new)))))
 
+;;;###autoload
+(defmacro advice-flet (bindings &rest body)
+  ;; FIXME add doc.
+  (declare (indent 1))
+  (let ((let-binds ())
+        (ad-add ())
+        (ad-del ()))
+    (dolist (bind bindings)
+      (let* ((fun-name (car bind))
+             (fun (cadr bind))
+             (tmp-sym (gensym (symbol-name fun-name))))
+        (push `(,tmp-sym ,fun) let-binds)
+        (push `(advice-add #',fun-name
+                           ,(if (= (length bind) 3)
+                                (nth 2 bind)
+                              :override)
+                           ,tmp-sym)
+              ad-add)
+        (push `(advice-remove #',fun-name ,tmp-sym) ad-del)))
+    `(let ,(reverse let-binds)
+       (unwind-protect
+	   (progn
+	     ,@(reverse ad-add)
+	     ,@body)
+	 ,@(reverse ad-del)))))
+
 (defun advice-function-mapc (f function-def)
   "Apply F to every advice function in FUNCTION-DEF.
 F is called with two arguments: the function that was added, and the
