@@ -485,7 +485,7 @@
 	Clarify major mode switching
 
 	* doc/emacs/modes.texi (Major Modes):
-	* doc/lispref/modes.texi (Modes, Major Modes): Explictly say that each
+	* doc/lispref/modes.texi (Modes, Major Modes): Explicitly say that each
 	buffer has exactly one major mode and can't be "turned off", only
 	switched away from (Bug#25357).
 
@@ -1661,7 +1661,7 @@
 	`re_match_2_internal' uses pointers to the lisp objects that it
 	searches.  Since it may call malloc when growing the "fail stack", these
 	pointers may be invalidated while searching, resulting in memory
-	curruption (Bug #24358).
+	corruption (Bug #24358).
 
 	To fix this, we check the pointer that the lisp object (as specified by
 	re_match_object) points to before and after growing the stack, and
@@ -2681,7 +2681,7 @@
 
 	* doc/misc/ses.texi (Quick Tutorial): Mention the '!'
 	'ses-range' modifier as an alternative to 'ses+'.
-	(Advanced Features): Add a refernce to node 'Nonrelocatable
+	(Advanced Features): Add a reference to node 'Nonrelocatable
 	references' concerning function 'ses-rename-cell'.
 	(Standard formula functions): Mention the '!' 'ses-range'
 	modifier as an alternative to 'ses-delete-blanks'.
@@ -3983,7 +3983,7 @@
 
 2016-05-10  Dmitry Gutov  <dgutov@yandex.ru>
 
-	Don't treat JS spread as contination method call
+	Don't treat JS spread as continuation method call
 
 	* lisp/progmodes/js.el (js--indent-operator-re):
 	Allow only one dot (bug#23492).
@@ -4530,7 +4530,7 @@
 	cursor-type doc fix
 
 	* src/buffer.c (syms_of_buffer): Mention that cursor-type's
-	WIDHT/HEIGHT can't exceed the frame char size (bug#19215).
+	WIDTH/HEIGHT can't exceed the frame char size (bug#19215).
 
 	(cherry picked from commit 77c5f4554ebb3b7c7d49bc881e45a550f6c93987)
 
@@ -4599,7 +4599,7 @@
 
 2016-05-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Explictly explain that package-initialize loads the packages
+	Explicitly explain that package-initialize loads the packages
 
 	* lisp/emacs-lisp/package.el (package-initialize): Be explicit
 	in saying that `package-initialize' obviates adjusting the
@@ -5985,7 +5985,7 @@
 
 2016-03-30  Alan Mackenzie  <acm@muc.de>
 
-	Finish fixing a cacheing bug in CC Mode (see 2016-03-09)
+	Finish fixing a caching bug in CC Mode (see 2016-03-09)
 
 	* lisp/progmodes/cc-cmds.el: (c-beginning-of-defun, c-end-of-defun): Remove
 	superfluous invocations of c-self-bind-state-cache.
@@ -6609,7 +6609,7 @@
 
 2016-03-14  Alan Mackenzie  <acm@muc.de>
 
-	Fix a cacheing bug, which led to inordinately slow c-beginning-of-defun.
+	Fix a caching bug, which led to inordinately slow c-beginning-of-defun.
 
 	* lisp/progmodes/cc-defs.el (c-self-bind-state-cache): New macro.
 
@@ -6624,7 +6624,7 @@
 
 2016-03-14  Alan Mackenzie  <acm@muc.de>
 
-	Fix a cacheing bug, which led to inordinately slow c-beginning-of-defun.
+	Fix a caching bug, which led to inordinately slow c-beginning-of-defun.
 
 	* lisp/progmodes/cc-defs.el (c-self-bind-state-cache): New macro.
 
@@ -7145,7 +7145,7 @@
 
 	Prevent infinite loop on not-well-formed xml. (Bug#16344)
 
-	* lisp/xml.el (xml-parse-tag-1): Prevent inifinite loop. (Bug#16344)
+	* lisp/xml.el (xml-parse-tag-1): Prevent infinite loop. (Bug#16344)
 	* test/automated/xml-parse-tests.el (xml-parse-tests--bad-data): Add
 	  test cases for Bug#16344.
 
@@ -9956,7 +9956,7 @@
 	* lisp/files.el (dir-locals-find-file): Refactor return values
 
 	Returning a cache remains unchanged, but the case of returning a
-	file (or pattern) is now changed to return the contaning
+	file (or pattern) is now changed to return the containing
 	directory.
 
 	(dir-locals-read-from-file): Rename to `dir-locals-read-from-dir'
@@ -10856,7 +10856,7 @@
 
 2016-01-18  Alan Mackenzie  <acm@muc.de>
 
-	Desktop: protect users against inadvertant upgrading of desktop file.
+	Desktop: protect users against inadvertent upgrading of desktop file.
 
 	An upgraded (version 208) desktop file cannot be read in Emacs < 25.
 
@@ -11212,7 +11212,7 @@
 
 2016-01-13  Eli Zaretskii  <eliz@gnu.org>
 
-	Document the new deafault value of 'load-read-function'
+	Document the new default value of 'load-read-function'
 
 	* doc/lispref/loading.texi (How Programs Do Loading): Document the
 	change in the default value of 'load-read-function'.
@@ -19985,7 +19985,7 @@
 	* src/intervals.h: Don’t include dispextern.h, composite.h.
 	* src/keyboard.c: Don’t include sysstdio.h, disptab.h, puresize.h.
 	Include coding.h.
-	* src/keyboard.h: Don’t incldue systime.h.
+	* src/keyboard.h: Don’t include systime.h.
 	* src/keymap.c: Don’t include charset.h, frame.h.
 	* src/lread.c: Include dispextern.h and systime.h.
 	Don’t include frame.h.  Include systime.h.
@@ -21808,7 +21808,7 @@
 2015-09-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* admin/MAINTAINERS: Add self, plus list some more files
-	sans maintaners.
+	sans maintainers.
 
 2015-09-26  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
 
@@ -22530,7 +22530,7 @@
 
 	Omit unnecessary \ before paren in C docstrings
 	Although \( is needed in docstrings in Elisp code, it is not needed in
-	docstrings in C code, since C function definitiions do not start with
+	docstrings in C code, since C function definitions do not start with
 	a parenthesis.  The backslashes made the docstrings a bit harder to
 	read and to format in columns.  Also, some C docstrings had ( in
 	column 1 and this did not appear to be causing any problems.  So,
@@ -24607,7 +24607,7 @@
 
 	Tweak startup screen quoting
 	* lisp/startup.el (normal-splash-screen): Use standard
-	"M-" abbrevation rather than a confusingly-different one.
+	"M-" abbreviation rather than a confusingly-different one.
 	(normal-no-mouse-startup-screen): Follow ‘text-quoting-style’.
 
 2015-08-27  Paul Eggert  <eggert@cs.ucla.edu>
@@ -27510,7 +27510,7 @@
 	Allocate and use slightly-larger cost vectors, ones based on
 	FRAME_TOTAL_LINES instead of FRAME_LINES.
 
-	Fix uninitalized value in encode_coding_object
+	Fix uninitialized value in encode_coding_object
 	* src/coding.c (encode_coding_object): Also initialize
 	coding->src_pos and coding->src_pos_byte when NILP (src_object).
 	This avoids later use of uninitialized storage.
@@ -29884,7 +29884,7 @@
 	file names due to deleted PWD.
 
 	* src/xsmfns.c (x_session_initialize): Avoid libSM crash
-	when starup directory is missing.  (Bug#18851)
+	when startup directory is missing.  (Bug#18851)
 	(errno.h): Include it.
 
 2015-06-13  Paul Eggert  <eggert@cs.ucla.edu>
@@ -30029,7 +30029,7 @@
 	because '(format "%S" '(` FOO))' returns "(\\` FOO)".  A comment
 	in src/lread.c's read1 function says that the backslash will be
 	needed starting in Emacs 25, which implies that 'format' is
-	correct and the old pcase documention was wrong to omit the backslash.
+	correct and the old pcase documentation was wrong to omit the backslash.
 	* lisp/emacs-lisp/nadvice.el (advice--make-docstring):
 	* lisp/help-fns.el (help-fns--signature):
 	* lisp/help.el (help-add-fundoc-usage):
@@ -30117,7 +30117,7 @@
 	(bug#20730).
 
 	* lisp/progmodes/sh-script.el: Better handle nested quotes.
-	(sh-here-doc-open-re): Don't mis-match the <<< operator (bug#20683).
+	(sh-here-doc-open-re): Don't mismatch the <<< operator (bug#20683).
 	(sh-font-lock-quoted-subshell): Make sure double quotes within single
 	quotes don't mistakenly end prematurely the surrounding string.
 
@@ -31364,7 +31364,7 @@
 
 2015-05-25  Eli Zaretskii  <eliz@gnu.org>
 
-	Fix last change in etags.c that broke tagging compresed files
+	Fix last change in etags.c that broke tagging compressed files
 	* lib-src/etags.c (process_file_name) [MSDOS || DOS_NT]: Fix
 	quoting of decompression shell command for MS-Windows/MS-DOS.
 
@@ -32680,7 +32680,7 @@
 	(verilog-beg-of-statement): Fix indenting for some forms of
 	constraintsm bug433.  Reported by Brad Parker.  Fix indentation of
 	continued assignment incorrect if first line ends with ']', bug437.
-	Reported by Dan Dever.  Fix indention of cover inside an
+	Reported by Dan Dever.  Fix indentation of cover inside an
 	ifdef, bug 862.  Reported by Bernd Beuster.  Fix labeling do-while
 	blocks, bug842.
 	(verilog-preprocessor-re): Fix fork/end UNMATCHED warning, bug859.
@@ -35272,7 +35272,7 @@
 2015-04-11  Artur Malabarba  <bruce.connor.am@gmail.com>
 
 	Speed up byte-compilation and autoload generation by avoiding mode-hooks
-	This prevents emacs-lisp-mode-hook from being run everytime an
+	This prevents emacs-lisp-mode-hook from being run every time an
 	autoload file is generated, which can account for a fraction of
 	package installation time depending on the hooks the user has
 	configured.

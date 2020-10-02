@@ -12,7 +12,7 @@
 	"/usr/include/glib-2.0/glib/gmem.h: ... warning: unknown attribute
 	'__alloc_size__' ignored".  Use -Werror when checking for -nopie;
 	otherwise clang warns about -nopie instead of failing, and then
-	later it warns everytime the build uses -nopie.
+	later it warns every time the build uses -nopie.
 
 2015-04-03  Ulrich Müller  <ulm@gentoo.org>
 
@@ -1657,7 +1657,7 @@
 
 2013-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* configure.ac: Simplify supression of GTK deprecation warning.
+	* configure.ac: Simplify suppression of GTK deprecation warning.
 	Move -DGDK_DISABLE_DEPRECATION_WARNINGS out of the command line
 	and into config.h, to shorten the command line when doing 'make'.
 	Don't AC_SUBST GTK_CFLAGS, as this is not needed.

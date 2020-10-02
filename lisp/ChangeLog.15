@@ -2803,7 +2803,7 @@
 2010-12-29  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Save list sorted and
-	pretty-printed, so that it is mergable by line-based text merging,
+	pretty-printed, so that it is mergeable by line-based text merging,
 	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
 
 2010-12-28  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -5135,10 +5135,10 @@
 
 	* progmodes/verilog-mode.el (verilog-directive-re): Make this variable
 	auto-built for efficiency of execution and updating.
-	(verilog-extended-complete-re): Support 'pure' fucntion & task
+	(verilog-extended-complete-re): Support 'pure' function & task
 	declarations (these have no bodies).
 	(verilog-beg-of-statement): General cleanup to enable support of
-	'pure' fucntion & task declarations (these have no bodies).
+	'pure' function & task declarations (these have no bodies).
 	These efforts together fix Verilog bug210 from veripool; which was also
 	noticed by Steve Pearlmutter.
 	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
@@ -10689,7 +10689,7 @@
 2010-05-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-init-process): Do not kill ispell
-	process everytime when spellchecking from the minibuffer (bug#6143).
+	process every time when spellchecking from the minibuffer (bug#6143).
 
 2010-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -12100,7 +12100,7 @@
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
 	* image.el (image-animated-p): Use `image-metadata' instead of
-	`image-extension-data'.  Get GIF extenstion data from metadata
+	`image-extension-data'.  Get GIF extension data from metadata
 	property `extension-data'.
 
 2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -14907,7 +14907,7 @@
 	Use complete-with-action rather than pascal-completion-response and
 	let it apply the predicate as well.
 	(pascal-goto-defun): Change buffer before calling pascal-comp-defun
-	when neded.
+	when needed.
 
 2009-12-02  Kenichi Handa  <handa@m17n.org>
 
@@ -18684,7 +18684,7 @@
 2009-09-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Does not highlight trailing spaces While point is
-	at end of line.  Does not highligt spaces at beginning of buffer
+	at end of line.  Does not highlight spaces at beginning of buffer
 	while point is at beginning of buffer.  Does not highlight spaces
 	at end of buffer while point is at end of buffer.  (Bug#4177)
 	New version 12.0.
