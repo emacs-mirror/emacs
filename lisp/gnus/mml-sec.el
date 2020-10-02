@@ -944,16 +944,6 @@ If no one is selected, symmetric encryption will be performed.  "
 	 (signer-names (mml-secure-signer-names protocol sender))
 	 (signers (mml-secure-signers context signer-names))
 	 signature micalg)
-    (unless signers
-      (let ((maybe-msg
-             (if mml-secure-smime-sign-with-sender
-                 "."
-               "; try setting `mml-secure-smime-sign-with-sender'.")))
-        ;; If `mml-secure-smime-sign-with-sender' is already non-nil
-        ;; then there's no point advising the user to examine it.  If
-        ;; there are any other variables worth examining, please
-        ;; improve this error message by having it mention them.
-        (error "Couldn't find any signer names%s" maybe-msg)))
     (when (eq 'OpenPGP protocol)
       (setf (epg-context-armor context) t)
       (setf (epg-context-textmode context) t)
