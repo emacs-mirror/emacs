@@ -2041,7 +2041,7 @@ Patched to remove the most recent completion."
 
 ;; All common separators (eg. space "(" ")" """) characters go through a
 ;; function to add new words to the list of words to complete from.
-;; If the character before this was an alpha-numeric then this adds the
+;; If the character before this was an alphanumeric then this adds the
 ;; symbol before point to the completion list (using ADD-COMPLETION).
 
 (defvar completion-separator-chars

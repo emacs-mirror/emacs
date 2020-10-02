@@ -258,7 +258,7 @@
       ;; (or some similar separator), or by one of the special keywords
       ;; corresponding to builtin functions that can take their first arg
       ;; without parentheses.  Of course, that presume we're looking at the
-      ;; *opening* slash.  We can afford to mis-match the closing ones
+      ;; *opening* slash.  We can afford to mismatch the closing ones
       ;; here, because they will be re-treated separately later in
       ;; perl-font-lock-special-syntactic-constructs.
       ((concat perl--syntax-exp-intro-regexp "\\(/\\)")

@@ -339,7 +339,7 @@ def func(arg):
     # I don't do much
     return arg
     # This comment is badly indented because the user forced so.
-    # At this line python.el wont dedent, user is always right.
+    # At this line python.el won't dedent, user is always right.
 
 comment_wins_over_ender = True
 
@@ -358,7 +358,7 @@ comment_wins_over_ender = True
    ;; The return keyword do make indentation lose a level...
    (should (= (python-indent-calculate-indentation) 0))
    ;; ...but the current indentation was forced by the user.
-   (python-tests-look-at "# At this line python.el wont dedent")
+   (python-tests-look-at "# At this line python.el won't dedent")
    (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 4))
    ;; Should behave the same for blank lines: potentially a comment.

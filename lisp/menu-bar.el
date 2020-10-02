@@ -671,7 +671,7 @@ PROPS are additional properties."
                                         &rest body)
   "Define a menu-bar toggle command.
 See `menu-bar-make-toggle-command', for which this is a
-compatability wrapper.  BODY is passed in as SETTING-SEXP in that macro."
+compatibility wrapper.  BODY is passed in as SETTING-SEXP in that macro."
   (declare (obsolete menu-bar-make-toggle-command "28.1"))
   `(menu-bar-make-toggle-command ,command ,variable ,item-name ,message ,help
                                  ,(and body

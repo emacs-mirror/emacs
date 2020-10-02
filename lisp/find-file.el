@@ -109,8 +109,8 @@
 ;; file.
 
 ;; CREDITS:
-;; Many thanks go to TUSC Computer Systems Pty Ltd for providing an environ-
-;; ment that made the development of this package possible.
+;; Many thanks go to TUSC Computer Systems Pty Ltd for providing an
+;; environment that made the development of this package possible.
 ;;
 ;; Many thanks also go to all those who provided valuable feedback throughout
 ;; the development of this package:

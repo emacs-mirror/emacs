@@ -316,7 +316,7 @@
    (dbus-check-arguments :session dbus--test-service :double "string")
    :type 'wrong-type-argument)
 
-  ;; `:unix-fd'.  UNIX file descriptors are transfered out-of-band.
+  ;; `:unix-fd'.  UNIX file descriptors are transferred out-of-band.
   ;; We do not support this, and so we cannot do much testing here for
   ;; `:unix-fd' being an argument (which is an index to the file
   ;; descriptor in the array of file descriptors that accompany the
