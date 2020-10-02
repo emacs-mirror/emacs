@@ -2076,7 +2076,7 @@ If FUNCTION was not advised already, its advice info will be
 initialized.  Redefining a piece of advice whose name is part of
 the cache-id will clear the cache."
   (when (subr-primitive-p (symbol-function function))
-    (comp-subr-safe-advice function))
+    (comp-subr-trampoline-install function))
   (cond ((not (ad-is-advised function))
          (ad-initialize-advice-info function)
 	 (ad-set-advice-info-field

@@ -2614,7 +2614,7 @@ Return the its filename if found or nil otherwise."
 `comp-eln-load-path'")))))
 
 ;;;###autoload
-(defun comp-subr-safe-advice (subr-name)
+(defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
   (unless (or (memq subr-name comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))

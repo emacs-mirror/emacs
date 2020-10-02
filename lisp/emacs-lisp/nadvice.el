@@ -333,7 +333,7 @@ is also interactive.  There are 3 cases:
         ;; Must require explicitly as during bootstrap we have no
         ;; autoloads.
         (require 'comp)
-        (comp-subr-safe-advice subr-name))))
+        (comp-subr-trampoline-install subr-name))))
   (let* ((name (cdr (assq 'name props)))
          (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
     (when a
