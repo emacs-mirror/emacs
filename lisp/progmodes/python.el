@@ -3200,27 +3200,29 @@ optional argument MSG is non-nil, forces display of a
 user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive (list current-prefix-arg t))
-  (save-excursion
-    (python-shell-send-region
-     (progn
-       (end-of-line 1)
-       (while (and (or (python-nav-beginning-of-defun)
-                       (beginning-of-line 1))
-                   (> (current-indentation) 0)))
-       (when (not arg)
-         (while (and
-                 (eq (forward-line -1) 0)
-                 (if (looking-at (python-rx decorator))
-                     t
-                   (forward-line 1)
-                   nil))))
-       (point-marker))
-     (progn
-       (or (python-nav-end-of-defun)
-           (end-of-line 1))
-       (point-marker))
-     nil  ;; noop
-     msg)))
+  (let ((starting-pos (point)))
+    (save-excursion
+      (python-shell-send-region
+       (progn
+         (end-of-line 1)
+         (while (and (or (python-nav-beginning-of-defun)
+                         (beginning-of-line 1))
+                     (> (current-indentation) 0)))
+         (when (not arg)
+           (while (and
+                   (eq (forward-line -1) 0)
+                   (if (looking-at (python-rx decorator))
+                       t
+                     (forward-line 1)
+                     nil))))
+         (point-marker))
+       (progn
+         (goto-char starting-pos)
+         (or (python-nav-end-of-defun)
+             (end-of-line 1))
+         (point-marker))
+       nil ;; noop
+       msg))))
 
 (defun python-shell-send-file (file-name &optional process temp-file-name
                                          delete msg)
