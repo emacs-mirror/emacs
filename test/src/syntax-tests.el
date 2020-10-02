@@ -85,11 +85,11 @@ also has open paren syntax (see Bug#24870)."
 
 ;;; Commentary:
 ;; The next bit tests the handling of comments in syntax.c, in
-;; particular the function `forward-comment'.
+;; particular the functions `forward-comment' and `scan-lists' (in so
+;; far as it relates to comments).
 
 ;; It is intended to enhance this bit to test nested comments and also
-;; the interaction of `parse-partial-sexp' and `scan-lists' with
-;; comments (2020-10-01).
+;; the interaction of `parse-partial-sexp' with comments (2020-10-01).
 
 ;; This bit uses the data file test/data/syntax-comments.txt.
 
@@ -158,8 +158,7 @@ missing or nil, the value of START is assumed for it."
 	  ((eq -dir- 'backward) nil)
 	  (t (error "Invalid -dir- argument \"%s\" to `syntax-comments'" -dir-))))
 	(start-str (format "%d" (abs start)))
-	(type -type-)
-	)
+	(type -type-))
     `(ert-deftest ,(intern (concat "syntax-comments-"
 				   syntax-comments-section
 				   (if forw "-f" "-b") start-str))
@@ -175,11 +174,66 @@ missing or nil, the value of START is assumed for it."
 	   (should (eq (point) stop)))
 	 (,(intern (concat (symbol-name type) "-out")))))))
 
+(defmacro syntax-br-comments (-type- -dir- res -start- &optional stop)
+  "Create an ERT test to test (scan-lists <position> 1/-1 0).
+This is to test the interface between scan-lists and the internal
+comment routines in syntax.c.
+
+The test uses a fixed name data file, which it visits.  It calls
+entry and exit functions to set up and tear down syntax entries
+for comment and paren characters.  The test is given a name based
+on the global variable `syntax-comments-section', the direction
+of movement and the value of -START-.
+
+-TYPE- (unquoted) is a symbol from whose name the entry and exit
+function names are derived by appending \"-in\" and \"-out\".
+
+-DIR- (unquoted) is `forward' or `backward', the direction
+`scan-lists' is attempted.
+
+RES is t if `scan-lists' is expected to return, nil if it is
+expected to raise a `scan-error' exception.
+
+-START- and STOP are decimal numbers corresponding to labels in the
+data file marking the start and expected stop positions.  See
+`syntax-comments-point' for a precise specification.  If STOP is
+missing or nil, the value of -START- is assumed for it."
+  (declare (debug t))
+  (let* ((forw
+	  (cond
+	   ((eq -dir- 'forward) t)
+	   ((eq -dir- 'backward) nil)
+	   (t (error "Invalid -dir- argument \"%s\" to `syntax-comments'" -dir-))))
+         (start -start-)
+	 (start-str (format "%d" (abs start)))
+	 (type -type-))
+    `(ert-deftest ,(intern (concat "syntax-br-comments-"
+				   syntax-comments-section
+				   (if forw "-f" "-b") start-str))
+	 ()
+       (with-current-buffer
+	   (find-file
+	    ,(expand-file-name "data/syntax-comments.txt"
+			       (getenv "EMACS_TEST_DIRECTORY")))
+	 (,(intern (concat (symbol-name type) "-in")))
+         (let ((start-pos (syntax-comments-point ,start ,forw))
+               ,@(if res
+                     `((stop-pos (syntax-comments-point
+                                  ,(or stop start) ,(not forw))))))
+           ,(if res
+                `(should
+                  (eq (scan-lists start-pos ,(if forw 1 -1) 0)
+                      stop-pos))
+              `(should-error (scan-lists start-pos ,(if forw 1 -1) 0)
+                             :type 'scan-error)))
+	 (,(intern (concat (symbol-name type) "-out")))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Pascal" style comments - single character delimiters, the closing
 ;; delimiter not being newline.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun {-in ()
+  (setq parse-sexp-ignore-comments t)
   (setq comment-end-can-be-escaped nil)
   (modify-syntax-entry ?{ "<")
   (modify-syntax-entry ?} ">"))
@@ -208,6 +262,7 @@ missing or nil, the value of START is assumed for it."
 ;; comments.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun \;-in ()
+  (setq parse-sexp-ignore-comments t)
   (setq comment-end-can-be-escaped nil)
   (modify-syntax-entry ?\n ">")
   (modify-syntax-entry ?\; "<"))
@@ -229,6 +284,7 @@ missing or nil, the value of START is assumed for it."
 ;; Emacs 27 "C" style comments - `comment-end-can-be-escaped' is non-nil.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun /*-in ()
+  (setq parse-sexp-ignore-comments t)
   (setq comment-end-can-be-escaped t)
   (modify-syntax-entry ?/ ". 124b")
   (modify-syntax-entry ?* ". 23")
@@ -271,5 +327,24 @@ missing or nil, the value of START is assumed for it."
 (syntax-comments /* backward nil 13 -14)
 (syntax-comments /* forward t 15)
 (syntax-comments /* backward t 15)
+
+;; Emacs 27 "C" style comments inside brace lists.
+(syntax-br-comments /* forward t 50)
+(syntax-br-comments /* backward t 50)
+(syntax-br-comments /* forward t 51)
+(syntax-br-comments /* backward t 51)
+(syntax-br-comments /* forward t 52)
+(syntax-br-comments /* backward t 52)
+
+(syntax-br-comments /* forward t 53)
+(syntax-br-comments /* backward t 53)
+(syntax-br-comments /* forward t 54 20)
+(syntax-br-comments /* backward t 54)
+(syntax-br-comments /* forward t 55)
+(syntax-br-comments /* backward t 55)
+
+(syntax-br-comments /* forward t 56 58)
+(syntax-br-comments /* backward t 58 56)
+(syntax-br-comments /* backward nil 59)
 
 ;;; syntax-tests.el ends here
