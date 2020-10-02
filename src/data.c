@@ -775,6 +775,13 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 
   eassert (valid_lisp_object_p (definition));
 
+#ifdef HAVE_NATIVE_COMP
+  if (comp_enable_subr_trampolines
+      && SUBRP (function)
+      && !SUBR_NATIVE_COMPILEDP (function))
+    CALLN (Ffuncall, Qcomp_subr_trampoline_install, symbol);
+#endif
+
   set_symbol_function (symbol, definition);
 
   return definition;

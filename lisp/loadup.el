@@ -510,6 +510,11 @@ lost after dumping")))
                         ((equal dump-mode "bootstrap") "emacs")
                         ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
                         (t (error "unrecognized dump mode %s" dump-mode)))))
+      (when (and (boundp 'comp-ctxt)
+                 (equal dump-mode "pdump"))
+        ;; Don't enable this before bootstrap is completed the as the
+        ;; compiler infrastructure may not be usable.
+        (setq comp-enable-subr-trampolines t))
       (message "Dumping under the name %s" output)
       (condition-case ()
           (delete-file output)

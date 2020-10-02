@@ -5141,6 +5141,7 @@ native compiled one.  */);
   DEFSYM (Qlate, "late");
   DEFSYM (Qlambda_fixup, "lambda-fixup");
   DEFSYM (Qgccjit, "gccjit");
+  DEFSYM (Qcomp_subr_trampoline_install, "comp-subr-trampoline-install")
 
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");
@@ -5245,6 +5246,11 @@ The last directory of this list is assumed to be the system one.  */);
      `invocation-directory' is still unset, will be fixed up during
      dump reload.  */
   Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
+
+  DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
+	       doc: /* When non-nil enable trampoline synthesis
+		       triggerd by `fset' making primitives
+		       redefinable effectivelly.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
 	       doc: /* Hash table subr-name -> bool.  */);
