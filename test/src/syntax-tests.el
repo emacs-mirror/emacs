@@ -85,11 +85,11 @@ also has open paren syntax (see Bug#24870)."
 
 ;;; Commentary:
 ;; The next bit tests the handling of comments in syntax.c, in
-;; particular the functions `forward-comment' and `scan-lists' (in so
-;; far as it relates to comments).
+;; particular the functions `forward-comment' and `scan-lists' and
+;; `parse-partial-sexp' (in so far as they relate to comments).
 
-;; It is intended to enhance this bit to test nested comments and also
-;; the interaction of `parse-partial-sexp' with comments (2020-10-01).
+;; It is intended to enhance this bit to test nested comments
+;; (2020-10-01).
 
 ;; This bit uses the data file test/data/syntax-comments.txt.
 
@@ -127,6 +127,23 @@ line that the -N label is on.  When it is zero, we return POINT."
 	  (if (< n 0)
 	      (progn (end-of-line) (point))
 	    (match-beginning 2)))))))
+
+(defun syntax-comments-midpoint (n)
+  "Return the buffer offset corresponding to the \"label\" N.
+N is a positive decimal number which should appear in the buffer
+exactly once.  The label need not be at the beginning or end of a
+line.
+
+The return value is the position just before the label.
+
+If the label N doesn't exist in the current buffer, an exception
+is thrown."
+  (let ((str (format "%d" n)))
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward
+       (concat "\\(^\\|[^0-9]\\)\\(" str "\\)\\([^0-9\n]\\|$\\)"))
+      (match-beginning 2))))
 
 (eval-and-compile
   (defvar syntax-comments-section))
@@ -227,6 +244,64 @@ missing or nil, the value of -START- is assumed for it."
               `(should-error (scan-lists start-pos ,(if forw 1 -1) 0)
                              :type 'scan-error)))
 	 (,(intern (concat (symbol-name type) "-out")))))))
+
+(defmacro syntax-pps-comments (-type- -start- open close &optional -stop-)
+  "Create an ERT test to test `parse-partial-sexp' with comments.
+This is to test the interface between `parse-partial-sexp' and
+the internal comment routines in syntax.c.
+
+The test uses a fixed name data file, which it visits.  It calls
+entry and exit functions to set up and tear down syntax entries
+for comment and paren characters.  The test is given a name based
+on the global variable `syntax-comments-section', and the value
+of -START-.
+
+The generated test calls `parse-partial-sexp' three times, the
+first two with COMMENTSTOP set to `syntax-table' so as to stop
+after the start and end of the comment.  The third call is
+expected to stop at the brace/paren matching the one where the
+test started.
+
+-TYPE- (unquoted) is a symbol from whose name the entry and exit
+function names are derived by appending \"-in\" and \"-out\".
+
+-START- and -STOP- are decimal numbers corresponding to labels in
+the data file marking the start and expected stop positions.  See
+`syntax-comments-point' for a precise specification.  If -STOP-
+is missing or nil, the value of -START- is assumed for it.
+
+OPEN and CLOSE are decimal numbers corresponding to labels in the
+data file marking just after the comment opener and closer where
+the `parse-partial-sexp's are expected to stop.  See
+`syntax-comments-midpoint' for a precise specification."
+  (declare (debug t))
+  (let* ((type -type-)
+         (start -start-)
+         (start-str (format "%d" start))
+         (stop (or -stop- start)))
+    `(ert-deftest ,(intern (concat "syntax-pps-comments-"
+                                   syntax-comments-section
+                                   "-" start-str))
+         ()
+       (with-current-buffer
+           (find-file
+            ,(expand-file-name "data/syntax-comments.txt"
+                               (getenv "EMACS_TEST_DIRECTORY")))
+         (,(intern (concat (symbol-name type) "-in")))
+         (let ((start-pos (syntax-comments-point ,start t))
+               (open-pos (syntax-comments-midpoint ,open))
+               (close-pos (syntax-comments-midpoint ,close))
+               (stop-pos (syntax-comments-point ,stop nil))
+               s)
+           (setq s (parse-partial-sexp
+                    start-pos (point-max) 0 nil nil 'syntax-table))
+           (should (eq (point) open-pos))
+           (setq s (parse-partial-sexp
+                    (point) (point-max) 0 nil s 'syntax-table))
+           (should (eq (point) close-pos))
+           (setq s (parse-partial-sexp (point) (point-max) 0 nil s))
+           (should (eq (point) stop-pos)))
+         (,(intern (concat (symbol-name type) "-out")))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Pascal" style comments - single character delimiters, the closing
@@ -346,5 +421,14 @@ missing or nil, the value of -START- is assumed for it."
 (syntax-br-comments /* forward t 56 58)
 (syntax-br-comments /* backward t 58 56)
 (syntax-br-comments /* backward nil 59)
+(syntax-br-comments /* forward t 60)
+(syntax-br-comments /* backward t 60)
+
+;; Emacs 27 "C" style comments parsed by `parse-partial-sexp'.
+(syntax-pps-comments /* 50 70 71)
+(syntax-pps-comments /* 52 72 73)
+(syntax-pps-comments /* 54 74 55 20)
+(syntax-pps-comments /* 56 76 77 58)
+(syntax-pps-comments /* 60 78 79)
 
 ;;; syntax-tests.el ends here
