@@ -2808,8 +2808,8 @@ See `sql-product-alist' for a list of products and supported features."
 
 The KEYWORDS-ONLY flag is passed to font-lock to specify whether
 only keywords should be highlighted and syntactic highlighting
-skipped.  The IMENU flag indicates whether `imenu-mode' should
-also be configured."
+skipped.  The IMENU flag indicates whether `imenu' should also be
+configured."
 
   (let
       ;; Get the product-specific syntax-alist.

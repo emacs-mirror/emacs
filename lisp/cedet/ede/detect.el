@@ -25,7 +25,7 @@
 ;;
 ;; Detection comes in multiple forms:
 ;;
-;; `ede-detect-scan-directory-for-project' -
+;; `ede--detect-scan-directory-for-project' -
 ;;        Scan for a project via the file system.
 ;; `ede-detect-directory-for-project' -
 ;;        Check our file cache for a project.  If that fails, use

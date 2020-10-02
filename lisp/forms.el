@@ -286,7 +286,7 @@
 ;; record.
 ;;
 ;; `write-file-functions' is defined to save the actual data file
-;; instead of the buffer data, `revert-file-hook' is defined to
+;; instead of the buffer data, `revert-buffer-function' is defined to
 ;; revert a forms to original.
 
 ;;; Code:

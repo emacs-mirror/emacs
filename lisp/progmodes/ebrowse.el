@@ -3544,7 +3544,7 @@ completion."
 ;;; Tags query replace & search
 
 (defvar ebrowse-tags-loop-call '(ignore)
-  "Function call for `ebrowse-loop-continue'.
+  "Function call for `ebrowse-tags-loop-continue'.
 Passed to `apply' for each file in the tree.  If it returns nil, proceed
 with the next file.")
 

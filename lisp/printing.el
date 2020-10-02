@@ -4721,7 +4721,7 @@ Each element has the form:
 
    (MENU-PART . NUMBER-OF-ITEMS)
 
-See `pr-visible-entry-alist'.")
+See `pr-visible-entry-list'.")
 
 
 (defun pr-menu-index (entry index)

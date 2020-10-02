@@ -143,7 +143,7 @@
 ;; Optional 5th arg TRANSLATOR is a function to translate the original
 ;; file contents to match with the expected result of decoding.  For
 ;; instance, when a file of dos eol-type is read by unix eol-type,
-;; `decode-test-lf-to-crlf' must be specified.
+;; `coding-tests-lf-to-crlf' must be specified.
 
 (defun coding-tests (content-type write-coding read-coding detected-coding
 				   &optional translator)

@@ -57,7 +57,7 @@
   (interactive)
   (ps-print-message-from-summary 'rmail-summary-buffer "RMAIL"))
 
-;; Used in `ps-rmail-print-article-from-summary',
+;; Used in `ps-rmail-print-message-from-summary',
 ;; `ps-gnus-print-article-from-summary' and `ps-vm-print-message-from-summary'.
 (defun ps-print-message-from-summary (summary-buffer summary-default)
   (let ((ps-buf (or (and (boundp summary-buffer)

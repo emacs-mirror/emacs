@@ -215,7 +215,7 @@ the ordering list `autoconf-preferred-macro-order'."
 (defun autoconf-insert-new-macro (macro &optional param)
   "Add a call to MACRO in the current autoconf file.
 Deals with macro order.  See `autoconf-preferred-macro-order' and
-`autoconf-multi-macros'.
+`autoconf-multiple-macros'.
 Optional argument PARAM is the parameter to pass to the macro as one string."
   (cond ((member macro autoconf-multiple-macros)
 	 ;; This occurs multiple times
