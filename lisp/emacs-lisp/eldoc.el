@@ -117,12 +117,13 @@ single line of display in the echo area."
  symbol names if it will\ enable argument list to fit on one
  line" truncate-sym-name-if-fit)))
 
-(defcustom eldoc-prefer-doc-buffer nil
+(defcustom eldoc-echo-area-prefer-doc-buffer nil
   "Prefer ElDoc's documentation buffer if it is showing in some frame.
-If this variable's value is t and a piece of documentation needs
-to be truncated to fit in the echo area, do so if ElDoc's
-documentation buffer is not already showing, since the buffer
-always holds the full documentation."
+If this variable's value is t, ElDoc will skip showing
+documentation in the echo area if the dedicated documentation
+buffer (given by `eldoc-doc-buffer') is being displayed in some
+window.  If the value is the symbol `maybe', then the echo area
+is only skipped if the documentation doesn't fit there."
   :type 'boolean)
 
 (defface eldoc-highlight-function-argument
@@ -491,7 +492,7 @@ This holds the results of the last documentation request."
 (defun eldoc-display-in-echo-area (docs _interactive)
   "Display DOCS in echo area.
 Honor `eldoc-echo-area-use-multiline-p' and
-`eldoc-prefer-doc-buffer'."
+`eldoc-echo-area-prefer-doc-buffer'."
   (cond
    (;; Check if he wave permission to mess with echo area at all.  For
     ;; example, if this-command is non-nil while running via an idle
@@ -517,7 +518,14 @@ Honor `eldoc-echo-area-use-multiline-p' and
                       (float (truncate (* (frame-height) val)))
                       (integer val)
                       (t 1)))
-         single-doc single-doc-sym)
+         single-doc single-doc-sym
+         (prefer-doc-buffer-p
+          (lambda (truncated)
+            (and (or (eq eldoc-echo-area-prefer-doc-buffer t)
+                     (and truncated
+                          (eq eldoc-echo-area-prefer-doc-buffer
+                              'maybe)))
+                 (get-buffer-window eldoc--doc-buffer)))))
       (let ((echo-area-message
              (cond
               (;; To output to the echo area,We handle the
@@ -556,9 +564,7 @@ Honor `eldoc-echo-area-use-multiline-p' and
                   do (goto-char (line-end-position (if truncated 0 -1)))
                   (while (and (not (bobp)) (bolp)) (goto-char (line-end-position 0)))
                   finally
-                  (unless (and truncated
-                               eldoc-prefer-doc-buffer
-                               (get-buffer-window eldoc--doc-buffer))
+                  (unless (funcall prefer-doc-buffer-p truncated)
                     (cl-return
                      (concat
                       (buffer-substring (point-min) (point))
@@ -570,10 +576,15 @@ Honor `eldoc-echo-area-use-multiline-p' and
                             (substitute-command-keys "\\[eldoc-doc-buffer]"))
                          "..."))))))))
               ((= available 1)
-               ;; Truncate "brutally." ; FIXME: use `eldoc-prefer-doc-buffer' too?
-               (with-current-buffer (eldoc--format-doc-buffer docs)
-                 (truncate-string-to-width
-                  (buffer-substring (goto-char (point-min)) (line-end-position 1)) width))))))
+               (let ((string
+                      (with-current-buffer (eldoc--format-doc-buffer docs)
+                        (buffer-substring (goto-char (point-min))
+                                          (line-end-position 1)))))
+                 (if (> (length string) width)  ; truncation to happen
+                     (unless (funcall prefer-doc-buffer-p t)
+                       (truncate-string-to-width string width))
+                   (unless (funcall prefer-doc-buffer-p nil)
+                     string)))))))
         (when echo-area-message
           (eldoc--message echo-area-message)))))))
 
