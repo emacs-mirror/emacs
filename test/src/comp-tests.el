@@ -398,6 +398,17 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
           (should (equal comp-test-primitive-advice '(3 4))))
       (advice-remove #'+ f))))
 
+(defvar comp-test-primitive-redefine-args)
+(comp-deftest primitive-redefine ()
+  "Test effectiveness of primitve redefinition."
+  (cl-letf ((comp-test-primitive-redefine-args nil)
+            ((symbol-function #'-)
+             (lambda (&rest args)
+	       (setq comp-test-primitive-redefine-args args)
+               'xxx)))
+    (should (eq (comp-test-primitive-redefine-f 10 2) 'xxx))
+    (should (equal comp-test-primitive-redefine-args '(10 2)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

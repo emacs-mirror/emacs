@@ -341,6 +341,10 @@
   (declare (speed 2))
   (+ x y))
 
+(defun comp-test-primitive-redefine-f (x y)
+  (declare (speed 2))
+  (- x y))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
