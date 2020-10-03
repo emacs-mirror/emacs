@@ -1749,6 +1749,14 @@ This user option can be one of the predefined styles or a function to
 personalize the uniquified buffer name.
 
 +++
+** New variable 'tty-menu-calls-mouse-position-function'.
+This controls whether 'mouse-position-function' is called by functions
+that retrieve the mouse position when that happens during TTY menu
+handling.  Lisp programs that set 'mouse-position-function' should
+also set this variable non-nil if they are compatible with the tty
+menu handling.
+
++++
 ** 'inhibit-nul-byte-detection' is renamed to 'inhibit-null-byte-detection'.
 
 +++

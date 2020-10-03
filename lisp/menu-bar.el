@@ -2762,6 +2762,16 @@ This is the keyboard interface to \\[mouse-buffer-menu]."
                 (menu-bar-buffer-vector item)))))
     km))
 
+(defun menu-bar-define-mouse-key (map key def)
+  "Like `define-key', but adds all possible prefixes for the mouse."
+  (define-key map (vector key) def)
+  (mapc (lambda (prefix) (define-key map (vector prefix key) def))
+        ;; This list only needs to contain special window areas that
+        ;; are rendered in TTYs.  No need for *-scroll-bar, *-fringe,
+        ;; or *-divider.
+        '(tab-line header-line menu-bar tab-bar mode-line vertical-line
+          left-margin right-margin)))
+
 (defvar tty-menu-navigation-map
   (let ((map (make-sparse-keymap)))
     ;; The next line is disabled because it breaks interpretation of
@@ -2796,39 +2806,33 @@ This is the keyboard interface to \\[mouse-buffer-menu]."
     (define-key map [?\C-j] 'tty-menu-select)
     (define-key map [return] 'tty-menu-select)
     (define-key map [linefeed] 'tty-menu-select)
-    (define-key map [mouse-1] 'tty-menu-select)
-    (define-key map [drag-mouse-1] 'tty-menu-select)
-    (define-key map [mouse-2] 'tty-menu-select)
-    (define-key map [drag-mouse-2] 'tty-menu-select)
-    (define-key map [mouse-3] 'tty-menu-select)
-    (define-key map [drag-mouse-3] 'tty-menu-select)
-    (define-key map [wheel-down] 'tty-menu-next-item)
-    (define-key map [wheel-up] 'tty-menu-prev-item)
-    (define-key map [wheel-left] 'tty-menu-prev-menu)
-    (define-key map [wheel-right] 'tty-menu-next-menu)
-    ;; The following 4 bindings are for those whose text-mode mouse
+    (menu-bar-define-mouse-key map 'mouse-1 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'drag-mouse-1 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'mouse-2 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'drag-mouse-2 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'mouse-3 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'drag-mouse-3 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'wheel-down 'tty-menu-next-item)
+    (menu-bar-define-mouse-key map 'wheel-up 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'wheel-left 'tty-menu-prev-menu)
+    (menu-bar-define-mouse-key map 'wheel-right 'tty-menu-next-menu)
+    ;; The following 6 bindings are for those whose text-mode mouse
     ;; lack the wheel.
-    (define-key map [S-mouse-1] 'tty-menu-next-item)
-    (define-key map [S-drag-mouse-1] 'tty-menu-next-item)
-    (define-key map [S-mouse-2] 'tty-menu-prev-item)
-    (define-key map [S-drag-mouse-2] 'tty-menu-prev-item)
-    (define-key map [S-mouse-3] 'tty-menu-prev-item)
-    (define-key map [S-drag-mouse-3] 'tty-menu-prev-item)
-    (define-key map [header-line mouse-1] 'tty-menu-select)
-    (define-key map [header-line drag-mouse-1] 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'S-mouse-1 'tty-menu-next-item)
+    (menu-bar-define-mouse-key map 'S-drag-mouse-1 'tty-menu-next-item)
+    (menu-bar-define-mouse-key map 'S-mouse-2 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'S-drag-mouse-2 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'S-mouse-3 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'S-drag-mouse-3 'tty-menu-prev-item)
     ;; The down-mouse events must be bound to tty-menu-ignore, so that
     ;; only releasing the mouse button pops up the menu.
-    (define-key map [mode-line down-mouse-1] 'tty-menu-ignore)
-    (define-key map [mode-line down-mouse-2] 'tty-menu-ignore)
-    (define-key map [mode-line down-mouse-3] 'tty-menu-ignore)
-    (define-key map [mode-line C-down-mouse-1] 'tty-menu-ignore)
-    (define-key map [mode-line C-down-mouse-2] 'tty-menu-ignore)
-    (define-key map [mode-line C-down-mouse-3] 'tty-menu-ignore)
-    (define-key map [down-mouse-1] 'tty-menu-ignore)
-    (define-key map [C-down-mouse-1] 'tty-menu-ignore)
-    (define-key map [C-down-mouse-2] 'tty-menu-ignore)
-    (define-key map [C-down-mouse-3] 'tty-menu-ignore)
-    (define-key map [mouse-movement] 'tty-menu-mouse-movement)
+    (menu-bar-define-mouse-key map 'down-mouse-1 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'down-mouse-2 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'down-mouse-3 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'C-down-mouse-1 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'C-down-mouse-2 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'C-down-mouse-3 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'mouse-movement 'tty-menu-mouse-movement)
     map)
   "Keymap used while processing TTY menus.")
 

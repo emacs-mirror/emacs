@@ -1361,6 +1361,7 @@ extern bool frame_inhibit_resize (struct frame *, bool, Lisp_Object);
 extern void adjust_frame_size (struct frame *, int, int, int, bool, Lisp_Object);
 extern void frame_size_history_add (struct frame *f, Lisp_Object fun_symbol,
 				    int width, int height, Lisp_Object rest);
+extern Lisp_Object mouse_position (bool);
 
 extern Lisp_Object Vframe_list;
 

@@ -2804,16 +2804,15 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 static void
 mouse_get_xy (int *x, int *y)
 {
-  struct frame *sf = SELECTED_FRAME ();
-  Lisp_Object lmx = Qnil, lmy = Qnil, lisp_dummy;
-  enum scroll_bar_part part_dummy;
-  Time time_dummy;
+  Lisp_Object lmx = Qnil, lmy = Qnil;
+  Lisp_Object mouse = mouse_position (tty_menu_calls_mouse_position_function);
 
-  if (FRAME_TERMINAL (sf)->mouse_position_hook)
-    (*FRAME_TERMINAL (sf)->mouse_position_hook) (&sf, -1,
-                                                 &lisp_dummy, &part_dummy,
-						 &lmx, &lmy,
-						 &time_dummy);
+  if (EQ (selected_frame, XCAR (mouse)))
+    {
+      lmx = XCAR (XCDR (mouse));
+      lmy = XCDR (XCDR (mouse));
+    }
+
   if (!NILP (lmx))
     {
       *x = XFIXNUM (lmx);
@@ -4553,6 +4552,13 @@ This only has an effect when running in a text terminal.
 What means \"very visible\" is up to your terminal.  It may make the cursor
 bigger, or it may make it blink, or it may do nothing at all.  */);
   visible_cursor = 1;
+
+  DEFVAR_BOOL ("tty-menu-calls-mouse-position-function",
+               tty_menu_calls_mouse_position_function,
+    doc: /* Non-nil means TTY menu code will call `mouse-position-function'.
+This should be set if the function in `mouse-position-function' does not
+trigger redisplay.  */);
+  tty_menu_calls_mouse_position_function = 0;
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
