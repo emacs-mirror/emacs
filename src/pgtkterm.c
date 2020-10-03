@@ -3841,6 +3841,20 @@ pgtk_select (int fds_lim, fd_set * rfds, fd_set * wfds, fd_set * efds,
      Note that, as implemented, this failure is completely silent: there is
      no feedback to the caller.  */
 
+  /* Before sleep, dispatch draw events.
+   * Don't do this after g_main_context_query(), because fd may be closed
+   * in dispatch.
+   */
+  if (context_acquired)
+    {
+      int pselect_errno = errno;
+      block_input ();
+      while (g_main_context_pending (context))
+	g_main_context_dispatch (context);
+      unblock_input ();
+      errno = pselect_errno;
+    }
+
   if (rfds)
     all_rfds = *rfds;
   else
@@ -3893,17 +3907,6 @@ pgtk_select (int fds_lim, fd_set * rfds, fd_set * wfds, fd_set * efds,
 			   1000 * 1000 * (tmo_in_millisec % 1000));
       if (!timeout || timespec_cmp (tmo, *timeout) < 0)
 	tmop = &tmo;
-    }
-
-  /* Before sleep, dispatch draw events. */
-  if (context_acquired)
-    {
-      int pselect_errno = errno;
-      block_input ();
-      while (g_main_context_pending (context))
-	g_main_context_dispatch (context);
-      unblock_input ();
-      errno = pselect_errno;
     }
 
   fds_lim = max_fds + 1;
@@ -6509,31 +6512,11 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   return TRUE;
 }
 
-static gboolean
-drag_drop (GtkWidget * widget,
-	   GdkDragContext * context,
-	   gint x, gint y, guint time_, gpointer user_data)
-{
-  PGTK_TRACE ("drag_drop");
-  GdkAtom target = gtk_drag_dest_find_target (widget, context, NULL);
-  PGTK_TRACE ("drag_drop: target: %p", (void *) target);
-
-  if (target == GDK_NONE)
-    {
-      gtk_drag_finish (context, TRUE, FALSE, time_);
-      return FALSE;
-    }
-
-  gtk_drag_get_data (widget, context, target, time_);
-
-  return TRUE;
-}
-
 static void
 drag_data_received (GtkWidget * widget, GdkDragContext * context,
 		    gint x, gint y,
 		    GtkSelectionData * data,
-		    guint info, guint time_, gpointer user_data)
+		    guint info, guint time, gpointer user_data)
 {
   PGTK_TRACE ("drag_data_received:");
   struct frame *f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
@@ -6567,7 +6550,7 @@ drag_data_received (GtkWidget * widget, GdkDragContext * context,
     }
   PGTK_TRACE ("drag_data_received: that's all.");
 
-  gtk_drag_finish (context, TRUE, FALSE, time_);
+  gtk_drag_finish (context, TRUE, FALSE, time);
 }
 
 void
@@ -6622,8 +6605,6 @@ pgtk_set_event_handler (struct frame *f)
 		    G_CALLBACK (pgtk_selection_lost), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "configure-event",
 		    G_CALLBACK (configure_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-drop",
-		    G_CALLBACK (drag_drop), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-data-received",
 		    G_CALLBACK (drag_data_received), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "draw",
