@@ -1086,6 +1086,11 @@ based on the current window size.  In previous versions of Emacs, this
 was always done (and that could lead to odd displays when resizing the
 window after starting).  This variable defaults to nil.
 
+** Widget
+
++++
+*** 'widget-choose' now supports menus in extended format.
+
 ** Miscellaneous
 
 ---

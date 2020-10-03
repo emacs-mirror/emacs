@@ -1740,6 +1740,28 @@ Get the item which @var{widget} is assumed to toggle.
 This is only meaningful for radio buttons or checkboxes in a list.
 @end defun
 
+@defun widget-choose title items &optional event
+Prompt the user to choose an item from a list of options.
+
+@var{title} is the name of the list of options.  @var{items} should be
+a menu, with its items in the simple format or in the extended format.
+@xref{Defining Menus,, Defining Menus, elisp, the Emacs Lisp Reference
+Manual}.  Independently of the format, you don't have to provide a
+title for the menu, just pass the desired title in @var{title}.  The
+optional @var{event} is an input event.  If @var{event} is a mouse
+event and the number of elements in @var{items} is less than the user
+option @code{widget-menu-max-size}, then @code{widget-choose} uses a
+popup menu to prompt the user.  Otherwise, @code{widget-choose} uses
+the minibuffer.
+
+When @var{items} is a keymap menu, the returned value is the symbol in
+the key vector, as in the argument of @code{define-key}
+(@pxref{Changing Key Bindings,,,elisp, the Emacs Lisp Reference
+Manual}).  When @var{items} is a list whose selectable items are of
+the form (@var{name} . @var{value}) (i.e., the simplified format),
+then the return value is the @var{value} of the chosen element.
+@end defun
+
 @node  Widget Wishlist
 @chapter Wishlist
 @cindex todo
