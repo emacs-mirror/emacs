@@ -67,7 +67,7 @@ If this variable is set to 0, no idle time is required."
 Changing the value requires toggling `eldoc-mode'."
   :type 'boolean)
 
-(defcustom eldoc-display-truncation-message t
+(defcustom eldoc-echo-area-display-truncation-message t
   "If non-nil, provide verbose help when a message has been truncated.
 If nil, truncated messages will just have \"...\" appended."
   :type 'boolean
@@ -544,7 +544,7 @@ Honor `eldoc-echo-area-use-multiline-p' and
               ((> available 1)
                ;; The message takes one extra line, so if we don't
                ;; display that, we have one extra line to use.
-               (unless eldoc-display-truncation-message
+               (unless eldoc-echo-area-display-truncation-message
                  (setq available (1+ available)))
                ;; Else we format the *eldoc* buffer, then use some of
                ;; its contents top section.  I'm pretty sure smarter
@@ -570,7 +570,7 @@ Honor `eldoc-echo-area-use-multiline-p' and
                       (buffer-substring (point-min) (point))
                       (and
                        truncated
-                       (if eldoc-display-truncation-message
+                       (if eldoc-echo-area-display-truncation-message
                            (format
                             "\n(Documentation truncated. Use `%s' to see rest)"
                             (substitute-command-keys "\\[eldoc-doc-buffer]"))

@@ -636,7 +636,7 @@ definition.
 ** ElDoc
 
 +++
-*** New user option 'eldoc-display-truncation-message'.
+*** New user option 'eldoc-echo-area-display-truncation-message'.
 If non-nil (the default), eldoc will display a message saying
 something like "(Documentation truncated. Use `M-x eldoc-doc-buffer'
 to see rest)" when a message has been truncated.  If nil, truncated
