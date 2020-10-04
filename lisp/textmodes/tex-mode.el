@@ -422,7 +422,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	(push (cons "--" (match-beginning 0)) menu))
 
       ;; Sort in increasing buffer position order.
-      (sort menu (function (lambda (a b) (< (cdr a) (cdr b))))))))
+      (sort menu (lambda (a b) (< (cdr a) (cdr b)))))))
 
 ;;;;
 ;;;; Outline support

@@ -67,7 +67,6 @@ instead of gpg-agent."
 	(condition-case error
 	    (let ((epg-gpg-home-directory
                    (expand-file-name "test/data/mml-sec" source-directory))
-                  (mml-secure-allow-signing-with-unknown-recipient t)
 		  (mml-smime-use 'epg)
 		  ;; Create debug output in empty epg-debug-buffer.
 		  (epg-debug t)
@@ -760,37 +759,6 @@ Use sign-with-sender and encrypt-to-self."
 		'("D06AA118653CC38E9D0CAF56ED7A2135E1582177")))
 	   (mml-secure-test-en-decrypt
 	    method "no-exp@example.org" "sub@example.org" 2 nil))
-	 )))))
-
-(ert-deftest mml-secure-sign-verify-2 ()
-  "Sign message without sender; then verify and test for expected result."
-  (skip-unless (test-conf))
-  (mml-secure-test-key-fixture
-   (lambda ()
-     (dolist (method (sign-standards) nil)
-       (let ((mml-secure-openpgp-sign-with-sender nil)
-	     (mml-secure-smime-sign-with-sender nil))
-	 ;; A single signing key for sender sub@example.org is customized
-	 ;; in the fixture, but not used here.
-	 ;; By default, gpg uses the first secret key in the keyring, which
-	 ;; is 02372A42CA6D40FB (OpenPGP) or
-	 ;; 0E58229B80EE33959FF718FEEF25402B479DC6E2 (S/MIME) here.
-	 (mml-secure-test-en-decrypt
-	  method "uid1@example.org" "sub@example.org" 0 nil)
-
-	 ;; From sub@example.org, sign with specified key:
-	 (let ((mml-secure-openpgp-signers '("02372A42CA6D40FB"))
-	       (mml-secure-smime-signers
-		'("D06AA118653CC38E9D0CAF56ED7A2135E1582177")))
-	   (mml-secure-test-en-decrypt
-	    method "no-exp@example.org" "sub@example.org" 1 nil))
-
-	 ;; From sub@example.org, sign with different specified key:
-	 (let ((mml-secure-openpgp-signers '("C3999CF1268DBEA2"))
-	       (mml-secure-smime-signers
-		'("0E58229B80EE33959FF718FEEF25402B479DC6E2")))
-	   (mml-secure-test-en-decrypt
-	    method "no-exp@example.org" "sub@example.org" 1 nil))
 	 )))))
 
 (ert-deftest mml-secure-sign-verify-3 ()

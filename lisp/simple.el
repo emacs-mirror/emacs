@@ -2067,13 +2067,18 @@ invoking, give a prefix argument to `execute-extended-command'."
   ;; BEWARE: Called directly from the C code.
   "Execute CMD as an editor command.
 CMD must be a symbol that satisfies the `commandp' predicate.
-Optional second arg RECORD-FLAG non-nil
-means unconditionally put this command in the variable `command-history'.
-Otherwise, that is done only if an arg is read using the minibuffer.
-The argument KEYS specifies the value to use instead of (this-command-keys)
-when reading the arguments; if it is nil, (this-command-keys) is used.
-The argument SPECIAL, if non-nil, means that this command is executing
-a special event, so ignore the prefix argument and don't clear it."
+
+Optional second arg RECORD-FLAG non-nil means unconditionally put
+this command in the variable `command-history'.  Otherwise, that
+is done only if an arg is read using the minibuffer.
+
+The argument KEYS specifies the value to use instead of the
+return value of the `this-command-keys' function when reading the
+arguments; if it is nil, `this-command-keys' is used.
+
+The argument SPECIAL, if non-nil, means that this command is
+executing a special event, so ignore the prefix argument and
+don't clear it."
   (setq debug-on-next-call nil)
   (let ((prefixarg (unless special
                      ;; FIXME: This should probably be done around
@@ -7275,15 +7280,16 @@ Mode' for details."
   :lighter " Wrap"
   (if visual-line-mode
       (progn
-	(set (make-local-variable 'visual-line--saved-state) nil)
-	;; Save the local values of some variables, to be restored if
-	;; visual-line-mode is turned off.
-	(dolist (var '(line-move-visual truncate-lines
-		       truncate-partial-width-windows
-		       word-wrap fringe-indicator-alist))
-	  (if (local-variable-p var)
-	      (push (cons var (symbol-value var))
-		    visual-line--saved-state)))
+        (unless visual-line--saved-state
+	  (setq-local visual-line--saved-state (list nil))
+	  ;; Save the local values of some variables, to be restored if
+	  ;; visual-line-mode is turned off.
+	  (dolist (var '(line-move-visual truncate-lines
+		                          truncate-partial-width-windows
+		                          word-wrap fringe-indicator-alist))
+	    (if (local-variable-p var)
+	        (push (cons var (symbol-value var))
+		      visual-line--saved-state))))
 	(set (make-local-variable 'line-move-visual) t)
 	(set (make-local-variable 'truncate-partial-width-windows) nil)
 	(setq truncate-lines nil
@@ -7297,7 +7303,8 @@ Mode' for details."
     (kill-local-variable 'truncate-partial-width-windows)
     (kill-local-variable 'fringe-indicator-alist)
     (dolist (saved visual-line--saved-state)
-      (set (make-local-variable (car saved)) (cdr saved)))
+      (when (car saved)
+        (set (make-local-variable (car saved)) (cdr saved))))
     (kill-local-variable 'visual-line--saved-state)))
 
 (defun turn-on-visual-line-mode ()

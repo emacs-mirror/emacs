@@ -203,27 +203,100 @@ nil means read a single character."
   :group 'widgets
   :type 'boolean)
 
+(defun widget--simplify-menu (extended)
+  "Convert the EXTENDED menu into a menu composed of simple menu items.
+
+Each item in the simplified menu is of the form (ITEM-STRING . REAL-BINDING),
+where both elements are taken from the EXTENDED MENU.  ITEM-STRING is the
+correspondent ITEM-NAME in the menu-item entry:
+ (menu-item ITEM-NAME REAL-BINDING . ITEM-PROPERTY-LIST), and REAL-BINDING is
+the symbol in the key vector, as in `define-key'.
+ (See `(elisp)Defining Menus' for more information.)
+
+Only visible, enabled and meaningful menu items make their way into
+the returned simplified menu.  That is:
+For the menu item to be visible, it has to either lack a :visible form in its
+item-property-list, or the :visible form has to evaluate to a non-nil value.
+For the menu item to be enabled, it has to either lack a :enabled form in its
+item-property-list, or the :enable form has to evaluate to a non-nil value.
+Additionally, if the menu item is a radio button, then its selected form has
+to evaluate to nil for the menu item to be meaningful."
+  (let (simplified)
+    (map-keymap (lambda (ev def)
+                  (when (and (eq (nth 0 def) 'menu-item)
+                             (nth 2 def)) ; Only menu-items with a real binding.
+                    ;; Loop through the item-property-list, looking for
+                    ;; :visible, :enable (or :active) and :button properties.
+                    (let ((plist (nthcdr 3 def))
+                          (enable t) ; Enabled by default.
+                          (visible t) ; Visible by default.
+                          selected keyword value)
+                      (while (and plist (cdr plist)
+                                  (keywordp (setq keyword (car plist))))
+                        (setq value (cadr plist))
+                        (cond ((memq keyword '(:visible :included))
+                               (setq visible value))
+                              ((memq keyword '(:enable :active))
+                               (setq enable value))
+                              ((and (eq keyword :button)
+                                    (eq (car value) :radio))
+                               (setq selected (cdr value))))
+                        (setq plist (cddr plist)))
+                      (when (and (eval visible)
+                                 (eval enable)
+                                 (or (not selected)
+                                     (not (eval selected))))
+                        (push (cons (nth 1 def) ev) simplified)))))
+                extended)
+    (reverse simplified)))
+
 (defun widget-choose (title items &optional event)
   "Choose an item from a list.
 
 First argument TITLE is the name of the list.
-Second argument ITEMS is a list whose members are either
+Second argument ITEMS should be a menu, either with simple item definitions,
+or with extended item definitions.
+When ITEMS has simple item definitions, it is a list whose members are either
  (NAME . VALUE), to indicate selectable items, or just strings to
  indicate unselectable items.
+
+When ITEMS is a menu that uses an extended format, then ITEMS should be a
+keymap, and each binding should look like this:
+ (menu-item ITEM-NAME REAL-BINDING . ITEM-PROPERTY-LIST)
+or like this: (menu-item ITEM-NAME) to indicate a non-selectable item.
+REAL-BINDING should be a symbol, and should not be a keymap, because submenus
+are not supported.
+
 Optional third argument EVENT is an input event.
 
-The user is asked to choose between each NAME from the items alist,
-and the VALUE of the chosen element will be returned.  If EVENT is a
-mouse event, and the number of elements in items is less than
+If EVENT is a mouse event, and the number of elements in items is less than
 `widget-menu-max-size', a popup menu will be used, otherwise the
-minibuffer."
+minibuffer.
+
+The user is asked to choose between each NAME from ITEMS.
+If ITEMS has simple item definitions, then this function returns the VALUE of
+the chosen element.  If ITEMS is a keymap, then the return value is the symbol
+in the key vector, as in the argument of `define-key'."
   (cond ((and (< (length items) widget-menu-max-size)
 	      event (display-popup-menus-p))
 	 ;; Mouse click.
-	 (x-popup-menu event
-		       (list title (cons "" items))))
+         (if (keymapp items)
+             ;; Modify the keymap prompt, and then restore the old one, if any.
+             (let ((prompt (keymap-prompt items)))
+               (unwind-protect
+                   (progn
+                     (setq items (delete prompt items))
+                     (push title (cdr items))
+                     ;; Return just the first element of the list of events.
+                     (car (x-popup-menu event items)))
+                 (setq items (delete title items))
+                 (when prompt
+                   (push prompt (cdr items)))))
+	   (x-popup-menu event (list title (cons "" items)))))
 	((or widget-menu-minibuffer-flag
 	     (> (length items) widget-menu-max-shortcuts))
+         (when (keymapp items)
+           (setq items (widget--simplify-menu items)))
 	 ;; Read the choice of name from the minibuffer.
 	 (setq items (cl-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
@@ -233,6 +306,8 @@ minibuffer."
 		   (setq val try))
 		 (cdr (assoc val items))))))
 	(t
+         (when (keymapp items)
+           (setq items (widget--simplify-menu items)))
 	 ;; Construct a menu of the choices
 	 ;; and then use it for prompting for a single character.
 	 (let* ((next-digit ?0)

@@ -5659,7 +5659,7 @@ The result is a fixnum."
 	       (mail-file-babyl-p filename))
 	  ;; gnus-output-to-mail does the wrong thing with live, mbox
 	  ;; Rmail buffers in Emacs 23.
-	  ;; http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
+          ;; https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
 	  (let ((buff (find-buffer-visiting filename)))
 	    (and buff (with-current-buffer buff
 			(eq major-mode 'rmail-mode)))))
@@ -8100,7 +8100,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
 		  (library image &optional path no-error))
 
 (defun message-make-tool-bar (&optional force)
-  "Make a message mode tool bar from `message-tool-bar-list'.
+  "Make a message mode tool bar from `message-tool-bar'.
 When FORCE, rebuild the tool bar."
   (when (and (boundp 'tool-bar-mode)
 	     tool-bar-mode
@@ -8591,7 +8591,7 @@ Meant for use on `completion-at-point-functions'."
 
 ;; FIXME: What is the most common term (circular letter, form letter, serial
 ;; letter, standard letter) for such kind of letter?  See also
-;; <http://en.wikipedia.org/wiki/Form_letter>
+;; <https://en.wikipedia.org/wiki/Form_letter>
 
 ;; FIXME: Maybe extent message-mode's font-lock support to recognize
 ;; `message-form-letter-separator', i.e. highlight each message like a single

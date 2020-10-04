@@ -46,6 +46,13 @@
 (defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
 
+(defconst dbus--tests-dir
+  (file-truename
+   (expand-file-name "dbus-resources"
+                     (file-name-directory (or load-file-name
+                                              buffer-file-name))))
+  "Directory containing introspection test data file.")
+
 (defun dbus--test-availability (bus)
   "Test availability of D-Bus BUS."
   (should (dbus-list-names bus))
@@ -309,7 +316,7 @@
    (dbus-check-arguments :session dbus--test-service :double "string")
    :type 'wrong-type-argument)
 
-  ;; `:unix-fd'.  UNIX file descriptors are transfered out-of-band.
+  ;; `:unix-fd'.  UNIX file descriptors are transferred out-of-band.
   ;; We do not support this, and so we cannot do much testing here for
   ;; `:unix-fd' being an argument (which is an index to the file
   ;; descriptor in the array of file descriptors that accompany the
@@ -359,11 +366,11 @@
   (should
    (dbus-check-arguments
     :session dbus--test-service '(:variant (:array "string"))))
-  ;; No or more than one element.
-  ;; FIXME.
-  ;; (should-error
-  ;;  (dbus-check-arguments :session dbus--test-service '(:variant))
-  ;;  :type 'wrong-type-argument)
+  ;; Empty variant.
+  (should-error
+   (dbus-check-arguments :session dbus--test-service '(:variant))
+   :type 'wrong-type-argument)
+  ;; More than one element.
   (should-error
    (dbus-check-arguments
     :session dbus--test-service
@@ -375,20 +382,22 @@
   (should
    (dbus-check-arguments
     :session dbus--test-service
-    '(:array (:dict-entry :string "string" :boolean t))))
+    '(:array (:dict-entry :string "string" :boolean nil))))
   ;; This is an alternative syntax.  FIXME: Shall this be supported?
   (should
    (dbus-check-arguments
     :session dbus--test-service
     '(:array :dict-entry (:string "string" :boolean t))))
-  ;; FIXME: Must be errors.
-  ;; (should
-  ;;  (dbus-check-arguments
-  ;;   :session dbus--test-service '(:array (:dict-entry))))
-  ;; (should
-  ;;  (dbus-check-arguments
-  ;;   :session dbus--test-service '(:array (:dict-entry :string "string"))))
-  ;; Not two elements.
+  ;; Empty dict-entry.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service '(:array (:dict-entry)))
+   :type 'wrong-type-argument)
+  ;; One element.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service '(:array (:dict-entry :string "string")))
+   :type 'wrong-type-argument)
   (should-error
    (dbus-check-arguments
     :session dbus--test-service
@@ -405,25 +414,27 @@
    (dbus-check-arguments
     :session dbus--test-service '(:dict-entry :string "string" :boolean t))
    :type 'wrong-type-argument)
-  ;; FIXME:! This doesn't look right.
-  ;; Different dict entry types can be part of an array ???
-  (should
-   (dbus-check-arguments
-    :session dbus--test-service
-    '(:array
-      (:dict-entry :string "string1" :boolean t)
-      (:dict-entry :string "string2" :object-path "/object/path"))))
+  ;; Different dict entry types are not ched.  FIXME: Add check.
+  ;; (should-error
+  ;;  (dbus-check-arguments
+  ;;   :session dbus--test-service
+  ;;   '(:array
+  ;;     (:dict-entry :string "string1" :boolean t)
+  ;;     (:dict-entry :string "string2" :object-path "/object/path")))
+  ;;  :type 'wrong-type-argument)
 
   ;; `:struct'.  There is no restriction what could be an element of a struct.
-  ;; Empty struct.  FIXME: Is this right?
-  ;; (should (dbus-check-arguments :session dbus--test-service '(:struct)))
   (should
    (dbus-check-arguments
     :session dbus--test-service
     '(:struct
       :string "string"
       :object-path "/object/path"
-      (:variant (:array :unix-fd 1 :unix-fd 2 :unix-fd 3 :unix-fd 4))))))
+      (:variant (:array :unix-fd 1 :unix-fd 2 :unix-fd 3 :unix-fd 4)))))
+  ;; Empty struct.
+  (should-error
+   (dbus-check-arguments :session dbus--test-service '(:struct))
+   :type 'wrong-type-argument))
 
 (defun dbus--test-register-service (bus)
   "Check service registration at BUS."
@@ -621,6 +632,63 @@ This includes initialization and closing the bus."
              :session dbus--test-service dbus--test-path
              dbus--test-interface method1 :timeout 10 "foo")))
           `(dbus-error ,dbus-error-no-reply))))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(defun dbus--test-method-reentry-handler (&rest _args)
+  "Method handler for `dbus-test04-method-reentry'."
+  (dbus-get-all-managed-objects :session dbus--test-service dbus--test-path)
+  42)
+
+(ert-deftest dbus-test04-method-reentry ()
+  "Check receiving method call while awaiting response.
+Ensure that incoming method calls are handled when call to `dbus-call-method'
+is in progress."
+  :tags '(:expensive-test)
+  ;; Simulate application registration.  (Bug#43251)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((method "Reentry"))
+        (should
+         (equal
+          (dbus-register-method
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface method #'dbus--test-method-reentry-handler)
+          `((:method :session ,dbus--test-interface ,method)
+            (,dbus--test-service ,dbus--test-path
+             dbus--test-method-reentry-handler))))
+
+        (should
+         (=
+          (dbus-call-method
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface method)
+          42)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test04-call-method-timeout ()
+  "Verify `dbus-call-method' request timeout."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((start (current-time)))
+        ;; Test timeout override for method call.
+        (should-error
+         (dbus-call-method
+          :session dbus--test-service dbus--test-path
+          dbus-interface-introspectable "Introspect" :timeout 2500)
+         :type 'dbus-error)
+
+        (should
+         (< 2.4 (float-time (time-since start)) 2.7)))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
@@ -1065,6 +1133,702 @@ This includes initialization and closing the bus."
            :session dbus--test-service dbus--test-path
            dbus--test-interface property)
           '(1 2 3))))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(defsubst dbus--test-run-property-test (selector name value expected)
+  "Generate a property test: register, set, get, getall sequence.
+This is a helper function for the macro `dbus--test-property'.
+The argument SELECTOR indicates whether the test should expand to
+`dbus-register-property' (if SELECTOR is `register') or
+`dbus-set-property' (if SELECTOR is `set').
+The argument NAME is the property name.
+The argument VALUE is the value to register or set.
+The argument EXPECTED is a transformed VALUE representing the
+form `dbus-get-property' should return."
+  (cond
+   ((eq selector 'register)
+    (should
+     (equal
+      (dbus-register-property
+       :session dbus--test-service dbus--test-path dbus--test-interface name
+       :readwrite value)
+      `((:property :session ,dbus--test-interface ,name)
+        (,dbus--test-service ,dbus--test-path)))))
+
+   ((eq selector 'set)
+    (should
+     (equal
+      (dbus-set-property
+       :session dbus--test-service dbus--test-path dbus--test-interface name
+       value)
+      expected)))
+
+   (t (signal 'wrong-type-argument "Selector should be 'register or 'set.")))
+
+  (should
+   (equal
+    (dbus-get-property
+     :session dbus--test-service dbus--test-path dbus--test-interface name)
+    expected))
+
+  (let ((result
+         (dbus-get-all-properties
+          :session dbus--test-service dbus--test-path dbus--test-interface)))
+    (should (equal (cdr (assoc name result)) expected)))
+
+  (let ((result
+         (dbus-get-all-managed-objects :session dbus--test-service "/"))
+        result1)
+    (should (setq result1 (cadr (assoc dbus--test-path result))))
+    (should (setq result1 (cadr (assoc dbus--test-interface result1))))
+    (should (equal (cdr (assoc name result1)) expected))))
+
+(defsubst dbus--test-property (name &rest value-list)
+  "Test a D-Bus property named by string argument NAME.
+The argument VALUE-LIST is a sequence of pairs, where each pair
+represents a value form and an expected returned value form.  The
+first pair in VALUES is used for `dbus-register-property'.
+Subsequent pairs of the list are tested with `dbus-set-property'."
+  (let ((values (car value-list)))
+    (dbus--test-run-property-test
+     'register name (car values) (cdr values)))
+  (dolist (values (cdr value-list))
+    (dbus--test-run-property-test
+     'set name (car values) (cdr values))))
+
+(ert-deftest dbus-test06-property-types ()
+  "Check property access and mutation for an own service."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (progn
+        (dbus--test-property
+         "ByteArray"
+         '((:array :byte 1 :byte 2 :byte 3) . (1 2 3))
+         '((:array :byte 4 :byte 5 :byte 6) . (4 5 6)))
+
+        (dbus--test-property
+         "StringArray"
+         '((:array "one" "two" :string "three") . ("one" "two" "three"))
+         '((:array :string "four" :string "five" "six") . ("four" "five" "six")))
+
+        (dbus--test-property
+         "ObjectArray"
+         '((:array
+            :object-path "/node00"
+            :object-path "/node01"
+            :object-path "/node0/node02")
+           . ("/node00" "/node01" "/node0/node02"))
+         '((:array
+            :object-path "/node10"
+            :object-path "/node11"
+            :object-path "/node0/node12")
+           . ("/node10" "/node11" "/node0/node12")))
+
+        (dbus--test-property
+         "Dictionary"
+         '((:array
+            :dict-entry (:string "four" (:variant :string "value of four"))
+            :dict-entry ("five" (:variant :object-path "/node0"))
+            :dict-entry ("six"  (:variant (:array :byte 4 :byte 5 :byte 6))))
+           . (("four"
+               ("value of four"))
+              ("five"
+               ("/node0"))
+              ("six"
+               ((4 5 6)))))
+         '((:array
+            :dict-entry
+            (:string "key0" (:variant (:array :byte 7 :byte 8 :byte 9)))
+            :dict-entry ("key1" (:variant :string "value"))
+            :dict-entry ("key2" (:variant :object-path "/node0/node1")))
+           . (("key0"
+               ((7 8 9)))
+              ("key1"
+               ("value"))
+              ("key2"
+               ("/node0/node1")))))
+
+        (dbus--test-property            ; Syntax emphasizing :dict compound type.
+         "Dictionary"
+         '((:array
+            (:dict-entry :string "seven" (:variant :string "value of seven"))
+            (:dict-entry "eight" (:variant :object-path "/node8"))
+            (:dict-entry "nine"  (:variant (:array :byte 9 :byte 27 :byte 81))))
+           . (("seven"
+               ("value of seven"))
+              ("eight"
+               ("/node8"))
+              ("nine"
+               ((9 27 81)))))
+         '((:array
+            (:dict-entry
+             :string "key4" (:variant (:array :byte 7 :byte 49 :byte 125)))
+            (:dict-entry "key5" (:variant :string "obsolete"))
+            (:dict-entry "key6" (:variant :object-path "/node6/node7")))
+           . (("key4"
+               ((7 49 125)))
+              ("key5"
+               ("obsolete"))
+              ("key6"
+               ("/node6/node7")))))
+
+        (dbus--test-property
+         "ByteDictionary"
+         '((:array
+            (:dict-entry :byte  8 (:variant :string "byte-eight"))
+            (:dict-entry :byte 16 (:variant :object-path "/byte/sixteen"))
+            (:dict-entry :byte 48 (:variant (:array :byte 8 :byte 9 :byte 10))))
+           . (( 8 ("byte-eight"))
+              (16 ("/byte/sixteen"))
+              (48 ((8 9 10))))))
+
+        (dbus--test-property
+         "Variant"
+         '((:variant "Variant string") . ("Variant string"))
+         '((:variant :byte 42) . (42))
+         '((:variant :uint32 1000000) . (1000000))
+         '((:variant :object-path "/variant/path") . ("/variant/path"))
+         '((:variant :signature "a{sa{sv}}") . ("a{sa{sv}}"))
+         '((:variant
+            (:struct
+             42 "string" (:object-path "/structure/path") (:variant "last")))
+           . ((42 "string" ("/structure/path") ("last")))))
+
+        ;; Test that :read prevents writes.
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "StringArray" :read '(:array "one" "two" :string "three"))
+          `((:property :session ,dbus--test-interface "StringArray")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should-error          ; Cannot set property with :read access.
+         (dbus-set-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "StringArray" '(:array "seven" "eight" :string "nine"))
+         :type 'dbus-error)
+
+        (should                    ; Property value preserved on error.
+         (equal
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "StringArray")
+          '("one" "two" "three")))
+
+        ;; Test mismatched types in array.
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "MixedArray" :readwrite
+          '(:array
+            :object-path "/node00"
+            :string "/node01"
+            :object-path "/node0/node02"))
+         :type 'wrong-type-argument)
+
+        ;; Test in-range integer values.
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" :readwrite :byte 255)
+          `((:property :session ,dbus--test-interface "ByteValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          255))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ShortValue" :readwrite :int16 32767)
+          `((:property :session ,dbus--test-interface "ShortValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ShortValue")
+          32767))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UShortValue" :readwrite :uint16 65535)
+          `((:property :session ,dbus--test-interface "UShortValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UShortValue")
+          65535))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "IntValue" :readwrite :int32 2147483647)
+          `((:property :session ,dbus--test-interface "IntValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path
+           dbus--test-interface "IntValue")
+          2147483647))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UIntValue" :readwrite :uint32 4294967295)
+          `((:property :session ,dbus--test-interface "UIntValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "UIntValue")
+          4294967295))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "LongValue" :readwrite :int64 9223372036854775807)
+          `((:property :session ,dbus--test-interface "LongValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "LongValue")
+          9223372036854775807))
+
+        (should
+         (equal
+          (dbus-register-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ULongValue" :readwrite :uint64 18446744073709551615)
+          `((:property :session ,dbus--test-interface "ULongValue")
+	    (,dbus--test-service ,dbus--test-path))))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ULongValue")
+          18446744073709551615))
+
+        ;; Test integer overflow.
+        (should
+         (=
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" :byte 520)
+          8))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          8))
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "ShortValue" :readwrite :int16 32800)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "UShortValue" :readwrite :uint16 65600)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "IntValue" :readwrite :int32 2147483700)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "UIntValue" :readwrite :uint32 4294967300)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "LongValue" :readwrite :int64 9223372036854775900)
+         :type 'args-out-of-range)
+
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "ULongValue" :readwrite :uint64 18446744073709551700)
+         :type 'args-out-of-range)
+
+        ;; dbus-set-property may change property type.
+        (should
+         (=
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" 1024)
+          1024))
+
+        (should
+         (=
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          1024))
+
+        (should                         ; Another change property type test.
+         (equal
+          (dbus-set-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue" :boolean t)
+          t))
+
+        (should
+         (eq
+          (dbus-get-property
+           :session dbus--test-service dbus--test-path dbus--test-interface
+           "ByteValue")
+          t))
+
+        ;; Test invalid type specification.
+        (should-error
+         (dbus-register-property
+          :session dbus--test-service dbus--test-path dbus--test-interface
+          "InvalidType" :readwrite :keyword 128)
+         :type 'wrong-type-argument))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(defun dbus--test-introspect ()
+  "Return test introspection string."
+  (when (string-equal dbus--test-path (dbus-event-path-name last-input-event))
+    (with-temp-buffer
+      (insert-file-contents-literally
+       (expand-file-name "org.gnu.Emacs.TestDBus.xml" dbus--tests-dir))
+      (buffer-string))))
+
+(defsubst dbus--test-validate-interface
+  (iface-name expected-properties expected-methods expected-signals
+              expected-annotations)
+  "Validate an interface definition for `dbus-test07-introspection'.
+The argument IFACE-NAME is a string naming the interface to validate.
+The arguments EXPECTED-PROPERTIES, EXPECTED-METHODS, EXPECTED-SIGNALS, and
+EXPECTED-ANNOTATIONS represent the names of the interface's properties,
+methods, signals, and annotations, respectively."
+
+  (let ((interface
+         (dbus-introspect-get-interface
+          :session dbus--test-service dbus--test-path iface-name)))
+    (pcase-let ((`(interface ((name . ,name)) . ,rest) interface))
+      (should
+       (string-equal name iface-name))
+      (should
+       (string-equal name (dbus-introspect-get-attribute interface "name")))
+
+      (let (properties methods signals annotations)
+        (mapc (lambda (x)
+                (let ((name (dbus-introspect-get-attribute x "name")))
+                  (cond
+                   ((eq 'property (car x))   (push name properties))
+                   ((eq 'method (car x))     (push name methods))
+                   ((eq 'signal (car x))     (push name signals))
+                   ((eq 'annotation (car x)) (push name annotations)))))
+              rest)
+
+        (should
+         (equal
+          (nreverse properties)
+          expected-properties))
+        (should
+         (equal
+          (nreverse methods)
+          expected-methods))
+        (should
+         (equal
+          (nreverse signals)
+          expected-signals))
+        (should
+         (equal
+          (nreverse annotations)
+          expected-annotations))))))
+
+(defsubst dbus--test-validate-annotations (annotations expected-annotations)
+  "Validate a list of D-Bus ANNOTATIONS.
+Ensure each string in EXPECTED-ANNOTATIONS names an element of ANNOTATIONS.
+And ensure each ANNOTATIONS has a value attribute marked \"true\"."
+  (mapc
+   (lambda (annotation)
+     (let ((name (dbus-introspect-get-attribute annotation "name"))
+           (value (dbus-introspect-get-attribute annotation "value")))
+       (should
+        (member name expected-annotations))
+       (should
+        (equal value "true"))))
+   annotations))
+
+(defsubst dbus--test-validate-property
+  (interface property-name _expected-annotations &rest expected-args)
+  "Validate a property definition for `dbus-test07-introspection'.
+
+The argument INTERFACE is a string naming the interface owning PROPERTY-NAME.
+The argument PROPERTY-NAME is a string naming the property to validate.
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the method or signal.
+The argument EXPECTED-ARGS is a list of expected arguments for the property."
+  (let* ((property
+          (dbus-introspect-get-property
+           :session dbus--test-service dbus--test-path interface property-name))
+         (name (dbus-introspect-get-attribute property "name"))
+         (type (dbus-introspect-get-attribute property "type"))
+         (access (dbus-introspect-get-attribute property "access"))
+         (expected (assoc-string name expected-args)))
+    (should expected)
+
+    (should
+     (string-equal name property-name))
+
+    (should
+     (string-equal
+      (nth 0 expected)
+      name))
+
+    (should
+     (string-equal
+      (nth 1 expected)
+      type))
+
+    (should
+     (string-equal
+      (nth 2 expected)
+      access))))
+
+(defsubst dbus--test-validate-m-or-s (tree expected-annotations expected-args)
+  "Validate a method or signal definition for `dbus-test07-introspection'.
+The argument TREE is an sexp returned from either `dbus-introspect-get-method'
+or `dbus-introspect-get-signal'
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the method or signal.
+The argument EXPECTED-ARGS is a list of expected arguments for
+the method or signal."
+  (let (args annotations)
+    (mapc (lambda (elem)
+            (cond
+             ((eq 'arg (car elem)) (push elem args))
+             ((eq 'annotation (car elem)) (push elem annotations))))
+          tree)
+    (should
+     (equal
+      (nreverse args)
+      expected-args))
+    (dbus--test-validate-annotations annotations expected-annotations)))
+
+(defsubst dbus--test-validate-signal
+  (interface signal-name expected-annotations &rest expected-args)
+  "Validate a signal definition for `dbus-test07-introspection'.
+
+The argument INTERFACE is a string naming the interface owning SIGNAL-NAME.
+The argument SIGNAL-NAME is a string naming the signal to validate.
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the signal.
+The argument EXPECTED-ARGS is a list of expected arguments for the signal."
+  (let ((signal
+         (dbus-introspect-get-signal
+          :session dbus--test-service dbus--test-path interface signal-name)))
+    (pcase-let ((`(signal ((name . ,name)) . ,rest) signal))
+      (should
+       (string-equal name signal-name))
+      (should
+       (string-equal name (dbus-introspect-get-attribute signal "name")))
+      (dbus--test-validate-m-or-s rest expected-annotations expected-args))))
+
+(defsubst dbus--test-validate-method
+  (interface method-name expected-annotations &rest expected-args)
+  "Validate a method definition for `dbus-test07-introspection'.
+
+The argument INTERFACE is a string naming the interface owning METHOD-NAME.
+The argument METHOD-NAME is a string naming the method to validate.
+The arguments EXPECTED-ANNOTATIONS is a list of strings matching
+the annotation names defined for the method.
+The argument EXPECTED-ARGS is a list of expected arguments for the method."
+  (let ((method
+         (dbus-introspect-get-method
+          :session dbus--test-service dbus--test-path interface method-name)))
+    (pcase-let ((`(method ((name . ,name)) . ,rest) method))
+      (should
+       (string-equal name method-name))
+      (should
+       (string-equal name (dbus-introspect-get-attribute method "name")))
+      (dbus--test-validate-m-or-s rest expected-annotations expected-args))))
+
+(ert-deftest dbus-test07-introspection ()
+  "Register an Introspection interface then query it."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  ;; Prepare introspection response.
+  (dbus-register-method
+   :session dbus--test-service dbus--test-path dbus-interface-introspectable
+   "Introspect" 'dbus--test-introspect)
+  (dbus-register-method
+   :session dbus--test-service (concat dbus--test-path "/node0")
+   dbus-interface-introspectable
+   "Introspect" 'dbus--test-introspect)
+  (dbus-register-method
+   :session dbus--test-service (concat dbus--test-path "/node1")
+   dbus-interface-introspectable
+   "Introspect" 'dbus--test-introspect)
+  (unwind-protect
+      (let ((start (current-time)))
+        ;; dbus-introspect-get-node-names
+        (should
+         (equal
+          (dbus-introspect-get-node-names
+           :session dbus--test-service dbus--test-path)
+          '("node0" "node1")))
+
+        ;; dbus-introspect-get-all-nodes
+        (should
+         (equal
+          (dbus-introspect-get-all-nodes
+           :session dbus--test-service dbus--test-path)
+          (list dbus--test-path
+                (concat dbus--test-path "/node0")
+                (concat dbus--test-path "/node1"))))
+
+        ;; dbus-introspect-get-interface-names
+        (let ((interfaces
+               (dbus-introspect-get-interface-names
+                :session dbus--test-service dbus--test-path)))
+
+          (should
+           (equal
+            interfaces
+            `(,dbus-interface-introspectable
+              ,dbus-interface-properties
+              ,dbus--test-interface)))
+
+          (dbus--test-validate-interface
+           dbus-interface-introspectable nil '("Introspect") nil nil)
+
+          ;; dbus-introspect-get-interface via `dbus--test-validate-interface'.
+          (dbus--test-validate-interface
+           dbus-interface-properties nil
+           '("Get" "Set" "GetAll") '("PropertiesChanged") nil)
+
+          (dbus--test-validate-interface
+           dbus--test-interface '("Connected" "Player")
+           '("Connect" "DeprecatedMethod0" "DeprecatedMethod1") nil
+           `(,dbus-annotation-deprecated)))
+
+        ;; dbus-introspect-get-method-names
+        (let ((methods
+               (dbus-introspect-get-method-names
+                :session dbus--test-service dbus--test-path
+                dbus--test-interface)))
+          (should
+           (equal
+            methods
+            '("Connect" "DeprecatedMethod0" "DeprecatedMethod1")))
+
+          ;; dbus-introspect-get-method via `dbus--test-validate-method'.
+          (dbus--test-validate-method
+           dbus--test-interface "Connect" nil
+           '(arg ((name . "uuid")      (type . "s")     (direction . "in")))
+           '(arg ((name . "mode")      (type . "y")     (direction . "in")))
+           '(arg ((name . "options")   (type . "a{sv}") (direction . "in")))
+           '(arg ((name . "interface") (type . "s")     (direction . "out"))))
+
+          (dbus--test-validate-method
+           dbus--test-interface "DeprecatedMethod0"
+           `(,dbus-annotation-deprecated))
+
+          (dbus--test-validate-method
+           dbus--test-interface "DeprecatedMethod1"
+           `(,dbus-annotation-deprecated)))
+
+        ;; dbus-introspect-get-signal-names
+        (let ((signals
+               (dbus-introspect-get-signal-names
+                :session dbus--test-service dbus--test-path
+                dbus-interface-properties)))
+          (should
+           (equal
+            signals
+            '("PropertiesChanged")))
+
+          ;; dbus-introspect-get-signal via `dbus--test-validate-signal'.
+          (dbus--test-validate-signal
+           dbus-interface-properties "PropertiesChanged" nil
+           '(arg ((name . "interface")              (type . "s")))
+           '(arg ((name . "changed_properties")     (type . "a{sv}")))
+           '(arg ((name . "invalidated_properties") (type . "as")))))
+
+        ;; dbus-intropct-get-property-names
+        (let ((properties
+               (dbus-introspect-get-property-names
+                :session dbus--test-service dbus--test-path
+                dbus--test-interface)))
+          (should
+           (equal
+            properties
+            '("Connected" "Player")))
+
+          ;; dbus-introspect-get-property via `dbus--test-validate-property'.
+          (dbus--test-validate-property
+           dbus--test-interface "Connected" nil
+           '("Connected" "b" "read")
+           '("Player" "o" "read")))
+
+        ;; Elapsed time over a second suggests timeouts.
+        (should
+         (< 0.0 (float-time (time-since start)) 1.0)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test07-introspection-timeout ()
+  "Verify introspection request timeouts."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((start (current-time)))
+        (dbus-introspect-xml :session dbus--test-service dbus--test-path)
+        ;; Introspection internal timeout is one second.
+        (should
+         (< 1.0 (float-time (time-since start)))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))

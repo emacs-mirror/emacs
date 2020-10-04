@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.9.3
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (defconst pr-version "6.9.3"
   "printing.el, v 6.9.3 <2007/12/09 vinicius>
@@ -64,7 +64,7 @@ Please send all bug fixes and enhancements to
 ;; interface to ps-print package and it also provides some extra stuff.
 ;;
 ;; To download the latest ps-print package see
-;; `http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'.
+;; `https://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'.
 ;; Please, see README file for ps-print installation instructions.
 ;;
 ;; `printing' was inspired by:
@@ -944,8 +944,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; * For `printing' package:
 ;;
-;;    printing	`http://www.emacswiki.org/cgi-bin/emacs/download/printing.el'
-;;    ps-print	`http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'
+;;    printing	`https://www.emacswiki.org/cgi-bin/emacs/download/printing.el'
+;;    ps-print	`https://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'
 ;;
 ;; * For GNU or Unix system:
 ;;
@@ -4721,7 +4721,7 @@ Each element has the form:
 
    (MENU-PART . NUMBER-OF-ITEMS)
 
-See `pr-visible-entry-alist'.")
+See `pr-visible-entry-list'.")
 
 
 (defun pr-menu-index (entry index)

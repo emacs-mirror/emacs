@@ -735,7 +735,7 @@ If command is repeated at same position, delete the rectangle."
     (setq cua--last-killed-rectangle (cons (and kill-ring (car kill-ring)) killed-rectangle))
     (if ring
         (kill-new (mapconcat
-                   (function (lambda (row) (concat row "\n")))
+                   (lambda (row) (concat row "\n"))
                    killed-rectangle "")))))
 
 (defun cua--activate-rectangle ()
@@ -1071,7 +1071,7 @@ The text previously in the rectangle is overwritten by the blanks."
         (cua--copy-rectangle-to-global-mark t))
     (let* ((rect (cua--extract-rectangle))
            (text (mapconcat
-                  (function (lambda (row) (concat row "\n")))
+                  (lambda (row) (concat row "\n"))
                   rect "")))
       (setq arg (cua--prefix-arg arg))
       (if cua--register

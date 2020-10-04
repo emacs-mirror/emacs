@@ -93,7 +93,7 @@ void foo(void) {
     ; // #4# ( "Mumble" "get" )
 }
 
-// What happens if a type your looking for is scoped withing a type,
+// What happens if a type your looking for is scoped within a type,
 // but you are one level into the completion so the originating scope
 // excludes the type of the variable you are completing through?
 // Thanks Martin Stein for this nice example.

@@ -938,9 +938,47 @@ If no one is selected, symmetric encryption will be performed.  "
        (signal (car error) (cdr error))))
     cipher))
 
-;; Should probably be removed and the interface should be different.
-(defvar mml-secure-allow-signing-with-unknown-recipient nil
-  "Variable to bind to allow automatic recipient selection.")
+(defun mml-secure-sender-sign-query (protocol sender)
+  "Query whether to use SENDER to sign when using PROTOCOL.
+PROTOCOL will be `OpenPGP' or `CMS' (smime).
+This can also save the resulting value of
+`mml-secure-smime-sign-with-sender' or
+`mml-secure-openpgp-sign-with-sender' via Customize.
+Returns non-nil if the user has chosen to use SENDER."
+  (let ((buffer (get-buffer-create "*MML sender signing options*"))
+        (options '((?a "always" "Sign using this sender now and sign with message sender in future.")
+                   (?s "session only" "Sign using this sender now, and sign with message sender for this session only.")
+                   (?n "no" "Do not sign this message (and error out)")))
+        answer done val)
+    (save-window-excursion
+      (pop-to-buffer buffer)
+      (erase-buffer)
+      (insert (format "No %s signing key was found for this message.\nThe sender of this message is \"%s\".\nWould you like to attempt looking up a signing key based on it?"
+                      (if (eq protocol 'OpenPGP)
+                          "openpgp" "smime")
+                      sender))
+      (while (not done)
+        (setq answer (read-multiple-choice "Sign this message using the sender?" options))
+        (cl-case (car answer)
+          (?a
+           (if (eq protocol 'OpenPGP)
+               (progn
+                 (setq mml-secure-openpgp-sign-with-sender t)
+                 (customize-save-variable
+		  'mml-secure-openpgp-sign-with-sender t))
+             (setq mml-secure-smime-sign-with-sender t)
+             (customize-save-variable 'mml-secure-smime-sign-with-sender t))
+           (setq done t
+                 val t))
+          (?s
+           (if (eq protocol 'OpenPGP)
+               (setq mml-secure-openpgp-sign-with-sender t)
+             (setq mml-secure-smime-sign-with-sender t))
+           (setq done t
+                 val t))
+          (?n
+           (setq done t)))))
+    val))
 
 (defun mml-secure-epg-sign (protocol mode)
   ;; Based on code appearing inside mml2015-epg-sign.
@@ -950,15 +988,21 @@ If no one is selected, symmetric encryption will be performed.  "
 	 (signers (mml-secure-signers context signer-names))
 	 signature micalg)
     (unless signers
-      (let ((maybe-msg
-             (if mml-secure-smime-sign-with-sender
-                 "."
-               "; try setting `mml-secure-smime-sign-with-sender'.")))
-        ;; If `mml-secure-smime-sign-with-sender' is already non-nil
-        ;; then there's no point advising the user to examine it.  If
-        ;; there are any other variables worth examining, please
-        ;; improve this error message by having it mention them.
-	(unless mml-secure-allow-signing-with-unknown-recipient
+      (if (and (not noninteractive)
+	       (mml-secure-sender-sign-query protocol sender))
+          (setq signer-names (mml-secure-signer-names protocol sender)
+                signers (mml-secure-signers context signer-names)))
+      (unless signers
+        (let ((maybe-msg
+               (if (or mml-secure-smime-sign-with-sender
+                       mml-secure-openpgp-sign-with-sender)
+                   "."
+                 "; try setting `mml-secure-smime-sign-with-sender' or 'mml-secure-openpgp-sign-with-sender'.")))
+          ;; If `mml-secure-smime-sign-with-sender' or
+          ;; `mml-secure-openpgp-sign-with-sender' are already non-nil
+          ;; then there's no point advising the user to examine them.
+          ;; If there are any other variables worth examining, please
+          ;; improve this error message by having it mention them.
           (error "Couldn't find any signer names%s" maybe-msg))))
     (when (eq 'OpenPGP protocol)
       (setf (epg-context-armor context) t)

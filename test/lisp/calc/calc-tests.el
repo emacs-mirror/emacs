@@ -458,6 +458,122 @@ An existing calc stack is reused, otherwise a new one is created."
                   (calcFunc-choose '(frac -15 2) 3))
                  (calc-tests--choose -7.5 3))))
 
+(ert-deftest calc-business-days ()
+  (cl-flet ((m (s) (math-parse-date s))
+            (b+ (a b) (calcFunc-badd a b))
+            (b- (a b) (calcFunc-bsub a b)))
+    ;; Sanity check.
+    (should (equal (m "2020-09-07") '(date 737675)))
+
+    ;; Test with standard business days (Mon-Fri):
+    (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-08"))) ; Mon->Tue
+    (should (equal (b+ (m "2020-09-08") 1) (m "2020-09-09"))) ; Tue->Wed
+    (should (equal (b+ (m "2020-09-09") 1) (m "2020-09-10"))) ; Wed->Thu
+    (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-11"))) ; Thu->Fri
+    (should (equal (b+ (m "2020-09-11") 1) (m "2020-09-14"))) ; Fri->Mon
+
+    (should (equal (b+ (m "2020-09-07") 4) (m "2020-09-11"))) ; Mon->Fri
+    (should (equal (b+ (m "2020-09-07") 6) (m "2020-09-15"))) ; Mon->Tue
+
+    (should (equal (b+ (m "2020-09-12") 1) (m "2020-09-14"))) ; Sat->Mon
+    (should (equal (b+ (m "2020-09-13") 1) (m "2020-09-14"))) ; Sun->Mon
+
+    (should (equal (b- (m "2020-09-11") 1) (m "2020-09-10"))) ; Fri->Thu
+    (should (equal (b- (m "2020-09-10") 1) (m "2020-09-09"))) ; Thu->Wed
+    (should (equal (b- (m "2020-09-09") 1) (m "2020-09-08"))) ; Wed->Tue
+    (should (equal (b- (m "2020-09-08") 1) (m "2020-09-07"))) ; Tue->Mon
+    (should (equal (b- (m "2020-09-07") 1) (m "2020-09-04"))) ; Mon->Fri
+
+    (should (equal (b- (m "2020-09-11") 4) (m "2020-09-07"))) ; Fri->Mon
+    (should (equal (b- (m "2020-09-15") 6) (m "2020-09-07"))) ; Tue->Mon
+
+    (should (equal (b- (m "2020-09-12") 1) (m "2020-09-11"))) ; Sat->Fri
+    (should (equal (b- (m "2020-09-13") 1) (m "2020-09-11"))) ; Sun->Fri
+
+    ;; Stepping fractional days
+    (should (equal (b+ (m "2020-09-08 21:00") '(frac 1 2))
+                   (m "2020-09-09 09:00")))
+    (should (equal (b+ (m "2020-09-11 21:00") '(frac 1 2))
+                   (m "2020-09-14 09:00")))
+    (should (equal (b- (m "2020-09-08 21:00") '(frac 1 2))
+                   (m "2020-09-08 09:00")))
+    (should (equal (b- (m "2020-09-14 06:00") '(frac 1 2))
+                   (m "2020-09-11 18:00")))
+
+    ;; Test with a couple of extra days off:
+    (let ((var-Holidays (list 'vec
+                              '(var sat var-sat) '(var sun var-sun)
+                              (m "2020-09-09") (m "2020-09-11"))))
+
+      (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-08"))) ; Mon->Tue
+      (should (equal (b+ (m "2020-09-08") 1) (m "2020-09-10"))) ; Tue->Thu
+      (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-14"))) ; Thu->Mon
+      (should (equal (b+ (m "2020-09-14") 1) (m "2020-09-15"))) ; Mon->Tue
+      (should (equal (b+ (m "2020-09-15") 1) (m "2020-09-16"))) ; Tue->Wed
+
+      (should (equal (b- (m "2020-09-16") 1) (m "2020-09-15"))) ; Wed->Tue
+      (should (equal (b- (m "2020-09-15") 1) (m "2020-09-14"))) ; Tue->Mon
+      (should (equal (b- (m "2020-09-14") 1) (m "2020-09-10"))) ; Mon->Thu
+      (should (equal (b- (m "2020-09-10") 1) (m "2020-09-08"))) ; Thu->Tue
+      (should (equal (b- (m "2020-09-08") 1) (m "2020-09-07"))) ; Tue->Mon
+      )
+
+    ;; Test with odd non-business weekdays (Tue, Wed, Sat):
+    (let ((var-Holidays '(vec (var tue var-tue)
+                              (var wed var-wed)
+                              (var sat var-sat))))
+      (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-10"))) ; Mon->Thu
+      (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-11"))) ; Thu->Fri
+      (should (equal (b+ (m "2020-09-11") 1) (m "2020-09-13"))) ; Fri->Sun
+      (should (equal (b+ (m "2020-09-13") 1) (m "2020-09-14"))) ; Sun->Mon
+
+      (should (equal (b- (m "2020-09-14") 1) (m "2020-09-13"))) ; Mon->Sun
+      (should (equal (b- (m "2020-09-13") 1) (m "2020-09-11"))) ; Sun->Fri
+      (should (equal (b- (m "2020-09-11") 1) (m "2020-09-10"))) ; Fri->Thu
+      (should (equal (b- (m "2020-09-10") 1) (m "2020-09-07"))) ; Thu->Mon
+      )
+  ))
+
+(ert-deftest calc-unix-date ()
+  (let* ((d-1970-01-01 (math-parse-date "1970-01-01"))
+         (d-2020-09-07 (math-parse-date "2020-09-07"))
+         (d-1991-01-09-0600 (math-parse-date "1991-01-09 06:00")))
+    ;; calcFunc-unixtime (command "t U") converts a date value to Unix time,
+    ;; and a number to a date.
+    (should (equal d-1970-01-01 '(date 719163)))
+    (should (equal (calcFunc-unixtime d-1970-01-01 0) 0))
+    (should (equal (calc-tests--calc-to-number (cadr (calcFunc-unixtime 0 0)))
+                   (cadr d-1970-01-01)))
+    (should (equal (calcFunc-unixtime d-2020-09-07 0)
+                   (* (- (cadr d-2020-09-07)
+                         (cadr d-1970-01-01))
+                      86400)))
+    (should (equal (calcFunc-unixtime d-1991-01-09-0600 0)
+                   663400800))
+    (should (equal (calc-tests--calc-to-number
+                    (cadr (calcFunc-unixtime 663400800 0)))
+                   726841.25))
+
+    (let ((calc-date-format '(U)))
+      ;; Test parsing Unix time.
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "0")))
+                     719163))
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "469324800")))
+                     (+ 719163 (/ 469324800 86400))))
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "663400800")))
+                     726841.25))
+
+      ;; Test formatting Unix time.
+      (should (equal (math-format-date d-1970-01-01) "0"))
+      (should (equal (math-format-date d-2020-09-07)
+                     (number-to-string (* (- (cadr d-2020-09-07)
+                                             (cadr d-1970-01-01))
+                                          86400))))
+      (should (equal (math-format-date d-1991-01-09-0600) "663400800")))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 

@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
+;; URL: https://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
 ;; Obsolete-since: 24.1
 
 ;; This file is part of GNU Emacs.

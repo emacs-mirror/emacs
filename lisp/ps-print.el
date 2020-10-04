@@ -9,7 +9,7 @@
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (eval-when-compile (require 'cl-lib))
 
@@ -2198,7 +2198,7 @@ The values for `ps-line-number-start':
      `ps-line-number-step' inclusive.
 
    * If `ps-line-number-step' is set to `zebra', must be between 1 and the
-     value of `ps-zebra-strip-height' inclusive.  Use this combination if you
+     value of `ps-zebra-stripe-height' inclusive.  Use this combination if you
      wish that line number be relative to zebra stripes."
   :type '(integer :tag "Start Step Interval")
   :version "20"

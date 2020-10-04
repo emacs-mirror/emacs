@@ -5480,7 +5480,7 @@ frame.  The selected window is not changed by this function."
 		(set-window-parameter
 		 (window-parent new) 'window-side window-side))))
 	   ((eq window-combination-resize 'atom)
-	    ;; Make sure `window--check-frame' won't destroy an existing
+            ;; Make sure `window--check' won't destroy an existing
 	    ;; atomic window in case the new window gets nested inside.
 	    (unless (window-parameter window 'window-atom)
 	      (set-window-parameter window 'window-atom t))
@@ -7712,7 +7712,7 @@ indirectly called by the latter."
                (with-current-buffer (window-buffer window)
                  (cond ((memq major-mode allowed-modes)
                         'same)
-                       ((derived-mode-p allowed-modes)
+                       ((apply #'derived-mode-p allowed-modes)
                         'derived)))))
           (when (and mode?
                      (not (and inhibit-same-window-p

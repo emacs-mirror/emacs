@@ -2329,8 +2329,14 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
   struct image *img;
   EMACS_UINT hash;
 
-  struct face *face = (face_id >= 0) ? FACE_FROM_ID (f, face_id)
-    : FACE_FROM_ID (f, DEFAULT_FACE_ID);
+  if (FRAME_FACE_CACHE (f) == NULL)
+    init_frame_faces (f);
+  if (FRAME_FACE_CACHE (f)->used == 0)
+    recompute_basic_faces (f);
+  if (face_id < 0 || face_id >= FRAME_FACE_CACHE (f)->used)
+    face_id = DEFAULT_FACE_ID;
+
+  struct face *face = FACE_FROM_ID (f, face_id);
   unsigned long foreground = FACE_COLOR_TO_PIXEL (face->foreground, f);
   unsigned long background = FACE_COLOR_TO_PIXEL (face->background, f);
 

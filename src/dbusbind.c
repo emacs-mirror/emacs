@@ -209,9 +209,12 @@ xd_dbus_type_to_symbol (int type)
     : Qnil;
 }
 
+#define XD_KEYWORDP(object) !NILP (Fkeywordp (object))
+
 /* Check whether a Lisp symbol is a predefined D-Bus type symbol.  */
 #define XD_DBUS_TYPE_P(object)						\
-  (SYMBOLP (object) && ((xd_symbol_to_dbus_type (object) != DBUS_TYPE_INVALID)))
+  XD_KEYWORDP (object) &&						\
+    ((xd_symbol_to_dbus_type (object) != DBUS_TYPE_INVALID))
 
 /* Determine the DBusType of a given Lisp OBJECT.  It is used to
    convert Lisp objects, being arguments of `dbus-call-method' or
@@ -463,6 +466,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       CHECK_CONS (object);
 
       elt = XD_NEXT_VALUE (elt);
+      CHECK_CONS (elt);
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
 
@@ -474,11 +478,12 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       break;
 
     case DBUS_TYPE_STRUCT:
-      /* A struct list might contain any number of elements with
-	 different types.  No further check needed.  */
+      /* A struct list might contain any (but zero) number of elements
+	 with different types.  No further check needed.  */
       CHECK_CONS (object);
 
       elt = XD_NEXT_VALUE (elt);
+      CHECK_CONS (elt);
 
       /* Compose the signature from the elements.  It is enclosed by
 	 parentheses.  */
@@ -509,6 +514,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 
       /* First element.  */
       elt = XD_NEXT_VALUE (elt);
+      CHECK_CONS (elt);
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
       xd_signature_cat (signature, x);
@@ -518,6 +524,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 
       /* Second element.  */
       elt = CDR_SAFE (XD_NEXT_VALUE (elt));
+      CHECK_CONS (elt);
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
       xd_signature_cat (signature, x);
@@ -1227,7 +1234,7 @@ this connection to those buses.  */)
 						xd_add_watch,
 						xd_remove_watch,
 						xd_toggle_watch,
-						SYMBOLP (bus)
+						XD_KEYWORDP (bus)
 						? (void *) XSYMBOL (bus)
 						: (void *) XSTRING (bus),
 						NULL))
@@ -1793,7 +1800,7 @@ xd_read_queued_messages (int fd, void *data)
     while (!NILP (busp))
       {
 	key = CAR_SAFE (CAR_SAFE (busp));
-	if ((SYMBOLP (key) && XSYMBOL (key) == data)
+	if ((XD_KEYWORDP (key) && XSYMBOL (key) == data)
 	    || (STRINGP (key) && XSTRING (key) == data))
 	  bus = key;
 	busp = CDR_SAFE (busp);

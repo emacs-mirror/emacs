@@ -384,7 +384,7 @@ After one of the above commands, @file{~/emacs/tramp} will
 containing the latest version of @value{tramp}.
 
 @noindent
-To fetch updates from the repository, use git pull:
+To fetch updates from the repository, use @code{git pull}:
 
 @example
 @group
@@ -1709,9 +1709,9 @@ Integration for LXD containers.  A container is accessed via
 @item magit-tramp
 @cindex method @option{git}
 @cindex @option{git} method
-Browsing git repositories with @code{magit}.  A versioned file is
+Browsing Git repositories with @code{magit}.  A versioned file is
 accessed via @file{@trampfn{git,rev@@root-dir,/path/to/file}}.
-@samp{rev} is a git revision, and @samp{root-dir} is a virtual host
+@samp{rev} is a Git revision, and @samp{root-dir} is a virtual host
 name for the root directory, specified in
 @code{magit-tramp-hosts-alist}.
 
@@ -4864,6 +4864,18 @@ alter remote buffers’ method, host, and/or directory names.  This
 permits saving their contents in the same location via another network
 path, or somewhere else entirely (including locally).  @pxref{Renaming
 remote files}.
+
+
+@item
+I get a warning @samp{Tramp has been compiled with Emacs a.b, this is Emacs c.d}
+
+@value{tramp} comes with compatibility code for different Emacs
+versions.  When you see this warning, you don't use the Emacs built-in
+version of @value{tramp}.  In case you have installed @value{tramp}
+from GNU ELPA, you must delete and reinstall it.
+@ifset installchapter
+In case you have installed it from its Git repository, @ref{Recompilation}.
+@end ifset
 
 
 @item

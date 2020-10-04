@@ -1773,7 +1773,7 @@ Argument 0 is the command name."
               ((>= mth 0) (1- (- count mth)))
               (t          (1- (- mth))))))
       (mapconcat
-       (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
+       (lambda (a) a) (nthcdr n (nreverse (nthcdr m args))) " "))))
 
 ;;
 ;; Input processing stuff

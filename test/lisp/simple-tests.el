@@ -44,7 +44,7 @@
 ;;; `count-words'
 (ert-deftest simple-test-count-words-bug-41761 ()
   (with-temp-buffer
-    (dotimes (i 10) (insert (propertize "test " 'field (cons nil nil))))
+    (dotimes (_i 10) (insert (propertize "test " 'field (cons nil nil))))
     (should (= (count-words (point-min) (point-max)) 10))))
 
 

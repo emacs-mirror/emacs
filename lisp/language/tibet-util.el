@@ -275,7 +275,7 @@ The returned string has no composition information."
 	    (compose-region from to components)))))))
 
 (defvar tibetan-decompose-precomposition-alist
-  (mapcar (function (lambda (x) (cons (string-to-char (cdr x)) (car x))))
+  (mapcar (lambda (x) (cons (string-to-char (cdr x)) (car x)))
 	  tibetan-precomposition-rule-alist))
 
 ;;;###autoload

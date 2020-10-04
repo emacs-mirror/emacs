@@ -339,8 +339,8 @@
 ;; When using `table-cell-map-hook' do not use `local-set-key'.
 ;;
 ;;   (add-hook 'table-cell-map-hook
-;;     (function (lambda ()
-;;       (local-set-key [<key sequence>] '<function>))))
+;;     (lambda ()
+;;       (local-set-key [<key sequence>] '<function>)))
 ;;
 ;; Adding the above to your init file is a common way to customize a
 ;; mode specific keymap.  However it does not work for this package.
@@ -349,8 +349,8 @@
 ;; explicitly.  The correct way of achieving above task is:
 ;;
 ;;   (add-hook 'table-cell-map-hook
-;;     (function (lambda ()
-;;       (define-key table-cell-map [<key sequence>] '<function>))))
+;;     (lambda ()
+;;       (define-key table-cell-map [<key sequence>] '<function>)))
 ;;
 ;; -----
 ;; Menu:
@@ -2929,7 +2929,7 @@ buffer, and leaves the previous contents of the buffer untouched.
 References used for this implementation:
 
 HTML:
-        URL `http://www.w3.org'
+        URL `https://www.w3.org'
 
 LaTeX:
         URL `http://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html'
@@ -3503,9 +3503,9 @@ column must consists from cells of same width."
       (let ((cell-list (table--vertical-cell-list 'top-to-bottom)))
 	(unless
 	    (and (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (car cell))))) cell-list))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (car cell)))) cell-list))
 		 (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (cdr cell))))) cell-list)))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (cdr cell)))) cell-list)))
 	  (error "Cells in this column are not in uniform width"))
 	(unless lu-coord
 	  (setq lu-coord (table--get-coordinate (caar cell-list))))

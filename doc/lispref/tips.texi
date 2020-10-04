@@ -960,7 +960,7 @@ Using multiple top-level code sections has the advantage that it
 avoids introducing an additional nesting level but it also means that
 the section named @samp{Code} does not contain all the code, which is
 awkward.  To avoid that, you should put no code at all inside that
-section; that way it can be considered a seperator instead of a
+section; that way it can be considered a separator instead of a
 section heading.
 
 Finally, we recommend that you don't end headings with a colon or any

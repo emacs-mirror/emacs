@@ -1013,7 +1013,6 @@ untar into a directory named DIR; otherwise, signal an error."
     (write-region (autoload-rubric file "package" nil) nil file nil 'silent))
   file)
 
-(defvar generated-autoload-file)
 (defvar autoload-timestamps)
 (defvar version-control)
 
@@ -1021,14 +1020,14 @@ untar into a directory named DIR; otherwise, signal an error."
   "Generate autoloads in PKG-DIR for package named NAME."
   (let* ((auto-name (format "%s-autoloads.el" name))
          ;;(ignore-name (concat name "-pkg.el"))
-         (generated-autoload-file (expand-file-name auto-name pkg-dir))
+         (output-file (expand-file-name auto-name pkg-dir))
          ;; We don't need 'em, and this makes the output reproducible.
          (autoload-timestamps nil)
          (backup-inhibited t)
          (version-control 'never))
-    (package-autoload-ensure-default-file generated-autoload-file)
-    (update-directory-autoloads pkg-dir)
-    (let ((buf (find-buffer-visiting generated-autoload-file)))
+    (package-autoload-ensure-default-file output-file)
+    (make-directory-autoloads pkg-dir output-file)
+    (let ((buf (find-buffer-visiting output-file)))
       (when buf (kill-buffer buf)))
     auto-name))
 
@@ -3623,7 +3622,7 @@ This is used for `tabulated-list-format' in `package-menu-mode'."
       (string< a b))))
 
 (defun package-menu--populate-new-package-list ()
-  "Decide which packages are new in `package-archives-contents'.
+  "Decide which packages are new in `package-archive-contents'.
 Store this list in `package-menu--new-package-list'."
   ;; Find which packages are new.
   (when package-menu--old-archive-contents

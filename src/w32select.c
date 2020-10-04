@@ -956,7 +956,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 
 	truelen = nbytes;
 	dst = src;
-	/* avoid using strchr because it recomputes the length everytime */
+	/* avoid using strchr because it recomputes the length every time */
 	while ((dst = memchr (dst, '\r', nbytes - (dst - src))) != NULL)
 	  {
 	    if (dst[1] == '\n')	/* safe because of trailing '\0' */

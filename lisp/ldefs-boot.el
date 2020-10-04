@@ -1528,7 +1528,7 @@ ENTRY is the name of a password-store entry.
 The key used to retrieve the password is the symbol `secret'.
 
 The convention used as the format for a password-store file is
-the following (see http://www.passwordstore.org/#organization):
+the following (see https://www.passwordstore.org/#organization):
 
 secret
 key1: value1
@@ -5950,12 +5950,12 @@ Variables controlling indentation style:
  `cperl-min-label-indent'
     Minimal indentation for line that is a label.
 
-Settings for classic indent-styles: K&R BSD=C++ GNU PerlStyle=Whitesmith
-  `cperl-indent-level'                5   4       2   4
-  `cperl-brace-offset'                0   0       0   0
-  `cperl-continued-brace-offset'     -5  -4       0   0
-  `cperl-label-offset'               -5  -4      -2  -4
-  `cperl-continued-statement-offset'  5   4       2   4
+Settings for classic indent-styles: K&R BSD=C++ GNU PBP PerlStyle=Whitesmith
+  `cperl-indent-level'                5   4       2   4   4
+  `cperl-brace-offset'                0   0       0   0   0
+  `cperl-continued-brace-offset'     -5  -4       0   0   0
+  `cperl-label-offset'               -5  -4      -2  -2  -4
+  `cperl-continued-statement-offset'  5   4       2   4   4
 
 CPerl knows several indentation styles, and may bulk set the
 corresponding variables.  Use \\[cperl-set-style] to do this.  Use
@@ -6726,7 +6726,7 @@ Create a new data-debug buffer with NAME.
 (autoload 'dbus-handle-event "dbus" "\
 Handle events from the D-Bus.
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
-part of the event, is called with arguments ARGS.
+part of the event, is called with arguments ARGS (without type information).
 If the HANDLER returns a `dbus-error', it is propagated as return message.
 
 \(fn EVENT)" t nil)
@@ -7762,6 +7762,23 @@ Keybindings:
 \(fn &optional DIRNAME SWITCHES)" nil nil)
  (put 'dired-find-alternate-file 'disabled t)
 
+(autoload 'dired-jump "dired" "\
+Jump to Dired buffer corresponding to current buffer.
+If in a file, Dired the current directory and move to file's line.
+If in Dired already, pop up a level and goto old directory's line.
+In case the proper Dired file line cannot be found, refresh the dired
+buffer and try again.
+When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
+When FILE-NAME is non-nil, jump to its line in Dired.
+Interactively with prefix argument, read FILE-NAME.
+
+\(fn &optional OTHER-WINDOW FILE-NAME)" t nil)
+
+(autoload 'dired-jump-other-window "dired" "\
+Like \\[dired-jump] (`dired-jump') but in other window.
+
+\(fn &optional FILE-NAME)" t nil)
+
 (register-definition-prefixes "dired" '("dired-"))
 
 ;;;***
@@ -8300,9 +8317,6 @@ BODY contains code to execute each time the mode is enabled or disabled.
   the minor mode is global):
 
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
-		Defaults to MODE without the possible trailing \"-mode\".
-		Don't use this default group name unless you have written a
-		`defgroup' to define that group properly.
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
 		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.
@@ -10028,7 +10042,7 @@ It creates an autoload function for CNAME's constructor.
 
 ;;;### (autoloads nil "eldoc" "emacs-lisp/eldoc.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/eldoc.el
-(push (purecopy '(eldoc 1 9 0)) package--builtin-versions)
+(push (purecopy '(eldoc 1 10 0)) package--builtin-versions)
 
 ;;;***
 
@@ -10292,7 +10306,7 @@ displayed." t nil)
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from eshell/em-unix.el
 
-(register-definition-prefixes "em-unix" '("eshell" "nil-blank-string" "pcomplete/"))
+(register-definition-prefixes "em-unix" '("eshell" "nil-blank-string"))
 
 ;;;***
 
@@ -10300,7 +10314,7 @@ displayed." t nil)
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from eshell/em-xtra.el
 
-(register-definition-prefixes "em-xtra" '("eshell/" "pcomplete/bcc"))
+(register-definition-prefixes "em-xtra" '("eshell/"))
 
 ;;;***
 
@@ -10349,7 +10363,15 @@ Already submitted bugs can be found in the Emacs bug tracker:
 
 (set-advertised-calling-convention 'report-emacs-bug '(topic) '"24.5")
 
-(register-definition-prefixes "emacsbug" '("report-emacs-bug-"))
+(autoload 'submit-emacs-patch "emacsbug" "\
+Send an Emacs patch to the Emacs maintainers.
+Interactively, you will be prompted for SUBJECT and a patch FILE
+name (which will be attached to the mail).  You will end up in a
+Message buffer where you can explain more about the patch.
+
+\(fn SUBJECT FILE)" t nil)
+
+(register-definition-prefixes "emacsbug" '("emacs-bug--system-description" "report-emacs-bug-"))
 
 ;;;***
 
@@ -11106,6 +11128,14 @@ Interactively select a server to connect to using `erc-server-alist'." t nil)
 
 ;;;***
 
+;;;### (autoloads "actual autoloads are elsewhere" "erc-status-sidebar"
+;;;;;;  "erc/erc-status-sidebar.el" (0 0 0 0))
+;;; Generated autoloads from erc/erc-status-sidebar.el
+
+(register-definition-prefixes "erc-status-sidebar" '("erc-status-sidebar-"))
+
+;;;***
+
 ;;;### (autoloads "actual autoloads are elsewhere" "erc-track" "erc/erc-track.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from erc/erc-track.el
@@ -11252,6 +11282,11 @@ Kill all test buffers that are still live." t nil)
 Emacs shell interactive mode.
 
 \(fn)" t nil)
+
+(autoload 'eshell-bookmark-jump "esh-mode" "\
+Default bookmark handler for Eshell buffers.
+
+\(fn BOOKMARK)" nil nil)
 
 (register-definition-prefixes "esh-mode" '("eshell"))
 
@@ -11599,7 +11634,7 @@ Do `query-replace-regexp' of FROM with TO on all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
-For non-interactive use, superceded by `fileloop-initialize-replace'.
+For non-interactive use, superseded by `fileloop-initialize-replace'.
 
 \(fn FROM TO &optional DELIMITED FILES)" t nil)
 
@@ -12817,6 +12852,9 @@ The command run (after changing into DIR) is essentially
 
 except that the car of the variable `find-ls-option' specifies what to
 use in place of \"-ls\" as the final argument.
+
+Collect output in the \"*Find*\" buffer.  To kill the job before
+it finishes, type \\[kill-find].
 
 \(fn DIR ARGS)" t nil)
 
@@ -14111,6 +14149,10 @@ instead (which see).")
 
 (autoload 'define-generic-mode "generic" "\
 Create a new generic mode MODE.
+
+A \"generic\" mode is a simple major mode with basic support for
+comment syntax and Font Lock mode, but otherwise does not have
+any special keystrokes or functionality available.
 
 MODE is the name of the command for the generic mode; don't quote it.
 The optional DOCSTRING is the documentation for the mode command.  If
@@ -17590,7 +17632,7 @@ The main features of this mode are
    \\[idlwave-info] to display (complain to your sysadmin if that does
    not work).  For Postscript, PDF, and HTML versions of the
    documentation, check IDLWAVE's homepage at URL
-   `http://github.com/jdtsmith/idlwave'.
+   `https://github.com/jdtsmith/idlwave'.
    IDLWAVE has customize support - see the group `idlwave'.
 
 10.Keybindings
@@ -21608,7 +21650,7 @@ upper atmosphere.  These cause momentary pockets of higher-pressure
 air to form, which act as lenses that deflect incoming cosmic rays,
 focusing them to strike the drive platter and flip the desired bit.
 You can type `M-x butterfly C-M-c' to run it.  This is a permuted
-variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'." t nil)
+variation of `C-x M-c M-butterfly' from url `https://xkcd.com/378/'." t nil)
 
 (autoload 'list-dynamic-libraries "misc" "\
 Display a list of all dynamic libraries known to Emacs.
@@ -22129,6 +22171,12 @@ different buffer menu using the function `msb'.
 
 ;;;### (autoloads nil "mspools" "mail/mspools.el" (0 0 0 0))
 ;;; Generated autoloads from mail/mspools.el
+
+(autoload 'mspools-show "mspools" "\
+Show the list of non-empty spool files in the *spools* buffer.
+Buffer is not displayed if SHOW is non-nil.
+
+\(fn &optional NOSHOW)" t nil)
 
 (register-definition-prefixes "mspools" '("mspools-"))
 
@@ -22848,7 +22896,7 @@ This command does not work if you use short group names." t nil)
 ;;;### (autoloads nil "nnir" "gnus/nnir.el" (0 0 0 0))
 ;;; Generated autoloads from gnus/nnir.el
 
-(register-definition-prefixes "nnir" '("gnus-" "nnir-"))
+(register-definition-prefixes "nnir" '("nnir-"))
 
 ;;;***
 
@@ -22924,6 +22972,13 @@ Generate NOV databases in all nnml directories.
 ;;; Generated autoloads from gnus/nnrss.el
 
 (register-definition-prefixes "nnrss" '("nnrss-"))
+
+;;;***
+
+;;;### (autoloads nil "nnselect" "gnus/nnselect.el" (0 0 0 0))
+;;; Generated autoloads from gnus/nnselect.el
+
+(register-definition-prefixes "nnselect" '("gnus-" "ids-by-group" "nnselect-" "numbers-by-group"))
 
 ;;;***
 
@@ -25502,7 +25557,12 @@ Completion rules for the `ssh' command." nil nil)
 Completion rules for the `scp' command.
 Includes files as well as host names followed by a colon." nil nil)
 
-(register-definition-prefixes "pcmpl-unix" '("pcmpl-"))
+(autoload 'pcomplete/telnet "pcmpl-unix" nil nil nil)
+
+(autoload 'pcomplete/rsh "pcmpl-unix" "\
+Complete `rsh', which, after the user and hostname, is like xargs." nil nil)
+
+(register-definition-prefixes "pcmpl-unix" '("pcmpl-" "pcomplete/"))
 
 ;;;***
 
@@ -25521,6 +25581,11 @@ long options." nil nil)
 
 (autoload 'pcomplete/ag "pcmpl-x" "\
 Completion for the `ag' command." nil nil)
+
+(autoload 'pcomplete/bcc32 "pcmpl-x" "\
+Completion function for Borland's C++ compiler." nil nil)
+
+(defalias 'pcomplete/bcc 'pcomplete/bcc32)
 
 (register-definition-prefixes "pcmpl-x" '("pcmpl-x-"))
 
@@ -26573,7 +26638,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 5 1)) package--builtin-versions)
+(push (purecopy '(project 0 5 2)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
@@ -26622,7 +26687,8 @@ Run project command, displaying resultant buffer in a new tab.
 The following commands are available:
 
 \\{project-prefix-map}" t nil)
- (define-key tab-prefix-map "p" #'project-other-tab-command)
+
+(when (bound-and-true-p tab-prefix-map) (define-key tab-prefix-map "p" #'project-other-tab-command))
 
 (autoload 'project-find-regexp "project" "\
 Find all matches for REGEXP in the current project's roots.
@@ -26742,7 +26808,7 @@ identical.  Only the buffers that match a condition in
 `project-kill-buffer-conditions' will be killed.  If NO-CONFIRM
 is non-nil, the command will not ask the user for confirmation.
 NO-CONFIRM is always nil when the command is invoked
-interactivly.
+interactively.
 
 \(fn &optional NO-CONFIRM)" t nil)
 
@@ -28249,6 +28315,8 @@ disabled.
 Reveal mode is a buffer-local minor mode.  When enabled, it
 reveals invisible text around point.
 
+Also see the `reveal-auto-hide' variable.
+
 \(fn &optional ARG)" t nil)
 
 (defvar global-reveal-mode nil "\
@@ -28873,7 +28941,7 @@ to use for finding the schema.
 ;;;### (autoloads nil "rng-xsd" "nxml/rng-xsd.el" (0 0 0 0))
 ;;; Generated autoloads from nxml/rng-xsd.el
 
-(put 'http://www\.w3\.org/2001/XMLSchema-datatypes 'rng-dt-compile #'rng-xsd-compile)
+(put 'https://www\.w3\.org/2001/XMLSchema-datatypes 'rng-dt-compile #'rng-xsd-compile)
 
 (autoload 'rng-xsd-compile "rng-xsd" "\
 Provide W3C XML Schema as a RELAX NG datatypes library.
@@ -30414,7 +30482,7 @@ and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.
 See also the function `select-message-coding-system'.")
 
-(defvar default-sendmail-coding-system 'iso-latin-1 "\
+(defvar default-sendmail-coding-system 'utf-8 "\
 Default coding system for encoding the outgoing mail.
 This variable is used only when `sendmail-coding-system' is nil.
 
@@ -31479,7 +31547,7 @@ Use \\[so-long-customize] to configure the behaviour.
 
 ;;;### (autoloads nil "soap-client" "net/soap-client.el" (0 0 0 0))
 ;;; Generated autoloads from net/soap-client.el
-(push (purecopy '(soap-client 3 1 5)) package--builtin-versions)
+(push (purecopy '(soap-client 3 2 0)) package--builtin-versions)
 
 (register-definition-prefixes "soap-client" '("soap-"))
 
@@ -32718,6 +32786,27 @@ Studlify-case the current buffer." t nil)
 ;;;### (autoloads nil "subr-x" "emacs-lisp/subr-x.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/subr-x.el
 
+(autoload 'if-let "subr-x" "\
+Bind variables according to SPEC and evaluate THEN or ELSE.
+Evaluate each binding in turn, as in `let*', stopping if a
+binding value is nil.  If all are non-nil return the value of
+THEN, otherwise the last form in ELSE.
+
+Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
+SYMBOL to the value of VALUEFORM.  An element can additionally be
+of the form (VALUEFORM), which is evaluated and checked for nil;
+i.e. SYMBOL can be omitted if only the test result is of
+interest.  It can also be of the form SYMBOL, then the binding of
+SYMBOL is checked for nil.
+
+As a special case, interprets a SPEC of the form (SYMBOL SOMETHING)
+like ((SYMBOL SOMETHING)).  This exists for backward compatibility
+with an old syntax that accepted only one binding.
+
+\(fn SPEC THEN &rest ELSE)" nil t)
+
+(function-put 'if-let 'lisp-indent-function '2)
+
 (autoload 'when-let "subr-x" "\
 Bind variables according to SPEC and conditionally evaluate BODY.
 Evaluate each binding in turn, stopping if a binding value is nil.
@@ -32734,7 +32823,7 @@ Truncate STRING to LENGTH, replacing initial surplus with \"...\".
 
 \(fn STRING LENGTH)" nil nil)
 
-(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let" "internal--" "replace-region-contents" "string-" "thread-" "when-let*"))
+(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "replace-region-contents" "string-" "thread-" "when-let*"))
 
 ;;;***
 
@@ -32880,7 +32969,7 @@ and `sc-post-hook' is run after the guts of this function." nil nil)
 
 ;;;### (autoloads nil "svg" "svg.el" (0 0 0 0))
 ;;; Generated autoloads from svg.el
-(push (purecopy '(svg 1 0)) package--builtin-versions)
+(push (purecopy '(svg 1 1)) package--builtin-versions)
 
 (register-definition-prefixes "svg" '("svg-"))
 
@@ -33383,7 +33472,7 @@ buffer, and leaves the previous contents of the buffer untouched.
 References used for this implementation:
 
 HTML:
-        URL `http://www.w3.org'
+        URL `https://www.w3.org'
 
 LaTeX:
         URL `http://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html'
@@ -34597,7 +34686,7 @@ runs the normal hook `display-time-hook' after each update.
 
 \(fn &optional ARG)" t nil)
 
-(defalias 'display-time-world #'world-clock)
+(define-obsolete-function-alias 'display-time-world #'world-clock "28.1")
 
 (autoload 'world-clock "time" "\
 Display a world clock buffer with times in various time zones.
@@ -34608,8 +34697,10 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
 Return a string giving the uptime of this instance of Emacs.
 FORMAT is a string to format the result, using `format-seconds'.
 For example, the Unix uptime command format is \"%D, %z%2h:%.2m\".
+If the optional argument HERE is non-nil, insert string at
+point.
 
-\(fn &optional FORMAT)" t nil)
+\(fn &optional FORMAT HERE)" t nil)
 
 (autoload 'emacs-init-time "time" "\
 Return a string giving the duration of the Emacs initialization." t nil)
@@ -38441,6 +38532,11 @@ See also `warning-series', `warning-prefix-function',
 `warning-fill-prefix', and `warning-fill-column' for additional
 programming features.
 
+This will also display buttons allowing the user to permanently
+disable automatic display of the warning or disable the warning
+entirely by setting `warning-suppress-types' or
+`warning-suppress-log-types' on their behalf.
+
 \(fn TYPE MESSAGE &optional LEVEL BUFFER-NAME)" nil nil)
 
 (autoload 'lwarn "warnings" "\
@@ -39601,16 +39697,16 @@ Zone out, completely." t nil)
 ;;;;;;  "erc/erc-notify.el" "erc/erc-page.el" "erc/erc-pcomplete.el"
 ;;;;;;  "erc/erc-replace.el" "erc/erc-ring.el" "erc/erc-services.el"
 ;;;;;;  "erc/erc-sound.el" "erc/erc-speedbar.el" "erc/erc-spelling.el"
-;;;;;;  "erc/erc-stamp.el" "erc/erc-track.el" "erc/erc-truncate.el"
-;;;;;;  "erc/erc-xdcc.el" "eshell/em-alias.el" "eshell/em-banner.el"
-;;;;;;  "eshell/em-basic.el" "eshell/em-cmpl.el" "eshell/em-dirs.el"
-;;;;;;  "eshell/em-glob.el" "eshell/em-hist.el" "eshell/em-ls.el"
-;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
-;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
-;;;;;;  "eshell/em-tramp.el" "eshell/em-unix.el" "eshell/em-xtra.el"
-;;;;;;  "facemenu.el" "faces.el" "files.el" "font-core.el" "font-lock.el"
-;;;;;;  "format.el" "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el"
-;;;;;;  "indent.el" "international/characters.el" "international/charprop.el"
+;;;;;;  "erc/erc-stamp.el" "erc/erc-status-sidebar.el" "erc/erc-track.el"
+;;;;;;  "erc/erc-truncate.el" "erc/erc-xdcc.el" "eshell/em-alias.el"
+;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
+;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
+;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
+;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
+;;;;;;  "eshell/em-xtra.el" "facemenu.el" "faces.el" "files.el" "font-core.el"
+;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charprop.el"
 ;;;;;;  "international/charscript.el" "international/cp51932.el"
 ;;;;;;  "international/eucjp-ms.el" "international/mule-cmds.el"
 ;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"

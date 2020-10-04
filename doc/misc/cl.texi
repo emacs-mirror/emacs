@@ -4818,7 +4818,7 @@ For example:
 @example
 (defun make-adder (n)
   (lexical-let ((n n))
-    (function (lambda (m) (+ n m)))))
+    (lambda (m) (+ n m))))
 (setq add17 (make-adder 17))
 (funcall add17 4)
      @result{} 21

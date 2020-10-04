@@ -524,9 +524,11 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
    comes first.
    Return the resulting buffer position and column in ENDPOS and GOALCOL.
    PREVCOL gets set to the column of the previous position (it's always
-   strictly smaller than the goal column).  */
+   strictly smaller than the goal column), and PREVPOS and PREVBPOS get set
+   to the corresponding buffer character and byte positions.  */
 static void
-scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
+scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
+		 ptrdiff_t *prevpos, ptrdiff_t *prevbpos, ptrdiff_t *prevcol)
 {
   int tab_width = SANE_TAB_WIDTH (current_buffer);
   bool ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
@@ -540,10 +542,12 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
   register ptrdiff_t col = 0, prev_col = 0;
   EMACS_INT goal = goalcol ? *goalcol : MOST_POSITIVE_FIXNUM;
   ptrdiff_t end = endpos ? *endpos : PT;
-  ptrdiff_t scan, scan_byte, next_boundary;
+  ptrdiff_t scan, scan_byte, next_boundary, prev_pos, prev_bpos;
 
   scan = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &scan_byte, 1);
   next_boundary = scan;
+  prev_pos = scan;
+  prev_bpos = scan_byte;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
@@ -576,6 +580,8 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
       if (col >= goal)
 	break;
       prev_col = col;
+      prev_pos = scan;
+      prev_bpos = scan_byte;
 
       { /* Check display property.  */
 	ptrdiff_t endp;
@@ -705,6 +711,10 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
     *goalcol = col;
   if (endpos)
     *endpos = scan;
+  if (prevpos)
+    *prevpos = prev_pos;
+  if (prevbpos)
+    *prevbpos = prev_bpos;
   if (prevcol)
     *prevcol = prev_col;
 }
@@ -720,7 +730,7 @@ current_column_1 (void)
   EMACS_INT col = MOST_POSITIVE_FIXNUM;
   ptrdiff_t opoint = PT;
 
-  scan_for_column (&opoint, &col, NULL);
+  scan_for_column (&opoint, &col, NULL, NULL, NULL);
   return col;
 }
 
@@ -988,7 +998,7 @@ to reach COLUMN, add spaces/tabs to get there.
 The return value is the current column.  */)
   (Lisp_Object column, Lisp_Object force)
 {
-  ptrdiff_t pos, prev_col;
+  ptrdiff_t pos, prev_pos, prev_bpos, prev_col;
   EMACS_INT col;
   EMACS_INT goal;
 
@@ -997,7 +1007,7 @@ The return value is the current column.  */)
 
   col = goal;
   pos = ZV;
-  scan_for_column (&pos, &col, &prev_col);
+  scan_for_column (&pos, &col, &prev_pos, &prev_bpos, &prev_col);
 
   SET_PT (pos);
 
@@ -1006,18 +1016,16 @@ The return value is the current column.  */)
   if (!NILP (force) && col > goal)
     {
       int c;
-      ptrdiff_t pos_byte = PT_BYTE;
 
-      pos_byte -= prev_char_len (pos_byte);
-      c = FETCH_CHAR (pos_byte);
-      if (c == '\t' && prev_col < goal)
+      c = FETCH_CHAR (prev_bpos);
+      if (c == '\t' && prev_col < goal && prev_bpos < PT_BYTE)
 	{
 	  ptrdiff_t goal_pt, goal_pt_byte;
 
 	  /* Insert spaces in front of the tab to reach GOAL.  Do this
 	     first so that a marker at the end of the tab gets
 	     adjusted.  */
-	  SET_PT_BOTH (PT - 1, PT_BYTE - 1);
+	  SET_PT_BOTH (prev_pos, prev_bpos);
 	  Finsert_char (make_fixnum (' '), make_fixnum (goal - prev_col), Qt);
 
 	  /* Now delete the tab, and indent to COL.  */

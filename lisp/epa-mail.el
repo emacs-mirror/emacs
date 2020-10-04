@@ -49,6 +49,13 @@
 (defvar epa-mail-mode-on-hook nil)
 (defvar epa-mail-mode-off-hook nil)
 
+(defcustom epa-mail-offer-skip t
+  "If non-nil, when a recipient has no key, ask whether to skip it.
+Otherwise, signal an error."
+  :type 'boolean
+  :version "28.1"
+  :group 'epa-mail)
+
 ;;;###autoload
 (define-minor-mode epa-mail-mode
   "A minor-mode for composing encrypted/clearsigned mails."
@@ -218,10 +225,12 @@ If no one is selected, symmetric encryption will be performed.  "
 				  recipient))
 			       'encrypt)))
 			 (unless (or recipient-key
-				     (y-or-n-p
-				      (format
-				       "No public key for %s; skip it? "
-				       recipient)))
+                                     (and epa-mail-offer-skip
+				          (y-or-n-p
+                                           (format
+                                            "No public key for %s; skip it? "
+                                            recipient)))
+                                     )
 			   (error "No public key for %s" recipient))
 			 (if recipient-key (list recipient-key))))
 		       default-recipients)))))

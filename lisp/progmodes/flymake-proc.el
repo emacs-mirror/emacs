@@ -37,7 +37,7 @@
 ;;; Bugs/todo:
 
 ;; - Only uses "Makefile", not "makefile" or "GNUmakefile"
-;;   (from http://bugs.debian.org/337339).
+;;   (from https://bugs.debian.org/337339).
 
 ;;; Code:
 

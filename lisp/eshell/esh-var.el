@@ -463,8 +463,8 @@ Possible options are:
                    (eshell-as-subcommand ,(eshell-parse-command cmd))
                    (ignore
                     (nconc eshell-this-command-hook
-                           (list (function (lambda ()
-                                              (delete-file ,temp))))))
+                           (list (lambda ()
+                                   (delete-file ,temp)))))
                    (quote ,temp)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()

@@ -324,7 +324,7 @@
 
 	* mh-customize.el (mh-show-pgg-good-face)
 	(mh-show-pgg-unknown-face, mh-show-pgg-bad-face): Faces added to
-	highlight buttons introduced for encrpted or signed MIME parts.
+	highlight buttons introduced for encrypted or signed MIME parts.
 
 2005-03-19  Bill Wohler  <wohler@newt.com>
 
@@ -428,7 +428,7 @@
 2004-11-28  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-comp.el (mh-complete-word): Kill the *Completions* buffer in
-	any cases where we belive we are done with it.  Not perfect, but
+	any cases where we believe we are done with it.  Not perfect, but
 	better than just leaving it around.
 
 2004-11-08  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -818,7 +818,7 @@
 
 	* Makefile:
 	(mh-e-autoloads.el): Add target to make `mh-e-autoloads.el', a
-	file containg usual entry commands into MH-E to be used for users
+	file containing usual entry commands into MH-E to be used for users
 	installing MH-E separately from Emacs.
 	(XEMACS_LOADDEFS_FILE): New.  Used to generate mh-loaddefs.el
 	in XEmacs.
@@ -1201,7 +1201,7 @@
 
 2003-11-01  Peter S Galbraith  <psg@debian.org>
 
-	* Makefile: Add target to make `mh-startup.el', a file containg
+	* Makefile: Add target to make `mh-startup.el', a file containing
 	usual entry commands into MH-E to be used for users installing
 	MH-E separately from Emacs.
 
@@ -1914,7 +1914,7 @@
 2003-08-18  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-letter-mode): Call `mh-find-path unconditionally,
-	like elsewehere in MH-E.
+	like elsewhere in MH-E.
 
 	* mh-utils.el (mh-find-path): Run setup code only if
 	`mh-find-path-run' is nil such that this is only done once.
@@ -2588,7 +2588,7 @@
 2003-07-24  Satyaki Das  <satyakid@stanford.edu>
 
 	* mh-e.el (mh-folder-message-menu, mh-folder-folder-menu): Use the
-	predicate mh-outstanding-commands-p instead of its exapansion.
+	predicate mh-outstanding-commands-p instead of its expansion.
 	Also use the same label in both menus.
 	(mh-outstanding-commands-p): Generalized so that it will work in
 	mh-show-mode buffers as well.
@@ -3915,7 +3915,7 @@
 2003-04-22  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-utils.el (mh-normalize-folder-name): Make the completion
-	code work properly with XEmacs. This change is neeeded since
+	code work properly with XEmacs. This change is needed since
 	split-string behaves differently in XEmacs than it does in GNU
 	Emacs.
 	(mh-exec-cmd-error): Add a comment, so that we change it later on.
@@ -7391,7 +7391,7 @@
 	numbers.
 	(mh-cmd-note): Mention mh-set-cmd-note in docstring. Also suggest
 	that it is updated dynamically only if mh-scan-format-file is t.
-	(mh-set-cmd-note): Grammer fix in docstring.
+	(mh-set-cmd-note): Grammar fix in docstring.
 	(mh-cmd-note): Noted that the first column is column number 0.
 
 	* mh-e.el (mh-scan-format-file): Added information about
@@ -7696,7 +7696,7 @@
 
 	* mh-identity.el: New file.  Multiple Identify support for MH-E.
 	Used to easily set different fields such as From and Organization,
-	as well as diffrent signature files.  This file won't be included
+	as well as different signature files.  This file won't be included
 	with V7.0.
 
 2002-11-02  Bill Wohler  <wohler@newt.com>
@@ -9458,10 +9458,10 @@
 
 2002-07-15  Mark D. Baushke  <mdb@gnu.org>
 
-	* mh-utils.el (mm-decode): Use load for the Non-fatal depencency
+	* mh-utils.el (mm-decode): Use load for the Non-fatal dependency
 	on the mm-decode library.
 	* mh-mime.el (mm-decode, mm-uu, mm-view): Use load for the
-	Non-fatal depencencies on the mm-decode, mm-uu and mm-view
+	Non-fatal dependencies on the mm-decode, mm-uu and mm-view
 	libraries.
 
 2002-07-15  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -11356,7 +11356,7 @@
 	4 was silly for my case.
 	* mh-e.el (mh-update-sequences): Check for nil value of
 	mh-current-folder, which happens if mh-summary-height < 4
-	although I haven't tracked doen why that happens.
+	although I haven't tracked down why that happens.
 
 2001-10-22  Peter S Galbraith  <psg@debian.org>
 

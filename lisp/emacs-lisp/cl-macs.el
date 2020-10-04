@@ -2999,7 +2999,7 @@ Supported keywords for slots are:
               constrs))
     (pcase-dolist (`(,cname ,args ,doc) constrs)
       (let* ((anames (cl--arglist-args args))
-	     (make (cl-mapcar (function (lambda (s d) (if (memq s anames) s d)))
+             (make (cl-mapcar (lambda (s d) (if (memq s anames) s d))
 			      slots defaults))
 	     ;; `cl-defsubst' is fundamentally broken: it substitutes
              ;; its arguments into the body's `sexp' much too naively

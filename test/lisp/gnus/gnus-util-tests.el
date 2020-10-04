@@ -151,8 +151,10 @@
   (should (equal "Zg==" (gnus-base64-repad "Zg")))
   (should (equal "Zg==" (gnus-base64-repad "Zg====")))
 
-  (should (equal (gnus-base64-repad " ") ""))
-  (should (equal (gnus-base64-repad "Zg== ") "Zg=="))
+  (should-error (gnus-base64-repad " ")
+                :type 'error)
+  (should-error (gnus-base64-repad "Zg== ")
+                :type 'error)
   (should-error (gnus-base64-repad "Z?\x00g==")
                 :type 'error)
   ;; line-length
@@ -162,9 +164,10 @@
   (should-error (gnus-base64-repad "Zm9v\r\nYmFy" t)
                 :type 'error)
   (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9vYmFy" t)))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy" nil)))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy\n" nil)))
-  (should (equal (gnus-base64-repad "Zm9v\r\n YmFy\r\n" nil) "Zm9vYmFy"))
+  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy")))
+  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy\n")))
+  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\n YmFy\r\n")))
+  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v \r\n\tYmFy")))
   (should-error (gnus-base64-repad "Zm9v\r\nYmFy" nil 3)
                 :type 'error))
 

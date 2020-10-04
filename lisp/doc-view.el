@@ -24,8 +24,8 @@
 
 ;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
 ;; `dvipdf' (comes with Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive)
-;; and `pdftotext', which comes with xpdf (http://www.foolabs.com/xpdf/) or
-;; poppler (http://poppler.freedesktop.org/).
+;; and `pdftotext', which comes with xpdf (https://www.foolabs.com/xpdf/) or
+;; poppler (https://poppler.freedesktop.org/).
 
 ;;; Commentary:
 
@@ -514,7 +514,7 @@ Typically \"page-%s.png\".")
     ;; Toggle between text and image display or editing
     (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
     map)
-  "Keymap used by `doc-minor-view-mode'.")
+  "Keymap used by `doc-view-minor-mode'.")
 
 ;;;; Navigation Commands
 

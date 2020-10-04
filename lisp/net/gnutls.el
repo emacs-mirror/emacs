@@ -348,8 +348,11 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                             (t nil))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits)))
 
-    (when verify-hostname-error
-      (push :hostname verify-error))
+    ;; Only add :hostname if `verify-error' is not t, since t
+    ;; means "include :hostname" Bug#38602.
+    (and verify-hostname-error
+         (not (eq verify-error t))
+         (push :hostname verify-error))
 
     `(:priority ,priority-string
                 :hostname ,hostname

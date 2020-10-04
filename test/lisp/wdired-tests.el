@@ -178,6 +178,22 @@ wdired-get-filename before and after editing."
       (server-force-delete)
       (delete-directory test-dir t))))
 
+(ert-deftest wdired-test-bug39280 ()
+  "Test for https://debbugs.gnu.org/39280."
+  (let* ((test-dir (make-temp-file "test-dir" 'dir))
+         (fname "foo")
+         (full-fname (expand-file-name fname test-dir)))
+    (make-empty-file full-fname)
+    (let ((buf (find-file-noselect test-dir)))
+      (unwind-protect
+	  (with-current-buffer buf
+	    (dired-toggle-read-only)
+            (dolist (old '(t nil))
+              (should (equal fname (wdired-get-filename 'nodir old)))
+              (should (equal full-fname (wdired-get-filename nil old))))
+	    (wdired-finish-edit))
+	(if buf (kill-buffer buf))
+	(delete-directory test-dir t)))))
 
 (provide 'wdired-tests)
 ;;; wdired-tests.el ends here

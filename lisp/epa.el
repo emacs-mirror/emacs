@@ -435,33 +435,34 @@ q  trust status questionable.  -  trust status unspecified.
   (unless (and epa-keys-buffer
                (buffer-live-p epa-keys-buffer))
     (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
-  (with-current-buffer epa-keys-buffer
-    (epa-key-list-mode)
-    ;; C-c C-c is the usual way to finish the selection (bug#11159).
-    (define-key (current-local-map) "\C-c\C-c" 'exit-recursive-edit)
-    (let ((inhibit-read-only t)
-	  buffer-read-only)
-      (erase-buffer)
-      (insert prompt "\n"
-	      (substitute-command-keys "\
+  (save-window-excursion
+    (with-current-buffer epa-keys-buffer
+      (epa-key-list-mode)
+      ;; C-c C-c is the usual way to finish the selection (bug#11159).
+      (define-key (current-local-map) "\C-c\C-c" 'exit-recursive-edit)
+      (let ((inhibit-read-only t)
+	    buffer-read-only)
+        (erase-buffer)
+        (insert prompt "\n"
+	        (substitute-command-keys "\
 - `\\[epa-mark-key]' to mark a key on the line
 - `\\[epa-unmark-key]' to unmark a key on the line\n"))
-      (insert-button "[Cancel]"
-                     'action (lambda (_button) (abort-recursive-edit)))
-      (insert " ")
-      (insert-button "[OK]"
-                     'action (lambda (_button) (exit-recursive-edit)))
-      (insert "\n\n")
-      (epa--insert-keys keys)
-      (setq epa-exit-buffer-function #'abort-recursive-edit)
-      (goto-char (point-min))
-      (let ((display-buffer-mark-dedicated 'soft))
-        (pop-to-buffer (current-buffer))))
-    (unwind-protect
-	(progn
-	  (recursive-edit)
-	  (epa--marked-keys))
-      (kill-buffer epa-keys-buffer))))
+        (insert-button "[Cancel]"
+                       'action (lambda (_button) (abort-recursive-edit)))
+        (insert " ")
+        (insert-button "[OK]"
+                       'action (lambda (_button) (exit-recursive-edit)))
+        (insert "\n\n")
+        (epa--insert-keys keys)
+        (setq epa-exit-buffer-function #'abort-recursive-edit)
+        (goto-char (point-min))
+        (let ((display-buffer-mark-dedicated 'soft))
+          (pop-to-buffer (current-buffer))))
+      (unwind-protect
+	  (progn
+	    (recursive-edit)
+	    (epa--marked-keys))
+        (kill-buffer epa-keys-buffer)))))
 
 ;;;###autoload
 (defun epa-select-keys (context prompt &optional names secret)

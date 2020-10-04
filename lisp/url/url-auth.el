@@ -39,7 +39,7 @@
 ;;; ------------------------
 ;;; This implements the BASIC authorization type.  See the online
 ;;; documentation at
-;;; http://www.w3.org/hypertext/WWW/AccessAuthorization/Basic.html
+;;; https://www.w3.org/hypertext/WWW/AccessAuthorization/Basic.html
 ;;; for the complete documentation on this type.
 ;;;
 ;;; This is very insecure, but it works as a proof-of-concept

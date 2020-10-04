@@ -947,7 +947,7 @@
 	(c_string_pos, number_of_chars, message_dolog):
 	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
 	(display_mode_element, display_string):
-	Switch between char * and unsigned char * to stay compatible wth
+	Switch between char * and unsigned char * to stay compatible with
 	C89 pointer rules.
 
 	* regex.c: Conform to C89 pointer rules.
@@ -9492,7 +9492,7 @@
 	* coding.c (decode_coding_ccl): Fix previous change for the
 	multibyte case.
 	(encode_coding_ccl): Don't setup ccl program here.  Fix for the
-	case that the output buffer is fullfilled.
+	case that the output buffer is fulfilled.
 	(encode_coding): Setup ccl program here.
 
 2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -9772,10 +9772,10 @@
 2010-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_ccl): Don't setup ccl program here.
-	Fix for the case that the output buffer is fullfilled.
+	Fix for the case that the output buffer is fulfilled.
 	(decode_coding): Setup ccl program here.  Keep looping when the
 	decoder stopped because the output buffer is
-	fullfilled (bug#5534).
+	fulfilled (bug#5534).
 
 	* ccl.c (ccl_driver): Never reset ic to CCL_HEADER_MAIN.
 
@@ -23923,7 +23923,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* alloc.c (NSTATICS): Increas to 0x600.
+	* alloc.c (NSTATICS): Increase to 0x600.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -25309,12 +25309,12 @@
 
 	* coding.c (enum iso_code_class_type): Delete ISO_carriage_return.
 	(CODING_GET_INFO): Delete argument eol_type.  Change callers.
-	(decode_coding_utf_8): Don't do eol converion.
+	(decode_coding_utf_8): Don't do eol conversion.
 	(detect_coding_utf_16): Check coding->src_chars, not
 	coding->src_bytes.  Add heuristics for those that have no signature.
 	(decode_coding_emacs_mule, decode_coding_iso_2022)
 	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
-	Don't do eol converion.
+	Don't do eol conversion.
 	(adjust_coding_eol_type): Return a new coding system.
 	(detect_coding): Don't detect eol.  Fix for utf-16 detection.
 	(decode_eol): In case of CRLF->LF conversion, use del_range_2 on
@@ -25952,7 +25952,7 @@
 	(font_list): The argument REGISTRY is now a list of registry names.
 	(choose_face_font): If we are choosing an ASCII font, and ATTRS
 	specifies an explicit font name, return the name as is.  Make a
-	list of registy names.
+	list of registry names.
 
 	* xfns.c (x_set_font, x_create_tip_frame): Adjust for the change
 	of x_new_fontset.
@@ -26647,7 +26647,7 @@
 	(fontset_set): Delete.
 	(fontset_face): New arg FACE.  Return face ID, not face.
 	Complete re-write to handle new fontset structure.  Change caller.
-	(free_face_fontset): Use ASET istead of AREF (X) = Y.
+	(free_face_fontset): Use ASET instead of AREF (X) = Y.
 	(face_for_char): Don't call lookup_face.
 	(make_fontset_for_ascii_face): New arg FACE.
 	(fs_load_font): New arg CHARSET_ID.  Don't check
@@ -31141,7 +31141,7 @@
 	* term.c (term_mouse_highlight): Remove unused variables.
 	(Fterm_open_connection): Set gpm_zerobased to 1.
 	(term_mouse_movement, term_mouse_click, handle_one_term_event):
-	Use zero based co-ordinates.
+	Use zero based coordinates.
 	(handle_one_term_event): Report a drag as mouse movement too.
 
 	* Makefile.in (MOUSE_SUPPORT): Define for HAVE_GPM.

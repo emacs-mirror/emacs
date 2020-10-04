@@ -960,7 +960,7 @@ unquoted file names."
           (let ((linkname (expand-file-name "link" nospecial-dir)))
             (should-error (make-symbolic-link tmpfile linkname))))))))
 
-;; See `files-tests--file-name-non-special--subprocess'.
+;; See `files-tests-file-name-non-special--subprocess'.
 ;; (ert-deftest files-tests-file-name-non-special-process-file ())
 
 (ert-deftest files-tests-file-name-non-special-rename-file ()
@@ -1104,7 +1104,7 @@ unquoted file names."
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (vc-registered nospecial) (vc-registered tmpfile)))))
 
-;; See test `files-tests--file-name-non-special--buffers'.
+;; See test `files-tests-file-name-non-special--buffers'.
 ;; (ert-deftest files-tests-file-name-non-special-verify-visited-file-modtime ())
 
 (ert-deftest files-tests-file-name-non-special-write-region ()

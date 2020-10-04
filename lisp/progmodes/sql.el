@@ -2808,8 +2808,8 @@ See `sql-product-alist' for a list of products and supported features."
 
 The KEYWORDS-ONLY flag is passed to font-lock to specify whether
 only keywords should be highlighted and syntactic highlighting
-skipped.  The IMENU flag indicates whether `imenu-mode' should
-also be configured."
+skipped.  The IMENU flag indicates whether `imenu' should also be
+configured."
 
   (let
       ;; Get the product-specific syntax-alist.
@@ -4293,14 +4293,14 @@ Here is an example for your init file.  It keeps the SQLi buffer a
 certain length.
 
 \(add-hook \\='sql-interactive-mode-hook
-    (function (lambda ()
-        (setq comint-output-filter-functions #\\='comint-truncate-buffer))))
+    (lambda ()
+        (setq comint-output-filter-functions #\\='comint-truncate-buffer)))
 
 Here is another example.  It will always put point back to the statement
 you entered, right above the output it created.
 
 \(setq comint-output-filter-functions
-       (function (lambda (STR) (comint-show-output))))"
+       (lambda (STR) (comint-show-output)))"
   :syntax-table sql-mode-syntax-table
   ;; FIXME: The doc above uses `setq' on `comint-output-filter-functions',
   ;; whereas hooks should be manipulated with things like `add/remove-hook'.

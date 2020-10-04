@@ -256,13 +256,12 @@ expression, in which case we want to handle forms differently."
 ;; the doc-string in FORM.
 ;; Those properties are now set in lisp-mode.el.
 
-(defun autoload-find-generated-file ()
+(defun autoload-find-generated-file (file)
   "Visit the autoload file for the current buffer, and return its buffer."
   (let ((enable-local-variables :safe)
         (enable-local-eval nil)
         (find-file-hook nil)
-        (delay-mode-hooks t)
-        (file (autoload-generated-file)))
+        (delay-mode-hooks t))
     ;; We used to use `raw-text' to read this file, but this causes
     ;; problems when the file contains non-ASCII characters.
     (with-current-buffer (find-file-noselect
@@ -270,17 +269,19 @@ expression, in which case we want to handle forms differently."
       (if (zerop (buffer-size)) (insert (autoload-rubric file nil t)))
       (current-buffer))))
 
-(defun autoload-generated-file ()
-  "Return `generated-autoload-file' as an absolute name.
-If local to the current buffer, expand using the default directory;
-otherwise, using `source-directory'/lisp."
-  (expand-file-name generated-autoload-file
+(defun autoload-generated-file (outfile)
+  "Return OUTFILE as an absolute name.
+If `generated-autoload-file' is bound locally in the current
+buffer, that is used instead, and it is expanded using the
+default directory; otherwise, `source-directory'/lisp is used."
+  (expand-file-name (if (local-variable-p 'generated-autoload-file)
+                        generated-autoload-file
+                      outfile)
                     ;; File-local settings of generated-autoload-file should
                     ;; be interpreted relative to the file's location,
                     ;; of course.
                     (if (not (local-variable-p 'generated-autoload-file))
                         (expand-file-name "lisp" source-directory))))
-
 
 (defun autoload-read-section-header ()
   "Read a section header form.
@@ -456,13 +457,12 @@ which lists the file name and which functions are in it, etc."
 (defvar no-update-autoloads nil
   "File local variable to prevent scanning this file for autoload cookies.")
 
-(defun autoload-file-load-name (file)
+(defun autoload-file-load-name (file outfile)
   "Compute the name that will be used to load FILE."
   ;; OUTFILE should be the name of the global loaddefs.el file, which
   ;; is expected to be at the root directory of the files we're
   ;; scanning for autoloads and will be in the `load-path'.
-  (let* ((outfile (default-value 'generated-autoload-file))
-         (name (file-relative-name file (file-name-directory outfile)))
+  (let* ((name (file-relative-name file (file-name-directory outfile)))
          (names '())
          (dir (file-name-directory outfile)))
     ;; If `name' has directory components, only keep the
@@ -492,8 +492,9 @@ If FILE is being visited in a buffer, the contents of the buffer
 are used.
 Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
-  (let ((generated-autoload-file buffer-file-name))
-    (autoload-generate-file-autoloads file (current-buffer))))
+  (let ((autoload-modified-buffers nil))
+    (autoload-generate-file-autoloads file (current-buffer) buffer-file-name)
+    autoload-modified-buffers))
 
 (defvar autoload-compute-prefixes t
   "If non-nil, autoload will add code to register the prefixes used in a file.
@@ -610,7 +611,7 @@ Don't try to split prefixes that are already longer than that.")
         `(register-definition-prefixes ,file ',(sort (delq nil strings)
 						     'string<))))))
 
-(defun autoload--setup-output (otherbuf outbuf absfile load-name)
+(defun autoload--setup-output (otherbuf outbuf absfile load-name output-file)
   (let ((outbuf
          (or (if otherbuf
                  ;; A file-local setting of
@@ -618,7 +619,7 @@ Don't try to split prefixes that are already longer than that.")
                  ;; should ignore OUTBUF.
                  nil
                outbuf)
-             (autoload-find-destination absfile load-name)
+             (autoload-find-destination absfile load-name output-file)
              ;; The file has autoload cookies, but they're
              ;; already up-to-date. If OUTFILE is nil, the
              ;; entries are in the expected OUTBUF,
@@ -675,23 +676,16 @@ Don't try to split prefixes that are already longer than that.")
 More specifically those definitions will not be considered for the
 `register-definition-prefixes' call.")
 
-;; When called from `generate-file-autoloads' we should ignore
-;; `generated-autoload-file' altogether.  When called from
-;; `update-file-autoloads' we don't know `outbuf'.  And when called from
-;; `update-directory-autoloads' it's in between: we know the default
-;; `outbuf' but we should obey any file-local setting of
-;; `generated-autoload-file'.
 (defun autoload-generate-file-autoloads (file &optional outbuf outfile)
   "Insert an autoload section for FILE in the appropriate buffer.
 Autoloads are generated for defuns and defmacros in FILE
 marked by `generate-autoload-cookie' (which see).
+
 If FILE is being visited in a buffer, the contents of the buffer are used.
 OUTBUF is the buffer in which the autoload statements should be inserted.
-If OUTBUF is nil, it will be determined by `autoload-generated-file'.
 
-If provided, OUTFILE is expected to be the file name of OUTBUF.
-If OUTFILE is non-nil and FILE specifies a `generated-autoload-file'
-different from OUTFILE, then OUTBUF is ignored.
+If OUTBUF is nil, the output will go to OUTFILE, unless there's a
+buffer-local setting of `generated-autoload-file' in FILE.
 
 Return non-nil if and only if FILE adds no autoloads to OUTFILE
 \(or OUTBUF if OUTFILE is nil).  The actual return value is
@@ -719,16 +713,19 @@ FILE's modification time."
                   (setq load-name
                         (if (stringp generated-autoload-load-name)
                             generated-autoload-load-name
-                          (autoload-file-load-name absfile)))
+                          (autoload-file-load-name absfile outfile)))
                   ;; FIXME? Comparing file-names for equality with just equal
                   ;; is fragile, eg if one has an automounter prefix and one
                   ;; does not, but both refer to the same physical file.
                   (when (and outfile
+                             (not outbuf)
                              (not
                               (if (memq system-type '(ms-dos windows-nt))
                                   (equal (downcase outfile)
-                                         (downcase (autoload-generated-file)))
-                                (equal outfile (autoload-generated-file)))))
+                                         (downcase (autoload-generated-file
+                                                    outfile)))
+                                (equal outfile (autoload-generated-file
+                                                outfile)))))
                     (setq otherbuf t))
                   (save-excursion
                     (save-restriction
@@ -742,7 +739,8 @@ FILE's modification time."
                                                  (file-name-sans-extension
                                                   (file-name-nondirectory file))))
                                (setq output-start (autoload--setup-output
-                                                   otherbuf outbuf absfile load-name))
+                                                   otherbuf outbuf absfile
+                                                   load-name outfile))
                                (let ((standard-output (marker-buffer output-start))
                                      (print-quoted t))
                                  (princ `(push (purecopy
@@ -760,7 +758,8 @@ FILE's modification time."
                             ;; If not done yet, figure out where to insert this text.
                             (unless output-start
                               (setq output-start (autoload--setup-output
-                                                  otherbuf outbuf absfile load-name)))
+                                                  otherbuf outbuf absfile
+                                                  load-name outfile)))
                             (autoload--print-cookie-text output-start load-name file))
                            ((= (following-char) ?\;)
                             ;; Don't read the comment.
@@ -791,7 +790,7 @@ FILE's modification time."
                ((not otherbuf)
                 (unless output-start
                   (setq output-start (autoload--setup-output
-                                      nil outbuf absfile load-name)))
+                                      nil outbuf absfile load-name outfile)))
                 (let ((autoload-print-form-outbuf
                        (marker-buffer output-start)))
                   (autoload-print-form form)))
@@ -803,9 +802,8 @@ FILE's modification time."
                         ;; then passing otherbuf=nil is enough, but if
                         ;; outbuf is nil, that won't cut it, so we
                         ;; locally bind generated-autoload-file.
-                        (let ((generated-autoload-file
-                               (default-value 'generated-autoload-file)))
-                          (autoload--setup-output nil outbuf absfile load-name)))
+                        (autoload--setup-output nil outbuf absfile load-name
+                                                outfile))
                        (autoload-print-form-outbuf
                         (marker-buffer other-output-start)))
                   (autoload-print-form form)
@@ -927,19 +925,23 @@ Return FILE if there was no autoload cookie in it, else nil."
   (interactive (list (read-file-name "Update autoloads for file: ")
 		     current-prefix-arg
 		     (read-file-name "Write autoload definitions to file: ")))
-  (let* ((generated-autoload-file (or outfile generated-autoload-file))
-	 (autoload-modified-buffers nil)
+  (setq outfile (or outfile generated-autoload-file))
+  (let* ((autoload-modified-buffers nil)
 	 ;; We need this only if the output file handles more than one input.
 	 ;; See https://debbugs.gnu.org/22213#38 and subsequent.
 	 (autoload-timestamps t)
-         (no-autoloads (autoload-generate-file-autoloads file)))
+         (no-autoloads (autoload-generate-file-autoloads
+                        file nil
+                        (if (local-variable-p 'generated-autoload-file)
+                            generated-autoload-file
+                          outfile))))
     (if autoload-modified-buffers
         (if save-after (autoload-save-buffers))
       (if (called-interactively-p 'interactive)
           (message "Autoload section for %s is up to date." file)))
     (if no-autoloads file)))
 
-(defun autoload-find-destination (file load-name)
+(defun autoload-find-destination (file load-name output-file)
   "Find the destination point of the current buffer's autoloads.
 FILE is the file name of the current buffer.
 LOAD-NAME is the name as it appears in the output.
@@ -949,12 +951,12 @@ removes any prior now out-of-date autoload entries."
   (catch 'up-to-date
     (let* ((buf (current-buffer))
            (existing-buffer (if buffer-file-name buf))
-           (output-file (autoload-generated-file))
+           (output-file (autoload-generated-file output-file))
            (output-time (if (file-exists-p output-file)
                             (file-attribute-modification-time
 			     (file-attributes output-file))))
            (found nil))
-      (with-current-buffer (autoload-find-generated-file)
+      (with-current-buffer (autoload-find-generated-file output-file)
         ;; This is to make generated-autoload-file have Unix EOLs, so
         ;; that it is portable to all platforms.
         (or (eq 0 (coding-system-eol-type buffer-file-coding-system))
@@ -1035,12 +1037,31 @@ The function does NOT recursively descend into subdirectories of the
 directory or directories specified.
 
 In an interactive call, prompt for a default output file for the
-autoload definitions, and temporarily bind the variable
-`generated-autoload-file' to this value.  When called from Lisp,
-use the existing value of `generated-autoload-file'.  If any Lisp
-file binds `generated-autoload-file' as a file-local variable,
-write its autoloads into the specified file instead."
+autoload definitions.  When called from Lisp, use the existing
+value of `generated-autoload-file'.  If any Lisp file binds
+`generated-autoload-file' as a file-local variable, write its
+autoloads into the specified file instead."
+  (declare (obsolete make-directory-autoloads "28.1"))
   (interactive "DUpdate autoloads from directory: ")
+  (make-directory-autoloads
+   dirs
+   (if (called-interactively-p 'interactive)
+       (read-file-name "Write autoload definitions to file: ")
+     generated-autoload-file)))
+
+;;;###autoload
+(defun make-directory-autoloads (dir output-file)
+  "Update autoload definitions for Lisp files in the directories DIRS.
+DIR can be either a single directory or a list of
+directories.  (The latter usage is discouraged.)
+
+The autoloads will be written to OUTPUT-FILE.  If any Lisp file
+binds `generated-autoload-file' as a file-local variable, write
+its autoloads into the specified file instead.
+
+The function does NOT recursively descend into subdirectories of the
+directory or directories specified."
+  (interactive "DUpdate autoloads from directory: \nFWrite to file: ")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes))
                        ;; We don't use module-file-suffix below because
@@ -1051,10 +1072,10 @@ write its autoloads into the specified file instead."
                          (push suf tmp)))
                      (concat "\\`[^=.].*" (regexp-opt tmp t) "\\'")))
 	 (files (apply #'nconc
-		       (mapcar (lambda (dir)
-				 (directory-files (expand-file-name dir)
-						  t files-re))
-			       dirs)))
+		       (mapcar (lambda (d)
+				 (directory-files (expand-file-name d)
+                                                  t files-re))
+			       (if (consp dir) dir (list dir)))))
          (done ())                      ;Files processed; to remove duplicates.
          (changed nil)                  ;Non-nil if some change occurred.
 	 (last-time)
@@ -1062,16 +1083,12 @@ write its autoloads into the specified file instead."
          ;; files because of file-local autoload-generated-file settings.
 	 (no-autoloads nil)
          (autoload-modified-buffers nil)
-	 (generated-autoload-file
-	  (if (called-interactively-p 'interactive)
-	      (read-file-name "Write autoload definitions to file: ")
-	    generated-autoload-file))
 	 (output-time
-	  (if (file-exists-p generated-autoload-file)
-	      (file-attribute-modification-time
-	       (file-attributes generated-autoload-file)))))
+	  (and (file-exists-p output-file)
+	       (file-attribute-modification-time
+                (file-attributes output-file)))))
 
-    (with-current-buffer (autoload-find-generated-file)
+    (with-current-buffer (autoload-find-generated-file output-file)
       (save-excursion
 	;; Canonicalize file names and remove the autoload file itself.
 	(setq files (delete (file-relative-name buffer-file-name)
@@ -1128,8 +1145,7 @@ write its autoloads into the specified file instead."
             (progress (make-progress-reporter
                        (byte-compile-info
                         (concat "Scraping files for "
-                                (file-relative-name
-                                 generated-autoload-file)))
+                                (file-relative-name output-file)))
                        0 (length files) nil 10))
             (file-count 0)
             file-time)
@@ -1207,7 +1223,7 @@ should be non-nil)."
   (let ((args command-line-args-left))
     (batch-update-autoloads--summary args)
     (setq command-line-args-left nil)
-    (apply #'update-directory-autoloads args)))
+    (make-directory-autoloads args generated-autoload-file)))
 
 (provide 'autoload)
 

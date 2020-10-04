@@ -3937,7 +3937,7 @@ in your init file:
 
 You can bind this to the key C-c i in GNUS or mail by adding to
 `news-reply-mode-hook' or `mail-mode-hook' the following lambda expression:
-   (function (lambda () (local-set-key \"\\C-ci\" \\='ispell-message)))"
+   (lambda () (local-set-key \"\\C-ci\" \\='ispell-message))"
   (interactive)
   (save-excursion
     (goto-char (point-min))

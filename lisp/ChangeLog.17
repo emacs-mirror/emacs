@@ -8465,7 +8465,7 @@
 2014-07-28  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (toggle-read-only): Re-add basic doc-string.
-	* vc/vc-hooks.el (vc-toggle-read-only): Tweak obsolescence mesage.
+	* vc/vc-hooks.el (vc-toggle-read-only): Tweak obsolescence message.
 
 	* progmodes/prolog.el (prolog-mode-keybindings-edit):
 	Replace missing `switch-to-prolog' with `run-prolog'.
@@ -14399,7 +14399,7 @@
 
 2014-01-05  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (balance-windows): Add mising t to fix Bug#16351.
+	* window.el (balance-windows): Add missing t to fix Bug#16351.
 
 2014-01-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -15098,7 +15098,7 @@
 2013-12-18  Juri Linkov  <juri@jurta.org>
 
 	* help-mode.el (help-mode-map): Bind "l" to help-go-back,
-	and "r" to help-go-forward for compatibity with Info.  (Bug#16178)
+	and "r" to help-go-forward for compatibility with Info.  (Bug#16178)
 
 2013-12-18  Leo Liu  <sdl.web@gmail.com>
 
@@ -15729,7 +15729,7 @@
 	(flymake-get-temp-dir): Remove.
 	(flymake-popup-menu, flymake-nop, flymake-make-xemacs-menu)
 	(flymake-current-row, flymake-selected-frame)
-	(flymake-get-point-pixel-pos): Remove xemacs compatibity and
+	(flymake-get-point-pixel-pos): Remove xemacs compatibility and
 	related functions.  (Bug#16077)
 
 2013-12-07  Bozhidar Batsov  <bozhidar@batsov.com>
@@ -16822,7 +16822,7 @@
 	* emacs-lisp/byte-run.el (defmacro, defun): Set their `indent' property.
 
 	* electric.el (electric-indent-post-self-insert-function):
-	Only delete trailing whitepsace if it is indeed trailing (bug#15767).
+	Only delete trailing whitespace if it is indeed trailing (bug#15767).
 
 2013-11-04  Helmut Eller  <eller.helmut@gmail.com>
 
@@ -17770,7 +17770,7 @@
 2013-10-13  Kenichi Handa  <handa@gnu.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Remove a
-	superfluous condition in chekcing whether a coding system is safe
+	superfluous condition in checking whether a coding system is safe
 	or not.
 
 2013-10-13  Oleh Krehel  <ohwoeowho@gmail.com>
@@ -23495,7 +23495,7 @@
 	* progmodes/cc-defs.el (c-set-region-active, c-beginning-of-defun-1)
 	* progmodes/cc-mode.el (c-make-inherited-keymap): Use plain fboundp.
 	* progmodes/cc-defs.el (zmacs-region-stays, zmacs-regions)
-	(lookup-syntax-properties): Remove unecessary cc-bytecomp-defvar.
+	(lookup-syntax-properties): Remove unnecessary cc-bytecomp-defvar.
 
 	* progmodes/cc-vars.el (other): Emacs has this widget since
 	at least 21.1, so don't (re)define it.

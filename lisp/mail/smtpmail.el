@@ -50,7 +50,7 @@
 
 ;; Modified by Simon Josefsson <jas@pdc.kth.se>, 22/2/99, to support SMTP
 ;; Authentication by the AUTH mechanism.
-;; See http://www.ietf.org/rfc/rfc2554.txt
+;; See https://www.ietf.org/rfc/rfc2554.txt
 
 ;;; Code:
 ;;; Dependencies

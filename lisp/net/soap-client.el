@@ -2078,7 +2078,7 @@ This is a specialization of `soap-decode-type' for
   soap-headers                          ; list of (message part use)
   soap-body                             ;  message parts present in the body
   use                                   ; 'literal or 'encoded, see
-                                        ; http://www.w3.org/TR/wsdl#_soap:body
+                                        ; https://www.w3.org/TR/wsdl#_soap:body
   )
 
 (cl-defstruct (soap-binding (:include soap-element))
@@ -2111,6 +2111,8 @@ This is a specialization of `soap-decode-type' for
 
     ;; Add the XSD types to the wsdl document
     (let ((ns (soap-make-xs-basic-types
+               ;; The following string is a name and not an URL, so
+               ;; the "http:" should not be changed.
                "http://www.w3.org/2001/XMLSchema" "xsd")))
       (soap-wsdl-add-namespace ns wsdl)
       (soap-wsdl-add-alias "xsd" (soap-namespace-name ns) wsdl))

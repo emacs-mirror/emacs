@@ -271,9 +271,8 @@ are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
 
 (defcustom search-highlight-submatches t
   "Whether to highlight regexp subexpressions of the current regexp match.
-
-The faces used to do the highlights are named `isearch-group-1',
-`isearch-group-2', and so on."
+The faces used to do the highlights are named `isearch-group-odd' and
+`isearch-group-even'."
   :type 'boolean
   :version "28.1")
 
@@ -3664,96 +3663,25 @@ since they have special meaning in a regexp."
 (defvar isearch-overlay nil)
 (defvar isearch-submatches-overlays nil)
 
-(defface isearch-group-1
+(defface isearch-group-odd
   '((((class color) (min-colors 88) (background light))
      (:background "#ff00ff" :foreground "lightskyblue1"))
     (((class color) (min-colors 88) (background dark))
      (:background "palevioletred3" :foreground "brown4"))
     (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (first sub-group)."
+  "Face for highlighting Isearch the odd group matches."
   :group 'isearch
   :version "28.1")
 
-(defface isearch-group-2
-  '((((class color) (min-colors 88) (background light))
-     (:background "#d000d0" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#be698f" :foreground "black"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (second sub-group)."
-  :group 'isearch
-  :version "28.1")
-
-(defface isearch-group-3
-  '((((class color) (min-colors 88) (background light))
-     (:background "#a000a0" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#a06080" :foreground "brown4"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (third sub-group)."
-  :group 'isearch
-  :version "28.1")
-
-(defface isearch-group-4
+(defface isearch-group-even
   '((((class color) (min-colors 88) (background light))
      (:background "#800080" :foreground "lightskyblue1"))
     (((class color) (min-colors 88) (background dark))
      (:background "#905070" :foreground "brown4"))
     (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (fourth sub-group)."
+  "Face for highlighting Isearch the even group matches."
   :group 'isearch
   :version "28.1")
-
-(defface isearch-group-5
-  '((((class color) (min-colors 88) (background light))
-     (:background "#600060" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#804060" :foreground "black"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (fifth sub-group)."
-  :group 'isearch
-  :version "28.1")
-
-(defface isearch-group-6
-  '((((class color) (min-colors 88) (background light))
-     (:background "#500050" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#703050" :foreground "white"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (sixth sub-group)."
-  :group 'isearch
-  :version "28.1")
-
-(defface isearch-group-7
-  '((((class color) (min-colors 88) (background light))
-     (:background "#400040" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#602050" :foreground "white"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (seventh sub-group)."
-  :group 'isearch
-  :version "28.1")
-
-(defface isearch-group-8
-  '((((class color) (min-colors 88) (background light))
-     (:background "#300030" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#501050" :foreground "white"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (eighth sub-group)."
-  :group 'isearch
-  :version "28.1")
-
-(defface isearch-group-9
-  '((((class color) (min-colors 88) (background light))
-     (:background "#200020" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "#400040" :foreground "white"))
-    (t (:inherit isearch)))
-  "Face for highlighting Isearch sub-group matches (ninth sub-group)."
-  :group 'isearch
-  :version "28.1")
-
 
 (defun isearch-highlight (beg end)
   (if search-highlight
@@ -3769,14 +3697,14 @@ since they have special meaning in a regexp."
 	     isearch-regexp)
     (mapc 'delete-overlay isearch-submatches-overlays)
     (setq isearch-submatches-overlays nil)
-    (let ((i 0) ov)
-      (while (<= i 9)
-	(when (match-beginning i)
-	  (setq ov (make-overlay (match-beginning i) (match-end i)))
-	  (overlay-put ov 'face (intern-soft (format "isearch-group-%d" i)))
+    (dotimes (i (/ (length (match-data)) 2))
+      (unless (zerop i)
+	(let ((ov (make-overlay (match-beginning i) (match-end i))))
+	  (overlay-put ov 'face (if (zerop (mod i 2))
+				    'isearch-group-even
+				  'isearch-group-odd))
 	  (overlay-put ov 'priority 1002)
-	  (push ov isearch-submatches-overlays))
-	(setq i (1+ i))))))
+	  (push ov isearch-submatches-overlays))))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay

@@ -103,7 +103,7 @@ should also display a tool-tip with the same information.
 
 @code{flymake-goto-next-error} and @code{flymake-goto-prev-error} are
 commands that allow easy navigation to the next/previous erroneous
-regions, respectively.  If might be a good idea to map them to @kbd{M-n}
+regions, respectively.  It might be a good idea to map them to @kbd{M-n}
 and @kbd{M-p} in @code{flymake-mode}, by adding to your init file:
 
 @lisp

@@ -1572,6 +1572,18 @@ is not modified."
 
 (defvar ido-ignore-item-temp-list)
 
+(defun multi-occur--prompt ()
+  (concat
+   "Next buffer to search "
+   (cond
+    ((eq read-buffer-function #'ido-read-buffer)
+     (substitute-command-keys
+      "(\\<ido-completion-map>\\[ido-select-text] to end): "))
+    ((bound-and-true-p fido-mode)
+     (substitute-command-keys
+      "(\\<icomplete-fido-mode-map>\\[icomplete-fido-exit] to end): "))
+    (t "(RET to end): "))))
+
 (defun multi-occur (bufs regexp &optional nlines)
   "Show all lines in buffers BUFS containing a match for REGEXP.
 Optional argument NLINES specifies the number of context lines to show
@@ -1587,11 +1599,7 @@ See also `multi-occur-in-matching-buffers'."
 	   (buf nil)
 	   (ido-ignore-item-temp-list bufs))
       (while (not (string-equal
-		   (setq buf (read-buffer
-			      (if (eq read-buffer-function #'ido-read-buffer)
-				  "Next buffer to search (C-j to end): "
-				"Next buffer to search (RET to end): ")
-			      nil t))
+		   (setq buf (read-buffer (multi-occur--prompt) nil t))
 		   ""))
 	(cl-pushnew buf bufs)
 	(setq ido-ignore-item-temp-list bufs))

@@ -476,7 +476,7 @@ to launch any external programs, set this variable to @code{nil} or
 @vindex mm-inline-font-lock
 If non-@code{nil}, inlined parts that support font locking (for
 instance, patches or code snippets) will be font-locked.  This may be
-overriden by callers that have their own ways of enabling/inhibiting
+overridden by callers that have their own ways of enabling/inhibiting
 font locking.
 
 @end table

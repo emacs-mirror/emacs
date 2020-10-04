@@ -224,7 +224,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 
   if (!Raw)
     {
-      /* avoid using strchr because it recomputes the length everytime */
+      /* avoid using strchr because it recomputes the length every time */
       while ((dp = memchr (dp, '\n', Size - (dp - dstart))) != 0)
 	{
 	  truelen++;

@@ -321,7 +321,7 @@ If NOSNARF is `lex', then return the semantic lex token."
 (defvar semantic-java-doc-line-tags nil
   "Valid javadoc line tags.
 Ordered following Sun's Tag Convention at
-<http://java.sun.com/products/jdk/javadoc/writingdoccomments/index.html>")
+<https://java.sun.com/products/jdk/javadoc/writingdoccomments/index.html>")
 
 (defvar semantic-java-doc-with-name-tags nil
   "Javadoc tags which have a name.")

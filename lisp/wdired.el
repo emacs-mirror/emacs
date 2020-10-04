@@ -344,7 +344,7 @@ non-nil means return old filename."
 	;; Don't unquote the old name, it wasn't quoted in the first place
         (and file (setq file (wdired-normalize-filename file (not old)))))
       (if (or no-dir old)
-	  file
+	  (if no-dir (file-relative-name file) file)
 	(and file (> (length file) 0)
              (concat (dired-current-directory) file))))))
 
@@ -913,9 +913,9 @@ Like original function but it skips read-only words."
         (if (= (length perms-new) 10)
             (progn
               (setq perm-tmp
-                    (int-to-string (wdired-perms-to-number perms-new)))
-              (unless (equal 0 (process-file dired-chmod-program
-					     nil nil nil perm-tmp filename))
+                    (string-to-number
+                     (int-to-string (wdired-perms-to-number perms-new)) 8))
+              (unless (set-file-modes filename perm-tmp)
                 (setq errors (1+ errors))
                 (dired-log "%s %s `%s' failed\n\n"
                            dired-chmod-program perm-tmp filename)))

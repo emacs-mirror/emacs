@@ -580,7 +580,7 @@
 	(x_intersect_rectangles, clear_mouse_face, display_tty_menu_item):
 	* lisp.h (setup_echo_area_for_printing, message_with_string)
 	(pos_visible_p): Use bool for boolean.
-	* xdisp.c: Use bool, true, false intstead of int, 1, 0.
+	* xdisp.c: Use bool, true, false instead of int, 1, 0.
 	Remove unnecessary forward decls.
 	(trace_move) [DEBUG_TRACE_MOVE]: Now static.
 	(CHECK_IT, CHECK_WINDOW_END):
@@ -685,7 +685,7 @@
 	Inhibit resizing fullwidth-/height frames in one direction only.
 	Update frame_size_history.
 	(adjust_frame_size): Call frame_size_history_add.
-	(make_frame): Initalize after_make_frame slot.
+	(make_frame): Initialize after_make_frame slot.
 	(Fmake_terminal_frame): Adjust adjust_frame_size call.
 	(Fcan_run_window_configuration_change_hook): Rename to
 	Fframe_after_make_frame.  Set after_make_frame slot.
@@ -1419,7 +1419,7 @@
 
 2015-01-12  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Port to 32-bit MingGW --with-wide-int
+	Port to 32-bit MinGW --with-wide-int
 	Problem reported by Eli Zaretskii in:
 	https://lists.gnu.org/r/emacs-devel/2015-01/msg00265.html
 	* lisp.h (struct Lisp_Sub_Char_Table): Check that offset matches
@@ -1635,7 +1635,7 @@
 2015-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (x_set_window_size): Call updateFrameSize to get real
-	size instead of using widht/height.  The frame may be
+	size instead of using width/height.  The frame may be
 	constrained (Bug#19482).
 
 2015-01-05  Paul Eggert  <eggert@cs.ucla.edu>
@@ -2102,7 +2102,7 @@
 	Partially disabled previous change.
 
 	* image.c (svg_load): Temporarily disabled filename thing for
-	not-a-file case as it can cause crashs.
+	not-a-file case as it can cause crashes.
 
 2014-12-17  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -2807,7 +2807,7 @@
 	* nsselect.m (QCLIPBOARD, QSECONDARY, QTEXT, QFILE_NAME)
 	(NXPrimaryPboard, NXSecondaryPboard): Declare static.
 	(Qforeign_selection): Remove.
-	(ns_get_local_selection): Identation fix.
+	(ns_get_local_selection): Indentation fix.
 	(syms_of_nsselect): Remove Qforeign_selection, ns-lost-selection-hooks
 
 	* nsselect.m (ns_get_local_selection): Remove calling of
@@ -5162,7 +5162,7 @@
 2014-07-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (applicationDidFinishLaunching antialiasThresholdDidChange):
-	Reinstate code removed by the prevoius commit to this file.
+	Reinstate code removed by the previous commit to this file.
 
 2014-07-27  Martin Rudalics  <rudalics@gmx.at>
 
@@ -7847,11 +7847,11 @@
 	* w32.c (unsetenv): Remove unused var `retval'.
 	(emacs_gnutls_pull): Remove unused vars `fdset' and `timeout'.
 
-	* w32notify.c (watch_worker): Remove unnecesary var sleep_result.
+	* w32notify.c (watch_worker): Remove unnecessary var sleep_result.
 	(start_watching): Remove unused var `thr'.
 
 	* w32proc.c (sys_spawnve): Comment out unused vars `first', `last'.
-	(find_child_console): Remove unnecesary var `thread_id'.
+	(find_child_console): Remove unnecessary var `thread_id'.
 
 	* w32term.c (w32_read_socket): Comment out unused vars `row', `columns'.
 	(x_focus_frame): #ifdef 0 unused variable `dpyinfo'.
@@ -9004,7 +9004,7 @@
 	* widget.c (pixel_to_text_size): New function.
 	(update_wm_hints): Have size hints respect value of
 	frame_resize_pixelwise.
-	(EmacsFrameResize): Alway process resize requests pixelwise.
+	(EmacsFrameResize): Always process resize requests pixelwise.
 	* window.c (grow_mini_window): Make sure mini window is at least
 	one line tall.
 	* xdisp.c (display_menu_bar): Make sure menubar extends till
@@ -10768,7 +10768,7 @@
 
 	* search.c (find_newline): Rewrite to prefer offsets to pointers.
 	This avoids undefined behavior when subtracting pointers into
-	different aways.  On my platform it also makes the code a tad
+	different always.  On my platform it also makes the code a tad
 	smaller and presumably faster.
 
 2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -13849,7 +13849,7 @@
 
 2013-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (ns_set_vertical_scroll_bar): Fix breakage intruduced by
+	* nsterm.m (ns_set_vertical_scroll_bar): Fix breakage introduced by
 	2013-08-13 checkin below.  Change bool to BOOL, rule is:
 	All Obj-C code uses BOOL, except for interfaces callable from C.
 
@@ -14041,7 +14041,7 @@
 	the caller.  Do not lock the temp file.  Unwind-protect the file
 	and the file-descriptor.
 	(Fcall_process_region): If the input is /dev/null, unwind-protect it.
-	If an asynchrounous process, record it here, not in call_process.
+	If an asynchronous process, record it here, not in call_process.
 	(syms_of_callproc) [MSDOS]: Initialize synch_process_tempfile.
 	* eval.c (set_unwind_protect): New function.
 	* fileio.c (write_region): New function, generalized from the
@@ -14764,7 +14764,7 @@
 	All callers changed.
 	(create_process): Recover pty_flag from process, not from volatile local.
 	(create_pty): Stay inside array even when pty allocation fails.
-	(Fmake_serial_process): Omit unnecessary initializaiton of pty_flag.
+	(Fmake_serial_process): Omit unnecessary initialization of pty_flag.
 
 	* lread.c (Fload): Avoid initialization only when lint checking.
 	Mention that it's needed only for older GCCs.
@@ -17372,7 +17372,7 @@
 2013-03-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.h (struct frame): Drop scroll_bottom_vpos
-	member becaue all real users are dead long ago.
+	member because all real users are dead long ago.
 	(FRAME_SCROLL_BOTTOM_VPOS): Remove.
 	* xdisp.c (redisplay_internal): Adjust user.
 
@@ -17394,7 +17394,7 @@
 	(menuNeedsUpdate:): Add check for ! COCOA || OSX < 10.5 (Bug#12698).
 
 	* nsterm.m (menu_will_open_state, menu_mouse_point)
-	(menu_pending_title): New varaibles.
+	(menu_pending_title): New variables.
 	(ns_get_pending_menu_title, ns_check_menu_open)
 	(ns_check_pending_open_menu): New functions.
 

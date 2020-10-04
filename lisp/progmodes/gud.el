@@ -1845,7 +1845,7 @@ and source-file directory for your debugger."
 ;; JDB command will get out of the debugger.  There is some truly
 ;; pathetic JDB documentation available at:
 ;;
-;;     http://java.sun.com/products/jdk/1.1/debugging/
+;;     https://java.sun.com/products/jdk/1.1/debugging/
 ;;
 ;; KNOWN PROBLEMS AND FIXME's:
 ;;

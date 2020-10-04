@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Registered URI schemes: http://www.iana.org/assignments/uri-schemes
+;; Registered URI schemes: https://www.iana.org/assignments/uri-schemes
 
 ;;; Code:
 

@@ -655,7 +655,7 @@ Leave point at the first non-blank character after the tag."
       (setq name (xml-maybe-do-ns (match-string-no-properties 1) nil xml-ns))
       (goto-char end-pos)
 
-      ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
+      ;; See also: https://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
 
       ;; Do we have a string between quotes (or double-quotes),
       ;;  or a simple word ?

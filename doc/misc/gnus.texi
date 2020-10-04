@@ -29422,7 +29422,7 @@ collection of @acronym{NOV} lines.
 @item @acronym{NOV}
 @cindex @acronym{NOV}
 @acronym{NOV} stands for News OverView, which is a type of news server
-header which provide datas containing the condensed header information
+header which provide data containing the condensed header information
 of articles.  They are produced by the server itself; in the @code{nntp}
 back end Gnus uses the ones that the @acronym{NNTP} server makes, but
 Gnus makes them by itself for some backends (in particular, @code{nnml}).

@@ -148,7 +148,7 @@ documentation), this function returns nil."
 
 
 ;; ssh support by Phil Hagelberg.
-;; http://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
+;; https://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
 
 (defun pcmpl-ssh-known-hosts ()
   "Return a list of hosts found in `pcmpl-ssh-known-hosts-file'."

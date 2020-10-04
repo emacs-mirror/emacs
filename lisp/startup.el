@@ -1506,7 +1506,7 @@ Consider using a subdirectory instead, e.g.: %s"
 (defun x-apply-session-resources ()
   "Apply X resources which specify initial values for Emacs variables.
 This is called from a window-system initialization function, such
-as `x-initialize-window-system' for X, either at startup (prior
+as `window-system-initialization' for X, either at startup (prior
 to reading the init file), or afterwards when the user first
 opens a graphical frame.
 

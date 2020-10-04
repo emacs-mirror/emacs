@@ -464,13 +464,14 @@ Normally, this command undoes the last change, moving point back to
 where it was before the change.  The undo command applies only to
 changes in the buffer; you can't use it to undo cursor motion.
 
-  On a graphics terminal (including text-mode frames displayed by a
-terminal emulator, such as @command{xterm}), the easiest way to invoke
-@code{undo} is with @kbd{C-/}; that doesn't need the Shift key.  On a
-text terminal, @kbd{C-/} does not exist, but in many cases you can type
-@kbd{C-_} without the Shift key (in effect pressing @kbd{C--}) and it
-will work anyway, at least with keyboards that produce the US ASCII
-character set.
+  On a terminal that supports the @key{Control} modifier on all other
+keys, the easiest way to invoke @code{undo} is with @kbd{C-/}, since
+that doesn't need the @key{Shift} modifier.  On terminals which allow
+only the ASCII control characters, @kbd{C-/} does not exist, but for
+many of them @kbd{C-/} still works because it actually sends @kbd{C-_}
+to Emacs, while many others allow you to omit the @key{Shift} modifier
+when you type @kbd{C-_} (in effect pressing @kbd{C--}), making that
+the most convenient way to invoke @code{undo}.
 
   Although each editing command usually makes a separate entry in the
 undo records, very simple commands may be grouped together.

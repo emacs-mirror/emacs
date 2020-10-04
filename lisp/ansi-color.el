@@ -536,7 +536,7 @@ codes.	Finally, the so changed list of codes is returned."
 		     (cons new (remq new codes))))
 		(2 (unless (memq new '(20 26 28 29))
 		     ;; The standard says `21 doubly underlined' while
-		     ;; http://en.wikipedia.org/wiki/ANSI_escape_code claims
+                     ;; https://en.wikipedia.org/wiki/ANSI_escape_code claims
 		     ;; `21 Bright/Bold: off or Underline: Double'.
 		     (remq (- new 20) (pcase new
 					(22 (remq 1 codes))

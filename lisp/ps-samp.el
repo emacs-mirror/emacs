@@ -8,7 +8,7 @@
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.
@@ -57,7 +57,7 @@
   (interactive)
   (ps-print-message-from-summary 'rmail-summary-buffer "RMAIL"))
 
-;; Used in `ps-rmail-print-article-from-summary',
+;; Used in `ps-rmail-print-message-from-summary',
 ;; `ps-gnus-print-article-from-summary' and `ps-vm-print-message-from-summary'.
 (defun ps-print-message-from-summary (summary-buffer summary-default)
   (let ((ps-buf (or (and (boundp summary-buffer)

@@ -709,6 +709,10 @@ as measured in the number of days before December 31, 1 BC (Gregorian).")
   "The beginning of the Julian date calendar,
 as measured in the integer number of days before December 31, 1 BC (Gregorian).")
 
+(defconst math-unix-epoch 719163
+  "The beginning of Unix time: days from December 31, 1 BC (Gregorian)
+to Jan 1, 1970 AD.")
+
 (defun math-format-date-part (x)
   (cond ((stringp x)
 	 x)
@@ -730,7 +734,8 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
                               (math-floor math-fd-date)
                               math-julian-date-beginning-int)))
 	((eq x 'U)
-	 (math-format-number (nth 1 (math-date-parts math-fd-date 719164))))
+	 (math-format-number (nth 1 (math-date-parts math-fd-date
+                                                     math-unix-epoch))))
         ((memq x '(IYYY Iww w))
          (progn
            (or math-fd-iso-dt
@@ -1173,7 +1178,7 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 		      (setq num (math-match-substring math-pd-str 0)
 			    math-pd-str (substring math-pd-str (match-end 0))
 			    num (math-date-to-dt
-				 (math-add 719164
+				 (math-add math-unix-epoch
 					   (math-div (math-read-number num)
 						     '(float 864 2))))
 			    hour (nth 3 num)
@@ -1434,11 +1439,11 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 (defun calcFunc-unixtime (date &optional zone)
   (if (math-realp date)
       (progn
-	(setq date (math-add 719163 (math-div date '(float 864 2))))
+	(setq date (math-add math-unix-epoch (math-div date '(float 864 2))))
 	(list 'date (math-sub date (math-div (calcFunc-tzone zone date)
 					     '(float 864 2)))))
     (if (eq (car date) 'date)
-	(math-add (nth 1 (math-date-parts (nth 1 date) 719163))
+	(math-add (nth 1 (math-date-parts (nth 1 date) math-unix-epoch))
 		  (calcFunc-tzone zone date))
       (math-reject-arg date 'datep))))
 
@@ -1870,8 +1875,8 @@ and ends on the last Sunday of October at 2 a.m."
       (and days (= day (car days))
 	   (setq holiday t)))
     (let* ((weekdays (nth 3 math-holidays-cache))
-	   (weeks (1- (/ (+ day 6) 7)))
-	   (wkday (- day 1 (* weeks 7))))
+           (weeks (/ day 7))
+           (wkday (mod day 7)))         ; Day of week: 0=Sunday, 6=Saturday
       (setq delta (+ delta (* weeks (length weekdays))))
       (while (and weekdays (< (car weekdays) wkday))
 	(setq weekdays (cdr weekdays)
@@ -1905,14 +1910,15 @@ and ends on the last Sunday of October at 2 a.m."
 	(setq delta (1+ delta)))
       (setq day (+ day delta)))
     (let* ((weekdays (nth 3 math-holidays-cache))
-	   (bweek (- 7 (length weekdays)))
-	   (weeks (1- (/ (+ day (1- bweek)) bweek)))
-	   (wkday (- day 1 (* weeks bweek)))
+           (bweek (- 7 (length weekdays)))  ; Business days in a week, 1..7.
+           (weeks (/ day bweek))            ; Whole weeks.
+           (wkday (mod day bweek))      ; Business day in last week, 0..bweek-1
 	   (w 0))
       (setq day (+ day (* weeks (length weekdays))))
+      ;; Add business days in the last week; `w' is weekday, 0..6.
       (while (if (memq w weekdays)
 		 (setq day (1+ day))
-	       (> (setq wkday (1- wkday)) 0))
+               (>= (setq wkday (1- wkday)) 0))
 	(setq w (1+ w)))
       (let ((hours (nth 7 math-holidays-cache)))
 	(if hours

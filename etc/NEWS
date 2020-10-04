@@ -152,6 +152,13 @@ your init file:
     (setq frame-title-format '(multiple-frames "%b"
                               ("" invocation-name "@" system-name)))
 
+** recentf
+
+---
+*** 'recentf-auto-cleanup' time string now repeats.
+When 'recentf-auto-cleanup' is set to a time string, it now repeats
+every day, rather than only running once after the mode is turned on.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -317,6 +324,13 @@ If 'numeric', calendar functions (eg 'calendar-sunrise-sunset') that display
 time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
+
++++
+*** New user option 'dired-switches-in-mode-line'.
+This variable controls how 'ls' switches are displayed in the mode
+line, and allows truncating them (to preserve space on the mode line)
+or showing them literally, either instead of, or in addition to,
+displaying "by name" or "by date" sort order.
 
 ---
 *** Broken and circular links are shown with the 'dired-broken-symlink' face.
@@ -1072,6 +1086,11 @@ based on the current window size.  In previous versions of Emacs, this
 was always done (and that could lead to odd displays when resizing the
 window after starting).  This variable defaults to nil.
 
+** Widget
+
++++
+*** 'widget-choose' now supports menus in extended format.
+
 ** Miscellaneous
 
 ---
@@ -1083,9 +1102,12 @@ keystrokes.
 
 +++
 *** Interactive regular expression search now uses faces for sub-groups.
-E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
+E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-odd' face
 on the part of the regexp that matches the sub-expression "[0-9]+".
+The even group matches are highlighted with the 'isearch-group-even' face.
 This is controlled by the 'search-highlight-submatches' user option.
+This feature is available only on terminals that have enough colors to
+distinguish between sub-expression highlighting.
 
 ---
 *** New user option 'reveal-auto-hide'.
@@ -1451,6 +1473,13 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+*** New command 'make-directory-autoloads'.
+This does the same as the old command 'update-directory-autoloads',
+but has different semantics: Instead of passing in the output file via
+the dynamically bound 'generated-autoload-file' variable, the output
+file is now a explicit parameter.
 
 +++
 *** New function 'string-search'.

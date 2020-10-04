@@ -245,7 +245,10 @@ The following values can be set:
 - A number
     Cleanup each time Emacs has been idle that number of seconds.
 - A time string
-    Cleanup at specified time string, for example at \"11:00pm\".
+    Cleanup at specified time string daily, for example at \"11:00pm\".
+
+If a time string is provided and it is already past the specified time
+for the current day, the first cleanup happens immediately as for `mode'.
 
 Setting this variable directly does not take effect;
 use \\[customize].
@@ -257,7 +260,7 @@ cleanup the list."
                         :value mode)
                 (const  :tag "Never"
                         :value never)
-                (number :tag "When idle that seconds"
+                (number :tag "When idle after (seconds)"
                         :value 300)
                 (string :tag "At time"
                         :value "11:00pm"))
@@ -371,7 +374,8 @@ See also the option `recentf-auto-cleanup'.")
              recentf-auto-cleanup t 'recentf-cleanup))
            ((stringp recentf-auto-cleanup)
             (run-at-time
-             recentf-auto-cleanup nil 'recentf-cleanup))))))
+             ;; Repeat every 24 hours.
+             recentf-auto-cleanup (* 24 60 60) 'recentf-cleanup))))))
 
 ;;; File functions
 ;;

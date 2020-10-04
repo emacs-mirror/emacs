@@ -45,6 +45,14 @@
 (declare-function tramp-handle-temporary-file-directory "tramp")
 (defvar tramp-temp-name-prefix)
 
+(defconst tramp-compat-emacs-compiled-version (eval-when-compile emacs-version)
+  "The Emacs version used for compilation.")
+
+(unless (= emacs-major-version
+	   (car (version-to-list tramp-compat-emacs-compiled-version)))
+  (warn "Tramp has been compiled with Emacs %s, this is Emacs %s"
+	tramp-compat-emacs-compiled-version emacs-version))
+
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
 ;; avoid them in cases we know what we do.

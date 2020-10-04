@@ -131,7 +131,7 @@ For example, add \"ARCHIVE\" to this list to avoid numbering
 archived sub-trees.
 
 Tag in this list prevent numbering the whole sub-tree,
-irrespective to `org-use-tags-inheritance', or other means to
+irrespective to `org-use-tag-inheritance', or other means to
 control tag inheritance."
   :group 'org-appearance
   :package-version '(Org . "9.3")

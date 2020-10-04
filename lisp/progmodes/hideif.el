@@ -250,7 +250,7 @@ Effective only if `hide-ifdef-expand-reinclusion-protection' is t."
 
 (defvar hide-ifdef-env-backup nil
   "This variable is a backup of the previously cleared `hide-ifdef-env'.
-This backup prevents any accidental clearance of `hide-fidef-env' by
+This backup prevents any accidental clearance of `hide-ifdef-env' by
 `hif-clear-all-ifdef-defined'.")
 
 (defvar hif-outside-read-only nil

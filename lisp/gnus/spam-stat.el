@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SpamStat
+;; URL: https://www.emacswiki.org/cgi-bin/wiki.pl?SpamStat
 
 ;; This file is part of GNU Emacs.
 

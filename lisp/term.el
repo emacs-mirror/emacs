@@ -554,7 +554,7 @@ See also `term-dynamic-complete'.
 This is a good thing to set in mode hooks.")
 
 (defvar term-input-filter
-  (function (lambda (str) (not (string-match "\\`\\s *\\'" str))))
+  (lambda (str) (not (string-match "\\`\\s *\\'" str)))
   "Predicate for filtering additions to input history.
 Only inputs answering true to this function are saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
@@ -860,6 +860,7 @@ is buffer-local."
     (define-key map [prior] 'term-send-prior)
     (define-key map [next] 'term-send-next)
     (define-key map [xterm-paste] #'term--xterm-paste)
+    (define-key map [?\C-/] #'term-send-C-_)
     map)
   "Keyboard map for sending characters directly to the inferior process.")
 
@@ -1282,6 +1283,7 @@ without any interpretation."
 (defun term-send-next  () (interactive) (term-send-raw-string "\e[6~"))
 (defun term-send-del   () (interactive) (term-send-raw-string "\e[3~"))
 (defun term-send-backspace  () (interactive) (term-send-raw-string "\C-?"))
+(defun term-send-C-_  () (interactive) (term-send-raw-string "\C-_"))
 
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
@@ -3638,8 +3640,8 @@ The top-most line is line 0."
   (message "Terminal-emulator pager break help...")
   (sit-for 0)
   (with-electric-help
-    (function (lambda ()
-		(princ (substitute-command-keys
+    (lambda ()
+      (princ (substitute-command-keys
 "\\<term-pager-break-map>\
 Terminal-emulator MORE break.\n\
 Type one of the following keys:\n\n\
@@ -3657,7 +3659,7 @@ Type one of the following keys:\n\n\
 Any other key is passed through to the program
 running under the terminal emulator and disables pager processing until
 all pending output has been dealt with."))
-		nil))))
+      nil)))
 
 (defun term-pager-continue (new-count)
   (let ((process (get-buffer-process (current-buffer))))

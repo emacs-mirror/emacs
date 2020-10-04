@@ -1368,7 +1368,11 @@ CRLF (RFC 5321 SMTP)."
   ;;   input (3.1, 3.3)
   ;; - if line-length is set, error on input exceeding the limit (3.1)
   ;; - reject characters outside base encoding (3.3, also section 12)
-  (let ((splitstr (split-string str "[\n\r \t]+" t)))
+  ;;
+  ;; RFC 5322 section 2.2.3 consideration:
+  ;; Because base 64-encoded strings can appear in long header fields, remove
+  ;; folding whitespace while still observing the RFC 4648 decisions above.
+  (let ((splitstr (split-string str "[ \t]*[\r\n]+[ \t]?" t)))
     (when (and reject-newlines (> (length splitstr) 1))
       (error "Invalid Base64 string"))
     (dolist (substr splitstr)
@@ -1424,7 +1428,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (autoload 'ido-completing-read "ido")
 (defun gnus-ido-completing-read (prompt collection &optional require-match
                                         initial-input history def)
-  "Call `ido-completing-read-function'."
+  "Call `ido-completing-read'."
   (ido-completing-read prompt collection nil require-match
 		       initial-input history def))
 

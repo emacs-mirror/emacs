@@ -1395,7 +1395,7 @@ it means chase no more than that many links and then stop."
     newname))
 
 ;; A handy function to display file sizes in human-readable form.
-;; See http://en.wikipedia.org/wiki/Kibibyte for the reference.
+;; See https://en.wikipedia.org/wiki/Kibibyte for the reference.
 (defun file-size-human-readable (file-size &optional flavor space unit)
   "Produce a string showing FILE-SIZE in human-readable form.
 
@@ -7779,7 +7779,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 	   (let (delete-by-moving-to-trash)
 	     (rename-file fn new-fn))))
 	;; Otherwise, use the freedesktop.org method, as specified at
-	;; http://freedesktop.org/wiki/Specifications/trash-spec
+        ;; https://freedesktop.org/wiki/Specifications/trash-spec
 	(t
 	 (let* ((xdg-data-dir
 		 (directory-file-name

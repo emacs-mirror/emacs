@@ -820,6 +820,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
     (font-lock-add-keywords nil hi-lock-file-patterns t)
     (font-lock-flush)))
 
+;;;###autoload
 (defun hi-lock-find-patterns ()
   "Add patterns from the current buffer to the list of hi-lock patterns."
   (interactive)

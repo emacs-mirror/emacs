@@ -340,7 +340,7 @@ See http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
 of the mapping.")
 
 (quail-define-rules
- ;; Table taken from http://en.wikipedia.org/wiki/X-SAMPA, checked with
+ ;; Table taken from https://en.wikipedia.org/wiki/X-SAMPA, checked with
  ;; http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf
 
  ("d`" "ɖ")	;; Voiced retroflex plosive		U+0256

@@ -245,7 +245,7 @@ prevails."
   "Allout-mode functions bound to keys without any added prefix.
 
 This is in contrast to the majority of allout-mode bindings on
-`allout-prefixed-bindings', whose bindings are created with a
+`allout-prefixed-keybindings', whose bindings are created with a
 preceding command key.
 
 Use vector format for the keys:
@@ -1510,7 +1510,7 @@ topic prefix.
 Entries must be symbols that are bound to the desired regexp values.
 
 Encryptions that result in matches will be retried, up to
-`allout-encryption-ciphertext-rejection-limit' times, after which
+`allout-encryption-ciphertext-rejection-ceiling' times, after which
 an error is raised.")
 
 (make-variable-buffer-local 'allout-encryption-ciphertext-rejection-regexps)
@@ -4721,7 +4721,7 @@ this function."
 
 This is a way to give restricted peek at a concealed locality without the
 expense of exposing its context, but can leave the outline with aberrant
-exposure.  `allout-show-offshoot' should be used after the peek to rectify
+exposure.  `allout-show-to-offshoot' should be used after the peek to rectify
 the exposure."
 
   (interactive)

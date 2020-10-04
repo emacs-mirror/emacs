@@ -34743,15 +34743,15 @@ is defined by
 
 @smallexample
 (put 'calcFunc-ln\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 u))))
+     (lambda (u) (math-div 1 u)))
 @end smallexample
 
 The two-argument @code{log} function has two derivatives,
 @smallexample
 (put 'calcFunc-log\' 'math-derivative-2     ; d(log(x,b)) / dx
-     (function (lambda (x b) ... )))
+     (lambda (x b) ... ))
 (put 'calcFunc-log\'2 'math-derivative-2    ; d(log(x,b)) / db
-     (function (lambda (x b) ... )))
+     (lambda (x b) ... ))
 @end smallexample
 @end defun
 
@@ -34818,7 +34818,7 @@ as properties in a manner similar to derivatives:
 
 @smallexample
 (put 'calcFunc-ln 'math-inverse
-     (function (lambda (x) (list 'calcFunc-exp x))))
+     (lambda (x) (list 'calcFunc-exp x)))
 @end smallexample
 
 This function can call @samp{(math-solve-get-sign @var{x})} to create

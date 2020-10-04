@@ -117,7 +117,7 @@ instead (which see).")
   "Create a new generic mode MODE.
 
 A \"generic\" mode is a simple major mode with basic support for
-comment syntax and Font Lock mode, but otherwise do not have a
+comment syntax and Font Lock mode, but otherwise does not have
 any special keystrokes or functionality available.
 
 MODE is the name of the command for the generic mode; don't quote it.

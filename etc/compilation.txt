@@ -153,7 +153,7 @@ Failing Scenarios:
 cucumber foo/cucumber.feature:6 # Scenario: assertion false (Test::Unit)
 cucumber foo/cucumber.feature:9 # Scenario: assertion false (RSpec)
 cucumber foo/cucumber.feature:12 # Scenario: backtrace in step definition
-cucumber foo/cucumber.feature:15 # Scenario: deeep backtrace in step definition
+cucumber foo/cucumber.feature:15 # Scenario: deep backtrace in step definition
 
 5 scenarios (4 failed, 1 undefined)
 5 steps (4 failed, 1 undefined)

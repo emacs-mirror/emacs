@@ -60,7 +60,7 @@ Vietnamese")
 ;; For each group (row) of 2-byte character sets.
 
 (define-category ?A "2-byte alnum
-Alpha-numeric characters of 2-byte character sets")
+Alphanumeric characters of 2-byte character sets")
 (define-category ?C "2-byte han
 Chinese (Han) characters of 2-byte character sets")
 (define-category ?G "2-byte Greek

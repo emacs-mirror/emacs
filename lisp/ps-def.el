@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Keywords: wp, print, PostScript
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.

@@ -517,7 +517,7 @@ PREFIX is the string we want to complete."
 	    (setq mail-names
 		  (sort (append (if (consp mail-aliases)
 				    (mapcar
-				     (function (lambda (a) (list (car a))))
+                                     (lambda (a) (list (car a)))
 				     mail-aliases))
 				(if (consp mail-local-names)
 				    mail-local-names)

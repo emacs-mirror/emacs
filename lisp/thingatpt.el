@@ -278,7 +278,7 @@ If nil, construct the regexp from `thing-at-point-uri-schemes'.")
   "Regexp matching a URI without a scheme component.")
 
 (defvar thing-at-point-uri-schemes
-  ;; Officials from http://www.iana.org/assignments/uri-schemes.html
+  ;; Officials from https://www.iana.org/assignments/uri-schemes.html
   '("aaa://" "about:" "acap://" "apt:" "bzr://" "bzr+ssh://"
     "attachment:/" "chrome://" "cid:" "content://" "crid://" "cvs://"
     "data:" "dav:" "dict://" "doi:" "dns:" "dtn:" "feed:" "file:/"

@@ -129,6 +129,17 @@ options (that is, single characters) requiring no arguments, and long
 options (starting with @samp{--}) whose arguments are specified with
 @samp{=}.
 
+@vindex dired-switches-in-mode-line
+  Dired displays in the mode line an indication of what were the
+switches used to invoke @command{ls}.  By default, Dired will try to
+determine whether the switches indicate sorting by name or date, and
+will say so in the mode line.  If the @code{dired-switches-in-mode-line}
+variable is @code{as-is}, the switches will be shown verbatim.  If
+this variable's value is an integer, the switch display will be
+truncated to that length.  This variable can also be a function, which
+will be called with @code{dired-actual-switches} as the only
+parameter, and should return a string to display in the mode line.
+
 @vindex dired-use-ls-dired
   If your @command{ls} program supports the @samp{--dired} option,
 Dired automatically passes it that option; this causes @command{ls} to

@@ -450,11 +450,11 @@ killed after rendering."
 
 ;;;###autoload
 (defun eww-search-words ()
-  "Search the web for the text between BEG and END.
+  "Search the web for the text in the region.
 If region is active (and not whitespace), search the web for
-the text between BEG and END.  Else, prompt the user for a search
-string.  See the `eww-search-prefix' variable for the search
-engine used."
+the text between region beginning and end.  Else, prompt the
+user for a search string.  See the variable `eww-search-prefix'
+for the search engine used."
   (interactive)
   (if (use-region-p)
       (let ((region-string (buffer-substring (region-beginning) (region-end))))
