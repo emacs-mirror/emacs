@@ -2420,16 +2420,16 @@ This checks also `file-name-as-directory', `file-name-directory',
 			tramp--test-messages))))))))
 
 	    ;; Do not overwrite if excluded.
-	    (advice-flet ((y-or-n-p (lambda (_prompt) t))
-		          ;; Ange-FTP.
-		          (yes-or-no-p (lambda (_prompt) t)))
+	    (cl-letf (((symbol-function #'y-or-n-p) (lambda (_prompt) t))
+		      ;; Ange-FTP.
+		      ((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
 	      (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
 	    ;; `mustbenew' is passed to Tramp since Emacs 26.1.
 	    (when (tramp--test-emacs26-p)
 	      (should-error
-	       (advice-flet ((y-or-n-p #'ignore)
-			     ;; Ange-FTP.
-			     (yes-or-no-p 'ignore))
+	       (cl-letf (((symbol-function #'y-or-n-p) #'ignore)
+			 ;; Ange-FTP.
+			 ((symbol-function 'yes-or-no-p) 'ignore))
 		 (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
                :type 'file-already-exists)
 	      (should-error
@@ -3522,11 +3522,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       :type 'file-already-exists))
 	    (when (tramp--test-expensive-test)
 	      ;; A number means interactive case.
-	      (advice-flet ((yes-or-no-p #'ignore))
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
 		(should-error
 		 (make-symbolic-link tmp-name1 tmp-name2 0)
 		 :type 'file-already-exists)))
-	    (advice-flet ((yes-or-no-p (lambda (_prompt) t)))
+	    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
 	      (make-symbolic-link tmp-name1 tmp-name2 0)
 	      (should
 	       (string-equal
@@ -3598,11 +3598,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (add-name-to-file tmp-name1 tmp-name2)
 	      :type 'file-already-exists)
 	     ;; A number means interactive case.
-	     (advice-flet ((yes-or-no-p #'ignore))
+	     (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
 	       (should-error
 		(add-name-to-file tmp-name1 tmp-name2 0)
 		:type 'file-already-exists))
-	     (advice-flet ((yes-or-no-p (lambda (_prompt) t)))
+	     (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
 	       (add-name-to-file tmp-name1 tmp-name2 0)
 	       (should (file-regular-p tmp-name2)))
 	     (add-name-to-file tmp-name1 tmp-name2 'ok-if-already-exists)

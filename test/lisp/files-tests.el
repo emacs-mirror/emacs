@@ -242,25 +242,24 @@ form.")
   "Test file prompting in directory named `~'.
 If we are in a directory named `~', the default value should not
 be $HOME."
-  (let* ((dir (make-temp-file "read-file-name-test" t))
-         (subdir (expand-file-name "./~/" dir)))
-    (advice-flet ((completing-read
-                   (lambda (_prompt _coll &optional _pred _req init _hist def _)
-                     (or def init))))
-      (unwind-protect
-          (progn
-            (make-directory subdir t)
-            (with-temp-buffer
-              (setq default-directory subdir)
-              (should-not (equal
-                           (expand-file-name (read-file-name "File: "))
-                           (expand-file-name "~/")))
-              ;; Don't overquote either!
-              (setq default-directory (concat "/:" subdir))
-              (should-not (equal
-                           (expand-file-name (read-file-name "File: "))
-                           (concat "/:/:" subdir)))))
-        (delete-directory dir 'recursive)))))
+  (cl-letf (((symbol-function 'completing-read)
+             (lambda (_prompt _coll &optional _pred _req init _hist def _)
+               (or def init)))
+            (dir (make-temp-file "read-file-name-test" t)))
+    (unwind-protect
+        (let ((subdir (expand-file-name "./~/" dir)))
+          (make-directory subdir t)
+          (with-temp-buffer
+            (setq default-directory subdir)
+            (should-not (equal
+                         (expand-file-name (read-file-name "File: "))
+                         (expand-file-name "~/")))
+            ;; Don't overquote either!
+            (setq default-directory (concat "/:" subdir))
+            (should-not (equal
+                         (expand-file-name (read-file-name "File: "))
+                         (concat "/:/:" subdir)))))
+      (delete-directory dir 'recursive))))
 
 (ert-deftest files-tests-file-name-non-special-quote-unquote ()
   (let (;; Just in case it is quoted, who knows.

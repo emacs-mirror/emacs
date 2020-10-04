@@ -57,8 +57,8 @@
 (defmacro with-time-stamp-system-name (name &rest body)
   "Force (system-name) to return NAME while evaluating BODY."
   (declare (indent defun))
-  `(advice-flet ((system-name
-                  (lambda () ,name)))
+  `(cl-letf (((symbol-function 'system-name)
+              (lambda () ,name)))
      ,@body))
 
 (defmacro time-stamp-should-warn (form)

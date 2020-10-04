@@ -633,9 +633,9 @@ testing `bookmark-bmenu-list'."
 
 (ert-deftest bookmark-test-bmenu-locate ()
   (let (msg)
-    (advice-flet ((message
-                   (lambda (&rest args)
-                     (setq msg (apply #'format args)))))
+    (cl-letf (((symbol-function 'message)
+               (lambda (&rest args)
+                 (setq msg (apply #'format args)))))
       (with-bookmark-bmenu-test
        (bookmark-bmenu-locate)
        (should (equal msg "/some/file"))))))

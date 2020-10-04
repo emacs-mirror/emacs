@@ -25,8 +25,8 @@
 (require 'dissociate)
 
 (ert-deftest dissociate-tests-dissociated-press ()
-  (advice-flet ((y-or-n-p (lambda (_) nil))
-                (random  (lambda (_) 10)))
+  (cl-letf (((symbol-function 'y-or-n-p) (lambda (_) nil))
+            ((symbol-function 'random)  (lambda (_) 10)))
     (save-window-excursion
       (with-temp-buffer
         (insert "Lorem ipsum dolor sit amet")

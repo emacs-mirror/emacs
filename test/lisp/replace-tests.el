@@ -443,28 +443,29 @@ Return the last evalled form in BODY."
          ;; Bind `read-event' to simulate user input.
          ;; If `replace-tests-bind-read-string' is non-nil, then
          ;; bind `read-string' as well.
-         (advice-flet ((read-event
-                        (lambda (&rest _args)
-                          (cl-incf ,count)
-                          (pcase ,count ; Build the clauses from CHAR-NUMS
-                            ,@(append
-                               (delq nil
-                                     (mapcar
-                                      (lambda (chr)
-                                        (when-let (it (alist-get chr char-nums))
-                                          (if (cdr it)
-                                              `(,(cons 'or it) ,chr)
-                                            `(,(car it) ,chr))))
-                                      '(?, ?\s ?u ?U ?E ?q)))
-                               `((_ ,def-chr))))))
-                       (read-string
-                        (if replace-tests-bind-read-string
-                            (lambda (&rest _args) replace-tests-bind-read-string)
-                          (lambda (&rest args)
-                            (apply #'read-string args))))
-                       (replace-highlight
-                        (lambda (&rest _args)
-                          (string-match "[A-Z ]" "ForestGreen"))))
+         (cl-letf (((symbol-function 'read-event)
+                    (lambda (&rest _args)
+                      (cl-incf ,count)
+                      (pcase ,count ; Build the clauses from CHAR-NUMS
+                        ,@(append
+                           (delq nil
+                                 (mapcar
+                                  (lambda (chr)
+                                    (when-let (it (alist-get chr char-nums))
+                                      (if (cdr it)
+                                          `(,(cons 'or it) ,chr)
+                                        `(,(car it) ,chr))))
+                                  '(?, ?\s ?u ?U ?E ?q)))
+                           `((_ ,def-chr))))))
+                   ((symbol-function 'read-string)
+                    (if replace-tests-bind-read-string
+                        (lambda (&rest _args) replace-tests-bind-read-string)
+                      (symbol-function 'read-string)))
+                   ;; Emulate replace-highlight clobbering match-data via
+                   ;; isearch-lazy-highlight-new-loop and sit-for (bug#36328)
+                   ((symbol-function 'replace-highlight)
+                    (lambda (&rest _args)
+                      (string-match "[A-Z ]" "ForestGreen"))))
            (perform-replace ,from ,to t replace-tests-perform-replace-regexp-flag nil))
          ,@body))))
 

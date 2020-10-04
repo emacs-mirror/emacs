@@ -341,8 +341,8 @@ This is a regression test for: Bug#3412, Bug#11817."
     (message "")  ; Clear the echo area. (Bug#3412)
     (kmacro-tests-should-match-message "Type e to repeat macro"
       (kmacro-tests-should-insert "mmmmmm"
-        (advice-flet ((this-single-command-keys (lambda ()
-                                                  [?\C-x ?e])))
+        (cl-letf (((symbol-function #'this-single-command-keys) (lambda ()
+                                                                  [?\C-x ?e])))
           (kmacro-call-macro 3))
         ;; Check that it set up for repeat, and run the repeat.
         (funcall (lookup-key overriding-terminal-local-map "e"))))))
@@ -455,8 +455,8 @@ This is a regression test for: Bug#3412, Bug#11817."
       ;; commands so it should end the sequence.
       (let* ((end-key (kmacro-tests-get-kmacro-key 'kmacro-set-counter))
              (kmacro-tests-events (append events (list end-key))))
-        (advice-flet ((this-single-command-keys
-                       (lambda () first-event)))
+        (cl-letf (((symbol-function #'this-single-command-keys)
+                   (lambda () first-event)))
           (use-local-map kmacro-tests-keymap)
           (kmacro-tests-should-insert "ccbacb"
             ;; End #3 and launch loop to read events.
@@ -466,9 +466,9 @@ This is a regression test for: Bug#3412, Bug#11817."
       ;; so run it again with that at the end.
       (let* ((end-key (kmacro-tests-get-kmacro-key 'kmacro-edit-macro-repeat))
              (kmacro-tests-events (append events (list end-key))))
-        (advice-flet ((edit-kbd-macro #'ignore)
-                      (this-single-command-keys
-                       (lambda () first-event)))
+        (cl-letf (((symbol-function #'edit-kbd-macro) #'ignore)
+                  ((symbol-function #'this-single-command-keys)
+                   (lambda () first-event)))
           (use-local-map kmacro-tests-keymap)
           (kmacro-tests-should-insert "bbbbbaaba"
             (kmacro-end-or-call-macro-repeat 3)))))))
@@ -494,22 +494,20 @@ This is a regression test for: Bug#3412, Bug#11817."
                                        '("d" "c" "b" "a" "d" "c")))))
     (cl-letf ((kmacro-repeat-no-prefix t)
               (kmacro-call-repeat-key t)
-              (kmacro-call-repeat-with-arg nil))
-      (advice-flet ((this-single-command-keys (lambda ()
-                                                first-event)))
-        ;; "Record" some macros.
-        (dotimes (n 4)
-          (kmacro-tests-define-macro (make-vector 1 (+ ?a n))))
+              (kmacro-call-repeat-with-arg nil)
+              ((symbol-function #'this-single-command-keys) (lambda ()
+                                                              first-event)))
+      ;; "Record" some macros.
+      (dotimes (n 4)
+        (kmacro-tests-define-macro (make-vector 1 (+ ?a n))))
 
-        (use-local-map kmacro-tests-keymap)
-        ;; 6 views (the direct call plus the 5 in events) should
-        ;; cycle through the ring and get to the second-to-last
-        ;; macro defined.
-        (kmacro-tests-should-insert
-         "c"
-         (kmacro-tests-should-match-message
-          macros-regexp
-          (kmacro-tests-simulate-command '(kmacro-view-macro-repeat nil))))))))
+      (use-local-map kmacro-tests-keymap)
+      ;; 6 views (the direct call plus the 5 in events) should
+      ;; cycle through the ring and get to the second-to-last
+      ;; macro defined.
+      (kmacro-tests-should-insert "c"
+        (kmacro-tests-should-match-message macros-regexp
+          (kmacro-tests-simulate-command '(kmacro-view-macro-repeat nil)))))))
 
 (kmacro-tests-deftest kmacro-tests-bind-to-key-when-recording ()
   "Bind to key doesn't bind a key during macro recording."
@@ -544,18 +542,18 @@ This is a regression test for: Bug#3412, Bug#11817."
     (define-key map "\C-hi" 'info)
     (use-local-map map)
     ;; Try the command with yes-or-no-p set up to say no.
-    (advice-flet ((yes-or-no-p
-                   (lambda (prompt)
-                     (should (string-match-p "info" prompt))
-                     (should (string-match-p "C-h i" prompt))
-                     nil)))
+    (cl-letf (((symbol-function #'yes-or-no-p)
+               (lambda (prompt)
+                 (should (string-match-p "info" prompt))
+                 (should (string-match-p "C-h i" prompt))
+                 nil)))
       (kmacro-bind-to-key nil))
 
     (should (equal (where-is-internal 'info nil t)
                    (vconcat "\C-hi")))
     ;; Try it again with yes.
-    (advice-flet ((yes-or-no-p
-                   (lambda (_prompt) t)))
+    (cl-letf (((symbol-function #' yes-or-no-p)
+               (lambda (_prompt) t)))
       (kmacro-bind-to-key nil))
 
     (should-not (equal (where-is-internal 'info global-map t)

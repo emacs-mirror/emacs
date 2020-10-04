@@ -55,7 +55,7 @@
   (with-temp-buffer
     (tempo-define-template "test" '("hello " (p ">")))
     (let ((tempo-interactive t))
-      (advice-flet ((read-string (lambda (&rest _) "world")))
+      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "world")))
         (tempo-insert-template 'tempo-template-test nil))
       (should (equal (buffer-string) "hello world")))))
 
@@ -64,7 +64,7 @@
   (with-temp-buffer
     (tempo-define-template "test" '("hello " (P ">")))
     ;; By default, `tempo-interactive' is nil, `P' should ignore this.
-    (advice-flet ((read-string (lambda (&rest _) "world")))
+    (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "world")))
       (tempo-insert-template 'tempo-template-test nil))
     (should (equal (buffer-string) "hello world"))))
 
@@ -73,7 +73,7 @@
   (with-temp-buffer
     (tempo-define-template "test" '("abcde" (r ">") "ghijk"))
     (let ((tempo-interactive t))
-      (advice-flet ((read-string (lambda (&rest _) "F")))
+      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "F")))
         (tempo-insert-template 'tempo-template-test nil))
       (should (equal (buffer-string) "abcdeFghijk")))))
 
@@ -82,7 +82,7 @@
   (with-temp-buffer
     (tempo-define-template "test" '("hello " (p ">" P1) " " (s P1)))
     (let ((tempo-interactive t))
-      (advice-flet ((read-string (lambda (&rest _) "world!")))
+      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "world!")))
         (tempo-insert-template 'tempo-template-test nil))
       (should (equal (buffer-string) "hello world! world!")))))
 
@@ -164,7 +164,7 @@
     ;; Test interactive use
     (emacs-lisp-mode)
     (let ((tempo-interactive t))
-      (advice-flet ((read-string (lambda (&rest _) "  (list 1 2 3)")))
+      (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "  (list 1 2 3)")))
         (tempo-insert-template 'tempo-template-test nil))
       (should (equal (buffer-string) "(progn\n  (list 1 2 3))")))))
 
