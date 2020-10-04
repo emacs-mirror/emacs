@@ -3809,7 +3809,7 @@ if test "${with_nativecomp}" != "no"; then
       LIBGCCJIT_LIB="-lgccjit -ldl"
     fi
     NEED_DYNLIB=yes
-    AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
+    AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
 fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
