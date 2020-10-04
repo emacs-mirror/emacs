@@ -912,8 +912,9 @@ discovering the still incomplete interface."
 (defun dbus-unregister-object (object)
   "Unregister OBJECT from D-Bus.
 OBJECT must be the result of a preceding `dbus-register-method',
-`dbus-register-property' or `dbus-register-signal' call.  It
-returns t if OBJECT has been unregistered, nil otherwise.
+`dbus-register-signal', `dbus-register-property' or
+`dbus-register-monitor' call.  The function returns t if OBJECT
+has been unregistered, nil otherwise.
 
 When OBJECT identifies the last method or property, which is
 registered for the respective service, Emacs releases its
@@ -951,7 +952,10 @@ association to the service from D-Bus."
 	(when (eq type :signal)
 	  (dbus-call-method
 	   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-	   "RemoveMatch" (nth 4 elt)))))
+	   "RemoveMatch" (nth 4 elt)))
+        ;; Delete monitor connection by reestablishing private bus.
+        (when (eq type :monitor)
+          (dbus-init-bus bus 'private))))
 
     ;; Check, whether there is still a registered function or property
     ;; for the given service.  If not, unregister the service from the
@@ -2037,7 +2041,7 @@ either a method name, a signal name, or an error name."
     (when dbus-debug (message "%s" dbus-registered-objects-table))
 
     ;; Return the object.
-    (list key key1)))
+    (list key (list nil nil handler))))
 
 (defconst dbus-monitor-method-call
   (propertize "method-call" 'face 'font-lock-function-name-face)
