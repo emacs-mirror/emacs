@@ -96,19 +96,22 @@ Note that this variable has no effect, unless
 If value is t, never attempt to truncate messages, even if the
 echo area must be resized to fit.
 
-If value is a number (integer or floating point), it has the
-semantics of `max-mini-window-height', constraining the resizing
-for ElDoc purposes only.
+If the value is a positive number, it is used to calculate a
+number of logical lines of documentation that ElDoc is allowed to
+put in the echo area.  If a positive integer, the number is used
+directly, while a float specified the number of lines as a
+proporting of the echo area frame's height.
 
-Any resizing respects `max-mini-window-height'.
-
-If value is any non-nil symbol other than t, the part of the doc
-string that represents the symbol's name may be truncated if it
-will enable the rest of the doc string to fit on a single line,
-without resizing the echo area.
+If value is the symbol `truncate-sym-name-if-fit' t, the part of
+the doc string that represents a symbol's name may be truncated
+if it will enable the rest of the doc string to fit on a single
+line, without resizing the echo area.
 
 If value is nil, a doc string is always truncated to fit in a
-single line of display in the echo area."
+single line of display in the echo area.
+
+Any resizing of the echo area aditionally respects
+`max-mini-window-height'."
   :type '(radio (const   :tag "Always" t)
                 (float   :tag "Fraction of frame height" 0.25)
                 (integer :tag "Number of lines" 5)
@@ -480,6 +483,39 @@ This holds the results of the last documentation request."
                          "*eldoc*")))))
   eldoc--doc-buffer)
 
+(defun eldoc--echo-area-substring (available)
+  "Given AVAILABLE lines, get buffer substring to display in echo area.
+Helper for `eldoc-display-in-echo-area'."
+  (display-buffer (current-buffer))
+  (let ((start (prog1 (progn
+                        (goto-char (point-min))
+                        (skip-chars-forward " \t\n")
+                        (point))
+                 (goto-char (line-end-position available))
+                 (skip-chars-backward " \t\n")))
+        (truncated (save-excursion
+                     (skip-chars-forward " \t\n")
+                     (not (eobp)))))
+    (cond ((and truncated
+                (> available 1)
+                eldoc-echo-area-display-truncation-message)
+           (goto-char (line-end-position 0))
+           (concat (buffer-substring start (point))
+                   (format
+                    "\n(Documentation truncated. Use `%s' to see rest)"
+                    (substitute-command-keys "\\[eldoc-doc-buffer]"))))
+          (t
+           (buffer-substring start (point))))))
+
+(defun eldoc--echo-area-prefer-doc-buffer-p (truncatedp)
+  "Tell if display in the echo area should be skipped.
+Helper for `eldoc-display-in-echo-area'."
+  (and (or (eq eldoc-echo-area-prefer-doc-buffer t)
+           (and truncatedp
+                (eq eldoc-echo-area-prefer-doc-buffer
+                    'maybe)))
+       (get-buffer-window eldoc--doc-buffer)))
+
 (defun eldoc-display-in-echo-area (docs _interactive)
   "Display DOCS in echo area.
 Honor `eldoc-echo-area-use-multiline-p' and
@@ -508,20 +544,13 @@ Honor `eldoc-echo-area-use-multiline-p' and
          (available (cl-typecase val
                       (float (truncate (* (frame-height) val)))
                       (integer val)
-                      (t 1)))
-         single-doc single-doc-sym
-         (prefer-doc-buffer-p
-          (lambda (truncated)
-            (and (or (eq eldoc-echo-area-prefer-doc-buffer t)
-                     (and truncated
-                          (eq eldoc-echo-area-prefer-doc-buffer
-                              'maybe)))
-                 (get-buffer-window eldoc--doc-buffer)))))
+                      (t 'just-one-line)))
+         single-doc single-doc-sym)
       (let ((echo-area-message
              (cond
-              (;; To output to the echo area,We handle the
+              (;; To output to the echo area, we handle the
                ;; `truncate-sym-name-if-fit' special case first, by
-               ;; checking if for a lot of special conditions.
+               ;; checking for a lot of special conditions.
                (and
                 (eq 'truncate-sym-name-if-fit eldoc-echo-area-use-multiline-p)
                 (null (cdr docs))
@@ -532,49 +561,22 @@ Honor `eldoc-echo-area-use-multiline-p' and
                 (not (string-match "\n" single-doc))
                 (> (+ (length single-doc) (length single-doc-sym) 2) width))
                single-doc)
-              ((> available 1)
-               ;; The message takes one extra line, so if we don't
-               ;; display that, we have one extra line to use.
-               (unless eldoc-echo-area-display-truncation-message
-                 (setq available (1+ available)))
-               ;; Else we format the *eldoc* buffer, then use some of
-               ;; its contents top section.  I'm pretty sure smarter
-               ;; strategies can be used here that don't necessarily
-               ;; involve composing that entire buffer.
+              ((and (numberp available)
+                    (cl-plusp available))
+               ;; Else, given a positive number of logical lines, we
+               ;; format the *eldoc* buffer, using as most of its
+               ;; contents as we know will fit.
                (with-current-buffer (eldoc--format-doc-buffer docs)
-                 (cl-loop
-                  initially
-                  (goto-char (point-min))
-                  (goto-char (line-end-position (1+ available)))
-                  for truncated = nil then t
-                  for needed
-                  = (let ((truncate-lines message-truncate-lines))
-                      (count-screen-lines (point-min) (point) t
-                                          (minibuffer-window)))
-                  while (> needed (if truncated (1- available) available))
-                  do (goto-char (line-end-position (if truncated 0 -1)))
-                  (while (and (not (bobp)) (bolp)) (goto-char (line-end-position 0)))
-                  finally
-                  (unless (funcall prefer-doc-buffer-p truncated)
-                    (cl-return
-                     (concat
-                      (buffer-substring (point-min) (point))
-                      (and
-                       truncated
-                       (if eldoc-echo-area-display-truncation-message
-                           (format
-                            "\n(Documentation truncated. Use `%s' to see rest)"
-                            (substitute-command-keys "\\[eldoc-doc-buffer]"))
-                         "..."))))))))
-              ((= available 1)
+                 (eldoc--echo-area-substring available)))
+              (t ;; this is the "truncate brutally" situation
                (let ((string
                       (with-current-buffer (eldoc--format-doc-buffer docs)
                         (buffer-substring (goto-char (point-min))
                                           (line-end-position 1)))))
                  (if (> (length string) width)  ; truncation to happen
-                     (unless (funcall prefer-doc-buffer-p t)
+                     (unless (eldoc--echo-area-prefer-doc-buffer-p t)
                        (truncate-string-to-width string width))
-                   (unless (funcall prefer-doc-buffer-p nil)
+                   (unless (eldoc--echo-area-prefer-doc-buffer-p nil)
                      string)))))))
         (when echo-area-message
           (eldoc--message echo-area-message)))))))
