@@ -486,7 +486,6 @@ This holds the results of the last documentation request."
 (defun eldoc--echo-area-substring (available)
   "Given AVAILABLE lines, get buffer substring to display in echo area.
 Helper for `eldoc-display-in-echo-area'."
-  (display-buffer (current-buffer))
   (let ((start (prog1 (progn
                         (goto-char (point-min))
                         (skip-chars-forward " \t\n")
