@@ -923,6 +923,7 @@ Return FILE if there was no autoload cookie in it, else nil."
   (interactive (list (read-file-name "Update autoloads for file: ")
 		     current-prefix-arg
 		     (read-file-name "Write autoload definitions to file: ")))
+  (setq outfile (or outfile generated-autoload-file))
   (let* ((autoload-modified-buffers nil)
 	 ;; We need this only if the output file handles more than one input.
 	 ;; See https://debbugs.gnu.org/22213#38 and subsequent.
