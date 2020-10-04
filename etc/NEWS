@@ -1475,6 +1475,12 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'truncate-string-ellipsis' uses the character '…' by default.
+Modes that use 'truncate-string-to-width' with non-nil non-string
+argument 'ellipsis', now indicate truncation using '…' when
+the selected frame can display it, and "..." otherwise.
+
++++
 *** New command 'make-directory-autoloads'.
 This does the same as the old command 'update-directory-autoloads',
 but has different semantics: Instead of passing in the output file via

@@ -1999,7 +1999,8 @@ replace the end of @var{string} (including any padding) if it extends
 beyond @var{width}, unless the display width of @var{string} is equal
 to or less than the display width of @var{ellipsis}.  If
 @var{ellipsis} is non-@code{nil} and not a string, it stands for
-the value of the variable @code{truncate-string-ellipsis}.
+the value of the variable @code{truncate-string-ellipsis}, or
+to three dots when it's nil.
 
 @example
 (truncate-string-to-width "\tab\t" 12 4)

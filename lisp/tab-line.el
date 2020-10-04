@@ -240,8 +240,7 @@ to `tab-line-tab-name-truncated-buffer'."
   :group 'tab-line
   :version "27.1")
 
-(defvar tab-line-tab-name-ellipsis
-  (if (char-displayable-p ?…) "…" "..."))
+(defvar tab-line-tab-name-ellipsis t)
 
 (defun tab-line-tab-name-truncated-buffer (buffer &optional _buffers)
   "Generate tab name from BUFFER.
