@@ -4050,27 +4050,15 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
      As installing .eln files compiled during the build changes their
      absolute path we need an hashing mechanism that is not sensitive
      to that.  For this we replace if match PATH_DUMPLOADSEARCH or
-     PATH_LOADSEARCH with '//' before generating the hash.  */
+     *PATH_REL_LOADSEARCH with '//' before computing the hash.  */
 
   if (NILP (loadsearch_re_list))
     {
-      Lisp_Object sys_re;
-#ifdef __APPLE__
-      /* On MacOS we relax the match on PATH_LOADSEARCH making
-	 everything before ".app/" a wildcard.  This to obtain a
-	 self-contained Emacs.app (bug#43532).  */
-      char *c;
-      if ((c = strstr (PATH_LOADSEARCH, ".app/")))
-	sys_re =
-	  concat2 (build_string ("\\`[[:ascii:]]+"),
-		   Fregexp_quote (build_string (c)));
-      else
-	sys_re = Fregexp_quote (build_string (PATH_LOADSEARCH));
-#else
-      sys_re = Fregexp_quote (build_string (PATH_LOADSEARCH));
-#endif
+      Lisp_Object sys_re =
+	concat2 (build_string ("\\`[[:ascii:]]+"),
+		 Fregexp_quote (build_string ("/" PATH_REL_LOADSEARCH "/")));
       loadsearch_re_list =
-	list2 (sys_re, Fregexp_quote (build_string (PATH_DUMPLOADSEARCH)));
+	list2 (sys_re, Fregexp_quote (build_string (PATH_DUMPLOADSEARCH "/")));
     }
 
   Lisp_Object lds_re_tail = loadsearch_re_list;

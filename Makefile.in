@@ -223,6 +223,10 @@ iconsrcdir=$(srcdir)/etc/images/icons
 # These variables hold the values Emacs will actually use.  They are
 # based on the values of the standard Make variables above.
 
+# Where lisp files are installed in a distributed with Emacs (relative
+# path to the installation directory).
+lispdirrel=@lispdirrel@
+
 # Where to install the lisp files distributed with Emacs.
 # This includes the Emacs version, so that the lisp files for different
 # versions of Emacs will install themselves in separate directories.
@@ -368,6 +372,7 @@ epaths-force:
 	@(gamedir='${gamedir}'; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "${standardlisppath}";' \
+	  -e 's;\(#.*PATH_REL_LOADSEARCH\).*$$;\1 "${lispdirrel}";' 	\
 	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "${locallisppath}";' \
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "${buildlisppath}";' \
 	  -e '/^#define PATH_[^ ]*SEARCH /s/\([":]\):*/\1/g'		\

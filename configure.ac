@@ -187,7 +187,8 @@ dnl It is important that variables on the RHS not be expanded here,
 dnl hence the single quotes.  This is per the GNU coding standards, see
 dnl (autoconf) Installation Directory Variables
 dnl See also epaths.h below.
-lispdir='${datadir}/emacs/${version}/lisp'
+lispdirrel='${version}/lisp'
+lispdir='${datadir}/emacs/'${lispdirrel}
 standardlisppath='${lispdir}'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
@@ -1908,7 +1909,8 @@ if test "${with_ns}" != no; then
      NS_IMPL_COCOA=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
-     ns_appresdir=${ns_appdir}/Contents/Resources
+     lispdirrel=Contents/Resources
+     ns_appresdir=${ns_appdir}/{lispdirrel}
      ns_appsrc=Cocoa/Emacs.base
      ns_fontfile=macfont.o
   elif flags=$( (gnustep-config --objc-flags) 2>/dev/null); then
@@ -5325,6 +5327,7 @@ AC_SUBST(sharedstatedir)
 AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
+AC_SUBST(lispdirrel)
 AC_SUBST(lispdir)
 AC_SUBST(standardlisppath)
 AC_SUBST(locallisppath)

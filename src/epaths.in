@@ -27,6 +27,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 */
 #define PATH_LOADSEARCH "/usr/local/share/emacs/lisp"
 
+/* Like PATH_LOADSEARCH, but contains the relative path from the
+   installation directory.
+*/
+#define PATH_REL_LOADSEARCH ""
 
 /* Like PATH_LOADSEARCH, but contains the non-standard pieces.
    These are the site-lisp directories.  Configure sets this to
