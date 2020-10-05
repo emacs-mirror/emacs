@@ -34,9 +34,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
+(require 'cl-lib)
 (require 'easymenu)
 (require 'custom)
 (require 'dictionary-connection)
@@ -45,16 +43,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuff for customizing.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(eval-when-compile
-  (unless (fboundp 'defface)
-    (message "Please update your custom.el file: %s"
-	     "http://www.dina.kvl.dk/~abraham/custom/"))
-
-  (unless (fboundp 'defgroup)
-    (defmacro defgroup (&rest ignored))
-    (defmacro defcustom (var value doc &rest ignored)
-      (list 'defvar var value doc))))
 
 (defvar dictionary-server)
 (defun dictionary-set-server-var (name value)
@@ -351,7 +339,7 @@ by the choice value:
  "
 
   (unless (eq major-mode 'dictionary-mode)
-    (incf dictionary-instances))
+    (cl-incf dictionary-instances))
 
   (kill-all-local-variables)
   (buffer-disable-undo)
@@ -370,8 +358,6 @@ by the choice value:
   (make-local-variable 'dictionary-default-dictionary)
   (make-local-variable 'dictionary-default-strategy)
 
-  (if (featurep 'xemacs)
-      (make-local-hook 'kill-buffer-hook))
   (add-hook 'kill-buffer-hook 'dictionary-close t t)
   (run-hooks 'dictionary-mode-hook))
 
@@ -519,7 +505,7 @@ by the choice value:
   (if (eq major-mode 'dictionary-mode)
       (progn
 	(setq major-mode nil)
-	(if (<= (decf dictionary-instances) 0)
+	(if (<= (cl-decf dictionary-instances) 0)
 	    (dictionary-connection-close dictionary-connection))
 	(let ((configuration dictionary-window-configuration)
 	      (selected-window dictionary-selected-window))
@@ -1210,8 +1196,6 @@ It presents the word at point as default input and allows editing it."
 
 ;;; Tooltip support
 
-;; Common to GNU Emacs and XEmacs
-
 ;; Add a mode indicater named "Dict"
 (defvar dictionary-tooltip-mode
   nil
@@ -1235,79 +1219,6 @@ It presents the word at point as default input and allows editing it."
   (let ((list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (mapconcat 'identity (cdr list) "\n")))
 
-(defconst dictionary-use-balloon-help
-  (eval-when-compile
-    (condition-case nil
-	(require 'balloon-help)
-      (error nil))))
-
-(make-variable-buffer-local 'dictionary-balloon-help-extent)
-
-(if dictionary-use-balloon-help
-    (progn
-
-;; The following definition are only valid for XEmacs with balloon-help
-
-(defvar dictionary-balloon-help-position nil
-  "Current position to lookup word")
-
-(defun dictionary-balloon-help-store-position (event)
-  (setq dictionary-balloon-help-position (event-point event)))
-
-(defun dictionary-balloon-help-description (&rest extent)
-  "Get the word from the cursor and lookup it"
-  (if dictionary-balloon-help-position
-      (let ((word (save-window-excursion
-		    (save-excursion
-		      (goto-char dictionary-balloon-help-position)
-		      (current-word)))))
-	(let ((definition
-		(dictionary-definition word dictionary-tooltip-dictionary)))
-	  (if definition
-	      (dictionary-decode-charset definition
-					 dictionary-tooltip-dictionary)
-	    nil)))))
-
-(defvar dictionary-balloon-help-extent nil
-  "The extent for activating the balloon help")
-
-;;;###autoload
-(defun dictionary-tooltip-mode (&optional arg)
-   "Display tooltips for the current word"
-   (interactive "P")
-   (let* ((on (if arg
-		  (> (prefix-numeric-value arg) 0)
-		(not dictionary-tooltip-mode))))
-     (make-local-variable 'dictionary-tooltip-mode)
-     (if on
-	 ;; active mode
-	 (progn
-	   ;; remove old extend
-	   (if dictionary-balloon-help-extent
-	       (delete-extent dictionary-balloon-help-extent))
-	   ;; create new one
-	   (setq dictionary-balloon-help-extent (make-extent (point-min)
-							     (point-max)))
-	   (set-extent-property dictionary-balloon-help-extent
-				'balloon-help
-				'dictionary-balloon-help-description)
-	   (set-extent-property dictionary-balloon-help-extent
-				'start-open nil)
-	   (set-extent-property dictionary-balloon-help-extent
-				'end-open nil)
-	   (add-hook 'mouse-motion-hook
-		     'dictionary-balloon-help-store-position))
-
-       ;; deactivate mode
-       (if dictionary-balloon-help-extent
-	   (delete-extent dictionary-balloon-help-extent))
-       (remove-hook 'mouse-motion-hook
-		     'dictionary-balloon-help-store-position))
-     (setq dictionary-tooltip-mode on)
-     (balloon-help-minor-mode on)))
-
-) ;; end of XEmacs part
-
 (defvar global-dictionary-tooltip-mode
   nil)
 
@@ -1317,16 +1228,16 @@ It presents the word at point as default input and allows editing it."
   (interactive "e")
   (if dictionary-tooltip-dictionary
       (let ((word (save-window-excursion
-		    (save-excursion
-		      (mouse-set-point event)
-		      (current-word)))))
-	(let ((definition
-		(dictionary-definition word dictionary-tooltip-dictionary)))
-	  (if definition
-	      (tooltip-show
-	       (dictionary-decode-charset definition
-					  dictionary-tooltip-dictionary)))
-	  t))
+                    (save-excursion
+                      (mouse-set-point event)
+                      (current-word)))))
+        (let ((definition
+                (dictionary-definition word dictionary-tooltip-dictionary)))
+          (if definition
+              (tooltip-show
+               (dictionary-decode-charset definition
+                                          dictionary-tooltip-dictionary)))
+          t))
     nil))
 
 ;;;###autoload
@@ -1335,8 +1246,8 @@ It presents the word at point as default input and allows editing it."
   (interactive "P")
   (require 'tooltip)
   (let ((on (if arg
-		(> (prefix-numeric-value arg) 0)
-	      (not dictionary-tooltip-mode))))
+                (> (prefix-numeric-value arg) 0)
+              (not dictionary-tooltip-mode))))
     (make-local-variable 'dictionary-tooltip-mode)
     (setq dictionary-tooltip-mode on)
     ;; make sure that tooltip is still (global available) even is on
@@ -1352,16 +1263,13 @@ It presents the word at point as default input and allows editing it."
   (interactive "P")
   (require 'tooltip)
   (let* ((on (if arg (> (prefix-numeric-value arg) 0)
-	      (not global-dictionary-tooltip-mode)))
-	 (hook-fn (if on 'add-hook 'remove-hook)))
+               (not global-dictionary-tooltip-mode)))
+         (hook-fn (if on 'add-hook 'remove-hook)))
     (setq global-dictionary-tooltip-mode on)
     (tooltip-mode 1)
     (funcall hook-fn 'tooltip-hook 'dictionary-display-tooltip)
     (setq-default dictionary-tooltip-mode on)
     (setq-default track-mouse on)))
 
-) ;; end of GNU Emacs part
-
 (provide 'dictionary)
-
 ;;; dictionary.el ends here

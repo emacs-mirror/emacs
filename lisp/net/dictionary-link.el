@@ -113,14 +113,10 @@ link.  Upon clicking the `function' is called with `data' as argument."
 (defun dictionary-link-initialize-keymap (keymap)
   "Defines the necessary bindings inside keymap"
 
-  (if (and (boundp 'running-xemacs) running-xemacs)
-      (progn
-        (define-key keymap [button2] 'dictionary-link-mouse-click)
-        (define-key keymap [(meta button2)] 'dictionary-link-mouse-click-all))
-    (define-key keymap [mouse-2] 'dictionary-link-mouse-click)
-    (define-key keymap [M-mouse-2] 'dictionary-link-mouse-click-all))
-    (define-key keymap "\r" 'dictionary-link-selected)
-    (define-key keymap "\M-\r" 'dictionary-link-selected-all))
+  (define-key keymap [mouse-2] 'dictionary-link-mouse-click)
+  (define-key keymap [M-mouse-2] 'dictionary-link-mouse-click-all)
+  (define-key keymap "\r" 'dictionary-link-selected)
+  (define-key keymap "\M-\r" 'dictionary-link-selected-all))
 
 (provide 'dictionary-link)
 ;;; dictionary-link.el ends here
