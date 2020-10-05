@@ -40,7 +40,7 @@
 (require 'easymenu)
 (require 'custom)
 (require 'dictionary-connection)
-(require 'link)
+(require 'dictionary-link)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuff for customizing.
@@ -434,7 +434,7 @@ by the choice value:
   (define-key dictionary-mode-map " " 'scroll-up)
   (define-key dictionary-mode-map [(meta space)] 'scroll-down)
 
-  (link-initialize-keymap dictionary-mode-map))
+  (dictionary-link-initialize-keymap dictionary-mode-map))
 
 (defmacro dictionary-reply-code (reply)
   "Return the reply code stored in `reply'."
@@ -713,37 +713,37 @@ This function knows about the special meaning of quotes (\")"
   (erase-buffer)
   (if dictionary-create-buttons
       (progn
-	(link-insert-link "[Back]" 'dictionary-button-face
-			  'dictionary-restore-state nil
-			  "Mouse-2 to go backwards in history")
+	(dictionary-link-insert-link "[Back]" 'dictionary-button-face
+                                     'dictionary-restore-state nil
+                                     "Mouse-2 to go backwards in history")
 	(insert " ")
-	(link-insert-link "[Search Definition]"
-			  'dictionary-button-face
-			  'dictionary-search nil
-			  "Mouse-2 to look up a new word")
+	(dictionary-link-insert-link "[Search Definition]"
+                                     'dictionary-button-face
+                                     'dictionary-search nil
+                                     "Mouse-2 to look up a new word")
 	(insert "         ")
 
-	(link-insert-link "[Matching words]"
-			  'dictionary-button-face
-			  'dictionary-match-words nil
-			  "Mouse-2 to find matches for a pattern")
+	(dictionary-link-insert-link "[Matching words]"
+                                     'dictionary-button-face
+                                     'dictionary-match-words nil
+                                     "Mouse-2 to find matches for a pattern")
 	(insert "        ")
 
-	(link-insert-link "[Quit]" 'dictionary-button-face
-			  'dictionary-close nil
-			  "Mouse-2 to close this window")
+	(dictionary-link-insert-link "[Quit]" 'dictionary-button-face
+                                     'dictionary-close nil
+                                     "Mouse-2 to close this window")
 
 	(insert "\n       ")
 
-	(link-insert-link "[Select Dictionary]"
-			  'dictionary-button-face
-			  'dictionary-select-dictionary nil
-			  "Mouse-2 to select dictionary for future searches")
+	(dictionary-link-insert-link "[Select Dictionary]"
+                                     'dictionary-button-face
+                                     'dictionary-select-dictionary nil
+                                     "Mouse-2 to select dictionary for future searches")
 	(insert "         ")
-	(link-insert-link "[Select Match Strategy]"
-			  'dictionary-button-face
-			  'dictionary-select-strategy nil
-			  "Mouse-2 to select matching algorithm")
+	(dictionary-link-insert-link "[Select Match Strategy]"
+                                     'dictionary-button-face
+                                     'dictionary-select-strategy nil
+                                     "Mouse-2 to select matching algorithm")
 	(insert "\n\n")))
   (setq dictionary-marker (point-marker)))
 
@@ -821,10 +821,10 @@ The word is taken from the buffer, the `dictionary' is given as argument."
       (setq word (replace-match "" t t word)))
 
     (unless (equal word displayed-word)
-      (link-create-link start end 'dictionary-reference-face
-			call (cons word dictionary)
-			(concat "Press Mouse-2 to lookup \""
-				word "\" in \"" dictionary "\"")))))
+      (dictionary-link-create-link start end 'dictionary-reference-face
+                                   call (cons word dictionary)
+                                   (concat "Press Mouse-2 to lookup \""
+                                           word "\" in \"" dictionary "\"")))))
 
 (defun dictionary-select-dictionary (&rest ignored)
   "Save the current state and start a dictionary selection"
@@ -882,11 +882,11 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (if dictionary
 	(if (equal dictionary "--exit--")
 	    (insert "(end of default search list)\n")
-	  (link-insert-link (concat dictionary ": " translated)
-			    'dictionary-reference-face
-			    'dictionary-set-dictionary
-			    (cons dictionary description)
-			    "Mouse-2 to select this dictionary")
+	  (dictionary-link-insert-link (concat dictionary ": " translated)
+                                       'dictionary-reference-face
+                                       'dictionary-set-dictionary
+                                       (cons dictionary description)
+                                       "Mouse-2 to select this dictionary")
 	  (insert "\n")))))
 
 (defun dictionary-set-dictionary (param &optional more)
@@ -918,10 +918,10 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    (error "Unknown server answer: %s" (dictionary-reply reply)))
 	  (dictionary-pre-buffer)
 	  (insert "Information on dictionary: ")
-	  (link-insert-link description 'dictionary-reference-face
-			    'dictionary-set-dictionary
-			    (cons dictionary description)
-			    "Mouse-2 to select this dictionary")
+	  (dictionary-link-insert-link description 'dictionary-reference-face
+                                       'dictionary-set-dictionary
+                                       (cons dictionary description)
+                                       "Mouse-2 to select this dictionary")
 	  (insert "\n\n")
 	  (setq reply (dictionary-read-answer))
 	  (insert reply)
@@ -969,9 +969,9 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	 (description (cadr list)))
     (if strategy
 	(progn
-	  (link-insert-link description 'dictionary-reference-face
-			    'dictionary-set-strategy strategy
-			    "Mouse-2 to select this matching algorithm")
+	  (dictionary-link-insert-link description 'dictionary-reference-face
+                                       'dictionary-set-strategy strategy
+                                       "Mouse-2 to select this matching algorithm")
 	  (insert "\n")))))
 
 (defun dictionary-set-strategy (strategy &rest ignored)
@@ -1071,11 +1071,11 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    (mapc (lambda (word)
 		    (setq word (dictionary-decode-charset word dictionary))
 		    (insert "  ")
-		    (link-insert-link word
-				      'dictionary-reference-face
-				      'dictionary-new-search
-				      (cons word dictionary)
-				      "Mouse-2 to lookup word")
+		    (dictionary-link-insert-link word
+                                                 'dictionary-reference-face
+                                                 'dictionary-new-search
+                                                 (cons word dictionary)
+                                                 "Mouse-2 to lookup word")
 		    (insert "\n")) (reverse word-list))
 	    (insert "\n")))
 	list))
@@ -1133,7 +1133,7 @@ It presents the word at point as default input and allows editing it."
 (defun dictionary-next-link ()
   "Place the cursor to the next link."
   (interactive)
-  (let ((pos (link-next-link)))
+  (let ((pos (dictionary-link-next-link)))
     (if pos
 	(goto-char pos)
       (error "There is no next link"))))
@@ -1141,7 +1141,7 @@ It presents the word at point as default input and allows editing it."
 (defun dictionary-prev-link ()
   "Place the cursor to the previous link."
   (interactive)
-  (let ((pos (link-prev-link)))
+  (let ((pos (dictionary-link-prev-link)))
     (if pos
 	(goto-char pos)
       (error "There is no previous link"))))

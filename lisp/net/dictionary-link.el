@@ -1,4 +1,4 @@
-;;; link.el --- Hypertext links in text buffers
+;;; dictionary-link.el --- Hypertext links in text buffers
 
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: interface, hypermedia
@@ -31,15 +31,12 @@
 ;; argument. Both the function and the data are stored in text
 ;; properties.
 ;;
-;; link-create-link       - insert a new link for the text in the given range
-;; link-initialize-keymap - install the keybinding for selecting links
+;; dictionary-link-create-link       - insert a new link for the text in the given range
+;; dictionary-link-initialize-keymap - install the keybinding for selecting links
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
-(defun link-create-link (start end face function &optional data help)
+(defun dictionary-link-create-link (start end face function &optional data help)
   "Create a link in the current buffer starting from `start' going to `end'.
 The `face' is used for displaying, the `data' are stored together with the
 link.  Upon clicking the `function' is called with `data' as argument."
@@ -52,15 +49,15 @@ link.  Upon clicking the `function' is called with `data' as argument."
     (remove-text-properties start end properties)
     (add-text-properties start end properties)))
 
-(defun link-insert-link (text face function &optional data help)
+(defun dictionary-link-insert-link (text face function &optional data help)
   "Insert the `text' at point to be formatted as link.
 The `face' is used for displaying, the `data' are stored together with the
 link.  Upon clicking the `function' is called with `data' as argument."
   (let ((start (point)))
     (insert text)
-    (link-create-link start (point) face function data help)))
+    (dictionary-link-create-link start (point) face function data help)))
 
-(defun link-selected (&optional all)
+(defun dictionary-link-selected (&optional all)
   "Is called upon clicking or otherwise visiting the link."
   (interactive)
 
@@ -70,26 +67,26 @@ link.  Upon clicking the `function' is called with `data' as argument."
     (if function
         (funcall function data all))))
 
-(defun link-selected-all ()
+(defun dictionary-link-selected-all ()
   "Called for meta clicking the link"
   (interactive)
-  (link-selected 'all))
+  (dictionary-link-selected 'all))
 
-(defun link-mouse-click (event &optional all)
+(defun dictionary-link-mouse-click (event &optional all)
   "Is called upon clicking the link."
   (interactive "@e")
 
   (mouse-set-point event)
-  (link-selected))
+  (dictionary-link-selected))
 
-(defun link-mouse-click-all (event)
+(defun dictionary-link-mouse-click-all (event)
   "Is called upon meta clicking the link."
   (interactive "@e")
 
   (mouse-set-point event)
-  (link-selected-all))
+  (dictionary-link-selected-all))
 
-(defun link-next-link ()
+(defun dictionary-link-next-link ()
   "Return the position of the next link or nil if there is none"
   (let* ((pos (point))
          (pos (next-single-property-change pos 'link)))
@@ -100,7 +97,7 @@ link.  Upon clicking the `function' is called with `data' as argument."
       nil)))
 
 
-(defun link-prev-link ()
+(defun dictionary-link-prev-link ()
   "Return the position of the previous link or nil if there is none"
   (let* ((pos (point))
          (pos (previous-single-property-change pos 'link)))
@@ -113,17 +110,17 @@ link.  Upon clicking the `function' is called with `data' as argument."
               (text-property-any (point-min) (1+ (point-min)) 'link t))))
       nil)))
 
-(defun link-initialize-keymap (keymap)
+(defun dictionary-link-initialize-keymap (keymap)
   "Defines the necessary bindings inside keymap"
 
   (if (and (boundp 'running-xemacs) running-xemacs)
       (progn
-        (define-key keymap [button2] 'link-mouse-click)
-        (define-key keymap [(meta button2)] 'link-mouse-click-all))
-    (define-key keymap [mouse-2] 'link-mouse-click)
-    (define-key keymap [M-mouse-2] 'link-mouse-click-all))
-    (define-key keymap "\r" 'link-selected)
-    (define-key keymap "\M-\r" 'link-selected-all))
+        (define-key keymap [button2] 'dictionary-link-mouse-click)
+        (define-key keymap [(meta button2)] 'dictionary-link-mouse-click-all))
+    (define-key keymap [mouse-2] 'dictionary-link-mouse-click)
+    (define-key keymap [M-mouse-2] 'dictionary-link-mouse-click-all))
+    (define-key keymap "\r" 'dictionary-link-selected)
+    (define-key keymap "\M-\r" 'dictionary-link-selected-all))
 
-(provide 'link)
-;;; link.el ends here
+(provide 'dictionary-link)
+;;; dictionary-link.el ends here
