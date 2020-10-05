@@ -21808,13 +21808,14 @@ extend_face_to_end_of_line (struct it *it)
      in the text area has to be drawn to the end of the text area.  */
   it->glyph_row->fill_line_p = true;
 
+  const int orig_face_id = it->face_id;
   /* If current character of IT is not ASCII, make sure we have the
      ASCII face.  This will be automatically undone the next time
      get_next_display_element returns a multibyte character.  Note
      that the character will always be single byte in unibyte
      text.  */
   if (!ASCII_CHAR_P (it->c))
-      it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
+    it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
 
   /* The default face, possibly remapped. */
   struct face *default_face =
@@ -22008,6 +22009,7 @@ extend_face_to_end_of_line (struct it *it)
 	  if (stretch_width < 0)
 	    it->glyph_row->x = stretch_width;
 	}
+      it->face_id = orig_face_id;
     }
   else
 #endif	/* HAVE_WINDOW_SYSTEM */
@@ -22017,7 +22019,6 @@ extend_face_to_end_of_line (struct it *it)
       struct text_pos saved_pos = it->position;
       Lisp_Object saved_object = it->object;;
       enum display_element_type saved_what = it->what;
-      int saved_face_id = it->face_id;
 
       it->what = IT_CHARACTER;
       memset (&it->position, 0, sizeof it->position);
@@ -22120,7 +22121,7 @@ extend_face_to_end_of_line (struct it *it)
       it->object = saved_object;
       it->position = saved_pos;
       it->what = saved_what;
-      it->face_id = saved_face_id;
+      it->face_id = orig_face_id;
     }
 }
 
