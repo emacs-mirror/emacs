@@ -4660,7 +4660,7 @@ pgtk_focus_frame (struct frame *f, bool noactivate)
 
   GtkWidget *wid = FRAME_GTK_OUTER_WIDGET (f);
 
-  if (dpyinfo->x_focus_frame != f)
+  if (dpyinfo->x_focus_frame != f && wid != NULL)
     {
       block_input ();
       gtk_window_present (GTK_WINDOW (wid));
@@ -4718,9 +4718,9 @@ x_set_frame_alpha (struct frame *f)
     }
 #endif
 
-  set_opacity_recursively (FRAME_GTK_OUTER_WIDGET (f), &alpha);
+  set_opacity_recursively (FRAME_WIDGET (f), &alpha);
   /* without this, blending mode is strange on wayland. */
-  gtk_widget_queue_resize_no_redraw (FRAME_GTK_OUTER_WIDGET (f));
+  gtk_widget_queue_resize_no_redraw (FRAME_WIDGET (f));
 }
 
 static void
@@ -4891,12 +4891,14 @@ x_new_focus_frame (struct pgtk_display_info *dpyinfo, struct frame *frame)
       dpyinfo->x_focus_frame = frame;
 
       if (old_focus && old_focus->auto_lower)
-	gdk_window_lower (gtk_widget_get_window
-			  (FRAME_GTK_OUTER_WIDGET (old_focus)));
+	if (FRAME_GTK_OUTER_WIDGET (old_focus))
+	  gdk_window_lower (gtk_widget_get_window
+			    (FRAME_GTK_OUTER_WIDGET (old_focus)));
 
       if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
-	gdk_window_raise (gtk_widget_get_window
-			  (FRAME_GTK_OUTER_WIDGET (dpyinfo->x_focus_frame)));
+	if (FRAME_GTK_OUTER_WIDGET (dpyinfo->x_focus_frame))
+	  gdk_window_raise (gtk_widget_get_window
+			    (FRAME_GTK_OUTER_WIDGET (dpyinfo->x_focus_frame)));
     }
 
   pgtk_frame_rehighlight (dpyinfo);
@@ -6567,15 +6569,18 @@ pgtk_set_event_handler (struct frame *f)
 		     GDK_ACTION_COPY);
   gtk_drag_dest_add_uri_targets (FRAME_GTK_WIDGET (f));
 
-  g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
-		    "window-state-event", G_CALLBACK (window_state_event),
-		    NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "delete-event",
-		    G_CALLBACK (delete_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "event",
-		    G_CALLBACK (pgtk_handle_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "configure-event",
-		    G_CALLBACK (configure_event), NULL);
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    {
+      g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+			"window-state-event", G_CALLBACK (window_state_event),
+			NULL);
+      g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "delete-event",
+			G_CALLBACK (delete_event), NULL);
+      g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "event",
+			G_CALLBACK (pgtk_handle_event), NULL);
+      g_signal_connect (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)), "configure-event",
+			G_CALLBACK (configure_event), NULL);
+    }
 
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "map-event",
 		    G_CALLBACK (map_event), NULL);

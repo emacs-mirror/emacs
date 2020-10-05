@@ -640,6 +640,11 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
 
   *error_name = NULL;
 
+  if (!FRAME_GTK_OUTER_WIDGET (f)) {
+    *error_name = "Can't popup from child frames.";
+    return Qnil;
+  }
+
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
       *error_name = "Empty menu";
@@ -943,6 +948,11 @@ pgtk_dialog_show (struct frame *f, Lisp_Object title,
   eassert (FRAME_PGTK_P (f));
 
   *error_name = NULL;
+
+  if (!FRAME_GTK_OUTER_WIDGET (f)) {
+    *error_name = "Can't popup from child frames.";
+    return Qnil;
+  }
 
   if (menu_items_n_panes > 1)
     {

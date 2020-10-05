@@ -1098,8 +1098,21 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 	(f, Qxg_frame_set_char_size_1, width, height,
 	 list2i (gheight, totalheight));
 
+#ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 gwidth, totalheight);
+#else
+      if (FRAME_GTK_OUTER_WIDGET (f))
+	{
+	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     gwidth, totalheight);
+	}
+      else
+	{
+	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				       gwidth, totalheight);
+	}
+#endif
     }
   else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
     {
@@ -1107,8 +1120,21 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 	(f, Qxg_frame_set_char_size_2, width, height,
 	 list2i (gwidth, totalwidth));
 
+#ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, gheight);
+#else
+      if (FRAME_GTK_OUTER_WIDGET (f))
+	{
+	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     totalwidth, gheight);
+	}
+      else
+	{
+	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				       totalwidth, gheight);
+	}
+#endif
     }
   else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
     {
@@ -1880,6 +1906,10 @@ xg_set_background_color (struct frame *f, unsigned long bg)
 void
 xg_set_undecorated (struct frame *f, Lisp_Object undecorated)
 {
+#ifdef HAVE_PGTK
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
+#endif
   if (FRAME_GTK_WIDGET (f))
     {
       block_input ();
@@ -1940,6 +1970,10 @@ xg_set_skip_taskbar (struct frame *f, Lisp_Object skip_taskbar)
 void
 xg_set_no_focus_on_map (struct frame *f, Lisp_Object no_focus_on_map)
 {
+#ifdef HAVE_PGTK
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
+#endif
   block_input ();
   if (FRAME_GTK_WIDGET (f))
     {
@@ -1955,14 +1989,12 @@ xg_set_no_focus_on_map (struct frame *f, Lisp_Object no_focus_on_map)
 void
 xg_set_no_accept_focus (struct frame *f, Lisp_Object no_accept_focus)
 {
-  block_input ();
-  if (
-#ifndef HAVE_PGTK
-      FRAME_GTK_WIDGET (f)
-#else
-      FRAME_GTK_OUTER_WIDGET (f)
+#ifdef HAVE_PGTK
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
 #endif
-      )
+  block_input ();
+  if (FRAME_GTK_WIDGET (f))
     {
       GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
       gboolean g_no_accept_focus = NILP (no_accept_focus) ? TRUE : FALSE;
@@ -1994,6 +2026,10 @@ xg_set_override_redirect (struct frame *f, Lisp_Object override_redirect)
 void
 xg_set_frame_icon (struct frame *f, Pixmap icon_pixmap, Pixmap icon_mask)
 {
+#ifdef HAVE_PGTK
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
+#endif
   GdkPixbuf *gp = xg_get_pixbuf_from_pix_and_mask (f,
                                                    icon_pixmap,
                                                    icon_mask);
@@ -2537,6 +2573,11 @@ xg_get_file_name (struct frame *f,
   int filesel_done = 0;
   xg_get_file_func func;
 
+#ifdef HAVE_PGTK
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    error("Can't open dialog from child frames");
+#endif
+
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
   if (xg_uses_old_file_dialog ())
@@ -2619,6 +2660,11 @@ xg_get_font (struct frame *f, const char *default_name)
   GtkWidget *w;
   int done = 0;
   Lisp_Object font = Qnil;
+
+#ifdef HAVE_PGTK
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    error("Can't open dialog from child frames");
+#endif
 
   w = gtk_font_chooser_dialog_new
     ("Pick a font", GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));

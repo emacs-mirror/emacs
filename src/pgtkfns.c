@@ -719,6 +719,9 @@ xg_set_icon (struct frame *f, Lisp_Object file)
   bool result = false;
   Lisp_Object found;
 
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return false;
+
   found = image_find_image_file (file);
 
   if (!NILP (found))
@@ -755,6 +758,9 @@ xg_set_icon_from_xpm_data (struct frame *f, const char **data)
   if (!pixbuf)
     return false;
 
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return false;
+
   gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), pixbuf);
   g_object_unref (pixbuf);
   return true;
@@ -764,6 +770,9 @@ static void
 pgtk_set_sticky (struct frame *f, Lisp_Object new_value,
 		 Lisp_Object old_value)
 {
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return;
+
   if (!NILP (new_value))
     gtk_window_stick (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
   else
@@ -3055,6 +3064,9 @@ Text larger than the specified size is clipped.  */)
     frame = selected_frame;
   f = decode_window_system_frame (frame);
 
+  if (!FRAME_GTK_OUTER_WIDGET (f))
+    return unbind_to (count, Qnil);
+
   if (NILP (timeout))
     timeout = make_fixnum (5);
   else
@@ -3457,7 +3469,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
   (Lisp_Object x, Lisp_Object y)
 {
   struct frame *f = SELECTED_FRAME ();
-  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+  GtkWidget *widget = gtk_widget_get_toplevel (FRAME_WIDGET (f));
   GdkWindow *window = gtk_widget_get_window (widget);
   GdkDisplay *gdpy = gdk_window_get_display (window);
   GdkScreen *gscr = gdk_window_get_screen (window);
@@ -3478,7 +3490,7 @@ position (0, 0) of the selected frame's terminal. */)
   (void)
 {
   struct frame *f = SELECTED_FRAME ();
-  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+  GtkWidget *widget = gtk_widget_get_toplevel (FRAME_WIDGET (f));
   GdkWindow *window = gtk_widget_get_window (widget);
   GdkDisplay *gdpy = gdk_window_get_display (window);
   GdkScreen *gscr;
