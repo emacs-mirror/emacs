@@ -39,7 +39,7 @@
 
 (require 'easymenu)
 (require 'custom)
-(require 'connection)
+(require 'dictionary-connection)
 (require 'link)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -60,10 +60,10 @@
 (defun dictionary-set-server-var (name value)
   (if (and (boundp 'dictionary-connection)
 	   dictionary-connection
-	   (eq (connection-status dictionary-connection) 'up)
+	   (eq (dictionary-connection-status dictionary-connection) 'up)
 	   (y-or-n-p
 	    (concat "Close existing connection to " dictionary-server "? ")))
-      (connection-close dictionary-connection))
+      (dictionary-connection-close dictionary-connection))
   (set-default name value))
 
 (defgroup dictionary nil
@@ -451,7 +451,7 @@ by the choice value:
 (defun dictionary-check-connection ()
   "Check if there is already a connection open"
   (if (not (and dictionary-connection
-		(eq (connection-status dictionary-connection) 'up)))
+		(eq (dictionary-connection-status dictionary-connection) 'up)))
       (let ((wanted 'raw-text)
 	    (coding-system nil))
 	(if (and (fboundp 'coding-system-list)
@@ -461,14 +461,14 @@ by the choice value:
 	      (coding-system-for-write coding-system))
 	  (message "Opening connection to %s:%s" dictionary-server
 		   dictionary-port)
-	  (connection-close dictionary-connection)
+	  (dictionary-connection-close dictionary-connection)
 	  (setq dictionary-connection
 		(if dictionary-use-http-proxy
-		    (connection-open dictionary-proxy-server
-				     dictionary-proxy-port)
-		  (connection-open dictionary-server dictionary-port)))
+		    (dictionary-connection-open dictionary-proxy-server
+                                                dictionary-proxy-port)
+		  (dictionary-connection-open dictionary-server dictionary-port)))
 	  (set-process-query-on-exit-flag
-	   (connection-process dictionary-connection)
+	   (dictionary-connection-process dictionary-connection)
 	   nil)
 
 	  (when dictionary-use-http-proxy
@@ -520,7 +520,7 @@ by the choice value:
       (progn
 	(setq major-mode nil)
 	(if (<= (decf dictionary-instances) 0)
-	    (connection-close dictionary-connection))
+	    (dictionary-connection-close dictionary-connection))
 	(let ((configuration dictionary-window-configuration)
 	      (selected-window dictionary-selected-window))
 	  (kill-buffer (current-buffer))
@@ -535,11 +535,11 @@ by the choice value:
   "Send the command `string' to the network connection."
   (dictionary-check-connection)
   ;;;; #####
-  (connection-send-crlf dictionary-connection string))
+  (dictionary-connection-send-crlf dictionary-connection string))
 
 (defun dictionary-read-reply ()
   "Read the reply line from the server"
-  (let ((answer (connection-read-crlf dictionary-connection)))
+  (let ((answer (dictionary-connection-read-crlf dictionary-connection)))
     (if (string-match "\r?\n" answer)
 	(substring answer 0 (match-beginning 0))
       answer)))
@@ -574,7 +574,7 @@ This function knows about the special meaning of quotes (\")"
 
 (defun dictionary-read-answer ()
   "Read an answer delimited by a . on a single line"
-  (let ((answer (connection-read-to-point dictionary-connection))
+  (let ((answer (dictionary-connection-read-to-point dictionary-connection))
 	(start 0))
     (while (string-match "\r\n" answer start)
       (setq answer (replace-match "\n" t t answer))
@@ -623,7 +623,7 @@ This function knows about the special meaning of quotes (\")"
   "Read the first reply from server and check it."
   (let ((reply (dictionary-read-reply-and-split)))
     (unless (dictionary-check-reply reply 220)
-      (connection-close dictionary-connection)
+      (dictionary-connection-close dictionary-connection)
       (error "Server returned: %s" (dictionary-reply reply)))))
 
 ;; Store the current state
