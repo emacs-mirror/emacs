@@ -446,12 +446,18 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 	{
 	  Lisp_Object elt1 = XD_NEXT_VALUE (elt);
 	  if (CONSP (elt1) && STRINGP (XCAR (elt1)) && NILP (XCDR (elt1)))
-	    subsig = SSDATA (XCAR (elt1));
+	    {
+	      subsig = SSDATA (XCAR (elt1));
+	      elt = Qnil;
+	    }
 	}
 
       while (!NILP (elt))
 	{
-	  if (subtype != XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt)))
+	  char x[DBUS_MAXIMUM_SIGNATURE_LENGTH];
+	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
+	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
+	  if (strcmp (subsig, x) != 0)
 	    wrong_type_argument (intern ("D-Bus"), CAR_SAFE (elt));
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
