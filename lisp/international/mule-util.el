@@ -50,7 +50,7 @@ Serves as default value of ELLIPSIS argument to `truncate-string-to-width'
 returned by the function `truncate-string-ellipsis'.")
 
 (defun truncate-string-ellipsis ()
-  "Return a string to use to indicate truncation.
+  "Return the string used to indicate truncation.
 Use the value of the variable `truncate-string-ellipsis' when it's non-nil.
 Otherwise, return `…' when it's displayable on the selected frame,
 or `...'.  This function needs to be called on every use of
