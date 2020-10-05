@@ -447,7 +447,7 @@ unexec_regions_recorder (task_t task, void *rr, unsigned type,
 
   while (num && num_unexec_regions < MAX_UNEXEC_REGIONS)
     {
-      /* Subtract the size of trailing NUL bytes from filesize.  It
+      /* Subtract the size of trailing null bytes from filesize.  It
 	 can be smaller than vmsize in segment commands.  In such a
 	 case, trailing bytes are initialized with zeros.  */
       for (p = ranges->address + ranges->size; p > ranges->address; p--)

@@ -1621,6 +1621,8 @@ convert them to a list '(R G B)' of primary color values.
 This user option can be one of the predefined styles or a function to
 personalize the uniquified buffer name.
 
++++
+** 'inhibit-nul-byte-detection' is renamed to 'inhibit-null-byte-detection'.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

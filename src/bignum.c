@@ -353,7 +353,7 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
 
 /* Yield an upper bound on the buffer size needed to contain a C
    string representing the NUM in base BASE.  This includes any
-   preceding '-' and the terminating NUL.  */
+   preceding '-' and the terminating null.  */
 static ptrdiff_t
 mpz_bufsize (mpz_t const num, int base)
 {
@@ -418,7 +418,7 @@ bignum_to_string (Lisp_Object num, int base)
 
 /* Create a bignum by scanning NUM, with digits in BASE.
    NUM must consist of an optional '-', a nonempty sequence
-   of base-BASE digits, and a terminating NUL byte, and
+   of base-BASE digits, and a terminating null byte, and
    the represented number must not be in fixnum range.  */
 
 Lisp_Object

@@ -406,7 +406,7 @@ string_version_cmp (Lisp_Object string1, Lisp_Object string2)
 
   while ((cmp = filevercmp (p1, p2)) == 0)
     {
-      /* If the strings are identical through their first NUL bytes,
+      /* If the strings are identical through their first null bytes,
 	 skip past identical prefixes and try again.  */
       ptrdiff_t size = strlen (p1) + 1;
       eassert (size == strlen (p2) + 1);

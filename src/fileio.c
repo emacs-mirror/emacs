@@ -1710,7 +1710,7 @@ See also the function `substitute-in-file-name'.")
 #endif
 
 /* Put into BUF the concatenation of DIR and FILE, with an intervening
-   directory separator if needed.  Return a pointer to the NUL byte
+   directory separator if needed.  Return a pointer to the null byte
    at the end of the concatenated string.  */
 char *
 splice_dir_file (char *buf, char const *dir, char const *file)

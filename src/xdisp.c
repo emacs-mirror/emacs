@@ -11043,7 +11043,7 @@ message_log_check_duplicate (ptrdiff_t prev_bol_byte, ptrdiff_t this_bol_byte)
 
 
 /* Display an echo area message M with a specified length of NBYTES
-   bytes.  The string may include NUL characters.  If M is not a
+   bytes.  The string may include null characters.  If M is not a
    string, clear out any existing message, and let the mini-buffer
    text show through.
 
@@ -11146,7 +11146,7 @@ message3_nolog (Lisp_Object m)
 }
 
 
-/* Display a NUL-terminated echo area message M.  If M is 0, clear
+/* Display a null-terminated echo area message M.  If M is 0, clear
    out any existing message, and let the mini-buffer text show through.
 
    The buffer M must continue to exist until after the echo area gets
@@ -26153,7 +26153,7 @@ are the selected window and the WINDOW's buffer).  */)
   return unbind_to (count, str);
 }
 
-/* Write a NUL-terminated, right justified decimal representation of
+/* Write a null-terminated, right justified decimal representation of
    the positive integer D to BUF using a minimal field width WIDTH.  */
 
 static void
@@ -26183,7 +26183,7 @@ pint2str (register char *buf, register int width, register ptrdiff_t d)
     }
 }
 
-/* Write a NUL-terminated, right justified decimal and "human
+/* Write a null-terminated, right justified decimal and "human
    readable" representation of the nonnegative integer D to BUF using
    a minimal field width WIDTH.  D should be smaller than 999.5e24. */
 
@@ -26406,7 +26406,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
      produce strings from numerical values, so limit preposterously
      large values of FIELD_WIDTH to avoid overrunning the buffer's
      end.  The size of the buffer is enough for FRAME_MESSAGE_BUF_SIZE
-     bytes plus the terminating NUL.  */
+     bytes plus the terminating null.  */
   int width = min (field_width, FRAME_MESSAGE_BUF_SIZE (f));
   struct buffer *b = current_buffer;
 

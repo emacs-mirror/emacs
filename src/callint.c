@@ -712,7 +712,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	default:
 	  {
 	    /* How many bytes are left unprocessed in the specs string?
-	       (Note that this excludes the trailing NUL byte.)  */
+	       (Note that this excludes the trailing null byte.)  */
 	    ptrdiff_t bytes_left = string_len - (tem - string);
 	    unsigned letter;
 

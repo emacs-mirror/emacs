@@ -2007,9 +2007,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* we have to do some conjuring here to put argv and envp into the
-     form CreateProcess wants...  argv needs to be a space separated/NUL
-     terminated list of parameters, and envp is a NUL
-     separated/double-NUL terminated list of parameters.
+     form CreateProcess wants...  argv needs to be a space separated/null
+     terminated list of parameters, and envp is a null
+     separated/double-null terminated list of parameters.
 
      Additionally, zero-length args and args containing whitespace or
      quote chars need to be wrapped in double quotes - for this to work,
@@ -3398,10 +3398,10 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
       got_full = GetLocaleInfo (XFIXNUM (lcid),
 				XFIXNUM (longform),
 				full_name, sizeof (full_name));
-      /* GetLocaleInfo's return value includes the terminating NUL
+      /* GetLocaleInfo's return value includes the terminating null
 	 character, when the returned information is a string, whereas
 	 make_unibyte_string needs the string length without the
-	 terminating NUL.  */
+	 terminating null.  */
       if (got_full)
 	return make_unibyte_string (full_name, got_full - 1);
     }

@@ -233,7 +233,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
     }
 
   /* Scan the text and perform quoting with ^A (char code 1).
-     ^A^A becomes ^A, ^A0 becomes a NUL char, and ^A_ becomes a ^_.  */
+     ^A^A becomes ^A, ^A0 becomes a null char, and ^A_ becomes a ^_.  */
   from = get_doc_string_buffer + offset;
   to = get_doc_string_buffer + offset;
   while (from != p)
