@@ -12106,7 +12106,8 @@ See also `pre-command-hook'.  */);
 
   DEFVAR_LISP ("menu-bar-final-items", Vmenu_bar_final_items,
 	       doc: /* List of menu bar items to move to the end of the menu bar.
-The elements of the list are event types that may have menu bar bindings.  */);
+The elements of the list are event types that may have menu bar
+bindings.  The order of this list controls the order of the items.  */);
   Vmenu_bar_final_items = Qnil;
 
   DEFVAR_LISP ("tab-bar-separator-image-expression", Vtab_bar_separator_image_expression,

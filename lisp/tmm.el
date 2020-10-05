@@ -50,14 +50,19 @@ The ordering of the return value respects `menu-bar-final-items'."
         (menu-end '()))
     (map-keymap
      (lambda (key binding)
-       (push (cons key binding)
-             ;; If KEY is the name of an item that we want to put last,
-             ;; move it to the end.
-             (if (memq key menu-bar-final-items)
-                 menu-end
-               menu-bar)))
+       (let ((pos (seq-position menu-bar-final-items key))
+             (menu-item (cons key binding)))
+         (if pos
+             ;; If KEY is the name of an item that we want to put
+             ;; last, store it separately with explicit ordering for
+             ;; sorting.
+             (push (cons pos menu-item) menu-end)
+           (push menu-item menu-bar))))
      (tmm-get-keybind [menu-bar]))
-    `(keymap ,@(nreverse menu-bar) ,@(nreverse menu-end))))
+    `(keymap ,@(nreverse menu-bar)
+             ,@(mapcar #'cdr (sort menu-end
+                                   (lambda (a b)
+                                     (< (car a) (car b))))))))
 
 ;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
 ;;;###autoload (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
@@ -96,7 +101,10 @@ to invoke `tmm-menubar' instead, customize the variable
                                          (or (null visible)
                                              (eval visible)))))))
                   (setq column (+ column (length name) 1)))))
-             menu-bar))))
+             menu-bar)
+            ;; Check the last menu item.
+            (when (> column x-position)
+              (setq menu-bar-item prev-key)))))
     (tmm-prompt menu-bar nil menu-bar-item)))
 
 ;;;###autoload
