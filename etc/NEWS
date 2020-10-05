@@ -85,6 +85,10 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+*** New var 'redisplay-skip-initial-frame' to enable batch redisplay tests.
+Setting it to nil forces the redisplay to do its job even in the
+initial frame used in batch mode.
+
 ---
 ** Support for the 'strike-through' face attribute on TTY frames.
 If your terminal's termcap or terminfo database entry has the 'smxx'

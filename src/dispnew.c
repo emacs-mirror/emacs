@@ -1830,7 +1830,7 @@ adjust_frame_glyphs (struct frame *f)
   /* Don't forget the buffer for decode_mode_spec.  */
   adjust_decode_mode_spec_buffer (f);
 
-  f->glyphs_initialized_p = 1;
+  f->glyphs_initialized_p = true;
 
   unblock_input ();
 }
@@ -2251,7 +2251,7 @@ free_glyphs (struct frame *f)
       /* Block interrupt input so that we don't get surprised by an X
          event while we're in an inconsistent state.  */
       block_input ();
-      f->glyphs_initialized_p = 0;
+      f->glyphs_initialized_p = false;
 
       /* Release window sub-matrices.  */
       if (!NILP (f->root_window))
@@ -3236,9 +3236,16 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
       build_frame_matrix (f);
 
       /* Update the display.  */
-      update_begin (f);
-      paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1, false);
-      update_end (f);
+      if (FRAME_INITIAL_P (f))
+        /* No actual display to update so the "update" is a nop and
+           obviously isn't interrupted by pending input.  */
+        paused_p = false;
+      else
+        {
+          update_begin (f);
+          paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1, false);
+          update_end (f);
+        }
 
       if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
         {

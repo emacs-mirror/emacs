@@ -15464,7 +15464,8 @@ redisplay_internal (void)
   /* No redisplay if running in batch mode or frame is not yet fully
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
-  if (FRAME_INITIAL_P (SELECTED_FRAME ())
+  if ((FRAME_INITIAL_P (SELECTED_FRAME ())
+       && redisplay_skip_initial_frame)
       || !NILP (Vinhibit_redisplay))
     return;
 
@@ -35452,6 +35453,12 @@ When nil, mouse-movement events will not be generated as long as the
 mouse stays within the extent of a single glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
 
+  DEFVAR_BOOL ("redisplay-skip-initial-frame", redisplay_skip_initial_frame,
+    doc: /* Non-nil to skip redisplay in initial frame.
+The initial frame is not displayed anywhere, so skipping it is
+best except in special circumstances such as running redisplay tests
+in batch mode.   */);
+  redisplay_skip_initial_frame = true;
 }
 
 
@@ -35462,6 +35469,8 @@ init_xdisp (void)
 {
   CHARPOS (this_line_start_pos) = 0;
 
+  echo_area_window = minibuf_window;
+
   if (!noninteractive)
     {
       struct window *m = XWINDOW (minibuf_window);
@@ -35470,8 +35479,6 @@ init_xdisp (void)
       Lisp_Object root = FRAME_ROOT_WINDOW (f);
       struct window *r = XWINDOW (root);
       int i;
-
-      echo_area_window = minibuf_window;
 
       r->top_line = FRAME_TOP_MARGIN (f);
       r->pixel_top = r->top_line * FRAME_LINE_HEIGHT (f);
