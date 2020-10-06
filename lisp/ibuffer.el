@@ -1597,7 +1597,7 @@ If point is on a group name, this function operates on that group."
 (defun ibuffer-compile-make-substring-form (strvar maxvar from-end-p)
   (if from-end-p
       ;; FIXME: not sure if this case is correct (Bug#24972)
-      `(truncate-string-to-width str strlen (- strlen ,maxvar) nil ?\s)
+      `(truncate-string-to-width str strlen (- strlen ,maxvar) ?\s)
     `(truncate-string-to-width ,strvar ,maxvar nil ?\s)))
 
 (defun ibuffer-compile-make-format-form (strvar widthform alignment)
