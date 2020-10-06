@@ -36,8 +36,8 @@
 
 
 
-Happy Birthday,
-   Foo
+                                Happy Birthday,
+                                      Foo
 
 
                               You are my sunshine,
