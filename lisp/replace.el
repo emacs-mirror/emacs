@@ -1576,7 +1576,8 @@ is not modified."
   (concat
    "Next buffer to search "
    (cond
-    ((eq read-buffer-function #'ido-read-buffer)
+    ((or (eq read-buffer-function #'ido-read-buffer)
+         (bound-and-true-p ido-everywhere))
      (substitute-command-keys
       "(\\<ido-completion-map>\\[ido-select-text] to end): "))
     ((bound-and-true-p fido-mode)
