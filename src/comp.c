@@ -4080,8 +4080,22 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 		      separator);
   Lisp_Object hash = concat3 (path_hash, separator, content_hash);
   filename = concat3 (filename, hash, build_string (NATIVE_ELISP_SUFFIX));
+
+  /* If base_dir was not specified search inside Vcomp_eln_load_path
+     for the first directory where we have write access.  */
   if (NILP (base_dir))
-    base_dir = XCAR (Vcomp_eln_load_path);
+    {
+      Lisp_Object eln_load_paths = Vcomp_eln_load_path;
+      FOR_EACH_TAIL (eln_load_paths)
+	if (!NILP (Ffile_writable_p (XCAR (eln_load_paths))))
+	  {
+	    base_dir = XCAR (eln_load_paths);
+	    break;
+	  }
+      /* If we can't find it return Nil.  */
+      if (NILP (base_dir))
+	return Qnil;
+    }
 
   if (!file_name_absolute_p (SSDATA (base_dir)))
     base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
