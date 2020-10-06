@@ -26,7 +26,7 @@ say "boring loop";
 }
 continue
 {
-last; # no endless loop, though
+last;
 }
 }
 # -------- while loop: expected output --------
@@ -34,7 +34,7 @@ last; # no endless loop, though
   while (1) {
     say "boring loop";
   } continue {
-    last; # no endless loop, though
+    last;
   }
 }
 # -------- while loop: end --------
