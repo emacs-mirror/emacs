@@ -58,8 +58,9 @@ needs to be called on every use of `truncate-string-to-width' to
 decide whether the selected frame can display that Unicode character."
   (cond
    (truncate-string-ellipsis)
-   ;; This uses the character's number instead of the character itself
-   ;; to avoid decoding problems when loading this file.  FIXME.
+   ;; This uses the character's codepoint instead of the character
+   ;; itself to avoid decoding problems when loading this file.
+   ;; FIXME.
    ((char-displayable-p ?\u2026) "\u2026")
    ("...")))
 
