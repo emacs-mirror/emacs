@@ -58,9 +58,9 @@ needs to be called on every use of `truncate-string-to-width' to
 decide whether the selected frame can display that Unicode character."
   (cond
    (truncate-string-ellipsis)
-   ;; This uses the character's name instead of the character itself
+   ;; This uses the character's number instead of the character itself
    ;; to avoid decoding problems when loading this file.  FIXME.
-   ((char-displayable-p ?\N{HORIZONTAL ELLIPSIS}) "\N{HORIZONTAL ELLIPSIS}")
+   ((char-displayable-p ?\u2026) "\u2026")
    ("...")))
 
 ;;;###autoload
