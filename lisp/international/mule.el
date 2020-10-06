@@ -956,8 +956,8 @@ non-ASCII files.  This attribute is meaningful only when
 	  (cons :name (cons name (cons :docstring (cons (purecopy docstring)
 							props)))))
     (setcdr (assq :plist common-attrs) props)
-    (apply 'define-coding-system-internal
-	   name (mapcar 'cdr (append common-attrs spec-attrs)))))
+    (apply #'define-coding-system-internal
+	   name (mapcar #'cdr (append common-attrs spec-attrs)))))
 
 (defun coding-system-doc-string (coding-system)
   "Return the documentation string for CODING-SYSTEM."
