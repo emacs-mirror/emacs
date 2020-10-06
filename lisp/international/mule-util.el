@@ -52,12 +52,14 @@ returned by the function `truncate-string-ellipsis'.")
 (defun truncate-string-ellipsis ()
   "Return the string used to indicate truncation.
 Use the value of the variable `truncate-string-ellipsis' when it's non-nil.
-Otherwise, return the Unicode character \"HORIZONTAL ELLIPSIS\" when
-it's displayable on the selected frame, or `...'.  This function needs
-to be called on every use of `truncate-string-to-width' to decide
-whether the selected frame can display that Unicode character."
+Otherwise, return the Unicode character U+2026 \"HORIZONTAL ELLIPSIS\"
+when it's displayable on the selected frame, or `...'.  This function
+needs to be called on every use of `truncate-string-to-width' to
+decide whether the selected frame can display that Unicode character."
   (cond
    (truncate-string-ellipsis)
+   ;; This uses the character's name instead of the character itself
+   ;; to avoid decoding problems when loading this file.  FIXME.
    ((char-displayable-p ?\N{HORIZONTAL ELLIPSIS}) "\N{HORIZONTAL ELLIPSIS}")
    ("...")))
 
