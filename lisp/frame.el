@@ -1244,7 +1244,7 @@ face specs for the new background mode."
                          ;; during startup with -rv on the command
                          ;; line for the initial frame, because frames
                          ;; are not recorded in the pdump file.
-                         (assq face (frame-face-alist))
+                         (assq face (frame-face-alist frame))
                          (face-spec-match-p face
                                             (face-user-default-spec face)
                                             frame)))
