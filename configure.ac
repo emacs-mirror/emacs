@@ -3779,15 +3779,25 @@ AC_DEFUN([libgccjit_smoke_test], [
 
 AC_DEFUN([libgccjit_not_found], [
   AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
+Please try installing libgccjit or similar package.
 If you are sure you want Emacs compiled without elisp native compiler, pass
   --without-nativecomp
+to configure.])])
+
+AC_DEFUN([libgccjit_dev_not_found], [
+  AC_MSG_ERROR([elisp native compiler requested but libgccjit header files were
+not found.
+Please try installing libgccjit-dev or similar package.
+If you are sure you want Emacs compiled without elisp native compiler, pass
+--without-nativecomp
 to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
   AC_MSG_ERROR([Installed libgccjit has failed passing the smoke test.
 You can verify it yourself compiling:
 <https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
-Please report the issue to your distribution.
+Please report the issue to your distribution if libgccjit was installed through
+that.
 Here instructions on how to compile and install libgccjit from source:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
@@ -3800,10 +3810,13 @@ if test "${with_nativecomp}" != "no"; then
     if test "${HAVE_ZLIB}" = no; then
        AC_MSG_ERROR(['--with-nativecomp' requires zlib])
     fi
+    # Check if libgccjit is available.
+    AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, [], [libgccjit_not_found])
+    AC_CHECK_HEADERS(libgccjit.h, [], [libgccjit_dev_not_found])
     emacs_save_LIBS=$LIBS
     LIBS="-lgccjit"
-    AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken],
-      [AC_LINK_IFELSE([libgccjit_smoke_test], [], [libgccjit_not_found])])
+    # Check if libgccjit really works.
+    AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
     LIBS=$emacs_save_LIBS
     HAVE_NATIVE_COMP=yes
     # mingw32 loads the library dynamically.
