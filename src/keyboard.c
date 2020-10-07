@@ -10566,8 +10566,6 @@ DEFUN ("this-single-command-keys", Fthis_single_command_keys,
        doc: /* Return the key sequence that invoked this command.
 More generally, it returns the last key sequence read, either by
 the command loop or by `read-key-sequence'.
-Unlike `this-command-keys', this function's value
-does not include prefix arguments.
 The value is always a vector.  */)
   (void)
 {
