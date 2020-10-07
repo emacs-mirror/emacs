@@ -703,10 +703,15 @@ The value depends on `grep-command', `grep-template',
       (let ((grep-options
 	     (concat (if grep-use-null-device "-n" "-nH")
                      (if grep-use-null-filename-separator " --null")
-		     (if (grep-probe grep-program
-				     `(nil nil nil "-e" "foo" ,null-device)
-				     nil 1)
-			 " -e"))))
+                     (when (grep-probe grep-program
+                                       `(nil nil nil "--directories=skip" "foo"
+                                             ,null-device)
+                                       nil 1)
+                       " --directories=skip")
+                     (when (grep-probe grep-program
+                                       `(nil nil nil "-e" "foo" ,null-device)
+                                       nil 1)
+                       " -e"))))
 	(unless grep-command
 	  (setq grep-command
 		(format "%s %s %s " grep-program
