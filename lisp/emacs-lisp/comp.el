@@ -2783,16 +2783,14 @@ display a message."
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
     ;; No files left to compile and all processes finished.
-    (let ((msg "Compilation finished."))
-      (run-hooks 'comp-async-all-done-hook)
-      (with-current-buffer (get-buffer-create comp-async-buffer-name)
-        (save-excursion
-          (goto-char (point-max))
-          (insert msg "\n")))
-      ;; `comp-deferred-pending-h' should be empty at this stage.
-      ;; Reset it anyway.
-      (clrhash comp-deferred-pending-h)
-      (message msg))))
+    (run-hooks 'comp-async-all-done-hook)
+    (with-current-buffer (get-buffer-create comp-async-buffer-name)
+      (save-excursion
+        (goto-char (point-max))
+        (insert "Compilation finished.\n")))
+    ;; `comp-deferred-pending-h' should be empty at this stage.
+    ;; Reset it anyway.
+    (clrhash comp-deferred-pending-h)))
 
 
 ;;; Compiler entry points.
@@ -2928,8 +2926,7 @@ queued with LOAD %"
                                (format "No write access for %s skipping."
                                        out-filename)))))))
     (when (zerop (comp-async-runnings))
-      (comp-run-async-workers)
-      (message "Compilation started."))))
+      (comp-run-async-workers))))
 
 (provide 'comp)
 
