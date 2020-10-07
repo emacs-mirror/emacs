@@ -4013,6 +4013,19 @@ compile_function (Lisp_Object func)
 /* In use by Fcomp_el_to_eln_filename.  */
 static Lisp_Object loadsearch_re_list;
 
+static Lisp_Object
+make_directory_wrapper (Lisp_Object directory)
+{
+  CALL2I (make-directory, directory, Qt);
+  return Qnil;
+}
+
+static Lisp_Object
+make_directory_wrapper_1 (Lisp_Object ignore)
+{
+  return Qt;
+}
+
 DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
        Scomp_el_to_eln_filename, 1, 2, 0,
        doc: /* Given a source FILENAME return the corresponding .eln filename.
@@ -4087,14 +4100,31 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
     {
       Lisp_Object eln_load_paths = Vcomp_eln_load_path;
       FOR_EACH_TAIL (eln_load_paths)
-	if (!NILP (Ffile_writable_p (XCAR (eln_load_paths))))
-	  {
-	    base_dir = XCAR (eln_load_paths);
-	    break;
-	  }
-      /* If we can't find it return Nil.  */
+	{
+	  Lisp_Object dir = XCAR (eln_load_paths);
+	  if (!NILP (Ffile_exists_p (dir)))
+	    {
+	      if (!NILP (Ffile_writable_p (dir)))
+		{
+		  base_dir = dir;
+		  break;
+		}
+	    }
+	  else
+	    {
+	      /* Try to create the directory and if succeeds use it.  */
+	      if (NILP (internal_condition_case_1 (make_directory_wrapper,
+						   dir, Qt,
+						   make_directory_wrapper_1)))
+		{
+		  base_dir = dir;
+		  break;
+		}
+	    }
+	}
       if (NILP (base_dir))
-	return Qnil;
+	error ("Cannot find suitable directory for output in "
+	       "`comp-native-laod-path'.");
     }
 
   if (!file_name_absolute_p (SSDATA (base_dir)))
