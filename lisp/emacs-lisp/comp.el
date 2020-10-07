@@ -661,7 +661,7 @@ clashes."
 (cl-defgeneric comp-spill-lap-function (input)
   "Byte compile INPUT and spill lap for further stages.")
 
-(cl-defgeneric comp-spill-lap-function ((function-name symbol))
+(cl-defmethod comp-spill-lap-function ((function-name symbol))
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
@@ -736,7 +736,7 @@ clashes."
       (comp-log (format "Function %s:\n" name) 1)
       (comp-log lap 1))))
 
-(cl-defgeneric comp-spill-lap-function ((filename string))
+(cl-defmethod comp-spill-lap-function ((filename string))
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
@@ -2594,7 +2594,7 @@ Return the its filename if found or nil otherwise."
     (defalias trampoline-sym
       `(closure nil ,lambda-list
                 (let ((f #',subr-name))
-                  (,(if (memq '&rest lambda-list) 'apply 'funcall)
+                  (,(if (memq '&rest lambda-list) #'apply 'funcall)
                    f
                    ,@(cl-loop
                       for arg in lambda-list
