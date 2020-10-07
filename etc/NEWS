@@ -1108,7 +1108,10 @@ keystrokes.
 *** Interactive regular expression search now uses faces for sub-groups.
 E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
 on the part of the regexp that matches the sub-expression "[0-9]+".
-By default, there are two group faces, but you can define more.
+By default, there are two faces for sub-group highlighting, but you
+can define more faces whose names are of the form 'isearch-group-N',
+where N are successive numbers above 2.
+
 This is controlled by the 'search-highlight-submatches' user option.
 This feature is available only on terminals that have enough colors to
 distinguish between sub-expression highlighting.
