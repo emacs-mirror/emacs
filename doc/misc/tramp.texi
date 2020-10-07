@@ -4280,8 +4280,8 @@ first saving to a temporary file.
 
 @vindex tramp-local-host-regexp
 When connecting to a local host, @value{tramp} uses some internal
-optimizations.  They fail, when there is a chrooted environment.  In
-order to disable those optimizations, set user option
+optimizations.  They fail when Emacs runs in a chrooted environment.
+In order to disable those optimizations, set user option
 @code{tramp-local-host-regexp} to @code{nil}.
 
 
