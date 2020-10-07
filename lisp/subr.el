@@ -832,10 +832,11 @@ Elements of ALIST that are not conses are ignored."
 If KEY is not found in ALIST, return DEFAULT.
 Equality with KEY is tested by TESTFN, defaulting to `eq'.
 
-You can use `alist-get' in PLACE expressions.  This will modify
-an existing association (more precisely, the first one if
-multiple exist), or add a new element to the beginning of ALIST,
-destructively modifying the list stored in ALIST.
+You can use `alist-get' in \"place expressions\"; i.e., as a
+generalized variable.  Doing this will modify an existing
+association (more precisely, the first one if multiple exist), or
+add a new element to the beginning of ALIST, destructively
+modifying the list stored in ALIST.
 
 Example:
 
