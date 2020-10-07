@@ -1325,6 +1325,16 @@ to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
 horizontal movements now stop at the edge of the board.
 
+** xterm-mouse mode
+
+---
+*** TTY menu navigation is now supported in 'xterm-mouse-mode'.
+TTY menus support mouse navigation and selection when xterm-mouse-mode
+is active.  When run on a terminal, clicking on the menu bar with the
+mouse now pops up a TTY menu by default instead of running the command
+'tmm-menubar'.  To restore the old behavior, set the variable
+'tty-menu-open-use-tmm' to non-nil.
+
 ** xwidget-webkit mode
 
 *** New xwidget commands.

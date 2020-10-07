@@ -43,7 +43,6 @@
 (defvar tmm-table-undef)
 
 ;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
-;;;###autoload (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
 
 ;;;###autoload
 (defun tmm-menubar (&optional x-position)

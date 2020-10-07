@@ -2088,6 +2088,8 @@ key, a click, or a menu-item"))
 (bindings--define-key global-map [menu-bar help-menu]
   (cons (purecopy "Help") menu-bar-help-menu))
 
+(define-key global-map [menu-bar mouse-1] 'menu-bar-open-mouse)
+
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
 The menu frame is the frame for which we are updating the menu."
