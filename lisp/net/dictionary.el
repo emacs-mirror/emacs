@@ -216,64 +216,53 @@ is utf-8"
                                )))
   :version "28.1")
 
-(if (fboundp 'defface)
-    (progn
+(defface dictionary-word-definition-face
+'((((supports (:family "DejaVu Serif")))
+   (:family "DejaVu Serif"))
+  (((type x))
+   (:font "Sans Serif"))
+  (t
+   (:font "default")))
+"The face that is used for displaying the definition of the word."
+:group 'dictionary
+:version "28.1")
 
-      (defface dictionary-word-definition-face
-	'((((supports (:family "DejaVu Serif")))
-	   (:family "DejaVu Serif"))
-	  (((type x))
-	   (:font "Sans Serif"))
-	  (t
-	   (:font "default")))
-	"The face that is used for displaying the definition of the word."
-	:group 'dictionary
-        :version "28.1")
+(defface dictionary-word-entry-face
+  '((((type x))
+     (:italic t))
+    (((type tty) (class color))
+     (:foreground "green"))
+    (t
+     (:inverse t)))
+  "The face that is used for displaying the initial word entry line."
+  :group 'dictionary
+  :version "28.1")
 
-      (defface dictionary-word-entry-face
-	'((((type x))
-	   (:italic t))
-	  (((type tty) (class color))
-	   (:foreground "green"))
-	  (t
-	   (:inverse t)))
-	"The face that is used for displaying the initial word entry line."
-	:group 'dictionary
-        :version "28.1")
+(defface dictionary-button-face
+  '((t
+     (:bold t)))
+  "The face that is used for displaying buttons."
+  :group 'dictionary
+  :version "28.1")
 
-      (defface dictionary-button-face
-	'((t
-	   (:bold t)))
-	"The face that is used for displaying buttons."
-	:group 'dictionary
-        :version "28.1")
+(defface dictionary-reference-face
+  '((((type x)
+      (class color)
+      (background dark))
+     (:foreground "yellow"))
+    (((type tty)
+      (class color)
+      (background dark))
+     (:foreground "cyan"))
+    (((class color)
+      (background light))
+     (:foreground "blue"))
+    (t
+     (:underline t)))
 
-      (defface dictionary-reference-face
-	'((((type x)
-	    (class color)
-	    (background dark))
-	   (:foreground "yellow"))
-	  (((type tty)
-	    (class color)
-	    (background dark))
-	   (:foreground "cyan"))
-	  (((class color)
-	    (background light))
-	   (:foreground "blue"))
-	  (t
-	   (:underline t)))
-
-	"The face that is used for displaying a reference word."
-	:group 'dictionary
-        :version "28.1")
-
-      )
-
-  ;; else
-  (copy-face 'italic 'dictionary-word-entry-face)
-  (copy-face 'bold 'dictionary-button-face)
-  (copy-face 'default 'dictionary-reference-face)
-  (set-face-foreground 'dictionary-reference-face "blue"))
+  "The face that is used for displaying a reference word."
+  :group 'dictionary
+  :version "28.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer local variables for storing the current state
