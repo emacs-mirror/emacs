@@ -200,24 +200,21 @@ by the choice value:
   :version "28.1")
 
 ;; Define only when coding-system-list is available
-(when (fboundp 'coding-system-list)
-  (defcustom dictionary-coding-systems-for-dictionaries
-    '( ("mueller" . koi8-r))
-    "Mapping of dictionaries to coding systems.
- Each entry in this list defines the coding system to be used for that
- dictionary.  The default coding system for all other dictionaries
- is utf-8"
-    :group 'dictionary
-    :type `(repeat (cons :tag "Association"
-			 (string :tag "Dictionary name")
-			 (choice :tag "Coding system"
-				 :value 'utf-8
-				 ,@(mapcar (lambda (x) (list 'const x))
-					   (coding-system-list))
-				 )))
-    :version "28.1")
-
-  )
+(defcustom dictionary-coding-systems-for-dictionaries
+  '( ("mueller" . koi8-r))
+  "Mapping of dictionaries to coding systems.
+Each entry in this list defines the coding system to be used for that
+dictionary.  The default coding system for all other dictionaries
+is utf-8"
+  :group 'dictionary
+  :type `(repeat (cons :tag "Association"
+                       (string :tag "Dictionary name")
+                       (choice :tag "Coding system"
+                               :value 'utf-8
+                               ,@(mapcar (lambda (x) (list 'const x))
+                                         (coding-system-list))
+                               )))
+  :version "28.1")
 
 (if (fboundp 'defface)
     (progn
@@ -459,8 +456,7 @@ by the choice value:
 		(eq (dictionary-connection-status dictionary-connection) 'up)))
       (let ((wanted 'raw-text)
 	    (coding-system nil))
-	(if (and (fboundp 'coding-system-list)
-		 (member wanted (coding-system-list)))
+	(if (member wanted (coding-system-list))
 	    (setq coding-system wanted))
 	(let ((coding-system-for-read coding-system)
 	      (coding-system-for-write coding-system))
@@ -597,14 +593,13 @@ This function knows about the special meaning of quotes (\")"
 
 (defun dictionary-coding-system (dictionary)
   "Select coding system to use for that dictionary"
-  (when (boundp 'dictionary-coding-systems-for-dictionaries)
-    (let ((coding-system
-           (or (cdr (assoc dictionary
-                           dictionary-coding-systems-for-dictionaries))
-               'utf-8)))
-      (if (member coding-system (coding-system-list))
-          coding-system
-        nil))))
+  (let ((coding-system
+         (or (cdr (assoc dictionary
+                         dictionary-coding-systems-for-dictionaries))
+             'utf-8)))
+    (if (member coding-system (coding-system-list))
+        coding-system
+      nil)))
 
 (defun dictionary-decode-charset (text dictionary)
   "Convert the text from the charset defined by the dictionary given."
