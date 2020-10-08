@@ -188,6 +188,9 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
 					     FONT_OBJECT_MAX, PVEC_FONT);
   int i;
 
+  /* Poison the max_width, so we can detect when it hasn't been set.  */
+  eassert (font->max_width = 1024 * 1024 * 1024);
+
   /* GC can happen before the driver is set up,
      so avoid dangling pointer here (Bug#17771).  */
   font->driver = NULL;
@@ -5170,6 +5173,9 @@ If the named font cannot be opened and loaded, return nil.  */)
   if (NILP (font_object))
     return Qnil;
   font = XFONT_OBJECT (font_object);
+
+  /* Sanity check to make sure we have initialized max_width.  */
+  eassert (XFONT_OBJECT (font_object)->max_width < 1024 * 1024 * 1024);
 
   info = CALLN (Fvector,
 		AREF (font_object, FONT_NAME_INDEX),

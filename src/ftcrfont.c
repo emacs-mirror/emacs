@@ -187,7 +187,8 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 
   block_input ();
   cairo_glyph_t stack_glyph;
-  font->min_width = font->average_width = font->space_width = 0;
+  font->min_width = font->max_width = 0;
+  font->average_width = font->space_width = 0;
   for (char c = 32; c < 127; c++)
     {
       cairo_glyph_t *glyphs = &stack_glyph;
@@ -211,6 +212,8 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 	  && (! font->min_width
 	      || font->min_width > this_width))
 	font->min_width = this_width;
+      if (this_width > font->max_width)
+	font->max_width = this_width;
       if (c == 32)
 	font->space_width = this_width;
       font->average_width += this_width;
@@ -266,6 +269,7 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   font->relative_compose = 0;
   font->default_ascent = 0;
   font->vertical_centering = false;
+  eassert (font->max_width < 512 * 1024 * 1024);
 
   return font_object;
 }
