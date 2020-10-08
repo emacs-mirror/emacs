@@ -67,7 +67,8 @@
   "This server is contacted for searching the dictionary"
   :group 'dictionary
   :set 'dictionary-set-server-var
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom dictionary-port
   2628
@@ -75,13 +76,15 @@
  This port is propably always 2628 so there should be no need to modify it."
   :group 'dictionary
   :set 'dictionary-set-server-var
-  :type 'number)
+  :type 'number
+  :version "28.1")
 
 (defcustom dictionary-identification
   "dictionary.el emacs lisp dictionary client"
   "This is the identification string that will be sent to the server."
   :group 'dictionary
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom dictionary-default-dictionary
   "*"
@@ -89,13 +92,15 @@
  * and ! have a special meaning, * search all dictionaries, ! search until
  one dictionary yields matches."
   :group 'dictionary
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom dictionary-default-strategy
   "."
   "The default strategy for listing matching words."
   :group 'dictionary
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom dictionary-default-popup-strategy
   "exact"
@@ -132,58 +137,67 @@ by the choice value:
   :type '(choice (const :tag "Exact match" "exact")
 		 (const :tag "Similiar sounding" "soundex")
 		 (const :tag "Levenshtein distance one" "lev")
-		 (string :tag "User choice")))
+		 (string :tag "User choice"))
+  :version "28.1")
 
 (defcustom dictionary-create-buttons
   t
   "Create some clickable buttons on top of the window if non-nil."
   :group 'dictionary
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defcustom dictionary-mode-hook
   nil
   "Hook run in dictionary mode buffers."
   :group 'dictionary
-  :type 'hook)
+  :type 'hook
+  :version "28.1")
 
 (defcustom dictionary-use-http-proxy
   nil
   "Connects via a HTTP proxy using the CONNECT command when not nil."
   :group 'dictionary-proxy
   :set 'dictionary-set-server-var
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defcustom dictionary-proxy-server
   "proxy"
   "The name of the HTTP proxy to use when dictionary-use-http-proxy is set."
   :group 'dictionary-proxy
   :set 'dictionary-set-server-var
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom dictionary-proxy-port
   3128
   "The port of the proxy server, used only when dictionary-use-http-proxy is set."
   :group 'dictionary-proxy
   :set 'dictionary-set-server-var
-  :type 'number)
+  :type 'number
+  :version "28.1")
 
 (defcustom dictionary-use-single-buffer
   nil
   "Should the dictionary command reuse previous dictionary buffers?"
   :group 'dictionary
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defcustom dictionary-description-open-delimiter
   ""
   "The delimiter to display in front of the dictionaries description"
   :group 'dictionary
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom dictionary-description-close-delimiter
   ""
   "The delimiter to display after of the dictionaries description"
   :group 'dictionary
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 ;; Define only when coding-system-list is available
 (when (fboundp 'coding-system-list)
@@ -200,7 +214,8 @@ by the choice value:
 				 :value 'utf-8
 				 ,@(mapcar (lambda (x) (list 'const x))
 					   (coding-system-list))
-				 ))))
+				 )))
+    :version "28.1")
 
   )
 
@@ -215,7 +230,8 @@ by the choice value:
 	  (t
 	   (:font "default")))
 	"The face that is used for displaying the definition of the word."
-	:group 'dictionary)
+	:group 'dictionary
+        :version "28.1")
 
       (defface dictionary-word-entry-face
 	'((((type x))
@@ -225,13 +241,15 @@ by the choice value:
 	  (t
 	   (:inverse t)))
 	"The face that is used for displaying the initial word entry line."
-	:group 'dictionary)
+	:group 'dictionary
+        :version "28.1")
 
       (defface dictionary-button-face
 	'((t
 	   (:bold t)))
 	"The face that is used for displaying buttons."
-	:group 'dictionary)
+	:group 'dictionary
+        :version "28.1")
 
       (defface dictionary-reference-face
 	'((((type x)
@@ -249,7 +267,8 @@ by the choice value:
 	   (:underline t)))
 
 	"The face that is used for displaying a reference word."
-	:group 'dictionary)
+	:group 'dictionary
+        :version "28.1")
 
       )
 
@@ -1206,7 +1225,8 @@ It presents the word at point as default input and allows editing it."
   nil
   "This dictionary to lookup words for tooltips"
   :group 'dictionary
-  :type '(choice (const :tag "None" nil) string))
+  :type '(choice (const :tag "None" nil) string)
+  :version "28.1")
 
 (defun dictionary-definition (word &optional dictionary)
   (interactive)
