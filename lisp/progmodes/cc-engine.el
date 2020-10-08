@@ -8426,6 +8426,7 @@ comment at the start of cc-engine.el for more info."
   ;;   o - 'found if it's a type that matches one in `c-found-types';
   ;;   o - 'maybe if it's an identifier that might be a type;
   ;;   o - 'decltype if it's a decltype(variable) declaration; - or
+  ;;   o - 'no-id if "auto" precluded parsing a type identifier.
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
   ;; The point is assumed to be at the beginning of a token.
@@ -8450,9 +8451,12 @@ comment at the start of cc-engine.el for more info."
     ;; prefix of a type.
     (when c-opt-type-modifier-prefix-key ; e.g. "const" "volatile", but NOT "typedef"
       (while (looking-at c-opt-type-modifier-prefix-key)
+	(when (looking-at c-no-type-key)
+	  (setq res 'no-id))
 	(goto-char (match-end 1))
 	(c-forward-syntactic-ws)
-	(setq res 'prefix)))
+	(or (eq res 'no-id)
+	    (setq res 'prefix))))
 
     (cond
      ((looking-at c-typeof-key) ; e.g. C++'s "decltype".
@@ -8503,28 +8507,30 @@ comment at the start of cc-engine.el for more info."
 	(setq res t))
       (unless res (goto-char start)))	; invalid syntax
 
-     ((progn
-	(setq pos nil)
-	(if (looking-at c-identifier-start)
-	    (save-excursion
-	      (setq id-start (point)
-		    name-res (c-forward-name))
-	      (when name-res
-		(setq id-end (point)
-		      id-range c-last-identifier-range))))
-	(and (cond ((looking-at c-primitive-type-key)
-		    (setq res t))
-		   ((c-with-syntax-table c-identifier-syntax-table
-		      (looking-at c-known-type-key))
-		    (setq res 'known)))
-	     (or (not id-end)
-		 (>= (save-excursion
-		       (save-match-data
-			 (goto-char (match-end 1))
-			 (c-forward-syntactic-ws)
-			 (setq pos (point))))
-		     id-end)
-		 (setq res nil))))
+     ((and
+       (not (eq res 'no-id))
+       (progn
+	 (setq pos nil)
+	 (if (looking-at c-identifier-start)
+	     (save-excursion
+	       (setq id-start (point)
+		     name-res (c-forward-name))
+	       (when name-res
+		 (setq id-end (point)
+		       id-range c-last-identifier-range))))
+	 (and (cond ((looking-at c-primitive-type-key)
+		     (setq res t))
+		    ((c-with-syntax-table c-identifier-syntax-table
+		       (looking-at c-known-type-key))
+		     (setq res 'known)))
+	      (or (not id-end)
+		  (>= (save-excursion
+			(save-match-data
+			  (goto-char (match-end 1))
+			  (c-forward-syntactic-ws)
+			  (setq pos (point))))
+		      id-end)
+		  (setq res nil)))))
       ;; Looking at a primitive or known type identifier.  We've
       ;; checked for a name first so that we don't go here if the
       ;; known type match only is a prefix of another name.
@@ -8599,7 +8605,7 @@ comment at the start of cc-engine.el for more info."
 	     (goto-char start)
 	     (setq res nil)))))
 
-    (when res
+    (when (not (memq res '(nil no-id)))
       ;; Skip trailing type modifiers.  If any are found we know it's
       ;; a type.
       (when c-opt-type-modifier-key
@@ -9452,12 +9458,11 @@ This function might do hidden buffer changes."
 
 	  (when (setq found-type (c-forward-type t)) ; brace-block-too
 	    ;; Found a known or possible type or a prefix of a known type.
-	    (when (and (c-major-mode-is 'c++-mode) ; C++11 style "auto"?
-		       (eq prev-kwd-sym (c-keyword-sym "auto"))
-		       (looking-at "[=(]")) ; FIXME!!! proper regexp.
-	      (setq new-style-auto t)
-	      (setq found-type nil)
-	      (goto-char start))	; position of foo in "auto foo"
+	    (when (and (eq found-type 'no-id)
+		       (save-excursion
+			 (and (c-forward-name) ; over the identifier
+		       (looking-at "[=(]")))) ; FIXME!!! proper regexp.
+	      (setq new-style-auto t))	; position of foo in "auto foo"
 
 	    (when at-type
 	      ;; Got two identifiers with nothing but whitespace
@@ -9540,7 +9545,7 @@ This function might do hidden buffer changes."
 	    ;; over all specifiers and type identifiers.  The reason
 	    ;; to do this for a known type prefix is to make things
 	    ;; like "unsigned INT16" work.
-	    (and found-type (not (eq found-type t))))))
+	    (and found-type (not (memq found-type '(t no-id)))))))
 
     (cond
      ((eq at-type t)
@@ -9558,6 +9563,10 @@ This function might do hidden buffer changes."
      ((eq at-type 'prefix)
       ;; A prefix type is itself a primitive type when it's not
       ;; followed by another type.
+      (setq at-type t))
+
+     ((eq at-type 'no-id)
+      ;; For an auto type, we assume we definitely have a type construct.
       (setq at-type t))
 
      ((not at-type)
