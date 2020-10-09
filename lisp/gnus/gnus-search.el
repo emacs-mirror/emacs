@@ -1,9 +1,8 @@
 ;;; gnus-search.el --- Search facilities for Gnus    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2020  Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
-;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -98,15 +97,14 @@
 
 (defcustom gnus-search-use-parsed-queries t
   "When t, use Gnus' generalized search language.
-
-The generalized search language is a sort of \"meta search\"
-language that can be used across all search engines that Gnus
-supports.  See the Gnus manual for details.
+The generalized search language is a search language that can be
+used across all search engines that Gnus supports.  See the Gnus
+manual for details.
 
 If this option is set to nil, search queries will be passed
 directly to the search engines without being parsed or
 transformed."
-  :version "26.3"
+  :version "28.1"
   :type 'boolean
   :group 'gnus-search)
 
@@ -122,21 +120,18 @@ transformed."
 (defcustom gnus-search-swish++-configuration-file
   (expand-file-name "~/Mail/swish++.conf")
   "Location of Swish++ configuration file.
-
 This variable can also be set per-server."
   :type 'file
   :group 'gnus-search)
 
 (defcustom gnus-search-swish++-program "search"
   "Name of swish++ search executable.
-
 This variable can also be set per-server."
   :type 'string
   :group 'gnus-search)
 
 (defcustom gnus-search-swish++-additional-switches '()
   "A list of strings, to be given as additional arguments to swish++.
-
 Note that this should be a list.  I.e., do NOT use the following:
     (setq gnus-search-swish++-additional-switches \"-i -w\") ; wrong
 Instead, use this:
@@ -159,27 +154,26 @@ This variable can also be set per-server."
   "If t, all Swish++ engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "26.3"
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-swish-e-configuration-file
   (expand-file-name "~/Mail/swish-e.conf")
   "Configuration file for swish-e.
-
 This variable can also be set per-server."
   :type 'file
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-swish-e-program "search"
   "Name of swish-e search executable.
-
 This variable can also be set per-server."
   :type 'string
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-swish-e-additional-switches '()
   "A list of strings, to be given as additional arguments to swish-e.
-
 Note that this should be a list.  I.e., do NOT use the following:
     (setq gnus-search-swish-e-additional-switches \"-i -w\") ; wrong
 Instead, use this:
@@ -187,6 +181,7 @@ Instead, use this:
 
 This variable can also be set per-server."
   :type '(repeat string)
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-swish-e-remove-prefix (concat (getenv "HOME") "/Mail/")
@@ -196,36 +191,37 @@ regular expression.
 
 This variable can also be set per-server."
   :type 'regexp
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-swish-e-index-files '()
   "A list of index files to use with this Swish-e instance.
-
 This variable can also be set per-server."
   :type '(repeat file)
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-swish-e-raw-queries-p nil
   "If t, all Swish-e engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "26.3"
+  :version "28.1"
   :group 'gnus-search)
 
 ;; Namazu engine, see <URL:http://www.namazu.org/>
 
 (defcustom gnus-search-namazu-program "namazu"
   "Name of Namazu search executable.
-
 This variable can also be set per-server."
   :type 'string
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-namazu-index-directory (expand-file-name "~/Mail/namazu/")
   "Index directory for Namazu.
-
 This variable can also be set per-server."
   :type 'directory
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-namazu-additional-switches '()
@@ -240,6 +236,7 @@ Instead, use this:
 
 This variable can also be set per-server."
   :type '(repeat string)
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-namazu-remove-prefix (concat (getenv "HOME") "/Mail/")
@@ -255,42 +252,41 @@ arrive at the correct group name, \"mail.misc\".
 
 This variable can also be set per-server."
   :type 'directory
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-namazu-raw-queries-p nil
   "If t, all Namazu engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "26.3"
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-notmuch-program "notmuch"
   "Name of notmuch search executable.
-
 This variable can also be set per-server."
-  :version "24.1"
   :type '(string)
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-notmuch-configuration-file
   (expand-file-name "~/.notmuch-config")
   "Configuration file for notmuch.
-
 This variable can also be set per-server."
   :type 'file
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-notmuch-additional-switches '()
   "A list of strings, to be given as additional arguments to notmuch.
-
 Note that this should be a list.  I.e., do NOT use the following:
     (setq gnus-search-notmuch-additional-switches \"-i -w\") ; wrong
 Instead, use this:
     (setq gnus-search-notmuch-additional-switches \\='(\"-i\" \"-w\"))
 
 This variable can also be set per-server."
-  :version "24.1"
   :type '(repeat string)
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-notmuch-remove-prefix (concat (getenv "HOME") "/Mail/")
@@ -299,51 +295,48 @@ in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
 This variable can also be set per-server."
-  :version "24.1"
   :type 'regexp
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-notmuch-raw-queries-p nil
   "If t, all Notmuch engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "26.3"
+  :version "28.1"
   :group 'gnus-search)
 
 (defcustom gnus-search-imap-raw-queries-p nil
   "If t, all IMAP engines will only accept raw search query
   strings."
-  :version "26.3"
+  :version "28.1"
   :type 'boolean
   :group 'gnus-search)
 
 (defcustom gnus-search-mairix-program "mairix"
   "Name of mairix search executable.
-
 This variable can also be set per-server."
-  :version "26.3"
+  :version "28.1"
   :type 'string
   :group 'gnus-search)
 
 (defcustom gnus-search-mairix-configuration-file
   (expand-file-name "~/.mairixrc")
   "Configuration file for mairix.
-
 This variable can also be set per-server."
-  :version "26.3"
+  :version "28.1"
   :type 'file
   :group 'gnus-search)
 
 (defcustom gnus-search-mairix-additional-switches '()
   "A list of strings, to be given as additional arguments to mairix.
-
 Note that this should be a list.  I.e., do NOT use the following:
     (setq gnus-search-mairix-additional-switches \"-i -w\") ; wrong
 Instead, use this:
     (setq gnu-search-mairix-additional-switches \\='(\"-i\" \"-w\"))
 
 This variable can also be set per-server."
-  :version "26.3"
+  :version "28.1"
   :type '(repeat string)
   :group 'gnus-search)
 
@@ -353,21 +346,21 @@ in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
 This variable can also be set per-server."
-  :version "26.3"
+  :version "28.1"
   :type 'regexp
   :group 'gnus-search)
 
 (defcustom gnus-search-mairix-raw-queries-p nil
   "If t, all Mairix engines will only accept raw search query
   strings."
-  :version "26.3"
+  :version "28.1"
   :type 'boolean
   :group 'gnus-search)
 
 (defcustom gnus-search-imap-raw-queries-p nil
   "If t, all IMAP engines will only accept raw search query
   strings."
-  :version "26.3"
+  :version "28.1"
   :type 'boolean
   :group 'gnus-search)
 
@@ -382,7 +375,6 @@ This variable can also be set per-server."
     "larger" "smaller" "attachment" "text" "since" "thread"
     "sender" "address" "tag" "size")
   "A list of strings representing expandable search keys.
-
 \"Expandable\" simply means the key can be abbreviated while
 typing in search queries, ie \"subject\" could be entered as
 \"subj\" or even \"su\", though \"s\" is ambigous between
@@ -394,13 +386,12 @@ instance, while \"c-t\" will expand to \"contact-to\".
 
 Ambiguous abbreviations will raise an error."
   :group 'gnus-search
-  :version "26.1"
+  :version "28.1"
   :type '(repeat string))
 
 (defcustom gnus-search-date-keys
   '("date" "before" "after" "on" "senton" "sentbefore" "sentsince" "since")
   "A list of keywords whose value should be parsed as a date.
-
 See the docstring of `gnus-search-parse-query' for information on
 date parsing."
   :group 'gnus-search
@@ -409,14 +400,13 @@ date parsing."
 
 (defcustom gnus-search-contact-sources nil
   "A list of sources used to search for messages from contacts.
-
 Each list element can be either a function, or an alist.
 Functions should accept a search string, and return a list of
 email addresses of matching contacts.  An alist should map single
 strings to lists of mail addresses, usable as search keys in mail
 headers."
   :group 'gnus-search
-  :version "26.1"
+  :version "28.1"
   :type '(repeat (choice function
 			 (alist
 			  :key-type string
@@ -429,7 +419,6 @@ headers."
 
 (defun gnus-search-parse-query (string)
   "Turn STRING into an s-expression based query.
-
 The resulting query structure is passed to the various search
 backends, each of which adapts it as needed.
 
@@ -583,12 +572,11 @@ returning the one at the supplied position."
 
 (defun gnus-search-query-parse-kv (key value)
   "Handle KEY and VALUE, parsing and expanding as necessary.
-
 This may result in (key value) being turned into a larger query
 structure.
 
-In the simplest case, they are simply consed together.  KEY comes
-in as a string, goes out as a symbol."
+In the simplest case, they are simply consed together.  String
+KEY is converted to a symbol."
   (let (return)
     (cond
      ((member key gnus-search-date-keys)
@@ -604,14 +592,13 @@ in as a string, goes out as a symbol."
 
 (defun gnus-search-query-parse-date (value &optional rel-date)
   "Interpret VALUE as a date specification.
-
 See the docstring of `gnus-search-parse-query' for details.
 
 The result is a list of (dd mm yyyy); individual elements can be
 nil.
 
 If VALUE is a relative time, interpret it as relative to
-REL-DATE, or \(current-time\) if REL-DATE is nil."
+REL-DATE, or (current-time) if REL-DATE is nil."
   ;; Time parsing doesn't seem to work with slashes.
   (let ((value (replace-regexp-in-string "/" "-" value))
 	(now (append '(0 0 0)
@@ -656,7 +643,6 @@ REL-DATE, or \(current-time\) if REL-DATE is nil."
 
 (defun gnus-search-query-parse-mark (mark)
   "Possibly transform MARK.
-
 If MARK is a single character, assume it is one of the
 gnus-*-mark marks, and return an appropriate string."
   (if (= 1 (length mark))
@@ -672,7 +658,6 @@ gnus-*-mark marks, and return an appropriate string."
 
 (defun gnus-search-query-parse-contact (key value)
   "Handle VALUE as the name of a contact.
-
 Runs VALUE through the elements of
 `gnus-search-contact-sources' until one of them returns a list
 of email addresses.  Turns those addresses into an appropriate
@@ -745,7 +730,6 @@ chunk of query syntax."
 
 (defun gnus-search-query-return-string (&optional delimited trim)
   "Return a string from the current buffer.
-
 If DELIMITED is non-nil, assume the next character is a delimiter
 character, and return everything between point and the next
 occurance of the delimiter, including the delimiters themselves.
@@ -2092,10 +2076,8 @@ Assume \"size\" key is equal to \"larger\"."
 	(prepared-query (gnus-search-prepare-query
 			 (alist-get 'search-query-spec specs))))
     (mapc
-     (lambda (x)
-       (let* ((server (car x))
-	      (search-engine (gnus-search-server-to-engine server))
-	      (groups (cdr x)))
+     (pcase-lambda (`(,server ,groups))
+       (let ((search-engine (gnus-search-server-to-engine server)))
 	 (setq results
 	       (vconcat
 		(gnus-search-run-search
@@ -2106,7 +2088,6 @@ Assume \"size\" key is equal to \"larger\"."
 
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
-
 QUERY-SPEC is an alist produced by functions such as
 `gnus-group-make-search-group', and contains at least a 'query
 key, and possibly some meta keys.  This function extracts any
