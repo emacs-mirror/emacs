@@ -16274,7 +16274,7 @@
 
 	(c-guess-basic-syntax): Adapt case 5B for the new
 	`c-just-after-func-arglist-p'.  Merge cases 5B.1 and 5B.3.
-	Remove cases 5D.1 and 5D.2 since they aren't trigged anymore (case 5B.1
+	Remove cases 5D.1 and 5D.2 since they aren't triggered anymore (case 5B.1
 	covers all cases now).
 
 	* progmodes/cc-defs.el (c-point): Add `bosws' and `eosws'.
@@ -32889,7 +32889,7 @@
 
 2005-01-14  Nick Roberts  <nickrob@snap.net.nz>
 
-	* xt-mouse.el (xterm-mouse-event): Compute window co-ordinates
+	* xt-mouse.el (xterm-mouse-event): Compute window coordinates
 	more carefully.
 
 2005-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
