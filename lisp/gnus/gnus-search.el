@@ -2233,6 +2233,25 @@ article came from is also searched."
 (defvar gnus-group-marked)
 (defvar gnus-topic-alist)
 
+(defvar gnus-search-minibuffer-map
+  (let ((km (make-sparse-keymap)))
+    (set-keymap-parent km minibuffer-local-map)
+    (define-key km (kbd "SPC") #'self-insert-command)
+    (define-key km (kbd "TAB") #'gnus-search-complete-key)
+    km))
+
+(defun gnus-search-complete-key ()
+  "Complete a search key at point.
+Used when reading a search query from the minibuffer."
+  (interactive)
+  (when (completion-in-region
+	 (save-excursion
+	   (if (re-search-backward " " (minibuffer-prompt-end) t)
+	       (1+ (point))
+	     (minibuffer-prompt-end)))
+	 (point) gnus-search-expandable-keys)
+    (insert ":")))
+
 (defun gnus-search-make-specs (arg &optional specs)
   (let* ((group-spec
 	  (or (cdr (assq 'search-group-spec specs))
@@ -2247,7 +2266,9 @@ article came from is also searched."
 	 (query-spec
 	  (or (cdr (assq 'search-query-spec specs))
 	      (list (cons 'query
-			  (read-string "Query: " nil 'gnus-search-history))
+			  (read-from-minibuffer
+			   "Query: " nil gnus-search-minibuffer-map
+			   nil 'gnus-search-history))
 		    (cons 'no-parse arg)))))
     (list (cons 'search-query-spec query-spec)
 	  (cons 'search-group-spec group-spec))))
