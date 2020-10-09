@@ -574,6 +574,68 @@ An existing calc stack is reused, otherwise a new one is created."
                                           86400))))
       (should (equal (math-format-date d-1991-01-09-0600) "663400800")))))
 
+;; Reference implementations of binary shift functions:
+
+(defun calc-tests--clip (x w)
+  "Clip X to W bits, signed if W is negative, otherwise unsigned."
+  (if (>= w 0)
+      (logand x (- (ash 1 w) 1))
+    (let ((y (calc-tests--clip x (- w)))
+          (msb (ash 1 (- (- w) 1))))
+      (- y (ash (logand y msb) 1)))))
+
+(defun calc-tests--lsh (x n w)
+  "Logical shift left X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--rsh x (- n) w)
+    (calc-tests--clip (ash x n) w)))
+
+(defun calc-tests--rsh (x n w)
+  "Logical shift right X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--lsh x (- n) w)
+    (ash (calc-tests--clip x w) (- n))))
+
+(defun calc-tests--ash (x n w)
+  "Arithmetic shift left X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--rash x (- n) w)
+    (calc-tests--clip (ash x n) w)))
+
+(defun calc-tests--rash (x n w)
+  "Arithmetic shift right X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--ash x (- n) w)
+    ;; First sign-extend, then shift.
+    (let ((x-sext (calc-tests--clip x (- (abs w)))))
+      (calc-tests--clip (ash x-sext (- n)) w))))
+
+(defun calc-tests--rot (x n w)
+  "Rotate X left by N steps, word size W."
+  (let* ((aw (abs w))
+         (y (calc-tests--clip x aw))
+         (steps (mod n aw)))
+    (calc-tests--clip (logior (ash y steps) (ash y (- steps aw)))
+                      w)))
+
+(ert-deftest calc-shift-binary ()
+  (dolist (w '(16 32))
+    (dolist (x '(0 1 #x1234 #x8000 #xabcd #xffff
+                 #x12345678 #xabcdef12 #x80000000 #xffffffff
+                 #x1234567890ab #x1234967890ab
+                 -1 -14))
+      (dolist (n '(0 1 4 16 32 -1 -4 -16 -32))
+        (should (equal (calcFunc-lsh x n w)
+                       (calc-tests--lsh x n w)))
+        (should (equal (calcFunc-rsh x n w)
+                       (calc-tests--rsh x n w)))
+        (should (equal (calcFunc-ash x n w)
+                       (calc-tests--ash x n w)))
+        (should (equal (calcFunc-rash x n w)
+                       (calc-tests--rash x n w)))
+        (should (equal (calcFunc-rot x n w)
+                       (calc-tests--rot x n w)))))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
