@@ -2622,7 +2622,7 @@ is copied instead of being cut."
     ;; this for all windows on all visible frames.  In addition we save
     ;; also the cursor type for the window's buffer so we can restore it
     ;; in case we modified it.
-    ;; https://lists.gnu.org/archive/html/emacs-devel/2017-12/msg00090.html
+    ;; https://lists.gnu.org/r/emacs-devel/2017-12/msg00090.html
     (walk-window-tree
      (lambda (window)
        (setq states

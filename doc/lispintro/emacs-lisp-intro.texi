@@ -227,7 +227,7 @@ supports it in developing GNU and promoting software freedom.''
 @c learn Emacs Lisp starting with the Emacs Lisp Reference Manual.
 @c
 @c        Richard Stallman <rms@gnu.org>,
-@c        https://lists.gnu.org/archive/html/emacs-devel/2018-05/msg00374.html
+@c        https://lists.gnu.org/r/emacs-devel/2018-05/msg00374.html
 
 @shortcontents
 @contents

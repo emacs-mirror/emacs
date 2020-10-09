@@ -525,7 +525,7 @@ Save backtraces when errors happen during specified filters, specified
 timers, and specified hooks.
 
 ** Install mmc@maruska.dyndns.org's no-flicker change
-https://lists.gnu.org/archive/html/emacs-devel/2005-12/msg00699.html
+https://lists.gnu.org/r/emacs-devel/2005-12/msg00699.html
 
 I don't know if this is still relevant.  I can't reach the URLs in
 the above message thread and double-buffering may have solved some
@@ -849,7 +849,7 @@ designed to be compatible with multiple Emacs ports.
 
 (See the scratch/nsxwidget branch, and the discussion around
 Objective-C code and GCC at
-https://lists.gnu.org/archive/html/emacs-devel/2019-08/msg00072.html)
+https://lists.gnu.org/r/emacs-devel/2019-08/msg00072.html )
 
 **** Respect 'frame-inhibit-implied-resize'
 When the variable 'frame-inhibit-implied-resize' is non-nil, frames
