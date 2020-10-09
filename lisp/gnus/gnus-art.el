@@ -7092,7 +7092,10 @@ If given a prefix, show the hidden text instead."
 					      gnus-summary-buffer)
 		    (when gnus-keep-backlog
 		      (gnus-backlog-enter-article
-		       group article (current-buffer))))
+		       group article (current-buffer)))
+		    (when (and gnus-agent
+			       (gnus-agent-group-covered-p group))
+		      (gnus-agent-store-article article group)))
 		  (setq result 'article))
 		 (methods
 		  (setq gnus-override-method (pop methods)))
