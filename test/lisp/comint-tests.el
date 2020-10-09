@@ -39,6 +39,7 @@
     "Passphrase for key root@GNU.ORG: " ; plink
     "[sudo] password for user:" ; Ubuntu sudo
     "[sudo] user 的密码：" ; localized
+    "doas (user@host) password:" ; OpenBSD doas
     "PIN for user:"        ; Bug#35523
     "Password (again):"
     "Enter password:"
