@@ -692,41 +692,18 @@ chunk of query syntax."
 	addresses)))))
 
 (defun gnus-search-query-expand-key (key)
-  "Attempt to expand KEY to a full keyword."
-  (let ((bits (split-string key "-"))
-	bit out-bits comp)
-    (if (try-completion (car bits) gnus-search-expandable-keys)
-	(progn
-	  (while (setq bit (pop bits))
-	    (setq comp (try-completion bit gnus-search-expandable-keys))
-	    (if (stringp comp)
-		(if (and (string= bit comp)
-			 (null (member comp gnus-search-expandable-keys)))
-		    (signal 'gnus-search-parse-error
-			    (list (format "Ambiguous keyword: %s" key)))
-		  (push comp out-bits))
-	      (push bit out-bits)))
-	  (mapconcat #'identity (reverse out-bits) "-"))
-      key)))
-
-;; (defun gnus-search-query-expand-key (key)
-;;   "Attempt to expand (possibly abbreviated) KEY to a full keyword.
-
-;; Can handle any non-ambiguous abbreviation, with hyphens as substring separator."
-;;   (let* ((bits (split-string key "-"))
-;; 	 (bit (pop bits))
-;; 	 (comp (all-completions bit gnus-search-expandable-keys)))
-;;     ;; Make a cl-labels recursive function, that accepts a rebuilt key and
-;;     ;; results of `all-completions' back in as a COLLECTION argument.
-;;     (if (= 1 (length comp))
-;; 	(setq key (car comp))
-;;       (when (setq comp (try-completion bit gnus-search-expandable-keys))
-;; 	(if (and (string= bit comp)
-;; 		 (null (member comp gnus-search-expandable-keys)))
-;; 	    (error "Ambiguous keyword: %s" key)))
-;;       (unless (eq t (try-completion key gnus-search-expandable-keys))))
-;;     key))
-
+  (cond ((test-completion key gnus-search-expandable-keys)
+	 ;; We're done!
+	 key)
+	;; There is more than one possible completion.
+	((consp (cdr (completion-all-completions
+		      key gnus-search-expandable-keys #'stringp)))
+	 (signal 'gnus-search-parse-error
+		 (list (format "Ambiguous keyword: %s" key))))
+	;; Return KEY, either completed or untouched.
+	((car-safe (completion-try-completion
+		    key gnus-search-expandable-keys
+		    #'stringp 0)))))
 
 (defun gnus-search-query-return-string (&optional delimited trim)
   "Return a string from the current buffer.
