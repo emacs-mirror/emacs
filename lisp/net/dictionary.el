@@ -680,8 +680,13 @@ This function knows about the special meaning of quotes (\")"
 
 (define-button-type 'dictionary-link
   'face 'dictionary-reference-face
-  'action (lambda (button) (funcall (button-get button 'callback)
-                                    (button-get button 'data))))
+  'action (lambda (button)
+            (let ((func (button-get button 'callback))
+                  (data (button-get button 'data))
+                  (list-data (button-get button 'list-data)))
+              (if list-data
+                  (apply func list-data)
+                (funcall func data)))))
 
 (define-button-type 'dictionary-button
   :supertype 'dictionary-link
@@ -863,6 +868,12 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
                          'callback 'dictionary-set-dictionary
                          'data (cons dictionary description)
                          'help-echo (purecopy "Mouse-2 to select this dictionary"))
+          (unless (dictionary-special-dictionary dictionary)
+            (insert " ")
+            (insert-button "(Details)" :type 'dictionary-link
+                           'callback 'dictionary-set-dictionary
+                           'list-data (list (cons dictionary description) t)
+                           'help-echo (purecopy "Mouse-2 to get more information")))
 	  (insert "\n")))))
 
 (defun dictionary-set-dictionary (param &optional more)
@@ -875,13 +886,17 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (dictionary-restore-state)
       (message "Dictionary %s has been selected" dictionary))))
 
+(defun dictionary-special-dictionary (name)
+  "Checks whether the special * or ! dictionary are seen"
+  (or (equal name "*")
+      (equal name "!")))
+
 (defun dictionary-display-more-info (param)
   "Display the available information on the dictionary"
 
   (let ((dictionary (car param))
 	(description (cdr param)))
-    (unless (or (equal dictionary "*")
-		(equal dictionary "!"))
+    (unless (dictionary-special-dictionary dictionary)
       (dictionary-store-positions)
       (message "Requesting more information on %s" dictionary)
       (dictionary-send-command
@@ -1048,7 +1063,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    (mapc (lambda (word)
 		    (setq word (dictionary-decode-charset word dictionary))
 		    (insert "  ")
-                    (insert-button word :type 'dictionary-button
+                    (insert-button word :type 'dictionary-link
                                    'callback 'dictionary-new-search
                                    'data (cons word dictionary)
                                    'help-echo (purecopy "Mouse-2 to lookup word"))
