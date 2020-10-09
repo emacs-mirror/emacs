@@ -1059,6 +1059,13 @@ static unsigned long
 load_color2 (struct frame *f, struct face *face, Lisp_Object name,
              enum lface_attribute_index target_index, Emacs_Color *color)
 {
+  if (FRAME_TERMINAL (f)->defined_color_hook == NULL)
+    {
+      Lisp_Object frame;
+      XSETFRAME (frame, f);
+      signal_error ("Unable to load colors for suspended TTY frame", frame);
+    }
+
   eassert (STRINGP (name));
   eassert (target_index == LFACE_FOREGROUND_INDEX
 	   || target_index == LFACE_BACKGROUND_INDEX
@@ -4390,6 +4397,9 @@ two lists of the form (RED GREEN BLUE) aforementioned. */)
 {
   struct frame *f = decode_live_frame (frame);
   Emacs_Color cdef1, cdef2;
+
+  if (FRAME_TERMINAL (f)->defined_color_hook == NULL)
+    signal_error ("Unable to validate colors for suspended TTY frame", frame);
 
   if (!(CONSP (color1) && parse_rgb_list (color1, &cdef1))
       && !(STRINGP (color1)
