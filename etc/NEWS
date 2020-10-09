@@ -545,6 +545,11 @@ grep emits SGR ANSI escape sequences to color its output.  The new variable
 markers in order to provide highlighting in the source buffer.  The variable
 can be customized to accommodate other grep-like tools.
 
+---
+*** The 'lgrep' command now ignores directories.
+On systems where the grep command supports it, directories will be
+skipped.
+
 ** Help
 
 +++
