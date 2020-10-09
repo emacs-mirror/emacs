@@ -38,7 +38,7 @@
 (require 'easymenu)
 (require 'custom)
 (require 'dictionary-connection)
-(require 'dictionary-link)
+(require 'button)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuff for customizing.
@@ -296,8 +296,24 @@ is utf-8"
 ;; Global variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar dictionary-mode-map
-  nil
-  "Keymap for dictionary mode")
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (set-keymap-parent map button-buffer-map)
+
+    (define-key map "q" 'dictionary-close)
+    (define-key map "h" 'dictionary-help)
+    (define-key map "s" 'dictionary-search)
+    (define-key map "d" 'dictionary-lookup-definition)
+    (define-key map "D" 'dictionary-select-dictionary)
+    (define-key map "M" 'dictionary-select-strategy)
+    (define-key map "m" 'dictionary-match-words)
+    (define-key map "l" 'dictionary-previous)
+    (define-key map "n" 'forward-button)
+    (define-key map "p" 'backward-button)
+    (define-key map " " 'scroll-up)
+    (define-key map (read-kbd-macro "M-SPC") 'scroll-down)
+    map)
+  "Keymap for the dictionary mode.")
 
 (defvar dictionary-connection
   nil
@@ -340,7 +356,6 @@ is utf-8"
  * M select the default search strategy
 
  * Return or Button2 visit that link
- * M-Return or M-Button2 search the word beneath link in all dictionaries
  "
 
   (unless (eq major-mode 'dictionary-mode)
@@ -393,39 +408,6 @@ is utf-8"
 
   (dictionary-pre-buffer)
   (dictionary-post-buffer))
-
-
-(unless dictionary-mode-map
-  (setq dictionary-mode-map (make-sparse-keymap))
-  (suppress-keymap dictionary-mode-map)
-
-  (define-key dictionary-mode-map "q" 'dictionary-close)
-  (define-key dictionary-mode-map "h" 'dictionary-help)
-  (define-key dictionary-mode-map "s" 'dictionary-search)
-  (define-key dictionary-mode-map "d" 'dictionary-lookup-definition)
-  (define-key dictionary-mode-map "D" 'dictionary-select-dictionary)
-  (define-key dictionary-mode-map "M" 'dictionary-select-strategy)
-  (define-key dictionary-mode-map "m" 'dictionary-match-words)
-  (define-key dictionary-mode-map "l" 'dictionary-previous)
-
-  (if (and (string-match "GNU" (emacs-version))
-	   (not window-system))
-      (define-key dictionary-mode-map [9] 'dictionary-next-link)
-    (define-key dictionary-mode-map [tab] 'dictionary-next-link))
-
-  ;; shift-tabs normally is supported on window systems only, but
-  ;; I do not enforce it
-  (define-key dictionary-mode-map [(shift tab)] 'dictionary-prev-link)
-  (define-key dictionary-mode-map "\e\t" 'dictionary-prev-link)
-  (define-key dictionary-mode-map [backtab] 'dictionary-prev-link)
-
-  (define-key dictionary-mode-map "n" 'dictionary-next-link)
-  (define-key dictionary-mode-map "p" 'dictionary-prev-link)
-
-  (define-key dictionary-mode-map " " 'scroll-up)
-  (define-key dictionary-mode-map [(meta space)] 'scroll-down)
-
-  (dictionary-link-initialize-keymap dictionary-mode-map))
 
 (defmacro dictionary-reply-code (reply)
   "Return the reply code stored in `reply'."
@@ -696,43 +678,48 @@ This function knows about the special meaning of quotes (\")"
 	  (error "Unknown server answer: %s" (dictionary-reply reply)))
 	(funcall function reply)))))
 
+(define-button-type 'dictionary-link
+  'face 'dictionary-reference-face
+  'action (lambda (button) (funcall (button-get button 'callback)
+                                    (button-get button 'data))))
+
+(define-button-type 'dictionary-button
+  :supertype 'dictionary-link
+  'face 'dictionary-button-face)
+
 (defun dictionary-pre-buffer ()
   "These commands are executed at the begin of a new buffer"
   (setq buffer-read-only nil)
   (erase-buffer)
   (if dictionary-create-buttons
       (progn
-	(dictionary-link-insert-link "[Back]" 'dictionary-button-face
-                                     'dictionary-restore-state nil
-                                     "Mouse-2 to go backwards in history")
+        (insert-button "[Back]" :type 'dictionary-button
+                       'callback 'dictionary-restore-state
+                       'help-echo (purecopy "Mouse-2 to go backwards in history"))
 	(insert " ")
-	(dictionary-link-insert-link "[Search Definition]"
-                                     'dictionary-button-face
-                                     'dictionary-search nil
-                                     "Mouse-2 to look up a new word")
+        (insert-button "[Search Definition]" :type 'dictionary-button
+                       'callback 'dictionary-search
+                       'help-echo (purecopy "Mouse-2 to look up a new word"))
 	(insert "         ")
 
-	(dictionary-link-insert-link "[Matching words]"
-                                     'dictionary-button-face
-                                     'dictionary-match-words nil
-                                     "Mouse-2 to find matches for a pattern")
+	(insert-button "[Matching words]" :type 'dictionary-button
+                       'callback 'dictionary-match-words
+                       'help-echo (purecopy "Mouse-2 to find matches for a pattern"))
 	(insert "        ")
 
-	(dictionary-link-insert-link "[Quit]" 'dictionary-button-face
-                                     'dictionary-close nil
-                                     "Mouse-2 to close this window")
+	(insert-button "[Quit]" :type 'dictionary-button
+                       'callback 'dictionary-close
+                       'help-echo (purecopy "Mouse-2 to close this window"))
 
 	(insert "\n       ")
 
-	(dictionary-link-insert-link "[Select Dictionary]"
-                                     'dictionary-button-face
-                                     'dictionary-select-dictionary nil
-                                     "Mouse-2 to select dictionary for future searches")
+        (insert-button "[Select Dictionary]" :type 'dictionary-button
+                       'callback 'dictionary-select-dictionary
+                       'help-echo (purecopy "Mouse-2 to select dictionary for future searches"))
 	(insert "         ")
-	(dictionary-link-insert-link "[Select Match Strategy]"
-                                     'dictionary-button-face
-                                     'dictionary-select-strategy nil
-                                     "Mouse-2 to select matching algorithm")
+        (insert-button "[Select Match Strategy]" :type 'dictionary-button
+                       'callback 'dictionary-select-strategy
+                       'help-echo (purecopy "Mouse-2 to select matching algorithm"))
 	(insert "\n\n")))
   (setq dictionary-marker (point-marker)))
 
@@ -810,10 +797,11 @@ The word is taken from the buffer, the `dictionary' is given as argument."
       (setq word (replace-match "" t t word)))
 
     (unless (equal word displayed-word)
-      (dictionary-link-create-link start end 'dictionary-reference-face
-                                   call (cons word dictionary)
-                                   (concat "Press Mouse-2 to lookup \""
-                                           word "\" in \"" dictionary "\"")))))
+      (make-button start end :type 'dictionary-link
+                   'callback call
+                   'data (cons word dictionary)
+                   'help-echo (concat "Press Mouse-2 to lookup \""
+                                      word "\" in \"" dictionary "\"")))))
 
 (defun dictionary-select-dictionary (&rest ignored)
   "Save the current state and start a dictionary selection"
@@ -871,11 +859,10 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (if dictionary
 	(if (equal dictionary "--exit--")
 	    (insert "(end of default search list)\n")
-	  (dictionary-link-insert-link (concat dictionary ": " translated)
-                                       'dictionary-reference-face
-                                       'dictionary-set-dictionary
-                                       (cons dictionary description)
-                                       "Mouse-2 to select this dictionary")
+          (insert-button (concat dictionary ": " translated) :type 'dictionary-link
+                         'callback 'dictionary-set-dictionary
+                         'data (cons dictionary description)
+                         'help-echo (purecopy "Mouse-2 to select this dictionary"))
 	  (insert "\n")))))
 
 (defun dictionary-set-dictionary (param &optional more)
@@ -907,10 +894,10 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    (error "Unknown server answer: %s" (dictionary-reply reply)))
 	  (dictionary-pre-buffer)
 	  (insert "Information on dictionary: ")
-	  (dictionary-link-insert-link description 'dictionary-reference-face
-                                       'dictionary-set-dictionary
-                                       (cons dictionary description)
-                                       "Mouse-2 to select this dictionary")
+          (insert-button description :type 'dictionary-link
+                         'callback 'dictionary-set-dictionary
+                         'data (cons dictionary description)
+                         'help-echo (purecopy "Mouse-2 to select this dictionary"))
 	  (insert "\n\n")
 	  (setq reply (dictionary-read-answer))
 	  (insert reply)
@@ -958,9 +945,10 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	 (description (cadr list)))
     (if strategy
 	(progn
-	  (dictionary-link-insert-link description 'dictionary-reference-face
-                                       'dictionary-set-strategy strategy
-                                       "Mouse-2 to select this matching algorithm")
+          (insert-button description :type 'dictionary-link
+                         'callback 'dictionary-set-strategy
+                         'data strategy
+                         'help-echo (purecopy "Mouse-2 to select this matching algorithm"))
 	  (insert "\n")))))
 
 (defun dictionary-set-strategy (strategy &rest ignored)
@@ -1060,11 +1048,10 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    (mapc (lambda (word)
 		    (setq word (dictionary-decode-charset word dictionary))
 		    (insert "  ")
-		    (dictionary-link-insert-link word
-                                                 'dictionary-reference-face
-                                                 'dictionary-new-search
-                                                 (cons word dictionary)
-                                                 "Mouse-2 to lookup word")
+                    (insert-button word :type 'dictionary-button
+                                   'callback 'dictionary-new-search
+                                   'data (cons word dictionary)
+                                   'help-echo (purecopy "Mouse-2 to lookup word"))
 		    (insert "\n")) (reverse word-list))
 	    (insert "\n")))
 	list))
@@ -1118,22 +1105,6 @@ It presents the word at point as default input and allows editing it."
   (unless (dictionary-mode-p)
     (error "Current buffer is no dictionary buffer"))
   (dictionary-restore-state))
-
-(defun dictionary-next-link ()
-  "Place the cursor to the next link."
-  (interactive)
-  (let ((pos (dictionary-link-next-link)))
-    (if pos
-	(goto-char pos)
-      (error "There is no next link"))))
-
-(defun dictionary-prev-link ()
-  "Place the cursor to the previous link."
-  (interactive)
-  (let ((pos (dictionary-link-prev-link)))
-    (if pos
-	(goto-char pos)
-      (error "There is no previous link"))))
 
 (defun dictionary-help ()
   "Display a little help"
