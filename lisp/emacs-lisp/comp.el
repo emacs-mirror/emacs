@@ -422,7 +422,7 @@ CFG is mutated by a pass.")
 Raise an error otherwise.
 To be used by all entry points."
   (cond
-   ((null (boundp 'comp-ctxt))
+   ((null (featurep 'nativecomp))
     (error "Emacs not compiled with native compiler support (--with-nativecomp)"))
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit"))))

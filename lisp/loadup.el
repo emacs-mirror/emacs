@@ -449,7 +449,7 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
-(when (boundp 'comp-ctxt)
+(when (featurep 'nativecomp)
   ;; Fix the compilation unit filename to have it working when
   ;; when installed or if the source directory got moved.  This is set to be
   ;; a pair in the form: (rel-path-from-install-bin . rel-path-from-local-bin).
@@ -510,7 +510,7 @@ lost after dumping")))
                         ((equal dump-mode "bootstrap") "emacs")
                         ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
                         (t (error "unrecognized dump mode %s" dump-mode)))))
-      (when (and (boundp 'comp-ctxt)
+      (when (and (featurep 'nativecomp)
                  (equal dump-mode "pdump"))
         ;; Don't enable this before bootstrap is completed the as the
         ;; compiler infrastructure may not be usable.

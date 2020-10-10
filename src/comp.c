@@ -5300,6 +5300,7 @@ The last directory of this list is assumed to be the system one.  */);
 	       doc: /* Hash table subr-name -> bool.  */);
   Vcomp_installed_trampolines_h = CALLN (Fmake_hash_table);
 
+  Fprovide (intern_c_string ("nativecomp"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */
 
   defsubr (&Snative_comp_available_p);

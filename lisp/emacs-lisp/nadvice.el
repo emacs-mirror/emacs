@@ -318,7 +318,7 @@ is also interactive.  There are 3 cases:
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (when (and (boundp 'comp-ctxt)
+  (when (and (featurep 'nativecomp)
              (subr-primitive-p (gv-deref ref)))
     (let ((subr-name (intern (subr-name (gv-deref ref)))))
       ;; Requiring the native compiler to advice `macroexpand' cause a

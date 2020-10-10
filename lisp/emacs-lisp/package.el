@@ -2207,7 +2207,7 @@ If some packages are not installed propose to install them."
   "Delete DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
-  (when (boundp 'comp-ctxt)
+  (when (featurep 'nativecomp)
     (cl-loop
      for file in (directory-files-recursively dir ".el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
