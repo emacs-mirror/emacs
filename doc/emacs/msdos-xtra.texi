@@ -563,7 +563,7 @@ finishes.
 
   Spell checking also works, by means of special support for synchronous
 invocation of the @code{ispell} program.  This is slower than the
-asynchronous invocation on other platforms
+asynchronous invocation on other platforms.
 
   Instead of the Shell mode, which doesn't work on MS-DOS, you can use
 the @kbd{M-x eshell} command.  This invokes the Eshell package that

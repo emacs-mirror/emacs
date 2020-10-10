@@ -1737,12 +1737,6 @@ of doing your job.  Note that this variable is used before
 @vindex gnus-no-groups-message
 Message displayed by Gnus when no groups are available.
 
-@item gnus-use-backend-marks
-@vindex gnus-use-backend-marks
-If non-@code{nil}, Gnus will store article marks both in the
-@file{.newsrc.eld} file and in the backends.  This will slow down
-group operation some.
-
 @end table
 
 

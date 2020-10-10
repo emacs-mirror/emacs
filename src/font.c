@@ -188,6 +188,9 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
 					     FONT_OBJECT_MAX, PVEC_FONT);
   int i;
 
+  /* Poison the max_width, so we can detect when it hasn't been set.  */
+  eassert (font->max_width = 1024 * 1024 * 1024);
+
   /* GC can happen before the driver is set up,
      so avoid dangling pointer here (Bug#17771).  */
   font->driver = NULL;
@@ -1011,7 +1014,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 }
 
 
-/* Parse NAME (NUL terminated) as XLFD and store information in FONT
+/* Parse NAME (null terminated) as XLFD and store information in FONT
    (font-spec or font-entity).  Size property of FONT is set as
    follows:
 	specified XLFD fields		FONT property
@@ -1355,7 +1358,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   return len < nbytes ? len : -1;
 }
 
-/* Parse NAME (NUL terminated) and store information in FONT
+/* Parse NAME (null terminated) and store information in FONT
    (font-spec or font-entity).  NAME is supplied in either the
    Fontconfig or GTK font name format.  If NAME is successfully
    parsed, return 0.  Otherwise return -1.
@@ -1727,7 +1730,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 
 #endif
 
-/* Parse NAME (NUL terminated) and store information in FONT
+/* Parse NAME (null terminated) and store information in FONT
    (font-spec or font-entity).  If NAME is successfully parsed, return
    0.  Otherwise return -1.  */
 
@@ -5170,6 +5173,9 @@ If the named font cannot be opened and loaded, return nil.  */)
   if (NILP (font_object))
     return Qnil;
   font = XFONT_OBJECT (font_object);
+
+  /* Sanity check to make sure we have initialized max_width.  */
+  eassert (XFONT_OBJECT (font_object)->max_width < 1024 * 1024 * 1024);
 
   info = CALLN (Fvector,
 		AREF (font_object, FONT_NAME_INDEX),

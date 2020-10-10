@@ -362,6 +362,7 @@ This variable is buffer-local."
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 ;; Something called "perforce" uses "Enter password:".
 ;; OpenVPN prints a prompt like: "Enter Auth Password:".
+;; OpenBSD doas prints "doas (user@host) password:".
 ;; See ert test `comint-test-password-regexp'.
 (defcustom comint-password-prompt-regexp
   (concat
@@ -370,7 +371,7 @@ This variable is buffer-local."
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-      "[sudo]" "Repeat" "Bad" "Retype")
+      "[sudo]" "doas" "Repeat" "Bad" "Retype")
     t)
    ;; Allow for user name to precede password equivalent (Bug#31075).
    " +.*\\)"

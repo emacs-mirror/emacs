@@ -937,7 +937,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 
 (quail-define-package
  "danish-postfix" "Latin-1" "DA<" t
- "Danish input method (rule: AE -> Æ, OE -> Ø, AA -> Å, E\\=' -> É)
+ "Danish input method (rule: AE -> Æ, OE -> Ø, AA -> Å, E\\=' -> É, E= -> €)
 
 Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 "
@@ -951,6 +951,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  ("AA" ?Å)
  ("aa" ?å)
  ("E'" ?É)
+ ("E=" ?€)
  ("e'" ?é)
 
  ("AEE" ["AE"])
@@ -960,6 +961,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  ("AAA" ["AA"])
  ("aaa" ["aa"])
  ("E''" ["E'"])
+ ("E==" ["E="])
  ("e''" ["e'"])
  )
 
@@ -1034,6 +1036,7 @@ AE  -> Ä
 AEE -> AE
 OE  -> Ö
 OEE -> OE
+E= -> €
 "
  nil t nil nil nil nil nil nil nil nil t)
 
@@ -1042,11 +1045,13 @@ OEE -> OE
  ("ae" ?ä)
  ("OE" ?Ö)
  ("oe" ?ö)
+ ("E=" ?€)
 
  ("AEE" ["AE"])
  ("aee" ["ae"])
  ("OEE" ["OE"])
  ("oee" ["oe"])
+ ("E==" ["E="])
  )
 
 (quail-define-package
@@ -1061,6 +1066,8 @@ Par exemple: a\\=` -> à   e\\=' -> é.
 En doublant la frappe des diacritiques, ils s'isoleront de la lettre.
 Par exemple: e\\='\\=' -> e\\='
 
+€ est produit par E=.
+
 Œ est produit par O/."
  nil t nil nil nil nil nil nil nil nil t)
 
@@ -1073,6 +1080,7 @@ Par exemple: e\\='\\=' -> e\\='
  ("E'" ?É)
  ("E^" ?Ê)
  ("E\"" ?Ë)
+ ("E=" ?€)
  ("e`" ?è)
  ("e'" ?é)
  ("e^" ?ê)
@@ -1104,6 +1112,7 @@ Par exemple: e\\='\\=' -> e\\='
  ("E''" ["E'"])
  ("E^^" ["E^"])
  ("E\"\"" ["E\""])
+ ("E==" ["E="])
  ("e``" ["e`"])
  ("e''" ["e'"])
  ("e^^" ["e^"])
@@ -1140,6 +1149,7 @@ ue  -> ü (not after a/e/q)
 uee -> ue
 sz  -> ß
 szz -> sz
+E= -> €
 "
  nil t nil nil nil nil nil nil nil nil t)
 
@@ -1152,6 +1162,7 @@ szz -> sz
  ("ue" ?ü)
  ("sz" ?ß)
  ("SZ" ?ẞ)
+ ("E=" ?€)
 
  ("AEE" ["AE"])
  ("aee" ["ae"])
@@ -1168,6 +1179,7 @@ szz -> sz
  ("Aue" ["Aue"])
  ("que" ["que"])
  ("Que" ["Que"])
+ ("E==" ["E="])
 )
 
 (quail-define-package
@@ -1184,6 +1196,7 @@ AE -> Æ
 OE -> Ö
 D/ -> Ð (eth)
 T/ -> Þ (thorn)
+E= -> €
 
 Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
@@ -1238,7 +1251,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 
 a\\=` -> à    A\\=` -> À    e\\=' -> é    << -> «
 e\\=` -> è    E\\=` -> È    E\\=' -> É    >> -> »
-i\\=` -> ì    I\\=` -> Ì               o_ -> º
+i\\=` -> ì    I\\=` -> Ì    E= -> €       o_ -> º
 o\\=` -> ò    O\\=` -> Ò               a_ -> ª
 u\\=` -> ù    U\\=` -> Ù
 
@@ -1252,6 +1265,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\=`\\=` -> a\\=`
  ("a`" ?à)
  ("E`" ?È)
  ("E'" ?É)
+ ("E=" ?€)
  ("e`" ?è)
  ("e'" ?é)
  ("I`" ?Ì)
@@ -1269,6 +1283,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\=`\\=` -> a\\=`
  ("a``" ["a`"])
  ("E``" ["E`"])
  ("E''" ["E'"])
+ ("E==" ["E="])
  ("e``" ["e`"])
  ("e''" ["e'"])
  ("I``" ["I`"])
@@ -1285,7 +1300,8 @@ Doubling the postfix separates the letter and postfix: e.g. a\\=`\\=` -> a\\=`
 
 (quail-define-package
  "norwegian-postfix" "Latin-1" "NO<" t
- "Norwegian (Norsk) input method (rule: AE->Æ   OE->Ø   AA->Å   E\\='->É)
+ "Norwegian (Norsk) input method (rule: AE->Æ   OE->Ø   AA->Å   E\\='->É
+  E= -> €)
 
 Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 "
@@ -1299,6 +1315,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  ("AA" ?Å)
  ("aa" ?å)
  ("E'" ?É)
+ ("E=" ?€)
  ("e'" ?é)
 
  ("AEE" ["AE"])
@@ -1308,6 +1325,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  ("AAA" ["AA"])
  ("aaa" ["aa"])
  ("E''" ["E'"])
+ ("E==" ["E="])
  ("e''" ["e'"])
  )
 
@@ -1322,6 +1340,7 @@ aa -> å
 a\" -> ä
 o\" -> ö
 e\\=' -> é
+E= -> €
 
 Doubling the postfix separates the letter and postfix:
 aee -> ae   o\"\" -> o\"   etc.
@@ -1339,6 +1358,7 @@ aee -> ae   o\"\" -> o\"   etc.
  ("O\"" ?Ö)
  ("o\"" ?ö)
  ("E'" ?É)
+ ("E=" ?€)
  ("e'" ?é)
 
  ("AEE" ["AE"])
@@ -1352,6 +1372,7 @@ aee -> ae   o\"\" -> o\"   etc.
  ("O\"\"" ["O\""])
  ("o\"\"" ["o\""])
  ("E''" ["E'"])
+ ("E==" ["E="])
  ("e''" ["e'"])
  )
 
@@ -1361,6 +1382,7 @@ aee -> ae   o\"\" -> o\"   etc.
 
 A\\=' -> Á
 E\\=' -> É
+E= -> €
 I\\=' -> Í
 O\\=' -> Ó
 U\\=' -> Ú
@@ -1376,6 +1398,7 @@ a\\='\\=' -> a\\='   n~~ -> n~, etc.
  ("A'" ?Á)
  ("a'" ?á)
  ("E'" ?É)
+ ("E=" ?€)
  ("e'" ?é)
  ("I'" ?Í)
  ("i'" ?í)
@@ -1393,6 +1416,7 @@ a\\='\\=' -> a\\='   n~~ -> n~, etc.
  ("A''" ["A'"])
  ("a''" ["a'"])
  ("E''" ["E'"])
+ ("E==" ["E="])
  ("e''" ["e'"])
  ("I''" ["I'"])
  ("i''" ["i'"])
@@ -1410,7 +1434,8 @@ a\\='\\=' -> a\\='   n~~ -> n~, etc.
 
 (quail-define-package
  "swedish-postfix" "Latin-1" "SV<" t
- "Swedish (Svenska) input method (rule: AA -> Å   AE -> Ä   OE -> Ö   E\\=' -> É)
+ "Swedish (Svenska) input method
+(rule: AA -> Å   AE -> Ä   OE -> Ö   E\\=' -> É  E= -> €)
 
 Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 " nil t nil nil nil nil nil nil nil nil t)
@@ -1423,6 +1448,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  ("OE" ?Ö)
  ("oe" ?ö)
  ("E'" ?É)
+ ("E=" ?€)
  ("e'" ?é)
 
  ("AAA" ["AA"])
@@ -1432,6 +1458,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  ("OEE" ["OE"])
  ("oee" ["oe"])
  ("E''" ["E'"])
+ ("E==" ["E="])
  ("e''" ["e'"])
  )
 

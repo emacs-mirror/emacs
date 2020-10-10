@@ -4943,6 +4943,12 @@ If optional argument STATE is positive, turn borders on."
       (cons (+ window-x window-start-x)
 	    (+ window-y window-start-y))))
 
+(defun artist--adjust-x (x)
+  "Adjust the X position wrt. `display-line-numbers-mode'."
+  (let ((adjust (line-number-display-width)))
+    (if (= adjust 0)
+        x
+      (- x adjust 2))))
 
 (defun artist-mouse-draw-continously (ev)
   "Generic function for shapes that require 1 point as input.
@@ -4964,7 +4970,7 @@ The event, EV, is the mouse event."
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
 	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
-	 (x1           (car ev-start-pos))
+	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
 	 (shape)
 	 (timer))
@@ -4981,7 +4987,7 @@ The event, EV, is the mouse event."
                      (member 'down (event-modifiers ev)))
             (setq ev-start-pos (artist-coord-win-to-buf
                                 (posn-col-row (event-start ev))))
-            (setq x1 (car ev-start-pos))
+            (setq x1 (artist--adjust-x (car ev-start-pos)))
             (setq y1 (cdr ev-start-pos))
 
             ;; Cancel previous timer
@@ -5061,7 +5067,7 @@ The event, EV, is the mouse event."
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
 	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
-	 (x1-last      (car ev-start-pos))
+	 (x1-last      (artist--adjust-x (car ev-start-pos)))
 	 (y1-last      (cdr ev-start-pos))
 	 (x2           x1-last)
 	 (y2           y1-last)
@@ -5153,7 +5159,7 @@ The event, EV, is the mouse event."
 	      ;;
 	      (setq ev-start-pos (artist-coord-win-to-buf
 				  (posn-col-row (event-start ev))))
-	      (setq x2 (car ev-start-pos))
+	      (setq x2 (artist--adjust-x (car ev-start-pos)))
 	      (setq y2 (cdr ev-start-pos))
 
 	      ;; Draw the new shape (if not rubber-banding, place both marks)
@@ -5180,7 +5186,7 @@ The event, EV, is the mouse event."
 	  ;; set x2 and y2
 	  (setq ev-start-pos (artist-coord-win-to-buf
 			      (posn-col-row (event-start ev))))
-	  (setq x2 (car ev-start-pos))
+	  (setq x2 (artist--adjust-x (car ev-start-pos)))
 	  (setq y2 (cdr ev-start-pos))
 
 	  ;; First undraw last shape
@@ -5265,7 +5271,7 @@ Operation is done once.  The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
-	 (x1           (car ev-start-pos))
+	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr  ev-start-pos)))
     (select-window (posn-window ev-start))
     (artist-funcall init-fn x1 y1)
@@ -5299,7 +5305,7 @@ The event, EV, is the mouse event."
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
 	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
-	 (x1           (car ev-start-pos))
+	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
 	 (x2)
 	 (y2)
@@ -5313,7 +5319,7 @@ The event, EV, is the mouse event."
 		 (member 'down (event-modifiers ev)))
 	(setq ev-start-pos (artist-coord-win-to-buf
 			    (posn-col-row (event-start ev))))
-	(setq x2 (car ev-start-pos))
+	(setq x2 (artist--adjust-x (car ev-start-pos)))
 	(setq y2 (cdr ev-start-pos))
 
 	(if (not (eq initial-win (posn-window (event-start ev))))

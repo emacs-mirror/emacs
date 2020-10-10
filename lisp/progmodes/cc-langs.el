@@ -2122,7 +2122,9 @@ fontified with the keyword face and not the type face."
   t    nil
   c    '("const" "restrict" "volatile")
   c++  '("const" "noexcept" "volatile")
-  objc '("const" "volatile"))
+  objc '("const" "volatile")
+  t    (append (c-lang-const c-no-type-kwds)
+	       (c-lang-const c-type-modifier-prefix-kwds)))
 
 (c-lang-defconst c-opt-type-modifier-prefix-key
   ;; Adorned regexp matching `c-type-modifier-prefix-kwds', or nil in
@@ -2349,6 +2351,16 @@ will be handled."
   t (c-make-keywords-re t (c-lang-const c-using-kwds)))
 (c-lang-defvar c-using-key (c-lang-const c-using-key))
 
+(c-lang-defconst c-no-type-kwds
+  "Keywords which remove the need to specify a type in declarations"
+  t nil
+  c++ '("auto"))
+
+(c-lang-defconst c-no-type-key
+  ;; Regexp matching an entry from `c-no-type-kwds'
+  t (c-make-keywords-re t (c-lang-const c-no-type-kwds)))
+(c-lang-defvar c-no-type-key (c-lang-const c-no-type-key))
+
 (c-lang-defconst c-typeless-decl-kwds
   "Keywords introducing declarations where the (first) identifier
 \(declarator) follows directly after the keyword, without any type.
@@ -2362,7 +2374,6 @@ will be handled."
   ;; {...}").
   t    (append (c-lang-const c-class-decl-kwds)
 	       (c-lang-const c-brace-list-decl-kwds))
-  c++  (append (c-lang-const c-typeless-decl-kwds) '("auto")) ; C++11.
   ;; Note: "manages" for CORBA CIDL clashes with its presence on
   ;; `c-type-list-kwds' for IDL.
   idl  (append (c-lang-const c-typeless-decl-kwds)
@@ -2397,7 +2408,8 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
   t    nil
-  (c c++) '("auto" "extern" "inline" "register" "static")
+  (c c++) '("extern" "inline" "register" "static")
+  c    (append '("auto") (c-lang-const c-modifier-kwds))
   c++  (append '("constexpr" "explicit" "friend" "mutable" "template"
 		 "thread_local" "virtual")
 	       ;; "using" is now handled specially (2020-09-14).

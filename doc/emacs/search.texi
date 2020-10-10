@@ -1984,11 +1984,21 @@ the @code{search-highlight-submatches} variable.  If this variable's
 value is @code{nil}, no special highlighting is done, but if the value
 is non-@code{nil}, text that matches @samp{\( @dots{} \)} constructs
 (a.k.a.@: ``subexpressions'') in the regular expression will be
-highlighted with distinct faces, named @code{isearch-group-odd}
-for the odd group matches, and @code{isearch-group-even}
-for the even group matches.  For instance, when searching for
-@samp{foo-\([0-9]+\)}, the part matched by @samp{[0-9]+} will be
-highlighted with the @code{isearch-group-odd} face.
+highlighted with distinct faces.  By default, two distinct faces are
+defined, named @code{isearch-group-1} and @code{isearch-group-2}.
+With these two faces, odd-numbered subexpressions will be highlighted
+using the @code{isearch-group-1} face and even-numbered subexpressions
+will be highlighted using the @code{isearch-group-2} face.  For
+instance, when searching for @samp{foo-\([0-9]+\)\([a-z]+\)}, the part
+matched by @samp{[0-9]+} will be highlighted with the
+@code{isearch-group-1} face, and the part matched by @samp{[a-z]+}
+will be highlighted using @code{isearch-group-2}.  If you define
+additional faces using the same numbering scheme, i.e.@:
+@code{isearch-group-3}, @code{isearch-group-4}, @dots{}, then the face
+@code{isearch-group-@var{M}} will be used to highlight the @var{M}'th,
+@code{@var{N}+@var{M}}'th, @code{2@var{N}+@var{M}}'th, @dots{}
+subexpressions, where @var{N} is the total number of faces of the form
+@code{isearch-group-@var{M}}.
 
 @cindex lazy highlighting customizations
 @vindex isearch-lazy-highlight

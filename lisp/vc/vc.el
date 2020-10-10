@@ -1038,7 +1038,9 @@ If the current buffer is in `vc-dir' or Dired mode, FILESET is the
 list of marked files, or the current directory if no files are
 marked.
 Otherwise, if the current buffer is visiting a version-controlled
-file, FILESET is a single-file list containing that file's name.
+file or is an indirect buffer whose base buffer visits a
+version-controlled file, FILESET is a single-file list containing
+that file's name.
 Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file
 is unregistered, FILESET is a single-file list containing the
 name of the visited file.
@@ -1052,6 +1054,14 @@ possible values of STATE are explained in `vc-state', and MODEL in
 the returned list.
 
 BEWARE: this function may change the current buffer."
+  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+    (vc-deduce-fileset-1 not-state-changing
+                         allow-unregistered
+                         state-model-only-files)))
+
+(defun vc-deduce-fileset-1 (not-state-changing
+                            allow-unregistered
+                            state-model-only-files)
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
@@ -1073,7 +1083,7 @@ BEWARE: this function may change the current buffer."
 				      (derived-mode-p 'dired-mode)))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset not-state-changing allow-unregistered state-model-only-files)))
+	(vc-deduce-fileset-1 not-state-changing allow-unregistered state-model-only-files)))
      ((and (not buffer-file-name)
 	   (setq backend (vc-responsible-backend default-directory)))
       (list backend nil))
@@ -1883,6 +1893,10 @@ state of each file in the fileset."
        t (list backend (list rootdir)) rev1 rev2
        (called-interactively-p 'interactive)))))
 
+(defun vc-maybe-buffer-sync (not-urgent)
+  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+    (when buffer-file-name (vc-buffer-sync not-urgent))))
+
 ;;;###autoload
 (defun vc-diff (&optional historic not-urgent)
   "Display diffs between file revisions.
@@ -1895,6 +1909,7 @@ saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
+    (vc-maybe-buffer-sync not-urgent)
     (let ((fileset (vc-deduce-fileset t)))
       (vc-buffer-sync-fileset fileset not-urgent)
       (vc-diff-internal t fileset nil nil
@@ -1981,7 +1996,7 @@ saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-ediff)
-    (when buffer-file-name (vc-buffer-sync not-urgent))
+    (vc-maybe-buffer-sync not-urgent)
     (vc-version-ediff (cadr (vc-deduce-fileset t)) nil nil)))
 
 ;;;###autoload
@@ -1998,7 +2013,7 @@ saving the buffer."
   (if historic
       ;; We want the diff for the VC root dir.
       (call-interactively 'vc-root-version-diff)
-    (when buffer-file-name (vc-buffer-sync not-urgent))
+    (vc-maybe-buffer-sync not-urgent)
     (let ((backend (vc-deduce-backend))
 	  (default-directory default-directory)
 	  rootdir working-revision)
@@ -2038,17 +2053,18 @@ Return nil if the root directory cannot be identified."
 If the current file is named `F', the revision is named `F.~REV~'.
 If `F.~REV~' already exists, use it instead of checking it out again."
   (interactive
-   (save-current-buffer
+   (with-current-buffer (or (buffer-base-buffer) (current-buffer))
      (vc-ensure-vc-buffer)
      (list
       (vc-read-revision "Revision to visit (default is working revision): "
                         (list buffer-file-name)))))
-  (vc-ensure-vc-buffer)
-  (let* ((file buffer-file-name)
-	 (revision (if (string-equal rev "")
-		      (vc-working-revision file)
-		    rev)))
-    (switch-to-buffer-other-window (vc-find-revision file revision))))
+  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+    (vc-ensure-vc-buffer)
+    (let* ((file buffer-file-name)
+	   (revision (if (string-equal rev "")
+		         (vc-working-revision file)
+		       rev)))
+      (switch-to-buffer-other-window (vc-find-revision file revision)))))
 
 (defun vc-find-revision (file revision &optional backend)
   "Read REVISION of FILE into a buffer and return the buffer.

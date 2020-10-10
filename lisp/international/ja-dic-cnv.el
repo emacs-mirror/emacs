@@ -329,12 +329,12 @@ Optional argument DIRNAME if specified is the directory name under which
 the generated Emacs Lisp is saved.
 The name of generated file is specified by the variable `ja-dic-filename'."
   (interactive "FSKK dictionary file: ")
-  (let* ((coding-system-for-read 'euc-japan)
-	 (skkbuf (get-buffer-create " *skkdic-unannotated*"))
+  (let* ((skkbuf (get-buffer-create " *skkdic-unannotated*"))
 	 (buf (get-buffer-create "*skkdic-work*")))
     ;; Set skkbuf to an unannotated copy of the dictionary.
     (with-current-buffer skkbuf
-      (insert-file-contents (expand-file-name filename))
+      (let ((coding-system-for-read 'euc-japan))
+        (insert-file-contents (expand-file-name filename)))
       (re-search-forward "^[^;]")
       (while (re-search-forward ";[^\n/]*/" nil t)
 	(replace-match "/")))

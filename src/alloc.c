@@ -1658,7 +1658,7 @@ sdata_size (ptrdiff_t n)
 #define GC_STRING_EXTRA GC_STRING_OVERRUN_COOKIE_SIZE
 
 /* Exact bound on the number of bytes in a string, not counting the
-   terminating NUL.  A string cannot contain more bytes than
+   terminating null.  A string cannot contain more bytes than
    STRING_BYTES_BOUND, nor can it be so long that the size_t
    arithmetic in allocate_string_data would overflow while it is
    calculating a value to be passed to malloc.  */

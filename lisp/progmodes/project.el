@@ -66,6 +66,9 @@
 ;; `project-combine-directories' and `project-subtract-directories',
 ;; mainly for use in the abovementioned generics' implementations.
 ;;
+;; `project-known-project-roots' and `project-remember-project' to
+;; interact with the "known projects" list.
+;;
 ;; Commands:
 ;;
 ;; `project-prefix-map' contains the full list of commands defined in

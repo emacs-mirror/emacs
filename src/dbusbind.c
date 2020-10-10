@@ -446,12 +446,18 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 	{
 	  Lisp_Object elt1 = XD_NEXT_VALUE (elt);
 	  if (CONSP (elt1) && STRINGP (XCAR (elt1)) && NILP (XCDR (elt1)))
-	    subsig = SSDATA (XCAR (elt1));
+	    {
+	      subsig = SSDATA (XCAR (elt1));
+	      elt = Qnil;
+	    }
 	}
 
       while (!NILP (elt))
 	{
-	  if (subtype != XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt)))
+	  char x[DBUS_MAXIMUM_SIGNATURE_LENGTH];
+	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
+	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
+	  if (strcmp (subsig, x) != 0)
 	    wrong_type_argument (intern ("D-Bus"), CAR_SAFE (elt));
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
@@ -1937,11 +1943,12 @@ syms_of_dbusbind (void)
     doc: /* Hash table of registered functions for D-Bus.
 
 There are two different uses of the hash table: for accessing
-registered interfaces properties, targeted by signals or method calls,
-and for calling handlers in case of non-blocking method call returns.
+registered interfaces properties, targeted by signals, method calls or
+monitors, and for calling handlers in case of non-blocking method call
+returns.
 
 In the first case, the key in the hash table is the list (TYPE BUS
-INTERFACE MEMBER).  TYPE is one of the Lisp symbols `:method',
+[INTERFACE MEMBER]).  TYPE is one of the Lisp symbols `:method',
 `:signal', `:property' or `:monitor'.  BUS is either a Lisp symbol,
 `:system', `:session', `:system-private' or `:session-private', or a
 string denoting the bus address.  INTERFACE is a string which denotes
@@ -1951,17 +1958,18 @@ signal or a property INTERFACE is offering.  All arguments can be nil.
 The value in the hash table is a list of quadruple lists ((UNAME
 SERVICE PATH OBJECT [RULE]) ...).  SERVICE is the service name as
 registered, UNAME is the corresponding unique name.  In case of
-registered methods and properties, UNAME is nil.  PATH is the object
-path of the sending object.  All of them can be nil, which means a
-wildcard then.
+registered methods, properties and monitors, UNAME is nil.  PATH is
+the object path of the sending object.  All of them can be nil, which
+means a wildcard then.
 
 OBJECT is either the handler to be called when a D-Bus message, which
 matches the key criteria, arrives (TYPE `:method', `:signal' and
 `:monitor'), or a list (ACCESS EMITS-SIGNAL VALUE) for TYPE
 `:property'.
 
-For entries of type `:signal', there is also a fifth element RULE,
-which keeps the match string the signal is registered with.
+For entries of type `:signal' or `:monitor', there is also a fifth
+element RULE, which keeps the match string the signal or monitor is
+registered with.
 
 In the second case, the key in the hash table is the list (:serial BUS
 SERIAL).  BUS is either a Lisp symbol, `:system' or `:session', or a

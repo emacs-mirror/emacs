@@ -1379,7 +1379,7 @@ operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
 @cindex null bytes, and decoding text
-@defvar inhibit-nul-byte-detection
+@defvar inhibit-null-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
 when detecting the encoding of a region or a string.  This allows the
 encoding of text that contains null bytes to be correctly detected,

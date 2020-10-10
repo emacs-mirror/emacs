@@ -1970,36 +1970,45 @@ This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
 @end defun
 
-@defun truncate-string-to-width string width &optional start-column padding ellipsis
-This function returns the part of @var{string} that fits within
-@var{width} columns, as a new string.
+@defun truncate-string-to-width string width &optional start-column padding ellipsis ellipsis-text-property
+This function returns a new string that is a truncation of @var{string}
+which fits within @var{width} columns on display.
 
-If @var{string} does not reach @var{width}, then the result ends where
-@var{string} ends.  If one multi-column character in @var{string}
-extends across the column @var{width}, that character is not included in
-the result.  Thus, the result can fall short of @var{width} but cannot
-go beyond it.
+If @var{string} is narrower than @var{width}, the result is equal to
+@var{string}; otherwise excess characters are omitted from the result.
+If a multi-column character in @var{string} exceeds the goal
+@var{width}, that character is omitted from the result.  Thus, the
+result can sometimes fall short of @var{width}, but cannot go beyond
+it.
 
 The optional argument @var{start-column} specifies the starting column.
 If this is non-@code{nil}, then the first @var{start-column} columns of
-the string are omitted from the value.  If one multi-column character in
+the string are omitted from the result.  If one multi-column character in
 @var{string} extends across the column @var{start-column}, that
-character is not included.
+character is omitted.
 
 The optional argument @var{padding}, if non-@code{nil}, is a padding
-character added at the beginning and end of the result string, to extend
-it to exactly @var{width} columns.  The padding character is used at the
-end of the result if it falls short of @var{width}.  It is also used at
-the beginning of the result if one multi-column character in
+character added at the beginning and end of the result string, to
+extend it to exactly @var{width} columns.  The padding character is
+appended at the end of the result if it falls short of @var{width}, as
+many times as needed to reach @var{width}.  It is also prepended at
+the beginning of the result if a multi-column character in
 @var{string} extends across the column @var{start-column}.
 
-@vindex truncate-string-ellipsis
 If @var{ellipsis} is non-@code{nil}, it should be a string which will
-replace the end of @var{string} (including any padding) if it extends
-beyond @var{width}, unless the display width of @var{string} is equal
-to or less than the display width of @var{ellipsis}.  If
-@var{ellipsis} is non-@code{nil} and not a string, it stands for
-the value of the variable @code{truncate-string-ellipsis}.
+replace the end of @var{string} when it is truncated.  In this case,
+more charcaters will be removed from @var{string} to free enough space
+for @var{ellipsis} to fit within @var{width} columns.  However, if
+the display width of @var{string} is less than the display width of
+@var{ellipsis}, @var{ellipsis} will not be appended to the result.  If
+@var{ellipsis} is non-@code{nil} and not a string, it stands for the
+value returned by the function @code{truncate-string-ellipsis},
+described below.
+
+The optional argument @var{ellipsis-text-property}, if non-@code{nil},
+means hide the excess parts of @var{string} with a @code{display} text
+property (@pxref{Display Property}) showing the ellipsis, instead of
+actually truncating the string.
 
 @example
 (truncate-string-to-width "\tab\t" 12 4)
@@ -2008,6 +2017,16 @@ the value of the variable @code{truncate-string-ellipsis}.
      @result{} "    ab  "
 @end example
 @end defun
+
+@defun truncate-string-ellipsis
+This function returns the string to be used as an ellipses in
+@code{truncate-string-to-width} and other similar contexts.  The value
+is that of the variable @code{truncate-string-ellipsis}, if it's
+non-@code{nil}, the string with the single character @sc{U+2026
+HORIZONTAL ELLIPSIS} if that character can be displayed on the
+selected frame, and the string @samp{...} otherwise.
+@end defun
+
 
 The following function returns the size in pixels of text as if it were
 displayed in a given window.  This function is used by

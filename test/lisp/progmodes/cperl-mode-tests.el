@@ -148,6 +148,7 @@ under timeout control."
 These exercise some standard blocks and also the special
 treatment for Perl expressions where a closing paren isn't the
 end of the statement."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((file (expand-file-name "cperl-indent-exp.pl"
                                 cperl-mode-tests-data-directory)))
     (with-temp-buffer
@@ -166,6 +167,7 @@ end of the statement."
               got)
           (with-temp-buffer
             (insert code)
+	    (cperl-mode)
             (goto-char (point-min))
             (cperl-indent-exp) ; here we go!
             (setq expected (concat "test case " name ":\n" expected))

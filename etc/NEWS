@@ -85,6 +85,10 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+*** New var 'redisplay-skip-initial-frame' to enable batch redisplay tests.
+Setting it to nil forces the redisplay to do its job even in the
+initial frame used in batch mode.
+
 ---
 ** Support for the 'strike-through' face attribute on TTY frames.
 If your terminal's termcap or terminfo database entry has the 'smxx'
@@ -540,6 +544,11 @@ grep emits SGR ANSI escape sequences to color its output.  The new variable
 'grep-match-regexp' holds the regular expression to match the appropriate
 markers in order to provide highlighting in the source buffer.  The variable
 can be customized to accommodate other grep-like tools.
+
+---
+*** The 'lgrep' command now ignores directories.
+On systems where the grep command supports it, directories will be
+skipped.
 
 ** Help
 
@@ -1102,9 +1111,12 @@ keystrokes.
 
 +++
 *** Interactive regular expression search now uses faces for sub-groups.
-E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-odd' face
+E.g., 'C-M-s foo-\([0-9]+\)' will now use the 'isearch-group-1' face
 on the part of the regexp that matches the sub-expression "[0-9]+".
-The even group matches are highlighted with the 'isearch-group-even' face.
+By default, there are two faces for sub-group highlighting, but you
+can define more faces whose names are of the form 'isearch-group-N',
+where N are successive numbers above 2.
+
 This is controlled by the 'search-highlight-submatches' user option.
 This feature is available only on terminals that have enough colors to
 distinguish between sub-expression highlighting.
@@ -1475,6 +1487,12 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'truncate-string-ellipsis' now uses '…' by default.
+Modes that use 'truncate-string-to-width' with non-nil, non-string
+argument 'ellipsis', will now indicate truncation using '…' when
+the selected frame can display it, and using "..." otherwise.
+
++++
 *** New command 'make-directory-autoloads'.
 This does the same as the old command 'update-directory-autoloads',
 but has different semantics: Instead of passing in the output file via
@@ -1611,6 +1629,8 @@ convert them to a list '(R G B)' of primary color values.
 This user option can be one of the predefined styles or a function to
 personalize the uniquified buffer name.
 
++++
+** 'inhibit-nul-byte-detection' is renamed to 'inhibit-null-byte-detection'.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

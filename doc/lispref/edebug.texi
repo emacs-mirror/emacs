@@ -863,19 +863,20 @@ to a non-@code{nil} value.
 @end example
 
 @noindent
-Custom printing prints this as @samp{Result: #1=(#1# y)}.  The
-@samp{#1=} notation labels the structure that follows it with the label
-@samp{1}, and the @samp{#1#} notation references the previously labeled
-structure.  This notation is used for any shared elements of lists or
-vectors.
+If @code{print-circle} is non-@code{nil}, printing functions (e.g.,
+@code{prin1}) will print @code{a} as @samp{#1=(#1# y)}.  The
+@samp{#1=} notation labels the structure that follows it with the
+label @samp{1}, and the @samp{#1#} notation references the previously
+labeled structure.  This notation is used for any shared elements of
+lists or vectors.
 
 @defopt edebug-print-circle
 If non-@code{nil}, Edebug binds @code{print-circle} to this value while
 printing results.  The default value is @code{t}.
 @end defopt
 
-  Other programs can also use custom printing; see @file{cust-print.el}
-for details.
+  See @xref{Output Functions} for further details about how printing
+can be customized.
 
 @node Trace Buffer
 @subsection Trace Buffer

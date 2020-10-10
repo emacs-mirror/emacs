@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      sequence.
 
    . It accepts a pointer to the end of the format string, so the format string
-     could include embedded NUL characters.
+     could include embedded null characters.
 
    . It signals an error if the length of the formatted string is about to
      overflow ptrdiff_t or size_t, to avoid producing strings longer than what
@@ -123,7 +123,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    to fit and return BUFSIZE - 1; if this truncates a multibyte
    sequence, store '\0' into the sequence's first byte.
    Returns the number of bytes stored into BUFFER, excluding
-   the terminating NUL byte.  Output is always NUL-terminated.
+   the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 

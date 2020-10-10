@@ -33,19 +33,21 @@
           (lambda ()
             (insert "hello")
             (let ((ol (make-overlay (point) (point)))
+                  (redisplay-skip-initial-frame nil)
                   (max-mini-window-height 1)
                   (text "askdjfhaklsjdfhlkasjdfhklasdhflkasdhflkajsdhflkashdfkljahsdlfkjahsdlfkjhasldkfhalskdjfhalskdfhlaksdhfklasdhflkasdhflkasdhflkajsdhklajsdgh"))
-             ;; (save-excursion (insert text))
-             ;; (sit-for 2)
-             ;; (delete-region (point) (point-max))
-             (put-text-property 0 1 'cursor t text)
-             (overlay-put ol 'after-string text)
-             (redisplay 'force)
-             (throw 'result
-                    ;; Make sure we do the see "hello" text.
-                    (prog1 (equal (window-start) (point-min))
-                      ;; (list (window-start) (window-end) (window-width))
-                      (delete-overlay ol)))))
+              ;; (save-excursion (insert text))
+              ;; (sit-for 2)
+              ;; (delete-region (point) (point-max))
+              (put-text-property 0 1 'cursor t text)
+              (overlay-put ol 'after-string text)
+              (let ((executing-kbd-macro nil)) ;Don't skip redisplay
+                (redisplay 'force))
+              (throw 'result
+                     ;; Make sure we do the see "hello" text.
+                     (prog1 (equal (window-start) (point-min))
+                       ;; (list (window-start) (window-end) (window-width))
+                       (delete-overlay ol)))))
         (let ((executing-kbd-macro t)) ;Force real minibuffer in `read-string'.
           (read-string "toto: ")))))))
 

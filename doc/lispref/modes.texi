@@ -1729,7 +1729,8 @@ The command named @var{mode} first performs the standard actions such as
 setting the variable named @var{mode} and then executes the @var{body}
 forms, if any.  It then runs the mode hook variable
 @code{@var{mode}-hook} and finishes by evaluating any form in
-@code{:after-hook}.
+@code{:after-hook}.  (Note that all of this, including running the
+hook, is done both when the mode is enabled and disabled.)
 @end defmac
 
   The initial value must be @code{nil} except in cases where (1) the

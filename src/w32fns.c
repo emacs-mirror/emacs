@@ -7960,7 +7960,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
 	{
 	  SHFILEOPSTRUCTW file_op_w;
 	  /* We need one more element beyond MAX_PATH because this is
-	     a list of file names, with the last element double-NUL
+	     a list of file names, with the last element double-null
 	     terminated. */
 	  wchar_t tmp_path_w[MAX_PATH + 1];
 
@@ -9732,7 +9732,7 @@ get_dll_version (const char *dll_name)
 /* Return the number of bytes in UTF-8 encoded string STR that
    corresponds to at most LIM characters.  If STR ends before LIM
    characters, return the number of bytes in STR including the
-   terminating NUL byte.  */
+   terminating null byte.  */
 static int
 utf8_mbslen_lim (const char *str, int lim)
 {

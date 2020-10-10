@@ -363,22 +363,18 @@ to `tab-bar-tab-name-truncated'."
   :group 'tab-bar
   :version "27.1")
 
-(defvar tab-bar-tab-name-ellipsis nil)
+(defvar tab-bar-tab-name-ellipsis t)
 
 (defun tab-bar-tab-name-truncated ()
   "Generate tab name from the buffer of the selected window.
 Truncate it to the length specified by `tab-bar-tab-name-truncated-max'.
 Append ellipsis `tab-bar-tab-name-ellipsis' in this case."
-  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window))))
-        (ellipsis (cond
-                   (tab-bar-tab-name-ellipsis)
-                   ((char-displayable-p ?…) "…")
-                   ("..."))))
+  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window)))))
     (if (< (length tab-name) tab-bar-tab-name-truncated-max)
         tab-name
       (propertize (truncate-string-to-width
                    tab-name tab-bar-tab-name-truncated-max nil nil
-                   ellipsis)
+                   tab-bar-tab-name-ellipsis)
                   'help-echo tab-name))))
 
 

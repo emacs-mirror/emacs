@@ -63,7 +63,7 @@ another.  An overview of D-Bus can be found at
 * Signals::                     Sending and receiving signals.
 * Alternative Buses::           Alternative buses and environments.
 * Errors and Events::           Errors and events.
-* Monitoring Events::           Monitoring events.
+* Monitoring Messages::         Monitoring messages.
 * Index::                       Index including concepts, functions, variables.
 
 * GNU Free Documentation License:: The license for this documentation.
@@ -1622,7 +1622,9 @@ are constructed incrementally by adding single methods or properties
 at a time, @var{dont-register-service} can be used to prevent other
 clients from discovering the still incomplete interface.
 
-@noindent Example:
+@code{dbus-register-property} returns a Lisp object, which can be used
+as argument in @code{dbus-unregister-object} for removing the
+registration for @var{property}.  Example:
 
 @lisp
 (dbus-register-property
@@ -1687,9 +1689,9 @@ It is also possible to apply the @code{dbus-get-property},
 @defun dbus-unregister-object object
 This function unregisters @var{object} from the D-Bus.  @var{object}
 must be the result of a preceding @code{dbus-register-method},
-@code{dbus-register-property} or @code{dbus-register-signal} call
-(@pxref{Signals}).  It returns @code{t} if @var{object} has been
-unregistered, @code{nil} otherwise.
+@code{dbus-register-property}, @code{dbus-register-signal}
+(@pxref{Signals}) or @code{dbus-register-monitor} call.  It returns
+@code{t} if @var{object} has been unregistered, @code{nil} otherwise.
 
 When @var{object} identifies the last method or property, which is
 registered for the respective service, Emacs releases its association
@@ -2099,24 +2101,24 @@ D-Bus applications running.  They should therefore check carefully,
 whether a given D-Bus error is related to them.
 
 
-@node Monitoring Events
-@chapter Monitoring events.
+@node Monitoring Messages
+@chapter Monitoring messages.
 @cindex monitoring
 
 @defun dbus-register-monitor bus &optional handler &key type sender destination path interface member
-This function registers @var{handler} for monitor events on the D-Bus
-@var{bus}.
+This function registers @var{handler} for monitoring messages on the
+D-Bus @var{bus}.
 
 @var{bus} is either a Lisp keyword, @code{:system} or @code{:session},
 or a string denoting the bus address.
 
 @findex dbus-monitor-handler
-@var{handler} is the function to be called when a monitor event
-arrives.  It is called with the `args' slot of the monitor event,
-which are stripped off the type keywords.  If @var{handler} is
-@code{nil}, the default handler @code{dbus-monitor-handler} is
-applied.  This default handler behaves similar to the
-@command{dbus-monitor} program.
+@var{handler} is the function to be called when a D-Bus event to be
+monitored arrives.  It is called with the @var{args} slot of the D-Bus
+event (@pxref{Errors and Events}), which are stripped off the type
+keywords.  If @var{handler} is @code{nil}, the default handler
+@code{dbus-monitor-handler} is applied.  This default handler behaves
+similar to the @command{dbus-monitor} program.
 
 The other arguments are keyword-value pairs.  @code{:type @var{type}}
 defines the message type to be monitored.  If given, it must be equal
@@ -2131,6 +2133,9 @@ names.
 @code{:interface @var{interface}} is the name of an interface, and
 @code{:member @var{member}} is either a method name, a signal name, or
 an error name.
+
+@code{dbus-register-monitor} returns a Lisp object, which can be used
+as argument in @code{dbus-unregister-object} for removing the monitor.
 
 The following form shows all D-Bus events on the session bus in buffer
 @samp{*D-Bus Monitor*}:

@@ -3069,7 +3069,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 			      : FLT_RADIX == 16 ? 4
 			      : -1)),
 
-   /* Maximum number of bytes (including terminating NUL) generated
+   /* Maximum number of bytes (including terminating null) generated
       by any format, if precision is no more than USEFUL_PRECISION_MAX.
       On all practical hosts, %Lf is the worst case.  */
    SPRINTF_BUFSIZE = (sizeof "-." + (LDBL_MAX_10_EXP + 1)

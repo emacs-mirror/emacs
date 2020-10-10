@@ -11043,7 +11043,7 @@ message_log_check_duplicate (ptrdiff_t prev_bol_byte, ptrdiff_t this_bol_byte)
 
 
 /* Display an echo area message M with a specified length of NBYTES
-   bytes.  The string may include NUL characters.  If M is not a
+   bytes.  The string may include null characters.  If M is not a
    string, clear out any existing message, and let the mini-buffer
    text show through.
 
@@ -11146,7 +11146,7 @@ message3_nolog (Lisp_Object m)
 }
 
 
-/* Display a NUL-terminated echo area message M.  If M is 0, clear
+/* Display a null-terminated echo area message M.  If M is 0, clear
    out any existing message, and let the mini-buffer text show through.
 
    The buffer M must continue to exist until after the echo area gets
@@ -15464,7 +15464,8 @@ redisplay_internal (void)
   /* No redisplay if running in batch mode or frame is not yet fully
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
-  if (FRAME_INITIAL_P (SELECTED_FRAME ())
+  if ((FRAME_INITIAL_P (SELECTED_FRAME ())
+       && redisplay_skip_initial_frame)
       || !NILP (Vinhibit_redisplay))
     return;
 
@@ -26152,7 +26153,7 @@ are the selected window and the WINDOW's buffer).  */)
   return unbind_to (count, str);
 }
 
-/* Write a NUL-terminated, right justified decimal representation of
+/* Write a null-terminated, right justified decimal representation of
    the positive integer D to BUF using a minimal field width WIDTH.  */
 
 static void
@@ -26182,7 +26183,7 @@ pint2str (register char *buf, register int width, register ptrdiff_t d)
     }
 }
 
-/* Write a NUL-terminated, right justified decimal and "human
+/* Write a null-terminated, right justified decimal and "human
    readable" representation of the nonnegative integer D to BUF using
    a minimal field width WIDTH.  D should be smaller than 999.5e24. */
 
@@ -26405,7 +26406,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
      produce strings from numerical values, so limit preposterously
      large values of FIELD_WIDTH to avoid overrunning the buffer's
      end.  The size of the buffer is enough for FRAME_MESSAGE_BUF_SIZE
-     bytes plus the terminating NUL.  */
+     bytes plus the terminating null.  */
   int width = min (field_width, FRAME_MESSAGE_BUF_SIZE (f));
   struct buffer *b = current_buffer;
 
@@ -35452,6 +35453,12 @@ When nil, mouse-movement events will not be generated as long as the
 mouse stays within the extent of a single glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
 
+  DEFVAR_BOOL ("redisplay-skip-initial-frame", redisplay_skip_initial_frame,
+    doc: /* Non-nil to skip redisplay in initial frame.
+The initial frame is not displayed anywhere, so skipping it is
+best except in special circumstances such as running redisplay tests
+in batch mode.   */);
+  redisplay_skip_initial_frame = true;
 }
 
 
@@ -35462,6 +35469,8 @@ init_xdisp (void)
 {
   CHARPOS (this_line_start_pos) = 0;
 
+  echo_area_window = minibuf_window;
+
   if (!noninteractive)
     {
       struct window *m = XWINDOW (minibuf_window);
@@ -35470,8 +35479,6 @@ init_xdisp (void)
       Lisp_Object root = FRAME_ROOT_WINDOW (f);
       struct window *r = XWINDOW (root);
       int i;
-
-      echo_area_window = minibuf_window;
 
       r->top_line = FRAME_TOP_MARGIN (f);
       r->pixel_top = r->top_line * FRAME_LINE_HEIGHT (f);

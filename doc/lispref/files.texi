@@ -548,7 +548,7 @@ the functions in the list @code{after-insert-file-functions}.
 (@pxref{Coding Systems}) used for decoding the file's contents,
 including end-of-line conversion.  However, if the file contains null
 bytes, it is by default visited without any code conversions.
-@xref{Lisp and Coding Systems, inhibit-nul-byte-detection}.
+@xref{Lisp and Coding Systems, inhibit-null-byte-detection}.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it

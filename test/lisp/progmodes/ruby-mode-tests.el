@@ -717,7 +717,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-with-temp-buffer ruby-sexp-test-example
     (goto-char (point-min))
     (forward-line 1)
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (= 8 (line-number-at-pos)))))
 
 (ert-deftest ruby-backward-sexp-skips-method-calls-with-keyword-names ()
@@ -725,7 +725,7 @@ VALUES-PLIST is a list with alternating index and value elements."
     (goto-char (point-min))
     (forward-line 7)
     (end-of-line)
-    (ruby-backward-sexp)
+    (backward-sexp)
     (should (= 2 (line-number-at-pos)))))
 
 (ert-deftest ruby-forward-sexp-jumps-do-end-block-with-no-args ()
@@ -734,7 +734,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do
      |end")
     (search-backward "do\n")
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (eobp))))
 
 (ert-deftest ruby-backward-sexp-jumps-do-end-block-with-no-args ()
@@ -743,7 +743,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do
      |end")
     (goto-char (point-max))
-    (ruby-backward-sexp)
+    (backward-sexp)
     (should (looking-at "do$"))))
 
 (ert-deftest ruby-forward-sexp-jumps-do-end-block-with-empty-args ()
@@ -752,7 +752,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do ||
      |end")
     (search-backward "do ")
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (eobp))))
 
 (ert-deftest ruby-backward-sexp-jumps-do-end-block-with-empty-args ()
@@ -761,7 +761,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do ||
      |end")
     (goto-char (point-max))
-    (ruby-backward-sexp)
+    (backward-sexp)
     (should (looking-at "do "))))
 
 (ert-deftest ruby-forward-sexp-jumps-do-end-block-with-args ()
@@ -770,7 +770,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do |a,b|
      |end")
     (search-backward "do ")
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (eobp))))
 
 (ert-deftest ruby-backward-sexp-jumps-do-end-block-with-args ()
@@ -779,7 +779,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do |a,b|
      |end")
     (goto-char (point-max))
-    (ruby-backward-sexp)
+    (backward-sexp)
     (should (looking-at "do "))))
 
 (ert-deftest ruby-forward-sexp-jumps-do-end-block-with-any-args ()
@@ -788,7 +788,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do |*|
      |end")
     (search-backward "do ")
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (eobp))))
 
 (ert-deftest ruby-forward-sexp-jumps-do-end-block-with-expanded-one-arg ()
@@ -797,7 +797,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do |a,|
      |end")
     (search-backward "do ")
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (eobp))))
 
 (ert-deftest ruby-forward-sexp-jumps-do-end-block-with-one-and-any-args ()
@@ -806,7 +806,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do |a,*|
      |end")
     (search-backward "do ")
-    (ruby-forward-sexp)
+    (forward-sexp)
     (should (eobp))))
 
 (ert-deftest ruby-backward-sexp-jumps-do-end-block-with-one-and-any-args ()
@@ -815,7 +815,7 @@ VALUES-PLIST is a list with alternating index and value elements."
      "proc do |a,*|
      |end")
     (goto-char (point-max))
-    (ruby-backward-sexp)
+    (backward-sexp)
     (should (looking-at "do "))))
 
 (ert-deftest ruby-toggle-string-quotes-quotes-correctly ()

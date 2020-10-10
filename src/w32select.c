@@ -803,7 +803,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   (void) ignored;
 
   /* Don't pass our own text from the clipboard (which might be
-     troublesome if the killed text includes NUL characters).  */
+     troublesome if the killed text includes null characters).  */
   if (!NILP (current_text))
     return ret;
 

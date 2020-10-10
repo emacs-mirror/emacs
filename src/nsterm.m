@@ -3032,7 +3032,7 @@ ns_clear_under_internal_border (struct frame *f)
 {
   NSTRACE ("ns_clear_under_internal_border");
 
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+  if (FRAME_LIVE_P (f) && FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
       int border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
       NSView *view = FRAME_NS_VIEW (f);

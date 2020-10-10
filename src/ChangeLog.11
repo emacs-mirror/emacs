@@ -10126,7 +10126,7 @@
 
 2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* font.c (font_open_entity): Enable chache and call cached_font_ok
+	* font.c (font_open_entity): Enable cache and call cached_font_ok
 	for the driver if defined.
 	(QCuser_spec): New symbol.
 	(font_spec_from_name): Save name as user-spec.

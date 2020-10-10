@@ -6540,8 +6540,8 @@
 	(newsticker--image-get): New arguments FILENAME and DIRECTORY.
 	Use `url-retrieve' if `newsticker-retrieval-method' is 'intern.
 	(newsticker--image-download-by-wget): New.  Use process properties
-	for storing informations.
-	(newsticker--image-sentinel): Read informations from process properties.
+	for storing information.
+	(newsticker--image-sentinel): Read information from process properties.
 	(newsticker--image-save)
 	(newsticker--image-remove)
 	(newsticker--image-download-by-url)

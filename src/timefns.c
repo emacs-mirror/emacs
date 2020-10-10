@@ -1311,7 +1311,7 @@ or (if you need time as a string) `format-time-string'.  */)
    determine how many bytes would be written, use NULL for S and
    ((size_t) -1) for MAXSIZE.
 
-   This function behaves like nstrftime, except it allows NUL
+   This function behaves like nstrftime, except it allows null
    bytes in FORMAT.  */
 static size_t
 emacs_nmemftime (char *s, size_t maxsize, const char *format,
@@ -1320,8 +1320,8 @@ emacs_nmemftime (char *s, size_t maxsize, const char *format,
   int saved_errno = errno;
   size_t total = 0;
 
-  /* Loop through all the NUL-terminated strings in the format
-     argument.  Normally there's just one NUL-terminated string, but
+  /* Loop through all the null-terminated strings in the format
+     argument.  Normally there's just one null-terminated string, but
      there can be arbitrarily many, concatenated together, if the
      format contains '\0' bytes.  nstrftime stops at the first
      '\0' byte so we must invoke it separately for each such string.  */

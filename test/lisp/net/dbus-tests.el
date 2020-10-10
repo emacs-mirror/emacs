@@ -131,7 +131,7 @@
   (should-error
    (dbus-check-arguments :session dbus--test-service :object-path)
    :type 'wrong-type-argument)
-  ;; Raises an error on stdin.
+  ;; Raises an error on stderr.
   (should-error
    (dbus-check-arguments :session dbus--test-service :object-path "string")
    :type 'dbus-error)
@@ -144,7 +144,7 @@
   (should-error
    (dbus-check-arguments :session dbus--test-service :signature)
    :type 'wrong-type-argument)
-  ;; Raises an error on stdin.
+  ;; Raises an error on stderr.
   (should-error
    (dbus-check-arguments :session dbus--test-service :signature "string")
    :type 'dbus-error)
@@ -348,8 +348,12 @@
   (should
    (dbus-check-arguments
     :session dbus--test-service '(:array :string "string1" "string2")))
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service '(:array :signature "s" :signature "ao")))
   ;; Empty array (of strings).
   (should (dbus-check-arguments :session dbus--test-service '(:array)))
+  ;; Empty array (of object paths).
   (should
    (dbus-check-arguments :session dbus--test-service '(:array :signature "o")))
   ;; Different element types.
@@ -358,6 +362,13 @@
     :session dbus--test-service
     '(:array :string "string" :object-path "/object/path"))
    :type 'wrong-type-argument)
+  ;; Different variant types in array don't matter.
+  (should
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array
+      (:variant :string "string1")
+      (:variant (:struct :string "string2" :object-path "/object/path")))))
 
   ;; `:variant'.  It contains exactly one element.
   (should
@@ -383,7 +394,7 @@
    (dbus-check-arguments
     :session dbus--test-service
     '(:array (:dict-entry :string "string" :boolean nil))))
-  ;; This is an alternative syntax.  FIXME: Shall this be supported?
+  ;; This is an alternative syntax.
   (should
    (dbus-check-arguments
     :session dbus--test-service
@@ -414,14 +425,14 @@
    (dbus-check-arguments
     :session dbus--test-service '(:dict-entry :string "string" :boolean t))
    :type 'wrong-type-argument)
-  ;; Different dict entry types are not ched.  FIXME: Add check.
-  ;; (should-error
-  ;;  (dbus-check-arguments
-  ;;   :session dbus--test-service
-  ;;   '(:array
-  ;;     (:dict-entry :string "string1" :boolean t)
-  ;;     (:dict-entry :string "string2" :object-path "/object/path")))
-  ;;  :type 'wrong-type-argument)
+  ;; Different dict entry types in array.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array
+      (:dict-entry :string "string1" :boolean t)
+      (:dict-entry :string "string2" :object-path "/object/path")))
+   :type 'wrong-type-argument)
 
   ;; `:struct'.  There is no restriction what could be an element of a struct.
   (should
@@ -434,6 +445,14 @@
   ;; Empty struct.
   (should-error
    (dbus-check-arguments :session dbus--test-service '(:struct))
+   :type 'wrong-type-argument)
+  ;; Different struct types in array.
+  (should-error
+   (dbus-check-arguments
+    :session dbus--test-service
+    '(:array
+      (:struct :string "string1" :boolean t)
+      (:struct :object-path "/object/path")))
    :type 'wrong-type-argument))
 
 (defun dbus--test-register-service (bus)
@@ -697,7 +716,7 @@ is in progress."
   "Received signal value in `dbus--test-signal-handler'.")
 
 (defun dbus--test-signal-handler (&rest args)
-  "Signal handler for `dbus-test*-signal'."
+  "Signal handler for `dbus-test*-signal' and `dbus-test08-register-monitor'."
   (setq dbus--test-signal-received args))
 
 (defun dbus--test-timeout-handler (&rest _ignore)
@@ -1829,6 +1848,46 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
         ;; Introspection internal timeout is one second.
         (should
          (< 1.0 (float-time (time-since start)))))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test08-register-monitor ()
+  "Check monitor registration."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+
+  (unwind-protect
+      (let (registered)
+        (should
+         (equal
+          (setq registered
+                (dbus-register-monitor :session #'dbus--test-signal-handler))
+          '((:monitor :session-private)
+	    (nil nil dbus--test-signal-handler))))
+
+        ;; Send a signal, shall be traced.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface "Foo" "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+
+        ;; Unregister monitor.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered))
+
+        ;; Send a signal, shall not be traced.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface "Foo" "foo")
+	(with-timeout (1 (ignore))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should-not dbus--test-signal-received))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))

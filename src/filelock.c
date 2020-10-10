@@ -296,7 +296,7 @@ typedef struct
 
 /* Write the name of the lock file for FNAME into LOCKNAME.  Length
    will be that of FNAME plus two more for the leading ".#", plus one
-   for the NUL.  */
+   for the null.  */
 #define MAKE_LOCK_NAME(lockname, fname) \
   (lockname = SAFE_ALLOCA (SBYTES (fname) + 2 + 1), \
    fill_in_lock_file_name (lockname, fname))

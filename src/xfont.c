@@ -133,7 +133,7 @@ compare_font_names (const void *name1, const void *name2)
 
 /* Decode XLFD as iso-8859-1 into OUTPUT, and return the byte length
    of the decoding result.  LEN is the byte length of XLFD, or -1 if
-   XLFD is NUL terminated.  The caller must assure that OUTPUT is at
+   XLFD is NULL terminated.  The caller must assure that OUTPUT is at
    least twice (plus 1) as large as XLFD.  */
 
 static ptrdiff_t

@@ -3528,7 +3528,7 @@
 	Port to Solaris 8.
 	Without this change, 'configure' fails because the recently-added
 	wait3 prototype in config.h messes up later 'configure' tests.
-	Fix this problem by droping wait3 and WRETCODE, as they're
+	Fix this problem by dropping wait3 and WRETCODE, as they're
 	no longer needed on hosts that are current porting targets.
 	* configure.ac (wait3, WRETCODE): Remove, fixing a FIXME.
 	All uses changed to waitpid and WEXITSTATUS.

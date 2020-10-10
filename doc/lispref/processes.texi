@@ -1839,7 +1839,7 @@ system comes from @code{coding-system-for-read}, if that is
 non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
 Coding Systems}).  If the text output by a process contains null
 bytes, Emacs by default uses @code{no-conversion} for it; see
-@ref{Lisp and Coding Systems, inhibit-nul-byte-detection}, for how to
+@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
 control this behavior.
 
   @strong{Warning:} Coding systems such as @code{undecided}, which

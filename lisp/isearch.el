@@ -271,8 +271,12 @@ are `word-search-regexp' \(`\\[isearch-toggle-word]'), `isearch-symbol-regexp'
 
 (defcustom search-highlight-submatches t
   "Whether to highlight regexp subexpressions of the current regexp match.
-The faces used to do the highlights are named `isearch-group-odd' and
-`isearch-group-even'."
+The faces used to do the highlights are named `isearch-group-1',
+`isearch-group-2', etc.  (By default, only these 2 are defined.)
+When there are more matches than faces, then faces are reused from the
+beginning, in a cyclical manner, so the `isearch-group-1' face is
+isreused for the third match.  If you want to use more distinctive colors,
+you can define more of these faces using the same numbering scheme."
   :type 'boolean
   :version "28.1")
 
@@ -887,7 +891,7 @@ variable by the command `isearch-toggle-lax-whitespace'.")
   "Stack of search status elements.
 Each element is an `isearch--state' struct where the slots are
  [STRING MESSAGE POINT SUCCESS FORWARD OTHER-END WORD/REGEXP-FUNCTION
-  ERROR WRAPPED BARRIER CASE-FOLD-SEARCH POP-FUN]")
+  ERROR WRAPPED BARRIER CASE-FOLD-SEARCH POP-FUN MATCH-DATA]")
 
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
@@ -903,6 +907,7 @@ Each element is an `isearch--state' struct where the slots are
   "Recorded minimum/maximal point for the current search.")
 (defvar isearch-just-started nil)
 (defvar isearch-start-hscroll 0)	; hscroll when starting the search.
+(defvar isearch-match-data nil)         ; match-data of regexp-based search
 
 ;; case-fold-search while searching.
 ;;   either nil, t, or 'yes.  'yes means the same as t except that mixed
@@ -1221,6 +1226,7 @@ used to set the value of `isearch-regexp-function'."
 	isearch-small-window nil
 	isearch-just-started t
 	isearch-start-hscroll (window-hscroll)
+	isearch-match-data nil
 
 	isearch-opoint (point)
 	search-ring-yank-pointer nil
@@ -1349,8 +1355,8 @@ The last thing is to trigger a new round of lazy highlighting."
 		(set-window-hscroll (selected-window) current-scroll))))
 	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
-                (isearch-highlight isearch-other-end (point))
-              (isearch-highlight (point) isearch-other-end))
+                (isearch-highlight isearch-other-end (point) isearch-match-data)
+              (isearch-highlight (point) isearch-other-end isearch-match-data))
           (isearch-dehighlight))))
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
@@ -1508,7 +1514,8 @@ REGEXP if non-nil says use the regexp search ring."
                  (barrier isearch-barrier)
                  (case-fold-search isearch-case-fold-search)
                  (pop-fun (if isearch-push-state-function
-                              (funcall isearch-push-state-function))))))
+                              (funcall isearch-push-state-function)))
+                 (match-data isearch-match-data))))
   (string nil :read-only t)
   (message nil :read-only t)
   (point nil :read-only t)
@@ -1520,7 +1527,8 @@ REGEXP if non-nil says use the regexp search ring."
   (wrapped nil :read-only t)
   (barrier nil :read-only t)
   (case-fold-search nil :read-only t)
-  (pop-fun nil :read-only t))
+  (pop-fun nil :read-only t)
+  (match-data nil :read-only t))
 
 (defun isearch--set-state (cmd)
   (setq isearch-string (isearch--state-string cmd)
@@ -1532,7 +1540,8 @@ REGEXP if non-nil says use the regexp search ring."
 	isearch-error (isearch--state-error cmd)
 	isearch-wrapped (isearch--state-wrapped cmd)
 	isearch-barrier (isearch--state-barrier cmd)
-	isearch-case-fold-search (isearch--state-case-fold-search cmd))
+	isearch-case-fold-search (isearch--state-case-fold-search cmd)
+	isearch-match-data (isearch--state-match-data cmd))
   (if (functionp (isearch--state-pop-fun cmd))
       (funcall (isearch--state-pop-fun cmd) cmd))
   (goto-char (isearch--state-point cmd)))
@@ -1624,6 +1633,7 @@ You can update the global isearch variables by setting new values to
 	      (isearch-adjusted isearch-adjusted)
 	      (isearch-yank-flag isearch-yank-flag)
 	      (isearch-error isearch-error)
+	      (isearch-match-data isearch-match-data)
 
 	      (multi-isearch-file-list-new multi-isearch-file-list)
 	      (multi-isearch-buffer-list-new multi-isearch-buffer-list)
@@ -3432,6 +3442,7 @@ Optional third argument, if t, means if fail just return nil (no error).
 			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
+	(setq isearch-match-data (match-data t))
 	(if isearch-success
 	    (setq isearch-other-end
 		  (if isearch-forward (match-beginning 0) (match-end 0)))))
@@ -3663,27 +3674,27 @@ since they have special meaning in a regexp."
 (defvar isearch-overlay nil)
 (defvar isearch-submatches-overlays nil)
 
-(defface isearch-group-odd
+(defface isearch-group-1
   '((((class color) (min-colors 88) (background light))
-     (:background "#ff00ff" :foreground "lightskyblue1"))
+     (:background "#f000f0" :foreground "lightskyblue1"))
     (((class color) (min-colors 88) (background dark))
-     (:background "palevioletred3" :foreground "brown4"))
+     (:background "palevioletred1" :foreground "brown4"))
     (t (:inherit isearch)))
   "Face for highlighting Isearch the odd group matches."
   :group 'isearch
   :version "28.1")
 
-(defface isearch-group-even
+(defface isearch-group-2
   '((((class color) (min-colors 88) (background light))
-     (:background "#800080" :foreground "lightskyblue1"))
+     (:background "#a000a0" :foreground "lightskyblue1"))
     (((class color) (min-colors 88) (background dark))
-     (:background "#905070" :foreground "brown4"))
+     (:background "palevioletred3" :foreground "brown4"))
     (t (:inherit isearch)))
   "Face for highlighting Isearch the even group matches."
   :group 'isearch
   :version "28.1")
 
-(defun isearch-highlight (beg end)
+(defun isearch-highlight (beg end &optional match-data)
   (if search-highlight
       (if isearch-overlay
 	  ;; Overlay already exists, just move it.
@@ -3693,18 +3704,24 @@ since they have special meaning in a regexp."
 	;; 1001 is higher than lazy's 1000 and ediff's 100+
 	(overlay-put isearch-overlay 'priority 1001)
 	(overlay-put isearch-overlay 'face isearch-face)))
+
   (when (and search-highlight-submatches
 	     isearch-regexp)
     (mapc 'delete-overlay isearch-submatches-overlays)
     (setq isearch-submatches-overlays nil)
-    (dotimes (i (/ (length (match-data)) 2))
-      (unless (zerop i)
-	(let ((ov (make-overlay (match-beginning i) (match-end i))))
-	  (overlay-put ov 'face (if (zerop (mod i 2))
-				    'isearch-group-even
-				  'isearch-group-odd))
-	  (overlay-put ov 'priority 1002)
-	  (push ov isearch-submatches-overlays))))))
+    (let ((submatch-data (cddr (butlast match-data)))
+          (group 0)
+          ov face)
+      (while submatch-data
+        (setq group (1+ group))
+        (setq ov (make-overlay (pop submatch-data) (pop submatch-data))
+              face (intern-soft (format "isearch-group-%d" group)))
+        ;; Recycle faces from beginning.
+        (unless (facep face)
+          (setq group 1 face 'isearch-group-1))
+        (overlay-put ov 'face face)
+        (overlay-put ov 'priority 1002)
+        (push ov isearch-submatches-overlays)))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay

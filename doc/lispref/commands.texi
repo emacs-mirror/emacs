@@ -930,9 +930,8 @@ was specified to run but remapped into another command.
 
 @defun this-command-keys
 This function returns a string or vector containing the key sequence
-that invoked the present command, plus any previous commands that
-generated the prefix argument for this command.  Any events read by the
-command using @code{read-event} without a timeout get tacked on to the end.
+that invoked the present command.  Any events read by the command
+using @code{read-event} without a timeout get tacked on to the end.
 
 However, if the command has called @code{read-key-sequence}, it
 returns the last read key sequence.  @xref{Key Sequence Input}.  The
@@ -943,7 +942,7 @@ fit in a string.  @xref{Input Events}.
 @group
 (this-command-keys)
 ;; @r{Now use @kbd{C-u C-x C-e} to evaluate that.}
-     @result{} "^U^X^E"
+     @result{} "^X^E"
 @end group
 @end example
 @end defun
