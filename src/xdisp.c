@@ -15757,7 +15757,12 @@ redisplay_internal (void)
 	      && CHARPOS (this_line_end_pos) == CHARPOS (tlendpos)
               /* Line has same height as before.  Otherwise other lines
                  would have to be shifted up or down.  */
-	      && this_line_pixel_height == line_height_before)
+	      && this_line_pixel_height == line_height_before
+	      /* Cannot use this optimization if hscrolling current
+		 line and this line is the current one, because
+		 display_line above is not informed about the
+		 current-line's vpos, and cannot DTRT in that case.  */
+	      && !hscrolling_current_line_p (w))
 	    {
  	      /* If this is not the window's last line, we must adjust
  		 the charstarts of the lines below.  */
