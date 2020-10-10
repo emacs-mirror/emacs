@@ -2603,11 +2603,15 @@ Return the its filename if found or nil otherwise."
     (native-compile
      trampoline-sym nil
      (cl-loop
-      for dir in comp-eln-load-path
+      for load-dir in comp-eln-load-path
+      for dir = (concat load-dir comp-native-version-dir)
       for f = (expand-file-name
                (comp-trampoline-filename subr-name)
-               (concat dir
-                       comp-native-version-dir))
+               dir)
+      unless (file-exists-p dir)
+        do (ignore-errors
+             (make-directory dir t)
+             (cl-return f))
       when (file-writable-p f)
         do (cl-return f)
       finally (error "Cannot find suitable directory for output in \
