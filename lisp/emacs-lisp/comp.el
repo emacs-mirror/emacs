@@ -662,6 +662,9 @@ clashes."
 
 (cl-defmethod comp-spill-lap-function ((function-name symbol))
   "Byte-compile FUNCTION-NAME spilling data from the byte compiler."
+  (unless (comp-ctxt-output comp-ctxt)
+    (setf (comp-ctxt-output comp-ctxt)
+          (make-temp-file (symbol-name function-name) nil ".eln")))
   (let* ((f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func-l :name function-name
@@ -740,6 +743,11 @@ clashes."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))
+  (unless (comp-ctxt-output comp-ctxt)
+    (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
+                                        filename
+                                        (when byte-native-for-bootstrap
+                                          (car (last comp-eln-load-path))))))
   (setf (comp-ctxt-top-level-forms comp-ctxt)
         (cl-loop
          for form in (reverse byte-to-native-top-level-forms)
@@ -2815,18 +2823,8 @@ Return the compile object filename."
          (comp-native-compiling t)
          ;; Have byte compiler signal an error when compilation fails.
          (byte-compile-debug t)
-         (comp-ctxt
-          (make-comp-ctxt
-           :output (or (when output
-                         (expand-file-name output))
-                       (if (symbolp function-or-file)
-                           (make-temp-file (symbol-name function-or-file) nil
-                                           ".eln")
-                         (comp-el-to-eln-filename
-                          function-or-file
-                          (when byte-native-for-bootstrap
-                            (car (last comp-eln-load-path))))))
-           :with-late-load with-late-load)))
+         (comp-ctxt (make-comp-ctxt :output output
+                                    :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
         (mapc (lambda (pass)
