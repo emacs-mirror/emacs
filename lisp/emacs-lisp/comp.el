@@ -368,8 +368,7 @@ Once in SSA form this *must* be set to 'dirty' every time the topology of the
 CFG is mutated by a pass.")
   (frame-size nil :type number)
   (blocks (make-hash-table) :type hash-table
-          :documentation "Key is the basic block symbol value is a comp-block
-structure.")
+          :documentation "Basic block name -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
              :documentation "LAP lable -> LIMPLE basic block name.")
   (edges () :type list
