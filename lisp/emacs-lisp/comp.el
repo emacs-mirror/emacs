@@ -493,7 +493,7 @@ Assume allocation class 'd-default as default."
      (1 font-lock-variable-name-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
-                              (1+ num)))))
+                              (1+ num) (? "_latch")))))
      (1 font-lock-constant-face))
     (,(rx "(" (group-n 1 (1+ (or word "-"))))
      (1 font-lock-keyword-face)))
