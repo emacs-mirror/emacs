@@ -10567,7 +10567,7 @@ contains long lines that shall be truncated anyway.
 
 The optional argument Y-LIMIT, if non-nil, specifies the maximum Y
 coordinate beyond which the text is to be ignored; it is therefore
-also the maxcomp height that the function can return (excluding the
+also the maximum height that the function can return (excluding the
 height of the mode- or header-line, if any).  Y-LIMIT nil or omitted
 means consider all of the accessible portion of buffer text up to the
 position specified by TO.  Since calculating the text height of a
