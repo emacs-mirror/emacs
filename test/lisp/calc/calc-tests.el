@@ -594,7 +594,10 @@ An existing calc stack is reused, otherwise a new one is created."
   "Logical shift right X by N steps, word size W."
   (if (< n 0)
       (calc-tests--lsh x (- n) w)
-    (ash (calc-tests--clip x w) (- n))))
+    ;; First zero-extend, then shift.
+    (calc-tests--clip
+     (ash (calc-tests--clip x (abs w)) (- n))
+     w)))
 
 (defun calc-tests--ash (x n w)
   "Arithmetic shift left X by N steps, word size W."
@@ -607,8 +610,9 @@ An existing calc stack is reused, otherwise a new one is created."
   (if (< n 0)
       (calc-tests--ash x (- n) w)
     ;; First sign-extend, then shift.
-    (let ((x-sext (calc-tests--clip x (- (abs w)))))
-      (calc-tests--clip (ash x-sext (- n)) w))))
+    (calc-tests--clip
+     (ash (calc-tests--clip x (- (abs w))) (- n))
+     w)))
 
 (defun calc-tests--rot (x n w)
   "Rotate X left by N steps, word size W."
@@ -619,11 +623,12 @@ An existing calc stack is reused, otherwise a new one is created."
                       w)))
 
 (ert-deftest calc-shift-binary ()
-  (dolist (w '(16 32))
+  (dolist (w '(16 32 -16 -32))
     (dolist (x '(0 1 #x1234 #x8000 #xabcd #xffff
                  #x12345678 #xabcdef12 #x80000000 #xffffffff
                  #x1234567890ab #x1234967890ab
-                 -1 -14))
+                 -1 -14 #x-8000 #x-ffff #x-8001 #x-10000
+                 #x-80000000 #x-ffffffff #x-80000001 #x-100000000))
       (dolist (n '(0 1 4 16 32 -1 -4 -16 -32))
         (should (equal (calcFunc-lsh x n w)
                        (calc-tests--lsh x n w)))
