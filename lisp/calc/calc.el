@@ -2313,7 +2313,7 @@ the United States."
         ((eq last-command-event ?@) "0@ ")
         (t (char-to-string last-command-event))))
 
-(defvar calc-buffer)
+(defvar calc-buffer nil)
 (defvar calc-prev-char)
 (defvar calc-prev-prev-char)
 (defvar calc-digit-value)
@@ -2353,7 +2353,7 @@ the United States."
 (defun calcDigit-nondigit ()
   (interactive)
   ;; Exercise for the reader:  Figure out why this is a good precaution!
-  (or (boundp 'calc-buffer)
+  (or calc-buffer
       (use-local-map minibuffer-local-map))
   (let ((str (minibuffer-contents)))
     (setq calc-digit-value (with-current-buffer calc-buffer

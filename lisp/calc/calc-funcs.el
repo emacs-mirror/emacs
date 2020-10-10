@@ -1,4 +1,4 @@
-;;; calc-funcs.el --- well-known functions for Calc
+;;; calc-funcs.el --- well-known functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

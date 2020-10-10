@@ -1,4 +1,4 @@
-;;; calc-math.el --- mathematical functions for Calc
+;;; calc-math.el --- mathematical functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -60,33 +60,23 @@
             pow
             (< pow 1.0e+INF))
       (setq x (* 2 x))
-      (setq pow (condition-case nil
-                    (expt 10.0 (* 2 x))
-                  (error nil))))
+      (setq pow (ignore-errors (expt 10.0 (* 2 x)))))
     ;; The following loop should stop when 10^(x+1) is too large.
-    (setq pow (condition-case nil
-                    (expt 10.0 (1+ x))
-                  (error nil)))
+    (setq pow (ignore-errors (expt 10.0 (1+ x))))
     (while (and
             pow
             (< pow 1.0e+INF))
       (setq x (1+ x))
-      (setq pow (condition-case nil
-                    (expt 10.0 (1+ x))
-                  (error nil))))
+      (setq pow (ignore-errors (expt 10.0 (1+ x)))))
     (1- x))
   "The largest exponent which Calc will convert to an Emacs float.")
 
 (defvar math-smallest-emacs-expt
   (let ((x -1))
-    (while (condition-case nil
-               (> (expt 10.0 x) 0.0)
-             (error nil))
+    (while (ignore-errors (> (expt 10.0 x) 0.0))
       (setq x (* 2 x)))
     (setq x (/ x 2))
-    (while (condition-case nil
-               (> (expt 10.0 x) 0.0)
-             (error nil))
+    (while (ignore-errors (> (expt 10.0 x) 0.0))
       (setq x (1- x)))
     (+ x 2))
     "The smallest exponent which Calc will convert to an Emacs float.")
@@ -100,19 +90,18 @@ If this can't be done, return NIL."
    (let* ((xpon (+ (nth 2 x) (1- (math-numdigs (nth 1 x))))))
      (and (<= math-smallest-emacs-expt xpon)
           (<= xpon math-largest-emacs-expt)
-          (condition-case nil
-              (math-read-number
-               (number-to-string
-                (funcall fn
-			 (string-to-number
-			  (let
-                              ((calc-number-radix 10)
-                               (calc-twos-complement-mode nil)
-                               (calc-float-format (list 'float calc-internal-prec))
-                               (calc-group-digits nil)
-                               (calc-point-char "."))
-			    (math-format-number (math-float x)))))))
-            (error nil))))))
+          (ignore-errors
+            (math-read-number
+             (number-to-string
+              (funcall fn
+		       (string-to-number
+			(let
+                            ((calc-number-radix 10)
+                             (calc-twos-complement-mode nil)
+                             (calc-float-format (list 'float calc-internal-prec))
+                             (calc-group-digits nil)
+                             (calc-point-char "."))
+			  (math-format-number (math-float x))))))))))))
 
 (defun calc-sqrt (arg)
   (interactive "P")
@@ -638,11 +627,11 @@ If this can't be done, return NIL."
 (defvar math-nrf-nf)
 (defvar math-nrf-nfm1)
 
-(defun math-nth-root-float (a math-nrf-n &optional guess)
+(defun math-nth-root-float (a nrf-n &optional guess)
   (math-inexact-result)
   (math-with-extra-prec 1
-    (let ((math-nrf-nf (math-float math-nrf-n))
-	  (math-nrf-nfm1 (math-float (1- math-nrf-n))))
+    (let ((math-nrf-nf (math-float nrf-n))
+	  (math-nrf-nfm1 (math-float (1- nrf-n))))
       (math-nth-root-float-iter a (or guess
 				      (math-make-float
 				       1 (/ (+ (math-numdigs (nth 1 a))
@@ -665,11 +654,12 @@ If this can't be done, return NIL."
 ;; math-nth-root-int.
 (defvar math-nri-n)
 
-(defun math-nth-root-integer (a math-nri-n &optional guess)   ; [I I S]
-  (math-nth-root-int-iter a (or guess
-				(math-scale-int 1 (/ (+ (math-numdigs a)
-							(1- math-nri-n))
-						     math-nri-n)))))
+(defun math-nth-root-integer (a nri-n &optional guess) ; [I I S]
+  (let ((math-nri-n nri-n))
+    (math-nth-root-int-iter a (or guess
+				  (math-scale-int 1 (/ (+ (math-numdigs a)
+							  (1- nri-n))
+						       nri-n))))))
 
 (defun math-nth-root-int-iter (a guess)
   (math-working "root" guess)
@@ -693,13 +683,13 @@ If this can't be done, return NIL."
 
 ;;;; Transcendental functions.
 
-;;; All of these functions are defined on the complex plane.
-;;; (Branch cuts, etc. follow Steele's Common Lisp book.)
+;; All of these functions are defined on the complex plane.
+;; (Branch cuts, etc. follow Steele's Common Lisp book.)
 
-;;; Most functions increase calc-internal-prec by 2 digits, then round
-;;; down afterward.  "-raw" functions use the current precision, require
-;;; their arguments to be in float (or complex float) format, and always
-;;; work in radians (where applicable).
+;; Most functions increase calc-internal-prec by 2 digits, then round
+;; down afterward.  "-raw" functions use the current precision, require
+;; their arguments to be in float (or complex float) format, and always
+;; work in radians (where applicable).
 
 (defun math-to-radians (a)   ; [N N]
   (cond ((eq (car-safe a) 'hms)
@@ -1126,9 +1116,9 @@ If this can't be done, return NIL."
 	     (math-div-float (cdr sc) (car sc)))))))
 
 
-;;; This could use a smarter method:  Reduce x as in math-sin-raw, then
-;;;   compute either sin(x) or cos(x), whichever is smaller, and compute
-;;;   the other using the identity sin(x)^2 + cos(x)^2 = 1.
+;; This could use a smarter method:  Reduce x as in math-sin-raw, then
+;;   compute either sin(x) or cos(x), whichever is smaller, and compute
+;;   the other using the identity sin(x)^2 + cos(x)^2 = 1.
 (defun math-sin-cos-raw (x)   ; [F.F F]  (result is (sin x . cos x))
   (cons (math-sin-raw x) (math-cos-raw x)))
 
@@ -2072,7 +2062,7 @@ If this can't be done, return NIL."
 (put 'calcFunc-arctanh 'math-expandable t)
 
 
-;;; Convert A from HMS or degrees to radians.
+;; Convert A from HMS or degrees to radians.
 (defun calcFunc-rad (a)   ; [R R] [Public]
   (cond ((or (Math-numberp a)
 	     (eq (car a) 'intv))
@@ -2089,7 +2079,7 @@ If this can't be done, return NIL."
 	(t (list 'calcFunc-rad a))))
 (put 'calcFunc-rad 'math-expandable t)
 
-;;; Convert A from HMS or radians to degrees.
+;; Convert A from HMS or radians to degrees.
 (defun calcFunc-deg (a)   ; [R R] [Public]
   (cond ((or (Math-numberp a)
 	     (eq (car a) 'intv))

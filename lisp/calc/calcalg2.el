@@ -1,4 +1,4 @@
-;;; calcalg2.el --- more algebraic functions for Calc
+;;; calcalg2.el --- more algebraic functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -333,8 +333,10 @@
 		     (setq n (1+ n)))
 		   accum))))))
 
-(defun calcFunc-deriv (expr math-deriv-var &optional deriv-value math-deriv-symb)
-  (let* ((math-deriv-total nil)
+(defun calcFunc-deriv (expr deriv-var &optional deriv-value deriv-symb)
+  (let* ((math-deriv-var deriv-var)
+	 (math-deriv-symb deriv-symb)
+	 (math-deriv-total nil)
 	 (res (catch 'math-deriv (math-derivative expr))))
     (or (eq (car-safe res) 'calcFunc-deriv)
 	(null res)
@@ -344,9 +346,11 @@
 	     (math-expr-subst res math-deriv-var deriv-value)
 	   res))))
 
-(defun calcFunc-tderiv (expr math-deriv-var &optional deriv-value math-deriv-symb)
+(defun calcFunc-tderiv (expr deriv-var &optional deriv-value deriv-symb)
   (math-setup-declarations)
-  (let* ((math-deriv-total t)
+  (let* ((math-deriv-var deriv-var)
+	 (math-deriv-symb deriv-symb)
+	 (math-deriv-total t)
 	 (res (catch 'math-deriv (math-derivative expr))))
     (or (eq (car-safe res) 'calcFunc-tderiv)
 	(null res)
@@ -363,10 +367,10 @@
      (function (lambda (u) (math-div 1 (math-mul 2 (list 'calcFunc-sqrt u))))))
 
 (put 'calcFunc-deg\' 'math-derivative-1
-     (function (lambda (u) (math-div-float '(float 18 1) (math-pi)))))
+     (function (lambda (_) (math-div-float '(float 18 1) (math-pi)))))
 
 (put 'calcFunc-rad\' 'math-derivative-1
-     (function (lambda (u) (math-pi-over-180))))
+     (function (lambda (_) (math-pi-over-180))))
 
 (put 'calcFunc-ln\' 'math-derivative-1
      (function (lambda (u) (math-div 1 u))))
@@ -1079,8 +1083,9 @@
 ;; math-integ-try-substitutions.
 (defvar math-integ-expr)
 
-(defun math-do-integral-methods (math-integ-expr)
-  (let ((math-so-far math-integ-var-list-list)
+(defun math-do-integral-methods (integ-expr)
+  (let ((math-integ-expr integ-expr)
+	(math-so-far math-integ-var-list-list)
 	rat-in)
 
     ;; Integration by substitution, for various likely sub-expressions.
@@ -1195,10 +1200,11 @@
 (defvar math-good-parts)
 
 
-(defun math-integ-try-parts (expr &optional math-good-parts)
+(defun math-integ-try-parts (expr &optional good-parts)
   ;; Integration by parts:
   ;;   integ(f(x) g(x),x) = f(x) h(x) - integ(h(x) f'(x),x)
   ;;     where h(x) = integ(g(x),x).
+  (let ((math-good-parts good-parts))
   (or (let ((exp (calcFunc-expand expr)))
 	(and (not (equal exp expr))
 	     (math-integral exp)))
@@ -1219,14 +1225,14 @@
       (and (eq (car expr) '^)
 	   (math-integrate-by-parts (math-pow (nth 1 expr)
 					      (math-sub (nth 2 expr) 1))
-				    (nth 1 expr)))))
+				    (nth 1 expr))))))
 
 (defun math-integrate-by-parts (u vprime)
   (let ((math-integ-level (if (or math-good-parts
 				  (math-polynomial-p u math-integ-var))
 			      math-integ-level
 			    (1- math-integ-level)))
-	(math-doing-parts t)
+	;; (math-doing-parts t) ;Unused
 	v temp)
     (and (>= math-integ-level 0)
 	 (unwind-protect
@@ -1532,7 +1538,7 @@
 	   (math-any-substs t)
 	   (math-enable-subst nil)
 	   (math-prev-parts-v nil)
-	   (math-doing-parts nil)
+	   ;; (math-doing-parts nil) ;Unused
 	   (math-good-parts nil)
 	   (res
 	    (if trace-buffer
@@ -1883,7 +1889,10 @@
 (defvar calc-high)
 (defvar math-var)
 
-(defun calcFunc-table (expr math-var &optional calc-low calc-high step)
+(defun calcFunc-table (expr var &optional low high step)
+  (let ((math-var var)
+        (calc-high high)
+        (calc-low low))
   (or calc-low
       (setq calc-low '(neg (var inf var-inf)) calc-high '(var inf var-inf)))
   (or calc-high (setq calc-high calc-low calc-low 1))
@@ -1894,8 +1903,7 @@
   (let ((known (+ (if (Math-objectp calc-low) 1 0)
 		  (if (Math-objectp calc-high) 1 0)
 		  (if (or (null step) (Math-objectp step)) 1 0)))
-	(count '(var inf var-inf))
-	vec)
+	(count '(var inf var-inf))) ;; vec
     (or (= known 2)   ; handy optimization
 	(equal calc-high '(var inf var-inf))
 	(progn
@@ -1906,6 +1914,7 @@
 	      (setq count (math-trunc count)))))
     (if (Math-negp count)
 	(setq count -1))
+    (defvar var-DUMMY)
     (if (integerp count)
 	(let ((var-DUMMY nil)
 	      (vec math-tabulate-initial)
@@ -1939,7 +1948,7 @@
 	      (and (not (and (equal calc-low '(neg (var inf var-inf)))
 			     (equal calc-high '(var inf var-inf))))
 		   (list calc-low calc-high))
-	      (and step (list step))))))
+	      (and step (list step)))))))
 
 (defun math-scan-for-limits (x)
   (cond ((Math-primp x))
@@ -1951,8 +1960,10 @@
 		(high-val (math-solve-for (nth 2 x) (1- (length (nth 1 x)))
 					  math-var nil))
 		temp)
-	   (and low-val (math-realp low-val)
-		high-val (math-realp high-val))
+	   ;; FIXME: The below is a no-op, but I suspect its result
+	   ;; was meant to be used, tho I don't know what for.
+	   ;; (and low-val (math-realp low-val)
+	   ;;      high-val (math-realp high-val))
 	   (and (Math-lessp high-val low-val)
 		(setq temp low-val low-val high-val high-val temp))
 	   (setq calc-low (math-max calc-low (math-ceiling low-val))
@@ -2361,8 +2372,11 @@
 (defvar math-try-solve-sign)
 
 (defun math-try-solve-for
-  (math-solve-lhs math-solve-rhs &optional math-try-solve-sign no-poly)
-  (let (math-t1 math-t2 math-t3)
+  (solve-lhs solve-rhs &optional try-solve-sign no-poly)
+  (let ((math-solve-lhs solve-lhs)
+        (math-solve-rhs solve-rhs)
+        (math-try-solve-sign try-solve-sign)
+        math-t1 math-t2 math-t3)
     (cond ((equal math-solve-lhs math-solve-var)
 	   (setq math-solve-sign math-try-solve-sign)
 	   (if (eq math-solve-full 'all)
@@ -2721,14 +2735,17 @@
 	(cons 'vec d)
       (math-reject-arg expr "Expected a polynomial"))))
 
-(defun math-decompose-poly (math-solve-lhs math-solve-var degree sub-rhs)
-  (let ((math-solve-rhs (or sub-rhs 1))
+(defun math-decompose-poly (solve-lhs solve-var degree sub-rhs)
+  (let ((math-solve-lhs solve-lhs)
+	(math-solve-var solve-var)
+	(math-solve-rhs (or sub-rhs 1))
 	math-t1 math-t2 math-t3)
     (setq math-t2 (math-polynomial-base
 	      math-solve-lhs
 	      (function
-	       (lambda (math-solve-b)
-		 (let ((math-poly-neg-powers '(1))
+	       (lambda (solve-b)
+		 (let ((math-solve-b solve-b)
+		       (math-poly-neg-powers '(1))
 		       (math-poly-mult-powers nil)
 		       (math-poly-frac-powers 1)
 		       (math-poly-exp-base t))
@@ -2964,7 +2981,7 @@
 	      (math-poly-integer-root (car roots))
 	      (setq roots (cdr roots)))
 	    (list math-int-factors (nreverse math-int-coefs) math-int-scale))
-	(let ((vec nil) res)
+	(let ((vec nil)) ;; res
 	  (while roots
 	    (let ((root (car roots))
 		  (math-solve-full (and math-solve-full 'all)))
@@ -3109,7 +3126,7 @@
 	 (iters 0)
 	 (m (1- (length p)))
 	 (try-newt (not polish))
-	 (tried-newt nil)
+	 ;; (tried-newt nil)
 	 b d f x1 dx dxold)
     (while
 	(and (or (< (setq iters (1+ iters)) 50)
@@ -3146,7 +3163,7 @@
 			(math-lessp (math-abs-approx dx)
 				    (calcFunc-scf (math-abs-approx x) -3)))
 		   (let ((newt (math-poly-newton-root p x1 7)))
-		     (setq tried-newt t
+		     (setq ;; tried-newt t
 			   try-newt nil)
 		     (if (math-zerop (cdr newt))
 			 (setq x (car newt) x1 x)
@@ -3160,7 +3177,8 @@
 			(math-nearly-equal x x1))))
 	     (let ((cdx (math-abs-approx dx)))
 	       (setq x x1
-		     tried-newt nil)
+		     ;; tried-newt nil
+		     )
 	       (prog1
 		   (or (<= iters 6)
 		       (math-lessp cdx dxold)
@@ -3227,7 +3245,9 @@
 ;; and math-solve-system-rec, but is used by math-solve-system-subst.
 (defvar math-solve-simplifying)
 
-(defun math-solve-system (exprs math-solve-vars math-solve-full)
+(defun math-solve-system (exprs solve-vars solve-full)
+  (let ((math-solve-vars solve-vars)
+        (math-solve-full solve-full))
   (setq exprs (mapcar 'list (if (Math-vectorp exprs)
 				(cdr exprs)
 			      (list exprs)))
@@ -3237,7 +3257,7 @@
   (or (let ((math-solve-simplifying nil))
 	(math-solve-system-rec exprs math-solve-vars nil))
       (let ((math-solve-simplifying t))
-	(math-solve-system-rec exprs math-solve-vars nil))))
+	(math-solve-system-rec exprs math-solve-vars nil)))))
 
 ;;; The following backtracking solver works by choosing a variable
 ;;; and equation, and trying to solve the equation for the variable.
@@ -3437,10 +3457,12 @@
     (if (memq (car expr) '(* /))
 	(math-looks-evenp (nth 1 expr)))))
 
-(defun math-solve-for (lhs rhs math-solve-var math-solve-full &optional sign)
-  (if (math-expr-contains rhs math-solve-var)
-      (math-solve-for (math-sub lhs rhs) 0 math-solve-var math-solve-full)
-    (and (math-expr-contains lhs math-solve-var)
+(defun math-solve-for (lhs rhs solve-var solve-full &optional sign)
+  (let ((math-solve-var solve-var)
+        (math-solve-full solve-full))
+  (if (math-expr-contains rhs solve-var)
+      (math-solve-for (math-sub lhs rhs) 0 solve-var solve-full)
+    (and (math-expr-contains lhs solve-var)
 	 (math-with-extra-prec 1
 	   (let* ((math-poly-base-variable math-solve-var)
 		  (res (math-try-solve-for lhs rhs sign)))
@@ -3462,7 +3484,7 @@
 					  (format
 					   "*Omitted %d complex solutions"
 					   (- old-len new-len)))))))
-	     res)))))
+	     res))))))
 
 (defun math-solve-eqn (expr var full)
   (if (memq (car-safe expr) '(calcFunc-neq calcFunc-lt calcFunc-gt

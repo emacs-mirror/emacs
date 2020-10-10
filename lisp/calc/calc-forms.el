@@ -1,4 +1,4 @@
-;;; calc-forms.el --- data format conversion functions for Calc
+;;; calc-forms.el --- data format conversion functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -678,10 +678,11 @@ in the Gregorian calendar."
 (defvar math-fd-isoweek)
 (defvar math-fd-isoweekday)
 
-(defun math-format-date (math-fd-date)
-  (if (eq (car-safe math-fd-date) 'date)
-      (setq math-fd-date (nth 1 math-fd-date)))
-  (let ((entry (list math-fd-date calc-internal-prec calc-date-format)))
+(defun math-format-date (fd-date)
+  (let* ((math-fd-date (if (eq (car-safe fd-date) 'date)
+                           (nth 1 fd-date)
+                         fd-date))
+         (entry (list math-fd-date calc-internal-prec calc-date-format)))
     (or (cdr (assoc entry math-format-date-cache))
 	(let* ((math-fd-dt nil)
                (math-fd-iso-dt nil)
@@ -914,15 +915,16 @@ to Jan 1, 1970 AD.")
 ;; which is called by math-parse-date and math-parse-standard-date.
 (defvar math-pd-str)
 
-(defun math-parse-date (math-pd-str)
+(defun math-parse-date (pd-str)
   (catch 'syntax
-    (or (math-parse-standard-date math-pd-str t)
-	(math-parse-standard-date math-pd-str nil)
-        (and (string-match "W[0-9][0-9]" math-pd-str)
-             (math-parse-iso-date math-pd-str))
-	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" math-pd-str)
-	     (list 'date (math-read-number (math-match-substring math-pd-str 1))))
+    (or (math-parse-standard-date pd-str t)
+	(math-parse-standard-date pd-str nil)
+        (and (string-match "W[0-9][0-9]" pd-str)
+             (math-parse-iso-date pd-str))
+	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" pd-str)
+	     (list 'date (math-read-number (math-match-substring pd-str 1))))
 	(let ((case-fold-search t)
+	      (math-pd-str pd-str)
 	      (year nil) (month nil) (day nil) (weekday nil)
 	      (hour nil) (minute nil) (second nil) (bc-flag nil)
 	      (a nil) (b nil) (c nil) (bigyear nil) temp)
@@ -1128,8 +1130,9 @@ to Jan 1, 1970 AD.")
 			     (substring math-pd-str (match-end 0))))
 	   n))))
 
-(defun math-parse-standard-date (math-pd-str with-time)
-  (let ((case-fold-search t)
+(defun math-parse-standard-date (pd-str with-time)
+  (let ((math-pd-str pd-str)
+	(case-fold-search t)
 	(okay t) num
 	(fmt calc-date-format) this next (gnext nil)
         (isoyear nil) (isoweek nil) (isoweekday nil)
@@ -1306,9 +1309,10 @@ to Jan 1, 1970 AD.")
                      (setq day (math-add day (1- yearday))))
                  day))))))
 
-(defun math-parse-iso-date (math-pd-str)
-  "Parse MATH-PD-STR as an ISO week date, or return nil."
-  (let ((case-fold-search t)
+(defun math-parse-iso-date (pd-str)
+  "Parse PD-STR as an ISO week date, or return nil."
+  (let ((math-pd-str pd-str)
+        (case-fold-search t)
         (isoyear nil) (isoweek nil) (isoweekday nil)
         (hour nil) (minute nil) (second nil))
     ;; Extract the time, if any.
@@ -1613,7 +1617,7 @@ and ends on the first Sunday of November at 2 a.m."
       (math-std-daylight-savings-old date dt zone bump)
     (math-std-daylight-savings-new date dt zone bump)))
 
-(defun math-std-daylight-savings-new (date dt zone bump)
+(defun math-std-daylight-savings-new (date dt _zone bump)
   "Standard North American daylight saving algorithm as of 2007.
 This implements the rules for the U.S. and Canada.
 Daylight saving begins on the second Sunday of March at 2 a.m.,
@@ -1634,7 +1638,7 @@ and ends on the first Sunday of November at 2 a.m."
 		 (t 0))))
 	(t 0)))
 
-(defun math-std-daylight-savings-old (date dt zone bump)
+(defun math-std-daylight-savings-old (date dt _zone bump)
   "Standard North American daylight saving algorithm before 2007.
 This implements the rules for the U.S. and Canada.
 Daylight saving begins on the first Sunday of April at 2 a.m.,
@@ -1657,7 +1661,7 @@ and ends on the last Sunday of October at 2 a.m."
 
 ;;; Compute the day (1-31) of the WDAY (0-6) on or preceding the given
 ;;; day of the given month.
-(defun math-prev-weekday-in-month (date dt day wday)
+(defun math-prev-weekday-in-month (date dt day _wday)
   (or day (setq day (nth 2 dt)))
   (if (> day (math-days-in-month (car dt) (nth 1 dt)))
       (setq day (math-days-in-month (car dt) (nth 1 dt))))
@@ -2036,18 +2040,18 @@ and ends on the last Sunday of October at 2 a.m."
 		     nil)))
 	  (or done (setq math-holidays-cache-tag t))))))
 
-(defun math-setup-year-holidays (math-sh-year)
-  (let ((exprs (nth 2 math-holidays-cache)))
-    (while exprs
+(defun math-setup-year-holidays (sh-year)
+  (let ((math-sh-year sh-year))
+    (dolist (expr (nth 2 math-holidays-cache))
+      (defvar var-y) (defvar var-m)
       (let* ((var-y math-sh-year)
 	     (var-m nil)
-	     (expr (math-evaluate-expr (car exprs))))
+	     (expr (math-evaluate-expr expr)))
 	(if (math-expr-contains expr '(var m var-m))
 	    (let ((var-m 0))
 	      (while (<= (setq var-m (1+ var-m)) 12)
 		(math-setup-add-holidays (math-evaluate-expr expr))))
-	  (math-setup-add-holidays expr)))
-      (setq exprs (cdr exprs)))))
+	  (math-setup-add-holidays expr))))))
 
 (defun math-setup-add-holidays (days)   ; uses "math-sh-year"
   (cond ((eq (car-safe days) 'vec)

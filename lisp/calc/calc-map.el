@@ -1,4 +1,4 @@
-;;; calc-map.el --- higher-order functions for Calc
+;;; calc-map.el --- higher-order functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -47,6 +47,8 @@
 			(list 'calcFunc-apply
 			      (math-calcFunc-to-var (nth 1 oper))
 			      expr)))))
+
+(defvar calc-mapping-dir nil)
 
 (defun calc-reduce (&optional oper accum)
   (interactive)
@@ -136,7 +138,6 @@
 				     (1+ calc-dollar-used))))))))
 
 (defvar calc-verify-arglist t)
-(defvar calc-mapping-dir nil)
 (defun calc-map-stack ()
   "This is meant to be called by calc-keypad mode."
   (interactive)
@@ -853,7 +854,7 @@
 	 (i -1)
 	 (math-working-step 0)
 	 (math-working-step-2 nil)
-	 len cols obj expr)
+	 len obj expr) ;; cols
     (if (eq mode 'eqn)
 	(setq mode 'elems
 	      heads '(calcFunc-eq calcFunc-neq calcFunc-lt calcFunc-gt
@@ -1023,22 +1024,21 @@
   (let ((expr (car (setq vec (cdr vec)))))
     (if expr
 	(progn
-	  (condition-case err
-	      (and (symbolp func)
-		   (let ((lfunc (or (cdr (assq func
-					       '( (calcFunc-add . math-add)
-						  (calcFunc-sub . math-sub)
-						  (calcFunc-mul . math-mul)
-						  (calcFunc-div . math-div)
-						  (calcFunc-pow . math-pow)
-						  (calcFunc-mod . math-mod)
-						  (calcFunc-vconcat .
-						   math-concat) )))
-				    func)))
-		     (while (cdr vec)
-		       (setq expr (funcall lfunc expr (nth 1 vec))
-			     vec (cdr vec)))))
-	    (error nil))
+	  (ignore-errors
+	    (and (symbolp func)
+		 (let ((lfunc (or (cdr (assq func
+					     '( (calcFunc-add . math-add)
+						(calcFunc-sub . math-sub)
+						(calcFunc-mul . math-mul)
+						(calcFunc-div . math-div)
+						(calcFunc-pow . math-pow)
+						(calcFunc-mod . math-mod)
+						(calcFunc-vconcat
+						 .  math-concat) )))
+				  func)))
+		   (while (cdr vec)
+		     (setq expr (funcall lfunc expr (nth 1 vec))
+			   vec (cdr vec))))))
 	  (while (setq vec (cdr vec))
 	    (setq expr (math-build-call func (list expr (car vec)))))
 	  (math-normalize expr))
@@ -1229,9 +1229,11 @@
 (defvar math-inner-mul-func)
 (defvar math-inner-add-func)
 
-(defun calcFunc-inner (math-inner-mul-func math-inner-add-func a b)
+(defun calcFunc-inner (inner-mul-func inner-add-func a b)
   (or (math-vectorp a) (math-reject-arg a 'vectorp))
   (or (math-vectorp b) (math-reject-arg b 'vectorp))
+  (let ((math-inner-mul-func inner-mul-func)
+        (math-inner-add-func inner-add-func))
   (if (math-matrixp a)
       (if (math-matrixp b)
 	  (if (= (length (nth 1 a)) (length b))
@@ -1247,12 +1249,12 @@
 	    (math-dimension-error))))
     (if (math-matrixp b)
 	(nth 1 (math-inner-mats (list 'vec a) b))
-      (calcFunc-reduce math-inner-add-func (calcFunc-map math-inner-mul-func a b)))))
+      (calcFunc-reduce math-inner-add-func (calcFunc-map math-inner-mul-func a b))))))
 
 (defun math-inner-mats (a b)
   (let ((mat nil)
 	(cols (length (nth 1 b)))
-	row col ap bp accum)
+	row col) ;; ap bp accum
     (while (setq a (cdr a))
       (setq col cols
 	    row nil)

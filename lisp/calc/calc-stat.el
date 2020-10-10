@@ -1,4 +1,4 @@
-;;; calc-stat.el --- statistical functions for Calc
+;;; calc-stat.el --- statistical functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

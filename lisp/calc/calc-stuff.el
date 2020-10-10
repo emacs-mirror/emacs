@@ -1,4 +1,4 @@
-;;; calc-stuff.el --- miscellaneous functions for Calc
+;;; calc-stuff.el --- miscellaneous functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -273,8 +273,9 @@ With a prefix, push that prefix as a number onto the stack."
 ;; math-map-over-constants.
 (defvar math-moc-func)
 
-(defun math-map-over-constants (math-moc-func expr)
-  (math-map-over-constants-rec expr))
+(defun math-map-over-constants (moc-func expr)
+  (let ((math-moc-func moc-func))
+    (math-map-over-constants-rec expr)))
 
 (defun math-map-over-constants-rec (expr)
   (cond ((or (Math-primp expr)

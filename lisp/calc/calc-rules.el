@@ -1,4 +1,4 @@
-;;; calc-rules.el --- rules for simplifying algebraic expressions in Calc
+;;; calc-rules.el --- rules for simplifying algebraic expressions in Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

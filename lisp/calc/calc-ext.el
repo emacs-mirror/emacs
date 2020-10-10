@@ -1398,9 +1398,8 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-scroll-up (n)
   (interactive "P")
-  (condition-case nil
-      (scroll-up (or n (/ (window-height) 2)))
-    (error nil))
+  (ignore-errors
+    (scroll-up (or n (/ (window-height) 2))))
   (if (pos-visible-in-window-p (max 1 (- (point-max) 2)))
       (if (eq major-mode 'calc-mode)
 	  (calc-realign)

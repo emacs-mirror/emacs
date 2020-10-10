@@ -1,4 +1,4 @@
-;;; calc-yank.el --- kill-ring functionality for Calc
+;;; calc-yank.el --- kill-ring functionality for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -401,7 +401,7 @@ Interactively, reads the register using `register-read-with-preview'."
   (let* ((from-buffer (current-buffer))
 	 (calc-was-started (get-buffer-window "*Calculator*"))
 	 (single nil)
-	 data vals pos)
+	 data vals) ;; pos
     (if arg
 	(if (consp arg)
 	    (setq single t)
@@ -776,7 +776,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	(error "Original calculator buffer has been corrupted")))
     (goto-char calc-edit-top)
     (if (buffer-modified-p)
-	(eval calc-edit-handler))
+	(eval calc-edit-handler t))
     (if (and one-window (not (one-window-p t)))
 	(delete-window))
     (if (get-buffer-window return)
