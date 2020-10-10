@@ -1209,30 +1209,69 @@ It presents the word at point as default input and allows editing it."
   (let ((list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (mapconcat 'identity (cdr list) "\n")))
 
+;;; Tooltip support for GNU Emacs
 (defvar global-dictionary-tooltip-mode
   nil)
 
-;;; Tooltip support for GNU Emacs
+(defun dictionary-word-at-mouse-event (event)
+  (with-current-buffer (tooltip-event-buffer event)
+    (let ((point (posn-point (event-end event))))
+      (if (use-region-p)
+	  (when (and (<= (region-beginning) point) (<= point (region-end)))
+	    (buffer-substring (region-beginning) (region-end)))
+        (save-excursion
+          (goto-char point)
+        (current-word))))))
+
 (defun dictionary-display-tooltip (event)
   "Search the current word in the `dictionary-tooltip-dictionary'."
   (interactive "e")
-  (if dictionary-tooltip-dictionary
-      (let ((word (save-window-excursion
-                    (save-excursion
-                      (mouse-set-point event)
-                      (current-word)))))
-        (let ((definition
-                (dictionary-definition word dictionary-tooltip-dictionary)))
-          (if definition
-              (tooltip-show
-               (dictionary-decode-charset definition
-                                          dictionary-tooltip-dictionary)))
-          t))
+  (if (and dictionary-tooltip-mode dictionary-tooltip-dictionary)
+      (let ((word (dictionary-word-at-mouse-event dictionary-tooltip-mouse-event)))
+        (if word
+            (let ((definition
+                    (dictionary-definition word dictionary-tooltip-dictionary)))
+              (if definition
+                  (tooltip-show (dictionary-decode-charset definition
+                                                           dictionary-tooltip-dictionary)))))
+        t)
     nil))
+
+(defvar dictionary-tooltip-mouse-event nil
+  "Event that triggered the tooltip mode")
+
+(defun dictionary-tooltip-track-mouse (event)
+  "Called whenever a dictionary tooltip display is about to be triggered."
+  (interactive "e")
+  (tooltip-hide)
+  (when dictionary-tooltip-mode
+    (setq dictionary-tooltip-mouse-event (copy-sequence event))
+    (tooltip-start-delayed-tip)))
+
+(defun dictionary-switch-tooltip-mode (on)
+  "Turn off or on support for the dictionary tooltip mode.
+
+It is normally internally called with 1 to enable support for the
+tooltip mode. The hook function will check the value of the
+variable dictionary-tooltip-mode to decide if some action must be
+taken. When disabling the tooltip mode the value of this variable
+will be set to nil.
+"
+  (interactive)
+  (tooltip-mode on)
+  (if on
+      (add-hook 'tooltip-functions 'dictionary-display-tooltip)
+    (remove-hook 'tooltip-functions 'dictionary-display-tooltip)))
 
 ;;;###autoload
 (defun dictionary-tooltip-mode (&optional arg)
-  "Display tooltips for the current word"
+  "Display tooltips for the current word.
+
+This function can be used to enable or disable the tooltip mode
+for the current buffer. If global-tooltip-mode is active it will
+overwrite that mode for the current buffer.
+"
+
   (interactive "P")
   (require 'tooltip)
   (let ((on (if arg
@@ -1240,26 +1279,38 @@ It presents the word at point as default input and allows editing it."
               (not dictionary-tooltip-mode))))
     (make-local-variable 'dictionary-tooltip-mode)
     (setq dictionary-tooltip-mode on)
-    ;; make sure that tooltip is still (global available) even is on
-    ;; if nil
-    (tooltip-mode 1)
-    (add-hook 'tooltip-hook 'dictionary-display-tooltip)
     (make-local-variable 'track-mouse)
-    (setq track-mouse on)))
+    (make-local-variable 'dictionary-tooltip-mouse-event)
+    (setq track-mouse on)
+    (dictionary-switch-tooltip-mode 1)
+    (if on
+        (local-set-key [mouse-movement] 'dictionary-tooltip-track-mouse)
+      (local-set-key [mouse-movement] 'ignore))
+    on))
 
 ;;;###autoload
 (defun global-dictionary-tooltip-mode (&optional arg)
-  "Enable/disable dictionary-tooltip-mode for all buffers"
+  "Enable/disable dictionary-tooltip-mode for all buffers.
+
+Internally it provides a default for the dictionary-tooltip-mode.
+It can be overwritten for each buffer using dictionary-tooltip-mode.
+
+Note: (global-dictionary-tooltip-mode 0) will not disable the mode
+any buffer where (dictionary-tooltip-mode 1) has been called.
+"
   (interactive "P")
   (require 'tooltip)
-  (let* ((on (if arg (> (prefix-numeric-value arg) 0)
-               (not global-dictionary-tooltip-mode)))
-         (hook-fn (if on 'add-hook 'remove-hook)))
+  (let ((on (if arg (> (prefix-numeric-value arg) 0)
+              (not global-dictionary-tooltip-mode))))
     (setq global-dictionary-tooltip-mode on)
-    (tooltip-mode 1)
-    (funcall hook-fn 'tooltip-hook 'dictionary-display-tooltip)
     (setq-default dictionary-tooltip-mode on)
-    (setq-default track-mouse on)))
+    (make-local-variable 'dictionary-tooltip-mouse-event)
+    (setq-default track-mouse on)
+    (dictionary-switch-tooltip-mode 1)
+    (if on
+        (global-set-key [mouse-movement] 'dictionary-tooltip-track-mouse)
+      (global-set-key [mouse-movement] 'ignore))
+    on))
 
 (provide 'dictionary)
 ;;; dictionary.el ends here
