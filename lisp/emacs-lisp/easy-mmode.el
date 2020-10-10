@@ -134,6 +134,10 @@ appear in DOC, a paragraph is added to DOC explaining
 usage of the mode argument.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
+  Note that the minor mode function won't be called by setting
+  this option, so the value *reflects* the minor mode's natural
+  initial state, rather than *setting* it.
+  In the vast majority of cases it should be nil.
 Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
