@@ -222,7 +222,7 @@ Useful to hook into pass checkers.")
   "Limple operators use to call subrs.")
 
 (define-error 'native-compiler-error-dyn-func
-  "can't native compile a non lexical scoped function"
+  "can't native compile a non-lexically-scoped function"
   'native-compiler-error)
 (define-error 'native-compiler-error-empty-byte
   "empty byte compiler output"
@@ -355,7 +355,7 @@ into it.")
   (c-name nil :type string
           :documentation "The function name in the native world.")
   (byte-func nil
-             :documentation "Byte compiled version.")
+             :documentation "Byte-compiled version.")
   (doc nil :type string
        :documentation "Doc string.")
   (int-spec nil :type list
@@ -388,12 +388,12 @@ structure.")
         :documentation "t if pure nil otherwise."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
-  "Lexical scoped function."
+  "Lexically-scoped function."
   (args nil :type comp-args-base
         :documentation "Argument specification of the function"))
 
 (cl-defstruct (comp-func-d (:include comp-func))
-  "Dynamic scoped function."
+  "Dynamically-scoped function."
   (lambda-list nil :type list
         :documentation "Original lambda-list."))
 
@@ -419,8 +419,8 @@ structure.")
 
 
 (defun comp-ensure-native-compiler ()
-  "Make sure Emacs has native compiler support and libgccjit is laodable.
-Raise and error otherwise.
+  "Make sure Emacs has native compiler support and libgccjit is loadable.
+Raise an error otherwise.
 To be used by all entry points."
   (cond
    ((null (boundp 'comp-ctxt))
@@ -445,11 +445,11 @@ To be used by all entry points."
   (comp-call-op-p (car-safe insn)))
 
 (defsubst comp-type-hint-p (func)
-  "Type hint predicate for function name FUNC."
+  "Type-hint predicate for function name FUNC."
   (when (memq func comp-type-hints) t))
 
 (defun comp-func-unique-in-cu-p (func)
-  "Return t if FUNC is know to be unique in the current compilation unit."
+  "Return t if FUNC is known to be unique in the current compilation unit."
   (if (symbolp func)
       (cl-loop with h = (make-hash-table :test #'eq)
                for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
@@ -473,8 +473,8 @@ To be used by all entry points."
         (comp-func-pure func))))
 
 (defsubst comp-alloc-class-to-container (alloc-class)
-  "Given ALLOC-CLASS return the data container for the current context.
-Assume allocaiton class 'd-default as default."
+  "Given ALLOC-CLASS, return the data container for the current context.
+Assume allocation class 'd-default as default."
   (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-default) comp-ctxt))
 
 (defsubst comp-add-const-to-relocs (obj)
@@ -500,7 +500,7 @@ Assume allocaiton class 'd-default as default."
   "Highlights used by comp-limple-mode.")
 
 (define-derived-mode comp-limple-mode fundamental-mode "LIMPLE"
-  "Syntax highlight LIMPLE IR."
+  "Syntax-highlight LIMPLE IR."
   (setf font-lock-defaults '(comp-limple-lock-keywords)))
 
 (cl-defun comp-log (data &optional (level 1))
@@ -571,7 +571,7 @@ VERBOSITY is a number between 0 and 3."
 
 
 (defmacro comp-loop-insn-in-block (basic-block &rest body)
-  "Loop over all insns in BASIC-BLOCK executning BODY.
+  "Loop over all insns in BASIC-BLOCK executing BODY.
 Inside BODY `insn' can be used to read or set the current
 instruction."
   (declare (debug (form body))
@@ -584,7 +584,7 @@ instruction."
 ;;; spill-lap pass specific code.
 
 (defsubst comp-lex-byte-func-p (f)
-  "Return t if F is a lexical scoped byte compiled function."
+  "Return t if F is a lexically-scoped byte compiled function."
   (and (byte-code-function-p f)
        (fixnump (aref f 0))))
 
@@ -598,11 +598,11 @@ instruction."
   (or (comp-spill-decl-spec function-name 'speed)
       comp-speed))
 
-;; Autoloaded as might by used by `disassemble-internal'.
+;; Autoloaded as might be used by `disassemble-internal'.
 ;;;###autoload
 (defun comp-c-func-name (name prefix &optional first)
-  "Given NAME return a name suitable for the native code.
-Add PREFIX in front of it.  If FIRST is not nil pick the first
+  "Given NAME, return a name suitable for the native code.
+Add PREFIX in front of it.  If FIRST is not nil, pick the first
 available name ignoring compilation context and potential name
 clashes."
   ;; Unfortunatelly not all symbol names are valid as C function names...
@@ -633,7 +633,7 @@ clashes."
       (concat prefix crypted "_" human-readable "_0"))))
 
 (defun comp-decrypt-arg-list (x function-name)
-  "Decript argument list X for FUNCTION-NAME."
+  "Decrypt argument list X for FUNCTION-NAME."
   (unless (fixnump x)
     (signal 'native-compiler-error-dyn-func function-name))
   (let ((rest (not (= (logand x 128) 0)))
@@ -659,10 +659,10 @@ clashes."
     (puthash c-name func (comp-ctxt-funcs-h comp-ctxt))))
 
 (cl-defgeneric comp-spill-lap-function (input)
-  "Byte compile INPUT and spill lap for further stages.")
+  "Byte-compile INPUT and spill lap for further stages.")
 
 (cl-defmethod comp-spill-lap-function ((function-name symbol))
-  "Byte compile FUNCTION-NAME spilling data from the byte compiler."
+  "Byte-compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func-l :name function-name
@@ -697,7 +697,7 @@ clashes."
         (comp-add-func-to-ctxt func))))
 
 (defun comp-intern-func-in-ctxt (_ obj)
-  "Given OBJ of type `byte-to-native-lambda' create a function in `comp-ctxt'."
+  "Given OBJ of type `byte-to-native-lambda', create a function in `comp-ctxt'."
   (when-let ((byte-func (byte-to-native-lambda-byte-func obj)))
     (let* ((lap (byte-to-native-lambda-lap obj))
            (top-l-form (cl-loop
@@ -737,7 +737,7 @@ clashes."
       (comp-log lap 1))))
 
 (cl-defmethod comp-spill-lap-function ((filename string))
-  "Byte compile FILENAME spilling data from the byte compiler."
+  "Byte-compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))
@@ -760,7 +760,7 @@ clashes."
   (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h))
 
 (defun comp-spill-lap (input)
-  "Byte compile and spill the LAP representation for INPUT.
+  "Byte-compile and spill the LAP representation for INPUT.
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
@@ -993,7 +993,7 @@ Return value is the fall through block name."
       bb)))
 
 (defun comp-emit-handler (lap-label handler-type)
-  "Emit a non local exit handler to LAP-LABEL of type HANDLER-TYPE."
+  "Emit a nonlocal-exit handler to LAP-LABEL of type HANDLER-TYPE."
   (cl-destructuring-bind (label-num . label-sp) lap-label
     (cl-assert (= (- label-sp 2) (comp-sp)))
     (setf (comp-func-has-non-local comp-func) t)
@@ -1405,10 +1405,10 @@ the annotation emission."
   func)
 
 (cl-defgeneric comp-prepare-args-for-top-level (function)
-  "Given FUNCTION return the two args arguments for comp--register-...")
+  "Given FUNCTION, return the two args arguments for comp--register-...")
 
 (cl-defmethod comp-prepare-args-for-top-level ((function comp-func-l))
-  "Lexical scoped FUNCTION."
+  "Lexically-scoped FUNCTION."
   (let ((args (comp-func-l-args function)))
     (cons (make-comp-mvar :constant (comp-args-base-min args))
           (make-comp-mvar :constant (if (comp-args-p args)

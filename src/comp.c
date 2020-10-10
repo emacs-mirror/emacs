@@ -4124,7 +4124,7 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 	}
       if (NILP (base_dir))
 	error ("Cannot find suitable directory for output in "
-	       "`comp-native-laod-path'.");
+	       "`comp-native-load-path'.");
     }
 
   if (!file_name_absolute_p (SSDATA (base_dir)))
