@@ -1101,6 +1101,13 @@ work more traditionally, with 'C-d' deleting the next character.
 Likewise, point isn't moved to the end of the string before inserting
 digits.
 
++++
+*** Setting the word size to zero disables word clipping.
+The word size normally clips the results of certain bit-oriented
+operations such as shifts and bitwise XOR.  A word size of zero, set
+by 'b w', makes the operation have effect on the whole argument values
+and the result is not truncated in any way.
+
 ** term-mode
 
 ---

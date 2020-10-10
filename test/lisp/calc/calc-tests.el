@@ -569,15 +569,35 @@ An existing calc stack is reused, otherwise a new one is created."
                                           86400))))
       (should (equal (math-format-date d-1991-01-09-0600) "663400800")))))
 
-;; Reference implementations of binary shift functions:
+;; Reference implementations of bit operations:
 
 (defun calc-tests--clip (x w)
   "Clip X to W bits, signed if W is negative, otherwise unsigned."
-  (if (>= w 0)
-      (logand x (- (ash 1 w) 1))
-    (let ((y (calc-tests--clip x (- w)))
-          (msb (ash 1 (- (- w) 1))))
-      (- y (ash (logand y msb) 1)))))
+  (cond ((zerop w) x)
+        ((> w 0) (logand x (- (ash 1 w) 1)))
+        (t (let ((y (calc-tests--clip x (- w)))
+                 (msb (ash 1 (- (- w) 1))))
+             (- y (ash (logand y msb) 1))))))
+
+(defun calc-tests--not (x w)
+  "Bitwise complement of X, word size W."
+  (calc-tests--clip (lognot x) w))
+
+(defun calc-tests--and (x y w)
+  "Bitwise AND of X and W, word size W."
+  (calc-tests--clip (logand x y) w))
+
+(defun calc-tests--or (x y w)
+  "Bitwise OR of X and Y, word size W."
+  (calc-tests--clip (logior x y) w))
+
+(defun calc-tests--xor (x y w)
+  "Bitwise XOR of X and Y, word size W."
+  (calc-tests--clip (logxor x y) w))
+
+(defun calc-tests--diff (x y w)
+  "Bitwise AND of X and NOT Y, word size W."
+  (calc-tests--clip (logand x (lognot y)) w))
 
 (defun calc-tests--lsh (x n w)
   "Logical shift left X by N steps, word size W."
@@ -611,6 +631,8 @@ An existing calc stack is reused, otherwise a new one is created."
 
 (defun calc-tests--rot (x n w)
   "Rotate X left by N steps, word size W."
+  (when (zerop w)
+    (error "Undefined"))
   (let* ((aw (abs w))
          (y (calc-tests--clip x aw))
          (steps (mod n aw)))
@@ -618,7 +640,7 @@ An existing calc stack is reused, otherwise a new one is created."
                       w)))
 
 (ert-deftest calc-shift-binary ()
-  (dolist (w '(16 32 -16 -32))
+  (dolist (w '(16 32 -16 -32 0))
     (dolist (x '(0 1 #x1234 #x8000 #xabcd #xffff
                  #x12345678 #xabcdef12 #x80000000 #xffffffff
                  #x1234567890ab #x1234967890ab
@@ -633,8 +655,38 @@ An existing calc stack is reused, otherwise a new one is created."
                        (calc-tests--ash x n w)))
         (should (equal (calcFunc-rash x n w)
                        (calc-tests--rash x n w)))
-        (should (equal (calcFunc-rot x n w)
-                       (calc-tests--rot x n w)))))))
+        (unless (zerop w)
+          (should (equal (calcFunc-rot x n w)
+                         (calc-tests--rot x n w)))))))
+  (should-error (calcFunc-rot 1 1 0)))
+
+(ert-deftest calc-bit-ops ()
+  (dolist (w '(16 32 -16 -32 0))
+    (dolist (x '(0 1 #x1234 #x8000 #xabcd #xffff
+                 #x12345678 #xabcdef12 #x80000000 #xffffffff
+                 #x1234567890ab #x1234967890ab
+                 -1 -14 #x-8000 #x-ffff #x-8001 #x-10000
+                 #x-80000000 #x-ffffffff #x-80000001 #x-100000000))
+      (should (equal (calcFunc-not x w)
+                     (calc-tests--not x w)))
+
+      (dolist (n '(0 1 4 16 32 -1 -4 -16 -32))
+        (equal (calcFunc-clip x n)
+               (calc-tests--clip x n)))
+
+      (dolist (y '(0 1 #x1234 #x8000 #xabcd #xffff
+                     #x12345678 #xabcdef12 #x80000000 #xffffffff
+                     #x1234567890ab #x1234967890ab
+                     -1 -14 #x-8000 #x-ffff #x-8001 #x-10000
+                     #x-80000000 #x-ffffffff #x-80000001 #x-100000000))
+        (should (equal (calcFunc-and x y w)
+                       (calc-tests--and x y w)))
+        (should (equal (calcFunc-or x y w)
+                       (calc-tests--or x y w)))
+        (should (equal (calcFunc-xor x y w)
+                       (calc-tests--xor x y w)))
+        (should (equal (calcFunc-diff x y w)
+                       (calc-tests--diff x y w)))))))
 
 (ert-deftest calc-latex-input ()
   ;; Check precedence of "/" in LaTeX input mode.
