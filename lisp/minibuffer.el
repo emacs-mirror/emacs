@@ -784,7 +784,8 @@ whichever comes first.
 Unlike `minibuffer-message', this function is called automatically
 via `set-message-function'."
   (when (and (not noninteractive)
-             (window-live-p (active-minibuffer-window)))
+             (window-live-p (active-minibuffer-window))
+             (eq (window-frame) (window-frame (active-minibuffer-window))))
     (with-current-buffer (window-buffer (active-minibuffer-window))
       (setq message (if (string-match-p "\\` *\\[.+\\]\\'" message)
                         ;; Make sure we can put-text-property.
