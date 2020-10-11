@@ -782,12 +782,15 @@ There can be any number of :example/:result elements."
 (define-short-documentation-group number
   "Arithmetic"
   (+
+   :args (&rest numbers)
    :eval (+ 1 2)
    :eval (+ 1 2 3 4))
   (-
+   :args (&rest numbers)
    :eval (- 3 2)
    :eval (- 6 3 2))
   (*
+   :args (&rest numbers)
    :eval (* 3 4 5))
   (/
    :eval (/ 10 5)
@@ -807,6 +810,7 @@ There can be any number of :example/:result elements."
    :eval (1- 4))
   "Predicates"
   (=
+   :args (number &rest numbers)
    :eval (= 4 4)
    :eval (= 4.0 4.0)
    :eval (= 4 5 6 7))
@@ -820,15 +824,19 @@ There can be any number of :example/:result elements."
   (/=
    :eval (/= 4 4))
   (<
+   :args (number &rest numbers)
    :eval (< 4 4)
    :eval (< 1 2 3))
   (<=
+   :args (number &rest numbers)
    :eval (<= 4 4)
    :eval (<= 1 2 3))
   (>
+   :args (number &rest numbers)
    :eval (> 4 4)
    :eval (> 1 2 3))
   (>=
+   :args (number &rest numbers)
    :eval (>= 4 4)
    :eval (>= 1 2 3))
   (zerop
@@ -836,6 +844,16 @@ There can be any number of :example/:result elements."
   (cl-plusp
    :eval (cl-plusp 0)
    :eval (cl-plusp 1))
+  (cl-minusp
+   :eval (cl-minusp 0)
+   :eval (cl-minusp -1))
+  (cl-oddp
+   :eval (cl-oddp 3))
+  (cl-evenp
+   :eval (cl-evenp 6))
+  (natnump
+   :eval (natnump -1)
+   :eval (natnump 23))
   (bignump
    :eval (bignump 4)
    :eval (bignump (expt 2 90)))
@@ -848,13 +866,15 @@ There can be any number of :example/:result elements."
    :eval (integerp 5.4))
   (numberp
    :eval (numberp "5.4"))
-  (natnump
-   :eval (natnump -1)
-   :eval (natnump 23))
+  (cl-digit-char-p
+   :eval (cl-digit-char-p ?5 10)
+   :eval (cl-digit-char-p ?f 16))
   "Operations"
   (max
+   :args (number &rest numbers)
    :eval (max 7 9 3))
   (min
+   :args (number &rest numbers)
    :eval (min 7 9 3))
   (abs
    :eval (abs -4))
