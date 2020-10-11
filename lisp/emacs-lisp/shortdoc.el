@@ -67,13 +67,13 @@ FUNCTIONS is a list of elements on the form:
 BOOL should be non-nil if the function isn't documented in the
 manual.
 
-ARGS is optional, and the functions definition is displayed
-instead in not present.
+ARGS is optional; the function's signature is displayed if ARGS
+is not present.
 
 If EVAL isn't a string, it will be printed with `prin1', and then
-evaled to give a result, which is also printed.  If it's a
+evaluated to give a result, which is also printed.  If it's a
 string, it'll be inserted as is, then the string will be `read',
-and then evaled.
+and then evaluated.
 
 There can be any number of :example/:result elements."
   `(progn
@@ -957,8 +957,8 @@ There can be any number of :example/:result elements."
 
 ;;;###autoload
 (defun shortdoc-display-group (group)
-  "Pop to a buffer and display short documentation for functions in GROUP."
-  (interactive (list (completing-read "Show functions in: "
+  "Pop to a buffer with short documentation summary for functions in GROUP."
+  (interactive (list (completing-read "Show summary for functions in: "
                                       (mapcar #'car shortdoc--groups))))
   (when (stringp group)
     (setq group (intern group)))
@@ -1079,6 +1079,7 @@ There can be any number of :example/:result elements."
 
 (defun shortdoc-add-function (group section elem)
   "Add ELEM to shortdoc GROUP in SECTION.
+If GROUP doesn't exist, it will be created.
 If SECTION doesn't exist, it will be added.
 
 Example:
