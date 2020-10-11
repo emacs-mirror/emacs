@@ -67,19 +67,22 @@ An existing calc stack is reused, otherwise a new one is created."
   (should (calc-tests-equal (calc-tests-simple #'calc-remove-units "-1 m") -1)))
 
 (ert-deftest calc-extract-units ()
-  (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m")
-			    '(var m var-m)))
-  (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m*cm")
-			    '(* (float 1 -2) (^ (var m var-m) 2)))))
+  (let ((calc-display-working-message nil))
+    (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m")
+			      '(var m var-m)))
+    (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m*cm")
+			      '(* (float 1 -2) (^ (var m var-m) 2))))))
 
 (ert-deftest calc-convert-units ()
-  ;; Used to ask for `(The expression is unitless when simplified) Old Units: '.
-  (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m" nil "cm")
-			    '(* -100 (var cm var-cm))))
-  ;; Gave wrong result.
-  (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
-					       (math-read-expr "1m") "cm")
-			    '(* -100 (var cm var-cm)))))
+  (let ((calc-display-working-message nil))
+    ;; Used to ask `(The expression is unitless when simplified) Old Units: '.
+    (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
+                                                 nil "cm")
+			      '(* -100 (var cm var-cm))))
+    ;; Gave wrong result.
+    (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
+					         (math-read-expr "1m") "cm")
+			      '(* -100 (var cm var-cm))))))
 
 (ert-deftest calc-imaginary-i ()
   "Test `math-imaginary-i' for non-special-const values."
@@ -340,27 +343,28 @@ An existing calc stack is reused, otherwise a new one is created."
   (should-not (Math-num-integerp nil)))
 
 (ert-deftest calc-matrix-determinant ()
-  (should (equal (calcFunc-det '(vec (vec 3)))
-                 3))
-  (should (equal (calcFunc-det '(vec (vec 2 3) (vec 6 7)))
-                 -4))
-  (should (equal (calcFunc-det '(vec (vec 1 2 3) (vec 4 5 7) (vec 9 6 2)))
-                 15))
-  (should (equal (calcFunc-det '(vec (vec 0 5 7 3)
-                                     (vec 0 0 2 0)
-                                     (vec 1 2 3 4)
-                                     (vec 0 0 0 3)))
-                 30))
-  (should (equal (calcFunc-det '(vec (vec (var a var-a))))
-                 '(var a var-a)))
-  (should (equal (calcFunc-det '(vec (vec 2 (var a var-a))
-                                     (vec 7 (var a var-a))))
-                 '(* -5 (var a var-a))))
-  (should (equal (calcFunc-det '(vec (vec 1 0 0 0)
-                                     (vec 0 1 0 0)
-                                     (vec 0 0 0 1)
-                                     (vec 0 0 (var a var-a) 0)))
-                 '(neg (var a var-a)))))
+  (let ((calc-display-working-message nil))
+    (should (equal (calcFunc-det '(vec (vec 3)))
+                   3))
+    (should (equal (calcFunc-det '(vec (vec 2 3) (vec 6 7)))
+                   -4))
+    (should (equal (calcFunc-det '(vec (vec 1 2 3) (vec 4 5 7) (vec 9 6 2)))
+                   15))
+    (should (equal (calcFunc-det '(vec (vec 0 5 7 3)
+                                       (vec 0 0 2 0)
+                                       (vec 1 2 3 4)
+                                       (vec 0 0 0 3)))
+                   30))
+    (should (equal (calcFunc-det '(vec (vec (var a var-a))))
+                   '(var a var-a)))
+    (should (equal (calcFunc-det '(vec (vec 2 (var a var-a))
+                                       (vec 7 (var a var-a))))
+                   '(* -5 (var a var-a))))
+    (should (equal (calcFunc-det '(vec (vec 1 0 0 0)
+                                       (vec 0 1 0 0)
+                                       (vec 0 0 0 1)
+                                       (vec 0 0 (var a var-a) 0)))
+                   '(neg (var a var-a))))))
 
 (ert-deftest calc-gcd ()
   (should (equal (calcFunc-gcd 3 4) 1))
@@ -419,17 +423,6 @@ An existing calc stack is reused, otherwise a new one is created."
        (calc-tests--fac k)))
    (t (error "case not covered"))))
 
-(defun calc-tests--check-choose (n k)
-  (equal (calcFunc-choose n k)
-         (calc-tests--choose n k)))
-
-(defun calc-tests--explain-choose (n k)
-  (let ((got (calcFunc-choose n k))
-        (expected (calc-tests--choose n k)))
-    (format "(calcFunc-choose %d %d) => %S, expected %S" n k got expected)))
-
-(put 'calc-tests--check-choose 'ert-explainer 'calc-tests--explain-choose)
-
 (defun calc-tests--calc-to-number (x)
   "Convert a Calc object to a Lisp number."
   (pcase x
@@ -440,23 +433,25 @@ An existing calc stack is reused, otherwise a new one is created."
 
 (ert-deftest calc-choose ()
   "Test computation of binomial coefficients (bug#16999)."
-  ;; Integral arguments
-  (dolist (n (number-sequence -6 6))
-    (dolist (k (number-sequence -6 6))
-      (should (calc-tests--check-choose n k))))
+  (let ((calc-display-working-message nil))
+    ;; Integral arguments
+    (dolist (n (number-sequence -6 6))
+      (dolist (k (number-sequence -6 6))
+        (should (equal (calcFunc-choose n k)
+                       (calc-tests--choose n k)))))
 
-  ;; Fractional n, natural k
-  (should (equal (calc-tests--calc-to-number
-                  (calcFunc-choose '(frac 15 2) 3))
-                 (calc-tests--choose 7.5 3)))
+    ;; Fractional n, natural k
+    (should (equal (calc-tests--calc-to-number
+                    (calcFunc-choose '(frac 15 2) 3))
+                   (calc-tests--choose 7.5 3)))
 
-  (should (equal (calc-tests--calc-to-number
-                  (calcFunc-choose '(frac 1 2) 2))
-                 (calc-tests--choose 0.5 2)))
+    (should (equal (calc-tests--calc-to-number
+                    (calcFunc-choose '(frac 1 2) 2))
+                   (calc-tests--choose 0.5 2)))
 
-  (should (equal (calc-tests--calc-to-number
-                  (calcFunc-choose '(frac -15 2) 3))
-                 (calc-tests--choose -7.5 3))))
+    (should (equal (calc-tests--calc-to-number
+                    (calcFunc-choose '(frac -15 2) 3))
+                   (calc-tests--choose -7.5 3)))))
 
 (ert-deftest calc-business-days ()
   (cl-flet ((m (s) (math-parse-date s))
