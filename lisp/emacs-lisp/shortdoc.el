@@ -297,6 +297,7 @@ There can be any number of :example/:result elements."
    :no-eval (file-chase-links "/tmp/foo/bar")
    :eg-result "/tmp/foo/zot")
   (vc-responsible-backend
+   :args (file &optional no-error)
    :no-eval (vc-responsible-backend "/src/foo/bar.c")
    :eg-result Git)
   (file-acl
