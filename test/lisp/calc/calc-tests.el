@@ -636,6 +636,25 @@ An existing calc stack is reused, otherwise a new one is created."
         (should (equal (calcFunc-rot x n w)
                        (calc-tests--rot x n w)))))))
 
+(ert-deftest calc-latex-input ()
+  ;; Check precedence of "/" in LaTeX input mode.
+  (should (equal (math-read-exprs "a+b/c*d")
+                 '((+ (var a var-a) (/ (var b var-b)
+                                       (* (var c var-c) (var d var-d)))))))
+  (unwind-protect
+      (progn
+        (calc-set-language 'latex)
+        (should (equal (math-read-exprs "a+b/c*d")
+                 '((+ (var a var-a) (/ (var b var-b)
+                                       (* (var c var-c) (var d var-d)))))))
+        (should (equal (math-read-exprs "a+b\\over c*d")
+                       '((/ (+ (var a var-a) (var b var-b))
+                            (* (var c var-c) (var d var-d))))))
+        (should (equal (math-read-exprs "a/b/c")
+                       '((/ (/ (var a var-a) (var b var-b))
+                            (var c var-c))))))
+    (calc-set-language nil)))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
