@@ -38,14 +38,14 @@
                :background "#303030" :extend t))
     (((class color) (background light))
      (:inherit variable-pitch
-               :background "#d0d0d0" :extend t)))
+               :background "#f0f0f0" :extend t)))
   "Face used for a section.")
 
 (defface shortdoc-example
   '((((class color) (background dark))
      (:background "#202020" :extend t))
     (((class color) (background light))
-     (:background "#c0c0c0" :extend t)))
+     (:background "#e8e8e8" :extend t)))
   "Face used for examples.")
 
 (defvar shortdoc--groups nil)
