@@ -40,7 +40,7 @@
 (defvar help-fns-describe-function-functions nil
   "List of functions to run in help buffer in `describe-function'.
 Those functions will be run after the header line and argument
-list was inserted, and before the documentation is be inserted.
+list was inserted, and before the documentation is inserted.
 The functions will be called with one argument: the function's symbol.
 They can assume that a newline was output just before they were called,
 and they should terminate any of their own output with a newline.
