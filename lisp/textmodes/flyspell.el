@@ -539,7 +539,6 @@ in your init file.
 			                  ispell-dictionary
                                           "--")
                                       0 2)))
-              face bold
               help-echo "mouse-1: Change dictionary"
               local-map (keymap
                          (mode-line keymap
