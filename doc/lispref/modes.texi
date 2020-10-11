@@ -35,10 +35,11 @@ user.  For related topics such as keymaps and syntax tables, see
 @section Hooks
 @cindex hooks
 
-  A @dfn{hook} is a variable where you can store a function or functions
-to be called on a particular occasion by an existing program.  Emacs
-provides hooks for the sake of customization.  Most often, hooks are set
-up in the init file (@pxref{Init File}), but Lisp programs can set them also.
+  A @dfn{hook} is a variable where you can store a function or
+functions (@pxref{What Is a Function}) to be called on a particular
+occasion by an existing program.  Emacs provides hooks for the sake of
+customization.  Most often, hooks are set up in the init file
+(@pxref{Init File}), but Lisp programs can set them also.
 @xref{Standard Hooks}, for a list of some standard hook variables.
 
 @cindex normal hook
@@ -56,27 +57,36 @@ minor mode functions also run a mode hook at the end.  But hooks are
 used in other contexts too.  For example, the hook @code{suspend-hook}
 runs just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
-  The recommended way to add a hook function to a hook is by calling
-@code{add-hook} (@pxref{Setting Hooks}).  The hook functions may be any
-of the valid kinds of functions that @code{funcall} accepts (@pxref{What
-Is a Function}).  Most normal hook variables are initially void;
-@code{add-hook} knows how to deal with this.  You can add hooks either
-globally or buffer-locally with @code{add-hook}.
-
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
 indicates it is probably an @dfn{abnormal hook}.  That means the hook
 functions are called with arguments, or their return values are used
 in some way.  The hook's documentation says how the functions are
-called.  You can use @code{add-hook} to add a function to an abnormal
-hook, but you must write the function to follow the hook's calling
-convention.  By convention, abnormal hook names end in @samp{-functions}.
+called.  Any functions added to an abnormal hook must follow the
+hook's calling convention.  By convention, abnormal hook names end in
+@samp{-functions}.
 
 @cindex single-function hook
-If the variable's name ends in @samp{-function}, then its value is
-just a single function, not a list of functions.  @code{add-hook} cannot be
-used to modify such a @emph{single function hook}, and you have to use
-@code{add-function} instead (@pxref{Advising Functions}).
+If the name of the variable ends in @samp{-predicate} or
+@samp{-function} (singular) then its value must be a function, not a
+list of functions.  As with abnormal hooks, the expected arguments and
+meaning of the return value vary across such @emph{single function
+hooks}.  The details are explained in each variable's docstring.
+
+  Since hooks (both multi and single function) are variables, their
+values can be modified with @code{setq} or temporarily with
+@code{let}.  However, it is often useful to add or remove a particular
+function from a hook while preserving any other functions it might
+have.  For multi function hooks, the recommended way of doing this is
+with @code{add-hook} and @code{remove-hook} (@pxref{Setting Hooks}).
+Most normal hook variables are initially void; @code{add-hook} knows
+how to deal with this.  You can add hooks either globally or
+buffer-locally with @code{add-hook}.  For hooks which hold only a
+single function, @code{add-hook} is not appropriate, but you can use
+@code{add-function} (@pxref{Advising Functions}) to combine new
+functions with the hook.  Note that some single function hooks may be
+@code{nil} which @code{add-function} cannot deal with, so you must
+check for that before calling @code{add-function}.
 
 @menu
 * Running Hooks::    How to run a hook.
