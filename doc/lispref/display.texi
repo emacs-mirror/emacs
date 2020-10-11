@@ -3677,7 +3677,7 @@ does that, this function's value may not be accurate.
 
 This function may return non-@code{nil} even when there is no font
 available, since it also checks whether the coding system for the text
-terminal can encode the character (@pxref{Terminal Coding}).
+terminal can encode the character (@pxref{Terminal I/O Encoding}).
 @end defun
 
 @node Low-Level Font
