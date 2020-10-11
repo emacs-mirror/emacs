@@ -935,6 +935,7 @@ There can be any number of :example/:result elements."
   (sqrt
    :eval (sqrt -1)))
 
+;;;###autoload
 (defun shortdoc-display-group (group)
   "Pop to a buffer and display short documentation for functions in GROUP."
   (interactive (list (completing-read "Show functions in: "
