@@ -1,4 +1,4 @@
-;;; url-domsuf.el --- Say what domain names can have cookies set.
+;;; url-domsuf.el --- Say what domain names can have cookies set.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; The rules for what domains can have cookies set is defined here:
-;; http://publicsuffix.org/list/
+;; https://publicsuffix.org/list/
 
 ;;; Code:
 
