@@ -87,17 +87,6 @@
 	(setq allowedp nil))))
     allowedp))
 
-;; Tests:
-
-;; TODO convert to a proper test.
-;; (url-domsuf-cookie-allowed-p "com") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.bd") => t
-;; (url-domsuf-cookie-allowed-p "bar.bd") => nil
-;; (url-domsuf-cookie-allowed-p "co.uk") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.hokkaido.jo") => t
-;; (url-domsuf-cookie-allowed-p "bar.yokohama.jp") => nil
-;; (url-domsuf-cookie-allowed-p "city.yokohama.jp") => t
-
 (provide 'url-domsuf)
 
 ;;; url-domsuf.el ends here
