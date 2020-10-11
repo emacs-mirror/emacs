@@ -1881,6 +1881,9 @@ they ran"))
     (bindings--define-key menu [describe-function]
       '(menu-item "Describe Function..." describe-function
                   :help "Display documentation of function/command"))
+    (bindings--define-key menu [shortdoc-display-group]
+      '(menu-item "Function Group Overview..." shortdoc-display-group
+                  :help "Display a function overview for a specific topic"))
     (bindings--define-key menu [describe-key-1]
       '(menu-item "Describe Key or Mouse Operation..." describe-key
                   ;; Users typically don't identify keys and menu items...
