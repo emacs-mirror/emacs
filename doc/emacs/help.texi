@@ -275,6 +275,13 @@ name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
 
+@findex shortdoc-display-group
+  You can get an overview of functions relevant for a particular topic
+by using the @kbd{M-x shortdoc-display-group} command.  This will
+prompt you for an area of interest, e.g., @code{string}, and pop you
+to a buffer where many of the functions relevant for handling strings
+are listed.
+
 @kindex C-h v
 @findex describe-variable
   @kbd{C-h v} (@code{describe-variable}) is like @kbd{C-h f} but
