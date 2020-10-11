@@ -983,7 +983,13 @@ There can be any number of :example/:result elements."
     (insert "\n")
     (add-face-text-property start-section (point) 'shortdoc-section t)
     (let ((start (point))
-          (print-escape-newlines t))
+          (print-escape-newlines t)
+          (double-arrow (if (char-displayable-p ?⇒)
+                            "⇒"
+                          "=>"))
+          (single-arrow (if (char-displayable-p ?→)
+                            "→"
+                          "->")))
       (cl-loop for (type value) on data by #'cddr
                do
                (cl-case type
@@ -993,7 +999,7 @@ There can be any number of :example/:result elements."
                     (insert "  ")
                     (prin1 value (current-buffer))
                     (insert "\n")
-                    (insert "    => ")
+                    (insert "    " double-arrow " ")
                     (prin1 (eval value) (current-buffer))
                     (insert "\n")))
                  (:no-eval*
@@ -1001,7 +1007,7 @@ There can be any number of :example/:result elements."
                       (insert "  " value "\n")
                     (insert "  ")
                     (prin1 value (current-buffer)))
-                  (insert "\n    -> "
+                  (insert "\n    " single-arrow " "
                           (propertize "[it depends]"
                                       'face 'variable-pitch)
                           "\n"))
@@ -1018,19 +1024,19 @@ There can be any number of :example/:result elements."
                     (prin1 value (current-buffer)))
                   (insert "\n"))
                  (:result
-                  (insert "    => ")
+                  (insert "    " double-arrow " ")
                   (prin1 value (current-buffer))
                   (insert "\n"))
                  (:result-string
-                  (insert "    => ")
+                  (insert "    " double-arrow " ")
                   (princ value (current-buffer))
                   (insert "\n"))
                  (:eg-result
-                  (insert "    eg. => ")
+                  (insert "    eg. " double-arrow " ")
                   (prin1 value (current-buffer))
                   (insert "\n"))
                  (:eg-result-string
-                  (insert "    eg. => ")
+                  (insert "    eg. " double-arrow " ")
                   (princ value (current-buffer))
                   (insert "\n"))))
       (put-text-property start (point) 'face 'shortdoc-example))
