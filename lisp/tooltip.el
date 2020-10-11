@@ -1,4 +1,4 @@
-;;; tooltip.el --- show tooltip windows
+;;; tooltip.el --- show tooltip windows  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997, 1999-2020 Free Software Foundation, Inc.
 
