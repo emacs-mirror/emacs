@@ -85,6 +85,13 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
++++
+*** A new system for displaying documentation for groups of function is added.
+This can either be used by saying 'M-x short-documentation-group' and
+choosing a group, or clicking a button in the *Help* buffers when
+looking at the doc string of a function that belongs to one of these
+groups.
+
 *** New var 'redisplay-skip-initial-frame' to enable batch redisplay tests.
 Setting it to nil forces the redisplay to do its job even in the
 initial frame used in batch mode.

@@ -659,6 +659,39 @@ FILE is the file where FUNCTION was probably defined."
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
                         first))))))
 
+(declare-function shortdoc-display-group "shortdoc")
+(declare-function shortdoc-function-groups "shortdoc")
+
+(add-hook 'help-fns-describe-function-functions
+          #'help-fns--mention-shortdoc-groups)
+(defun help-fns--mention-shortdoc-groups (object)
+  (require 'shortdoc)
+  (when-let ((groups (and (symbolp object)
+                          (shortdoc-function-groups object))))
+    (let ((start (point))
+          (times 0))
+      (with-current-buffer standard-output
+        (insert "  Other relevant functions are documented in the ")
+        (mapc
+         (lambda (group)
+           (when (> times 0)
+             (insert (if (= times (1- (length groups)))
+                         " and "
+                       ", ")))
+           (setq times (1+ times))
+           (insert-text-button
+            (symbol-name group)
+            'action (lambda (_)
+                      (shortdoc-display-group group))))
+         groups)
+        (insert (if (= (length groups) 1)
+                    " group.\n"
+                  " groups.\n")))
+      (save-restriction
+        (narrow-to-region start (point))
+        (fill-region-as-paragraph (point-min) (point-max))
+        (goto-char (point-max))))))
+
 (defun help-fns-short-filename (filename)
   (let* ((abbrev (abbreviate-file-name filename))
          (short abbrev))
