@@ -2535,6 +2535,8 @@ is bound to outside of Isearch."
     (let ((pasted-text (nth 1 event)))
       (isearch-yank-string pasted-text))))
 
+(defvar isearch--yank-prev-point nil)
+
 (defun isearch-yank-internal (jumpform)
   "Pull the text from point to the point reached by JUMPFORM.
 JUMPFORM is a lambda expression that takes no arguments and returns
@@ -2545,7 +2547,14 @@ or it might return the position of the end of the line."
    (save-excursion
      (and (not isearch-forward) isearch-other-end
 	  (goto-char isearch-other-end))
-     (buffer-substring-no-properties (point) (funcall jumpform)))))
+     (and (not isearch-success) isearch--yank-prev-point
+	  (goto-char isearch--yank-prev-point))
+     (buffer-substring-no-properties
+      (point)
+      (prog1
+	  (setq isearch--yank-prev-point (funcall jumpform))
+	(when isearch-success
+	  (setq isearch--yank-prev-point nil)))))))
 
 (defun isearch-yank-char-in-minibuffer (&optional arg)
   "Pull next character from buffer into end of search string in minibuffer."
