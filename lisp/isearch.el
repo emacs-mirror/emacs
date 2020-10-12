@@ -3451,10 +3451,10 @@ Optional third argument, if t, means if fail just return nil (no error).
 			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
-	(setq isearch-match-data (match-data t))
-	(if isearch-success
-	    (setq isearch-other-end
-		  (if isearch-forward (match-beginning 0) (match-end 0)))))
+	(when isearch-success
+	  (setq isearch-other-end
+		(if isearch-forward (match-beginning 0) (match-end 0)))
+          (setq isearch-match-data (match-data t))))
 
     (quit (isearch-unread ?\C-g)
 	  (setq isearch-success nil))
