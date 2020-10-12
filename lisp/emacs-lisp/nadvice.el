@@ -316,6 +316,8 @@ is also interactive.  There are 3 cases:
   `(advice--add-function ,where (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
+(declare-function comp-subr-trampoline-install "comp")
+
 ;;;###autoload
 (defun advice--add-function (where ref function props)
   (when (and (featurep 'nativecomp)
