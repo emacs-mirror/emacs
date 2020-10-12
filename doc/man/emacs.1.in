@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2007 April 13" "GNU Emacs @version@"
+.TH EMACS 1 "2020-04-05" "GNU Emacs @version@" "GNU"
 .
 .
 .SH NAME
@@ -673,3 +673,7 @@ document into another language, under the above conditions for
 modified versions, except that this permission notice may be stated
 in a translation approved by the Free Software Foundation.
 .
+
+.\" Local Variables:
+.\" time-stamp-pattern: "3/.TH EMACS 1 \"%Y-%02m-%02d\" \"GNU Emacs @version@\" \"GNU\"$"
+.\" End:
