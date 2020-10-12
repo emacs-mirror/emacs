@@ -1480,24 +1480,26 @@ the annotation emission."
          (f (gethash c-name (comp-ctxt-funcs-h comp-ctxt)))
          (args (comp-prepare-args-for-top-level f)))
     (cl-assert (and name f))
-    (comp-emit (comp-call (if for-late-load
-                              'comp--late-register-subr
-                            'comp--register-subr)
-                          (make-comp-mvar :constant name)
-                          (car args)
-                          (cdr args)
-                          (make-comp-mvar :constant c-name)
-                          (make-comp-mvar
-                           :constant
-                           (let* ((h (comp-ctxt-function-docs comp-ctxt))
-                                  (i (hash-table-count h)))
-                             (puthash i (comp-func-doc f) h)
-                             i))
-                          (make-comp-mvar :constant
-                                          (comp-func-int-spec f))
-                          ;; This is the compilation unit it-self passed as
-                          ;; parameter.
-                          (make-comp-mvar :slot 0)))))
+    (comp-emit
+     `(set ,(make-comp-mvar :slot 1)
+           ,(comp-call (if for-late-load
+                           'comp--late-register-subr
+                         'comp--register-subr)
+                       (make-comp-mvar :constant name)
+                       (car args)
+                       (cdr args)
+                       (make-comp-mvar :constant c-name)
+                       (make-comp-mvar
+                        :constant
+                        (let* ((h (comp-ctxt-function-docs comp-ctxt))
+                               (i (hash-table-count h)))
+                          (puthash i (comp-func-doc f) h)
+                          i))
+                       (make-comp-mvar :constant
+                                       (comp-func-int-spec f))
+                       ;; This is the compilation unit it-self passed as
+                       ;; parameter.
+                       (make-comp-mvar :slot 0))))))
 
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level)
                                        for-late-load)
@@ -1558,7 +1560,12 @@ into the C code forwarding the compilation unit."
                                              "late_top_level_run"
                                            "top_level_run")
                                  :args (make-comp-args :min 1 :max 1)
-                                 :frame-size 1
+                                 ;; Frame is 2 wide: Slot 0 is the
+                                 ;; compilation unit being loaded
+                                 ;; (incoming parameter).  Slot 1 is
+                                 ;; the last function being
+                                 ;; registered.
+                                 :frame-size 2
                                  :speed comp-speed))
          (comp-func func)
          (comp-pass (make-comp-limplify
@@ -1575,7 +1582,7 @@ into the C code forwarding the compilation unit."
              (comp-ctxt-byte-func-to-func-h comp-ctxt))
     (mapc (lambda (x) (comp-emit-for-top-level x for-late-load))
           (comp-ctxt-top-level-forms comp-ctxt))
-    (comp-emit `(return ,(make-comp-mvar :constant t)))
+    (comp-emit `(return ,(make-comp-mvar :slot 1)))
     (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
     (comp-limplify-finalize-function func)))
 

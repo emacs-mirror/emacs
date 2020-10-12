@@ -4768,10 +4768,11 @@ unset_cu_load_ongoing (Lisp_Object comp_u)
   XNATIVE_COMP_UNIT (comp_u)->load_ongoing = false;
 }
 
-void
+Lisp_Object
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 		bool late_load)
 {
+  Lisp_Object res = Qnil;
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object comp_u_lisp_obj;
   XSETNATIVE_COMP_UNIT (comp_u_lisp_obj, comp_u);
@@ -4897,7 +4898,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	}
       /* Executing this will perform all the expected environment
 	 modifications.  */
-      top_level_run (comp_u_lisp_obj);
+      res = top_level_run (comp_u_lisp_obj);
       /* Make sure data_ephemeral_vec still exists after top_level_run has run.
 	 Guard against sibling call optimization (or any other).  */
       data_ephemeral_vec = data_ephemeral_vec;
@@ -4910,7 +4911,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
   register_native_comp_unit (comp_u_lisp_obj);
 
-  return;
+  return res;
 }
 
 Lisp_Object
@@ -5090,9 +5091,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   comp_u->data_vec = Qnil;
   comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
   comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
-  load_comp_unit (comp_u, false, !NILP (late_load));
-
-  return Qt;
+  return load_comp_unit (comp_u, false, !NILP (late_load));
 }
 
 #endif /* HAVE_NATIVE_COMP */
