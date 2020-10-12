@@ -178,6 +178,8 @@ See the functions `find-function' and `find-variable'."
             (setq name rel))))
     (unless (equal name library) name)))
 
+(defvar comp-eln-to-el-h)
+
 (defun find-library-name (library)
   "Return the absolute file name of the Emacs Lisp source of LIBRARY.
 LIBRARY should be a string (the name of the library)."

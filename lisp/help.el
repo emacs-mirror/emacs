@@ -1320,6 +1320,8 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
                   (error "Unrecognized usage format"))
 	      (help--make-usage-docstring 'fn arglist)))))
 
+(declare-function subr-native-lambda-list "data.c")
+
 (defun help-function-arglist (def &optional preserve-names)
   "Return a formal argument list for the function DEF.
 If PRESERVE-NAMES is non-nil, return a formal arglist that uses

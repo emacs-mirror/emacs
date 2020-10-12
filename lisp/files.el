@@ -900,6 +900,8 @@ recursion."
 		       (read-file-name "Load file: " nil nil 'lambda))))
   (load (expand-file-name file) nil nil t))
 
+(defvar comp-eln-to-el-h)
+
 (defun locate-file (filename path &optional suffixes predicate)
   "Search for FILENAME through PATH.
 If found, return the absolute file name of FILENAME; otherwise
