@@ -267,7 +267,7 @@ which is the \"1006\" extension implemented in Xterm >= 277."
                                                     (eq y 1)))
                                            'tab-bar
                                          'menu-bar))
-                             (nthcdr 2 (posn-at-x-y x y)))))
+                             (nthcdr 2 (posn-at-x-y x y (selected-frame))))))
              (event (list type posn)))
         (setcar (nthcdr 3 posn) timestamp)
 

@@ -2672,6 +2672,12 @@ EVENT should be a mouse down or click event.
 Also see `menu-bar-open', which this calls.
 This command is to be used when you click the mouse in the menubar."
   (interactive "e")
+  ;; This only should be bound to clicks on the menu-bar, outside of
+  ;; any window.
+  (let ((window (posn-window (event-start event))))
+    (when window
+      (error "Event is inside window %s" window)))
+
   (let* ((x-position (car (posn-x-y (event-start event))))
          (menu-bar-item-cons (menu-bar-item-at-x x-position)))
     (menu-bar-open nil
