@@ -1957,6 +1957,11 @@ image API via 'M-x report-emacs-bug'.
 ---
 ** The user option 'make-pointer-invisible' is now honored on macOS.
 
+--
+** On macOS, 's-<left>' and 's-<right>' are now bound to
+'move-beginning-of-line' and 'move-end-of-line' respectively. The commands
+to select previous/next frame are still bound to 's-~' and 's-`'.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
