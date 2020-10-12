@@ -2854,12 +2854,16 @@ display a message."
 ;;;###autoload
 (defun native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
-This is the entry-point for the Emacs Lisp native compiler.
-FUNCTION-OR-FILE is a function symbol or a path to an Elisp file.
-When WITH-LATE-LOAD non-nil mark the compilation unit for late load
-once finished compiling (internal use only).
-When OUTPUT is non-nil use it as filename for the compiled object.
-Return the compile object filename."
+This is the syncronous entry-point for the Emacs Lisp native
+compiler.
+FUNCTION-OR-FILE is a function symbol, a form or the
+filename of an Emacs Lisp source file.
+When WITH-LATE-LOAD non-nil mark the compilation unit for late
+load once finished compiling (internal use only).  When OUTPUT is
+non-nil use it as filename for the compiled object.
+If FUNCTION-OR-FILE is a filename return the filename of the
+compiled object.  If FUNCTION-OR-FILE is a function symbol or a
+form return the compiled function."
   (comp-ensure-native-compiler)
   (unless (or (functionp function-or-file)
               (stringp function-or-file))
@@ -2888,7 +2892,10 @@ Return the compile object filename."
 	 (signal (car err) (if (consp err-val)
 			       (cons function-or-file err-val)
 			     (list function-or-file err-val))))))
-    data))
+    (if (stringp function-or-file)
+        data
+      ;; So we return the compiled function.
+      (native-elisp-load data))))
 
 ;;;###autoload
 (defun batch-native-compile ()

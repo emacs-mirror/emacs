@@ -359,7 +359,7 @@ Check that the resulting binaries do not differ."
            (interactive)
            3)
         t)
-  (load (native-compile #'comp-tests-free-fun-f))
+  (native-compile #'comp-tests-free-fun-f)
 
   (should (subr-native-elisp-p (symbol-function #'comp-tests-free-fun-f)))
   (should (= (comp-tests-free-fun-f) 3))
@@ -692,7 +692,7 @@ CHECKER should always return nil to have a pass."
                  b
                (comp-tests-tco-f (+ a b) a (- count 1))))
           t)
-    (load (native-compile #'comp-tests-tco-f))
+    (native-compile #'comp-tests-tco-f)
     (should (subr-native-elisp-p (symbol-function #'comp-tests-tco-f)))
     (should (= (comp-tests-tco-f 1 0 10) 55))))
 
@@ -714,7 +714,7 @@ CHECKER should always return nil to have a pass."
 	            (c (concat a b))) ; <= has to optimize
                (length c))) ; <= has to optimize
           t)
-    (load (native-compile #'comp-tests-fw-prop-1-f))
+    (native-compile #'comp-tests-fw-prop-1-f)
     (should (subr-native-elisp-p (symbol-function #'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
