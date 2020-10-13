@@ -2622,7 +2622,15 @@ keyboard-quit events while waiting for a valid input."
 	  (unless (get-text-property 0 'face prompt)
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		       (read-key prompt)))
+		       (read-char-from-minibuffer
+                        prompt
+                        ;; If we have a dynamically bound `help-form'
+                        ;; here, then the `C-h' (i.e., `help-char')
+                        ;; character should output that instead of
+                        ;; being a command char.
+                        (if help-form
+                            (cons help-char chars)
+                          chars))))
 	  (and show-help (buffer-live-p (get-buffer helpbuf))
 	       (kill-buffer helpbuf))
 	  (cond
