@@ -2598,13 +2598,9 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Primitive funciton advice machinery
 
-(defsubst comp-trampoline-sym (subr-name)
-  "Given SUBR-NAME return the trampoline function name."
-  (intern (concat "--subr-trampoline-" (symbol-name subr-name))))
-
 (defsubst comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
-  (concat (comp-c-func-name subr-name "subr-trampoline-" t) ".eln"))
+  (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
 
 (defun comp-make-lambda-list-from-subr (subr)
   "Given SUBR return the equivalent lambda-list."
@@ -2621,39 +2617,38 @@ Prepare every function for final compilation and drive the C back-end."
       (push (gensym "arg") lambda-list))
     (reverse lambda-list)))
 
-(defun comp-search-trampoline (subr-name)
+(defun comp-trampoline-search (subr-name)
   "Search a trampoline file for SUBR-NAME.
-Return the its filename if found or nil otherwise."
+Return the trampoline if found or nil otherwise."
   (cl-loop
    with rel-filename = (comp-trampoline-filename subr-name)
    for dir in comp-eln-load-path
    for filename = (expand-file-name rel-filename
                                     (concat dir comp-native-version-dir))
    when (file-exists-p filename)
-     do (cl-return filename)))
+     do (cl-return (native-elisp-load filename))))
 
 (defun comp-trampoline-compile (subr-name)
-  "Synthesize and compile a trampoline for SUBR-NAME and return its filename."
-  (let ((trampoline-sym (comp-trampoline-sym subr-name))
-        (lambda-list (comp-make-lambda-list-from-subr
-                      (symbol-function subr-name)))
-        ;; Use speed 0 to maximize compilation speed and not to
-        ;; optimize away funcall calls!
-        (byte-optimize nil)
-        (comp-speed 0))
-    ;; The synthesized trampoline must expose the exact same ABI of
-    ;; the primitive we are replacing in the function reloc table.
-    (defalias trampoline-sym
-      `(closure nil ,lambda-list
-                (let ((f #',subr-name))
-                  (,(if (memq '&rest lambda-list) #'apply 'funcall)
-                   f
-                   ,@(cl-loop
-                      for arg in lambda-list
-                      unless (memq arg '(&optional &rest))
-                      collect arg)))))
+  "Synthesize compile and return a trampoline for SUBR-NAME."
+  (let* ((lambda-list (comp-make-lambda-list-from-subr
+                       (symbol-function subr-name)))
+         ;; The synthesized trampoline must expose the exact same ABI of
+         ;; the primitive we are replacing in the function reloc table.
+         (form `(lambda ,lambda-list
+                  (let ((f #',subr-name))
+                    (,(if (memq '&rest lambda-list) #'apply 'funcall)
+                     f
+                     ,@(cl-loop
+                        for arg in lambda-list
+                        unless (memq arg '(&optional &rest))
+                        collect arg)))))
+         ;; Use speed 0 to maximize compilation speed and not to
+         ;; optimize away funcall calls!
+         (byte-optimize nil)
+         (comp-speed 0)
+         (lexical-binding t))
     (native-compile
-     trampoline-sym nil
+     form nil
      (cl-loop
       for load-dir in comp-eln-load-path
       for dir = (concat load-dir comp-native-version-dir)
@@ -2674,14 +2669,13 @@ Return the its filename if found or nil otherwise."
   "Make SUBR-NAME effectively advice-able when called from native code."
   (unless (or (memq subr-name comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
-    (let ((trampoline-sym (comp-trampoline-sym subr-name)))
-      (cl-assert (subr-primitive-p (symbol-function subr-name)))
-      (load (or (comp-search-trampoline subr-name)
-                (comp-trampoline-compile subr-name))
-            nil t)
-      (cl-assert
-       (subr-native-elisp-p (symbol-function trampoline-sym)))
-      (comp--install-trampoline subr-name (symbol-function trampoline-sym)))))
+    (cl-assert (subr-primitive-p (symbol-function subr-name)))
+    (comp--install-trampoline
+     subr-name
+     (or (comp-trampoline-search subr-name)
+         (comp-trampoline-compile subr-name)
+         ;; Should never happen.
+         (cl-assert nil)))))
 
 
 ;; Some entry point support code.

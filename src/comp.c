@@ -4158,7 +4158,7 @@ DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,
       if (EQ (subr, orig_subr))
 	{
 	  freloc.link_table[i] = XSUBR (trampoline)->function.a0;
-	  Fputhash (subr_name, Qt, Vcomp_installed_trampolines_h);
+	  Fputhash (subr_name, trampoline, Vcomp_installed_trampolines_h);
 	  return Qt;
 	}
       i++;
@@ -5296,7 +5296,9 @@ The last directory of this list is assumed to be the system one.  */);
 		       redefinable effectivelly.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
-	       doc: /* Hash table subr-name -> bool.  */);
+	       doc: /* Hash table subr-name -> installed trampoline.
+This is used to prevent double trampoline instantiation but also to
+protect the trampolines against GC.  */);
   Vcomp_installed_trampolines_h = CALLN (Fmake_hash_table);
 
   Fprovide (intern_c_string ("nativecomp"), Qnil);
