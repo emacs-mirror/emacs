@@ -562,6 +562,11 @@ skipped.
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
+---
+*** New keybinding in 'help-for-help' to display a manual.
+The 'R' keybinding after 'C-h C-h' will prompt for a manual name and
+then display it.
+
 +++
 ** New command 'lossage-size'.
 It allows users to set the maximum number of keystrokes and commands

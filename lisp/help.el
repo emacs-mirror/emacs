@@ -101,6 +101,7 @@
     (define-key map "p" 'finder-by-keyword)
     (define-key map "P" 'describe-package)
     (define-key map "r" 'info-emacs-manual)
+    (define-key map "R" 'info-display-manual)
     (define-key map "s" 'describe-syntax)
     (define-key map "t" 'help-with-tutorial)
     (define-key map "w" 'where-is)
@@ -223,6 +224,7 @@ o SYMBOL    Display the given function or variable's documentation and value.
 p TOPIC     Find packages matching a given topic keyword.
 P PACKAGE   Describe the given Emacs Lisp package.
 r           Display the Emacs manual in Info mode.
+R           Prompt for a manual and then display it in Info mode.
 s           Display contents of current syntax table, plus explanations.
 S SYMBOL    Show the section for the given symbol in the Info manual
               for the programming language used in this buffer.
