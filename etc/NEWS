@@ -1108,6 +1108,10 @@ operations such as shifts and bitwise XOR.  A word size of zero, set
 by 'b w', makes the operation have effect on the whole argument values
 and the result is not truncated in any way.
 
+---
+*** The '/' operator now has higher precedence in (La)TeX input mode.
+It no longer has lower precedence than '+' and '-'.
+
 ** term-mode
 
 ---
