@@ -179,7 +179,7 @@ in the file it applies to.")
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c" outline-mode-prefix-map)
     (define-key map [menu-bar] outline-mode-menu-bar-map)
-    ;; Only takes effect if the point is on a heading.
+    ;; Only takes effect if point is on a heading.
     (define-key map (kbd "TAB")
       `(menu-item "" outline-cycle
                   :filter ,(lambda (cmd)
