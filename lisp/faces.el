@@ -2637,9 +2637,9 @@ Use the face `mode-line-highlight' for features that can be selected."
   :version "21.1"
   :group 'basic-faces)
 
-(defface header-line-highlight '((t :inherit highlight))
+(defface header-line-highlight '((t :inherit mode-line-highlight))
   "Basic header line face for highlighting."
-  :version "26.1"
+  :version "28.1"
   :group 'basic-faces)
 
 (defface vertical-border
