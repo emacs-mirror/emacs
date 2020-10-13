@@ -1854,6 +1854,12 @@ raises the @code{overflow-error} error condition if @var{len} is
 negative or exceeds the maximum length of an Emacs string.
 @end deftypefn
 
+@deftypefn Function emacs_value make_unibyte_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{len})
+This function is like @code{make_string}, but has no restrictions on
+the values of the bytes in the C string, and can be used to pass
+binary data to Emacs in the form of a unibyte string.
+@end deftypefn
+
 The @acronym{API} does not provide functions to manipulate Lisp data
 structures, for example, create lists with @code{cons} and @code{list}
 (@pxref{Building Lists}), extract list members with @code{car} and

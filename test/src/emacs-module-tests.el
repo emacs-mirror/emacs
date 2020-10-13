@@ -500,4 +500,10 @@ See Bug#36226."
   (should (eq (mod-test-identity 123) 123))
   (should-not (call-interactively #'mod-test-identity)))
 
+(ert-deftest module/unibyte ()
+  (let ((result (mod-test-return-unibyte)))
+    (should (stringp result))
+    (should (not (multibyte-string-p (mod-test-return-unibyte))))
+    (should (equal result "foo\x00zot"))))
+
 ;;; emacs-module-tests.el ends here

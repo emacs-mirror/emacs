@@ -102,6 +102,11 @@
 			      const char *str, ptrdiff_t len)
     EMACS_ATTRIBUTE_NONNULL(1, 2);
 
+  /* Create a unibyte Lisp string from a string.  */
+  emacs_value (*make_unibyte_string) (emacs_env *env,
+				      const char *str, ptrdiff_t len)
+    EMACS_ATTRIBUTE_NONNULL(1, 2);
+
   /* Embedded pointer type.  */
   emacs_value (*make_user_ptr) (emacs_env *env,
 				void (*fin) (void *) EMACS_NOEXCEPT,

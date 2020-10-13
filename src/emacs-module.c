@@ -791,6 +791,18 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t len)
 }
 
 static emacs_value
+module_make_unibyte_string (emacs_env *env, const char *str, ptrdiff_t length)
+{
+  MODULE_FUNCTION_BEGIN (NULL);
+  if (! (0 <= length && length <= STRING_BYTES_BOUND))
+    overflow_error ();
+  Lisp_Object lstr = make_uninit_string (length);
+  memcpy (SDATA (lstr), str, length);
+  SDATA (lstr)[length] = 0;
+  return lisp_to_value (env, lstr);
+}
+
+static emacs_value
 module_make_user_ptr (emacs_env *env, emacs_finalizer fin, void *ptr)
 {
   MODULE_FUNCTION_BEGIN (NULL);
@@ -1464,6 +1476,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_float = module_make_float;
   env->copy_string_contents = module_copy_string_contents;
   env->make_string = module_make_string;
+  env->make_unibyte_string = module_make_unibyte_string;
   env->make_user_ptr = module_make_user_ptr;
   env->get_user_ptr = module_get_user_ptr;
   env->set_user_ptr = module_set_user_ptr;

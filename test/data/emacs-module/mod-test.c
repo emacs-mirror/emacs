@@ -268,6 +268,16 @@ Fmod_test_string_a_to_b (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
 }
 
 
+/* Return a unibyte string.  */
+static emacs_value
+Fmod_test_return_unibyte (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
+			  void *data)
+{
+  const char *string = "foo\x00zot";
+  return env->make_unibyte_string (env, string, 7);
+}
+
+
 /* Embedded pointers in lisp objects.  */
 
 /* C struct (pointer to) that will be embedded.  */
@@ -750,6 +760,7 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-globref-reordered", Fmod_test_globref_reordered, 0, 0, NULL,
          NULL);
   DEFUN ("mod-test-string-a-to-b", Fmod_test_string_a_to_b, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-return-unibyte", Fmod_test_return_unibyte, 0, 0, NULL, NULL);
   DEFUN ("mod-test-userptr-make", Fmod_test_userptr_make, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-get", Fmod_test_userptr_get, 1, 1, NULL, NULL);
   DEFUN ("mod-test-vector-fill", Fmod_test_vector_fill, 2, 2, NULL, NULL);
