@@ -46,7 +46,7 @@
   "Define a test for the native compiler tagging it as :nativecomp."
   (declare (indent defun)
            (doc-string 3))
-  `(ert-deftest ,(intern (concat "compt-tests-" (symbol-name name))) ,args
+  `(ert-deftest ,(intern (concat "comp-tests-" (symbol-name name))) ,args
      :tags '(:nativecomp)
      ,@docstring-and-body))
 
@@ -408,6 +408,17 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
                'xxx)))
     (should (eq (comp-test-primitive-redefine-f 10 2) 'xxx))
     (should (equal comp-test-primitive-redefine-args '(10 2)))))
+
+(comp-deftest compile-forms ()
+  "Verify lambda form native compilation."
+  (should-error (native-compile '(+ 1 foo)))
+  (let ((f (native-compile '(lambda (x) (1+ x)))))
+    (should (subr-native-elisp-p f))
+    (should (= (funcall f 2) 3)))
+  (let* ((lexical-binding nil)
+         (f (native-compile '(lambda (x) (1+ x)))))
+    (should (subr-native-elisp-p f))
+    (should (= (funcall f 2) 3))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
