@@ -3205,6 +3205,7 @@ face attributes (as specified by a `default' defface entry)."
   :convert-widget 'custom-face-edit-convert-widget
   :args (mapcar (lambda (att)
 		  (list 'group :inline t
+			:format "%v"
 			:sibling-args (widget-get (nth 1 att) :sibling-args)
 			(list 'const :format "" :value (nth 0 att))
 			(nth 1 att)))
