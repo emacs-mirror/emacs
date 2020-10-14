@@ -580,7 +580,7 @@ pfatal_with_name (char *name)
 static void
 pfatal_and_delete (char *name)
 {
-  char *s = strerror (errno);
+  const char *s = strerror (errno);
   unlink (name);
   fatal ("%s for %s", s, name);
 }
