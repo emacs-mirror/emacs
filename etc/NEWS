@@ -1163,6 +1163,11 @@ This is controlled by the 'search-highlight-submatches' user option.
 This feature is available only on terminals that have enough colors to
 distinguish between sub-expression highlighting.
 
++++
+*** Interactive regular expression replace now uses faces for sub-groups.
+Like 'search-highlight-submatches', this is controlled by the new user option
+'query-replace-highlight-submatches'.
+
 ---
 *** New user option 'reveal-auto-hide'.
 If non-nil (the default), revealed text is automatically hidden when

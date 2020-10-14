@@ -126,6 +126,18 @@ This variable affects only `query-replace-regexp'."
   :type 'boolean
   :group 'matching)
 
+(defcustom query-replace-highlight-submatches t
+  "Whether to highlight regexp subexpressions during query replacement.
+The faces used to do the highlights are named `isearch-group-1',
+`isearch-group-2', etc.  (By default, only these 2 are defined.)
+When there are more matches than faces, then faces are reused from the
+beginning, in a cyclical manner, so the `isearch-group-1' face is
+isreused for the third match.  If you want to use more distinctive colors,
+you can define more of these faces using the same numbering scheme."
+  :type 'boolean
+  :group 'matching
+  :version "28.1")
+
 (defcustom query-replace-lazy-highlight t
   "Controls the lazy-highlighting during query replacements.
 When non-nil, all text in the buffer matching the current match
@@ -2403,6 +2415,7 @@ It is called with three arguments, as if it were
     (funcall search-function search-string limit t)))
 
 (defvar replace-overlay nil)
+(defvar replace-submatches-overlays nil)
 
 (defun replace-highlight (match-beg match-end range-beg range-end
 			  search-string regexp-flag delimited-flag
@@ -2413,6 +2426,25 @@ It is called with three arguments, as if it were
 	(setq replace-overlay (make-overlay match-beg match-end))
 	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
+
+  (when (and query-replace-highlight-submatches
+	     regexp-flag)
+    (mapc 'delete-overlay replace-submatches-overlays)
+    (setq replace-submatches-overlays nil)
+    (let ((submatch-data (cddr (butlast (match-data t))))
+          (group 0)
+          ov face)
+      (while submatch-data
+        (setq group (1+ group))
+        (setq ov (make-overlay (pop submatch-data) (pop submatch-data))
+              face (intern-soft (format "isearch-group-%d" group)))
+        ;; Recycle faces from beginning.
+        (unless (facep face)
+          (setq group 1 face 'isearch-group-1))
+        (overlay-put ov 'face face)
+        (overlay-put ov 'priority 1002)
+        (push ov replace-submatches-overlays))))
+
   (if query-replace-lazy-highlight
       (let ((isearch-string search-string)
 	    (isearch-regexp regexp-flag)
@@ -2433,6 +2465,9 @@ It is called with three arguments, as if it were
 (defun replace-dehighlight ()
   (when replace-overlay
     (delete-overlay replace-overlay))
+  (when query-replace-highlight-submatches
+    (mapc 'delete-overlay replace-submatches-overlays)
+    (setq replace-submatches-overlays nil))
   (when query-replace-lazy-highlight
     (lazy-highlight-cleanup lazy-highlight-cleanup)
     (setq isearch-lazy-highlight-last-string nil))
