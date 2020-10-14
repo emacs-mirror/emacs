@@ -3259,16 +3259,16 @@
       (let ((math-solve-simplifying t))
 	(math-solve-system-rec exprs math-solve-vars nil)))))
 
-;;; The following backtracking solver works by choosing a variable
-;;; and equation, and trying to solve the equation for the variable.
-;;; If it succeeds it calls itself recursively with that variable and
-;;; equation removed from their respective lists, and with the solution
-;;; added to solns as well as being substituted into all existing
-;;; equations.  The algorithm terminates when any solution path
-;;; manages to remove all the variables from var-list.
+;; The following backtracking solver works by choosing a variable
+;; and equation, and trying to solve the equation for the variable.
+;; If it succeeds it calls itself recursively with that variable and
+;; equation removed from their respective lists, and with the solution
+;; added to solns as well as being substituted into all existing
+;; equations.  The algorithm terminates when any solution path
+;; manages to remove all the variables from `var-list'.
 
-;;; To support calcFunc-roots, entries in eqn-list and solns are
-;;; actually lists of equations.
+;; To support calcFunc-roots, entries in eqn-list and solns are
+;; actually lists of equations.
 
 ;; The variables math-solve-system-res and math-solve-system-vv are
 ;; local to math-solve-system-rec, but are used by math-solve-system-subst.
