@@ -1134,6 +1134,11 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
++++
+*** New user option 'tab-first-completion'.
+If 'tab-always-indent' is 'complete', this new option can be used to
+further tweak whether to complete or indent.
+
 ---
 *** 'zap-up-to-char' now uses 'read-char-from-minibuffer'.
 This allows navigating through the history of characters that have
