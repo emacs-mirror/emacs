@@ -1135,6 +1135,11 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 +++
+*** New user option 'next-error-message-highlight'.
+In addition to a fringe arrow, 'next-error' error may now optionally
+highlight the current error message in the 'next-error' buffer.
+
++++
 *** New user option 'tab-first-completion'.
 If 'tab-always-indent' is 'complete', this new option can be used to
 further tweak whether to complete or indent.
