@@ -1298,7 +1298,7 @@ main (int argc, char **argv)
 	      || (fcntl (STDIN_FILENO, F_DUPFD_CLOEXEC, STDOUT_FILENO)
 		  != STDOUT_FILENO))
 	    {
-	      char *errstring = strerror (errno);
+	      const char *errstring = strerror (errno);
 	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
 	      exit (EXIT_FAILURE);
 	    }

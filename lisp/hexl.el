@@ -93,7 +93,15 @@ as that will override any bit grouping options set here."
   "Face used in address area of Hexl mode buffer.")
 
 (defface hexl-ascii-region
-  '((t (:inherit header-line)))
+  ;; Copied from `header-line`.  We used to inherit from it, but that
+  ;; looks awful when the headerline is given a variable-pitch font or
+  ;; (even worse) a 3D look.
+  '((((class color grayscale) (background light))
+     :background "grey90" :foreground "grey20"
+     :box nil)
+    (((class color grayscale) (background dark))
+     :background "grey20" :foreground "grey90"
+     :box nil))
   "Face used in ASCII area of Hexl mode buffer.")
 
 (defvar-local hexl-max-address 0
@@ -209,10 +217,14 @@ as that will override any bit grouping options set here."
 (make-variable-buffer-local 'hexl-ascii-overlay)
 
 (defvar hexl-font-lock-keywords
-  '(("^\\([0-9a-f]+:\\).\\{40\\}  \\(.+$\\)"
-     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"
+  '(("^\\([0-9a-f]+:\\)\\( \\).\\{39\\}\\(  \\)\\(.+$\\)"
+     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"v
      (1 'hexl-address-region t t)
-     (2 'hexl-ascii-region t t)))
+     ;; If `hexl-address-region' is using a variable-pitch font, the
+     ;; rest of the line isn't naturally aligned, so align them by hand.
+     (2 '(face nil display (space :align-to 10)))
+     (3 '(face nil display (space :align-to 51)))
+     (4 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
 (defun hexl-rulerize (string bits)
@@ -362,6 +374,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
 
     (setq-local font-lock-defaults '(hexl-font-lock-keywords t))
+    (setq-local font-lock-extra-managed-props '(display))
 
     (setq-local revert-buffer-function #'hexl-revert-buffer-function)
     (add-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer nil t)

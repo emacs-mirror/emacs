@@ -2640,8 +2640,7 @@ Used for the `action' property of buttons in the buffer created by
     (when (y-or-n-p (format-message "Install package `%s'? "
                                     (package-desc-full-name pkg-desc)))
       (package-install pkg-desc nil)
-      (revert-buffer nil t)
-      (goto-char (point-min)))))
+      (describe-package (package-desc-name pkg-desc)))))
 
 (defun package-delete-button-action (button)
   "Run `package-delete' on the package BUTTON points to.
@@ -2651,8 +2650,7 @@ Used for the `action' property of buttons in the buffer created by
     (when (y-or-n-p (format-message "Delete package `%s'? "
                                     (package-desc-full-name pkg-desc)))
       (package-delete pkg-desc)
-      (revert-buffer nil t)
-      (goto-char (point-min)))))
+      (describe-package (package-desc-name pkg-desc)))))
 
 (defun package-keyword-button-action (button)
   "Show filtered \"*Packages*\" buffer for BUTTON.

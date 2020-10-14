@@ -3615,7 +3615,14 @@ Message buffers and is not meant to be called directly."
       (do-auto-fill))))
 
 (defun message-insert-signature (&optional force)
-  "Insert a signature.  See documentation for variable `message-signature'."
+  "Insert a signature at the end of the buffer.
+
+See the documentation for the `message-signature' variable for
+more information.
+
+If FORCE is 0 (or when called interactively), the global values
+of the signature variables will be consulted if the local ones
+are null."
   (interactive (list 0))
   (let ((message-signature message-signature)
 	(message-signature-file message-signature-file))

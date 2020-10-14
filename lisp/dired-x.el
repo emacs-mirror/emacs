@@ -1483,7 +1483,9 @@ a prefix argument, when it offers the filename near point as a default."
 ;;; Internal functions.
 
 ;; Fixme: This should probably use `thing-at-point'.  -- fx
-(defun dired-filename-at-point ()
+(define-obsolete-function-alias 'dired-filename-at-point
+  #'dired-x-guess-file-name-at-point "28.1")
+(defun dired-x-guess-file-name-at-point ()
   "Return the filename closest to point, expanded.
 Point should be in or after a filename."
   (save-excursion
@@ -1517,7 +1519,7 @@ Point should be in or after a filename."
   "Return filename prompting with PROMPT with completion.
 If `current-prefix-arg' is non-nil, uses name at point as guess."
   (if current-prefix-arg
-      (let ((guess (dired-filename-at-point)))
+      (let ((guess (dired-x-guess-file-name-at-point)))
         (read-file-name prompt
                         (file-name-directory guess)
                         guess

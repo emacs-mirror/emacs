@@ -1092,7 +1092,9 @@ This is an option for `diary-display-function'."
                 (if (calendar-date-equal date (car h))
                     (setq date-holiday-list (append date-holiday-list
                                                     (cdr h)))))
-              (insert (if (bobp) "" ?\n) (calendar-date-string date))
+              (insert (if (bobp) "" ?\n)
+                      (propertize (calendar-date-string date)
+                                  'font-lock-face 'diary))
               (if date-holiday-list (insert ":  "))
               (setq cc (current-column))
               (insert (mapconcat (lambda (x)
@@ -1100,7 +1102,10 @@ This is an option for `diary-display-function'."
                                    x)
                                  date-holiday-list
                                  (concat "\n" (make-string cc ?\s))))
-              (insert ?\n (make-string (+ cc longest) ?=) ?\n)))
+              (insert ?\n
+                      (propertize (make-string (+ cc longest) ?=)
+                                  'font-lock-face 'diary)
+                      ?\n)))
           (let ((this-entry (cadr entry))
                 this-loc marks temp-face)
             (unless (zerop (length this-entry))
@@ -2394,6 +2399,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 (defun diary-fancy-date-pattern ()
   "Return a regexp matching the first line of a fancy diary date header.
 This depends on the calendar date style."
+  (declare (obsolete nil "28.1"))
   (concat
    (calendar-dlet*
        ((dayname (diary-name-pattern calendar-day-name-array nil t))
@@ -2414,15 +2420,17 @@ This depends on the calendar date style."
 
 (defun diary-fancy-date-matcher (limit)
   "Search for a fancy diary data header, up to LIMIT."
+  (declare (obsolete nil "28.1"))
   ;; Any number of " other holiday name" lines, followed by "==" line.
-  (when (re-search-forward
-         (format "%s\\(\n +.*\\)*\n=+$" (diary-fancy-date-pattern)) limit t)
-    (put-text-property (match-beginning 0) (match-end 0) 'font-lock-multiline t)
-    t))
+  (with-suppressed-warnings ((obsolete diary-fancy-date-pattern))
+    (when (re-search-forward
+           (format "%s\\(\n +.*\\)*\n=+$" (diary-fancy-date-pattern)) limit t)
+      (put-text-property (match-beginning 0) (match-end 0)
+                         'font-lock-multiline t)
+      t)))
 
 (defvar diary-fancy-font-lock-keywords
-  `((diary-fancy-date-matcher . 'diary)
-    ("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
+  `(("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
     ("^.*Yahrzeit.*$" . font-lock-constant-face)
     ("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
     ("^Day.*omer.*$" . font-lock-builtin-face)
@@ -2443,9 +2451,6 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
   (if (looking-at "=+$") (forward-line -1))
   (while (and (looking-at " +[^ ]")
               (zerop (forward-line -1))))
-  ;; This check not essential.
-  (if (looking-at (diary-fancy-date-pattern))
-      (setq beg (line-beginning-position)))
   (goto-char end)
   (forward-line 0)
   (while (and (looking-at " +[^ ]")

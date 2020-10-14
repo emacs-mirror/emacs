@@ -1,4 +1,4 @@
-;;; calc-cplx.el --- Complex number functions for Calc
+;;; calc-cplx.el --- Complex number functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

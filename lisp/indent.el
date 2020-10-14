@@ -52,6 +52,8 @@ or in the line's indentation, otherwise it inserts a \"real\" TAB character.
 If `complete', TAB first tries to indent the current line, and if the line
 was already indented, then try to complete the thing at point.
 
+Also see `tab-first-completion'.
+
 Some programming language modes have their own variable to control this,
 e.g., `c-tab-always-indent', and do not respect this variable."
   :group 'indent
@@ -59,6 +61,27 @@ e.g., `c-tab-always-indent', and do not respect this variable."
 	  (const :tag "Always indent" t)
 	  (const :tag "Indent if inside indentation, else TAB" nil)
 	  (const :tag "Indent, or if already indented complete" complete)))
+
+(defcustom tab-first-completion nil
+  "Governs the behavior of TAB completion on the first press of the key.
+When nil, complete.  When `eol', only complete if point is at the
+end of a line.  When `word', complete unless the next character
+has word syntax (according to `syntax-after').  When
+`word-or-paren', complete unless the next character is part of a
+word or a parenthesis.  When `word-or-paren-or-punct', complete
+unless the next character is part of a word, parenthesis, or
+punctuation.  Typing TAB a second time always results in
+completion.
+
+This variable has no effect unless `tab-always-indent' is `complete'."
+  :group 'indent
+  :type '(choice
+          (const :tag "Always complete" nil)
+          (const :tag "Unless at the end of a line" 'eol)
+          (const :tag "Unless looking at a word" 'word)
+          (const :tag "Unless at a word or parenthesis" 'word-or-paren)
+          (const :tag "Unless at a word, parenthesis, or punctuation." 'word-or-paren-or-punct))
+  :version "27.1")
 
 
 (defun indent-according-to-mode ()
@@ -113,7 +136,7 @@ or performs symbol completion, depending on `tab-always-indent'.
 The function called to actually indent the line or insert a tab
 is given by the variable `indent-line-function'.
 
-If a prefix argument is given, after this function indents the
+If a prefix argument is given (ARG), after this function indents the
 current line or inserts a tab, it also rigidly indents the entire
 balanced expression which starts at the beginning of the current
 line, to reflect the current line's indentation.
@@ -141,7 +164,8 @@ prefix argument is ignored."
    (t
     (let ((old-tick (buffer-chars-modified-tick))
           (old-point (point))
-	  (old-indent (current-indentation)))
+	  (old-indent (current-indentation))
+          (syn `(,(syntax-after (point)))))
 
       ;; Indent the line.
       (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
@@ -154,7 +178,20 @@ prefix argument is ignored."
        ;; If the text was already indented right, try completion.
        ((and (eq tab-always-indent 'complete)
              (eq old-point (point))
-             (eq old-tick (buffer-chars-modified-tick)))
+             (eq old-tick (buffer-chars-modified-tick))
+             (or (null tab-first-completion)
+                 (eq last-command this-command)
+                 (and (equal tab-first-completion 'eol)
+                      (eolp))
+                 (and (member tab-first-completion
+                              '(word word-or-paren word-or-paren-or-punct))
+                      (not (member 2 syn)))
+                 (and (member tab-first-completion
+                              '(word-or-paren word-or-paren-or-punct))
+                      (not (or (member 4 syn)
+                               (member 5 syn))))
+                 (and (equal tab-first-completion 'word-or-paren-or-punct)
+                      (not (member 1 syn)))))
         (completion-at-point))
 
        ;; If a prefix argument was given, rigidly indent the following

@@ -1,4 +1,4 @@
-;;; calc-nlfit.el --- nonlinear curve fitting for Calc
+;;; calc-nlfit.el --- nonlinear curve fitting for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
@@ -104,19 +104,19 @@
                         (list 'vec C12 C22))))
         (list A B)))))
 
-;;; The methods described by de Sousa require the cumulative data qdata
-;;; and the rates pdata.  We will assume that we are given either
-;;; qdata and the corresponding times tdata, or pdata and the corresponding
-;;; tdata.  The following two functions will find pdata or qdata,
-;;; given the other..
+;; The methods described by de Sousa require the cumulative data qdata
+;; and the rates pdata.  We will assume that we are given either
+;; qdata and the corresponding times tdata, or pdata and the corresponding
+;; tdata.  The following two functions will find pdata or qdata,
+;; given the other..
 
-;;; First, given two lists; one of values q0, q1, ..., qn and one of
-;;; corresponding times t0, t1, ..., tn; return a list
-;;; p0, p1, ..., pn of the rates of  change of the qi with respect to t.
-;;; p0 is the right hand derivative (q1 - q0)/(t1 - t0).
-;;; pn is the left hand derivative (qn - q(n-1))/(tn - t(n-1)).
-;;; The other pis are the averages of the two:
-;;;      (1/2)((qi - q(i-1))/(ti - t(i-1)) + (q(i+1) - qi)/(t(i+1) - ti)).
+;; First, given two lists; one of values q0, q1, ..., qn and one of
+;; corresponding times t0, t1, ..., tn; return a list
+;; p0, p1, ..., pn of the rates of  change of the qi with respect to t.
+;; p0 is the right hand derivative (q1 - q0)/(t1 - t0).
+;; pn is the left hand derivative (qn - q(n-1))/(tn - t(n-1)).
+;; The other pis are the averages of the two:
+;;      (1/2)((qi - q(i-1))/(ti - t(i-1)) + (q(i+1) - qi)/(t(i+1) - ti)).
 
 (defun math-nlfit-get-rates-from-cumul (tdata qdata)
   (let ((pdata (list
@@ -153,12 +153,12 @@
            pdata))
     (reverse pdata)))
 
-;;; Next, given two lists -- one of rates p0, p1, ..., pn and one of
-;;; corresponding times t0, t1, ..., tn -- and an initial values q0,
-;;;  return a list q0, q1, ..., qn of the cumulative values.
-;;; q0 is the initial value given.
-;;; For i>0, qi is computed using the trapezoid rule:
-;;;     qi = q(i-1) + (1/2)(pi + p(i-1))(ti - t(i-1))
+;; Next, given two lists -- one of rates p0, p1, ..., pn and one of
+;; corresponding times t0, t1, ..., tn -- and an initial values q0,
+;;  return a list q0, q1, ..., qn of the cumulative values.
+;; q0 is the initial value given.
+;; For i>0, qi is computed using the trapezoid rule:
+;;     qi = q(i-1) + (1/2)(pi + p(i-1))(ti - t(i-1))
 
 (defun math-nlfit-get-cumul-from-rates (tdata pdata q0)
   (let* ((qdata (list q0)))
@@ -177,16 +177,16 @@
       (setq tdata (cdr tdata)))
     (reverse qdata)))
 
-;;; Given the qdata, pdata and tdata, find the parameters
-;;; a, b and c that fit q = a/(1+b*exp(c*t)).
-;;; a is found using the method described by de Sousa.
-;;; b and c are found using least squares on the linearization
-;;; log((a/q)-1) = log(b) + c*t
-;;; In some cases (where the logistic curve may well be the wrong
-;;; model), the computed a will be less than or equal to the maximum
-;;; value of q in qdata; in which case the above linearization won't work.
-;;; In this case, a will be replaced by a number slightly above
-;;; the maximum value of q.
+;; Given the qdata, pdata and tdata, find the parameters
+;; a, b and c that fit q = a/(1+b*exp(c*t)).
+;; a is found using the method described by de Sousa.
+;; b and c are found using least squares on the linearization
+;; log((a/q)-1) = log(b) + c*t
+;; In some cases (where the logistic curve may well be the wrong
+;; model), the computed a will be less than or equal to the maximum
+;; value of q in qdata; in which case the above linearization won't work.
+;; In this case, a will be replaced by a number slightly above
+;; the maximum value of q.
 
 (defun math-nlfit-find-qmax (qdata pdata tdata)
   (let* ((ratios (math-map-binop 'math-div pdata qdata))
@@ -208,12 +208,12 @@
      (calcFunc-exp (nth 0 bandc))
      (nth 1 bandc))))
 
-;;; Next, given the pdata and tdata, we can find the qdata if we know q0.
-;;; We first try to find q0, using the fact that when p takes on its largest
-;;; value, q is half of its maximum value.  So we'll find the maximum value
-;;; of q given various q0, and use bisection to approximate the correct q0.
+;; Next, given the pdata and tdata, we can find the qdata if we know q0.
+;; We first try to find q0, using the fact that when p takes on its largest
+;; value, q is half of its maximum value.  So we'll find the maximum value
+;; of q given various q0, and use bisection to approximate the correct q0.
 
-;;; First, given pdata and tdata, find what half of qmax would be if q0=0.
+;; First, given pdata and tdata, find what half of qmax would be if q0=0.
 
 (defun math-nlfit-find-qmaxhalf (pdata tdata)
   (let ((pmax (math-max-list (car pdata) (cdr pdata)))
@@ -231,7 +231,7 @@
       (setq tdata (cdr tdata)))
     qmh))
 
-;;; Next, given pdata and tdata, approximate q0.
+;; Next, given pdata and tdata, approximate q0.
 
 (defun math-nlfit-find-q0 (pdata tdata)
   (let* ((qhalf (math-nlfit-find-qmaxhalf pdata tdata))
@@ -250,7 +250,7 @@
       (setq q0 (math-add q0 qhalf)))
     (let* ((qmin (math-sub q0 qhalf))
            (qmax q0)
-           (qt (math-nlfit-find-qmax
+           (_qt (math-nlfit-find-qmax
                 (mapcar
                  (lambda (q) (math-add q0 q))
                  qdata)
@@ -270,20 +270,20 @@
         (setq i (1+ i)))
       (math-mul '(float 5 -1) (math-add qmin qmax)))))
 
-;;; To improve the approximations to the parameters, we can use
-;;; Marquardt method as described in Schwarz's book.
+;; To improve the approximations to the parameters, we can use
+;; Marquardt method as described in Schwarz's book.
 
-;;; Small numbers used in the Givens algorithm
+;; Small numbers used in the Givens algorithm
 (defvar math-nlfit-delta '(float 1 -8))
 
 (defvar math-nlfit-epsilon '(float 1 -5))
 
-;;; Maximum number of iterations
+;; Maximum number of iterations
 (defvar math-nlfit-max-its 100)
 
-;;; Next, we need some functions for dealing with vectors and
-;;; matrices.  For convenience, we'll work with Emacs lists
-;;; as vectors, rather than Calc's vectors.
+;; Next, we need some functions for dealing with vectors and
+;; matrices.  For convenience, we'll work with Emacs lists
+;; as vectors, rather than Calc's vectors.
 
 (defun math-nlfit-set-elt (vec i x)
   (setcar (nthcdr (1- i) vec) x))
@@ -589,7 +589,7 @@
            (calcFunc-trn j) j))
     (calcFunc-inv j)))
 
-(defun math-nlfit-get-sigmas (grad xlist pparms chisq)
+(defun math-nlfit-get-sigmas (grad xlist pparms _chisq)
   (let* ((sgs nil)
          (covar (math-nlfit-find-covar grad xlist pparms))
          (n (1- (length covar)))
@@ -664,6 +664,8 @@
   (calc-pop-push-record-list n prefix vals)
   (calc-handle-whys))
 
+(defvar calc-curve-nvars)
+
 (defun math-nlfit-fit-curve (fn grad solnexpr initparms &optional sdv)
   (calc-slow-wrapper
    (let* ((sdevv (or (eq sdv 'calcFunc-efit) (eq sdv 'calcFunc-xfit)))
@@ -678,7 +680,7 @@
           (calc-curve-varnames nil)
           (calc-curve-coefnames nil)
           (calc-curve-nvars 1)
-          (fitvars (calc-get-fit-variables 1 3))
+          (_fitvars (calc-get-fit-variables 1 3))
           (var (nth 1 calc-curve-varnames))
           (parms (cdr calc-curve-coefnames))
           (parmguess
@@ -763,7 +765,7 @@
           (calc-curve-varnames nil)
           (calc-curve-coefnames nil)
           (calc-curve-nvars 1)
-          (fitvars (calc-get-fit-variables 1 2))
+          (_fitvars (calc-get-fit-variables 1 2))
           (var (nth 1 calc-curve-varnames))
           (parms (cdr calc-curve-coefnames))
           (soln (list '* (nth 0 finalparms)

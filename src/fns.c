@@ -2295,6 +2295,7 @@ The PLIST is modified by side effects.  */)
 
 DEFUN ("eql", Feql, Seql, 2, 2, 0,
        doc: /* Return t if the two args are `eq' or are indistinguishable numbers.
+Integers with the same value are `eql'.
 Floating-point values with the same sign, exponent and fraction are `eql'.
 This differs from numeric comparison: (eql 0.0 -0.0) returns nil and
 \(eql 0.0e+NaN 0.0e+NaN) returns t, whereas `=' does the opposite.  */)

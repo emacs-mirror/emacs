@@ -18077,7 +18077,7 @@ zeros with @kbd{d z}.  @xref{Radix Modes}.
 
 @cindex Word size for binary operations
 The Calculator maintains a current @dfn{word size} @expr{w}, an
-arbitrary positive or negative integer.  For a positive word size, all
+arbitrary integer.  For a positive word size, all
 of the binary operations described here operate modulo @expr{2^w}.  In
 particular, negative arguments are converted to positive integers modulo
 @expr{2^w} by all binary functions.
@@ -18091,6 +18091,9 @@ to
 @infoline @expr{2^(-w-1)-1}
 inclusive.  Either mode accepts inputs in any range; the sign of
 @expr{w} affects only the results produced.
+
+If the word size is zero, binary operations work on the entire number
+without clipping, as if the word size had been negative infinity.
 
 @kindex b c
 @pindex calc-clip
@@ -18221,6 +18224,10 @@ and @samp{rash} operations is totally independent from whether the word
 size is positive or negative.)  With a negative prefix argument, this
 performs a standard left shift.
 
+When the word size is zero, logical and arithmetic shift operations
+are identical: a negative value shifted right remains negative, since
+there is an infinite supply of ones to shift in.
+
 @kindex b t
 @pindex calc-rotate-binary
 @tindex rot
@@ -18229,6 +18236,8 @@ number one bit to the left.  The leftmost bit (according to the current
 word size) is dropped off the left and shifted in on the right.  With a
 numeric prefix argument, the number is rotated that many bits to the left
 or right.
+
+Rotation is not possible with a zero word size.
 
 @xref{Set Operations}, for the @kbd{b p} and @kbd{b u} commands that
 pack and unpack binary integers into sets.  (For example, @kbd{b u}

@@ -1207,6 +1207,17 @@ everything except the top @var{n} levels of heading lines.  Note that
 it completely reveals all the @var{n} top levels and the body lines
 before the first heading.
 
+@cindex cycle visibility, in Outline mode
+@findex outline-cycle
+@findex outline-cycle-buffer
+  Outline also provides two convenience commands to cycle the
+visibility of each section and the whole buffer.  Typing
+@kbd{@key{TAB}} (@code{outline-cycle}) on a heading cycles the current
+section between ``hide all'', ``subheadings'', and ``show all''
+states.  Typing @kbd{S-@key{TAB}} (@code{outline-cycle-buffer}) cycles
+the whole buffer between ``only top-level headings'', ``all headings
+and subheadings'', and ``show all'' states.
+
 @anchor{Outline Search}
 @findex reveal-mode
 @vindex search-invisible

@@ -4713,215 +4713,128 @@ INPUT, if non-nil, is a string sent to the process."
 ;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
   "Check `shell-command-dont-erase-buffer'."
-  :tags '(:expensive-test)
+  ;; As long as Bug#40896 is not solved both in simple.el and Tramp,
+  ;; this test cannot run properly.
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; Prior Emacs 27, `shell-command-dont-erase-buffer' wasn't working properly.
   (skip-unless (tramp--test-emacs27-p))
 
-  ;; We check both the local and remote case, in order to guarantee
-  ;; that they behave similar.
-  (dolist (default-directory
-	    `(,temporary-file-directory ,tramp-test-temporary-file-directory))
-    (let ((buffer (generate-new-buffer "foo"))
-	  ;; Suppress nasty messages.
-	  (inhibit-message t)
-	  point kill-buffer-query-functions)
-      (unwind-protect
-	  (progn
-	    ;; Don't erase if buffer is the current one.  Point is not moved.
-	    (let (shell-command-dont-erase-buffer)
-	      (with-temp-buffer
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(shell-command "echo baz" (current-buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		(should (= point (point)))
-		(should-not (= (point) (point-max)))))
+  ;; (message "   s-c-d-e-b current-buffer buffer-string point")
+  ;; (message "===============================================")
 
-	    ;; Erase if the buffer is not current one.  Point is not moved.
-	    (let (shell-command-dont-erase-buffer)
-	      (with-current-buffer buffer
-		(erase-buffer)
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(with-temp-buffer
-		  (shell-command "echo baz" buffer))
-		(should (string-equal "baz\n" (buffer-string)))
-		(should (= point (point)))
-		(should-not (= (point) (point-max)))))
+  ;;    s-c-d-e-b current-buffer buffer-string point
+  ;; ===============================================
+  ;;          nil              t    foobazzbar     4 x
+  ;;          nil            nil          bazz     5
+  ;; -----------------------------------------------
+  ;;        erase              t          bazz     1 x
+  ;;        erase            nil          bazz     5
+  ;; -----------------------------------------------
+  ;; beg-last-out              t    foobazzbar     4 x
+  ;; beg-last-out            nil    foobarbazz     7
+  ;; -----------------------------------------------
+  ;; end-last-out              t    foobazzbar     4
+  ;; end-last-out            nil    foobazzbar    11
+  ;; -----------------------------------------------
+  ;;   save-point              t    foobazzbar     4 x
+  ;;   save-point            nil    foobarbazz     4 x
+  ;; -----------------------------------------------
+  ;;       random              t    foobazzbar     4
+  ;;       random            nil    foobazzbar    11
+  ;; -----------------------------------------------
 
-	    ;; Erase if buffer is the current one, but
-	    ;; `shell-command-dont-erase-buffer' is set to `erase'.
-	    ;; There is no point to check point.
-	    (let ((shell-command-dont-erase-buffer 'erase))
-	      (with-temp-buffer
-		(insert "bar")
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(shell-command "echo baz" (current-buffer))
-		(should (string-equal "baz\n" (buffer-string)))
-		;; In the local case, point is not moved after the
-		;; inserted text.
-		(should (= (point)
-			   (if (file-remote-p default-directory)
-			       (point-max) (point-min))))))
+  (let (;; Suppress nasty messages.
+	(inhibit-message t)
+	buffer kill-buffer-query-functions)
+    ;; We check both the local and remote case, in order to guarantee
+    ;; that they behave similar.
+    (dolist (default-directory
+	      `(,temporary-file-directory ,tramp-test-temporary-file-directory))
+      ;; These are the possible values of `shell-command-dont-erase-buffer'.
+      ;; `random' is taken as non-nil value without special meaning.
+      (dolist (shell-command-dont-erase-buffer
+	       '(nil erase beg-last-out end-last-out save-point random))
+	;; `shell-command' might work over the current buffer, or not.
+	(dolist (current '(t nil))
+	  (with-temp-buffer
+	    ;; We insert the string "foobar" into an empty buffer.
+	    ;; Point is set between "foo" and "bar".
+	    (setq buffer (current-buffer))
+	    (insert "foobar")
+	    (goto-char (- (point) 3))
+	    (should (string-equal "foobar" (buffer-string)))
+	    (should (string-equal "foo" (buffer-substring (point-min) (point))))
+	    (should (string-equal "bar" (buffer-substring (point) (point-max))))
 
-	    ;; Don't erase if the buffer is the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to
-	    ;; `beg-last-out'.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'beg-last-out))
-	      (with-temp-buffer
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(shell-command "echo baz" (current-buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; There is still an error in Tramp.
-		(unless (file-remote-p default-directory)
-		  (should (= point (point)))
-		  (should-not (= (point) (point-max))))))
+	    ;; Apply `shell-command'.  It shall output the string
+	    ;; "bazz".  Messages in the *Messages* buffer are
+	    ;; suppressed.
+            (let (message-log-max)
+	      (if current
+		  (shell-command "echo -n bazz" (current-buffer))
+		(with-temp-buffer (shell-command "echo -n bazz" buffer))))
 
-	    ;; Don't erase if the buffer is not the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to
-	    ;; `beg-last-out'.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'beg-last-out))
-	      (with-current-buffer buffer
-		(erase-buffer)
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(with-temp-buffer
-		  (shell-command "echo baz" buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; There is still an error in Tramp.
-		(unless (file-remote-p default-directory)
-		  (should (= point (point)))
-		  (should-not (= (point) (point-max))))))
+	  ;;   (message
+	  ;;    "%12s %14s %13s %5d"
+	  ;;    shell-command-dont-erase-buffer current (buffer-string) (point))))
+	  ;; (message "-----------------------------------------------")))))
 
-	    ;; Don't erase if the buffer is the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to
-	    ;; `end-last-out'.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'end-last-out))
-	      (with-temp-buffer
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(shell-command "echo baz" (current-buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; This does not work as expected in the local case.
-		;; Therefore, we negate the test for the time being.
-		(should-not
-		 (funcall (if (file-remote-p default-directory) #'identity #'not)
-			  (= point (point))))
-		(should
-		 (funcall (if (file-remote-p default-directory) #'identity #'not)
-			  (= (point) (point-max))))))
+	    ;; Check result.
+	    (cond
+	     (current
+	      ;; String is inserted at point, and point is preserved
+	      ;; unless dictated otherwise.
+	      (cond
+	       ((null shell-command-dont-erase-buffer)
+		(should (string-equal "foobazzbar" (buffer-string)))
+		(should (= 4 (point))))
+	       ((eq shell-command-dont-erase-buffer 'erase)
+		(should (string-equal "bazz" (buffer-string)))
+		(should (= 1 (point))))
+	       ((eq shell-command-dont-erase-buffer 'beg-last-out)
+		(should (string-equal "foobazzbar" (buffer-string)))
+		(should (= 4 (point))))
+	       ;; Bug#40896
+	       ;; ((eq shell-command-dont-erase-buffer 'end-last-out)
+	       ;; 	(should (string-equal "foobazzbar" (buffer-string)))
+	       ;; 	(should (= 7 (point))))
+	       ((eq shell-command-dont-erase-buffer 'save-point)
+		(should (string-equal "foobazzbar" (buffer-string)))
+		(should (= 4 (point))))
+	       ;; Bug#40896
+	       ;; ((eq shell-command-dont-erase-buffer 'random)
+	       ;; 	(should (string-equal "foobazzbar" (buffer-string)))
+	       ;; 	(should (= 7 (point))))))
+	       ))
 
-	    ;; Don't erase if the buffer is not the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to
-	    ;; `end-last-out'.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'end-last-out))
-	      (with-current-buffer buffer
-		(erase-buffer)
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(with-temp-buffer
-		  (shell-command "echo baz" buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; There is still an error in Tramp.
-		(unless (file-remote-p default-directory)
-		  (should-not (= point (point)))
-		  (should (= (point) (point-max))))))
-
-	    ;; Don't erase if the buffer is the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to
-	    ;; `save-point'.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'save-point))
-	      (with-temp-buffer
-		(insert "bar")
-		(goto-char (1- (point-max)))
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (1- (point-max))))
-		(shell-command "echo baz" (current-buffer))
-		(should (string-equal "babaz\nr" (buffer-string)))
-		;; There is still an error in Tramp.
-		(unless (file-remote-p default-directory)
-		  (should (= point (point)))
-		  (should-not (= (point) (point-max))))))
-
-	    ;; Don't erase if the buffer is not the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to
-	    ;; `save-point'.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'save-point))
-	      (with-current-buffer buffer
-		(erase-buffer)
-		(insert "bar")
-		(goto-char (1- (point-max)))
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (1- (point-max))))
-		(with-temp-buffer
-		  (shell-command "echo baz" buffer))
-		;; This does not work as expected.  Therefore, we
-		;; use the "wrong" string.
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; There is still an error in Tramp.
-		(unless (file-remote-p default-directory)
-		  (should (= point (point)))
-		  (should-not (= (point) (point-max))))))
-
-	    ;; Don't erase if the buffer is the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to a random
-	    ;; value.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'random))
-	      (with-temp-buffer
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(shell-command "echo baz" (current-buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; This does not work as expected in the local case.
-		;; Therefore, we negate the test for the time being.
-		(should-not
-		 (funcall (if (file-remote-p default-directory) #'identity #'not)
-			  (= point (point))))
-		(should
-		 (funcall (if (file-remote-p default-directory) #'identity #'not)
-			  (= (point) (point-max))))))
-
-	    ;; Don't erase if the buffer is not the current one and
-	    ;; `shell-command-dont-erase-buffer' is set to a random
-	    ;; value.  Check point.
-	    (let ((shell-command-dont-erase-buffer 'random))
-	      (with-current-buffer buffer
-		(erase-buffer)
-		(insert "bar")
-		(setq point (point))
-		(should (string-equal "bar" (buffer-string)))
-		(should (= (point) (point-max)))
-		(with-temp-buffer
-		  (shell-command "echo baz" buffer))
-		(should (string-equal "barbaz\n" (buffer-string)))
-		;; There is still an error in Tramp.
-		(unless (file-remote-p default-directory)
-		  (should-not (= point (point)))
-		  (should (= (point) (point-max)))))))
-
-	;; Cleanup.
-	(ignore-errors (kill-buffer buffer))))))
+	     (t ;; not current buffer
+	      ;; String is appended, and point is at point-max unless
+	      ;; dictated otherwise.
+	      (cond
+	       ((null shell-command-dont-erase-buffer)
+		(should (string-equal "bazz" (buffer-string)))
+		(should (= 5 (point))))
+	       ((eq shell-command-dont-erase-buffer 'erase)
+		(should (string-equal "bazz" (buffer-string)))
+		(should (= 5 (point))))
+	       ((eq shell-command-dont-erase-buffer 'beg-last-out)
+		(should (string-equal "foobarbazz" (buffer-string)))
+		(should (= 7 (point))))
+	       ;; ;; Bug#40896
+	       ;; ((eq shell-command-dont-erase-buffer 'end-last-out)
+	       ;; 	(should (string-equal "foobarbazz" (buffer-string)))
+	       ;; 	(should (= 11 (point))))
+	       ((eq shell-command-dont-erase-buffer 'save-point)
+		(should (string-equal "foobarbazz" (buffer-string)))
+		(should (= 4 (point))))
+	       ;; ;; Bug#40896
+	       ;; ((eq shell-command-dont-erase-buffer 'random)
+	       ;; 	(should (string-equal "foobarbazz" (buffer-string)))
+	       ;; 	(should (= 11 (point)))))))))))))
+	       )))))))))
 
 ;; This test is inspired by Bug#23952.
 (ert-deftest tramp-test33-environment-variables ()

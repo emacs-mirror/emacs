@@ -1740,6 +1740,7 @@ clients from discovering the still incomplete interface.
     (when emits-signal
       (dbus-send-signal
        bus service path dbus-interface-properties "PropertiesChanged"
+       interface
        ;; changed_properties.
        (if (eq access :write)
            '(:array: :signature "{sv}")
@@ -1818,6 +1819,7 @@ It will be registered for all objects created by `dbus-register-property'."
 	    (when (nth 1 object)
 	      (dbus-send-signal
 	       bus service path dbus-interface-properties "PropertiesChanged"
+               interface
                ;; changed_properties.
 	       (if (eq :write (car object))
                    '(:array: :signature "{sv}")

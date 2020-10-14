@@ -85,6 +85,13 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
++++
+*** A new system for displaying documentation for groups of function is added.
+This can either be used by saying 'M-x shortdoc-display-group' and
+choosing a group, or clicking a button in the *Help* buffers when
+looking at the doc string of a function that belongs to one of these
+groups.
+
 *** New var 'redisplay-skip-initial-frame' to enable batch redisplay tests.
 Setting it to nil forces the redisplay to do its job even in the
 initial frame used in batch mode.
@@ -225,6 +232,15 @@ preserving markers, properties and overlays.  The new variable
 'revert-buffer-with-fine-grain-max-seconds' specifies the maximum
 number of seconds that 'revert-buffer-with-fine-grain' should spend
 trying to be non-destructive.
+
+** Outline
+
++++
+*** New commands to cycle heading visibility.
+Typing 'TAB' on a heading cycles the current section between "hide
+all", "subheadings", and "show all" state.  Typing 'S-TAB' anywhere in
+the buffer cycles the whole buffer between "only top-level headings",
+"all headings and subheadings", and "show all" states.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
@@ -554,6 +570,11 @@ skipped.
 
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
+
+---
+*** New keybinding in 'help-for-help' to display a manual.
+The 'R' keybinding after 'C-h C-h' will prompt for a manual name and
+then display it.
 
 +++
 ** New command 'lossage-size'.
@@ -1080,6 +1101,17 @@ work more traditionally, with 'C-d' deleting the next character.
 Likewise, point isn't moved to the end of the string before inserting
 digits.
 
++++
+*** Setting the word size to zero disables word clipping.
+The word size normally clips the results of certain bit-oriented
+operations such as shifts and bitwise XOR.  A word size of zero, set
+by 'b w', makes the operation have effect on the whole argument values
+and the result is not truncated in any way.
+
+---
+*** The '/' operator now has higher precedence in (La)TeX input mode.
+It no longer has lower precedence than '+' and '-'.
+
 ** term-mode
 
 ---
@@ -1101,6 +1133,16 @@ window after starting).  This variable defaults to nil.
 *** 'widget-choose' now supports menus in extended format.
 
 ** Miscellaneous
+
++++
+*** New user option 'next-error-message-highlight'.
+In addition to a fringe arrow, 'next-error' error may now optionally
+highlight the current error message in the 'next-error' buffer.
+
++++
+*** New user option 'tab-first-completion'.
+If 'tab-always-indent' is 'complete', this new option can be used to
+further tweak whether to complete or indent.
 
 ---
 *** 'zap-up-to-char' now uses 'read-char-from-minibuffer'.
@@ -1548,22 +1590,28 @@ file mode specification into symbolic form.
 ** The variable 'force-new-style-backquotes' has been removed.
 This removes the final remaining trace of old-style backquotes.
 
-** The module header 'emacs-module.h' now contains type aliases
+** Changes in handling dynamic modules
+
+*** The module header 'emacs-module.h' now contains type aliases
 'emacs_function' and 'emacs_finalizer' for module functions and
 finalizers, respectively.
 
-** Module functions can now be made interactive.
+*** Module functions can now be made interactive.
 Use 'make_interactive' to give a module function an interactive
 specification.
 
-** Module functions can now install an optional finalizer that is
+*** Module functions can now install an optional finalizer that is
 called when the function object is garbage-collected.  Use
 'set_function_finalizer' to set the finalizer and
 'get_function_finalizer' to retrieve it.
 
-** Modules can now open a channel to an existing pipe process using
+*** Modules can now open a channel to an existing pipe process using
 the new module function 'open_channel'.  Modules can use this
 functionality to asynchronously send data back to Emacs.
+
+*** A new module API 'make_unibyte_string' is provided.
+It can be used to create Lisp strings with arbitrary byte sequences
+(a.k.a. "raw bytes").
 
 ** 'file-modes', 'set-file-modes', and 'set-file-times' now have an
 optional argument specifying whether to follow symbolic links.

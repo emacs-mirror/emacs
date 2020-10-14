@@ -37,6 +37,7 @@ Help, emacs, The GNU Emacs Manual}.
 * Describing Characters::     Making printable descriptions of
                                 non-printing characters and key sequences.
 * Help Functions::            Subroutines used by Emacs help facilities.
+* Documentation Groups::      Listing functions by groups.
 @end menu
 
 @node Documentation Basics
@@ -794,3 +795,165 @@ If this variable is non-@code{nil}, commands defined with
 echo area at first, and display the longer @var{help-text} strings only
 if the user types the help character again.
 @end defopt
+
+
+@node Documentation Groups
+@section Documentation Groups
+@cindex documentation groups
+@cindex groups of functions
+@cindex function groups
+
+Emacs can list functions based on various groupings.  For instance,
+@code{string-trim} and @code{mapconcat} are ``string'' functions, so
+@kbd{M-x shortdoc-display-group RET string RET} will give an overview
+of functions that operate on strings.
+
+The documentation groups are created with the
+@code{define-short-documentation-group} macro.
+
+@defmac define-short-documentation-group group &rest functions
+Define @var{group} as a group of functions, and provide short
+summaries of using those functions.  The optional argument
+@var{functions} is a list whose elements are of the form:
+
+@lisp
+(@var{func} @var{keyword} @var{val} @dots{})
+@end lisp
+
+The following keywords are recognized:
+
+@table @code
+
+@item :eval
+The value should be a form that has no side effect when evaluated.
+The form will be used in the documentation by printing it with
+@code{prin1} (@pxref{Output Functions}).  However, if the form is a
+string, it will be inserted as-is, and the string will then be
+@code{read} to yield the form.  In any case, the form will then be
+evaluated, and the result used.  For instance:
+
+@example
+:eval (concat "foo" "bar" "zot")
+:eval "(make-string 5 ?x)"
+@end example
+
+@noindent
+will be printed as
+
+@example
+(concat "foo" "bar" "zot")
+@result{} "foobarzot"
+(make-string 5 ?x)
+@result{} "xxxxx"
+@end example
+
+(The reason for allowing both Lisp forms and strings here is so that
+printing could be controlled in the few cases where a certain
+presentation of the form is wished for.  In the example, @samp{?x}
+would otherwise have been printed as @samp{120} if it hadn't been
+included in a string.)
+
+@item :no-eval
+
+This is like @code{:eval}, except that the form will not be evaluated.
+In these cases, a @code{:result} element of some kind (see below)
+should be included.
+
+@example
+:no-eval (file-symlink-p "/tmp/foo")
+:eg-result t
+@end example
+
+@item :no-eval*
+Like @code{:no-eval}, but alaways inserts @samp{[it depends]} as the
+result.
+
+@example
+:no-eval* (buffer-string)
+@end example
+
+will result in:
+
+@example
+(buffer-string)
+@click{} [it depends]
+@end example
+
+@item :no-value
+Like @code{:no-eval}, but is used when the function in question has no
+well-defined return value, and is used for side effect only.
+
+@item :result
+Used to output the result from non-evaluating example forms.
+
+@example
+:no-eval (setcar list 'c)
+:result c
+@end example
+
+@item :eg-result
+Used to output an example result from non-evaluating example forms.
+
+@example
+:no-eval (looking-at "f[0-9]")
+:eg-result t
+@end example
+
+@item :result-string
+@itemx :eg-result-string
+These two are the same as @code{:result} and @code{:eg-result},
+respectively, but are inserted as is.  This is useful when the result
+is unreadable or should be on a particular form:
+
+@example
+:no-eval (find-file "/tmp/foo")
+:eg-result-string "#<buffer foo>"
+:no-eval (default-file-modes)
+:eg-result-string "#o755"
+@end example
+
+@item :no-manual
+Indicates that this function is not documented in the manual.
+
+@item :args
+By default, the function's actual argument list is shown.  If
+@code{:args} is present, they are used instead.
+
+@example
+:args (regexp string)
+@end example
+
+@end table
+
+Here's a very short example:
+
+@lisp
+(define-short-documentation-group string
+  "Creating Strings"
+  (substring
+   :eval (substring "foobar" 0 3)
+   :eval (substring "foobar" 3))
+  (concat
+   :eval (concat "foo" "bar" "zot")))
+@end lisp
+
+The first argument is the name of the group to be defined, and then
+follows any number of function descriptions.
+
+@end defmac
+
+A function can belong to any number of documentation groups.
+
+In addition to function descriptions, the list can also have string
+elements, which are used to divide a documentation group into
+sections.
+
+@defun shortdoc-add-function shortdoc-add-function group section elem
+Lisp packages can add functions to groups with this command.  Each
+@var{elem} should be a function descriptions, as described above.
+@var{group} is the function group, and @var{section} is what section
+in the function group to insert the function into.
+
+If @var{group} doesn't exist, it will be created.  If @var{section}
+doesn't exist, it will be added to the end of the function group.
+@end defun

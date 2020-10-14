@@ -450,6 +450,10 @@ numbers.  It compares numbers by type and numeric value, so that
 @code{(eql 1.0 1)} returns @code{nil}, but @code{(eql 1.0 1.0)} and
 @code{(eql 1 1)} both return @code{t}.  This can be used to compare
 large integers as well as small ones.
+Floating-point values with the same sign, exponent and fraction are @code{eql}.
+This differs from numeric comparison: @code{(eql 0.0 -0.0)} returns
+@code{nil} and @code{(eql 0.0e+NaN 0.0e+NaN)} returns @code{t},
+whereas @code{=} does the opposite.
 @end defun
 
 @defun /= number-or-marker1 number-or-marker2

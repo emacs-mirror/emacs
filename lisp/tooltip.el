@@ -1,4 +1,4 @@
-;;; tooltip.el --- show tooltip windows
+;;; tooltip.el --- show tooltip windows  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997, 1999-2020 Free Software Foundation, Inc.
 
@@ -70,24 +70,20 @@ echo area, instead of making a pop-up window."
 
 (defcustom tooltip-delay 0.7
   "Seconds to wait before displaying a tooltip the first time."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-short-delay 0.1
   "Seconds to wait between subsequent tooltips on different items."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-recent-seconds 1
   "Display tooltips if changing tip items within this many seconds.
 Do so after `tooltip-short-delay'."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-hide-delay 10
   "Hide tooltips automatically after this many seconds."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-x-offset 5
   "X offset, in pixels, for the display of tooltips.
@@ -98,8 +94,7 @@ interfere with clicking where you wish.
 
 If `tooltip-frame-parameters' includes the `left' parameter,
 the value of `tooltip-x-offset' is ignored."
-  :type 'integer
-  :group 'tooltip)
+  :type 'integer)
 
 (defcustom tooltip-y-offset +20
   "Y offset, in pixels, for the display of tooltips.
@@ -110,8 +105,7 @@ interfere with clicking where you wish.
 
 If `tooltip-frame-parameters' includes the `top' parameter,
 the value of `tooltip-y-offset' is ignored."
-  :type 'integer
-  :group 'tooltip)
+  :type 'integer)
 
 (defcustom tooltip-frame-parameters
   '((name . "tooltip")
@@ -127,8 +121,7 @@ Note that font and color parameters are ignored, and the attributes
 of the `tooltip' face are used instead."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
-		       (sexp :tag "Value")))
-  :group 'tooltip
+                       (sexp :tag "Value")))
   :version "26.1")
 
 (defface tooltip
@@ -139,15 +132,13 @@ of the `tooltip' face are used instead."
     (t
      :inherit variable-pitch))
   "Face for tooltips."
-  :group 'tooltip
   :group 'basic-faces)
 
 (defcustom tooltip-use-echo-area nil
   "Use the echo area instead of tooltip frames for help and GUD tooltips.
 This variable is obsolete; instead of setting it to t, disable
 `tooltip-mode' (which has a similar effect)."
-  :type 'boolean
-  :group 'tooltip)
+  :type 'boolean)
 
 (make-obsolete-variable 'tooltip-use-echo-area
 			"disable Tooltip mode instead" "24.1" 'set)
@@ -161,7 +152,6 @@ the echo area is resized as needed to accommodate the full text
 of the tooltip.
 This variable has effect only on GUI frames."
   :type 'boolean
-  :group 'tooltip
   :version "27.1")
 
 

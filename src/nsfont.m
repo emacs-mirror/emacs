@@ -1089,7 +1089,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
               : FRAME_BACKGROUND_COLOR (s->f)));
 
   /* render under GNUstep using DPS */
-#ifdef NS_IMPL_GNUSTEP
   {
     NSGraphicsContext *context = GSCurrentContext ();
 
@@ -1162,10 +1161,6 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
     for (i = 0; i < 0x100; i++, glyphs++)
       {
         g = unichars[i];
-        g = glyphStorage->cglyphs[i];
-        /* TODO: is this a good check?  Maybe need to use coveredChars.  */
-        if (g > numGlyphs || g == NSNullGlyph)
-          g = INVALID_GLYPH; /* Hopefully unused...  */
         *glyphs = g;
       }
   }

@@ -1,4 +1,4 @@
-;;; calc-bin.el --- binary functions for Calc
+;;; calc-bin.el --- binary functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -145,9 +145,10 @@
    (setq math-half-2-word-size (math-power-of-2 (1- (math-abs n))))
    (calc-do-refresh)
    (calc-refresh-evaltos)
-   (if (< n 0)
-       (message "Binary word size is %d bits (two's complement)" (- n))
-     (message "Binary word size is %d bits" n))))
+   (cond
+    ((< n 0) (message "Binary word size is %d bits (two's complement)" (- n)))
+    ((> n 0) (message "Binary word size is %d bits" n))
+    (t (message "No fixed binary word size")))))
 
 
 
@@ -262,9 +263,10 @@
 (defun math-binary-arg (a w)
   (if (not (Math-integerp a))
       (setq a (math-trunc a)))
-  (if (< a 0)
-      (logand a (1- (ash 1 (if w (math-trunc w) calc-word-size))))
-    a))
+  (let ((w (if w (math-trunc w) calc-word-size)))
+    (if (and (< a 0) (not (zerop w)))
+        (logand a (1- (ash 1 w)))
+      a)))
 
 (defun math-binary-modulo-args (f a b w)
   (let (mod)
@@ -285,7 +287,7 @@
     (let ((bits (math-integer-log2 mod)))
       (if bits
 	  (if w
-	      (if (/= w bits)
+	      (if (and (/= w bits) (not (zerop w)))
 		  (calc-record-why
 		   "*Warning: Modulus inconsistent with word size"))
 	    (setq w bits))
@@ -371,11 +373,12 @@
 	(math-clip (calcFunc-lsh a n (- w)) w)
       (if (Math-integer-negp a)
 	  (setq a (math-clip a w)))
-      (cond ((or (Math-lessp n (- w))
-		 (Math-lessp w n))
+      (cond ((and (or (Math-lessp n (- w))
+		      (Math-lessp w n))
+                  (not (zerop w)))
 	     0)
 	    ((< n 0)
-	     (math-quotient (math-clip a w) (math-power-of-2 (- n))))
+	     (ash (math-clip a w) n))
 	    (t
 	     (math-clip (math-mul a (math-power-of-2 n)) w))))))
 
@@ -403,7 +406,8 @@
 	    (setq a (math-clip a w)))
 	(let ((two-to-sizem1 (math-power-of-2 (1- w)))
 	      (sh (calcFunc-lsh a n w)))
-	  (cond ((zerop (logand a two-to-sizem1))
+	  (cond ((or (zerop w)
+                     (zerop (logand a two-to-sizem1)))
 		 sh)
 		((Math-lessp n (- 1 w))
 		 (math-add (math-mul two-to-sizem1 2) -1))
@@ -421,6 +425,8 @@
   (if (eq (car-safe a) 'mod)
       (math-binary-modulo-args 'calcFunc-rot a n w)
     (setq w (if w (math-trunc w) calc-word-size))
+    (when (zerop w)
+      (error "Rotation requires a nonzero word size"))
     (or (integerp w)
 	(math-reject-arg w 'fixnump))
     (or (Math-integerp a)
@@ -452,6 +458,8 @@
 	 (if (Math-natnum-lessp a (math-power-of-2 (- -1 w)))
 	     a
 	   (math-sub a (math-power-of-2 (- w)))))
+        ((math-zerop w)
+         a)
 	((Math-negp a)
 	 (math-binary-arg a w))
 	((integerp a)
@@ -682,6 +690,8 @@
 
 (defun math-format-twos-complement (a)
   "Format an integer in two's complement mode."
+  (when (zerop calc-word-size)
+    (error "Nonzero word size required"))
   (let* (;(calc-leading-zeros t)
          (num
           (cond

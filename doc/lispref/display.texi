@@ -3668,12 +3668,16 @@ the charset @code{japanese-jisx0208}.
 @end defun
 
 @defun char-displayable-p char
-This function returns @code{t} if Emacs ought to be able to display
-@var{char}.  More precisely, if the selected frame's fontset has a
-font to display the character set that @var{char} belongs to.
+This function returns non-@code{nil} if Emacs ought to be able to
+display @var{char}.  Or more precisely, if the selected frame's fontset
+has a font to display the character set that @var{char} belongs to.
 
 Fontsets can specify a font on a per-character basis; when the fontset
 does that, this function's value may not be accurate.
+
+This function may return non-@code{nil} even when there is no font
+available, since it also checks whether the coding system for the text
+terminal can encode the character (@pxref{Terminal I/O Encoding}).
 @end defun
 
 @node Low-Level Font

@@ -1118,10 +1118,12 @@ is in progress."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        ;; It returns two arguments, "changed_properties" (an array of
-        ;; dict entries) and "invalidated_properties" (an array of
-        ;; strings).
-        (should (equal dbus--test-signal-received `(((,property ("foo"))) ())))
+        ;; It returns three arguments, "interface" (a string),
+        ;; "changed_properties" (an array of dict entries) and
+        ;; "invalidated_properties" (an array of strings).
+        (should
+         (equal dbus--test-signal-received
+                `(,dbus--test-interface ((,property ("foo"))) ())))
 
         (should
          (equal
@@ -1144,7 +1146,8 @@ is in progress."
             (read-event nil nil 0.1)))
         (should
          (equal
-          dbus--test-signal-received `(((,property ((1 2 3)))) ())))
+          dbus--test-signal-received
+          `(,dbus--test-interface ((,property ((1 2 3)))) ())))
 
         (should
          (equal

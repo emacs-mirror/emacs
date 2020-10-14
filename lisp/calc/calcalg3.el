@@ -1,4 +1,4 @@
-;;; calcalg3.el --- more algebraic functions for Calc
+;;; calcalg3.el --- more algebraic functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -120,18 +120,24 @@
 (defvar calc-curve-fit-history nil
   "History for calc-curve-fit.")
 
-(defun calc-curve-fit (arg &optional calc-curve-model
-                           calc-curve-coefnames calc-curve-varnames)
+(defvar calc-graph-no-auto-view)
+(defvar calc-fit-to-trail nil)
+
+(defun calc-curve-fit (arg &optional curve-model
+                           curve-coefnames curve-varnames)
   (interactive "P")
   (calc-slow-wrapper
    (setq calc-aborted-prefix nil)
-   (let ((func (if (calc-is-inverse) 'calcFunc-xfit
+   (let ((calc-curve-model curve-model)
+	 (calc-curve-coefnames curve-coefnames)
+	 (calc-curve-varnames curve-varnames)
+	 (func (if (calc-is-inverse) 'calcFunc-xfit
 		 (if (calc-is-hyperbolic) 'calcFunc-efit
 		   'calcFunc-fit)))
 	 key (which 0)
          (nonlinear nil)
          (plot nil)
-	 n calc-curve-nvars temp data
+	 n calc-curve-nvars data ;; temp
 	 (homog nil)
 	 (msgs '( "(Press ? for help)"
 		  "1 = linear or multilinear"
@@ -321,7 +327,7 @@
 	      (calc-get-fit-variables 1 (1- (length calc-curve-coefnames))
                                       (and homog 1)))
 	     ((memq key '(?\$ ?\' ?u ?U))
-	      (let* ((defvars nil)
+	      (let* (;; (defvars nil)
 		     (record-entry nil))
 		(if (eq key ?\')
 		    (let* ((calc-dollar-values calc-arg-values)
@@ -708,7 +714,7 @@
 		       "*Unable to find a sign change in this interval"))))
 
 ;;; "rtbis"  (but we should be using Brent's method)
-(defun math-bisect-root (expr low vlow high vhigh)
+(defun math-bisect-root (expr low _vlow high vhigh)
   (let ((step (math-sub-float high low))
 	(pos (Math-posp vhigh))
 	var-DUMMY
@@ -726,7 +732,8 @@
 	  (setq high mid
 		vhigh vmid)
 	(setq low mid
-	      vlow vmid)))
+	      ;; vlow vmid
+	      )))
     (list 'vec mid vmid)))
 
 ;;; "mnewt"
@@ -758,7 +765,8 @@
       (list 'vec next expr-val))))
 
 
-(defun math-find-root (expr var guess math-root-widen)
+(defun math-find-root (expr var guess root-widen)
+  (let ((math-root-widen root-widen))
   (if (eq (car-safe expr) 'vec)
       (let ((n (1- (length expr)))
 	    (calc-symbolic-mode nil)
@@ -871,7 +879,7 @@
 			(not (Math-numberp vlow))
 			(not (Math-numberp vhigh)))
 		    (math-search-root expr deriv low vlow high vhigh)
-		  (math-bisect-root expr low vlow high vhigh))))))))))
+		  (math-bisect-root expr low vlow high vhigh)))))))))))
 
 (defun calcFunc-root (expr var guess)
   (math-find-root expr var guess nil))
@@ -1019,7 +1027,7 @@
 				       math-min-or-max))))))
 
 ;;; "brent"
-(defun math-brent-min (expr prec a va x vx b vb)
+(defun math-brent-min (expr prec a _va x vx b _vb)
   (let ((iters (+ 20 (* 5 prec)))
 	(w x)
 	(vw vx)
@@ -1181,7 +1189,7 @@
 		 (list 'calcFunc-mrow '(var line-p line-p) (1+ m)))))
     (math-evaluate-expr expr)))
 
-(defun math-line-min (f1dim line-p line-xi n prec)
+(defun math-line-min (f1dim line-p line-xi _n prec)
   (let* ((var-DUMMY nil)
 	 (expr (math-evaluate-expr f1dim))
 	 (params (math-widen-min expr '(float 0 0) '(float 1 0)))
@@ -1195,7 +1203,7 @@
 	 (n 0)
 	 (var-DUMMY nil)
 	 (isvec (math-vectorp var))
-	 g guesses)
+	 guesses) ;; g
     (or (math-vectorp var)
 	(setq var (list 'vec var)))
     (or (math-vectorp guess)
@@ -1493,7 +1501,8 @@
 
 (defun math-ninteg-midpoint (expr lo hi mode)    ; uses "math-ninteg-temp"
   (if (eq mode 'inf)
-      (let ((math-infinite-mode t) temp)
+      (let (;; (math-infinite-mode t) ;Unused!
+	    temp)
 	(setq temp (math-div 1 lo)
 	      lo (math-div 1 hi)
 	      hi temp)))
@@ -1547,7 +1556,6 @@
     (setq math-dummy-counter (1+ math-dummy-counter))))
 
 (defvar math-in-fit 0)
-(defvar calc-fit-to-trail nil)
 
 (defun calcFunc-fit (expr vars &optional coefs data)
   (let ((math-in-fit 10))
@@ -1573,6 +1581,7 @@
 (defvar math-fit-new-coefs)
 
 (defun math-general-fit (expr vars coefs data mode)
+  (defvar var-YVAL) (defvar var-YVALX)
   (let ((calc-simplify-mode nil)
 	(math-dummy-counter math-dummy-counter)
 	(math-in-fit 1)
@@ -1591,7 +1600,7 @@
 	(weights nil)
 	(var-YVAL nil) (var-YVALX nil)
 	covar beta
-	n nn m mm v dummy p)
+	n m mm v dummy p) ;; nn
 
     ;; Validate and parse arguments.
     (or data
@@ -1687,7 +1696,7 @@
 	     (isigsq 1)
 	     (xvals (make-vector mm 0))
 	     (i 0)
-	     j k xval yval sigmasqr wt covj covjk covk betaj lud)
+	     j k xval yval sigmasqr wt covj covjk covk betaj) ;; lud
 	(while (<= (setq i (1+ i)) n)
 
 	  ;; Assign various independent variables for this data point.

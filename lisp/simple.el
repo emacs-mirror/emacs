@@ -118,6 +118,23 @@ If non-nil, the value is passed directly to `recenter'."
   :group 'next-error
   :version "23.1")
 
+(defcustom next-error-message-highlight nil
+  "If non-nil, highlight the current error message in the `next-error' buffer."
+  :type 'boolean
+  :group 'next-error
+  :version "28.1")
+
+(defface next-error-message
+  '((t (:inherit highlight)))
+  "Face used to highlight the current error message in the `next-error' buffer."
+  :group 'next-error
+  :version "28.1")
+
+(defvar next-error--message-highlight-overlay
+  nil
+  "Overlay highlighting the current error message in the `next-error' buffer.")
+(make-variable-buffer-local 'next-error--message-highlight-overlay)
+
 (defcustom next-error-hook nil
   "List of hook functions run by `next-error' after visiting source file."
   :type 'hook
@@ -376,6 +393,7 @@ and TO-BUFFER is a target buffer."
   (when next-error-recenter
     (recenter next-error-recenter))
   (funcall next-error-found-function from-buffer to-buffer)
+  (next-error-message-highlight)
   (run-hooks 'next-error-hook))
 
 (defun next-error-select-buffer (buffer)
@@ -459,6 +477,21 @@ buffer causes automatic display of the corresponding source code location."
 	  (setq compilation-current-error (point))
 	  (next-error-no-select 0))
       (error t))))
+
+(defun next-error-message-highlight ()
+  "Highlight the current error message in the ‘next-error’ buffer."
+  (when next-error-message-highlight
+    (with-current-buffer next-error-last-buffer
+      (when next-error--message-highlight-overlay
+        (delete-overlay next-error--message-highlight-overlay))
+      (save-excursion
+        (goto-char compilation-current-error)
+        (let ((ol (make-overlay (line-beginning-position) (line-end-position))))
+          ;; do not override region highlighting
+          (overlay-put ol 'priority -50)
+          (overlay-put ol 'face 'next-error-message)
+          (overlay-put ol 'window (get-buffer-window))
+          (setf next-error--message-highlight-overlay ol))))))
 
 
 ;;;

@@ -10567,7 +10567,7 @@ contains long lines that shall be truncated anyway.
 
 The optional argument Y-LIMIT, if non-nil, specifies the maximum Y
 coordinate beyond which the text is to be ignored; it is therefore
-also the maxcomp height that the function can return (excluding the
+also the maximum height that the function can return (excluding the
 height of the mode- or header-line, if any).  Y-LIMIT nil or omitted
 means consider all of the accessible portion of buffer text up to the
 position specified by TO.  Since calculating the text height of a
@@ -15757,7 +15757,12 @@ redisplay_internal (void)
 	      && CHARPOS (this_line_end_pos) == CHARPOS (tlendpos)
               /* Line has same height as before.  Otherwise other lines
                  would have to be shifted up or down.  */
-	      && this_line_pixel_height == line_height_before)
+	      && this_line_pixel_height == line_height_before
+	      /* Cannot use this optimization if hscrolling current
+		 line and this line is the current one, because
+		 display_line above is not informed about the
+		 current-line's vpos, and cannot DTRT in that case.  */
+	      && !hscrolling_current_line_p (w))
 	    {
  	      /* If this is not the window's last line, we must adjust
  		 the charstarts of the lines below.  */
@@ -21998,13 +22003,14 @@ extend_face_to_end_of_line (struct it *it)
      in the text area has to be drawn to the end of the text area.  */
   it->glyph_row->fill_line_p = true;
 
+  const int orig_face_id = it->face_id;
   /* If current character of IT is not ASCII, make sure we have the
      ASCII face.  This will be automatically undone the next time
      get_next_display_element returns a multibyte character.  Note
      that the character will always be single byte in unibyte
      text.  */
   if (!ASCII_CHAR_P (it->c))
-      it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
+    it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
 
   /* The default face, possibly remapped. */
   struct face *default_face =
@@ -22198,6 +22204,7 @@ extend_face_to_end_of_line (struct it *it)
 	  if (stretch_width < 0)
 	    it->glyph_row->x = stretch_width;
 	}
+      it->face_id = orig_face_id;
     }
   else
 #endif	/* HAVE_WINDOW_SYSTEM */
@@ -22207,7 +22214,6 @@ extend_face_to_end_of_line (struct it *it)
       struct text_pos saved_pos = it->position;
       Lisp_Object saved_object = it->object;;
       enum display_element_type saved_what = it->what;
-      int saved_face_id = it->face_id;
 
       it->what = IT_CHARACTER;
       memset (&it->position, 0, sizeof it->position);
@@ -22310,7 +22316,7 @@ extend_face_to_end_of_line (struct it *it)
       it->object = saved_object;
       it->position = saved_pos;
       it->what = saved_what;
-      it->face_id = saved_face_id;
+      it->face_id = orig_face_id;
     }
 }
 

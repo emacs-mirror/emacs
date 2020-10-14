@@ -41,7 +41,7 @@ rules:
   module-env-VER.h.  Add functions solely at the end of the fragment
   file for the next (not yet released) major version of Emacs.  For
   example, if the current Emacs release is 26.2, add functions only to
-  emacs-env-27.h.
+  module-env-27.h.
 
 - emacs-module.h should only depend on standard C headers.  In
   particular, don't include config.h or lisp.h from emacs-module.h.
@@ -55,7 +55,7 @@ rules:
 
 To add a new module function, proceed as follows:
 
-1. Add a new function pointer field at the end of the emacs-env-*.h
+1. Add a new function pointer field at the end of the module-env-*.h
    file for the next major version of Emacs.
 
 2. Run config.status or configure to regenerate emacs-module.h.
@@ -791,6 +791,18 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t len)
 }
 
 static emacs_value
+module_make_unibyte_string (emacs_env *env, const char *str, ptrdiff_t length)
+{
+  MODULE_FUNCTION_BEGIN (NULL);
+  if (! (0 <= length && length <= STRING_BYTES_BOUND))
+    overflow_error ();
+  Lisp_Object lstr = make_uninit_string (length);
+  memcpy (SDATA (lstr), str, length);
+  SDATA (lstr)[length] = 0;
+  return lisp_to_value (env, lstr);
+}
+
+static emacs_value
 module_make_user_ptr (emacs_env *env, emacs_finalizer fin, void *ptr)
 {
   MODULE_FUNCTION_BEGIN (NULL);
@@ -1464,6 +1476,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_float = module_make_float;
   env->copy_string_contents = module_copy_string_contents;
   env->make_string = module_make_string;
+  env->make_unibyte_string = module_make_unibyte_string;
   env->make_user_ptr = module_make_user_ptr;
   env->get_user_ptr = module_get_user_ptr;
   env->set_user_ptr = module_set_user_ptr;

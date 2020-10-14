@@ -61,6 +61,7 @@
 (defmacro calc-with-trail-buffer (&rest body)
   `(let ((save-buf (current-buffer))
 	 (calc-command-flags nil))
+     (ignore save-buf)              ;FIXME: Use a name less conflict-prone!
      (with-current-buffer (calc-trail-display t)
        (progn
 	 (goto-char calc-trail-pointer)

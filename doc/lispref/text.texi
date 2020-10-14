@@ -2427,6 +2427,30 @@ already indented, it calls @code{completion-at-point} to complete the
 text at point (@pxref{Completion in Buffers}).
 @end defopt
 
+@defopt tab-first-completion
+If @code{tab-always-indent} is @code{complete}, whether to expand or
+indent can be further customized via the @code{tab-first-completion}
+variable.  The following values can be used:
+@table @code
+@item eol
+Only complete if point is at the end of a line.
+
+@item word
+Complete unless the next character has word syntax.
+
+@item word-or-paren
+Complete unless the next character has word syntax or is a
+parenthesis.
+
+@item word-or-paren-or-punct
+Complete unless the next character has word syntax, or is a
+parenthesis, or is punctuation.
+@end table
+
+In any case, typing @kbd{TAB} a second time always results in
+completion.
+@end defopt
+
 @cindex literate programming
 @cindex multi-mode indentation
   Some major modes need to support embedded regions of text whose

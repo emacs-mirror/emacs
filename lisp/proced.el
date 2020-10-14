@@ -1,4 +1,4 @@
-;;; proced.el --- operate on system processes like dired
+;;; proced.el --- operate on system processes like dired  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
@@ -55,17 +55,15 @@
   :group 'unix
   :prefix "proced-")
 
-(defcustom proced-signal-function 'signal-process
+(defcustom proced-signal-function #'signal-process
   "Name of signal function.
 It can be an elisp function (usually `signal-process') or a string specifying
 the external command (usually \"kill\")."
-  :group 'proced
   :type '(choice (function :tag "function")
                  (string :tag "command")))
 
 (defcustom proced-renice-command "renice"
   "Name of renice command."
-  :group 'proced
   :version "24.3"
   :type '(string :tag "command"))
 
@@ -95,7 +93,6 @@ the external command (usually \"kill\")."
     ("USR1" . "  (User-defined signal 1)")
     ("USR2" . "  (User-defined signal 2)"))
   "List of signals, used for minibuffer completion."
-  :group 'proced
   :type '(repeat (cons (string :tag "signal name")
                        (string :tag "description"))))
 
@@ -205,7 +202,6 @@ of point.  The function must return a list of PIDs that is used for the refined
 listing.  HELP-ECHO is a string that is shown when mouse is over this field.
 
 If REFINER is nil no refinement is done."
-  :group 'proced
   :type '(repeat (list :tag "Attribute"
                        (symbol :tag "Key")
                        (string :tag "Header")
@@ -239,7 +235,6 @@ of a system process.  It returns a cons cell of the form (KEY . VALUE)
 like `process-attributes'.  This cons cell is appended to the list
 returned by `proced-process-attributes'.
 If the function returns nil, the value is ignored."
-  :group 'proced
   :type '(repeat (function :tag "Attribute")))
 
 ;; Formatting and sorting rules are defined "per attribute".  If formatting
@@ -263,7 +258,6 @@ The cdr is a list of attribute keys appearing in `proced-grammar-alist'.
 An element of this list may also be a list of attribute keys that specifies
 alternatives.  If the first attribute is absent for a process, use the second
 one, etc."
-  :group 'proced
   :type '(alist :key-type (symbol :tag "Format Name")
                 :value-type (repeat :tag "Keys"
                                     (choice (symbol :tag "")
@@ -274,7 +268,6 @@ one, etc."
   "Current format of Proced listing.
 It can be the car of an element of `proced-format-alist'.
 It can also be a list of keys appearing in `proced-grammar-alist'."
-  :group 'proced
   :type '(choice (symbol :tag "Format Name")
                  (repeat :tag "Keys" (symbol :tag ""))))
 (make-variable-buffer-local 'proced-format)
@@ -304,7 +297,6 @@ An elementary filter can be one of the following:
                  of each.  Accept the process if FUN returns non-nil.
 \(fun-all . FUN)  Apply function FUN to entire process list.
                  FUN must return the filtered list."
-  :group 'proced
   :type '(repeat (cons :tag "Filter"
                        (symbol :tag "Filter Name")
                        (repeat :tag "Filters"
@@ -318,7 +310,6 @@ An elementary filter can be one of the following:
 It can be the car of an element of `proced-filter-alist'.
 It can also be a list of elementary filters as in the cdrs of the elements
 of `proced-filter-alist'."
-  :group 'proced
   :type '(choice (symbol :tag "Filter Name")
                  (repeat :tag "Filters"
                          (choice (cons :tag "Key . Regexp" (symbol :tag "Key") regexp)
@@ -332,38 +323,32 @@ of `proced-filter-alist'."
 It must be the KEY of an element of `proced-grammar-alist'.
 It can also be a list of KEYs as in the SORT-SCHEMEs of the elements
 of `proced-grammar-alist'."
-  :group 'proced
   :type '(choice (symbol :tag "Sort Scheme")
                  (repeat :tag "Key List" (symbol :tag "Key"))))
 (make-variable-buffer-local 'proced-sort)
 
 (defcustom proced-descend t
   "Non-nil if proced listing is sorted in descending order."
-  :group 'proced
   :type '(boolean :tag "Descending Sort Order"))
 (make-variable-buffer-local 'proced-descend)
 
 (defcustom proced-goal-attribute 'args
   "If non-nil, key of the attribute that defines the `goal-column'."
-  :group 'proced
   :type '(choice (const :tag "none" nil)
                  (symbol :tag "key")))
 
 (defcustom proced-auto-update-interval 5
   "Time interval in seconds for auto updating Proced buffers."
-  :group 'proced
   :type 'integer)
 
 (defcustom proced-auto-update-flag nil
   "Non-nil for auto update of a Proced buffer.
 Can be changed interactively via `proced-toggle-auto-update'."
-  :group 'proced
   :type 'boolean)
 (make-variable-buffer-local 'proced-auto-update-flag)
 
 (defcustom proced-tree-flag nil
   "Non-nil for display of Proced buffer as process tree."
-  :group 'proced
   :type 'boolean)
 (make-variable-buffer-local 'proced-tree-flag)
 
@@ -371,26 +356,23 @@ Can be changed interactively via `proced-toggle-auto-update'."
   "Normal hook run after displaying or updating a Proced buffer.
 May be used to adapt the window size via `fit-window-to-buffer'."
   :type 'hook
-  :options '(fit-window-to-buffer)
-  :group 'proced)
+  :options '(fit-window-to-buffer))
 
 (defcustom proced-after-send-signal-hook nil
   "Normal hook run after sending a signal to processes by `proced-send-signal'.
 May be used to revert the process listing."
   :type 'hook
-  :options '(proced-revert)
-  :group 'proced)
+  :options '(proced-revert))
 
 ;; Internal variables
 
 (defvar proced-available (not (null (list-system-processes)))
   "Non-nil means Proced is known to work on this system.")
 
-(defvar proced-process-alist nil
+(defvar-local proced-process-alist nil
   "Alist of processes displayed by Proced.
 The car of each element is the PID, and the cdr is a list of
 cons pairs, see `proced-process-attributes'.")
-(make-variable-buffer-local 'proced-process-alist)
 
 (defvar proced-sort-internal nil
   "Sort scheme for listing (internal format).
@@ -408,26 +390,22 @@ It is a list of lists (KEY PREDICATE REVERSE).")
 
 (defface proced-mark
   '((t (:inherit font-lock-constant-face)))
-  "Face used for Proced marks."
-  :group 'proced-faces)
+  "Face used for Proced marks.")
 
 (defface proced-marked
   '((t (:inherit error)))
-  "Face used for marked processes."
-  :group 'proced-faces)
+  "Face used for marked processes.")
 
 (defface proced-sort-header
   '((t (:inherit font-lock-keyword-face)))
-  "Face used for header of attribute used for sorting."
-  :group 'proced-faces)
+  "Face used for header of attribute used for sorting.")
 
 (defvar proced-re-mark "^[^ \n]"
   "Regexp matching a marked line.
 Important: the match ends just after the marker.")
 
-(defvar proced-header-line nil
+(defvar-local proced-header-line nil
   "Headers in Proced buffer as a string.")
-(make-variable-buffer-local 'proced-header-line)
 
 (defvar proced-temp-alist nil
   "Temporary alist (internal variable).")
@@ -615,14 +593,23 @@ Important: the match ends just after the marker.")
 
 (defun proced-header-line ()
   "Return header line for Proced buffer."
-  (list (propertize " "
-                    'display
-                    (list 'space :align-to
-                          (line-number-display-width 'columns)))
-        (if (<= (window-hscroll) (length proced-header-line))
-            (replace-regexp-in-string ;; preserve text properties
-             "\\(%\\)" "\\1\\1"
-             (substring proced-header-line (window-hscroll))))))
+  (let ((base (line-number-display-width 'columns))
+        (hl (if (<= (window-hscroll) (length proced-header-line))
+                (substring proced-header-line (window-hscroll)))))
+    (when hl
+      ;; From buff-menu.el: Turn whitespace chars in the header into
+      ;; stretch specs so they work regardless of the header-line face.
+      (let ((pos 0))
+	(while (string-match "[ \t\n]+" hl pos)
+	  (setq pos (match-end 0))
+	  (put-text-property (match-beginning 0) pos 'display
+			     `(space :align-to ,(+ pos base))
+			     hl)))
+      (setq hl (replace-regexp-in-string ;; preserve text properties
+		"\\(%\\)" "\\1\\1"
+		hl)))
+    (list (propertize " " 'display `(space :align-to ,base))
+          hl)))
 
 (defun proced-pid-at-point ()
   "Return pid of system process at point.
@@ -676,8 +663,8 @@ After displaying or updating a Proced buffer, Proced runs the normal hook
   (setq buffer-read-only t
         truncate-lines t
         header-line-format '(:eval (proced-header-line)))
-  (add-hook 'post-command-hook 'force-mode-line-update nil t)
-  (set (make-local-variable 'revert-buffer-function) 'proced-revert)
+  (add-hook 'post-command-hook #'force-mode-line-update nil t)  ;; FIXME: Why?
+  (set (make-local-variable 'revert-buffer-function) #'proced-revert)
   (set (make-local-variable 'font-lock-defaults)
        '(proced-font-lock-keywords t nil nil beginning-of-line))
   (if (and (not proced-auto-update-timer) proced-auto-update-interval)
@@ -940,11 +927,12 @@ Return the filtered process list."
                (if (funcall (car filter) (cdr process))
                    (push process new-alist))))
             (t ;; apply predicate to specified attribute
-             (let ((fun (if (stringp (cdr filter))
-                            `(lambda (val)
-                               (string-match ,(cdr filter) val))
-                          (cdr filter)))
-                   value)
+             (let* ((cdrfilter (cdr filter))
+                    (fun (if (stringp cdrfilter)
+                            (lambda (val)
+                              (string-match cdrfilter val))
+                          cdrfilter))
+                    value)
                (dolist (process process-alist)
                  (setq value (cdr (assq (car filter) (cdr process))))
                  (if (and value (funcall fun value))
@@ -1023,7 +1011,7 @@ The list of children does not include grandchildren."
   "Return list of children PIDs of PPID (including PPID)."
   (let ((cpids (cdr (assq ppid proced-temp-alist))))
     (if cpids
-        (cons ppid (apply 'append (mapcar 'proced-children-pids cpids)))
+        (cons ppid (apply #'append (mapcar #'proced-children-pids cpids)))
       (list ppid))))
 
 (defun proced-process-tree (process-alist)
@@ -1114,7 +1102,7 @@ Return the rearranged process list."
           proced-process-tree)
     (if (cdr process-tree)
         (let ((proced-tree-depth (1+ proced-tree-depth)))
-          (mapc 'proced-tree-insert (cdr process-tree))))))
+          (mapc #'proced-tree-insert (cdr process-tree))))))
 
 ;; Refining
 
@@ -1207,7 +1195,7 @@ Return `equal' if T1 equals T2.  Return nil otherwise."
 
 ;;; Sorting
 
-(define-obsolete-function-alias 'proced-xor 'xor "27.1")
+(define-obsolete-function-alias 'proced-xor #'xor "27.1")
 
 (defun proced-sort-p (p1 p2)
   "Predicate for sorting processes P1 and P2."
@@ -1436,10 +1424,11 @@ Replace newline characters by \"^J\" (two characters)."
     ;; Loop over all attributes
     (while (setq grammar (assq (pop format) proced-grammar-alist))
       (let* ((key (car grammar))
-             (fun (cond ((stringp (nth 2 grammar))
-                         `(lambda (arg) (format ,(nth 2 grammar) arg)))
-                        ((not (nth 2 grammar)) 'identity)
-                        ( t (nth 2 grammar))))
+             (nth2grm (nth 2 grammar))
+             (fun (cond ((stringp nth2grm)
+                         (lambda (arg) (format nth2grm arg)))
+                        ((not nth2grm) #'identity)
+                        (t nth2grm)))
              (whitespace (if format whitespace ""))
              ;; Text properties:
              ;; We use the text property `proced-key' to store in each
@@ -1479,13 +1468,13 @@ Replace newline characters by \"^J\" (two characters)."
                  (end-of-line)
                  (setq value (cdr (assq key (cdr process))))
                  (insert (if value
-                             (apply 'propertize (funcall fun value) fprops)
+                             (apply #'propertize (funcall fun value) fprops)
                            (format (concat "%" (number-to-string (nth 3 grammar)) "s")
                                    unknown))
                          whitespace)
                  (forward-line))
                (push (format (concat "%" (number-to-string (nth 3 grammar)) "s")
-                             (apply 'propertize (nth 1 grammar) hprops))
+                             (apply #'propertize (nth 1 grammar) hprops))
                      header-list))
 
               ( ;; last field left-justified
@@ -1493,10 +1482,10 @@ Replace newline characters by \"^J\" (two characters)."
                (dolist (process process-alist)
                  (end-of-line)
                  (setq value (cdr (assq key (cdr process))))
-                 (insert (if value (apply 'propertize (funcall fun value) fprops)
+                 (insert (if value (apply #'propertize (funcall fun value) fprops)
                            unknown))
                  (forward-line))
-               (push (apply 'propertize (nth 1 grammar) hprops) header-list))
+               (push (apply #'propertize (nth 1 grammar) hprops) header-list))
 
               (t ;; calculated field width
                (let ((width (length (nth 1 grammar)))
@@ -1504,14 +1493,14 @@ Replace newline characters by \"^J\" (two characters)."
                  (dolist (process process-alist)
                    (setq value (cdr (assq key (cdr process))))
                    (if value
-                       (setq value (apply 'propertize (funcall fun value) fprops)
+                       (setq value (apply #'propertize (funcall fun value) fprops)
                              width (max width (length value))
                              field-list (cons value field-list))
                      (push unknown field-list)
                      (setq width (max width (length unknown)))))
                  (let ((afmt (concat "%" (if (eq 'left (nth 3 grammar)) "-" "")
                                      (number-to-string width) "s")))
-                   (push (format afmt (apply 'propertize (nth 1 grammar) hprops))
+                   (push (format afmt (apply #'propertize (nth 1 grammar) hprops))
                          header-list)
                    (dolist (value (nreverse field-list))
                      (end-of-line)
@@ -1527,7 +1516,7 @@ Replace newline characters by \"^J\" (two characters)."
       (forward-line))
     ;; Set header line
     (setq proced-header-line
-          (mapconcat 'identity (nreverse header-list) whitespace))
+          (mapconcat #'identity (nreverse header-list) whitespace))
     (if (string-match "[ \t]+$" proced-header-line)
         (setq proced-header-line (substring proced-header-line 0
                                             (match-beginning 0))))
@@ -1742,7 +1731,7 @@ The value returned is the value of the last form in BODY."
        (setq truncate-lines t
              proced-header-line header-line ; inherit header line
              header-line-format '(:eval (proced-header-line)))
-       (add-hook 'post-command-hook 'force-mode-line-update nil t)
+       (add-hook 'post-command-hook #'force-mode-line-update nil t) ;FIXME: Why?
        (let ((inhibit-read-only t))
          (erase-buffer)
          (buffer-disable-undo)
@@ -1780,8 +1769,8 @@ supported but discouraged.  It will be removed in a future version of Emacs."
                   (format "%d processes" (length process-alist))))
           (completion-ignore-case t)
           (completion-extra-properties
-           '(:annotation-function
-             (lambda (s) (cdr (assoc s proced-signal-list))))))
+           `(:annotation-function
+             ,(lambda (s) (cdr (assoc s proced-signal-list))))))
      (proced-with-processes-buffer process-alist
        (list (completing-read (concat "Send signal [" pnum
                                       "] (default TERM): ")
@@ -1805,8 +1794,8 @@ supported but discouraged.  It will be removed in a future version of Emacs."
                     (format "%d processes" (length process-alist))))
             (completion-ignore-case t)
             (completion-extra-properties
-             '(:annotation-function
-               (lambda (s) (cdr (assoc s proced-signal-list))))))
+             `(:annotation-function
+               ,(lambda (s) (cdr (assoc s proced-signal-list))))))
         (proced-with-processes-buffer process-alist
           (setq signal (completing-read (concat "Send signal [" pnum
                                                 "] (default TERM): ")

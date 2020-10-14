@@ -1,4 +1,4 @@
-;;; calc-misc.el --- miscellaneous functions for Calc
+;;; calc-misc.el --- miscellaneous functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -505,7 +505,7 @@ With argument 0, switch line point is in with line mark is in."
        ;; 3 <-- mid-line = 3
        ;; 4 <-- point
        ;; 5 <-- bot-line = 5
-       (dotimes (i mid-line)
+       (dotimes (_ mid-line)
          (setq mid-cell old-top-list
                old-top-list (cdr old-top-list))
          (setcdr mid-cell new-top-list)
@@ -519,7 +519,7 @@ With argument 0, switch line point is in with line mark is in."
        ;; 2
        ;; 1
        (setq  prev-mid-cell old-top-list)
-       (dotimes (i (- bot-line mid-line))
+       (dotimes (_ (- bot-line mid-line))
          (setq bot-cell old-top-list
                old-top-list (cdr old-top-list))
          (setcdr bot-cell new-top-list)

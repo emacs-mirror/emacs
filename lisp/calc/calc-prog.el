@@ -1,4 +1,4 @@
-;;; calc-prog.el --- user programmability functions for Calc
+;;; calc-prog.el --- user programmability functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -111,10 +111,15 @@
 	      "Not reporting timing of commands"))))
 
 (defun calc-pass-errors ()
+  ;; FIXME: This is broken at least since Emacs-26.
+  ;; AFAICT the immediate purpose of this code is to hack the
+  ;; `condition-case' in `calc-do' so it doesn't catch errors any
+  ;; more.  I'm not sure why/whatfor this was designed, but I suspect
+  ;; that `condition-case-unless-debug' would cover the same needs.
   (interactive)
   ;; The following two cases are for the new, optimizing byte compiler
   ;; or the standard 18.57 byte compiler, respectively.
-  (condition-case err
+  (condition-case nil
       (let ((place (aref (nth 2 (nth 2 (symbol-function 'calc-do))) 15)))
 	(or (memq (car-safe (car-safe place)) '(error xxxerror))
 	    (setq place (aref (nth 2 (nth 2 (symbol-function 'calc-do))) 27)))
@@ -165,6 +170,7 @@
 ;; calc-user-define-composition and calc-finish-formula-edit,
 ;; but is used by calc-fix-user-formula.
 (defvar calc-user-formula-alist)
+(defvar math-arglist)		    ; dynamically bound in all callers
 
 (defun calc-user-define-formula ()
   (interactive)
@@ -328,7 +334,6 @@
 	     (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
    (message "")))
 
-(defvar math-arglist)		    ; dynamically bound in all callers
 (defun calc-default-formula-arglist (form)
   (if (consp form)
       (if (eq (car form) 'var)
@@ -511,8 +516,9 @@
 ;; is called (indirectly) by calc-read-parse-table.
 (defvar calc-lang)
 
-(defun calc-write-parse-table (tab calc-lang)
-  (let ((p tab))
+(defun calc-write-parse-table (tab lang)
+  (let ((calc-lang lang)
+        (p tab))
     (while p
       (calc-write-parse-table-part (car (car p)))
       (insert ":= "
@@ -551,8 +557,9 @@
 	     (insert " "))))
     (setq p (cdr p))))
 
-(defun calc-read-parse-table (calc-buf calc-lang)
-  (let ((tab nil))
+(defun calc-read-parse-table (calc-buf lang)
+  (let ((calc-lang lang)
+        (tab nil))
     (while (progn
 	     (skip-chars-forward "\n\t ")
 	     (not (eobp)))
@@ -860,7 +867,7 @@
 (defun calc-edit-macro-combine-digits ()
   "Put an entire sequence of digits on a single line."
   (let ((line (calc-edit-macro-command))
-        curline)
+        ) ;; curline
     (goto-char (line-beginning-position))
     (kill-line 1)
     (while (string-equal (calc-edit-macro-command-type) "calcDigit-start")
@@ -1038,7 +1045,7 @@ Redefine the corresponding command."
      (let* ((cmd (cdr def))
 	    (fcmd (and cmd (symbolp cmd) (symbol-function cmd)))
 	    (func nil)
-	    (pt (point))
+	    ;; (pt (point))
 	    (fill-column 70)
 	    (fill-prefix nil)
 	    str q-ok)
@@ -1945,8 +1952,9 @@ Redefine the corresponding command."
 ;; by math-define-body.
 (defvar math-exp-env)
 
-(defun math-define-body (body math-exp-env)
-  (math-define-list body))
+(defun math-define-body (body exp-env)
+  (let ((math-exp-env exp-env))
+    (math-define-list body)))
 
 (defun math-define-list (body &optional quote)
   (cond ((null body)
