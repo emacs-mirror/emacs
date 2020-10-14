@@ -41,7 +41,7 @@ rules:
   module-env-VER.h.  Add functions solely at the end of the fragment
   file for the next (not yet released) major version of Emacs.  For
   example, if the current Emacs release is 26.2, add functions only to
-  emacs-env-27.h.
+  module-env-27.h.
 
 - emacs-module.h should only depend on standard C headers.  In
   particular, don't include config.h or lisp.h from emacs-module.h.
@@ -55,7 +55,7 @@ rules:
 
 To add a new module function, proceed as follows:
 
-1. Add a new function pointer field at the end of the emacs-env-*.h
+1. Add a new function pointer field at the end of the module-env-*.h
    file for the next major version of Emacs.
 
 2. Run config.status or configure to regenerate emacs-module.h.
