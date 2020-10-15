@@ -36,10 +36,10 @@
 ;; sorting.  Most functions will just chose a fixed number, such as
 ;; 100, for this score.
 
-;; For example the search function `nnir-run-query' applied to
-;; arguments specifying a search query (see "nnir.el") can be used to
-;; return a list of articles from a search.  Or the function can be the
-;; identity and the args a vector of articles.
+;; For example the search function `gnus-search-run-query' applied to
+;; arguments specifying a search query (see "gnus-search.el") can be
+;; used to return a list of articles from a search.  Or the function
+;; can be the identity and the args a vector of articles.
 
 
 ;;; Code:
@@ -47,7 +47,7 @@
 ;;; Setup:
 
 (require 'gnus-art)
-(require 'nnir)
+(require 'gnus-search)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -372,25 +372,25 @@ If this variable is nil, or if the provided function returns nil,
       ;; find the servers for a pseudo-article
       (if (eq 'nnselect (car (gnus-server-to-method server)))
 	  (with-current-buffer gnus-summary-buffer
-	    (let ((thread  (gnus-id-to-thread article)))
+	    (let ((thread (gnus-id-to-thread article)))
 	      (when thread
 		(mapc
-		 #'(lambda (x)
-		     (when (and x (> x 0))
-		       (cl-pushnew
-			(list
-			 (gnus-method-to-server
-			  (gnus-find-method-for-group
-			   (nnselect-article-group x)))) servers :test 'equal)))
+		 (lambda (x)
+		   (when (and x (> x 0))
+		     (cl-pushnew
+		      (list
+		       (gnus-method-to-server
+			(gnus-find-method-for-group
+			 (nnselect-article-group x)))) servers :test 'equal)))
 		 (gnus-articles-in-thread thread)))))
 	(setq servers (list (list server))))
       (setq artlist
-	    (nnir-run-query
+	    (gnus-search-run-query
 	     (list
-	      (cons 'nnir-query-spec
-		    (list (cons 'query  (format "HEADER Message-ID %s" article))
-		    (cons 'criteria "")  (cons 'shortcut t)))
-	      (cons 'nnir-group-spec servers))))
+	      (cons 'search-query-spec
+		    (list (cons 'query `((id . ,article)))
+			  (cons 'criteria "")  (cons 'shortcut t)))
+	      (cons 'search-group-spec servers))))
       (unless (zerop (nnselect-artlist-length artlist))
 	(setq
 	 group-art
@@ -603,26 +603,35 @@ If this variable is nil, or if the provided function returns nil,
 			     (cl-some #'(lambda (x)
 					  (when (and x (> x 0)) x))
 				      (gnus-articles-in-thread thread)))))))))
-      ;; Check if we are dealing with an imap backend.
-      (if (eq 'nnimap
-	      (car (gnus-find-method-for-group artgroup)))
+      ;; Check if search-based thread referral is permitted, and
+      ;; available.
+      (if (and gnus-refer-thread-use-search
+	       (gnus-search-server-to-engine
+		(gnus-method-to-server
+		 (gnus-find-method-for-group artgroup))))
 	  ;; If so we perform the query, massage the result, and return
 	  ;; the new headers back to the caller to incorporate into the
 	  ;; current summary buffer.
 	  (let* ((group-spec
 		  (list (delq nil (list
 				   (or server (gnus-group-server artgroup))
-				   (unless  gnus-refer-thread-use-search
+				   (unless gnus-refer-thread-use-search
 				     artgroup)))))
+		 (ids (cons (mail-header-id header)
+			    (split-string
+			     (or (mail-header-references header)
+				 ""))))
 		 (query-spec
-		  (list (cons 'query (nnimap-make-thread-query header))
-			(cons 'criteria "")))
+		  (list (cons 'query (mapconcat (lambda (i)
+						  (format "id:%s" i))
+						ids " or "))
+			(cons 'thread t)))
 		 (last (nnselect-artlist-length gnus-newsgroup-selection))
 		 (first (1+ last))
 		 (new-nnselect-artlist
-		  (nnir-run-query
-		   (list (cons 'nnir-query-spec query-spec)
-			 (cons 'nnir-group-spec group-spec))))
+		  (gnus-search-run-query
+		   (list (cons 'search-query-spec query-spec)
+			 (cons 'search-group-spec group-spec))))
 		 old-arts seq
 		 headers)
 	    (mapc
@@ -670,7 +679,7 @@ If this variable is nil, or if the provided function returns nil,
 	       group
 	       (cons 1 (nnselect-artlist-length gnus-newsgroup-selection))))
 	    headers)
-	;; If not an imap backend just warp to the original article
+	;; If we can't or won't use search, just warp to the original
 	;; group and punt back to gnus-summary-refer-thread.
 	(and (gnus-warp-to-article) (gnus-summary-refer-thread))))))
 
@@ -768,9 +777,15 @@ Return an article list."
 The current server will be searched.  If the registry is
 installed, the server that the registry reports the current
 article came from is also searched."
-  (let* ((query
-	  (list (cons 'query (nnimap-make-thread-query header))
-		(cons 'criteria "")))
+  (let* ((ids (cons (mail-header-id header)
+		    (split-string
+		     (or (mail-header-references header)
+			 ""))))
+	 (query
+	  (list (cons 'query (mapconcat (lambda (i)
+					  (format "id:%s" i))
+					ids " or "))
+		(cons 'thread t)))
 	 (server
 	  (list (list (gnus-method-to-server
 	   (gnus-find-method-for-group gnus-newsgroup-name)))))
@@ -794,10 +809,10 @@ article came from is also searched."
      (list
       (cons 'nnselect-specs
 	    (list
-	     (cons 'nnselect-function 'nnir-run-query)
+	     (cons 'nnselect-function 'gnus-search-run-query)
 	     (cons 'nnselect-args
-		   (list (cons 'nnir-query-spec query)
-			 (cons 'nnir-group-spec server)))))
+		   (list (cons 'search-query-spec query)
+			 (cons 'search-group-spec server)))))
       (cons 'nnselect-artlist nil)))
     (gnus-summary-goto-subject (gnus-id-to-article (mail-header-id header)))))
 
@@ -929,18 +944,18 @@ article came from is also searched."
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
 
-(defun gnus-summary-make-search-group (nnir-extra-parms)
+(defun gnus-summary-make-search-group (no-parse)
   "Search a group from the summary buffer.
-Pass NNIR-EXTRA-PARMS on to the search engine."
+Pass NO-PARSE on to the search engine."
   (interactive "P")
   (gnus-warp-to-article)
   (let ((spec
 	 (list
-	  (cons 'nnir-group-spec
+	  (cons 'search-group-spec
 		(list (list
 		       (gnus-group-server gnus-newsgroup-name)
 		       gnus-newsgroup-name))))))
-    (gnus-group-make-search-group nnir-extra-parms spec)))
+    (gnus-group-make-search-group no-parse spec)))
 
 
 ;; The end.

@@ -454,7 +454,13 @@ tags to be considered as well.
 ** Gnus
 
 +++
-*** New value for user option 'smiley-style'.
+*** New gnus-search library
+A new unified search syntax which can be used across multiple
+supported search engines.  Set 'gnus-search-use-parsed-queries' to
+non-nil to enable.
+
++++
+*** New value for user option 'smiley-style'
 Smileys can now be rendered with emojis instead of small images when
 using the new 'emoji' value in 'smiley-style'.
 
