@@ -940,6 +940,7 @@ Arguments the same as in `compile'."
   (interactive
    (list
     (let ((command (eval compile-command)))
+      (require 'compile)
       (if (or compilation-read-command current-prefix-arg)
 	  (compilation-read-command command)
 	command))
