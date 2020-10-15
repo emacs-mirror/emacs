@@ -27,7 +27,7 @@ The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved
 translation, information on who is currently maintaining the FAQ and how to
 contact them (including their e-mail address), and information on where the
-latest version of the FAQ is archived (including FTP information).
+latest version of the FAQ is archived.
 
 The FAQ may be copied and redistributed under these conditions, except that
 the FAQ may not be embedded in a larger literary work unless that work
