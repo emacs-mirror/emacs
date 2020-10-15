@@ -164,8 +164,11 @@ With argument, pretty-print output into current buffer.
 Ignores leading comment characters."
   (interactive "P")
   (if arg
-      (insert (pp-to-string (eval (pp-last-sexp) lexical-binding)))
-    (pp-eval-expression (pp-last-sexp))))
+      (insert (pp-to-string (eval (elisp--eval-defun-1
+                                   (macroexpand (pp-last-sexp)))
+                                  lexical-binding)))
+    (pp-eval-expression (elisp--eval-defun-1
+                         (macroexpand (pp-last-sexp))))))
 
 ;;;###autoload
 (defun pp-macroexpand-last-sexp (arg)

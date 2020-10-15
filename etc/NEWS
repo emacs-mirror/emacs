@@ -181,6 +181,12 @@ would have to type 'M-: M-p' to edit and redo the expression.  Now
 Emacs will echo the message and allow the user to continue editing.
 
 +++
+** 'eval-last-sexp' now handles 'defvar'/'defcustom'/'defface' specially.
+This command would previously not redefine values defined by these
+forms, but this command has now been changed to work more like
+'eval-defun', and reset the values as specified.
+
++++
 ** New command 'undo-redo'.
 It undoes previous undo commands, but doesn't record itself as an
 undoable command.

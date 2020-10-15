@@ -1190,7 +1190,8 @@ character)."
     ;; Setup the lexical environment if lexical-binding is enabled.
     (elisp--eval-last-sexp-print-value
      (eval (macroexpand-all
-            (eval-sexp-add-defvars (elisp--preceding-sexp)))
+            (eval-sexp-add-defvars
+             (elisp--eval-defun-1 (macroexpand (elisp--preceding-sexp)))))
            lexical-binding)
      (if insert-value (current-buffer) t) no-truncate char-print-limit)))
 
@@ -1245,6 +1246,10 @@ POS specifies the starting position where EXP was found and defaults to point."
   "Evaluate sexp before point; print value in the echo area.
 Interactively, with a non `-' prefix argument, print output into
 current buffer.
+
+This commands handles `defvar', `defcustom' and `defface' the
+same way that `eval-defun' does.  See the doc string of that
+function for details.
 
 Normally, this function truncates long output according to the
 value of the variables `eval-expression-print-length' and

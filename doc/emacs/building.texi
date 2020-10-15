@@ -1672,21 +1672,26 @@ abbreviation of the output according to the variables
 argument of @code{-1} overrides the effect of
 @code{eval-expression-print-length}.
 
+ @kbd{C-x C-e} (@code{eval-last-sexp}) treats @code{defvar}
+expressions specially.  Normally, evaluating a @code{defvar}
+expression does nothing if the variable it defines already has a
+value.  But this command unconditionally resets the variable to the
+initial value specified by the @code{defvar}; this is convenient for
+debugging Emacs Lisp programs.  @code{defcustom} and @code{defface}
+expressions are treated similarly.  Note the other commands documented
+in this section, except @code{eval-defun}, do not have this special
+feature.
+
 @kindex C-M-x @r{(Emacs Lisp mode)}
 @findex eval-defun
   The @code{eval-defun} command is bound to @kbd{C-M-x} in Emacs Lisp
 mode.  It evaluates the top-level Lisp expression containing or
 following point, and prints the value in the echo area.  In this
 context, a top-level expression is referred to as a ``defun'', but it
-need not be an actual @code{defun} (function definition).  In
-particular, this command treats @code{defvar} expressions specially.
-Normally, evaluating a @code{defvar} expression does nothing if the
-variable it defines already has a value.  But this command
-unconditionally resets the variable to the initial value specified by
-the @code{defvar}; this is convenient for debugging Emacs Lisp
-programs.  @code{defcustom} and @code{defface} expressions are treated
-similarly.  Note that the other commands documented in this section do
-not have this special feature.
+need not be an actual @code{defun} (function definition).
+
+ This command handles @code{defvar}/@code{defcustom}/@code{defface}
+forms the same way that @code{eval-last-sexp} does.
 
   With a prefix argument, @kbd{C-M-x} instruments the function
 definition for Edebug, the Emacs Lisp Debugger.  @xref{Instrumenting,
