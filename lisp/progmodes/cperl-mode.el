@@ -48,6 +48,10 @@
 ;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
 ;; or as help on variables `cperl-tips', `cperl-problems',         <<<<<<
 ;; `cperl-praise', `cperl-speed'.				   <<<<<<
+;;
+;; Or search for "Short extra-docs" further down in this file for
+;; details on how to use `cperl-mode' instead of `perl-mode' and lots
+;; of other details.
 
 ;; The mode information (on C-h m) provides some customization help.
 ;; If you use font-lock feature of this mode, it is advisable to use
