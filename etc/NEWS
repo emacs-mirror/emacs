@@ -1138,6 +1138,14 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** New user option 'compilation-search-all-directories'.
+When doing parallel builds, directories and compilation errors may
+arrive in the *compilation* buffer out-of-order.  If this variable is
+non-nil (the default), Emacs will now search backwards in the buffer
+for any directory the file with errors may be in.  If nil, this won't
+be done (and this restores how this previously worked).
+
 +++
 *** New user option 'next-error-message-highlight'.
 In addition to a fringe arrow, 'next-error' error may now optionally
