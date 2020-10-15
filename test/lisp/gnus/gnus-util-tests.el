@@ -133,8 +133,6 @@
   (should (equal '("1" "1") (gnus-setdiff '(2 "1" 2 "1") '(2)))))
 
 (ert-deftest gnus-base64-repad ()
-  (should-error (gnus-base64-repad "" nil nil nil)
-                :type 'wrong-number-of-arguments)
   (should-error (gnus-base64-repad 1)
                 :type 'wrong-type-argument)
 
