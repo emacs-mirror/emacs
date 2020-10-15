@@ -303,7 +303,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; Make sure we have a valid resource name.
   (or (stringp x-resource-name)
       (let (i)
-	(setq x-resource-name invocation-name)
+	(setq x-resource-name (copy-sequence invocation-name))
 
 	;; Change any . or * characters in x-resource-name to hyphens,
 	;; so as not to choke when we use it in X resource queries.
