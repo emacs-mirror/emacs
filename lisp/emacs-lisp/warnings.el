@@ -294,7 +294,8 @@ entirely by setting `warning-suppress-types' or
 		      message)
               ;; Don't output the buttons when doing batch compilation
               ;; and similar.
-              (unless noninteractive
+              (when (and (not noninteractive)
+                         (not (eq type 'bytecomp)))
                 (insert " ")
                 (insert-button "Disable showing"
                                'type 'warning-suppress-warning
