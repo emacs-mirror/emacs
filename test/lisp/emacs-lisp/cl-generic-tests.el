@@ -240,7 +240,7 @@
   (let ((retval (cl--generic-method-files 'cl-generic-tests--generic)))
     (should (equal (length retval) 2))
     (mapc (lambda (x)
-            (should (equal (car x) cl-generic-tests--this-file))
+            (should (equal (file-truename (car x)) cl-generic-tests--this-file))
             (should (equal (cadr x) 'cl-generic-tests--generic)))
           retval)
     (should-not (equal (nth 0 retval) (nth 1 retval)))))
