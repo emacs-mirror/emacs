@@ -2285,6 +2285,14 @@ a string, be sure to use a valid format, see RFC 2616."
     (gnus-message 1 "Edit your init file to make this change permanent.")
     (sit-for 2)))
 
+(defcustom gnus-agent-eagerly-store-articles t
+  "If non-nil, cache articles eagerly.
+
+When using the Gnus Agent and reading an agentized newsgroup,
+automatically cache the article in the agent cache."
+  :type 'boolean
+  :version "28.1")
+
 
 ;;; Internal variables
 

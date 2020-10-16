@@ -435,6 +435,11 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user option 'gnus-agent-eagerly-store-articles'.
+If non-nil (which is the default), the Gnus Agent will store all read
+articles in the Agent cache.
+
++++
 *** New user option 'gnus-global-groups'.
 Gnus handles private groups differently from public (i.e., NNTP-like)
 groups.  Most importantly, Gnus doesn't download external images from
