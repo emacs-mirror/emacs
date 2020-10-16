@@ -956,11 +956,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
     sum))
 
 (defun type-break-time-stamp (&optional when)
-  (if (fboundp 'format-time-string)
-      (format-time-string type-break-time-stamp-format when)
-    ;; Emacs 19.28 and prior do not have format-time-string.
-    ;; In that case, result is not customizable.  Upgrade today!
-    (format "[%s] " (substring (current-time-string when) 11 16))))
+  (format-time-string type-break-time-stamp-format when))
 
 (defun type-break-format-time (secs)
   (let ((mins (/ secs 60)))
