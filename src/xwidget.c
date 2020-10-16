@@ -510,6 +510,10 @@ xwidget_osr_draw_cb (GtkWidget *widget, cairo_t *cr, gpointer data)
   cairo_rectangle (cr, 0, 0, xv->clip_right, xv->clip_bottom);
   cairo_clip (cr);
 
+#ifdef HAVE_PGTK
+  gtk_container_check_resize (GTK_CONTAINER (xw->widgetwindow_osr));
+#endif
+
   gtk_widget_draw (xw->widget_osr, cr);
   return FALSE;
 }
