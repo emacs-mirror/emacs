@@ -51,8 +51,6 @@
 ;; this, but I think the health of my hands is far more important than a
 ;; few pages of virtual memory.
 
-;; This program has no hope of working in Emacs 18.
-
 ;; This package was inspired by Roland McGrath's hanoi-break.el.
 ;; Several people contributed feedback and ideas, including
 ;;      Roland McGrath <roland@gnu.org>

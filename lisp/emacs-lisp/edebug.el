@@ -4461,7 +4461,6 @@ reinstrument it."
 (defun edebug-temp-display-freq-count ()
   "Temporarily display the frequency count data for the current definition.
 It is removed when you hit any char."
-  ;; This seems not to work with Emacs 18.59. It undoes too far.
   (interactive)
   (let ((inhibit-read-only t))
     (undo-boundary)

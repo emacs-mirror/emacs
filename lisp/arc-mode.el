@@ -41,8 +41,7 @@
 ;;                changes will first take effect when the archive buffer
 ;;                is saved.  You will be warned about this.
 ;;
-;; * dos-fns.el:  (Part of Emacs 19).  You get automatic ^M^J <--> ^J
-;;                conversion.
+;; * dos-fns.el:  You get automatic ^M^J <--> ^J conversion.
 ;;
 ;; arc-mode.el does not work well with crypt++.el; for the archives as
 ;; such this could be fixed (but wouldn't be useful) by declaring such
