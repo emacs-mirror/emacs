@@ -13,16 +13,15 @@ written substantial portions.  Others too numerous to mention have
 reported and fixed bugs, and added features to many parts of Emacs.
 We thank them for their generosity as well.
 
-This list is intended to mention every contributor of a major package or
-feature we currently distribute; if you know of someone we have omitted,
-please make a bug report.  More comprehensive information is
-available in the @file{ChangeLog} files, summarized in the file
-@file{etc/AUTHORS} in the distribution.
+This list is intended to mention every contributor of a major package
+or feature; if you know of someone we have omitted, please make a bug
+report.  More comprehensive information is available in the
+@file{ChangeLog} files, summarized in the file @file{etc/AUTHORS} in
+the distribution.
 
 @c We should list here anyone who has contributed a new package,
 @c and anyone who has made major enhancements in Emacs
 @c that many users would notice and consider important.
-@c Remove things that are no longer distributed.
 @c Note this file is only used ifnottex; otherwise a shorter version in
 @c emacs.texi is used.
 
