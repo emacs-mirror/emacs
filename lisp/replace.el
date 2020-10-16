@@ -906,7 +906,8 @@ and `search-upper-case' is non-nil, the matching is case-sensitive.
 Second and third arg RSTART and REND specify the region to operate on.
 This command operates on (the accessible part of) all lines whose
 accessible part is entirely contained in the region determined by RSTART
-and REND.  (A newline ending a line counts as part of that line.)
+and REND.  (A newline ending a line counts as part of that line.)  If RSTART
+is non-nil, REND also has to be given.
 
 Interactively, in Transient Mark mode when the mark is active, operate
 on all lines whose accessible part is entirely contained in the region.
