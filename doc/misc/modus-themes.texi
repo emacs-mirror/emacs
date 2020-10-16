@@ -24,7 +24,7 @@
 @node Top
 @top Modus themes for GNU Emacs
 
-This manual, written by Protesilaos Stavrou, describes the customisation
+This manual, written by Protesilaos Stavrou, describes the customization
 options for the @samp{modus-operandi} and @samp{modus-vivendi} themes, and provides
 every other piece of information pertinent to them.
 
@@ -89,7 +89,7 @@ Customisation Options
 
 * Bold constructs::              Toggle bold constructs in code
 * Slanted constructs::           Toggle slanted constructs (italics) in code
-* Syntax highlighting::          Toggle subtle colouration in programming modes
+* Syntax highlighting::          Toggle subtle coloration in programming modes
 * No mixed fonts::               Toggle mixing of font families
 * Link underline::               Toggle underlined text in links
 * Command prompts::              Choose among plain, subtle, or intense prompts
@@ -142,18 +142,18 @@ Contributing
 @chapter Overview
 
 The Modus themes are designed for accessible readability.  They conform
-with the highest standard for colour contrast between any given
+with the highest standard for color contrast between any given
 combination of background and foreground values.  This corresponds to
 the WCAG AAA standard, which specifies a minimum rate of distance in
 relative luminance of 7:1.
 
 Modus Operandi (@samp{modus-operandi}) is a light theme, while Modus Vivendi
-(@samp{modus-vivendi}) is dark.  Each theme's colour palette is designed to
+(@samp{modus-vivendi}) is dark.  Each theme's color palette is designed to
 meet the needs of the numerous interfaces that are possible in the Emacs
 computing environment.
 
 The overarching objective of this project is to always offer accessible
-colour combinations.  There shall never be a compromise on this
+color combinations.  There shall never be a compromise on this
 principle.  If there arises an inescapable trade-off between readability
 and stylistic considerations, we will always opt for the former.
 
@@ -174,7 +174,7 @@ Emacs (current version is 0.13.0).
 
 Check the web page with @uref{https://protesilaos.com/modus-themes-pictures/, the screen shots}.  There are lots of scenarios on
 display that draw attention to details and important aspects in the
-design of the themes.  They also showcase the numerous customisation
+design of the themes.  They also showcase the numerous customization
 options.
 
 @xref{Customisation Options, , Customisation options}.
@@ -441,7 +441,7 @@ theme (@pxref{Enable and load}).
 @menu
 * Bold constructs::              Toggle bold constructs in code
 * Slanted constructs::           Toggle slanted constructs (italics) in code
-* Syntax highlighting::          Toggle subtle colouration in programming modes
+* Syntax highlighting::          Toggle subtle coloration in programming modes
 * No mixed fonts::               Toggle mixing of font families
 * Link underline::               Toggle underlined text in links
 * Command prompts::              Choose among plain, subtle, or intense prompts
@@ -545,8 +545,8 @@ Possible values:
 @samp{t}
 @end enumerate
 
-Use less saturated colours in programming modes for highlighting code
-syntax.  The default is to use saturated colours.
+Use less saturated colors in programming modes for highlighting code
+syntax.  The default is to use saturated colors.
 
 This option essentially affects the font-lock faces, so it may also have
 implications in other places that are hard-wired to rely directly on
@@ -692,8 +692,8 @@ to something less accessible, such as Moody ribbons (read the doc string
 of @samp{set-face-attribute}, specifically @samp{:distant-foreground}).  This fallback
 comes into effect when Emacs determines that the background and
 foreground of the given construct are too close to each other in terms
-of colour distance.  In effect, users would need to experiment with the
-variable @samp{face-near-same-color-threshold} to trigger the fallback colour.
+of color distance.  In effect, users would need to experiment with the
+variable @samp{face-near-same-color-threshold} to trigger the fallback color.
 We find that a value of @samp{45000} would suffice, contrary to the default
 @samp{30000}.  Do not set the value too high, because that would have the
 adverse effect of always overriding the default color (which has been
@@ -781,7 +781,7 @@ Possible values:
 @end enumerate
 
 The ``subtle'' symbol will apply a greyscale background that is visible,
-yet close enough to the main background colour.  While the ``intense''
+yet close enough to the main background color.  While the ``intense''
 symbol will use a more noticeable greyscale background.
 
 The default is to use the same color as that of the main background,
@@ -870,7 +870,7 @@ output of diffs, such as those of @samp{diff-mode}, @samp{ediff}, @samp{smerge-m
 foreground so that, for example, added lines have a pronounced green
 background with an appropriate shade of green for the affected text.
 Word-wise or ``refined'' changes follow this pattern but use different
-shades of those colours to remain distinct.
+shades of those colors to remain distinct.
 
 A @samp{desaturated} value tones down all relevant color values.  It still
 combines an accented background with an appropriate foreground, yet its
@@ -1039,7 +1039,7 @@ weight.
 @samp{line-no-bold} is the same as @samp{line} without bold weight.
 
 @item
-@samp{rainbow} uses a more colourful foreground in combination with bold
+@samp{rainbow} uses a more colorful foreground in combination with bold
 weight.
 
 @item
@@ -1185,7 +1185,7 @@ main font family.
 @node Advanced customisation (do-it-yourself)
 @chapter Advanced customisation (do-it-yourself)
 
-Unlike the predefined customisation options which follow a
+Unlike the predefined customization options which follow a
 straightforward pattern of allowing the user to quickly specify their
 preference, the themes also provide a more flexible, albeit difficult,
 mechanism to control things with precision (see @ref{Customisation Options}).
@@ -1213,7 +1213,7 @@ The variables are:
 @samp{modus-vivendi-theme-override-colors-alist}
 @end itemize
 
-Users can specify an association list that maps the names of colour
+Users can specify an association list that maps the names of color
 variables to hexadecimal RGB values (in the form of @samp{#RRGGBB}).  This
 means that it is possible to override the entire palette or subsets
 thereof (see the source code for the actual names and values).
@@ -2161,7 +2161,7 @@ theme level.
 
 Normally, such a drastic measure should not belong in a theme: assuming
 the user's preferences is bad practice.  However, it has been deemed
-necessary in the interest of preserving colour contrast accessibility
+necessary in the interest of preserving color contrast accessibility
 while still supporting a useful built-in tool.
 
 If there actually is a way to avoid such a course of action, without
@@ -2208,7 +2208,7 @@ Report bugs, inconsistencies, shortcomings.
 @item
 Help expand the documentation of covered-but-not-styled packages.
 @item
-Suggest refinements to the colour palette.
+Suggest refinements to the color palette.
 @item
 Help expand this document or any other piece of documentation.
 @item
@@ -2223,7 +2223,7 @@ setup.  Though this is not a requirement.
 
 Whatever you do, bear in mind the overarching objective of the Modus
 themes: to keep a contrast ratio that is greater or equal to 7:1 between
-background and foreground colours.  If a compromise is ever necessary
+background and foreground colors.  If a compromise is ever necessary
 between aesthetics and accessibility, it shall always be made in the
 interest of the latter.
 
@@ -2374,7 +2374,7 @@ to produce such a port, feel welcome @uref{https://protesilaos.com/contact, to c
 @item Modus exporter
 This is @uref{https://github.com/polaris64/modus-exporter, an Elisp library written by Simon Pugnet}.
 Licensed under the terms of the GNU General Public License.  It is
-meant to capture the colour values of the active Modus theme (Operandi
+meant to capture the color values of the active Modus theme (Operandi
 or Vivendi) and output it as a valid theme for some other application.
 @end table
 
