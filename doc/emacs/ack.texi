@@ -36,8 +36,7 @@ commands for Gnus; @file{gnus-cite.el}, a citation-parsing facility for
 news articles; @file{gnus-score.el}, scoring for Gnus; @file{cpp.el},
 which hides or highlights parts of C programs according to preprocessor
 conditionals; and the widget library files @file{wid-browse.el},
-@file{wid-edit.el}, @file{widget.el}.  He also co-wrote
-@file{gnus-soup.el}.
+@file{wid-edit.el}, @file{widget.el}.
 
 @item
 Tomas Abrahamsson wrote @file{artist.el}, a package for producing
@@ -102,9 +101,7 @@ Emacs.
 
 @item
 Steven L. Baur wrote @file{footnote.el} which lets you include
-footnotes in email messages; and @file{gnus-audio.el} and
-@file{earcon.el}, which provide sound effects for Gnus.  He also wrote
-@file{gnus-setup.el}.
+footnotes in email messages.
 
 @item
 Alexander L. Belikoff, Sergey Berezin, Sacha Chua, David Edmondson,
@@ -402,9 +399,8 @@ case tables.  He also wrote @file{rot13.el}, a command to display the
 plain-text form of a buffer encoded with the Caesar cipher;
 @file{vt100-led.el}, a package for controlling the LEDs on
 VT100-compatible terminals; and much of the support for ISO-8859
-European character sets (which includes @file{iso-ascii.el},
-@file{iso-insert.el}, @file{iso-swed.el},
-@file{iso-syntax.el}, @file{iso-transl.el}, and @file{swedish.el}).
+European character sets (which includes @file{iso-ascii.el} and
+@file{iso-transl.el}).
 
 @item
 Stephen Gildea made the Emacs quick reference card, and made many
@@ -665,10 +661,8 @@ statically scoped Emacs lisp.
 
 @item
 Daniel LaLiberte wrote @file{edebug.el}, a source-level debugger for
-Emacs Lisp; @file{cl-specs.el}, specifications to help @code{edebug}
-debug code written using David Gillespie's Common Lisp support; and
-@file{isearch.el}, Emacs's incremental search minor mode.  He also
-co-wrote @file{hideif.el} (q.v.).
+Emacs Lisp; and @file{isearch.el}, Emacs's incremental search minor
+mode.  He also co-wrote @file{hideif.el} (q.v.).
 
 @item
 Karl Landstrom and Daniel Colascione wrote @file{js.el}, a mode for
@@ -738,16 +732,14 @@ numeric keys to digit arguments; @file{autoconf.el}, a mode for editing
 Autoconf files; @file{cfengine.el}, a mode for editing Cfengine files;
 @file{elide-head.el}, a package for eliding boilerplate text from file
 headers; @file{hl-line.el}, a minor mode for highlighting the line in
-the current window on which point is; @file{cap-words.el}, a minor mode
-for motion in @code{CapitalizedWordIdentifiers}; @file{latin1-disp.el}, a
+the current window on which point is; @file{latin1-disp.el}, a
 package that lets you display ISO 8859 characters on Latin-1 terminals
 by setting up appropriate display tables; the version of
 @file{python.el} used prior to Emacs 24.3; @file{smiley.el}, a
-facility for displaying smiley faces; @file{sym-comp.el}, a library
-for performing mode-dependent symbol completion; @file{benchmark.el}
-for timing code execution; and @file{tool-bar.el}, a mode to control
-the display of the Emacs tool bar.  With Riccardo Murri he wrote
-@file{vc-bzr.el}, support for the Bazaar version control system.
+facility for displaying smiley faces; @file{benchmark.el} for timing
+code execution; and @file{tool-bar.el}, a mode to control the display
+of the Emacs tool bar.  With Riccardo Murri he wrote @file{vc-bzr.el},
+support for the Bazaar version control system.
 
 @item
 Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking
@@ -1032,8 +1024,7 @@ Emacs; @file{asm-mode.el}, a mode for editing assembly language code;
 @file{AT386.el}, terminal support package for IBM's AT keyboards;
 @file{cookie1.el}, support for fortune-cookie programs like
 @file{yow.el} and @file{spook.el}; @file{finder.el}, a package for
-finding Emacs Lisp packages by keyword and topic; @file{keyswap.el},
-code to swap the @key{BS} and @key{DEL} keys; @file{loadhist.el},
+finding Emacs Lisp packages by keyword and topic; @file{loadhist.el},
 functions for loading and unloading Emacs features;
 @file{lisp-mnt.el}, functions for working with the special headers
 used in Emacs Lisp library files; and code to set and make use of the
@@ -1193,9 +1184,8 @@ Lisp interpreter as a subprocess.
 Paul D. Smith wrote @file{snmp-mode.el}.
 
 @item
-William Sommerfeld wrote @file{scribe.el}, a mode for editing Scribe
-files, and @file{server.el}, a package allowing programs to send files
-to an extant Emacs job to be edited.
+William Sommerfeld wrote @file{server.el}, a package allowing programs
+to send files to an extant Emacs job to be edited.
 
 @item
 Andre Spiegel made many contributions to the Emacs Version Control
@@ -1329,8 +1319,7 @@ of Emacs, and @file{w32-fns.el}, MS-Windows specific support functions.
 
 @item
 Johan Vromans wrote @file{forms.el} and its associated files, a mode for
-filling in forms.  He also wrote @file{iso-acc.el}, a minor mode
-providing electric accent keys.
+filling in forms.
 
 @item
 Colin Walters wrote Ibuffer, an enhanced buffer menu.
@@ -1363,11 +1352,9 @@ the shift key and motion commands; and @file{dos-fns.el}, functions
 for use under MS-DOS.
 
 @item
-Joe Wells wrote the original version of @file{apropos.el} (q.v.);
-@file{resume.el}, support for processing command-line arguments after
-resuming a suspended Emacs job; and @file{mail-extr.el}, a package for
-extracting names and addresses from mail headers, with contributions
-from Jamie Zawinski.
+Joe Wells wrote the original version of @file{apropos.el} (q.v.); and
+@file{mail-extr.el}, a package for extracting names and addresses from
+mail headers, with contributions from Jamie Zawinski.
 
 @item
 Rodney Whitby and Reto Zimmermann wrote @file{vhdl-mode.el}, a major
