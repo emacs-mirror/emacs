@@ -1,12 +1,15 @@
 \input texinfo    @c -*- texinfo -*-
 @c %**start of header
-@setfilename modus-themes.info
+@setfilename ../../info/modus-themes.info
 @settitle Modus themes for GNU Emacs
+@include docstyle.texi
 @documentencoding UTF-8
 @documentlanguage en
 @c %**end of header
 
-@dircategory Emacs
+@include emacsver.texi
+
+@dircategory Emacs misc features
 @direntry
 * Modus Themes: (modus-themes). Highly accessible themes (WCAG AAA).
 @end direntry
@@ -185,10 +188,9 @@ and covers everything that goes into every tagged release of the themes.
 @node Installation
 @chapter Installation
 
-The Modus themes are built into Emacs' development branch (@samp{master}) which
-corresponds to the nominal version 28.0.50.  Otherwise they can be
-installed using Emacs' package manager or manually from their code
-repository.
+The Modus themes are distributed with Emacs starting with version 28.1.
+On older versions of Emacs, they can be installed using Emacs' package
+manager or manually from their code repository.
 
 Modus Operandi (light theme) and Modus Vivendi (dark) are normally
 distributed as standalone packages in Emacs-specific archives: GNU ELPA,
