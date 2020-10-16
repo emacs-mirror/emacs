@@ -110,7 +110,7 @@ Scaled headings
 
 Advanced customisation (do-it-yourself)
 
-* Tweak colours (DIY)::          Declare your own palette overrides
+* Tweak colors (DIY)::           Declare your own palette overrides
 * Font configs (DIY)::           Optimise for mixed typeface buffers
 * Org user faces (DIY)::         Extend styles for org-mode keywords and priorities
 
@@ -123,9 +123,9 @@ Face coverage
 Notes for individual packages
 
 * Note on company-mode overlay pop-up::
-* Note for ERC escaped colour sequences::
+* Note for ERC escaped color sequences::
 * Note for powerline or spaceline::
-* Note on shr colours::
+* Note on shr colors::
 * Note for Helm grep::
 * Note on vc-annotate-background-mode::
 
@@ -172,12 +172,12 @@ Emacs (current version is 0.13.0).
 @node How do the themes look like
 @section How do the themes look like
 
-Check the web page with @uref{https://protesilaos.com/modus-themes-pictures/, the screen shots}.  There are lots of scenaria on
+Check the web page with @uref{https://protesilaos.com/modus-themes-pictures/, the screen shots}.  There are lots of scenarios on
 display that draw attention to details and important aspects in the
 design of the themes.  They also showcase the numerous customisation
 options.
 
-@ref{Customisation Options, , Customisation options}.
+@xref{Customisation Options, , Customisation options}.
 
 @node Learn about the latest changes
 @section Learn about the latest changes
@@ -205,15 +205,14 @@ distributions.
 @node Install from the archives
 @section Install from the archives
 
-@samp{modus-operandi-theme} and @samp{modus-vivendi-theme} are available from GNU
-ELPA, MELPA, MELPA Stable.
+@samp{modus-operandi-theme} and @samp{modus-vivendi-theme} are
+available from GNU ELPA.
 
 Prior to querying any package archive, make sure to have updated the
 index, with @samp{M-x package-refresh-contents}.  Then all you need to do is
 type @samp{M-x package-install} and specify the theme of your choice.
 
-GNU ELPA and MELPA Stable contain the last tagged release.  While MELPA
-builds from the latest commit to the @uref{https://gitlab.com/protesilaos/modus-themes, Modus theme's Git repository}.
+GNU ELPA contains the last tagged release.
 
 @node Install on GNU/Linux
 @section Install on GNU/Linux
@@ -260,8 +259,8 @@ guix package -i modus-vivendi-theme
 @node Enable and load
 @chapter Enable and load
 
-This section documents techniques on how to load the theme of your
-choice and how to further control its initialisation.  It also includes
+This section documents how to load the theme of your
+choice and how to further control its initialization.  It also includes
 some sample code snippets that could help you in the task, especially if
 you intend to use both Modus Operandi and Modus Vivendi.
 
@@ -275,7 +274,7 @@ you intend to use both Modus Operandi and Modus Vivendi.
 @node Load automatically
 @section Load automatically
 
-A simple way to load the theme from your Emacs initialisation file is to
+A simple way to load the theme from your Emacs initialization file is to
 include either of the following expressions:
 
 @lisp
@@ -380,7 +379,7 @@ presented in @ref{Toggle between the themes on demand}.
 
 Here is a comprehensive setup (the values assigned to the variables are
 just for the sake of this demonstration):@footnote{The @samp{defmacro} and @samp{dolist}
-method were contributed on Reddit by user b3n
+method were contributed on Reddit by user @samp{b3n},
 @uref{https://www.reddit.com/r/emacs/comments/gqsz8u/weekly_tipstricketc_thread/fsfakhg/}.}
 
 @lisp
@@ -431,13 +430,13 @@ method were contributed on Reddit by user b3n
 @node Customisation Options
 @chapter Customisation Options
 
-The Modus themes are highly configurable.  Though they should work well
+The Modus themes are highly configurable, though they should work well
 without any further tweaks.
 
-By default, all customisation options are set to @samp{nil}.
+By default, all customization options are set to @samp{nil}.
 
-All customisation options need to be evaluated before loading their
-theme (see @ref{Enable and load}).
+All customization options need to be evaluated before loading their
+theme (@pxref{Enable and load}).
 
 @menu
 * Bold constructs::              Toggle bold constructs in code
@@ -579,14 +578,14 @@ Possible values:
 By default, the themes configure some spacing-sensitive faces, such as
 Org tables and code blocks, to always inherit from the @samp{fixed-pitch} face.
 This is to ensure that those constructs remain monospaced when users opt
-for something like the built-in @samp{M-x variable-pitch-mode}.  Otherwise the
+for something like the built-in @kbd{M-x variable-pitch-mode}.  Otherwise the
 layout would appear broken.  To disable this behaviour, set the option
 to @samp{t}.
 
 Users may prefer to use another package for handling mixed typeface
 configurations, rather than letting the theme do it, perhaps because a
 purpose-specific package has extra functionality.  Two possible options
-are @uref{https://melpa.org/#/org-variable-pitch, org-variable-pitch} and @uref{https://melpa.org/#/mixed-pitch, mixed-pitch}.
+are @samp{org-variable-pitch} and @samp{mixed-pitch}.
 
 @node Link underline
 @section Option for no link underline
@@ -640,8 +639,8 @@ background and foreground to the minibuffer and other REPL prompts (like
 @samp{M-x shell} and @samp{M-x eshell}).  The difference between the two is that the
 latter has a more pronounced/noticeable effect than the former.
 
-The default is to not use any background for such prompts, while relying
-exclusively on an accented foreground colour.
+The default is not to use any background for such prompts, while relying
+exclusively on an accented foreground color.
 
 @node Mode line
 @section Option for mode line presentation
@@ -674,12 +673,12 @@ more intense than the inactive.
 A @samp{3d} symbol will make the active modeline look like a three-dimensional
 rectangle.  Inactive modelines remain 2D, though they are slightly toned
 down relative to the default.  This aesthetic is the same as what you
-get when you run Emacs without any customisations (@samp{emacs -Q} on the
+get when you run Emacs without any customizations (@kbd{emacs -Q} on the
 command line).
 
 While @samp{moody} removes all box effects from the modelines and applies
 underline and overline properties instead.  It also tones down a bit the
-inactive modelines.  This is meant to optimise things for use with the
+inactive modelines.  This is meant to optimize things for use with the
 @uref{https://github.com/tarsius/moody, moody package} (hereinafter referred to as ``Moody''), though it can work
 fine even without it.
 
@@ -697,7 +696,7 @@ of colour distance.  In effect, users would need to experiment with the
 variable @samp{face-near-same-color-threshold} to trigger the fallback colour.
 We find that a value of @samp{45000} would suffice, contrary to the default
 @samp{30000}.  Do not set the value too high, because that would have the
-adverse effect of always overriding the default colour (which has been
+adverse effect of always overriding the default color (which has been
 carefully designed to be highly accessible).
 
 Furthermore, because Moody expects an underline and overline instead of
@@ -733,7 +732,7 @@ Possible values:
 This is a special option that has different effects depending on the
 completion UI@.  The interfaces can be grouped in two categories, based
 on their default aesthetics: (i) those that only or mostly use
-foreground colours for their interaction model, and (ii) those that
+foreground colors for their interaction model, and (ii) those that
 combine background and foreground values for some of their metaphors.
 The former category encompasses Icomplete, Ido, Selectrum as well as
 pattern matching styles like Orderless and Flx.  The latter covers Helm,
@@ -747,14 +746,14 @@ constitutes a departure from their default aesthetics, however the
 difference is small.  While Helm et al will appear slightly different
 than their original looks, as they are toned down a bit.
 
-The symbol @samp{opinionated} will apply colour combinations that refashion the
+The symbol @samp{opinionated} will apply color combinations that refashion the
 completion UI@.  For the Icomplete camp this means that intense
 background and foreground combinations are used: in effect their looks
 emulate those of Ivy and co. in their original style.  Whereas the other
 group of packages will revert to an even more nuanced aesthetic with
 some additional changes to the choice of hues.
 
-To appreciate the scope of this customisation option, you should spend
+To appreciate the scope of this customization option, you should spend
 some time with every one of the @samp{nil} (default), @samp{moderate}, and @samp{opinionated}
 possibilities.
 
@@ -785,7 +784,7 @@ The ``subtle'' symbol will apply a greyscale background that is visible,
 yet close enough to the main background colour.  While the ``intense''
 symbol will use a more noticeable greyscale background.
 
-The default is to use the same colour as that of the main background,
+The default is to use the same color as that of the main background,
 meaning that the fringes are not obvious though they still occupy the
 space given to them by @samp{fringe-mode}.
 
@@ -811,10 +810,10 @@ Possible values:
 @end enumerate
 
 Draw the current line of @samp{hl-line-mode} or its global equivalent in a more
-prominent background colour.  This would also affect several packages
+prominent background color.  This would also affect several packages
 that enable @samp{hl-line-mode}, such as @samp{elfeed} and @samp{mu4e}.
 
-The default is to use a more subtle grey.
+The default is to use a more subtle gray.
 
 @node Matching parentheses
 @section Option for parenthesis matching (show-paren-mode)
@@ -839,7 +838,7 @@ Possible values:
 
 Apply a more intense background to the matching parentheses (or
 delimiters).  This affects tools such as the built-in @samp{show-paren-mode}.
-The default is to use a subtle warm colour for the background of those
+The default is to use a subtle warm color for the background of those
 overlays.
 
 @node Diffs
@@ -865,22 +864,22 @@ Possible values:
 @samp{fg-only}
 @end enumerate
 
-By default the themes will apply richly coloured backgrounds to the
+By default the themes will apply richly colored backgrounds to the
 output of diffs, such as those of @samp{diff-mode}, @samp{ediff}, @samp{smerge-mode}, and
-@samp{magit}.  These are colour combinations of an accented background and
+@samp{magit}.  These are color combinations of an accented background and
 foreground so that, for example, added lines have a pronounced green
 background with an appropriate shade of green for the affected text.
 Word-wise or ``refined'' changes follow this pattern but use different
 shades of those colours to remain distinct.
 
-A @samp{desaturated} value tones down all relevant colour values.  It still
+A @samp{desaturated} value tones down all relevant color values.  It still
 combines an accented background with an appropriate foreground, yet its
 overall impression is very subtle.  Refined changes are a bit more
 intense to fulfil their intended function, though still less saturated
 than default.
 
 While @samp{fg-only} will remove all accented backgrounds and instead rely on
-colour-coded text to denote changes.  For instance, added lines use an
+color-coded text to denote changes.  For instance, added lines use an
 intense green foreground, while their background is the same as the rest
 of the buffer.  Word-wise highlights still use a background value which
 is, nonetheless, more subtle than its default equivalent.
@@ -916,29 +915,29 @@ Possible values:
 The default is to use the same background as the rest of the buffer for
 the contents of the block.
 
-A value of @samp{greyscale} will apply a subtle neutral grey background to the
+A value of @samp{greyscale} will apply a subtle neutral gray background to the
 block's contents.  It will also extend to the edge of the window the
 background of the ``begin'' and ``end'' block delimiter lines (only relevant
 for Emacs versions >= 27 where the 'extend' keyword is recognised by
 @samp{set-face-attribute}).
 
 While @samp{rainbow} will instead use an accented background for the contents
-of the block.  The exact colour will depend on the programming language
+of the block.  The exact color will depend on the programming language
 and is controlled by the @samp{org-src-block-faces} variable (refer to the
 theme's source code for the current association list).  This is most
 suitable for users who work on literate programming documents that mix
 and match several languages.
 
 Note that the ``rainbow'' blocks may require you to also reload the
-major-mode so that the colours are applied properly: use @samp{M-x org-mode} or
-@samp{M-x org-mode-restart} to refresh the buffer.  Or start typing in each
+major-mode so that the colors are applied properly: use @kbd{M-x org-mode} or
+@kbd{M-x org-mode-restart} to refresh the buffer.  Or start typing in each
 code block (inefficient at scale, but it still works).
 
 @node Heading styles
 @section Option for headings' overall style
 
 This is defined as an alist and, therefore, uses a different approach
-than other customisation options documented in this manual.
+than other customization options documented in this manual.
 
 Symbol names:
 
@@ -1030,7 +1029,7 @@ A description of all other possible styles:
 
 @itemize
 @item
-@samp{no-bold} retains the default text colour while removing the typographic
+@samp{no-bold} retains the default text color while removing the typographic
 weight.
 
 @item
@@ -1059,7 +1058,7 @@ background.
 @samp{highlight-no-bold} is the same as @samp{highlight} without a bold weight.
 
 @item
-@samp{rainbow-highlight} is the same as @samp{highlight} but with a more colourful
+@samp{rainbow-highlight} is the same as @samp{highlight} but with a more colorful
 foreground.
 
 @item
@@ -1075,7 +1074,7 @@ of the @samp{line} and @samp{highlight} values.
 @samp{section-no-bold} is the same as @samp{section} without a bold weight.
 
 @item
-@samp{rainbow-section} is the same as @samp{section} but with a more colourful
+@samp{rainbow-section} is the same as @samp{section} but with a more colorful
 foreground.
 
 @item
@@ -1197,12 +1196,12 @@ incompatibilities between versioned releases of the themes.  As such,
 they are labelled as ``do-it-yourself'' or ``DIY''.
 
 @menu
-* Tweak colours (DIY)::          Declare your own palette overrides
+* Tweak colors (DIY)::           Declare your own palette overrides
 * Font configs (DIY)::           Optimise for mixed typeface buffers
 * Org user faces (DIY)::         Extend styles for org-mode keywords and priorities
 @end menu
 
-@node Tweak colours (DIY)
+@node Tweak colors (DIY)
 @section Full access to the themes' palette
 
 The variables are:
@@ -1232,8 +1231,8 @@ Example:
 If you want to be creative, you can define a minor mode that refashions
 the themes on demand.  The following is a minor mode that gets activated
 on demand.  We combine it with the function to switch between Modus
-Operandi and Modus Vivendi (see @ref{Toggle between the themes on demand} for
-a basic command, and/or @ref{Configure options prior to loading} for a more
+Operandi and Modus Vivendi (@pxref{Toggle between the themes on demand}, for
+a basic command, and/or @pxref{Configure options prior to loading}, for a more
 comprehensive setup).
 
 @lisp
@@ -1243,7 +1242,7 @@ comprehensive setup).
 This is intended as a proof-of-concept.  It is, nonetheless, a
 perfectly accessible alternative, conforming with the design
 principles of the Modus themes.  It still is not as good as the
-default colours."
+default colors."
   :init-value nil
   :global t
   (if modus-themes-alt-mode
@@ -1307,7 +1306,7 @@ prose-friendly proportionately spaced typeface as their default, while
 letting spacing-sensitive elements like tables and inline code always
 use a monospaced font, by inheriting from the @samp{fixed-pitch} face.
 
-Users can try the built-in @samp{M-x variable-pitch-mode} to see the effect in
+Users can try the built-in @kbd{M-x variable-pitch-mode} to see the effect in
 action.
 
 To make everything use your desired font families, you need to configure
@@ -1315,8 +1314,8 @@ the @samp{variable-pitch} (proportional spacing) and @samp{fixed-pitch} (monospa
 faces respectively.  It may also be convenient to set your main typeface
 by configuring the @samp{default} face the same way.
 
-Put something like this in your initialisation file (make sure to read
-the documentation of @samp{set-face-attribute}, with @samp{M-x describe-function}):
+Put something like this in your initialization file (make sure to read
+the documentation of @samp{set-face-attribute}, with @kbd{M-x describe-function}):
 
 @lisp
 ;; Main typeface
@@ -1367,12 +1366,12 @@ priority cookies to better match their workflow.  User options are
 As those are meant to be custom faces, it would be futile to have the
 themes try to guess what each user would want to use, which keywords to
 target, and so on.  Instead, we can provide guidelines on how to
-customise things to one's liking with the intent of retaining the
+customize things to one's liking with the intent of retaining the
 overall aesthetics of the theme.
 
 Please bear in mind that the end result of those is not controlled by
 the active theme but by how Org maps faces to its constructs.  Editing
-those while @samp{org-mode} is active requires @samp{M-x org-mode-restart} for changes
+those while @samp{org-mode} is active requires @kbd{M-x org-mode-restart} for changes
 to take effect.
 
 Let us assume you wish to visually differentiate your keywords.  You
@@ -1426,7 +1425,7 @@ configuration of the priority cookies:
 @end lisp
 
 To find all the faces that are loaded in your current Emacs session, use
-@samp{M-x list-faces-display}.  Also try @samp{M-x describe-variable} and then specify
+@kbd{M-x list-faces-display}.  Also try @kbd{M-x describe-variable} and then specify
 the name of each of those Org variables demonstrated above.  Their
 documentation strings will offer you further guidance.
 
@@ -1539,7 +1538,7 @@ csv-mode
 @item
 ctrlf
 @item
-custom (@samp{M-x customize})
+custom (@kbd{M-x customize})
 @item
 dap-mode
 @item
@@ -1843,7 +1842,7 @@ outline-mode
 @item
 outline-minor-faces
 @item
-package (@samp{M-x list-packages})
+package (@kbd{M-x list-packages})
 @item
 page-break-lines
 @item
@@ -1963,7 +1962,7 @@ undo-tree
 @item
 vc (built-in mode line status for version control)
 @item
-vc-annotate (@samp{C-x v g})
+vc-annotate (@kbd{C-x v g})
 @item
 vdiff
 @item
@@ -2044,7 +2043,7 @@ that secondary elements like sidebars can have the default (pure
 white/black) background.
 
 I will only cover this package if it ever supports the inverse effect:
-less intense colours (but still accessible) for supportive interfaces
+less intense colors (but still accessible) for supportive interfaces
 and the intended styles for the content you are actually working on.
 
 @node Notes for individual packages
@@ -2055,9 +2054,9 @@ individual packages.
 
 @menu
 * Note on company-mode overlay pop-up::
-* Note for ERC escaped colour sequences::
+* Note for ERC escaped color sequences::
 * Note for powerline or spaceline::
-* Note on shr colours::
+* Note on shr colors::
 * Note for Helm grep::
 * Note on vc-annotate-background-mode::
 @end menu
@@ -2074,10 +2073,10 @@ The solution recommended by the project's maintainer is to use an
 alternative front-end for drawing the pop-up which uses child frames
 instead of overlays.@footnote{@uref{https://github.com/company-mode/company-mode/issues/1010}}@footnote{@uref{https://github.com/tumashu/company-posframe/}}
 
-@node Note for ERC escaped colour sequences
-@section Note for ERC escaped colour sequences
+@node Note for ERC escaped color sequences
+@section Note for ERC escaped color sequences
 
-The built-in IRC client @samp{erc} has the ability to colourise any text using
+The built-in IRC client @samp{erc} has the ability to colorise any text using
 escape sequences that start with @samp{^C} (inserted with @samp{C-q C-c}) and are
 followed by a number for the foreground and background.@footnote{This page
 explains the basics, though it is not specific to Emacs:
@@ -2098,15 +2097,15 @@ standard of the themes:
 
 @table @asis
 @item Modus Operandi
-Use foreground colour 1 for all backgrounds from
+Use foreground color 1 for all backgrounds from
 2-15.  Like so: @samp{C-q C-c1,N} where @samp{N} is the background.
 
 @item Modus Vivendi
-Use foreground colour 0 for all backgrounds from
+Use foreground color 0 for all backgrounds from
 2-13.  Use foreground @samp{1} for backgrounds 14, 15.
 @end table
 
-Colours 0 and 1 are white and black respectively.  So combine them
+Colors 0 and 1 are white and black respectively.  So combine them
 together, if you must.
 
 @node Note for powerline or spaceline
@@ -2116,12 +2115,12 @@ Both Powerline and Spaceline package users will likely need to use the
 command @samp{powerline-reset} whenever they make changes to their themes
 and/or modeline setup.
 
-@node Note on shr colours
-@section Note on shr colours
+@node Note on shr colors
+@section Note on shr colors
 
 Emacs' HTML rendering mechanism (@samp{shr}) may need explicit configuration to
-respect the theme's colours instead of whatever specifications the
-webpage provides.  Consult @samp{C-h v shr-use-colors}.
+respect the theme's colors instead of whatever specifications the
+webpage provides.  Consult @kbd{C-h v shr-use-colors}.
 
 @node Note for Helm grep
 @section Note for Helm grep
@@ -2142,7 +2141,7 @@ use ``--color=''
 
 The user must either remove @samp{--color} from the flags passed to the grep
 function, or explicitly use @samp{--color=never} (or equivalent).  Helm
-provides user-facing customisation options for controlling the grep
+provides user-facing customization options for controlling the grep
 function's parameters, such as @samp{helm-grep-default-command} and
 @samp{helm-grep-git-grep-command}.
 
@@ -2150,13 +2149,13 @@ When @samp{--color=always} is in effect, the grep output will use red text in
 bold letter forms to present the matching part in the list of
 candidates.  That style still meets the contrast ratio target of >= 7:1
 (accessibility standard WCAG AAA), because it draws the reference to
-ANSI colour number 1 (red) from the already-supported array of
+ANSI color number 1 (red) from the already-supported array of
 @samp{ansi-color-names-vector}.
 
 @node Note on vc-annotate-background-mode
 @section Note on vc-annotate-background-mode
 
-Due to the unique way @samp{vc-annotate} (@samp{C-x v g}) applies colours, support for
+Due to the unique way @samp{vc-annotate} (@kbd{C-x v g}) applies colors, support for
 its background mode (@samp{vc-annotate-background-mode}) is disabled at the
 theme level.
 
@@ -2186,7 +2185,7 @@ in which you can contribute to their ongoing development.
 
 The @samp{modus-operandi} and @samp{modus-vivendi} themes are built into Emacs.
 Currently they are in the project's @samp{master} branch, which is tracking the
-nominal development release target of @samp{28.0.50}.
+next development release target.
 
 The source code of the themes is @uref{https://gitlab.com/protesilaos/modus-themes/, available on Gitlab}, for the time
 being.  A @uref{https://github.com/protesilaos/modus-themes/, mirror on Github} is also on offer.
@@ -2216,7 +2215,7 @@ Help expand this document or any other piece of documentation.
 Merge requests for code refinements.
 @end itemize
 
-@ref{Merge requests, , Patches require copyright assignment to the FSF}.
+@xref{Merge requests, , Patches require copyright assignment to the FSF}.
 
 It would be great if your feedback also includes some screenshots, GIFs,
 or short videos, as well as further instructions to reproduce a given
