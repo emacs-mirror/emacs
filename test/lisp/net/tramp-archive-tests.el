@@ -32,6 +32,49 @@
 (defvar tramp-copy-size-limit)
 (defvar tramp-persistency-file-name)
 
+;; `ert-resource-file' was introduced in Emacs 28.1.
+(unless (macrop 'ert-resource-file)
+  (eval-and-compile
+    (defvar ert-resource-directory-format "%s-resources/"
+      "Format for `ert-resource-directory'.")
+    (defvar ert-resource-directory-trim-left-regexp ""
+      "Regexp for `string-trim' (left) used by `ert-resource-directory'.")
+    (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
+      "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
+
+    (defmacro ert-resource-directory ()
+      "Return absolute file name of the resource directory for this file.
+
+The path to the resource directory is the \"resources\" directory
+in the same directory as the test file.
+
+If that directory doesn't exist, use the directory named like the
+test file but formatted by `ert-resource-directory-format' and trimmed
+using `string-trim' with arguments
+`ert-resource-directory-trim-left-regexp' and
+`ert-resource-directory-trim-right-regexp'.  The default values mean
+that if called from a test file named \"foo-tests.el\", return
+the absolute file name for \"foo-resources\"."
+      `(let* ((testfile ,(or (bound-and-true-p byte-compile-current-file)
+                             (and load-in-progress load-file-name)
+                             buffer-file-name))
+              (default-directory (file-name-directory testfile)))
+	 (file-truename
+	  (if (file-accessible-directory-p "resources/")
+              (expand-file-name "resources/")
+            (expand-file-name
+             (format
+	      ert-resource-directory-format
+              (string-trim testfile
+			   ert-resource-directory-trim-left-regexp
+			   ert-resource-directory-trim-right-regexp)))))))
+
+    (defmacro ert-resource-file (file)
+      "Return file name of resource file named FILE.
+A resource file is in the resource directory as per
+`ert-resource-directory'."
+      `(expand-file-name ,file (ert-resource-directory)))))
+
 (defconst tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
   "The test file archive.")
 
@@ -46,8 +89,7 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
   "The test archive.")
 
 (defconst tramp-archive-test-directory
-  (file-truename
-   (ert-resource-file "foo.iso"))
+  (file-truename (ert-resource-file "foo.iso"))
   "A directory file name, which looks like an archive.")
 
 (setq password-cache-expiry nil
