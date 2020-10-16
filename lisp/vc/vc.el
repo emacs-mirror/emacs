@@ -2058,13 +2058,13 @@ If `F.~REV~' already exists, use it instead of checking it out again."
      (list
       (vc-read-revision "Revision to visit (default is working revision): "
                         (list buffer-file-name)))))
-  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-    (vc-ensure-vc-buffer)
-    (let* ((file buffer-file-name)
-	   (revision (if (string-equal rev "")
-		         (vc-working-revision file)
-		       rev)))
-      (switch-to-buffer-other-window (vc-find-revision file revision)))))
+  (set-buffer (or (buffer-base-buffer) (current-buffer)))
+  (vc-ensure-vc-buffer)
+  (let* ((file buffer-file-name)
+	 (revision (if (string-equal rev "")
+		       (vc-working-revision file)
+		     rev)))
+    (switch-to-buffer-other-window (vc-find-revision file revision))))
 
 (defun vc-find-revision (file revision &optional backend)
   "Read REVISION of FILE into a buffer and return the buffer.
