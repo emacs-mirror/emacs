@@ -83,7 +83,10 @@ When editing a diff file, the line numbers in the hunk headers
 need to be kept consistent with the actual diff.  This can
 either be done on the fly (but this sometimes interacts poorly with the
 undo mechanism) or whenever the file is written (can be slow
-when editing big diffs)."
+when editing big diffs).
+
+If this variable is nil, the hunk header numbers are updated when
+the file is written instead."
   :type 'boolean)
 
 (defcustom diff-advance-after-apply-hunk t
