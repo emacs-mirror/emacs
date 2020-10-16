@@ -5472,6 +5472,10 @@ submitted line to be intentional."
             (time-less-p erc-accidental-paste-threshold-seconds
 			 (time-subtract now erc-last-input-time)))
         (save-restriction
+          ;; If there's an abbrev at the end of the line, expand it.
+          (when (and abbrev-mode
+                     (eolp))
+            (expand-abbrev))
           (widen)
           (if (< (point) (erc-beg-of-input-line))
               (erc-error "Point is not in the input area")
