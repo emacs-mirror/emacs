@@ -270,7 +270,7 @@
        (cl-loop for slot in (eieio-class-slots event-class)
 		for keyword = (intern
 			       (format ":%s" (eieio-slot-descriptor-name slot)))
-		when (plist-get args keyword)
+		when (plist-member args keyword)
 		append (list keyword (plist-get args keyword)))))))
 
 (defun gnus-icalendar-event-from-buffer (buf &optional attendee-name-or-email)
