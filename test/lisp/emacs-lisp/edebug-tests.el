@@ -105,7 +105,8 @@ back to the top level.")
   (declare (debug (body)))
   `(edebug-tests-with-default-config
     (let ((edebug-tests-failure-in-post-command nil)
-          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el")))
+          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el"))
+          (find-file-suppress-same-file-warnings t))
       (edebug-tests-setup-code-file edebug-tests-temp-file)
       (ert-with-message-capture
        edebug-tests-messages
@@ -210,6 +211,7 @@ be the same as every keystroke) execute the thunk at the same
 index."
   (let* ((edebug-tests-thunks thunks)
          (edebug-tests-kbd-macro-index 0)
+         (find-file-suppress-same-file-warnings t)
          saved-local-map)
     (with-current-buffer (find-file-noselect edebug-tests-temp-file)
       (setq saved-local-map overriding-local-map)

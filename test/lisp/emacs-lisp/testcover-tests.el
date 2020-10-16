@@ -46,6 +46,7 @@ is working correctly on a code sample.  OPTARGS are optional
 arguments for `testcover-start'."
     (interactive "r")
     (let ((tempfile (make-temp-file "testcover-tests-" nil ".el"))
+          (find-file-suppress-same-file-warnings t)
           (code (buffer-substring beg end))
           (marked-up-code))
       (unwind-protect
@@ -98,7 +99,8 @@ arguments for `testcover-start'."
 (eval-and-compile
   (defun testcover-tests-run-test-case (marked-up-code)
     "Test the operation of Testcover on the string MARKED-UP-CODE."
-    (let ((tempfile (make-temp-file "testcover-tests-" nil ".el")))
+    (let ((tempfile (make-temp-file "testcover-tests-" nil ".el"))
+          (find-file-suppress-same-file-warnings t))
       (unwind-protect
           (progn
             (with-temp-file tempfile

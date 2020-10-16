@@ -40,6 +40,7 @@
 (ert-deftest saveplace-test-save-place-to-alist/file ()
   (save-place-mode)
   (let* ((tmpfile (make-temp-file "emacs-test-saveplace-"))
+         (tmpfile (file-truename tmpfile))
          (save-place-alist nil)
          (save-place-loaded t)
          (loc tmpfile)
