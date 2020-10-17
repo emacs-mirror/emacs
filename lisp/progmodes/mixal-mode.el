@@ -24,6 +24,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
 ;; Major mode for the mix asm language.
 ;; The mix asm language is described in "The Art Of Computer Programming".
 ;;
@@ -34,8 +35,9 @@
 ;;
 ;; To use this mode, place the following in your init file:
 ;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.
+;;
 ;; When you load a file with the extension .mixal the mode will be started
-;; automatic.  If you want to start the mode manual, use `M-x mixal-mode'.
+;; automatically.  If you want to start the mode manually, use `M-x mixal-mode'.
 ;; Font locking will work, the behavior of tabs is the same as Emacs's
 ;; default behavior.  You can compile a source file with `C-c c' you can
 ;; run a compiled file with `C-c r' or run it in debug mode with `C-c d'.
