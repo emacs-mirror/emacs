@@ -1420,9 +1420,11 @@ mode, as are other data files produced by Emacs.
 It's a library to create, query, navigate and display hierarchy structures.
 
 ** New themes 'modus-vivendi' and 'modus-operandi'.
-These themes are designed for colour-contrast accessibility.  You can
-load the new themes using 'M-x customize-themes' or 'load-theme' from
-your init file.
+These themes are designed to conform with the highest standard for
+color-contrast accessibility (WCAG AAA).  You can load either of them
+using 'M-x customize-themes' or 'load-theme' from your init file.
+Consult the Modus Themes Info manual for more information on the user
+options they provide.
 
 
 * Incompatible Editing Changes in Emacs 28.1
