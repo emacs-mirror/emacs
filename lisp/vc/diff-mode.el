@@ -1860,7 +1860,10 @@ SWITCHED is non-nil if the patch is already applied."
 	   (buf (if revision
                     (let ((vc-find-revision-no-save t))
                       (vc-find-revision (expand-file-name file) revision diff-vc-backend))
-                  (find-file-noselect file))))
+                  ;; NOPROMPT is only non-nil when called from
+                  ;; `which-function-mode', so avoid "File x changed
+                  ;; on disk. Reread from disk?" warnings.
+                  (find-file-noselect file noprompt))))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
 	(setq diff-jump-to-old-file other))
