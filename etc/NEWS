@@ -1721,6 +1721,13 @@ personalize the uniquified buffer name.
 +++
 ** 'inhibit-nul-byte-detection' is renamed to 'inhibit-null-byte-detection'.
 
++++
+** New byte-compiler check for missing dynamic variable declarations.
+It is meant as an (experimental) aid for converting Emacs Lisp code
+to lexical binding, where dynamic (special) variables bound in one
+file can affect code in another.  For details, see the manual section
+'(Elisp) Converting to Lexical Binding'.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
