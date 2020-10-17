@@ -1144,6 +1144,11 @@ window after starting).  This variable defaults to nil.
 ** Miscellaneous
 
 ---
+*** New command in 'shell-mode': 'narrow-to-prompt'.
+This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
+command line under point (and any following output).
+
+---
 *** New user option 'compilation-search-all-directories'.
 When doing parallel builds, directories and compilation errors may
 arrive in the *compilation* buffer out-of-order.  If this variable is
