@@ -658,6 +658,13 @@ by the ElDoc library itself.  Functions in
 'eldoc-documentation-functions' don't need to worry about consulting
 it when producing a doc string.
 
+** Shell
+
+---
+*** New command in 'shell-mode': 'narrow-to-prompt'.
+This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
+command line under point (and any following output).
+
 ** Eshell
 
 ---
@@ -1142,11 +1149,6 @@ window after starting).  This variable defaults to nil.
 *** 'widget-choose' now supports menus in extended format.
 
 ** Miscellaneous
-
----
-*** New command in 'shell-mode': 'narrow-to-prompt'.
-This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
-command line under point (and any following output).
 
 ---
 *** New user option 'compilation-search-all-directories'.
