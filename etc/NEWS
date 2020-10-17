@@ -608,6 +608,16 @@ defaulting to active region when used interactively.
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
+** The 'list-bookmark' menu is now based on 'tabulated-list-mode'.
+The interactive bookmark list will now benefit from features in
+'tabulated-list-mode' like sorting columns or changing column width.
+
+Support for the optional "inline" header line, allowing for a header
+without using 'header-line-format', has been dropped.  Consequently,
+the variables 'bookmark-bmenu-use-header-line' and
+'bookmark-bmenu-inline-header-height' are now declared obsolete.
+
+---
 ** The sb-image.el library is now marked obsolete.
 This file was a compatibility kludge which is no longer needed.
 
