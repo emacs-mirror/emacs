@@ -8949,8 +8949,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 #ifdef USE_GTK
       if (!f
-          && (f = any)
-          && configureEvent.xconfigure.window == FRAME_X_WINDOW (f))
+	  && (f = any)
+	  && configureEvent.xconfigure.window == FRAME_X_WINDOW (f)
+	  && FRAME_VISIBLE_P(f))
         {
           block_input ();
           if (FRAME_X_DOUBLE_BUFFERED_P (f))
@@ -8963,10 +8964,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					    configureEvent.xconfigure.height);
 #endif
           f = 0;
-        }
+	}
 #endif
-      if (f)
-        {
+      if (f && FRAME_VISIBLE_P(f))
+	{
 #ifdef USE_GTK
 	  /* For GTK+ don't call x_net_wm_state for the scroll bar
 	     window.  (Bug#24963, Bug#25887) */
@@ -9056,7 +9057,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             xic_set_statusarea (f);
 #endif
 
-        }
+	}
       goto OTHER;
 
     case ButtonRelease:
