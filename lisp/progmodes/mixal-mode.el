@@ -1,4 +1,4 @@
-;;; mixal-mode.el --- Major mode for the mix asm language.
+;;; mixal-mode.el --- Major mode for the mix asm language.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
