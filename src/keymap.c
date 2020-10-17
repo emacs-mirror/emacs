@@ -3328,6 +3328,40 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
   return unbind_to (count, Qnil);
 }
 
+DEFUN ("help--describe-vector", Fhelp__describe_vector, Shelp__describe_vector, 7, 7, 0,
+       doc: /* Insert in the current buffer a description of the contents of VECTOR.
+
+PREFIX is a string describing the key which leads to the keymap that
+this vector is in.
+
+If PARTIAL, it means do not mention suppressed commands.
+
+SHADOW is a list of keymaps that shadow this map.
+If it is non-nil, look up the key in those maps and don't mention it
+if it is defined by any of them.
+
+ENTIRE-MAP is the keymap in which this vector appears.
+If the definition in effect in the whole map does not match
+the one in this keymap, we ignore this one.  */)
+  (Lisp_Object vector, Lisp_Object prefix, Lisp_Object transl,
+   Lisp_Object partial, Lisp_Object shadow, Lisp_Object entire_map,
+   Lisp_Object mention_shadow)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+  specbind (Qstandard_output, Fcurrent_buffer ());
+  CHECK_VECTOR_OR_CHAR_TABLE (vector);
+
+  bool b_transl = NILP (transl) ? false : true;
+  bool b_partial = NILP (partial) ? false : true;
+  bool b_mention_shadow = NILP (mention_shadow) ? false : true;
+
+  describe_vector (vector, prefix, Qnil,
+		   b_transl ? describe_translation : describe_command,
+		   b_partial, shadow, entire_map,
+		   true, b_mention_shadow);
+  return unbind_to (count, Qnil);
+}
+
 /* Insert in the current buffer a description of the contents of VECTOR.
    We call ELT_DESCRIBER to insert the description of one value found
    in VECTOR.
@@ -3726,6 +3760,7 @@ be preferred.  */);
   defsubr (&Saccessible_keymaps);
   defsubr (&Skey_description);
   defsubr (&Skeymap__get_keyelt);
+  defsubr (&Shelp__describe_vector);
   defsubr (&Sdescribe_vector);
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);
