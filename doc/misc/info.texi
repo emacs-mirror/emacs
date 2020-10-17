@@ -798,17 +798,17 @@ in cross references and node names if it differs from the current
 file, so you can always know that you are going to be switching to
 another manual and which one.
 
-However, Emacs normally hides some other text in cross-references.
-If you put your mouse over the cross reference, then the information
-appearing in a separate box (tool tip) or in the echo area will show
-the full cross-reference including the file name and the node name of
-the cross reference.  If you have a mouse, just leave it over the
-cross reference @xref{Top,, Overview of Texinfo, texinfo, Texinfo:
-The GNU Documentation Format}, and watch what happens.  If you
-always like to have that information visible without having to move
-your mouse over the cross reference, use @kbd{M-x visible-mode}, or
-set @code{Info-hide-note-references} to a value other than @code{t}
-(@pxref{Emacs Info Variables}).
+Emacs normally hides some text in cross references.  If you put your
+mouse over the cross reference, then the information appearing in a
+separate box (tool tip) or in the echo area will show the full
+cross reference, including the file name and the node name of the
+cross reference if it leads to another file.  If you have a mouse,
+just leave it over the next cross reference: @xref{Top,, Overview of
+Texinfo, texinfo, Texinfo: The GNU Documentation Format}, and watch
+what happens.  If you always like to have that information visible
+without having to move your mouse over the cross reference, use
+@kbd{M-x visible-mode}, or set @code{Info-hide-note-references} to a
+value other than @code{t} (@pxref{Emacs Info Variables}).
 
 @format
 >> Now type @kbd{n} to learn more commands.
@@ -1227,12 +1227,20 @@ not scroll with the rest of the buffer, making these links always
 visible.
 
 @item Info-hide-note-references
-As explained in earlier nodes, the Emacs version of Info normally
-hides some text in menus and cross-references.  You can completely
-disable this feature, by setting this option to @code{nil}.  Setting
-it to a value that is neither @code{nil} nor @code{t} produces an
-intermediate behavior, hiding a limited amount of text, but showing
-all text that could potentially be useful.
+As explained in earlier sections, the Emacs version of Info normally
+hides some text in menus and cross references.  It also replaces the
+@samp{*note} prefix of each cross reference with a more grammatically
+correct @samp{see}.  This is the effect of the default value of this
+option, @code{t}.  Setting this option to @code{nil} disables both
+hiding and replacing of the original cross reference text, and Emacs
+will then display them as they are in the Info file.  If you set it to
+the value @code{hide}, Emacs will do the same as with @code{t}, but
+will also remove @samp{*note} without replacing it with anything.
+Setting it to any other non-@code{nil} value produces an intermediate
+behavior, hiding a limited amount of text, but showing all text that
+could potentially be useful, including the name of the node that is
+the target of the cross reference and its file if it is different from
+the current file.
 
 @item Info-scroll-prefer-subnodes
 If set to a non-@code{nil} value, @key{SPC} and @key{BACKSPACE} (or
