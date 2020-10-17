@@ -2915,7 +2915,7 @@ You type        Translation\n\
 
    Any inserted text ends in two newlines (used by `help-make-xrefs').  */
 
-DEFUN ("describe-map-tree", Fdescribe_map_tree, Sdescribe_map_tree, 1, 8, 0,
+DEFUN ("describe-map-tree-old", Fdescribe_map_tree_old, Sdescribe_map_tree_old, 1, 8, 0,
        doc: /* This is just temporary.  */)
   (Lisp_Object startmap, Lisp_Object partial, Lisp_Object shadow,
    Lisp_Object prefix, Lisp_Object title, Lisp_Object nomenu,
@@ -3129,6 +3129,27 @@ describe_map_compare (const void *aa, const void *bb)
        instance) "<f2>" coming between "<f1>" and "<f11>".  */
     return string_version_cmp (SYMBOL_NAME (a->event), SYMBOL_NAME (b->event));
   return 0;
+}
+
+DEFUN ("describe-map", Fdescribe_map, Sdescribe_map, 1, 7, 0,
+       doc: /* This is a temporary definition preparing the transition
+of this function to Lisp.  */)
+  (Lisp_Object map, Lisp_Object prefix,
+   Lisp_Object transl, Lisp_Object partial, Lisp_Object shadow,
+   Lisp_Object nomenu, Lisp_Object mention_shadow)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  bool b_transl = NILP(transl) ? false : true;
+  bool b_partial = NILP (partial) ? false : true;
+  bool b_nomenu = NILP (nomenu) ? false : true;
+  bool b_mention_shadow = NILP (mention_shadow) ? false : true;
+  describe_map (map, prefix,
+		b_transl ? describe_translation : describe_command,
+		b_partial, shadow, &Vhelp__keymaps_seen,
+		b_nomenu, b_mention_shadow);
+
+  return unbind_to (count, Qnil);
 }
 
 /* Describe the contents of map MAP, assuming that this map itself is
@@ -3685,6 +3706,10 @@ exists, bindings using keys without modifiers (or only with meta) will
 be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
+  DEFVAR_LISP ("help--keymaps-seen", Vhelp__keymaps_seen,
+	       doc: /* List of seen keymaps.
+This is used for internal purposes only.  */);
+  Vhelp__keymaps_seen = Qnil;
 
   DEFSYM (Qmenu_bar, "menu-bar");
   DEFSYM (Qmode_line, "mode-line");
@@ -3739,7 +3764,8 @@ be preferred.  */);
   defsubr (&Scurrent_active_maps);
   defsubr (&Saccessible_keymaps);
   defsubr (&Skey_description);
-  defsubr (&Sdescribe_map_tree);
+  defsubr (&Sdescribe_map_tree_old);
+  defsubr (&Sdescribe_map);
   defsubr (&Sdescribe_vector);
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);

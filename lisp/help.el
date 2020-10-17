@@ -1013,7 +1013,8 @@ Otherwise, return a new string (without any text properties)."
         (insert string)
         (goto-char (point-min))
         (while (< (point) (point-max))
-          (let ((orig-point (point))
+          (let ((standard-output (current-buffer))
+                (orig-point (point))
                 end-point active-maps
                 close generate-summary)
             (cond
@@ -1101,7 +1102,7 @@ Otherwise, return a new string (without any text properties)."
                     ;; If this one's not active, get nil.
                     (let ((earlier-maps (cdr (memq this-keymap (reverse active-maps)))))
                       (describe-map-tree this-keymap t (nreverse earlier-maps)
-                                         nil nil t nil nil))))))))
+                                         nil nil t nil nil t))))))))
              ;; 2. Handle quotes.
              ((and (eq (get-quoting-style) 'curve)
                    (or (and (= (following-char) ?\`)
@@ -1116,6 +1117,91 @@ Otherwise, return a new string (without any text properties)."
              ;; 3. Nothing to do -- next character.
              (t (forward-char 1)))))
         (buffer-string)))))
+
+(defun describe-map-tree (startmap partial shadow prefix title no-menu
+                                   transl always-title mention-shadow)
+  "Insert a description of the key bindings in STARTMAP.
+This is followed by the key bindings of all maps reachable
+through STARTMAP.
+
+If PARTIAL is non-nil, omit certain uninteresting commands
+\(such as `undefined').
+
+If SHADOW is non-nil, it is a list of maps; don't mention keys
+which would be shadowed by any of them.
+
+If PREFIX is non-nil, mention only keys that start with PREFIX.
+
+If TITLE is non-nil, is a string to insert at the beginning.
+TITLE should not end with a colon or a newline; we supply that.
+
+If NOMENU is non-nil, then omit menu-bar commands.
+
+If TRANSL is non-nil, the definitions are actually key
+translations so print strings and vectors differently.
+
+If ALWAYS_TITLE is non-nil, print the title even if there are no
+maps to look through.
+
+If MENTION_SHADOW is non-nil, then when something is shadowed by
+SHADOW, don't omit it; instead, mention it but say it is
+shadowed.
+
+Any inserted text ends in two newlines (used by
+`help-make-xrefs')."
+  (let* ((amaps (accessible-keymaps startmap prefix))
+         (orig-maps (if no-menu
+                        (progn
+                          ;; Delete from MAPS each element that is for
+                          ;; the menu bar.
+                          (let* ((tail amaps)
+                                 result)
+                            (while tail
+                              (let ((elem (car tail)))
+                                (when (not (and (>= (length (car elem)) 1)
+                                                (eq (elt (car elem) 0) 'menu-bar)))
+                                  (setq result (append result (list elem)))))
+                              (setq tail (cdr tail)))
+                            result))
+                      amaps))
+         (maps orig-maps)
+         (print-title (or maps always-title)))
+    ;; Print title.
+    (when print-title
+      (princ (concat (if title
+                         (concat title
+                                 (if prefix
+                                     (concat " Starting With "
+                                             (key-description prefix)))
+                                 ":\n"))
+                     "key             binding\n"
+                     "---             -------\n")))
+    ;; Describe key bindings.
+    (setq help--keymaps-seen nil)
+    (while (consp maps)
+      (let* ((elt (car maps))
+             (elt-prefix (car elt))
+             (sub-shadows (lookup-key shadow elt-prefix t)))
+        (when (if (natnump sub-shadows)
+                  (prog1 t (setq sub-shadows nil))
+                ;; Describe this map iff elt_prefix is bound to a
+                ;; keymap, since otherwise it completely shadows this
+                ;; map.
+                (or (keymapp sub-shadows)
+                    (null sub-shadows)
+                    (consp sub-shadows)
+                    (not (keymapp (car sub-shadows)))))
+          ;; Maps we have already listed in this loop shadow this map.
+          (let ((tail orig-maps))
+            (while (not (equal tail maps))
+              (when (equal (car (car tail)) elt-prefix)
+                (setq sub-shadows (cons (cdr (car tail)) sub-shadows)))
+              (setq tail (cdr tail))))
+          (describe-map (cdr elt) elt-prefix transl partial
+                        sub-shadows no-menu mention-shadow)))
+      (setq maps (cdr maps)))
+    (when print-title
+      (princ "\n"))))
 
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
