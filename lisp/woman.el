@@ -2289,6 +2289,12 @@ Currently set only from \\='\\\" t in the first line of the source file.")
     (setq fill-column woman-fill-column
 	  tab-width woman-tab-width)
 
+    ;; Ignore the \, and \/ kerning operators.  See
+    ;; https://www.gnu.org/software/groff/manual/groff.html#Ligatures-and-Kerning
+    (goto-char (point-min))
+    (while (re-search-forward "\\\\,\\|\\\\/" nil t)
+      (replace-match "" t t))
+
     ;; Hide unpaddable and digit-width spaces \(space) and \0:
     (goto-char from)
     (while (re-search-forward "\\\\[ 0]" nil t)
