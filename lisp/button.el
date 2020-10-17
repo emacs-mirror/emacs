@@ -493,12 +493,17 @@ butting, use the `button-describe' command."
 	t))))
 
 (defun button--help-echo (button)
-  "Evaluate BUTTON's `help-echo' property and return its value."
-  (let ((help (button-get button 'help-echo)))
-    (if (functionp help)
-        (let ((obj (if (overlayp button) button (current-buffer))))
-          (funcall help (selected-window) obj (button-start button)))
-      (eval help lexical-binding))))
+  "Evaluate BUTTON's `help-echo' property and return its value.
+If the result is non-nil, pass it through `substitute-command-keys'
+before returning it, as is done for `show-help-function'."
+  (let* ((help (button-get button 'help-echo))
+         (help (if (functionp help)
+                   (funcall help
+                            (selected-window)
+                            (if (overlayp button) button (current-buffer))
+                            (button-start button))
+                 (eval help lexical-binding))))
+    (and help (substitute-command-keys help))))
 
 (defun forward-button (n &optional wrap display-message no-error)
   "Move to the Nth next button, or Nth previous button if N is negative.

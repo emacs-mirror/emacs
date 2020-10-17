@@ -36,17 +36,6 @@
 (require 'edebug)
 (require 'kmacro)
 
-;; Use `eval-and-compile' because this is used by the macro
-;; `edebug-tests-deftest'.
-(eval-and-compile
-  (defvar edebug-tests-sample-code-file
-    (expand-file-name
-     "edebug-resources/edebug-test-code.el"
-     (file-name-directory (or (bound-and-true-p byte-compile-current-file)
-                              load-file-name
-                              buffer-file-name)))
-    "Name of file containing code samples for Edebug tests."))
-
 (defvar edebug-tests-temp-file nil
   "Name of temp file containing sample code stripped of stop point symbols.")
 (defvar edebug-tests-stop-points nil
@@ -116,7 +105,8 @@ back to the top level.")
   (declare (debug (body)))
   `(edebug-tests-with-default-config
     (let ((edebug-tests-failure-in-post-command nil)
-          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el")))
+          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el"))
+          (find-file-suppress-same-file-warnings t))
       (edebug-tests-setup-code-file edebug-tests-temp-file)
       (ert-with-message-capture
        edebug-tests-messages
@@ -221,6 +211,7 @@ be the same as every keystroke) execute the thunk at the same
 index."
   (let* ((edebug-tests-thunks thunks)
          (edebug-tests-kbd-macro-index 0)
+         (find-file-suppress-same-file-warnings t)
          saved-local-map)
     (with-current-buffer (find-file-noselect edebug-tests-temp-file)
       (setq saved-local-map overriding-local-map)
@@ -344,7 +335,7 @@ evaluate to \"symbol\", \"symbol-1\", \"symbol-2\", etc."
 Write the loadable code to a buffer for TMPFILE, and set
 `edebug-tests-stop-points' to a map from defined symbols to stop
 point names to positions in the file."
-  (with-current-buffer (find-file-noselect edebug-tests-sample-code-file)
+  (with-current-buffer (find-file-noselect (ert-resource-file "edebug-test-code.el"))
     (let ((marked-up-code (buffer-string)))
       (with-temp-file tmpfile
         (insert marked-up-code))))

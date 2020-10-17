@@ -493,6 +493,8 @@
 (defvar calc-get-operator-history nil
   "History for calc-get-operator.")
 
+(defvar math-arglist)
+
 (defun calc-get-operator (msg &optional nargs)
   (setq calc-aborted-prefix nil)
   (let ((inv nil) (hyp nil) (prefix nil) (forcenargs nil)

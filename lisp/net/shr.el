@@ -146,6 +146,14 @@ same domain as the main data."
   :version "24.4"
   :type 'boolean)
 
+(defcustom shr-offer-extend-specpdl t
+  "Non-nil means offer to extend the specpdl if the HTML nests deeply.
+Complicated HTML can require more nesting than the current specpdl
+size permits.  If this variable is t, ask the user whether to increase
+the specpdl size.  If nil, just give up."
+  :version "28.1"
+  :type 'boolean)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -527,7 +535,8 @@ size, and full-buffer size."
 	(start (point)))
     ;; shr uses many frames per nested node.
     (if (and (> shr-depth (/ max-specpdl-size 15))
-             (not (and (y-or-n-p "Too deeply nested to render properly; increase `max-specpdl-size'?")
+             (not (and shr-offer-extend-specpdl
+                       (y-or-n-p "Too deeply nested to render properly; increase `max-specpdl-size'?")
                        (setq max-specpdl-size (* max-specpdl-size 2)))))
         (setq shr-warning
               "Not rendering the complete page because of too-deep nesting")

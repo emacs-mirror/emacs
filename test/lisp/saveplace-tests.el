@@ -22,29 +22,25 @@
 ;;; Commentary:
 
 (require 'ert)
+(require 'ert-x)
 (require 'saveplace)
-
-(defvar saveplace-tests-dir
-  (file-truename
-   (expand-file-name "saveplace-resources"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name)))))
 
 (ert-deftest saveplace-test-save-place-to-alist/dir ()
   (save-place-mode)
   (let* ((save-place-alist nil)
          (save-place-loaded t)
-         (loc saveplace-tests-dir))
+         (loc (ert-resource-directory)))
     (save-window-excursion
       (dired loc)
       (save-place-to-alist)
       (should (equal save-place-alist
-                     `((,(concat loc "/")
-                        (dired-filename . ,(concat loc "/saveplace")))))))))
+                     `((,loc
+                        (dired-filename . ,(concat loc "saveplace")))))))))
 
 (ert-deftest saveplace-test-save-place-to-alist/file ()
   (save-place-mode)
   (let* ((tmpfile (make-temp-file "emacs-test-saveplace-"))
+         (tmpfile (file-truename tmpfile))
          (save-place-alist nil)
          (save-place-loaded t)
          (loc tmpfile)
@@ -91,7 +87,7 @@
   (save-place-mode)
   (let ((save-place-loaded nil)
         (save-place-file
-         (expand-file-name "saveplace" saveplace-tests-dir))
+         (ert-resource-file "saveplace"))
         (save-place-alist nil))
     (load-save-place-alist-from-file)
     (should (equal save-place-alist

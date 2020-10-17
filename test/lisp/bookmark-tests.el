@@ -24,24 +24,17 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'bookmark)
 (require 'cl-lib)
 
-(defvar bookmark-tests-data-dir
-  (file-truename
-   (expand-file-name "bookmark-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Base directory of bookmark-tests.el data files.")
-
-(defvar bookmark-tests-bookmark-file
-  (expand-file-name "test.bmk" bookmark-tests-data-dir)
+(defvar bookmark-tests-bookmark-file (ert-resource-file "test.bmk")
   "Bookmark file used for testing.")
 
 (defvar bookmark-tests-example-file
   ;; We use abbreviate-file-name here to match the behavior of
   ;; `bookmark-buffer-file-name'.
-  (abbreviate-file-name (expand-file-name "example.txt" bookmark-tests-data-dir))
+  (abbreviate-file-name (ert-resource-file "example.txt"))
   "Example file used for testing.")
 
 ;; The values below should match `bookmark-tests-bookmark-file'.  We cache
@@ -83,8 +76,7 @@ the lexically-bound variable `buffer'."
           ,@body)
        (kill-buffer buffer))))
 
-(defvar bookmark-tests-bookmark-file-list
-  (expand-file-name "test-list.bmk" bookmark-tests-data-dir)
+(defvar bookmark-tests-bookmark-file-list (ert-resource-file "test-list.bmk")
   "Bookmark file used for testing a list of bookmarks.")
 
 ;; The values below should match `bookmark-tests-bookmark-file-list'

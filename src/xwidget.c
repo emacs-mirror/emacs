@@ -793,7 +793,9 @@ DEFUN ("xwidget-webkit-title",
   WEBKIT_FN_INIT ();
 #ifdef USE_GTK
   WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
-  return build_string (webkit_web_view_get_title (wkwv));
+  const gchar *title = webkit_web_view_get_title (wkwv);
+
+  return build_string (title ? title : "");
 #elif defined NS_IMPL_COCOA
   return nsxwidget_webkit_title (xw);
 #endif

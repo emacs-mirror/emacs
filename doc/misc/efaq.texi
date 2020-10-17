@@ -27,7 +27,7 @@ The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved
 translation, information on who is currently maintaining the FAQ and how to
 contact them (including their e-mail address), and information on where the
-latest version of the FAQ is archived (including FTP information).
+latest version of the FAQ is archived.
 
 The FAQ may be copied and redistributed under these conditions, except that
 the FAQ may not be embedded in a larger literary work unless that work
@@ -1525,13 +1525,12 @@ customize, with completion.
 @cindex Syntax highlighting on a TTY
 @cindex Console, colors
 
-In Emacs 21.1 and later, colors and faces are supported in non-windowed mode,
-i.e., on Unix and GNU/Linux text-only terminals and consoles, and when
-invoked as @samp{emacs -nw} on X, and MS-Windows.  (Colors and faces were
-supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
-detects color support at startup and uses it if available.  If you think
-that your terminal supports colors, but Emacs won't use them, check the
-@code{termcap} entry for your display type for color-related
+Colors and faces are supported in non-windowed mode, i.e., on Unix and
+GNU/Linux text-only terminals and consoles, and when invoked as
+@samp{emacs -nw} on X, MS-DOS and MS-Windows.  Emacs automatically
+detects color support at startup and uses it if available.  If you
+think that your terminal supports colors, but Emacs won't use them,
+check the @code{termcap} entry for your display type for color-related
 capabilities.
 
 The command @kbd{M-x list-colors-display} pops up a window which
@@ -2540,12 +2539,12 @@ To disable or change the way backups are made,
 @pxref{Backup Names,,, emacs, The GNU Emacs Manual}.
 
 @cindex Backup files in a single directory
-Beginning with Emacs 21.1, you can control where Emacs puts backup files
-by customizing the variable @code{backup-directory-alist}.  This
-variable's value specifies that files whose names match specific patters
-should have their backups put in certain directories.  A typical use is
-to add the element @code{("." . @var{dir})} to force Emacs to put
-@strong{all} backup files in the directory @file{dir}.
+You can control where Emacs puts backup files by customizing the
+variable @code{backup-directory-alist}.  This variable's value
+specifies that files whose names match specific patters should have
+their backups put in certain directories.  A typical use is to add the
+element @code{("." . @var{dir})} to force Emacs to put @strong{all}
+backup files in the directory @file{dir}.
 
 @node Disabling auto-save-mode
 @section How do I disable @code{auto-save-mode}?
@@ -3054,7 +3053,7 @@ if ("$term" == emacs) set term=dumb
 @cindex Debugging @file{.emacs} file
 
 An error occurred while loading either your @file{.emacs} file or the
-system-wide file @file{site-lisp/default.el}.  Emacs 21.1 and later pops the
+system-wide file @file{site-lisp/default.el}.  Emacs pops the
 @file{*Messages*} buffer, and puts there some additional information
 about the error, to provide some hints for debugging.
 
@@ -3869,12 +3868,11 @@ You may be able to get a keyboard that is completely programmable, or a
 terminal emulator that supports remapping of any key to any other key.
 
 @item
-With Emacs 21.1 and later, you can control the effect of the
-@key{Backspace} and @key{Delete} keys, on both dumb terminals and a
-windowed displays, by customizing the option
-@code{normal-erase-is-backspace-mode}, or by invoking @kbd{M-x
-normal-erase-is-backspace}.  See the documentation of these symbols
-(@pxref{Emacs Lisp documentation}) for more info.
+You can control the effect of the @key{Backspace} and @key{Delete}
+keys, on both dumb terminals and a windowed displays, by customizing
+the option @code{normal-erase-is-backspace-mode}, or by invoking
+@kbd{M-x normal-erase-is-backspace}.  See the documentation of these
+symbols (@pxref{Emacs Lisp documentation}) for more info.
 
 @item
 It is possible to swap the @key{Backspace} and @key{DEL} keys inside
@@ -3925,9 +3923,9 @@ many modes that have local bindings of @key{DEL} that will interfere.
 
 @end itemize
 
-When Emacs 21 or later runs on a windowed display, it binds the
-@key{Delete} key to a command which deletes the character at point, to
-make Emacs more consistent with keyboard operation on these systems.
+When Emacs runs on a windowed display, it binds the @key{Delete} key
+to a command which deletes the character at point, to make Emacs more
+consistent with keyboard operation on these systems.
 
 For more information about troubleshooting this problem, see @ref{DEL
 Does Not Delete, , If @key{DEL} Fails to Delete, emacs, The GNU Emacs

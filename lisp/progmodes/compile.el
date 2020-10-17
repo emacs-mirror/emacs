@@ -745,6 +745,18 @@ variable, and you might not notice.  Therefore, `compile-command'
 is considered unsafe if this variable is nil."
   :type 'boolean)
 
+(defcustom compilation-search-all-directories t
+  "Whether further upward directories should be used when searching a file.
+When doing a parallel build, several files from different
+directories can be compiled at the same time.  This makes it
+difficult to determine the base directory for a relative file
+name in a compiler error or warning.  If this variable is
+non-nil, instead of just relying on the previous directory change
+in the compilation buffer, all other directories further upwards
+will be used as well."
+  :type 'boolean
+  :version "28.1")
+
 ;;;###autoload
 (defcustom compilation-ask-about-save t
   "Non-nil means \\[compile] asks which buffers to save before compiling.
@@ -2916,6 +2928,28 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
                           (find-file-noselect name))
               fmts (cdr fmts)))
       (setq dirs (cdr dirs)))
+    ;; If we haven't found it, this might be a parallel build.
+    ;; Search the directories further up the buffer.
+    (when (and (null buffer)
+               compilation-search-all-directories)
+      (with-current-buffer (marker-buffer marker)
+        (save-excursion
+          (goto-char (marker-position marker))
+          (when-let ((prev (compilation--previous-directory (point))))
+            (goto-char prev))
+          (setq dirs (cdr (or (get-text-property
+                               (1- (point)) 'compilation-directory)
+                              (get-text-property
+                               (point) 'compilation-directory))))))
+      (while (and dirs (null buffer))
+        (setq thisdir (car dirs)
+              fmts formats)
+        (while (and fmts (null buffer))
+          (setq name (expand-file-name (format (car fmts) filename) thisdir)
+                buffer (and (file-exists-p name)
+                            (find-file-noselect name))
+                fmts (cdr fmts)))
+        (setq dirs (cdr dirs))))
     (while (null buffer)    ;Repeat until the user selects an existing file.
       ;; The file doesn't exist.  Ask the user where to find it.
       (save-excursion            ;This save-excursion is probably not right.

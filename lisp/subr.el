@@ -891,10 +891,6 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
-;; Declare before first use of `save-match-data',
-;; where it is used internally.
-(defvar save-match-data-internal)
-
 (defun kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string in the format returned by commands such

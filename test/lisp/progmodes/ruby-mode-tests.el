@@ -22,13 +22,8 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'ruby-mode)
-
-(defvar ruby-mode-tests-data-dir
-  (file-truename
-   (expand-file-name "ruby-mode-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name)))))
 
 (defmacro ruby-with-temp-buffer (contents &rest body)
   (declare (indent 1) (debug t))
@@ -851,8 +846,7 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby--indent/converted-from-manual-test ()
   :tags '(:expensive-test)
   ;; Converted from manual test.
-  (let ((buf (find-file-noselect (expand-file-name "ruby.rb"
-                                                   ruby-mode-tests-data-dir))))
+  (let ((buf (find-file-noselect (ert-resource-file "ruby.rb"))))
     (unwind-protect
         (with-current-buffer buf
           (let ((orig (buffer-string)))

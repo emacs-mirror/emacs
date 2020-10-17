@@ -243,6 +243,11 @@ If no one is selected, symmetric encryption will be performed.  "
       (setq epa-last-coding-system-specified
 	    (or coding-system-for-write
 		(select-safe-coding-system (point) (point-max)))))
+ 
+    ;; Insert contents of requested attachments, if any.
+    (when (and (eq major-mode 'mail-mode) mail-encode-mml)
+      (mml-to-mime)
+      (setq mail-encode-mml nil))
 
     ;; Don't let some read-only text stop us from encrypting.
     (let ((inhibit-read-only t))

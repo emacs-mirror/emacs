@@ -665,6 +665,8 @@
   (calc-handle-whys))
 
 (defvar calc-curve-nvars)
+(defvar calc-curve-varnames)
+(defvar calc-curve-coefnames)
 
 (defun math-nlfit-fit-curve (fn grad solnexpr initparms &optional sdv)
   (calc-slow-wrapper

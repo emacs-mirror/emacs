@@ -313,6 +313,7 @@
 (defvar calc-graph-blank)
 (defvar calc-graph-non-blank)
 (defvar calc-graph-curve-num)
+(defvar math-arglist)
 
 (defun calc-graph-plot (flag &optional printing)
   (interactive "P")

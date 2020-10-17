@@ -69,7 +69,7 @@ INFO_COMMON = auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq eww \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
-	mairix-el message mh-e newsticker nxml-mode octave-mode \
+	mairix-el message mh-e modus-themes newsticker nxml-mode octave-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode todo-mode tramp \
 	url vhdl-mode vip viper widget wisent woman

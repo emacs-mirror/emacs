@@ -393,7 +393,7 @@ and TO-BUFFER is a target buffer."
   (when next-error-recenter
     (recenter next-error-recenter))
   (funcall next-error-found-function from-buffer to-buffer)
-  (next-error-message-highlight)
+  (next-error-message-highlight from-buffer)
   (run-hooks 'next-error-hook))
 
 (defun next-error-select-buffer (buffer)
@@ -478,20 +478,18 @@ buffer causes automatic display of the corresponding source code location."
 	  (next-error-no-select 0))
       (error t))))
 
-(defun next-error-message-highlight ()
+(defun next-error-message-highlight (error-buffer)
   "Highlight the current error message in the ‘next-error’ buffer."
   (when next-error-message-highlight
-    (with-current-buffer next-error-last-buffer
+    (with-current-buffer error-buffer
       (when next-error--message-highlight-overlay
         (delete-overlay next-error--message-highlight-overlay))
-      (save-excursion
-        (goto-char compilation-current-error)
-        (let ((ol (make-overlay (line-beginning-position) (line-end-position))))
-          ;; do not override region highlighting
-          (overlay-put ol 'priority -50)
-          (overlay-put ol 'face 'next-error-message)
-          (overlay-put ol 'window (get-buffer-window))
-          (setf next-error--message-highlight-overlay ol))))))
+      (let ((ol (make-overlay (line-beginning-position) (line-end-position))))
+        ;; do not override region highlighting
+        (overlay-put ol 'priority -50)
+        (overlay-put ol 'face 'next-error-message)
+        (overlay-put ol 'window (get-buffer-window))
+        (setf next-error--message-highlight-overlay ol)))))
 
 
 ;;;

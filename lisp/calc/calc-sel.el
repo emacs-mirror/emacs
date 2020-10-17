@@ -419,6 +419,7 @@
 ;; The variable math-comp-sel-tag is local to calc-find-selected-part,
 ;; but is used by math-comp-sel-flat-term and math-comp-add-string-sel
 ;; in calccomp.el, which are called (indirectly) by calc-find-selected-part.
+(defvar math-comp-sel-tag)
 
 (defun calc-find-selected-part ()
   (let* ((math-comp-sel-hpos (- (current-column) calc-selection-cache-offset))
@@ -437,7 +438,8 @@
 						   (current-indentation))
 					 lcount (1+ lcount)))
 				 (- lcount (math-comp-ascent
-					    calc-selection-cache-comp) -1))))
+					    calc-selection-cache-comp)
+				    -1))))
 	 (math-comp-sel-cpos (- (point) toppt calc-selection-cache-offset
 				spaces lcount))
 	 (math-comp-sel-tag nil))

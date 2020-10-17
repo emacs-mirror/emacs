@@ -1343,7 +1343,7 @@ forbidden in URL encoding."
     (setq tmp (concat tmp str))
     tmp))
 
-(defun gnus-base64-repad (str &optional reject-newlines line-length)
+(defun gnus-base64-repad (str &optional reject-newlines line-length no-check)
   "Take a base 64-encoded string and return it padded correctly.
 Existing padding is ignored.
 
@@ -1353,7 +1353,9 @@ If LINE-LENGTH is set and the string (or any line in the string
 if REJECT-NEWLINES is nil) is longer than that number, raise an
 error.  Common line length for input characters are 76 plus CRLF
 (RFC 2045 MIME), 64 plus CRLF (RFC 1421 PEM), and 1000 including
-CRLF (RFC 5321 SMTP)."
+CRLF (RFC 5321 SMTP).
+
+If NOCHECK, don't check anything, but just repad."
   ;; RFC 4648 specifies that:
   ;; - three 8-bit inputs make up a 24-bit group
   ;; - the 24-bit group is broken up into four 6-bit values
@@ -1372,6 +1374,8 @@ CRLF (RFC 5321 SMTP)."
   ;; RFC 5322 section 2.2.3 consideration:
   ;; Because base 64-encoded strings can appear in long header fields, remove
   ;; folding whitespace while still observing the RFC 4648 decisions above.
+  (when no-check
+    (setq str (replace-regexp-in-string "[\n\r \t]+" "" str)));
   (let ((splitstr (split-string str "[ \t]*[\r\n]+[ \t]?" t)))
     (when (and reject-newlines (> (length splitstr) 1))
       (error "Invalid Base64 string"))

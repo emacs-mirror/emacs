@@ -181,6 +181,12 @@ would have to type 'M-: M-p' to edit and redo the expression.  Now
 Emacs will echo the message and allow the user to continue editing.
 
 +++
+** 'eval-last-sexp' now handles 'defvar'/'defcustom'/'defface' specially.
+This command would previously not redefine values defined by these
+forms, but this command has now been changed to work more like
+'eval-defun', and reset the values as specified.
+
++++
 ** New command 'undo-redo'.
 It undoes previous undo commands, but doesn't record itself as an
 undoable command.
@@ -429,6 +435,11 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user option 'gnus-agent-eagerly-store-articles'.
+If non-nil (which is the default), the Gnus Agent will store all read
+articles in the Agent cache.
+
++++
 *** New user option 'gnus-global-groups'.
 Gnus handles private groups differently from public (i.e., NNTP-like)
 groups.  Most importantly, Gnus doesn't download external images from
@@ -572,9 +583,7 @@ skipped.
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
 ---
-*** New keybinding in 'help-for-help' to display a manual.
-The 'R' keybinding after 'C-h C-h' will prompt for a manual name and
-then display it.
+*** New keybinding 'C-h R' prompts for a manual to display and displays it.
 
 +++
 ** New command 'lossage-size'.
@@ -1134,6 +1143,14 @@ window after starting).  This variable defaults to nil.
 
 ** Miscellaneous
 
+---
+*** New user option 'compilation-search-all-directories'.
+When doing parallel builds, directories and compilation errors may
+arrive in the *compilation* buffer out-of-order.  If this variable is
+non-nil (the default), Emacs will now search backwards in the buffer
+for any directory the file with errors may be in.  If nil, this won't
+be done (and this restores how this previously worked).
+
 +++
 *** New user option 'next-error-message-highlight'.
 In addition to a fringe arrow, 'next-error' error may now optionally
@@ -1162,6 +1179,11 @@ where N are successive numbers above 2.
 This is controlled by the 'search-highlight-submatches' user option.
 This feature is available only on terminals that have enough colors to
 distinguish between sub-expression highlighting.
+
++++
+*** Interactive regular expression replace now uses faces for sub-groups.
+Like 'search-highlight-submatches', this is controlled by the new user option
+'query-replace-highlight-submatches'.
 
 ---
 *** New user option 'reveal-auto-hide'.

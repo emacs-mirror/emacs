@@ -1,4 +1,4 @@
-;;; backquote.el --- implement the ` Lisp construct
+;;; backquote.el --- implement the ` Lisp construct  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1990, 1992, 1994, 2001-2020 Free Software Foundation,
 ;; Inc.

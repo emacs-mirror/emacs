@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'dbus)
 
 (defvar dbus-debug nil)
@@ -45,13 +46,6 @@
 
 (defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
-
-(defconst dbus--tests-dir
-  (file-truename
-   (expand-file-name "dbus-resources"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Directory containing introspection test data file.")
 
 (defun dbus--test-availability (bus)
   "Test availability of D-Bus BUS."
@@ -1555,7 +1549,7 @@ Subsequent pairs of the list are tested with `dbus-set-property'."
   (when (string-equal dbus--test-path (dbus-event-path-name last-input-event))
     (with-temp-buffer
       (insert-file-contents-literally
-       (expand-file-name "org.gnu.Emacs.TestDBus.xml" dbus--tests-dir))
+       (ert-resource-file "org.gnu.Emacs.TestDBus.xml"))
       (buffer-string))))
 
 (defsubst dbus--test-validate-interface

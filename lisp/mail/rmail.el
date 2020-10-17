@@ -2877,9 +2877,9 @@ The current mail message becomes the message displayed."
 	(rmail-display-labels)
 	(rmail-swap-buffers)
 	(setq rmail-buffer-swapped t)
-	(run-hooks 'rmail-show-message-hook)
 	(when showing-message
-	  (setq blurb (format "Showing message %d...done" msg)))))
+	  (setq blurb (format "Showing message %d...done" msg)))
+	(run-hooks 'rmail-show-message-hook)))
     blurb))
 
 (defun rmail-copy-headers (beg _end &optional ignored-headers)
@@ -4147,22 +4147,12 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  ;; FIXME This does not handle rmail-mime-feature != 'rmailmm.
-  ;; There is no API defined for rmail-mime-feature to provide
-  ;; rmail-mime-message-p, rmail-mime-toggle-raw equivalents.
-  ;; But does anyone actually use rmail-mime-feature != 'rmailmm?
-  (if (and rmail-enable-mime
-	   (eq rmail-mime-feature 'rmailmm)
-	   (featurep rmail-mime-feature))
-      (with-current-buffer rmail-buffer
-	(if (rmail-mime-message-p)
-	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
-		  (rmail-mime-view-buffer rmail-buffer))
-	      (rmail-mime-toggle-raw 'raw)))))
-
-  (let ((rmail-this-buffer (current-buffer))
+  (let (bounce-buffer  ;; Buffer we found it in
+        bounce-start   ;; Position of start of failed message in that buffer
+        bounce-end     ;; Position of end of failed message in that buffer
+        bounce-indent  ;; Number of columns we need to de-indent it.
 	(msgnum rmail-current-message)
-	bounce-start bounce-end bounce-indent resending
+	resending
 	(content-type (rmail-get-header "Content-Type")))
     (save-excursion
       (goto-char (point-min))
@@ -4171,19 +4161,27 @@ specifying headers which should not be copied into the new message."
 		 (string-match
 		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=? ]+\\)\"?"
 		  content-type))
-	    ;; Handle a MIME multipart bounce message.
+	    ;; Handle a MIME multipart bounce message
+            ;; by scanning the raw buffer.
 	    (let ((codestring
 		   (concat "\n--"
 			   (substring content-type (match-beginning 1)
-				      (match-end 1)))))
-	      (unless (re-search-forward mail-mime-unsent-header nil t)
-		(error "Cannot find beginning of header in failed message"))
-	      (unless (search-forward "\n\n" nil t)
-		(error "Cannot find start of Mime data in failed message"))
-	      (setq bounce-start (point))
-	      (if (search-forward codestring nil t)
-		  (setq bounce-end (match-beginning 0))
-		(setq bounce-end (point-max))))
+				      (match-end 1))))
+                  (beg (rmail-msgbeg msgnum))
+                  (end (rmail-msgend msgnum)))
+              (with-current-buffer rmail-view-buffer
+                (save-restriction
+                  (narrow-to-region beg end)
+                  (goto-char (point-min))
+	          (unless (re-search-forward mail-mime-unsent-header nil t)
+		    (error "Cannot find beginning of header in failed message"))
+	          (unless (search-forward "\n\n" nil t)
+		    (error "Cannot find start of Mime data in failed message"))
+	          (setq bounce-start (point))
+                  (setq bounce-buffer (current-buffer))
+	          (if (search-forward codestring nil t)
+		      (setq bounce-end (match-beginning 0))
+		    (setq bounce-end (point-max))))))
 	  ;; Non-MIME bounce.
 	  (or (re-search-forward mail-unsent-separator nil t)
 	      (error "Cannot parse this as a failure message"))
@@ -4198,6 +4196,7 @@ specifying headers which should not be copied into the new message."
 		(setq bounce-indent (- (current-column)))
 		(goto-char (point-max))
 		(re-search-backward "^End of returned message$" nil t)
+                (setq bounce-buffer (current-buffer))
 		(setq bounce-end (point)))
 	    ;; One message contained a few random lines before
 	    ;; the old message header.  The first line of the
@@ -4214,8 +4213,10 @@ specifying headers which should not be copied into the new message."
 		  (setq bounce-start (point))
 		  (goto-char (point-max))
 		  (search-backward (concat "\n\n" boundary) bounce-start t)
+                  (setq bounce-buffer (current-buffer))
 		  (setq bounce-end (point)))
 	      (setq bounce-start (point)
+                    bounce-buffer (current-buffer)
 		    bounce-end (point-max)))
 	    (unless (search-forward "\n\n" nil t)
 	      (error "Cannot find end of header in failed message"))))))
@@ -4224,9 +4225,9 @@ specifying headers which should not be copied into the new message."
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
     (let (mail-signature mail-setup-hook)
-      (if (rmail-start-mail nil nil nil nil nil rmail-this-buffer
+      (if (rmail-start-mail nil nil nil nil nil rmail-buffer
 			    (list (list 'rmail-mark-message
-					rmail-this-buffer
+					rmail-buffer
 					(aref rmail-msgref-vector msgnum)
 					rmail-retried-attr-index)))
 	  ;; Insert original text as initial text of new draft message.
@@ -4235,7 +4236,7 @@ specifying headers which should not be copied into the new message."
 	  (let ((inhibit-read-only t)
 		eoh)
 	    (erase-buffer)
-	    (insert-buffer-substring rmail-this-buffer
+	    (insert-buffer-substring bounce-buffer
 				     bounce-start bounce-end)
 	    (goto-char (point-min))
 	    (if bounce-indent

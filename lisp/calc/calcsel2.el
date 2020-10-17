@@ -34,6 +34,7 @@
 ;; The variable calc-sel-reselect is local to the methods below,
 ;; but is used by some functions in calc-sel.el which are called
 ;; by the functions below.
+(defvar calc-sel-reselect)
 
 (defun calc-commute-left (arg)
   (interactive "p")

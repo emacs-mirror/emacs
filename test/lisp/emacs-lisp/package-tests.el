@@ -39,6 +39,7 @@
 
 (require 'package)
 (require 'ert)
+(require 'ert-x)
 (require 'cl-lib)
 
 (setq package-menu-async nil)
@@ -102,12 +103,8 @@
                                (multi-file (0 1))))
   "`package-desc' used for testing dependencies.")
 
-(defvar package-test-data-dir (expand-file-name "package-resources" package-test-file-dir)
+(defvar package-test-data-dir (ert-resource-directory)
   "Base directory of package test files.")
-
-(defvar package-test-fake-contents-file
-  (expand-file-name "archive-contents" package-test-data-dir)
-  "Path to a static copy of \"archive-contents\".")
 
 (cl-defmacro with-package-test ((&optional &key file
                                            basedir
@@ -215,20 +212,20 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-desc-from-buffer ()
   "Parse an elisp buffer to get a `package-desc' object."
-  (with-package-test (:basedir "package-resources" :file "simple-single-1.3.el")
+  (with-package-test (:basedir (ert-resource-directory) :file "simple-single-1.3.el")
     (should (package-test--compatible-p
              (package-buffer-info) simple-single-desc 'kind)))
-  (with-package-test (:basedir "package-resources" :file "simple-depend-1.0.el")
+  (with-package-test (:basedir (ert-resource-directory) :file "simple-depend-1.0.el")
     (should (package-test--compatible-p
              (package-buffer-info) simple-depend-desc 'kind)))
-  (with-package-test (:basedir "package-resources"
+  (with-package-test (:basedir (ert-resource-directory)
                                :file "multi-file-0.2.3.tar")
     (tar-mode)
     (should (equal (package-tar-file-info) multi-file-desc))))
 
 (ert-deftest package-test-install-single ()
   "Install a single file without using an archive."
-  (with-package-test (:basedir "package-resources" :file "simple-single-1.3.el")
+  (with-package-test (:basedir (ert-resource-directory) :file "simple-single-1.3.el")
     (should (package-install-from-buffer))
     (package-initialize)
     (should (package-installed-p 'simple-single))
@@ -271,7 +268,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-macro-compilation ()
   "Install a package which includes a dependency."
-  (with-package-test (:basedir "package-resources")
+  (with-package-test (:basedir (ert-resource-directory))
     (package-install-file (expand-file-name "macro-problem-package-1.0/"))
     (require 'macro-problem)
     ;; `macro-problem-func' uses a macro from `macro-aux'.
@@ -310,8 +307,7 @@ Must called from within a `tar-mode' buffer."
 (ert-deftest package-test-install-prioritized ()
   "Install a lower version from a higher-prioritized archive."
   (with-package-test ()
-    (let* ((newer-version (expand-file-name "package-resources/newer-versions"
-                                            package-test-file-dir))
+    (let* ((newer-version (ert-resource-file "newer-versions"))
            (package-archives `(("older" . ,package-test-data-dir)
                                ("newer" . ,newer-version)))
            (package-archive-priorities '(("older" . 100))))
@@ -326,7 +322,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-install-multifile ()
   "Check properties of the installed multi-file package."
-  (with-package-test (:basedir "package-resources" :install '(multi-file))
+  (with-package-test (:basedir (ert-resource-directory) :install '(multi-file))
     (let ((autoload-file
            (expand-file-name "multi-file-autoloads.el"
                              (expand-file-name
@@ -472,8 +468,7 @@ Must called from within a `tar-mode' buffer."
       (package-menu-mark-install)
       (package-menu-execute)
       (should (package-installed-p 'simple-single))
-      (let ((package-test-data-dir
-             (expand-file-name "package-resources/newer-versions" package-test-file-dir)))
+      (let ((package-test-data-dir (ert-resource-file "newer-versions")))
         (setq package-archives `(("gnu" . ,package-test-data-dir)))
         (revert-buffer)
 
@@ -512,7 +507,7 @@ Must called from within a `tar-mode' buffer."
                  (when (re-search-forward "Server started, \\(.*\\)\n" nil t)
                    (setq addr (match-string 1))))
                addr)))
-          (with-package-test (:basedir package-test-data-dir :location addr)
+          (with-package-test (:basedir (ert-resource-directory) :location addr)
             (list-packages)
             (should package--downloads-in-progress)
             (should mode-line-process)
@@ -532,8 +527,7 @@ Must called from within a `tar-mode' buffer."
 (ert-deftest package-test-update-archives/ignore-nil-entry ()
   "Ignore any packages that are nil.  Test for Bug#28502."
   (with-package-test ()
-    (let* ((with-nil-entry (expand-file-name "package-resources/with-nil-entry"
-                                             package-test-file-dir))
+    (let* ((with-nil-entry (ert-resource-file "with-nil-entry"))
            (package-archives `(("with-nil-entry" . ,with-nil-entry))))
       (package-initialize)
       (package-refresh-contents)
@@ -634,8 +628,7 @@ Must called from within a `tar-mode' buffer."
                           prog-alist)))
 		   (delete-directory homedir t))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
-	 (package-test-data-dir
-	   (expand-file-name "package-resources/signed" package-test-file-dir)))
+         (package-test-data-dir (ert-resource-file "signed")))
     (with-package-test ()
       (package-initialize)
       (package-import-keyring keyring)
@@ -696,7 +689,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-x-test-upload-buffer ()
   "Test creating an \"archive-contents\" file"
-  (with-package-test (:basedir "package-resources"
+  (with-package-test (:basedir (ert-resource-directory)
                                :file "simple-single-1.3.el"
                                :upload-base t)
     (package-upload-buffer)
@@ -729,7 +722,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-x-test-upload-new-version ()
   "Test uploading a new version of a package"
-  (with-package-test (:basedir "package-resources"
+  (with-package-test (:basedir (ert-resource-directory)
                                :file "simple-single-1.3.el"
                                :upload-base t)
     (package-upload-buffer)

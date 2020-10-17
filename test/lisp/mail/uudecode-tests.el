@@ -24,14 +24,8 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'uudecode)
-
-(defvar uudecode-tests-data-dir
-  (file-truename
-   (expand-file-name "uudecode-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Base directory of uudecode-tests.el test data files.")
 
 (defun uudecode-tests-read-file (file)
   "Read contents of FILE and return as string."
@@ -40,13 +34,11 @@
     (buffer-string)))
 
 (defvar uudecode-tests-encoded-str
-  (uudecode-tests-read-file
-   (expand-file-name "uuencoded.txt" uudecode-tests-data-dir))
+  (uudecode-tests-read-file (ert-resource-file "uuencoded.txt"))
   "Uuencoded data for bookmark-tests.el
 Same as `uudecode-tests-decoded-str' but uuencoded.")
 (defvar uudecode-tests-decoded-str
-  (uudecode-tests-read-file
-   (expand-file-name "uudecoded.txt" uudecode-tests-data-dir))
+  (uudecode-tests-read-file (ert-resource-file "uudecoded.txt"))
   "Plain text data for bookmark-tests.el
 Same as `uudecode-tests-encoded-str' but plain text.")
 

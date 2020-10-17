@@ -56,32 +56,32 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-macro ()
-  (let ((regexp "a Lisp macro in .subr\\.el")
+  (let ((regexp "a Lisp macro in .+subr\\.el")
         (result (help-fns-tests--describe-function 'when)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defun ()
   (let ((regexp (if (boundp 'comp-ctxt)
-                    "a native compiled Lisp function in .subr\\.el"
-                  "a compiled Lisp function in .subr\\.el"))
+                    "a native compiled Lisp function in .+subr\\.el"
+                  "a compiled Lisp function in .+subr\\.el"))
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defsubst ()
   (let ((regexp (if (boundp 'comp-ctxt)
-                    "a native compiled Lisp function in .subr\\.el"
-                  "a compiled Lisp function in .subr\\.el"))
+                    "a native compiled Lisp function in .+subr\\.el"
+                  "a compiled Lisp function in .+subr\\.el"))
         (result (help-fns-tests--describe-function 'posn-window)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-alias-to-defun ()
-  (let ((regexp "an alias for .set-file-modes. in .subr\\.el")
+  (let ((regexp "an alias for .set-file-modes. in .+subr\\.el")
         (result (help-fns-tests--describe-function 'chmod)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-bug23887 ()
   "Test for https://debbugs.gnu.org/23887 ."
-  (let ((regexp "an alias for .re-search-forward. in .subr\\.el")
+  (let ((regexp "an alias for .re-search-forward. in .+subr\\.el")
         (result (help-fns-tests--describe-function 'search-forward-regexp)))
     (should (string-match regexp result))))
 

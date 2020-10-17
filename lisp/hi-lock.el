@@ -493,6 +493,8 @@ the major mode specifies support for Font Lock."
                     'regexp-history-last)))
     (hi-lock-read-face-name)
     current-prefix-arg))
+  (when (stringp face)
+    (setq face (intern face)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern

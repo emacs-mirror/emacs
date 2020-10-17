@@ -19489,6 +19489,11 @@ Variable to control whether use the locally stored @acronym{NOV} and
 articles when plugged, e.g., essentially using the Agent as a cache.
 The default is non-@code{nil}, which means to use the Agent as a cache.
 
+@item gnus-agent-eagerly-store-articles
+@vindex gnus-agent-eagerly-store-articles
+If non-@code{nil} (which is the default), store all articles read in
+agentized groups in the Agent cache.
+
 @item gnus-agent-go-online
 @vindex gnus-agent-go-online
 If @code{gnus-agent-go-online} is @code{nil}, the Agent will never

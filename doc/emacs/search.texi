@@ -1662,6 +1662,7 @@ reused.
 @cindex @code{query-replace} face
 @cindex @code{lazy-highlight} face, in replace
 @vindex query-replace-highlight
+@vindex query-replace-highlight-submatches
 @vindex query-replace-lazy-highlight
 @vindex query-replace-show-replacement
   These commands highlight the current match using the face
@@ -1674,6 +1675,10 @@ other matches using @code{lazy-highlight} just like incremental search
 string for the current match in the minibuffer.  If you want to keep
 special sequences @samp{\&} and @samp{\@var{n}} unexpanded, customize
 @code{query-replace-show-replacement} variable.
+Like @code{search-highlight-submatches} highlights subexpressions in
+incremental search (@pxref{Search Customizations}), the variable
+@code{query-replace-highlight-submatches} defines whether to highlight
+subexpressions in the regexp replacement commands.
 
 @vindex query-replace-skip-read-only
   The variable @code{query-replace-skip-read-only}, if set

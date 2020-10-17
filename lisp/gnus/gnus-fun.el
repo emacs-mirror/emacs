@@ -205,7 +205,7 @@ different input formats."
 (defun gnus-convert-face-to-png (face)
   "Convert FACE (which is base64-encoded) to a PNG.
 The PNG is returned as a string."
-  (let ((face (gnus-base64-repad face)))
+  (let ((face (gnus-base64-repad face nil nil t)))
     (mm-with-unibyte-buffer
       (insert face)
       (ignore-errors

@@ -264,7 +264,14 @@
 				(map-property ical-property))
 			       args)))))
       (mapc #'accumulate-args prop-map)
-      (apply #'make-instance event-class args))))
+      (apply
+       #'make-instance
+       event-class
+       (cl-loop for slot in (eieio-class-slots event-class)
+		for keyword = (intern
+			       (format ":%s" (eieio-slot-descriptor-name slot)))
+		when (plist-member args keyword)
+		append (list keyword (plist-get args keyword)))))))
 
 (defun gnus-icalendar-event-from-buffer (buf &optional attendee-name-or-email)
   "Parse RFC5545 iCalendar in buffer BUF and return an event object.

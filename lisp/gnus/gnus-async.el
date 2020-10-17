@@ -227,6 +227,7 @@ that was fetched."
 	  (narrow-to-region mark (point-max))
 	  ;; Put the articles into the agent, if they aren't already.
 	  (when (and gnus-agent
+		     gnus-agent-eagerly-store-articles
 		     (gnus-agent-group-covered-p group))
 	    (save-restriction
 	      (narrow-to-region mark (point-max))
