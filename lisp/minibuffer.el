@@ -776,44 +776,50 @@ The text is displayed for `minibuffer-message-clear-timeout' seconds
 whichever comes first.
 Unlike `minibuffer-message', this function is called automatically
 via `set-message-function'."
-  (when (and (not noninteractive)
-             (window-live-p (active-minibuffer-window)))
-    (with-current-buffer (window-buffer (active-minibuffer-window))
-      (setq message (if (string-match-p "\\` *\\[.+\\]\\'" message)
-                        ;; Make sure we can put-text-property.
-                        (copy-sequence message)
-                      (concat " [" message "]")))
-      (unless (or (null minibuffer-message-properties)
-                  ;; Don't overwrite the face properties the caller has set
-                  (text-properties-at 0 message))
-        (setq message (apply #'propertize message minibuffer-message-properties)))
+  (let* ((minibuf-window (active-minibuffer-window))
+         (minibuf-frame (and (window-live-p minibuf-window)
+                             (window-frame minibuf-window))))
+    (when (and (not noninteractive)
+               (window-live-p minibuf-window)
+               (or (eq (window-frame) minibuf-frame)
+                   (eq (frame-parameter minibuf-frame 'minibuffer) 'only)))
+      (with-current-buffer (window-buffer minibuf-window)
+        (setq message (if (string-match-p "\\` *\\[.+\\]\\'" message)
+                          ;; Make sure we can put-text-property.
+                          (copy-sequence message)
+                        (concat " [" message "]")))
+        (unless (or (null minibuffer-message-properties)
+                    ;; Don't overwrite the face properties the caller has set
+                    (text-properties-at 0 message))
+          (setq message
+                (apply #'propertize message minibuffer-message-properties)))
 
-      (clear-minibuffer-message)
+        (clear-minibuffer-message)
 
-      (let ((ovpos (minibuffer--message-overlay-pos)))
-        (setq minibuffer-message-overlay
-              (make-overlay ovpos ovpos nil t t)))
-      (unless (zerop (length message))
-        ;; The current C cursor code doesn't know to use the overlay's
-        ;; marker's stickiness to figure out whether to place the cursor
-        ;; before or after the string, so let's spoon-feed it the pos.
-        (put-text-property 0 1 'cursor 1 message))
-      (overlay-put minibuffer-message-overlay 'after-string message)
-      ;; Make sure the overlay with the message is displayed before
-      ;; any other overlays in that position, in case they have
-      ;; resize-mini-windows set to nil and the other overlay strings
-      ;; are too long for the mini-window width.  This makes sure the
-      ;; temporary message will always be visible.
-      (overlay-put minibuffer-message-overlay 'priority 1100)
+        (let ((ovpos (minibuffer--message-overlay-pos)))
+          (setq minibuffer-message-overlay
+                (make-overlay ovpos ovpos nil t t)))
+        (unless (zerop (length message))
+          ;; The current C cursor code doesn't know to use the overlay's
+          ;; marker's stickiness to figure out whether to place the cursor
+          ;; before or after the string, so let's spoon-feed it the pos.
+          (put-text-property 0 1 'cursor 1 message))
+        (overlay-put minibuffer-message-overlay 'after-string message)
+        ;; Make sure the overlay with the message is displayed before
+        ;; any other overlays in that position, in case they have
+        ;; resize-mini-windows set to nil and the other overlay strings
+        ;; are too long for the mini-window width.  This makes sure the
+        ;; temporary message will always be visible.
+        (overlay-put minibuffer-message-overlay 'priority 1100)
 
-      (when (numberp minibuffer-message-clear-timeout)
-        (setq minibuffer-message-timer
-              (run-with-timer minibuffer-message-clear-timeout nil
-                              #'clear-minibuffer-message)))
+        (when (numberp minibuffer-message-clear-timeout)
+          (setq minibuffer-message-timer
+                (run-with-timer minibuffer-message-clear-timeout nil
+                                #'clear-minibuffer-message)))
 
-      ;; Return `t' telling the caller that the message
-      ;; was handled specially by this function.
-      t)))
+        ;; Return `t' telling the caller that the message
+        ;; was handled specially by this function.
+        t))))
 
 (setq set-message-function 'set-minibuffer-message)
 

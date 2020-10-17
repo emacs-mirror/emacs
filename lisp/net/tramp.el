@@ -1235,6 +1235,8 @@ have been gone since last remote command execution.  A value of t
 would require an immediate reread during filename completion, nil
 means to use always cached values for the directory contents."
   :type '(choice (const nil) (const t) integer))
+(make-obsolete-variable
+ 'tramp-completion-reread-directory-timeout 'remote-file-name-inhibit-cache "27.2")
 
 ;;; Internal Variables:
 

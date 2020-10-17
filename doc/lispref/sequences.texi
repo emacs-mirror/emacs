@@ -658,8 +658,13 @@ for which @var{predicate} returns @code{nil}.
 @var{initial-value} and the first element of @var{sequence}, then calling
 @var{function} with that result and the second element of @var{sequence},
 then with that result and the third element of @var{sequence}, etc.
-@var{function} should be a function of two arguments.  If
-@var{sequence} is empty, this returns @var{initial-value} without
+@var{function} should be a function of two arguments.
+
+@var{function} is called with two arguments.  @var{intial-value}
+(and then the accumulated value) is used as the first argument, and
+the elements in @var{sequence} are used for the second argument.
+
+If @var{sequence} is empty, this returns @var{initial-value} without
 calling @var{function}.
 
 @example

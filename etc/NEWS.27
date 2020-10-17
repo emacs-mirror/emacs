@@ -21,6 +21,10 @@ Temporary note:
 When you add a new item, use the appropriate mark if you are sure it
 applies, and please also update docstrings as needed.
 
+** Tramp
+
+*** The user option 'tramp-completion-reread-directory-timeout' is made obsolete.
+
 
 * Installation Changes in Emacs 27.1
 
@@ -202,7 +206,7 @@ it won't work right without some adjustment:
 Units that are ordered after 'emacs.service' will only be started
 after Emacs has finished initialization and is ready for use, and
 Emacs needs to be built with systemd support.  (If your Emacs is
-installed in a non-standard location and you copied the emacs.service
+installed in a non-standard location and you copied the "emacs.service"
 file to e.g. "~/.config/systemd/user/", you will need to copy the new
 version of the file again.)
 

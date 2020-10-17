@@ -5254,7 +5254,6 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 					extra_info)));
     }
 
-#ifdef HAVE_WINDOW_SYSTEM
   else if (f)
     {
       /* Return mouse pixel coordinates here.  */
@@ -5262,7 +5261,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       xret = XFIXNUM (x);
       yret = XFIXNUM (y);
 
-      if (FRAME_LIVE_P (f)
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f)
+	  && FRAME_LIVE_P (f)
 	  && FRAME_INTERNAL_BORDER_WIDTH (f) > 0
 	  && !NILP (get_frame_param (f, Qdrag_internal_border)))
 	{
@@ -5271,8 +5272,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
 	  posn = builtin_lisp_symbol (internal_border_parts[part]);
 	}
-    }
 #endif
+    }
 
   else
     window_or_frame = Qnil;
