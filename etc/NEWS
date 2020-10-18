@@ -840,6 +840,14 @@ current environment.
 Its default value matches localized abbreviations of the "reply"
 prefix on the Subject line in various languages.
 
+---
+*** New user option 'shr-offer-extend-specpdl'.
+If this is nil, rendering of HTML in the email message body that
+requires to enlarge 'max-specpdl-size', the number of Lisp variable
+bindings, will be aborted, and Emacs will not ask you whether to
+enlarge 'max-specpdl-size' to complete the rendering.  The default is
+t, which preserves the original behavior.
+
 ** Apropos
 
 *** New commands 'apropos-next-symbol' and 'apropos-previous-symbol'.
