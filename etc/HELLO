@@ -25,7 +25,8 @@ LANGUAGE (NATIVE NAME)	HELLO
 <x-charset><param>mule-unicode-0100-24ff</param>Amharic (አማርኛ)	ሠላም
 Arabic (العربيّة)	السّلام عليكم
 Armenian (հայերեն)	Բարև ձեզ
-Bengali (বাংলা)	নমস্কার
+</x-charset><x-charset><param>cyrillic-iso8859-5</param>Belarusian (беларуская)	Прывітанне
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Bengali (বাংলা)	নমস্কার
 </x-charset><x-charset><param>mule-unicode-2500-33ff</param>Braille	⠓⠑⠇⠇⠕
 </x-charset><x-charset><param>mule-unicode-0100-24ff</param>Burmese (မြန်မာ)	မင်္ဂလာပါ
 </x-charset>C	printf ("Hello, world!\n");
@@ -58,8 +59,8 @@ Gujarati (ગુજરાતી)	નમસ્તે
 </x-charset><x-charset><param>unicode</param>Inuktitut (ᐃᓄᒃᑎᑐᑦ)	ᐊᐃ
 
 </x-charset><x-charset><param>latin-iso8859-1</param>Italian (italiano)	Ciao / Buon giorno
-</x-charset>Javanese (Jawa)	System.out.println("Sugeng siang!");
-<x-charset><param>mule-unicode-0100-24ff</param>Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ
+</x-charset><x-charset><param>unicode</param>Javanese (ꦧꦱꦗꦮ)	ꦱꦸꦒꦼꦁꦱꦶꦪꦁ
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ
 Khmer (ភាសាខ្មែរ)	ជំរាបសួរ
 </x-charset><x-charset><param>lao</param>Lao (ພາສາລາວ)	ສະບາຍດີ / ຂໍໃຫ້ໂຊກດີ
 </x-charset><x-charset><param>mule-unicode-0100-24ff</param>Malayalam (മലയാളം)	നമസ്കാരം
