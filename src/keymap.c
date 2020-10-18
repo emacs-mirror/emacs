@@ -89,8 +89,6 @@ static Lisp_Object where_is_cache_keymaps;
 static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static Lisp_Object define_as_prefix (Lisp_Object, Lisp_Object);
-static void describe_command (Lisp_Object, Lisp_Object);
-static void describe_translation (Lisp_Object, Lisp_Object);
 static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
                              void (*) (Lisp_Object, Lisp_Object), bool,
                              Lisp_Object, Lisp_Object, bool, bool);
@@ -2943,74 +2941,18 @@ You type        Translation\n\
   return Qnil;
 }
 
-static int previous_description_column;
-
-static void
-describe_command (Lisp_Object definition, Lisp_Object args)
-{
-  register Lisp_Object tem1;
-  ptrdiff_t column = current_column ();
-  int description_column;
-
-  /* If column 16 is no good, go to col 32;
-     but don't push beyond that--go to next line instead.  */
-  if (column > 30)
-    {
-      insert_char ('\n');
-      description_column = 32;
-    }
-  else if (column > 14 || (column > 10 && previous_description_column == 32))
-    description_column = 32;
-  else
-    description_column = 16;
-
-  Findent_to (make_fixnum (description_column), make_fixnum (1));
-  previous_description_column = description_column;
-
-  if (SYMBOLP (definition))
-    {
-      tem1 = SYMBOL_NAME (definition);
-      insert1 (tem1);
-      insert_string ("\n");
-    }
-  else if (STRINGP (definition) || VECTORP (definition))
-    insert_string ("Keyboard Macro\n");
-  else if (KEYMAPP (definition))
-    insert_string ("Prefix Command\n");
-  else
-    insert_string ("??\n");
-}
-
-static void
-describe_translation (Lisp_Object definition, Lisp_Object args)
-{
-  register Lisp_Object tem1;
-
-  Findent_to (make_fixnum (16), make_fixnum (1));
-
-  if (SYMBOLP (definition))
-    {
-      tem1 = SYMBOL_NAME (definition);
-      insert1 (tem1);
-      insert_string ("\n");
-    }
-  else if (STRINGP (definition) || VECTORP (definition))
-    {
-      insert1 (Fkey_description (definition, Qnil));
-      insert_string ("\n");
-    }
-  else if (KEYMAPP (definition))
-    insert_string ("Prefix Command\n");
-  else
-    insert_string ("??\n");
-}
-
 static void
 describe_vector_princ (Lisp_Object elt, Lisp_Object fun)
 {
   Findent_to (make_fixnum (16), make_fixnum (1));
   call1 (fun, elt);
   Fterpri (Qnil, Qnil);
+}
+
+static void
+describe_vector_basic (Lisp_Object elt, Lisp_Object fun)
+{
+  call1 (fun, elt);
 }
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 2, 0,
@@ -3032,6 +2974,7 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
 
 DEFUN ("help--describe-vector", Fhelp__describe_vector, Shelp__describe_vector, 7, 7, 0,
        doc: /* Insert in the current buffer a description of the contents of VECTOR.
+Call DESCRIBER to insert the description of one value found in VECTOR.
 
 PREFIX is a string describing the key which leads to the keymap that
 this vector is in.
@@ -3045,7 +2988,7 @@ if it is defined by any of them.
 ENTIRE-MAP is the keymap in which this vector appears.
 If the definition in effect in the whole map does not match
 the one in this keymap, we ignore this one.  */)
-  (Lisp_Object vector, Lisp_Object prefix, Lisp_Object transl,
+  (Lisp_Object vector, Lisp_Object prefix, Lisp_Object describer,
    Lisp_Object partial, Lisp_Object shadow, Lisp_Object entire_map,
    Lisp_Object mention_shadow)
 {
@@ -3053,19 +2996,16 @@ the one in this keymap, we ignore this one.  */)
   specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR_OR_CHAR_TABLE (vector);
 
-  bool b_transl = NILP (transl) ? false : true;
   bool b_partial = NILP (partial) ? false : true;
   bool b_mention_shadow = NILP (mention_shadow) ? false : true;
 
-  describe_vector (vector, prefix, Qnil,
-		   b_transl ? describe_translation : describe_command,
-		   b_partial, shadow, entire_map,
-		   true, b_mention_shadow);
+  describe_vector (vector, prefix, describer, describe_vector_basic, b_partial,
+		   shadow, entire_map, true, b_mention_shadow);
   return unbind_to (count, Qnil);
 }
 
 /* Insert in the current buffer a description of the contents of VECTOR.
-   We call ELT_DESCRIBER to insert the description of one value found
+   Call ELT_DESCRIBER to insert the description of one value found
    in VECTOR.
 
    ELT_PREFIX describes what "comes before" the keys or indices defined

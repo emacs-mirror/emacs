@@ -1274,10 +1274,13 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
          (map (keymap-canonicalize map))
          (tail map)
          (first t)
+         (describer (if transl
+                        #'help--describe-translation
+                      #'help--describe-command))
          done vect)
     (while (and (consp tail) (not done))
       (cond ((or (vectorp (car tail)) (char-table-p (car tail)))
-             (help--describe-vector (car tail) prefix transl partial
+             (help--describe-vector (car tail) prefix describer partial
                                 shadow map mention-shadow))
             ((consp (car tail))
              (let ((event (caar tail))
