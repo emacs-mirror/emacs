@@ -36,8 +36,6 @@ extern Lisp_Object current_global_map;
 extern char *push_key_description (EMACS_INT, char *);
 extern Lisp_Object access_keymap (Lisp_Object, Lisp_Object, bool, bool, bool);
 extern Lisp_Object get_keymap (Lisp_Object, bool, bool);
-extern void describe_map_tree (Lisp_Object, bool, Lisp_Object, Lisp_Object,
-			       const char *, bool, bool, bool, bool);
 extern ptrdiff_t current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_key (Lisp_Object, int, const char *);
 extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);

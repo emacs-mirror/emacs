@@ -58,23 +58,15 @@
 ;;; substitute-command-keys
 
 (defmacro with-substitute-command-keys-test (&rest body)
-  `(cl-flet* ((should-be-same-as-c-version
-               ;; TODO: Remove this when old C function is removed.
-               (lambda (orig)
-                 (should (equal-including-properties
-                          (substitute-command-keys orig)
-                          (substitute-command-keys-old orig)))))
-              (test
+  `(cl-flet* ((test
                (lambda (orig result)
                  (should (equal-including-properties
                           (substitute-command-keys orig)
-                          result))
-                 (should-be-same-as-c-version orig)))
+                          result))))
               (test-re
                (lambda (orig regexp)
                  (should (string-match (concat "^" regexp "$")
-                                       (substitute-command-keys orig)))
-                 (should-be-same-as-c-version orig))))
+                                       (substitute-command-keys orig))))))
      ,@body))
 
 (ert-deftest help-tests-substitute-command-keys/no-change ()
@@ -368,29 +360,6 @@ C-a		foo
 C-b		undefined
 
 ")))))
-
-;; TODO: This is a temporary test that should be removed together with
-;; substitute-command-keys-old.
-(ert-deftest help-tests-substitute-command-keys/compare ()
-  (with-substitute-command-keys-test
-   (with-temp-buffer
-     (Info-mode)
-     (outline-minor-mode)
-     (test-re "\\{Info-mode-map}" ".*")))
-  (with-substitute-command-keys-test
-   (with-temp-buffer
-     (c-mode)
-     (outline-minor-mode)
-     (test-re "\\{c-mode-map}" ".*"))))
-
-(ert-deftest help-tests-substitute-command-keys/compare-all ()
-  (let (keymaps)
-    (mapatoms (lambda (var)
-                (when (keymapp var)
-                  (push var keymaps))))
-    (dolist (keymap keymaps)
-      (with-substitute-command-keys-test
-       (test-re (concat "\\{" (symbol-name keymap) "}") ".*")))))
 
 (provide 'help-tests)
 
