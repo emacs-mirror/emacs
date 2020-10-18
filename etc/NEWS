@@ -1185,6 +1185,8 @@ be done (and this restores how this previously worked).
 *** New user option 'next-error-message-highlight'.
 In addition to a fringe arrow, 'next-error' error may now optionally
 highlight the current error message in the 'next-error' buffer.
+This user option can be also customized to keep highlighting on all
+visited errors, so you can have an overview what errors were already visited.
 
 +++
 *** New user option 'tab-first-completion'.
