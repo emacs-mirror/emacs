@@ -199,6 +199,14 @@ if (!/[ (:,='\"]/.test(value)) {
 
 ;;;; Indentation tests.
 
+(defun js-tests--remove-indentation ()
+  "Remove all indentation in the current buffer."
+  (goto-char (point-min))
+  (while (re-search-forward (rx bol (+ (in " \t"))) nil t)
+    (let ((syntax (save-match-data (syntax-ppss))))
+      (unless (nth 3 syntax)       ; Avoid multiline string literals.
+        (replace-match "")))))
+
 (defmacro js-deftest-indent (file)
   `(ert-deftest ,(intern (format "js-indent-test/%s" file)) ()
      :tags '(:expensive-test)
@@ -206,6 +214,11 @@ if (!/[ (:,='\"]/.test(value)) {
        (unwind-protect
            (with-current-buffer buf
              (let ((orig (buffer-string)))
+               (js-tests--remove-indentation)
+               ;; Indent and check that we get the original text.
+               (indent-region (point-min) (point-max))
+               (should (equal (buffer-string) orig))
+               ;; Verify idempotency.
                (indent-region (point-min) (point-max))
                (should (equal (buffer-string) orig))))
          (kill-buffer buf)))))
