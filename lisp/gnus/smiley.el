@@ -227,7 +227,11 @@ A list of images is returned."
                   (progn
 	            (gnus-add-image 'smiley image)
 	            (gnus-put-image image string 'smiley))
-                (insert image)))))
+		;; This is a string, but mark the property for
+		;; deletion if the washing method is switched off.
+                (insert (propertize string
+				    'display image
+				    'gnus-image-category 'smiley))))))
 	images))))
 
 ;;;###autoload
