@@ -544,7 +544,10 @@ usage: (quote ARG)  */)
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
        doc: /* Like `quote', but preferred for objects which are functions.
 In byte compilation, `function' causes its argument to be handled by
-the byte compiler.  `quote' cannot do that.
+the byte compiler.  Similarly, when expanding macros and expressions,
+ARG can be examined and possibly expanded.  If `quote' is used
+instead, this doesn't happen.
+
 usage: (function ARG)  */)
   (Lisp_Object args)
 {
