@@ -177,7 +177,7 @@ display that draw attention to details and important aspects in the
 design of the themes.  They also showcase the numerous customization
 options.
 
-@xref{Customisation Options, , Customisation options}.
+@xref{Customization Options}.
 
 @node Learn about the latest changes
 @section Learn about the latest changes
