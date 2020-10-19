@@ -1474,9 +1474,10 @@ is non-nil)."
 
 (defvar Info-streamline-headings
   '(("Emacs" . "Emacs")
-    ("Programming" . "Programming")
+    ("Software development\\|Programming" . "Software development")
     ("Libraries" . "Libraries")
-    ("World Wide Web\\|Net Utilities" . "Net Utilities"))
+    ("Network applications\\|World Wide Web\\|Net Utilities"
+     . "Network applications"))
   "List of elements (RE . NAME) to merge headings matching RE to NAME.")
 
 (defun Info-dir-remove-duplicates ()
