@@ -5787,7 +5787,7 @@ If called interactively, then PARENTS is non-nil."
 
 (defconst directory-files-no-dot-files-regexp
   "[^.]\\|\\.\\.\\."
-  "Regexp matching any non-directory part of a file name except \".\" and \"..\".
+  "Regexp matching any file name except \".\" and \"..\".
 More precisely, it matches parts of any nonempty string except those two.
 It is useful as the regexp argument to `directory-files' and
 `directory-files-and-attributes'.")

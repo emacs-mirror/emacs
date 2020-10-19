@@ -293,7 +293,7 @@ DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
-If MATCH is non-nil, mention only file names which non-directory part
+If MATCH is non-nil, mention only file names whose non-directory part
  matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
@@ -326,7 +326,7 @@ by `file-attributes'.
 This function accepts four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
-If MATCH is non-nil, mention only file names which non-directory part
+If MATCH is non-nil, mention only file names whose non-directory part
  matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself.
