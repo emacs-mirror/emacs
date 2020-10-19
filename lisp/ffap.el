@@ -1383,7 +1383,8 @@ Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
                          (point)))
              (bookmark (cl-loop for keyval = (ffap--gopher-var-on-line)
                                 while keyval collect keyval
-                                do (forward-line 1))))
+                                do (forward-line 1)
+                                until (eobp))))
         (when bookmark
           (setq ffap-string-at-point-region (list beg (point)))
           (let-alist (nconc bookmark '((type . "1") (port . "70")))

@@ -117,6 +117,12 @@ left alone when opening a URL in an external browser."
      t "C:\\temp\\program.log on Windows or /var/log/program.log on Unix.")
     "\\temp\\program.log")))
 
+(ert-deftest ffap-test-no-newlines ()
+  (should-not
+   (with-temp-buffer
+     (save-excursion (insert "type="))
+     (ffap-guess-file-name-at-point))))
+
 (provide 'ffap-tests)
 
 ;;; ffap-tests.el ends here
