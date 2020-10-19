@@ -402,6 +402,8 @@ at the end of the buffer."
 If POS is nil, use `point' instead."
   (eq (get-char-property (or pos (point)) 'invisible) 'outline))
 
+(define-error 'outline-before-first-heading "Before first heading")
+
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
 Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
@@ -412,7 +414,7 @@ Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
 	  (while (not found)
 	    (or (re-search-backward (concat "^\\(?:" outline-regexp "\\)")
 				    nil t)
-                (error "Before first heading"))
+                (signal 'outline-before-first-heading nil))
 	    (setq found (and (or invisible-ok (not (outline-invisible-p)))
 			     (point)))))
 	(goto-char found)
@@ -1167,19 +1169,21 @@ Return either 'hide-all, 'headings-only, or 'show-all."
 `Headings only' means show sub headings but not their bodies.
 `Show all' means show all subheadings and their bodies."
   (interactive)
-  (pcase (outline--cycle-state)
-    ('hide-all
-     (if (outline-has-subheading-p)
-         (progn (outline-show-children)
-                (message "Only headings"))
-       (outline-show-subtree)
-       (message "Show all")))
-    ('headings-only
-     (outline-show-subtree)
-     (message "Show all"))
-    ('show-all
-     (outline-hide-subtree)
-     (message "Hide all"))))
+  (condition-case nil
+      (pcase (outline--cycle-state)
+        ('hide-all
+         (if (outline-has-subheading-p)
+             (progn (outline-show-children)
+                    (message "Only headings"))
+           (outline-show-subtree)
+           (message "Show all")))
+        ('headings-only
+         (outline-show-subtree)
+         (message "Show all"))
+        ('show-all
+         (outline-hide-subtree)
+         (message "Hide all")))
+    (outline-before-first-heading nil)))
 
 (defvar-local outline--cycle-buffer-state 'show-all
   "Internal variable used for tracking buffer cycle state.")
@@ -1189,13 +1193,7 @@ Return either 'hide-all, 'headings-only, or 'show-all."
   (interactive)
   (pcase outline--cycle-buffer-state
     ('show-all
-     (save-excursion
-       (let ((start-point (point)))
-         (while (not (eq (point) start-point))
-           (outline-up-heading 1))
-         (outline-hide-sublevels
-          (progn (outline-back-to-heading)
-                 (funcall 'outline-level)))))
+     (outline-hide-sublevels 1)
      (setq outline--cycle-buffer-state 'top-level)
      (message "Top level headings"))
     ('top-level
