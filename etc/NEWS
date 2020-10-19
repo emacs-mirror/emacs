@@ -736,6 +736,7 @@ key             binding
 / s             package-menu-filter-by-status
 / v             package-menu-filter-by-version
 / m             package-menu-filter-marked
+/ u             package-menu-filter-upgradable
 / /             package-menu-filter-clear
 
 ---

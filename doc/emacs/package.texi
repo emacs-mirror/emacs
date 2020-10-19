@@ -222,6 +222,12 @@ lower, equal or higher version than the one specified.
 Filter package list by non-empty mark (@code{package-menu-filter-marked}).
 This shows only the packages that have been marked to be installed or deleted.
 
+@item / u
+@kindex / u @r{(Package Menu)}
+@findex package-menu-filter-upgradable
+Filter package list to show only packages for which there are
+available upgrades (@code{package-menu-filter-upgradable}).
+
 @item / /
 @kindex / / @r{(Package Menu)}
 @findex package-menu-filter-clear
