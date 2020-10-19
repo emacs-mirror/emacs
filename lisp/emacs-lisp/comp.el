@@ -2647,7 +2647,7 @@ Return the trampoline if found or nil otherwise."
          (byte-optimize nil)
          (comp-speed 0)
          (lexical-binding t))
-    (native-compile
+    (comp--native-compile
      form nil
      (cl-loop
       for load-dir in comp-eln-load-path
@@ -2796,7 +2796,7 @@ display a message."
                                   load-path ',load-path)
                             ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
-                            (native-compile ,source-file ,(and load t))))
+                            (comp--native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
                    (temp-file (make-temp-file
                                (concat "emacs-async-comp-"
@@ -2842,22 +2842,11 @@ display a message."
     ;; Reset it anyway.
     (clrhash comp-deferred-pending-h)))
 
-
-;;; Compiler entry points.
-
-;;;###autoload
-(defun native-compile (function-or-file &optional with-late-load output)
+(defun comp--native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
-This is the syncronous entry-point for the Emacs Lisp native
-compiler.
-FUNCTION-OR-FILE is a function symbol, a form or the
-filename of an Emacs Lisp source file.
+This serves as internal implementation of `native-compile'.
 When WITH-LATE-LOAD non-nil mark the compilation unit for late
-load once finished compiling (internal use only).  When OUTPUT is
-non-nil use it as filename for the compiled object.
-If FUNCTION-OR-FILE is a filename return the filename of the
-compiled object.  If FUNCTION-OR-FILE is a function symbol or a
-form return the compiled function."
+load once finished compiling."
   (comp-ensure-native-compiler)
   (unless (or (functionp function-or-file)
               (stringp function-or-file))
@@ -2891,6 +2880,23 @@ form return the compiled function."
       ;; So we return the compiled function.
       (native-elisp-load data))))
 
+
+;;; Compiler entry points.
+
+;;;###autoload
+(defun native-compile (function-or-file &optional output)
+  "Compile FUNCTION-OR-FILE into native code.
+This is the syncronous entry-point for the Emacs Lisp native
+compiler.
+FUNCTION-OR-FILE is a function symbol, a form or the filename of
+an Emacs Lisp source file.
+When OUTPUT is non-nil use it as filename for the compiled
+object.
+If FUNCTION-OR-FILE is a filename return the filename of the
+compiled object.  If FUNCTION-OR-FILE is a function symbol or a
+form return the compiled function."
+  (comp--native-compile function-or-file nil output))
+
 ;;;###autoload
 (defun batch-native-compile ()
   "Run `native-compile' on remaining command-line arguments.
@@ -2900,7 +2906,7 @@ Ultra cheap impersonation of `batch-byte-compile'."
            if (or (null byte-native-for-bootstrap)
                   (cl-notany (lambda (re) (string-match re file))
                              comp-bootstrap-black-list))
-           do (native-compile file)
+           do (comp--native-compile file)
            else
            do (byte-compile-file file)))
 
