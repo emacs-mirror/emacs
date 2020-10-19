@@ -27,7 +27,24 @@
 (require 'which-key)
 (require 'ert)
 
-(ert-deftest which-key-test-prefix-declaration ()
+(ert-deftest which-key-test--keymap-based-bindings ()
+  (let ((map (make-sparse-keymap))
+        (emacs-lisp-mode-map (copy-keymap emacs-lisp-mode-map)))
+    (emacs-lisp-mode)
+    (define-key map "x" 'ignore)
+    (define-key emacs-lisp-mode-map "\C-c\C-a" 'complete)
+    (define-key emacs-lisp-mode-map "\C-c\C-b" map)
+    (which-key-add-keymap-based-replacements emacs-lisp-mode-map
+      "C-c C-a" '("mycomplete" . complete)
+      "C-c C-b" "mymap")
+    (should (equal
+             (which-key--maybe-replace '("C-c C-a" . "complete"))
+             '("C-c C-a" . "mycomplete")))
+    (should (equal
+             (which-key--maybe-replace '("C-c C-b" . ""))
+             '("C-c C-b" . "mymap")))))
+
+(ert-deftest which-key-test--prefix-declaration ()
   "Test `which-key-declare-prefixes' and
 `which-key-declare-prefixes-for-mode'. See Bug #109."
   (let* ((major-mode 'test-mode)
