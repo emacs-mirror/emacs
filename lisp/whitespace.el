@@ -2473,7 +2473,8 @@ It should be added buffer-locally to `write-file-functions'."
 
 (provide 'whitespace)
 
-
+(make-obsolete-variable 'whitespace-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'whitespace-load-hook)
 
 

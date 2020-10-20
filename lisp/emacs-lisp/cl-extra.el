@@ -910,6 +910,8 @@ Outputs to the current buffer."
       (mapc #'cl--describe-class-slot cslots))))
 
 
+(make-obsolete-variable 'cl-extra-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'cl-extra-load-hook)
 
 ;; Local variables:

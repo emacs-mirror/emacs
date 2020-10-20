@@ -5259,6 +5259,8 @@ and corresponding effects."
 		byte-compile-variable-ref))))
   nil)
 
+(make-obsolete-variable 'bytecomp-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'bytecomp-load-hook)
 
 ;;; bytecomp.el ends here

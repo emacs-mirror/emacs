@@ -3430,6 +3430,8 @@ STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
            (nth (cl-struct-slot-offset ,struct-type ,slot-name) ,inst)
          (aref ,inst (cl-struct-slot-offset ,struct-type ,slot-name)))))))
 
+(make-obsolete-variable 'cl-macs-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'cl-macs-load-hook)
 
 ;; Local variables:

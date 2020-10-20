@@ -3458,6 +3458,8 @@ A command spec is a command name symbol, a keyboard macro string, a
 list containing a numeric entry string, or nil.
 A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 
+(make-obsolete-variable 'calc-ext-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'calc-ext-load-hook)
 
 (provide 'calc-ext)
