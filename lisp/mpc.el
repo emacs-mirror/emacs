@@ -819,8 +819,8 @@ The songs are returned as alists."
 (defun mpc-cmd-status ()
   (mpc-proc-cmd-to-alist "status"))
 
-(defun mpc-cmd-play ()
-  (mpc-proc-cmd "play")
+(defun mpc-cmd-play (&optional sn)
+  (mpc-proc-cmd (if sn (list "play" sn) "play"))
   (mpc-status-refresh))
 
 (defun mpc-cmd-seekcur (time)
@@ -849,7 +849,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                          ;; Sort them from last to first, so the renumbering
                          ;; caused by the earlier deletions don't affect
                          ;; later ones.
-                         (sort song-poss '>))))
+                         (sort (copy-sequence song-poss) '>))))
     (if (stringp playlist)
         (puthash (cons 'Playlist playlist) nil mpc--find-memoize)))
 
@@ -873,7 +873,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
               ;; Sort them from last to first, so the renumbering
               ;; caused by the earlier deletions affect
               ;; later ones a bit less.
-              (sort song-poss '>))))
+              (sort (copy-sequence song-poss) '>))))
     (if (stringp playlist)
         (puthash (cons 'Playlist playlist) nil mpc--find-memoize))))
 
@@ -2089,7 +2089,7 @@ This is used so that they can be compared with `eq', which is needed for
      ((null (with-current-buffer plbuf (re-search-forward re nil t)))
       ;; song-file only appears once in the playlist: no ambiguity,
       ;; we're good to go!
-      (mpc-proc-cmd (list "play" sn)))
+      (mpc-cmd-play sn))
      (t
       ;; The song appears multiple times in the playlist.  If the current
       ;; buffer holds not only the destination song but also the current
@@ -2391,6 +2391,7 @@ This is used so that they can be compared with `eq', which is needed for
   (interactive)
   (mpc-cmd-stop)
   (mpc-cmd-clear)
+  (mpc-songs-refresh)
   (mpc-status-refresh))
 
 (defun mpc-pause ()
