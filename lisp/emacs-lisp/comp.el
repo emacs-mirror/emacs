@@ -664,7 +664,8 @@ clashes."
   "Byte-compile FUNCTION-NAME spilling data from the byte compiler."
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt)
-          (make-temp-file (symbol-name function-name) nil ".eln")))
+          (make-temp-file (comp-c-func-name function-name "freefn-")
+                          nil ".eln")))
   (let* ((f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func-l :name function-name

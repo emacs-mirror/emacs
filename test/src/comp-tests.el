@@ -369,6 +369,12 @@ Check that the resulting binaries do not differ."
   (should (equal (interactive-form #'comp-tests-free-fun-f)
                  '(interactive))))
 
+(comp-deftest free-fun-silly-name ()
+  "Check we are able to compile a single function."
+  (eval '(defun comp-tests/free\fun-f ()) t)
+  (native-compile #'comp-tests/free\fun-f)
+  (should (subr-native-elisp-p (symbol-function #'comp-tests/free\fun-f))))
+
 (comp-deftest bug-40187 ()
   "Check function name shadowing.
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
