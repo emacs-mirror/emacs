@@ -2292,7 +2292,7 @@ Currently set only from \\='\\\" t in the first line of the source file.")
     ;; Ignore the \, and \/ kerning operators.  See
     ;; https://www.gnu.org/software/groff/manual/groff.html#Ligatures-and-Kerning
     (goto-char (point-min))
-    (while (re-search-forward "\\\\,\\|\\\\/" nil t)
+    (while (re-search-forward "\\\\[,/]" nil t)
       (replace-match "" t t))
 
     ;; Hide unpaddable and digit-width spaces \(space) and \0:
