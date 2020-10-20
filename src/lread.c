@@ -2573,6 +2573,13 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	while (++count <= unicode_hex_count)
 	  {
 	    c = READCHAR;
+	    if (c < 0)
+	      {
+		if (unicode_hex_count > 4)
+		  error ("Malformed Unicode escape: \\U%x", i);
+		else
+		  error ("Malformed Unicode escape: \\u%x", i);
+	      }
 	    /* `isdigit' and `isalpha' may be locale-specific, which we don't
 	       want.  */
 	    int digit = char_hexdigit (c);
