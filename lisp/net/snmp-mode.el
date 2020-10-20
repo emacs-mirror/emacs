@@ -24,9 +24,7 @@
 
 ;; INTRODUCTION
 ;; ------------
-;; This package provides a major mode for editing SNMP MIBs.  It
-;; provides all the modern Emacs 19 bells and whistles: default
-;; fontification via font-lock, imenu search functions, etc.
+;; This package provides a major mode for editing SNMP MIBs.
 ;;
 ;; SNMP mode also uses tempo, a textual boilerplate insertion package
 ;; distributed with Emacs, to add in boilerplate SNMP MIB structures.

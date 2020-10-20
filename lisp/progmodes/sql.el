@@ -232,9 +232,6 @@
 
 (require 'cl-lib)
 (require 'comint)
-;; Need the following to allow GNU Emacs 19 to compile the file.
-(eval-when-compile
-  (require 'regexp-opt))
 (require 'custom)
 (require 'thingatpt)
 (require 'view)
