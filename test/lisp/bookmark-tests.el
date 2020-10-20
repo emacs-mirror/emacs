@@ -312,7 +312,7 @@ the lexically-bound variable `buffer'."
   (with-bookmark-test
    (should-error (bookmark-insert-annotation "a missing bookmark"))
    (bookmark-insert-annotation "name")
-   (should (equal (buffer-string) (bookmark-default-annotation-text "name"))))
+   (should (string-match "Type the annotation" (buffer-string))))
   (with-bookmark-test
    (bookmark-set-annotation "name" "some stuff")
    (bookmark-insert-annotation "name")
