@@ -474,6 +474,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
               (seq-reverse sequence1)
               '()))
 
+;;;###autoload
 (cl-defgeneric seq-group-by (function sequence)
   "Apply FUNCTION to each element of SEQUENCE.
 Separate the elements of SEQUENCE into an alist using the results as

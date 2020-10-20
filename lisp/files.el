@@ -4301,9 +4301,27 @@ Return the new class name, which is a symbol named DIR."
                   (if (not (and newvars variables))
                       (or newvars variables)
                     (require 'map)
-                    (map-merge-with 'list (lambda (a b) (map-merge 'list a b))
-                                    variables
-                                    newvars))))))
+                    ;; We want to make the variable setting from
+                    ;; newvars (the second .dir-locals file) take
+                    ;; presedence over the old variables, but we also
+                    ;; want to preserve all `eval' elements as is from
+                    ;; both lists.
+                    (map-merge-with
+                     'list
+                     (lambda (a b)
+                       (let ((ag
+                              (seq-group-by
+                               (lambda (e) (eq (car e) 'eval)) a))
+                             (bg
+                              (seq-group-by
+                               (lambda (e) (eq (car e) 'eval)) b)))
+                         (append (map-merge 'list
+                                            (assoc-default nil ag)
+                                            (assoc-default nil bg))
+                                 (assoc-default t ag)
+                                 (assoc-default t bg))))
+                     variables
+                     newvars))))))
       (setq success latest))
     (setq variables (dir-locals--sort-variables variables))
     (dir-locals-set-class-variables class-name variables)
