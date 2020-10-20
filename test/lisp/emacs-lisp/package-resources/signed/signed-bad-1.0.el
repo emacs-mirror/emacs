@@ -1,4 +1,4 @@
-;;; signed-bad.el --- A single-file package with bad signature
+;;; signed-bad.el --- A single-file package with bad signature  -*- lexical-binding: t -*-
 
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.0
