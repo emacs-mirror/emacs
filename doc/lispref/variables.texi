@@ -2385,6 +2385,14 @@ equivalent to the following:
 (defvaralias @var{obsolete-name} @var{current-name} @var{docstring})
 (make-obsolete-variable @var{obsolete-name} @var{current-name} @var{when})
 @end example
+
+This macro evaluates all its parameters, and both @var{obsolete-name}
+and @var{current-name} should be symbols, so a typical usage would
+look like:
+
+@lisp
+(define-obsolete-variable-alias 'foo-thing 'bar-thing "27.1")
+@end lisp
 @end defmac
 
 @defun indirect-variable variable

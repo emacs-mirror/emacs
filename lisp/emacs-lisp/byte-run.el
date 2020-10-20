@@ -432,7 +432,16 @@ ACCESS-TYPE if non-nil should specify the kind of access that will trigger
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
   "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.
-This uses `defvaralias' and `make-obsolete-variable' (which see).
+
+WHEN should be a string indicating when the variable was first
+made obsolete, for example a date or a release number.
+
+This macro evaluates all its parameters, and both OBSOLETE-NAME
+and CURRENT-NAME should be symbols, so a typical usage would look like:
+
+  (define-obsolete-variable-alias 'foo-thing 'bar-thing \"27.1\")
+
+This macro uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.
 
 If CURRENT-NAME is a defcustom or a defvar (more generally, any variable
@@ -445,9 +454,6 @@ is not necessary for aliases that are autoloaded, or in files
 dumped with Emacs).  This is so that any user customizations are
 applied before the defcustom tries to initialize the
 variable (this is due to the way `defvaralias' works).
-
-WHEN should be a string indicating when the variable was first
-made obsolete, for example a date or a release number.
 
 For the benefit of Customize, if OBSOLETE-NAME has
 any of the following properties, they are copied to
