@@ -56,7 +56,7 @@
 ;; Load it with the following line in your init file:
 ;;
 ;;   (with-eval-after-load 'idlwave
-;;             (require 'idlw-complete-structtag))
+;;     (require 'idlw-complete-structtag))
 ;;
 ;; DESCRIPTION
 ;; ===========
