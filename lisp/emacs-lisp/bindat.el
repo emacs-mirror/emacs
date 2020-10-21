@@ -341,7 +341,7 @@
   "Return structured data according to SPEC for binary data in RAW.
 RAW is a unibyte string or vector.
 Optional third arg IDX specifies the starting offset in RAW."
-  (when (multibyte-string-p bindat-raw)
+  (when (multibyte-string-p raw)
     (error "String is multibyte"))
   (setq bindat-raw raw)
   (setq bindat-idx (or idx 0))
