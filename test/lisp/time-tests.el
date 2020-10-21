@@ -33,7 +33,9 @@
   (let ((display-time-load-average 1)
         (display-time-load-average-threshold 0))
     (display-time-next-load-average)
-    (should (string-match (rx string-start " " (+ digit "."))
+    (should (string-match (rx string-start " "
+                              (+ (| digit "."))
+                              string-end)
                           (display-time-update--load))))
   (let (display-time-load-average)
     (should (equal (display-time-update--load) ""))))
@@ -43,9 +45,11 @@
         (display-time-load-average-threshold 0)
         display-time-string)
     (display-time-update)
-    (should (string-match (rx string-start (? digit) digit ":" digit digit
+    (should (string-match (rx string-start
+                              (? digit) digit ":" digit digit
                               (? (| "AM" "PM"))
-                              " " (+ digit "."))
+                              " " (+ (| digit "."))
+                              string-end)
                           display-time-string))))
 
 (ert-deftest time-tests-display-time-file-nonempty-p ()
