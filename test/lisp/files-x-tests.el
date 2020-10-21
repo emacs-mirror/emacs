@@ -1,4 +1,4 @@
-;;; files-x-tests.el --- tests for files-x.el.
+;;; files-x-tests.el --- tests for files-x.el.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
@@ -35,6 +35,7 @@
   '((remote-null-device . "/dev/null")))
 (defconst files-x-test--variables4
   '((remote-null-device . "null")))
+(defvar remote-null-device)
 (put 'remote-shell-file-name 'safe-local-variable #'identity)
 (put 'remote-shell-command-switch 'safe-local-variable #'identity)
 (put 'remote-shell-interactive-switch 'safe-local-variable #'identity)
