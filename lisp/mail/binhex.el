@@ -29,12 +29,6 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (defalias 'binhex-char-int
-    (if (fboundp 'char-int)
-	'char-int
-      'identity)))
-
 (defgroup binhex nil
   "Decoding of BinHex (binary-to-hexadecimal) data."
   :group 'mail
@@ -150,14 +144,14 @@ input and write the converted data to its standard output."
 (defun binhex-string-big-endian (string)
   (let ((ret 0) (i 0) (len (length string)))
     (while (< i len)
-      (setq ret (+ (ash ret 8) (binhex-char-int (aref string i)))
+      (setq ret (+ (ash ret 8) (aref string i))
 	    i (1+ i)))
     ret))
 
 (defun binhex-string-little-endian (string)
   (let ((ret 0) (i 0) (shift 0) (len (length string)))
     (while (< i len)
-      (setq ret (+ ret (ash (binhex-char-int (aref string i)) shift))
+      (setq ret (+ ret (ash (aref string i) shift))
 	    i (1+ i)
 	    shift (+ shift 8)))
     ret))
@@ -167,11 +161,11 @@ input and write the converted data to its standard output."
     (let ((pos (point-min)) len)
       (vector
        (prog1
-	   (setq len (binhex-char-int (char-after pos)))
+           (setq len (char-after pos))
 	 (setq pos (1+ pos)))
        (buffer-substring pos (setq pos (+ pos len)))
        (prog1
-	   (setq len (binhex-char-int (char-after pos)))
+           (setq len (char-after pos))
 	 (setq pos (1+ pos)))
        (buffer-substring pos (setq pos (+ pos 4)))
        (buffer-substring pos (setq pos (+ pos 4)))
@@ -322,6 +316,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
   (if binhex-use-external
       (binhex-decode-region-external start end)
     (binhex-decode-region-internal start end)))
+
+(define-obsolete-function-alias 'binhex-char-int #'identity)
 
 (provide 'binhex)
 
