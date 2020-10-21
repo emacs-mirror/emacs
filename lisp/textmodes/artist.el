@@ -1,4 +1,4 @@
-;;; artist.el --- draw ascii graphics with your mouse
+;;; artist.el --- draw ascii graphics with your mouse -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
@@ -1844,9 +1844,7 @@ Return a list (RETURN-CODE STDOUT STDERR)."
 				  nil))
 	   (tmp-stdout-buffer (get-buffer-create
 			       (concat "*artist-" program "*")))
-	   (tmp-stderr-file-name (make-temp-file "artist-stdout."))
-	   (binary-process-input nil)	; for msdos
-	   (binary-process-output nil))
+	   (tmp-stderr-file-name (make-temp-file "artist-stdout.")))
 
       ;; Prepare stdin
       (if stdin (artist-string-to-file stdin tmp-stdin-file-name))
@@ -2721,7 +2719,7 @@ SHAPE-INFO is a list of four straight lines."
 ;; Filling rectangles and squares
 ;;
 
-(defun artist-fill-rect (rect x1 y1 x2 y2)
+(defun artist-fill-rect (_rect x1 y1 x2 y2)
   "Fill rectangle RECT from X1,Y1 to X2,Y2."
   (let ((x (1+ (min x1 x2)))
 	(y (1+ (min y1 y2)))
@@ -2733,7 +2731,7 @@ SHAPE-INFO is a list of four straight lines."
 	(artist-replace-chars artist-fill-char w)
 	(setq y (1+ y))))))
 
-(defun artist-fill-square (square x1 y1 x2 y2)
+(defun artist-fill-square (_square x1 y1 x2 y2)
   "Fill a SQUARE from X1,Y1 to X2,Y2."
   (let* ((square-corners (artist-rect-corners-squarify x1 y1 x2 y2))
 	 (new-x1 (elt square-corners 0))
@@ -2795,7 +2793,7 @@ to append to the end of the list, when doing free-hand drawing)."
   (setq artist-key-poly-point-list (list (cons x1 y1))))
 
 
-(defun artist-pen-set-arrow-points (x1 y1)
+(defun artist-pen-set-arrow-points (_x1 _y1)
   "Set arrow points for pen drawing using X1, Y1.
 Also, the `artist-key-poly-point-list' is reversed."
 
@@ -2996,11 +2994,11 @@ Returns a list of points.  Each point is on the form (X1 . Y1)."
       ;; Step to next spray point
       (setq spray-points (cdr spray-points)))))
 
-(defun artist-spray-clear-circle (circle x1 y1 x2 y2)
+(defun artist-spray-clear-circle (circle _x1 _y1 _x2 _y2)
   "Clear circle CIRCLE at X1, Y1 through X2, Y2."
   (artist-undraw-circle circle))
 
-(defun artist-spray-set-radius (circle x1 y1 x2 y2)
+(defun artist-spray-set-radius (_circle x1 y1 x2 y2)
   "Set spray radius from CIRCLE at X1, Y1 through X2, Y2."
   (let ((dx (- x2 x1))
 	(dy (- y2 y1)))
@@ -3493,8 +3491,7 @@ POINT-LIST is a list of vectors on the form [X Y SAVED-CHAR NEW-CHAR].
 FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE].
 
 The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
-  (let ((point-list nil)
-	(width      (max (- (abs (* 2 x-radius)) 1)))
+  (let ((width      (max (- (abs (* 2 x-radius)) 1)))
 	(left-edge  (1+ (- x1 (abs x-radius))))
 	(line-char  (if artist-line-char-set artist-line-char ?-))
 	(i          0)
@@ -3602,7 +3599,7 @@ FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE]."
 ;
 ; Filling ellipses
 ;
-(defun artist-fill-ellipse (ellipse x y x-radius y-radius)
+(defun artist-fill-ellipse (ellipse _x _y _x-radius _y-radius)
   "Fill an ELLIPSE centered at X,Y with radius X-RADIUS and Y-RADIUS."
   (let ((fill-info (aref (artist-2point-get-shapeinfo ellipse) 1)))
     (mapcar
@@ -3722,11 +3719,11 @@ original contents of that area in the buffer."
 	(setq x (1+ x)))
       last-x)))
 
-(defun artist-ff-is-topmost-line (x y)
+(defun artist-ff-is-topmost-line (_x y)
   "Determine whether the position X,Y is on the topmost line or not."
   (= y 0))
 
-(defun artist-ff-is-bottommost-line (x y)
+(defun artist-ff-is-bottommost-line (_x y)
   "Determine whether the position X,Y is on the bottommost line or not."
   (save-excursion
     (goto-char (point-max))
@@ -3742,7 +3739,6 @@ original contents of that area in the buffer."
 (defun artist-flood-fill (x1 y1)
   "Flood-fill starting at X1, Y1.  Fill with the char in `artist-fill-char'."
   (let ((stack nil)
-	(input-queue nil)
 	;; We are flood-filling the area that has this character.
 	(c     (artist-get-char-at-xy-conv x1 y1))
         (artist-fill-char (if artist-fill-char-set
@@ -3884,7 +3880,7 @@ Optional argument STATE can be used to set state (default is nil)."
     (setq artist-arrow-point-2 (artist-make-arrow-point xn yn dirn))))
 
 
-(defun artist-set-arrow-points-for-2points (shape x1 y1 x2 y2)
+(defun artist-set-arrow-points-for-2points (shape _x1 _y1 _x2 _y2)
   "Generic function for setting arrow-points for 2-point shapes.
 The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
   (let* ((endpoint1 (artist-2point-get-endpoint1 shape))
@@ -3906,28 +3902,24 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; on the draw-how
 ;;
 
-(defun artist-key-undraw-continously (x y)
+(defun artist-key-undraw-continously (_x _y)
   "Undraw current continuous shape with point at X, Y."
   ;; No undraw-info for continuous shapes
   nil)
 
-(defun artist-key-undraw-poly (x y)
+(defun artist-key-undraw-poly (_x _y)
   "Undraw current poly shape with point at X, Y."
-  (let ((undraw-fn (artist-go-get-undraw-fn-from-symbol artist-curr-go))
-	(x1        (artist-endpoint-get-x artist-key-endpoint1))
-	(y1        (artist-endpoint-get-y artist-key-endpoint1)))
+  (let ((undraw-fn (artist-go-get-undraw-fn-from-symbol artist-curr-go)))
     (artist-funcall undraw-fn artist-key-shape)))
 
-(defun artist-key-undraw-1point (x y)
+(defun artist-key-undraw-1point (_x _y)
   "Undraw current 1-point shape at X, Y."
   ;; No undraw-info for 1-point shapes
   nil)
 
-(defun artist-key-undraw-2points (x y)
+(defun artist-key-undraw-2points (_x _y)
   "Undraw current 2-point shape at X, Y."
-  (let ((undraw-fn (artist-go-get-undraw-fn-from-symbol artist-curr-go))
-	(x1        (artist-endpoint-get-x artist-key-endpoint1))
-	(y1        (artist-endpoint-get-y artist-key-endpoint1)))
+  (let ((undraw-fn (artist-go-get-undraw-fn-from-symbol artist-curr-go)))
     (artist-funcall undraw-fn artist-key-shape)))
 
 (defun artist-key-undraw-common ()
@@ -4071,7 +4063,7 @@ Trimming here means removing white space at end of a line."
 	(setq artist-key-shape (artist-funcall draw-fn x1 y1 x2 y2))))))
 
 
-(defun artist-key-do-continously-1point (x y)
+(defun artist-key-do-continously-1point (_x _y)
   "Update current 1-point shape at X,Y."
   ;; Nothing to do continuously for operations
   ;; where we have only one input point
@@ -4271,8 +4263,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 
 (defun artist-key-set-point-1point (x y)
   "Set point for current 1-point shape at X,Y."
-  (let ((draw-fn      (artist-go-get-draw-fn-from-symbol artist-curr-go))
-	(init-fn      (artist-go-get-init-fn-from-symbol artist-curr-go))
+  (let ((init-fn      (artist-go-get-init-fn-from-symbol artist-curr-go))
 	(prep-fill-fn (artist-go-get-prep-fill-fn-from-symbol artist-curr-go))
 	(exit-fn      (artist-go-get-exit-fn-from-symbol artist-curr-go))
 	(draw-fn      (artist-go-get-draw-fn-from-symbol artist-curr-go))
@@ -4802,7 +4793,7 @@ If optional argument STATE is positive, turn borders on."
 	 (orig-draw-region-min-y artist-draw-region-min-y)
 	 (orig-draw-region-max-y artist-draw-region-max-y)
 	 (orig-pointer-shape (if (eq window-system 'x) x-pointer-shape nil))
-	 (echoq-keystrokes 10000)	; a lot of seconds
+	 (echo-keystrokes 0)	; Don't echo unfinished commands.
 	 ;; Remember original binding for the button-up event to this
 	 ;; button-down event.
 	 (key (artist-compute-up-event-key ev))
@@ -4918,7 +4909,7 @@ If optional argument STATE is positive, turn borders on."
 ;; Mouse routines
 ;;
 
-(defsubst artist-shift-has-changed (shift-state ev)
+(defsubst artist-shift-has-changed (_shift-state _ev)
   "From the last SHIFT-STATE and EV, determine if the shift-state has changed."
   ;; This one simply doesn't work.
   ;;
@@ -4972,8 +4963,7 @@ The event, EV, is the mouse event."
 	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
-	 (shape)
-	 (timer))
+	 (timer nil))
     (select-window (posn-window ev-start))
     (artist-funcall init-fn x1 y1)
     (if (not artist-rubber-banding)
@@ -5017,7 +5007,7 @@ The event, EV, is the mouse event."
                     (setq draw-fn     (artist-go-get-draw-fn-from-symbol op))))
 
               ;; Draw the new shape
-              (setq shape (artist-funcall draw-fn x1 y1))
+              (artist-funcall draw-fn x1 y1)
               (artist-move-to-xy x1 y1)
 
               ;; Start the timer to call `draw-fn' repeatedly every
@@ -5262,7 +5252,6 @@ Operation is done once.  The event, EV, is the mouse event."
 	 (shifted      (artist-go-get-symbol-shift artist-curr-go t))
 	 (shift-state  (artist-event-is-shifted ev))
 	 (op           (if shift-state shifted unshifted))
-	 (draw-how     (artist-go-get-draw-how-from-symbol op))
 	 (init-fn      (artist-go-get-init-fn-from-symbol op))
 	 (prep-fill-fn (artist-go-get-prep-fill-fn-from-symbol op))
 	 (exit-fn      (artist-go-get-exit-fn-from-symbol op))
@@ -5394,8 +5383,7 @@ The event, EV, is the mouse event."
   (interactive)
   (require 'reporter)
   (if (y-or-n-p "Do you want to submit a bug report on Artist? ")
-      (let ((to   artist-maintainer-address)
-	    (vars '(window-system
+      (let ((vars '(window-system
 		    window-system-version
 		    ;;
 		    artist-rubber-banding
