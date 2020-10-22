@@ -1,4 +1,4 @@
-;;; time-date.el --- Date and time handling functions
+;;; time-date.el --- Date and time handling functions  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
