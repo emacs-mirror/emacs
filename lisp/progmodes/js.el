@@ -4656,7 +4656,18 @@ could set `js-jsx-syntax' to t in your init file, or in a
 one of the aforementioned options instead of using this mode."
   :group 'js
   (js-jsx-enable)
+  (setq-local comment-region-function #'js-jsx--comment-region)
   (js-use-syntactic-mode-name))
+
+(defun js-jsx--comment-region (beg end &optional arg)
+  (if (or (js-jsx--context)
+          (save-excursion
+            (skip-chars-forward " \t")
+            (js-jsx--looking-at-start-tag-p)))
+      (let ((comment-start "{/* ")
+            (comment-end " */}"))
+        (comment-region-default beg end arg))
+    (comment-region-default beg end arg)))
 
 ;;;###autoload (defalias 'javascript-mode 'js-mode)
 
