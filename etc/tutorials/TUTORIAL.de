@@ -19,15 +19,22 @@ EDIT oder ALT genannt).  Folgende Abkürzungen werden verwendet:
 <<Blank lines inserted here by startup of help-with-tutorial>>
 [Leerzeilen befinden sich hier aus didaktischen Gründen.  Fortsetzung unten.]
 >> Drücken Sie C-v, um zur nächsten Bildschirmseite vorzublättern.
-        Ab jetzt sollten Sie das stets tun, wenn Sie eine Seite fertig
-        gelesen haben.
+        Ab jetzt sollten Sie das stets tun, wenn Sie das untere
+        Bildschirmende erreicht haben.
 
 Beachten Sie bitte, dass beim Blättern die untersten zwei Zeilen der
 vorigen Bildschirmseite als die zwei obersten Zeilen der neuen Seite
 erscheinen, um eine gewisse Kontinuität während des Lesens zu
 ermöglichen.
 
+Was Sie gerade lesen, ist eine leicht angepasste Kopie der deutschen
+Einführung.  Später werden Sie aufgefordert, verschiedene Befehle
+auszuführen, um den Text der Einführung zu ändern.  Es spielt keine
+Rolle, wenn Sie den Text schon vorher ändern sollten – man nennt das
+»editieren«, und genau dafür ist ein Editor wie Emacs da.
+
 Wichtig: Sie können Emacs mit der Befehlsfolge C-x C-c beenden.
+Diese Einführung beenden Sie mit C-x k, gefolgt von der Eingabetaste.
 
 Im weiteren wird die ESC-Taste mit <ESC> bezeichnet.
 
@@ -41,7 +48,7 @@ Sie schon (C-v).  Mit M-v blättern Sie eine Bildschirmseite zurück
 (halten Sie die META-Taste gedrückt und geben Sie v ein, oder drücken
 Sie zuerst <ESC> und anschließend v).
 
->>  Probieren Sie einige Male M-v und C-v aus.
+>> Probieren Sie einige Male M-v und C-v aus.
 
 [Auf den meisten Tastaturen bewirkt die PgUp-Taste (»page up«, auch
 mit »Bild« und einem Aufwärtspfeil beschriftet) dasselbe wie M-v bzw.
@@ -277,14 +284,14 @@ Wert, signalisiert dem Befehl, etwas anderes zu tun.
 
 C-v und M-v sind weitere Ausnahmen.  Gibt man diesen Befehlen einen
 Parameter n, dann verschieben sie den Bildschirminhalt nicht um eine
-ganze Bildschirmseite, sondern um n Zeilen.  Beispiel: C-u 4 C-v
-verschiebt den Bildschirminhalt um vier Zeilen.
+ganze Bildschirmseite, sondern um n Zeilen.  Beispiel: C-u 8 C-v
+verschiebt den dargestellten Text um acht Zeilen.
 
 >> Versuchen Sie jetzt C-u 8 C-v auszuführen.
 
-Der Bildschirminhalt sollte jetzt um acht Zeilen nach oben verschoben
-sein.  Wollen Sie ihn nach unten verschieben, dann geben Sie M-v mit
-einem numerischen Argument ein.
+Der Text sollte jetzt um acht Zeilen nach oben verschoben sein.
+Wollen Sie ihn nach unten verschieben, dann geben Sie M-v mit einem
+numerischen Argument ein.
 
 Wenn Sie eine graphische Oberfläche wie X oder MS-Windows verwenden,
 dann befindet sich ein schmaler, langgezogener rechteckiger Bereich
@@ -411,12 +418,12 @@ Fortsetzungszeile.
 >> Geben Sie <Return> ein, um wieder ein Zeilenvorschubzeichen
    einzufügen.
 
-Die <Return>-Taste ist insofern besonders, als dass sie mehr bewirken
-kann, als einfach ein Zeilenvorschubszeichen einzufügen.  Abhängig vom
-umgebenden Text können zusätzliche Leerzeichen eingefügt werden, damit
-der neue Zeilenanfang bündig zur vorherigen Zeile ist.  Wir nennen
-dieses Verhalten (wenn das Drücken einer Taste mehr bewirkt, als nur
-das entsprechende Zeichen einzufügen) »electric«.
+Die <Return>-Taste ist besonders, da sie mehr bewirken kann als
+einfach ein Zeilenvorschubzeichen einfügen.  Abhängig vom umgebenden
+Text können zusätzliche Leerzeichen eingefügt werden, damit der neue
+Zeilenanfang bündig zur vorherigen Zeile ist.  Wir nennen dieses
+Verhalten (wenn das Drücken einer Taste mehr bewirkt, als nur das
+entsprechende Zeichen einzufügen) »electric«.
 
 >> Ein Beispiel für dieses Verhalten von <Return>.
    Drücken Sie <Return> am Ende dieser Zeile.
@@ -468,7 +475,7 @@ gelöschten Text, damit Sie ihn bei Bedarf wieder zurückholen können.
 Einfügen von bereits gelöschtem Text wird im englischen Dokumentation
 von Emacs als »yanking« (wörtlich »herausreißen«) bezeichnet.  Sie
 können den gelöschten Text an einer beliebigen Stelle wieder
-einzufügen.  Solange Sie nichts neues löschen, steht Ihnen dieser
+einfügen.  Solange Sie nichts neues löschen, steht Ihnen dieser
 gelöschte Textteil immer wieder zu Verfügung.  Der Befehl dazu ist C-y
 (das Ypsilon steht für »yank«).
 
@@ -584,9 +591,11 @@ Anzahl der notwendigen C-/-Befehle zu reduzieren.
 >> Löschen Sie diese Zeilen mit C-k und drücken Sie anschließend
    mehrmals C-/, und die Zeilen erscheinen wieder.
 
-Alternative Tastenkombinationen für C-/ sind C-_ und C-x u.  Ein
-numerisches Argument für C-/, C-_ oder C-x u wird als
-Wiederholungszähler interpretiert.
+Alternative Tastenkombinationen für C-/ sind C-_ und C-x u (in manchen
+Terminals funktioniert C-_ auch ohne SHIFT-Taste).  Wählen Sie das
+aus, was am bequemsten für Sie zu tippen ist.  Ein numerisches
+Argument für C-/, C-_ oder C-x u wird als Wiederholungszähler
+interpretiert.
 
 Der Unterschied zwischen der Undo-Funktion und dem oben erklärten C-y
 ist, dass erstere gelöschten Text an exakt der gleichen Position wie
@@ -668,10 +677,7 @@ Name besteht aus dem Originalnamen plus einer angehängten Tilde »~«
 Namenserweiterung durch ».bak« ersetzt].
 
 Emacs schreibt den Namen der gesicherten Datei in die unterste Zeile,
-sobald C-x C-s fertig ausgeführt ist.  Sie sollten den editierten Text
-oft speichern, damit nicht allzuviel bei einem etwaigen Systemabsturz
-verloren geht (siehe auch den Abschnitt »AUTOMATISCHES SPEICHERN«
-weiter unten).
+sobald C-x C-s fertig ausgeführt ist.
 
 >> Geben Sie
 
@@ -715,12 +721,11 @@ ein.
 
 >> Probieren Sie jetzt C-x C-b.
 
-Beachten Sie, dass jeder Puffer einen Namen hat und manche auch mit
-dem Namen einer Datei assoziiert sind, dessen Inhalt sie enthalten.
-Manche Puffer aber haben keinen zugehörige Datei, z.B. der mit dem
-Namen »*Buffer List*«.  Er wurde von dem Befehl C-x C-b erzeugt, um
-die Pufferliste darzustellen.  JEDER Text, den Sie innerhalb Emacs in
-einem Fenster sehen, ist immer ein Ausschnitt eines Puffers.
+Beachten Sie, dass manche Puffer keine zugehörige Datei haben,
+z.B. der mit dem Namen »*Buffer List*«.  Er wurde von dem Befehl C-x
+C-b erzeugt, um die Pufferliste darzustellen.  JEDER Text, den Sie
+innerhalb Emacs in einem Fenster sehen, ist immer ein Ausschnitt eines
+Puffers.
 
 >> Geben Sie jetzt C-x 1 ein, um die Pufferliste wieder verschwinden
    zu lassen.
@@ -748,13 +753,11 @@ den Verzeichnispräfix), jedoch nicht immer.  Die von C-x C-b erzeugte
 Pufferliste zeigt stets die Namen aller Puffer mit den
 korrespondierenden Dateinamen.
 
-JEDER Text in Emacs ist Teil eines Puffers, aber nicht jeder Puffer
-entspricht einer Datei.  So ist z.B. der Puffer »*Buffer List*« mit
-keiner Datei assoziiert -- er wurde direkt von dem Befehl C-x C-b
-erzeugt.  Auch dieser »TUTORIAL.de«-Puffer war anfangs keiner Datei
-zugeordnet, jetzt allerdings schon, denn Sie haben im letzten
-Abschnitt den Befehl C-x C-s eingegeben und so den Pufferinhalt als
-Datei gespeichert.
+Wie schon erwähnt, ist JEDER Text in Emacs Teil eines Puffers, aber
+nicht jeder Puffer entspricht einer Datei.  Auch dieser
+»TUTORIAL.de«-Puffer war anfangs keiner Datei zugeordnet, jetzt
+allerdings schon, denn Sie haben im letzten Abschnitt den Befehl C-x
+C-s eingegeben und so den Pufferinhalt als Datei gespeichert.
 
 Der Puffer »*Messages*« hat ebenfalls keine Entsprechung als Datei; er
 enthält alle Mitteilungen, die in der untersten Zeile während des
@@ -774,10 +777,10 @@ Datei permanent abzuspeichern.  Es wäre äußerst umständlich, müsste
 man jedesmal C-x C-f eingeben, um den Puffer dann mit C-x C-s
 abzuspeichern.  Daher gibt es den Befehl
 
-        C-x s                     (sichere mehrere Puffer)
+        C-x s                     (sichere mehrere Puffer in Dateien)
 
-Dieser Befehl fragt Sie bei jedem Puffer, der Änderungen enthält, ob
-Sie ihn speichern wollen.
+Dieser Befehl fragt Sie bei jedem einer Datei zugeordneten Puffer, der
+Änderungen enthält, ob Sie ihn in der Datei speichern wollen.
 
 >> Fügen Sie eine Textzeile ein und drücken Sie dann C-x s.
    Emacs fragt Sie jetzt, ob Sie einen Puffer mit dem Namen
@@ -824,15 +827,15 @@ zu Emacs zurückzukehren.
 
 Der beste Zeitpunkt für C-x C-c ist, wenn Sie sich ausloggen
 (bzw. Ihren Computer ausschalten); Sie sollten Emacs ebenfalls
-beenden, wenn Sie Emacs von einem anderen Programm aus aufgerufen
-haben (z.B. einem Programm, das E-mails liest).
+beenden, wenn Sie Emacs von einem anderen Programm aus kurzzeitig
+aufgerufen haben (z.B. einem Programm, das E-Mails liest).
 
 Hier ist eine Liste aller C-x-Befehle, die Sie bereits kennengelernt
 haben:
 
         C-x C-f         lade Datei
-        C-x C-s         sichere Datei
-        C-x s           sichere einige Puffer
+        C-x C-s         sichere Puffer in Datei
+        C-x s           sichere einige Puffer in zugehörige Dateien
         C-x C-b         zeige Pufferliste an
         C-x b           wechsle zu Puffer
         C-x C-c         beende Emacs
@@ -840,10 +843,10 @@ haben:
         C-x u           widerrufen
 
 Ein Beispiel für einen Befehl mit langen Namen ist replace-string, der
-global (also in der ganzen Datei bzw. Puffer) eine Zeichenkette durch
-eine andere ersetzt.  Wenn Sie M-x drücken, dann fragt Sie Emacs in
-der untersten Bildschirmzeile nach dem Namen des Befehls (in diesem
-Fall »replace-string«).  Geben Sie jetzt »repl s<TAB>« ein und Emacs
+in der ganzen Datei bzw. Puffer eine Zeichenkette durch eine andere
+ersetzt.  Wenn Sie M-x drücken, dann fragt Sie Emacs in der untersten
+Bildschirmzeile nach dem Namen des Befehls (in diesem Fall
+»replace-string«).  Geben Sie jetzt »repl s<TAB>« ein und Emacs
 vervollständigt den Namen.  Schließen Sie die Eingabe mit <Return> ab.
 [<TAB> bezeichnet die Tabulatortaste.]
 
@@ -855,7 +858,7 @@ vervollständigt den Namen.  Schließen Sie die Eingabe mit <Return> ab.
    ein und kehren Sie mit C-u C-SPC an diese Position zurück.
 
    Beachten Sie wie diese Bildschirmzeile jetzt aussieht: Sie haben
-   den Wortteil B-i-l-d-s-c-h-i-r-m durch »Text« ersetzt (und zwar im
+   den Wortteil »Bildschirm« durch »Text« ersetzt (und zwar im
    ganzen Dokument beginnend von der Cursorposition).
 
 >> Drücken Sie jetzt C-x u, um diese Änderungen auf einmal rückgängig
@@ -878,8 +881,8 @@ Stürzt der Rechner einmal wirklich ab, können Sie die Änderungen, die
 beim letzten Auto-Save gespeichert worden sind, folgendermaßen
 wiederherstellen: Laden Sie die Datei auf normalem Wege (die Datei,
 die Sie bearbeitet haben, nicht die Auto-Save-Datei) und geben Sie
-dann »M-x recover-file <Return>« ein.  Wenn Emacs Sie um Bestätigung
-fragt, antworten Sie mit »yes <Return>«, um den Inhalt der
+dann »M-x recover-this-file <Return>« ein.  Wenn Emacs Sie um
+Bestätigung fragt, antworten Sie mit »yes <Return>«, um den Inhalt der
 Auto-Save-Datei zu übernehmen.
 
 
@@ -979,6 +982,7 @@ jeweils ein bisschen anders.
 
 Dokumentation zum derzeit aktuellen Hauptmodus bekommen Sie mit C-h m.
 
+>> Bewegen Sie den Cursor zur nächsten Zeile.
 >> Drücken Sie C-l C-l, um diese Zeile an den oberen Bildschirmrand zu
    bringen.
 >> Lesen Sie nun mittels C-h m die englische Dokumentation zum
@@ -1129,13 +1133,13 @@ Rechteck dargestellt).  Alle normalen Editierbefehle betreffen das
 Fenster, in dem sich der Cursor befindet.  Wir nennen dieses Fenster
 »ausgewählt« (»selected window«).
 
-Der Befehl M-C-v ist sehr nützlich, wenn man Text in einem Fenster
+Der Befehl C-M-v ist sehr nützlich, wenn man Text in einem Fenster
 editiert und das andere Fenster als Referenz verwendet.  Ohne das
-momentante Arbeitsfenster verlassen zu müssen, kann man mit M-C-v im
+momentante Arbeitsfenster verlassen zu müssen, kann man mit C-M-v im
 anderen Fenster bequem vorwärtsblättern.
 
-M-C-v ist ein Beispiel eines CONTROL-META-Zeichens.  Haben Sie eine
-META-Taste, dann kann man M-C-v erzeugen, indem man CTRL und META
+C-M-v ist ein Beispiel eines CONTROL-META-Zeichens.  Haben Sie eine
+META-Taste, dann kann man C-M-v erzeugen, indem man CTRL und META
 gleichzeitig niedergedrückt hält, während man v eintippt.  Es ist
 egal, ob zuerst CTRL oder META niedergedrückt wird, da beide Tasten
 gleichberechtigt das jeweils einzugebende Zeichen modifizieren.
@@ -1146,10 +1150,10 @@ gefolgt von CTRL-v.  CTRL-ESC v funktioniert nicht!  Der Grund dafür
 ist, dass ESC ein eigenes Zeichen ist und keine Modifizier-Taste wie
 META oder CTRL.
 
-Der umgekehrte Befehl zu M-C-v ist M-C-S-v, um im anderen Fenster
-rückwärts zu blättern (d.h., Sie müssen die META-Taste sowie die
-CONTROL- und SHIFT-Taste zusammen mit »v« betätigen) -- jetzt werden
-Sie wahrscheinlich verstehen, warum manche Kritiker das Wort Emacs als
+Der umgekehrte Befehl zu C-M-v ist C-M-S-v, um im anderen Fenster
+rückwärts zu blättern (d.h., Sie müssen die CONTROL-Taste sowie die
+META- und SHIFT-Taste zusammen mit »v« betätigen) -- jetzt werden Sie
+wahrscheinlich verstehen, warum manche Kritiker das Wort Emacs als
 Abkürzung von Escape-Meta-Alt-Control-Shift betrachten.  Leider
 funktioniert diese Befehlsfolge normalerweise nur mit graphischen
 Oberflächen, da C-v von C-S-v auf den meisten Textterminals nicht
@@ -1196,7 +1200,7 @@ Textterminal kann genau ein Rahmen dargestellt werden.
 
 >> Geben Sie
 
-     M-x make-frame <Return>
+     C-x 5 2
 
    ein, um einen neuen Rahmen zu erzeugen.
 
@@ -1206,7 +1210,7 @@ gleichwertig.
 
 >> Geben Sie
 
-     M-x delete-frame <Return>
+     C-x 5 0
 
    ein, um den ausgewählten Rahmen zu entfernen.
 
@@ -1343,7 +1347,7 @@ zwar für die Tastatur- und Bildschirmkodierung.]
 Wir haben uns bemüht, in dieser Einführung genau soviel Information zu
 geben, dass Sie beginnen können, mit Emacs zu arbeiten.  Emacs ist
 jedoch so mächtig und umfangreich, dass es den Rahmen einer Einführung
-spränge, an dieser Stelle mehr zu erklären.  Um Sie im weiteren
+sprengte, an dieser Stelle mehr zu erklären.  Um Sie im weiteren
 Lernverlauf zu unterstützen, stellt Emacs eine Reihe von
 Hilfe-Funktionen zu Verfügung, die alle mit dem Präfix C-h (dem
 Hilfe-Zeichen, »Help character«) beginnen.
@@ -1424,16 +1428,42 @@ zugehörigen langen Namen, find-file.
 
 >> Schließen Sie das Hilfefenster mit C-x 1.
 
-   C-h i        Dieser Befehl öffnet einen speziellen Puffer, um
-                Handbücher zu lesen (im »Info«-Format), die auf dem
+   C-h i        Dieser Befehl öffnet einen speziellen Puffer »*info*«,
+                um Handbücher zu lesen (im »Info«-Format), die auf dem
                 verwendeten Computersystem installiert sind.  Geben
                 Sie z.B. m emacs <Return> ein, um das Emacs-Handbuch
                 zu lesen.  Haben Sie »Info« noch nie benutzt, tippen
-                Sie ?, und Emacs führt Sie Schritt für Schritt durch
+                Sie h, und Emacs führt Sie Schritt für Schritt durch
                 die Möglichkeiten des Info-Modus.  Wenn Sie diese
                 Einführung fertiggelesen haben, sollten Sie das
                 Info-Handbuch für Emacs als primäre Dokumentation
                 benutzen.
+
+
+* MEHR FEATURES
+---------------
+
+Sie können mehr über Emacs lernen, in dem Sie das Handbuch lesen,
+entweder in der gedruckten Form oder innerhalb von Emacs (benützen Sie
+dazu das Hilfe-Menu oder tippen Sie C-h r).  Zwei besonders nützliche
+Features sind Vervollständigung, um weniger tippen zu müssen, und
+Dired, um das Laden von Dateien zu vereinfachen.
+
+Das Vervollständigungs-Feature ist eine Methode, um unnötiges Eingeben
+von Zeichen zu vermeiden.  Wenn Sie beispielsweise zum
+»*Messages*«-Puffer umschalten wollen, genügt C-x b *M<TAB>, und Emacs
+ergänzt automatisch den Namen des Puffers, soweit das anhand der
+bisherigen Eingabe möglich ist.  Vervollständigung funktioniert auch
+für Befehls- und Dateinamen.  Eine genaue Beschreibung finden Sie im
+Abschnitt »Completion« des Emacs-Handbuchs.
+
+Dired ermöglicht es, Dateien eines Verzeichnisses (auf Wunsch
+inklusive seiner Unterverzeichnisse) aufzulisten, sich innerhalb der
+Liste zu bewegen, Dateien zu besuchen, umzubenennen, zu löschen u.a.
+Eine genaue Beschreibung finden Sie im Abschnitt »Dired« des
+Emacs-Handbuchs.
+
+Viele weitere Features sind ebenfalls im Handbuch beschrieben.
 
 
 * SCHLUSSBEMERKUNG
