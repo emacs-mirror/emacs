@@ -1051,8 +1051,8 @@ out of NAME."
 
 (defcustom ffap-rfc-path "https://www.rfc-editor.org/in-notes/rfc%s.txt"
   "A `format' string making a filename for RFC documents.
-This can be an URL, and ange-ftp or Tramp remote filename to
-download, or a local filename if you have full set of RFCs
+This can be an URL, an ange-ftp or Tramp remote filename to
+download, or a local filename if you have the full set of RFCs
 locally.  See also `ffap-rfc-directories'."
   :type 'string
   :version "28.1")
