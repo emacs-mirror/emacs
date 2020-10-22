@@ -97,10 +97,10 @@
                        [192 168 1 100]))))))
 
 (ert-deftest bindat-test-pack/multibyte-string-fails ()
-  (should-error (bindat-pack nil nil (decode-coding-string "ö" 'utf-8))))
+  (should-error (bindat-pack nil nil "ö")))
 
 (ert-deftest bindat-test-unpack/multibyte-string-fails ()
-  (should-error (bindat-unpack nil (decode-coding-string "ö" 'utf-8))))
+  (should-error (bindat-unpack nil "ö")))
 
 (ert-deftest bindat-test-format-vector ()
   (should (equal (bindat-format-vector [1 2 3] "%d" "x" 2) "1x2"))
