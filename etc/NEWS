@@ -1166,6 +1166,13 @@ window after starting).  This variable defaults to nil.
 +++
 *** 'widget-choose' now supports menus in extended format.
 
+---
+*** The 'editable-list' widget now supports moving items up and down.
+You can now move items up and down by deleting and then reinserting
+them, using the DEL and INS buttons respectively.  This is useful in
+Custom buffers, for example, to change the order of the elements in a
+list.
+
 ** Miscellaneous
 
 ---

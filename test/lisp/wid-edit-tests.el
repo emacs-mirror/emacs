@@ -129,4 +129,23 @@
       (widget-insert "And some non-widget text.")
       (should (string= (widget-apply wid :value-get) "")))))
 
+(ert-deftest widget-test-moving-editable-list-item ()
+  "Check that we can move an editable list item up or down, via delete+insert."
+  (with-temp-buffer
+    (widget-insert "Testing editable-list.\n\n")
+    (let ((lst (widget-create 'editable-list
+                              :value '("beg" "end" "middle")
+                              '(editable-field :value "unknown"))))
+      (use-local-map widget-keymap)
+      (widget-setup)
+      ;; Go to the DEL button for the 2nd element and action it.
+      (goto-char (widget-get (nth 2 (widget-get lst :buttons)) :from))
+      (widget-apply-action (widget-at))
+      ;; Go to the INS button and action it.
+      (goto-char (widget-get lst :to))
+      (widget-backward 1)
+      (widget-apply-action (widget-at))
+      ;; Check that we effectively moved the item to the last position.
+      (should (equal (widget-value lst) '("beg" "middle" "end"))))))
+
 ;;; wid-edit-tests.el ends here
