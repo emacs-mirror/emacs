@@ -2007,9 +2007,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* we have to do some conjuring here to put argv and envp into the
-     form CreateProcess wants...  argv needs to be a space separated/NUL
-     terminated list of parameters, and envp is a NUL
-     separated/double-NUL terminated list of parameters.
+     form CreateProcess wants...  argv needs to be a space separated/null
+     terminated list of parameters, and envp is a null
+     separated/double-null terminated list of parameters.
 
      Additionally, zero-length args and args containing whitespace or
      quote chars need to be wrapped in double quotes - for this to work,
@@ -2790,11 +2790,11 @@ sys_kill (pid_t pid, int sig)
               /* Set the foreground window to the child.  */
               if (SetForegroundWindow (cp->hwnd))
                 {
-		  /* Record the state of the Ctrl key: the user could
-		     have it depressed while we are simulating Ctrl-C,
-		     in which case we will have to leave the state of
-		     Ctrl depressed when we are done.  */
-		  short ctrl_state = GetKeyState (VK_CONTROL) & 0x8000;
+		  /* Record the state of the left Ctrl key: the user
+		     could have it depressed while we are simulating
+		     Ctrl-C, in which case we will have to leave the
+		     state of that Ctrl depressed when we are done.  */
+		  short ctrl_state = GetKeyState (VK_LCONTROL) & 0x8000;
 
                   /* Generate keystrokes as if user had typed Ctrl-Break or
                      Ctrl-C.  */
@@ -3231,7 +3231,7 @@ such programs cannot be invoked by Emacs anyway.  */)
   char *progname, progname_a[MAX_PATH];
 
   program = Fexpand_file_name (program, Qnil);
-  encoded_progname = ENCODE_FILE (program);
+  encoded_progname = Fcopy_sequence (ENCODE_FILE (program));
   progname = SSDATA (encoded_progname);
   unixtodos_filename (progname);
   filename_to_ansi (progname, progname_a);
@@ -3398,10 +3398,10 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
       got_full = GetLocaleInfo (XFIXNUM (lcid),
 				XFIXNUM (longform),
 				full_name, sizeof (full_name));
-      /* GetLocaleInfo's return value includes the terminating NUL
+      /* GetLocaleInfo's return value includes the terminating null
 	 character, when the returned information is a string, whereas
 	 make_unibyte_string needs the string length without the
-	 terminating NUL.  */
+	 terminating null.  */
       if (got_full)
 	return make_unibyte_string (full_name, got_full - 1);
     }

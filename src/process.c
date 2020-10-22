@@ -1205,6 +1205,16 @@ not the name of the pty that Emacs uses to talk with that terminal.  */)
   return XPROCESS (process)->tty_name;
 }
 
+static void
+update_process_mark (struct Lisp_Process *p)
+{
+  Lisp_Object buffer = p->buffer;
+  if (BUFFERP (buffer))
+    set_marker_both (p->mark, buffer,
+		     BUF_ZV (XBUFFER (buffer)),
+		     BUF_ZV_BYTE (XBUFFER (buffer)));
+}
+
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
        2, 2, 0,
        doc: /* Set buffer associated with PROCESS to BUFFER (a buffer, or nil).
@@ -1217,7 +1227,11 @@ Return BUFFER.  */)
   if (!NILP (buffer))
     CHECK_BUFFER (buffer);
   p = XPROCESS (process);
-  pset_buffer (p, buffer);
+  if (!EQ (p->buffer, buffer))
+    {
+      pset_buffer (p, buffer);
+      update_process_mark (p);
+    }
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
     pset_childp (p, Fplist_put (p->childp, QCbuffer, buffer));
   setup_process_coding_systems (process);
@@ -1392,14 +1406,12 @@ nil otherwise.  */)
   CHECK_PROCESS (process);
 
   /* All known platforms store window sizes as 'unsigned short'.  */
-  CHECK_RANGED_INTEGER (height, 0, USHRT_MAX);
-  CHECK_RANGED_INTEGER (width, 0, USHRT_MAX);
+  unsigned short h = check_uinteger_max (height, USHRT_MAX);
+  unsigned short w = check_uinteger_max (width, USHRT_MAX);
 
   if (NETCONN_P (process)
       || XPROCESS (process)->infd < 0
-      || (set_window_size (XPROCESS (process)->infd,
-			   XFIXNUM (height), XFIXNUM (width))
-	  < 0))
+      || set_window_size (XPROCESS (process)->infd, h, w) < 0)
     return Qnil;
   else
     return Qt;
@@ -1639,6 +1651,7 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
   return Fmapcar (Qcdr, Vprocess_alist);
 }
 
+
 /* Starting asynchronous inferior processes.  */
 
 DEFUN ("make-process", Fmake_process, Smake_process, 0, MANY, 0,
@@ -1656,7 +1669,10 @@ you specify a filter function to handle the output.  BUFFER may be
 also nil, meaning that this process is not associated with any buffer.
 
 :command COMMAND -- COMMAND is a list starting with the program file
-name, followed by strings to give to the program as arguments.
+name, followed by strings to give to the program as arguments.  If the
+program file name is not an absolute file name, `make-process' will
+look for the program file name in `exec-path' (which is a list of
+directories).
 
 :coding CODING -- If CODING is a symbol, it specifies the coding
 system used for both reading and writing for this process.  If CODING
@@ -1804,10 +1820,7 @@ usage: (make-process &rest ARGS)  */)
        : EQ (Vprocess_adaptive_read_buffering, Qt) ? 1 : 2);
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (BUFFERP (buffer))
-    set_marker_both (XPROCESS (proc)->mark, buffer,
-		     BUF_ZV (XBUFFER (buffer)),
-		     BUF_ZV_BYTE (XBUFFER (buffer)));
+  update_process_mark (XPROCESS (proc));
 
   USE_SAFE_ALLOCA;
 
@@ -2452,10 +2465,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
        : EQ (Vprocess_adaptive_read_buffering, Qt) ? 1 : 2);
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (BUFFERP (buffer))
-    set_marker_both (p->mark, buffer,
-		     BUF_ZV (XBUFFER (buffer)),
-		     BUF_ZV_BYTE (XBUFFER (buffer)));
+  update_process_mark (p);
 
   {
     /* Setup coding systems for communicating with the network stream.  */
@@ -3181,21 +3191,14 @@ usage:  (make-serial-process &rest ARGS)  */)
   if (!EQ (p->command, Qt))
     add_process_read_fd (fd);
 
-  if (BUFFERP (buffer))
-    {
-      set_marker_both (p->mark, buffer,
-		       BUF_ZV (XBUFFER (buffer)),
-		       BUF_ZV_BYTE (XBUFFER (buffer)));
-    }
+  update_process_mark (p);
 
-  tem = Fplist_member (contact, QCcoding);
-  if (!NILP (tem) && (!CONSP (tem) || !CONSP (XCDR (tem))))
-    tem = Qnil;
+  tem = Fplist_get (contact, QCcoding);
 
   val = Qnil;
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCAR (val);
     }
@@ -3209,7 +3212,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   val = Qnil;
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCDR (val);
     }
@@ -3244,16 +3247,14 @@ set_network_socket_coding_system (Lisp_Object proc, Lisp_Object host,
   Lisp_Object coding_systems = Qt;
   Lisp_Object val;
 
-  tem = Fplist_member (contact, QCcoding);
-  if (!NILP (tem) && (!CONSP (tem) || !CONSP (XCDR (tem))))
-    tem = Qnil;  /* No error message (too late!).  */
+  tem = Fplist_get (contact, QCcoding);
 
   /* Setup coding systems for communicating with the network stream.  */
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
 
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCAR (val);
     }
@@ -3287,7 +3288,7 @@ set_network_socket_coding_system (Lisp_Object proc, Lisp_Object host,
 
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCDR (val);
     }
@@ -3667,10 +3668,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
     pset_status (p, Qlisten);
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (BUFFERP (p->buffer))
-    set_marker_both (p->mark, p->buffer,
-		     BUF_ZV (XBUFFER (p->buffer)),
-		     BUF_ZV_BYTE (XBUFFER (p->buffer)));
+  update_process_mark (p);
 
   if (p->is_non_blocking_client)
     {
@@ -5416,14 +5414,16 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  /* If data can be read from the process, do so until exhausted.  */
 	  if (wait_proc->infd >= 0)
 	    {
+	      unsigned int count = 0;
 	      XSETPROCESS (proc, wait_proc);
 
 	      while (true)
 		{
 		  int nread = read_process_output (proc, wait_proc->infd);
+		  rarely_quit (++count);
 		  if (nread < 0)
 		    {
-		      if (errno == EIO || would_block (errno))
+		      if (errno != EINTR)
 			break;
 		    }
 		  else
@@ -5497,6 +5497,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	}
       else
 	{
+#ifdef HAVE_GNUTLS
+	  int tls_nfds;
+	  fd_set tls_available;
+#endif
 	  /* Set the timeout for adaptive read buffering if any
 	     process has non-zero read_output_skip and non-zero
 	     read_output_delay, and we are not reading output for a
@@ -5566,7 +5570,36 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
-/* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+#ifdef HAVE_GNUTLS
+          /* GnuTLS buffers data internally. We need to check if some
+	     data is available in the buffers manually before the select.
+	     And if so, we need to skip the select which could block. */
+	  FD_ZERO (&tls_available);
+	  tls_nfds = 0;
+	  for (channel = 0; channel < FD_SETSIZE; ++channel)
+	    if (! NILP (chan_process[channel])
+		&& FD_ISSET (channel, &Available))
+	      {
+		struct Lisp_Process *p = XPROCESS (chan_process[channel]);
+		if (p
+		    && p->gnutls_p && p->gnutls_state
+		    && emacs_gnutls_record_check_pending (p->gnutls_state) > 0)
+		  {
+		    tls_nfds++;
+		    eassert (p->infd == channel);
+		    FD_SET (p->infd, &tls_available);
+		  }
+	      }
+	  /* If wait_proc is somebody else, we have to wait in select
+	     as usual.  Otherwise, clobber the timeout. */
+	  if (tls_nfds > 0
+	      && (!wait_proc ||
+		  (wait_proc->infd >= 0
+		   && FD_ISSET (wait_proc->infd, &tls_available))))
+	    timeout = make_timespec (0, 0);
+#endif
+
+	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
@@ -5584,59 +5617,21 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif	/* !HAVE_GLIB */
 
 #ifdef HAVE_GNUTLS
-          /* GnuTLS buffers data internally.  In lowat mode it leaves
-             some data in the TCP buffers so that select works, but
-             with custom pull/push functions we need to check if some
-             data is available in the buffers manually.  */
-          if (nfds == 0)
+	  /* Merge tls_available into Available. */
+	  if (tls_nfds > 0)
 	    {
-	      fd_set tls_available;
-	      int set = 0;
-
-	      FD_ZERO (&tls_available);
-	      if (! wait_proc)
+	      if (nfds == 0 || (nfds < 0 && errno == EINTR))
 		{
-		  /* We're not waiting on a specific process, so loop
-		     through all the channels and check for data.
-		     This is a workaround needed for some versions of
-		     the gnutls library -- 2.12.14 has been confirmed
-		     to need it.  */
-		  for (channel = 0; channel < FD_SETSIZE; ++channel)
-		    if (! NILP (chan_process[channel]))
-		      {
-			struct Lisp_Process *p =
-			  XPROCESS (chan_process[channel]);
-			if (p && p->gnutls_p && p->gnutls_state
-			    && ((emacs_gnutls_record_check_pending
-				 (p->gnutls_state))
-				> 0))
-			  {
-			    nfds++;
-			    eassert (p->infd == channel);
-			    FD_SET (p->infd, &tls_available);
-			    set++;
-			  }
-		      }
+		  /* Fast path, just copy. */
+		  nfds = tls_nfds;
+		  Available = tls_available;
 		}
-	      else
-		{
-		  /* Check this specific channel.  */
-		  if (wait_proc->gnutls_p /* Check for valid process.  */
-		      && wait_proc->gnutls_state
-		      /* Do we have pending data?  */
-		      && ((emacs_gnutls_record_check_pending
-			   (wait_proc->gnutls_state))
-			  > 0))
-		    {
-		      nfds = 1;
-		      eassert (0 <= wait_proc->infd);
-		      /* Set to Available.  */
-		      FD_SET (wait_proc->infd, &tls_available);
-		      set++;
-		    }
-		}
-	      if (set)
-		Available = tls_available;
+	      else if (nfds > 0)
+		/* Slow path, merge one by one.  Note: nfds does not need
+		   to be accurate, just positive is enough. */
+		for (channel = 0; channel < FD_SETSIZE; ++channel)
+		  if (FD_ISSET(channel, &tls_available))
+		    FD_SET(channel, &Available);
 	    }
 #endif
 	}
@@ -7079,10 +7074,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
     }
 
   if (FIXNUMP (sigcode))
-    {
-      CHECK_TYPE_RANGED_INTEGER (int, sigcode);
-      signo = XFIXNUM (sigcode);
-    }
+    signo = check_integer_range (sigcode, INT_MIN, INT_MAX);
   else
     {
       char *name;
@@ -8200,6 +8192,17 @@ restore_nofile_limit (void)
 #endif
 }
 
+int
+open_channel_for_module (Lisp_Object process)
+{
+  CHECK_PROCESS (process);
+  CHECK_TYPE (PIPECONN_P (process), Qpipe_process_p, process);
+  int fd = dup (XPROCESS (process)->open_fd[SUBPROCESS_STDOUT]);
+  if (fd == -1)
+    report_file_error ("Cannot duplicate file descriptor", Qnil);
+  return fd;
+}
+
 
 /* This is not called "init_process" because that is the name of a
    Mach system call, so it would cause problems on Darwin systems.  */
@@ -8277,19 +8280,6 @@ init_process_emacs (int sockfd)
   memset (datagram_address, 0, sizeof datagram_address);
 #endif
 
-#if defined (DARWIN_OS)
-  /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
-     processes.  As such, we only change the default value.  */
- if (initialized)
-  {
-    char const *release = (STRINGP (Voperating_system_release)
-			   ? SSDATA (Voperating_system_release)
-			   : 0);
-    if (!release || !release[0] || (release[0] < '7' && release[1] == '.')) {
-      Vprocess_connection_type = Qnil;
-    }
-  }
-#endif
 #endif	/* subprocesses */
   kbd_is_on_hold = 0;
 }
@@ -8459,6 +8449,7 @@ amounts of data in one go.  */);
   DEFSYM (Qinterrupt_process_functions, "interrupt-process-functions");
 
   DEFSYM (Qnull, "null");
+  DEFSYM (Qpipe_process_p, "pipe-process-p");
 
   defsubr (&Sprocessp);
   defsubr (&Sget_process);

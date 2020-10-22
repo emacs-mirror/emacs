@@ -1,4 +1,4 @@
-;;; dig.el --- Domain Name System dig interface
+;;; dig.el --- Domain Name System dig interface  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
@@ -42,15 +42,13 @@
 
 (defcustom dig-program "dig"
   "Name of dig (domain information groper) binary."
-  :type 'file
-  :group 'dig)
+  :type 'file)
 
 (defcustom dig-dns-server nil
   "DNS server to query.
 If nil, use system defaults."
   :type '(choice (const :tag "System defaults")
-		 string)
-  :group 'dig)
+		 string))
 
 (defcustom dig-font-lock-keywords
   '(("^;; [A-Z]+ SECTION:" 0 font-lock-keyword-face)
@@ -58,8 +56,7 @@ If nil, use system defaults."
     ("^; <<>>.*" 0 font-lock-type-face)
     ("^;.*" 0 font-lock-function-name-face))
   "Default expressions to highlight in dig mode."
-  :type 'sexp
-  :group 'dig)
+  :type 'sexp)
 
 (defun dig-invoke (domain &optional
 			  query-type query-class query-option

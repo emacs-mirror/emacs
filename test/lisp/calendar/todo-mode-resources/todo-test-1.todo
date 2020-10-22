@@ -1,8 +1,8 @@
-(("testcat1" . [2 0 2 1]) ("testcat2" . [3 0 1 1]) ("testcat3" . [0 0 0 0]))
+(("testcat1" . [2 0 2 1]) ("testcat2" . [3 0 1 1]) ("testcat3" . [0 0 0 0]) ("testcat4" . [1 0 0 0]))
 --==-- testcat1
 [May 29, 2017] testcat1 item3
-		has more than one line
-		to test item highlighting
+	has more than one line
+	to test item highlighting
 [Jul 3, 2017] testcat1 item4
 
 ==--== DONE 
@@ -16,5 +16,9 @@
 ==--== DONE 
 [DONE Jul 3, 2017] [May 28, 2017] testcat2 item2
 --==-- testcat3
+
+==--== DONE 
+--==-- testcat4
+[Jan 1, 2020] testcat4 item1
 
 ==--== DONE 

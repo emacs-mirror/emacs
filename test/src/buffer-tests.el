@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'seq)
 (eval-when-compile (require 'cl-lib))
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
@@ -1312,5 +1313,25 @@ with parameters from the *Messages* buffer modification."
         (ovshould nonempty-eob-beg 3 5)
         (ovshould nonempty-eob-end 4 5)
         (ovshould empty-eob        5 5)))))
+
+(ert-deftest buffer-multibyte-overlong-sequences ()
+  (dolist (uni '("\xE0\x80\x80"
+                 "\xF0\x80\x80\x80"
+                 "\xF8\x8F\xBF\xBF\x80"))
+    (let ((multi (string-to-multibyte uni)))
+      (should
+       (string-equal
+        multi
+        (with-temp-buffer
+          (set-buffer-multibyte nil)
+          (insert uni)
+          (set-buffer-multibyte t)
+          (buffer-string)))))))
+
+;; https://debbugs.gnu.org/33492
+(ert-deftest buffer-tests-buffer-local-variables-undo ()
+  "Test that `buffer-undo-list' appears in `buffer-local-variables'."
+  (with-temp-buffer
+    (should (assq 'buffer-undo-list (buffer-local-variables)))))
 
 ;;; buffer-tests.el ends here

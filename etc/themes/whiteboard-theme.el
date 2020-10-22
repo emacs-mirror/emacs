@@ -1,4 +1,4 @@
-;;; whiteboard-theme.el --- Custom theme for faces
+;;; whiteboard-theme.el --- Custom theme for faces  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
@@ -48,7 +48,6 @@
    `(font-lock-comment-face ((,class (:foreground "gray50"))))
    `(font-lock-constant-face ((,class (:foreground "DarkOliveGreen4"))))
    `(font-lock-doc-face ((,class (:foreground "peru"))))
-   `(font-lock-doc-string-face ((,class (:foreground "peru"))))
    `(font-lock-function-name-face ((,class (:foreground "goldenrod3"))))
    `(font-lock-keyword-face ((,class (:foreground "DodgerBlue2"))))
    `(font-lock-preprocessor-face ((,class (:foreground "gold3"))))

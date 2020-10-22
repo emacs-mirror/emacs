@@ -5,18 +5,20 @@
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords:
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -547,6 +549,24 @@ baz\"\""
       (should (equal "" (buffer-string))))))
 
 
+;;; Undoing
+(ert-deftest electric-pair-undo-unrelated-state ()
+  "Make sure `electric-pair-mode' does not confuse `undo' (bug#39680)."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (electric-pair-local-mode)
+    (let ((last-command-event ?\())
+      (ert-simulate-command '(self-insert-command 1)))
+    (undo-boundary)
+    (let ((last-command-event ?a))
+      (ert-simulate-command '(self-insert-command 1)))
+    (undo-boundary)
+    (ert-simulate-command '(undo))
+    (let ((last-command-event ?\())
+      (ert-simulate-command '(self-insert-command 1)))
+    (should (string= (buffer-string) "(())"))))
+
+
 ;;; Electric newlines between pairs
 ;;; TODO: better tests
 (ert-deftest electric-pair-open-extra-newline ()
@@ -867,7 +887,8 @@ baz\"\""
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 
 (ert-deftest electric-layout-control-reindentation ()
-  "Same as `e-l-int-main-kernel-style', but checking Bug#35254."
+  "Same as `emacs-lisp-int-main-kernel-style', but checking
+Bug#35254."
   (ert-with-test-buffer ()
     (plainer-c-mode)
     (electric-layout-local-mode 1)
@@ -906,7 +927,7 @@ baz\"\""
     (electric-pair-local-mode 1)
     (insert-before-markers "int main () {}")
     (backward-char 1)
-    (let ((last-command-event ?))
+    (let ((last-command-event ?\r))
       (call-interactively (key-binding `[,last-command-event])))
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 
@@ -927,7 +948,7 @@ baz\"\""
                        '(after-stay))))))
     (insert "int main () {}")
     (backward-char 1)
-    (let ((last-command-event ?))
+    (let ((last-command-event ?\r))
       (call-interactively (key-binding `[,last-command-event])))
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 
@@ -948,7 +969,7 @@ baz\"\""
                        '(after-stay)))))
     (insert "int main () {}")
     (backward-char 1)
-    (let ((last-command-event ?))
+    (let ((last-command-event ?\r))
       (call-interactively (key-binding `[,last-command-event])))
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 

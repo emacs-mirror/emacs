@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include "lisp.h"
-#include "ptr-bounds.h"
 #include "termchar.h"
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
@@ -881,7 +880,7 @@ clear_glyph_row (struct glyph_row *row)
   enum { off = offsetof (struct glyph_row, used) };
 
   /* Zero everything except pointers in `glyphs'.  */
-  memset (row->used, 0, sizeof *row - off);
+  memset ((char *) row + off, 0, sizeof *row - off);
 }
 
 
@@ -1831,7 +1830,7 @@ adjust_frame_glyphs (struct frame *f)
   /* Don't forget the buffer for decode_mode_spec.  */
   adjust_decode_mode_spec_buffer (f);
 
-  f->glyphs_initialized_p = 1;
+  f->glyphs_initialized_p = true;
 
   unblock_input ();
 }
@@ -2252,7 +2251,7 @@ free_glyphs (struct frame *f)
       /* Block interrupt input so that we don't get surprised by an X
          event while we're in an inconsistent state.  */
       block_input ();
-      f->glyphs_initialized_p = 0;
+      f->glyphs_initialized_p = false;
 
       /* Release window sub-matrices.  */
       if (!NILP (f->root_window))
@@ -3237,9 +3236,16 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
       build_frame_matrix (f);
 
       /* Update the display.  */
-      update_begin (f);
-      paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1, false);
-      update_end (f);
+      if (FRAME_INITIAL_P (f))
+        /* No actual display to update so the "update" is a nop and
+           obviously isn't interrupted by pending input.  */
+        paused_p = false;
+      else
+        {
+          update_begin (f);
+          paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1, false);
+          update_end (f);
+        }
 
       if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
         {
@@ -3683,6 +3689,10 @@ update_window (struct window *w, bool force_p)
          W->output_cursor doesn't contain the cursor location.  */
       gui_update_window_end (w, !paused_p, mouse_face_overwritten_p);
 #endif
+      /* If the update wasn't interrupted, this window has been
+	 completely updated.  */
+      if (!paused_p)
+	w->must_be_updated_p = false;
     }
   else
     paused_p = 1;
@@ -3743,11 +3753,10 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
-  block_input ();
-
   /* Pseudo windows don't have cursors, so don't display them here.  */
   if (!w->pseudo_window_p)
     {
+      block_input ();
 
       if (cursor_on_p)
 	display_and_set_cursor (w, true,
@@ -3761,6 +3770,7 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
 	  else
 	    gui_draw_vertical_border (w);
 	}
+      unblock_input ();
     }
 
   /* If a row with mouse-face was overwritten, arrange for
@@ -3778,7 +3788,6 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
     FRAME_RIF (f)->update_window_end_hook (w,
                                            cursor_on_p,
                                            mouse_face_overwritten_p);
-  unblock_input ();
 }
 
 #endif /* HAVE_WINDOW_SYSTEM  */
@@ -4360,6 +4369,14 @@ scrolling_window (struct window *w, int tab_line_p)
     return 0;
 #endif
 
+  /* Can't scroll the display of w32 GUI frames when position of point
+     is indicated by the system caret, because scrolling the display
+     will then "copy" the pixels used by the caret.  */
+#ifdef HAVE_NTGUI
+  if (w32_use_visible_system_caret)
+    return 0;
+#endif
+
   /* Give up if some rows in the desired matrix are not enabled.  */
   if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
     return -1;
@@ -4880,12 +4897,6 @@ scrolling (struct frame *frame)
   unsigned *new_hash = old_hash + height;
   int *draw_cost = (int *) (new_hash + height);
   int *old_draw_cost = draw_cost + height;
-  old_hash = ptr_bounds_clip (old_hash, height * sizeof *old_hash);
-  new_hash = ptr_bounds_clip (new_hash, height * sizeof *new_hash);
-  draw_cost = ptr_bounds_clip (draw_cost, height * sizeof *draw_cost);
-  old_draw_cost = ptr_bounds_clip (old_draw_cost,
-				   height * sizeof *old_draw_cost);
-
   eassert (current_matrix);
 
   /* Compute hash codes of all the lines.  Also calculate number of

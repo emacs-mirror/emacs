@@ -267,9 +267,7 @@ that is, with a prefix arg, you get the default behavior."
     (let* ((default (locate-word-at-point))
 	   (input
 	    (read-from-minibuffer
-	     (if  (> (length default) 0)
-		 (format "Locate (default %s): " default)
-	       (format "Locate: "))
+             (format-prompt "Locate" default)
 	     nil nil nil 'locate-history-list default t)))
       (and (equal input "") default
 	   (setq input default))

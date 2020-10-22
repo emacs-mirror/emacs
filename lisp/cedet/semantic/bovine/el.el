@@ -420,7 +420,6 @@ Return a bovination list to use."
 	 :parent (symbol-name (nth 2 form))
 	 :documentation (semantic-elisp-do-doc (nth 4 form))
 	 )))
-  define-mode-overload-implementation ;; obsoleted
   define-mode-local-override
   )
 
@@ -650,7 +649,7 @@ define-mode-overload\\)\
 		 ))
 	(when fun
 	  ;; Do not return FUN IFF the cursor is on FUN.
-	  ;; Huh?  Thats because if cursor is on fun, it is
+	  ;; Huh?  That's because if cursor is on fun, it is
 	  ;; the current symbol, and not the current function.
 	  (if (save-excursion
 		(condition-case nil

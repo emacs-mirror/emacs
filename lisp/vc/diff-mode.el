@@ -83,7 +83,10 @@ When editing a diff file, the line numbers in the hunk headers
 need to be kept consistent with the actual diff.  This can
 either be done on the fly (but this sometimes interacts poorly with the
 undo mechanism) or whenever the file is written (can be slow
-when editing big diffs)."
+when editing big diffs).
+
+If this variable is nil, the hunk header numbers are updated when
+the file is written instead."
   :type 'boolean)
 
 (defcustom diff-advance-after-apply-hunk t
@@ -392,6 +395,12 @@ well."
   '((t :inherit diff-file-header))
   "`diff-mode' face used to highlight nonexistent files in recursive diffs.")
 
+(defface diff-error
+  '((((class color))
+     :foreground "red" :background "black" :weight bold)
+    (t :weight bold))
+  "`diff-mode' face for error messages from diff.")
+
 (defconst diff-yank-handler '(diff-yank-function))
 (defun diff-yank-function (text)
   ;; FIXME: the yank-handler is now called separately on each piece of text
@@ -472,6 +481,7 @@ and the face `diff-added' for added lines.")
     ("^\\(#\\)\\(.*\\)"
      (1 font-lock-comment-delimiter-face)
      (2 font-lock-comment-face))
+    ("^diff: .*" (0 'diff-error))
     ("^[^-=+*!<>#].*\n" (0 'diff-context))
     (,#'diff--font-lock-syntax)
     (,#'diff--font-lock-prettify)
@@ -484,7 +494,7 @@ and the face `diff-added' for added lines.")
   ;; Prefer second name as first is most likely to be a backup or
   ;; version-control name.  The [\t\n] at the end of the unidiff pattern
   ;; catches Debian source diff files (which lack the trailing date).
-  '((nil "\\+\\+\\+\\ \\([^\t\n]+\\)[\t\n]" 1) ; unidiffs
+  '((nil "\\+\\+\\+ \\([^\t\n]+\\)[\t\n]" 1) ; unidiffs
     (nil "^--- \\([^\t\n]+\\)\t.*\n\\*" 1))) ; context diffs
 
 ;;;;
@@ -923,8 +933,12 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 		       (progn (diff-hunk-prev) (point))
 		     (error (point-min)))))
 	  (header-files
-           ;; handle filenames with spaces;
+           ;; handle file names with spaces;
            ;; cf. diff-font-lock-keywords / diff-file-header
+           ;; FIXME if there are nonascii characters in the file names,
+           ;; GNU diff displays them as octal escapes.
+           ;; This function should undo that, so as to return file names
+           ;; that are usable in Emacs.
 	   (if (looking-at "[-*][-*][-*] \\([^\t\n]+\\).*\n[-+][-+][-+] \\([^\t\n]+\\)")
 	       (list (if old (match-string 1) (match-string 2))
 		     (if old (match-string 2) (match-string 1)))
@@ -1846,7 +1860,10 @@ SWITCHED is non-nil if the patch is already applied."
 	   (buf (if revision
                     (let ((vc-find-revision-no-save t))
                       (vc-find-revision (expand-file-name file) revision diff-vc-backend))
-                  (find-file-noselect file))))
+                  ;; NOPROMPT is only non-nil when called from
+                  ;; `which-function-mode', so avoid "File x changed
+                  ;; on disk. Reread from disk?" warnings.
+                  (find-file-noselect file noprompt))))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
 	(setq diff-jump-to-old-file other))
@@ -1988,8 +2005,7 @@ revision of the file otherwise."
                  (diff-find-source-location other-file reverse)))
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
-      (when buffer (next-error-found buffer (current-buffer)))
-      (diff-hunk-status-msg line-offset (xor reverse switched) t))))
+      (when buffer (next-error-found buffer (current-buffer))))))
 
 
 (defun diff-current-defun ()
@@ -2163,9 +2179,10 @@ Return new point, if it was moved."
              (smerge-refine-regions beg-del beg-add beg-add end-add
                                     nil #'diff-refine-preproc props-r props-a)))))
       ('context
-       (let* ((middle (save-excursion (re-search-forward "^---" end)))
+       (let* ((middle (save-excursion (re-search-forward "^---" end t)))
               (other middle))
-         (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
+         (while (and middle
+		     (re-search-forward "^\\(?:!.*\n\\)+" middle t))
            (smerge-refine-regions (match-beginning 0) (match-end 0)
                                   (save-excursion
                                     (goto-char other)
@@ -2247,29 +2264,32 @@ The elements of the alist are of the form (FILE . (DEFUN...)),
 where DEFUN... is a list of function names found in FILE."
   (save-excursion
     (goto-char (point-min))
-    (let ((defuns nil)
-          (hunk-end nil)
-          (hunk-mismatch-files nil)
-          (make-defun-context-follower
-           (lambda (goline)
-             (let ((eodefun nil)
-                   (defname nil))
-               (list
-                (lambda () ;; Check for end of current defun.
-                  (when (and eodefun
-                             (funcall goline)
-                             (>= (point) eodefun))
-                    (setq defname nil)
-                    (setq eodefun nil)))
-                (lambda (&optional get-current) ;; Check for new defun.
-                  (if get-current
-                      defname
-                    (when-let* ((def (and (not eodefun)
-                                          (funcall goline)
-                                          (add-log-current-defun)))
-                                (eof (save-excursion (end-of-defun) (point))))
-                      (setq eodefun eof)
-                      (setq defname def)))))))))
+    (let* ((defuns nil)
+           (hunk-end nil)
+           (hunk-mismatch-files nil)
+           (make-defun-context-follower
+            (lambda (goline)
+              (let ((eodefun nil)
+                    (defname nil))
+                (list
+                 (lambda () ;; Check for end of current defun.
+                   (when (and eodefun
+                              (funcall goline)
+                              (>= (point) eodefun))
+                     (setq defname nil)
+                     (setq eodefun nil)))
+                 (lambda (&optional get-current) ;; Check for new defun.
+                   (if get-current
+                       defname
+                     (when-let* ((def (and (not eodefun)
+                                           (funcall goline)
+                                           (add-log-current-defun)))
+                                 (eof (save-excursion
+                                        (condition-case ()
+                                            (progn (end-of-defun) (point))
+                                          (scan-error hunk-end)))))
+                       (setq eodefun eof)
+                       (setq defname def)))))))))
       (while
           ;; Might need to skip over file headers between diff
           ;; hunks (e.g., "diff --git ..." etc).
@@ -2515,7 +2535,7 @@ fixed, visit it in a buffer."
                                '((?+ . (left-fringe diff-fringe-add diff-indicator-added))
                                  (?- . (left-fringe diff-fringe-del diff-indicator-removed))
                                  (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
-                                 (?\s . (left-fringe diff-fringe-nul))))))
+                                 (?\s . (left-fringe diff-fringe-nul fringe))))))
           (put-text-property (match-beginning 0) (match-end 0) 'display spec))))
     ;; Mimicks the output of Magit's diff.
     ;; FIXME: This has only been tested with Git's diff output.
@@ -2717,9 +2737,13 @@ hunk text is not found in the source file."
     ;; When initialization is requested, we should be in a brand new
     ;; temp buffer.
     (cl-assert (null buffer-file-name))
-    (let ((enable-local-variables :safe) ;; to find `mode:'
+    ;; Use `:safe' to find `mode:'.  In case of hunk-only, use nil because
+    ;; Local Variables list might be incomplete when context is truncated.
+    (let ((enable-local-variables (unless hunk-only :safe))
           (buffer-file-name file))
-      (set-auto-mode)
+      ;; Don't run hooks that might assume buffer-file-name
+      ;; really associates buffer with a file (bug#39190).
+      (delay-mode-hooks (set-auto-mode))
       ;; FIXME: Is this really worth the trouble?
       (when (and (fboundp 'generic-mode-find-file-hook)
                  (memq #'generic-mode-find-file-hook

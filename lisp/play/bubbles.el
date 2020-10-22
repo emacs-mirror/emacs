@@ -28,7 +28,7 @@
 ;; possible in as few moves as possible.
 
 ;; Bubbles is an implementation of the "Same Game", similar to "Same
-;; GNOME" and many others, see <http://en.wikipedia.org/wiki/SameGame>.
+;; GNOME" and many others, see <https://en.wikipedia.org/wiki/SameGame>.
 
 ;; Installation
 ;; ------------
@@ -80,6 +80,7 @@
 ;;; Code:
 
 (defconst bubbles-version "0.5" "Version number of bubbles.el.")
+(make-obsolete-variable 'bubbles-version nil "28.1")
 
 (require 'gamegrid)
 
@@ -975,16 +976,14 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
                        (* image-vert-size (bubbles--grid-height)))
                     2)))))
 
-(defun bubbles--remove-overlays ()
-  "Remove all overlays."
-  (if (fboundp 'remove-overlays)
-      (remove-overlays)))
+(define-obsolete-function-alias 'bubbles--remove-overlays
+  'remove-overlays "28.1")
 
 (defun bubbles--initialize ()
   "Initialize Bubbles game."
   (bubbles--initialize-faces)
   (bubbles--initialize-images)
-  (bubbles--remove-overlays)
+  (remove-overlays)
 
   (switch-to-buffer (get-buffer-create "*bubbles*"))
   (bubbles--compute-offsets)
@@ -1408,7 +1407,7 @@ Return t if new char is non-empty."
 
 (defun bubbles--show-images ()
   "Update images in the bubbles buffer."
-  (bubbles--remove-overlays)
+  (remove-overlays)
   (if (and (display-images-p)
            bubbles--images-ok
            (not (eq bubbles-graphics-theme 'ascii)))

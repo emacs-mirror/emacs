@@ -18077,7 +18077,7 @@ zeros with @kbd{d z}.  @xref{Radix Modes}.
 
 @cindex Word size for binary operations
 The Calculator maintains a current @dfn{word size} @expr{w}, an
-arbitrary positive or negative integer.  For a positive word size, all
+arbitrary integer.  For a positive word size, all
 of the binary operations described here operate modulo @expr{2^w}.  In
 particular, negative arguments are converted to positive integers modulo
 @expr{2^w} by all binary functions.
@@ -18091,6 +18091,9 @@ to
 @infoline @expr{2^(-w-1)-1}
 inclusive.  Either mode accepts inputs in any range; the sign of
 @expr{w} affects only the results produced.
+
+If the word size is zero, binary operations work on the entire number
+without clipping, as if the word size had been negative infinity.
 
 @kindex b c
 @pindex calc-clip
@@ -18221,6 +18224,10 @@ and @samp{rash} operations is totally independent from whether the word
 size is positive or negative.)  With a negative prefix argument, this
 performs a standard left shift.
 
+When the word size is zero, logical and arithmetic shift operations
+are identical: a negative value shifted right remains negative, since
+there is an infinite supply of ones to shift in.
+
 @kindex b t
 @pindex calc-rotate-binary
 @tindex rot
@@ -18229,6 +18236,8 @@ number one bit to the left.  The leftmost bit (according to the current
 word size) is dropped off the left and shifted in on the right.  With a
 numeric prefix argument, the number is rotated that many bits to the left
 or right.
+
+Rotation is not possible with a zero word size.
 
 @xref{Set Operations}, for the @kbd{b p} and @kbd{b u} commands that
 pack and unpack binary integers into sets.  (For example, @kbd{b u}
@@ -27155,7 +27164,7 @@ anywhere in the formula.
 It is possible for a rule set to get into an infinite loop.  The
 most obvious case, replacing a formula with itself, is not a problem
 because a rule is not considered to ``succeed'' unless the righthand
-side actually comes out to something different than the original
+side actually comes out to something different from the original
 formula or sub-formula that was matched.  But if you accidentally
 had both @samp{ln(a b) := ln(a) + ln(b)} and the reverse
 @samp{ln(a) + ln(b) := ln(a b)} in your rule set, Calc would
@@ -28075,7 +28084,7 @@ for angstroms.
 
 The unit @code{pt} stands for pints; the name @code{point} stands for
 a typographical point, defined by @samp{72 point = 1 in}.  This is
-slightly different than the point defined by the American Typefounder's
+slightly different from the point defined by the American Typefounder's
 Association in 1886, but the point used by Calc has become standard
 largely due to its use by the PostScript page description language.
 There is also @code{texpt}, which stands for a printer's point as
@@ -34743,15 +34752,15 @@ is defined by
 
 @smallexample
 (put 'calcFunc-ln\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 u))))
+     (lambda (u) (math-div 1 u)))
 @end smallexample
 
 The two-argument @code{log} function has two derivatives,
 @smallexample
 (put 'calcFunc-log\' 'math-derivative-2     ; d(log(x,b)) / dx
-     (function (lambda (x b) ... )))
+     (lambda (x b) ... ))
 (put 'calcFunc-log\'2 'math-derivative-2    ; d(log(x,b)) / db
-     (function (lambda (x b) ... )))
+     (lambda (x b) ... ))
 @end smallexample
 @end defun
 
@@ -34818,7 +34827,7 @@ as properties in a manner similar to derivatives:
 
 @smallexample
 (put 'calcFunc-ln 'math-inverse
-     (function (lambda (x) (list 'calcFunc-exp x))))
+     (lambda (x) (list 'calcFunc-exp x)))
 @end smallexample
 
 This function can call @samp{(math-solve-get-sign @var{x})} to create
@@ -35164,16 +35173,7 @@ which are called at various times.  Calc defines a number of hooks
 that help you to customize it in various ways.  Calc uses the Lisp
 function @code{run-hooks} to invoke the hooks shown below.  Several
 other customization-related variables are also described here.
-
-@defvar calc-load-hook
-This hook is called at the end of @file{calc.el}, after the file has
-been loaded, before any functions in it have been called, but after
-@code{calc-mode-map} and similar variables have been set up.
-@end defvar
-
-@defvar calc-ext-load-hook
-This hook is called at the end of @file{calc-ext.el}.
-@end defvar
+To run code after Calc has loaded, use @code{with-eval-after-load}.
 
 @defvar calc-start-hook
 This hook is called as the last step in a @kbd{M-x calc} command.

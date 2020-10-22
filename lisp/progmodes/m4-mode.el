@@ -1,4 +1,4 @@
-;;; m4-mode.el --- m4 code editing commands for Emacs
+;;; m4-mode.el --- m4 code editing commands for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
 
@@ -48,14 +48,12 @@
   "File name of the m4 executable.
 If m4 is not in your PATH, set this to an absolute file name."
   :version "24.4"
-  :type 'file
-  :group 'm4)
+  :type 'file)
 
 ;;options to m4
 (defcustom m4-program-options nil
   "Options to pass to `m4-program'."
-  :type '(repeat string)
-  :group 'm4)
+  :type '(repeat string))
 
 ;;to use --prefix-builtins, you can use
 ;;(defconst m4-program-options '("-P"))
@@ -72,8 +70,7 @@ If m4 is not in your PATH, set this to an absolute file name."
 
 (defcustom m4-mode-hook nil
   "Hook called by `m4-mode'."
-  :type 'hook
-  :group 'm4)
+  :type 'hook)
 
 ;;this may still need some work
 (defvar m4-mode-syntax-table
@@ -125,7 +122,7 @@ If m4 is not in your PATH, set this to an absolute file name."
   (interactive)
   (shell-command-on-region
    (point-min) (point-max)
-   (mapconcat 'identity (cons m4-program m4-program-options) "\s")
+   (mapconcat #'identity (cons m4-program m4-program-options) "\s")
    "*m4-output*" nil)
   (switch-to-buffer-other-window "*m4-output*"))
 
@@ -134,7 +131,7 @@ If m4 is not in your PATH, set this to an absolute file name."
   (interactive)
   (shell-command-on-region
    (point) (mark)
-   (mapconcat 'identity (cons m4-program m4-program-options) "\s")
+   (mapconcat #'identity (cons m4-program m4-program-options) "\s")
    "*m4-output*" nil)
   (switch-to-buffer-other-window "*m4-output*"))
 

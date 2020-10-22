@@ -28,19 +28,10 @@
 (require 'ert-x)
 (require 'todo-mode)
 
-(defvar todo-test-data-dir
-  (file-truename
-   (expand-file-name "todo-mode-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Base directory of todo-mode.el test data files.")
-
-(defvar todo-test-file-1 (expand-file-name "todo-test-1.todo"
-                                           todo-test-data-dir)
+(defvar todo-test-file-1 (ert-resource-file "todo-test-1.todo")
   "Todo mode test file.")
 
-(defvar todo-test-archive-1 (expand-file-name "todo-test-1.toda"
-                                              todo-test-data-dir)
+(defvar todo-test-archive-1 (ert-resource-file "todo-test-1.toda")
   "Todo Archive mode test file.")
 
 (defmacro with-todo-test (&rest body)
@@ -52,7 +43,7 @@
           (abbreviated-home-dir nil)
           (process-environment (cons (format "HOME=%s" todo-test-home)
                                      process-environment))
-          (todo-directory todo-test-data-dir)
+          (todo-directory (ert-resource-directory))
           (todo-default-todo-file (todo-short-file-name
 				   (car (funcall todo-files-function)))))
      (unwind-protect
@@ -414,8 +405,15 @@ the top done item should be the first done item."
      (should (todo-done-item-p))
      (forward-line -1)
      (should (looking-at todo-category-done))
-     ;; Make sure marked items are no longer in first category.
-     (todo-backward-category)
+     ;; Make sure marked items are no longer in first category.  Since
+     ;; cat1 now contains no todo or done items but does have archived
+     ;; items, todo-backward-category would skip it by default, so
+     ;; prevent this. (FIXME: Without this let-binding,
+     ;; todo-backward-category selects the nonempty cat4 and this test
+     ;; fails as expected when run interactively but not in a batch
+     ;; run -- why?)
+     (let (todo-skip-archived-categories)
+       (todo-backward-category))
      (should (eq (point-min) (point-max))) ; All todo items were moved.
      ;; This passes when run interactively but fails in a batch run:
      ;; the message is displayed but (current-message) evaluates to
@@ -808,7 +806,7 @@ buffer from which the editing command was invoked."
   "Add file FILE with category CAT to todo-files and show it.
 This provides a noninteractive API for todo-add-file for use in
 automatic testing."
-  (let ((file0 (file-truename (concat todo-test-data-dir file ".todo")))
+  (let ((file0 (ert-resource-file (concat file ".todo")))
         todo-add-item-if-new-category)  ; Don't need an item in cat.
     (cl-letf (((symbol-function 'todo-read-file-name)
                (lambda (_prompt) file0))
@@ -848,6 +846,94 @@ should display the previously current (or default) todo file."
      (should (equal todo-current-todo-file todo-test-file-1))
      (delete-file (concat file "~")))))
 
+(ert-deftest todo-test-edit-item-date-month () ; bug#42976 #3 and #4
+  "Test incrementing and decrementing the month of an item's date.
+If the change in month crosses a year boundary, the year of the
+item's date should be adjusted accordingly."
+  (with-todo-test
+   (todo-test--show 4)
+   (let ((current-prefix-arg t)         ; For todo-edit-item--header.
+         (get-date (lambda ()
+                     (save-excursion
+                       (todo-date-string-matcher (line-end-position))
+                       (buffer-substring-no-properties (match-beginning 1)
+                                                       (match-end 0))))))
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 0)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 1)
+     (should (equal (funcall get-date) "Feb 1, 2020"))
+     (todo-edit-item--header 'month -1)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month -1)
+     (should (equal (funcall get-date) "Dec 1, 2019"))
+     (todo-edit-item--header 'month 1)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 12)
+     (should (equal (funcall get-date) "Jan 1, 2021"))
+     (todo-edit-item--header 'month -12)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month -13)
+     (should (equal (funcall get-date) "Dec 1, 2018"))
+     (todo-edit-item--header 'month 7)
+     (should (equal (funcall get-date) "Jul 1, 2019"))
+     (todo-edit-item--header 'month 6)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 23)
+     (should (equal (funcall get-date) "Dec 1, 2021"))
+     (todo-edit-item--header 'month -23)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 24)
+     (should (equal (funcall get-date) "Jan 1, 2022"))
+     (todo-edit-item--header 'month -24)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 25)
+     (should (equal (funcall get-date) "Feb 1, 2022"))
+     (todo-edit-item--header 'month -25)
+     (should (equal (funcall get-date) "Jan 1, 2020")))))
+
+(ert-deftest todo-test-multiline-item-indentation-1 ()
+  "Test inserting a multine item containing a hard line break.
+After insertion the second line of the item should begin with a
+tab character."
+  (with-todo-test
+   (let* ((item0 "Test inserting a multine item")
+          (item1 "containing a hard line break.")
+          (item (concat item0 "\n" item1)))
+     (todo-test--show 1)
+     (todo-test--insert-item item 1)
+     (re-search-forward (concat todo-date-string-start todo-date-pattern
+				(regexp-quote todo-nondiary-end) " ")
+			(line-end-position) t)
+     (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
+
+(ert-deftest todo-test-multiline-item-indentation-2 () ; bug#43068
+  "Test editing an item by adding text on a new line.
+After quitting todo-edit-mode the second line of the item should
+begin with a tab character."
+  (with-todo-test
+   (todo-test--show 2)
+   (let* ((item0 (todo-item-string))
+          (item1 "Second line."))
+     (todo-edit-item--text 'multiline)
+     (insert (concat "\n" item1))
+     (todo-edit-quit)
+     (goto-char (line-beginning-position))
+     (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
+
+(ert-deftest todo-test-multiline-item-indentation-3 ()
+  "Test adding an unindented new line to an item using todo-edit-file.
+Attempting to quit todo-edit-mode should signal a user-error,
+since all non-initial item lines must begin with whitespace."
+  (with-todo-test
+   (todo-test--show 2)
+   (let* ((item0 (todo-item-string))
+          (item1 "Second line."))
+     (todo-edit-file)
+     (should (looking-at (regexp-quote item0)))
+     (goto-char (line-end-position))
+     (insert (concat "\n" item1))
+     (should-error (todo-edit-quit) :type 'user-error))))
 
 (provide 'todo-mode-tests)
 ;;; todo-mode-tests.el ends here

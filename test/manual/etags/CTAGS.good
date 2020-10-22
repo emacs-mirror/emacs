@@ -1835,7 +1835,7 @@ Z	c-src/h.h	100
 \Ealphaenumerate	tex-src/texinfo.tex	/^\\def\\Ealphaenumerate{\\Eenumerate}$/
 \Ecapsenumerate	tex-src/texinfo.tex	/^\\def\\Ecapsenumerate{\\Eenumerate}$/
 \Ecartouche	tex-src/texinfo.tex	/^\\def\\Ecartouche{%$/
-\Edescription	tex-src/texinfo.tex	/^\\def\\Edescription{\\Etable}% Neccessary kludge.$/
+\Edescription	tex-src/texinfo.tex	/^\\def\\Edescription{\\Etable}% Necessary kludge.$/
 \Edisplay	tex-src/texinfo.tex	/^\\def\\Edisplay{\\endgroup\\afterenvbreak}%$/
 \Eexample	tex-src/texinfo.tex	/^\\def\\Eexample{\\Elisp}$/
 \Eflushleft	tex-src/texinfo.tex	/^\\def\\Eflushleft{\\endgroup\\afterenvbreak}%$/

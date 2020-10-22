@@ -41,7 +41,7 @@
          (backtrace-mode)
          (setq backtrace-frames (backtrace-get-frames))
          (let ((this-index))
-           ;; Discard all past `backtrace-tests-make-backtrace'.
+           ;; Discard all past `backtrace-tests--make-backtrace'.
            (dotimes (index (length backtrace-frames))
              (when (eq (backtrace-frame-fun (nth index backtrace-frames))
                        'backtrace-tests--make-backtrace)

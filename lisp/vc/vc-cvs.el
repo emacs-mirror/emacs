@@ -337,32 +337,35 @@ its parents."
                   (directory-file-name dir))))
     (eq dir t)))
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
 (defun vc-cvs-checkin (files comment &optional rev)
   "CVS-specific version of `vc-backend-checkin'."
- (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
-   (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
+  (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
+    (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
-     ;; If the input revision is a valid symbolic tag name, we create it
-     ;; as a branch, commit and switch to it.
-     (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
-     (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
-     (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
+      ;; If the input revision is a valid symbolic tag name, we create it
+      ;; as a branch, commit and switch to it.
+      (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
+      (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
+      (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
 	    files)))
-  (let ((status (apply 'vc-cvs-command nil 1 files
-		       "ci" (if rev (concat "-r" rev))
-                       (concat "-m" comment)
-		       (vc-switches 'CVS 'checkin))))
+  (let ((status (apply
+                 'vc-cvs-command nil 1 files
+		 "ci" (if rev (concat "-r" rev))
+                 (concat "-m" (car (log-edit-extract-headers nil comment)))
+		 (vc-switches 'CVS 'checkin))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (when (not (zerop status))
       ;; Check checkin problem.
       (cond
        ((re-search-forward "Up-to-date check failed" nil t)
-	(mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
+        (mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
 	      files)
         (error "%s" (substitute-command-keys
-                (concat "Up-to-date check failed: "
-                        "type \\[vc-next-action] to merge in changes"))))
+                     (concat "Up-to-date check failed: "
+                             "type \\[vc-next-action] to merge in changes"))))
        (t
         (pop-to-buffer (current-buffer))
         (goto-char (point-min))
@@ -372,7 +375,7 @@ its parents."
     ;; Otherwise we can't necessarily tell what goes with what; clear
     ;; its properties so they have to be refetched.
     (if (= (length files) 1)
-	(vc-file-setprop
+        (vc-file-setprop
 	 (car files) 'vc-working-revision
 	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
       (mapc 'vc-file-clearprops files))
@@ -385,7 +388,7 @@ its parents."
     ;; if this was an explicit check-in (does not include creation of
     ;; a branch), remove the sticky tag.
     (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
-	(vc-cvs-command nil 0 files "update" "-A"))))
+        (vc-cvs-command nil 0 files "update" "-A"))))
 
 (defun vc-cvs-find-revision (file rev buffer)
   (apply 'vc-cvs-command
@@ -1220,14 +1223,34 @@ is non-nil."
   "Return the administrative directory of FILE."
   (vc-find-root file "CVS"))
 
-(defun vc-cvs-ignore (file &optional _directory _remove)
-  "Ignore FILE under CVS."
-  (vc-cvs-append-to-ignore (file-name-directory file) file))
+(defun vc-cvs-ignore (file &optional directory _remove)
+  "Ignore FILE under CVS.
+FILE is either absolute or relative to DIRECTORY.  The non-directory
+part of FILE is written unmodified into the ignore file and is
+therefore evaluated by CVS as an ignore pattern which follows
+glob(7) syntax.  If the pattern should match any of the special
+characters `?*[\\' literally, they must be escaped with a
+backslash.
 
-(defun vc-cvs-append-to-ignore (dir str &optional old-dir)
+CVS processes one ignore file for each subdirectory.  Patterns
+are separated by whitespace and only match files in the same
+directory.  Since FILE can be a relative filename with leading
+directories, FILE is expanded against DIRECTORY to determine the
+correct absolute filename.  The directory part of the resulting name
+is then used to determine the location of the ignore file.  The
+non-directory part of the name is used as pattern for the ignore file.
+
+Since patterns are whitespace-separated, filenames containing spaces
+cannot be represented directly.  A work-around is to replace such
+spaces with question marks."
+  (setq file (directory-file-name (expand-file-name file directory)))
+  (vc-cvs-append-to-ignore (file-name-directory file) (file-name-nondirectory file)))
+
+(defun vc-cvs-append-to-ignore (dir str &optional old-dir sort)
   "In DIR, add STR to the .cvsignore file.
 If OLD-DIR is non-nil, then this is a directory that we don't want
-to hear about anymore."
+to hear about anymore.  If SORT is non-nil, sort the lines of the
+ignore file."
   (with-current-buffer
       (find-file-noselect (expand-file-name ".cvsignore" dir))
     (when (ignore-errors
@@ -1236,13 +1259,13 @@ to hear about anymore."
 		 (not (vc-editable-p buffer-file-name))))
       ;; CVSREAD=on special case
       (vc-checkout buffer-file-name t))
-    (goto-char (point-max))
-    (unless (bolp) (insert "\n"))
-    (insert str (if old-dir "/\n" "\n"))
-    ;; FIXME this is a pcvs variable.
-    (if (bound-and-true-p cvs-sort-ignore-file)
-        (sort-lines nil (point-min) (point-max)))
-    (save-buffer)))
+    (goto-char (point-min))
+    (save-match-data
+      (unless (re-search-forward (concat "^" (regexp-quote str) "$") nil 'move)
+        (unless (bolp) (insert "\n"))
+        (insert str (if old-dir "/\n" "\n"))
+        (if sort (sort-lines nil (point-min) (point-max)))
+        (save-buffer)))))
 
 (provide 'vc-cvs)
 

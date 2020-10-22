@@ -140,11 +140,7 @@ MENU-VAR is the symbol containing an easymenu compatible menu part to use.
 MODENAME is a string used to identify this browser mode.
 FETCHER is a generic function used to fetch the base object list used when
 creating the speedbar display."
-  (if (not (featurep 'speedbar))
-      (add-hook 'speedbar-load-hook
-		(list 'lambda nil
-		      (list 'eieio-speedbar-create-engine
-			    map-fn map-var menu-var modename fetcher)))
+  (with-eval-after-load 'speedbar
     (eieio-speedbar-create-engine map-fn map-var menu-var modename fetcher)))
 
 (defun eieio-speedbar-create-engine (map-fn map-var menu-var modename fetcher)

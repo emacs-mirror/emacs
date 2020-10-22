@@ -347,7 +347,7 @@ Optional argument ALL non-nil means list all (non-obsolete) Lisp files."
 	;; Hack to remove leading "./".
 	(mapcar (lambda (e) (substring e 2))
 		(apply 'process-lines find-program
-		       "-name" "obsolete" "-prune" "-o"
+		       "." "-name" "obsolete" "-prune" "-o"
 		       "-name" "[^.]*.el" ; ignore .dir-locals.el
 		       (if all
 			   '("-print")
@@ -370,7 +370,9 @@ This function is suitable for batch mode.  E.g., invoke
 
 in the Emacs source directory.
 Normally only tests options belonging to files in loaddefs.el.
-If optional argument ALL is non-nil, test all files with defcustoms."
+If optional argument ALL is non-nil, test all files with defcustoms.
+
+Returns a list of variables with suspicious types."
   (interactive)
   (and noninteractive
        command-line-args-left
@@ -382,9 +384,12 @@ If optional argument ALL is non-nil, test all files with defcustoms."
   (message "Running %s" 'cus-test-apropos)
   (cus-test-apropos "")
   (if (not cus-test-errors)
-      (message "No problems found")
+      (progn
+        (message "No problems found")
+        nil)
     (message "The following options might have problems:")
-    (cus-test-message cus-test-errors)))
+    (cus-test-message cus-test-errors)
+    cus-test-errors))
 
 (defun cus-test-deps ()
   "Run a verbose version of `custom-load-symbol' on all atoms.

@@ -89,91 +89,97 @@ following sections.
 @table @kbd
 @item C-h a @var{topics} @key{RET}
 Display a list of commands whose names match @var{topics}
-(@code{apropos-command}).
+(@code{apropos-command}).  @xref{Apropos}.
 @item C-h b
 Display all active key bindings; minor mode bindings first, then those
 of the major mode, then global bindings (@code{describe-bindings}).
+@xref{Misc Help}.
 @item C-h c @var{key}
 Show the name of the command that the key sequence @var{key} is bound
 to (@code{describe-key-briefly}).  Here @kbd{c} stands for
 ``character''.  For more extensive information on @var{key}, use
-@kbd{C-h k}.
+@kbd{C-h k}.  @xref{Key Help}.
 @item C-h d @var{topics} @key{RET}
 Display the commands and variables whose documentation matches
-@var{topics} (@code{apropos-documentation}).
+@var{topics} (@code{apropos-documentation}).  @xref{Apropos}.
 @item C-h e
 Display the @file{*Messages*} buffer
-(@code{view-echo-area-messages}).
+(@code{view-echo-area-messages}).  @xref{Misc Help}.
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
 (@code{describe-function}).  Since commands are Lisp functions,
-this works for commands too.
+this works for commands too.  @xref{Name Help}.
 @item C-h h
 Display the @file{HELLO} file, which shows examples of various character
 sets.
 @item C-h i
 Run Info, the GNU documentation browser (@code{info}).  The Emacs
-manual is available in Info.
+manual is available in Info.  @xref{Misc Help}.
 @item C-h k @var{key}
 Display the name and documentation of the command that @var{key} runs
-(@code{describe-key}).
+(@code{describe-key}).  @xref{Key Help}.
 @item C-h l
 Display a description of your last 300 keystrokes
-(@code{view-lossage}).
+(@code{view-lossage}).  @xref{Misc Help}.
 @item C-h m
 Display documentation of the current major mode and minor modes
-(@code{describe-mode}).
+(@code{describe-mode}).  @xref{Misc Help}.
 @item C-h n
 Display news of recent Emacs changes (@code{view-emacs-news}).
+@xref{Help Files}.
 @item C-h o @var{symbol}
 Display documentation of the Lisp symbol named @var{symbol}
 (@code{describe-symbol}).  This will show the documentation of all
-kinds of symbols: functions, variables, and faces.
+kinds of symbols: functions, variables, and faces.  @xref{Name Help}.
 @item C-h p
-Find packages by topic keyword (@code{finder-by-keyword}).  This lists
-packages using a package menu buffer.  @xref{Packages}.
+Find packages by topic keyword (@code{finder-by-keyword}).
+@xref{Package Keywords}.  This lists packages using a package menu
+buffer.  @xref{Packages}.
 @item C-h P @var{package} @key{RET}
 Display documentation about the specified package
-(@code{describe-package}).
+(@code{describe-package}).  @xref{Package Keywords}.
 @item C-h r
 Display the Emacs manual in Info (@code{info-emacs-manual}).
 @item C-h s
 Display the contents of the current @dfn{syntax table}
-(@code{describe-syntax}).  The syntax table says which characters are
-opening delimiters, which are parts of words, and so on.  @xref{Syntax
-Tables,, Syntax Tables, elisp, The Emacs Lisp Reference Manual}, for
-details.
+(@code{describe-syntax}).  @xref{Misc Help}.  The syntax table says
+which characters are opening delimiters, which are parts of words, and
+so on.  @xref{Syntax Tables,, Syntax Tables, elisp, The Emacs Lisp
+Reference Manual}, for details.
 @item C-h t
 Enter the Emacs interactive tutorial (@code{help-with-tutorial}).
 @item C-h v @var{var} @key{RET}
 Display the documentation of the Lisp variable @var{var}
-(@code{describe-variable}).
+(@code{describe-variable}).  @xref{Name Help}.
 @item C-h w @var{command} @key{RET}
 Show which keys run the command named @var{command} (@code{where-is}).
+@xref{Key Help}.
 @item C-h C @var{coding} @key{RET}
 Describe the coding system @var{coding}
-(@code{describe-coding-system}).
+(@code{describe-coding-system}).  @xref{Coding Systems}.
 @item C-h C @key{RET}
 Describe the coding systems currently in use.
 @item C-h F @var{command} @key{RET}
 Enter Info and go to the node that documents the Emacs command
-@var{command} (@code{Info-goto-emacs-command-node}).
+@var{command} (@code{Info-goto-emacs-command-node}).  @xref{Name Help}.
 @item C-h I @var{method} @key{RET}
 Describe the input method @var{method} (@code{describe-input-method}).
+@xref{Select Input Method}.
 @item C-h K @var{key}
 Enter Info and go to the node that documents the key sequence
-@var{key} (@code{Info-goto-emacs-key-command-node}).
+@var{key} (@code{Info-goto-emacs-key-command-node}).  @xref{Key Help}.
 @item C-h L @var{language-env} @key{RET}
 Display information on the character sets, coding systems, and input
 methods used in language environment @var{language-env}
-(@code{describe-language-environment}).
+(@code{describe-language-environment}).  @xref{Language Environments}.
 @item C-h S @var{symbol} @key{RET}
 Display the Info documentation on symbol @var{symbol} according to the
 programming language you are editing (@code{info-lookup-symbol}).
+@xref{Misc Help}.
 @item C-h .
 Display the help message for a special text area, if point is in one
 (@code{display-local-help}).  (These include, for example, links in
-@file{*Help*} buffers.)
+@file{*Help*} buffers.)  @xref{Help Echo}.
 @end table
 
 @node Key Help
@@ -213,6 +219,16 @@ documentation string of the command it runs.
 @var{command}.  It displays the list in the echo area.  If it says the
 command is not on any key, that means you must use @kbd{M-x} to run
 it.  @kbd{C-h w} runs the command @code{where-is}.
+
+@findex button-describe
+@findex widget-describe
+  Some modes in Emacs use various buttons (@pxref{Buttons,,,elisp, The
+Emacs Lisp Reference Manual}) and widgets
+(@pxref{Introduction,,,widget, Emacs Widgets}) that can be clicked to
+perform some action.  To find out what function is ultimately invoked
+by these buttons, Emacs provides the @code{button-describe} and
+@code{widget-describe} commands, that should be run with point over
+the button.
 
 @node Name Help
 @section Help by Command or Variable Name
@@ -258,6 +274,13 @@ shows the function name from the buffer as the default, it means that
 name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
+
+@findex shortdoc-display-group
+  You can get an overview of functions relevant for a particular topic
+by using the @kbd{M-x shortdoc-display-group} command.  This will
+prompt you for an area of interest, e.g., @code{string}, and pop you
+to a buffer where many of the functions relevant for handling strings
+are listed.
 
 @kindex C-h v
 @findex describe-variable
@@ -557,10 +580,13 @@ command works depend on the major mode.
 
 @kindex C-h l
 @findex view-lossage
+@findex lossage-size
   If something surprising happens, and you are not sure what you typed,
 use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays your last
-300 input keystrokes and the commands they invoked.  If you see
-commands that you are not familiar with, you can use @kbd{C-h k} or
+input keystrokes and the commands they invoked.  By default, Emacs
+stores the last 300 keystrokes; if you wish, you can change this number with
+the command @code{lossage-size}.
+If you see commands that you are not familiar with, you can use @kbd{C-h k} or
 @kbd{C-h f} to find out what they do.
 
 @kindex C-h e
@@ -600,6 +626,11 @@ provide their own bindings for that key.  One of these prefix keys
 is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
 which marks a defun.  However, @w{@kbd{@key{ESC} @key{F1}}} and
 @w{@kbd{@key{ESC} ?}} work fine.)
+
+@findex describe-keymap
+Finally, @kbd{M-x describe-keymap} prompts for the name of a keymap,
+with completion, and displays a listing of all key bindings in that
+keymap.
 
 @node Help Files
 @section Help Files

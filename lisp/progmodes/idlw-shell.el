@@ -40,7 +40,7 @@
 ;;
 ;; New versions of IDLWAVE, documentation, and more information
 ;; available from:
-;;                 http://github.com/jdtsmith/idlwave
+;;                 https://github.com/jdtsmith/idlwave
 ;;
 ;; INSTALLATION:
 ;; =============
@@ -58,7 +58,7 @@
 ;;   The newest version of this file can be found on the maintainers
 ;;   web site.
 ;;
-;;     http://github.com/jdtsmith/idlwave
+;;     https://github.com/jdtsmith/idlwave
 ;;
 ;; DOCUMENTATION
 ;; =============
@@ -896,7 +896,7 @@ IDL has currently stepped.")
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
    For PostScript and HTML versions of the documentation, check IDLWAVE's
-   homepage at URL `http://github.com/jdtsmith/idlwave'.
+   homepage at URL `https://github.com/jdtsmith/idlwave'.
    IDLWAVE has customize support - see the group `idlwave'.
 
 8. Keybindings
@@ -1598,7 +1598,7 @@ number.")
   "A regular expression to match any IDL error.")
 
 (defvar idlwave-shell-halting-error
-  "^% .*\n\\([^%].*\n\\)*% Execution halted at:\\(\\s-*\\S-+\\s-*[0-9]+\\s-*.*\\)\n"
+  "^% .*\n\\([^%].*\n\\)*% Execution halted at:\\(\\s-*\\S-+\\s-*[0-9]+.*\\)\n"
   "A regular expression to match errors which halt execution.")
 
 (defvar idlwave-shell-cant-continue-error
@@ -2640,7 +2640,7 @@ Assumes that `idlwave-shell-sources-alist' contains an entry for that module."
     (if (or (not source-file)
 	    (not (file-regular-p source-file))
 	    (not (setq buf
-		       (or (idlwave-get-buffer-visiting source-file)
+                       (or (find-buffer-visiting source-file)
 			   (find-file-noselect source-file)))))
 	(progn
 	  (message "The source file for module %s is probably not compiled"
@@ -2745,7 +2745,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	     ;; event.  mouse-drag-track does so.
 	     (if drag-track 'mouse-drag-track 'mouse-drag-region)))
        (funcall tracker event)
-       (idlwave-shell-print (if (idlwave-region-active-p) '(4) nil)
+       (idlwave-shell-print (if (region-active-p) '(4) nil)
 			    ,help ,ev))))
 
 ;; Begin terrible hack section -- XEmacs tests for button2 explicitly
@@ -2830,7 +2830,7 @@ from `idlwave-shell-examine-alist' via mini-buffer shortcut key."
       (cond
        ((equal arg '(16))
 	(setq expr (read-string "Expression: ")))
-       ((and (or arg (idlwave-region-active-p))
+       ((and (or arg (region-active-p))
 	     (< (- (region-end) (region-beginning)) 2000))
 	(setq beg (region-beginning)
 	      end (region-end)))
@@ -3241,8 +3241,7 @@ Does not work for a region with multiline blocks - use
   "Delete the temporary files and kill associated buffers."
   (if (stringp idlwave-shell-temp-pro-file)
       (condition-case nil
-	  (let ((buf (idlwave-get-buffer-visiting
-		      idlwave-shell-temp-pro-file)))
+          (let ((buf (find-buffer-visiting idlwave-shell-temp-pro-file)))
 	    (if (buffer-live-p buf)
 		(kill-buffer buf))
 	    (delete-file idlwave-shell-temp-pro-file))
@@ -3502,7 +3501,7 @@ Returns nil if frame not found."
 
 (defun idlwave-shell-new-bp (bp)
   "Find the new breakpoint in IDL's list and update with DATA.
-The actual line number for a breakpoint in IDL may be different than
+The actual line number for a breakpoint in IDL may be different from
 the line number used with the IDL breakpoint command.
 Looks for a new breakpoint index number in the list.  This is
 considered the new breakpoint if the file name of frame matches."
@@ -3788,7 +3787,7 @@ handled by this command."
       (save-buffer)
       (setq idlwave-shell-last-save-and-action-file (buffer-file-name)))
      (idlwave-shell-last-save-and-action-file
-      (if (setq buf (idlwave-get-buffer-visiting
+      (if (setq buf (find-buffer-visiting
 		     idlwave-shell-last-save-and-action-file))
 	  (with-current-buffer buf
 	    (save-buffer))))

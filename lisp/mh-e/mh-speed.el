@@ -307,7 +307,7 @@ The function will expand out parent folders of FOLDER if needed."
           (mh-speed-toggle))
         (goto-char (gethash prefix mh-speed-folder-map))))
     (while suffix-list
-      ;; We always need atleast one toggle. We need two if the directory list
+      ;; We always need at least one toggle. We need two if the directory list
       ;; is stale since a folder was added.
       (when (equal prefix (get-text-property (mh-line-beginning-position)
                                              'mh-folder))

@@ -698,6 +698,27 @@ and argument-order conventions are similar to those used for
 referencing vectors (@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference
 Manual}).
 
+@defmac oref obj slot
+@anchor{oref}
+This macro retrieves the value stored in @var{obj} in the named
+@var{slot}.  Slot names are determined by @code{defclass} which
+creates the slot.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+@end defmac
+
+@defmac oref-default class slot
+@anchor{oref-default}
+This macro returns the value of the class-allocated @var{slot} from
+@var{class}.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+@end defmac
+
 @defmac oset object slot value
 This macro sets the value behind @var{slot} to @var{value} in
 @var{object}.  It returns @var{value}.
@@ -716,17 +737,6 @@ changed, this can be arranged by simply executing this bit of code:
 @end example
 @end defmac
 
-@defmac oref obj slot
-@anchor{oref}
-Retrieve the value stored in @var{obj} in the slot named by @var{slot}.
-Slot is the name of the slot when created by @dfn{defclass}.
-@end defmac
-
-@defmac oref-default class slot
-@anchor{oref-default}
-Get the value of the class-allocated @var{slot} from @var{class}.
-@end defmac
-
 The following accessors are defined by CLOS to reference or modify
 slot values, and use the previously mentioned set/ref routines.
 
@@ -734,14 +744,21 @@ slot values, and use the previously mentioned set/ref routines.
 @anchor{slot-value}
 This function retrieves the value of @var{slot} from @var{object}.
 Unlike @code{oref}, the symbol for @var{slot} must be quoted.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
 @end defun
 
 @defun set-slot-value object slot value
 @anchor{set-slot-value}
-This is not a CLOS function, but is the setter for @code{slot-value}
-used by the @code{setf} macro.  This
-function sets the value of @var{slot} from @var{object}.  Unlike
+This function sets the value of @var{slot} from @var{object}.  Unlike
 @code{oset}, the symbol for @var{slot} must be quoted.
+
+This is not a CLOS function, but is the obsolete setter for
+@code{slot-value} used by the @code{setf} macro.  It is therefore
+recommended to use @w{@code{(setf (slot-value @var{object} @var{slot})
+@var{value})}} instead.
 @end defun
 
 @defun slot-makeunbound object slot
@@ -1062,7 +1079,7 @@ Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
 This should look like Lisp symbols from other parts of Emacs such as
 buffers and processes, and is shorter and cleaner than printing the
 object's record.  It is more useful to use @code{object-print} to get
-and object's print form, as this allows the object to add extra display
+an object's print form, as this allows the object to add extra display
 information into the symbol.
 @end defun
 
@@ -1217,7 +1234,7 @@ objects on top of records, and thus everything is technically visible,
 some functions have been provided.  None of these functions are a part
 of CLOS.
 
-@defun object-slots obj
+@defun eieio-class-slots obj
 Return the list of public slots for @var{obj}.
 @end defun
 
@@ -1285,9 +1302,9 @@ This class is defined in the package @file{eieio-base}.
 Sometimes it is useful to keep a master list of all instances of a given
 class.  The class @code{eieio-instance-tracker} performs this task.
 
-@deftp {Class} eieio-instance-tracker tracker-symbol
+@deftp {Class} eieio-instance-tracker tracking-symbol
 Enable instance tracking for this class.
-The slot @var{tracker-symbol} should be initialized in inheritors of
+The slot @var{tracking-symbol} should be initialized in inheritors of
 this class to a symbol created with @code{defvar}.  This symbol will
 serve as the variable used as a master list of all objects of the given
 class.

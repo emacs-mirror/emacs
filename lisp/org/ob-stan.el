@@ -41,7 +41,7 @@
 ;; For more information and usage examples, visit
 ;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
 ;;
-;; [1] http://mc-stan.org/
+;; [1] https://mc-stan.org/
 
 ;;; Code:
 (require 'ob)

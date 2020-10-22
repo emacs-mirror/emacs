@@ -155,7 +155,7 @@ See `compilation-error-regexp-alist'.")
 If PROGRAM is non-nil, use that instead of \"find\"."
   ;;  Pick file to search from location we know
   (let* ((dir (file-truename data-directory))
-         (file (car (directory-files dir nil "^[^.]"))))
+         (file (car (directory-files dir nil "\\`[^.]"))))
     (with-temp-buffer
       (call-process (or program "find")
                     nil

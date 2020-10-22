@@ -31,15 +31,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 static int internal_self_insert (int, EMACS_INT);
 
-DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
-       doc: /* Return buffer position N characters after (before if N negative) point.  */)
-  (Lisp_Object n)
-{
-  CHECK_FIXNUM (n);
-
-  return make_fixnum (PT + XFIXNUM (n));
-}
-
 /* Add N to point; or subtract N if FORWARD is false.  N defaults to 1.
    Validate the new location.  Return nil.  */
 static Lisp_Object
@@ -159,7 +150,7 @@ With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 
 This function constrains point to the current field unless this moves
-point to a different line than the original, unconstrained result.
+point to a different line from the original, unconstrained result.
 If N is nil or 1, and a front-sticky field starts at point, the point
 does not move.  To ignore field boundaries bind
 `inhibit-field-text-motion' to t, or use the `forward-line' function
@@ -184,7 +175,7 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
 
 This function constrains point to the current field unless this moves
-point to a different line than the original, unconstrained result.  If
+point to a different line from the original, unconstrained result.  If
 N is nil or 1, and a rear-sticky field ends at point, the point does
 not move.  To ignore field boundaries bind `inhibit-field-text-motion'
 to t.  */)
@@ -203,7 +194,7 @@ to t.  */)
       SET_PT (newpos);
 
       if (PT > newpos
-	  && FETCH_CHAR (PT - 1) == '\n')
+	  && FETCH_BYTE (PT_BYTE - 1) == '\n')
 	{
 	  /* If we skipped over a newline that follows
 	     an invisible intangible run,
@@ -214,7 +205,7 @@ to t.  */)
 	  break;
 	}
       else if (PT > newpos && PT < ZV
-	       && FETCH_CHAR (PT) != '\n')
+	       && FETCH_BYTE (PT_BYTE) != '\n')
 	/* If we skipped something intangible
 	   and now we're not really at eol,
 	   keep going.  */
@@ -398,8 +389,8 @@ internal_self_insert (int c, EMACS_INT n)
 		  /* We will delete too many columns.  Let's fill columns
 		     by spaces so that the remaining text won't move.  */
 		  ptrdiff_t actual = PT_BYTE;
-		  DEC_POS (actual);
-		  if (FETCH_CHAR (actual) == '\t')
+		  actual -= prev_char_len (actual);
+		  if (FETCH_BYTE (actual) == '\t')
 		    /* Rather than add spaces, let's just keep the tab. */
 		    chars_to_delete--;
 		  else
@@ -460,7 +451,10 @@ internal_self_insert (int c, EMACS_INT n)
 	  string = concat2 (string, tem);
 	}
 
-      replace_range (PT, PT + chars_to_delete, string, 1, 1, 1, 0);
+      ptrdiff_t to;
+      if (INT_ADD_WRAPV (PT, chars_to_delete, &to))
+	to = PTRDIFF_MAX;
+      replace_range (PT, to, string, 1, 1, 1, 0);
       Fforward_char (make_fixnum (n));
     }
   else if (n > 1)
@@ -526,7 +520,6 @@ syms_of_cmds (void)
 This is run after inserting the character.  */);
   Vpost_self_insert_hook = Qnil;
 
-  defsubr (&Sforward_point);
   defsubr (&Sforward_char);
   defsubr (&Sbackward_char);
   defsubr (&Sforward_line);

@@ -1033,7 +1033,7 @@ that will be used to composed a non-nested citation string.  Supercite
 scans the various mail headers present in the original article and uses
 a number of heuristics to extract strings which it puts into the
 @dfn{attribution association list} or @dfn{attribution alist}.  This is
-analogous, but different than, the info alist previously mentioned.  Each
+analogous, but different from, the info alist previously mentioned.  Each
 element in the attribution alist is a key-value pair containing such
 information as the author's first name, middle names, and last name, the
 author's initials, and the author's email terminus.
@@ -1330,7 +1330,7 @@ co-worker that uses an uncommon citation style (say one that employs a
 possible for Supercite to recognize this and @emph{coerce} the citation
 to your preferred style, for consistency.  In theory, it is possible for
 Supercite to recognize such things as uuencoded messages or C code and
-cite or fill those differently than normal text.  None of this is
+cite or fill those differently from normal text.  None of this is
 currently part of Supercite, but contributions are welcome!
 
 @node  Using Regi

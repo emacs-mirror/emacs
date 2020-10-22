@@ -250,6 +250,13 @@ Completion}).  If the value is @code{nil}, then @key{TAB} indents the
 current line only if point is at the left margin or in the line's
 indentation; otherwise, it inserts a tab character.
 
+@vindex tab-first-completion
+  If @code{tab-always-indent} is @code{complete}, whether to expand or
+indent can be further customized via the @code{tab-first-completion}
+variable.  For instance, if that variable is @code{eol}, only complete
+if point is at the end of a line.  @xref{Mode-Specific Indent,,,
+elisp, The Emacs Lisp Reference Manual} for further details.
+
 @cindex Electric Indent mode
 @cindex mode, Electric Indent
 @findex electric-indent-mode

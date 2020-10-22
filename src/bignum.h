@@ -22,12 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef BIGNUM_H
 #define BIGNUM_H
 
-#ifdef HAVE_GMP
-# include <gmp.h>
-#else
-# include "mini-gmp.h"
-#endif
-
+#include <gmp.h>
 #include "lisp.h"
 
 /* Number of data bits in a limb.  */
@@ -55,7 +50,7 @@ extern void emacs_mpz_mul_2exp (mpz_t, mpz_t const, EMACS_INT)
   ARG_NONNULL ((1, 2));
 extern void emacs_mpz_pow_ui (mpz_t, mpz_t const, unsigned long)
   ARG_NONNULL ((1, 2));
-extern double mpz_get_d_rounded (mpz_t const);
+extern double mpz_get_d_rounded (mpz_t const) ATTRIBUTE_CONST;
 
 INLINE_HEADER_BEGIN
 
@@ -108,7 +103,8 @@ bignum_integer (mpz_t *tmp, Lisp_Object i)
   if (FIXNUMP (i))
     {
       mpz_set_intmax (*tmp, XFIXNUM (i));
-      return tmp;
+      /* The unnecessary cast pacifies a buggy GCC 4.8.5.  */
+      return (mpz_t const *) tmp;
     }
   return xbignum_val (i);
 }

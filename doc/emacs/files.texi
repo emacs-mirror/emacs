@@ -38,7 +38,8 @@ on file directories.
 * Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
-* File Conveniences::   Convenience Features for Finding Files.
+* File Conveniences::   Convenience features for finding files.
+* Image Mode::          Viewing image files.
 * Filesets::            Handling sets of files.
 @end menu
 
@@ -920,6 +921,7 @@ Manual}).  For customizations, see the Custom group @code{time-stamp}.
 @node Reverting
 @section Reverting a Buffer
 @findex revert-buffer
+@findex revert-buffer-with-fine-grain
 @cindex drastic changes
 @cindex reread a file
 
@@ -939,6 +941,19 @@ reverted changes as a single modification to the buffer's undo history
 (@pxref{Undo}).  Thus, after reverting, you can type @kbd{C-/} or its
 aliases to bring the reverted changes back, if you happen to change
 your mind.
+
+@vindex revert-buffer-with-fine-grain-max-seconds
+  To revert a buffer more conservatively, you can use the command
+@code{revert-buffer-with-fine-grain}.  This command acts like
+@code{revert-buffer}, but it tries to be as non-destructive as
+possible, making an effort to preserve all markers, properties and
+overlays in the buffer.  Since reverting this way can be very slow
+when you have made a large number of changes, you can modify the
+variable @code{revert-buffer-with-fine-grain-max-seconds} to
+specify a maximum amount of seconds that replacing the buffer
+contents this way should take.  Note that it is not ensured that the
+whole execution of @code{revert-buffer-with-fine-grain} won't take
+longer than this.
 
   Some kinds of buffers that are not associated with files, such as
 Dired buffers, can also be reverted.  For them, reverting means
@@ -1002,7 +1017,7 @@ variable @code{auto-revert-remote-files} to non-@code{nil}.
 @vindex auto-revert-use-notify
 @vindex auto-revert-interval
   By default, Auto Revert mode works using @dfn{file notifications},
-whereby changes in the filesystem are reported to Emacs by the OS.
+whereby changes in the filesystem are reported to Emacs by the OS@.
 You can disable use of file notifications by customizing the variable
 @code{auto-revert-use-notify} to a @code{nil} value, then Emacs will
 check for file changes by polling every five seconds.  You can change
@@ -1079,6 +1094,7 @@ want to make permanent.  Instead, auto-saving is done in a different
 file called the @dfn{auto-save file}, and the visited file is changed
 only when you request saving explicitly (such as with @kbd{C-x C-s}).
 
+@cindex @file{#}, in auto-save file names
   Normally, the auto-save file name is made by appending @samp{#} to the
 front and rear of the visited file name.  Thus, a buffer visiting file
 @file{foo.c} is auto-saved in a file @file{#foo.c#}.  Most buffers that
@@ -2087,8 +2103,7 @@ of the cache with the @code{file-cache-display} command.
 @section Convenience Features for Finding Files
 
   In this section, we introduce some convenient facilities for finding
-recently-opened files, reading file names from a buffer, and viewing
-image files.
+recently-opened files, reading file names from a buffer.
 
 @findex recentf-mode
 @vindex recentf-mode
@@ -2097,8 +2112,8 @@ image files.
   If you enable Recentf mode, with @kbd{M-x recentf-mode}, the
 @samp{File} menu includes a submenu containing a list of recently
 opened files.  @kbd{M-x recentf-save-list} saves the current
-@code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
-edits it.
+@code{recentf-list} to a file, and @kbd{M-x recentf-edit-list} edits
+it.
 
 @c FIXME partial-completion-mode (complete.el) is obsolete.
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
@@ -2107,10 +2122,11 @@ point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
 
+@node Image Mode
+@section Viewing Image Files
+
 @findex image-mode
 @findex image-toggle-display
-@findex image-next-file
-@findex image-previous-file
 @cindex images, viewing
   Visiting image files automatically selects Image mode.  In this
 major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
@@ -2118,14 +2134,41 @@ to toggle between displaying the file as an image in the Emacs buffer,
 and displaying its underlying text (or raw byte) representation.
 Additionally you can type @kbd{C-c C-x} (@code{image-toggle-hex-display})
 to toggle between displaying the file as an image in the Emacs buffer,
-and displaying it in hex representation.
-Displaying the file as an image works only if Emacs is compiled with
-support for displaying such images.  If the displayed image is wider
-or taller than the frame, the usual point motion keys (@kbd{C-f},
-@kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+and displaying it in hex representation.  Displaying the file as an
+image works only if Emacs is compiled with support for displaying
+such images.
+
+@vindex image-auto-resize
+@vindex image-auto-resize-on-window-resize
+If the displayed image is wider or taller than the window in which it
+is displayed, the usual point motion keys (@kbd{C-f}, @kbd{C-p}, and
+so forth) cause different parts of the image to be displayed.
+However, by default images are resized automatically to fit the
+window, so this is only necessary if you customize the default
+behavior by using the options @code{image-auto-resize} and
+@code{image-auto-resize-on-window-resize}.
+
+@findex image-transform-fit-both
+@findex image-transform-set-scale
+@findex image-transform-reset
+To resize the image manually you can use the command
+@code{image-transform-fit-both} bound to @kbd{s b}
+that fits the image to both the window height and width.
+To scale the image specifying a scale factor, use the command
+@code{image-transform-set-scale} bound to @kbd{s s}.
+To reset all transformations to the initial state, use
+@code{image-transform-reset} bound to @kbd{s 0}.
+
+@findex image-next-file
+@findex image-previous-file
+You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
 (@code{image-previous-file}) to visit the next image file and the
-previous image file in the same directory, respectively.
+previous image file in the same directory, respectively.  These
+commands will consult the ``parent'' dired buffer to determine what
+the next/previous image file is.  These commands also work when
+opening a file from archive files (like zip or tar files), and will
+then instead consult the archive mode buffer.  If neither an archive
+nor a dired ``parent'' buffer can be found, a dired buffer is opened.
 
 @findex image-mode-mark-file
 @findex image-mode-unmark-file
@@ -2190,7 +2233,6 @@ Emacs will try to determine whether there are external utilities that
 can be used to transform the image in question to @acronym{PNG} before
 displaying.  GraphicsMagick, ImageMagick and @command{ffmpeg} are
 currently supported for image conversions.
-
 
 @findex thumbs-mode
 @cindex mode, Thumbs

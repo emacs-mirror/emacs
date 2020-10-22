@@ -31,8 +31,7 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
-(eval-when-compile
-  (require 'custom))
+(eval-when-compile (require 'custom))
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
 (defvar ange-ftp-name-format)
@@ -79,9 +78,9 @@ present for backward compatibility."
   ;;; This regexp recognizes absolute filenames with only one component
   ;;; on Windows, for the sake of hostname completion.
   (and (memq system-type '(ms-dos windows-nt))
-       (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
+       (or (assoc "^[[:alpha:]]:/[^/:]*\\'" file-name-handler-alist)
 	   (setq file-name-handler-alist
-		 (cons '("^[a-zA-Z]:/[^/:]*\\'" .
+		 (cons '("^[:alpha:]]:/[^/:]*\\'" .
 			 ange-ftp-completion-hook-function)
 		       file-name-handler-alist)))))
 

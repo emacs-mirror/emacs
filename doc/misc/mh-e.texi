@@ -2256,10 +2256,10 @@ signature block is more to your liking.
 Two hooks can be used to control how messages are displayed. The first
 hook, @code{mh-show-mode-hook}, is called early on in the process of
 the message display. It is usually used to perform some action on the
-message's content. The second hook, @code{mh-show-hook}, is the last
+message's buffer. The second hook, @code{mh-show-hook}, is the last
 thing called after messages are displayed. It's used to affect the
-behavior of MH-E in general or when @code{mh-show-mode-hook} is too
-early.
+message's content, the behavior of MH-E in general, or when
+@code{mh-show-mode-hook} is too early.
 
 @cindex MH-Show mode
 @cindex modes, MH-Show

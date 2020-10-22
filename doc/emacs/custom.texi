@@ -755,7 +755,7 @@ non-@code{nil} value).  If you set a variable using the customization
 buffer, you need not worry about giving it an invalid type: the
 customization buffer usually only allows you to enter meaningful
 values.  When in doubt, use @kbd{C-h v} (@code{describe-variable}) to
-check the variable's documentation string to see kind of value it
+check the variable's documentation string to see what kind of value it
 expects (@pxref{Examining}).
 
 @menu
@@ -1223,7 +1223,7 @@ other context has no special meaning.
 disable a minor mode in a local variables list, use the @code{eval}
 keyword with a Lisp expression that runs the mode command
 (@pxref{Minor Modes}).  For example, the following local variables
-list enables Eldoc mode (@pxref{Lisp Doc}) by calling
+list enables ElDoc mode (@pxref{Lisp Doc}) by calling
 @code{eldoc-mode} with no argument (calling it with an argument of 1
 would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
 calling @code{font-lock-mode} with an argument of @minus{}1.
@@ -1630,6 +1630,10 @@ characters are actually defined by this map.
 @item
 @vindex mode-specific-map
 @code{mode-specific-map} is for characters that follow @kbd{C-c}.
+@item
+@vindex project-prefix-map
+@code{project-prefix-map} is for characters that follow @kbd{C-x p},
+used for project-related commands (@pxref{Projects}).
 @end itemize
 
 @node Local Keymaps
@@ -1873,15 +1877,19 @@ You can use a vector for the simple cases too:
   Language and coding systems may cause problems with key bindings for
 non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
+@findex define-key
   As described in @ref{Local Keymaps}, major modes and minor modes can
 define local keymaps.  These keymaps are constructed when the mode is
-used for the first time in a session.  If you wish to change one of
-these keymaps, you must use the @dfn{mode hook} (@pxref{Hooks}).
+loaded for the first time in a session.  The function @code{define-key}
+can be used to make changes in a specific keymap.  This function can
+also unset keys, when passed @code{nil} as the binding.
 
-@findex define-key
-  For example, Texinfo mode runs the hook @code{texinfo-mode-hook}.
-Here's how you can use the hook to add local bindings for @kbd{C-c n}
-and @kbd{C-c p} in Texinfo mode:
+  Since a mode's keymaps are not constructed until it has been loaded,
+you must delay running code which modifies them, e.g., by putting it
+on a @dfn{mode hook} (@pxref{Hooks}).  For example, Texinfo mode
+runs the hook @code{texinfo-mode-hook}.  Here's how you can use the
+hook to add local bindings for @kbd{C-c n} and @kbd{C-c p}, and remove
+the one for @kbd{C-c C-x x} in Texinfo mode:
 
 @example
 (add-hook 'texinfo-mode-hook
@@ -1890,6 +1898,7 @@ and @kbd{C-c p} in Texinfo mode:
                         'backward-paragraph)
             (define-key texinfo-mode-map "\C-cn"
                         'forward-paragraph)))
+            (define-key texinfo-mode-map "\C-c\C-xx" nil)
 @end example
 
 @node Modifier Keys
@@ -1930,10 +1939,12 @@ commonly used, Emacs supports three other modifier keys.  These are
 called @key{Super}, @key{Hyper}, and @key{Alt}.  Few terminals provide
 ways to use these modifiers; the key labeled @key{Alt} on most
 keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
-standard key bindings in Emacs do not include any characters with
-these modifiers.  However, you can customize Emacs to assign meanings
-to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
-@samp{A-} respectively.
+standard key bindings in Emacs do not include any characters with the
+@key{Super} and @key{Hyper} modifiers, and only a small number of
+standard key bindings use @key{Alt}.  However, you can customize Emacs
+to assign meanings to key bindings that use these modifiers.  The
+modifier bits are labeled as @samp{s-}, @samp{H-} and @samp{A-}
+respectively.
 
   Even if your keyboard lacks these additional modifier keys, you can
 enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to
@@ -2245,10 +2256,13 @@ as a function from Lisp programs.
   When Emacs is started, it normally tries to load a Lisp program from
 an @dfn{initialization file}, or @dfn{init file} for short.  This
 file, if it exists, specifies how to initialize Emacs for you.
-If the file @file{~/.config/emacs/init.el} exists, it is used as the
-init file; otherwise Emacs may look at @file{~/.emacs.el},
-@file{~/.emacs}, @file{~/.emacs.d/init.el}, or other locations.
-@xref{Find Init}.
+Traditionally, file @file{~/.emacs} is used as the init file, although
+Emacs also looks at @file{~/.emacs.el}, @file{~/.emacs.d/init.el},
+@file{~/.config/emacs/init.el}, or other locations.  @xref{Find Init}.
+
+You may find it convenient to have all your Emacs configuration in one
+directory, in which case you should use @file{~/.emacs.d/init.el} or
+the XDG-compatible @file{~/.config/emacs/init.el}.
 
   You can use the command line switch @samp{-q} to prevent loading
 your init file, and @samp{-u} (or @samp{--user}) to specify a
@@ -2591,6 +2605,7 @@ the function or facility is available, like this:
 (if (fboundp 'blink-cursor-mode)
     (blink-cursor-mode 0))
 
+@c FIXME: Find better example since `set-coding-priority' is removed.
 (if (boundp 'coding-category-utf-8)
     (set-coding-priority '(coding-category-utf-8)))
 @end example
@@ -2654,27 +2669,36 @@ library.  @xref{Hooks}.
 @subsection How Emacs Finds Your Init File
 
   Emacs normally finds your init file in a location under your home
-directory.  @xref{Init File}.  By default this location is
-@file{~/.config/emacs/init.el} where @file{~/} stands for your home directory.
-This default can be overridden as described below.
+directory.  @xref{Init File}.
 
-  If @env{XDG_CONFIG_HOME} is set in your environment, its
-value replaces @file{~/.config} in the name of the default
-init file.
+  Emacs looks for your init file using the filenames @file{~/.emacs.el},
+@file{~/.emacs}, or @file{~/.emacs.d/init.el} in that order; you can
+choose to use any one of these names.  (Note that only the locations
+directly in your home directory have a leading dot in the location's
+basename.)
 
-  If the default init file's parent directory does not exist but the
-directory @file{~/.emacs.d} does exist, Emacs looks for your init file
-using the filenames @file{~/.emacs.el}, @file{~/.emacs}, or
-@file{~/.emacs.d/init.el}; you can choose to use any one of these
-names.  (Note that only the locations directly in your home directory
-have a leading dot in the location's basename.)  Although this is
-backward-compatible with older Emacs versions, modern POSIX platforms
-prefer putting your initialization files under @file{~/.config} so
-that troubleshooting a problem that might be due to a bad init file,
-or archiving a collection of init files, can be done by renaming that
-directory.  To help older Emacs versions find configuration files in
-their current default locations, you can execute the following
-Emacs Lisp code:
+Emacs can also look in an XDG-compatible location for @file{init.el},
+the default is the directory @file{~/.config/emacs}.  This can be
+overridden by setting @env{XDG_CONFIG_HOME} in your environment, its
+value replaces @file{~/.config} in the name of the default XDG init
+file.  However @file{~/.emacs.d}, @file{~/.emacs}, and
+@file{~/.emacs.el} are always preferred if they exist, which means
+that you must delete or rename them in order to use the XDG location.
+
+Note also that if neither the XDG location nor @file{~/.emacs.d}
+exist, then Emacs will create @file{~/.emacs.d} (and therefore use it
+during subsequent invocations).
+
+Emacs will set @code{user-emacs-directory} to the directory it decides
+to use.
+
+Although this is backward-compatible with older Emacs versions, modern
+POSIX platforms prefer putting your initialization files under
+@file{~/.config} so that troubleshooting a problem that might be due
+to a bad init file, or archiving a collection of init files, can be
+done by renaming that directory.  To help older Emacs versions find
+configuration files in their current default locations, you can
+execute the following Emacs Lisp code:
 
 @example
 (make-symbolic-link ".config/emacs" "~/.emacs.d")
@@ -2694,7 +2718,7 @@ otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
 
   For brevity the rest of the Emacs documentation generally uses just
-the current default location @file{~/.config/emacs/init.el} for the
+the current default location @file{~/.emacs.d/init.el} for the
 init file.
 @c  LocalWords:  backtab
 
@@ -2740,7 +2764,7 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @xref{Init File}.  However, it is sometimes desirable
 to have customizations that take effect during Emacs startup earlier than the
 normal init file is processed.  Such customizations can be put in the early
-init file, @file{~/.config/emacs.d/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
+init file, @file{~/.config/emacs/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
 package system and GUI is initialized, so in it you can customize variables
 that affect frame appearance as well as the package initialization process,
 such as @code{package-enable-at-startup}, @code{package-load-list}, and

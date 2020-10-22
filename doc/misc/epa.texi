@@ -337,7 +337,8 @@ Verify OpenPGP cleartext signed messages in the current buffer.
 @kindex C-c C-e C-s
 @kindex C-c C-e s
 @findex epa-mail-sign
-Compose a signed message from the current buffer.
+Compose a signed message from the current buffer, using your default
+key.  With a prefix argument, select the key to use interactively.
 
 @item C-c C-e C-e and C-c C-e e
 @kindex C-c C-e C-e
@@ -352,6 +353,8 @@ key in the recipient list, use @samp{encrypt-to} option in
 addresses using the @code{epa-mail-aliases} list.  You can also
 use that option to ignore specific recipients for encryption purposes.
 
+With prefix argument, asks you to select the recipients interactively,
+whether to sign, and which key(s) to sign with.
 @end table
 
 @node Encrypting/decrypting gpg files,  , Mail-mode integration, Commands

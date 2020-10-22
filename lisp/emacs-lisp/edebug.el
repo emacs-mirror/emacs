@@ -555,7 +555,7 @@ already is one.)"
 
 
 ;; Compatibility with old versions.
-(defalias 'edebug-all-defuns 'edebug-all-defs)
+(define-obsolete-function-alias 'edebug-all-defuns #'edebug-all-defs "28.1")
 
 ;;;###autoload
 (defun edebug-all-defs ()
@@ -740,6 +740,21 @@ Maybe clear the markers and delete the symbol's edebug property?"
       (read (current-buffer))))))
 
 ;;; Offsets for reader
+
+(defun edebug-get-edebug-or-ghost (name)
+  "Get NAME's value of property `edebug' or property `ghost-edebug'.
+
+The idea is that should function NAME be recompiled whilst
+debugging is in progress, property `edebug' will get set to a
+marker.  The needed data will then come from property
+`ghost-edebug'."
+  (let ((e (get name 'edebug)))
+    (if (consp e)
+        e
+      (let ((g (get name 'ghost-edebug)))
+        (if (consp g)
+            g
+          e)))))
 
 ;; Define a structure to represent offset positions of expressions.
 ;; Each offset structure looks like: (before . after) for constituents,
@@ -1168,6 +1183,12 @@ purpose by adding an entry to this alist, and setting
                 ;; Not edebugging this form, so reset the symbol's edebug
                 ;; property to be just a marker at the definition's source code.
                 ;; This only works for defs with simple names.
+
+                ;; Preserve the `edebug' property in case there's
+                ;; debugging still under way.
+                (let ((ghost (get def-name 'edebug)))
+                  (if (consp ghost)
+                      (put def-name 'ghost-edebug ghost)))
                 (put def-name 'edebug (point-marker))
                 ;; Also nil out dependent defs.
                 '(mapcar (function
@@ -1208,7 +1229,7 @@ purpose by adding an entry to this alist, and setting
   "Wrap the FORMS of a definition body."
   (if edebug-def-interactive
       `(let ((,(edebug-interactive-p-name)
-	      (interactive-p)))
+	      (called-interactively-p 'interactive)))
 	 ,(edebug-make-enter-wrapper forms))
     (edebug-make-enter-wrapper forms)))
 
@@ -1219,6 +1240,13 @@ purpose by adding an entry to this alist, and setting
   ;; since it wraps the list of forms with a call to `edebug-enter'.
   ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
   ;; Do this after parsing since that may find a name.
+  (when (string-match-p (rx bos "edebug-anon" (+ digit) eos)
+                        (symbol-name edebug-old-def-name))
+    ;; FIXME: Due to Bug#42701, we reset an anonymous name so that
+    ;; backtracking doesn't generate duplicate definitions.  It would
+    ;; be better to not define wrappers in the case of a non-matching
+    ;; specification branch to begin with.
+    (setq edebug-old-def-name nil))
   (setq edebug-def-name
 	(or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
   `(edebug-enter
@@ -1411,6 +1439,8 @@ contains a circular object."
 		  (cons window (window-start window)))))
 
       ;; Store the edebug data in symbol's property list.
+      ;; We actually want to remove this property entirely, but can't.
+      (put edebug-def-name 'ghost-edebug nil)
       (put edebug-def-name 'edebug
 	   ;; A struct or vector would be better here!!
 	   (list edebug-form-begin-marker
@@ -1423,8 +1453,8 @@ contains a circular object."
       )))
 
 (defun edebug--restore-breakpoints (name)
-  (let ((data (get name 'edebug)))
-    (when (listp data)
+  (let ((data (edebug-get-edebug-or-ghost name)))
+    (when (consp data)
       (let ((offsets (nth 2 data))
             (breakpoints (nth 1 data))
             (start (nth 0 data))
@@ -1702,18 +1732,22 @@ contains a circular object."
 		(&define . edebug-match-&define)
 		(name . edebug-match-name)
 		(:name . edebug-match-colon-name)
+                (:unique . edebug-match-:unique)
 		(arg . edebug-match-arg)
 		(def-body . edebug-match-def-body)
 		(def-form . edebug-match-def-form)
 		;; Less frequently used:
 		;; (function . edebug-match-function)
 		(lambda-expr . edebug-match-lambda-expr)
+                (cl-generic-method-qualifier
+                 . edebug-match-cl-generic-method-qualifier)
                 (cl-generic-method-args . edebug-match-cl-generic-method-args)
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
                 (cl-macrolet-body . edebug-match-cl-macrolet-body)
 		(&not . edebug-match-&not)
 		(&key . edebug-match-&key)
+		(&error . edebug-match-&error)
 		(place . edebug-match-place)
 		(gate . edebug-match-gate)
 		;;   (nil . edebug-match-nil)  not this one - special case it.
@@ -1832,9 +1866,6 @@ contains a circular object."
   ;; This means nothing matched, so it is OK.
   nil) ;; So, return nothing
 
-
-(def-edebug-spec &key edebug-match-&key)
-
 (defun edebug-match-&key (cursor specs)
   ;; Following specs must look like (<name> <spec>) ...
   ;; where <name> is the name of a keyword, and spec is its spec.
@@ -1847,6 +1878,15 @@ contains a circular object."
                            (car (cdr pair))))
 		 specs))))
 
+(defun edebug-match-&error (cursor specs)
+  ;; Signal an error, using the following string in the spec as argument.
+  (let ((error-string (car specs))
+        (edebug-error-point (edebug-before-offset cursor)))
+    (goto-char edebug-error-point)
+    (error "%s"
+           (if (stringp error-string)
+               error-string
+             "String expected after &error in edebug-spec"))))
 
 (defun edebug-match-gate (_cursor)
   ;; Simply set the gate to prevent backtracking at this level.
@@ -2005,6 +2045,27 @@ contains a circular object."
 	  spec))
   nil)
 
+(defun edebug-match-:unique (_cursor spec)
+  "Match a `:unique PREFIX' specifier.
+SPEC is the symbol name prefix for `gensym'."
+  (let ((suffix (gensym spec)))
+    (setq edebug-def-name
+	  (if edebug-def-name
+	      ;; Construct a new name by appending to previous name.
+	      (intern (format "%s@%s" edebug-def-name suffix))
+	    suffix)))
+  nil)
+
+(defun edebug-match-cl-generic-method-qualifier (cursor)
+  "Match a QUALIFIER for `cl-defmethod' at CURSOR."
+  (let ((args (edebug-top-element-required cursor "Expected qualifier")))
+    ;; Like in CLOS spec, we support any non-list values.
+    (unless (atom args) (edebug-no-match cursor "Atom expected"))
+    ;; Append the arguments to `edebug-def-name' (Bug#42671).
+    (setq edebug-def-name (intern (format "%s %s" edebug-def-name args)))
+    (edebug-move-cursor cursor)
+    (list args)))
+
 (defun edebug-match-cl-generic-method-args (cursor)
   (let ((args (edebug-top-element-required cursor "Expected arguments")))
     (if (not (consp args))
@@ -2105,10 +2166,10 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 
 (def-edebug-spec edebug-spec
   (&or
+   edebug-spec-list
    (vector &rest edebug-spec)		; matches a vector
    ("vector" &rest edebug-spec)		; matches a vector spec
    ("quote" symbolp)
-   edebug-spec-list
    stringp
    [edebug-lambda-list-keywordp &rest edebug-spec]
    [keywordp gate edebug-spec]
@@ -2216,6 +2277,8 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 
 (def-edebug-spec nested-backquote-form
   (&or
+   ("`" &error "Triply nested backquotes (without commas \"between\" them) \
+are too difficult to instrument")
    ;; Allow instrumentation of any , or ,@ contained within the (\, ...) or
    ;; (\,@ ...) matched on the next line.
    ([&or "," ",@"] backquote-form)
@@ -2833,7 +2896,6 @@ See `edebug-behavior-alist' for implementations.")
               (if (not (eq edebug-buffer edebug-outside-buffer))
                   (goto-char edebug-outside-point))
               (if (marker-buffer (edebug-mark-marker))
-                  ;; Does zmacs-regions need to be nil while doing set-marker?
                   (set-marker (edebug-mark-marker) edebug-outside-mark))
               ))     ; unwind-protect
 	  ;; None of the following is done if quit or signal occurs.
@@ -3120,7 +3182,7 @@ before returning.  The default is one second."
   ;; Return (function . index) of the nearest edebug stop point.
   (let* ((edebug-def-name (edebug-form-data-symbol))
 	 (edebug-data
-	   (let ((data (get edebug-def-name 'edebug)))
+	   (let ((data (edebug-get-edebug-or-ghost edebug-def-name)))
 	     (if (or (null data) (markerp data))
 		 (error "%s is not instrumented for Edebug" edebug-def-name))
 	     data))  ; we could do it automatically, if data is a marker.
@@ -3157,7 +3219,7 @@ before returning.  The default is one second."
     (if edebug-stop-point
 	(let* ((edebug-def-name (car edebug-stop-point))
 	       (index (cdr edebug-stop-point))
-	       (edebug-data (get edebug-def-name 'edebug))
+	       (edebug-data (edebug-get-edebug-or-ghost edebug-def-name))
 
 	       ;; pull out parts of edebug-data
 	       (edebug-def-mark (car edebug-data))
@@ -3198,7 +3260,7 @@ the breakpoint."
     (if edebug-stop-point
 	(let* ((edebug-def-name (car edebug-stop-point))
 	       (index (cdr edebug-stop-point))
-	       (edebug-data (get edebug-def-name 'edebug))
+	       (edebug-data (edebug-get-edebug-or-ghost edebug-def-name))
 
 	       ;; pull out parts of edebug-data
 	       (edebug-def-mark (car edebug-data))
@@ -3236,7 +3298,7 @@ the breakpoint."
   "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
 
 (defun edebug--overlay-breakpoints (function)
-  (let* ((data (get function 'edebug))
+  (let* ((data (edebug-get-edebug-or-ghost function))
          (start (nth 0 data))
          (breakpoints (nth 1 data))
          (offsets (nth 2 data)))
@@ -3276,9 +3338,9 @@ With prefix argument, make it a temporary breakpoint."
   (interactive "P")
   ;; If the form hasn't been instrumented yet, do it now.
   (when (and (not edebug-active)
-	     (let ((data (get (edebug--form-data-name
-                               (edebug-get-form-data-entry (point)))
-                              'edebug)))
+	     (let ((data (edebug-get-edebug-or-ghost
+                          (edebug--form-data-name
+                           (edebug-get-form-data-entry (point))))))
 	       (or (null data) (markerp data))))
     (edebug-defun))
   (edebug-modify-breakpoint t nil arg))
@@ -3292,7 +3354,7 @@ With prefix argument, make it a temporary breakpoint."
   "Unset all the breakpoints in the current form."
   (interactive)
   (let* ((name (edebug-form-data-symbol))
-         (breakpoints (nth 1 (get name 'edebug))))
+         (breakpoints (nth 1 (edebug-get-edebug-or-ghost name))))
     (unless breakpoints
       (user-error "There are no breakpoints in %s" name))
     (save-excursion
@@ -3308,7 +3370,7 @@ With prefix argument, make it a temporary breakpoint."
       (user-error "No stop point near point"))
     (let* ((name (car stop-point))
            (index (cdr stop-point))
-           (data (get name 'edebug))
+           (data (edebug-get-edebug-or-ghost name))
            (breakpoint (assq index (nth 1 data))))
       (unless breakpoint
         (user-error "No breakpoint near point"))
@@ -3489,7 +3551,7 @@ instrument cannot be found, signal an error."
 	(goto-char func-marker)
 	(edebug-eval-top-level-form)
         (list func)))
-     ((consp func-marker)
+     ((and (consp func-marker) (consp (symbol-function func)))
       (message "%s is already instrumented." func)
       (list func))
      (t
@@ -4262,7 +4324,7 @@ Save DEF-NAME, BEFORE-INDEX and AFTER-INDEX in FRAME."
   (let* ((index (backtrace-get-index))
          (frame (nth index backtrace-frames)))
     (when (edebug--frame-def-name frame)
-      (let* ((data (get (edebug--frame-def-name frame) 'edebug))
+      (let* ((data (edebug-get-edebug-or-ghost (edebug--frame-def-name frame)))
              (marker (nth 0 data))
              (offsets (nth 2 data)))
         (pop-to-buffer (marker-buffer marker))
@@ -4346,7 +4408,7 @@ reinstrument it."
   (let* ((function (edebug-form-data-symbol))
 	 (counts (get function 'edebug-freq-count))
 	 (coverages (get function 'edebug-coverage))
-	 (data (get function 'edebug))
+	 (data (edebug-get-edebug-or-ghost function))
 	 (def-mark (car data))	; mark at def start
 	 (edebug-points (nth 2 data))
 	 (i (1- (length edebug-points)))
@@ -4399,7 +4461,6 @@ reinstrument it."
 (defun edebug-temp-display-freq-count ()
   "Temporarily display the frequency count data for the current definition.
 It is removed when you hit any char."
-  ;; This seems not to work with Emacs 18.59. It undoes too far.
   (interactive)
   (let ((inhibit-read-only t))
     (undo-boundary)
@@ -4504,7 +4565,7 @@ With prefix argument, make it a temporary breakpoint."
       (if edebug-stop-point
 	  (let* ((edebug-def-name (car edebug-stop-point))
 		 (index (cdr edebug-stop-point))
-		 (edebug-data (get edebug-def-name 'edebug))
+		 (edebug-data (edebug-get-edebug-or-ghost edebug-def-name))
 		 (edebug-breakpoints (car (cdr edebug-data)))
 		 (edebug-break-data (assq index edebug-breakpoints))
 		 (edebug-break-condition (car (cdr edebug-break-data)))
@@ -4518,17 +4579,6 @@ With prefix argument, make it a temporary breakpoint."
   (edebug-modify-breakpoint t condition arg))
 
 (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-
-;;; Autoloading of Edebug accessories
-
-;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
-(defun edebug--require-cl-read ()
-  (require 'edebug-cl-read))
-
-(if (featurep 'cl-read)
-    (add-hook 'edebug-setup-hook #'edebug--require-cl-read)
-  ;; The following causes edebug-cl-read to be loaded when you load cl-read.el.
-  (add-hook 'cl-read-load-hooks #'edebug--require-cl-read))
 
 
 ;;; Finalize Loading
@@ -4564,7 +4614,6 @@ With prefix argument, make it a temporary breakpoint."
       (run-with-idle-timer 0 nil #'(lambda () (unload-feature 'edebug)))))
   (remove-hook 'called-interactively-p-functions
                #'edebug--called-interactively-skip)
-  (remove-hook 'cl-read-load-hooks #'edebug--require-cl-read)
   (edebug-uninstall-read-eval-functions)
   ;; Continue standard unloading.
   nil)

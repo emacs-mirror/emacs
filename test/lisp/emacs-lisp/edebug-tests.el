@@ -36,17 +36,6 @@
 (require 'edebug)
 (require 'kmacro)
 
-;; Use `eval-and-compile' because this is used by the macro
-;; `edebug-tests-deftest'.
-(eval-and-compile
-  (defvar edebug-tests-sample-code-file
-    (expand-file-name
-     "edebug-resources/edebug-test-code.el"
-     (file-name-directory (or (bound-and-true-p byte-compile-current-file)
-                              load-file-name
-                              buffer-file-name)))
-    "Name of file containing code samples for Edebug tests."))
-
 (defvar edebug-tests-temp-file nil
   "Name of temp file containing sample code stripped of stop point symbols.")
 (defvar edebug-tests-stop-points nil
@@ -116,7 +105,8 @@ back to the top level.")
   (declare (debug (body)))
   `(edebug-tests-with-default-config
     (let ((edebug-tests-failure-in-post-command nil)
-          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el")))
+          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el"))
+          (find-file-suppress-same-file-warnings t))
       (edebug-tests-setup-code-file edebug-tests-temp-file)
       (ert-with-message-capture
        edebug-tests-messages
@@ -210,7 +200,7 @@ All other elements will be nil."
 (defvar edebug-tests-thunks nil
   "List containing thunks to run after each command in a keyboard macro.")
 (defvar edebug-tests-kbd-macro-index nil
-  "Index into `edebug-tests-run-unpacked-kbd-macro's current keyboard macro.")
+  "Index into `edebug-tests-run-kbd-macro's current keyboard macro.")
 
 (defun edebug-tests-run-macro (kbdmac &rest thunks)
   "Run a keyboard macro and execute a thunk after each command in it.
@@ -221,6 +211,7 @@ be the same as every keystroke) execute the thunk at the same
 index."
   (let* ((edebug-tests-thunks thunks)
          (edebug-tests-kbd-macro-index 0)
+         (find-file-suppress-same-file-warnings t)
          saved-local-map)
     (with-current-buffer (find-file-noselect edebug-tests-temp-file)
       (setq saved-local-map overriding-local-map)
@@ -344,7 +335,7 @@ evaluate to \"symbol\", \"symbol-1\", \"symbol-2\", etc."
 Write the loadable code to a buffer for TMPFILE, and set
 `edebug-tests-stop-points' to a map from defined symbols to stop
 point names to positions in the file."
-  (with-current-buffer (find-file-noselect edebug-tests-sample-code-file)
+  (with-current-buffer (find-file-noselect (ert-resource-file "edebug-test-code.el"))
     (let ((marked-up-code (buffer-string)))
       (with-temp-file tmpfile
         (insert marked-up-code))))
@@ -937,6 +928,100 @@ test and possibly others should be updated."
     (edebug-tests-should-be-at "range" "start")
     "g"
     (should (equal edebug-tests-@-result '(0 1))))))
+
+(ert-deftest edebug-cl-defmethod-qualifier ()
+  "Check that secondary `cl-defmethod' forms don't stomp over
+primary ones (Bug#42671)."
+  (with-temp-buffer
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (defined-symbols ())
+           (edebug-new-definition-function
+            (lambda (def-name)
+              (push def-name defined-symbols)
+              (edebug-new-definition def-name))))
+      (dolist (form '((cl-defmethod edebug-cl-defmethod-qualifier ((_ number)))
+                      (cl-defmethod edebug-cl-defmethod-qualifier
+                        :around ((_ number)))))
+        (print form (current-buffer)))
+      (eval-buffer)
+      (should
+       (equal
+        defined-symbols
+        (list (intern "edebug-cl-defmethod-qualifier :around ((_ number))")
+              (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
+
+(ert-deftest edebug-tests-cl-flet ()
+  "Check that Edebug can instrument `cl-flet' forms without name
+clashes (Bug#41853)."
+  (with-temp-buffer
+    (dolist (form '((defun edebug-tests-cl-flet-1 ()
+                      (cl-flet ((inner () 0)) (message "Hi"))
+                      (cl-flet ((inner () 1)) (inner)))
+                    (defun edebug-tests-cl-flet-2 ()
+                      (cl-flet ((inner () 2)) (inner)))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      (should (equal (reverse instrumented-names)
+                     ;; The outer definitions come after the inner
+                     ;; ones because their body ends later.
+                     ;; FIXME: There are twice as many inner
+                     ;; definitions as expected due to Bug#41988.
+                     ;; Once that bug is fixed, remove the duplicates.
+                     ;; FIXME: We'd rather have names such as
+                     ;; `edebug-tests-cl-flet-1@inner@cl-flet@10000',
+                     ;; but that requires further changes to Edebug.
+                     '(inner@cl-flet@10000
+                       inner@cl-flet@10001
+                       inner@cl-flet@10002
+                       inner@cl-flet@10003
+                       edebug-tests-cl-flet-1
+                       inner@cl-flet@10004
+                       inner@cl-flet@10005
+                       edebug-tests-cl-flet-2))))))
+
+(ert-deftest edebug-tests-duplicate-symbol-backtrack ()
+  "Check that Edebug doesn't create duplicate symbols when
+backtracking (Bug#42701)."
+  (with-temp-buffer
+    (dolist (form '((require 'subr-x)
+                    (defun edebug-tests-duplicate-symbol-backtrack ()
+                      (if-let (x (funcall (lambda (y) 1) 2)) 3 4))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name)))
+           ;; Make generated symbols reproducible.
+           (gensym-counter 10000))
+      (eval-buffer)
+      ;; The anonymous symbols are uninterned.  Use their names so we
+      ;; can perform the assertion.  The names should still be unique.
+      (should (equal (mapcar #'symbol-name (reverse instrumented-names))
+                     ;; The outer definition comes after the inner
+                     ;; ones because its body ends later.
+                     ;; FIXME: There are twice as many inner
+                     ;; definitions as expected due to Bug#42701.
+                     ;; Once that bug is fixed, remove the duplicates.
+                     '("edebug-anon10000"
+                       "edebug-anon10001"
+                       "edebug-tests-duplicate-symbol-backtrack"))))))
 
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

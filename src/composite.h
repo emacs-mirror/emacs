@@ -125,10 +125,13 @@ composition_registered_p (Lisp_Object prop)
     COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
   } while (false)
 
-/* Nonzero if the global reference point GREF and new reference point NREF are
+/* True if the global reference point GREF and new reference point NREF are
    valid.  */
-#define COMPOSITION_ENCODE_RULE_VALID(gref, nref)	\
-  (UNSIGNED_CMP (gref, <, 12) && UNSIGNED_CMP (nref, <, 12))
+INLINE bool
+COMPOSITION_ENCODE_RULE_VALID (int gref, int nref)
+{
+  return 0 <= gref && gref < 12 && 0 <= nref && nref < 12;
+}
 
 /* Return encoded composition rule for the pair of global reference
    point GREF and new reference point NREF.  Arguments must be valid.  */

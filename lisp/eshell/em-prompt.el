@@ -187,7 +187,7 @@ See `eshell-prompt-regexp'."
   "Move to end of Nth previous prompt in the buffer.
 See `eshell-prompt-regexp'."
   (interactive "p")
-  (beginning-of-line)            ; Don't count prompt on current line.
+  (forward-line 0)            ; Don't count prompt on current line.
   (eshell-next-prompt (- n)))
 
 (defun eshell-skip-prompt ()

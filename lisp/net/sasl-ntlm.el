@@ -4,7 +4,7 @@
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: SASL, NTLM
-;; Version: 1.00
+;; Old-Version: 1.00
 ;; Created: February 2001
 ;; Package: sasl
 

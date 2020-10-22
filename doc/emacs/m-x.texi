@@ -72,6 +72,10 @@ number, in which case Emacs will show the binding for that many
 seconds before removing it from display.  The default behavior is to
 display the binding for 2 seconds.
 
+Additionally, when @code{suggest-key-bindings} is non-@code{nil}, the
+completion list of @kbd{M-x} shows equivalent key bindings for all
+commands that have them.
+
 @vindex extended-command-suggest-shorter
   Commands that don't have key bindings, can still be invoked after
 typing less than their full name at the @samp{M-x} prompt.  Emacs

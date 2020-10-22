@@ -2005,7 +2005,7 @@ the table and kill the editing buffer."
 	text)
     (goto-char (point-min))
     (while (re-search-forward "^#.*\n?" nil t) (replace-match ""))
-    (while (re-search-forward "\\([ \t]*\n[ \t]*\\)+" nil t)
+    (while (re-search-forward "[ \t]*\n[ \t\n]*" nil t)
       (replace-match " "))
     (setq text (org-trim (buffer-string)))
     (set-window-configuration cw)
@@ -3099,7 +3099,7 @@ function assumes the table is already analyzed (i.e., using
       (let ((lhs (car e))
 	    (rhs (cdr e)))
 	(cond
-	 ((string-match-p "\\`@-?[-+0-9]+\\$-?[0-9]+\\'" lhs)
+	 ((string-match-p "\\`@[-+0-9]+\\$-?[0-9]+\\'" lhs)
 	  ;; This just refers to one fixed field.
 	  (push e res))
 	 ((string-match-p "\\`[a-zA-Z][_a-zA-Z0-9]*\\'" lhs)
@@ -6122,7 +6122,7 @@ which will prompt for the width."
 ;; Here are two examples of different styles.
 
 ;; Unicode block characters are used to give a smooth effect.
-;; See http://en.wikipedia.org/wiki/Block_Elements
+;; See https://en.wikipedia.org/wiki/Block_Elements
 ;; Use one of those drawing functions
 ;; - orgtbl-ascii-draw   (the default ascii)
 ;; - orgtbl-uc-draw-grid (unicode with a grid effect)
@@ -6136,7 +6136,7 @@ which will prompt for the width."
 It is a variant of orgtbl-ascii-draw with Unicode block
 characters, for a smooth display.  Bars appear as grids (to the
 extent the font allows)."
-  ;; http://en.wikipedia.org/wiki/Block_Elements
+  ;; https://en.wikipedia.org/wiki/Block_Elements
   ;; best viewed with the "DejaVu Sans Mono" font.
   (orgtbl-ascii-draw value min max width
 		     " \u258F\u258E\u258D\u258C\u258B\u258A\u2589"))

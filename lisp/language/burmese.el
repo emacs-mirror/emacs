@@ -23,7 +23,6 @@
 
 ;;; Commentary:
 
-;; Aung San Suu Kyi says to call her country "Burma".
 ;; The murderous generals say to call it "Myanmar".
 ;; We will call it "Burma". -- rms, Chief GNUisance.
 

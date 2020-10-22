@@ -256,6 +256,7 @@ pdumper_clear_marks (void)
    file was loaded.  */
 extern void pdumper_record_wd (const char *);
 
+void init_pdumper_once (void);
 void syms_of_pdumper (void);
 
 INLINE_HEADER_END

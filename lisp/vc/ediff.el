@@ -566,10 +566,8 @@ expression; only file names that match the regexp are considered."
 			     (ediff-strip-last-dir f))
 			   nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt "Filter filenames through regular expression"
+			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -594,10 +592,8 @@ names.  Only the files that are under revision control are taken into account."
      (list (read-directory-name
 	    "Directory to compare with revision:" dir-A nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt
+             "Filter filenames through regular expression" default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -632,10 +628,8 @@ regular expression; only file names that match the regexp are considered."
 			     (ediff-strip-last-dir f))
 			   nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt "Filter filenames through regular expression"
+			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -665,10 +659,8 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 			     (ediff-strip-last-dir f))
 			   nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt "Filter filenames through regular expression"
+			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -707,10 +699,8 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 				   (ediff-strip-last-dir f))
 				 nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt "Filter filenames through regular expression"
+			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -735,10 +725,8 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
      (list (read-directory-name
 	    "Directory to merge with revisions:" dir-A nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt "Filter filenames through regular expression"
+			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -767,10 +755,8 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 	    "Directory to merge with revisions and ancestors:"
 	    dir-A nil 'must-match)
 	   (read-string
-	    (if (stringp default-regexp)
-		(format "Filter filenames through regular expression (default %s): "
-			 default-regexp)
-	      "Filter filenames through regular expression: ")
+	    (format-prompt "Filter filenames through regular expression"
+			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
 	    (eval ediff-default-filtering-regexp))
@@ -1353,16 +1339,18 @@ the merge buffer."
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
-	   (format-message
-	    "Version 1 to merge (default %s's working version): "
-	    (if (stringp file)
-		(file-name-nondirectory file) "current buffer")))
+	   (format-prompt "Version 1 to merge"
+                          (concat
+	                   (if (stringp file)
+                               (file-name-nondirectory file)
+                             "current buffer")
+                           "'s working version")))
 	  rev2
 	  (read-string
-	   (format
-	    "Version 2 to merge (default %s): "
-	    (if (stringp file)
-		(file-name-nondirectory file) "current buffer"))))
+	   (format-prompt "Version 2 to merge"
+	                  (if (stringp file)
+		              (file-name-nondirectory file)
+                            "current buffer"))))
     (ediff-load-version-control)
     ;; ancestor-revision=nil
     (funcall
@@ -1388,22 +1376,26 @@ the merge buffer."
   (let (rev1 rev2 ancestor-rev)
     (setq rev1
 	  (read-string
-	   (format-message
-	    "Version 1 to merge (default %s's working version): "
-	    (if (stringp file)
-		(file-name-nondirectory file) "current buffer")))
+	   (format-prompt "Version 1 to merge"
+                          (concat
+	                   (if (stringp file)
+		               (file-name-nondirectory file)
+                             "current buffer")
+                           "'s working version")))
 	  rev2
 	  (read-string
-	   (format
-	    "Version 2 to merge (default %s): "
-	    (if (stringp file)
-		(file-name-nondirectory file) "current buffer")))
+	   (format-prompt "Version 2 to merge"
+	                  (if (stringp file)
+		              (file-name-nondirectory file)
+                            "current buffer")))
 	  ancestor-rev
-	  (read-string
-	   (format-message
-	    "Ancestor version (default %s's base revision): "
-	    (if (stringp file)
-		(file-name-nondirectory file) "current buffer"))))
+	  (read-string (format-prompt
+	                "Ancestor version"
+                        (concat
+	                 (if (stringp file)
+		             (file-name-nondirectory file)
+                           "current buffer")
+                         "'s base revision"))))
     (ediff-load-version-control)
     (funcall
      (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
@@ -1503,13 +1495,14 @@ arguments after setting up the Ediff buffers."
       (save-buffer (current-buffer)))
   (let (rev1 rev2)
     (setq rev1
-	  (read-string
-	   (format "Revision 1 to compare (default %s's latest revision): "
-		   (file-name-nondirectory file)))
+	  (read-string (format-prompt "Revision 1 to compare"
+		                      (concat (file-name-nondirectory file)
+                                              "'s latest revision")))
 	  rev2
 	  (read-string
-	   (format "Revision 2 to compare (default %s's current state): "
-		   (file-name-nondirectory file))))
+	   (format-prompt "Revision 2 to compare"
+		          (concat (file-name-nondirectory file)
+                                  "'s current state"))))
     (ediff-load-version-control)
     (funcall
      (intern (format "ediff-%S-internal" ediff-version-control-package))

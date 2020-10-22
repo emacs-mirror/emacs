@@ -164,7 +164,7 @@ echo area, but if @var{arg} is non-@code{nil}, it inserts the result
 in the current buffer after the form it has compiled.
 @end deffn
 
-@deffn Command byte-compile-file filename &optional load
+@deffn Command byte-compile-file filename
 This function compiles a file of Lisp code named @var{filename} into a
 file of byte-code.  The output file's name is made by changing the
 @samp{.el} suffix into @samp{.elc}; if @var{filename} does not end in
@@ -179,9 +179,6 @@ input file is read.
 
 This command returns @code{t} if there were no errors and @code{nil}
 otherwise.  When called interactively, it prompts for the file name.
-
-If @var{load} is non-@code{nil}, this command loads the compiled file
-after compiling it.  Interactively, @var{load} is the prefix argument.
 
 @example
 @group
@@ -302,7 +299,7 @@ function is called, it reads the full definition from the file, to
 replace the place-holder.
 
   The advantage of dynamic function loading is that loading the file
-becomes much faster.  This is a good thing for a file which contains
+should become faster.  This is a good thing for a file which contains
 many separate user-callable functions, if using one of them does not
 imply you will probably also use the rest.  A specialized mode which
 provides many keyboard commands often has that usage pattern: a user may
@@ -325,6 +322,10 @@ nonsense results.
 installed Emacs files.  But they are quite likely to happen with Lisp
 files that you are changing.  The easiest way to prevent these problems
 is to reload the new compiled file immediately after each recompilation.
+
+  @emph{Experience shows that using dynamic function loading provides
+benefits that are hardly measurable, so this feature is deprecated
+since Emacs 27.1.}
 
   The byte compiler uses the dynamic function loading feature if the
 variable @code{byte-compile-dynamic} is non-@code{nil} at compilation

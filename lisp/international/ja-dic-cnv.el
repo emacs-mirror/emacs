@@ -48,7 +48,7 @@
 (defvar ja-dic-filename "ja-dic.el")
 
 (defun skkdic-convert-okuri-ari (skkbuf buf)
-  (byte-compile-info-message "Processing OKURI-ARI entries")
+  (byte-compile-info "Processing OKURI-ARI entries" t)
   (goto-char (point-min))
   (with-current-buffer buf
     (insert ";; Setting okuri-ari entries.\n"
@@ -97,7 +97,7 @@
     ("ゆき" "行")))
 
 (defun skkdic-convert-postfix (skkbuf buf)
-  (byte-compile-info-message "Processing POSTFIX entries")
+  (byte-compile-info "Processing POSTFIX entries" t)
   (goto-char (point-min))
   (with-current-buffer buf
     (insert ";; Setting postfix entries.\n"
@@ -151,7 +151,7 @@
 (defconst skkdic-prefix-list '(skkdic-prefix-list))
 
 (defun skkdic-convert-prefix (skkbuf buf)
-  (byte-compile-info-message "Processing PREFIX entries")
+  (byte-compile-info "Processing PREFIX entries" t)
   (goto-char (point-min))
   (with-current-buffer buf
     (insert ";; Setting prefix entries.\n"
@@ -273,7 +273,7 @@
 (defun skkdic-collect-okuri-nasi ()
   (save-excursion
     (let ((progress (make-progress-reporter
-                     (byte-compile-info-message "Collecting OKURI-NASI entries")
+                     (byte-compile-info "Collecting OKURI-NASI entries" t)
                      (point) (point-max)
                      nil 10)))
       (while (re-search-forward "^\\(\\cH+\\) \\(/\\cj.*\\)/$"
@@ -301,7 +301,7 @@
 	    "(skkdic-set-okuri-nasi\n")
     (let ((l (nreverse skkdic-okuri-nasi-entries))
           (progress (make-progress-reporter
-                     (byte-compile-info-message "Processing OKURI-NASI entries")
+                     (byte-compile-info "Processing OKURI-NASI entries" t)
                      0 skkdic-okuri-nasi-entries-count
                      nil 10))
           (count 0))
@@ -329,12 +329,12 @@ Optional argument DIRNAME if specified is the directory name under which
 the generated Emacs Lisp is saved.
 The name of generated file is specified by the variable `ja-dic-filename'."
   (interactive "FSKK dictionary file: ")
-  (let* ((coding-system-for-read 'euc-japan)
-	 (skkbuf (get-buffer-create " *skkdic-unannotated*"))
+  (let* ((skkbuf (get-buffer-create " *skkdic-unannotated*"))
 	 (buf (get-buffer-create "*skkdic-work*")))
     ;; Set skkbuf to an unannotated copy of the dictionary.
     (with-current-buffer skkbuf
-      (insert-file-contents (expand-file-name filename))
+      (let ((coding-system-for-read 'euc-japan))
+        (insert-file-contents (expand-file-name filename)))
       (re-search-forward "^[^;]")
       (while (re-search-forward ";[^\n/]*/" nil t)
 	(replace-match "/")))
@@ -531,8 +531,7 @@ To get complete usage, invoke:
      ',(let ((l entries)
 	     (map '(skdic-okuri-nasi))
              (progress (make-progress-reporter
-                        (byte-compile-info-message
-                         "Extracting OKURI-NASI entries")
+                        (byte-compile-info "Extracting OKURI-NASI entries")
                         0 (length entries)))
 	     (count 0)
 	     entry)

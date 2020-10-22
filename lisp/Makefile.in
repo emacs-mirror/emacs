@@ -196,7 +196,6 @@ $(lisp)/finder-inf.el:
 
 autoloads .PHONY: $(lisp)/loaddefs.el
 $(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
-	@echo Directories for loaddefs: ${SUBDIRS_ALMOST}
 	$(AM_V_GEN)$(emacs) -l autoload \
 	    --eval '(setq autoload-ensure-writable t)' \
 	    --eval '(setq autoload-builtin-package-versions t)' \
@@ -524,5 +523,11 @@ $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
 
 $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
    $(lisp)/progmodes/cc-align.elc
+
+# https://debbugs.gnu.org/43037
+# js.elc (like all modes using CC Mode's compile time macros) needs to
+# be compiled under the same version of CC Mode it will run with.
+$(lisp)/progmodes/js.elc: $(lisp)/progmodes/cc-defs.elc \
+   $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-mode.elc
 
 # Makefile ends here.

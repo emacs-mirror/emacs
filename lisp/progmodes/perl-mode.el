@@ -214,7 +214,9 @@
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
             (regexp-opt perl--syntax-exp-intro-keywords)
-            "\\|[-?:.,;|&+*=!~({[]\\|\\(^\\)\\)[ \t\n]*")))
+            "\\|[?:.,;|&*=!~({[]"
+            "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
+            "\\|\\(^\\)\\)[ \t\n]*")))
 
 (defun perl-syntax-propertize-function (start end)
   (let ((case-fold-search nil))
@@ -235,7 +237,7 @@
                                                       (match-beginning 0))))))
                             (string-to-syntax ". p"))))
       ;; Handle funny names like $DB'stop.
-      ("\\$ ?{?^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
+      ("\\$ ?{?\\^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
       ("^[ \t]*format.*=[ \t]*\\(\n\\)"
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))
@@ -256,7 +258,7 @@
       ;; (or some similar separator), or by one of the special keywords
       ;; corresponding to builtin functions that can take their first arg
       ;; without parentheses.  Of course, that presume we're looking at the
-      ;; *opening* slash.  We can afford to mis-match the closing ones
+      ;; *opening* slash.  We can afford to mismatch the closing ones
       ;; here, because they will be re-treated separately later in
       ;; perl-font-lock-special-syntactic-constructs.
       ((concat perl--syntax-exp-intro-regexp "\\(/\\)")

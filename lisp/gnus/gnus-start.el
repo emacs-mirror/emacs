@@ -31,6 +31,7 @@
 (require 'gnus-range)
 (require 'gnus-util)
 (require 'gnus-cloud)
+(require 'gnus-dbus)
 (autoload 'message-make-date "message")
 (autoload 'gnus-agent-read-servers-validate "gnus-agent")
 (autoload 'gnus-agent-save-local "gnus-agent")
@@ -71,7 +72,7 @@ uses considerably less memory."
                  (const :tag "Write directly to file" nil)))
 
 (defcustom gnus-init-file (nnheader-concat gnus-home-directory ".gnus")
-  "Your Gnus Emacs-Lisp startup file name.
+  "Your Gnus Emacs Lisp startup file name.
 If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type 'file)
@@ -82,7 +83,7 @@ If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
 	       (directory-file-name installation-directory))
 	      "site-lisp/gnus-init")
     (error nil))
-  "The site-wide Gnus Emacs-Lisp startup file name, or nil if none.
+  "The site-wide Gnus Emacs Lisp startup file name, or nil if none.
 If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type '(choice file (const nil)))
@@ -730,7 +731,7 @@ the first newsgroup."
   ;; Remove Gnus frames.
   (gnus-kill-gnus-frames))
 
-(defun gnus-no-server-1 (&optional arg slave)
+(defun gnus-no-server-1 (&optional arg child)
   "Read network news.
 If ARG is a positive number, Gnus will use that as the startup
 level.  If ARG is nil, Gnus will be started at level 2
@@ -739,11 +740,11 @@ and not a positive number, Gnus will prompt the user for the name
 of an NNTP server to use.  As opposed to \\[gnus], this command
 will not connect to the local server."
   (let ((val (or arg (1- gnus-level-default-subscribed))))
-    (gnus val t slave)
+    (gnus val t child)
     (make-local-variable 'gnus-group-use-permanent-levels)
     (setq gnus-group-use-permanent-levels val)))
 
-(defun gnus-1 (&optional arg dont-connect slave)
+(defun gnus-1 (&optional arg dont-connect child)
   "Read network news.
 If ARG is non-nil and a positive number, Gnus will use that as the
 startup level.  If ARG is non-nil and not a positive number, Gnus will
@@ -761,7 +762,7 @@ prompt the user for the name of an NNTP server to use."
     (gnus-splash)
     (gnus-run-hooks 'gnus-before-startup-hook)
     (nnheader-init-server-buffer)
-    (setq gnus-slave slave)
+    (setq gnus-child child)
     (gnus-read-init-file)
 
     ;; Add "native" to gnus-predefined-server-alist just to have a
@@ -790,7 +791,7 @@ prompt the user for the name of an NNTP server to use."
 		(gnus-make-newsrc-file gnus-startup-file))
 
 	  ;; Read the dribble file.
-	  (when (or gnus-slave gnus-use-dribble-file)
+	  (when (or gnus-child gnus-use-dribble-file)
 	    (gnus-dribble-read-file))
 
 	  ;; Do the actual startup.
@@ -798,6 +799,8 @@ prompt the user for the name of an NNTP server to use."
 	  (gnus-run-hooks 'gnus-setup-news-hook)
 	  (when gnus-agent
 	    (gnus-request-create-group "queue" '(nndraft "")))
+	  (when gnus-dbus-close-on-sleep
+	    (gnus-dbus-register-sleep-signal))
 	  (gnus-start-draft-setup)
 	  ;; Generate the group buffer.
 	  (gnus-group-list-groups level)
@@ -1008,11 +1011,11 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 
     ;; Possibly eval the dribble file.
     (and init
-	 (or gnus-use-dribble-file gnus-slave)
+	 (or gnus-use-dribble-file gnus-child)
 	 (gnus-dribble-eval-file))
 
-    ;; Slave Gnusii should then clear the dribble buffer.
-    (when (and init gnus-slave)
+    ;; Child Gnusii should then clear the dribble buffer.
+    (when (and init gnus-child)
       (gnus-dribble-clear))
 
     (gnus-update-format-specifications)
@@ -1030,7 +1033,7 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
     ;; Find new newsgroups and treat them.
     (when (and init gnus-check-new-newsgroups (not level)
 	       (gnus-check-server gnus-select-method)
-	       (not gnus-slave)
+	       (not gnus-child)
 	       gnus-plugged)
       (gnus-find-new-newsgroups))
 
@@ -1040,8 +1043,8 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 	       (gnus-server-opened gnus-select-method))
       (gnus-check-bogus-newsgroups))
 
-    ;; Read any slave files.
-    (gnus-master-read-slave-newsrc)
+    ;; Read any child files.
+    (gnus-parent-read-child-newsrc)
 
     ;; Find the number of unread articles in each non-dead group.
     (let ((gnus-read-active-file (and (not level) gnus-read-active-file)))
@@ -1799,7 +1802,7 @@ backend check whether the group actually exists."
      ;; by one.
      (t
       (dolist (info infos)
-	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
+	(gnus-activate-group (gnus-info-group info) t nil method t))))))
 
 (defun gnus-make-hashtable-from-newsrc-alist ()
   "Create a hash table from `gnus-newsrc-alist'.
@@ -2111,6 +2114,7 @@ The info element is shared with the same element of
      ((string= gnus-ignored-newsgroups "")
       (delete-matching-lines "^to\\."))
      (t
+      ;; relint suppression: Duplicated alternative branch
       (delete-matching-lines (concat "^to\\.\\|" gnus-ignored-newsgroups))))
 
     (goto-char (point-min))
@@ -2737,15 +2741,15 @@ values from `gnus-newsrc-hashtb', and write a new value of
       (gnus-agent-save-local force))
 
     (save-excursion
-      (if (and (or gnus-use-dribble-file gnus-slave)
+      (if (and (or gnus-use-dribble-file gnus-child)
 	       (not force)
                (or (not (buffer-live-p gnus-dribble-buffer))
 		   (zerop (with-current-buffer gnus-dribble-buffer
 			    (buffer-size)))))
 	  (gnus-message 4 "(No changes need to be saved)")
 	(gnus-run-hooks 'gnus-save-newsrc-hook)
-	(if gnus-slave
-	    (gnus-slave-save-newsrc)
+	(if gnus-child
+	    (gnus-child-save-newsrc)
 	  ;; Save .newsrc only if the select method is an NNTP method.
 	  ;; The .newsrc file is for interoperability with other
 	  ;; newsreaders, so saving non-NNTP groups there doesn't make
@@ -2812,7 +2816,7 @@ values from `gnus-newsrc-hashtb', and write a new value of
                               (file-exists-p working-file)))
 
 		(unwind-protect
-                    (progn
+		    (with-file-modes (file-modes startup-file)
                       (gnus-with-output-to-file working-file
 			(gnus-gnus-to-quick-newsrc-format)
 			(gnus-run-hooks 'gnus-save-quick-newsrc-hook))
@@ -2822,14 +2826,12 @@ values from `gnus-newsrc-hashtb', and write a new value of
                       ;; file.
                       (let ((buffer-backed-up nil)
                             (buffer-file-name startup-file)
-                            (file-precious-flag t)
-                            (setmodes (file-modes startup-file)))
+			    (file-precious-flag t))
 			;; Backup the current version of the startup file.
 			(backup-buffer)
 
 			;; Replace the existing startup file with the temp file.
 			(rename-file working-file startup-file t)
-			(gnus-set-file-modes startup-file setmodes)
 			(setq gnus-save-newsrc-file-last-timestamp
 			      (file-attribute-modification-time
 			       (file-attributes startup-file)))))
@@ -2990,55 +2992,61 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 
 
 ;;;
-;;; Slave functions.
+;;; Child functions.
 ;;;
 
-(defvar gnus-slave-mode nil)
+(defvar gnus-child-mode nil)
 
-(defun gnus-slave-mode ()
-  "Minor mode for slave Gnusae."
-  ;; FIXME: gnus-slave-mode appears to never be set (i.e. it'll always be nil):
+(defun gnus-child-mode ()
+  "Minor mode for child Gnusae."
+  ;; FIXME: gnus-child-mode appears to never be set (i.e. it'll always be nil):
   ;; Remove, or fix and use define-minor-mode.
-  (add-minor-mode 'gnus-slave-mode " Slave" (make-sparse-keymap))
-  (gnus-run-hooks 'gnus-slave-mode-hook))
+  (add-minor-mode 'gnus-child-mode " Child" (make-sparse-keymap))
+  (gnus-run-hooks 'gnus-child-mode-hook))
 
-(defun gnus-slave-save-newsrc ()
+(define-obsolete-function-alias 'gnus-slave-mode #'gnus-child-mode "28.1")
+(define-obsolete-variable-alias 'gnus-slave-mode-hook 'gnus-child-mode-hook
+  "28.1")
+
+(defun gnus-child-save-newsrc ()
   (with-current-buffer gnus-dribble-buffer
-    (let ((slave-name
-	   (make-temp-file (concat gnus-current-startup-file "-slave-")))
-	  (modes (ignore-errors
-		   (file-modes (concat gnus-current-startup-file ".eld")))))
-      (let ((coding-system-for-write gnus-ding-file-coding-system))
-	(gnus-write-buffer slave-name))
-      (when modes
-	(gnus-set-file-modes slave-name modes)))))
+    (with-file-modes (or (ignore-errors
+			   (file-modes
+			    (concat gnus-current-startup-file ".eld")))
+			 (default-file-modes))
+      (let ((child-name
+	     (make-temp-file (concat gnus-current-startup-file "-child-"))))
+	(let ((coding-system-for-write gnus-ding-file-coding-system))
+	  (gnus-write-buffer child-name))))))
 
-(defun gnus-master-read-slave-newsrc ()
-  (let ((slave-files
+(defun gnus-parent-read-child-newsrc ()
+  (let ((child-files
 	 (directory-files
 	  (file-name-directory gnus-current-startup-file)
 	  t (concat
 	     "^" (regexp-quote
-		  (concat
-		   (file-name-nondirectory gnus-current-startup-file)
-		   "-slave-")))
+		  (file-name-nondirectory gnus-current-startup-file))
+	     ;; When the obsolete variables like
+	     ;; `gnus-slave-mode-hook' etc are removed, the "slave"
+	     ;; bit of this regexp should also be removed.
+	     "\\(-child-\\|-slave-\\)")
 	  t))
 	file)
-    (if (not slave-files)
-	()				; There are no slave files to read.
-      (gnus-message 7 "Reading slave newsrcs...")
-      (with-current-buffer (gnus-get-buffer-create " *gnus slave*")
-	(setq slave-files
+    (if (not child-files)
+	()				; There are no child files to read.
+      (gnus-message 7 "Reading child newsrcs...")
+      (with-current-buffer (gnus-get-buffer-create " *gnus child*")
+	(setq child-files
 	      (sort (mapcar (lambda (file)
 			      (list (file-attribute-modification-time
 				     (file-attributes file))
 				    file))
-			    slave-files)
+			    child-files)
 		    (lambda (f1 f2)
 		      (time-less-p (car f1) (car f2)))))
-	(while slave-files
+	(while child-files
 	  (erase-buffer)
-	  (setq file (nth 1 (car slave-files)))
+	  (setq file (nth 1 (car child-files)))
 	  (nnheader-insert-file-contents file)
 	  (when (condition-case ()
 		    (progn
@@ -3047,12 +3055,12 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		  (error
 		   (gnus-error 3.2 "Possible error in %s" file)
 		   nil))
-	    (unless gnus-slave		; Slaves shouldn't delete these files.
+	    (unless gnus-child		; Children shouldn't delete these files.
 	      (ignore-errors
 		(delete-file file))))
-	  (setq slave-files (cdr slave-files))))
+	  (setq child-files (cdr child-files))))
       (gnus-dribble-touch)
-      (gnus-message 7 "Reading slave newsrcs...done"))))
+      (gnus-message 7 "Reading child newsrcs...done"))))
 
 
 ;;;

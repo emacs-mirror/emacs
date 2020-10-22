@@ -1,4 +1,4 @@
-;;; url-util-tests.el --- Test suite for url-util.
+;;; url-util-tests.el --- Test suite for url-util.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 

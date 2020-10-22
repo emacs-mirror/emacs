@@ -1,4 +1,4 @@
-;;; calc-sel.el --- data selection functions for Calc
+;;; calc-sel.el --- data selection functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -146,7 +146,8 @@
 (defvar calc-fnp-op)
 (defvar calc-fnp-num)
 
-(defun calc-find-nth-part (expr calc-fnp-num)
+(defun calc-find-nth-part (expr fnp-num)
+  (let ((calc-fnp-num fnp-num))
   (if (and calc-assoc-selections
 	   (assq (car-safe expr) calc-assoc-ops))
       (let (calc-fnp-op)
@@ -154,7 +155,7 @@
     (if (eq (car-safe expr) 'intv)
 	(and (>= calc-fnp-num 1) (<= calc-fnp-num 2) (nth (1+ calc-fnp-num) expr))
       (and (not (Math-primp expr)) (>= calc-fnp-num 1) (< calc-fnp-num (length expr))
-	   (nth calc-fnp-num expr)))))
+	   (nth calc-fnp-num expr))))))
 
 (defun calc-find-nth-part-rec (expr)   ; uses num, op
   (or (if (and (setq calc-fnp-op (assq (car-safe (nth 1 expr)) calc-assoc-ops))
@@ -381,7 +382,7 @@
   ;; (if (or (< num 1) (> num (calc-stack-size)))
   ;;     (error "Cursor must be positioned on a stack element"))
   (let* ((entry (calc-top num 'entry))
-	 ww w)
+	 ) ;; ww w
     (or (equal entry calc-selection-cache-entry)
 	(progn
 	  (setcar entry (calc-encase-atoms (car entry)))
@@ -418,6 +419,7 @@
 ;; The variable math-comp-sel-tag is local to calc-find-selected-part,
 ;; but is used by math-comp-sel-flat-term and math-comp-add-string-sel
 ;; in calccomp.el, which are called (indirectly) by calc-find-selected-part.
+(defvar math-comp-sel-tag)
 
 (defun calc-find-selected-part ()
   (let* ((math-comp-sel-hpos (- (current-column) calc-selection-cache-offset))
@@ -436,7 +438,8 @@
 						   (current-indentation))
 					 lcount (1+ lcount)))
 				 (- lcount (math-comp-ascent
-					    calc-selection-cache-comp) -1))))
+					    calc-selection-cache-comp)
+				    -1))))
 	 (math-comp-sel-cpos (- (point) toppt calc-selection-cache-offset
 				spaces lcount))
 	 (math-comp-sel-tag nil))
@@ -481,8 +484,9 @@
 (defvar calc-rsf-old)
 (defvar calc-rsf-new)
 
-(defun calc-replace-sub-formula (expr calc-rsf-old calc-rsf-new)
-  (setq calc-rsf-new (calc-encase-atoms calc-rsf-new))
+(defun calc-replace-sub-formula (expr rsf-old rsf-new)
+  (let ((calc-rsf-old rsf-old)
+        (calc-rsf-new (calc-encase-atoms rsf-new))))
   (calc-replace-sub-formula-rec expr))
 
 (defun calc-replace-sub-formula-rec (expr)
@@ -671,7 +675,7 @@
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr))
-	  alg)
+	  ) ;; alg
      (let ((str (math-showing-full-precision
 		 (math-format-nice-expr sel (frame-width)))))
        (calc-edit-mode (list 'calc-finish-selection-edit

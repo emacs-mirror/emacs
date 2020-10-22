@@ -102,7 +102,7 @@ static struct
     { "iso8859-15", { 0x00A0, 0x00A1, 0x00D0, 0x0152 }},
     { "iso8859-16", { 0x00A0, 0x0218}},
     { "gb2312.1980-0", { 0x4E13 }, "zh-cn"},
-    { "big5-0", { 0xF6B1 }, "zh-tw" },
+    { "big5-0", { 0x9C21 }, "zh-tw" },
     { "jisx0208.1983-0", { 0x4E55 }, "ja"},
     { "ksc5601.1985-0", { 0xAC00 }, "ko"},
     { "cns11643.1992-1", { 0xFE32 }, "zh-tw"},
@@ -119,7 +119,7 @@ static struct
     { "jisx0213.2004-1", { 0x20B9F }},
     { "viscii1.1-1", { 0x1EA0, 0x1EAE, 0x1ED2 }, "vi"},
     { "tis620.2529-1", { 0x0E01 }, "th"},
-    { "windows-1251", { 0x0401, 0x0490 }, "ru"},
+    { "microsoft-cp1251", { 0x0401, 0x0490 }, "ru"},
     { "koi8-r", { 0x0401, 0x2219 }, "ru"},
     { "mulelao-1", { 0x0E81 }, "lo"},
     { "unicode-sip", { 0x20000 }},
@@ -346,18 +346,15 @@ struct ftfont_cache_data
 static Lisp_Object
 ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
 {
-  Lisp_Object cache, val, entity;
+  Lisp_Object cache, val;
   struct ftfont_cache_data *cache_data;
 
   if (FONT_ENTITY_P (key))
     {
-      entity = key;
-      val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+      val = assq_no_quit (QCfont_entity, AREF (key, FONT_EXTRA_INDEX));
       eassert (CONSP (val));
       key = XCDR (val);
     }
-  else
-    entity = Qnil;
 
   if (NILP (ft_face_cache))
     cache = Qnil;
@@ -771,7 +768,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 #if defined HAVE_XFT && defined FC_COLOR
   /* We really don't like color fonts, they cause Xft crashes.  See
      Bug#30874.  */
-  if (Vxft_ignore_color_fonts
+  if (xft_ignore_color_fonts
       && ! FcPatternAddBool (pattern, FC_COLOR, FcFalse))
     goto err;
 #endif
@@ -914,7 +911,7 @@ ftfont_list (struct frame *f, Lisp_Object spec)
            returns them even when it shouldn't really do so, so we
            need to manually skip them here (Bug#37786).  */
         FcBool b;
-        if (Vxft_ignore_color_fonts
+        if (xft_ignore_color_fonts
             && FcPatternGetBool (fontset->fonts[i], FC_COLOR, 0, &b)
             == FcResultMatch && b != FcFalse)
             continue;
@@ -2829,14 +2826,10 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       LGLYPH_SET_ASCENT (lglyph, g->g.ascent >> 6);
       LGLYPH_SET_DESCENT (lglyph, g->g.descent >> 6);
       if (g->g.adjusted)
-	{
-	  Lisp_Object vec = make_uninit_vector (3);
-
-	  ASET (vec, 0, make_fixnum (g->g.xoff >> 6));
-	  ASET (vec, 1, make_fixnum (g->g.yoff >> 6));
-	  ASET (vec, 2, make_fixnum (g->g.xadv >> 6));
-	  LGLYPH_SET_ADJUSTMENT (lglyph, vec);
-	}
+	LGLYPH_SET_ADJUSTMENT (lglyph, CALLN (Fvector,
+					      make_fixnum (g->g.xoff >> 6),
+					      make_fixnum (g->g.yoff >> 6),
+					      make_fixnum (g->g.xadv >> 6)));
     }
   return make_fixnum (i);
 }

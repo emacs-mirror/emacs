@@ -220,6 +220,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "sysstdio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <math.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -818,6 +819,128 @@ load_pixmap (struct frame *f, Lisp_Object name)
 /***********************************************************************
                             Color Handling
  ***********************************************************************/
+
+/* Parse hex color component specification that starts at S and ends
+   right before E.  Set *DST to the parsed value normalized so that
+   the maximum value for the number of hex digits given becomes 65535,
+   and return true on success, false otherwise.  */
+static bool
+parse_hex_color_comp (const char *s, const char *e, unsigned short *dst)
+{
+  int n = e - s;
+  if (n <= 0 || n > 4)
+    return false;
+  int val = 0;
+  for (; s < e; s++)
+    {
+      int digit;
+      if (*s >= '0' && *s <= '9')
+        digit = *s - '0';
+      else if (*s >= 'A' && *s <= 'F')
+        digit = *s - 'A' + 10;
+      else if (*s >= 'a' && *s <= 'f')
+        digit = *s - 'a' + 10;
+      else
+        return false;
+      val = (val << 4) | digit;
+    }
+  int maxval = (1 << (n * 4)) - 1;
+  *dst = (unsigned)val * 65535 / maxval;
+  return true;
+}
+
+/* Parse floating-point color component specification that starts at S
+   and ends right before E.  Return the parsed number if in the range
+   [0,1]; otherwise return -1.  */
+static double
+parse_float_color_comp (const char *s, const char *e)
+{
+  char *end;
+  double x = strtod (s, &end);
+  return (end == e && x >= 0 && x <= 1) ? x : -1;
+}
+
+/* Parse SPEC as a numeric color specification and set *R, *G and *B.
+   Return true on success, false on failure.
+
+   Recognized formats of SPEC:
+
+    "#RGB", with R, G and B hex strings of equal length, 1-4 digits each.
+    "rgb:R/G/B", with R, G and B hex strings, 1-4 digits each.
+    "rgbi:R/G/B", with R, G and B numbers in [0,1].
+
+   If the function succeeds, it assigns to each of the components *R,
+   *G, and *B a value normalized to be in the [0, 65535] range.  If
+   the function fails, some or all of the components remain unassigned.  */
+bool
+parse_color_spec (const char *spec,
+                  unsigned short *r, unsigned short *g, unsigned short *b)
+{
+  int len = strlen (spec);
+  if (spec[0] == '#')
+    {
+      if ((len - 1) % 3 == 0)
+        {
+          int n = (len - 1) / 3;
+          return (   parse_hex_color_comp (spec + 1 + 0 * n,
+					   spec + 1 + 1 * n, r)
+                  && parse_hex_color_comp (spec + 1 + 1 * n,
+					   spec + 1 + 2 * n, g)
+                  && parse_hex_color_comp (spec + 1 + 2 * n,
+					   spec + 1 + 3 * n, b));
+        }
+    }
+  else if (strncmp (spec, "rgb:", 4) == 0)
+    {
+      char *sep1, *sep2;
+      return ((sep1 = strchr (spec + 4, '/')) != NULL
+              && (sep2 = strchr (sep1 + 1, '/')) != NULL
+              && parse_hex_color_comp (spec + 4, sep1, r)
+              && parse_hex_color_comp (sep1 + 1, sep2, g)
+              && parse_hex_color_comp (sep2 + 1, spec + len, b));
+    }
+  else if (strncmp (spec, "rgbi:", 5) == 0)
+    {
+      char *sep1, *sep2;
+      double red, green, blue;
+      if ((sep1 = strchr (spec + 5, '/')) != NULL
+          && (sep2 = strchr (sep1 + 1, '/')) != NULL
+          && (red = parse_float_color_comp (spec + 5, sep1)) >= 0
+          && (green = parse_float_color_comp (sep1 + 1, sep2)) >= 0
+          && (blue = parse_float_color_comp (sep2 + 1, spec + len)) >= 0)
+        {
+          *r = lrint (red * 65535);
+          *g = lrint (green * 65535);
+          *b = lrint (blue * 65535);
+          return true;
+        }
+    }
+  return false;
+}
+
+DEFUN ("color-values-from-color-spec",
+       Fcolor_values_from_color_spec,
+       Scolor_values_from_color_spec,
+       1, 1, 0,
+       doc: /* Parse color SPEC as a numeric color and return (RED GREEN BLUE).
+This function recognises the following formats for SPEC:
+
+ #RGB, where R, G and B are hex numbers of equal length, 1-4 digits each.
+ rgb:R/G/B, where R, G, and B are hex numbers, 1-4 digits each.
+ rgbi:R/G/B, where R, G and B are floating-point numbers in [0,1].
+
+If SPEC is not in one of the above forms, return nil.
+
+Each of the 3 integer members of the resulting list, RED, GREEN, and BLUE,
+is normalized to have its value in [0,65535].  */)
+  (Lisp_Object spec)
+{
+  CHECK_STRING (spec);
+  unsigned short r, g, b;
+  return (parse_color_spec (SSDATA (spec), &r, &g, &b)
+          ? list3i (r, g, b)
+          : Qnil);
+}
 
 /* Parse RGB_LIST, and fill in the RGB fields of COLOR.
    RGB_LIST should contain (at least) 3 lisp integers.
@@ -1449,22 +1572,18 @@ the face font sort order.  */)
   for (i = nfonts - 1; i >= 0; --i)
     {
       Lisp_Object font = AREF (vec, i);
-      Lisp_Object v = make_uninit_vector (8);
-      int point;
-      Lisp_Object spacing;
-
-      ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
-      ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
-      point = PIXEL_TO_POINT (XFIXNUM (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      FRAME_RES_Y (f));
-      ASET (v, 2, make_fixnum (point));
-      ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
-      ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
-      spacing = Ffont_get (font, QCspacing);
-      ASET (v, 5, (NILP (spacing) || EQ (spacing, Qp)) ? Qnil : Qt);
-      ASET (v, 6, Ffont_xlfd_name (font, Qnil));
-      ASET (v, 7, AREF (font, FONT_REGISTRY_INDEX));
-
+      int point = PIXEL_TO_POINT (XFIXNUM (AREF (font, FONT_SIZE_INDEX)) * 10,
+				  FRAME_RES_Y (f));
+      Lisp_Object spacing = Ffont_get (font, QCspacing);
+      Lisp_Object v = CALLN (Fvector,
+			     AREF (font, FONT_FAMILY_INDEX),
+			     FONT_WIDTH_SYMBOLIC (font),
+			     make_fixnum (point),
+			     FONT_WEIGHT_SYMBOLIC (font),
+			     FONT_SLANT_SYMBOLIC (font),
+			     NILP (spacing) || EQ (spacing, Qp) ? Qnil : Qt,
+			     Ffont_xlfd_name (font, Qnil),
+			     AREF (font, FONT_REGISTRY_INDEX));
       result = Fcons (v, result);
     }
 
@@ -1888,7 +2007,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
   lface = lface_from_face_name_no_resolve (f, face_name, signal_p);
 
   if (! NILP (lface))
-    memcpy (attrs, XVECTOR (lface)->contents,
+    memcpy (attrs, xvector_contents (lface),
 	    LFACE_VECTOR_SIZE * sizeof *attrs);
 
   return !NILP (lface);
@@ -2394,6 +2513,7 @@ merge_face_ref (struct window *w,
 {
   bool ok = true;		/* Succeed without an error? */
   Lisp_Object filtered_face_ref;
+  bool attr_filter_passed = false;
 
   filtered_face_ref = face_ref;
   do
@@ -2490,6 +2610,7 @@ merge_face_ref (struct window *w,
 		      || UNSPECIFIEDP (scratch_attrs[attr_filter]))
 		    return true;
 		}
+	      attr_filter_passed = true;
 	    }
 	  while (CONSP (face_ref) && CONSP (XCDR (face_ref)))
 	    {
@@ -2653,9 +2774,21 @@ merge_face_ref (struct window *w,
 		{
 		  /* This is not really very useful; it's just like a
 		     normal face reference.  */
-		  if (! merge_face_ref (w, f, value, to,
-		                        err_msgs, named_merge_points,
-		                        attr_filter))
+		  if (attr_filter_passed)
+		    {
+		      /* We already know that this face was tested
+			 against attr_filter and was found applicable,
+			 so don't pass attr_filter to merge_face_ref.
+			 This is for when a face is specified like
+			 (:inherit FACE :extend t), but the parent
+			 FACE itself doesn't specify :extend.  */
+		      if (! merge_face_ref (w, f, value, to,
+					    err_msgs, named_merge_points, 0))
+			err = true;
+		    }
+		  else if (! merge_face_ref (w, f, value, to,
+					     err_msgs, named_merge_points,
+					     attr_filter))
 		    err = true;
 		}
 	      else if (EQ (keyword, QCextend))
@@ -2860,7 +2993,7 @@ The value is TO.  */)
       f = XFRAME (new_frame);
     }
 
-  vcopy (copy, 0, XVECTOR (lface)->contents, LFACE_VECTOR_SIZE);
+  vcopy (copy, 0, xvector_contents (lface), LFACE_VECTOR_SIZE);
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
@@ -3128,6 +3261,8 @@ FRAME 0 means change the face on all frames, and change the default
 	valid_p = XFIXNUM (value) != 0;
       else if (STRINGP (value))
 	valid_p = SCHARS (value) > 0;
+      else if (CONSP (value) && FIXNUMP (XCAR (value)) && FIXNUMP (XCDR (value)))
+	valid_p = true;
       else if (CONSP (value))
 	{
 	  Lisp_Object tem;
@@ -3146,7 +3281,9 @@ FRAME 0 means change the face on all frames, and change the default
 
 	      if (EQ (k, QCline_width))
 		{
-		  if (!FIXNUMP (v) || XFIXNUM (v) == 0)
+		  if ((!CONSP(v) || !FIXNUMP (XCAR (v)) || XFIXNUM (XCAR (v)) == 0
+		                 || !FIXNUMP (XCDR (v)) || XFIXNUM (XCDR (v)) == 0)
+		      && (!FIXNUMP (v) || XFIXNUM (v) == 0))
 		    break;
 		}
 	      else if (EQ (k, QCcolor))
@@ -4352,15 +4489,15 @@ color_distance (Emacs_Color *x, Emacs_Color *y)
 
      See <https://www.compuphase.com/cmetric.htm> for more info.  */
 
-  long r = (x->red   - y->red)   >> 8;
-  long g = (x->green - y->green) >> 8;
-  long b = (x->blue  - y->blue)  >> 8;
-  long r_mean = (x->red + y->red) >> 9;
+  long long r = x->red   - y->red;
+  long long g = x->green - y->green;
+  long long b = x->blue  - y->blue;
+  long long r_mean = (x->red + y->red) >> 1;
 
-  return
-    (((512 + r_mean) * r * r) >> 8)
-    + 4 * g * g
-    + (((767 - r_mean) * b * b) >> 8);
+  return (((((2 * 65536 + r_mean) * r * r) >> 16)
+           + 4 * g * g
+           + (((2 * 65536 + 65535 - r_mean) * b * b) >> 16))
+          >> 16);
 }
 
 
@@ -4370,7 +4507,9 @@ COLOR1 and COLOR2 may be either strings containing the color name,
 or lists of the form (RED GREEN BLUE), each in the range 0 to 65535 inclusive.
 If FRAME is unspecified or nil, the current frame is used.
 If METRIC is specified, it should be a function that accepts
-two lists of the form (RED GREEN BLUE) aforementioned. */)
+two lists of the form (RED GREEN BLUE) aforementioned.
+Despite the name, this is not a true distance metric as it does not satisfy
+the triangle inequality.  */)
   (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame,
    Lisp_Object metric)
 {
@@ -4927,7 +5066,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
 
 /* If the distance (as returned by color_distance) between two colors is
    less than this, then they are considered the same, for determining
-   whether a color is supported or not.  The range of values is 0-65535.  */
+   whether a color is supported or not.  */
 
 #define TTY_SAME_COLOR_THRESHOLD  10000
 
@@ -4940,7 +5079,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
    that a face containing all the attributes in ATTRS, when merged with the
    default face for display, can be represented in a way that's
 
-    (1) different in appearance than the default face, and
+    (1) different in appearance from the default face, and
     (2) `close in spirit' to what the attributes specify, if not exact.  */
 
 static bool
@@ -5043,7 +5182,7 @@ gui_supports_face_attributes_p (struct frame *f,
    that a face containing all the attributes in ATTRS, when merged
    with the default face for display, can be represented in a way that's
 
-    (1) different in appearance than the default face, and
+    (1) different in appearance from the default face, and
     (2) `close in spirit' to what the attributes specify, if not exact.
 
    Point (2) implies that a `:weight black' attribute will be satisfied
@@ -5078,7 +5217,6 @@ tty_supports_face_attributes_p (struct frame *f,
       || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX]))
     return false;
 
@@ -5143,6 +5281,15 @@ tty_supports_face_attributes_p (struct frame *f,
 	test_caps |= TTY_CAP_INVERSE;
     }
 
+  /* strike through */
+  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
+  if (!UNSPECIFIEDP (val))
+    {
+      if (face_attr_equal_p (val, def_attrs[LFACE_STRIKE_THROUGH_INDEX]))
+	return false;		/* same as default */
+      else
+	test_caps |= TTY_CAP_STRIKE_THROUGH;
+    }
 
   /* Color testing.  */
 
@@ -5160,7 +5307,7 @@ tty_supports_face_attributes_p (struct frame *f,
 	       > TTY_SAME_COLOR_THRESHOLD)
 	return false;		/* displayed color is too different */
       else
-	/* Make sure the color is really different than the default.  */
+	/* Make sure the color is really different from the default.  */
 	{
 	  Emacs_Color def_fg_color;
 	  if (tty_lookup_color (f, def_fg, &def_fg_color, 0)
@@ -5184,7 +5331,7 @@ tty_supports_face_attributes_p (struct frame *f,
 	       > TTY_SAME_COLOR_THRESHOLD)
 	return false;		/* displayed color is too different */
       else
-	/* Make sure the color is really different than the default.  */
+	/* Make sure the color is really different from the default.  */
 	{
 	  Emacs_Color def_bg_color;
 	  if (tty_lookup_color (f, def_bg, &def_bg_color, 0)
@@ -5226,7 +5373,7 @@ The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
 with the default face for display, can be represented in a way that's
 
- (1) different in appearance than the default face, and
+ (1) different in appearance from the default face, and
  (2) `close in spirit' to what the attributes specify, if not exact.
 
 Point (2) implies that a `:weight black' attribute will be satisfied by
@@ -5594,7 +5741,7 @@ realize_default_face (struct frame *f)
   /* Realize the face; it must be fully-specified now.  */
   eassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
-  memcpy (attrs, XVECTOR (lface)->contents, sizeof attrs);
+  memcpy (attrs, xvector_contents (lface), sizeof attrs);
   struct face *face = realize_face (c, attrs, DEFAULT_FACE_ID);
 
 #ifndef HAVE_WINDOW_SYSTEM
@@ -5815,7 +5962,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->box_color = load_color (f, face, attrs[LFACE_BOX_INDEX],
 				    LFACE_BOX_INDEX);
       face->box = FACE_SIMPLE_BOX;
-      face->box_line_width = 1;
+      face->box_vertical_line_width = face->box_horizontal_line_width = 1;
     }
   else if (FIXNUMP (box))
     {
@@ -5823,9 +5970,19 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	 face.  */
       eassert (XFIXNUM (box) != 0);
       face->box = FACE_SIMPLE_BOX;
-      face->box_line_width = XFIXNUM (box);
+      face->box_vertical_line_width = eabs(XFIXNUM (box));
+      face->box_horizontal_line_width = XFIXNUM (box);
       face->box_color = face->foreground;
       face->box_color_defaulted_p = true;
+    }
+  else if (CONSP (box) && FIXNUMP (XCAR (box)) && FIXNUMP (XCDR (box)))
+    {
+	/* `(VWIDTH . HWIDTH)'.  */
+      face->box = FACE_SIMPLE_BOX;
+      face->box_color = face->foreground;
+      face->box_color_defaulted_p = true;
+      face->box_vertical_line_width = XFIXNUM (XCAR (box));
+      face->box_horizontal_line_width = XFIXNUM (XCDR (box));
     }
   else if (CONSP (box))
     {
@@ -5834,7 +5991,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->box = FACE_SIMPLE_BOX;
       face->box_color = face->foreground;
       face->box_color_defaulted_p = true;
-      face->box_line_width = 1;
+      face->box_vertical_line_width = face->box_horizontal_line_width = 1;
 
       while (CONSP (box))
 	{
@@ -5850,8 +6007,14 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 
 	  if (EQ (keyword, QCline_width))
 	    {
-	      if (FIXNUMP (value) && XFIXNUM (value) != 0)
-		face->box_line_width = XFIXNUM (value);
+	      if (CONSP (value) && FIXNUMP (XCAR (value)) && FIXNUMP (XCDR (value))) {
+		  face->box_vertical_line_width = XFIXNUM (XCAR (value));
+		  face->box_horizontal_line_width = XFIXNUM (XCDR (value));
+	      }
+	      else if (FIXNUMP (value) && XFIXNUM (value) != 0) {
+		face->box_vertical_line_width = eabs (XFIXNUM (value));
+		face->box_horizontal_line_width = XFIXNUM (value);
+	      }
 	    }
 	  else if (EQ (keyword, QCcolor))
 	    {
@@ -6089,6 +6252,8 @@ realize_tty_face (struct face_cache *cache,
     face->tty_underline_p = true;
   if (!NILP (attrs[LFACE_INVERSE_INDEX]))
     face->tty_reverse_p = true;
+  if (!NILP (attrs[LFACE_STRIKE_THROUGH_INDEX]))
+    face->tty_strike_through_p = true;
 
   /* Map color names to color indices.  */
   map_tty_color (f, face, LFACE_FOREGROUND_INDEX, &face_colors_defaulted);
@@ -6330,7 +6495,8 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 int
 face_for_overlay_string (struct window *w, ptrdiff_t pos,
 			 ptrdiff_t *endptr, ptrdiff_t limit,
-			 bool mouse, Lisp_Object overlay)
+			 bool mouse, Lisp_Object overlay,
+			 enum lface_attribute_index attr_filter)
 {
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
@@ -6369,7 +6535,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
-    merge_face_ref (w, f, prop, attrs, true, NULL, 0);
+    merge_face_ref (w, f, prop, attrs, true, NULL, attr_filter);
 
   *endptr = endpos;
 
@@ -6953,10 +7119,13 @@ could define a face `my-mode-default', and then in the mode setup
 function, do:
 
    (set (make-local-variable \\='face-remapping-alist)
-	\\='((default my-mode-default)))).
+        (copy-tree \\='((default my-mode-default)))).
 
 You probably want to use the face-remap package included in Emacs
-instead of manipulating face-remapping-alist directly.
+instead of manipulating face-remapping-alist directly.  Note that many
+of the functions in that package modify the list destructively, so make
+sure you set it to a fresh value (for instance, use `copy-tree' as in
+the example above) before modifying.
 
 Because Emacs normally only redraws screen areas when the underlying
 buffer contents change, you may need to call `redraw-display' after
@@ -6993,4 +7162,5 @@ clear the face cache, see `clear-face-cache'.  */);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
 #endif
+  defsubr (&Scolor_values_from_color_spec);
 }

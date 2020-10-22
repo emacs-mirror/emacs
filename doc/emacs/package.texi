@@ -5,23 +5,37 @@
 @node Packages
 @chapter Emacs Lisp Packages
 @cindex Package
-@cindex Emacs Lisp package archive
 @cindex Package archive
 
-Emacs includes a facility that lets you easily download and install
-@dfn{packages} that implement additional features.  Each package is a
-separate Emacs Lisp program, sometimes including other components such
-as an Info manual.
+  Emacs is extended by implementing additional features in
+@dfn{packages}, which are Emacs Lisp libraries.  These could be
+written by you or provided by someone else.  If you want to install
+such a package so it is available in your future Emacs session, you
+need to compile it and put it in a directory where Emacs looks for
+Lisp libraries.  @xref{Lisp Libraries}, for more details about this
+manual installation method.  Many packages provide installation and
+usage instructions in the large commentary near the beginning of the
+Lisp file; you can use those instructions for installing and
+fine-tuning your use of the package.
 
-  @kbd{M-x list-packages} brings up a buffer named @file{*Packages*}
-with a list of all packages.  You can install or uninstall packages
-via this buffer.  @xref{Package Menu}.
+@cindex Emacs Lisp package archive
+  Packages can also be provided by @dfn{package archives}, which are
+large collections of Emacs Lisp packages.  Each package is a separate
+Emacs Lisp program, sometimes including other components such as an
+Info manual.  Emacs includes a facility that lets you easily download
+and install packages from such archives.  The rest of this chapter
+describes this facility.
+
+  To list the packages available for installation from package
+archives, type @w{@kbd{M-x list-packages @key{RET}}}.  It brings up a
+buffer named @file{*Packages*} with a list of all packages.  You can
+install or uninstall packages via this buffer.  @xref{Package Menu}.
 
   The command @kbd{C-h P} (@code{describe-package}) prompts for the
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
-  By default, Emacs downloads packages from a @dfn{package archive}
+  By default, Emacs downloads packages from a package archive
 maintained by the Emacs developers and hosted by the GNU project.
 Optionally, you can also download packages from archives maintained by
 third parties.  @xref{Package Installation}.
@@ -32,6 +46,7 @@ Manual}.
 
 @menu
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 @end menu
@@ -57,19 +72,12 @@ The package's version number (e.g., @samp{11.86}).
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed},
 @c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
-or @samp{built-in} (included in Emacs by default).  The status
-@samp{external} means the package is not built-in and not from the
-directory specified by @code{package-user-dir} (@pxref{Package
-Files}).  External packages are treated much like built-in: they
-cannot be deleted through the package menu, and are not considered for
-upgrading.
+or @samp{built-in} (included in Emacs by default).
+@xref{Package Statuses}.
 
-The status can also be @samp{new}.  This is equivalent to
-@samp{available}, except that it means the package became newly
-available on the package archive after your last invocation of
-@kbd{M-x list-packages}.  In other instances, a package may have the
-status @samp{held}, @samp{disabled}, or @samp{obsolete}.
-@xref{Package Installation}.
+@item
+Which package archive this package is from, if you have more than one
+package archive enabled.
 
 @item
 A short description of the package.
@@ -139,7 +147,7 @@ current line by an @kbd{i} or @kbd{d} command
 Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
-installed versions.
+installed versions (marked with status @samp{obsolete}).
 
 @item x
 @kindex x @r{(Package Menu)}
@@ -157,43 +165,133 @@ Refresh the package list (@code{revert-buffer}).  This fetches the
 list of available packages from the package archive again, and
 redisplays the package list.
 
-@item / k
-@kindex / k @r{(Package Menu)}
-@findex package-menu-filter-by-keyword
-Filter the package list by keyword
-(@code{package-menu-filter-by-keyword}).  This prompts for a keyword
-(e.g., @samp{games}), then shows only the packages that relate to that
-keyword.
-
-@item / n
-@kindex / n @r{(Package Menu)}
-@findex package-menu-filter-by-name
-Filter the package list by name (@code{package-menu-filter-by-name}).
-This prompts for a string, then shows only the packages whose names
-match a regexp with that value.
-
-@item / /
-@kindex / / @r{(Package Menu)}
-@findex package-menu-clear-filter
-Clear filter currently applied to the package list
-(@code{package-menu-clear-filter}).
-
 @item H
 @kindex H @r{(Package Menu)}
 @findex package-menu-hide-package
-Permanently hide packages that match a regexp
-(@code{package-menu-hide-package}).
+Hide packages whose names match a regexp
+(@code{package-menu-hide-package}).  This prompts for a regexp, and
+then hides the packages with matching names.  The default value of the
+regexp will hide only the package whose name is at point, so just
+pressing @key{RET} to the prompt will hide the current package.
 
 @item (
 @kindex ( @r{(Package Menu)}
 @findex package-menu-toggle-hiding
 Toggle visibility of old versions of packages and also of versions
 from lower-priority archives (@code{package-menu-toggle-hiding}).
+
+@item / a
+@kindex / a @r{(Package Menu)}
+@findex package-menu-filter-by-archive
+Filter package list by archive (@code{package-menu-filter-by-archive}).
+This prompts for a package archive (e.g., @samp{gnu}), then shows only
+packages from that archive.
+
+@item / k
+@kindex / k @r{(Package Menu)}
+@findex package-menu-filter-by-keyword
+Filter package list by keyword (@code{package-menu-filter-by-keyword}).
+This prompts for a keyword (e.g., @samp{games}), then shows only
+packages with that keyword.
+
+@item / n
+@kindex / n @r{(Package Menu)}
+@findex package-menu-filter-by-name
+Filter package list by name (@code{package-menu-filter-by-name}).
+This prompts for a regular expression, then shows only packages
+with names matching that regexp.
+
+@item / s
+@kindex / s @r{(Package Menu)}
+@findex package-menu-filter-by-status
+Filter package list by status (@code{package-menu-filter-by-status}).
+This prompts for one or more statuses (e.g., @samp{available}), then
+shows only packages with matching status.
+
+@item / v
+@kindex / v @r{(Package Menu)}
+@findex package-menu-filter-by-version
+Filter package list by version (@code{package-menu-filter-by-version}).
+This prompts first for one of the qualifiers @samp{<}, @samp{>} or
+@samp{=}, and then a package version, and shows packages that has a
+lower, equal or higher version than the one specified.
+
+@item / m
+@kindex / m @r{(Package Menu)}
+@findex package-menu-filter-marked
+Filter package list by non-empty mark (@code{package-menu-filter-marked}).
+This shows only the packages that have been marked to be installed or deleted.
+
+@item / u
+@kindex / u @r{(Package Menu)}
+@findex package-menu-filter-upgradable
+Filter package list to show only packages for which there are
+available upgrades (@code{package-menu-filter-upgradable}).
+
+@item / /
+@kindex / / @r{(Package Menu)}
+@findex package-menu-filter-clear
+Clear filter currently applied to the package list
+(@code{package-menu-filter-clear}).
 @end table
 
 @noindent
 For example, you can install a package by typing @kbd{i} on the line
 listing that package, followed by @kbd{x}.
+
+@node Package Statuses
+@section Package Statuses
+@cindex package status
+
+A package can have one of the following statuses:
+
+@table @samp
+@item available
+The package is not installed, but can be downloaded and installed from
+the package archive.
+
+@item avail-obso
+The package is available for installation, but a newer version is also
+available.  Packages with this status are hidden by default.
+
+@item built-in
+The package is included in Emacs by default.  It cannot be deleted
+through the package menu, and is not considered for upgrading.
+
+@item dependency
+The package was installed automatically to satisfy a dependency of
+another package.
+
+@item disabled
+The package has been disabled using the @code{package-load-list}
+variable.
+
+@item external
+The package is not built-in and not from the directory specified by
+@code{package-user-dir} (@pxref{Package Files}).  External packages
+are treated much like @samp{built-in} packages and cannot be deleted.
+
+@item held
+The package is held, @xref{Package Installation}.
+
+@item incompat
+The package cannot be installed for some reason, for example because
+it depends on uninstallable packages.
+
+@item installed
+The package is installed.
+
+@item new
+Equivalent to @samp{available}, except that the package became newly
+available on the package archive after your last invocation of
+@kbd{M-x list-packages}.
+
+@item obsolete
+The package is an outdated installed version; in addition to this
+version of the package, a newer version is also installed.
+
+@c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
+@end table
 
 @node Package Installation
 @section Package Installation

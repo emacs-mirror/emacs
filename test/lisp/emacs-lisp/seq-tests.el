@@ -1,4 +1,4 @@
-;;; seq-tests.el --- Tests for sequences.el
+;;; seq-tests.el --- Tests for seq.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
@@ -126,7 +126,7 @@ Evaluate BODY for each created sequence.
   (with-test-sequences (seq '(6 7 8 9 10))
     (should (equal (seq-filter #'test-sequences-evenp seq) '(6 8 10)))
     (should (equal (seq-filter #'test-sequences-oddp seq) '(7 9)))
-    (should (equal (seq-filter (lambda (elt) nil) seq) '())))
+    (should (equal (seq-filter (lambda (_) nil) seq) '())))
   (with-test-sequences (seq '())
     (should (equal (seq-filter #'test-sequences-evenp seq) '()))))
 
@@ -134,7 +134,7 @@ Evaluate BODY for each created sequence.
   (with-test-sequences (seq '(6 7 8 9 10))
     (should (equal (seq-remove #'test-sequences-evenp seq) '(7 9)))
     (should (equal (seq-remove #'test-sequences-oddp seq) '(6 8 10)))
-    (should (same-contents-p (seq-remove (lambda (elt) nil) seq) seq)))
+    (should (same-contents-p (seq-remove (lambda (_) nil) seq) seq)))
   (with-test-sequences (seq '())
     (should (equal (seq-remove #'test-sequences-evenp seq) '()))))
 
@@ -142,7 +142,7 @@ Evaluate BODY for each created sequence.
   (with-test-sequences (seq '(6 7 8 9 10))
     (should (equal (seq-count #'test-sequences-evenp seq) 3))
     (should (equal (seq-count #'test-sequences-oddp seq) 2))
-    (should (equal (seq-count (lambda (elt) nil) seq) 0)))
+    (should (equal (seq-count (lambda (_) nil) seq) 0)))
   (with-test-sequences (seq '())
     (should (equal (seq-count #'test-sequences-evenp seq) 0))))
 
@@ -199,7 +199,7 @@ Evaluate BODY for each created sequence.
 
 (ert-deftest test-seq-every-p ()
   (with-test-sequences (seq '(43 54 22 1))
-    (should (seq-every-p (lambda (elt) t) seq))
+    (should (seq-every-p (lambda (_) t) seq))
     (should-not (seq-every-p #'test-sequences-oddp seq))
     (should-not (seq-every-p #'test-sequences-evenp seq)))
   (with-test-sequences (seq '(42 54 22 2))

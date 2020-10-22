@@ -245,13 +245,13 @@ Do an incremental search on the selected article buffer
 (@code{gnus-summary-isearch-article}), as if you switched to the
 buffer and typed @kbd{C-s} (@pxref{Incremental Search}).
 
-@kindex M-s @r{(Gnus Summary mode)}
+@kindex M-s M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
 @item M-s @var{regexp} @key{RET}
 Search forward for articles containing a match for @var{regexp}
 (@code{gnus-summary-search-article-forward}).
 
-@kindex M-r @r{(Gnus Summary mode)}
+@kindex M-s M-r @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-backward
 @item M-r @var{regexp} @key{RET}
 Search back for articles containing a match for @var{regexp}
@@ -617,12 +617,12 @@ of pages to display.  A slice is a rectangle within the page area;
 once you specify a slice in DocView, it applies to whichever page you
 look at.
 
-  To specify the slice numerically, type @kbd{s s}
+  To specify the slice numerically, type @kbd{c s}
 (@code{doc-view-set-slice}); then enter the top left pixel position
 and the slice's width and height.
 @c ??? how does this work?
 
-  A more convenient graphical way to specify the slice is with @kbd{s
+  A more convenient graphical way to specify the slice is with @kbd{c
 m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
 select the slice.  Simply press and hold the left mouse button at the
 upper-left corner of the region you want to have in the slice, then
@@ -631,10 +631,10 @@ button.
 
   The most convenient way is to set the optimal slice by using
 BoundingBox information automatically determined from the document by
-typing @kbd{s b} (@code{doc-view-set-slice-from-bounding-box}).
+typing @kbd{c b} (@code{doc-view-set-slice-from-bounding-box}).
 
 @findex doc-view-reset-slice
-  To cancel the selected slice, type @kbd{s r}
+  To cancel the selected slice, type @kbd{c r}
 (@code{doc-view-reset-slice}).  Then DocView shows the entire page
 including its entire margins.
 
@@ -724,12 +724,13 @@ See the Eshell Info manual, which is distributed with Emacs.
 
 @kindex M-!
 @findex shell-command
+@vindex shell-command-buffer-name
   @kbd{M-!} (@code{shell-command}) reads a line of text using the
 minibuffer and executes it as a shell command, in a subshell made just
 for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
-either in the echo area (if it is short), or in an Emacs buffer named
-@file{*Shell Command Output*}, displayed in another window (if the
+either in the echo area (if it is short), or in the @samp{"*Shell
+Command Output*"} (@code{shell-command-buffer-name}) buffer (if the
 output is long).  The variables @code{resize-mini-windows} and
 @code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
 Emacs should consider the output to be too long for the echo area.
@@ -740,10 +741,11 @@ creates the file @file{foo} and produces no terminal output.
 
   A numeric argument to @code{shell-command}, e.g., @kbd{M-1 M-!},
 causes it to insert terminal output into the current buffer instead of
-a separate buffer.  It puts point before the output, and sets the mark
-after the output.  For instance, @kbd{M-1 M-! gunzip < foo.gz
-@key{RET}} would insert the uncompressed form of the file
-@file{foo.gz} into the current buffer.
+a separate buffer.  By default, it puts point before the output, and
+sets the mark after the output (but a non-default value of
+@code{shell-command-dont-erase-buffer} can change that, see below).
+For instance, @kbd{M-1 M-! gunzip < foo.gz @key{RET}} would insert the
+uncompressed form of the file @file{foo.gz} into the current buffer.
 
   Provided the specified shell command does not end with @samp{&}, it
 runs @dfn{synchronously}, and you must wait for it to exit before
@@ -757,15 +759,17 @@ which is impossible to ignore.
 
 @kindex M-&
 @findex async-shell-command
+@vindex shell-command-buffer-name-async
   A shell command that ends in @samp{&} is executed
 @dfn{asynchronously}, and you can continue to use Emacs as it runs.
 You can also type @kbd{M-&} (@code{async-shell-command}) to execute a
 shell command asynchronously; this is exactly like calling @kbd{M-!}
 with a trailing @samp{&}, except that you do not need the @samp{&}.
-The default output buffer for asynchronous shell commands is named
-@samp{*Async Shell Command*}.  Emacs inserts the output into this
-buffer as it comes in, whether or not the buffer is visible in a
-window.
+The output from asynchronous shell commands, by default, goes into the
+@samp{"*Async Shell Command*"} buffer
+(@code{shell-command-buffer-name-async}).  Emacs inserts the output
+into this buffer as it comes in, whether or not the buffer is visible
+in a window.
 
 @vindex async-shell-command-buffer
   If you want to run more than one asynchronous shell command at the
@@ -790,7 +794,7 @@ the same number of columns as provided by the shell.
 @vindex shell-command-prompt-show-cwd
   To make the above commands show the current directory in their
 prompts, customize the variable @code{shell-command-prompt-show-cwd}
-to a non-nil value.
+to a non-@code{nil} value.
 
 @kindex M-|
 @findex shell-command-on-region
@@ -803,7 +807,7 @@ old region and replaces it with the output from the shell command.
 see what keys are in the buffer.  If the buffer contains a GnuPG key,
 type @kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents
 to @command{gpg}.  This will output the list of keys to the
-@file{*Shell Command Output*} buffer.
+buffer whose name is the value of @code{shell-command-buffer-name}.
 
 @vindex shell-file-name
   The above commands use the shell specified by the variable
@@ -826,12 +830,24 @@ the output buffer.  But if you change the value of the variable
 inserted into a buffer of that name.
 
 @vindex shell-command-dont-erase-buffer
-  By default, the output buffer is erased between shell commands.
-If you change the value of the variable
-@code{shell-command-dont-erase-buffer} to a non-@code{nil} value,
-the output buffer is not erased.  This variable also controls where to
-set the point in the output buffer after the command completes; see the
-documentation of the variable for details.
+  By default, the output buffer is erased between shell commands, except
+when the output goes to the current buffer.  If you change the value
+of the option @code{shell-command-dont-erase-buffer} to @code{erase},
+then the output buffer is always erased.  Other non-@code{nil} values
+prevent erasing of the output buffer, and---if the output buffer is
+not the current buffer---also control where to put point after
+inserting the output of the shell command:
+
+@table @code
+@item beg-last-out
+Puts point at the beginning of the last shell-command output.
+@item end-last-out
+Puts point at the end of the last shell-command output, i.e.@: at the
+end of the output buffer.
+@item save-point
+Restores the position of point as it was before inserting the
+shell-command output.
+@end table
 
 @node Interactive Shell
 @subsection Interactive Subshell
@@ -1955,12 +1971,12 @@ evaluate, @emph{not} as a list of files to visit.
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
 Specify a server file (@pxref{TCP Emacs server}) for connecting to an
-Emacs server via TCP.  Alternatively, you can set the
+Emacs server via TCP@.  Alternatively, you can set the
 @env{EMACS_SERVER_FILE} environment variable to point to the server
 file.  (The command-line option overrides the environment variable.)
 
 An Emacs server usually uses a local socket to listen for connections,
-but also supports connections over TCP.  To connect to a TCP Emacs
+but also supports connections over TCP@.  To connect to a TCP Emacs
 server, @command{emacsclient} needs to read a @dfn{server file}
 containing the connection details of the Emacs server.  The name of
 this file is specified with this option, either as a file name
@@ -2869,8 +2885,8 @@ widget.  The URL normally defaults to the URL at or before point, but
 if there is an active region (@pxref{Mark}), the default URL comes
 from the region instead, after removing any whitespace from it.  The
 command then creates a new buffer with the embedded browser showing
-the specified URL.  The buffer is put in the Xwidget-WebKit mode
-(similar to Image mode, @pxref{File Conveniences}), which provides
+the specified URL@.  The buffer is put in the Xwidget-WebKit mode
+(similar to Image mode, @pxref{Image Mode}), which provides
 one-key commands for scrolling the widget, changing its size, and
 reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
 bindings.
@@ -2907,9 +2923,17 @@ you might like to bind to keys, such as @code{browse-url-at-point} and
   You can customize Browse-URL's behavior via various options in the
 @code{browse-url} Customize group.  In particular, the option
 @code{browse-url-mailto-function} lets you define how to follow
-@samp{mailto:} URLs, while @code{browse-url-browser-function} lets you
-define how to follow other types of URLs.  For more information, view
-the package commentary by typing @kbd{C-h P browse-url @key{RET}}.
+@samp{mailto:} URLs, while @code{browse-url-browser-function}
+specifies your default browser.
+
+@vindex browse-url-handlers
+  You can define that certain URLs are browsed with other functions by
+customizing @code{browse-url-handlers}, an alist of regular
+expressions or predicates paired with functions to browse matching
+URLs.
+
+For more information, view the package commentary by typing @kbd{C-h P
+browse-url @key{RET}}.
 
 @node Goto Address mode
 @subsection Activating URLs
@@ -2921,6 +2945,9 @@ the package commentary by typing @kbd{C-h P browse-url @key{RET}}.
 @table @kbd
 @item M-x goto-address-mode
 Activate URLs and e-mail addresses in the current buffer.
+
+@item M-x global-goto-address-mode
+Activate @code{goto-address-mode} in all buffers.
 @end table
 
 @kindex C-c RET @r{(Goto Address mode)}
@@ -2937,9 +2964,8 @@ done by calling @code{browse-url} as a subroutine
 
   It can be useful to add @code{goto-address-mode} to mode hooks and
 hooks for displaying an incoming message
-(e.g., @code{rmail-show-message-hook} for Rmail, and
-@code{mh-show-mode-hook} for MH-E).  This is not needed for Gnus,
-which has a similar feature of its own.
+(e.g., @code{rmail-show-message-hook} for Rmail).  This is not needed
+for Gnus or MH-E, which have similar features of their own.
 
 @node FFAP
 @subsection Finding Files and URLs at Point
@@ -3002,6 +3028,11 @@ point (@code{dired-at-point}).
 @code{find-file-read-only-other-frame}.
 @item C-x 5 d @var{directory} @key{RET}
 @code{ffap-dired-other-frame}, analogous to @code{dired-other-frame}.
+@kindex C-x t C-f @r{(FFAP)}
+@item C-x t C-f @var{filename} @key{return}
+@code{ffap-other-tab}, analogous to @code{find-file-other-tab}.
+@item C-x t C-r @var{filename} @key{return}
+@code{ffap-read-only-other-tab}, analogous to @code{find-file-read-only-other-tab}.
 @item M-x ffap-next
 Search buffer for next file name or URL, then find that file or URL.
 @item S-mouse-3

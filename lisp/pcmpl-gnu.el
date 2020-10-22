@@ -118,7 +118,7 @@
 Return the new list."
   (goto-char (point-min))
   (while (re-search-forward
-	  "^\\s-*\\([^\n#%.$][^:=\n]*\\)\\s-*:[^=]" nil t)
+          "^\\([^\t\n#%.$][^:=\n]*\\)\\s-*:[^=]" nil t)
     (setq targets (nconc (split-string (match-string-no-properties 1))
                          targets)))
   targets)

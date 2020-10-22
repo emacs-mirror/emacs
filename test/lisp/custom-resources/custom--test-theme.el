@@ -1,3 +1,5 @@
+;;; custom--test-theme.el -- A test theme.  -*- lexical-binding:t -*-
+
 (deftheme custom--test
   "A test theme.")
 

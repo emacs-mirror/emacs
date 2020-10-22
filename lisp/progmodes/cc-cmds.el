@@ -48,6 +48,7 @@
 (cc-bytecomp-defvar filladapt-mode)	; c-fill-paragraph contains a kludge
 					; which looks at this.
 (cc-bytecomp-defun electric-pair-post-self-insert-function)
+(cc-bytecomp-defvar c-indent-to-body-directives)
 
 ;; Indentation / Display syntax functions
 (defvar c-fix-backslashes t)
@@ -512,11 +513,11 @@ function to control that."
 	(let ((src (default-value 'post-self-insert-hook)))
 	  (while src
 	    (unless (memq (car src) c--unsafe-post-self-insert-hook-functions)
-	      (add-hook 'dest (car src) t)) ; Preserve the order of the functions.
+	      (push (car src) dest))
 	    (setq src (cdr src)))))
-       (t (add-hook 'dest (car src) t))) ; Preserve the order of the functions.
+       (t (push (car src) dest)))
       (setq src (cdr src)))
-    (run-hooks 'dest)))
+    (mapc #'funcall (nreverse dest)))) ; Preserve the order of the functions.
 
 (defmacro c--call-post-self-insert-hook-more-safely ()
   ;; Call post-self-insert-hook, if such exists.  See comment for
@@ -1441,6 +1442,98 @@ keyword on the line, the keyword is not inserted inside a literal, and
 	  (indent-according-to-mode)
 	(delete-char -2)))))
 
+(defun c-align-cpp-indent-to-body ()
+  "Align a \"#pragma\" line under the previous line.
+This function is intented for use as a member of `c-special-indent-hook'."
+  (when (assq 'cpp-macro c-syntactic-context)
+    (when
+	(save-excursion
+	  (save-match-data
+	    (back-to-indentation)
+	    (and
+	     (looking-at (concat c-opt-cpp-symbol "[ \t]*\\([a-zA-Z0-9_]+\\)"))
+	     (member (match-string-no-properties 1)
+		     c-cpp-indent-to-body-directives))))
+      (c-indent-line (delete '(cpp-macro) c-syntactic-context)))))
+
+(defvar c-cpp-indent-to-body-flag nil)
+;; Non-nil when CPP directives such as "#pragma" should be indented to under
+;; the preceding statement.
+(make-variable-buffer-local 'c-cpp-indent-to-body-flag)
+
+(defun c-electric-pragma ()
+  "Reindent the current line if appropriate.
+
+This function is used to reindent a preprocessor line when the
+symbol for the directive, typically \"pragma\", triggers this
+function as a hook function of an abbreviation.
+
+The \"#\" of the preprocessor construct is aligned under the
+first anchor point of the line's syntactic context.
+
+The line is reindented if the construct is not in a string or
+comment, there is exactly one \"#\" contained in optional
+whitespace before it on the current line, and `c-electric-flag'
+and `c-syntactic-indentation' are both non-nil."
+  (save-excursion
+    (save-match-data
+      (when
+	  (and
+	   c-cpp-indent-to-body-flag
+	   c-electric-flag
+	   c-syntactic-indentation
+	   last-abbrev-location
+	   c-opt-cpp-symbol		; "#" or nil.
+	   (progn (back-to-indentation)
+		  (looking-at (concat c-opt-cpp-symbol "[ \t]*")))
+	   (>= (match-end 0) last-abbrev-location)
+	   (not (c-literal-limits)))
+	(c-indent-line (delete '(cpp-macro) (c-guess-basic-syntax)))))))
+
+(defun c-add-indent-to-body-to-abbrev-table (d)
+  ;; Create an abbreviation table entry for the directive D, and add it to the
+  ;; current abbreviation table.  Existing abbreviation (e.g. for "else") do
+  ;; not get overwritten.
+  (when (and c-buffer-is-cc-mode
+	     local-abbrev-table
+	     (not (abbrev-symbol d local-abbrev-table)))
+    (condition-case nil
+	(define-abbrev local-abbrev-table d d 'c-electric-pragma 0 t)
+      (wrong-number-of-arguments
+       (define-abbrev local-abbrev-table d d 'c-electric-pragma)))))
+
+(defun c-clear-stale-indent-to-body-abbrevs ()
+  ;; Fill in this comment.  FIXME!!!
+  (when (fboundp 'abbrev-get)
+    (mapatoms (lambda (a)
+		(when (and (abbrev-get a ':system) ; Preserve a user's abbrev!
+			   (not (member (symbol-name a) c-std-abbrev-keywords))
+			   (not (member (symbol-name a)
+					c-cpp-indent-to-body-directives)))
+		  (unintern a local-abbrev-table)))
+	      local-abbrev-table)))
+
+(defun c-toggle-cpp-indent-to-body (&optional arg)
+  "Toggle the C preprocessor indent-to-body feature.
+When enabled, preprocessor directives which are words in
+`c-indent-to-body-directives' are indented as if they were statements.
+
+Optional numeric ARG, if supplied, turns on the feature when positive,
+turns it off when negative, and just toggles it when zero or
+left out."
+  (interactive "P")
+  (setq c-cpp-indent-to-body-flag
+	(c-calculate-state arg c-cpp-indent-to-body-flag))
+  (if c-cpp-indent-to-body-flag
+      (progn
+	(c-clear-stale-indent-to-body-abbrevs)
+	(mapc 'c-add-indent-to-body-to-abbrev-table
+	      c-cpp-indent-to-body-directives)
+	(add-hook 'c-special-indent-hook 'c-align-cpp-indent-to-body nil t))
+    (remove-hook 'c-special-indent-hook 'c-align-cpp-indent-to-body t))
+  (message "c-cpp-indent-to-body %sabled"
+	   (if c-cpp-indent-to-body-flag "en" "dis")))
+
 
 
 (declare-function subword-forward "subword" (&optional arg))
@@ -1461,19 +1554,6 @@ keyword on the line, the keyword is not inserted inside a literal, and
 (declare-function c-backward-subword "ext:cc-subword" (&optional arg))
 
 ;; "nomenclature" functions + c-scope-operator.
-(defun c-forward-into-nomenclature (&optional arg)
-  "Compatibility alias for `c-forward-subword'."
-  (interactive "p")
-  (if (fboundp 'subword-mode)
-      (progn
-        (require 'subword)
-        (subword-forward arg))
-    (require 'cc-subword)
-    (c-forward-subword arg)))
-(make-obsolete 'c-forward-into-nomenclature
-               (if (fboundp 'subword-mode) 'subword-forward 'c-forward-subword)
-               "23.2")
-
 (defun c-backward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-backward-subword'."
   (interactive "p")
@@ -2023,6 +2103,23 @@ other top level construct with a brace block."
 	     (c-forward-token-2)
 	     (c-backward-syntactic-ws)
 	     (point))))
+
+	 ((and (c-major-mode-is 'objc-mode) (looking-at "[-+]\\s-*("))     ; Objective-C method
+	  ;; Move to the beginning of the method name.
+	  (c-forward-token-2 2 t)
+	  (let* ((class
+		  (save-excursion
+		    (when (re-search-backward
+			   "^\\s-*@\\(implementation\\|class\\|interface\\)\\s-+\\(\\sw+\\)" nil t)
+		      (match-string-no-properties 2))))
+		 (limit (save-excursion (re-search-forward "[;{]" nil t)))
+		 (method (when (re-search-forward "\\(\\sw+:?\\)" limit t)
+			   (match-string-no-properties 1))))
+	    (when (and class method)
+	      ;; Add the parameter labels onto name.  They always end in ':'.
+	      (while (re-search-forward "\\(\\sw+:\\)" limit 1)
+		(setq method (concat method (match-string-no-properties 1))))
+	      (concat "[" class " " method "]"))))
 
 	 (t				; Normal function or initializer.
 	  (when (looking-at c-defun-type-name-decl-key) ; struct, etc.

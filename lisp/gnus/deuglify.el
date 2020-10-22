@@ -403,9 +403,9 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
     (gnus-with-article-buffer
       (article-goto-body)
       (when (re-search-forward
-	     (concat "^[" cite-marks " \t]*--* ?[^-]+ [^-]+ ?--*\\s *\n"
+	     (concat "^[" cite-marks " \t]*--*[^-]+ [^-]+--*\\s *\n"
 		     "[^\n:]+:[ \t]*\\([^\n]+\\)\n"
-		     "\\([^\n:]+:[ \t]*[^\n]+\n\\)+")
+		     "\\([^\n:]+:[^\n]+\n\\)+")
 	     nil t)
 	(gnus-kill-all-overlays)
 	(replace-match "\\1 wrote:\n")

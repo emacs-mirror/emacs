@@ -45,9 +45,7 @@ Intended to be used in the `interactive' spec of
 		       (symbol-name default)))
          (variable
 	  (completing-read
-	   (if default
-	       (format "%s (default %s): " prompt default)
-	     (format "%s: " prompt))
+           (format-prompt prompt default)
 	   obarray
 	   (lambda (sym)
 	     (or (custom-variable-p sym)
@@ -65,9 +63,7 @@ Intended to be used in the `interactive' spec of
     (let* ((default (and (symbolp major-mode) (symbol-name major-mode)))
            (value
             (completing-read
-             (if default
-                 (format "Add %s with value (default %s): " variable default)
-               (format "Add %s with value: " variable))
+             (format-prompt "Add %s with value" default variable)
              obarray
              (lambda (sym)
                (string-match-p "-mode\\'" (symbol-name sym)))
@@ -79,11 +75,8 @@ Intended to be used in the `interactive' spec of
    ((eq variable 'coding)
     (let ((default (and (symbolp buffer-file-coding-system)
                         (symbol-name buffer-file-coding-system))))
-      (read-coding-system
-       (if default
-           (format "Add %s with value (default %s): " variable default)
-         (format "Add %s with value: " variable))
-       default)))
+      (read-coding-system (format-prompt "Add %s with value" default variable)
+                          default)))
    (t
     (let ((default (format "%S"
                            (cond ((eq variable 'unibyte) t)
@@ -102,9 +95,7 @@ Intended to be used in the `interactive' spec of
   (let* ((default (and (symbolp major-mode) (symbol-name major-mode)))
 	 (mode
 	  (completing-read
-	   (if default
-	       (format "Mode or subdirectory (default %s): " default)
-	     (format "Mode or subdirectory: "))
+	   (format-prompt "Mode or subdirectory" default)
 	   obarray
 	   (lambda (sym)
 	     (and (string-match-p "-mode\\'" (symbol-name sym))

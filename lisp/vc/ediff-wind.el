@@ -156,12 +156,10 @@ In this case, Ediff will use those frames to display these buffers."
    '(name . "Ediff")
    ;;'(unsplittable . t)
    '(minibuffer . nil)
-   '(user-position . t)	      ; Emacs only
-   '(vertical-scroll-bars . nil)  ; Emacs only
-   '(scrollbar-width . 0)         ; XEmacs only
-   '(scrollbar-height . 0)        ; XEmacs only
-   '(menu-bar-lines . 0)          ; Emacs only
-   '(tool-bar-lines . 0)          ; Emacs 21+ only
+   '(user-position . t)
+   '(vertical-scroll-bars . nil)
+   '(menu-bar-lines . 0)
+   '(tool-bar-lines . 0)
    '(left-fringe    . 0)
    '(right-fringe   . 0)
    ;; don't lower but auto-raise
@@ -260,10 +258,9 @@ the frame used for the wide display.")
 This has effect only on a windowing system.
 If t, hitting `?' to toggle control panel off iconifies it.
 
-This is only useful in Emacs and only for certain kinds of window managers,
-such as TWM and its derivatives, since the window manager must permit
-keyboard input to go into icons.  XEmacs completely ignores keyboard input
-into icons, regardless of the window manager."
+This is only useful for certain kinds of window managers, such as
+TWM and its derivatives, since the window manager must permit
+keyboard input to go into icons."
   :type 'boolean)
 
 ;;; Functions
@@ -952,8 +949,7 @@ create a new splittable frame if none is found."
     ;; just a precaution--we should be in ctl-buffer already
     (with-current-buffer ctl-buffer
       (make-local-variable 'frame-title-format)
-      (make-local-variable 'frame-icon-title-format)	; XEmacs
-      (make-local-variable 'icon-title-format))  	; Emacs
+      (make-local-variable 'icon-title-format))
 
     (ediff-setup-control-buffer ctl-buffer)
     (setq dont-iconify-ctl-frame
@@ -1098,6 +1094,7 @@ create a new splittable frame if none is found."
       )))
 
 (defun ediff-xemacs-select-frame-hook ()
+  (declare (obsolete nil "28.1"))
   (if (and (equal (selected-frame) ediff-control-frame)
 	   (not ediff-use-long-help-message))
       (raise-frame ediff-control-frame)))

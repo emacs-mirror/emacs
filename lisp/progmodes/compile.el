@@ -33,6 +33,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'tool-bar)
 (require 'comint)
+(require 'text-property-search)
 
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
@@ -64,7 +65,8 @@ If nil, use Emacs default."
 If the replacement is nil, the file will not be considered an
 error after all.  If not nil, it should be a regexp replacement
 string."
-  :type '(repeat (list regexp string))
+  :type '(repeat (list regexp (choice (const :tag "No replacement" nil)
+                                      string)))
   :version "27.1")
 
 (defvar compilation-filter-hook nil
@@ -221,9 +223,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; considered before EDG.
      ;; The message may be a "warning", "error", or "fatal error" with
      ;; an error code, or "see declaration of" without an error code.
-     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) ?\
+     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^ :(\t\n][^:(\t\n]*\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?) ?\
 : \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
-     2 3 nil (4))
+     2 3 4 (5))
 
     (edg-1
      "^\\([^ \n]+\\)(\\([0-9]+\\)): \\(?:error\\|warnin\\(g\\)\\|remar\\(k\\)\\)"
@@ -265,15 +267,41 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (java
      "^\\(?:[ \t]+at \\|==[0-9]+== +\\(?:at\\|b\\(y\\)\\)\\).+(\\([^()\n]+\\):\\([0-9]+\\))$" 2 3 nil (1))
 
+    (javac
+     ,(concat
+       ;; line1
+       "^\\(\\(?:[A-Za-z]:\\)?[^:\n]+\\):" ;file
+       "\\([0-9]+\\): "                    ;line
+       "\\(warning: \\)?.*\n"              ;type (optional) and message
+       ;; line2: source line containing error
+       ".*\n"
+       ;; line3: single "^" under error position in line2
+       " *\\^$")
+     1 2
+     ,(lambda () (1- (current-column)))
+     (3))
+
     (jikes-file
      "^\\(?:Found\\|Issued\\) .* compiling \"\\(.+\\)\":$" 1 nil nil 0)
 
-
-    ;; This used to be pathologically slow on long lines (Bug#3441),
-    ;; due to matching filenames via \\(.*?\\).  This might be faster.
     (maven
      ;; Maven is a popular free software build tool for Java.
-     "\\(\\[WARNING\\] *\\)?\\([^ \n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 2 3 4 (1))
+     ,(rx bol
+          ;; It is unclear whether the initial [type] tag is always present.
+          (? "["
+             (or "ERROR" (group-n 1 "WARNING") (group-n 2 "INFO"))
+             "] ")
+          (group-n 3                    ; File
+                   (not (any "\n ["))
+                   (* (or (not (any "\n :"))
+                          (: " " (not (any "\n/-")))
+                          (: ":" (not (any "\n ["))))))
+          ":["
+          (group-n 4 (+ digit))         ; Line
+          ","
+          (group-n 5 (+ digit))         ; Column
+          "] ")
+     3 4 5 (1 . 2))
 
     (jikes-line
      "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
@@ -290,11 +318,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (gcc-include
      "^\\(?:In file included \\|                 \\|\t\\)from \
 \\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\
-\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?\\(?:\\(:\\)\\|\\(,\\|$\\)\\)?"
-     1 2 3 (4 . 5))
+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?\\(?:\\([:,]\\|$\\)\\)?"
+     1 2 3 (nil . 4))
 
     (ruby-Test::Unit
-     "^[\t ]*\\[\\([^(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
+     "^    [[ ]?\\([^ (].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
     (gmake
      ;; Set GNU make error messages as INFO level.
@@ -391,17 +419,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (mips-2
      " in \\([^()\n ]+\\)(\\([0-9]+\\))$" 1 2)
 
-    (msft
-     ;; The message may be a "warning", "error", or "fatal error" with
-     ;; an error code, or "see declaration of" without an error code.
-     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
-: \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
-     2 3 nil (4))
-
     (omake
      ;; "omake -P" reports "file foo changed"
      ;; (useful if you do "cvs up" and want to see what has changed)
-     "omake: file \\(.*\\) changed" 1 nil nil nil nil
+     "^\\*\\*\\* omake: file \\(.*\\) changed" 1 nil nil nil nil
      ;; FIXME-omake: This tries to prevent reusing pre-existing markers
      ;; for subsequent messages, since those messages's line numbers
      ;; are about another version of the file.
@@ -430,6 +451,9 @@ during global destruction\\.$\\)" 1 2)
  \\([0-9]+\\) of file://\\(.+\\)"
      4 2 3 (1))
 
+    (shellcheck
+     "^In \\(.+\\) line \\([0-9]+\\):" 1 2)
+
     (sparc-pascal-file
      "^\\w\\w\\w \\w\\w\\w +[0-3]?[0-9] +[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\
  [12][09][0-9][0-9] +\\(.*\\):$"
@@ -450,7 +474,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., (-]" 1 2 3)
 
     (watcom
-     "^[ \t]*\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)): ?\
+     "^[ \t]*\\(\\(?:[a-zA-Z]:\\)?[^ :(\t\n][^:(\t\n]*\\)(\\([0-9]+\\)): ?\
 \\(?:\\(Error! E[0-9]+\\)\\|\\(Warning! W[0-9]+\\)\\):"
      1 2 nil (4))
 
@@ -641,6 +665,16 @@ matched file names, and weeding out false positives."
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory)))
 
+(defvar compilation-error-case-fold-search nil
+  "If non-nil, use case-insensitive matching of compilation errors
+by the regexps of `compilation-error-regexp-alist' and
+`compilation-error-regexp-alist-alist'.
+If nil, matching is case-sensitive.
+
+This variable should only be set for backward compatibility as a temporary
+measure.  The proper solution is to use a regexp that matches the
+messages without case-folding.")
+
 ;;;###autoload(put 'compilation-directory 'safe-local-variable 'stringp)
 (defvar compilation-directory nil
   "Directory to restore to when doing `recompile'.")
@@ -710,6 +744,18 @@ file might define a malicious `compile-command' as a file local
 variable, and you might not notice.  Therefore, `compile-command'
 is considered unsafe if this variable is nil."
   :type 'boolean)
+
+(defcustom compilation-search-all-directories t
+  "Whether further upward directories should be used when searching a file.
+When doing a parallel build, several files from different
+directories can be compiled at the same time.  This makes it
+difficult to determine the base directory for a relative file
+name in a compiler error or warning.  If this variable is
+non-nil, instead of just relying on the previous directory change
+in the compilation buffer, all other directories further upwards
+will be used as well."
+  :type 'boolean
+  :version "28.1")
 
 ;;;###autoload
 (defcustom compilation-ask-about-save t
@@ -1017,9 +1063,9 @@ from a different message."
             (:constructor nil)
             (:copier nil)
             ;; (:type list)                ;Old representation.
-            (:constructor compilation--make-message (loc type end-loc))
+            (:constructor compilation--make-message (loc type end-loc rule))
             (:conc-name compilation--message->))
-  loc type end-loc)
+  loc type end-loc rule)
 
 (defvar compilation--previous-directory-cache nil
   "A pair (POS . RES) caching the result of previous directory search.
@@ -1092,7 +1138,7 @@ POS and RES.")
                                (cons (match-string-no-properties idx) dir))
       ;; Place a `compilation-message' everywhere we change text-properties
       ;; so compilation--remove-properties can know what to remove.
-      compilation-message ,(compilation--make-message nil 0 nil)
+      compilation-message ,(compilation--make-message nil 0 nil nil)
       mouse-face highlight
       keymap compilation-button-map
       help-echo "mouse-2: visit destination directory")))
@@ -1119,18 +1165,20 @@ POS and RES.")
 	    (setcdr l1 (cons (list ,key) l2)))))))
 
 (defun compilation-auto-jump (buffer pos)
-  (with-current-buffer buffer
-    (goto-char pos)
-    (let ((win (get-buffer-window buffer 0)))
-      (if win (set-window-point win pos)))
-    (if compilation-auto-jump-to-first-error
-	(compile-goto-error))))
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (goto-char pos)
+      (let ((win (get-buffer-window buffer 0)))
+        (if win (set-window-point win pos)))
+      (if compilation-auto-jump-to-first-error
+	  (compile-goto-error)))))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
 ;; Return a property list with all meta information on this error location.
 
-(defun compilation-error-properties (file line end-line col end-col type fmt)
+(defun compilation-error-properties (file line end-line col end-col type fmt
+                                     rule)
   (unless (text-property-not-all (match-beginning 0) (point)
                                  'compilation-message nil)
     (if file
@@ -1218,7 +1266,7 @@ POS and RES.")
                         (current-buffer) (match-beginning 0)))
 
       (compilation-internal-error-properties
-       file line end-line col end-col type fmt))))
+       file line end-line col end-col type fmt rule))))
 
 (defun compilation-beginning-of-line (&optional n)
   "Like `beginning-of-line', but accounts for lines hidden by `selective-display'."
@@ -1241,13 +1289,15 @@ just char-counts."
       (let ((tab-width 8)) (move-to-column (max col 0)))
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
 
-(defun compilation-internal-error-properties (file line end-line col end-col type fmts)
+(defun compilation-internal-error-properties (file line end-line col end-col
+                                              type fmts rule)
   "Get the meta-info that will be added as text-properties.
 LINE, END-LINE, COL, END-COL are integers or nil.
 TYPE can be 0, 1, or 2, meaning error, warning, or just info.
 FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME) or (BUFFER) or
 nil.
 FMTS is a list of format specs for transforming the file name.
+RULE is the name (symbol) of the rule used or nil if anonymous.
  (See `compilation-error-regexp-alist'.)"
   (unless file (setq file '("*unknown*")))
   (let* ((file-struct (compilation-get-file-structure file fmts))
@@ -1334,7 +1384,7 @@ FMTS is a list of format specs for transforming the file name.
 
     ;; Must start with face
     `(font-lock-face ,compilation-message-face
-      compilation-message ,(compilation--make-message loc type end-loc)
+      compilation-message ,(compilation--make-message loc type end-loc rule)
       help-echo ,(if col
                      "mouse-2: visit this file, line and column"
                    (if line
@@ -1426,98 +1476,109 @@ This updates the appropriate variable used by the mode-line."
   "Parse errors between START and END.
 The errors recognized are the ones specified in RULES which default
 to `compilation-error-regexp-alist' if RULES is nil."
-  (dolist (item (or rules compilation-error-regexp-alist))
-    (if (symbolp item)
-        (setq item (cdr (assq item
-                              compilation-error-regexp-alist-alist))))
-    (let ((file (nth 1 item))
-          (line (nth 2 item))
-          (col (nth 3 item))
-          (type (nth 4 item))
-          (pat (car item))
-          end-line end-col fmt
-          props)
+  (let ((case-fold-search compilation-error-case-fold-search)
+        (omake-included (memq 'omake compilation-error-regexp-alist)))
+    (dolist (rule-item (or rules compilation-error-regexp-alist))
+      (let* ((item
+              (if (symbolp rule-item)
+                  (cdr (assq rule-item compilation-error-regexp-alist-alist))
+                rule-item))
+             (pat (car item))
+             (file (nth 1 item))
+             (line (nth 2 item))
+             (col (nth 3 item))
+             (type (nth 4 item))
+             (rule (and (symbolp rule-item) rule-item))
+             end-line end-col fmt
+             props)
 
-      ;; omake reports some error indented, so skip the indentation.
-      ;; another solution is to modify (some?) regexps in
-      ;; `compilation-error-regexp-alist'.
-      ;; note that omake usage is not limited to ocaml and C (for stubs).
-      ;; FIXME-omake: Doing it here seems wrong, at least it should depend on
-      ;; whether or not omake's own error messages are recognized.
-      (cond
-       ((not (memq 'omake compilation-error-regexp-alist)) nil)
-       ((string-match "\\`\\([^^]\\|\\^\\( \\*\\|\\[\\)\\)" pat)
-        nil) ;; Not anchored or anchored but already allows empty spaces.
-       (t (setq pat (concat "^ *" (substring pat 1)))))
+        ;; omake reports some error indented, so skip the indentation.
+        ;; another solution is to modify (some?) regexps in
+        ;; `compilation-error-regexp-alist'.
+        ;; note that omake usage is not limited to ocaml and C (for stubs).
+        ;; FIXME-omake: Doing it here seems wrong, at least it should depend on
+        ;; whether or not omake's own error messages are recognized.
+        (cond
+         ((not omake-included) nil)
+         ((string-match "\\`\\([^^]\\|\\^\\( \\*\\|\\[\\)\\)" pat)
+          nil) ;; Not anchored or anchored but already allows empty spaces.
+         (t (setq pat (concat "^\\(?:      \\)?" (substring pat 1)))))
 
-      (if (consp file)	(setq fmt (cdr file)	  file (car file)))
-      (if (consp line)	(setq end-line (cdr line) line (car line)))
-      (if (consp col)	(setq end-col (cdr col)	  col (car col)))
+        (if (and (consp file) (not (functionp file)))
+            (setq fmt (cdr file)
+                  file (car file)))
+        (if (and (consp line) (not (functionp line)))
+            (setq end-line (cdr line)
+                  line (car line)))
+        (if (and (consp col) (not (functionp col)))
+            (setq end-col (cdr col)
+                  col (car col)))
 
-      (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
-        (error "HYPERLINK should be an integer: %s" (nth 5 item)))
+        (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
+          (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
-      (goto-char start)
-      (while (re-search-forward pat end t)
-        (when (setq props (compilation-error-properties
-                           file line end-line col end-col (or type 2) fmt))
+        (goto-char start)
+        (while (re-search-forward pat end t)
+          (when (setq props (compilation-error-properties
+                             file line end-line col end-col
+                             (or type 2) fmt rule))
 
-          (when (integerp file)
-            (let ((this-type (if (consp type)
-                                 (compilation-type type)
-                               (or type 2))))
-              (compilation--note-type this-type)
+            (when (integerp file)
+              (let ((this-type (if (consp type)
+                                   (compilation-type type)
+                                 (or type 2))))
+                (compilation--note-type this-type)
 
-              (compilation--put-prop
-               file 'font-lock-face
-               (symbol-value (aref [compilation-info-face
-                                    compilation-warning-face
-                                    compilation-error-face]
-                                   this-type)))))
+                (compilation--put-prop
+                 file 'font-lock-face
+                 (symbol-value (aref [compilation-info-face
+                                      compilation-warning-face
+                                      compilation-error-face]
+                                     this-type)))))
 
-          (compilation--put-prop
-           line 'font-lock-face compilation-line-face)
-          (compilation--put-prop
-           end-line 'font-lock-face compilation-line-face)
+            (compilation--put-prop
+             line 'font-lock-face compilation-line-face)
+            (compilation--put-prop
+             end-line 'font-lock-face compilation-line-face)
 
-          (compilation--put-prop
-           col 'font-lock-face compilation-column-face)
-          (compilation--put-prop
-           end-col 'font-lock-face compilation-column-face)
+            (compilation--put-prop
+             col 'font-lock-face compilation-column-face)
+            (compilation--put-prop
+             end-col 'font-lock-face compilation-column-face)
 
-	  ;; Obey HIGHLIGHT.
-          (dolist (extra-item (nthcdr 6 item))
-            (let ((mn (pop extra-item)))
-              (when (match-beginning mn)
-                (let ((face (eval (car extra-item))))
-                  (cond
-                   ((null face))
-                   ((or (symbolp face) (stringp face))
-                    (put-text-property
-                     (match-beginning mn) (match-end mn)
-                     'font-lock-face face))
-		   ((and (listp face)
-			 (eq (car face) 'face)
-			 (or (symbolp (cadr face))
-			     (stringp (cadr face))))
-                    (compilation--put-prop mn 'font-lock-face (cadr face))
-                    (add-text-properties
-                     (match-beginning mn) (match-end mn)
-                     (nthcdr 2 face)))
-                   (t
-                    (error "Don't know how to handle face %S"
-                           face)))))))
-          (let ((mn (or (nth 5 item) 0)))
-            (when compilation-debug
+            ;; Obey HIGHLIGHT.
+            (dolist (extra-item (nthcdr 6 item))
+              (let ((mn (pop extra-item)))
+                (when (match-beginning mn)
+                  (let ((face (eval (car extra-item))))
+                    (cond
+                     ((null face))
+                     ((or (symbolp face) (stringp face))
+                      (put-text-property
+                       (match-beginning mn) (match-end mn)
+                       'font-lock-face face))
+      	             ((and (listp face)
+      		           (eq (car face) 'face)
+      		           (or (symbolp (cadr face))
+      		               (stringp (cadr face))))
+                      (compilation--put-prop mn 'font-lock-face (cadr face))
+                      (add-text-properties
+                       (match-beginning mn) (match-end mn)
+                       (nthcdr 2 face)))
+                     (t
+                      (error "Don't know how to handle face %S"
+                             face)))))))
+            (let ((mn (or (nth 5 item) 0)))
+              (when compilation-debug
+                (font-lock-append-text-property
+                 (match-beginning 0) (match-end 0)
+                 'compilation-debug (vector 'std item props)))
+              (add-text-properties
+               (match-beginning mn) (match-end mn)
+               (cddr props))
               (font-lock-append-text-property
-               (match-beginning 0) (match-end 0)
-               'compilation-debug (vector 'std item props)))
-            (add-text-properties
-             (match-beginning mn) (match-end mn)
-             (cddr props))
-            (font-lock-append-text-property
-             (match-beginning mn) (match-end mn)
-             'font-lock-face (cadr props))))))))
+               (match-beginning mn) (match-end mn)
+               'font-lock-face (cadr props)))))))))
 
 (defvar compilation--parsed -1)
 (make-variable-buffer-local 'compilation--parsed)
@@ -1532,7 +1593,14 @@ to `compilation-error-regexp-alist' if RULES is nil."
       ;; grep.el) don't need to flush-parse when they modify the buffer
       ;; in a way that impacts buffer positions but does not require
       ;; re-parsing.
-      (setq compilation--parsed (point-min-marker)))
+      (setq compilation--parsed
+            (set-marker (make-marker)
+                        (save-excursion
+                          (goto-char (point-min))
+                          (text-property-search-forward 'compilation-header-end)
+                          ;; If we have no end marker, this will be
+                          ;; `point-min' still.
+                          (point)))))
     (when (< compilation--parsed limit)
       (let ((start (max compilation--parsed (point-min))))
         (move-marker compilation--parsed limit)
@@ -1777,6 +1845,9 @@ Returns the compilation buffer created."
 			mode-name
 			(substring (current-time-string) 0 19))
 		command "\n")
+        ;; Mark the end of the header so that we don't interpret
+        ;; anything in it as an error.
+        (put-text-property (1- (point)) (point) 'compilation-header-end t)
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.
@@ -2028,6 +2099,8 @@ Returns the compilation buffer created."
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "n" 'next-error-no-select)
+    (define-key map "p" 'previous-error-no-select)
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
     (define-key map "g" 'recompile) ; revert
@@ -2051,8 +2124,7 @@ Returns the compilation buffer created."
       '(menu-item "Compile..." compile
 		  :help "Compile the program including the current buffer.  Default: run `make'"))
     map)
-  "Keymap for compilation log buffers.
-`compilation-minor-mode-map' is a parent of this.")
+  "Keymap for compilation log buffers.")
 
 (defvar compilation-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
@@ -2337,12 +2409,10 @@ and runs `compilation-filter-hook'."
 	  (set-marker min nil)
 	  (set-marker max nil))))))
 
-;;; test if a buffer is a compilation buffer, assuming we're in the buffer
 (defsubst compilation-buffer-internal-p ()
   "Test if inside a compilation buffer."
   (local-variable-p 'compilation-locs))
 
-;;; test if a buffer is a compilation buffer, using compilation-buffer-internal-p
 (defsubst compilation-buffer-p (buffer)
   "Test if BUFFER is a compilation buffer."
   (with-current-buffer buffer
@@ -2383,12 +2453,9 @@ and runs `compilation-filter-hook'."
                                                 &optional object limit)
   (let (parsed res)
     (while (progn
-             ;; We parse the buffer here "on-demand" by chunks of 500 chars.
-             ;; But we could also just parse the whole buffer.
              (compilation--ensure-parse
               (setq parsed (max compilation--parsed
-                                (min (+ position 500)
-                                     (or limit (point-max))))))
+                                (or limit (point-max)))))
              (and (or (not (setq res (next-single-property-change
                                       position prop object limit)))
                       (eq res limit))
@@ -2868,6 +2935,28 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
                           (find-file-noselect name))
               fmts (cdr fmts)))
       (setq dirs (cdr dirs)))
+    ;; If we haven't found it, this might be a parallel build.
+    ;; Search the directories further up the buffer.
+    (when (and (null buffer)
+               compilation-search-all-directories)
+      (with-current-buffer (marker-buffer marker)
+        (save-excursion
+          (goto-char (marker-position marker))
+          (when-let ((prev (compilation--previous-directory (point))))
+            (goto-char prev))
+          (setq dirs (cdr (or (get-text-property
+                               (1- (point)) 'compilation-directory)
+                              (get-text-property
+                               (point) 'compilation-directory))))))
+      (while (and dirs (null buffer))
+        (setq thisdir (car dirs)
+              fmts formats)
+        (while (and fmts (null buffer))
+          (setq name (expand-file-name (format (car fmts) filename) thisdir)
+                buffer (and (file-exists-p name)
+                            (find-file-noselect name))
+                fmts (cdr fmts)))
+        (setq dirs (cdr dirs))))
     (while (null buffer)    ;Repeat until the user selects an existing file.
       ;; The file doesn't exist.  Ask the user where to find it.
       (save-excursion            ;This save-excursion is probably not right.
@@ -2879,11 +2968,8 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
 	    (and w (progn (compilation-set-window w marker)
                           (compilation-set-overlay-arrow w))))
           (let* ((name (read-file-name
-                        (format "Find this %s in%s: "
-                                compilation-error
-                                (if filename
-                                    (format " (default %s)" filename)
-                                  ""))
+                        (format-prompt "Find this %s in"
+                                       filename compilation-error)
                         spec-dir filename t nil
                         ;; The predicate below is fine when called from
                         ;; minibuffer-complete-and-exit, but it's too
@@ -3034,7 +3120,7 @@ TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
             ;;                    'font-lock-face 'font-lock-warning-face)
 	    (put-text-property src (line-end-position)
 			       'compilation-message
-                               (compilation--make-message loc 2 nil)))))))
+                               (compilation--make-message loc 2 nil nil)))))))
   (goto-char limit)
   nil)
 

@@ -1,4 +1,4 @@
-;;; vc-hg-tests.el --- tests for vc/vc-hg.el
+;;; vc-hg-tests.el --- tests for vc/vc-hg.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

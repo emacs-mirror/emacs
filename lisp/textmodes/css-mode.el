@@ -67,7 +67,7 @@
 
 (defconst scss-at-ids
   '("at-root" "content" "debug" "each" "else" "else if" "error" "extend"
-    "for" "function" "if" "import" "include" "mixin" "return" "warn"
+    "for" "function" "if" "import" "include" "mixin" "return" "use" "warn"
     "while")
   "Additional identifiers that appear in the form @foo in SCSS.")
 
@@ -100,7 +100,7 @@
   "Identifiers for types of media.")
 
 (defconst css-property-alist
-  ;; CSS 2.1 properties (http://www.w3.org/TR/CSS21/propidx.html).
+  ;; CSS 2.1 properties (https://www.w3.org/TR/CSS21/propidx.html).
   ;;
   ;; Properties duplicated by any of the CSS3 modules below have been
   ;; removed.
@@ -119,7 +119,6 @@
     ("cue" cue-before cue-after)
     ("cue-after" uri "none")
     ("cue-before" uri "none")
-    ("direction" "ltr" "rtl")
     ("display" "inline" "block" "list-item" "inline-block" "table"
      "inline-table" "table-row-group" "table-header-group"
      "table-footer-group" "table-row" "table-column-group"
@@ -180,7 +179,6 @@
     ("stress" number)
     ("table-layout" "auto" "fixed")
     ("top" length percentage "auto")
-    ("unicode-bidi" "normal" "embed" "bidi-override")
     ("vertical-align" "baseline" "sub" "super" "top" "text-top"
      "middle" "bottom" "text-bottom" percentage length)
     ("visibility" "visible" "hidden" "collapse")
@@ -192,7 +190,7 @@
     ("z-index" "auto" integer)
 
     ;; CSS Animations
-    ;; (http://www.w3.org/TR/css3-animations/#property-index)
+    ;; (https://www.w3.org/TR/css3-animations/#property-index)
     ("animation" single-animation-name time single-timing-function
      single-animation-iteration-count single-animation-direction
      single-animation-fill-mode single-animation-play-state)
@@ -206,7 +204,7 @@
     ("animation-timing-function" single-timing-function)
 
     ;; CSS Backgrounds and Borders Module Level 3
-    ;; (http://www.w3.org/TR/css3-background/#property-index)
+    ;; (https://www.w3.org/TR/css3-background/#property-index)
     ("background" bg-layer final-bg-layer)
     ("background-attachment" attachment)
     ("background-clip" box)
@@ -251,7 +249,7 @@
     ("box-shadow" "none" shadow)
 
     ;; CSS Basic User Interface Module Level 3 (CSS3 UI)
-    ;; (http://www.w3.org/TR/css3-ui/#property-index)
+    ;; (https://www.w3.org/TR/css3-ui/#property-index)
     ("box-sizing" "content-box" "border-box")
     ("caret-color" "auto" color)
     ("cursor" uri x y "auto" "default" "none" "context-menu" "help"
@@ -274,9 +272,13 @@
     ("text-overflow" "clip" "ellipsis" string)
 
     ;; CSS Color Module Level 3
-    ;; (http://www.w3.org/TR/css3-color/#property)
+    ;; (https://www.w3.org/TR/css3-color/#property)
     ("color" color)
     ("opacity" alphavalue)
+
+    ;; CSS Containment Module Level 1
+    ;; (https://www.w3.org/TR/css-contain-1/#property-index)
+    ("contain" "none" "strict" "content" "size" "layout" "paint")
 
     ;; CSS Grid Layout Module Level 1
     ;; (https://www.w3.org/TR/css-grid-1/#property-index)
@@ -302,7 +304,7 @@
     ("grid-template-rows" "none" track-list auto-track-list)
 
     ;; CSS Flexible Box Layout Module Level 1
-    ;; (http://www.w3.org/TR/css-flexbox-1/#property-index)
+    ;; (https://www.w3.org/TR/css-flexbox-1/#property-index)
     ("align-content" "flex-start" "flex-end" "center" "space-between"
      "space-around" "stretch")
     ("align-items" "flex-start" "flex-end" "center" "baseline"
@@ -321,7 +323,7 @@
     ("order" integer)
 
     ;; CSS Fonts Module Level 3
-    ;; (http://www.w3.org/TR/css3-fonts/#property-index)
+    ;; (https://www.w3.org/TR/css3-fonts/#property-index)
     ("font" font-style font-variant-css21 font-weight font-stretch
      font-size line-height font-family "caption" "icon" "menu"
      "message-box" "small-caption" "status-bar")
@@ -417,7 +419,7 @@
     ("columns" column-width column-count)
 
     ;; CSS Overflow Module Level 3
-    ;; (http://www.w3.org/TR/css-overflow-3/#property-index)
+    ;; (https://www.w3.org/TR/css-overflow-3/#property-index)
     ("max-lines" "none" integer)
     ("overflow" "visible" "hidden" "scroll" "auto" "paged-x" "paged-y"
      "paged-x-controls" "paged-y-controls" "fragments")
@@ -446,7 +448,7 @@
     ("text-underline-position" "auto" "under" "left" "right")
 
     ;; CSS Text Module Level 3
-    ;; (http://www.w3.org/TR/css3-text/#property-index)
+    ;; (https://www.w3.org/TR/css3-text/#property-index)
     ("hanging-punctuation" "none" "first" "force-end" "allow-end"
      "last")
     ("hyphens" "none" "manual" "auto")
@@ -468,7 +470,7 @@
     ("word-wrap" "normal" "break-word")
 
     ;; CSS Transforms Module Level 1
-    ;; (http://www.w3.org/TR/css3-2d-transforms/#property-index)
+    ;; (https://www.w3.org/TR/css3-2d-transforms/#property-index)
     ("backface-visibility" "visible" "hidden")
     ("perspective" "none" length)
     ("perspective-origin" "left" "center" "right" "top" "bottom"
@@ -479,7 +481,7 @@
     ("transform-style" "flat" "preserve-3d")
 
     ;; CSS Transitions
-    ;; (http://www.w3.org/TR/css3-transitions/#property-index)
+    ;; (https://www.w3.org/TR/css3-transitions/#property-index)
     ("transition" single-transition)
     ("transition-delay" time)
     ("transition-duration" time)
@@ -490,8 +492,18 @@
     ;; (https://www.w3.org/TR/css-will-change-1/#property-index)
     ("will-change" "auto" animateable-feature)
 
+    ;; CSS Writing Modes Level 3
+    ;; (https://www.w3.org/TR/css-writing-modes-3/#property-index)
+    ;; "glyph-orientation-vertical" is obsolete and left out.
+    ("direction" "ltr" "rtl")
+    ("text-combine-upright" "none" "all")
+    ("text-orientation" "mixed" "upright" "sideways")
+    ("unicode-bidi" "normal" "embed" "isolate" "bidi-override"
+     "isolate-override" "plaintext")
+    ("writing-mode" "horizontal-tb" "vertical-rl" "vertical-lr")
+
     ;; Filter Effects Module Level 1
-    ;; (http://www.w3.org/TR/filter-effects/#property-index)
+    ;; (https://www.w3.org/TR/filter-effects/#property-index)
     ("color-interpolation-filters" "auto" "sRGB" "linearRGB")
     ("filter" "none" filter-function-list)
     ("flood-color" color)
@@ -874,7 +886,7 @@ cannot be completed sensibly: `custom-ident',
 
 (defconst css-escapes-re
   "\\\\\\(?:[^\000-\037\177]\\|[[:xdigit:]]+[ \n\t\r\f]?\\)")
-(defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
+(defconst css-nmchar-re (concat "\\(?:[-_[:alnum:]]\\|" css-escapes-re "\\)"))
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re ;; (concat css-nmstart-re css-nmchar-re "*")
   ;; Apparently, "at rules" names can start with a dash, e.g. @-moz-keyframes.
@@ -1137,17 +1149,6 @@ returns, point will be at the end of the recognized color."
    ;; Evaluate to the color if the name is found.
    ((css--named-color start-point match))))
 
-(defun css--contrasty-color (name)
-  "Return a color that contrasts with NAME.
-NAME is of any form accepted by `color-distance'.
-The returned color will be usable by Emacs and will contrast
-with NAME; in particular so that if NAME is used as a background
-color, the returned color can be used as the foreground and still
-be readable."
-  ;; See bug#25525 for a discussion of this.
-  (if (> (color-distance name "black") 292485)
-      "black" "white"))
-
 (defcustom css-fontify-colors t
   "Whether CSS colors should be fontified using the color as the background.
 When non-`nil', a text representing CSS color will be fontified
@@ -1187,7 +1188,8 @@ START and END are buffer positions."
 		    (add-text-properties
 		     start (point)
 		     (list 'face (list :background color
-				       :foreground (css--contrasty-color color)
+				       :foreground (readable-foreground-color
+                                                    color)
 				       :box '(:line-width -1))))))))))))
     extended-region))
 
@@ -1354,21 +1356,17 @@ the string PROPERTY."
 
 (defun css--complete-property-value ()
   "Complete property value at point."
-  (let ((property
-         (save-excursion
-           (re-search-backward ":[^/]" (line-beginning-position) t)
-           (when (eq (char-after) ?:)
-             (let ((property-end (point)))
-               (skip-chars-backward "-[:alnum:]")
-               (let ((prop (buffer-substring (point) property-end)))
-                 (car (member prop css-property-ids))))))))
+  (let ((property (and (looking-back "\\([[:alnum:]-]+\\):[^/][^;]*"
+                                     (line-beginning-position) t)
+                       (member (match-string-no-properties 1)
+                               css-property-ids))))
     (when property
       (let ((end (point)))
         (save-excursion
           (skip-chars-backward "[:graph:]")
           (list (point) end
                 (append '("inherit" "initial" "unset")
-                        (css--property-values property))))))))
+                        (css--property-values (car property)))))))))
 
 (defvar css--html-tags (mapcar #'car html-tag-alist)
   "List of HTML tags.
@@ -1881,12 +1879,9 @@ on what is seen near point."
    (list
     (let* ((sym (css--mdn-find-symbol))
 	   (enable-recursive-minibuffers t)
-	   (value (completing-read
-		   (if sym
-		       (format "Describe CSS symbol (default %s): " sym)
-		     "Describe CSS symbol: ")
-		   css--mdn-completion-list nil nil nil
-		   'css--mdn-lookup-history sym)))
+	   (value (completing-read (format-prompt "Describe CSS symbol" sym)
+		                   css--mdn-completion-list nil nil nil
+		                   'css--mdn-lookup-history sym)))
       (if (equal value "") sym value))))
   (when symbol
     ;; If we see a single-colon pseudo-element like ":after", turn it

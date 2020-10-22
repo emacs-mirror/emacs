@@ -73,7 +73,9 @@ code();
 
 (defconst mhtml--crucial-variable-prefix
   (regexp-opt '("comment-" "uncomment-" "electric-indent-"
-                "smie-" "forward-sexp-function" "completion-" "major-mode"))
+                "smie-" "forward-sexp-function" "completion-" "major-mode"
+                "adaptive-fill-" "fill-" "normal-auto-fill-function"
+                "paragraph-"))
   "Regexp matching the prefix of \"crucial\" buffer-locals we want to capture.")
 
 (defconst mhtml--variable-prefix
@@ -156,54 +158,6 @@ code();
     (if submode
         (mhtml--submode-name submode)
       "")))
-
-(defvar font-lock-beg)
-(defvar font-lock-end)
-
-(defun mhtml--extend-font-lock-region ()
-  "Extend the font lock region according to HTML sub-mode needs.
-
-This is used via `font-lock-extend-region-functions'.  It ensures
-that the font-lock region is extended to cover either whole
-lines, or to the spot where the submode changes, whichever is
-smallest."
-  (let ((orig-beg font-lock-beg)
-        (orig-end font-lock-end))
-    ;; The logic here may look odd but it is needed to ensure that we
-    ;; do the right thing when trying to limit the search.
-    (save-excursion
-      (goto-char font-lock-beg)
-      ;; previous-single-property-change starts by looking at the
-      ;; previous character, but we're trying to extend a region to
-      ;; include just characters with the same submode as this
-      ;; character.
-      (unless (eobp)
-        (forward-char))
-      (setq font-lock-beg (previous-single-property-change
-                           (point) 'mhtml-submode nil
-                           (line-beginning-position)))
-      (unless (eq (get-text-property font-lock-beg 'mhtml-submode)
-                  (get-text-property orig-beg 'mhtml-submode))
-        (cl-incf font-lock-beg))
-
-      (goto-char font-lock-end)
-      (unless (bobp)
-        (backward-char))
-      (setq font-lock-end (next-single-property-change
-                           (point) 'mhtml-submode nil
-                           (line-beginning-position 2)))
-      (unless (eq (get-text-property font-lock-end 'mhtml-submode)
-                  (get-text-property orig-end 'mhtml-submode))
-        (cl-decf font-lock-end)))
-
-    ;; Also handle the multiline property -- but handle it here, and
-    ;; not via font-lock-extend-region-functions, to avoid the
-    ;; situation where the two extension functions disagree.
-    ;; See bug#29159.
-    (font-lock-extend-region-multiline)
-
-    (or (/= font-lock-beg orig-beg)
-        (/= font-lock-end orig-end))))
 
 (defun mhtml--submode-fontify-one-region (submode beg end &optional loudly)
   (if submode
@@ -303,17 +257,14 @@ This is used by `mhtml--pre-command'.")
    sgml-syntax-propertize-rules))
 
 (defun mhtml-syntax-propertize (start end)
-  ;; First remove our special settings from the affected text.  They
-  ;; will be re-applied as needed.
-  (remove-list-of-text-properties start end
-                                  '(syntax-table local-map mhtml-submode))
-  (goto-char start)
-  ;; Be sure to look back one character, because START won't yet have
-  ;; been propertized.
-  (unless (bobp)
-    (let ((submode (get-text-property (1- (point)) 'mhtml-submode)))
-      (if submode
-          (mhtml--syntax-propertize-submode submode end))))
+  (let ((submode (get-text-property start 'mhtml-submode)))
+    ;; First remove our special settings from the affected text.  They
+    ;; will be re-applied as needed.
+    (remove-list-of-text-properties start end
+                                    '(syntax-table local-map mhtml-submode))
+    (goto-char start)
+    (if submode
+        (mhtml--syntax-propertize-submode submode end)))
   (sgml-syntax-propertize (point) end mhtml--syntax-propertize))
 
 (defun mhtml-indent-line ()
@@ -364,8 +315,6 @@ the rules from `css-mode'."
   (setq-local syntax-propertize-function #'mhtml-syntax-propertize)
   (setq-local font-lock-fontify-region-function
               #'mhtml--submode-fontify-region)
-  (setq-local font-lock-extend-region-functions
-              '(mhtml--extend-font-lock-region))
 
   ;; Attach this to both pre- and post- hooks just in case it ever
   ;; changes a key binding that might be accessed from the menu bar.
@@ -382,6 +331,18 @@ the rules from `css-mode'."
 
   ;: Hack
   (js--update-quick-match-re)
+
+  ;; Setup the appropriate js-mode value of auto-fill-function.
+  (setf (mhtml--submode-crucial-captured-locals mhtml--js-submode)
+        (push (cons 'auto-fill-function
+                    (if (and (boundp 'auto-fill-function) auto-fill-function)
+                        #'js-do-auto-fill
+                      nil))
+              (mhtml--submode-crucial-captured-locals mhtml--js-submode)))
+
+  ;; This mode might be using CC Mode's filling functionality.
+  (c-foreign-init-lit-pos-cache)
+  (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
 
   ;; This is sort of a prog-mode as well as a text mode.
   (run-hooks 'prog-mode-hook))

@@ -1,4 +1,4 @@
-# fcntl.m4 serial 9
+# fcntl.m4 serial 10
 dnl Copyright (C) 2009-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -34,6 +34,7 @@ AC_DEFUN([gl_FUNC_FCNTL],
               #include <limits.h>
               #include <sys/resource.h>
               #include <unistd.h>
+              ]GL_MDA_DEFINES[
               #ifndef RLIM_SAVED_CUR
               # define RLIM_SAVED_CUR RLIM_INFINITY
               #endif

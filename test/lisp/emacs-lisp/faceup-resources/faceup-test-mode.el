@@ -1,4 +1,4 @@
-;;; faceup-test-mode.el --- Dummy major mode for testing `faceup'.
+;;; faceup-test-mode.el --- Dummy major mode for testing `faceup'.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
@@ -44,7 +44,7 @@
      (0 (progn
           (add-text-properties (match-beginning 0)
                                (match-end 0)
-                               '(help-echo "Baloon tip: Fly smoothly!"))
+                               '(help-echo "Balloon tip: Fly smoothly!"))
           font-lock-warning-face))))
   "Highlight rules for `faceup-test-mode'.")
 

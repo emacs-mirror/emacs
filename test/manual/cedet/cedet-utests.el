@@ -150,7 +150,7 @@ of just logging the error."
       ;; Cleanup stray input and events that are in the way.
       ;; Not doing this causes sit-for to not refresh the screen.
       ;; Doing this causes the user to need to press keys more frequently.
-      (when (and (interactive-p) (input-pending-p))
+      (when (and (called-interactively-p 'interactive) (input-pending-p))
 	(if (fboundp 'read-event)
 	    (read-event)
 	  (read-char)))
@@ -497,11 +497,11 @@ When optional NO-ERROR don't throw an error if we can't run tests."
 	(error (concat "Pulse test only works on versions of Emacs"
 		       " that support pulsing")))
     ;; Run the tests
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "<Press a key> Pulse one line.")
       (read-char))
     (pulse-momentary-highlight-one-line (point))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "<Press a key> Pulse a region.")
       (read-char))
     (pulse-momentary-highlight-region (point)
@@ -510,11 +510,11 @@ When optional NO-ERROR don't throw an error if we can't run tests."
 					    (forward-char 30)
 					  (error nil))
 					(point)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "<Press a key> Pulse line a specific color.")
       (read-char))
     (pulse-momentary-highlight-one-line (point) 'mode-line)
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "<Press a key> Pulse a pre-existing overlay.")
       (read-char))
     (let* ((start (point-at-bol))
@@ -530,7 +530,7 @@ When optional NO-ERROR don't throw an error if we can't run tests."
 	  (delete-overlay o)
 	(error "Non-temporary overlay was deleted!"))
       )
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Done!"))))
 
 (provide 'cedet-utests)

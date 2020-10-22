@@ -3018,7 +3018,7 @@
 
 	* progmodes/sql.el: Use cl-lib and lexical-binding; various cleanup.
 	(sql-signum): Remove.  Use `cl-signum' instead.
-	(sql-read-passwd): Remove; use read-passwd instread.
+	(sql-read-passwd): Remove; use read-passwd instead.
 	(sql-get-login-ext): Use read-string.
 	(sql-get-login): Use dolist and pcase.
 	(sql--completion-table): Rename from sql-try-completion.
@@ -7833,7 +7833,7 @@
 	the form for POSITION argument.
 
 	* term/x-win.el (x-menu-bar-open):
-	Use the value returend from (posn-at-point) as position
+	Use the value returned from (posn-at-point) as position
 	passed to `popup-menu'.
 
 2012-08-09  Jay Belanger  <jay.p.belanger@gmail.com>
@@ -11992,11 +11992,11 @@
 	* progmodes/verilog-mode.el (verilog-pretty-expr): Don't line up
 	assignment with tests in ifs and for loops.
 	(verilog-extended-complete-re, verilog-complete-reg): Change so
-	that DPI inport functions don't look like function declarations.
+	that DPI import functions don't look like function declarations.
 	(verilog-pretty-expr): Don't line up assignment
 	operations to the test and increment in if and for loops
 	(verilog-extended-complete-re, verilog-complete-reg): Change so
-	that DPI inport functions don't look like function declarations.
+	that DPI import functions don't look like function declarations.
 
 2012-05-03  Kenichi Handa  <handa@m17n.org>
 
@@ -15918,7 +15918,7 @@
 	Rework verilog-pretty-expr to handle new assignment operators in system
 	verilog, such as += *= and the like.
 	(verilog-assignment-operator-re): Regular expression to find the
-	assigment operator in a verilog assignment.
+	assignment operator in a verilog assignment.
 	(verilog-assignment-operation-re): Regular expression to find an
 	assignment statement for pretty-expr.
 	(verilog-in-attribute-p): Query returns true if point is in an
@@ -20442,7 +20442,7 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (open-network-stream): Use the
-	:end-of-capability command thoughout.
+	:end-of-capability command throughout.
 
 2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
@@ -21496,7 +21496,7 @@
 	* net/network-stream.el (open-network-stream): Add the keyword
 	:always-query-capabilities for the case where you want to force a
 	`plain' network connection, but the protocol still requires the
-	capabilitiy command (i.e., SMTP and EHLO).
+	capability command (i.e., SMTP and EHLO).
 
 	* subr.el (process-live-p): Rename from `process-alive-p' for
 	consistency with other `-live-p' functions.
@@ -24707,7 +24707,7 @@
 	* abbrev.el (abbrev-edit-save-to-file, abbrev-edit-save-buffer):
 	New commands.
 	(edit-abbrevs-map): Bind them here.
-	(write-abbrev-file): New optinal arg VERBOSE.  (Bug#5937)
+	(write-abbrev-file): New optional arg VERBOSE.  (Bug#5937)
 
 2011-03-29  Ken Manheimer  <ken.manheimer@gmail.com>
 

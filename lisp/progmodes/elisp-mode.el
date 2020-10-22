@@ -196,7 +196,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (if (and (buffer-modified-p)
 	   (y-or-n-p (format "Save buffer %s first? " (buffer-name))))
       (save-buffer))
-  (byte-recompile-file buffer-file-name nil 0 t))
+  (byte-recompile-file buffer-file-name nil 0)
+  (load buffer-file-name))
 
 (defun emacs-lisp-macroexpand ()
   "Macroexpand the form after point.
@@ -231,8 +232,35 @@ Comments in the form will be lost."
           (setq-local electric-pair-text-pairs elisp-pairs)))))
   (remove-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
 
+(defun elisp-enable-lexical-binding (&optional interactive)
+  "Make the current buffer use `lexical-binding'."
+  (interactive "p")
+  (if lexical-binding
+      (when interactive
+        (message "lexical-binding already enabled!")
+        (ding))
+    (when (or (not interactive)
+              (y-or-n-p (format "Enable lexical-binding in this %s? "
+                                (if buffer-file-name "file" "buffer"))))
+      (setq-local lexical-binding t)
+      (add-file-local-variable-prop-line 'lexical-binding t interactive))))
+
+(defvar elisp--dynlex-modeline-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1] 'elisp-enable-lexical-binding)
+    map))
+
 ;;;###autoload
-(define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
+(define-derived-mode emacs-lisp-mode lisp-data-mode
+  `("ELisp"
+    (lexical-binding (:propertize "/l"
+                      help-echo "Using lexical-binding mode")
+                     (:propertize "/d"
+                      help-echo "Using old dynamic scoping mode\n\
+mouse-1: Enable lexical-binding mode"
+		      face warning
+		      mouse-face mode-line-highlight
+                      local-map ,elisp--dynlex-modeline-map)))
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -241,35 +269,28 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{emacs-lisp-mode-map}"
   :group 'lisp
   (defvar project-vc-external-roots-function)
-  (lisp-mode-variables nil nil 'elisp)
+  (setcar font-lock-defaults
+          '(lisp-el-font-lock-keywords
+            lisp-el-font-lock-keywords-1
+            lisp-el-font-lock-keywords-2))
+  (setf (nth 2 font-lock-defaults) nil)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (if (boundp 'electric-pair-text-pairs)
       (setq-local electric-pair-text-pairs
-                  (append '((?\` . ?\') (?‘ . ?’))
+                  (append '((?\` . ?\') (?\‘ . ?\’))
                           electric-pair-text-pairs))
     (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
-  (setq-local electric-quote-string t)
-  (setq imenu-case-fold-search nil)
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'elisp-eldoc-documentation-function)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-funcall nil t)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-var-docstring nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
-  ;; .dir-locals.el and lock files will cause the byte-compiler and
-  ;; checkdoc emit spurious warnings, because they don't follow the
-  ;; conventions of Emacs Lisp sources.  Until we have a better fix,
-  ;; like teaching elisp-mode about files that only hold data
-  ;; structures, we disable the ELisp Flymake backend for these files.
-  (unless
-      (let* ((bfname (buffer-file-name))
-             (fname (and (stringp bfname) (file-name-nondirectory bfname))))
-        (or (not (stringp fname))
-            (string-match "\\`\\.#" fname)
-            (string-equal dir-locals-file fname)))
-    (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
-    (add-hook 'flymake-diagnostic-functions
-              #'elisp-flymake-byte-compile nil t)))
+  (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
+  (add-hook 'flymake-diagnostic-functions
+              #'elisp-flymake-byte-compile nil t))
 
 ;; Font-locking support.
 
@@ -637,18 +658,16 @@ functions are annotated with \"<f>\" via the
 ;; WORKAROUND: This is nominally a constant, but the text properties
 ;; are not preserved thru dump if use defconst.  See bug#21237.
 (defvar elisp--xref-format
-  (let ((str "(%s %s)"))
-    (put-text-property 1 3 'face 'font-lock-keyword-face str)
-    (put-text-property 4 6 'face 'font-lock-function-name-face str)
-    str))
+  #("(%s %s)"
+    1 3 (face font-lock-keyword-face)
+    4 6 (face font-lock-function-name-face)))
 
 ;; WORKAROUND: This is nominally a constant, but the text properties
 ;; are not preserved thru dump if use defconst.  See bug#21237.
 (defvar elisp--xref-format-extra
-  (let ((str "(%s %s %s)"))
-    (put-text-property 1 3 'face 'font-lock-keyword-face str)
-    (put-text-property 4 6 'face 'font-lock-function-name-face str)
-    str))
+  #("(%s %s %s)"
+    1 3 (face font-lock-keyword-face)
+    4 6 (face font-lock-function-name-face)))
 
 (defvar find-feature-regexp);; in find-func.el
 
@@ -665,7 +684,7 @@ otherwise build the summary from TYPE and SYMBOL."
   "List of functions to be run from `elisp--xref-find-definitions' to add additional xrefs.
 Called with one arg; the symbol whose definition is desired.
 Each function should return a list of xrefs, or nil; the first
-non-nil result supercedes the xrefs produced by
+non-nil result supersedes the xrefs produced by
 `elisp--xref-find-definitions'.")
 
 (cl-defmethod xref-backend-definitions ((_backend (eql elisp)) identifier)
@@ -845,11 +864,12 @@ non-nil result supercedes the xrefs produced by
 
     xrefs))
 
-(declare-function project-external-roots "project")
+(declare-function xref-apropos-regexp "xref" (pattern))
 
-(cl-defmethod xref-backend-apropos ((_backend (eql elisp)) regexp)
+(cl-defmethod xref-backend-apropos ((_backend (eql elisp)) pattern)
   (apply #'nconc
-         (let (lst)
+         (let ((regexp (xref-apropos-regexp pattern))
+               lst)
            (dolist (sym (apropos-internal regexp))
              (push (elisp--xref-find-definitions sym) lst))
            (nreverse lst))))
@@ -933,7 +953,8 @@ Paragraphs are separated only by blank lines.
 Semicolons start comments.
 
 \\{lisp-interaction-mode-map}"
-  :abbrev-table nil)
+  :abbrev-table nil
+  (setq-local lexical-binding t))
 
 ;;; Emacs Lisp Byte-Code mode
 
@@ -1170,7 +1191,8 @@ character)."
     ;; Setup the lexical environment if lexical-binding is enabled.
     (elisp--eval-last-sexp-print-value
      (eval (macroexpand-all
-            (eval-sexp-add-defvars (elisp--preceding-sexp)))
+            (eval-sexp-add-defvars
+             (elisp--eval-defun-1 (macroexpand (elisp--preceding-sexp)))))
            lexical-binding)
      (if insert-value (current-buffer) t) no-truncate char-print-limit)))
 
@@ -1225,6 +1247,10 @@ POS specifies the starting position where EXP was found and defaults to point."
   "Evaluate sexp before point; print value in the echo area.
 Interactively, with a non `-' prefix argument, print output into
 current buffer.
+
+This commands handles `defvar', `defcustom' and `defface' the
+same way that `eval-defun' does.  See the doc string of that
+function for details.
 
 Normally, this function truncates long output according to the
 value of the variables `eval-expression-print-length' and
@@ -1385,20 +1411,29 @@ which see."
       or argument string for functions.
   2 - `function' if function args, `variable' if variable documentation.")
 
-(defun elisp-eldoc-documentation-function ()
-  "`eldoc-documentation-function' (which see) for Emacs Lisp."
-  (let ((current-symbol (elisp--current-symbol))
-	(current-fnsym  (elisp--fnsym-in-current-sexp)))
-    (cond ((null current-fnsym)
-	   nil)
-	  ((eq current-symbol (car current-fnsym))
-	   (or (apply #'elisp-get-fnsym-args-string current-fnsym)
-	       (elisp-get-var-docstring current-symbol)))
-	  (t
-	   (or (elisp-get-var-docstring current-symbol)
-	       (apply #'elisp-get-fnsym-args-string current-fnsym))))))
+(defun elisp-eldoc-funcall (callback &rest _ignored)
+  "Document function call at point.
+Intended for `eldoc-documentation-functions' (which see)."
+  (let* ((sym-info (elisp--fnsym-in-current-sexp))
+         (fn-sym (car sym-info)))
+    (when fn-sym
+      (funcall callback (apply #'elisp-get-fnsym-args-string sym-info)
+               :thing fn-sym
+               :face (if (functionp fn-sym)
+                         'font-lock-function-name-face
+                       'font-lock-keyword-face)))))
 
-(defun elisp-get-fnsym-args-string (sym &optional index prefix)
+(defun elisp-eldoc-var-docstring (callback &rest _ignored)
+  "Document variable at point.
+Intended for `eldoc-documentation-functions' (which see)."
+  (let* ((sym (elisp--current-symbol))
+         (docstring (and sym (elisp-get-var-docstring sym))))
+    (when docstring
+      (funcall callback docstring
+               :thing sym
+               :face 'font-lock-variable-name-face))))
+
+(defun elisp-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
 or elsewhere, return a 1-line docstring."
@@ -1424,20 +1459,13 @@ or elsewhere, return a 1-line docstring."
              ;; Stringify, and store before highlighting, downcasing, etc.
 	     (elisp--last-data-store sym (elisp-function-argstring args)
                                      'function))))))
-    ;; Highlight, truncate.
+    ;; Highlight
     (if argstring
 	(elisp--highlight-function-argument
-         sym argstring index
-         (or prefix
-             (concat (propertize (symbol-name sym) 'face
-                                 (if (functionp sym)
-                                     'font-lock-function-name-face
-                                   'font-lock-keyword-face))
-                     ": "))))))
+         sym argstring index))))
 
-(defun elisp--highlight-function-argument (sym args index prefix)
-  "Highlight argument INDEX in ARGS list for function SYM.
-In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
+(defun elisp--highlight-function-argument (sym args index)
+  "Highlight argument INDEX in ARGS list for function SYM."
   ;; FIXME: This should probably work on the list representation of `args'
   ;; rather than its string representation.
   ;; FIXME: This function is much too long, we need to split it up!
@@ -1540,7 +1568,6 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
       (when start
 	(setq doc (copy-sequence args))
 	(add-text-properties start end (list 'face argument-face) doc))
-      (setq doc (eldoc-docstring-format-sym-doc prefix doc))
       doc)))
 
 ;; Return a string containing a brief (one-line) documentation string for
@@ -1553,9 +1580,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
         (t
          (let ((doc (documentation-property sym 'variable-documentation t)))
            (when doc
-             (let ((doc (eldoc-docstring-format-sym-doc
-                         sym (elisp--docstring-first-line doc)
-                         'font-lock-variable-name-face)))
+             (let ((doc (elisp--docstring-first-line doc)))
                (elisp--last-data-store sym doc 'variable)))))))
 
 (defun elisp--last-data-store (symbol doc type)

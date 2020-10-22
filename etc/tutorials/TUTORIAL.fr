@@ -917,7 +917,7 @@ que vous recherchez. <Entrée> termine une recherche.
 
 Avez-vous vu ce qui se passait ?  Emacs, dans une recherche
 incrémentale, essaie d'aller sur l'occurrence de la chaîne que vous
-avec tapée jusqu'à cet instant. Pour aller sur l'occurrence suivante de
+avez tapée jusqu'à cet instant. Pour aller sur l'occurrence suivante de
 « curseur », il suffit de refaire C-s : s'il ne trouve rien, Emacs
 bippe et vous indique que la recherche a échoué. C-g permet également
 de mettre fin à la recherche.

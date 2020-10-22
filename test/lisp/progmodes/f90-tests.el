@@ -1,8 +1,9 @@
-;;; f90-tests.el --- tests for progmodes/f90.el
+;;; f90-tests.el --- tests for progmodes/f90.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -276,5 +277,25 @@ end program prog")
     (should (= 2 (current-indentation))) ; class is
     (forward-line -2)
     (should (= 2 (current-indentation))))) ; type is
+
+(ert-deftest f90-test-bug38415 ()
+  "Test for https://debbugs.gnu.org/38415 ."
+  (with-temp-buffer
+    (f90-mode)
+    (setq-local f90-smart-end 'no-blink)
+    (insert "module function foo(x)
+real :: x
+end")
+    (f90-indent-line)
+    (should (equal " function foo"
+                   (buffer-substring (point) (line-end-position))))
+    (goto-char (point-max))
+    (insert "\nmodule subroutine bar(x)
+real :: x
+end")
+    (f90-indent-line)
+    (should (equal " subroutine bar"
+                   (buffer-substring (point) (line-end-position))))))
+
 
 ;;; f90-tests.el ends here

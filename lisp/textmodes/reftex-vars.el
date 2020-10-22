@@ -925,7 +925,7 @@ DOWNCASE    t:   Downcase words before using them."
         "\\<label[[:space:]]*=[[:space:]]*"
         ;; Match the label value; braces around the value are
         ;; optional.
-        "{?\\(?1:[^] ,}\r\n\t%]+\\)}?"
+        "{?\\(?1:[^] ,}\r\n\t%]+\\)"
         ;; We are done.  Just search until the next closing bracket
         "[^]]*\\]"))
     "List of regexps matching \\label definitions.
@@ -2100,6 +2100,8 @@ construct:  \\bbb [xxx] {aaa}."
   "Hook which is being run when loading reftex.el."
   :group 'reftex-miscellaneous-configurations
   :type 'hook)
+(make-obsolete-variable 'reftex-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom reftex-mode-hook nil
   "Hook which is being run when turning on RefTeX mode."

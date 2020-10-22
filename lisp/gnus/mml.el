@@ -281,7 +281,7 @@ part.  This is for the internal use, you should never modify the value.")
 	    (setq tag (mml-read-tag)
 		  no-markup-p nil
 		  warn nil)
-	  (setq tag (list 'part '(type . "text/plain"))
+	  (setq tag (list 'part (cons 'type "text/plain"))
 		no-markup-p t
 		warn t))
 	(setq raw (cdr (assq 'raw tag))
@@ -295,6 +295,17 @@ part.  This is for the internal use, you should never modify the value.")
 			(t
 			 (mm-find-mime-charset-region point (point)
 						      mm-hack-charsets))))
+	;; We have a part that already has a transfer encoding.  Undo
+	;; that so that we don't double-encode later.
+	(when (and raw
+		   (cdr (assq 'data-encoding tag)))
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert contents)
+	    (mm-decode-content-transfer-encoding
+	     (intern (cdr (assq 'data-encoding tag)))
+	     (cdr (assq 'type tag)))
+	    (setq contents (buffer-string))))
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
 		  (message-options-get 'unknown-encoding)
@@ -313,8 +324,8 @@ Message contains characters with unknown encoding.  Really send? ")
 		(eq 'mml (car tag))
 		(< (length charsets) 2))
 	    (if (or (not no-markup-p)
+		    ;; Don't create blank parts.
 		    (string-match "[^ \t\r\n]" contents))
-		;; Don't create blank parts.
 		(push (nconc tag (list (cons 'contents contents)))
 		      struct))
 	  (let ((nstruct (mml-parse-singlepart-with-multiple-charsets
@@ -487,11 +498,8 @@ type detected."
 		 (= (length cont) 1)
 		 content-type)
 	(setcdr (assq 'type (cdr (car cont))) content-type))
-      (when (and (consp (car cont))
-		 (= (length cont) 1)
-		 (fboundp 'libxml-parse-html-region)
-		 (equal (cdr (assq 'type (car cont))) "text/html"))
-	(setq cont (mml-expand-html-into-multipart-related (car cont))))
+      (when (fboundp 'libxml-parse-html-region)
+	(setq cont (mapcar 'mml-expand-all-html-into-multipart-related cont)))
       (prog1
 	  (with-temp-buffer
 	    (set-buffer-multibyte nil)
@@ -509,6 +517,18 @@ type detected."
 	    (setq options message-options)
 	    (buffer-string))
 	(setq message-options options)))))
+
+(defun mml-expand-all-html-into-multipart-related (cont)
+  (cond ((and (eq (car cont) 'part)
+	      (equal (cdr (assq 'type cont)) "text/html"))
+	 (mml-expand-html-into-multipart-related cont))
+	((eq (car cont) 'multipart)
+	 (let ((cur (cdr cont)))
+	   (while (consp cur)
+	     (setcar cur (mml-expand-all-html-into-multipart-related (car cur)))
+	     (setf cur (cdr cur))))
+	 cont)
+	(t cont)))
 
 (defun mml-expand-html-into-multipart-related (cont)
   (let ((new-parts nil)
@@ -538,8 +558,7 @@ type detected."
 			new-parts))
 		(setq cid (1+ cid)))))))
       ;; We have local images that we want to include.
-      (if (not new-parts)
-	  (list cont)
+      (when new-parts
 	(setcdr (assq 'contents cont) (buffer-string))
 	(setq cont
 	      (nconc (list 'multipart (cons 'type "related"))
@@ -552,8 +571,8 @@ type detected."
 				       (nth 1 new-part)
 				       (nth 2 new-part))
 				    (id . ,(concat "<" (nth 0 new-part)
-						   ">")))))))
-	cont))))
+						   ">"))))))))
+      cont)))
 
 (autoload 'image-property "image")
 
@@ -1341,7 +1360,7 @@ If not set, `default-directory' will be used."
 	  (value (pop plist)))
       (when value
 	;; Quote VALUE if it contains suspicious characters.
-	(when (string-match "[\"'\\~/*;() \t\n[:multibyte:]]" value)
+	(when (string-match "[][\"'\\~/*;()<>= \t\n[:multibyte:]]" value)
 	  (setq value (with-output-to-string
 			(let (print-escape-nonascii)
 			  (prin1 value)))))

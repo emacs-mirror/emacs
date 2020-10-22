@@ -27,7 +27,7 @@ The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved
 translation, information on who is currently maintaining the FAQ and how to
 contact them (including their e-mail address), and information on where the
-latest version of the FAQ is archived (including FTP information).
+latest version of the FAQ is archived.
 
 The FAQ may be copied and redistributed under these conditions, except that
 the FAQ may not be embedded in a larger literary work unless that work
@@ -1125,7 +1125,7 @@ scanning of @code{#define}d symbols.
 
 @cindex xref
 @item
-New package Xref replaces Etags's front-end and UI.  Xref provides a
+New package Xref replaces Etags's front-end and UI@.  Xref provides a
 generic framework and new commands to find and move to definitions of
 functions, macros, data structures etc., as well as go back to the
 location where you were before moving to a definition.  It supersedes
@@ -1440,7 +1440,6 @@ of files from Macintosh, Microsoft, and Unix platforms.
 * Compiler error messages::
 * Indenting switch statements::
 * Customizing C and C++ indentation::
-* Horizontal scrolling::
 * Overwrite mode::
 * Turning off beeping::
 * Turning the volume down::
@@ -1526,13 +1525,12 @@ customize, with completion.
 @cindex Syntax highlighting on a TTY
 @cindex Console, colors
 
-In Emacs 21.1 and later, colors and faces are supported in non-windowed mode,
-i.e., on Unix and GNU/Linux text-only terminals and consoles, and when
-invoked as @samp{emacs -nw} on X, and MS-Windows.  (Colors and faces were
-supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
-detects color support at startup and uses it if available.  If you think
-that your terminal supports colors, but Emacs won't use them, check the
-@code{termcap} entry for your display type for color-related
+Colors and faces are supported in non-windowed mode, i.e., on Unix and
+GNU/Linux text-only terminals and consoles, and when invoked as
+@samp{emacs -nw} on X, MS-DOS and MS-Windows.  Emacs automatically
+detects color support at startup and uses it if available.  If you
+think that your terminal supports colors, but Emacs won't use them,
+check the @code{termcap} entry for your display type for color-related
 capabilities.
 
 The command @kbd{M-x list-colors-display} pops up a window which
@@ -1595,6 +1593,10 @@ st-direct       st with direct-color indexing
 xterm-direct2   xterm with direct-color indexing (old)
 xterm-direct    xterm with direct-color indexing
 @end example
+
+If Terminfo database is not available, but 24-bit direct color mode is
+supported, it can still be enabled by defining the environment
+variable @env{COLORTERM} to @samp{truecolor}.
 
 Terminals with @samp{RGB} capability treat pixels #000001 - #000007 as
 indexed colors to maintain backward compatibility with applications
@@ -2123,23 +2125,6 @@ Java sources, etc.  If you want the same customizations to be in
 effect in @emph{all} languages supported by @code{cc-mode}, use
 @code{c-mode-common-hook}.
 
-@node Horizontal scrolling
-@section How can I make Emacs automatically scroll horizontally?
-@cindex @code{hscroll-mode}
-@cindex Horizontal scrolling
-@cindex Scrolling horizontally
-
-In Emacs 21 and later, this is on by default: if the variable
-@code{truncate-lines} is non-@code{nil} in the current buffer, Emacs
-automatically scrolls the display horizontally when point moves off the
-left or right edge of the window.
-
-Note that this is overridden by the variable
-@code{truncate-partial-width-windows} if that variable is non-@code{nil}
-and the current buffer is not full-frame width.
-
-In Emacs 20, use @code{hscroll-mode}.
-
 @node Overwrite mode
 @section How do I make Emacs ``typeover'' or ``overwrite'' instead of inserting?
 @cindex @key{Insert}
@@ -2305,9 +2290,9 @@ to investigate @file{cpp.el}, which is distributed with Emacs.
 @cindex Commands, repeating many times
 @cindex @code{.}, equivalent to @code{vi} command
 
-As of Emacs 20.3, there is indeed a @code{repeat} command (@kbd{C-x z})
-that repeats the last command.  If you preface it with a prefix
-argument, the prefix arg is applied to the command.
+Use the @code{repeat} command (@kbd{C-x z}) to repeat the last
+command.  If you preface it with a prefix argument, the prefix arg is
+applied to the command.
 
 You can also type @kbd{C-x @key{ESC} @key{ESC}}
 (@code{repeat-complex-command}) to reinvoke commands that used the
@@ -2533,9 +2518,8 @@ To avoid seeing backup files (and other ``uninteresting'' files) in Dired,
 load @code{dired-x} by adding the following to your @file{.emacs} file:
 
 @lisp
-(add-hook 'dired-load-hook
-          (lambda ()
-           (require 'dired-x)))
+(with-eval-after-load 'dired
+  (require 'dired-x))
 @end lisp
 
 With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.
@@ -2555,12 +2539,12 @@ To disable or change the way backups are made,
 @pxref{Backup Names,,, emacs, The GNU Emacs Manual}.
 
 @cindex Backup files in a single directory
-Beginning with Emacs 21.1, you can control where Emacs puts backup files
-by customizing the variable @code{backup-directory-alist}.  This
-variable's value specifies that files whose names match specific patters
-should have their backups put in certain directories.  A typical use is
-to add the element @code{("." . @var{dir})} to force Emacs to put
-@strong{all} backup files in the directory @file{dir}.
+You can control where Emacs puts backup files by customizing the
+variable @code{backup-directory-alist}.  This variable's value
+specifies that files whose names match specific patters should have
+their backups put in certain directories.  A typical use is to add the
+element @code{("." . @var{dir})} to force Emacs to put @strong{all}
+backup files in the directory @file{dir}.
 
 @node Disabling auto-save-mode
 @section How do I disable @code{auto-save-mode}?
@@ -2821,9 +2805,9 @@ Alternatively, use the following Lisp form in your @file{.emacs}:
 @cindex Microsoft files, editing
 @cindex Windows files, editing
 
-As of Emacs 20, detection and handling of MS-DOS (and Windows) files is
-performed transparently.  You can open MS-DOS files on a Unix system,
-edit it, and save it without having to worry about the file format.
+Detection and handling of MS-DOS (and Windows) files is performed
+transparently.  You can open MS-DOS files on a Unix system, edit it,
+and save it without having to worry about the file format.
 
 When editing an MS-DOS style file, the mode line will indicate that it
 is a DOS file.  On Unix and GNU/Linux systems, and also on a Macintosh,
@@ -3069,7 +3053,7 @@ if ("$term" == emacs) set term=dumb
 @cindex Debugging @file{.emacs} file
 
 An error occurred while loading either your @file{.emacs} file or the
-system-wide file @file{site-lisp/default.el}.  Emacs 21.1 and later pops the
+system-wide file @file{site-lisp/default.el}.  Emacs pops the
 @file{*Messages*} buffer, and puts there some additional information
 about the error, to provide some hints for debugging.
 
@@ -3087,8 +3071,8 @@ begun}.
 @cindex Ignored X resources
 @cindex @file{.Xdefaults}
 
-As of version 19, Emacs searches for X resources in the files specified
-by the following environment variables:
+Emacs searches for X resources in the files specified by the following
+environment variables:
 
 @itemize @bullet
 
@@ -3479,7 +3463,6 @@ see @ref{Packages that do not come with Emacs}.
 @cindex Finding other packages
 @cindex Lisp packages that do not come with Emacs
 @cindex Packages, those that do not come with Emacs
-@cindex Emacs Lisp List
 @cindex Emacs Lisp Archive
 
 The easiest way to add more features to your Emacs is to use the
@@ -3492,12 +3475,18 @@ You can browse the resulting @file{*Packages*} buffer to see what is
 available, and then Emacs can automatically download and install the
 packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
 
-There are other, non-GNU, Emacs Lisp package servers, including:
-@uref{https://melpa.org, MELPA}; and
-@uref{https://marmalade-repo.org, Marmalade}.  To use additional
-package servers, customize the @code{package-archives} variable.  Be
-aware that installing a package can run arbitrary code, so only add
-sources that you trust.
+There are other Emacs Lisp package archives.  To use additional
+archives, you can customize the @code{package-archives} variable.
+Those archives have no affiliation with GNU Emacs, and we do not
+monitor how they are maintained.  They may pay close attention to
+correctness and safety of the code, or they may give only cursory
+attention.
+
+Also, packages hosted on these other archives may encourage or require
+you to install and use other nonfree programs.  Unless you can verify
+that a package is free software, and that it functions without
+installing any nonfree software, we recommend for your freedom's sake
+that you stay away from it.
 
 The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
 GNU Emacs sources mailing list}, which is gatewayed to the
@@ -3508,10 +3497,6 @@ where people can post or announce their extensions to Emacs.
 The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
 additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an
 alternative wiki for Emacs.
-
-@uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs
-Lisp List (ELL)}, has pointers to many Emacs Lisp files, but at time
-of writing it is no longer being updated.
 
 It is impossible for us to list here all the sites that offer Emacs
 Lisp packages.  If you are interested in a specific feature, then
@@ -3883,12 +3868,11 @@ You may be able to get a keyboard that is completely programmable, or a
 terminal emulator that supports remapping of any key to any other key.
 
 @item
-With Emacs 21.1 and later, you can control the effect of the
-@key{Backspace} and @key{Delete} keys, on both dumb terminals and a
-windowed displays, by customizing the option
-@code{normal-erase-is-backspace-mode}, or by invoking @kbd{M-x
-normal-erase-is-backspace}.  See the documentation of these symbols
-(@pxref{Emacs Lisp documentation}) for more info.
+You can control the effect of the @key{Backspace} and @key{Delete}
+keys, on both dumb terminals and a windowed displays, by customizing
+the option @code{normal-erase-is-backspace-mode}, or by invoking
+@kbd{M-x normal-erase-is-backspace}.  See the documentation of these
+symbols (@pxref{Emacs Lisp documentation}) for more info.
 
 @item
 It is possible to swap the @key{Backspace} and @key{DEL} keys inside
@@ -3939,9 +3923,9 @@ many modes that have local bindings of @key{DEL} that will interfere.
 
 @end itemize
 
-When Emacs 21 or later runs on a windowed display, it binds the
-@key{Delete} key to a command which deletes the character at point, to
-make Emacs more consistent with keyboard operation on these systems.
+When Emacs runs on a windowed display, it binds the @key{Delete} key
+to a command which deletes the character at point, to make Emacs more
+consistent with keyboard operation on these systems.
 
 For more information about troubleshooting this problem, see @ref{DEL
 Does Not Delete, , If @key{DEL} Fails to Delete, emacs, The GNU Emacs
@@ -4201,7 +4185,7 @@ You can get the old behavior by binding @kbd{SPC} to
 (define-key minibuffer-local-filename-completion-map (kbd "SPC")
   'minibuffer-complete-word)
 
-(define-key minibuffer-local-must-match-filename-map (kbd "SPC")
+(define-key minibuffer-local-filename-must-match-map (kbd "SPC")
   'minibuffer-complete-word)
 @end lisp
 

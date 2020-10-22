@@ -280,7 +280,7 @@
 
 (deffoo nnmbox-request-move-article
     (article group server accept-form &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nnmbox move*"))
+  (let ((buf (gnus-get-buffer-create " *nnmbox move*"))
 	result)
     (and
      (nnmbox-request-article article group server)
@@ -613,7 +613,7 @@
 	  (dir (file-name-directory nnmbox-mbox-file)))
       (and dir (gnus-make-directory dir))
       (nnmail-write-region (point-min) (point-min)
-			   nnmbox-mbox-file t 'nomesg))))
+			   nnmbox-mbox-file t 'nomesg nil 'excl))))
 
 (defun nnmbox-read-mbox ()
   (nnmail-activate 'nnmbox)

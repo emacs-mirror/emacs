@@ -134,9 +134,9 @@
 ;;
 
 ;;; Code:
+;;; Dependencies
 
 (eval-when-compile (require 'cl-lib))
-(require 'format-spec)
 (require 'utf7)
 (require 'rfc2104)
 ;; Hmm... digest-md5 is not part of Emacs.
@@ -146,7 +146,7 @@
 (declare-function digest-md5-digest-uri "ext:digest-md5")
 (declare-function digest-md5-challenge "ext:digest-md5")
 
-;; User variables.
+;;; User variables
 
 (defgroup imap nil
   "Low-level IMAP issues."
@@ -258,7 +258,7 @@ Shorter values mean quicker response, but is more CPU intensive."
   :group 'imap
   :type 'boolean)
 
-;; Various variables.
+;;; Various variables
 
 (defvar imap-fetch-data-hook nil
   "Hooks called after receiving each FETCH response.")
@@ -317,7 +317,9 @@ the value of this variable will be bound to a certain value to which
 an application program that uses this module specifies on a per-server
 basis.")
 
-;; Internal constants.  Change these and die.
+;;; Internal constants
+
+;; Change these and die.
 
 (defconst imap-default-port 143)
 (defconst imap-default-ssl-port 993)
@@ -349,7 +351,7 @@ basis.")
 (defconst imap-log-buffer "*imap-log*")
 (defconst imap-debug-buffer "*imap-debug*")
 
-;; Internal variables.
+;;; Internal variables
 
 (defvar imap-stream nil)
 (defvar imap-auth nil)
@@ -438,7 +440,7 @@ This variable is set to t automatically per server if the
 canonical form fails.")
 
 
-;; Utility functions:
+;;; Utility functions
 
 (defun imap-remassoc (key alist)
   "Delete by side effect any elements of ALIST whose car is `equal' to KEY.
@@ -490,7 +492,8 @@ sure of changing the value of `foo'."
     (nth 3 (car imap-failed-tags))))
 
 
-;; Server functions; stream stuff:
+;;; Server functions
+;;;; Stream functions
 
 (defun imap-log (string-or-buffer)
   (when imap-log
@@ -517,12 +520,9 @@ sure of changing the value of `foo'."
 	     (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?s server
-			 ?p (number-to-string port)
-			 ?l imap-default-user))))
+                       (format-spec cmd `((?s . ,server)
+                                          (?p . ,(number-to-string port))
+                                          (?l . ,imap-default-user)))))
 	     response)
 	(when process
 	  (with-current-buffer buffer
@@ -583,12 +583,9 @@ sure of changing the value of `foo'."
 	     (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?s server
-			 ?p (number-to-string port)
-			 ?l imap-default-user))))
+                       (format-spec cmd `((?s . ,server)
+                                          (?p . ,(number-to-string port))
+                                          (?l . ,imap-default-user)))))
 	     response)
 	(when process
 	  (with-current-buffer buffer
@@ -701,13 +698,10 @@ sure of changing the value of `foo'."
              (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?s server
-			 ?g imap-shell-host
-			 ?p (number-to-string port)
-			 ?l imap-default-user)))))
+                       (format-spec cmd `((?s . ,server)
+                                          (?g . ,imap-shell-host)
+                                          (?p . ,(number-to-string port))
+                                          (?l . ,imap-default-user))))))
 	(when process
 	  (while (and (memq (process-status process) '(open run))
 		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
@@ -757,7 +751,7 @@ sure of changing the value of `foo'."
     (message "imap: Connecting with STARTTLS...%s" (if done "done" "failed"))
     done))
 
-;; Server functions; authenticator stuff:
+;;;; Authenticator functions
 
 (defun imap-interactive-login (buffer loginfunc)
   "Login to server in BUFFER.
@@ -881,7 +875,7 @@ t if it successfully authenticates, nil otherwise."
 		(concat "LOGIN anonymous \"" (concat (user-login-name) "@"
 						     (system-name)) "\"")))))
 
-;;; Compiler directives.
+;;; Compiler directives
 
 (defvar imap-sasl-client)
 (defvar imap-sasl-step)
@@ -979,7 +973,7 @@ t if it successfully authenticates, nil otherwise."
 	 (imap-send-command-1 "")
 	 (imap-ok-p (imap-wait-for-tag tag)))))))
 
-;; Server functions:
+;;; Server functions
 
 (defun imap-open-1 (buffer)
   (with-current-buffer buffer
@@ -1238,7 +1232,7 @@ If BUFFER is nil, the current buffer is assumed."
     (imap-send-command-wait "LOGOUT" buffer)))
 
 
-;; Mailbox functions:
+;;; Mailbox functions
 
 (defun imap-mailbox-put (propname value &optional mailbox buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -1530,7 +1524,7 @@ or `unseen'.  The IMAP command tag is returned."
 				     identifier))))))
 
 
-;; Message functions:
+;;; Message functions
 
 (defun imap-current-message (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -1842,7 +1836,7 @@ on failure."
 	       (if (aref from 0) ">"))))
 
 
-;; Internal functions.
+;;; Internal functions
 
 (defun imap-add-callback (tag func)
   (setq imap-callbacks (append (list (cons tag func)) imap-callbacks)))
@@ -1979,7 +1973,7 @@ Return nil if no complete line has arrived."
 	      (delete-region (point-min) (point-max)))))))))
 
 
-;; Imap parser.
+;;; Imap parser
 
 (defsubst imap-forward ()
   (or (eobp) (forward-char)))
@@ -2859,6 +2853,8 @@ Return nil if no complete line has arrived."
 	(cl-assert (eq (char-after) ?\)) nil "In imap-parse-body 2")
 	(imap-forward)
 	(nreverse body)))))
+
+;;; Debug
 
 (when imap-debug			; (untrace-all)
   (require 'trace)

@@ -923,62 +923,8 @@ The returned value reflects the standard Emacs definition of
 COLOR (see the info node `(emacs) Colors'), regardless of whether
 the terminal can display it, so the return value should be the
 same regardless of what display is being used."
-  (let ((len (length color)))
-    (cond ((and (>= len 4) ;; HTML/CSS/SVG-style "#XXYYZZ" color spec
-		(eq (aref color 0) ?#)
-		(member (aref color 1)
-			'(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-			     ?a ?b ?c ?d ?e ?f
-                             ?A ?B ?C ?D ?E ?F)))
-	   ;; Translate the string "#XXYYZZ" into a list of numbers
-	   ;; (XX YY ZZ), scaling each to the {0..65535} range.  This
-	   ;; follows the HTML color convention, where both "#fff" and
-	   ;; "#ffffff" represent the same color, white.
-	   (let* ((ndig (/ (- len 1) 3))
-		  (maxval (1- (ash 1 (* 4 ndig))))
-		  (i1 1)
-		  (i2 (+ i1 ndig))
-		  (i3 (+ i2 ndig))
-                  (i4 (+ i3 ndig)))
-	     (list
-	      (/ (* (string-to-number
-		     (substring color i1 i2) 16)
-		    65535)
-		 maxval)
-	      (/ (* (string-to-number
-		     (substring color i2 i3) 16)
-		    65535)
-		 maxval)
-	      (/ (* (string-to-number
-		     (substring color i3 i4) 16)
-		    65535)
-		 maxval))))
-	  ((and (>= len 9) ;; X-style rgb:xx/yy/zz color spec
-		(string= (substring color 0 4) "rgb:"))
-	   ;; Translate the string "rgb:XX/YY/ZZ" into a list of
-	   ;; numbers (XX YY ZZ), scaling each to the {0..65535}
-	   ;; range.  "rgb:F/F/F" is white.
-	   (let* ((ndig (/ (- len 3) 3))
-		  (maxval (1- (ash 1 (* 4 (- ndig 1)))))
-		  (i1 4)
-		  (i2 (+ i1 ndig))
-		  (i3 (+ i2 ndig))
-                  (i4 (+ i3 ndig)))
-	     (list
-	      (/ (* (string-to-number
-		     (substring color i1 (- i2 1)) 16)
-		    65535)
-		 maxval)
-	      (/ (* (string-to-number
-		     (substring color i2 (- i3 1)) 16)
-		    65535)
-		 maxval)
-	      (/ (* (string-to-number
-		     (substring color i3 (1- i4)) 16)
-		    65535)
-		 maxval))))
-	  (t
-	   (cdr (assoc color color-name-rgb-alist))))))
+  (or (color-values-from-color-spec color)
+      (cdr (assoc color color-name-rgb-alist))))
 
 (defun tty-color-translate (color &optional frame)
   "Given a color COLOR, return the index of the corresponding TTY color.

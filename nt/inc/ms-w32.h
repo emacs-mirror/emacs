@@ -39,6 +39,32 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #  undef __POSIX_2008_DEPRECATED
 #  define __POSIX_2008_DEPRECATED
 # endif
+/* Old versions of MinGW don't have these in the w32api headers, and
+   Gnulib uses them in some files.  */
+# ifndef _WIN32_WINNT_WIN2K
+#  define _WIN32_WINNT_WIN2K	0x0500
+# endif
+# ifndef _WIN32_WINNT_WINXP
+#  define _WIN32_WINNT_WINXP	0x0501
+# endif
+# ifndef _WIN32_WINNT_WS03
+#  define _WIN32_WINNT_WS03	0x0502
+# endif
+# ifndef _WIN32_WINNT_VISTA
+#  define _WIN32_WINNT_VISTA	0x0600
+# endif
+# ifndef _WIN32_WINNT_WIN7
+#  define _WIN32_WINNT_WIN7	0x0601
+# endif
+# ifndef _WIN32_WINNT_WIN8
+#  define _WIN32_WINNT_WIN8	0x0602
+# endif
+# ifndef _WIN32_WINNT_WINBLUE
+#  define _WIN32_WINNT_WINBLUE	0x0603
+# endif
+# ifndef _WIN32_WINNT_WIN10
+#  define _WIN32_WINNT_WIN10	0x0A00
+# endif
 #endif
 
 /* #undef const */
@@ -63,8 +89,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
 
-/* And the select implementation does 1-byte read-ahead waiting
-   for received packets, so datagrams are broken too.  */
+/* Our select emulation does 1-byte read-ahead waiting for received
+   packets, so datagrams are broken.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
 #define MAIL_USE_SYSTEM_LOCK 1
@@ -300,17 +326,6 @@ extern int sys_umask (int);
 #define execvp    _execvp
 #include <stdint.h>		/* for intptr_t */
 extern intptr_t _execvp (const char *, char **);
-#ifdef MINGW_W64
-/* GCC 6 has a builtin execve with the prototype shown below.  MinGW64
-   changed the prototype in its process.h to match that, although the
-   library function still calls _execve, which still returns intptr_t.
-   However, using the prototype with intptr_t causes GCC to emit
-   warnings.  Fortunately, execve is not used in the MinGW build, but
-   the code that references it is still compiled.  */
-extern int execve (const char *, char * const *, char * const *);
-#else
-extern intptr_t execve (const char *, char * const *, char * const *);
-#endif
 #define tcdrain _commit
 #define fdopen	  _fdopen
 #define fsync	  _commit
@@ -440,6 +455,7 @@ extern int alarm (int);
 
 extern int sys_kill (pid_t, int);
 
+extern void explicit_bzero (void *, size_t);
 
 /* For integration with MSDOS support.  */
 #define getdisk()               (_getdrive () - 1)

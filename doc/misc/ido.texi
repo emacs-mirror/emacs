@@ -590,7 +590,7 @@ Now you can customize @code{completion-ignored-extensions} as well.
 Go ahead and add all the useless object files, backup files, shared
 library files and other computing flotsam you don't want Ido to show.
 
-@strong{Note:} Ido will still complete the ignored elements
+@strong{Please note:} Ido will still complete the ignored elements
 if it would otherwise not show any other matches.  So if you type out
 the name of an ignored file, Ido will still let you open it just fine.
 

@@ -297,9 +297,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	 (completion-ignore-case (info-lookup->ignore-case topic mode))
 	 (enable-recursive-minibuffers t)
 	 (value (completing-read
-		 (if default
-		     (format "Describe %s (default %s): " topic default)
-		   (format "Describe %s: " topic))
+		 (format-prompt "Describe %s" default topic)
 		 completions nil nil nil 'info-lookup-history default)))
     (list (if (equal value "") default value) mode)))
 
@@ -557,7 +555,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 		  (info-lookup->regexp topic mode)))
 	(start (point)) end regexp subexp result)
     (save-excursion
-      (if (symbolp rule)
+      (if (functionp rule)
 	  (setq result (funcall rule))
 	(if (consp rule)
 	    (setq regexp (car rule)
@@ -610,6 +608,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (defun info-lookup-guess-custom-symbol ()
   "Get symbol at point in custom buffers."
+  (declare (obsolete nil "28.1"))
   (condition-case nil
       (save-excursion
 	(let ((case-fold-search t)
@@ -1065,7 +1064,9 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'Custom-mode
  :ignore-case t
  :regexp "[^][()`'‘’,:\" \t\n]+"
- :parse-rule 'info-lookup-guess-custom-symbol
+ :parse-rule (lambda ()
+               (when-let ((symbol (get-text-property (point) 'custom-data)))
+                 (symbol-name symbol)))
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help

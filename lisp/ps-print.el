@@ -9,7 +9,7 @@
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (eval-when-compile (require 'cl-lib))
 
@@ -2198,7 +2198,7 @@ The values for `ps-line-number-start':
      `ps-line-number-step' inclusive.
 
    * If `ps-line-number-step' is set to `zebra', must be between 1 and the
-     value of `ps-zebra-strip-height' inclusive.  Use this combination if you
+     value of `ps-zebra-stripe-height' inclusive.  Use this combination if you
      wish that line number be relative to zebra stripes."
   :type '(integer :tag "Start Step Interval")
   :version "20"
@@ -3046,7 +3046,7 @@ See also `ps-use-face-background'."
 (defcustom ps-fg-list nil
   "Specify foreground color list.
 
-This list is used to chose a text foreground color which is different than the
+This list is used to chose a text foreground color which is different from the
 background color.  It'll be used the first foreground color in `ps-fg-list'
 which is different from the background color.
 
@@ -3856,7 +3856,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 (defun ps-color-scale (color)
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
   (mapcar #'(lambda (value) (/ value ps-print-color-scale))
-	  (ps-color-values color)))
+	  (color-values color)))
 
 
 (defun ps-face-underlined-p (face)
@@ -4523,7 +4523,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
        (let* ((name   (concat (file-name-nondirectory (or (buffer-file-name)
 							  (buffer-name)))
 			      ".ps"))
-	      (prompt (format "Save PostScript to file (default %s): " name))
+	      (prompt (format-prompt "Save PostScript to file" name))
 	      (res    (read-file-name prompt default-directory name nil)))
 	 (while (cond ((file-directory-p res)
 		       (ding)
@@ -5752,7 +5752,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	;; evaluated at dump-time because X isn't initialized.
 	ps-color-p            (and ps-print-color-p (ps-color-device))
 	ps-print-color-scale  (if ps-color-p
-				  (float (car (ps-color-values "white")))
+				  (float (car (color-values "white")))
 				1.0)
 	ps-default-background (ps-rgb-color
 			       (cond
@@ -5761,7 +5761,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
-				 (ps-frame-parameter nil 'background-color))
+				 (frame-parameter nil 'background-color))
 				((eq ps-default-bg t)
 				 (ps-face-background-name 'default))
 				(t
@@ -5775,7 +5775,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
-				 (ps-frame-parameter nil 'foreground-color))
+				 (frame-parameter nil 'foreground-color))
 				((eq ps-default-fg t)
 				 (ps-face-foreground-name 'default))
 				(t
@@ -6028,8 +6028,8 @@ to the equivalent Latin-1 characters.")
 
   ;; Specify a foreground color only if:
   ;;    one's specified,
-  ;;    it's different than the background (if `ps-fg-validate-p' is non-nil)
-  ;;    and it's different than the current.
+  ;;    it's different from the background (if `ps-fg-validate-p' is non-nil)
+  ;;    and it's different from the current.
   (let ((fg (or fg-color ps-default-foreground)))
     (if ps-fg-validate-p
 	(let ((bg (or bg-color ps-default-background))
@@ -6273,10 +6273,6 @@ If FACE is not a valid face name, use default face."
 			   face))
        fg-color bg-color (ash effect -2)))))
   (goto-char to))
-
-
-;; Ensure that face-list is fbound.
-(or (fboundp 'face-list) (defalias 'face-list 'list-faces))
 
 
 (defun ps-build-reference-face-lists ()

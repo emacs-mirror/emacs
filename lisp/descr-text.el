@@ -141,8 +141,7 @@ otherwise."
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
-	 ;; If button.el is not loaded, we have no buttons in the text.
-	 (button (and (fboundp 'button-at) (button-at pos)))
+	 (button (button-at pos))
 	 (button-type (and button (button-type button)))
 	 (button-label (and button (button-label button)))
 	 (widget (or wid-field wid-button wid-doc)))
@@ -211,7 +210,7 @@ multilingual development.
 
 This is a fairly large file, not typically present on GNU systems.
 At the time of writing it is at the URL
-`http://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
+`https://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
   :group 'mule
   :version "22.1"
   :type '(choice (const :tag "None" nil)
@@ -763,6 +762,8 @@ The character information includes:
                        (to (nth 4 composition))
                        glyph)
                   (if (fontp font)
+                      ;; GUI frame: show composition in terms of
+                      ;; font glyphs and characters.
                       (progn
                         (insert " using this font:\n  "
                                 (symbol-name (font-get font :type))
@@ -772,12 +773,25 @@ The character information includes:
                         (while (and (<= from to)
                                     (setq glyph (lgstring-glyph gstring from)))
                           (insert (format "  %S\n" glyph))
-                          (setq from (1+ from))))
+                          (setq from (1+ from)))
+                        (when (and (stringp (car composition))
+                                   (string-match "\"\\([^\"]+\\)\"" (car composition)))
+                          (insert "with these character(s):\n")
+                          (let ((chars (match-string 1 (car composition))))
+                            (dotimes (i (length chars))
+                              (let ((char (aref chars i)))
+                                (insert (format "  %s (#x%x) %s\n"
+                                                (describe-char-padded-string char) char
+                                                (get-char-code-property
+                                                 char 'name))))))))
+                    ;; TTY frame: show composition in terms of characters.
                     (insert " by these characters:\n")
                     (while (and (<= from to)
                                 (setq glyph (lgstring-glyph gstring from)))
-                      (insert (format " %c (#x%x)\n"
-                                      (lglyph-char glyph) (lglyph-char glyph)))
+                      (insert (format " %c (#x%x) %s\n"
+                                      (lglyph-char glyph) (lglyph-char glyph)
+                                      (get-char-code-property
+                                       (lglyph-char glyph) 'name)))
                       (setq from (1+ from)))))
               (insert " by the rule:\n\t(")
               (let ((first t))
@@ -919,7 +933,7 @@ condition, the function may return string longer than WIDTH, see
            (t name)))))))
 
 ;;;###autoload
-(defun describe-char-eldoc ()
+(defun describe-char-eldoc (_callback &rest _)
   "Return a description of character at point for use by ElDoc mode.
 
 Return nil if character at point is a printable ASCII
@@ -929,10 +943,17 @@ Otherwise return a description formatted by
 of `eldoc-echo-area-use-multiline-p' variable and width of
 minibuffer window for width limit.
 
-This function is meant to be used as a value of
-`eldoc-documentation-function' variable."
+This function can be used as a value of
+`eldoc-documentation-functions' variable."
   (let ((ch (following-char)))
     (when (and (not (zerop ch)) (or (< ch 32) (> ch 127)))
+      ;; TODO: investigate if the new `eldoc-documentation-functions'
+      ;; API could significantly improve this.  JT@2020-07-07: Indeed,
+      ;; instead of returning a string tailored here for the echo area
+      ;; exclusively, we could call the (now unused) argument
+      ;; _CALLBACK with hints on how to shorten the string if needed,
+      ;; or with multiple usable strings which ElDoc picks according
+      ;; to its space constraints.
       (describe-char-eldoc--format
        ch
        (unless (eq eldoc-echo-area-use-multiline-p t)

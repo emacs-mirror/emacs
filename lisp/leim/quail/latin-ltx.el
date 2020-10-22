@@ -242,12 +242,14 @@ system, including many technical ones.  Examples:
  ((lambda (name char)
     ;; "GREEK SMALL LETTER PHI" (which is \phi) and "GREEK PHI SYMBOL"
     ;; (which is \varphi) are reversed in `ucs-names', so we define
-    ;; them manually.
-    (unless (string-match-p "\\<PHI\\>" name)
+    ;; them manually.  Also ignore "GREEK SMALL LETTER EPSILON" and
+    ;; add the correct value for \epsilon manually.
+    (unless (string-match-p "\\<\\(?:PHI\\|GREEK SMALL LETTER EPSILON\\)\\>" name)
       (concat "\\" (funcall (if (match-end 1) #' capitalize #'downcase)
                             (match-string 2 name)))))
   "\\`GREEK \\(?:SMALL\\|CAPITA\\(L\\)\\) LETTER \\([^- ]+\\)\\'")
 
+ ("\\epsilon" ?ϵ)
  ("\\phi" ?ϕ)
  ("\\Box" ?□)
  ("\\Bumpeq" ?≎)
@@ -641,6 +643,7 @@ system, including many technical ones.  Examples:
       (concat "\\var" (downcase (match-string 1 name)))))
   "\\`GREEK \\([^- ]+\\) SYMBOL\\'")
 
+ ("\\varepsilon" ?ε)
  ("\\varphi" ?φ)
  ("\\varprime" ?′)
  ("\\varpropto" ?∝)
@@ -656,10 +659,34 @@ system, including many technical ones.  Examples:
  ("\\wp" ?℘)
  ("\\wr" ?≀)
 
- ("\\Bbb{N}" ?ℕ)			; AMS commands for blackboard bold
- ("\\Bbb{P}" ?ℙ)			; Also sometimes \mathbb.
+ ("\\Bbb{A}" ?𝔸)			; AMS commands for blackboard bold
+ ("\\Bbb{B}" ?𝔹)			; Also sometimes \mathbb.
+ ("\\Bbb{C}" ?ℂ)
+ ("\\Bbb{D}" ?𝔻)
+ ("\\Bbb{E}" ?𝔼)
+ ("\\Bbb{F}" ?𝔽)
+ ("\\Bbb{G}" ?𝔾)
+ ("\\Bbb{H}" ?ℍ)
+ ("\\Bbb{I}" ?𝕀)
+ ("\\Bbb{J}" ?𝕁)
+ ("\\Bbb{K}" ?𝕂)
+ ("\\Bbb{L}" ?𝕃)
+ ("\\Bbb{M}" ?𝕄)
+ ("\\Bbb{N}" ?ℕ)
+ ("\\Bbb{O}" ?𝕆)
+ ("\\Bbb{P}" ?ℙ)
+ ("\\Bbb{Q}" ?ℚ)
  ("\\Bbb{R}" ?ℝ)
+ ("\\Bbb{S}" ?𝕊)
+ ("\\Bbb{T}" ?𝕋)
+ ("\\Bbb{U}" ?𝕌)
+ ("\\Bbb{V}" ?𝕍)
+ ("\\Bbb{W}" ?𝕎)
+ ("\\Bbb{X}" ?𝕏)
+ ("\\Bbb{Y}" ?𝕐)
  ("\\Bbb{Z}" ?ℤ)
+ ("\\Bbb{1}" ?𝟙)
+ ("\\Bbb{2}" ?𝟚)
  ("--" ?–)
  ("---" ?—)
  ;; We used to use ~ for NBSP but that's inconvenient and may even look like
@@ -703,7 +730,9 @@ system, including many technical ones.  Examples:
  ("\\ldq" ?\“)
  ("\\rdq" ?\”)
  ("\\defs" ?≙)				; per fuzz/zed
- ;; ("\\sqrt[3]" ?∛)
+ ("\\sqrt" ?√)
+ ("\\sqrt[3]" ?∛)
+ ("\\sqrt[4]" ?∜)
  ("\\llbracket" ?\〚) 			; stmaryrd
  ("\\rrbracket" ?\〛)
  ;; ("\\lbag" ?\〚) 			; fuzz

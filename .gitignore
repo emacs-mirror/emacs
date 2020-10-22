@@ -60,6 +60,7 @@ lib/execinfo.h
 lib/fcntl.h
 lib/getopt.h
 lib/getopt-cdefs.h
+lib/gmp.h
 lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a
@@ -151,6 +152,7 @@ test/manual/etags/regexfile
 test/manual/etags/ETAGS
 test/manual/etags/CTAGS
 test/manual/indent/*.new
+test/data/mml-sec/random_seed
 
 # ctags, etags.
 TAGS
@@ -161,6 +163,12 @@ GPATH
 GSYMS
 GRTAGS
 GTAGS
+
+# auto-generated compilation database
+compile_commands.json
+
+# ccls, a LSP-compliant server for C
+/.ccls-cache
 
 # GNU idutils.
 ID

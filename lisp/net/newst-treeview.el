@@ -131,14 +131,6 @@ groupcontent := feedname | groupdefinition)
 Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
 \"feed3\")")
 
-(defcustom newsticker-groups-filename
-  nil
-  "Name of the newsticker groups settings file."
-  :version "25.1"                       ; changed default value to nil
-  :type '(choice (const nil) string)
-  :group 'newsticker-treeview)
-(make-obsolete-variable 'newsticker-groups-filename 'newsticker-dir "23.1")
-
 ;; ======================================================================
 ;;; internal variables
 ;; ======================================================================
@@ -1265,29 +1257,9 @@ Note: does not update the layout."
 (defun newsticker--treeview-load ()
   "Load treeview settings."
   (let* ((coding-system-for-read 'utf-8)
-         (filename
-          (or (and newsticker-groups-filename
-                   (not (string=
-                         (expand-file-name newsticker-groups-filename)
-                         (expand-file-name (concat newsticker-dir "/groups"))))
-                   (file-exists-p newsticker-groups-filename)
-                   (y-or-n-p
-                    (format-message
-                     (concat "Obsolete variable `newsticker-groups-filename' "
-                             "points to existing file \"%s\".\n"
-                             "Read it? ")
-                     newsticker-groups-filename))
-                   newsticker-groups-filename)
-              (concat newsticker-dir "/groups")))
+         (filename (concat newsticker-dir "/groups"))
          (buf (and (file-exists-p filename)
                    (find-file-noselect filename))))
-    (and newsticker-groups-filename
-         (file-exists-p newsticker-groups-filename)
-	 (y-or-n-p (format-message
-                    (concat "Delete the file \"%s\",\nto which the obsolete "
-                            "variable `newsticker-groups-filename' points ? ")
-                    newsticker-groups-filename))
-	 (delete-file newsticker-groups-filename))
     (when buf
       (set-buffer buf)
       (goto-char (point-min))

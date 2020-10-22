@@ -29,8 +29,6 @@
 
 (require 'gnus)
 (require 'gnus-sum)
-(require 'format-spec)
-(autoload 'sieve-mode "sieve-mode")
 (eval-when-compile
   (require 'sieve))
 
@@ -88,10 +86,10 @@ See the documentation for these variables and functions for details."
   (save-buffer)
   (shell-command
    (format-spec gnus-sieve-update-shell-command
-		(format-spec-make ?f gnus-sieve-file
-				  ?s (or (cadr (gnus-server-get-method
-						nil gnus-sieve-select-method))
-					 "")))))
+                `((?f . ,gnus-sieve-file)
+                  (?s . ,(or (cadr (gnus-server-get-method
+                                    nil gnus-sieve-select-method))
+                             ""))))))
 
 ;;;###autoload
 (defun gnus-sieve-generate ()

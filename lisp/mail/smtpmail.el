@@ -50,9 +50,10 @@
 
 ;; Modified by Simon Josefsson <jas@pdc.kth.se>, 22/2/99, to support SMTP
 ;; Authentication by the AUTH mechanism.
-;; See http://www.ietf.org/rfc/rfc2554.txt
+;; See https://www.ietf.org/rfc/rfc2554.txt
 
 ;;; Code:
+;;; Dependencies
 
 (require 'sendmail)
 (require 'auth-source)
@@ -61,11 +62,11 @@
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
 
-;;;
+;;; Options
+
 (defgroup smtpmail nil
   "SMTP protocol for sending mail."
   :group 'mail)
-
 
 (defcustom smtpmail-default-smtp-server nil
   "Specify default SMTP server.
@@ -172,8 +173,7 @@ mean \"try again\"."
   :type 'integer
   :version "27.1")
 
-;; End of customizable variables.
-
+;;; Variables
 
 (defvar smtpmail-address-buffer)
 (defvar smtpmail-recipient-address-list)
@@ -191,6 +191,8 @@ for `smtpmail-try-auth-method'.")
 
 (defvar smtpmail-mail-address nil
   "Value to use for envelope-from address for mail from ambient buffer.")
+
+;;; Functions
 
 ;;;###autoload
 (defun smtpmail-send-it ()
@@ -510,8 +512,9 @@ for `smtpmail-try-auth-method'.")
 	(if port
 	    (format "%s" port)
 	  "smtp"))
-  (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
-	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
+  (let* ((mechs (smtpmail-intersection
+                 (cdr-safe (assoc 'auth supported-extensions))
+                 smtpmail-auth-supported))
 	 (auth-source-creation-prompts
           '((user  . "SMTP user name for %h: ")
             (secret . "SMTP password for %u@%h: ")))
@@ -524,6 +527,7 @@ for `smtpmail-try-auth-method'.")
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
+         (mech (or (plist-get auth-info :smtp-auth) (car mechs)))
          (user (plist-get auth-info :user))
          (password (plist-get auth-info :secret))
 	 (save-function (and ask-for-password

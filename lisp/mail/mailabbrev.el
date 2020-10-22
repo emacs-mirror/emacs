@@ -534,8 +534,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		      (default-directory (expand-file-name "~/"))
 		      (def mail-personal-alias-file))
 		  (read-file-name
-		   (format "Read additional aliases from file (default %s): "
-			    def)
+		   (format-prompt "Read additional aliases from file" def)
 		    default-directory
 		    (expand-file-name def default-directory)
 		    t))))
@@ -548,7 +547,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		      (default-directory (expand-file-name "~/"))
 		      (def mail-personal-alias-file))
 		  (read-file-name
-		   (format "Read mail aliases from file (default %s): " def)
+		   (format-prompt "Read mail aliases from file" def)
 		   default-directory
 		   (expand-file-name def default-directory)
 		   t))))

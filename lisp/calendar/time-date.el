@@ -355,6 +355,8 @@ is output until the first non-zero unit is encountered."
 
 (defun date-days-in-month (year month)
   "The number of days in MONTH in YEAR."
+  (unless (and (numberp month) (<= 1 month 12))
+    (error "Month %s is invalid" month))
   (if (= month 2)
       (if (date-leap-year-p year)
           29
@@ -399,10 +401,10 @@ changes in daylight saving time are not taken into account."
     (when (decoded-time-year delta)
       (cl-incf (decoded-time-year time) (decoded-time-year delta)))
 
-    ;; Months are pretty simple.
+    ;; Months are pretty simple, but start at 1 (for January).
     (when (decoded-time-month delta)
-      (let ((new (+ (decoded-time-month time) (decoded-time-month delta))))
-        (setf (decoded-time-month time) (mod new 12))
+      (let ((new (+ (1- (decoded-time-month time)) (decoded-time-month delta))))
+        (setf (decoded-time-month time) (1+ (mod new 12)))
         (cl-incf (decoded-time-year time) (/ new 12))))
 
     ;; Adjust for month length (as described in the doc string).
@@ -515,16 +517,30 @@ TIME is modified and returned."
   (unless (decoded-time-year time)
     (setf (decoded-time-year time) 0))
 
-  ;; When we don't have a time zone and we don't have a DST, then mark
-  ;; it as unknown.
-  (when (and (not (decoded-time-zone time))
-             (not (decoded-time-dst time)))
-    (setf (decoded-time-dst time) -1))
+  ;; When we don't have a time zone, default to DEFAULT-ZONE without
+  ;; DST if DEFAULT-ZONE if given, and to unknown DST otherwise.
+  (unless (decoded-time-zone time)
+    (if default-zone
+	(progn (setf (decoded-time-zone time) default-zone)
+	       (setf (decoded-time-dst time) nil))
+      (setf (decoded-time-dst time) -1)))
 
-  (when (and (not (decoded-time-zone time))
-             default-zone)
-    (setf (decoded-time-zone time) 0))
   time)
+
+(defun decoded-time-period (time)
+  "Interpret DECODED as a period and return its length in seconds.
+For computational purposes, years are 365 days long and months
+are 30 days long."
+  (+ (if (consp (decoded-time-second time))
+         ;; Fractional second.
+         (/ (float (car (decoded-time-second time)))
+            (cdr (decoded-time-second time)))
+       (or (decoded-time-second time) 0))
+     (* (or (decoded-time-minute time) 0) 60)
+     (* (or (decoded-time-hour time) 0) 60 60)
+     (* (or (decoded-time-day time) 0) 60 60 24)
+     (* (or (decoded-time-month time) 0) 60 60 24 30)
+     (* (or (decoded-time-year time) 0) 60 60 24 365)))
 
 (provide 'time-date)
 

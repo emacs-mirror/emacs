@@ -6944,10 +6944,10 @@
 	when saving a tag in structtag.  Callers changed.
 	(TOKEN): Structure changed.  Now used only in C_entries.
 	(TOKEN_SAVED_P, SAVE_TOKEN, RESTORE_TOKEN): Delete.
-	(C_entries): nameb and savenameb deleted.  Use dinamic allocation.
+	(C_entries): nameb and savenameb deleted.  Use dynamic allocation.
 	(pfcnt): Delete.  Users updated.
 	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme)
-	(TEX_getit, prolog_getit): Use dinamic allocation for storing
+	(TEX_getit, prolog_getit): Use dynamic allocation for storing
 	the tag instead of a fixed size buffer.
 
 1995-01-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -7609,7 +7609,7 @@
 	(longopts, print_help, main, process_file): Put absolute filenames
 	in the tag file if the -A --absolute-pathnames option is used.
 	(print_help): Alphabetically order the options.
-	(malloc, realloc, strcpy, strncpy, strcmp): Remove extern declar.
+	(malloc, realloc, strcpy, strncpy, strcmp): Remove extern declare.
 
 1994-02-09  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8239,7 +8239,7 @@
 1993-03-22  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* etags.c (YACC): Flag added to c_ext.
-	(c_ext): No more a synonim for c_ext&C_PLPL because of YACC.
+	(c_ext): No more a synonym for c_ext&C_PLPL because of YACC.
 	(find_entries): Consistently use streq when reasonable.
 	(find_entries): A .y file is a yacc file.
 	(get_C_stab): c_ext becomes c_ext&C_PLPL.

@@ -10889,7 +10889,7 @@
 
 	* menu-bar.el (menu-set-font): New function.  Bind "Set Default
 	Font" menu item to it.  Apply selected font to all frames, and
-	make it savable.
+	make it saveable.
 	(menu-bar-options-save): Save `default' font if changed.
 
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -13625,7 +13625,7 @@
 	(completion-emacs22-try-completion): Place cursor after the /, as was
 	done in Emacs-22's minibuffer-complete-word.
 	Fix bug reported by David Hansen <david.hansen@gmx.net>.
-	(completion-emacs22-try-completion): Merge all mergable text rather
+	(completion-emacs22-try-completion): Merge all mergeable text rather
 	than just /.
 	(completion-pcm--delim-wild-regex): New var.
 	(completion-pcm-word-delimiters): New custom.

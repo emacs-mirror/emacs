@@ -4,7 +4,7 @@
 ;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.2
+;; Old-Version: 0.2
 ;; Keywords: OO, chart, graph
 
 ;; This file is part of GNU Emacs.
@@ -105,9 +105,7 @@ Useful if new Emacs is used on B&W display.")
                                       (car cl)
                                     "white"))
           (set-face-foreground nf "black")
-          (if (and chart-face-use-pixmaps
-                   pl
-                   (fboundp 'set-face-background-pixmap))
+          (if (and chart-face-use-pixmaps pl)
               (condition-case nil
                   (set-face-background-pixmap nf (car pl))
                 (error (message "Cannot set background pixmap %s" (car pl)))))

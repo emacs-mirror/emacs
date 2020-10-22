@@ -2896,9 +2896,8 @@ default.  If you want to have these key bindings available, set in your
 Note that this variable has to be set before @RefTeX{} is loaded to
 have an effect.
 
-@vindex reftex-load-hook
-Changing and adding to @RefTeX{}'s key bindings is best done in the hook
-@code{reftex-load-hook}.  For information on the keymaps
+Changing and adding to @RefTeX{}'s key bindings is best done using
+@code{with-eval-after-load}.  For information on the keymaps
 which should be used to add keys, see @ref{Keymaps and Hooks}.
 
 @node Faces
@@ -5318,10 +5317,6 @@ argument.
 
 @deffn Keymap reftex-mode-map
 The keymap for @RefTeX{} mode.
-@end deffn
-
-@deffn {Normal Hook} reftex-load-hook
-Normal hook which is being run when loading @file{reftex.el}.
 @end deffn
 
 @deffn {Normal Hook} reftex-mode-hook

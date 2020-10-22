@@ -63,9 +63,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     (use-local-map rmail-edit-map)
     (setq major-mode 'rmail-edit-mode)
     (setq mode-name "RMAIL Edit")
-    (if (boundp 'mode-line-modified)
-	(setq mode-line-modified (default-value 'mode-line-modified))
-      (setq mode-line-format (default-value 'mode-line-format)))
+    (setq mode-line-modified (default-value 'mode-line-modified))
     ;; Don't turn off auto-saving based on the size of the buffer
     ;; because that code does not understand buffer-swapping.
     (make-local-variable 'auto-save-include-big-deletions)

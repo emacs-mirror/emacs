@@ -241,9 +241,9 @@
 ;;		printf '\033AnSiTu %s\n' "$USER"
 ;;		printf '\033AnSiTc %s\n' "$PWD"
 ;;
-;;		cd()    { command cd    "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
-;;		pushd() { command pushd "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
-;;		popd()  { command popd  "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+;;		cd()    { command cd    "$@" && printf '\033AnSiTc %s\n' "$PWD"; }
+;;		pushd() { command pushd "$@" && printf '\033AnSiTc %s\n' "$PWD"; }
+;;		popd()  { command popd  "$@" && printf '\033AnSiTc %s\n' "$PWD"; }
 ;;
 ;;		# Use custom dircolors in term buffers.
 ;;		# eval $(dircolors $HOME/.emacs_dircolors)
@@ -467,6 +467,11 @@ Customize this option to nil if you want the previous behavior."
   :type 'boolean
   :group 'term)
 
+(defcustom term-set-terminal-size nil
+  "If non-nil, set the LINES and COLUMNS environment variables."
+  :type 'boolean
+  :version "28.1")
+
 (defcustom term-char-mode-point-at-process-mark t
   "If non-nil, keep point at the process mark in char mode.
 
@@ -500,6 +505,14 @@ See variable `term-scroll-show-maximum-output'.
 This variable is buffer-local."
   :type 'boolean
   :group 'term)
+
+(defcustom term-scroll-snap-to-bottom t
+  "Control whether to keep the prompt at the bottom of the window.
+If non-nil, when the prompt is visible within the window, then
+scroll so that the prompt is on the bottom on any input or
+output."
+  :version "28.1"
+  :type 'boolean)
 
 (defcustom term-scroll-show-maximum-output nil
   "Controls how interpreter output causes window to scroll.
@@ -541,7 +554,7 @@ See also `term-dynamic-complete'.
 This is a good thing to set in mode hooks.")
 
 (defvar term-input-filter
-  (function (lambda (str) (not (string-match "\\`\\s *\\'" str))))
+  (lambda (str) (not (string-match "\\`\\s *\\'" str)))
   "Predicate for filtering additions to input history.
 Only inputs answering true to this function are saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
@@ -847,6 +860,7 @@ is buffer-local."
     (define-key map [prior] 'term-send-prior)
     (define-key map [next] 'term-send-next)
     (define-key map [xterm-paste] #'term--xterm-paste)
+    (define-key map [?\C-/] #'term-send-C-_)
     map)
   "Keyboard map for sending characters directly to the inferior process.")
 
@@ -1269,6 +1283,7 @@ without any interpretation."
 (defun term-send-next  () (interactive) (term-send-raw-string "\e[6~"))
 (defun term-send-del   () (interactive) (term-send-raw-string "\e[3~"))
 (defun term-send-backspace  () (interactive) (term-send-raw-string "\C-?"))
+(defun term-send-C-_  () (interactive) (term-send-raw-string "\C-_"))
 
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
@@ -1543,9 +1558,12 @@ Nil if unknown.")
 	   (format term-termcap-format "TERMCAP="
 		   term-term-name term-height term-width)
 
-	   (format "INSIDE_EMACS=%s,term:%s" emacs-version term-protocol-version)
-	   (format "LINES=%d" term-height)
-	   (format "COLUMNS=%d" term-width))
+	   (format "INSIDE_EMACS=%s,term:%s"
+                   emacs-version term-protocol-version))
+          (when term-set-terminal-size
+            (list
+             (format "LINES=%d" term-height)
+	     (format "COLUMNS=%d" term-width)))
 	  process-environment))
 	(process-connection-type t)
 	;; We should suppress conversion of end-of-line format.
@@ -2796,12 +2814,12 @@ See `term-prompt-regexp'."
    "\\(?:[\r\n\000\007\t\b\016\017]\\|"
    ;; some Emacs specific control sequences, implemented by
    ;; `term-command-hook',
-   "\032[^\n]+\r?\n\\|"
+   "\032[^\n]+\n\\|"
    ;; a C1 escape coded character (see [ECMA-48] section 5.3 "Elements
    ;; of the C1 set"),
    "\e\\(?:[DM78c]\\|"
    ;; another Emacs specific control sequence,
-   "AnSiT[^\n]+\r?\n\\|"
+   "AnSiT[^\n]+\n\\|"
    ;; or an escape sequence (section 5.4 "Control Sequences"),
    "\\[\\([\x30-\x3F]*\\)[\x20-\x2F]*[\x40-\x7E]\\)\\)")
   "Regexp matching control sequences handled by term.el.")
@@ -3108,15 +3126,19 @@ See `term-prompt-regexp'."
 				    (or (eq scroll 'this) (not save-point)))
 			       (and (eq scroll 'others)
 				    (not (eq selected win))))
-		       (goto-char term-home-marker)
-		       (recenter 0)
+		       (when term-scroll-snap-to-bottom
+		         (goto-char term-home-marker)
+		         (recenter 0))
 		       (goto-char (process-mark proc))
 		       (if (not (pos-visible-in-window-p (point) win))
 			   (recenter -1)))
 		     ;; Optionally scroll so that the text
 		     ;; ends at the bottom of the window.
 		     (when (and term-scroll-show-maximum-output
-				(>= (point) (process-mark proc)))
+				(>= (point) (process-mark proc))
+				(or term-scroll-snap-to-bottom
+				    (not (pos-visible-in-window-p
+                                          (point-max) win))))
 		       (save-excursion
 			 (goto-char (point-max))
 			 (recenter -1)))))
@@ -3618,8 +3640,8 @@ The top-most line is line 0."
   (message "Terminal-emulator pager break help...")
   (sit-for 0)
   (with-electric-help
-    (function (lambda ()
-		(princ (substitute-command-keys
+    (lambda ()
+      (princ (substitute-command-keys
 "\\<term-pager-break-map>\
 Terminal-emulator MORE break.\n\
 Type one of the following keys:\n\n\
@@ -3637,7 +3659,7 @@ Type one of the following keys:\n\n\
 Any other key is passed through to the program
 running under the terminal emulator and disables pager processing until
 all pending output has been dealt with."))
-		nil))))
+      nil)))
 
 (defun term-pager-continue (new-count)
   (let ((process (get-buffer-process (current-buffer))))
@@ -4090,53 +4112,6 @@ see `expand-file-name' and `substitute-in-file-name'.  For completion see
   (term-dynamic-complete-filename))
 
 
-(defun term-dynamic-simple-complete (stub candidates)
-  "Dynamically complete STUB from CANDIDATES list.
-This function inserts completion characters at point by completing STUB from
-the strings in CANDIDATES.  A completions listing may be shown in a help buffer
-if completion is ambiguous.
-
-Returns nil if no completion was inserted.
-Returns `sole' if completed with the only completion match.
-Returns `shortest' if completed with the shortest of the completion matches.
-Returns `partial' if completed as far as possible with the completion matches.
-Returns `listed' if a completion listing was shown.
-
-See also `term-dynamic-complete-filename'."
-  (declare (obsolete completion-in-region "23.2"))
-  (let* ((completion-ignore-case nil)
-	 (completions (all-completions stub candidates)))
-    (cond ((null completions)
- 	   (message "No completions of %s" stub)
-	   nil)
- 	  ((= 1 (length completions))	; Gotcha!
- 	   (let ((completion (car completions)))
- 	     (if (string-equal completion stub)
- 		 (message "Sole completion")
- 	       (insert (substring completion (length stub)))
- 	       (message "Completed"))
-	     (when term-completion-addsuffix (insert " "))
-	     'sole))
- 	  (t				; There's no unique completion.
- 	   (let ((completion (try-completion stub candidates)))
- 	     ;; Insert the longest substring.
- 	     (insert (substring completion (length stub)))
- 	     (cond ((and term-completion-recexact term-completion-addsuffix
- 			 (string-equal stub completion)
- 			 (member completion completions))
- 		    ;; It's not unique, but user wants shortest match.
- 		    (insert " ")
- 		    (message "Completed shortest")
-		    'shortest)
- 		   ((or term-completion-autolist
- 			(string-equal stub completion))
- 		    ;; It's not unique, list possible completions.
- 		    (term-dynamic-list-completions completions)
-		    'listed)
- 		   (t
-		    (message "Partially completed")
-		    'partial)))))))
-
 (defun term-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
@@ -4166,7 +4141,7 @@ Typing SPC flushes the help buffer."
 		 (eq (window-buffer (posn-window (event-start first)))
 		     (get-buffer "*Completions*"))
 		 (memq (key-binding key)
-                       '(mouse-choose-completion choose-completion))))
+                       '(choose-completion))))
 	  ;; If the user does choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
 	  (progn
@@ -4305,8 +4280,7 @@ well as the newer ports COM10 and higher."
                  ;; `prompt': The most recently used port is provided as
                  ;; the default value, which is used when the user
                  ;; simply presses return.
-                 (if (stringp h) (format "Serial port (default %s): " h)
-                   "Serial port: ")
+                 (format-prompt "Serial port" h)
                  ;; `directory': Most systems have their serial ports
                  ;; in the same directory, so start in the directory
                  ;; of the most recently used port, or in a reasonable
@@ -4321,8 +4295,7 @@ well as the newer ports COM10 and higher."
                  ;; serial port.
                  "")
               (read-from-minibuffer
-               (if (stringp h) (format "Serial port (default %s): " h)
-                 "Serial port: ")
+               (format-prompt "Serial port" h)
                nil nil nil '(file-name-history . 1) nil nil))))
     (if (or (null x) (and (stringp x) (zerop (length x))))
         (setq x h)
@@ -4344,7 +4317,7 @@ Try to be nice by providing useful defaults and history."
              (cond ((string= h serial-no-speed)
                     "Speed (default nil = set by port): ")
                    (h
-                    (format "Speed (default %s b/s): " h))
+                    (format-prompt "Speed" (format "%s b/s" h)))
                    (t
 		    (format "Speed (b/s): ")))
              nil nil nil '(history . 1) nil nil)))

@@ -674,7 +674,6 @@
   (define-key calc-mode-map "Z/" 'calc-kbd-break)
   (define-key calc-mode-map "Z`" 'calc-kbd-push)
   (define-key calc-mode-map "Z'" 'calc-kbd-pop)
-  (define-key calc-mode-map "Z=" 'calc-kbd-report)
   (define-key calc-mode-map "Z#" 'calc-kbd-query)
 
   (calc-init-prefixes)
@@ -845,8 +844,8 @@ math-bernoulli-number math-gammap1-raw)
  ("calc-incom" calc-digit-dots)
 
  ("calc-keypd" calc-do-keypad
-calc-keypad-x-left-click calc-keypad-x-middle-click
-calc-keypad-x-right-click)
+calc-keypad-left-click calc-keypad-middle-click
+calc-keypad-right-click)
 
  ("calc-lang" calc-set-language
 math-read-big-balance math-read-big-rec)
@@ -1003,7 +1002,7 @@ calc-find-root calc-poly-interp)
 calc-floor calc-idiv calc-increment calc-mant-part calc-max calc-min
 calc-round calc-scale-float calc-sign calc-trunc calc-xpon-part)
 
- ("calc-bin" calc-and calc-binary-radix calc-clip calc-twos-complement-mode
+ ("calc-bin" calc-and calc-binary-radix calc-clip
 calc-decimal-radix calc-diff calc-hex-radix calc-leading-zeros
 calc-lshift-arith calc-lshift-binary calc-not calc-octal-radix calc-or calc-radix
 calc-rotate-binary calc-rshift-arith calc-rshift-binary calc-word-size
@@ -1116,7 +1115,7 @@ calc-equal-to calc-get-user-defn calc-greater-equal calc-greater-than
 calc-in-set calc-kbd-break calc-kbd-else calc-kbd-else-if
 calc-kbd-end-for calc-kbd-end-if calc-kbd-end-loop calc-kbd-end-repeat
 calc-kbd-for calc-kbd-if calc-kbd-loop calc-kbd-pop calc-kbd-push
-calc-kbd-query calc-kbd-repeat calc-kbd-report calc-less-equal
+calc-kbd-query calc-kbd-repeat calc-less-equal
 calc-less-than calc-logical-and calc-logical-if calc-logical-not
 calc-logical-or calc-not-equal-to calc-pass-errors calc-remove-equal
 calc-timing calc-user-define calc-user-define-composition
@@ -1399,9 +1398,8 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-scroll-up (n)
   (interactive "P")
-  (condition-case nil
-      (scroll-up (or n (/ (window-height) 2)))
-    (error nil))
+  (ignore-errors
+    (scroll-up (or n (/ (window-height) 2))))
   (if (pos-visible-in-window-p (max 1 (- (point-max) 2)))
       (if (eq major-mode 'calc-mode)
 	  (calc-realign)
@@ -3096,6 +3094,7 @@ If X is not an error form, return 1."
 (defvar math-read-big-baseline)
 (defvar math-read-big-h2)
 (defvar math-read-big-err-msg)
+(defvar math-read-big-lines)
 
 (defun math-read-big-expr (str)
   (and (> (length calc-left-label) 0)
@@ -3140,41 +3139,42 @@ If X is not an error form, return 1."
 
 (defvar math-rb-h2)
 
-(defun math-read-big-bigp (math-read-big-lines)
-  (and (cdr math-read-big-lines)
-       (let ((matrix nil)
-	     (v 0)
-	     (height (if (> (length (car math-read-big-lines)) 0) 1 0)))
-	 (while (and (cdr math-read-big-lines)
-		     (let* ((i 0)
-			    j
-			    (l1 (car math-read-big-lines))
-			    (l2 (nth 1 math-read-big-lines))
-			    (len (min (length l1) (length l2))))
-		       (if (> (length l2) 0)
-			   (setq height (1+ height)))
-		       (while (and (< i len)
-				   (or (memq (aref l1 i) '(?\  ?\- ?\_))
-				       (memq (aref l2 i) '(?\  ?\-))
-				       (and (memq (aref l1 i) '(?\| ?\,))
-					    (= (aref l2 i) (aref l1 i)))
-				       (and (eq (aref l1 i) ?\[)
-					    (eq (aref l2 i) ?\[)
-					    (let ((math-rb-h2 (length l1)))
-					      (setq j (math-read-big-balance
-						       (1+ i) v "[")))
-					    (setq i (1- j)))))
-			 (setq i (1+ i)))
-		       (or (= i len)
-			   (and (eq (aref l1 i) ?\[)
-				(eq (aref l2 i) ?\[)
-				(setq matrix t)
-				nil))))
-	   (setq math-read-big-lines (cdr math-read-big-lines)
-		 v (1+ v)))
-	 (or (and (> height 1)
-		  (not (cdr math-read-big-lines)))
-	     matrix))))
+(defun math-read-big-bigp (read-big-lines)
+  (when (cdr read-big-lines)
+    (let ((math-read-big-lines read-big-lines)
+	  (matrix nil)
+	  (v 0)
+	  (height (if (> (length (car read-big-lines)) 0) 1 0)))
+      (while (and (cdr math-read-big-lines)
+		  (let* ((i 0)
+			 j
+			 (l1 (car math-read-big-lines))
+			 (l2 (nth 1 math-read-big-lines))
+			 (len (min (length l1) (length l2))))
+		    (if (> (length l2) 0)
+			(setq height (1+ height)))
+		    (while (and (< i len)
+				(or (memq (aref l1 i) '(?\  ?\- ?\_))
+				    (memq (aref l2 i) '(?\  ?\-))
+				    (and (memq (aref l1 i) '(?\| ?\,))
+					 (= (aref l2 i) (aref l1 i)))
+				    (and (eq (aref l1 i) ?\[)
+					 (eq (aref l2 i) ?\[)
+					 (let ((math-rb-h2 (length l1)))
+					   (setq j (math-read-big-balance
+						    (1+ i) v "[")))
+					 (setq i (1- j)))))
+		      (setq i (1+ i)))
+		    (or (= i len)
+			(and (eq (aref l1 i) ?\[)
+			     (eq (aref l2 i) ?\[)
+			     (setq matrix t)
+			     nil))))
+	(setq math-read-big-lines (cdr math-read-big-lines)
+	      v (1+ v)))
+      (or (and (> height 1)
+	       (not (cdr math-read-big-lines)))
+	  matrix))))
 
 ;;; Nontrivial "flat" formatting.
 
@@ -3458,6 +3458,8 @@ A command spec is a command name symbol, a keyboard macro string, a
 list containing a numeric entry string, or nil.
 A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 
+(make-obsolete-variable 'calc-ext-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'calc-ext-load-hook)
 
 (provide 'calc-ext)

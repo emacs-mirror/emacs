@@ -1,4 +1,4 @@
-;;; xml-parse-tests.el --- Test suite for XML parsing.
+;;; xml-parse-tests.el --- Test suite for XML parsing.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
@@ -163,6 +163,37 @@ Parser is called with and without 'symbol-qnames argument.")
     (insert (car xml-parse-test--namespace-attribute-qnames))
     (should (equal (cdr xml-parse-test--namespace-attribute-qnames)
                    (xml-parse-region nil nil nil nil 'symbol-qnames)))))
+
+(ert-deftest xml-print-invalid-cdata ()
+  "Check that Bug#41094 is fixed."
+  (with-temp-buffer
+    (should (equal (should-error (xml-print '((foo () "\0")))
+                                 :type 'xml-invalid-character)
+                   '(xml-invalid-character 0 1)))
+    (should (equal (should-error (xml-print '((foo () "\u00FF \xFF")))
+                                 :type 'xml-invalid-character)
+                   '(xml-invalid-character #x3FFFFF 3)))))
+
+(defvar xml-tests--data-with-comments
+  `(;; simple case
+    ("<?xml version=\"1.0\"?><foo baz=\"true\">bar</foo>"
+     . ((foo ((baz . "true")) "bar")))
+    ;; toplevel comments -- first document child must not get lost
+    (,(concat "<?xml version=\"1.0\"?><foo>bar</foo><!--comment-1-->"
+              "<!--comment-2-->")
+     . ((foo nil "bar")))
+    (,(concat "<?xml version=\"1.0\"?><!--comment-a--><foo a=\"b\">"
+              "<bar>blub</bar></foo><!--comment-b--><!--comment-c-->")
+     . ((foo ((a . "b")) (bar nil "blub")))))
+  "Alist of XML strings and their expected parse trees for discarded comments.")
+
+(ert-deftest xml-remove-comments ()
+  (dolist (test xml-tests--data-with-comments)
+    (erase-buffer)
+    (insert (car test))
+    (xml-remove-comments (point-min) (point-max))
+    (should (equal (cdr test)
+                   (xml-parse-region (point-min) (point-max))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

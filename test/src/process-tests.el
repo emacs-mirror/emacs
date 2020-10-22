@@ -1,19 +1,21 @@
-;;; process-tests.el --- Testing the process facilities
+;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -33,7 +35,7 @@
   (let ((proc (start-process "test" nil "bash" "-c" "exit 20"))
 	(sentinel-called nil)
 	(start-time (float-time)))
-    (set-process-sentinel proc (lambda (proc msg)
+    (set-process-sentinel proc (lambda (_proc _msg)
 				 (setq sentinel-called t)))
     (while (not (or sentinel-called
 		    (> (- (float-time) start-time)
@@ -88,7 +90,7 @@
 			     :stderr stderr-buffer))
 	 (sentinel-called nil)
 	 (start-time (float-time)))
-    (set-process-sentinel proc (lambda (proc msg)
+    (set-process-sentinel proc (lambda (_proc _msg)
 				 (setq sentinel-called t)))
     (while (not (or sentinel-called
 		    (> (- (float-time) start-time)
@@ -120,13 +122,13 @@
 						    "exit 20"))
 			     :stderr stderr-proc))
 	 (start-time (float-time)))
-    (set-process-filter proc (lambda (proc input)
+    (set-process-filter proc (lambda (_proc input)
 			       (push input stdout-output)))
-    (set-process-sentinel proc (lambda (proc msg)
+    (set-process-sentinel proc (lambda (_proc _msg)
 				 (setq sentinel-called t)))
-    (set-process-filter stderr-proc (lambda (proc input)
+    (set-process-filter stderr-proc (lambda (_proc input)
 				      (push input stderr-output)))
-    (set-process-sentinel stderr-proc (lambda (proc input)
+    (set-process-sentinel stderr-proc (lambda (_proc _input)
 					(setq stderr-sentinel-called t)))
     (while (not (or sentinel-called
 		    (> (- (float-time) start-time)

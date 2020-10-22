@@ -504,7 +504,7 @@ format.  See `ibuffer-update-saved-filters-format' and
   (ibuffer-forward-line 0))
 
 (defun ibuffer--maybe-erase-shell-cmd-output ()
-  (let ((buf (get-buffer "*Shell Command Output*")))
+  (let ((buf (get-buffer shell-command-buffer-name)))
     (when (and (buffer-live-p buf)
                (not shell-command-dont-erase-buffer)
                (not (zerop (buffer-size buf))))
@@ -517,7 +517,7 @@ format.  See `ibuffer-update-saved-filters-format' and
    :opstring "Shell command executed on"
    :before (ibuffer--maybe-erase-shell-cmd-output)
    :modifier-p nil)
-  (let ((out-buf (get-buffer-create "*Shell Command Output*")))
+  (let ((out-buf (get-buffer-create shell-command-buffer-name)))
     (with-current-buffer out-buf (goto-char (point-max)))
     (call-shell-region (point-min) (point-max)
                        command nil out-buf)))
@@ -542,7 +542,7 @@ format.  See `ibuffer-update-saved-filters-format' and
    :modifier-p nil)
   (let ((file (and (not (buffer-modified-p))
                    buffer-file-name))
-        (out-buf (get-buffer-create "*Shell Command Output*")))
+        (out-buf (get-buffer-create shell-command-buffer-name)))
     (unless (and file (file-exists-p file))
       (setq file
             (make-temp-file
@@ -1234,14 +1234,12 @@ Called interactively, accept a comma separated list of mode names."
                        (symbol-name (buffer-local-value
                                      'major-mode buf)))))
      (mapcar #'intern
-      (completing-read-multiple
-       (if default
-           (format "Filter by major mode (default %s): " default)
-         "Filter by major mode: ")
-       obarray
-       (lambda (e)
-           (string-match "-mode\\'" (if (symbolp e) (symbol-name e) e)))
-       t nil nil default)))
+             (completing-read-multiple
+              (format-prompt "Filter by major mode" default)
+              obarray
+              (lambda (e)
+                (string-match "-mode\\'" (if (symbolp e) (symbol-name e) e)))
+              t nil nil default)))
    :accept-list t)
   (eq qualifier (buffer-local-value 'major-mode buf)))
 
@@ -1259,11 +1257,9 @@ currently used by buffers."
                        (symbol-name (buffer-local-value
                                      'major-mode buf)))))
      (mapcar #'intern
-      (completing-read-multiple
-       (if default
-           (format "Filter by major mode (default %s): " default)
-         "Filter by major mode: ")
-       (ibuffer-list-buffer-modes) nil t nil nil default)))
+             (completing-read-multiple
+              (format-prompt "Filter by major mode" default)
+              (ibuffer-list-buffer-modes) nil t nil nil default)))
    :accept-list t)
   (eq qualifier (buffer-local-value 'major-mode buf)))
 
@@ -1881,9 +1877,7 @@ Otherwise buffers whose name matches an element of
                                      'major-mode buf)))))
      (list (intern
             (completing-read
-             (if default
-                 (format "Mark by major mode (default %s): " default)
-               "Mark by major mode: ")
+             (format-prompt "Mark by major mode" default)
              (ibuffer-list-buffer-modes) nil t nil nil default)))))
   (ibuffer-mark-on-buffer
    #'(lambda (buf)

@@ -93,7 +93,7 @@ aa\) !
 . \0 0 1
 
 ;
-; now move on to the repetion ops,
+; now move on to the repetition ops,
 ; starting with operator *
 - match_default normal REG_EXTENDED
 a* b 0 0
@@ -275,7 +275,7 @@ a(b*)c\1d abbcbbbd -1 -1
 ^(.)\1 abc -1 -1
 a([bc])\1d abcdabbd	4 8 5 6
 ; strictly speaking this is at best ambiguous, at worst wrong, this is what most
-; re implimentations will match though.
+; re implementations will match though.
 a(([bc])\2)*d abbccd 0 6 3 5 3 4
 
 a(([bc])\2)*d abbcbd -1 -1

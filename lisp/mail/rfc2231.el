@@ -215,23 +215,25 @@ These look like:
  \"\\='en-us\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\",
  \"\\='\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
  \"This is ***fun***\"."
-  (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
-  (let ((coding-system (mm-charset-to-coding-system
-			(match-string 1 string) nil t))
-	;;(language (match-string 2 string))
-	(value (match-string 3 string)))
-    (mm-with-unibyte-buffer
-      (insert value)
-      (goto-char (point-min))
-      (while (re-search-forward "%\\([[:xdigit:]][[:xdigit:]]\\)" nil t)
-	(insert
-	 (prog1
-	     (string-to-number (match-string 1) 16)
-	   (delete-region (match-beginning 0) (match-end 0)))))
-      ;; Decode using the charset, if any.
-      (if (memq coding-system '(nil ascii))
-	  (buffer-string)
-	(decode-coding-string (buffer-string) coding-system)))))
+  (if (not (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)\\'"
+                         string))
+      (error "Unrecognized RFC2231 format: %S" string)
+    (let ((value (match-string 3 string))
+	  ;;(language (match-string 2 string))
+	  (coding-system (mm-charset-to-coding-system
+			  (match-string 1 string) nil t)))
+      (mm-with-unibyte-buffer
+        (insert value)
+        (goto-char (point-min))
+        (while (re-search-forward "%\\([[:xdigit:]][[:xdigit:]]\\)" nil t)
+	  (insert
+	   (prog1
+	       (string-to-number (match-string 1) 16)
+	     (delete-region (match-beginning 0) (match-end 0)))))
+	;; Decode using the charset, if any.
+	(if (memq coding-system '(nil ascii))
+	    (buffer-string)
+	  (decode-coding-string (buffer-string) coding-system))))))
 
 (defun rfc2231-encode-string (param value)
   "Return a PARAM=VALUE string encoded according to RFC2231.

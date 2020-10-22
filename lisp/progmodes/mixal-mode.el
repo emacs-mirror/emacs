@@ -1,11 +1,11 @@
-;;; mixal-mode.el --- Major mode for the mix asm language.
+;;; mixal-mode.el --- Major mode for the mix asm language.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
 ;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Jose A Ortega Ruiz <jao@gnu.org>
 ;; Created: 09 Nov 2002
-;; Version: 0.1
+;; Version: 0.4
 ;; Keywords: languages, Knuth, mix, mixal, asm, mixvm, The Art Of Computer Programming
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
 ;; Major mode for the mix asm language.
 ;; The mix asm language is described in "The Art Of Computer Programming".
 ;;
@@ -34,8 +35,9 @@
 ;;
 ;; To use this mode, place the following in your init file:
 ;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.
+;;
 ;; When you load a file with the extension .mixal the mode will be started
-;; automatic.  If you want to start the mode manual, use `M-x mixal-mode'.
+;; automatically.  If you want to start the mode manually, use `M-x mixal-mode'.
 ;; Font locking will work, the behavior of tabs is the same as Emacs's
 ;; default behavior.  You can compile a source file with `C-c c' you can
 ;; run a compiled file with `C-c r' or run it in debug mode with `C-c d'.
@@ -45,6 +47,9 @@
 ;; Have fun.
 
 ;;; History:
+;; Version 0.4:
+;; 16/10/20: Jose A Ortega Ruiz <jao@gnu.org>
+;;           Add missed instructions: SLB,SRB,JAE,JAO,JXE,JXO
 ;; Version 0.3:
 ;; 12/10/05: Stefan Monnier <monnier@iro.umontreal.ca>
 ;;           Use font-lock-syntactic-keywords to detect/mark comments.
@@ -683,6 +688,18 @@ Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
           1)
 
+    (JAE jump "jump A even" 40
+          "Jump if the content of rA is even.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+          1)
+
+    (JAO jump "jump A odd" 40
+         "Jump if the content of rA is odd.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+         1)
+
     (JXN jump "jump X negative" 47
          "Jump if the content of rX is negative.
 Register J is set to the value of the next instruction that would have
@@ -719,11 +736,23 @@ Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
           1)
 
-    (J1N jump "jump I1 negative" 41
-         "Jump if the content of rI1 is negative.
+    (JXE jump "jump X even" 47
+         "Jump if the content of rX is even.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
          1)
+
+    (JXO jump "jump X odd" 47
+         "Jump if the content of rX is odd.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+         1)
+
+    (J1N jump "jump I1 negative" 41
+     "Jump if the content of rI1 is negative.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+     1)
 
     (J1Z jump "jump I1 zero" 41
          "Jump if the content of rI1 is zero.
@@ -950,7 +979,6 @@ Zeros will be added to the left."
 Zeros will be added to the right."
           2)
 
-
     (SRAX miscellaneous "shift right AX" 6
           "Shift AX, M bytes right.
 Zeros will be added to the left."
@@ -964,6 +992,14 @@ The bytes that fall off to the left will be added to the right."
     (SRC miscellaneous "shift right AX circularly" 6
          "Shift AX, M bytes right circularly.
 The bytes that fall off to the right will be added to the left."
+         2)
+
+    (SLB miscellaneous "shift left AX binary" 6
+         "Shift AX, M binary places left."
+         2)
+
+    (SRB miscellaneous "shift right AX binary" 6
+         "Shift AX, M binary places right."
          2)
 
     (MOVE miscellaneous "move" 7 number

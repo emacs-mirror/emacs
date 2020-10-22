@@ -135,6 +135,8 @@
     (start-file-process . ignore)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
@@ -157,10 +159,9 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
   "Invoke the rclone handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let ((fn (assoc operation tramp-rclone-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let ((fn (assoc operation tramp-rclone-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -220,7 +221,7 @@ file names."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(if (or (and t1 (not (tramp-rclone-file-name-p filename)))
@@ -271,8 +272,8 @@ file names."
   (filename newname &optional ok-if-already-exists keep-date
    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
 	  (tramp-tramp-file-p newname))
@@ -429,8 +430,8 @@ file names."
 (defun tramp-rclone-handle-rename-file
   (filename newname &optional ok-if-already-exists)
   "Like `rename-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
           (tramp-tramp-file-p newname))
@@ -458,7 +459,7 @@ file names."
     ;; to cache a nil result.
     (or (tramp-get-connection-property
 	 (tramp-get-connection-process vec) "mounted" nil)
-	(let* ((default-directory temporary-file-directory)
+	(let* ((default-directory (tramp-compat-temporary-file-directory))
 	       (mount (shell-command-to-string "mount -t fuse.rclone")))
 	  (tramp-message vec 6 "%s" "mount -t fuse.rclone")
 	  (tramp-message vec 6 "\n%s" mount)
@@ -478,7 +479,19 @@ file names."
 	   (with-tramp-connection-property
 	       (tramp-get-connection-process vec) "rclone-pid"
 	     (catch 'pid
-	       (dolist (pid (list-system-processes)) ;; "pidof rclone" ?
+	       (dolist
+		   (pid
+		    ;; Until Emacs 25, `process-attributes' could
+		    ;; crash Emacs for some processes.  So we use
+		    ;; "pidof", which might not work everywhere.
+		    (if (<= emacs-major-version 25)
+			(let ((default-directory
+				(tramp-compat-temporary-file-directory)))
+			  (mapcar
+			   #'string-to-number
+			   (split-string
+			    (shell-command-to-string "pidof rclone"))))
+		      (list-system-processes)))
 		 (and (string-match-p
 		       (regexp-quote
 			(format "rclone mount %s:" (tramp-file-name-host vec)))

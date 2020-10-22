@@ -74,6 +74,31 @@ couple of sentences.  Long enough to be
 filled for several lines.
 \(fun9): Etc."))))
 
+(ert-deftest log-edit-fill-entry-indented-func-entries ()
+  ;; Indenting function entries is a typical mistake caused by using a
+  ;; misconfigured or non-ChangeLog specific fill function.
+  (with-temp-buffer
+    (insert "\
+* dir/file.ext (fun1):
+  (fun2):
+  (fun3):
+* file2.txt (fun4):
+  (fun5):
+  (fun6):
+  (fun7): Some prose.
+  (fun8): A longer description of a complicated change.\
+  Spread over a couple of sentences.\
+  Long enough to be filled for several lines.
+  (fun9): Etc.")
+    (goto-char (point-min))
+    (let ((fill-column 72)) (log-edit-fill-entry))
+    (should (equal (buffer-string) "\
+* dir/file.ext (fun1, fun2, fun3):
+* file2.txt (fun4, fun5, fun6, fun7): Some prose.
+\(fun8): A longer description of a complicated change.  Spread over a
+couple of sentences.  Long enough to be filled for several lines.
+\(fun9): Etc."))))
+
 (ert-deftest log-edit-fill-entry-trailing-prose ()
   (with-temp-buffer
     (insert "\

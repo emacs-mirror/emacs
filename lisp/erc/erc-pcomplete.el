@@ -3,9 +3,9 @@
 ;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, convenience
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
+;; URL: https://www.emacswiki.org/emacs/ErcCompletion
 
 ;; This file is part of GNU Emacs.
 
@@ -41,7 +41,6 @@
 
 (require 'pcomplete)
 (require 'erc)
-(require 'erc-compat)
 (require 'time-date)
 
 (defgroup erc-pcomplete nil

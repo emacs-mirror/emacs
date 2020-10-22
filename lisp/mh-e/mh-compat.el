@@ -134,7 +134,7 @@ introduced in Emacs 22."
 
 (defmacro mh-face-background (face &optional frame inherit)
   "Return the background color name of face, or nil if unspecified.
-See documentation for `back-foreground' for a description of the
+See documentation for `face-background' for a description of the
 arguments FACE, FRAME, and INHERIT.
 This macro is used by Emacs versions that lack an INHERIT argument,
 introduced in Emacs 22."

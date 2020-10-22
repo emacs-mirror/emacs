@@ -134,6 +134,7 @@ manually with \\[dns-mode-soa-increment-serial]."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Ask" ask)
 		 (const :tag "Never" nil))
+  :safe 'symbolp
   :group 'dns-mode)
 
 ;; Syntax table.

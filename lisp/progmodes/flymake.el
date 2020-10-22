@@ -4,9 +4,12 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.0.8
-;; Package-Requires: ((emacs "26.1"))
+;; Version: 1.0.9
 ;; Keywords: c languages tools
+;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -223,10 +226,10 @@ Specifically, start it when the saved buffer is actually displayed."
 (defcustom flymake-suppress-zero-counters :warning
   "Control appearance of zero-valued diagnostic counters in mode line.
 
-If set to t, supress all zero counters.  If set to a severity
+If set to t, suppress all zero counters.  If set to a severity
 symbol like `:warning' (the default) suppress zero counters less
 severe than that severity, according to `warning-numeric-level'.
-If set to nil, don't supress any zero counters."
+If set to nil, don't suppress any zero counters."
   :type 'symbol)
 
 (when (fboundp 'define-fringe-bitmap)
@@ -313,9 +316,10 @@ generated it."
                                 &optional data
                                 overlay-properties)
   "Make a Flymake diagnostic for BUFFER's region from BEG to END.
-TYPE is a key to symbol and TEXT is a description of the problem
-detected in this region.  DATA is any object that the caller
-wishes to attach to the created diagnostic for later retrieval.
+TYPE is a diagnostic symbol and TEXT is string describing the
+problem detected in this region.  DATA is any object that the
+caller wishes to attach to the created diagnostic for later
+retrieval.
 
 OVERLAY-PROPERTIES is an alist of properties attached to the
 created diagnostic, overriding the default properties and any
@@ -628,7 +632,7 @@ associated `flymake-category' return DEFAULT."
      for (ov-prop . value) in
      (append (reverse
               (flymake--diag-overlay-properties diagnostic))
-             (reverse ; ensure ealier props override later ones
+             (reverse ; ensure earlier props override later ones
               (flymake--lookup-type-property type 'flymake-overlay-control))
              (alist-get type flymake-diagnostic-types-alist))
      do (overlay-put ov ov-prop value))
@@ -998,8 +1002,9 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'after-change-functions 'flymake-after-change-function nil t)
     (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
+    (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
 
-    ;; If Flymake happened to be alrady already ON, we must cleanup
+    ;; If Flymake happened to be already already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
     ;; reinitializing `flymake--backend-state' in the next line.
     ;; See https://github.com/joaotavora/eglot/issues/223.
@@ -1015,6 +1020,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (remove-hook 'after-save-hook 'flymake-after-save-hook t)
     (remove-hook 'kill-buffer-hook 'flymake-kill-buffer-hook t)
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
+    (remove-hook 'eldoc-documentation-functions 'flymake-eldoc-function t)
 
     (mapc #'delete-overlay (flymake--overlays))
 
@@ -1081,6 +1087,14 @@ START and STOP and LEN are as in `after-change-functions'."
               (null flymake-diagnostic-functions))
     (flymake-mode)
     (flymake-log :warning "Turned on in `flymake-find-file-hook'")))
+
+(defun flymake-eldoc-function (report-doc &rest _)
+  "Document diagnostics at point.
+Intended for `eldoc-documentation-functions' (which see)."
+  (let ((diags (flymake-diagnostics (point))))
+    (when diags
+      (funcall report-doc
+               (mapconcat #'flymake-diagnostic-text diags "\n")))))
 
 (defun flymake-goto-next-error (&optional n filter interactive)
   "Go to Nth next Flymake diagnostic that matches FILTER.
@@ -1321,35 +1335,42 @@ POS can be a buffer position or a button"
    (flymake-show-diagnostic (if (button-type pos) (button-start pos) pos))))
 
 (defun flymake--diagnostics-buffer-entries ()
-  (with-current-buffer flymake--diagnostics-buffer-source
-    (cl-loop for diag in
-             (cl-sort (flymake-diagnostics) #'< :key #'flymake-diagnostic-beg)
-             for (line . col) =
-             (save-excursion
-               (goto-char (flymake--diag-beg diag))
-               (cons (line-number-at-pos)
-                     (- (point)
-                        (line-beginning-position))))
-             for type = (flymake--diag-type diag)
-             collect
-             (list (list :diagnostic diag
-                         :line line
-                         :severity (flymake--lookup-type-property
-                                    type
-                                    'severity (warning-numeric-level :error)))
-                   `[,(format "%s" line)
-                     ,(format "%s" col)
-                     ,(propertize (format "%s"
-                                          (flymake--lookup-type-property
-                                           type 'flymake-type-name type))
-                                  'face (flymake--lookup-type-property
-                                         type 'mode-line-face 'flymake-error))
-                     (,(format "%s" (flymake--diag-text diag))
-                      mouse-face highlight
-                      help-echo "mouse-2: visit this diagnostic"
-                      face nil
-                      action flymake-goto-diagnostic
-                      mouse-action flymake-goto-diagnostic)]))))
+  ;; Do nothing if 'flymake--diagnostics-buffer-source' has not yet
+  ;; been set to a valid buffer.  This could happen when this function
+  ;; is called too early.  For example 'global-display-line-numbers-mode'
+  ;; calls us from its mode hook, when the diagnostic buffer has just
+  ;; been created by 'flymake-show-diagnostics-buffer', but is not yet
+  ;; set up properly.
+  (when (bufferp flymake--diagnostics-buffer-source)
+    (with-current-buffer flymake--diagnostics-buffer-source
+      (cl-loop for diag in
+               (cl-sort (flymake-diagnostics) #'< :key #'flymake-diagnostic-beg)
+               for (line . col) =
+               (save-excursion
+                 (goto-char (flymake--diag-beg diag))
+                 (cons (line-number-at-pos)
+                       (- (point)
+                          (line-beginning-position))))
+               for type = (flymake--diag-type diag)
+               collect
+               (list (list :diagnostic diag
+                           :line line
+                           :severity (flymake--lookup-type-property
+                                      type
+                                      'severity (warning-numeric-level :error)))
+                     `[,(format "%s" line)
+                       ,(format "%s" col)
+                       ,(propertize (format "%s"
+                                            (flymake--lookup-type-property
+                                             type 'flymake-type-name type))
+                                    'face (flymake--lookup-type-property
+                                           type 'mode-line-face 'flymake-error))
+                       (,(format "%s" (flymake--diag-text diag))
+                        mouse-face highlight
+                        help-echo "mouse-2: visit this diagnostic"
+                        face nil
+                        action flymake-goto-diagnostic
+                        mouse-action flymake-goto-diagnostic)])))))
 
 (define-derived-mode flymake-diagnostics-buffer-mode tabulated-list-mode
   "Flymake diagnostics"

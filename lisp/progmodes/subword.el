@@ -115,6 +115,8 @@ treat nomenclature boundaries as word boundaries."
     (when subword-mode (superword-mode -1))
     (subword-setup-buffer))
 
+;; This is defined also in cc-cmds.el, but as obsolete since 24.3.
+;; Let's keep this until the other one can also be removed.
 (define-obsolete-function-alias 'c-subword-mode 'subword-mode "23.2")
 
 ;;;###autoload

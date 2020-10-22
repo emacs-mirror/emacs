@@ -230,7 +230,6 @@ DEF_DLL_FN (const char *, gnutls_compression_get_name,
 DEF_DLL_FN (unsigned, gnutls_safe_renegotiation_status, (gnutls_session_t));
 
 #  ifdef HAVE_GNUTLS3
-DEF_DLL_FN (int, gnutls_rnd, (gnutls_rnd_level_t, void *, size_t));
 DEF_DLL_FN (const gnutls_mac_algorithm_t *, gnutls_mac_list, (void));
 #   ifdef HAVE_GNUTLS_MAC_GET_NONCE_SIZE
 DEF_DLL_FN (size_t, gnutls_mac_get_nonce_size, (gnutls_mac_algorithm_t));
@@ -381,7 +380,6 @@ init_gnutls_functions (void)
 #  endif
   LOAD_DLL_FN (library, gnutls_safe_renegotiation_status);
 #  ifdef HAVE_GNUTLS3
-  LOAD_DLL_FN (library, gnutls_rnd);
   LOAD_DLL_FN (library, gnutls_mac_list);
 #   ifdef HAVE_GNUTLS_MAC_GET_NONCE_SIZE
   LOAD_DLL_FN (library, gnutls_mac_get_nonce_size);
@@ -519,7 +517,6 @@ init_gnutls_functions (void)
 #  define gnutls_x509_crt_import fn_gnutls_x509_crt_import
 #  define gnutls_x509_crt_init fn_gnutls_x509_crt_init
 #  ifdef HAVE_GNUTLS3
-#  define gnutls_rnd fn_gnutls_rnd
 #  define gnutls_mac_list fn_gnutls_mac_list
 #   ifdef HAVE_GNUTLS_MAC_GET_NONCE_SIZE
 #    define gnutls_mac_get_nonce_size fn_gnutls_mac_get_nonce_size
@@ -572,14 +569,6 @@ init_gnutls_functions (void)
    gnutls_free as a macro as well in the GnuTLS headers.  */
 #  undef gnutls_free
 #  define gnutls_free (*gnutls_free_func)
-
-/* This wrapper is called from fns.c, which doesn't know about the
-   LOAD_DLL_FN stuff above.  */
-int
-w32_gnutls_rnd (gnutls_rnd_level_t level, void *data, size_t len)
-{
-  return gnutls_rnd (level, data, len);
-}
 
 # endif	/* WINDOWSNT */
 
@@ -2309,6 +2298,8 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
 # endif
 }
 
+static Lisp_Object cipher_cache;
+
 static Lisp_Object
 gnutls_symmetric (bool encrypting, Lisp_Object cipher,
                   Lisp_Object key, Lisp_Object iv,
@@ -2340,7 +2331,9 @@ gnutls_symmetric (bool encrypting, Lisp_Object cipher,
 
   if (SYMBOLP (cipher))
     {
-      info = Fassq (cipher, Fgnutls_ciphers ());
+      if (NILP (cipher_cache))
+	cipher_cache = Fgnutls_ciphers ();
+      info = Fassq (cipher, cipher_cache);
       if (!CONSP (info))
 	xsignal2 (Qerror,
 		  build_string ("GnuTLS cipher is invalid or not found"),
@@ -2834,16 +2827,21 @@ Any GnuTLS extension with ID up to 100
 void
 syms_of_gnutls (void)
 {
-  DEFSYM (Qlibgnutls_version, "libgnutls-version");
-  Fset (Qlibgnutls_version,
+  DEFVAR_LISP ("libgnutls-version", Vlibgnutls_version,
+               doc: /* The version of libgnutls that Emacs was compiled with.
+The version number is encoded as an integer with the major version in
+the ten thousands place, minor version in the hundreds, and patch
+level in the ones.  For builds without libgnutls, the value is -1.  */);
+  Vlibgnutls_version = make_fixnum
 #ifdef HAVE_GNUTLS
-	make_fixnum (GNUTLS_VERSION_MAJOR * 10000
-		     + GNUTLS_VERSION_MINOR * 100
-		     + GNUTLS_VERSION_PATCH)
+    (GNUTLS_VERSION_MAJOR * 10000
+     + GNUTLS_VERSION_MINOR * 100
+     + GNUTLS_VERSION_PATCH)
 #else
-	make_fixnum (-1)
+    (-1)
 #endif
-        );
+    ;
+
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
   PDUMPER_IGNORE (gnutls_global_initialized);
@@ -2920,6 +2918,9 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_hash_digest);
   defsubr (&Sgnutls_symmetric_encrypt);
   defsubr (&Sgnutls_symmetric_decrypt);
+
+  cipher_cache = Qnil;
+  staticpro (&cipher_cache);
 #endif
 
   DEFVAR_INT ("gnutls-log-level", global_gnutls_log_level,

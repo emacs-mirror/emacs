@@ -206,6 +206,13 @@ files.")
     ("Yoni Rabkin" "Yoni Rabkin Katzenell")
     ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
     ("Yutaka NIIBE" "NIIBE Yutaka")
+    (nil "stardiviner")
+    (nil "lin.sun")
+    ("Nitish Chinta" "nitishch")
+    ("Carlos Pita" "memeplex")
+    ("Vinicius Jose Latorre" "viniciusjl")
+    ("Gaby Launay" "galaunay")
+    ("Dick R. Chiang" "dickmao")
     )
   "Alist of author aliases.
 
@@ -277,9 +284,9 @@ If REALNAME is nil, ignore that author.")
 
 
 (defvar authors-obsolete-files-regexps
-  '(".*loaddefs.el$"			; not obsolete, but auto-generated
-    "\\.\\(bzr\\|cvs\\|git\\)ignore$"		; obsolete or uninteresting
-    "\\.arch-inventory$"
+  '(".*loaddefs\\.el\\'"		; not obsolete, but auto-generated
+    "\\.\\(bzr\\|cvs\\|git\\)ignore\\'"		; obsolete or uninteresting
+    "\\.arch-inventory\\'"
     "ChangeLog\\(\\.[0-9]+\\)?\\'"
     "\\(automated\\|test\\)/data/"	; not interesting
     "cedet/tests/"
@@ -287,13 +294,16 @@ If REALNAME is nil, ignore that author.")
     "\\`\\(indent\\|automated\\)\\'" "indent/" "mod-test/"
     "-resources/"
     "unidata/.*\\.txt\\'"
-    "BidiCharacterTest.txt"
+    "BidiCharacterTest\\.txt"
     ;; TODO lib/? Matches other things?
-    "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"
+    "build-aux/" "m4/" "Emacs\\.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
     ;; Generated files that have since been removed.
     "\\(refcard\\(-de\\|-pl\\)?\\|calccard\\|dired-ref\\|orgcard\\|\
-gnus-booklet\\|fr-drdref\\)\\.p\\(df\\|s\\)\\'")
+gnus-booklet\\|fr-drdref\\)\\.p\\(df\\|s\\)\\'"
+    ;; Removed as obsolete
+    "README-ftp-server"
+    )
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not listed.")
 
@@ -356,7 +366,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "lib/stdarg.in.h" "lib/stdbool.in.h"
     "unidata/bidimirror.awk" "unidata/biditype.awk"
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
-    "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
+    "gnu-hp300" "refcard.bit" "forms.README" "forms-d2.dat"
     "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
     "CXTERM-DIC/CTLau.tit" "CXTERM-DIC/CTLauB.tit"
     "copying.paper" "celibacy.1" "condom.1" "echo.msg" "sex.6"
@@ -440,6 +450,33 @@ Changes to files matching one of the regexps in this list are not listed.")
     "nt/subdirs.el"
     "config.nt"
     "nextstep/WISHLIST"
+    ;; Removed, replaced by gitmerge.el
+    "admin/bzrmerge.el"
+    ;; Removed in commit f5090b91299
+    "lib/fdatasync.c"
+    ;; Removed as obsolete
+    "nt/README-ftp-server"
+    "admin/notes/font-backend"
+    "gnus-overrides.texi"
+    "CENSORSHIP"
+    "GNU"
+    "LINUX-GNU"
+    "THE-GNU-PROJECT"
+    "WHY-FREE"
+    "MORE.STUFF"
+    "notes/font-backend"
+    ;; ada-mode has been deleted, now in GNU ELPA
+    "ada-mode.texi"
+    "GNUS-NEWS"
+    "doc/misc/gnus-news.el"
+    "src/fingerprint-dummy.c"
+    "src/fingerprint.h"
+    ;; Replaced by lisp/thread.el
+    "lisp/emacs-lisp/thread-list.el"
+    "etc/images/slash.bmp"
+    "src/mini-gmp-emacs.c"
+    "lib/dosname.h"
+    "lib/putenv.c"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -576,7 +613,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed: lselect.el.
     ("Lucid, Inc." :changed "bytecode.c" "byte-opt.el" "byte-run.el"
      "bytecomp.el" "delsel.el" "disass.el" "faces.el" "font-lock.el"
-     "lmenu.el" "mailabbrev.el" "select.el" "xfaces.c" "xselect.c")
+     "mailabbrev.el" "select.el" "xfaces.c" "xselect.c")
     ;; MCC.  No longer distributed: emacsserver.c.
     ("Microelectronics and Computer Technology Corporation"
      :changed "etags.c" "emacsclient.c" "movemail.c"
@@ -740,7 +777,7 @@ Changes to files in this list are not listed.")
     "erc-hecomplete.el"
     "eshell/esh-maint.el"
     "language/persian.el"
-    "ledit.el" "meese.el" "iswitchb.el" "longlines.el"
+    "meese.el" "iswitchb.el" "longlines.el"
     "mh-exec.el" "mh-init.el" "mh-customize.el"
     "net/zone-mode.el" "xesam.el"
     "term/mac-win.el" "sup-mouse.el"
@@ -752,6 +789,9 @@ Changes to files in this list are not listed.")
     "org-mac-message.el" "org-mew.el" "org-w3m.el" "org-vm.el" "org-wl.el"
     "org-mks.el" "org-remember.el" "org-xoxo.el" "org-docbook.el"
     "org-freemind.el" "ox-jsinfo.el"
+    "org-irc.el" "org-rmail.el" "org-docview.el" "org-keys.el" "org-mhe.el"
+    "org-gnus.el" "org-bibtex.el" "org-bbdb.el" "org-info.el" "org-eshell.el"
+    "ob-keys.el"
     "org-exp-blocks.el"		     ; maybe this is ob-exp now? dunno
     "org-lparse.el"
     "org-special-blocks.el" "org-taskjuggler.el"
@@ -841,7 +881,9 @@ Changes to files in this list are not listed.")
     "library-of-babel.org"
     "flymake-elisp.el"
     "flymake-ui.el"
-    "pinentry.el")
+    "pinentry.el"
+    "ledit.el"
+    "lmenu.el")
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
 
@@ -1076,6 +1118,15 @@ in the repository.")
     ("src/module.c" . "src/emacs-module.c")
     ;; gnulib
     ("lib/strftime.c" . "lib/nstrftime.c")
+    ("test/src/regex-tests.el" . "test/src/regex-emacs-tests.el")
+    ("test/lisp/emacs-lisp/cl-tests.el" . "test/lisp/obsolete/cl-tests.el")
+    ("lisp/net/starttls.el" . "lisp/obsolete/starttls.el")
+    ("url-ns.el" . "lisp/obsolete/url-ns.el")
+    ("gnus-news.texi" . "doc/misc/gnus.texi")
+    ("lisp/multifile.el". "lisp/fileloop.el")
+    ("lisp/emacs-lisp/thread.el". "lisp/thread.el")
+    ("src/mini-gmp.c" . "lib/mini-gmp.c")
+    ("src/mini-gmp.h" . "lib/mini-gmp.h")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
@@ -1097,7 +1148,7 @@ Elements are (OLDNAME . NEWNAME).")
 \\(\\(cs\\|fr\\|sk\\)-\\)?survival\\)\\.tex\\'" "refcards/\\&")
     ("\\`refcard-\\(de\\|pl\\)\\.tex\\'" "refcards/\\1-refcard.tex")
     ("\\`\\(refcards/\\)?fr-drdref\\.tex\\'" "refcards/fr-dired-ref.tex")
-    ("^\\(TUTORIAL[^/]*\\)" "tutorials/\\1")
+    ("\\`\\(TUTORIAL[^/]*\\)" "tutorials/\\1")
     ("\\`themes/dev-\\(tsdh-\\(?:light\\|dark\\)-theme\\.el\\)\\'"
      "themes/\\1")
     ;; Moved from lisp/toolbar to etc/images.
@@ -1122,9 +1173,9 @@ remove\\|run\\|until\\|up\\|watch\\)\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
     ("\\`\\(toolbar/gud-\\|images/gud/\\)s\\(i\\)?\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
      "images/gud/step\\2\\3")
     ("\\`toolbar/lc-\\([-a-z]+\\.xpm\\)\\'" "images/low-color/\\1")
-    ("^\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.\\(png\\|xpm\\)\\)$"
+    ("\\`\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.\\(png\\|xpm\\)\\)\\'"
      "images/\\1")
-    ("^\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)"
+    ("\\`\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)"
      "\\1\\2\\3_mac\\4")
     ("\\(images/icons/\\)emacs_\\([0-9][0-9]\\)\\.png"
      "\\1hicolor/\\2x\\2/apps/emacs.png")
@@ -1145,7 +1196,7 @@ ediff\\|emerge\\|log-edit\\|log-view\\|pcvs\\|smerge-mode\\|vc\\)\\.el\\'"
     ("\\`org-\\(ascii\\|beamer\\|html\\|icalendar\\|jsinfo\\|latex\
 \\|odt\\|publish\\)\\.el\\'" "ox-\\1.el")
     ;; From test/ to test/automated/.
-    ("comint-testsuite.el" "automated/\\&")
+    ("comint-testsuite\\.el" "automated/\\&")
     ("\\`\\(bytecomp\\|font-parse\\|icalendar\\|occur\\|newsticker\\)\
 -testsuite\\.el" "\\1-tests.el")
     ("automated/flymake/warnpred/\\(Makefile\\|test\\.\\(?:c\\|pl\\)\\)\\'"
@@ -1155,10 +1206,10 @@ ediff\\|emerge\\|log-edit\\|log-view\\|pcvs\\|smerge-mode\\|vc\\)\\.el\\'"
     ;; Maybe not the exact new name, but disambiguates from lisp/.
     ("automated/\\([^/]*\\)\\.el\\'" "\\1-tests.el")
     ;; NB lax rules should come last.
-    ("^m/m-\\(.*\\.h\\)$" "m/\\1" t)
-    ("^m-\\(.*\\.h\\)$" "\\1" t)
-    ("^s/s-\\(.*\\.h\\)$" "s/\\1" t)
-    ("^s-\\(.*\\.h\\)$" "\\1" t)
+    ("\\`m/m-\\(.*\\.h\\)\\'" "m/\\1" t)
+    ("\\`m-\\(.*\\.h\\)\\'" "\\1" t)
+    ("\\`s/s-\\(.*\\.h\\)\\'" "s/\\1" t)
+    ("\\`s-\\(.*\\.h\\)\\'" "\\1" t)
     ("\\.\\(el\\|[ch]\\|x[pb]m\\|pbm\\)\\'" t t)
     )
   "List of regexps and rewriting rules for renamed files.

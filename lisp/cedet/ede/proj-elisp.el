@@ -153,18 +153,9 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE)."
 	    (let* ((fsrc (expand-file-name src dir))
 		   (elc (concat (file-name-sans-extension fsrc) ".elc")))
 	      (with-no-warnings
-		(if (< emacs-major-version 24)
-		    ;; Does not have `byte-recompile-file'
-		    (if (or (not (file-exists-p elc))
-			    (file-newer-than-file-p fsrc elc))
-			(progn
-			  (setq comp (1+ comp))
-			  (byte-compile-file fsrc))
-		      (setq utd (1+ utd)))
-
-		  (if (eq (byte-recompile-file fsrc nil 0) t)
-		      (setq comp (1+ comp))
-		    (setq utd (1+ utd)))))))
+                (if (eq (byte-recompile-file fsrc nil 0) t)
+                    (setq comp (1+ comp))
+                  (setq utd (1+ utd))))))
 
 	    (oref obj source))
     (message "All Emacs Lisp sources are up to date in %s" (eieio-object-name obj))

@@ -123,17 +123,24 @@ The variable `url-queue-timeout' sets a timeout."
       (setq url-queue-progress-timer nil))))
 
 (defun url-queue-callback-function (status job)
-  (setq url-queue (delq job url-queue))
-  (when (and (eq (car status) :error)
-	     (eq (cadr (cadr status)) 'connection-failed))
-    ;; If we get a connection error, then flush all other jobs from
-    ;; the host from the queue.  This particularly makes sense if the
-    ;; error really is a DNS resolver issue, which happens
-    ;; synchronously and totally halts Emacs.
-    (url-queue-remove-jobs-from-host
-     (plist-get (nthcdr 3 (cadr status)) :host)))
-  (url-queue-run-queue)
-  (apply (url-queue-callback job) (cons status (url-queue-cbargs job))))
+  (let ((buffer (current-buffer)))
+    (setq url-queue (delq job url-queue))
+    (when (and (eq (car status) :error)
+	       (eq (cadr (cadr status)) 'connection-failed))
+      ;; If we get a connection error, then flush all other jobs from
+      ;; the host from the queue.  This particularly makes sense if the
+      ;; error really is a DNS resolver issue, which happens
+      ;; synchronously and totally halts Emacs.
+      (url-queue-remove-jobs-from-host
+       (plist-get (nthcdr 3 (cadr status)) :host)))
+    (url-queue-run-queue)
+    ;; Somehow something deep in the bowels in the URL library may
+    ;; have killed off the current buffer.  So check that it's still
+    ;; alive before doing anything, and if not, just create a dummy
+    ;; buffer and do the callback anyway.
+    (unless (buffer-live-p buffer)
+      (set-buffer (generate-new-buffer " *temp*")))
+    (apply (url-queue-callback job) (cons status (url-queue-cbargs job)))))
 
 (defun url-queue-remove-jobs-from-host (host)
   (let ((jobs nil))

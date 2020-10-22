@@ -922,6 +922,8 @@ Should be set in `viper-custom-file-name'."
   "Hooks run just after loading Viper."
   :type 'hook
   :group 'viper-hooks)
+(make-obsolete-variable 'viper-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defun viper-restore-cursor-type ()
   (condition-case nil

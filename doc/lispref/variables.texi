@@ -858,7 +858,7 @@ is a buffer if the buffer-local value of the variable is being
 changed, @code{nil} otherwise.
 @end defun
 
-@defun remove-variable-watch symbol watch-function
+@defun remove-variable-watcher symbol watch-function
 This function removes @var{watch-function} from @var{symbol}'s list of
 watchers.
 @end defun
@@ -934,6 +934,7 @@ Lisp programs.
 * Dynamic Binding Tips::    Avoiding problems with dynamic binding.
 * Lexical Binding::         A different type of local variable binding.
 * Using Lexical Binding::   How to enable lexical binding.
+* Converting to Lexical Binding:: Convert existing code to lexical binding.
 @end menu
 
 @node Dynamic Binding
@@ -1187,6 +1188,15 @@ When evaluating Emacs Lisp code directly using an @code{eval} call,
 lexical binding is enabled if the @var{lexical} argument to
 @code{eval} is non-@code{nil}.  @xref{Eval}.
 
+@findex eval-expression@r{, and }lexical-binding
+Lexical binding is also enabled in Lisp Interaction and IELM mode,
+used in the @file{*scratch*} and @file{*ielm*} buffers, and also when
+evaluating expressions via @kbd{M-:} (@code{eval-expression}) and when
+processing the @option{--eval} command-line options of Emacs
+(@pxref{Action Arguments,,, emacs, The GNU Emacs Manual}) and
+@command{emacsclient} (@pxref{emacsclient Options,,, emacs, The GNU
+Emacs Manual}).
+
 @cindex special variables
   Even when lexical binding is enabled, certain variables will
 continue to be dynamically bound.  These are called @dfn{special
@@ -1226,12 +1236,17 @@ This function returns non-@code{nil} if @var{symbol} is a special
 variable (i.e., it has a @code{defvar}, @code{defcustom}, or
 @code{defconst} variable definition).  Otherwise, the return value is
 @code{nil}.
+
+Note that since this is a function, it can only return
+non-@code{nil} for variables which are permanently special, but not
+for those that are only special in the current lexical scope.
 @end defun
 
   The use of a special variable as a formal argument in a function is
-discouraged.  Doing so gives rise to unspecified behavior when lexical
-binding mode is enabled (it may use lexical binding sometimes, and
-dynamic binding other times).
+not supported.
+
+@node Converting to Lexical Binding
+@subsection Converting to Lexical Binding
 
   Converting an Emacs Lisp program to lexical binding is easy.  First,
 add a file-local variable setting of @code{lexical-binding} to
@@ -1251,10 +1266,61 @@ variable.  If a non-special variable is bound but not used within a
 variable.  The byte-compiler will also issue a warning if you use a
 special variable as a function argument.
 
-  (To silence byte-compiler warnings about unused variables, just use
-a variable name that starts with an underscore.  The byte-compiler
-interprets this as an indication that this is a variable known not to
+  A warning about a reference or an assignment to a free variable is
+usually a clear sign that that variable should be marked as
+dynamically scoped, so you need to add an appropriate @code{defvar}
+before the first use of that variable.
+
+  A warning about an unused variable may be a good hint that the
+variable was intended to be dynamically scoped (because it is actually
+used, but in another function), but it may also be an indication that
+the variable is simply really not used and could simply be removed.
+So you need to find out which case it is, and based on that, either
+add a @code{defvar} or remove the variable altogether.  If removal is
+not possible or not desirable (typically because it is a formal
+argument and that we cannot or don't want to change all the callers),
+you can also add a leading underscore to the variable's name to
+indicate to the compiler that this is a variable known not to
 be used.)
+
+@subsubheading Cross-file variable checking
+
+@strong{Note:} This is an experimental feature that may change or
+disappear without prior notice.
+
+The byte-compiler can also warn about lexical variables that are
+special in other Emacs Lisp files, often indicating a missing
+@code{defvar} declaration.  This useful but somewhat specialised check
+requires three steps:
+
+@enumerate
+@item
+Byte-compile all files whose special variable declarations may be of
+interest, with the environment variable @env{EMACS_GENERATE_DYNVARS}
+set to a nonempty string.  These are typically all the files in the
+same package or related packages or Emacs subsystems.  The process
+will generate a file whose name ends in @file{.dynvars} for each
+compiled Emacs Lisp file.
+
+@item
+Concatenate the @file{.dynvars} files into a single file.
+
+@item
+Byte-compile the files that need to be checked, this time with
+the environment variable @env{EMACS_DYNVARS_FILE} set to the name
+of the aggregated file created in step 2.
+@end enumerate
+
+Here is an example illustrating how this could be done, assuming that
+a Unix shell and @command{make} are used for byte-compilation:
+
+@example
+$ rm *.elc                                # force recompilation
+$ EMACS_GENERATE_DYNVARS=1 make           # generate .dynvars
+$ cat *.dynvars > ~/my.dynvars            # combine .dynvars
+$ rm *.elc                                # force recompilation
+$ EMACS_DYNVARS_FILE=~/my.dynvars make    # perform checks
+@end example
 
 @node Buffer-Local Variables
 @section Buffer-Local Variables
@@ -2319,6 +2385,14 @@ equivalent to the following:
 (defvaralias @var{obsolete-name} @var{current-name} @var{docstring})
 (make-obsolete-variable @var{obsolete-name} @var{current-name} @var{when})
 @end example
+
+This macro evaluates all its parameters, and both @var{obsolete-name}
+and @var{current-name} should be symbols, so a typical usage would
+look like:
+
+@lisp
+(define-obsolete-variable-alias 'foo-thing 'bar-thing "27.1")
+@end lisp
 @end defmac
 
 @defun indirect-variable variable
@@ -2572,8 +2646,11 @@ implemented this way:
       (macroexp-let2* nil ((start from) (end to))
         (funcall do `(substring ,getter ,start ,end)
                  (lambda (v)
-                   (funcall setter `(cl--set-substring
-                                     ,getter ,start ,end ,v))))))))
+                   (macroexp-let2 nil v v
+                     `(progn
+                        ,(funcall setter `(cl--set-substring
+                                           ,getter ,start ,end ,v))
+                        ,v))))))))
 @end example
 @end defmac
 

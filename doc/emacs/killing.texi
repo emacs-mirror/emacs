@@ -577,7 +577,9 @@ regions to the primary selection entirely.
 
   To insert the primary selection into an Emacs buffer, click
 @kbd{mouse-2} (@code{mouse-yank-primary}) where you want to insert it.
-@xref{Mouse Commands}.
+@xref{Mouse Commands}.  You can also use the normal Emacs yank command
+(@kbd{C-y}) to insert this text if @code{select-enable-primary} is set
+(@pxref{Clipboard}).
 
 @cindex MS-Windows, and primary selection
   MS-Windows provides no primary selection, but Emacs emulates it
@@ -727,6 +729,8 @@ them.  Rectangle commands are useful with text in multicolumn formats,
 and for changing text into or out of such formats.
 
 @cindex mark rectangle
+@cindex region-rectangle
+@cindex rectangular region
   To specify a rectangle for a command to work on, set the mark at one
 corner and point at the opposite corner.  The rectangle thus specified
 is called the @dfn{region-rectangle}.  If point and the mark are in

@@ -72,7 +72,8 @@
     (283 y-resolution)
     (296 resolution-unit)
     (305 software)
-    (306 date-time))
+    (306 date-time)
+    (315 artist))
   "Alist of tag values and their names.")
 
 (defconst exif--orientation
@@ -94,7 +95,7 @@ mirrored or not.")
   "Parse FILE (a JPEG file) and return the Exif data, if any.
 The return value is a list of Exif items.
 
-If the data is invalid, an `exif-error' is signalled."
+If the data is invalid, an `exif-error' is signaled."
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (insert-file-contents-literally file)
@@ -104,7 +105,7 @@ If the data is invalid, an `exif-error' is signalled."
   "Parse BUFFER (which should be a JPEG file) and return the Exif data, if any.
 The return value is a list of Exif items.
 
-If the data is invalid, an `exif-error' is signalled."
+If the data is invalid, an `exif-error' is signaled."
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
     (if enable-multibyte-characters
@@ -216,7 +217,10 @@ If the orientation isn't present in the data, return nil."
                                           (+ (1+ value) length)))
                                      ;; The value is stored directly
                                      ;; in the directory.
-                                     value)
+                                     (if (eq (car field-format) 'ascii)
+                                         (exif--direct-ascii-value
+                                          value (1- length) le)
+                                       value))
                                    (car field-format)
                                    le)))))
     (let ((next (exif--read-number 4 le)))
@@ -230,6 +234,19 @@ If the orientation isn't present in the data, return nil."
             (nconc dir (exif--parse-directory le)))
         ;; We've reached the end of the directories.
         dir))))
+
+(defun exif--direct-ascii-value (value bytes le)
+  "Make VALUE into a zero-terminated string.
+VALUE is an integer representing BYTES characters."
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (if le
+        (dotimes (i bytes)
+          (insert (logand (lsh value (* i -8)) 255)))
+      (dotimes (i bytes)
+        (insert (logand (lsh value (* (- (1- bytes) i) -8)) 255))))
+    (insert 0)
+    (buffer-string)))
 
 (defun exif--process-value (value type le)
   "Do type-based post-processing of the value."

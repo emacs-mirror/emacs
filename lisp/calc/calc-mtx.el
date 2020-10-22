@@ -1,4 +1,4 @@
-;;; calc-mtx.el --- matrix functions for Calc
+;;; calc-mtx.el --- matrix functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -275,7 +275,7 @@ in LUD decomposition."
 		k (1+ k)))
 	(setcar (nthcdr j (nth i lu)) sum)
 	(let ((dum (math-lud-pivot-check sum)))
-	  (if (Math-lessp big dum)
+	  (if (or (math-zerop big) (Math-lessp big dum))
 	      (setq big dum
 		    imax i)))
 	(setq i (1+ i)))

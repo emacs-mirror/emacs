@@ -1,4 +1,4 @@
-;;; calc-undo.el --- undo functions for Calc
+;;; calc-undo.el --- undo functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

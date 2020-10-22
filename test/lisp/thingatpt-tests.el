@@ -1,4 +1,4 @@
-;;; thingatpt.el --- tests for thing-at-point.
+;;; thingatpt.el --- tests for thing-at-point.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 

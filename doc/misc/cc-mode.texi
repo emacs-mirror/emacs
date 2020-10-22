@@ -350,11 +350,12 @@ Line-Up Functions
 * Misc Line-Up::
 
 
-Customizing Macros
+Custom Macros
 
 * Macro Backslashes::
 * Macros with ;::
 * Noise Macros::
+* Indenting Directives::
 
 @end detailmenu
 @end menu
@@ -1023,9 +1024,7 @@ These key sequences are not bound in AWK Mode, which doesn't have
 preprocessor statements.
 
 @item @kbd{M-x c-backward-into-nomenclature}
-@itemx @kbd{M-x c-forward-into-nomenclature}
 @findex c-backward-into-nomenclature
-@findex c-forward-into-nomenclature
 @findex backward-into-nomenclature @r{(c-)}
 @findex forward-into-nomenclature @r{(c-)}
 A popular programming style, especially for object-oriented languages
@@ -2131,6 +2130,11 @@ For Pike autodoc markup, the standard in Pike.
 @item gtkdoc
 @cindex GtkDoc markup
 For GtkDoc markup, widely used in the Gnome community.
+
+@item doxygen
+@cindex Doxygen markup
+For Doxygen markup, which can be used with C, C++, Java and variety of
+other languages.
 @end table
 
 The above is by no means complete.  If you'd like to see support for
@@ -6389,6 +6393,26 @@ function is the same as specifying a list @code{(c-lineup-assignments
 
 @comment ------------------------------------------------------------
 
+@defun c-lineup-ternary-bodies
+@findex lineup-ternary-bodies @r{(c-)}
+Line up true and false branches of a ternary operator
+(i.e. @code{?:}).  More precisely, if the line starts with a colon
+which is a part of a said operator, align it with corresponding
+question mark.  For example:
+
+@example
+@group
+return arg % 2 == 0 ? arg / 2
+                    : (3 * arg + 1);    @hereFn{c-lineup-ternary-bodies}
+@end group
+@end example
+
+@workswith @code{arglist-cont}, @code{arglist-cont-nonempty} and
+@code{statement-cont}.
+@end defun
+
+@comment ------------------------------------------------------------
+
 @defun c-lineup-cascaded-calls
 @findex lineup-cascaded-calls @r{(c-)}
 Line up ``cascaded calls'' under each other.  If the line begins with
@@ -6949,6 +6973,10 @@ is @code{nil}, all lines inside macro definitions are analyzed as
 @code{cpp-macro-cont}.
 @end defopt
 
+Sometimes you may want to indent particular directives
+(e.g. @code{#pragma}) as though they were statements.  To do this, see
+@ref{Indenting Directives}.
+
 Because a macro can expand into anything at all, near where one is
 invoked @ccmode{} can only indent and fontify code heuristically.
 Sometimes it gets it wrong.  Usually you should try to design your
@@ -6965,6 +6993,7 @@ Macros}.
 * Macro Backslashes::
 * Macros with ;::
 * Noise Macros::
+* Indenting Directives::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -7074,7 +7103,7 @@ initialization code, after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Noise Macros,  , Macros with ;, Custom Macros
+@node    Noise Macros, Indenting Directives, Macros with ;, Custom Macros
 @comment node-name, next, previous, up
 @section Noise Macros
 @cindex noise macros
@@ -7095,22 +7124,24 @@ constitute noise macros.
 @vindex noise-macro-names @r{(c-)}
 This variable is a list of names of noise macros which never have
 parenthesized arguments.  Each element is a string, and must be a
-valid identifier.  An element in @code{c-noise-macro-names} must not
-also be in @code{c-noise-macro-with-parens-names}.  Such an element is
-treated as whitespace by @ccmode{}.
+valid identifier.  Alternatively, the variable may be a regular
+expression which matches the names of such macros.  Such a noise macro
+is treated as whitespace by @ccmode{}.  It must not also be in, or be
+matched by @code{c-noise-macro-with-parens-names}.
 @end defopt
 
 @defopt c-noise-macro-with-parens-names
 @vindex noise-macro-with-parens-names @r{(c-)}
 This variable is a list of names of noise macros which optionally have
 arguments in parentheses.  Each element of the list is a string, and
-must be a valid identifier.  An element in
-@code{c-noise-macro-with-parens-names} must not also be in
-@code{c-noise-macro-names}.  For performance reasons, such an element,
-together with the optional parenthesized arguments, is specially
-handled, but it is only handled when used in declaration
-contexts@footnote{If this restriction causes your project
-difficulties, please get in touch with @email{bug-cc-mode@@gnu.org}.}.
+must be a valid identifier.  Alternatively, the variable may be a
+regular expression which matches the names of such macros.  Such a
+noise macro must not also be in, or be matched by
+@code{c-noise-macro-names}.  For performance reasons, such a noise
+macro, including any parenthesized arguments, is specially handled,
+but it is only handled when used in declaration contexts@footnote{If
+this restriction causes your project difficulties, please get in touch
+with @email{bug-cc-mode@@gnu.org}.}.
 
 The two compiler directives @code{__attribute__} and @code{__declspec}
 have traditionally been handled specially in @ccmode{}; for example
@@ -7127,6 +7158,48 @@ on changing the value of @code{c-noise-macro-names} or
 has run.  This function is called by @ccmode{}'s initialization code,
 after the mode hooks have run.
 @end defun
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Indenting Directives, , Noise Macros, Custom Macros
+@comment node-name, next, previous, up
+@section Indenting Directives
+@cindex Indenting Directives
+@cindex Indenting #pragma
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Sometimes you may want to indent particular preprocessor directives
+(e.g. @code{#pragma}) as though they were statements.  To do this,
+first set up @code{c-cpp-indent-to-body-directives} to include the
+directive name(s), then enable the ``indent to body'' feature with
+@code{c-toggle-cpp-indent-to-body}.
+
+@defopt c-cpp-indent-to-body-directives
+@vindex cpp-indent-to-body-directives (c-)
+This variable is a list of names of CPP directives (not including the
+introducing @samp{#}) which will be indented as though statements.
+Each element is a string, and must be a valid identifier.  The default
+value is @code{("pragma")}.
+
+If you add more directives to this variable, or remove directives from
+it, whilst ``indent to body'' is active, you need to re-enable the
+feature by calling @code{c-toggle-cpp-indent-to-body} for these
+changes to take effect@footnote{Note that the removal of directives
+doesn't work satisfactorally on XEmacs or on very old versions of
+Emacs}.
+@end defopt
+
+@defun c-toggle-cpp-indent-to-body
+@findex toggle-cpp-indent-to-body (c-)
+With @kbd{M-x c-toggle-cpp-indent-to-body}, you enable or disable the
+``indent to body'' feature.  When called programmatically, it takes an
+optional numerical argument.  A positive value will enable the
+feature, a zero or negative value will disable it.
+
+You should set up @code{c-cpp-indent-to-body-directives} before
+calling this function, since the function sets internal state which
+depends on that variable.
+@end defun
+
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Odds and Ends, Sample Init File, Custom Macros, Top

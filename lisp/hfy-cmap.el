@@ -1,4 +1,4 @@
-;;; hfy-cmap.el --- Fallback color name -> rgb mapping for `htmlfontify'
+;;; hfy-cmap.el --- Fallback color name -> rgb mapping for `htmlfontify'  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2003, 2009-2020 Free Software Foundation, Inc.
 
@@ -809,6 +809,22 @@
 (defconst hfy-rgb-regex
   "^\\s-*\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\(.+\\)\\s-*$")
 
+(defun hfy-cmap--parse-buffer (buffer)
+  (with-current-buffer buffer
+    (let ((end-of-rgb 0)
+          result)
+      (goto-char (point-min))
+      (htmlfontify-unload-rgb-file)
+      (while (/= end-of-rgb 1)
+        (if (looking-at hfy-rgb-regex)
+            (push (list (match-string 4)
+                        (string-to-number (match-string 1))
+                        (string-to-number (match-string 2))
+                        (string-to-number (match-string 3)))
+                  result))
+        (setq end-of-rgb (forward-line)))
+      result)))
+
 ;;;###autoload
 (defun htmlfontify-load-rgb-file (&optional file)
   "Load an X11 style rgb.txt FILE.
@@ -818,25 +834,14 @@ Loads the variable `hfy-rgb-txt-color-map', which is used by
   (interactive
    (list
     (read-file-name "rgb.txt (equivalent) file: " "" nil t (hfy-rgb-file))))
-  (let ((rgb-buffer   nil)
-	(end-of-rgb     0)
-	(rgb-txt      nil))
-    (if (and (setq rgb-txt (or file (hfy-rgb-file)))
-	     (file-readable-p rgb-txt))
-	(with-current-buffer
-            (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
-          (goto-char (point-min))
-	  (htmlfontify-unload-rgb-file)
-	  (while (/= end-of-rgb 1)
-	    (if (looking-at hfy-rgb-regex)
-		(setq hfy-rgb-txt-color-map
-		      (cons (list (match-string 4)
-				  (string-to-number (match-string 1))
-				  (string-to-number (match-string 2))
-				  (string-to-number (match-string 3)))
-			    hfy-rgb-txt-color-map)) )
-	    (setq end-of-rgb (forward-line)))
-	  (kill-buffer rgb-buffer)))))
+  (let ((rgb-buffer nil)
+        (rgb-txt (or file (hfy-rgb-file))))
+    (when (and rgb-txt
+               (file-readable-p rgb-txt))
+      (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
+      (when-let ((result (hfy-cmap--parse-buffer rgb-buffer)))
+        (setq hfy-rgb-txt-color-map result))
+      (kill-buffer rgb-buffer))))
 
 (defun htmlfontify-unload-rgb-file ()
   "Unload the current color name -> rgb translation map."

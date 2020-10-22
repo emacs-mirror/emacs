@@ -316,7 +316,7 @@ not be enclosed in { } or ( )."
 (defconst makefile-gmake-statements
   `("-sinclude" "sinclude"		; makefile-makepp-statements takes rest
     "ifdef" "ifndef" "ifeq" "ifneq" "-include" "define" "endef" "export"
-    "override define" "override" "unexport" "vpath"
+    "override define" "override" "unexport" "vpath" "undefine"
     ,@(cdr makefile-automake-statements))
   "List of keywords understood by gmake.")
 
@@ -1413,7 +1413,7 @@ Fill comments, backslashed lines, and variable definitions specially."
   "Leave the browser and return to the makefile buffer."
   (interactive)
   (let ((my-client makefile-browser-client))
-    (setq makefile-browser-client nil)	; we quitted, so NO client!
+    (setq makefile-browser-client nil)	; we quit, so NO client!
     (set-buffer-modified-p nil)
     (quit-window t)
     (pop-to-buffer my-client)))

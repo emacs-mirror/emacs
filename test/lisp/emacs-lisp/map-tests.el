@@ -227,7 +227,7 @@ Evaluate BODY for each created map.
   (with-maps-do map
     (let ((result nil))
       (map-do (lambda (k v)
-                (add-to-list 'result (list (int-to-string k) v)))
+                (push (list (int-to-string k) v) result))
               map)
       (should (equal result '(("2" 5) ("1" 4) ("0" 3)))))))
 
@@ -375,6 +375,12 @@ Evaluate BODY for each created map.
                                  '((1 . 3) (2 . 4))
                                  '((1 . 1) (2 . 5) (3 . 0)))
                  '((3 . 0) (2 . 9) (1 . 6)))))
+
+(ert-deftest test-map-plist-pcase ()
+  (let ((plist '(:one 1 :two 2)))
+    (should (equal (pcase-let (((map :one (:two two)) plist))
+                     (list one two))
+                   '(1 2)))))
 
 (provide 'map-tests)
 ;;; map-tests.el ends here

@@ -93,6 +93,8 @@ it's not cached."
 
 (autoload 'nnml-generate-nov-databases-directory "nnml")
 (autoload 'nnvirtual-find-group-art "nnvirtual")
+(autoload 'nnselect-article-group "nnselect")
+(autoload 'nnselect-article-number  "nnselect")
 
 
 
@@ -158,8 +160,12 @@ it's not cached."
 	  (file-name-coding-system nnmail-pathname-coding-system))
       ;; If this is a virtual group, we find the real group.
       (when (gnus-virtual-group-p group)
-	(let ((result (nnvirtual-find-group-art
-		       (gnus-group-real-name group) article)))
+	(let ((result (if (gnus-nnselect-group-p group)
+			  (with-current-buffer gnus-summary-buffer
+			    (cons (nnselect-article-group article)
+				  (nnselect-article-number article)))
+			(nnvirtual-find-group-art
+			 (gnus-group-real-name group) article))))
 	  (setq group (car result)
 		number (cdr result))))
       (when (and number
@@ -186,7 +192,7 @@ it's not cached."
 		(gnus-cache-update-file-total-fetched-for group file))
 	      (setq lines-chars (nnheader-get-lines-and-char))
 	      (nnheader-remove-body)
-	      (setq headers (nnheader-parse-naked-head))
+	      (setq headers (nnheader-parse-head t))
 	      (setf (mail-header-number headers) number)
 	      (setf (mail-header-lines headers) (car lines-chars))
 	      (setf (mail-header-chars headers) (cadr lines-chars))
@@ -232,8 +238,14 @@ it's not cached."
     (let ((arts gnus-cache-removable-articles)
 	  ga)
       (while arts
-	(when (setq ga (nnvirtual-find-group-art
-			(gnus-group-real-name gnus-newsgroup-name) (pop arts)))
+	(when (setq ga
+		    (if (gnus-nnselect-group-p gnus-newsgroup-name)
+			(with-current-buffer gnus-summary-buffer
+			  (let ((article (pop arts)))
+			    (cons (nnselect-article-group article)
+				  (nnselect-article-number article))))
+		      (nnvirtual-find-group-art
+		       (gnus-group-real-name gnus-newsgroup-name) (pop arts))))
 	  (let ((gnus-cache-removable-articles (list (cdr ga)))
 		(gnus-newsgroup-name (car ga)))
 	    (gnus-cache-possibly-remove-articles-1)))))
@@ -467,8 +479,12 @@ Returns the list of articles removed."
 	(file-name-coding-system nnmail-pathname-coding-system))
     ;; If this is a virtual group, we find the real group.
     (when (gnus-virtual-group-p group)
-      (let ((result (nnvirtual-find-group-art
-		     (gnus-group-real-name group) article)))
+      (let ((result (if (gnus-nnselect-group-p group)
+			(with-current-buffer gnus-summary-buffer
+			  (cons (nnselect-article-group article)
+				(nnselect-article-number article)))
+		      (nnvirtual-find-group-art
+		       (gnus-group-real-name group) article))))
 	(setq group (car result)
 	      number (cdr result))))
     (setq file (gnus-cache-file-name group number))
@@ -501,7 +517,7 @@ Returns the list of articles removed."
     (when (file-exists-p dir)
       (setq articles
 	    (sort (mapcar (lambda (name) (string-to-number name))
-			  (directory-files dir nil "^[0-9]+$" t))
+			  (directory-files dir nil "\\`[0-9]+\\'" t))
 		  '<))
       ;; Update the cache active file, just to synch more.
       (if articles

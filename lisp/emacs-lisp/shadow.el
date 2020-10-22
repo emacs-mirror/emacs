@@ -55,9 +55,6 @@
   :prefix "load-path-shadows-"
   :group 'lisp)
 
-(define-obsolete-variable-alias 'shadows-compare-text-p
-  'load-path-shadows-compare-text "23.3")
-
 (defcustom load-path-shadows-compare-text nil
   "If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
@@ -99,7 +96,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	(setq true-names (append true-names (list dir)))
 	(setq dir (directory-file-name (or pp ".")))
 	(setq curr-files (if (file-accessible-directory-p dir)
-			     (directory-files dir nil ".\\.elc?\\(\\.gz\\)?$" t)))
+			     (directory-files dir nil
+                                              "\\.elc?\\(?:\\.gz\\)?\\'" t)))
 	(and curr-files
 	     (not noninteractive)
 	     (message "Checking %d files in %s..." (length curr-files) dir))

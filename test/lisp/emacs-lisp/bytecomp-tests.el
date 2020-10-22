@@ -1,4 +1,4 @@
-;;; bytecomp-tests.el
+;;; bytecomp-tests.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
@@ -47,6 +47,11 @@
     (let ((a 1.0))				   (/ 3 a 2))
     (let ((a most-positive-fixnum) (b 2.0))	   (* a 2 b))
     (let ((a 3) (b 2))				   (/ a b 1.0))
+    (let ((a -0.0)) (+ a))
+    (let ((a -0.0)) (- a))
+    (let ((a -0.0)) (* a))
+    (let ((a -0.0)) (min a))
+    (let ((a -0.0)) (max a))
     (/ 3 -1)
     (+ 4 3 2 1)
     (+ 4 3 2.0 1)
@@ -347,7 +352,20 @@
                                 ((eq x 't) 99)
                                 (t 999))))
             '((a c) (b c) (7 c) (-3 c) (nil nil) (t c) (q c) (r c) (s c)
-              (t c) (x "a") (x "c") (x c) (x d) (x e))))
+              (t c) (x "a") (x "c") (x c) (x d) (x e)))
+
+    (mapcar (lambda (x) (cond ((member '(a . b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a . b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((memq '(a . b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a . b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((member '(a b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a b)) a b (c) (d)))
+    (mapcar (lambda (x) (cond ((memq '(a b) x) 1)
+                              ((equal x '(c)) 2)))
+            '(((a b)) a b (c) (d))))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")
@@ -355,24 +373,24 @@ bytecompiled code, and their results compared.")
 (defun bytecomp-check-1 (pat)
   "Return non-nil if PAT is the same whether directly evalled or compiled."
   (let ((warning-minimum-log-level :emergency)
-	(byte-compile-warnings nil)
-	(v0 (condition-case nil
+        (byte-compile-warnings nil)
+	(v0 (condition-case err
 		(eval pat)
-	      (error nil)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error nil))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (equal v0 v1)))
 
 (put 'bytecomp-check-1 'ert-explainer 'bytecomp-explain-1)
 
 (defun bytecomp-explain-1 (pat)
-  (let ((v0 (condition-case nil
+  (let ((v0 (condition-case err
 		(eval pat)
-	      (error nil)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error nil))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
 	    pat v0 v1)))
 
@@ -395,12 +413,12 @@ Subtests signal errors if something goes wrong."
 	(print-quoted t)
 	v0 v1)
     (dolist (pat byte-opt-testsuite-arith-data)
-      (condition-case nil
+      (condition-case err
 	  (setq v0 (eval pat))
-	(error (setq v0 nil)))
-      (condition-case nil
+	(error (setq v0 (list 'bytecomp-check-error (car err)))))
+      (condition-case err
 	  (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
-	(error (setq v1 nil)))
+	(error (setq v1 (list 'bytecomp-check-error (car err)))))
       (insert (format "%s" pat))
       (indent-to-column 65)
       (if (equal v0 v1)
@@ -426,8 +444,8 @@ Subtests signal errors if something goes wrong."
            (if compile
                (let ((byte-compile-dest-file-function
                       (lambda (e) elcfile)))
-                 (byte-compile-file elfile t))
-             (load elfile nil 'nomessage)))
+                 (byte-compile-file elfile)))
+           (load elfile nil 'nomessage))
       (when elfile (delete-file elfile))
       (when elcfile (delete-file elcfile)))))
 (put 'test-byte-comp-compile-and-load 'lisp-indent-function 1)
@@ -469,6 +487,7 @@ Subtests signal errors if something goes wrong."
 (ert-deftest bytecomp-tests--warnings ()
   (with-current-buffer (get-buffer-create "*Compile-Log*")
     (let ((inhibit-read-only t)) (erase-buffer)))
+  (mapc #'fmakunbound '(my-test0 my--test11 my--test12 my--test2))
   (test-byte-comp-compile-and-load t
     '(progn
        (defun my-test0 ()
@@ -554,25 +573,25 @@ bytecompiled code, and their results compared.")
   "Return non-nil if PAT is the same whether directly evalled or compiled."
   (let ((warning-minimum-log-level :emergency)
 	(byte-compile-warnings nil)
-	(v0 (condition-case nil
+	(v0 (condition-case err
 		(eval pat t)
-	      (error nil)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (let ((lexical-binding t))
                            (byte-compile `(lambda nil ,pat))))
-	      (error nil))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (equal v0 v1)))
 
 (put 'bytecomp-lexbind-check-1 'ert-explainer 'bytecomp-lexbind-explain-1)
 
 (defun bytecomp-lexbind-explain-1 (pat)
-  (let ((v0 (condition-case nil
+  (let ((v0 (condition-case err
 		(eval pat t)
-	      (error nil)))
-	(v1 (condition-case nil
+	      (error (list 'bytecomp-check-error (car err)))))
+	(v1 (condition-case err
 		(funcall (let ((lexical-binding t))
                            (byte-compile (list 'lambda nil pat))))
-	      (error nil))))
+	      (error (list 'bytecomp-check-error (car err))))))
     (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
 	    pat v0 v1)))
 
@@ -615,17 +634,6 @@ literals (Bug#20852)."
         (let ((byte-compile-dest-file-function (lambda (_) destination)))
           (should (byte-compile-file source)))))))
 
-(ert-deftest bytecomp-tests--old-style-backquotes ()
-  "Check that byte compiling warns about old-style backquotes."
-  (bytecomp-tests--with-temp-file source
-    (write-region "(` (a b))" nil source)
-    (bytecomp-tests--with-temp-file destination
-      (let* ((byte-compile-dest-file-function (lambda (_) destination))
-             (byte-compile-debug t)
-             (err (should-error (byte-compile-file source))))
-        (should (equal (cdr err) '("Old-style backquotes detected!")))))))
-
-
 (ert-deftest bytecomp-tests-function-put ()
   "Check `function-put' operates during compilation."
   (bytecomp-tests--with-temp-file source
@@ -638,7 +646,8 @@ literals (Bug#20852)."
                     (setq bytecomp-tests--foobar (bytecomp-tests--foobar))))
       (print form (current-buffer)))
     (write-region (point-min) (point-max) source nil 'silent)
-    (byte-compile-file source t)
+    (byte-compile-file source)
+    (load source)
     (should (equal bytecomp-tests--foobar (cons 1 2)))))
 
 (ert-deftest bytecomp-tests--test-no-warnings-with-advice ()

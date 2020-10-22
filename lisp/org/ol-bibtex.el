@@ -318,7 +318,7 @@ is non-nil."
   "Controls whether inherited tags are converted to bibtex keywords.
 It is relevant only if `org-bibtex-tags-are-keywords' is non-nil.
 Tag inheritance itself is controlled by `org-use-tag-inheritance'
-and `org-exclude-tags-from-inheritance'."
+and `org-tags-exclude-from-inheritance'."
   :group 'org-bibtex
   :version "26.1"
   :package-version '(Org . "8.3")

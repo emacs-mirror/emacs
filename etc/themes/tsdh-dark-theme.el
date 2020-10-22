@@ -1,4 +1,4 @@
-;;; tsdh-dark-theme.el --- Tassilo's dark custom theme
+;;; tsdh-dark-theme.el --- Tassilo's dark custom theme  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

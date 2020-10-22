@@ -5,18 +5,20 @@
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -47,6 +49,162 @@
         (hi-lock-set-pattern "foo" (hi-lock-read-face-name)))
       ;; Only one match, then we have used just 1 face
       (should (equal hi-lock--unused-faces (cdr faces))))))
+
+(ert-deftest hi-lock-case-fold ()
+  "Test for case-sensitivity."
+  (let ((hi-lock-auto-select-face t))
+    (with-temp-buffer
+      (insert "a A b B\n")
+
+      (dotimes (_ 2) (highlight-regexp "[a]"))
+      (should (= (length (overlays-in (point-min) (point-max))) 2))
+      (unhighlight-regexp "[a]")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-regexp "[a]" nil nil "a"))
+      (should (= (length (overlays-in (point-min) (point-max))) 2))
+      (unhighlight-regexp "a")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" ))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "[A]")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" nil nil "A"))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "A")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (let ((case-fold-search nil)) (dotimes (_ 2) (highlight-regexp "[a]")))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "[a]")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-phrase "a   a"))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "a   a")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (let ((search-spaces-regexp search-whitespace-regexp)) (highlight-regexp "a   a"))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
+                   (car defaults))))
+        (call-interactively 'unhighlight-regexp))
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (emacs-lisp-mode)
+      (setq font-lock-mode t)
+
+      (dotimes (_ 2) (highlight-regexp "[a]"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "[a]"))
+      (should (null (get-text-property 3 'face)))
+
+      (dotimes (_ 2) (highlight-regexp "[a]" nil nil "a"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "a"))
+      (should (null (get-text-property 3 'face)))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" ))
+      (font-lock-ensure)
+      (should (null (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "[A]"))
+      (should (null (get-text-property 3 'face)))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" nil nil "A"))
+      (font-lock-ensure)
+      (should (null (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "A"))
+      (should (null (get-text-property 3 'face)))
+
+      (let ((case-fold-search nil)) (dotimes (_ 2) (highlight-regexp "[a]")))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (should (null (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "[a]"))
+      (should (null (get-text-property 1 'face)))
+
+      (dotimes (_ 2) (highlight-phrase "a   a"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "a   a"))
+      (should (null (get-text-property 1 'face)))
+
+      (let ((search-spaces-regexp search-whitespace-regexp)) (highlight-regexp "a   a"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
+                   (car defaults)))
+                (font-lock-fontified t))
+        (call-interactively 'unhighlight-regexp))
+      (should (null (get-text-property 1 'face))))))
+
+(ert-deftest hi-lock-unhighlight ()
+  "Test for unhighlighting and `hi-lock--regexps-at-point'."
+  (let ((hi-lock-auto-select-face t))
+    (with-temp-buffer
+      (insert "aAbB\n")
+
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
+                   (car defaults))))
+
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (should (= (length (overlays-in (point-min) (point-max))) 4))
+        ;; `hi-lock--regexps-at-point' should take regexp "a" at point 1,
+        ;; not the last regexp "b"
+        (goto-char 1)
+        (call-interactively 'unhighlight-regexp)
+        (should (= (length (overlays-in 1 3)) 0))
+        (should (= (length (overlays-in 3 5)) 2))
+        ;; Next call should unhighlight remaining regepxs
+        (call-interactively 'unhighlight-regexp)
+        (should (= (length (overlays-in 3 5)) 0))
+
+        ;; Test unhighlight all
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (should (= (length (overlays-in (point-min) (point-max))) 4))
+        (unhighlight-regexp t)
+        (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+        (emacs-lisp-mode)
+        (setq font-lock-mode t)
+
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (font-lock-ensure)
+        (should (memq 'hi-yellow (get-text-property 1 'face)))
+        (should (memq 'hi-yellow (get-text-property 3 'face)))
+        ;; `hi-lock--regexps-at-point' should take regexp "a" at point 1,
+        ;; not the last regexp "b"
+        (goto-char 1)
+        (let ((font-lock-fontified t)) (call-interactively 'unhighlight-regexp))
+        (should (null (get-text-property 1 'face)))
+        (should (memq 'hi-yellow (get-text-property 3 'face)))
+        ;; Next call should unhighlight remaining regepxs
+        (let ((font-lock-fontified t)) (call-interactively 'unhighlight-regexp))
+        (should (null (get-text-property 3 'face)))
+
+        ;; Test unhighlight all
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (font-lock-ensure)
+        (should (memq 'hi-yellow (get-text-property 1 'face)))
+        (should (memq 'hi-yellow (get-text-property 3 'face)))
+        (let ((font-lock-fontified t)) (unhighlight-regexp t))
+        (should (null (get-text-property 1 'face)))
+        (should (null (get-text-property 3 'face)))))))
 
 (provide 'hi-lock-tests)
 ;;; hi-lock-tests.el ends here

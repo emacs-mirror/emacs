@@ -59,10 +59,15 @@
   "The attributes of renderer types for text/html.")
 
 (defcustom mm-fill-flowed t
-  "If non-nil a format=flowed article will be displayed flowed."
+  "If non-nil, format=flowed articles will be displayed flowed."
   :type 'boolean
   :version "22.1"
   :group 'mime-display)
+
+;; Not a defcustom, since it's usually overridden by the callers of
+;; the mm functions.
+(defvar mm-inline-font-lock t
+  "If non-nil, do font locking of inline media types that support it.")
 
 (defcustom mm-inline-large-images-proportion 0.9
   "Maximum proportion large images can occupy in the buffer.
@@ -497,10 +502,13 @@ If MODE is not set, try to find mode automatically."
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))
-	      (set-auto-mode)
+	      ;; Don't run hooks that might assume buffer-file-name
+	      ;; really associates buffer with a file (bug#39190).
+	      (delay-mode-hooks (set-auto-mode))
 	      (setq mode major-mode)))
 	  ;; Do not fontify if the guess mode is fundamental.
-	  (unless (eq major-mode 'fundamental-mode)
+	  (when (and (not (eq major-mode 'fundamental-mode))
+		     mm-inline-font-lock)
 	    (font-lock-ensure))))
       (setq text (buffer-string))
       (when (eq mode 'diff-mode)
@@ -538,7 +546,7 @@ If MODE is not set, try to find mode automatically."
   (mm-display-inline-fontify handle 'shell-script-mode))
 
 (defun mm-display-javascript-inline (handle)
-  "Show JavsScript code from HANDLE inline."
+  "Show JavaScript code from HANDLE inline."
   (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
@@ -589,8 +597,16 @@ If MODE is not set, try to find mode automatically."
 	 (with-temp-buffer
 	   (insert-buffer-substring (mm-handle-buffer handle))
 	   (goto-char (point-min))
-	   (let ((part (base64-decode-string (buffer-string))))
-	     (epg-verify-string (epg-make-context 'CMS) part))))
+	   (let ((part (base64-decode-string (buffer-string)))
+		 (context (epg-make-context 'CMS)))
+	     (prog1
+		 (epg-verify-string context part)
+	       (let ((result (car (epg-context-result-for context 'verify))))
+		 (mm-sec-status
+		  'gnus-info (epg-signature-status result)
+		  'gnus-details
+		  (format "%s:%s" (epg-signature-validity result)
+			  (epg-signature-key-id result))))))))
       (with-temp-buffer
 	(insert "MIME-Version: 1.0\n")
 	(mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")

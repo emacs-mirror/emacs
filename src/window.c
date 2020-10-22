@@ -1895,10 +1895,7 @@ POS, ROWH is the visible height of that row, and VPOS is the row number
   if (EQ (pos, Qt))
     posint = -1;
   else if (!NILP (pos))
-    {
-      CHECK_FIXNUM_COERCE_MARKER (pos);
-      posint = XFIXNUM (pos);
-    }
+    posint = fix_position (pos);
   else if (w == XWINDOW (selected_window))
     posint = PT;
   else
@@ -2111,30 +2108,20 @@ though when run from an idle timer with a delay of zero seconds.  */)
       || window_outdated (w))
     return Qnil;
 
-  if (NILP (first))
-    row = (NILP (body)
-	   ? MATRIX_ROW (w->current_matrix, 0)
-	   : MATRIX_FIRST_TEXT_ROW (w->current_matrix));
-  else if (FIXNUMP (first))
-    {
-      CHECK_RANGED_INTEGER (first, 0, w->current_matrix->nrows);
-      row = MATRIX_ROW (w->current_matrix, XFIXNUM (first));
-    }
-  else
-    error ("Invalid specification of first line");
-
-  if (NILP (last))
-
-    end_row = (NILP (body)
-	       ? MATRIX_ROW (w->current_matrix, w->current_matrix->nrows)
-	       : MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w));
-  else if (FIXNUMP (last))
-    {
-      CHECK_RANGED_INTEGER (last, 0, w->current_matrix->nrows);
-      end_row = MATRIX_ROW (w->current_matrix, XFIXNUM (last));
-    }
-  else
-    error ("Invalid specification of last line");
+  row = (!NILP (first)
+	 ? MATRIX_ROW (w->current_matrix,
+		       check_integer_range (first, 0,
+					    w->current_matrix->nrows))
+	 : NILP (body)
+	 ? MATRIX_ROW (w->current_matrix, 0)
+	 : MATRIX_FIRST_TEXT_ROW (w->current_matrix));
+  end_row = (!NILP (last)
+	     ? MATRIX_ROW (w->current_matrix,
+			   check_integer_range (last, 0,
+						w->current_matrix->nrows))
+	     : NILP (body)
+	     ? MATRIX_ROW (w->current_matrix, w->current_matrix->nrows)
+	     : MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w));
 
   while (row <= end_row && row->enabled_p
 	 && row->y + row->height < max_y)
@@ -4328,11 +4315,11 @@ Note: This function does not operate on any child windows of WINDOW.  */)
   EMACS_INT size_min = NILP (add) ? 0 : - XFIXNUM (w->new_pixel);
   EMACS_INT size_max = size_min + min (INT_MAX, MOST_POSITIVE_FIXNUM);
 
-  CHECK_RANGED_INTEGER (size, size_min, size_max);
+  int checked_size = check_integer_range (size, size_min, size_max);
   if (NILP (add))
     wset_new_pixel (w, size);
   else
-    wset_new_pixel (w, make_fixnum (XFIXNUM (w->new_pixel) + XFIXNUM (size)));
+    wset_new_pixel (w, make_fixnum (XFIXNUM (w->new_pixel) + checked_size));
 
   return w->new_pixel;
 }
@@ -5475,7 +5462,7 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 
   wset_redisplay (XWINDOW (window));
 
-  if (whole && Vfast_but_imprecise_scrolling)
+  if (whole && fast_but_imprecise_scrolling)
     specbind (Qfontification_functions, Qnil);
 
   /* On GUI frames, use the pixel-based version which is much slower
@@ -7478,7 +7465,7 @@ saved by this function.  */)
   data->minibuf_selected_window = minibuf_level > 0 ? minibuf_selected_window : Qnil;
   data->root_window = FRAME_ROOT_WINDOW (f);
   data->focus_frame = FRAME_FOCUS_FRAME (f);
-  Lisp_Object tem = make_uninit_vector (n_windows);
+  Lisp_Object tem = make_nil_vector (n_windows);
   data->saved_windows = tem;
   for (ptrdiff_t i = 0; i < n_windows; i++)
     ASET (tem, i, make_nil_vector (VECSIZE (struct saved_window)));
@@ -7509,8 +7496,7 @@ extract_dimension (Lisp_Object dimension)
 {
   if (NILP (dimension))
     return -1;
-  CHECK_RANGED_INTEGER (dimension, 0, INT_MAX);
-  return XFIXNUM (dimension);
+  return check_integer_range (dimension, 0, INT_MAX);
 }
 
 static struct window *
@@ -8412,7 +8398,7 @@ pixelwise even if this option is nil.  */);
   window_resize_pixelwise = false;
 
   DEFVAR_BOOL ("fast-but-imprecise-scrolling",
-               Vfast_but_imprecise_scrolling,
+               fast_but_imprecise_scrolling,
                doc: /* When non-nil, accelerate scrolling operations.
 This comes into play when scrolling rapidly over previously
 unfontified buffer regions.  Only those portions of the buffer which
@@ -8420,7 +8406,7 @@ are actually going to be displayed get fontified.
 
 Note that this optimization can cause the portion of the buffer
 displayed after a scrolling operation to be somewhat inaccurate.  */);
-  Vfast_but_imprecise_scrolling = false;
+  fast_but_imprecise_scrolling = false;
 
   defsubr (&Sselected_window);
   defsubr (&Sold_selected_window);

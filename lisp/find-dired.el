@@ -85,8 +85,8 @@ the options \"-dilsb\".
 
 While the option `find -ls' often produces unsorted output, the option
 `find -exec ls -ld' maintains the sorting order only on short output,
-whereas `find -print | sort | xargs' produced sorted output even
-on the large number of files."
+whereas `find -print | sort | xargs' produces sorted output even
+on a large number of files."
   :version "27.1"            ; add choice of predefined set of options
   :type `(choice
           (cons :tag "find -ls"
@@ -164,7 +164,10 @@ The command run (after changing into DIR) is essentially
     find . \\( ARGS \\) -ls
 
 except that the car of the variable `find-ls-option' specifies what to
-use in place of \"-ls\" as the final argument."
+use in place of \"-ls\" as the final argument.
+
+Collect output in the \"*Find*\" buffer.  To kill the job before
+it finishes, type \\[kill-find]."
   (interactive (list (read-directory-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
 				  '(find-args-history . 1))))
@@ -215,7 +218,6 @@ use in place of \"-ls\" as the final argument."
 			 (car find-ls-option))))
     ;; Start the find process.
     (shell-command (concat args "&") (current-buffer))
-    ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map (current-local-map))
@@ -247,8 +249,8 @@ use in place of \"-ls\" as the final argument."
       (dired-insert-set-properties point (point)))
     (setq buffer-read-only t)
     (let ((proc (get-buffer-process (current-buffer))))
-      (set-process-filter proc (function find-dired-filter))
-      (set-process-sentinel proc (function find-dired-sentinel))
+      (set-process-filter proc #'find-dired-filter)
+      (set-process-sentinel proc #'find-dired-sentinel)
       ;; Initialize the process marker; it is used by the filter.
       (move-marker (process-mark proc) (point) (current-buffer)))
     (setq mode-line-process '(":%s"))))
@@ -258,7 +260,7 @@ use in place of \"-ls\" as the final argument."
   (interactive)
   (let ((find (get-buffer-process (current-buffer))))
     (and find (eq (process-status find) 'run)
-	 (eq (process-filter find) (function find-dired-filter))
+	 (eq (process-filter find) #'find-dired-filter)
 	 (condition-case nil
 	     (delete-process find)
 	   (error nil)))))

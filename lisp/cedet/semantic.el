@@ -82,8 +82,6 @@ introduced."
 This variable is for internal use only, and its content depends on the
 external parser used.")
 (make-variable-buffer-local 'semantic--parse-table)
-(semantic-varalias-obsolete 'semantic-toplevel-bovine-table
-			    'semantic--parse-table "23.2")
 
 (defvar semantic-symbol->name-assoc-list
   '((type     . "Types")
@@ -112,17 +110,6 @@ in classes, such as protection labels.")
   "Value for `case-fold-search' when parsing.")
 (make-variable-buffer-local 'semantic-case-fold)
 
-(defvar semantic-expand-nonterminal nil
-  "Function to call for each nonterminal production.
-Return a list of non-terminals derived from the first argument, or nil
-if it does not need to be expanded.
-Languages with compound definitions should use this function to expand
-from one compound symbol into several.  For example, in C the definition
-  int a, b;
-is easily parsed into one tag.  This function should take this
-compound tag and turn it into two tags, one for A, and the other for B.")
-(make-variable-buffer-local 'semantic-expand-nonterminal)
-
 (defvar semantic--buffer-cache nil
   "A cache of the fully parsed buffer.
 If no significant changes have been made (based on the state) then
@@ -134,8 +121,6 @@ If you need a tag list, use `semantic-fetch-tags'.  If you need the
 cached values for some reason, chances are you can add a hook to
 `semantic-after-toplevel-cache-change-hook'.")
 (make-variable-buffer-local 'semantic--buffer-cache)
-(semantic-varalias-obsolete 'semantic-toplevel-bovine-cache
-			    'semantic--buffer-cache "23.2")
 
 (defvar semantic-unmatched-syntax-cache nil
   "A cached copy of unmatched syntax tokens.")
@@ -171,18 +156,6 @@ It is called before any request for tags is made via the function
 `semantic-fetch-tags' by an application.
 If any hook returns a nil value, the cached value is returned
 immediately, even if it is empty.")
-(semantic-varalias-obsolete 'semantic-before-toplevel-bovination-hook
-			    'semantic--before-fetch-tags-hook "23.2")
-
-(defvar semantic-after-toplevel-bovinate-hook nil
-  "Hooks run after a toplevel parse.
-It is not run if the toplevel parse command is called, and buffer does
-not need to be fully reparsed.
-For language specific hooks, make sure you define this as a local hook.
-
-This hook should not be used any more.
-Use `semantic-after-toplevel-cache-change-hook' instead.")
-(make-obsolete-variable 'semantic-after-toplevel-bovinate-hook nil "23.2")
 
 (defvar semantic-after-toplevel-cache-change-hook nil
   "Hooks run after the buffer tag list has changed.
@@ -304,13 +277,6 @@ These functions are called by `semantic-new-buffer-fcn', before
 This hook is for database functions which intend to swap in a tag table.
 This guarantees that the DB will go before other modes that require
 a parse of the buffer.")
-
-(semantic-varalias-obsolete 'semantic-init-hooks
-			    'semantic-init-hook "23.2")
-(semantic-varalias-obsolete 'semantic-init-mode-hooks
-			    'semantic-init-mode-hook "23.2")
-(semantic-varalias-obsolete 'semantic-init-db-hooks
-			    'semantic-init-db-hook "23.2")
 
 (defsubst semantic-error-if-unparsed ()
   "Raise an error if current buffer was not parsed by Semantic."
@@ -516,8 +482,6 @@ is requested."
   (semantic-parse-tree-set-needs-rebuild)
   ;; Remove this hook which tracks if a buffer is up to date or not.
   (remove-hook 'after-change-functions 'semantic-change-function t)
-  ;; Old model.  Delete someday.
-  ;;(run-hooks 'semantic-after-toplevel-bovinate-hook)
 
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook
 		      semantic--buffer-cache)
@@ -540,17 +504,12 @@ is requested."
   (setq semantic--completion-cache nil)
   ;; Refresh the display of unmatched syntax tokens if enabled
   (run-hook-with-args 'semantic-unmatched-syntax-hook
-                      semantic-unmatched-syntax-cache)
-  ;; Old Semantic 1.3 hook API.  Maybe useful forever?
-  (run-hooks 'semantic-after-toplevel-bovinate-hook)
-  )
+                      semantic-unmatched-syntax-cache))
 
 (defvar semantic-working-type 'percent
   "The type of working message to use when parsing.
 'percent means we are doing a linear parse through the buffer.
 'dynamic means we are reparsing specific tags.")
-(semantic-varalias-obsolete 'semantic-bovination-working-type
-			    'semantic-working-type "23.2")
 
 (defvar semantic-minimum-working-buffer-size (* 1024 5)
   "The minimum size of a buffer before working messages are displayed.
@@ -585,8 +544,6 @@ was marked unparseable, then do nothing, and return the cache."
    ;; Is this a semantic enabled buffer?
    (semantic-active-p)
    ;; Application hooks say the buffer is safe for parsing
-   (run-hook-with-args-until-failure
-    'semantic-before-toplevel-bovination-hook)
    (run-hook-with-args-until-failure
     'semantic--before-fetch-tags-hook)
    ;; If the buffer was previously marked unparseable,
@@ -689,11 +646,6 @@ Does nothing if the current buffer doesn't need reparsing."
 	)
       ;; Return if we are lexically safe
       lexically-safe))))
-
-(defun semantic-bovinate-toplevel (&optional ignored)
-  "Backward compatibility function."
-  (semantic-fetch-tags))
-(make-obsolete 'semantic-bovinate-toplevel 'semantic-fetch-tags "23.2")
 
 ;; Another approach is to let Emacs call the parser on idle time, when
 ;; needed, use `semantic-fetch-available-tags' to only retrieve
@@ -812,20 +764,6 @@ This function returns semantic tags without overlays."
 ;; Please move away from these functions, and try using semantic 2.x
 ;; interfaces instead.
 ;;
-(defsubst semantic-bovinate-region-until-error
-  (start end nonterm &optional depth)
-  "NOTE: Use `semantic-parse-region' instead.
-
-Bovinate between START and END starting with NONTERM.
-Optional DEPTH specifies how many levels of parenthesis to enter.
-This command will parse until an error is encountered, and return
-the list of everything found until that moment.
-This is meant for finding variable definitions at the beginning of
-code blocks in methods.  If `bovine-inner-scope' can also support
-commands, use `semantic-bovinate-from-nonterminal-full'."
-  (semantic-parse-region start end nonterm depth t))
-(make-obsolete 'semantic-bovinate-region-until-error
-               'semantic-parse-region "23.2")
 
 (defsubst semantic-bovinate-from-nonterminal
   (start end nonterm &optional depth length)
@@ -839,21 +777,6 @@ tokens."
   (car-safe (cdr (semantic-parse-stream
 		  (semantic-lex start end (or depth 1) length)
 		  nonterm))))
-
-(defsubst semantic-bovinate-from-nonterminal-full
-  (start end nonterm &optional depth)
-  "NOTE: Use `semantic-parse-region' instead.
-
-Bovinate from within a nonterminal lambda from START to END.
-Iterates until all the space between START and END is exhausted.
-Argument NONTERM is the nonterminal symbol to start with.
-If NONTERM is nil, use `bovine-block-toplevel'.
-Optional argument DEPTH is the depth of lists to dive into.
-When used in a `lambda' of a MATCH-LIST, there is no need to include
-a START and END part."
-  (semantic-parse-region start end nonterm (or depth 1)))
-(make-obsolete 'semantic-bovinate-from-nonterminal-full
-               'semantic-parse-region "23.2")
 
 ;;; User interface
 

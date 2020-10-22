@@ -2437,7 +2437,7 @@ INFO may provide the values of these header arguments (in the
     (when location
       (save-excursion
         (goto-char location)
-	(when (looking-at (concat org-babel-result-regexp ".*$"))
+	(when (looking-at org-babel-result-regexp)
 	  (delete-region
 	   (if keep-keyword (line-beginning-position 2)
 	     (save-excursion
@@ -3053,9 +3053,8 @@ of `org-babel-temporary-directory'."
 		  (if (eq t (car (file-attributes file)))
 		      (delete-directory file)
 		    (delete-file file)))
-		;; We do not want to delete "." and "..".
 		(directory-files org-babel-temporary-directory 'full
-				 "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+                                 directory-files-no-dot-files-regexp))
 	  (delete-directory org-babel-temporary-directory))
       (error
        (message "Failed to remove temporary Org-babel directory %s"

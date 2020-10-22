@@ -469,8 +469,6 @@ Remove the DIRECTORY(ies), if they are empty.")
 	   (eshell-parse-command
 	    (format "tar %s %s" tar-args archive) args))))
 
-(defvar ange-cache)			; XEmacs?  See esh-util
-
 ;; this is to avoid duplicating code...
 (defmacro eshell-mvcpln-template (command action func query-var
 					  force-var &optional preserve)
@@ -488,8 +486,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 		       (or (not no-dereference)
 			   (not (file-symlink-p (car args)))))))
 	 (eshell-shorthand-tar-command ,command args)
-       (let ((target (car (last args)))
-	     ange-cache)
+       (let ((target (car (last args))))
 	 (setcdr (last args 2) nil)
 	 (eshell-shuffle-files
 	  ,command ,action args target ,func nil
@@ -790,9 +787,9 @@ external command."
 
 ;; completions rules for some common UNIX commands
 
-(defsubst eshell-complete-hostname ()
-  "Complete a command that wants a hostname for an argument."
-  (pcomplete-here (eshell-read-host-names)))
+(autoload 'pcmpl-unix-complete-hostname "pcmpl-unix")
+(define-obsolete-function-alias 'eshell-complete-hostname
+  #'pcmpl-unix-complete-hostname "28.1")
 
 (defun eshell-complete-host-reference ()
   "If there is a host reference, complete it."
@@ -801,26 +798,7 @@ external command."
     (when (setq index (string-match "@[a-z.]*\\'" arg))
       (setq pcomplete-stub (substring arg (1+ index))
 	    pcomplete-last-completion-raw t)
-      (throw 'pcomplete-completions (eshell-read-host-names)))))
-
-(defalias 'pcomplete/ftp    'eshell-complete-hostname)
-(defalias 'pcomplete/ncftp  'eshell-complete-hostname)
-(defalias 'pcomplete/ping   'eshell-complete-hostname)
-(defalias 'pcomplete/rlogin 'eshell-complete-hostname)
-
-(defun pcomplete/telnet ()
-  (require 'pcmpl-unix)
-  (pcomplete-opt "xl(pcmpl-unix-user-names)")
-  (eshell-complete-hostname))
-
-(defun pcomplete/rsh ()
-  "Complete `rsh', which, after the user and hostname, is like xargs."
-  (require 'pcmpl-unix)
-  (pcomplete-opt "l(pcmpl-unix-user-names)")
-  (eshell-complete-hostname)
-  (pcomplete-here (funcall pcomplete-command-completion-function))
-  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
-	       pcomplete-default-completion-function)))
+      (throw 'pcomplete-completions (pcomplete-read-host-names)))))
 
 (defvar block-size)
 (defvar by-bytes)
@@ -924,7 +902,7 @@ Summarize disk usage of each FILE, recursively for directories.")
        ;; filesystem support means nothing under Windows
        (if (eshell-under-windows-p)
 	   (setq only-one-filesystem nil))
-       (let ((size 0.0) ange-cache)
+       (let ((size 0.0))
 	 (while args
 	   (if only-one-filesystem
 	       (setq only-one-filesystem

@@ -17,11 +17,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/* FIXME: This code is problematic; it misuses GTK, so the GTK
+   developers don't think they should fix the resulting problems in GTK
+   itself.  The right way to fix this is by rewriting the code in Emacs
+   to use GTK3 properly.  As of 2020, there is a project to do this.
+   Talk with Yuuki Harano <masm+emacs@masm11.me> if you are interested
+   in doing substantial work on this.  */
+
 #include <config.h>
 
 #ifdef USE_GTK
 #include <float.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <c-ctype.h>
 
@@ -940,9 +948,8 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
     }
 }
 
-/* Resize the outer window of frame F after changing the height.
-   COLUMNS/ROWS is the size the edit area shall have after the resize.  */
-
+/** Resize the outer window of frame F.  WIDTH and HEIGHT are the new
+    pixel sizes of F's text area.  */
 void
 xg_frame_set_char_size (struct frame *f, int width, int height)
 {
@@ -953,6 +960,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   int totalheight
     = pixelheight + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
   int totalwidth = pixelwidth + FRAME_TOOLBAR_WIDTH (f);
+  bool was_visible = false;
+  bool hide_child_frame;
 
   if (FRAME_PIXEL_HEIGHT (f) == 0)
     return;
@@ -995,12 +1004,42 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, gheight);
     }
+  else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
+    {
+      was_visible = true;
+      hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
+
+      if (totalwidth != gwidth || totalheight != gheight)
+	{
+	  frame_size_history_add
+	    (f, Qxg_frame_set_char_size_4, width, height,
+	     list2i (totalwidth, totalheight));
+
+          if (hide_child_frame)
+            {
+              block_input ();
+              gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
+              unblock_input ();
+            }
+
+	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     totalwidth, totalheight);
+
+          if (hide_child_frame)
+            {
+              block_input ();
+              gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+              unblock_input ();
+            }
+
+	  fullscreen = Qnil;
+	}
+    }
   else
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
 	 list2i (totalwidth, totalheight));
-
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, totalheight);
       fullscreen = Qnil;
@@ -1016,7 +1055,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      size as fast as possible.
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
-  if (FRAME_VISIBLE_P (f))
+  if (FRAME_VISIBLE_P (f) && !was_visible)
     {
       /* Must call this to flush out events */
       (void)gtk_events_pending ();
@@ -1372,10 +1411,15 @@ xg_free_frame_widgets (struct frame *f)
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
       FRAME_X_RAW_DRAWABLE (f) = 0;
       FRAME_GTK_OUTER_WIDGET (f) = 0;
+      if (x->ttip_widget)
+        {
+          /* Remove ttip_lbl from ttip_widget's custom slot before
+             destroying it, to avoid double-free (Bug#41239).  */
+          gtk_tooltip_set_custom (x->ttip_widget, NULL);
+          g_object_unref (G_OBJECT (x->ttip_widget));
+        }
       if (x->ttip_lbl)
         gtk_widget_destroy (x->ttip_lbl);
-      if (x->ttip_widget)
-        g_object_unref (G_OBJECT (x->ttip_widget));
     }
 }
 
@@ -4397,13 +4441,6 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   key = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_KEY);
   XSETFRAME (frame, f);
 
-  /* We generate two events here.  The first one is to set the prefix
-     to `(tool_bar)', see keyboard.c.  */
-  event.kind = TOOL_BAR_EVENT;
-  event.frame_or_window = frame;
-  event.arg = frame;
-  kbd_buffer_store_event (&event);
-
   event.kind = TOOL_BAR_EVENT;
   event.frame_or_window = frame;
   event.arg = key;
@@ -5076,7 +5113,7 @@ update_frame_tool_bar (struct frame *f)
           else
             idx = -1;
 
-          img_id = lookup_image (f, image);
+          img_id = lookup_image (f, image, -1);
           img = IMAGE_FROM_ID (f, img_id);
           prepare_image_for_display (f, img);
 

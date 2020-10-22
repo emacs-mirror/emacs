@@ -1,4 +1,4 @@
-;;; simple-two-depend.el --- A single-file package with two dependencies.
+;;; simple-two-depend.el --- A single-file package with two dependencies.  -*- lexical-binding:t -*-
 
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.1

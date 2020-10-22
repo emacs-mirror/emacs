@@ -4,7 +4,7 @@
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
-;; Version: 2.02
+;; Old-Version: 2.02
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
@@ -1957,7 +1957,7 @@ to swim.")
 
 (defun dun-help (_args)
   (dun-mprincl
-"Welcome to dunnet (2.02), by Ron Schnell (ronnie@driver-aces.com - @RonnieSchnell).
+"Welcome to dunnet by Ron Schnell (ronnie@driver-aces.com - @RonnieSchnell).
 Here is some useful information (read carefully because there are one
 or more clues in here):
 - If you have a key that can open a door, you do not need to explicitly

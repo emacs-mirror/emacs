@@ -113,7 +113,7 @@
 ;; whatever you would like to do.  These functions are then added to
 ;; a hook.
 ;;
-;; The keymap `follow-key-map' contains key bindings activated by
+;; The keymap `follow-mode-map' contains key bindings activated by
 ;; `follow-mode'.
 ;;
 ;; Example:
@@ -356,7 +356,7 @@ property `follow-mode-use-cache' to non-nil.")
 Used by `follow-window-size-change'.")
 
 (defvar follow-windows-start-end-cache nil
-  "Cache used by `follow-window-start-end'.")
+  "Cache used by `follow-window-start' and `follow-window-end'.")
 
 (defvar follow-fixed-window nil
   "If non-nil, the current window must not be scrolled.

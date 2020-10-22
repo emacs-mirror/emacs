@@ -52,19 +52,19 @@ _Noreturn void openat_save_fail (int);
    slightly more readable than it would be with
    fchownat (..., 0) or fchownat (..., AT_SYMLINK_NOFOLLOW).  */
 
-#if GNULIB_FCHOWNAT
+#if GNULIB_CHOWNAT
 
-# ifndef FCHOWNAT_INLINE
-#  define FCHOWNAT_INLINE _GL_INLINE
+# ifndef CHOWNAT_INLINE
+#  define CHOWNAT_INLINE _GL_INLINE
 # endif
 
-FCHOWNAT_INLINE int
+CHOWNAT_INLINE int
 chownat (int fd, char const *file, uid_t owner, gid_t group)
 {
   return fchownat (fd, file, owner, group, 0);
 }
 
-FCHOWNAT_INLINE int
+CHOWNAT_INLINE int
 lchownat (int fd, char const *file, uid_t owner, gid_t group)
 {
   return fchownat (fd, file, owner, group, AT_SYMLINK_NOFOLLOW);
@@ -72,19 +72,19 @@ lchownat (int fd, char const *file, uid_t owner, gid_t group)
 
 #endif
 
-#if GNULIB_FCHMODAT
+#if GNULIB_CHMODAT
 
-# ifndef FCHMODAT_INLINE
-#  define FCHMODAT_INLINE _GL_INLINE
+# ifndef CHMODAT_INLINE
+#  define CHMODAT_INLINE _GL_INLINE
 # endif
 
-FCHMODAT_INLINE int
+CHMODAT_INLINE int
 chmodat (int fd, char const *file, mode_t mode)
 {
   return fchmodat (fd, file, mode, 0);
 }
 
-FCHMODAT_INLINE int
+CHMODAT_INLINE int
 lchmodat (int fd, char const *file, mode_t mode)
 {
   return fchmodat (fd, file, mode, AT_SYMLINK_NOFOLLOW);

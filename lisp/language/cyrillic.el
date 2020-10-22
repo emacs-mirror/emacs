@@ -169,13 +169,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
   :charset-list '(ibm866)
   :mime-charset 'cp866)
 
-(define-coding-system 'koi8-u
-  "KOI8-U 8-bit encoding for Cyrillic (MIME: KOI8-U)"
-  :coding-type 'charset
-  :mnemonic ?U
-  :charset-list '(koi8-u)
-  :mime-charset 'koi8-u)
-
 (define-coding-system 'koi8-t
   "KOI8-T 8-bit encoding for Cyrillic"
   :coding-type 'charset

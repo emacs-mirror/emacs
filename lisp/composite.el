@@ -660,7 +660,7 @@ All non-spacing characters have this function in
 		    ;; align it at the center of the glyph of the
 		    ;; enclosing mark hoping that the enclosing mark
 		    ;; is big enough.  We also have to adjust the
-		    ;; x-offset and width of the mark ifself properly
+		    ;; x-offset and width of the mark itself properly
 		    ;; depending on how the glyph is designed.
 
 		    ;; (non-spacing or not).  For instance, when we

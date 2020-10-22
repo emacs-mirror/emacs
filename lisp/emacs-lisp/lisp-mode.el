@@ -200,7 +200,9 @@
     (save-excursion
       (ignore-errors
         (goto-char pos)
-        (or (eql (char-before) ?\')
+        ;; '(lambda ..) is not a funcall position, but #'(lambda ...) is.
+        (or (and (eql (char-before) ?\')
+                 (not (eql (char-before (1- (point))) ?#)))
             (let* ((ppss (syntax-ppss))
                    (paren-posns (nth 9 ppss))
                    (parent
@@ -456,7 +458,7 @@ This will generate compile-time constants from BINDINGS."
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<\\&" lisp-mode-symbol-regexp "\\_>")
+         (,(concat "\\_<&" lisp-mode-symbol-regexp "\\_>")
           . font-lock-type-face)
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
@@ -504,14 +506,12 @@ This will generate compile-time constants from BINDINGS."
           (1 font-lock-constant-face prepend))
          ;; Uninterned symbols, e.g., (defpackage #:my-package ...)
          ;; must come before keywords below to have effect
-         (,(concat "\\(#:\\)\\(" lisp-mode-symbol-regexp "\\)")
-           (1 font-lock-comment-delimiter-face)
-           (2 font-lock-doc-face))
+         (,(concat "#:" lisp-mode-symbol-regexp "") 0 font-lock-builtin-face)
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<\\&" lisp-mode-symbol-regexp "\\_>")
+         (,(concat "\\_<&" lisp-mode-symbol-regexp "\\_>")
           . font-lock-type-face)
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
@@ -535,7 +535,7 @@ This will generate compile-time constants from BINDINGS."
 
 ;; Support backtrace mode.
 (defconst lisp-el-font-lock-keywords-for-backtraces lisp-el-font-lock-keywords
-  "Default highlighting from Emacs Lisp mod used in Backtrace mode.")
+  "Default highlighting from Emacs Lisp mode used in Backtrace mode.")
 (defconst lisp-el-font-lock-keywords-for-backtraces-1 lisp-el-font-lock-keywords-1
   "Subdued highlighting from Emacs Lisp mode used in Backtrace mode.")
 (defconst lisp-el-font-lock-keywords-for-backtraces-2
@@ -611,6 +611,8 @@ Value for `adaptive-fill-function'."
   ;; a single docstring.  Let's fix it here.
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
+;; Maybe this should be discouraged/obsoleted and users should be
+;; encouraged to use `lisp-data-mode` instead.
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
                                       elisp)
   "Common initialization routine for lisp modes.
@@ -657,6 +659,14 @@ font-lock keywords will not be case sensitive."
   (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)
   (setq-local electric-pair-skip-whitespace 'chomp)
   (setq-local electric-pair-open-newline-between-pairs nil))
+
+;;;###autoload
+(define-derived-mode lisp-data-mode prog-mode "Lisp-Data"
+  "Major mode for buffers holding data written in Lisp syntax."
+  :group 'lisp
+  (lisp-mode-variables t t nil)
+  (setq-local electric-quote-string t)
+  (setq imenu-case-fold-search nil))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -737,7 +747,7 @@ font-lock keywords will not be case sensitive."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -746,10 +756,10 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
-  (lisp-mode-variables nil t)
+  (setq-local lisp-indent-function 'common-lisp-indent-function)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
-	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
@@ -774,8 +784,6 @@ or to switch back to an existing one."
             (goto-char pt)
             nil)))
       (comment-indent-default)))
-
-(define-obsolete-function-alias 'lisp-mode-auto-fill 'do-auto-fill "23.1")
 
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."
@@ -946,6 +954,7 @@ is the buffer position of the start of the containing expression."
           ;; setting this to a number inhibits calling hook
           (desired-indent nil)
           (retry t)
+          whitespace-after-open-paren
           calculate-lisp-indent-last-sexp containing-sexp)
       (cond ((or (markerp parse-start) (integerp parse-start))
              (goto-char parse-start))
@@ -975,6 +984,7 @@ is the buffer position of the start of the containing expression."
           nil
         ;; Innermost containing sexp found
         (goto-char (1+ containing-sexp))
+        (setq whitespace-after-open-paren (looking-at (rx whitespace)))
         (if (not calculate-lisp-indent-last-sexp)
 	    ;; indent-point immediately follows open paren.
 	    ;; Don't call hook.
@@ -989,9 +999,11 @@ is the buffer position of the start of the containing expression."
 		    calculate-lisp-indent-last-sexp)
 		 ;; This is the first line to start within the containing sexp.
 		 ;; It's almost certainly a function call.
-		 (if (= (point) calculate-lisp-indent-last-sexp)
+		 (if (or (= (point) calculate-lisp-indent-last-sexp)
+                         whitespace-after-open-paren)
 		     ;; Containing sexp has nothing before this line
-		     ;; except the first element.  Indent under that element.
+		     ;; except the first element, or the first element is
+                     ;; preceded by whitespace.  Indent under that element.
 		     nil
 		   ;; Skip the first element, find start of second (the first
 		   ;; argument of the function call) and indent under.

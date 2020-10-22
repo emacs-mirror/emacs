@@ -80,7 +80,7 @@
 
 (defvar vip-current-major-mode nil
   "vip-current-major-mode is the major-mode vi considers it is now.
-\(buffer specific\)")
+\(buffer specific)")
 
 (make-variable-buffer-local 'vip-current-major-mode)
 
@@ -1510,7 +1510,7 @@ used.  This behavior is controlled by the sign of prefix numeric value."
 	       (* (/ (point-max) 100) arg)
 	     (/ (* (point-max) arg) 100)))
 	  (back-to-indentation))
-    (cond ((looking-at "[\(\[{]")
+    (cond ((looking-at "[([{]")
 	   (if com (move-marker vip-com-point (point)))
 	   (forward-sexp 1)
 	   (if com
@@ -1719,7 +1719,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   (let (buffer)
     (setq buffer
 	  (read-buffer
-	   (format "switch to buffer \(%s\): "
+	   (format "switch to buffer (%s): "
 		   (buffer-name (other-buffer (current-buffer))))))
     (switch-to-buffer buffer)
     (vip-change-mode-to-vi)))
@@ -1730,7 +1730,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   (let (buffer)
     (setq buffer
 	  (read-buffer
-	   (format "Switch to buffer \(%s\): "
+	   (format "Switch to buffer (%s): "
 		   (buffer-name (other-buffer (current-buffer))))))
     (switch-to-buffer-other-window buffer)
     (vip-change-mode-to-vi)))
@@ -1741,7 +1741,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   (let (buffer buffer-name)
     (setq buffer-name
 	  (read-buffer
-	   (format "Kill buffer \(%s\): "
+	   (format "Kill buffer (%s): "
 		   (buffer-name (current-buffer)))))
     (setq buffer
 	  (if (null buffer-name)
@@ -2162,7 +2162,7 @@ is a command.")
 
 (defun vip-get-ex-token ()
   "get an ex-token which is either an address or a command.
-a token has type \(command, address, end-mark\) and value."
+a token has type \(command, address, end-mark) and value."
   (with-current-buffer " *ex-working-space*"
     (skip-chars-forward " \t")
     (cond ((looking-at "[k#]")
@@ -2668,7 +2668,7 @@ a token has type \(command, address, end-mark\) and value."
   "ex-edit"
   (vip-get-ex-file)
   (if (and (not ex-variant) (buffer-modified-p) buffer-file-name)
-      (error "No write since last change \(:e! overrides\)"))
+      (error "No write since last change (:e! overrides)"))
   (vip-change-mode-to-emacs)
   (set-buffer
    (find-file-noselect (concat default-directory ex-file)))

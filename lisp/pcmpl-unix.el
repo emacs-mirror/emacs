@@ -1,4 +1,4 @@
-;;; pcmpl-unix.el --- standard UNIX completions
+;;; pcmpl-unix.el --- standard UNIX completions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -82,9 +82,13 @@ being via `pcmpl-ssh-known-hosts-file'."
 ;;;###autoload
 (defun pcomplete/xargs ()
   "Completion for `xargs'."
-  (pcomplete-here (funcall pcomplete-command-completion-function))
+  ;; FIXME: Add completion of xargs-specific arguments.
+  (funcall pcomplete-command-completion-function)
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
+
+;; FIXME: Add completion of sudo-specific arguments.
+(defalias 'pcomplete/sudo #'pcomplete/xargs)
 
 ;;;###autoload
 (defalias 'pcomplete/time 'pcomplete/xargs)
@@ -144,7 +148,7 @@ documentation), this function returns nil."
 
 
 ;; ssh support by Phil Hagelberg.
-;; http://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
+;; https://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
 
 (defun pcmpl-ssh-known-hosts ()
   "Return a list of hosts found in `pcmpl-ssh-known-hosts-file'."
@@ -155,12 +159,14 @@ documentation), this function returns nil."
       (let ((host-re "\\(?:\\([-.[:alnum:]]+\\)\\|\\[\\([-.[:alnum:]]+\\)\\]:[0-9]+\\)[, ]")
             ssh-hosts-list)
         (while (re-search-forward (concat "^ *" host-re) nil t)
-          (add-to-list 'ssh-hosts-list (concat (match-string 1)
-                                               (match-string 2)))
+          (push (concat (match-string 1)
+                        (match-string 2))
+                ssh-hosts-list)
           (while (and (eq (char-before) ?,)
                       (re-search-forward host-re (line-end-position) t))
-            (add-to-list 'ssh-hosts-list (concat (match-string 1)
-                                                 (match-string 2)))))
+            (push  (concat (match-string 1)
+                           (match-string 2))
+                   ssh-hosts-list)))
         ssh-hosts-list))))
 
 (defun pcmpl-ssh-config-hosts ()
@@ -173,7 +179,7 @@ documentation), this function returns nil."
             (case-fold-search t))
         (while (re-search-forward "^ *host\\(name\\)? +\\([-.[:alnum:]]+\\)"
                                   nil t)
-          (add-to-list 'ssh-hosts-list (match-string 2)))
+          (push (match-string 2) ssh-hosts-list))
         ssh-hosts-list))))
 
 (defun pcmpl-ssh-hosts ()
@@ -181,7 +187,7 @@ documentation), this function returns nil."
 Uses both `pcmpl-ssh-config-file' and `pcmpl-ssh-known-hosts-file'."
   (let ((hosts (pcmpl-ssh-known-hosts)))
     (dolist (h (pcmpl-ssh-config-hosts))
-      (add-to-list 'hosts h))
+      (push h hosts))
     hosts))
 
 ;;;###autoload
@@ -214,6 +220,29 @@ Includes files as well as host names followed by a colon."
                                (mapcar (lambda (host) (concat host ":"))
                                        (pcmpl-ssh-hosts)))))))
                 (complete-with-action action table string pred))))))
+
+(defsubst pcmpl-unix-complete-hostname ()
+  "Complete a command that wants a hostname for an argument."
+  (pcomplete-here (pcomplete-read-host-names)))
+
+(defalias 'pcomplete/ftp    'pcmpl-unix-complete-hostname)
+(defalias 'pcomplete/ncftp  'pcmpl-unix-complete-hostname)
+(defalias 'pcomplete/ping   'pcmpl-unix-complete-hostname)
+(defalias 'pcomplete/rlogin 'pcmpl-unix-complete-hostname)
+
+;;;###autoload
+(defun pcomplete/telnet ()
+  (pcomplete-opt "xl(pcmpl-unix-user-names)")
+  (pcmpl-unix-complete-hostname))
+
+;;;###autoload
+(defun pcomplete/rsh ()
+  "Complete `rsh', which, after the user and hostname, is like xargs."
+  (pcomplete-opt "l(pcmpl-unix-user-names)")
+  (pcmpl-unix-complete-hostname)
+  (pcomplete-here (funcall pcomplete-command-completion-function))
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+               pcomplete-default-completion-function)))
 
 (provide 'pcmpl-unix)
 

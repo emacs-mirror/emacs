@@ -98,15 +98,14 @@ Also check that an encoding error can appear in a symlink."
 
 (ert-deftest fileio-tests--relative-HOME ()
   "Test that expand-file-name works even when HOME is relative."
-  (let ((old-home (getenv "HOME")))
+  (let ((process-environment (copy-sequence process-environment)))
     (setenv "HOME" "a/b/c")
     (should (equal (expand-file-name "~/foo")
                    (expand-file-name "a/b/c/foo")))
     (when (memq system-type '(ms-dos windows-nt))
       ;; Test expansion of drive-relative file names.
       (setenv "HOME" "x:foo")
-      (should (equal (expand-file-name "~/bar") "x:/foo/bar")))
-    (setenv "HOME" old-home)))
+      (should (equal (expand-file-name "~/bar") "x:/foo/bar")))))
 
 (ert-deftest fileio-tests--insert-file-interrupt ()
   (let ((text "-*- coding: binary -*-\n\xc3\xc3help")

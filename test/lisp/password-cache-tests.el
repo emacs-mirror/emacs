@@ -28,31 +28,31 @@
 
 (ert-deftest password-cache-tests-add-and-remove ()
   (let ((password-data (copy-hash-table password-data)))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (should (eq (password-in-cache-p "foo") t))
     (password-cache-remove "foo")
     (should (not (password-in-cache-p "foo")))))
 
 (ert-deftest password-cache-tests-read-from-cache ()
   (let ((password-data (copy-hash-table password-data)))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (should (equal (password-read-from-cache "foo") "bar"))
     (should (not (password-read-from-cache nil)))))
 
 (ert-deftest password-cache-tests-in-cache-p ()
   (let ((password-data (copy-hash-table password-data)))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (should (password-in-cache-p "foo"))
     (should (not (password-read-from-cache nil)))))
 
 (ert-deftest password-cache-tests-read ()
   (let ((password-data (copy-hash-table password-data)))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (should (equal (password-read nil "foo") "bar"))))
 
 (ert-deftest password-cache-tests-reset ()
   (let ((password-data (copy-hash-table password-data)))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (password-reset)
     (should (not (password-in-cache-p "foo")))))
 
@@ -60,14 +60,14 @@
   :tags '(:expensive-test)
   (let ((password-data (copy-hash-table password-data))
         (password-cache-expiry 0.01))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (sit-for 0.1)
     (should (not (password-in-cache-p "foo")))))
 
 (ert-deftest password-cache-tests-no-password-cache ()
   (let ((password-data (copy-hash-table password-data))
         (password-cache nil))
-    (password-cache-add "foo" "bar")
+    (password-cache-add "foo" (copy-sequence "bar"))
     (should (not (password-in-cache-p "foo")))
     (should (not (password-read-from-cache "foo")))))
 

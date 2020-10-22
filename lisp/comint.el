@@ -223,6 +223,13 @@ This variable is buffer-local."
 		 (other :tag "on" t))
   :group 'comint)
 
+(defcustom comint-highlight-input t
+  "If non-nil, highlight input with `comint-highlight-input' face.
+Otherwise keep the original highlighting untouched."
+  :version "28.1"
+  :type 'boolean
+  :group 'comint)
+
 (defface comint-highlight-input '((t (:weight bold)))
   "Face to use to highlight user input."
   :group 'comint)
@@ -248,6 +255,10 @@ to set this in a mode hook, rather than customize the default value."
   :type '(choice (const :tag "nil" nil)
 		 file)
   :group 'comint)
+
+(defvar comint-input-ring-file-prefix nil
+  "The prefix to skip when parsing the input ring file.
+This is useful in Zsh when the extended_history option is on.")
 
 (defcustom comint-scroll-to-bottom-on-input nil
   "Controls whether input to interpreter causes window to scroll.
@@ -351,6 +362,7 @@ This variable is buffer-local."
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 ;; Something called "perforce" uses "Enter password:".
 ;; OpenVPN prints a prompt like: "Enter Auth Password:".
+;; OpenBSD doas prints "doas (user@host) password:".
 ;; See ert test `comint-test-password-regexp'.
 (defcustom comint-password-prompt-regexp
   (concat
@@ -359,7 +371,7 @@ This variable is buffer-local."
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-      "[sudo]" "Repeat" "Bad" "Retype")
+      "[sudo]" "doas" "Repeat" "Bad" "Retype")
     t)
    ;; Allow for user name to precede password equivalent (Bug#31075).
    " +.*\\)"
@@ -731,7 +743,7 @@ contents are sent to the process as its initial input.
 If PROGRAM is a string, any more args are arguments to PROGRAM.
 
 Return the (possibly newly created) process buffer."
-  (or (fboundp 'start-file-process)
+  (or (fboundp 'make-process)
       (error "Multi-processing is not supported for this system"))
   (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
   ;; If no process, or nuked process, crank up a new one and put buffer in
@@ -809,18 +821,10 @@ series of processes in the same Comint buffer.  The hook
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
       ;; Feed it the startfile.
-      (cond (startfile
-	     ;;This is guaranteed to wait long enough
-	     ;;but has bad results if the comint does not prompt at all
-	     ;;	     (while (= size (buffer-size))
-	     ;;	       (sleep-for 1))
-	     ;;I hope 1 second is enough!
-	     (sleep-for 1)
-	     (goto-char (point-max))
-	     (insert-file-contents startfile)
-	     (setq startfile (buffer-substring (point) (point-max)))
-	     (delete-region (point) (point-max))
-	     (comint-send-string proc startfile)))
+      (when startfile
+        (comint-send-string proc (with-temp-buffer
+                                   (insert-file-contents startfile)
+                                   (buffer-string))))
       (run-hooks 'comint-exec-hook)
       buffer)))
 
@@ -987,8 +991,20 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                            (setq end (match-beginning 0)))
                  (setq start
                        (if (re-search-backward ring-separator nil t)
-                           (match-end 0)
-                         (point-min)))
+                           (progn
+                             (when (and comint-input-ring-file-prefix
+                                        (looking-at
+                                         comint-input-ring-file-prefix))
+                               ;; Skip zsh extended_history stamps
+                               (goto-char (match-end 0)))
+                             (match-end 0))
+                         (progn
+                           (goto-char (point-min))
+                           (when (and comint-input-ring-file-prefix
+                                      (looking-at
+                                       comint-input-ring-file-prefix))
+                             (goto-char (match-end 0)))
+                           (point))))
                  (setq history (buffer-substring start end))
                  (goto-char start)
                  (when (and (not (string-match history-ignore history))
@@ -1758,7 +1774,7 @@ Argument 0 is the command name."
               ((>= mth 0) (1- (- count mth)))
               (t          (1- (- mth))))))
       (mapconcat
-       (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
+       (lambda (a) a) (nthcdr n (nreverse (nthcdr m args))) " "))))
 
 ;;
 ;; Input processing stuff
@@ -1881,9 +1897,10 @@ Similarly for Soar, Scheme, etc."
               (end (if no-newline (point) (1- (point)))))
           (with-silent-modifications
             (when (> end beg)
-              (add-text-properties beg end
-                                   '(front-sticky t
-                                     font-lock-face comint-highlight-input))
+              (when comint-highlight-input
+                (add-text-properties beg end
+                                     '( font-lock-face comint-highlight-input
+                                        front-sticky t )))
               (unless comint-use-prompt-regexp
                 ;; Give old user input a field property of `input', to
                 ;; distinguish it from both process output and unsent
@@ -2350,6 +2367,7 @@ a buffer local variable."
 
 ;; For compatibility.
 (defun comint-read-noecho (prompt &optional _ignore)
+  (declare (obsolete read-passwd "28.1"))
   (read-passwd prompt))
 
 ;; These three functions are for entering text you don't want echoed or
@@ -2398,11 +2416,13 @@ Security bug: your string can still be temporarily recovered with
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
 Looks for a match to `comint-password-prompt-regexp' in order
-to detect the need to (prompt and) send a password.
+to detect the need to (prompt and) send a password.  Ignores any
+carriage returns (\\r) in STRING.
 
 This function could be in the list `comint-output-filter-functions'."
   (when (let ((case-fold-search t))
-	  (string-match comint-password-prompt-regexp string))
+	  (string-match comint-password-prompt-regexp
+                        (replace-regexp-in-string "\r" "" string)))
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
     (let ((comint--prompt-recursion-depth (1+ comint--prompt-recursion-depth)))
@@ -3124,7 +3144,7 @@ See `comint-word'."
               "\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
               "\\|{\\(?1:[^{}]+\\)}\\)"
               (when (memq system-type '(ms-dos windows-nt))
-                "\\|%\\(?1:[^\\\\/]*\\)%")
+                "\\|%\\(?1:[^\\/]*\\)%")
               (when comint-file-name-quote-list
                 "\\|\\\\\\(.\\)")))
          (qupos nil)
@@ -3425,7 +3445,7 @@ the completions."
 		 (eq (window-buffer (posn-window (event-start first)))
 		     (get-buffer "*Completions*"))
 		 (memq (key-binding key)
-                       '(mouse-choose-completion choose-completion))))
+                       '(choose-completion))))
 	  ;; If the user does choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
 	  (progn
@@ -3641,7 +3661,7 @@ and does not normally need to be invoked by the end user or programmer."
     (setq-local comint-redirect-previous-input-string "")
 
     (setq mode-line-process
-	  (if mode-line-process
+	  (if (and mode-line-process (stringp (elt mode-line-process 0)))
 	      (list (concat (elt mode-line-process 0) " Redirection"))
 	    (list ":%s Redirection")))))
 
@@ -3835,7 +3855,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
       (set-buffer output-buffer)
       (goto-char (point-min))
       ;; Skip past the command, if it was echoed
-      (and (looking-at command)
+      (and (looking-at (regexp-quote command))
 	   (forward-line))
       (while (and (not (eobp))
 		  (re-search-forward regexp nil t))

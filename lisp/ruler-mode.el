@@ -4,7 +4,7 @@
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001
-;; Version: 1.6
+;; Old-Version: 1.6
 ;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.

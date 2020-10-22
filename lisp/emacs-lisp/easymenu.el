@@ -29,16 +29,6 @@
 
 ;;; Code:
 
-(defvar easy-menu-precalculate-equivalent-keybindings nil
-  "Determine when equivalent key bindings are computed for easy-menu menus.
-It can take some time to calculate the equivalent key bindings that are shown
-in a menu.  If the variable is on, then this calculation gives a (maybe
-noticeable) delay when a mode is first entered.  If the variable is off, then
-this delay will come when a menu is displayed the first time.  If you never use
-menus, turn this variable off, otherwise it is probably better to keep it on.")
-(make-obsolete-variable
- 'easy-menu-precalculate-equivalent-keybindings nil "23.1")
-
 (defsubst easy-menu-intern (s)
   (if (stringp s) (intern s) s))
 

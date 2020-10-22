@@ -191,7 +191,7 @@ linked Emacs under SunOS 4.x."
 	 proc (concat (mapconcat 'identity
 				 (append url-gateway-telnet-parameters
 					 (list host service)) " ") "\n"))
-	(url-wait-for-string "^\r*Escape character.*\r*\n+" proc)
+	(url-wait-for-string "^\r*Escape character.*\n+" proc)
 	(delete-region (point-min) (match-end 0))
 	(process-send-string proc "\^]\n")
 	(url-wait-for-string "^telnet" proc)

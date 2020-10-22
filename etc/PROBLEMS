@@ -318,6 +318,83 @@ element from LD_LIBRARY_PATH before starting emacs proper.
 Or you could recompile Emacs with an -Wl,-rpath option that
 gives the location of the correct libotf.
 
+* Problems when reading or debugging Emacs C code
+
+Because Emacs does not install a copy of its C source code, users
+normally cannot easily read that code via commands like 'M-x
+describe-function' (C-h f) that display the definition of a function.
+However, some GNU/Linux systems provide separate packages containing
+this source code which can get C-h f to work if you are willing to do
+some tinkering, and some systems also provide packages containing
+debug info, which when combined with the source can be used to debug
+Emacs at the C level.
+
+** Debian-based source and debuginfo
+
+On recent Debian-based systems, you can obtain and use a source
+package of Emacs as follows.
+
+*** Add the appropriate URI to /etc/apt/sources.list.
+
+To do this, become superuser and uncomment or add the appropriate
+'deb-src' line.  Details depend on the distribution.
+
+*** Execute a command like 'apt-get source emacs'.
+
+On older systems, append the top-level version number, e.g., 'apt-get
+source emacs25'.  The target directory for unpacking the source tree
+is the current directory.
+
+*** Set find-function-C-source-directory accordingly.
+
+Once you have installed the source package, for example at
+/home/myself/deb-src/emacs-26.3, add the following line to your
+startup file:
+
+     (setq find-function-C-source-directory
+           "/home/myself/deb-src/emacs-26.3/src/")
+
+The installation directory of the Emacs source package will contain
+the exact package name and version number of Emacs that is installed
+on your system.  If a new Emacs package is installed, the source
+package must be reinstalled as well, and the setting in your startup
+file must be updated.
+
+*** Debian-based debuginfo
+
+You can also install a debug package of Emacs with a command like
+'apt-get install emacs-dbg' (on older systems, 'apt-get install
+emacs25-dbg').  You need to arrange for GDB to find where you
+installed the source code, e.g., by using GDB's 'directory' command.
+
+** Red Hat-based source and debuginfo
+
+On recent Red Hat-based systems, you can install source and debug info
+via superuser commands like the following:
+
+  # Add the *-debuginfo repositories (exact command depends on system).
+  dnf config-manager --set-enabled fedora-debuginfo updates-debuginfo'
+
+  # Install Emacs source and debug info.
+  dnf install emacs-debugsource
+
+To get describe-function and similar commands to work, you can then
+add something like the following to your startup file:
+
+     (setq find-function-C-source-directory
+           "/usr/src/debug/emacs-26.3-1.fc31.x86_64/src/")
+
+However, the exact directory name will depend on the system, and you
+will need to both upgrade source and debug info when your system
+upgrades or patches Emacs, and change your startup file accordingly.
+
+** Source and debuginfo for other systems
+
+If your system follows neither the Debian nor the Red Hat patterns,
+you can obtain the source and debuginfo by obtaining the source code
+of Emacs, building Emacs with the appropriate debug flags enabled, and
+running the just-built Emacs.
+
 * General runtime problems
 
 ** Lisp problems
@@ -341,27 +418,6 @@ EMACSLOADPATH overrides which directories the function "load" will search.
 
 If you observe strange problems, check for this variable in your
 environment.
-
-*** Using epop3.el package causes Emacs to signal an error.
-
-The error message might be something like this:
-
-  "Lisp nesting exceeds max-lisp-eval-depth"
-
-This happens because epop3 redefines the function gethash, which is a
-built-in primitive beginning with Emacs 21.1.  We don't have a patch
-for epop3 to fix it, but perhaps a newer version of epop3 corrects that.
-
-*** Buffers from 'with-output-to-temp-buffer' get set up in Help mode.
-
-Changes in Emacs 20.4 to the hooks used by that function cause
-problems for some packages, specifically BBDB.  See the function's
-documentation for the hooks involved.  BBDB 2.00.06 fixes the problem.
-
-*** The Hyperbole package causes *Help* buffers not to be displayed in
-Help mode due to setting 'temp-buffer-show-hook' rather than using
-'add-hook'.  Using '(add-hook 'temp-buffer-show-hook 'help-mode-finish)'
-after loading Hyperbole should fix this.
 
 ** Keyboard problems
 
@@ -497,13 +553,6 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 For example, simply moving through a file that contains hundreds of
 thousands of characters per line is slow, and consumes a lot of CPU.
 This is a known limitation of Emacs with no solution at this time.
-
-*** Emacs uses 100% of CPU time
-
-This was a known problem with some old versions of the Semantic package.
-The solution was to upgrade Semantic to version 2.0pre4 (distributed
-with CEDET 1.0pre4) or later.  Note that Emacs includes Semantic since
-23.2, and this issue does not apply to the included version.
 
 *** Display artifacts on GUI frames on X-based systems.
 
@@ -728,6 +777,18 @@ and ps-mule to print Unicode characters.
 
 You may have bad fonts.
 
+** Under X, some characters are unexpectedly wide.
+
+e.g. recent versions of Inconsolata show this issue for almost all of
+its characters.  Due to what is probably an Xft bug, the determination
+of the width of some characters is incorrect.  One workaround is to
+build emacs with Cairo enabled ("configure --with-cairo" and have the
+appropriate Cairo development packages installed) as this
+configuration does not suffer from this problem.  See
+<https://github.com/googlefonts/Inconsolata/issues/42> and
+<https://lists.gnu.org/r/bug-gnu-emacs/2020-01/msg00456.html>
+for more discussion.
+
 ** Under X, an unexpected monospace font is used as the default font.
 
 When compiled with XFT, Emacs tries to use a default font named
@@ -905,6 +966,19 @@ index 5504171..431adf8 100644
 
 If you can't modify that file directly, copy it to the directory
 ~/.m17n.d/ (create it if it doesn't exist), and apply the patch.
+
+** On MS-Windows, some characters display as boxes with hex code.
+
+Also, some characters could display with wrong fonts.
+
+This can happen if Emacs was compiled without HarfBuzz support, and/or
+if the HarfBuzz DLLs are not available at run time.  Emacs will then
+fall back to the Uniscribe as its shaping engine; Uniscribe was
+deprecated by Microsoft, and sometimes fails to display correctly when
+modern fonts are used, such as Noto Emoji or Ebrima.
+
+The solution is to switch to a configuration that uses HarfBuzz as its
+shaping engine, where these problems don't exist.
 
 * Internationalization problems
 
@@ -1541,6 +1615,12 @@ even if you should be able to paste, and similar).
 You can get back menus on each frame by starting emacs like this:
 % env UBUNTU_MENUPROXY= emacs
 
+*** Mouse click coordinates not recognized correctly on multiple monitors.
+
+This happens on the proprietary X server ASTEC-X when the number of
+monitors is changed after the server has started.  A workaround is to
+restart the X server after the monitor configuration has been changed.
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
@@ -1863,11 +1943,6 @@ A few versions of the Linux kernel have timer bugs that break CPU
 profiling; see Bug#34235.  To fix the problem, upgrade to one of the
 kernel versions 4.14.97, 4.19.19, or 4.20.6, or later.
 
-*** GNU/Linux: Process output is corrupted.
-
-There is a bug in Linux kernel 2.6.10 PTYs that can cause emacs to
-read corrupted process output.
-
 *** GNU/Linux: Remote access to CVS with SSH causes file corruption.
 
 If you access a remote CVS repository via SSH, files may be corrupted
@@ -2133,6 +2208,7 @@ We list bugs in current versions here.  See also the section on legacy
 systems.
 
 *** On Solaris 10, Emacs crashes during the build process.
+(This applies only with './configure --with-unexec=yes', which is rare.)
 This was reported for Emacs 25.2 on i386-pc-solaris2.10 with Sun
 Studio 12 (Sun C 5.9) and with Oracle Developer Studio 12.6 (Sun C
 5.15), and intermittently for sparc-sun-solaris2.10 with Oracle
@@ -2149,66 +2225,6 @@ Solaris.  See Bug#26638.
 
 This is a Solaris feature (at least on Intel x86 cpus).  Type C-r
 C-r C-t, to toggle whether C-x gets through to Emacs.
-
-*** Problem with remote X server on Suns.
-
-On a Sun, running Emacs on one machine with the X server on another
-may not work if you have used the unshared system libraries.  This
-is because the unshared libraries fail to use YP for host name lookup.
-As a result, the host name you specify may not be recognized.
-
-*** Solaris 2.6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
-
-We suspect that this is a bug in the X libraries provided by
-Sun.  There is a report that one of these patches fixes the bug and
-makes the problem stop:
-
-105216-01 105393-01 105518-01 105621-01 105665-01 105615-02 105216-02
-105667-01 105401-08 105615-03 105621-02 105686-02 105736-01 105755-03
-106033-01 105379-01 105786-01 105181-04 105379-03 105786-04 105845-01
-105284-05 105669-02 105837-01 105837-02 105558-01 106125-02 105407-01
-
-Another person using a newer system (kernel patch level Generic_105181-06)
-suspects that the bug was fixed by one of these more recent patches:
-
-106040-07  SunOS 5.6: X Input & Output Method patch
-106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
-105284-12  Motif 1.2.7: sparc Runtime library patch
-
-*** Solaris 7 or 8: Emacs reports a BadAtom error (from X)
-
-This happens when Emacs was built on some other version of Solaris.
-Rebuild it on Solaris 8.
-
-*** When using M-x dbx with the SparcWorks debugger, the 'up' and 'down'
-commands do not move the arrow in Emacs.
-
-You can fix this by adding the following line to '~/.dbxinit':
-
- dbxenv output_short_file_name off
-
-*** On Solaris, CTRL-t is ignored by Emacs when you use
-the fr.ISO-8859-15 locale (and maybe other related locales).
-
-You can fix this by editing the file:
-
-        /usr/openwin/lib/locale/iso8859-15/Compose
-
-Near the bottom there is a line that reads:
-
-        Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
-
-while it should read:
-
-        Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
-
-Note the lower case <t>.  Changing this line should make C-t work.
-
-*** On Solaris, Emacs fails to set menu-bar-update-hook on startup, with error
-"Error in menu-bar-update-hook: (error Point before start of properties)".
-This seems to be a GCC optimization bug that occurs for GCC 4.1.2 (-g
-and -g -O2) and GCC 4.2.3 (-g -O and -g -O2).  You can fix this by
-compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
 
 * Runtime problems specific to MS-Windows
 
@@ -2644,13 +2660,13 @@ Libxpm is available for macOS as part of the XQuartz project.
 
 This indicates a mismatch between the C compiler and preprocessor that
 configure is using.  For example, on Solaris 10 trying to use
-CC=/opt/SUNWspro/bin/cc (the Sun Studio compiler) together with
-CPP=/usr/ccs/lib/cpp can result in errors of this form (you may also
-see the error '"/usr/include/sys/isa_defs.h", line 500: undefined control').
+CC=/opt/developerstudio12.6/bin/cc (the Oracle Developer Studio
+compiler) together with CPP=/usr/lib/cpp can result in errors of
+this form.
 
 The solution is to tell configure to use the correct C preprocessor
-for your C compiler (CPP="/opt/SUNWspro/bin/cc -E" in the above
-example).
+for your C compiler (CPP="/opt/developerstudio12.6/bin/cc -E" in the
+above example).
 
 ** Compilation
 
@@ -2709,11 +2725,6 @@ The symbol is sendmmsg@FBSD_1.4.  This is due to a faulty libgio
 library on these systems.  The solution is to reconfigure Emacs while
 disabling all the features that require libgio: rsvg, dbus, gconf, and
 imagemagick.
-
-*** Building Emacs for Cygwin can fail with GCC 3
-
-As of Emacs 22.1, there have been stability problems with Cygwin
-builds of Emacs using GCC 3.  Cygwin users are advised to use GCC 4.
 
 *** Building Emacs 23.3 and later will fail under Cygwin 1.5.19
 
@@ -3021,7 +3032,69 @@ This section covers bugs reported on very old hardware or software.
 If you are using hardware and an operating system shipped after 2000,
 it is unlikely you will see any of these.
 
-*** Solaris 2.x
+** Solaris
+
+*** Problem with remote X server on Suns.
+
+On a Sun, running Emacs on one machine with the X server on another
+may not work if you have used the unshared system libraries.  This
+is because the unshared libraries fail to use YP for host name lookup.
+As a result, the host name you specify may not be recognized.
+
+*** Solaris 2.6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
+
+We suspect that this is a bug in the X libraries provided by
+Sun.  There is a report that one of these patches fixes the bug and
+makes the problem stop:
+
+105216-01 105393-01 105518-01 105621-01 105665-01 105615-02 105216-02
+105667-01 105401-08 105615-03 105621-02 105686-02 105736-01 105755-03
+106033-01 105379-01 105786-01 105181-04 105379-03 105786-04 105845-01
+105284-05 105669-02 105837-01 105837-02 105558-01 106125-02 105407-01
+
+Another person using a newer system (kernel patch level Generic_105181-06)
+suspects that the bug was fixed by one of these more recent patches:
+
+106040-07  SunOS 5.6: X Input & Output Method patch
+106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
+105284-12  Motif 1.2.7: sparc Runtime library patch
+
+*** Solaris 7 or 8: Emacs reports a BadAtom error (from X)
+
+This happens when Emacs was built on some other version of Solaris.
+Rebuild it on Solaris 8.
+
+*** When using M-x dbx with the SparcWorks debugger, the 'up' and 'down'
+commands do not move the arrow in Emacs.
+
+You can fix this by adding the following line to '~/.dbxinit':
+
+ dbxenv output_short_file_name off
+
+*** On Solaris, CTRL-t is ignored by Emacs when you use
+the fr.ISO-8859-15 locale (and maybe other related locales).
+
+You can fix this by editing the file:
+
+        /usr/openwin/lib/locale/iso8859-15/Compose
+
+Near the bottom there is a line that reads:
+
+        Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
+
+while it should read:
+
+        Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
+
+Note the lower case <t>.  Changing this line should make C-t work.
+
+*** On Solaris, Emacs fails to set menu-bar-update-hook on startup, with error
+"Error in menu-bar-update-hook: (error Point before start of properties)".
+This seems to be a GCC optimization bug that occurs for GCC 4.1.2 (-g
+and -g -O2) and GCC 4.2.3 (-g -O and -g -O2).  You can fix this by
+compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
+
+*** Other legacy Solaris problems
 
 **** Strange results from format %d in a few cases, on a Sun.
 

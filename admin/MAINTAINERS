@@ -126,6 +126,11 @@ Ulf Jasper
 	    lisp/calendar/icalendar.el
 	    test/lisp/calendar/icalendar-tests.el
 
+Amin Bandali
+	ERC
+	    lisp/erc/*
+	    doc/misc/erc.texi
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -208,6 +213,7 @@ Paul Eggert
 	src/* (except for *.m, *w32*, bitmaps, files others want to maintain)
 
 Michael Albinus
+        .gitlab-ci.yml
 	src/inotify.c
         lisp/autorevert.el
 	lisp/eshell/em-tramp.el
@@ -247,6 +253,11 @@ Alan Third
             src/*.m
             lisp/term/ns-win.el
             doc/emacs/macos.texi
+
+Amin Bandali
+	Eshell
+	    lisp/eshell/*
+	    doc/misc/eshell.texi
 
 
 ;;; Local Variables:

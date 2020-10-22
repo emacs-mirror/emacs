@@ -34,7 +34,7 @@
 (require 'gnus-sum)
 (require 'gnus-util)
 (require 'nnheader)
-(require 'nnir)
+(require 'nnselect)
 (require 'ol)
 
 
@@ -140,9 +140,9 @@ If `org-store-link' was called with a prefix arg the meaning of
 	       (`(nnvirtual . ,_)
 		(save-excursion
 		  (car (nnvirtual-map-article (gnus-summary-article-number)))))
-	       (`(nnir . ,_)
+	       (`(nnselect . ,_)
 		(save-excursion
-		  (nnir-article-group (gnus-summary-article-number))))
+		  (nnselect-article-group (gnus-summary-article-number))))
 	       (_ gnus-newsgroup-name)))
 	    (header (if (eq major-mode 'gnus-article-mode)
 			;; When in an article, first move to summary

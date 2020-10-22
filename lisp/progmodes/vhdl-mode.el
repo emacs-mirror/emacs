@@ -2304,10 +2304,6 @@ Ignore byte-compiler warnings you might see."
     (defvaralias 'vhdl-last-input-event 'last-input-char)
   (defvaralias 'vhdl-last-input-event 'last-input-event))
 
-;; `help-print-return-message' changed to `print-help-return-message' in Emacs
-;;;(unless (fboundp 'help-print-return-message)
-;;;  (defalias 'help-print-return-message 'print-help-return-message))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Compatibility with older VHDL Mode versions
 
@@ -13334,7 +13330,7 @@ File statistics: \"%s\"\n\
 (defvar vhdl-font-lock-keywords nil
   "Regular expressions to highlight in VHDL Mode.")
 
-(defvar vhdl-font-lock-keywords-0
+(defvar vhdl-font-lock-keywords-0 nil
   ;; set in `vhdl-font-lock-init' because dependent on user options
   "For consideration as a value of `vhdl-font-lock-keywords'.
 This does highlighting of template prompts and directives (pragmas).")
@@ -14730,7 +14726,7 @@ if required."
     (speedbar-add-mode-functions-list
      '("vhdl directory"
        (speedbar-item-info . vhdl-speedbar-item-info)
-       (speedbar-line-directory . speedbar-files-line-path)))
+       (speedbar-line-directory . speedbar-files-line-directory)))
     (speedbar-add-mode-functions-list
      '("vhdl project"
        (speedbar-item-info . vhdl-speedbar-item-info)
@@ -16148,7 +16144,7 @@ expansion function)."
 
 ;; initialize speedbar
 (if (not (boundp 'speedbar-frame))
-    (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize)
+    (with-no-warnings (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize))
   (vhdl-speedbar-initialize)
   (when speedbar-frame (vhdl-speedbar-refresh)))
 

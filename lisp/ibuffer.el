@@ -339,6 +339,8 @@ directory, like `default-directory'."
 (defcustom ibuffer-load-hook nil
   "Hook run when Ibuffer is loaded."
   :type 'hook)
+(make-obsolete-variable 'ibuffer-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom ibuffer-marked-face 'warning
   "Face used for displaying marked buffers."
@@ -1595,7 +1597,7 @@ If point is on a group name, this function operates on that group."
 (defun ibuffer-compile-make-substring-form (strvar maxvar from-end-p)
   (if from-end-p
       ;; FIXME: not sure if this case is correct (Bug#24972)
-      `(truncate-string-to-width str strlen (- strlen ,maxvar) nil ?\s)
+      `(truncate-string-to-width str strlen (- strlen ,maxvar) ?\s)
     `(truncate-string-to-width ,strvar ,maxvar nil ?\s)))
 
 (defun ibuffer-compile-make-format-form (strvar widthform alignment)

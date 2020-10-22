@@ -227,7 +227,7 @@
 
 ;;; byte-compile optimizers to support inlining
 
-(put 'inline 'byte-optimizer 'byte-optimize-inline-handler)
+(put 'inline 'byte-optimizer #'byte-optimize-inline-handler)
 
 (defun byte-optimize-inline-handler (form)
   "byte-optimize-handler for the `inline' special-form."
@@ -391,13 +391,6 @@
 	   (and (nth 1 form)
 		(not for-effect)
 		form))
-	  ((eq (car-safe fn) 'lambda)
-	   (let ((newform (byte-compile-unfold-lambda form)))
-	     (if (eq newform form)
-		 ;; Some error occurred, avoid infinite recursion
-		 form
-	       (byte-optimize-form-code-walker newform for-effect))))
-	  ((eq (car-safe fn) 'closure) form)
 	  ((memq fn '(let let*))
 	   ;; recursively enter the optimizer for the bindings and body
 	   ;; of a let or let*.  This for depth-firstness: forms that
@@ -443,13 +436,6 @@
 	   ;; This can turn (save-excursion ...) into (save-excursion) which
 	   ;; will be optimized away in the lap-optimize pass.
 	   (cons fn (byte-optimize-body (cdr form) for-effect)))
-
-	  ((eq fn 'with-output-to-temp-buffer)
-	   ;; this is just like the above, except for the first argument.
-	   (cons fn
-	     (cons
-	      (byte-optimize-form (nth 1 form) nil)
-	      (byte-optimize-body (cdr (cdr form)) for-effect))))
 
 	  ((eq fn 'if)
 	   (when (< (length form) 3)
@@ -530,6 +516,15 @@
           ;; Needed as long as we run byte-optimize-form after cconv.
           ((eq fn 'internal-make-closure) form)
 
+	  ((eq (car-safe fn) 'lambda)
+	   (let ((newform (byte-compile-unfold-lambda form)))
+	     (if (eq newform form)
+		 ;; Some error occurred, avoid infinite recursion
+		 form
+	       (byte-optimize-form newform for-effect))))
+
+	  ((eq (car-safe fn) 'closure) form)
+
           ((byte-code-function-p fn)
            (cons fn (mapcar #'byte-optimize-form (cdr form))))
 
@@ -554,20 +549,10 @@
 	   ;; Otherwise, no args can be considered to be for-effect,
 	   ;; even if the called function is for-effect, because we
 	   ;; don't know anything about that function.
-	   (let ((args (mapcar #'byte-optimize-form (cdr form))))
-	     (if (and (get fn 'pure)
-		      (byte-optimize-all-constp args))
-		   (list 'quote (apply fn (mapcar #'eval args)))
-	       (cons fn args)))))))
-
-(defun byte-optimize-all-constp (list)
-  "Non-nil if all elements of LIST satisfy `macroexp-const-p'."
-  (let ((constant t))
-    (while (and list constant)
-      (unless (macroexp-const-p (car list))
-	(setq constant nil))
-      (setq list (cdr list)))
-    constant))
+	   (let ((form (cons fn (mapcar #'byte-optimize-form (cdr form)))))
+	     (if (get fn 'pure)
+		 (byte-optimize-constant-args form)
+	       form))))))
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
@@ -663,45 +648,36 @@
 	  (setq args (cons (car rest) args)))
       (setq rest (cdr rest)))
     (if (cdr constants)
-	(if args
-	    (list (car form)
-		  (apply (car form) constants)
-		  (if (cdr args)
-		      (cons (car form) (nreverse args))
-		      (car args)))
-	    (apply (car form) constants))
-	form)))
+        (let ((const (apply (car form) (nreverse constants))))
+	  (if args
+	      (append (list (car form) const)
+                      (nreverse args))
+	    const))
+      form)))
 
-;; Portable Emacs integers fall in this range.
-(defconst byte-opt--portable-max #x1fffffff)
-(defconst byte-opt--portable-min (- -1 byte-opt--portable-max))
+(defun byte-optimize-min-max (form)
+  "Optimize `min' and `max'."
+  (let ((opt (byte-optimize-associative-math form)))
+    (if (and (consp opt) (memq (car opt) '(min max))
+             (= (length opt) 4))
+        ;; (OP x y z) -> (OP (OP x y) z), in order to use binary byte ops.
+        (list (car opt)
+              (list (car opt) (nth 1 opt) (nth 2 opt))
+              (nth 3 opt))
+      opt)))
 
-;; True if N is a number that works the same on all Emacs platforms.
-;; Portable Emacs fixnums are exactly representable as floats on all
-;; Emacs platforms, and (except for -0.0) any floating-point number
-;; that equals one of these integers must be the same on all
-;; platforms.  Although other floating-point numbers such as 0.5 are
-;; also portable, it can be tricky to characterize them portably so
-;; they are not optimized.
-(defun byte-opt--portable-numberp (n)
-  (and (numberp n)
-       (<= byte-opt--portable-min n byte-opt--portable-max)
-       (= n (floor n))
-       (not (and (floatp n) (zerop n)
-                 (condition-case () (< (/ n) 0) (error))))))
-
-;; Use OP to reduce any leading prefix of portable numbers in the list
-;; (cons ACCUM ARGS) down to a single portable number, and return the
+;; Use OP to reduce any leading prefix of constant numbers in the list
+;; (cons ACCUM ARGS) down to a single number, and return the
 ;; resulting list A of arguments.  The idea is that applying OP to A
 ;; is equivalent to (but likely more efficient than) applying OP to
 ;; (cons ACCUM ARGS), on any Emacs platform.  Do not make any special
 ;; provision for (- X) or (/ X); for example, it is the caller’s
 ;; responsibility that (- 1 0) should not be "optimized" to (- 1).
 (defun byte-opt--arith-reduce (op accum args)
-  (when (byte-opt--portable-numberp accum)
+  (when (numberp accum)
     (let (accum1)
-      (while (and (byte-opt--portable-numberp (car args))
-                  (byte-opt--portable-numberp
+      (while (and (numberp (car args))
+                  (numberp
                    (setq accum1 (condition-case ()
                                     (funcall op accum (car args))
                                   (error))))
@@ -724,6 +700,9 @@
              (integer (if integer-is-first arg1 arg2))
              (other (if integer-is-first arg2 arg1)))
         (list (if (eq integer 1) '1+ '1-) other)))
+     ;; (+ x y z) -> (+ (+ x y) z)
+     ((= (length args) 3)
+      `(+ ,(byte-optimize-plus `(+ ,(car args) ,(cadr args))) ,@(cddr args)))
      ;; not further optimized
      ((equal args (cdr form)) form)
      (t (cons '+ args)))))
@@ -746,34 +725,18 @@
        ;; (- x -1) --> (1+ x)
        ((equal (cdr args) '(-1))
         (list '1+ (car args)))
-       ;; (- n) -> -n, where n and -n are portable numbers.
+       ;; (- n) -> -n, where n and -n are constant numbers.
        ;; This must be done separately since byte-opt--arith-reduce
        ;; is not applied to (- n).
        ((and (null (cdr args))
-             (byte-opt--portable-numberp (car args))
-             (byte-opt--portable-numberp (- (car args))))
+             (numberp (car args)))
         (- (car args)))
+       ;; (- x y z) -> (- (- x y) z)
+       ((= (length args) 3)
+        `(- ,(byte-optimize-minus `(- ,(car args) ,(cadr args))) ,@(cddr args)))
        ;; not further optimized
        ((equal args (cdr form)) form)
        (t (cons '- args))))))
-
-(defun byte-optimize-1+ (form)
-  (let ((args (cdr form)))
-    (when (null (cdr args))
-      (let ((n (car args)))
-        (when (and (byte-opt--portable-numberp n)
-                   (byte-opt--portable-numberp (1+ n)))
-          (setq form (1+ n))))))
-  form)
-
-(defun byte-optimize-1- (form)
-  (let ((args (cdr form)))
-    (when (null (cdr args))
-      (let ((n (car args)))
-        (when (and (byte-opt--portable-numberp n)
-                   (byte-opt--portable-numberp (1- n)))
-          (setq form (1- n))))))
-  form)
 
 (defun byte-optimize-multiply (form)
   (let* ((args (remq 1 (byte-opt--arith-reduce #'* 1 (cdr form)))))
@@ -782,6 +745,10 @@
      ((null args) 1)
      ;; (* n) -> n, where n is a number
      ((and (null (cdr args)) (numberp (car args))) (car args))
+     ;; (* x y z) -> (* (* x y) z)
+     ((= (length args) 3)
+      `(* ,(byte-optimize-multiply `(* ,(car args) ,(cadr args)))
+          ,@(cddr args)))
      ;; not further optimized
      ((equal args (cdr form)) form)
      (t (cons '* args)))))
@@ -810,10 +777,10 @@
     (condition-case ()
         (list 'quote (eval form))
       (error form)))
-   (t ;; This can enable some lapcode optimizations.
+   (t ;; Moving the constant to the end can enable some lapcode optimizations.
     (list (car form) (nth 2 form) (nth 1 form)))))
 
-(defun byte-optimize-predicate (form)
+(defun byte-optimize-constant-args (form)
   (let ((ok t)
 	(rest (cdr form)))
     (while (and rest ok)
@@ -828,9 +795,6 @@
 (defun byte-optimize-identity (form)
   (if (and (cdr form) (null (cdr (cdr form))))
       (nth 1 form)
-    (byte-compile-warn "identity called with %d arg%s, but requires 1"
-		       (length (cdr form))
-		       (if (= 1 (length (cdr form))) "" "s"))
     form))
 
 (defun byte-optimize--constant-symbol-p (expr)
@@ -863,21 +827,27 @@
     ;; Arity errors reported elsewhere.
     form))
 
+(defun byte-optimize-assoc (form)
+  ;; Replace 2-argument `assoc' with `assq', `rassoc' with `rassq',
+  ;; if the first arg is a symbol.
+  (if (and (= (length form) 3)
+           (byte-optimize--constant-symbol-p (nth 1 form)))
+      (cons (if (eq (car form) 'assoc) 'assq 'rassq)
+            (cdr form))
+    form))
+
 (defun byte-optimize-memq (form)
   ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
-  (if (/= (length (cdr form)) 2)
-      (byte-compile-warn "memq called with %d arg%s, but requires 2"
-		         (length (cdr form))
-		         (if (= 1 (length (cdr form))) "" "s"))
-    (let ((list (nth 2 form)))
-      (when (and (eq (car-safe list) 'quote)
+  (if (= (length (cdr form)) 2)
+      (let ((list (nth 2 form)))
+        (if (and (eq (car-safe list) 'quote)
                  (listp (setq list (cadr list)))
                  (= (length list) 1))
-        (setq form (byte-optimize-and
-                    `(and ,(byte-optimize-predicate
-                            `(eq ,(nth 1 form) ',(nth 0 list)))
-                          ',list)))))
-    (byte-optimize-predicate form)))
+            `(and (eq ,(nth 1 form) ',(nth 0 list))
+                  ',list)
+          form))
+    ;; Arity errors reported elsewhere.
+    form))
 
 (defun byte-optimize-concat (form)
   "Merge adjacent constant arguments to `concat'."
@@ -906,58 +876,34 @@
         form          ; No improvement.
       (cons 'concat (nreverse newargs)))))
 
-(put 'identity 'byte-optimizer 'byte-optimize-identity)
-(put 'memq 'byte-optimizer 'byte-optimize-memq)
-(put 'memql  'byte-optimizer 'byte-optimize-member)
-(put 'member 'byte-optimizer 'byte-optimize-member)
+(put 'identity 'byte-optimizer #'byte-optimize-identity)
+(put 'memq 'byte-optimizer #'byte-optimize-memq)
+(put 'memql  'byte-optimizer #'byte-optimize-member)
+(put 'member 'byte-optimizer #'byte-optimize-member)
+(put 'assoc 'byte-optimizer #'byte-optimize-assoc)
+(put 'rassoc 'byte-optimizer #'byte-optimize-assoc)
 
-(put '+   'byte-optimizer 'byte-optimize-plus)
-(put '*   'byte-optimizer 'byte-optimize-multiply)
-(put '-   'byte-optimizer 'byte-optimize-minus)
-(put '/   'byte-optimizer 'byte-optimize-divide)
-(put 'max 'byte-optimizer 'byte-optimize-associative-math)
-(put 'min 'byte-optimizer 'byte-optimize-associative-math)
+(put '+   'byte-optimizer #'byte-optimize-plus)
+(put '*   'byte-optimizer #'byte-optimize-multiply)
+(put '-   'byte-optimizer #'byte-optimize-minus)
+(put '/   'byte-optimizer #'byte-optimize-divide)
+(put 'max 'byte-optimizer #'byte-optimize-min-max)
+(put 'min 'byte-optimizer #'byte-optimize-min-max)
 
-(put '=   'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'eq  'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'eql   'byte-optimizer 'byte-optimize-equal)
-(put 'equal 'byte-optimizer 'byte-optimize-equal)
-(put 'string= 'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'string-equal 'byte-optimizer 'byte-optimize-binary-predicate)
+(put '=   'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'eq  'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'eql   'byte-optimizer #'byte-optimize-equal)
+(put 'equal 'byte-optimizer #'byte-optimize-equal)
+(put 'string= 'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'string-equal 'byte-optimizer #'byte-optimize-binary-predicate)
 
-(put '<   'byte-optimizer 'byte-optimize-predicate)
-(put '>   'byte-optimizer 'byte-optimize-predicate)
-(put '<=  'byte-optimizer 'byte-optimize-predicate)
-(put '>=  'byte-optimizer 'byte-optimize-predicate)
-(put '1+  'byte-optimizer 'byte-optimize-1+)
-(put '1-  'byte-optimizer 'byte-optimize-1-)
-(put 'not 'byte-optimizer 'byte-optimize-predicate)
-(put 'null  'byte-optimizer 'byte-optimize-predicate)
-(put 'consp 'byte-optimizer 'byte-optimize-predicate)
-(put 'listp 'byte-optimizer 'byte-optimize-predicate)
-(put 'symbolp 'byte-optimizer 'byte-optimize-predicate)
-(put 'stringp 'byte-optimizer 'byte-optimize-predicate)
-(put 'string< 'byte-optimizer 'byte-optimize-predicate)
-(put 'string-lessp  'byte-optimizer 'byte-optimize-predicate)
-(put 'proper-list-p 'byte-optimizer 'byte-optimize-predicate)
-
-(put 'logand 'byte-optimizer 'byte-optimize-predicate)
-(put 'logior 'byte-optimizer 'byte-optimize-predicate)
-(put 'logxor 'byte-optimizer 'byte-optimize-predicate)
-(put 'lognot 'byte-optimizer 'byte-optimize-predicate)
-
-(put 'car 'byte-optimizer 'byte-optimize-predicate)
-(put 'cdr 'byte-optimizer 'byte-optimize-predicate)
-(put 'car-safe 'byte-optimizer 'byte-optimize-predicate)
-(put 'cdr-safe 'byte-optimizer 'byte-optimize-predicate)
-
-(put 'concat 'byte-optimizer 'byte-optimize-concat)
+(put 'concat 'byte-optimizer #'byte-optimize-concat)
 
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
 ;; I think this may some times be necessary to reduce ie (quote 5) to 5,
 ;; so arithmetic optimizers recognize the numeric constant.  - Hallvard
-(put 'quote 'byte-optimizer 'byte-optimize-quote)
+(put 'quote 'byte-optimizer #'byte-optimize-quote)
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
 	  (and (symbolp (nth 1 form))
@@ -980,7 +926,7 @@
 	       nil))
 	((null (cdr (cdr form)))
 	 (nth 1 form))
-	((byte-optimize-predicate form))))
+	((byte-optimize-constant-args form))))
 
 (defun byte-optimize-or (form)
   ;; Throw away nil's, and simplify if less than 2 args.
@@ -993,7 +939,7 @@
 	  (setq form (copy-sequence form)
 		rest (setcdr (memq (car rest) form) nil))))
     (if (cdr (cdr form))
-	(byte-optimize-predicate form)
+	(byte-optimize-constant-args form)
       (nth 1 form))))
 
 (defun byte-optimize-cond (form)
@@ -1075,16 +1021,16 @@
   (if (nth 1 form)
       form))
 
-(put 'and   'byte-optimizer 'byte-optimize-and)
-(put 'or    'byte-optimizer 'byte-optimize-or)
-(put 'cond  'byte-optimizer 'byte-optimize-cond)
-(put 'if    'byte-optimizer 'byte-optimize-if)
-(put 'while 'byte-optimizer 'byte-optimize-while)
+(put 'and   'byte-optimizer #'byte-optimize-and)
+(put 'or    'byte-optimizer #'byte-optimize-or)
+(put 'cond  'byte-optimizer #'byte-optimize-cond)
+(put 'if    'byte-optimizer #'byte-optimize-if)
+(put 'while 'byte-optimizer #'byte-optimize-while)
 
 ;; byte-compile-negation-optimizer lives in bytecomp.el
-(put '/= 'byte-optimizer 'byte-compile-negation-optimizer)
-(put 'atom 'byte-optimizer 'byte-compile-negation-optimizer)
-(put 'nlistp 'byte-optimizer 'byte-compile-negation-optimizer)
+(put '/= 'byte-optimizer #'byte-compile-negation-optimizer)
+(put 'atom 'byte-optimizer #'byte-compile-negation-optimizer)
+(put 'nlistp 'byte-optimizer #'byte-compile-negation-optimizer)
 
 
 (defun byte-optimize-funcall (form)
@@ -1098,26 +1044,29 @@
 (defun byte-optimize-apply (form)
   ;; If the last arg is a literal constant, turn this into a funcall.
   ;; The funcall optimizer can then transform (funcall 'foo ...) -> (foo ...).
-  (let ((fn (nth 1 form))
-	(last (nth (1- (length form)) form))) ; I think this really is fastest
-    (or (if (or (null last)
-		(eq (car-safe last) 'quote))
-	    (if (listp (nth 1 last))
-		(let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
-		  (nconc (list 'funcall fn) butlast
-			 (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
-	      (byte-compile-warn
-	       "last arg to apply can't be a literal atom: `%s'"
-	       (prin1-to-string last))
-	      nil))
-	form)))
+  (if (= (length form) 2)
+      ;; single-argument `apply' is not worth optimizing (bug#40968)
+      form
+    (let ((fn (nth 1 form))
+	  (last (nth (1- (length form)) form))) ; I think this really is fastest
+      (or (if (or (null last)
+		  (eq (car-safe last) 'quote))
+	      (if (listp (nth 1 last))
+		  (let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
+		    (nconc (list 'funcall fn) butlast
+			   (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
+	        (byte-compile-warn
+	         "last arg to apply can't be a literal atom: `%s'"
+	         (prin1-to-string last))
+	        nil))
+	  form))))
 
-(put 'funcall 'byte-optimizer 'byte-optimize-funcall)
-(put 'apply   'byte-optimizer 'byte-optimize-apply)
+(put 'funcall 'byte-optimizer #'byte-optimize-funcall)
+(put 'apply   'byte-optimizer #'byte-optimize-apply)
 
 
-(put 'let 'byte-optimizer 'byte-optimize-letX)
-(put 'let* 'byte-optimizer 'byte-optimize-letX)
+(put 'let 'byte-optimizer #'byte-optimize-letX)
+(put 'let* 'byte-optimizer #'byte-optimize-letX)
 (defun byte-optimize-letX (form)
   (cond ((null (nth 1 form))
 	 ;; No bindings
@@ -1133,17 +1082,17 @@
 	   (list 'let* (reverse (cdr binds)) (nth 1 (car binds)) nil)))))
 
 
-(put 'nth 'byte-optimizer 'byte-optimize-nth)
+(put 'nth 'byte-optimizer #'byte-optimize-nth)
 (defun byte-optimize-nth (form)
   (if (= (safe-length form) 3)
       (if (memq (nth 1 form) '(0 1))
 	  (list 'car (if (zerop (nth 1 form))
 			 (nth 2 form)
 		       (list 'cdr (nth 2 form))))
-	(byte-optimize-predicate form))
+	form)
     form))
 
-(put 'nthcdr 'byte-optimizer 'byte-optimize-nthcdr)
+(put 'nthcdr 'byte-optimizer #'byte-optimize-nthcdr)
 (defun byte-optimize-nthcdr (form)
   (if (= (safe-length form) 3)
       (if (memq (nth 1 form) '(0 1 2))
@@ -1152,14 +1101,14 @@
 	    (while (>= (setq count (1- count)) 0)
 	      (setq form (list 'cdr form)))
 	    form)
-	(byte-optimize-predicate form))
+	form)
     form))
 
 ;; Fixme: delete-char -> delete-region (byte-coded)
 ;; optimize string-as-unibyte, string-as-multibyte, string-make-unibyte,
 ;; string-make-multibyte for constant args.
 
-(put 'set 'byte-optimizer 'byte-optimize-set)
+(put 'set 'byte-optimizer #'byte-optimize-set)
 (defun byte-optimize-set (form)
   (let ((var (car-safe (cdr-safe form))))
     (cond
@@ -1219,15 +1168,16 @@
 	 length line-beginning-position line-end-position
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
-	 make-list make-string make-symbol marker-buffer max member memq min
-	 minibuffer-selected-window minibuffer-window
+	 make-byte-code make-list make-string make-symbol marker-buffer max
+	 member memq min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
 	 prefix-numeric-value previous-window prin1-to-string propertize
 	 degrees-to-radians
 	 radians-to-degrees rassq rassoc read-from-string regexp-quote
 	 region-beginning region-end reverse round
-	 sin sqrt string string< string= string-equal string-lessp string-to-char
+	 sin sqrt string string< string= string-equal string-lessp
+         string-search string-to-char
 	 string-to-number substring
 	 sxhash sxhash-equal sxhash-eq sxhash-eql
 	 symbol-function symbol-name symbol-plist symbol-value string-make-unibyte
@@ -1295,9 +1245,9 @@
 ;; Pure functions are side-effect free functions whose values depend
 ;; only on their arguments, not on the platform.  For these functions,
 ;; calls with constant arguments can be evaluated at compile time.
-;; This may shift runtime errors to compile time.  For example, logand
-;; is pure since its results are machine-independent, whereas ash is
-;; not pure because (ash 1 29)'s value depends on machine word size.
+;; For example, ash is pure since its results are machine-independent,
+;; whereas lsh is not pure because (lsh -1 -1)'s value depends on the
+;; fixnum range.
 ;;
 ;; When deciding whether a function is pure, do not worry about
 ;; mutable strings or markers, as they are so unlikely in real code
@@ -1307,9 +1257,42 @@
 ;; values if a marker is moved.
 
 (let ((pure-fns
-       '(% concat logand logcount logior lognot logxor
-	 regexp-opt regexp-quote
-	 string-to-char string-to-syntax symbol-name)))
+       '(concat regexp-opt regexp-quote
+	 string-to-char string-to-syntax symbol-name
+         eq eql
+         = /= < <= => > min max
+         + - * / % mod abs ash 1+ 1- sqrt
+         logand logior lognot logxor logcount
+         copysign isnan ldexp float logb
+         floor ceiling round truncate
+         ffloor fceiling fround ftruncate
+         string= string-equal string< string-lessp
+         string-search
+         consp atom listp nlistp propert-list-p
+         sequencep arrayp vectorp stringp bool-vector-p hash-table-p
+         null not
+         numberp integerp floatp natnump characterp
+         integer-or-marker-p number-or-marker-p char-or-string-p
+         symbolp keywordp
+         type-of
+         identity ignore
+
+         ;; The following functions are pure up to mutation of their
+         ;; arguments.  This is pure enough for the purposes of
+         ;; constant folding, but not necessarily for all kinds of
+         ;; code motion.
+         car cdr car-safe cdr-safe nth nthcdr last
+         equal
+         length safe-length
+         memq memql member
+         ;; `assoc' and `assoc-default' are excluded since they are
+         ;; impure if the test function is (consider `string-match').
+         assq rassq rassoc
+         plist-get lax-plist-get plist-member
+         aref elt
+         bool-vector-subsetp
+         bool-vector-count-population bool-vector-count-consecutive
+         )))
   (while pure-fns
     (put (car pure-fns) 'pure t)
     (setq pure-fns (cdr pure-fns)))
@@ -1509,13 +1492,13 @@
     byte-current-buffer byte-stack-ref))
 
 (defconst byte-compile-side-effect-free-ops
-  (nconc
+  (append
    '(byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
      byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
      byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
      byte-plus byte-max byte-min byte-mult byte-char-after byte-char-syntax
      byte-buffer-substring byte-string= byte-string< byte-nthcdr byte-elt
-     byte-member byte-assq byte-quo byte-rem)
+     byte-member byte-assq byte-quo byte-rem byte-substring)
    byte-compile-side-effect-and-error-free-ops))
 
 ;; This crock is because of the way DEFVAR_BOOL variables work.
@@ -2194,7 +2177,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (or noninteractive (message "compiling %s...done" x)))
 	     '(byte-optimize-form
 	       byte-optimize-body
-	       byte-optimize-predicate
+	       byte-optimize-constant-args
 	       byte-optimize-binary-predicate
 	       ;; Inserted some more than necessary, to speed it up.
 	       byte-optimize-form-code-walker

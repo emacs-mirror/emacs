@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: convenience, map, hash-table, alist, array
-;; Version: 2.0
+;; Version: 2.1
 ;; Package-Requires: ((emacs "25"))
 ;; Package: map
 
@@ -56,8 +56,10 @@ evaluated and searched for in the map.  The match fails if for any KEY
 found in the map, the corresponding PAT doesn't match the value
 associated to the KEY.
 
-Each element can also be a SYMBOL, which is an abbreviation of a (KEY
-PAT) tuple of the form (\\='SYMBOL SYMBOL).
+Each element can also be a SYMBOL, which is an abbreviation of
+a (KEY PAT) tuple of the form (\\='SYMBOL SYMBOL).  When SYMBOL
+is a keyword, it is an abbreviation of the form (:SYMBOL SYMBOL),
+useful for binding plist values.
 
 Keys in ARGS not found in the map are ignored, and the match doesn't
 fail."
@@ -486,9 +488,12 @@ Example:
 (defun map--make-pcase-bindings (args)
   "Return a list of pcase bindings from ARGS to the elements of a map."
   (seq-map (lambda (elt)
-             (if (consp elt)
-                 `(app (pcase--flip map-elt ,(car elt)) ,(cadr elt))
-               `(app (pcase--flip map-elt ',elt) ,elt)))
+             (cond ((consp elt)
+                    `(app (pcase--flip map-elt ,(car elt)) ,(cadr elt)))
+                   ((keywordp elt)
+                    (let ((var (intern (substring (symbol-name elt) 1))))
+                      `(app (pcase--flip map-elt ,elt) ,var)))
+                   (t `(app (pcase--flip map-elt ',elt) ,elt))))
            args))
 
 (defun map--make-pcase-patterns (args)

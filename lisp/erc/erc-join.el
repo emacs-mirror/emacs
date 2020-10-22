@@ -3,9 +3,9 @@
 ;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: irc
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoJoin
+;; URL: https://www.emacswiki.org/emacs/ErcAutoJoin
 
 ;; This file is part of GNU Emacs.
 
@@ -113,7 +113,7 @@ servers, presumably in the same domain."
 This is called from a timer set up by `erc-autojoin-channels'."
   (if erc--autojoin-timer
       (setq erc--autojoin-timer
-	    (erc-cancel-timer erc--autojoin-timer)))
+	    (cancel-timer erc--autojoin-timer)))
   (with-current-buffer buffer
     ;; Don't kick of another delayed autojoin or try to wait for
     ;; another ident response:
@@ -127,7 +127,7 @@ This is called from a timer set up by `erc-autojoin-channels'."
 This function is run from `erc-nickserv-identified-hook'."
   (if erc--autojoin-timer
       (setq erc--autojoin-timer
-	    (erc-cancel-timer erc--autojoin-timer)))
+	    (cancel-timer erc--autojoin-timer)))
   (when (eq erc-autojoin-timing 'ident)
     (let ((server (or erc-session-server erc-server-announced-name))
 	  (joined (mapcar (lambda (buf)
@@ -153,18 +153,20 @@ This function is run from `erc-nickserv-identified-hook'."
 			      'erc-autojoin-channels-delayed
 			      server nick (current-buffer))))
     ;; `erc-autojoin-timing' is `connect':
-    (dolist (l erc-autojoin-channels-alist)
-      (when (string-match (car l) server)
-	(let ((server (or erc-session-server erc-server-announced-name)))
+    (let ((server (or erc-session-server erc-server-announced-name)))
+      (dolist (l erc-autojoin-channels-alist)
+        (when (string-match-p (car l) server)
 	  (dolist (chan (cdr l))
-	    (let ((buffer (erc-get-buffer chan)))
-	      ;; Only auto-join the channels that we aren't already in
-	      ;; using a different nick.
+	    (let ((buffer
+                   (car (erc-buffer-filter
+                         (lambda ()
+                           (let ((current (erc-default-target)))
+                             (and (stringp current)
+                                  (string-match-p (car l)
+                                                  (or erc-session-server erc-server-announced-name))
+                                  (string-equal (erc-downcase chan)
+                                                (erc-downcase current)))))))))
 	      (when (or (not buffer)
-			;; If the same channel is joined on another
-			;; server the best-effort is to just join
-			(not (string-match (car l)
-					   (process-name erc-server-process)))
 			(not (with-current-buffer buffer
 			       (erc-server-process-alive))))
 		(erc-server-join-channel server chan))))))))

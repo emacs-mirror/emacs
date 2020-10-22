@@ -116,7 +116,7 @@
 
 (defvar scheme-imenu-generic-expression
       '((nil
-         "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\sw+\\)" 4)
+         "^(define\\(?:-\\(?:generic\\(?:-procedure\\)?\\|method\\)\\)?\\s-+(?\\(\\sw+\\)" 1)
         ("Types"
          "^(define-class\\s-+(?\\(\\sw+\\)" 1)
         ("Macros"

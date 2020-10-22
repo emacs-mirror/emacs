@@ -1,4 +1,4 @@
-# getdtablesize.m4 serial 7
+# getdtablesize.m4 serial 8
 dnl Copyright (C) 2008-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -29,13 +29,16 @@ AC_DEFUN([gl_FUNC_GETDTABLESIZE],
            dnl correctly require setrlimit before getdtablesize() can report
            dnl a larger value.
            AC_RUN_IFELSE([
-             AC_LANG_PROGRAM([[#include <unistd.h>]],
-               [int size = getdtablesize();
-                if (dup2 (0, getdtablesize()) != -1)
-                  return 1;
-                if (size != getdtablesize())
-                  return 2;
-               ])],
+             AC_LANG_PROGRAM(
+               [[#include <unistd.h>]
+                GL_MDA_DEFINES
+               ],
+               [[int size = getdtablesize();
+                 if (dup2 (0, getdtablesize()) != -1)
+                   return 1;
+                 if (size != getdtablesize())
+                   return 2;
+               ]])],
              [gl_cv_func_getdtablesize_works=yes],
              [gl_cv_func_getdtablesize_works=no],
              [case "$host_os" in

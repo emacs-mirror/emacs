@@ -104,6 +104,14 @@ would have the following buffer names in the various styles:
   post-forward-angle-brackets   name<bar/mumble>   name<quux/mumble>
   nil                           name               name<2>
 
+The value can be set to a customized function with two arguments
+BASE and EXTRA-STRINGS where BASE is a string and EXTRA-STRINGS
+is a list of strings.  For example the current implementation for
+post-forward-angle-brackets could be:
+
+(defun my-post-forward-angle-brackets (base extra-string)
+  (concat base \"<\" (mapconcat #'identity extra-string \"/\") \">\"))
+
 The \"mumble\" part may be stripped as well, depending on the
 setting of `uniquify-strip-common-suffix'.  For more options that
 you can set, browse the `uniquify' custom group."
@@ -111,6 +119,7 @@ you can set, browse the `uniquify' custom group."
 		(const reverse)
 		(const post-forward)
 		(const post-forward-angle-brackets)
+                (function :tag "Other")
 		(const :tag "numeric suffixes" nil))
   :version "24.4"
   :require 'uniquify)
@@ -364,20 +373,22 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
     (cond
      ((null extra-string) base)
      ((string-equal base "") ;Happens for dired buffers on the root directory.
-      (mapconcat 'identity extra-string "/"))
+      (mapconcat #'identity extra-string "/"))
      ((eq uniquify-buffer-name-style 'reverse)
-      (mapconcat 'identity
+      (mapconcat #'identity
 		 (cons base (nreverse extra-string))
 		 (or uniquify-separator "\\")))
      ((eq uniquify-buffer-name-style 'forward)
-      (mapconcat 'identity (nconc extra-string (list base))
+      (mapconcat #'identity (nconc extra-string (list base))
 		 "/"))
      ((eq uniquify-buffer-name-style 'post-forward)
       (concat base (or uniquify-separator "|")
-	      (mapconcat 'identity extra-string "/")))
+	      (mapconcat #'identity extra-string "/")))
      ((eq uniquify-buffer-name-style 'post-forward-angle-brackets)
-      (concat base "<" (mapconcat 'identity extra-string "/")
+      (concat base "<" (mapconcat #'identity extra-string "/")
 	      ">"))
+     ((functionp uniquify-buffer-name-style)
+      (funcall uniquify-buffer-name-style base extra-string))
      (t (error "Bad value for uniquify-buffer-name-style: %s"
 	       uniquify-buffer-name-style)))))
 

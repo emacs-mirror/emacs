@@ -158,6 +158,12 @@ contents unchanged.
 @end group
 @end example
 
+  A self-evaluating form yields a value that becomes part of the program,
+and you should not try to modify it via @code{setcar}, @code{aset} or
+similar operations.  The Lisp interpreter might unify the constants
+yielded by your program's self-evaluating forms, so that these
+constants might share structure.  @xref{Mutability}.
+
   It is common to write numbers, characters, strings, and even vectors
 in Lisp code, taking advantage of the fact that they self-evaluate.
 However, it is quite unusual to do this for types that lack a read
@@ -558,6 +564,8 @@ and vectors.)
 
 @defspec quote object
 This special form returns @var{object}, without evaluating it.
+The returned value might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 @end defspec
 
 @cindex @samp{'} for quoting
@@ -598,6 +606,12 @@ Here are some examples of expressions that use @code{quote}:
 @end group
 @end example
 
+  Although the expressions @code{(list '+ 1 2)} and @code{'(+ 1 2)}
+both yield lists equal to @code{(+ 1 2)}, the former yields a
+freshly-minted mutable list whereas the latter yields a list
+built from conses that might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
+
   Other quoting constructs include @code{function} (@pxref{Anonymous
 Functions}), which causes an anonymous lambda expression written in Lisp
 to be compiled, and @samp{`} (@pxref{Backquote}), which is used to quote
@@ -612,10 +626,12 @@ only part of a list, while computing and substituting other parts.
 
   @dfn{Backquote constructs} allow you to quote a list, but
 selectively evaluate elements of that list.  In the simplest case, it
-is identical to the special form @code{quote}
+is identical to the special form
 @iftex
+@code{quote}.
 @end iftex
 @ifnottex
+@code{quote}
 (described in the previous section; @pxref{Quoting}).
 @end ifnottex
 For example, these two forms yield identical results:
@@ -693,6 +709,10 @@ Here are some examples:
 @end group
 @end example
 
+If a subexpression of a backquote construct has no substitutions or
+splices, it acts like @code{quote} in that it yields conses,
+vectors and strings that might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 
 @node Eval
 @section Eval

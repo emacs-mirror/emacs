@@ -21,7 +21,6 @@
 # define HAVE_TM_GMTOFF 1
 # define HAVE_TM_ZONE 1
 # define HAVE_TZNAME 1
-# define HAVE_TZSET 1
 # include "../locale/localeinfo.h"
 #else
 # include <config.h>
@@ -34,6 +33,7 @@
 #endif
 
 #include <ctype.h>
+#include <errno.h>
 #include <time.h>
 
 #if HAVE_TZNAME && !HAVE_DECL_TZNAME
@@ -68,15 +68,8 @@ extern char *tzname[];
 #include <string.h>
 #include <stdbool.h>
 
+#include "attribute.h"
 #include <intprops.h>
-
-#ifndef FALLTHROUGH
-# if __GNUC__ < 7
-#  define FALLTHROUGH ((void) 0)
-# else
-#  define FALLTHROUGH __attribute__ ((__fallthrough__))
-# endif
-#endif
 
 #ifdef COMPILE_WIDE
 # include <endian.h>
@@ -170,7 +163,10 @@ extern char *tzname[];
       size_t _w = pad == L_('-') || width < 0 ? 0 : width;                    \
       size_t _incr = _n < _w ? _w : _n;                                       \
       if (_incr >= maxsize - i)                                               \
-        return 0;                                                             \
+        {                                                                     \
+          errno = ERANGE;                                                     \
+          return 0;                                                           \
+        }                                                                     \
       if (p)                                                                  \
         {                                                                     \
           if (_n < _w)                                                        \
@@ -372,7 +368,7 @@ tm_diff (const struct tm *a, const struct tm *b)
 #define ISO_WEEK1_WDAY 4 /* Thursday */
 #define YDAY_MINIMUM (-366)
 static int iso_week_days (int, int);
-#ifdef __GNUC__
+#if defined __GNUC__ || defined __clang__
 __inline__
 #endif
 static int
@@ -396,7 +392,6 @@ iso_week_days (int yday, int wday)
 #endif
 
 #ifdef my_strftime
-# undef HAVE_TZSET
 # define extra_args , tz, ns
 # define extra_args_spec , timezone_t tz, int ns
 #else
@@ -456,6 +451,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   size_t maxsize = (size_t) -1;
 #endif
 
+  int saved_errno = errno;
   int hour12 = tp->tm_hour;
 #ifdef _NL_CURRENT
   /* We cannot make the following values variables since we must delay
@@ -502,15 +498,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   const char *format_end = NULL;
 #endif
 
-#if ! defined _LIBC && ! HAVE_RUN_TZSET_TEST
-  /* Solaris 2.5.x and 2.6 tzset sometimes modify the storage returned
-     by localtime.  On such systems, we must either use the tzset and
-     localtime wrappers to work around the bug (which sets
-     HAVE_RUN_TZSET_TEST) or make a copy of the structure.  */
-  struct tm copy = *tp;
-  tp = &copy;
-#endif
-
   zone = NULL;
 #if HAVE_TM_ZONE
   /* The POSIX test suite assumes that setting
@@ -539,7 +526,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     {
       /* POSIX.1 requires that local time zone information be used as
          though strftime called tzset.  */
-# if HAVE_TZSET
+# ifndef my_strftime
       if (!*tzset_called)
         {
           tzset ();
@@ -1204,7 +1191,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             time_t t;
 
             ltm = *tp;
+            ltm.tm_yday = -1;
             t = mktime_z (tz, &ltm);
+            if (ltm.tm_yday < 0)
+              {
+                errno = EOVERFLOW;
+                return 0;
+              }
 
             /* Generate string value for T using time_t arithmetic;
                this works even if sizeof (long) < sizeof (time_t).  */
@@ -1433,7 +1426,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
                 /* POSIX.1 requires that local time zone information be used as
                    though strftime called tzset.  */
-# if HAVE_TZSET
+# ifndef my_strftime
                 if (!*tzset_called)
                   {
                     tzset ();
@@ -1502,5 +1495,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     *p = L_('\0');
 #endif
 
+  errno = saved_errno;
   return i;
 }

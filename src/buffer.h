@@ -570,9 +570,6 @@ struct buffer
      In an indirect buffer, this is the own_text field of another buffer.  */
   struct buffer_text *text;
 
-  /* Next buffer, in chain of all buffers, including killed ones.  */
-  struct buffer *next;
-
   /* Char position of point in buffer.  */
   ptrdiff_t pt;
 
@@ -1104,15 +1101,6 @@ BUFFER_CHECK_INDIRECTION (struct buffer *b)
     }
 }
 
-/* Chain of all buffers, including killed ones.  */
-
-extern struct buffer *all_buffers;
-
-/* Used to iterate over the chain above.  */
-
-#define FOR_EACH_BUFFER(b) \
-  for ((b) = all_buffers; (b); (b) = (b)->next)
-
 /* This structure holds the default values of the buffer-local variables
    that have special slots in each buffer.
    The default value occupies the same slot in this structure
@@ -1150,6 +1138,8 @@ extern Lisp_Object interval_insert_behind_hooks;
 extern Lisp_Object interval_insert_in_front_hooks;
 
 
+extern EMACS_INT fix_position (Lisp_Object);
+#define CHECK_FIXNUM_COERCE_MARKER(x) ((x) = make_fixnum (fix_position (x)))
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
@@ -1531,6 +1521,146 @@ INLINE bool
 lowercasep (int c)
 {
   return !uppercasep (c) && upcase (c) != c;
+}
+
+/* Return a non-outlandish value for the tab width.  */
+
+INLINE int
+sanitize_tab_width (Lisp_Object width)
+{
+  return (FIXNUMP (width) && 0 < XFIXNUM (width) && XFIXNUM (width) <= 1000
+	  ? XFIXNUM (width) : 8);
+}
+
+INLINE int
+SANE_TAB_WIDTH (struct buffer *buf)
+{
+  return sanitize_tab_width (BVAR (buf, tab_width));
+}
+
+/* Return a non-outlandish value for a character width.  */
+
+INLINE int
+sanitize_char_width (EMACS_INT width)
+{
+  return 0 <= width && width <= 1000 ? width : 1000;
+}
+
+/* Return the width of character C.  The width is measured by how many
+   columns C will occupy on the screen when displayed in the current
+   buffer.  The name CHARACTER_WIDTH avoids a collision with <limits.h>
+   CHAR_WIDTH.  */
+
+INLINE int
+CHARACTER_WIDTH (int c)
+{
+  return (0x20 <= c && c < 0x7f ? 1
+	  : 0x7f < c ? (sanitize_char_width
+			(XFIXNUM (CHAR_TABLE_REF (Vchar_width_table, c))))
+	  : c == '\t' ? SANE_TAB_WIDTH (current_buffer)
+	  : c == '\n' ? 0
+	  : !NILP (BVAR (current_buffer, ctl_arrow)) ? 2 : 4);
+}
+
+
+/* Like fetch_string_char_advance, but fetch character from the current
+   buffer.  */
+
+INLINE int
+fetch_char_advance (ptrdiff_t *charidx, ptrdiff_t *byteidx)
+{
+  int output;
+  ptrdiff_t c = *charidx, b = *byteidx;
+  c++;
+  unsigned char *chp = BYTE_POS_ADDR (b);
+  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
+    {
+      int chlen;
+      output = string_char_and_length (chp, &chlen);
+      b += chlen;
+    }
+  else
+    {
+      output = *chp;
+      b++;
+    }
+  *charidx = c;
+  *byteidx = b;
+  return output;
+}
+
+
+/* Like fetch_char_advance, but assumes the current buffer is multibyte.  */
+
+INLINE int
+fetch_char_advance_no_check (ptrdiff_t *charidx, ptrdiff_t *byteidx)
+{
+  int output;
+  ptrdiff_t c = *charidx, b = *byteidx;
+  c++;
+  unsigned char *chp = BYTE_POS_ADDR (b);
+  int chlen;
+  output = string_char_and_length (chp, &chlen);
+  b += chlen;
+  *charidx = c;
+  *byteidx = b;
+  return output;
+}
+
+/* Return the number of bytes in the multibyte character in BUF
+   that starts at position POS_BYTE.  This relies on the fact that
+   *GPT_ADDR and *Z_ADDR are always accessible and the values are
+   '\0'.  No range checking of POS_BYTE.  */
+
+INLINE int
+buf_next_char_len (struct buffer *buf, ptrdiff_t pos_byte)
+{
+  unsigned char *chp = BUF_BYTE_ADDRESS (buf, pos_byte);
+  return BYTES_BY_CHAR_HEAD (*chp);
+}
+
+INLINE int
+next_char_len (ptrdiff_t pos_byte)
+{
+  return buf_next_char_len (current_buffer, pos_byte);
+}
+
+/* Return the number of bytes in the multibyte character in BUF just
+   before POS_BYTE.  No range checking of POS_BYTE.  */
+
+INLINE int
+buf_prev_char_len (struct buffer *buf, ptrdiff_t pos_byte)
+{
+  unsigned char *chp
+    = (BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE
+       + (pos_byte <= BUF_GPT_BYTE (buf) ? 0 : BUF_GAP_SIZE (buf)));
+  return raw_prev_char_len (chp);
+}
+
+INLINE int
+prev_char_len (ptrdiff_t pos_byte)
+{
+  return buf_prev_char_len (current_buffer, pos_byte);
+}
+
+/* Increment both *CHARPOS and *BYTEPOS, each in the appropriate way.  */
+
+INLINE void
+inc_both (ptrdiff_t *charpos, ptrdiff_t *bytepos)
+{
+  (*charpos)++;
+  (*bytepos) += (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+		 ? next_char_len (*bytepos) : 1);
+}
+
+/* Decrement both *CHARPOS and *BYTEPOS, each in the appropriate way.  */
+
+INLINE void
+dec_both (ptrdiff_t *charpos, ptrdiff_t *bytepos)
+{
+  (*charpos)--;
+  (*bytepos) -= (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+		 ? prev_char_len (*bytepos) : 1);
 }
 
 INLINE_HEADER_END

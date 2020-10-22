@@ -131,7 +131,6 @@ to invocation.")
   (define-key ediff-mode-map [delete] 'ediff-previous-difference)
   (define-key ediff-mode-map "\C-h" (if ediff-no-emacs-help-in-control-buffer
 					'ediff-previous-difference nil))
-  ;; must come after C-h, or else C-h wipes out backspace's binding in XEmacs
   (define-key ediff-mode-map [backspace] 'ediff-previous-difference)
   (define-key ediff-mode-map [?\S-\ ] 'ediff-previous-difference)
   (define-key ediff-mode-map "n" 'ediff-next-difference)
@@ -241,18 +240,16 @@ to invocation.")
 			     startup-hooks setup-parameters
 			     &optional merge-buffer-file)
   (run-hooks 'ediff-before-setup-hook)
-  ;; ediff-convert-standard-filename puts file names in the form appropriate
+  ;; convert-standard-filename puts file names in the form appropriate
   ;; for the OS at hand.
-  (setq file-A (ediff-convert-standard-filename (expand-file-name file-A)))
-  (setq file-B (ediff-convert-standard-filename (expand-file-name file-B)))
+  (setq file-A (convert-standard-filename (expand-file-name file-A)))
+  (setq file-B (convert-standard-filename (expand-file-name file-B)))
   (if (stringp file-C)
-      (setq file-C
-	    (ediff-convert-standard-filename (expand-file-name file-C))))
+      (setq file-C (convert-standard-filename (expand-file-name file-C))))
   (if (stringp merge-buffer-file)
       (progn
 	(setq merge-buffer-file
-	      (ediff-convert-standard-filename
-	       (expand-file-name merge-buffer-file)))
+	      (convert-standard-filename (expand-file-name merge-buffer-file)))
 	;; check the directory exists
 	(or (file-exists-p (file-name-directory merge-buffer-file))
 	    (error "Directory %s given as place to save the merge doesn't exist"
@@ -1540,10 +1537,10 @@ the width of the A/B/C windows."
    ;; hscrolling.
    (if (= last-command-event ?<)
        (lambda (arg)
-	 (let ((prefix-arg arg))
+	 (let ((current-prefix-arg arg))
 	   (call-interactively #'scroll-left)))
      (lambda (arg)
-       (let ((prefix-arg arg))
+       (let ((current-prefix-arg arg))
 	 (call-interactively #'scroll-right))))
    ;; calculate argument to scroll-left/right
    ;; if there is an explicit argument
@@ -2184,19 +2181,18 @@ a regular expression typed in by the user."
       (setq ediff-skip-diff-region-function ediff-hide-regexp-matches-function
 	    regexp-A
 	    (read-string
-	     (format
-	      "Ignore A-regions matching this regexp (default %s): "
-	      ediff-regexp-hide-A))
+	     (format-prompt
+	      "Ignore A-regions matching this regexp" ediff-regexp-hide-A))
 	    regexp-B
 	    (read-string
-	     (format
-	      "Ignore B-regions matching this regexp (default %s): "
+	     (format-prompt
+	      "Ignore B-regions matching this regexp"
 	      ediff-regexp-hide-B)))
       (if ediff-3way-comparison-job
 	  (setq regexp-C
 		(read-string
-		 (format
-		  "Ignore C-regions matching this regexp (default %s): "
+		 (format-prompt
+		  "Ignore C-regions matching this regexp"
 		  ediff-regexp-hide-C))))
       (if (eq ediff-hide-regexp-connective 'and)
 	  (setq msg-connective "BOTH"
@@ -2223,20 +2219,18 @@ a regular expression typed in by the user."
 	    ediff-focus-on-regexp-matches-function
 	    regexp-A
 	    (read-string
-	     (format
-	      "Focus on A-regions matching this regexp (default %s): "
-	      ediff-regexp-focus-A))
+	     (format-prompt
+	      "Focus on A-regions matching this regexp" ediff-regexp-focus-A))
 	    regexp-B
 	    (read-string
-	     (format
-	      "Focus on B-regions matching this regexp (default %s): "
-	      ediff-regexp-focus-B)))
+	     (format-prompt
+	      "Focus on B-regions matching this regexp" ediff-regexp-focus-B)))
       (if ediff-3way-comparison-job
 	  (setq regexp-C
 		(read-string
-		 (format
-		  "Focus on C-regions matching this regexp (default %s): "
-		  ediff-regexp-focus-C))))
+		 (format-prompt
+		  "Focus on C-regions matching this regexp"
+                  ediff-regexp-focus-C))))
       (if (eq ediff-focus-regexp-connective 'and)
 	  (setq msg-connective "BOTH"
 		alt-msg-connective "ONE OF"
@@ -3070,10 +3064,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 
 ;; for compatibility
-(defmacro ediff-minibuffer-with-setup-hook (fun &rest body)
-  `(if (fboundp 'minibuffer-with-setup-hook)
-       (minibuffer-with-setup-hook ,fun ,@body)
-     ,@body))
+(define-obsolete-function-alias 'ediff-minibuffer-with-setup-hook
+  #'minibuffer-with-setup-hook "28.1")
 
 ;; This is adapted from a similar function in `emerge.el'.
 ;; PROMPT should not have a trailing ': ', so that it can be modified
@@ -3102,7 +3094,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 			(and default-file (list default-file))
 			default-dir)))
 	f)
-    (setq f (ediff-minibuffer-with-setup-hook
+    (setq f (minibuffer-with-setup-hook
 		(lambda () (when defaults
 			     (setq minibuffer-default defaults)))
 	      (read-file-name
@@ -3135,7 +3127,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; Also, save buffer from START to END in the file.
 ;; START defaults to (point-min), END to (point-max)
 (defun ediff-make-temp-file (buff &optional prefix given-file start end)
-  (let* ((p (ediff-convert-standard-filename (or prefix "ediff")))
+  (let* ((p (convert-standard-filename (or prefix "ediff")))
 	 (short-p p)
 	 (coding-system-for-write ediff-coding-system-for-write)
 	 f short-f)
@@ -3144,8 +3136,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	     (> (length p) 2))
 	(setq short-p (substring p 0 2)))
 
-    (setq f (concat ediff-temp-file-prefix p)
-	  short-f (concat ediff-temp-file-prefix short-p)
+    (setq f (concat temporary-file-directory p)
+          short-f (concat temporary-file-directory short-p)
   	  f (cond (given-file)
 		  ((find-file-name-handler f 'insert-file-contents)
 		   ;; to thwart file name handlers in write-region,
@@ -3449,7 +3441,6 @@ Without an argument, it saves customized diff argument, if available
 (declare-function ediff-regions-internal "ediff"
 		  (buffer-a beg-a end-a buffer-b beg-b end-b
 			    startup-hooks job-name word-mode setup-parameters))
-(defvar zmacs-regions) ;;XEmacs'ism.
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.
@@ -3461,7 +3452,6 @@ Ediff Control Panel to restore highlighting."
   (interactive)
   (let ((answer "")
 	(possibilities (list ?A ?B ?C))
-	(zmacs-regions t)
 	use-current-diff-p
 	begA begB endA endB bufA bufB)
 
@@ -4139,10 +4129,10 @@ Mail anyway? (y or n) ")
     (ediff-with-current-buffer standard-output
       (fundamental-mode))
     (princ (format "\nCtl buffer: %S\n" ediff-control-buffer))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-A"))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-B"))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-C"))
-    (ediff-print-diff-vector (intern "ediff-difference-vector-Ancestor"))
+    (ediff-print-diff-vector 'ediff-difference-vector-A)
+    (ediff-print-diff-vector 'ediff-difference-vector-B)
+    (ediff-print-diff-vector 'ediff-difference-vector-C)
+    (ediff-print-diff-vector 'ediff-difference-vector-Ancestor)
     ))
 
 

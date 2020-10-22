@@ -117,10 +117,11 @@ create_root_interval (Lisp_Object parent)
 /* Make the interval TARGET have exactly the properties of SOURCE.  */
 
 void
-copy_properties (register INTERVAL source, register INTERVAL target)
+copy_properties (INTERVAL source, INTERVAL target)
 {
   if (DEFAULT_INTERVAL_P (source) && DEFAULT_INTERVAL_P (target))
     return;
+  eassume (source && target);
 
   COPY_INTERVAL_CACHE (source, target);
   set_interval_plist (target, Fcopy_sequence (source->plist));
@@ -298,7 +299,7 @@ rotate_right (INTERVAL A)
     set_interval_parent (c, A);
 
   /* A's total length is decreased by the length of B and its left child.  */
-  A->total_length -= B->total_length - TOTAL_LENGTH (c);
+  A->total_length -= TOTAL_LENGTH (B) - TOTAL_LENGTH0 (c);
   eassert (TOTAL_LENGTH (A) > 0);
   eassert (LENGTH (A) > 0);
 
@@ -349,7 +350,7 @@ rotate_left (INTERVAL A)
     set_interval_parent (c, A);
 
   /* A's total length is decreased by the length of B and its right child.  */
-  A->total_length -= B->total_length - TOTAL_LENGTH (c);
+  A->total_length -= TOTAL_LENGTH (B) - TOTAL_LENGTH0 (c);
   eassert (TOTAL_LENGTH (A) > 0);
   eassert (LENGTH (A) > 0);
 
@@ -723,13 +724,13 @@ previous_interval (register INTERVAL interval)
       i->position - LEFT_TOTAL_LENGTH (i)                       \
       - LENGTH (INTERVAL_PARENT (i))
 
-/* Find the interval containing POS, given some non-NULL INTERVAL in
+/* Find the interval containing POS, given some interval I in
    the same tree.  Note that we update interval->position in each
    interval we traverse, assuming it is already correctly set for the
    argument I.  We don't assume that any other interval already has a
    correctly set ->position.  */
 INTERVAL
-update_interval (register INTERVAL i, ptrdiff_t pos)
+update_interval (INTERVAL i, ptrdiff_t pos)
 {
   if (!i)
     return NULL;
@@ -739,7 +740,7 @@ update_interval (register INTERVAL i, ptrdiff_t pos)
       if (pos < i->position)
 	{
 	  /* Move left.  */
-	  if (pos >= i->position - TOTAL_LENGTH (i->left))
+	  if (pos >= i->position - LEFT_TOTAL_LENGTH (i))
 	    {
 	      i->left->position = i->position - TOTAL_LENGTH (i->left)
 		+ LEFT_TOTAL_LENGTH (i->left);
@@ -757,7 +758,7 @@ update_interval (register INTERVAL i, ptrdiff_t pos)
       else if (pos >= INTERVAL_LAST_POS (i))
 	{
 	  /* Move right.  */
-	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
+	  if (pos < INTERVAL_LAST_POS (i) + RIGHT_TOTAL_LENGTH (i))
 	    {
 	      i->right->position = INTERVAL_LAST_POS (i)
 	        + LEFT_TOTAL_LENGTH (i->right);
@@ -1187,7 +1188,7 @@ delete_interval (register INTERVAL i)
   register INTERVAL parent;
   ptrdiff_t amt = LENGTH (i);
 
-  eassert (amt == 0);		/* Only used on zero-length intervals now.  */
+  eassert (amt <= 0);	/* Only used on zero total-length intervals now.  */
 
   if (ROOT_INTERVAL_P (i))
     {

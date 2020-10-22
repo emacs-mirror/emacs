@@ -1,4 +1,4 @@
-;;; cal-julian.el --- calendar functions for the Julian calendar
+;;; cal-julian.el --- calendar functions for the Julian calendar  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2020 Free Software Foundation, Inc.
 
@@ -182,23 +182,27 @@ Echo astronomical (Julian) day number unless NOECHO is non-nil."
      (calendar-astro-to-absolute daynumber))))
   (or noecho (calendar-astro-print-day-number)))
 
-
-;; The function below is designed to be used in sexp diary entries,
-;; and may be present in users' diary files, so suppress the warning
-;; about this prefix-less dynamic variable.  It's called from
-;; `diary-list-sexp-entries', which binds the variable.
-(with-suppressed-warnings ((lexical date))
-  (defvar date))
-
 ;;;###diary-autoload
 (defun diary-julian-date ()
   "Julian calendar equivalent of date diary entry."
+  ;; This function is designed to be used in sexp diary entries, and
+  ;; may be present in users' diary files, so suppress the warning
+  ;; about this prefix-less dynamic variable.  It's called from
+  ;; `diary-list-sexp-entries', which binds the variable.
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))
   (format "Julian date: %s" (calendar-julian-date-string date)))
 
 ;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-astro-day-number ()
   "Astronomical (Julian) day number diary entry."
+  ;; This function is designed to be used in sexp diary entries, and
+  ;; may be present in users' diary files, so suppress the warning
+  ;; about this prefix-less dynamic variable.  It's called from
+  ;; `diary-list-sexp-entries', which binds the variable.
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))
   (format "Astronomical (Julian) day number at noon UTC: %s.0"
           (calendar-astro-date-string date)))
 

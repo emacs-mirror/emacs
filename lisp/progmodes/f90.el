@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995-1997, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -539,8 +539,10 @@ type-name parts, respectively."
 read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
    ;; Other functions and declarations.  Named interfaces = F2003.
    ;; F2008: end submodule submodule_name.
-   '("\\_<\\(\\(?:end[ \t]*\\)?\\(program\\|\\(?:sub\\)?module\\|\
-function\\|associate\\|subroutine\\|interface\\)\\|use\\|call\\)\
+   ;; F2008: module function|subroutine NAME.
+   '("\\_<\\(\\(?:end[ \t]*\\)?\\(program\\|\
+\\(?:module[ \t]*\\)?\\(?:function\\|subroutine\\)\\|\
+\\(?:sub\\)?module\\|associate\\|interface\\)\\|use\\|call\\)\
 \\_>[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; F2008: submodule (parent_name) submodule_name.
@@ -1381,14 +1383,19 @@ write\\)[ \t]*([^)\n]*)")
   (cond
    ((looking-at "\\(program\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
-   ((and (not (looking-at "module[ \t]*procedure\\_>"))
+   ((and (not (looking-at "module[ \t]*\\(procedure\\|function\\|subroutine\\)\\_>"))
          (looking-at "\\(module\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"))
     (list (match-string 1) (match-string 2)))
    ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
-   ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-         (looking-at "[^!'\"&\n]*\\(function\\|subroutine\\)[ \t]+\
+   ((and (not (looking-at "end[ \t]*\\(function\\|procedure\\|subroutine\\)"))
+         (looking-at "[^!'\"&\n]*\\(?:module[ \t]*\\)?\
+\\(function\\|subroutine\\)[ \t]+\
 \\(\\(?:\\sw\\|\\s_\\)+\\)"))
+    ;; TODO: In F2008  "module procedure foo" may or may not start a block,
+    ;; It is impossible to tell the difference without parsing state.
+;;;         (looking-at "[^!'\"&\n]*module[ \t]*\\(procedure\\)[ \t]+\
+;;;\\(\\(?:\\sw\\|\\s_\\)+\\)")))
     (list (match-string 1) (match-string 2)))))
 ;; Following will match an un-named main program block; however
 ;; one needs to check if there is an actual PROGRAM statement after
@@ -1642,25 +1649,28 @@ Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-beg)
     (beginning-of-line)
-    (while (and (> count 0)
-                (re-search-backward f90-program-block-re nil 'move))
-      (beginning-of-line)
-      (skip-chars-forward " \t0-9")
-      ;; Check if in string in case using non-standard feature where
-      ;; continued strings do not need "&" at start of continuations.
-      (cond ((f90-in-string))
-            ((setq matching-beg (f90-looking-at-program-block-start))
-             (setq count (1- count)))
-            ((f90-looking-at-program-block-end)
-             (setq count (1+ count)))))
-    (beginning-of-line)
-    (if (zerop count)
-        matching-beg
-      ;; Note this includes the case of an un-named main program,
-      ;; in which case we go to (point-min).
-      (if (called-interactively-p 'interactive)
-	  (message "No beginning found"))
-      nil)))
+    ;; Check whether we're already at the start of a subprogram.
+    (or (f90-looking-at-program-block-start)
+        ;; We're not; search backwards.
+        (while (and (> count 0)
+                    (re-search-backward f90-program-block-re nil 'move))
+          (beginning-of-line)
+          (skip-chars-forward " \t0-9")
+          ;; Check if in string in case using non-standard feature where
+          ;; continued strings do not need "&" at start of continuations.
+          (cond ((f90-in-string))
+                ((setq matching-beg (f90-looking-at-program-block-start))
+                 (setq count (1- count)))
+                ((f90-looking-at-program-block-end)
+                 (setq count (1+ count)))))
+        (beginning-of-line)
+        (if (zerop count)
+            matching-beg
+          ;; Note this includes the case of an un-named main program,
+          ;; in which case we go to (point-min).
+          (if (called-interactively-p 'interactive)
+	      (message "No beginning found"))
+          nil))))
 
 (defun f90-end-of-subprogram ()
   "Move point to the end of the current subprogram.

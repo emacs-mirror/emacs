@@ -1552,7 +1552,7 @@ in a buffer, try /bin/rmail instead of /bin/mail.  If /bin/rmail
 exists, this can be accomplished by keeping the default nil setting of
 `mail-interactive'.  You might also like to consult local mail experts
 for any other interesting command line possibilities.  Some versions
-of UNIX have an rmail program which behaves differently than
+of UNIX have an rmail program which behaves differently from
 /bin/rmail and complains if feedmail gives it a message on stdin.  If
 you don't know about such things and if there is no local expert to
 consult, stick with /bin/mail or use one of the other buffer eating

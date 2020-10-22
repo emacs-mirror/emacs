@@ -1,4 +1,4 @@
-;;; dichromacy-theme.el --- color theme suitable for color-blind users
+;;; dichromacy-theme.el --- color theme suitable for color-blind users  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

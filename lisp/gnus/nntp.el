@@ -309,7 +309,7 @@ backend doesn't catch this error.")
 
 (defun nntp-record-command (string)
   "Record the command STRING."
-  (with-current-buffer (get-buffer-create "*nntp-log*")
+  (with-current-buffer (gnus-get-buffer-create "*nntp-log*")
     (goto-char (point-max))
     (insert (format-time-string "%Y%m%dT%H%M%S.%3N")
 	    " " nntp-address " " string "\n")))
@@ -1247,8 +1247,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 	  (and nntp-connection-timeout
 	       (run-at-time
 		nntp-connection-timeout nil
-		`(lambda ()
-		   (nntp-kill-buffer ,pbuffer)))))
+		(lambda ()
+		  (nntp-kill-buffer pbuffer)))))
 	 (process
 	  (condition-case err
 	      (let ((coding-system-for-read 'binary)
@@ -1263,7 +1263,17 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     "nntpd" pbuffer nntp-address nntp-port-number
 		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
-		     :capability-command "HELP\r\n"
+		     :capability-command
+		     (lambda (greeting)
+		       (if (and greeting
+				(string-match "Typhoon" greeting))
+			   ;; Certain versions of the Typhoon server
+			   ;; doesn't understand the CAPABILITIES
+			   ;; command, but includes the capability
+			   ;; data in the HELP command instead.
+			   "HELP\r\n"
+			 ;; Use the correct command for everything else.
+			 "CAPABILITIES\r\n"))
 		     :success "^3"
 		     :starttls-function
 		     (lambda (capabilities)

@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "frame.h"
-#include "ptr-bounds.h"
 #include "window.h"
 #include "dispextern.h"
 #include "buffer.h"
@@ -101,7 +100,7 @@ struct fringe_bitmap
   ...xx...
 */
 static unsigned short question_mark_bits[] = {
-  0x3c, 0x7e, 0x7e, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
+  0x3c, 0x7e, 0xc3, 0xc3, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
 
 /* An exclamation mark.  */
 /*
@@ -117,7 +116,7 @@ static unsigned short question_mark_bits[] = {
   ...XX...
 */
 static unsigned short exclamation_mark_bits[] = {
-  0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18};
+  0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18, 0x18};
 
 /* An arrow like this: `<-'.  */
 /*
@@ -1500,7 +1499,8 @@ DEFUN ("define-fringe-bitmap", Fdefine_fringe_bitmap, Sdefine_fringe_bitmap,
 BITMAP is a symbol identifying the new fringe bitmap.
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
-WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
+WIDTH must be an integer from 1 to 16, or nil which defaults to 8.  An
+error is signaled if WIDTH is outside this range.
 Optional fifth arg ALIGN may be one of `top', `center', or `bottom',
 indicating the positioning of the bitmap relative to the rows where it
 is used; the default is to center the bitmap.  Fifth arg may also be a
@@ -1535,7 +1535,9 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else
     {
       CHECK_FIXNUM (width);
-      fb.width = max (0, min (XFIXNUM (width), 255));
+      fb.width = max (1, min (XFIXNUM (width), 16));
+      if (fb.width != XFIXNUM (width))
+        args_out_of_range (width, build_string ("Width must be from 1 to 16"));
     }
 
   fb.period = 0;
@@ -1604,9 +1606,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   fb.dynamic = true;
 
   xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
-  fb.bits = b = ((unsigned short *)
-		 ptr_bounds_clip (xfb + 1, fb.height * BYTES_PER_BITMAP_ROW));
-  xfb = ptr_bounds_clip (xfb, sizeof *xfb);
+  fb.bits = b = (unsigned short *) (xfb + 1);
 
   j = 0;
   while (j < fb.height)
@@ -1672,10 +1672,10 @@ Return nil if POS is not visible in WINDOW.  */)
 
   if (!NILP (pos))
     {
-      CHECK_FIXNUM_COERCE_MARKER (pos);
-      if (! (BEGV <= XFIXNUM (pos) && XFIXNUM (pos) <= ZV))
+      EMACS_INT p = fix_position (pos);
+      if (! (BEGV <= p && p <= ZV))
 	args_out_of_range (window, pos);
-      textpos = XFIXNUM (pos);
+      textpos = p;
     }
   else if (w == XWINDOW (selected_window))
     textpos = PT;
@@ -1733,11 +1733,7 @@ If nil, also continue lines which are exactly as wide as the window.  */);
 void
 mark_fringe_data (void)
 {
-  int i;
-
-  for (i = 0; i < max_fringe_bitmaps; i++)
-    if (!NILP (fringe_faces[i]))
-      mark_object (fringe_faces[i]);
+  mark_objects (fringe_faces, max_fringe_bitmaps);
 }
 
 /* Initialize this module when Emacs starts.  */

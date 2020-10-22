@@ -712,6 +712,21 @@ is @code{t}, which means these keys produce @code{AltGr}; setting it
 to @code{nil} causes @key{AltGr} or the equivalent key combination to
 be interpreted as the combination of @key{Ctrl} and @key{Meta}
 modifiers.
+
+@cindex IME, MS-Windows
+@findex w32-set-ime-open-status
+  Some versions of MS-Windows, typically East Asian localized Windows,
+enable the Input Method Manager (@acronym{IMM}) that allows
+applications to communicate with the Input Method Editor
+(@acronym{IME}), the native Windows input method service.  Emacs uses
+the @acronym{IME} when available to allow users to input East Asian
+non-@acronym{ASCII} characters, similarly to Emacs's built-in input
+methods (@pxref{Input Methods}).  However, in some situations the
+@acronym{IME} can get in the way if it interprets simple
+@acronym{ASCII} keys you input as part of a key sequence that
+designates a non-@acronym{ASCII} character.  The @acronym{IME} can be
+temporarily turned off and then on again by using the
+@code{w32-set-ime-open-status} function.
 @end ifnottex
 
 @node Windows Mouse

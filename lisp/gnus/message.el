@@ -42,13 +42,12 @@
 (require 'mail-parse)
 (require 'mml)
 (require 'rfc822)
-(require 'format-spec)
 (require 'dired)
 (require 'mm-util)
 (require 'rfc2047)
 (require 'puny)
-(require 'rmc)			; read-multiple-choice
-(eval-when-compile (require 'subr-x))	; when-let*
+(require 'rmc)                          ; read-multiple-choice
+(eval-when-compile (require 'subr-x))
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -215,9 +214,9 @@ Also see `message-required-news-headers' and
   :link '(custom-manual "(message)Message Headers")
   :type '(repeat sexp))
 
-(defcustom message-draft-headers '(References From Date)
+(defcustom message-draft-headers '(References From)
   "Headers to be generated when saving a draft message."
-  :version "22.1"
+  :version "28.1"
   :group 'message-news
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
@@ -304,6 +303,13 @@ any confusion."
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
 
+(defcustom message-screenshot-command '("import" "png:-")
+  "Command to take a screenshot.
+The command should insert a PNG in the current buffer."
+  :group 'message-various
+  :type '(repeat string)
+  :version "28.1")
+
 ;;; Start of variables adopted from `message-utils.el'.
 
 (defcustom message-subject-trailing-was-query t
@@ -322,7 +328,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss].*[])]+\\)"
   "Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if
@@ -337,7 +343,7 @@ It is okay to create some false positives here, as the user is asked."
   :type 'regexp)
 
 (defcustom message-subject-trailing-was-regexp
-  "[ \t]*\\((*[Ww][Aa][Ss]:[ \t]*.*)\\)"
+  "[ \t]*\\((*[Ww][Aa][Ss]:.*)\\)"
   "Regexp matching \"(was: <old subject>)\" in the subject line.
 
 If `message-subject-trailing-was-query' is set to t, the subject is
@@ -440,8 +446,8 @@ whitespace)."
 
 (defcustom message-elide-ellipsis "\n[...]\n\n"
   "The string which is inserted for elided text.
-This is a format-spec string, and you can use %l to say how many
-lines were removed, and %c to say how many characters were
+This is a `format-spec' string, and you can use %l to say how
+many lines were removed, and %c to say how many characters were
 removed."
   :type 'string
   :link '(custom-manual "(message)Various Commands")
@@ -848,7 +854,8 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; differently (bug#36937).
   nil
   "Non-nil means don't add \"-f username\" to the sendmail command line.
-Doing so would be even more evil than leaving it out."
+See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
+of what the \"-f\" parameter does."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
@@ -873,8 +880,8 @@ If this is nil, use `user-mail-address'.  If it is the symbol
     message-sendmail-envelope-from))
 
 (defcustom message-sendmail-extra-arguments nil
-  "Additional arguments to `sendmail-program'."
-  ;; E.g. '("-a" "account") for msmtp
+  "Additional arguments to `sendmail-program'.
+A list of strings, e.g. (\"-a\" \"account\") for msmtp."
   :version "23.1" ;; No Gnus
   :type '(repeat string)
   ;; :link '(custom-manual "(message)Mail Variables")
@@ -1099,7 +1106,8 @@ point and mark around the citation text as modified."
 If nil, don't insert a signature.
 If t, insert `message-signature-file'.
 If a function or form, insert its result.
-See `mail-signature' for the recommended format of a signature."
+See `mail-signature' for the recommended format of a signature.
+Also see `message-signature-insert-empty-line'."
   :version "23.2"
   :type '(choice string
                  (const :tag "None" nil)
@@ -1986,6 +1994,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'gnus-delay-article "gnus-delay")
 (autoload 'gnus-extract-address-components "gnus-util")
 (autoload 'gnus-find-method-for-group "gnus")
+(autoload 'gnus-get-buffer-create "gnus")
 (autoload 'gnus-group-name-charset "gnus-group")
 (autoload 'gnus-group-name-decode "gnus-group")
 (autoload 'gnus-groups-from-server "gnus")
@@ -2730,6 +2739,67 @@ systematically send encrypted emails when possible."
   (when (message-all-epg-keys-available-p)
     (mml-secure-message-sign-encrypt)))
 
+(defcustom message-openpgp-header nil
+  "Specification for the \"OpenPGP\" header of outgoing messages.
+
+The value must be a list of three elements, all strings:
+- Key ID, in hexadecimal form;
+- Key URL or ASCII armoured key; and
+- Protection preference, one of: \"unprotected\", \"sign\",
+  \"encrypt\" or \"signencrypt\".
+
+Each of the elements may be nil, in which case its part in the
+OpenPGP header will be left out.  If all the values are nil,
+or `message-openpgp-header' is itself nil, the OpenPGP header
+will not be inserted."
+  :type '(choice
+	  (const :tag "Don't add OpenPGP header" nil)
+	  (list :tag "Use OpenPGP header"
+		(choice (string :tag "ID")
+			(const :tag "No ID" nil))
+		(choice (string :tag "Key")
+			(const :tag "No Key" nil))
+		(choice (other :tag "None" nil)
+			(const :tag "Unprotected" "unprotected")
+			(const :tag "Sign" "sign")
+			(const :tag "Encrypt" "encrypt")
+			(const :tag "Sign and Encrypt" "signencrypt"))))
+  :version "28.1")
+
+(defun message-add-openpgp-header ()
+  "Add OpenPGP header to point to public key.
+
+Header will be constructed as specified in `message-openpgp-header'.
+
+Consider adding this function to `message-header-setup-hook'"
+  ;; See https://tools.ietf.org/html/draft-josefsson-openpgp-mailnews-header
+  (when (and message-openpgp-header
+	     (or (nth 0 message-openpgp-header)
+		 (nth 1 message-openpgp-header)
+		 (nth 2 message-openpgp-header)))
+    (message-add-header
+     (with-temp-buffer
+       (insert "OpenPGP: ")
+       ;; add ID
+       (let (need-sep)
+	 (when (nth 0 message-openpgp-header)
+	   (insert "id=" (nth 0 message-openpgp-header))
+	   (setq need-sep t))
+	 ;; add URL
+	 (when (nth 1 message-openpgp-header)
+	   (when need-sep (insert "; "))
+	   (if (string-match-p ";")
+	       (insert "url=\"" (nth 1 message-openpgp-header) "\"")
+	     (insert "url=\"" (nth 1 message-openpgp-header) "\""))
+	   (setq need-sep t))
+	 ;; add preference
+	 (when (nth 2 message-openpgp-header)
+	   (when need-sep (insert "; "))
+	   (insert "preference=" (nth 2 message-openpgp-header))))
+       ;; insert header
+       (buffer-string)))
+    (message-sort-headers)))
+
 
 
 ;;;
@@ -2810,6 +2880,7 @@ systematically send encrypted emails when possible."
   (define-key message-mode-map [remap split-line]  'message-split-line)
 
   (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
+  (define-key message-mode-map "\C-c\C-p" 'message-insert-screenshot)
 
   (define-key message-mode-map "\C-a" 'message-beginning-of-line)
   (define-key message-mode-map "\t" 'message-tab)
@@ -2839,6 +2910,8 @@ systematically send encrypted emails when possible."
      :active (message-mark-active-p) :help "Mark region with enclosing tags"]
     ["Insert File Marked..." message-mark-insert-file
      :help "Insert file at point marked with enclosing tags"]
+    ["Attach File..." mml-attach-file t]
+    ["Insert Screenshot" message-insert-screenshot t]
     "----"
     ["Send Message" message-send-and-exit :help "Send this message"]
     ["Postpone Message" message-dont-send
@@ -3464,8 +3537,8 @@ Prefix arg means justify as well."
 		      (equal quoted (match-string 0)))
 	    (goto-char (match-end 0))
 	    (looking-at "[ \t]*")
-	    (if (> (length leading-space) (length (match-string 0)))
-		(setq leading-space (match-string 0)))
+	    (when (< (length leading-space) (length (match-string 0)))
+	      (setq leading-space (match-string 0)))
 	    (forward-line 1))
 	  (setq end (point))
 	  (goto-char beg)
@@ -3542,7 +3615,14 @@ Message buffers and is not meant to be called directly."
       (do-auto-fill))))
 
 (defun message-insert-signature (&optional force)
-  "Insert a signature.  See documentation for variable `message-signature'."
+  "Insert a signature at the end of the buffer.
+
+See the documentation for the `message-signature' variable for
+more information.
+
+If FORCE is 0 (or when called interactively), the global values
+of the signature variables will be consulted if the local ones
+are null."
   (interactive (list 0))
   (let ((message-signature message-signature)
 	(message-signature-file message-signature-file))
@@ -3976,7 +4056,6 @@ This function uses `mail-citation-hook' if that is non-nil."
   "Cite function in the standard Message manner."
   (message-cite-original-1 nil))
 
-(autoload 'format-spec "format-spec")
 (autoload 'gnus-date-get-time "gnus-util")
 
 (defun message-insert-formatted-citation-line (&optional from date tz)
@@ -4001,20 +4080,18 @@ See `message-citation-line-format'."
   (when (or message-reply-headers (and from date))
     (unless from
       (setq from (mail-header-from message-reply-headers)))
-    (let* ((data (condition-case ()
-		     (funcall (if (boundp 'gnus-extract-address-components)
-				  gnus-extract-address-components
-				'mail-extract-address-components)
-			      from)
-		   (error nil)))
+    (let* ((data (ignore-errors
+                   (funcall (or (bound-and-true-p
+                                 gnus-extract-address-components)
+                                #'mail-extract-address-components)
+                            from)))
 	   (name (car data))
 	   (fname name)
 	   (lname name)
-	   (net (car (cdr data)))
-	   (name-or-net (or (car data)
-			    (car (cdr data)) from))
+           (net (cadr data))
+           (name-or-net (or name net from))
 	   (time
-	    (when (string-match "%[^fnNFL]" message-citation-line-format)
+            (when (string-match-p "%[^FLNfn]" message-citation-line-format)
 	      (cond ((numberp (car-safe date)) date) ;; backward compatibility
 		    (date (gnus-date-get-time date))
 		    (t
@@ -4023,68 +4100,53 @@ See `message-citation-line-format'."
 	   (tz (or tz
 		   (when (stringp date)
 		     (nth 8 (parse-time-string date)))))
-	   (flist
-	    (let ((i ?A) lst)
-	      (when (stringp name)
-		;; Guess first name and last name:
-		(let* ((names (delq
-			       nil
-			       (mapcar
-				(lambda (x)
-				  (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'"
-						    x)
-				      x
-				    nil))
-				(split-string name "[ \t]+"))))
-		       (count (length names)))
-		  (cond ((= count 1)
-			 (setq fname (car names)
-			       lname ""))
-			((or (= count 2) (= count 3))
-			 (setq fname (car names)
-			       lname (mapconcat 'identity (cdr names) " ")))
-			((> count 3)
-			 (setq fname (mapconcat 'identity
-						(butlast names (- count 2))
-						" ")
-			       lname (mapconcat 'identity
-						(nthcdr 2 names)
-						" "))))
-                  (when (string-match "\\(.*\\),\\'" fname)
-                    (let ((newlname (match-string 1 fname)))
-                      (setq fname lname lname newlname)))))
-	      ;; The following letters are not used in `format-time-string':
-	      (push ?E lst) (push "<E>" lst)
-	      (push ?F lst) (push (or fname name-or-net) lst)
-	      ;; We might want to use "" instead of "<X>" later.
-	      (push ?J lst) (push "<J>" lst)
-	      (push ?K lst) (push "<K>" lst)
-	      (push ?L lst) (push lname lst)
-	      (push ?N lst) (push name-or-net lst)
-	      (push ?O lst) (push "<O>" lst)
-	      (push ?P lst) (push "<P>" lst)
-	      (push ?Q lst) (push "<Q>" lst)
-	      (push ?f lst) (push from lst)
-	      (push ?i lst) (push "<i>" lst)
-	      (push ?n lst) (push net lst)
-	      (push ?o lst) (push "<o>" lst)
-	      (push ?q lst) (push "<q>" lst)
-	      (push ?t lst) (push "<t>" lst)
-	      (push ?v lst) (push "<v>" lst)
-	      ;; Delegate the rest to `format-time-string':
-	      (while (<= i ?z)
-		(when (and (not (memq i lst))
-			   ;; Skip (Z,a)
-			   (or (<= i ?Z)
-			       (>= i ?a)))
-		  (push i lst)
-		  (push (condition-case nil
-			    (format-time-string (format "%%%c" i) time tz)
-			  (error (format ">%c<" i)))
-			lst))
-		(setq i (1+ i)))
-	      (reverse lst)))
-	   (spec (apply 'format-spec-make flist)))
+           spec)
+      (when (stringp name)
+        ;; Guess first name and last name:
+        (let* ((names (seq-filter
+                       (lambda (s)
+                         (string-match-p (rx bos (+ (in word ?. ?-)) eos) s))
+                       (split-string name "[ \t]+")))
+               (count (length names)))
+          (cond ((= count 1)
+                 (setq fname (car names)
+                       lname ""))
+                ((or (= count 2) (= count 3))
+                 (setq fname (car names)
+                       lname (string-join (cdr names) " ")))
+                ((> count 3)
+                 (setq fname (string-join (butlast names (- count 2))
+                                          " ")
+                       lname (string-join (nthcdr 2 names) " "))))
+          (when (string-match "\\(.*\\),\\'" fname)
+            (let ((newlname (match-string 1 fname)))
+              (setq fname lname lname newlname)))))
+      ;; The following letters are not used in `format-time-string':
+      (push (cons ?E "<E>") spec)
+      (push (cons ?F (or fname name-or-net)) spec)
+      ;; We might want to use "" instead of "<X>" later.
+      (push (cons ?J "<J>") spec)
+      (push (cons ?K "<K>") spec)
+      (push (cons ?L lname) spec)
+      (push (cons ?N name-or-net) spec)
+      (push (cons ?O "<O>") spec)
+      (push (cons ?P "<P>") spec)
+      (push (cons ?Q "<Q>") spec)
+      (push (cons ?f from) spec)
+      (push (cons ?i "<i>") spec)
+      (push (cons ?n net) spec)
+      (push (cons ?o "<o>") spec)
+      (push (cons ?q "<q>") spec)
+      (push (cons ?t "<t>") spec)
+      (push (cons ?v "<v>") spec)
+      ;; Delegate the rest to `format-time-string':
+      (dolist (c (nconc (number-sequence ?A ?Z)
+                        (number-sequence ?a ?z)))
+        (unless (assq c spec)
+          (push (cons c (condition-case nil
+                            (format-time-string (format "%%%c" c) time tz)
+                          (error (format ">%c<" c))))
+                spec)))
       (insert (format-spec message-citation-line-format spec)))
     (newline)))
 
@@ -4376,7 +4438,7 @@ conformance."
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
     (let (char found choice nul-chars)
-      (message-goto-body)
+      (goto-char (point-min))
       (setq nul-chars (save-excursion
 			(search-forward "\000" nil t)))
       (while (progn
@@ -4412,11 +4474,12 @@ conformance."
 		      ,(format
 			"Replace non-printable characters with \"%s\" and send"
 			message-replacement-char))
+		  (?u "url-encode" "Use URL %hex encoding")
 		  (?s "send" "Send as is without removing anything")
 		  (?e "edit" "Continue editing")))))
 	(if (eq choice ?e)
 	  (error "Non-printable characters"))
-	(message-goto-body)
+	(goto-char (point-min))
 	(skip-chars-forward mm-7bit-chars)
 	(while (not (eobp))
 	  (when (let ((char (char-after)))
@@ -4433,11 +4496,17 @@ conformance."
 						     control-1))
 			   (not (get-text-property
 				 (point) 'untranslated-utf-8)))))
-	    (if (eq choice ?i)
-		(message-kill-all-overlays)
+	    (cond
+	     ((eq choice ?i)
+	      (message-kill-all-overlays))
+	     ((eq choice ?u)
+	      (let ((char (get-byte (point))))
+		(delete-char 1)
+		(insert (format "%%%x" char))))
+	     (t
 	      (delete-char 1)
 	      (when (eq choice ?r)
-		(insert message-replacement-char))))
+		(insert message-replacement-char)))))
 	  (forward-char)
 	  (skip-chars-forward mm-7bit-chars)))))
   (message-check 'bogus-recipient
@@ -4507,7 +4576,8 @@ This function could be useful in `message-setup-hook'."
 (custom-add-option 'message-setup-hook 'message-check-recipients)
 
 (defun message-add-action (action &rest types)
-  "Add ACTION to be performed when doing an exit of type TYPES."
+  "Add ACTION to be performed when doing an exit of type TYPES.
+Valid types are `send', `return', `exit', `kill' and `postpone'."
   (while types
     (add-to-list (intern (format "message-%s-actions" (pop types)))
 		 action)))
@@ -4757,7 +4827,7 @@ If you always want Gnus to send messages in one piece, set
 	       message-courtesy-message)))
           ;; If this was set, `sendmail-program' takes care of encoding.
           (unless message-inhibit-body-encoding
-            ;; Let's make sure we encoded all the body.
+            ;; Let's make sure we encoded everything in the buffer.
             (cl-assert (save-excursion
                          (goto-char (point-min))
                          (not (re-search-forward "[^\000-\377]" nil t)))))
@@ -4782,15 +4852,16 @@ If you always want Gnus to send messages in one piece, set
 Each line should be no more than 79 characters long."
   (goto-char (point-min))
   (while (not (eobp))
-    (when (and (looking-at "[^:]+:")
-               (> (- (line-end-position) (point)) 79))
-      (mail-header-fold-field))
-    (forward-line 1)))
+    (if (and (looking-at "[^:]+:")
+             (> (- (line-end-position) (point)) 79))
+	(goto-char (mail-header-fold-field))
+      (forward-line 1))))
 
 (defvar sendmail-program)
 (defvar smtpmail-smtp-server)
 (defvar smtpmail-smtp-service)
 (defvar smtpmail-smtp-user)
+(defvar smtpmail-stream-type)
 
 (defun message-multi-smtp-send-mail ()
   "Send the current buffer to `message-send-mail-function'.
@@ -4809,6 +4880,11 @@ that instead."
 	(let* ((smtpmail-smtp-server (nth 1 method))
 	       (service (nth 2 method))
 	       (port (string-to-number service))
+	       ;; If we're talking to the TLS SMTP port, then force a
+	       ;; TLS connection.
+	       (smtpmail-stream-type (if (= port 465)
+					 'tls
+				       smtpmail-stream-type))
 	       (smtpmail-smtp-service (if (> port 0) port service))
 	       (smtpmail-smtp-user (or (nth 3 method) smtpmail-smtp-user)))
 	  (message-smtpmail-send-it)))
@@ -5591,7 +5667,7 @@ The result is a fixnum."
 	       (mail-file-babyl-p filename))
 	  ;; gnus-output-to-mail does the wrong thing with live, mbox
 	  ;; Rmail buffers in Emacs 23.
-	  ;; http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
+          ;; https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
 	  (let ((buff (find-buffer-visiting filename)))
 	    (and buff (with-current-buffer buff
 			(eq major-mode 'rmail-mode)))))
@@ -6443,7 +6519,7 @@ When called without a prefix argument, header value spanning
 multiple lines is treated as a single line.  Otherwise, even if
 N is 1, when point is on a continuation header line, it will be
 moved to the beginning "
-  (interactive "p")
+  (interactive "^p")
   (cond
    ;; Go to beginning of header or beginning of line.
    ((and message-beginning-of-line (message-point-in-header-p))
@@ -7006,15 +7082,28 @@ want to get rid of this query permanently.")))
 
       ;; Build the header alist.  Allow the user to be asked whether
       ;; or not to reply to all recipients in a wide reply.
-      (setq follow-to (list (cons 'To (cdr (pop recipients)))))
-      (when (and recipients
-		 (or (not message-wide-reply-confirm-recipients)
-		     (y-or-n-p "Reply to all recipients? ")))
-	(setq recipients (mapconcat
-			  (lambda (addr) (cdr addr)) recipients ", "))
-	(if (string-match "^ +" recipients)
-	    (setq recipients (substring recipients (match-end 0))))
-	(push (cons 'Cc recipients) follow-to)))
+      (when (or (< (length recipients) 2)
+		(not message-wide-reply-confirm-recipients)
+		(y-or-n-p "Reply to all recipients? "))
+	(if never-mct
+	    ;; The author has requested never to get a (wide)
+	    ;; response, so put everybody else into the To header.
+	    ;; This avoids looking as if we're To-in somebody else in
+	    ;; specific, and just Cc-in the rest.
+	    (setq follow-to (list
+			     (cons 'To
+				   (mapconcat
+				    (lambda (addr)
+				      (cdr addr)) recipients ", "))))
+	  ;; Put the first recipient in the To header.
+	  (setq follow-to (list (cons 'To (cdr (pop recipients)))))
+	  ;; Put the rest of the recipients in Cc.
+	  (when recipients
+	    (setq recipients (mapconcat
+			      (lambda (addr) (cdr addr)) recipients ", "))
+	    (if (string-match "^ +" recipients)
+		(setq recipients (substring recipients (match-end 0))))
+	    (push (cons 'Cc recipients) follow-to)))))
     follow-to))
 
 (defun message-prune-recipients (recipients)
@@ -7310,7 +7399,7 @@ If ARG, allow editing of the cancellation message."
 	;; Make control message.
 	(if arg
 	    (message-news)
-	  (setq buf (set-buffer (get-buffer-create " *message cancel*"))))
+	  (setq buf (set-buffer (gnus-get-buffer-create " *message cancel*"))))
 	(erase-buffer)
 	(insert "Newsgroups: " newsgroups "\n"
 		"From: " from "\n"
@@ -7731,7 +7820,7 @@ is for the internal use."
 	  gcc beg)
       ;; We first set up a normal mail buffer.
       (unless (message-mail-user-agent)
-	(set-buffer (get-buffer-create " *message resend*"))
+	(set-buffer (gnus-get-buffer-create " *message resend*"))
 	(let ((inhibit-read-only t))
 	  (erase-buffer)))
       (let ((message-this-is-mail t)
@@ -7983,7 +8072,7 @@ See `gmm-tool-bar-from-list' for details on the format of the list."
 
 (defcustom message-tool-bar-retro
   '(;; Old Emacs 21 icon for consistency.
-    (message-send-and-exit "gnus/mail-send")
+    (message-send-and-exit "mail/send")
     (message-kill-buffer "close")
     (message-dont-send "cancel")
     (mml-attach-file "attach" mml-mode-map)
@@ -8019,7 +8108,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
 		  (library image &optional path no-error))
 
 (defun message-make-tool-bar (&optional force)
-  "Make a message mode tool bar from `message-tool-bar-list'.
+  "Make a message mode tool bar from `message-tool-bar'.
 When FORCE, rebuild the tool bar."
   (when (and (boundp 'tool-bar-mode)
 	     tool-bar-mode
@@ -8510,7 +8599,7 @@ Meant for use on `completion-at-point-functions'."
 
 ;; FIXME: What is the most common term (circular letter, form letter, serial
 ;; letter, standard letter) for such kind of letter?  See also
-;; <http://en.wikipedia.org/wiki/Form_letter>
+;; <https://en.wikipedia.org/wiki/Form_letter>
 
 ;; FIXME: Maybe extent message-mode's font-lock support to recognize
 ;; `message-form-letter-separator', i.e. highlight each message like a single
@@ -8670,8 +8759,112 @@ Used in `message-simplify-recipients'."
 			   (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
 	     string)))))))
 
+(defun message-insert-screenshot (delay)
+  "Take a screenshot and insert in the current buffer.
+DELAY (the numeric prefix) says how many seconds to wait before
+starting the screenshotting process.
+
+The `message-screenshot-command' variable says what command is
+used to take the screenshot."
+  (interactive "p")
+  (unless (executable-find (car message-screenshot-command))
+    (error "Can't find %s to take the screenshot"
+	   (car message-screenshot-command)))
+  (cl-decf delay)
+  (unless (zerop delay)
+    (dotimes (i delay)
+      (message "Sleeping %d second%s..."
+	       (- delay i)
+	       (if (= (- delay i) 1)
+		   ""
+		 "s"))
+      (sleep-for 1)))
+  (message "Take screenshot")
+  (let ((image
+	 (with-temp-buffer
+	   (set-buffer-multibyte nil)
+	   (apply #'call-process
+		  (car message-screenshot-command) nil (current-buffer) nil
+		  (cdr message-screenshot-command))
+	   (buffer-string))))
+    (set-mark (point))
+    (insert-image
+     (create-image image 'png t
+		   :max-width (truncate (* (frame-pixel-width) 0.8))
+		   :max-height (truncate (* (frame-pixel-height) 0.8))
+		   :scale 1)
+     (format "<#part type=\"image/png\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+	     ;; Get a base64 version of the image -- this avoids later
+	     ;; complications if we're auto-saving the buffer and
+	     ;; restoring from a file.
+	     (with-temp-buffer
+	       (set-buffer-multibyte nil)
+	       (insert image)
+	       (base64-encode-region (point-min) (point-max) t)
+	       (buffer-string))))
+    (insert "\n\n")
+    (message "")))
+
+(declare-function gnus-url-unhex-string "gnus-util")
+
+(defun message-parse-mailto-url (url)
+  "Parse a mailto: url."
+  (setq url (replace-regexp-in-string "\n" " " url))
+  (when (string-match "mailto:/*\\(.*\\)" url)
+    (setq url (substring url (match-beginning 1) nil)))
+  (setq url (if (string-match "^\\?" url)
+		(substring url 1)
+	      (if (string-match "^\\([^?]+\\)\\?\\(.*\\)" url)
+		  (concat "to=" (match-string 1 url) "&"
+			  (match-string 2 url))
+		(concat "to=" url))))
+  (let (retval pairs cur key val)
+    (setq pairs (split-string url "&"))
+    (while pairs
+      (setq cur (car pairs)
+	    pairs (cdr pairs))
+      (if (not (string-match "=" cur))
+	  nil                           ; Grace
+	(setq key (downcase (gnus-url-unhex-string
+			     (substring cur 0 (match-beginning 0))))
+	      val (gnus-url-unhex-string (substring cur (match-end 0) nil) t))
+	(setq cur (assoc key retval))
+	(if cur
+	    (setcdr cur (cons val (cdr cur)))
+	  (setq retval (cons (list key val) retval)))))
+    retval))
+
+;;;###autoload
+(defun message-mailto ()
+  "Command to parse command line mailto: links.
+This is meant to be used for MIME handlers: Setting the handler
+for \"x-scheme-handler/mailto;\" to \"emacs -f message-mailto %u\"
+will then start up Emacs ready to compose mail."
+  (interactive)
+  ;; <a href="mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body">Send email</a>
+  (message-mail)
+  (message-mailto-1 (pop command-line-args-left)))
+
+(defun message-mailto-1 (url)
+  (let ((args (message-parse-mailto-url url)))
+    (dolist (arg args)
+      (unless (equal (car arg) "body")
+	(message-position-on-field (capitalize (car arg)))
+	(insert (replace-regexp-in-string
+		 "\r\n" "\n"
+		 (mapconcat #'identity (reverse (cdr arg)) ", ") nil t))))
+    (when (assoc "body" args)
+      (message-goto-body)
+      (dolist (body (cdr (assoc "body" args)))
+	(insert body "\n")))
+    (if (assoc "subject" args)
+	(message-goto-body)
+      (message-goto-subject))))
+
 (provide 'message)
 
+(make-obsolete-variable 'message-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'message-load-hook)
 
 ;; Local Variables:

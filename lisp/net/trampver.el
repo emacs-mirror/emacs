@@ -35,11 +35,8 @@
 ;; Emacs version check is defined in macro AC_EMACS_INFO of
 ;; aclocal.m4; should be changed only there.
 
-;; Needed for Emacs 24.
-(defvar inhibit-message)
-
 ;;;###tramp-autoload
-(defconst tramp-version "2.4.4-pre"
+(defconst tramp-version "2.5.0-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -51,6 +48,7 @@
     ;; Suppress message from `emacs-repository-get-branch'.  We must
     ;; also handle out-of-tree builds.
     (let ((inhibit-message t)
+	  (debug-on-error nil)
 	  (dir (or (locate-dominating-file (locate-library "tramp") ".git")
 		   source-directory)))
       ;; `emacs-repository-get-branch' has been introduced with Emacs 27.1.
@@ -64,6 +62,7 @@
     ;; Suppress message from `emacs-repository-get-version'.  We must
     ;; also handle out-of-tree builds.
     (let ((inhibit-message t)
+	  (debug-on-error nil)
 	  (dir (or (locate-dominating-file (locate-library "tramp") ".git")
 		   source-directory)))
       (and (stringp dir) (file-directory-p dir)
@@ -71,9 +70,9 @@
   "The repository revision of the Tramp sources.")
 
 ;; Check for Emacs version.
-(let ((x   (if (not (string-lessp emacs-version "24.4"))
+(let ((x   (if (not (string-lessp emacs-version "25.1"))
       "ok"
-    (format "Tramp 2.4.4-pre is not fit for %s"
+    (format "Tramp 2.5.0-pre is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
@@ -102,8 +101,3 @@
 (provide 'trampver)
 
 ;;; trampver.el ends here
-
-;; Local Variables:
-;; mode: Emacs-Lisp
-;; coding: utf-8
-;; End:

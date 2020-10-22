@@ -21,6 +21,7 @@ one frame.
 * Change Window::       Deleting windows and changing their sizes.
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
+* Tab Line::            Window tab line.
 @end menu
 
 @node Basic Window
@@ -250,9 +251,19 @@ Mail}), but in another window (@code{compose-mail-other-window}).
 Find the definition of an identifier, similar to @kbd{M-.}
 (@pxref{Xref}), but in another window
 (@code{xref-find-definitions-other-window}).
+
 @item C-x 4 r @var{filename} @key{RET}
 Visit file @var{filename} read-only, and select its buffer in another
 window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
+
+@item C-x 4 4
+A more general prefix command affects the buffer displayed by the next
+command invoked immediately after this prefix command.  It requests
+the buffer of the next command to be displayed in another window.
+
+@item C-x 4 1
+This general prefix command requests the buffer of the next command
+to be displayed in the same window.
 @end table
 
 @node Change Window
@@ -542,16 +553,6 @@ Reference Manual}), and cannot exceed the size of the containing frame.
 @node Window Convenience
 @section Convenience Features for Window Handling
 
-@findex global-tab-line-mode
-@cindex tab line
-  The command @code{global-tab-line-mode} toggles the display of a
-@dfn{tab line} on the top screen line of each window.  The tab line
-shows special buttons (``tabs'') for each buffer that was displayed in
-a window, and allows switching to any of these buffers by clicking the
-corresponding button.  You can add a tab by clicking on the @kbd{+}
-icon and delete a tab by clicking on the @kbd{x} icon of a tab.  The
-mouse wheel on the tab line scrolls the tabs horizontally.
-
 @findex winner-mode
 @vindex winner-dont-bind-my-keys
 @vindex winner-ring-size
@@ -586,13 +587,25 @@ buffer.  @xref{Follow Mode}.
 @cindex directional window selection
 @findex windmove-right
 @findex windmove-default-keybindings
+@findex windmove-display-default-keybindings
+@findex windmove-delete-default-keybindings
+@findex windmove-swap-states-in-direction
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
-one, and similarly for the left, up, and down
-counterparts.  @w{@kbd{M-x windmove-default-keybindings}} binds these
-commands to @kbd{S-right} etc.; doing so disables shift selection for
-those keys (@pxref{Shift Selection}).
+one, and similarly for the left, up, and down counterparts.
+@w{@kbd{M-x windmove-default-keybindings}} binds these commands to
+@kbd{S-right} etc.; doing so disables shift selection for those keys
+(@pxref{Shift Selection}).  In the same way as keybindings can be
+defined for commands that select windows directionally, you can use
+@w{@kbd{M-x windmove-display-default-keybindings}} to define
+keybindings for commands that specify in what direction to display the
+window for the buffer that the next command is going to display.
+Also there is @w{@kbd{M-x windmove-delete-default-keybindings}} to
+define keybindings for commands that delete windows directionally, and
+@w{@kbd{M-x windmove-swap-states-in-direction}} that define
+keybindings for commands that swap the window contents of the selected
+window with the window in the specified direction.
 
   The command @kbd{M-x compare-windows} lets you compare the text
 shown in different windows.  @xref{Comparing Files}.
@@ -604,3 +617,37 @@ shown in different windows.  @xref{Comparing Files}.
   Scroll All mode (@kbd{M-x scroll-all-mode}) is a global minor mode
 that causes scrolling commands and point motion commands to apply to
 every single window.
+
+
+@node Tab Line
+@section Window Tab Line
+
+@findex global-tab-line-mode
+@cindex tab line
+  The command @code{global-tab-line-mode} toggles the display of
+a @dfn{tab line} on the top screen line of each window.  The Tab Line
+shows special buttons (``tabs'') for each buffer that was displayed in
+a window, and allows switching to any of these buffers by clicking the
+corresponding button.  Clicking on the @kbd{+} icon adds a new buffer
+to the window-local tab line of buffers, and clicking on the @kbd{x}
+icon of a tab deletes it.  The mouse wheel on the tab line scrolls
+the tabs horizontally.
+
+Selecting the previous window-local tab is the same as typing @kbd{C-x
+@key{LEFT}} (@code{previous-buffer}), selecting the next tab is the
+same as @kbd{C-x @key{RIGHT}} (@code{next-buffer}).  Both commands
+support a numeric prefix argument as a repeat count.
+
+You can customize the variable @code{tab-line-tabs-function} to define
+the preferred contents of the tab line.  By default, it displays all
+buffers previously visited in the window, as described above.  But you
+can also set it to display a list of buffers with the same major mode
+as the current buffer, or to display buffers grouped by their major
+mode, where clicking on the mode name in the first tab displays a list
+of all major modes where you can select another group of buffers.
+
+Note that the Tab Line is different from the Tab Bar (@pxref{Tab Bars}).
+Whereas tabs on the Tab Bar at the top of each frame are used to
+switch between window configurations containing several windows with buffers,
+tabs on the Tab Line at the top of each window are used to switch
+between buffers in the window.

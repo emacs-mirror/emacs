@@ -61,6 +61,7 @@
 (defmacro calc-with-trail-buffer (&rest body)
   `(let ((save-buf (current-buffer))
 	 (calc-command-flags nil))
+     (ignore save-buf)              ;FIXME: Use a name less conflict-prone!
      (with-current-buffer (calc-trail-display t)
        (progn
 	 (goto-char calc-trail-pointer)
@@ -161,8 +162,9 @@
 		      hms date mod var))))
 
 (defsubst Math-num-integerp (a)
-  (or (not (consp a))
-      (and (eq (car a) 'float)
+  (or (integerp a)
+      (and (consp a)
+           (eq (car a) 'float)
 	   (>= (nth 2 a) 0))))
 
 (defsubst Math-equal-int (a b)

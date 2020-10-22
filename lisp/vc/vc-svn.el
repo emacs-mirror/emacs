@@ -816,7 +816,14 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
           (push (match-string 1 loglines) vc-svn-revisions)
           (setq start (+ start (match-end 0)))
           (setq loglines (buffer-substring-no-properties start (point-max)))))
-    vc-svn-revisions)))
+      vc-svn-revisions)))
+
+(defun vc-svn-repository-url (file-or-dir &optional _remote-name)
+  (let ((default-directory (vc-svn-root file-or-dir)))
+    (with-temp-buffer
+      (vc-svn-command (current-buffer) 0 nil
+                      "info" "--show-item" "repos-root-url")
+      (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 (provide 'vc-svn)
 

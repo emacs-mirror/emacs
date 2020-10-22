@@ -37,7 +37,7 @@
 ;;; Bugs/todo:
 
 ;; - Only uses "Makefile", not "makefile" or "GNUmakefile"
-;;   (from http://bugs.debian.org/337339).
+;;   (from https://bugs.debian.org/337339).
 
 ;;; Code:
 
@@ -851,7 +851,7 @@ can also be executed interactively independently of
   (interactive (list "Interrupted by user"))
   (dolist (buf (buffer-list))
     (with-current-buffer buf
-      (let (p flymake-proc--current-process)
+      (let ((p flymake-proc--current-process))
         (when (process-live-p p)
           (kill-process p)
           (process-put p 'flymake-proc--interrupted reason)

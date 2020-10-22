@@ -227,6 +227,11 @@ machine YOURMACHINE login YOU password SMTPPASSWORD port 433
 machine YOURMACHINE login YOU password GENERALPASSWORD
 @end example
 
+If you wish to specify a particular SMTP authentication method to use
+with a machine, you can use the @code{smtp-auth} keyword.
+@xref{Authentication,, Authentication, smtpmail, Emacs SMTP Library},
+for available methods.
+
 For url-auth authentication (HTTP/HTTPS), you need to put this in your
 netrc file:
 

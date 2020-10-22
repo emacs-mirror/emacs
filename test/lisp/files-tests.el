@@ -190,7 +190,6 @@ form.")
 
 (ert-deftest files-tests-bug-21454 ()
   "Test for https://debbugs.gnu.org/21454 ."
-  :expected-result :failed
   (let ((input-result
          '(("/foo/bar//baz/:/bar/foo/baz//" nil ("/foo/bar/baz/" "/bar/foo/baz/"))
            ("/foo/bar/:/bar/qux/:/qux/foo" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
@@ -960,7 +959,7 @@ unquoted file names."
           (let ((linkname (expand-file-name "link" nospecial-dir)))
             (should-error (make-symbolic-link tmpfile linkname))))))))
 
-;; See `files-tests--file-name-non-special--subprocess'.
+;; See `files-tests-file-name-non-special--subprocess'.
 ;; (ert-deftest files-tests-file-name-non-special-process-file ())
 
 (ert-deftest files-tests-file-name-non-special-rename-file ()
@@ -1003,9 +1002,9 @@ unquoted file names."
 
 (ert-deftest files-tests-file-name-non-special-set-file-times ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (set-file-times nospecial))
+    (set-file-times nospecial nil 'nofollow))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
-    (should-error (set-file-times nospecial))))
+    (should-error (set-file-times nospecial nil 'nofollow))))
 
 (ert-deftest files-tests-file-name-non-special-set-visited-file-modtime ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -1104,7 +1103,7 @@ unquoted file names."
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (vc-registered nospecial) (vc-registered tmpfile)))))
 
-;; See test `files-tests--file-name-non-special--buffers'.
+;; See test `files-tests-file-name-non-special--buffers'.
 ;; (ert-deftest files-tests-file-name-non-special-verify-visited-file-modtime ())
 
 (ert-deftest files-tests-file-name-non-special-write-region ()
@@ -1163,6 +1162,42 @@ works as expected if the default directory is quoted."
     (should-error (make-directory a/b))
     (should-not (make-directory a/b t))
     (delete-directory dir 'recursive)))
+
+(ert-deftest files-tests-file-modes-symbolic-to-number ()
+  (let ((alist (list (cons "a=rwx" #o777)
+                     (cons "o=t" #o1000)
+                     (cons "o=xt" #o1001)
+                     (cons "o=tx" #o1001) ; Order doesn't matter.
+                     (cons "u=rwx,g=rx,o=rx" #o755)
+                     (cons "u=rwx,g=,o=" #o700)
+                     (cons "u=rwx" #o700) ; Empty permissions can be ignored.
+                     (cons "u=rw,g=r,o=r" #o644)
+                     (cons "u=rw,g=r,o=t" #o1640)
+                     (cons "u=rw,g=r,o=xt" #o1641)
+                     (cons "u=rwxs,g=rs,o=xt" #o7741)
+                     (cons "u=rws,g=rs,o=t" #o7640)
+                     (cons "u=rws,g=rs,o=r" #o6644)
+                     (cons "a=r" #o444)
+                     (cons "u=S" nil)
+                     (cons "u=T" nil)
+                     (cons "u=Z" nil))))
+    (dolist (x alist)
+      (if (cdr-safe x)
+          (should (equal (cdr x) (file-modes-symbolic-to-number (car x))))
+        (should-error (file-modes-symbolic-to-number (car x)))))))
+
+(ert-deftest files-tests-file-modes-number-to-symbolic ()
+  (let ((alist (list (cons #o755 "-rwxr-xr-x")
+                     (cons #o700 "-rwx------")
+                     (cons #o644 "-rw-r--r--")
+                     (cons #o1640 "-rw-r----T")
+                     (cons #o1641 "-rw-r----t")
+                     (cons #o7741 "-rwsr-S--t")
+                     (cons #o7640 "-rwSr-S--T")
+                     (cons #o6644 "-rwSr-Sr--")
+                     (cons #o444 "-r--r--r--"))))
+    (dolist (x alist)
+      (should (equal (cdr x) (file-modes-number-to-symbolic (car x)))))))
 
 (ert-deftest files-tests-no-file-write-contents ()
   "Test that `write-contents-functions' permits saving a file.
@@ -1325,6 +1360,76 @@ See <https://debbugs.gnu.org/36401>."
       (insert "My-Tag")
       (normal-mode)
       (should (not (eq major-mode 'text-mode))))))
+
+(ert-deftest files-colon-path ()
+  (should (equal (parse-colon-path "/foo//bar/baz")
+                 '("/foo/bar/baz/"))))
+
+(ert-deftest files-test-magic-mode-alist-doctype ()
+  "Test that DOCTYPE and variants put files in mhtml-mode."
+  (with-temp-buffer
+    (goto-char (point-min))
+    (insert "<!DOCTYPE html>")
+    (normal-mode)
+    (should (eq major-mode 'mhtml-mode))
+    (erase-buffer)
+    (insert "<!doctype html>")
+    (normal-mode)
+    (should (eq major-mode 'mhtml-mode))))
+
+(defvar files-tests-lao "The Way that can be told of is not the eternal Way;
+The name that can be named is not the eternal name.
+The Nameless is the origin of Heaven and Earth;
+The Named is the mother of all things.
+Therefore let there always be non-being,
+  so we may see their subtlety,
+And let there always be being,
+  so we may see their outcome.
+The two are the same,
+But after they are produced,
+  they have different names.
+")
+
+(defvar files-tests-tzu "The Nameless is the origin of Heaven and Earth;
+The named is the mother of all things.
+
+Therefore let there always be non-being,
+  so we may see their subtlety,
+And let there always be being,
+  so we may see their outcome.
+The two are the same,
+But after they are produced,
+  they have different names.
+They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!
+")
+
+(ert-deftest files-tests-revert-buffer ()
+  "Test that revert-buffer is successful."
+  (files-tests--with-temp-file temp-file-name
+    (with-temp-buffer
+      (insert files-tests-lao)
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (revert-buffer t t t)
+      (should (compare-strings files-tests-lao nil nil
+                               (buffer-substring (point-min) (point-max))
+                               nil nil)))))
+
+(ert-deftest files-tests-revert-buffer-with-fine-grain ()
+  "Test that revert-buffer-with-fine-grain is successful."
+  (files-tests--with-temp-file temp-file-name
+    (with-temp-buffer
+      (insert files-tests-lao)
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (should (revert-buffer-with-fine-grain t t))
+      (should (compare-strings files-tests-lao nil nil
+                               (buffer-substring (point-min) (point-max))
+                               nil nil)))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

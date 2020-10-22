@@ -1,4 +1,4 @@
-;;; x-dnd.el --- drag and drop support for X
+;;; x-dnd.el --- drag and drop support for X  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
@@ -32,7 +32,7 @@
 (require 'dnd)
 
 ;;; Customizable variables
-(defcustom x-dnd-test-function 'x-dnd-default-test-function
+(defcustom x-dnd-test-function #'x-dnd-default-test-function
   "The function drag and drop uses to determine if to accept or reject a drop.
 The function takes three arguments, WINDOW, ACTION and TYPES.
 WINDOW is where the mouse is when the function is called.  WINDOW may be a
@@ -485,10 +485,12 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	((equal "XdndDrop" message)
 	 (if (windowp window) (select-window window))
 	 (let* ((dnd-source (aref data 0))
+		(timestamp (aref data 2))
 		(value (and (x-dnd-current-type window)
 			    (x-get-selection-internal
 			     'XdndSelection
-			     (intern (x-dnd-current-type window)))))
+			     (intern (x-dnd-current-type window))
+			     timestamp)))
 		success action)
 
 	   (setq action (if value

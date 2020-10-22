@@ -44,9 +44,22 @@
 	(setq i (1+ i)))))
   string)
 
-(defvar truncate-string-ellipsis "..."  ;"…"
+(defvar truncate-string-ellipsis nil
   "String to use to indicate truncation.
-Serves as default value of ELLIPSIS argument to `truncate-string-to-width'.")
+Serves as default value of ELLIPSIS argument to `truncate-string-to-width'
+returned by the function `truncate-string-ellipsis'.")
+
+(defun truncate-string-ellipsis ()
+  "Return the string used to indicate truncation.
+Use the value of the variable `truncate-string-ellipsis' when it's non-nil.
+Otherwise, return the Unicode character U+2026 \"HORIZONTAL ELLIPSIS\"
+when it's displayable on the selected frame, or `...'.  This function
+needs to be called on every use of `truncate-string-to-width' to
+decide whether the selected frame can display that Unicode character."
+  (cond
+   (truncate-string-ellipsis)
+   ((char-displayable-p ?…) "…")
+   ("...")))
 
 ;;;###autoload
 (defun truncate-string-to-width (str end-column
@@ -73,15 +86,15 @@ If ELLIPSIS is non-nil, it should be a string which will replace the
 end of STR (including any padding) if it extends beyond END-COLUMN,
 unless the display width of STR is equal to or less than the display
 width of ELLIPSIS.  If it is non-nil and not a string, then ELLIPSIS
-defaults to `truncate-string-ellipsis'.
+defaults to `truncate-string-ellipsis', or to three dots when it's nil.
 
-If ELLIPSIS-TEXT-PROPERTY in non-nil, a too-long string will not
+If ELLIPSIS-TEXT-PROPERTY is non-nil, a too-long string will not
 be truncated, but instead the elided parts will be covered by a
 `display' text property showing the ellipsis."
   (or start-column
       (setq start-column 0))
   (when (and ellipsis (not (stringp ellipsis)))
-    (setq ellipsis truncate-string-ellipsis))
+    (setq ellipsis (truncate-string-ellipsis)))
   (let ((str-len (length str))
 	(str-width (string-width str))
 	(ellipsis-width (if ellipsis (string-width ellipsis) 0))
@@ -273,15 +286,6 @@ operations such as `find-coding-systems-region'."
        (apply #'set-coding-system-priority ,current)))))
 ;;;###autoload(put 'with-coding-priority 'lisp-indent-function 1)
 (put 'with-coding-priority 'edebug-form-spec t)
-
-;;;###autoload
-(defmacro detect-coding-with-priority (from to priority-list)
-  "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
-PRIORITY-LIST is an alist of coding categories vs the corresponding
-coding systems ordered by priority."
-  (declare (obsolete with-coding-priority "23.1"))
-  `(with-coding-priority (mapcar #'cdr ,priority-list)
-     (detect-coding-region ,from ,to)))
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)

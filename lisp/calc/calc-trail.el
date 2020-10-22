@@ -1,4 +1,4 @@
-;;; calc-trail.el --- functions for manipulating the Calc "trail"
+;;; calc-trail.el --- functions for manipulating the Calc "trail"  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

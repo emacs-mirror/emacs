@@ -1,4 +1,4 @@
-;;; ld-script.el --- GNU linker script editing mode for Emacs
+;;; ld-script.el --- GNU linker script editing mode for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

@@ -17,6 +17,8 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define __STDC_WANT_IEC_60559_BFP_EXT__
+
 #ifndef _LIBC
 # include <libc-config.h>
 

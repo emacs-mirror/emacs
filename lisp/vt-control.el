@@ -1,4 +1,4 @@
-;;; vt-control.el --- Common VTxxx control functions
+;;; vt-control.el --- Common VTxxx control functions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 

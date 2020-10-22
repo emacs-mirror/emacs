@@ -1,4 +1,4 @@
-;;; mule-util --- tests for international/mule-util.el
+;;; mule-util-tests.el --- tests for international/mule-util.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -75,10 +75,11 @@
     (eval
      `(ert-deftest ,testname ()
         ,testdoc
-        (should (equal (apply 'truncate-string-to-width ',(car testdata))
-                              ,(cdr testdata)))))))
+        (let ((truncate-string-ellipsis "..."))
+          (should (equal (apply 'truncate-string-to-width ',(car testdata))
+                         ,(cdr testdata))))))))
 
 (dotimes (i (length mule-util-test-truncate-data))
   (mule-util-test-truncate-create i))
 
-;;; mule-util.el ends here
+;;; mule-util-tests.el ends here

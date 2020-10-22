@@ -1,4 +1,5 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,12 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epa)
 (require 'mail-utils)
+
+;;; Local Mode
 
 (defvar epa-mail-mode-map
   (let ((keymap (make-sparse-keymap)))
@@ -45,10 +49,19 @@
 (defvar epa-mail-mode-on-hook nil)
 (defvar epa-mail-mode-off-hook nil)
 
+(defcustom epa-mail-offer-skip t
+  "If non-nil, when a recipient has no key, ask whether to skip it.
+Otherwise, signal an error."
+  :type 'boolean
+  :version "28.1"
+  :group 'epa-mail)
+
 ;;;###autoload
 (define-minor-mode epa-mail-mode
   "A minor-mode for composing encrypted/clearsigned mails."
   nil " epa-mail" epa-mail-mode-map)
+
+;;; Utilities
 
 (defun epa-mail--find-usable-key (keys usage)
   "Find a usable key from KEYS for USAGE.
@@ -63,6 +76,8 @@ USAGE would be `sign' or `encrypt'."
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+;;; Commands
 
 ;;;###autoload
 (defun epa-mail-decrypt ()
@@ -85,7 +100,10 @@ The buffer is expected to contain a mail message."
 ;;;###autoload
 (defun epa-mail-sign (start end signers mode)
   "Sign the current buffer.
-The buffer is expected to contain a mail message."
+The buffer is expected to contain a mail message, and signing is
+performed with your default key.
+With prefix argument, asks you to select interactively the key to
+use from your key ring."
   (declare (interactive-only t))
   (interactive
    (save-excursion
@@ -207,10 +225,12 @@ If no one is selected, symmetric encryption will be performed.  "
 				  recipient))
 			       'encrypt)))
 			 (unless (or recipient-key
-				     (y-or-n-p
-				      (format
-				       "No public key for %s; skip it? "
-				       recipient)))
+                                     (and epa-mail-offer-skip
+				          (y-or-n-p
+                                           (format
+                                            "No public key for %s; skip it? "
+                                            recipient)))
+                                     )
 			   (error "No public key for %s" recipient))
 			 (if recipient-key (list recipient-key))))
 		       default-recipients)))))
@@ -223,6 +243,11 @@ If no one is selected, symmetric encryption will be performed.  "
       (setq epa-last-coding-system-specified
 	    (or coding-system-for-write
 		(select-safe-coding-system (point) (point-max)))))
+ 
+    ;; Insert contents of requested attachments, if any.
+    (when (and (eq major-mode 'mail-mode) mail-encode-mml)
+      (mml-to-mime)
+      (setq mail-encode-mml nil))
 
     ;; Don't let some read-only text stop us from encrypting.
     (let ((inhibit-read-only t))
@@ -237,6 +262,8 @@ The buffer is expected to contain a mail message."
   (declare (interactive-only t))
   (interactive)
   (epa-import-armor-in-region (point-min) (point-max)))
+
+;;; Global Mode
 
 ;;;###autoload
 (define-minor-mode epa-global-mail-mode

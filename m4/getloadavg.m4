@@ -7,7 +7,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 8
+#serial 10
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -45,7 +45,9 @@ AC_CHECK_FUNC([getloadavg], [],
      # There is a commonly available library for RS/6000 AIX.
      # Since it is not a standard part of AIX, it might be installed locally.
      gl_getloadavg_LIBS=$LIBS
-     LIBS="-L/usr/local/lib $LIBS"
+     if test $cross_compiling != yes; then
+       LIBS="-L/usr/local/lib $LIBS"
+     fi
      AC_CHECK_LIB([getloadavg], [getloadavg],
                   [LIBS="-lgetloadavg $LIBS" gl_func_getloadavg_done=yes],
                   [LIBS=$gl_getloadavg_LIBS])
@@ -145,7 +147,7 @@ fi
 AC_CHECK_HEADERS([nlist.h],
 [AC_CHECK_MEMBERS([struct nlist.n_un.n_name],
                   [], [],
-                  [@%:@include <nlist.h>])
+                  [#include <nlist.h>])
  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <nlist.h>]],
                    [[struct nlist x;
                     #ifdef HAVE_STRUCT_NLIST_N_UN_N_NAME

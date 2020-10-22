@@ -1,4 +1,4 @@
-;;; image-file.el --- support for visiting image files
+;;; image-file.el --- support for visiting image files  -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 ;;
@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'image)
+(require 'image-converter)
 
 
 ;;;###autoload
@@ -80,13 +81,16 @@ the variable is set using \\[customize]."
   (let ((exts-regexp
 	 (and image-file-name-extensions
 	      (concat "\\."
-		      (regexp-opt (nconc (mapcar #'upcase
-						 image-file-name-extensions)
-					 image-file-name-extensions)
-				  t)
+		      (regexp-opt
+                       (append (mapcar #'upcase image-file-name-extensions)
+			       image-file-name-extensions
+                               (mapcar #'upcase
+				       image-converter-file-name-extensions)
+                               image-converter-file-name-extensions)
+		       t)
 		      "\\'"))))
     (mapconcat
-     'identity
+     #'identity
      (delq nil (list exts-regexp
 		     image-file-name-regexps
 		     (car (rassq 'imagemagick image-type-file-name-regexps))))

@@ -1,4 +1,4 @@
-;;; vc-bzr.el --- tests for vc/vc-bzr.el
+;;; vc-bzr.el --- tests for vc/vc-bzr.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
@@ -38,13 +38,26 @@
   ;; abort if they cannot.  I could not figure out how to stop bzr
   ;; doing that, so just give it a temporary homedir for the duration.
   ;; http://bugs.launchpad.net/bzr/+bug/137407 ?
+  ;;
+  ;; Note that with bzr 2.x, this works:
+  ;; mkdir /tmp/bzr
+  ;; HOME=/nonexistent BZR_HOME=/tmp/bzr bzr status
+  ;; but with brz 3.1, it complains:
+  ;; "failed to open trace file: [Errno 13] Permission denied: '/nonexistent'"
+  ;; which confuses vc-dir.
+  ;; We can quieten brz by adding either BRZ_LOG=/dev/null, or
+  ;; XDG_CACHE_HOME=/tmp/bzr (log defaults to XDG_CACHE_HOME/breezy/brz.log),
+  ;; but it seems simpler to just set HOME to a newly created
+  ;; temporary directory.
+  ;; TODO does this means tests should be setting XDG_ variables (not
+  ;; just HOME) to temporary values too?
   (let* ((homedir (make-temp-file "vc-bzr-test" t))
          (bzrdir (expand-file-name "bzr" homedir))
          (ignored-dir (progn
                         (make-directory bzrdir)
                         (expand-file-name "ignored-dir" bzrdir)))
          (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "BZR_HOME=%s" homedir)
+         (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -81,7 +94,7 @@
                    (expand-file-name "subdir" bzrdir)))
          (file (expand-file-name "file" bzrdir))
          (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "BZR_HOME=%s" homedir)
+         (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -118,8 +131,7 @@
                  (make-directory bzrdir)
                  (expand-file-name "foo.el" bzrdir)))
          (default-directory (file-name-as-directory bzrdir))
-         (generated-autoload-file (expand-file-name "loaddefs.el" bzrdir))
-         (process-environment (cons (format "BZR_HOME=%s" homedir)
+         (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -135,7 +147,9 @@
           ;; causes bzr status to fail.  This simulates a broken bzr
           ;; installation.
           (delete-file ".bzr/checkout/dirstate")
-          (should (progn (update-directory-autoloads default-directory)
+          (should (progn (make-directory-autoloads
+                          default-directory
+                          (expand-file-name "loaddefs.el" bzrdir))
                          t)))
       (delete-directory homedir t))))
 

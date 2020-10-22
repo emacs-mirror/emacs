@@ -1,4 +1,4 @@
-;;; easy-mmode.el --- easy definition for major and minor modes
+;;; easy-mmode.el --- easy definition for major and minor modes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2000-2020 Free Software Foundation, Inc.
 
@@ -87,7 +87,10 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 If called interactively, enable %s if ARG is positive, and
 disable it if ARG is zero or negative.  If called from Lisp,
 also enable the mode if ARG is omitted or nil, and toggle it
-if ARG is `toggle'; disable the mode otherwise.")
+if ARG is `toggle'; disable the mode otherwise.
+
+The mode's hook is called both when the mode is enabled and when
+it is disabled.")
 
 (defun easy-mmode--mode-docstring (doc mode-pretty-name keymap-sym)
   (let ((doc (or doc (format "Toggle %s on or off.
@@ -134,6 +137,10 @@ appear in DOC, a paragraph is added to DOC explaining
 usage of the mode argument.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
+  Note that the minor mode function won't be called by setting
+  this option, so the value *reflects* the minor mode's natural
+  initial state, rather than *setting* it.
+  In the vast majority of cases it should be nil.
 Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
@@ -154,9 +161,6 @@ BODY contains code to execute each time the mode is enabled or disabled.
   the minor mode is global):
 
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
-		Defaults to MODE without the possible trailing \"-mode\".
-		Don't use this default group name unless you have written a
-		`defgroup' to define that group properly.
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
 		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.
@@ -259,12 +263,6 @@ For example, you could write
     (unless initialize
       (setq initialize '(:initialize 'custom-initialize-default)))
 
-    (unless group
-      ;; We might as well provide a best-guess default group.
-      (setq group
-	    `(:group ',(intern (replace-regexp-in-string
-				"-mode\\'" "" mode-name)))))
-
     ;; TODO? Mark booleans as safe if booleanp?  Eg abbrev-mode.
     (unless type (setq type '(:type 'boolean)))
 
@@ -341,6 +339,9 @@ or call the function `%s'."))))
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
                        modefun)))
+       ;; Allow using using `M-x customize-variable' on the hook.
+       (put ',hook 'custom-type 'hook)
+       (put ',hook 'standard-value (list nil))
 
        ;; Define the minor-mode keymap.
        ,(unless (symbolp keymap)	;nil is also a symbol.

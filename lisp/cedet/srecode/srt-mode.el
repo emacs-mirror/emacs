@@ -195,7 +195,7 @@ we can tell font lock about them.")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (set (make-local-variable 'font-lock-defaults)
        '(srecode-font-lock-keywords
          nil  ;; perform string/comment fontification

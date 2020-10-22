@@ -50,7 +50,7 @@ numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
 Optional argument FRAME specifies the frame where the color is to be
 displayed.  If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, return nil."
-  ;; `colors-values' maximum value is either 65535 or 65280 depending on the
+  ;; `color-values' maximum value is either 65535 or 65280 depending on the
   ;; display system.  So we use a white conversion to get the max value.
   (let ((valmax (float (car (color-values "#ffffffffffff")))))
     (mapcar (lambda (x) (/ x valmax)) (color-values color frame))))

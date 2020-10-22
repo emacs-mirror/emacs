@@ -26,6 +26,16 @@
 
 (require 'term/xterm)
 
+(defgroup rxvt nil
+  "(U)RXVT support."
+  :version "28.1"
+  :group 'terminals)
+
+(defcustom rxvt-set-window-title nil
+  "Whether Emacs should set window titles to an Emacs frame in RXVT."
+  :version "28.1"
+  :type 'boolean)
+
 (defvar rxvt-function-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map xterm-rxvt-function-map)
@@ -171,7 +181,16 @@
   (xterm-register-default-colors rxvt-standard-colors)
   (rxvt-set-background-mode)
   ;; This recomputes all the default faces given the colors we've just set up.
-  (tty-set-up-initial-frame-faces))
+  (tty-set-up-initial-frame-faces)
+
+  ;; Unconditionally enable bracketed paste mode: terminals that don't
+  ;; support it just ignore the sequence.
+  (xterm--init-bracketed-paste-mode)
+
+  (when rxvt-set-window-title
+    (xterm--init-frame-title))
+
+  (run-hooks 'terminal-init-rxvt-hook))
 
 ;; rxvt puts the default colors into an environment variable
 ;; COLORFGBG.  We use this to set the background mode in a more

@@ -1,4 +1,4 @@
-;;; xref-tests.el --- tests for xref
+;;; xref-tests.el --- tests for xref  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

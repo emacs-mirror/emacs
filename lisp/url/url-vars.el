@@ -1,4 +1,4 @@
-;;; url-vars.el --- Variables for Uniform Resource Locator tool
+;;; url-vars.el --- Variables for Uniform Resource Locator tool  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1999, 2001, 2004-2020 Free Software Foundation,
 ;; Inc.
@@ -24,6 +24,7 @@
 
 (defconst url-version "Emacs"
   "Version number of URL package.")
+(make-obsolete-variable 'url-version nil "28.1")
 
 (defgroup url nil
   "Uniform Resource Locator tool."
@@ -311,13 +312,6 @@ Applies when a protected document is denied by the server."
   :type 'integer
   :group 'url)
 
-(defcustom url-temporary-directory (or (getenv "TMPDIR") "/tmp")
-  "Where temporary files go."
-  :type 'directory
-  :group 'url-file)
-(make-obsolete-variable 'url-temporary-directory
-			'temporary-file-directory "23.1")
-
 (defcustom url-show-status t
   "Whether to show a running total of bytes transferred.
 Can cause a large hit if using a remote X display over a slow link, or
@@ -430,6 +424,8 @@ Should be one of:
   "Hook run after initializing the URL library."
   :group 'url
   :type 'hook)
+(make-obsolete-variable 'url-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defconst url-working-buffer " *url-work")
 

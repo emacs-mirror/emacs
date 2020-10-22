@@ -143,15 +143,9 @@ wrong_length_argument (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 }
 
 AVOID
-wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
+wrong_type_argument (Lisp_Object predicate, Lisp_Object value)
 {
-  /* If VALUE is not even a valid Lisp object, we'd want to abort here
-     where we can get a backtrace showing where it came from.  We used
-     to try and do that by checking the tagbits, but nowadays all
-     tagbits are potentially valid.  */
-  /* if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
-   *   emacs_abort (); */
-
+  eassert (!TAGGEDP (value, Lisp_Type_Unused0));
   xsignal2 (Qwrong_type_argument, predicate, value);
 }
 
@@ -701,8 +695,14 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's value be void.
-Return SYMBOL.  */)
+       doc: /* Empty out the value cell of SYMBOL, making it void as a variable.
+Return SYMBOL.
+
+If a variable is void, trying to evaluate the variable signals a
+`void-variable' error, instead of returning a value.  For more
+details, see Info node `(elisp) Void Variables'.
+
+See also `fmakunbound'.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
@@ -713,8 +713,14 @@ Return SYMBOL.  */)
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be nil.
-Return SYMBOL.  */)
+       doc: /* Make SYMBOL's function definition be void.
+Return SYMBOL.
+
+If a function definition is void, trying to call a function by that
+name will cause a `void-function' error.  For more details, see Info
+node `(elisp) Function Cells'.
+
+See also `makunbound'.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
@@ -900,6 +906,15 @@ Value, if non-nil, is a list (interactive SPEC).  */)
       if (PVSIZE (fun) > COMPILED_INTERACTIVE)
 	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
     }
+#ifdef HAVE_MODULES
+  else if (MODULE_FUNCTIONP (fun))
+    {
+      Lisp_Object form
+        = module_function_interactive_form (XMODULE_FUNCTION (fun));
+      if (! NILP (form))
+        return form;
+    }
+#endif
   else if (AUTOLOADP (fun))
     return Finteractive_form (Fautoload_do_load (fun, cmd, Qnil));
   else if (CONSP (fun))
@@ -1573,7 +1588,7 @@ notify_variable_watchers (Lisp_Object symbol,
 /* Return the default value of SYMBOL, but don't check for voidness.
    Return Qunbound if it is void.  */
 
-static Lisp_Object
+Lisp_Object
 default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
@@ -1778,6 +1793,7 @@ make_blv (struct Lisp_Symbol *sym, bool forwarded,
   set_blv_defcell (blv, tem);
   set_blv_valcell (blv, tem);
   set_blv_found (blv, false);
+  __lsan_ignore_object (blv);
   return blv;
 }
 
@@ -2293,67 +2309,69 @@ bool-vector.  IDX starts at 0.  */)
     }
   else /* STRINGP */
     {
-      int c;
-
       CHECK_IMPURE (array, XSTRING (array));
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_CHARACTER (newelt);
-      c = XFIXNAT (newelt);
+      int c = XFIXNAT (newelt);
+      ptrdiff_t idxval_byte;
+      int prev_bytes;
+      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
       if (STRING_MULTIBYTE (array))
 	{
-	  ptrdiff_t idxval_byte, nbytes;
-	  int prev_bytes, new_bytes;
-	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
-
-	  nbytes = SBYTES (array);
 	  idxval_byte = string_char_to_byte (array, idxval);
 	  p1 = SDATA (array) + idxval_byte;
 	  prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-	  new_bytes = CHAR_STRING (c, p0);
-	  if (prev_bytes != new_bytes)
-	    {
-	      /* We must relocate the string data.  */
-	      ptrdiff_t nchars = SCHARS (array);
-	      USE_SAFE_ALLOCA;
-	      unsigned char *str = SAFE_ALLOCA (nbytes);
-
-	      memcpy (str, SDATA (array), nbytes);
-	      allocate_string_data (XSTRING (array), nchars,
-				    nbytes + new_bytes - prev_bytes, false);
-	      memcpy (SDATA (array), str, idxval_byte);
-	      p1 = SDATA (array) + idxval_byte;
-	      memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
-		      nbytes - (idxval_byte + prev_bytes));
-	      SAFE_FREE ();
-	      clear_string_char_byte_cache ();
-	    }
-	  while (new_bytes--)
-	    *p1++ = *p0++;
+	}
+      else if (SINGLE_BYTE_CHAR_P (c))
+	{
+	  SSET (array, idxval, c);
+	  return newelt;
 	}
       else
 	{
-	  if (! SINGLE_BYTE_CHAR_P (c))
-	    {
-	      ptrdiff_t i;
-
-	      for (i = SBYTES (array) - 1; i >= 0; i--)
-		if (SREF (array, i) >= 0x80)
-		  args_out_of_range (array, newelt);
-	      /* ARRAY is an ASCII string.  Convert it to a multibyte
-		 string, and try `aset' again.  */
-	      STRING_SET_MULTIBYTE (array);
-	      return Faset (array, idx, newelt);
-	    }
-	  SSET (array, idxval, c);
+	  for (ptrdiff_t i = SBYTES (array) - 1; i >= 0; i--)
+	    if (!ASCII_CHAR_P (SREF (array, i)))
+	      args_out_of_range (array, newelt);
+	  /* ARRAY is an ASCII string.  Convert it to a multibyte string.  */
+	  STRING_SET_MULTIBYTE (array);
+	  idxval_byte = idxval;
+	  p1 = SDATA (array) + idxval_byte;
+	  prev_bytes = 1;
 	}
+
+      int new_bytes = CHAR_STRING (c, p0);
+      if (prev_bytes != new_bytes)
+	p1 = resize_string_data (array, idxval_byte, prev_bytes, new_bytes);
+
+      do
+	*p1++ = *p0++;
+      while (--new_bytes != 0);
     }
 
   return newelt;
 }
 
 /* Arithmetic functions */
+
+static Lisp_Object
+check_integer_coerce_marker (Lisp_Object x)
+{
+  if (MARKERP (x))
+    return make_fixnum (marker_position (x));
+  CHECK_TYPE (INTEGERP (x), Qinteger_or_marker_p, x);
+  return x;
+}
+
+static Lisp_Object
+check_number_coerce_marker (Lisp_Object x)
+{
+  if (MARKERP (x))
+    return make_fixnum (marker_position (x));
+  CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);
+  return x;
+}
 
 Lisp_Object
 arithcompare (Lisp_Object num1, Lisp_Object num2,
@@ -2363,8 +2381,8 @@ arithcompare (Lisp_Object num1, Lisp_Object num2,
   bool lt, eq = true, gt;
   bool test;
 
-  CHECK_NUMBER_COERCE_MARKER (num1);
-  CHECK_NUMBER_COERCE_MARKER (num2);
+  num1 = check_number_coerce_marker (num1);
+  num2 = check_number_coerce_marker (num2);
 
   /* If the comparison is mostly done by comparing two doubles,
      set LT, EQ, and GT to the <, ==, > results of that comparison,
@@ -2766,9 +2784,7 @@ floatop_arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args,
       argnum++;
       if (argnum == nargs)
 	return make_float (accum);
-      Lisp_Object val = args[argnum];
-      CHECK_NUMBER_COERCE_MARKER (val);
-      next = XFLOATINT (val);
+      next = XFLOATINT (check_number_coerce_marker (args[argnum]));
     }
 }
 
@@ -2830,8 +2846,7 @@ bignum_arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args,
       argnum++;
       if (argnum == nargs)
 	return make_integer_mpz ();
-      val = args[argnum];
-      CHECK_NUMBER_COERCE_MARKER (val);
+      val = check_number_coerce_marker (args[argnum]);
       if (FLOATP (val))
 	return float_arith_driver (code, nargs, args, argnum,
 				   mpz_get_d_rounded (*accum), val);
@@ -2860,8 +2875,7 @@ arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args,
 	argnum++;
 	if (argnum == nargs)
 	  return make_int (accum);
-	val = args[argnum];
-	CHECK_NUMBER_COERCE_MARKER (val);
+	val = check_number_coerce_marker (args[argnum]);
 
 	/* Set NEXT to the next value if it fits, else exit the loop.  */
 	intmax_t next;
@@ -2908,8 +2922,7 @@ usage: (+ &rest NUMBERS-OR-MARKERS)  */)
 {
   if (nargs == 0)
     return make_fixnum (0);
-  Lisp_Object a = args[0];
-  CHECK_NUMBER_COERCE_MARKER (a);
+  Lisp_Object a = check_number_coerce_marker (args[0]);
   return nargs == 1 ? a : arith_driver (Aadd, nargs, args, a);
 }
 
@@ -2922,8 +2935,7 @@ usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
 {
   if (nargs == 0)
     return make_fixnum (0);
-  Lisp_Object a = args[0];
-  CHECK_NUMBER_COERCE_MARKER (a);
+  Lisp_Object a = check_number_coerce_marker (args[0]);
   if (nargs == 1)
     {
       if (FIXNUMP (a))
@@ -2943,8 +2955,7 @@ usage: (* &rest NUMBERS-OR-MARKERS)  */)
 {
   if (nargs == 0)
     return make_fixnum (1);
-  Lisp_Object a = args[0];
-  CHECK_NUMBER_COERCE_MARKER (a);
+  Lisp_Object a = check_number_coerce_marker (args[0]);
   return nargs == 1 ? a : arith_driver (Amult, nargs, args, a);
 }
 
@@ -2956,8 +2967,7 @@ The arguments must be numbers or markers.
 usage: (/ NUMBER &rest DIVISORS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object a = args[0];
-  CHECK_NUMBER_COERCE_MARKER (a);
+  Lisp_Object a = check_number_coerce_marker (args[0]);
   if (nargs == 1)
     {
       if (FIXNUMP (a))
@@ -3039,10 +3049,10 @@ integer_remainder (Lisp_Object num, Lisp_Object den, bool modulo)
 DEFUN ("%", Frem, Srem, 2, 2, 0,
        doc: /* Return remainder of X divided by Y.
 Both must be integers or markers.  */)
-  (register Lisp_Object x, Lisp_Object y)
+  (Lisp_Object x, Lisp_Object y)
 {
-  CHECK_INTEGER_COERCE_MARKER (x);
-  CHECK_INTEGER_COERCE_MARKER (y);
+  x = check_integer_coerce_marker (x);
+  y = check_integer_coerce_marker (y);
   return integer_remainder (x, y, false);
 }
 
@@ -3052,8 +3062,8 @@ The result falls between zero (inclusive) and Y (exclusive).
 Both X and Y must be numbers or markers.  */)
   (Lisp_Object x, Lisp_Object y)
 {
-  CHECK_NUMBER_COERCE_MARKER (x);
-  CHECK_NUMBER_COERCE_MARKER (y);
+  x = check_number_coerce_marker (x);
+  y = check_number_coerce_marker (y);
   if (FLOATP (x) || FLOATP (y))
     return fmod_float (x, y);
   return integer_remainder (x, y, true);
@@ -3063,12 +3073,10 @@ static Lisp_Object
 minmax_driver (ptrdiff_t nargs, Lisp_Object *args,
 	       enum Arith_Comparison comparison)
 {
-  Lisp_Object accum = args[0];
-  CHECK_NUMBER_COERCE_MARKER (accum);
+  Lisp_Object accum = check_number_coerce_marker (args[0]);
   for (ptrdiff_t argnum = 1; argnum < nargs; argnum++)
     {
-      Lisp_Object val = args[argnum];
-      CHECK_NUMBER_COERCE_MARKER (val);
+      Lisp_Object val = check_number_coerce_marker (args[argnum]);
       if (!NILP (arithcompare (val, accum, comparison)))
 	accum = val;
       else if (FLOATP (val) && isnan (XFLOAT_DATA (val)))
@@ -3103,8 +3111,7 @@ usage: (logand &rest INTS-OR-MARKERS)  */)
 {
   if (nargs == 0)
     return make_fixnum (-1);
-  Lisp_Object a = args[0];
-  CHECK_INTEGER_COERCE_MARKER (a);
+  Lisp_Object a = check_integer_coerce_marker (args[0]);
   return nargs == 1 ? a : arith_driver (Alogand, nargs, args, a);
 }
 
@@ -3116,8 +3123,7 @@ usage: (logior &rest INTS-OR-MARKERS)  */)
 {
   if (nargs == 0)
     return make_fixnum (0);
-  Lisp_Object a = args[0];
-  CHECK_INTEGER_COERCE_MARKER (a);
+  Lisp_Object a = check_integer_coerce_marker (args[0]);
   return nargs == 1 ? a : arith_driver (Alogior, nargs, args, a);
 }
 
@@ -3129,8 +3135,7 @@ usage: (logxor &rest INTS-OR-MARKERS)  */)
 {
   if (nargs == 0)
     return make_fixnum (0);
-  Lisp_Object a = args[0];
-  CHECK_INTEGER_COERCE_MARKER (a);
+  Lisp_Object a = check_integer_coerce_marker (args[0]);
   return nargs == 1 ? a : arith_driver (Alogxor, nargs, args, a);
 }
 
@@ -3249,9 +3254,9 @@ expt_integer (Lisp_Object x, Lisp_Object y)
 DEFUN ("1+", Fadd1, Sadd1, 1, 1, 0,
        doc: /* Return NUMBER plus one.  NUMBER may be a number or a marker.
 Markers are converted to integers.  */)
-  (register Lisp_Object number)
+  (Lisp_Object number)
 {
-  CHECK_NUMBER_COERCE_MARKER (number);
+  number = check_number_coerce_marker (number);
 
   if (FIXNUMP (number))
     return make_int (XFIXNUM (number) + 1);
@@ -3264,9 +3269,9 @@ Markers are converted to integers.  */)
 DEFUN ("1-", Fsub1, Ssub1, 1, 1, 0,
        doc: /* Return NUMBER minus one.  NUMBER may be a number or a marker.
 Markers are converted to integers.  */)
-  (register Lisp_Object number)
+  (Lisp_Object number)
 {
-  CHECK_NUMBER_COERCE_MARKER (number);
+  number = check_number_coerce_marker (number);
 
   if (FIXNUMP (number))
     return make_int (XFIXNUM (number) - 1);

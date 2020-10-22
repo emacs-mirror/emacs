@@ -168,9 +168,9 @@ ARGS are passed to `message'."
 (defcustom gmm-tool-bar-style
   (if (and (boundp 'tool-bar-mode)
 	   tool-bar-mode
-	   (memq (display-visual-class)
-		 (list 'static-gray 'gray-scale
-		       'static-color 'pseudo-color)))
+	   (not (memq (display-visual-class)
+		      (list 'static-gray 'gray-scale
+		            'static-color 'pseudo-color))))
       'gnome
     'retro)
   "Preferred tool bar style."

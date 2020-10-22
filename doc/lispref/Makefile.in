@@ -206,7 +206,7 @@ install-ps: ps
 	  ${GZIP_PROG} -9n "$(DESTDIR)$(psdir)/$${file}"; \
 	done
 
-## Top-level Makefile installs the info pages.
+## Top-level Makefile installs the Info manuals.
 install-doc: install-dvi install-html install-pdf install-ps
 
 

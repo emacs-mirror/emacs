@@ -695,7 +695,7 @@ imenu."
     (define-key map "\e\C-e" 'antlr-end-of-rule)
     (define-key map "\C-c\C-a" 'antlr-beginning-of-body)
     (define-key map "\C-c\C-e" 'antlr-end-of-body)
-    (define-key map "\C-c\C-f" 'c-forward-into-nomenclature)
+    (define-key map "\C-c\C-f" 'subword-forward)
     (define-key map "\C-c\C-b" 'c-backward-into-nomenclature)
     (define-key map "\C-c\C-c" 'comment-region)
     (define-key map "\C-c\C-v" 'antlr-hide-actions)
@@ -720,9 +720,8 @@ imenu."
   "Major mode menu."
   `("Antlr"
     ,@(if (cond-emacs-xemacs
-	   :EMACS (and antlr-options-use-submenus
-		       (>= emacs-major-version 21))
-	   :XEMACS antlr-options-use-submenus)
+           :EMACS antlr-options-use-submenus
+           :XEMACS antlr-options-use-submenus)
 	  `(("Insert File Option"
 	     :filter ,(lambda (x) (antlr-options-menu-filter 1 x)))
 	    ("Insert Grammar Option"
@@ -745,7 +744,7 @@ imenu."
      ["Backward Statement" c-beginning-of-statement t]
      ["Forward Statement" c-end-of-statement t]
      ["Backward Into Nomencl." c-backward-into-nomenclature t]
-     ["Forward Into Nomencl." c-forward-into-nomenclature t])
+     ["Forward Into Nomencl." subword-forward t])
     ["Indent Region" indent-region
      :active (and (not buffer-read-only) (c-region-is-active-p))]
     ["Comment Out Region" comment-region
@@ -1875,7 +1874,7 @@ cell where the two values determine the area inside the braces."
 (defun antlr-option-spec (level option specs existsp)
   "Return version correct option value specification.
 Return specification for option OPTION of kind level LEVEL.  SPECS
-should correspond to the VALUE-SPEC... in `antlr-option-alists'.
+should correspond to the VALUE-SPEC... in `antlr-options-alists'.
 EXISTSP determines whether the option already exists."
   (let (value)
     (while (and specs (>= antlr-tool-version (caar specs)))

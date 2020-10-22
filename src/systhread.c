@@ -26,6 +26,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_PTHREAD_SET_NAME_NP
+#include <pthread_np.h>
+#endif
+
 #ifndef THREADS_ENABLED
 
 void
@@ -214,11 +218,17 @@ sys_thread_set_name (const char *name)
   char p_name[TASK_COMM_LEN];
   strncpy (p_name, name, TASK_COMM_LEN - 1);
   p_name[TASK_COMM_LEN - 1] = '\0';
- #ifdef HAVE_PTHREAD_SETNAME_NP_1ARG
+# ifdef HAVE_PTHREAD_SETNAME_NP_1ARG
   pthread_setname_np (p_name);
- #else
+# elif defined HAVE_PTHREAD_SETNAME_NP_3ARG
+  pthread_setname_np (pthread_self (), "%s", p_name);
+# else
   pthread_setname_np (pthread_self (), p_name);
- #endif
+# endif
+#elif HAVE_PTHREAD_SET_NAME_NP
+  /* The name will automatically be truncated if it exceeds a
+     system-specific length.  */
+  pthread_set_name_np (pthread_self (), name);
 #endif
 }
 

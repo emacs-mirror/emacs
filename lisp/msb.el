@@ -372,6 +372,8 @@ This is instead of the groups in `msb-menu-cond'."
   :type 'hook
   :set 'msb-custom-set
   :group 'msb)
+(make-obsolete-variable 'msb-after-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 ;;;
 ;;; Internal variables

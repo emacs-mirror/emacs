@@ -1316,6 +1316,15 @@ stream.  Standard error output is discarded."
                                              vc-bzr-revision-keywords))
                             string pred)))))
 
+(defun vc-bzr-repository-url (file-or-dir &optional _remote-name)
+  (let ((default-directory (vc-bzr-root file-or-dir)))
+    (with-temp-buffer
+      (vc-bzr-command "info" (current-buffer) 0 nil)
+      (goto-char (point-min))
+      (if (re-search-forward "parent branch: \\(.*\\)$" nil t)
+          (match-string 1)
+        (error "Cannot determine Bzr repository URL")))))
+
 (provide 'vc-bzr)
 
 ;;; vc-bzr.el ends here

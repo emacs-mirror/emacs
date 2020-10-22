@@ -97,7 +97,7 @@ component group will show up when you enter the virtual group.")
       (if (stringp (car articles))
 	  'headers
 	(let ((vbuf (nnheader-set-temp-buffer
-		     (get-buffer-create " *virtual headers*")))
+		     (gnus-get-buffer-create " *virtual headers*")))
 	      (carticles (nnvirtual-partition-sequence articles))
 	      (sysname (system-name))
 	      cgroup carticle article result prefix)

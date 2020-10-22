@@ -79,10 +79,10 @@
 
 (ert-deftest autoinsert-tests-define-auto-insert-before ()
   (let ((auto-insert-alist
-         (list (cons 'text-mode '(lambda () (insert "foo")))))
+         (list (cons 'text-mode (lambda () (insert "foo")))))
         (auto-insert-query nil))
     (define-auto-insert 'text-mode
-      '(lambda () (insert "bar")))
+      (lambda () (insert "bar")))
     (with-temp-buffer
       (text-mode)
       (auto-insert)
@@ -90,10 +90,10 @@
 
 (ert-deftest autoinsert-tests-define-auto-insert-after ()
   (let ((auto-insert-alist
-         (list (cons 'text-mode '(lambda () (insert "foo")))))
+         (list (cons 'text-mode (lambda () (insert "foo")))))
         (auto-insert-query nil))
     (define-auto-insert 'text-mode
-      '(lambda () (insert "bar"))
+      (lambda () (insert "bar"))
       t)
     (with-temp-buffer
       (text-mode)

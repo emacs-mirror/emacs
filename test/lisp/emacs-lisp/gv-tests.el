@@ -19,6 +19,7 @@
 
 ;;; Code:
 
+(require 'edebug)
 (require 'ert)
 (eval-when-compile (require 'cl-lib))
 
@@ -134,8 +135,67 @@
                     "--eval"
                     (prin1-to-string '(progn (setf (gv-test-foo gv-test-pair) 99)
                                              (message "%d" (car gv-test-pair)))))
-      (should (equal (buffer-string)
-                     "Symbol's function definition is void: \\(setf\\ gv-test-foo\\)\n")))))
+      (should (string-match
+               "\\`Symbol.s function definition is void: \\\\(setf\\\\ gv-test-foo\\\\)\n\\'"
+               (buffer-string))))))
+
+(ert-deftest gv-setter-edebug ()
+  "Check that a setter can be defined and edebugged together with
+its getter (Bug#41853)."
+  (with-temp-buffer
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      (dolist (form '((defun gv-setter-edebug-help (b) b)
+                      (defun gv-setter-edebug-get (a b)
+                        (get a (gv-setter-edebug-help b)))
+                      (gv-define-setter gv-setter-edebug-get (x a b)
+                        `(setf (get ,a (gv-setter-edebug-help ,b)) ,x))
+                      (push 123 (gv-setter-edebug-get 'gv-setter-edebug
+                                                      'gv-setter-edebug-prop))))
+        (print form (current-buffer)))
+      ;; Only check whether evaluation works in general.
+      (eval-buffer)))
+  (should (equal (get 'gv-setter-edebug 'gv-setter-edebug-prop) '(123))))
+
+(ert-deftest gv-plist-get ()
+  (require 'cl-lib)
+
+  ;; Simple setf usage for plist-get.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (setf (plist-get target :b) "modify")
+                   target)
+                 '(:a "a" :b "modify" :c "c")))
+
+  ;; Other function (cl-rotatef) usage for plist-get.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (cl-rotatef (plist-get target :b) (plist-get target :c))
+                   target)
+                 '(:a "a" :b "c" :c "b")))
+
+  ;; Add new key value pair at top of list if setf for missing key.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (setf (plist-get target :d) "modify")
+                   target)
+                 '(:d "modify" :a "a" :b "b" :c "c")))
+
+  ;; Rotate with missing value.
+  ;; The value corresponding to the missing key is assumed to be nil.
+  (should (equal (let ((target '(:a "a" :b "b" :c "c")))
+                   (cl-rotatef (plist-get target :b) (plist-get target :d))
+                   target)
+                 '(:d "b" :a "a" :b nil :c "c")))
+
+  ;; Simple setf usage for plist-get. (symbol plist)
+  (should (equal (let ((target '(a "a" b "b" c "c")))
+                   (setf (plist-get target 'b) "modify")
+                   target)
+                 '(a "a" b "modify" c "c")))
+
+  ;; Other function (cl-rotatef) usage for plist-get. (symbol plist)
+  (should (equal (let ((target '(a "a" b "b" c "c")))
+                   (cl-rotatef (plist-get target 'b) (plist-get target 'c))
+                   target)
+                 '(a "a" b "c" c "b"))))
 
 ;; `ert-deftest' messes up macroexpansion when the test file itself is
 ;; compiled (see Bug #24402).

@@ -1,4 +1,4 @@
-;;; elide-head.el --- hide headers in files
+;;; elide-head.el --- hide headers in files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
 
@@ -63,12 +63,10 @@ The cars of elements of the list are searched for in order.  Text is
 elided with an invisible overlay from the end of the line where the
 first match is found to the end of the match for the corresponding
 cdr."
-  :group 'elide-head
   :type '(alist :key-type  (regexp :tag "Start regexp")
 		:value-type (regexp :tag "End regexp")))
 
-(defvar elide-head-overlay nil)
-(make-variable-buffer-local 'elide-head-overlay)
+(defvar-local elide-head-overlay nil)
 
 ;;;###autoload
 (defun elide-head (&optional arg)
@@ -108,7 +106,7 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
 	    (overlay-put elide-head-overlay 'after-string "...")))))))
 
 (defun elide-head-show ()
-  "Show a header elided current buffer by \\[elide-head]."
+  "Show a header in the current buffer elided by \\[elide-head]."
   (interactive)
   (if (and (overlayp elide-head-overlay)
 	   (overlay-buffer elide-head-overlay))

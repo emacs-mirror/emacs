@@ -310,7 +310,7 @@ to the list.  To include the phases of the moon, add
 
      (lunar-phases)
 
-to the holiday list, where `lunar-phases' is an Emacs-Lisp function that
+to the holiday list, where `lunar-phases' is an Emacs Lisp function that
 you've written to return a (possibly empty) list of the relevant VISIBLE dates
 with descriptive strings such as
 

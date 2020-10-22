@@ -35,7 +35,7 @@
 
 ;;; Requirements:
 
-;; - sass-mode :: http://github.com/nex3/haml/blob/master/extra/sass-mode.el
+;; - sass-mode :: https://github.com/nex3/haml/blob/master/extra/sass-mode.el
 
 ;;; Code:
 (require 'ob)

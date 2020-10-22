@@ -109,7 +109,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    -------------------
 
    In a nutshell, fetching the next character boils down to calling
-   STRING_CHAR_AND_LENGTH, passing it the address of a buffer or
+   string_char_and_length, passing it the address of a buffer or
    string position.  See bidi_fetch_char.  However, if the next
    character is "covered" by a display property of some kind,
    bidi_fetch_char returns the u+FFFC "object replacement character"
@@ -1269,7 +1269,6 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
   ptrdiff_t endpos
     = (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
   struct text_pos pos;
-  int len;
 
   /* If we got past the last known position of display string, compute
      the position of the next one.  That position could be at CHARPOS.  */
@@ -1341,10 +1340,10 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
     normal_char:
       if (string->s)
 	{
-
 	  if (!string->unibyte)
 	    {
-	      ch = STRING_CHAR_AND_LENGTH (string->s + bytepos, len);
+	      int len;
+	      ch = string_char_and_length (string->s + bytepos, &len);
 	      *ch_len = len;
 	    }
 	  else
@@ -1357,8 +1356,9 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	{
 	  if (!string->unibyte)
 	    {
-	      ch = STRING_CHAR_AND_LENGTH (SDATA (string->lstring) + bytepos,
-					   len);
+	      int len;
+	      ch = string_char_and_length (SDATA (string->lstring) + bytepos,
+					   &len);
 	      *ch_len = len;
 	    }
 	  else
@@ -1369,9 +1369,11 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	}
       else
 	{
-	  ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (bytepos), len);
+	  int len;
+	  ch = string_char_and_length (BYTE_POS_ADDR (bytepos), &len);
 	  *ch_len = len;
 	}
+
       *nchars = 1;
     }
 
@@ -1550,7 +1552,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 	 display string?  And what if a display string covering some
 	 of the text over which we scan back includes
 	 paragraph_start_re?  */
-      DEC_BOTH (pos, pos_byte);
+      dec_both (&pos, &pos_byte);
       if (bpc && region_cache_backward (cache_buffer, bpc, pos, &next))
 	{
 	  pos = next, pos_byte = CHAR_TO_BYTE (pos);
@@ -1763,7 +1765,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 		    /* FXIME: What if p is covered by a display
 		       string?  See also a FIXME inside
 		       bidi_find_paragraph_start.  */
-		    DEC_BOTH (p, pbyte);
+		    dec_both (&p, &pbyte);
 		    prevpbyte = bidi_find_paragraph_start (p, pbyte);
 		  }
 		pstartbyte = prevpbyte;
@@ -2336,7 +2338,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		      and make it L right away, to avoid the
 		      potentially costly loop below.  This is
 		      important when the buffer has a long series of
-		      control characters, like binary NULs, and no
+		      control characters, like binary nulls, and no
 		      R2L characters at all.  */
 		   && new_level == 0
 		   && !bidi_explicit_dir_char (bidi_it->ch)
@@ -2994,7 +2996,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	}
       /* The next two "else if" clauses are shortcuts for the
 	 important special case when we have a long sequence of
-	 neutral or WEAK_BN characters, such as whitespace or NULs or
+	 neutral or WEAK_BN characters, such as whitespace or nulls or
 	 other control characters, on the base embedding level of the
 	 paragraph, and that sequence goes all the way to the end of
 	 the paragraph and follows a character whose resolved

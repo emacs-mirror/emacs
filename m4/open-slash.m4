@@ -1,4 +1,4 @@
-# open-slash.m4 serial 1
+# open-slash.m4 serial 2
 dnl Copyright (C) 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -25,6 +25,7 @@ AC_DEFUN([gl_OPEN_TRAILING_SLASH_BUG],
 #if HAVE_UNISTD_H
 # include <unistd.h>
 #endif
+]GL_MDA_DEFINES[
 int main ()
 {
   int result = 0;

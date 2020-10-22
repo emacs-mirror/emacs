@@ -364,6 +364,7 @@ which more-or-less shadow%s %s's corresponding table%s."
 
 (defsubst derived-mode-setup-function-name (mode)
   "Construct a setup-function name based on a MODE name."
+  (declare (obsolete nil "28.1"))
   (intern (concat (symbol-name mode) "-setup")))
 
 

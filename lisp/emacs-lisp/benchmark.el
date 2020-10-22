@@ -81,7 +81,7 @@ result.  The overhead of the `lambda's is accounted for."
 	(gcs (make-symbol "gcs"))
 	(gc (make-symbol "gc"))
 	(code (byte-compile `(lambda () ,@forms)))
-	(lambda-code (byte-compile '(lambda ()))))
+        (lambda-code (byte-compile '(lambda ()))))
     `(let ((,gc gc-elapsed)
 	   (,gcs gcs-done))
        (list ,(if (or (symbolp repetitions) (> repetitions 1))
