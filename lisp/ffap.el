@@ -1049,22 +1049,19 @@ out of NAME."
                         "/pub/gnu/emacs/elisp-archive/"))
     (substring name 2))))
 
-(defcustom ffap-rfc-path
-  (concat (ffap-host-to-filename "ftp.rfc-editor.org") "/in-notes/rfc%s.txt")
+(defcustom ffap-rfc-path "https://www.rfc-editor.org/in-notes/rfc%s.txt"
   "A `format' string making a filename for RFC documents.
-This can be an ange-ftp or Tramp remote filename to download, or
-a local filename if you have full set of RFCs locally.  See also
-`ffap-rfc-directories'."
+This can be an URL, and ange-ftp or Tramp remote filename to
+download, or a local filename if you have full set of RFCs
+locally.  See also `ffap-rfc-directories'."
   :type 'string
-  :version "23.1"
-  :group 'ffap)
+  :version "28.1")
 
 (defcustom ffap-rfc-directories nil
   "A list of directories to look for RFC files.
 If a given RFC isn't in these then `ffap-rfc-path' is offered."
   :type '(repeat directory)
-  :version "23.1"
-  :group 'ffap)
+  :version "23.1")
 
 (defun ffap-rfc (name)
   (let ((num (match-string 1 name)))
