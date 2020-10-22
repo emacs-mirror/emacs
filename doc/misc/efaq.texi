@@ -3664,7 +3664,6 @@ See the file @file{nextstep/INSTALL} in the distribution.
 * Compose Character::
 * Binding combinations of modifiers and function keys::
 * Meta key does not work in xterm::
-* ExtendChar key does not work as Meta::
 * SPC no longer completes file names::
 @end menu
 
@@ -4138,29 +4137,6 @@ XTerm.VT100.Translations: #override \
 You might have to replace @samp{Meta} with @samp{Alt}.
 
 @end itemize
-
-@node ExtendChar key does not work as Meta
-@section Why doesn't my @key{ExtendChar} key work as a @key{Meta} key under HP-UX 8.0 and 9.x?
-@cindex @key{ExtendChar} key as @key{Meta}
-@cindex @key{Meta}, using @key{ExtendChar} for
-@cindex HP-UX, the @key{ExtendChar} key
-
-This is a result of an internationalization extension in X11R4 and the
-fact that HP is now using this extension.  Emacs assumes that the
-@code{XLookupString} function returns the same result regardless of the
-@key{Meta} key state which is no longer necessarily true.  Until Emacs
-is fixed, the temporary kludge is to run this command after each time
-the X server is started but preferably before any xterm clients are:
-
-@example
-xmodmap -e 'remove mod1 = Mode_switch'
-@end example
-
-@c FIXME: Emacs 21 supports I18N in X11; does that mean that this bug is
-@c solved?
-
-This will disable the use of the extra keysyms systemwide, which may be
-undesirable if you actually intend to use them.
 
 @node SPC no longer completes file names
 @section Why doesn't @key{SPC} complete file names anymore?
