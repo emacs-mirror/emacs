@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
-;; Version: 1.02
+;; Old-Version: 1.02
 ;; Created: 1997-08-13
 ;; Keywords: games
 
@@ -265,12 +265,7 @@ format."
   (set-face-foreground face color)
   (set-face-background face color)
   (gamegrid-set-font face)
-  (condition-case nil
-      (set-face-background-pixmap face [nothing]);; XEmacs
-    (error nil))
-  (condition-case nil
-      (set-face-background-pixmap face nil);; Emacs
-    (error nil)))
+  (set-face-background-pixmap face nil))
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
@@ -640,6 +635,8 @@ FILE is created there."
   (save-excursion
     (setq file (expand-file-name file (or directory
 					  temporary-file-directory)))
+    (unless (file-exists-p (file-name-directory file))
+      (make-directory (file-name-directory file) t))
     (find-file-other-window file)
     (setq buffer-read-only nil)
     (goto-char (point-max))

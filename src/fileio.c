@@ -96,7 +96,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <acl.h>
 #include <allocator.h>
 #include <careadlinkat.h>
-#include <dosname.h>
+#include <filename.h>
 #include <fsusage.h>
 #include <stat-time.h>
 #include <tempname.h>
@@ -947,6 +947,22 @@ the root directory.  */)
 	)
       {
 	default_directory = Fexpand_file_name (default_directory, Qnil);
+
+	/* The above expansion might have produced a remote file name,
+	   so give the handlers one last chance to DTRT.  This can
+	   happen when both NAME and DEFAULT-DIRECTORY arguments are
+	   relative file names, and the buffer's default-directory is
+	   remote.  */
+	handler = Ffind_file_name_handler (default_directory,
+					   Qexpand_file_name);
+	if (!NILP (handler))
+	  {
+	    handled_name = call3 (handler, Qexpand_file_name,
+				  name, default_directory);
+	    if (STRINGP (handled_name))
+	      return handled_name;
+	    error ("Invalid handler in `file-name-handler-alist'");
+	  }
       }
   }
   multibyte = STRING_MULTIBYTE (name);
@@ -1694,7 +1710,7 @@ See also the function `substitute-in-file-name'.")
 #endif
 
 /* Put into BUF the concatenation of DIR and FILE, with an intervening
-   directory separator if needed.  Return a pointer to the NUL byte
+   directory separator if needed.  Return a pointer to the null byte
    at the end of the concatenated string.  */
 char *
 splice_dir_file (char *buf, char const *dir, char const *file)
@@ -1952,7 +1968,10 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
 
   encoded_filename = ENCODE_FILE (absname);
 
-  if (! known_to_exist && lstat (SSDATA (encoded_filename), &statbuf) == 0)
+  if (! known_to_exist
+      && (emacs_fstatat (AT_FDCWD, SSDATA (encoded_filename),
+			 &statbuf, AT_SYMLINK_NOFOLLOW)
+	  == 0))
     {
       if (S_ISDIR (statbuf.st_mode))
 	xsignal2 (Qfile_error,
@@ -2028,7 +2047,7 @@ permissions.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object encoded_file, encoded_newname;
 #if HAVE_LIBSELINUX
-  security_context_t con;
+  char *con;
   int conlength = 0;
 #endif
 #ifdef WINDOWSNT
@@ -2074,7 +2093,7 @@ permissions.  */)
       report_file_error ("Copying permissions from", file);
     case -3:
       xsignal2 (Qfile_date_error,
-		build_string ("Resetting file times"), newname);
+		build_string ("Cannot set file date"), newname);
     case -4:
       report_file_error ("Copying permissions to", newname);
     }
@@ -2250,9 +2269,8 @@ permissions.  */)
 
   if (!NILP (keep_time))
     {
-      struct timespec atime = get_stat_atime (&st);
-      struct timespec mtime = get_stat_mtime (&st);
-      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime) != 0)
+      struct timespec ts[] = { get_stat_atime (&st), get_stat_mtime (&st) };
+      if (futimens (ofd, ts) != 0)
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
     }
@@ -2555,7 +2573,9 @@ This is what happens in interactive use with M-x.  */)
   bool dirp = !NILP (Fdirectory_name_p (file));
   if (!dirp)
     {
-      if (lstat (SSDATA (encoded_file), &file_st) != 0)
+      if (emacs_fstatat (AT_FDCWD, SSDATA (encoded_file),
+			 &file_st, AT_SYMLINK_NOFOLLOW)
+	  != 0)
 	report_file_error ("Renaming", list2 (file, newname));
       dirp = S_ISDIR (file_st.st_mode) != 0;
     }
@@ -2899,6 +2919,11 @@ DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
        doc: /* Return t if FILENAME names an existing directory.
 Return nil if FILENAME does not name a directory, or if there
 was trouble determining whether FILENAME is a directory.
+
+As a special case, this function will also return t if FILENAME is the
+empty string (\"\").  This quirk is due to Emacs interpreting the
+empty string (in some cases) as the current directory.
+
 Symbolic links to directories count as directories.
 See `file-symlink-p' to distinguish symlinks.  */)
   (Lisp_Object filename)
@@ -2911,7 +2936,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, absname);
 
-  return file_directory_p (absname) ? Qt : Qnil;
+  return file_directory_p (ENCODE_FILE (absname)) ? Qt : Qnil;
 }
 
 /* Return true if FILE is a directory or a symlink to a directory.
@@ -2928,7 +2953,8 @@ file_directory_p (Lisp_Object file)
 #else
 # ifdef O_PATH
   /* Use O_PATH if available, as it avoids races and EOVERFLOW issues.  */
-  int fd = openat (AT_FDCWD, SSDATA (file), O_PATH | O_CLOEXEC | O_DIRECTORY);
+  int fd = emacs_openat (AT_FDCWD, SSDATA (file),
+			 O_PATH | O_CLOEXEC | O_DIRECTORY, 0);
   if (0 <= fd)
     {
       emacs_close (fd);
@@ -2939,9 +2965,9 @@ file_directory_p (Lisp_Object file)
   /* O_PATH is defined but evidently this Linux kernel predates 2.6.39.
      Fall back on generic POSIX code.  */
 # endif
-  /* Use file_accessible_directory_p, as it avoids stat EOVERFLOW
+  /* Use file_accessible_directory_p, as it avoids fstatat EOVERFLOW
      problems and could be cheaper.  However, if it fails because FILE
-     is inaccessible, fall back on stat; if the latter fails with
+     is inaccessible, fall back on fstatat; if the latter fails with
      EOVERFLOW then FILE must have been a directory unless a race
      condition occurred (a problem hard to work around portably).  */
   if (file_accessible_directory_p (file))
@@ -2949,7 +2975,7 @@ file_directory_p (Lisp_Object file)
   if (errno != EACCES)
     return false;
   struct stat st;
-  if (stat (SSDATA (file), &st) != 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (file), &st, 0) != 0)
     return errno == EOVERFLOW;
   if (S_ISDIR (st.st_mode))
     return true;
@@ -3080,7 +3106,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   Vw32_get_true_file_attributes = Qt;
 #endif
 
-  int stat_result = stat (SSDATA (absname), &st);
+  int stat_result = emacs_fstatat (AT_FDCWD, SSDATA (absname), &st, 0);
 
 #ifdef WINDOWSNT
   Vw32_get_true_file_attributes = true_attributes;
@@ -3113,7 +3139,7 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
 #if HAVE_LIBSELINUX
   if (is_selinux_enabled ())
     {
-      security_context_t con;
+      char *con;
       int conlength = lgetfilecon (SSDATA (ENCODE_FILE (absname)), &con);
       if (conlength > 0)
 	{
@@ -3158,7 +3184,7 @@ or if Emacs was not compiled with SELinux support.  */)
   Lisp_Object role = CAR_SAFE (CDR_SAFE (context));
   Lisp_Object type = CAR_SAFE (CDR_SAFE (CDR_SAFE (context)));
   Lisp_Object range = CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (context))));
-  security_context_t con;
+  char *con;
   bool fail;
   int conlength;
   context_t parsed_con;
@@ -3326,50 +3352,60 @@ support.  */)
   return Qnil;
 }
 
-DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
+static int
+symlink_nofollow_flag (Lisp_Object flag)
+{
+  /* For now, treat all non-nil FLAGs like 'nofollow'.  */
+  return !NILP (flag) ? AT_SYMLINK_NOFOLLOW : 0;
+}
+
+DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 2, 0,
        doc: /* Return mode bits of file named FILENAME, as an integer.
-Return nil if FILENAME does not exist.  */)
-  (Lisp_Object filename)
+Return nil if FILENAME does not exist.  If optional FLAG is `nofollow',
+do not follow FILENAME if it is a symbolic link.  */)
+  (Lisp_Object filename, Lisp_Object flag)
 {
   struct stat st;
+  int nofollow = symlink_nofollow_flag (flag);
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_modes);
   if (!NILP (handler))
-    return call2 (handler, Qfile_modes, absname);
+    return call3 (handler, Qfile_modes, absname, flag);
 
-  if (stat (SSDATA (ENCODE_FILE (absname)), &st) != 0)
+  char *fname = SSDATA (ENCODE_FILE (absname));
+  if (emacs_fstatat (AT_FDCWD, fname, &st, nofollow) != 0)
     return file_attribute_errno (absname, errno);
   return make_fixnum (st.st_mode & 07777);
 }
 
-DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
+DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 3,
        "(let ((file (read-file-name \"File: \")))			\
 	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
-Only the 12 low bits of MODE are used.
+Only the 12 low bits of MODE are used.  If optional FLAG is `nofollow',
+do not follow FILENAME if it is a symbolic link.
 
 Interactively, mode bits are read by `read-file-modes', which accepts
 symbolic notation, like the `chmod' command from GNU Coreutils.  */)
-  (Lisp_Object filename, Lisp_Object mode)
+  (Lisp_Object filename, Lisp_Object mode, Lisp_Object flag)
 {
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
   CHECK_FIXNUM (mode);
+  int nofollow = symlink_nofollow_flag (flag);
+  Lisp_Object absname = Fexpand_file_name (filename,
+					   BVAR (current_buffer, directory));
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_modes);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qset_file_modes);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_modes, absname, mode);
+    return call4 (handler, Qset_file_modes, absname, mode, flag);
 
-  encoded_absname = ENCODE_FILE (absname);
-
-  if (chmod (SSDATA (encoded_absname), XFIXNUM (mode) & 07777) < 0)
+  char *fname = SSDATA (ENCODE_FILE (absname));
+  mode_t imode = XFIXNUM (mode) & 07777;
+  if (fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
     report_file_error ("Doing chmod", absname);
 
   return Qnil;
@@ -3414,39 +3450,41 @@ The value is an integer.  */)
 }
 
 
-DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
+DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 3, 0,
        doc: /* Set times of file FILENAME to TIMESTAMP.
-Set both access and modification times.
-Return t on success, else nil.
-Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
-`current-time'. */)
-  (Lisp_Object filename, Lisp_Object timestamp)
+If optional FLAG is `nofollow', do not follow FILENAME if it is a
+symbolic link.  Set both access and modification times.  Return t on
+success, else nil.  Use the current time if TIMESTAMP is nil.
+TIMESTAMP is in the format of `current-time'. */)
+  (Lisp_Object filename, Lisp_Object timestamp, Lisp_Object flag)
 {
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-  struct timespec t = lisp_time_argument (timestamp);
+  int nofollow = symlink_nofollow_flag (flag);
 
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
+  struct timespec ts[2];
+  if (!NILP (timestamp))
+    ts[0] = ts[1] = lisp_time_argument (timestamp);
+  else
+    ts[0].tv_nsec = ts[1].tv_nsec = UTIME_NOW;
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_times);
+  Lisp_Object
+    absname = Fexpand_file_name (filename, BVAR (current_buffer, directory)),
+    handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_times, absname, timestamp);
+    return call4 (handler, Qset_file_times, absname, timestamp, flag);
 
-  encoded_absname = ENCODE_FILE (absname);
+  Lisp_Object encoded_absname = ENCODE_FILE (absname);
 
-  {
-    if (set_file_times (-1, SSDATA (encoded_absname), t, t) != 0)
-      {
+  if (utimensat (AT_FDCWD, SSDATA (encoded_absname), ts, nofollow) != 0)
+    {
 #ifdef MSDOS
-        /* Setting times on a directory always fails.  */
-        if (file_directory_p (encoded_absname))
-          return Qnil;
+      /* Setting times on a directory always fails.  */
+      if (file_directory_p (encoded_absname))
+	return Qnil;
 #endif
-        report_file_error ("Setting file times", absname);
-      }
-  }
+      report_file_error ("Setting file times", absname);
+    }
 
   return Qt;
 }
@@ -3486,7 +3524,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
     return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
 
   int err1;
-  if (stat (SSDATA (ENCODE_FILE (absname1)), &st1) == 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname1)), &st1, 0) == 0)
     err1 = 0;
   else
     {
@@ -3494,7 +3532,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
       if (err1 != EOVERFLOW)
 	return file_attribute_errno (absname1, err1);
     }
-  if (stat (SSDATA (ENCODE_FILE (absname2)), &st2) != 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname2)), &st2, 0) != 0)
     {
       file_attribute_errno (absname2, errno);
       return Qt;
@@ -3880,7 +3918,7 @@ by calling `format-decode', which see.  */)
 	  if (end_offset < 0)
 	    buffer_overflow ();
 
-	  /* The file size returned from stat may be zero, but data
+	  /* The file size returned from fstat may be zero, but data
 	     may be readable nonetheless, for example when this is a
 	     file in the /proc filesystem.  */
 	  if (end_offset == 0)
@@ -5625,7 +5663,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 
   filename = ENCODE_FILE (BVAR (b, filename));
 
-  mtime = (stat (SSDATA (filename), &st) == 0
+  mtime = (emacs_fstatat (AT_FDCWD, SSDATA (filename), &st, 0) == 0
 	   ? get_stat_mtime (&st)
 	   : time_error_value (errno));
   if (timespec_cmp (mtime, b->modtime) == 0
@@ -5665,8 +5703,8 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
       struct timespec mtime;
       if (FIXNUMP (time_flag))
 	{
-	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
-	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XFIXNUM (time_flag));
+	  int flag = check_integer_range (time_flag, -1, 0);
+	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - flag);
 	}
       else
 	mtime = lisp_time_argument (time_flag);
@@ -5689,7 +5727,8 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
 	/* The handler can find the file name the same way we did.  */
 	return call2 (handler, Qset_visited_file_modtime, Qnil);
 
-      if (stat (SSDATA (ENCODE_FILE (filename)), &st) == 0)
+      if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (filename)), &st, 0)
+	  == 0)
         {
 	  current_buffer->modtime = get_stat_mtime (&st);
           current_buffer->modtime_size = st.st_size;
@@ -5728,12 +5767,14 @@ auto_save_1 (void)
   /* Get visited file's mode to become the auto save file's mode.  */
   if (! NILP (BVAR (current_buffer, filename)))
     {
-      if (stat (SSDATA (BVAR (current_buffer, filename)), &st) >= 0)
+      if (emacs_fstatat (AT_FDCWD, SSDATA (BVAR (current_buffer, filename)),
+			 &st, 0)
+	  == 0)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
-      else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
+      else if (modes = Ffile_modes (BVAR (current_buffer, filename), Qnil),
 	       FIXNUMP (modes))
-	/* Remote files don't cooperate with stat.  */
+	/* Remote files don't cooperate with fstatat.  */
 	auto_save_mode_bits = (XFIXNUM (modes) | 0600) & 0777;
     }
 

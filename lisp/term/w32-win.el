@@ -78,12 +78,8 @@
 (require 'dnd)
 (require 'w32-vars)
 
-;; Keep an obsolete alias for w32-focus-frame and w32-select-font in case
-;; they are used by code outside Emacs.
-(define-obsolete-function-alias 'w32-focus-frame 'x-focus-frame "23.1")
 (declare-function x-select-font "w32font.c"
                   (&optional frame exclude-proportional))
-(define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
 (defvar w32-color-map) ;; defined in w32fns.c
 (make-obsolete 'w32-default-color-map nil "24.1")
@@ -231,6 +227,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
+       '(gdiplus "gdiplus.dll")
+       '(shlwapi "shlwapi.dll")
        '(xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
        ;; Versions of libpng 1.4.x and later are incompatible with
        ;; earlier versions.  Set up the list of libraries according to

@@ -777,6 +777,9 @@ non-@code{nil}, it is added at the end.
 The argument @var{symbol} is not implicitly quoted; @code{add-to-list}
 is an ordinary function, like @code{set} and unlike @code{setq}.  Quote
 the argument yourself if that is what you want.
+
+Do not use this function when @var{symbol} refers to a lexical
+variable.
 @end defun
 
 Here's a scenario showing how to use @code{add-to-list}:
@@ -799,8 +802,9 @@ foo                       ;; @r{@code{foo} was changed.}
 @var{value})} is this:
 
 @example
-(or (member @var{value} @var{var})
-    (setq @var{var} (cons @var{value} @var{var})))
+(if (member @var{value} @var{var})
+    @var{var}
+  (setq @var{var} (cons @var{value} @var{var})))
 @end example
 
 @defun add-to-ordered-list symbol element &optional order
@@ -828,6 +832,7 @@ and unlike @code{setq}.  Quote the argument yourself if necessary.
 
 The ordering information is stored in a hash table on @var{symbol}'s
 @code{list-order} property.
+@var{symbol} cannot refer to a lexical variable.
 @end defun
 
 Here's a scenario showing how to use @code{add-to-ordered-list}:
@@ -861,10 +866,15 @@ foo                       ;; @r{@code{foo} was changed.}
 @node Modifying Lists
 @section Modifying Existing List Structure
 @cindex destructive list operations
+@cindex mutable lists
 
   You can modify the @sc{car} and @sc{cdr} contents of a cons cell with the
 primitives @code{setcar} and @code{setcdr}.  These are destructive
 operations because they change existing list structure.
+Destructive operations should be applied only to mutable lists,
+that is, lists constructed via @code{cons}, @code{list} or similar
+operations.  Lists created by quoting are part of the program and
+should not be changed by destructive operations.  @xref{Mutability}.
 
 @cindex CL note---@code{rplaca} vs @code{setcar}
 @quotation
@@ -901,7 +911,7 @@ value @var{object}.  For example:
 
 @example
 @group
-(setq x '(1 2))
+(setq x (list 1 2))
      @result{} (1 2)
 @end group
 @group
@@ -922,7 +932,7 @@ these lists.  Here is an example:
 @example
 @group
 ;; @r{Create two lists that are partly shared.}
-(setq x1 '(a b c))
+(setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setq x2 (cons 'z (cdr x1)))
      @result{} (z b c)
@@ -1012,7 +1022,7 @@ reached via the @sc{cdr}.
 
 @example
 @group
-(setq x '(1 2 3))
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
@@ -1032,7 +1042,7 @@ the @sc{cdr} of the first cons cell:
 
 @example
 @group
-(setq x1 '(a b c))
+(setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setcdr x1 (cdr (cdr x1)))
      @result{} (c)
@@ -1064,7 +1074,7 @@ of this list.
 
 @example
 @group
-(setq x1 '(a b c))
+(setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setcdr x1 (cons 'd (cdr x1)))
      @result{} (d b c)
@@ -1125,7 +1135,7 @@ Unlike @code{append} (@pxref{Building Lists}), the @var{lists} are
 
 @example
 @group
-(setq x '(1 2 3))
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
@@ -1145,7 +1155,7 @@ list:
 
 @example
 @group
-(setq x '(1 2 3))
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
@@ -1158,11 +1168,13 @@ x
 @end group
 @end example
 
-However, the other arguments (all but the last) must be lists.
+However, the other arguments (all but the last) should be mutable lists.
 
-A common pitfall is to use a quoted constant list as a non-last
-argument to @code{nconc}.  If you do this, your program will change
-each time you run it!  Here is what happens:
+A common pitfall is to use a constant list as a non-last
+argument to @code{nconc}.  If you do this, the resulting behavior
+is undefined.  It is possible that your program will change
+each time you run it!  Here is what might happen (though this
+is not guaranteed to happen):
 
 @smallexample
 @group
@@ -1230,8 +1242,8 @@ compare @var{object} against the elements of the list.  For example:
      @result{} (b c b a)
 @end group
 @group
-(memq '(2) '((1) (2)))    ; @r{@code{(2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq '(2) '((1) (2)))    ; @r{The two @code{(2)}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{((2))}.}
 @end group
 @end example
 @end defun
@@ -1265,7 +1277,7 @@ removing it involves changing the @sc{cdr}s (@pxref{Setcdr}).
 
 @example
 @group
-(setq sample-list '(a b c (4)))
+(setq sample-list (list 'a 'b 'c '(4)))
      @result{} (a b c (4))
 @end group
 @group
@@ -1298,12 +1310,12 @@ into the variable that held the original list:
 (setq flowers (delq 'rose flowers))
 @end example
 
-In the following example, the @code{(4)} that @code{delq} attempts to match
-and the @code{(4)} in the @code{sample-list} are not @code{eq}:
+In the following example, the @code{(list 4)} that @code{delq} attempts to match
+and the @code{(4)} in the @code{sample-list} are @code{equal} but not @code{eq}:
 
 @example
 @group
-(delq '(4) sample-list)
+(delq (list 4) sample-list)
      @result{} (a c (4))
 @end group
 @end example
@@ -1319,7 +1331,7 @@ of @code{list}.
 
 @example
 @group
-(setq sample-list '(a b c a b c))
+(setq sample-list (list 'a 'b 'c 'a 'b 'c))
      @result{} (a b c a b c)
 @end group
 @group
@@ -1348,8 +1360,8 @@ Compare this with @code{memq}:
      @result{} (1.2 1.3)
 @end group
 @group
-(memq 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} are not @code{eq}.}
-     @result{} nil
+(memq 1.2 '(1.1 1.2 1.3))  ; @r{The two @code{1.2}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{(1.2 1.3)}.}
 @end group
 @end example
 @end defun
@@ -1372,8 +1384,8 @@ Compare this with @code{memq}:
      @result{} ((2))
 @end group
 @group
-(memq '(2) '((1) (2)))    ; @r{@code{(2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq '(2) '((1) (2)))    ; @r{The two @code{(2)}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{(2)}.}
 @end group
 @group
 ;; @r{Two strings with the same contents are @code{equal}.}
@@ -1402,7 +1414,7 @@ For example:
 
 @example
 @group
-(setq l '((2) (1) (2)))
+(setq l (list '(2) '(1) '(2)))
 (delete '(2) l)
      @result{} ((1))
 l
@@ -1411,7 +1423,7 @@ l
 ;; @r{write @code{(setq l (delete '(2) l))}.}
 @end group
 @group
-(setq l '((2) (1) (2)))
+(setq l (list '(2) '(1) '(2)))
 (delete '(1) l)
      @result{} ((2) (2))
 l
@@ -1614,7 +1626,7 @@ keys may not be symbols:
         ("compound leaves" . horsechestnut)))
 
 (assq "simple leaves" leaves)
-     @result{} nil
+     @result{} @r{Unspecified; might be @code{nil} or @code{("simple leaves" . oak)}.}
 (assoc "simple leaves" leaves)
      @result{} ("simple leaves" . oak)
 @end smallexample
@@ -1754,7 +1766,7 @@ correct results, use the return value of @code{assq-delete-all} rather
 than looking at the saved value of @var{alist}.
 
 @example
-(setq alist '((foo 1) (bar 2) (foo 3) (lose 4)))
+(setq alist (list '(foo 1) '(bar 2) '(foo 3) '(lose 4)))
      @result{} ((foo 1) (bar 2) (foo 3) (lose 4))
 (assq-delete-all 'foo alist)
      @result{} ((bar 2) (lose 4))
@@ -1921,7 +1933,7 @@ function returns the modified property list, so you can store that back
 in the place where you got @var{plist}.  For example,
 
 @example
-(setq my-plist '(bar t foo 4))
+(setq my-plist (list 'bar t 'foo 4))
      @result{} (bar t foo 4)
 (setq my-plist (plist-put my-plist 'foo 69))
      @result{} (bar t foo 69)

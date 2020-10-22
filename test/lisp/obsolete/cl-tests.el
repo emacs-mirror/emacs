@@ -21,7 +21,8 @@
 
 ;;; Code:
 
-(require 'cl)
+(with-no-warnings
+  (require 'cl))
 (require 'ert)
 
 

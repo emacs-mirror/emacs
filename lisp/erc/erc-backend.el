@@ -4,7 +4,7 @@
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Created: 2004-05-7
 ;; Keywords: IRC chat client internet
 
@@ -98,7 +98,6 @@
 
 ;;; Code:
 
-(require 'erc-compat)
 (eval-when-compile (require 'cl-lib))
 ;; There's a fairly strong mutual dependency between erc.el and erc-backend.el.
 ;; Luckily, erc.el does not need erc-backend.el for macroexpansion whereas the
@@ -466,7 +465,8 @@ If this is set to nil, never try to reconnect."
 The length is specified in `erc-split-line-length'.
 
 Currently this is called by `erc-send-input'."
-  (let ((charset (car (erc-coding-system-for-target nil))))
+  (let* ((coding (erc-coding-system-for-target nil))
+         (charset (if (consp coding) (car coding) coding)))
     (with-temp-buffer
       (insert longline)
       ;; The line lengths are in octets, not characters (because these
@@ -519,7 +519,8 @@ If no subword-mode is active, then this is
   "Set up a timer to periodically ping the current server.
 The current buffer is given by BUFFER."
   (with-current-buffer buffer
-    (and erc-server-ping-handler (erc-cancel-timer erc-server-ping-handler))
+    (when erc-server-ping-handler
+      (cancel-timer erc-server-ping-handler))
     (when erc-server-send-ping-interval
       (setq erc-server-ping-handler (run-with-timer
                                      4 erc-server-send-ping-interval
@@ -532,7 +533,7 @@ The current buffer is given by BUFFER."
         (if timer-tuple
             ;; this buffer already has a timer. Cancel it and set the new one
             (progn
-              (erc-cancel-timer (cdr timer-tuple))
+              (cancel-timer (cdr timer-tuple))
               (setf (cdr (assq buffer erc-server-ping-timer-alist)) erc-server-ping-handler))
 
           ;; no existing timer for this buffer. Add new one
@@ -730,7 +731,7 @@ Conditionally try to reconnect and take appropriate action."
           (erc-with-all-buffers-of-server cproc nil
                                           (setq erc-server-connected nil))
           (when erc-server-ping-handler
-            (progn (erc-cancel-timer erc-server-ping-handler)
+            (progn (cancel-timer erc-server-ping-handler)
                    (setq erc-server-ping-handler nil)))
           (run-hook-with-args 'erc-disconnected-hook
                               (erc-current-nick) (system-name) "")
@@ -780,7 +781,7 @@ value of `erc-server-coding-system'."
           (pop precedence))
         (when precedence
           (setq coding (car precedence)))))
-    (erc-decode-coding-string str coding)))
+    (decode-coding-string str coding t)))
 
 ;; proposed name, not used by anything yet
 (defun erc-send-line (text display-fn)
@@ -855,7 +856,7 @@ Additionally, detect whether the IRC process has hung."
     ;; remove timer if the server buffer has been killed
     (let ((timer (assq buf erc-server-ping-timer-alist)))
       (when timer
-        (erc-cancel-timer (cdr timer))
+        (cancel-timer (cdr timer))
         (setcdr timer nil)))))
 
 ;; From Circe
@@ -863,41 +864,42 @@ Additionally, detect whether the IRC process has hung."
   "Send messages in `erc-server-flood-queue'.
 See `erc-server-flood-margin' for an explanation of the flood
 protection algorithm."
-  (with-current-buffer buffer
-    (let ((now (current-time)))
-      (when erc-server-flood-timer
-        (erc-cancel-timer erc-server-flood-timer)
-        (setq erc-server-flood-timer nil))
-      (when (time-less-p erc-server-flood-last-message now)
-        (setq erc-server-flood-last-message (erc-emacs-time-to-erc-time now)))
-      (while (and erc-server-flood-queue
-                  (time-less-p erc-server-flood-last-message
-                               (time-add now erc-server-flood-margin)))
-        (let ((msg (caar erc-server-flood-queue))
-              (encoding (cdar erc-server-flood-queue)))
-          (setq erc-server-flood-queue (cdr erc-server-flood-queue)
-                erc-server-flood-last-message
-                (+ erc-server-flood-last-message
-                   erc-server-flood-penalty))
-          (erc-log-irc-protocol msg 'outbound)
-          (erc-log (concat "erc-server-send-queue: "
-                           msg "(" (buffer-name buffer) ")"))
-          (when (erc-server-process-alive)
-            (condition-case nil
-                ;; Set encoding just before sending the string
-                (progn
-                  (when (fboundp 'set-process-coding-system)
-                    (set-process-coding-system erc-server-process
-                                               'raw-text encoding))
-                  (process-send-string erc-server-process msg))
-              ;; Sometimes the send can occur while the process is
-              ;; being killed, which results in a weird SIGPIPE error.
-              ;; Catch this and ignore it.
-              (error nil)))))
-      (when erc-server-flood-queue
-        (setq erc-server-flood-timer
-              (run-at-time (+ 0.2 erc-server-flood-penalty)
-                           nil #'erc-server-send-queue buffer))))))
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (let ((now (current-time)))
+        (when erc-server-flood-timer
+          (cancel-timer erc-server-flood-timer)
+          (setq erc-server-flood-timer nil))
+        (when (time-less-p erc-server-flood-last-message now)
+          (setq erc-server-flood-last-message (erc-emacs-time-to-erc-time now)))
+        (while (and erc-server-flood-queue
+                    (time-less-p erc-server-flood-last-message
+                                 (time-add now erc-server-flood-margin)))
+          (let ((msg (caar erc-server-flood-queue))
+                (encoding (cdar erc-server-flood-queue)))
+            (setq erc-server-flood-queue (cdr erc-server-flood-queue)
+                  erc-server-flood-last-message
+                  (+ erc-server-flood-last-message
+                     erc-server-flood-penalty))
+            (erc-log-irc-protocol msg 'outbound)
+            (erc-log (concat "erc-server-send-queue: "
+                             msg "(" (buffer-name buffer) ")"))
+            (when (erc-server-process-alive)
+              (condition-case nil
+                  ;; Set encoding just before sending the string
+                  (progn
+                    (when (fboundp 'set-process-coding-system)
+                      (set-process-coding-system erc-server-process
+                                                 'raw-text encoding))
+                    (process-send-string erc-server-process msg))
+                ;; Sometimes the send can occur while the process is
+                ;; being killed, which results in a weird SIGPIPE error.
+                ;; Catch this and ignore it.
+                (error nil)))))
+        (when erc-server-flood-queue
+          (setq erc-server-flood-timer
+                (run-at-time (+ 0.2 erc-server-flood-penalty)
+                             nil #'erc-server-send-queue buffer)))))))
 
 (defun erc-message (message-command line &optional force)
   "Send LINE to the server as a privmsg or a notice.

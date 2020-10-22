@@ -289,9 +289,9 @@ get_user_app (const char *class)
       /* Check in the home directory.  This is a bit of a hack; let's
 	 hope one's home directory doesn't contain ':' or '%'.  */
       char const *home = get_homedir ();
-      db = search_magic_path (home, class, "%L/%N");
+      db = search_magic_path (home, class, "/%L/%N");
       if (! db)
-	db = search_magic_path (home, class, "%N");
+	db = search_magic_path (home, class, "/%N");
     }
 
   return db;
@@ -353,7 +353,7 @@ get_environ_db (void)
 	  p = filename = xmalloc (strlen (home) + 1 + sizeof xdefaults
 				  + 1 + SBYTES (system_name));
 	  char *e = splice_dir_file (p, home, xdefaults);
-	  *e++ = '/';
+	  *e++ = '-';
 	  lispstpcpy (e, system_name);
 	}
     }

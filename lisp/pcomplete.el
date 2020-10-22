@@ -325,6 +325,10 @@ already terminated by a character, this variable should be locally
 modified to be an empty string, or the desired separation string."
   :type 'string)
 
+(defcustom pcomplete-hosts-file "/etc/hosts"
+  "The name of the /etc/hosts file."
+  :type '(choice (const :tag "No hosts file" nil) file))
+
 ;;; Internal Variables:
 
 ;; for cycling completion support
@@ -1288,6 +1292,46 @@ If specific documentation can't be given, be generic."
     (apply #'call-process cmd nil t nil args)
     (skip-chars-backward "\n")
     (buffer-substring (point-min) (point))))
+
+;; hostname completion
+
+(defvar pcomplete--host-name-cache nil
+  "A cache the names of frequently accessed hosts.")
+
+(defvar pcomplete--host-name-cache-timestamp nil
+  "A timestamp of when the hosts file was read.")
+
+(defun pcomplete-read-hosts-file (filename)
+  "Read in the hosts from FILENAME, default `pcomplete-hosts-file'."
+  (let (hosts)
+    (with-temp-buffer
+      (insert-file-contents (or filename pcomplete-hosts-file))
+      (goto-char (point-min))
+      (while (re-search-forward
+              ;; "^ \t\\([^# \t\n]+\\)[ \t]+\\([^ \t\n]+\\)\\([ \t]*\\([^ \t\n]+\\)\\)?"
+              "^[ \t]*\\([^# \t\n]+\\)[ \t]+\\([^ \t\n].+\\)" nil t)
+        (push (cons (match-string 1)
+                    (split-string (match-string 2)))
+              hosts)))
+    (nreverse hosts)))
+
+(defun pcomplete-read-hosts (file result-var timestamp-var)
+  "Read the contents of /etc/hosts for host names."
+  (if (or (not (symbol-value result-var))
+          (not (symbol-value timestamp-var))
+          (time-less-p
+           (symbol-value timestamp-var)
+           (file-attribute-modification-time (file-attributes file))))
+      (progn
+        (set result-var (apply #'nconc (pcomplete-read-hosts-file file)))
+        (set timestamp-var (current-time))))
+  (symbol-value result-var))
+
+(defun pcomplete-read-host-names ()
+  "Read the contents of /etc/hosts for host names."
+  (if pcomplete-hosts-file
+      (pcomplete-read-hosts pcomplete-hosts-file 'pcomplete--host-name-cache
+                   'pcomplete--host-name-cache-timestamp)))
 
 ;; create a set of aliases which allow completion functions to be not
 ;; quite so verbose

@@ -1,4 +1,4 @@
-;;; autoconf.el --- mode for editing Autoconf configure.ac files
+;;; autoconf.el --- mode for editing Autoconf configure.ac files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 

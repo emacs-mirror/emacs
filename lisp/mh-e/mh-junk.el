@@ -58,7 +58,7 @@ program, see:
 (defun mh-blacklist-a-msg (message)
   "Blacklist MESSAGE.
 If MESSAGE is nil then the message at point is blacklisted.
-The hook `mh-blacklisted-msg-hook' is called after you mark a message
+The hook `mh-blacklist-msg-hook' is called after you mark a message
 for blacklisting."
   (save-excursion
     (if (numberp message)

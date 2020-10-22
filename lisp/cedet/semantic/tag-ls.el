@@ -190,7 +190,7 @@ See `semantic-tag-similar-p' for details."
 ;; will contain the info needed to determine the full name.
 (define-overloadable-function semantic-tag-full-package (tag &optional stream-or-buffer)
   "Return the fully qualified package name of TAG in a package hierarchy.
-STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
+STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-tag-table',
 but must be a toplevel semantic tag stream that contains TAG.
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a
@@ -213,7 +213,7 @@ Return the name of the first tag of class `package' in STREAM."
 
 (define-overloadable-function semantic-tag-full-name (tag &optional stream-or-buffer)
   "Return the fully qualified name of TAG in the package hierarchy.
-STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
+STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-tag-table',
 but must be a toplevel semantic tag stream that contains TAG.
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a
@@ -232,9 +232,6 @@ resolve issues where a method in a class in a package is present."
   (let ((stream (semantic-something-to-tag-table
                  (or stream-or-buffer tag))))
     (:override-with-args (tag stream))))
-
-(make-obsolete-overload 'semantic-nonterminal-full-name
-                        'semantic-tag-full-name "23.2")
 
 (defun semantic-tag-full-name-default (tag stream)
   "Default method for `semantic-tag-full-name'.
@@ -286,9 +283,6 @@ is to return a symbol based on type modifiers."
        (semantic-tag-in-buffer-p tag)
        (setq parent (semantic-tag-calculate-parent tag)))
   (:override))
-
-(make-obsolete-overload 'semantic-nonterminal-protection
-                        'semantic-tag-protection "23.2")
 
 (defun semantic-tag-protection-default (tag &optional parent)
   "Return the protection of TAG as a child of PARENT default action.
@@ -377,9 +371,6 @@ in how methods are overridden.  In UML, abstract methods are italicized.
 The default behavior (if not overridden with `tag-abstract-p'
 is to return true if `abstract' is in the type modifiers.")
 
-(make-obsolete-overload 'semantic-nonterminal-abstract
-                        'semantic-tag-abstract-p "23.2")
-
 (defun semantic-tag-abstract-p-default (tag &optional parent)
   "Return non-nil if TAG is abstract as a child of PARENT default action.
 See `semantic-tag-abstract-p'."
@@ -399,9 +390,6 @@ In UML, leaf methods and classes have special meaning and behavior.
 
 The default behavior (if not overridden with `tag-leaf-p'
 is to return true if `leaf' is in the type modifiers.")
-
-(make-obsolete-overload 'semantic-nonterminal-leaf
-                        'semantic-tag-leaf-p "23.2")
 
 (defun semantic-tag-leaf-p-default (tag &optional parent)
   "Return non-nil if TAG is leaf as a child of PARENT default action.

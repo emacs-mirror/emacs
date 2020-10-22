@@ -658,15 +658,6 @@ displayed record.  You cannot delete or modify the fixed, explanatory
 text that comes from string formatting elements, but you can modify the
 actual field contents.
 
-@ignore
-@c This is for the Emacs 18 version only.
-If the contents of the forms cannot be recognized properly, this is
-signaled using a descriptive text.  @xref{Error Messages}, for more info.
-The cursor will indicate the last part of the forms which was
-successfully parsed.  It's important to avoid entering field contents
-that would cause confusion with the field-separating fixed text.
-@end ignore
-
 If the variable @code{forms-modified-record-filter} is non-@code{nil},
 it is called as a function before the new data is written to the data
 file.  The function receives one argument, a vector that contains the
@@ -794,23 +785,6 @@ The first element of a list which is an element of
 @item Forms format error: invalid element @var{xx}
 A list element was supplied in @code{forms-format-list} which was not a
 string, number or list.
-
-@ignore
-@c This applies to Emacs 18 only.
-@c Error messages generated while a modified form is being analyzed.
-
-@item Parse error: not looking at `...'
-When re-parsing the contents of a forms, the text shown could not
-be found.
-
-@item Parse error: cannot find `...'
-When re-parsing the contents of a forms, the text shown, which
-separates two fields, could not be found.
-
-@item Parse error: cannot parse adjacent fields @var{xx} and @var{yy}
-Fields @var{xx} and @var{yy} were not separated by text, so could not be
-parsed again.
-@end ignore
 
 @item Warning: this record has @var{xx} fields instead of @var{yy}
 The number of fields in this record in the data file did not match

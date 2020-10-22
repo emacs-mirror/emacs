@@ -663,7 +663,7 @@ definition in the future.
 Toggle whether Edebug saves and restores the outside window
 configuration (@code{edebug-toggle-save-windows}).
 
-With a prefix argument, @code{W} only toggles saving and restoring of
+With a prefix argument, @kbd{W} only toggles saving and restoring of
 the selected window.  To specify a window that is not displaying the
 source code buffer, you must use @kbd{C-x X W} from the global keymap.
 @end table
@@ -858,24 +858,25 @@ to a non-@code{nil} value.
   Here is an example of code that creates a circular structure:
 
 @example
-(setq a '(x y))
+(setq a (list 'x 'y))
 (setcar a a)
 @end example
 
 @noindent
-Custom printing prints this as @samp{Result: #1=(#1# y)}.  The
-@samp{#1=} notation labels the structure that follows it with the label
-@samp{1}, and the @samp{#1#} notation references the previously labeled
-structure.  This notation is used for any shared elements of lists or
-vectors.
+If @code{print-circle} is non-@code{nil}, printing functions (e.g.,
+@code{prin1}) will print @code{a} as @samp{#1=(#1# y)}.  The
+@samp{#1=} notation labels the structure that follows it with the
+label @samp{1}, and the @samp{#1#} notation references the previously
+labeled structure.  This notation is used for any shared elements of
+lists or vectors.
 
 @defopt edebug-print-circle
 If non-@code{nil}, Edebug binds @code{print-circle} to this value while
 printing results.  The default value is @code{t}.
 @end defopt
 
-  Other programs can also use custom printing; see @file{cust-print.el}
-for details.
+  See @xref{Output Functions} for further details about how printing
+can be customized.
 
 @node Trace Buffer
 @subsection Trace Buffer
@@ -1362,6 +1363,11 @@ while matching the remainder of the specifications at this level.  This
 is primarily used to generate more specific syntax error messages.  See
 @ref{Backtracking}, for more details.  Also see the @code{let} example.
 
+@item &error
+@code{&error} should be followed by a string, an error message, in the
+edebug-spec; it aborts the instrumentation, displaying the message in
+the minibuffer.
+
 @item @var{other-symbol}
 @cindex indirect specifications
 Any other symbol in a specification list may be a predicate or an
@@ -1432,6 +1438,16 @@ following @code{:name} should be a symbol; it is used as an additional
 name component for the definition.  You can use this to add a unique,
 static component to the name of the definition.  It may be used more
 than once.
+
+@item :unique
+This construct is like @code{:name}, but generates unique names.  It
+does not match an argument.  The element following @code{:unique}
+should be a string; it is used as the prefix for an additional name
+component for the definition.  You can use this to add a unique,
+dynamic component to the name of the definition.  This is useful for
+macros that can define the same symbol multiple times in different
+scopes, such as @code{cl-flet}; @ref{Function Bindings,,,cl}.  It may
+be used more than once.
 
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.

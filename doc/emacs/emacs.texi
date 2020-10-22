@@ -108,10 +108,9 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 @node Top
 @top The Emacs Editor
 
-Emacs is the extensible, customizable, self-documenting real-time
-display editor.  This manual describes how to edit with Emacs and
-some of the ways to customize it; it corresponds to GNU Emacs version
-@value{EMACSVER}.
+Emacs is the advanced, extensible, customizable, self-documenting
+editor.  This manual describes how to edit with Emacs and some of the
+ways to customize it; it corresponds to GNU Emacs version @value{EMACSVER}.
 
 @c See 'manual-html-mono' and 'manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
@@ -219,7 +218,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 25.
+* Antinews::            Information about Emacs version 26.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
@@ -455,7 +454,8 @@ File Handling
 * Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
-* File Conveniences::   Convenience Features for Finding Files.
+* File Conveniences::   Convenience features for finding files.
+* Image Mode::          Viewing image files.
 * Filesets::            Handling sets of files.
 
 Saving Files
@@ -516,6 +516,7 @@ Multiple Windows
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Temporary Displays::  Displaying non-editable buffers.
 * Window Convenience::  Convenience functions for window handling.
+* Tab Line::            Window tab line.
 
 Displaying a Buffer in a Window
 
@@ -785,6 +786,7 @@ GDB Graphical Interface
 Maintaining Large Programs
 
 * Version Control::     Using version control systems.
+* Projects::            Commands for handling source files in a project.
 * Change Log::          Maintaining a change history for your program.
 * Xref::                Find definitions and references of any function,
                           method, struct, macro, @dots{} in your program.
@@ -854,6 +856,12 @@ Customizing VC
 * CVS Options::           Options for CVS.
 @end ifnottex
 
+Projects
+
+* Project File Commands::   Commands for handling project files.
+* Project Buffer Commands:: Commands for handling project buffers.
+* Switching Projects::      Switching between projects.
+
 Change Logs
 
 * Change Log Commands:: Commands for editing change log files.
@@ -899,6 +907,7 @@ Abbrevs
 * Abbrev Concepts::     Fundamentals of defined abbrevs.
 * Defining Abbrevs::    Defining an abbrev, so it will expand when typed.
 * Expanding Abbrevs::   Controlling expansion: prefixes, canceling expansion.
+* Abbrevs Suggestions:: Get automatic suggestions about defined abbrevs.
 * Editing Abbrevs::     Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
@@ -1099,6 +1108,7 @@ Hyperlinking and Navigation Features
 Emacs Lisp Packages
 
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 
@@ -1275,11 +1285,12 @@ programmer, but if you are not interested in customizing, you can
 ignore the customization hints.
 
   This is primarily a reference manual, but can also be used as a
-primer.  If you are new to Emacs, we recommend you start with
-the integrated, learn-by-doing tutorial, before reading the manual.  To
-run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
-describes commands, tells you when to try them, and explains the
-results.  The tutorial is available in several languages.
+primer.  If you are new to Emacs, we recommend you start with the
+integrated, learn-by-doing tutorial, before reading the manual.  To
+run the tutorial, start Emacs and type @kbd{C-h t} (which is ``control
+h and then t'').  The tutorial describes commands, tells you when to
+try them, and explains the results.  The tutorial is available in
+several languages.
 
   On first reading, just skim chapters 1 and 2, which describe the
 notational conventions of the manual and the general appearance of the
@@ -1404,6 +1415,7 @@ Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
 Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Ken Brown, Stefan Bruda,
+Daniel Colascione,
 Georges Brun-Cottan, Joe Buehler, Scott Byer, Włodek Bzyl, Tino Calancha,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
@@ -1429,7 +1441,7 @@ Guillaume, Dmitry Gutov, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, C
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
 Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Anders Holst,
-Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Tom Houlder, Joakim
+Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
@@ -1449,7 +1461,7 @@ Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J. Madsen, Neil M. Mager, Artur Malabarba, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
-Megginson, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
+Megginson, Jimmy Aguilar Mena, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
 Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Möllmann, Dani Moncayo, Stefan
 Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
 Don Morrison, Diane Murray, Riccardo Murri, Sen Nagata, Erik Naggum,
@@ -1468,7 +1480,7 @@ Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
 Roberts, Roland B. Roberts, John Robinson, Denis B. Roegel, Danny
 Roozendaal, Sebastian Rose, William Rosenblatt, Markus Rost, Guillermo
 J. Rozas, Martin Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang
-Rupprecht, Benjamin Rutt, Kevin Ryde, James B. Salem, Masahiko Sato,
+Rupprecht, Benjamin Rutt, Kevin Ryde, Phil Sainty, James B. Salem, Masahiko Sato,
 Timo Savola, Jorgen Schäfer, Holger Schauer, William Schelter, Ralph
 Schleicher, Gregor Schmid, Michael Schmidt, Ronald S. Schnell,
 Philippe Schnoebelen, Jan Schormann, Alex Schroeder, Stefan Schoef,
@@ -1481,9 +1493,9 @@ South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Philipp Stephani, Peter Stephenson, Ken
 Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.
 Storm, Steve Strassmann, Christopher Suckling, Olaf Sylvester, Naoto
-Takahashi, Steven Tamm, Jan Tatarik, Luc Teirlinck, Jean-Philippe Theberge, Jens
-T. Berger Thielemann, Spencer Thomas, Jim Thompson, Toru Tomabechi,
-David O'Toole, Markus Triska, Tom Tromey, Eli
+Takahashi, Steven Tamm, Jan Tatarik, João Távora, Luc Teirlinck,
+Jean-Philippe Theberge, Jens T.@: Berger Thielemann, Spencer Thomas,
+Jim Thompson, Toru Tomabechi, David O'Toole, Markus Triska, Tom Tromey, Eli
 Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil
 W. Van Dyke, Didier Verna, Joakim Verona, Ulrik Vieth, Geoffrey
 Voelker, Johan Vromans, Inge Wallin, John Paul Wallington, Colin

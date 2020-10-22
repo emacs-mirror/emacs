@@ -347,12 +347,13 @@ from the document.")
 	       (file-exists-p nndoc-address)
 	       (not (file-directory-p nndoc-address))))
       (push (cons group (setq nndoc-current-buffer
-			      (get-buffer-create
+			      (gnus-get-buffer-create
 			       (concat " *nndoc " group "*"))))
 	    nndoc-group-alist)
       (setq nndoc-dissection-alist nil)
       (with-current-buffer nndoc-current-buffer
 	(erase-buffer)
+	(set-buffer-multibyte nil)
 	(condition-case error
 	    (if (and (stringp nndoc-address)
 		     (string-match nndoc-binary-file-names nndoc-address))

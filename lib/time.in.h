@@ -135,13 +135,19 @@ _GL_CXXALIASWARN (nanosleep);
 #   endif
 _GL_FUNCDECL_RPL (tzset, void, (void));
 _GL_CXXALIAS_RPL (tzset, void, (void));
-#  else
-#   if ! @HAVE_TZSET@
-_GL_FUNCDECL_SYS (tzset, void, (void));
+#  elif defined _WIN32 && !defined __CYGWIN__
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef tzset
+#    define tzset _tzset
 #   endif
+_GL_CXXALIAS_MDA (tzset, void, (void));
+#  else
 _GL_CXXALIAS_SYS (tzset, void, (void));
 #  endif
 _GL_CXXALIASWARN (tzset);
+# elif defined _WIN32 && !defined __CYGWIN__
+#  undef tzset
+#  define tzset _tzset
 # endif
 
 /* Return the 'time_t' representation of TP and normalize TP.  */
@@ -286,14 +292,17 @@ _GL_CXXALIASWARN (ctime);
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    define strftime rpl_strftime
 #   endif
-_GL_FUNCDECL_RPL (strftime, size_t, (char *__buf, size_t __bufsize,
-                                     const char *__fmt, const struct tm *__tp)
-                                    _GL_ARG_NONNULL ((1, 3, 4)));
-_GL_CXXALIAS_RPL (strftime, size_t, (char *__buf, size_t __bufsize,
-                                     const char *__fmt, const struct tm *__tp));
+_GL_FUNCDECL_RPL (strftime, size_t,
+                  (char *restrict __buf, size_t __bufsize,
+                   const char *restrict __fmt, const struct tm *restrict __tp)
+                  _GL_ARG_NONNULL ((1, 3, 4)));
+_GL_CXXALIAS_RPL (strftime, size_t,
+                  (char *restrict __buf, size_t __bufsize,
+                   const char *restrict __fmt, const struct tm *restrict __tp));
 #  else
-_GL_CXXALIAS_SYS (strftime, size_t, (char *__buf, size_t __bufsize,
-                                     const char *__fmt, const struct tm *__tp));
+_GL_CXXALIAS_SYS (strftime, size_t,
+                  (char *restrict __buf, size_t __bufsize,
+                   const char *restrict __fmt, const struct tm *restrict __tp));
 #  endif
 #  if __GLIBC__ >= 2
 _GL_CXXALIASWARN (strftime);

@@ -42,16 +42,31 @@
 (ert-deftest rx-or ()
   (should (equal (rx (or "ab" (| "c" nonl) "de"))
                  "ab\\|c\\|.\\|de"))
-  (should (equal (rx (or "ab" "abc" "a"))
-                 "\\(?:ab\\|abc\\|a\\)"))
+  (should (equal (rx (or "ab" "abc" ?a))
+                 "\\(?:a\\(?:bc?\\)?\\)"))
+  (should (equal (rx (or "ab" (| (or "abcd" "abcde")) (or "a" "abc")))
+                 "\\(?:a\\(?:b\\(?:c\\(?:de?\\)?\\)?\\)?\\)"))
+  (should (equal (rx (or "a" (eval (string ?a ?b))))
+                 "\\(?:ab?\\)"))
   (should (equal (rx (| nonl "a") (| "b" blank))
                  "\\(?:.\\|a\\)\\(?:b\\|[[:blank:]]\\)"))
   (should (equal (rx (|))
                  "\\`a\\`")))
 
+(ert-deftest rx-def-in-or ()
+  (rx-let ((a b)
+           (b (or "abc" c))
+           (c ?a)
+           (d (any "a-z")))
+    (should (equal (rx (or a (| "ab" "abcde") "abcd"))
+                   "\\(?:a\\(?:b\\(?:c\\(?:de?\\)?\\)?\\)?\\)"))
+    (should (equal (rx (or ?m (not d)))
+                   "[^a-ln-z]"))))
+
 (ert-deftest rx-char-any ()
   "Test character alternatives with `]' and `-' (Bug#25123)."
   (should (equal
+           ;; relint suppression: Range .<-]. overlaps previous .]-{
            (rx string-start (1+ (char (?\] . ?\{) (?< . ?\]) (?- . ?:)))
                string-end)
            "\\`[.-:<-{-]+\\'")))
@@ -116,8 +131,12 @@
                  "[[:lower:][:upper:]-][^[:lower:][:upper:]-]"))
   (should (equal (rx (any "]" lower upper) (not (any "]" lower upper)))
                  "[][:lower:][:upper:]][^][:lower:][:upper:]]"))
-  (should (equal (rx (any "-a" "c-" "f-f" "--/*--"))
-                 "[*-/acf]"))
+  ;; relint suppression: Duplicated character .-.
+  ;; relint suppression: Single-character range .f-f
+  ;; relint suppression: Range .--/. overlaps previous .-
+  ;; relint suppression: Range .\*--. overlaps previous .--/
+  (should (equal (rx (any "-a" "c-" "f-f" "--/*--") (any "," "-" "A"))
+                 "[*-/acf][,A-]"))
   (should (equal (rx (any "]-a" ?-) (not (any "]-a" ?-)))
                  "[]-a-][^]-a-]"))
   (should (equal (rx (any "--]") (not (any "--]"))
@@ -129,8 +148,12 @@
                  "\\`a\\`[^z-a]"))
   (should (equal (rx (any "") (not (any "")))
                  "\\`a\\`[^z-a]"))
+  ;; relint suppression: Duplicated class .space.
   (should (equal (rx (any space ?a digit space))
-                 "[a[:space:][:digit:]]")))
+                 "[a[:space:][:digit:]]"))
+  (should (equal (rx (not "\n") (not ?\n) (not (any "\n")) (not-char ?\n)
+                     (| (not (in "a\n")) (not (char ?\n (?b . ?b)))))
+          ".....")))
 
 (ert-deftest rx-pcase ()
   (should (equal (pcase "a 1 2 3 1 1 b"
@@ -298,7 +321,13 @@
                          (not (any "a-k"))))
                  "[^abh-k]"))
   (should (equal (rx (or ?f (any "b-e") "a") (not (or ?x "y" (any "s-w"))))
-                 "[a-f][^s-y]")))
+                 "[a-f][^s-y]"))
+  (should (equal (rx (not (or (in "abc") (char "bcd"))))
+                 "[^a-d]"))
+  (should (equal (rx (or (not (in "abc")) (not (char "bcd"))))
+                 "[^bc]"))
+  (should (equal (rx (or "x" (? "yz")))
+                 "x\\|\\(?:yz\\)?")))
 
 (ert-deftest rx-def-in-charset-or ()
   (rx-let ((a (any "badc"))
@@ -368,6 +397,8 @@
                  "ab")))
 
 (ert-deftest rx-literal ()
+  (should (equal (rx (literal "$a"))
+                 "\\$a"))
   (should (equal (rx (literal (char-to-string 42)) nonl)
                  "\\*."))
   (let ((x "a+b"))
@@ -508,6 +539,9 @@
 
 (ert-deftest rx-compat ()
   "Test old symbol retained for compatibility (bug#37517)."
-  (should (equal (rx-submatch-n '(group-n 3 (+ nonl) eol)) "\\(?3:.+$\\)")))
+  (should (equal
+           (with-suppressed-warnings ((obsolete rx-submatch-n))
+             (rx-submatch-n '(group-n 3 (+ nonl) eol)))
+           "\\(?3:.+$\\)")))
 
 (provide 'rx-tests)

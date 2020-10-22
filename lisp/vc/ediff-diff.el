@@ -325,6 +325,10 @@ one optional arguments, diff-number to refine.")
 	    (error-buf ediff-error-buffer))
 	(ediff-skip-unsuitable-frames)
 	(switch-to-buffer error-buf)
+        ;; We output data from the diff command using `raw-text' as
+        ;; the coding system, so decode before displaying.
+        (when (eq ediff-coding-system-for-read 'raw-text)
+          (decode-coding-region (point-min) (point-max) 'undecided))
 	(ediff-kill-buffer-carefully ctl-buf)
 	(user-error "Errors in diff output.  Diff output is in %S" diff-buff))))
 

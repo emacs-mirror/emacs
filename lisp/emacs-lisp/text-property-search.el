@@ -137,11 +137,19 @@ and if a matching region is found, moves point to its beginning."
     nil)
    ;; We're standing in the property we're looking for, so find the
    ;; end.
-   ((and (text-property--match-p
-          value (get-text-property (1- (point)) property)
-          predicate)
-         (not not-current))
-    (text-property--find-end-backward (1- (point)) property value predicate))
+   ((text-property--match-p
+     value (get-text-property (1- (point)) property)
+     predicate)
+    (let ((origin (point))
+          (match (text-property--find-end-backward
+                  (1- (point)) property value predicate)))
+      ;; When we want to ignore the current element, then repeat the
+      ;; search if we haven't moved out of it yet.
+      (if (and not-current
+               (equal (get-text-property (point) property)
+                      (get-text-property origin property)))
+          (text-property-search-backward property value predicate)
+        match)))
    (t
     (let ((origin (point))
           (ended nil)

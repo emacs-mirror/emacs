@@ -147,6 +147,12 @@ See `run-hooks'."
       '(menu-item "Unmark Previous " vc-dir-unmark-file-up
 		  :help "Move to the previous line and unmark the file"))
 
+    (define-key map [mark-unregistered]
+      '(menu-item "Mark Unregistered" vc-dir-mark-unregistered-files
+                  :help "Mark all files in the unregistered state"))
+    (define-key map [mark-registered]
+      '(menu-item "Mark Registered" vc-dir-mark-registered-files
+                  :help "Mark all files in the state edited, added or removed"))
     (define-key map [mark-all]
       '(menu-item "Mark All" vc-dir-mark-all-files
 		  :help "Mark all files that are in the same state as the current file\
@@ -309,6 +315,10 @@ See `run-hooks'."
       (define-key branch-map "c" 'vc-create-tag)
       (define-key branch-map "l" 'vc-print-branch-log)
       (define-key branch-map "s" 'vc-retrieve-tag))
+
+    (let ((mark-map (make-sparse-keymap)))
+      (define-key map "*" mark-map)
+      (define-key mark-map "r" 'vc-dir-mark-registered-files))
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -649,7 +659,7 @@ line."
 
 (defun vc-dir-mark-all-files (arg)
   "Mark all files with the same state as the current one.
-With a prefix argument mark all files.
+With a prefix argument mark all files (not directories).
 If the current entry is a directory, mark all child files.
 
 The commands operate on files that are on the same state.
@@ -670,7 +680,8 @@ share the same state."
 	 vc-ewoc)
 	(ewoc-map
 	 (lambda (filearg)
-	   (unless (vc-dir-fileinfo->marked filearg)
+	   (unless (or (vc-dir-fileinfo->directory filearg)
+                       (vc-dir-fileinfo->marked filearg))
 	     (setf (vc-dir-fileinfo->marked filearg) t)
 	     t))
 	 vc-ewoc))
@@ -694,6 +705,38 @@ share the same state."
 			 (not (vc-dir-fileinfo->directory crt-data)))
 		(vc-dir-mark-file crt)))
 	    (setq crt (ewoc-next vc-ewoc crt))))))))
+
+(defun vc-dir-mark-files (mark-files)
+  "Mark files specified by file names in the argument MARK-FILES.
+MARK-FILES should be a list of absolute filenames."
+  (ewoc-map
+   (lambda (filearg)
+     (when (member (expand-file-name (vc-dir-fileinfo->name filearg))
+                   mark-files)
+       (setf (vc-dir-fileinfo->marked filearg) t)
+       t))
+   vc-ewoc))
+
+(defun vc-dir-mark-state-files (states)
+  "Mark files that are in the state specified by the list in STATES."
+  (unless (listp states)
+    (setq states (list states)))
+  (ewoc-map
+   (lambda (filearg)
+     (when (memq (vc-dir-fileinfo->state filearg) states)
+       (setf (vc-dir-fileinfo->marked filearg) t)
+       t))
+   vc-ewoc))
+
+(defun vc-dir-mark-registered-files ()
+  "Mark files that are in one of registered state: edited, added or removed."
+  (interactive)
+  (vc-dir-mark-state-files '(edited added removed)))
+
+(defun vc-dir-mark-unregistered-files ()
+  "Mark files that are in unregistered state."
+  (interactive)
+  (vc-dir-mark-state-files 'unregistered))
 
 (defun vc-dir-unmark-file ()
   ;; Unmark the current file and move to the next line.
@@ -878,7 +921,10 @@ If a prefix argument is given, ignore all marked files."
 	   (vc-ignore (vc-dir-fileinfo->name filearg))
 	   t))
        vc-ewoc)
-    (vc-ignore (vc-dir-current-file))))
+    (let ((rel-dir (vc--ignore-base-dir)))
+      (vc-ignore
+       (file-relative-name (vc-dir-current-file) rel-dir)
+       rel-dir))))
 
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))
@@ -1060,6 +1106,7 @@ the *vc-dir* buffer.
   (set (make-local-variable 'vc-dir-backend) use-vc-backend)
   (set (make-local-variable 'desktop-save-buffer)
        'vc-dir-desktop-buffer-misc-data)
+  (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
@@ -1189,7 +1236,8 @@ Throw an error if another update process is in progress."
                    (if remaining
                        (vc-dir-refresh-files
                         (mapcar 'vc-dir-fileinfo->name remaining))
-                     (setq mode-line-process nil))))))))))))
+                     (setq mode-line-process nil)
+                     (run-hooks 'vc-dir-refresh-hook))))))))))))
 
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current *VC-dir* listing.
@@ -1283,6 +1331,16 @@ state of item at point, if any."
     (list vc-dir-backend files only-files-list state model)))
 
 ;;;###autoload
+(defun vc-dir-root ()
+  "Run `vc-dir' in the repository root directory without prompt.
+If the default directory of the current buffer is
+not under version control, prompt for a directory."
+  (interactive)
+  (let ((root-dir (vc-root-dir)))
+    (if root-dir (vc-dir root-dir)
+      (call-interactively 'vc-dir))))
+
+;;;###autoload
 (defun vc-dir (dir &optional backend)
   "Show the VC status for \"interesting\" files in and below DIR.
 This allows you to mark files and perform VC operations on them.
@@ -1305,7 +1363,7 @@ These are the commands available for use in the file status buffer:
     ;; When you hit C-x v d in a visited VC file,
     ;; the *vc-dir* buffer visits the directory under its truename;
     ;; therefore it makes sense to always do that.
-    ;; Otherwise if you do C-x v d -> C-x C-f -> C-c v d
+    ;; Otherwise if you do C-x v d -> C-x C-f -> C-x v d
     ;; you may get a new *vc-dir* buffer, different from the original
     (file-truename (read-directory-name "VC status for directory: "
 					(vc-root-dir) nil t
@@ -1407,6 +1465,42 @@ These are the commands available for use in the file status buffer:
 
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(vc-dir-mode . vc-dir-restore-desktop-buffer))
+
+
+;;; Support for bookmark.el (adapted from what info.el does).
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
+
+(defun vc-dir-bookmark-make-record ()
+  "Make record used to bookmark a `vc-dir' buffer.
+This implements the `bookmark-make-record-function' type for
+`vc-dir' buffers."
+  (let* ((bookmark-name
+          (concat "(" (symbol-name vc-dir-backend) ") "
+                  (file-name-nondirectory
+                   (directory-file-name default-directory))))
+         (defaults (list bookmark-name default-directory)))
+    `(,bookmark-name
+      ,@(bookmark-make-record-default 'no-file)
+      (filename . ,default-directory)
+      (handler . vc-dir-bookmark-jump)
+      (defaults . ,defaults))))
+
+;;;###autoload
+(defun vc-dir-bookmark-jump (bmk)
+  "Provides the bookmark-jump behavior for a `vc-dir' buffer.
+This implements the `handler' function interface for the record
+type returned by `vc-dir-bookmark-make-record'."
+  (let* ((file (bookmark-prop-get bmk 'filename))
+         (buf (progn ;; Don't use save-window-excursion (bug#39722)
+                (vc-dir file)
+                (current-buffer))))
+    (bookmark-default-handler
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
 
 (provide 'vc-dir)

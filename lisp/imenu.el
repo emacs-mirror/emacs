@@ -316,28 +316,6 @@ PREVPOS is the variable in which we store the last position displayed."
 )
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; Some examples of functions utilizing the framework of this
-;;;; package.
-;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; FIXME: This was the only imenu-example-* definition actually used,
-;; by cperl-mode.el.  Now cperl-mode has its own copy, so these can
-;; all be removed.
-(defun imenu-example--name-and-position ()
-  "Return the current/previous sexp and its (beginning) location.
-Don't move point."
-  (declare (obsolete "use your own function instead." "23.2"))
-  (save-excursion
-    (forward-sexp -1)
-    ;; [ydi] modified for imenu-use-markers
-    (let ((beg (if imenu-use-markers (point-marker) (point)))
-	  (end (progn (forward-sexp) (point))))
-      (cons (buffer-substring beg end)
-	    beg))))
-
 ;;;
 ;;; Lisp
 ;;;
@@ -787,10 +765,13 @@ Return one of the entries in index-alist or nil."
 	    index-alist))))
     (when (stringp name)
       (setq name (or (imenu-find-default name prepared-index-alist) name)))
-    (cond (prompt)
-	  ((and name (imenu--in-alist name prepared-index-alist))
-	   (setq prompt (format "Index item (default %s): " name)))
-	  (t (setq prompt "Index item: ")))
+    (unless prompt
+      (setq prompt (format-prompt
+                    "Index item"
+	            (and name
+                         (imenu--in-alist name prepared-index-alist)
+                         ;; Default to `name' if it's in the alist.
+                         name))))
     (let ((minibuffer-setup-hook minibuffer-setup-hook))
       ;; Display the completion buffer.
       (if (not imenu-eager-completion-buffer)
@@ -911,11 +892,15 @@ to `imenu-update-menubar'.")
         (setq index-alist (imenu--split-submenus index-alist))
 	(let* ((menu (imenu--split-menu index-alist
                                         (buffer-name)))
-               (menu1 (imenu--create-keymap (car menu)
-					    (cdr (if (< 1 (length (cdr menu)))
-						     menu
-						   (car (cdr menu))))
-					    'imenu--menubar-select)))
+               (menu1 (imenu--create-keymap
+                       (car menu)
+		       (cdr (if (or (< 1 (length (cdr menu)))
+                                    ;; Have we a non-nested single entry?
+                                    (atom (cdadr menu))
+                                    (atom (cadadr menu)))
+				menu
+			      (car (cdr menu))))
+		       'imenu--menubar-select)))
 	  (setcdr imenu--menubar-keymap (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)

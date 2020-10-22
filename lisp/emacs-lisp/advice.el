@@ -1856,7 +1856,7 @@ function at point for which PREDICATE returns non-nil)."
 		   "There are no qualifying advised functions")))
   (let* ((function
 	  (completing-read
-	   (format "%s (default %s): " (or prompt "Function") default)
+	   (format-prompt (or prompt "Function") default)
 	   ad-advised-functions
 	   (if predicate
                (lambda (function)
@@ -1884,7 +1884,7 @@ class of FUNCTION)."
 		  (cl-return class)))
 	    (error "ad-read-advice-class: `%s' has no advices" function)))
   (let ((class (completing-read
-		(format "%s (default %s): " (or prompt "Class") default)
+		(format-prompt (or prompt "Class") default)
 		ad-advice-class-completion-table nil t)))
     (if (equal class "")
 	default
@@ -1902,8 +1902,8 @@ An optional PROMPT is used to prompt for the name."
 	       (error "ad-read-advice-name: `%s' has no %s advice"
 		      function class)
 	     (car (car name-completion-table))))
-	 (prompt (format "%s (default %s): " (or prompt "Name") default))
-	 (name (completing-read prompt name-completion-table nil t)))
+	 (name (completing-read (format-prompt (or prompt "Name") default)
+                                name-completion-table nil t)))
     (if (equal name "")
 	(intern default)
       (intern name))))
@@ -1923,9 +1923,9 @@ be used to prompt for the function."
 (defun ad-read-regexp (&optional prompt)
   "Read a regular expression from the minibuffer."
   (let ((regexp (read-from-minibuffer
-		 (concat (or prompt "Regular expression")
-			 (if (equal ad-last-regexp "") ": "
-			   (format " (default %s): " ad-last-regexp))))))
+                 (format-prompt (or prompt "Regular expression")
+                                (and (not (equal ad-last-regexp ""))
+                                     ad-last-regexp)))))
     (setq ad-last-regexp
 	  (if (equal regexp "") ad-last-regexp regexp))))
 

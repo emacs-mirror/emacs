@@ -1,4 +1,4 @@
-;;; pong.el --- classical implementation of pong
+;;; pong.el --- classical implementation of pong  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -33,88 +33,72 @@
 ;;; Customization
 
 (defgroup pong nil
-  "Emacs-Lisp implementation of the classical game pong."
+  "Emacs Lisp implementation of the classical game pong."
   :tag "Pong"
   :group 'games)
 
 (defcustom pong-buffer-name "*Pong*"
   "Name of the buffer used to play."
-  :group 'pong
   :type '(string))
 
 (defcustom pong-width 50
   "Width of the playfield."
-  :group 'pong
   :type '(integer))
 
 (defcustom pong-height (min 30 (- (frame-height) 6))
   "Height of the playfield."
-  :group 'pong
   :type '(integer))
 
 (defcustom pong-bat-width 3
   "Width of the bats for pong."
-  :group 'pong
   :type '(integer))
 
 (defcustom pong-blank-color "black"
   "Color used for background."
-  :group 'pong
   :type 'color)
 
 (defcustom pong-bat-color "yellow"
   "Color used for bats."
-  :group 'pong
   :type 'color)
 
 (defcustom pong-ball-color "red"
   "Color used for the ball."
-  :group 'pong
   :type 'color)
 
 (defcustom pong-border-color "white"
   "Color used for pong borders."
-  :group 'pong
   :type 'color)
 
 (defcustom pong-left-key "4"
   "Alternate key to press for bat 1 to go up (primary one is [left])."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-right-key "6"
   "Alternate key to press for bat 1 to go down (primary one is [right])."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-up-key "8"
   "Alternate key to press for bat 2 to go up (primary one is [up])."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-down-key "2"
   "Alternate key to press for bat 2 to go down (primary one is [down])."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-quit-key "q"
   "Key to press to quit pong."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-pause-key "p"
   "Key to press to pause pong."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-resume-key "p"
   "Key to press to resume pong."
-  :group 'pong
   :type '(restricted-sexp :match-alternatives (stringp vectorp)))
 
 (defcustom pong-timer-delay 0.1
   "Time to wait between every cycle."
-  :group 'pong
   :type 'number)
 
 

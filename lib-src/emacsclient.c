@@ -80,7 +80,7 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <dosname.h>
+#include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
 #include <pathmax.h>
@@ -924,21 +924,22 @@ open_config (char const *home, char const *xdg, char const *config_file)
   char *configname = xmalloc (max (xdgsubdirsize, homesubdirsizemax)
 			      + strlen (config_file));
   FILE *config;
-  if (xdg || home)
+
+  if (home)
     {
-      strcpy ((xdg
-	       ? stpcpy (stpcpy (configname, xdg), "/emacs/server/")
-	       : stpcpy (stpcpy (configname, home), "/.config/emacs/server/")),
-	      config_file);
+      strcpy (stpcpy (stpcpy (configname, home), "/.emacs.d/server/"),
+              config_file);
       config = fopen (configname, "rb");
     }
   else
     config = NULL;
 
-  if (! config && home)
+  if (! config && (xdg || home))
     {
-      strcpy (stpcpy (stpcpy (configname, home), "/.emacs.d/server/"),
-	      config_file);
+      strcpy ((xdg
+               ? stpcpy (stpcpy (configname, xdg), "/emacs/server/")
+               : stpcpy (stpcpy (configname, home), "/.config/emacs/server/")),
+              config_file);
       config = fopen (configname, "rb");
     }
 
@@ -1503,11 +1504,17 @@ set_local_socket (char const *server_name)
 		"%s: (Be careful: XDG_RUNTIME_DIR is security-related.)\n"),
 	       progname, sockdirname, progname);
 	}
-      message (true,
-	       ("%s: can't find socket; have you started the server?\n"
-		"%s: To start the server in Emacs,"
-		" type \"M-x server-start\".\n"),
-	       progname, progname);
+
+      /* If there's an alternate editor and the user has requested
+	 --quiet, don't output the warning. */
+      if (!quiet || !alternate_editor)
+	{
+	  message (true,
+		   ("%s: can't find socket; have you started the server?\n"
+		    "%s: To start the server in Emacs,"
+		    " type \"M-x server-start\".\n"),
+		   progname, progname);
+	}
     }
   else
     message (true, "%s: can't stat %s: %s\n",

@@ -47,9 +47,6 @@
 
 (require 'gnutls)
 
-(autoload 'format-spec "format-spec")
-(autoload 'format-spec-make "format-spec")
-
 (defgroup tls nil
   "Transport Layer Security (TLS) parameters."
   :group 'comm)
@@ -224,14 +221,11 @@ Fourth arg PORT is an integer specifying a port to connect to."
       (while (and (not done) (setq cmd (pop cmds)))
 	(let ((process-connection-type tls-process-connection-type)
 	      (formatted-cmd
-	       (format-spec
-		cmd
-		(format-spec-make
-                 ?t (car (gnutls-trustfiles))
-		 ?h host
-		 ?p (if (integerp port)
-			(int-to-string port)
-		      port)))))
+               (format-spec cmd `((?t . ,(car (gnutls-trustfiles)))
+                                  (?h . ,host)
+                                  (?p . ,(if (integerp port)
+                                             (number-to-string port)
+                                           port))))))
 	  (message "Opening TLS connection with `%s'..." formatted-cmd)
 	  (setq process (start-process
 			 name buffer shell-file-name shell-command-switch

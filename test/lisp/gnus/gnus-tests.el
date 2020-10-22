@@ -1,4 +1,4 @@
-;;; gnus-tests.el --- Wrapper for the Gnus tests
+;;; gnus-tests.el --- Wrapper for the Gnus tests  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

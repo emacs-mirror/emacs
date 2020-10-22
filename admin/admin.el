@@ -151,7 +151,7 @@ Root must be the root of an Emacs source tree."
           (display-warning 'admin
                            "NEWS file contains empty sections - remove them?"))
         (goto-char (point-min))
-        (if (re-search-forward "^\\(\\+\\+\\+ *\\|--- *\\)$" nil t)
+        (if (re-search-forward "^\\(\\+\\+\\+ *$\\|--- *$\\|Temporary note:\\)" nil t)
             (display-warning 'admin
                              "NEWS file still contains temporary markup.
 Documentation changes might not have been completed!"))))
@@ -920,6 +920,54 @@ changes (in a non-trivial way).  This function does not check for that."
 			      'var var
 			      'help-echo "Mouse-2: visit this definition"
 			      :type 'cusver-xref)))))))
+
+
+;; Reminder message for open release-blocking bugs.  This requires the
+;; GNU ELPA package `debbugs'.
+
+(defun reminder-for-release-blocking-bugs (version)
+  "Submit a reminder message for release-blocking bugs of Emacs VERSION."
+  (interactive
+   (list (progn
+           (require 'debbugs-gnu)
+           (completing-read
+	    "Emacs release: "
+	    (mapcar #'identity debbugs-gnu-emacs-blocking-reports)
+	    nil t debbugs-gnu-emacs-current-release))))
+
+  (require 'debbugs-gnu)
+  (require 'reporter)
+
+  (when-let ((id (alist-get version debbugs-gnu-emacs-blocking-reports
+                            nil nil #'string-equal))
+             (status-id (debbugs-get-status id))
+             (blockedby-ids (debbugs-get-attribute (car status-id) 'blockedby))
+             (blockedby-status
+              (apply #'debbugs-get-status (sort blockedby-ids #'<))))
+
+    (reporter-submit-bug-report
+     "<emacs-devel@gnu.org>" ; to-address
+     nil nil nil
+     (lambda () ; posthook
+       (goto-char (point-min))
+       (mail-position-on-field "subject")
+       (insert (format "Reminder: release-blocking bugs for Emacs %s (%s)"
+                       version (format-time-string "%F" nil "UTC0")))
+       (mail-text)
+       (delete-region (point) (point-max))
+       (insert "
+The following bugs are regarded as release-blocking for Emacs " version ".
+People are encouraged to work on them with priority.\n\n")
+       (dolist (_ blockedby-status)
+         (unless (equal (debbugs-get-attribute _ 'pending) "done")
+           (insert (format "bug#%d %s\n"
+                           (debbugs-get-attribute _ 'id)
+                           (debbugs-get-attribute _ 'subject)))))
+       (insert "
+If you use the debbugs package from GNU ELPA, you can apply the
+following form to see all bugs which block a given release:
+
+  (debbugs-gnu-emacs-release-blocking-reports \"" version "\")\n")))))
 
 (provide 'admin)
 

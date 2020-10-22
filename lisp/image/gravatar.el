@@ -26,6 +26,7 @@
 
 (require 'url)
 (require 'url-cache)
+(require 'dns)
 (eval-when-compile
   (require 'subr-x))
 
@@ -38,6 +39,7 @@
   "Whether to cache retrieved gravatars."
   :type 'boolean
   :group 'gravatar)
+(make-obsolete-variable 'gravatar-automatic-caching nil "28.1")
 
 (defcustom gravatar-cache-ttl 2592000
   "Time to live in seconds for gravatar cache entries.
@@ -47,6 +49,7 @@ is retrieved anew.  The default value is 30 days."
   ;; Restricted :type to number of seconds.
   :version "27.1"
   :group 'gravatar)
+(make-obsolete-variable 'gravatar-cache-ttl nil "28.1")
 
 (defcustom gravatar-rating "g"
   "Most explicit Gravatar rating level to allow.
@@ -118,9 +121,95 @@ a gravatar for a given email address."
   :version "27.1"
   :group 'gravatar)
 
-(defconst gravatar-base-url
-  "https://www.gravatar.com/avatar"
-  "Base URL for getting gravatars.")
+(defconst gravatar-service-alist
+  `((gravatar . ,(lambda (_addr callback)
+                   (funcall callback "https://www.gravatar.com/avatar")))
+    (unicornify . ,(lambda (_addr callback)
+                     (funcall callback "https://unicornify.pictures/avatar/")))
+    (libravatar . ,#'gravatar--service-libravatar))
+  "Alist of supported gravatar services.")
+
+(defcustom gravatar-service 'gravatar
+  "Symbol denoting gravatar-like service to use.
+Note that certain services might ignore other options, such as
+`gravatar-default-image' or certain values as with
+`gravatar-rating'.
+
+Note that `'libravatar' has security implications: It can be used
+to track whether you're reading a specific mail."
+  :type `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
+                           gravatar-service-alist))
+  :version "28.1"
+  :link '(url-link "https://www.libravatar.org/")
+  :link '(url-link "https://unicornify.pictures/")
+  :link '(url-link "https://gravatar.com/")
+  :group 'gravatar)
+
+(defun gravatar--service-libravatar (addr callback)
+  "Find domain that hosts avatars for email address ADDR."
+  ;; implements https://wiki.libravatar.org/api/
+  (save-match-data
+    (if (not (string-match ".+@\\(.+\\)" addr))
+        (funcall callback "https://seccdn.libravatar.org/avatar")
+      (let ((domain (match-string 1 addr))
+            (records '(("_avatars-sec" . "https")
+                       ("_avatars" . "http")))
+            func)
+        (setq func
+              (lambda (result)
+                (cond
+                 ((and
+                   result               ;there is a result
+                   (let* ((data (mapcar (lambda (record)
+                                          (dns-get 'data (cdr record)))
+                                        (dns-get 'answers result)))
+                          (priorities (mapcar (lambda (r)
+                                                (dns-get 'priority r))
+                                              data))
+                          (max-priority (if priorities
+                                            (apply #'max priorities)
+                                          0))
+                          (sum 0) top)
+                     ;; Attempt to find all records with the same maximal
+                     ;; priority, and calculate the sum of their weights.
+                     (dolist (ent data)
+                       (when (= max-priority (dns-get 'priority ent))
+                         (setq sum (+ sum (dns-get 'weight ent)))
+                         (push ent top)))
+                     ;; In case there is more than one maximal priority
+                     ;; record, choose one at random, while taking the
+                     ;; individual record weights into consideration.
+                     (catch 'done
+                       (dolist (ent top)
+                         (when (and (or (= 0 sum)
+                                        (<= 0 (random sum)
+                                            (dns-get 'weight ent)))
+                                    ;; Ensure that port and domain data are
+                                    ;; valid. In case non of the results
+                                    ;; were valid, `catch' will evaluate to
+                                    ;; nil, and the next cond clause will be
+                                    ;; tested.
+                                    (<= 1 (dns-get 'port ent) 65535)
+                                    (string-match-p "\\`[-.0-9A-Za-z]+\\'"
+                                                    (dns-get 'target ent)))
+                           (funcall callback
+                                    (url-normalize-url
+                                     (format "%s://%s:%s/avatar"
+                                             (cdar records)
+                                             (dns-get 'target ent)
+                                             (dns-get 'port ent))))
+                           (throw 'done t))
+                         (setq sum (- sum (dns-get 'weight ent))))))))
+                 ((setq records (cdr records))
+                  ;; In case there are at least two methods.
+                  (dns-query-asynchronous
+                   (concat (caar records) "._tcp." domain)
+                   func 'SRV))
+                 (t                     ;fallback
+                  (funcall callback "https://seccdn.libravatar.org/avatar")))))
+        (dns-query-asynchronous
+         (concat (caar records) "._tcp." domain)
+         func 'SRV t)))))
 
 (defun gravatar-hash (mail-address)
   "Return the Gravatar hash for MAIL-ADDRESS."
@@ -138,13 +227,18 @@ a gravatar for a given email address."
      ,@(and gravatar-size
             `((s ,gravatar-size))))))
 
-(defun gravatar-build-url (mail-address)
-  "Return the URL of a gravatar for MAIL-ADDRESS."
+(defun gravatar-build-url (mail-address callback)
+  "Find the URL of a gravatar for MAIL-ADDRESS and call CALLBACK with it."
   ;; https://gravatar.com/site/implement/images/
-  (format "%s/%s?%s"
-          gravatar-base-url
-          (gravatar-hash mail-address)
-          (gravatar--query-string)))
+  (let ((query-string (gravatar--query-string)))
+    (funcall (alist-get gravatar-service gravatar-service-alist)
+             mail-address
+             (lambda (url)
+               (funcall callback
+                        (format "%s/%s?%s"
+                                url
+                                (gravatar-hash mail-address)
+                                query-string))))))
 
 (defun gravatar-get-data ()
   "Return body of current URL buffer, or nil on failure."
@@ -154,28 +248,62 @@ a gravatar for a given email address."
          (search-forward "\n\n" nil t)
          (buffer-substring (point) (point-max)))))
 
+(defvar gravatar--cache (make-hash-table :test 'equal)
+  "Cache for gravatars.")
+
 ;;;###autoload
 (defun gravatar-retrieve (mail-address callback &optional cbargs)
   "Asynchronously retrieve a gravatar for MAIL-ADDRESS.
 When finished, call CALLBACK as (apply CALLBACK GRAVATAR CBARGS),
 where GRAVATAR is either an image descriptor, or the symbol
 `error' if the retrieval failed."
-  (let ((url (gravatar-build-url mail-address)))
-    (if (url-cache-expired url gravatar-cache-ttl)
-        (url-retrieve url #'gravatar-retrieved (list callback cbargs) t)
-      (with-current-buffer (url-fetch-from-cache url)
-        (gravatar-retrieved () callback cbargs)))))
+  (let ((cached (gethash mail-address gravatar--cache)))
+    (gravatar--prune-cache)
+    (if cached
+        (apply callback (cdr cached) cbargs)
+      ;; Nothing in the cache, fetch it.
+      (gravatar-build-url
+       mail-address
+       (lambda (url)
+         (url-retrieve
+          url
+          (lambda (status)
+            (let* ((data (and (not (plist-get status :error))
+                              (gravatar-get-data)))
+                   (image (and data (create-image data nil t))))
+              ;; Store the image in the cache.
+              (when image
+                (setf (gethash mail-address gravatar--cache)
+                      (cons (time-convert (current-time) 'integer)
+                            image)))
+              (prog1
+                  (apply callback (if data image 'error) cbargs)
+                (kill-buffer))))
+          nil t))))))
+
+(defun gravatar--prune-cache ()
+  (let ((expired nil)
+        (time (- (time-convert (current-time) 'integer)
+                 ;; Twelve hours.
+                 (* 12 60 60))))
+    (maphash (lambda (key val)
+               (when (< (car val) time)
+                 (push key expired)))
+             gravatar--cache)
+    (dolist (key expired)
+      (remhash key gravatar--cache))))
 
 ;;;###autoload
 (defun gravatar-retrieve-synchronously (mail-address)
   "Synchronously retrieve a gravatar for MAIL-ADDRESS.
 Value is either an image descriptor, or the symbol `error' if the
 retrieval failed."
-  (let ((url (gravatar-build-url mail-address)))
-    (with-current-buffer (if (url-cache-expired url gravatar-cache-ttl)
-                             (url-retrieve-synchronously url t)
-                           (url-fetch-from-cache url))
-      (gravatar-retrieved () #'identity))))
+  (let ((url nil))
+    (gravatar-build-url mail-address (lambda (u) (setq url u)))
+    (while (not url)
+      (sleep-for 0.01))
+    (with-current-buffer (url-retrieve-synchronously url t)
+      (gravatar-retrieved nil #'identity))))
 
 (defun gravatar-retrieved (status cb &optional cbargs)
   "Handle Gravatar response data in current buffer.
@@ -184,10 +312,6 @@ an image descriptor, or the symbol `error' on failure.
 This function is intended as a callback for `url-retrieve'."
   (let ((data (unless (plist-get status :error)
                 (gravatar-get-data))))
-    (and data                      ; Only cache on success.
-         url-current-object        ; Only cache if not already cached.
-         gravatar-automatic-caching
-         (url-store-in-cache))
     (prog1 (apply cb (if data (create-image data nil t) 'error) cbargs)
       (kill-buffer))))
 

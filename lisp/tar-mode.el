@@ -480,23 +480,9 @@ checksum before doing the check."
 
 (defun tar-grind-file-mode (mode)
   "Construct a `rw-r--r--' string indicating MODE.
-MODE should be an integer which is a file mode value."
-  (string
-   (if (zerop (logand 256 mode)) ?- ?r)
-   (if (zerop (logand 128 mode)) ?- ?w)
-   (if (zerop (logand 2048 mode))
-       (if (zerop (logand  64 mode)) ?- ?x)
-     (if (zerop (logand  64 mode)) ?S ?s))
-   (if (zerop (logand  32 mode)) ?- ?r)
-   (if (zerop (logand  16 mode)) ?- ?w)
-   (if (zerop (logand 1024 mode))
-       (if (zerop (logand   8 mode)) ?- ?x)
-     (if (zerop (logand   8 mode)) ?S ?s))
-   (if (zerop (logand   4 mode)) ?- ?r)
-   (if (zerop (logand   2 mode)) ?- ?w)
-   (if (zerop (logand 512 mode))
-       (if (zerop (logand   1 mode)) ?- ?x)
-     (if (zerop (logand   1 mode)) ?T ?t))))
+MODE should be an integer which is a file mode value.
+For instance, if mode is #o700, then it produces `rwx------'."
+  (substring (file-modes-number-to-symbolic mode) 1))
 
 (defun tar-header-block-summarize (tar-hblock &optional mod-p)
   "Return a line similar to the output of `tar -vtf'."
@@ -936,6 +922,56 @@ actually appear on disk when you save the tar-file's buffer."
           (setq buffer-undo-list nil))))
     buffer))
 
+(defun tar-goto-file (file)
+  "Go to FILE in the current buffer.
+FILE should be a relative file name.  If FILE can't be found,
+return nil.  Otherwise point is returned."
+  (let ((start (point))
+        found)
+    (goto-char (point-min))
+    (while (and (not found)
+                (not (eobp)))
+      (forward-line 1)
+      (when-let ((descriptor (ignore-errors (tar-get-descriptor))))
+        (when (equal (tar-header-name descriptor) file)
+          (setq found t))))
+    (if (not found)
+        (progn
+          (goto-char start)
+          nil)
+      (point))))
+
+(defun tar-next-file-displayer (file regexp n)
+  "Return a closure to display the next file after FILE that matches REGEXP."
+  (let ((short (replace-regexp-in-string "\\`.*!" "" file))
+        next)
+    ;; The tar buffer chops off leading "./", so do the same
+    ;; here.
+    (setq short (replace-regexp-in-string "\\`\\./" "" file))
+    (tar-goto-file short)
+    (while (and (not next)
+                ;; Stop if we reach the end/start of the buffer.
+                (if (> n 0)
+                    (not (eobp))
+                  (not (save-excursion
+                         (beginning-of-line)
+                         (bobp)))))
+      (tar-next-line n)
+      (when-let ((descriptor (ignore-errors (tar-get-descriptor))))
+        (let ((candidate (tar-header-name descriptor))
+              (buffer (current-buffer)))
+          (when (and candidate
+                     (string-match-p regexp candidate))
+            (setq next (lambda ()
+                         (kill-buffer (current-buffer))
+                         (switch-to-buffer buffer)
+                         (tar-extract)))))))
+    (unless next
+      ;; If we didn't find a next/prev file, then restore
+      ;; point.
+      (tar-goto-file short))
+    next))
+
 (defun tar-extract (&optional other-window-p)
   "In Tar mode, extract this entry of the tar file into its own buffer."
   (interactive)
@@ -1056,7 +1092,7 @@ extracted file."
 	(write-region start end to-file nil nil nil t))
       (when (and tar-copy-preserve-time
                  date)
-        (set-file-times to-file date)))
+	(set-file-times to-file date 'nofollow)))
     (message "Copied tar entry %s to %s" name to-file)))
 
 (defun tar-new-entry (filename &optional index)

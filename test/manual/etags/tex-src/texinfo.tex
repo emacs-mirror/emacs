@@ -1074,7 +1074,7 @@ July\or August\or September\or October\or November\or December\fi
 \def\tablez #1#2#3#4#5#6{%
 \aboveenvbreak %
 \begingroup %
-\def\Edescription{\Etable}% Neccessary kludge.
+\def\Edescription{\Etable}% Necessary kludge.
 \let\itemindex=#1%
 \ifnum 0#3>0 \advance \leftskip by #3\mil \fi %
 \ifnum 0#4>0 \tableindent=#4\mil \fi %
@@ -2937,7 +2937,7 @@ July\or August\or September\or October\or November\or December\fi
 \setbox0=\hbox{\printednodename}%
 \ifdim \wd0=0pt%
 \def\printednodename{\ignorespaces #1}%
-%%% Uncommment the following line to make the actual chapter or section title
+%%% Uncomment the following line to make the actual chapter or section title
 %%% appear inside the square brackets.
 %\def\printednodename{#1-title}%
 \fi%

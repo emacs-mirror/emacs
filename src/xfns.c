@@ -861,6 +861,12 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	(FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 	 p ? FRAME_X_WINDOW (p) : DefaultRootWindow (FRAME_X_DISPLAY (f)),
 	 f->left_pos, f->top_pos);
+#ifdef USE_GTK
+      if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	gtk_container_set_resize_mode
+	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
+	   p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+#endif
       unblock_input ();
 
       fset_parent_frame (f, new_value);
@@ -1230,13 +1236,10 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   for (i = 0; i < mouse_cursor_max; i++)
     {
       Lisp_Object shape_var = *mouse_cursor_types[i].shape_var_ptr;
-      if (!NILP (shape_var))
-	{
-	  CHECK_TYPE_RANGED_INTEGER (unsigned, shape_var);
-	  cursor_data.cursor_num[i] = XFIXNUM (shape_var);
-	}
-      else
-	cursor_data.cursor_num[i] = mouse_cursor_types[i].default_shape;
+      cursor_data.cursor_num[i]
+	= (!NILP (shape_var)
+	   ? check_uinteger_max (shape_var, UINT_MAX)
+	   : mouse_cursor_types[i].default_shape);
     }
 
   block_input ();
@@ -1801,10 +1804,7 @@ x_change_tool_bar_height (struct frame *f, int height)
 static void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int border;
-
-  CHECK_TYPE_RANGED_INTEGER (int, arg);
-  border = max (XFIXNUM (arg), 0);
+  int border = check_int_nonnegative (arg);
 
   if (border != FRAME_INTERNAL_BORDER_WIDTH (f))
     {
@@ -2652,7 +2652,7 @@ create_frame_xic (struct frame *f)
     goto out;
 
   xim = FRAME_X_XIM (f);
-  if (!xim)
+  if (!xim || ! FRAME_X_XIM_STYLES(f))
     goto out;
 
   /* Determine XIC style.  */
@@ -3376,10 +3376,12 @@ x_icon (struct frame *f, Lisp_Object parms)
     = gui_frame_get_and_record_arg (f, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
   Lisp_Object icon_y
     = gui_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
+  int icon_xval, icon_yval;
+
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_TYPE_RANGED_INTEGER (int, icon_x);
-      CHECK_TYPE_RANGED_INTEGER (int, icon_y);
+      icon_xval = check_integer_range (icon_x, INT_MIN, INT_MAX);
+      icon_yval = check_integer_range (icon_y, INT_MIN, INT_MAX);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
@@ -3387,7 +3389,7 @@ x_icon (struct frame *f, Lisp_Object parms)
   block_input ();
 
   if (! EQ (icon_x, Qunbound))
-    x_wm_set_icon_position (f, XFIXNUM (icon_x), XFIXNUM (icon_y));
+    x_wm_set_icon_position (f, icon_xval, icon_yval);
 
 #if false /* gui_display_get_arg removes the visibility parameter as a
 	     side effect, but x_create_frame still needs it.  */
@@ -3555,7 +3557,7 @@ do_unwind_create_frame (Lisp_Object frame)
   unwind_create_frame (frame);
 }
 
-static void
+void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -3878,8 +3880,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&xfthbfont_driver, f);
 #endif
-#else	/* not HAVE_XFT */
-  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */
@@ -4084,6 +4084,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
       block_input ();
       XReparentWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       FRAME_X_WINDOW (p), f->left_pos, f->top_pos);
+#ifdef USE_GTK
+      if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	gtk_container_set_resize_mode
+	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)), GTK_RESIZE_IMMEDIATE);
+#endif
       unblock_input ();
     }
 
@@ -5552,12 +5557,12 @@ The coordinates X and Y are interpreted in pixels relative to a position
   if (FRAME_INITIAL_P (f) || !FRAME_X_P (f))
     return Qnil;
 
-  CHECK_TYPE_RANGED_INTEGER (int, x);
-  CHECK_TYPE_RANGED_INTEGER (int, y);
+  int xval = check_integer_range (x, INT_MIN, INT_MAX);
+  int yval = check_integer_range (y, INT_MIN, INT_MAX);
 
   block_input ();
   XWarpPointer (FRAME_X_DISPLAY (f), None, DefaultRootWindow (FRAME_X_DISPLAY (f)),
-		0, 0, 0, 0, XFIXNUM (x), XFIXNUM (y));
+		0, 0, 0, 0, xval, yval);
   unblock_input ();
 
   return Qnil;
@@ -5885,7 +5890,8 @@ If WINDOW-ID is non-nil, change the property of that window instead
       elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
       data = xnmalloc (nelements, elsize);
 
-      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
+      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, nelements,
+                            element_format);
     }
   else
     {
@@ -6191,10 +6197,10 @@ Otherwise, the return value is a vector with the following fields:
     {
       XFree (tmp_data);
 
-      prop_attr = make_uninit_vector (3);
-      ASET (prop_attr, 0, make_fixnum (actual_type));
-      ASET (prop_attr, 1, make_fixnum (actual_format));
-      ASET (prop_attr, 2, make_fixnum (bytes_remaining / (actual_format >> 3)));
+      prop_attr = CALLN (Fvector,
+			 make_fixnum (actual_type),
+			 make_fixnum (actual_format),
+			 make_fixnum (bytes_remaining / (actual_format >> 3)));
     }
 
   unblock_input ();
@@ -6364,8 +6370,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&xfthbfont_driver, f);
 #endif
-#else	/* not HAVE_XFT */
-  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */
@@ -6531,7 +6535,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
      Frame parameters may be changed if .Xdefaults contains
      specifications for the default font.  For example, if there is an
      `Emacs.default.attributeBackground: pink', the `background-color'
-     attribute of the frame get's set, which let's the internal border
+     attribute of the frame gets set, which let's the internal border
      of the tooltip frame appear in pink.  Prevent this.  */
   {
     Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
@@ -6735,9 +6739,11 @@ x_hide_tip (bool delete)
 	    }
 	}
 
-      /* Reset tip_last_frame, it will be reassigned when showing the
-	 next GTK+ system tooltip.  */
-      tip_last_frame = Qnil;
+      /* When using GTK+ system tooltips (compare Bug#41200) reset
+	 tip_last_frame.  It will be reassigned when showing the next
+	 GTK+ system tooltip.  */
+      if (x_gtk_use_system_tooltips)
+	tip_last_frame = Qnil;
 
       /* Now look whether there's an Emacs tip around.  */
       if (FRAMEP (tip_frame))
@@ -7742,6 +7748,24 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
 #endif	/* USE_GTK */
 #endif	/* USE_CAIRO */
 
+#ifdef USE_GTK
+#ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 14, 0)
+DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
+       doc: /* Toggle interactive GTK debugging.   */)
+  (Lisp_Object enable)
+{
+  gboolean enable_debug = !NILP (enable);
+
+  block_input ();
+  gtk_window_set_interactive_debugging (enable_debug);
+  unblock_input ();
+
+  return NILP (enable) ? Qnil : Qt;
+}
+#endif /* GTK_CHECK_VERSION (3, 14, 0) */
+#endif /* HAVE_GTK3 */
+#endif	/* USE_GTK */
 
 /***********************************************************************
 			    Initialization
@@ -7810,6 +7834,8 @@ syms_of_xfns (void)
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qmono, "mono");
   DEFSYM (Qassq_delete_all, "assq-delete-all");
+  DEFSYM (Qhide, "hide");
+  DEFSYM (Qresize_mode, "resize-mode");
 
 #ifdef USE_CAIRO
   DEFSYM (Qpdf, "pdf");
@@ -7986,6 +8012,28 @@ Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = true;
 
+  DEFVAR_LISP ("x-gtk-resize-child-frames", x_gtk_resize_child_frames,
+    doc: /* If non-nil, resize child frames specially with GTK builds.
+If this is nil, resize child frames like any other frames.  This is the
+default and usually works with most desktops.  Some desktop environments
+(GNOME shell in particular when using the mutter window manager),
+however, may refuse to resize a child frame when Emacs is built with
+GTK3.  For those environments, the two settings below are provided.
+
+If this equals the symbol 'hide', Emacs temporarily hides the child
+frame during resizing.  This approach seems to work reliably, may
+however induce some flicker when the frame is made visible again.
+
+If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
+always trigger an immediate resize of the child frame.  This method is
+deprecated by GTK and may not work in future versions of that toolkit.
+It also may freeze Emacs when used with other desktop environments.  It
+avoids, however, the unpleasant flicker induced by the hiding approach.
+
+This variable is considered a temporary workaround and will be hopefully
+eliminated in future versions of Emacs.  */);
+  x_gtk_resize_child_frames = Qnil;
+
   /* Tell Emacs about this window system.  */
   Fprovide (Qx, Qnil);
 
@@ -8099,6 +8147,13 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_page_setup_dialog);
   defsubr (&Sx_get_page_setup);
   defsubr (&Sx_print_frames_dialog);
+#endif
+#endif
+#ifdef USE_GTK
+#ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 14, 0)
+  defsubr (&Sx_gtk_debug);
+#endif
 #endif
 #endif
 }

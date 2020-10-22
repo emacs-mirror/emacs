@@ -596,8 +596,8 @@ and features that react to buffer modifications, use the
 Execute @var{body} pretending it does not modify the buffer.  This
 includes checking whether the buffer's file is locked (@pxref{File
 Locks}), running buffer modification hooks (@pxref{Change Hooks}),
-etc.  Note that if @var{body} actually modifies the buffer text, its
-undo data may become corrupted.
+etc.  Note that if @var{body} actually modifies the buffer text (as
+opposed to its text properties), its undo data may become corrupted.
 @end defmac
 
 @node Modification Time

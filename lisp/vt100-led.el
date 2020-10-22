@@ -1,4 +1,4 @@
-;;; vt100-led.el --- functions for LED control on VT-100 terminals & clones
+;;; vt100-led.el --- functions for LED control on VT-100 terminals & clones  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1988, 2001-2020 Free Software Foundation, Inc.
 

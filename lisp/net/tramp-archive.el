@@ -109,7 +109,7 @@
 
 (eval-when-compile (require 'cl-lib))
 ;; Sometimes, compilation fails with "Variable binding depth exceeds
-;; max-specpdl-size".
+;; max-specpdl-size".  Shall be fixed in Emacs 27.
 (eval-and-compile
   (let ((max-specpdl-size (* 2 max-specpdl-size))) (require 'tramp-gvfs)))
 
@@ -279,7 +279,9 @@ It must be supported by libarchive(3).")
     (start-file-process . tramp-archive-handle-not-implemented)
     ;; `substitute-in-file-name' performed by default handler.
     (temporary-file-directory . tramp-archive-handle-temporary-file-directory)
-    ;; `tramp-set-file-uid-gid' performed by default handler.
+    (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-uid . ignore)
+    (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
@@ -318,7 +320,10 @@ arguments to pass to the OPERATION."
 
       (let* ((filename (apply #'tramp-archive-file-name-for-operation
 			      operation args))
-	     (archive (tramp-archive-file-name-archive filename)))
+	     (archive (tramp-archive-file-name-archive filename))
+	     ;; Sometimes, it fails with "Variable binding depth exceeds
+	     ;; max-specpdl-size".  Shall be fixed in Emacs 27.
+	     (max-specpdl-size (* 2 max-specpdl-size)))
 
         ;; `filename' could be a quoted file name.  Or the file
         ;; archive could be a directory, see Bug#30293.
@@ -350,7 +355,7 @@ arguments to pass to the OPERATION."
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
 		       #'tramp-archive-autoload-file-name-handler))
-    (put 'tramp-archive-autoload-file-name-handler 'safe-magic t))))
+    (put #'tramp-archive-autoload-file-name-handler 'safe-magic t))))
 
 ;;;###autoload
 (progn
@@ -366,7 +371,7 @@ arguments to pass to the OPERATION."
 (tramp-register-archive-file-name-handler)
 
 ;; Mark `operations' the handler is responsible for.
-(put 'tramp-archive-file-name-handler 'operations
+(put #'tramp-archive-file-name-handler 'operations
      (mapcar #'car tramp-archive-file-name-handler-alist))
 
 ;; `tramp-archive-file-name-handler' must be placed before `url-file-handler'.
@@ -517,13 +522,16 @@ offered."
   (declare (debug (form symbolp body))
            (indent 2))
   (let ((bindings
-         (mapcar (lambda (elem)
-                   `(,(if var (intern (format "%s-%s" var elem)) elem)
-                     (,(intern (format "tramp-file-name-%s" elem))
-                      ,(or var 'v))))
-		 `,(cons
-		    'archive
-		    (delete 'hop (tramp-compat-tramp-file-name-slots))))))
+         (mapcar
+	  (lambda (elem)
+            `(,(if var (intern (format "%s-%s" var elem)) elem)
+              (,(intern (format "tramp-file-name-%s" elem))
+               ,(or var 'v))))
+	  (cons
+	   'archive
+	   (delete
+	    'hop
+	    (cdr (mapcar #'car (cl-struct-slot-info 'tramp-file-name))))))))
     `(let* ((,(or var 'v) (tramp-archive-dissect-file-name ,filename))
             ,@bindings)
        ;; We don't know which of those vars will be used, so we bind them all,

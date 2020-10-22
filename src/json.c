@@ -279,10 +279,10 @@ json_release_object (void *object)
 }
 
 /* Signal an error if OBJECT is not a string, or if OBJECT contains
-   embedded NUL characters.  */
+   embedded null characters.  */
 
 static void
-check_string_without_embedded_nuls (Lisp_Object object)
+check_string_without_embedded_nulls (Lisp_Object object)
 {
   CHECK_STRING (object);
   CHECK_TYPE (memchr (SDATA (object), '\0', SBYTES (object)) == NULL,
@@ -365,13 +365,14 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
           Lisp_Object key = HASH_KEY (h, i);
           if (!EQ (key, Qunbound))
             {
+              CHECK_STRING (key);
               Lisp_Object ekey = json_encode (key);
               /* We can't specify the length, so the string must be
-               NUL-terminated.  */
-              check_string_without_embedded_nuls (ekey);
+		 null-terminated.  */
+              check_string_without_embedded_nulls (ekey);
               const char *key_str = SSDATA (ekey);
               /* Reject duplicate keys.  These are possible if the hash
-               table test is not `equal'.  */
+		 table test is not `equal'.  */
               if (json_object_get (json, key_str) != NULL)
                 wrong_type_argument (Qjson_value_p, lisp);
               int status
@@ -418,8 +419,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
           CHECK_SYMBOL (key_symbol);
           Lisp_Object key = SYMBOL_NAME (key_symbol);
           /* We can't specify the length, so the string must be
-             NUL-terminated.  */
-          check_string_without_embedded_nuls (key);
+             null-terminated.  */
+          check_string_without_embedded_nulls (key);
           key_str = SSDATA (key);
           /* In plists, ensure leading ":" in keys is stripped.  It
              will be reconstructed later in `json_to_lisp'.*/
@@ -478,9 +479,7 @@ lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
     {
       intmax_t low = TYPE_MINIMUM (json_int_t);
       intmax_t high = TYPE_MAXIMUM (json_int_t);
-      intmax_t value;
-      if (! (integer_to_intmax (lisp, &value) && low <= value && value <= high))
-        args_out_of_range_3 (lisp, make_int (low), make_int (high));
+      intmax_t value = check_integer_range (lisp, low, high);
       return json_check (json_integer (value));
     }
   else if (FLOATP (lisp))
@@ -564,7 +563,7 @@ false values, t, numbers, strings, or other vectors hashtables, alists
 or plists.  t will be converted to the JSON true value.  Vectors will
 be converted to JSON arrays, whereas hashtables, alists and plists are
 converted to JSON objects.  Hashtable keys must be strings without
-embedded NUL characters and must be unique within each object.  Alist
+embedded null characters and must be unique within each object.  Alist
 and plist keys must be symbols; if a key is duplicate, the first
 instance is used.
 
@@ -975,8 +974,9 @@ usage: (json-parse-string STRING &rest ARGS) */)
 #endif
 
   Lisp_Object string = args[0];
+  CHECK_STRING (string);
   Lisp_Object encoded = json_encode (string);
-  check_string_without_embedded_nuls (encoded);
+  check_string_without_embedded_nulls (encoded);
   struct json_configuration conf =
     {json_object_hashtable, json_array_array, QCnull, QCfalse};
   json_parse_args (nargs - 1, args + 1, &conf, true);
@@ -1121,7 +1121,6 @@ syms_of_json (void)
 
   DEFSYM (Qstring_without_embedded_nulls_p, "string-without-embedded-nulls-p");
   DEFSYM (Qjson_value_p, "json-value-p");
-  DEFSYM (Qutf_8_string_p, "utf-8-string-p");
 
   DEFSYM (Qjson_error, "json-error");
   DEFSYM (Qjson_out_of_memory, "json-out-of-memory");

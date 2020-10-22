@@ -722,7 +722,10 @@ The value of this variable is a char-table that specifies, for each
 character, a symbol whose name is the script to which the character
 belongs, according to the Unicode Standard classification of the
 Unicode code space into script-specific blocks.  This char-table has a
-single extra slot whose value is the list of all script symbols.
+single extra slot whose value is the list of all script symbols.  Note
+that Emacs' classification of characters into scripts is not a 1-for-1
+reflection of the Unicode standard, e.g. there is no @samp{symbol}
+script in Unicode.
 @end defvar
 
 @defvar char-width-table
@@ -1379,7 +1382,7 @@ operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
 @cindex null bytes, and decoding text
-@defvar inhibit-nul-byte-detection
+@defvar inhibit-null-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
 when detecting the encoding of a region or a string.  This allows the
 encoding of text that contains null bytes to be correctly detected,
@@ -1823,9 +1826,9 @@ than all the rest.
 
 @defmac with-coding-priority coding-systems &rest body
 This macro executes @var{body}, like @code{progn} does
-(@pxref{Sequencing}), with @var{coding-systems} at the front of the
-priority list for coding systems.  @var{coding-systems} should be a
-list of coding systems to prefer during execution of @var{body}.
+(@pxref{Sequencing, progn}), with @var{coding-systems} at the front of
+the priority list for coding systems.  @var{coding-systems} should be
+a list of coding systems to prefer during execution of @var{body}.
 @end defmac
 
 @node Explicit Encoding

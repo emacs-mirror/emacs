@@ -73,9 +73,11 @@
        '(choice
          (const :tag "Frame default" t)
          (const :tag "Filled box" box)
+         (cons :tag "Box with specified size"
+               (const box) integer)
          (const :tag "Hollow cursor" hollow)
          (const :tag "Vertical bar" bar)
-         (cons  :tag "Vertical bar with specified width"
+         (cons  :tag "Vertical bar with specified height"
                 (const bar) integer)
          (const :tag "Horizontal bar" hbar)
          (cons  :tag "Horizontal bar with specified width"
@@ -98,6 +100,11 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (word-wrap display boolean)
+             (word-wrap-by-category
+              display boolean "28.1"
+              :set (lambda (symbol value)
+                     (set-default symbol value)
+                     (when value (require 'kinsoku))))
 	     (selective-display-ellipses display boolean)
 	     (indicate-empty-lines fringe boolean)
 	     (indicate-buffer-boundaries
@@ -324,7 +331,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    ;; FIXME?
                             ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
-	     (tab-bar-mode (frames mouse) boolean nil
+	     (tab-bar-mode tab-bar boolean nil
                            ;; :initialize custom-initialize-default
 			   :set custom-set-minor-mode)
 	     (tool-bar-mode (frames mouse) boolean nil
@@ -622,7 +629,9 @@ since it could result in memory overflow and make Emacs crash."
 	     (scroll-margin windows integer)
              (maximum-scroll-margin windows float "26.1")
 	     (hscroll-margin windows integer "22.1")
-	     (hscroll-step windows number "22.1")
+	     (hscroll-step windows
+                           (choice (const :tag "Center horizontally" nil)
+                                   number) "22.1")
 	     (truncate-partial-width-windows
 	      display
 	      (choice (integer :tag "Truncate if narrower than")
@@ -771,11 +780,22 @@ since it could result in memory overflow and make Emacs crash."
               :safe (lambda (value) (or (booleanp value) (integerp value))))
              (display-fill-column-indicator-character
               display-fill-column-indicator
-              character
+              (choice
+               (character :tag "Use U+2502 to indicate fill column"
+                      :value ?│)
+               (character :tag "Use | to indicate fill column"
+                      :value ?|)
+               (const :tag "If possible, use U+2502 to indicate fill column, otherwise use |"
+                      :value nil)
+               character)
               "27.1"
-              :safe characterp)
+              :safe (lambda (value) (or (characterp value) (null value))))
 	     ;; xfaces.c
-	     (scalable-fonts-allowed display boolean "22.1")
+	     (scalable-fonts-allowed
+              display (choice (const :tag "Don't allow scalable fonts" nil)
+                              (const :tag "Allow any scalable font" t)
+                              (repeat regexp))
+              "22.1")
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))

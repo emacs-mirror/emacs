@@ -165,7 +165,7 @@ parenthetical grouping.")
     (modify-syntax-entry ?| "."   table)
     (modify-syntax-entry ?! "."   table)
     (modify-syntax-entry ?\\ "."  table)
-    (modify-syntax-entry ?\' "."  table)
+    (modify-syntax-entry ?\' "\""  table)
     (modify-syntax-entry ?\` "."  table)
     (modify-syntax-entry ?. "."   table)
     (modify-syntax-entry ?\" "\"" table)
@@ -619,8 +619,7 @@ Key bindings:
   (add-hook 'before-save-hook 'octave-sync-function-file-names nil t)
   (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
   (and octave-font-lock-texinfo-comment (octave-font-lock-texinfo-comment))
-  (add-function :before-until (local 'eldoc-documentation-function)
-                'octave-eldoc-function)
+  (add-hook 'eldoc-documentation-functions 'octave-eldoc-function nil t)
 
   (easy-menu-add octave-mode-menu))
 
@@ -756,7 +755,7 @@ Key bindings:
   (setq font-lock-defaults '(inferior-octave-font-lock-keywords nil nil))
 
   (setq-local info-lookup-mode 'octave-mode)
-  (setq-local eldoc-documentation-function 'octave-eldoc-function)
+  (add-hook 'eldoc-documentation-functions 'octave-eldoc-function nil t)
 
   (setq-local comint-input-ring-file-name
               (or (getenv "OCTAVE_HISTFILE") "~/.octave_hist"))
@@ -1049,10 +1048,9 @@ directory and makes this the current buffer's default directory."
                  (save-excursion
                    (skip-syntax-backward "-(")
                    (thing-at-point 'symbol)))))
-    (completing-read
-     (format (if def "Function (default %s): " "Function: ") def)
-     (inferior-octave-completion-table)
-     nil nil nil nil def)))
+    (completing-read (format-prompt "Function" def)
+                     (inferior-octave-completion-table)
+                     nil nil nil nil def)))
 
 (defun octave-goto-function-definition (fn)
   "Go to the function definition of FN in current buffer."
@@ -1173,10 +1171,7 @@ q: Don't fix\n" func file))
                               (min (line-end-position 4) end)
                               t)
                          (match-string 1))))
-           (old-func (read-string (format (if old-func
-                                              "Name to replace (default %s): "
-                                            "Name to replace: ")
-                                          old-func)
+           (old-func (read-string (format-prompt "Name to replace" old-func)
                                   nil nil old-func)))
       (if (and func old-func (not (equal func old-func)))
           (perform-replace old-func func 'query
@@ -1455,7 +1450,7 @@ The block marked is the one that contains point or follows point."
 Prompt for the function's name, arguments and return values (to be
 entered without parens)."
   (let* ((defname (file-name-sans-extension (buffer-name)))
-         (name (read-string (format "Function name (default %s): " defname)
+         (name (read-string (format-prompt "Function name" defname)
                             nil nil defname))
          (args (read-string "Arguments: "))
          (vals (read-string "Return values: ")))
@@ -1640,8 +1635,8 @@ code line."
                   (nreverse result)))))
   (cdr octave-eldoc-cache))
 
-(defun octave-eldoc-function ()
-  "A function for `eldoc-documentation-function' (which see)."
+(defun octave-eldoc-function (&rest _ignored)
+  "A function for `eldoc-documentation-functions' (which see)."
   (when (inferior-octave-process-live-p)
     (let* ((ppss (syntax-ppss))
            (paren-pos (cadr ppss))

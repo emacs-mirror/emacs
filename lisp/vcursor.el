@@ -1132,9 +1132,6 @@ line is treated like ordinary characters."
     (vcursor-copy (if (or (= count 0) arg) (1+ count) count)))
   )
 
-(define-obsolete-function-alias
-  'vcursor-toggle-vcursor-map 'vcursor-use-vcursor-map "23.1")
-
 (defun vcursor-post-command ()
   (and vcursor-auto-disable (not vcursor-last-command)
        vcursor-overlay

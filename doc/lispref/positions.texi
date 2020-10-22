@@ -332,6 +332,8 @@ if provided; otherwise @var{n} defaults to @code{nil}.
 @node Text Lines
 @subsection Motion by Text Lines
 @cindex lines
+@cindex logical lines, moving by
+@cindex physical lines, moving by
 
   Text lines are portions of the buffer delimited by newline characters,
 which are regarded as part of the previous line.  The first text line
@@ -411,7 +413,7 @@ function counts that line as one line successfully moved.
 In an interactive call, @var{count} is the numeric prefix argument.
 @end deffn
 
-@defun count-lines start end
+@defun count-lines start end &optional ignore-invisible-lines
 @cindex lines in region
 @anchor{Definition of count-lines}
 This function returns the number of lines between the positions
@@ -420,6 +422,9 @@ This function returns the number of lines between the positions
 1, even if @var{start} and @var{end} are on the same line.  This is
 because the text between them, considered in isolation, must contain at
 least one line unless it is empty.
+
+If the optional @var{ignore-invisible-lines} is non-@code{nil},
+invisible lines will not be included in the count.
 @end defun
 
 @deffn Command count-words start end
@@ -515,6 +520,7 @@ beginning or end of a line.
 @node Screen Lines
 @subsection Motion by Screen Lines
 @cindex screen lines, moving by
+@cindex visual lines, moving by
 
   The line functions in the previous section count text lines, delimited
 only by newline characters.  By contrast, these functions count screen

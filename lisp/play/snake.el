@@ -1,4 +1,4 @@
-;;; snake.el --- implementation of Snake for Emacs
+;;; snake.el --- implementation of Snake for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 
@@ -192,6 +192,7 @@ and then start moving it leftwards.")
 (defvar snake-null-map
   (let ((map (make-sparse-keymap 'snake-null-map)))
     (define-key map "n"		'snake-start-game)
+    (define-key map "q"         'quit-window)
     map)
   "Keymap for finished Snake games.")
 
@@ -278,7 +279,7 @@ and then start moving it leftwards.")
 	snake-velocity-queue    nil)
   (let ((x snake-initial-x)
 	(y snake-initial-y))
-    (dotimes (i snake-length)
+    (dotimes (_ snake-length)
       (gamegrid-set-cell x y snake-snake)
       (setq snake-positions (cons (vector x y) snake-positions))
       (cl-incf x snake-velocity-x)

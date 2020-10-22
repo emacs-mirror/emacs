@@ -35,10 +35,11 @@ user.  For related topics such as keymaps and syntax tables, see
 @section Hooks
 @cindex hooks
 
-  A @dfn{hook} is a variable where you can store a function or functions
-to be called on a particular occasion by an existing program.  Emacs
-provides hooks for the sake of customization.  Most often, hooks are set
-up in the init file (@pxref{Init File}), but Lisp programs can set them also.
+  A @dfn{hook} is a variable where you can store a function or
+functions (@pxref{What Is a Function}) to be called on a particular
+occasion by an existing program.  Emacs provides hooks for the sake of
+customization.  Most often, hooks are set up in the init file
+(@pxref{Init File}), but Lisp programs can set them also.
 @xref{Standard Hooks}, for a list of some standard hook variables.
 
 @cindex normal hook
@@ -56,27 +57,36 @@ minor mode functions also run a mode hook at the end.  But hooks are
 used in other contexts too.  For example, the hook @code{suspend-hook}
 runs just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
-  The recommended way to add a hook function to a hook is by calling
-@code{add-hook} (@pxref{Setting Hooks}).  The hook functions may be any
-of the valid kinds of functions that @code{funcall} accepts (@pxref{What
-Is a Function}).  Most normal hook variables are initially void;
-@code{add-hook} knows how to deal with this.  You can add hooks either
-globally or buffer-locally with @code{add-hook}.
-
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
 indicates it is probably an @dfn{abnormal hook}.  That means the hook
 functions are called with arguments, or their return values are used
 in some way.  The hook's documentation says how the functions are
-called.  You can use @code{add-hook} to add a function to an abnormal
-hook, but you must write the function to follow the hook's calling
-convention.  By convention, abnormal hook names end in @samp{-functions}.
+called.  Any functions added to an abnormal hook must follow the
+hook's calling convention.  By convention, abnormal hook names end in
+@samp{-functions}.
 
 @cindex single-function hook
-If the variable's name ends in @samp{-function}, then its value is
-just a single function, not a list of functions.  @code{add-hook} cannot be
-used to modify such a @emph{single function hook}, and you have to use
-@code{add-function} instead (@pxref{Advising Functions}).
+If the name of the variable ends in @samp{-predicate} or
+@samp{-function} (singular) then its value must be a function, not a
+list of functions.  As with abnormal hooks, the expected arguments and
+meaning of the return value vary across such @emph{single function
+hooks}.  The details are explained in each variable's docstring.
+
+  Since hooks (both multi and single function) are variables, their
+values can be modified with @code{setq} or temporarily with
+@code{let}.  However, it is often useful to add or remove a particular
+function from a hook while preserving any other functions it might
+have.  For multi function hooks, the recommended way of doing this is
+with @code{add-hook} and @code{remove-hook} (@pxref{Setting Hooks}).
+Most normal hook variables are initially void; @code{add-hook} knows
+how to deal with this.  You can add hooks either globally or
+buffer-locally with @code{add-hook}.  For hooks which hold only a
+single function, @code{add-hook} is not appropriate, but you can use
+@code{add-function} (@pxref{Advising Functions}) to combine new
+functions with the hook.  Note that some single function hooks may be
+@code{nil} which @code{add-function} cannot deal with, so you must
+check for that before calling @code{add-function}.
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -135,12 +145,25 @@ non-@code{nil} value, it returns that value; otherwise it returns
 @node Setting Hooks
 @subsection Setting Hooks
 
-  Here's an example that uses a mode hook to turn on Auto Fill mode when
-in Lisp Interaction mode:
+  Here's an example that adds a function to a mode hook to turn
+on Auto Fill mode when in Lisp Interaction mode:
 
 @example
 (add-hook 'lisp-interaction-mode-hook 'auto-fill-mode)
 @end example
+
+  The value of a hook variable should be a list of functions.  You can
+manipulate that list using the normal Lisp facilities, but the modular
+way is to use the functions @code{add-hook} and @code{remove-hook},
+defined below.  They take care to handle some unusual situations and
+avoid problems.
+
+  It works to put a @code{lambda}-expression function on a hook, but
+we recommend avoiding this because it can lead to confusion.  If you
+add the same @code{lambda}-expression a second time but write it
+slightly differently, you will get two equivalent but distinct
+functions on the hook.  If you then remove one of them, the other will
+still be on it.
 
 @defun add-hook hook function &optional depth local
 This function is the handy way to add function @var{function} to hook
@@ -456,9 +479,10 @@ variable @code{imenu-generic-expression}, for the two variables
 @code{imenu-create-index-function} (@pxref{Imenu}).
 
 @item
-The mode can specify a local value for
-@code{eldoc-documentation-function} to tell ElDoc mode how to handle
-this mode.
+The mode can tell ElDoc mode how to retrieve different types of
+documentation for whatever is at point, by adding one or more
+buffer-local entries to the special hook
+@code{eldoc-documentation-functions}.
 
 @item
 The mode can specify how to complete various keywords by adding one or
@@ -1339,19 +1363,11 @@ illustrate how these modes are written.
 @end smallexample
 
   The three modes for Lisp share much of their code.  For instance,
-each calls the following function to set various variables:
-
-@smallexample
-@group
-(defun lisp-mode-variables (&optional syntax keywords-case-insensitive elisp)
-  (when syntax
-    (set-syntax-table lisp-mode-syntax-table))
-  @dots{}
-@end group
-@end smallexample
+Lisp mode and Emacs Lisp mode inherit from Lisp Data mode and Lisp
+Interaction Mode inherits from Emacs Lisp mode.
 
 @noindent
-Amongst other things, this function sets up the @code{comment-start}
+Amongst other things, Lisp Data mode sets up the @code{comment-start}
 variable to handle Lisp comments:
 
 @smallexample
@@ -1401,7 +1417,7 @@ Finally, here is the major mode command for Lisp mode:
 
 @smallexample
 @group
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -1412,10 +1428,9 @@ Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
 @end group
 @group
-  (lisp-mode-variables nil t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
-              "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+              "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 @end group
 @end smallexample
@@ -1724,7 +1739,8 @@ The command named @var{mode} first performs the standard actions such as
 setting the variable named @var{mode} and then executes the @var{body}
 forms, if any.  It then runs the mode hook variable
 @code{@var{mode}-hook} and finishes by evaluating any form in
-@code{:after-hook}.
+@code{:after-hook}.  (Note that all of this, including running the
+hook, is done both when the mode is enabled and disabled.)
 @end defmac
 
   The initial value must be @code{nil} except in cases where (1) the
@@ -2034,7 +2050,7 @@ be useful for Shell mode (in reality, Shell mode does not set
    "%n"
    ")%]--"
 @group
-   '(which-func-mode ("" which-func-format "--"))
+   '(which-function-mode ("" which-func-format "--"))
    '(line-number-mode "L%l--")
    '(column-number-mode "C%c--")
    '(-3 "%p")))
@@ -2042,8 +2058,8 @@ be useful for Shell mode (in reality, Shell mode does not set
 @end example
 
 @noindent
-(The variables @code{line-number-mode}, @code{column-number-mode}
-and @code{which-func-mode} enable particular minor modes; as usual,
+(The variables @code{line-number-mode}, @code{column-number-mode} and
+@code{which-function-mode} enable particular minor modes; as usual,
 these variable names are also the minor mode command names.)
 
 @node Mode Line Variables
@@ -2161,6 +2177,29 @@ Mode line construct for miscellaneous information.  By default, this
 shows the information specified by @code{global-mode-string}.
 @end defvar
 
+@defvar mode-line-position-line-format
+The format used to display line numbers when @code{line-number-mode}
+(@pxref{Optional Mode Line,,, emacs, The GNU Emacs Manual}) is
+switched on.  @samp{%l} in the format will be replaced with the line
+number.
+@end defvar
+
+@defvar mode-line-position-column-format
+The format used to display column numbers when
+@code{column-number-mode} (@pxref{Optional Mode Line,,, emacs, The GNU
+Emacs Manual}) is switched on.  @samp{%c} in the format will be
+replaced with the column number, and this is zero-based if
+@code{column-number-indicator-zero-based} is non-@code{nil}, and
+one-based if @code{column-number-indicator-zero-based} is @code{nil}.
+@end defvar
+
+@defvar mode-line-position-column-line-format
+The format used to display column numbers when both
+@code{line-number-mode} and @code{column-number-mode} are switched on.
+See the previous two variables for the meaning of the @samp{%l} and
+@samp{%c} format specs.
+@end defvar
+
 @defvar minor-mode-alist
 @anchor{Definition of minor-mode-alist}
 This variable holds an association list whose elements specify how the
@@ -2185,7 +2224,7 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-func-mode} minor mode if set,
+the mode line just after the @code{which-function-mode} minor mode if set,
 else after @code{mode-line-modes}.  The command @code{display-time} sets
 @code{global-mode-string} to refer to the variable
 @code{display-time-string}, which holds a string containing the time and
@@ -2214,7 +2253,7 @@ specifies addition of text properties.
  "   "
 @group
  mode-line-modes
- (which-func-mode ("" which-func-format "--"))
+ (which-function-mode ("" which-func-format "--"))
  (global-mode-string ("--" global-mode-string))
  "-%-")
 @end group
@@ -2322,6 +2361,10 @@ read-only buffer.  @xref{Buffer Modification}.
 @item %&
 @samp{*} if the buffer is modified, and @samp{-} otherwise.
 
+@item %@@
+@samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
+Expansion}) is on a remote machine, and @samp{-} otherwise.
+
 @item %[
 An indication of the depth of recursive editing levels (not counting
 minibuffer levels): one @samp{[} for each editing level.
@@ -2339,16 +2382,13 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following two @code{%}-constructs are still supported, but they are
-obsolete, since you can get the same results with the variables
-@code{mode-name} and @code{global-mode-string}.
+The following @code{%}-construct is still supported, but it is
+obsolete, since you can get the same result using the variable
+@code{mode-name}.
 
 @table @code
 @item %m
 The value of @code{mode-name}.
-
-@item %M
-The value of @code{global-mode-string}.
 @end table
 
 @node Properties in Mode
@@ -2660,6 +2700,7 @@ Setting this variable makes it buffer-local in the current buffer.
 @node Font Lock Mode
 @section Font Lock Mode
 @cindex Font Lock mode
+@cindex syntax highlighting and coloring
 
   @dfn{Font Lock mode} is a buffer-local minor mode that automatically
 attaches @code{face} properties to certain parts of the buffer based on
@@ -3201,6 +3242,11 @@ The optional argument @var{contextual}, if non-@code{nil}, forces Font
 Lock mode to always refontify a syntactically relevant part of the
 buffer, and not just the modified lines.  This argument can usually be
 omitted.
+
+When Font Lock is activated in a buffer, it calls this function with a
+non-@code{nil} value of @var{contextual} if the value of
+@code{font-lock-keywords-only} (@pxref{Syntactic Font Lock}) is
+@code{nil}.
 @end defun
 
 @defun jit-lock-unregister function
@@ -3258,7 +3304,7 @@ is disabled, @code{font-lock-face} has no effect on the display.
 also use the normal Font Lock machinery.  But if the mode does not use
 the normal Font Lock machinery, it should not set the variable
 @code{font-lock-defaults}.  In this case the @code{face} property will
-not be overriden, so using the @code{face} property could work too.
+not be overridden, so using the @code{face} property could work too.
 However, using @code{font-lock-face} is generally preferable as it
 allows the user to control the fontification by toggling
 @code{font-lock-mode}, and lets the code work regardless of whether
@@ -3367,7 +3413,11 @@ table in special cases.  @xref{Syntax Properties}.
 If the value of this variable is non-@code{nil}, Font Lock does not do
 syntactic fontification, only search-based fontification based on
 @code{font-lock-keywords}.  It is normally set by Font Lock mode based
-on the @var{keywords-only} element in @code{font-lock-defaults}.
+on the @var{keywords-only} element in @code{font-lock-defaults}.  If
+the value is @code{nil}, Font Lock will call @code{jit-lock-register}
+(@pxref{Other Font Lock Variables}) to set up for automatic
+refontification of buffer text following a modified line to reflect
+the new syntactic context due to the change.
 @end defvar
 
 @defvar font-lock-syntax-table

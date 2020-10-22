@@ -2905,7 +2905,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
       p++;
       for (j = 0, q = menu->text[i]; *q; j++)
 	{
-	  unsigned c = STRING_CHAR_ADVANCE (q);
+	  unsigned c = string_char_advance (&q);
 
 	  if (c > 26)
 	    {

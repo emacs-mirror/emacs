@@ -4,7 +4,7 @@
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: MD4
-;; Version: 1.00
+;; Old-Version: 1.00
 ;; Created: February 2001
 
 ;; This file is part of GNU Emacs.

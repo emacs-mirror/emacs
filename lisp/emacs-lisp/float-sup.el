@@ -1,4 +1,4 @@
-;;; float-sup.el --- define some constants useful for floating point numbers.
+;;; float-sup.el --- define some constants useful for floating point numbers.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1987, 2001-2020 Free Software Foundation, Inc.
 

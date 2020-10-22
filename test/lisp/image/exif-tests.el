@@ -21,7 +21,6 @@
 
 (require 'ert)
 (require 'exif)
-(require 'seq)
 
 (defun test-image-file (name)
   (expand-file-name
@@ -40,5 +39,16 @@
     (should (equal (exif-elem exif 'make) "Panasonic"))
     (should (equal (exif-elem exif 'orientation) 1))
     (should (equal (exif-elem exif 'x-resolution) '(180 . 1)))))
+
+(ert-deftest test-exif-parse-short ()
+  (let ((exif (exif-parse-file (test-image-file "black-short.jpg"))))
+    (should (equal (exif-elem exif 'make) "thr"))
+    (should (equal (exif-elem exif 'model) "four"))
+    (should (equal (exif-elem exif 'software) "em"))
+    (should (equal (exif-elem exif 'artist) "z"))))
+
+(ert-deftest test-exit-direct-ascii-value ()
+  (should (equal (exif--direct-ascii-value 28005 2 t) (string ?e ?m 0)))
+  (should (equal (exif--direct-ascii-value 28005 2 nil) (string ?m ?e 0))))
 
 ;;; exif-tests.el ends here

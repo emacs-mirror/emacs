@@ -78,6 +78,10 @@
   "Keymap useful for buffers containing buttons.
 Mode-specific keymaps may want to use this as their parent keymap.")
 
+(define-minor-mode button-mode
+  "A minor mode for navigating to buttons with the TAB key."
+  :keymap button-buffer-map)
+
 ;; Default properties for buttons.
 (put 'default-button 'face 'button)
 (put 'default-button 'mouse-face 'highlight)
@@ -341,15 +345,14 @@ If the property `button-data' is present, it will later be used
 as the argument for the `action' callback function instead of the
 default argument, which is the button itself.
 
-BEG can also be a string, in which case it is made into a button.
+BEG can also be a string, in which case a copy of it is made into
+a button and returned.
 
 Also see `insert-text-button'."
   (let ((object nil)
         (type-entry
 	 (or (plist-member properties 'type)
 	     (plist-member properties :type))))
-    (when (stringp beg)
-      (setq object beg beg 0 end (length object)))
     ;; Disallow setting the `category' property directly.
     (when (plist-get properties 'category)
       (error "Button `category' property may not be set directly"))
@@ -362,6 +365,10 @@ Also see `insert-text-button'."
       (setcar type-entry 'category)
       (setcar (cdr type-entry)
               (button-category-symbol (cadr type-entry))))
+    (when (stringp beg)
+      (setq object (copy-sequence beg))
+      (setq beg 0)
+      (setq end (length object)))
     ;; Now add all the text properties at once.
     (add-text-properties beg end
                          ;; Each button should have a non-eq `button'
@@ -461,18 +468,24 @@ see).
 POS defaults to point, except when `push-button' is invoked
 interactively as the result of a mouse-event, in which case, the
 mouse event is used.
+
 If there's no button at POS, do nothing and return nil, otherwise
-return t."
+return t.
+
+To get a description of what function will called when pushing a
+butting, use the `button-describe' command."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
   (if (and (not (integerp pos)) (eventp pos))
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
 	(with-current-buffer (window-buffer (posn-window posn))
-	  (if (posn-string posn)
-	      ;; mode-line, header-line, or display string event.
-	      (button-activate (posn-string posn) t)
-	    (push-button (posn-point posn) t))))
+          (let* ((str (posn-string posn))
+                 (str-button (and str (get-text-property (cdr str) 'button (car str)))))
+	    (if str-button
+	        ;; mode-line, header-line, or display string event.
+	        (button-activate str t)
+	      (push-button (posn-point posn) t)))))
     ;; POS is just normal position
     (let ((button (button-at (or pos (point)))))
       (when button
@@ -480,12 +493,17 @@ return t."
 	t))))
 
 (defun button--help-echo (button)
-  "Evaluate BUTTON's `help-echo' property and return its value."
-  (let ((help (button-get button 'help-echo)))
-    (if (functionp help)
-        (let ((obj (if (overlayp button) button (current-buffer))))
-          (funcall help (selected-window) obj (button-start button)))
-      (eval help lexical-binding))))
+  "Evaluate BUTTON's `help-echo' property and return its value.
+If the result is non-nil, pass it through `substitute-command-keys'
+before returning it, as is done for `show-help-function'."
+  (let* ((help (button-get button 'help-echo))
+         (help (if (functionp help)
+                   (funcall help
+                            (selected-window)
+                            (if (overlayp button) button (current-buffer))
+                            (button-start button))
+                 (eval help lexical-binding))))
+    (and help (substitute-command-keys help))))
 
 (defun forward-button (n &optional wrap display-message no-error)
   "Move to the Nth next button, or Nth previous button if N is negative.
@@ -549,6 +567,51 @@ instead of erroring out.
 Returns the button found."
   (interactive "p\nd\nd")
   (forward-button (- n) wrap display-message no-error))
+
+(defun button--describe (properties)
+  "Describe a button's PROPERTIES (an alist) in a *Help* buffer.
+This is a helper function for `button-describe', in order to be possible to
+use `help-setup-xref'.
+
+Each element of PROPERTIES should be of the form (PROPERTY . VALUE)."
+  (help-setup-xref (list #'button--describe properties)
+                   (called-interactively-p 'interactive))
+  (with-help-window (help-buffer)
+    (with-current-buffer (help-buffer)
+      (insert (format-message "This button's type is `%s'."
+                              (alist-get 'type properties)))
+      (dolist (prop '(action mouse-action))
+        (let ((name (symbol-name prop))
+              (val (alist-get prop properties)))
+          (when (functionp val)
+            (insert "\n\n"
+                    (propertize (capitalize name) 'face 'bold)
+                    "\nThe " name " of this button is")
+            (if (symbolp val)
+                (progn
+                  (insert (format-message " `%s',\nwhich is " val))
+                  (describe-function-1 val))
+              (insert "\n")
+              (princ val))))))))
+
+(defun button-describe (&optional button-or-pos)
+  "Display a buffer with information about the button at point.
+
+When called from Lisp, pass BUTTON-OR-POS as the button to describe, or a
+buffer position where a button is present.  If BUTTON-OR-POS is nil, the
+button at point is the button to describe."
+  (interactive "d")
+  (let* ((button (cond ((integer-or-marker-p button-or-pos)
+                        (button-at button-or-pos))
+                       ((null button-or-pos) (button-at (point)))
+                       ((overlayp button-or-pos) button-or-pos)))
+         (props (and button
+                     (mapcar (lambda (prop)
+                               (cons prop (button-get button prop)))
+                             '(type action mouse-action)))))
+    (when props
+      (button--describe props)
+      t)))
 
 (provide 'button)
 

@@ -194,6 +194,7 @@ extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
 extern void dostounix_filename (register char *);
 extern void unixtodos_filename (register char *);
+extern const char *map_w32_filename (const char *, const char **);
 extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
@@ -221,6 +222,9 @@ extern void register_child (pid_t, int);
 
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);
+extern int openat (int, const char *, int, int);
+extern int fchmodat (int, char const *, mode_t, int);
+extern int lchmod (char const *, mode_t);
 
 /* Return total and free memory info.  */
 extern int w32_memory_info (unsigned long long *, unsigned long long *,

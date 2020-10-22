@@ -470,7 +470,7 @@ To be used in hook functions."
 	  ;; Emacs 21 has no buffer file name for directory edits.
 	  ;; so we need to add these hacks in.
 	  (eq major-mode 'dired-mode)
-	  (eq major-mode 'vc-dired-mode))
+	  (eq major-mode 'vc-dir-mode))
       (ede-minor-mode 1)))
 
 (define-minor-mode ede-minor-mode
@@ -481,7 +481,7 @@ controlled project, then this mode is activated automatically
 provided `global-ede-mode' is enabled."
   :group 'ede
   (cond ((or (eq major-mode 'dired-mode)
-	     (eq major-mode 'vc-dired-mode))
+	     (eq major-mode 'vc-dir-mode))
 	 (ede-dired-minor-mode (if ede-minor-mode 1 -1)))
 	(ede-minor-mode
 	 (if (not ede-constructing)
@@ -1515,8 +1515,11 @@ It does not apply the value to buffers."
     (when project-dir
       (ede-directory-get-open-project project-dir 'ROOT))))
 
-(cl-defmethod project-roots ((project ede-project))
-  (list (ede-project-root-directory project)))
+(cl-defmethod project-root ((project ede-project))
+  (ede-project-root-directory project))
+
+;;; FIXME: Could someone look into implementing `project-ignores' for
+;;; EDE and/or a faster `project-files'?
 
 (add-hook 'project-find-functions #'project-try-ede)
 
@@ -1527,8 +1530,7 @@ It does not apply the value to buffers."
 
 ;; If this does not occur after the provide, we can get a recursive
 ;; load.  Yuck!
-(if (featurep 'speedbar)
-    (ede-speedbar-file-setup)
-  (add-hook 'speedbar-load-hook 'ede-speedbar-file-setup))
+(with-eval-after-load 'speedbar
+  (ede-speedbar-file-setup))
 
 ;;; ede.el ends here

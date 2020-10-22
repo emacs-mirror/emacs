@@ -94,6 +94,13 @@ edited by older versions of Emacs also, do not use this format yet."
 (defcustom time-stamp-active t
   "Non-nil to enable time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
+
+This option does not affect when `time-stamp' is run, only what it
+does when it runs.  To activate automatic time-stamping of buffers
+when they are saved, either add this line to your init file:
+    (add-hook \\='before-save-hook \\='time-stamp)
+or customize option `before-save-hook'.
+
 See also the variable `time-stamp-warn-inactive'."
   :type 'boolean
   :group 'time-stamp)
@@ -269,7 +276,7 @@ time-stamped file itself.")
 A template in a file can be automatically updated with a new time stamp
 every time you save the file.  Add this line to your init file:
     (add-hook \\='before-save-hook \\='time-stamp)
-or customize `before-save-hook' through Custom.
+or customize option `before-save-hook'.
 Normally the template must appear in the first 8 lines of a file and
 look like one of the following:
       Time-stamp: <>
@@ -606,24 +613,24 @@ and all `time-stamp-format' compatibility."
 	 ((eq cur-char ?F)		;buffer-file-name, full path
 	  (or buffer-file-name
 	      time-stamp-no-file))
-	 ((eq cur-char ?s)		;system name
+	 ((eq cur-char ?s)		;system name, legacy
 	  (system-name))
-	 ((eq cur-char ?u)		;user name
+	 ((eq cur-char ?u)		;user name, legacy
 	  (user-login-name))
-	 ((eq cur-char ?U)		;user full name
+	 ((eq cur-char ?U)		;user full name, legacy
 	  (user-full-name))
-	 ((eq cur-char ?l)		;logname (undocumented user name alt)
+	 ((eq cur-char ?l)		;login name
 	  (user-login-name))
-	 ((eq cur-char ?L)		;(undocumented alt user full name)
+	 ((eq cur-char ?L)		;full name of logged-in user
 	  (user-full-name))
 	 ((eq cur-char ?h)		;mail host name
 	  (or mail-host-address (system-name)))
-	 ((eq cur-char ?q)		;(undocumented unqual hostname)
+	 ((eq cur-char ?q)		;unqualified host name
 	  (let ((qualname (system-name)))
 	    (if (string-match "\\." qualname)
 		(substring qualname 0 (match-beginning 0))
 	      qualname)))
-	 ((eq cur-char ?Q)		;(undocumented fully-qualified host)
+	 ((eq cur-char ?Q)		;fully-qualified host name
 	  (system-name))
 	 ))
         (and (numberp field-result)

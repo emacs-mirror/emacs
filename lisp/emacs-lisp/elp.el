@@ -238,7 +238,7 @@ FUNSYM must be a symbol of a defined function."
     ;; The info vector data structure is a 2 element vector.  The 0th
     ;; element is the call-count, i.e. the total number of times this
     ;; function has been entered.  This value is bumped up on entry to
-    ;; the function so that non-local exists are still recorded. TBD:
+    ;; the function so that non-local exits are still recorded. TBD:
     ;; I haven't tested non-local exits at all, so no guarantees.
     ;;
     ;; The 1st element is the total amount of time in seconds that has
@@ -342,9 +342,9 @@ Use optional LIST if provided instead."
   (interactive
    (list
     (intern
-     (completing-read "Master function: " obarray
-                      #'elp--instrumented-p
-                      t nil nil (if elp-master (symbol-name elp-master))))))
+     (let ((default (if elp-master (symbol-name elp-master))))
+       (completing-read (format-prompt "Master function" default)
+                        obarray #'elp--instrumented-p t nil nil default)))))
   ;; When there's a master function, recording is turned off by default.
   (setq elp-master funsym
 	elp-record-p nil)

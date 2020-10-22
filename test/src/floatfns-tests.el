@@ -1,4 +1,4 @@
-;;; floatfns-tests.el --- tests for floating point operations
+;;; floatfns-tests.el --- tests for floating point operations -*- lexical-binding: t -*-
 
 ;; Copyright 2017-2020 Free Software Foundation, Inc.
 

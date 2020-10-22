@@ -63,29 +63,26 @@ An existing calc stack is reused, otherwise a new one is created."
 	(calc-top-n 1))
     (calc-pop 0)))
 
-;; (ert-deftest test-math-bignum ()
-;;   ;; bug#17556
-;;   (let ((n (math-bignum most-negative-fixnum)))
-;;     (should (math-negp n))
-;;     (should (cl-notany #'cl-minusp (cdr n)))))
-
-(ert-deftest test-calc-remove-units ()
+(ert-deftest calc-remove-units ()
   (should (calc-tests-equal (calc-tests-simple #'calc-remove-units "-1 m") -1)))
 
-(ert-deftest test-calc-extract-units ()
-  (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m")
-			    '(var m var-m)))
-  (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m*cm")
-			    '(* (float 1 -2) (^ (var m var-m) 2)))))
+(ert-deftest calc-extract-units ()
+  (let ((calc-display-working-message nil))
+    (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m")
+			      '(var m var-m)))
+    (should (calc-tests-equal (calc-tests-simple #'calc-extract-units "-1 m*cm")
+			      '(* (float 1 -2) (^ (var m var-m) 2))))))
 
-(ert-deftest test-calc-convert-units ()
-  ;; Used to ask for `(The expression is unitless when simplified) Old Units: '.
-  (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m" nil "cm")
-			    '(* -100 (var cm var-cm))))
-  ;; Gave wrong result.
-  (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
-					       (math-read-expr "1m") "cm")
-			    '(* -100 (var cm var-cm)))))
+(ert-deftest calc-convert-units ()
+  (let ((calc-display-working-message nil))
+    ;; Used to ask `(The expression is unitless when simplified) Old Units: '.
+    (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
+                                                 nil "cm")
+			      '(* -100 (var cm var-cm))))
+    ;; Gave wrong result.
+    (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
+					         (math-read-expr "1m") "cm")
+			      '(* -100 (var cm var-cm))))))
 
 (ert-deftest calc-imaginary-i ()
   "Test `math-imaginary-i' for non-special-const values."
@@ -94,7 +91,7 @@ An existing calc stack is reused, otherwise a new one is created."
   (let ((var-i (calcFunc-sqrt -1)))
     (should (math-imaginary-i))))
 
-(ert-deftest test-calc-23889 ()
+(ert-deftest calc-bug-23889 ()
   "Test for https://debbugs.gnu.org/23889 and 25652."
   (skip-unless t) ;; (>= math-bignum-digit-length 9))
   (dolist (mode '(deg rad))
@@ -139,7 +136,7 @@ An existing calc stack is reused, otherwise a new one is created."
                          (nth 1 (calcFunc-cos 1)))
                         0 4))))))
 
-(ert-deftest calc-test-trig ()
+(ert-deftest calc-trig ()
   "Trigonometric simplification; bug#33052."
   (let ((calc-angle-mode 'rad))
     (let ((calc-symbolic-mode t))
@@ -169,7 +166,7 @@ An existing calc stack is reused, otherwise a new one is created."
       (should (equal (math-simplify '(calcFunc-cot (/ (var pi var-pi) 3)))
                      '(calcFunc-cot (/ (var pi var-pi) 3)))))))
 
-(ert-deftest calc-test-format-radix ()
+(ert-deftest calc-format-radix ()
   "Test integer formatting (bug#36689)."
   (let ((calc-group-digits nil))
     (let ((calc-number-radix 10))
@@ -194,7 +191,7 @@ An existing calc stack is reused, otherwise a new one is created."
     (let ((calc-number-radix 36))
       (should (equal (math-format-number 12345678901) "36#5,O6A,QT1")))))
 
-(ert-deftest calc-test-calendar ()
+(ert-deftest calc-calendar ()
   "Test calendar conversions (bug#36822)."
   (should (equal (calcFunc-julian (math-parse-date "2019-07-27")) 2458692))
   (should (equal (math-parse-date "2019-07-27") '(date 737267)))
@@ -216,7 +213,7 @@ An existing calc stack is reused, otherwise a new one is created."
   (should (equal (math-absolute-from-julian-dt -101 3 1) -36832))
   (should (equal (math-absolute-from-julian-dt -4713 1 1) -1721425)))
 
-(ert-deftest calc-test-solve-linear-system ()
+(ert-deftest calc-solve-linear-system ()
   "Test linear system solving (bug#35374)."
   ;;   x + y =   3
   ;;  2x - 3y = -4
@@ -333,6 +330,382 @@ An existing calc stack is reused, otherwise a new one is created."
         (calc-pop 0)
         (should (equal tos '(- (* 2 (var x var-x)) 4)))
         (should (equal trail "pdiv 2 * x - 4\nprem 8 * x + 1\n"))))))
+
+(ert-deftest calc-Math-integerp ()
+  (should (Math-integerp -7))
+  (should (Math-integerp (ash 1 65)))
+  (should-not (Math-integerp '(float 1 0)))
+  (should-not (Math-integerp nil))
+
+  (should (Math-num-integerp -7))
+  (should (Math-num-integerp (ash 1 65)))
+  (should (Math-num-integerp '(float 1 0)))
+  (should-not (Math-num-integerp nil)))
+
+(ert-deftest calc-matrix-determinant ()
+  (let ((calc-display-working-message nil))
+    (should (equal (calcFunc-det '(vec (vec 3)))
+                   3))
+    (should (equal (calcFunc-det '(vec (vec 2 3) (vec 6 7)))
+                   -4))
+    (should (equal (calcFunc-det '(vec (vec 1 2 3) (vec 4 5 7) (vec 9 6 2)))
+                   15))
+    (should (equal (calcFunc-det '(vec (vec 0 5 7 3)
+                                       (vec 0 0 2 0)
+                                       (vec 1 2 3 4)
+                                       (vec 0 0 0 3)))
+                   30))
+    (should (equal (calcFunc-det '(vec (vec (var a var-a))))
+                   '(var a var-a)))
+    (should (equal (calcFunc-det '(vec (vec 2 (var a var-a))
+                                       (vec 7 (var a var-a))))
+                   '(* -5 (var a var-a))))
+    (should (equal (calcFunc-det '(vec (vec 1 0 0 0)
+                                       (vec 0 1 0 0)
+                                       (vec 0 0 0 1)
+                                       (vec 0 0 (var a var-a) 0)))
+                   '(neg (var a var-a))))))
+
+(ert-deftest calc-gcd ()
+  (should (equal (calcFunc-gcd 3 4) 1))
+  (should (equal (calcFunc-gcd 12 15) 3))
+  (should (equal (calcFunc-gcd -12 15) 3))
+  (should (equal (calcFunc-gcd 12 -15) 3))
+  (should (equal (calcFunc-gcd -12 -15) 3))
+  (should (equal (calcFunc-gcd 0 5) 5))
+  (should (equal (calcFunc-gcd 5 0) 5))
+  (should (equal (calcFunc-gcd 0 -5) 5))
+  (should (equal (calcFunc-gcd -5 0) 5))
+  (should (equal (calcFunc-gcd 0 0) 0))
+  (should (equal (calcFunc-gcd 0 '(var x var-x))
+                 '(calcFunc-abs (var x var-x))))
+  (should (equal (calcFunc-gcd '(var x var-x) 0)
+                 '(calcFunc-abs (var x var-x)))))
+
+(ert-deftest calc-sum-gcd ()
+  ;; sum(gcd(0,n),n,-1,-1)
+  (should (equal (math-simplify '(calcFunc-sum (calcFunc-gcd 0 (var n var-n))
+                                               (var n var-n) -1 -1))
+                 1))
+  ;; sum(sum(gcd(n,k),k,-1,1),n,-1,1)
+  (should (equal (math-simplify
+                  '(calcFunc-sum
+                    (calcFunc-sum (calcFunc-gcd (var n var-n) (var k var-k))
+                                  (var k var-k) -1 1)
+                    (var n var-n) -1 1))
+                 8)))
+
+(defun calc-tests--fac (n)
+  (apply #'* (number-sequence 1 n)))
+
+(defun calc-tests--choose (n k)
+  "N choose K, reference implementation."
+  (cond
+   ((and (integerp n) (integerp k))
+    (if (<= 0 n)
+        (if (<= 0 k n)
+            (/ (calc-tests--fac n)
+               (* (calc-tests--fac k) (calc-tests--fac (- n k))))
+          0)    ; 0≤n<k
+      ;; n<0, n and k integers: use extension from M. J. Kronenburg
+      (cond
+       ((<= 0 k)
+        (* (expt -1 k)
+           (calc-tests--choose (+ (- n) k -1) k)))
+       ((<= k n)
+        (* (expt -1 (- n k))
+           (calc-tests--choose (+ (- k) -1) (- n k))))
+       (t  ; n<k<0
+        0))))
+   ((natnump k)
+    ;; Generalisation for any n, integral k≥0: use falling product
+    (/ (apply '* (number-sequence n (- n (1- k)) -1))
+       (calc-tests--fac k)))
+   (t (error "case not covered"))))
+
+(defun calc-tests--calc-to-number (x)
+  "Convert a Calc object to a Lisp number."
+  (pcase x
+    ((pred numberp) x)
+    (`(frac ,p ,q) (/ (float p) q))
+    (`(float ,m ,e) (* m (expt 10 e)))
+    (_ (error "calc object not converted: %S" x))))
+
+(ert-deftest calc-choose ()
+  "Test computation of binomial coefficients (bug#16999)."
+  (let ((calc-display-working-message nil))
+    ;; Integral arguments
+    (dolist (n (number-sequence -6 6))
+      (dolist (k (number-sequence -6 6))
+        (should (equal (calcFunc-choose n k)
+                       (calc-tests--choose n k)))))
+
+    ;; Fractional n, natural k
+    (should (equal (calc-tests--calc-to-number
+                    (calcFunc-choose '(frac 15 2) 3))
+                   (calc-tests--choose 7.5 3)))
+
+    (should (equal (calc-tests--calc-to-number
+                    (calcFunc-choose '(frac 1 2) 2))
+                   (calc-tests--choose 0.5 2)))
+
+    (should (equal (calc-tests--calc-to-number
+                    (calcFunc-choose '(frac -15 2) 3))
+                   (calc-tests--choose -7.5 3)))))
+
+(ert-deftest calc-business-days ()
+  (cl-flet ((m (s) (math-parse-date s))
+            (b+ (a b) (calcFunc-badd a b))
+            (b- (a b) (calcFunc-bsub a b)))
+    ;; Sanity check.
+    (should (equal (m "2020-09-07") '(date 737675)))
+
+    ;; Test with standard business days (Mon-Fri):
+    (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-08"))) ; Mon->Tue
+    (should (equal (b+ (m "2020-09-08") 1) (m "2020-09-09"))) ; Tue->Wed
+    (should (equal (b+ (m "2020-09-09") 1) (m "2020-09-10"))) ; Wed->Thu
+    (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-11"))) ; Thu->Fri
+    (should (equal (b+ (m "2020-09-11") 1) (m "2020-09-14"))) ; Fri->Mon
+
+    (should (equal (b+ (m "2020-09-07") 4) (m "2020-09-11"))) ; Mon->Fri
+    (should (equal (b+ (m "2020-09-07") 6) (m "2020-09-15"))) ; Mon->Tue
+
+    (should (equal (b+ (m "2020-09-12") 1) (m "2020-09-14"))) ; Sat->Mon
+    (should (equal (b+ (m "2020-09-13") 1) (m "2020-09-14"))) ; Sun->Mon
+
+    (should (equal (b- (m "2020-09-11") 1) (m "2020-09-10"))) ; Fri->Thu
+    (should (equal (b- (m "2020-09-10") 1) (m "2020-09-09"))) ; Thu->Wed
+    (should (equal (b- (m "2020-09-09") 1) (m "2020-09-08"))) ; Wed->Tue
+    (should (equal (b- (m "2020-09-08") 1) (m "2020-09-07"))) ; Tue->Mon
+    (should (equal (b- (m "2020-09-07") 1) (m "2020-09-04"))) ; Mon->Fri
+
+    (should (equal (b- (m "2020-09-11") 4) (m "2020-09-07"))) ; Fri->Mon
+    (should (equal (b- (m "2020-09-15") 6) (m "2020-09-07"))) ; Tue->Mon
+
+    (should (equal (b- (m "2020-09-12") 1) (m "2020-09-11"))) ; Sat->Fri
+    (should (equal (b- (m "2020-09-13") 1) (m "2020-09-11"))) ; Sun->Fri
+
+    ;; Stepping fractional days
+    (should (equal (b+ (m "2020-09-08 21:00") '(frac 1 2))
+                   (m "2020-09-09 09:00")))
+    (should (equal (b+ (m "2020-09-11 21:00") '(frac 1 2))
+                   (m "2020-09-14 09:00")))
+    (should (equal (b- (m "2020-09-08 21:00") '(frac 1 2))
+                   (m "2020-09-08 09:00")))
+    (should (equal (b- (m "2020-09-14 06:00") '(frac 1 2))
+                   (m "2020-09-11 18:00")))
+
+    ;; Test with a couple of extra days off:
+    (let ((var-Holidays (list 'vec
+                              '(var sat var-sat) '(var sun var-sun)
+                              (m "2020-09-09") (m "2020-09-11"))))
+
+      (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-08"))) ; Mon->Tue
+      (should (equal (b+ (m "2020-09-08") 1) (m "2020-09-10"))) ; Tue->Thu
+      (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-14"))) ; Thu->Mon
+      (should (equal (b+ (m "2020-09-14") 1) (m "2020-09-15"))) ; Mon->Tue
+      (should (equal (b+ (m "2020-09-15") 1) (m "2020-09-16"))) ; Tue->Wed
+
+      (should (equal (b- (m "2020-09-16") 1) (m "2020-09-15"))) ; Wed->Tue
+      (should (equal (b- (m "2020-09-15") 1) (m "2020-09-14"))) ; Tue->Mon
+      (should (equal (b- (m "2020-09-14") 1) (m "2020-09-10"))) ; Mon->Thu
+      (should (equal (b- (m "2020-09-10") 1) (m "2020-09-08"))) ; Thu->Tue
+      (should (equal (b- (m "2020-09-08") 1) (m "2020-09-07"))) ; Tue->Mon
+      )
+
+    ;; Test with odd non-business weekdays (Tue, Wed, Sat):
+    (let ((var-Holidays '(vec (var tue var-tue)
+                              (var wed var-wed)
+                              (var sat var-sat))))
+      (should (equal (b+ (m "2020-09-07") 1) (m "2020-09-10"))) ; Mon->Thu
+      (should (equal (b+ (m "2020-09-10") 1) (m "2020-09-11"))) ; Thu->Fri
+      (should (equal (b+ (m "2020-09-11") 1) (m "2020-09-13"))) ; Fri->Sun
+      (should (equal (b+ (m "2020-09-13") 1) (m "2020-09-14"))) ; Sun->Mon
+
+      (should (equal (b- (m "2020-09-14") 1) (m "2020-09-13"))) ; Mon->Sun
+      (should (equal (b- (m "2020-09-13") 1) (m "2020-09-11"))) ; Sun->Fri
+      (should (equal (b- (m "2020-09-11") 1) (m "2020-09-10"))) ; Fri->Thu
+      (should (equal (b- (m "2020-09-10") 1) (m "2020-09-07"))) ; Thu->Mon
+      )
+  ))
+
+(ert-deftest calc-unix-date ()
+  (let* ((d-1970-01-01 (math-parse-date "1970-01-01"))
+         (d-2020-09-07 (math-parse-date "2020-09-07"))
+         (d-1991-01-09-0600 (math-parse-date "1991-01-09 06:00")))
+    ;; calcFunc-unixtime (command "t U") converts a date value to Unix time,
+    ;; and a number to a date.
+    (should (equal d-1970-01-01 '(date 719163)))
+    (should (equal (calcFunc-unixtime d-1970-01-01 0) 0))
+    (should (equal (calc-tests--calc-to-number (cadr (calcFunc-unixtime 0 0)))
+                   (cadr d-1970-01-01)))
+    (should (equal (calcFunc-unixtime d-2020-09-07 0)
+                   (* (- (cadr d-2020-09-07)
+                         (cadr d-1970-01-01))
+                      86400)))
+    (should (equal (calcFunc-unixtime d-1991-01-09-0600 0)
+                   663400800))
+    (should (equal (calc-tests--calc-to-number
+                    (cadr (calcFunc-unixtime 663400800 0)))
+                   726841.25))
+
+    (let ((calc-date-format '(U)))
+      ;; Test parsing Unix time.
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "0")))
+                     719163))
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "469324800")))
+                     (+ 719163 (/ 469324800 86400))))
+      (should (equal (calc-tests--calc-to-number
+                      (cadr (math-parse-date "663400800")))
+                     726841.25))
+
+      ;; Test formatting Unix time.
+      (should (equal (math-format-date d-1970-01-01) "0"))
+      (should (equal (math-format-date d-2020-09-07)
+                     (number-to-string (* (- (cadr d-2020-09-07)
+                                             (cadr d-1970-01-01))
+                                          86400))))
+      (should (equal (math-format-date d-1991-01-09-0600) "663400800")))))
+
+;; Reference implementations of bit operations:
+
+(defun calc-tests--clip (x w)
+  "Clip X to W bits, signed if W is negative, otherwise unsigned."
+  (cond ((zerop w) x)
+        ((> w 0) (logand x (- (ash 1 w) 1)))
+        (t (let ((y (calc-tests--clip x (- w)))
+                 (msb (ash 1 (- (- w) 1))))
+             (- y (ash (logand y msb) 1))))))
+
+(defun calc-tests--not (x w)
+  "Bitwise complement of X, word size W."
+  (calc-tests--clip (lognot x) w))
+
+(defun calc-tests--and (x y w)
+  "Bitwise AND of X and W, word size W."
+  (calc-tests--clip (logand x y) w))
+
+(defun calc-tests--or (x y w)
+  "Bitwise OR of X and Y, word size W."
+  (calc-tests--clip (logior x y) w))
+
+(defun calc-tests--xor (x y w)
+  "Bitwise XOR of X and Y, word size W."
+  (calc-tests--clip (logxor x y) w))
+
+(defun calc-tests--diff (x y w)
+  "Bitwise AND of X and NOT Y, word size W."
+  (calc-tests--clip (logand x (lognot y)) w))
+
+(defun calc-tests--lsh (x n w)
+  "Logical shift left X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--rsh x (- n) w)
+    (calc-tests--clip (ash x n) w)))
+
+(defun calc-tests--rsh (x n w)
+  "Logical shift right X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--lsh x (- n) w)
+    ;; First zero-extend, then shift.
+    (calc-tests--clip
+     (ash (calc-tests--clip x (abs w)) (- n))
+     w)))
+
+(defun calc-tests--ash (x n w)
+  "Arithmetic shift left X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--rash x (- n) w)
+    (calc-tests--clip (ash x n) w)))
+
+(defun calc-tests--rash (x n w)
+  "Arithmetic shift right X by N steps, word size W."
+  (if (< n 0)
+      (calc-tests--ash x (- n) w)
+    ;; First sign-extend, then shift.
+    (calc-tests--clip
+     (ash (calc-tests--clip x (- (abs w))) (- n))
+     w)))
+
+(defun calc-tests--rot (x n w)
+  "Rotate X left by N steps, word size W."
+  (when (zerop w)
+    (error "Undefined"))
+  (let* ((aw (abs w))
+         (y (calc-tests--clip x aw))
+         (steps (mod n aw)))
+    (calc-tests--clip (logior (ash y steps) (ash y (- steps aw)))
+                      w)))
+
+(ert-deftest calc-shift-binary ()
+  (dolist (w '(16 32 -16 -32 0))
+    (dolist (x '(0 1 #x1234 #x8000 #xabcd #xffff
+                 #x12345678 #xabcdef12 #x80000000 #xffffffff
+                 #x1234567890ab #x1234967890ab
+                 -1 -14 #x-8000 #x-ffff #x-8001 #x-10000
+                 #x-80000000 #x-ffffffff #x-80000001 #x-100000000))
+      (dolist (n '(0 1 4 16 32 -1 -4 -16 -32))
+        (should (equal (calcFunc-lsh x n w)
+                       (calc-tests--lsh x n w)))
+        (should (equal (calcFunc-rsh x n w)
+                       (calc-tests--rsh x n w)))
+        (should (equal (calcFunc-ash x n w)
+                       (calc-tests--ash x n w)))
+        (should (equal (calcFunc-rash x n w)
+                       (calc-tests--rash x n w)))
+        (unless (zerop w)
+          (should (equal (calcFunc-rot x n w)
+                         (calc-tests--rot x n w)))))))
+  (should-error (calcFunc-rot 1 1 0)))
+
+(ert-deftest calc-bit-ops ()
+  (dolist (w '(16 32 -16 -32 0))
+    (dolist (x '(0 1 #x1234 #x8000 #xabcd #xffff
+                 #x12345678 #xabcdef12 #x80000000 #xffffffff
+                 #x1234567890ab #x1234967890ab
+                 -1 -14 #x-8000 #x-ffff #x-8001 #x-10000
+                 #x-80000000 #x-ffffffff #x-80000001 #x-100000000))
+      (should (equal (calcFunc-not x w)
+                     (calc-tests--not x w)))
+
+      (dolist (n '(0 1 4 16 32 -1 -4 -16 -32))
+        (equal (calcFunc-clip x n)
+               (calc-tests--clip x n)))
+
+      (dolist (y '(0 1 #x1234 #x8000 #xabcd #xffff
+                     #x12345678 #xabcdef12 #x80000000 #xffffffff
+                     #x1234567890ab #x1234967890ab
+                     -1 -14 #x-8000 #x-ffff #x-8001 #x-10000
+                     #x-80000000 #x-ffffffff #x-80000001 #x-100000000))
+        (should (equal (calcFunc-and x y w)
+                       (calc-tests--and x y w)))
+        (should (equal (calcFunc-or x y w)
+                       (calc-tests--or x y w)))
+        (should (equal (calcFunc-xor x y w)
+                       (calc-tests--xor x y w)))
+        (should (equal (calcFunc-diff x y w)
+                       (calc-tests--diff x y w)))))))
+
+(ert-deftest calc-latex-input ()
+  ;; Check precedence of "/" in LaTeX input mode.
+  (should (equal (math-read-exprs "a+b/c*d")
+                 '((+ (var a var-a) (/ (var b var-b)
+                                       (* (var c var-c) (var d var-d)))))))
+  (unwind-protect
+      (progn
+        (calc-set-language 'latex)
+        (should (equal (math-read-exprs "a+b/c*d")
+                 '((+ (var a var-a) (/ (var b var-b)
+                                       (* (var c var-c) (var d var-d)))))))
+        (should (equal (math-read-exprs "a+b\\over c*d")
+                       '((/ (+ (var a var-a) (var b var-b))
+                            (* (var c var-c) (var d var-d))))))
+        (should (equal (math-read-exprs "a/b/c")
+                       '((/ (/ (var a var-a) (var b var-b))
+                            (var c var-c))))))
+    (calc-set-language nil)))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here

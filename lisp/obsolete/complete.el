@@ -431,6 +431,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
   (let ((result (try-completion string alist predicate)))
     (if (eq result t) string result)))
 
+(defvar completion-base-size)
+
 ;; TODO document MODE magic...
 (defun PC-do-completion (&optional mode beg end goto-end)
   "Internal function to do the work of partial completion.

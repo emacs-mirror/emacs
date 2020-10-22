@@ -184,7 +184,7 @@ In insert mode, this key also functions as Meta."
   :type 'string
   :group 'viper)
 
-(defconst viper-ESC-key [escape]
+(defconst viper-ESC-key (kbd "ESC")
   "Key used to ESC.")
 
 

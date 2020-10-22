@@ -382,10 +382,10 @@ count_bytes (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t endpos)
 
   if (pos <= endpos)
     for ( ; pos < endpos; pos++)
-      INC_POS (bytepos);
+      bytepos += next_char_len (bytepos);
   else
     for ( ; pos > endpos; pos--)
-      DEC_POS (bytepos);
+      bytepos -= prev_char_len (bytepos);
 
   return bytepos;
 }
@@ -626,8 +626,7 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
 
       while (bytes_left > 0)
 	{
-	  int thislen, c;
-	  c = STRING_CHAR_AND_LENGTH (from_addr, thislen);
+	  int thislen, c = string_char_and_length (from_addr, &thislen);
 	  if (! ASCII_CHAR_P (c))
 	    c &= 0xFF;
 	  *to_addr++ = c;
@@ -715,7 +714,7 @@ insert_char (int c)
   insert ((char *) str, len);
 }
 
-/* Insert the NUL-terminated string S before point.  */
+/* Insert the null-terminated string S before point.  */
 
 void
 insert_string (const char *s)
@@ -2397,7 +2396,13 @@ This affects `before-change-functions' and `after-change-functions',
 as well as hooks attached to text properties and overlays.
 Setting this variable non-nil also inhibits file locks and checks
 whether files are locked by another Emacs session, as well as
-handling of the active region per `select-active-regions'.  */);
+handling of the active region per `select-active-regions'.
+
+To delay change hooks during a series of changes, use
+`combine-change-calls' or `combine-after-change-calls' instead of
+binding this variable.
+
+See also the info node `(elisp) Change Hooks'.  */);
   inhibit_modification_hooks = 0;
   DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
 

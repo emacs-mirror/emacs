@@ -232,8 +232,8 @@
   '(
     (;; VOWELS
      (?അ nil) (?ആ ?ാ) (?ഇ ?ി) (?ഈ ?ീ) (?ഉ ?ു) (?ഊ ?ൂ)
-     (?ഋ ?ൃ) (?ഌ nil) nil (?ഏ ?േ) (?എ ?െ) (?ഐ ?ൈ)
-     nil (?ഓ ?ോ) (?ഒ ?ൊ) (?ഔ ?ൌ) nil nil)
+     (?ഋ ?ൃ) (?ഌ ?ൢ) (?ൡ ?ൣ) (?ഏ ?േ) (?എ ?െ) (?ഐ ?ൈ)
+     nil (?ഒ ?ൊ) (?ഓ ?ോ) (?ഔ ?ൗ) (?് ?്) (?ൠ ?ൄ))
     (;; CONSONANTS
      ?ക ?ഖ ?ഗ ?ഘ ?ങ                  ;; GUTTRULS
      ?ച ?ഛ ?ജ ?ഝ ?ഞ                  ;; PALATALS
@@ -243,13 +243,16 @@
      ?യ ?ര ?റ ?ല ?ള ?ഴ ?വ          ;; SEMIVOWELS
      ?ശ ?ഷ ?സ ?ഹ                    ;; SIBILANTS
      nil nil nil nil nil nil nil nil      ;; NUKTAS
-     "ജ്ഞ" "ക്ഷ")
+     "ജ്ഞ" "ക്ഷ"
+     "റ്റ" "ന്റ" "ത്ത" "ത്ഥ" "ഞ്ഞ" "ങ്ങ" "ന്ന"
+     "ഞ്ച" "ന്ക" "ങ്ക" "ച്ച" "ച്ഛ" "ക്ക"
+     "ബ്ബ" "ക്ക" "ഗ്ഗ" "ജ്ജ" "മ്മ" "പ്പ" "വ്വ" "ക്സ" "ശ്ശ")
     (;; Misc Symbols
      nil ?ം ?ഃ nil ?് nil nil)
     (;; Digits
      ?൦ ?൧ ?൨ ?൩ ?൪ ?൫ ?൬ ?൭ ?൮ ?൯)
-    (;; Inscript-extra (4)  (#, $, ^, *, ])
-     "്ര" "ര്" "ത്ര" "ശ്ര" nil)))
+    (;; Chillus
+     "ണ്" ?ൺ "ന്" ?ൻ "ര്" ?ർ "ല്" ?ൽ "ള്" ?ൾ)))
 
 (defvar indian-tml-base-table
   '(
@@ -322,6 +325,29 @@
      ("GY" "dny") "x")
     (;; misc -- 7
      ".N" (".n" "M") "H" ".a" ".h" ("AUM" "OM") "..")))
+
+(defvar indian-mlm-mozhi-table
+  '(;; for encode/decode
+    (;; vowels -- 18
+     "a" ("aa" "A") "i" ("ii" "I") "u" ("uu" "U")
+     "R" "Ll" "Lll" ("E" "ae") "e" "ai"
+     nil  "o"   "O"   "au"  "~" "RR")
+    (;; consonants -- 40
+     ("k" "c")   "kh"  "g"   "gh"  "ng"
+     "ch" ("Ch" "chh") "j" "jh" "nj"
+     "T"   "Th"  "D"   "Dh"  "N"
+     "th"  "thh" "d"   "dh"  "n"   nil
+     "p"   ("ph" "f")  "b"   "bh"  "m"
+     "y"   "r"   "rr"  "l"  "L" "zh" ("v" "w")
+     ("S" "z") "sh" "s" "h"
+     nil nil nil nil nil nil nil nil
+     nil "X"
+     ;; some of these are extra to Mozhi
+     ("t" "tt") "nt" "tth" "tthh" "nnj" "nng" "nn"
+     "nch" "nc" "nk" "cch" "cchh" "cc"
+     "B" ("C" "K" "q") "G" "J" "M" "P" "V" "x" "Z")
+    (;; misc -- 7
+     nil nil "H")))
 
 (defvar indian-kyoto-harvard-table
   '(;; for encode/decode
@@ -523,6 +549,10 @@
 (defvar indian-mlm-itrans-v5-hash
   (indian-make-hash indian-mlm-base-table
 			  indian-itrans-v5-table))
+
+(defvar indian-mlm-mozhi-hash
+  (indian-make-hash indian-mlm-base-table
+			  indian-mlm-mozhi-table))
 
 (defvar indian-tml-itrans-v5-hash
   (indian-make-hash indian-tml-base-table

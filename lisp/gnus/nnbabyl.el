@@ -293,7 +293,7 @@
 
 (deffoo nnbabyl-request-move-article
     (article group server accept-form &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nnbabyl move*"))
+  (let ((buf (gnus-get-buffer-create " *nnbabyl move*"))
 	result)
     (and
      (nnbabyl-request-article article group server)
@@ -544,7 +544,7 @@
       (setq buffer-file-name nnbabyl-mbox-file)
       (insert "BABYL OPTIONS:\n\n\^_")
       (nnmail-write-region
-       (point-min) (point-max) nnbabyl-mbox-file t 'nomesg))))
+       (point-min) (point-max) nnbabyl-mbox-file t 'nomesg nil 'excl))))
 
 (defun nnbabyl-read-mbox ()
   (nnmail-activate 'nnbabyl)

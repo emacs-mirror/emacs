@@ -643,7 +643,7 @@ growable_destination (struct coding_system *coding)
 	else						\
 	  {						\
 	    src--;					\
-	    c = - string_char (src, &src, NULL);	\
+	    c = - string_char_advance (&src);		\
 	    record_conversion_result			\
 	      (coding, CODING_RESULT_INVALID_SRC);	\
 	  }						\
@@ -728,7 +728,7 @@ growable_destination (struct coding_system *coding)
 	unsigned ch = (c);		\
 	if (ch >= 0x80)			\
 	  ch = BYTE8_TO_CHAR (ch);	\
-	CHAR_STRING_ADVANCE (ch, dst);	\
+	dst += CHAR_STRING (ch, dst);	\
       }					\
     else				\
       *dst++ = (c);			\
@@ -747,11 +747,11 @@ growable_destination (struct coding_system *coding)
 	ch = (c1);			\
 	if (ch >= 0x80)			\
 	  ch = BYTE8_TO_CHAR (ch);	\
-	CHAR_STRING_ADVANCE (ch, dst);	\
+	dst += CHAR_STRING (ch, dst);	\
 	ch = (c2);			\
 	if (ch >= 0x80)			\
 	  ch = BYTE8_TO_CHAR (ch);	\
-	CHAR_STRING_ADVANCE (ch, dst);	\
+	dst += CHAR_STRING (ch, dst);	\
       }					\
     else				\
       {					\
@@ -884,18 +884,18 @@ record_conversion_result (struct coding_system *coding,
 
 
 /* Store multibyte form of the character C in P, and advance P to the
-   end of the multibyte form.  This used to be like CHAR_STRING_ADVANCE
+   end of the multibyte form.  This used to be like adding CHAR_STRING
    without ever calling MAYBE_UNIFY_CHAR, but nowadays we don't call
-   MAYBE_UNIFY_CHAR in CHAR_STRING_ADVANCE.  */
+   MAYBE_UNIFY_CHAR in CHAR_STRING.  */
 
-#define CHAR_STRING_ADVANCE_NO_UNIFY(c, p)  CHAR_STRING_ADVANCE(c, p)
+#define CHAR_STRING_ADVANCE_NO_UNIFY(c, p) ((p) += CHAR_STRING (c, p))
 
 /* Return the character code of character whose multibyte form is at
    P, and advance P to the end of the multibyte form.  This used to be
-   like STRING_CHAR_ADVANCE without ever calling MAYBE_UNIFY_CHAR, but
-   nowadays STRING_CHAR_ADVANCE doesn't call MAYBE_UNIFY_CHAR.  */
+   like string_char_advance without ever calling MAYBE_UNIFY_CHAR, but
+   nowadays string_char_advance doesn't call MAYBE_UNIFY_CHAR.  */
 
-#define STRING_CHAR_ADVANCE_NO_UNIFY(p) STRING_CHAR_ADVANCE(p)
+#define STRING_CHAR_ADVANCE_NO_UNIFY(p) string_char_advance (&(p))
 
 /* Set coding->source from coding->src_object.  */
 
@@ -5131,7 +5131,7 @@ decode_coding_ccl (struct coding_system *coding)
 	  while (i < 1024 && p < src_end)
 	    {
 	      source_byteidx[i] = p - src;
-	      source_charbuf[i++] = STRING_CHAR_ADVANCE (p);
+	      source_charbuf[i++] = string_char_advance (&p);
 	    }
 	  source_byteidx[i] = p - src;
 	}
@@ -5308,15 +5308,10 @@ encode_coding_raw_text (struct coding_system *coding)
 	      }
 	    else
 	      {
-		unsigned char str[MAX_MULTIBYTE_LENGTH], *p0 = str, *p1 = str;
-
-		CHAR_STRING_ADVANCE (c, p1);
-		do
-		  {
-		    EMIT_ONE_BYTE (*p0);
-		    p0++;
-		  }
-		while (p0 < p1);
+		unsigned char str[MAX_MULTIBYTE_LENGTH];
+		int len = CHAR_STRING (c, str);
+		for (int i = 0; i < len; i++)
+		  EMIT_ONE_BYTE (str[i]);
 	      }
 	  }
       else
@@ -5342,7 +5337,7 @@ encode_coding_raw_text (struct coding_system *coding)
 	      else if (CHAR_BYTE8_P (c))
 		*dst++ = CHAR_TO_BYTE8 (c);
 	      else
-		CHAR_STRING_ADVANCE (c, dst);
+		dst += CHAR_STRING (c, dst);
 	    }
 	}
       else
@@ -5712,7 +5707,7 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
       coding->common_flags |= CODING_REQUIRE_DETECTION_MASK;
       coding->spec.undecided.inhibit_nbd
 	= (encode_inhibit_flag
-	   (AREF (attrs, coding_attr_undecided_inhibit_nul_byte_detection)));
+	   (AREF (attrs, coding_attr_undecided_inhibit_null_byte_detection)));
       coding->spec.undecided.inhibit_ied
 	= (encode_inhibit_flag
 	   (AREF (attrs, coding_attr_undecided_inhibit_iso_escape_detection)));
@@ -6540,9 +6535,9 @@ detect_coding (struct coding_system *coding)
     {
       int c, i;
       struct coding_detection_info detect_info;
-      bool nul_byte_found = 0, eight_bit_found = 0;
+      bool null_byte_found = 0, eight_bit_found = 0;
       bool inhibit_nbd = inhibit_flag (coding->spec.undecided.inhibit_nbd,
-				       inhibit_nul_byte_detection);
+				       inhibit_null_byte_detection);
       bool inhibit_ied = inhibit_flag (coding->spec.undecided.inhibit_ied,
 				       inhibit_iso_escape_detection);
       bool prefer_utf_8 = coding->spec.undecided.prefer_utf_8;
@@ -6555,7 +6550,7 @@ detect_coding (struct coding_system *coding)
 	  if (c & 0x80)
 	    {
 	      eight_bit_found = 1;
-	      if (nul_byte_found)
+	      if (null_byte_found)
 		break;
 	    }
 	  else if (c < 0x20)
@@ -6570,7 +6565,7 @@ detect_coding (struct coding_system *coding)
 		      if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
 			{
 			  /* We didn't find an 8-bit code.  We may
-			     have found a NUL-byte, but it's very
+			     have found a null-byte, but it's very
 			     rare that a binary file conforms to
 			     ISO-2022.  */
 			  src = src_end;
@@ -6582,7 +6577,7 @@ detect_coding (struct coding_system *coding)
 		}
 	      else if (! c && !inhibit_nbd)
 		{
-		  nul_byte_found = 1;
+		  null_byte_found = 1;
 		  if (eight_bit_found)
 		    break;
 		}
@@ -6614,7 +6609,7 @@ detect_coding (struct coding_system *coding)
 	    coding->head_ascii++;
 	}
 
-      if (nul_byte_found || eight_bit_found
+      if (null_byte_found || eight_bit_found
 	  || coding->head_ascii < coding->src_bytes
 	  || detect_info.found)
 	{
@@ -6632,7 +6627,7 @@ detect_coding (struct coding_system *coding)
 	      }
 	  else
 	    {
-	      if (nul_byte_found)
+	      if (null_byte_found)
 		{
 		  detect_info.checked |= ~CATEGORY_MASK_UTF_16;
 		  detect_info.rejected |= ~CATEGORY_MASK_UTF_16;
@@ -6705,7 +6700,7 @@ detect_coding (struct coding_system *coding)
 	      else
 		found = CODING_ID_NAME (this->id);
 	    }
-	  else if (nul_byte_found)
+	  else if (null_byte_found)
 	    found = Qno_conversion;
 	  else if ((detect_info.rejected & CATEGORY_MASK_ANY)
 		   == CATEGORY_MASK_ANY)
@@ -7457,7 +7452,7 @@ decode_coding (struct coding_system *coding)
 	      if (coding->src_multibyte
 		  && CHAR_BYTE8_HEAD_P (*src) && nbytes > 0)
 		{
-		  c = STRING_CHAR_ADVANCE (src);
+		  c = string_char_advance (&src);
 		  nbytes--;
 		}
 	      else
@@ -7551,10 +7546,8 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 		  len = SCHARS (components);
 		  i = i_byte = 0;
 		  while (i < len)
-		    {
-		      FETCH_STRING_CHAR_ADVANCE (*buf, components, i, i_byte);
-		      buf++;
-		    }
+		    *buf++ = fetch_string_char_advance (components,
+							&i, &i_byte);
 		}
 	      else if (FIXNUMP (components))
 		{
@@ -7677,15 +7670,17 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 
       if (! multibytep)
 	{
-	  int bytes;
-
 	  if (coding->encoder == encode_coding_raw_text
 	      || coding->encoder == encode_coding_ccl)
 	    c = *src++, pos++;
-	  else if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
-	    c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos += bytes;
 	  else
-	    c = BYTE8_TO_CHAR (*src), src++, pos++;
+	    {
+	      int bytes = multibyte_length (src, src_end, true, true);
+	      if (0 < bytes)
+		c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos += bytes;
+	      else
+		c = BYTE8_TO_CHAR (*src), src++, pos++;
+	    }
 	}
       else
 	c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos++;
@@ -7715,7 +7710,7 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 
 	  lookup_buf[0] = c;
 	  for (i = 1; i < max_lookup && p < src_end; i++)
-	    lookup_buf[i] = STRING_CHAR_ADVANCE (p);
+	    lookup_buf[i] = string_char_advance (&p);
 	  lookup_buf_end = lookup_buf + i;
 	  trans = get_translation (trans, lookup_buf, lookup_buf_end,
 				   &from_nchars);
@@ -7734,7 +7729,7 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 	  for (i = 1; i < to_nchars; i++)
 	    *buf++ = XFIXNUM (AREF (trans, i));
 	  for (i = 1; i < from_nchars; i++, pos++)
-	    src += MULTIBYTE_LENGTH_NO_CHECK (src);
+	    src += multibyte_length (src, NULL, false, true);
 	}
     }
 
@@ -8481,7 +8476,7 @@ from_unicode (Lisp_Object str)
 Lisp_Object
 from_unicode_buffer (const wchar_t *wstr)
 {
-  /* We get one of the two final NUL bytes for free.  */
+  /* We get one of the two final null bytes for free.  */
   ptrdiff_t len = 1 + sizeof (wchar_t) * wcslen (wstr);
   AUTO_STRING_WITH_LEN (str, (char *) wstr, len);
   return from_unicode (str);
@@ -8494,7 +8489,7 @@ to_unicode (Lisp_Object str, Lisp_Object *buf)
   /* We need to make another copy (in addition to the one made by
      code_convert_string_norecord) to ensure that the final string is
      _doubly_ zero terminated --- that is, that the string is
-     terminated by two zero bytes and one utf-16le NUL character.
+     terminated by two zero bytes and one utf-16le null character.
      Because strings are already terminated with a single zero byte,
      we just add one additional zero. */
   str = make_uninit_string (SBYTES (*buf) + 1);
@@ -8610,7 +8605,7 @@ detect_coding_system (const unsigned char *src,
   ptrdiff_t id;
   struct coding_detection_info detect_info;
   enum coding_category base_category;
-  bool nul_byte_found = 0, eight_bit_found = 0;
+  bool null_byte_found = 0, eight_bit_found = 0;
 
   if (NILP (coding_system))
     coding_system = Qundecided;
@@ -8637,7 +8632,7 @@ detect_coding_system (const unsigned char *src,
       struct coding_system *this UNINIT;
       int c, i;
       bool inhibit_nbd = inhibit_flag (coding.spec.undecided.inhibit_nbd,
-				       inhibit_nul_byte_detection);
+				       inhibit_null_byte_detection);
       bool inhibit_ied = inhibit_flag (coding.spec.undecided.inhibit_ied,
 				       inhibit_iso_escape_detection);
       bool prefer_utf_8 = coding.spec.undecided.prefer_utf_8;
@@ -8649,7 +8644,7 @@ detect_coding_system (const unsigned char *src,
 	  if (c & 0x80)
 	    {
 	      eight_bit_found = 1;
-	      if (nul_byte_found)
+	      if (null_byte_found)
 		break;
 	    }
 	  else if (c < 0x20)
@@ -8664,7 +8659,7 @@ detect_coding_system (const unsigned char *src,
 		      if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
 			{
 			  /* We didn't find an 8-bit code.  We may
-			     have found a NUL-byte, but it's very
+			     have found a null-byte, but it's very
 			     rare that a binary file confirm to
 			     ISO-2022.  */
 			  src = src_end;
@@ -8676,7 +8671,7 @@ detect_coding_system (const unsigned char *src,
 		}
 	      else if (! c && !inhibit_nbd)
 		{
-		  nul_byte_found = 1;
+		  null_byte_found = 1;
 		  if (eight_bit_found)
 		    break;
 		}
@@ -8687,7 +8682,7 @@ detect_coding_system (const unsigned char *src,
 	    coding.head_ascii++;
 	}
 
-      if (nul_byte_found || eight_bit_found
+      if (null_byte_found || eight_bit_found
 	  || coding.head_ascii < coding.src_bytes
 	  || detect_info.found)
 	{
@@ -8702,7 +8697,7 @@ detect_coding_system (const unsigned char *src,
 	      }
 	  else
 	    {
-	      if (nul_byte_found)
+	      if (null_byte_found)
 		{
 		  detect_info.checked |= ~CATEGORY_MASK_UTF_16;
 		  detect_info.rejected |= ~CATEGORY_MASK_UTF_16;
@@ -8749,7 +8744,7 @@ detect_coding_system (const unsigned char *src,
 	}
 
       if ((detect_info.rejected & CATEGORY_MASK_ANY) == CATEGORY_MASK_ANY
-	  || nul_byte_found)
+	  || null_byte_found)
 	{
 	  detect_info.found = CATEGORY_MASK_RAW_TEXT;
 	  id = CODING_SYSTEM_ID (Qno_conversion);
@@ -8851,7 +8846,7 @@ detect_coding_system (const unsigned char *src,
       {
 	if (detect_info.found & ~CATEGORY_MASK_UTF_16)
 	  {
-	    if (nul_byte_found)
+	    if (null_byte_found)
 	      normal_eol = EOL_SEEN_LF;
 	    else
 	      normal_eol = detect_eol (coding.source, src_bytes,
@@ -9023,23 +9018,23 @@ DEFUN ("find-coding-systems-region-internal",
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (start);
-      CHECK_FIXNUM_COERCE_MARKER (end);
-      if (XFIXNUM (start) < BEG || XFIXNUM (end) > Z || XFIXNUM (start) > XFIXNUM (end))
+      EMACS_INT s = fix_position (start);
+      EMACS_INT e = fix_position (end);
+      if (! (BEG <= s && s <= e && e <= Z))
 	args_out_of_range (start, end);
       if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return Qt;
-      start_byte = CHAR_TO_BYTE (XFIXNUM (start));
-      end_byte = CHAR_TO_BYTE (XFIXNUM (end));
-      if (XFIXNUM (end) - XFIXNUM (start) == end_byte - start_byte)
+      start_byte = CHAR_TO_BYTE (s);
+      end_byte = CHAR_TO_BYTE (e);
+      if (e - s == end_byte - start_byte)
 	return Qt;
 
-      if (XFIXNUM (start) < GPT && XFIXNUM (end) > GPT)
+      if (s < GPT && GPT < e)
 	{
-	  if ((GPT - XFIXNUM (start)) < (XFIXNUM (end) - GPT))
-	    move_gap_both (XFIXNUM (start), start_byte);
+	  if (GPT - s < e - GPT)
+	    move_gap_both (s, start_byte);
 	  else
-	    move_gap_both (XFIXNUM (end), end_byte);
+	    move_gap_both (e, end_byte);
 	}
     }
 
@@ -9075,7 +9070,7 @@ DEFUN ("find-coding-systems-region-internal",
 	p++;
       else
 	{
-	  c = STRING_CHAR_ADVANCE (p);
+	  c = string_char_advance (&p);
 	  if (!NILP (char_table_ref (work_table, c)))
 	    /* This character was already checked.  Ignore it.  */
 	    continue;
@@ -9208,7 +9203,7 @@ to the string and treated as in `substring'.  */)
 	  p = GAP_END_ADDR;
 	}
 
-      c = STRING_CHAR_ADVANCE (p);
+      c = string_char_advance (&p);
       if (! (ASCII_CHAR_P (c) && ascii_compatible)
 	  && ! char_charset (translate_char (translation_table, c),
 			     charset_list, NULL))
@@ -9277,32 +9272,35 @@ is nil.  */)
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (start);
-      CHECK_FIXNUM_COERCE_MARKER (end);
-      if (XFIXNUM (start) < BEG || XFIXNUM (end) > Z || XFIXNUM (start) > XFIXNUM (end))
+      EMACS_INT s = fix_position (start);
+      EMACS_INT e = fix_position (end);
+      if (! (BEG <= s && s <= e && e <= Z))
 	args_out_of_range (start, end);
       if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return Qnil;
-      start_byte = CHAR_TO_BYTE (XFIXNUM (start));
-      end_byte = CHAR_TO_BYTE (XFIXNUM (end));
-      if (XFIXNUM (end) - XFIXNUM (start) == end_byte - start_byte)
+      start_byte = CHAR_TO_BYTE (s);
+      end_byte = CHAR_TO_BYTE (e);
+      if (e - s == end_byte - start_byte)
 	return Qnil;
 
-      if (XFIXNUM (start) < GPT && XFIXNUM (end) > GPT)
+      if (s < GPT && GPT < e)
 	{
-	  if ((GPT - XFIXNUM (start)) < (XFIXNUM (end) - GPT))
-	    move_gap_both (XFIXNUM (start), start_byte);
+	  if (GPT - s < e - GPT)
+	    move_gap_both (s, start_byte);
 	  else
-	    move_gap_both (XFIXNUM (end), end_byte);
+	    move_gap_both (e, end_byte);
 	}
-      pos = XFIXNUM (start);
+      pos = s;
     }
 
   list = Qnil;
   for (tail = coding_system_list; CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      attrs = AREF (CODING_SYSTEM_SPEC (elt), 0);
+      Lisp_Object spec = CODING_SYSTEM_SPEC (elt);
+      if (!VECTORP (spec))
+        xsignal1 (Qcoding_system_error, elt);
+      attrs = AREF (spec, 0);
       ASET (attrs, coding_attr_trans_tbl,
 	    get_translation_table (attrs, 1, NULL));
       list = Fcons (list2 (elt, attrs), list);
@@ -9323,7 +9321,7 @@ is nil.  */)
 	p++;
       else
 	{
-	  c = STRING_CHAR_ADVANCE (p);
+	  c = string_char_advance (&p);
 
 	  charset_map_loaded = 0;
 	  for (tail = list; CONSP (tail); tail = XCDR (tail))
@@ -9471,6 +9469,17 @@ not fully specified.)  */)
   return code_convert_region (start, end, coding_system, destination, 1, 0);
 }
 
+/* Whether STRING only contains chars in the 0..127 range.  */
+static bool
+string_ascii_p (Lisp_Object string)
+{
+  ptrdiff_t nbytes = SBYTES (string);
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    if (SREF (string, i) > 127)
+      return false;
+  return true;
+}
+
 Lisp_Object
 code_convert_string (Lisp_Object string, Lisp_Object coding_system,
 		     Lisp_Object dst_object, bool encodep, bool nocopy,
@@ -9485,7 +9494,7 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
       if (! norecord)
 	Vlast_coding_system_used = Qno_conversion;
       if (NILP (dst_object))
-	return (nocopy ? Fcopy_sequence (string) : string);
+	return nocopy ? string : Fcopy_sequence (string);
     }
 
   if (NILP (coding_system))
@@ -9502,7 +9511,28 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
   chars = SCHARS (string);
   bytes = SBYTES (string);
 
-  if (BUFFERP (dst_object))
+  if (EQ (dst_object, Qt))
+    {
+      /* Fast path for ASCII-only input and an ASCII-compatible coding:
+         act as identity if no EOL conversion is needed.  */
+      Lisp_Object attrs = CODING_ID_ATTRS (coding.id);
+      if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
+          && (STRING_MULTIBYTE (string)
+              ? (chars == bytes) : string_ascii_p (string))
+          && (EQ (CODING_ID_EOL_TYPE (coding.id), Qunix)
+              || inhibit_eol_conversion
+              || ! memchr (SDATA (string), encodep ? '\n' : '\r', bytes)))
+        {
+          if (! norecord)
+            Vlast_coding_system_used = coding_system;
+          return (nocopy
+                  ? string
+                  : (encodep
+                     ? make_unibyte_string (SSDATA (string), bytes)
+                     : make_multibyte_string (SSDATA (string), bytes, bytes)));
+        }
+    }
+  else if (BUFFERP (dst_object))
     {
       struct buffer *buf = XBUFFER (dst_object);
       ptrdiff_t buf_pt = BUF_PT (buf);
@@ -9524,10 +9554,7 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
 
 
 /* Encode or decode STRING according to CODING_SYSTEM.
-   Do not set Vlast_coding_system_used.
-
-   This function is called only from macros DECODE_FILE and
-   ENCODE_FILE, thus we ignore character composition.  */
+   Do not set Vlast_coding_system_used.  */
 
 Lisp_Object
 code_convert_string_norecord (Lisp_Object string, Lisp_Object coding_system,
@@ -9696,7 +9723,7 @@ encode_string_utf_8 (Lisp_Object string, Lisp_Object buffer,
 	      || (len == 2 ? ! CHAR_BYTE8_HEAD_P (c)
 		  : (EQ (handle_over_uni, Qt)
 		     || (len == 4
-			 && string_char (p, NULL, NULL) <= MAX_UNICODE_CHAR))))
+			 && STRING_CHAR (p) <= MAX_UNICODE_CHAR))))
 	    {
 	      p += len;
 	      continue;
@@ -9978,8 +10005,7 @@ decode_string_utf_8 (Lisp_Object string, const char *str, ptrdiff_t str_len,
 		  && (len == 3
 		      || (UTF_8_EXTRA_OCTET_P (p[3])
 			  && len == 4
-			  && (string_char (p, NULL, NULL)
-			      <= MAX_UNICODE_CHAR))))))
+			  && STRING_CHAR (p) <= MAX_UNICODE_CHAR)))))
 	{
 	  p += len;
 	  continue;
@@ -10116,8 +10142,7 @@ decode_string_utf_8 (Lisp_Object string, const char *str, ptrdiff_t str_len,
 		   mlen++);
 	      if (mlen == len
 		  && (len <= 3
-		      || (len == 4
-			  && string_char (p, NULL, NULL) <= MAX_UNICODE_CHAR)
+		      || (len == 4 && STRING_CHAR (p) <= MAX_UNICODE_CHAR)
 		      || EQ (handle_over_uni, Qt)))
 		{
 		  p += len;
@@ -10297,6 +10322,16 @@ DEFUN ("internal-decode-string-utf-8", Finternal_decode_string_utf_8,
 
 #endif	/* ENABLE_UTF_8_CONVERTER_TEST */
 
+/* Encode or decode STRING using CODING_SYSTEM, with the possibility of
+   returning STRING itself if it equals the result.
+   Do not set Vlast_coding_system_used.  */
+static Lisp_Object
+convert_string_nocopy (Lisp_Object string, Lisp_Object coding_system,
+                       bool encodep)
+{
+  return code_convert_string (string, coding_system, Qt, encodep, 1, 1);
+}
+
 /* Encode or decode a file name, to or from a unibyte string suitable
    for passing to C library functions.  */
 Lisp_Object
@@ -10307,14 +10342,13 @@ decode_file_name (Lisp_Object fname)
      converts the file names either to UTF-16LE or to the system ANSI
      codepage internally, depending on the underlying OS; see w32.c.  */
   if (! NILP (Fcoding_system_p (Qutf_8)))
-    return code_convert_string_norecord (fname, Qutf_8, 0);
+    return convert_string_nocopy (fname, Qutf_8, 0);
   return fname;
 #else  /* !WINDOWSNT */
   if (! NILP (Vfile_name_coding_system))
-    return code_convert_string_norecord (fname, Vfile_name_coding_system, 0);
+    return convert_string_nocopy (fname, Vfile_name_coding_system, 0);
   else if (! NILP (Vdefault_file_name_coding_system))
-    return code_convert_string_norecord (fname,
-					 Vdefault_file_name_coding_system, 0);
+    return convert_string_nocopy (fname, Vdefault_file_name_coding_system, 0);
   else
     return fname;
 #endif
@@ -10334,14 +10368,13 @@ encode_file_name (Lisp_Object fname)
      converts the file names either to UTF-16LE or to the system ANSI
      codepage internally, depending on the underlying OS; see w32.c.  */
   if (! NILP (Fcoding_system_p (Qutf_8)))
-    return code_convert_string_norecord (fname, Qutf_8, 1);
+    return convert_string_nocopy (fname, Qutf_8, 1);
   return fname;
 #else  /* !WINDOWSNT */
   if (! NILP (Vfile_name_coding_system))
-    return code_convert_string_norecord (fname, Vfile_name_coding_system, 1);
+    return convert_string_nocopy (fname, Vfile_name_coding_system, 1);
   else if (! NILP (Vdefault_file_name_coding_system))
-    return code_convert_string_norecord (fname,
-					 Vdefault_file_name_coding_system, 1);
+    return convert_string_nocopy (fname, Vdefault_file_name_coding_system, 1);
   else
     return fname;
 #endif
@@ -10362,7 +10395,7 @@ representation of the decoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
-not fully specified.)  */)
+not fully specified.)  The function does not change the match data.  */)
   (Lisp_Object string, Lisp_Object coding_system, Lisp_Object nocopy, Lisp_Object buffer)
 {
   return code_convert_string (string, coding_system, buffer,
@@ -10382,7 +10415,7 @@ case, the return value is the length of the encoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
-not fully specified.)  */)
+not fully specified.)  The function does not change the match data.  */)
   (Lisp_Object string, Lisp_Object coding_system, Lisp_Object nocopy, Lisp_Object buffer)
 {
   return code_convert_string (string, coding_system, buffer,
@@ -10823,20 +10856,17 @@ HIGHESTP non-nil means just return the highest priority one.  */)
   return Fnreverse (val);
 }
 
-static const char *const suffixes[] = { "-unix", "-dos", "-mac" };
-
 static Lisp_Object
 make_subsidiaries (Lisp_Object base)
 {
-  Lisp_Object subsidiaries;
+  static char const suffixes[][8] = { "-unix", "-dos", "-mac" };
   ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
   USE_SAFE_ALLOCA;
   char *buf = SAFE_ALLOCA (base_name_len + 6);
-  int i;
 
   memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);
-  subsidiaries = make_uninit_vector (3);
-  for (i = 0; i < 3; i++)
+  Lisp_Object subsidiaries = make_nil_vector (3);
+  for (int i = 0; i < 3; i++)
     {
       strcpy (buf + base_name_len, suffixes[i]);
       ASET (subsidiaries, i, intern (buf));
@@ -10865,7 +10895,10 @@ usage: (define-coding-system-internal ...)  */)
   ASET (attrs, coding_attr_base_name, name);
 
   Lisp_Object val = args[coding_arg_mnemonic];
-  if (! STRINGP (val))
+  /* decode_mode_spec_coding assumes the mnemonic is a single character.  */
+  if (STRINGP (val))
+    val = make_fixnum (STRING_CHAR (SDATA (val)));
+  else
     CHECK_CHARACTER (val);
   ASET (attrs, coding_attr_mnemonic, val);
 
@@ -11061,10 +11094,8 @@ usage: (define-coding-system-internal ...)  */)
 	  else
 	    {
 	      CHECK_CONS (val);
-	      CHECK_RANGED_INTEGER (XCAR (val), 0, 255);
-	      from = XFIXNUM (XCAR (val));
-	      CHECK_RANGED_INTEGER (XCDR (val), from, 255);
-	      to = XFIXNUM (XCDR (val));
+	      from = check_integer_range (XCAR (val), 0, 255);
+	      to = check_integer_range (XCDR (val), from, 255);
 	    }
 	  for (int i = from; i <= to; i++)
 	    SSET (valids, i, 1);
@@ -11149,7 +11180,7 @@ usage: (define-coding-system-internal ...)  */)
 	  val = XCAR (tail);
 	  CHECK_CONS (val);
 	  CHECK_CHARSET_GET_ID (XCAR (val), id);
-	  CHECK_RANGED_INTEGER (XCDR (val), 0, 3);
+	  check_integer_range (XCDR (val), 0, 3);
 	  XSETCAR (val, make_fixnum (id));
 	}
 
@@ -11289,8 +11320,8 @@ usage: (define-coding-system-internal ...)  */)
     {
       if (nargs < coding_arg_undecided_max)
 	goto short_args;
-      ASET (attrs, coding_attr_undecided_inhibit_nul_byte_detection,
-	    args[coding_arg_undecided_inhibit_nul_byte_detection]);
+      ASET (attrs, coding_attr_undecided_inhibit_null_byte_detection,
+	    args[coding_arg_undecided_inhibit_null_byte_detection]);
       ASET (attrs, coding_attr_undecided_inhibit_iso_escape_detection,
 	    args[coding_arg_undecided_inhibit_iso_escape_detection]);
       ASET (attrs, coding_attr_undecided_prefer_utf_8,
@@ -11380,7 +11411,10 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
   attrs = AREF (spec, 0);
   if (EQ (prop, QCmnemonic))
     {
-      if (! STRINGP (val))
+      /* decode_mode_spec_coding assumes the mnemonic is a single character.  */
+      if (STRINGP (val))
+	val = make_fixnum (STRING_CHAR (SDATA (val)));
+      else
 	CHECK_CHARACTER (val);
       ASET (attrs, coding_attr_mnemonic, val);
     }
@@ -11745,6 +11779,8 @@ syms_of_coding (void)
 
   DEFSYM (Qignored, "ignored");
 
+  DEFSYM (Qutf_8_string_p, "utf-8-string-p");
+
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
   defsubr (&Sread_non_nil_coding_system);
@@ -11796,8 +11832,7 @@ Each element is one element list of coding system name.
 This variable is given to `completing-read' as COLLECTION argument.
 
 Do not alter the value of this variable manually.  This variable should be
-updated by the functions `make-coding-system' and
-`define-coding-system-alias'.  */);
+updated by `define-coding-system-alias'.  */);
   Vcoding_system_alist = Qnil;
 
   DEFVAR_LISP ("coding-category-list", Vcoding_category_list,
@@ -12051,18 +12086,18 @@ to explicitly specify some coding system that doesn't use ISO-2022
 escape sequence (e.g., `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
 
-  DEFVAR_BOOL ("inhibit-nul-byte-detection",
-	       inhibit_nul_byte_detection,
-	       doc: /* If non-nil, Emacs ignores NUL bytes on code detection.
+  DEFVAR_BOOL ("inhibit-null-byte-detection",
+	       inhibit_null_byte_detection,
+	       doc: /* If non-nil, Emacs ignores null bytes on code detection.
 By default, Emacs treats it as binary data, and does not attempt to
 decode it.  The effect is as if you specified `no-conversion' for
 reading that text.
 
-Set this to non-nil when a regular text happens to include NUL bytes.
-Examples are Index nodes of Info files and NUL-byte delimited output
-from GNU Find and GNU Grep.  Emacs will then ignore the NUL bytes and
+Set this to non-nil when a regular text happens to include null bytes.
+Examples are Index nodes of Info files and null-byte delimited output
+from GNU Find and GNU Grep.  Emacs will then ignore the null bytes and
 decode text as usual.  */);
-  inhibit_nul_byte_detection = 0;
+  inhibit_null_byte_detection = 0;
 
   DEFVAR_BOOL ("disable-ascii-optimization", disable_ascii_optimization,
 	       doc: /* If non-nil, Emacs does not optimize code decoder for ASCII files.
@@ -12121,7 +12156,7 @@ internal character representation.  */);
 				   "automatic conversion on decoding.");
   plist[15] = args[coding_arg_eol_type] = Qnil;
   args[coding_arg_plist] = CALLMANY (Flist, plist);
-  args[coding_arg_undecided_inhibit_nul_byte_detection] = make_fixnum (0);
+  args[coding_arg_undecided_inhibit_null_byte_detection] = make_fixnum (0);
   args[coding_arg_undecided_inhibit_iso_escape_detection] = make_fixnum (0);
   Fdefine_coding_system_internal (coding_arg_undecided_max, args);
 

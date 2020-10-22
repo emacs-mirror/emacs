@@ -164,4 +164,9 @@ int __cdecl __MINGW_NOTHROW	fstatat (int, char const *,
 						 struct stat *, int);
 int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 
+/* Provide prototypes of library functions that are emulated on w32
+   and whose prototypes are usually found in sys/stat.h on POSIX
+   platforms.  */
+extern int utimensat (int, const char *, struct timespec const[2], int);
+
 #endif	/* INC_SYS_STAT_H_ */

@@ -46,7 +46,7 @@
      (concat "korean-hangul" default-korean-keyboard))))
 
 (defun quail-hangul-switch-symbol-ksc (&rest ignore)
-  "Swith to/from Korean symbol package."
+  "Switch to/from Korean symbol package."
   (interactive "i")
   (and current-input-method
        (if (string-equal current-input-method "korean-symbol")
@@ -55,7 +55,7 @@
 	 (activate-input-method "korean-symbol"))))
 
 (defun quail-hangul-switch-hanja (&rest ignore)
-  "Swith to/from Korean hanja package."
+  "Switch to/from Korean hanja package."
   (interactive "i")
   (and current-input-method
        (if (string-match "korean-hanja" current-input-method)

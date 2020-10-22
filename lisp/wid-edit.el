@@ -203,27 +203,100 @@ nil means read a single character."
   :group 'widgets
   :type 'boolean)
 
+(defun widget--simplify-menu (extended)
+  "Convert the EXTENDED menu into a menu composed of simple menu items.
+
+Each item in the simplified menu is of the form (ITEM-STRING . REAL-BINDING),
+where both elements are taken from the EXTENDED MENU.  ITEM-STRING is the
+correspondent ITEM-NAME in the menu-item entry:
+ (menu-item ITEM-NAME REAL-BINDING . ITEM-PROPERTY-LIST), and REAL-BINDING is
+the symbol in the key vector, as in `define-key'.
+ (See `(elisp)Defining Menus' for more information.)
+
+Only visible, enabled and meaningful menu items make their way into
+the returned simplified menu.  That is:
+For the menu item to be visible, it has to either lack a :visible form in its
+item-property-list, or the :visible form has to evaluate to a non-nil value.
+For the menu item to be enabled, it has to either lack a :enabled form in its
+item-property-list, or the :enable form has to evaluate to a non-nil value.
+Additionally, if the menu item is a radio button, then its selected form has
+to evaluate to nil for the menu item to be meaningful."
+  (let (simplified)
+    (map-keymap (lambda (ev def)
+                  (when (and (eq (nth 0 def) 'menu-item)
+                             (nth 2 def)) ; Only menu-items with a real binding.
+                    ;; Loop through the item-property-list, looking for
+                    ;; :visible, :enable (or :active) and :button properties.
+                    (let ((plist (nthcdr 3 def))
+                          (enable t) ; Enabled by default.
+                          (visible t) ; Visible by default.
+                          selected keyword value)
+                      (while (and plist (cdr plist)
+                                  (keywordp (setq keyword (car plist))))
+                        (setq value (cadr plist))
+                        (cond ((memq keyword '(:visible :included))
+                               (setq visible value))
+                              ((memq keyword '(:enable :active))
+                               (setq enable value))
+                              ((and (eq keyword :button)
+                                    (eq (car value) :radio))
+                               (setq selected (cdr value))))
+                        (setq plist (cddr plist)))
+                      (when (and (eval visible)
+                                 (eval enable)
+                                 (or (not selected)
+                                     (not (eval selected))))
+                        (push (cons (nth 1 def) ev) simplified)))))
+                extended)
+    (reverse simplified)))
+
 (defun widget-choose (title items &optional event)
   "Choose an item from a list.
 
 First argument TITLE is the name of the list.
-Second argument ITEMS is a list whose members are either
+Second argument ITEMS should be a menu, either with simple item definitions,
+or with extended item definitions.
+When ITEMS has simple item definitions, it is a list whose members are either
  (NAME . VALUE), to indicate selectable items, or just strings to
  indicate unselectable items.
+
+When ITEMS is a menu that uses an extended format, then ITEMS should be a
+keymap, and each binding should look like this:
+ (menu-item ITEM-NAME REAL-BINDING . ITEM-PROPERTY-LIST)
+or like this: (menu-item ITEM-NAME) to indicate a non-selectable item.
+REAL-BINDING should be a symbol, and should not be a keymap, because submenus
+are not supported.
+
 Optional third argument EVENT is an input event.
 
-The user is asked to choose between each NAME from the items alist,
-and the VALUE of the chosen element will be returned.  If EVENT is a
-mouse event, and the number of elements in items is less than
+If EVENT is a mouse event, and the number of elements in items is less than
 `widget-menu-max-size', a popup menu will be used, otherwise the
-minibuffer."
+minibuffer.
+
+The user is asked to choose between each NAME from ITEMS.
+If ITEMS has simple item definitions, then this function returns the VALUE of
+the chosen element.  If ITEMS is a keymap, then the return value is the symbol
+in the key vector, as in the argument of `define-key'."
   (cond ((and (< (length items) widget-menu-max-size)
 	      event (display-popup-menus-p))
 	 ;; Mouse click.
-	 (x-popup-menu event
-		       (list title (cons "" items))))
+         (if (keymapp items)
+             ;; Modify the keymap prompt, and then restore the old one, if any.
+             (let ((prompt (keymap-prompt items)))
+               (unwind-protect
+                   (progn
+                     (setq items (delete prompt items))
+                     (push title (cdr items))
+                     ;; Return just the first element of the list of events.
+                     (car (x-popup-menu event items)))
+                 (setq items (delete title items))
+                 (when prompt
+                   (push prompt (cdr items)))))
+	   (x-popup-menu event (list title (cons "" items)))))
 	((or widget-menu-minibuffer-flag
 	     (> (length items) widget-menu-max-shortcuts))
+         (when (keymapp items)
+           (setq items (widget--simplify-menu items)))
 	 ;; Read the choice of name from the minibuffer.
 	 (setq items (cl-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
@@ -233,11 +306,12 @@ minibuffer."
 		   (setq val try))
 		 (cdr (assoc val items))))))
 	(t
+         (when (keymapp items)
+           (setq items (widget--simplify-menu items)))
 	 ;; Construct a menu of the choices
 	 ;; and then use it for prompting for a single character.
 	 (let* ((next-digit ?0)
-		(map (make-sparse-keymap))
-                choice some-choice-enabled value)
+		alist choice some-choice-enabled value)
 	   (with-current-buffer (get-buffer-create " widget-choose")
 	     (erase-buffer)
 	     (insert "Available choices:\n\n")
@@ -247,7 +321,7 @@ minibuffer."
                  (let* ((name (substitute-command-keys (car choice)))
                         (function (cdr choice)))
                    (insert (format "%c = %s\n" next-digit name))
-                   (define-key map (vector next-digit) function)
+                   (push (cons next-digit function) alist)
                    (setq some-choice-enabled t)))
 	       ;; Allocate digits to disabled alternatives
 	       ;; so that the digit of a given alternative never varies.
@@ -257,33 +331,17 @@ minibuffer."
 	     (forward-line))
 	   (or some-choice-enabled
 	       (error "None of the choices is currently meaningful"))
-	   (define-key map [?\M-\C-v] 'scroll-other-window)
-	   (define-key map [?\M--] 'negative-argument)
 	   (save-window-excursion
-	     (let ((buf (get-buffer " widget-choose")))
-	       (display-buffer buf
-			       '(display-buffer-in-direction
-				 (direction . bottom)
-				 (window-height . fit-window-to-buffer)))
-	       (let ((cursor-in-echo-area t)
-		     (arg 1))
-                 (while (not value)
-                   (setq value (lookup-key map (read-key-sequence (format "%s: " title))))
-                   (unless value
-                     (user-error "Canceled"))
-                   (when
-                       (cond ((eq value 'scroll-other-window)
-                               (let ((minibuffer-scroll-window
-                                      (get-buffer-window buf)))
-                                 (if (> 0 arg)
-                                     (scroll-other-window-down
-                                      (window-height minibuffer-scroll-window))
-                                   (scroll-other-window))
-                                 (setq arg 1)))
-                              ((eq value 'negative-argument)
-                               (setq arg -1)))
-                     (setq value nil))))))
-	   value))))
+             ;; Select window to be able to scroll it from minibuffer
+             (with-selected-window
+                 (display-buffer (get-buffer " widget-choose")
+                                 '(display-buffer-in-direction
+                                   (direction . bottom)
+                                   (window-height . fit-window-to-buffer)))
+               (setq value (read-char-from-minibuffer
+                            (format "%s: " title)
+                            (mapcar #'car alist)))))
+	   (cdr (assoc value alist))))))
 
 ;;; Widget text specifications.
 ;;
@@ -320,12 +378,15 @@ the :notify function can't know the new value.")
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (when (= (char-before to) ?\n)
+    (when (and (or (> to (1+ from)) (null (widget-get widget :size)))
+               (= (char-before to) ?\n))
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
       ;; C-n/C-p act more naturally when entering/leaving the field.  We
-     ;; do this by making a small secondary overlay to contain just that
-      ;; one character.
+      ;; do this by making a small secondary overlay to contain just that
+      ;; one character.  BUT we only do this if there is more than one
+      ;; character (so we don't do this for the character widget),
+      ;; or if the size of the editable field isn't specified.
       (let ((overlay (make-overlay (1- to) to nil t nil)))
 	(overlay-put overlay 'field 'boundary)
         ;; We need the real field for tabbing.
@@ -593,6 +654,63 @@ respectively."
       (setq widget (overlay-get cur 'button))
       (if (and widget (funcall function widget maparg))
 	  (setq overlays nil)))))
+
+(defun widget-describe (&optional widget-or-pos)
+  "Describe the widget at point.
+Displays a buffer with information about the widget (e.g., its actions) as well
+as a link to browse all the properties of the widget.
+
+This command resolves the indirection of widgets running the action of its
+parents, so the real action executed can be known.
+
+When called from Lisp, pass WIDGET-OR-POS as the widget to describe,
+or a buffer position where a widget is present.  If WIDGET-OR-POS is nil,
+the widget at point is the widget to describe."
+  (interactive "d")
+  (require 'wid-browse) ; The widget-browse widget.
+  (let ((widget (if (widgetp widget-or-pos)
+                    widget-or-pos
+                  (widget-at widget-or-pos)))
+        props)
+    (when widget
+      (help-setup-xref (list #'widget-describe widget)
+                       (called-interactively-p 'interactive))
+      (setq props (list (cons 'action (widget--resolve-parent-action widget))
+                        (cons 'mouse-down-action
+                              (widget-get widget :mouse-down-action))))
+      (with-help-window (help-buffer)
+        (with-current-buffer (help-buffer)
+          (widget-insert "This widget's type is ")
+          (widget-create 'widget-browse :format "%[%v%]\n%d"
+                         :doc (get (car widget) 'widget-documentation)
+                         :help-echo "Browse this widget's properties"
+                         widget)
+          (dolist (action '(action mouse-down-action))
+            (let ((name (symbol-name action))
+                  (val (alist-get action props)))
+              (when (functionp val)
+                (widget-insert "\n\n" (propertize (capitalize name) 'face 'bold)
+                               "'\nThe " name " of this widget is")
+                (if (symbolp val)
+                    (progn (widget-insert " ")
+                           (widget-create 'function-link :value val
+                                          :button-prefix "" :button-suffix ""
+                                          :help-echo "Describe this function"))
+                  (widget-insert "\n")
+                  (princ val)))))))
+      (widget-setup)
+      t)))
+
+(defun widget--resolve-parent-action (widget)
+  "Resolve the real action of WIDGET up its inheritance chain.
+Follow the WIDGET's parents, until its :action is no longer
+`widget-parent-action', and return its value."
+  (let ((action (widget-get widget :action))
+        (parent (widget-get widget :parent)))
+    (while (eq action 'widget-parent-action)
+      (setq parent (widget-get parent :parent)
+            action (widget-get parent :action)))
+    action))
 
 ;;; Images.
 
@@ -933,86 +1051,91 @@ Note that such modes will need to require wid-edit.")
   "If non-nil, `widget-button-click' moves point to a button after invoking it.
 If nil, point returns to its original position after invoking a button.")
 
+(defun widget-button--check-and-call-button (event button)
+  "Call BUTTON if BUTTON is a widget and EVENT is correct for it.
+If nothing was called, return non-nil."
+  (let* ((oevent event)
+         (mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
+         (pos (widget-event-point event))
+         newpoint)
+    (catch 'button-press-cancelled
+      ;; Mouse click on a widget button.  Do the following
+      ;; in a save-excursion so that the click on the button
+      ;; doesn't change point.
+      (save-selected-window
+        (select-window (posn-window (event-start event)))
+        (save-excursion
+	  (goto-char (posn-point (event-start event)))
+	  (let* ((overlay (widget-get button :button-overlay))
+	         (pressed-face (or (widget-get button :pressed-face)
+				   widget-button-pressed-face))
+	         (face (overlay-get overlay 'face))
+	         (mouse-face (overlay-get overlay 'mouse-face)))
+	    (unwind-protect
+	        ;; Read events, including mouse-movement
+	        ;; events, waiting for a release event.  If we
+	        ;; began with a mouse-1 event and receive a
+	        ;; movement event, that means the user wants
+	        ;; to perform drag-selection, so cancel the
+	        ;; button press and do the default mouse-1
+	        ;; action.  For mouse-2, just highlight/
+	        ;; unhighlight the button the mouse was
+	        ;; initially on when we move over it.
+	        (save-excursion
+		  (when face            ; avoid changing around image
+		    (overlay-put overlay 'face pressed-face)
+		    (overlay-put overlay 'mouse-face pressed-face))
+		  (unless (widget-apply button :mouse-down-action event)
+		    (let ((track-mouse t))
+		      (while (not (widget-button-release-event-p event))
+		        (setq event (read-event))
+		        (when (and mouse-1 (mouse-movement-p event))
+			  (push event unread-command-events)
+			  (setq event oevent)
+			  (throw 'button-press-cancelled t))
+		        (unless (or (integerp event)
+				    (memq (car event)
+                                          '(switch-frame select-window))
+				    (eq (car event) 'scroll-bar-movement))
+			  (setq pos (widget-event-point event))
+			  (if (and pos
+				   (eq (get-char-property pos 'button)
+				       button))
+			      (when face
+			        (overlay-put overlay 'face pressed-face)
+			        (overlay-put overlay 'mouse-face pressed-face))
+			    (overlay-put overlay 'face face)
+			    (overlay-put overlay 'mouse-face mouse-face))))))
+
+		  ;; When mouse is released over the button, run
+		  ;; its action function.
+		  (when (and pos (eq (get-char-property pos 'button) button))
+		    (goto-char pos)
+		    (widget-apply-action button event)
+		    (if widget-button-click-moves-point
+		        (setq newpoint (point)))))
+	      (overlay-put overlay 'face face)
+	      (overlay-put overlay 'mouse-face mouse-face))))
+
+        (when newpoint
+          (goto-char newpoint)))
+      nil)))
+
 (defun widget-button-click (event)
   "Invoke the button that the mouse is pointing at."
   (interactive "e")
   (if (widget-event-point event)
-      (let* ((oevent event)
-	     (mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
+      (let* ((mouse-1 (memq (event-basic-type event) '(mouse-1 down-mouse-1)))
 	     (pos (widget-event-point event))
 	     (start (event-start event))
-	     (button (get-char-property
+             (button (get-char-property
 		      pos 'button (and (windowp (posn-window start))
-				       (window-buffer (posn-window start)))))
-	     newpoint)
+				       (window-buffer (posn-window start))))))
+
 	(when (or (null button)
-		  (catch 'button-press-cancelled
-	      ;; Mouse click on a widget button.  Do the following
-	      ;; in a save-excursion so that the click on the button
-	      ;; doesn't change point.
-	      (save-selected-window
-		(select-window (posn-window (event-start event)))
-		(save-excursion
-		  (goto-char (posn-point (event-start event)))
-		  (let* ((overlay (widget-get button :button-overlay))
-			 (pressed-face (or (widget-get button :pressed-face)
-					   widget-button-pressed-face))
-			 (face (overlay-get overlay 'face))
-			 (mouse-face (overlay-get overlay 'mouse-face)))
-		    (unwind-protect
-			;; Read events, including mouse-movement
-			;; events, waiting for a release event.  If we
-			;; began with a mouse-1 event and receive a
-			;; movement event, that means the user wants
-			;; to perform drag-selection, so cancel the
-			;; button press and do the default mouse-1
-			;; action.  For mouse-2, just highlight/
-			;; unhighlight the button the mouse was
-			;; initially on when we move over it.
-			(save-excursion
-			  (when face	; avoid changing around image
-			    (overlay-put overlay 'face pressed-face)
-			    (overlay-put overlay 'mouse-face pressed-face))
-			  (unless (widget-apply button :mouse-down-action event)
-			    (let ((track-mouse t))
-			      (while (not (widget-button-release-event-p event))
-				(setq event (read-event))
-				(when (and mouse-1 (mouse-movement-p event))
-				  (push event unread-command-events)
-				  (setq event oevent)
-				  (throw 'button-press-cancelled t))
-				(unless (or (integerp event)
-					    (memq (car event) '(switch-frame select-window))
-					    (eq (car event) 'scroll-bar-movement))
-				  (setq pos (widget-event-point event))
-				  (if (and pos
-					   (eq (get-char-property pos 'button)
-					       button))
-				      (when face
-					(overlay-put overlay 'face pressed-face)
-					(overlay-put overlay 'mouse-face pressed-face))
-				    (overlay-put overlay 'face face)
-				    (overlay-put overlay 'mouse-face mouse-face))))))
-
-			  ;; When mouse is released over the button, run
-			  ;; its action function.
-			  (when (and pos (eq (get-char-property pos 'button) button))
-			    (goto-char pos)
-			    (widget-apply-action button event)
-			    (if widget-button-click-moves-point
-				(setq newpoint (point)))))
-		      (overlay-put overlay 'face face)
-		      (overlay-put overlay 'mouse-face mouse-face))))
-
-		(if newpoint (goto-char newpoint))
-		;; This loses if the widget action switches windows. -- cyd
-		;; (unless (pos-visible-in-window-p (widget-event-point event))
-		;;   (mouse-set-point event)
-		;;   (beginning-of-line)
-		;;   (recenter))
-		)
-	      nil))
-	  (let ((up t) command)
+                  (widget-button--check-and-call-button event button))
+	  (let ((up t)
+                command)
 	    ;; Mouse click not on a widget button.  Find the global
 	    ;; command to run, and check whether it is bound to an
 	    ;; up event.
@@ -1321,7 +1444,8 @@ Unlike (get-char-property POS \\='field), this works with empty fields too."
 	     (signal 'text-read-only
 		     '("Attempt to change text outside editable field")))
 	    (widget-field-use-before-change
-	     (widget-apply from-field :notify from-field))))))
+	     (widget-apply from-field :notify
+                           from-field (list 'before-change from to)))))))
 
 (defun widget-add-change ()
   (remove-hook 'post-command-hook 'widget-add-change t)
@@ -1358,7 +1482,7 @@ Unlike (get-char-property POS \\='field), this works with empty fields too."
 				 (> (point) begin))
 		       (delete-char -1)))))))
 	(widget-specify-secret field))
-      (widget-apply field :notify field))))
+      (widget-apply field :notify field (list 'after-change from to)))))
 
 ;;; Widget Functions
 ;;
@@ -1870,6 +1994,16 @@ If END is omitted, it defaults to the length of LIST."
 (defun widget-variable-link-action (widget &optional _event)
   "Show the variable specified by WIDGET."
   (describe-variable (widget-value widget)))
+
+;;; The `face-link' Widget.
+
+(define-widget 'face-link 'link
+  "A link to an Emacs face."
+  :action 'widget-face-link-action)
+
+(defun widget-face-link-action (widget &optional _event)
+  "Show the variable specified by WIDGET."
+  (describe-face (widget-value widget)))
 
 ;;; The `file-link' Widget.
 
@@ -3121,6 +3255,16 @@ It reads a file name from an editable text field."
   :completions (completion-table-case-fold
                 #'completion-file-name-table
                 (not read-file-name-completion-ignore-case))
+  :match (lambda (widget value)
+           (and (stringp value)
+                (or (not (widget-get widget :must-match))
+                    (file-exists-p value))))
+  :validate (lambda (widget)
+              (let ((value (widget-value widget)))
+                (unless (widget-apply widget :match value)
+                  (widget-put widget
+                              :error (format "File %s does not exist" value))
+                  widget)))
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
   ;; Doesn't work well with terminating newline.
@@ -3132,11 +3276,10 @@ It reads a file name from an editable text field."
   (abbreviate-file-name
    (if unbound
        (read-file-name prompt)
-     (let ((prompt2 (format "%s (default %s): " prompt value))
-	   (dir (file-name-directory value))
+     (let ((dir (file-name-directory value))
 	   (file (file-name-nondirectory value))
 	   (must-match (widget-get widget :must-match)))
-       (read-file-name prompt2 dir nil must-match file)))))
+       (read-file-name (format-prompt prompt value) dir nil must-match file)))))
 
 ;;;(defun widget-file-action (widget &optional event)
 ;;;  ;; Read a file name from the minibuffer.
@@ -3248,10 +3391,10 @@ It reads a directory name from an editable text field."
   "Read coding-system from minibuffer."
   (if (widget-get widget :base-only)
       (intern
-       (completing-read (format "%s (default %s): " prompt value)
+       (completing-read (format-prompt prompt value)
 			(mapcar #'list (coding-system-list t)) nil nil nil
 			coding-system-history))
-      (read-coding-system (format "%s (default %s): " prompt value) value)))
+      (read-coding-system (format-prompt prompt value) value)))
 
 (defun widget-coding-system-action (widget &optional event)
   (let ((answer
@@ -3459,19 +3602,76 @@ To use this type, you must define :match or :match-alternatives."
   :value 0
   :size 1
   :format "%{%t%}: %v\n"
-  :valid-regexp "\\`.\\'"
+  :valid-regexp "\\`\\(.\\|\n\\)\\'"
   :error "This field should contain a single character"
   :value-get (lambda (w) (widget-field-value-get w t))
   :value-to-internal (lambda (_widget value)
 		       (if (stringp value)
 			   value
-			 (char-to-string value)))
+                         (let ((disp
+                                (widget-character--change-character-display
+                                 value)))
+                           (if disp
+                               (propertize (char-to-string value) 'display disp)
+                             (char-to-string value)))))
   :value-to-external (lambda (_widget value)
 		       (if (stringp value)
 			   (aref value 0)
 			 value))
   :match (lambda (_widget value)
-	   (characterp value)))
+	   (characterp value))
+  :notify #'widget-character-notify)
+
+;; Only some escape sequences, not all of them.  (Bug#15925)
+(defvar widget-character--escape-sequences-alist
+  '((?\t . ?t)
+    (?\n . ?n)
+    (?\s . ?s))
+  "Alist that associates escape sequences to a character.
+Each element has the form (ESCAPE-SEQUENCE . CHARACTER).
+
+The character widget uses this alist to display the
+non-printable character represented by ESCAPE-SEQUENCE as \\CHARACTER,
+since that makes it easier to see what's in the widget.")
+
+(defun widget-character--change-character-display (c)
+  "Return a string to represent the character C, or nil.
+
+The character widget represents some characters (e.g., the newline character
+or the tab character) specially, to make it easier for the user to see what's
+in it.  For those characters, return a string to display that character in a
+more user-friendly way.
+
+For the caller, nil should mean that it is good enough to use the return value
+of `char-to-string' for the representation of C."
+  (let ((char (alist-get c widget-character--escape-sequences-alist)))
+    (and char (propertize (format "\\%c" char) 'face 'escape-glyph))))
+
+(defun widget-character-notify (widget child &optional event)
+  "Notify function for the character widget.
+
+This function allows the widget character to better display some characters,
+like the newline character or the tab character."
+  (when (eq (car-safe event) 'after-change)
+    (let* ((start (nth 1 event))
+           (end (nth 2 event))
+           str)
+      (if (eql start end)
+          (when (char-equal (widget-value widget) ?\s)
+            ;; The character widget is not really empty:
+            ;; its value is a single space character.
+            ;; We need to propertize it again, if it became empty for a while.
+            (let ((ov (widget-get widget :field-overlay)))
+              (put-text-property
+               (overlay-start ov) (overlay-end ov)
+               'display (widget-character--change-character-display ?\s))))
+        (setq str (buffer-substring-no-properties start end))
+        ;; This assumes the user enters one character at a time,
+        ;; and does nothing crazy, like yanking a long string.
+        (let ((disp (widget-character--change-character-display (aref str 0))))
+          (when disp
+            (put-text-property start end 'display disp))))))
+  (widget-default-notify widget child event))
 
 (define-widget 'list 'group
   "A Lisp list."

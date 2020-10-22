@@ -351,24 +351,20 @@ Elements of FIELDS can be of the form (NAME PAT) in which case the
 contents of field NAME is matched against PAT, or they can be of
  the form NAME which is a shorthand for (NAME NAME)."
   (declare (debug (&rest [&or (sexp pcase-PAT) sexp])))
-  (let ((is (make-symbol "table")))
-    ;; FIXME: This generates a horrendous mess of redundant let bindings.
-    ;; `pcase' needs to be improved somehow to introduce let-bindings more
-    ;; sparingly, or the byte-compiler needs to be taught to optimize
-    ;; them away.
-    ;; FIXME: `pcase' does not do a good job here of sharing tests&code among
-    ;; various branches.
-    `(and (pred eieio-object-p)
-          (app eieio-pcase-slot-index-table ,is)
-          ,@(mapcar (lambda (field)
-                      (let* ((name (if (consp field) (car field) field))
-                             (pat (if (consp field) (cadr field) field))
-                             (i (make-symbol "index")))
-                        `(and (let (and ,i (pred natnump))
-                                (eieio-pcase-slot-index-from-index-table
-                                 ,is ',name))
-                              (app (pcase--flip aref ,i) ,pat))))
-                    fields))))
+  ;; FIXME: This generates a horrendous mess of redundant let bindings.
+  ;; `pcase' needs to be improved somehow to introduce let-bindings more
+  ;; sparingly, or the byte-compiler needs to be taught to optimize
+  ;; them away.
+  ;; FIXME: `pcase' does not do a good job here of sharing tests&code among
+  ;; various branches.
+  `(and (pred eieio-object-p)
+        ,@(mapcar (lambda (field)
+                    (pcase-exhaustive field
+                      (`(,name ,pat)
+                       `(app (pcase--flip eieio-oref ',name) ,pat))
+                      ((pred symbolp)
+                       `(app (pcase--flip eieio-oref ',field) ,field))))
+                  fields)))
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.
@@ -649,14 +645,6 @@ If SLOT is unbound, do nothing."
       nil
     (eieio-oset object slot (delete item (eieio-oref object slot)))))
 
-;;; Here are some CLOS items that need the CL package
-;;
-
-;; FIXME: Shouldn't this be a more complex gv-expander which extracts the
-;; common code between oref and oset, so as to reduce the redundant work done
-;; in (push foo (oref bar baz)), like we do for the `nth' expander?
-(gv-define-simple-setter eieio-oref eieio-oset)
-
 
 ;;;
 ;; We want all objects created by EIEIO to have some default set of
@@ -887,7 +875,7 @@ this object."
     ;; Now output readable lisp to recreate this object
     ;; It should look like this:
     ;; (<constructor> <name> <slot> <slot> ... )
-    ;; Each slot's slot is writen using its :writer.
+    ;; Each slot's slot is written using its :writer.
     (when eieio-print-indentation
       (princ (make-string (* eieio-print-depth 2) ? )))
     (princ "(")

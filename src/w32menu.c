@@ -1485,7 +1485,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	     crash Emacs when we try to display those "strings".  It
 	     is unclear why we get these dwItemData, or what they are:
 	     sometimes they point to a wchar_t string that is the menu
-	     title, sometimes to someting that doesn't look like text
+	     title, sometimes to something that doesn't look like text
 	     at all.  (The problematic data also comes with the 0x0800
 	     bit set, but this bit is not documented, so we don't want
 	     to depend on it.)  */

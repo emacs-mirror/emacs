@@ -1,4 +1,4 @@
-;;; ediff-ptch-tests.el --- Tests for ediff-ptch.el
+;;; ediff-ptch-tests.el --- Tests for ediff-ptch.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

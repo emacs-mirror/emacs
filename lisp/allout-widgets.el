@@ -207,22 +207,8 @@ See `allout-widgets-mode' for allout widgets mode features."
   :version "24.1"
   :type 'plist
   :group 'allout-widgets)
+(make-obsolete-variable 'allout-widgets-item-image-properties-xemacs nil "28.1")
 ;;;_  . Developer
-;;;_   = allout-widgets-run-unit-tests-on-load
-(defcustom allout-widgets-run-unit-tests-on-load nil
-  "When non-nil, unit tests will be run at end of loading allout-widgets.
-
-Generally, allout widgets code developers are the only ones who'll want to
-set this.
-
-\(If set, this makes it an even better practice to exercise changes by
-doing byte-compilation with a repeat count, so the file is loaded after
-compilation.)
-
-See `allout-widgets-run-unit-tests' to see what's run."
-  :version "24.1"
-  :type 'boolean
-  :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-time-decoration-activity
 (defcustom allout-widgets-time-decoration-activity nil
   "Retain timing info of the last cooperative redecoration.
@@ -323,8 +309,7 @@ In addition, you can invoked `allout-widgets-mode' allout-mode
 buffers where this is set to enable and disable widget
 enhancements, directly.")
 ;;;###autoload
-(put 'allout-widgets-mode-inhibit 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
+(put 'allout-widgets-mode-inhibit 'safe-local-variable 'booleanp)
 (make-variable-buffer-local 'allout-widgets-mode-inhibit)
 ;;;_    = allout-inhibit-body-modification-hook
 (defvar allout-inhibit-body-modification-hook nil
@@ -415,15 +400,17 @@ not altered with an escape sequence.")
 ;;;_   , Widget element formatting
 ;;;_    = allout-item-icon-keymap
 (defvar allout-item-icon-keymap
-  (let ((km (make-sparse-keymap)))
+  (let ((km (make-sparse-keymap))
+        (as-parent (if (current-local-map)
+                       (make-composed-keymap (current-local-map)
+                                             (current-global-map))
+                     (current-global-map))))
+    ;; The keymap parent is reset on the each local var when mode starts.
+    (set-keymap-parent km as-parent)
     (dolist (digit '("0" "1" "2" "3"
                      "4" "5" "6" "7" "8" "9"))
       (define-key km digit 'digit-argument))
     (define-key km "-" 'negative-argument)
-;;    (define-key km [(return)] 'allout-tree-expand-command)
-;;    (define-key km [(meta return)] 'allout-toggle-torso-command)
-;;    (define-key km [(down-mouse-1)] 'allout-item-button-click)
-;;    (define-key km [(down-mouse-2)] 'allout-toggle-torso-event-command)
     ;; Override underlying mouse-1 and mouse-2 bindings in icon territory:
     (define-key km [(mouse-1)] (lambda () (interactive) nil))
     (define-key km [(mouse-2)] (lambda () (interactive) nil))
@@ -433,17 +420,16 @@ not altered with an escape sequence.")
 
     km)
   "General tree-node key bindings.")
+(make-variable-buffer-local 'allout-item-icon-keymap)
 ;;;_    = allout-item-body-keymap
 (defvar allout-item-body-keymap
   (let ((km (make-sparse-keymap))
-        (local-map (current-local-map)))
-;;    (define-key km [(control return)] 'allout-tree-expand-command)
-;;    (define-key km [(meta return)] 'allout-toggle-torso-command)
-    ;; XXX We need to reset this per buffer's mode; we do so in
-    ;; allout-widgets-mode.
-    (if local-map
-        (set-keymap-parent km local-map))
-
+        (as-parent (if (current-local-map)
+                       (make-composed-keymap (current-local-map)
+                                             (current-global-map))
+                     (current-global-map))))
+    ;; The keymap parent is reset on the each local var when mode starts.
+    (set-keymap-parent km as-parent)
     km)
   "General key bindings for the text content of outline items.")
 (make-variable-buffer-local 'allout-item-body-keymap)
@@ -456,6 +442,7 @@ not altered with an escape sequence.")
     (set-keymap-parent km allout-item-icon-keymap)
     km)
   "Keymap used in the item cue area - the space between the icon and headline.")
+(make-variable-buffer-local 'allout-cue-span-keymap)
 ;;;_    = allout-escapes-category
 (defvar allout-escapes-category nil
   "Symbol for category of text property used to hide escapes of prefix-like
@@ -566,8 +553,13 @@ outline hot-spot navigation (see `allout-mode')."
         (add-to-invisibility-spec '(allout-torso . t))
         (add-to-invisibility-spec 'allout-escapes)
 
-        (if (current-local-map)
-            (set-keymap-parent allout-item-body-keymap (current-local-map)))
+        (let ((as-parent (if (current-local-map)
+                             (make-composed-keymap (current-local-map)
+                                                   (current-global-map))
+                           (current-global-map))))
+          (set-keymap-parent allout-item-body-keymap as-parent)
+          ;; allout-cue-span-keymap uses allout-item-icon-keymap as parent.
+          (set-keymap-parent allout-item-icon-keymap as-parent))
 
         (add-hook 'allout-exposure-change-functions
                   'allout-widgets-exposure-change-recorder nil 'local)
@@ -677,7 +669,7 @@ outline hot-spot navigation (see `allout-mode')."
   (setplist 'allout-cue-span-category nil)
   (put 'allout-cue-span-category 'evaporate t)
   (put 'allout-cue-span-category
-       'modification-hooks '(allout-body-modification-handler))
+       'modification-hooks '(allout-graphics-modification-handler))
   (put 'allout-cue-span-category 'local-map allout-cue-span-keymap)
   (put 'allout-cue-span-category 'mouse-face widget-button-face)
   (put 'allout-cue-span-category 'pointer 'arrow)
@@ -988,6 +980,7 @@ Generally invoked via `allout-exposure-change-functions'."
         ;; have to distinguish between concealing and exposing so that, eg,
         ;; `allout-expose-topic's mix is handled properly.
         handled-expose
+        handled-conceal
         covered
         deactivate-mark)
 
@@ -1345,64 +1338,6 @@ FROM and TO must be in increasing order, as must be the pairs in RANGES."
     (setq new-ranges (nreverse new-ranges))
     (if ranges (setq new-ranges (append new-ranges ranges)))
     (list (if included-from t) new-ranges)))
-;;;_   > allout-test-range-overlaps ()
-(defun allout-test-range-overlaps ()
-  "`allout-range-overlaps' unit tests."
-  (let* (ranges
-         got
-         (try (lambda (from to)
-                (setq got (allout-range-overlaps from to ranges))
-                (setq ranges (cadr got))
-                got)))
-;;     ;; biggie:
-;;     (setq ranges nil)
-;;     ;; ~ .02 to .1 seconds for just repeated listing args instead of funcall
-;;     ;; ~ 13 seconds for doing repeated funcall
-;;     (message "time-trial: %s, resulting size %s"
-;;              (time-trial
-;;               '(let ((size 10000)
-;;                      doing)
-;;                  (dotimes (count size)
-;;                    (setq doing (random size))
-;;                    (funcall try doing (+ doing (random 5)))
-;;                    ;;(list doing (+ doing (random 5)))
-;;                    )))
-;;              (length ranges))
-;;     (sit-for 2)
-
-    ;; fresh:
-    (setq ranges nil)
-    (cl-assert (equal (funcall try 3 5) '(nil ((3 5)))))
-    ;; add range at end:
-    (cl-assert (equal (funcall try 10 12) '(nil ((3 5) (10 12)))))
-    ;; add range at beginning:
-    (cl-assert (equal (funcall try 1 2) '(nil ((1 2) (3 5) (10 12)))))
-    ;; insert range somewhere in the middle:
-    (cl-assert (equal (funcall try 7 9) '(nil ((1 2) (3 5) (7 9) (10 12)))))
-    ;; consolidate some:
-    (cl-assert (equal (funcall try 5 8) '(t ((1 2) (3 9) (10 12)))))
-    ;; add more:
-    (cl-assert (equal (funcall try 15 17) '(nil ((1 2) (3 9) (10 12) (15 17)))))
-    ;; add more:
-    (cl-assert (equal (funcall try 20 22)
-                   '(nil ((1 2) (3 9) (10 12) (15 17) (20 22)))))
-    ;; encompass more:
-    (cl-assert (equal (funcall try 4 11) '(t ((1 2) (3 12) (15 17) (20 22)))))
-    ;; encompass all:
-    (cl-assert (equal (funcall try 2 25) '(t ((1 25)))))
-
-    ;; fresh slate:
-    (setq ranges nil)
-    (cl-assert (equal (funcall try 20 25) '(nil ((20 25)))))
-    (cl-assert (equal (funcall try 30 35) '(nil ((20 25) (30 35)))))
-    (cl-assert (equal (funcall try 26 28) '(nil ((20 25) (26 28) (30 35)))))
-    (cl-assert (equal (funcall try 15 20) '(t ((15 25) (26 28) (30 35)))))
-    (cl-assert (equal (funcall try 10 30) '(t ((10 35)))))
-    (cl-assert (equal (funcall try 5 6) '(nil ((5 6) (10 35)))))
-    (cl-assert (equal (funcall try 2 100) '(t ((2 100)))))
-
-    (setq ranges nil)
-    ))
 ;;;_   > allout-widgetize-buffer (&optional doing)
 (defun allout-widgetize-buffer (&optional doing)
   "EXAMPLE FUNCTION.  Widgetize items in buffer using allout-chart-subtree.
@@ -1502,8 +1437,7 @@ recursive operation."
   ;; the actual location of the item text:
   :location       'allout-item-location
 
-  :button-keymap  allout-item-icon-keymap ; XEmacs
-  :keymap         allout-item-icon-keymap        ; Emacs
+  :keymap         allout-item-icon-keymap
 
   ;; Element regions:
   :guides-span         nil
@@ -1594,7 +1528,10 @@ We return the item-widget corresponding to the item at point."
       (if is-container
           (progn (widget-put item-widget :is-container t)
                  (setq reverse-siblings-chart (list 1)))
-        (goto-char (widget-apply parent :actual-position :from))
+        (let ((parent-position (widget-apply parent
+                                             :actual-position :from)))
+          (when parent-position
+            (goto-char parent-position)))
         (if (widget-get parent :is-container)
             ;; `allout-goto-prefix' will go to first non-container item:
             (allout-goto-prefix)
@@ -1847,7 +1784,7 @@ Optional HAS-SUCCESSOR is true if the item is followed by a sibling.
 We also hide the header-prefix string.
 
 Guides are established according to the item-widget's :guide-column-flags,
-when different than :was-guide-column-flags.  Changing that property and
+when different from :was-guide-column-flags.  Changing that property and
 reapplying this method will rectify the glyphs."
 
   (when (not (widget-get item-widget :is-container))
@@ -1994,8 +1931,7 @@ reapplying this method will rectify the glyphs."
   ;; NOTE: most of the cue-area
 
   (when (not (widget-get item-widget :is-container))
-    (let* ((cue-start (or (widget-get item-widget :distinctive-end)
-                          (widget-get item-widget :icon-end)))
+    (let* ((cue-start (widget-get item-widget :icon-end))
            (body-start (widget-get item-widget :body-start))
            ;(expanded (widget-get item-widget :expanded))
            ;(has-subitems (widget-get item-widget :has-subitems))
@@ -2050,19 +1986,22 @@ Optional FORCE means force reassignment of the region property."
 ;;;_   > allout-widgets-undecorate-region (start end)
 (defun allout-widgets-undecorate-region (start end)
   "Eliminate widgets and decorations for all items in region from START to END."
-  (let ((next start)
-        widget)
+  (let (done next widget
+        (end (or end (point-max))))
     (save-excursion
       (goto-char start)
-      (while (<  (setq next (next-single-char-property-change next
-                                                              'display
-                                                              (current-buffer)
-                                                              end))
-                 end)
-        (goto-char next)
-        (when (setq widget (allout-get-item-widget))
-          ;; if the next-property/overly progression got us to a widget:
-          (allout-widgets-undecorate-item widget t))))))
+      (while (not done)
+        (when (and (allout-on-current-heading-p)
+                   (setq widget (allout-get-item-widget)))
+            (if widget
+                (allout-widgets-undecorate-item widget t)))
+        (goto-char (setq next
+                         (next-single-char-property-change (point)
+                                                           'display
+                                                           (current-buffer)
+                                                           end)))
+        (if (>= next end)
+            (setq done t))))))
 ;;;_   > allout-widgets-undecorate-text (text)
 (defun allout-widgets-undecorate-text (text)
   "Eliminate widgets and decorations for all items in TEXT."
@@ -2316,15 +2255,13 @@ We use a caching strategy, so the caller doesn't need to do so."
         (allout-widgets-copy-list (cadr got))
       (while (and types (not got))
         (setq got
-              (allout-find-image
+              (find-image
                (list (append (list :type (car types)
                                    :file (concat use-dir
                                                  (symbol-name name)
                                                  "." (symbol-name
                                                       (car types))))
-                             (if (featurep 'xemacs)
-                                 allout-widgets-item-image-properties-xemacs
-                               allout-widgets-item-image-properties-emacs)
+                             allout-widgets-item-image-properties-emacs
                              ))))
         (setq types (cdr types)))
       (if got
@@ -2345,11 +2282,7 @@ We use a caching strategy, so the caller doesn't need to do so."
          'frame-property)
         (t nil)))
 ;;;_  > allout-find-image (specs)
-(defalias 'allout-find-image
-  (if (fboundp 'find-image)
-      'find-image
-    nil)                                ; aka, not-yet-implemented for xemacs.
-)
+(define-obsolete-function-alias 'allout-find-image #'find-image "28.1")
 ;;;_  > allout-widgets-copy-list (list)
 (defun allout-widgets-copy-list (list)
   ;; duplicated from cl.el 'copy-list' as of 2008-08-17
@@ -2374,22 +2307,10 @@ The elements of LIST are not copied, just the list structure itself."
                                        (overlays-in start end)))))
     (length button-overlays)))
 
-;;;_ : Run unit tests:
-(defun allout-widgets-run-unit-tests ()
-  (message "Running allout-widget tests...")
-
-  (allout-test-range-overlaps)
-
-  (message "Running allout-widget tests...  Done.")
-  (sit-for .5))
-
-(when allout-widgets-run-unit-tests-on-load
-  (allout-widgets-run-unit-tests))
-
 ;;;_ : provide
 (provide 'allout-widgets)
 
-;;;_. Local emacs vars.
-;;;_ , Local variables:
-;;;_ , allout-layout: (-1 : 0)
-;;;_ , End:
+;;;_ . Local emacs vars.
+;;;_  , Local variables:
+;;;_  , allout-layout: (-1 : 0)
+;;;_  , End:

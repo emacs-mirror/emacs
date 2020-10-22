@@ -46,7 +46,7 @@
 ;;   * `file-cache-add-file-list': Adds a list of files to the cache
 ;;
 ;; The following functions use the regular expressions in
-;; `file-cache-delete-regexps' to eliminate unwanted files:
+;; `file-cache-filter-regexps' to eliminate unwanted files:
 ;;
 ;;   * `file-cache-add-directory': Adds the files in a directory to the
 ;;     cache.  You can also specify a regular expression to match the files
@@ -613,9 +613,6 @@ the name is considered already unique; only the second substitution
     (choose-completion event)
     (select-window (active-minibuffer-window))
     (file-cache-minibuffer-complete nil)))
-
-(define-obsolete-function-alias 'file-cache-mouse-choose-completion
-  #'file-cache-choose-completion "23.2")
 
 (defun file-cache-complete  ()
   "Complete the word at point, using the filecache."

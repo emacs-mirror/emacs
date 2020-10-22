@@ -1,4 +1,4 @@
-;;; python-tests.el --- Test suite for python.el
+;;; python-tests.el --- Test suite for python.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
@@ -118,7 +118,6 @@ Argument MIN and MAX delimit the region to be returned and
 default to `point-min' and `point-max' respectively."
   (let* ((min (or min (point-min)))
          (max (or max (point-max)))
-         (buffer (current-buffer))
          (buffer-contents (buffer-substring-no-properties min max))
          (overlays
           (sort (overlays-in min max)
@@ -154,7 +153,7 @@ The name of this directory depends on `system-type'."
 sed do eiusmod tempor incididunt ut labore et dolore magna
 aliqua."
    (let ((expected (save-excursion
-                     (dotimes (i 3)
+                     (dotimes (_ 3)
                        (re-search-forward "et" nil t))
                      (forward-char -2)
                      (point))))
@@ -163,7 +162,7 @@ aliqua."
      ;; one should be returned.
      (should (= (python-tests-look-at "et" 6 t) expected))
      ;; If already looking at STRING, it should skip it.
-     (dotimes (i 2) (re-search-forward "et"))
+     (dotimes (_ 2) (re-search-forward "et"))
      (forward-char -2)
      (should (= (python-tests-look-at "et") expected)))))
 
@@ -178,7 +177,7 @@ aliqua."
             (re-search-forward "et" nil t)
             (forward-char -2)
             (point))))
-     (dotimes (i 3)
+     (dotimes (_ 3)
        (re-search-forward "et" nil t))
      (should (= (python-tests-look-at "et" -3 t) expected))
      (should (= (python-tests-look-at "et" -6 t) expected)))))
@@ -340,7 +339,7 @@ def func(arg):
     # I don't do much
     return arg
     # This comment is badly indented because the user forced so.
-    # At this line python.el wont dedent, user is always right.
+    # At this line python.el won't dedent, user is always right.
 
 comment_wins_over_ender = True
 
@@ -359,7 +358,7 @@ comment_wins_over_ender = True
    ;; The return keyword do make indentation lose a level...
    (should (= (python-indent-calculate-indentation) 0))
    ;; ...but the current indentation was forced by the user.
-   (python-tests-look-at "# At this line python.el wont dedent")
+   (python-tests-look-at "# At this line python.el won't dedent")
    (should (eq (car (python-indent-context)) :after-comment))
    (should (= (python-indent-calculate-indentation) 4))
    ;; Should behave the same for blank lines: potentially a comment.
@@ -2642,7 +2641,7 @@ if x:
 (ert-deftest python-shell-calculate-process-environment-2 ()
   "Test `python-shell-extra-pythonpaths' modification."
   (let* ((process-environment process-environment)
-         (original-pythonpath (setenv "PYTHONPATH" "/path0"))
+         (_original-pythonpath (setenv "PYTHONPATH" "/path0"))
          (python-shell-extra-pythonpaths '("/path1" "/path2"))
          (process-environment (python-shell-calculate-process-environment)))
     (should (equal (getenv "PYTHONPATH")
@@ -3554,7 +3553,7 @@ def foo():
 ;;; Code check
 
 
-;;; Eldoc
+;;; ElDoc
 
 (ert-deftest python-eldoc--get-symbol-at-point-1 ()
   "Test paren handling."

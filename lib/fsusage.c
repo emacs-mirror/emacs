@@ -211,11 +211,7 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
   /* Empirically, the block counts on most SVR3 and SVR3-derived
      systems seem to always be in terms of 512-byte blocks,
      no matter what value f_bsize has.  */
-# if defined _CRAY
-   fsp->fsu_blocksize = PROPAGATE_ALL_ONES (fsd.f_bsize);
-# else
    fsp->fsu_blocksize = 512;
-# endif
 
 #endif
 

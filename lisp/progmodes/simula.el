@@ -367,7 +367,7 @@ Turning on SIMULA mode calls the value of the variable simula-mode-hook
 with no arguments, if that value is non-nil."
   (set (make-local-variable 'comment-column) 40)
   ;; (set (make-local-variable 'end-comment-column) 75)
-  (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\\f")
+  (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\f")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'indent-line-function) 'simula-indent-line)
   (set (make-local-variable 'comment-start) "! ")

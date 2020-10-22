@@ -338,16 +338,14 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.
 
-@strong{Warning:} Nested repetition operators can run for an
-indefinitely long time, if they lead to ambiguous matching.  For
+@strong{Warning:} Nested repetition operators can run for a very
+long time, if they lead to ambiguous matching.  For
 example, trying to match the regular expression @samp{\(x+y*\)*a}
 against the string @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could
-take hours before it ultimately fails.  Emacs must try each way of
+take hours before it ultimately fails.  Emacs may try each way of
 grouping the @samp{x}s before concluding that none of them can work.
-Even worse, @samp{\(x*\)*} can match the null string in infinitely
-many ways, so it causes an infinite loop.  To avoid these problems,
-check nested repetitions carefully, to make sure that they do not
-cause combinatorial explosions in backtracking.
+In general, avoid expressions that can match the same string in
+multiple ways.
 
 @item @samp{+}
 @cindex @samp{+} in regexp
@@ -582,8 +580,13 @@ an unquoted @samp{[} is special again and a @samp{]} not.
 @cindex alpha character class, regexp
 @cindex xdigit character class, regexp
 
-  Here is a table of the classes you can use in a character alternative,
-and what they mean:
+  Below is a table of the classes you can use in a character
+alternative, and what they mean.  Note that the @samp{[} and @samp{]}
+characters that enclose the class name are part of the name, so a
+regular expression using these classes needs one more pair of
+brackets.  For example, a regular expression matching a sequence of
+one or more letters and digits would be @samp{[[:alnum:]]+}, not
+@samp{[:alnum:]+}.
 
 @table @samp
 @item [:ascii:]
@@ -1016,8 +1019,8 @@ or, using shorter synonyms and written more compactly,
 @example
 @group
 (rx "/*"
-    (* (| (not (any "*"))
-          (: "*" (not (any "/")))))
+    (* (| (not "*")
+          (: "*" (not "/"))))
     (+ "*") "/")
 @end group
 @end example
@@ -1080,7 +1083,11 @@ Corresponding string regexp: @samp{@var{A}@var{B}@dots{}}
 @cindex @code{or} in rx
 @itemx @code{(| @var{rx}@dots{})}
 @cindex @code{|} in rx
-Match exactly one of the @var{rx}s, trying from left to right.
+Match exactly one of the @var{rx}s.
+If all arguments are strings, characters, or @code{or} forms
+so constrained, the longest possible match will always be used.
+Otherwise, either the longest match or the
+first (in left-to-right order) will be used.
 Without arguments, the expression will not match anything at all.@*
 Corresponding string regexp: @samp{@var{A}\|@var{B}\|@dots{}}.
 
@@ -1742,7 +1749,7 @@ any special characters.
 @end defun
 
 @cindex optimize regexp
-@defun regexp-opt strings &optional paren keep-order
+@defun regexp-opt strings &optional paren
 This function returns an efficient regular expression that will match
 any of the strings in the list @var{strings}.  This is useful when you
 need to make matching or searching as fast as possible---for example,
@@ -1780,11 +1787,8 @@ if it is necessary to ensure that a postfix operator appended to
 it will apply to the whole expression.
 @end table
 
-The optional argument @var{keep-order}, if non-@code{nil}, forces the
-match to be performed in the order given, as if the strings were made
-into a regexp by joining them with the @samp{\|} operator.  If nil or
-omitted, the returned regexp will always match the longest string
-possible.
+The returned regexp is ordered in such a way that it will always match
+the longest string possible.
 
 Up to reordering, the resulting regexp of @code{regexp-opt} is
 equivalent to but usually more efficient than that of a simplified
@@ -2538,7 +2542,7 @@ and replace them, the best way is to write an explicit loop using
 description of @code{replace-match}.
 
   However, replacing matches in a string is more complex, especially
-if you want to do it efficiently.  So Emacs provides a function to do
+if you want to do it efficiently.  So Emacs provides two functions to do
 this.
 
 @defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
@@ -2560,6 +2564,13 @@ passing the text of the match as its sole argument.  It collects the
 value @var{rep} returns and passes that to @code{replace-match} as the
 replacement string.  The match data at this point are the result
 of matching @var{regexp} against a substring of @var{string}.
+@end defun
+
+@defun string-replace fromstring tostring instring
+This function replaces all occurrences of @var{fromstring} with
+@var{tostring} in @var{instring} and returns the result.  It may
+return one of its arguments unchanged, a constant string or a new
+string.  Case is significant, and text properties are ignored.
 @end defun
 
   If you want to write a command along the lines of @code{query-replace},

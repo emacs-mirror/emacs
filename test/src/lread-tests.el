@@ -6,18 +6,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -156,22 +156,6 @@ literals (Bug#20852)."
     (should (string-suffix-p "/somelib2.el" (caar load-history)))
     (load "somelib" nil t)
     (should (string-suffix-p "/somelib.el" (caar load-history)))))
-
-(ert-deftest lread-tests--old-style-backquotes ()
-  "Check that loading doesn't accept old-style backquotes."
-  (lread-tests--with-temp-file file-name
-    (write-region "(` (a b))" nil file-name)
-    (let ((data (should-error (load file-name nil :nomessage :nosuffix))))
-      (should (equal (cdr data)
-                     (list (concat (format-message "Loading `%s': " file-name)
-                                   "old-style backquotes detected!")))))))
-
-(ert-deftest lread-tests--force-new-style-backquotes ()
-  (let ((data (should-error (read "(` (a b))"))))
-    (should (equal (cdr data) '("Old-style backquotes detected!"))))
-  (should (equal (let ((force-new-style-backquotes t))
-                   (read "(` (a b))"))
-                 '(`(a b)))))
 
 (ert-deftest lread-lread--substitute-object-in-subtree ()
   (let ((x (cons 0 1)))

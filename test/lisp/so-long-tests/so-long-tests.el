@@ -181,7 +181,7 @@
       ;; The various 'window change functions' are now invoked by the
       ;; redisplay, and redisplay does nothing at all in batch mode,
       ;; so we cannot test under this revised behavior.  Refer to:
-      ;; https://lists.gnu.org/archive/html/emacs-devel/2019-10/msg00971.html
+      ;; https://lists.gnu.org/r/emacs-devel/2019-10/msg00971.html
       ;; For interactive (non-batch) test runs, calling `redisplay'
       ;; does do the trick; so do that first.
       (redisplay)

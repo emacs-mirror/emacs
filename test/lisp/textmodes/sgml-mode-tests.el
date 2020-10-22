@@ -1,4 +1,4 @@
-;;; sgml-mode-tests.el --- Tests for sgml-mode
+;;; sgml-mode-tests.el --- Tests for sgml-mode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; rfc2368.el --- support for rfc2368
+;;; rfc2368.el --- support for rfc2368  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 

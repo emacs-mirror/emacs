@@ -1,4 +1,4 @@
-;;; semantic-utest-c.el --- C based parsing tests.
+;;; semantic-utest-c.el --- C based parsing tests.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
@@ -40,11 +40,13 @@
 (defvar semantic-utest-c-test-directory (expand-file-name "tests" cedet-utest-directory)
   "Location of test files.")
 
+(defvar semantic-lex-c-nested-namespace-ignore-second)
+
 ;;; Code:
 ;;;###autoload
 (ert-deftest semantic-test-c-preprocessor-simulation ()
   "Run parsing test for C from the test directory."
-  (interactive)
+  :tags '(:expensive-test)
   (semantic-mode 1)
   (dolist (fp semantic-utest-c-comparisons)
     (let* ((semantic-lex-c-nested-namespace-ignore-second nil)
@@ -146,33 +148,32 @@ gcc version 2.95.2 19991024 (release)"
 
 (ert-deftest semantic-test-gcc-output-parser ()
   "Test the output parser against some collected strings."
-  (let ((fail nil))
-    (dolist (S semantic-gcc-test-strings)
-      (let* ((fields (semantic-gcc-fields S))
-             (v (cdr (assoc 'version fields)))
-             (h (or (cdr (assoc 'target fields))
-                    (cdr (assoc '--target fields))
-                    (cdr (assoc '--host fields))))
-             (p (cdr (assoc '--prefix fields)))
-             )
-	;; No longer test for prefixes.
-        (when (not (and v h))
-          (let ((strs (split-string S "\n")))
-            (message "Test failed on %S\nV H P:\n%S %S %S" (car strs) v h p)
-            ))
-        (should (and v h))
-        ))
-    (dolist (S semantic-gcc-test-strings-fail)
-      (let* ((fields (semantic-gcc-fields S))
-             (v (cdr (assoc 'version fields)))
-             (h (or (cdr (assoc '--host fields))
-                    (cdr (assoc 'target fields))))
-             (p (cdr (assoc '--prefix fields)))
-             )
-        ;; negative test
-        (should-not (and v h p))
-        ))
-    ))
+  (dolist (S semantic-gcc-test-strings)
+    (let* ((fields (semantic-gcc-fields S))
+           (v (cdr (assoc 'version fields)))
+           (h (or (cdr (assoc 'target fields))
+                  (cdr (assoc '--target fields))
+                  (cdr (assoc '--host fields))))
+           (p (cdr (assoc '--prefix fields)))
+           )
+      ;; No longer test for prefixes.
+      (when (not (and v h))
+        (let ((strs (split-string S "\n")))
+          (message "Test failed on %S\nV H P:\n%S %S %S" (car strs) v h p)
+          ))
+      (should (and v h))
+      ))
+  (dolist (S semantic-gcc-test-strings-fail)
+    (let* ((fields (semantic-gcc-fields S))
+           (v (cdr (assoc 'version fields)))
+           (h (or (cdr (assoc '--host fields))
+                  (cdr (assoc 'target fields))))
+           (p (cdr (assoc '--prefix fields)))
+           )
+      ;; negative test
+      (should-not (and v h p))
+      ))
+  )
 
 
 (provide 'semantic-utest-c)

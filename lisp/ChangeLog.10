@@ -12772,7 +12772,7 @@
 	(reftex-words-to-typekey-alist, reftex-key-to-index-macro-alist)
 	(reftex-query-index-macro-prompt, reftex-query-index-macro-help)
 	(reftex-no-follow-message, reftex-no-info-message): Likewise.
-	(reftex-mode): Define systax table for bibtex parsing.
+	(reftex-mode): Define syntax table for bibtex parsing.
 	(reftex-syntax-table-for-bib): Syntax table for bibtex parsing.
 
 	* textmodes/reftex-cite.el (reftex-format-names): %a as name
@@ -15993,7 +15993,7 @@
 
 	* progmodes/cc-vars.el (c-offsets-alist): A more sane default
 	for `inexpr-statement'.  This is not compatible, though.
-	I think the benefit of a good default style outweights that in
+	I think the benefit of a good default style outweighs that in
 	this case.  Besides, `inexpr-statement' is not very common.
 
 2002-04-22  Martin Stjernholm  <mast@lysator.liu.se>

@@ -1,4 +1,4 @@
-;;; deeper-blue-theme.el --- Custom theme for faces
+;;; deeper-blue-theme.el --- Custom theme for faces  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
@@ -68,7 +68,6 @@
    `(font-lock-comment-face ((,class (:foreground "gray50"))))
    `(font-lock-constant-face ((,class (:foreground "DarkOliveGreen3"))))
    `(font-lock-doc-face ((,class (:foreground "moccasin"))))
-   `(font-lock-doc-string-face ((,class (:foreground "moccasin"))))
    `(font-lock-function-name-face ((,class (:foreground "goldenrod"))))
    `(font-lock-keyword-face ((,class (:foreground "DeepSkyBlue1"))))
    `(font-lock-preprocessor-face ((,class (:foreground "gold"))))

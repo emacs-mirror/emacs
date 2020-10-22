@@ -39,8 +39,9 @@
    versions 3.4 and newer have __attribute__ ((__warn_unused_result__))
    which may cause unwanted diagnostics in that case.  Use __typeof__
    and __extension__ to work around the problem, if the workaround is
-   known to be needed.  */
-#if 3 < __GNUC__ + (4 <= __GNUC_MINOR__)
+   known to be needed.
+   The workaround is not needed with clang.  */
+#if (3 < __GNUC__ + (4 <= __GNUC_MINOR__)) && !defined __clang__
 # define ignore_value(x) \
     (__extension__ ({ __typeof__ (x) __x = (x); (void) __x; }))
 #else

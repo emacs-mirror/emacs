@@ -1,4 +1,4 @@
-;;; tcl-tests.el --- Test suite for tcl-mode
+;;; tcl-tests.el --- Test suite for tcl-mode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 

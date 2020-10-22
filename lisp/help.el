@@ -101,6 +101,7 @@
     (define-key map "p" 'finder-by-keyword)
     (define-key map "P" 'describe-package)
     (define-key map "r" 'info-emacs-manual)
+    (define-key map "R" 'info-display-manual)
     (define-key map "s" 'describe-syntax)
     (define-key map "t" 'help-with-tutorial)
     (define-key map "w" 'where-is)
@@ -131,7 +132,6 @@ This is a list
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
-(define-obsolete-function-alias 'print-help-return-message 'help-print-return-message "23.2")
 (defun help-print-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
 This function assumes that `standard-output' is the help buffer.
@@ -179,7 +179,7 @@ Do not call this in the scope of `with-help-window'."
 		     (if (same-window-p (buffer-name standard-output))
 			 ;; Say how to scroll this window.
 			 (substitute-command-keys
-			  "\\[scroll-up] to scroll the help.")
+                          "\\[scroll-up-command] to scroll the help.")
 		       ;; Say how to scroll some other window.
 		       (substitute-command-keys
 			"\\[scroll-other-window] to scroll the help."))))))))
@@ -224,6 +224,7 @@ o SYMBOL    Display the given function or variable's documentation and value.
 p TOPIC     Find packages matching a given topic keyword.
 P PACKAGE   Describe the given Emacs Lisp package.
 r           Display the Emacs manual in Info mode.
+R           Prompt for a manual and then display it in Info mode.
 s           Display contents of current syntax table, plus explanations.
 S SYMBOL    Show the section for the given symbol in the Info manual
               for the programming language used in this buffer.
@@ -361,11 +362,11 @@ With argument, display info only for the selected version."
 		     (setq res (cons (match-string-no-properties 1) res)))))
 	       (cons "NEWS"
 		     (directory-files data-directory nil
-				      "^NEWS\\.[0-9][-0-9]*$" nil)))
+				      "\\`NEWS\\.[0-9][-0-9]*\\'" nil)))
 	      (sort (delete-dups res) #'string>)))
 	   (current (car all-versions)))
       (setq version (completing-read
-		     (format "Read NEWS for the version (default %s): " current)
+		     (format-prompt "Read NEWS for the version" current)
 		     all-versions nil nil nil nil current))
       (if (integerp (string-to-number version))
 	  (setq version (string-to-number version))
@@ -459,6 +460,7 @@ the variable `message-log-max'."
   "Display last few input keystrokes and the commands run.
 For convenience this uses the same format as
 `edit-last-kbd-macro'.
+See `lossage-size' to update the number of recorded keystrokes.
 
 To record all your input, use `open-dribble-file'."
   (interactive)
@@ -534,12 +536,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
    (let ((fn (function-called-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read
-		(if fn
-		    (format "Where is command (default %s): " fn)
-		  "Where is command: ")
-		obarray 'commandp t nil nil
-		(and fn (symbol-name fn))))
+     (setq val (completing-read (format-prompt "Where is command" fn)
+		                obarray 'commandp t nil nil
+		                (and fn (symbol-name fn))))
      (list (unless (equal val "") (intern val))
 	   current-prefix-arg)))
   (unless definition (error "No command"))
@@ -879,114 +878,6 @@ current buffer."
             (princ ", which is ")
 	    (describe-function-1 defn)))))))
 
-(defun describe-mode (&optional buffer)
-  "Display documentation of current major mode and minor modes.
-A brief summary of the minor modes comes first, followed by the
-major mode description.  This is followed by detailed
-descriptions of the minor modes, each on a separate page.
-
-For this to work correctly for a minor mode, the mode's indicator
-variable \(listed in `minor-mode-alist') must also be a function
-whose documentation describes the minor mode.
-
-If called from Lisp with a non-nil BUFFER argument, display
-documentation for the major and minor modes of that buffer."
-  (interactive "@")
-  (unless buffer (setq buffer (current-buffer)))
-  (help-setup-xref (list #'describe-mode buffer)
-		   (called-interactively-p 'interactive))
-  ;; For the sake of help-do-xref and help-xref-go-back,
-  ;; don't switch buffers before calling `help-buffer'.
-  (with-help-window (help-buffer)
-    (with-current-buffer buffer
-      (let (minor-modes)
-	;; Older packages do not register in minor-mode-list but only in
-	;; minor-mode-alist.
-	(dolist (x minor-mode-alist)
-	  (setq x (car x))
-	  (unless (memq x minor-mode-list)
-	    (push x minor-mode-list)))
-	;; Find enabled minor mode we will want to mention.
-	(dolist (mode minor-mode-list)
-	  ;; Document a minor mode if it is listed in minor-mode-alist,
-	  ;; non-nil, and has a function definition.
-	  (let ((fmode (or (get mode :minor-mode-function) mode)))
-	    (and (boundp mode) (symbol-value mode)
-		 (fboundp fmode)
-		 (let ((pretty-minor-mode
-			(if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
-					  (symbol-name fmode))
-			    (capitalize
-			     (substring (symbol-name fmode)
-					0 (match-beginning 0)))
-			  fmode)))
-		   (push (list fmode pretty-minor-mode
-			       (format-mode-line (assq mode minor-mode-alist)))
-			 minor-modes)))))
-	;; Narrowing is not a minor mode, but its indicator is part of
-	;; mode-line-modes.
-	(when (buffer-narrowed-p)
-	  (push '(narrow-to-region "Narrow" " Narrow") minor-modes))
-	(setq minor-modes
-	      (sort minor-modes
-		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
-	(when minor-modes
-	  (princ "Enabled minor modes:\n")
-	  (make-local-variable 'help-button-cache)
-	  (with-current-buffer standard-output
-	    (dolist (mode minor-modes)
-	      (let ((mode-function (nth 0 mode))
-		    (pretty-minor-mode (nth 1 mode))
-		    (indicator (nth 2 mode)))
-		(save-excursion
-		  (goto-char (point-max))
-		  (princ "\n\f\n")
-		  (push (point-marker) help-button-cache)
-		  ;; Document the minor modes fully.
-                  (insert-text-button
-                   pretty-minor-mode 'type 'help-function
-                   'help-args (list mode-function)
-                   'button '(t))
-		  (princ (format " minor mode (%s):\n"
-				 (if (zerop (length indicator))
-				     "no indicator"
-				   (format "indicator%s"
-					   indicator))))
-		  (princ (help-split-fundoc (documentation mode-function)
-                                            nil 'doc)))
-		(insert-button pretty-minor-mode
-			       'action (car help-button-cache)
-			       'follow-link t
-			       'help-echo "mouse-2, RET: show full information")
-		(newline)))
-	    (forward-line -1)
-	    (fill-paragraph nil)
-	    (forward-line 1))
-
-	  (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
-	;; Document the major mode.
-	(let ((mode mode-name))
-	  (with-current-buffer standard-output
-            (let ((start (point)))
-              (insert (format-mode-line mode nil nil buffer))
-              (add-text-properties start (point) '(face bold)))))
-	(princ " mode")
-	(let* ((mode major-mode)
-	       (file-name (find-lisp-object-file-name mode nil)))
-	  (when file-name
-	    (princ (format-message " defined in `%s'"
-                                   (file-name-nondirectory file-name)))
-	    ;; Make a hyperlink to the library.
-	    (with-current-buffer standard-output
-	      (save-excursion
-		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
-                                    nil t)
-		(help-xref-button 1 'help-function-def mode file-name)))))
-	(princ ":\n")
-	(princ (help-split-fundoc (documentation major-mode) nil 'doc)))))
-  ;; For the sake of IELM and maybe others
-  nil)
-
 (defun search-forward-help-for-help ()
   "Search forward \"help window\"."
   (interactive)
@@ -1243,7 +1134,7 @@ window."
 	   ".")
 	  ((eq scroll 'other)
 	   ", \\[scroll-other-window] to scroll help.")
-	  (scroll ", \\[scroll-up] to scroll help."))))
+          (scroll ", \\[scroll-up-command] to scroll help."))))
     (message "%s"
      (substitute-command-keys (concat quit-part scroll-part)))))
 

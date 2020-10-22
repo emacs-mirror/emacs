@@ -1635,10 +1635,10 @@ This will not happen if you directly set this variable via `setq'."
   :group 'semantic
   :version "24.3"
   :type 'integer
-  :set '(lambda (sym var)
-	  (set-default sym var)
-	  (when (boundp 'x-max-tooltip-size)
-	    (setcdr x-max-tooltip-size (max (1+ var) (cdr x-max-tooltip-size))))))
+  :set (lambda (sym var)
+         (set-default sym var)
+         (when (boundp 'x-max-tooltip-size)
+           (setcdr x-max-tooltip-size (max (1+ var) (cdr x-max-tooltip-size))))))
 
 
 (defclass semantic-displayer-tooltip (semantic-displayer-traditional)

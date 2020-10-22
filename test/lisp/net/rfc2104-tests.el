@@ -1,4 +1,4 @@
-;;; rfc2104-tests.el --- Tests of RFC2104 hashes
+;;; rfc2104-tests.el --- Tests of RFC2104 hashes  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
 

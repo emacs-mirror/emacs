@@ -67,11 +67,11 @@ The dependencies. Unzipping this file on top of
 emacs-$VERSION-x86_64-no-deps.zip should result in the same install as
 emacs-$VERSION-x86_64.zip.
 
-emacs-27-i686-deps.zip
+emacs-$VERSION-i686-deps.zip
 
 The 32-bit version of the dependencies.
 
-emacs-27-deps-mingw-w64-src.zip
+emacs-$VERSION-deps-mingw-w64-src.zip
 
 The source for the dependencies.  Source for Emacs itself is available
 in the main distribution tarball.  These dependencies were produced

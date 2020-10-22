@@ -92,13 +92,16 @@ the `kbd-help' property at point.  If `kbd-help' does not produce
 a string, but the `help-echo' property does, then that string is
 printed instead.
 
+The string is passed through `substitute-command-keys' before it
+is displayed.
+
 A numeric argument ARG prevents display of a message in case
 there is no help.  While ARG can be used interactively, it is
 mainly meant for use from Lisp."
   (interactive "P")
   (let ((help (help-at-pt-kbd-string)))
     (if help
-	(message "%s" help)
+	(message "%s" (substitute-command-keys help))
       (if (not arg) (message "No local help at point")))))
 
 (defvar help-at-pt-timer nil
@@ -161,6 +164,10 @@ printed if there is a text or overlay property at point that is
 included in this list.  Suggested properties are `keymap',
 `local-map', `button' and `kbd-help'.  Any value other than t or
 a non-empty list disables the feature.
+
+The text printed from the `help-echo' property is often only
+relevant when using the mouse.  The presence of a `kbd-help'
+property guarantees that non mouse specific help is available.
 
 This variable only takes effect after a call to
 `help-at-pt-set-timer'.  The help gets printed after Emacs has

@@ -465,7 +465,7 @@ all.  This may very well take some time.")
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
   (save-excursion
-    (let ((buf (get-buffer-create " *nnfolder move*"))
+    (let ((buf (gnus-get-buffer-create " *nnfolder move*"))
 	  result)
       (and
        (nnfolder-request-article article group server)
@@ -735,7 +735,7 @@ deleted.  Point is left where the deleted region was."
 		       (or nnfolder-file-coding-system-for-write
 			   nnfolder-file-coding-system-for-write)))
 		  (nnmail-write-region (point-min) (point-min)
-				       file t 'nomesg)))
+				       file t 'nomesg nil 'excl)))
 	      (when (setq nnfolder-current-buffer (nnfolder-read-folder group))
 		(set-buffer nnfolder-current-buffer)
 		(push (list group nnfolder-current-buffer)
@@ -1096,7 +1096,7 @@ This command does not work if you use short group names."
 
 (defun nnfolder-open-nov (group)
   (or (cdr (assoc group nnfolder-nov-buffer-alist))
-      (let ((buffer (get-buffer-create (format " *nnfolder overview %s*" group))))
+      (let ((buffer (gnus-get-buffer-create (format " *nnfolder overview %s*" group))))
 	(with-current-buffer buffer
 	  (set (make-local-variable 'nnfolder-nov-buffer-file-name)
 	       (nnfolder-group-nov-pathname group))
@@ -1160,7 +1160,7 @@ This command does not work if you use short group names."
 	(if (search-forward "\n\n" e t) (setq e (1- (point)))))
       (with-temp-buffer
 	(insert-buffer-substring buf b e)
-	(let ((headers (nnheader-parse-naked-head)))
+	(let ((headers (nnheader-parse-head t)))
 	  (setf (mail-header-chars  headers) chars)
 	  (setf (mail-header-number headers) number)
 	  headers)))))

@@ -1,4 +1,4 @@
-# warnings.m4 serial 14
+# warnings.m4 serial 16
 dnl Copyright (C) 2008-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -23,8 +23,6 @@ m4_ifdef([AS_VAR_APPEND],
 # The effects of this macro depend on the current language (_AC_LANG).
 AC_DEFUN([gl_COMPILER_OPTION_IF],
 [
-dnl FIXME: gl_Warn must be used unquoted until we can assume Autoconf
-dnl 2.64 or newer.
 AS_VAR_PUSHDEF([gl_Warn], [gl_cv_warn_[]_AC_LANG_ABBREV[]_$1])dnl
 AS_VAR_PUSHDEF([gl_Flags], [_AC_LANG_PREFIX[]FLAGS])dnl
 AS_LITERAL_IF([$1],
@@ -34,13 +32,13 @@ case $gl_positive in
   -Wno-*) gl_positive=-W`expr "X$gl_positive" : 'X-Wno-\(.*\)'` ;;
 esac
 m4_pushdef([gl_Positive], [$gl_positive])])dnl
-AC_CACHE_CHECK([whether _AC_LANG compiler handles $1], m4_defn([gl_Warn]), [
+AC_CACHE_CHECK([whether _AC_LANG compiler handles $1], [gl_Warn], [
   gl_save_compiler_FLAGS="$gl_Flags"
   gl_AS_VAR_APPEND(m4_defn([gl_Flags]),
     [" $gl_unknown_warnings_are_errors ]m4_defn([gl_Positive])["])
-  AC_LINK_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([])])],
-                 [AS_VAR_SET(gl_Warn, [yes])],
-                 [AS_VAR_SET(gl_Warn, [no])])
+  AC_LINK_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([[]])])],
+                 [AS_VAR_SET([gl_Warn], [yes])],
+                 [AS_VAR_SET([gl_Warn], [no])])
   gl_Flags="$gl_save_compiler_FLAGS"
 ])
 AS_VAR_IF(gl_Warn, [yes], [$2], [$3])
@@ -59,8 +57,7 @@ AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS],
 [_AC_LANG_DISPATCH([$0], _AC_LANG, $@)])
 
 # Specialization for _AC_LANG = C. This macro can be AC_REQUIREd.
-# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
-m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C)],
+AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C)],
 [
   AC_LANG_PUSH([C])
   gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL
@@ -68,8 +65,7 @@ m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C)],
 ])
 
 # Specialization for _AC_LANG = C++. This macro can be AC_REQUIREd.
-# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
-m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C++)],
+AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C++)],
 [
   AC_LANG_PUSH([C++])
   gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL
@@ -77,8 +73,7 @@ m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C++)],
 ])
 
 # Specialization for _AC_LANG = Objective C. This macro can be AC_REQUIREd.
-# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
-m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(Objective C)],
+AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS(Objective C)],
 [
   AC_LANG_PUSH([Objective C])
   gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL

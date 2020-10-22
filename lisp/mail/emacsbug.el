@@ -208,7 +208,11 @@ This requires either the macOS \"open\" command, or the freedesktop
 ;;;###autoload
 (defun report-emacs-bug (topic &optional unused)
   "Report a bug in GNU Emacs.
-Prompts for bug subject.  Leaves you in a mail buffer."
+Prompts for bug subject.  Leaves you in a mail buffer.
+
+Already submitted bugs can be found in the Emacs bug tracker:
+
+  https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1"
   (declare (advertised-calling-convention (topic) "24.5"))
   (interactive "sBug Subject: ")
   ;; The syntax `version;' is preferred to `[version]' because the
@@ -270,7 +274,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "https://debbugs.gnu.org/"))
+		   (browse-url "https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1"))
 	 'follow-link t)
 
 	(insert ".  Please check that
@@ -301,42 +305,7 @@ usually do not have translators for other languages.\n\n")))
     (let ((txt (delete-and-extract-region (1+ user-point) (point))))
       (insert (propertize "\n" 'display txt)))
 
-    (insert "\nIn " (emacs-version))
-    (if emacs-build-system
-        (insert " built on " emacs-build-system))
-    (insert "\n")
-
-    (if (stringp emacs-repository-version)
-	(insert "Repository revision: " emacs-repository-version "\n"))
-    (if (stringp emacs-repository-branch)
-	(insert "Repository branch: " emacs-repository-branch "\n"))
-    (if (fboundp 'x-server-vendor)
-	(condition-case nil
-            ;; This is used not only for X11 but also W32 and others.
-	    (insert "Windowing system distributor '" (x-server-vendor)
-                    "', version "
-		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
-	  (error t)))
-    (let ((os (ignore-errors (report-emacs-bug--os-description))))
-      (if (stringp os)
-          (insert "System Description: " os "\n\n")))
-    (let ((message-buf (get-buffer "*Messages*")))
-      (if message-buf
-	  (let (beg-pos
-		(end-pos message-end-point))
-	    (with-current-buffer message-buf
-	      (goto-char end-pos)
-	      (forward-line -10)
-	      (setq beg-pos (point)))
-            (terpri (current-buffer) t)
-	    (insert "Recent messages:\n")
-	    (insert-buffer-substring message-buf beg-pos end-pos))))
-    (insert "\n")
-    (when (and system-configuration-options
-	       (not (equal system-configuration-options "")))
-      (insert "Configured using:\n 'configure "
-	      system-configuration-options "'\n\n")
-      (fill-region (line-beginning-position -1) (point)))
+    (emacs-bug--system-description)
     (insert "Configured features:\n" system-configuration-features "\n\n")
     (fill-region (line-beginning-position -1) (point))
     (insert "Important settings:\n")
@@ -417,72 +386,148 @@ usually do not have translators for other languages.\n\n")))
           (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
+(defun emacs-bug--system-description ()
+  (insert "\nIn " (emacs-version))
+  (if emacs-build-system
+      (insert " built on " emacs-build-system))
+  (insert "\n")
+
+  (if (stringp emacs-repository-version)
+      (insert "Repository revision: " emacs-repository-version "\n"))
+  (if (stringp emacs-repository-branch)
+      (insert "Repository branch: " emacs-repository-branch "\n"))
+  (if (fboundp 'x-server-vendor)
+      (condition-case nil
+          ;; This is used not only for X11 but also W32 and others.
+	  (insert "Windowing system distributor '" (x-server-vendor)
+                  "', version "
+		  (mapconcat 'number-to-string (x-server-version) ".") "\n")
+	(error t)))
+  (let ((os (ignore-errors (report-emacs-bug--os-description))))
+    (if (stringp os)
+        (insert "System Description: " os "\n\n")))
+  (when (and system-configuration-options
+	     (not (equal system-configuration-options "")))
+    (insert "Configured using:\n 'configure "
+	    system-configuration-options "'\n\n")
+    (fill-region (line-beginning-position -1) (point))))
+
 (define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.3")
 
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
-  (save-excursion
-    (goto-char (point-max))
-    (skip-chars-backward " \t\n")
-    (and (= (- (point) (point-min))
-            (length report-emacs-bug-orig-text))
-         (string-equal (buffer-substring-no-properties (point-min) (point))
-                       report-emacs-bug-orig-text)
-         (error "No text entered in bug report"))
-    ;; Warning for novice users.
-    (when (and (string-match "bug-gnu-emacs@gnu\\.org" (mail-fetch-field "to"))
-               (not report-emacs-bug-no-confirmation)
-	       (not (yes-or-no-p
-		     "Send this bug report to the Emacs maintainers? ")))
-      (with-output-to-temp-buffer "*Bug Help*"
-	(princ (substitute-command-keys
-                (format "\
+  (goto-char (point-max))
+  (skip-chars-backward " \t\n")
+  (and (= (- (point) (point-min))
+          (length report-emacs-bug-orig-text))
+       (string-equal (buffer-substring-no-properties (point-min) (point))
+                     report-emacs-bug-orig-text)
+       (error "No text entered in bug report"))
+  ;; Warning for novice users.
+  (when (and (string-match "bug-gnu-emacs@gnu\\.org" (mail-fetch-field "to"))
+             (not report-emacs-bug-no-confirmation)
+	     (not (yes-or-no-p
+		   "Send this bug report to the Emacs maintainers? ")))
+    (with-output-to-temp-buffer "*Bug Help*"
+      (princ (substitute-command-keys
+              (format "\
 You invoked the command M-x report-emacs-bug,
 but you decided not to mail the bug report to the Emacs maintainers.
 
 If you want to mail it to someone else instead,
 please insert the proper e-mail address after \"To: \",
 and send the mail again%s."
-                        (if report-emacs-bug-send-command
-                            (format " using \\[%s]"
-                                    report-emacs-bug-send-command)
-                          "")))))
-      (error "M-x report-emacs-bug was canceled, please read *Bug Help* buffer"))
-    ;; Query the user for the SMTP method, so that we can skip
-    ;; questions about From header validity if the user is going to
-    ;; use mailclient, anyway.
-    (when (or (and (derived-mode-p 'message-mode)
-		   (eq message-send-mail-function 'sendmail-query-once))
-	      (and (not (derived-mode-p 'message-mode))
-		   (eq send-mail-function 'sendmail-query-once)))
-      (sendmail-query-user-about-smtp)
-      (when (derived-mode-p 'message-mode)
-	(setq message-send-mail-function (message-default-send-mail-function))))
-    (or report-emacs-bug-no-confirmation
-	;; mailclient.el does not need a valid From
-	(if (derived-mode-p 'message-mode)
-	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
-	  (eq send-mail-function 'mailclient-send-it))
-	;; Not narrowing to the headers, but that's OK.
-	(let ((from (mail-fetch-field "From")))
-	  (and (or (not from)
-		   (message-bogus-recipient-p from)
-		   ;; This is the default user-mail-address.  On today's
-		   ;; systems, it seems more likely to be wrong than right,
-		   ;; since most people don't run their own mail server.
-		   (string-match (format "\\<%s@%s\\>"
-					 (regexp-quote (user-login-name))
-					 (regexp-quote (system-name)))
-				 from))
-	       (not (yes-or-no-p
-		     (format-message "Is `%s' really your email address? "
-                                     from)))
-	       (error "Please edit the From address and try again"))))
-    ;; Bury the help buffer (if it's shown).
-    (when-let ((help (get-buffer "*Bug Help*")))
-      (when (get-buffer-window help)
-        (quit-window nil (get-buffer-window help))))))
+                      (if report-emacs-bug-send-command
+                          (format " using \\[%s]"
+                                  report-emacs-bug-send-command)
+                        "")))))
+    (error "M-x report-emacs-bug was canceled, please read *Bug Help* buffer"))
+  ;; Query the user for the SMTP method, so that we can skip
+  ;; questions about From header validity if the user is going to
+  ;; use mailclient, anyway.
+  (when (or (and (derived-mode-p 'message-mode)
+		 (eq (message-default-send-mail-function) 'sendmail-query-once))
+	    (and (not (derived-mode-p 'message-mode))
+		 (eq send-mail-function 'sendmail-query-once)))
+    (setq send-mail-function (sendmail-query-user-about-smtp))
+    (when (derived-mode-p 'message-mode)
+      (setq message-send-mail-function (message-default-send-mail-function))
+      (add-hook 'message-sent-hook
+                (lambda ()
+                  (when (y-or-n-p "Save this mail sending choice?")
+                    (customize-save-variable 'send-mail-function
+                                             send-mail-function)))
+                nil t)))
+  (or report-emacs-bug-no-confirmation
+      ;; mailclient.el does not need a valid From
+      (eq send-mail-function 'mailclient-send-it)
+      ;; Not narrowing to the headers, but that's OK.
+      (let ((from (mail-fetch-field "From")))
+	(when (and (or (not from)
+		       (message-bogus-recipient-p from)
+		       ;; This is the default user-mail-address.  On
+		       ;; today's systems, it seems more likely to
+		       ;; be wrong than right, since most people
+		       ;; don't run their own mail server.
+		       (string-match (format "\\<%s@%s\\>"
+					     (regexp-quote (user-login-name))
+					     (regexp-quote (system-name)))
+				     from))
+	           (not (yes-or-no-p
+		         (format-message "Is `%s' really your email address? "
+                                         from))))
+          (goto-char (point-min))
+          (re-search-forward "^From: " nil t)
+	  (error "Please edit the From address and try again"))))
+  ;; Bury the help buffer (if it's shown).
+  (when-let ((help (get-buffer "*Bug Help*")))
+    (when (get-buffer-window help)
+      (quit-window nil (get-buffer-window help)))))
 
+;;;###autoload
+(defun submit-emacs-patch (subject file)
+  "Send an Emacs patch to the Emacs maintainers.
+Interactively, you will be prompted for SUBJECT and a patch FILE
+name (which will be attached to the mail).  You will end up in a
+Message buffer where you can explain more about the patch."
+  (interactive "sThis patch is about: \nfPatch file name: ")
+  (switch-to-buffer "*Patch Help*")
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (insert "Thank you for considering submitting a patch to the Emacs project.\n\n"
+            "Please describe what the patch fixes (or, if it's a new feature, what it\n"
+            "implements) in the mail buffer below.  When done, use the `C-c C-c' command\n"
+            "to send the patch as an email to the Emacs issue tracker.\n\n"
+            "If this is the first time you've submitted an Emacs patch, please\n"
+            "read the ")
+    (insert-text-button
+     "CONTRIBUTE"
+     'action (lambda (_)
+               (view-buffer
+                (find-file-noselect
+                 (expand-file-name "CONTRIBUTE" installation-directory)))))
+    (insert " file first.\n")
+    (goto-char (point-min))
+    (view-mode 1)
+    (button-mode 1))
+  (message-mail-other-window report-emacs-bug-address subject)
+  (insert "\n\n\n")
+  (emacs-bug--system-description)
+  (mml-attach-file file "text/patch" nil "attachment")
+  (message-goto-body)
+  (message "Write a description of the patch and use `C-c C-c' to send it")
+  (add-hook 'message-send-hook
+            (lambda ()
+              (message-goto-body)
+              (insert "Tags: patch\nthanks\n\n"))
+            t)
+  (message-add-action
+   (lambda ()
+     ;; Bury the help buffer (if it's shown).
+     (when-let ((help (get-buffer "*Patch Help*")))
+       (when (get-buffer-window help)
+         (quit-window nil (get-buffer-window help)))))
+   'send))
 
 (provide 'emacsbug)
 

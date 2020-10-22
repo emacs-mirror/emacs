@@ -113,4 +113,20 @@
         (should (eq (current-column)
                     (widget-get grandchild :indent)))))))
 
+(ert-deftest widget-test-character-widget-value ()
+  "Check that we get the character widget's value correctly."
+  (with-temp-buffer
+    (let ((wid (widget-create '(character :value ?\n))))
+      (goto-char (widget-get wid :from))
+      (should (string= (widget-apply wid :value-get) "\n"))
+      (should (char-equal (widget-value wid) ?\n))
+      (should-not (widget-apply wid :validate)))))
+
+(ert-deftest widget-test-editable-field-widget-value ()
+  "Test that we get the editable field widget's value correctly."
+  (with-temp-buffer
+    (let ((wid (widget-create '(editable-field :value ""))))
+      (widget-insert "And some non-widget text.")
+      (should (string= (widget-apply wid :value-get) "")))))
+
 ;;; wid-edit-tests.el ends here

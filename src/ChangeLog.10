@@ -9344,7 +9344,7 @@
 	* dispextern.h (struct glyph_row): New member overlay_arrow_bitmap.
 	It replaces the corresponding member from struct window, as a
 	window may now show multiple overlay arrows.
-	Remove member overlay_arrow_p, superseeded by overlay_arrow_bitmap.
+	Remove member overlay_arrow_p, superseded by overlay_arrow_bitmap.
 
 	* dispnew.c (row_equal_p, update_window_line, scrolling_window):
 	Compare overlay_arrow_bitmap than overlay_arrow_p members.
@@ -11141,7 +11141,7 @@
 	* eval.c (Fdefun, Fdefmacro): Use (defun . FN_NAME) in LOADHIST_ATTACH.
 	(Fdefvaralias, Fdefvar, Fdefconst): Use just SYM in LOADHIST_ATTACH.
 	(Qdefvar): Var deleted.
-	(syms_of_eval): Don't initialze it.
+	(syms_of_eval): Don't initialize it.
 
 	* lread.c (syms_of_lread) <load-history>: Doc fix.
 
@@ -18716,7 +18716,7 @@
 	and line_height, and use corresponding new members in struct
 	frame.  All uses changed.
 	(FRAME_LINE_HEIGHT, FRAME_INTERNAL_BORDER_WIDTH): Remove macros;
-	superseeded by corresponding macros in frame.h.
+	superseded by corresponding macros in frame.h.
 
 	* msdos.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
@@ -19145,7 +19145,7 @@
 	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp variable.
 
 	* lread.c (read1): Before calling index, check if the 2nd
-	arguemnt is in ASCII range.
+	argument is in ASCII range.
 
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
 
@@ -19945,7 +19945,7 @@
 2003-03-09  David Kastrup  <dak@gnu.org>
 
 	* process.c (read_process_output): We have allocated enough space
-	for readmax and carryover, so actually use the alloted space.
+	for readmax and carryover, so actually use the allotted space.
 
 2003-03-09  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -24638,7 +24638,7 @@
 	* w32gui.h (struct XImage): Define.
 
 	* w32term.c (w32_read_socket) <WM_XBUTTONUP>: Use XFASTINT to
-	extract mouse co-ordinates.
+	extract mouse coordinates.
 
 2002-03-20  Jason Rumney  <jasonr@gnu.org>
 
@@ -25377,7 +25377,7 @@
 	Handle literal output of strings by sharing the
 	main-line code for strings, using local var `literal'.
 	Handle :propertize feature.
-	(syms_of_xdisp): Initialze and staticpro QCpropertize and
+	(syms_of_xdisp): Initialize and staticpro QCpropertize and
 	mode_line_proptrans_alist.
 
 2002-02-11  Kim F. Storm  <storm@cua.dk>

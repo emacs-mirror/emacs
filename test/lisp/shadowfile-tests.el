@@ -1,4 +1,4 @@
-;;; shadowfile-tests.el --- Tests of shadowfile
+;;; shadowfile-tests.el --- Tests of shadowfile  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
@@ -70,7 +70,6 @@
 (setq password-cache-expiry nil
       shadow-debug (getenv "EMACS_HYDRA_CI")
       tramp-verbose 0
-      tramp-message-show-message nil
       ;; On macOS, `temporary-file-directory' is a symlinked directory.
       temporary-file-directory (file-truename temporary-file-directory)
       shadow-test-remote-temporary-file-directory
@@ -126,6 +125,7 @@
 Per definition, all files are identical on the different hosts of
 a cluster (or site).  This is not tested here; it must be
 guaranteed by the originator of a cluster definition."
+  :tags '(:expensive-test)
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))
   (skip-unless (file-remote-p shadow-test-remote-temporary-file-directory))
 
@@ -139,9 +139,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -256,9 +256,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -609,9 +609,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -670,9 +670,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -866,6 +866,7 @@ guaranteed by the originator of a cluster definition."
 
 (ert-deftest shadow-test09-shadow-copy-files ()
   "Check that needed shadow files are copied."
+  :tags '(:expensive-test)
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))
   (skip-unless (file-remote-p shadow-test-remote-temporary-file-directory))
   (skip-unless (file-writable-p shadow-test-remote-temporary-file-directory))
@@ -924,7 +925,7 @@ guaranteed by the originator of a cluster definition."
 	  ;; action.
           (add-function
            :before (symbol-function #'write-region)
-	   (lambda (&rest args)
+           (lambda (&rest _args)
              (when (and (buffer-file-name) mocked-input)
                (should (equal (buffer-file-name) (pop mocked-input)))))
            '((name . "write-region-mock")))

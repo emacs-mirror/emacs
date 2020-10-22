@@ -46,27 +46,10 @@
 (declare-function c-forward-conditional "cc-cmds")
 (declare-function ede-system-include-path "ede")
 
-;;; Compatibility
-;;
 (eval-when-compile (require 'cc-mode))
 
-(if (fboundp 'c-end-of-macro)
-    (eval-and-compile
-      (defalias 'semantic-c-end-of-macro 'c-end-of-macro))
-  ;; From cc-mode 5.30
-  (defun semantic-c-end-of-macro ()
-    "Go to the end of a preprocessor directive.
-More accurately, move point to the end of the closest following line
-that doesn't end with a line continuation backslash.
-
-This function does not do any hidden buffer changes."
-    (while (progn
-             (end-of-line)
-             (when (and (eq (char-before) ?\\)
-                        (not (eobp)))
-               (forward-char)
-               t))))
-  )
+(define-obsolete-function-alias 'semantic-c-end-of-macro
+  #'c-end-of-macro "28.1")
 
 ;;; Code:
 (with-suppressed-warnings ((obsolete define-child-mode))
@@ -266,7 +249,7 @@ Return the defined symbol as a special spp lex token."
 	   (semantic-lex-analyzer #'semantic-cpp-lexer)
 	   (raw-stream
 	    (semantic-lex-spp-stream-for-macro (save-excursion
-						 (semantic-c-end-of-macro)
+						 (c-end-of-macro)
 						 ;; HACK - If there's a C comment after
 						 ;; the macro, do not parse it.
 						 (if (looking-back "/\\*.*" beginning-of-define)
@@ -590,7 +573,7 @@ case, we must skip it since it is the ELSE part."
 (define-lex-regex-analyzer semantic-lex-c-macrobits
   "Ignore various forms of #if/#else/#endif conditionals."
   "^\\s-*#\\s-*\\(if\\(n?def\\)?\\|endif\\|elif\\|else\\)"
-  (semantic-c-end-of-macro)
+  (c-end-of-macro)
   (setq semantic-lex-end-point (point))
   nil)
 

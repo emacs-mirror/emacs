@@ -30,7 +30,7 @@
 ;; your images, use image-dired.el
 ;;
 ;; The 'convert' program from 'ImageMagick'
-;; [URL:http://www.imagemagick.org/] is required.
+;; [URL:https://www.imagemagick.org/] is required.
 ;;
 ;; Thanks: Alex Schroeder <alex@gnu.org> for maintaining the package at some
 ;;         time.  The peoples at #emacs@freenode.net for numerous help.  RMS

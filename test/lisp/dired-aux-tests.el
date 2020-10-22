@@ -28,7 +28,7 @@
   (let* ((foo (make-temp-file "foo"))
          (files (list foo)))
     (unwind-protect
-        (cl-letf (((symbol-function 'y-or-n-p) 'error))
+        (cl-letf (((symbol-function 'read-char-from-minibuffer) 'error))
           (dired temporary-file-directory)
           (dired-goto-file foo)
           ;; `dired-do-shell-command' returns nil on success.
@@ -40,7 +40,7 @@
           (should-not (dired-do-shell-command "ls ? ./`?`" nil files)))
       (delete-file foo))))
 
-;; Auxiliar macro for `dired-test-bug28834': it binds
+;; Auxiliary macro for `dired-test-bug28834': it binds
 ;; `dired-create-destination-dirs' to CREATE-DIRS and execute BODY.
 ;; If YES-OR-NO is non-nil, it binds `yes-or-no-p' to
 ;; to avoid the prompt.
@@ -114,6 +114,49 @@
         (mapc #'delete-file `(,file1 ,file2))
         (kill-buffer buf)))))
 
+(defun dired-test--check-highlighting (command positions)
+  (let ((start 1))
+    (dolist (pos positions)
+      (should-not (text-property-not-all start (1- pos) 'face nil command))
+      (should (equal 'warning (get-text-property pos 'face command)))
+      (setq start (1+ pos)))
+    (should-not (text-property-not-all
+                 start (length command) 'face nil command))))
+
+(ert-deftest dired-test-highlight-metachar ()
+  "Check that non-isolated meta-characters are highlighted."
+  (let* ((command "sed -r -e 's/oo?/a/' -e 's/oo?/a/' ? `?`")
+         (markers "               ^             ^")
+         (result (dired--highlight-no-subst-chars
+                  (dired--need-confirm-positions command "?")
+                  command
+                  t))
+         (lines (split-string result "\n")))
+    (should (= (length lines) 2))
+    (should (string-match (regexp-quote command) (nth 0 lines)))
+    (should (string-match (regexp-quote markers) (nth 1 lines)))
+    (dired-test--check-highlighting (nth 0 lines) '(15 29)))
+  ;; Note that `?` is considered isolated, but `*` is not.
+  (let* ((command "sed -e 's/o*/a/' -e 's/o`*` /a/'")
+         (markers "           ^             ^")
+         (result (dired--highlight-no-subst-chars
+                  (dired--need-confirm-positions command "*")
+                  command
+                  t))
+         (lines (split-string result "\n")))
+    (should (= (length lines) 2))
+    (should (string-match (regexp-quote command) (nth 0 lines)))
+    (should (string-match (regexp-quote markers) (nth 1 lines)))
+    (dired-test--check-highlighting (nth 0 lines) '(11 25)))
+  (let* ((command "sed 's/\\?/!/'")
+         (result (dired--highlight-no-subst-chars
+                  (dired--need-confirm-positions command "?")
+                  command
+                  nil))
+         (lines (split-string result "\n")))
+    (should (= (length lines) 1))
+    (should (string-match (regexp-quote command) (nth 0 lines)))
+    (dired-test--check-highlighting (nth 0 lines) '(8))))
 
 (provide 'dired-aux-tests)
 ;; dired-aux-tests.el ends here

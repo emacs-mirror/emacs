@@ -560,7 +560,8 @@ static void
 w32_update_window_begin (struct window *w)
 {
   /* Hide the system caret during an update.  */
-  if (w32_use_visible_system_caret && w32_system_caret_hwnd)
+  if (w32_use_visible_system_caret && w32_system_caret_hwnd
+      && w == w32_system_caret_window)
     {
       SendMessageTimeout (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0,
 			  0, 6000, NULL);
@@ -657,7 +658,8 @@ w32_update_window_end (struct window *w, bool cursor_on_p,
   /* Unhide the caret.  This won't actually show the cursor, unless it
      was visible before the corresponding call to HideCaret in
      w32_update_window_begin.  */
-  if (w32_use_visible_system_caret && w32_system_caret_hwnd)
+  if (w32_use_visible_system_caret && w32_system_caret_hwnd
+      && w == w32_system_caret_window)
     {
       SendMessageTimeout (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0,
 			  0, 6000, NULL);
@@ -886,10 +888,10 @@ static void w32_draw_image_foreground_1 (struct glyph_string *, HBITMAP);
 static void w32_clear_glyph_string_rect (struct glyph_string *, int,
                                          int, int, int);
 static void w32_draw_relief_rect (struct frame *, int, int, int, int,
-                                  int, int, int, int, int, int,
+                                  int, int, int, int, int, int, int,
                                   RECT *);
 static void w32_draw_box_rect (struct glyph_string *, int, int, int, int,
-                               int, bool, bool, RECT *);
+                               int, int, bool, bool, RECT *);
 
 
 /* Set S->gc to a suitable GC for drawing glyph string S in cursor
@@ -1099,19 +1101,28 @@ w32_set_glyph_string_clipping_exactly (struct glyph_string *src,
 static void
 w32_compute_glyph_string_overhangs (struct glyph_string *s)
 {
-  if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH
-      && !s->font_not_found_p)
+  if (s->cmp == NULL)
     {
-      struct font *font = s->font;
       struct font_metrics metrics;
+      if (s->first_glyph->type == CHAR_GLYPH && !s->font_not_found_p)
+	{
+	  struct font *font = s->font;
+	  font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
+	  s->right_overhang = (metrics.rbearing > metrics.width
+			       ? metrics.rbearing - metrics.width : 0);
+	  s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	}
+      else if (s->first_glyph->type == COMPOSITE_GLYPH)
+	{
+	  Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
 
-      font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
-      s->right_overhang = (metrics.rbearing > metrics.width
-			   ? metrics.rbearing - metrics.width : 0);
-      s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	  composition_gstring_width (gstring, s->cmp_from, s->cmp_to, &metrics);
+	  s->right_overhang = (metrics.rbearing > metrics.width
+			       ? metrics.rbearing - metrics.width : 0);
+	  s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	}
     }
-  else if (s->cmp)
+  else
     {
       s->right_overhang = s->cmp->rbearing - s->cmp->pixel_width;
       s->left_overhang = -s->cmp->lbearing;
@@ -1158,7 +1169,7 @@ w32_draw_glyph_string_background (struct glyph_string *s, bool force_p)
      shouldn't be drawn in the first place.  */
   if (!s->background_filled_p)
     {
-      int box_line_width = max (s->face->box_line_width, 0);
+      int box_line_width = max (s->face->box_horizontal_line_width, 0);
 
 #if 0 /* TODO: stipple */
       if (s->stippled_p)
@@ -1204,7 +1215,7 @@ w32_draw_glyph_string_foreground (struct glyph_string *s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
@@ -1262,7 +1273,7 @@ w32_draw_composite_glyph_string_foreground (struct glyph_string *s)
      of S to the right of that box line.  */
   if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
@@ -1359,7 +1370,7 @@ w32_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
@@ -1527,7 +1538,7 @@ w32_query_colors (struct frame *f, Emacs_Color *colors, int ncolors)
 
 /* Store F's background color into *BGCOLOR.  */
 
-static void
+void
 w32_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
 {
   bgcolor->pixel = FRAME_BACKGROUND_PIXEL (f);
@@ -1615,7 +1626,7 @@ w32_setup_relief_colors (struct glyph_string *s)
 static void
 w32_draw_relief_rect (struct frame *f,
 		      int left_x, int top_y, int right_x, int bottom_y,
-		      int width, int raised_p,
+		      int hwidth, int vwidth, int raised_p,
 		      int top_p, int bot_p, int left_p, int right_p,
 		      RECT *clip_rect)
 {
@@ -1632,14 +1643,14 @@ w32_draw_relief_rect (struct frame *f,
 
   /* Top.  */
   if (top_p)
-    for (i = 0; i < width; ++i)
+    for (i = 0; i < hwidth; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     left_x + i * left_p, top_y + i,
 		     right_x - left_x - i * (left_p + right_p ) + 1, 1);
 
   /* Left.  */
   if (left_p)
-    for (i = 0; i < width; ++i)
+    for (i = 0; i < vwidth; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     left_x + i, top_y + (i + 1) * top_p, 1,
 		     bottom_y - top_y - (i + 1) * (bot_p + top_p) + 1);
@@ -1651,14 +1662,14 @@ w32_draw_relief_rect (struct frame *f,
 
   /* Bottom.  */
   if (bot_p)
-    for (i = 0; i < width; ++i)
+    for (i = 0; i < hwidth; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     left_x + i * left_p, bottom_y - i,
 		     right_x - left_x - i * (left_p + right_p) + 1, 1);
 
   /* Right.  */
   if (right_p)
-    for (i = 0; i < width; ++i)
+    for (i = 0; i < vwidth; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     right_x - i, top_y + (i + 1) * top_p, 1,
 		     bottom_y - top_y - (i + 1) * (bot_p + top_p) + 1);
@@ -1678,31 +1689,31 @@ w32_draw_relief_rect (struct frame *f,
 
 static void
 w32_draw_box_rect (struct glyph_string *s,
-		   int left_x, int top_y, int right_x, int bottom_y, int width,
-                   bool left_p, bool right_p, RECT *clip_rect)
+		   int left_x, int top_y, int right_x, int bottom_y, int hwidth,
+		   int vwidth, bool left_p, bool right_p, RECT *clip_rect)
 {
   w32_set_clip_rectangle (s->hdc, clip_rect);
 
   /* Top.  */
   w32_fill_area (s->f, s->hdc, s->face->box_color,
-		  left_x, top_y, right_x - left_x + 1, width);
+		  left_x, top_y, right_x - left_x + 1, hwidth);
 
   /* Left.  */
   if (left_p)
     {
       w32_fill_area (s->f, s->hdc, s->face->box_color,
-                     left_x, top_y, width, bottom_y - top_y + 1);
+                     left_x, top_y, vwidth, bottom_y - top_y + 1);
     }
 
   /* Bottom.  */
   w32_fill_area (s->f, s->hdc, s->face->box_color,
-                 left_x, bottom_y - width + 1, right_x - left_x + 1, width);
+                 left_x, bottom_y - hwidth + 1, right_x - left_x + 1, hwidth);
 
   /* Right.  */
   if (right_p)
     {
       w32_fill_area (s->f, s->hdc, s->face->box_color,
-                     right_x - width + 1, top_y, width, bottom_y - top_y + 1);
+                     right_x - vwidth + 1, top_y, vwidth, bottom_y - top_y + 1);
     }
 
   w32_set_clip_rectangle (s->hdc, NULL);
@@ -1714,7 +1725,7 @@ w32_draw_box_rect (struct glyph_string *s,
 static void
 w32_draw_glyph_string_box (struct glyph_string *s)
 {
-  int width, left_x, right_x, top_y, bottom_y, last_x;
+  int hwidth, vwidth, left_x, right_x, top_y, bottom_y, last_x;
   bool left_p, right_p, raised_p;
   struct glyph *last_glyph;
   RECT clip_rect;
@@ -1723,12 +1734,29 @@ w32_draw_glyph_string_box (struct glyph_string *s)
 	    ? WINDOW_RIGHT_EDGE_X (s->w)
 	    : window_box_right (s->w, s->area));
 
-  /* The glyph that may have a right box line.  */
-  last_glyph = (s->cmp || s->img
-		? s->first_glyph
-		: s->first_glyph + s->nchars - 1);
+  /* The glyph that may have a right box line.  For static
+     compositions and images, the right-box flag is on the first glyph
+     of the glyph string; for other types it's on the last glyph.  */
+  if (s->cmp || s->img)
+    last_glyph = s->first_glyph;
+  else if (s->first_glyph->type == COMPOSITE_GLYPH
+	   && s->first_glyph->u.cmp.automatic)
+    {
+      /* For automatic compositions, we need to look up the last glyph
+	 in the composition.  */
+        struct glyph *end = s->row->glyphs[s->area] + s->row->used[s->area];
+	struct glyph *g = s->first_glyph;
+	for (last_glyph = g++;
+	     g < end && g->u.cmp.automatic && g->u.cmp.id == s->cmp_id
+	       && g->slice.cmp.to < s->cmp_to;
+	     last_glyph = g++)
+	  ;
+    }
+  else
+    last_glyph = s->first_glyph + s->nchars - 1;
 
-  width = eabs (s->face->box_line_width);
+  vwidth = eabs (s->face->box_vertical_line_width);
+  hwidth = eabs (s->face->box_horizontal_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
   right_x = ((s->row->full_width_p && s->extends_to_end_of_line_p
@@ -1749,13 +1777,13 @@ w32_draw_glyph_string_box (struct glyph_string *s)
   get_glyph_string_clip_rect (s, &clip_rect);
 
   if (s->face->box == FACE_SIMPLE_BOX)
-    w32_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
-                       left_p, right_p, &clip_rect);
+    w32_draw_box_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
+                       vwidth, left_p, right_p, &clip_rect);
   else
     {
       w32_setup_relief_colors (s);
-      w32_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y,
-                            width, raised_p, 1, 1, left_p, right_p, &clip_rect);
+      w32_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y, hwidth,
+                            vwidth, raised_p, 1, 1, left_p, right_p, &clip_rect);
     }
 }
 
@@ -1793,7 +1821,7 @@ w32_draw_image_foreground (struct glyph_string *s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += eabs (s->face->box_line_width);
+    x += max (s->face->box_vertical_line_width, 0);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -1980,7 +2008,7 @@ w32_draw_image_relief (struct glyph_string *s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += eabs (s->face->box_line_width);
+    x += max (s->face->box_vertical_line_width, 0);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2032,7 +2060,7 @@ w32_draw_image_relief (struct glyph_string *s)
 
   w32_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  w32_draw_relief_rect (s->f, x, y, x1, y1, thick, raised_p,
+  w32_draw_relief_rect (s->f, x, y, x1, y1, thick, thick, raised_p,
 			top_p, bot_p, left_p, right_p, &r);
 }
 
@@ -2052,7 +2080,7 @@ w32_draw_image_foreground_1 (struct glyph_string *s, HBITMAP pixmap)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += eabs (s->face->box_line_width);
+    x += max (s->face->box_vertical_line_width, 0);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2165,8 +2193,8 @@ static void
 w32_draw_image_glyph_string (struct glyph_string *s)
 {
   int x, y;
-  int box_line_hwidth = eabs (s->face->box_line_width);
-  int box_line_vwidth = max (s->face->box_line_width, 0);
+  int box_line_hwidth = max (s->face->box_vertical_line_width, 0);
+  int box_line_vwidth = max (s->face->box_horizontal_line_width, 0);
   int height, width;
   HBITMAP pixmap = 0;
 
@@ -4699,6 +4727,10 @@ static short temp_buffer[100];
 /* Temporarily store lead byte of DBCS input sequences.  */
 static char dbcs_lead = 0;
 
+/* Temporarily store pending UTF-16 high surrogate unit and the modifiers.  */
+static unsigned short utf16_high;
+static DWORD utf16_high_modifiers;
+
 /**
   mouse_or_wdesc_frame: When not dropping and the mouse was grabbed
   for DPYINFO, return the frame where the mouse was seen last.  If
@@ -4910,9 +4942,45 @@ w32_read_socket (struct terminal *terminal,
 	      XSETFRAME (inev.frame_or_window, f);
 	      inev.timestamp = msg.msg.time;
 
+	      if (utf16_high
+		  && (msg.msg.message != WM_UNICHAR
+		      || UTF_16_HIGH_SURROGATE_P (msg.msg.wParam)))
+		{
+		  /* Flush the pending high surrogate if the low one
+		     isn't coming.  (This should never happen, but I
+		     have paranoia about this stuff.)  */
+		  struct input_event inev1;
+		  inev1.modifiers = utf16_high_modifiers;
+		  inev1.code = utf16_high;
+		  inev1.timestamp = inev.timestamp;
+		  inev1.arg = Qnil;
+		  kbd_buffer_store_event_hold (&inev1, hold_quit);
+		  utf16_high = 0;
+		  utf16_high_modifiers = 0;
+		}
+
               if (msg.msg.message == WM_UNICHAR)
                 {
-                  inev.code = msg.msg.wParam;
+		  /* Handle UTF-16 encoded codepoint above the BMP.
+		     This is needed to support Emoji input from input
+		     panel popped up by "Win+." shortcut.  */
+		  if (UTF_16_HIGH_SURROGATE_P (msg.msg.wParam))
+		    {
+		      utf16_high = msg.msg.wParam;
+		      utf16_high_modifiers = inev.modifiers;
+		      inev.kind = NO_EVENT;
+		      break;
+		    }
+		  else if (UTF_16_LOW_SURROGATE_P (msg.msg.wParam)
+			   && utf16_high)
+		    {
+		      inev.code = surrogates_to_codepoint (msg.msg.wParam,
+							   utf16_high);
+		      utf16_high = 0;
+		      utf16_high_modifiers = 0;
+		    }
+		  else
+		    inev.code = msg.msg.wParam;
                 }
               else if (msg.msg.wParam < 256)
                 {
@@ -5410,15 +5478,15 @@ w32_read_socket (struct terminal *terminal,
 		  /* Windows can send us a SIZE_MAXIMIZED message even
 		     when fullscreen is fullboth.  The following is a
 		     simple hack to check that based on the fact that
-		     only a maximized fullscreen frame should have both
-		     top/left outside the screen.  */
+		     only a maximized fullscreen frame should have top
+		     or left outside the screen.  */
 		  if (EQ (fullscreen, Qfullwidth) || EQ (fullscreen, Qfullheight)
 		      || NILP (fullscreen))
 		      {
 			int x, y;
 
 			w32_real_positions (f, &x, &y);
-			if (x < 0 && y < 0)
+			if (x < 0 || y < 0)
 			  store_frame_param (f, Qfullscreen, Qmaximized);
 		      }
 		  }
@@ -6809,7 +6877,7 @@ w32_make_frame_visible (struct frame *f)
       /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
 	 causes unexpected behavior when unminimizing frames that were
 	 previously maximized.  But only SW_SHOWNORMAL works properly for
-	 frames that were truely hidden (using make-frame-invisible), so
+	 frames that were truly hidden (using make-frame-invisible), so
 	 we need it to avoid Bug#5482.  It seems that iconified is only
 	 set for minimized windows that are still visible, so use that to
 	 determine the appropriate flag to pass ShowWindow.  */
@@ -7207,7 +7275,8 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_draw_window_divider,
   w32_shift_glyphs_for_insert,
   w32_show_hourglass,
-  w32_hide_hourglass
+  w32_hide_hourglass,
+  w32_default_font_parameter
 };
 
 static void w32_delete_terminal (struct terminal *term);
@@ -7614,6 +7683,25 @@ Windows 8.  It is set to nil on Windows 9X.  */);
   else
     w32_unicode_filenames = 1;
 
+  DEFVAR_BOOL ("w32-use-native-image-API",
+	       w32_use_native_image_api,
+     doc: /* Non-nil means use the native MS-Windows image API to display images.
+
+A value of nil means displaying images other than PBM and XBM requires
+optional supporting libraries to be installed.
+The native image API library used is GDI+ via GDIPLUS.DLL.  This
+library is available only since W2K, therefore this variable is
+unconditionally set to nil on older systems.  */);
+
+  /* For now, disabled by default, since this is an experimental feature.  */
+#if 0 && HAVE_NATIVE_IMAGE_API
+  if (os_subtype == OS_9X)
+    w32_use_native_image_api = 0;
+  else
+    w32_use_native_image_api = 1;
+#else
+  w32_use_native_image_api = 0;
+#endif
 
   /* FIXME: The following variable will be (hopefully) removed
      before Emacs 25.1 gets released.  */

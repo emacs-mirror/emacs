@@ -97,6 +97,12 @@
 _GL_FUNCDECL_RPL (creat, int, (const char *filename, mode_t mode)
                              _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (creat, int, (const char *filename, mode_t mode));
+# elif defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef creat
+#   define creat _creat
+#  endif
+_GL_CXXALIAS_MDA (creat, int, (const char *filename, mode_t mode));
 # else
 _GL_CXXALIAS_SYS (creat, int, (const char *filename, mode_t mode));
 # endif
@@ -106,6 +112,9 @@ _GL_CXXALIASWARN (creat);
 /* Assume creat is always declared.  */
 _GL_WARN_ON_USE (creat, "creat is not always POSIX compliant - "
                  "use gnulib module creat for portability");
+#elif defined _WIN32 && !defined __CYGWIN__
+# undef creat
+# define creat _creat
 #endif
 
 #if @GNULIB_FCNTL@
@@ -116,9 +125,15 @@ _GL_WARN_ON_USE (creat, "creat is not always POSIX compliant - "
 #  endif
 _GL_FUNCDECL_RPL (fcntl, int, (int fd, int action, ...));
 _GL_CXXALIAS_RPL (fcntl, int, (int fd, int action, ...));
+#  if !GNULIB_defined_rpl_fcntl
+#   define GNULIB_defined_rpl_fcntl 1
+#  endif
 # else
 #  if !@HAVE_FCNTL@
 _GL_FUNCDECL_SYS (fcntl, int, (int fd, int action, ...));
+#   if !GNULIB_defined_fcntl
+#    define GNULIB_defined_fcntl 1
+#   endif
 #  endif
 _GL_CXXALIAS_SYS (fcntl, int, (int fd, int action, ...));
 # endif
@@ -140,6 +155,12 @@ _GL_WARN_ON_USE (fcntl, "fcntl is not always POSIX compliant - "
 _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...)
                              _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (open, int, (const char *filename, int flags, ...));
+# elif defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef open
+#   define open _open
+#  endif
+_GL_CXXALIAS_MDA (open, int, (const char *filename, int flags, ...));
 # else
 _GL_CXXALIAS_SYS (open, int, (const char *filename, int flags, ...));
 # endif
@@ -153,6 +174,9 @@ _GL_CXXALIASWARN (open);
 /* Assume open is always declared.  */
 _GL_WARN_ON_USE (open, "open is not always POSIX compliant - "
                  "use gnulib module open for portability");
+#elif defined _WIN32 && !defined __CYGWIN__
+# undef open
+# define open _open
 #endif
 
 #if @GNULIB_OPENAT@

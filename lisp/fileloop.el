@@ -4,18 +4,20 @@
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -55,6 +57,9 @@
 (defvar fileloop--iterator iter-empty)
 (defvar fileloop--scan-function
   (lambda () (user-error "No operation in progress")))
+;; If the default value below is changed, the :enable form of
+;; tags-continue and tags-repl-continue in menu-bar.el will have to be
+;; updated accordingly.
 (defvar fileloop--operate-function #'ignore)
 (defvar fileloop--freshly-initialized nil)
 
@@ -181,8 +186,7 @@ operating on the next file and nil otherwise."
     (fileloop-initialize
      files
      (lambda ()
-       (let ((case-fold-search
-              (if (memq case-fold '(t nil)) case-fold case-fold-search)))
+       (let ((case-fold-search (fileloop--case-fold regexp case-fold)))
          (re-search-forward regexp nil t)))
      (lambda ()
        (unless (eq last-buffer (current-buffer))
@@ -190,28 +194,46 @@ operating on the next file and nil otherwise."
          (message "Scanning file %s...found" buffer-file-name))
        nil))))
 
+(defun fileloop--case-fold (regexp case-fold)
+  (let ((value
+         (if (memql case-fold '(nil t))
+             case-fold
+           case-fold-search)))
+    (if (and value search-upper-case)
+        (isearch-no-upper-case-p regexp t)
+      value)))
+
 ;;;###autoload
 (defun fileloop-initialize-replace (from to files case-fold &optional delimited)
   "Initialize a new round of query&replace on several files.
 FROM is a regexp and TO is the replacement to use.
-FILES describes the file, as in `fileloop-initialize'.
-CASE-FOLD can be t, nil, or `default', the latter one meaning to obey
-the default setting of `case-fold-search'.
+FILES describes the files, as in `fileloop-initialize'.
+CASE-FOLD can be t, nil, or `default':
+  if it is nil, matching of FROM is case-sensitive.
+  if it is t, matching of FROM is case-insensitive, except
+     when `search-upper-case' is non-nil and FROM includes
+     upper-case letters.
+  if it is `default', the function uses the value of
+     `case-fold-search' instead.
 DELIMITED if non-nil means replace only word-delimited matches."
   ;; FIXME: Not sure how the delimited-flag interacts with the regexp-flag in
   ;; `perform-replace', so I just try to mimic the old code.
-  (fileloop-initialize
-   files
-   (lambda ()
-     (let ((case-fold-search
-            (if (memql case-fold '(nil t)) case-fold case-fold-search)))
-       (if (re-search-forward from nil t)
-	   ;; When we find a match, move back
-	   ;; to the beginning of it so perform-replace
-	   ;; will see it.
-	   (goto-char (match-beginning 0)))))
-   (lambda ()
-     (perform-replace from to t t delimited nil multi-query-replace-map))))
+  (let ((mstart (make-hash-table :test 'eq)))
+    (fileloop-initialize
+     files
+     (lambda ()
+       (let ((case-fold-search (fileloop--case-fold from case-fold)))
+         (when (re-search-forward from nil t)
+           ;; When we find a match, save its beginning for
+           ;; `perform-replace' (we used to just set point, but this
+           ;; is unreliable in the face of
+           ;; `switch-to-buffer-preserve-window-point').
+           (puthash (current-buffer) (match-beginning 0) mstart))))
+     (lambda ()
+       (let ((case-fold-search (fileloop--case-fold from case-fold)))
+         (perform-replace from to t t delimited nil multi-query-replace-map
+                          (gethash (current-buffer) mstart (point-min))
+                          (point-max)))))))
 
 (provide 'fileloop)
 ;;; fileloop.el ends here

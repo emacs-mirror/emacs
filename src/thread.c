@@ -28,6 +28,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "keyboard.h"
 
+#if defined HAVE_GLIB && ! defined (HAVE_NS)
+#include <xgselect.h>
+#else
+#define release_select_lock() do { } while (0)
+#endif
+
 union aligned_thread_state
 {
   struct thread_state s;
@@ -586,6 +592,8 @@ really_call_select (void *arg)
   sa->result = (sa->func) (sa->max_fds, sa->rfds, sa->wfds, sa->efds,
 			   sa->timeout, sa->sigmask);
 
+  release_select_lock ();
+
   block_interrupt_signal (&oldset);
   /* If we were interrupted by C-g while inside sa->func above, the
      signal handler could have called maybe_reacquire_global_lock, in
@@ -717,12 +725,17 @@ run_thread (void *state)
 {
   /* Make sure stack_top and m_stack_bottom are properly aligned as GC
      expects.  */
-  max_align_t stack_pos;
+  union
+  {
+    Lisp_Object o;
+    void *p;
+    char c;
+  } stack_pos;
 
   struct thread_state *self = state;
   struct thread_state **iter;
 
-  self->m_stack_bottom = self->stack_top = (char *) &stack_pos;
+  self->m_stack_bottom = self->stack_top = &stack_pos.c;
   self->thread_id = sys_thread_self ();
 
   if (self->thread_name)
@@ -1113,9 +1126,6 @@ syms_of_threads (void)
 
       staticpro (&last_thread_error);
       last_thread_error = Qnil;
-
-      Fdefalias (intern_c_string ("thread-alive-p"),
-		 intern_c_string ("thread-live-p"), Qnil);
 
       Fprovide (intern_c_string ("threads"), Qnil);
     }

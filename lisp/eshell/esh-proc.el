@@ -295,7 +295,7 @@ See `eshell-needs-pipe'."
 	 (process-environment (eshell-environment-variables))
 	 proc decoding encoding changed)
     (cond
-     ((fboundp 'start-file-process)
+     ((fboundp 'make-process)
       (setq proc
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)

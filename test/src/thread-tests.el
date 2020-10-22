@@ -1,4 +1,4 @@
-;;; threads.el --- tests for threads.
+;;; threads.el --- tests for threads. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
@@ -112,7 +112,7 @@
   (should-error (thread-join (current-thread))))
 
 (ert-deftest threads-join-error ()
-  "Test of error signalling from `thread-join'."
+  "Test of error signaling from `thread-join'."
   :tags '(:unstable)
   (skip-unless (featurep 'threads))
   (let ((thread (make-thread #'threads-call-error)))

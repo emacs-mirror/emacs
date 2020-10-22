@@ -1,4 +1,4 @@
-;;; light-blue-theme.el --- Custom theme for faces
+;;; light-blue-theme.el --- Custom theme for faces  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

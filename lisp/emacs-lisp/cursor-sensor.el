@@ -141,60 +141,63 @@ By convention, this is a list of symbols where each symbol stands for the
 ;;; Detect cursor movement.
 
 (defun cursor-sensor--detect (&optional window)
-  (unless cursor-sensor-inhibit
-    (let* ((point (window-point window))
-           ;; It's often desirable to make the cursor-sensor-functions property
-           ;; non-sticky on both ends, but that means get-pos-property might
-           ;; never see it.
-           (new (or (get-char-property point 'cursor-sensor-functions)
-                    (unless (<= (point-min) point)
-                      (get-char-property (1- point) 'cursor-sensor-functions))))
-           (old (window-parameter window 'cursor-sensor--last-state))
-           (oldposmark (car old))
-           (oldpos (or (if oldposmark (marker-position oldposmark))
-                       (point-min)))
-           (start (min oldpos point))
-           (end (max oldpos point)))
-      (unless (or (null old) (eq (marker-buffer oldposmark) (current-buffer)))
-        ;; `window' does not display the same buffer any more!
-        (setcdr old nil))
-      (if (or (and (null new) (null (cdr old)))
-              (and (eq new (cdr old))
-                   (eq (next-single-char-property-change
-                        start 'cursor-sensor-functions nil end)
-                       end)))
-          ;; Clearly nothing to do.
-          nil
-        ;; Maybe something to do.  Let's see exactly what needs to run.
-        (let* ((missing-p
-                (lambda (f)
-                  "Non-nil if F is missing somewhere between START and END."
-                  (let ((pos start)
-                        (missing nil))
-                    (while (< pos end)
-                      (setq pos (next-single-char-property-change
-                                 pos 'cursor-sensor-functions
-                                 nil end))
-                      (unless (memq f (get-char-property
-                                       pos 'cursor-sensor-functions))
-                        (setq missing t)))
-                    missing)))
-               (window (selected-window)))
-          (dolist (f (cdr old))
-            (unless (and (memq f new) (not (funcall missing-p f)))
-              (funcall f window oldpos 'left)))
-          (dolist (f new)
-            (unless (and (memq f (cdr old)) (not (funcall missing-p f)))
-              (funcall f window oldpos 'entered)))))
+  (with-current-buffer (window-buffer window)
+    (unless cursor-sensor-inhibit
+      (let* ((point (window-point window))
+             ;; It's often desirable to make the
+             ;; cursor-sensor-functions property non-sticky on both
+             ;; ends, but that means get-pos-property might never
+             ;; see it.
+             (new (or (get-char-property point 'cursor-sensor-functions)
+                      (unless (<= (point-min) point)
+                        (get-char-property (1- point)
+                                           'cursor-sensor-functions))))
+             (old (window-parameter window 'cursor-sensor--last-state))
+             (oldposmark (car old))
+             (oldpos (or (if oldposmark (marker-position oldposmark))
+                         (point-min)))
+             (start (min oldpos point))
+             (end (max oldpos point)))
+        (unless (or (null old) (eq (marker-buffer oldposmark) (current-buffer)))
+          ;; `window' does not display the same buffer any more!
+          (setcdr old nil))
+        (if (or (and (null new) (null (cdr old)))
+                (and (eq new (cdr old))
+                     (eq (next-single-char-property-change
+                          start 'cursor-sensor-functions nil end)
+                         end)))
+            ;; Clearly nothing to do.
+            nil
+          ;; Maybe something to do.  Let's see exactly what needs to run.
+          (let* ((missing-p
+                  (lambda (f)
+                    "Non-nil if F is missing somewhere between START and END."
+                    (let ((pos start)
+                          (missing nil))
+                      (while (< pos end)
+                        (setq pos (next-single-char-property-change
+                                   pos 'cursor-sensor-functions
+                                   nil end))
+                        (unless (memq f (get-char-property
+                                         pos 'cursor-sensor-functions))
+                          (setq missing t)))
+                      missing)))
+                 (window (selected-window)))
+            (dolist (f (cdr old))
+              (unless (and (memq f new) (not (funcall missing-p f)))
+                (funcall f window oldpos 'left)))
+            (dolist (f new)
+              (unless (and (memq f (cdr old)) (not (funcall missing-p f)))
+                (funcall f window oldpos 'entered)))))
 
-      ;; Remember current state for next time.
-      ;; Re-read cursor-sensor-functions since the functions may have moved
-      ;; window-point!
-      (if old
-          (progn (move-marker (car old) point)
-                 (setcdr old new))
-        (set-window-parameter window 'cursor-sensor--last-state
-                              (cons (copy-marker point) new))))))
+        ;; Remember current state for next time.
+        ;; Re-read cursor-sensor-functions since the functions may have moved
+        ;; window-point!
+        (if old
+            (progn (move-marker (car old) point)
+                   (setcdr old new))
+          (set-window-parameter window 'cursor-sensor--last-state
+                                (cons (copy-marker point) new)))))))
 
 ;;;###autoload
 (define-minor-mode cursor-sensor-mode

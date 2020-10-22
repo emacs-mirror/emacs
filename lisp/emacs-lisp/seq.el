@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.21
+;; Version: 2.22
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -57,6 +57,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-generic))
+
+;; We used to use some sequence functions from cl-lib, but this
+;; dependency was swapped around so that it will be easier to make
+;; seq.el preloaded in the future.  See also Bug#39761#26.
 
 (defmacro seq-doseq (spec &rest body)
   "Loop over a sequence.
@@ -285,7 +289,11 @@ sorted.  FUNCTION must be a function of one argument."
 TYPE must be one of following symbols: vector, string or list.
 
 \n(fn TYPE SEQUENCE...)"
-  (apply #'cl-concatenate type (seq-map #'seq-into-sequence sequences)))
+  (pcase type
+    ('vector (apply #'vconcat sequences))
+    ('string (apply #'concat sequences))
+    ('list (apply #'append (append sequences '(nil))))
+    (_ (error "Not a sequence type name: %S" type))))
 
 (cl-defgeneric seq-into-sequence (sequence)
   "Convert SEQUENCE into a sequence.
@@ -328,9 +336,11 @@ list."
   "Reduce the function FUNCTION across SEQUENCE, starting with INITIAL-VALUE.
 
 Return the result of calling FUNCTION with INITIAL-VALUE and the
-first element of SEQUENCE, then calling FUNCTION with that result and
-the second element of SEQUENCE, then with that result and the third
-element of SEQUENCE, etc.
+first element of SEQUENCE, then calling FUNCTION with that result
+and the second element of SEQUENCE, then with that result and the
+third element of SEQUENCE, etc.  FUNCTION will be called with
+INITIAL-VALUE (and then the accumulated value) as the first
+argument, and the elements from SEQUENCE as the second argument.
 
 If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
   (if (seq-empty-p sequence)
@@ -340,6 +350,7 @@ If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
         (setq acc (funcall function acc elt)))
       acc)))
 
+;;;###autoload
 (cl-defgeneric seq-every-p (pred sequence)
   "Return non-nil if (PRED element) is non-nil for all elements of SEQUENCE."
   (catch 'seq--break
@@ -463,6 +474,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
               (seq-reverse sequence1)
               '()))
 
+;;;###autoload
 (cl-defgeneric seq-group-by (function sequence)
   "Apply FUNCTION to each element of SEQUENCE.
 Separate the elements of SEQUENCE into an alist using the results as
@@ -483,6 +495,7 @@ keys.  Keys are compared using `equal'."
 SEQUENCE must be a sequence of numbers or markers."
   (apply #'min (seq-into sequence 'list)))
 
+;;;###autoload
 (cl-defgeneric seq-max (sequence)
   "Return the largest element of SEQUENCE.
 SEQUENCE must be a sequence of numbers or markers."

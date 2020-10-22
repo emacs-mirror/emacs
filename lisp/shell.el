@@ -184,16 +184,13 @@ shell buffer.  The value may depend on the operating system or shell."
     shell-environment-variable-completion
     shell-command-completion
     shell-c-a-p-replace-by-expanded-directory
+    pcomplete-completions-at-point
     shell-filename-completion
-    comint-filename-completion
-    ;; Put `pcomplete-completions-at-point' last so that other
-    ;; functions can run before it does, see bug#34330.
-    pcomplete-completions-at-point)
+    comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer."
   :type '(repeat function)
-  :version "27.1"
   :group 'shell)
 
 (defcustom shell-command-regexp "[^;&|\n]+"
@@ -252,7 +249,7 @@ This mirrors the optional behavior of tcsh."
 (defcustom shell-chdrive-regexp
   (if (memq system-type '(ms-dos windows-nt))
       ; NetWare allows the five chars between upper and lower alphabetics.
-      "[]a-zA-Z^_`\\[\\\\]:"
+      "[]a-zA-Z^_`[\\]:"
     nil)
   "If non-nil, is regexp used to track drive changes."
   :type '(choice regexp
@@ -337,6 +334,7 @@ Thus, this does not include the shell's current directory.")
     (define-key map "\t" 'completion-at-point)
     (define-key map (kbd "M-RET") 'shell-resync-dirs)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
+    (define-key map (kbd "C-x n d") 'shell-narrow-to-prompt)
     (define-key map [menu-bar completion]
       (cons "Complete"
 	    (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
@@ -377,7 +375,7 @@ Thus, this does not include the shell's current directory.")
               "\\|\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
               "\\|{\\(?1:[^{}]+\\)}\\)"
               (when (memq system-type '(ms-dos windows-nt))
-                "\\|%\\(?1:[^\\\\/]*\\)%")
+                "\\|%\\(?1:[^\\/]*\\)%")
               (when comint-file-name-quote-list
                 "\\|\\\\\\(.\\)")))
          (qupos nil)
@@ -428,7 +426,7 @@ Thus, this does not include the shell's current directory.")
     (save-excursion
       (goto-char begin)
       (while (< (point) end)
-	(skip-chars-forward " \t\n")
+	(skip-chars-forward " \t\n;")
 	(push (point) begins)
         (let ((arg ()))
           (while (looking-at
@@ -463,9 +461,12 @@ Thus, this does not include the shell's current directory.")
 This is the value of `pcomplete-command-completion-function' for
 Shell buffers.  It implements `shell-completion-execonly' for
 `pcomplete' completion."
-  (pcomplete-here (pcomplete-entries nil
-				     (if shell-completion-execonly
-					 'file-executable-p))))
+  (if (pcomplete-match "/")
+      (pcomplete-here (pcomplete-entries nil
+					 (if shell-completion-execonly
+					     'file-executable-p)))
+    (pcomplete-here
+     (nth 2 (shell--command-completion-data)))))
 
 (defun shell-completion-vars ()
   "Setup completion vars for `shell-mode' and `read-shell-command'."
@@ -622,7 +623,12 @@ buffer."
       ;; Bypass a bug in certain versions of bash.
       (when (string-equal shell "bash")
         (add-hook 'comint-preoutput-filter-functions
-                  #'shell-filter-ctrl-a-ctrl-b nil t)))
+                  #'shell-filter-ctrl-a-ctrl-b nil t))
+
+      ;; Skip extended history for zsh.
+      (when (string-equal shell "zsh")
+        (setq-local comint-input-ring-file-prefix
+                    ": [[:digit:]]+:[[:digit:]]+;")))
     (comint-read-input-ring t)))
 
 (defun shell-apply-ansi-color (beg end face)
@@ -988,9 +994,6 @@ this feature; see the function `dirtrack-mode'."
       (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
     (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
 
-(define-obsolete-function-alias 'shell-dirtrack-toggle #'shell-dirtrack-mode
-  "23.1")
-
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
   (cd dir)
@@ -1036,25 +1039,41 @@ command again."
 	  (accept-process-output proc)
 	  (goto-char pt)))
       (goto-char pmark) (delete-char 1) ; remove the extra newline
-      ;; That's the dirlist. grab it & parse it.
-      (let* ((dl (buffer-substring (match-beginning 2) (1- (match-end 2))))
-	     (dl-len (length dl))
-	     (ds '())			; new dir stack
-	     (i 0))
-	(while (< i dl-len)
-	  ;; regexp = optional whitespace, (non-whitespace), optional whitespace
-	  (string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
-	  (setq ds (cons (concat comint-file-name-prefix
-				 (substring dl (match-beginning 1)
-					    (match-end 1)))
-			 ds))
-	  (setq i (match-end 0)))
-	(let ((ds (nreverse ds)))
-	  (with-demoted-errors "Couldn't cd: %s"
-	    (shell-cd (car ds))
-	    (setq shell-dirstack (cdr ds)
-		  shell-last-dir (car shell-dirstack))
-	    (shell-dirstack-message)))))
+      ;; That's the dirlist.  Grab it & parse it.
+      (let* ((dls (buffer-substring-no-properties
+                   (match-beginning 0) (1- (match-end 0))))
+             (dlsl nil)
+             (pos 0)
+             (ds nil))
+        ;; Split the dirlist into whitespace and non-whitespace chunks.
+        ;; dlsl will be a reversed list of tokens.
+        (while (string-match "\\(\\S-+\\|\\s-+\\)" dls pos)
+          (push (match-string 1 dls) dlsl)
+          (setq pos (match-end 1)))
+
+        ;; Prepend trailing entries until they form an existing directory,
+        ;; whitespace and all.  Discard the next whitespace and repeat.
+        (while dlsl
+          (let ((newelt "")
+                tem1 tem2)
+            (while newelt
+              ;; We need tem1 because we don't want to prepend
+              ;; `comint-file-name-prefix' repeatedly into newelt via tem2.
+              (setq tem1 (pop dlsl)
+                    tem2 (concat comint-file-name-prefix tem1 newelt))
+              (cond ((file-directory-p tem2)
+                     (push tem2 ds)
+                     (when (string= " " (car dlsl))
+                       (pop dlsl))
+                     (setq newelt nil))
+                    (t
+                     (setq newelt (concat tem1 newelt)))))))
+
+        (with-demoted-errors "Couldn't cd: %s"
+          (shell-cd (car ds))
+          (setq shell-dirstack (cdr ds)
+                shell-last-dir (car shell-dirstack))
+          (shell-dirstack-message))))
     (if started-at-pmark (goto-char (marker-position pmark)))))
 
 ;; For your typing convenience:
@@ -1190,7 +1209,7 @@ Returns t if successful."
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
 	  (and comint-completion-fignore
-	       (mapconcat (function (lambda (x) (concat (regexp-quote x) "\\'")))
+               (mapconcat (lambda (x) (concat (regexp-quote x) "\\'"))
 			  comint-completion-fignore "\\|")))
 	 (dir "") (comps-in-dir ())
 	 (file "") (abs-file-name "") (completions ()))
@@ -1347,6 +1366,48 @@ Returns t if successful."
   (interactive)
   (let ((f (shell-c-a-p-replace-by-expanded-directory)))
     (if f (funcall f))))
+
+(defun shell--prompt-begin-position ()
+  ;; We need this convoluted function because `looking-at-p' does not work on
+  ;; multiline regexps _and_ `re-search-backward' skips the current line.
+  (save-excursion
+    (let ((old-point (point)))
+      (max
+       (save-excursion
+         ;; Right result if not on prompt.
+         (call-interactively #'comint-previous-prompt)
+         (re-search-backward comint-prompt-regexp)
+         (point))
+       (save-excursion
+         ;; Right result if on first char after prompt.
+         (re-search-backward comint-prompt-regexp)
+         (point))
+       (save-excursion
+         ;; Right result if on prompt.
+         (call-interactively #'comint-next-prompt)
+         (re-search-backward comint-prompt-regexp)
+         (if (<= (point) old-point)
+             (point)
+           (point-min)))))))
+
+(defun shell--prompt-end-position ()
+  (save-excursion
+    (goto-char (shell--prompt-begin-position))
+    (comint-next-prompt 1)
+    (point)))
+
+(defun shell-narrow-to-prompt ()
+  "Narrow buffer to the command line (and any following command output) at point."
+  (interactive)
+  (let ((begin (shell--prompt-begin-position)))
+    (narrow-to-region
+     begin
+     (save-excursion
+       (goto-char (shell--prompt-end-position))
+       (call-interactively #'comint-next-prompt)
+       (if (= begin (shell--prompt-begin-position))
+           (point-max)
+         (shell--prompt-begin-position))))))
 
 (provide 'shell)
 

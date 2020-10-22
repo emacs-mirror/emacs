@@ -603,11 +603,22 @@ manipulated as follows:
   (gnus))
 
 ;;;###autoload
-(defun gnus-slave-unplugged (&optional arg)
-  "Read news as a slave unplugged."
+(defun gnus-child-unplugged (&optional arg)
+  "Read news as a child unplugged."
   (interactive "P")
   (setq gnus-plugged nil)
-  (gnus arg nil 'slave))
+  (gnus arg nil 'child))
+
+;;;###autoload
+(defun gnus-slave-unplugged (&optional arg)
+  "Read news as a child unplugged."
+  (interactive "P")
+  (setq gnus-plugged nil)
+  (gnus arg nil 'child))
+(make-obsolete 'gnus-slave-unplugged 'gnus-child-unplugged "28.1")
+
+
+
 
 ;;;###autoload
 (defun gnus-agentize ()
@@ -799,7 +810,7 @@ be a select method."
   (let ((gnus-command-method method)
 	(gnus-agent nil))
     (when (file-exists-p (gnus-agent-lib-file "flags"))
-      (set-buffer (get-buffer-create " *Gnus Agent flag synchronize*"))
+      (set-buffer (gnus-get-buffer-create " *Gnus Agent flag synchronize*"))
       (erase-buffer)
       (nnheader-insert-file-contents (gnus-agent-lib-file "flags"))
       (cond ((null gnus-plugged)
@@ -1293,7 +1304,7 @@ downloaded into the agent."
           ;; gnus doesn't waste resources trying to fetch them.
 
           ;; NOTE: I don't do this for smaller gaps (< 100) as I don't
-          ;; want to modify the local file everytime someone restarts
+          ;; want to modify the local file every time someone restarts
           ;; gnus.  The small gap will cause a tiny performance hit
           ;; when gnus tries, and fails, to retrieve the articles.
           ;; Still that should be smaller than opening a buffer,
@@ -2074,7 +2085,7 @@ doesn't exist, to valid the overview buffer."
 		  (file-attributes (directory-files-and-attributes
 				    (gnus-agent-article-name
 				     "" gnus-agent-read-agentview)
-				    nil "^[0-9]+$" t)))
+				    nil "\\`[0-9]+\\'" t)))
 	     (while file-attributes
 	       (let ((fa (pop file-attributes)))
 		 (unless (file-attribute-type (cdr fa))
@@ -3850,7 +3861,8 @@ If REREAD is not nil, downloaded articles are marked as unread."
 			   (sort (delq nil (mapcar (lambda (name)
 						     (and (not (file-directory-p (nnheader-concat dir name)))
 							  (string-to-number name)))
-						   (directory-files dir nil "^[0-9]+$" t)))
+						   (directory-files
+                                                    dir nil "\\`[0-9]+\\'" t)))
 				 '>)
 			 (progn (gnus-make-directory dir) nil)))
            nov-arts
@@ -3922,7 +3934,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 		   (mm-with-unibyte-buffer
 		     (nnheader-insert-file-contents file)
 		     (nnheader-remove-body)
-		     (setq header (nnheader-parse-naked-head)))
+		     (setq header (nnheader-parse-head t)))
 		   (setf (mail-header-number header) (car downloaded))
 		   (if nov-arts
 		       (let ((key (concat "^" (int-to-string (car nov-arts))
@@ -4110,7 +4122,7 @@ agent has fetched."
 		 (setq delta sum))
 	     (let ((sum (- (nth 2 entry)))
 		   (info (directory-files-and-attributes
-			  path nil "^-?[0-9]+$" t))
+			  path nil "\\`-?[0-9]+\\'" t))
 		   file)
 	       (while (setq file (pop info))
 		 (cl-incf sum (float (or (file-attribute-size (cdr file)) 0))))

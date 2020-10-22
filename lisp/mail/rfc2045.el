@@ -1,4 +1,4 @@
-;;; rfc2045.el --- Functions for decoding rfc2045 headers
+;;; rfc2045.el --- Functions for decoding rfc2045 headers  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 

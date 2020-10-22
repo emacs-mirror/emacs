@@ -171,7 +171,7 @@ If this contains a %s, that will be replaced by the matching rule."
                  (mapatoms (lambda (mode)
                              (let ((name (symbol-name mode)))
                                (when (string-match "-mode$" name)
-                                 (add-to-list 'modes name)))))
+                                 (push name modes)))))
                  (sort modes 'string<)))
      (completing-read "Local variables for mode: " v1 nil t)
      " . (("
@@ -396,7 +396,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 		     ;; which might ask the user for something
 		     (switch-to-buffer (current-buffer))
 		     (if (and (consp action)
-			      (not (eq (car action) 'lambda)))
+			      (not (functionp action)))
 			 (skeleton-insert action)
 		       (funcall action)))))
 	       (if (vectorp action)

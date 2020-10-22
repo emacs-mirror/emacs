@@ -1,4 +1,4 @@
-;;; decompress-tests.el --- Test suite for decompress.
+;;; decompress-tests.el --- Test suite for decompress. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 

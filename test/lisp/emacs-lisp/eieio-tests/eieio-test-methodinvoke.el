@@ -1,4 +1,4 @@
-;;; eieio-testsinvoke.el -- eieio tests for method invocation
+;;; eieio-testsinvoke.el -- eieio tests for method invocation  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2005, 2008, 2010, 2013-2020 Free Software Foundation,
 ;; Inc.
@@ -83,36 +83,36 @@
 (defclass eitest-B-base2 () ())
 (defclass eitest-B (eitest-B-base1 eitest-B-base2) ())
 
-(defmethod eitest-F :BEFORE ((p eitest-B-base1))
+(defmethod eitest-F :BEFORE ((_p eitest-B-base1))
   (eieio-test-method-store :BEFORE 'eitest-B-base1))
 
-(defmethod eitest-F :BEFORE ((p eitest-B-base2))
+(defmethod eitest-F :BEFORE ((_p eitest-B-base2))
   (eieio-test-method-store :BEFORE 'eitest-B-base2))
 
-(defmethod eitest-F :BEFORE ((p eitest-B))
+(defmethod eitest-F :BEFORE ((_p eitest-B))
   (eieio-test-method-store :BEFORE 'eitest-B))
 
-(defmethod eitest-F ((p eitest-B))
+(defmethod eitest-F ((_p eitest-B))
   (eieio-test-method-store :PRIMARY 'eitest-B)
   (call-next-method))
 
-(defmethod eitest-F ((p eitest-B-base1))
+(defmethod eitest-F ((_p eitest-B-base1))
   (eieio-test-method-store :PRIMARY 'eitest-B-base1)
   (call-next-method))
 
-(defmethod eitest-F ((p eitest-B-base2))
+(defmethod eitest-F ((_p eitest-B-base2))
   (eieio-test-method-store :PRIMARY 'eitest-B-base2)
   (when (next-method-p)
     (call-next-method))
   )
 
-(defmethod eitest-F :AFTER ((p eitest-B-base1))
+(defmethod eitest-F :AFTER ((_p eitest-B-base1))
   (eieio-test-method-store :AFTER 'eitest-B-base1))
 
-(defmethod eitest-F :AFTER ((p eitest-B-base2))
+(defmethod eitest-F :AFTER ((_p eitest-B-base2))
   (eieio-test-method-store :AFTER 'eitest-B-base2))
 
-(defmethod eitest-F :AFTER ((p eitest-B))
+(defmethod eitest-F :AFTER ((_p eitest-B))
   (eieio-test-method-store :AFTER 'eitest-B))
 
 (ert-deftest eieio-test-method-order-list-3 ()
@@ -136,7 +136,7 @@
 
 ;;; Test static invocation
 ;;
-(defmethod eitest-H :STATIC ((class eitest-A))
+(defmethod eitest-H :STATIC ((_class eitest-A))
   "No need to do work in here."
   'moose)
 
@@ -147,15 +147,15 @@
 
 ;;; Return value from :PRIMARY
 ;;
-(defmethod eitest-I :BEFORE ((a eitest-A))
+(defmethod eitest-I :BEFORE ((_a eitest-A))
   (eieio-test-method-store :BEFORE 'eitest-A)
   ":before")
 
-(defmethod eitest-I :PRIMARY ((a eitest-A))
+(defmethod eitest-I :PRIMARY ((_a eitest-A))
   (eieio-test-method-store :PRIMARY 'eitest-A)
   ":primary")
 
-(defmethod eitest-I :AFTER ((a eitest-A))
+(defmethod eitest-I :AFTER ((_a eitest-A))
   (eieio-test-method-store :AFTER 'eitest-A)
   ":after")
 
@@ -174,17 +174,17 @@
 (defclass C (C-base1 C-base2) ())
 
 ;; Just use the obsolete name once, to make sure it also works.
-(defmethod constructor :STATIC ((p C-base1) &rest args)
+(defmethod constructor :STATIC ((_p C-base1) &rest _args)
   (eieio-test-method-store :STATIC 'C-base1)
   (if (next-method-p) (call-next-method))
   )
 
-(defmethod make-instance :STATIC ((p C-base2) &rest args)
+(defmethod make-instance :STATIC ((_p C-base2) &rest _args)
   (eieio-test-method-store :STATIC 'C-base2)
   (if (next-method-p) (call-next-method))
   )
 
-(cl-defmethod make-instance ((p (subclass C)) &rest args)
+(cl-defmethod make-instance ((_p (subclass C)) &rest _args)
   (eieio-test-method-store :STATIC 'C)
   (cl-call-next-method)
   )
@@ -213,24 +213,24 @@
 (defclass D-base2 (D-base0) () :method-invocation-order :depth-first)
 (defclass D (D-base1 D-base2) () :method-invocation-order :depth-first)
 
-(defmethod eitest-F ((p D))
+(defmethod eitest-F ((_p D))
   "D"
   (eieio-test-method-store :PRIMARY 'D)
   (call-next-method))
 
-(defmethod eitest-F ((p D-base0))
+(defmethod eitest-F ((_p D-base0))
   "D-base0"
   (eieio-test-method-store :PRIMARY 'D-base0)
   ;; This should have no next
   ;; (when (next-method-p) (call-next-method))
   )
 
-(defmethod eitest-F ((p D-base1))
+(defmethod eitest-F ((_p D-base1))
   "D-base1"
   (eieio-test-method-store :PRIMARY 'D-base1)
   (call-next-method))
 
-(defmethod eitest-F ((p D-base2))
+(defmethod eitest-F ((_p D-base2))
   "D-base2"
   (eieio-test-method-store :PRIMARY 'D-base2)
   (when (next-method-p)
@@ -256,21 +256,21 @@
 (defclass E-base2 (E-base0) () :method-invocation-order :breadth-first)
 (defclass E (E-base1 E-base2) () :method-invocation-order :breadth-first)
 
-(defmethod eitest-F ((p E))
+(defmethod eitest-F ((_p E))
   (eieio-test-method-store :PRIMARY 'E)
   (call-next-method))
 
-(defmethod eitest-F ((p E-base0))
+(defmethod eitest-F ((_p E-base0))
   (eieio-test-method-store :PRIMARY 'E-base0)
   ;; This should have no next
   ;; (when (next-method-p) (call-next-method))
   )
 
-(defmethod eitest-F ((p E-base1))
+(defmethod eitest-F ((_p E-base1))
   (eieio-test-method-store :PRIMARY 'E-base1)
   (call-next-method))
 
-(defmethod eitest-F ((p E-base2))
+(defmethod eitest-F ((_p E-base2))
   (eieio-test-method-store :PRIMARY 'E-base2)
   (when (next-method-p)
     (call-next-method))
@@ -293,7 +293,7 @@
 (defclass eitest-Ja ()
   ())
 
-(defmethod initialize-instance :after ((this eitest-Ja) &rest slots)
+(defmethod initialize-instance :after ((_this eitest-Ja) &rest _slots)
   ;(message "+Ja")
   ;; FIXME: Using next-method-p in an after-method is invalid!
   (when (next-method-p)
@@ -304,7 +304,7 @@
 (defclass eitest-Jb ()
   ())
 
-(defmethod initialize-instance :after ((this eitest-Jb) &rest slots)
+(defmethod initialize-instance :after ((_this eitest-Jb) &rest _slots)
   ;(message "+Jb")
   ;; FIXME: Using next-method-p in an after-method is invalid!
   (when (next-method-p)
@@ -318,7 +318,7 @@
 (defclass eitest-Jd (eitest-Jc eitest-Ja)
   ())
 
-(defmethod initialize-instance ((this eitest-Jd) &rest slots)
+(defmethod initialize-instance ((_this eitest-Jd) &rest _slots)
   ;(message "+Jd")
   (when (next-method-p)
     (call-next-method))
@@ -357,7 +357,7 @@
     (call-next-method
      this (cons 'CNM-1-1 args))))
 
-(defmethod CNM-M ((this CNM-1-2) args)
+(defmethod CNM-M ((_this CNM-1-2) args)
   (push (cons 'CNM-1-2 (copy-sequence args))
 	eieio-test-call-next-method-arguments)
   (when (next-method-p)

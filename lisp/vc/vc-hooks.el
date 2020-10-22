@@ -498,20 +498,12 @@ status of this file.  Otherwise, the value returned is one of:
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (progn
+      (let ((default-directory (file-name-directory file)))
         (setq backend (or backend (vc-backend file)))
         (when backend
           (vc-file-setprop file 'vc-working-revision
                            (vc-call-backend
                             backend 'working-revision file))))))
-
-;; Backward compatibility.
-(define-obsolete-function-alias
-  'vc-workfile-version 'vc-working-revision "23.1")
-(defun vc-default-working-revision (backend file)
-  (message
-   "`working-revision' not found: using the old `workfile-version' instead")
-  (vc-call-backend backend 'workfile-version file))
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
@@ -972,9 +964,9 @@ In the latter case, VC mode is deactivated for this buffer."
     (bindings--define-key map [vc-ignore]
       '(menu-item "Ignore File..." vc-ignore
 		  :help "Ignore a file under current version control system"))
-    (bindings--define-key map [vc-dir]
-      '(menu-item "VC Dir"  vc-dir
-		  :help "Show the VC status of files in a directory"))
+    (bindings--define-key map [vc-dir-root]
+      '(menu-item "VC Dir"  vc-dir-root
+                  :help "Show the VC status of the repository"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)

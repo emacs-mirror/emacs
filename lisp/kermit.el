@@ -1,4 +1,4 @@
-;;; kermit.el --- additions to shell mode for use with kermit
+;;; kermit.el --- additions to shell mode for use with kermit -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1988, 2001-2020 Free Software Foundation, Inc.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.6.2
+;; Old-Version: 0.6.2
 ;; Keywords: docs, maint, lisp
 
 ;; This file is part of GNU Emacs.
@@ -168,8 +168,9 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.6.1"
+(defvar checkdoc-version "0.6.2"
   "Release version of checkdoc you are currently running.")
+(make-obsolete-variable 'checkdoc-version nil "28.1")
 
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
@@ -849,7 +850,7 @@ otherwise stop after the first error."
     ;; every test is responsible for returning the cursor.
     (or (and buffer-file-name ;; only check comments in a file
 	     (checkdoc-comments))
-	(checkdoc-start)
+	(checkdoc-start take-notes)
 	(checkdoc-message-text)
 	(checkdoc-rogue-spaces)
         (when checkdoc-package-keywords-flag
@@ -902,7 +903,7 @@ buffer and save warnings in a separate buffer."
       ;; the user is navigating down through the buffer.
       (while (and (not wrong) (checkdoc-next-docstring))
 	;; OK, let's look at the doc string.
-	(setq msg (checkdoc-this-string-valid))
+	(setq msg (checkdoc-this-string-valid take-notes))
 	(if msg (setq wrong (point)))))
     (if wrong
 	(progn
@@ -1248,13 +1249,8 @@ checking of documentation strings.
 
 ;;; Subst utils
 ;;
-(defsubst checkdoc-run-hooks (hookvar &rest args)
-  "Run hooks in HOOKVAR with ARGS."
-  (if (fboundp 'run-hook-with-args-until-success)
-      (apply #'run-hook-with-args-until-success hookvar args)
-    ;; This method was similar to above.  We ignore the warning
-    ;; since we will use the above for future Emacs versions
-    (apply #'run-hook-with-args hookvar args)))
+(define-obsolete-function-alias 'checkdoc-run-hooks
+  #'run-hook-with-args-until-success "28.1")
 
 (defsubst checkdoc-create-common-verbs-regexp ()
   "Rebuild the contents of `checkdoc-common-verbs-regexp'."
@@ -1284,12 +1280,15 @@ checking of documentation strings.
 
 ;;; Checking engines
 ;;
-(defun checkdoc-this-string-valid ()
+(defun checkdoc-this-string-valid (&optional take-notes)
   "Return a message string if the current doc string is invalid.
 Check for style only, such as the first line always being a complete
 sentence, whitespace restrictions, and making sure there are no
 hard-coded key-codes such as C-[char] or mouse-[number] in the comment.
-See the style guide in the Emacs Lisp manual for more details."
+See the style guide in the Emacs Lisp manual for more details.
+
+With a non-nil TAKE-NOTES, store all errors found in a warnings
+buffer, otherwise stop after the first error."
 
   ;; Jump over comments between the last object and the doc string
   (while (looking-at "[ \t\n]*;")
@@ -1366,13 +1365,16 @@ documentation string")
 	      (point) (+ (point) 1) t)))))
     (if (and (not err) (= (following-char) ?\"))
         (with-syntax-table checkdoc-syntax-table
-          (checkdoc-this-string-valid-engine fp))
+          (checkdoc-this-string-valid-engine fp take-notes))
       err)))
 
-(defun checkdoc-this-string-valid-engine (fp)
+(defun checkdoc-this-string-valid-engine (fp &optional take-notes)
   "Return an error list or string if the current doc string is invalid.
 Depends on `checkdoc-this-string-valid' to reset the syntax table so that
-regexp short cuts work.  FP is the function defun information."
+regexp short cuts work.  FP is the function defun information.
+
+With a non-nil TAKE-NOTES, store all errors found in a warnings
+buffer, otherwise stop after the first error."
   (let ((case-fold-search nil)
 	;; Use a marker so if an early check modifies the text,
 	;; we won't accidentally lose our place.  This could cause
@@ -1571,7 +1573,8 @@ mouse-[0-3]\\)\\)\\>"))
 		     ;; a prefix.
 		     (let ((disambiguate
 			    (completing-read
-			     "Disambiguating Keyword (default variable): "
+			     (format-prompt "Disambiguating Keyword"
+                                            "variable")
 			     '(("function") ("command") ("variable")
 			       ("option") ("symbol"))
 			     nil t nil nil "variable")))
@@ -1864,9 +1867,9 @@ Replace with \"%s\"? " original replace)
      ;; Make sure the doc string has correctly spelled English words
      ;; in it.  This function is extracted due to its complexity,
      ;; and reliance on the Ispell program.
-     (checkdoc-ispell-docstring-engine e)
+     (checkdoc-ispell-docstring-engine e take-notes)
      ;; User supplied checks
-     (save-excursion (checkdoc-run-hooks 'checkdoc-style-functions fp e))
+     (save-excursion (run-hook-with-args-until-success 'checkdoc-style-functions fp e))
      ;; Done!
      )))
 
@@ -2067,7 +2070,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                                     ;; piece of an abbreviation
                                     ;; FIXME etc
                                     (looking-at
-                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\|[cC]f\\)\\."))
                                 (error t))))
                   (if (checkdoc-autofix-ask-replace
                        b e
@@ -2090,6 +2093,10 @@ If the offending word is in a piece of quoted text, then it is skipped."
 ;;
 (defvar ispell-process)
 (declare-function ispell-buffer-local-words "ispell" ())
+(declare-function ispell-correct-p "ispell" ())
+(declare-function ispell-set-spellchecker-params "ispell" ())
+(declare-function ispell-accept-buffer-local-defs "ispell" ())
+(declare-function ispell-error-checking-word "ispell" (word))
 
 (defun checkdoc-ispell-init ()
   "Initialize Ispell process (default version) with Lisp words.
@@ -2100,58 +2107,66 @@ nil."
   (unless ispell-process
     (condition-case nil
 	(progn
-	  (ispell-buffer-local-words)
+          (ispell-set-spellchecker-params)    ; Initialize variables and dict alists.
+          (ispell-accept-buffer-local-defs)   ; Use the correct dictionary.
 	  ;; This code copied in part from ispell.el Emacs 19.34
 	  (dolist (w checkdoc-ispell-lisp-words)
 	    (process-send-string ispell-process (concat "@" w "\n"))))
       (error (setq checkdoc-spellcheck-documentation-flag nil)))))
 
-(defun checkdoc-ispell-docstring-engine (end)
+(defun checkdoc-ispell-docstring-engine (end &optional take-notes)
   "Run the Ispell tools on the doc string between point and END.
 Since Ispell isn't Lisp-smart, we must pre-process the doc string
-before using the Ispell engine on it."
-  (if (or (not checkdoc-spellcheck-documentation-flag)
-	  ;; If the user wants no questions or fixing, then we must
-	  ;; disable spell checking as not useful.
-	  (not checkdoc-autofix-flag)
-	  (eq checkdoc-autofix-flag 'never))
-      nil
+before using the Ispell engine on it.
+
+With a non-nil TAKE-NOTES, store all errors found in a warnings
+buffer, otherwise stop after the first error."
+  (when (and checkdoc-spellcheck-documentation-flag
+             ;; If the user wants no questions or fixing, then we must
+             ;; disable spell checking as not useful.
+             (or take-notes
+                 (and checkdoc-autofix-flag
+                      (not (eq checkdoc-autofix-flag 'never)))))
     (checkdoc-ispell-init)
+    (unless checkdoc-spellcheck-documentation-flag
+      ;; this happens when (checkdoc-ispell-init) can't start `ispell-program-name'
+      (user-error "No spellchecker installed: check the variable `ispell-program-name'"))
     (save-excursion
       (skip-chars-forward "^a-zA-Z")
-      (let ((word nil) (sym nil) (case-fold-search nil) (err nil))
-	(while (and (not err) (< (point) end))
-	  (if (save-excursion (forward-char -1) (looking-at "[('`]"))
-	      ;; Skip lists describing meta-syntax, or bound variables
-	      (forward-sexp 1)
-	    (setq word (buffer-substring-no-properties
-			(point) (progn
-				  (skip-chars-forward "a-zA-Z-")
-				  (point)))
-		  sym (intern-soft word))
-	    (if (and sym (or (boundp sym) (fboundp sym)))
-		;; This is probably repetitive in most cases, but not always.
-		nil
-	      ;; Find out how we spell-check this word.
-	      (if (or
-		   ;; All caps w/ option th, or s tacked on the end
-		   ;; for pluralization or number.
-		   (string-match "^[A-Z][A-Z]+\\(s\\|th\\)?$" word)
-		   (looking-at "}") ; a keymap expression
-		   )
-		  nil
-		(save-excursion
-		  (if (not (eq checkdoc-autofix-flag 'never))
-		      (let ((lk last-input-event))
-			(ispell-word nil t)
-			(if (not (equal last-input-event lk))
-			    (progn
-			      (sit-for 0)
-			      (message "Continuing..."))))
-		    ;; Nothing here.
-		    )))))
-	  (skip-chars-forward "^a-zA-Z"))
-	err))))
+      (let (word sym case-fold-search err word-beginning word-end)
+        (while (and (not err) (< (point) end))
+          (if (save-excursion (forward-char -1) (looking-at "[('`]"))
+              ;; Skip lists describing meta-syntax, or bound variables
+              (forward-sexp 1)
+            (setq word-beginning (point)
+                  word-end (progn
+                             (skip-chars-forward "a-zA-Z-")
+                             (point))
+                  word (buffer-substring-no-properties word-beginning word-end)
+                  sym (intern-soft word))
+            (unless (and sym (or (boundp sym) (fboundp sym)))
+              ;; Find out how we spell-check this word.
+              (unless (or
+                       ;; All caps w/ option th, or s tacked on the end
+                       ;; for pluralization or number.
+                       (string-match "^[A-Z][A-Z]+\\(s\\|th\\)?$" word)
+                       (looking-at "}") ; a keymap expression
+                       )
+                (save-excursion
+                  (let ((lk last-input-event))
+                    (if take-notes
+                        (progn
+                          (unless (ispell-correct-p)
+                            (checkdoc-create-error
+                             (ispell-error-checking-word word)
+                             word-beginning word-end)))
+                      (ispell-word nil t))
+                    (if (not (equal last-input-event lk))
+                        (progn
+                          (sit-for 0)
+                          (message "Continuing..."))))))))
+          (skip-chars-forward "^a-zA-Z"))
+        err))))
 
 ;;; Rogue space checking engine
 ;;
@@ -2365,7 +2380,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; Generic Full-file checks (should be comment related)
-	(checkdoc-run-hooks 'checkdoc-comment-style-functions)
+	(run-hook-with-args-until-success 'checkdoc-comment-style-functions)
 	err))
       ;; Done with full file comment checks
       err)))
@@ -2624,7 +2639,7 @@ function called to create the messages."
       (goto-char (point-max))
       (let ((inhibit-read-only t))
         (insert "\n\n\C-l\n*** " label ": "
-                check-type " V " checkdoc-version)))))
+                check-type)))))
 
 (defun checkdoc-error (point msg)
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."

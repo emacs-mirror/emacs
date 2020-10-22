@@ -132,5 +132,26 @@
   <sub/>
 </t>"))))
 
+(ert-deftest nxml-mode-test-comment-bug-17264 ()
+  "Test for Bug#17264."
+  (with-temp-buffer
+    (nxml-mode)
+    (let ((data "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<spocosy version=\"1.0\" responsetime=\"2011-03-15 13:53:12\" exec=\"0.171\">
+  <!--
+      <query-response requestid=\"\" service=\"objectquery\">
+      <sport name=\"Soccer\" enetSportCode=\"s\" del=\"no\" n=\"1\" ut=\"2009-12-29
+      15:36:24\" id=\"1\">
+      </sport>
+      </query-response>
+  -->
+</spocosy>
+"))
+      (insert data)
+      (goto-char (point-min))
+      (search-forward "<query-response")
+      ;; Inside comment
+      (should (eq (nth 4 (syntax-ppss)) t)))))
+
 (provide 'nxml-mode-tests)
 ;;; nxml-mode-tests.el ends here

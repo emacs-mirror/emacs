@@ -35,7 +35,8 @@
           ">>> unmuzzled ratsbane!\n"
           ">>>> Henceforth, the coding style is to be strictly \n"
           ">>>> enforced, including the use of only upper case.\n"
-          ">>>>> I've noticed a lack of adherence to the coding \n"
+          ">>>>> I've noticed a lack of adherence to \n"
+          ">>>>> the coding \n"
           ">>>>> styles, of late.\n"
           ">>>>>> Any complaints?\n"))
         (output

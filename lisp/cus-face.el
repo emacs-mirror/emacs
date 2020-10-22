@@ -166,9 +166,11 @@
 	     :help-echo "Control box around text."
 	     (const :tag "Off" nil)
 	     (list :tag "Box"
-		   :value (:line-width 2 :color "grey75" :style released-button)
-		   (const :format "" :value :line-width)
-		   (integer :tag "Width")
+                   :value (:line-width (2 . 2) :color "grey75" :style released-button)
+                   (const :format "" :value :line-width)
+                   (cons :tag "Width" :extra-offset 2
+                         (integer :tag "Vertical")
+                         (integer :tag "Horizontal"))
 		   (const :format "" :value :color)
 		   (choice :tag "Color" (const :tag "*" nil) color)
 		   (const :format "" :value :style)
@@ -181,15 +183,19 @@
        (and real-value
 	    (let ((lwidth
 		   (or (and (consp real-value)
-			    (plist-get real-value :line-width))
+                            (if (listp (cdr real-value))
+                                (plist-get real-value :line-width)
+                              real-value))
 		       (and (integerp real-value) real-value)
-		       1))
+                       '(1 . 1)))
 		  (color
 		   (or (and (consp real-value) (plist-get real-value :color))
 		       (and (stringp real-value) real-value)
 		       nil))
 		  (style
 		   (and (consp real-value) (plist-get real-value :style))))
+              (if (integerp lwidth)
+                  (setq lwidth (cons (abs lwidth) lwidth)))
 	      (list :line-width lwidth :color color :style style))))
      ;; filter to make customized-value suitable for storing
      (lambda (cus-value)

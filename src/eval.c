@@ -544,7 +544,10 @@ usage: (quote ARG)  */)
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
        doc: /* Like `quote', but preferred for objects which are functions.
 In byte compilation, `function' causes its argument to be handled by
-the byte compiler.  `quote' cannot do that.
+the byte compiler.  Similarly, when expanding macros and expressions,
+ARG can be examined and possibly expanded.  If `quote' is used
+instead, this doesn't happen.
+
 usage: (function ARG)  */)
   (Lisp_Object args)
 {
@@ -831,6 +834,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   Lisp_Object sym, tem;
 
   sym = XCAR (args);
+  CHECK_SYMBOL (sym);
   Lisp_Object docstring = Qnil;
   if (!NILP (XCDR (XCDR (args))))
     {
@@ -1229,7 +1233,7 @@ The car of a handler may be a list of condition names instead of a
 single condition name; then it handles all of them.  If the special
 condition name `debug' is present in this list, it allows another
 condition in the list to run the debugger if `debug-on-error' and the
-other usual mechanisms says it should (otherwise, `condition-case'
+other usual mechanisms say it should (otherwise, `condition-case'
 suppresses the debugger).
 
 When a handler handles an error, control returns to the `condition-case'
@@ -1947,6 +1951,15 @@ then strings and vectors are not accepted.  */)
   else if (COMPILEDP (fun))
     return (PVSIZE (fun) > COMPILED_INTERACTIVE ? Qt : if_prop);
 
+#ifdef HAVE_MODULES
+  /* Module functions are interactive if their `interactive_form'
+     field is non-nil. */
+  else if (MODULE_FUNCTIONP (fun))
+    return NILP (module_function_interactive_form (XMODULE_FUNCTION (fun)))
+             ? if_prop
+             : Qt;
+#endif
+
   /* Strings and vectors are keyboard macros.  */
   if (STRINGP (fun) || VECTORP (fun))
     return (NILP (for_call_interactively) ? Qt : Qnil);
@@ -2361,6 +2374,8 @@ eval_sub (Lisp_Object form)
 DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
+With a single argument, call the argument's first element using the
+other elements as args.
 Thus, (apply \\='+ 1 2 \\='(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -2374,7 +2389,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   ptrdiff_t numargs = list_length (spread_arg);
 
   if (numargs == 0)
-    return Ffuncall (nargs - 1, args);
+    return Ffuncall (max (1, nargs - 1), args);
   else if (numargs == 1)
     {
       args [nargs - 1] = XCAR (spread_arg);
@@ -2904,6 +2919,21 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
     }
 }
 
+/* Call the compiled Lisp function FUN.  If we have not yet read FUN's
+   bytecode string and constants vector, fetch them from the file first.  */
+
+static Lisp_Object
+fetch_and_exec_byte_code (Lisp_Object fun, Lisp_Object syms_left,
+			  ptrdiff_t nargs, Lisp_Object *args)
+{
+  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
+    Ffetch_bytecode (fun);
+  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
+			 AREF (fun, COMPILED_CONSTANTS),
+			 AREF (fun, COMPILED_STACK_DEPTH),
+			 syms_left, nargs, args);
+}
+
 static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
 {
@@ -2968,9 +2998,6 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     }
   else if (COMPILEDP (fun))
     {
-      ptrdiff_t size = PVSIZE (fun);
-      if (size <= COMPILED_STACK_DEPTH)
-	xsignal1 (Qinvalid_function, fun);
       syms_left = AREF (fun, COMPILED_ARGLIST);
       if (FIXNUMP (syms_left))
 	/* A byte-code object with an integer args template means we
@@ -2982,15 +3009,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	   argument-binding code below instead (as do all interpreted
 	   functions, even lexically bound ones).  */
 	{
-	  /* If we have not actually read the bytecode string
-	     and constants vector yet, fetch them from the file.  */
-	  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
-	    Ffetch_bytecode (fun);
-	  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-				 AREF (fun, COMPILED_CONSTANTS),
-				 AREF (fun, COMPILED_STACK_DEPTH),
-				 syms_left,
-				 nargs, arg_vector);
+	  return fetch_and_exec_byte_code (fun, syms_left, nargs, arg_vector);
 	}
       lexenv = Qnil;
     }
@@ -3059,16 +3078,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
   else
-    {
-      /* If we have not actually read the bytecode string
-	 and constants vector yet, fetch them from the file.  */
-      if (CONSP (AREF (fun, COMPILED_BYTECODE)))
-	Ffetch_bytecode (fun);
-      val = exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-			    AREF (fun, COMPILED_CONSTANTS),
-			    AREF (fun, COMPILED_STACK_DEPTH),
-			    Qnil, 0, 0);
-    }
+    val = fetch_and_exec_byte_code (fun, Qnil, 0, NULL);
 
   return unbind_to (count, val);
 }
@@ -3153,9 +3163,6 @@ lambda_arity (Lisp_Object fun)
     }
   else if (COMPILEDP (fun))
     {
-      ptrdiff_t size = PVSIZE (fun);
-      if (size <= COMPILED_STACK_DEPTH)
-	xsignal1 (Qinvalid_function, fun);
       syms_left = AREF (fun, COMPILED_ARGLIST);
       if (FIXNUMP (syms_left))
         return get_byte_code_arity (syms_left);
@@ -3198,13 +3205,11 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 
   if (COMPILEDP (object))
     {
-      ptrdiff_t size = PVSIZE (object);
-      if (size <= COMPILED_STACK_DEPTH)
-	xsignal1 (Qinvalid_function, object);
       if (CONSP (AREF (object, COMPILED_BYTECODE)))
 	{
 	  tem = read_doc_string (AREF (object, COMPILED_BYTECODE));
-	  if (!CONSP (tem))
+	  if (! (CONSP (tem) && STRINGP (XCAR (tem))
+		 && VECTORP (XCDR (tem))))
 	    {
 	      tem = AREF (object, COMPILED_BYTECODE);
 	      if (CONSP (tem) && STRINGP (XCAR (tem)))
@@ -3212,7 +3217,19 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 	      else
 		error ("Invalid byte code");
 	    }
-	  ASET (object, COMPILED_BYTECODE, XCAR (tem));
+
+	  Lisp_Object bytecode = XCAR (tem);
+	  if (STRING_MULTIBYTE (bytecode))
+	    {
+	      /* BYTECODE must have been produced by Emacs 20.2 or earlier
+		 because it produced a raw 8-bit string for byte-code and now
+		 such a byte-code string is loaded as multibyte with raw 8-bit
+		 characters converted to multibyte form.  Convert them back to
+		 the original unibyte form.  */
+	      bytecode = Fstring_as_unibyte (bytecode);
+	    }
+
+	  ASET (object, COMPILED_BYTECODE, bytecode);
 	  ASET (object, COMPILED_CONSTANTS, XCDR (tem));
 	}
     }
@@ -3816,7 +3833,7 @@ backtrace_eval_unrewind (int distance)
 	  {
 	    Lisp_Object sym = specpdl_symbol (tmp);
 	    Lisp_Object old_value = specpdl_old_value (tmp);
-	    set_specpdl_old_value (tmp, Fdefault_value (sym));
+	    set_specpdl_old_value (tmp, default_value (sym));
 	    Fset_default (sym, old_value);
 	  }
 	  break;
@@ -3832,7 +3849,7 @@ backtrace_eval_unrewind (int distance)
 	    if (!NILP (Flocal_variable_p (symbol, where)))
 	      {
 		set_specpdl_old_value
-		  (tmp, Fbuffer_local_value (symbol, where));
+		  (tmp, buffer_local_value (symbol, where));
                 set_internal (symbol, old_value, where, SET_INTERNAL_UNBIND);
 	      }
 	  }
@@ -3957,7 +3974,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	  break;
 
 	case SPECPDL_UNWIND_ARRAY:
-	  mark_maybe_objects (pdl->unwind_array.array, pdl->unwind_array.nelts);
+	  mark_objects (pdl->unwind_array.array, pdl->unwind_array.nelts);
 	  break;
 
 	case SPECPDL_UNWIND_EXCURSION:
@@ -3971,8 +3988,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	    mark_object (backtrace_function (pdl));
 	    if (nargs == UNEVALLED)
 	      nargs = 1;
-	    while (nargs--)
-	      mark_object (backtrace_args (pdl)[nargs]);
+	    mark_objects (backtrace_args (pdl), nargs);
 	  }
 	  break;
 

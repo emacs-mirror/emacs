@@ -3,9 +3,9 @@
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, faces
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcMatch
+;; URL: https://www.emacswiki.org/emacs/ErcMatch
 
 ;; This file is part of GNU Emacs.
 
@@ -94,7 +94,9 @@ The following values are allowed:
  `nick-or-keyword' - highlight the nick of the user who typed your nickname,
                      or all instances of the current nickname if there was
                      no sending user
- `all'             - highlight the entire message where current nickname occurs
+ `message'         - highlight the entire message where current nickname occurs
+ `all'             - highlight the entire message (including the nick) where
+                     current nickname occurs
 
 Any other value disables highlighting of current nickname altogether."
   :group 'erc-match
@@ -102,6 +104,7 @@ Any other value disables highlighting of current nickname altogether."
 		 (const nick)
 		 (const keyword)
 		 (const nick-or-keyword)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-pal-highlight-type 'nick
@@ -110,14 +113,17 @@ See `erc-pals'.
 
 The following values are allowed:
 
-    nil    - do not highlight the message at all
-    `nick' - highlight pal's nickname only
-    `all'  - highlight the entire message from pal
+    nil       - do not highlight the message at all
+    `nick'    - highlight pal's nickname only
+    `message' - highlight the entire message from pal
+    `all'     - highlight the entire message (including the nick)
+                from pal
 
 Any other value disables pal highlighting altogether."
   :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-fool-highlight-type 'nick
@@ -126,14 +132,17 @@ See `erc-fools'.
 
 The following values are allowed:
 
-    nil    - do not highlight the message at all
-    `nick' - highlight fool's nickname only
-    `all'  - highlight the entire message from fool
+    nil       - do not highlight the message at all
+    `nick'    - highlight fool's nickname only
+    `message' - highlight the entire message from fool
+    `all'     - highlight the entire message (including the nick)
+                from fool
 
 Any other value disables fool highlighting altogether."
   :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-keyword-highlight-type 'keyword
@@ -143,12 +152,15 @@ See variable `erc-keywords'.
 The following values are allowed:
 
     `keyword' - highlight keyword only
-    `all'     - highlight the entire message containing keyword
+    `message' - highlight the entire message containing keyword
+    `all'     - highlight the entire message (including the nick)
+                containing keyword
 
 Any other value disables keyword highlighting altogether."
   :group 'erc-match
   :type '(choice (const nil)
 		 (const keyword)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-dangerous-host-highlight-type 'nick
@@ -157,13 +169,16 @@ See `erc-dangerous-hosts'.
 
 The following values are allowed:
 
-    `nick' - highlight nick from dangerous-host only
-    `all'  - highlight the entire message from dangerous-host
+    `nick'    - highlight nick from dangerous-host only
+    `message' - highlight the entire message from dangerous-host
+    `all'     - highlight the entire message (including the nick)
+                from dangerous-host
 
 Any other value disables dangerous-host highlighting altogether."
   :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
+                 (const message)
 		 (const all)))
 
 
@@ -246,14 +261,11 @@ and other miscellaneous functions."
 ;; just put it in erc.el
 (defvar erc-match-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\( "w" table)
-    (modify-syntax-entry ?\) "w" table)
     (modify-syntax-entry ?\[ "w" table)
     (modify-syntax-entry ?\] "w" table)
     (modify-syntax-entry ?\{ "w" table)
     (modify-syntax-entry ?\} "w" table)
     (modify-syntax-entry ?` "w" table)
-    (modify-syntax-entry ?' "w" table)
     (modify-syntax-entry ?^ "w" table)
     (modify-syntax-entry ?- "w" table)
     (modify-syntax-entry ?_ "w" table)
@@ -452,19 +464,18 @@ Use this defun with `erc-insert-modify-hook'."
 			(match-beginning 0)))
 	 (nick-end (when nick-beg
 		     (match-end 0)))
-	 (message (buffer-substring
-		   (if (and nick-end
-			    (<= (+ 2 nick-end) (point-max)))
-		       ;; Message starts 2 characters after the nick
-		       ;; except for CTCP ACTION messages.  Nick
-		       ;; surrounded by angle brackets only in normal
-		       ;; messages.
-		       (+ nick-end
-			  (if (eq ?> (char-after nick-end))
-			      2
-			    1))
-		     (point-min))
-		   (point-max))))
+         (message-beg (if (and nick-end
+                               (<= (+ 2 nick-end) (point-max)))
+                          ;; Message starts 2 characters after the
+                          ;; nick except for CTCP ACTION messages.
+                          ;; Nick surrounded by angle brackets only in
+                          ;; normal messages.
+                          (+ nick-end
+                             (if (eq ?> (char-after nick-end))
+                                 2
+                               1))
+                        (point-min)))
+         (message (buffer-substring message-beg (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
 			 (erc-server-buffer-p))))
@@ -501,7 +512,12 @@ Use this defun with `erc-insert-modify-hook'."
 		 (while (re-search-forward match-regex nil t)
 		   (erc-put-text-property (match-beginning 0) (match-end 0)
 					  'font-lock-face match-face))))
-	      ;; Highlight the whole message
+              ;; Highlight the whole message (not including the nick)
+              ((eq match-htype 'message)
+               (erc-put-text-property
+                message-beg (point-max)
+                'font-lock-face match-face (current-buffer)))
+	      ;; Highlight the whole message (including the nick)
 	      ((eq match-htype 'all)
 	       (erc-put-text-property
 		(point-min) (point-max)
@@ -558,16 +574,15 @@ See `erc-log-match-format'."
 	       (and (eq erc-log-matches-flag 'away)
 		    (erc-away-time)))
 	   match-buffer-name)
-      (let ((line (format-spec erc-log-match-format
-		   (format-spec-make
-		    ?n nick
-		    ?t (format-time-string
-			(or (and (boundp 'erc-timestamp-format)
-				 erc-timestamp-format)
-			    "[%Y-%m-%d %H:%M] "))
-		    ?c (or (erc-default-target) "")
-		    ?m message
-		    ?u nickuserhost))))
+      (let ((line (format-spec
+                   erc-log-match-format
+                   `((?n . ,nick)
+                     (?t . ,(format-time-string
+                             (or (bound-and-true-p erc-timestamp-format)
+                                 "[%Y-%m-%d %H:%M] ")))
+                     (?c . ,(or (erc-default-target) ""))
+                     (?m . ,message)
+                     (?u . ,nickuserhost)))))
 	(with-current-buffer (erc-log-matches-make-buffer match-buffer-name)
 	  (let ((inhibit-read-only t))
 	    (goto-char (point-max))
@@ -581,9 +596,9 @@ See `erc-log-match-format'."
     (with-current-buffer buffer
       (unless buffer-already
 	(insert " == Type \"q\" to dismiss messages ==\n")
-	(erc-view-mode-enter nil (lambda (buffer)
-				   (when (y-or-n-p "Discard messages? ")
-				     (kill-buffer buffer)))))
+	(view-mode-enter nil (lambda (buffer)
+			       (when (y-or-n-p "Discard messages? ")
+				 (kill-buffer buffer)))))
       buffer)))
 
 (defun erc-log-matches-come-back (proc parsed)

@@ -223,7 +223,8 @@ byte-compiled before it is loaded."
       (org-babel-tangle-file file tangled-file "emacs-lisp"))
     (if compile
 	(progn
-	  (byte-compile-file tangled-file 'load)
+          (byte-compile-file tangled-file)
+          (load tangled-file)
 	  (message "Compiled and loaded %s" tangled-file))
       (load-file tangled-file)
       (message "Loaded %s" tangled-file))))
@@ -460,7 +461,7 @@ Matched keyword is in group 1.")
 		 org-clock-string)
 	   t)
 	  "\\)?"
-	  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^]\r\n>]*?[]>]"
+	  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*[]>]"
 	  "\\|"
 	  "<%%([^\r\n>]*>\\)")
   "Matches a timestamp, possibly preceded by a keyword.")
@@ -564,14 +565,14 @@ Effort estimates given in this property need to have the format H:MM.")
 
 ;;;; Timestamp
 
-(defconst org-ts-regexp "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\r\n>]*?\\)>"
+(defconst org-ts-regexp "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^\r\n>]*\\)>"
   "Regular expression for fast time stamp matching.")
 
 (defconst org-ts-regexp-inactive
-  "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\r\n>]*?\\)\\]"
+  "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*\\)\\]"
   "Regular expression for fast inactive time stamp matching.")
 
-(defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^]\r\n>]*?\\)[]>]"
+(defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*\\)[]>]"
   "Regular expression for fast time stamp matching.")
 
 (defconst org-ts-regexp0
@@ -2059,7 +2060,7 @@ taken from the (otherwise obsolete) variable `org-todo-interpretation'."
 		   (choice
 		    :tag "Interpretation"
 		    ;;Quick and dirty way to see
-		    ;;`org-todo-interpretations'.  This takes the
+                    ;;`org-todo-interpretation'.  This takes the
 		    ;;place of item arguments
 		    :convert-widget
 		    (lambda (widget)
@@ -11410,8 +11411,8 @@ D      Show deadlines and scheduled items between a date range."
   (setq type (or type org-sparse-tree-default-date-type))
   (setq org-ts-type type)
   (message "Sparse tree: [r]egexp [t]odo [T]odo-kwd [m]atch [p]roperty
-             \[d]eadlines [b]efore-date [a]fter-date [D]ates range
-             \[c]ycle through date types: %s"
+             [d]eadlines [b]efore-date [a]fter-date [D]ates range
+             [c]ycle through date types: %s"
 	   (cl-case type
 	     (all "all timestamps")
 	     (scheduled "only scheduled")
@@ -18682,13 +18683,14 @@ With prefix arg UNCOMPILED, load the uncompiled versions."
 			      (and (string= org-dir contrib-dir)
 				   (org-load-noerror-mustsuffix (concat contrib-dir f)))
 			      (and (org-load-noerror-mustsuffix (concat (org-find-library-dir f) f))
-				   (add-to-list 'load-uncore f 'append)
+				   (push f load-uncore)
 				   't)
 			      f))
 			lfeat)))
     (when load-uncore
       (message "The following feature%s found in load-path, please check if that's correct:\n%s"
-	       (if (> (length load-uncore) 1) "s were" " was") load-uncore))
+	       (if (> (length load-uncore) 1) "s were" " was")
+               (reverse load-uncore)))
     (if load-misses
 	(message "Some error occurred while reloading Org feature%s\n%s\nPlease check *Messages*!\n%s"
 		 (if (> (length load-misses) 1) "s" "") load-misses (org-version nil 'full))

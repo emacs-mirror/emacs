@@ -1,5 +1,5 @@
 # acl.m4 - check for access control list (ACL) primitives
-# serial 23
+# serial 24
 
 # Copyright (C) 2002, 2004-2020 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -139,7 +139,7 @@ int type = ACL_TYPE_EXTENDED;]])],
       AC_MSG_WARN([AC_PACKAGE_NAME will be built without ACL support.])
     fi
   fi
-  test $gl_need_lib_has_acl && LIB_HAS_ACL=$LIB_ACL
+  test -n "$gl_need_lib_has_acl" && LIB_HAS_ACL=$LIB_ACL
   AC_SUBST([LIB_ACL])
   AC_DEFINE_UNQUOTED([USE_ACL], [$use_acl],
     [Define to nonzero if you want access control list support.])

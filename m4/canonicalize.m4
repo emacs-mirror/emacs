@@ -1,4 +1,4 @@
-# canonicalize.m4 serial 31
+# canonicalize.m4 serial 33
 
 dnl Copyright (C) 2003-2007, 2009-2020 Free Software Foundation, Inc.
 
@@ -56,7 +56,16 @@ AC_DEFUN([gl_CANONICALIZE_LGPL],
 AC_DEFUN([gl_CANONICALIZE_LGPL_SEPARATE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_CHECK_FUNCS_ONCE([canonicalize_file_name getcwd readlink])
+  AC_CHECK_FUNCS_ONCE([canonicalize_file_name readlink])
+
+  dnl On native Windows, we use _getcwd(), regardless whether getcwd() is
+  dnl available through the linker option '-loldnames'.
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  case "$host_os" in
+    mingw*) ;;
+    *)      AC_CHECK_FUNCS([getcwd]) ;;
+  esac
+
   AC_REQUIRE([gl_DOUBLE_SLASH_ROOT])
   AC_REQUIRE([gl_FUNC_REALPATH_WORKS])
   AC_CHECK_HEADERS_ONCE([sys/param.h])
@@ -70,6 +79,7 @@ AC_DEFUN([gl_FUNC_REALPATH_WORKS],
   AC_CHECK_FUNCS_ONCE([realpath])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CACHE_CHECK([whether realpath works], [gl_cv_func_realpath_works], [
+    rm -rf conftest.a conftest.d
     touch conftest.a
     mkdir conftest.d
     AC_RUN_IFELSE([

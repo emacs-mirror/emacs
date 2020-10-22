@@ -1,4 +1,4 @@
-;;; tests/esh-opt-tests.el --- esh-opt test suite
+;;; tests/esh-opt-tests.el --- esh-opt test suite  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 

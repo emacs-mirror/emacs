@@ -26,7 +26,7 @@
 ;; Org-Babel support for evaluating plantuml script.
 ;;
 ;; Inspired by Ian Yang's org-export-blocks-format-plantuml
-;; http://www.emacswiki.org/emacs/org-export-blocks-format-plantuml.el
+;; https://www.emacswiki.org/emacs/org-export-blocks-format-plantuml.el
 
 ;;; Requirements:
 

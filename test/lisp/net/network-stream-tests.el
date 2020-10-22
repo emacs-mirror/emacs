@@ -136,7 +136,20 @@
      (t
       ))))
 
+(defun network-test--resolve-system-name ()
+  (cl-loop for address in (network-lookup-address-info (system-name))
+           when (or (and (= (length address) 5)
+                         ;; IPv4 localhost addresses start with 127.
+                         (= (elt address 0) 127))
+                    (and (= (length address) 9)
+                         ;; IPv6 localhost address.
+                         (equal address [0 0 0 0 0 0 0 1 0])))
+           return t))
+
 (ert-deftest echo-server-with-dns ()
+  (unless (network-test--resolve-system-name)
+    (ert-skip "Can't test resolver for (system-name)"))
+
   (let* ((server (make-server (system-name)))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
@@ -724,4 +737,56 @@
     44777
     (vector :nowait t))))
 
+(ert-deftest check-network-process-coding-system-bind ()
+  "Check that binding coding-system-for-{read,write} works."
+  (let* ((coding-system-for-read 'binary)
+         (coding-system-for-write 'utf-8-unix)
+         (server
+         (make-network-process
+          :name "server"
+          :server t
+          :noquery t
+          :family 'ipv4
+          :service t
+          :host 'local))
+         (coding (process-coding-system server)))
+    (should (eq (car coding) 'binary))
+    (should (eq (cdr coding) 'utf-8-unix))
+    (delete-process server)))
+
+(ert-deftest check-network-process-coding-system-no-override ()
+  "Check that coding-system-for-{read,write} is not overridden by :coding nil."
+  (let* ((coding-system-for-read 'binary)
+         (coding-system-for-write 'utf-8-unix)
+         (server
+         (make-network-process
+          :name "server"
+          :server t
+          :noquery t
+          :family 'ipv4
+          :service t
+          :coding nil
+          :host 'local))
+         (coding (process-coding-system server)))
+    (should (eq (car coding) 'binary))
+    (should (eq (cdr coding) 'utf-8-unix))
+    (delete-process server)))
+
+(ert-deftest check-network-process-coding-system-override ()
+  "Check that :coding non-nil overrides coding-system-for-{read,write}."
+  (let* ((coding-system-for-read 'binary)
+         (coding-system-for-write 'utf-8-unix)
+         (server
+         (make-network-process
+          :name "server"
+          :server t
+          :noquery t
+          :family 'ipv4
+          :service t
+          :coding 'georgian-academy
+          :host 'local))
+         (coding (process-coding-system server)))
+    (should (eq (car coding) 'georgian-academy))
+    (should (eq (cdr coding) 'georgian-academy))
+    (delete-process server)))
 ;;; network-stream-tests.el ends here

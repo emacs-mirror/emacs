@@ -1,4 +1,4 @@
-;;; eieio-tests.el -- eieio tests routines
+;;; eieio-tests.el -- eieio test routines -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2003, 2005-2010, 2012-2020 Free Software
 ;; Foundation, Inc.
@@ -356,7 +356,7 @@ METHOD is the method that was attempting to be called."
     (oset a test-tag 1))
 
   (let ((ca (class-a)))
-    (should-not (/=  (oref ca test-tag) 2))))
+    (should (= (oref ca test-tag) 2))))
 
 
 ;;; Perform slot testing
@@ -852,6 +852,7 @@ Subclasses to override slot attributes.")
   "Instance Tracker test object.")
 
 (ert-deftest eieio-test-33-instance-tracker ()
+  (defvar IT-list)
   (let (IT-list IT1)
     (should (setq IT1 (IT)))
     ;; The instance tracker must find this

@@ -353,7 +353,7 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
 
 /* Yield an upper bound on the buffer size needed to contain a C
    string representing the NUM in base BASE.  This includes any
-   preceding '-' and the terminating NUL.  */
+   preceding '-' and the terminating null.  */
 static ptrdiff_t
 mpz_bufsize (mpz_t const num, int base)
 {
@@ -418,7 +418,7 @@ bignum_to_string (Lisp_Object num, int base)
 
 /* Create a bignum by scanning NUM, with digits in BASE.
    NUM must consist of an optional '-', a nonempty sequence
-   of base-BASE digits, and a terminating NUL byte, and
+   of base-BASE digits, and a terminating null byte, and
    the represented number must not be in fixnum range.  */
 
 Lisp_Object
@@ -430,4 +430,40 @@ make_bignum_str (char const *num, int base)
   int check = mpz_set_str (b->value, num, base);
   eassert (check == 0);
   return make_lisp_ptr (b, Lisp_Vectorlike);
+}
+
+/* Check that X is a Lisp integer in the range LO..HI.
+   Return X's value as an intmax_t.  */
+
+intmax_t
+check_integer_range (Lisp_Object x, intmax_t lo, intmax_t hi)
+{
+  CHECK_INTEGER (x);
+  intmax_t i;
+  if (! (integer_to_intmax (x, &i) && lo <= i && i <= hi))
+    args_out_of_range_3 (x, make_int (lo), make_int (hi));
+  return i;
+}
+
+/* Check that X is a Lisp integer in the range 0..HI.
+   Return X's value as an uintmax_t.  */
+
+uintmax_t
+check_uinteger_max (Lisp_Object x, uintmax_t hi)
+{
+  CHECK_INTEGER (x);
+  uintmax_t i;
+  if (! (integer_to_uintmax (x, &i) && i <= hi))
+    args_out_of_range_3 (x, make_fixnum (0), make_uint (hi));
+  return i;
+}
+
+/* Check that X is a Lisp integer no greater than INT_MAX,
+   and return its value or zero, whichever is greater.  */
+
+int
+check_int_nonnegative (Lisp_Object x)
+{
+  CHECK_INTEGER (x);
+  return NILP (Fnatnump (x)) ? 0 : check_integer_range (x, 0, INT_MAX);
 }

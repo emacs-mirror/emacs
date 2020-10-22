@@ -2230,7 +2230,7 @@ ENDP is t in the former case, nil in the latter."
     (skip-line-prefix fill-prefix)
     fill-prefix))
 
-(defun nxml-newline-and-indent (soft)
+(defun nxml-newline-and-indent (&optional soft)
   (delete-horizontal-space)
   (if soft (insert-and-inherit ?\n) (newline 1))
   (nxml-indent-line))

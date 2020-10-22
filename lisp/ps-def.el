@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Keywords: wp, print, PostScript
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.
@@ -55,24 +55,14 @@
   (face-background face nil t))
 
 
-(defalias 'ps-frame-parameter 'frame-parameter)
+(define-obsolete-function-alias 'ps-frame-parameter #'frame-parameter "28.1")
 
 ;; Return t if the device (which can be changed during an emacs session) can
-;; handle colors.  This function is not yet implemented for GNU emacs.
+;; handle colors.
 (defun ps-color-device ()
-  (if (fboundp 'color-values)
-      (funcall 'color-values "Green")
-    t))
+  (color-values "Green"))
 
-
-(defun ps-color-values (x-color)
-  (cond
-   ((fboundp 'color-values)
-    (funcall 'color-values x-color))
-   ((fboundp 'x-color-values)
-    (funcall 'x-color-values x-color))
-   (t
-    (error "No available function to determine X color values"))))
+(define-obsolete-function-alias 'ps-color-values #'color-values "28.1")
 
 
 (defun ps-face-bold-p (face)

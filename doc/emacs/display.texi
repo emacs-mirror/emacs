@@ -141,6 +141,15 @@ default face.  This can cause Emacs to scroll to somewhat wrong buffer
 positions when the faces in use are not all the same size, even with
 single (i.e., without auto-repeat) scrolling operations.
 
+@vindex jit-lock-defer-time
+As an alternative to setting @code{fast-but-imprecise-scrolling} you
+might prefer to enable jit-lock deferred fontification (@pxref{Font
+Lock}).  To do this, customize @code{jit-lock-defer-time} to a small
+positive number such as 0.25, or even 0.1 if you type quickly.  This
+gives you less jerky scrolling when you hold down @kbd{C-v}, but the
+window contents after any action which scrolls into a fresh portion of
+the buffer will be momentarily unfontified.
+
 @vindex scroll-up
 @vindex scroll-down
 @findex scroll-up-line
@@ -726,6 +735,7 @@ in a way that does not interact well with @code{highlight}.
 @cindex @code{tab-line} face
 Similar to @code{mode-line} for a window's tab line, which appears
 at the top of a window with tabs representing window buffers.
+@xref{Tab Line}.
 @item vertical-border
 @cindex @code{vertical-border} face
 This face is used for the vertical divider between windows on text
@@ -1164,19 +1174,20 @@ right-to-left paragraphs.
 @findex display-fill-column-indicator-mode
 @findex global-display-fill-column-indicator-mode
   Emacs can add an indicator to display a fill column position.  The
-fill column indicator is a useful functionality specially in
-prog-mode to indicate the position of an specific column.
+fill column indicator is a useful functionality especially in
+@code{prog-mode} to indicate the position of a specific column.
 
-  You can set the buffer-local variables @code{display-fill-column-indicator}
-and @code{display-fill-column-indicator-character} to activate the
-indicator and controls how the indicator looks.
+  You can set the buffer-local variables
+@code{display-fill-column-indicator} and
+@code{display-fill-column-indicator-character} to activate the
+indicator and control how it looks, respectively.
 
 Alternatively you can type @w{@kbd{M-x display-fill-column-indicator-mode}}
-or @w{@kbd{M-x global-display-fill-column-indicator-mode}} which enables the
-indicator locally and globally respectively and also chooses the
-character to use if none is set already.  It is possible to use the
-first one to activate the indicator in a hook or the second one to
-enable it globally.
+or @w{@kbd{M-x global-display-fill-column-indicator-mode}} which
+enables the indicator locally or globally, respectively, and also
+chooses the character to use if none is already set.  It is possible
+to use the first one to activate the indicator in a hook and the
+second one to enable it globally.
 
 There are 2 buffer local variables and 1 face to customize this mode:
 
@@ -1193,20 +1204,20 @@ Any other value disables the indicator.  The default value is @code{t}.
 @item display-fill-column-indicator-character
 @vindex display-fill-column-indicator-character
 Specifies the character used for the indicator.  This character can be
-any valid char including unicode ones if the actual font supports
-them.
+any valid character including Unicode ones if the font supports them.
 
 When the mode is enabled through the functions
 @code{display-fill-column-indicator-mode} or
 @code{global-display-fill-column-indicator-mode}, the initialization
-functions check if this variable is @code{non-nil}, otherwise the
-initialization tries to set it to U+2502 or @samp{|}.
+functions check if this variable is non-@code{nil}, otherwise the
+initialization tries to set it to @code{U+2502} or @samp{|}.
 
 @item fill-column-indicator
 @vindex fill-column-indicator
 Specifies the face used to display the indicator.  It inherits its
-default values from shadow but without background color.  To change
-the indicator color you need to set only the foreground color of this face.
+default values from the face @code{shadow} but without background
+color.  To change the indicator color you need only set the foreground
+color of this face.
 @end table
 
 @vindex indicate-buffer-boundaries
@@ -1323,6 +1334,10 @@ customize the variable @code{whitespace-line-column}.
 @item newline
 Highlight newlines.
 
+@item missing-newline-at-eof
+Highlight the final character if the buffer doesn't end with a newline
+character.
+
 @item empty
 Highlight empty lines at the beginning and/or end of the buffer.
 
@@ -1437,9 +1452,10 @@ the displayed column number to count from one, you may set
 @cindex narrowing, and line number display
   If you have narrowed the buffer (@pxref{Narrowing}), the displayed
 line number is relative to the accessible portion of the buffer.
-Thus, it isn't suitable as an argument to @code{goto-line}.  (Use
-@code{what-line} command to see the line number relative to the whole
-file.)
+Thus, it isn't suitable as an argument to @code{goto-line}.  (The
+command @code{what-line} shows the line number relative to the whole
+file.)  You can use @code{goto-line-relative} command to move point to
+the line relative to the accessible portion of the narrowed buffer.
 
 @vindex line-number-display-limit
   If the buffer is very large (larger than the value of
@@ -1573,7 +1589,9 @@ sequences}, with the @code{escape-glyph} face.  For instance,
 character code @code{U+0098} (octal 230) is displayed as @samp{\230}.
 If you change the buffer-local variable @code{ctl-arrow} to
 @code{nil}, the @acronym{ASCII} control characters are also displayed
-as octal escape sequences instead of caret escape sequences.
+as octal escape sequences instead of caret escape sequences.  (You can
+also request that raw bytes be shown in hex, @pxref{Display Custom,
+display-raw-bytes-as-hex}.)
 
 @vindex nobreak-char-display
 @cindex non-breaking space
@@ -1654,6 +1672,8 @@ Customization}).  (The other attributes of this face have no effect;
 the text shown under the cursor is drawn using the frame's background
 color.)  To change its shape, customize the buffer-local variable
 @code{cursor-type}; possible values are @code{box} (the default),
+@code{(box . @var{size})} (box cursor becoming a hollow box under
+masked images larger than @var{size} pixels in either dimension),
 @code{hollow} (a hollow box), @code{bar} (a vertical bar), @code{(bar
 . @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar} (a
 horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}
@@ -1788,6 +1808,29 @@ Visual Line mode is often used to edit files that contain many long
 logical lines, so having a fringe indicator for each wrapped line
 would be visually distracting.  You can change this by customizing the
 variable @code{visual-line-fringe-indicators}.
+
+@vindex word-wrap-by-category
+@findex modify-category-entry
+@findex char-category-set
+@findex category-set-mnemonics
+  By default, Emacs only breaks lines after whitespace characters.
+That produces incorrect results when CJK and Latin text are mixed
+together (because CJK characters don't use whitespace to separate
+words).  You can customize the option @code{word-wrap-by-category} to
+allow Emacs to break lines after any character with ``|'' category
+(@pxref{Categories,,, elisp, the Emacs Lisp Reference Manual}), which
+provides better support for CJK characters.  Also, if this variable is
+set using Customize, Emacs automatically loads @file{kinsoku.el}.
+When @file{kinsoku.el} is loaded, Emacs respects kinsoku rules when
+breaking lines.  That means characters with the ``>'' category don't
+appear at the beginning of a line (e.g., U+FF0C FULLWIDTH COMMA), and
+characters with the ``<'' category don't appear at the end of a line
+(e.g., U+300A LEFT DOUBLE ANGLE BRACKET).  You can view the category
+set of a character using the commands @code{char-category-set} and
+@code{category-set-mnemonics}, or by typing @kbd{C-u C-x =} with point
+on the character and looking at the ``category'' section in the
+report.  You can add categories to a character using the command
+@code{modify-category-entry}.
 
 @node Display Custom
 @section Customization of Display

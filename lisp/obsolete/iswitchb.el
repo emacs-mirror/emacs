@@ -1393,7 +1393,7 @@ Copied from `icomplete-tidy'."
   "Move the summaries to the end of the list.
 This is an example function which can be hooked on to
 `iswitchb-make-buflist-hook'.  Any buffer matching the regexps
-`Summary' or `output\*$'are put to the end of the list."
+`Summary' or `output\\*$'are put to the end of the list."
   (let ((summaries (delq nil
 			 (mapcar
 			  (lambda (x)

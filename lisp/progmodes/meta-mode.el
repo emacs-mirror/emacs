@@ -895,6 +895,8 @@ The environment marked is the one that contains point or follows point."
   "Hook evaluated when first loading Metafont or MetaPost mode."
   :type 'hook
   :group 'meta-font)
+(make-obsolete-variable 'meta-mode-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom meta-common-mode-hook nil
   "Hook evaluated by both `metafont-mode' and `metapost-mode'."

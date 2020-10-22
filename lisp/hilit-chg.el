@@ -224,9 +224,6 @@ colors then use this, if you want fancier faces then set
 ;; When you invoke highlight-changes-mode, should highlight-changes-visible-mode
 ;; be on or off?
 
-(define-obsolete-variable-alias 'highlight-changes-initial-state
-  'highlight-changes-visibility-initial-state "23.1")
-
 (defcustom highlight-changes-visibility-initial-state t
   "Controls whether changes are initially visible in Highlight Changes mode.
 
@@ -236,13 +233,7 @@ When a buffer is in Highlight Changes mode the function
   :type 'boolean
   :group 'highlight-changes)
 
-;; highlight-changes-global-initial-state has been removed
-
-
-
 ;; These are the strings displayed in the mode-line for the minor mode:
-(define-obsolete-variable-alias 'highlight-changes-active-string
-  'highlight-changes-visible-string "23.1")
 
 (defcustom highlight-changes-visible-string " +Chg"
   "The string used when in Highlight Changes mode and changes are visible.
@@ -251,9 +242,6 @@ a string with a leading space."
   :type '(choice string
 		 (const :tag "None"  nil))
   :group 'highlight-changes)
-
-(define-obsolete-variable-alias 'highlight-changes-passive-string
-  'highlight-changes-invisible-string "23.1")
 
 (defcustom highlight-changes-invisible-string " -Chg"
   "The string used when in Highlight Changes mode and changes are hidden.
@@ -956,10 +944,6 @@ changes are made, so \\[highlight-changes-next-change] and
 ;;;###autoload
 (define-globalized-minor-mode global-highlight-changes-mode
   highlight-changes-mode highlight-changes-mode-turn-on)
-
-(define-obsolete-function-alias
- 'global-highlight-changes
-  'global-highlight-changes-mode "23.1")
 
 (defun highlight-changes-mode-turn-on ()
   "See if Highlight Changes mode should be turned on for this buffer.

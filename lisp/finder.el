@@ -188,7 +188,7 @@ from; the default is `load-path'."
   ;; Allow compressed files also.
   (setq package--builtins nil)
   (setq finder-keywords-hash (make-hash-table :test 'eq))
-  (let* ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
+  (let* ((el-file-regexp "\\`\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?\\'")
          (file-count 0)
          (files (cl-loop for d in (or dirs load-path)
                          when (file-exists-p (directory-file-name d))
@@ -197,7 +197,7 @@ from; the default is `load-path'."
                                    (cons d f))
                                  (directory-files d nil el-file-regexp))))
          (progress (make-progress-reporter
-                    (byte-compile-info-string "Scanning files for finder")
+                    (byte-compile-info "Scanning files for finder")
                     0 (length files)))
 	 package-override base-name ; processed
 	 summary keywords package version entry desc)
@@ -393,13 +393,6 @@ FILE should be in a form suitable for passing to `locate-library'."
           buffer-undo-list t)
     (erase-buffer)
     (insert str)
-    (goto-char (point-min))
-    (delete-blank-lines)
-    (goto-char (point-max))
-    (delete-blank-lines)
-    (goto-char (point-min))
-    (while (re-search-forward "^;+ ?" nil t)
-      (replace-match "" nil nil))
     (goto-char (point-min))
     (while (re-search-forward "\\<\\([-[:alnum:]]+\\.el\\)\\>" nil t)
       (if (locate-library (match-string 1))

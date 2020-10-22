@@ -7,6 +7,7 @@
 
 (defvar dframe-version "1.3"
   "The current version of the dedicated frame library.")
+(make-obsolete-variable 'dframe-version nil "28.1")
 
 ;; This file is part of GNU Emacs.
 

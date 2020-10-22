@@ -336,9 +336,9 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
              (list (expand-file-name
                     (if (eq major-mode 'bibtex-mode)
                         (read-file-name
-                         (format ".bib file (default %s): "
-                                 (file-name-nondirectory
-                                  (buffer-file-name)))
+                         (format-prompt ".bib file"
+                                        (file-name-nondirectory
+                                         (buffer-file-name)))
                          (file-name-directory (buffer-file-name))
                          (file-name-nondirectory (buffer-file-name))
                          t)
@@ -377,7 +377,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                    dir files)
                (while (setq dir (car dirs))
                  (setq files
-                       (append (directory-files dir t "\\.bib$")
+                       (append (directory-files dir t "\\.bib\\'")
                                files))
                  (setq dirs (cdr dirs)))
                files))

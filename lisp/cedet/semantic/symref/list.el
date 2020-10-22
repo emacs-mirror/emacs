@@ -85,10 +85,12 @@ current project to find references to the input SYM.  The
 references are the organized by file and the name of the function
 they are used in.
 Display the references in `semantic-symref-results-mode'."
-  (interactive (list (let ((tag (semantic-current-tag)))
-                       (read-string " Symrefs for: " nil nil
-                                    (when tag
-                                      (regexp-quote (semantic-tag-name tag)))))))
+  (interactive (list (let* ((tag (semantic-current-tag))
+                            (default (when tag
+                                       (regexp-quote
+                                        (semantic-tag-name tag)))))
+                       (read-string (format-prompt " Symrefs for" default)
+                                    nil nil default))))
   ;; FIXME: Shouldn't the input be in Emacs regexp format, for
   ;; consistency? Converting it to extended is not hard.
   (semantic-fetch-tags)

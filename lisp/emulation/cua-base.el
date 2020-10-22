@@ -860,7 +860,7 @@ With numeric prefix arg, copy to register 0-9 instead."
 (defun cua-cancel ()
   "Cancel the active region, rectangle, or global mark."
   (interactive)
-  (setq mark-active nil)
+  (deactivate-mark)
   (if (fboundp 'cua--cancel-rectangle)
       (cua--cancel-rectangle)))
 
@@ -1379,9 +1379,10 @@ the prefix fallback behavior."
 
   (cond
    (cua-mode
-    (setq cua--saved-state
-	  (list
-	   (and (boundp 'delete-selection-mode) delete-selection-mode)))
+    (unless cua--saved-state
+      (setq cua--saved-state
+	    (list
+	     (and (boundp 'delete-selection-mode) delete-selection-mode))))
     (if cua-delete-selection
         (delete-selection-mode 1)
       (if (and (boundp 'delete-selection-mode) delete-selection-mode)

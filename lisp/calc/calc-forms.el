@@ -1,4 +1,4 @@
-;;; calc-forms.el --- data format conversion functions for Calc
+;;; calc-forms.el --- data format conversion functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -678,10 +678,11 @@ in the Gregorian calendar."
 (defvar math-fd-isoweek)
 (defvar math-fd-isoweekday)
 
-(defun math-format-date (math-fd-date)
-  (if (eq (car-safe math-fd-date) 'date)
-      (setq math-fd-date (nth 1 math-fd-date)))
-  (let ((entry (list math-fd-date calc-internal-prec calc-date-format)))
+(defun math-format-date (fd-date)
+  (let* ((math-fd-date (if (eq (car-safe fd-date) 'date)
+                           (nth 1 fd-date)
+                         fd-date))
+         (entry (list math-fd-date calc-internal-prec calc-date-format)))
     (or (cdr (assoc entry math-format-date-cache))
 	(let* ((math-fd-dt nil)
                (math-fd-iso-dt nil)
@@ -709,6 +710,10 @@ as measured in the number of days before December 31, 1 BC (Gregorian).")
   "The beginning of the Julian date calendar,
 as measured in the integer number of days before December 31, 1 BC (Gregorian).")
 
+(defconst math-unix-epoch 719163
+  "The beginning of Unix time: days from December 31, 1 BC (Gregorian)
+to Jan 1, 1970 AD.")
+
 (defun math-format-date-part (x)
   (cond ((stringp x)
 	 x)
@@ -730,7 +735,8 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
                               (math-floor math-fd-date)
                               math-julian-date-beginning-int)))
 	((eq x 'U)
-	 (math-format-number (nth 1 (math-date-parts math-fd-date 719164))))
+	 (math-format-number (nth 1 (math-date-parts math-fd-date
+                                                     math-unix-epoch))))
         ((memq x '(IYYY Iww w))
          (progn
            (or math-fd-iso-dt
@@ -909,15 +915,16 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 ;; which is called by math-parse-date and math-parse-standard-date.
 (defvar math-pd-str)
 
-(defun math-parse-date (math-pd-str)
+(defun math-parse-date (pd-str)
   (catch 'syntax
-    (or (math-parse-standard-date math-pd-str t)
-	(math-parse-standard-date math-pd-str nil)
-        (and (string-match "W[0-9][0-9]" math-pd-str)
-             (math-parse-iso-date math-pd-str))
-	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" math-pd-str)
-	     (list 'date (math-read-number (math-match-substring math-pd-str 1))))
+    (or (math-parse-standard-date pd-str t)
+	(math-parse-standard-date pd-str nil)
+        (and (string-match "W[0-9][0-9]" pd-str)
+             (math-parse-iso-date pd-str))
+	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" pd-str)
+	     (list 'date (math-read-number (math-match-substring pd-str 1))))
 	(let ((case-fold-search t)
+	      (math-pd-str pd-str)
 	      (year nil) (month nil) (day nil) (weekday nil)
 	      (hour nil) (minute nil) (second nil) (bc-flag nil)
 	      (a nil) (b nil) (c nil) (bigyear nil) temp)
@@ -1123,8 +1130,9 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 			     (substring math-pd-str (match-end 0))))
 	   n))))
 
-(defun math-parse-standard-date (math-pd-str with-time)
-  (let ((case-fold-search t)
+(defun math-parse-standard-date (pd-str with-time)
+  (let ((math-pd-str pd-str)
+	(case-fold-search t)
 	(okay t) num
 	(fmt calc-date-format) this next (gnext nil)
         (isoyear nil) (isoweek nil) (isoweekday nil)
@@ -1173,7 +1181,7 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 		      (setq num (math-match-substring math-pd-str 0)
 			    math-pd-str (substring math-pd-str (match-end 0))
 			    num (math-date-to-dt
-				 (math-add 719164
+				 (math-add math-unix-epoch
 					   (math-div (math-read-number num)
 						     '(float 864 2))))
 			    hour (nth 3 num)
@@ -1301,9 +1309,10 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
                      (setq day (math-add day (1- yearday))))
                  day))))))
 
-(defun math-parse-iso-date (math-pd-str)
-  "Parse MATH-PD-STR as an ISO week date, or return nil."
-  (let ((case-fold-search t)
+(defun math-parse-iso-date (pd-str)
+  "Parse PD-STR as an ISO week date, or return nil."
+  (let ((math-pd-str pd-str)
+        (case-fold-search t)
         (isoyear nil) (isoweek nil) (isoweekday nil)
         (hour nil) (minute nil) (second nil))
     ;; Extract the time, if any.
@@ -1434,11 +1443,11 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 (defun calcFunc-unixtime (date &optional zone)
   (if (math-realp date)
       (progn
-	(setq date (math-add 719163 (math-div date '(float 864 2))))
+	(setq date (math-add math-unix-epoch (math-div date '(float 864 2))))
 	(list 'date (math-sub date (math-div (calcFunc-tzone zone date)
 					     '(float 864 2)))))
     (if (eq (car date) 'date)
-	(math-add (nth 1 (math-date-parts (nth 1 date) 719163))
+	(math-add (nth 1 (math-date-parts (nth 1 date) math-unix-epoch))
 		  (calcFunc-tzone zone date))
       (math-reject-arg date 'datep))))
 
@@ -1608,7 +1617,7 @@ and ends on the first Sunday of November at 2 a.m."
       (math-std-daylight-savings-old date dt zone bump)
     (math-std-daylight-savings-new date dt zone bump)))
 
-(defun math-std-daylight-savings-new (date dt zone bump)
+(defun math-std-daylight-savings-new (date dt _zone bump)
   "Standard North American daylight saving algorithm as of 2007.
 This implements the rules for the U.S. and Canada.
 Daylight saving begins on the second Sunday of March at 2 a.m.,
@@ -1629,7 +1638,7 @@ and ends on the first Sunday of November at 2 a.m."
 		 (t 0))))
 	(t 0)))
 
-(defun math-std-daylight-savings-old (date dt zone bump)
+(defun math-std-daylight-savings-old (date dt _zone bump)
   "Standard North American daylight saving algorithm before 2007.
 This implements the rules for the U.S. and Canada.
 Daylight saving begins on the first Sunday of April at 2 a.m.,
@@ -1652,7 +1661,7 @@ and ends on the last Sunday of October at 2 a.m."
 
 ;;; Compute the day (1-31) of the WDAY (0-6) on or preceding the given
 ;;; day of the given month.
-(defun math-prev-weekday-in-month (date dt day wday)
+(defun math-prev-weekday-in-month (date dt day _wday)
   (or day (setq day (nth 2 dt)))
   (if (> day (math-days-in-month (car dt) (nth 1 dt)))
       (setq day (math-days-in-month (car dt) (nth 1 dt))))
@@ -1870,8 +1879,8 @@ and ends on the last Sunday of October at 2 a.m."
       (and days (= day (car days))
 	   (setq holiday t)))
     (let* ((weekdays (nth 3 math-holidays-cache))
-	   (weeks (1- (/ (+ day 6) 7)))
-	   (wkday (- day 1 (* weeks 7))))
+           (weeks (/ day 7))
+           (wkday (mod day 7)))         ; Day of week: 0=Sunday, 6=Saturday
       (setq delta (+ delta (* weeks (length weekdays))))
       (while (and weekdays (< (car weekdays) wkday))
 	(setq weekdays (cdr weekdays)
@@ -1905,14 +1914,15 @@ and ends on the last Sunday of October at 2 a.m."
 	(setq delta (1+ delta)))
       (setq day (+ day delta)))
     (let* ((weekdays (nth 3 math-holidays-cache))
-	   (bweek (- 7 (length weekdays)))
-	   (weeks (1- (/ (+ day (1- bweek)) bweek)))
-	   (wkday (- day 1 (* weeks bweek)))
+           (bweek (- 7 (length weekdays)))  ; Business days in a week, 1..7.
+           (weeks (/ day bweek))            ; Whole weeks.
+           (wkday (mod day bweek))      ; Business day in last week, 0..bweek-1
 	   (w 0))
       (setq day (+ day (* weeks (length weekdays))))
+      ;; Add business days in the last week; `w' is weekday, 0..6.
       (while (if (memq w weekdays)
 		 (setq day (1+ day))
-	       (> (setq wkday (1- wkday)) 0))
+               (>= (setq wkday (1- wkday)) 0))
 	(setq w (1+ w)))
       (let ((hours (nth 7 math-holidays-cache)))
 	(if hours
@@ -2030,18 +2040,18 @@ and ends on the last Sunday of October at 2 a.m."
 		     nil)))
 	  (or done (setq math-holidays-cache-tag t))))))
 
-(defun math-setup-year-holidays (math-sh-year)
-  (let ((exprs (nth 2 math-holidays-cache)))
-    (while exprs
+(defun math-setup-year-holidays (sh-year)
+  (let ((math-sh-year sh-year))
+    (dolist (expr (nth 2 math-holidays-cache))
+      (defvar var-y) (defvar var-m)
       (let* ((var-y math-sh-year)
 	     (var-m nil)
-	     (expr (math-evaluate-expr (car exprs))))
+	     (expr (math-evaluate-expr expr)))
 	(if (math-expr-contains expr '(var m var-m))
 	    (let ((var-m 0))
 	      (while (<= (setq var-m (1+ var-m)) 12)
 		(math-setup-add-holidays (math-evaluate-expr expr))))
-	  (math-setup-add-holidays expr)))
-      (setq exprs (cdr exprs)))))
+	  (math-setup-add-holidays expr))))))
 
 (defun math-setup-add-holidays (days)   ; uses "math-sh-year"
   (cond ((eq (car-safe days) 'vec)

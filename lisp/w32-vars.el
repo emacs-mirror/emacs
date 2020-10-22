@@ -1,4 +1,4 @@
-;;; w32-vars.el --- MS-Windows specific user options
+;;; w32-vars.el --- MS-Windows specific user options  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -44,22 +44,19 @@ after changing the value of this variable."
   :type 'boolean
   :set (lambda (symbol value)
 	 (set symbol value)
-	 (setq mouse-appearance-menu-map nil))
-  :group 'w32)
+	 (setq mouse-appearance-menu-map nil)))
 
 (unless (eq system-type 'cygwin)
   (defcustom w32-allow-system-shell nil
     "Disable startup warning when using \"system\" shells."
-    :type 'boolean
-    :group 'w32))
+    :type 'boolean))
 
 (unless (eq system-type 'cygwin)
  (defcustom w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
                                 "4nt" "4nt.exe" "4dos" "4dos.exe"
                                 "tcc" "tcc.exe" "ndos" "ndos.exe")
    "List of strings recognized as Windows system shells."
-   :type '(repeat string)
-   :group 'w32))
+   :type '(repeat string)))
 
 ;; Want "menu" custom type for this.
 (defcustom w32-fixed-font-alist
@@ -149,8 +146,7 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 		(const :tag "Separator" (""))
 		(list :tag "Font Entry"
 		      (string :tag "Menu text")
-		      (string :tag "Font")))))))
-    :group 'w32)
+		      (string :tag "Font"))))))))
 
 (make-obsolete-variable 'w32-enable-synthesized-fonts nil "24.4")
 

@@ -716,6 +716,7 @@ For example, if the current buffer name is @samp{foo},
 returns @code{"The buffer is foo"}.
 @end defmac
 
+@cindex pretty-printer
 @defun pp object &optional stream
 This function outputs @var{object} to @var{stream}, just like
 @code{prin1}, but does it in a prettier way.  That is, it'll
@@ -858,7 +859,7 @@ exceeding this limit is abbreviated with an ellipsis.  A value of
 These are the values for @code{print-length} and @code{print-level}
 used by @code{eval-expression}, and thus, indirectly, by many
 interactive evaluation commands (@pxref{Lisp Eval,, Evaluating
-Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
+Emacs Lisp Expressions, emacs, The GNU Emacs Manual}).
 @end defopt
 
   These variables are used for detecting and reporting circular

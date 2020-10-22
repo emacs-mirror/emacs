@@ -1,4 +1,4 @@
-;;; calc-frac.el --- fraction functions for Calc
+;;; calc-frac.el --- fraction functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 

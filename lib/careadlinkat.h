@@ -47,7 +47,7 @@ struct allocator;
    set errno.  */
 
 char *careadlinkat (int fd, char const *filename,
-                    char *buffer, size_t buffer_size,
+                    char *restrict buffer, size_t buffer_size,
                     struct allocator const *alloc,
                     ssize_t (*preadlinkat) (int, char const *,
                                             char *, size_t));

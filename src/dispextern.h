@@ -102,7 +102,7 @@ typedef XImage *Emacs_Pix_Context;
 #endif
 
 #ifdef USE_CAIRO
-/* Mininal version of XImage.  */
+/* Minimal version of XImage.  */
 typedef struct
 {
   int width, height;		/* size of image */
@@ -234,7 +234,7 @@ struct text_pos
        {					\
 	 ++(POS).charpos;			\
          if (MULTIBYTE_P)			\
-	   INC_POS ((POS).bytepos);		\
+	   (POS).bytepos += next_char_len ((POS).bytepos); \
 	 else					\
 	   ++(POS).bytepos;			\
        }					\
@@ -247,7 +247,7 @@ struct text_pos
        {					\
 	 --(POS).charpos;			\
          if (MULTIBYTE_P)			\
-	   DEC_POS ((POS).bytepos);		\
+	   (POS).bytepos -= prev_char_len ((POS).bytepos); \
 	 else					\
 	   --(POS).bytepos;			\
        }					\
@@ -369,7 +369,7 @@ enum glyph_type
   /* Glyph describes a character.  */
   CHAR_GLYPH,
 
-  /* Glyph describes a static composition.  */
+  /* Glyph describes a static or automatic composition.  */
   COMPOSITE_GLYPH,
 
   /* Glyph describes a glyphless character.  */
@@ -1695,12 +1695,17 @@ struct face
   int fontset;
 
   /* Non-zero means characters in this face have a box of that
-     thickness around them.  If this value is negative, its absolute
-     value indicates the thickness, and the horizontal (top and
-     bottom) borders of box are drawn inside of the character glyphs'
-     area.  The vertical (left and right) borders of the box are drawn
-     in the same way as when this value is positive.  */
-  int box_line_width;
+     thickness around them. Vertical (left and right) and horizontal
+     (top and bottom) borders size can be set separatedly using an
+     associated list of two ints in the form
+     (vertical_size . horizontal_size). In case one of the value is
+     negative, its absolute value indicates the thickness, and the
+     borders of box are drawn inside of the character glyphs' area
+     potentially over the glyph itself but the glyph drawing size is
+     not increase. If a (signed) int N is use instead of a list, it
+     is the same as setting ( abs(N) . N ) values. */
+  int box_vertical_line_width;
+  int box_horizontal_line_width;
 
   /* Type of box drawn.  A value of FACE_NO_BOX means no box is drawn
      around text in this face.  A value of FACE_SIMPLE_BOX means a box
@@ -1749,6 +1754,7 @@ struct face
   bool_bf tty_italic_p : 1;
   bool_bf tty_underline_p : 1;
   bool_bf tty_reverse_p : 1;
+  bool_bf tty_strike_through_p : 1;
 
   /* True means that colors of this face may not be freed because they
      have been copied bitwise from a base face (see
@@ -1859,20 +1865,6 @@ struct face_cache
      changed.  */
   bool_bf menu_face_changed_p : 1;
 };
-
-/* Return a non-null pointer to the cached face with ID on frame F.  */
-
-#define FACE_FROM_ID(F, ID)					\
-  (eassert (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)),	\
-   FRAME_FACE_CACHE (F)->faces_by_id[ID])
-
-/* Return a pointer to the face with ID on frame F, or null if such a
-   face doesn't exist.  */
-
-#define FACE_FROM_ID_OR_NULL(F, ID)			\
-  (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
-   ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
-   : NULL)
 
 #define FACE_EXTENSIBLE_P(F)			\
   (!NILP (F->lface[LFACE_EXTEND_INDEX]))
@@ -2014,7 +2006,7 @@ struct bidi_string_data {
   Lisp_Object lstring;		/* Lisp string to reorder, or nil */
   const unsigned char *s;	/* string data, or NULL if reordering buffer */
   ptrdiff_t schars;		/* the number of characters in the string,
-				   excluding the terminating NUL */
+				   excluding the terminating null */
   ptrdiff_t bufpos;		/* buffer position of lstring, or 0 if N/A */
   bool_bf from_disp_str : 1;	/* True means the string comes from a
 				   display property */
@@ -2792,7 +2784,8 @@ struct it
     else                                                \
       produce_glyphs ((IT));                            \
     if ((IT)->glyph_row != NULL)                        \
-      inhibit_free_realized_faces = true;		\
+      inhibit_free_realized_faces =true;		\
+    reset_box_start_end_flags ((IT));			\
   } while (false)
 
 /* Bit-flags indicating what operation move_it_to should perform.  */
@@ -3013,6 +3006,9 @@ struct redisplay_interface
   /* Cancel hourglass cursor on frame F.  */
   void (*hide_hourglass) (struct frame *f);
 
+  /* Called to (re)calculate the default face when changing the font
+     backend.  */
+  void (*default_font_parameter) (struct frame *f, Lisp_Object parms);
 #endif /* HAVE_WINDOW_SYSTEM */
 };
 
@@ -3071,9 +3067,9 @@ struct image
      if necessary.  */
   unsigned long background;
 
-  /* Foreground and background colors of the frame on which the image
+  /* Foreground and background colors of the face on which the image
      is created.  */
-  unsigned long frame_foreground, frame_background;
+  unsigned long face_foreground, face_background;
 
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
@@ -3163,21 +3159,6 @@ struct image_cache
   /* Reference count (number of frames sharing this cache).  */
   ptrdiff_t refcount;
 };
-
-
-/* A non-null pointer to the image with id ID on frame F.  */
-
-#define IMAGE_FROM_ID(F, ID)					\
-  (eassert (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)),	\
-   FRAME_IMAGE_CACHE (F)->images[ID])
-
-/* Value is a pointer to the image with id ID on frame F, or null if
-   no image with that id exists.  */
-
-#define IMAGE_OPT_FROM_ID(F, ID)				\
-  (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)		\
-   ? FRAME_IMAGE_CACHE (F)->images[ID]				\
-   : NULL)
 
 /* Size of bucket vector of image caches.  Should be prime.  */
 
@@ -3320,6 +3301,7 @@ enum tool_bar_item_image
 #define TTY_CAP_BOLD		0x04
 #define TTY_CAP_DIM		0x08
 #define TTY_CAP_ITALIC  	0x10
+#define TTY_CAP_STRIKE_THROUGH	0x20
 
 
 /***********************************************************************
@@ -3505,7 +3487,7 @@ void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
 bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
-ptrdiff_t lookup_image (struct frame *, Lisp_Object);
+ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);
 
 #if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS
 #define RGB_PIXEL_COLOR unsigned long
@@ -3544,6 +3526,8 @@ void update_face_from_frame_parameter (struct frame *, Lisp_Object,
                                        Lisp_Object);
 extern bool tty_defined_color (struct frame *, const char *, Emacs_Color *,
                                bool, bool);
+bool parse_color_spec (const char *,
+                       unsigned short *, unsigned short *, unsigned short *);
 
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (bool);
@@ -3566,7 +3550,7 @@ void recompute_basic_faces (struct frame *);
 int face_at_buffer_position (struct window *, ptrdiff_t, ptrdiff_t *,
                              ptrdiff_t, bool, int, enum lface_attribute_index);
 int face_for_overlay_string (struct window *, ptrdiff_t, ptrdiff_t *, ptrdiff_t,
-                             bool, Lisp_Object);
+                             bool, Lisp_Object, enum lface_attribute_index);
 int face_at_string_position (struct window *, Lisp_Object, ptrdiff_t, ptrdiff_t,
                              ptrdiff_t *, enum face_id, bool,
                              enum lface_attribute_index);

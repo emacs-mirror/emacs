@@ -231,6 +231,9 @@ DESTINATION can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
 Remaining arguments ARGS are strings passed as command arguments to PROGRAM.
 
+If PROGRAM is not an absolute file name, `call-process' will look for
+PROGRAM in `exec-path' (which is a list of directories).
+
 If executable PROGRAM can't be found as an executable, `call-process'
 signals a Lisp error.  `call-process' reports errors in execution of
 the program only through its return and output.
@@ -746,6 +749,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       int carryover = 0;
       bool display_on_the_fly = display_p;
       struct coding_system saved_coding = process_coding;
+      ptrdiff_t prepared_pos = 0; /* prepare_to_modify_buffer was last
+                                     called here.  */
 
       while (1)
 	{
@@ -773,6 +778,33 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	      if (display_on_the_fly)
 		break;
 	    }
+          /* CHANGE FUNCTIONS
+             For each iteration of the enclosing while (1) loop which
+             yields data (i.e. nread > 0), before- and
+             after-change-functions are each invoked exactly once.
+             This is done directly from the current function only, by
+             calling prepare_to_modify_buffer and signal_after_change.
+             It is not done here by directing another function such as
+             insert_1_both to call them.  The call to
+             prepare_to_modify_buffer follows this comment, and there
+             is one call to signal_after_change in each of the
+             branches of the next `else if'.
+
+             Exceptionally, the insertion into the buffer is aborted
+             at the call to del_range_2 ~45 lines further down, this
+             function removing the newly inserted data.  At this stage
+             prepare_to_modify_buffer has been called, but
+             signal_after_change hasn't.  A continue statement
+             restarts the enclosing while (1) loop.  A second,
+             unwanted, call to `prepare_to_modify_buffer' is inhibited
+	     by the test prepared_pos < PT.  The data are inserted
+             again, and this time signal_after_change gets called,
+             balancing the previous call to prepare_to_modify_buffer.  */
+          if ((prepared_pos < PT) && nread)
+            {
+              prepare_to_modify_buffer (PT, PT, NULL);
+              prepared_pos = PT;
+            }
 
 	  /* Now NREAD is the total amount of data in the buffer.  */
 
@@ -780,15 +812,16 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	    ;
 	  else if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 		   && ! CODING_MAY_REQUIRE_DECODING (&process_coding))
-	    insert_1_both (buf, nread, nread, 0, 1, 0);
+            {
+              insert_1_both (buf, nread, nread, 0, 0, 0);
+              signal_after_change (PT - nread, 0, nread);
+            }
 	  else
 	    {			/* We have to decode the input.  */
 	      Lisp_Object curbuf;
 	      ptrdiff_t count1 = SPECPDL_INDEX ();
 
 	      XSETBUFFER (curbuf, current_buffer);
-	      /* FIXME: Call signal_after_change!  */
-	      prepare_to_modify_buffer (PT, PT, NULL);
 	      /* We cannot allow after-change-functions be run
 		 during decoding, because that might modify the
 		 buffer, while we rely on process_coding.produced to
@@ -824,6 +857,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 	      TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
 				PT_BYTE + process_coding.produced);
+              signal_after_change (PT - process_coding.produced_char,
+                                   0, process_coding.produced_char);
 	      carryover = process_coding.carryover_bytes;
 	      if (carryover > 0)
 		memcpy (buf, process_coding.carryover,
@@ -1028,6 +1063,9 @@ Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
 Remaining arguments ARGS are passed to PROGRAM at startup as command-line
 arguments.
 
+If PROGRAM is not an absolute file name, `call-process-region' will
+look for PROGRAM in `exec-path' (which is a list of directories).
+
 If BUFFER is 0, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
@@ -1067,7 +1105,17 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     }
 
   if (nargs > 3 && !NILP (args[3]))
-    Fdelete_region (start, end);
+    {
+      if (NILP (start))
+        {
+          /* No need to save restrictions since we delete everything
+             anyway.  */
+          Fwiden ();
+          del_range (BEG, Z);
+        }
+      else
+        Fdelete_region (start, end);
+    }
 
   if (nargs > 3)
     {

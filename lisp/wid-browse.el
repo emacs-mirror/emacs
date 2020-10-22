@@ -187,7 +187,7 @@ if that value is non-nil."
 
 (define-widget 'widget-browse 'push-button
   "Button for creating a widget browser.
-The :value of the widget shuld be the widget to be browsed."
+The :value of the widget should be the widget to be browsed."
   :format "%[[%v]%]"
   :value-create 'widget-browse-value-create
   :action 'widget-browse-action)

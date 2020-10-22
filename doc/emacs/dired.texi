@@ -79,12 +79,45 @@ The former lists all the files with extension @samp{.el} in directory
 @samp{foo}.  The latter lists the files with extension @samp{.el}
 in all the subdirectories of @samp{foo}.
 
+@cindex globstar, in Dired
+On Posix systems, when the system shell supports @dfn{globstar}, a
+recursive globbing feature, and that support is enabled, you can use
+recursive globbing in Dired:
+
+@example
+C-x d  ~/foo/**/*.el  @key{RET}
+@end example
+
+This command produces a directory listing with all the files with
+extension @samp{.el}, descending recursively in all the subdirectories
+of @samp{foo}.  Note that there are small differences in the
+implementation of globstar between different shells.  Check your shell
+manual to know the expected behavior.
+
+@vindex dired-maybe-use-globstar
+@vindex dired-enable-globstar-in-shell
+If the shell supports globstar, but that support is disabled by
+default, you can still let Dired use this feature by customizing
+@code{dired-maybe-use-globstar} to a non-@code{nil} value; then Dired
+will enable globstar for those shells for which it knows how (see
+@code{dired-enable-globstar-in-shell} for the list of those shells).
+
 The usual history and completion commands can be used in the minibuffer;
 in particular, @kbd{M-n} puts the name of the visited file (if any) in
 the minibuffer (@pxref{Minibuffer History}).
 
   You can also invoke Dired by giving @kbd{C-x C-f} (@code{find-file})
 a directory's name.
+
+@findex dired-jump
+@findex dired-jump-other-window
+@kindex C-x C-j
+@kindex C-x 4 C-j
+  Typing @kbd{C-x C-j} (@code{dired-jump}) in any buffer will open a
+Dired buffer and move point to the line corresponding to the current
+file.  In Dired, move up a level and go to the previous directory's
+line.  Typing @kbd{C-x 4 C-j} (@code{dired-jump-other-window} has the
+same effect but opens a new window for the Dired buffer.
 
   The variable @code{dired-listing-switches} specifies the options to
 give to @command{ls} for listing the directory; this string
@@ -95,6 +128,17 @@ how they are specified, the @command{ls} switches can include short
 options (that is, single characters) requiring no arguments, and long
 options (starting with @samp{--}) whose arguments are specified with
 @samp{=}.
+
+@vindex dired-switches-in-mode-line
+  Dired displays in the mode line an indication of what were the
+switches used to invoke @command{ls}.  By default, Dired will try to
+determine whether the switches indicate sorting by name or date, and
+will say so in the mode line.  If the @code{dired-switches-in-mode-line}
+variable is @code{as-is}, the switches will be shown verbatim.  If
+this variable's value is an integer, the switch display will be
+truncated to that length.  This variable can also be a function, which
+will be called with @code{dired-actual-switches} as the only
+parameter, and should return a string to display in the mode line.
 
 @vindex dired-use-ls-dired
   If your @command{ls} program supports the @samp{--dired} option,
@@ -694,6 +738,14 @@ The variable @code{dired-recursive-copies} controls whether to copy
 directories recursively (like @samp{cp -r}).  The default is
 @code{top}, which means to ask before recursively copying a directory.
 
+@vindex dired-copy-dereference
+@cindex follow symbolic links
+@cindex dereference symbolic links
+The variable @code{dired-copy-dereference} controls whether to copy
+symbolic links as links or after dereferencing (like @samp{cp -L}).
+The default is @code{nil}, which means that the symbolic links are
+copied by creating new ones.
+
 @item D
 @findex dired-do-delete
 @kindex D @r{(Dired)}
@@ -720,10 +772,16 @@ should create non-existent directories in @var{new}.
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
 
-@vindex dired-vc-rename
-If the value of the variable @code{dired-vc-rename} is non-@code{nil},
+@vindex dired-vc-rename-file
+If the value of the variable @code{dired-vc-rename-file} is non-@code{nil},
 files are renamed using the commands of the underlying VCS, via
+@ifnottex
 @code{vc-rename-file} (@pxref{VC Delete/Rename}).
+@end ifnottex
+@iftex
+@code{vc-rename-file} (@pxref{VC Delete/Rename,, Deleting and Renaming
+Version-Controlled Files, emacs-xtra, Specialized Emacs Features}).
+@end iftex
 
 @findex dired-do-hardlink
 @kindex H @r{(Dired)}
@@ -1416,7 +1474,8 @@ C-c}.
 
   Image-Dired is a facility for browsing image files.  It provides viewing
 the images either as thumbnails or in full size, either inside Emacs
-or through an external viewer.
+or through an external viewer.  This is different from Image mode
+(@pxref{Image Mode}) for visiting an image file in the Emacs buffer.
 
 @kindex C-t d @r{(Image-Dired)}
 @findex image-dired-display-thumbs

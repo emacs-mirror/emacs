@@ -1,4 +1,4 @@
-;;; srecode/test.el --- SRecode Core Template tests.
+;;; srecode/test.el --- SRecode Core Template tests. -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
@@ -323,7 +323,6 @@ INSIDE SECTION: ARG HANDLER ONE")
 
 (ert-deftest srecode-utest-project ()
   "Test that project filtering works."
-  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
   (save-excursion
     (let ((testbuff (find-file-noselect srecode-utest-testfile))
 	  (temp nil))
@@ -346,6 +345,10 @@ INSIDE SECTION: ARG HANDLER ONE")
 
       ;; Load the application templates, and make sure we can find them.
       (srecode-load-tables-for-mode major-mode 'tests)
+
+      (dolist (table (oref (srecode-table) tables))
+        (when (gethash "test" (oref table contexthash))
+          (oset table project default-directory)))
 
       (setq temp (srecode-template-get-table (srecode-table)
 					     "test-project"

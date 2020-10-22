@@ -619,8 +619,11 @@ If ALIST is non-nil, the new pairs are prepended to it."
       (macroexp-let2* nil ((start from) (end to))
         (funcall do `(substring ,getter ,start ,end)
                  (lambda (v)
-                   (funcall setter `(cl--set-substring
-                                     ,getter ,start ,end ,v))))))))
+                   (macroexp-let2 nil v v
+                     `(progn
+                        ,(funcall setter `(cl--set-substring
+                                           ,getter ,start ,end ,v))
+                        ,v))))))))
 
 ;;; Miscellaneous.
 
@@ -660,6 +663,7 @@ This can be needed when using code byte-compiled using the old
 macro-expansion of `cl-defstruct' that used vectors objects instead
 of record objects."
   :global t
+  :group 'tools
   (cond
    (cl-old-struct-compat-mode
     (advice-add 'type-of :around #'cl--old-struct-type-of))

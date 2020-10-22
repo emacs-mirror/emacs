@@ -1047,7 +1047,7 @@ will be copied over from that buffer."
 				  (list (list group ""))
 				nnmail-split-methods)))
     ;; Insert the incoming file.
-    (with-current-buffer (get-buffer-create nnmail-article-buffer)
+    (with-current-buffer (gnus-get-buffer-create nnmail-article-buffer)
       (erase-buffer)
       (if (bufferp incoming)
 	  (insert-buffer-substring incoming)
@@ -1574,7 +1574,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
       ()				; The buffer is open.
     (with-current-buffer
        (setq nnmail-cache-buffer
-	     (get-buffer-create " *nnmail message-id cache*"))
+	     (gnus-get-buffer-create " *nnmail message-id cache*"))
       (gnus-add-buffer)
       (when (file-exists-p nnmail-message-id-cache-file)
 	(nnheader-insert-file-contents nnmail-message-id-cache-file))
@@ -1749,7 +1749,15 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			  (nreverse (nnmail-article-group artnum-func))))))
     ;; Add the group-art list to the history list.
     (if group-art
-	(push group-art nnmail-split-history)
+	;; We need to get the unique Gnus group name for this article
+	;; -- there may be identically named groups from several
+	;; backends.
+	(push (mapcar
+	       (lambda (ga)
+		 (cons (gnus-group-prefixed-name (car ga) gnus-command-method)
+		       (cdr ga)))
+	       group-art)
+	      nnmail-split-history)
       (delete-region (point-min) (point-max)))))
 
 ;;; Get new mail.
@@ -1953,12 +1961,14 @@ If TIME is nil, then return the cutoff time for oldness instead."
       (unless (re-search-forward "^Message-ID[ \t]*:" nil t)
 	(insert "Message-ID: " (nnmail-message-id) "\n")))))
 
-(defun nnmail-write-region (start end filename &optional append visit lockname)
+(defun nnmail-write-region (start end filename
+				  &optional append visit lockname mustbenew)
   "Do a `write-region', and then set the file modes."
   (let ((coding-system-for-write nnmail-file-coding-system)
 	(file-name-coding-system nnmail-pathname-coding-system))
-    (write-region start end filename append visit lockname)
-    (set-file-modes filename nnmail-default-file-modes)))
+    (write-region start end filename append visit lockname mustbenew)
+    (set-file-modes filename nnmail-default-file-modes
+		    (when (eq mustbenew 'excl) 'nofollow))))
 
 ;;;
 ;;; Status functions
@@ -2065,13 +2075,15 @@ Doesn't change point."
   (when nnmail-split-tracing
     (push split nnmail-split-trace))
   (when nnmail-debug-splitting
-    (with-current-buffer (get-buffer-create "*nnmail split*")
+    (with-current-buffer (gnus-get-buffer-create "*nnmail split*")
       (goto-char (point-max))
       (insert (format-time-string "%FT%T")
 	      " "
 	      (format "%S" split)
 	      "\n"))))
 
+(make-obsolete-variable 'nnmail-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'nnmail-load-hook)
 
 (provide 'nnmail)

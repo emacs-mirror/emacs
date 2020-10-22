@@ -60,7 +60,8 @@ Any other value means use the setting of `case-fold-search'."
   :type '(choice (const :tag "Case-sensitive" nil)
 		 (const :tag "Case-insensitive" t)
 		 (other :tag "Use default" default))
-  :version "21.1")
+  :version "21.1"
+  :safe 'symbolp)
 
 ;;;###autoload
 ;; Use `visit-tags-table-buffer' to cycle through tags tables in this list.
@@ -819,9 +820,7 @@ tags table for BUF and its (recursively) included tags tables."
   "Using tags, return a completion table for the text around point.
 If no tags table is loaded, do nothing and return nil."
   (when (or tags-table-list tags-file-name)
-    (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
-				      tags-case-fold-search
-				    case-fold-search))
+    (let ((completion-ignore-case (find-tag--completion-ignore-case))
 	  (pattern (find-tag--default))
 	  beg)
       (when pattern
@@ -836,9 +835,7 @@ If no tags table is loaded, do nothing and return nil."
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
-  (let* ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
-				     tags-case-fold-search
-				   case-fold-search))
+  (let* ((completion-ignore-case (find-tag--completion-ignore-case))
 	 (default (find-tag--default))
 	 (spec (completing-read (if default
 				    (format "%s (default %s): "
@@ -850,6 +847,11 @@ If no tags table is loaded, do nothing and return nil."
     (if (equal spec "")
 	(or default (user-error "There is no default tag"))
       spec)))
+
+(defun find-tag--completion-ignore-case ()
+  (if (memq tags-case-fold-search '(t nil))
+      tags-case-fold-search
+    case-fold-search))
 
 (defun find-tag--default ()
   (funcall (or find-tag-default-function
@@ -1422,6 +1424,10 @@ hits the start of file."
 	  (goto-func goto-tag-location-function)
 	  tag tag-info pt)
     (forward-line 1)
+    ;; Exuberant ctags add a line starting with the DEL character;
+    ;; skip past it.
+    (when (looking-at "\177")
+      (forward-line 1))
     (while (not (or (eobp) (looking-at "\f")))
       ;; We used to use explicit tags when available, but the current goto-func
       ;; can only handle implicit tags.
@@ -1839,7 +1845,7 @@ Also see the documentation of the `tags-file-name' variable."
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
-For non-interactive use, superceded by `fileloop-initialize-replace'."
+For non-interactive use, superseded by `fileloop-initialize-replace'."
   (declare (advertised-calling-convention (from to &optional delimited) "27.1"))
   (interactive (query-replace-read-args "Tags query replace (regexp)" t t))
   (fileloop-initialize-replace
@@ -2072,11 +2078,14 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql etags)))
   (tags-lazy-completion-table))
 
+(cl-defmethod xref-backend-identifier-completion-ignore-case ((_backend (eql etags)))
+  (find-tag--completion-ignore-case))
+
 (cl-defmethod xref-backend-definitions ((_backend (eql etags)) symbol)
   (etags--xref-find-definitions symbol))
 
-(cl-defmethod xref-backend-apropos ((_backend (eql etags)) symbol)
-  (etags--xref-find-definitions symbol t))
+(cl-defmethod xref-backend-apropos ((_backend (eql etags)) pattern)
+  (etags--xref-find-definitions (xref-apropos-regexp pattern) t))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behavior of `find-tag-in-order' but instead of
@@ -2086,9 +2095,7 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
          (first-time t)
          (search-fun (if regexp? #'re-search-forward #'search-forward))
          (marks (make-hash-table :test 'equal))
-         (case-fold-search (if (memq tags-case-fold-search '(nil t))
-                               tags-case-fold-search
-                             case-fold-search))
+         (case-fold-search (find-tag--completion-ignore-case))
          (cbuf (current-buffer)))
     (save-excursion
       (while (visit-tags-table-buffer (not first-time) cbuf)

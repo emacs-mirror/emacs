@@ -161,6 +161,9 @@ Return t if there is more drift to do, nil if completed."
 			   (face-background face nil t)
 			 (face-background 'pulse-highlight-start-face)
 			 ))
+  (and face
+       (set-face-extend 'pulse-highlight-face
+                        (face-extend-p face nil t)))
   (put 'pulse-highlight-face :startface (or face
 					    'pulse-highlight-start-face))
   (put 'pulse-highlight-face :iteration 0))
@@ -181,6 +184,7 @@ Optional argument FACE specifies the face to do the highlighting."
   (overlay-put o 'original-face (overlay-get o 'face))
   ;; Make this overlay take priority over the `transient-mark-mode'
   ;; overlay.
+  (overlay-put o 'original-priority (overlay-get o 'priority))
   (overlay-put o 'priority 1)
   (setq pulse-momentary-overlay o)
   (if (eq pulse-flag 'never)
@@ -214,6 +218,7 @@ Optional argument FACE specifies the face to do the highlighting."
     (let ((ol pulse-momentary-overlay))
       (overlay-put ol 'face (overlay-get ol 'original-face))
       (overlay-put ol 'original-face nil)
+      (overlay-put ol 'priority (overlay-get ol 'original-priority))
       ;; Clear the overlay if it needs deleting.
       (when (overlay-get ol 'pulse-delete) (delete-overlay ol)))
 

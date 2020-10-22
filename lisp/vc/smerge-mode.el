@@ -797,7 +797,10 @@ An error is raised if not inside a conflict."
 	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
-	       (_ (cl-assert (< orig-point (match-end 0))))
+	       (_ (when (< (match-end 0) orig-point)
+	            ;; Point is not within the conflict we found,
+                    ;; so this conflict is not ours.
+	            (signal 'search-failed (list smerge-begin-re))))
 
 	       (lower-end (match-beginning 0))
 	       (end (match-end 0))
@@ -1426,15 +1429,16 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
     (smerge-remove-props (point-min) (point-max))))
 
 ;;;###autoload
-(defun smerge-start-session ()
+(defun smerge-start-session (&optional interactively)
   "Turn on `smerge-mode' and move point to first conflict marker.
 If no conflict maker is found, turn off `smerge-mode'."
-  (interactive)
-  (smerge-mode 1)
-  (condition-case nil
-      (unless (looking-at smerge-begin-re)
-        (smerge-next))
-    (error (smerge-auto-leave))))
+  (interactive "p")
+  (when (or (null smerge-mode) interactively)
+    (smerge-mode 1)
+    (condition-case nil
+        (unless (looking-at smerge-begin-re)
+          (smerge-next))
+      (error (smerge-auto-leave)))))
 
 (defcustom smerge-change-buffer-confirm t
   "If non-nil, request confirmation before moving to another buffer."

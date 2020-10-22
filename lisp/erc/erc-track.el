@@ -3,9 +3,9 @@
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, faces
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcChannelTracking
+;; URL: https://www.emacswiki.org/emacs/ErcChannelTracking
 
 ;; This file is part of GNU Emacs.
 
@@ -36,7 +36,6 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'erc)
-(require 'erc-compat)
 (require 'erc-match)
 
 ;;; Code:
@@ -329,9 +328,8 @@ important."
 
 (defun erc-track-remove-from-mode-line ()
   "Remove `erc-track-modified-channels' from the mode-line."
-  (when (boundp 'mode-line-modes)
-    (setq mode-line-modes
-	  (remove '(t erc-modified-channels-object) mode-line-modes)))
+  (setq mode-line-modes
+	(remove '(t erc-modified-channels-object) mode-line-modes))
   (when (consp global-mode-string)
     (setq global-mode-string
 	  (delq 'erc-modified-channels-object global-mode-string))))
@@ -341,12 +339,10 @@ important."
 See `erc-track-position-in-mode-line' for possible values."
   ;; CVS Emacs has a new format string, and global-mode-string
   ;; is very far to the right.
-  (cond ((and (eq position 'before-modes)
-	      (boundp 'mode-line-modes))
+  (cond ((eq position 'before-modes)
 	 (add-to-list 'mode-line-modes
 		      '(t erc-modified-channels-object)))
-	((and (eq position 'after-modes)
-	      (boundp 'mode-line-modes))
+	((eq position 'after-modes)
 	 (add-to-list 'mode-line-modes
 		      '(t erc-modified-channels-object) t))
 	((eq position t)
@@ -864,7 +860,7 @@ is in `erc-mode'."
 
 (defvar erc-track-last-non-erc-buffer nil
   "Stores the name of the last buffer you were in before activating
-`erc-track-switch-buffers'.")
+`erc-track-switch-buffer'.")
 
 (defun erc-track-sort-by-activest ()
   "Sort erc-modified-channels-alist by activity.
@@ -921,11 +917,7 @@ is relative to `erc-track-switch-direction'."
 	   (setq offset 0)))
     (car (nth offset erc-modified-channels-alist))))
 
-(defun erc-track-switch-buffer (arg)
-  "Switch to the next active ERC buffer, or if there are no active buffers,
-switch back to the last non-ERC buffer visited.  Next is defined by
-`erc-track-switch-direction', a negative argument will reverse this."
-  (interactive "p")
+(defun erc-track--switch-buffer (fun arg)
   (if (not erc-track-mode)
       (message (concat "Enable the ERC track module if you want to use the"
 		       " tracking minor mode"))
@@ -934,12 +926,30 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 	   (unless (eq major-mode 'erc-mode)
 	     (setq erc-track-last-non-erc-buffer (current-buffer)))
 	   ;; and jump to the next active channel
-	   (switch-to-buffer (erc-track-get-active-buffer arg)))
+	   (funcall fun (erc-track-get-active-buffer arg)))
 	  ;; if no active channels, switch back to what we were doing before
 	  ((and erc-track-last-non-erc-buffer
-		erc-track-switch-from-erc
-		(buffer-live-p erc-track-last-non-erc-buffer))
-	   (switch-to-buffer erc-track-last-non-erc-buffer)))))
+	        erc-track-switch-from-erc
+	        (buffer-live-p erc-track-last-non-erc-buffer))
+	   (funcall fun erc-track-last-non-erc-buffer)))))
+
+(defun erc-track-switch-buffer (arg)
+  "Switch to the next active ERC buffer.
+If there are no active ERC buffers, switch back to the last
+non-ERC buffer visited.  The order of buffers is defined by
+`erc-track-switch-direction', and a negative argument will
+reverse it."
+  (interactive "p")
+  (erc-track--switch-buffer 'switch-to-buffer arg))
+
+(defun erc-track-switch-buffer-other-window (arg)
+  "Switch to the next active ERC buffer in another window.
+If there are no active ERC buffers, switch back to the last
+non-ERC buffer visited.  The order of buffers is defined by
+`erc-track-switch-direction', and a negative argument will
+reverse it."
+  (interactive "p")
+  (erc-track--switch-buffer 'switch-to-buffer-other-window arg))
 
 (provide 'erc-track)
 

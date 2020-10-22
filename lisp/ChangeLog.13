@@ -4765,7 +4765,7 @@
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-name-owner-changed-handler): Make the function
-	resistent towards wrong parameters.
+	resistant towards wrong parameters.
 	(dbus-handle-event): Propagate D-Bus errors only in the debug case.
 
 2007-12-30  Richard Stallman  <rms@gnu.org>
@@ -5001,7 +5001,7 @@
 
 	* vc.el (vc-dired-ignorable-p, vc-dired-hook): Speed optimization;
 	use completion-ignored-extensions to detect files that should be
-	ignorted in VC-Dired listings, heading off lots of expensive calls
+	ignored in VC-Dired listings, heading off lots of expensive calls
 	to (vc-state).
 
 	* vc.el (vc-dired-hook): Show unregistered file status as "?" in

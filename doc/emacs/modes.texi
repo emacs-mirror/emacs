@@ -116,7 +116,7 @@ is enabled in a buffer.  @xref{Hooks}, for more information about
 hooks.  Each mode hook is named after its major mode, e.g., Fortran
 mode has @code{fortran-mode-hook}.  Furthermore, all text-based major
 modes run @code{text-mode-hook}, and many programming language modes
-@footnote{More specifically, the modes which are ''derived'' from
+@footnote{More specifically, the modes which are ``derived'' from
 @code{prog-mode} (@pxref{Derived Modes,,, elisp, The Emacs Lisp
 Reference Manual}).} (including all those distributed with Emacs) run
 @code{prog-mode-hook}, prior to running their own mode hooks.  Hook
@@ -126,7 +126,7 @@ see which mode is actually being entered.
   Mode hooks are commonly used to enable minor modes (@pxref{Minor
 Modes}).  For example, you can put the following lines in your init
 file to enable Flyspell minor mode in all text-based major modes
-(@pxref{Spelling}), and Eldoc minor mode in Emacs Lisp mode
+(@pxref{Spelling}), and ElDoc minor mode in Emacs Lisp mode
 (@pxref{Lisp Doc}):
 
 @example
@@ -299,7 +299,7 @@ Bars}.
 Tab Bar mode gives each frame a tab bar.  @xref{Tab Bars}.
 
 @item
-Tab Line mode gives each window a tab line.
+Tab Line mode gives each window a tab line.  @xref{Tab Line}.
 
 @item
 Transient Mark mode highlights the region, and makes many Emacs

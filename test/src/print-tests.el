@@ -4,18 +4,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -354,6 +354,34 @@ otherwise, use a different charset."
   (let ((err (list 'error)))
     (setcdr err err)
     (should-error (error-message-string err) :type 'circular-list)))
+
+(print-tests--deftest print-hash-table-test ()
+  (should
+   (string-match
+    "data (2 3)"
+    (let ((h (make-hash-table)))
+      (puthash 1 2 h)
+      (puthash 2 3 h)
+      (remhash 1 h)
+      (format "%S" h))))
+
+  (should
+   (string-match
+    "data ()"
+    (let ((h (make-hash-table)))
+      (let ((print-length 0))
+        (format "%S" h)))))
+
+  (should
+   (string-match
+    "data (99 99)"
+    (let ((h (make-hash-table)))
+      (dotimes (i 100)
+        (puthash i i h))
+      (dotimes (i 99)
+        (remhash i h))
+      (let ((print-length 1))
+        (format "%S" h))))))
 
 (provide 'print-tests)
 ;;; print-tests.el ends here

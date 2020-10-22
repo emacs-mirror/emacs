@@ -1,4 +1,4 @@
-;; The Linux console handles Latin-1 by default.
+;; The Linux console handles Latin-1 by default.  -*- lexical-binding:t -*-
 
 (declare-function gpm-mouse-enable "t-mouse" ())
 

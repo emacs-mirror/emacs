@@ -1949,8 +1949,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	      for (ptrdiff_t i = 0; i < SCHARS (prefix); )
 		{
 		  ptrdiff_t i_before = i;
-		  int c;
-		  FETCH_STRING_CHAR_ADVANCE (c, prefix, i, i_byte);
+		  int c = fetch_string_char_advance (prefix, &i, &i_byte);
 		  if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
 		    c ^= 0200 | meta_modifier;
 		  ASET (copy, i_before, make_fixnum (c));
@@ -2006,23 +2005,16 @@ For an approximate inverse of this, see `kbd'.  */)
   (Lisp_Object keys, Lisp_Object prefix)
 {
   ptrdiff_t len = 0;
-  EMACS_INT i;
-  ptrdiff_t i_byte;
   Lisp_Object *args;
-  EMACS_INT size = XFIXNUM (Flength (keys));
-  Lisp_Object list;
+  EMACS_INT nkeys = XFIXNUM (Flength (keys));
+  EMACS_INT nprefix = XFIXNUM (Flength (prefix));
   Lisp_Object sep = build_string (" ");
-  Lisp_Object key;
-  Lisp_Object result;
-  bool add_meta = 0;
+  bool add_meta = false;
   USE_SAFE_ALLOCA;
 
-  if (!NILP (prefix))
-    size += XFIXNUM (Flength (prefix));
-
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  EMACS_INT size4;
-  if (INT_MULTIPLY_WRAPV (size, 4, &size4))
+  ptrdiff_t size4;
+  if (INT_MULTIPLY_WRAPV (nkeys + nprefix, 4, &size4))
     memory_full (SIZE_MAX);
   SAFE_ALLOCA_LISP (args, size4);
 
@@ -2030,82 +2022,76 @@ For an approximate inverse of this, see `kbd'.  */)
      (mapconcat 'single-key-description keys " ")
      but we shouldn't use mapconcat because it can do GC.  */
 
- next_list:
-  if (!NILP (prefix))
-    list = prefix, prefix = Qnil;
-  else if (!NILP (keys))
-    list = keys, keys = Qnil;
-  else
+  Lisp_Object lists[2] = { prefix, keys };
+  ptrdiff_t listlens[2] = { nprefix, nkeys };
+  for (int li = 0; li < ARRAYELTS (lists); li++)
     {
-      if (add_meta)
-	{
-	  args[len] = Fsingle_key_description (meta_prefix_char, Qnil);
-	  result = Fconcat (len + 1, args);
-	}
-      else if (len == 0)
-	result = empty_unibyte_string;
-      else
-	result = Fconcat (len - 1, args);
-      SAFE_FREE ();
-      return result;
-    }
+      Lisp_Object list = lists[li];
+      ptrdiff_t listlen = listlens[li], i_byte = 0;
 
-  if (STRINGP (list))
-    size = SCHARS (list);
-  else if (VECTORP (list))
-    size = ASIZE (list);
-  else if (CONSP (list))
-    size = list_length (list);
-  else
-    wrong_type_argument (Qarrayp, list);
+      if (! (NILP (list) || STRINGP (list) || VECTORP (list) || CONSP (list)))
+	wrong_type_argument (Qarrayp, list);
 
-  i = i_byte = 0;
-
-  while (i < size)
-    {
-      if (STRINGP (list))
+      for (ptrdiff_t i = 0; i < listlen; )
 	{
-	  int c;
-	  FETCH_STRING_CHAR_ADVANCE (c, list, i, i_byte);
-	  if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
-	    c ^= 0200 | meta_modifier;
-	  XSETFASTINT (key, c);
-	}
-      else if (VECTORP (list))
-	{
-	  key = AREF (list, i); i++;
-	}
-      else
-	{
-	  key = XCAR (list);
-	  list = XCDR (list);
-	  i++;
-	}
-
-      if (add_meta)
-	{
-	  if (!FIXNUMP (key)
-	      || EQ (key, meta_prefix_char)
-	      || (XFIXNUM (key) & meta_modifier))
+	  Lisp_Object key;
+	  if (STRINGP (list))
 	    {
-	      args[len++] = Fsingle_key_description (meta_prefix_char, Qnil);
-	      args[len++] = sep;
-	      if (EQ (key, meta_prefix_char))
-		continue;
+	      int c = fetch_string_char_advance (list, &i, &i_byte);
+	      if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
+		c ^= 0200 | meta_modifier;
+	      key = make_fixnum (c);
+	    }
+	  else if (VECTORP (list))
+	    {
+	      key = AREF (list, i);
+	      i++;
 	    }
 	  else
-	    XSETINT (key, XFIXNUM (key) | meta_modifier);
-	  add_meta = 0;
+	    {
+	      key = XCAR (list);
+	      list = XCDR (list);
+	      i++;
+	    }
+
+	  if (add_meta)
+	    {
+	      if (!FIXNUMP (key)
+		  || EQ (key, meta_prefix_char)
+		  || (XFIXNUM (key) & meta_modifier))
+		{
+		  args[len++] = Fsingle_key_description (meta_prefix_char,
+							 Qnil);
+		  args[len++] = sep;
+		  if (EQ (key, meta_prefix_char))
+		    continue;
+		}
+	      else
+		key = make_fixnum (XFIXNUM (key) | meta_modifier);
+	      add_meta = false;
+	    }
+	  else if (EQ (key, meta_prefix_char))
+	    {
+	      add_meta = true;
+	      continue;
+	    }
+	  args[len++] = Fsingle_key_description (key, Qnil);
+	  args[len++] = sep;
 	}
-      else if (EQ (key, meta_prefix_char))
-	{
-	  add_meta = 1;
-	  continue;
-	}
-      args[len++] = Fsingle_key_description (key, Qnil);
-      args[len++] = sep;
     }
-  goto next_list;
+
+  Lisp_Object result;
+  if (add_meta)
+    {
+      args[len] = Fsingle_key_description (meta_prefix_char, Qnil);
+      result = Fconcat (len + 1, args);
+    }
+  else if (len == 0)
+    result = empty_unibyte_string;
+  else
+    result = Fconcat (len - 1, args);
+  SAFE_FREE ();
+  return result;
 }
 
 
@@ -2282,12 +2268,6 @@ See `text-char-description' for describing character codes.  */)
 static char *
 push_text_char_description (register unsigned int c, register char *p)
 {
-  if (c >= 0200)
-    {
-      *p++ = 'M';
-      *p++ = '-';
-      c -= 0200;
-    }
   if (c < 040)
     {
       *p++ = '^';
@@ -2316,23 +2296,22 @@ characters into "C-char", and uses the 2**27 bit for Meta.
 See Info node `(elisp)Describing Characters' for examples.  */)
   (Lisp_Object character)
 {
-  /* Currently MAX_MULTIBYTE_LENGTH is 4 (< 6).  */
-  char str[6];
-  int c;
-
   CHECK_CHARACTER (character);
 
-  c = XFIXNUM (character);
+  int c = XFIXNUM (character);
   if (!ASCII_CHAR_P (c))
     {
+      char str[MAX_MULTIBYTE_LENGTH];
       int len = CHAR_STRING (c, (unsigned char *) str);
 
       return make_multibyte_string (str, 1, len);
     }
-
-  *push_text_char_description (c & 0377, str) = 0;
-
-  return build_string (str);
+  else
+    {
+      char desc[4];
+      int len = push_text_char_description (c, desc) - desc;
+      return make_string (desc, len);
+    }
 }
 
 static int where_is_preferred_modifier;
@@ -3298,7 +3277,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 	  ptrdiff_t pt = max (PT - 1, BEG);
 
 	  SET_PT (pt);
-	  insert_string ("\n  (that binding is currently shadowed by another mode)");
+	  insert_string ("\n  (this binding is currently shadowed)");
 	  pt = min (PT + 1, Z);
 	  SET_PT (pt);
 	}

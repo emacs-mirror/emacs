@@ -103,6 +103,11 @@
 (define-coding-system-alias 'hz-gb-2312 'chinese-hz)
 (define-coding-system-alias 'hz 'chinese-hz)
 
+;; FIXME: 'define-coding-system' automatically sets :ascii-compatible-p,
+;; to any encoding whose :coding-type is 'utf-8', but UTF-7 is not ASCII
+;; compatible, so we override that here (bug#40407).
+(coding-system-put 'chinese-hz :ascii-compatible-p nil)
+
 (set-language-info-alist
  "Chinese-GB" '((charset chinese-gb2312 chinese-sisheng)
 		(iso639-language . zh)

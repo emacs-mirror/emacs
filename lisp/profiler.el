@@ -305,7 +305,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   (let ((fun-map (make-hash-table :test 'profiler-function-equal))
         (parent-map (make-hash-table :test 'eq))
         (leftover-tree (profiler-make-calltree
-                        :entry (intern "...") :parent tree)))
+                        :entry '... :parent tree)))
     (push leftover-tree (profiler-calltree-children tree))
     (maphash
      (lambda (backtrace _count)
@@ -816,7 +816,7 @@ If MODE is `cpu' or `cpu+mem', time-based profiler will be started.
 Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
   (interactive
    (list (if (not (fboundp 'profiler-cpu-start)) 'mem
-           (intern (completing-read "Mode (default cpu): "
+           (intern (completing-read (format-prompt "Mode" "cpu")
                                     '("cpu" "mem" "cpu+mem")
                                     nil t nil nil "cpu")))))
   (cl-ecase mode

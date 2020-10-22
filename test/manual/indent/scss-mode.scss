@@ -41,9 +41,13 @@ p.#{$name} var
 article[role="main"] {
     $toto: 500 !global;
     $var-with-default: 300 !default;
+    $var_with_underscores: #fff;
+    $_var-starting-with-underscore: none;
     float: left !important;
     width: 600px / 888px * 100%;
     height: 100px / 888px * 100%;
+    color: $var_with_underscores;
+    display: $_var-starting-with-underscore;
 }
 
 %placeholder {

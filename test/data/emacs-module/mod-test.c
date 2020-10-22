@@ -30,12 +30,20 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <time.h>
 
-#ifdef HAVE_GMP
-#include <gmp.h>
-#else
-#include "mini-gmp.h"
+#ifdef WINDOWSNT
+/* Cannot include <process.h> because of the local header by the same
+   name, sigh.  */
+uintptr_t _beginthread (void (__cdecl *)(void *), unsigned, void *);
+# if !defined __x86_64__
+#  define ALIGN_STACK __attribute__((force_align_arg_pointer))
+# endif
+# include <windows.h>	/* for Sleep */
+#else  /* !WINDOWSNT */
+# include <pthread.h>
+# include <unistd.h>
 #endif
 
+#include <gmp.h>
 #include <emacs-module.h>
 
 #include "timespec.h"
@@ -193,6 +201,47 @@ Fmod_test_globref_free (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   return env->intern (env, "ok");
 }
 
+/* Treat a local reference as global and free it.  Module assertions
+   should detect this case even if a global reference representing the
+   same object also exists.  */
+
+static emacs_value
+Fmod_test_globref_invalid_free (emacs_env *env, ptrdiff_t nargs,
+                                emacs_value *args, void *data)
+{
+  emacs_value local = env->make_integer (env, 9876);
+  env->make_global_ref (env, local);
+  env->free_global_ref (env, local);  /* Not allowed. */
+  return env->intern (env, "nil");
+}
+
+/* Allocate and free global references in a different order.  */
+
+static emacs_value
+Fmod_test_globref_reordered (emacs_env *env, ptrdiff_t nargs,
+                                emacs_value *args, void *data)
+{
+  emacs_value booleans[2] = {
+    env->intern (env, "nil"),
+    env->intern (env, "t"),
+  };
+  emacs_value local = env->intern (env, "foo");
+  emacs_value globals[4] = {
+    env->make_global_ref (env, local),
+    env->make_global_ref (env, local),
+    env->make_global_ref (env, env->intern (env, "foo")),
+    env->make_global_ref (env, env->intern (env, "bar")),
+  };
+  emacs_value elements[4];
+  for (int i = 0; i < 4; ++i)
+    elements[i] = booleans[env->eq (env, globals[i], local)];
+  emacs_value ret = env->funcall (env, env->intern (env, "list"), 4, elements);
+  env->free_global_ref (env, globals[2]);
+  env->free_global_ref (env, globals[1]);
+  env->free_global_ref (env, globals[3]);
+  env->free_global_ref (env, globals[0]);
+  return ret;
+}
 
 
 /* Return a copy of the argument string where every 'a' is replaced
@@ -213,7 +262,19 @@ Fmod_test_string_a_to_b (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
     if (buf[i] == 'a')
       buf[i] = 'b';
 
-  return env->make_string (env, buf, size - 1);
+  emacs_value ret = env->make_string (env, buf, size - 1);
+  free (buf);
+  return ret;
+}
+
+
+/* Return a unibyte string.  */
+static emacs_value
+Fmod_test_return_unibyte (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
+			  void *data)
+{
+  const char *string = "foo\x00zot";
+  return env->make_unibyte_string (env, string, 7);
 }
 
 
@@ -298,8 +359,24 @@ Fmod_test_invalid_load (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return invalid_stored_value;
 }
 
+/* The next function works in conjunction with the two previous ones.
+   It stows away a copy of the object created by
+   `Fmod_test_invalid_store' in a global reference.  Module assertions
+   should still detect the invalid load of the local reference.  */
+
+static emacs_value global_copy_of_invalid_stored_value;
+
+static emacs_value
+Fmod_test_invalid_store_copy (emacs_env *env, ptrdiff_t nargs,
+                              emacs_value *args, void *data)
+{
+  emacs_value local = Fmod_test_invalid_store (env, 0, NULL, NULL);
+  return global_copy_of_invalid_stored_value
+         = env->make_global_ref (env, local);
+}
+
 /* An invalid finalizer: Finalizers are run during garbage collection,
-   where Lisp code can’t be executed.  -module-assertions tests for
+   where Lisp code can't be executed.  -module-assertions tests for
    this case.  */
 
 static emacs_env *current_env;
@@ -320,15 +397,21 @@ Fmod_test_invalid_finalizer (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 }
 
 static void
-signal_errno (emacs_env *env, const char *function)
+signal_system_error (emacs_env *env, int error, const char *function)
 {
-  const char *message = strerror (errno);
+  const char *message = strerror (error);
   emacs_value message_value = env->make_string (env, message, strlen (message));
   emacs_value symbol = env->intern (env, "file-error");
   emacs_value elements[2]
     = {env->make_string (env, function, strlen (function)), message_value};
   emacs_value data = env->funcall (env, env->intern (env, "list"), 2, elements);
   env->non_local_exit_signal (env, symbol, data);
+}
+
+static void
+signal_errno (emacs_env *env, const char *function)
+{
+  signal_system_error (env, errno, function);
 }
 
 /* A long-running operation that occasionally calls `should_quit' or
@@ -533,6 +616,81 @@ Fmod_test_function_finalizer_calls (emacs_env *env, ptrdiff_t nargs,
   return env->funcall (env, Flist, 2, list_args);
 }
 
+static void
+sleep_for_half_second (void)
+{
+  /* mingw.org's MinGW has nanosleep, but MinGW64 doesn't.  */
+#ifdef WINDOWSNT
+  Sleep (500);
+#else
+  const struct timespec sleep = {0, 500000000};
+  if (nanosleep (&sleep, NULL) != 0)
+    perror ("nanosleep");
+#endif
+}
+
+#ifdef WINDOWSNT
+static void ALIGN_STACK
+#else
+static void *
+#endif
+write_to_pipe (void *arg)
+{
+  /* We sleep a bit to test that writing to a pipe is indeed possible
+     if no environment is active. */
+  sleep_for_half_second ();
+  FILE *stream = arg;
+  /* The string below should be identical to the one we compare with
+     in emacs-module-tests.el:module/async-pipe.  */
+  if (fputs ("data from thread", stream) < 0)
+    perror ("fputs");
+  if (fclose (stream) != 0)
+    perror ("close");
+#ifndef WINDOWSNT
+  return NULL;
+#endif
+}
+
+static emacs_value
+Fmod_test_async_pipe (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                      void *data)
+{
+  assert (nargs == 1);
+  int fd = env->open_channel (env, args[0]);
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+    return NULL;
+  FILE *stream = fdopen (fd, "w");
+  if (stream == NULL)
+    {
+      signal_errno (env, "fdopen");
+      return NULL;
+    }
+#ifdef WINDOWSNT
+  uintptr_t thd = _beginthread (write_to_pipe, 0, stream);
+  int error = (thd == (uintptr_t)-1L) ? errno : 0;
+#else  /* !WINDOWSNT */
+  pthread_t thread;
+  int error
+    = pthread_create (&thread, NULL, write_to_pipe, stream);
+#endif
+  if (error != 0)
+    {
+      signal_system_error (env, error, "thread create");
+      if (fclose (stream) != 0)
+        perror ("fclose");
+      return NULL;
+    }
+  return env->intern (env, "nil");
+}
+
+static emacs_value
+Fmod_test_identity (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                    void *data)
+{
+  assert (nargs == 1);
+  return args[0];
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -597,12 +755,19 @@ emacs_module_init (struct emacs_runtime *ert)
 	 1, 1, NULL, NULL);
   DEFUN ("mod-test-globref-make", Fmod_test_globref_make, 0, 0, NULL, NULL);
   DEFUN ("mod-test-globref-free", Fmod_test_globref_free, 4, 4, NULL, NULL);
+  DEFUN ("mod-test-globref-invalid-free", Fmod_test_globref_invalid_free, 0, 0,
+         NULL, NULL);
+  DEFUN ("mod-test-globref-reordered", Fmod_test_globref_reordered, 0, 0, NULL,
+         NULL);
   DEFUN ("mod-test-string-a-to-b", Fmod_test_string_a_to_b, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-return-unibyte", Fmod_test_return_unibyte, 0, 0, NULL, NULL);
   DEFUN ("mod-test-userptr-make", Fmod_test_userptr_make, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-get", Fmod_test_userptr_get, 1, 1, NULL, NULL);
   DEFUN ("mod-test-vector-fill", Fmod_test_vector_fill, 2, 2, NULL, NULL);
   DEFUN ("mod-test-vector-eq", Fmod_test_vector_eq, 2, 2, NULL, NULL);
   DEFUN ("mod-test-invalid-store", Fmod_test_invalid_store, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-invalid-store-copy", Fmod_test_invalid_store_copy, 0, 0,
+         NULL, NULL);
   DEFUN ("mod-test-invalid-load", Fmod_test_invalid_load, 0, 0, NULL, NULL);
   DEFUN ("mod-test-invalid-finalizer", Fmod_test_invalid_finalizer, 0, 0,
          NULL, NULL);
@@ -614,8 +779,22 @@ emacs_module_init (struct emacs_runtime *ert)
          Fmod_test_make_function_with_finalizer, 0, 0, NULL, NULL);
   DEFUN ("mod-test-function-finalizer-calls",
          Fmod_test_function_finalizer_calls, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-async-pipe", Fmod_test_async_pipe, 1, 1, NULL, NULL);
 
 #undef DEFUN
+
+  emacs_value constant_fn
+    = env->make_function (env, 0, 0, Fmod_test_return_t, NULL, NULL);
+  env->make_interactive (env, constant_fn, env->intern (env, "nil"));
+  bind_function (env, "mod-test-return-t-int", constant_fn);
+
+  emacs_value identity_fn
+    = env->make_function (env, 1, 1, Fmod_test_identity, NULL, NULL);
+  const char *interactive_spec = "i";
+  env->make_interactive (env, identity_fn,
+                         env->make_string (env, interactive_spec,
+                                           strlen (interactive_spec)));
+  bind_function (env, "mod-test-identity", identity_fn);
 
   provide (env, "mod-test");
   return 0;

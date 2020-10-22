@@ -452,6 +452,8 @@ For each buffer, the hooks are run with that buffer made current."
   "Hook run after Ediff is loaded.  Can be used to change defaults."
   :type 'hook
   :group 'ediff-hook)
+(make-obsolete-variable 'ediff-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom ediff-mode-hook nil
   "Hook run just after ediff-mode is set up in the control buffer.
@@ -1255,22 +1257,8 @@ Instead, C-h would jump to previous difference."
   :type 'boolean
   :group 'ediff)
 
-;; This is the same as temporary-file-directory from Emacs 20.3.
-;; Copied over here because XEmacs doesn't have this variable.
-(defcustom ediff-temp-file-prefix
-  (file-name-as-directory
-   (cond ((boundp 'temporary-file-directory) temporary-file-directory)
-	 ((fboundp 'temp-directory) (temp-directory))
-	 (t "/tmp/")))
-;;;  (file-name-as-directory
-;;;   (cond ((memq system-type '(ms-dos windows-nt))
-;;;	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-;;;	 (t
-;;;	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "Prefix to put on Ediff temporary file names.
-Do not start with `~/' or `~USERNAME/'."
-  :type 'string
-  :group 'ediff)
+(define-obsolete-variable-alias 'ediff-temp-file-prefix
+  'temporary-file-directory "28.1")
 
 (defcustom ediff-temp-file-mode 384	; u=rw only
   "Mode for Ediff temporary files."
@@ -1285,8 +1273,8 @@ This default should work without changes."
   :type 'regexp
   :group 'ediff)
 
-;; needed to simulate frame-char-width in XEmacs.
-(defvar ediff-H-glyph (if (featurep 'xemacs) (make-glyph "H")))
+(defvar ediff-H-glyph nil)
+(make-obsolete-variable 'ediff-H-glyph nil "28.1")
 
 
 ;; Temporary file used for refining difference regions in buffer A.
@@ -1522,33 +1510,8 @@ This default should work without changes."
 	(setq dir (substring dir 0 pos)))
     (ediff-abbreviate-file-name (file-name-directory dir))))
 
-(defun ediff-truncate-string-left (str newlen)
-  ;; leave space for ... on the left
-  (let ((len (length str))
-	substr)
-    (if (<= len newlen)
-	str
-      (setq newlen (max 0 (- newlen 3)))
-      (setq substr (substring str (max 0 (- len 1 newlen))))
-      (concat "..." substr))))
-
 (defsubst ediff-nonempty-string-p (string)
   (and (stringp string) (not (string= string ""))))
-
-(unless (fboundp 'subst-char-in-string)
-  (defun subst-char-in-string (fromchar tochar string &optional inplace)
-    "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
-Unless optional argument INPLACE is non-nil, return a new string."
-    (let ((i (length string))
-	  (newstr (if inplace string (copy-sequence string))))
-      (while (> i 0)
-	(setq i (1- i))
-	(if (eq (aref newstr i) fromchar)
-	    (aset newstr i tochar)))
-      newstr)))
-
-(unless (fboundp 'format-message)
-  (defalias 'format-message 'format))
 
 (defun ediff-abbrev-jobname (jobname)
   (cond ((eq jobname 'ediff-directories)
@@ -1610,9 +1573,8 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 
 (defun ediff-convert-standard-filename (fname)
-  (if (fboundp 'convert-standard-filename)
-      (convert-standard-filename fname)
-    fname))
+  (declare (obsolete convert-standard-filename "28.1"))
+  (convert-standard-filename fname))
 
 (define-obsolete-function-alias 'ediff-with-syntax-table
   #'with-syntax-table "27.1")

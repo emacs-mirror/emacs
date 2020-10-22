@@ -1,4 +1,4 @@
-;;; etags-tests.el --- Test suite for etags.el.
+;;; etags-tests.el --- Test suite for etags.el.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

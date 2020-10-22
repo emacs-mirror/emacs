@@ -274,10 +274,11 @@ the \"-f\" switch otherwise."
   (if internal--daemon-sockname
       (file-name-directory internal--daemon-sockname)
     (and (featurep 'make-network-process '(:family local))
-	 (let ((xdg_runtime_dir (getenv "XDG_RUNTIME_DIR")))
-	   (if xdg_runtime_dir
-	       (format "%s/emacs" xdg_runtime_dir)
-	     (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))))))
+	 (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
+	   (if runtime-dir
+	       (expand-file-name "emacs" runtime-dir)
+	     (expand-file-name (format "emacs%d" (user-uid))
+                               (or (getenv "TMPDIR") "/tmp"))))))
   "The directory in which to place the server socket.
 If local sockets are not supported, this is nil.")
 
@@ -563,7 +564,7 @@ See variable `server-auth-dir' for details."
                      (format "it is not owned by you (owner = %s (%d))"
                              (user-full-name uid) uid))
                     (w32 nil)           ; on NTFS?
-                    ((let ((modes (file-modes dir)))
+                    ((let ((modes (file-modes dir 'nofollow)))
                        (unless (zerop (logand (or modes 0) #o077))
                          (format "it is accessible by others (%03o)" modes))))
                     (t nil))))
@@ -727,7 +728,8 @@ If server is running, it is first stopped.
 NAME defaults to `server-name'.  With argument, ask for NAME."
   (interactive
    (list (if current-prefix-arg
-	     (read-string "Server name: " nil nil server-name))))
+	     (read-string (format-prompt "Server name" server-name)
+                          nil nil server-name))))
   (when server-mode (with-temp-message nil (server-mode -1)))
   (let ((file (expand-file-name (or name server-name)
 				(if server-use-tcp
@@ -1336,7 +1338,13 @@ The following commands are accepted by the client:
                            "When done with this frame, type \\[delete-frame]")))
            ((not (null buffers))
             (run-hooks 'server-after-make-frame-hook)
-            (server-switch-buffer (car buffers) nil (cdr (car files)))
+            (server-switch-buffer
+             (car buffers) nil (cdr (car files))
+             ;; When triggered from "emacsclient -c", we popped up a
+             ;; new frame.  Ensure that we switch to the requested
+             ;; buffer in that frame, and not in some other frame
+             ;; where it may be displayed.
+             (plist-get (process-plist proc) 'frame))
             (run-hooks 'server-switch-hook)
             (unless nowait
               (message "%s" (substitute-command-keys
@@ -1566,7 +1574,8 @@ starts server process and that is all.  Invoked by \\[server-edit]."
    (server-clients (apply #'server-switch-buffer (server-done)))
    (t (message "No server editing buffers exist"))))
 
-(defun server-switch-buffer (&optional next-buffer killed-one filepos)
+(defun server-switch-buffer (&optional next-buffer killed-one filepos
+                                       this-frame-only)
   "Switch to another buffer, preferably one that has a client.
 Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it.
 
@@ -1600,7 +1609,8 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
       ;; OK, we know next-buffer is live, let's display and select it.
       (if (functionp server-window)
 	  (funcall server-window next-buffer)
-	(let ((win (get-buffer-window next-buffer 0)))
+	(let ((win (get-buffer-window next-buffer
+                                      (if this-frame-only nil 0))))
 	  (if (and win (not server-window))
 	      ;; The buffer is already displayed: just reuse the
 	      ;; window.  If FILEPOS is non-nil, use it to replace the
@@ -1618,7 +1628,8 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		     (setq server-window (make-frame)))
 		   (select-window (frame-selected-window server-window))))
 	    (when (window-minibuffer-p)
-	      (select-window (next-window nil 'nomini 0)))
+	      (select-window (next-window nil 'nomini
+                                          (if this-frame-only nil 0))))
 	    ;; Move to a non-dedicated window, if we have one.
 	    (when (window-dedicated-p)
 	      (select-window

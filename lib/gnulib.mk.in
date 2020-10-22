@@ -86,7 +86,6 @@
 #  crypto/sha512-buffer \
 #  d-type \
 #  diffseq \
-#  dosname \
 #  double-slash-root \
 #  dtoastr \
 #  dtotimespec \
@@ -95,18 +94,22 @@
 #  execinfo \
 #  explicit_bzero \
 #  faccessat \
+#  fchmodat \
 #  fcntl \
 #  fcntl-h \
 #  fdopendir \
 #  filemode \
+#  filename \
 #  filevercmp \
 #  flexmember \
 #  fpieee \
 #  fstatat \
 #  fsusage \
 #  fsync \
+#  futimens \
 #  getloadavg \
 #  getopt-gnu \
+#  getrandom \
 #  gettime \
 #  gettimeofday \
 #  gitlog-to-changelog \
@@ -114,6 +117,7 @@
 #  ignore-value \
 #  intprops \
 #  largefile \
+#  libgmp \
 #  lstat \
 #  manywarnings \
 #  memmem-simple \
@@ -127,12 +131,12 @@
 #  pipe2 \
 #  pselect \
 #  pthread_sigmask \
-#  putenv \
 #  qcopy-acl \
 #  readlink \
 #  readlinkat \
 #  regex \
 #  sig2str \
+#  sigdescr_np \
 #  socklen \
 #  stat-time \
 #  std-gnu11 \
@@ -155,7 +159,7 @@
 #  timespec-sub \
 #  unlocked-io \
 #  update-copyright \
-#  utimens \
+#  utimensat \
 #  vla \
 #  warnings
 
@@ -243,14 +247,15 @@ GL_GENERATE_ALLOCA_H = @GL_GENERATE_ALLOCA_H@
 GL_GENERATE_BYTESWAP_H = @GL_GENERATE_BYTESWAP_H@
 GL_GENERATE_ERRNO_H = @GL_GENERATE_ERRNO_H@
 GL_GENERATE_EXECINFO_H = @GL_GENERATE_EXECINFO_H@
+GL_GENERATE_GMP_GMP_H = @GL_GENERATE_GMP_GMP_H@
 GL_GENERATE_IEEE754_H = @GL_GENERATE_IEEE754_H@
 GL_GENERATE_LIMITS_H = @GL_GENERATE_LIMITS_H@
+GL_GENERATE_MINI_GMP_H = @GL_GENERATE_MINI_GMP_H@
 GL_GENERATE_STDALIGN_H = @GL_GENERATE_STDALIGN_H@
 GL_GENERATE_STDDEF_H = @GL_GENERATE_STDDEF_H@
 GL_GENERATE_STDINT_H = @GL_GENERATE_STDINT_H@
 GMALLOC_OBJ = @GMALLOC_OBJ@
-GMP_LIB = @GMP_LIB@
-GMP_OBJ = @GMP_OBJ@
+GMP_H = @GMP_H@
 GNULIB_ACCESS = @GNULIB_ACCESS@
 GNULIB_ALPHASORT = @GNULIB_ALPHASORT@
 GNULIB_ATOLL = @GNULIB_ATOLL@
@@ -310,16 +315,20 @@ GNULIB_GETCWD = @GNULIB_GETCWD@
 GNULIB_GETDELIM = @GNULIB_GETDELIM@
 GNULIB_GETDOMAINNAME = @GNULIB_GETDOMAINNAME@
 GNULIB_GETDTABLESIZE = @GNULIB_GETDTABLESIZE@
+GNULIB_GETENTROPY = @GNULIB_GETENTROPY@
 GNULIB_GETGROUPS = @GNULIB_GETGROUPS@
 GNULIB_GETHOSTNAME = @GNULIB_GETHOSTNAME@
 GNULIB_GETLINE = @GNULIB_GETLINE@
 GNULIB_GETLOADAVG = @GNULIB_GETLOADAVG@
 GNULIB_GETLOGIN = @GNULIB_GETLOGIN@
 GNULIB_GETLOGIN_R = @GNULIB_GETLOGIN_R@
+GNULIB_GETOPT_POSIX = @GNULIB_GETOPT_POSIX@
 GNULIB_GETPAGESIZE = @GNULIB_GETPAGESIZE@
 GNULIB_GETPASS = @GNULIB_GETPASS@
+GNULIB_GETRANDOM = @GNULIB_GETRANDOM@
 GNULIB_GETSUBOPT = @GNULIB_GETSUBOPT@
 GNULIB_GETTIMEOFDAY = @GNULIB_GETTIMEOFDAY@
+GNULIB_GETUMASK = @GNULIB_GETUMASK@
 GNULIB_GETUSERSHELL = @GNULIB_GETUSERSHELL@
 GNULIB_GL_UNISTD_H_GETOPT = @GNULIB_GL_UNISTD_H_GETOPT@
 GNULIB_GRANTPT = @GNULIB_GRANTPT@
@@ -416,7 +425,9 @@ GNULIB_SECURE_GETENV = @GNULIB_SECURE_GETENV@
 GNULIB_SELECT = @GNULIB_SELECT@
 GNULIB_SETENV = @GNULIB_SETENV@
 GNULIB_SETHOSTNAME = @GNULIB_SETHOSTNAME@
+GNULIB_SIGABBREV_NP = @GNULIB_SIGABBREV_NP@
 GNULIB_SIGACTION = @GNULIB_SIGACTION@
+GNULIB_SIGDESCR_NP = @GNULIB_SIGDESCR_NP@
 GNULIB_SIGNAL_H_SIGPIPE = @GNULIB_SIGNAL_H_SIGPIPE@
 GNULIB_SIGPROCMASK = @GNULIB_SIGPROCMASK@
 GNULIB_SLEEP = @GNULIB_SLEEP@
@@ -431,6 +442,7 @@ GNULIB_STRCASESTR = @GNULIB_STRCASESTR@
 GNULIB_STRCHRNUL = @GNULIB_STRCHRNUL@
 GNULIB_STRDUP = @GNULIB_STRDUP@
 GNULIB_STRERROR = @GNULIB_STRERROR@
+GNULIB_STRERRORNAME_NP = @GNULIB_STRERRORNAME_NP@
 GNULIB_STRERROR_R = @GNULIB_STRERROR_R@
 GNULIB_STRFTIME = @GNULIB_STRFTIME@
 GNULIB_STRNCAT = @GNULIB_STRNCAT@
@@ -543,7 +555,6 @@ HAVE_DECL_UNSETENV = @HAVE_DECL_UNSETENV@
 HAVE_DECL_VSNPRINTF = @HAVE_DECL_VSNPRINTF@
 HAVE_DIRENT_H = @HAVE_DIRENT_H@
 HAVE_DPRINTF = @HAVE_DPRINTF@
-HAVE_DUP2 = @HAVE_DUP2@
 HAVE_DUP3 = @HAVE_DUP3@
 HAVE_EUIDACCESS = @HAVE_EUIDACCESS@
 HAVE_EXPLICIT_BZERO = @HAVE_EXPLICIT_BZERO@
@@ -563,14 +574,17 @@ HAVE_FTELLO = @HAVE_FTELLO@
 HAVE_FTRUNCATE = @HAVE_FTRUNCATE@
 HAVE_FUTIMENS = @HAVE_FUTIMENS@
 HAVE_GETDTABLESIZE = @HAVE_GETDTABLESIZE@
+HAVE_GETENTROPY = @HAVE_GETENTROPY@
 HAVE_GETGROUPS = @HAVE_GETGROUPS@
 HAVE_GETHOSTNAME = @HAVE_GETHOSTNAME@
 HAVE_GETLOGIN = @HAVE_GETLOGIN@
 HAVE_GETOPT_H = @HAVE_GETOPT_H@
 HAVE_GETPAGESIZE = @HAVE_GETPAGESIZE@
 HAVE_GETPASS = @HAVE_GETPASS@
+HAVE_GETRANDOM = @HAVE_GETRANDOM@
 HAVE_GETSUBOPT = @HAVE_GETSUBOPT@
 HAVE_GETTIMEOFDAY = @HAVE_GETTIMEOFDAY@
+HAVE_GETUMASK = @HAVE_GETUMASK@
 HAVE_GRANTPT = @HAVE_GRANTPT@
 HAVE_GROUP_MEMBER = @HAVE_GROUP_MEMBER@
 HAVE_IMAXDIV_T = @HAVE_IMAXDIV_T@
@@ -578,6 +592,7 @@ HAVE_INITSTATE = @HAVE_INITSTATE@
 HAVE_INTTYPES_H = @HAVE_INTTYPES_H@
 HAVE_LCHMOD = @HAVE_LCHMOD@
 HAVE_LCHOWN = @HAVE_LCHOWN@
+HAVE_LIBGMP = @HAVE_LIBGMP@
 HAVE_LINK = @HAVE_LINK@
 HAVE_LINKAT = @HAVE_LINKAT@
 HAVE_LSTAT = @HAVE_LSTAT@
@@ -585,7 +600,6 @@ HAVE_MAKEINFO = @HAVE_MAKEINFO@
 HAVE_MAX_ALIGN_T = @HAVE_MAX_ALIGN_T@
 HAVE_MBSLEN = @HAVE_MBSLEN@
 HAVE_MBTOWC = @HAVE_MBTOWC@
-HAVE_MEMCHR = @HAVE_MEMCHR@
 HAVE_MEMPCPY = @HAVE_MEMPCPY@
 HAVE_MKDIRAT = @HAVE_MKDIRAT@
 HAVE_MKDTEMP = @HAVE_MKDTEMP@
@@ -634,7 +648,9 @@ HAVE_SECURE_GETENV = @HAVE_SECURE_GETENV@
 HAVE_SETENV = @HAVE_SETENV@
 HAVE_SETHOSTNAME = @HAVE_SETHOSTNAME@
 HAVE_SETSTATE = @HAVE_SETSTATE@
+HAVE_SIGABBREV_NP = @HAVE_SIGABBREV_NP@
 HAVE_SIGACTION = @HAVE_SIGACTION@
+HAVE_SIGDESCR_NP = @HAVE_SIGDESCR_NP@
 HAVE_SIGHANDLER_T = @HAVE_SIGHANDLER_T@
 HAVE_SIGINFO_T = @HAVE_SIGINFO_T@
 HAVE_SIGNED_SIG_ATOMIC_T = @HAVE_SIGNED_SIG_ATOMIC_T@
@@ -647,6 +663,7 @@ HAVE_STPCPY = @HAVE_STPCPY@
 HAVE_STPNCPY = @HAVE_STPNCPY@
 HAVE_STRCASESTR = @HAVE_STRCASESTR@
 HAVE_STRCHRNUL = @HAVE_STRCHRNUL@
+HAVE_STRERRORNAME_NP = @HAVE_STRERRORNAME_NP@
 HAVE_STRPBRK = @HAVE_STRPBRK@
 HAVE_STRPTIME = @HAVE_STRPTIME@
 HAVE_STRSEP = @HAVE_STRSEP@
@@ -665,13 +682,13 @@ HAVE_SYS_CDEFS_H = @HAVE_SYS_CDEFS_H@
 HAVE_SYS_INTTYPES_H = @HAVE_SYS_INTTYPES_H@
 HAVE_SYS_LOADAVG_H = @HAVE_SYS_LOADAVG_H@
 HAVE_SYS_PARAM_H = @HAVE_SYS_PARAM_H@
+HAVE_SYS_RANDOM_H = @HAVE_SYS_RANDOM_H@
 HAVE_SYS_SELECT_H = @HAVE_SYS_SELECT_H@
 HAVE_SYS_TIME_H = @HAVE_SYS_TIME_H@
 HAVE_SYS_TYPES_H = @HAVE_SYS_TYPES_H@
 HAVE_TIMEGM = @HAVE_TIMEGM@
 HAVE_TIMEZONE_T = @HAVE_TIMEZONE_T@
 HAVE_TYPE_VOLATILE_SIG_ATOMIC_T = @HAVE_TYPE_VOLATILE_SIG_ATOMIC_T@
-HAVE_TZSET = @HAVE_TZSET@
 HAVE_UNISTD_H = @HAVE_UNISTD_H@
 HAVE_UNLINKAT = @HAVE_UNLINKAT@
 HAVE_UNLOCKPT = @HAVE_UNLOCKPT@
@@ -712,6 +729,7 @@ LD_SWITCH_SYSTEM_TEMACS = @LD_SWITCH_SYSTEM_TEMACS@
 LD_SWITCH_X_SITE = @LD_SWITCH_X_SITE@
 LD_SWITCH_X_SITE_RPATH = @LD_SWITCH_X_SITE_RPATH@
 LIBGIF = @LIBGIF@
+LIBGMP = @LIBGMP@
 LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
 LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
 LIBGNU_LIBDEPS = @LIBGNU_LIBDEPS@
@@ -751,6 +769,7 @@ LIB_ACL = @LIB_ACL@
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
 LIB_EACCESS = @LIB_EACCESS@
 LIB_EXECINFO = @LIB_EXECINFO@
+LIB_GETRANDOM = @LIB_GETRANDOM@
 LIB_MATH = @LIB_MATH@
 LIB_PTHREAD = @LIB_PTHREAD@
 LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
@@ -758,6 +777,7 @@ LIB_TIMER_TIME = @LIB_TIMER_TIME@
 LIB_WSOCK32 = @LIB_WSOCK32@
 LIMITS_H = @LIMITS_H@
 LN_S_FILEONLY = @LN_S_FILEONLY@
+LTLIBGMP = @LTLIBGMP@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
@@ -780,6 +800,7 @@ NEXT_AS_FIRST_DIRECTIVE_STDINT_H = @NEXT_AS_FIRST_DIRECTIVE_STDINT_H@
 NEXT_AS_FIRST_DIRECTIVE_STDIO_H = @NEXT_AS_FIRST_DIRECTIVE_STDIO_H@
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H = @NEXT_AS_FIRST_DIRECTIVE_STDLIB_H@
 NEXT_AS_FIRST_DIRECTIVE_STRING_H = @NEXT_AS_FIRST_DIRECTIVE_STRING_H@
+NEXT_AS_FIRST_DIRECTIVE_SYS_RANDOM_H = @NEXT_AS_FIRST_DIRECTIVE_SYS_RANDOM_H@
 NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H = @NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H@
 NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H = @NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H@
 NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H = @NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H@
@@ -798,6 +819,7 @@ NEXT_STDINT_H = @NEXT_STDINT_H@
 NEXT_STDIO_H = @NEXT_STDIO_H@
 NEXT_STDLIB_H = @NEXT_STDLIB_H@
 NEXT_STRING_H = @NEXT_STRING_H@
+NEXT_SYS_RANDOM_H = @NEXT_SYS_RANDOM_H@
 NEXT_SYS_SELECT_H = @NEXT_SYS_SELECT_H@
 NEXT_SYS_STAT_H = @NEXT_SYS_STAT_H@
 NEXT_SYS_TIME_H = @NEXT_SYS_TIME_H@
@@ -835,7 +857,6 @@ PRAGMA_COLUMNS = @PRAGMA_COLUMNS@
 PRAGMA_SYSTEM_HEADER = @PRAGMA_SYSTEM_HEADER@
 PRE_ALLOC_OBJ = @PRE_ALLOC_OBJ@
 PRIPTR_PREFIX = @PRIPTR_PREFIX@
-PRI_MACROS_BROKEN = @PRI_MACROS_BROKEN@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
 PTHREAD_H_DEFINES_STRUCT_TIMESPEC = @PTHREAD_H_DEFINES_STRUCT_TIMESPEC@
 PTRDIFF_T_SUFFIX = @PTRDIFF_T_SUFFIX@
@@ -854,6 +875,7 @@ REPLACE_DPRINTF = @REPLACE_DPRINTF@
 REPLACE_DUP = @REPLACE_DUP@
 REPLACE_DUP2 = @REPLACE_DUP2@
 REPLACE_FACCESSAT = @REPLACE_FACCESSAT@
+REPLACE_FCHMODAT = @REPLACE_FCHMODAT@
 REPLACE_FCHOWNAT = @REPLACE_FCHOWNAT@
 REPLACE_FCLOSE = @REPLACE_FCLOSE@
 REPLACE_FCNTL = @REPLACE_FCNTL@
@@ -881,6 +903,7 @@ REPLACE_GETLINE = @REPLACE_GETLINE@
 REPLACE_GETLOGIN_R = @REPLACE_GETLOGIN_R@
 REPLACE_GETPAGESIZE = @REPLACE_GETPAGESIZE@
 REPLACE_GETPASS = @REPLACE_GETPASS@
+REPLACE_GETRANDOM = @REPLACE_GETRANDOM@
 REPLACE_GETTIMEOFDAY = @REPLACE_GETTIMEOFDAY@
 REPLACE_GMTIME = @REPLACE_GMTIME@
 REPLACE_INITSTATE = @REPLACE_INITSTATE@
@@ -944,6 +967,7 @@ REPLACE_STRCASESTR = @REPLACE_STRCASESTR@
 REPLACE_STRCHRNUL = @REPLACE_STRCHRNUL@
 REPLACE_STRDUP = @REPLACE_STRDUP@
 REPLACE_STRERROR = @REPLACE_STRERROR@
+REPLACE_STRERRORNAME_NP = @REPLACE_STRERRORNAME_NP@
 REPLACE_STRERROR_R = @REPLACE_STRERROR_R@
 REPLACE_STRFTIME = @REPLACE_STRFTIME@
 REPLACE_STRNCAT = @REPLACE_STRNCAT@
@@ -1000,6 +1024,7 @@ UINT64_MAX_EQ_ULONG_MAX = @UINT64_MAX_EQ_ULONG_MAX@
 UNDEFINE_STRTOK_R = @UNDEFINE_STRTOK_R@
 UNEXEC_OBJ = @UNEXEC_OBJ@
 UNISTD_H_DEFINES_STRUCT_TIMESPEC = @UNISTD_H_DEFINES_STRUCT_TIMESPEC@
+UNISTD_H_HAVE_SYS_RANDOM_H = @UNISTD_H_HAVE_SYS_RANDOM_H@
 UNISTD_H_HAVE_WINSOCK2_H = @UNISTD_H_HAVE_WINSOCK2_H@
 UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS = @UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS@
 USE_ACL = @USE_ACL@
@@ -1068,8 +1093,6 @@ gamedir = @gamedir@
 gamegroup = @gamegroup@
 gameuser = @gameuser@
 gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7 = @gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7@
-gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9 = @gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9@
-gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467 = @gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467@
 gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b = @gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b@
 gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31 = @gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31@
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c = @gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c@
@@ -1081,9 +1104,11 @@ gl_GNULIB_ENABLED_dirfd = @gl_GNULIB_ENABLED_dirfd@
 gl_GNULIB_ENABLED_euidaccess = @gl_GNULIB_ENABLED_euidaccess@
 gl_GNULIB_ENABLED_getdtablesize = @gl_GNULIB_ENABLED_getdtablesize@
 gl_GNULIB_ENABLED_getgroups = @gl_GNULIB_ENABLED_getgroups@
+gl_GNULIB_ENABLED_lchmod = @gl_GNULIB_ENABLED_lchmod@
 gl_GNULIB_ENABLED_malloca = @gl_GNULIB_ENABLED_malloca@
 gl_GNULIB_ENABLED_open = @gl_GNULIB_ENABLED_open@
 gl_GNULIB_ENABLED_strtoll = @gl_GNULIB_ENABLED_strtoll@
+gl_GNULIB_ENABLED_utimens = @gl_GNULIB_ENABLED_utimens@
 gl_LIBOBJS = @gl_LIBOBJS@
 gl_LTLIBOBJS = @gl_LTLIBOBJS@
 gltests_LIBOBJS = @gltests_LIBOBJS@
@@ -1141,7 +1166,7 @@ ifeq (,$(OMIT_GNULIB_MODULE_absolute-header))
 # Use this preprocessor expression to decide whether #include_next works.
 # Do not rely on a 'configure'-time test for this, since the expression
 # might appear in an installed header, which is used by some other compiler.
-HAVE_INCLUDE_NEXT = (__GNUC__ || 60000000 <= __DECC_VER)
+HAVE_INCLUDE_NEXT = (__GNUC__ || __clang__ || 60000000 <= __DECC_VER)
 
 endif
 ## end   gnulib module absolute-header
@@ -1202,6 +1227,15 @@ libgnu_a_SOURCES += openat-priv.h openat-proc.c
 endif
 endif
 ## end   gnulib module at-internal
+
+## begin gnulib module attribute
+ifeq (,$(OMIT_GNULIB_MODULE_attribute))
+
+
+EXTRA_DIST += attribute.h
+
+endif
+## end   gnulib module attribute
 
 ## begin gnulib module binary-io
 ifeq (,$(OMIT_GNULIB_MODULE_binary-io))
@@ -1447,15 +1481,6 @@ EXTRA_libgnu_a_SOURCES += dirfd.c
 endif
 ## end   gnulib module dirfd
 
-## begin gnulib module dosname
-ifeq (,$(OMIT_GNULIB_MODULE_dosname))
-
-
-EXTRA_DIST += dosname.h
-
-endif
-## end   gnulib module dosname
-
 ## begin gnulib module dtoastr
 ifeq (,$(OMIT_GNULIB_MODULE_dtoastr))
 
@@ -1585,6 +1610,17 @@ EXTRA_libgnu_a_SOURCES += at-func.c faccessat.c
 endif
 ## end   gnulib module faccessat
 
+## begin gnulib module fchmodat
+ifeq (,$(OMIT_GNULIB_MODULE_fchmodat))
+
+
+EXTRA_DIST += at-func.c fchmodat.c
+
+EXTRA_libgnu_a_SOURCES += at-func.c fchmodat.c
+
+endif
+## end   gnulib module fchmodat
+
 ## begin gnulib module fcntl
 ifeq (,$(OMIT_GNULIB_MODULE_fcntl))
 
@@ -1656,6 +1692,15 @@ EXTRA_DIST += filemode.h
 endif
 ## end   gnulib module filemode
 
+## begin gnulib module filename
+ifeq (,$(OMIT_GNULIB_MODULE_filename))
+
+
+EXTRA_DIST += filename.h
+
+endif
+## end   gnulib module filename
+
 ## begin gnulib module filevercmp
 ifeq (,$(OMIT_GNULIB_MODULE_filevercmp))
 
@@ -1718,6 +1763,17 @@ EXTRA_libgnu_a_SOURCES += fsync.c
 
 endif
 ## end   gnulib module fsync
+
+## begin gnulib module futimens
+ifeq (,$(OMIT_GNULIB_MODULE_futimens))
+
+
+EXTRA_DIST += futimens.c
+
+EXTRA_libgnu_a_SOURCES += futimens.c
+
+endif
+## end   gnulib module futimens
 
 ## begin gnulib module getdtablesize
 ifeq (,$(OMIT_GNULIB_MODULE_getdtablesize))
@@ -1793,6 +1849,17 @@ EXTRA_libgnu_a_SOURCES += getopt.c getopt1.c
 
 endif
 ## end   gnulib module getopt-posix
+
+## begin gnulib module getrandom
+ifeq (,$(OMIT_GNULIB_MODULE_getrandom))
+
+
+EXTRA_DIST += getrandom.c
+
+EXTRA_libgnu_a_SOURCES += getrandom.c
+
+endif
+## end   gnulib module getrandom
 
 ## begin gnulib module gettext-h
 ifeq (,$(OMIT_GNULIB_MODULE_gettext-h))
@@ -1904,7 +1971,6 @@ inttypes.h: inttypes.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(WARN_ON_U
 	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
 	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
 	      -e 's|@''NEXT_INTTYPES_H''@|$(NEXT_INTTYPES_H)|g' \
-	      -e 's/@''PRI_MACROS_BROKEN''@/$(PRI_MACROS_BROKEN)/g' \
 	      -e 's/@''APPLE_UNIVERSAL_BUILD''@/$(APPLE_UNIVERSAL_BUILD)/g' \
 	      -e 's/@''PRIPTR_PREFIX''@/$(PRIPTR_PREFIX)/g' \
 	      -e 's/@''GNULIB_IMAXABS''@/$(GNULIB_IMAXABS)/g' \
@@ -1935,16 +2001,57 @@ EXTRA_DIST += inttypes.in.h
 endif
 ## end   gnulib module inttypes-incomplete
 
+## begin gnulib module lchmod
+ifeq (,$(OMIT_GNULIB_MODULE_lchmod))
+
+ifneq (,$(gl_GNULIB_ENABLED_lchmod))
+
+endif
+EXTRA_DIST += lchmod.c
+
+EXTRA_libgnu_a_SOURCES += lchmod.c
+
+endif
+## end   gnulib module lchmod
+
 ## begin gnulib module libc-config
 ifeq (,$(OMIT_GNULIB_MODULE_libc-config))
 
-ifneq (,$(gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467))
 
-endif
 EXTRA_DIST += cdefs.h libc-config.h
 
 endif
 ## end   gnulib module libc-config
+
+## begin gnulib module libgmp
+ifeq (,$(OMIT_GNULIB_MODULE_libgmp))
+
+BUILT_SOURCES += $(GMP_H)
+
+ifneq (,$(GL_GENERATE_MINI_GMP_H))
+# Build gmp.h as a wrapper for mini-gmp.h when using mini-gmp.
+gmp.h: $(top_builddir)/config.status
+	echo '#include "mini-gmp.h"' >$@-t
+	mv $@-t $@
+else
+ifneq (,$(GL_GENERATE_GMP_GMP_H))
+# Build gmp.h as a wrapper for gmp/gmp.h.
+gmp.h: $(top_builddir)/config.status
+	echo '#include <gmp/gmp.h>' >$@-t
+	mv $@-t $@
+else
+gmp.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+endif
+MOSTLYCLEANFILES += gmp.h gmp.h-t
+
+EXTRA_DIST += mini-gmp-gnulib.c mini-gmp.c mini-gmp.h
+
+EXTRA_libgnu_a_SOURCES += mini-gmp-gnulib.c mini-gmp.c
+
+endif
+## end   gnulib module libgmp
 
 ## begin gnulib module limits-h
 ifeq (,$(OMIT_GNULIB_MODULE_limits-h))
@@ -1975,19 +2082,6 @@ EXTRA_DIST += limits.in.h
 
 endif
 ## end   gnulib module limits-h
-
-## begin gnulib module localtime-buffer
-ifeq (,$(OMIT_GNULIB_MODULE_localtime-buffer))
-
-ifneq (,$(gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9))
-
-endif
-EXTRA_DIST += localtime-buffer.c localtime-buffer.h
-
-EXTRA_libgnu_a_SOURCES += localtime-buffer.c
-
-endif
-## end   gnulib module localtime-buffer
 
 ## begin gnulib module lstat
 ifeq (,$(OMIT_GNULIB_MODULE_lstat))
@@ -2161,17 +2255,6 @@ EXTRA_libgnu_a_SOURCES += pthread_sigmask.c
 endif
 ## end   gnulib module pthread_sigmask
 
-## begin gnulib module putenv
-ifeq (,$(OMIT_GNULIB_MODULE_putenv))
-
-
-EXTRA_DIST += putenv.c
-
-EXTRA_libgnu_a_SOURCES += putenv.c
-
-endif
-## end   gnulib module putenv
-
 ## begin gnulib module qcopy-acl
 ifeq (,$(OMIT_GNULIB_MODULE_qcopy-acl))
 
@@ -2234,6 +2317,17 @@ EXTRA_libgnu_a_SOURCES += sig2str.c
 
 endif
 ## end   gnulib module sig2str
+
+## begin gnulib module sigdescr_np
+ifeq (,$(OMIT_GNULIB_MODULE_sigdescr_np))
+
+
+EXTRA_DIST += sigdescr_np.c
+
+EXTRA_libgnu_a_SOURCES += sigdescr_np.c
+
+endif
+## end   gnulib module sigdescr_np
 
 ## begin gnulib module signal-h
 ifeq (,$(OMIT_GNULIB_MODULE_signal-h))
@@ -2768,6 +2862,9 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_STRTOK_R''@/$(GNULIB_STRTOK_R)/g' \
 	      -e 's/@''GNULIB_STRERROR''@/$(GNULIB_STRERROR)/g' \
 	      -e 's/@''GNULIB_STRERROR_R''@/$(GNULIB_STRERROR_R)/g' \
+	      -e 's/@''GNULIB_STRERRORNAME_NP''@/$(GNULIB_STRERRORNAME_NP)/g' \
+	      -e 's/@''GNULIB_SIGABBREV_NP''@/$(GNULIB_SIGABBREV_NP)/g' \
+	      -e 's/@''GNULIB_SIGDESCR_NP''@/$(GNULIB_SIGDESCR_NP)/g' \
 	      -e 's/@''GNULIB_STRSIGNAL''@/$(GNULIB_STRSIGNAL)/g' \
 	      -e 's/@''GNULIB_STRVERSCMP''@/$(GNULIB_STRVERSCMP)/g' \
 	      < $(srcdir)/string.in.h | \
@@ -2775,7 +2872,6 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_FFSL''@|$(HAVE_FFSL)|g' \
 	      -e 's|@''HAVE_FFSLL''@|$(HAVE_FFSLL)|g' \
 	      -e 's|@''HAVE_MBSLEN''@|$(HAVE_MBSLEN)|g' \
-	      -e 's|@''HAVE_MEMCHR''@|$(HAVE_MEMCHR)|g' \
 	      -e 's|@''HAVE_DECL_MEMMEM''@|$(HAVE_DECL_MEMMEM)|g' \
 	      -e 's|@''HAVE_MEMPCPY''@|$(HAVE_MEMPCPY)|g' \
 	      -e 's|@''HAVE_DECL_MEMRCHR''@|$(HAVE_DECL_MEMRCHR)|g' \
@@ -2791,6 +2887,9 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_STRCASESTR''@|$(HAVE_STRCASESTR)|g' \
 	      -e 's|@''HAVE_DECL_STRTOK_R''@|$(HAVE_DECL_STRTOK_R)|g' \
 	      -e 's|@''HAVE_DECL_STRERROR_R''@|$(HAVE_DECL_STRERROR_R)|g' \
+	      -e 's|@''HAVE_STRERRORNAME_NP''@|$(HAVE_STRERRORNAME_NP)|g' \
+	      -e 's|@''HAVE_SIGABBREV_NP''@|$(HAVE_SIGABBREV_NP)|g' \
+	      -e 's|@''HAVE_SIGDESCR_NP''@|$(HAVE_SIGDESCR_NP)|g' \
 	      -e 's|@''HAVE_DECL_STRSIGNAL''@|$(HAVE_DECL_STRSIGNAL)|g' \
 	      -e 's|@''HAVE_STRVERSCMP''@|$(HAVE_STRVERSCMP)|g' \
 	      -e 's|@''REPLACE_MEMCHR''@|$(REPLACE_MEMCHR)|g' \
@@ -2806,6 +2905,7 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''REPLACE_STRTOK_R''@|$(REPLACE_STRTOK_R)|g' \
 	      -e 's|@''REPLACE_STRERROR''@|$(REPLACE_STRERROR)|g' \
 	      -e 's|@''REPLACE_STRERROR_R''@|$(REPLACE_STRERROR_R)|g' \
+	      -e 's|@''REPLACE_STRERRORNAME_NP''@|$(REPLACE_STRERRORNAME_NP)|g' \
 	      -e 's|@''REPLACE_STRSIGNAL''@|$(REPLACE_STRSIGNAL)|g' \
 	      -e 's|@''UNDEFINE_STRTOK_R''@|$(UNDEFINE_STRTOK_R)|g' \
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
@@ -2867,6 +2967,40 @@ EXTRA_libgnu_a_SOURCES += symlink.c
 endif
 ## end   gnulib module symlink
 
+## begin gnulib module sys_random
+ifeq (,$(OMIT_GNULIB_MODULE_sys_random))
+
+BUILT_SOURCES += sys/random.h
+
+# We need the following in order to create <sys/random.h> when the system
+# doesn't have one.
+sys/random.h: sys_random.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
+	$(AM_V_at)$(MKDIR_P) sys
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
+	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
+	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
+	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
+	      -e 's|@''NEXT_SYS_RANDOM_H''@|$(NEXT_SYS_RANDOM_H)|g' \
+	      -e 's|@''HAVE_SYS_RANDOM_H''@|$(HAVE_SYS_RANDOM_H)|g' \
+	      -e 's/@''GNULIB_GETRANDOM''@/$(GNULIB_GETRANDOM)/g' \
+	      -e 's/@''HAVE_GETRANDOM''@/$(HAVE_GETRANDOM)/g' \
+	      -e 's/@''REPLACE_GETRANDOM''@/$(REPLACE_GETRANDOM)/g' \
+	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
+	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
+	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
+	      < $(srcdir)/sys_random.in.h; \
+	} > $@-t && \
+	mv -f $@-t $@
+MOSTLYCLEANFILES += sys/random.h sys/random.h-t
+MOSTLYCLEANDIRS += sys
+
+EXTRA_DIST += sys_random.in.h
+
+endif
+## end   gnulib module sys_random
+
 ## begin gnulib module sys_select
 ifeq (,$(OMIT_GNULIB_MODULE_sys_select))
 
@@ -2925,6 +3059,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's/@''GNULIB_FSTAT''@/$(GNULIB_FSTAT)/g' \
 	      -e 's/@''GNULIB_FSTATAT''@/$(GNULIB_FSTATAT)/g' \
 	      -e 's/@''GNULIB_FUTIMENS''@/$(GNULIB_FUTIMENS)/g' \
+	      -e 's/@''GNULIB_GETUMASK''@/$(GNULIB_GETUMASK)/g' \
 	      -e 's/@''GNULIB_LCHMOD''@/$(GNULIB_LCHMOD)/g' \
 	      -e 's/@''GNULIB_LSTAT''@/$(GNULIB_LSTAT)/g' \
 	      -e 's/@''GNULIB_MKDIRAT''@/$(GNULIB_MKDIRAT)/g' \
@@ -2938,6 +3073,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''HAVE_FCHMODAT''@|$(HAVE_FCHMODAT)|g' \
 	      -e 's|@''HAVE_FSTATAT''@|$(HAVE_FSTATAT)|g' \
 	      -e 's|@''HAVE_FUTIMENS''@|$(HAVE_FUTIMENS)|g' \
+	      -e 's|@''HAVE_GETUMASK''@|$(HAVE_GETUMASK)|g' \
 	      -e 's|@''HAVE_LCHMOD''@|$(HAVE_LCHMOD)|g' \
 	      -e 's|@''HAVE_LSTAT''@|$(HAVE_LSTAT)|g' \
 	      -e 's|@''HAVE_MKDIRAT''@|$(HAVE_MKDIRAT)|g' \
@@ -2946,6 +3082,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''HAVE_MKNOD''@|$(HAVE_MKNOD)|g' \
 	      -e 's|@''HAVE_MKNODAT''@|$(HAVE_MKNODAT)|g' \
 	      -e 's|@''HAVE_UTIMENSAT''@|$(HAVE_UTIMENSAT)|g' \
+	      -e 's|@''REPLACE_FCHMODAT''@|$(REPLACE_FCHMODAT)|g' \
 	      -e 's|@''REPLACE_FSTAT''@|$(REPLACE_FSTAT)|g' \
 	      -e 's|@''REPLACE_FSTATAT''@|$(REPLACE_FSTATAT)|g' \
 	      -e 's|@''REPLACE_FUTIMENS''@|$(REPLACE_FUTIMENS)|g' \
@@ -3073,7 +3210,6 @@ time.h: time.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''HAVE_STRPTIME''@|$(HAVE_STRPTIME)|g' \
 	      -e 's|@''HAVE_TIMEGM''@|$(HAVE_TIMEGM)|g' \
 	      -e 's|@''HAVE_TIMEZONE_T''@|$(HAVE_TIMEZONE_T)|g' \
-	      -e 's|@''HAVE_TZSET''@|$(HAVE_TZSET)|g' \
 	      -e 's|@''REPLACE_CTIME''@|$(REPLACE_CTIME)|g' \
 	      -e 's|@''REPLACE_GMTIME''@|$(REPLACE_GMTIME)|g' \
 	      -e 's|@''REPLACE_LOCALTIME''@|$(REPLACE_LOCALTIME)|g' \
@@ -3206,10 +3342,12 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_GETCWD''@/$(GNULIB_GETCWD)/g' \
 	      -e 's/@''GNULIB_GETDOMAINNAME''@/$(GNULIB_GETDOMAINNAME)/g' \
 	      -e 's/@''GNULIB_GETDTABLESIZE''@/$(GNULIB_GETDTABLESIZE)/g' \
+	      -e 's/@''GNULIB_GETENTROPY''@/$(GNULIB_GETENTROPY)/g' \
 	      -e 's/@''GNULIB_GETGROUPS''@/$(GNULIB_GETGROUPS)/g' \
 	      -e 's/@''GNULIB_GETHOSTNAME''@/$(GNULIB_GETHOSTNAME)/g' \
 	      -e 's/@''GNULIB_GETLOGIN''@/$(GNULIB_GETLOGIN)/g' \
 	      -e 's/@''GNULIB_GETLOGIN_R''@/$(GNULIB_GETLOGIN_R)/g' \
+	      -e 's/@''GNULIB_GETOPT_POSIX''@/$(GNULIB_GETOPT_POSIX)/g' \
 	      -e 's/@''GNULIB_GETPAGESIZE''@/$(GNULIB_GETPAGESIZE)/g' \
 	      -e 's/@''GNULIB_GETPASS''@/$(GNULIB_GETPASS)/g' \
 	      -e 's/@''GNULIB_GETUSERSHELL''@/$(GNULIB_GETUSERSHELL)/g' \
@@ -3243,7 +3381,6 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      < $(srcdir)/unistd.in.h | \
 	  sed -e 's|@''HAVE_CHOWN''@|$(HAVE_CHOWN)|g' \
 	      -e 's|@''HAVE_COPY_FILE_RANGE''@|$(HAVE_COPY_FILE_RANGE)|g' \
-	      -e 's|@''HAVE_DUP2''@|$(HAVE_DUP2)|g' \
 	      -e 's|@''HAVE_DUP3''@|$(HAVE_DUP3)|g' \
 	      -e 's|@''HAVE_EUIDACCESS''@|$(HAVE_EUIDACCESS)|g' \
 	      -e 's|@''HAVE_FACCESSAT''@|$(HAVE_FACCESSAT)|g' \
@@ -3253,6 +3390,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_FSYNC''@|$(HAVE_FSYNC)|g' \
 	      -e 's|@''HAVE_FTRUNCATE''@|$(HAVE_FTRUNCATE)|g' \
 	      -e 's|@''HAVE_GETDTABLESIZE''@|$(HAVE_GETDTABLESIZE)|g' \
+	      -e 's|@''HAVE_GETENTROPY''@|$(HAVE_GETENTROPY)|g' \
 	      -e 's|@''HAVE_GETGROUPS''@|$(HAVE_GETGROUPS)|g' \
 	      -e 's|@''HAVE_GETHOSTNAME''@|$(HAVE_GETHOSTNAME)|g' \
 	      -e 's|@''HAVE_GETPAGESIZE''@|$(HAVE_GETPAGESIZE)|g' \
@@ -3322,6 +3460,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''REPLACE_UNLINKAT''@|$(REPLACE_UNLINKAT)|g' \
 	      -e 's|@''REPLACE_USLEEP''@|$(REPLACE_USLEEP)|g' \
 	      -e 's|@''REPLACE_WRITE''@|$(REPLACE_WRITE)|g' \
+	      -e 's|@''UNISTD_H_HAVE_SYS_RANDOM_H''@|$(UNISTD_H_HAVE_SYS_RANDOM_H)|g' \
 	      -e 's|@''UNISTD_H_HAVE_WINSOCK2_H''@|$(UNISTD_H_HAVE_WINSOCK2_H)|g' \
 	      -e 's|@''UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS''@|$(UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS)|g' \
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
@@ -3357,12 +3496,25 @@ endif
 ## begin gnulib module utimens
 ifeq (,$(OMIT_GNULIB_MODULE_utimens))
 
+ifneq (,$(gl_GNULIB_ENABLED_utimens))
 libgnu_a_SOURCES += utimens.c
 
+endif
 EXTRA_DIST += utimens.h
 
 endif
 ## end   gnulib module utimens
+
+## begin gnulib module utimensat
+ifeq (,$(OMIT_GNULIB_MODULE_utimensat))
+
+
+EXTRA_DIST += at-func.c utimensat.c
+
+EXTRA_libgnu_a_SOURCES += at-func.c utimensat.c
+
+endif
+## end   gnulib module utimensat
 
 ## begin gnulib module verify
 ifeq (,$(OMIT_GNULIB_MODULE_verify))

@@ -1,4 +1,4 @@
-;;; mwheel.el --- Wheel mouse support
+;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 ;; Keywords: mouse
@@ -25,8 +25,8 @@
 ;; Under X11/X.Org, the wheel events are sent as button4/button5
 ;; events.
 
-;; It is already enabled by default on most graphical displays.  You
-;; can toggle it with M-x mouse-wheel-mode.
+;; Mouse wheel support is already enabled by default on most graphical
+;; displays.  You can toggle it using `M-x mouse-wheel-mode'.
 
 ;;; Code:
 
@@ -85,7 +85,7 @@ set to the event sent when clicking on the mouse wheel button."
   :type 'number)
 
 (defcustom mouse-wheel-scroll-amount
-  '(5 ((shift) . 1) ((meta) . nil) ((control) . text-scale))
+  '(1 ((shift) . hscroll) ((meta) . nil) ((control) . text-scale))
   "Amount to scroll windows by when spinning the mouse wheel.
 This is an alist mapping the modifier key to the amount to scroll when
 the wheel is moved with the modifier key depressed.
@@ -96,6 +96,9 @@ AMOUNT should be the number of lines to scroll, or nil for near full
 screen.  It can also be a floating point number, specifying the fraction of
 a full screen to scroll.  A near full screen is `next-screen-context-lines'
 less than a full screen.
+
+If AMOUNT is the symbol 'hscroll', this means that with MODIFIER,
+the mouse wheel will scroll horizontally instead of vertically.
 
 If AMOUNT is the symbol text-scale, this means that with
 MODIFIER, the mouse wheel will change the face height instead of
@@ -123,9 +126,10 @@ scrolling."
                     (const :tag "Scroll full screen" :value nil)
                     (integer :tag "Scroll specific # of lines")
                     (float :tag "Scroll fraction of window")
+                    (const :tag "Scroll horizontally" :value hscroll)
                     (const :tag "Change face size" :value text-scale)))))
   :set 'mouse-wheel-change-button
-  :version "27.1")
+  :version "28.1")
 
 (defcustom mouse-wheel-progressive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
@@ -145,34 +149,35 @@ face height."
 ;;; For tilt-scroll
 ;;;
 (defcustom mouse-wheel-tilt-scroll nil
-  "Enable scroll using tilting mouse wheel."
+  "Enable horizontal scrolling by tilting mouse wheel or via touchpad.
+Also see `mouse-wheel-flip-direction'."
   :group 'mouse
   :type 'boolean
   :version "26.1")
 
 (defcustom mouse-wheel-flip-direction nil
-  "Swap direction of `wheel-right' and `wheel-left'."
+  "Swap direction of `wheel-right' and `wheel-left'.
+By default, `wheel-right' scrolls the text to the right,
+and `wheel-left' scrolls in the other direction.
+If this variable is non-nil, it inverts the direction of
+horizontal scrolling by tilting the mouse wheel.
+Also see `mouse-wheel-tilt-scroll'."
   :group 'mouse
   :type 'boolean
   :version "26.1")
 
-(eval-and-compile
-  (if (fboundp 'event-button)
-      (fset 'mwheel-event-button 'event-button)
-    (defun mwheel-event-button (event)
-      (let ((x (event-basic-type event)))
-	;; Map mouse-wheel events to appropriate buttons
-	(if (eq 'mouse-wheel x)
-	    (let ((amount (car (cdr (cdr (cdr event))))))
-	      (if (< amount 0)
-		  mouse-wheel-up-event
-		mouse-wheel-down-event))
-	  x))))
+(defun mwheel-event-button (event)
+  (let ((x (event-basic-type event)))
+    ;; Map mouse-wheel events to appropriate buttons
+    (if (eq 'mouse-wheel x)
+        (let ((amount (car (cdr (cdr (cdr event))))))
+          (if (< amount 0)
+              mouse-wheel-up-event
+            mouse-wheel-down-event))
+      x)))
 
-  (if (fboundp 'event-window)
-      (fset 'mwheel-event-window 'event-window)
-    (defun mwheel-event-window (event)
-      (posn-window (event-start event)))))
+(defun mwheel-event-window (event)
+  (posn-window (event-start event)))
 
 (defvar mwheel-inhibit-click-event-timer nil
   "Timer running while mouse wheel click event is inhibited.")
@@ -202,13 +207,13 @@ face height."
 (defvar mouse-wheel-left-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-left
-    (intern "mouse-6"))
+    'mouse-6)
   "Event used for scrolling left.")
 
 (defvar mouse-wheel-right-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-right
-    (intern "mouse-7"))
+    'mouse-7)
   "Event used for scrolling right.")
 
 (defun mouse-wheel--get-scroll-window (event)
@@ -269,7 +274,11 @@ non-Windows systems."
     (condition-case nil
         (unwind-protect
 	    (let ((button (mwheel-event-button event)))
-	      (cond ((eq button mouse-wheel-down-event)
+              (cond ((and (eq amt 'hscroll) (eq button mouse-wheel-down-event))
+                     (funcall (if mouse-wheel-flip-direction
+                                  mwheel-scroll-left-function
+                                mwheel-scroll-right-function) 1))
+                    ((eq button mouse-wheel-down-event)
                      (condition-case nil (funcall mwheel-scroll-down-function amt)
                        ;; Make sure we do indeed scroll to the beginning of
                        ;; the buffer.
@@ -284,7 +293,11 @@ non-Windows systems."
                           ;; for a reason that escapes me.  This problem seems
                           ;; to only affect scroll-down.  --Stef
                           (set-window-start (selected-window) (point-min))))))
-		    ((eq button mouse-wheel-up-event)
+                    ((and (eq amt 'hscroll) (eq button mouse-wheel-up-event))
+                     (funcall (if mouse-wheel-flip-direction
+                                  mwheel-scroll-right-function
+                                mwheel-scroll-left-function) 1))
+                    ((eq button mouse-wheel-up-event)
                      (condition-case nil (funcall mwheel-scroll-up-function amt)
                        ;; Make sure we do indeed scroll to the end of the buffer.
                        (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
@@ -343,16 +356,39 @@ non-Windows systems."
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
-(defvar mwheel-installed-bindings nil)
-(defvar mwheel-installed-text-scale-bindings nil)
+(defvar mouse-wheel--installed-bindings-alist nil
+  "Alist of all installed mouse wheel key bindings.")
 
-(defun mouse-wheel--remove-bindings (bindings funs)
-  "Remove key BINDINGS if they're bound to any function in FUNS.
-BINDINGS is a list of key bindings, FUNS is a list of functions.
+(defun mouse-wheel--add-binding (key fun)
+  "Bind mouse wheel button KEY to function FUN.
+Save it for later removal by `mouse-wheel--remove-bindings'."
+  (global-set-key key fun)
+  (push (cons key fun) mouse-wheel--installed-bindings-alist))
+
+(defun mouse-wheel--remove-bindings ()
+  "Remove all mouse wheel key bindings.
 This is a helper function for `mouse-wheel-mode'."
-  (dolist (key bindings)
-    (when (memq (lookup-key (current-global-map) key) funs)
-      (global-unset-key key))))
+  (dolist (binding mouse-wheel--installed-bindings-alist)
+    (let ((key (car binding))
+          (fun (cdr binding)))
+     (when (eq (lookup-key (current-global-map) key) fun)
+       (global-unset-key key))))
+  (setq mouse-wheel--installed-bindings-alist nil))
+
+(defun mouse-wheel--create-scroll-keys (binding event)
+  "Return list of key vectors for BINDING and EVENT.
+BINDING is an element in `mouse-wheel-scroll-amount'.  EVENT is
+an event used for scrolling, such as `mouse-wheel-down-event'."
+  (let ((prefixes (list 'left-margin 'right-margin
+                        'left-fringe 'right-fringe
+                        'vertical-scroll-bar 'horizontal-scroll-bar
+                        'mode-line 'header-line)))
+    (if (consp binding)
+        ;; With modifiers, bind only the buffer area (no prefix).
+        (list `[(,@(car binding) ,event)])
+      ;; No modifier: bind also some non-buffer areas of the screen.
+      (cons (vector event)
+            (mapcar (lambda (prefix) (vector prefix event)) prefixes)))))
 
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support (Mouse Wheel mode)."
@@ -365,12 +401,7 @@ This is a helper function for `mouse-wheel-mode'."
   :global t
   :group 'mouse
   ;; Remove previous bindings, if any.
-  (mouse-wheel--remove-bindings mwheel-installed-bindings
-                                '(mwheel-scroll))
-  (mouse-wheel--remove-bindings mwheel-installed-text-scale-bindings
-                                '(mouse-wheel-text-scale))
-  (setq mwheel-installed-bindings nil)
-  (setq mwheel-installed-text-scale-bindings nil)
+  (mouse-wheel--remove-bindings)
   ;; Setup bindings as needed.
   (when mouse-wheel-mode
     (dolist (binding mouse-wheel-scroll-amount)
@@ -378,16 +409,16 @@ This is a helper function for `mouse-wheel-mode'."
        ;; Bindings for changing font size.
        ((and (consp binding) (eq (cdr binding) 'text-scale))
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
-          (let ((key `[,(list (caar binding) event)]))
-            (global-set-key key 'mouse-wheel-text-scale)
-            (push key mwheel-installed-text-scale-bindings))))
+          (mouse-wheel--add-binding `[,(list (caar binding) event)]
+                                    'mouse-wheel-text-scale)))
        ;; Bindings for scrolling.
        (t
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
-                             mouse-wheel-right-event mouse-wheel-left-event))
-          (let ((key `[(,@(if (consp binding) (car binding)) ,event)]))
-            (global-set-key key 'mwheel-scroll)
-            (push key mwheel-installed-bindings))))))))
+                             mouse-wheel-left-event mouse-wheel-right-event))
+          (dolist (key (mouse-wheel--create-scroll-keys binding event))
+            (mouse-wheel--add-binding key 'mwheel-scroll))))))))
+
+;;; Obsolete.
 
 ;;; Compatibility entry point
 ;; preloaded ;;;###autoload
@@ -395,6 +426,12 @@ This is a helper function for `mouse-wheel-mode'."
   "Enable mouse wheel support."
   (declare (obsolete mouse-wheel-mode "27.1"))
   (mouse-wheel-mode (if uninstall -1 1)))
+
+(defvar mwheel-installed-bindings nil)
+(make-obsolete-variable 'mwheel-installed-bindings nil "28.1")
+
+(defvar mwheel-installed-text-scale-bindings nil)
+(make-obsolete-variable 'mwheel-installed-text-scale-bindings nil "28.1")
 
 (provide 'mwheel)
 

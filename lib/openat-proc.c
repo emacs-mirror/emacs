@@ -73,8 +73,9 @@ openat_proc_name (char buf[OPENAT_BUFFER_SIZE], int fd, char const *file)
            problem is exhibited on code that built on Solaris 8 and
            running on Solaris 10.  */
 
-        int proc_self_fd = open ("/proc/self/fd",
-                                 O_SEARCH | O_DIRECTORY | O_NOCTTY | O_NONBLOCK);
+        int proc_self_fd =
+          open ("/proc/self/fd",
+                O_SEARCH | O_DIRECTORY | O_NOCTTY | O_NONBLOCK | O_CLOEXEC);
         if (proc_self_fd < 0)
           proc_status = -1;
         else

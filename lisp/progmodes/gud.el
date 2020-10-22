@@ -486,9 +486,8 @@ The value t means that there is no stack, and we are in display-file mode.")
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
-(if (featurep 'speedbar)
-    (gud-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (gud-install-speedbar-variables))
 
 (defun gud-expansion-speedbar-buttons (_directory _zero)
   "Wrapper for call to `speedbar-add-expansion-list'.
@@ -1846,7 +1845,7 @@ and source-file directory for your debugger."
 ;; JDB command will get out of the debugger.  There is some truly
 ;; pathetic JDB documentation available at:
 ;;
-;;     http://java.sun.com/products/jdk/1.1/debugging/
+;;     https://java.sun.com/products/jdk/1.1/debugging/
 ;;
 ;; KNOWN PROBLEMS AND FIXME's:
 ;;
@@ -2359,17 +2358,17 @@ during jdb initialization depending on the value of
 		(if (< n gud-jdb-lowest-stack-level)
 		    (progn (setq gud-jdb-lowest-stack-level n) t)))
 	    t)
-	  (if (setq file-found
-		    (gud-jdb-find-source (match-string 2 gud-marker-acc)))
-	      (setq gud-last-frame
-		    (cons file-found
-			  (string-to-number
-			   (let
-                               ((numstr (match-string 4 gud-marker-acc)))
-                             (if (string-match "[.,]" numstr)
-                                 (replace-match "" nil nil numstr)
-                               numstr)))))
-	    (message "Could not find source file.")))
+	  (let ((class (match-string 2 gud-marker-acc)))
+	    (if (setq file-found (gud-jdb-find-source class))
+	        (setq gud-last-frame
+		      (cons file-found
+			    (string-to-number
+			     (let
+                                 ((numstr (match-string 4 gud-marker-acc)))
+                               (if (string-match "[.,]" numstr)
+                                   (replace-match "" nil nil numstr)
+                                 numstr)))))
+	      (message "Could not find source file for %s" class))))
 
       ;; Set the accumulator to the remaining text.
       (setq gud-marker-acc (substring gud-marker-acc (match-end 0))))
@@ -2621,9 +2620,9 @@ comint mode, which see."
     (select-window
      (display-buffer
       (get-buffer-create (concat "*gud" filepart "*"))
-      '(display-buffer-reuse-window
-        display-buffer-in-previous-window
-        display-buffer-same-window display-buffer-pop-up-window)))
+      '((display-buffer-reuse-window
+         display-buffer-in-previous-window
+         display-buffer-same-window display-buffer-pop-up-window))))
     (when (and existing-buffer (get-buffer-process existing-buffer))
       (error "This program is already being debugged"))
     ;; Set the dir, in case the buffer already existed with a different dir.
@@ -2827,9 +2826,13 @@ Obeying it means displaying in another window the specified file and line."
 	 (buffer
 	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
-	 (window (and buffer
-		      (or (get-buffer-window buffer)
-			  (display-buffer buffer '(nil (inhibit-same-window . t))))))
+	 (window
+          (when buffer
+            (if (eq gud-minor-mode 'gdbmi)
+                (gdb-display-source-buffer buffer)
+              ;; Gud still has the old behavior.
+              (or (get-buffer-window buffer)
+                  (display-buffer buffer '(nil (inhibit-same-window . t)))))))
 	 (pos))
     (when buffer
       (with-current-buffer buffer
@@ -2859,9 +2862,7 @@ Obeying it means displaying in another window the specified file and line."
 	       (widen)
 	       (goto-char pos))))
       (when window
-	(set-window-point window gud-overlay-arrow-position)
-	(if (eq gud-minor-mode 'gdbmi)
-	    (setq gdb-source-window window))))))
+	(set-window-point window gud-overlay-arrow-position)))))
 
 ;; The gud-call function must do the right thing whether its invoking
 ;; keystroke is from the GUD buffer itself (via major-mode binding)

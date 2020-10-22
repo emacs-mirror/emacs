@@ -40,7 +40,7 @@
                         (insert content)
                         (setq mode nil)
                         (c-or-c++-mode)
-                        (unless(eq expected mode)
+                        (unless (eq expected mode)
                           (ert-fail
                            (format "expected %s but got %s when testing '%s'"
                                    expected mode content)))))
@@ -53,11 +53,18 @@
               (funcall do-test (concat " * " content) 'c-mode))
             '("using \t namespace \t std;"
               "using \t std::string;"
+              "using Foo = Bar;"
               "namespace \t {"
               "namespace \t foo \t {"
-              "class \t Blah_42 \t {"
+              "namespace \t foo::bar \t {"
+              "inline namespace \t foo \t {"
+              "inline namespace \t foo::bar \t {"
               "class \t Blah_42 \t \n"
+              "class \t Blah_42;"
+              "class \t Blah_42 \t final {"
+              "struct \t Blah_42 \t final {"
               "class \t _42_Blah:public Foo {"
+              "struct \t _42_Blah:public Foo {"
               "template \t < class T >"
               "template< class T >"
               "#include <string>"
@@ -67,6 +74,7 @@
       (mapc (lambda (content) (funcall do-test content 'c-mode))
             '("struct \t Blah_42 \t {"
               "struct template {"
+              "struct Blah;"
               "#include <string.h>")))))
 
 (ert-deftest c-mode-macro-comment ()
@@ -77,5 +85,26 @@
     (with-temp-buffer
       (insert macro-string)
       (c-mode))))
+
+(ert-deftest c-lineup-ternary-bodies ()
+  "Test for c-lineup-ternary-bodies function"
+  (with-temp-buffer
+    (c-mode)
+    (let* ((common-prefix "int value = condition ")
+           (expected-column (length common-prefix)))
+      (dolist (test '(("? a : \n b" . nil)
+                      ("? a \n ::b" . nil)
+                      ("a \n : b" . nil)
+                      ("? a \n : b" . t)
+                      ("? ::a \n : b" . t)
+                      ("? (p ? q : r) \n : b" . t)
+                      ("? p ?: q \n : b" . t)
+                      ("? p ? : q \n : b" . t)
+                      ("? p ? q : r \n : b" . t)))
+        (delete-region (point-min) (point-max))
+        (insert common-prefix (car test))
+        (should (equal
+                 (and (cdr test) (vector expected-column))
+                 (c-lineup-ternary-bodies '(statement-cont . 1))))))))
 
 ;;; cc-mode-tests.el ends here

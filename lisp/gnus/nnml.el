@@ -361,7 +361,7 @@ non-nil.")
 
 (deffoo nnml-request-move-article
     (article group server accept-form &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nnml move*"))
+  (let ((buf (gnus-get-buffer-create " *nnml move*"))
 	(file-name-coding-system nnmail-pathname-coding-system)
 	result)
     (nnml-possibly-change-directory group server)
@@ -572,7 +572,7 @@ non-nil.")
 
 ;; Find an article number in the current group given the Message-ID.
 (defun nnml-find-group-number (id server)
-  (with-current-buffer (get-buffer-create " *nnml id*")
+  (with-current-buffer (gnus-get-buffer-create " *nnml id*")
     (let ((alist nnml-group-alist)
 	  number)
       ;; We want to look through all .overview files, but we want to
@@ -766,17 +766,16 @@ article number.  This function is called narrowed to an article."
 	 (if (re-search-forward "\n\r?\n" nil t)
 	     (1- (point))
 	   (point-max))))
-      (let ((headers (nnheader-parse-naked-head)))
+      (let ((headers (nnheader-parse-head t)))
 	(setf (mail-header-chars  headers) chars)
 	(setf (mail-header-number headers) number)
 	headers))))
 
 (defun nnml-get-nov-buffer (group &optional incrementalp)
-  (let ((buffer (get-buffer-create (format " *nnml %soverview %s*"
-					    (if incrementalp
-						"incremental "
-					      "")
-					    group)))
+  (let ((buffer (gnus-get-buffer-create
+                 (format " *nnml %soverview %s*"
+			 (if incrementalp "incremental " "")
+			 group)))
 	 (file-name-coding-system nnmail-pathname-coding-system))
     (with-current-buffer buffer
       (set (make-local-variable 'nnml-nov-buffer-file-name)
@@ -873,7 +872,7 @@ Unless no-active is non-nil, update the active file too."
 (defun nnml-generate-nov-file (dir files)
   (let* ((dir (file-name-as-directory dir))
 	 (nov (concat dir nnml-nov-file-name))
-	 (nov-buffer (get-buffer-create " *nov*"))
+	 (nov-buffer (gnus-get-buffer-create " *nov*"))
 	 chars file headers)
     (with-current-buffer nov-buffer
       ;; Init the nov buffer.
@@ -902,7 +901,7 @@ Unless no-active is non-nil, update the active file too."
 		(nnheader-insert-nov headers)))
 	    (widen))))
       (with-current-buffer nov-buffer
-	(nnmail-write-region (point-min) (point-max) nov nil 'nomesg)
+	(nnmail-write-region (point-min) (point-max) nov nil 'nomesg nil 'excl)
 	(kill-buffer (current-buffer))))))
 
 (defun nnml-nov-delete-article (group article)

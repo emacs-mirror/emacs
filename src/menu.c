@@ -1036,9 +1036,7 @@ menu_item_width (const unsigned char *str)
 
   for (len = 0, p = str; *p; )
     {
-      int ch_len;
-      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
-
+      int ch_len, ch = string_char_and_length (p, &ch_len);
       len += CHARACTER_WIDTH (ch);
       p += ch_len;
     }
@@ -1253,18 +1251,16 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	 but I don't want to make one now.  */
       CHECK_WINDOW (window);
 
-    CHECK_RANGED_INTEGER (x,
-			  (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
-			   ? (EMACS_INT) INT_MIN - xpos
-			   : MOST_NEGATIVE_FIXNUM),
-			  INT_MAX - xpos);
-    CHECK_RANGED_INTEGER (y,
-			  (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
-			   ? (EMACS_INT) INT_MIN - ypos
-			   : MOST_NEGATIVE_FIXNUM),
-			  INT_MAX - ypos);
-    xpos += XFIXNUM (x);
-    ypos += XFIXNUM (y);
+    xpos += check_integer_range (x,
+				 (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
+				  ? (EMACS_INT) INT_MIN - xpos
+				  : MOST_NEGATIVE_FIXNUM),
+				 INT_MAX - xpos);
+    ypos += check_integer_range (y,
+				 (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
+				  ? (EMACS_INT) INT_MIN - ypos
+				  : MOST_NEGATIVE_FIXNUM),
+				 INT_MAX - ypos);
 
     XSETFRAME (Vmenu_updating_frame, f);
   }

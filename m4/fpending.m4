@@ -1,4 +1,4 @@
-# serial 22
+# serial 23
 
 # Copyright (C) 2000-2001, 2004-2020 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -25,7 +25,7 @@ AC_DEFUN([gl_FUNC_FPENDING],
   AC_CACHE_CHECK([for __fpending], [gl_cv_func___fpending],
     [
       AC_LINK_IFELSE(
-        [AC_LANG_PROGRAM([$fp_headers],
+        [AC_LANG_PROGRAM([[$fp_headers]],
            [[return ! __fpending (stdin);]])],
         [gl_cv_func___fpending=yes],
         [gl_cv_func___fpending=no])

@@ -339,8 +339,8 @@
 ;; When using `table-cell-map-hook' do not use `local-set-key'.
 ;;
 ;;   (add-hook 'table-cell-map-hook
-;;     (function (lambda ()
-;;       (local-set-key [<key sequence>] '<function>))))
+;;     (lambda ()
+;;       (local-set-key [<key sequence>] '<function>)))
 ;;
 ;; Adding the above to your init file is a common way to customize a
 ;; mode specific keymap.  However it does not work for this package.
@@ -349,8 +349,8 @@
 ;; explicitly.  The correct way of achieving above task is:
 ;;
 ;;   (add-hook 'table-cell-map-hook
-;;     (function (lambda ()
-;;       (define-key table-cell-map [<key sequence>] '<function>))))
+;;     (lambda ()
+;;       (define-key table-cell-map [<key sequence>] '<function>)))
 ;;
 ;; -----
 ;; Menu:
@@ -793,6 +793,8 @@ simply by any key input."
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
+(make-obsolete-variable 'table-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."
@@ -1822,11 +1824,11 @@ See `table-insert-row' and `table-insert-column'."
      (list (intern (let ((completion-ignore-case t)
 			 (default (car table-insert-row-column-history)))
 		     (downcase (completing-read
-				(format "Insert %s row%s/column%s (default %s): "
-					(if (> n 1) (format "%d" n) "a")
-					(if (> n 1) "s" "")
-					(if (> n 1) "s" "")
-					default)
+				(format-prompt
+                                 "Insert %s row%s/column%s" default
+				 (if (> n 1) (format "%d" n) "a")
+				 (if (> n 1) "s" "")
+				 (if (> n 1) "s" ""))
 				'(("row") ("column"))
 				nil t nil 'table-insert-row-column-history default))))
 	   n)))
@@ -2532,7 +2534,7 @@ DIRECTION is one of symbols; right, left, above or below."
 				 (caar direction-list)))
 	   (completion-ignore-case t))
       (intern (downcase (completing-read
-			 (format "Span into (default %s): " default-direction)
+			 (format-prompt "Span into" default-direction)
 			 direction-list
 			 nil t nil 'table-cell-span-direction-history default-direction))))))
   (unless (memq direction '(right left above below))
@@ -2695,7 +2697,7 @@ Creates a cell on the left and a cell on the right of the current point location
 				   ("Title"
 				    ("Split" . "split") ("Left" . "left") ("Right" . "right"))))
 		 (downcase (completing-read
-			    (format "Existing cell contents to (default %s): " default)
+			    (format-prompt "Existing cell contents to" default)
 			    '(("split") ("left") ("right"))
 			    nil t nil 'table-cell-split-contents-to-history default)))))))
     (unless (eq contents-to 'split)
@@ -2767,7 +2769,7 @@ ORIENTATION is a symbol either horizontally or vertically."
 	   (completion-ignore-case t)
 	   (default (car table-cell-split-orientation-history)))
       (intern (downcase (completing-read
-			 (format "Split orientation (default %s): " default)
+			 (format-prompt "Split orientation" default)
 			 '(("horizontally") ("vertically"))
 			 nil t nil 'table-cell-split-orientation-history default))))))
   (unless (memq orientation '(horizontally vertically))
@@ -2787,7 +2789,7 @@ WHAT is a symbol `cell', `row' or `column'.  JUSTIFY is a symbol
 		(completion-ignore-case t)
 		(default (car table-target-history)))
 	   (intern (downcase (completing-read
-			      (format "Justify what (default %s): " default)
+			      (format-prompt "Justify what" default)
 			      '(("cell") ("row") ("column"))
 			      nil t nil 'table-target-history default))))
 	 (table--query-justification)))
@@ -2912,21 +2914,22 @@ WHERE is provided the cell and table at that location is reported."
 (defun table-generate-source (language &optional dest-buffer caption)
   "Generate source of the current table in the specified language.
 LANGUAGE is a symbol that specifies the language to describe the
-structure of the table.  It must be either `html', `latex' or `cals'.
-The resulted source text is inserted into DEST-BUFFER and the buffer
-object is returned.  When DEST-BUFFER is omitted or nil the default
-buffer specified in `table-dest-buffer-name' is used.  In this case
-the content of the default buffer is erased prior to the generation.
-When DEST-BUFFER is non-nil it is expected to be either a destination
-buffer or a name of the destination buffer.  In this case the
-generated result is inserted at the current point in the destination
-buffer and the previously existing contents in the buffer are
-untouched.
+structure of the table.  It must be either `html', `latex', `cals',
+`wiki', or `mediawiki'.
+The function inserts the resulting source text into DEST-BUFFER, and
+returns the buffer object.  When DEST-BUFFER is omitted or nil, the
+function uses the default buffer specified in `table-dest-buffer-name'.
+In this case, the function erases the default buffer prior to the
+source generation.
+When DEST-BUFFER is non-nil, it should be either a destination
+buffer or a name of the destination buffer.  In that case, the
+function inserts the generated result at point in the destination
+buffer, and leaves the previous contents of the buffer untouched.
 
 References used for this implementation:
 
 HTML:
-        URL `http://www.w3.org'
+        URL `https://www.w3.org'
 
 LaTeX:
         URL `http://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html'
@@ -2940,7 +2943,7 @@ CALS (DocBook DTD):
 	  (completion-ignore-case t)
 	  (default (car table-source-language-history))
 	  (language (downcase (completing-read
-			       (format "Language (default %s): " default)
+			       (format-prompt "Language" default)
 			       table-source-languages
 			       nil t nil 'table-source-language-history default))))
      (list
@@ -3276,7 +3279,7 @@ Currently this method is for LaTeX only."
 		       (with-temp-buffer
 			 (insert line)
 			 (goto-char (point-min))
-			 (while (re-search-forward "\\([#$~_^%{}]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
+			 (while (re-search-forward "\\([#$~_^%{}&]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
 			   (if (match-beginning 1)
 			       (save-excursion
 				 (goto-char (match-beginning 1))
@@ -3363,7 +3366,7 @@ Example:
 	   (let* ((completion-ignore-case t)
 		  (default (car table-sequence-justify-history)))
 	     (intern (downcase (completing-read
-				(format "Justify (default %s): " default)
+				(format-prompt "Justify" default)
 				'(("left") ("center") ("right"))
 				nil t nil 'table-sequence-justify-history default)))))))
   (unless (or (called-interactively-p 'interactive) (table--probe-cell))
@@ -3500,9 +3503,9 @@ column must consists from cells of same width."
       (let ((cell-list (table--vertical-cell-list 'top-to-bottom)))
 	(unless
 	    (and (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (car cell))))) cell-list))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (car cell)))) cell-list))
 		 (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (cdr cell))))) cell-list)))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (cdr cell)))) cell-list)))
 	  (error "Cells in this column are not in uniform width"))
 	(unless lu-coord
 	  (setq lu-coord (table--get-coordinate (caar cell-list))))
@@ -3665,7 +3668,7 @@ companion command to `table-capture' this way.
 	(if (and (string= col-delim-regexp "") (string= row-delim-regexp "")) 'left
 	  (intern
 	   (downcase (completing-read
-		      (format "Justify (default %s): " default)
+		      (format-prompt "Justify" default)
 		      '(("left") ("center") ("right"))
 		      nil t nil 'table-capture-justify-history default)))))
       (if (and (string= col-delim-regexp "") (string= row-delim-regexp "")) "1"
@@ -4250,9 +4253,8 @@ cache buffer into the designated cell in the table buffer."
 PROMPT-HISTORY is a cons cell which car is the prompt string and the
 cdr is the history symbol."
   (let ((default (car (symbol-value (cdr prompt-history)))))
-    (read-from-minibuffer
-     (format "%s (default %s): " (car prompt-history) default)
-     "" nil nil (cdr prompt-history) default))
+    (read-from-minibuffer (format-prompt (car prompt-history) default)
+                          "" nil nil (cdr prompt-history) default))
   (car (symbol-value (cdr prompt-history))))
 
 (defun table--buffer-substring-and-trim (beg end)
@@ -4309,7 +4311,7 @@ Returns the coordinate of the final point location."
   (let* ((completion-ignore-case t)
 	 (default (car table-justify-history)))
     (intern (downcase (completing-read
-		       (format "Justify (default %s): " default)
+		       (format-prompt "Justify" default)
 		       '(("left") ("center") ("right") ("top") ("middle") ("bottom") ("none"))
 		       nil t nil 'table-justify-history default)))))
 

@@ -21,12 +21,14 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epg)
 (require 'font-lock)
-(require 'widget)
-(eval-when-compile (require 'wid-edit))
+(eval-when-compile (require 'subr-x))
 (require 'derived)
+
+;;; Options
 
 (defgroup epa nil
   "The EasyPG Assistant"
@@ -56,11 +58,6 @@ If neither t nor nil, ask user for confirmation."
   :type 'integer
   :group 'epa)
 
-(defgroup epa-faces nil
-  "Faces for epa-mode."
-  :version "23.1"
-  :group 'epa)
-
 (defcustom epa-mail-aliases nil
   "Alist of aliases of email addresses that stand for encryption keys.
 Each element is a list of email addresses (ALIAS EXPANSIONS...).
@@ -75,6 +72,13 @@ The command `epa-mail-encrypt' uses this."
   :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
   :group 'epa
   :version "24.4")
+
+;;; Faces
+
+(defgroup epa-faces nil
+  "Faces for epa-mode."
+  :version "23.1"
+  :group 'epa)
 
 (defface epa-validity-high
   '((default :weight bold)
@@ -117,13 +121,15 @@ The command `epa-mail-encrypt' uses this."
   '((default :weight bold)
     (((class color) (background dark)) :foreground "PaleTurquoise"))
   "Face for the name of the attribute field."
-  :group 'epa)
+  :version "28.1"
+  :group 'epa-faces)
 
 (defface epa-field-body
   '((default :slant italic)
     (((class color) (background dark)) :foreground "turquoise"))
   "Face for the body of the attribute field."
-  :group 'epa)
+  :version "28.1"
+  :group 'epa-faces)
 
 (defcustom epa-validity-face-alist
   '((unknown . epa-validity-disabled)
@@ -138,16 +144,11 @@ The command `epa-mail-encrypt' uses this."
     (full . epa-validity-high)
     (ultimate . epa-validity-high))
   "An alist mapping validity values to faces."
+  :version "28.1"
   :type '(repeat (cons symbol face))
-  :group 'epa)
+  :group 'epa-faces)
 
-(defvar epa-font-lock-keywords
-  '(("^\\*"
-     (0 'epa-mark))
-    ("^\t\\([^\t:]+:\\)[ \t]*\\(.*\\)$"
-     (1 'epa-field-name)
-     (2 'epa-field-body)))
-  "Default expressions to addon in epa-mode.")
+;;; Variables
 
 (defconst epa-pubkey-algorithm-letter-alist
   '((1 . ?R)
@@ -185,6 +186,9 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-key-list-mode-map
   (let ((keymap (make-sparse-keymap))
 	(menu-map (make-sparse-keymap)))
+    (define-key keymap "\C-m" 'epa-show-key)
+    (define-key keymap [?\t] 'forward-button)
+    (define-key keymap [backtab] 'backward-button)
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -245,53 +249,43 @@ You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-exit-buffer-function #'quit-window)
 
-(define-widget 'epa-key 'push-button
-  "Button for representing an epg-key object."
-  :format "%[%v%]"
-  :button-face-get 'epa--key-widget-button-face-get
-  :value-create 'epa--key-widget-value-create
-  :action 'epa--key-widget-action
-  :help-echo 'epa--key-widget-help-echo)
+(defun epa--button-key-text (key)
+  (let ((primary-sub-key (car (epg-key-sub-key-list key)))
+	(primary-user-id (car (epg-key-user-id-list key)))
+        (validity (epg-sub-key-validity (car (epg-key-sub-key-list key)))))
+    (propertize
+     (concat
+      (propertize
+       (format "%c "
+	       (if (epg-sub-key-validity primary-sub-key)
+		   (car (rassq (epg-sub-key-validity primary-sub-key)
+			       epg-key-validity-alist))
+	         ? ))
+       'help-echo (format "Validity: %s"
+                          (epg-sub-key-validity primary-sub-key)))
+      (propertize
+       (concat
+        (epg-sub-key-id primary-sub-key)
+        " "
+        (if primary-user-id
+	    (if (stringp (epg-user-id-string primary-user-id))
+	        (epg-user-id-string primary-user-id)
+	      (epg-decode-dn (epg-user-id-string primary-user-id)))
+          ""))
+       'help-echo (format "Show %s"
+	                  (epg-sub-key-id (car (epg-key-sub-key-list key))))))
+     'face
+     (if validity
+         (cdr (assq validity epa-validity-face-alist))
+       'default))))
 
-(defun epa--key-widget-action (widget &optional _event)
-  (save-selected-window
-    (epa--show-key (widget-get widget :value))))
-
-(defun epa--key-widget-value-create (widget)
-  (let* ((key (widget-get widget :value))
-	 (primary-sub-key (car (epg-key-sub-key-list key)))
-	 (primary-user-id (car (epg-key-user-id-list key))))
-    (insert (format "%c "
-		    (if (epg-sub-key-validity primary-sub-key)
-			(car (rassq (epg-sub-key-validity primary-sub-key)
-				    epg-key-validity-alist))
-		      ? ))
-	    (epg-sub-key-id primary-sub-key)
-	    " "
-	    (if primary-user-id
-		(if (stringp (epg-user-id-string primary-user-id))
-		    (epg-user-id-string primary-user-id)
-		  (epg-decode-dn (epg-user-id-string primary-user-id)))
-	      ""))))
-
-(defun epa--key-widget-button-face-get (widget)
-  (let ((validity (epg-sub-key-validity (car (epg-key-sub-key-list
-					      (widget-get widget :value))))))
-    (if validity
-	(cdr (assq validity epa-validity-face-alist))
-      'default)))
-
-(defun epa--key-widget-help-echo (widget)
-  (format "Show %s"
-	  (epg-sub-key-id (car (epg-key-sub-key-list
-				(widget-get widget :value))))))
+;;; Modes
 
 (define-derived-mode epa-key-list-mode special-mode "EPA Keys"
   "Major mode for `epa-list-keys'."
   (buffer-disable-undo)
   (setq truncate-lines t
 	buffer-read-only t)
-  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   (make-local-variable 'epa-exit-buffer-function)
   (setq-local revert-buffer-function #'epa--key-list-revert-buffer))
 
@@ -300,7 +294,6 @@ You should bind this variable with `let', but do not set it globally.")
   (buffer-disable-undo)
   (setq truncate-lines t
 	buffer-read-only t)
-  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   (make-local-variable 'epa-exit-buffer-function))
 
 (define-derived-mode epa-info-mode special-mode "EPA Info"
@@ -308,6 +301,9 @@ You should bind this variable with `let', but do not set it globally.")
   (buffer-disable-undo)
   (setq truncate-lines t
 	buffer-read-only t))
+
+;;; Commands
+;;;; Marking
 
 (defun epa-mark-key (&optional arg)
   "Mark a key on the current line.
@@ -331,35 +327,22 @@ If ARG is non-nil, mark the key."
   (interactive "P")
   (epa-mark-key (not arg)))
 
+;;;; Quitting
+
 (defun epa-exit-buffer ()
-  "Exit the current buffer.
-`epa-exit-buffer-function' is called if it is set."
+  "Exit the current buffer using `epa-exit-buffer-function'."
   (interactive)
   (funcall epa-exit-buffer-function))
 
+;;;; Listing and Selecting
+
 (defun epa--insert-keys (keys)
-  (save-excursion
-    (save-restriction
-      (narrow-to-region (point) (point))
-      (let (point)
-	(while keys
-	  (setq point (point))
-	  (insert "  ")
-	  (add-text-properties point (point)
-			       (list 'epa-key (car keys)
-				     'front-sticky nil
-				     'rear-nonsticky t
-				     'start-open t
-				     'end-open t))
-	  (widget-create 'epa-key :value (car keys))
-	  (insert "\n")
-	  (setq keys (cdr keys))))
-      (add-text-properties (point-min) (point-max)
-			   (list 'epa-list-keys t
-				 'front-sticky nil
-				 'rear-nonsticky t
-				 'start-open t
-				 'end-open t)))))
+  (dolist (key keys)
+    (insert
+     (propertize
+      (concat "  " (epa--button-key-text key))
+      'epa-key key))
+    (insert "\n")))
 
 (defun epa--list-keys (name secret &optional doc)
   "NAME specifies which key to list.
@@ -396,9 +379,7 @@ DOC is documentation text to insert at the start."
 			 (point-max)))
       (goto-char point))
 
-    (epa--insert-keys (epg-list-keys context name secret))
-    (widget-setup)
-    (set-keymap-parent (current-local-map) widget-keymap))
+    (epa--insert-keys (epg-list-keys context name secret)))
   (make-local-variable 'epa-list-keys-arguments)
   (setq epa-list-keys-arguments (list name secret))
   (goto-char (point-min))
@@ -419,7 +400,7 @@ DOC is documentation text to insert at the start."
 e  expired key.  n  never trust.  m  trust marginally.  u  trust ultimately.
 f  trust fully (keys you have signed, usually).
 q  trust status questionable.  -  trust status unspecified.
- See GPG documentaion for more explanation.
+ See GPG documentation for more explanation.
 \n"))
 
 ;;;###autoload
@@ -454,40 +435,34 @@ q  trust status questionable.  -  trust status unspecified.
   (unless (and epa-keys-buffer
                (buffer-live-p epa-keys-buffer))
     (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
-  (with-current-buffer epa-keys-buffer
-    (epa-key-list-mode)
-    ;; C-c C-c is the usual way to finish the selection (bug#11159).
-    (define-key (current-local-map) "\C-c\C-c" 'exit-recursive-edit)
-    (let ((inhibit-read-only t)
-	  buffer-read-only)
-      (erase-buffer)
-      (insert prompt "\n"
-	      (substitute-command-keys "\
+  (save-window-excursion
+    (with-current-buffer epa-keys-buffer
+      (epa-key-list-mode)
+      ;; C-c C-c is the usual way to finish the selection (bug#11159).
+      (define-key (current-local-map) "\C-c\C-c" 'exit-recursive-edit)
+      (let ((inhibit-read-only t)
+	    buffer-read-only)
+        (erase-buffer)
+        (insert prompt "\n"
+	        (substitute-command-keys "\
 - `\\[epa-mark-key]' to mark a key on the line
 - `\\[epa-unmark-key]' to unmark a key on the line\n"))
-      (widget-create 'push-button
-		     :notify (lambda (&rest _ignore) (abort-recursive-edit))
-		     :help-echo
-		     "Click here or \\[abort-recursive-edit] to cancel"
-		     "Cancel")
-      (widget-create 'push-button
-		     :notify (lambda (&rest _ignore) (exit-recursive-edit))
-		     :help-echo
-		     "Click here or \\[exit-recursive-edit] to finish"
-		     "OK")
-      (insert "\n\n")
-      (epa--insert-keys keys)
-      (widget-setup)
-      (set-keymap-parent (current-local-map) widget-keymap)
-      (setq epa-exit-buffer-function #'abort-recursive-edit)
-      (goto-char (point-min))
-      (let ((display-buffer-mark-dedicated 'soft))
-        (pop-to-buffer (current-buffer))))
-    (unwind-protect
-	(progn
-	  (recursive-edit)
-	  (epa--marked-keys))
-      (kill-buffer epa-keys-buffer))))
+        (insert-button "[Cancel]"
+                       'action (lambda (_button) (abort-recursive-edit)))
+        (insert " ")
+        (insert-button "[OK]"
+                       'action (lambda (_button) (exit-recursive-edit)))
+        (insert "\n\n")
+        (epa--insert-keys keys)
+        (setq epa-exit-buffer-function #'abort-recursive-edit)
+        (goto-char (point-min))
+        (let ((display-buffer-mark-dedicated 'soft))
+          (pop-to-buffer (current-buffer))))
+      (unwind-protect
+	  (progn
+	    (recursive-edit)
+	    (epa--marked-keys))
+        (kill-buffer epa-keys-buffer)))))
 
 ;;;###autoload
 (defun epa-select-keys (context prompt &optional names secret)
@@ -499,6 +474,16 @@ the keys are listed.
 If SECRET is non-nil, list secret keys instead of public keys."
   (let ((keys (epg-list-keys context names secret)))
     (epa--select-keys prompt keys)))
+
+;;;; Key Details
+
+(defun epa-show-key ()
+  "Show a key on the current line."
+  (interactive)
+  (if-let ((key (get-text-property (point) 'epa-key)))
+      (save-selected-window
+        (epa--show-key key))
+    (error "No key on this line")))
 
 (defun epa--show-key (key)
   (let* ((primary-sub-key (car (epg-key-sub-key-list key)))
@@ -578,6 +563,8 @@ If SECRET is non-nil, list secret keys instead of public keys."
     (goto-char (point-min))
     (pop-to-buffer (current-buffer))))
 
+;;;; Encryption and Signatures
+
 (defun epa-display-info (info)
   (if epa-popup-info-window
       (save-selected-window
@@ -630,10 +617,6 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	  (epa-info-mode)
 	  (goto-char (point-min)))
 	(display-buffer buffer)))))
-
-(defun epa-display-verify-result (verify-result)
-  (declare (obsolete epa-display-info "23.1"))
-  (epa-display-info (epg-verify-result-to-string verify-result)))
 
 (defun epa-passphrase-callback-function (context key-id handback)
   (if (eq key-id 'SYM)
@@ -1092,16 +1075,7 @@ If no one is selected, default secret key is used.  "
 				 'start-open t
 				 'end-open t)))))
 
-(defalias 'epa--derived-mode-p
-  (if (fboundp 'derived-mode-p)
-      #'derived-mode-p
-    (lambda (&rest modes)
-      "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
-      (let ((parent major-mode))
-        (while (and (not (memq parent modes))
-                    (setq parent (get parent 'derived-mode-parent))))
-        parent))))
+(define-obsolete-function-alias 'epa--derived-mode-p 'derived-mode-p "28.1")
 
 ;;;###autoload
 (defun epa-encrypt-region (start end recipients sign signers)
@@ -1178,6 +1152,8 @@ If no one is selected, symmetric encryption will be performed.  ")
 				 'start-open t
 				 'end-open t)))))
 
+;;;; Key Management
+
 ;;;###autoload
 (defun epa-delete-keys (keys &optional allow-secret)
   "Delete selected KEYS."
@@ -1214,7 +1190,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
-    ;; FIXME: Why not use the (otherwise unused) epa--derived-mode-p?
+    ;; FIXME: Why not use the derived-mode-p?
     (if (eq major-mode 'epa-key-list-mode)
 	(apply #'epa--list-keys epa-list-keys-arguments))))
 

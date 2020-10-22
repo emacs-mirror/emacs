@@ -4,11 +4,11 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
+;; Version: 1.0.12
 ;; Package-Requires: ((emacs "25.2"))
-;; Version: 1.0.9
 
-;; This is an Elpa :core package.  Don't use functionality that is not
-;; compatible with Emacs 25.2.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'json)
 (require 'eieio)
 (eval-when-compile (require 'subr-x))
 (require 'warnings)
@@ -240,8 +239,8 @@ JSON object.
 The caller can expect SUCCESS-FN or ERROR-FN to be called with a
 JSONRPC `:result' or `:error' object, respectively.  If this
 doesn't happen after TIMEOUT seconds (defaults to
-`jsonrpc-request-timeout'), the caller can expect TIMEOUT-FN to be
-called with no arguments. The default values of SUCCESS-FN,
+`jrpc-default-request-timeout'), the caller can expect TIMEOUT-FN
+to be called with no arguments. The default values of SUCCESS-FN,
 ERROR-FN and TIMEOUT-FN simply log the events into
 `jsonrpc-events-buffer'.
 
@@ -275,7 +274,7 @@ error of type `jsonrpc-error'.
 DEFERRED is passed to `jsonrpc-async-request', which see.
 
 If CANCEL-ON-INPUT is non-nil and the user inputs something while
-the functino is waiting, then it exits immediately, returning
+the function is waiting, then it exits immediately, returning
 CANCEL-ON-INPUT-RETVAL.  Any future replies (normal or error) are
 ignored."
   (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
@@ -330,11 +329,14 @@ ignored."
                            :method method
                            :params params))
 
-(defconst jrpc-default-request-timeout 10
+(define-obsolete-variable-alias 'jrpc-default-request-timeout
+  'jsonrpc-default-request-timeout "28.1")
+
+(defconst jsonrpc-default-request-timeout 10
   "Time in seconds before timing out a JSONRPC request.")
 
 
-;;; Specfic to `jsonrpc-process-connection'
+;;; Specific to `jsonrpc-process-connection'
 ;;;
 
 (defclass jsonrpc-process-connection (jsonrpc-connection)
@@ -364,21 +366,53 @@ connection object, called when the process dies .")
 
 (cl-defmethod initialize-instance ((conn jsonrpc-process-connection) slots)
   (cl-call-next-method)
-  (let* ((proc (plist-get slots :process))
-         (proc (if (functionp proc) (funcall proc) proc))
-         (buffer (get-buffer-create (format "*%s output*" (process-name proc))))
-         (stderr (get-buffer-create (format "*%s stderr*" (process-name proc)))))
+  (cl-destructuring-bind (&key ((:process proc)) name &allow-other-keys) slots
+    ;; FIXME: notice the undocumented bad coupling in the stderr
+    ;; buffer name, it must be named exactly like this we expect when
+    ;; calling `make-process'.  If there were a `set-process-stderr'
+    ;; like there is `set-process-buffer' we wouldn't need this and
+    ;; could use a pipe with a process filter instead of
+    ;; `after-change-functions'.  Alternatively, we need a new initarg
+    ;; (but maybe not a slot).
+    (let ((calling-buffer (current-buffer)))
+      (with-current-buffer (get-buffer-create (format "*%s stderr*" name))
+        (let ((inhibit-read-only t)
+              (hidden-name (concat " " (buffer-name))))
+          (erase-buffer)
+          (buffer-disable-undo)
+          (add-hook
+           'after-change-functions
+           (lambda (beg _end _pre-change-len)
+             (cl-loop initially (goto-char beg)
+                      do (forward-line)
+                      when (bolp)
+                      for line = (buffer-substring
+                                  (line-beginning-position 0)
+                                  (line-end-position 0))
+                      do (with-current-buffer (jsonrpc-events-buffer conn)
+                           (goto-char (point-max))
+                           (let ((inhibit-read-only t))
+                             (insert (format "[stderr] %s\n" line))))
+                      until (eobp)))
+           nil t)
+          ;; If we are correctly coupled to the client, the process
+          ;; now created should pick up the current stderr buffer,
+          ;; which we immediately rename
+          (setq proc (if (functionp proc)
+                         (with-current-buffer calling-buffer (funcall proc))
+                       proc))
+          (ignore-errors (kill-buffer hidden-name))
+          (rename-buffer hidden-name)
+          (process-put proc 'jsonrpc-stderr (current-buffer))
+          (read-only-mode t))))
     (setf (jsonrpc--process conn) proc)
-    (set-process-buffer proc buffer)
-    (process-put proc 'jsonrpc-stderr stderr)
+    (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
     (set-process-sentinel proc #'jsonrpc--process-sentinel)
     (with-current-buffer (process-buffer proc)
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
-      (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t) proc))
-    (with-current-buffer stderr
-      (buffer-disable-undo))
+      (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
     (process-put proc 'jsonrpc-connection conn)))
 
 (cl-defmethod jsonrpc-connection-send ((connection jsonrpc-process-connection)
@@ -442,26 +476,35 @@ With optional CLEANUP, kill any associated buffers."
 ;;;
 (define-error 'jsonrpc-error "jsonrpc-error")
 
-(defun jsonrpc--json-read ()
-  "Read JSON object in buffer, move point to end of buffer."
-  ;; TODO: I guess we can make these macros if/when jsonrpc.el
-  ;; goes into Emacs core.
-  (cond ((fboundp 'json-parse-buffer) (json-parse-buffer
-                                       :object-type 'plist
-                                       :null-object nil
-                                       :false-object :json-false))
-        (t                            (let ((json-object-type 'plist))
-                                        (json-read)))))
+(defalias 'jsonrpc--json-read
+  (if (fboundp 'json-parse-buffer)
+      (lambda ()
+        (json-parse-buffer :object-type 'plist
+                           :null-object nil
+                           :false-object :json-false))
+    (require 'json)
+    (defvar json-object-type)
+    (declare-function json-read "json" ())
+    (lambda ()
+      (let ((json-object-type 'plist))
+        (json-read))))
+  "Read JSON object in buffer, move point to end of buffer.")
 
-(defun jsonrpc--json-encode (object)
-  "Encode OBJECT into a JSON string."
-  (cond ((fboundp 'json-serialize) (json-serialize
-                                    object
-                                    :false-object :json-false
-                                    :null-object nil))
-        (t                         (let ((json-false :json-false)
-                                         (json-null nil))
-                                     (json-encode object)))))
+(defalias 'jsonrpc--json-encode
+  (if (fboundp 'json-serialize)
+      (lambda (object)
+        (json-serialize object
+                        :false-object :json-false
+                        :null-object nil))
+    (require 'json)
+    (defvar json-false)
+    (defvar json-null)
+    (declare-function json-encode "json" (object))
+    (lambda (object)
+      (let ((json-false :json-false)
+            (json-null nil))
+        (json-encode object))))
+  "Encode OBJECT into a JSON string.")
 
 (cl-defun jsonrpc--reply
     (connection id &key (result nil result-supplied-p) (error nil error-supplied-p))
@@ -577,7 +620,7 @@ With optional CLEANUP, kill any associated buffers."
                                     params
                                     &rest args
                                     &key success-fn error-fn timeout-fn
-                                    (timeout jrpc-default-request-timeout)
+                                    (timeout jsonrpc-default-request-timeout)
                                     (deferred nil))
   "Does actual work for `jsonrpc-async-request'.
 
@@ -606,7 +649,7 @@ TIMEOUT is nil)."
       (if (jsonrpc-connection-ready-p connection deferred)
           ;; Server is ready, we jump below and send it immediately.
           (remhash (list deferred buf) (jsonrpc--deferred-actions connection))
-        ;; Otherwise, save in `eglot--deferred-actions' and exit non-locally
+        ;; Otherwise, save in `jsonrpc--deferred-actions' and exit non-locally
         (unless old-id
           (jsonrpc--debug connection `(:deferring ,method :id ,id :params
                                                   ,params)))
@@ -682,7 +725,7 @@ originated."
                               (format "-%s" subtype)))))
             (goto-char (point-max))
             (prog1
-                (let ((msg (format "%s%s%s %s:\n%s\n"
+                (let ((msg (format "[%s]%s%s %s:\n%s"
                                    type
                                    (if id (format " (id:%s)" id) "")
                                    (if error " ERROR" "")

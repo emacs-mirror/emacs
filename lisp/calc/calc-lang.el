@@ -1,4 +1,4 @@
-;;; calc-lang.el --- calc language functions
+;;; calc-lang.el --- calc language functions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -44,6 +44,8 @@
 (defvar math-comp-right-bracket)
 (defvar math-comp-comma)
 (defvar math-comp-vector-prec)
+
+(defvar math-exp-str) ;; Dyn scoped
 
 ;;; Alternate entry/display languages.
 
@@ -144,7 +146,7 @@
      ( y1          . (math-C-parse-bess))
      ( tgamma      . calcFunc-gamma )))
 
-(defun math-C-parse-bess (f val)
+(defun math-C-parse-bess (_f val)
   "Parse C's j0, j1, y0, y1 functions."
   (let ((args (math-read-expr-list)))
     (math-read-token)
@@ -155,7 +157,7 @@
            ((eq val 'y1) '(calcFunc-besY 1)))
      args)))
 
-(defun math-C-parse-fma (f val)
+(defun math-C-parse-fma (_f _val)
   "Parse C's fma function fma(x,y,z) => (x * y + z)."
   (let ((args (math-read-expr-list)))
     (math-read-token)
@@ -372,14 +374,14 @@
 (defvar math-exp-old-pos)
 
 (defvar math-parsing-fortran-vector nil)
-(defun math-parse-fortran-vector (op)
+(defun math-parse-fortran-vector (_op)
   (let ((math-parsing-fortran-vector '(end . "\000")))
     (prog1
 	(math-read-brackets t "]")
       (setq math-exp-token (car math-parsing-fortran-vector)
 	    math-expr-data (cdr math-parsing-fortran-vector)))))
 
-(defun math-parse-fortran-vector-end (x op)
+(defun math-parse-fortran-vector-end (x _op)
   (if math-parsing-fortran-vector
       (progn
 	(setq math-parsing-fortran-vector (cons math-exp-token math-expr-data)
@@ -466,10 +468,10 @@
      ( "\\times"  *		   191 190 )
      ( "*"        *		   191 190 )
      ( "2x"	  *		   191 190 )
+     ( "/"	  /		   185 186 )
      ( "+"	  +		   180 181 )
      ( "-"	  -		   180 181 )
      ( "\\over"	  /		   170 171 )
-     ( "/"	  /		   170 171 )
      ( "\\choose" calcFunc-choose  170 171 )
      ( "\\mod"	  %		   170 171 )
      ( "<"	  calcFunc-lt	   160 161 )
@@ -692,7 +694,7 @@
           "_{" (math-compose-expr (nth 2 a) 0)
           "}{" (math-compose-expr (nth 1 a) 0) "}"))))
 
-(defun math-parse-tex-sum (f val)
+(defun math-parse-tex-sum (f _val)
   (let (low high save)
     (or (equal math-expr-data "_") (throw 'syntax "Expected `_'"))
     (math-read-token)
@@ -727,14 +729,15 @@
         (math-compose-expr (nth 3 a) 0)
         (if (memq (nth 1 a) '(0 2)) ")" "]")))
 
-(defun math-compose-tex-var (a prec)
+(defun math-compose-tex-var (a _prec)
   (if (and calc-language-option
            (not (= calc-language-option 0))
            (string-match "\\`[a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9]+\\'"
                          (symbol-name (nth 1 a))))
-      (if (eq calc-language 'latex)
-          (format "\\text{%s}" (symbol-name (nth 1 a)))
-        (format "\\hbox{%s}" (symbol-name (nth 1 a))))
+      (format (if (eq calc-language 'latex)
+                  "\\text{%s}"
+                "\\hbox{%s}")
+              (symbol-name (nth 1 a)))
     (math-compose-var a)))
 
 (defun math-compose-tex-func (func a)
@@ -906,7 +909,7 @@
                           (setq math-exp-str (copy-sequence math-exp-str))
                           (aset math-exp-str right ?\]))))))))))
 
-(defun math-latex-parse-frac (f val)
+(defun math-latex-parse-frac (_f _val)
   (let (numer denom)
     (setq numer (car (math-read-expr-list)))
     (math-read-token)
@@ -916,7 +919,7 @@
         (list 'frac numer denom)
       (list '/ numer denom))))
 
-(defun math-latex-parse-two-args (f val)
+(defun math-latex-parse-two-args (f _val)
   (let (first second)
     (setq first (car (math-read-expr-list)))
     (math-read-token)
@@ -931,7 +934,7 @@
 
 (put 'latex 'math-input-filter 'math-tex-input-filter)
 
-(defun calc-eqn-language (n)
+(defun calc-eqn-language (_n)
   (interactive "P")
   (calc-wrapper
    (calc-set-language 'eqn)
@@ -1159,7 +1162,7 @@
 	   (math-compose-eqn-matrix (cdr a)))))))
     nil))
 
-(defun math-parse-eqn-matrix (f sym)
+(defun math-parse-eqn-matrix (_f _sym)
   (let ((vec nil))
     (while (assoc math-expr-data '(("ccol") ("lcol") ("rcol")))
       (math-read-token)
@@ -1175,7 +1178,7 @@
     (math-read-token)
     (math-transpose (cons 'vec (nreverse vec)))))
 
-(defun math-parse-eqn-prime (x sym)
+(defun math-parse-eqn-prime (x _sym)
   (if (eq (car-safe x) 'var)
       (if (equal math-expr-data calc-function-open)
 	  (progn
@@ -1363,7 +1366,7 @@
                 (math-compose-vector args ", " 0)
                 "]")))))
 
-(defun math-yacas-parse-Sum (f val)
+(defun math-yacas-parse-Sum (f _val)
   "Read in the arguments to \"Sum\" in Calc's Yacas mode."
   (let ((args (math-read-expr-list)))
     (math-read-token)
@@ -1512,7 +1515,7 @@
        ( substitute . (math-maxima-parse-subst))
        ( taylor . (math-maxima-parse-taylor))))
 
-(defun math-maxima-parse-subst (f val)
+(defun math-maxima-parse-subst (_f _val)
   "Read in the arguments to \"subst\" in Calc's Maxima mode."
   (let ((args (math-read-expr-list)))
     (math-read-token)
@@ -1521,7 +1524,7 @@
           (nth 2 args)
           (nth 0 args))))
 
-(defun math-maxima-parse-taylor (f val)
+(defun math-maxima-parse-taylor (_f _val)
   "Read in the arguments to \"taylor\" in Calc's Maxima mode."
   (let ((args (math-read-expr-list)))
     (math-read-token)
@@ -1762,7 +1765,7 @@
        ( contains . (math-lang-switch-args calcFunc-in))
        ( has      . (math-lang-switch-args calcFunc-refers))))
 
-(defun math-lang-switch-args (f val)
+(defun math-lang-switch-args (f _val)
   "Read the arguments to a Calc function in reverse order.
 This is used for various language modes which have functions in reverse
 order to Calc's."
@@ -1805,15 +1808,15 @@ order to Calc's."
 (put 'giac 'math-compose-subscr
      (function
       (lambda (a)
-        (let ((args (cdr (cdr a))))
+        ;; (let ((args (cdr (cdr a))))
           (list 'horiz
                 (math-compose-expr (nth 1 a) 1000)
                 "["
                 (math-compose-expr
                  (calc-normalize (list '- (nth 2 a) 1)) 0)
-                "]")))))
+                "]")))) ;;)
 
-(defun math-read-giac-subscr (x op)
+(defun math-read-giac-subscr (x _op)
   (let ((idx (math-read-expr-level 0)))
     (or (equal math-expr-data "]")
 	(throw 'syntax "Expected `]'"))
@@ -1947,7 +1950,7 @@ order to Calc's."
               (math-compose-expr (nth 2 a) 0)
               "]]"))))
 
-(defun math-read-math-subscr (x op)
+(defun math-read-math-subscr (x _op)
   (let ((idx (math-read-expr-level 0)))
     (or (and (equal math-expr-data "]")
 	     (progn
@@ -2094,10 +2097,13 @@ order to Calc's."
 (defvar math-rb-v1)
 (defvar math-rb-v2)
 
-(defun math-read-big-rec (math-rb-h1 math-rb-v1 math-rb-h2 math-rb-v2
+(defun math-read-big-rec (rb-h1 rb-v1 rb-h2 rb-v2
                                      &optional baseline prec short)
   (or prec (setq prec 0))
-
+  (let ((math-rb-h1 rb-h1)
+        (math-rb-v1 rb-v1)
+        (math-rb-h2 rb-h2)
+        (math-rb-v2 rb-v2))
   ;; Clip whitespace above or below.
   (while (and (< math-rb-v1 math-rb-v2)
               (math-read-big-emptyp math-rb-h1 math-rb-v1 math-rb-h2 (1+ math-rb-v1)))
@@ -2449,7 +2455,7 @@ order to Calc's."
 	    math-read-big-h2 h)
       (or short (= math-read-big-h2 math-rb-h2)
 	  (math-read-big-error h baseline))
-      p)))
+      p))))
 
 (defun math-read-big-char (h v)
   (or (and (>= h math-rb-h1)

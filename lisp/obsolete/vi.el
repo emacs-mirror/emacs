@@ -1225,7 +1225,7 @@ SPECIAL FEATURE: char argument can be used to specify shift amount(1-9)."
 (defun vi-end-of-blank-delimited-word (count)
   "Forward to the end of the COUNT'th blank-delimited word."
   (interactive "p")
-  (if (re-search-forward "[^ \t\n\']+[ \t\n\']" nil t count)
+  (if (re-search-forward "[^ \t\n']+[ \t\n']" nil t count)
       (if (not (eobp)) (backward-char 2))))
 
 (defun vi-home-window-line (arg)

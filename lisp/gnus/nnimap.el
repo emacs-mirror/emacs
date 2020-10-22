@@ -986,7 +986,10 @@ textual parts.")
                 (when (and (car result) (not can-move))
                   (nnimap-delete-article article))
                 (cons internal-move-group
-                      (or (nnimap-find-uid-response "COPYUID" (caddr result))
+                      (or (nnimap-find-uid-response
+			   "COPYUID"
+			   ;; Server gives different responses for MOVE and COPY.
+			   (if can-move (caddr result) (cadr result)))
                           (nnimap-find-article-by-message-id
                            internal-move-group server message-id
                            nnimap-request-articles-find-limit)))))
@@ -1670,8 +1673,7 @@ If LIMIT, first try to limit the search to the N last articles."
 	  (when (and active
 		     recent
 		     (> (car (last recent)) (cdr active)))
-	    (push (list (cons (gnus-group-real-name group) 0))
-		  nnmail-split-history)))
+	    (push (list (cons group 0)) nnmail-split-history)))
 	;; Note the active level for the next run-through.
 	(gnus-group-set-parameter info 'active (gnus-active group))
 	(gnus-group-set-parameter info 'uidvalidity uidvalidity)
@@ -1684,7 +1686,7 @@ If LIMIT, first try to limit the search to the N last articles."
         (gnus-add-to-range
          (gnus-add-to-range
           (gnus-range-add (gnus-info-read info)
-		          vanished)
+			  vanished)
 	  (cdr (assq '%Flagged flags)))
 	 (cdr (assq '%Seen flags))))
   (let ((marks (gnus-info-marks info)))
@@ -1770,11 +1772,6 @@ If LIMIT, first try to limit the search to the N last articles."
   ;; read it.
   (subst-char-in-region (point-min) (point-max)
 			?\\ ?% t)
-  ;; Remove any MODSEQ entries in the buffer, because they may contain
-  ;; numbers that are too large for 32-bit Emacsen.
-  (while (re-search-forward " MODSEQ ([0-9]+)" nil t)
-    (replace-match "" t t))
-  (goto-char (point-min))
   (let (start end articles groups uidnext elems permanent-flags
 	      uidvalidity vanished highestmodseq)
     (dolist (elem sequences)
@@ -1801,8 +1798,9 @@ If LIMIT, first try to limit the search to the N last articles."
 		 (setq uidvalidity
 		       (and (re-search-forward "UIDVALIDITY \\([0-9]+\\)"
 					       end t)
-			    ;; Store UIDVALIDITY as a string, as it's
-			    ;; too big for 32-bit Emacsen, usually.
+			    ;; Store UIDVALIDITY as a string; before bignums,
+			    ;; it was usually too big for 32-bit Emacsen,
+			    ;; and we don't want to change the format now.
 			    (match-string 1)))
 		 (goto-char start)
 		 (setq vanished
@@ -1849,15 +1847,15 @@ If LIMIT, first try to limit the search to the N last articles."
   (setq nnimap-status-string "Read-only server")
   nil)
 
-(defvar gnus-refer-thread-use-nnir) ;; gnus-sum.el
+(defvar gnus-refer-thread-use-search) ;; gnus-sum.el
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
-(autoload 'nnir-search-thread "nnir")
+(autoload 'nnselect-search-thread "nnselect")
 
 (deffoo nnimap-request-thread (header &optional group server)
-  (if gnus-refer-thread-use-nnir
-      (nnir-search-thread header)
+  (if gnus-refer-thread-use-search
+      (nnselect-search-thread header)
     (when (nnimap-change-group group server)
       (let* ((cmd (nnimap-make-thread-query header))
              (result (with-current-buffer (nnimap-buffer)
@@ -1937,7 +1935,7 @@ Return the server's response to the SELECT or EXAMINE command."
 (defun nnimap-log-buffer ()
   (let ((name "*imap log*"))
     (or (get-buffer name)
-        (with-current-buffer (get-buffer-create name)
+        (with-current-buffer (gnus-get-buffer-create name)
 	  (setq-local window-point-insertion-type t)
           (current-buffer)))))
 

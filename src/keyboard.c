@@ -103,7 +103,8 @@ static KBOARD *all_kboards;
 /* True in the single-kboard state, false in the any-kboard state.  */
 static bool single_kboard;
 
-#define NUM_RECENT_KEYS (300)
+/* Minimum allowed size of the recent_keys vector.  */
+#define MIN_NUM_RECENT_KEYS (100)
 
 /* Index for storing next element into recent_keys.  */
 static int recent_keys_index;
@@ -111,7 +112,10 @@ static int recent_keys_index;
 /* Total number of elements stored into recent_keys.  */
 static int total_keys;
 
-/* This vector holds the last NUM_RECENT_KEYS keystrokes.  */
+/* Size of the recent_keys vector.  */
+static int lossage_limit = 3 * MIN_NUM_RECENT_KEYS;
+
+/* This vector holds the last lossage_limit keystrokes.  */
 static Lisp_Object recent_keys;
 
 /* Vector holding the key sequence that invoked the current command.
@@ -1421,10 +1425,10 @@ command_loop_1 (void)
       /* Execute the command.  */
 
       {
-	total_keys += total_keys < NUM_RECENT_KEYS;
+	total_keys += total_keys < lossage_limit;
 	ASET (recent_keys, recent_keys_index,
 	      Fcons (Qnil, cmd));
-	if (++recent_keys_index >= NUM_RECENT_KEYS)
+	if (++recent_keys_index >= lossage_limit)
 	  recent_keys_index = 0;
       }
       Vthis_command = cmd;
@@ -2279,7 +2283,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		      eassert (coding->carryover_bytes == 0);
 		      n = 0;
 		      while (n < coding->produced_char)
-			events[n++] = make_fixnum (STRING_CHAR_ADVANCE (p));
+			events[n++] = make_fixnum (string_char_advance (&p));
 		    }
 		}
 	    }
@@ -2901,6 +2905,12 @@ read_char (int commandflag, Lisp_Object map,
 	   example banishing the mouse under mouse-avoidance-mode.  */
 	timer_resume_idle ();
 
+#ifdef HAVE_NS
+      if (CONSP (c)
+          && (EQ (XCAR (c), intern ("ns-unput-working-text"))))
+        input_was_pending = input_pending;
+#endif
+
       if (current_buffer != prev_buffer)
 	{
 	  /* The command may have changed the keymaps.  Pretend there
@@ -2921,13 +2931,11 @@ read_char (int commandflag, Lisp_Object map,
 	goto exit;
 
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
-	   && UNSIGNED_CMP (XFIXNAT (c), <,
-			    SCHARS (KVAR (current_kboard,
-					  Vkeyboard_translate_table))))
+	   && XFIXNAT (c) < SCHARS (KVAR (current_kboard,
+					  Vkeyboard_translate_table)))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && UNSIGNED_CMP (XFIXNAT (c), <,
-			       ASIZE (KVAR (current_kboard,
-					    Vkeyboard_translate_table))))
+	      && XFIXNAT (c) < ASIZE (KVAR (current_kboard,
+					    Vkeyboard_translate_table)))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{
@@ -3244,15 +3252,15 @@ record_char (Lisp_Object c)
       int ix1, ix2, ix3;
 
       if ((ix1 = recent_keys_index - 1) < 0)
-	ix1 = NUM_RECENT_KEYS - 1;
+	ix1 = lossage_limit - 1;
       ev1 = AREF (recent_keys, ix1);
 
       if ((ix2 = ix1 - 1) < 0)
-	ix2 = NUM_RECENT_KEYS - 1;
+	ix2 = lossage_limit - 1;
       ev2 = AREF (recent_keys, ix2);
 
       if ((ix3 = ix2 - 1) < 0)
-	ix3 = NUM_RECENT_KEYS - 1;
+	ix3 = lossage_limit - 1;
       ev3 = AREF (recent_keys, ix3);
 
       if (EQ (XCAR (c), Qhelp_echo))
@@ -3303,12 +3311,12 @@ record_char (Lisp_Object c)
     {
       if (!recorded)
 	{
-	  total_keys += total_keys < NUM_RECENT_KEYS;
+	  total_keys += total_keys < lossage_limit;
 	  ASET (recent_keys, recent_keys_index,
                 /* Copy the event, in case it gets modified by side-effect
                    by some remapping function (bug#30955).  */
                 CONSP (c) ? Fcopy_sequence (c) : c);
-	  if (++recent_keys_index >= NUM_RECENT_KEYS)
+	  if (++recent_keys_index >= lossage_limit)
 	    recent_keys_index = 0;
 	}
       else if (recorded < 0)
@@ -3322,10 +3330,10 @@ record_char (Lisp_Object c)
 
 	  while (recorded++ < 0 && total_keys > 0)
 	    {
-	      if (total_keys < NUM_RECENT_KEYS)
+	      if (total_keys < lossage_limit)
 		total_keys--;
 	      if (--recent_keys_index < 0)
-		recent_keys_index = NUM_RECENT_KEYS - 1;
+		recent_keys_index = lossage_limit - 1;
 	      ASET (recent_keys, recent_keys_index, Qnil);
 	    }
 	}
@@ -5246,7 +5254,6 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 					extra_info)));
     }
 
-#ifdef HAVE_WINDOW_SYSTEM
   else if (f)
     {
       /* Return mouse pixel coordinates here.  */
@@ -5254,7 +5261,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       xret = XFIXNUM (x);
       yret = XFIXNUM (y);
 
-      if (FRAME_LIVE_P (f)
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f)
+	  && FRAME_LIVE_P (f)
 	  && FRAME_INTERNAL_BORDER_WIDTH (f) > 0
 	  && !NILP (get_frame_param (f, Qdrag_internal_border)))
 	{
@@ -5263,8 +5272,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
 	  posn = builtin_lisp_symbol (internal_border_parts[part]);
 	}
-    }
 #endif
+    }
 
   else
     window_or_frame = Qnil;
@@ -5688,7 +5697,7 @@ make_lispy_event (struct input_event *event)
 	    ignore_mouse_drag_p = false;
 	  }
 
-	/* Now we're releasing a button - check the co-ordinates to
+	/* Now we're releasing a button - check the coordinates to
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {
@@ -5992,24 +6001,14 @@ make_lispy_event (struct input_event *event)
       return list2 (Qselect_window, list1 (event->frame_or_window));
 
     case TAB_BAR_EVENT:
-      if (EQ (event->arg, event->frame_or_window))
-	/* This is the prefix key.  We translate this to
-	   `(tab_bar)' because the code in keyboard.c for tab bar
-	   events, which we use, relies on this.  */
-	return list1 (Qtab_bar);
-      else if (SYMBOLP (event->arg))
-	return apply_modifiers (event->modifiers, event->arg);
-      return event->arg;
-
     case TOOL_BAR_EVENT:
-      if (EQ (event->arg, event->frame_or_window))
-	/* This is the prefix key.  We translate this to
-	   `(tool_bar)' because the code in keyboard.c for tool bar
-	   events, which we use, relies on this.  */
-	return list1 (Qtool_bar);
-      else if (SYMBOLP (event->arg))
-	return apply_modifiers (event->modifiers, event->arg);
-      return event->arg;
+      {
+	Lisp_Object res = event->arg;
+	Lisp_Object location
+	  = event->kind == TAB_BAR_EVENT ? Qtab_bar : Qtool_bar;
+	if (SYMBOLP (res)) res = apply_modifiers (event->modifiers, res);
+	return list2 (res, list2 (event->frame_or_window, location));
+      }
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
@@ -6236,7 +6235,7 @@ parse_modifiers_uncached (Lisp_Object symbol, ptrdiff_t *modifier_end)
 static Lisp_Object
 apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_byte)
 {
-  /* Since BASE could contain NULs, we can't use intern here; we have
+  /* Since BASE could contain nulls, we can't use intern here; we have
      to use Fintern, which expects a genuine Lisp_String, and keeps a
      reference to it.  */
   char new_mods[sizeof "A-C-H-M-S-s-up-down-drag-double-triple-"];
@@ -6646,7 +6645,7 @@ has the same base event type and all the specified modifiers.  */)
 DEFUN ("internal-handle-focus-in", Finternal_handle_focus_in,
        Sinternal_handle_focus_in, 1, 1, 0,
        doc: /* Internally handle focus-in events.
-This function potentially generates an artifical switch-frame event.  */)
+This function potentially generates an artificial switch-frame event.  */)
      (Lisp_Object event)
 {
   Lisp_Object frame;
@@ -8308,7 +8307,7 @@ append_tab_bar_item (void)
   /* Append entries from tab_bar_item_properties to the end of
      tab_bar_items_vector.  */
   vcopy (tab_bar_items_vector, ntab_bar_items,
-	 XVECTOR (tab_bar_item_properties)->contents, TAB_BAR_ITEM_NSLOTS);
+	 xvector_contents (tab_bar_item_properties), TAB_BAR_ITEM_NSLOTS);
   ntab_bar_items += TAB_BAR_ITEM_NSLOTS;
 }
 
@@ -8785,7 +8784,7 @@ append_tool_bar_item (void)
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
   vcopy (tool_bar_items_vector, ntool_bar_items,
-	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
+	 xvector_contents (tool_bar_item_properties), TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
@@ -10416,6 +10415,64 @@ If CHECK-TIMERS is non-nil, timers that are ready to run will do so.  */)
 	  ? Qt : Qnil);
 }
 
+/* Reallocate recent_keys copying the recorded keystrokes
+   in the right order.  */
+static void
+update_recent_keys (int new_size, int kept_keys)
+{
+  int osize = ASIZE (recent_keys);
+  eassert (recent_keys_index < osize);
+  eassert (kept_keys <= min (osize, new_size));
+  Lisp_Object v = make_nil_vector (new_size);
+  int i, idx;
+  for (i = 0; i < kept_keys; ++i)
+    {
+      idx = recent_keys_index - kept_keys + i;
+      while (idx < 0)
+        idx += osize;
+      ASET (v, i, AREF (recent_keys, idx));
+    }
+  recent_keys = v;
+  total_keys = kept_keys;
+  recent_keys_index = total_keys % new_size;
+  lossage_limit = new_size;
+
+}
+
+DEFUN ("lossage-size", Flossage_size, Slossage_size, 0, 1,
+       "(list (read-number \"new-size: \" (lossage-size)))",
+       doc: /* Return or set the maximum number of keystrokes to save.
+If called with a non-nil ARG, set the limit to ARG and return it.
+Otherwise, return the current limit.
+
+The saved keystrokes are shown by `view-lossage'.  */)
+  (Lisp_Object arg)
+{
+  if (NILP(arg))
+    return make_fixnum (lossage_limit);
+
+  if (!FIXNATP (arg))
+    user_error ("Value must be a positive integer");
+  int osize = ASIZE (recent_keys);
+  eassert (lossage_limit == osize);
+  int min_size = MIN_NUM_RECENT_KEYS;
+  int new_size = XFIXNAT (arg);
+
+  if (new_size == osize)
+    return make_fixnum (lossage_limit);
+
+  if (new_size < min_size)
+    {
+      AUTO_STRING (fmt, "Value must be >= %d");
+      Fsignal (Quser_error, list1 (CALLN (Fformat, fmt, make_fixnum (min_size))));
+    }
+
+  int kept_keys = new_size > osize ? total_keys : min (new_size, total_keys);
+  update_recent_keys (new_size, kept_keys);
+
+  return make_fixnum (lossage_limit);
+}
+
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 1, 0,
        doc: /* Return vector of last few events, not counting those from keyboard macros.
 If INCLUDE-CMDS is non-nil, include the commands that were run,
@@ -10425,21 +10482,21 @@ represented as pseudo-events of the form (nil . COMMAND).  */)
   bool cmds = !NILP (include_cmds);
 
   if (!total_keys
-      || (cmds && total_keys < NUM_RECENT_KEYS))
+      || (cmds && total_keys < lossage_limit))
     return Fvector (total_keys,
 		    XVECTOR (recent_keys)->contents);
   else
     {
       Lisp_Object es = Qnil;
-      int i = (total_keys < NUM_RECENT_KEYS
+      int i = (total_keys < lossage_limit
 	       ? 0 : recent_keys_index);
-      eassert (recent_keys_index < NUM_RECENT_KEYS);
+      eassert (recent_keys_index < lossage_limit);
       do
 	{
 	  Lisp_Object e = AREF (recent_keys, i);
 	  if (cmds || !CONSP (e) || !NILP (XCAR (e)))
 	    es = Fcons (e, es);
-	  if (++i >= NUM_RECENT_KEYS)
+	  if (++i >= lossage_limit)
 	    i = 0;
 	} while (i != recent_keys_index);
       es = Fnreverse (es);
@@ -10472,9 +10529,8 @@ Internal use only.  */)
   this_command_key_count = 0;
   this_single_command_key_start = 0;
 
-  int charidx = 0, byteidx = 0;
-  int key0;
-  FETCH_STRING_CHAR_ADVANCE (key0, keys, charidx, byteidx);
+  ptrdiff_t charidx = 0, byteidx = 0;
+  int key0 = fetch_string_char_advance (keys, &charidx, &byteidx);
   if (CHAR_BYTE8_P (key0))
     key0 = CHAR_TO_BYTE8 (key0);
 
@@ -10486,8 +10542,7 @@ Internal use only.  */)
     add_command_key (make_fixnum (key0));
   for (ptrdiff_t i = 1; i < SCHARS (keys); i++)
     {
-      int key_i;
-      FETCH_STRING_CHAR_ADVANCE (key_i, keys, charidx, byteidx);
+      int key_i = fetch_string_char_advance (keys, &charidx, &byteidx);
       if (CHAR_BYTE8_P (key_i))
 	key_i = CHAR_TO_BYTE8 (key_i);
       add_command_key (make_fixnum (key_i));
@@ -10512,8 +10567,6 @@ DEFUN ("this-single-command-keys", Fthis_single_command_keys,
        doc: /* Return the key sequence that invoked this command.
 More generally, it returns the last key sequence read, either by
 the command loop or by `read-key-sequence'.
-Unlike `this-command-keys', this function's value
-does not include prefix arguments.
 The value is always a vector.  */)
   (void)
 {
@@ -10539,7 +10592,7 @@ The value is always a vector.  */)
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
        Sclear_this_command_keys, 0, 1, 0,
        doc: /* Clear out the vector that `this-command-keys' returns.
-Also clear the record of the last 100 events, unless optional arg
+Also clear the record of the last 300 input events, unless optional arg
 KEEP-RECORD is non-nil.  */)
   (Lisp_Object keep_record)
 {
@@ -11694,7 +11747,7 @@ syms_of_keyboard (void)
     staticpro (&modifier_symbols);
   }
 
-  recent_keys = make_nil_vector (NUM_RECENT_KEYS);
+  recent_keys = make_nil_vector (lossage_limit);
   staticpro (&recent_keys);
 
   this_command_keys = make_nil_vector (40);
@@ -11744,6 +11797,7 @@ syms_of_keyboard (void)
   defsubr (&Srecursive_edit);
   defsubr (&Sinternal_track_mouse);
   defsubr (&Sinput_pending_p);
+  defsubr (&Slossage_size);
   defsubr (&Srecent_keys);
   defsubr (&Sthis_command_keys);
   defsubr (&Sthis_command_keys_vector);
@@ -12051,7 +12105,8 @@ See also `pre-command-hook'.  */);
 
   DEFVAR_LISP ("menu-bar-final-items", Vmenu_bar_final_items,
 	       doc: /* List of menu bar items to move to the end of the menu bar.
-The elements of the list are event types that may have menu bar bindings.  */);
+The elements of the list are event types that may have menu bar
+bindings.  The order of this list controls the order of the items.  */);
   Vmenu_bar_final_items = Qnil;
 
   DEFVAR_LISP ("tab-bar-separator-image-expression", Vtab_bar_separator_image_expression,
@@ -12483,13 +12538,11 @@ keys_of_keyboard (void)
 void
 mark_kboards (void)
 {
-  KBOARD *kb;
-  Lisp_Object *p;
-  for (kb = all_kboards; kb; kb = kb->next_kboard)
+  for (KBOARD *kb = all_kboards; kb; kb = kb->next_kboard)
     {
       if (kb->kbd_macro_buffer)
-        for (p = kb->kbd_macro_buffer; p < kb->kbd_macro_ptr; p++)
-          mark_object (*p);
+	mark_objects (kb->kbd_macro_buffer,
+		      kb->kbd_macro_ptr - kb->kbd_macro_buffer);
       mark_object (KVAR (kb, Voverriding_terminal_local_map));
       mark_object (KVAR (kb, Vlast_command));
       mark_object (KVAR (kb, Vreal_last_command));

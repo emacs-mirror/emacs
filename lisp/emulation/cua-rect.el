@@ -735,7 +735,7 @@ If command is repeated at same position, delete the rectangle."
     (setq cua--last-killed-rectangle (cons (and kill-ring (car kill-ring)) killed-rectangle))
     (if ring
         (kill-new (mapconcat
-                   (function (lambda (row) (concat row "\n")))
+                   (lambda (row) (concat row "\n"))
                    killed-rectangle "")))))
 
 (defun cua--activate-rectangle ()
@@ -1071,7 +1071,7 @@ The text previously in the rectangle is overwritten by the blanks."
         (cua--copy-rectangle-to-global-mark t))
     (let* ((rect (cua--extract-rectangle))
            (text (mapconcat
-                  (function (lambda (row) (concat row "\n")))
+                  (lambda (row) (concat row "\n"))
                   rect "")))
       (setq arg (cua--prefix-arg arg))
       (if cua--register
@@ -1150,9 +1150,9 @@ The numbers are formatted according to the FORMAT string."
    (list (if current-prefix-arg
              (prefix-numeric-value current-prefix-arg)
            (string-to-number
-            (read-string "Start value: (0) " nil nil "0")))
+            (read-string (format-prompt "Start value" 0) nil nil "0")))
          (string-to-number
-          (read-string "Increment: (1) " nil nil "1"))
+          (read-string (format-prompt "Increment" 1) nil nil "1"))
          (read-string (concat "Format: (" cua--rectangle-seq-format ") "))))
   (if (= (length format) 0)
       (setq format cua--rectangle-seq-format)
@@ -1412,7 +1412,7 @@ With prefix arg, indent to that column."
 (add-function :around region-extract-function
               #'cua--rectangle-region-extract)
 (add-function :around region-insert-function
-              #'cua--insert-rectangle)
+              #'cua--rectangle-region-insert)
 (add-function :around redisplay-highlight-region-function
               #'cua--rectangle-highlight-for-redisplay)
 
@@ -1421,6 +1421,10 @@ With prefix arg, indent to that column."
     ;; When cua--rectangle is active, just don't highlight at all, since we
     ;; already do it elsewhere.
     (funcall redisplay-unhighlight-region-function (nth 3 args))))
+
+(defun cua--rectangle-region-insert (orig &rest args)
+  (if (not cua--rectangle) (apply orig args)
+    (funcall #'cua--insert-rectangle (car args))))
 
 (defun cua--rectangle-region-extract (orig &optional delete)
   (cond

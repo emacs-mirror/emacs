@@ -1,4 +1,4 @@
-;;; warnings.el --- log and display warnings
+;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -68,25 +68,25 @@ Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
-(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
+(define-obsolete-variable-alias 'display-warning-minimum-level
+  'warning-minimum-level "28.1")
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
 the warning is logged in the warnings buffer, but the buffer
 is not immediately displayed.  See also `warning-minimum-log-level'."
-  :group 'warnings
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
 
-(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
+(define-obsolete-variable-alias 'log-warning-minimum-level
+  'warning-minimum-log-level "28.1")
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
 the warning is completely ignored.
 Value must be lower or equal than `warning-minimum-level',
 because warnings not logged aren't displayed either."
-  :group 'warnings
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
@@ -100,7 +100,6 @@ Thus, (foo bar) as an element matches (foo bar)
 or (foo bar ANYTHING...) as TYPE.
 If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it."
-  :group 'warnings
   :type '(repeat (repeat symbol))
   :version "22.1")
 
@@ -115,7 +114,6 @@ or (foo bar ANYTHING...) as TYPE.
 If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
-  :group 'warnings
   :type '(repeat (repeat symbol))
   :version "22.1")
 
@@ -202,6 +200,21 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     ;; we return t.
     some-match))
 
+(define-button-type 'warning-suppress-warning
+  'action #'warning-suppress-action
+  'help-echo "mouse-2, RET: Don't display this warning automatically")
+(defun warning-suppress-action (button)
+  (customize-save-variable 'warning-suppress-types
+                           (cons (list (button-get button 'warning-type))
+                                 warning-suppress-types)))
+(define-button-type 'warning-suppress-log-warning
+  'action #'warning-suppress-log-action
+  'help-echo "mouse-2, RET: Don't log this warning")
+(defun warning-suppress-log-action (button)
+  (customize-save-variable 'warning-suppress-log-types
+                           (cons (list (button-get button 'warning-type))
+                                 warning-suppress-types)))
+
 ;;;###autoload
 (defun display-warning (type message &optional level buffer-name)
   "Display a warning message, MESSAGE.
@@ -229,7 +242,12 @@ See the `warnings' custom group for user customization features.
 
 See also `warning-series', `warning-prefix-function',
 `warning-fill-prefix', and `warning-fill-column' for additional
-programming features."
+programming features.
+
+This will also display buttons allowing the user to permanently
+disable automatic display of the warning or disable the warning
+entirely by setting `warning-suppress-types' or
+`warning-suppress-log-types' on their behalf."
   (if (not (or after-init-time noninteractive (daemonp)))
       ;; Ensure warnings that happen early in the startup sequence
       ;; are visible when startup completes (bug#20792).
@@ -274,6 +292,17 @@ programming features."
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
+              ;; Don't output the buttons when doing batch compilation
+              ;; and similar.
+              (unless (or noninteractive (eq type 'bytecomp))
+                (insert " ")
+                (insert-button "Disable showing"
+                               'type 'warning-suppress-warning
+                               'warning-type type)
+                (insert " ")
+                (insert-button "Disable logging"
+                               'type 'warning-suppress-log-warning
+                               'warning-type type))
               (funcall newline)
 	      (when (and warning-fill-prefix (not (string-match "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)

@@ -1,4 +1,4 @@
-;;; add-log-tests.el --- Test suite for add-log.
+;;; add-log-tests.el --- Test suite for add-log.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
@@ -25,12 +25,12 @@
 (require 'ert)
 (require 'add-log)
 
-(defmacro add-log-current-defun-deftest (name doc major-mode
+(defmacro add-log-current-defun-deftest (name doc mode
 					      content marker expected-defun)
   "Generate an ert test for mode-own `add-log-current-defun-function'.
-Run `add-log-current-defun' at the point where MARKER specifies in a
-buffer which content is CONTENT under MAJOR-MODE. Then it compares the
-result with EXPECTED-DEFUN."
+Run `add-log-current-defun' at the point where MARKER specifies
+in a buffer which content is CONTENT under major mode MODE. Then
+it compares the result with EXPECTED-DEFUN."
   (let ((xname (intern (concat "add-log-current-defun-test-"
 			       (symbol-name name)
 			       ))))
@@ -39,7 +39,7 @@ result with EXPECTED-DEFUN."
        (with-temp-buffer
 	 (insert ,content)
 	 (goto-char (point-min))
-	 (funcall ',major-mode)
+	 (funcall ',mode)
 	 (should (equal (when (search-forward ,marker nil t)
 			  (replace-match "" nil t)
 			  (add-log-current-defun))

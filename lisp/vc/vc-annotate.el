@@ -403,12 +403,12 @@ should be applied to the background or to the foreground."
 	   (let ((def (vc-working-revision buffer-file-name)))
 	     (if (null current-prefix-arg) def
 	       (vc-read-revision
-		(format "Annotate from revision (default %s): " def)
+		(format-prompt "Annotate from revision" def)
 		(list buffer-file-name) nil def)))
 	   (if (null current-prefix-arg)
 	       vc-annotate-display-mode
 	     (float (string-to-number
-		     (read-string "Annotate span days (default 20): "
+		     (read-string (format-prompt "Annotate span days" 20)
 				  nil nil "20")))))))
   (vc-ensure-vc-buffer)
   (setq vc-annotate-display-mode display-mode) ;Not sure why.  --Stef

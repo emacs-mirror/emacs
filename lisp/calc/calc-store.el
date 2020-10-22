@@ -1,4 +1,4 @@
-;;; calc-store.el --- value storage functions for Calc
+;;; calc-store.el --- value storage functions for Calc  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -184,10 +184,11 @@
 (defvar calc-read-var-name-history nil
   "History for reading variable names.")
 
-(defun calc-read-var-name (prompt &optional calc-store-opers)
+(defun calc-read-var-name (prompt &optional store-opers)
   (setq calc-given-value nil
 	calc-aborted-prefix nil)
-  (let ((var (concat
+  (let* ((calc-store-opers store-opers)
+         (var (concat
               "var-"
               (let ((minibuffer-completion-table
                      (mapcar (lambda (x) (substring x 4))
@@ -428,11 +429,11 @@
 (defun calc-edit-variable (&optional var)
   (interactive)
   (calc-wrapper
-   (or var (setq var (calc-read-var-name
-		      (if calc-last-edited-variable
-			  (format "Edit (default %s): "
-				  (calc-var-name calc-last-edited-variable))
-			"Edit: "))))
+   (unless var
+     (setq var (calc-read-var-name
+                (format-prompt "Edit" (and calc-last-edited-variable
+				           (calc-var-name
+                                            calc-last-edited-variable))))))
    (or var (setq var calc-last-edited-variable))
    (if var
        (let* ((value (calc-var-value var)))
@@ -504,7 +505,7 @@
   (calc-wrapper
    (or var (setq var (calc-read-var-name "Declare: " 0)))
    (or var (setq var 'var-All))
-   (let* (dp decl def row rp)
+   (let* (dp decl row rp) ;; def
      (or (and (calc-var-value 'var-Decls)
 	      (eq (car-safe var-Decls) 'vec))
 	 (setq var-Decls (list 'vec)))

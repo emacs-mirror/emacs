@@ -60,6 +60,13 @@
   :type 'boolean
   :group 'reveal)
 
+(defcustom reveal-auto-hide t
+  "Automatically hide revealed text when leaving it.
+If nil, the `reveal-hide-revealed' command can be useful to hide
+revealed text manually."
+  :type 'boolean
+  :version "28.1")
+
 (defvar reveal-open-spots nil
   "List of spots in the buffer which are open.
 Each element has the form (WINDOW . OVERLAY).")
@@ -97,7 +104,8 @@ Each element has the form (WINDOW . OVERLAY).")
                         (cdr x))))
                     reveal-open-spots))))
         (setq old-ols (reveal-open-new-overlays old-ols))
-        (reveal-close-old-overlays old-ols)))))
+        (when reveal-auto-hide
+          (reveal-close-old-overlays old-ols))))))
 
 (defun reveal-open-new-overlays (old-ols)
   (let ((repeat t))
@@ -196,6 +204,14 @@ Each element has the form (WINDOW . OVERLAY).")
                 (delq (rassoc ol reveal-open-spots)
                       reveal-open-spots)))))))
 
+(defun reveal-hide-revealed ()
+  "Hide all revealed text.
+If there is revealed text under point, this command does not hide
+that text."
+  (interactive)
+  (let ((reveal-auto-hide t))
+    (reveal-post-command)))
+
 (defvar reveal-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Override the default move-beginning-of-line and move-end-of-line
@@ -209,7 +225,9 @@ Each element has the form (WINDOW . OVERLAY).")
   "Toggle uncloaking of invisible text near point (Reveal mode).
 
 Reveal mode is a buffer-local minor mode.  When enabled, it
-reveals invisible text around point."
+reveals invisible text around point.
+
+Also see the `reveal-auto-hide' variable."
   :group 'reveal
   :lighter (global-reveal-mode nil " Reveal")
   :keymap reveal-mode-map

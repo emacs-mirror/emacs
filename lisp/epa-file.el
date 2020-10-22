@@ -1,4 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,13 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epa)
 (require 'epa-hook)
+(eval-when-compile (require 'subr-x))
+
+;;; Options
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
   "If non-nil, cache passphrase for symmetric encryption.
@@ -40,26 +45,18 @@ Note that this option has no effect if you use GnuPG 2.0."
 (defcustom epa-file-select-keys nil
   "Control whether or not to pop up the key selection dialog.
 
-If t, always asks user to select recipients.
+If t, always ask user to select recipients.
 If nil, query user only when `epa-file-encrypt-to' is not set.
-If neither t nor nil, doesn't ask user.  In this case, symmetric
+If neither t nor nil, don't ask user.  In this case, symmetric
 encryption is used."
   :type '(choice (const :tag "Ask always" t)
 		 (const :tag "Ask when recipients are not set" nil)
 		 (const :tag "Don't ask" silent))
   :group 'epa-file)
 
+;;; Other
+
 (defvar epa-file-passphrase-alist nil)
-
-(eval-and-compile
-  (if (fboundp 'encode-coding-string)
-      (defalias 'epa-file--encode-coding-string 'encode-coding-string)
-    (defalias 'epa-file--encode-coding-string 'identity)))
-
-(eval-and-compile
-  (if (fboundp 'decode-coding-string)
-      (defalias 'epa-file--decode-coding-string 'decode-coding-string)
-    (defalias 'epa-file--decode-coding-string 'identity)))
 
 (defun epa-file-passphrase-callback-function (context key-id file)
   (if (and epa-file-cache-passphrase-for-symmetric-encryption
@@ -71,8 +68,8 @@ encryption is used."
 	  (or (copy-sequence (cdr entry))
 	      (progn
 		(unless entry
-		  (setq entry (list file)
-			epa-file-passphrase-alist
+		  (setq entry (list file))
+		  (setq epa-file-passphrase-alist
 			(cons entry
 			      epa-file-passphrase-alist)))
 		(setq passphrase (epa-passphrase-callback-function context
@@ -81,6 +78,8 @@ encryption is used."
 		(setcdr entry (copy-sequence passphrase))
 		passphrase))))
     (epa-passphrase-callback-function context key-id file)))
+
+;;; File Handler
 
 (defvar epa-inhibit nil
   "Non-nil means don't try to decrypt .gpg files when operating on them.")
@@ -117,8 +116,17 @@ encryption is used."
   (let ((error epa-file-error))
     (save-window-excursion
       (kill-buffer))
-    (signal 'file-missing
-	    (cons "Opening input file" (cdr error)))))
+    (if (nth 3 error)
+        (user-error "Wrong passphrase: %s" (nth 3 error))
+      (signal 'file-missing
+	      (cons "Opening input file" (cdr error))))))
+
+(defun epa--wrong-password-p (context)
+  (let ((error-string (epg-context-error-output context)))
+    (and (string-match
+          "decryption failed: \\(Bad session key\\|No secret key\\)"
+          error-string)
+         (match-string 1 error-string))))
 
 (defvar last-coding-system-used)
 (defun epa-file-insert-file-contents (file &optional visit beg end replace)
@@ -161,15 +169,28 @@ encryption is used."
 			(nth 3 error)))
 	     (let ((exists (file-exists-p local-file)))
 	       (when exists
-		 ;; Hack to prevent find-file from opening empty buffer
-		 ;; when decryption failed (bug#6568).  See the place
-		 ;; where `find-file-not-found-functions' are called in
-		 ;; `find-file-noselect-1'.
-		 (setq-local epa-file-error error)
-		 (add-hook 'find-file-not-found-functions
-			   'epa-file--find-file-not-found-function
-			   nil t)
-		 (epa-display-error context))
+                 (if-let ((wrong-password (epa--wrong-password-p context)))
+                     ;; Don't display the *error* buffer if we just
+                     ;; have a wrong password; let the later error
+                     ;; handler notify the user.
+                     (setq error (append error (list wrong-password)))
+		   (epa-display-error context))
+                 ;; When the .gpg file isn't an encrypted file (e.g.,
+                 ;; it's a keyring.gpg file instead), then gpg will
+                 ;; say "Unexpected exit" as the error message.  In
+                 ;; that case, just display the bytes.
+                 (if (equal (caddr error) "Unexpected; Exit")
+                     (setq string (with-temp-buffer
+                                    (insert-file-contents-literally local-file)
+                                    (buffer-string)))
+		   ;; Hack to prevent find-file from opening empty buffer
+		   ;; when decryption failed (bug#6568).  See the place
+		   ;; where `find-file-not-found-functions' are called in
+		   ;; `find-file-noselect-1'.
+		   (setq-local epa-file-error error)
+		   (add-hook 'find-file-not-found-functions
+			     'epa-file--find-file-not-found-function
+			     nil t)))
 	       (signal (if exists 'file-error 'file-missing)
 		       (cons "Opening input file" (cdr error))))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
@@ -236,11 +257,7 @@ encryption is used."
   (setq file (expand-file-name file))
   (let* ((coding-system (or coding-system-for-write
 			    (if (fboundp 'select-safe-coding-system)
-				;; This is needed since Emacs 22 has
-				;; no-conversion setting for *.gpg in
-				;; `auto-coding-alist'.
-			        (let ((buffer-file-name
-				       (file-name-sans-extension file)))
+			        (let ((buffer-file-name file))
 				  (select-safe-coding-system
 				   (point-min) (point-max)))
 			      buffer-file-coding-system)))
@@ -266,7 +283,7 @@ encryption is used."
 	      (epg-encrypt-string
 	       context
 	       (if (stringp start)
-		   (epa-file--encode-coding-string start coding-system)
+		   (encode-coding-string start coding-system)
 		 (unless start
 		   (setq start (point-min)
 			 end (point-max)))
@@ -280,8 +297,8 @@ encryption is used."
 		   ;; decrypted contents.
 		   (format-encode-buffer (with-current-buffer buffer
 					   buffer-file-format))
-		   (epa-file--encode-coding-string (buffer-string)
-						   coding-system)))
+		   (encode-coding-string (buffer-string)
+					 coding-system)))
 	       (if (or (eq epa-file-select-keys t)
 		       (and (null epa-file-select-keys)
 			    (not (local-variable-p 'epa-file-encrypt-to
@@ -316,6 +333,8 @@ If no one is selected, symmetric encryption will be performed.  "
 	    (stringp visit))
 	(message "Wrote %s" buffer-file-name))))
 (put 'write-region 'epa-file 'epa-file-write-region)
+
+;;; Commands
 
 (defun epa-file-select-keys ()
   "Select recipients for encryption."

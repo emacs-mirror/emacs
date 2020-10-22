@@ -129,6 +129,8 @@
   "Hook that gets run after the aligner has been loaded."
   :type 'hook
   :group 'align)
+(make-obsolete-variable 'align-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom align-indent-before-aligning nil
   "If non-nil, indent the marked region before aligning it."
@@ -259,7 +261,7 @@ The possible settings for `align-region-separate' are:
  `group'   Each contiguous set of lines where a specific alignment
 	   occurs is considered a section for that alignment rule.
 	   Note that each rule may have any entirely different set
-           of section divisions than another.
+           of section divisions from another.
 
 	     int    alpha = 1; /* one */
 	     double beta  = 2.0;
@@ -387,7 +389,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(^\\s-+[^( \t\n]\\|(\\(\\S-+\\)\\s-+\\)\\S-+\\(\\s-+\\)")
      (group    . 3)
      (modes    . align-lisp-modes)
-     (run-if   . ,(function (lambda () current-prefix-arg))))
+     (run-if   . ,(lambda () current-prefix-arg)))
 
     (lisp-alist-dot
      (regexp   . "\\(\\s-*\\)\\.\\(\\s-*\\)")
@@ -461,7 +463,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . ",\\(\\s-*\\)[^/ \t\n]")
      (repeat   . t)
      (modes    . align-c++-modes)
-     (run-if   . ,(function (lambda () current-prefix-arg))))
+     (run-if   . ,(lambda () current-prefix-arg)))
 					;      (valid
 					;       . ,(function
 					;	  (lambda ()
@@ -478,7 +480,7 @@ The possible settings for `align-region-separate' are:
      (regexp   . ",\\(\\s-*\\)[^# \t\n]")
      (repeat   . t)
      (modes    . (append align-perl-modes '(python-mode)))
-     (run-if   . ,(function (lambda () current-prefix-arg))))
+     (run-if   . ,(lambda () current-prefix-arg)))
 
     (c++-comment
      (regexp   . "\\(\\s-*\\)\\(//.*\\|/\\*.*\\*/\\s-*\\)$")

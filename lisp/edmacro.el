@@ -3,7 +3,6 @@
 ;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Version: 2.01
 ;; Keywords: abbrev
 
 ;; This file is part of GNU Emacs.

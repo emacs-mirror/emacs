@@ -109,14 +109,16 @@ callback for `gravatar-retrieve'."
               ;; If we're on the " quoting the name, go backward.
               (when (looking-at-p "[\"<]")
                 (goto-char (1- (point))))
-              ;; Do not do anything if there's already a gravatar.  This can
-              ;; happen if the buffer has been regenerated in the mean time, for
-              ;; example we were fetching someaddress, and then we change to
-              ;; another mail with the same someaddress.
-              (unless (get-text-property (point) 'gnus-gravatar)
+              ;; Do not do anything if there's already a gravatar.
+              ;; This can happen if the buffer has been regenerated in
+              ;; the mean time, for example we were fetching
+              ;; someaddress, and then we change to another mail with
+              ;; the same someaddress.
+              (unless (get-text-property (1- (point)) 'gnus-gravatar)
                 (let ((pos (point)))
                   (setq gravatar (append gravatar gnus-gravatar-properties))
-                  (gnus-put-image gravatar (buffer-substring pos (1+ pos)) category)
+                  (gnus-put-image gravatar (buffer-substring pos (1+ pos))
+				  category)
                   (put-text-property pos (point) 'gnus-gravatar address)
                   (gnus-add-wash-type category)
                   (gnus-add-image category gravatar)))))

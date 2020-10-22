@@ -67,6 +67,12 @@
 	(setcdr old value)
       (setcar (cdr node) (nconc (cadr node) (list (cons attribute value)))))))
 
+(defun dom-remove-attribute (node attribute)
+  "Remove ATTRIBUTE from NODE."
+  (setq node (dom-ensure-node node))
+  (when-let ((old (assoc attribute (cadr node))))
+    (setcar (cdr node) (delq old (cadr node)))))
+
 (defmacro dom-attr (node attr)
   "Return the attribute ATTR from NODE.
 A typical attribute is `href'."
@@ -262,6 +268,50 @@ white-space."
 	  (if (zerop (cl-decf times))
 	      (insert ")")
 	    (insert "\n" (make-string (1+ column) ? ))))))))
+
+(defun dom-print (dom &optional pretty xml)
+  "Print DOM at point as HTML/XML.
+If PRETTY, indent the HTML/XML logically.
+If XML, generate XML instead of HTML."
+  (let ((column (current-column)))
+    (insert (format "<%s" (dom-tag dom)))
+    (let ((attr (dom-attributes dom)))
+      (dolist (elem attr)
+	;; In HTML, these are boolean attributes that should not have
+	;; an = value.
+	(if (and (memq (car elem)
+		       '(async autofocus autoplay checked
+			       contenteditable controls default
+			       defer disabled formNoValidate frameborder
+			       hidden ismap itemscope loop
+			       multiple muted nomodule novalidate open
+			       readonly required reversed
+			       scoped selected typemustmatch))
+		 (cdr elem)
+		 (not xml))
+	    (insert (format " %s" (car elem)))
+	  (insert (format " %s=%S" (car elem) (cdr elem))))))
+    (let* ((children (dom-children dom))
+	   (non-text nil))
+      (if (null children)
+	  (insert " />")
+	(insert ">")
+        (dolist (child children)
+	  (if (stringp child)
+	      (insert child)
+	    (setq non-text t)
+	    (when pretty
+              (insert "\n" (make-string (+ column 2) ? )))
+	    (dom-print child pretty xml)))
+	;; If we inserted non-text child nodes, or a text node that
+	;; ends with a newline, then we indent the end tag.
+        (when (and pretty
+		   (or (bolp)
+		       non-text))
+	  (unless (bolp)
+            (insert "\n"))
+	  (insert (make-string column ? )))
+        (insert (format "</%s>" (dom-tag dom)))))))
 
 (provide 'dom)
 

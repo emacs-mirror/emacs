@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SpamStat
+;; URL: https://www.emacswiki.org/cgi-bin/wiki.pl?SpamStat
 
 ;; This file is part of GNU Emacs.
 
@@ -174,7 +174,7 @@ no effect when spam-stat is invoked through spam.el."
 
 (defcustom spam-stat-score-buffer-user-functions nil
   "List of additional scoring functions.
-Called  one by one on the buffer.
+Called one by one on the buffer.
 
 If all of these functions return non-nil answers, these numerical
 answers are added to the computed spam stat score on the buffer.  If
@@ -557,7 +557,7 @@ check the variable `spam-stat-score-data'."
 
 (defun spam-stat-process-directory (dir func)
   "Process all the regular files in directory DIR using function FUNC."
-  (let* ((files (directory-files dir t "^[^.]"))
+  (let* ((files (directory-files dir t "\\`[^.]"))
 	 (max (/ (length files) 100.0))
 	 (count 0))
     (with-temp-buffer
@@ -601,7 +601,7 @@ If VERBOSE is non-nil display names of files detected as spam or
 non-spam in a temporary buffer.  If it is the symbol `ham',
 display non-spam files; otherwise display spam files."
   (interactive "DDirectory: ")
-  (let* ((files (directory-files dir t "^[^.]"))
+  (let* ((files (directory-files dir t "\\`[^.]"))
 	 display-files
 	 buffer-score
 	 (total (length files))

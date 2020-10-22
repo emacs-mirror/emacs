@@ -38,4 +38,11 @@
     (should (equal (shell--parse-pcomplete-arguments)
                    '(("cd" "ba") 1 4)))))
 
+(ert-deftest shell-tests-completion-after-semi ()
+  (with-temp-buffer
+    (shell-mode)
+    (insert "cd ba;")
+    (should (equal (shell--parse-pcomplete-arguments)
+                   '(("cd" "ba" "") 1 4 7)))))
+
 ;;; shell-tests.el ends here

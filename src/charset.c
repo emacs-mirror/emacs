@@ -866,15 +866,10 @@ usage: (define-charset-internal ...)  */)
   val = args[charset_arg_code_space];
   for (i = 0, dimension = 0, nchars = 1; ; i++)
     {
-      Lisp_Object min_byte_obj, max_byte_obj;
-      int min_byte, max_byte;
-
-      min_byte_obj = Faref (val, make_fixnum (i * 2));
-      max_byte_obj = Faref (val, make_fixnum (i * 2 + 1));
-      CHECK_RANGED_INTEGER (min_byte_obj, 0, 255);
-      min_byte = XFIXNUM (min_byte_obj);
-      CHECK_RANGED_INTEGER (max_byte_obj, min_byte, 255);
-      max_byte = XFIXNUM (max_byte_obj);
+      Lisp_Object min_byte_obj = Faref (val, make_fixnum (i * 2));
+      Lisp_Object max_byte_obj = Faref (val, make_fixnum (i * 2 + 1));
+      int min_byte = check_integer_range (min_byte_obj, 0, 255);
+      int max_byte = check_integer_range (max_byte_obj, min_byte, 255);
       charset.code_space[i * 4] = min_byte;
       charset.code_space[i * 4 + 1] = max_byte;
       charset.code_space[i * 4 + 2] = max_byte - min_byte + 1;
@@ -887,13 +882,8 @@ usage: (define-charset-internal ...)  */)
     }
 
   val = args[charset_arg_dimension];
-  if (NILP (val))
-    charset.dimension = dimension;
-  else
-    {
-      CHECK_RANGED_INTEGER (val, 1, 4);
-      charset.dimension = XFIXNUM (val);
-    }
+  charset.dimension
+    = !NILP (val) ? check_integer_range (val, 1, 4) : dimension;
 
   charset.code_linear_p
     = (charset.dimension == 1
@@ -979,13 +969,7 @@ usage: (define-charset-internal ...)  */)
     }
 
   val = args[charset_arg_iso_revision];
-  if (NILP (val))
-    charset.iso_revision = -1;
-  else
-    {
-      CHECK_RANGED_INTEGER (val, -1, 63);
-      charset.iso_revision = XFIXNUM (val);
-    }
+  charset.iso_revision = !NILP (val) ? check_integer_range (val, -1, 63) : -1;
 
   val = args[charset_arg_emacs_mule_id];
   if (NILP (val))
@@ -1051,12 +1035,9 @@ usage: (define-charset-internal ...)  */)
       CHECK_FIXNAT (parent_max_code);
       parent_code_offset = Fnth (make_fixnum (3), val);
       CHECK_FIXNUM (parent_code_offset);
-      val = make_uninit_vector (4);
-      ASET (val, 0, make_fixnum (parent_charset->id));
-      ASET (val, 1, parent_min_code);
-      ASET (val, 2, parent_max_code);
-      ASET (val, 3, parent_code_offset);
-      ASET (attrs, charset_subset, val);
+      ASET (attrs, charset_subset,
+	    CALLN (Fvector, make_fixnum (parent_charset->id),
+		   parent_min_code, parent_max_code, parent_code_offset));
 
       charset.method = CHARSET_METHOD_SUBSET;
       /* Here, we just copy the parent's fast_map.  It's not accurate,
@@ -1090,8 +1071,7 @@ usage: (define-charset-internal ...)  */)
 	      car_part = XCAR (elt);
 	      cdr_part = XCDR (elt);
 	      CHECK_CHARSET_GET_ID (car_part, this_id);
-	      CHECK_TYPE_RANGED_INTEGER (int, cdr_part);
-	      offset = XFIXNUM (cdr_part);
+	      offset = check_integer_range (cdr_part, INT_MIN, INT_MAX);
 	    }
 	  else
 	    {
@@ -1477,7 +1457,7 @@ string_xstring_p (Lisp_Object string)
 
   while (p < endp)
     {
-      int c = STRING_CHAR_ADVANCE (p);
+      int c = string_char_advance (&p);
 
       if (c >= 0x100)
 	return 2;
@@ -1521,7 +1501,7 @@ find_charsets_in_text (const unsigned char *ptr, ptrdiff_t nchars,
     {
       while (ptr < pend)
 	{
-	  int c = STRING_CHAR_ADVANCE (ptr);
+	  int c = string_char_advance (&ptr);
 	  struct charset *charset;
 
 	  if (!NILP (table))

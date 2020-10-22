@@ -1,6 +1,11 @@
-;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
+;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Version: 1.0.3
+;; Package-Requires: ((emacs "26.3"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -258,17 +263,24 @@ be found, return nil.
 
 The default implementation uses `semantic-symref-tool-alist' to
 find a search tool; by default, this uses \"find | grep\" in the
-`project-current' roots."
-  (cl-mapcan
+current project's main and external roots."
+  (mapcan
    (lambda (dir)
      (xref-references-in-directory identifier dir))
    (let ((pr (project-current t)))
-     (append
-      (project-roots pr)
+     (cons
+      (if (fboundp 'project-root)
+          (project-root pr)
+        (with-no-warnings
+          (project-roots pr)))
       (project-external-roots pr)))))
 
 (cl-defgeneric xref-backend-apropos (backend pattern)
-  "Find all symbols that match regexp PATTERN.")
+  "Find all symbols that match PATTERN string.
+The second argument has the same meaning as in `apropos'.
+
+If BACKEND is implemented in Lisp, it can use
+`xref-apropos-regexp' to convert the pattern to regexp.")
 
 (cl-defgeneric xref-backend-identifier-at-point (_backend)
   "Return the relevant identifier at point.
@@ -286,6 +298,10 @@ recognize and then delegate the work to an external process."
 
 (cl-defgeneric xref-backend-identifier-completion-table (backend)
   "Return the completion table for identifiers.")
+
+(cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
+  "Return t if case is not significant in identifier completion."
+  completion-ignore-case)
 
 
 ;;; misc utilities
@@ -592,7 +608,10 @@ buffer."
                    (user-error "No reference at point")))
          (xref--current-item xref))
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
-    (next-error-found buffer (current-buffer))))
+    (if (fboundp 'next-error-found)
+        (next-error-found buffer (current-buffer))
+      ;; Emacs < 27
+      (setq next-error-last-buffer buffer))))
 
 (defun xref-quit-and-goto-xref ()
   "Quit *xref* buffer, then jump to xref on current line."
@@ -942,8 +961,18 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 
 (defvar xref--read-pattern-history nil)
 
-(defun xref--show-xrefs (fetcher display-action)
+(defun xref--show-xrefs (fetcher display-action &optional _always-show-list)
   (xref--push-markers)
+  (unless (functionp fetcher)
+    ;; Old convention.
+    (let ((xrefs fetcher))
+      (setq fetcher
+            (lambda ()
+              (if (eq xrefs 'called-already)
+                  (user-error "Refresh is not supported")
+                (prog1
+                    xrefs
+                  (setq xrefs 'called-already)))))))
   (funcall xref-show-xrefs-function fetcher
            `((window . ,(selected-window))
              (display-action . ,display-action))))
@@ -967,7 +996,9 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 (defun xref--read-identifier (prompt)
   "Return the identifier at point or read it from the minibuffer."
   (let* ((backend (xref-find-backend))
-         (def (xref-backend-identifier-at-point backend)))
+         (def (xref-backend-identifier-at-point backend))
+         (completion-ignore-case
+          (xref-backend-identifier-completion-ignore-case backend)))
     (cond ((or current-prefix-arg
                (not def)
                (xref--prompt-p this-command))
@@ -1087,14 +1118,24 @@ The argument has the same meaning as in `apropos'."
                       "Search for pattern (word list or regexp): "
                       nil 'xref--read-pattern-history)))
   (require 'apropos)
-  (xref--find-xrefs pattern 'apropos
-                    (apropos-parse-pattern
-                     (if (string-equal (regexp-quote pattern) pattern)
-                         ;; Split into words
-                         (or (split-string pattern "[ \t]+" t)
-                             (user-error "No word list given"))
-                       pattern))
-                    nil))
+  (let* ((newpat
+          (if (and (version< emacs-version "28.0.50")
+                   (memq (xref-find-backend) '(elisp etags)))
+              ;; Handle backends in older Emacs.
+              (xref-apropos-regexp pattern)
+            ;; Delegate pattern handling to the backend fully.
+            ;; The old way didn't work for "external" backends.
+            pattern)))
+    (xref--find-xrefs pattern 'apropos newpat nil)))
+
+(defun xref-apropos-regexp (pattern)
+  "Return an Emacs regexp from PATTERN similar to `apropos'."
+  (apropos-parse-pattern
+   (if (string-equal (regexp-quote pattern) pattern)
+       ;; Split into words
+       (or (split-string pattern "[ \t]+" t)
+           (user-error "No word list given"))
+     pattern)))
 
 
 ;;; Key bindings
@@ -1226,6 +1267,7 @@ IGNORES is a list of glob patterns for files to ignore."
   "Find all matches for REGEXP in FILES.
 Return a list of xref values.
 FILES must be a list of absolute file names."
+  (cl-assert (consp files))
   (pcase-let*
       ((output (get-buffer-create " *project grep output*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
@@ -1255,13 +1297,13 @@ FILES must be a list of absolute file names."
         (insert (mapconcat #'identity files "\0"))
         (setq default-directory dir)
         (setq status
-              (project--process-file-region (point-min)
-                                            (point-max)
-                                            shell-file-name
-                                            output
-                                            nil
-                                            shell-command-switch
-                                            command)))
+              (xref--process-file-region (point-min)
+                                         (point-max)
+                                         shell-file-name
+                                         output
+                                         nil
+                                         shell-command-switch
+                                         command)))
       (goto-char (point-min))
       (when (and (/= (point-min) (point-max))
                  (not (looking-at grep-re))
@@ -1275,6 +1317,24 @@ FILES must be a list of absolute file names."
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
     (xref--convert-hits (nreverse hits) regexp)))
+
+(defun xref--process-file-region ( start end program
+                                   &optional buffer display
+                                   &rest args)
+  ;; FIXME: This branching shouldn't be necessary, but
+  ;; call-process-region *is* measurably faster, even for a program
+  ;; doing some actual work (for a period of time). Even though
+  ;; call-process-region also creates a temp file internally
+  ;; (http://lists.gnu.org/archive/html/emacs-devel/2019-01/msg00211.html).
+  (if (not (file-remote-p default-directory))
+      (apply #'call-process-region
+             start end program nil buffer display args)
+    (let ((infile (make-temp-file "ppfr")))
+      (unwind-protect
+          (progn
+            (write-region start end infile nil 'silent)
+            (apply #'process-file program infile buffer display args))
+        (delete-file infile)))))
 
 (defun xref--rgrep-command (regexp files dir ignores)
   (require 'find-dired)      ; for `find-name-arg'
@@ -1310,11 +1370,11 @@ directory, used as the root of the ignore globs."
       (lambda (ignore)
         (when (string-match-p "/\\'" ignore)
           (setq ignore (concat ignore "*")))
-        (if (string-match "\\`\\./" ignore)
-            (setq ignore (replace-match dir t t ignore))
-          (unless (string-prefix-p "*" ignore)
-            (setq ignore (concat "*/" ignore))))
-        (shell-quote-argument ignore))
+        (shell-quote-argument (if (string-match "\\`\\./" ignore)
+                                  (replace-match dir t t ignore)
+                                (if (string-prefix-p "*" ignore)
+                                    ignore
+                                  (concat "*/" ignore)))))
       ignores
       " -o -path ")
      " "
@@ -1357,8 +1417,8 @@ Such as the current syntax table and the applied syntax properties."
   (let (xref--last-file-buffer
         (tmp-buffer (generate-new-buffer " *xref-temp*")))
     (unwind-protect
-        (cl-mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
-                   hits)
+        (mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
+                hits)
       (kill-buffer tmp-buffer))))
 
 (defun xref--collect-matches (hit regexp tmp-buffer)

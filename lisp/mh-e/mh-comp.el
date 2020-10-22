@@ -305,6 +305,7 @@ message and scan line."
   (let ((draft-buffer (current-buffer))
         (file-name buffer-file-name)
         (config mh-previous-window-config)
+        ;; FIXME this is subtly different to select-message-coding-system.
         (coding-system-for-write
          (if (fboundp 'select-message-coding-system)
              (select-message-coding-system) ; Emacs has this since at least 21.1
@@ -318,7 +319,7 @@ message and scan line."
              (or (and (boundp 'sendmail-coding-system) sendmail-coding-system)
                  (and (default-boundp 'buffer-file-coding-system)
                       (default-value 'buffer-file-coding-system))
-                 'iso-latin-1)))))
+                 'utf-8)))))
     ;; Older versions of spost do not support -msgid and -mime.
     (unless mh-send-uses-spost-flag
       ;; Adding a Message-ID field looks good, makes it easier to search for

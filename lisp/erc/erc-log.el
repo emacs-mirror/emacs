@@ -3,7 +3,8 @@
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcLogging
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; Created 2003-04-26
@@ -266,7 +267,7 @@ The current buffer is given by BUFFER."
     (with-current-buffer buffer
       (auto-save-mode -1)
       (setq buffer-file-name nil)
-      (erc-set-write-file-functions '(erc-save-buffer-in-logs))
+      (set (make-local-variable 'write-file-functions) '(erc-save-buffer-in-logs))
       (when erc-log-insert-log-on-open
 	(ignore-errors
 	  (save-excursion
@@ -333,7 +334,7 @@ This will not work with full paths, only names.
 
 Any unsafe characters in the name are replaced with \"!\".  The
 filename is downcased."
-  (downcase (erc-replace-regexp-in-string
+  (downcase (replace-regexp-in-string
 	     "[/\\]" "!" (convert-standard-filename filename))))
 
 (defun erc-current-logfile (&optional buffer)

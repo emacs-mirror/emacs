@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -152,7 +152,7 @@
   ("EFnet: EU, PL, Warszawa" EFnet "irc.efnet.pl" 6667)
   ("EFnet: EU, RU, Moscow" EFnet "irc.rt.ru" ((6661 6669)))
   ("EFnet: EU, SE, Dalarna" EFnet "irc.du.se" ((6666 6669)))
-  ("EFnet: EU, SE, Gothenberg" EFnet "irc.hemmet.chalmers.se" ((6666 7000)))
+  ("EFnet: EU, SE, Gothenburg" EFnet "irc.hemmet.chalmers.se" ((6666 7000)))
   ("EFnet: EU, SE, Sweden" EFnet "irc.light.se" 6667)
   ("EFnet: EU, UK, London (carrier)" EFnet "irc.carrier1.net.uk" ((6666 6669)))
   ("EFnet: EU, UK, London (demon)" EFnet "efnet.demon.co.uk" ((6665 6669)))
@@ -756,8 +756,8 @@ Return the name of this server's network as a symbol."
   (erc-with-server-buffer
     (intern (downcase (symbol-name erc-network)))))
 
-(erc-make-obsolete 'erc-current-network 'erc-network
-		   "Obsolete since erc-networks 1.5")
+(make-obsolete 'erc-current-network 'erc-network
+               "Obsolete since erc-networks 1.5")
 
 (defun erc-network-name ()
   "Return the name of the current network as a string."
@@ -812,7 +812,7 @@ As an example:
   (let* ((completion-ignore-case t)
 	 (net (intern
 	       (completing-read "Network: "
-				(erc-delete-dups
+				(delete-dups
 				 (mapcar (lambda (x)
 					   (list (symbol-name (nth 1 x))))
 					 erc-server-alist)))))

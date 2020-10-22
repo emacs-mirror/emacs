@@ -278,14 +278,7 @@ are not abstract."
 
 (if eieio-class-speedbar-key-map
     nil
-  (if (not (featurep 'speedbar))
-      (add-hook 'speedbar-load-hook (lambda ()
-				      (eieio-class-speedbar-make-map)
-				      (speedbar-add-expansion-list
-				       '("EIEIO"
-					 eieio-class-speedbar-menu
-					 eieio-class-speedbar-key-map
-					 eieio-class-speedbar))))
+  (with-eval-after-load 'speedbar
     (eieio-class-speedbar-make-map)
     (speedbar-add-expansion-list '("EIEIO"
 				   eieio-class-speedbar-menu

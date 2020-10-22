@@ -6,7 +6,7 @@
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
 ;;         Per Persson <pp@sno.pp.se>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, processes
 ;; Created: 1994-01-23
 
@@ -419,15 +419,15 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 1)))
      ('chat (mapcar (lambda (elt) (plist-get elt :nick))
-                    (erc-remove-if-not
+                    (cl-remove-if-not
                      #'(lambda (elt)
                          (eq (plist-get elt :type) 'CHAT))
                      erc-dcc-list)))
-     ('close (erc-delete-dups
+     ('close (delete-dups
               (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
                       erc-dcc-list)))
      ('get (mapcar #'erc-dcc-nick
-                   (erc-remove-if-not
+                   (cl-remove-if-not
                     #'(lambda (elt)
                         (eq (plist-get elt :type) 'GET))
                     erc-dcc-list)))
@@ -435,7 +435,7 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 2)))
      ('get (mapcar (lambda (elt) (plist-get elt :file))
-                   (erc-remove-if-not
+                   (cl-remove-if-not
                     #'(lambda (elt)
                         (and (eq (plist-get elt :type) 'GET)
                              (erc-nick-equal-p (erc-extract-nick
@@ -443,7 +443,7 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                                                (pcomplete-arg 1))))
                     erc-dcc-list)))
      ('close (mapcar #'erc-dcc-nick
-                     (erc-remove-if-not
+                     (cl-remove-if-not
                       #'(lambda (elt)
                           (eq (plist-get elt :type)
                               (intern (upcase (pcomplete-arg 1)))))
@@ -516,8 +516,8 @@ PROC is the server process."
          (filename (or file (plist-get elt :file) "unknown")))
     (if elt
         (let* ((file (read-file-name
-                      (format "Local filename (default %s): "
-                              (file-name-nondirectory filename))
+                      (format-prompt "Local filename"
+                                     (file-name-nondirectory filename))
                       (or erc-dcc-get-default-directory
                           default-directory)
                       (expand-file-name (file-name-nondirectory filename)
@@ -627,17 +627,17 @@ that subcommand."
        ?q query ?n nick ?u login ?h host))))
 
 (defconst erc-dcc-ctcp-query-send-regexp
-  (concat "^DCC SEND \\("
+  (concat "^DCC SEND \\(?:"
           ;; Following part matches either filename without spaces
           ;; or filename enclosed in double quotes with any number
           ;; of escaped double quotes inside.
-          "\"\\(\\(.*?\\(\\\\\"\\)?\\)+?\\)\"\\|\\([^ ]+\\)"
+          "\"\\(\\(?:\\\\\"\\|[^\"\\]\\)+\\)\"\\|\\([^ ]+\\)"
           "\\) \\([0-9]+\\) \\([0-9]+\\) *\\([0-9]*\\)"))
 
 (define-inline erc-dcc-unquote-filename (filename)
   (inline-quote
-   (erc-replace-regexp-in-string "\\\\\\\\" "\\"
-                                 (erc-replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t)))
+   (replace-regexp-in-string "\\\\\\\\" "\\"
+                             (replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t)))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -653,11 +653,11 @@ It extracts the information about the dcc request and adds it to
        ?r "SEND" ?n nick ?u login ?h host))
      ((string-match erc-dcc-ctcp-query-send-regexp query)
       (let ((filename
-             (or (match-string 5 query)
-                 (erc-dcc-unquote-filename (match-string 2 query))))
-            (ip       (erc-decimal-to-ip (match-string 6 query)))
-            (port     (match-string 7 query))
-            (size     (match-string 8 query)))
+             (or (match-string 2 query)
+                 (erc-dcc-unquote-filename (match-string 1 query))))
+            (ip       (erc-decimal-to-ip (match-string 3 query)))
+            (port     (match-string 4 query))
+            (size     (match-string 5 query)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
         (erc-display-message
@@ -1193,8 +1193,8 @@ other client."
         (setq posn (match-end 0))
         (erc-display-message
          nil nil proc
-         'dcc-chat-privmsg ?n (erc-propertize erc-dcc-from 'font-lock-face
-                                              'erc-nick-default-face) ?m line))
+         'dcc-chat-privmsg ?n (propertize erc-dcc-from 'font-lock-face
+                                          'erc-nick-default-face) ?m line))
       (setq erc-dcc-unprocessed-output (substring str posn)))))
 
 (defun erc-dcc-chat-buffer-killed ()

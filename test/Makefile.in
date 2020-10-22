@@ -89,11 +89,6 @@ unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
 ## To run tests under a debugger, set this to eg: "gdb --args".
 GDB =
 
-# The locale to run tests under.  Tests should work if this is set to
-# any supported locale.  Use the C locale by default, as it should be
-# supported everywhere.
-TEST_LOCALE = C
-
 # Set this to 'yes' to run the tests in an interactive instance.
 TEST_INTERACTIVE ?= no
 
@@ -128,7 +123,7 @@ endif
 
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= LC_ALL=$(TEST_LOCALE) \
+emacs = EMACSLOADPATH= \
  EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
  $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 
@@ -255,12 +250,10 @@ else
 FPIC_CFLAGS = -fPIC
 endif
 
-GMP_LIB = @GMP_LIB@
-GMP_OBJ = $(if @GMP_OBJ@, ../src/@GMP_OBJ@)
+GMP_H = @GMP_H@
+LIBGMP = @LIBGMP@
 
-# Note: emacs-module.h is generated from emacs-module.h.in, hence we
-# look in ../src, not $(srcdir)/../src.
-MODULE_CFLAGS = -I../src -I$(srcdir)/../lib \
+MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 
@@ -273,7 +266,8 @@ src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
 $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	$(AM_V_at)${MKDIR_P} $(dir $@)
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
-	  -o $@ $< $(GMP_LIB) $(GMP_OBJ:.o=.c) \
+	  -o $@ $< $(LIBGMP) \
+	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
 	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
 endif
 

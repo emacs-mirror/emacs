@@ -477,6 +477,22 @@ You should only ever change this variable with a let-binding; never
 with @code{setq}.
 @end defvar
 
+@defopt process-file-return-signal-string
+This user option indicates whether a call of @code{process-file}
+returns a string describing the signal interrupting a remote process.
+
+When a process returns an exit code greater than 128, it is
+interpreted as a signal.  @code{process-file} requires to return a
+string describing this signal.
+
+Since there are processes violating this rule, returning exit codes
+greater than 128 which are not bound to a signal, @code{process-file}
+returns always the exit code as natural number for remote processes.
+Setting this user option to non-nil forces @code{process-file} to
+interpret such exit codes as signals, and to return a corresponding
+string.
+@end defopt
+
 @defun call-process-region start end program &optional delete destination display &rest args
 This function sends the text from @var{start} to @var{end} as
 standard input to a process running @var{program}.  It deletes the text
@@ -585,6 +601,11 @@ signals an error.
 
 This function works by calling @code{call-process}, so program output
 is decoded in the same way as for @code{call-process}.
+@end defun
+
+@defun process-lines-ignore-status program &rest args
+This function is just like @code{process-lines}, but does not signal
+an error if @var{program} exits with a non-zero exit status.
 @end defun
 
 @node Asynchronous Processes
@@ -743,6 +764,7 @@ Some file name handlers may not support @code{make-process}.  In such
 cases, this function does nothing and returns @code{nil}.
 @end defun
 
+@anchor{Pipe Processes}
 @defun make-pipe-process &rest args
 This function creates a bidirectional pipe which can be attached to a
 child process.  This is useful with the @code{:stderr} keyword of
@@ -1554,7 +1576,8 @@ from previous output.
 @defun set-process-buffer process buffer
 This function sets the buffer associated with @var{process} to
 @var{buffer}.  If @var{buffer} is @code{nil}, the process becomes
-associated with no buffer.
+associated with no buffer; if non-@code{nil}, the process mark will be
+set to point to the end of @var{buffer}.
 @end defun
 
 @defun get-buffer-process buffer-or-name
@@ -1816,7 +1839,7 @@ system comes from @code{coding-system-for-read}, if that is
 non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
 Coding Systems}).  If the text output by a process contains null
 bytes, Emacs by default uses @code{no-conversion} for it; see
-@ref{Lisp and Coding Systems, inhibit-nul-byte-detection}, for how to
+@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
 control this behavior.
 
   @strong{Warning:} Coding systems such as @code{undecided}, which
@@ -2426,18 +2449,15 @@ server is stopped; a non-@code{nil} value means yes.
 @cindex encrypted network connections
 @cindex @acronym{TLS} network connections
 @cindex @acronym{STARTTLS} network connections
-Emacs can create encrypted network connections, using either built-in
-or external support.  The built-in support uses the GnuTLS
-Transport Layer Security Library; see
+Emacs can create encrypted network connections, using the built-in
+support for the GnuTLS Transport Layer Security Library; see
 @uref{https://www.gnu.org/software/gnutls/, the GnuTLS project page}.
 If your Emacs was compiled with GnuTLS support, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.  For
 more details, @pxref{Top,, Overview, emacs-gnutls, The Emacs-GnuTLS manual}.
-The external support uses the @file{starttls.el} library, which
-requires a helper utility such as @command{gnutls-cli} to be installed
-on the system.  The @code{open-network-stream} function can
-transparently handle the details of creating encrypted connections for
-you, using whatever support is available.
+The @code{open-network-stream} function can transparently handle the
+details of creating encrypted connections for you, using whatever
+support is available.
 
 @defun open-network-stream name buffer host service &rest parameters
 This function opens a TCP connection, with optional encryption, and
@@ -2465,6 +2485,12 @@ that are mainly relevant to encrypted connections:
 @item :nowait @var{boolean}
 If non-@code{nil}, try to make an asynchronous connection.
 
+@item :coding @var{coding}
+Use this to set the coding systems used by the network process, in
+preference to binding @code{coding-system-for-read} or
+@code{coding-system-for-write}.  @xref{Network Processes}, for
+details.
+
 @item :type @var{type}
 The type of connection.  Options are:
 
@@ -2491,7 +2517,10 @@ If non-@code{nil}, always ask for the server's capabilities, even when
 doing a @samp{plain} connection.
 
 @item :capability-command @var{capability-command}
-Command string to query the host capabilities.
+Command to query the host capabilities.  This can either be a string
+(which will then be sent verbatim to the server), or a function
+(called with a single parameter; the "greeting" from the server when
+connecting), and should return a string.
 
 @item :end-of-command @var{regexp}
 @itemx :end-of-capability @var{regexp}

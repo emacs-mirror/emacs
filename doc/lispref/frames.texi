@@ -1599,12 +1599,13 @@ parameters represent the user's stated preference; otherwise, use
 This parameter specifies a relative position of the frame's
 window-system window in the stacking (Z-) order of the frame's display.
 
-If this is @code{above}, the frame's window-system window is displayed
-above all other window-system windows that do not have the @code{above}
-property set.  If this is @code{nil}, the frame's window is displayed below all
-windows that have the @code{above} property set and above all windows
-that have the @code{below} property set.  If this is @code{below}, the
-frame's window is displayed below all windows that do not have the
+If this is @code{above}, the window-system will display the window
+that corresponds to the frame above all other window-system windows
+that do not have the @code{above} property set.  If this is
+@code{nil}, the frame's window is displayed below all windows that
+have the @code{above} property set and above all windows that have the
+@code{below} property set.  If this is @code{below}, the frame's
+window is displayed below all windows that do not have the
 @code{below} property set.
 
 To position the frame above or below a specific other frame use the
@@ -2173,7 +2174,7 @@ it on an undecorated frame.
 @item override-redirect
 @cindex override redirect frames
 If non-@code{nil}, this means that this is an @dfn{override redirect}
-frame---a frame not handled by window managers under X.  Override
+frame---a frame not handled by window managers under X@.  Override
 redirect frames have no window manager decorations, can be positioned
 and resized only via Emacs' positioning and resizing functions and are
 usually drawn on top of all other frames.  Setting this parameter has
@@ -2220,6 +2221,9 @@ How to display the cursor.  Legitimate values are:
 @table @code
 @item box
 Display a filled box.  (This is the default.)
+@item (box . @var{size})
+Display a filled box.  However, display it as a hollow box if point is
+under masked image larger than @var{size} pixels in either dimension.
 @item hollow
 Display a hollow box.
 @item nil
@@ -2295,20 +2299,23 @@ variable do not take effect immediately, only when you specify the
 @item font-backend
 A list of symbols, specifying the @dfn{font backends} to use for
 drawing characters on the frame, in order of priority.  In Emacs built
-without Cairo drawing on X, there are currently three available font
-backends: @code{x} (the X core font driver), @code{xft} (the Xft font
-driver), and @code{xfthb} (the Xft font driver with HarfBuzz text
-shaping).  If built with the Cairo drawing, there are also three
-available font backends on X: @code{x}, @code{ftcr} (the FreeType font
-driver on Cairo), and @code{ftcrhb} (the FreeType font driver on Cairo
-with HarfBuzz text shaping).  On MS-Windows, there are currently three
-available font backends: @code{gdi} (the core MS-Windows font driver),
-@code{uniscribe} (font driver for OTF and TTF fonts with text shaping
-by the Uniscribe engine), and @code{harfbuzz} (font driver for OTF and
-TTF fonts with HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs,
-The GNU Emacs Manual}).  On other systems, there is only one available
-font backend, so it does not make sense to modify this frame
-parameter.
+without Cairo drawing on X, there are currently three potentially
+available font backends: @code{x} (the X core font driver), @code{xft}
+(the Xft font driver), and @code{xfthb} (the Xft font driver with
+HarfBuzz text shaping).  If built with Cairo drawing, there are also
+three potentially available font backends on X: @code{x}, @code{ftcr}
+(the FreeType font driver on Cairo), and @code{ftcrhb} (the FreeType
+font driver on Cairo with HarfBuzz text shaping).  When Emacs is built
+with HarfBuzz, the default font driver is @code{ftcrhb}, although use
+of the @code{ftcr} driver is still possible, but not recommended.  On
+MS-Windows, there are currently three available font backends:
+@code{gdi} (the core MS-Windows font driver), @code{uniscribe} (font
+driver for OTF and TTF fonts with text shaping by the Uniscribe
+engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
+HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
+Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
+other systems, there is only one available font backend, so it does
+not make sense to modify this frame parameter.
 
 @vindex background-mode@r{, a frame parameter}
 @item background-mode
@@ -3258,7 +3265,7 @@ that deletion fails for whatever reason, the child frame is made a
 top-level frame.
 
   Whether a child frame can have a menu or tool bar is window-system or
-window manager dependent.  Most window-systems explicitly disallow menus
+window manager dependent.  Most window-systems explicitly disallow menu
 bars for child frames.  It seems advisable to disable both, menu and
 tool bars, via the frame's initial parameters settings.
 
@@ -3869,13 +3876,15 @@ detailed knowledge of what types other applications use for drag and
 drop.
 
 @vindex dnd-protocol-alist
+@vindex browse-url-handlers
+@vindex browse-url-default-handlers
   When an URL is dropped on Emacs it may be a file, but it may also be
 another URL type (https, etc.).  Emacs first checks
 @code{dnd-protocol-alist} to determine what to do with the URL@.  If
-there is no match there and if @code{browse-url-browser-function} is
-an alist, Emacs looks for a match there.  If no match is found the
-text for the URL is inserted.  If you want to alter Emacs behavior,
-you can customize these variables.
+there is no match there, Emacs looks for a match in
+@code{browse-url-handlers} and @code{browse-url-default-handlers}.  If
+still no match has been found, the text for the URL is inserted.  If
+you want to alter Emacs behavior, you can customize these variables.
 
 @node Color Names
 @section Color Names
@@ -3967,11 +3976,11 @@ If @var{color} is not defined, the value is @code{nil}.
 (color-values "black")
      @result{} (0 0 0)
 (color-values "white")
-     @result{} (65280 65280 65280)
+     @result{} (65535 65535 65535)
 (color-values "red")
-     @result{} (65280 0 0)
+     @result{} (65535 0 0)
 (color-values "pink")
-     @result{} (65280 49152 51968)
+     @result{} (65535 49344 52171)
 (color-values "hungry")
      @result{} nil
 @end example

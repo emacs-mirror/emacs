@@ -1,4 +1,4 @@
-;;; eieio-test-persist.el --- Tests for eieio-persistent class
+;;; eieio-test-persist.el --- Tests for eieio-persistent class  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

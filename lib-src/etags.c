@@ -124,6 +124,7 @@ University of California, as described above. */
 #include <binary-io.h>
 #include <intprops.h>
 #include <unlocked-io.h>
+#include <verify.h>
 #include <c-ctype.h>
 #include <c-strcase.h>
 
@@ -1984,8 +1985,11 @@ pfnote (char *name, bool is_func, char *linestart, ptrdiff_t linelen,
 {
   register node *np;
 
-  assert (name == NULL || name[0] != '\0');
-  if (CTAGS && name == NULL)
+  if ((CTAGS && name == NULL)
+      /* We used to have an assertion here for the case below, but if we hit
+	 that case, it just means our parser got confused, and there's nothing
+	 to do about such empty "tags".  */
+      || (!CTAGS && name && name[0] == '\0'))
     return;
 
   np = xnew (1, node);
@@ -4196,9 +4200,9 @@ C_entries (int c_ext, FILE *inf)
 	      break;
 	    }
 	  FALLTHROUGH;
-	resetfvdef:
 	case '#': case '~': case '&': case '%': case '/':
 	case '|': case '^': case '!': case '.': case '?':
+	resetfvdef:
 	  if (definedef != dnone)
 	    break;
 	  /* These surely cannot follow a function tag in C. */
@@ -7310,6 +7314,8 @@ static void *
 xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
   ptrdiff_t nbytes;
+  assume (0 <= nitems);
+  assume (0 < item_size);
   if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes))
     memory_full ();
   return xmalloc (nbytes);
@@ -7319,6 +7325,8 @@ static void *
 xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   ptrdiff_t nbytes;
+  assume (0 <= nitems);
+  assume (0 < item_size);
   if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
     memory_full ();
   void *result = realloc (pa, nbytes);

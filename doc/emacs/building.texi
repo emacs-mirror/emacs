@@ -213,7 +213,10 @@ Select a buffer to be used by next invocation of @code{next-error} and
 @kindex M-g n
 @kindex C-x `
 @findex next-error
+@findex next-error-message
+@vindex next-error-message-highlight
 @vindex next-error-highlight
+@vindex next-error-highlight-no-select
   To visit errors sequentially, type @w{@kbd{C-x `}}
 (@code{next-error}), or equivalently @kbd{M-g M-n} or @kbd{M-g n}.
 This command can be invoked from any buffer, not just a Compilation
@@ -258,7 +261,9 @@ to skip any messages.
 
   When Emacs visits the locus of an error message, it momentarily
 highlights the relevant source line.  The duration of this highlight
-is determined by the variable @code{next-error-highlight}.
+is determined by the variable @code{next-error-highlight} for the locus
+in the selected buffer, and @code{next-error-highlight-no-select} for
+the locus in non-selected buffers.
 
 @vindex compilation-context-lines
   If the @file{*compilation*} buffer is shown in a window with a left
@@ -424,11 +429,16 @@ M-n}}, @key{RET}, and so forth, just like compilation errors.
 @xref{Compilation Mode}, for detailed description of commands and key
 bindings available in the @file{*grep*} buffer.
 
+@vindex grep-match-regexp
   Some grep programs accept a @samp{--color} option to output special
 markers around matches for the purpose of highlighting.  You can make
 use of this feature by setting @code{grep-highlight-matches} to
 @code{t}.  When displaying a match in the source buffer, the exact
 match will be highlighted, instead of the entire source line.
+Highlighting is provided via matching the @acronym{ANSI} escape
+sequences emitted by @command{grep}.  The matching of the sequences is
+controlled by @code{grep-match-regexp}, which can be customized to
+accommodate different @command{grep} programs.
 
   As with compilation commands (@pxref{Compilation}), while the grep
 command runs, the mode line shows the running number of matches found
@@ -972,9 +982,27 @@ displays the following frame layout:
 @end group
 @end smallexample
 
+@findex gdb-save-window-configuration
+@findex gdb-load-window-configuration
+@vindex gdb-default-window-configuration-file
+@vindex gdb-window-configuration-directory
+  You can customize the window layout based on the one above and save
+that layout to a file using @code{gdb-save-window-configuration}.
+Then you can later load this layout back using
+@code{gdb-load-window-configuration}.  (Internally, Emacs uses the
+term window configuration instead of window layout.)  You can set your
+custom layout as the default one used by @code{gdb-many-windows} by
+customizing @code{gdb-default-window-configuration-file}.  If it is
+not an absolute file name, GDB looks under
+@code{gdb-window-configuration-directory} for the file.
+@code{gdb-window-configuration-directory} defaults to
+@code{user-emacs-directory} (@pxref{Find Init}).
+
+
 @findex gdb-restore-windows
 @findex gdb-many-windows
-  If you ever change the window layout, you can restore the many-windows
+@vindex gdb-restore-window-configuration-after-quit
+  If you ever change the window layout, you can restore the default
 layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
 between the many windows layout and a simple layout with just the GUD
 interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
@@ -985,7 +1013,13 @@ interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 of windows on your original frame will not be affected.  A separate
 frame for GDB sessions can come in especially handy if you work on a
 text-mode terminal, where the screen estate for windows could be at a
-premium.
+premium.  If you choose to start GDB in the same frame, consider
+setting @code{gdb-restore-window-configuration-after-quit} to a
+non-@code{nil} value.  Your original layout will then be restored
+after GDB quits.  Use @code{t} to always restore; use
+@code{if-gdb-many-windows} to restore only when
+@code{gdb-many-windows} is non-@code{nil}; use @code{if-gdb-show-main}
+to restore only when @code{gdb-show-main} is non-@code{nil}.
 
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
@@ -994,6 +1028,14 @@ want by typing @kbd{M-x gdb-display-@var{buffertype}-buffer} or
 is the relevant buffer type, such as @samp{breakpoints}.  You can do
 the same with the menu bar, with the @samp{GDB-Windows} and
 @samp{GDB-Frames} sub-menus of the @samp{GUD} menu.
+
+@vindex gdb-max-source-window-count
+@vindex gdb-display-source-buffer-action
+By default, GDB uses at most one window to display the source file.
+You can make it use more windows by customizing
+@code{gdb-max-source-window-count}.  You can also customize
+@code{gdb-display-source-buffer-action} to control how GDB displays
+source files.
 
   When you finish debugging, kill the GUD interaction buffer with
 @kbd{C-x k}, which will also kill all the buffers associated with the
@@ -1506,6 +1548,11 @@ putting a line like this in your init file (@pxref{Init File}):
 (add-to-list 'load-path "/path/to/my/lisp/library")
 @end example
 
+It is customary to put locally installed libraries in the
+@file{site-lisp} directory that is already in the default value of
+@code{load-path}, or in some subdirectory of @file{site-lisp}.  This
+way, you don't need to modify the default value of @code{load-path}.
+
 @cindex autoload
   Some commands are @dfn{autoloaded}; when you run them, Emacs
 automatically loads the associated library first.  For instance, the
@@ -1528,12 +1575,32 @@ Automatic loading also occurs when completing names for
 prefix being completed.  To disable this feature, change the variable
 @code{help-enable-completion-autoload} to @code{nil}.
 
-@vindex load-dangerous-libraries
-@cindex Lisp files byte-compiled by XEmacs
-  By default, Emacs refuses to load compiled Lisp files which were
-compiled with XEmacs, a modified version of Emacs---they can cause
-Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
-@code{t} if you want to try loading them.
+  Once you put your library in a directory where Emacs can find and
+load it, you may wish to make it available at startup.  This is useful
+when the library defines features that should be available
+automatically on demand, and manually loading the library is thus
+inconvenient.  In these cases, make sure the library will be loaded by
+adding suitable forms to your init file: either @code{load} or
+@code{require} (if you always need to load the library at startup), or
+@code{autoload} if you need Emacs to load the library when some
+command or function is invoked.  For example:
+
+@smalllisp
+@group
+ ;; Loads @file{my-shining-package.elc} unconditionally.
+ (require 'my-shining-package)
+@end group
+@group
+ ;; Will load @file{my-shining-package.elc} when @code{my-func} is invoked.
+ (autoload 'my-func "my-shining-package")
+@end group
+@end smalllisp
+
+  Note that installing a package using @code{package-install}
+(@pxref{Package Installation}) takes care of placing the package's
+Lisp files in a directory where Emacs will find it, and also writes
+the necessary initialization code into your init files, making the
+above manual customizations unnecessary.
 
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions
@@ -1605,21 +1672,26 @@ abbreviation of the output according to the variables
 argument of @code{-1} overrides the effect of
 @code{eval-expression-print-length}.
 
+ @kbd{C-x C-e} (@code{eval-last-sexp}) treats @code{defvar}
+expressions specially.  Normally, evaluating a @code{defvar}
+expression does nothing if the variable it defines already has a
+value.  But this command unconditionally resets the variable to the
+initial value specified by the @code{defvar}; this is convenient for
+debugging Emacs Lisp programs.  @code{defcustom} and @code{defface}
+expressions are treated similarly.  Note the other commands documented
+in this section, except @code{eval-defun}, do not have this special
+feature.
+
 @kindex C-M-x @r{(Emacs Lisp mode)}
 @findex eval-defun
   The @code{eval-defun} command is bound to @kbd{C-M-x} in Emacs Lisp
 mode.  It evaluates the top-level Lisp expression containing or
 following point, and prints the value in the echo area.  In this
 context, a top-level expression is referred to as a ``defun'', but it
-need not be an actual @code{defun} (function definition).  In
-particular, this command treats @code{defvar} expressions specially.
-Normally, evaluating a @code{defvar} expression does nothing if the
-variable it defines already has a value.  But this command
-unconditionally resets the variable to the initial value specified by
-the @code{defvar}; this is convenient for debugging Emacs Lisp
-programs.  @code{defcustom} and @code{defface} expressions are treated
-similarly.  Note that the other commands documented in this section do
-not have this special feature.
+need not be an actual @code{defun} (function definition).
+
+ This command handles @code{defvar}/@code{defcustom}/@code{defface}
+forms the same way that @code{eval-last-sexp} does.
 
   With a prefix argument, @kbd{C-M-x} instruments the function
 definition for Edebug, the Emacs Lisp Debugger.  @xref{Instrumenting,

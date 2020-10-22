@@ -8,6 +8,7 @@
 @cindex tips for writing Lisp
 @cindex standards of coding style
 @cindex coding standards
+@cindex best practices
 
   This chapter describes no additional features of Emacs Lisp.  Instead
 it gives advice on making effective use of the features described in the
@@ -803,18 +804,6 @@ starting the sentence with lower-case ``t'', which could be somewhat
 distracting.
 
 @item
-If a line in a documentation string begins with an open-parenthesis,
-write a backslash before the open-parenthesis, like this:
-
-@example
-The argument FOO can be either a number
-\(a buffer position) or a string (a file name).
-@end example
-
-This prevents the open-parenthesis from being treated as the start of a
-defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
-
-@item
 Write documentation strings in the active voice, not the passive, and in
 the present tense, not the future.  For instance, use ``Return a list
 containing A and B.@:'' instead of ``A list containing A and B will be
@@ -830,6 +819,14 @@ Avoid using ``iff'' (a mathematics term meaning ``if and only if''),
 since many people are unfamiliar with it and mistake it for a typo.  In
 most cases, the meaning is clear with just ``if''.  Otherwise, try to
 find an alternate phrasing that conveys the meaning.
+
+@item
+Try to avoid using abbreviations such as ``e.g.'' (for ``for
+example''), ``i.e.'' (for ``that is''), ``no.'' (for ``number''),
+``c.f.'' (for ``in contrast to'') and ``w.r.t.'' (for ``with respect
+to'') as much as possible.  It is almost always clearer and easier to
+read the expanded version.@footnote{We do use these occasionally, but
+try not to overdo it.}
 
 @item
 When a command is meaningful only in a certain mode or situation,
@@ -849,6 +846,21 @@ The documentation string for a variable that is a yes-or-no flag should
 start with words such as ``Non-nil means'', to make it clear that
 all non-@code{nil} values are equivalent and indicate explicitly what
 @code{nil} and non-@code{nil} mean.
+
+@item
+If a line in a documentation string begins with an open-parenthesis,
+consider writing a backslash before the open-parenthesis, like this:
+
+@example
+The argument FOO can be either a number
+\(a buffer position) or a string (a file name).
+@end example
+
+This avoids a bug in Emacs versions older than 27.1, where the
+@samp{(} was treated as the start of a defun
+(@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
+If you do not anticipate anyone editing your code with older Emacs
+versions, there is no need for this work-around.
 @end itemize
 
 @node Comment Tips
@@ -906,29 +918,56 @@ values.  It is much better to convert such comments to documentation
 strings, though.
 
 @item ;;;
-Comments that start with three semicolons, @samp{;;;}, should start at
-the left margin.  We use them
-for comments which should be considered a
-heading by Outline minor mode.  By default, comments starting with
-at least three semicolons (followed by a single space and a
-non-whitespace character) are considered headings, comments starting
-with two or fewer are not.  Historically, triple-semicolon comments have
-also been used for commenting out lines within a function, but this use
-is discouraged.
 
-When commenting out entire functions, use two semicolons.
+Comments that start with three (or more) semicolons, @samp{;;;},
+should start at the left margin.  We use them for comments that should
+be considered a heading by Outline minor mode.  By default, comments
+starting with at least three semicolons (followed by a single space
+and a non-whitespace character) are considered section headings,
+comments starting with two or fewer are not.
 
-@item ;;;;
-Comments that start with four (or more) semicolons, @samp{;;;;},
-should be aligned to the left margin and are used for headings of
-major sections of a program.  For example:
+(Historically, triple-semicolon comments have also been used for
+commenting out lines within a function, but this use is discouraged in
+favor of using just two semicolons.  This also applies when commenting
+out entire functions; when doing that use two semicolons as well.)
+
+Three semicolons are used for top-level sections, four for
+sub-sections, five for sub-sub-sections and so on.
+
+Typically libraries have at least four top-level sections.  For
+example when the bodies of all of these sections are hidden:
 
 @smallexample
-;;;; The kill ring
+@group
+;;; backquote.el --- implement the ` Lisp construct...
+;;; Commentary:...
+;;; Code:...
+;;; backquote.el ends here
+@end group
 @end smallexample
 
-If you wish to have sub-headings under these heading, use more
-semicolons to nest these sub-headings.
+(In a sense the last line is not a section heading as it must
+never be followed by any text; after all it marks the end of the
+file.)
+
+For longer libraries it is advisable to split the code into multiple
+sections.  This can be done by splitting the @samp{Code:} section into
+multiple sub-sections.  Even though that was the only recommended
+approach for a long time, many people have chosen to use multiple
+top-level code sections instead.  You may chose either style.
+
+Using multiple top-level code sections has the advantage that it
+avoids introducing an additional nesting level but it also means that
+the section named @samp{Code} does not contain all the code, which is
+awkward.  To avoid that, you should put no code at all inside that
+section; that way it can be considered a separator instead of a
+section heading.
+
+Finally, we recommend that you don't end headings with a colon or any
+other punctuation for that matter.  For historic reasons the
+@samp{Code:} and @samp{Commentary:} headings end with a colon, but we
+recommend that you don't do the same for other headings anyway.
+
 @end table
 
 @noindent
@@ -1073,7 +1112,7 @@ package is only activated if all its dependencies have been).
 Its format is a list of lists on a single line.  The @code{car} of
 each sub-list is the name of a package, as a symbol.  The @code{cadr}
 of each sub-list is the minimum acceptable version number, as a string
-that can be parse by @code{version-to-list}.  An entry that lacks a
+that can be parsed by @code{version-to-list}.  An entry that lacks a
 version (i.e., an entry which is just a symbol, or a sub-list of one
 element) is equivalent to entry with version "0".  For instance:
 

@@ -691,7 +691,6 @@ BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
 	(message "%s  Type C-c C-c when done" msg)
       (vc-finish-logentry (eq comment t)))))
 
-(declare-function vc-dir-move-to-goal-column "vc-dir" ())
 ;; vc-finish-logentry is typically called from a log-edit buffer (see
 ;; vc-start-logentry).
 (defun vc-finish-logentry (&optional nocomment)
@@ -740,13 +739,12 @@ the buffer contents as a comment."
       (mapc
        (lambda (file) (vc-resynch-buffer file t t))
        log-fileset))
-    (when (vc-dispatcher-browsing)
-      (vc-dir-move-to-goal-column))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
-  (derived-mode-p 'vc-dir-mode))
+  (or (derived-mode-p 'vc-dir-mode)
+      (derived-mode-p 'dired-mode)))
 
 ;; These are unused.
 ;; (defun vc-dispatcher-in-fileset-p (fileset)

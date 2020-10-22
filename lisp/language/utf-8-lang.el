@@ -1,4 +1,4 @@
-;;; utf-8-lang.el --- generic UTF-8 language environment
+;;; utf-8-lang.el --- generic UTF-8 language environment  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

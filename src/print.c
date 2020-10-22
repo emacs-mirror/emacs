@@ -368,8 +368,8 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	  int len;
 	  for (ptrdiff_t i = 0; i < size_byte; i += len)
 	    {
-	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
-					       len);
+	      int ch = string_char_and_length ((const unsigned char *) ptr + i,
+					       &len);
 	      printchar_to_stream (ch, stdout);
 	    }
 	}
@@ -400,8 +400,8 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	  int len;
 	  for (i = 0; i < size_byte; i += len)
 	    {
-	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
-					       len);
+	      int ch = string_char_and_length ((const unsigned char *) ptr + i,
+					       &len);
 	      insert_char (ch);
 	    }
 	}
@@ -426,9 +426,8 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to
 		 PRINTCHAR.  */
-	      int len;
-	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
-					       len);
+	      int len, ch = (string_char_and_length
+			     ((const unsigned char *) ptr + i, &len));
 	      printchar (ch, printcharfun);
 	      i += len;
 	    }
@@ -510,8 +509,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
-	    int len;
-	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i, len);
+	    int len, ch = string_char_and_length (SDATA (string) + i, &len);
 	    printchar (ch, printcharfun);
 	    i += len;
 	  }
@@ -1307,15 +1305,13 @@ print_check_string_charset_prop (INTERVAL interval, Lisp_Object string)
     }
   if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
-      int i, c;
       ptrdiff_t charpos = interval->position;
       ptrdiff_t bytepos = string_char_to_byte (string, charpos);
-      Lisp_Object charset;
+      Lisp_Object charset = XCAR (XCDR (val));
 
-      charset = XCAR (XCDR (val));
-      for (i = 0; i < LENGTH (interval); i++)
+      for (ptrdiff_t i = 0; i < LENGTH (interval); i++)
 	{
-	  FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
+	  int c = fetch_string_char_advance (string, &charpos, &bytepos);
 	  if (! ASCII_CHAR_P (c)
 	      && ! EQ (CHARSET_NAME (CHAR_CHARSET (c)), charset))
 	    {
@@ -1594,27 +1590,34 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 
 	/* Print the data here as a plist. */
 	ptrdiff_t real_size = HASH_TABLE_SIZE (h);
-	ptrdiff_t size = real_size;
+	ptrdiff_t size = h->count;
 
 	/* Don't print more elements than the specified maximum.  */
 	if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
 	  size = XFIXNAT (Vprint_length);
 
 	printchar ('(', printcharfun);
-	for (ptrdiff_t i = 0; i < size; i++)
+	ptrdiff_t j = 0;
+	for (ptrdiff_t i = 0; i < real_size; i++)
           {
             Lisp_Object key = HASH_KEY (h, i);
 	    if (!EQ (key, Qunbound))
 	      {
-	        if (i) printchar (' ', printcharfun);
+	        if (j++) printchar (' ', printcharfun);
 	        print_object (key, printcharfun, escapeflag);
 	        printchar (' ', printcharfun);
 	        print_object (HASH_VALUE (h, i), printcharfun, escapeflag);
+		if (j == size)
+		  break;
 	      }
           }
 
-	if (size < real_size)
-	  print_c_string (" ...", printcharfun);
+	if (j < h->count)
+	  {
+	    if (j)
+	      printchar (' ', printcharfun);
+	    print_c_string ("...", printcharfun);
+	  }
 
 	print_c_string ("))", printcharfun);
       }
@@ -1926,7 +1929,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  ptrdiff_t i, i_byte;
 	  ptrdiff_t size_byte;
 	  /* True means we must ensure that the next character we output
-	     cannot be taken as part of a hex character escape.  */
+	     cannot be taken as part of a hex character escape.	 */
 	  bool need_nonhex = false;
 	  bool multibyte = STRING_MULTIBYTE (obj);
 
@@ -1943,9 +1946,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    {
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to printchar.  */
-	      int c;
-
-	      FETCH_STRING_CHAR_ADVANCE (c, obj, i, i_byte);
+	      int c = fetch_string_char_advance (obj, &i, &i_byte);
 
 	      maybe_quit ();
 
@@ -1975,25 +1976,29 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		  /* If we just had a hex escape, and this character
 		     could be taken as part of it,
 		     output `\ ' to prevent that.  */
-                  if (c_isxdigit (c))
-                    {
-                      if (need_nonhex)
-                        print_c_string ("\\ ", printcharfun);
-                      printchar (c, printcharfun);
-                    }
-                  else if (c == '\n' && print_escape_newlines
-                           ? (c = 'n', true)
-                           : c == '\f' && print_escape_newlines
-                           ? (c = 'f', true)
-                           : c == '\"' || c == '\\')
-                    {
-                      printchar ('\\', printcharfun);
-                      printchar (c, printcharfun);
-                    }
-                  else if (print_escape_control_characters && c_iscntrl (c))
+		  if (c_isxdigit (c))
+		    {
+		      if (need_nonhex)
+			print_c_string ("\\ ", printcharfun);
+		      printchar (c, printcharfun);
+		    }
+		  else if (c == '\n' && print_escape_newlines
+			   ? (c = 'n', true)
+			   : c == '\f' && print_escape_newlines
+			   ? (c = 'f', true)
+			   : c == '\"' || c == '\\')
+		    {
+		      printchar ('\\', printcharfun);
+		      printchar (c, printcharfun);
+		    }
+		  else if (print_escape_control_characters && c_iscntrl (c))
 		    octalout (c, SDATA (obj), i_byte, size_byte, printcharfun);
-                  else
-                    printchar (c, printcharfun);
+		  else if (!multibyte
+			   && SINGLE_BYTE_CHAR_P (c)
+			   && !ASCII_CHAR_P (c))
+		    printchar (BYTE8_TO_CHAR (c), printcharfun);
+		  else
+		    printchar (c, printcharfun);
 		  need_nonhex = false;
 		}
 	    }
@@ -2023,7 +2028,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			  && len == size_byte);
 
 	if (! NILP (Vprint_gensym)
-            && !SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (obj))
+	    && !SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (obj))
 	  print_c_string ("#:", printcharfun);
 	else if (size_byte == 0)
 	  {
@@ -2036,8 +2041,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
-	    int c;
-	    FETCH_STRING_CHAR_ADVANCE (c, name, i, i_byte);
+	    int c = fetch_string_char_advance (name, &i, &i_byte);
 	    maybe_quit ();
 
 	    if (escapeflag)
@@ -2047,7 +2051,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		    || c == ',' || c == '.' || c == '`'
 		    || c == '[' || c == ']' || c == '?' || c <= 040
 		    || c == NO_BREAK_SPACE
-                    || confusing)
+		    || confusing)
 		  {
 		    printchar ('\\', printcharfun);
 		    confusing = false;
@@ -2112,7 +2116,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 		  if (!NILP (Vprint_circle))
 		    {
-		      /* With the print-circle feature.  */
+		      /* With the print-circle feature.	 */
 		      Lisp_Object num = Fgethash (obj, Vprint_number_table,
 						  Qnil);
 		      if (FIXNUMP (num))
@@ -2164,7 +2168,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
       {
 	int len;
 	/* We're in trouble if this happens!
-	   Probably should just emacs_abort ().  */
+	   Probably should just emacs_abort ().	 */
 	print_c_string ("#<EMACS BUG: INVALID DATATYPE ", printcharfun);
 	if (VECTORLIKEP (obj))
 	  len = sprintf (buf, "(PVEC 0x%08zx)", (size_t) ASIZE (obj));

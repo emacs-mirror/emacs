@@ -342,8 +342,8 @@ for identifying regular expressions at the beginning of the region."
 FORMAT defaults to `buffer-file-format'.  It is a symbol naming one of the
 formats defined in `format-alist', or a list of such symbols."
   (interactive
-   (list (format-read (format "Translate buffer to format (default %s): "
-			      buffer-file-format))))
+   (list (format-read (format-prompt "Translate buffer to format"
+			             buffer-file-format))))
   (format-encode-region (point-min) (point-max) format))
 
 (defun format-encode-region (beg end &optional format)
@@ -352,8 +352,8 @@ FORMAT defaults to `buffer-file-format'.  It is a symbol naming
 one of the formats defined in `format-alist', or a list of such symbols."
   (interactive
    (list (region-beginning) (region-end)
-	 (format-read (format "Translate region to format (default %s): "
-			      buffer-file-format))))
+	 (format-read (format-prompt "Translate region to format"
+			             buffer-file-format))))
   (if (null format)    (setq format buffer-file-format))
   (if (symbolp format) (setq format (list format)))
   (save-excursion

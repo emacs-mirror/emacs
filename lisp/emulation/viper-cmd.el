@@ -466,24 +466,7 @@
 			   (assoc major-mode viper-emacs-state-modifier-alist)))
 			 (cdr
 			  (assoc major-mode viper-emacs-state-modifier-alist))
-		       viper-empty-keymap))
-	       ))
-
-  ;; This var is not local in Emacs, so we make it local.  It must be local
-  ;; because although the stack of minor modes can be the same for all buffers,
-  ;; the associated *keymaps* can be different.  In Viper,
-  ;; viper-vi-local-user-map, viper-insert-local-user-map, and others can have
-  ;; different keymaps for different buffers.  Also, the keymaps associated
-  ;; with viper-vi/insert-state-modifier-minor-mode can be different.
-  ;; ***This is needed only in case emulation-mode-map-alists is not defined.
-  ;; In emacs with emulation-mode-map-alists, nothing needs to be done
-  (unless
-      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (set (make-local-variable 'minor-mode-map-alist)
-         (viper-append-filter-alist
-          (append viper--intercept-key-maps viper--key-maps)
-          minor-mode-map-alist)))
-  )
+		       viper-empty-keymap)))))
 
 
 
@@ -711,7 +694,7 @@
 ARG is used as the prefix value for the executed command.  If
 EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
-  (if (viper= (viper-last-command-char) ?\\)
+  (if (viper= last-command-event ?\\)
       (message "Switched to EMACS state for the next command..."))
   (viper-escape-to-state arg events 'emacs-state))
 
@@ -893,16 +876,7 @@ LOAD-FILE is the name of the file where the specific minor mode is defined.
 Suffixes such as .el or .elc should be stripped."
 
   (interactive "sEnter name of the load file: ")
-
-  (eval-after-load load-file '(viper-normalize-minor-mode-map-alist))
-
-  ;; Change the default for minor-mode-map-alist each time a harnessed minor
-  ;; mode adds its own keymap to the a-list.
-  (unless
-      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (eval-after-load
-	load-file '(setq-default minor-mode-map-alist minor-mode-map-alist)))
-  )
+  (eval-after-load load-file '(viper-normalize-minor-mode-map-alist)))
 
 
 (defun viper-ESC (arg)
@@ -1175,7 +1149,7 @@ as a Meta key and any number of multiple escapes are allowed."
   "Begin numeric argument for the next command."
   (interactive "P")
   (viper-prefix-arg-value
-   (viper-last-command-char) (if (consp arg) (cdr arg) nil)))
+   last-command-event (if (consp arg) (cdr arg) nil)))
 
 (defun viper-command-argument (arg)
   "Accept a motion command as an argument."
@@ -1183,7 +1157,7 @@ as a Meta key and any number of multiple escapes are allowed."
   (let ((viper-intermediate-command 'viper-command-argument))
     (condition-case nil
 	(viper-prefix-arg-com
-	 (viper-last-command-char)
+	 last-command-event
 	 (cond ((null arg) nil)
 	       ((consp arg) (car arg))
 	       ((integerp arg) arg)
@@ -1590,7 +1564,7 @@ invokes the command before that, etc."
 
 ;; Hook used in viper-undo
 (defun viper-after-change-undo-hook (beg end _len)
-  (if (and (boundp 'undo-in-progress) undo-in-progress)
+  (if undo-in-progress
       (setq undo-beg-posn beg
 	    undo-end-posn (or end beg))
     ;; some other hooks may be changing various text properties in
@@ -1624,9 +1598,9 @@ invokes the command before that, etc."
 		   (pos-visible-in-window-p before-undo-pt))
 	      (progn
 		(push-mark (point-marker) t)
-		(viper-sit-for-short 300)
+		(sit-for 0.3)
 		(goto-char undo-end-posn)
-		(viper-sit-for-short 300)
+		(sit-for 0.3)
 		(if (pos-visible-in-window-p undo-beg-posn)
 		    (goto-char before-undo-pt)
 		  (goto-char undo-beg-posn)))
@@ -1912,15 +1886,11 @@ Undo previous insertion and inserts new."
     (or unread-command-events
 	executing-kbd-macro
 	(sit-for 840))
-    (if (fboundp 'minibuffer-prompt-end)
-	(delete-region (minibuffer-prompt-end) (point-max))
-      (erase-buffer))
+    (delete-region (minibuffer-prompt-end) (point-max))
     (insert viper-initial)))
 
 (defsubst viper-minibuffer-real-start ()
-  (if (fboundp 'minibuffer-prompt-end)
-      (minibuffer-prompt-end)
-    (point-min)))
+  (minibuffer-prompt-end))
 
 (defun viper-minibuffer-post-command-hook()
   (when (active-minibuffer-window)
@@ -1934,7 +1904,7 @@ Undo previous insertion and inserts new."
   "Exit minibuffer Viper way."
   (interactive)
   (let (command)
-    (setq command (local-key-binding (char-to-string (viper-last-command-char))))
+    (setq command (local-key-binding (char-to-string last-command-event)))
     (run-hooks 'viper-minibuffer-exit-hook)
     (if command
 	(command-execute command)
@@ -2909,7 +2879,7 @@ If point is on a widget or a button, simulate clicking on that widget/button."
                (and (consp widget)
                     (get (widget-type widget) 'widget-type))))
         (widget-button-press (point))
-      (if (and (fboundp 'button-at) (fboundp 'push-button) (button-at (point)))
+      (if (button-at (point))
           (push-button)
 	;; not a widget or a button
         (save-excursion
@@ -4721,8 +4691,7 @@ Please, specify your level now: "))
   (interactive "cViper register to point: ")
   (let ((val (get-register char)))
     (cond
-     ((and (fboundp 'frame-configuration-p)
-	   (frame-configuration-p val))
+     ((frame-configuration-p val)
       (set-frame-configuration val))
      ((window-configuration-p val)
       (set-window-configuration val))
@@ -4765,8 +4734,7 @@ Please, specify your level now: "))
 	(viper-color-display-p (if (viper-window-display-p)
 			      (viper-color-display-p)
                               'non-x))
-        (viper-frame-parameters (if (fboundp 'frame-parameters)
-                                    (frame-parameters (selected-frame))))
+        (viper-frame-parameters (frame-parameters (selected-frame)))
 	(viper-minibuffer-emacs-face (if (viper-has-face-support-p)
                                          (facep
                                           viper-minibuffer-emacs-face)

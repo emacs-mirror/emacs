@@ -114,7 +114,6 @@ This is default behavior of shells like bash."
     backward-list
     forward-page
     backward-page
-    forward-point
     forward-paragraph
     backward-paragraph
     backward-prefix-chars

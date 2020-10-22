@@ -4,7 +4,7 @@
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Maintainer: emacs-devel@gnu.org
-;; Version: 1.6
+;; Old-Version: 1.6
 ;; Keywords: abbrev convenience
 
 ;; This file is part of GNU Emacs.

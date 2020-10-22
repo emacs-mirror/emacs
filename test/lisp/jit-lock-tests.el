@@ -1,4 +1,4 @@
-;;; jit-lock-tests.el --- tests for jit-lock
+;;; jit-lock-tests.el --- tests for jit-lock  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

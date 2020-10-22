@@ -73,7 +73,7 @@ Otherwise, most addresses look like `angles', but they look like
   :version "27.1")
 (make-obsolete-variable
  'mail-from-style
- "only the `angles' value is valid according to RFC2822." "27.1" 'set)
+ "only the `angles' value is valid according to RFC5322." "27.1" 'set)
 
 ;;;###autoload
 (defcustom mail-specify-envelope-from nil
@@ -529,7 +529,7 @@ This also saves the value of `send-mail-function' via Customize."
 	    (display-buffer (current-buffer))
 	    (let ((completion-ignore-case t))
               (completing-read
-               (format "Send mail via (default %s): " (caar options))
+               (format-prompt "Send mail via" (caar options))
                options nil 'require-match nil nil (car options))))))
     ;; Return the choice.
     (cdr (assoc-string choice options t))))
@@ -975,7 +975,7 @@ but lower priority than the local value of `buffer-file-coding-system'.
 See also the function `select-message-coding-system'.")
 
 ;;;###autoload
-(defvar default-sendmail-coding-system 'iso-latin-1
+(defvar default-sendmail-coding-system 'utf-8
   "Default coding system for encoding the outgoing mail.
 This variable is used only when `sendmail-coding-system' is nil.
 
@@ -1222,7 +1222,7 @@ external program defined by `sendmail-program'."
 		  (delete-region (line-beginning-position)
 				 (line-beginning-position 2))))
             ;; Apparently this causes a duplicate Sender.
-	    ;; ;; If the From is different than current user, insert Sender.
+	    ;; ;; If the From is different from current user, insert Sender.
 	    ;; (goto-char (point-min))
 	    ;; (and (re-search-forward "^From:"  delimline t)
 	    ;;      (progn

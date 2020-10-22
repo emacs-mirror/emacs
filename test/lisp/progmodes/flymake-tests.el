@@ -23,16 +23,9 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'flymake)
 (eval-when-compile (require 'subr-x)) ; string-trim
-
-(defvar flymake-tests-data-directory
-  (expand-file-name "lisp/progmodes/flymake-resources"
-                    (or (getenv "EMACS_TEST_DIRECTORY")
-                        (expand-file-name "../../.."
-                                          (or load-file-name
-                                              buffer-file-name))))
-  "Directory containing flymake test data.")
 
 
 ;;
@@ -63,7 +56,7 @@
   "Call FN after flymake setup in FILE, using `flymake-proc`.
 SEVERITY-PREDICATE is used to setup
 `flymake-proc-diagnostic-type-pred'"
-  (let* ((file (expand-file-name file flymake-tests-data-directory))
+  (let* ((file (ert-resource-file file))
          (visiting (find-buffer-visiting file))
          (buffer (or visiting (find-file-noselect file)))
          (process-environment (cons "LC_ALL=C" process-environment))

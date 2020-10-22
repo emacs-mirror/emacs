@@ -14,6 +14,9 @@ Unified interface to Support for Version Control Systems
 (@acronym{VCS}) that record the history of changes to source files.
 
 @item
+Commands for handling programming projects.
+
+@item
 A specialized mode for maintaining @file{ChangeLog} files that provide
 a chronological log of program changes.
 
@@ -38,6 +41,7 @@ Lisp Regression Testing}).
 
 @menu
 * Version Control::     Using version control systems.
+* Projects::            Commands for handling source files in a project.
 * Change Log::          Maintaining a change history for your program.
 * Xref::                Find definitions and references of any function,
                           method, struct, macro, @dots{} in your program.
@@ -1454,7 +1458,7 @@ working tree to match the branch you switch to.  Bazaar also supports
 co-located branches, in which case the @kbd{bzr switch} command
 will switch branches in the current directory.  With Subversion, you
 switch to another branch using the @kbd{svn switch} command.  With
-Mercurial, command @kbd{hg update} is used to swith to another
+Mercurial, command @kbd{hg update} is used to switch to another
 branch.
 
   The VC command to switch to another branch in the current directory
@@ -1629,6 +1633,211 @@ different revision with @kbd{C-u C-x v v}.
 @ifnottex
 @include vc1-xtra.texi
 @end ifnottex
+
+@node Projects
+@section Working with Projects
+@cindex projects
+
+@cindex project root
+  A @dfn{project} is a collection of files used for producing one or
+more programs.  Files that belong to a project are typically stored in
+a hierarchy of directories; the top-level directory of the hierarchy
+is known as the @dfn{project root}.
+
+@cindex project back-end
+  Whether a given directory is a root of some project is determined by
+the project-specific infrastructure, known as @dfn{project back-end}.
+Emacs currently supports two such back-ends: VC (@pxref{Version
+Control}), whereby a VCS repository is considered a project; and EDE
+(@pxref{EDE}).  This is expected to be extended in the future to
+support additional types of projects.
+
+  Which files do or don't belong to a project is also determined by
+the project back-end.  For example, the VC back-end doesn't consider
+``ignored'' files (@pxref{VC Ignore}) to be part of the project.
+
+@menu
+* Project File Commands::   Commands for handling project files.
+* Project Buffer Commands:: Commands for handling project buffers.
+* Switching Projects::      Switching between projects.
+@end menu
+
+@node Project File Commands
+@subsection Project Commands That Operate on Files
+
+@table @kbd
+@item C-x p f
+Visit a file that belongs to the current project
+(@code{project-find-file}).
+@item C-x p g
+Find matches for a regexp in all files that belong to the current
+project (@code{project-find-regexp}).
+@item M-x project-search
+Interactively search for regexp matches in all files that belong to
+the current project.
+@item C-x p r
+Perform query-replace for a regexp in all files that belong to the
+current project (@code{project-query-replace-regexp}).
+@item C-x p d
+Run Dired in the current project's root directory
+(@code{project-dired}).
+@item C-x p v
+Run @code{vc-dir} in the current project's root directory
+(@code{project-vc-dir}).
+@item C-x p s
+Start an inferior shell in the current project's root directory
+(@code{project-shell}).
+@item C-x p e
+Start Eshell in the current project's root directory
+(@code{project-eshell}).
+@item C-x p c
+Run compilation in the current project's root directory
+(@code{project-compile}).
+@item C-x p !
+Run shell command in the current project's root directory
+(@code{project-shell-command}).
+@item C-x p &
+Run shell command asynchronously in the current project's root
+directory (@code{project-async-shell-command}).
+@end table
+
+  Emacs provides commands for handling project files conveniently.
+This subsection describes these commands.
+
+@cindex current project
+  All of the commands described here share the notion of the
+@dfn{current project}.  The current project is determined by the
+@code{default-directory} (@pxref{File Names}) of the buffer that is
+the current buffer when the command is invoked.  If that directory
+doesn't seem to belong to a recognizable project, these commands
+prompt you for the project directory.
+
+@findex project-find-file
+  The command @kbd{C-x p f} (@code{project-find-file}) is a convenient
+way of visiting files (@pxref{Visiting}) that belong to the current
+project.  Unlike @kbd{C-x C-f}, this command doesn't require to type
+the full file name of the file to visit, you can type only the file's
+base name (i.e., omit the leading directories).  In addition, the
+completion candidates considered by the command include only the files
+belonging to the current project, and nothing else.  If there's a file
+name at point, this command offers that file as the default to visit.
+
+@findex project-find-regexp
+  The command @kbd{C-x p g} (@code{project-find-regexp}) is similar to
+@code{rgrep} (@pxref{Grep Searching}), but it searches only the files
+that belong to the current project.  The command prompts for the
+regular expression to search, and pops up an Xref mode buffer with the
+search results, where you can select a match using the Xref mode
+commands (@pxref{Xref Commands}).  When invoked with a prefix
+argument, this command additionally prompts for the base directory
+from which to start the search; this allows, for example, to limit the
+search only to project files under a certain subdirectory of the
+project root.
+
+@findex project-search
+  @kbd{M-x project-search} is an interactive variant of
+@code{project-find-regexp}.  It prompts for a regular expression to
+search in the current project's files, but instead of finding all the
+matches and displaying them, it stops when it finds a match and visits
+the matched file at the locus of the match, allowing you to edit the
+matched file.  To find the rest of the matches, type @w{@kbd{M-x
+fileloop-continue @key{RET}}}.
+
+@findex project-query-replace-regexp
+  @kbd{C-x p r} (@code{project-query-replace-regexp}) is similar to
+@code{project-search}, but it prompts you for whether to replace each
+match it finds, like @code{query-replace} does (@pxref{Query
+Replace}), and continues to the next match after you respond.  If your
+response causes Emacs to exit the query-replace loop, you can later
+continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
+
+@findex project-dired
+  The command @kbd{C-x p d} (@code{project-dired}) opens a Dired
+buffer (@pxref{Dired}) listing the files in the current project's root
+directory.
+
+@findex project-vc-dir
+  The command @kbd{C-x p v} (@code{project-vc-dir}) opens a VC
+Directory buffer (@pxref{VC Directory Mode}) listing the version
+control statuses of the files in a directory tree under the current
+project's root directory.
+
+@findex project-shell
+  The command @kbd{C-x p s} (@code{project-shell}) starts a shell
+session (@pxref{Shell}) in a new buffer with the current project's
+root as the working directory.
+
+@findex project-eshell
+  The command @kbd{C-x p e} (@code{project-eshell}) starts an Eshell
+session in a new buffer with the current project's root as the working
+directory.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
+
+@findex project-compile
+  The command @kbd{C-x p c} (@code{project-compile}) runs compilation
+(@pxref{Compilation}) in the current project's root directory.
+
+@findex project-shell-command
+  The command @kbd{C-x p !} (@code{project-shell-command}) runs
+@code{shell-command} in the current project's root directory.
+
+@findex project-async-shell-command
+  The command @kbd{C-x p &} (@code{project-async-shell-command}) runs
+@code{async-shell-command} in the current project's root directory.
+
+@node Project Buffer Commands
+@subsection Project Commands That Operate on Buffers
+
+@table @kbd
+@item C-x p b
+Switch to another buffer belonging to the current project
+(@code{project-switch-to-buffer}).
+@item C-x p k
+Kill all live buffers that belong to the current project
+(@code{project-kill-buffers}).
+@end table
+
+@findex project-switch-to-buffer
+  Working on a project could potentially involve having many buffers
+visiting files that belong to the project, and also buffers that
+belong to the project, but don't visit any files (like the
+@file{*compilation*} buffer created by @code{project-compile}).  The
+command @kbd{C-x p b} (@code{project-switch-to-buffer}) helps you
+switch between buffers that belong to the current project by prompting
+for a buffer to switch and considering only the current project's
+buffers as candidates for completion.
+
+@findex project-kill-buffers
+@vindex project-kill-buffer-conditions
+  When you finish working on the project, you may wish to kill all the
+buffers that belong to the project, to keep your Emacs session
+smaller.  The command @kbd{C-x p k} (@code{project-kill-buffers})
+accomplishes that: it kills all the buffers that belong to the current
+project that satisfy any of @code{project-kill-buffer-conditions}.
+
+@node Switching Projects
+@subsection Switching Projects
+
+@table @kbd
+@item C-x p p
+Run an Emacs command for another project (@code{project-switch-project}).
+@end table
+
+@findex project-switch-project
+@vindex project-switch-commands
+  Commands that operate on project files (@pxref{Project File
+Commands}) will conveniently prompt you for a project directory when
+no project is current.  When you are inside some project, but you want
+to operate on a different project, use the @kbd{C-x p p} command
+(@code{project-switch-project}).  This command prompts you to choose a
+directory among known project roots, and then displays the menu of
+available commands to operate on the project you choose.  The variable
+@code{project-switch-commands} controls which commands are available
+in the menu, and which key invokes each command.
+
+@vindex project-list-file
+  The variable @code{project-list-file} names the file in which Emacs
+records the list of known projects.  It defaults to the file
+@file{projects} in @code{user-emacs-directory} (@pxref{Find Init}).
 
 @node Change Log
 @section Change Logs

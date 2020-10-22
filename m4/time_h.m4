@@ -2,7 +2,7 @@
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2020 Free Software Foundation, Inc.
 
-# serial 11
+# serial 12
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -19,10 +19,12 @@ AC_DEFUN([gl_HEADER_TIME_H],
 
 AC_DEFUN([gl_HEADER_TIME_H_BODY],
 [
-  AC_REQUIRE([AC_C_RESTRICT])
   AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+
   gl_NEXT_HEADERS([time.h])
   AC_REQUIRE([gl_CHECK_TYPE_STRUCT_TIMESPEC])
+
+  AC_REQUIRE([AC_C_RESTRICT])
 ])
 
 dnl Check whether 'struct timespec' is declared
@@ -119,7 +121,6 @@ AC_DEFUN([gl_HEADER_TIME_H_DEFAULTS],
   HAVE_NANOSLEEP=1;                      AC_SUBST([HAVE_NANOSLEEP])
   HAVE_STRPTIME=1;                       AC_SUBST([HAVE_STRPTIME])
   HAVE_TIMEGM=1;                         AC_SUBST([HAVE_TIMEGM])
-  HAVE_TZSET=1;                          AC_SUBST([HAVE_TZSET])
   dnl Even GNU libc does not have timezone_t yet.
   HAVE_TIMEZONE_T=0;                     AC_SUBST([HAVE_TIMEZONE_T])
   dnl If another module says to replace or to not replace, do that.

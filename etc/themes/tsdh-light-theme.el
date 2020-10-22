@@ -1,4 +1,4 @@
-;;; tsdh-light-theme.el --- Tassilo's light custom theme
+;;; tsdh-light-theme.el --- Tassilo's light custom theme  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

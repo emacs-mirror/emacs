@@ -414,11 +414,17 @@ this."
 	;; if the rest of the region should have a face, put it there
 	(funcall ansi-color-apply-face-function
 		 start-marker end-marker (ansi-color--find-face codes))
-	(setq ansi-color-context-region (if codes (list codes)))))
+        ;; Save a restart position when there are codes active. It's
+        ;; convenient for man.el's process filter to pass `begin'
+        ;; positions that overlap regions previously colored; these
+        ;; `codes' should not be applied to that overlap, so we need
+        ;; to know where they should really start.
+	(setq ansi-color-context-region (if codes (list codes end-marker)))))
     ;; Clean up our temporary markers.
     (unless (eq start-marker (cadr ansi-color-context-region))
       (set-marker start-marker nil))
-    (set-marker end-marker nil)))
+    (unless (eq end-marker (cadr ansi-color-context-region))
+      (set-marker end-marker nil))))
 
 (defun ansi-color-apply-overlay-face (beg end face)
   "Make an overlay from BEG to END, and apply face FACE.
@@ -536,7 +542,7 @@ codes.	Finally, the so changed list of codes is returned."
 		     (cons new (remq new codes))))
 		(2 (unless (memq new '(20 26 28 29))
 		     ;; The standard says `21 doubly underlined' while
-		     ;; http://en.wikipedia.org/wiki/ANSI_escape_code claims
+                     ;; https://en.wikipedia.org/wiki/ANSI_escape_code claims
 		     ;; `21 Bright/Bold: off or Underline: Double'.
 		     (remq (- new 20) (pcase new
 					(22 (remq 1 codes))

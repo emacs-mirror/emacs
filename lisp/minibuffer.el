@@ -163,8 +163,8 @@ perform completion, no matter what ACTION is.
 
 If ACTION is `metadata' or a list where the first element is
 `boundaries', return nil.  If ACTION is nil, this function works
-like `try-completion'; if it's t, this function works like
-`all-completion'; and any other values makes it work like
+like `try-completion'; if it is t, this function works like
+`all-completion'; and any other value makes it work like
 `test-completion'."
   (cond
    ((functionp collection) (funcall collection string predicate action))
@@ -685,13 +685,6 @@ for use at QPOS."
                completions)
        qboundary))))
 
-;; (defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
-;; (defmacro dynamic-completion-table (fun) `(completion-table-dynamic ,fun))
-(define-obsolete-function-alias
-  'complete-in-turn #'completion-table-in-turn "23.1")
-(define-obsolete-function-alias
-  'dynamic-completion-table #'completion-table-dynamic "23.1")
-
 ;;; Minibuffer completion
 
 (defgroup minibuffer nil
@@ -763,44 +756,70 @@ and `clear-minibuffer-message' called automatically via
 (defvar minibuffer-message-timer nil)
 (defvar minibuffer-message-overlay nil)
 
+(defun minibuffer--message-overlay-pos ()
+  "Return position where `set-minibuffer-message' shall put message overlay."
+  ;; Starting from point, look for non-nil 'minibuffer-message'
+  ;; property, and return its position.  If none found, return the EOB
+  ;; position.
+  (let* ((pt (point))
+         (propval (get-text-property pt 'minibuffer-message)))
+    (if propval pt
+      (next-single-property-change pt 'minibuffer-message nil (point-max)))))
+
 (defun set-minibuffer-message (message)
   "Temporarily display MESSAGE at the end of the minibuffer.
+If some part of the minibuffer text has the `minibuffer-message' property,
+the message will be displayed before the first such character, instead of
+at the end of the minibuffer.
 The text is displayed for `minibuffer-message-clear-timeout' seconds
-(if the value is a number), or until the next input event arrives,
+\(if the value is a number), or until the next input event arrives,
 whichever comes first.
 Unlike `minibuffer-message', this function is called automatically
 via `set-message-function'."
-  (when (and (not noninteractive)
-             (window-live-p (active-minibuffer-window)))
-    (with-current-buffer (window-buffer (active-minibuffer-window))
-      (setq message (if (string-match-p "\\` *\\[.+\\]\\'" message)
-                        ;; Make sure we can put-text-property.
-                        (copy-sequence message)
-                      (concat " [" message "]")))
-      (unless (or (null minibuffer-message-properties)
-                  ;; Don't overwrite the face properties the caller has set
-                  (text-properties-at 0 message))
-        (setq message (apply #'propertize message minibuffer-message-properties)))
+  (let* ((minibuf-window (active-minibuffer-window))
+         (minibuf-frame (and (window-live-p minibuf-window)
+                             (window-frame minibuf-window))))
+    (when (and (not noninteractive)
+               (window-live-p minibuf-window)
+               (or (eq (window-frame) minibuf-frame)
+                   (eq (frame-parameter minibuf-frame 'minibuffer) 'only)))
+      (with-current-buffer (window-buffer minibuf-window)
+        (setq message (if (string-match-p "\\` *\\[.+\\]\\'" message)
+                          ;; Make sure we can put-text-property.
+                          (copy-sequence message)
+                        (concat " [" message "]")))
+        (unless (or (null minibuffer-message-properties)
+                    ;; Don't overwrite the face properties the caller has set
+                    (text-properties-at 0 message))
+          (setq message
+                (apply #'propertize message minibuffer-message-properties)))
 
-      (clear-minibuffer-message)
+        (clear-minibuffer-message)
 
-      (setq minibuffer-message-overlay
-            (make-overlay (point-max) (point-max) nil t t))
-      (unless (zerop (length message))
-        ;; The current C cursor code doesn't know to use the overlay's
-        ;; marker's stickiness to figure out whether to place the cursor
-        ;; before or after the string, so let's spoon-feed it the pos.
-        (put-text-property 0 1 'cursor t message))
-      (overlay-put minibuffer-message-overlay 'after-string message)
+        (let ((ovpos (minibuffer--message-overlay-pos)))
+          (setq minibuffer-message-overlay
+                (make-overlay ovpos ovpos nil t t)))
+        (unless (zerop (length message))
+          ;; The current C cursor code doesn't know to use the overlay's
+          ;; marker's stickiness to figure out whether to place the cursor
+          ;; before or after the string, so let's spoon-feed it the pos.
+          (put-text-property 0 1 'cursor 1 message))
+        (overlay-put minibuffer-message-overlay 'after-string message)
+        ;; Make sure the overlay with the message is displayed before
+        ;; any other overlays in that position, in case they have
+        ;; resize-mini-windows set to nil and the other overlay strings
+        ;; are too long for the mini-window width.  This makes sure the
+        ;; temporary message will always be visible.
+        (overlay-put minibuffer-message-overlay 'priority 1100)
 
-      (when (numberp minibuffer-message-clear-timeout)
-        (setq minibuffer-message-timer
-              (run-with-timer minibuffer-message-clear-timeout nil
-                              #'clear-minibuffer-message)))
+        (when (numberp minibuffer-message-clear-timeout)
+          (setq minibuffer-message-timer
+                (run-with-timer minibuffer-message-clear-timeout nil
+                                #'clear-minibuffer-message)))
 
-      ;; Return `t' telling the caller that the message
-      ;; was handled specially by this function.
-      t)))
+        ;; Return `t' telling the caller that the message
+        ;; was handled specially by this function.
+        t))))
 
 (setq set-message-function 'set-minibuffer-message)
 
@@ -1052,10 +1071,16 @@ in the last `cdr'."
 (defun completion--replace (beg end newtext)
   "Replace the buffer text between BEG and END with NEWTEXT.
 Moves point to the end of the new text."
-  ;; The properties on `newtext' include things like
-  ;; completions-first-difference, which we don't want to include
-  ;; upon insertion.
-  (set-text-properties 0 (length newtext) nil newtext)
+  ;; The properties on `newtext' include things like the
+  ;; `completions-first-difference' face, which we don't want to
+  ;; include upon insertion.
+  (if minibuffer-allow-text-properties
+      ;; If we're preserving properties, then just remove the faces
+      ;; and other properties added by the completion machinery.
+      (remove-text-properties 0 (length newtext) '(face completion-score)
+                              newtext)
+    ;; Remove all text properties.
+    (set-text-properties 0 (length newtext) nil newtext))
   ;; Maybe this should be in subr.el.
   ;; You'd think this is trivial to do, but details matter if you want
   ;; to keep markers "at the right place" and be robust in the face of
@@ -1380,7 +1405,11 @@ scroll the window of possible completions."
    (minibuffer-prompt-end) (point-max) #'exit-minibuffer
    ;; If the previous completion completed to an element which fails
    ;; test-completion, then we shouldn't exit, but that should be rare.
-   (lambda () (minibuffer-message "Incomplete"))))
+   (lambda ()
+     (if minibuffer--require-match
+         (minibuffer-message "Incomplete")
+       ;; If a match is not required, exit after all.
+       (exit-minibuffer)))))
 
 (defun minibuffer-force-complete (&optional start end dont-cycle)
   "Complete the minibuffer to an exact match.
@@ -1443,6 +1472,9 @@ DONT-CYCLE tells the function not to setup cycling."
     minibuffer-complete-word PC-complete PC-complete-word)
   "List of commands which cause an immediately following
 `minibuffer-complete-and-exit' to ask for extra confirmation.")
+
+(defvar minibuffer--require-match nil
+  "Value of REQUIRE-MATCH passed to `completing-read'.")
 
 (defun minibuffer-complete-and-exit ()
   "Exit if the minibuffer contains a valid completion.
@@ -1743,9 +1775,6 @@ It also eliminates runs of equal strings."
 			      ;; Round up to a whole number of columns.
 			      (* colwidth (ceiling length colwidth))))))))))))
 
-(defvar completion-common-substring nil)
-(make-obsolete-variable 'completion-common-substring nil "23.1")
-
 (defvar completion-setup-hook nil
   "Normal hook run at the end of setting up a completion list buffer.
 When this hook is run, the current buffer is the one in which the
@@ -1837,11 +1866,7 @@ It can find the completion buffer in `standard-output'."
         (insert "Possible completions are:\n")
         (completion--insert-strings completions))))
 
-  ;; The hilit used to be applied via completion-setup-hook, so there
-  ;; may still be some code that uses completion-common-substring.
-  (with-no-warnings
-    (let ((completion-common-substring common-substring))
-      (run-hooks 'completion-setup-hook)))
+  (run-hooks 'completion-setup-hook)
   nil)
 
 (defvar completion-extra-properties nil
@@ -1941,12 +1966,13 @@ variables.")
                        (plist-get completion-extra-properties
                                   :annotation-function)
                        completion-annotate-function))
+             (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
              ;; minibuffer-hide-completions will know whether to
              ;; delete the window or not.
              (display-buffer-mark-dedicated 'soft))
-        (with-displayed-buffer-window
+        (with-current-buffer-window
           "*Completions*"
           ;; This is a copy of `display-buffer-fallback-action'
           ;; where `display-buffer-use-some-window' is replaced
@@ -1960,66 +1986,69 @@ variables.")
              ,(if (eq (selected-window) (minibuffer-window))
                   'display-buffer-at-bottom
                 'display-buffer-below-selected))
-	    ,(if temp-buffer-resize-mode
-		 '(window-height . resize-temp-buffer-window)
-	       '(window-height . fit-window-to-buffer))
-	    ,(when temp-buffer-resize-mode
-	       '(preserve-size . (nil . t))))
-          nil
-          ;; Remove the base-size tail because `sort' requires a properly
-          ;; nil-terminated list.
-          (when last (setcdr last nil))
-          (setq completions
-                ;; FIXME: This function is for the output of all-completions,
-                ;; not completion-all-completions.  Often it's the same, but
-                ;; not always.
-                (let ((sort-fun (completion-metadata-get
-                                 all-md 'display-sort-function)))
-                  (if sort-fun
-                      (funcall sort-fun completions)
-                    (sort completions 'string-lessp))))
-          (when afun
-            (setq completions
-                  (mapcar (lambda (s)
-                            (let ((ann (funcall afun s)))
-                              (if ann (list s ann) s)))
-                          completions)))
+            ,(if temp-buffer-resize-mode
+                 '(window-height . resize-temp-buffer-window)
+               '(window-height . fit-window-to-buffer))
+            ,(when temp-buffer-resize-mode
+               '(preserve-size . (nil . t)))
+            (body-function
+             . ,#'(lambda (_window)
+                    (with-current-buffer mainbuf
+                      ;; Remove the base-size tail because `sort' requires a properly
+                      ;; nil-terminated list.
+                      (when last (setcdr last nil))
+                      (setq completions
+                            ;; FIXME: This function is for the output of all-completions,
+                            ;; not completion-all-completions.  Often it's the same, but
+                            ;; not always.
+                            (let ((sort-fun (completion-metadata-get
+                                             all-md 'display-sort-function)))
+                              (if sort-fun
+                                  (funcall sort-fun completions)
+                                (sort completions 'string-lessp))))
+                      (when afun
+                        (setq completions
+                              (mapcar (lambda (s)
+                                        (let ((ann (funcall afun s)))
+                                          (if ann (list s ann) s)))
+                                      completions)))
 
-          (with-current-buffer standard-output
-            (set (make-local-variable 'completion-base-position)
-                 (list (+ start base-size)
-                       ;; FIXME: We should pay attention to completion
-                       ;; boundaries here, but currently
-                       ;; completion-all-completions does not give us the
-                       ;; necessary information.
-                       end))
-            (set (make-local-variable 'completion-list-insert-choice-function)
-                 (let ((ctable minibuffer-completion-table)
-                       (cpred minibuffer-completion-predicate)
-                       (cprops completion-extra-properties))
-                   (lambda (start end choice)
-                     (unless (or (zerop (length prefix))
-                                 (equal prefix
-                                        (buffer-substring-no-properties
-                                         (max (point-min)
-                                              (- start (length prefix)))
-                                         start)))
-                       (message "*Completions* out of date"))
-                     ;; FIXME: Use `md' to do quoting&terminator here.
-                     (completion--replace start end choice)
-                     (let* ((minibuffer-completion-table ctable)
-                            (minibuffer-completion-predicate cpred)
-                            (completion-extra-properties cprops)
-                            (result (concat prefix choice))
-                            (bounds (completion-boundaries
-                                     result ctable cpred "")))
-                       ;; If the completion introduces a new field, then
-                       ;; completion is not finished.
-                       (completion--done result
-                                         (if (eq (car bounds) (length result))
-                                             'exact 'finished)))))))
+                      (with-current-buffer standard-output
+                        (set (make-local-variable 'completion-base-position)
+                             (list (+ start base-size)
+                                   ;; FIXME: We should pay attention to completion
+                                   ;; boundaries here, but currently
+                                   ;; completion-all-completions does not give us the
+                                   ;; necessary information.
+                                   end))
+                        (set (make-local-variable 'completion-list-insert-choice-function)
+                             (let ((ctable minibuffer-completion-table)
+                                   (cpred minibuffer-completion-predicate)
+                                   (cprops completion-extra-properties))
+                               (lambda (start end choice)
+                                 (unless (or (zerop (length prefix))
+                                             (equal prefix
+                                                    (buffer-substring-no-properties
+                                                     (max (point-min)
+                                                          (- start (length prefix)))
+                                                     start)))
+                                   (message "*Completions* out of date"))
+                                 ;; FIXME: Use `md' to do quoting&terminator here.
+                                 (completion--replace start end choice)
+                                 (let* ((minibuffer-completion-table ctable)
+                                        (minibuffer-completion-predicate cpred)
+                                        (completion-extra-properties cprops)
+                                        (result (concat prefix choice))
+                                        (bounds (completion-boundaries
+                                                 result ctable cpred "")))
+                                   ;; If the completion introduces a new field, then
+                                   ;; completion is not finished.
+                                   (completion--done result
+                                                     (if (eq (car bounds) (length result))
+                                                         'exact 'finished)))))))
 
-          (display-completion-list completions))))
+                      (display-completion-list completions)))))
+          nil)))
     nil))
 
 (defun minibuffer-hide-completions ()
@@ -2343,8 +2372,6 @@ The completion method is determined by `completion-at-point-functions'."
 Gets combined either with `minibuffer-local-completion-map' or
 with `minibuffer-local-must-match-map'.")
 
-(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
-  'minibuffer-local-filename-must-match-map "23.1")
 (defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
 (make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 
@@ -2517,11 +2544,6 @@ same as `substitute-in-file-name'."
 
               all))))))
     (file-error nil)))               ;PCM often calls with invalid directories.
-
-(defvar read-file-name-predicate nil
-  "Current predicate used by `read-file-name-internal'.")
-(make-obsolete-variable 'read-file-name-predicate
-                        "use the regular PRED argument" "23.2")
 
 (defun completion--sifn-requote (upos qstr)
   ;; We're looking for `qpos' such that:
@@ -2737,8 +2759,13 @@ See `read-file-name' for the meaning of the arguments."
   (unless dir (setq dir (or default-directory "~/")))
   (unless (file-name-absolute-p dir) (setq dir (expand-file-name dir)))
   (unless default-filename
-    (setq default-filename (if initial (expand-file-name initial dir)
-                             buffer-file-name)))
+    (setq default-filename
+          (cond
+           ((null initial) buffer-file-name)
+           ;; Special-case "" because (expand-file-name "" "/tmp/") returns
+           ;; "/tmp" rather than "/tmp/" (bug#39057).
+           ((equal "" initial) dir)
+           (t (expand-file-name initial dir)))))
   ;; If dir starts with user's homedir, change that to ~.
   (setq dir (abbreviate-file-name dir))
   ;; Likewise for default-filename.
@@ -3007,6 +3034,19 @@ the commands start with a \"-\" or a SPC."
   :version "24.1"
   :type 'boolean)
 
+(defcustom minibuffer-default-prompt-format " (default %s)"
+  "Format string used to output \"default\" values.
+When prompting for input, there will often be a default value,
+leading to prompts like \"Number of articles (default 50): \".
+The \"default\" part of that prompt is controlled by this
+variable, and can be set to, for instance, \" [%s]\" if you want
+a shorter displayed prompt, or \"\", if you don't want to display
+the default at all.
+
+This variable is used by the `format-prompt' function."
+  :version "28.1"
+  :type 'string)
+
 (defun completion-pcm--pattern-trivial-p (pattern)
   (and (stringp (car pattern))
        ;; It can be followed by `point' and "" and still be trivial.
@@ -3076,12 +3116,12 @@ or a symbol, see `completion-pcm--merge-completions'."
     (while p
       (pcase p
         (`(,(or 'any 'any-delim) point . ,rest) (setq p `(point . ,rest)))
-        ;; This is not just a performance improvement: it also turns
-        ;; a terminating `point' into an implicit `any', which
-        ;; affects the final position of point (because `point' gets
-        ;; turned into a non-greedy ".*?" regexp whereas we need
-        ;; it the be greedy when it's at the end, see bug#38458).
-        (`(,(pred symbolp)) (setq p nil)) ;Implicit terminating `any'.
+        ;; This is not just a performance improvement: it turns a
+        ;; terminating `point' into an implicit `any', which affects
+        ;; the final position of point (because `point' gets turned
+        ;; into a non-greedy ".*?" regexp whereas we need it to be
+        ;; greedy when it's at the end, see bug#38458).
+        (`(point) (setq p nil)) ;Implicit terminating `any'.
         (_ (push (pop p) n))))
     (nreverse n)))
 
@@ -3575,7 +3615,7 @@ that is non-nil."
 ;;; "flex" completion, also known as flx/fuzzy/scatter completion
 ;; Completes "foo" to "frodo" and "farfromsober"
 
-(defcustom completion-flex-nospace t
+(defcustom completion-flex-nospace nil
   "Non-nil if `flex' completion rejects spaces in search pattern."
   :version "27.1"
   :type 'boolean)
@@ -3723,8 +3763,10 @@ See `completing-read' for the meaning of the arguments."
 
   (let* ((minibuffer-completion-table collection)
          (minibuffer-completion-predicate predicate)
+         ;; FIXME: Remove/rename this var, see the next one.
          (minibuffer-completion-confirm (unless (eq require-match t)
                                           require-match))
+         (minibuffer--require-match require-match)
          (base-keymap (if require-match
                          minibuffer-local-must-match-map
                         minibuffer-local-completion-map))
@@ -3821,6 +3863,29 @@ the minibuffer was activated, and execute the forms."
   (interactive "^P")
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
+
+(defun format-prompt (prompt default &rest format-args)
+  "Format PROMPT with DEFAULT according to `minibuffer-default-prompt-format'.
+If FORMAT-ARGS is nil, PROMPT is used as a plain string.  If
+FORMAT-ARGS is non-nil, PROMPT is used as a format control
+string, and FORMAT-ARGS are the arguments to be substituted into
+it.  See `format' for details.
+
+If DEFAULT is a list, the first element is used as the default.
+If not, the element is used as is.
+
+If DEFAULT is nil, no \"default value\" string is included in the
+return value."
+  (concat
+   (if (null format-args)
+       prompt
+     (apply #'format prompt format-args))
+   (and default
+        (format minibuffer-default-prompt-format
+                (if (consp default)
+                    (car default)
+                  default)))
+   ": "))
 
 (provide 'minibuffer)
 

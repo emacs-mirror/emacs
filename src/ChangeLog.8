@@ -1572,7 +1572,7 @@
 	(wait_reading_process_input): Use emacs_strerror, not strerror.
 
 	* process.c (status_message, sigchld_handler): Synchronize locale,
-	then use strsignal istead of sys_siglist.
+	then use strsignal instead of sys_siglist.
 	* w32proc.c (sys_wait): Likewise.
 
 	* s/aix3-1.h, s/bsd4-1.h, s/dgux.h, s/gnu-linux.h, s/hiuxmpp.h:
@@ -7560,7 +7560,7 @@
 	(recompute_basic_faces): Realize basic faces only if face cache is
 	allocated, i.e. after init_frame_faces has been called.
 
-	* frame.c (make_frame): Initialze face cache with null.
+	* frame.c (make_frame): Initialize face cache with null.
 
 	* xfaces.c (same_size_fonts): Remove.
 
@@ -9810,7 +9810,7 @@
 1997-10-13  Gerd Moellmann  <gerd@acm.org>
 
 	* xdisp.c (redisplay_window): Use available current matrix to
-	skip faster when only point is moved withing the window.
+	skip faster when only point is moved within the window.
 
 	* intervals.c: Include stdio.h.
 	(find_interval): Trace to stderr to catch some nasty error
@@ -9859,7 +9859,7 @@
 	* emacs.c: FreeBSD headers for profiling removed.
 
 	* dispnew.c (direct_output_for_insert): Don't use PT-1 for
-	display cursor, use DEC_POS instread.
+	display cursor, use DEC_POS instead.
 
 	* xfaces.c (load_font): Use x_load_font to load fonts so that
 	all fonts are in the font table.
@@ -11940,7 +11940,7 @@
 	This avoids a conflict with a system header file paths.h on GNU/Linux.
 
 	* callproc.c, lread.c, w32fns.c, xfns.c, xrdb.c:
-	Use epaths.h istead of paths.h.
+	Use epaths.h instead of paths.h.
 
 1999-02-26  Andreas Schwab  <schwab@gnu.org>
 

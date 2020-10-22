@@ -862,7 +862,7 @@ Moves relative to START, or `eshell-history-index'."
       (setq prev n
 	    n (mod (+ n motion) len))
       ;; If we haven't reached a match, step some more.
-      (while (and (< n len) (not tried-each-ring-item)
+      (while (and (not tried-each-ring-item)
 		  (not (string-match regexp (eshell-get-history n))))
 	(setq n (mod (+ n motion) len)
 	      ;; If we have gone all the way around in this search.

@@ -316,8 +316,22 @@ input before returning it.  However,
 @code{read-no-blanks-input} (see below), as well as
 @code{read-minibuffer} and related functions (@pxref{Object from
 Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
-functions that do minibuffer input with completion, discard text
-properties unconditionally, regardless of the value of this variable.
+functions that do minibuffer input with completion, remove the @code{face}
+property unconditionally, regardless of the value of this variable.
+
+If this variable is non-@code{nil}, most text properties on strings
+from the completion table are preserved---but only on the part of the
+strings that were completed.
+
+@lisp
+(let ((minibuffer-allow-text-properties t))
+  (completing-read "String: " (list (propertize "foobar" 'data 'zot))))
+=> #("foobar" 3 6 (data zot))
+@end lisp
+
+In this example, the user typed @samp{foo} and then hit the @kbd{TAB}
+key, so the text properties are only preserved on the last three
+characters.
 @end defvar
 
 @defvar minibuffer-local-map
@@ -410,6 +424,39 @@ following bindings, in addition to those of @code{minibuffer-local-map}:
 @code{self-insert-and-exit}
 @end table
 @end defvar
+
+@vindex minibuffer-default-prompt-format
+@defun format-prompt prompt default &rest format-args
+Format @var{prompt} with default value @var{default} according to the
+@code{minibuffer-default-prompt-format} variable.
+
+@code{minibuffer-default-prompt-format} is a format string (defaulting
+to @samp{" (default %s)"} that says how the ``default'' bit in prompts
+like @samp{"Local filename (default somefile): "} are to be formatted.
+
+To allow the users to customize how this is displayed, code that
+prompts the user for a value (and has a default) should look something
+along the lines of this code snippet:
+
+@lisp
+(read-file-name
+ (format-prompt "Local filename" file)
+ nil file)
+@end lisp
+
+If @var{format-args} is @code{nil}, @var{prompt} is used as a literal
+string.  If @var{format-args} is non-@code{nil}, @var{prompt} is used
+as a format control string, and @var{prompt} and @var{format-args} are
+passed to @code{format} (@pxref{Formatting Strings}).
+
+@code{minibuffer-default-prompt-format} can be @samp{""}, in which
+case no default values are displayed.
+
+If @var{default} is @code{nil}, there is no default value, and
+therefore no ``default value'' string is included in the result value.
+If @var{default} is a non-@code{nil} list, the first element of the
+list is used in the prompt.
+@end defun
 
 @node Object from Minibuffer
 @section Reading Lisp Objects with the Minibuffer
@@ -572,6 +619,7 @@ and returns the updated history list.  It limits the list length to
 the value of @var{maxelt} (if non-@code{nil}) or @code{history-length}
 (described below).  The possible values of @var{maxelt} have the same
 meaning as the values of @code{history-length}.
+@var{history-var} cannot refer to a lexical variable.
 
 Normally, @code{add-to-history} removes duplicate members from the
 history list if @code{history-delete-duplicates} is non-@code{nil}.
@@ -2235,16 +2283,16 @@ the end of @var{question}.  The possible responses are provided in
 @noindent
 where @var{long-answer} is the complete text of the user response, a
 string; @var{short-answer} is a short form of the same response, a
-single character; and @var{help-message} is the text that describes
-the meaning of the answer.  If the variable @code{read-answer-short}
-is non-@code{nil}, the prompt will show the short variants of the
-possible answers and the user is expected to type the single
-characters shown in the prompt; otherwise the prompt will show the
-long variants of the answers, and the user is expected to type the
-full text of one of the answers and end by pressing @key{RET}.  If
-@code{use-dialog-box} is non-@code{nil}, and this function was invoked
-by mouse events, the question and the answers will be displayed in a
-GUI dialog box.
+single character or a function key; and @var{help-message} is the text
+that describes the meaning of the answer.  If the variable
+@code{read-answer-short} is non-@code{nil}, the prompt will show the
+short variants of the possible answers and the user is expected to
+type the single characters/keys shown in the prompt; otherwise the
+prompt will show the long variants of the answers, and the user is
+expected to type the full text of one of the answers and end by
+pressing @key{RET}.  If @code{use-dialog-box} is non-@code{nil}, and
+this function was invoked by mouse events, the question and the
+answers will be displayed in a GUI dialog box.
 
 The function returns the text of the @var{long-answer} selected by the
 user, regardless of whether long or short answers were shown in the
@@ -2426,9 +2474,10 @@ changes size automatically.  In that case the window resizing commands
 
 @defopt max-mini-window-height
 This option provides a maximum height for resizing minibuffer windows
-automatically.  A floating-point number specifies a fraction of the
-frame's height; an integer specifies the maximum number of lines.  The
-default value is 0.25.
+automatically.  A floating-point number specifies the maximum height
+as a fraction of the frame's height; an integer specifies the maximum
+height in units of the frame's canonical character height
+(@pxref{Frame Font}).  The default value is 0.25.
 @end defopt
 
 Note that the values of the above two variables take effect at display

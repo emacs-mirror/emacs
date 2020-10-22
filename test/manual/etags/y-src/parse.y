@@ -556,7 +556,7 @@ yylex FUN0()
 			}
 #ifdef TEST
 			if(nn==n_usr_funs) {
-				io_error_msg("Couln't turn fp into a ##");
+				io_error_msg("Couldn't turn fp into a ##");
 				parse_error=BAD_FUNC;
 				return ERROR;
 			}

@@ -93,7 +93,15 @@ as that will override any bit grouping options set here."
   "Face used in address area of Hexl mode buffer.")
 
 (defface hexl-ascii-region
-  '((t (:inherit header-line)))
+  ;; Copied from `header-line`.  We used to inherit from it, but that
+  ;; looks awful when the headerline is given a variable-pitch font or
+  ;; (even worse) a 3D look.
+  '((((class color grayscale) (background light))
+     :background "grey90" :foreground "grey20"
+     :box nil)
+    (((class color grayscale) (background dark))
+     :background "grey20" :foreground "grey90"
+     :box nil))
   "Face used in ASCII area of Hexl mode buffer.")
 
 (defvar-local hexl-max-address 0
@@ -209,10 +217,14 @@ as that will override any bit grouping options set here."
 (make-variable-buffer-local 'hexl-ascii-overlay)
 
 (defvar hexl-font-lock-keywords
-  '(("^\\([0-9a-f]+:\\).\\{40\\}  \\(.+$\\)"
-     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"
+  '(("^\\([0-9a-f]+:\\)\\( \\).\\{39\\}\\(  \\)\\(.+$\\)"
+     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"v
      (1 'hexl-address-region t t)
-     (2 'hexl-ascii-region t t)))
+     ;; If `hexl-address-region' is using a variable-pitch font, the
+     ;; rest of the line isn't naturally aligned, so align them by hand.
+     (2 '(face nil display (space :align-to 10)))
+     (3 '(face nil display (space :align-to 51)))
+     (4 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
 (defun hexl-rulerize (string bits)
@@ -362,13 +374,14 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
 
     (setq-local font-lock-defaults '(hexl-font-lock-keywords t))
+    (setq-local font-lock-extra-managed-props '(display))
 
     (setq-local revert-buffer-function #'hexl-revert-buffer-function)
     (add-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'hexl-print-current-point-info)
+    (add-hook 'eldoc-documentation-functions
+              #'hexl-print-current-point-info nil t)
     (eldoc-add-command-completions "hexl-")
     (eldoc-remove-command "hexl-save-buffer"
 			  "hexl-current-address")
@@ -455,6 +468,8 @@ and edit the file in `hexl-mode'."
     ;; 2. reset change-major-mode-hook in case that `hexl-mode'
     ;; previously added hexl-maybe-dehexlify-buffer to it.
     (remove-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer t)
+    (remove-hook 'eldoc-documentation-functions
+                 #'hexl-print-current-point-info t)
     (setq major-mode 'fundamental-mode)
     (hexl-mode)))
 
@@ -513,7 +528,7 @@ Ask the user for confirmation."
       (message "Current address is %d/0x%08x" hexl-address hexl-address))
     hexl-address))
 
-(defun hexl-print-current-point-info ()
+(defun hexl-print-current-point-info (&rest _ignored)
   "Return current hexl-address in string.
 This function is intended to be used as eldoc callback."
   (let ((addr (hexl-current-address)))
@@ -701,10 +716,7 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 (defun hexl-end-of-line ()
   "Goto end of line in Hexl mode."
   (interactive)
-  (hexl-goto-address (let ((address (logior (hexl-current-address) 15)))
-		       (if (> address hexl-max-address)
-			   (setq address hexl-max-address))
-		       address)))
+  (hexl-goto-address (min hexl-max-address (logior (hexl-current-address) 15))))
 
 (defun hexl-scroll-down (arg)
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
@@ -749,7 +761,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 1KB boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 1023))))
+   (min hexl-max-address (logior (hexl-current-address) 1023))))
 
 (defun hexl-beginning-of-512b-page ()
   "Go to beginning of 512 byte boundary."
@@ -760,7 +772,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 512 byte boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 511))))
+   (min hexl-max-address (logior (hexl-current-address) 511))))
 
 (defun hexl-quoted-insert (arg)
   "Read next input character and insert it.
@@ -887,7 +899,7 @@ and their encoded form is inserted byte by byte."
              (when (null encoded)
 	       (setq internal (encode-coding-string internal 'utf-8-emacs)
 	             internal-hex
-	             (mapconcat (function (lambda (c) (format "%x" c)))
+                     (mapconcat (lambda (c) (format "%x" c))
 			        internal " "))
 	       (if (yes-or-no-p
 		    (format-message
@@ -900,7 +912,7 @@ and their encoded form is inserted byte by byte."
 		  (substitute-command-keys "try \\[hexl-insert-hex-string]"))))
 	     (while (> num 0)
 	       (mapc
-		(function (lambda (c) (hexl-insert-char c 1))) encoded)
+                (lambda (c) (hexl-insert-char c 1)) encoded)
 	       (setq num (1- num))))))))
 
 (defun hexl-self-insert-command (arg)
@@ -935,7 +947,7 @@ CH must be a unibyte character whose value is between 0 and 255."
 	(goto-char ascii-position)
 	(delete-char 1)
 	(insert (hexl-printable-character ch))
-	(or (eq address hexl-max-address)
+	(or (= address hexl-max-address)
 	    (setq address (1+ address)))
 	(hexl-goto-address address)
 	(if at-ascii-position

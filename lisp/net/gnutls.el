@@ -105,12 +105,13 @@ Security'."
 
 (defcustom gnutls-trustfiles
   '(
-    "/etc/ssl/certs/ca-certificates.crt"     ; Debian, Ubuntu, Gentoo and Arch Linux
+    "/etc/ssl/certs/ca-certificates.crt"     ; Debian, Ubuntu, Gentoo,
+                                             ; Arch, Guix, Parabola
     "/etc/pki/tls/certs/ca-bundle.crt"       ; Fedora and RHEL
     "/etc/ssl/ca-bundle.pem"                 ; Suse
     "/usr/ssl/certs/ca-bundle.crt"           ; Cygwin
     "/usr/local/share/certs/ca-root-nss.crt" ; FreeBSD
-    "/etc/ssl/cert.pem"                      ; macOS
+    "/etc/ssl/cert.pem"                      ; macOS, Dragora, Parabola
     "/etc/certs/ca-certificates.crt"         ; OpenIndiana
     )
   "List of CA bundle location filenames or a function returning said list.
@@ -169,8 +170,9 @@ Third arg HOST is the name of the host to connect to, or its IP address.
 Fourth arg SERVICE is the name of the service desired, or an integer
 specifying a port number to connect to.
 Fifth arg PARAMETERS is an optional list of keyword/value pairs.
-Only :client-certificate and :nowait keywords are recognized, and
-have the same meaning as for `open-network-stream'.
+Only :client-certificate, :nowait, and :coding keywords are
+recognized, and have the same meaning as for
+`open-network-stream'.
 For historical reasons PARAMETERS can also be a symbol, which is
 interpreted the same as passing a list containing :nowait and the
 value of that symbol.
@@ -208,7 +210,8 @@ trust and key files, and priority string."
                               (gnutls-boot-parameters
                                :type 'gnutls-x509pki
                                :keylist keylist
-                               :hostname (puny-encode-domain host)))))))
+                               :hostname (puny-encode-domain host))))
+                   :coding (plist-get parameters :coding))))
     (if nowait
         process
       (gnutls-negotiate :process process
@@ -345,8 +348,11 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                             (t nil))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits)))
 
-    (when verify-hostname-error
-      (push :hostname verify-error))
+    ;; Only add :hostname if `verify-error' is not t, since t
+    ;; means "include :hostname" Bug#38602.
+    (and verify-hostname-error
+         (not (eq verify-error t))
+         (push :hostname verify-error))
 
     `(:priority ,priority-string
                 :hostname ,hostname

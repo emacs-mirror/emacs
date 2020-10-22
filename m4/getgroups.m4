@@ -1,4 +1,4 @@
-# serial 23
+# serial 24
 
 dnl From Jim Meyering.
 dnl A wrapper around AC_FUNC_GETGROUPS.
@@ -79,7 +79,8 @@ AC_DEFUN([gl_FUNC_GETGROUPS],
       AC_DEFINE([GETGROUPS_ZERO_BUG], [1], [Define this to 1 if
         getgroups(0,NULL) does not return the number of groups.])
     else
-      dnl Detect FreeBSD bug; POSIX requires getgroups(-1,ptr) to fail.
+      dnl Detect Mac OS X and FreeBSD bug; POSIX requires getgroups(-1,ptr)
+      dnl to fail.
       AC_CACHE_CHECK([whether getgroups handles negative values],
         [gl_cv_func_getgroups_works],
         [AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],

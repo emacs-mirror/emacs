@@ -239,7 +239,7 @@
 
 	* lisp.h (find_next_newline_no_quit): Rename to find_next_newline.
 	* xdisp.c (back_to_previous_line_start, forward_to_next_line_start)
-	(get_visually_first_element, move_it_vertically_backward): Ajust users.
+	(get_visually_first_element, move_it_vertically_backward): Adjust users.
 	* bidi.c (bidi_find_paragraph_start): Likewise.
 	* indent.c (vmotion): Likewise.
 
@@ -7335,7 +7335,7 @@
 
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
-	* xfaces.c (merge_face_vectors): If the target font specfies a
+	* xfaces.c (merge_face_vectors): If the target font specifies a
 	font spec, make the font's attributes take precedence over
 	directly-specified attributes.
 	(merge_face_ref): Recognize :font.
@@ -9265,7 +9265,7 @@
 
 	* nsmenu.m (ns_update_menubar, ns_menu_show, process_dialog)
 	(initFromContents): Use SSDATA where appropriate.
-	(ns_update_menubar): Add braces to ambigous if-else.
+	(ns_update_menubar): Add braces to ambiguous if-else.
 	(initWithTitle): Put () around assignment in if statement.
 	(ns_menu_show): Remove unused variables window and keymap.
 	(update_frame_tool_bar): Remove unused variable selected_p.
@@ -14333,7 +14333,7 @@
 
 2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* process.c (wait_reading_process_output): Fix asynchrounous
+	* process.c (wait_reading_process_output): Fix asynchronous
 	GnuTLS socket handling on some versions of the GnuTLS library.
 	(wait_reading_process_output): Add comment and URL.
 
@@ -21271,7 +21271,7 @@
 	not the number of arguments given.  This is simpler and lets GCC
 	4.6.0 generate slightly better code.
 
-	* ftfont.c: Distingish more carefully between FcChar8 and char.
+	* ftfont.c: Distinguish more carefully between FcChar8 and char.
 	The previous code passed unsigned char * to a functions like
 	strlen and xstrcasecmp that expect char *, which does not
 	conform to the C standard.

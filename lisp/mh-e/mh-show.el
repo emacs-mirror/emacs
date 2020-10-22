@@ -63,7 +63,7 @@ you wish to see all of them, use the command \\[mh-header-display].
 Two hooks can be used to control how messages are displayed. The
 first hook, `mh-show-mode-hook', is called early on in the
 process of the message display. It is usually used to perform
-some action on the message's content. The second hook,
+some action on the message's buffer. The second hook,
 `mh-show-hook', is the last thing called after messages are
 displayed. It's used to affect the behavior of MH-E in general or
 when `mh-show-mode-hook' is too early.
@@ -234,6 +234,9 @@ Sets the current buffer to the show buffer."
                (mh-add-missing-mime-version-header)
                (setf (mh-buffer-data) (mh-make-buffer-data))
                (mh-mime-display))
+             (mh-show-unquote-From)
+             (mh-show-xface)
+             (mh-show-addr)
              ;; Header cleanup
              (goto-char (point-min))
              (cond (clean-message-header
@@ -840,9 +843,6 @@ See also `mh-folder-mode'.
     (mh-tool-bar-init :show))
   (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
   (setq paragraph-start (default-value 'paragraph-start))
-  (mh-show-unquote-From)
-  (mh-show-xface)
-  (mh-show-addr)
   (setq buffer-invisibility-spec '((vanish . t) t))
   (set (make-local-variable 'line-move-ignore-invisible) t)
   (make-local-variable 'font-lock-defaults)

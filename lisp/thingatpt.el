@@ -258,7 +258,7 @@ E.g.:
 
 ;;  Filenames
 
-(defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
+(defvar thing-at-point-file-name-chars "-@~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
 
 (define-thing-chars filename thing-at-point-file-name-chars)
@@ -278,7 +278,7 @@ If nil, construct the regexp from `thing-at-point-uri-schemes'.")
   "Regexp matching a URI without a scheme component.")
 
 (defvar thing-at-point-uri-schemes
-  ;; Officials from http://www.iana.org/assignments/uri-schemes.html
+  ;; Officials from https://www.iana.org/assignments/uri-schemes.html
   '("aaa://" "about:" "acap://" "apt:" "bzr://" "bzr+ssh://"
     "attachment:/" "chrome://" "cid:" "content://" "crid://" "cvs://"
     "data:" "dav:" "dict://" "doi:" "dns:" "dtn:" "feed:" "file:/"
@@ -334,7 +334,7 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
       ;; may contain parentheses but may not contain spaces (RFC3986).
       (let* ((allowed-chars "--:=&?$+@-Z_[:alpha:]~#,%;*()!'")
 	     (skip-before "^[0-9a-zA-Z]")
-	     (skip-after  ":;.,!?")
+	     (skip-after  ":;.,!?'")
 	     (pt (point))
 	     (beg (save-excursion
 		    (skip-chars-backward allowed-chars)

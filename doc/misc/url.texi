@@ -1312,8 +1312,6 @@ repeated visits do not require repeated domain lookups.
 @end defopt
 @defopt url-max-password-attempts
 @end defopt
-@defopt url-temporary-directory
-@end defopt
 @defopt url-show-status
 @end defopt
 @defopt url-confirmation-func

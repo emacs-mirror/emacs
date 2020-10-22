@@ -136,14 +136,13 @@
 ;; - whatever is passed to diary-remind
 
 (defmacro calendar-dlet* (binders &rest body)
-  "Like `let*' but using dynamic scoping."
+  "Like `dlet' but without warnings about non-prefixed var names."
   (declare (indent 1) (debug let))
-  `(progn
-     (with-no-warnings                  ;Silence "lacks a prefix" warnings!
-       ,@(mapcar (lambda (binder)
-                   `(defvar ,(if (consp binder) (car binder) binder)))
-                 binders))
-     (let* ,binders ,@body)))
+  (let ((vars (mapcar (lambda (binder)
+                        (if (consp binder) (car binder) binder))
+                      binders)))
+    `(with-suppressed-warnings ((lexical ,@vars))
+       (dlet ,binders ,@body))))
 
 ;; Avoid recursive load of calendar when loading cal-menu.  Yuck.
 (provide 'calendar)
@@ -995,7 +994,7 @@ pre-existing calendar windows."
   "Set the style of calendar and diary dates to STYLE (a symbol).
 The valid styles are described in the documentation of `calendar-date-style'."
   (interactive (list (intern
-                      (completing-read "Date style: "
+                      (completing-read (format-prompt "Date style" "american")
                                        '("american" "european" "iso") nil t
                                        nil nil "american"))))
   (or (memq style '(american european iso))
@@ -1062,6 +1061,15 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+;; fixme should have a :set that changes calendar-standard-time-zone-name etc.
+(defcustom calendar-time-zone-style 'symbolic
+  "Your preferred style for time zones.
+If 'numeric, use numeric time zones like \"+0100\".
+Otherwise, use symbolic time zones like \"CET\"."
+  :type '(choice (const numeric) (other symbolic))
+  :version "28.1"
+  :group 'calendar)
+
 ;;; End of user options.
 
 (calendar-recompute-layout-variables)
@@ -1088,7 +1096,7 @@ calendar."
   "Name of buffer used for sunrise/sunset times.")
 
 (defconst calendar-hebrew-yahrzeit-buffer "*Yahrzeits*"
-  "Name of the buffer used by `list-yahrzeit-dates'.")
+  "Name of the buffer used by `calendar-hebrew-list-yahrzeits'.")
 
 (defmacro calendar-increment-month (mon yr n &optional nmonths)
   "Increment the variables MON and YR by N months.

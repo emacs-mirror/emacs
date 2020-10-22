@@ -13,16 +13,15 @@ written substantial portions.  Others too numerous to mention have
 reported and fixed bugs, and added features to many parts of Emacs.
 We thank them for their generosity as well.
 
-This list is intended to mention every contributor of a major package or
-feature we currently distribute; if you know of someone we have omitted,
-please make a bug report.  More comprehensive information is
-available in the @file{ChangeLog} files, summarized in the file
-@file{etc/AUTHORS} in the distribution.
+This list is intended to mention every contributor of a major package
+or feature; if you know of someone we have omitted, please make a bug
+report.  More comprehensive information is available in the
+@file{ChangeLog} files, summarized in the file @file{etc/AUTHORS} in
+the distribution.
 
 @c We should list here anyone who has contributed a new package,
 @c and anyone who has made major enhancements in Emacs
 @c that many users would notice and consider important.
-@c Remove things that are no longer distributed.
 @c Note this file is only used ifnottex; otherwise a shorter version in
 @c emacs.texi is used.
 
@@ -234,6 +233,12 @@ use it, Snake and Tetris.
 @item
 Andrew Cohen wrote @file{spam-wash.el}, to decode and clean email before
 it is analyzed for spam.
+
+@item
+Daniel Colascione wrote the portable dumping code in @file{pdumper.c}
+and elsewhere.  He also implemented double-buffering for X-based GUI
+frames, and the original support for loading shared-object modules
+into Emacs.
 
 @item
 Theresa O'Connor wrote @file{json.el}, a file for parsing and
@@ -503,6 +508,10 @@ Tassilo Horn wrote DocView mode, allowing viewing of PDF, PostScript and
 DVI documents.
 
 @item
+Khaled Hosny, Yamamoto Mitsuharu, and Eli Zaretskii implemented
+text shaping with HarfBuzz for Emacs.
+
+@item
 Joakim Hove wrote @file{html2text.el}, a html to plain text converter.
 
 @item
@@ -702,7 +711,9 @@ files.
 Juri Linkov wrote @file{misearch.el}, extending isearch to multi-buffer
 searches; the code in @file{files-x.el} for handling file- and
 directory-local variables; and the @code{info-finder} feature that
-creates a virtual Info manual of package keywords.
+creates a virtual Info manual of package keywords.  He also
+implemented the Tab Bar and window tab-lines, and added numerous
+enhancements and improvements in I-search.
 
 @item
 Leo Liu wrote @file{pcmpl-x.el}, providing completion for
@@ -816,6 +827,11 @@ blackbox game.
 David Megginson wrote @file{derived.el}, which allows one to define new
 major modes by inheriting key bindings and commands from existing major
 modes.
+
+@item
+Jimmy Aguilar Mena wrote the code to support the @code{:extend} face
+attribute, and also implemented the optional
+@code{display-fill-column-indicator} feature.
 
 @item
 Will Mengarini wrote @file{repeat.el}, a command to repeat the preceding
@@ -1084,6 +1100,10 @@ Kevin Ryde wrote @file{info-xref.el}, a library for checking
 references in Info files.
 
 @item
+Phil Sainty wrote @file{so-long.el}, a set of features for easier
+editing of files with very long lines.
+
+@item
 James B. Salem and Brewster Kahle wrote @file{completion.el}, providing
 dynamic word completion.
 
@@ -1233,6 +1253,10 @@ buffers.
 @item
 Tibor Šimko and Milan Zamazal wrote @file{slovak.el}, support for
 editing text in Slovak language.
+
+@item
+João Távora wrote many improvements for @file{flymake.el}, an
+on-the-fly syntax-checking package.
 
 @item
 Luc Teirlinck wrote @file{help-at-pt.el}, providing local help through

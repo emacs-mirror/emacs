@@ -52,6 +52,7 @@ modify this GNU manual.''
 * Overview::
 * Basics::
 * Advanced::
+* Command Line::
 
 Appendices
 * History and Acknowledgments::
@@ -92,14 +93,20 @@ default one, which is normally called @file{*eww*}.
 @findex eww-quit
 @findex eww-reload
 @findex eww-copy-page-url
+@findex shr-maybe-probe-and-copy-url
 @kindex q
 @kindex w
 @kindex g
   If loading the URL was successful the buffer @file{*eww*} is opened
 and the web page is rendered in it.  You can leave EWW by pressing
 @kbd{q} or exit the browser by calling @kbd{eww-quit}.  To reload the
-web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
-(@code{eww-copy-page-url}) will copy the current URL to the kill ring.
+web page hit @kbd{g} (@code{eww-reload}).
+
+  Pressing @kbd{w} when point is on a link will call
+@code{shr-maybe-probe-and-copy-url}, which copies this link's
+@acronym{URL} to the kill ring.  If point is not on a link, pressing
+@kbd{w} calls @code{eww-copy-page-url}, which will copy the current
+page's URL to the kill ring instead.
 
 @findex eww-open-in-new-buffer
 @kindex M-RET
@@ -135,7 +142,9 @@ HTML-specified colors or not.  This sets the @code{shr-use-colors} variable.
   A URL can be downloaded with @kbd{d} (@code{eww-download}).  This
 will download the link under point if there is one, or else the URL of
 the current page.  The file will be written to the directory specified
-in @code{eww-download-directory} (default: @file{~/Downloads/}).
+by @code{eww-download-directory} (default: @file{~/Downloads/}, if it
+exists; otherwise as specified by the @samp{DOWNLOAD} @acronym{XDG}
+directory)).
 
 @findex eww-back-url
 @findex eww-forward-url
@@ -208,6 +217,22 @@ in an external browser by customizing
 
 @node Advanced
 @chapter Advanced
+
+@findex eww-retrieve-command
+  EWW normally uses @code{url-retrieve} to fetch the @acronym{HTML}
+before rendering it.  It can sometimes be convenient to use an
+external program to do this, and @code{eww-retrieve-command} should
+then be a list that specifies a command and the parameters.  For
+instance, to use the Chromium browser, you could say something like
+this:
+
+@lisp
+(setq eww-retrieve-command
+      '("chromium" "--headless" "--dump-dom"))
+@end lisp
+
+The command should return the @acronym{HTML} on standard output, and
+the data should use @acronym{UTF-8} as the charset.
 
 @findex eww-view-source
 @kindex v
@@ -283,6 +308,14 @@ contrast.  If that is still too low for you, you can customize the
 variables @code{shr-color-visible-distance-min} and
 @code{shr-color-visible-luminance-min} to get a better contrast.
 
+@vindex shr-max-width
+@vindex shr-width
+  By default, the max width used when rendering is 120 characters, but
+this can be adjusted by changing the @code{shr-max-width} variable.
+If a specified width is preferred no matter what the width of the
+window is, @code{shr-width} can be set.  If both variables are
+@code{nil}, the window width will always be used.
+
 @vindex shr-discard-aria-hidden
 @cindex @code{aria-hidden}, HTML attribute
   The HTML attribute @code{aria-hidden} is meant to tell screen
@@ -326,6 +359,21 @@ will be passed through @code{substitute-command-keys} upon each use,
 thus allowing for the use of the usual substitutions, such as
 @code{\[eww-reload]} for the current key binding of the
 @code{eww-reload} command.
+
+@node Command Line
+@chapter Command Line Usage
+
+It can be convenient to start eww directly from the command line.  The
+@code{eww-browse} function can be used for that:
+
+@example
+emacs -f eww-browse https://gnu.org
+@end example
+
+This also allows registering Emacs as a @acronym{MIME} handler for the
+@samp{"text/x-uri"} media type.  How to do that varies between
+systems, but typically you'd register the handler to call @samp{"emacs
+-f eww-browse %u"}.
 
 @node History and Acknowledgments
 @appendix History and Acknowledgments

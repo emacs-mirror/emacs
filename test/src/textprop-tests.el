@@ -1,4 +1,4 @@
-;;; textprop-tests.el --- Test suite for text properties.
+;;; textprop-tests.el --- Test suite for text properties. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

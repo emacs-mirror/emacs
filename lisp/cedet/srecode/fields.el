@@ -164,7 +164,7 @@ Has virtual :start and :end initializers.")
 
 (cl-defmethod srecode-overlaid-text ((olaid srecode-overlaid) &optional set-to)
   "Return the text under OLAID.
-If SET-TO is a string, then replace the text of OLAID wit SET-TO."
+If SET-TO is a string, then replace the text of OLAID with SET-TO."
   (let* ((ol (oref olaid overlay))
 	 (start (overlay-start ol)))
     (if (not (stringp set-to))

@@ -1,4 +1,4 @@
-;;; signed-good.el --- A single-file package with good signature
+;;; signed-good.el --- A single-file package with good signature  -*- lexical-binding: t -*-
 
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.0

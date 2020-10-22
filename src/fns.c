@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdlib.h>
+#include <sys/random.h>
 #include <unistd.h>
 #include <filevercmp.h>
 #include <intprops.h>
@@ -37,10 +38,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "puresize.h"
 #include "gnutls.h"
-
-#if defined WINDOWSNT && defined HAVE_GNUTLS3
-# define gnutls_rnd w32_gnutls_rnd
-#endif
 
 static void sort_vector_copy (Lisp_Object, ptrdiff_t,
 			      Lisp_Object *restrict, Lisp_Object *restrict);
@@ -226,12 +223,12 @@ Letter-case is significant, but text properties are ignored. */)
       for (x = 1; x <= len2; x++)
         {
           column[0] = x;
-          FETCH_STRING_CHAR_ADVANCE (c2, string2, i2, i2_byte);
+          c2 = fetch_string_char_advance (string2, &i2, &i2_byte);
           i1 = i1_byte = 0;
           for (y = 1, lastdiag = x - 1; y <= len1; y++)
             {
               olddiag = column[y];
-              FETCH_STRING_CHAR_ADVANCE (c1, string1, i1, i1_byte);
+              c1 = fetch_string_char_advance (string1, &i1, &i1_byte);
               column[y] = min (min (column[y] + 1, column[y-1] + 1),
 			       lastdiag + (c1 == c2 ? 0 : 1));
               lastdiag = olddiag;
@@ -312,10 +309,8 @@ If string STR1 is greater, the value is a positive number N;
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */
-      int c1, c2;
-
-      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c1, str1, i1, i1_byte);
-      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c2, str2, i2, i2_byte);
+      int c1 = fetch_string_char_as_multibyte_advance (str1, &i1, &i1_byte);
+      int c2 = fetch_string_char_as_multibyte_advance (str2, &i2, &i2_byte);
 
       if (c1 == c2)
 	continue;
@@ -350,11 +345,8 @@ DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant.
 Symbols are also allowed; their print names are used instead.  */)
-  (register Lisp_Object string1, Lisp_Object string2)
+  (Lisp_Object string1, Lisp_Object string2)
 {
-  register ptrdiff_t end;
-  register ptrdiff_t i1, i1_byte, i2, i2_byte;
-
   if (SYMBOLP (string1))
     string1 = SYMBOL_NAME (string1);
   if (SYMBOLP (string2))
@@ -362,21 +354,15 @@ Symbols are also allowed; their print names are used instead.  */)
   CHECK_STRING (string1);
   CHECK_STRING (string2);
 
-  i1 = i1_byte = i2 = i2_byte = 0;
-
-  end = SCHARS (string1);
-  if (end > SCHARS (string2))
-    end = SCHARS (string2);
+  ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0, i2_byte = 0;
+  ptrdiff_t end = min (SCHARS (string1), SCHARS (string2));
 
   while (i1 < end)
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */
-      int c1, c2;
-
-      FETCH_STRING_CHAR_ADVANCE (c1, string1, i1, i1_byte);
-      FETCH_STRING_CHAR_ADVANCE (c2, string2, i2, i2_byte);
-
+      int c1 = fetch_string_char_advance (string1, &i1, &i1_byte);
+      int c2 = fetch_string_char_advance (string2, &i2, &i2_byte);
       if (c1 != c2)
 	return c1 < c2 ? Qt : Qnil;
     }
@@ -420,7 +406,7 @@ string_version_cmp (Lisp_Object string1, Lisp_Object string2)
 
   while ((cmp = filevercmp (p1, p2)) == 0)
     {
-      /* If the strings are identical through their first NUL bytes,
+      /* If the strings are identical through their first null bytes,
 	 skip past identical prefixes and try again.  */
       ptrdiff_t size = strlen (p1) + 1;
       eassert (size == strlen (p2) + 1);
@@ -767,8 +753,8 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
     {
       Lisp_Object thislen;
       ptrdiff_t thisleni = 0;
-      register ptrdiff_t thisindex = 0;
-      register ptrdiff_t thisindex_byte = 0;
+      ptrdiff_t thisindex = 0;
+      ptrdiff_t thisindex_byte = 0;
 
       this = args[argnum];
       if (!CONSP (this))
@@ -821,9 +807,8 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	      {
 		int c;
 		if (STRING_MULTIBYTE (this))
-		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, this,
-						      thisindex,
-						      thisindex_byte);
+		  c = fetch_string_char_advance_no_check (this, &thisindex,
+							  &thisindex_byte);
 		else
 		  {
 		    c = SREF (this, thisindex); thisindex++;
@@ -1545,11 +1530,21 @@ same_float (Lisp_Object x, Lisp_Object y)
   return !neql;
 }
 
+/* True if X can be compared using `eq'.
+   This predicate is approximative, for maximum speed.  */
+static bool
+eq_comparable_value (Lisp_Object x)
+{
+  return SYMBOLP (x) || FIXNUMP (x);
+}
+
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (Lisp_Object elt, Lisp_Object list)
 {
+  if (eq_comparable_value (elt))
+    return Fmemq (elt, list);
   Lisp_Object tail = list;
   FOR_EACH_TAIL (tail)
     if (! NILP (Fequal (elt, XCAR (tail))))
@@ -1605,16 +1600,16 @@ The value is actually the tail of LIST whose car is ELT.  */)
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `eq' to the car of an element of LIST.
-The value is actually the first element of LIST whose car is KEY.
-Elements of LIST that are not conses are ignored.  */)
-  (Lisp_Object key, Lisp_Object list)
+       doc: /* Return non-nil if KEY is `eq' to the car of an element of ALIST.
+The value is actually the first element of ALIST whose car is KEY.
+Elements of ALIST that are not conses are ignored.  */)
+  (Lisp_Object key, Lisp_Object alist)
 {
-  Lisp_Object tail = list;
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     if (CONSP (XCAR (tail)) && EQ (XCAR (XCAR (tail)), key))
       return XCAR (tail);
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
@@ -1622,22 +1617,24 @@ Elements of LIST that are not conses are ignored.  */)
    Use only on objects known to be non-circular lists.  */
 
 Lisp_Object
-assq_no_quit (Lisp_Object key, Lisp_Object list)
+assq_no_quit (Lisp_Object key, Lisp_Object alist)
 {
-  for (; ! NILP (list); list = XCDR (list))
-    if (CONSP (XCAR (list)) && EQ (XCAR (XCAR (list)), key))
-      return XCAR (list);
+  for (; ! NILP (alist); alist = XCDR (alist))
+    if (CONSP (XCAR (alist)) && EQ (XCAR (XCAR (alist)), key))
+      return XCAR (alist);
   return Qnil;
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
-       doc: /* Return non-nil if KEY is equal to the car of an element of LIST.
-The value is actually the first element of LIST whose car equals KEY.
+       doc: /* Return non-nil if KEY is equal to the car of an element of ALIST.
+The value is actually the first element of ALIST whose car equals KEY.
 
 Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
-     (Lisp_Object key, Lisp_Object list, Lisp_Object testfn)
+     (Lisp_Object key, Lisp_Object alist, Lisp_Object testfn)
 {
-  Lisp_Object tail = list;
+  if (eq_comparable_value (key) && NILP (testfn))
+    return Fassq (key, alist);
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
@@ -1648,7 +1645,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
 	      : !NILP (call2 (testfn, XCAR (car), key))))
 	return car;
     }
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
@@ -1657,11 +1654,11 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
    that are not too deep and are not window configurations.  */
 
 Lisp_Object
-assoc_no_quit (Lisp_Object key, Lisp_Object list)
+assoc_no_quit (Lisp_Object key, Lisp_Object alist)
 {
-  for (; ! NILP (list); list = XCDR (list))
+  for (; ! NILP (alist); alist = XCDR (alist))
     {
-      Lisp_Object car = XCAR (list);
+      Lisp_Object car = XCAR (alist);
       if (CONSP (car)
 	  && (EQ (XCAR (car), key) || equal_no_quit (XCAR (car), key)))
 	return car;
@@ -1670,24 +1667,26 @@ assoc_no_quit (Lisp_Object key, Lisp_Object list)
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
-The value is actually the first element of LIST whose cdr is KEY.  */)
-  (Lisp_Object key, Lisp_Object list)
+       doc: /* Return non-nil if KEY is `eq' to the cdr of an element of ALIST.
+The value is actually the first element of ALIST whose cdr is KEY.  */)
+  (Lisp_Object key, Lisp_Object alist)
 {
-  Lisp_Object tail = list;
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     if (CONSP (XCAR (tail)) && EQ (XCDR (XCAR (tail)), key))
       return XCAR (tail);
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
-The value is actually the first element of LIST whose cdr equals KEY.  */)
-  (Lisp_Object key, Lisp_Object list)
+       doc: /* Return non-nil if KEY is `equal' to the cdr of an element of ALIST.
+The value is actually the first element of ALIST whose cdr equals KEY.  */)
+  (Lisp_Object key, Lisp_Object alist)
 {
-  Lisp_Object tail = list;
+  if (eq_comparable_value (key))
+    return Frassq (key, alist);
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
@@ -1695,7 +1694,7 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
 	  && (EQ (XCDR (car), key) || !NILP (Fequal (XCDR (car), key))))
 	return car;
     }
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
@@ -1748,25 +1747,27 @@ changing the value of a sequence `foo'.  */)
 {
   if (VECTORP (seq))
     {
-      ptrdiff_t i, n;
+      ptrdiff_t n = 0;
+      ptrdiff_t size = ASIZE (seq);
+      USE_SAFE_ALLOCA;
+      Lisp_Object *kept = SAFE_ALLOCA (size * sizeof *kept);
 
-      for (i = n = 0; i < ASIZE (seq); ++i)
-	if (NILP (Fequal (AREF (seq, i), elt)))
-	  ++n;
-
-      if (n != ASIZE (seq))
+      for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  struct Lisp_Vector *p = allocate_vector (n);
-
-	  for (i = n = 0; i < ASIZE (seq); ++i)
-	    if (NILP (Fequal (AREF (seq, i), elt)))
-	      p->contents[n++] = AREF (seq, i);
-
-	  XSETVECTOR (seq, p);
+	  kept[n] = AREF (seq, i);
+	  n += NILP (Fequal (AREF (seq, i), elt));
 	}
+
+      if (n != size)
+	seq = Fvector (n, kept);
+
+      SAFE_FREE ();
     }
   else if (STRINGP (seq))
     {
+      if (!CHARACTERP (elt))
+	return seq;
+
       ptrdiff_t i, ibyte, nchars, nbytes, cbytes;
       int c;
 
@@ -1785,7 +1786,7 @@ changing the value of a sequence `foo'.  */)
 	      cbytes = 1;
 	    }
 
-	  if (!FIXNUMP (elt) || c != XFIXNUM (elt))
+	  if (c != XFIXNUM (elt))
 	    {
 	      ++nchars;
 	      nbytes += cbytes;
@@ -1815,7 +1816,7 @@ changing the value of a sequence `foo'.  */)
 		  cbytes = 1;
 		}
 
-	      if (!FIXNUMP (elt) || c != XFIXNUM (elt))
+	      if (c != XFIXNUM (elt))
 		{
 		  unsigned char *from = SDATA (seq) + ibyte;
 		  unsigned char *to   = SDATA (tem) + nbytes;
@@ -1961,9 +1962,7 @@ See also the function `nreverse', which is used more often.  */)
 	  p = SDATA (seq), q = SDATA (new) + bytes;
 	  while (q > SDATA (new))
 	    {
-	      int ch, len;
-
-	      ch = STRING_CHAR_AND_LENGTH (p, len);
+	      int len, ch = string_char_and_length (p, &len);
 	      p += len, q -= len;
 	      CHAR_STRING (ch, q);
 	    }
@@ -2296,6 +2295,7 @@ The PLIST is modified by side effects.  */)
 
 DEFUN ("eql", Feql, Seql, 2, 2, 0,
        doc: /* Return t if the two args are `eq' or are indistinguishable numbers.
+Integers with the same value are `eql'.
 Floating-point values with the same sign, exponent and fraction are `eql'.
 This differs from numeric comparison: (eql 0.0 -0.0) returns nil and
 \(eql 0.0e+NaN 0.0e+NaN) returns t, whereas `=' does the opposite.  */)
@@ -2460,12 +2460,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (BOOL_VECTOR_P (o1))
 	  {
 	    EMACS_INT size = bool_vector_size (o1);
-	    if (size != bool_vector_size (o2))
-	      return false;
-	    if (memcmp (bool_vector_data (o1), bool_vector_data (o2),
-			bool_vector_bytes (size)))
-	      return false;
-	    return true;
+	    return (size == bool_vector_size (o2)
+		    && !memcmp (bool_vector_data (o1), bool_vector_data (o2),
+			        bool_vector_bytes (size)));
 	  }
 
 	/* Aside from them, only true vectors, char-tables, compiled
@@ -2491,16 +2488,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
       break;
 
     case Lisp_String:
-      if (SCHARS (o1) != SCHARS (o2))
-	return false;
-      if (SBYTES (o1) != SBYTES (o2))
-	return false;
-      if (memcmp (SDATA (o1), SDATA (o2), SBYTES (o1)))
-	return false;
-      if (equal_kind == EQUAL_INCLUDING_PROPERTIES
-	  && !compare_string_intervals (o1, o2))
-	return false;
-      return true;
+      return (SCHARS (o1) == SCHARS (o2)
+	      && SBYTES (o1) == SBYTES (o2)
+	      && !memcmp (SDATA (o1), SDATA (o2), SBYTES (o1))
+	      && (equal_kind != EQUAL_INCLUDING_PROPERTIES
+	          || compare_string_intervals (o1, o2)));
 
     default:
       break;
@@ -2530,26 +2522,36 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   else if (STRINGP (array))
     {
-      register unsigned char *p = SDATA (array);
-      int charval;
+      unsigned char *p = SDATA (array);
       CHECK_CHARACTER (item);
-      charval = XFIXNAT (item);
+      int charval = XFIXNAT (item);
       size = SCHARS (array);
-      if (STRING_MULTIBYTE (array))
+      if (size != 0)
 	{
+	  CHECK_IMPURE (array, XSTRING (array));
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  int len = CHAR_STRING (charval, str);
-	  ptrdiff_t size_byte = SBYTES (array);
-	  ptrdiff_t product;
+	  int len;
+	  if (STRING_MULTIBYTE (array))
+	    len = CHAR_STRING (charval, str);
+	  else
+	    {
+	      str[0] = charval;
+	      len = 1;
+	    }
 
-	  if (INT_MULTIPLY_WRAPV (size, len, &product) || product != size_byte)
-	    error ("Attempt to change byte length of a string");
-	  for (idx = 0; idx < size_byte; idx++)
-	    *p++ = str[idx % len];
+	  ptrdiff_t size_byte = SBYTES (array);
+	  if (len == 1 && size == size_byte)
+	    memset (p, str[0], size);
+	  else
+	    {
+	      ptrdiff_t product;
+	      if (INT_MULTIPLY_WRAPV (size, len, &product)
+		  || product != size_byte)
+		error ("Attempt to change byte length of a string");
+	      for (idx = 0; idx < size_byte; idx++)
+		*p++ = str[idx % len];
+	    }
 	}
-      else
-	for (idx = 0; idx < size; idx++)
-	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     return bool_vector_fill (array, item);
@@ -2564,12 +2566,15 @@ DEFUN ("clear-string", Fclear_string, Sclear_string,
 This makes STRING unibyte and may change its length.  */)
   (Lisp_Object string)
 {
-  ptrdiff_t len;
   CHECK_STRING (string);
-  len = SBYTES (string);
-  memset (SDATA (string), 0, len);
-  STRING_SET_CHARS (string, len);
-  STRING_SET_UNIBYTE (string);
+  ptrdiff_t len = SBYTES (string);
+  if (len != 0 || STRING_MULTIBYTE (string))
+    {
+      CHECK_IMPURE (string, XSTRING (string));
+      memset (SDATA (string), 0, len);
+      STRING_SET_CHARS (string, len);
+      STRING_SET_UNIBYTE (string);
+    }
   return Qnil;
 }
 
@@ -2622,51 +2627,45 @@ usage: (nconc &rest LISTS)  */)
 static EMACS_INT
 mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 {
-  Lisp_Object tail, dummy;
-  EMACS_INT i;
-
   if (VECTORP (seq) || COMPILEDP (seq))
     {
-      for (i = 0; i < leni; i++)
+      for (ptrdiff_t i = 0; i < leni; i++)
 	{
-	  dummy = call1 (fn, AREF (seq, i));
+	  Lisp_Object dummy = call1 (fn, AREF (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
     }
   else if (BOOL_VECTOR_P (seq))
     {
-      for (i = 0; i < leni; i++)
+      for (EMACS_INT i = 0; i < leni; i++)
 	{
-	  dummy = call1 (fn, bool_vector_ref (seq, i));
+	  Lisp_Object dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
     }
   else if (STRINGP (seq))
     {
-      ptrdiff_t i_byte;
+      ptrdiff_t i_byte = 0;
 
-      for (i = 0, i_byte = 0; i < leni;)
+      for (ptrdiff_t i = 0; i < leni;)
 	{
-	  int c;
 	  ptrdiff_t i_before = i;
-
-	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte);
-	  XSETFASTINT (dummy, c);
-	  dummy = call1 (fn, dummy);
+	  int c = fetch_string_char_advance (seq, &i, &i_byte);
+	  Lisp_Object dummy = call1 (fn, make_fixnum (c));
 	  if (vals)
 	    vals[i_before] = dummy;
 	}
     }
   else   /* Must be a list, since Flength did not get an error */
     {
-      tail = seq;
-      for (i = 0; i < leni; i++)
+      Lisp_Object tail = seq;
+      for (ptrdiff_t i = 0; i < leni; i++)
 	{
 	  if (! CONSP (tail))
 	    return i;
-	  dummy = call1 (fn, XCAR (tail));
+	  Lisp_Object dummy = call1 (fn, XCAR (tail));
 	  if (vals)
 	    vals[i] = dummy;
 	  tail = XCDR (tail);
@@ -2851,7 +2850,7 @@ advisable.  */)
   while (loads-- > 0)
     {
       Lisp_Object load = (NILP (use_floats)
-			  ? make_fixnum (100.0 * load_ave[loads])
+			  ? double_to_integer (100.0 * load_ave[loads])
 			  : make_float (load_ave[loads]));
       ret = Fcons (load, ret);
     }
@@ -3459,7 +3458,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
     {
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
+	  c = string_char_and_length ((unsigned char *) from + i, &bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3502,7 +3501,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
+	  c = string_char_and_length ((unsigned char *) from + i, &bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3527,7 +3526,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
+	  c = string_char_and_length ((unsigned char *) from + i, &bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3708,7 +3707,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value >> 16 & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -3750,7 +3749,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value >> 8 & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -3780,7 +3779,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -4252,50 +4251,31 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
 /* Recompute the hashes (and hence also the "next" pointers).
    Normally there's never a need to recompute hashes.
-   This is done only on first-access to a hash-table loaded from
-   the "pdump", because the object's addresses may have changed, thus
-   affecting their hash.  */
+   This is done only on first access to a hash-table loaded from
+   the "pdump", because the objects' addresses may have changed, thus
+   affecting their hashes.  */
 void
-hash_table_rehash (struct Lisp_Hash_Table *h)
+hash_table_rehash (Lisp_Object hash)
 {
-  ptrdiff_t size = HASH_TABLE_SIZE (h);
-
-  /* These structures may have been purecopied and shared
-     (bug#36447).  */
-  Lisp_Object hash = make_nil_vector (size);
-  h->next = Fcopy_sequence (h->next);
-  h->index = Fcopy_sequence (h->index);
+  struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
+  ptrdiff_t i, count = h->count;
 
   /* Recompute the actual hash codes for each entry in the table.
      Order is still invalid.  */
-  for (ptrdiff_t i = 0; i < size; ++i)
+  for (i = 0; i < count; i++)
     {
       Lisp_Object key = HASH_KEY (h, i);
-      if (!EQ (key, Qunbound))
-        ASET (hash, i, h->test.hashfn (key, h));
+      Lisp_Object hash_code = h->test.hashfn (key, h);
+      ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
+      set_hash_hash_slot (h, i, hash_code);
+      set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+      set_hash_index_slot (h, start_of_bucket, i);
+      eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
     }
 
-  /* Reset the index so that any slot we don't fill below is marked
-     invalid.  */
-  Ffillarray (h->index, make_fixnum (-1));
-
-  /* Rebuild the collision chains.  */
-  for (ptrdiff_t i = 0; i < size; ++i)
-    if (!NILP (AREF (hash, i)))
-      {
-        EMACS_UINT hash_code = XUFIXNUM (AREF (hash, i));
-        ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
-        set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
-        set_hash_index_slot (h, start_of_bucket, i);
-        eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
-      }
-
-  /* Finally, mark the hash table as having a valid hash order.
-     Do this last so that if we're interrupted, we retry on next
-     access. */
-  eassert (hash_rehash_needed_p (h));
-  h->hash = hash;
-  eassert (!hash_rehash_needed_p (h));
+  ptrdiff_t size = ASIZE (h->next);
+  for (; i + 1 < size; i++)
+    set_hash_next_slot (h, i, i + 1);
 }
 
 /* Lookup KEY in hash table H.  If HASH is non-null, return in *HASH
@@ -4306,8 +4286,6 @@ ptrdiff_t
 hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object *hash)
 {
   ptrdiff_t start_of_bucket, i;
-
-  hash_rehash_if_needed (h);
 
   Lisp_Object hash_code = h->test.hashfn (key, h);
   if (hash)
@@ -4343,8 +4321,6 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 {
   ptrdiff_t start_of_bucket, i;
 
-  hash_rehash_if_needed (h);
-
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
   h->count++;
@@ -4376,8 +4352,6 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   Lisp_Object hash_code = h->test.hashfn (key, h);
   ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
   ptrdiff_t prev = -1;
-
-  hash_rehash_if_needed (h);
 
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
        0 <= i;
@@ -4419,8 +4393,7 @@ hash_clear (struct Lisp_Hash_Table *h)
   if (h->count > 0)
     {
       ptrdiff_t size = HASH_TABLE_SIZE (h);
-      if (!hash_rehash_needed_p (h))
-	memclear (XVECTOR (h->hash)->contents, size * word_size);
+      memclear (xvector_contents (h->hash), size * word_size);
       for (ptrdiff_t i = 0; i < size; i++)
 	{
 	  set_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
@@ -4456,9 +4429,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
   for (ptrdiff_t bucket = 0; bucket < n; ++bucket)
     {
       /* Follow collision chain, removing entries that don't survive
-         this garbage collection.  It's okay if hash_rehash_needed_p
-         (h) is true, since we're operating entirely on the cached
-         hash values. */
+         this garbage collection.  */
       ptrdiff_t prev = -1;
       ptrdiff_t next;
       for (ptrdiff_t i = HASH_INDEX (h, bucket); 0 <= i; i = next)
@@ -4503,7 +4474,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
                     set_hash_hash_slot (h, i, Qnil);
 
                   eassert (h->count != 0);
-                  h->count += h->count > 0 ? -1 : 1;
+                  h->count--;
                 }
 	      else
 		{
@@ -4681,24 +4652,19 @@ sxhash (Lisp_Object obj)
 static EMACS_UINT
 sxhash_obj (Lisp_Object obj, int depth)
 {
-  EMACS_UINT hash;
-
   if (depth > SXHASH_MAX_DEPTH)
     return 0;
 
   switch (XTYPE (obj))
     {
     case_Lisp_Int:
-      hash = XUFIXNUM (obj);
-      break;
+      return XUFIXNUM (obj);
 
     case Lisp_Symbol:
-      hash = XHASH (obj);
-      break;
+      return XHASH (obj);
 
     case Lisp_String:
-      hash = sxhash_string (SSDATA (obj), SBYTES (obj));
-      break;
+      return sxhash_string (SSDATA (obj), SBYTES (obj));
 
     case Lisp_Vectorlike:
       {
@@ -4710,40 +4676,46 @@ sxhash_obj (Lisp_Object obj, int depth)
 	       Emacs, this works differently.  We have to compare element
 	       by element.  Same for pseudovectors that internal_equal
 	       examines the Lisp contents of.  */
-	    hash = sxhash_vector (obj, depth);
-	    break;
+	    return (SUB_CHAR_TABLE_P (obj)
+	            /* 'sxhash_vector' can't be applies to a sub-char-table and
+	              it's probably not worth looking into them anyway!  */
+	            ? 42
+	            : sxhash_vector (obj, depth));
 	  }
 	else if (pvec_type == PVEC_BIGNUM)
-	  hash = sxhash_bignum (obj);
+	  return sxhash_bignum (obj);
 	else if (pvec_type == PVEC_MARKER)
 	  {
 	    ptrdiff_t bytepos
 	      = XMARKER (obj)->buffer ? XMARKER (obj)->bytepos : 0;
-	    hash = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
-	    hash = SXHASH_REDUCE (hash);
+	    EMACS_UINT hash
+	      = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
+	    return SXHASH_REDUCE (hash);
 	  }
 	else if (pvec_type == PVEC_BOOL_VECTOR)
-	  hash = sxhash_bool_vector (obj);
+	  return sxhash_bool_vector (obj);
+	else if (pvec_type == PVEC_OVERLAY)
+	  {
+	    EMACS_UINT hash = sxhash_obj (OVERLAY_START (obj), depth);
+	    hash = sxhash_combine (hash, sxhash_obj (OVERLAY_END (obj), depth));
+	    hash = sxhash_combine (hash, sxhash_obj (XOVERLAY (obj)->plist, depth));
+	    return SXHASH_REDUCE (hash);
+	  }
 	else
 	  /* Others are 'equal' if they are 'eq', so take their
 	     address as hash.  */
-	  hash = XHASH (obj);
+	  return XHASH (obj);
       }
-      break;
 
     case Lisp_Cons:
-      hash = sxhash_list (obj, depth);
-      break;
+      return sxhash_list (obj, depth);
 
     case Lisp_Float:
-      hash = sxhash_float (XFLOAT_DATA (obj));
-      break;
+      return sxhash_float (XFLOAT_DATA (obj));
 
     default:
       emacs_abort ();
     }
-
-  return hash;
 }
 
 
@@ -4926,7 +4898,6 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
   (Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  eassert (h->count >= 0);
   return make_fixnum (h->count);
 }
 
@@ -5194,22 +5165,8 @@ extract_data_from_object (Lisp_Object spec,
       struct buffer *bp = XBUFFER (object);
       set_buffer_internal (bp);
 
-      if (NILP (start))
-	b = BEGV;
-      else
-	{
-	  CHECK_FIXNUM_COERCE_MARKER (start);
-	  b = XFIXNUM (start);
-	}
-
-      if (NILP (end))
-	e = ZV;
-      else
-	{
-	  CHECK_FIXNUM_COERCE_MARKER (end);
-	  e = XFIXNUM (end);
-	}
-
+      b = !NILP (start) ? fix_position (start) : BEGV;
+      e = !NILP (end) ? fix_position (end) : ZV;
       if (b > e)
 	{
 	  EMACS_INT temp = b;
@@ -5295,7 +5252,6 @@ extract_data_from_object (Lisp_Object spec,
     }
   else if (EQ (object, Qiv_auto))
     {
-#ifdef HAVE_GNUTLS3
       /* Format: (iv-auto REQUIRED-LENGTH).  */
 
       if (! FIXNATP (start))
@@ -5304,14 +5260,19 @@ extract_data_from_object (Lisp_Object spec,
         {
 	  EMACS_INT start_hold = XFIXNAT (start);
           object = make_uninit_string (start_hold);
-          gnutls_rnd (GNUTLS_RND_NONCE, SSDATA (object), start_hold);
+	  char *lim = SSDATA (object) + start_hold;
+	  for (char *p = SSDATA (object); p < lim; p++)
+	    {
+	      ssize_t gotten = getrandom (p, lim - p, 0);
+	      if (0 <= gotten)
+		p += gotten;
+	      else if (errno != EINTR)
+		report_file_error ("Getting random data", Qnil);
+	    }
 
           *start_byte = 0;
           *end_byte = start_hold;
         }
-#else
-      error ("GnuTLS is not available, so `iv-auto' can't be used");
-#endif
     }
 
   if (!STRINGP (object))
@@ -5494,6 +5455,95 @@ It should not be used for anything security-related.  See
   return make_digest_string (digest, SHA1_DIGEST_SIZE);
 }
 
+static bool
+string_ascii_p (Lisp_Object string)
+{
+  ptrdiff_t nbytes = SBYTES (string);
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    if (SREF (string, i) > 127)
+      return false;
+  return true;
+}
+
+DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,
+       doc: /* Search for the string NEEDLE in the string HAYSTACK.
+The return value is the position of the first occurrence of NEEDLE in
+HAYSTACK, or nil if no match was found.
+
+The optional START-POS argument says where to start searching in
+HAYSTACK and defaults to zero (start at the beginning).
+It must be between zero and the length of HAYSTACK, inclusive.
+
+Case is always significant and text properties are ignored. */)
+  (register Lisp_Object needle, Lisp_Object haystack, Lisp_Object start_pos)
+{
+  ptrdiff_t start_byte = 0, haybytes;
+  char *res, *haystart;
+  EMACS_INT start = 0;
+
+  CHECK_STRING (needle);
+  CHECK_STRING (haystack);
+
+  if (!NILP (start_pos))
+    {
+      CHECK_FIXNUM (start_pos);
+      start = XFIXNUM (start_pos);
+      if (start < 0 || start > SCHARS (haystack))
+        xsignal1 (Qargs_out_of_range, start_pos);
+      start_byte = string_char_to_byte (haystack, start);
+    }
+
+  /* If NEEDLE is longer than (the remaining length of) haystack, then
+     we can't have a match, and return early.  */
+  if (SCHARS (needle) > SCHARS (haystack) - start)
+    return Qnil;
+
+  haystart = SSDATA (haystack) + start_byte;
+  haybytes = SBYTES (haystack) - start_byte;
+
+  /* We can do a direct byte-string search if both strings have the
+     same multibyteness, or if at least one of them consists of ASCII
+     characters only.  */
+  if (STRING_MULTIBYTE (haystack)
+      ? (STRING_MULTIBYTE (needle)
+         || SCHARS (haystack) == SBYTES (haystack) || string_ascii_p (needle))
+      : (!STRING_MULTIBYTE (needle)
+         || SCHARS (needle) == SBYTES (needle) || string_ascii_p (haystack)))
+    res = memmem (haystart, haybytes,
+		  SSDATA (needle), SBYTES (needle));
+  else if (STRING_MULTIBYTE (haystack))  /* unibyte needle */
+    {
+      Lisp_Object multi_needle = string_to_multibyte (needle);
+      res = memmem (haystart, haybytes,
+		    SSDATA (multi_needle), SBYTES (multi_needle));
+    }
+  else                        /* unibyte haystack, multibyte needle */
+    {
+      /* The only possible way we can find the multibyte needle in the
+	 unibyte stack (since we know that neither are pure-ASCII) is
+	 if they contain "raw bytes" (and no other non-ASCII chars.)  */
+      ptrdiff_t nbytes = SBYTES (needle);
+      for (ptrdiff_t i = 0; i < nbytes; i++)
+        {
+          int c = SREF (needle, i);
+          if (CHAR_BYTE8_HEAD_P (c))
+            i++;                /* Skip raw byte.  */
+          else if (!ASCII_CHAR_P (c))
+            return Qnil;  /* Found a char that can't be in the haystack.  */
+        }
+
+      /* "Raw bytes" (aka eighth-bit) are represented differently in
+         multibyte and unibyte strings.  */
+      Lisp_Object uni_needle = Fstring_to_unibyte (needle);
+      res = memmem (haystart, haybytes,
+                    SSDATA (uni_needle), SBYTES (uni_needle));
+    }
+
+  if (! res)
+    return Qnil;
+
+  return make_int (string_byte_to_char (haystack, res - SSDATA (haystack)));
+}
 
 
 void
@@ -5534,6 +5584,7 @@ syms_of_fns (void)
   defsubr (&Sremhash);
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
+  defsubr (&Sstring_search);
 
   /* Crypto and hashing stuff.  */
   DEFSYM (Qiv_auto, "iv-auto");

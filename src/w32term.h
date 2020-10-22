@@ -75,7 +75,6 @@ struct w32_palette_entry {
 extern void w32_regenerate_palette (struct frame *f);
 extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
                                  RECT *rect);
-
 
 /* For each display (currently only one on w32), we have a structure that
    records information about it.  */
@@ -248,6 +247,8 @@ extern int w32_display_pixel_height (struct w32_display_info *);
 extern int w32_display_pixel_width (struct w32_display_info *);
 extern void initialize_frame_menubar (struct frame *);
 extern void w32_dialog_in_progress (Lisp_Object in_progress);
+extern void w32_query_frame_background_color (struct frame *f,
+                                              Emacs_Color *bgcolor);
 
 extern void w32_make_frame_visible (struct frame *f);
 extern void w32_make_frame_invisible (struct frame *f);
@@ -267,6 +268,10 @@ extern void w32con_show_cursor (void);
 extern const char *w32_get_string_resource (void *v_rdb,
                                             const char *name,
                                             const char *class);
+
+/* w32fns.c */
+extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
+
 
 #define PIX_TYPE COLORREF
 
@@ -471,7 +476,7 @@ struct scroll_bar {
      editing large files, we establish a minimum height by always
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
-     different co-ordinate system.  */
+     different coordinate system.  */
   int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
@@ -666,7 +671,8 @@ do { \
 #define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 23)
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 24)
 #define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 25)
-#define WM_EMACS_END                   (WM_EMACS_START + 26)
+#define WM_EMACS_IME_STATUS            (WM_EMACS_START + 26)
+#define WM_EMACS_END                   (WM_EMACS_START + 27)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)

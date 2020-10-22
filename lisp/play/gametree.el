@@ -121,8 +121,8 @@ Has to contain \"%d\" to output the actual number."
   :group 'gametree)
 
 (defcustom gametree-make-heading-function
-  (function (lambda (level)
-              (insert (make-string level ?*))))
+  (lambda (level)
+    (insert (make-string level ?*)))
   "A function of one numeric argument, LEVEL, to insert a heading at point.
 You should change this if you change `outline-regexp'."
   :type 'function
@@ -324,7 +324,7 @@ This value is simply the outline heading level of the current line."
 (defun gametree-hack-file-layout ()
   (save-excursion
     (goto-char (point-min))
-    (if (looking-at "[^\n]*-*-[^\n]*gametree-local-layout: \\([^;\n]*\\);")
+    (if (looking-at "[^\n]*-[^\n]*gametree-local-layout: \\([^;\n]*\\);")
         (progn
           (goto-char (match-beginning 1))
           (delete-region (point) (match-end 1))

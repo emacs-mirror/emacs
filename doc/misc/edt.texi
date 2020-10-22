@@ -841,7 +841,7 @@ keys, as well.  (For example, some people use it to bind the VT200
 seldom used back-tick key (@samp{`}) to the function @samp{ESC-prefix}
 so it will behave like an @key{ESC} key.)  The second function,
 @code{edt-bind-gold-key}, is used to bind emacs commands to gold key
-sequences involving alpha-numeric keys, special character keys, and
+sequences involving alphanumeric keys, special character keys, and
 control keys.
 
 The third function, @code{edt-bind-function-key}, is terminal dependent

@@ -24,11 +24,6 @@
 
 ;;; Code:
 
-(defalias 'uudecode-char-int
-  (if (fboundp 'char-int)
-      'char-int
-    'identity))
-
 (defgroup uudecode nil
   "Decoding of uuencoded data."
   :group 'mail
@@ -61,10 +56,8 @@ input and write the converted data to its standard output."
       (setq str (concat str "[^a-z]")))
     (concat str ".?$")))
 
-(defvar uudecode-temporary-file-directory
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp")))
+(make-obsolete-variable 'uudecode-temporary-file-directory
+                        'temporary-file-directory "28.1")
 
 ;;;###autoload
 (defun uudecode-decode-region-external (start end &optional file-name)
@@ -86,13 +79,7 @@ used is specified by `uudecode-decoder-program'."
 					       (match-string 1)))))
 	(setq tempfile (if file-name
 			   (expand-file-name file-name)
-			   (if (fboundp 'make-temp-file)
-			       (let ((temporary-file-directory
-				      uudecode-temporary-file-directory))
-				 (make-temp-file "uu"))
-			     (expand-file-name
-			      (make-temp-name "uu")
-			      uudecode-temporary-file-directory))))
+			 (make-temp-file "uu")))
 	(let ((cdir default-directory)
 	      (default-process-coding-system nil))
 	  (unwind-protect
@@ -148,7 +135,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	   ((> (skip-chars-forward uudecode-alphabet end) 0)
 	    (setq lim (point))
 	    (setq remain
-		  (logand (- (uudecode-char-int (char-after inputpos)) 32)
+                  (logand (- (char-after inputpos) 32)
 			  63))
 	    (setq inputpos (1+ inputpos))
 	    (if (= remain 0) (setq done t))
@@ -156,7 +143,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	      (setq bits (+ bits
 			    (logand
 			     (-
-			      (uudecode-char-int (char-after inputpos)) 32)
+                              (char-after inputpos) 32)
 			     63)))
 	      (if (/= counter 0) (setq remain (1- remain)))
 	      (setq counter (1+ counter)
@@ -208,6 +195,8 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
   (if uudecode-use-external
       (uudecode-decode-region-external start end file-name)
     (uudecode-decode-region-internal start end file-name)))
+
+(define-obsolete-function-alias 'uudecode-char-int #'identity "28.1")
 
 (provide 'uudecode)
 

@@ -890,7 +890,7 @@ struct scroll_bar
      editing large files, we establish a minimum height by always
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
-     different co-ordinate system.  */
+     different coordinate system.  */
   int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
@@ -1056,6 +1056,7 @@ extern void x_real_pos_and_offsets (struct frame *f,
                                     int *xptr,
                                     int *yptr,
                                     int *outer_border);
+extern void x_default_font_parameter (struct frame* f, Lisp_Object parms);
 
 /* From xrdb.c.  */
 
@@ -1206,6 +1207,7 @@ extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
                                   void *,
+				  int,
                                   int);
 extern Lisp_Object x_property_data_to_lisp (struct frame *,
                                             const unsigned char *,

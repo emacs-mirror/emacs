@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
-;; Version: 2.6.1
+;; Old-Version: 2.6.1
 ;; Keywords: calendar data
 
 ;; This file is part of GNU Emacs.
@@ -193,6 +193,8 @@ to today."
 (defcustom timeclock-load-hook nil
   "Hook that gets run after timeclock has been loaded."
   :type 'hook)
+(make-obsolete-variable 'timeclock-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom timeclock-in-hook nil
   "A hook run every time an \"in\" event is recorded."
@@ -553,7 +555,7 @@ relative only to the time worked today, and not to past time."
 OLD-DEFAULT hours are set for every day that has no number indicated."
   (interactive "P")
   (if old-default (setq old-default (prefix-numeric-value old-default))
-    (error "`timelog-make-hours-explicit' requires an explicit argument"))
+    (error "`timeclock-make-hours-explicit' requires an explicit argument"))
   (let ((extant-timelog (find-buffer-visiting timeclock-file))
 	current-date)
     (with-current-buffer (find-file-noselect timeclock-file t)
@@ -595,9 +597,9 @@ arguments of `completing-read'."
 (defun timeclock-ask-for-project ()
   "Ask the user for the project they are clocking into."
   (completing-read
-   (format "Clock into which project (default %s): "
-	   (or timeclock-last-project
-	       (car timeclock-project-list)))
+   (format-prompt "Clock into which project"
+	          (or timeclock-last-project
+	              (car timeclock-project-list)))
    timeclock-project-list
    nil nil nil nil
    (or timeclock-last-project

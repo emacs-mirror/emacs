@@ -613,7 +613,7 @@ The elements of the @code{command-switch-alist} look like this:
 @end example
 
 The @sc{car}, @var{option}, is a string, the name of a command-line
-option (not including the initial hyphen).  The @var{handler-function}
+option (including the initial hyphen).  The @var{handler-function}
 is called to handle @var{option}, and receives the option name as its
 sole argument.
 
@@ -622,6 +622,14 @@ argument.  In these cases, the @var{handler-function} can find all the
 remaining command-line arguments in the variable
 @code{command-line-args-left} (see below).  (The entire list of
 command-line arguments is in @code{command-line-args}.)
+
+Note that the handling of @code{command-switch-alist} doesn't treat
+equals signs in @var{option} specially.  That is, if there's an option
+like @code{--name=value} on the command line, then only a
+@code{command-switch-alist} member whose @code{car} is literally
+@code{--name=value} will match this option.  If you want to parse such
+options, you need to use @code{command-line-functions} instead (see
+below).
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Emacs
@@ -699,6 +707,10 @@ the Emacs process.  (This is useful primarily in batch operation; see
 If @var{exit-data} is a string, its contents are stuffed into the
 terminal input buffer so that the shell (or whatever program next reads
 input) can read them.
+
+If @var{exit-data} is neither an integer nor a string, or is omitted,
+that means to use the (system-specific) exit status which indicates
+successful program termination.
 @end deffn
 
 @cindex SIGTERM
@@ -1186,7 +1198,7 @@ This function returns the full name of the logged-in user---or the value
 of the environment variable @env{NAME}, if that is set.
 
 If the Emacs process's user-id does not correspond to any known user (and
-provided @code{NAME} is not set), the result is @code{"unknown"}.
+provided @env{NAME} is not set), the result is @code{"unknown"}.
 
 If @var{uid} is non-@code{nil}, then it should be a number (a user-id)
 or a string (a login name).  Then @code{user-full-name} returns the full
@@ -1689,7 +1701,8 @@ following form:
 @noindent
 The format of this list is the same as what @code{decode-time} accepts
 (@pxref{Time Conversion}), and is described in more detail there.  Any
-element that cannot be determined from the input will be set to
+@code{dst} element that cannot be determined from the input is set to
+@minus{}1, and any other unknown element is set to
 @code{nil}.  The argument @var{string} should resemble an RFC 822 (or later) or
 ISO 8601 string, like ``Fri, 25 Mar 2016 16:24:56 +0100'' or
 ``1998-09-12T12:21:54-0200'', but this function will attempt to parse
@@ -1978,10 +1991,9 @@ The result is @code{nil} if either argument is a NaN.
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, normally as a Lisp timestamp but as a float
-if either argument is infinite or a NaN@.
-When the result is a timestamp, it is exact and its clock
+two time values, as a Lisp time value.  The result is exact and its clock
 resolution is no worse than the worse of its two arguments' resolutions.
+The result is floating-point only if it is infinite or a NaN@.
 If you need the difference in units
 of elapsed seconds, you can convert it with @code{time-convert} or
 @code{float-time}.  @xref{Time Conversion}.
@@ -2182,9 +2194,9 @@ cause anything special to happen.
 
 @findex list-timers
 The @code{list-timers} command lists all the currently active timers.
-There's only one command available in the buffer displayed: @kbd{c}
-(@code{timer-list-cancel}) that will cancel the timer on the line
-under point.
+The command @kbd{c} (@code{timer-list-cancel}) will cancel the timer
+on the line under point.  You can sort the list by column using the
+command @kbd{S} (@code{tabulated-list-sort}).
 
 @node Idle Timers
 @section Idle Timers
@@ -2617,7 +2629,7 @@ if it is non-@code{nil}; this can be overridden by binding
 This variable is non-@code{nil} when Emacs is running in batch mode.
 @end defvar
 
-If Emacs exits due to signalling an error in batch mode, the exit
+If Emacs exits due to signaling an error in batch mode, the exit
 status of the Emacs command is non-zero:
 
 @example
@@ -2675,9 +2687,9 @@ Emacs is restarted by the session manager.
 
 @group
 (defun save-yourself-test ()
-  (insert "(save-current-buffer
-  (switch-to-buffer \"*scratch*\")
-  (insert \"I am restored\"))")
+  (insert
+   (format "%S" '(with-current-buffer "*scratch*"
+                   (insert "I am restored"))))
   nil)
 @end group
 @end example
@@ -3126,7 +3138,7 @@ being reported.  For example:
 @end group
 
 @group
-(set-file-modes "/tmp/foo" (default-file-modes))
+(set-file-modes "/tmp/foo" (default-file-modes) 'nofollow)
      @result{} Event (35025468 attribute-changed "/tmp/foo")
 @end group
 @end example

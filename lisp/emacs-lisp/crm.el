@@ -270,12 +270,6 @@ with empty strings removed."
     (remove-hook 'choose-completion-string-functions
 		 'crm--choose-completion-string)))
 
-(define-obsolete-function-alias 'crm-minibuffer-complete 'crm-complete "23.1")
-(define-obsolete-function-alias
-  'crm-minibuffer-completion-help 'crm-completion-help "23.1")
-(define-obsolete-function-alias
-  'crm-minibuffer-complete-and-exit 'crm-complete-and-exit "23.1")
-
 ;; testing and debugging
 ;; (defun crm-init-test-environ ()
 ;;   "Set up some variables for testing."

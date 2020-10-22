@@ -125,8 +125,8 @@ The actual return value is the last modification time of the cache file."
 
 	(setq fname (and fname
 			 (mapconcat
-			  (function (lambda (x)
-				      (if (= x ?~) "" (char-to-string x))))
+                          (lambda (x)
+                            (if (= x ?~) "" (char-to-string x)))
 			  fname ""))
 	      fname (cond
 		     ((null fname) nil)

@@ -1,3 +1,13 @@
+@var-with-dashes: #428bca;
+@var_with_underscores: 10px;
+@_var-starting-with-underscore: none;
+
+body {
+    background: @var-with-dashes;
+    padding: @var_with_underscores;
+    display: @_var-starting-with-underscore;
+}
+
 .desktop-and-old-ie(@rules) {
     @media screen and (min-width: 1200) { @rules(); }
     html.lt-ie9 &                       { @rules(); }

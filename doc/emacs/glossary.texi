@@ -1367,7 +1367,7 @@ configurations.  @xref{Tab Bars}.
 
 @item Tab Line
 The tab line is a line of tabs at the top of an Emacs window.
-Clicking on one of these tabs switches window buffers.
+Clicking on one of these tabs switches window buffers.  @xref{Tab Line}.
 
 @anchor{Glossary---Tags Table}
 @item Tags Table

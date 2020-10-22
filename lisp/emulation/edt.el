@@ -178,10 +178,8 @@
 (defvar edt-user-global-map)
 (defvar rect-start-point)
 
-;;;
-;;;  Version Information
-;;;
 (defconst edt-version "4.0" "EDT Emulation version number.")
+(make-obsolete-variable 'edt-version nil "28.1")
 
 ;;;
 ;;;  User Configurable Variables

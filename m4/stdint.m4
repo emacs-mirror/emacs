@@ -1,4 +1,4 @@
-# stdint.m4 serial 54
+# stdint.m4 serial 56
 dnl Copyright (C) 2001-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -152,7 +152,7 @@ uintmax_t j = UINTMAX_MAX;
 /* Check that SIZE_MAX has the correct type, if possible.  */
 #if 201112 <= __STDC_VERSION__
 int k = _Generic (SIZE_MAX, size_t: 0);
-#elif (2 <= __GNUC__ || defined __IBM__TYPEOF__ \
+#elif (2 <= __GNUC__ || 4 <= __clang_major__ || defined __IBM__TYPEOF__ \
        || (0x5110 <= __SUNPRO_C && !__STDC__))
 extern size_t k;
 extern __typeof__ (SIZE_MAX) k;
@@ -302,9 +302,10 @@ static const char *macro_values[] =
       HAVE_C99_STDINT_H=1
       dnl Now see whether the system <stdint.h> works without
       dnl __STDC_CONSTANT_MACROS/__STDC_LIMIT_MACROS defined.
-      AC_CACHE_CHECK([whether stdint.h predates C++11],
-        [gl_cv_header_stdint_predates_cxx11_h],
-        [gl_cv_header_stdint_predates_cxx11_h=yes
+      dnl If not, there would be problems when stdint.h is included from C++.
+      AC_CACHE_CHECK([whether stdint.h works without ISO C predefines],
+        [gl_cv_header_stdint_without_STDC_macros],
+        [gl_cv_header_stdint_without_STDC_macros=no
          AC_COMPILE_IFELSE([
            AC_LANG_PROGRAM([[
 #define _GL_JUST_INCLUDE_SYSTEM_STDINT_H 1 /* work if build isn't clean */
@@ -315,13 +316,14 @@ gl_STDINT_INCLUDES
 intmax_t im = INTMAX_MAX;
 int32_t i32 = INT32_C (0x7fffffff);
            ]])],
-           [gl_cv_header_stdint_predates_cxx11_h=no])])
+           [gl_cv_header_stdint_without_STDC_macros=yes])
+        ])
 
-      if test "$gl_cv_header_stdint_predates_cxx11_h" = yes; then
+      if test $gl_cv_header_stdint_without_STDC_macros = no; then
         AC_DEFINE([__STDC_CONSTANT_MACROS], [1],
-                  [Define to 1 if the system <stdint.h> predates C++11.])
+          [Define to 1 if the system <stdint.h> predates C++11.])
         AC_DEFINE([__STDC_LIMIT_MACROS], [1],
-                  [Define to 1 if the system <stdint.h> predates C++11.])
+          [Define to 1 if the system <stdint.h> predates C++11.])
       fi
       AC_CACHE_CHECK([whether stdint.h has UINTMAX_WIDTH etc.],
         [gl_cv_header_stdint_width],

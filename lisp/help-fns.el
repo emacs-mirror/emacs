@@ -40,8 +40,8 @@
 (defvar help-fns-describe-function-functions nil
   "List of functions to run in help buffer in `describe-function'.
 Those functions will be run after the header line and argument
-list was inserted, and before the documentation will be inserted.
-The functions will receive the function name as argument.
+list was inserted, and before the documentation is inserted.
+The functions will be called with one argument: the function's symbol.
 They can assume that a newline was output just before they were called,
 and they should terminate any of their own output with a newline.
 By convention they should indent their output by 2 spaces.")
@@ -151,9 +151,7 @@ When called from lisp, FUNCTION may also be a function object."
    (let* ((fn (function-called-at-point))
           (enable-recursive-minibuffers t)
           (val (completing-read
-                (if fn
-                    (format "Describe function (default %s): " fn)
-                  "Describe function: ")
+                (format-prompt "Describe function" fn)
                 #'help--symbol-completion-table
                 (lambda (f) (or (fboundp f) (get f 'function-documentation)))
                 t nil nil
@@ -364,6 +362,7 @@ suitable file is found, return nil."
 	  (help-C-file-name type 'subr)
 	'C-source))
      ((and (not file-name) (symbolp object)
+           (eq type 'defvar)
 	   (integerp (get object 'variable-documentation)))
       ;; A variable defined in C.  The form is from `describe-variable'.
       (if (get-buffer " *DOC*")
@@ -623,7 +622,7 @@ FILE is the file where FUNCTION was probably defined."
   ;; of the *packages* in which the function is defined.
   (let* ((name (symbol-name symbol))
          (re (concat "\\_<" (regexp-quote name) "\\_>"))
-         (news (directory-files data-directory t "\\`NEWS.[1-9]"))
+         (news (directory-files data-directory t "\\`NEWS\\($\\|\\.\\)"))
          (place nil)
          (first nil))
     (with-temp-buffer
@@ -647,8 +646,7 @@ FILE is the file where FUNCTION was probably defined."
                     (setq place (list f pos))
                     (setq first version)))))))))
     (when first
-      (make-text-button first nil 'type 'help-news 'help-args place))
-    first))
+      (make-text-button first nil 'type 'help-news 'help-args place))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--mention-first-release)
@@ -660,6 +658,39 @@ FILE is the file where FUNCTION was probably defined."
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
                         first))))))
+
+(declare-function shortdoc-display-group "shortdoc")
+(declare-function shortdoc-function-groups "shortdoc")
+
+(add-hook 'help-fns-describe-function-functions
+          #'help-fns--mention-shortdoc-groups)
+(defun help-fns--mention-shortdoc-groups (object)
+  (require 'shortdoc)
+  (when-let ((groups (and (symbolp object)
+                          (shortdoc-function-groups object))))
+    (let ((start (point))
+          (times 0))
+      (with-current-buffer standard-output
+        (insert "  Other relevant functions are documented in the ")
+        (mapc
+         (lambda (group)
+           (when (> times 0)
+             (insert (if (= times (1- (length groups)))
+                         " and "
+                       ", ")))
+           (setq times (1+ times))
+           (insert-text-button
+            (symbol-name group)
+            'action (lambda (_)
+                      (shortdoc-display-group group))))
+         groups)
+        (insert (if (= (length groups) 1)
+                    " group.\n"
+                  " groups.\n")))
+      (save-restriction
+        (narrow-to-region start (point))
+        (fill-region-as-paragraph (point-min) (point-max))
+        (goto-char (point-max))))))
 
 (defun help-fns-short-filename (filename)
   (let* ((abbrev (abbreviate-file-name filename))
@@ -893,7 +924,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 	(output nil))
     (if custom-version
 	(setq output
-	      (format "This %s was introduced, or its default value was changed, in\nversion %s of Emacs.\n"
+	      (format "  This %s was introduced, or its default value was changed, in\n  version %s of Emacs.\n"
                       type custom-version))
       (when cpv
 	(let* ((package (car-safe cpv))
@@ -904,7 +935,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 	       (emacsv (cdr (assoc version pkg-versions))))
 	  (if (and package version)
 	      (setq output
-		    (format (concat "This %s was introduced, or its default value was changed, in\nversion %s of the %s package"
+		    (format (concat "  This %s was introduced, or its default value was changed, in\n  version %s of the %s package"
 				    (if emacsv
 					(format " that is part of Emacs %s" emacsv))
 				    ".\n")
@@ -924,10 +955,7 @@ it is displayed along with the global value."
          (orig-buffer (current-buffer))
 	 val)
      (setq val (completing-read
-                (if (symbolp v)
-                    (format
-                     "Describe variable (default %s): " v)
-                  "Describe variable: ")
+                (format-prompt "Describe variable" (and (symbolp v) v))
                 #'help--symbol-completion-table
                 (lambda (vv)
                   ;; In case the variable only exists in the buffer
@@ -944,7 +972,7 @@ it is displayed along with the global value."
     (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
     (unless (frame-live-p frame) (setq frame (selected-frame)))
     (if (not (symbolp variable))
-	(message "You did not specify a variable")
+	(user-error "You didn't specify a variable")
       (save-excursion
 	(let ((valvoid (not (with-current-buffer buffer (boundp variable))))
 	      val val-start-pos locus)
@@ -968,7 +996,7 @@ it is displayed along with the global value."
                                    " is a variable defined in `%s'.\n"
                                    (if (eq file-name 'C-source)
                                        "C source code"
-                                     (file-name-nondirectory file-name))))
+                                     (help-fns-short-filename file-name))))
 		           (with-current-buffer standard-output
 		             (save-excursion
 			       (re-search-backward (substitute-command-keys
@@ -1000,6 +1028,8 @@ it is displayed along with the global value."
 		    (terpri)
                     (let ((buf (current-buffer)))
                       (with-temp-buffer
+                        (lisp-mode-variables nil)
+                        (set-syntax-table emacs-lisp-mode-syntax-table)
                         (insert print-rep)
                         (pp-buffer)
                         (let ((pp-buffer (current-buffer)))
@@ -1123,8 +1153,8 @@ it is displayed along with the global value."
     ;; Note variable's version or package version.
     (let ((output (describe-variable-custom-version-info variable)))
       (when output
-	(terpri)
-	(terpri)
+	;; (terpri)
+	;; (terpri)
 	(princ output)))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-safe-local)
@@ -1350,7 +1380,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (setq file-name (find-lisp-object-file-name f 'defface))
 	      (when file-name
 		(princ (substitute-command-keys "Defined in `"))
-		(princ (file-name-nondirectory file-name))
+		(princ (help-fns-short-filename file-name))
 		(princ (substitute-command-keys "'"))
 		;; Make a hyperlink to the library.
 		(save-excursion
@@ -1422,10 +1452,8 @@ current buffer and the selected frame, respectively."
           (v-or-f (if found v-or-f (function-called-at-point)))
           (found (or found v-or-f))
           (enable-recursive-minibuffers t)
-          (val (completing-read (if found
-				    (format
-                                     "Describe symbol (default %s): " v-or-f)
-				  "Describe symbol: ")
+          (val (completing-read (format-prompt "Describe symbol"
+                                               (and found v-or-f))
 				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
@@ -1433,7 +1461,7 @@ current buffer and the selected frame, respectively."
 				t nil nil
 				(if found (symbol-name v-or-f)))))
      (list (if (equal val "")
-	       v-or-f (intern val)))))
+	       (or v-or-f "") (intern val)))))
   (if (not (symbolp symbol))
       (user-error "You didn't specify a function or variable"))
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
@@ -1562,7 +1590,256 @@ BUFFER should be a buffer or a buffer name."
 	  (insert "\nThe parent category table is:")
 	  (describe-vector table 'help-describe-category-set))))))
 
+(defun help-fns-find-keymap-name (keymap)
+  "Find the name of the variable with value KEYMAP.
+Return nil if KEYMAP is not a valid keymap, or if there is no
+variable with value KEYMAP."
+  (when (keymapp keymap)
+    (let ((name (catch 'found-keymap
+                  (mapatoms (lambda (symb)
+                              (when (and (boundp symb)
+                                         (eq (symbol-value symb) keymap)
+                                         (not (eq symb 'keymap))
+                                         (throw 'found-keymap symb)))))
+                  nil)))
+      ;; Follow aliasing.
+      (or (ignore-errors (indirect-variable name)) name))))
+
+(defun help-fns--most-relevant-active-keymap ()
+  "Return the name of the most relevant active keymap.
+The heuristic to determine which keymap is most likely to be
+relevant to a user follows this order:
+
+1. 'keymap' text property at point
+2. 'local-map' text property at point
+3. the `current-local-map'
+
+This is used to set the default value for the interactive prompt
+in `describe-keymap'.  See also `Searching the Active Keymaps'."
+  (help-fns-find-keymap-name (or (get-char-property (point) 'keymap)
+                         (if (get-text-property (point) 'local-map)
+                             (get-char-property (point) 'local-map)
+                           (current-local-map)))))
+
+;;;###autoload
+(defun describe-keymap (keymap)
+  "Describe key bindings in KEYMAP.
+When called interactively, prompt for a variable that has a
+keymap value."
+  (interactive
+   (let* ((km (help-fns--most-relevant-active-keymap))
+          (val (completing-read
+                (format-prompt "Keymap" km)
+                obarray
+                (lambda (m) (and (boundp m) (keymapp (symbol-value m))))
+                t nil 'keymap-name-history
+                (symbol-name km))))
+     (unless (equal val "")
+       (setq km (intern val)))
+     (unless (and km (keymapp (symbol-value km)))
+       (user-error "Not a keymap: %s" km))
+     (list km)))
+  (let (used-gentemp)
+    (unless (and (symbolp keymap)
+                 (boundp keymap)
+                 (keymapp (symbol-value keymap)))
+      (when (not (keymapp keymap))
+        (if (symbolp keymap)
+            (error "Not a keymap variable: %S" keymap)
+          (error "Not a keymap")))
+      (let ((sym nil))
+        (unless sym
+          (setq sym (cl-gentemp "KEYMAP OBJECT (no variable) "))
+          (setq used-gentemp t)
+          (set sym keymap))
+        (setq keymap sym)))
+    ;; Follow aliasing.
+    (setq keymap (or (ignore-errors (indirect-variable keymap)) keymap))
+    (help-setup-xref (list #'describe-keymap keymap)
+                     (called-interactively-p 'interactive))
+    (let* ((name (symbol-name keymap))
+           (doc (documentation-property keymap 'variable-documentation))
+           (file-name (find-lisp-object-file-name keymap 'defvar)))
+      (with-help-window (help-buffer)
+        (with-current-buffer standard-output
+          (unless used-gentemp
+            (princ (format-message "%S is a keymap variable" keymap))
+            (if (not file-name)
+                (princ ".\n\n")
+              (princ (format-message
+                      " defined in `%s'.\n\n"
+                      (if (eq file-name 'C-source)
+                          "C source code"
+                        (help-fns-short-filename file-name))))
+              (save-excursion
+                (re-search-backward (substitute-command-keys
+                                     "`\\([^`']+\\)'")
+                                    nil t)
+                (help-xref-button 1 'help-variable-def
+                                  keymap file-name))))
+          (when (and (not (equal "" doc)) doc)
+            (princ "Documentation:\n")
+            (princ (format-message "%s\n\n" doc)))
+          ;; Use `insert' instead of `princ', so control chars (e.g. \377)
+          ;; insert correctly.
+          (insert (substitute-command-keys (concat "\\{" name "}"))))))
+    ;; Cleanup.
+    (when used-gentemp
+      (makunbound keymap))))
 
+;;;###autoload
+(defun describe-mode (&optional buffer)
+  "Display documentation of current major mode and minor modes.
+A brief summary of the minor modes comes first, followed by the
+major mode description.  This is followed by detailed
+descriptions of the minor modes, each on a separate page.
+
+For this to work correctly for a minor mode, the mode's indicator
+variable \(listed in `minor-mode-alist') must also be a function
+whose documentation describes the minor mode.
+
+If called from Lisp with a non-nil BUFFER argument, display
+documentation for the major and minor modes of that buffer."
+  (interactive "@")
+  (unless buffer (setq buffer (current-buffer)))
+  (help-setup-xref (list #'describe-mode buffer)
+		   (called-interactively-p 'interactive))
+  ;; For the sake of help-do-xref and help-xref-go-back,
+  ;; don't switch buffers before calling `help-buffer'.
+  (with-help-window (help-buffer)
+    (with-current-buffer buffer
+      (let (minor-modes)
+	;; Older packages do not register in minor-mode-list but only in
+	;; minor-mode-alist.
+	(dolist (x minor-mode-alist)
+	  (setq x (car x))
+	  (unless (memq x minor-mode-list)
+	    (push x minor-mode-list)))
+	;; Find enabled minor mode we will want to mention.
+	(dolist (mode minor-mode-list)
+	  ;; Document a minor mode if it is listed in minor-mode-alist,
+	  ;; non-nil, and has a function definition.
+	  (let ((fmode (or (get mode :minor-mode-function) mode)))
+	    (and (boundp mode) (symbol-value mode)
+		 (fboundp fmode)
+		 (let ((pretty-minor-mode
+			(if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
+					  (symbol-name fmode))
+			    (capitalize
+			     (substring (symbol-name fmode)
+					0 (match-beginning 0)))
+			  fmode)))
+		   (push (list fmode pretty-minor-mode
+			       (format-mode-line (assq mode minor-mode-alist)))
+			 minor-modes)))))
+	;; Narrowing is not a minor mode, but its indicator is part of
+	;; mode-line-modes.
+	(when (buffer-narrowed-p)
+	  (push '(narrow-to-region "Narrow" " Narrow") minor-modes))
+	(setq minor-modes
+	      (sort minor-modes
+		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
+	(when minor-modes
+	  (princ "Enabled minor modes:\n")
+	  (make-local-variable 'help-button-cache)
+	  (with-current-buffer standard-output
+	    (dolist (mode minor-modes)
+	      (let ((mode-function (nth 0 mode))
+		    (pretty-minor-mode (nth 1 mode))
+		    (indicator (nth 2 mode)))
+		(save-excursion
+		  (goto-char (point-max))
+		  (princ "\n\f\n")
+		  (push (point-marker) help-button-cache)
+		  ;; Document the minor modes fully.
+                  (insert-text-button
+                   pretty-minor-mode 'type 'help-function
+                   'help-args (list mode-function)
+                   'button '(t))
+		  (princ (format " minor mode (%s):\n"
+				 (if (zerop (length indicator))
+				     "no indicator"
+				   (format "indicator%s"
+					   indicator))))
+		  (princ (help-split-fundoc (documentation mode-function)
+                                            nil 'doc)))
+		(insert-button pretty-minor-mode
+			       'action (car help-button-cache)
+			       'follow-link t
+			       'help-echo "mouse-2, RET: show full information")
+		(newline)))
+	    (forward-line -1)
+	    (fill-paragraph nil)
+	    (forward-line 1))
+
+	  (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
+	;; Document the major mode.
+	(let ((mode mode-name))
+	  (with-current-buffer standard-output
+            (let ((start (point)))
+              (insert (format-mode-line mode nil nil buffer))
+              (add-text-properties start (point) '(face bold)))))
+	(princ " mode")
+	(let* ((mode major-mode)
+	       (file-name (find-lisp-object-file-name mode nil)))
+	  (when file-name
+	    (princ (format-message " defined in `%s'"
+                                   (help-fns-short-filename file-name)))
+	    ;; Make a hyperlink to the library.
+	    (with-current-buffer standard-output
+	      (save-excursion
+		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
+                                    nil t)
+		(help-xref-button 1 'help-function-def mode file-name)))))
+	(princ ":\n")
+	(princ (help-split-fundoc (documentation major-mode) nil 'doc)))))
+  ;; For the sake of IELM and maybe others
+  nil)
+
+;; Widgets.
+
+(defvar describe-widget-functions
+  '(button-describe widget-describe)
+  "A list of functions for `describe-widget' to call.
+Each function should take one argument, a buffer position, and return
+non-nil if it described a widget at that position.")
+
+;;;###autoload
+(defun describe-widget (&optional pos)
+  "Display a buffer with information about a widget.
+You can use this command to describe buttons (e.g., the links in a *Help*
+buffer), editable fields of the customization buffers, etc.
+
+Interactively, click on a widget to describe it, or hit RET to describe the
+widget at point.
+
+When called from Lisp, POS may be a buffer position or a mouse position list.
+
+Calls each function of the list `describe-widget-functions' in turn, until
+one of them returns non-nil."
+  (interactive
+   (list
+    (let ((key
+           (read-key
+            "Click on a widget, or hit RET to describe the widget at point")))
+      (cond ((eq key ?\C-m) (point))
+            ((and (mouse-event-p key)
+                  (eq (event-basic-type key) 'mouse-1)
+                  (equal (event-modifiers key) '(click)))
+             (event-end key))
+            ((eq key ?\C-g) (signal 'quit nil))
+            (t (user-error "You didn't specify a widget"))))))
+  (let (buf)
+    ;; Allow describing a widget in a different window.
+    (when (posnp pos)
+      (setq buf (window-buffer (posn-window pos))
+            pos (posn-point pos)))
+    (with-current-buffer (or buf (current-buffer))
+      (unless (cl-some (lambda (fun) (when (fboundp fun) (funcall fun pos)))
+                       describe-widget-functions)
+        (message "No widget found at that position")))))
+
+
 ;;; Replacements for old lib-src/ programs.  Don't seem especially useful.
 
 ;; Replaces lib-src/digest-doc.c.

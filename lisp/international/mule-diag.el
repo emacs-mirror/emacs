@@ -200,10 +200,6 @@ Character sets for defining other charsets, or for backward compatibility
 ;;;		   (charset-iso-graphic-plane charset)
 		   (charset-description charset)))))
 
-(defvar non-iso-charset-alist nil
-  "Obsolete.")
-(make-obsolete-variable 'non-iso-charset-alist "no longer relevant." "23.1")
-
 ;; A variable to hold charset input history.
 (defvar charset-history nil)
 

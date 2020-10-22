@@ -58,7 +58,6 @@ the character after point.
                        of another buffer.
 * Decompression::    Dealing with compressed data.
 * Base 64::          Conversion to or from base 64 encoding.
-* Interpolated Strings:: Formatting Customizable Strings.
 * Checksum/Hash::    Computing cryptographic hashes.
 * GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
 * Parsing HTML/XML:: Parsing HTML and XML.
@@ -2029,8 +2028,15 @@ non-@code{nil} value.
 @end enumerate
 
 The argument @var{predicate} is the function to use to compare keys.
-If keys are numbers, it defaults to @code{<}; otherwise it defaults to
-@code{string<}.
+It is called with two arguments, the keys to compare, and should
+return non-@code{nil} if the first key should come before the second
+in the sorting order.  What exactly are the key arguments depends on
+what @var{startkeyfun} and @var{endkeyfun} return.  If @var{predicate}
+is omitted or @code{nil}, it defaults to @code{<} if the keys are
+numbers, to @code{compare-buffer-substrings} if the keys are cons
+cells (whose @code{car} and @code{cdr} are start and end buffer
+positions of the key), and to @code{string<} otherwise (with keys
+assumed to be strings).
 
 As an example of @code{sort-subr}, here is the complete function
 definition for @code{sort-lines}:
@@ -2073,11 +2079,10 @@ its @code{sort-subr} call looks like this:
 @example
 @group
 (sort-subr reverse
-           (function
-            (lambda ()
-              (while (and (not (eobp))
-                          (looking-at paragraph-separate))
-                (forward-line 1))))
+           (lambda ()
+             (while (and (not (eobp))
+                         (looking-at paragraph-separate))
+               (forward-line 1)))
            'forward-paragraph)
 @end group
 @end example
@@ -2420,6 +2425,30 @@ it inserts a tab character.  If the value is @code{complete}, the
 command first tries to indent the current line, and if the line was
 already indented, it calls @code{completion-at-point} to complete the
 text at point (@pxref{Completion in Buffers}).
+@end defopt
+
+@defopt tab-first-completion
+If @code{tab-always-indent} is @code{complete}, whether to expand or
+indent can be further customized via the @code{tab-first-completion}
+variable.  The following values can be used:
+@table @code
+@item eol
+Only complete if point is at the end of a line.
+
+@item word
+Complete unless the next character has word syntax.
+
+@item word-or-paren
+Complete unless the next character has word syntax or is a
+parenthesis.
+
+@item word-or-paren-or-punct
+Complete unless the next character has word syntax, or is a
+parenthesis, or is punctuation.
+@end table
+
+In any case, typing @kbd{TAB} a second time always results in
+completion.
 @end defopt
 
 @cindex literate programming
@@ -3064,7 +3093,7 @@ construct each part with @code{propertize} and then combine them with
 @code{buffer-substring-no-properties}, which copies text from the
 buffer but does not copy its properties.
 
-@findex with-silent-modifications
+@findex with-silent-modifications, and changes in text properties
   If you wish to add text properties to a buffer or remove them
 without marking the buffer as modified, you can wrap the calls above
 in the @code{with-silent-modifications} macro.  @xref{Buffer
@@ -3740,6 +3769,16 @@ This text property is used to display a sequence of characters as a
 single glyph composed from components.  But the value of the property
 itself is completely internal to Emacs and should not be manipulated
 directly by, for instance, @code{put-text-property}.
+
+@item minibuffer-message
+@kindex minibuffer-message @r{(text property)}
+This text property tells where to display temporary messages in an
+active minibuffer.  Specifically, the first character of the
+minibuffer text which has this property will have the temporary
+message displayed before it.  The default is to display temporary
+messages at the end of the minibuffer text.  This text property is
+used by the function that is the default value of
+@code{set-message-function} (@pxref{Displaying Messages}).
 
 @end table
 
@@ -4502,33 +4541,33 @@ would destroy these properties.  However, the latter combination is
 typically faster (@xref{Deletion}, and @ref{Insertion}).
 
 For its working, @code{replace-buffer-contents} needs to compare the
-contents of the original buffer with that of @code{source} which is a
+contents of the original buffer with that of @var{source} which is a
 costly operation if the buffers are huge and there is a high number of
 differences between them.  In order to keep
 @code{replace-buffer-contents}'s runtime in bounds, it has two
 optional arguments.
 
-@code{max-secs} defines a hard boundary in terms of seconds.  If given
+@var{max-secs} defines a hard boundary in terms of seconds.  If given
 and exceeded, it will fall back to @code{delete-region} and
 @code{insert-buffer-substring}.
 
-@code{max-costs} defines the quality of the difference computation.
-If the actual costs exceed this limit, heuristics are used to provide
-a faster but suboptimal solution.  The default value is 1000000.
+@var{max-costs} defines the quality of the difference computation.  If
+the actual costs exceed this limit, heuristics are used to provide a
+faster but suboptimal solution.  The default value is 1000000.
 
 @code{replace-buffer-contents} returns t if a non-destructive
-replacement could be performed.  Otherwise, i.e., if @code{max-secs}
+replacement could be performed.  Otherwise, i.e., if @var{max-secs}
 was exceeded, it returns nil.
 @end deffn
 
 @defun replace-region-contents beg end replace-fn &optional max-secs max-costs
-This function replaces the region between @code{beg} and @code{end}
-using the given @code{replace-fn}.  The function @code{replace-fn} is
+This function replaces the region between @var{beg} and @var{end}
+using the given @var{replace-fn}.  The function @var{replace-fn} is
 run in the current buffer narrowed to the specified region and it
 should return either a string or a buffer replacing the region.
 
 The replacement is performed using @code{replace-buffer-contents} (see
-above) which also describes the @code{max-secs} and @code{max-costs}
+above) which also describes the @var{max-secs} and @var{max-costs}
 arguments and the return value.
 
 Note: If the replacement is a string, it will be placed in a temporary
@@ -4652,72 +4691,6 @@ The decoding functions ignore newline characters in the encoded text.
 If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
 @end defun
-
-
-@node Interpolated Strings
-@section Formatting Customizable Strings
-
-It is, in some circumstances, useful to present users with a string to
-be customized that can then be expanded programmatically.  For
-instance, @code{erc-header-line-format} is @code{"%n on %t (%m,%l)
-%o"}, and each of those characters after the percent signs are
-expanded when the header line is computed.  To do this, the
-@code{format-spec} function is used:
-
-@defun format-spec format specification &optional only-present
-@var{format} is the format specification string as in the example
-above.  @var{specification} is an alist that has elements where the
-@code{car} is a character and the @code{cdr} is the substitution.
-
-If @code{ONLY-PRESENT} is @code{nil}, errors will be signalled if a
-format character has been used that's not present in
-@var{specification}.  If it's non-@code{nil}, that format
-specification is left verbatim in the result.
-@end defun
-
-Here's a trivial example:
-
-@example
-(format-spec "su - %u %l"
-             `((?u . ,(user-login-name))
-               (?l . "ls")))
-     @result{} "su - foo ls"
-@end example
-
-In addition to allowing padding/limiting to a certain length, the
-following modifiers can be used:
-
-@table @asis
-@item @samp{0}
-Use zero padding.
-
-@item @samp{@ }
-User space padding.
-
-@item @samp{-}
-Pad to the right.
-
-@item @samp{^}
-Use upper case.
-
-@item @samp{_}
-Use lower case.
-
-@item @samp{<}
-If the length needs to limited, remove characters from the left.
-
-@item @samp{>}
-Same as previous, but remove characters from the right.
-@end table
-
-If contradictory modifiers are used (for instance, both upper and
-lower case), then what happens is undefined.
-
-As an example, @samp{"%<010b"} means ``insert the @samp{b} expansion,
-but pad with leading zeroes if it's less than ten characters, and if
-it's more than ten characters, shorten by removing characters from the
-left''.
-
 
 @node Checksum/Hash
 @section Checksum/Hash
@@ -4864,11 +4837,9 @@ When @var{noerror} is non-@code{nil}, this function silently uses
 @code{raw-text} coding instead.
 
 @item (@code{iv-auto} @var{length})
-This will generate an IV (Initialization Vector) of the specified
-length using the GnuTLS @code{GNUTLS_RND_NONCE} generator and pass it
-to the function.  This ensures that the IV is unpredictable and
-unlikely to be reused in the same session.  The actual value of the IV
-is returned by the function as described below.
+This generates a random IV (Initialization Vector) of the specified
+length and passes it to the function.  This ensures that the IV is
+unpredictable and unlikely to be reused in the same session.
 
 @end table
 
@@ -5152,6 +5123,9 @@ The following are functions for altering the @acronym{DOM}.
 @item dom-set-attribute @var{node} @var{attribute} @var{value}
 Set the @var{attribute} of the node to @var{value}.
 
+@item dom-remove-attribute @var{node} @var{attribute}
+Remove @var{attribute} from @var{node}.
+
 @item dom-append-child @var{node} @var{child}
 Append @var{child} as the last child of @var{node}.
 
@@ -5204,6 +5178,11 @@ Utility functions:
 @item dom-pp @var{dom} &optional @var{remove-empty}
 Pretty-print @var{dom} at point.  If @var{remove-empty}, don't print
 textual nodes that just contain white-space.
+
+@item dom-print @var{dom} &optional @var{pretty} @var{xml}
+Print @var{dom} at point.  If @var{xml} is non-@code{nil}, print as
+@acronym{XML}; otherwise, print as @acronym{HTML}.  If @var{pretty} is
+non-@code{nil}, indent the @acronym{HTML}/@acronym{XML} logically.
 @end table
 
 
@@ -5267,7 +5246,7 @@ Signaled when encountering invalid JSON syntax.
 @end table
 
   Only top-level values (arrays and objects) can be serialized to
-JSON.  The subobjects within these top-level values can be of any
+JSON@.  The subobjects within these top-level values can be of any
 type.  Likewise, the parsing functions will only return vectors,
 hashtables, alists, and plists.
 
@@ -5715,7 +5694,7 @@ made within the @code{combine-after-change-calls} body.
 @code{after-change-functions} within
 the body of a @code{combine-after-change-calls} form.
 
-@strong{Warning:} if the changes you combine occur in widely scattered
+@strong{Warning:} If the changes you combine occur in widely scattered
 parts of the buffer, this will still work, but it is not advisable,
 because it may lead to inefficient behavior for some change hook
 functions.
@@ -5766,4 +5745,11 @@ code that is itself run from a modification hook, then rebind locally
 may cause recursive calls to the modification hooks, so be sure to
 prepare for that (for example, by binding some variable which tells
 your hook to do nothing).
+
+We recommend that you only bind this variable for modifications that
+do not result in lasting changes to buffer text contents (for example
+face changes or temporary modifications).  If you need to delay change
+hooks during a series of changes (typically for performance reasons),
+use @code{combine-change-calls} or @code{combine-after-change-calls}
+instead.
 @end defvar

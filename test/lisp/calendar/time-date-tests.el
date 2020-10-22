@@ -31,7 +31,9 @@
 (ert-deftest test-days-in-month ()
   (should (= (date-days-in-month 2004 2) 29))
   (should (= (date-days-in-month 2004 3) 31))
-  (should-not (= (date-days-in-month 1900 3) 28)))
+  (should-not (= (date-days-in-month 1900 3) 28))
+  (should-error (date-days-in-month 2020 15))
+  (should-error (date-days-in-month 2020 'foo)))
 
 (ert-deftest test-ordinal ()
   (should (equal (date-ordinal-to-time 2008 271)
@@ -106,5 +108,39 @@
 
 (ert-deftest test-time-since ()
   (should (time-equal-p 0 (time-since nil))))
+
+(ert-deftest test-time-decoded-period ()
+  (should (equal (decoded-time-period '(nil nil 1 nil nil nil nil nil nil))
+                 3600))
+
+  (should (equal (decoded-time-period '(1 0 0 0 0 0 nil nil nil)) 1))
+  (should (equal (decoded-time-period '(0 1 0 0 0 0 nil nil nil)) 60))
+  (should (equal (decoded-time-period '(0 0 1 0 0 0 nil nil nil)) 3600))
+  (should (equal (decoded-time-period '(0 0 0 1 0 0 nil nil nil)) 86400))
+  (should (equal (decoded-time-period '(0 0 0 0 1 0 nil nil nil)) 2592000))
+  (should (equal (decoded-time-period '(0 0 0 0 0 1 nil nil nil)) 31536000))
+
+  (should (equal (decoded-time-period '((135 . 10) 0 0 0 0 0 nil nil nil))
+                 13.5)))
+
+(ert-deftest test-time-wrap-addition ()
+  (should (equal (decoded-time-add '(0 0 0 1 11 2008 nil nil nil)
+                                   (make-decoded-time :month 1))
+                 '(0 0 0 1 12 2008 nil nil nil)))
+  (should (equal (decoded-time-add '(0 0 0 1 12 2008 nil nil nil)
+                                   (make-decoded-time :month 1))
+                 '(0 0 0 1 1 2009 nil nil nil)))
+  (should (equal (decoded-time-add '(0 0 0 1 11 2008 nil nil nil)
+                                   (make-decoded-time :month 12))
+                 '(0 0 0 1 11 2009 nil nil nil)))
+  (should (equal (decoded-time-add '(0 0 0 1 11 2008 nil nil nil)
+                                   (make-decoded-time :month 13))
+                 '(0 0 0 1 12 2009 nil nil nil)))
+  (should (equal (decoded-time-add '(0 0 0 30 12 2008 nil nil nil)
+                                   (make-decoded-time :day 1))
+                 '(0 0 0 31 12 2008 nil nil nil)))
+  (should (equal (decoded-time-add '(0 0 0 30 12 2008 nil nil nil)
+                                   (make-decoded-time :day 2))
+                 '(0 0 0 1 1 2009 nil nil nil))))
 
 ;;; time-date-tests.el ends here

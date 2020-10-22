@@ -51,6 +51,9 @@
 
 ;; The main keymap
 
+(define-obsolete-variable-alias 'vc-log-mode-map 'log-edit-mode-map "28.1")
+(define-obsolete-variable-alias 'vc-log-entry-mode 'log-edit-mode-map "28.1")
+
 (easy-mmode-defmap log-edit-mode-map
   '(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
@@ -66,10 +69,6 @@
     ("\C-c?"	. log-edit-mode-help))
   "Keymap for the `log-edit-mode' (to edit version control log messages)."
   :group 'log-edit)
-
-;; Compatibility with old names.  Should we bother ?
-(defvar vc-log-mode-map log-edit-mode-map)
-(defvar vc-log-entry-mode vc-log-mode-map)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -245,7 +244,9 @@ If the optional argument STRIDE is present, that is a step-width to use
 when going through the comment ring."
   ;; Why substring rather than regexp ?   -sm
   (interactive
-   (list (read-string "Comment substring: " nil nil log-edit-last-comment-match)))
+   (list (read-string (format-prompt "Comment substring"
+                                     log-edit-last-comment-match)
+                      nil nil log-edit-last-comment-match)))
   (unless stride (setq stride 1))
   (if (string= str "")
       (setq str log-edit-last-comment-match)
@@ -262,7 +263,9 @@ when going through the comment ring."
 (defun log-edit-comment-search-forward (str)
   "Search forwards through comment history for a substring match of STR."
   (interactive
-   (list (read-string "Comment substring: " nil nil log-edit-last-comment-match)))
+   (list (read-string (format-prompt "Comment substring"
+                                     log-edit-last-comment-match)
+                      nil nil log-edit-last-comment-match)))
   (log-edit-comment-search-backward str -1))
 
 (defun log-edit-comment-to-change-log (&optional whoami file-name)
@@ -529,7 +532,7 @@ according to `fill-column'."
          (and (< beg end)
               (re-search-forward
                (concat "\\(?1:" change-log-unindented-file-names-re
-                       "\\)\\|^\\(?1:\\)(")
+                       "\\)\\|^\\(?1:\\)[[:blank:]]*(")
                end t)
               (copy-marker (match-end 1)))
          ;; Fill prose between log entries.
@@ -788,18 +791,20 @@ This command will generate a ChangeLog entries listing the
 functions.  You can then add a description where needed, and use
 \\[fill-paragraph] to join consecutive function names."
   (interactive)
-  (let* ((diff-buf nil)
-         ;; Unfortunately, `log-edit-show-diff' doesn't have a NO-SHOW
-         ;; option, so we try to work around it via display-buffer
-         ;; machinery.
-         (display-buffer-overriding-action
-          `(,(lambda (buf alist)
-               (setq diff-buf buf)
-               (display-buffer-no-window buf alist))
-            . ((allow-no-window . t)))))
-    (change-log-insert-entries
-     (with-current-buffer (progn (log-edit-show-diff) diff-buf)
-       (diff-add-log-current-defuns)))))
+  (change-log-insert-entries
+   (with-current-buffer
+       (let* ((diff-buf nil)
+              ;; Unfortunately, `log-edit-show-diff' doesn't have a
+              ;; NO-SHOW option, so we try to work around it via
+              ;; display-buffer machinery.
+              (display-buffer-overriding-action
+               `(,(lambda (buf alist)
+                    (setq diff-buf buf)
+                    (display-buffer-no-window buf alist))
+                 . ((allow-no-window . t)))))
+         (log-edit-show-diff)
+         diff-buf)
+     (diff-add-log-current-defuns))))
 
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.

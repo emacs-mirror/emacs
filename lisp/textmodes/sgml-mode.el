@@ -46,7 +46,8 @@
 
 (defcustom sgml-basic-offset 2
   "Specifies the basic indentation level for `sgml-indent-line'."
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom sgml-attribute-offset 0
   "Specifies a delta for attribute indentation in `sgml-indent-line'.
@@ -286,7 +287,10 @@ separated by a space."
 (defconst sgml-namespace-re "[_[:alpha:]][-_.[:alnum:]]*")
 (defconst sgml-name-re "[_:[:alpha:]][-_.:[:alnum:]]*")
 (defconst sgml-tag-name-re (concat "<\\([!/?]?" sgml-name-re "\\)"))
-(defconst sgml-attrs-re "\\(?:[^\"'/><]\\|\"[^\"]*\"\\|'[^']*'\\)*")
+(defconst sgml-attrs-re
+  ;; This pattern cannot begin with a character matched by the end of
+  ;; `sgml-name-re' above.
+  "\\(?:[^_.:\"'/><[:alnum:]-]\\(?:[^\"'/><]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?")
 (defconst sgml-start-tag-regex (concat "<" sgml-name-re sgml-attrs-re)
   "Regular expression that matches a non-empty start tag.
 Any terminating `>' or `/' is not matched.")
@@ -775,7 +779,7 @@ If you like tags and attributes in uppercase, customize
            (setq sgml-tag-last
 		 (completing-read
 		  (if (> (length sgml-tag-last) 0)
-		      (format "Tag (default %s): " sgml-tag-last)
+		      (format-prompt "Tag" sgml-tag-last)
 		    "Tag: ")
 		  sgml-tag-alist nil nil nil 'sgml-tag-history sgml-tag-last)))
   ?< str |
@@ -874,9 +878,7 @@ With prefix argument, only self insert."
    (list (let ((def (save-excursion
 		      (if (eq (following-char) ?<) (forward-char))
 		      (sgml-beginning-of-tag))))
-	   (completing-read (if def
-				(format "Tag (default %s): " def)
-			      "Tag: ")
+	   (completing-read (format-prompt "Tag" def)
 			    sgml-tag-alist nil nil nil
 			    'sgml-tag-history def))))
   (or (and tag (> (length tag) 0))
@@ -1186,10 +1188,9 @@ and move to the line in the SGML document that caused it."
 		      (or sgml-saved-validate-command
 			  (concat sgml-validate-command
 				  " "
-				  (shell-quote-argument
-				   (let ((name (buffer-file-name)))
-				     (and name
-					  (file-name-nondirectory name)))))))))
+                                  (when-let ((name (buffer-file-name)))
+				    (shell-quote-argument
+				     (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compilation-start command))
@@ -1803,6 +1804,7 @@ This takes effect when first loading the library.")
     (define-key map "\C-c\C-cc" 'html-checkboxes)
     (define-key map "\C-c\C-cl" 'html-list-item)
     (define-key map "\C-c\C-ch" 'html-href-anchor)
+    (define-key map "\C-c\C-cf" 'html-href-anchor-file)
     (define-key map "\C-c\C-cn" 'html-name-anchor)
     (define-key map "\C-c\C-c#" 'html-id-anchor)
     (define-key map "\C-c\C-ci" 'html-image)
@@ -1815,6 +1817,7 @@ This takes effect when first loading the library.")
       (define-key map "\C-cc" 'html-checkboxes)
       (define-key map "\C-cl" 'html-list-item)
       (define-key map "\C-ch" 'html-href-anchor)
+      (define-key map "\C-cf" 'html-href-anchor-file)
       (define-key map "\C-cn" 'html-name-anchor)
       (define-key map "\C-c#" 'html-id-anchor)
       (define-key map "\C-ci" 'html-image)
@@ -1842,15 +1845,16 @@ This takes effect when first loading the library.")
     (define-key menu-map "\n" '("Line Break" . html-line))
     (define-key menu-map "\r" '("Paragraph" . html-paragraph))
     (define-key menu-map "i" '("Image" . html-image))
-    (define-key menu-map "h" '("Href Anchor" . html-href-anchor))
+    (define-key menu-map "h" '("Href Anchor URL" . html-href-anchor))
+    (define-key menu-map "f" '("Href Anchor File" . html-href-anchor-file))
     (define-key menu-map "n" '("Name Anchor" . html-name-anchor))
     (define-key menu-map "#" '("ID Anchor" . html-id-anchor))
     map)
   "Keymap for commands for use in HTML mode.")
 
 (defvar html-face-tag-alist
-  '((bold . "b")
-    (italic . "i")
+  '((bold . "strong")
+    (italic . "em")
     (underline . "u")
     (mode-line . "rev"))
   "Value of `sgml-face-tag-alist' for HTML mode.")
@@ -2360,7 +2364,7 @@ have <h1>Very Major Headlines</h1> through <h6>Very Minor Headlines</h6>
 
 <p>Paragraphs only need an opening tag.  Line breaks and multiple spaces are
 ignored unless the text is <pre>preformatted.</pre>  Text can be marked as
-<b>bold</b>, <i>italic</i> or <u>underlined</u> using the normal M-o or
+<strong>bold</strong>, <em>italic</em> or <u>underlined</u> using the normal M-o or
 Edit/Text Properties/Face commands.
 
 Pages can have <a name=\"SOMENAME\">named points</a> and can link other points
@@ -2448,6 +2452,11 @@ HTML Autoview mode is a buffer-local minor mode for use with
   "HTML anchor tag with href attribute."
   "URL: "
   ;; '(setq input "http:")
+  "<a href=\"" str "\">" _ "</a>")
+
+(define-skeleton html-href-anchor-file
+  "HTML anchor tag with href attribute (from a local file)."
+  (file-relative-name (read-file-name "File name: ") default-directory)
   "<a href=\"" str "\">" _ "</a>")
 
 (define-skeleton html-name-anchor
