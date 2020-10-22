@@ -502,7 +502,8 @@ This is used to fontify fixed-format Fortran comments."
      ;; line-length will indeed be ignored (and will result in a string that
      ;; leaks into subsequent lines).
      (,(format "^[^CcDd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
-      (1 "<")))))
+      (1 "<")))
+   t))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
   "Default expressions to highlight in Fortran mode.")
