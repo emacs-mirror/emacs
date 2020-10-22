@@ -415,7 +415,7 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   if (NILP (raw))
-    doc = Fsubstitute_command_keys (doc);
+    doc = call1 (Qsubstitute_command_keys, doc);
   return doc;
 }
 
@@ -472,7 +472,7 @@ aren't strings.  */)
     tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
-    tem = Fsubstitute_command_keys (tem);
+    tem = call1 (Qsubstitute_command_keys, tem);
   return tem;
 }
 
@@ -696,315 +696,34 @@ text_quoting_style (void)
     return CURVE_QUOTING_STYLE;
 }
 
-DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
-       Ssubstitute_command_keys, 1, 1, 0,
-       doc: /* Substitute key descriptions for command names in STRING.
-Each substring of the form \\=\\[COMMAND] is replaced by either a
-keystroke sequence that invokes COMMAND, or "M-x COMMAND" if COMMAND
-is not on any keys.
-
-Each substring of the form \\=\\{MAPVAR} is replaced by a summary of
-the value of MAPVAR as a keymap.  This summary is similar to the one
-produced by `describe-bindings'.  The summary ends in two newlines
-\(used by the helper function `help-make-xrefs' to find the end of the
-summary).
-
-Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR
-as the keymap for future \\=\\[COMMAND] substrings.
-
-Each grave accent \\=` is replaced by left quote, and each apostrophe \\='
-is replaced by right quote.  Left and right quote characters are
-specified by `text-quoting-style'.
-
-\\=\\= quotes the following character and is discarded; thus, \\=\\=\\=\\= puts \\=\\=
-into the output, \\=\\=\\=\\[ puts \\=\\[ into the output, and \\=\\=\\=` puts \\=` into the
-output.
-
-Return the original STRING if no substitutions are made.
-Otherwise, return a new string (without any text properties).  */)
-  (Lisp_Object string)
+/* This is just a Lisp wrapper for text_quoting_style above.  */
+DEFUN ("get-quoting-style", Fget_quoting_style,
+       Sget_quoting_style, 0, 0, 0,
+       doc: /* Return the current effective text quoting style.
+See variable `text-quoting-style'.  */)
+  (void)
 {
-  char *buf;
-  bool changed = false;
-  bool nonquotes_changed = false;
-  unsigned char *strp;
-  char *bufp;
-  ptrdiff_t idx;
-  ptrdiff_t bsize;
-  Lisp_Object tem;
-  Lisp_Object keymap;
-  unsigned char const *start;
-  ptrdiff_t length, length_byte;
-  Lisp_Object name;
-  ptrdiff_t nchars;
-
-  if (NILP (string))
-    return Qnil;
-
-  /* If STRING contains non-ASCII unibyte data, process its
-     properly-encoded multibyte equivalent instead.  This simplifies
-     the implementation and is OK since substitute-command-keys is
-     intended for use only on text strings.  Keep STRING around, since
-     it will be returned if no changes occur.  */
-  Lisp_Object str = Fstring_make_multibyte (string);
-
-  enum text_quoting_style quoting_style = text_quoting_style ();
-
-  nchars = 0;
-
-  /* KEYMAP is either nil (which means search all the active keymaps)
-     or a specified local map (which means search just that and the
-     global map).  If non-nil, it might come from Voverriding_local_map,
-     or from a \\<mapname> construct in STRING itself..  */
-  keymap = Voverriding_local_map;
-
-  ptrdiff_t strbytes = SBYTES (str);
-  bsize = strbytes;
-
-  /* Fixed-size stack buffer.  */
-  char sbuf[MAX_ALLOCA];
-
-  /* Heap-allocated buffer, if any.  */
-  char *abuf;
-
-  /* Extra room for expansion due to replacing ‘\[]’ with ‘M-x ’.  */
-  enum { EXTRA_ROOM = sizeof "M-x " - sizeof "\\[]" };
-
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  if (bsize <= sizeof sbuf - EXTRA_ROOM)
+  switch (text_quoting_style ())
     {
-      abuf = NULL;
-      buf = sbuf;
-      bsize = sizeof sbuf;
+    case STRAIGHT_QUOTING_STYLE:
+      return Qstraight;
+    case CURVE_QUOTING_STYLE:
+      return Qcurve;
+    case GRAVE_QUOTING_STYLE:
+    default:
+      return Qgrave;
     }
-  else
-    {
-      buf = abuf = xpalloc (NULL, &bsize, EXTRA_ROOM, STRING_BYTES_BOUND, 1);
-      record_unwind_protect_ptr (xfree, abuf);
-    }
-  bufp = buf;
-
-  strp = SDATA (str);
-  while (strp < SDATA (str) + strbytes)
-    {
-      unsigned char *close_bracket;
-
-      if (strp[0] == '\\' && strp[1] == '='
-	  && strp + 2 < SDATA (str) + strbytes)
-	{
-	  /* \= quotes the next character;
-	     thus, to put in \[ without its special meaning, use \=\[.  */
-	  changed = nonquotes_changed = true;
-	  strp += 2;
-	  /* Fall through to copy one char.  */
-	}
-      else if (strp[0] == '\\' && strp[1] == '['
-	       && (close_bracket
-		   = memchr (strp + 2, ']',
-			     SDATA (str) + strbytes - (strp + 2))))
-	{
-	  bool follow_remap = 1;
-
-	  start = strp + 2;
-	  length_byte = close_bracket - start;
-	  idx = close_bracket + 1 - SDATA (str);
-
-	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
-
-	do_remap:
-	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
-
-	  if (VECTORP (tem) && ASIZE (tem) > 1
-	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
-	      && follow_remap)
-	    {
-	      name = AREF (tem, 1);
-	      follow_remap = 0;
-	      goto do_remap;
-	    }
-
-	  /* Fwhere_is_internal can GC, so take relocation of string
-	     contents into account.  */
-	  strp = SDATA (str) + idx;
-	  start = strp - length_byte - 1;
-
-	  if (NILP (tem))	/* but not on any keys */
-	    {
-	      memcpy (bufp, "M-x ", 4);
-	      bufp += 4;
-	      nchars += 4;
-	      length = multibyte_chars_in_text (start, length_byte);
-	      goto subst;
-	    }
-	  else
-	    {			/* function is on a key */
-	      tem = Fkey_description (tem, Qnil);
-	      goto subst_string;
-	    }
-	}
-      /* \{foo} is replaced with a summary of the keymap (symbol-value foo).
-	 \<foo> just sets the keymap used for \[cmd].  */
-      else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<')
-	       && (close_bracket
-		   = memchr (strp + 2, strp[1] == '{' ? '}' : '>',
-			     SDATA (str) + strbytes - (strp + 2))))
-	{
-	 {
-	  bool generate_summary = strp[1] == '{';
-	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
-	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
-	  ptrdiff_t count = SPECPDL_INDEX ();
-
-	  start = strp + 2;
-	  length_byte = close_bracket - start;
-	  idx = close_bracket + 1 - SDATA (str);
-
-	  /* Get the value of the keymap in TEM, or nil if undefined.
-	     Do this while still in the user's current buffer
-	     in case it is a local variable.  */
-	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
-	  tem = Fboundp (name);
-	  if (! NILP (tem))
-	    {
-	      tem = Fsymbol_value (name);
-	      if (! NILP (tem))
-		tem = get_keymap (tem, 0, 1);
-	    }
-
-	  /* Now switch to a temp buffer.  */
-	  struct buffer *oldbuf = current_buffer;
-	  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
-	  /* This is for an unusual case where some after-change
-	     function uses 'format' or 'prin1' or something else that
-	     will thrash Vprin1_to_string_buffer we are using.  */
-	  specbind (Qinhibit_modification_hooks, Qt);
-
-	  if (NILP (tem))
-	    {
-	      name = Fsymbol_name (name);
-	      AUTO_STRING (msg_prefix, "\nUses keymap `");
-	      insert1 (Fsubstitute_command_keys (msg_prefix));
-	      insert_from_string (name, 0, 0,
-				  SCHARS (name),
-				  SBYTES (name), 1);
-	      AUTO_STRING (msg_suffix, "', which is not currently defined.\n");
-	      insert1 (Fsubstitute_command_keys (msg_suffix));
-	      if (!generate_summary)
-		keymap = Qnil;
-	    }
-	  else if (!generate_summary)
-	    keymap = tem;
-	  else
-	    {
-	      /* Get the list of active keymaps that precede this one.
-		 If this one's not active, get nil.  */
-	      Lisp_Object earlier_maps
-		= Fcdr (Fmemq (tem, Freverse (active_maps)));
-	      describe_map_tree (tem, 1, Fnreverse (earlier_maps),
-				 Qnil, 0, 1, 0, 0, 1);
-	    }
-	  tem = Fbuffer_string ();
-	  Ferase_buffer ();
-	  set_buffer_internal (oldbuf);
-	  unbind_to (count, Qnil);
-	 }
-
-	subst_string:
-	  /* Convert non-ASCII unibyte data to properly-encoded multibyte,
-	     for the same reason STRING was converted to STR.  */
-	  tem = Fstring_make_multibyte (tem);
-	  start = SDATA (tem);
-	  length = SCHARS (tem);
-	  length_byte = SBYTES (tem);
-	subst:
-	  nonquotes_changed = true;
-	subst_quote:
-	  changed = true;
-	  {
-	    ptrdiff_t offset = bufp - buf;
-	    ptrdiff_t avail = bsize - offset;
-	    ptrdiff_t need = strbytes - idx;
-	    if (INT_ADD_WRAPV (need, length_byte + EXTRA_ROOM, &need))
-	      string_overflow ();
-	    if (avail < need)
-	      {
-		abuf = xpalloc (abuf, &bsize, need - avail,
-				STRING_BYTES_BOUND, 1);
-		if (buf == sbuf)
-		  {
-		    record_unwind_protect_ptr (xfree, abuf);
-		    memcpy (abuf, sbuf, offset);
-		  }
-		else
-		  set_unwind_protect_ptr (count, xfree, abuf);
-		buf = abuf;
-		bufp = buf + offset;
-	      }
-	    memcpy (bufp, start, length_byte);
-	    bufp += length_byte;
-	    nchars += length;
-
-	    /* Some of the previous code can GC, so take relocation of
-	       string contents into account.  */
-	    strp = SDATA (str) + idx;
-
-	    continue;
-	  }
-	}
-      else if ((strp[0] == '`' || strp[0] == '\'')
-	       && quoting_style == CURVE_QUOTING_STYLE)
-	{
-	  start = (unsigned char const *) (strp[0] == '`' ? uLSQM : uRSQM);
-	  length = 1;
-	  length_byte = sizeof uLSQM - 1;
-	  idx = strp - SDATA (str) + 1;
-	  goto subst_quote;
-	}
-      else if (strp[0] == '`' && quoting_style == STRAIGHT_QUOTING_STYLE)
-	{
-	  *bufp++ = '\'';
-	  strp++;
-	  nchars++;
-	  changed = true;
-	  continue;
-	}
-
-      /* Copy one char.  */
-      do
-	*bufp++ = *strp++;
-      while (! CHAR_HEAD_P (*strp));
-      nchars++;
-    }
-
-  if (changed)			/* don't bother if nothing substituted */
-    {
-      tem = make_string_from_bytes (buf, nchars, bufp - buf);
-      if (!nonquotes_changed)
-	{
-	  /* Nothing has changed other than quoting, so copy the string’s
-	     text properties.  FIXME: Text properties should survive other
-	     changes too; see bug#17052.  */
-	  INTERVAL interval_copy = copy_intervals (string_intervals (string),
-						   0, SCHARS (string));
-	  if (interval_copy)
-	    {
-	      set_interval_object (interval_copy, tem);
-	      set_string_intervals (tem, interval_copy);
-	    }
-	}
-    }
-  else
-    tem = string;
-  return unbind_to (count, tem);
 }
+
 
 void
 syms_of_doc (void)
 {
+  DEFSYM (Qsubstitute_command_keys, "substitute-command-keys");
   DEFSYM (Qfunction_documentation, "function-documentation");
   DEFSYM (Qgrave, "grave");
   DEFSYM (Qstraight, "straight");
+  DEFSYM (Qcurve, "curve");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
@@ -1036,5 +755,5 @@ otherwise.  */);
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
-  defsubr (&Ssubstitute_command_keys);
+  defsubr (&Sget_quoting_style);
 }

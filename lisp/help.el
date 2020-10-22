@@ -973,6 +973,476 @@ is currently activated with completion."
 		  minor-modes nil)
 	  (setq minor-modes (cdr minor-modes)))))
     result))
+
+
+(defun substitute-command-keys (string)
+  "Substitute key descriptions for command names in STRING.
+Each substring of the form \\\\=[COMMAND] is replaced by either a
+keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
+is not on any keys.
+
+Each substring of the form \\\\={MAPVAR} is replaced by a summary of
+the value of MAPVAR as a keymap.  This summary is similar to the one
+produced by ‘describe-bindings’.  The summary ends in two newlines
+(used by the helper function ‘help-make-xrefs’ to find the end of the
+summary).
+
+Each substring of the form \\\\=<MAPVAR> specifies the use of MAPVAR
+as the keymap for future \\\\=[COMMAND] substrings.
+
+Each grave accent \\=` is replaced by left quote, and each apostrophe \\='
+is replaced by right quote.  Left and right quote characters are
+specified by ‘text-quoting-style’.
+
+\\\\== quotes the following character and is discarded; thus, \\\\==\\\\== puts \\\\==
+into the output, \\\\==\\[ puts \\[ into the output, and \\\\==\\=` puts \\=` into the
+output.
+
+Return the original STRING if no substitutions are made.
+Otherwise, return a new string (without any text properties)."
+  (when (not (null string))
+    ;; KEYMAP is either nil (which means search all the active
+    ;; keymaps) or a specified local map (which means search just that
+    ;; and the global map).  If non-nil, it might come from
+    ;; overriding-local-map, or from a \\<mapname> construct in STRING
+    ;; itself.
+    (let ((keymap overriding-local-map)
+          (inhibit-modification-hooks t)
+          (orig-buf (current-buffer)))
+      (with-temp-buffer
+        (insert string)
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          (let ((standard-output (current-buffer))
+                (orig-point (point))
+                end-point active-maps
+                close generate-summary)
+            (cond
+             ;; 1. Handle all sequences starting with "\"
+             ((= (following-char) ?\\)
+              (ignore-errors
+                (forward-char 1))
+              (cond
+               ;; 1A. Ignore \= at end of string.
+               ((and (= (+ (point) 1) (point-max))
+                     (= (following-char) ?=))
+                (forward-char 1))
+               ;; 1B. \= quotes the next character; thus, to put in \[
+               ;;     without its special meaning, use \=\[.
+               ((= (following-char) ?=)
+                (goto-char orig-point)
+                (delete-char 2)
+                (ignore-errors
+                  (forward-char 1)))
+               ;; 1C. \[foo] is replaced with the keybinding.
+               ((and (= (following-char) ?\[)
+                     (save-excursion
+                       (prog1 (search-forward "]" nil t)
+                         (setq end-point (- (point) 2)))))
+                (goto-char orig-point)
+                (delete-char 2)
+                (let* ((fun (intern (buffer-substring (point) (1- end-point))))
+                       (key (with-current-buffer orig-buf
+                              (where-is-internal fun keymap t))))
+                  ;; If this a command remap, we need to follow it.
+                  (when (and (vectorp key)
+                             (> (length key) 1)
+                             (eq (aref key 0) 'remap)
+                             (symbolp (aref key 1)))
+                    (setq fun (aref key 1))
+                    (setq key (with-current-buffer orig-buf
+                                (where-is-internal fun keymap t))))
+                  (if (not key)
+                      ;; Function is not on any key.
+                      (progn (insert "M-x ")
+                             (goto-char (+ end-point 3))
+                             (delete-char 1))
+                    ;; Function is on a key.
+                    (delete-char (- end-point (point)))
+                    (insert (key-description key)))))
+               ;; 1D. \{foo} is replaced with a summary of the keymap
+               ;;            (symbol-value foo).
+               ;;     \<foo> just sets the keymap used for \[cmd].
+               ((and (or (and (= (following-char) ?{)
+                              (setq close "}")
+                              (setq generate-summary t))
+                         (and (= (following-char) ?<)
+                              (setq close ">")))
+                     (or (save-excursion
+                           (prog1 (search-forward close nil t)
+                             (setq end-point (- (point) 2))))))
+                (goto-char orig-point)
+                (delete-char 2)
+                (let* ((name (intern (buffer-substring (point) (1- end-point))))
+                       this-keymap)
+                  (delete-char (- end-point (point)))
+                  ;; Get the value of the keymap in TEM, or nil if
+                  ;; undefined. Do this in the user's current buffer
+                  ;; in case it is a local variable.
+                  (with-current-buffer orig-buf
+                    ;; This is for computing the SHADOWS arg for
+                    ;; describe-map-tree.
+                    (setq active-maps (current-active-maps))
+                    (when (boundp name)
+                      (setq this-keymap (and (keymapp (symbol-value name))
+                                             (symbol-value name)))))
+                  (cond
+                   ((null this-keymap)
+                    (insert "\nUses keymap "
+                            (substitute-command-keys "`")
+                            (symbol-name name)
+                            (substitute-command-keys "'")
+                            ", which is not currently defined.\n")
+                    (unless generate-summary
+                      (setq keymap nil)))
+                   ((not generate-summary)
+                    (setq keymap this-keymap))
+                   (t
+                    ;; Get the list of active keymaps that precede this one.
+                    ;; If this one's not active, get nil.
+                    (let ((earlier-maps (cdr (memq this-keymap (reverse active-maps)))))
+                      (describe-map-tree this-keymap t (nreverse earlier-maps)
+                                         nil nil t nil nil t))))))))
+             ;; 2. Handle quotes.
+             ((and (eq (get-quoting-style) 'curve)
+                   (or (and (= (following-char) ?\`)
+                            (prog1 t (insert "‘")))
+                       (and (= (following-char) ?')
+                            (prog1 t (insert "’")))))
+              (delete-char 1))
+             ((and (eq (get-quoting-style) 'straight)
+                   (= (following-char) ?\`))
+              (insert "'")
+              (delete-char 1))
+             ;; 3. Nothing to do -- next character.
+             (t (forward-char 1)))))
+        (buffer-string)))))
+
+(defvar help--keymaps-seen nil)
+(defun describe-map-tree (startmap partial shadow prefix title no-menu
+                                   transl always-title mention-shadow)
+  "Insert a description of the key bindings in STARTMAP.
+This is followed by the key bindings of all maps reachable
+through STARTMAP.
+
+If PARTIAL is non-nil, omit certain uninteresting commands
+\(such as `undefined').
+
+If SHADOW is non-nil, it is a list of maps; don't mention keys
+which would be shadowed by any of them.
+
+If PREFIX is non-nil, mention only keys that start with PREFIX.
+
+If TITLE is non-nil, is a string to insert at the beginning.
+TITLE should not end with a colon or a newline; we supply that.
+
+If NOMENU is non-nil, then omit menu-bar commands.
+
+If TRANSL is non-nil, the definitions are actually key
+translations so print strings and vectors differently.
+
+If ALWAYS_TITLE is non-nil, print the title even if there are no
+maps to look through.
+
+If MENTION_SHADOW is non-nil, then when something is shadowed by
+SHADOW, don't omit it; instead, mention it but say it is
+shadowed.
+
+Any inserted text ends in two newlines (used by
+`help-make-xrefs')."
+  (let* ((amaps (accessible-keymaps startmap prefix))
+         (orig-maps (if no-menu
+                        (progn
+                          ;; Delete from MAPS each element that is for
+                          ;; the menu bar.
+                          (let* ((tail amaps)
+                                 result)
+                            (while tail
+                              (let ((elem (car tail)))
+                                (when (not (and (>= (length (car elem)) 1)
+                                                (eq (elt (car elem) 0) 'menu-bar)))
+                                  (setq result (append result (list elem)))))
+                              (setq tail (cdr tail)))
+                            result))
+                      amaps))
+         (maps orig-maps)
+         (print-title (or maps always-title)))
+    ;; Print title.
+    (when print-title
+      (princ (concat (if title
+                         (concat title
+                                 (if prefix
+                                     (concat " Starting With "
+                                             (key-description prefix)))
+                                 ":\n"))
+                     "key             binding\n"
+                     "---             -------\n")))
+    ;; Describe key bindings.
+    (setq help--keymaps-seen nil)
+    (while (consp maps)
+      (let* ((elt (car maps))
+             (elt-prefix (car elt))
+             (sub-shadows (lookup-key shadow elt-prefix t)))
+        (when (if (natnump sub-shadows)
+                  (prog1 t (setq sub-shadows nil))
+                ;; Describe this map iff elt_prefix is bound to a
+                ;; keymap, since otherwise it completely shadows this
+                ;; map.
+                (or (keymapp sub-shadows)
+                    (null sub-shadows)
+                    (consp sub-shadows)
+                    (not (keymapp (car sub-shadows)))))
+          ;; Maps we have already listed in this loop shadow this map.
+          (let ((tail orig-maps))
+            (while (not (equal tail maps))
+              (when (equal (car (car tail)) elt-prefix)
+                (setq sub-shadows (cons (cdr (car tail)) sub-shadows)))
+              (setq tail (cdr tail))))
+          (describe-map (cdr elt) elt-prefix transl partial
+                        sub-shadows no-menu mention-shadow)))
+      (setq maps (cdr maps)))
+    (when print-title
+      (princ "\n"))))
+
+(defun help--shadow-lookup (keymap key accept-default remap)
+  "Like `lookup-key', but with command remapping.
+Return nil if the key sequence is too long."
+  ;; Converted from shadow_lookup in keymap.c.
+  (let ((value (lookup-key keymap key accept-default)))
+    (cond ((and (fixnump value) (<= 0 value)))
+          ((and value remap (symbolp value))
+           (or (command-remapping value nil keymap)
+               value))
+          (t value))))
+
+(defvar help--previous-description-column 0)
+(defun help--describe-command (definition)
+  ;; Converted from describe_command in keymap.c.
+  ;; If column 16 is no good, go to col 32;
+  ;; but don't push beyond that--go to next line instead.
+  (let* ((column (current-column))
+         (description-column (cond ((> column 30)
+                                    (insert "\n")
+                                    32)
+                                   ((or (> column 14)
+                                        (and (> column 10)
+                                             (= help--previous-description-column 32)))
+                                    32)
+                                   (t 16))))
+    (indent-to description-column 1)
+    (setq help--previous-description-column description-column)
+    (cond ((symbolp definition)
+           (insert (symbol-name definition) "\n"))
+          ((or (stringp definition) (vectorp definition))
+           (insert "Keyboard Macro\n"))
+          ((keymapp definition)
+           (insert "Prefix Command\n"))
+          (t (insert "??\n")))))
+
+(defun help--describe-translation (definition)
+  ;; Converted from describe_translation in keymap.c.
+  (indent-to 16 1)
+  (cond ((symbolp definition)
+         (insert (symbol-name definition) "\n"))
+        ((or (stringp definition) (vectorp definition))
+         (insert (key-description definition nil) "\n"))
+        ((keymapp definition)
+         (insert "Prefix Command\n"))
+        (t (insert "??\n"))))
+
+(defun help--describe-map-compare (a b)
+  (let ((a (car a))
+        (b (car b)))
+    (cond ((and (fixnump a) (fixnump b)) (< a b))
+          ;; ((and (not (fixnump a)) (fixnump b)) nil) ; not needed
+          ((and (fixnump a) (not (fixnump b))) t)
+          ((and (symbolp a) (symbolp b))
+           ;; Sort the keystroke names in the "natural" way, with (for
+           ;; instance) "<f2>" coming between "<f1>" and "<f11>".
+           (string-version-lessp (symbol-name a) (symbol-name b)))
+          (t nil))))
+
+(defun describe-map (map prefix transl partial shadow nomenu mention-shadow)
+  "Describe the contents of keymap MAP.
+Assume that this keymap itself is reached by the sequence of
+prefix keys PREFIX (a string or vector).
+
+TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
+`describe-map-tree'."
+  ;; Converted from describe_map in keymap.c.
+  (let* ((suppress (and partial 'suppress-keymap))
+         (map (keymap-canonicalize map))
+         (tail map)
+         (first t)
+         (describer (if transl
+                        #'help--describe-translation
+                      #'help--describe-command))
+         done vect)
+    (while (and (consp tail) (not done))
+      (cond ((or (vectorp (car tail)) (char-table-p (car tail)))
+             (help--describe-vector (car tail) prefix describer partial
+                                shadow map mention-shadow))
+            ((consp (car tail))
+             (let ((event (caar tail))
+                   definition this-shadowed)
+               ;; Ignore bindings whose "prefix" are not really
+               ;; valid events. (We get these in the frames and
+               ;; buffers menu.)
+               (and (or (symbolp event) (fixnump event))
+                    (not (and nomenu (eq event 'menu-bar)))
+                    ;; Don't show undefined commands or suppressed
+                    ;; commands.
+                    (setq definition (keymap--get-keyelt (cdr (car tail)) nil))
+                    (or (not (symbolp definition))
+                        (null (get definition suppress)))
+                    ;; Don't show a command that isn't really
+                    ;; visible because a local definition of the
+                    ;; same key shadows it.
+                    (or (not shadow)
+                        (let ((tem (help--shadow-lookup shadow (vector event) t nil)))
+                          (cond ((null tem) t)
+                                ;; If both bindings are keymaps,
+                                ;; this key is a prefix key, so
+                                ;; don't say it is shadowed.
+                                ((and (keymapp definition) (keymapp tem)) t)
+                                ;; Avoid generating duplicate
+                                ;; entries if the shadowed binding
+                                ;; has the same definition.
+                                ((and mention-shadow (not (eq tem definition)))
+                                 (setq this-shadowed t))
+                                (t nil))))
+                    (push (list event definition this-shadowed) vect))))
+            ((eq (car tail) 'keymap)
+             ;; The same keymap might be in the structure twice, if
+             ;; we're using an inherited keymap.  So skip anything
+             ;; we've already encountered.
+             (let ((tem (assq tail help--keymaps-seen)))
+               (if (and (consp tem)
+                        (equal (car tem) prefix))
+                   (setq done t)
+                 (push (cons tail prefix) help--keymaps-seen)))))
+      (setq tail (cdr tail)))
+    ;; If we found some sparse map events, sort them.
+    (let ((vect (sort vect 'help--describe-map-compare)))
+      ;; Now output them in sorted order.
+      (while vect
+        (let* ((elem (car vect))
+               (start (car elem))
+               (definition (cadr elem))
+               (shadowed (caddr elem))
+               (end start))
+          (when first
+            (setq help--previous-description-column 0)
+            (insert "\n")
+            (setq first nil))
+          ;; Find consecutive chars that are identically defined.
+          (when (fixnump start)
+            (while (and (cdr vect)
+                        (let ((this-event (caar vect))
+                              (this-definition (cadar vect))
+                              (this-shadowed (caddar vect))
+                              (next-event (caar (cdr vect)))
+                              (next-definition (cadar (cdr vect)))
+                              (next-shadowed (caddar (cdr vect))))
+                          (and (eq next-event (1+ this-event))
+                               (equal next-definition this-definition)
+                               (eq this-shadowed next-shadowed))))
+              (setq vect (cdr vect))
+              (setq end (caar vect))))
+          ;; Now START .. END is the range to describe next.
+          ;; Insert the string to describe the event START.
+          (insert (key-description (vector start) prefix))
+          (when (not (eq start end))
+            (insert " .. " (key-description (vector end) prefix)))
+          ;; Print a description of the definition of this character.
+          ;; Called function will take care of spacing out far enough
+          ;; for alignment purposes.
+          (if transl
+              (help--describe-translation definition)
+            (help--describe-command definition))
+          ;; Print a description of the definition of this character.
+          ;; elt_describer will take care of spacing out far enough for
+          ;; alignment purposes.
+          (when shadowed
+            (goto-char (max (1- (point)) (point-min)))
+            (insert "\n  (this binding is currently shadowed)")
+            (goto-char (min (1+ (point)) (point-max)))))
+        ;; Next item in list.
+        (setq vect (cdr vect))))))
+
+;;;; This Lisp version is 100 times slower than its C equivalent:
+;;
+;; (defun help--describe-vector
+;;     (vector prefix transl partial shadow entire-map mention-shadow)
+;;   "Insert in the current buffer a description of the contents of VECTOR.
+;;
+;; PREFIX a prefix key which leads to the keymap that this vector is
+;; in.
+;;
+;; If PARTIAL, it means do not mention suppressed commands
+;; (that assumes the vector is in a keymap).
+;;
+;; SHADOW is a list of keymaps that shadow this map.  If it is
+;; non-nil, look up the key in those maps and don't mention it if it
+;; is defined by any of them.
+;;
+;; ENTIRE-MAP is the vector in which this vector appears.
+;; If the definition in effect in the whole map does not match
+;; the one in this vector, we ignore this one."
+;;   ;; Converted from describe_vector in keymap.c.
+;;   (let* ((first t)
+;;          (idx 0))
+;;     (while (< idx (length vector))
+;;       (let* ((val (aref vector idx))
+;;              (definition (keymap--get-keyelt val nil))
+;;              (start-idx idx)
+;;              this-shadowed
+;;              found-range)
+;;         (when (and definition
+;;                    ;; Don't mention suppressed commands.
+;;                    (not (and partial
+;;                              (symbolp definition)
+;;                              (get definition 'suppress-keymap)))
+;;                    ;; If this binding is shadowed by some other map,
+;;                    ;; ignore it.
+;;                    (not (and shadow
+;;                              (help--shadow-lookup shadow (vector start-idx) t nil)
+;;                              (if mention-shadow
+;;                                  (prog1 nil (setq this-shadowed t))
+;;                                t)))
+;;                    ;; Ignore this definition if it is shadowed by an earlier
+;;                    ;; one in the same keymap.
+;;                    (not (and entire-map
+;;                              (not (eq (lookup-key entire-map (vector start-idx) t)
+;;                                       definition)))))
+;;           (when first
+;;             (insert "\n")
+;;             (setq first nil))
+;;           (when (and prefix (> (length prefix) 0))
+;;             (insert (format "%s" prefix)))
+;;           (insert (key-description (vector start-idx) prefix))
+;;           ;; Find all consecutive characters or rows that have the
+;;           ;; same definition.
+;;           (while (equal (keymap--get-keyelt (aref vector (1+ idx)) nil)
+;;                         definition)
+;;             (setq found-range t)
+;;             (setq idx (1+ idx)))
+;;           ;; If we have a range of more than one character,
+;;           ;; print where the range reaches to.
+;;           (when found-range
+;;             (insert " .. ")
+;;             (when (and prefix (> (length prefix) 0))
+;;               (insert (format "%s" prefix)))
+;;             (insert (key-description (vector idx) prefix)))
+;;           (if transl
+;;               (help--describe-translation definition)
+;;             (help--describe-command definition))
+;;           (when this-shadowed
+;;             (goto-char (1- (point)))
+;;             (insert "  (binding currently shadowed)")
+;;             (goto-char (1+ (point))))))
+;;       (setq idx (1+ idx)))))
+
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
 (declare-function x-display-pixel-width "xfns.c" (&optional terminal))

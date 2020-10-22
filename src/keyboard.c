@@ -2040,7 +2040,7 @@ help_echo_substitute_command_keys (Lisp_Object help)
                                     help)))
     return help;
 
-  return Fsubstitute_command_keys (help);
+  return call1 (Qsubstitute_command_keys, help);
 }
 
 /* Display the help-echo property of the character after the mouse pointer.
@@ -7856,7 +7856,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = concat2 (space_space, Fsubstitute_command_keys (keyeq));
+      keyeq = concat2 (space_space, call1 (Qsubstitute_command_keys, keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;
