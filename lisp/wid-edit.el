@@ -3584,7 +3584,7 @@ To use this type, you must define :match or :match-alternatives."
   :match 'widget-restricted-sexp-match
   :value-to-internal (lambda (widget value)
 		       (if (widget-apply widget :match value)
-			   (prin1-to-string value)
+                           (widget-sexp-value-to-internal widget value)
 			 value)))
 
 (defun widget-restricted-sexp-match (widget value)
