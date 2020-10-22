@@ -2789,7 +2789,9 @@ Possible return values are `standard', `saved', `set', `themed',
 		   (and (equal value (eval (car tmp)))
 			(equal comment temp))
 		 (error nil))
-	       'set
+               (if (equal value (eval (car (get symbol 'standard-value))))
+                   'standard
+	         'set)
 	     'changed))
 	  ((progn (setq tmp (get symbol 'theme-value))
 		  (setq temp (get symbol 'saved-variable-comment))
@@ -2858,6 +2860,18 @@ otherwise."
 
 (defun custom-variable-standard-value (widget)
   (get (widget-value widget) 'standard-value))
+
+(defun custom-variable-current-value (widget)
+  "Return the current value of the variable edited by WIDGET.
+
+WIDGET should be a custom-variable widget."
+  (let* ((symbol (widget-value widget))
+         (get (or (get symbol 'custom-get) 'default-value))
+         (type (custom-variable-type symbol))
+         (conv (widget-convert type)))
+    (if (default-boundp symbol)
+        (funcall get symbol)
+      (widget-get conv :value))))
 
 (defvar custom-variable-menu nil
   "If non-nil, an alist of actions for the `custom-variable' widget.
@@ -2989,10 +3003,12 @@ Optional EVENT is the location for the menu."
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
-	   (custom-variable-backup-value widget)
+           (setq val (widget-value child))
+           (unless (equal (eval val) (custom-variable-current-value widget))
+	     (custom-variable-backup-value widget))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (custom-quote (widget-value child)))
-	   (funcall set symbol (eval (setq val (widget-value child))))
+                              'set (custom-quote val))
+	   (funcall set symbol (eval val))
 	   (put symbol 'customized-value (list val))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'customized-variable-comment comment))
@@ -3001,10 +3017,12 @@ Optional EVENT is the location for the menu."
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
-	   (custom-variable-backup-value widget)
+           (setq val (widget-value child))
+           (unless (equal val (custom-variable-current-value widget))
+	     (custom-variable-backup-value widget))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (custom-quote (widget-value child)))
-	   (funcall set symbol (setq val (widget-value child)))
+			      'set (custom-quote val))
+	   (funcall set symbol val)
 	   (put symbol 'customized-value (list (custom-quote val)))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'customized-variable-comment comment)))
@@ -3073,17 +3091,23 @@ before this operation becomes the backup value."
   (let* ((symbol (widget-value widget))
 	 (saved-value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment))
+         (old-value (custom-variable-current-value widget))
          value)
-    (custom-variable-backup-value widget)
     (if (not (or saved-value comment))
-        ;; If there is no saved value, remove the setting.
-        (custom-push-theme 'theme-value symbol 'user 'reset)
+        (progn
+          (setq value (car (get symbol 'standard-value)))
+          ;; If there is no saved value, remove the setting.
+          (custom-push-theme 'theme-value symbol 'user 'reset)
+          ;; And reset this property too.
+          (put symbol 'variable-comment nil))
       (setq value (car-safe saved-value))
       (custom-push-theme 'theme-value symbol 'user 'set value)
       (put symbol 'variable-comment comment))
+    (unless (equal (eval value) old-value)
+      (custom-variable-backup-value widget))
     (ignore-errors
       (funcall (or (get symbol 'custom-set) #'set-default) symbol
-               (eval (or value (car (get symbol 'standard-value))))))
+               (eval value)))
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
     (widget-put widget :custom-state 'unknown)
@@ -3096,7 +3120,9 @@ If `custom-reset-standard-variables-list' is nil, save, reset and
 redraw the widget immediately."
   (let* ((symbol (widget-value widget)))
     (if (get symbol 'standard-value)
-	(custom-variable-backup-value widget)
+	(unless (equal (custom-variable-current-value widget)
+                       (eval (car (get symbol 'standard-value))))
+          (custom-variable-backup-value widget))
       (user-error "No standard setting known for %S" symbol))
     (put symbol 'variable-comment nil)
     (put symbol 'customized-value nil)
@@ -3133,13 +3159,8 @@ becomes the backup value, so you can get it again."
 (defun custom-variable-backup-value (widget)
   "Back up the current value for WIDGET's variable.
 The backup value is kept in the car of the `backup-value' property."
-  (let* ((symbol (widget-value widget))
-	 (get (or (get symbol 'custom-get) 'default-value))
-	 (type (custom-variable-type symbol))
-	 (conv (widget-convert type))
-	 (value (if (default-boundp symbol)
-		    (funcall get symbol)
-		  (widget-get conv :value))))
+  (let ((symbol (widget-value widget))
+	(value (custom-variable-current-value widget)))
     (put symbol 'backup-value (list value))))
 
 (defun custom-variable-reset-backup (widget)
