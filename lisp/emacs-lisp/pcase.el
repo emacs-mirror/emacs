@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords:
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
