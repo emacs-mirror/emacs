@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 (ert-deftest parse-partial-sexp-continue-over-comment-marker ()
   "Continue a parse that stopped in the middle of a comment marker."
@@ -91,7 +92,7 @@ also has open paren syntax (see Bug#24870)."
 ;; It is intended to enhance this bit to test nested comments
 ;; (2020-10-01).
 
-;; This bit uses the data file test/data/syntax-comments.txt.
+;; This bit uses the data file syntax-resources/syntax-comments.txt.
 
 (defun syntax-comments-point (n forw)
   "Return the buffer offset corresponding to the \"label\" N.
@@ -182,8 +183,7 @@ missing or nil, the value of START is assumed for it."
 	 ()
        (with-current-buffer
 	   (find-file
-	    ,(expand-file-name "data/syntax-comments.txt"
-			       (getenv "EMACS_TEST_DIRECTORY")))
+            ,(ert-resource-file "syntax-comments.txt"))
 	 (,(intern (concat (symbol-name type) "-in")))
 	 (goto-char (syntax-comments-point ,start ,forw))
 	 (let ((stop (syntax-comments-point ,(or stop start) ,(not forw))))
@@ -230,8 +230,7 @@ missing or nil, the value of -START- is assumed for it."
 	 ()
        (with-current-buffer
 	   (find-file
-	    ,(expand-file-name "data/syntax-comments.txt"
-			       (getenv "EMACS_TEST_DIRECTORY")))
+            ,(ert-resource-file "syntax-comments.txt"))
 	 (,(intern (concat (symbol-name type) "-in")))
          (let ((start-pos (syntax-comments-point ,start ,forw))
                ,@(if res
@@ -285,8 +284,7 @@ the `parse-partial-sexp's are expected to stop.  See
          ()
        (with-current-buffer
            (find-file
-            ,(expand-file-name "data/syntax-comments.txt"
-                               (getenv "EMACS_TEST_DIRECTORY")))
+            ,(ert-resource-file "syntax-comments.txt"))
          (,(intern (concat (symbol-name type) "-in")))
          (let ((start-pos (syntax-comments-point ,start t))
                (open-pos (syntax-comments-midpoint ,open))

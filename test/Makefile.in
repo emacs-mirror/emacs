@@ -132,7 +132,7 @@ emacs = EMACSLOADPATH= \
 # exists, or writing to ~/.bzr.log when running bzr commands).
 TEST_HOME = /nonexistent
 
-test_module_dir := data/emacs-module
+test_module_dir := src/emacs-module-resources
 
 .PHONY: all check
 

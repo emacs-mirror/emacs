@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'nadvice)
 (eval-when-compile (require 'cl-lib))
 (require 'bytecomp) ; `byte-compiler-base-file-name'.
@@ -151,7 +152,7 @@ form.")
           (should (file-test--do-local-variables-test str subtest)))))))
 
 (defvar files-test-bug-18141-file
-  (expand-file-name "data/files-bug18141.el.gz" (getenv "EMACS_TEST_DIRECTORY"))
+  (ert-resource-file "files-bug18141.el.gz")
   "Test file for bug#18141.")
 
 (ert-deftest files-tests-bug-18141 ()
