@@ -2863,8 +2863,10 @@ STDERR can also be a file name."
 	       ;; command.
 	       (heredoc (and (stringp program)
 			     (string-match-p "sh$" program)
+			     (= (length args) 2)
 			     (string-equal "-c" (car args))
-			     (= (length args) 2)))
+			     ;; Don't if there is a string.
+			     (not (string-match-p "'\\|\"" (cadr args)))))
 	       ;; When PROGRAM is nil, we just provide a tty.
 	       (args (if (not heredoc) args
 		       (let ((i 250))
