@@ -23919,10 +23919,10 @@ The following variables customize the appearance of the smileys:
 @item smiley-style
 @vindex smiley-style
 Specifies the smiley style.  Predefined smiley styles include
-@code{low-color} (small 13x14 pixel, three-color images), @code{medium}
-(more colorful images, 16x16 pixel), and @code{grayscale} (grayscale
-images, 14x14 pixel).  The default depends on the height of the default
-face.
+@code{emoji} (use emoji characters), @code{low-color} (small 13x14
+pixel, three-color images), @code{medium} (more colorful images, 16x16
+pixel), and @code{grayscale} (grayscale images, 14x14 pixel).  The
+default depends on the height of the default face.
 
 @item smiley-data-directory
 @vindex smiley-data-directory

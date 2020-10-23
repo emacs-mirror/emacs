@@ -25,6 +25,9 @@
 
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
+
 (ert-deftest lread-char-number ()
   (should (equal (read "?\\N{U+A817}") #xA817)))
 
@@ -146,10 +149,7 @@ literals (Bug#20852)."
 
 (ert-deftest lread-test-bug26837 ()
   "Test for https://debbugs.gnu.org/26837 ."
-  (let ((load-path (cons
-                    (file-name-as-directory
-                     (expand-file-name "data" (getenv "EMACS_TEST_DIRECTORY")))
-                    load-path)))
+  (let ((load-path (cons (ert-resource-directory) load-path)))
     (load "somelib" nil t)
     (should (string-suffix-p "/somelib.el" (caar load-history)))
     (load "somelib2" nil t)

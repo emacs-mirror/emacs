@@ -1421,7 +1421,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
     {
       AUTO_STRING (prefixdoc,
 		   ",\n\t  is a prefix character for `backward-prefix-chars'");
-      insert1 (Fsubstitute_command_keys (prefixdoc));
+      insert1 (call1 (Qsubstitute_command_keys, prefixdoc));
     }
 
   return syntax;

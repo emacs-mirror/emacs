@@ -4,7 +4,7 @@
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Created:       24-Feb-1993
-;; Version:       1.8
+;; Old-Version:   1.8
 ;; Last Modified: 1993/06/01 21:33:00
 ;; Keywords:      extensions, matching
 

@@ -1555,21 +1555,21 @@ The first line is assumed to look like \"#!.../program ...\"."
 		 (char-to-string char)))
 	     string ""))
 
-;;
-;; Bug reporting.
-;;
 
 
-;; These are relics kept "just in case".
-(defalias 'tcl-uncomment-region 'uncomment-region)
-(defalias 'tcl-indent-for-comment 'comment-indent)
-(defalias 'add-log-tcl-defun 'tcl-add-log-defun)
-(defalias 'indent-tcl-exp 'tcl-indent-exp)
-(defalias 'calculate-tcl-indent 'tcl-calculate-indent)
-(defalias 'tcl-beginning-of-defun 'beginning-of-defun)
-(defalias 'tcl-end-of-defun 'end-of-defun)
-(defalias 'tcl-mark-defun 'mark-defun)
-(defun tcl-mark () (mark t))
+;;
+;; Obsolete.
+;;
+
+(define-obsolete-function-alias 'tcl-uncomment-region #'uncomment-region "28.1")
+(define-obsolete-function-alias 'tcl-indent-for-comment #'comment-indent "28.1")
+(define-obsolete-function-alias 'add-log-tcl-defun #'tcl-add-log-defun "28.1")
+(define-obsolete-function-alias 'indent-tcl-exp #'tcl-indent-exp "28.1")
+(define-obsolete-function-alias 'calculate-tcl-indent #'tcl-calculate-indent "28.1")
+(define-obsolete-function-alias 'tcl-beginning-of-defun #'beginning-of-defun "28.1")
+(define-obsolete-function-alias 'tcl-end-of-defun #'end-of-defun "28.1")
+(define-obsolete-function-alias 'tcl-mark-defun #'mark-defun "28.1")
+(defun tcl-mark () (declare (obsolete nil "28.1")) (mark t))
 
 (provide 'tcl)
 

@@ -312,7 +312,7 @@ the lexically-bound variable `buffer'."
   (with-bookmark-test
    (should-error (bookmark-insert-annotation "a missing bookmark"))
    (bookmark-insert-annotation "name")
-   (should (equal (buffer-string) (bookmark-default-annotation-text "name"))))
+   (should (string-match "Type the annotation" (buffer-string))))
   (with-bookmark-test
    (bookmark-set-annotation "name" "some stuff")
    (bookmark-insert-annotation "name")
@@ -471,6 +471,8 @@ testing `bookmark-bmenu-list'."
    (insert "foo")
    (bookmark-send-edited-annotation)
    (should (equal (buffer-name (current-buffer)) bookmark-bmenu-buffer))
+   (beginning-of-line)
+   (forward-char 4)
    (should (looking-at "name"))))
 
 (ert-deftest bookmark-test-bmenu-toggle-filenames ()
@@ -503,6 +505,7 @@ testing `bookmark-bmenu-list'."
 (ert-deftest bookmark-test-bmenu-mark ()
   (with-bookmark-bmenu-test
    (bookmark-bmenu-mark)
+   (forward-line -1)
    (beginning-of-line)
    (should (looking-at "^>"))))
 
@@ -563,6 +566,7 @@ testing `bookmark-bmenu-list'."
    (bookmark-bmenu-mark)
    (goto-char (point-min))
    (bookmark-bmenu-unmark)
+   (forward-line -1)
    (beginning-of-line)
    (should (looking-at "^  "))))
 

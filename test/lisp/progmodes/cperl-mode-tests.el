@@ -196,4 +196,26 @@ Perl Best Practices sets some indentation values different from
             (should (equal got expected)))))
       (cperl-set-style "CPerl"))))
 
+(ert-deftest cperl-mode-fontify-punct-vars ()
+  "Test fontification of Perl's punctiation variables.
+Perl has variable names containing unbalanced quotes for the list
+separator $\" and pre- and postmatch $` and $'.  A reference to
+these variables, for example \\$\", should not cause the dollar
+to be escaped, which would then start a string beginning with the
+quote character.  This used to be broken in cperl-mode at some
+point in the distant past, and is still broken in perl-mode. "
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((file (ert-resource-file "fontify-punctuation-vars.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (funcall cperl-test-mode)
+      (while (search-forward "##" nil t)
+        ;; The third element of syntax-ppss is true if in a string,
+        ;; which would indicate bad interpretation of the quote.  The
+        ;; fourth element is true if in a comment, which should be the
+        ;; case.
+        (should (equal (nth 3 (syntax-ppss)) nil))
+        (should (equal (nth 4 (syntax-ppss)) t))))))
+
 ;;; cperl-mode-tests.el ends here

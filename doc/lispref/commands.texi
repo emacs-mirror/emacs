@@ -1345,10 +1345,11 @@ button.  @xref{Repeat Events}.
 
   To access the contents of a mouse position list in the
 @var{position} slot of a click event, you should typically use the
-functions documented in @ref{Accessing Mouse}.  The explicit format of
-the list depends on where the click occurred.  For clicks in the text
-area, mode line, header line, tab line, or in the fringe or marginal
-areas, the mouse position list has the form
+functions documented in @ref{Accessing Mouse}.
+
+The explicit format of the list depends on where the click occurred.
+For clicks in the text area, mode line, header line, tab line, or in
+the fringe or marginal areas, the mouse position list has the form
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
@@ -1476,6 +1477,45 @@ the symbols @code{handle} (the scroll bar handle), @code{above-handle}
 handle), @code{up} (the up arrow at one end of the scroll bar), or
 @code{down} (the down arrow at one end of the scroll bar).
 @c The 'top', 'bottom', and 'end-scroll' codes don't seem to be used.
+@end table
+
+For clicks on the frame's internal border (@pxref{Frame Layout}),
+@var{position} has this form:
+
+@example
+ (@var{frame} @var{part} (@var{X} . @var{Y}) @var{timestamp})
+@end example
+
+@table @asis
+@item @var{frame}
+The frame whose internal border was clicked on.
+
+@item @var{part}
+The part of the internal border which was clicked on.  This can be one
+of the following:
+
+@table @code
+@item nil
+The frame does not have an internal border.  This usually happens on
+text-mode frames.  This can also happen on GUI frames with internal
+border if the frame doesn't have its @code{drag-internal-border}
+parameter (@pxref{Mouse Dragging Parameters}) set to a non-@code{nil}
+value.
+
+@item left-edge
+@itemx top-edge
+@itemx right-edge
+@itemx bottom-edge
+The click was on the corresponding border at an offset of at least one
+canonical character from the border's nearest corner.
+
+@item top-left-corner
+@itemx top-right-corner
+@itemx bottom-right-corner
+@itemx bottom-left-corner
+The click was on the corresponding corner of the internal border.
+@end table
+
 @end table
 
 

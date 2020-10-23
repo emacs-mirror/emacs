@@ -334,6 +334,7 @@ Thus, this does not include the shell's current directory.")
     (define-key map "\t" 'completion-at-point)
     (define-key map (kbd "M-RET") 'shell-resync-dirs)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
+    (define-key map (kbd "C-x n d") 'shell-narrow-to-prompt)
     (define-key map [menu-bar completion]
       (cons "Complete"
 	    (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
@@ -1365,6 +1366,48 @@ Returns t if successful."
   (interactive)
   (let ((f (shell-c-a-p-replace-by-expanded-directory)))
     (if f (funcall f))))
+
+(defun shell--prompt-begin-position ()
+  ;; We need this convoluted function because `looking-at-p' does not work on
+  ;; multiline regexps _and_ `re-search-backward' skips the current line.
+  (save-excursion
+    (let ((old-point (point)))
+      (max
+       (save-excursion
+         ;; Right result if not on prompt.
+         (call-interactively #'comint-previous-prompt)
+         (re-search-backward comint-prompt-regexp)
+         (point))
+       (save-excursion
+         ;; Right result if on first char after prompt.
+         (re-search-backward comint-prompt-regexp)
+         (point))
+       (save-excursion
+         ;; Right result if on prompt.
+         (call-interactively #'comint-next-prompt)
+         (re-search-backward comint-prompt-regexp)
+         (if (<= (point) old-point)
+             (point)
+           (point-min)))))))
+
+(defun shell--prompt-end-position ()
+  (save-excursion
+    (goto-char (shell--prompt-begin-position))
+    (comint-next-prompt 1)
+    (point)))
+
+(defun shell-narrow-to-prompt ()
+  "Narrow buffer to the command line (and any following command output) at point."
+  (interactive)
+  (let ((begin (shell--prompt-begin-position)))
+    (narrow-to-region
+     begin
+     (save-excursion
+       (goto-char (shell--prompt-end-position))
+       (call-interactively #'comint-next-prompt)
+       (if (= begin (shell--prompt-begin-position))
+           (point-max)
+         (shell--prompt-begin-position))))))
 
 (provide 'shell)
 

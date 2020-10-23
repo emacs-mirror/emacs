@@ -1,4 +1,4 @@
-;;; vc-bzr.el --- tests for vc/vc-bzr.el
+;;; vc-bzr.el --- tests for vc/vc-bzr.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

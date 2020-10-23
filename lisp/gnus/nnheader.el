@@ -1067,6 +1067,8 @@ See `find-file-noselect' for the arguments."
       (setq nnheader-last-message-time now)
       (apply 'nnheader-message args))))
 
+(make-obsolete-variable 'nnheader-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'nnheader-load-hook)
 
 (provide 'nnheader)

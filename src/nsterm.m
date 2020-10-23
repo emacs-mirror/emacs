@@ -3048,6 +3048,12 @@ ns_clear_under_internal_border (struct frame *f)
       if (!face)
         face = FRAME_DEFAULT_FACE (f);
 
+      /* Sometimes with new frames we reach this point and have no
+         face.  I'm not sure why we have a live frame but no face, so
+         just give up.  */
+      if (!face)
+        return;
+
       ns_focus (f, &frame_rect, 1);
       [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
       for (int i = 0; i < 4 ; i++)

@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'js)
 (require 'syntax)
 
@@ -195,6 +196,46 @@ if (!/[ (:,='\"]/.test(value)) {
     (insert "/")
     ;; The bug was a hang.
     (should t)))
+
+;;;; Indentation tests.
+
+(defun js-tests--remove-indentation ()
+  "Remove all indentation in the current buffer."
+  (goto-char (point-min))
+  (while (re-search-forward (rx bol (+ (in " \t"))) nil t)
+    (let ((syntax (save-match-data (syntax-ppss))))
+      (unless (nth 3 syntax)       ; Avoid multiline string literals.
+        (replace-match "")))))
+
+(defmacro js-deftest-indent (file)
+  `(ert-deftest ,(intern (format "js-indent-test/%s" file)) ()
+     :tags '(:expensive-test)
+     (let ((buf (find-file-noselect (ert-resource-file ,file))))
+       (unwind-protect
+           (with-current-buffer buf
+             (let ((orig (buffer-string)))
+               (js-tests--remove-indentation)
+               ;; Indent and check that we get the original text.
+               (indent-region (point-min) (point-max))
+               (should (equal (buffer-string) orig))
+               ;; Verify idempotency.
+               (indent-region (point-min) (point-max))
+               (should (equal (buffer-string) orig))))
+         (kill-buffer buf)))))
+
+(js-deftest-indent "js-chain.js")
+(js-deftest-indent "js-indent-align-list-continuation-nil.js")
+(js-deftest-indent "js-indent-init-dynamic.js")
+(js-deftest-indent "js-indent-init-t.js")
+(js-deftest-indent "js.js")
+(js-deftest-indent "jsx-align-gt-with-lt.jsx")
+(js-deftest-indent "jsx-comment-string.jsx")
+(js-deftest-indent "jsx-indent-level.jsx")
+(js-deftest-indent "jsx-quote.jsx")
+(js-deftest-indent "jsx-self-closing.jsx")
+(js-deftest-indent "jsx-unclosed-1.jsx")
+(js-deftest-indent "jsx-unclosed-2.jsx")
+(js-deftest-indent "jsx.jsx")
 
 (provide 'js-tests)
 

@@ -1,4 +1,4 @@
-;;; url-vars.el --- Variables for Uniform Resource Locator tool
+;;; url-vars.el --- Variables for Uniform Resource Locator tool  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1999, 2001, 2004-2020 Free Software Foundation,
 ;; Inc.

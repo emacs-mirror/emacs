@@ -44,6 +44,7 @@
 ;; cry               ;-(
 ;; dead              X-)
 ;; grin              :-D
+;; halo              O:-)
 
 ;;; Code:
 
@@ -64,7 +65,8 @@
   "Smiley style."
   :type '(choice (const :tag "small, 3 colors" low-color)  ;; 13x14
 		 (const :tag "medium, ~10 colors" medium)  ;; 16x16
-		 (const :tag "dull, grayscale" grayscale)) ;; 14x14
+		 (const :tag "dull, grayscale" grayscale)  ;; 14x14
+                 (const :tag "emoji, full color" emoji))
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (setq smiley-data-directory (smiley-directory))
@@ -94,6 +96,35 @@ is nil, use `smiley-style'."
 	 (smiley-update-cache))
   :initialize 'custom-initialize-default
   :type 'directory
+  :group 'smiley)
+
+(defcustom smiley-emoji-regexp-alist
+  '(("\\(;-)\\)\\W" 1 "😉")
+    ("[^;]\\(;)\\)\\W" 1 "😉")
+    ("\\(:-]\\)\\W" 1 "😬")
+    ("\\(8-)\\)\\W" 1 "🥴")
+    ("\\(:-|\\)\\W" 1 "😐")
+    ("\\(:-[/\\]\\)\\W" 1 "😕")
+    ("\\(:-(\\)\\W" 1 "😠")
+    ("\\(X-)\\)\\W" 1 "😵") ; 💀
+    ("\\(:-{\\)\\W" 1 "😦")
+    ("\\(>:-)\\)\\W" 1 "😈")
+    ("\\(;-(\\)\\W" 1 "😢")
+    ("\\(:-D\\)\\W" 1 "😀")
+    ("\\(O:-)\\)\\W" 1 "😇")
+    ;; "smile" must be come after "evil"
+    ("\\(\\^?:-?)\\)\\W" 1 "🙂"))
+  "A list of regexps to map smilies to emoji.
+The elements are (REGEXP MATCH EMOJI), where MATCH is the submatch in
+regexp to replace with EMOJI."
+  :version "28.1"
+  :type '(repeat (list regexp
+		       (integer :tag "Regexp match number")
+		       (string :tag "Emoji")))
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+	 (smiley-update-cache))
+  :initialize 'custom-initialize-default
   :group 'smiley)
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
@@ -142,23 +173,25 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
 
 (defun smiley-update-cache ()
   (setq smiley-cached-regexp-alist nil)
-  (dolist (elt (if (symbolp smiley-regexp-alist)
-		   (symbol-value smiley-regexp-alist)
-		 smiley-regexp-alist))
-    (let ((types gnus-smiley-file-types)
-	  file type)
-      (while (and (not file)
-		  (setq type (pop types)))
-	(unless (file-exists-p
-		 (setq file (expand-file-name (concat (nth 2 elt) "." type)
-					      smiley-data-directory)))
-	  (setq file nil)))
-      (when type
-	(let ((image (gnus-create-image file (intern type) nil
-					:ascent 'center)))
-	  (when image
-	    (push (list (car elt) (cadr elt) image)
-		  smiley-cached-regexp-alist)))))))
+  (if (eq smiley-style 'emoji)
+      (setq smiley-cached-regexp-alist smiley-emoji-regexp-alist)
+    (dolist (elt (if (symbolp smiley-regexp-alist)
+		     (symbol-value smiley-regexp-alist)
+		   smiley-regexp-alist))
+      (let ((types gnus-smiley-file-types)
+	    file type)
+        (while (and (not file)
+		    (setq type (pop types)))
+	  (unless (file-exists-p
+		   (setq file (expand-file-name (concat (nth 2 elt) "." type)
+					        smiley-data-directory)))
+	    (setq file nil)))
+        (when type
+	  (let ((image (gnus-create-image file (intern type) nil
+					  :ascent 'center)))
+	    (when image
+	      (push (list (car elt) (cadr elt) image)
+		    smiley-cached-regexp-alist))))))))
 
 ;; Not implemented:
 ;; (defvar smiley-mouse-map
@@ -190,8 +223,15 @@ A list of images is returned."
 	    (when image
 	      (push image images)
 	      (gnus-add-wash-type 'smiley)
-	      (gnus-add-image 'smiley image)
-	      (gnus-put-image image string 'smiley))))
+              (if (symbolp image)
+                  (progn
+	            (gnus-add-image 'smiley image)
+	            (gnus-put-image image string 'smiley))
+		;; This is a string, but mark the property for
+		;; deletion if the washing method is switched off.
+                (insert (propertize string
+				    'display image
+				    'gnus-image-category 'smiley))))))
 	images))))
 
 ;;;###autoload

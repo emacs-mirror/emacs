@@ -2926,11 +2926,11 @@ absolute file names.  Otherwise, it returns the names relative to
 the specified directory.
 
 If @var{match-regexp} is non-@code{nil}, this function returns only
-those file names that contain a match for that regular expression---the
-other file names are excluded from the list.  On case-insensitive
-filesystems, the regular expression matching is case-insensitive.
+those file names whose non-directory part contain a match for that
+regular expression---the other file names are excluded from the list.
+On case-insensitive filesystems, the regular expression matching is
+case-insensitive.
 
-@c Emacs 19 feature
 If @var{nosort} is non-@code{nil}, @code{directory-files} does not sort
 the list, so you get the file names in no particular order.  Use this if
 you want the utmost possible speed and don't care what order the files
@@ -3006,6 +3006,19 @@ The optional argument @var{id-format} has the same meaning as the
 corresponding argument to @code{file-attributes} (@pxref{Definition
 of file-attributes}).
 @end defun
+
+@defvr Constant directory-files-no-dot-files-regexp
+This regular expression matches any file name except @samp{.} and
+@samp{..}.  More precisely, it matches parts of any nonempty string
+except those two.  It is useful as the @var{match-regexp} argument to
+@code{directory-files} and @code{directory-files-and-attributes}:
+
+@example
+(directory-files "/foo" nil directory-files-no-dot-files-regexp)
+@end example
+
+returns @code{nil}, if directory @samp{/foo} is empty.
+@end defvr
 
 @defun file-expand-wildcards pattern &optional full
 This function expands the wildcard pattern @var{pattern}, returning

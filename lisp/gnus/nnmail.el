@@ -2082,6 +2082,8 @@ Doesn't change point."
 	      (format "%S" split)
 	      "\n"))))
 
+(make-obsolete-variable 'nnmail-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'nnmail-load-hook)
 
 (provide 'nnmail)

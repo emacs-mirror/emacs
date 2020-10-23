@@ -2763,8 +2763,8 @@ since only a single case-insensitive search through the alist is made."
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
      ("\\.\\(\
-arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|cbr\\|7z\\|\
-ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\)\\'" . archive-mode)
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|cbr\\|7z\\|squashfs\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" . archive-mode)
      ("\\.oxt\\'" . archive-mode) ;(Open|Libre)Office extensions.
      ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
@@ -4306,9 +4306,27 @@ Return the new class name, which is a symbol named DIR."
                   (if (not (and newvars variables))
                       (or newvars variables)
                     (require 'map)
-                    (map-merge-with 'list (lambda (a b) (map-merge 'list a b))
-                                    variables
-                                    newvars))))))
+                    ;; We want to make the variable setting from
+                    ;; newvars (the second .dir-locals file) take
+                    ;; presedence over the old variables, but we also
+                    ;; want to preserve all `eval' elements as is from
+                    ;; both lists.
+                    (map-merge-with
+                     'list
+                     (lambda (a b)
+                       (let ((ag
+                              (seq-group-by
+                               (lambda (e) (eq (car e) 'eval)) a))
+                             (bg
+                              (seq-group-by
+                               (lambda (e) (eq (car e) 'eval)) b)))
+                         (append (map-merge 'list
+                                            (assoc-default nil ag)
+                                            (assoc-default nil bg))
+                                 (assoc-default t ag)
+                                 (assoc-default t bg))))
+                     variables
+                     newvars))))))
       (setq success latest))
     (setq variables (dir-locals--sort-variables variables))
     (dir-locals-set-class-variables class-name variables)

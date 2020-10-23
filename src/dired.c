@@ -293,7 +293,8 @@ DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
-If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If MATCH is non-nil, mention only file names whose non-directory part
+ matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
  NOSORT is useful if you plan to sort the result yourself.  */)
@@ -325,11 +326,12 @@ by `file-attributes'.
 This function accepts four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
-If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If MATCH is non-nil, mention only file names whose non-directory part
+ matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself.
 ID-FORMAT specifies the preferred format of attributes uid and gid, see
-`file-attributes' for further documentation.
+ `file-attributes' for further documentation.
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.  */)
   (Lisp_Object directory, Lisp_Object full, Lisp_Object match,

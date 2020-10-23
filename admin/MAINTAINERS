@@ -213,6 +213,7 @@ Paul Eggert
 	src/* (except for *.m, *w32*, bitmaps, files others want to maintain)
 
 Michael Albinus
+        .gitlab-ci.yml
 	src/inotify.c
         lisp/autorevert.el
 	lisp/eshell/em-tramp.el

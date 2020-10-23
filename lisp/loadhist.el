@@ -234,11 +234,10 @@ If the feature is required by any other loaded code, and prefix arg FORCE
 is nil, raise an error.
 
 Standard unloading activities include restoring old autoloads for
-functions defined by the library, undoing any additions that the
-library has made to hook variables or to `auto-mode-alist', undoing
-ELP profiling of functions in that library, unproviding any features
-provided by the library, and canceling timers held in variables
-defined by the library.
+functions defined by the library, removing such functions from
+hooks and `auto-mode-alist', undoing their ELP profiling,
+unproviding any features provided by the library, and canceling
+timers held in variables defined by the library.
 
 If a function `FEATURE-unload-function' is defined, this function
 calls it with no arguments, before doing anything else.  That function
@@ -287,22 +286,32 @@ something strange, such as redefining an Emacs function."
 	;; functions which the package might just have installed, and
 	;; there might be other important state, but this tactic
 	;; normally works.
-	(mapatoms
-	 (lambda (x)
-	   (when (and (boundp x)
-		      (or (and (consp (symbol-value x)) ; Random hooks.
-			       (string-match "-hooks?\\'" (symbol-name x)))
-			  (memq x unload-feature-special-hooks)))	; Known abnormal hooks etc.
-	     (dolist (y unload-function-defs-list)
-	       (when (and (eq (car-safe y) 'defun)
-			  (not (get (cdr y) 'autoload)))
-		 (remove-hook x (cdr y)))))))
-	;; Remove any feature-symbols from auto-mode-alist as well.
-	(dolist (y unload-function-defs-list)
-	  (when (and (eq (car-safe y) 'defun)
-		     (not (get (cdr y) 'autoload)))
-	    (setq auto-mode-alist
-		  (rassq-delete-all (cdr y) auto-mode-alist)))))
+        (let ((removables (cl-loop for def in unload-function-defs-list
+                                   when (and (eq (car-safe def) 'defun)
+                                             (not (get (cdr def) 'autoload)))
+                                   collect (cdr def))))
+          (mapatoms
+	   (lambda (x)
+	     (when (and (boundp x)
+		        (or (and (consp (symbol-value x)) ; Random hooks.
+			         (string-match "-hooks?\\'" (symbol-name x)))
+                            ;; Known abnormal hooks etc.
+			    (memq x unload-feature-special-hooks)))
+	       (dolist (func removables)
+	         (remove-hook x func)))))
+          (save-current-buffer
+            (dolist (buffer (buffer-list))
+              (pcase-dolist (`(,sym . ,val) (buffer-local-variables buffer))
+                (when (or (and (consp val)
+                               (string-match "-hooks?\\'" (symbol-name sym)))
+                          (memq sym unload-feature-special-hooks))
+                  (set-buffer buffer)
+                  (dolist (func removables)
+                    (remove-hook sym func t))))))
+          ;; Remove any feature-symbols from auto-mode-alist as well.
+          (dolist (func removables)
+            (setq auto-mode-alist
+                  (rassq-delete-all func auto-mode-alist)))))
 
       ;; Change major mode in all buffers using one defined in the feature being unloaded.
       (unload--set-major-mode)

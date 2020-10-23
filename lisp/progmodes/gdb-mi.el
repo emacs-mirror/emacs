@@ -1317,7 +1317,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 
 (defun gdb-var-list-children-handler (varnum)
   (let* ((var-list nil)
-	 (output (bindat-get-field (gdb-json-partial-output "child")))
+	 (output (gdb-json-partial-output "child"))
 	 (children (bindat-get-field output 'children)))
     (catch 'child-already-watched
       (dolist (var gdb-var-list)
@@ -4395,8 +4395,7 @@ member."
   (save-excursion
     (if event (posn-set-point (event-end event)))
     (beginning-of-line)
-    (let* ((var (bindat-get-field
-                 (get-text-property (point) 'gdb-register-name)))
+    (let* ((var (get-text-property (point) 'gdb-register-name))
 	   (value (read-string (format "New value (%s): " var))))
       (gud-basic-call
        (concat  "-gdb-set variable $" var " = " value)))))

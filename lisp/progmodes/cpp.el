@@ -1,4 +1,4 @@
-;;; cpp.el --- highlight or hide text according to cpp conditionals
+;;; cpp.el --- highlight or hide text according to cpp conditionals -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994-1995, 2001-2020 Free Software Foundation, Inc.
 

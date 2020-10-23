@@ -71,13 +71,6 @@
 
 ;; (define-key global-map [M-S-down-mouse-3] 'imenu)
 
-;;;; Font lock bugs as of v4.32:
-
-;; The following kinds of Perl code erroneously start strings:
-;; \$`  \$'  \$"
-;; $opt::s  $opt_s  $opt{s}  (s => ...)  /\s+.../
-;; likewise with m, tr, y, q, qX instead of s
-
 ;;; Code:
 
 ;;; Compatibility with older versions (for publishing on ELPA)

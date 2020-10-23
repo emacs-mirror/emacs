@@ -1649,25 +1649,28 @@ Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-beg)
     (beginning-of-line)
-    (while (and (> count 0)
-                (re-search-backward f90-program-block-re nil 'move))
-      (beginning-of-line)
-      (skip-chars-forward " \t0-9")
-      ;; Check if in string in case using non-standard feature where
-      ;; continued strings do not need "&" at start of continuations.
-      (cond ((f90-in-string))
-            ((setq matching-beg (f90-looking-at-program-block-start))
-             (setq count (1- count)))
-            ((f90-looking-at-program-block-end)
-             (setq count (1+ count)))))
-    (beginning-of-line)
-    (if (zerop count)
-        matching-beg
-      ;; Note this includes the case of an un-named main program,
-      ;; in which case we go to (point-min).
-      (if (called-interactively-p 'interactive)
-	  (message "No beginning found"))
-      nil)))
+    ;; Check whether we're already at the start of a subprogram.
+    (or (f90-looking-at-program-block-start)
+        ;; We're not; search backwards.
+        (while (and (> count 0)
+                    (re-search-backward f90-program-block-re nil 'move))
+          (beginning-of-line)
+          (skip-chars-forward " \t0-9")
+          ;; Check if in string in case using non-standard feature where
+          ;; continued strings do not need "&" at start of continuations.
+          (cond ((f90-in-string))
+                ((setq matching-beg (f90-looking-at-program-block-start))
+                 (setq count (1- count)))
+                ((f90-looking-at-program-block-end)
+                 (setq count (1+ count)))))
+        (beginning-of-line)
+        (if (zerop count)
+            matching-beg
+          ;; Note this includes the case of an un-named main program,
+          ;; in which case we go to (point-min).
+          (if (called-interactively-p 'interactive)
+	      (message "No beginning found"))
+          nil))))
 
 (defun f90-end-of-subprogram ()
   "Move point to the end of the current subprogram.

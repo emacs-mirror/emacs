@@ -24,11 +24,6 @@
 
 ;;; Code:
 
-(defalias 'uudecode-char-int
-  (if (fboundp 'char-int)
-      'char-int
-    'identity))
-
 (defgroup uudecode nil
   "Decoding of uuencoded data."
   :group 'mail
@@ -140,7 +135,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	   ((> (skip-chars-forward uudecode-alphabet end) 0)
 	    (setq lim (point))
 	    (setq remain
-		  (logand (- (uudecode-char-int (char-after inputpos)) 32)
+                  (logand (- (char-after inputpos) 32)
 			  63))
 	    (setq inputpos (1+ inputpos))
 	    (if (= remain 0) (setq done t))
@@ -148,7 +143,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	      (setq bits (+ bits
 			    (logand
 			     (-
-			      (uudecode-char-int (char-after inputpos)) 32)
+                              (char-after inputpos) 32)
 			     63)))
 	      (if (/= counter 0) (setq remain (1- remain)))
 	      (setq counter (1+ counter)
@@ -200,6 +195,8 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
   (if uudecode-use-external
       (uudecode-decode-region-external start end file-name)
     (uudecode-decode-region-internal start end file-name)))
+
+(define-obsolete-function-alias 'uudecode-char-int #'identity "28.1")
 
 (provide 'uudecode)
 

@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
-;; Version: 2.0f
+;; Old-Version: 2.0f
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, unix
 

@@ -1,4 +1,4 @@
-;;; image-file.el --- support for visiting image files
+;;; image-file.el --- support for visiting image files  -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 ;;
@@ -90,7 +90,7 @@ the variable is set using \\[customize]."
 		       t)
 		      "\\'"))))
     (mapconcat
-     'identity
+     #'identity
      (delq nil (list exts-regexp
 		     image-file-name-regexps
 		     (car (rassq 'imagemagick image-type-file-name-regexps))))

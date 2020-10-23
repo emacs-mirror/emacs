@@ -67,7 +67,6 @@ Intermediate Info nodes are nodes visited by Info internally in the process of
 searching the node to display.  Intermediate nodes are not presented
 to the user."
   :type 'boolean
-  :group 'info
   :version "24.1")
 
 (defvar Info-enable-active-nodes nil
@@ -79,8 +78,7 @@ The Lisp code is executed when the node is selected.")
   '((((class color) (background light)) :foreground "brown" :weight bold :slant italic)
     (((class color) (background dark)) :foreground "white" :weight bold :slant italic)
     (t :weight bold :slant italic))
-  "Face for Info node names."
-  :group 'info)
+  "Face for Info node names.")
 
 (defface info-title-1
   '((((type tty pc) (class color) (background light))
@@ -88,26 +86,22 @@ The Lisp code is executed when the node is selected.")
     (((type tty pc) (class color) (background dark))
      :foreground "yellow" :weight bold)
     (t :height 1.2 :inherit info-title-2))
-  "Face for info titles at level 1."
-  :group 'info)
+  "Face for info titles at level 1.")
 
 (defface info-title-2
   '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
     (t :height 1.2 :inherit info-title-3))
-  "Face for info titles at level 2."
-  :group 'info)
+  "Face for info titles at level 2.")
 
 (defface info-title-3
   '((((type tty pc) (class color)) :weight bold)
     (t :height 1.2 :inherit info-title-4))
-  "Face for info titles at level 3."
-  :group 'info)
+  "Face for info titles at level 3.")
 
 (defface info-title-4
   '((((type tty pc) (class color)) :weight bold)
     (t :weight bold :inherit variable-pitch))
-  "Face for info titles at level 4."
-  :group 'info)
+  "Face for info titles at level 4.")
 
 (defface info-menu-header
   '((((type tty pc))
@@ -116,31 +110,26 @@ The Lisp code is executed when the node is selected.")
     (t
      :inherit variable-pitch
      :weight bold))
-  "Face for headers in Info menus."
-  :group 'info)
+  "Face for headers in Info menus.")
 
 (defface info-menu-star
   '((((class color)) :foreground "red1")
     (t :underline t))
-  "Face for every third `*' in an Info menu."
-  :group 'info)
+  "Face for every third `*' in an Info menu.")
 
 (defface info-xref
   '((t :inherit link))
-  "Face for unvisited Info cross-references."
-  :group 'info)
+  "Face for unvisited Info cross-references.")
 
 (defface info-xref-visited
   '((t :inherit (link-visited info-xref)))
   "Face for visited Info cross-references."
-  :version "22.1"
-  :group 'info)
+  :version "22.1")
 
 (defcustom Info-fontify-visited-nodes t
   "Non-nil to fontify references to visited nodes in `info-xref-visited' face."
   :version "22.1"
-  :type 'boolean
-  :group 'info)
+  :type 'boolean)
 
 ;; It's unfortunate that nil means no fontification, as opposed to no limit,
 ;; since that differs from font-lock-maximum-size.
@@ -150,29 +139,24 @@ Set to nil to disable node fontification; set to t for no limit."
   :type '(choice (const :tag "No fontification" nil)
 		 (const :tag "No size limit" t)
 		 (integer :tag "Up to this many characters"))
-  :version "25.1"			; 100k -> 400k
-  :group 'info)
+  :version "25.1")             ; 100k -> 400k
 
 (defcustom Info-use-header-line t
   "Non-nil means to put the beginning-of-node links in an Emacs header-line.
 A header-line does not scroll with the rest of the buffer."
-  :type 'boolean
-  :group 'info)
+  :type 'boolean)
 
 (defface info-header-xref
   '((t :inherit info-xref))
-  "Face for Info cross-references in a node header."
-  :group 'info)
+  "Face for Info cross-references in a node header.")
 
 (defface info-header-node
   '((t :inherit info-node))
-  "Face for Info nodes in a node header."
-  :group 'info)
+  "Face for Info nodes in a node header.")
 
 (defface info-index-match
   '((t :inherit match))
   "Face used to highlight matches in an index entry."
-  :group 'info
   :version "24.4")
 
 ;; This is a defcustom largely so that we can get the benefit
@@ -249,8 +233,7 @@ Although this is a customizable variable, that is mainly for technical
 reasons.  Normally, you should either set INFOPATH or customize
 `Info-additional-directory-list', rather than changing this variable."
   :initialize 'custom-initialize-delay
-  :type '(repeat directory)
-  :group 'info))
+  :type '(repeat directory)))
 
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
@@ -285,8 +268,7 @@ a version of Emacs without installing it.")
 (defcustom Info-additional-directory-list nil
   "List of additional directories to search for Info documentation files.
 These directories are searched after those in `Info-directory-list'."
-  :type '(repeat directory)
-  :group 'info)
+  :type '(repeat directory))
 
 (defcustom Info-scroll-prefer-subnodes nil
   "If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
@@ -300,15 +282,15 @@ Setting this option to nil results in behavior similar to the stand-alone
 Info reader program, which visits the first subnode from the menu only
 when you hit the end of the current node."
   :version "22.1"
-  :type 'boolean
-  :group 'info)
+  :type 'boolean)
 
 (defcustom Info-hide-note-references t
   "If non-nil, hide the tag and section reference in *note and * menu items.
-If value is non-nil but not `hide', also replaces the \"*note\" with \"see\".
-If value is non-nil but not t or `hide', the reference section is still shown.
-nil completely disables this feature.  If this is non-nil, you might
-want to set `Info-refill-paragraphs'."
+If the value is t, the default, replace \"*note\" with \"see\".
+If the value is `hide', remove \"*note\" without replacing it with anything.
+If value is non-nil, but not t or `hide', the reference section is still shown.
+nil completely disables this feature, leaving the original \"*note\" visible.
+If this is non-nil, you may wish setting `Info-refill-paragraphs' non-nil."
   :version "22.1"
   :type '(choice (const :tag "No hiding" nil)
 		 (const :tag "Replace tag and hide reference" t)
@@ -319,8 +301,7 @@ want to set `Info-refill-paragraphs'."
 	 (dolist (buffer (buffer-list))
 	   (with-current-buffer buffer
              (when (derived-mode-p 'Info-mode)
-	       (revert-buffer t t)))))
-  :group 'info)
+               (revert-buffer t t))))))
 
 (defcustom Info-refill-paragraphs nil
   "If non-nil, attempt to refill paragraphs with hidden references.
@@ -328,15 +309,13 @@ This refilling may accidentally remove explicit line breaks in the Info
 file, so be prepared for a few surprises if you enable this feature.
 This only has an effect if `Info-hide-note-references' is non-nil."
   :version "22.1"
-  :type 'boolean
-  :group 'info)
+  :type 'boolean)
 
 (defcustom Info-breadcrumbs-depth 4
   "Depth of breadcrumbs to display.
 0 means do not display breadcrumbs."
   :version "23.1"
-  :type 'integer
-  :group 'info)
+  :type 'integer)
 
 (defcustom Info-search-whitespace-regexp "\\s-+"
   "If non-nil, regular expression to match a sequence of whitespace chars.
@@ -346,8 +325,7 @@ In the Customization buffer, that is `[' followed by a space,
 a tab, a carriage return (control-M), a newline, and `]+'.  Don't
 add any capturing groups into this value; that can change the
 numbering of existing capture groups in unexpected ways."
-  :type 'regexp
-  :group 'info)
+  :type 'regexp)
 
 (defcustom Info-isearch-search t
   "If non-nil, isearch in Info searches through multiple nodes.
@@ -362,8 +340,7 @@ node depending on search direction.
 Setting this option to nil restores the default isearch behavior
 with wrapping around the current Info node."
   :version "22.1"
-  :type 'boolean
-  :group 'info)
+  :type 'boolean)
 
 (defvar Info-isearch-initial-node nil)
 (defvar Info-isearch-initial-history nil)
@@ -374,13 +351,11 @@ with wrapping around the current Info node."
   (unless (and (boundp 'Info-fontify) (null Info-fontify))
     '(turn-on-font-lock))
   "Hook run when activating Info Mode."
-  :type 'hook
-  :group 'info)
+  :type 'hook)
 
 (defcustom Info-selection-hook nil
   "Hook run when an Info node is selected as the current node."
-  :type 'hook
-  :group 'info)
+  :type 'hook)
 
 (defvar-local Info-current-file nil
   "Info file that Info is now looking at, or nil.
@@ -1473,9 +1448,10 @@ is non-nil)."
 
 (defvar Info-streamline-headings
   '(("Emacs" . "Emacs")
-    ("Programming" . "Programming")
+    ("Software development\\|Programming" . "Software development")
     ("Libraries" . "Libraries")
-    ("World Wide Web\\|Net Utilities" . "Net Utilities"))
+    ("Network applications\\|World Wide Web\\|Net Utilities"
+     . "Network applications"))
   "List of elements (RE . NAME) to merge headings matching RE to NAME.")
 
 (defun Info-dir-remove-duplicates ()

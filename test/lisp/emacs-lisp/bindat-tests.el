@@ -1,4 +1,4 @@
-;;; bindat-tests.el --- tests for bindat.el  -*- lexical-binding: t; -*-
+;;; bindat-tests.el --- tests for bindat.el  -*- lexical-binding: t; coding: utf-8; -*-
 
 ;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
@@ -94,7 +94,13 @@
               (src-ip .
 	              [192 168 1 101])
               (dest-ip .
-	               [192 168 1 100]))))))
+                       [192 168 1 100]))))))
+
+(ert-deftest bindat-test-pack/multibyte-string-fails ()
+  (should-error (bindat-pack nil nil "ö")))
+
+(ert-deftest bindat-test-unpack/multibyte-string-fails ()
+  (should-error (bindat-unpack nil "ö")))
 
 (ert-deftest bindat-test-format-vector ()
   (should (equal (bindat-format-vector [1 2 3] "%d" "x" 2) "1x2"))

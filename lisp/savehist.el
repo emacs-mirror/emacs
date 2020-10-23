@@ -5,7 +5,7 @@
 ;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience, minibuffer
-;; Version: 24
+;; Old-Version: 24
 
 ;; This file is part of GNU Emacs.
 

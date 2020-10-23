@@ -2748,7 +2748,7 @@ since only regular expressions have distinguished subexpressions.  */)
 
   /* Put point back where it was in the text, if possible.  */
   TEMP_SET_PT (clip_to_bounds (BEGV, opoint + (opoint <= 0 ? ZV : 0), ZV));
-  /* Now move point "officially" to the start of the inserted replacement.  */
+  /* Now move point "officially" to the end of the inserted replacement.  */
   move_if_not_intangible (newpoint);
 
   return Qnil;

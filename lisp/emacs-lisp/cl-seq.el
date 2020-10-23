@@ -1042,6 +1042,8 @@ Atoms are compared by `eql'; cons cells are compared recursively.
   (and (not (consp cl-x)) (not (consp cl-y)) (cl--check-match cl-x cl-y)))
 
 
+(make-obsolete-variable 'cl-seq-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'cl-seq-load-hook)
 
 ;; Local variables:

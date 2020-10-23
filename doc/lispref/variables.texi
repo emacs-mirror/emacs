@@ -1283,6 +1283,45 @@ you can also add a leading underscore to the variable's name to
 indicate to the compiler that this is a variable known not to
 be used.)
 
+@subsubheading Cross-file variable checking
+
+@strong{Note:} This is an experimental feature that may change or
+disappear without prior notice.
+
+The byte-compiler can also warn about lexical variables that are
+special in other Emacs Lisp files, often indicating a missing
+@code{defvar} declaration.  This useful but somewhat specialised check
+requires three steps:
+
+@enumerate
+@item
+Byte-compile all files whose special variable declarations may be of
+interest, with the environment variable @env{EMACS_GENERATE_DYNVARS}
+set to a nonempty string.  These are typically all the files in the
+same package or related packages or Emacs subsystems.  The process
+will generate a file whose name ends in @file{.dynvars} for each
+compiled Emacs Lisp file.
+
+@item
+Concatenate the @file{.dynvars} files into a single file.
+
+@item
+Byte-compile the files that need to be checked, this time with
+the environment variable @env{EMACS_DYNVARS_FILE} set to the name
+of the aggregated file created in step 2.
+@end enumerate
+
+Here is an example illustrating how this could be done, assuming that
+a Unix shell and @command{make} are used for byte-compilation:
+
+@example
+$ rm *.elc                                # force recompilation
+$ EMACS_GENERATE_DYNVARS=1 make           # generate .dynvars
+$ cat *.dynvars > ~/my.dynvars            # combine .dynvars
+$ rm *.elc                                # force recompilation
+$ EMACS_DYNVARS_FILE=~/my.dynvars make    # perform checks
+@end example
+
 @node Buffer-Local Variables
 @section Buffer-Local Variables
 @cindex variable, buffer-local
@@ -2346,6 +2385,14 @@ equivalent to the following:
 (defvaralias @var{obsolete-name} @var{current-name} @var{docstring})
 (make-obsolete-variable @var{obsolete-name} @var{current-name} @var{when})
 @end example
+
+This macro evaluates all its parameters, and both @var{obsolete-name}
+and @var{current-name} should be symbols, so a typical usage would
+look like:
+
+@lisp
+(define-obsolete-variable-alias 'foo-thing 'bar-thing "27.1")
+@end lisp
 @end defmac
 
 @defun indirect-variable variable

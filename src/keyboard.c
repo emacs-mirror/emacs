@@ -2040,7 +2040,7 @@ help_echo_substitute_command_keys (Lisp_Object help)
                                     help)))
     return help;
 
-  return Fsubstitute_command_keys (help);
+  return call1 (Qsubstitute_command_keys, help);
 }
 
 /* Display the help-echo property of the character after the mouse pointer.
@@ -5254,7 +5254,6 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 					extra_info)));
     }
 
-#ifdef HAVE_WINDOW_SYSTEM
   else if (f)
     {
       /* Return mouse pixel coordinates here.  */
@@ -5262,7 +5261,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       xret = XFIXNUM (x);
       yret = XFIXNUM (y);
 
-      if (FRAME_LIVE_P (f)
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f)
+	  && FRAME_LIVE_P (f)
 	  && FRAME_INTERNAL_BORDER_WIDTH (f) > 0
 	  && !NILP (get_frame_param (f, Qdrag_internal_border)))
 	{
@@ -5271,8 +5272,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
 	  posn = builtin_lisp_symbol (internal_border_parts[part]);
 	}
-    }
 #endif
+    }
 
   else
     window_or_frame = Qnil;
@@ -7855,7 +7856,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = concat2 (space_space, Fsubstitute_command_keys (keyeq));
+      keyeq = concat2 (space_space, call1 (Qsubstitute_command_keys, keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;

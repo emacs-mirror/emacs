@@ -336,9 +336,11 @@ list."
   "Reduce the function FUNCTION across SEQUENCE, starting with INITIAL-VALUE.
 
 Return the result of calling FUNCTION with INITIAL-VALUE and the
-first element of SEQUENCE, then calling FUNCTION with that result and
-the second element of SEQUENCE, then with that result and the third
-element of SEQUENCE, etc.
+first element of SEQUENCE, then calling FUNCTION with that result
+and the second element of SEQUENCE, then with that result and the
+third element of SEQUENCE, etc.  FUNCTION will be called with
+INITIAL-VALUE (and then the accumulated value) as the first
+argument, and the elements from SEQUENCE as the second argument.
 
 If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
   (if (seq-empty-p sequence)
@@ -472,6 +474,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
               (seq-reverse sequence1)
               '()))
 
+;;;###autoload
 (cl-defgeneric seq-group-by (function sequence)
   "Apply FUNCTION to each element of SEQUENCE.
 Separate the elements of SEQUENCE into an alist using the results as

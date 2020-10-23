@@ -3089,19 +3089,6 @@ Example:
 @end group
 @end example
 
-During file name completion, remote directory contents are re-read
-regularly to account for any changes in the file system that may
-affect the completion candidates.  Such re-reads can account for
-changes to the file system by applications outside Emacs
-(@pxref{Connection caching}).
-
-@defopt tramp-completion-reread-directory-timeout
-The timeout is number of seconds since last remote command for
-rereading remote directory contents.  A value of 0 re-reads
-immediately during file name completion, @code{nil} uses cached
-directory contents.
-@end defopt
-
 
 @node Ad-hoc multi-hops
 @section Declaring multiple hops in the file name
@@ -4125,9 +4112,6 @@ Set @code{remote-file-name-inhibit-cache} to @code{nil} if remote
 files are not independently updated outside @value{tramp}'s control.
 That cache cleanup will be necessary if the remote directories or
 files are updated independent of @value{tramp}.
-
-Set @code{tramp-completion-reread-directory-timeout} to @code{nil} to
-speed up completions, @ref{File name completion}.
 
 Disable version control to avoid delays:
 

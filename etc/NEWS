@@ -86,13 +86,13 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 * Changes in Emacs 28.1
 
 +++
-*** A new system for displaying documentation for groups of function is added.
+** New system for displaying documentation for groups of function.
 This can either be used by saying 'M-x shortdoc-display-group' and
 choosing a group, or clicking a button in the *Help* buffers when
 looking at the doc string of a function that belongs to one of these
 groups.
 
-*** New var 'redisplay-skip-initial-frame' to enable batch redisplay tests.
+** New var 'redisplay-skip-initial-frame' to enable batch redisplay tests.
 Setting it to nil forces the redisplay to do its job even in the
 initial frame used in batch mode.
 
@@ -104,7 +104,7 @@ sequences necessary to render faces with the 'strike-through'
 attribute on TTY frames.
 
 +++
-*** Emacs now defaults to UTF-8 instead of ISO-8859-1.
+** Emacs now defaults to UTF-8 instead of ISO-8859-1.
 This is only for the default, where the user has set no 'LANG' (or
 similar) variable or environment.  This change should lead to no
 user-visible changes for normal usage.
@@ -163,13 +163,6 @@ your init file:
     (setq frame-title-format '(multiple-frames "%b"
                               ("" invocation-name "@" system-name)))
 
-** recentf
-
----
-*** 'recentf-auto-cleanup' time string now repeats.
-When 'recentf-auto-cleanup' is set to a time string, it now repeats
-every day, rather than only running once after the mode is turned on.
-
 
 * Editing Changes in Emacs 28.1
 
@@ -212,11 +205,6 @@ buffer to be able to move point to the inaccessible portion.
 +++
 ** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'
 shows equivalent key bindings for all commands that have them.
-
----
-** Movement commands in 'gomoku-mode' are fixed.
-'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
-horizontal movements now stop at the edge of the board.
 
 ** Autosaving via 'auto-save-visited-mode' can now be inhibited by
 setting the variable 'auto-save-visited-mode' buffer-locally to nil.
@@ -319,6 +307,9 @@ The mode provides refined highlighting of built-in functions, types,
 and variables.
 
 ** Archive mode
+
+---
+*** Archive Mode can now parse .squashfs files.
 
 *** Can now modify members of 'ar' archives.
 
@@ -433,6 +424,11 @@ completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
 
 ** Gnus
+
++++
+*** New value for user option 'smiley-style'
+Smileys can now be rendered with emojis instead of small images when
+using the new 'emoji' value in 'smiley-style'.
 
 +++
 *** New user option 'gnus-agent-eagerly-store-articles'.
@@ -608,6 +604,16 @@ defaulting to active region when used interactively.
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
+** The 'list-bookmark' menu is now based on 'tabulated-list-mode'.
+The interactive bookmark list will now benefit from features in
+'tabulated-list-mode' like sorting columns or changing column width.
+
+Support for the optional "inline" header line, allowing for a header
+without using 'header-line-format', has been dropped.  Consequently,
+the variables 'bookmark-bmenu-use-header-line' and
+'bookmark-bmenu-inline-header-height' are now declared obsolete.
+
+---
 ** The sb-image.el library is now marked obsolete.
 This file was a compatibility kludge which is no longer needed.
 
@@ -657,6 +663,13 @@ The user option 'eldoc-echo-area-use-multiline-p' is now handled
 by the ElDoc library itself.  Functions in
 'eldoc-documentation-functions' don't need to worry about consulting
 it when producing a doc string.
+
+** Shell
+
+---
+*** New command in 'shell-mode': 'narrow-to-prompt'.
+This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
+command line under point (and any following output).
 
 ** Eshell
 
@@ -726,6 +739,7 @@ key             binding
 / s             package-menu-filter-by-status
 / v             package-menu-filter-by-version
 / m             package-menu-filter-marked
+/ u             package-menu-filter-upgradable
 / /             package-menu-filter-clear
 
 ---
@@ -817,6 +831,14 @@ current environment.
 *** New user option 'rmail-re-abbrevs'.
 Its default value matches localized abbreviations of the "reply"
 prefix on the Subject line in various languages.
+
+---
+*** New user option 'shr-offer-extend-specpdl'.
+If this is nil, rendering of HTML in the email message body that
+requires to enlarge 'max-specpdl-size', the number of Lisp variable
+bindings, will be aborted, and Emacs will not ask you whether to
+enlarge 'max-specpdl-size' to complete the rendering.  The default is
+t, which preserves the original behavior.
 
 ** Apropos
 
@@ -1096,9 +1118,15 @@ custom rules, see the variables 'bug-reference-setup-from-vc-alist',
 It's bound to the 'C-c C-c f' keystroke, and prompts for a local file
 name.
 
----
 ** Recentf
-The recentf files are no longer backed up.
+
+---
+*** The recentf files are no longer backed up.
+
+---
+*** 'recentf-auto-cleanup' time string now repeats.
+When 'recentf-auto-cleanup' is set to a time string, it now repeats
+every day, rather than only running once after the mode is turned on.
 
 ** Calc
 
@@ -1141,6 +1169,13 @@ window after starting).  This variable defaults to nil.
 +++
 *** 'widget-choose' now supports menus in extended format.
 
+---
+*** The 'editable-list' widget now supports moving items up and down.
+You can now move items up and down by deleting and then reinserting
+them, using the DEL and INS buttons respectively.  This is useful in
+Custom buffers, for example, to change the order of the elements in a
+list.
+
 ** Miscellaneous
 
 ---
@@ -1155,6 +1190,8 @@ be done (and this restores how this previously worked).
 *** New user option 'next-error-message-highlight'.
 In addition to a fringe arrow, 'next-error' error may now optionally
 highlight the current error message in the 'next-error' buffer.
+This user option can be also customized to keep highlighting on all
+visited errors, so you can have an overview what errors were already visited.
 
 +++
 *** New user option 'tab-first-completion'.
@@ -1283,6 +1320,11 @@ never be narrower than 19 characters.
 When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
+---
+*** Movement commands in 'gomoku-mode' are fixed.
+'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
+horizontal movements now stop at the edge of the board.
+
 ** xwidget-webkit mode
 
 *** New xwidget commands.
@@ -1403,9 +1445,11 @@ mode, as are other data files produced by Emacs.
 It's a library to create, query, navigate and display hierarchy structures.
 
 ** New themes 'modus-vivendi' and 'modus-operandi'.
-These themes are designed for colour-contrast accessibility.  You can
-load the new themes using 'M-x customize-themes' or 'load-theme' from
-your init file.
+These themes are designed to conform with the highest standard for
+color-contrast accessibility (WCAG AAA).  You can load either of them
+using 'M-x customize-themes' or 'load-theme' from your init file.
+Consult the Modus Themes Info manual for more information on the user
+options they provide.
 
 
 * Incompatible Editing Changes in Emacs 28.1
@@ -1465,6 +1509,11 @@ This is no longer supported, and setting this variable has no effect.
 +++
 ** The macro 'with-displayed-buffer-window' is now obsolete.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
+
++++
+** `byte-compile-file' optional argument LOAD is now obsolete.
+To load the file after byte-compiling, add a call to 'load' from Lisp
+or use 'M-x emacs-lisp-byte-compile-and-load' interactively.
 
 ** The metamail.el library is now marked obsolete.
 
@@ -1701,6 +1750,16 @@ personalize the uniquified buffer name.
 
 +++
 ** 'inhibit-nul-byte-detection' is renamed to 'inhibit-null-byte-detection'.
+
++++
+** New byte-compiler check for missing dynamic variable declarations.
+It is meant as an (experimental) aid for converting Emacs Lisp code
+to lexical binding, where dynamic (special) variables bound in one
+file can affect code in another.  For details, see the manual section
+'(Elisp) Converting to Lexical Binding'.
+
+---
+** 'unload-feature' now also tries to undo additions to buffer-local hooks.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

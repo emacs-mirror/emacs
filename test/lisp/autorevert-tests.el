@@ -61,8 +61,9 @@
       file-notify-debug nil
       tramp-verbose 0)
 
-(defconst auto-revert--timeout (1+ auto-revert-interval)
-  "Time to wait for a message.")
+(defun auto-revert--timeout ()
+  "Time to wait for a message."
+  (+ auto-revert-interval 0.1))
 
 (defvar auto-revert--messages nil
   "Used to collect messages issued during a section of a test.")
@@ -125,14 +126,14 @@ This expects `auto-revert--messages' to be bound by
   ;; Remote files do not cooperate well with timers.  So we count ourselves.
   (let ((ct (current-time)))
     (while (and (< (float-time (time-subtract (current-time) ct))
-                   auto-revert--timeout)
+                   (auto-revert--timeout))
                 (null (string-match
                        (format-message
                         "Reverting buffer `%s'\\." (buffer-name buffer))
                        auto-revert--messages)))
       (if (with-current-buffer buffer auto-revert-use-notify)
-          (read-event nil nil 0.1)
-        (sleep-for 0.1)))))
+          (read-event nil nil 0.05)
+        (sleep-for 0.05)))))
 
 (defmacro auto-revert--deftest-remote (test docstring)
   "Define ert `TEST-remote' for remote files."
@@ -152,51 +153,59 @@ This expects `auto-revert--messages' to be bound by
            (funcall (ert-test-body ert-test))
          (error (message "%s" err) (signal (car err) (cdr err)))))))
 
+(defmacro with-auto-revert-test (&rest body)
+  `(let ((auto-revert-interval-orig auto-revert-interval))
+     (unwind-protect
+         (progn
+           (customize-set-variable 'auto-revert-interval 0.1)
+           ,@body)
+       (customize-set-variable 'auto-revert-interval auto-revert-interval-orig))))
+
+(defun auto-revert-tests--write-file (text file time-delta &optional append)
+  (write-region text nil file append 'no-message)
+  (set-file-times file (time-subtract (current-time) time-delta)))
+
 (ert-deftest auto-revert-test00-auto-revert-mode ()
   "Check autorevert for a file."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
-  :tags '(:expensive-test)
-  (let ((tmpfile (make-temp-file "auto-revert-test"))
-        buf)
-    (unwind-protect
-	(progn
-          (write-region "any text" nil tmpfile nil 'no-message)
-	  (setq buf (find-file-noselect tmpfile))
-          (with-current-buffer buf
-            (ert-with-message-capture auto-revert--messages
-              (should (string-equal (buffer-string) "any text"))
-              ;; `buffer-stale--default-function' checks for
-              ;; `verify-visited-file-modtime'.  We must ensure that it
-              ;; returns nil.
-              (sleep-for 1)
-              (auto-revert-mode 1)
-              (should auto-revert-mode)
+  (with-auto-revert-test
+   (let ((tmpfile (make-temp-file "auto-revert-test"))
+         (times '(60 30 15))
+         buf)
+     (unwind-protect
+         (progn
+           (auto-revert-tests--write-file "any text" tmpfile (pop times))
+           (setq buf (find-file-noselect tmpfile))
+           (with-current-buffer buf
+             (ert-with-message-capture auto-revert--messages
+               (should (string-equal (buffer-string) "any text"))
+               ;; `buffer-stale--default-function' checks for
+               ;; `verify-visited-file-modtime'.  We must ensure that it
+               ;; returns nil.
+               (auto-revert-mode 1)
+               (should auto-revert-mode)
 
-              ;; Modify file.  We wait for a second, in order to have
-              ;; another timestamp.
-              (sleep-for 1)
-              (write-region "another text" nil tmpfile nil 'no-message)
+               (auto-revert-tests--write-file "another text" tmpfile (pop times))
 
-              ;; Check, that the buffer has been reverted.
-              (auto-revert--wait-for-revert buf))
-            (should (string-match "another text" (buffer-string)))
+               ;; Check, that the buffer has been reverted.
+               (auto-revert--wait-for-revert buf))
+             (should (string-match "another text" (buffer-string)))
 
-            ;; When the buffer is modified, it shall not be reverted.
-            (ert-with-message-capture auto-revert--messages
-              (set-buffer-modified-p t)
-              (sleep-for 1)
-              (write-region "any text" nil tmpfile nil 'no-message)
+             ;; When the buffer is modified, it shall not be reverted.
+             (ert-with-message-capture auto-revert--messages
+               (set-buffer-modified-p t)
+               (auto-revert-tests--write-file "any text" tmpfile (pop times))
 
-              ;; Check, that the buffer hasn't been reverted.
-              (auto-revert--wait-for-revert buf))
-            (should-not (string-match "any text" (buffer-string)))))
+               ;; Check, that the buffer hasn't been reverted.
+               (auto-revert--wait-for-revert buf))
+             (should-not (string-match "any text" (buffer-string)))))
 
-      ;; Exit.
-      (ignore-errors
-        (with-current-buffer buf (set-buffer-modified-p nil))
-        (kill-buffer buf))
-      (ignore-errors (delete-file tmpfile)))))
+       ;; Exit.
+       (ignore-errors
+         (with-current-buffer buf (set-buffer-modified-p nil))
+         (kill-buffer buf))
+       (ignore-errors (delete-file tmpfile))))))
 
 (auto-revert--deftest-remote auto-revert-test00-auto-revert-mode
   "Check autorevert for a remote file.")
@@ -204,66 +213,65 @@ This expects `auto-revert--messages' to be bound by
 ;; This is inspired by Bug#21841.
 (ert-deftest auto-revert-test01-auto-revert-several-files ()
   "Check autorevert for several files at once."
-  :tags '(:expensive-test)
   (skip-unless (executable-find "cp" (file-remote-p temporary-file-directory)))
 
-  (let* ((cp (executable-find "cp" (file-remote-p temporary-file-directory)))
-         (tmpdir1 (make-temp-file "auto-revert-test" 'dir))
-         (tmpdir2 (make-temp-file "auto-revert-test" 'dir))
-         (tmpfile1
-          (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
-         (tmpfile2
-          (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
-         buf1 buf2)
-    (unwind-protect
-        (ert-with-message-capture auto-revert--messages
-          (write-region "any text" nil tmpfile1 nil 'no-message)
-          (setq buf1 (find-file-noselect tmpfile1))
-          (write-region "any text" nil tmpfile2 nil 'no-message)
-          (setq buf2 (find-file-noselect tmpfile2))
+  (with-auto-revert-test
+   (let* ((cp (executable-find "cp" (file-remote-p temporary-file-directory)))
+          (tmpdir1 (make-temp-file "auto-revert-test" 'dir))
+          (tmpdir2 (make-temp-file "auto-revert-test" 'dir))
+          (tmpfile1
+           (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
+          (tmpfile2
+           (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
+          (times '(120 60 30 15))
+          buf1 buf2)
+     (unwind-protect
+         (ert-with-message-capture auto-revert--messages
+           (auto-revert-tests--write-file "any text" tmpfile1 (pop times))
+           (setq buf1 (find-file-noselect tmpfile1))
+           (auto-revert-tests--write-file "any text" tmpfile2 (pop times))
+           (setq buf2 (find-file-noselect tmpfile2))
 
-          (dolist (buf (list buf1 buf2))
-            (with-current-buffer buf
-              (should (string-equal (buffer-string) "any text"))
-              ;; `buffer-stale--default-function' checks for
-              ;; `verify-visited-file-modtime'.  We must ensure that
-              ;; it returns nil.
-              (sleep-for 1)
-              (auto-revert-mode 1)
-              (should auto-revert-mode)))
+           (dolist (buf (list buf1 buf2))
+             (with-current-buffer buf
+               (should (string-equal (buffer-string) "any text"))
+               ;; `buffer-stale--default-function' checks for
+               ;; `verify-visited-file-modtime'.  We must ensure that
+               ;; it returns nil.
+               (auto-revert-mode 1)
+               (should auto-revert-mode)))
 
-          ;; Modify files.  We wait for a second, in order to have
-          ;; another timestamp.
-          (sleep-for 1)
-          (write-region
-           "another text" nil
-           (expand-file-name (file-name-nondirectory tmpfile1) tmpdir2)
-           nil 'no-message)
-          (write-region
-           "another text" nil
-           (expand-file-name (file-name-nondirectory tmpfile2) tmpdir2)
-           nil 'no-message)
-          ;;(copy-directory tmpdir2 tmpdir1 nil 'copy-contents)
-          ;; Strange, that `copy-directory' does not work as expected.
-          ;; The following shell command is not portable on all
-          ;; platforms, unfortunately.
-          (shell-command
-           (format "%s -f %s/* %s"
-                   cp (file-local-name tmpdir2) (file-local-name tmpdir1)))
+           ;; Modify files.  We wait for a second, in order to have
+           ;; another timestamp.
+           (auto-revert-tests--write-file
+            "another text"
+            (expand-file-name (file-name-nondirectory tmpfile1) tmpdir2)
+            (pop times))
+           (auto-revert-tests--write-file
+            "another text"
+            (expand-file-name (file-name-nondirectory tmpfile2) tmpdir2)
+            (pop times))
+           ;;(copy-directory tmpdir2 tmpdir1 nil 'copy-contents)
+           ;; Strange, that `copy-directory' does not work as expected.
+           ;; The following shell command is not portable on all
+           ;; platforms, unfortunately.
+           (shell-command
+            (format "%s -f %s/* %s"
+                    cp (file-local-name tmpdir2) (file-local-name tmpdir1)))
 
-          ;; Check, that the buffers have been reverted.
-          (dolist (buf (list buf1 buf2))
-            (with-current-buffer buf
-              (auto-revert--wait-for-revert buf)
-              (should (string-match "another text" (buffer-string))))))
+           ;; Check, that the buffers have been reverted.
+           (dolist (buf (list buf1 buf2))
+             (with-current-buffer buf
+               (auto-revert--wait-for-revert buf)
+               (should (string-match "another text" (buffer-string))))))
 
-      ;; Exit.
-      (ignore-errors
-        (dolist (buf (list buf1 buf2))
-          (with-current-buffer buf (set-buffer-modified-p nil))
-          (kill-buffer buf)))
-      (ignore-errors (delete-directory tmpdir1 'recursive))
-      (ignore-errors (delete-directory tmpdir2 'recursive)))))
+       ;; Exit.
+       (ignore-errors
+         (dolist (buf (list buf1 buf2))
+           (with-current-buffer buf (set-buffer-modified-p nil))
+           (kill-buffer buf)))
+       (ignore-errors (delete-directory tmpdir1 'recursive))
+       (ignore-errors (delete-directory tmpdir2 'recursive))))))
 
 (auto-revert--deftest-remote auto-revert-test01-auto-revert-several-files
   "Check autorevert for several remote files at once.")
@@ -271,84 +279,81 @@ This expects `auto-revert--messages' to be bound by
 ;; This is inspired by Bug#23276.
 (ert-deftest auto-revert-test02-auto-revert-deleted-file ()
   "Check autorevert for a deleted file."
-  :tags '(:expensive-test)
   ;; Repeated unpredictable failures, bug#32645.
   ;; Unlikely to be hydra-specific?
 ;  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
 
-  (let ((tmpfile (make-temp-file "auto-revert-test"))
-        ;; Try to catch bug#32645.
-        (auto-revert-debug (getenv "EMACS_HYDRA_CI"))
-        (file-notify-debug (getenv "EMACS_HYDRA_CI"))
-        buf desc)
-    (unwind-protect
-	(progn
-          (write-region "any text" nil tmpfile nil 'no-message)
-	  (setq buf (find-file-noselect tmpfile))
-	  (with-current-buffer buf
-            (should-not
-             (file-notify-valid-p auto-revert-notify-watch-descriptor))
-            (should (string-equal (buffer-string) "any text"))
-            ;; `buffer-stale--default-function' checks for
-            ;; `verify-visited-file-modtime'.  We must ensure that
-            ;; it returns nil.
-            (sleep-for 1)
-            (auto-revert-mode 1)
-            (should auto-revert-mode)
-            (setq desc auto-revert-notify-watch-descriptor)
+  (with-auto-revert-test
+   (let ((tmpfile (make-temp-file "auto-revert-test"))
+         ;; Try to catch bug#32645.
+         (auto-revert-debug (getenv "EMACS_HYDRA_CI"))
+         (file-notify-debug (getenv "EMACS_HYDRA_CI"))
+         (times '(120 60 30 15))
+         buf desc)
+     (unwind-protect
+         (progn
+           (auto-revert-tests--write-file "any text" tmpfile (pop times))
+           (setq buf (find-file-noselect tmpfile))
+           (with-current-buffer buf
+             (should-not
+              (file-notify-valid-p auto-revert-notify-watch-descriptor))
+             (should (string-equal (buffer-string) "any text"))
+             ;; `buffer-stale--default-function' checks for
+             ;; `verify-visited-file-modtime'.  We must ensure that
+             ;; it returns nil.
+             (auto-revert-mode 1)
+             (should auto-revert-mode)
+             (setq desc auto-revert-notify-watch-descriptor)
 
-            ;; Remove file while reverting.  We simulate this by
-            ;; modifying `before-revert-hook'.
-            (add-hook
-             'before-revert-hook
-             (lambda ()
-               (when auto-revert-debug
-                 (message "%s deleted" buffer-file-name))
-               (delete-file buffer-file-name))
-             nil t)
+             ;; Remove file while reverting.  We simulate this by
+             ;; modifying `before-revert-hook'.
+             (add-hook
+              'before-revert-hook
+              (lambda ()
+                (when auto-revert-debug
+                  (message "%s deleted" buffer-file-name))
+                (delete-file buffer-file-name))
+              nil t)
 
-            (ert-with-message-capture auto-revert--messages
-              (sleep-for 1)
-              (write-region "another text" nil tmpfile nil 'no-message)
-              (auto-revert--wait-for-revert buf))
-            ;; Check, that the buffer hasn't been reverted.  File
-            ;; notification should be disabled, falling back to
-            ;; polling.
-            (should (string-match "any text" (buffer-string)))
-            ;; With w32notify, and on emba, the `stopped' events are not sent.
-            (or (eq file-notify--library 'w32notify)
-                (getenv "EMACS_EMBA_CI")
-                (should-not
-                 (file-notify-valid-p auto-revert-notify-watch-descriptor)))
+             (ert-with-message-capture auto-revert--messages
+               (auto-revert-tests--write-file "another text" tmpfile (pop times))
+               (auto-revert--wait-for-revert buf))
+             ;; Check, that the buffer hasn't been reverted.  File
+             ;; notification should be disabled, falling back to
+             ;; polling.
+             (should (string-match "any text" (buffer-string)))
+             ;; With w32notify, and on emba, the `stopped' events are not sent.
+             (or (eq file-notify--library 'w32notify)
+                 (getenv "EMACS_EMBA_CI")
+                 (should-not
+                  (file-notify-valid-p auto-revert-notify-watch-descriptor)))
 
-            ;; Once the file has been recreated, the buffer shall be
-            ;; reverted.
-            (kill-local-variable 'before-revert-hook)
-            (ert-with-message-capture auto-revert--messages
-              (sleep-for 1)
-              (write-region "another text" nil tmpfile nil 'no-message)
-              (auto-revert--wait-for-revert buf))
-            ;; Check, that the buffer has been reverted.
-            (should (string-match "another text" (buffer-string)))
-            ;; When file notification is used, it must be reenabled
-            ;; after recreation of the file.  We cannot expect that
-            ;; the descriptor is the same, so we just check the
-            ;; existence.
-            (should (eq (null desc) (null auto-revert-notify-watch-descriptor)))
+             ;; Once the file has been recreated, the buffer shall be
+             ;; reverted.
+             (kill-local-variable 'before-revert-hook)
+             (ert-with-message-capture auto-revert--messages
+               (auto-revert-tests--write-file "another text" tmpfile (pop times))
+               (auto-revert--wait-for-revert buf))
+             ;; Check, that the buffer has been reverted.
+             (should (string-match "another text" (buffer-string)))
+             ;; When file notification is used, it must be reenabled
+             ;; after recreation of the file.  We cannot expect that
+             ;; the descriptor is the same, so we just check the
+             ;; existence.
+             (should (eq (null desc) (null auto-revert-notify-watch-descriptor)))
 
-            ;; An empty file shall still be reverted.
-            (ert-with-message-capture auto-revert--messages
-              (sleep-for 1)
-              (write-region "" nil tmpfile nil 'no-message)
-              (auto-revert--wait-for-revert buf))
-            ;; Check, that the buffer has been reverted.
-            (should (string-equal "" (buffer-string)))))
+             ;; An empty file shall still be reverted.
+             (ert-with-message-capture auto-revert--messages
+               (auto-revert-tests--write-file "" tmpfile (pop times))
+               (auto-revert--wait-for-revert buf))
+             ;; Check, that the buffer has been reverted.
+             (should (string-equal "" (buffer-string)))))
 
-      ;; Exit.
-      (ignore-errors
-        (with-current-buffer buf (set-buffer-modified-p nil))
-        (kill-buffer buf))
-      (ignore-errors (delete-file tmpfile)))))
+       ;; Exit.
+       (ignore-errors
+         (with-current-buffer buf (set-buffer-modified-p nil))
+         (kill-buffer buf))
+       (ignore-errors (delete-file tmpfile))))))
 
 (auto-revert--deftest-remote auto-revert-test02-auto-revert-deleted-file
   "Check autorevert for a deleted remote file.")
@@ -357,28 +362,25 @@ This expects `auto-revert--messages' to be bound by
   "Check autorevert tail mode."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
-  :tags '(:expensive-test)
   (let ((tmpfile (make-temp-file "auto-revert-test"))
+        (times '(30 15))
         buf)
     (unwind-protect
         (ert-with-message-capture auto-revert--messages
-          (write-region "any text" nil tmpfile nil 'no-message)
+          (auto-revert-tests--write-file "any text" tmpfile (pop times))
 	  (setq buf (find-file-noselect tmpfile))
 	  (with-current-buffer buf
             ;; `buffer-stale--default-function' checks for
             ;; `verify-visited-file-modtime'.  We must ensure that it
             ;; returns nil.
-            (sleep-for 1)
 	    (auto-revert-tail-mode 1)
 	    (should auto-revert-tail-mode)
             (erase-buffer)
             (insert "modified text\n")
             (set-buffer-modified-p nil)
 
-	    ;; Modify file.  We wait for a second, in order to have
-	    ;; another timestamp.
-	    (sleep-for 1)
-            (write-region "another text" nil tmpfile 'append 'no-message)
+            ;; Modify file.
+            (auto-revert-tests--write-file "another text" tmpfile (pop times) 'append)
 
 	    ;; Check, that the buffer has been reverted.
             (auto-revert--wait-for-revert buf)
@@ -396,50 +398,47 @@ This expects `auto-revert--messages' to be bound by
   "Check autorevert for dired."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
-  :tags '(:expensive-test)
-  (let* ((tmpfile (make-temp-file "auto-revert-test"))
-         (name (file-name-nondirectory tmpfile))
-         buf)
-    (unwind-protect
-	(progn
-	  (setq buf (dired-noselect temporary-file-directory))
-	  (with-current-buffer buf
-            ;; `buffer-stale--default-function' checks for
-            ;; `verify-visited-file-modtime'.  We must ensure that it
-            ;; returns nil.
-            (sleep-for 1)
-            (auto-revert-mode 1)
-            (should auto-revert-mode)
-	    (should
-             (string-match name (substring-no-properties (buffer-string))))
+  (with-auto-revert-test
+   (let* ((tmpfile (make-temp-file "auto-revert-test"))
+          (name (file-name-nondirectory tmpfile))
+          (times '(30))
+          buf)
+     (unwind-protect
+         (progn
+           (setq buf (dired-noselect temporary-file-directory))
+           (with-current-buffer buf
+             ;; `buffer-stale--default-function' checks for
+             ;; `verify-visited-file-modtime'.  We must ensure that it
+             ;; returns nil.
+             (auto-revert-mode 1)
+             (should auto-revert-mode)
+             (should
+              (string-match name (substring-no-properties (buffer-string))))
 
-            (ert-with-message-capture auto-revert--messages
-              ;; Delete file.  We wait for a second, in order to have
-              ;; another timestamp.
-              (sleep-for 1)
-              (delete-file tmpfile)
-              (auto-revert--wait-for-revert buf))
-            ;; Check, that the buffer has been reverted.
-            (should-not
-             (string-match name (substring-no-properties (buffer-string))))
+             (ert-with-message-capture auto-revert--messages
+               ;; Delete file.
+               (delete-file tmpfile)
+               (auto-revert--wait-for-revert buf))
+             ;; Check, that the buffer has been reverted.
+             (should-not
+              (string-match name (substring-no-properties (buffer-string))))
 
-            (ert-with-message-capture auto-revert--messages
-              ;; Make dired buffer modified.  Check, that the buffer has
-              ;; been still reverted.
-              (set-buffer-modified-p t)
-              (sleep-for 1)
-              (write-region "any text" nil tmpfile nil 'no-message)
+             (ert-with-message-capture auto-revert--messages
+               ;; Make dired buffer modified.  Check, that the buffer has
+               ;; been still reverted.
+               (set-buffer-modified-p t)
+               (auto-revert-tests--write-file "any text" tmpfile (pop times))
 
-              (auto-revert--wait-for-revert buf))
-            ;; Check, that the buffer has been reverted.
-            (should
-             (string-match name (substring-no-properties (buffer-string))))))
+               (auto-revert--wait-for-revert buf))
+             ;; Check, that the buffer has been reverted.
+             (should
+              (string-match name (substring-no-properties (buffer-string))))))
 
-      ;; Exit.
-      (ignore-errors
-        (with-current-buffer buf (set-buffer-modified-p nil))
-        (kill-buffer buf))
-      (ignore-errors (delete-file tmpfile)))))
+       ;; Exit.
+       (ignore-errors
+         (with-current-buffer buf (set-buffer-modified-p nil))
+         (kill-buffer buf))
+       (ignore-errors (delete-file tmpfile))))))
 
 (auto-revert--deftest-remote auto-revert-test04-auto-revert-mode-dired
   "Check remote autorevert for dired.")
@@ -468,117 +467,116 @@ This expects `auto-revert--messages' to be bound by
 
 (ert-deftest auto-revert-test05-global-notify ()
   "Test `global-auto-revert-mode' without polling."
-  :tags '(:expensive-test)
   (skip-unless (or file-notify--library
                    (file-remote-p temporary-file-directory)))
-  (let* ((auto-revert-use-notify t)
-         (auto-revert-avoid-polling t)
-         (was-in-global-auto-revert-mode global-auto-revert-mode)
-         (file-1 (make-temp-file "global-auto-revert-test-1"))
-         (file-2 (make-temp-file "global-auto-revert-test-2"))
-         (file-3 (make-temp-file "global-auto-revert-test-3"))
-         (file-2b (concat file-2 "-b"))
-         require-final-newline buf-1 buf-2 buf-3)
-    (unwind-protect
-        (progn
-          (setq buf-1 (find-file-noselect file-1))
-          (setq buf-2 (find-file-noselect file-2))
-          (auto-revert-test--write-file "1-a" file-1)
-          (should (equal (auto-revert-test--buffer-string buf-1) ""))
+  (with-auto-revert-test
+   (let* ((auto-revert-use-notify t)
+          (auto-revert-avoid-polling t)
+          (was-in-global-auto-revert-mode global-auto-revert-mode)
+          (file-1 (make-temp-file "global-auto-revert-test-1"))
+          (file-2 (make-temp-file "global-auto-revert-test-2"))
+          (file-3 (make-temp-file "global-auto-revert-test-3"))
+          (file-2b (concat file-2 "-b"))
+          require-final-newline buf-1 buf-2 buf-3)
+     (unwind-protect
+         (progn
+           (setq buf-1 (find-file-noselect file-1))
+           (setq buf-2 (find-file-noselect file-2))
+           (auto-revert-test--write-file "1-a" file-1)
+           (should (equal (auto-revert-test--buffer-string buf-1) ""))
 
-          (global-auto-revert-mode 1)   ; Turn it on.
+           (global-auto-revert-mode 1)   ; Turn it on.
 
-          (should (buffer-local-value
-                   'auto-revert-notify-watch-descriptor buf-1))
-          (should (buffer-local-value
-                   'auto-revert-notify-watch-descriptor buf-2))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-1))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-2))
 
-          ;; buf-1 should have been reverted immediately when the mode
-          ;; was enabled.
-          (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
+           ;; buf-1 should have been reverted immediately when the mode
+           ;; was enabled.
+           (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
 
-          ;; Alter a file.
-          (auto-revert-test--write-file "2-a" file-2)
-          ;; Allow for some time to handle notification events.
-          (auto-revert-test--wait-for-buffer-text buf-2 "2-a" 1)
-          (should (equal (auto-revert-test--buffer-string buf-2) "2-a"))
+           ;; Alter a file.
+           (auto-revert-test--write-file "2-a" file-2)
+           ;; Allow for some time to handle notification events.
+           (auto-revert-test--wait-for-buffer-text buf-2 "2-a" 1)
+           (should (equal (auto-revert-test--buffer-string buf-2) "2-a"))
 
-          ;; Visit a file, and modify it on disk.
-          (setq buf-3 (find-file-noselect file-3))
-          ;; Newly opened buffers won't be use notification until the
-          ;; first poll cycle; wait for it.
-          (auto-revert-test--wait-for
-           (lambda () (buffer-local-value
-                       'auto-revert-notify-watch-descriptor buf-3))
-           auto-revert--timeout)
-          (should (buffer-local-value
+           ;; Visit a file, and modify it on disk.
+           (setq buf-3 (find-file-noselect file-3))
+           ;; Newly opened buffers won't be use notification until the
+           ;; first poll cycle; wait for it.
+           (auto-revert-test--wait-for
+            (lambda () (buffer-local-value
                    'auto-revert-notify-watch-descriptor buf-3))
-          (auto-revert-test--write-file "3-a" file-3)
-          (auto-revert-test--wait-for-buffer-text buf-3 "3-a" 1)
-          (should (equal (auto-revert-test--buffer-string buf-3) "3-a"))
+            (auto-revert--timeout))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-3))
+           (auto-revert-test--write-file "3-a" file-3)
+           (auto-revert-test--wait-for-buffer-text buf-3 "3-a" 1)
+           (should (equal (auto-revert-test--buffer-string buf-3) "3-a"))
 
-          ;; Delete a visited file, and re-create it with new contents.
-          (delete-file file-1)
-          (sleep-for 0.5)
-          (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
-          (auto-revert-test--write-file "1-b" file-1)
-          (auto-revert-test--wait-for-buffer-text
-           buf-1 "1-b" auto-revert--timeout)
-          (should (buffer-local-value
-                   'auto-revert-notify-watch-descriptor buf-1))
+           ;; Delete a visited file, and re-create it with new contents.
+           (delete-file file-1)
+           (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
+           (auto-revert-test--write-file "1-b" file-1)
+           (auto-revert-test--wait-for-buffer-text
+            buf-1 "1-b" (auto-revert--timeout))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-1))
 
-          ;; Write a buffer to a new file, then modify the new file on disk.
-          (with-current-buffer buf-2
-            (write-file file-2b))
-          (should (equal (auto-revert-test--buffer-string buf-2) "2-a"))
-          (auto-revert-test--write-file "2-b" file-2b)
-          (auto-revert-test--wait-for-buffer-text
-           buf-2 "2-b" auto-revert--timeout)
-          (should (buffer-local-value
-                   'auto-revert-notify-watch-descriptor buf-2)))
+           ;; Write a buffer to a new file, then modify the new file on disk.
+           (with-current-buffer buf-2
+             (write-file file-2b))
+           (should (equal (auto-revert-test--buffer-string buf-2) "2-a"))
+           (auto-revert-test--write-file "2-b" file-2b)
+           (auto-revert-test--wait-for-buffer-text
+            buf-2 "2-b" (auto-revert--timeout))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-2)))
 
-      ;; Clean up.
-      (unless was-in-global-auto-revert-mode
-        (global-auto-revert-mode 0))    ; Turn it off.
-      (dolist (buf (list buf-1 buf-2 buf-3))
-        (ignore-errors (kill-buffer buf)))
-      (dolist (file (list file-1 file-2 file-2b file-3))
-        (ignore-errors (delete-file file)))
-      )))
+       ;; Clean up.
+       (unless was-in-global-auto-revert-mode
+         (global-auto-revert-mode 0))    ; Turn it off.
+       (dolist (buf (list buf-1 buf-2 buf-3))
+         (ignore-errors (kill-buffer buf)))
+       (dolist (file (list file-1 file-2 file-2b file-3))
+         (ignore-errors (delete-file file)))
+       ))))
 
 (auto-revert--deftest-remote auto-revert-test05-global-notify
   "Test `global-auto-revert-mode' without polling for remote buffers.")
 
 (ert-deftest auto-revert-test06-write-file ()
   "Verify that notification follows `write-file' correctly."
-  :tags '(:expensive-test)
   (skip-unless (or file-notify--library
                    (file-remote-p temporary-file-directory)))
-  (let* ((auto-revert-use-notify t)
-         (file-1 (make-temp-file "auto-revert-test"))
-         (file-2 (concat file-1 "-2"))
-         require-final-newline buf)
-    (unwind-protect
-        (progn
-          (setq buf (find-file-noselect file-1))
-          (with-current-buffer buf
-            (insert "A")
-            (save-buffer)
+  (with-auto-revert-test
+   (let* ((auto-revert-use-notify t)
+          (file-1 (make-temp-file "auto-revert-test"))
+          (file-2 (concat file-1 "-2"))
+          require-final-newline buf)
+     (unwind-protect
+         (progn
+           (setq buf (find-file-noselect file-1))
+           (with-current-buffer buf
+             (insert "A")
+             (save-buffer)
 
-            (auto-revert-mode 1)
+             (auto-revert-mode 1)
 
-            (insert "B")
-            (write-file file-2)
+             (insert "B")
+             (write-file file-2)
 
-            (auto-revert-test--write-file "C" file-2)
-            (auto-revert-test--wait-for-buffer-text
-             buf "C" auto-revert--timeout)
-            (should (equal (buffer-string) "C"))))
+             (auto-revert-test--write-file "C" file-2)
+             (auto-revert-test--wait-for-buffer-text
+              buf "C" (auto-revert--timeout))
+             (should (equal (buffer-string) "C"))))
 
-      ;; Clean up.
-      (ignore-errors (kill-buffer buf))
-      (ignore-errors (delete-file file-1))
-      (ignore-errors (delete-file file-2)))))
+       ;; Clean up.
+       (ignore-errors (kill-buffer buf))
+       (ignore-errors (delete-file file-1))
+       (ignore-errors (delete-file file-2))))))
 
 (auto-revert--deftest-remote auto-revert-test06-write-file
   "Test `write-file' in `auto-revert-mode' for remote buffers.")

@@ -141,6 +141,20 @@ thin (i.e. 1-dot width) space."
        (vector "[\u0600-\u074F\u200C\u200D]+"
                0 'arabic-shape-gstring)))
 
+;; The Egyptian Hieroglyph Format Controls were introduced in Unicode
+;; Standard v12.0.  Apparently, they are not yet well supported in
+;; existing fonts, as of late 2020.  But there's no reason for us not
+;; to be ready for when they will be!
+;; The below is needed to support the arrangement of the Egyptian
+;; Hieroglyphs in "quadrats", as directed by the format controls,
+;; which specify how the hieroglyphs should be joined horizontally and
+;; vertically.
+(set-char-table-range
+ composition-function-table
+ '(#x13000 . #x1343F)
+ (list (vector "[\U00013000-\U0001343F]+"
+               0 'compose-gstring-for-graphic)))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here

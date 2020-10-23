@@ -2721,7 +2721,10 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'insert-button 'push-button
   "An insert button for the `editable-list' widget."
   :tag "INS"
-  :help-echo "Insert a new item into the list at this position."
+  :help-echo (lambda (widget)
+               (if (widget-get (widget-get widget :parent) :last-deleted)
+                   "Insert back the last deleted item from this list, at this position."
+                 "Insert a new item into the list at this position."))
   :action 'widget-insert-button-action)
 
 (defun widget-insert-button-action (widget &optional _event)
@@ -2734,7 +2737,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'delete-button 'push-button
   "A delete button for the `editable-list' widget."
   :tag "DEL"
-  :help-echo "Delete this item from the list."
+  :help-echo "Delete this item from the list, saving it for later reinsertion."
   :action 'widget-delete-button-action)
 
 (defun widget-delete-button-action (widget &optional _event)
@@ -2824,9 +2827,18 @@ Return an alist of (TYPE MATCH)."
     (cons found value)))
 
 (defun widget-editable-list-insert-before (widget before)
-  ;; Insert a new child in the list of children.
+  "Insert a new widget as a child of WIDGET.
+
+If there is a recently deleted child, the new widget is that deleted child.
+Otherwise, the new widget is the default child of WIDGET.
+
+The new widget gets inserted at the position of the BEFORE child."
   (save-excursion
     (let ((children (widget-get widget :children))
+          (last-deleted (when-let ((lst (widget-get widget :last-deleted)))
+                          (prog1
+                              (pop lst)
+                            (widget-put widget :last-deleted lst))))
 	  (inhibit-read-only t)
 	  (inhibit-modification-hooks t))
       (cond (before
@@ -2834,7 +2846,11 @@ Return an alist of (TYPE MATCH)."
 	    (t
 	     (goto-char (widget-get widget :value-pos))))
       (let ((child (widget-editable-list-entry-create
-		    widget nil nil)))
+                    widget (and last-deleted
+                                (widget-apply last-deleted
+                                              :value-to-external
+                                              (widget-get last-deleted :value)))
+                    last-deleted)))
 	(when (< (widget-get child :entry-from) (widget-get widget :from))
 	  (set-marker (widget-get widget :from)
 		      (widget-get child :entry-from)))
@@ -2847,6 +2863,15 @@ Return an alist of (TYPE MATCH)."
   (widget-apply widget :notify widget))
 
 (defun widget-editable-list-delete-at (widget child)
+  "Delete the widget CHILD from the known children of widget WIDGET.
+
+Save CHILD into the :last-deleted list, so it can be inserted later."
+  ;; Save the current value of CHILD, to use if the user later inserts the
+  ;; widget.
+  (widget-put child :value (widget-apply child :value-get))
+  (let ((lst (widget-get widget :last-deleted)))
+    (push child lst)
+    (widget-put widget :last-deleted lst))
   ;; Delete child from list of children.
   (save-excursion
     (let ((buttons (copy-sequence (widget-get widget :buttons)))
@@ -3559,7 +3584,7 @@ To use this type, you must define :match or :match-alternatives."
   :match 'widget-restricted-sexp-match
   :value-to-internal (lambda (widget value)
 		       (if (widget-apply widget :match value)
-			   (prin1-to-string value)
+                           (widget-sexp-value-to-internal widget value)
 			 value)))
 
 (defun widget-restricted-sexp-match (widget value)

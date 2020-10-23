@@ -50,8 +50,8 @@ and with no Back-Cover Texts.
 * Overview::
 * Installation::
 * Enable and load::
-* Customisation Options::
-* Advanced customisation (do-it-yourself)::
+* Customization Options::
+* Advanced customization (do-it-yourself)::
 * Face coverage::
 * Notes for individual packages::
 * Contributing::
@@ -85,7 +85,7 @@ Enable and load
 * Toggle between the themes on demand::
 * Configure options prior to loading::
 
-Customisation Options
+Customization Options
 
 * Bold constructs::              Toggle bold constructs in code
 * Slanted constructs::           Toggle slanted constructs (italics) in code
@@ -108,7 +108,7 @@ Scaled headings
 
 * Scaled heading sizes::         Specify rate of increase for scaled headings
 
-Advanced customisation (do-it-yourself)
+Advanced customization (do-it-yourself)
 
 * Tweak colors (DIY)::           Declare your own palette overrides
 * Font configs (DIY)::           Optimise for mixed typeface buffers
@@ -177,7 +177,7 @@ display that draw attention to details and important aspects in the
 design of the themes.  They also showcase the numerous customization
 options.
 
-@xref{Customisation Options, , Customisation options}.
+@xref{Customization Options}.
 
 @node Learn about the latest changes
 @section Learn about the latest changes
@@ -193,9 +193,8 @@ On older versions of Emacs, they can be installed using Emacs' package
 manager or manually from their code repository.
 
 Modus Operandi (light theme) and Modus Vivendi (dark) are normally
-distributed as standalone packages in Emacs-specific archives: GNU ELPA,
-MELPA, and MELPA Stable.  There also exist packages for GNU/Linux
-distributions.
+distributed as standalone packages in Emacs-specific archives.  There
+also exist packages for GNU/Linux distributions.
 
 @menu
 * Install from the archives::
@@ -206,13 +205,11 @@ distributions.
 @section Install from the archives
 
 @samp{modus-operandi-theme} and @samp{modus-vivendi-theme} are
-available from GNU ELPA.
+available from the GNU ELPA archive, which is configured by default.
 
 Prior to querying any package archive, make sure to have updated the
 index, with @samp{M-x package-refresh-contents}.  Then all you need to do is
 type @samp{M-x package-install} and specify the theme of your choice.
-
-GNU ELPA contains the last tagged release.
 
 @node Install on GNU/Linux
 @section Install on GNU/Linux
@@ -247,22 +244,22 @@ Users of either the Guix System (the distro) or just Guix (the package
 manager) can get each theme as a standalone package.
 
 @example
-guix package -i modus-operandi-theme
+guix package -i emacs-modus-operandi-theme
 @end example
 
 And/or:
 
 @example
-guix package -i modus-vivendi-theme
+guix package -i emacs-modus-vivendi-theme
 @end example
 
 @node Enable and load
 @chapter Enable and load
 
-This section documents how to load the theme of your
-choice and how to further control its initialization.  It also includes
-some sample code snippets that could help you in the task, especially if
-you intend to use both Modus Operandi and Modus Vivendi.
+This section documents how to load the theme of your choice and how to
+further control its initialization.  It also includes some sample code
+snippets that could help you in the task, especially if you intend to
+use both Modus Operandi and Modus Vivendi.
 
 @menu
 * Load automatically::
@@ -298,7 +295,7 @@ evaluate the expression:
 @section Load at a given time or at sunset/sunrise
 
 It is possible to schedule a time during the day at or after which a
-given theme will be loaded.@footnote{Contributed on Reddit by user b3n
+given theme will be loaded.@footnote{Contributed on Reddit by user @samp{b3n}
 @uref{https://www.reddit.com/r/emacs/comments/gdtqov/weekly_tipstricketc_thread/fq9186h/}.}
 
 @lisp
@@ -373,7 +370,7 @@ disabling a single target, but you get the idea.
 @section Configure options prior to loading
 
 If you plan to use both themes and wish to apply styles consistently
-(see @ref{Customisation Options}), you could define wrapper functions around
+(see @ref{Customization Options}), you could define wrapper functions around
 the standard @samp{load-theme} command.  These extend the simple function we
 presented in @ref{Toggle between the themes on demand}.
 
@@ -427,8 +424,8 @@ method were contributed on Reddit by user @samp{b3n},
     (modus-operandi-theme-load)))
 @end lisp
 
-@node Customisation Options
-@chapter Customisation Options
+@node Customization Options
+@chapter Customization Options
 
 The Modus themes are highly configurable, though they should work well
 without any further tweaks.
@@ -639,7 +636,7 @@ background and foreground to the minibuffer and other REPL prompts (like
 @samp{M-x shell} and @samp{M-x eshell}).  The difference between the two is that the
 latter has a more pronounced/noticeable effect than the former.
 
-The default is not to use any background for such prompts, while relying
+The default does not use any background for such prompts, while relying
 exclusively on an accented foreground color.
 
 @node Mode line
@@ -1182,13 +1179,13 @@ main font family.
 
 @ref{Font configs (DIY), , Font configurations for Org (and others)}.
 
-@node Advanced customisation (do-it-yourself)
-@chapter Advanced customisation (do-it-yourself)
+@node Advanced customization (do-it-yourself)
+@chapter Advanced customization (do-it-yourself)
 
 Unlike the predefined customization options which follow a
 straightforward pattern of allowing the user to quickly specify their
 preference, the themes also provide a more flexible, albeit difficult,
-mechanism to control things with precision (see @ref{Customisation Options}).
+mechanism to control things with precision (see @ref{Customization Options}).
 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
@@ -2043,7 +2040,7 @@ that secondary elements like sidebars can have the default (pure
 white/black) background.
 
 I will only cover this package if it ever supports the inverse effect:
-less intense colors (but still accessible) for supportive interfaces
+less intense colors (but still accessible) for ancillary interfaces
 and the intended styles for the content you are actually working on.
 
 @node Notes for individual packages
@@ -2302,13 +2299,13 @@ The Modus themes are a collective effort.  Every contribution counts.
 Protesilaos Stavrou.
 
 @item Code contributions
-Anders Johansson, Basil L@. Contovounisios,
+Anders Johansson, Basil L@. Contovounesios,
 Markus Beppler, Matthew Stevenson.
 
 @item Ideas and user feedback
 Aaron Jensen, Adam Spiers, Alex Griffin,
 Alex Peitsinis, Alexey Shmalko, Anders Johansson, André Alexandre
-Gomes, Arif Rezai, Basil L@. Contovounisios, Damien Cassou, Dario
+Gomes, Arif Rezai, Basil L@. Contovounesios, Damien Cassou, Dario
 Gjorgjevski, David Edmondson, Davor Rotim, Divan Santana, Gerry
 Agbobada, Gianluca Recchia, Iris Garcia, Len Trigg, Manuel Uberti,
 Mark Burton, Markus Beppler, Michael Goldenberg, Murilo Pereira,

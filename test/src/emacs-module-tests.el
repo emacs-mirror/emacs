@@ -21,13 +21,14 @@
 
 ;; Unit tests for the dynamic module facility.  See Info node `(elisp)
 ;; Writing Dynamic Modules'.  These tests make use of a small test
-;; module in test/data/emacs-module.
+;; module in the "emacs-module-resources" directory.
 
 ;;; Code:
 ;;; Prelude
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 (require 'help-fns)
 
 (defconst mod-test-emacs
@@ -35,8 +36,7 @@
   "File name of the Emacs binary currently running.")
 
 (eval-and-compile
-  (defconst mod-test-file
-    (expand-file-name "../test/data/emacs-module/mod-test" invocation-directory)
+  (defconst mod-test-file (ert-resource-file "mod-test")
     "File name of the module test file."))
 
 (require 'mod-test mod-test-file)
@@ -313,11 +313,11 @@ local reference."
           (text-quoting-style 'grave))
       (describe-function-1 #'mod-test-sum)
       (goto-char (point-min))
-      (while (re-search-forward "`[^']*/data/emacs-module/" nil t)
-        (replace-match "`data/emacs-module/"))
+      (while (re-search-forward "`[^']*/src/emacs-module-resources/" nil t)
+        (replace-match "`src/emacs-module-resources/"))
       (should (equal
                (buffer-substring-no-properties 1 (point-max))
-               (format "a module function in `data/emacs-module/mod-test%s'.
+               (format "a module function in `src/emacs-module-resources/mod-test%s'.
 
 (mod-test-sum a b)
 

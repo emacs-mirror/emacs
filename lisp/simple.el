@@ -119,13 +119,17 @@ If non-nil, the value is passed directly to `recenter'."
   :version "23.1")
 
 (defcustom next-error-message-highlight nil
-  "If non-nil, highlight the current error message in the `next-error' buffer."
-  :type 'boolean
+  "If non-nil, highlight the current error message in the `next-error' buffer.
+If the value is `keep', highlighting is permanent, so all visited error
+messages are highlighted; this helps to see what messages were visited."
+  :type '(choice (const :tag "Highlight the current error" t)
+                 (const :tag "Highlight all visited errors" keep)
+                 (const :tag "No highlighting" nil))
   :group 'next-error
   :version "28.1")
 
 (defface next-error-message
-  '((t (:inherit highlight)))
+  '((t (:inherit highlight :extend t)))
   "Face used to highlight the current error message in the `next-error' buffer."
   :group 'next-error
   :version "28.1")
@@ -482,9 +486,10 @@ buffer causes automatic display of the corresponding source code location."
   "Highlight the current error message in the ‘next-error’ buffer."
   (when next-error-message-highlight
     (with-current-buffer error-buffer
-      (when next-error--message-highlight-overlay
+      (when (and next-error--message-highlight-overlay
+                 (not (eq next-error-message-highlight 'keep)))
         (delete-overlay next-error--message-highlight-overlay))
-      (let ((ol (make-overlay (line-beginning-position) (line-end-position))))
+      (let ((ol (make-overlay (line-beginning-position) (1+ (line-end-position)))))
         ;; do not override region highlighting
         (overlay-put ol 'priority -50)
         (overlay-put ol 'face 'next-error-message)

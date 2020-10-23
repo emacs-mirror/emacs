@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(require 'macroexp)
 (require 'seq)
 (eval-when-compile (require 'cl-lib))
 
@@ -34,18 +33,16 @@
 
 (defface shortdoc-section
   '((((class color) (background dark))
-     (:inherit variable-pitch
-               :background "#303030" :extend t))
+     :inherit variable-pitch :background "#303030" :extend t)
     (((class color) (background light))
-     (:inherit variable-pitch
-               :background "#f0f0f0" :extend t)))
+     :inherit variable-pitch :background "#f0f0f0" :extend t))
   "Face used for a section.")
 
 (defface shortdoc-example
   '((((class color) (background dark))
-     (:background "#202020" :extend t))
+     :background "#202020" :extend t)
     (((class color) (background light))
-     (:background "#e8e8e8" :extend t)))
+     :background "#e8e8e8" :extend t))
   "Face used for examples.")
 
 (defvar shortdoc--groups nil)

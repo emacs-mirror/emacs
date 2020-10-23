@@ -134,6 +134,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Code:
 
+(require 'url)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
@@ -1374,10 +1376,16 @@ Optional argument SAME-WINDOW non-nil means show the URL in the
 currently selected window instead."
   (interactive (browse-url-interactive-arg "URL: "))
   (require 'url-handlers)
-  (let ((file-name-handler-alist
-         (cons (cons url-handler-regexp 'url-file-handler)
-               file-name-handler-alist)))
-    (if same-window (find-file url) (find-file-other-window url))))
+  (let ((parsed (url-generic-parse-url url))
+        (func (if same-window 'find-file 'find-file-other-window)))
+    (if (and (equal (url-type parsed) "file")
+             (file-directory-p (url-filename parsed)))
+        ;; It's a directory; just open it.
+        (funcall func (url-filename parsed))
+      (let ((file-name-handler-alist
+             (cons (cons url-handler-regexp 'url-file-handler)
+                   file-name-handler-alist)))
+        (funcall func url)))))
 
 (function-put 'browse-url-emacs 'browse-url-browser-kind 'internal)
 

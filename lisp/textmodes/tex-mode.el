@@ -3541,6 +3541,8 @@ There might be text before point."
       (process-send-region tex-chktex--process (point-min) (point-max))
       (process-send-eof tex-chktex--process))))
 
+(make-obsolete-variable 'tex-mode-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'tex-mode-load-hook)
 
 (provide 'tex-mode)

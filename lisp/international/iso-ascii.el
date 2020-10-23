@@ -1,4 +1,4 @@
-;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals
+;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1987, 1995, 1998, 2001-2020 Free Software Foundation,
 ;; Inc.
@@ -41,8 +41,7 @@
 
 (defcustom iso-ascii-convenient nil
   "Non-nil means `iso-ascii' should aim for convenience, not precision."
-  :type 'boolean
-  :group 'iso-ascii)
+  :type 'boolean)
 
 (defvar iso-ascii-display-table (make-display-table)
   "Display table used for ISO-ASCII mode.")

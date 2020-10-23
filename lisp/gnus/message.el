@@ -8863,6 +8863,8 @@ will then start up Emacs ready to compose mail."
 
 (provide 'message)
 
+(make-obsolete-variable 'message-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'message-load-hook)
 
 ;; Local Variables:

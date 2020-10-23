@@ -1,4 +1,4 @@
-;;; ffap.el --- find file (or url) at point
+;;; ffap.el --- find file (or url) at point  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995-1997, 2000-2020 Free Software Foundation, Inc.
 
@@ -1049,22 +1049,19 @@ out of NAME."
                         "/pub/gnu/emacs/elisp-archive/"))
     (substring name 2))))
 
-(defcustom ffap-rfc-path
-  (concat (ffap-host-to-filename "ftp.rfc-editor.org") "/in-notes/rfc%s.txt")
+(defcustom ffap-rfc-path "https://www.rfc-editor.org/in-notes/rfc%s.txt"
   "A `format' string making a filename for RFC documents.
-This can be an ange-ftp or Tramp remote filename to download, or
-a local filename if you have full set of RFCs locally.  See also
-`ffap-rfc-directories'."
+This can be an URL, an ange-ftp or Tramp remote filename to
+download, or a local filename if you have the full set of RFCs
+locally.  See also `ffap-rfc-directories'."
   :type 'string
-  :version "23.1"
-  :group 'ffap)
+  :version "28.1")
 
 (defcustom ffap-rfc-directories nil
   "A list of directories to look for RFC files.
 If a given RFC isn't in these then `ffap-rfc-path' is offered."
   :type '(repeat directory)
-  :version "23.1"
-  :group 'ffap)
+  :version "23.1")
 
 (defun ffap-rfc (name)
   (let ((num (match-string 1 name)))
@@ -1142,7 +1139,7 @@ Move point and return point if an adjustment was done."
   (unless dir-separator
     (setq dir-separator "/"))
   (let ((opoint (point))
-	point punct end whitespace-p)
+	point punct whitespace-p)
     (when (re-search-backward
 	   (regexp-quote dir-separator) (line-beginning-position) t)
       ;; Move to the beginning of the match..
@@ -1363,12 +1360,14 @@ Set to nil to disable matching gopher bookmarks.")
 (defun ffap--gopher-var-on-line ()
   "Return (KEY . VALUE) of gopher bookmark on current line."
   (save-excursion
-    (let ((eol (progn (end-of-line) (skip-chars-backward " ") (point)))
-          (bol (progn (beginning-of-line) (point))))
-     (when (re-search-forward ffap-gopher-regexp eol t)
-       (let ((key (match-string 1))
-             (val (buffer-substring-no-properties (match-end 0) eol)))
-         (cons (intern (downcase key)) val))))))
+    (end-of-line)
+    (skip-chars-backward " ")
+    (let ((eol (point)))
+      (beginning-of-line)
+      (when (re-search-forward ffap-gopher-regexp eol t)
+        (let ((key (match-string 1))
+              (val (buffer-substring-no-properties (match-end 0) eol)))
+          (cons (intern (downcase key)) val))))))
 
 (defun ffap-gopher-at-point ()
   "If point is inside a gopher bookmark block, return its URL.
@@ -1383,7 +1382,8 @@ Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
                          (point)))
              (bookmark (cl-loop for keyval = (ffap--gopher-var-on-line)
                                 while keyval collect keyval
-                                do (forward-line 1))))
+                                do (forward-line 1)
+                                until (eobp))))
         (when bookmark
           (setq ffap-string-at-point-region (list beg (point)))
           (let-alist (nconc bookmark '((type . "1") (port . "70")))
