@@ -151,6 +151,15 @@
                     `(insert-file-contents ,file))
                ,@body)))
 
+       (when ,upload-base
+         (dolist (f '("archive-contents"
+                      "simple-single-1.3.el"
+                      "simple-single-1.4.el"
+                      "simple-single-readme.txt"))
+           (ignore-errors
+             (delete-file
+              (expand-file-name f package-test-archive-upload-base))))
+         (delete-directory package-test-archive-upload-base))
        (when (file-directory-p package-test-user-dir)
          (delete-directory package-test-user-dir t))
 
