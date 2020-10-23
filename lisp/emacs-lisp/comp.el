@@ -128,6 +128,11 @@ before compilation.  Usable to modify the compiler environment."
   :type 'list
   :group 'comp)
 
+(defcustom comp-async-report-warnings-errors t
+  "Report warnings and errors from native asynchronous compilation."
+  :type 'boolean
+  :group 'comp)
+
 (defcustom comp-native-driver-options nil
   "Options passed verbatim to the native compiler's backend driver.
 Note that not all options are meaningful; typically only the options
@@ -2768,6 +2773,21 @@ processes from `comp-async-compilations'"
                           2))))
     comp-async-jobs-number))
 
+(defvar comp-last-scanned-async-output nil)
+(make-variable-buffer-local 'comp-last-scanned-async-output)
+(defun comp-accept-and-process-async-output (process)
+  "Accept PROCESS output and check for diagnostic messages."
+  (if comp-async-report-warnings-errors
+      (with-current-buffer (process-buffer process)
+        (save-excursion
+          (accept-process-output process)
+          (goto-char (or comp-last-scanned-async-output (point-min)))
+          (while (re-search-forward "^.*+?\\(?:Error\\|Warning\\): .*$"
+                                    nil t)
+            (display-warning 'comp (match-string 0)))
+          (setq comp-last-scanned-async-output (point-max))))
+    (accept-process-output process)))
+
 (defun comp-run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
 When compilation is finished, run `comp-async-all-done-hook' and
@@ -2822,7 +2842,7 @@ display a message."
                                (run-hook-with-args
                                 'comp-async-cu-done-hook
                                 source-file)
-                               (accept-process-output process)
+                               (comp-accept-and-process-async-output process)
                                (ignore-errors (delete-file temp-file))
                                (when (and load1
                                           (zerop (process-exit-status process)))
