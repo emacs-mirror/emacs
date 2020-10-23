@@ -195,6 +195,17 @@ pt-br	Rodrigo Real
 ru	Alex Ott
 sk	Miroslav Vaško
 
+** Update some files from their upstream.
+
+Some files in Emacs are copies of data files maintained elsewhere.
+Make sure that they are reasonably up-to-date.
+
+- etc/publicsuffix.txt
+https://publicsuffix.org/list/public_suffix_list.dat
+
+- leim/SKK-DIC/SKK-JISYO.L
+https://raw.githubusercontent.com/skk-dev/dict/master/SKK-JISYO.L
+
 * BUGS
 
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
