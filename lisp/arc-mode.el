@@ -51,17 +51,17 @@
 ;; ARCHIVE TYPES: Currently only the archives below are handled, but the
 ;; structure for handling just about anything is in place.
 ;;
-;;			Arc	Lzh	Zip	Zoo	Rar	7z	Ar
-;;			--------------------------------------------------
-;; View listing		Intern	Intern	Intern	Intern	Y	Y	Y
-;; Extract member	Y	Y	Y	Y	Y	Y	Y
-;; Save changed member	Y	Y	Y	Y	N	Y	Y
-;; Add new member	N	N	N	N	N	N	N
-;; Delete member	Y	Y	Y	Y	N	Y	N
-;; Rename member	Y	Y	N	N	N	N	N
-;; Chmod		-	Y	Y	-	N	N	N
-;; Chown		-	Y	-	-	N	N	N
-;; Chgrp		-	Y	-	-	N	N	N
+;;			Arc	Lzh	Zip	Zoo	Rar	7z	Ar	Squashfs
+;;			---------------------------------------------------------------
+;; View listing		Intern	Intern	Intern	Intern	Y	Y	Y	Y
+;; Extract member	Y	Y	Y	Y	Y	Y	Y	Y
+;; Save changed member	Y	Y	Y	Y	N	Y	Y	N
+;; Add new member	N	N	N	N	N	N	N	N
+;; Delete member	Y	Y	Y	Y	N	Y	N	N
+;; Rename member	Y	Y	N	N	N	N	N	N
+;; Chmod		-	Y	Y	-	N	N	N	N
+;; Chown		-	Y	-	-	N	N	N	N
+;; Chgrp		-	Y	-	-	N	N	N	N
 ;;
 ;; Special thanks to Bill Brodie <wbrodie@panix.com> for very useful tips
 ;; on the first released version of this package.
@@ -369,6 +369,24 @@ file.  Archive and member name will be added."
 	       (repeat :tag "Options"
 		       :inline t
 		       (string :format "%v"))))
+
+;; ------------------------------
+;; Squashfs archive configuration
+
+(defgroup archive-squashfs nil
+  "Squashfs-specific options to archive."
+  :group 'archive)
+
+(defcustom archive-squashfs-extract '("rdsquashfs" "-c")
+  "Program and its options to run in order to extract a squashsfs file member.
+Extraction should happen to standard output.  Archive and member name will
+be added."
+  :type '(list (string :tag "Program")
+	       (repeat :tag "Options"
+		       :inline t
+		       (string :format "%v")))
+  :version "28.1"
+  :group 'archive-squashfs)
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Variables
@@ -741,6 +759,7 @@ archive.
                 (re-search-forward "Rar!" (+ (point) 100000) t))
            'rar-exe)
 	  ((looking-at "7z\274\257\047\034") '7z)
+          ((looking-at "hsqs") 'squashfs)
 	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 
@@ -2280,6 +2299,85 @@ NAME is expected to be the 16-bytes part of an ar record."
    descr
    '("ar" "r")))
 
+;; -------------------------------------------------------------------------
+;;; Section Squashfs archives.
+
+(defun archive-squashfs-summarize (&optional file)
+  (unless file
+    (setq file buffer-file-name))
+  (let ((copy (file-local-copy file))
+        (files ()))
+    (with-temp-buffer
+      (call-process "unsquashfs" nil t nil "-ll" (or file copy))
+      (when copy
+        (delete-file copy))
+      (goto-char (point-min))
+      (search-forward-regexp "[drwxl\\-]\\{10\\}")
+      (beginning-of-line)
+      (while (looking-at (concat
+                          "^\\(.[rwx\\-]\\{9\\}\\) " ;Mode
+                          "\\(.+\\)/\\(.+\\) "       ;user/group
+                          "\\(.+\\) "                ;size
+                          "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) " ;date
+                          "\\([0-9]\\{2\\}:[0-9]\\{2\\}\\) " ;time
+                          "\\(.+\\)\n"))                     ;Filename
+        (let* ((name (match-string 7))
+               (flags (match-string 1))
+               (uid (match-string 2))
+               (gid (match-string 3))
+               (size (string-to-number (match-string 4)))
+               (date (match-string 5))
+               (time (match-string 6))
+               (date-time)
+               (mode))
+          ;; Only list directory and regular files
+          (when (or (eq (aref flags 0) ?d)
+                    (eq (aref flags 0) ?-))
+            (when (equal name "squashfs-root")
+              (setf name "/"))
+            ;; Remove 'squashfs-root/' from filenames.
+            (setq name (string-replace "squashfs-root/" "" name))
+            (setq date-time (concat date " " time))
+            (setq mode (logior
+                        (cond
+                         ((eq (aref flags 0) ?d) #o40000)
+                         (t 0))
+                        ;; Convert symbolic to octal representation.
+                        (file-modes-symbolic-to-number
+                         (concat
+                          "u=" (string-replace "-" "" (substring flags 1 4))
+                          ",g=" (string-replace "-" "" (substring flags 4 7))
+                          ",o=" (string-replace "-" ""
+                                                (substring flags 7 10))))))
+            (push (archive--file-desc name name mode size
+                                      date-time :uid uid :gid gid)
+                  files)))
+        (goto-char (match-end 0))))
+    (archive--summarize-descs (nreverse files))))
+
+(defun archive-squashfs-extract-by-stdout (archive name command
+                                                   &optional stderr-test)
+  (let ((stderr-file (make-temp-file "arc-stderr")))
+    (unwind-protect
+	(prog1
+	    (apply #'call-process
+		   (car command)
+		   nil
+		   (if stderr-file (list t stderr-file) t)
+		   nil
+		   (append (cdr command) (list name archive)))
+	  (with-temp-buffer
+	    (insert-file-contents stderr-file)
+	    (goto-char (point-min))
+	    (when (if (stringp stderr-test)
+		      (not (re-search-forward stderr-test nil t))
+		    (> (buffer-size) 0))
+	      (message "%s" (buffer-string)))))
+      (if (file-exists-p stderr-file)
+          (delete-file stderr-file)))))
+
+(defun archive-squashfs-extract (archive name)
+  (archive-squashfs-extract-by-stdout archive name archive-squashfs-extract))
 
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.

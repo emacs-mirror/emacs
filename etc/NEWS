@@ -308,6 +308,9 @@ and variables.
 
 ** Archive mode
 
+---
+*** Archive Mode can now parse .squashfs files.
+
 *** Can now modify members of 'ar' archives.
 
 *** Display of summaries unified between backends.
