@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'icalendar)
 
 ;; ======================================================================
@@ -51,18 +52,13 @@
   (replace-regexp-in-string "[ \t\n]+\\'" ""
                             (replace-regexp-in-string "\\`[ \t\n]+" "" string)))
 
-(defconst icalendar-tests--data-dir
-  (expand-file-name "test/data/icalendar" source-directory))
-
 (defun icalendar-tests--get-file-contents (filename)
   "Return contents of file in test data directory named FILENAME."
   (with-temp-buffer
-    (let ((f1 (expand-file-name filename icalendar-tests--data-dir))
-          (f2 (expand-file-name filename "../../data/icalendar"))
-          (coding-system-for-read 'raw-text)
+    (let ((coding-system-for-read 'raw-text)
           (inhibit-eol-conversion t))
       (insert-file-contents-literally
-       (if (file-exists-p f1) f1 f2))
+       (ert-resource-file filename))
       (buffer-string))))
 
 ;; ======================================================================
