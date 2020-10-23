@@ -92,10 +92,14 @@
     " "))
 
 (define-ibuffer-column erc-server-name (:name "Server")
-  (if (and erc-server-process (processp erc-server-process))
-      (with-current-buffer (process-buffer erc-server-process)
-	(or erc-server-announced-name erc-session-server))
-    ""))
+  (or
+   (when (and erc-server-process (processp erc-server-process))
+     (let ((buffer (process-buffer erc-server-process)))
+       (if (buffer-live-p buffer)
+         (with-current-buffer buffer
+           (or erc-server-announced-name erc-session-server))
+         "(closed)")))
+   ""))
 
 (define-ibuffer-column erc-target (:name "Target")
   (if (eq major-mode 'erc-mode)
