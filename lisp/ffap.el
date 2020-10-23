@@ -1,4 +1,4 @@
-;;; ffap.el --- find file (or url) at point
+;;; ffap.el --- find file (or url) at point  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995-1997, 2000-2020 Free Software Foundation, Inc.
 
@@ -1139,7 +1139,7 @@ Move point and return point if an adjustment was done."
   (unless dir-separator
     (setq dir-separator "/"))
   (let ((opoint (point))
-	point punct end whitespace-p)
+	point punct whitespace-p)
     (when (re-search-backward
 	   (regexp-quote dir-separator) (line-beginning-position) t)
       ;; Move to the beginning of the match..
@@ -1360,12 +1360,14 @@ Set to nil to disable matching gopher bookmarks.")
 (defun ffap--gopher-var-on-line ()
   "Return (KEY . VALUE) of gopher bookmark on current line."
   (save-excursion
-    (let ((eol (progn (end-of-line) (skip-chars-backward " ") (point)))
-          (bol (progn (beginning-of-line) (point))))
-     (when (re-search-forward ffap-gopher-regexp eol t)
-       (let ((key (match-string 1))
-             (val (buffer-substring-no-properties (match-end 0) eol)))
-         (cons (intern (downcase key)) val))))))
+    (end-of-line)
+    (skip-chars-backward " ")
+    (let ((eol (point)))
+      (beginning-of-line)
+      (when (re-search-forward ffap-gopher-regexp eol t)
+        (let ((key (match-string 1))
+              (val (buffer-substring-no-properties (match-end 0) eol)))
+          (cons (intern (downcase key)) val))))))
 
 (defun ffap-gopher-at-point ()
   "If point is inside a gopher bookmark block, return its URL.
