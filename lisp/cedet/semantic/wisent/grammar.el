@@ -427,7 +427,7 @@ Menu items are appended to the common grammar menu.")
   "\n;; It is derived from the grammar in the ECMAScript Language
 ;; Specification published at
 ;;
-;; http://www.ecma-international.org/publications/standards/Ecma-262.htm
+;; https://www.ecma-international.org/publications/standards/Ecma-262.htm
 ;;
 ;; and redistributed under the following license:
 ;;

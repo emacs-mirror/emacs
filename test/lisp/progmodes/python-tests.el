@@ -204,7 +204,7 @@ aliqua."
 
 ;;; Indentation
 
-;; See: http://www.python.org/dev/peps/pep-0008/#indentation
+;; See: https://www.python.org/dev/peps/pep-0008/#indentation
 
 (ert-deftest python-indent-pep8-1 ()
   "First pep8 case."

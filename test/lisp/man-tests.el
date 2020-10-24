@@ -44,7 +44,7 @@ sinl [sin]           (3)  - sine function"
 sin(3), sinf(3), sinl(3) - sine functions"
      . (#("sin(3)" 0 6 (help-echo "sine functions")) #("sinf(3)" 0 7 (help-echo "sine functions")) #("sinl(3)" 0 7 (help-echo "sine functions"))))
     ;; SunOS, Solaris
-    ;; http://docs.oracle.com/cd/E19455-01/805-6331/usradm-7/index.html
+    ;; https://docs.oracle.com/cd/E19455-01/805-6331/usradm-7/index.html
     ;; SunOS 4
     ("\
 tset, reset (1)    - establish or restore terminal characteristics"
@@ -61,7 +61,7 @@ cawf, nroff (1) - C version of the nroff-like, Amazingly Workable (text) Formatt
 whatis (5) - database of online manual pages"
      . (#("cawf(1)" 0 7 (help-echo "C version of the nroff-like, Amazingly Workable (text) Formatter")) #("nroff(1)" 0 8 (help-echo "C version of the nroff-like, Amazingly Workable (text) Formatter")) #("whatis(5)" 0 9 (help-echo "database of online manual pages"))))
     ;; HP-UX
-    ;; http://docstore.mik.ua/manuals/hp-ux/en/B2355-60130/man.1.html
+    ;; https://docstore.mik.ua/manuals/hp-ux/en/B2355-60130/man.1.html
     ;; Assuming that the line break in the zgrep description was
     ;; introduced by the man page formatting.
     ("\

@@ -27,7 +27,7 @@ the absence of any other determinant, we are using the term
 created these APIs, and because all of the classes and functions still
 begin with the letters "NS".
 
-(See http://en.wikipedia.org/wiki/Nextstep)
+(See https://en.wikipedia.org/wiki/Nextstep)
 
 This Emacs port was first released in the early 1990's on the NeXT
 computer, and was successively updated to OpenStep, Rhapsody, Mac OS

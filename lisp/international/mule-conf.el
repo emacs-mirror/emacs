@@ -39,7 +39,7 @@
 ;; Society of Japan/Information Technology Standards Commission of
 ;; Japan (IPSJ/ITSCJ) at https://www.itscj.ipsj.or.jp/itscj_english/.
 ;; Standards docs equivalent to iso-2022 and iso-8859 are at
-;; http://www.ecma.ch/.
+;; https://www.ecma.ch/.
 
 ;; FWIW, http://www.microsoft.com/globaldev/ lists the following for
 ;; MS Windows, which are presumably the only charsets we really need

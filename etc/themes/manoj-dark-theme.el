@@ -62,7 +62,7 @@
 ;; org-mode, CUA-mode, apt-utils, bbdb, compilation buffers, changelog
 ;; mode, diff and ediff, eshell, and more. You need emacs-goodies
 ;; package on Debian to use this.  See the wiki page at
-;; http://www.emacswiki.org/cgi-bin/wiki?ColorTheme for details. The
+;; https://www.emacswiki.org/cgi-bin/wiki?ColorTheme for details. The
 ;; project home page is at https://gna.org/projects/color-theme.
 
 ;;; Code:

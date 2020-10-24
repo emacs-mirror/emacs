@@ -141,7 +141,7 @@
           (pcomplete-here* (pcomplete-dirs-or-entries)))))))
 
 
-;;;; ack - http://betterthangrep.com
+;;;; ack - https://betterthangrep.com
 
 ;; Usage:
 ;;   - To complete short options type '-' first

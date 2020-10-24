@@ -29,7 +29,7 @@
 ;;    `ldapsearch' to actually perform the searches.  That program can be
 ;;    found in all LDAP developer kits such as:
 ;;      - UM-LDAP 3.3 (http://www.umich.edu/~dirsvcs/ldap/)
-;;      - OpenLDAP (http://www.openldap.org/)
+;;      - OpenLDAP (https://www.openldap.org/)
 
 ;;; Code:
 

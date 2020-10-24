@@ -135,7 +135,7 @@
 ;; values enable completion for both CPython and IPython, and probably
 ;; any readline based shell (it's known to work with PyPy).  If your
 ;; Python installation lacks readline (like CPython for Windows),
-;; installing pyreadline (URL `http://ipython.org/pyreadline.html')
+;; installing pyreadline (URL `https://ipython.org/pyreadline.html')
 ;; should suffice.  To troubleshoot why you are not getting any
 ;; completions, you can try the following in your Python shell:
 

@@ -39,7 +39,7 @@
 ;;
 ;; SGR control sequences are defined in section 3.8.117 of the ECMA-48
 ;; standard (identical to ISO/IEC 6429), which is freely available as a
-;; PDF file <URL:http://www.ecma-international.org/publications/standards/Ecma-048.htm>.
+;; PDF file <URL:https://www.ecma-international.org/publications/standards/Ecma-048.htm>.
 ;; The "Graphic Rendition Combination Mode (GRCM)" implemented is
 ;; "cumulative mode" as defined in section 7.2.8.  Cumulative mode
 ;; means that whenever possible, SGR control sequences are combined
@@ -84,7 +84,7 @@ This translation effectively colorizes strings and regions based upon
 SGR control sequences embedded in the text.  SGR (Select Graphic
 Rendition) control sequences are defined in section 8.3.117 of the
 ECMA-48 standard (identical to ISO/IEC 6429), which is freely available
-at <URL:http://www.ecma-international.org/publications/standards/Ecma-048.htm>
+at <URL:https://www.ecma-international.org/publications/standards/Ecma-048.htm>
 as a PDF file."
   :version "21.1"
   :group 'processes)

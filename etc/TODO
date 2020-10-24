@@ -402,7 +402,7 @@ built-in.
 
 See the discussion of bug#39799 for more details about this task.
 Another relevant resource is the Unicode Technical Standard #51
-"Unicode Emoji" (http://www.unicode.org/reports/tr51/).
+"Unicode Emoji" (https://www.unicode.org/reports/tr51/).
 
 ** Extend text-properties and overlays
 
@@ -497,7 +497,7 @@ https://savannah.nongnu.org/projects/emacs-rtf/, which is still in
 very early stages.
 
 Another place to look is the Wikipedia article at
-http://en.wikipedia.org/wiki/Rich_Text_Format.  It currently points to
+https://en.wikipedia.org/wiki/Rich_Text_Format.  It currently points to
 the latest spec of RTF v1.9.1 at
 https://web.archive.org/web/20190708132914/http://www.kleinlercher.at/tools/Windows_Protocols/Word2007RTFSpec9.pdf
 

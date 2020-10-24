@@ -13392,7 +13392,7 @@
 
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	Add Java ANt error detection as described in document
-	http://ant.apache.org/faq.html
+	https://ant.apache.org/faq.html
 
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
 

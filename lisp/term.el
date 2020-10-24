@@ -2805,7 +2805,7 @@ See `term-prompt-regexp'."
 
 ;; References:
 ;; [ctlseqs]: http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
-;; [ECMA-48]: http://www.ecma-international.org/publications/standards/Ecma-048.htm
+;; [ECMA-48]: https://www.ecma-international.org/publications/standards/Ecma-048.htm
 ;; [vt100]: https://vt100.net/docs/vt100-ug/chapter3.html
 
 (defconst term-control-seq-regexp

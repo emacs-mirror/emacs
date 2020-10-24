@@ -408,7 +408,7 @@ This string is processed using `format-time-string'."
 ;;; Flood-related
 
 ;; Most of this is courtesy of Jorgen Schaefer and Circe
-;; (http://www.nongnu.org/circe)
+;; (https://www.nongnu.org/circe)
 
 (defcustom erc-server-flood-margin 10
   "A margin on how much excess data we send.

@@ -343,7 +343,7 @@ abc(foo
     tee
       .qux)
 
-# http://stackoverflow.com/questions/17786563/emacs-ruby-mode-if-expressions-indentation
+# https://stackoverflow.com/questions/17786563/emacs-ruby-mode-if-expressions-indentation
 tee = if foo
         bar
       else
