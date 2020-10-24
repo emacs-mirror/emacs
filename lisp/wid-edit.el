@@ -3585,7 +3585,30 @@ To use this type, you must define :match or :match-alternatives."
   :value-to-internal (lambda (widget value)
 		       (if (widget-apply widget :match value)
                            (widget-sexp-value-to-internal widget value)
-			 value)))
+                         value))
+  :value-to-external (lambda (widget value)
+                       ;; We expect VALUE to be a string, so we can convert it
+                       ;; into the external format just by `read'ing it.
+                       ;; But for a restricted-sexp widget with a bad default
+                       ;; value, we might end up calling read with a nil
+                       ;; argument, resulting in an undesired prompt to the
+                       ;; user.  A bad default value is not always a big
+                       ;; problem, but might end up in a messed up buffer,
+                       ;; so display a warning here.  (Bug#25152)
+                       (unless (stringp value)
+                         (display-warning
+                          'widget-bad-default-value
+                          (format-message
+                           "\nA widget of type %S has a bad default value.
+value: %S
+match function: %S
+match-alternatives: %S"
+                           (widget-type widget)
+                           value
+                           (widget-get widget :match)
+                           (widget-get widget :match-alternatives))
+                          :warning))
+                       (read value)))
 
 (defun widget-restricted-sexp-match (widget value)
   (let ((alternatives (widget-get widget :match-alternatives))
