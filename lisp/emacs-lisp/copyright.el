@@ -1,4 +1,4 @@
-;;; copyright.el --- update the copyright notice in current buffer
+;;; copyright.el --- update the copyright notice in current buffer  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-1995, 1998, 2001-2020 Free Software Foundation,
 ;; Inc.
@@ -37,14 +37,12 @@
 (defcustom copyright-limit 2000
   "Don't try to update copyright beyond this position unless interactive.
 A value of nil means to search whole buffer."
-  :group 'copyright
   :type '(choice (integer :tag "Limit")
 		 (const :tag "No limit")))
 
 (defcustom copyright-at-end-flag nil
   "Non-nil means to search backwards from the end of the buffer for copyright.
 This is useful for ChangeLogs."
-  :group 'copyright
   :type 'boolean
   :version "23.1")
 ;;;###autoload(put 'copyright-at-end-flag 'safe-local-variable 'booleanp)
@@ -56,7 +54,6 @@ This is useful for ChangeLogs."
 \\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "What your copyright notice looks like.
 The second \\( \\) construct must match the years."
-  :group 'copyright
   :type 'regexp)
 
 (defcustom copyright-names-regexp ""
@@ -64,7 +61,6 @@ The second \\( \\) construct must match the years."
 Only copyright lines where the name matches this regexp will be updated.
 This allows you to avoid adding years to a copyright notice belonging to
 someone else or to a group for which you do not work."
-  :group 'copyright
   :type 'regexp)
 
 ;; The worst that can happen is a malicious regexp that overflows in
@@ -76,7 +72,6 @@ someone else or to a group for which you do not work."
  "\\(\\s *\\)\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "Match additional copyright notice years.
 The second \\( \\) construct must match the years."
-  :group 'copyright
   :type 'regexp)
 
 ;; See "Copyright Notices" in maintain.info.
@@ -87,7 +82,6 @@ The second \\( \\) construct must match the years."
 For example: 2005, 2006, 2007, 2008 might be replaced with 2005-2008.
 If you use ranges, you should add an explanatory note in a README file.
 The function `copyright-fix-years' respects this variable."
-  :group 'copyright
   :type 'boolean
   :version "24.1")
 
@@ -96,7 +90,6 @@ The function `copyright-fix-years' respects this variable."
 (defcustom copyright-query 'function
   "If non-nil, ask user before changing copyright.
 When this is `function', only ask when called non-interactively."
-  :group 'copyright
   :type '(choice (const :tag "Do not ask")
 		 (const :tag "Ask unless interactive" function)
 		 (other :tag "Ask" t)))
