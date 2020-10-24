@@ -22,13 +22,10 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'epg)
 
 (defvar epg-tests-context nil)
-
-(defvar epg-tests-data-directory
-  (expand-file-name "data/epg" (getenv "EMACS_TEST_DIRECTORY"))
-  "Directory containing epg test data.")
 
 (defconst epg-tests--config-program-alist
   ;; The default `epg-config--program-alist' requires gpg2 2.1 or
@@ -85,8 +82,7 @@
 		'(with-temp-file (expand-file-name
                                   "gpg-agent.conf" epg-tests-home-directory)
                    (insert "pinentry-program "
-                           (expand-file-name "dummy-pinentry"
-                                             epg-tests-data-directory)
+                           (ert-resource-file "dummy-pinentry")
                            "\n")
                    (epg-context-set-passphrase-callback
                     context
@@ -94,11 +90,11 @@
 	   ,(if require-public-key
 		'(epg-import-keys-from-file
 		  context
-		  (expand-file-name "pubkey.asc" epg-tests-data-directory)))
+                  (ert-resource-file "pubkey.asc")))
 	   ,(if require-secret-key
 		'(epg-import-keys-from-file
 		  context
-		  (expand-file-name "seckey.asc" epg-tests-data-directory)))
+                  (ert-resource-file "seckey.asc")))
 	   (with-temp-buffer
 	     (make-local-variable 'epg-tests-context)
 	     (setq epg-tests-context context)
