@@ -585,7 +585,7 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
   "Cancel the world clock timer."
   (when world-clock--timer
     (cancel-timer world-clock--timer)
-    (setq world-clock--timer nil))))
+    (setq world-clock--timer nil)))
 
 (defun world-clock-update (&optional _arg _noconfirm)
   "Update the `world-clock' buffer."
