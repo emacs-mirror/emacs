@@ -101,6 +101,13 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   if (EQ (xw->type, Qwebkit))
     {
       block_input ();
+      WebKitWebContext *webkit_context = webkit_web_context_get_default ();
+
+# if WEBKIT_CHECK_VERSION (2, 26, 0)
+      if (!webkit_web_context_get_sandbox_enabled (webkit_context))
+	webkit_web_context_set_sandbox_enabled (webkit_context, TRUE);
+# endif
+
       xw->widgetwindow_osr = gtk_offscreen_window_new ();
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
@@ -139,7 +146,7 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
                             "load-changed",
                             G_CALLBACK (webkit_view_load_changed_cb), xw);
 
-          g_signal_connect (G_OBJECT (webkit_web_context_get_default ()),
+          g_signal_connect (G_OBJECT (webkit_context),
                             "download-started",
                             G_CALLBACK (webkit_download_cb), xw);
 
