@@ -1,4 +1,4 @@
-;;; khmer.el --- support for Khmer -*- coding: utf-8 -*-
+;;; khmer.el --- support for Khmer -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)

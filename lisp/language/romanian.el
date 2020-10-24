@@ -1,4 +1,4 @@
-;;; romanian.el --- support for Romanian -*- coding: utf-8 -*-
+;;; romanian.el --- support for Romanian -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 1998, 2001-2020 Free Software Foundation, Inc.
 
