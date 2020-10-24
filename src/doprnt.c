@@ -150,8 +150,8 @@ parse_format_integer (char const *fmt, int *value)
    Emacs version contains doprnt callers that need such formats.
    Having a separate function helps GCC optimize doprnt better.  */
 static ptrdiff_t
-doprnt_nul (char *buffer, ptrdiff_t bufsize, char const *format,
-	    char const *format_end, va_list ap)
+doprnt_non_null_end (char *buffer, ptrdiff_t bufsize, char const *format,
+		     char const *format_end, va_list ap)
 {
   USE_SAFE_ALLOCA;
   ptrdiff_t fmtlen = format_end - format;
@@ -182,7 +182,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
   if (format_end && !memchr (format, 0, format_end - format))
-    return doprnt_nul (buffer, bufsize, format, format_end, ap);
+    return doprnt_non_null_end (buffer, bufsize, format, format_end, ap);
 
   const char *fmt = format;	/* Pointer into format string.  */
   char *bufptr = buffer;	/* Pointer into output buffer.  */
