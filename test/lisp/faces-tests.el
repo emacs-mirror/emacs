@@ -23,12 +23,8 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'faces)
-
-(defvar faces--test-data-dir
-  (expand-file-name "../data/"
-                    (file-name-directory (or load-file-name
-                                             buffer-file-name))))
 
 (defgroup faces--test nil ""
   :group 'faces--test)
@@ -122,7 +118,7 @@
   (should (equal (face-attribute 'spiff-changed-face :extend) t))
   (should (equal (face-attribute 'spiff-added :extend) 'unspecified))
   (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
-  (add-to-list 'custom-theme-load-path (concat faces--test-data-dir "themes"))
+  (add-to-list 'custom-theme-load-path (ert-resource-directory))
   (load-theme 'faces-test-dark t t)
   (load-theme 'faces-test-light t t)
   (should (equal (face-attribute 'faces--test-inherit-extend :extend)
