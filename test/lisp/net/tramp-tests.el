@@ -4283,6 +4283,21 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (string-match "\\`foo" (buffer-string))))
 
 	;; Cleanup.
+	(ignore-errors (delete-process proc)))
+
+      ;; PTY.
+      (unwind-protect
+	  (with-temp-buffer
+	    (if (not (tramp--test-sh-p))
+		(should-error
+		 (start-file-process "test4" (current-buffer) nil)
+		 :type 'wrong-type-argument)
+	      (setq proc (start-file-process "test4" (current-buffer) nil))
+	      (should (processp proc))
+	      (should (equal (process-status proc) 'run))
+	      (should (stringp (process-tty-name proc)))))
+
+	;; Cleanup.
 	(ignore-errors (delete-process proc))))))
 
 (ert-deftest tramp-test30-make-process ()
