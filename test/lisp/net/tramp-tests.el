@@ -4367,6 +4367,22 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (string-match "foo" (buffer-string))))
 
 	;; Cleanup.
+	(ignore-errors (delete-process proc)))
+
+      ;; PTY.
+      (unwind-protect
+	  (with-temp-buffer
+	    ;; It works only for tramp-sh.el, and not direct async processes.
+	    (if (or (not (tramp--test-sh-p)) (tramp-direct-async-process-p))
+		(should-error
+		 (start-file-process "test4" (current-buffer) nil)
+		 :type 'wrong-type-argument)
+	      (setq proc (start-file-process "test4" (current-buffer) nil))
+	      (should (processp proc))
+	      (should (equal (process-status proc) 'run))
+	      (should (stringp (process-tty-name proc)))))
+
+	;; Cleanup.
 	(ignore-errors (delete-process proc))))))
 
 (defmacro tramp--test--deftest-direct-async-process

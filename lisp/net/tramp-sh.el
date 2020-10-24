@@ -2809,7 +2809,7 @@ implementation will be used."
 	    (signal 'wrong-type-argument (list #'stringp name)))
 	  (unless (or (null buffer) (bufferp buffer) (stringp buffer))
 	    (signal 'wrong-type-argument (list #'stringp buffer)))
-	  (unless (consp command)
+	  (unless (or (null command) (consp command))
 	    (signal 'wrong-type-argument (list #'consp command)))
 	  (unless (or (null coding)
 		      (and (symbolp coding) (memq coding coding-system-list))
