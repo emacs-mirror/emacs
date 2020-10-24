@@ -27,7 +27,7 @@
 (defvar safe-functions)
 
 ;;; These forms are all considered safe
-(defconst testcover-unsafep-safe
+(defconst unsafep-tests--safe
   '(((lambda (x) (* x 2)) 14)
     (apply 'cdr (mapcar (lambda (x) (car x)) y))
     (cond ((= x 4) 5) (t 27))
@@ -47,7 +47,7 @@
   "List of forms that `unsafep' should decide are safe.")
 
 ;;; These forms are considered unsafe
-(defconst testcover-unsafep-unsafe
+(defconst unsafep-tests--unsafe
   '(( (add-to-list x y)
       . (unquoted x))
     ( (add-to-list y x)
@@ -106,25 +106,23 @@
     ( (let (1) 2)
       . (variable 1))
     )
-  "A-list of (FORM . REASON)... that`unsafep' should decide are unsafe.")
+  "A-list of (FORM . REASON)... that `unsafep' should decide are unsafe.")
 
 (ert-deftest test-unsafep/safe ()
-  "Executes all unsafep tests and displays the coverage results."
+  "Check safe forms with safe-functions nil."
   (let (safe-functions)
-    (dolist (x testcover-unsafep-safe)
+    (dolist (x unsafep-tests--safe)
       (should-not (unsafep x)))))
 
 (ert-deftest test-unsafep/message ()
-  ;; FIXME: This failed after converting these tests from testcover to
-  ;; ert.
-  :expected-result :failed
-  (should-not '(dolist (x y) (message "here: %s" x)))
-  (should-not '(dotimes (x 14 (* x 2)) (message "here: %d" x))))
+  "Check that message is considered unsafe."
+  (should (unsafep '(dolist (x y) (message "here: %s" x))))
+  (should (unsafep '(dotimes (x 14 (* x 2)) (message "here: %d" x)))))
 
 (ert-deftest test-unsafep/unsafe ()
-  "Executes all unsafep tests and displays the coverage results."
+  "Check unsafe forms with safe-functions nil."
   (let (safe-functions)
-    (dolist (x testcover-unsafep-unsafe)
+    (dolist (x unsafep-tests--unsafe)
       (should (equal (unsafep (car x)) (cdr x))))))
 
 (ert-deftest test-unsafep/safe-functions-t ()
