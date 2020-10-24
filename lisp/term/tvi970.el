@@ -1,4 +1,4 @@
-;;; tvi970.el --- terminal support for the Televideo 970
+;;; tvi970.el --- terminal support for the Televideo 970  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
 

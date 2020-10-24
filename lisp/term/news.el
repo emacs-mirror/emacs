@@ -1,4 +1,4 @@
-;;; news.el --- keypad and function key bindings for the Sony NEWS keyboard
+;;; news.el --- keypad and function key bindings for the Sony NEWS keyboard  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1989, 1993, 2001-2020 Free Software Foundation, Inc.
 

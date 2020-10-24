@@ -1,4 +1,4 @@
-;;; AT386.el --- terminal support package for IBM AT keyboards
+;;; AT386.el --- terminal support package for IBM AT keyboards  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
 

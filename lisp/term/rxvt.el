@@ -1,4 +1,4 @@
-;;; rxvt.el --- define function key sequences and standard colors for rxvt
+;;; rxvt.el --- define function key sequences and standard colors for rxvt  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
