@@ -1,4 +1,4 @@
-;;; bindat.el --- binary data structure packing and unpacking.  -*- lexical-binding: t -*-
+;;; bindat.el --- binary data structure packing and unpacking.
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -193,8 +193,8 @@
 ;; Helper functions for structure unpacking.
 ;; Relies on dynamic binding of BINDAT-RAW and BINDAT-IDX
 
-(defvar bindat-raw nil)
-(defvar bindat-idx nil)
+(defvar bindat-raw)
+(defvar bindat-idx)
 
 (defun bindat--unpack-u8 ()
   (prog1
@@ -276,7 +276,7 @@
    (t nil)))
 
 (defun bindat--unpack-group (spec)
-  (let (struct)
+  (let (struct last)
     (while spec
       (let* ((item (car spec))
 	     (field (car item))
@@ -330,21 +330,21 @@
 		  (setq data (bindat--unpack-group (cdr case))
 			cases nil)))))
 	 (t
-          (setq data (bindat--unpack-item type len vectype))))
+	  (setq data (bindat--unpack-item type len vectype)
+		last data)))
 	(if data
 	    (if field
 		(setq struct (cons (cons field data) struct))
 	      (setq struct (append data struct))))))
     struct))
 
-(defun bindat-unpack (spec raw &optional idx)
-  "Return structured data according to SPEC for binary data in RAW.
-RAW is a unibyte string or vector.
-Optional third arg IDX specifies the starting offset in RAW."
-  (when (multibyte-string-p raw)
+(defun bindat-unpack (spec bindat-raw &optional bindat-idx)
+  "Return structured data according to SPEC for binary data in BINDAT-RAW.
+BINDAT-RAW is a unibyte string or vector.
+Optional third arg BINDAT-IDX specifies the starting offset in BINDAT-RAW."
+  (when (multibyte-string-p bindat-raw)
     (error "String is multibyte"))
-  (setq bindat-raw raw)
-  (setq bindat-idx (or idx 0))
+  (unless bindat-idx (setq bindat-idx 0))
   (bindat--unpack-group spec))
 
 (defun bindat-get-field (struct &rest field)
@@ -373,70 +373,74 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (ip . 4)))
 
 (defun bindat--length-group (struct spec)
-  (while spec
-    (let* ((item (car spec))
-           (field (car item))
-           (type (nth 1 item))
-           (len (nth 2 item))
-           (vectype (and (eq type 'vec) (nth 3 item)))
-           (tail 3))
-      (setq spec (cdr spec))
-      (if (and (consp field) (eq (car field) 'eval))
-          (setq field (eval (car (cdr field)))))
-      (if (and type (consp type) (eq (car type) 'eval))
-          (setq type (eval (car (cdr type)))))
-      (if (and len (consp len) (eq (car len) 'eval))
-          (setq len (eval (car (cdr len)))))
-      (if (memq field '(eval fill align struct union))
-          (setq tail 2
-                len type
-                type field
-                field nil))
-      (if (and (consp len) (not (eq type 'eval)))
-          (setq len (apply #'bindat-get-field struct len)))
-      (if (not len)
-          (setq len 1))
-      (while (eq type 'vec)
-        (if (consp vectype)
-            (setq len (* len (nth 1 vectype))
-                  type (nth 2 vectype))
-          (setq type (or vectype 'u8)
-                vectype nil)))
-      (cond
-       ((eq type 'eval)
-        (if field
-            (setq struct (cons (cons field (eval len)) struct))
-          (eval len)))
-       ((eq type 'fill)
-        (setq bindat-idx (+ bindat-idx len)))
-       ((eq type 'align)
-        (while (/= (% bindat-idx len) 0)
-          (setq bindat-idx (1+ bindat-idx))))
-       ((eq type 'struct)
-        (bindat--length-group
-         (if field (bindat-get-field struct field) struct) (eval len)))
-       ((eq type 'repeat)
-        (let ((index 0) (count len))
-          (while (< index count)
-            (bindat--length-group
-             (nth index (bindat-get-field struct field))
-             (nthcdr tail item))
-            (setq index (1+ index)))))
-       ((eq type 'union)
-        (let ((tag len) (cases (nthcdr tail item)) case cc)
-          (while cases
-            (setq case (car cases)
-                  cases (cdr cases)
-                  cc (car case))
-            (if (or (equal cc tag) (equal cc t)
-                    (and (consp cc) (eval cc)))
-                (progn
-                  (bindat--length-group struct (cdr case))
-                  (setq cases nil))))))
-       (t
-        (if (setq type (assq type bindat--fixed-length-alist))
-            (setq len (* len (cdr type))))
-        (setq bindat-idx (+ bindat-idx len)))))))
+  (let (last)
+    (while spec
+      (let* ((item (car spec))
+	     (field (car item))
+	     (type (nth 1 item))
+	     (len (nth 2 item))
+	     (vectype (and (eq type 'vec) (nth 3 item)))
+	     (tail 3))
+	(setq spec (cdr spec))
+	(if (and (consp field) (eq (car field) 'eval))
+	    (setq field (eval (car (cdr field)))))
+	(if (and type (consp type) (eq (car type) 'eval))
+	    (setq type (eval (car (cdr type)))))
+	(if (and len (consp len) (eq (car len) 'eval))
+	    (setq len (eval (car (cdr len)))))
+	(if (memq field '(eval fill align struct union))
+	    (setq tail 2
+		  len type
+		  type field
+		  field nil))
+	(if (and (consp len) (not (eq type 'eval)))
+	    (setq len (apply 'bindat-get-field struct len)))
+	(if (not len)
+	    (setq len 1))
+	(while (eq type 'vec)
+	  (let ((vlen 1))
+	    (if (consp vectype)
+		(setq len (* len (nth 1 vectype))
+		      type (nth 2 vectype))
+	      (setq type (or vectype 'u8)
+		    vectype nil))))
+	(cond
+	 ((eq type 'eval)
+	  (if field
+	      (setq struct (cons (cons field (eval len)) struct))
+	    (eval len)))
+	 ((eq type 'fill)
+	  (setq bindat-idx (+ bindat-idx len)))
+	 ((eq type 'align)
+	  (while (/= (% bindat-idx len) 0)
+	    (setq bindat-idx (1+ bindat-idx))))
+	 ((eq type 'struct)
+	  (bindat--length-group
+	   (if field (bindat-get-field struct field) struct) (eval len)))
+	 ((eq type 'repeat)
+	  (let ((index 0) (count len))
+	    (while (< index count)
+	      (bindat--length-group
+               (nth index (bindat-get-field struct field))
+               (nthcdr tail item))
+	      (setq index (1+ index)))))
+	 ((eq type 'union)
+	  (let ((tag len) (cases (nthcdr tail item)) case cc)
+	    (while cases
+	      (setq case (car cases)
+		    cases (cdr cases)
+		    cc (car case))
+	      (if (or (equal cc tag) (equal cc t)
+		      (and (consp cc) (eval cc)))
+		  (progn
+		    (bindat--length-group struct (cdr case))
+		    (setq cases nil))))))
+	 (t
+	  (if (setq type (assq type bindat--fixed-length-alist))
+	      (setq len (* len (cdr type))))
+	  (if field
+	      (setq last (bindat-get-field struct field)))
+	  (setq bindat-idx (+ bindat-idx len))))))))
 
 (defun bindat-length (spec struct)
   "Calculate bindat-raw length for STRUCT according to bindat SPEC."
@@ -592,17 +596,17 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	  (bindat--pack-item last type len vectype)
 	  ))))))
 
-(defun bindat-pack (spec struct &optional raw idx)
+(defun bindat-pack (spec struct &optional bindat-raw bindat-idx)
   "Return binary data packed according to SPEC for structured data STRUCT.
-Optional third arg RAW is a pre-allocated unibyte string or
-vector to pack into.
-Optional fourth arg IDX is the starting offset into BINDAT-RAW."
-  (when (multibyte-string-p raw)
+Optional third arg BINDAT-RAW is a pre-allocated unibyte string or vector to
+pack into.
+Optional fourth arg BINDAT-IDX is the starting offset into BINDAT-RAW."
+  (when (multibyte-string-p bindat-raw)
     (error "Pre-allocated string is multibyte"))
-  (let ((no-return raw))
-    (setq bindat-idx (or idx 0))
-    (setq bindat-raw (or raw
-                   (make-string (+ bindat-idx (bindat-length spec struct)) 0)))
+  (let ((no-return bindat-raw))
+    (unless bindat-idx (setq bindat-idx 0))
+    (unless bindat-raw
+      (setq bindat-raw (make-string (+ bindat-idx (bindat-length spec struct)) 0)))
     (bindat--pack-group struct spec)
     (if no-return nil bindat-raw)))
 
