@@ -380,6 +380,37 @@ There can be any number of :example/:result elements."
    :no-eval (set-file-acl "/tmp/foo" "group::rxx")
    :eg-result t))
 
+(define-short-documentation-group hash-table
+  "Hash Table Basics"
+  (make-hash-table
+   :no-eval (make-hash-table)
+   :result-string "#s(hash-table ...)")
+  (puthash
+   :no-eval (puthash 'key "value" table))
+  (gethash
+   :no-eval (gethash 'key table)
+   :eg-result "value")
+  (remhash
+   :no-eval (remhash 'key table)
+   :result nil)
+  (clrhash
+   :no-eval (clrhash table)
+   :result-string "#s(hash-table ...)")
+  (maphash
+   :no-eval (maphash (lambda (key value) (message value)) table)
+   :result nil)
+  "Other Hash Table Functions"
+  (hash-table-p
+   :eval (hash-table-p 123))
+  (copy-hash-table
+   :no-eval (copy-hash-table table)
+   :result-string "#s(hash-table ...)")
+  (hash-table-count
+   :no-eval (hash-table-count table)
+   :eg-result 15)
+  (hash-table-size
+   :no-eval (hash-table-size table)
+   :eg-result 65))
 
 (define-short-documentation-group list
   "Making Lists"
