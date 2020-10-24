@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 (require 'message)
 (require 'epa)
@@ -65,8 +66,7 @@ instead of gpg-agent."
       (let ((agent-info (getenv "GPG_AGENT_INFO"))
 	    (gpghome (getenv "GNUPGHOME")))
 	(condition-case error
-	    (let ((epg-gpg-home-directory
-                   (expand-file-name "test/data/mml-sec" source-directory))
+            (let ((epg-gpg-home-directory (ert-resource-directory))
 		  (mml-smime-use 'epg)
 		  ;; Create debug output in empty epg-debug-buffer.
 		  (epg-debug t)
@@ -880,8 +880,7 @@ So the second decryption fails."
                  (equal (cdr (assq 'comm atts)) "gpg-agent")
                  (string-match
                   (concat "homedir.*"
-                          (regexp-quote (expand-file-name "test/data/mml-sec"
-                                                          source-directory)))
+                          (regexp-quote (ert-resource-directory)))
                   (cdr (assq 'args atts))))
         (call-process "kill" nil nil nil (format "%d" pid))))))
 
