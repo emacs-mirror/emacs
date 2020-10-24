@@ -144,10 +144,10 @@ parse_format_integer (char const *fmt, int *value)
   return fmt;
 }
 
-/* Like doprnt, except FORMAT must not contain NUL bytes and
-   FORMAT_END must be non-null.  Although this function is never
-   exercised in current Emacs, it is retained in case some future
-   Emacs version contains doprnt callers that need such formats.
+/* Like doprnt, except FORMAT_END must be non-null.
+   Although this function is never exercised in current Emacs,
+   it is retained in case some future Emacs version
+   contains doprnt callers that need such formats.
    Having a separate function helps GCC optimize doprnt better.  */
 static ptrdiff_t
 doprnt_non_null_end (char *buffer, ptrdiff_t bufsize, char const *format,
@@ -181,7 +181,7 @@ ptrdiff_t
 doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
-  if (format_end && !memchr (format, 0, format_end - format))
+  if (format_end)
     return doprnt_non_null_end (buffer, bufsize, format, format_end, ap);
 
   const char *fmt = format;	/* Pointer into format string.  */
