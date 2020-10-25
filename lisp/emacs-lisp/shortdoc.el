@@ -646,6 +646,13 @@ There can be any number of :example/:result elements."
   (looking-at-p
    :no-eval (looking-at "f[0-9]")
    :eg-result t)
+  "Replacing Match"
+  (replace-match
+   :no-eval (replace-match "new")
+   :eg-result nil)
+  (match-substitute-replacement
+   :no-eval (match-substitute-replacement "new")
+   :eg-result "new")
   "Utilities"
   (regexp-quote
    :eval (regexp-quote "foo.*bar"))
