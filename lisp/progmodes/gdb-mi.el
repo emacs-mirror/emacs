@@ -89,7 +89,6 @@
 ;;; Code:
 
 (require 'gud)
-(require 'json)
 (require 'cl-lib)
 (require 'cl-seq)
 (eval-when-compile (require 'pcase))
@@ -166,7 +165,7 @@ May be manually changed by user with `gdb-select-frame'.")
   "Associative list of threads provided by \"-thread-info\" MI command.
 
 Keys are thread numbers (in strings) and values are structures as
-returned from -thread-info by `gdb-json-partial-output'.  Updated in
+returned from -thread-info by `gdb-mi--partial-output'.  Updated in
 `gdb-thread-list-handler-custom'.")
 
 (defvar gdb-running-threads-count nil
@@ -185,7 +184,7 @@ See also `gdb-running-threads-count'.")
   "Associative list of breakpoints provided by \"-break-list\" MI command.
 
 Keys are breakpoint numbers (in string) and values are structures
-as returned from \"-break-list\" by `gdb-json-partial-output'
+as returned from \"-break-list\" by `gdb-mi--partial-output'
 \(\"body\" field is used). Updated in
 `gdb-breakpoints-list-handler-custom'.")
 
@@ -1124,11 +1123,11 @@ no input, and GDB is waiting for input."
                                  "\\)")
                          nil t)
       (tooltip-show
-       (concat expr " = " (read (match-string 1)))
+       (concat expr " = " (gdb-mi--c-string-from-string (match-string 1)))
        (or gud-tooltip-echo-area
 	   (not (display-graphic-p)))))
      ((re-search-forward  "msg=\\(\".+\"\\)$" nil t)
-      (tooltip-show (read (match-string 1))
+      (tooltip-show (gdb-mi--c-string-from-string (match-string 1))
        (or gud-tooltip-echo-area
 	   (not (display-graphic-p))))))))
 
@@ -1268,7 +1267,7 @@ With arg, enter name of variable to be watched in the minibuffer."
   (cdr (assq field value)))
 
 (defun gdb-var-create-handler (expr)
-  (let* ((result (gdb-json-partial-output)))
+  (let* ((result (gdb-mi--partial-output)))
     (if (not (gdb-mi--field result 'msg))
         (let ((var
 	       (list (gdb-mi--field result 'name)
@@ -1309,7 +1308,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 
 (defun gdb-var-list-children-handler (varnum)
   (let* ((var-list nil)
-	 (output (gdb-json-partial-output 'child))
+	 (output (gdb-mi--partial-output 'child))
 	 (children (gdb-mi--field output 'children)))
     (catch 'child-already-watched
       (dolist (var gdb-var-list)
@@ -1384,7 +1383,7 @@ With arg, enter name of variable to be watched in the minibuffer."
              'gdb-var-update))
 
 (defun gdb-var-update-handler ()
-  (let ((changelist (gdb-mi--field (gdb-json-partial-output) 'changelist)))
+  (let ((changelist (gdb-mi--field (gdb-mi--partial-output) 'changelist)))
     (dolist (var gdb-var-list)
       (setcar (nthcdr 5 var) nil))
     (let ((temp-var-list gdb-var-list))
@@ -2306,7 +2305,8 @@ a GDB/MI reply message."
   ;; Suppress "No registers."  GDB 6.8 and earlier
   ;; duplicates MI error message on internal stream.
   ;; Don't print to GUD buffer.
-  (if (not (string-equal (read c-string) "No registers.\n"))
+  (if (not (string-equal (gdb-mi--c-string-from-string c-string)
+                         "No registers.\n"))
       (gdb-internals c-string)))
 
 
@@ -2428,7 +2428,7 @@ the end of the current result or async record is reached."
       is-complete)))
 
 
-; The following grammar rules are not yet implemented by this GDBMI-BNF parser.
+; The following grammar rules are not parsed directly by this GDBMI-BNF parser.
 ; The handling of those rules is currently done by the handlers registered
 ; in gdbmi-bnf-result-state-configs
 ;
@@ -2450,19 +2450,17 @@ the end of the current result or async record is reached."
 ; list ==>
 ;      "[]" | "[" value ( "," value )* "]" | "[" result ( "," result )* "]"
 
+;; FIXME: This is fragile: it relies on the assumption that all the
+;; non-ASCII strings output by GDB, including names of the source
+;; files, values of string variables in the inferior, etc., are all
+;; encoded in the same encoding.
+
 (defcustom gdb-mi-decode-strings nil
   "When non-nil, decode octal escapes in GDB output into non-ASCII text.
 
 If the value is a coding-system, use that coding-system to decode
 the bytes reconstructed from octal escapes.  Any other non-nil value
-means to decode using the coding-system set for the GDB process.
-
-Warning: setting this non-nil might mangle strings reported by GDB
-that have literal substrings which match the \\nnn octal escape
-patterns, where nnn is an octal number between 200 and 377.  So
-we only recommend to set this variable non-nil if the program you
-are debugging really reports non-ASCII text, or some of its source
-file names include non-ASCII characters."
+means to decode using the coding-system set for the GDB process."
   :type '(choice
           (const :tag "Don't decode" nil)
           (const :tag "Decode using default coding-system" t)
@@ -2470,46 +2468,8 @@ file names include non-ASCII characters."
   :group 'gdb
   :version "25.1")
 
-;; The idea of the following function was suggested
-;; by Kenichi Handa <handa@gnu.org>.
-;;
-;; FIXME: This is fragile: it relies on the assumption that all the
-;; non-ASCII strings output by GDB, including names of the source
-;; files, values of string variables in the inferior, etc., are all
-;; encoded in the same encoding.  It also assumes that the \nnn
-;; sequences are not split between chunks of output of the GDB process
-;; due to buffering, and arrive together.  Finally, if some string
-;; included literal \nnn strings (as opposed to non-ASCII characters
-;; converted by GDB/MI to octal escapes), this decoding will mangle
-;; those strings.  When/if GDB acquires the ability to not
-;; escape-protect non-ASCII characters in its MI output, this kludge
-;; should be removed.
-(defun gdb-mi-decode (string)
-  "Decode octal escapes in MI output STRING into multibyte text."
-  (let ((coding
-         (if (coding-system-p gdb-mi-decode-strings)
-             gdb-mi-decode-strings
-           (with-current-buffer
-               (gdb-get-buffer-create 'gdb-partial-output-buffer)
-             buffer-file-coding-system))))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (prin1 string (current-buffer))
-      (goto-char (point-min))
-      ;; prin1 quotes the octal escapes as well, which interferes with
-      ;; their interpretation by 'read' below.  Remove the extra
-      ;; backslashes to countermand that.
-      (while (re-search-forward "\\\\\\(\\\\[2-3][0-7][0-7]\\)" nil t)
-        (replace-match "\\1" nil nil))
-      (goto-char (point-min))
-      (decode-coding-string (read (current-buffer)) coding))))
-
 (defun gud-gdbmi-marker-filter (string)
   "Filter GDB/MI output."
-
-  ;; If required, decode non-ASCII text encoded with octal escapes.
-  (or (null gdb-mi-decode-strings)
-      (setq string (gdb-mi-decode string)))
 
   ;; Record transactions if logging is enabled.
   (when gdb-enable-debug
@@ -2557,7 +2517,7 @@ file names include non-ASCII characters."
 (defun gdb-thread-exited (_token output-field)
   "Handle =thread-exited async record.
 Unset `gdb-thread-number' if current thread exited and update threads list."
-  (let* ((thread-id (gdb-mi--field (gdb-json-string output-field) 'id)))
+  (let* ((thread-id (gdb-mi--field (gdb-mi--from-string output-field) 'id)))
     (if (string= gdb-thread-number thread-id)
         (gdb-setq-thread-number nil))
     ;; When we continue current thread and it quickly exits,
@@ -2571,7 +2531,7 @@ Unset `gdb-thread-number' if current thread exited and update threads list."
   "Handler for =thread-selected MI output record.
 
 Sets `gdb-thread-number' to new id."
-  (let* ((result (gdb-json-string output-field))
+  (let* ((result (gdb-mi--from-string output-field))
          (thread-id (gdb-mi--field result 'id)))
     (gdb-setq-thread-number thread-id)
     ;; Typing `thread N' in GUD buffer makes GDB emit `^done' followed
@@ -2587,7 +2547,7 @@ Sets `gdb-thread-number' to new id."
 
 (defun gdb-running (_token output-field)
   (let* ((thread-id
-          (gdb-mi--field (gdb-json-string output-field) 'thread-id)))
+          (gdb-mi--field (gdb-mi--from-string output-field) 'thread-id)))
     ;; We reset gdb-frame-number to nil if current thread has gone
     ;; running. This can't be done in gdb-thread-list-handler-custom
     ;; because we need correct gdb-frame-number by the time
@@ -2616,7 +2576,7 @@ Sets `gdb-thread-number' to new id."
   "Given the contents of *stopped MI async record, select new
 current thread and update GDB buffers."
   ;; Reason is available with target-async only
-  (let* ((result (gdb-json-string output-field))
+  (let* ((result (gdb-mi--from-string output-field))
          (reason (gdb-mi--field result 'reason))
          (thread-id (gdb-mi--field result 'thread-id))
          (retval (gdb-mi--field result 'return-value))
@@ -2696,7 +2656,7 @@ current thread and update GDB buffers."
 	 (if (string= output-field "\"\\n\"")
 	     ""
 	   (let ((error-message
-		  (read output-field)))
+		  (gdb-mi--c-string-from-string output-field)))
 	     (put-text-property
 	      0 (length error-message)
 	      'face font-lock-warning-face
@@ -2707,7 +2667,8 @@ current thread and update GDB buffers."
 ;; (frontend MI commands should not print to this stream)
 (defun gdb-console (output-field)
   (setq gdb-filter-output
-	(gdb-concat-output gdb-filter-output (read output-field))))
+	(gdb-concat-output gdb-filter-output
+                           (gdb-mi--c-string-from-string output-field))))
 
 (defun gdb-done (token-number output-field is-complete)
   (gdb-done-or-error token-number 'done output-field is-complete))
@@ -2724,7 +2685,8 @@ current thread and update GDB buffers."
 	;; MI error - send to minibuffer
 	(when (eq type 'error)
           ;; Skip "msg=" from `output-field'
-          (message "%s" (read (substring output-field 4)))
+          (message "%s" (gdb-mi--c-string-from-string
+                         (substring output-field 4)))
           ;; Don't send to the console twice.  (If it is a console error
           ;; it is also in the console stream.)
           (setq output-field nil)))
@@ -2772,83 +2734,154 @@ current thread and update GDB buffers."
   (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (erase-buffer)))
 
-(defun gdb-jsonify-buffer (&optional fix-key fix-list)
-  "Prepare GDB/MI output in current buffer for parsing with `json-read'.
+;; Parse GDB/MI result records: this process converts
+;;  list      [...]      ->  list
+;;  tuple     {...}      ->  list
+;;  result    KEY=VALUE  ->  (KEY . VALUE) where KEY is a symbol
+;;  c-string  "..."      ->  string
 
-Field names are wrapped in double quotes and equal signs are
-replaced with semicolons.
+(defun gdb-mi--parse-tuple-or-list (end-char)
+  "Parse a tuple or list, either returned as a Lisp list.
+END-CHAR is the ending delimiter; will stop at end-of-buffer otherwise."
+  (let ((items nil))
+    (while (not (or (eobp)
+                    (eq (following-char) end-char)))
+      (let ((item (gdb-mi--parse-result-or-value)))
+        (push item items)
+        (when (eq (following-char) ?,)
+          (forward-char))))
+    (when (eq (following-char) end-char)
+      (forward-char))
+    (nreverse items)))
 
-If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurrences from
-partial output.  This is used to get rid of useless keys in lists
-in MI messages, e.g.: [key=.., key=..].  -stack-list-frames and
--break-info are examples of MI commands which issue such
-responses.
+(defun gdb-mi--parse-c-string ()
+  "Parse a c-string."
+  (let ((start (point))
+        (pieces nil)
+        (octals-used nil))
+    (while (and (re-search-forward (rx (or ?\\ ?\")))
+                (not (eq (preceding-char) ?\")))
+      (push (buffer-substring start (1- (point))) pieces)
+      (cond
+       ((looking-at (rx (any "0-7") (? (any "0-7") (? (any "0-7")))))
+        (push (unibyte-string (string-to-number (match-string 0) 8)) pieces)
+        (setq octals-used t)
+        (goto-char (match-end 0)))
+       ((looking-at (rx (any "ntrvfab\"\\")))
+        (push (cdr (assq (following-char)
+                         '((?n . "\n")
+                           (?t . "\t")
+                           (?r . "\r")
+                           (?v . "\v")
+                           (?f . "\f")
+                           (?a . "\a")
+                           (?b . "\b")
+                           (?\" . "\"")
+                           (?\\ . "\\"))))
+              pieces)
+        (forward-char))
+       (t
+        (warn "Unrecognised escape char: %c" (following-char))))
+      (setq start (point)))
+    (push (buffer-substring start (1- (point))) pieces)
+    (let ((s (apply #'concat (nreverse pieces))))
+      (if (and octals-used gdb-mi-decode-strings)
+          (let ((coding
+                 (if (coding-system-p gdb-mi-decode-strings)
+                     gdb-mi-decode-strings
+                   (buffer-local-value
+                    'buffer-file-coding-system
+                    ;; FIXME: This is somewhat expensive.
+                    (gdb-get-buffer-create 'gdb-partial-output-buffer)))))
+            (decode-coding-string s coding))
+        s))))
 
-If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
-\"FIX-LIST=[..]\" prior to parsing.  This is used to fix broken
--break-info output when it contains breakpoint script field
-incompatible with GDB/MI output syntax.
-
-If `default-directory' is remote, full file names are adapted accordingly."
-  (save-excursion
-    (let ((remote (file-remote-p default-directory)))
-      (when remote
-        (goto-char (point-min))
-        (while (re-search-forward "[\\[,]fullname=\"\\(.+\\)\"" nil t)
-          (replace-match (concat remote "\\1") nil nil nil 1))))
-    (goto-char (point-min))
-    (when fix-key
-      (save-excursion
-        (while (re-search-forward (concat "[\\[,]\\(" fix-key "=\\)") nil t)
-          (replace-match "" nil nil nil 1))))
-    (when fix-list
-      (save-excursion
-        ;; Find positions of braces which enclose broken list
-        (while (re-search-forward (concat fix-list "={\"") nil t)
-          (let ((p1 (goto-char (- (point) 2)))
-                (p2 (progn (forward-sexp)
-                           (1- (point)))))
-            ;; Replace braces with brackets
-            (save-excursion
-              (goto-char p1)
-              (delete-char 1)
-              (insert "[")
-              (goto-char p2)
-              (delete-char 1)
-              (insert "]"))))))
-    (goto-char (point-min))
-    (insert "{")
-    (let ((re (concat "\\([[:alnum:]_-]+\\)=")))
-      (while (re-search-forward re nil t)
-        (replace-match "\"\\1\":" nil nil)
-        (if (eq (char-after) ?\") (forward-sexp) (forward-char))))
-    (goto-char (point-max))
-    (insert "}")))
-
-(defun gdb-json-read-buffer (&optional fix-key fix-list)
-  "Prepare and parse GDB/MI output in current buffer with `json-read'.
-
-FIX-KEY and FIX-LIST work as in `gdb-jsonify-buffer'."
-  (gdb-jsonify-buffer fix-key fix-list)
-  (save-excursion
-    (goto-char (point-min))
-    (let ((json-array-type 'list))
-      (json-read))))
-
-(defun gdb-json-string (string &optional fix-key fix-list)
-  "Prepare and parse STRING containing GDB/MI output with `json-read'.
-
-FIX-KEY and FIX-LIST work as in `gdb-jsonify-buffer'."
+;; FIXME: Ideally this function should not be needed.
+(defun gdb-mi--c-string-from-string (string)
+  "Parse a c-string from (the beginning of) STRING."
   (with-temp-buffer
     (insert string)
-    (gdb-json-read-buffer fix-key fix-list)))
+    (goto-char (1+ (point-min)))        ; Skip leading double quote.
+    (gdb-mi--parse-c-string)))
 
-(defun gdb-json-partial-output (&optional fix-key fix-list)
-  "Prepare and parse gdb-partial-output-buffer with `json-read'.
+(defun gdb-mi--parse-value ()
+  "Parse a value."
+  (cond
+   ((eq (following-char) ?\{)
+    (forward-char)
+    (gdb-mi--parse-tuple-or-list ?\}))
+   ((eq (following-char) ?\[)
+    (forward-char)
+    (gdb-mi--parse-tuple-or-list ?\]))
+   ((eq (following-char) ?\")
+    (forward-char)
+    (gdb-mi--parse-c-string))
+   (t (error "Bad start of result or value: %c" (following-char)))))
 
-FIX-KEY and FIX-KEY work as in `gdb-jsonify-buffer'."
+(defun gdb-mi--parse-result-or-value ()
+  "Parse a result (key=value) or value."
+  (if (looking-at (rx (group (+ (any "a-zA-Z" ?_ ?-))) "="))
+      (progn
+        (goto-char (match-end 0))
+        (let* ((variable (intern (match-string 1)))
+               (value (gdb-mi--parse-value)))
+          (cons variable value)))
+    (gdb-mi--parse-value)))
+
+(defun gdb-mi--parse-results ()
+  "Parse zero or more result productions as a list."
+  (gdb-mi--parse-tuple-or-list nil))
+
+(defun gdb-mi--fix-key (key value)
+  "Convert any result (key-value pair) in VALUE whose key is KEY to its value."
+  (cond
+   ((atom value) value)
+   ((symbolp (car value))
+    (if (eq (car value) key)
+        (cdr value)
+      (cons (car value) (gdb-mi--fix-key key (cdr value)))))
+   (t (mapcar (lambda (x) (gdb-mi--fix-key key x)) value))))
+
+(defun gdb-mi--extend-fullname (remote value)
+  "Prepend REMOTE to any result string with `fullname' as the key in VALUE."
+  (cond
+   ((atom value) value)
+   ((symbolp (car value))
+    (if (and (eq (car value) 'fullname)
+             (stringp (cdr value)))
+        (cons 'fullname (concat remote (cdr value)))
+      (cons (car value) (gdb-mi--extend-fullname remote (cdr value)))))
+   (t (mapcar (lambda (x) (gdb-mi--extend-fullname remote x)) value))))
+
+(defun gdb-mi--read-buffer (fix-key)
+  "Parse the current buffer as a list of result productions.
+If FIX-KEY is a non-nil symbol, convert all FIX-KEY=VALUE results into VALUE.
+This is used to get rid of useless keys in lists in MI messages;
+eg, [key=.., key=..].  -stack-list-frames and -break-info are
+examples of MI commands which issue such responses."
+  (goto-char (point-min))
+  (let ((results (gdb-mi--parse-results)))
+    (let ((remote (file-remote-p default-directory)))
+      (when remote
+        (setq results (gdb-mi--extend-fullname remote results))))
+    (when fix-key
+      (setq results (gdb-mi--fix-key fix-key results)))
+    results))
+
+(defun gdb-mi--from-string (string &optional fix-key)
+  "Prepare and parse STRING containing GDB/MI output.
+
+FIX-KEY works as in `gdb-mi--read-buffer'."
+  (with-temp-buffer
+    (insert string)
+    (gdb-mi--read-buffer fix-key)))
+
+(defun gdb-mi--partial-output (&optional fix-key)
+  "Prepare and parse gdb-partial-output-buffer.
+
+FIX-KEY works as in `gdb-mi--read-buffer'."
   (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
-    (gdb-json-read-buffer fix-key fix-list)))
+    (gdb-mi--read-buffer fix-key)))
 
 (defun gdb-line-posns (line)
   "Return a pair of LINE beginning and end positions."
@@ -3017,7 +3050,7 @@ See `def-gdb-auto-update-handler'."
 
 (defun gdb-breakpoints-list-handler-custom ()
   (let ((breakpoints-list (gdb-mi--field
-                           (gdb-mi--field (gdb-json-partial-output 'bkpt)
+                           (gdb-mi--field (gdb-mi--partial-output 'bkpt)
                                           'BreakpointTable)
                            'body))
         (table (make-gdb-table)))
@@ -3340,7 +3373,7 @@ corresponding to the mode line clicked."
   'gdb-invalidate-threads)
 
 (defun gdb-thread-list-handler-custom ()
-  (let ((threads-list (gdb-mi--field (gdb-json-partial-output) 'threads))
+  (let ((threads-list (gdb-mi--field (gdb-mi--partial-output) 'threads))
         (table (make-gdb-table))
         (marked-line nil))
     (setq gdb-threads-list nil)
@@ -3581,7 +3614,7 @@ in `gdb-memory-format'."
       (error "Unknown format"))))
 
 (defun gdb-read-memory-custom ()
-  (let* ((res (gdb-json-partial-output))
+  (let* ((res (gdb-mi--partial-output))
          (err-msg (gdb-mi--field res 'msg)))
     (if (not err-msg)
         (let ((memory (gdb-mi--field res 'memory)))
@@ -3990,7 +4023,7 @@ DOC is an optional documentation string."
   'gdb-invalidate-disassembly)
 
 (defun gdb-disassembly-handler-custom ()
-  (let* ((instructions (gdb-mi--field (gdb-json-partial-output) 'asm_insns))
+  (let* ((instructions (gdb-mi--field (gdb-mi--partial-output) 'asm_insns))
          (address (gdb-mi--field (gdb-current-buffer-frame) 'addr))
          (table (make-gdb-table))
          (marked-line nil))
@@ -4131,7 +4164,7 @@ member."
       (if res (concat " of " res) ""))))
 
 (defun gdb-stack-list-frames-custom ()
-  (let ((stack (gdb-mi--field (gdb-json-partial-output 'frame) 'stack))
+  (let ((stack (gdb-mi--field (gdb-mi--partial-output 'frame) 'stack))
         (table (make-gdb-table)))
     (set-marker gdb-stack-position nil)
     (dolist (frame stack)
@@ -4259,7 +4292,7 @@ member."
 ;; Don't display values of arrays or structures.
 ;; These can be expanded using gud-watch.
 (defun gdb-locals-handler-custom ()
-  (let ((locals-list (gdb-mi--field (gdb-json-partial-output) 'locals))
+  (let ((locals-list (gdb-mi--field (gdb-mi--partial-output) 'locals))
         (table (make-gdb-table)))
     (dolist (local locals-list)
       (let ((name (gdb-mi--field local 'name))
@@ -4356,7 +4389,7 @@ member."
 (defun gdb-registers-handler-custom ()
   (when gdb-register-names
     (let ((register-values
-           (gdb-mi--field (gdb-json-partial-output) 'register-values))
+           (gdb-mi--field (gdb-mi--partial-output) 'register-values))
           (table (make-gdb-table)))
       (dolist (register register-values)
         (let* ((register-number (gdb-mi--field register 'number))
@@ -4446,7 +4479,7 @@ member."
 (defun gdb-changed-registers-handler ()
   (setq gdb-changed-registers nil)
   (dolist (register-number
-           (gdb-mi--field (gdb-json-partial-output) 'changed-registers))
+           (gdb-mi--field (gdb-mi--partial-output) 'changed-registers))
     (push register-number gdb-changed-registers)))
 
 (defun gdb-register-names-handler ()
@@ -4454,7 +4487,7 @@ member."
   ;; only once (in gdb-init-1)
   (setq gdb-register-names nil)
   (dolist (register-name
-           (gdb-mi--field (gdb-json-partial-output) 'register-names))
+           (gdb-mi--field (gdb-mi--partial-output) 'register-names))
     (push register-name gdb-register-names))
   (setq gdb-register-names (reverse gdb-register-names)))
 
@@ -4465,7 +4498,8 @@ If buffers already exist for any of these files, `gud-minor-mode'
 is set in them."
   (goto-char (point-min))
   (while (re-search-forward gdb-source-file-regexp nil t)
-    (push (read (match-string 1)) gdb-source-file-list))
+    (push (gdb-mi--c-string-from-string (match-string 1))
+          gdb-source-file-list))
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (member buffer-file-name gdb-source-file-list)
@@ -4481,7 +4515,7 @@ Called from `gdb-update'."
 (defun gdb-frame-handler ()
   "Set `gdb-selected-frame' and `gdb-selected-file' to show
 overlay arrow in source buffer."
-  (let ((frame (gdb-mi--field (gdb-json-partial-output) 'frame)))
+  (let ((frame (gdb-mi--field (gdb-mi--partial-output) 'frame)))
     (when frame
       (setq gdb-selected-frame (gdb-mi--field frame 'func))
       (setq gdb-selected-file (gdb-mi--field frame 'fullname))
@@ -4512,7 +4546,7 @@ overlay arrow in source buffer."
   (goto-char (point-min))
   (setq gdb-prompt-name nil)
   (re-search-forward gdb-prompt-name-regexp nil t)
-  (setq gdb-prompt-name (read (match-string 1)))
+  (setq gdb-prompt-name (gdb-mi--c-string-from-string (match-string 1)))
   ;; Insert first prompt.
   (setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
 
@@ -4961,7 +4995,7 @@ buffers, if required."
   ;; This function is called only once on startup.
   (goto-char (point-min))
   (if (re-search-forward gdb-source-file-regexp nil t)
-      (setq gdb-main-file (read (match-string 1))))
+      (setq gdb-main-file (gdb-mi--c-string-from-string (match-string 1))))
   (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
