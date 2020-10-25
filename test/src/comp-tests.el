@@ -426,6 +426,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
     (should (subr-native-elisp-p f))
     (should (= (funcall f 2) 3))))
 
+(comp-deftest comp-test-defsubst ()
+  ;; Bug#42664, Bug#43280, Bug#44209.
+  (should-not (subr-native-elisp-p (symbol-function #'comp-test-defsubst-f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

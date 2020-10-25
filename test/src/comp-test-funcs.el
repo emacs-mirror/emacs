@@ -345,6 +345,9 @@
   (declare (speed 2))
   (- x y))
 
+(defsubst comp-test-defsubst-f ()
+  t)
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
