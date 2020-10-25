@@ -37,7 +37,11 @@ HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 AM_V_ELC = $(am__v_ELC_@AM_V@)
 am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
 ifeq ($(HAVE_NATIVE_COMP),yes)
+ifeq ($(NATIVE_DISABLED),1)
+am__v_ELC_0 = @echo "  ELC     " $@;
+else
 am__v_ELC_0 = @echo " ELC+ELN  " $@;
+endif
 ifndef NATIVE_FULL_AOT
 NATIVE_SKIP_NONDUMP = 1
 endif
