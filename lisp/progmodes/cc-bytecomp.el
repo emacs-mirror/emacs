@@ -110,14 +110,15 @@
 			(memq (cadr elt)
 			      '(load require
 				byte-compile-file byte-recompile-directory
-				batch-byte-compile)))))
+				batch-byte-compile batch-native-compile)))))
 	(setq n (1+ n)))
       (cond
        ((memq (cadr elt) '(load require))
 	'loading)
        ((memq (cadr elt) '(byte-compile-file
 			   byte-recompile-directory
-			   batch-byte-compile))
+			   batch-byte-compile
+			   batch-native-compile))
 	'compiling)
        (t				; Can't happen.
 	(message "cc-bytecomp-compiling-or-loading: System flags spuriously set")
