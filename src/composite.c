@@ -637,10 +637,8 @@ compose_text (ptrdiff_t start, ptrdiff_t end, Lisp_Object components,
 
 static Lisp_Object gstring_hash_table;
 
-static Lisp_Object gstring_lookup_cache (Lisp_Object);
-
-static Lisp_Object
-gstring_lookup_cache (Lisp_Object header)
+Lisp_Object
+composition_gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   ptrdiff_t i = hash_lookup (h, header, NULL);
@@ -1781,7 +1779,7 @@ should be ignored.  */)
 
   header = fill_gstring_header (frompos, frombyte,
 				topos, font_object, string);
-  gstring = gstring_lookup_cache (header);
+  gstring = composition_gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
 

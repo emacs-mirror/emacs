@@ -149,11 +149,50 @@ thin (i.e. 1-dot width) space."
 ;; Hieroglyphs in "quadrats", as directed by the format controls,
 ;; which specify how the hieroglyphs should be joined horizontally and
 ;; vertically.
-(set-char-table-range
- composition-function-table
- '(#x13000 . #x1343F)
- (list (vector "[\U00013000-\U0001343F]+"
-               0 'compose-gstring-for-graphic)))
+(defun egyptian-shape-grouping (gstring direction)
+  (if (= (lgstring-char gstring 0) #x13437)
+      (let ((nchars (lgstring-char-len gstring))
+            (i 1)
+            (nesting 1)
+            ch)
+        ;; Find where this group ends.
+        (while (and (< i nchars) (> nesting 0))
+          (setq ch (lgstring-char gstring i))
+          (cond
+           ((= ch #x13437)
+            (setq nesting (1+ nesting)))
+           ((= ch #x13438)
+            (setq nesting (1- nesting))))
+          (setq i (1+ i)))
+        (when (zerop nesting)
+          ;; Make a new gstring from the characters that constitute a
+          ;; complete nested group.
+          (let ((new-header (make-vector (1+ i) nil))
+                (new-gstring (make-vector (+ i 2) nil)))
+            (aset new-header 0 (lgstring-font gstring))
+            (dotimes (j i)
+              (aset new-header (1+ j) (lgstring-char gstring j))
+              (lgstring-set-glyph new-gstring j (lgstring-glyph gstring j)))
+            (lgstring-set-header new-gstring new-header)
+            (font-shape-gstring new-gstring direction))))))
+
+(let ((hieroglyph "[\U00013000-\U0001342F]"))
+  ;; HORIZONTAL/VERTICAL JOINER and INSERT AT.../OVERLAY controls
+  (set-char-table-range
+   composition-function-table
+   '(#x13430 . #x13436)
+   (list (vector (concat hieroglyph "[\U00013430-\U00013436]" hieroglyph)
+                 ;; We use font-shape-gstring so that, if the font
+                 ;; doesn't support these controls, the glyphs are
+                 ;; displayed individually, and not as a single
+                 ;; grapheme cluster.
+                 1 'font-shape-gstring)))
+  ;; Grouping controls
+  (set-char-table-range
+   composition-function-table
+   #x13437
+   (list (vector "\U00013437[\U00013000-\U0001343F]+"
+                 0 'egyptian-shape-grouping))))
 
 (provide 'misc-lang)
 

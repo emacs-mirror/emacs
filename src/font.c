@@ -4461,6 +4461,10 @@ GSTRING.  */)
     signal_error ("Invalid glyph-string: ", gstring);
   if (! NILP (LGSTRING_ID (gstring)))
     return gstring;
+  Lisp_Object cached_gstring =
+    composition_gstring_lookup_cache (LGSTRING_HEADER (gstring));
+  if (! NILP (cached_gstring))
+    return cached_gstring;
   font_object = LGSTRING_FONT (gstring);
   CHECK_FONT_OBJECT (font_object);
   font = XFONT_OBJECT (font_object);
