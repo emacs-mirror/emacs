@@ -1317,9 +1317,9 @@ a Unix shell and @command{make} are used for byte-compilation:
 @example
 $ rm *.elc                                # force recompilation
 $ EMACS_GENERATE_DYNVARS=1 make           # generate .dynvars
-$ cat *.dynvars > ~/my.dynvars            # combine .dynvars
+$ cat *.dynvars > ~/my-dynvars            # combine .dynvars
 $ rm *.elc                                # force recompilation
-$ EMACS_DYNVARS_FILE=~/my.dynvars make    # perform checks
+$ EMACS_DYNVARS_FILE=~/my-dynvars make    # perform checks
 @end example
 
 @node Buffer-Local Variables
