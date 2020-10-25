@@ -90,7 +90,6 @@
 
 (require 'gud)
 (require 'json)
-(require 'bindat)
 (require 'cl-lib)
 (require 'cl-seq)
 (eval-when-compile (require 'pcase))
@@ -515,8 +514,6 @@ contains fields of corresponding MI *stopped async record:
      (reason . \"end-stepping-range\"))
 
 Note that \"reason\" is only present in non-stop debugging mode.
-
-`bindat-get-field' may be used to access the fields of response.
 
 Each function is called after the new current thread was selected
 and GDB buffers were updated in `gdb-stopped'."
@@ -1265,20 +1262,23 @@ With arg, enter name of variable to be watched in the minibuffer."
 			 `(lambda () (gdb-var-create-handler ,expr))))))
       (message "gud-watch is a no-op in this mode."))))
 
+(defsubst gdb-mi--field (value field)
+  (cdr (assq field value)))
+
 (defun gdb-var-create-handler (expr)
   (let* ((result (gdb-json-partial-output)))
-    (if (not (bindat-get-field result 'msg))
+    (if (not (gdb-mi--field result 'msg))
         (let ((var
-	       (list (bindat-get-field result 'name)
+	       (list (gdb-mi--field result 'name)
 		     (if (and (string-equal gdb-current-language "c")
 			      gdb-use-colon-colon-notation gdb-selected-frame)
 			 (setq expr (concat gdb-selected-frame "::" expr))
 		       expr)
-		     (bindat-get-field result 'numchild)
-		     (bindat-get-field result 'type)
-		     (bindat-get-field result 'value)
+		     (gdb-mi--field result 'numchild)
+		     (gdb-mi--field result 'type)
+		     (gdb-mi--field result 'value)
 		     nil
-		     (bindat-get-field result 'has_more)
+		     (gdb-mi--field result 'has_more)
                      gdb-frame-address)))
 	  (push var gdb-var-list)
 	  (speedbar 1)
@@ -1317,23 +1317,23 @@ With arg, enter name of variable to be watched in the minibuffer."
 
 (defun gdb-var-list-children-handler (varnum)
   (let* ((var-list nil)
-	 (output (gdb-json-partial-output "child"))
-	 (children (bindat-get-field output 'children)))
+	 (output (gdb-json-partial-output 'child))
+	 (children (gdb-mi--field output 'children)))
     (catch 'child-already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal varnum (car var))
 	    (progn
 	      ;; With dynamic varobjs numchild may have increased.
-	      (setcar (nthcdr 2 var) (bindat-get-field output 'numchild))
+	      (setcar (nthcdr 2 var) (gdb-mi--field output 'numchild))
 	      (push var var-list)
 	      (dolist (child children)
-		(let ((varchild (list (bindat-get-field child 'name)
-				      (bindat-get-field child 'exp)
-				      (bindat-get-field child 'numchild)
-				      (bindat-get-field child 'type)
-				      (bindat-get-field child 'value)
+		(let ((varchild (list (gdb-mi--field child 'name)
+				      (gdb-mi--field child 'exp)
+				      (gdb-mi--field child 'numchild)
+				      (gdb-mi--field child 'type)
+				      (gdb-mi--field child 'value)
 				      nil
-				      (bindat-get-field child 'has_more))))
+				      (gdb-mi--field child 'has_more))))
 		  (if (assoc (car varchild) gdb-var-list)
 		      (throw 'child-already-watched nil))
 		  (push varchild var-list))))
@@ -1392,17 +1392,17 @@ With arg, enter name of variable to be watched in the minibuffer."
              'gdb-var-update))
 
 (defun gdb-var-update-handler ()
-  (let ((changelist (bindat-get-field (gdb-json-partial-output) 'changelist)))
+  (let ((changelist (gdb-mi--field (gdb-json-partial-output) 'changelist)))
     (dolist (var gdb-var-list)
       (setcar (nthcdr 5 var) nil))
     (let ((temp-var-list gdb-var-list))
       (dolist (change changelist)
-	(let* ((varnum (bindat-get-field change 'name))
+	(let* ((varnum (gdb-mi--field change 'name))
 	       (var (assoc varnum gdb-var-list))
-	       (new-num (bindat-get-field change 'new_num_children)))
+	       (new-num (gdb-mi--field change 'new_num_children)))
 	  (when var
-	    (let ((scope (bindat-get-field change 'in_scope))
-		  (has-more (bindat-get-field change 'has_more)))
+	    (let ((scope (gdb-mi--field change 'in_scope))
+		  (has-more (gdb-mi--field change 'has_more)))
 	      (cond ((string-equal scope "false")
 		     (if gdb-delete-out-of-scope
 			 (gdb-var-delete-1 var varnum)
@@ -1414,12 +1414,12 @@ With arg, enter name of variable to be watched in the minibuffer."
 				(not new-num)
 				(string-equal (nth 2 var) "0"))
 		       (setcar (nthcdr 4 var)
-			       (bindat-get-field change 'value))
+			       (gdb-mi--field change 'value))
 		       (setcar (nthcdr 5 var) 'changed)))
 		    ((string-equal scope "invalid")
 		     (gdb-var-delete-1 var varnum)))))
 	  (let ((var-list nil) var1
-		(children (bindat-get-field change 'new_children)))
+		(children (gdb-mi--field change 'new_children)))
 	    (when new-num
               (setq var1 (pop temp-var-list))
               (while var1
@@ -1435,13 +1435,13 @@ With arg, enter name of variable to be watched in the minibuffer."
                           (push (pop temp-var-list) var-list))
                         (dolist (child children)
                           (let ((varchild
-                                 (list (bindat-get-field child 'name)
-                                       (bindat-get-field child 'exp)
-                                       (bindat-get-field child 'numchild)
-                                       (bindat-get-field child 'type)
-                                       (bindat-get-field child 'value)
+                                 (list (gdb-mi--field child 'name)
+                                       (gdb-mi--field child 'exp)
+                                       (gdb-mi--field child 'numchild)
+                                       (gdb-mi--field child 'type)
+                                       (gdb-mi--field child 'value)
                                        'changed
-                                       (bindat-get-field child 'has_more))))
+                                       (gdb-mi--field child 'has_more))))
                             (push varchild var-list))))
                        ;; Remove deleted children from list.
                        ((< new previous)
@@ -1522,7 +1522,7 @@ thread."
 
 (defun gdb-current-buffer-frame ()
   "Get current stack frame object for thread of current buffer."
-  (bindat-get-field (gdb-current-buffer-thread) 'frame))
+  (gdb-mi--field (gdb-current-buffer-thread) 'frame))
 
 (defun gdb-buffer-type (buffer)
   "Get value of `gdb-buffer-type' for BUFFER."
@@ -2057,7 +2057,7 @@ For all-stop mode, thread information is unavailable while target
 is running."
   (let ((old-value gud-running))
     (setq gud-running
-          (string= (bindat-get-field (gdb-current-buffer-thread) 'state)
+          (string= (gdb-mi--field (gdb-current-buffer-thread) 'state)
                    "running"))
     ;; Set frame number to "0" when _current_ threads stops.
     (when (and (gdb-current-buffer-thread)
@@ -2565,7 +2565,7 @@ file names include non-ASCII characters."
 (defun gdb-thread-exited (_token output-field)
   "Handle =thread-exited async record.
 Unset `gdb-thread-number' if current thread exited and update threads list."
-  (let* ((thread-id (bindat-get-field (gdb-json-string output-field) 'id)))
+  (let* ((thread-id (gdb-mi--field (gdb-json-string output-field) 'id)))
     (if (string= gdb-thread-number thread-id)
         (gdb-setq-thread-number nil))
     ;; When we continue current thread and it quickly exits,
@@ -2580,7 +2580,7 @@ Unset `gdb-thread-number' if current thread exited and update threads list."
 
 Sets `gdb-thread-number' to new id."
   (let* ((result (gdb-json-string output-field))
-         (thread-id (bindat-get-field result 'id)))
+         (thread-id (gdb-mi--field result 'id)))
     (gdb-setq-thread-number thread-id)
     ;; Typing `thread N' in GUD buffer makes GDB emit `^done' followed
     ;; by `=thread-selected' notification. `^done' causes `gdb-update'
@@ -2595,7 +2595,7 @@ Sets `gdb-thread-number' to new id."
 
 (defun gdb-running (_token output-field)
   (let* ((thread-id
-          (bindat-get-field (gdb-json-string output-field) 'thread-id)))
+          (gdb-mi--field (gdb-json-string output-field) 'thread-id)))
     ;; We reset gdb-frame-number to nil if current thread has gone
     ;; running. This can't be done in gdb-thread-list-handler-custom
     ;; because we need correct gdb-frame-number by the time
@@ -2625,10 +2625,10 @@ Sets `gdb-thread-number' to new id."
 current thread and update GDB buffers."
   ;; Reason is available with target-async only
   (let* ((result (gdb-json-string output-field))
-         (reason (bindat-get-field result 'reason))
-         (thread-id (bindat-get-field result 'thread-id))
-         (retval (bindat-get-field result 'return-value))
-         (varnum (bindat-get-field result 'gdb-result-var)))
+         (reason (gdb-mi--field result 'reason))
+         (thread-id (gdb-mi--field result 'thread-id))
+         (retval (gdb-mi--field result 'return-value))
+         (varnum (gdb-mi--field result 'gdb-result-var)))
 
     ;; -data-list-register-names needs to be issued for any stopped
     ;; thread
@@ -2671,7 +2671,7 @@ current thread and update GDB buffers."
       ;; gdb-switch-when-another-stopped:
       (when (or gdb-switch-when-another-stopped
                 (not (string= "stopped"
-                              (bindat-get-field (gdb-current-buffer-thread) 'state))))
+                              (gdb-mi--field (gdb-current-buffer-thread) 'state))))
         ;; Switch if current reason has been selected or we have no
         ;; reasons
         (if (or (eq gdb-switch-reasons t)
@@ -2937,14 +2937,6 @@ calling `gdb-table-string'."
       (gdb-table-row-properties table))
      "\n")))
 
-;; bindat-get-field goes deep, gdb-get-many-fields goes wide
-(defun gdb-get-many-fields (struct &rest fields)
-  "Return a list of FIELDS values from STRUCT."
-  (let ((values))
-    (dolist (field fields)
-      (push (bindat-get-field struct field) values))
-    (nreverse values)))
-
 (defmacro def-gdb-auto-update-trigger (trigger-name gdb-command
                                                     handler-name
                                                     &optional signal-list)
@@ -3032,26 +3024,27 @@ See `def-gdb-auto-update-handler'."
  'gdb-invalidate-breakpoints)
 
 (defun gdb-breakpoints-list-handler-custom ()
-  (let ((breakpoints-list (bindat-get-field
-                           (gdb-json-partial-output "bkpt" "script")
-                           'BreakpointTable 'body))
+  (let ((breakpoints-list (gdb-mi--field
+                           (gdb-mi--field (gdb-json-partial-output 'bkpt)
+                                          'BreakpointTable)
+                           'body))
         (table (make-gdb-table)))
     (setq gdb-breakpoints-list nil)
     (gdb-table-add-row table '("Num" "Type" "Disp" "Enb" "Addr" "Hits" "What"))
     (dolist (breakpoint breakpoints-list)
       (add-to-list 'gdb-breakpoints-list
-                   (cons (bindat-get-field breakpoint 'number)
+                   (cons (gdb-mi--field breakpoint 'number)
                          breakpoint))
-      (let ((at (bindat-get-field breakpoint 'at))
-            (pending (bindat-get-field breakpoint 'pending))
-            (func (bindat-get-field breakpoint 'func))
-	    (type (bindat-get-field breakpoint 'type)))
+      (let ((at (gdb-mi--field breakpoint 'at))
+            (pending (gdb-mi--field breakpoint 'pending))
+            (func (gdb-mi--field breakpoint 'func))
+	    (type (gdb-mi--field breakpoint 'type)))
         (gdb-table-add-row table
                            (list
-                            (bindat-get-field breakpoint 'number)
+                            (gdb-mi--field breakpoint 'number)
                             (or type "")
-                            (or (bindat-get-field breakpoint 'disp) "")
-                            (let ((flag (bindat-get-field breakpoint 'enabled)))
+                            (or (gdb-mi--field breakpoint 'disp) "")
+                            (let ((flag (gdb-mi--field breakpoint 'enabled)))
                               (if (string-equal flag "y")
                                   (eval-when-compile
                                     (propertize "y" 'font-lock-face
@@ -3059,10 +3052,10 @@ See `def-gdb-auto-update-handler'."
                                 (eval-when-compile
                                   (propertize "n" 'font-lock-face
                                               font-lock-comment-face))))
-                            (bindat-get-field breakpoint 'addr)
-                            (or (bindat-get-field breakpoint 'times) "")
+                            (gdb-mi--field breakpoint 'addr)
+                            (or (gdb-mi--field breakpoint 'times) "")
                             (if (and type (string-match ".*watchpoint" type))
-                                (bindat-get-field breakpoint 'what)
+                                (gdb-mi--field breakpoint 'what)
                               (or pending at
                                   (concat "in "
                                           (propertize (or func "unknown")
@@ -3087,11 +3080,11 @@ See `def-gdb-auto-update-handler'."
   (dolist (breakpoint gdb-breakpoints-list)
     (let* ((breakpoint (cdr breakpoint)) ; gdb-breakpoints-list is
                                         ; an associative list
-           (line (bindat-get-field breakpoint 'line)))
+           (line (gdb-mi--field breakpoint 'line)))
       (when line
-        (let ((file (bindat-get-field breakpoint 'fullname))
-              (flag (bindat-get-field breakpoint 'enabled))
-              (bptno (bindat-get-field breakpoint 'number)))
+        (let ((file (gdb-mi--field breakpoint 'fullname))
+              (flag (gdb-mi--field breakpoint 'enabled))
+              (bptno (gdb-mi--field breakpoint 'number)))
           (unless (and file (file-exists-p file))
             (setq file (cdr (assoc bptno gdb-location-alist))))
 	  (if (or (null file)
@@ -3099,7 +3092,7 @@ See `def-gdb-auto-update-handler'."
 	      ;; If the full filename is not recorded in the
 	      ;; breakpoint structure or in `gdb-location-alist', use
 	      ;; -file-list-exec-source-file to extract it.
-	      (when (setq file (bindat-get-field breakpoint 'file))
+	      (when (setq file (gdb-mi--field breakpoint 'file))
 		(gdb-input (concat "list " file ":1") 'ignore)
 		(gdb-input "-file-list-exec-source-file"
 			   `(lambda () (gdb-get-location
@@ -3355,7 +3348,7 @@ corresponding to the mode line clicked."
   'gdb-invalidate-threads)
 
 (defun gdb-thread-list-handler-custom ()
-  (let ((threads-list (bindat-get-field (gdb-json-partial-output) 'threads))
+  (let ((threads-list (gdb-mi--field (gdb-json-partial-output) 'threads))
         (table (make-gdb-table))
         (marked-line nil))
     (setq gdb-threads-list nil)
@@ -3364,9 +3357,9 @@ corresponding to the mode line clicked."
     (set-marker gdb-thread-position nil)
 
     (dolist (thread (reverse threads-list))
-      (let ((running (equal (bindat-get-field thread 'state) "running")))
+      (let ((running (equal (gdb-mi--field thread 'state) "running")))
         (add-to-list 'gdb-threads-list
-                     (cons (bindat-get-field thread 'id)
+                     (cons (gdb-mi--field thread 'id)
                            thread))
         (cl-incf (if running
                      gdb-running-threads-count
@@ -3375,37 +3368,41 @@ corresponding to the mode line clicked."
         (gdb-table-add-row
          table
          (list
-          (bindat-get-field thread 'id)
+          (gdb-mi--field thread 'id)
           (concat
            (if gdb-thread-buffer-verbose-names
-               (concat (bindat-get-field thread 'target-id) " ") "")
-           (bindat-get-field thread 'state)
+               (concat (gdb-mi--field thread 'target-id) " ") "")
+           (gdb-mi--field thread 'state)
            ;; Include frame information for stopped threads
            (if (not running)
                (concat
-                " in " (bindat-get-field thread 'frame 'func)
+                " in " (gdb-mi--field (gdb-mi--field thread 'frame) 'func)
                 (if gdb-thread-buffer-arguments
                     (concat
                      " ("
-                     (let ((args (bindat-get-field thread 'frame 'args)))
+                     (let ((args (gdb-mi--field (gdb-mi--field thread 'frame)
+                                                'args)))
                        (mapconcat
                         (lambda (arg)
-                          (apply #'format "%s=%s"
-                                 (gdb-get-many-fields arg 'name 'value)))
+                          (format "%s=%s"
+                                  (gdb-mi--field arg 'name)
+                                  (gdb-mi--field arg 'value)))
                         args ","))
                      ")")
                   "")
                 (if gdb-thread-buffer-locations
-                    (gdb-frame-location (bindat-get-field thread 'frame)) "")
+                    (gdb-frame-location (gdb-mi--field thread 'frame)) "")
                 (if gdb-thread-buffer-addresses
-                    (concat " at " (bindat-get-field thread 'frame 'addr)) ""))
+                    (concat " at " (gdb-mi--field (gdb-mi--field thread 'frame)
+                                                  'addr))
+                  ""))
              "")))
          (list
           'gdb-thread thread
           'mouse-face 'highlight
           'help-echo "mouse-2, RET: select thread")))
       (when (string-equal gdb-thread-number
-                          (bindat-get-field thread 'id))
+                          (gdb-mi--field thread 'id))
         (setq marked-line (length gdb-threads-list))))
     (insert (gdb-table-string table " "))
     (when marked-line
@@ -3437,11 +3434,11 @@ If `gdb-thread' is nil, error is signaled."
   "Define a NAME which will call BUFFER-COMMAND with id of thread
 on the current line."
   `(def-gdb-thread-buffer-command ,name
-     (,buffer-command (bindat-get-field thread 'id))
+     (,buffer-command (gdb-mi--field thread 'id))
      ,doc))
 
 (def-gdb-thread-buffer-command gdb-select-thread
-  (let ((new-id (bindat-get-field thread 'id)))
+  (let ((new-id (gdb-mi--field thread 'id)))
     (gdb-setq-thread-number new-id)
     (gdb-input (concat "-thread-select " new-id) 'ignore)
     (gdb-update))
@@ -3493,7 +3490,7 @@ on the current line."
 line."
   `(def-gdb-thread-buffer-command ,name
      (if gdb-non-stop
-         (let ((gdb-thread-number (bindat-get-field thread 'id))
+         (let ((gdb-thread-number (gdb-mi--field thread 'id))
                (gdb-gud-control-all-threads nil))
            (call-interactively #',gud-command))
        (error "Available in non-stop mode only, customize `gdb-non-stop-setting'"))
@@ -3593,19 +3590,19 @@ in `gdb-memory-format'."
 
 (defun gdb-read-memory-custom ()
   (let* ((res (gdb-json-partial-output))
-         (err-msg (bindat-get-field res 'msg)))
+         (err-msg (gdb-mi--field res 'msg)))
     (if (not err-msg)
-        (let ((memory (bindat-get-field res 'memory)))
+        (let ((memory (gdb-mi--field res 'memory)))
           (when gdb-memory-last-address
             ;; Nil means last retrieve emits error or just started the session.
             (setq gdb--memory-display-warning nil))
-          (setq gdb-memory-address (bindat-get-field res 'addr))
-          (setq gdb-memory-next-page (bindat-get-field res 'next-page))
-          (setq gdb-memory-prev-page (bindat-get-field res 'prev-page))
+          (setq gdb-memory-address (gdb-mi--field res 'addr))
+          (setq gdb-memory-next-page (gdb-mi--field res 'next-page))
+          (setq gdb-memory-prev-page (gdb-mi--field res 'prev-page))
           (setq gdb-memory-last-address gdb-memory-address)
           (dolist (row memory)
-            (insert (concat (bindat-get-field row 'addr) ":"))
-            (dolist (column (bindat-get-field row 'data))
+            (insert (concat (gdb-mi--field row 'addr) ":"))
+            (dolist (column (gdb-mi--field row 'data))
               (insert (gdb-pad-string column
                                       (+ 2 (gdb-memory-column-width
                                             gdb-memory-unit
@@ -3944,8 +3941,8 @@ DOC is an optional documentation string."
 
 (def-gdb-auto-update-trigger gdb-invalidate-disassembly
   (let* ((frame (gdb-current-buffer-frame))
-         (file (bindat-get-field frame 'fullname))
-         (line (bindat-get-field frame 'line)))
+         (file (gdb-mi--field frame 'fullname))
+         (line (gdb-mi--field frame 'line)))
     (if file
       (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)
     ;; If we're unable to get a file name / line for $PC, simply
@@ -4001,22 +3998,22 @@ DOC is an optional documentation string."
   'gdb-invalidate-disassembly)
 
 (defun gdb-disassembly-handler-custom ()
-  (let* ((instructions (bindat-get-field (gdb-json-partial-output) 'asm_insns))
-         (address (bindat-get-field (gdb-current-buffer-frame) 'addr))
+  (let* ((instructions (gdb-mi--field (gdb-json-partial-output) 'asm_insns))
+         (address (gdb-mi--field (gdb-current-buffer-frame) 'addr))
          (table (make-gdb-table))
          (marked-line nil))
     (dolist (instr instructions)
       (gdb-table-add-row table
                          (list
-                          (bindat-get-field instr 'address)
+                          (gdb-mi--field instr 'address)
                           (let
-                              ((func-name (bindat-get-field instr 'func-name))
-                               (offset (bindat-get-field instr 'offset)))
+                              ((func-name (gdb-mi--field instr 'func-name))
+                               (offset (gdb-mi--field instr 'offset)))
                             (if func-name
                                 (format "<%s+%s>:" func-name offset)
                               ""))
-                          (bindat-get-field instr 'inst)))
-      (when (string-equal (bindat-get-field instr 'address)
+                          (gdb-mi--field instr 'inst)))
+      (when (string-equal (gdb-mi--field instr 'address)
                           address)
         (progn
           (setq marked-line (length (gdb-table-rows table)))
@@ -4035,15 +4032,15 @@ DOC is an optional documentation string."
     (setq mode-name
           (gdb-current-context-mode-name
            (concat "Disassembly: "
-                   (bindat-get-field (gdb-current-buffer-frame) 'func))))))
+                   (gdb-mi--field (gdb-current-buffer-frame) 'func))))))
 
 (defun gdb-disassembly-place-breakpoints ()
   (gdb-remove-breakpoint-icons (point-min) (point-max))
   (dolist (breakpoint gdb-breakpoints-list)
     (let* ((breakpoint (cdr breakpoint))
-           (bptno (bindat-get-field breakpoint 'number))
-           (flag (bindat-get-field breakpoint 'enabled))
-           (address (bindat-get-field breakpoint 'addr)))
+           (bptno (gdb-mi--field breakpoint 'number))
+           (flag (gdb-mi--field breakpoint 'enabled))
+           (address (gdb-mi--field breakpoint 'addr)))
       (save-excursion
         (goto-char (point-min))
         (if (re-search-forward (concat "^" address) nil t)
@@ -4073,10 +4070,10 @@ DOC is an optional documentation string."
     (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
       (if breakpoint
           (gud-basic-call
-           (concat (if (equal "y" (bindat-get-field breakpoint 'enabled))
+           (concat (if (equal "y" (gdb-mi--field breakpoint 'enabled))
                        "-break-disable "
                      "-break-enable ")
-                   (bindat-get-field breakpoint 'number)))
+                   (gdb-mi--field breakpoint 'number)))
         (error "Not recognized as break/watchpoint line")))))
 
 (defun gdb-delete-breakpoint ()
@@ -4087,7 +4084,7 @@ DOC is an optional documentation string."
     (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
       (if breakpoint
           (gud-basic-call (concat "-break-delete "
-                                  (bindat-get-field breakpoint 'number)))
+                                  (gdb-mi--field breakpoint 'number)))
         (error "Not recognized as break/watchpoint line")))))
 
 (defun gdb-goto-breakpoint (&optional event)
@@ -4101,9 +4098,9 @@ DOC is an optional documentation string."
     (beginning-of-line)
     (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
       (if breakpoint
-          (let ((bptno (bindat-get-field breakpoint 'number))
-                (file  (bindat-get-field breakpoint 'fullname))
-                (line  (bindat-get-field breakpoint 'line)))
+          (let ((bptno (gdb-mi--field breakpoint 'number))
+                (file  (gdb-mi--field breakpoint 'fullname))
+                (line  (gdb-mi--field breakpoint 'line)))
             (save-selected-window
               (let* ((buffer (find-file-noselect
                               (if (file-exists-p file) file
@@ -4134,28 +4131,28 @@ DOC is an optional documentation string."
 
 FRAME must have either \"file\" and \"line\" members or \"from\"
 member."
-  (let ((file (bindat-get-field frame 'file))
-        (line (bindat-get-field frame 'line))
-        (from (bindat-get-field frame 'from)))
+  (let ((file (gdb-mi--field frame 'file))
+        (line (gdb-mi--field frame 'line))
+        (from (gdb-mi--field frame 'from)))
     (let ((res (or (and file line (concat file ":" line))
                    from)))
       (if res (concat " of " res) ""))))
 
 (defun gdb-stack-list-frames-custom ()
-  (let ((stack (bindat-get-field (gdb-json-partial-output "frame") 'stack))
+  (let ((stack (gdb-mi--field (gdb-json-partial-output 'frame) 'stack))
         (table (make-gdb-table)))
     (set-marker gdb-stack-position nil)
     (dolist (frame stack)
       (gdb-table-add-row table
                          (list
-                          (bindat-get-field frame 'level)
+                          (gdb-mi--field frame 'level)
                           "in"
                           (concat
-                           (bindat-get-field frame 'func)
+                           (gdb-mi--field frame 'func)
                            (if gdb-stack-buffer-locations
                                (gdb-frame-location frame) "")
                            (if gdb-stack-buffer-addresses
-                               (concat " at " (bindat-get-field frame 'addr)) "")))
+                               (concat " at " (gdb-mi--field frame 'addr)) "")))
                          `(mouse-face highlight
                                       help-echo "mouse-2, RET: Select frame"
                                       gdb-frame ,frame)))
@@ -4215,7 +4212,7 @@ member."
   (let ((frame (get-text-property (point) 'gdb-frame)))
     (if frame
         (if (gdb-buffer-shows-main-thread-p)
-            (let ((new-level (bindat-get-field frame 'level)))
+            (let ((new-level (gdb-mi--field frame 'level)))
               (setq gdb-frame-number new-level)
               (gdb-input (concat "-stack-select-frame " new-level)
 			 'ignore)
@@ -4261,7 +4258,7 @@ member."
   (save-excursion
     (if event (posn-set-point (event-end event)))
     (beginning-of-line)
-    (let* ((var (bindat-get-field
+    (let* ((var (gdb-mi--field
                  (get-text-property (point) 'gdb-local-variable) 'name))
 	   (value (read-string (format "New value (%s): " var))))
       (gud-basic-call
@@ -4270,12 +4267,12 @@ member."
 ;; Don't display values of arrays or structures.
 ;; These can be expanded using gud-watch.
 (defun gdb-locals-handler-custom ()
-  (let ((locals-list (bindat-get-field (gdb-json-partial-output) 'locals))
+  (let ((locals-list (gdb-mi--field (gdb-json-partial-output) 'locals))
         (table (make-gdb-table)))
     (dolist (local locals-list)
-      (let ((name (bindat-get-field local 'name))
-            (value (bindat-get-field local 'value))
-            (type (bindat-get-field local 'type)))
+      (let ((name (gdb-mi--field local 'name))
+            (value (gdb-mi--field local 'value))
+            (type (gdb-mi--field local 'type)))
         (when (not value)
           (setq value "<complex data type>"))
         (if (or (not value)
@@ -4301,7 +4298,7 @@ member."
     (setq mode-name
           (gdb-current-context-mode-name
            (concat "Locals: "
-                   (bindat-get-field (gdb-current-buffer-frame) 'func))))))
+                   (gdb-mi--field (gdb-current-buffer-frame) 'func))))))
 
 (defvar gdb-locals-header
   (list
@@ -4367,11 +4364,11 @@ member."
 (defun gdb-registers-handler-custom ()
   (when gdb-register-names
     (let ((register-values
-           (bindat-get-field (gdb-json-partial-output) 'register-values))
+           (gdb-mi--field (gdb-json-partial-output) 'register-values))
           (table (make-gdb-table)))
       (dolist (register register-values)
-        (let* ((register-number (bindat-get-field register 'number))
-               (value (bindat-get-field register 'value))
+        (let* ((register-number (gdb-mi--field register 'number))
+               (value (gdb-mi--field register 'value))
                (register-name (nth (string-to-number register-number)
                                    gdb-register-names)))
           (gdb-table-add-row
@@ -4457,7 +4454,7 @@ member."
 (defun gdb-changed-registers-handler ()
   (setq gdb-changed-registers nil)
   (dolist (register-number
-           (bindat-get-field (gdb-json-partial-output) 'changed-registers))
+           (gdb-mi--field (gdb-json-partial-output) 'changed-registers))
     (push register-number gdb-changed-registers)))
 
 (defun gdb-register-names-handler ()
@@ -4465,7 +4462,7 @@ member."
   ;; only once (in gdb-init-1)
   (setq gdb-register-names nil)
   (dolist (register-name
-           (bindat-get-field (gdb-json-partial-output) 'register-names))
+           (gdb-mi--field (gdb-json-partial-output) 'register-names))
     (push register-name gdb-register-names))
   (setq gdb-register-names (reverse gdb-register-names)))
 
@@ -4492,13 +4489,13 @@ Called from `gdb-update'."
 (defun gdb-frame-handler ()
   "Set `gdb-selected-frame' and `gdb-selected-file' to show
 overlay arrow in source buffer."
-  (let ((frame (bindat-get-field (gdb-json-partial-output) 'frame)))
+  (let ((frame (gdb-mi--field (gdb-json-partial-output) 'frame)))
     (when frame
-      (setq gdb-selected-frame (bindat-get-field frame 'func))
-      (setq gdb-selected-file (bindat-get-field frame 'fullname))
-      (setq gdb-frame-number (bindat-get-field frame 'level))
-      (setq gdb-frame-address (bindat-get-field frame 'addr))
-      (let ((line (bindat-get-field frame 'line)))
+      (setq gdb-selected-frame (gdb-mi--field frame 'func))
+      (setq gdb-selected-file (gdb-mi--field frame 'fullname))
+      (setq gdb-frame-number (gdb-mi--field frame 'level))
+      (setq gdb-frame-address (gdb-mi--field frame 'addr))
+      (let ((line (gdb-mi--field frame 'line)))
         (setq gdb-selected-line (and line (string-to-number line)))
         (when (and gdb-selected-file gdb-selected-line)
           (setq gud-last-frame (cons gdb-selected-file gdb-selected-line))
