@@ -1139,7 +1139,7 @@ no input, and GDB is waiting for input."
     (if (search-forward "expands to: " nil t)
 	(unless (looking-at "\\S-+.*(.*).*")
 	  (gdb-input (concat "-data-evaluate-expression \"" expr "\"")
-		     `(lambda () (gdb-tooltip-print ,expr)))))))
+		     (lambda () (gdb-tooltip-print expr)))))))
 
 (defun gdb-init-buffer ()
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
@@ -1259,7 +1259,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 			       (tooltip-identifier-from-point (point)))))))
 	      (set-text-properties 0 (length expr) nil expr)
 	      (gdb-input (concat "-var-create - * "  expr "")
-			 `(lambda () (gdb-var-create-handler ,expr))))))
+			 (lambda () (gdb-var-create-handler expr))))))
       (message "gud-watch is a no-op in this mode."))))
 
 (defsubst gdb-mi--field (value field)
@@ -1303,7 +1303,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 (defun gdb-var-list-children (varnum)
   (gdb-input (concat "-var-update " varnum) 'ignore)
   (gdb-input (concat "-var-list-children --all-values " varnum)
-	     `(lambda () (gdb-var-list-children-handler ,varnum))))
+	     (lambda () (gdb-var-list-children-handler varnum))))
 
 (defun gdb-var-list-children-handler (varnum)
   (let* ((var-list nil)
@@ -1366,7 +1366,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 	 (varnum (car var))
          (value (read-string "New value: ")))
     (gdb-input (concat "-var-assign " varnum " " value)
-	       `(lambda () (gdb-edit-value-handler ,value)))))
+	       (lambda () (gdb-edit-value-handler value)))))
 
 (defconst gdb-error-regexp "\\^error,msg=\\(\".+\"\\)")
 
@@ -1574,9 +1574,9 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 
 (defun gdb-bind-function-to-buffer (expr buffer)
   "Return a function which will evaluate EXPR in BUFFER."
-  `(lambda (&rest args)
-     (with-current-buffer ,buffer
-       (apply ',expr args))))
+  (lambda (&rest args)
+    (with-current-buffer buffer
+      (apply expr args))))
 
 ;; Used to display windows with thread-bound buffers
 (defmacro def-gdb-preempt-display-buffer (name buffer &optional doc
@@ -3085,8 +3085,8 @@ See `def-gdb-auto-update-handler'."
 	      (when (setq file (gdb-mi--field breakpoint 'file))
 		(gdb-input (concat "list " file ":1") 'ignore)
 		(gdb-input "-file-list-exec-source-file"
-			   `(lambda () (gdb-get-location
-					,bptno ,line ,flag))))
+			   (lambda () (gdb-get-location
+				       bptno line flag))))
 	    (with-current-buffer (find-file-noselect file 'nowarn)
 	      (gdb-init-buffer)
 	      ;; Only want one breakpoint icon at each location.
@@ -4547,17 +4547,17 @@ SPLIT-HORIZONTAL and show BUF in the new window."
         (let* ((buf-type (gdb-buffer-type buf))
                (existing-window
                 (get-window-with-predicate
-                 #'(lambda (w)
-                     (and (eq buf-type
-                              (gdb-buffer-type (window-buffer w)))
-                          (not (window-dedicated-p w)))))))
+                 (lambda (w)
+                   (and (eq buf-type
+                            (gdb-buffer-type (window-buffer w)))
+                        (not (window-dedicated-p w)))))))
           (if existing-window
               (set-window-buffer existing-window buf)
             (let ((dedicated-window
                    (get-window-with-predicate
-                    #'(lambda (w)
-                        (eq buf-type
-                            (gdb-buffer-type (window-buffer w)))))))
+                    (lambda (w)
+                      (eq buf-type
+                          (gdb-buffer-type (window-buffer w)))))))
               (if dedicated-window
                   (set-window-buffer
                    (split-window dedicated-window nil split-horizontal) buf)
@@ -4622,7 +4622,7 @@ SPLIT-HORIZONTAL and show BUF in the new window."
 
 (let ((menu (make-sparse-keymap "GDB-MI")))
   (define-key menu [gdb-customize]
-    '(menu-item "Customize" (lambda () (interactive) (customize-group 'gdb))
+    `(menu-item "Customize" ,(lambda () (interactive) (customize-group 'gdb))
       :help "Customize Gdb Graphical Mode options."))
   (define-key menu [gdb-many-windows]
     '(menu-item "Display Other Windows" gdb-many-windows
@@ -4631,26 +4631,26 @@ SPLIT-HORIZONTAL and show BUF in the new window."
   (define-key menu [sep1]
     '(menu-item "--"))
   (define-key menu [all-threads]
-    '(menu-item "GUD controls all threads"
-      (lambda ()
-        (interactive)
-        (setq gdb-gud-control-all-threads t))
+    `(menu-item "GUD controls all threads"
+      ,(lambda ()
+         (interactive)
+         (setq gdb-gud-control-all-threads t))
       :help "GUD start/stop commands apply to all threads"
       :button (:radio . gdb-gud-control-all-threads)))
   (define-key menu [current-thread]
-    '(menu-item "GUD controls current thread"
-      (lambda ()
-        (interactive)
-        (setq gdb-gud-control-all-threads nil))
+    `(menu-item "GUD controls current thread"
+      ,(lambda ()
+         (interactive)
+         (setq gdb-gud-control-all-threads nil))
       :help "GUD start/stop commands apply to current thread only"
       :button (:radio . (not gdb-gud-control-all-threads))))
   (define-key menu [sep2]
     '(menu-item "--"))
   (define-key menu [gdb-customize-reasons]
-    '(menu-item "Customize switching..."
-      (lambda ()
-        (interactive)
-        (customize-option 'gdb-switch-reasons))))
+    `(menu-item "Customize switching..."
+      ,(lambda ()
+         (interactive)
+         (customize-option 'gdb-switch-reasons))))
   (define-key menu [gdb-switch-when-another-stopped]
     (menu-bar-make-toggle-command
      gdb-toggle-switch-when-another-stopped
