@@ -1276,7 +1276,7 @@ Funktion set-language-environment).  Mittels
   C-x <Return> l latin-1 <Return>
 
 können Sie z.B. in einer laufenden Emacs-Sitzung auf Latin-1
-umzuschalten.  Dadurch wird erreicht, dass Emacs beim Laden einer
+umschalten.  Dadurch wird erreicht, dass Emacs beim Laden einer
 Datei (und Speichern derselben) standardmäßig die
 Latin-1-Zeichenkodierung verwendet.  Sie können an der Ziffer 1
 unmittelbar vor dem Doppelpunkt links unten in der Statuszeile
