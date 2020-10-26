@@ -49,6 +49,7 @@
                               (? digit) digit ":" digit digit
                               (? (| "AM" "PM"))
                               " " (+ (| digit "."))
+                              (? " Mail")
                               string-end)
                           display-time-string))))
 
