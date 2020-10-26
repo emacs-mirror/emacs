@@ -430,6 +430,15 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   ;; Bug#42664, Bug#43280, Bug#44209.
   (should-not (subr-native-elisp-p (symbol-function #'comp-test-defsubst-f))))
 
+(comp-deftest primitive-redefine-compile-44221 ()
+  "Test the compiler still works while primitives are redefined (bug#44221)."
+  (cl-letf (((symbol-function #'delete-region)
+             (lambda (_ _))))
+    (should (subr-native-elisp-p
+             (native-compile
+              '(lambda ()
+                 (delete-region (point-min) (point-max))))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

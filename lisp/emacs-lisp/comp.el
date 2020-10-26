@@ -1153,9 +1153,7 @@ Return value is the fall through block name."
 SP-DELTA is the stack adjustment."
     (let ((subr (symbol-function subr-name))
           (nargs (1+ (- sp-delta))))
-      (unless (subrp subr)
-        (signal 'native-ice (list "not a subr" subr)))
-      (let* ((arity (subr-arity subr))
+      (let* ((arity (func-arity subr))
              (minarg (car arity))
              (maxarg (cdr arity)))
         (when (eq maxarg 'unevalled)
