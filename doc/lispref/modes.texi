@@ -1806,10 +1806,11 @@ don't need any.
 
 @defmac define-globalized-minor-mode global-mode mode turn-on keyword-args@dots{} body@dots{}
 This defines a global toggle named @var{global-mode} whose meaning is
-to enable or disable the buffer-local minor mode @var{mode} in all
-buffers.  It also executes the @var{body} forms.  To turn on the minor
-mode in a buffer, it uses the function @var{turn-on}; to turn off the
-minor mode, it calls @var{mode} with @minus{}1 as argument.
+to enable or disable the buffer-local minor mode @var{mode} in all (or
+some; see below) buffers.  It also executes the @var{body} forms.  To
+turn on the minor mode in a buffer, it uses the function
+@var{turn-on}; to turn off the minor mode, it calls @var{mode} with
+@minus{}1 as argument.
 
 Globally enabling the mode also affects buffers subsequently created
 by visiting files, and buffers that use a major mode other than
@@ -1830,6 +1831,38 @@ also define a non-globalized version, so that people can use (or
 disable) it in individual buffers.  This also allows them to disable a
 globally enabled minor mode in a specific major mode, by using that
 mode's hook.
+
+If given a @code{:predicate} keyword, a user option called the same as
+the global mode variable, but with @code{-modes} instead of
+@code{-mode} at the end will be created.  The variable is used as a
+predicate that specifies which major modes the minor mode should be
+activated in.  Valid values include @code{t} (use in all major modes,
+@code{nil} (use in no major modes), or a list of mode names (or
+@code{(not mode-name ...)}) elements (as well as @code{t} and
+@code{nil}).
+
+@example
+(c-mode (not mail-mode message-mode) text-mode)
+@end example
+
+This means ``use in modes derived from @code{c-mode}, and not in
+modes derived from @code{message-mode} or @code{mail-mode}, but do use
+in modes derived from @code{text-mode}, and otherwise no other
+modes''.
+
+@example
+((not c-mode) t)
+@end example
+
+This means ``don't use modes derived from @code{c-mode}, but use
+everywhere else''.
+
+@example
+(text-mode)
+@end example
+
+This means ``use in modes derived from @code{text-mode}, but nowhere
+else''.  (There's an implicit @code{nil} element at the end.)
 @end defmac
 
 

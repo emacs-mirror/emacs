@@ -1617,6 +1617,11 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'define-globalized-minor-mode' now takes a :predicate parameter.
+This can be used to control which major modes the minor mode should be
+used in.
+
++++
 ** 'truncate-string-ellipsis' now uses '…' by default.
 Modes that use 'truncate-string-to-width' with non-nil, non-string
 argument 'ellipsis', will now indicate truncation using '…' when
