@@ -1173,31 +1173,34 @@ right-to-left paragraphs.
 @cindex mode, display-fill-column-indicator
 @findex display-fill-column-indicator-mode
 @findex global-display-fill-column-indicator-mode
-  Emacs can add an indicator to display a fill column position.  The
-fill column indicator is a useful functionality especially in
-@code{prog-mode} to indicate the position of a specific column.
+  Emacs can display an indication of the @code{fill-column} position
+(@pxref{Fill Commands}).  The fill-column indicator is a useful
+functionality especially in @code{prog-mode} and its descendants
+(@pxref{Major Modes}) to indicate the position of a specific column
+that has some special meaning for formatting the source code of a
+program.
 
-  You can set the buffer-local variables
+  To activate the fill-column indication display, use the minor modes
+@w{@kbd{M-x display-fill-column-indicator-mode}} and
+@w{@kbd{M-x global-display-fill-column-indicator-mode}}, which enable
+the indicator locally or globally, respectively.
+
+Alternatively, you can set the two buffer-local variables
 @code{display-fill-column-indicator} and
 @code{display-fill-column-indicator-character} to activate the
-indicator and control how it looks, respectively.
+indicator and control the character used for the indication.  Note
+that both variables must be non-@code{nil} for the indication to be
+displayed.  (Turning on the minor mode sets both these variables.)
 
-Alternatively you can type @w{@kbd{M-x display-fill-column-indicator-mode}}
-or @w{@kbd{M-x global-display-fill-column-indicator-mode}} which
-enables the indicator locally or globally, respectively, and also
-chooses the character to use if none is already set.  It is possible
-to use the first one to activate the indicator in a hook and the
-second one to enable it globally.
-
-There are 2 buffer local variables and 1 face to customize this mode:
+There are 2 buffer local variables and a face to customize this mode:
 
 @table @code
 @item display-fill-column-indicator-column
 @vindex display-fill-column-indicator-column
 Specifies the column number where the indicator should be set.  It can
-take positive numerical values for the column or the special value
-@code{t} which means that the variable @code{fill-column} will be
-used.
+take positive numerical values for the column, or the special value
+@code{t}, which means that the value of the variable
+@code{fill-column} will be used.
 
 Any other value disables the indicator.  The default value is @code{t}.
 
@@ -1205,18 +1208,18 @@ Any other value disables the indicator.  The default value is @code{t}.
 @vindex display-fill-column-indicator-character
 Specifies the character used for the indicator.  This character can be
 any valid character including Unicode ones if the font supports them.
-
-When the mode is enabled through the functions
-@code{display-fill-column-indicator-mode} or
-@code{global-display-fill-column-indicator-mode}, the initialization
-functions check if this variable is non-@code{nil}, otherwise the
-initialization tries to set it to @code{U+2502} or @samp{|}.
+The value @code{nil} disables the indicator.  When the mode is enabled
+through the functions @code{display-fill-column-indicator-mode} or
+@code{global-display-fill-column-indicator-mode}, they will use the
+character specified by this variable, if it is non-@code{nil};
+otherwise Emacs will use the character @samp{U+2502 VERTICAL LINE},
+falling back to @samp{|} if @code{U+2502} cannot be displayed.
 
 @item fill-column-indicator
 @vindex fill-column-indicator
 Specifies the face used to display the indicator.  It inherits its
-default values from the face @code{shadow} but without background
-color.  To change the indicator color you need only set the foreground
+default values from the face @code{shadow}, but without background
+color.  To change the indicator color, you need only set the foreground
 color of this face.
 @end table
 
