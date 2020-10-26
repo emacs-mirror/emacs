@@ -2645,6 +2645,11 @@ font_clear_cache (struct frame *f, Lisp_Object cache,
 		      if (! NILP (AREF (val, FONT_TYPE_INDEX)))
 			{
 			  eassert (font && driver == font->driver);
+			  /* We are going to close the font, so make
+			     sure we don't have any lgstrings lying
+			     around in lgstring cache that reference
+			     the font.  */
+			  composition_gstring_cache_clear_font (val);
 			  driver->close_font (font);
 			}
 		    }

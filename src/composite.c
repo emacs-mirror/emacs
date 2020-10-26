@@ -677,6 +677,27 @@ composition_gstring_from_id (ptrdiff_t id)
   return HASH_VALUE (h, id);
 }
 
+/* Remove from the composition hash table every lgstring that
+   references the given FONT_OBJECT.  */
+void
+composition_gstring_cache_clear_font (Lisp_Object font_object)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
+
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      Lisp_Object k = HASH_KEY (h, i);
+
+      if (!EQ (k, Qunbound))
+	{
+	  Lisp_Object gstring = HASH_VALUE (h, i);
+
+	  if (EQ (LGSTRING_FONT (gstring), font_object))
+	    hash_remove_from_table (h, k);
+	}
+    }
+}
+
 DEFUN ("clear-composition-cache", Fclear_composition_cache,
        Sclear_composition_cache, 0, 0, 0,
        doc: /* Internal use only.
