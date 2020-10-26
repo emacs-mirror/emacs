@@ -219,7 +219,7 @@ Sets the current buffer to the show buffer."
              (erase-buffer)
              ;; Changing contents, so this hook needs to be reinitialized.
              ;; pgp.el uses this.
-             (kill-local-variable 'write-contents-hooks)
+             (kill-local-variable 'write-contents-functions)
              (font-lock-mode -1)
              (mh-show-mode)
              (if formfile

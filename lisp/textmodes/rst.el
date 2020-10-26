@@ -2862,7 +2862,7 @@ file-write hook to always make it up-to-date automatically."
 ;; FIXME: Updating the toc on saving would be nice. However, this doesn't work
 ;;        correctly:
 ;;
-;;	  (add-hook 'write-contents-hooks 'rst-toc-update-fun)
+;;	  (add-hook 'write-contents-functions 'rst-toc-update-fun)
 ;;	  (defun rst-toc-update-fun ()
 ;;	    ;; Disable undo for the write file hook.
 ;;	    (let ((buffer-undo-list t)) (rst-toc-update) ))
