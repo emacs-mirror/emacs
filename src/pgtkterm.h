@@ -172,6 +172,10 @@ struct pgtk_display_info
 
   int color_p;
 
+  /* Emacs bitmap-id of the default icon bitmap for this frame.
+     Or -1 if none has been allocated yet.  */
+  ptrdiff_t icon_bitmap_id;
+
   Window root_window;
 
   /* Xism */
@@ -295,6 +299,10 @@ struct pgtk_output
   /* lord knows why Emacs needs to know about our Window ids.. */
   Window window_desc, parent_desc;
   char explicit_parent;
+
+  /* If >=0, a bitmap index.  The indicated bitmap is used for the
+     icon. */
+  ptrdiff_t icon_bitmap;
 
   struct font *font;
   int baseline_offset;

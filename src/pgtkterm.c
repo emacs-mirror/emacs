@@ -52,6 +52,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
+#include "emacs-icon.h"
 #include "menu.h"
 #include "window.h"
 #include "keyboard.h"
@@ -3029,25 +3030,69 @@ pgtk_scroll_run (struct window *w, struct run *run)
 static bool
 pgtk_bitmap_icon (struct frame *f, Lisp_Object file)
 {
+  ptrdiff_t bitmap_id;
+
   if (FRAME_GTK_WIDGET (f) == 0)
     return true;
+
+  /* Free up our existing icon bitmap and mask if any.  */
+  if (f->output_data.pgtk->icon_bitmap > 0)
+    image_destroy_bitmap (f, f->output_data.pgtk->icon_bitmap);
+  f->output_data.pgtk->icon_bitmap = 0;
 
   if (STRINGP (file))
     {
       /* Use gtk_window_set_icon_from_file () if available,
-         It's not restricted to bitmaps */
+	 It's not restricted to bitmaps */
       if (xg_set_icon (f, file))
 	return false;
-
-      return true;
+      bitmap_id = image_create_bitmap_from_file (f, file);
     }
-
-  if (xg_set_icon (f, xg_default_icon_file))
+  else
     {
-      return false;
+      /* Create the GNU bitmap and mask if necessary.  */
+      if (FRAME_DISPLAY_INFO (f)->icon_bitmap_id < 0)
+	{
+	  ptrdiff_t rc = -1;
+
+          if (xg_set_icon (f, xg_default_icon_file)
+              || xg_set_icon_from_xpm_data (f, gnu_xpm_bits))
+            {
+              FRAME_DISPLAY_INFO (f)->icon_bitmap_id = -2;
+              return false;
+            }
+
+	  /* If all else fails, use the (black and white) xbm image. */
+	  if (rc == -1)
+	    {
+              rc = image_create_bitmap_from_data (f,
+                                                  (char *) gnu_xbm_bits,
+                                                  gnu_xbm_width,
+                                                  gnu_xbm_height);
+	      if (rc == -1)
+		return true;
+
+	      FRAME_DISPLAY_INFO (f)->icon_bitmap_id = rc;
+	    }
+	}
+
+      /* The first time we create the GNU bitmap and mask,
+	 this increments the ref-count one extra time.
+	 As a result, the GNU bitmap and mask are never freed.
+	 That way, we don't have to worry about allocating it again.  */
+      image_reference_bitmap (f, FRAME_DISPLAY_INFO (f)->icon_bitmap_id);
+
+      bitmap_id = FRAME_DISPLAY_INFO (f)->icon_bitmap_id;
     }
 
-  return true;
+  if (FRAME_DISPLAY_INFO (f)->bitmaps[bitmap_id - 1].img != NULL)
+    {
+      gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			   FRAME_DISPLAY_INFO (f)->bitmaps[bitmap_id - 1].img);
+    }
+  f->output_data.pgtk->icon_bitmap = bitmap_id;
+
+  return false;
 }
 
 
@@ -6836,6 +6881,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   dpyinfo->horizontal_scroll_bar_cursor
     = gdk_cursor_new_for_display (dpyinfo->gdpy, GDK_SB_H_DOUBLE_ARROW);
+
+  dpyinfo->icon_bitmap_id = -1;
 
   reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
