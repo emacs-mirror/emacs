@@ -31,19 +31,17 @@
   "Short documentation."
   :group 'lisp)
 
-(defface shortdoc-section
+(defface shortdoc-separator
   '((((class color) (background dark))
-     :inherit variable-pitch :background "#303030" :extend t)
+     :height 0.1 :background "#505050" :extend t)
     (((class color) (background light))
-     :inherit variable-pitch :background "#f0f0f0" :extend t))
-  "Face used for a section.")
+     :height 0.1 :background "#a0a0a0" :extend t)
+    (t :height 0.1 :inverse-video t :extend t))
+  "Face used to separate sections.")
 
-(defface shortdoc-example
-  '((((class color) (background dark))
-     :background "#202020" :extend t)
-    (((class color) (background light))
-     :background "#e8e8e8" :extend t))
-  "Face used for examples.")
+(defface shortdoc-section
+  '((t :inherit variable-pitch))
+  "Face used for a section.")
 
 (defvar shortdoc--groups nil)
 
@@ -1040,7 +1038,8 @@ There can be any number of :example/:result elements."
   (unless (assq group shortdoc--groups)
     (error "No such documentation group %s" group))
   (pop-to-buffer (format "*Shortdoc %s*" group))
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+        (prev nil))
     (erase-buffer)
     (special-mode)
     (button-mode)
@@ -1048,11 +1047,17 @@ There can be any number of :example/:result elements."
      (lambda (data)
        (cond
         ((stringp data)
+         (setq prev nil)
+         (unless (bobp)
+           (insert "\n"))
          (insert (propertize
                   (concat data "\n\n")
                   'face '(variable-pitch (:height 1.3 :weight bold)))))
         ;; There may be functions not yet defined in the data.
         ((fboundp (car data))
+         (when prev
+           (insert (propertize "\n" 'face 'shortdoc-separator)))
+         (setq prev t)
          (shortdoc--display-function data))))
      (cdr (assq group shortdoc--groups))))
   (goto-char (point-min)))
@@ -1078,8 +1083,7 @@ There can be any number of :example/:result elements."
                 (car (split-string (documentation function) "\n"))))
     (insert "\n")
     (add-face-text-property start-section (point) 'shortdoc-section t)
-    (let ((start (point))
-          (print-escape-newlines t)
+    (let ((print-escape-newlines t)
           (double-arrow (if (char-displayable-p ?⇒)
                             "⇒"
                           "=>"))
@@ -1134,9 +1138,7 @@ There can be any number of :example/:result elements."
                  (:eg-result-string
                   (insert "    eg. " double-arrow " ")
                   (princ value (current-buffer))
-                  (insert "\n"))))
-      (put-text-property start (point) 'face 'shortdoc-example))
-    (insert "\n")
+                  (insert "\n")))))
     ;; Insert the arglist after doing the evals, in case that's pulled
     ;; in the function definition.
     (save-excursion
