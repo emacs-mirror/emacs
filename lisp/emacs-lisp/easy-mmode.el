@@ -486,6 +486,24 @@ this minor mode is used in."
                (when ,mode (,mode -1)))))
          ,@body)
 
+       ,(when predicate
+          `(defcustom ,MODE-predicate ,(car predicate)
+             ,(format "Which major modes `%s' is switched on in.
+This variable can be either t (all major modes), nil (no major modes),
+or a list of modes and (not modes) to switch use this minor mode or
+not.  For instance
+
+  (c-mode (not message-mode mail-mode) text-mode)
+
+means \"use this mode in all modes derived from `c-mode', don't use in
+modes derived from `message-mode' or `mail-mode', but do use in other
+modes derived from `text-mode'\".  An element with value t means \"use\"
+and nil means \"don't use\".  There's an implicit nil at the end of the
+list."
+                      mode)
+             :type '(repeat sexp)
+             :group ,group))
+
        ;; Autoloading define-globalized-minor-mode autoloads everything
        ;; up-to-here.
        :autoload-end
@@ -533,25 +551,7 @@ this minor mode is used in."
        (defun ,MODE-cmhh ()
 	 (add-to-list ',MODE-buffers (current-buffer))
 	 (add-hook 'post-command-hook ',MODE-check-buffers))
-       (put ',MODE-cmhh 'definition-name ',global-mode)
-
-       ,(when predicate
-          `(defcustom ,MODE-predicate ,(car predicate)
-             ,(format "Which major modes `%s' is switched on in.
-This variable can be either t (all major modes), nil (no major modes),
-or a list of modes and (not modes) to switch use this minor mode or
-not.  For instance
-
-  (c-mode (not message-mode mail-mode) text-mode)
-
-means \"use this mode in all modes derived from `c-mode', don't use in
-modes derived from `message-mode' or `mail-mode', but do use in other
-modes derived from `text-mode'\".  An element with value t means \"use\"
-and nil means \"don't use\".  There's an implicit nil at the end of the
-list."
-                      mode)
-             :type '(repeat sexp)
-             :group ,group)))))
+       (put ',MODE-cmhh 'definition-name ',global-mode))))
 
 (defun easy-mmode--globalized-predicate-p (predicate)
   (cond
