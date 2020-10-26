@@ -217,6 +217,10 @@ With ARG, repeat that many times.  `C-u' means until end of buffer."
 		   (self-insert-command
 		    (prefix-numeric-value current-prefix-arg))
 		   (setq this-command 'ignore)))))
+    ;; If the user has quit here (for instance, if the user is
+    ;; presented with a "changed on disk; really edit the buffer?"
+    ;; prompt, but hit `C-g'), just ding.
+    (quit (ding))
     ;; If ask-user-about-supersession-threat signals an error,
     ;; stop safe_run_hooks from clearing out pre-command-hook.
     (file-supersession (message "%s" (cadr data)) (ding))
