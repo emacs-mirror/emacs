@@ -403,6 +403,14 @@ their 'default-directory' under VC.
 
 *** New command 'vc-dir-root' uses the root directory without asking.
 
+---
+*** The responsible VC backend is now the most specific one.
+'vc-responsible-backend' loops over the backends in
+'vc-handled-backends' to determine which backend is responsible for a
+specific (unregistered) file.  Previously the first matching backend
+was chosen, but now the one with the most specific path is chosen (in
+case there's a directory handled by one backend inside another).
+
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
 'vc-dir-mark-unregistered-files'.
 

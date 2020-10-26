@@ -979,12 +979,22 @@ be reported.
 If NO-ERROR is nil, signal an error that no VC backend is
 responsible for the given file."
   (or (and (not (file-directory-p file)) (vc-backend file))
-      (catch 'found
-	;; First try: find a responsible backend.  If this is for registration,
-	;; it must be a backend under which FILE is not yet registered.
-	(dolist (backend vc-handled-backends)
-	  (and (vc-call-backend backend 'responsible-p file)
-	       (throw 'found backend))))
+      ;; First try: find a responsible backend.  If this is for registration,
+      ;; it must be a backend under which FILE is not yet registered.
+      (let ((dirs (delq nil
+                        (mapcar
+                         (lambda (backend)
+                           (when-let ((dir (vc-call-backend
+                                            backend 'responsible-p file)))
+                             (cons backend dir)))
+                         vc-handled-backends))))
+        ;; Just a single response (or none); use it.
+        (if (< (length dirs) 2)
+            (caar dirs)
+          ;; Several roots; we seem to have one vc inside another's
+          ;; directory.  Choose the most specific.
+          (caar (sort dirs (lambda (d1 d2)
+                             (< (length (cdr d2)) (length (cdr d1))))))))
       (unless no-error
         (error "No VC backend is responsible for %s" file))))
 
