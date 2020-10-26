@@ -1186,9 +1186,9 @@ list.
 ** Miscellaneous
 
 ---
-*** 'global-display-fill-column-indicator-mode' isn't on in all buffers.
-It's not off in special-mode buffers, as specified by the new user
-option 'global-display-fill-column-indicator-modes'.
+*** 'global-display-fill-column-indicator-mode' skips some buffers.
+Turning on 'global-display-fill-column-indicator-mode' doesn't turn on
+'display-fill-column-indicator-mode' in special-mode buffers.
 
 ---
 *** New user option 'compilation-search-all-directories'.
