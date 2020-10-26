@@ -101,7 +101,7 @@ in the parse.")
 	     ;;Macros from subr.el
 	     save-match-data unless when
 	     ;;Functions from subr.el that have side effects
-	     split-string replace-regexp-in-string play-sound-file))
+	     split-string replace-regexp-in-string))
   (put x 'safe-function t))
 
 ;;;###autoload
