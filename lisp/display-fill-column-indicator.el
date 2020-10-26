@@ -74,7 +74,8 @@ See Info node `Displaying Boundaries' for details."
 
 ;;;###autoload
 (define-globalized-minor-mode global-display-fill-column-indicator-mode
-  display-fill-column-indicator-mode display-fill-column-indicator--turn-on)
+  display-fill-column-indicator-mode display-fill-column-indicator--turn-on
+  :predicate '((not special-mode) t))
 
 (provide 'display-fill-column-indicator)
 

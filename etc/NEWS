@@ -1186,6 +1186,11 @@ list.
 ** Miscellaneous
 
 ---
+*** 'global-display-fill-column-indicator-mode' isn't on in all buffers.
+It's not off in special-mode buffers, as specified by the new user
+option 'global-display-fill-column-indicator-modes'.
+
+---
 *** New user option 'compilation-search-all-directories'.
 When doing parallel builds, directories and compilation errors may
 arrive in the *compilation* buffer out-of-order.  If this variable is
