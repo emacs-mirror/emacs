@@ -1938,7 +1938,7 @@ See also `emacs-lisp-byte-compile-and-load'."
         (byte-compile--known-dynamic-vars
          (byte-compile--load-dynvars (getenv "EMACS_DYNVARS_FILE")))
 	target-file input-buffer output-buffer
-	byte-compile-dest-file)
+	byte-compile-dest-file byte-compiler-error-flag)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
     (with-current-buffer
@@ -2000,7 +2000,6 @@ See also `emacs-lisp-byte-compile-and-load'."
 	  'no-byte-compile)
       (when byte-compile-verbose
 	(message "Compiling %s..." filename))
-      (setq byte-compiler-error-flag nil)
       ;; It is important that input-buffer not be current at this call,
       ;; so that the value of point set in input-buffer
       ;; within byte-compile-from-buffer lingers in that buffer.
