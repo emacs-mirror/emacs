@@ -1299,16 +1299,6 @@ With arg, enter name of variable to be watched in the minibuffer."
       (raise-frame speedbar-frame))
   (speedbar-timer-fn))
 
-(defun gdb-var-evaluate-expression-handler (varnum changed)
-  (goto-char (point-min))
-  (re-search-forward (concat ".*value=\\(" gdb--string-regexp "\\)")
-                     nil t)
-  (let ((var (assoc varnum gdb-var-list)))
-    (when var
-      (if changed (setcar (nthcdr 5 var) 'changed))
-      (setcar (nthcdr 4 var) (read (match-string 1)))))
-  (gdb-speedbar-update))
-
                                         ; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
 (defun gdb-var-list-children (varnum)
   (gdb-input (concat "-var-update " varnum) 'ignore)
