@@ -583,6 +583,9 @@ skipped.
 
 ** Help
 
+---
+*** 'g' ('revert-buffer') in 'help-mode' no longer requires confirmation.
+
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 

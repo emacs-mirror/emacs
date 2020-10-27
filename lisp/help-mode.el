@@ -756,16 +756,15 @@ Show all docs for that symbol as either a variable, function or face."
         (help-do-xref pos #'describe-symbol (list sym))
       (user-error "No symbol here"))))
 
-(defun help-mode-revert-buffer (_ignore-auto noconfirm)
-  (when (or noconfirm (yes-or-no-p "Revert help buffer? "))
-    (let ((pos (point))
-	  (item help-xref-stack-item)
-	  ;; Pretend there is no current item to add to the history.
-	  (help-xref-stack-item nil)
-	  ;; Use the current buffer.
-	  (help-xref-following t))
-      (apply (car item) (cdr item))
-      (goto-char pos))))
+(defun help-mode-revert-buffer (_ignore-auto _noconfirm)
+  (let ((pos (point))
+	(item help-xref-stack-item)
+	;; Pretend there is no current item to add to the history.
+	(help-xref-stack-item nil)
+	;; Use the current buffer.
+	(help-xref-following t))
+    (apply (car item) (cdr item))
+    (goto-char pos)))
 
 (defun help-insert-string (string)
   "Insert STRING to the help buffer and install xref info for it.
