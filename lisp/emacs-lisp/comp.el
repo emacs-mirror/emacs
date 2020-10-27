@@ -171,6 +171,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-fwprop
                         comp-call-optim
                         comp-ipa-pure
+                        comp-cond-rw
                         comp-fwprop
                         comp-dead-code
                         comp-tco
@@ -216,7 +217,8 @@ Useful to hook into pass checkers.")
                              set-rest-args-to-local)
   "Limple set operators.")
 
-(defconst comp-limple-assignments `(fetch-handler
+(defconst comp-limple-assignments `(assume
+                                    fetch-handler
                                     ,@comp-limple-sets)
   "Limple operators that clobbers the first m-var argument.")
 
@@ -1677,6 +1679,73 @@ into the C code forwarding the compilation unit."
     (comp-add-func-to-ctxt (comp-limplify-top-level t))))
 
 
+;;; conditional branches rewrite pass specific code.
+
+(defun comp-emit-assume (target-slot rhs bb-name kind)
+  "Emit an assume of kind KIND for TARGET-SLOT being RHS.
+The assume is emitted at the beginning of the block named
+BB-NAME."
+  (push `(assume ,(make-comp-mvar :slot target-slot) ,rhs ,kind)
+	(comp-block-insns (gethash bb-name (comp-func-blocks comp-func))))
+  (setf (comp-func-ssa-status comp-func) 'dirty))
+
+(defun comp-cond-rw-target-slot (slot-num exit-insn bb)
+  "Search for the last assignment of SLOT-NUM in BB.
+Keep on searching till EXIT-INSN is encountered.
+Return the corresponding rhs slot number."
+  (cl-flet ((targetp (x)
+              ;; Ret t if x is an mvar and target the correct slot number.
+              (and (comp-mvar-p x)
+                   (eql slot-num (comp-mvar-slot x)))))
+    (cl-loop
+     with res = nil
+     for insn in (comp-block-insns bb)
+     when (eq insn exit-insn)
+     do (cl-return (and (comp-mvar-p res) (comp-mvar-slot res)))
+     do (pcase insn
+          (`(,(pred comp-assign-op-p) ,(pred targetp) ,rhs)
+           (setf res rhs)))
+     finally (cl-assert nil))))
+
+(defun comp-cond-rw-func ()
+  "`comp-cond-rw' worker function for each selected function."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       named in-the-basic-block
+       for insns-seq on (comp-block-insns b)
+       do (pcase insns-seq
+            (`((set ,(and (pred comp-mvar-p) cond)
+                    (,(pred comp-call-op-p)
+                     ,(and (or 'eq 'eql '= 'equal) test-fn) ,op1 ,op2))
+	       (comment ,_comment-str)
+	       (cond-jump ,cond ,(pred comp-mvar-p) ,bb-1 ,_bb-2))
+             (when-let ((target-slot1 (comp-cond-rw-target-slot
+                                      (comp-mvar-slot op1) (car insns-seq) b)))
+	       (comp-emit-assume target-slot1 op2 bb-1 test-fn))
+             (when-let ((target-slot2 (comp-cond-rw-target-slot
+                                      (comp-mvar-slot op2) (car insns-seq) b)))
+	       (comp-emit-assume target-slot2 op1 bb-1 test-fn))
+	     (cl-return-from in-the-basic-block))))))
+
+(defun comp-cond-rw (_)
+  "Rewrite conditional branches adding appropriate 'assume' insns.
+This is introducing and placing 'assume' insns in use by fwprop
+to propagate conditional branch test informations on target basic
+blocks."
+  (maphash (lambda (_ f)
+             (when (and (>= (comp-func-speed f) 1)
+                        ;; No point to run this on dynamic scope as
+                        ;; this pass is effecive only on local
+                        ;; variables.
+			(comp-func-l-p f)
+                        (not (comp-func-has-non-local f)))
+               (let ((comp-func f))
+                 (comp-cond-rw-func)
+                 (comp-log-func comp-func 3))))
+           (comp-ctxt-funcs-h comp-ctxt)))
+
+
 ;;; pure-func pass specific code.
 
 ;; Simple IPA pass to infer function purity of functions not
@@ -2158,6 +2227,18 @@ Forward propagate immediate involed in assignments."
           (comp-function-call-maybe-remove insn f args)))
        (_
         (comp-mvar-propagate lval rval))))
+    (`(assume ,lval ,rval ,kind)
+     (pcase kind
+       ('eq
+        (comp-mvar-propagate lval rval))
+       ((or 'eql 'equal)
+        (if (memq (comp-mvar-type rval) '(symbol fixnum))
+            (comp-mvar-propagate lval rval)
+          (setf (comp-mvar-type lval) (comp-mvar-type rval))))
+       ('=
+        (if (eq (comp-mvar-type rval) 'fixnum)
+            (comp-mvar-propagate lval rval)
+          (setf (comp-mvar-type lval) 'number)))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-const-vld lval) t
            (comp-mvar-constant lval) v

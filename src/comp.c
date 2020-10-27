@@ -2131,9 +2131,9 @@ emit_limple_insn (Lisp_Object insn)
 			       n);
       emit_cond_jump (test, target2, target1);
     }
-  else if (EQ (op, Qphi))
+  else if (EQ (op, Qphi) || EQ (op, Qassume))
     {
-      /* Nothing to do for phis into the backend.  */
+      /* Nothing to do for phis or assumes in the backend.  */
     }
   else if (EQ (op, Qpush_handler))
     {
@@ -5134,6 +5134,7 @@ native compiled one.  */);
   DEFSYM (Qcallref, "callref");
   DEFSYM (Qdirect_call, "direct-call");
   DEFSYM (Qdirect_callref, "direct-callref");
+  DEFSYM (Qassume, "assume");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
