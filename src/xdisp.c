@@ -22983,6 +22983,10 @@ maybe_produce_line_number (struct it *it)
   int lnum_face_id = merge_faces (it->w, Qline_number, 0, DEFAULT_FACE_ID);
   int current_lnum_face_id
     = merge_faces (it->w, Qline_number_current_line, 0, DEFAULT_FACE_ID);
+  /* From here onwards, we must prevent freeing realized faces, because
+     we are using the above 2 face IDs for the glyphs we produce.  */
+  bool save_free_realized_faces = inhibit_free_realized_faces;
+  inhibit_free_realized_faces = true;
   /* Compute point's line number if needed.  */
   if ((EQ (Vdisplay_line_numbers, Qrelative)
        || EQ (Vdisplay_line_numbers, Qvisual)
@@ -23112,9 +23116,12 @@ maybe_produce_line_number (struct it *it)
 	  it->lnum_width = 0;
 	  it->lnum_pixel_width = 0;
 	  bidi_unshelve_cache (itdata, false);
+	  inhibit_free_realized_faces = save_free_realized_faces;
 	  return;
 	}
     }
+
+  inhibit_free_realized_faces = save_free_realized_faces;
 
   /* Record the width in pixels we need for the line number display.  */
   it->lnum_pixel_width = tem_it.current_x;
