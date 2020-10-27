@@ -611,6 +611,7 @@ The command \\[comint-accumulate] sets this.")
 
 (put 'comint-replace-by-expanded-history 'menu-enable 'comint-input-autoexpand)
 (put 'comint-input-ring 'permanent-local t)
+(put 'comint-input-ring-file-name 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
 (put 'comint-save-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
