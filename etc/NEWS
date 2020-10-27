@@ -239,6 +239,13 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Python mode
+
+*** 'C-c C-r' can now be used on arbitrary regions.
+The command previously extended the start of the region to the start
+of the line, but will now actually send the marked region, as
+documented.
+
 ** Ruby mode
 
 *** 'ruby-use-smie' is declared obsolete.

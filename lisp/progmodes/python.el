@@ -3138,11 +3138,7 @@ the python shell:
      coding cookie is added.
   4. Wraps indented regions under an \"if True:\" block so the
      interpreter evaluates them correctly."
-  (let* ((start (save-excursion
-                  ;; Normalize start to the line beginning position.
-                  (goto-char start)
-                  (line-beginning-position)))
-         (substring (buffer-substring-no-properties start end))
+  (let* ((substring (buffer-substring-no-properties start end))
          (starts-at-point-min-p (save-restriction
                                   (widen)
                                   (= (point-min) start)))
