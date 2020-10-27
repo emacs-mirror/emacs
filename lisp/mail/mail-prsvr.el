@@ -1,4 +1,4 @@
-;;; mail-prsvr.el --- Interface variables for parsing mail
+;;; mail-prsvr.el --- Interface variables for parsing mail  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
