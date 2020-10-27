@@ -147,7 +147,9 @@ lisp/ps-mule.el defines the *.bdf font files required for printing
 each character set.
 
 The intlfonts distribution contains its own installation instructions,
-in the intlfonts/README file.
+in the intlfonts/README file.  See also the Emacs Frequently Asked
+Questions info pages "(efaq) How to add fonts" for installation
+instructions.
 
 * Image support libraries
 

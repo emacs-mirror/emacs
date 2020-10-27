@@ -2501,8 +2501,10 @@ frame is the buffer whose contents will be shown the next time that
 window is redisplayed.  The function is expected to fit the frame to
 the buffer in some appropriate way.
 
-Any other non-@code{nil} value means to resize minibuffer-only frames
-by calling @code{fit-frame-to-buffer} (@pxref{Resizing Windows}).
+Any other non-@code{nil} value means to resize minibuffer-only frames by
+calling @code{fit-mini-frame-to-buffer}, a function that behaves like
+@code{fit-frame-to-buffer} (@pxref{Resizing Windows}) but does not strip
+leading or trailing empty lines from the buffer text.
 @end defopt
 
 

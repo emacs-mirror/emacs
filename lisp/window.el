@@ -3432,7 +3432,7 @@ routines."
   "Resize minibuffer-only frame FRAME."
   (if (functionp resize-mini-frames)
       (funcall resize-mini-frames frame)
-    (fit-frame-to-buffer frame)))
+    (fit-mini-frame-to-buffer frame)))
 
 (defun window--sanitize-window-sizes (horizontal)
   "Assert that all windows on selected frame are large enough.
@@ -8925,6 +8925,14 @@ Return 0 otherwise."
 
 (declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
+(defun fit-mini-frame-to-buffer (&optional frame)
+  "Adjust size of minibuffer FRAME to display its contents.
+FRAME should be a minibuffer-only frame and defaults to the
+selected one.  Unlike `fit-frame-to-buffer' FRAME will fit to the
+contents of its buffer with any leading or trailing empty lines
+included."
+  (fit-frame-to-buffer-1 frame))
+
 (defun fit-frame-to-buffer (&optional frame max-height min-height max-width min-width only)
   "Adjust size of FRAME to display the contents of its buffer exactly.
 FRAME can be any live frame and defaults to the selected one.
@@ -8943,8 +8951,18 @@ horizontally only.
 The new position and size of FRAME can be additionally determined
 by customizing the options `fit-frame-to-buffer-sizes' and
 `fit-frame-to-buffer-margins' or setting the corresponding
-parameters of FRAME."
+parameters of FRAME.
+
+Any leading or trailing empty lines of the buffer content are not
+considered."
   (interactive)
+  (fit-frame-to-buffer-1 frame max-height min-height max-width min-width only t t))
+
+(defun fit-frame-to-buffer-1 (&optional frame max-height min-height max-width min-width only from to)
+  "Helper function for `fit-frame-to-buffer'.
+FROM and TO are the buffer positions to determine the size to fit
+to, see `window-text-pixel-size'.  The remaining arguments are as
+for `fit-frame-to-buffer'."
   (unless (fboundp 'display-monitor-attributes-list)
     (user-error "Cannot resize frame in non-graphic Emacs"))
   (setq frame (window-normalize-frame frame))
@@ -9079,7 +9097,7 @@ parameters of FRAME."
            ;; Note: Currently, for a new frame the sizes of the header
            ;; and mode line may be estimated incorrectly
            (size
-            (window-text-pixel-size window t t max-width max-height))
+            (window-text-pixel-size window from to max-width max-height))
            (width (max (car size) min-width))
            (height (max (cdr size) min-height)))
       ;; Don't change height or width when the window's size is fixed
