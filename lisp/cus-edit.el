@@ -3740,13 +3740,12 @@ the present value is saved to its :shown-value property instead."
 	  (custom-face-state-set widget))))))
 
 (defun cus--face-link (widget _format)
-  (let ((face (intern (widget-get widget :value))))
-    (widget-create-child-and-convert
-     widget 'face-link
-     :button-face 'link
-     :tag "link"
-     :action (lambda (&rest _x)
-               (customize-face face)))))
+  (widget-create-child-and-convert
+   widget 'face-link
+   :button-face 'link
+   :tag "link"
+   :action (lambda (&rest _x)
+             (customize-face (widget-value widget)))))
 
 (defvar custom-face-menu nil
   "If non-nil, an alist of actions for the `custom-face' widget.
