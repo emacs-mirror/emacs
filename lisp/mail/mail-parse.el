@@ -1,4 +1,4 @@
-;;; mail-parse.el --- Interface functions for parsing mail
+;;; mail-parse.el --- Interface functions for parsing mail  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
