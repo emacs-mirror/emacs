@@ -37,26 +37,56 @@
 
 (require 'rect)
 
-;; If non-nil, restrict current region to this rectangle.
-;; Value is a vector [top bot left right corner ins virt select].
-;; CORNER specifies currently active corner 0=t/l 1=t/r 2=b/l 3=b/r.
-;; INS specifies whether to insert on left(nil) or right(t) side.
-;; If VIRT is non-nil, virtual straight edges are enabled.
-;; If SELECT is a regexp, only lines starting with that regexp are affected.")
-(defvar cua--rectangle nil)
+(defvar cua--rectangle nil
+  "If non-nil, restrict current region to this rectangle.
+A cua-rectangle definition is a vector used for all actions in
+`cua-rectangle-mark-mode', of the form:
+
+  [top bot left right corner ins virt select]
+
+TOP is the upper-left corner point.
+
+BOTTOM is the point at the end of line after the the lower-right
+corner point.
+
+LEFT and RIGHT are column numbers.
+
+CORNER specifies currently active corner 0=t/l 1=t/r 2=b/l 3=b/r.
+
+INS specifies whether to insert on left(nil) or right(t) side.
+
+If VIRT is non-nil, virtual straight edges are enabled.
+
+If SELECT is a regexp, only lines starting with that regexp are
+affected.")
 (make-variable-buffer-local 'cua--rectangle)
 
-;; Most recent rectangle geometry.  Note: car is buffer.
-(defvar cua--last-rectangle nil)
+(defvar cua--last-rectangle nil
+  "Most recent rectangle geometry.
+A CONS cell, the car of which is the rectangle's buffer, and the
+cdr of which is a cua-rectangle definition.
+See `cua--rectangle'.")
 
-;; Rectangle restored by undo.
-(defvar cua--restored-rectangle nil)
+
+(defvar cua--restored-rectangle nil
+  "Rectangle restored by undo.")
 
 ;; Last rectangle copied/killed; nil if last kill was not a rectangle.
+;; FIXME: The above seems to be incorrect:
+;; + It seems to be the two most recent killed rectangles, and is not
+;;   reset upon either a `kill-region' or `kill-line'
+;; + In the following example, the rectangle full of question marks
+;;   was killed prior to the rectangle with the string "active".
+;;      (#("???e\n??? \n???i\n???," 0 19
+;;         (yank-handler
+;;          (rectangle--insert-for-yank
+;;           ("???e" "??? " "???i" "???,")
+;;           t)))
+;;       "active " "sert on" " straig" " lines ")
 (defvar cua--last-killed-rectangle nil)
 
-;; List of overlays used to display current rectangle.
-(defvar cua--rectangle-overlays nil)
+(defvar cua--rectangle-overlays nil
+  "List of overlays used to display current rectangle.")
 (make-variable-buffer-local 'cua--rectangle-overlays)
 (put 'cua--rectangle-overlays 'permanent-local t)
 
@@ -522,7 +552,7 @@ If command is repeated at same position, delete the rectangle."
 ;;; Operations on current rectangle
 
 (defun cua--tabify-start (start end)
-  ;; Return position where auto-tabify should start (or nil if not required).
+  "Return position where auto-tabify should start (or nil if not required)."
   (save-excursion
     (save-restriction
       (widen)
@@ -538,15 +568,15 @@ If command is repeated at same position, delete the rectangle."
 	       start)))))
 
 (defun cua--rectangle-operation (keep-clear visible undo pad tabify &optional fct post-fct)
-  ;; Call FCT for each line of region with 4 parameters:
-  ;; Region start, end, left-col, right-col
-  ;; Point is at start when FCT is called
-  ;; Call fct with (s,e) = whole lines if VISIBLE non-nil.
-  ;; Only call fct for visible lines if VISIBLE==t.
-  ;; Set undo boundary if UNDO is non-nil.
-  ;; Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
-  ;; Perform auto-tabify after operation if TABIFY is non-nil.
-  ;; Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear.
+  "Call FCT for each line of region with 4 parameters:
+Region start, end, left-col, right-col.
+Point is at start when FCT is called.
+Call fct with (s,e) = whole lines if VISIBLE non-nil.
+Only call fct for visible lines if VISIBLE==t.
+Set undo boundary if UNDO is non-nil.
+Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
+Perform auto-tabify after operation if TABIFY is non-nil.
+Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear."
   (let* ((inhibit-field-text-motion t)
 	 (start (cua--rectangle-top))
          (end   (cua--rectangle-bot))
@@ -683,9 +713,9 @@ If command is repeated at same position, delete the rectangle."
     (nreverse rect)))
 
 (defun cua--insert-rectangle (rect &optional below paste-column line-count)
-  ;; Insert rectangle as insert-rectangle, but don't set mark and exit with
-  ;; point at either next to top right or below bottom left corner
-  ;; Notice: In overwrite mode, the rectangle is inserted as separate text lines.
+  "Insert rectangle as insert-rectangle, but don't set mark and exit with
+point at either next to top right or below bottom left corner
+Notice: In overwrite mode, the rectangle is inserted as separate text lines."
   (if (eq below 'auto)
       (setq below (and (bolp)
                        (or (eolp) (eobp) (= (1+ (point)) (point-max))))))
