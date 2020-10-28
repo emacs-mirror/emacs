@@ -665,7 +665,7 @@ There can be any number of :example/:result elements."
    :eval (regexp-opt-charset '(?a ?b ?c ?d ?e)))
   "The `rx' Structured Regexp Notation"
   (rx
-   :eval (rx bol (| (* "f") (+ "o") (? "o")) (| digit space) (group "bar")))
+   :eval (rx "IP=" (+ digit) (= 3 "." (+ digit))))
   (rx-to-string
    :eval (rx-to-string '(| "foo" "bar")))
   (rx-define
