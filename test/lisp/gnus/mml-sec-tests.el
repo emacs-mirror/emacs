@@ -38,7 +38,10 @@ Mostly, the empty passphrase is used.  However, the keys for
  as S/MIME).")
 
 (defun test-conf ()
-  (ignore-errors (epg-find-configuration 'OpenPGP)))
+  ;; Emacs doesn't have support for finding the name of the PGP agent
+  ;; on MacOS, so disable the checks.
+  (and (not (eq system-type 'darwin))
+       (ignore-errors (epg-find-configuration 'OpenPGP))))
 
 (defun enc-standards ()
   (if with-smime '(enc-pgp enc-pgp-mime enc-smime)
