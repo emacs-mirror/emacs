@@ -1075,7 +1075,7 @@ There can be any number of :example/:result elements."
          (unless (bobp)
            (insert "\n"))
          (insert (propertize
-                  (concat data "\n\n")
+                  (concat (substitute-command-keys data) "\n\n")
                   'face '(variable-pitch (:height 1.3 :weight bold)))))
         ;; There may be functions not yet defined in the data.
         ((fboundp (car data))
