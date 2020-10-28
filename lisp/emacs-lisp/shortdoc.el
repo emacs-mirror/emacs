@@ -625,15 +625,6 @@ There can be any number of :example/:result elements."
    :eval (replace-regexp-in-string "[a-z]+" "_" "*foo*"))
   (string-match-p
    :eval (string-match-p "^[fo]+" "foobar"))
-  (match-string
-   :eval (and (string-match "^\\([fo]+\\)b" "foobar")
-              (match-string 0 "foobar")))
-  (match-beginning
-   :no-eval (match-beginning 1)
-   :eg-result 0)
-  (match-end
-   :no-eval (match-end 1)
-   :eg-result 3)
   "Looking in Buffers"
   (re-search-forward
    :no-eval (re-search-forward "^foo$" nil t)
@@ -644,6 +635,18 @@ There can be any number of :example/:result elements."
   (looking-at-p
    :no-eval (looking-at "f[0-9]")
    :eg-result t)
+  "Match Data"
+  (match-string
+   :eval (and (string-match "^\\([fo]+\\)b" "foobar")
+              (match-string 0 "foobar")))
+  (match-beginning
+   :no-eval (match-beginning 1)
+   :eg-result 0)
+  (match-end
+   :no-eval (match-end 1)
+   :eg-result 3)
+  (save-match-data
+    :no-eval (save-match-data ...))
   "Replacing Match"
   (replace-match
    :no-eval (replace-match "new")
@@ -659,7 +662,28 @@ There can be any number of :example/:result elements."
   (regexp-opt-depth
    :eval (regexp-opt-depth "\\(a\\(b\\)\\)"))
   (regexp-opt-charset
-   :eval (regexp-opt-charset '(?a ?b ?c ?d ?e))))
+   :eval (regexp-opt-charset '(?a ?b ?c ?d ?e)))
+  "The `rx' Structured Regexp Notation"
+  (rx
+   :eval (rx bol (| (* "f") (+ "o") (? "o")) (| digit space) (group "bar")))
+  (rx-to-string
+   :eval (rx-to-string '(| "foo" "bar")))
+  (rx-define
+   :no-eval "(and (rx-define haskell-comment (seq \"--\" (zero-or-more nonl)))
+       (rx haskell-comment))"
+   :result "--.*")
+  (rx-let
+   :eval "(rx-let ((comma-separated (item) (seq item (0+ \",\" item)))
+           (number (1+ digit))
+           (numbers (comma-separated number)))
+    (rx \"(\" numbers \")\"))"
+   :result "([[:digit:]]+\\(?:,[[:digit:]]+\\)*)")
+  (rx-let-eval
+   :eval "(rx-let-eval
+      '((ponder (x) (seq \"Where have all the \" x \" gone?\")))
+    (rx-to-string
+     '(ponder (or \"flowers\" \"cars\" \"socks\"))))"
+   :result "\\(?:Where have all the \\(?:\\(?:car\\|flower\\|sock\\)s\\) gone\\?\\)"))
 
 (define-short-documentation-group sequence
   "Sequence Predicates"
