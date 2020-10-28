@@ -1358,7 +1358,7 @@ the string PROPERTY."
   "Complete property value at point."
   (let ((property (and (looking-back "\\([[:alnum:]-]+\\):[^/][^;]*"
                                      (or (ppss-innermost-start (syntax-ppss))
-                                         (point-min))
+                                         (point))
                                      t)
                        (member (match-string-no-properties 1)
                                css-property-ids))))
