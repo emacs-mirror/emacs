@@ -1911,7 +1911,7 @@ see the variable feedmail-prompt-before-queue-user-alist.
 	(and (stringp feedmail-prompt-before-queue-help-supplement)
 		 (princ feedmail-prompt-before-queue-help-supplement))
     (with-current-buffer standard-output
-      (if (fboundp 'help-mode) (help-mode)))))
+      (help-mode))))
 
 
 (defun feedmail-message-action-scroll-up ()
@@ -1972,13 +1972,9 @@ backup file names and the like)."
 	 (list-of-possible-fqms))
     (if (and (> q-cnt 0) feedmail-queue-runner-confirm-global)
 	(setq do-the-run
-	      (if (fboundp 'y-or-n-p-with-timeout)
-		  (y-or-n-p-with-timeout (format "FQM: Draft: %dm+%d,  Queue: %dm+%d; run the queue? "
-						 d-cnt d-oth q-cnt q-oth)
-					 5 nil)
-		(y-or-n-p (format "FQM: Draft: %dm+%d,  Queue: %dm+%d; run the queue? "
-				  d-cnt d-oth q-cnt q-oth))
-		)))
+              (y-or-n-p-with-timeout (format "FQM: Draft: %dm+%d,  Queue: %dm+%d; run the queue? "
+                                             d-cnt d-oth q-cnt q-oth)
+                                     5 nil)))
     (if (not do-the-run)
 	(setq messages-skipped q-cnt)
       (save-window-excursion
@@ -1997,15 +1993,10 @@ backup file names and the like)."
 	      (if (and already-buffer (buffer-modified-p already-buffer))
 		  (save-window-excursion
 		    (display-buffer (set-buffer already-buffer))
-		    (if (fboundp 'y-or-n-p-with-timeout)
-			;; make a guess that the user just forgot to save
-			(if (y-or-n-p-with-timeout (format "FQM: Visiting %s; save before send? " blobby) 10 t)
-			    (save-buffer))
-		      (if (y-or-n-p (format "FQM: Visiting %s; save before send? " blobby))
-			  (save-buffer))
-		      )))
-
-	      (set-buffer blobby-buffer)
+                    ;; make a guess that the user just forgot to save
+                    (if (y-or-n-p-with-timeout (format "FQM: Visiting %s; save before send? " blobby) 10 t)
+                        (save-buffer))))
+              (set-buffer blobby-buffer)
 	      (setq buffer-offer-save nil)
 	      (buffer-disable-undo blobby-buffer)
 	      (insert-file-contents-literally maybe-file)
@@ -2158,17 +2149,8 @@ you can set `feedmail-queue-reminder-alist' to nil."
 	      (setq answer (cons '^ helper))
 	    (if (or (eq user-sez ?\C-m) (eq user-sez ?\C-j) (eq user-sez ?y))
 		(setq user-sez d-char))
-	    ;; these char-to-int things are because of some
-	    ;; incomprehensible difference between the two in
-	    ;; byte-compiled stuff between Emacs and XEmacs
-	    ;; (well, I'm sure someone could comprehend it,
-	    ;; but I say 'uncle')
-	    (setq answer (or (assoc user-sez user-alist)
-			     (and (fboundp 'char-to-int)
-				  (assoc (char-to-int user-sez) user-alist))
-			     (assoc user-sez standard-alist)
-			     (and (fboundp 'char-to-int)
-				  (assoc (char-to-int user-sez) standard-alist))))
+            (setq answer (or (assoc user-sez user-alist)
+                             (assoc user-sez standard-alist)))
 	    (if (or (null answer) (null (cdr answer)))
 		(progn
 		  (beep)
@@ -2414,7 +2396,7 @@ mapped to mostly alphanumerics for safety."
 	  ;; mail-aliases nil = mail-abbrevs.el
 	  (feedmail-say-debug "expanding mail aliases")
 	  (if (or feedmail-force-expand-mail-aliases
-		  (and (fboundp 'expand-mail-aliases) mail-aliases))
+                  mail-aliases)
 	      (expand-mail-aliases (point-min) eoh-marker))
 
 	  ;; Make it pretty.
@@ -3130,8 +3112,7 @@ been weeded out."
     ;; won't delete the newly created frame upon exit!
     (save-window-excursion
       (switch-to-buffer buffer)
-      (if (and (fboundp 'y-or-n-p-with-timeout)
-               (numberp feedmail-confirm-outgoing-timeout))
+      (if (numberp feedmail-confirm-outgoing-timeout)
 	  (y-or-n-p-with-timeout
 	   "FQM: Send this email? "
 	   (abs feedmail-confirm-outgoing-timeout)
