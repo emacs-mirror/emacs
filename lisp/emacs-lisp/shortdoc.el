@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'text-property-search)
 (eval-when-compile (require 'cl-lib))
 
 (defgroup shortdoc nil
@@ -1065,7 +1066,7 @@ There can be any number of :example/:result elements."
   (let ((inhibit-read-only t)
         (prev nil))
     (erase-buffer)
-    (special-mode)
+    (shortdoc-mode)
     (button-mode)
     (mapc
      (lambda (data)
@@ -1076,7 +1077,8 @@ There can be any number of :example/:result elements."
            (insert "\n"))
          (insert (propertize
                   (concat (substitute-command-keys data) "\n\n")
-                  'face '(variable-pitch (:height 1.3 :weight bold)))))
+                  'face '(variable-pitch (:height 1.3 :weight bold))
+                  'shortdoc-section t)))
         ;; There may be functions not yet defined in the data.
         ((fboundp (car data))
          (when prev
@@ -1091,7 +1093,8 @@ There can be any number of :example/:result elements."
         (start-section (point))
         arglist-start)
     ;; Function calling convention.
-    (insert "(")
+    (insert (propertize "("
+                        'shortdoc-function t))
     (if (plist-get data :no-manual)
         (insert (symbol-name function))
       (insert-text-button
@@ -1200,6 +1203,53 @@ Example:
                   (not (stringp (cadr slist))))
         (setq slist (cdr slist)))
       (setcdr slist (cons elem (cdr slist))))))
+
+(defvar shortdoc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "n") 'shortdoc-next)
+    (define-key map (kbd "p") 'shortdoc-previous)
+    (define-key map (kbd "C-c C-n") 'shortdoc-next-section)
+    (define-key map (kbd "C-c C-p") 'shortdoc-previous-section)
+    map)
+  "Keymap for `shortdoc-mode'")
+
+(define-derived-mode shortdoc-mode special-mode "shortdoc"
+  "Mode for shortdoc.")
+
+(defmacro shortdoc--goto-section (arg sym &optional reverse)
+  `(progn
+     (unless (natnump ,arg)
+       (setq ,arg 1))
+     (while (< 0 ,arg)
+       (,(if reverse
+             'text-property-search-backward
+           'text-property-search-forward)
+        ,sym t)
+       (setq ,arg (1- ,arg)))))
+
+(defun shortdoc-next (&optional arg)
+  "Move cursor to next function."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-function))
+
+(defun shortdoc-previous (&optional arg)
+  "Move cursor to previous function."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-function t)
+  ;; FIXME: Why is this needed?
+  (backward-char 1))
+
+(defun shortdoc-next-section (&optional arg)
+  "Move cursor to next section."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-section))
+
+(defun shortdoc-previous-section (&optional arg)
+  "Move cursor to previous section."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-section t)
+  ;; FIXME: Why is this needed?
+  (forward-line -2))
 
 (provide 'shortdoc)
 
