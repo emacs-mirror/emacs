@@ -9858,8 +9858,9 @@ This function might do hidden buffer changes."
 		 (throw 'at-decl-or-cast t))
 
 	       (when (and got-parens
-			  (not got-function-name-prefix)
-			  ;; (not got-suffix-after-parens)
+			  (or (not got-function-name-prefix)
+			      (and (not got-suffix-after-parens)
+				   at-decl-end))
 			  (or backup-at-type
 			      maybe-typeless
 			      backup-maybe-typeless
