@@ -2566,7 +2566,7 @@ the beginning of the line (if @var{nochange-regexp} is non-@code{nil}).
   This section describes two commands that indent the current line
 based on the contents of previous lines.
 
-@deffn Command indent-relative &optional unindented-ok
+@deffn Command indent-relative &optional first-only unindented-ok
 This command inserts whitespace at point, extending to the same
 column as the next @dfn{indent point} of the previous nonblank line.  An
 indent point is a non-whitespace character following whitespace.  The
@@ -2581,6 +2581,9 @@ nothing (if @var{unindented-ok} is non-@code{nil}) or calls
 @code{tab-to-tab-stop}.  Thus, if point is underneath and to the right
 of the last column of a short line of text, this command ordinarily
 moves point to the next tab stop by inserting whitespace.
+
+If @var{first-only} is non-@code{nil}, only the first indent point is
+considered.
 
 The return value of @code{indent-relative} is unpredictable.
 
