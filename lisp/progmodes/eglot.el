@@ -244,7 +244,7 @@ let the buffer grow forever."
 (eval-and-compile
   (defvar eglot--lsp-interface-alist
     `(
-      (CodeAction (:title) (:kind :diagnostics :edit :command))
+      (CodeAction (:title) (:kind :diagnostics :edit :command :isPreferred))
       (ConfigurationItem () (:scopeUri :section))
       (Command ((:title . string) (:command . string)) (:arguments))
       (CompletionItem (:label)
@@ -576,7 +576,8 @@ treated as in `eglot-dbind'."
                                      ["quickfix"
                                       "refactor" "refactor.extract"
                                       "refactor.inline" "refactor.rewrite"
-                                      "source" "source.organizeImports"])))
+                                      "source" "source.organizeImports"]))
+                                  :isPreferredSupport t)
              :formatting         `(:dynamicRegistration :json-false)
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
@@ -2516,12 +2517,19 @@ code actions at point"
                         (cons title all))
                       actions)
               (eglot--error "No code actions here")))
+         (preferred-action (cl-find-if
+                             (jsonrpc-lambda (&key isPreferred &allow-other-keys)
+                               isPreferred)
+                             actions))
          (menu `("Eglot code actions:" ("dummy" ,@menu-items)))
          (action (if (listp last-nonmenu-event)
                      (x-popup-menu last-nonmenu-event menu)
                    (cdr (assoc (completing-read "[eglot] Pick an action: "
                                                 menu-items nil t
-                                                nil nil (car menu-items))
+                                                nil nil (or (plist-get
+                                                             preferred-action
+                                                             :title)
+                                                            (car menu-items)))
                                menu-items)))))
     (eglot--dcase action
       (((Command) command arguments)
