@@ -520,7 +520,7 @@ Message buffer where you can explain more about the patch."
             (lambda ()
               (message-goto-body)
               (insert "Tags: patch\nthanks\n\n"))
-            t)
+            nil t)
   (message-add-action
    (lambda ()
      ;; Bury the help buffer (if it's shown).
