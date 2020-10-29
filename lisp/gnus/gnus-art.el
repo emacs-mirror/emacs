@@ -2170,7 +2170,8 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   (save-excursion
     (when (article-goto-body)
       (let ((inhibit-read-only t))
-	(ansi-color-apply-on-region (point) (point-max))))))
+	(ansi-color-apply-on-region (point) (point-max)))))
+  (setq ansi-color-context-region nil))
 
 (defun gnus-article-treat-unfold-headers ()
   "Unfold folded message headers.
