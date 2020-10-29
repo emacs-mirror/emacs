@@ -897,8 +897,10 @@ non-nil result supersedes the xrefs produced by
     (let ((buffer-point (find-function-search-for-symbol symbol type file)))
       (with-current-buffer (car buffer-point)
         (save-excursion
-          (goto-char (or (cdr buffer-point) (point-min)))
-          (point-marker))))))
+          (save-restriction
+            (widen)
+            (goto-char (or (cdr buffer-point) (point-min)))
+            (point-marker)))))))
 
 (cl-defmethod xref-location-group ((l xref-elisp-location))
   (xref-elisp-location-file l))

@@ -1291,11 +1291,11 @@ that uses or sets the mark."
               "")))
       ;; Read the argument, offering that number (if any) as default.
       (list (read-number (format "Goto%s line%s: "
-                                 (if (= (point-min) 1) ""
-                                   ;; In a narrowed buffer.
-                                   (if relative " relative" " absolute"))
+                                 (if (buffer-narrowed-p)
+                                     (if relative " relative" " absolute")
+                                   "")
                                  buffer-prompt)
-                         (list default (if (or relative (= (point-min) 1))
+                         (list default (if (or relative (not (buffer-narrowed-p)))
                                            (line-number-at-pos)
                                          (save-restriction
                                            (widen)
