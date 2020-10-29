@@ -201,6 +201,7 @@ It moves point to the line relative to the accessible portion of the
 narrowed buffer.  'M-g M-g' in Info is rebound to this command.
 When 'widen-automatically' is non-nil, 'goto-line' widens the narrowed
 buffer to be able to move point to the inaccessible portion.
+'goto-line-relative' is bound to 'C-x n g'.
 
 +++
 ** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'

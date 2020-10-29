@@ -918,6 +918,7 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key narrow-map "n" 'narrow-to-region)
 (define-key narrow-map "w" 'widen)
+(define-key narrow-map "g" 'goto-line-relative)
 
 ;; Quitting
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
