@@ -108,8 +108,10 @@ This verifies that indenting a piece of code that ends in a paren
 without a statement terminator on the same line does not loop
 forever.  The test starts an asynchronous Emacs batch process
 under timeout control."
+  :tags '(:expensive-test)
   (interactive)
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
+  (skip-unless (not (< emacs-major-version 28))) ; times out in older Emacsen
   (let* ((emacs (concat invocation-directory invocation-name))
          (test-function 'cperl-mode-test--run-bug-10483)
          (test-function-name (symbol-name test-function))
@@ -118,7 +120,7 @@ under timeout control."
          (process-connection-type nil)
          runner)
     (with-temp-buffer
-      (with-timeout (1
+      (with-timeout (2
                      (delete-process runner)
                      (setq ran-out-of-time t))
         (setq runner (start-process "speedy"
