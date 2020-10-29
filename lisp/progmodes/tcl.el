@@ -407,10 +407,64 @@ This variable is generally set from `tcl-proc-regexp',
 `tcl-typeword-list', and `tcl-keyword-list' by the function
 `tcl-set-font-lock-keywords'.")
 
+(eval-and-compile
+  (defconst tcl--word-delimiters "[;{ \t\n"))
+
+(defun tcl--syntax-of-quote (pos)
+  "Decide whether a double quote opens a string or not."
+  ;; This is pretty tricky, because strings can be written as "..."
+  ;; or as {...} or without any quoting at all for some simple and not so
+  ;; simple cases (e.g. `abc' but also `a"b').  To make things more
+  ;; interesting, code is represented as strings, so the content of
+  ;; strings can be later re-lexed to find nested strings.
+  (save-excursion
+    (let ((ppss (syntax-ppss pos)))
+      (cond
+       ((nth 8 ppss) nil) ;; Within a string or a comment.
+       ((not (memq (char-before pos)
+                   (cons nil
+                         (eval-when-compile
+                           (mapcar #'identity tcl--word-delimiters)))))
+        ;; The double quote appears within some other lexical entity.
+        ;; FIXME: Similar treatment should be used for `{' which can appear
+        ;; within non-delimited strings (but only at top-level, so
+        ;; maybe it's not worth worrying about).
+        (string-to-syntax "."))
+       ((zerop (nth 0 ppss))
+        ;; Not within a { ... }, so can't be truncated by a }.
+        ;; FIXME: The syntax-table also considers () and [] as paren
+        ;; delimiters just like {}, even though Tcl treats them differently.
+        ;; Tho I'm not sure it's worth worrying about, either.
+        nil)
+       (t
+        ;; A double quote within a {...}: leave it as a normal string
+        ;; delimiter only if we don't find a closing } before we
+        ;; find a closing ".
+        (let ((type nil)
+              (depth 0))
+          (forward-char 1)
+          (while (and (not type)
+                      (re-search-forward "[\"{}\\]" nil t))
+            (pcase (char-after (match-beginning 0))
+              (?\\ (forward-char 1))
+              (?\" (setq type 'matched))
+              (?\{ (cl-incf depth))
+              (?\} (if (zerop depth) (setq type 'unmatched)
+                     (cl-incf depth)))))
+          (when (> (line-beginning-position) pos)
+            ;; The quote is not on the same line as the deciding
+            ;; factor, so make sure we revisit this choice later.
+            (put-text-property pos (point) 'syntax-multiline t))
+          (when (eq type 'unmatched)
+            ;; The quote has no matching close because a } closes the
+            ;; surrounding string before, so it doesn't really "open a string".
+            (string-to-syntax "."))))))))
+
 (defconst tcl-syntax-propertize-function
   (syntax-propertize-rules
    ;; Mark the few `#' that are not comment-markers.
-   ("[^;[{ \t\n][ \t]*\\(#\\)" (1 ".")))
+   ((concat "[^" tcl--word-delimiters "][ \t]*\\(#\\)") (1 "."))
+   ("\"" (0 (tcl--syntax-of-quote (match-beginning 0)))))
   "Syntactic keywords for `tcl-mode'.")
 
 ;; FIXME need some way to recognize variables because array refs look
@@ -593,6 +647,8 @@ already exist."
        '(tcl-font-lock-keywords nil nil nil beginning-of-defun))
   (set (make-local-variable 'syntax-propertize-function)
        tcl-syntax-propertize-function)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local)
 
   (set (make-local-variable 'imenu-generic-expression)
        tcl-imenu-generic-expression)
