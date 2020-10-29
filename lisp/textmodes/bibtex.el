@@ -85,8 +85,8 @@ If this is a function, call it to generate the initial field text."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Initial text")
                  (function :tag "Initialize Function")
-                 (const :tag "Default" t)))
-(put 'bibtex-include-OPTkey 'risky-local-variable t)
+                 (const :tag "Default" t))
+  :risky t)
 
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
@@ -97,8 +97,8 @@ in `bibtex-BibTeX-entry-alist' (which see)."
   :type '(repeat (group (string :tag "Field")
                         (string :tag "Comment")
                         (option (choice :tag "Init"
-                                        (const nil) string function)))))
-(put 'bibtex-user-optional-fields 'risky-local-variable t)
+                                        (const nil) string function))))
+  :risky t)
 
 (defcustom bibtex-entry-format
   '(opts-or-alts required-fields numerical-fields)
@@ -148,20 +148,18 @@ The value nil means do no formatting at all."
                       (const unify-case)
                       (const braces)
                       (const strings)
-                      (const sort-fields))))
-(put 'bibtex-entry-format 'safe-local-variable
-     (lambda (x)
-       (or (eq x t)
-           (let ((OK t))
-             (while (consp x)
-               (unless (memq (pop x)
-                             '(opts-or-alts required-fields numerical-fields
-                               page-dashes whitespace inherit-booktitle realign
-                               last-comma delimiters unify-case braces strings
-                               sort-fields))
-                 (setq OK nil)))
-             (unless (null x) (setq OK nil))
-             OK))))
+                      (const sort-fields)))
+  :safe (lambda (x)
+          (or (eq x t)
+              (let ((ok t))
+                (while (consp x)
+                  (unless (memq (pop x)
+                                '( opts-or-alts required-fields numerical-fields
+                                   page-dashes whitespace inherit-booktitle
+                                   realign last-comma delimiters unify-case
+                                   braces strings sort-fields ))
+                    (setq ok nil)))
+                (unless x ok)))))
 
 (defcustom bibtex-field-braces-alist nil
  "Alist of field regexps that \\[bibtex-clean-entry] encloses by braces.
@@ -207,9 +205,8 @@ See also `bibtex-sort-ignore-string-entries'."
                  (const plain)
                  (const crossref)
                  (const entry-class)
-                 (const t)))
-(put 'bibtex-maintain-sorted-entries 'safe-local-variable
-     (lambda (a) (memq a '(nil t plain crossref entry-class))))
+                 (const t))
+  :safe (lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
   '(("String")
@@ -223,18 +220,17 @@ to all entries not explicitly mentioned."
   :group 'bibtex
   :type '(repeat (choice :tag "Class"
                          (const :tag "catch-all" (catch-all))
-                         (repeat :tag "Entry type" string))))
-(put 'bibtex-sort-entry-class 'safe-local-variable
-     (lambda (x) (let ((OK t))
-              (while (consp x)
-                (let ((y (pop x)))
-                  (while (consp y)
-                    (let ((z (pop y)))
-                      (unless (or (stringp z) (eq z 'catch-all))
-                        (setq OK nil))))
-                  (unless (null y) (setq OK nil))))
-              (unless (null x) (setq OK nil))
-              OK)))
+                         (repeat :tag "Entry type" string)))
+  :safe (lambda (x)
+          (let ((ok t))
+            (while (consp x)
+              (let ((y (pop x)))
+                (while (consp y)
+                  (let ((z (pop y)))
+                    (unless (or (stringp z) (eq z 'catch-all))
+                      (setq ok nil))))
+                (when y (setq ok nil))))
+            (unless x ok))))
 
 (defcustom bibtex-sort-ignore-string-entries t
   "If non-nil, BibTeX @String entries are not sort-significant.
@@ -459,8 +455,8 @@ ALTERNATIVE if non-nil is an integer that numbers sets of
 alternatives, starting from zero."
   :group 'bibtex
   :version "26.1"                       ; add Conference
-  :type 'bibtex-entry-alist)
-(put 'bibtex-BibTeX-entry-alist 'risky-local-variable t)
+  :type 'bibtex-entry-alist
+  :risky t)
 
 (defcustom bibtex-biblatex-entry-alist
   ;; Compare in biblatex documentation:
@@ -714,8 +710,8 @@ alternatives, starting from zero."
 It has the same format as `bibtex-BibTeX-entry-alist'."
   :group 'bibtex
   :version "24.1"
-  :type 'bibtex-entry-alist)
-(put 'bibtex-biblatex-entry-alist 'risky-local-variable t)
+  :type 'bibtex-entry-alist
+  :risky t)
 
 (define-widget 'bibtex-field-alist 'lazy
   "Format of `bibtex-BibTeX-entry-alist' and friends."
@@ -857,8 +853,8 @@ To interactively change the dialect use the command `bibtex-set-dialect'."
              (bibtex-set-dialect value)))
   :type '(choice (const BibTeX)
                  (const biblatex)
-                 (symbol :tag "Custom")))
-(put 'bibtex-dialect 'safe-local-variable 'symbolp)
+                 (symbol :tag "Custom"))
+  :safe #'symbolp)
 
 (defcustom bibtex-no-opt-remove-re "\\`option"
   "If a field name matches this regexp, the prefix OPT is not removed.
@@ -1059,9 +1055,8 @@ See `bibtex-generate-autokey' for details."
                  (const :tag "Downcase" downcase)
                  (const :tag "Capitalize" capitalize)
                  (const :tag "Upcase" upcase)
-                 (function :tag "Conversion function")))
-(put 'bibtex-autokey-name-case-convert-function 'safe-local-variable
-     (lambda (x) (memq x '(upcase downcase capitalize identity))))
+                 (function :tag "Conversion function" :value identity))
+  :safe (lambda (x) (memq x '(upcase downcase capitalize identity))))
 
 (defcustom bibtex-autokey-name-length 'infty
   "Number of characters from name to incorporate into key.
@@ -1313,8 +1308,8 @@ The following is a complex example, see URL `http://link.aps.org/'.
 			       (regexp :tag "Regexp")
                                (choice (string :tag "Replacement")
 				       (integer :tag "Sub-match")
-				       (function :tag "Filter"))))))))
-(put 'bibtex-generate-url-list 'risky-local-variable t)
+                                       (function :tag "Filter")))))))
+  :risky t)
 
 (defcustom bibtex-cite-matcher-alist
   '(("\\\\cite[ \t\n]*{\\([^}]+\\)}" . 1))
@@ -1536,21 +1531,19 @@ At most `bibtex-entry-kill-ring-max' items are kept here.")
 (defvar bibtex-last-kill-command nil
   "Type of the last kill command (either `field' or `entry').")
 
-(defvar bibtex-strings
+(defvar-local bibtex-strings
   (lazy-completion-table bibtex-strings
                          (lambda ()
                            (bibtex-parse-strings (bibtex-string-files-init))))
   "Completion table for BibTeX string keys.
 Initialized from `bibtex-predefined-strings' and `bibtex-string-files'.")
-(make-variable-buffer-local 'bibtex-strings)
 (put 'bibtex-strings 'risky-local-variable t)
 
-(defvar bibtex-reference-keys
+(defvar-local bibtex-reference-keys
   (lazy-completion-table bibtex-reference-keys
                          (lambda () (bibtex-parse-keys nil t)))
   "Completion table for BibTeX reference keys.
 The CDRs of the elements are t for header keys and nil for crossref keys.")
-(make-variable-buffer-local 'bibtex-reference-keys)
 (put 'bibtex-reference-keys 'risky-local-variable t)
 
 (defvar bibtex-buffer-last-parsed-tick nil
