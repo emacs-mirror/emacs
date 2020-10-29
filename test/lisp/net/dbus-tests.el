@@ -125,7 +125,6 @@
   (should-error
    (dbus-check-arguments :session dbus--test-service :object-path)
    :type 'wrong-type-argument)
-  ;; Raises an error on stderr.
   (should-error
    (dbus-check-arguments :session dbus--test-service :object-path "string")
    :type 'dbus-error)
@@ -1891,6 +1890,7 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
 
 (ert-deftest dbus-test09-get-managed-objects ()
   "Check `dbus-get-all-managed-objects'."
+  :tags '(:expensive-test)
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
   (dbus-register-service :session dbus--test-service)
@@ -1901,7 +1901,8 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
             (path3 (concat dbus--test-path "/path3")))
 
         (should-not
-         (dbus-get-all-managed-objects :session dbus--test-service dbus--test-path))
+         (dbus-get-all-managed-objects
+          :session dbus--test-service dbus--test-path))
 
         (should
          (equal
@@ -1910,13 +1911,6 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
            "Property1" :readwrite "Simple string one.")
           `((:property :session ,dbus--test-interface "Property1")
             (,dbus--test-service ,path1))))
-
-        (should
-         (equal
-          (dbus-get-property
-           :session dbus--test-service path1 dbus--test-interface
-           "Property1")
-          "Simple string one."))
 
         (should
          (equal
@@ -1955,7 +1949,8 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
            "Property1")
           "Simple string three."))
 
-        (let ((result (dbus-get-all-managed-objects :session dbus--test-service dbus--test-path)))
+        (let ((result (dbus-get-all-managed-objects
+                       :session dbus--test-service dbus--test-path)))
           (should
            (= 3 (length result)))
 
