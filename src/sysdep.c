@@ -1447,6 +1447,7 @@ set_window_size (int fd, int height, int width)
 
   /* BSD-style.  */
   struct winsize size;
+  memset (&size, 0, sizeof (size));
   size.ws_row = height;
   size.ws_col = width;
 
@@ -1457,6 +1458,7 @@ set_window_size (int fd, int height, int width)
 
   /* SunOS - style.  */
   struct ttysize size;
+  memset (&size, 0, sizeof (size));
   size.ts_lines = height;
   size.ts_cols = width;
 
