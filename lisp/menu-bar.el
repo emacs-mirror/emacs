@@ -1570,8 +1570,8 @@ mail status in mode line"))
     (bindings--define-key menu [cua-emulation-mode]
       (menu-bar-make-mm-toggle
        cua-mode
-       "Shift movement mark region (CUA)"
-       "Use shifted movement keys to set and extend the region"
+       "CUA Mode (without C-x/C-c/C-v)"
+       "Enable CUA Mode without rebinding C-x/C-c/C-v keys"
        (:visible (and (boundp 'cua-enable-cua-keys)
 		      (not cua-enable-cua-keys)))))
 
