@@ -1236,7 +1236,6 @@ Example:
   "Move cursor to previous function."
   (interactive "p")
   (shortdoc--goto-section arg 'shortdoc-function t)
-  ;; FIXME: Why is this needed?
   (backward-char 1))
 
 (defun shortdoc-next-section (&optional arg)
@@ -1248,7 +1247,6 @@ Example:
   "Move cursor to previous section."
   (interactive "p")
   (shortdoc--goto-section arg 'shortdoc-section t)
-  ;; FIXME: Why is this needed?
   (forward-line -2))
 
 (provide 'shortdoc)
