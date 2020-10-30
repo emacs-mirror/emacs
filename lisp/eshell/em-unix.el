@@ -439,7 +439,10 @@ Remove the DIRECTORY(ies), if they are empty.")
 		       (setq link (file-symlink-p source)))
 		  (progn
 		    (apply 'eshell-funcalln 'make-symbolic-link
-			   link target args)
+			   link target
+                           ;; `make-symbolic-link' doesn't have
+                           ;; KEEP-TIME; just OK-IF-ALREADY-EXISTS.
+                           (list (car args)))
 		    (if (eq func 'rename-file)
 			(if (and (file-directory-p source)
 				 (not (file-symlink-p source)))
