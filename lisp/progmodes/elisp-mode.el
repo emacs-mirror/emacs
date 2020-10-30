@@ -1413,6 +1413,30 @@ which see."
       or argument string for functions.
   2 - `function' if function args, `variable' if variable documentation.")
 
+(defun elisp--documentation-one-liner ()
+  (let* (str
+         (callback (lambda (doc &rest plist)
+                     (setq str
+                           (format "%s: %s"
+                                   (propertize (prin1-to-string
+                                                (plist-get plist :thing))
+                                               'face (plist-get plist :face))
+                                   doc)))))
+    (or (progn (elisp-eldoc-var-docstring callback) str)
+        (progn (elisp-eldoc-funcall callback) str))))
+
+(defalias 'elisp-eldoc-documentation-function 'elisp--documentation-one-liner
+  "Return Elisp documentation for the thing at point as one-line string.
+This is meant as a backward compatibility aide to the \"old\"
+Elisp eldoc behaviour.  Consider variable docstrings and function
+signatures only, in this order.  If none applies, returns nil.
+Changes to `eldoc-documentation-functions' and
+`eldoc-documentation-strategy' are _not_ reflected here.  As such
+it is preferrable to use ElDoc's interfaces directly.")
+
+(make-obsolete 'elisp-eldoc-documentation-function
+               "use ElDoc's interfaces instead." "28.1")
+
 (defun elisp-eldoc-funcall (callback &rest _ignored)
   "Document function call at point.
 Intended for `eldoc-documentation-functions' (which see)."
