@@ -1208,6 +1208,17 @@ them, using the DEL and INS buttons respectively.  This is useful in
 Custom buffers, for example, to change the order of the elements in a
 list.
 
+** Diff
+
+---
+*** New 'diff-mode' font locking face 'diff-error'.
+This face is used for error messages from diff.
+
++++
+*** New command 'diff-refresh-hunk'.
+This new command (bound to 'C-c C-l') regenerates the current hunk.
+
+
 ** Miscellaneous
 
 +++
@@ -1307,10 +1318,6 @@ prompts.  This means that prompts that look like "Enter a number
 number [10]", or not have the default displayed at all, like "Enter a
 number".  (This requires that all callers are altered to use
 'format-prompt', though.)
-
----
-*** New 'diff-mode' font locking face 'diff-error'.
-This face is used for error messages from diff.
 
 +++
 *** New global mode 'global-goto-address-mode'.
