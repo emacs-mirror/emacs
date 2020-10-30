@@ -317,7 +317,7 @@ If HEADER-ONLY is non-nil only decode header and return filename."
       (binhex-decode-region-external start end)
     (binhex-decode-region-internal start end)))
 
-(define-obsolete-function-alias 'binhex-char-int #'identity)
+(define-obsolete-function-alias 'binhex-char-int #'identity "28.1")
 
 (provide 'binhex)
 
