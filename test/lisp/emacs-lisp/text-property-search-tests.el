@@ -157,7 +157,7 @@
 ;;;; Position after search.
 
 (defun text-property-search--pos-test (fun pos &optional reverse)
-  (with-temp-buffer (:name "position")
+  (with-temp-buffer
     (insert (concat "foo "
                   (propertize "bar" 'x t)
                   " baz"))
