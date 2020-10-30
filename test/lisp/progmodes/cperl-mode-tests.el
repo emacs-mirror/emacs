@@ -224,28 +224,35 @@ point in the distant past, and is still broken in perl-mode. "
   "Verify that closing a paren in a regex goes without a message.
 Also check that the message is issued if the regex terminator is
 missing."
-  (let (collected-messages)
-    ;; Part one: Regex is ok, no messages
-    (ert-with-message-capture collected-messages
-      (with-temp-buffer
-        (insert "$_ =~ /(./;")
-        (cperl-mode)
-        (goto-char (point-min))
-        (search-forward ".")
-        (let ((last-command-event ?\)))
-          (cperl-electric-rparen 1)
-          (cperl-find-pods-heres (point-min) (point-max) t)))
-      (should (string-equal collected-messages "")))
-    ;; part two: Regex terminator missing -> message
+  ;; Part one: Regex is ok, no messages
+  (ert-with-message-capture collected-messages
+    (with-temp-buffer
+      (insert "$_ =~ /(./;")
+      (funcall cperl-test-mode)
+      (goto-char (point-min))
+      (search-forward ".")
+      (let ((last-command-event ?\))
+            ;; Don't emit "Matches ..." even if not visible (e.g. in batch).
+            (blink-matching-paren 'jump-offscreen))
+        (self-insert-command 1)
+        ;; `self-insert-command' doesn't call `blink-matching-open' in
+        ;; batch mode, so we need to call it explicitly.
+        (blink-matching-open))
+      (syntax-propertize (point-max)))
+    (should (string-equal collected-messages "")))
+  ;; part two: Regex terminator missing -> message
+  (when (eq cperl-test-mode #'cperl-mode)
+    ;; This test is only run in `cperl-mode' because only cperl-mode
+    ;; emits a message to warn about such unclosed REs.
     (ert-with-message-capture collected-messages
       (with-temp-buffer
         (insert "$_ =~ /(..;")
         (goto-char (point-min))
-        (cperl-mode)
+        (funcall cperl-test-mode)
         (search-forward ".")
         (let ((last-command-event ?\)))
-          (cperl-electric-rparen 1)
-          (cperl-find-pods-heres (point-min) (point-max) t)))
+          (self-insert-command 1))
+        (syntax-propertize (point-max)))
       (should (string-match "^End of .* string/RE"
                             collected-messages)))))
 

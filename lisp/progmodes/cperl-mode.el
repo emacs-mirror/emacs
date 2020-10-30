@@ -3225,13 +3225,6 @@ modify syntax-type text property if the situation is too hard."
 		 (and cperl-brace-recursing
 		      (or (eq ostart  ?\{)
 			  (eq starter ?\{)))
-		 ;; If we are at the end of a narrowed buffer, then a
-		 ;; scan error should not be reported to the user.
-		 ;; This situation actually happens when a closing
-		 ;; paren is entered in a regular expression.
-		 ;; Reported in Bug#37127.
-		 (and (eobp) (buffer-narrowed-p)
-		      (equal (car bb) 'scan-error))
 		 (message
 		  "End of `%s%s%c ... %c' string/RE not found: %s"
 		  argument
