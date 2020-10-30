@@ -450,20 +450,27 @@ directly from the user or from ElDoc's automatic mechanisms'.")
 
 (defvar eldoc--doc-buffer-docs nil "Documentation items in `eldoc--doc-buffer'.")
 
-(defun eldoc-doc-buffer (&optional interactive)
-  (interactive (list t))
+(defun eldoc-doc-buffer ()
   "Display ElDoc documentation buffer.
+
 This holds the results of the last documentation request."
+  (interactive)
   (unless (buffer-live-p eldoc--doc-buffer)
-    (setq eldoc--doc-buffer (get-buffer-create "*eldoc*")))
-  (when interactive
-    (display-buffer eldoc--doc-buffer)))
+    (user-error (format
+                 "ElDoc buffer doesn't exist, maybe `%s' to produce one."
+                 (substitute-command-keys "\\[eldoc]"))))
+  (with-current-buffer eldoc--doc-buffer
+    (rename-buffer (replace-regexp-in-string "^ *" ""
+                                             (buffer-name)))
+    (display-buffer (current-buffer))))
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
   (interactive (list t))
-  (eldoc-doc-buffer) ;; ensure buffer exists
-  (with-current-buffer eldoc--doc-buffer
+  (with-current-buffer (if (buffer-live-p eldoc--doc-buffer)
+                           eldoc--doc-buffer
+                         (setq eldoc--doc-buffer
+                               (get-buffer-create " *eldoc*")))
     (unless (eq docs eldoc--doc-buffer-docs)
       (setq-local eldoc--doc-buffer-docs docs)
       (let ((inhibit-read-only t)
@@ -482,14 +489,19 @@ This holds the results of the last documentation request."
                         ": "
                         this-doc))
                  do (insert this-doc)
-                 when rest do (insert "\n"))
-        ;; Maybe rename the buffer.
-        (rename-buffer (if things-reported-on
-                           (format "*eldoc for %s*"
-                                   (mapconcat (lambda (s) (format "%s" s))
-                                              things-reported-on
-                                              ", "))
-                         "*eldoc*")))))
+                 when rest do (insert "\n")
+                 finally (goto-char (point-min)))
+        ;; Rename the buffer, taking into account whether it was
+        ;; hidden or not
+        (rename-buffer (format "%s*eldoc%s*"
+                               (if (string-match "^ " (buffer-name)) " " "")
+                               (if things-reported-on
+                                   (format " for %s"
+                                           (mapconcat
+                                            (lambda (s) (format "%s" s))
+                                            things-reported-on
+                                            ", "))
+                                 ""))))))
   eldoc--doc-buffer)
 
 (defun eldoc--echo-area-substring (available)
@@ -595,9 +607,9 @@ Honor `eldoc-echo-area-use-multiline-p' and
 (defun eldoc-display-in-buffer (docs interactive)
   "Display DOCS in a dedicated buffer.
 If INTERACTIVE is t, also display the buffer."
-  (let ((buf (eldoc--format-doc-buffer docs)))
-    (when interactive
-      (display-buffer buf))))
+  (eldoc--format-doc-buffer docs)
+  (when interactive
+    (eldoc-doc-buffer)))
 
 (defun eldoc-documentation-default ()
   "Show first doc string for item at point.
