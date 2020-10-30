@@ -737,8 +737,10 @@ NOARG must be t when this macro is used outside `gud-def'."
   (unless (zerop (length string))
     (remove-function (process-filter proc) #'gdb--check-interpreter)
     (unless (memq (aref string 0) '(?^ ?~ ?@ ?& ?* ?=))
-      ;; Apparently we're not running with -i=mi.
-      (let ((msg "Error: you did not specify -i=mi on GDB's command line!"))
+      ;; Apparently we're not running with -i=mi (or we're, for
+      ;; instance, debugging something inside a Docker instance with
+      ;; Emacs on the outside).
+      (let ((msg "Error: Either -i=mi wasn't specified on the GDB command line, or the extra socket couldn't be established.  Consider using `M-x gud-gdb' instead."))
         (message msg)
         (setq string (concat (propertize msg 'font-lock-face 'error)
                              "\n" string)))
