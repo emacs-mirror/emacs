@@ -7555,7 +7555,7 @@ get_next_display_element (struct it *it)
 	     non-ASCII spaces and hyphens specially.  */
 	  if (! ASCII_CHAR_P (c) && ! NILP (Vnobreak_char_display))
 	    {
-	      if (c == NO_BREAK_SPACE)
+	      if (blankp (c))
 		nonascii_space_p = true;
 	      else if (c == SOFT_HYPHEN || c == HYPHEN
 		       || c == NON_BREAKING_HYPHEN)
@@ -34747,7 +34747,8 @@ If the value is t, Emacs highlights non-ASCII chars which have the
 same appearance as an ASCII space or hyphen, using the `nobreak-space'
 or `nobreak-hyphen' face respectively.
 
-U+00A0 (no-break space), U+00AD (soft hyphen), U+2010 (hyphen), and
+All of the non-ASCII characters in the Unicode horizontal whitespace
+character class, as well as U+00AD (soft hyphen), U+2010 (hyphen), and
 U+2011 (non-breaking hyphen) are affected.
 
 Any other non-nil value means to display these characters as an escape

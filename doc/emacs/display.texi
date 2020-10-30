@@ -1608,7 +1608,8 @@ can cause problems if they are entered into a buffer without your
 realization, e.g., by yanking; for instance, source code compilers
 typically do not treat non-@acronym{ASCII} spaces as whitespace
 characters.  To deal with this problem, Emacs displays such characters
-specially: it displays @code{U+00A0} (no-break space) with the
+specially: it displays @code{U+00A0} (no-break space) and other
+characters from the Unicode horizontal space class with the
 @code{nobreak-space} face, and it displays @code{U+00AD} (soft
 hyphen), @code{U+2010} (hyphen), and @code{U+2011} (non-breaking
 hyphen) with the @code{nobreak-hyphen} face.  To disable this, change

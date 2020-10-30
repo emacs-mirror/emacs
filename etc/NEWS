@@ -163,6 +163,12 @@ your init file:
     (setq frame-title-format '(multiple-frames "%b"
                               ("" invocation-name "@" system-name)))
 
++++
+** 'nobreak-char-display' now also affects all non-ASCII space characters.
+Previously, this was limited only to NO-BREAK-SPACE and hyphen
+characters.  Now it also covers the rest of the non-ASCII Unicode
+space characters.
+
 
 * Editing Changes in Emacs 28.1
 
