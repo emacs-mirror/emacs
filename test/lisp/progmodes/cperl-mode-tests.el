@@ -220,4 +220,33 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
 
+(ert-deftest cperl-bug37127 ()
+  "Verify that closing a paren in a regex goes without a message.
+Also check that the message is issued if the regex terminator is
+missing."
+  (let (collected-messages)
+    ;; Part one: Regex is ok, no messages
+    (ert-with-message-capture collected-messages
+      (with-temp-buffer
+        (insert "$_ =~ /(./;")
+        (cperl-mode)
+        (goto-char (point-min))
+        (search-forward ".")
+        (let ((last-command-event ?\)))
+          (cperl-electric-rparen 1)
+          (cperl-find-pods-heres (point-min) (point-max) t)))
+      (should (string-equal collected-messages "")))
+    ;; part two: Regex terminator missing -> message
+    (ert-with-message-capture collected-messages
+      (with-temp-buffer
+        (insert "$_ =~ /(..;")
+        (goto-char (point-min))
+        (cperl-mode)
+        (search-forward ".")
+        (let ((last-command-event ?\)))
+          (cperl-electric-rparen 1)
+          (cperl-find-pods-heres (point-min) (point-max) t)))
+      (should (string-match "^End of .* string/RE"
+                            collected-messages)))))
+
 ;;; cperl-mode-tests.el ends here
