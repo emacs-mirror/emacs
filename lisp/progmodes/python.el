@@ -3138,7 +3138,18 @@ the python shell:
      coding cookie is added.
   4. Wraps indented regions under an \"if True:\" block so the
      interpreter evaluates them correctly."
-  (let* ((substring (buffer-substring-no-properties start end))
+  (let* ((start (save-excursion
+                  ;; If we're at the start of the expression, and
+                  ;; there's just blank space ahead of it, then expand
+                  ;; the region to include the start of the line.
+                  ;; This makes things work better with the rest of
+                  ;; the data we're sending over.
+                  (goto-char start)
+                  (if (string-blank-p
+                       (buffer-substring (line-beginning-position) start))
+                      (line-beginning-position)
+                    start)))
+         (substring (buffer-substring-no-properties start end))
          (starts-at-point-min-p (save-restriction
                                   (widen)
                                   (= (point-min) start)))
