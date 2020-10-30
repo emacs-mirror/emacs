@@ -50,7 +50,7 @@
 				  (aref timer 2)
 				  (aref timer 3))))
                   (format "%12s"
-                          (format-seconds "%dd %hh %mm %z%ss"
+                          (format-seconds "%dd %hh %mm %z%,1ss"
 			                  (float-time
 			                   (if (aref timer 7)
 			                       time
@@ -61,7 +61,8 @@
                  (cond
                   ((numberp repeat)
                    (propertize
-                    (format "%12s" (format-seconds "%dd %hh %mm %z%ss" repeat))
+                    (format "%12s" (format-seconds
+                                    "%dd %hh %mm %z%,1ss" repeat))
                     'help-echo "Repeat interval"))
                   ((null repeat)
                    (propertize "           -" 'help-echo "Runs once"))
