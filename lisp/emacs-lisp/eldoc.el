@@ -241,8 +241,9 @@ expression point is on." :lighter eldoc-minor-mode-string
   ;; `emacs-lisp-mode' itself?
   (cond ((<= emacs-major-version 27)
          (declare-function elisp-eldoc-documentation-function "elisp-mode")
-         (add-function :before-until (local 'eldoc-documentation-function)
-                       #'elisp-eldoc-documentation-function))
+         (with-no-warnings
+           (add-function :before-until (local 'eldoc-documentation-function)
+                         #'elisp-eldoc-documentation-function)))
         (t (add-hook 'eldoc-documentation-functions
                      #'elisp-eldoc-var-docstring nil t)
            (add-hook 'eldoc-documentation-functions
