@@ -3481,7 +3481,7 @@ def foo():
                      (point-max))
                     "if True:
 
-print ('a')
+    print ('a')
 "))))
 
 (ert-deftest python-shell-buffer-substring-11 ()
@@ -3499,7 +3499,7 @@ def foo():
                      (point-max))
                     "if True:
 
- print ('a')
+    print ('a')
 "))))
 
 (ert-deftest python-shell-buffer-substring-12 ()
@@ -3518,7 +3518,7 @@ def foo():
                     "if True:
 
 
-# Whitespace
+        # Whitespace
 
     print ('a')
 "))))
