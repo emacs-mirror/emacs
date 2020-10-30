@@ -1204,6 +1204,11 @@ list.
 
 ** Miscellaneous
 
++++
+*** 'format-seconds' can now be used for sub-second times.
+The new optional "," parameter has been added, and
+(format-seconds "%mm %,1ss" 66.4) will now result in "1m 6.4s".
+
 ---
 *** 'global-display-fill-column-indicator-mode' skips some buffers.
 By default, turning on 'global-display-fill-column-indicator-mode'

@@ -278,6 +278,10 @@ Lower-case specifiers return only the unit.
 optional leading \".\" for zero-padding.  For example, \"%.3Y\" will
 return something of the form \"001 year\".
 
+The \"%s\" spec takes an additional optional parameter,
+introduced by the \",\" character, to say how many decimals to
+use.  \"%,1s\" means \"use one decimal\".
+
 The \"%z\" specifier does not print anything.  When it is used, specifiers
 must be given in order of decreasing size.  To the left of \"%z\", nothing
 is output until the first non-zero unit is encountered."
@@ -289,10 +293,11 @@ is output until the first non-zero unit is encountered."
                  ("s" "second"        1)
                  ("z")))
         (case-fold-search t)
-        spec match usedunits zeroflag larger prev name unit num zeropos)
-    (while (string-match "%\\.?[0-9]*\\(.\\)" string start)
+        spec match usedunits zeroflag larger prev name unit num zeropos
+        fraction)
+    (while (string-match "%\\.?[0-9]*\\(,[0-9]\\)?\\(.\\)" string start)
       (setq start (match-end 0)
-            spec (match-string 1 string))
+            spec (match-string 2 string))
       (unless (string-equal spec "%")
         (or (setq match (assoc (downcase spec) units))
             (error "Bad format specifier: `%s'" spec))
@@ -307,12 +312,17 @@ is output until the first non-zero unit is encountered."
         (push match usedunits)))
     (and zeroflag larger
          (error "Units are not in decreasing order of size"))
-    (setq seconds (time-convert seconds 'integer))
+    (unless (numberp seconds)
+      (setq seconds (float-time seconds)))
+    (setq fraction (mod seconds 1)
+          seconds (round seconds))
     (dolist (u units)
       (setq spec (car u)
             name (cadr u)
             unit (nth 2 u))
-      (when (string-match (format "%%\\(\\.?[0-9]+\\)?\\(%s\\)" spec) string)
+      (when (string-match
+             (format "%%\\(\\.?[0-9]+\\)?\\(,[0-9]+\\)?\\(%s\\)" spec)
+             string)
         (if (string-equal spec "z")     ; must be last in units
             (setq string
                   (replace-regexp-in-string
@@ -327,9 +337,23 @@ is output until the first non-zero unit is encountered."
               (setq zeropos (unless (zerop num) (match-beginning 0))))
           (setq string
                 (replace-match
-                 (format (concat "%" (match-string 1 string) "d%s") num
-                         (if (string-equal (match-string 2 string) spec)
-                             ""       ; lower-case, no unit-name
+                 (format (if (match-string 2 string)
+                             (concat
+                              "%"
+                              (and (match-string 1 string)
+                                   (if (= (elt (match-string 1 string) 0) ?.)
+                                       (concat "0" (substring
+                                                    (match-string 1 string) 1))
+                                     (match-string 1 string)))
+                              (concat "." (substring
+                                           (match-string 2 string) 1))
+                              "f%s")
+                           (concat "%" (match-string 1 string) "d%s"))
+                         (if (= unit 1)
+                             (+ num fraction)
+                           num)
+                         (if (string-equal (match-string 3 string) spec)
+                             ""         ; lower-case, no unit-name
                            (format " %s%s" name
                                    (if (= num 1) "" "s"))))
                  t t string))))))
