@@ -85,6 +85,9 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+** Minibuffer scrolling is now conservative by default.
+This is controlled by the new variable 'scroll-minibuffer-conservatively'.
+
 +++
 ** New system for displaying documentation for groups of function.
 This can either be used by saying 'M-x shortdoc-display-group' and
