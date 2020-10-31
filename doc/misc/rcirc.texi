@@ -126,7 +126,7 @@ Here's a typical example:
 @cindex redirection to random servers
 When you connect to the Freenode network
 (@code{http://freenode.net/}), you point your IRC client at the
-server @code{irc.freenode.net}.  That server will redirect your client
+server @code{chat.freenode.net}.  That server will redirect your client
 to a random server on the network, such as @code{zelazny.freenode.net}.
 
 @cindex channel name
@@ -176,7 +176,7 @@ using a different nick.  This will prompt you for four things:
 What server do you want to connect to? All the servers in a particular
 network are equivalent.  Some networks use a round-robin system where a
 single server redirects new connections to a random server in the
-network.  @code{irc.freenode.net} is such a server for the Freenode
+network.  @code{chat.freenode.net} is such a server for the Freenode
 network.  Freenode provides the network ``for the Free and Open Source
 Software communities, for not-for-profit organizations and for related
 communities and organizations.''
@@ -211,7 +211,7 @@ Emacs, or join @code{#rcirc}, the channel about @code{rcirc}.
 
 @cindex server buffer
 When you have answered these questions, @code{rcirc} will create a server
-buffer, which will be named something like @file{*irc.freenode.net*},
+buffer, which will be named something like @file{*chat.freenode.net*},
 and a channel buffer for each of the channels you wanted to join.
 
 @kindex RET
@@ -482,7 +482,7 @@ Here's an example of how to set it:
 @end example
 
 By default you will be connected to the @code{rcirc} support channel:
-@code{#rcirc} on @code{irc.freenode.net}.
+@code{#rcirc} on @code{chat.freenode.net}.
 
 @table @code
 @item :nick
