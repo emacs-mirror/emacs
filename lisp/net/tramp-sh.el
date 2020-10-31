@@ -480,7 +480,7 @@ The string is used in `tramp-methods'.")
 ;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
 ;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
-;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
+;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
 ;; Darwin: /usr/bin:/bin:/usr/sbin:/sbin
 ;; IRIX64: /usr/bin
 ;; QNAP QTS: ---
@@ -4388,7 +4388,7 @@ process to set up.  VEC specifies the connection."
        (t
 	(tramp-message
 	 vec 5 "Checking remote host type for `send-process-string' bug")
-	(if (string-match-p "^FreeBSD" uname) 500 0))))
+	(if (string-match-p "FreeBSD\\|DragonFly" uname) 500 0))))
 
     ;; Set remote PATH variable.
     (tramp-set-remote-path vec)
@@ -4415,7 +4415,7 @@ process to set up.  VEC specifies the connection."
       (tramp-send-command vec "set +H" t))
 
     ;; Disable tab expansion.
-    (if (string-match-p "BSD\\|Darwin" uname)
+    (if (string-match-p "BSD\\|DragonFly\\|Darwin" uname)
 	(tramp-send-command vec "stty tabs" t)
       (tramp-send-command vec "stty tab0" t))
 
