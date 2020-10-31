@@ -1835,6 +1835,11 @@ file can affect code in another.  For details, see the manual section
 ---
 ** 'unload-feature' now also tries to undo additions to buffer-local hooks.
 
+---
+** Some functions are no longer considered safe by 'unsafep':
+'replace-regexp-in-string', 'catch', 'throw', 'error', 'signal'
+and 'play-sound-file'.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
