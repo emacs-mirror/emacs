@@ -836,6 +836,9 @@ Return nil if no time switch found."
 	((memq ?t switches) 5)		; last modtime
 	((memq ?u switches) 4)))	; last access
 
+(defvar ls-lisp--time-locale nil
+  "Locale to be used for formatting file times.")
+
 (defun ls-lisp-format-time (file-attr time-index)
   "Format time for file with attributes FILE-ATTR according to TIME-INDEX.
 Use the same method as ls to decide whether to show time-of-day or year,
@@ -851,11 +854,13 @@ All ls time options, namely c, t and u, are handled."
     (condition-case nil
 	;; Use traditional time format in the C or POSIX locale,
 	;; ISO-style time format otherwise, so columns line up.
-	(let ((locale system-time-locale))
+	(let ((locale (or system-time-locale ls-lisp--time-locale)))
 	  (if (not locale)
 	      (let ((vars '("LC_ALL" "LC_TIME" "LANG")))
 		(while (and vars (not (setq locale (getenv (car vars)))))
-		  (setq vars (cdr vars)))))
+		  (setq vars (cdr vars)))
+                ;; Cache the locale for next calls.
+                (setq ls-lisp--time-locale (or locale "C"))))
 	  (if (member locale '("C" "POSIX"))
 	      (setq locale nil))
 	  (format-time-string
