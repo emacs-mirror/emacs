@@ -855,6 +855,11 @@ Now GDB only uses one source window to display source file by default.
 Customize 'gdb-max-source-window-count' to use more than one window.
 Control source file display by 'gdb-display-source-buffer-action'.
 
++++
+*** The default value of gdb-mi-decode-strings is now t.
+This means that the default coding-system is now used to decode strings
+and source file names from GDB.
+
 ** Gravatar
 
 ---

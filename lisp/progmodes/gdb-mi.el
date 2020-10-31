@@ -2455,7 +2455,7 @@ the end of the current result or async record is reached."
 ;; files, values of string variables in the inferior, etc., are all
 ;; encoded in the same encoding.
 
-(defcustom gdb-mi-decode-strings nil
+(defcustom gdb-mi-decode-strings t
   "When non-nil, decode octal escapes in GDB output into non-ASCII text.
 
 If the value is a coding-system, use that coding-system to decode
