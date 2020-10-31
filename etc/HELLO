@@ -126,7 +126,7 @@ along with GNU Emacs.  If not, see <<https://www.gnu.org/licenses/>.
 
 
 ;;; Local Variables:
-;;; tab-width: 40
+;;; tab-width: 42
 ;;; bidi-display-reordering: t
 ;;; coding: utf-8
 ;;; inhibit-compacting-font-caches: t
