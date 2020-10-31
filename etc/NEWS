@@ -172,6 +172,12 @@ Previously, this was limited only to NO-BREAK-SPACE and hyphen
 characters.  Now it also covers the rest of the non-ASCII Unicode
 space characters.
 
+---
+** Replace irc.freenode.net with chat.freenode.net.
+chat.freenode.net has been the preferred address for connecting to the
+freenode IRC network for years now.  Occurrences of irc.freenode.net
+have been replaced with chat.freenode.net throughout Emacs.
+
 
 * Editing Changes in Emacs 28.1
 
