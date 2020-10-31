@@ -3262,6 +3262,8 @@ the word mode."
 			      (< (point) isearch-opoint)))
 		       "over")
 		   (if isearch-wrapped "wrapped ")
+                   (if (and (not isearch-success) (buffer-narrowed-p) widen-automatically)
+                       "narrowed-buffer " "")
                    (if (and (not isearch-success) (not isearch-case-fold-search))
                        "case-sensitive ")
                    (let ((prefix ""))
