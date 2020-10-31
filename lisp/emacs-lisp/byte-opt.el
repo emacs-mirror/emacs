@@ -830,11 +830,13 @@
 (defun byte-optimize-assoc (form)
   ;; Replace 2-argument `assoc' with `assq', `rassoc' with `rassq',
   ;; if the first arg is a symbol.
-  (if (and (= (length form) 3)
-           (byte-optimize--constant-symbol-p (nth 1 form)))
-      (cons (if (eq (car form) 'assoc) 'assq 'rassq)
-            (cdr form))
-    form))
+  (cond
+   ((/= (length form) 3)
+    form)
+   ((byte-optimize--constant-symbol-p (nth 1 form))
+    (cons (if (eq (car form) 'assoc) 'assq 'rassq)
+          (cdr form)))
+   (t (byte-optimize-constant-args form))))
 
 (defun byte-optimize-memq (form)
   ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
@@ -1144,7 +1146,7 @@
 ;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
        '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
-	 assoc assq
+	 assq
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
 	 buffer-substring byte-code-function-p
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
