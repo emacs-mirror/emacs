@@ -40,6 +40,8 @@ Danish (dansk)	Hej / Goddag / Halløj
 Dutch (Nederlands)	Hallo / Dag
 Efik  /ˈɛfɪk/	Mɔkɔm
 
+Egyptian Hieroglyphs (𓂋𓐰𓏤𓈖𓆎𓅓𓏏𓐰𓊖)	𓅓𓊵𓐰𓐷𓏏𓊪𓐸, 𓇍𓇋𓂻𓍘𓇋
+
 Emacs	emacs --no-splash -f view-hello-file
 
 Emoji	👋
@@ -124,7 +126,7 @@ along with GNU Emacs.  If not, see <<https://www.gnu.org/licenses/>.
 
 
 ;;; Local Variables:
-;;; tab-width: 32
+;;; tab-width: 40
 ;;; bidi-display-reordering: t
 ;;; coding: utf-8
 ;;; inhibit-compacting-font-caches: t
