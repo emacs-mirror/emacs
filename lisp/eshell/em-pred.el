@@ -73,18 +73,18 @@ ordinary strings."
     (?p . (eshell-pred-file-type ?p))   ; named pipes
     (?@ . (eshell-pred-file-type ?l))   ; symbolic links
     (?% . (eshell-pred-file-type ?%))   ; allow user to specify (c def.)
-    (?r . (eshell-pred-file-mode 0400)) ; owner-readable
-    (?w . (eshell-pred-file-mode 0200)) ; owner-writable
-    (?x . (eshell-pred-file-mode 0100)) ; owner-executable
-    (?A . (eshell-pred-file-mode 0040)) ; group-readable
-    (?I . (eshell-pred-file-mode 0020)) ; group-writable
-    (?E . (eshell-pred-file-mode 0010)) ; group-executable
-    (?R . (eshell-pred-file-mode 0004)) ; world-readable
-    (?W . (eshell-pred-file-mode 0002)) ; world-writable
-    (?X . (eshell-pred-file-mode 0001)) ; world-executable
-    (?s . (eshell-pred-file-mode 4000)) ; setuid
-    (?S . (eshell-pred-file-mode 2000)) ; setgid
-    (?t . (eshell-pred-file-mode 1000)) ; sticky bit
+    (?r . (eshell-pred-file-mode #o0400)) ; owner-readable
+    (?w . (eshell-pred-file-mode #o0200)) ; owner-writable
+    (?x . (eshell-pred-file-mode #o0100)) ; owner-executable
+    (?A . (eshell-pred-file-mode #o0040)) ; group-readable
+    (?I . (eshell-pred-file-mode #o0020)) ; group-writable
+    (?E . (eshell-pred-file-mode #o0010)) ; group-executable
+    (?R . (eshell-pred-file-mode #o0004)) ; world-readable
+    (?W . (eshell-pred-file-mode #o0002)) ; world-writable
+    (?X . (eshell-pred-file-mode #o0001)) ; world-executable
+    (?s . (eshell-pred-file-mode #o4000)) ; setuid
+    (?S . (eshell-pred-file-mode #o2000)) ; setgid
+    (?t . (eshell-pred-file-mode #o1000)) ; sticky bit
     (?U . #'(lambda (file)                   ; owned by effective uid
               (if (file-exists-p file)
                   (= (file-attribute-user-id (file-attributes file))
@@ -478,7 +478,7 @@ that `ls -l' will show in the first column of its display."
   `(lambda (file)
      (let ((modes (file-modes file 'nofollow)))
        (if modes
-	   (logand ,mode modes)))))
+	   (not (zerop (logand ,mode modes)))))))
 
 (defun eshell-pred-file-links ()
   "Return a predicate to test whether a file has a given number of links."
