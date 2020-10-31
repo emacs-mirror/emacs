@@ -482,7 +482,7 @@ non-nil means return old filename."
     (when files-deleted
       (wdired-flag-for-deletion files-deleted))
     (when (> errors 0)
-      (dired-log-summary (format "%d rename actions failed" errors) nil)))
+      (dired-log-summary (format "%d actions failed" errors) nil)))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil))
 
@@ -911,26 +911,26 @@ Like original function but it skips read-only words."
   (mouse-set-point event)
   (wdired-toggle-bit))
 
-;; Allowed chars for 4000 bit are Ss  in position 3
-;; Allowed chars for 2000 bit are Ssl in position 6
-;; Allowed chars for 1000 bit are Tt  in position 9
+;; Allowed chars for #o4000 bit are Ss  in position 3
+;; Allowed chars for #o2000 bit are Ssl in position 6
+;; Allowed chars for #o1000 bit are Tt  in position 9
 (defun wdired-perms-to-number (perms)
-  (let ((nperm 0777))
-    (if (= (elt perms 1) ?-) (setq nperm (- nperm 400)))
-    (if (= (elt perms 2) ?-) (setq nperm (- nperm 200)))
+  (let ((nperm #o0777))
+    (if (= (elt perms 1) ?-) (setq nperm (- nperm #o400)))
+    (if (= (elt perms 2) ?-) (setq nperm (- nperm #o200)))
     (let ((p-bit (elt perms 3)))
-      (if (memq p-bit '(?- ?S)) (setq nperm (- nperm 100)))
-      (if (memq p-bit '(?s ?S)) (setq nperm (+ nperm 4000))))
-    (if (= (elt perms 4) ?-) (setq nperm (- nperm 40)))
-    (if (= (elt perms 5) ?-) (setq nperm (- nperm 20)))
+      (if (memq p-bit '(?- ?S)) (setq nperm (- nperm #o100)))
+      (if (memq p-bit '(?s ?S)) (setq nperm (+ nperm #o4000))))
+    (if (= (elt perms 4) ?-) (setq nperm (- nperm #o40)))
+    (if (= (elt perms 5) ?-) (setq nperm (- nperm #o20)))
     (let ((p-bit (elt perms 6)))
-      (if (memq p-bit '(?- ?S ?l)) (setq nperm (- nperm 10)))
-      (if (memq p-bit '(?s ?S ?l)) (setq nperm (+ nperm 2000))))
+      (if (memq p-bit '(?- ?S ?l)) (setq nperm (- nperm #o10)))
+      (if (memq p-bit '(?s ?S ?l)) (setq nperm (+ nperm #o2000))))
     (if (= (elt perms 7) ?-) (setq nperm (- nperm 4)))
     (if (= (elt perms 8) ?-) (setq nperm (- nperm 2)))
     (let ((p-bit (elt perms 9)))
       (if (memq p-bit '(?- ?T)) (setq nperm (- nperm 1)))
-      (if (memq p-bit '(?t ?T)) (setq nperm (+ nperm 1000))))
+      (if (memq p-bit '(?t ?T)) (setq nperm (+ nperm #o1000))))
     nperm))
 
 ;; Perform the changes in the permissions of the files that have
@@ -940,7 +940,7 @@ Like original function but it skips read-only words."
 	(errors 0)
 	(prop-wanted (if (eq wdired-allow-to-change-permissions 'advanced)
 			 'old-perm 'perm-changed))
-	filename perms-ori perms-new perm-tmp)
+	filename perms-ori perms-new)
     (goto-char (next-single-property-change (point-min) prop-wanted
 					    nil (point-max)))
     (while (not (eobp))
@@ -951,14 +951,12 @@ Like original function but it skips read-only words."
         (setq changes t)
         (setq filename (wdired-get-filename nil t))
         (if (= (length perms-new) 10)
-            (progn
-              (setq perm-tmp
-                    (string-to-number
-                     (int-to-string (wdired-perms-to-number perms-new)) 8))
-              (unless (set-file-modes filename perm-tmp)
-                (setq errors (1+ errors))
-                (dired-log "%s %s `%s' failed\n\n"
-                           dired-chmod-program perm-tmp filename)))
+            (condition-case nil
+                (set-file-modes filename (wdired-perms-to-number perms-new))
+              (error
+               (setq errors (1+ errors))
+               (dired-log "Setting mode of `%s' to `%s' failed\n\n"
+                          filename perms-new)))
           (setq errors (1+ errors))
           (dired-log "Cannot parse permission `%s' for file `%s'\n\n"
                      perms-new filename)))
