@@ -191,6 +191,7 @@
 	(kanbun #x319D)
 	(han #x5B57)
 	(yi #xA288)
+        (javanese #xA980)
 	(cham #xAA00)
 	(tai-viet #xAA80)
 	(hangul #xAC00)
@@ -723,6 +724,7 @@
 		    symbol
 		    braille
 		    yi
+                    javanese
 		    tai-viet
 		    aegean-number
 		    ancient-greek-number
