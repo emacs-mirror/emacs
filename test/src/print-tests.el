@@ -383,5 +383,25 @@ otherwise, use a different charset."
       (let ((print-length 1))
         (format "%S" h))))))
 
+(print-tests--deftest print-integer-output-format ()
+  ;; Bug#44155.
+  (let ((integer-output-format t)
+        (syms (list ?? ?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\ ?Á)))
+    (should (equal (read (print-tests--prin1-to-string syms)) syms))
+    (should (equal (print-tests--prin1-to-string syms)
+                   (concat "(" (mapconcat #'prin1-char syms " ") ")"))))
+  (let ((integer-output-format t)
+        (syms (list -1 0 1 ?\120 4194175 4194176 (max-char) (1+ (max-char)))))
+    (should (equal (read (print-tests--prin1-to-string syms)) syms)))
+  (let ((integer-output-format 16)
+        (syms (list -1 0 1 most-positive-fixnum (1+ most-positive-fixnum))))
+    (should (equal (read (print-tests--prin1-to-string syms)) syms))
+    (should (equal (print-tests--prin1-to-string syms)
+                   (concat "(" (mapconcat
+                                (lambda (i)
+                                  (if (and (>= i 0) (<= i most-positive-fixnum))
+                                      (format "#x%x" i) (format "%d" i)))
+                                syms " ") ")")))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here
