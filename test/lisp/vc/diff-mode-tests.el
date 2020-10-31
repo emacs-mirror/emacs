@@ -22,11 +22,10 @@
 
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
 (require 'diff-mode)
 (require 'diff)
-
-(defconst diff-mode-tests--datadir
-  (expand-file-name "test/data/vc/diff-mode" source-directory))
 
 (ert-deftest diff-mode-test-ignore-trailing-dashes ()
   "Check to make sure we successfully ignore trailing -- made by
@@ -209,11 +208,11 @@ youthfulness
   ;; See comments in diff-hunk-file-names about nonascii.
   ;; In such cases, the diff-font-lock-syntax portion of this fails.
   :expected-result (if (string-match-p "[[:nonascii:]]"
-                                       diff-mode-tests--datadir)
+                                       (ert-resource-directory))
                        :failed :passed)
   (skip-unless (executable-find shell-file-name))
   (skip-unless (executable-find diff-command))
-  (let ((default-directory diff-mode-tests--datadir)
+  (let ((default-directory (ert-resource-directory))
         (old "hello_world.c")
         (new "hello_emacs.c")
         (diff-buffer (get-buffer-create "*Diff*"))
@@ -274,11 +273,11 @@ youthfulness
 (ert-deftest diff-mode-test-font-lock-syntax-one-line ()
   "Check diff syntax highlighting for one line with no newline at end."
   :expected-result (if (string-match-p "[[:nonascii:]]"
-                                       diff-mode-tests--datadir)
+                                       (ert-resource-directory))
                        :failed :passed)
   (skip-unless (executable-find shell-file-name))
   (skip-unless (executable-find diff-command))
-  (let ((default-directory diff-mode-tests--datadir)
+  (let ((default-directory (ert-resource-directory))
         (old "hello_world_1.c")
         (new "hello_emacs_1.c")
         (diff-buffer (get-buffer-create "*Diff*"))

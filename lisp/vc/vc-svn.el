@@ -51,8 +51,8 @@
   :group 'vc-svn)
 
 ;; Might be nice if svn defaulted to non-interactive if stdin not tty.
-;; http://svn.haxx.se/dev/archive-2008-05/0762.shtml
-;; http://svn.haxx.se/dev/archive-2009-04/0094.shtml
+;; https://svn.haxx.se/dev/archive-2008-05/0762.shtml
+;; https://svn.haxx.se/dev/archive-2009-04/0094.shtml
 ;; Maybe newer ones do?
 (defcustom vc-svn-global-switches (unless (eq system-type 'darwin) ; bug#13513
                                     '("--non-interactive"))

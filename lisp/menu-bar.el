@@ -1570,8 +1570,8 @@ mail status in mode line"))
     (bindings--define-key menu [cua-emulation-mode]
       (menu-bar-make-mm-toggle
        cua-mode
-       "Shift movement mark region (CUA)"
-       "Use shifted movement keys to set and extend the region"
+       "CUA Mode (without C-x/C-c/C-v)"
+       "Enable CUA Mode without rebinding C-x/C-c/C-v keys"
        (:visible (and (boundp 'cua-enable-cua-keys)
 		      (not cua-enable-cua-keys)))))
 
@@ -2087,6 +2087,8 @@ key, a click, or a menu-item"))
   (cons "File" menu-bar-file-menu))
 (bindings--define-key global-map [menu-bar help-menu]
   (cons (purecopy "Help") menu-bar-help-menu))
+
+(define-key global-map [menu-bar mouse-1] 'menu-bar-open-mouse)
 
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
@@ -2663,6 +2665,92 @@ If FRAME is nil or not given, use the selected frame."
 
 (global-set-key [f10] 'menu-bar-open)
 
+(defun menu-bar-open-mouse (event)
+  "Open the menu bar for the menu item clicked on by the mouse.
+EVENT should be a mouse down or click event.
+
+Also see `menu-bar-open', which this calls.
+This command is to be used when you click the mouse in the menubar."
+  (interactive "e")
+  ;; This only should be bound to clicks on the menu-bar, outside of
+  ;; any window.
+  (let ((window (posn-window (event-start event))))
+    (when window
+      (error "Event is inside window %s" window)))
+
+  (let* ((x-position (car (posn-x-y (event-start event))))
+         (menu-bar-item-cons (menu-bar-item-at-x x-position)))
+    (menu-bar-open nil
+                   (if menu-bar-item-cons
+                       (cdr menu-bar-item-cons)
+                     0))))
+
+(defun menu-bar-keymap ()
+  "Return the current menu-bar keymap.
+
+The ordering of the return value respects `menu-bar-final-items'."
+  (let ((menu-bar '())
+        (menu-end '()))
+    (map-keymap
+     (lambda (key binding)
+       (let ((pos (seq-position menu-bar-final-items key))
+             (menu-item (cons key binding)))
+         (if pos
+             ;; If KEY is the name of an item that we want to put
+             ;; last, store it separately with explicit ordering for
+             ;; sorting.
+             (push (cons pos menu-item) menu-end)
+           (push menu-item menu-bar))))
+     (lookup-key (menu-bar-current-active-maps) [menu-bar]))
+    `(keymap ,@(nreverse menu-bar)
+             ,@(mapcar #'cdr (sort menu-end
+                                   (lambda (a b)
+                                     (< (car a) (car b))))))))
+
+(defun menu-bar-current-active-maps ()
+  "Return the current active maps in the order the menu bar displays them.
+This value does not take into account `menu-bar-final-items' as that applies
+per-item."
+  ;; current-active-maps returns maps in the order local then
+  ;; global. The menu bar displays items in the opposite order.
+  (cons 'keymap (nreverse (current-active-maps))))
+
+(defun menu-bar-item-at-x (x-position)
+  "Return a cons of the form (KEY . X) for a menu item.
+The returned X is the left X coordinate for that menu item.
+
+X-POSITION is the X coordinate being queried.  If nothing is clicked on,
+returns nil."
+  (let ((column 0)
+        (menu-bar (menu-bar-keymap))
+        prev-key
+        prev-column
+        found)
+    (catch 'done
+      (map-keymap
+       (lambda (key binding)
+         (when (> column x-position)
+           (setq found t)
+           (throw 'done nil))
+         (setq prev-key key)
+         (pcase binding
+           ((or `(,(and (pred stringp) name) . ,_) ;Simple menu item.
+                `(menu-item ,name ,_cmd            ;Extended menu item.
+                            . ,(and props
+                                    (guard (let ((visible
+                                                  (plist-get props :visible)))
+                                             (or (null visible)
+                                                 (eval visible)))))))
+            (setq prev-column column
+                  column (+ column (length name) 1)))))
+       menu-bar)
+      ;; Check the last menu item.
+      (when (> column x-position)
+        (setq found t)))
+    (if found
+        (cons prev-key prev-column)
+      nil)))
+
 (defun buffer-menu-open ()
   "Start key navigation of the buffer menu.
 This is the keyboard interface to \\[mouse-buffer-menu]."
@@ -2681,6 +2769,16 @@ This is the keyboard interface to \\[mouse-buffer-menu]."
           (list name 'keymap name
                 (menu-bar-buffer-vector item)))))
     km))
+
+(defun menu-bar-define-mouse-key (map key def)
+  "Like `define-key', but adds all possible prefixes for the mouse."
+  (define-key map (vector key) def)
+  (mapc (lambda (prefix) (define-key map (vector prefix key) def))
+        ;; This list only needs to contain special window areas that
+        ;; are rendered in TTYs.  No need for *-scroll-bar, *-fringe,
+        ;; or *-divider.
+        '(tab-line header-line menu-bar tab-bar mode-line vertical-line
+          left-margin right-margin)))
 
 (defvar tty-menu-navigation-map
   (let ((map (make-sparse-keymap)))
@@ -2716,39 +2814,33 @@ This is the keyboard interface to \\[mouse-buffer-menu]."
     (define-key map [?\C-j] 'tty-menu-select)
     (define-key map [return] 'tty-menu-select)
     (define-key map [linefeed] 'tty-menu-select)
-    (define-key map [mouse-1] 'tty-menu-select)
-    (define-key map [drag-mouse-1] 'tty-menu-select)
-    (define-key map [mouse-2] 'tty-menu-select)
-    (define-key map [drag-mouse-2] 'tty-menu-select)
-    (define-key map [mouse-3] 'tty-menu-select)
-    (define-key map [drag-mouse-3] 'tty-menu-select)
-    (define-key map [wheel-down] 'tty-menu-next-item)
-    (define-key map [wheel-up] 'tty-menu-prev-item)
-    (define-key map [wheel-left] 'tty-menu-prev-menu)
-    (define-key map [wheel-right] 'tty-menu-next-menu)
-    ;; The following 4 bindings are for those whose text-mode mouse
+    (menu-bar-define-mouse-key map 'mouse-1 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'drag-mouse-1 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'mouse-2 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'drag-mouse-2 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'mouse-3 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'drag-mouse-3 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'wheel-down 'tty-menu-next-item)
+    (menu-bar-define-mouse-key map 'wheel-up 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'wheel-left 'tty-menu-prev-menu)
+    (menu-bar-define-mouse-key map 'wheel-right 'tty-menu-next-menu)
+    ;; The following 6 bindings are for those whose text-mode mouse
     ;; lack the wheel.
-    (define-key map [S-mouse-1] 'tty-menu-next-item)
-    (define-key map [S-drag-mouse-1] 'tty-menu-next-item)
-    (define-key map [S-mouse-2] 'tty-menu-prev-item)
-    (define-key map [S-drag-mouse-2] 'tty-menu-prev-item)
-    (define-key map [S-mouse-3] 'tty-menu-prev-item)
-    (define-key map [S-drag-mouse-3] 'tty-menu-prev-item)
-    (define-key map [header-line mouse-1] 'tty-menu-select)
-    (define-key map [header-line drag-mouse-1] 'tty-menu-select)
+    (menu-bar-define-mouse-key map 'S-mouse-1 'tty-menu-next-item)
+    (menu-bar-define-mouse-key map 'S-drag-mouse-1 'tty-menu-next-item)
+    (menu-bar-define-mouse-key map 'S-mouse-2 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'S-drag-mouse-2 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'S-mouse-3 'tty-menu-prev-item)
+    (menu-bar-define-mouse-key map 'S-drag-mouse-3 'tty-menu-prev-item)
     ;; The down-mouse events must be bound to tty-menu-ignore, so that
     ;; only releasing the mouse button pops up the menu.
-    (define-key map [mode-line down-mouse-1] 'tty-menu-ignore)
-    (define-key map [mode-line down-mouse-2] 'tty-menu-ignore)
-    (define-key map [mode-line down-mouse-3] 'tty-menu-ignore)
-    (define-key map [mode-line C-down-mouse-1] 'tty-menu-ignore)
-    (define-key map [mode-line C-down-mouse-2] 'tty-menu-ignore)
-    (define-key map [mode-line C-down-mouse-3] 'tty-menu-ignore)
-    (define-key map [down-mouse-1] 'tty-menu-ignore)
-    (define-key map [C-down-mouse-1] 'tty-menu-ignore)
-    (define-key map [C-down-mouse-2] 'tty-menu-ignore)
-    (define-key map [C-down-mouse-3] 'tty-menu-ignore)
-    (define-key map [mouse-movement] 'tty-menu-mouse-movement)
+    (menu-bar-define-mouse-key map 'down-mouse-1 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'down-mouse-2 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'down-mouse-3 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'C-down-mouse-1 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'C-down-mouse-2 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'C-down-mouse-3 'tty-menu-ignore)
+    (menu-bar-define-mouse-key map 'mouse-movement 'tty-menu-mouse-movement)
     map)
   "Keymap used while processing TTY menus.")
 

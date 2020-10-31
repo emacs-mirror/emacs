@@ -22,6 +22,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; The MD4 Message-Digest Algorithm.
+;;
+;; The security of the MD4 hashing algorithm is very poor to
+;; non-existent.  It was declared obsolete by RFC 6150 in 2011:
+;; https://tools.ietf.org/html/rfc6150
+;;
+;; You probably want to use `secure-hash' instead.
+
 ;;; Code:
 
 ;;;
@@ -33,7 +43,12 @@
 (defun md4 (in n)
   "Return the MD4 hash for a string IN of length N bytes.
 The returned hash is 16 bytes long.  N is required to handle
-strings containing the character 0."
+strings containing the character 0.
+
+The security of the MD4 hashing algorithm is very poor to
+non-existent.  It was declared obsolete by RFC 6150 in 2011.
+
+You probably want to use `secure-hash' instead."
   (let (m
 	(b (cons 0 (* n 8)))
 	(i 0)

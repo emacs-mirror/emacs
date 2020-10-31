@@ -637,10 +637,8 @@ compose_text (ptrdiff_t start, ptrdiff_t end, Lisp_Object components,
 
 static Lisp_Object gstring_hash_table;
 
-static Lisp_Object gstring_lookup_cache (Lisp_Object);
-
-static Lisp_Object
-gstring_lookup_cache (Lisp_Object header)
+Lisp_Object
+composition_gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   ptrdiff_t i = hash_lookup (h, header, NULL);
@@ -677,6 +675,27 @@ composition_gstring_from_id (ptrdiff_t id)
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 
   return HASH_VALUE (h, id);
+}
+
+/* Remove from the composition hash table every lgstring that
+   references the given FONT_OBJECT.  */
+void
+composition_gstring_cache_clear_font (Lisp_Object font_object)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
+
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      Lisp_Object k = HASH_KEY (h, i);
+
+      if (!EQ (k, Qunbound))
+	{
+	  Lisp_Object gstring = HASH_VALUE (h, i);
+
+	  if (EQ (LGSTRING_FONT (gstring), font_object))
+	    hash_remove_from_table (h, k);
+	}
+    }
 }
 
 DEFUN ("clear-composition-cache", Fclear_composition_cache,
@@ -1781,7 +1800,7 @@ should be ignored.  */)
 
   header = fill_gstring_header (frompos, frombyte,
 				topos, font_object, string);
-  gstring = gstring_lookup_cache (header);
+  gstring = composition_gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
 

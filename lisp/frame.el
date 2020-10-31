@@ -1934,7 +1934,7 @@ for FRAME."
 ;; features change, it will be easy to find all the tests for such
 ;; capabilities by a simple text search.  See more about the history
 ;; and the intent of these functions in
-;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2019-04/msg00004.html
+;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2019-04/msg00004.html
 ;; or in https://debbugs.gnu.org/cgi/bugreport.cgi?bug=35058#17.
 
 (declare-function msdos-mouse-p "dosfns.c")

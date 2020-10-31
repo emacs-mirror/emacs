@@ -3526,6 +3526,13 @@ This abnormal hook exists for the benefit of packages like
 @file{xt-mouse.el} that need to do mouse handling at the Lisp level.
 @end defvar
 
+@defvar tty-menu-calls-mouse-position-function
+If non-@code{nil}, TTY menus will call @code{mouse-position-function}
+as described above.  This exists for cases where
+@code{mouse-position-function} is not safe to be called by the TTY
+menus, such as if it could trigger redisplay.
+@end defvar
+
 @defun set-mouse-position frame x y
 This function @dfn{warps the mouse} to position @var{x}, @var{y} in
 frame @var{frame}.  The arguments @var{x} and @var{y} are integers,

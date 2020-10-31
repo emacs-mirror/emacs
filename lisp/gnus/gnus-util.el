@@ -1013,6 +1013,12 @@ FILENAME exists and is Babyl format."
                 (rmail-swap-buffers-maybe)
                 (rmail-maybe-set-message-counters))
               (widen)
+              (unless babyl
+		(goto-char (point-max))
+		;; Ensure we have a blank line before the next message.
+		(unless (bolp)
+		  (insert "\n"))
+		(insert "\n"))
               (narrow-to-region (point-max) (point-max)))
 	    (insert-buffer-substring tmpbuf)
 	    (when msg

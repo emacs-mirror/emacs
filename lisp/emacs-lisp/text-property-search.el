@@ -34,11 +34,11 @@
   "Search for the next region of text whose PROPERTY matches VALUE.
 
 If not found, return nil and don't move point.
-If found, move point to end of the region and return a `prop-match'
-object describing the match.  To access the details of the match,
-use `prop-match-beginning' and `prop-match-end' for the buffer
-positions that limit the region, and `prop-match-value' for the
-value of PROPERTY in the region.
+If found, move point to the start of the region and return a
+`prop-match' object describing the match.  To access the details
+of the match, use `prop-match-beginning' and `prop-match-end' for
+the buffer positions that limit the region, and
+`prop-match-value' for the value of PROPERTY in the region.
 
 PREDICATE is used to decide whether a value of PROPERTY should be
 considered as matching VALUE.
@@ -125,7 +125,7 @@ that matches VALUE."
   "Search for the previous region of text whose PROPERTY matches VALUE.
 
 Like `text-property-search-forward', which see, but searches backward,
-and if a matching region is found, moves point to its beginning."
+and if a matching region is found, place point at its end."
   (interactive
    (list
     (let ((string (completing-read "Search for property: " obarray)))

@@ -1942,35 +1942,38 @@ It will be registered for all objects created by `dbus-register-service'."
       ;; Check for object path wildcard interfaces.
       (maphash
        (lambda (key val)
-	 (when (and (equal (butlast key 2) (list :property bus))
-		    (null (nth 2 (car-safe val))))
-	   (push (nth 2 key) interfaces)))
+	 (when (equal (butlast key 2) (list :property bus))
+           (dolist (item val)
+	     (unless (nth 2 item) ; Path.
+	       (push (nth 2 key) interfaces)))))
        dbus-registered-objects-table)
 
       ;; Check all registered object paths.
       (maphash
        (lambda (key val)
-	 (let ((object (or (nth 2 (car-safe val)) "")))
-	   (when (and (equal (butlast key 2) (list :property bus))
-		      (string-prefix-p path object))
-	     (dolist (interface (cons (nth 2 key) interfaces))
-	       (unless (assoc object result)
-		 (push (list object) result))
-	       (unless (assoc interface (cdr (assoc object result)))
-		 (setcdr
-		  (assoc object result)
-		  (append
-		   (list (cons
-		    interface
-		    ;; We simulate "org.freedesktop.DBus.Properties.GetAll"
-		    ;; by using an appropriate D-Bus event.
-		    (let ((last-input-event
-			   (append
-			    (butlast last-input-event 4)
-			    (list object dbus-interface-properties
-                                  "GetAll" #'dbus-property-handler))))
-		      (dbus-property-handler interface))))
-		   (cdr (assoc object result)))))))))
+	 (when (equal (butlast key 2) (list :property bus))
+           (dolist (item val)
+	     (let ((object (or (nth 2 item) ""))) ; Path.
+	       (when (string-prefix-p path object)
+	         (dolist (interface (cons (nth 2 key) (delete-dups interfaces)))
+	           (unless (assoc object result)
+		     (push (list object) result))
+	           (unless (assoc interface (cdr (assoc object result)))
+		     (setcdr
+		      (assoc object result)
+		      (append
+		       (list (cons
+		              interface
+		              ;; We simulate
+		              ;; "org.freedesktop.DBus.Properties.GetAll"
+		              ;; by using an appropriate D-Bus event.
+		              (let ((last-input-event
+			             (append
+			              (butlast last-input-event 4)
+			              (list object dbus-interface-properties
+                                            "GetAll" #'dbus-property-handler))))
+		                (dbus-property-handler interface))))
+		       (cdr (assoc object result)))))))))))
        dbus-registered-objects-table)
 
       ;; Return the result, or an empty array.

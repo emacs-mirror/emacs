@@ -25,25 +25,24 @@
 ;;; Code:
 
 (require 'seq)
+(require 'text-property-search)
 (eval-when-compile (require 'cl-lib))
 
 (defgroup shortdoc nil
   "Short documentation."
   :group 'lisp)
 
-(defface shortdoc-section
+(defface shortdoc-separator
   '((((class color) (background dark))
-     :inherit variable-pitch :background "#303030" :extend t)
+     :height 0.1 :background "#505050" :extend t)
     (((class color) (background light))
-     :inherit variable-pitch :background "#f0f0f0" :extend t))
-  "Face used for a section.")
+     :height 0.1 :background "#a0a0a0" :extend t)
+    (t :height 0.1 :inverse-video t :extend t))
+  "Face used to separate sections.")
 
-(defface shortdoc-example
-  '((((class color) (background dark))
-     :background "#202020" :extend t)
-    (((class color) (background light))
-     :background "#e8e8e8" :extend t))
-  "Face used for examples.")
+(defface shortdoc-section
+  '((t :inherit variable-pitch))
+  "Face used for a section.")
 
 (defvar shortdoc--groups nil)
 
@@ -77,6 +76,45 @@ There can be any number of :example/:result elements."
      (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
                                   shortdoc--groups))
      (push (cons ',group ',functions) shortdoc--groups)))
+
+(define-short-documentation-group alist
+  "Alist Basics"
+  (assoc
+   :eval (assoc 'foo '((foo . bar) (zot . baz))))
+  (rassoc
+   :eval (rassoc 'bar '((foo . bar) (zot . baz))))
+  (assq
+   :eval (assq 'foo '((foo . bar) (zot . baz))))
+  (rassq
+   :eval (rassq 'bar '((foo . bar) (zot . baz))))
+  (assoc-string
+   :eval (assoc-string "foo" '(("foo" . "bar") ("zot" "baz"))))
+  "Manipulating Alists"
+  (assoc-delete-all
+   :eval (assoc-delete-all "foo" '(("foo" . "bar") ("zot" . "baz")) #'equal))
+  (assq-delete-all
+   :eval (assq-delete-all 'foo '((foo . bar) (zot . baz))))
+  (rassq-delete-all
+   :eval (rassq-delete-all 'bar '((foo . bar) (zot . baz))))
+  (alist-get
+   :eval (let ((foo '((bar . baz))))
+           (setf (alist-get 'bar foo) 'zot)
+           foo))
+  "Misc"
+  (assoc-default
+   :eval (assoc-default "foobar" '(("foo" . baz)) #'string-match))
+  (copy-alist
+   :eval (let* ((old '((foo . bar)))
+                (new (copy-alist old)))
+           (eq old new)))
+  ;; FIXME: Outputs "\.rose" for the symbol `.rose'.
+  ;; (let-alist
+  ;;     :eval (let ((colors '((rose . red)
+  ;;                           (lily . white))))
+  ;;             (let-alist colors
+  ;;               (if (eq .rose 'red)
+  ;;                   .lily))))
+  )
 
 (define-short-documentation-group string
   "Making Strings"
@@ -380,6 +418,37 @@ There can be any number of :example/:result elements."
    :no-eval (set-file-acl "/tmp/foo" "group::rxx")
    :eg-result t))
 
+(define-short-documentation-group hash-table
+  "Hash Table Basics"
+  (make-hash-table
+   :no-eval (make-hash-table)
+   :result-string "#s(hash-table ...)")
+  (puthash
+   :no-eval (puthash 'key "value" table))
+  (gethash
+   :no-eval (gethash 'key table)
+   :eg-result "value")
+  (remhash
+   :no-eval (remhash 'key table)
+   :result nil)
+  (clrhash
+   :no-eval (clrhash table)
+   :result-string "#s(hash-table ...)")
+  (maphash
+   :no-eval (maphash (lambda (key value) (message value)) table)
+   :result nil)
+  "Other Hash Table Functions"
+  (hash-table-p
+   :eval (hash-table-p 123))
+  (copy-hash-table
+   :no-eval (copy-hash-table table)
+   :result-string "#s(hash-table ...)")
+  (hash-table-count
+   :no-eval (hash-table-count table)
+   :eg-result 15)
+  (hash-table-size
+   :no-eval (hash-table-size table)
+   :eg-result 65))
 
 (define-short-documentation-group list
   "Making Lists"
@@ -557,15 +626,6 @@ There can be any number of :example/:result elements."
    :eval (replace-regexp-in-string "[a-z]+" "_" "*foo*"))
   (string-match-p
    :eval (string-match-p "^[fo]+" "foobar"))
-  (match-string
-   :eval (and (string-match "^\\([fo]+\\)b" "foobar")
-              (match-string 0 "foobar")))
-  (match-beginning
-   :no-eval (match-beginning 1)
-   :eg-result 0)
-  (match-end
-   :no-eval (match-end 1)
-   :eg-result 3)
   "Looking in Buffers"
   (re-search-forward
    :no-eval (re-search-forward "^foo$" nil t)
@@ -576,6 +636,25 @@ There can be any number of :example/:result elements."
   (looking-at-p
    :no-eval (looking-at "f[0-9]")
    :eg-result t)
+  "Match Data"
+  (match-string
+   :eval (and (string-match "^\\([fo]+\\)b" "foobar")
+              (match-string 0 "foobar")))
+  (match-beginning
+   :no-eval (match-beginning 1)
+   :eg-result 0)
+  (match-end
+   :no-eval (match-end 1)
+   :eg-result 3)
+  (save-match-data
+    :no-eval (save-match-data ...))
+  "Replacing Match"
+  (replace-match
+   :no-eval (replace-match "new")
+   :eg-result nil)
+  (match-substitute-replacement
+   :no-eval (match-substitute-replacement "new")
+   :eg-result "new")
   "Utilities"
   (regexp-quote
    :eval (regexp-quote "foo.*bar"))
@@ -584,7 +663,28 @@ There can be any number of :example/:result elements."
   (regexp-opt-depth
    :eval (regexp-opt-depth "\\(a\\(b\\)\\)"))
   (regexp-opt-charset
-   :eval (regexp-opt-charset '(?a ?b ?c ?d ?e))))
+   :eval (regexp-opt-charset '(?a ?b ?c ?d ?e)))
+  "The `rx' Structured Regexp Notation"
+  (rx
+   :eval (rx "IP=" (+ digit) (= 3 "." (+ digit))))
+  (rx-to-string
+   :eval (rx-to-string '(| "foo" "bar")))
+  (rx-define
+   :no-eval "(and (rx-define haskell-comment (seq \"--\" (zero-or-more nonl)))
+       (rx haskell-comment))"
+   :result "--.*")
+  (rx-let
+   :eval "(rx-let ((comma-separated (item) (seq item (0+ \",\" item)))
+           (number (1+ digit))
+           (numbers (comma-separated number)))
+    (rx \"(\" numbers \")\"))"
+   :result "([[:digit:]]+\\(?:,[[:digit:]]+\\)*)")
+  (rx-let-eval
+   :eval "(rx-let-eval
+      '((ponder (x) (seq \"Where have all the \" x \" gone?\")))
+    (rx-to-string
+     '(ponder (or \"flowers\" \"cars\" \"socks\"))))"
+   :result "\\(?:Where have all the \\(?:\\(?:car\\|flower\\|sock\\)s\\) gone\\?\\)"))
 
 (define-short-documentation-group sequence
   "Sequence Predicates"
@@ -963,19 +1063,27 @@ There can be any number of :example/:result elements."
   (unless (assq group shortdoc--groups)
     (error "No such documentation group %s" group))
   (pop-to-buffer (format "*Shortdoc %s*" group))
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+        (prev nil))
     (erase-buffer)
-    (special-mode)
+    (shortdoc-mode)
     (button-mode)
     (mapc
      (lambda (data)
        (cond
         ((stringp data)
+         (setq prev nil)
+         (unless (bobp)
+           (insert "\n"))
          (insert (propertize
-                  (concat data "\n\n")
-                  'face '(variable-pitch (:height 1.3 :weight bold)))))
+                  (concat (substitute-command-keys data) "\n\n")
+                  'face '(variable-pitch (:height 1.3 :weight bold))
+                  'shortdoc-section t)))
         ;; There may be functions not yet defined in the data.
         ((fboundp (car data))
+         (when prev
+           (insert (propertize "\n" 'face 'shortdoc-separator)))
+         (setq prev t)
          (shortdoc--display-function data))))
      (cdr (assq group shortdoc--groups))))
   (goto-char (point-min)))
@@ -985,7 +1093,8 @@ There can be any number of :example/:result elements."
         (start-section (point))
         arglist-start)
     ;; Function calling convention.
-    (insert "(")
+    (insert (propertize "("
+                        'shortdoc-function t))
     (if (plist-get data :no-manual)
         (insert (symbol-name function))
       (insert-text-button
@@ -1001,8 +1110,7 @@ There can be any number of :example/:result elements."
                 (car (split-string (documentation function) "\n"))))
     (insert "\n")
     (add-face-text-property start-section (point) 'shortdoc-section t)
-    (let ((start (point))
-          (print-escape-newlines t)
+    (let ((print-escape-newlines t)
           (double-arrow (if (char-displayable-p ?⇒)
                             "⇒"
                           "=>"))
@@ -1057,9 +1165,7 @@ There can be any number of :example/:result elements."
                  (:eg-result-string
                   (insert "    eg. " double-arrow " ")
                   (princ value (current-buffer))
-                  (insert "\n"))))
-      (put-text-property start (point) 'face 'shortdoc-example))
-    (insert "\n")
+                  (insert "\n")))))
     ;; Insert the arglist after doing the evals, in case that's pulled
     ;; in the function definition.
     (save-excursion
@@ -1097,6 +1203,51 @@ Example:
                   (not (stringp (cadr slist))))
         (setq slist (cdr slist)))
       (setcdr slist (cons elem (cdr slist))))))
+
+(defvar shortdoc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "n") 'shortdoc-next)
+    (define-key map (kbd "p") 'shortdoc-previous)
+    (define-key map (kbd "C-c C-n") 'shortdoc-next-section)
+    (define-key map (kbd "C-c C-p") 'shortdoc-previous-section)
+    map)
+  "Keymap for `shortdoc-mode'")
+
+(define-derived-mode shortdoc-mode special-mode "shortdoc"
+  "Mode for shortdoc.")
+
+(defmacro shortdoc--goto-section (arg sym &optional reverse)
+  `(progn
+     (unless (natnump ,arg)
+       (setq ,arg 1))
+     (while (< 0 ,arg)
+       (,(if reverse
+             'text-property-search-backward
+           'text-property-search-forward)
+        ,sym t)
+       (setq ,arg (1- ,arg)))))
+
+(defun shortdoc-next (&optional arg)
+  "Move cursor to next function."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-function))
+
+(defun shortdoc-previous (&optional arg)
+  "Move cursor to previous function."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-function t)
+  (backward-char 1))
+
+(defun shortdoc-next-section (&optional arg)
+  "Move cursor to next section."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-section))
+
+(defun shortdoc-previous-section (&optional arg)
+  "Move cursor to previous section."
+  (interactive "p")
+  (shortdoc--goto-section arg 'shortdoc-section t)
+  (forward-line -2))
 
 (provide 'shortdoc)
 

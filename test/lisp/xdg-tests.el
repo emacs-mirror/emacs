@@ -25,26 +25,20 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'xdg)
-
-(defconst xdg-tests-data-dir
-  (expand-file-name "test/data/xdg" source-directory))
 
 (ert-deftest xdg-desktop-parsing ()
   "Test `xdg-desktop-read-file' parsing of .desktop files."
-  (let ((tab1 (xdg-desktop-read-file
-               (expand-file-name "test.desktop" xdg-tests-data-dir)))
-        (tab2 (xdg-desktop-read-file
-               (expand-file-name "test.desktop" xdg-tests-data-dir)
+  (let ((tab1 (xdg-desktop-read-file (ert-resource-file "test.desktop")))
+        (tab2 (xdg-desktop-read-file (ert-resource-file "test.desktop")
                "Another Section")))
     (should (equal (gethash "Name" tab1) "Test"))
     (should (eq 'default (gethash "Exec" tab1 'default)))
     (should (equal "frobnicate" (gethash "Exec" tab2))))
   (should-error
-   (xdg-desktop-read-file
-    (expand-file-name "malformed.desktop" xdg-tests-data-dir)))
-  (let ((tab (xdg-desktop-read-file
-              (expand-file-name "l10n.desktop" xdg-tests-data-dir)))
+   (xdg-desktop-read-file (ert-resource-file "malformed.desktop")))
+  (let ((tab (xdg-desktop-read-file (ert-resource-file "l10n.desktop")))
         (env (getenv "LC_MESSAGES")))
     (unwind-protect
         (progn
@@ -67,8 +61,8 @@
 
 (ert-deftest xdg-mime-associations ()
   "Test reading MIME associations from files."
-  (let* ((apps (expand-file-name "mimeapps.list" xdg-tests-data-dir))
-         (cache (expand-file-name "mimeinfo.cache" xdg-tests-data-dir))
+  (let* ((apps (ert-resource-file "mimeapps.list"))
+         (cache (ert-resource-file "mimeinfo.cache"))
          (fs (list apps cache)))
     (should (equal (xdg-mime-collect-associations "x-test/foo" fs)
                    '("a.desktop" "b.desktop")))

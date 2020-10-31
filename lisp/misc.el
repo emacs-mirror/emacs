@@ -127,7 +127,7 @@ upper atmosphere.  These cause momentary pockets of higher-pressure
 air to form, which act as lenses that deflect incoming cosmic rays,
 focusing them to strike the drive platter and flip the desired bit.
 You can type `M-x butterfly C-M-c' to run it.  This is a permuted
-variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
+variation of `C-x M-c M-butterfly' from url `https://xkcd.com/378/'."
   (interactive)
   (if (yes-or-no-p "Do you really want to unleash the powers of the butterfly? ")
       (progn
@@ -139,7 +139,7 @@ variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
 	(sit-for (* 5 (/ (abs (random)) (float most-positive-fixnum))))
 	(message "Successfully flipped one bit!"))
     (message "Well, then go to xkcd.com!")
-    (browse-url "http://xkcd.com/378/")))
+    (browse-url "https://xkcd.com/378/")))
 
 ;; A command to list dynamically loaded libraries.  This useful in
 ;; environments where dynamic-library-alist is used, i.e., Windows

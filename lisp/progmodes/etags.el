@@ -1406,8 +1406,13 @@ hits the start of file."
 	      offset (* 3 offset)))	; expand search window
       (or found
 	  (re-search-forward pat nil t)
-	  (user-error "Rerun etags: `%s' not found in %s"
-                      pat buffer-file-name)))
+	  (if (and (buffer-narrowed-p) widen-automatically)
+              (progn
+                ;; Rerun after removing narrowing
+                (widen)
+                (etags-goto-tag-location tag-info))
+            (user-error "Rerun etags: `%s' not found in %s"
+                        pat buffer-file-name))))
     ;; Position point at the right place
     ;; if the search string matched an extra Ctrl-m at the beginning.
     (and (eq selective-display t)

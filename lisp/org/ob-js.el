@@ -30,11 +30,11 @@
 
 ;;; Requirements:
 
-;; - a non-browser javascript engine such as node.js http://nodejs.org/
-;;   or mozrepl http://wiki.github.com/bard/mozrepl/
+;; - a non-browser javascript engine such as node.js https://nodejs.org/
+;;   or mozrepl https://wiki.github.com/bard/mozrepl/
 ;;
 ;; - for session based evaluation mozrepl and moz.el are required see
-;;   http://wiki.github.com/bard/mozrepl/emacs-integration for
+;;   https://wiki.github.com/bard/mozrepl/emacs-integration for
 ;;   configuration instructions
 
 ;;; Code:

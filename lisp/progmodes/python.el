@@ -135,7 +135,7 @@
 ;; values enable completion for both CPython and IPython, and probably
 ;; any readline based shell (it's known to work with PyPy).  If your
 ;; Python installation lacks readline (like CPython for Windows),
-;; installing pyreadline (URL `http://ipython.org/pyreadline.html')
+;; installing pyreadline (URL `https://ipython.org/pyreadline.html')
 ;; should suffice.  To troubleshoot why you are not getting any
 ;; completions, you can try the following in your Python shell:
 
@@ -3139,9 +3139,16 @@ the python shell:
   4. Wraps indented regions under an \"if True:\" block so the
      interpreter evaluates them correctly."
   (let* ((start (save-excursion
-                  ;; Normalize start to the line beginning position.
+                  ;; If we're at the start of the expression, and
+                  ;; there's just blank space ahead of it, then expand
+                  ;; the region to include the start of the line.
+                  ;; This makes things work better with the rest of
+                  ;; the data we're sending over.
                   (goto-char start)
-                  (line-beginning-position)))
+                  (if (string-blank-p
+                       (buffer-substring (line-beginning-position) start))
+                      (line-beginning-position)
+                    start)))
          (substring (buffer-substring-no-properties start end))
          (starts-at-point-min-p (save-restriction
                                   (widen)

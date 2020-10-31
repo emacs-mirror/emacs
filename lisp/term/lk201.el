@@ -1,4 +1,4 @@
-;; Define function key sequences for DEC terminals.
+;; Define function key sequences for DEC terminals.  -*- lexical-binding: t -*-
 
 (defvar lk201-function-map
   (let ((map (make-sparse-keymap)))

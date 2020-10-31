@@ -409,9 +409,12 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
     case DBUS_TYPE_SIGNATURE:
-      /* We dont check the syntax of object path and signature.  This
-	 will be done by libdbus.  */
-      CHECK_STRING (object);
+      /* We dont check the syntax of signature.  This will be done by
+	 libdbus.  */
+      if (dtype == DBUS_TYPE_OBJECT_PATH)
+	XD_DBUS_VALIDATE_PATH (object)
+      else
+	CHECK_STRING (object);
       sprintf (signature, "%c", dtype);
       break;
 
@@ -732,9 +735,12 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_STRING:
       case DBUS_TYPE_OBJECT_PATH:
       case DBUS_TYPE_SIGNATURE:
-	/* We dont check the syntax of object path and signature.
-	   This will be done by libdbus.  */
-	CHECK_STRING (object);
+	/* We dont check the syntax of signature.  This will be done
+	   by libdbus.  */
+	if (dtype == DBUS_TYPE_OBJECT_PATH)
+	  XD_DBUS_VALIDATE_PATH (object)
+	else
+	  CHECK_STRING (object);
 	{
 	  /* We need to send a valid UTF-8 string.  We could encode `object'
 	     but by not encoding it, we guarantee it's valid utf-8, even if

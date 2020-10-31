@@ -27,7 +27,7 @@
 ;; session evaluation is supported.  Requires both coq.el and
 ;; coq-inferior.el, both of which are distributed with Coq.
 ;;
-;; http://coq.inria.fr/
+;; https://coq.inria.fr/
 
 ;;; Code:
 (require 'ob)

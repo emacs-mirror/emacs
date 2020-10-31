@@ -9543,10 +9543,16 @@ DEF_DLL_FN (gboolean, rsvg_handle_write,
 	    (RsvgHandle *, const guchar *, gsize, GError **));
 DEF_DLL_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
 #endif
+
+#if LIBRSVG_CHECK_VERSION (2, 46, 0)
+DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
+	    (RsvgHandle *, const char *, const RsvgRectangle *,
+	     RsvgRectangle *, RsvgRectangle *, GError **));
+#else
 DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 	    (RsvgHandle *, RsvgDimensionData *));
+#endif
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
-
 DEF_DLL_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_DLL_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
 DEF_DLL_FN (guchar *, gdk_pixbuf_get_pixels, (const GdkPixbuf *));
@@ -9592,7 +9598,11 @@ init_svg_functions (void)
   LOAD_DLL_FN (library, rsvg_handle_write);
   LOAD_DLL_FN (library, rsvg_handle_close);
 #endif
+#if LIBRSVG_CHECK_VERSION (2, 46, 0)
+  LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
+#else
   LOAD_DLL_FN (library, rsvg_handle_get_dimensions);
+#endif
   LOAD_DLL_FN (library, rsvg_handle_get_pixbuf);
 
   LOAD_DLL_FN (gdklib, gdk_pixbuf_get_width);
@@ -9627,7 +9637,11 @@ init_svg_functions (void)
 #  undef g_clear_error
 #  undef g_object_unref
 #  undef g_type_init
-#  undef rsvg_handle_get_dimensions
+#  if LIBRSVG_CHECK_VERSION (2, 46, 0)
+#   undef rsvg_handle_get_geometry_for_layer
+#  else
+#   undef rsvg_handle_get_dimensions
+#  endif
 #  undef rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   undef g_file_new_for_path
@@ -9653,7 +9667,11 @@ init_svg_functions (void)
 #  if ! GLIB_CHECK_VERSION (2, 36, 0)
 #   define g_type_init fn_g_type_init
 #  endif
-#  define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
+#  if LIBRSVG_CHECK_VERSION (2, 46, 0)
+#   define rsvg_handle_get_geometry_for_layer fn_rsvg_handle_get_geometry_for_layer
+#  else
+#   define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
+#  endif
 #  define rsvg_handle_get_pixbuf fn_rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   define g_file_new_for_path fn_g_file_new_for_path

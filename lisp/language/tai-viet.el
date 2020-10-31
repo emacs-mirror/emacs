@@ -1,4 +1,4 @@
-;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8 -*-
+;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 2007, 2008, 2009, 2010, 2011

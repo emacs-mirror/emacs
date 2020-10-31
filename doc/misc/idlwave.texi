@@ -247,15 +247,15 @@ Here are a number of screenshots showing IDLWAVE in action:
 
 @itemize @bullet
 @item
-@uref{http://github.com/jdtsmith/idlwave/screenshots/emacs_21_nav.gif,An IDLWAVE buffer}
+@uref{https://github.com/jdtsmith/idlwave/screenshots/emacs_21_nav.gif,An IDLWAVE buffer}
 @item
-@uref{http://github.com/jdtsmith/idlwave/screenshots/emacs_21_keys.gif,A keyword being completed}
+@uref{https://github.com/jdtsmith/idlwave/screenshots/emacs_21_keys.gif,A keyword being completed}
 @item
-@uref{http://github.com/jdtsmith/idlwave/screenshots/emacs_21_help.gif,Online help text.}
+@uref{https://github.com/jdtsmith/idlwave/screenshots/emacs_21_help.gif,Online help text.}
 @item
-@uref{http://github.com/jdtsmith/idlwave/screenshots/emacs_21_ri.gif,Routine information displayed}
+@uref{https://github.com/jdtsmith/idlwave/screenshots/emacs_21_ri.gif,Routine information displayed}
 @item
-@uref{http://github.com/jdtsmith/idlwave/screenshots/emacs_21_bp.gif,Debugging code
+@uref{https://github.com/jdtsmith/idlwave/screenshots/emacs_21_bp.gif,Debugging code
 stopped at a breakpoint}
 @end itemize
 @end ifnottex

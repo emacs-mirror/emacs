@@ -931,8 +931,8 @@ a negative argument means to delete and move backward."
 		(not (and backward (bobp))))
       (rmail-summary-goto-msg)
       (with-current-buffer rmail-buffer
-	(rmail-delete-message)
-	(setq del-msg rmail-current-message))
+	(setq del-msg rmail-current-message)
+	(rmail-delete-message))
       (rmail-summary-mark-deleted del-msg)
       (while (and (not (if backward (bobp) (eobp)))
 		  (save-excursion (beginning-of-line)

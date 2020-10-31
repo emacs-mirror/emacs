@@ -168,10 +168,9 @@
 ;;			modified (using text-property `read-only').
 ;;			Also, the read-write fields are shown using a
 ;;			distinct face, if possible.
-;;			As of emacs 19.29, the `intangible' text property
-;;			is used to prevent moving into read-only fields.
-;;			This variable defaults to t if running Emacs 19 or
-;;			later with text properties.
+;;			The `intangible' text property is used to
+;;			prevent moving into read-only fields.
+;;			This variable defaults to t.
 ;;			The default face to show read-write fields is
 ;;			copied from face `region'.
 ;;
@@ -363,8 +362,7 @@ This variable is for use by the filter routines only.
 The contents may NOT be modified.")
 
 (defcustom forms-use-text-properties t
-  "Non-nil means: use text properties.
-Defaults to t if this Emacs is capable of handling text properties."
+  "Non-nil means to use text properties. "
   :group 'forms
   :type 'boolean)
 

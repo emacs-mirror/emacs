@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; See <URL:http://bazaar.canonical.com/> concerning bzr.
+;; See <URL:https://bazaar.canonical.com/> concerning bzr.
 
 ;; This library provides bzr support in VC.
 

@@ -1,4 +1,4 @@
-;;; georgian.el --- language support for Georgian
+;;; georgian.el --- language support for Georgian  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

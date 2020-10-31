@@ -40,6 +40,8 @@ Danish (dansk)	Hej / Goddag / Halløj
 Dutch (Nederlands)	Hallo / Dag
 Efik  /ˈɛfɪk/	Mɔkɔm
 
+Egyptian Hieroglyphs (𓂋𓐰𓏤𓈖𓆎𓅓𓏏𓐰𓊖)	𓅓𓊵𓐰𓐷𓏏𓊪𓐸, 𓇍𓇋𓂻𓍘𓇋
+
 Emacs	emacs --no-splash -f view-hello-file
 
 Emoji	👋
@@ -59,7 +61,7 @@ Hindi (हिंदी)	नमस्ते / नमस्कार ।
 Inuktitut (ᐃᓄᒃᑎᑐᑦ)	ᐊᐃ
 
 Italian (italiano)	Ciao / Buon giorno
-Javanese (ꦧꦱꦗꦮ)	console.log("ꦱꦸꦒꦼꦁꦱꦶꦪꦁ");
+Javanese (ꦧꦱꦗꦮꦶ)	console.log("ꦲꦭꦺꦴ");
 Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ
 Khmer (ភាសាខ្មែរ)	ជំរាបសួរ
 Lao (ພາສາລາວ)	ສະບາຍດີ / ຂໍໃຫ້ໂຊກດີ
@@ -124,7 +126,7 @@ along with GNU Emacs.  If not, see <<https://www.gnu.org/licenses/>.
 
 
 ;;; Local Variables:
-;;; tab-width: 32
+;;; tab-width: 42
 ;;; bidi-display-reordering: t
 ;;; coding: utf-8
 ;;; inhibit-compacting-font-caches: t

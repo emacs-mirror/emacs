@@ -1188,9 +1188,9 @@ MS Windows, but this has still been insufficient to keep up with
 changes in printing technology from text and postscript based printers
 connected via ports that can be accessed directly, to graphical
 printers that are only accessible via USB@.  For details, see
-@uref{http://www.emacswiki.org/emacs/PrintingFromEmacs, Emacs
-Wiki}, @uref{http://www.emacswiki.org/emacs/PrintWithWebBrowser}, and
-@uref{http://www.emacswiki.org/emacs/PrintFromWindowsExplorer}.
+@uref{https://www.emacswiki.org/emacs/PrintingFromEmacs, Emacs
+Wiki}, @uref{https://www.emacswiki.org/emacs/PrintWithWebBrowser}, and
+@uref{https://www.emacswiki.org/emacs/PrintFromWindowsExplorer}.
 
 @c ------------------------------------------------------------
 @node Sub-processes
@@ -1414,7 +1414,7 @@ continue to use bash as your subshell:
 @cindex cygwin mount points, using within Emacs
 
 The package
-@uref{http://www.emacswiki.org/emacs/cygwin-mount.el,
+@uref{https://www.emacswiki.org/emacs/cygwin-mount.el,
 cygwin-mount.el} teaches Emacs about Cygwin mount points.
 
 @node Dired ls
@@ -1793,7 +1793,7 @@ do not need to add its installation directory to the @env{PATH}.
 @cindex Emacs distribution, checking digital signatures
 
 GNU Privacy Guard is a Free replacement for PGP, with Windows binaries
-available.  See @uref{http://www.gnupg.org/}.
+available.  See @uref{https://www.gnupg.org/}.
 
 @node Mouse wheel
 @section Why doesn't my wheel mouse work in Emacs?
@@ -2131,7 +2131,7 @@ suggestions} for improving the interaction of perldb and Emacs.
 @cindex subprocesses, cygwin tools
 @vindex exec-path
 
-@uref{http://www.cygwin.com/}.
+@uref{https://www.cygwin.com/}.
 
 Cygwin is a popular complete POSIX emulation environment for Windows.
 Most of its tools can be used with Emacs, and it covers a wide range
@@ -2281,7 +2281,7 @@ and you can view the FAQ by typing @kbd{C-h C-f}. Other resources include:
 @itemize
 @item @uref{https://www.gnu.org/software/emacs/, The Emacs homepage}
 @item @uref{https://www.gnu.org/software/emacs/manual/, Other Emacs manuals}
-@item @uref{http://www.emacswiki.org/, Emacs Wiki}
+@item @uref{https://www.emacswiki.org/, Emacs Wiki}
 @end itemize
 
 @node Mailing lists

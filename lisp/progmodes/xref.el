@@ -1325,7 +1325,7 @@ FILES must be a list of absolute file names."
   ;; call-process-region *is* measurably faster, even for a program
   ;; doing some actual work (for a period of time). Even though
   ;; call-process-region also creates a temp file internally
-  ;; (http://lists.gnu.org/archive/html/emacs-devel/2019-01/msg00211.html).
+  ;; (https://lists.gnu.org/archive/html/emacs-devel/2019-01/msg00211.html).
   (if (not (file-remote-p default-directory))
       (apply #'call-process-region
              start end program nil buffer display args)

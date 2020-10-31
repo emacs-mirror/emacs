@@ -1721,7 +1721,9 @@ matched in a rule action."
       (while (progn (skip-chars-forward makefile-dependency-skip bound)
 		    (< (point) (or bound (point-max))))
 	(forward-char)
-	(or (eq (char-after) ?=)
+        ;; The GNU immediate assignment operator is ":=", while the
+        ;; POSIX operator is "::=".
+	(or (looking-at ":?=")
 	    (get-text-property (1- (point)) 'face)
 	    (if (> (line-beginning-position) (+ (point-min) 2))
 		(eq (char-before (line-end-position 0)) ?\\))

@@ -1,4 +1,4 @@
-;;; sun.el --- keybinding for standard default sunterm keys
+;;; sun.el --- keybinding for standard default sunterm keys  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1987, 2001-2020 Free Software Foundation, Inc.
 

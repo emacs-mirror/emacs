@@ -400,7 +400,7 @@ archive can be browsed over the web at
 @uref{https://lists.gnu.org/r/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
-@uref{http://groups.google.com/groups/dir?q=gnu&, Google}, also
+@uref{https://groups.google.com/groups/dir?q=gnu&, Google}, also
 archive the @code{gnu.*} groups.
 
 @node Reporting bugs
@@ -865,7 +865,7 @@ Bulletin}, are at
 
 @uref{https://www.gnu.org/bulletins/bulletins.html} and
 
-@uref{http://www.cs.pdx.edu/~trent/gnu/gnu.html}
+@uref{https://www.cs.pdx.edu/~trent/gnu/gnu.html}
 
 @node Help installing Emacs
 @section Where can I get help in installing Emacs?
@@ -3613,7 +3613,7 @@ For a list of other MS-DOS implementations of Emacs (and Emacs
 look-alikes), consult the list of ``Emacs implementations and literature,''
 available at
 
-@uref{http://www.finseth.com/emacs.html}
+@uref{https://www.finseth.com/emacs.html}
 
 Note that while many of these programs look similar to Emacs, they often
 lack certain features, such as the Emacs Lisp extension language.

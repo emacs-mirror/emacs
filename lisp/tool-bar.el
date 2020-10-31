@@ -1,4 +1,4 @@
-;;; tool-bar.el --- setting up the tool bar
+;;; tool-bar.el --- setting up the tool bar  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
@@ -139,7 +139,7 @@ ICON.xbm, using `find-image'.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item'."
-  (apply 'tool-bar-local-item icon def key tool-bar-map props))
+  (apply #'tool-bar-local-item icon def key tool-bar-map props))
 
 (defun tool-bar--image-expression (icon)
   "Return an expression that evaluates to an image spec for ICON."
@@ -191,7 +191,7 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item-from-menu'."
-  (apply 'tool-bar-local-item-from-menu command icon
+  (apply #'tool-bar-local-item-from-menu command icon
 	 (default-value 'tool-bar-map) map props))
 
 ;;;###autoload

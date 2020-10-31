@@ -1357,7 +1357,9 @@ the string PROPERTY."
 (defun css--complete-property-value ()
   "Complete property value at point."
   (let ((property (and (looking-back "\\([[:alnum:]-]+\\):[^/][^;]*"
-                                     (line-beginning-position) t)
+                                     (or (ppss-innermost-start (syntax-ppss))
+                                         (point))
+                                     t)
                        (member (match-string-no-properties 1)
                                css-property-ids))))
     (when property

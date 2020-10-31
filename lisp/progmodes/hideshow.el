@@ -264,7 +264,10 @@ This has effect only if `search-invisible' is set to `open'."
     (c++-mode "{" "}" "/[*/]" nil nil)
     (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil nil)
-    (js-mode "{" "}" "/[*/]" nil)))
+    (js-mode "{" "}" "/[*/]" nil)
+    (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil)
+    ;; Add more support here.
+    ))
   "Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).

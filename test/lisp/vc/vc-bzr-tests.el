@@ -37,7 +37,7 @@
   ;; commands (eg `bzr status') want to access ~/.bazaar, and will
   ;; abort if they cannot.  I could not figure out how to stop bzr
   ;; doing that, so just give it a temporary homedir for the duration.
-  ;; http://bugs.launchpad.net/bzr/+bug/137407 ?
+  ;; https://bugs.launchpad.net/bzr/+bug/137407 ?
   ;;
   ;; Note that with bzr 2.x, this works:
   ;; mkdir /tmp/bzr

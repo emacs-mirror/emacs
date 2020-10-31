@@ -4,18 +4,20 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
-;; This program is free software: you can redistribute it and/or
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation, either version 3 of the
 ;; License, or (at your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful, but
+;; GNU Emacs is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -4365,6 +4367,22 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
 	    (should (string-match "foo" (buffer-string))))
+
+	;; Cleanup.
+	(ignore-errors (delete-process proc)))
+
+      ;; PTY.
+      (unwind-protect
+	  (with-temp-buffer
+	    ;; It works only for tramp-sh.el, and not direct async processes.
+	    (if (or (not (tramp--test-sh-p)) (tramp-direct-async-process-p))
+		(should-error
+		 (start-file-process "test4" (current-buffer) nil)
+		 :type 'wrong-type-argument)
+	      (setq proc (start-file-process "test4" (current-buffer) nil))
+	      (should (processp proc))
+	      (should (equal (process-status proc) 'run))
+	      (should (stringp (process-tty-name proc)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc))))))

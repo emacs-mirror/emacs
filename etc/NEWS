@@ -85,6 +85,9 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+** Minibuffer scrolling is now conservative by default.
+This is controlled by the new variable 'scroll-minibuffer-conservatively'.
+
 +++
 ** New system for displaying documentation for groups of function.
 This can either be used by saying 'M-x shortdoc-display-group' and
@@ -163,6 +166,12 @@ your init file:
     (setq frame-title-format '(multiple-frames "%b"
                               ("" invocation-name "@" system-name)))
 
++++
+** 'nobreak-char-display' now also affects all non-ASCII space characters.
+Previously, this was limited only to NO-BREAK-SPACE and hyphen
+characters.  Now it also covers the rest of the non-ASCII Unicode
+space characters.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -201,6 +210,7 @@ It moves point to the line relative to the accessible portion of the
 narrowed buffer.  'M-g M-g' in Info is rebound to this command.
 When 'widen-automatically' is non-nil, 'goto-line' widens the narrowed
 buffer to be able to move point to the inaccessible portion.
+'goto-line-relative' is bound to 'C-x n g'.
 
 +++
 ** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'
@@ -238,6 +248,13 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+** Python mode
+
+*** 'C-c C-r' can now be used on arbitrary regions.
+The command previously extended the start of the region to the start
+of the line, but will now actually send the marked region, as
+documented.
 
 ** Ruby mode
 
@@ -402,6 +419,14 @@ The non-file buffers which can use VC commands are those that have
 their 'default-directory' under VC.
 
 *** New command 'vc-dir-root' uses the root directory without asking.
+
+---
+*** The responsible VC backend is now the most specific one.
+'vc-responsible-backend' loops over the backends in
+'vc-handled-backends' to determine which backend is responsible for a
+specific (unregistered) file.  Previously the first matching backend
+was chosen, but now the one with the most specific path is chosen (in
+case there's a directory handled by one backend inside another).
 
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
 'vc-dir-mark-unregistered-files'.
@@ -575,6 +600,9 @@ skipped.
 
 ** Help
 
+---
+*** 'g' ('revert-buffer') in 'help-mode' no longer requires confirmation.
+
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
@@ -636,7 +664,7 @@ definition.
 ** ElDoc
 
 +++
-*** New user option 'eldoc-display-truncation-message'.
+*** New user option 'eldoc-echo-area-display-truncation-message'.
 If non-nil (the default), eldoc will display a message saying
 something like "(Documentation truncated. Use `M-x eldoc-doc-buffer'
 to see rest)" when a message has been truncated.  If nil, truncated
@@ -649,6 +677,13 @@ These functions don't need to produce the doc string right away, they
 may arrange for it to be produced asynchronously.  The results of all
 doc string functions are accessible to the user through the user
 option 'eldoc-documentation-strategy'.
+
+*** New hook 'eldoc-display-functions'.
+This hook is intended to be used for displaying doc string.  The
+functions receive the docstrings composed according to
+`eldoc-documentation-strategy' and are tasked with displaying it to
+the user.  Examples of such functions would use the echo area, a
+separate buffer or a tooltip.
 
 +++
 *** New user option 'eldoc-documentation-strategy'.
@@ -1176,7 +1211,30 @@ them, using the DEL and INS buttons respectively.  This is useful in
 Custom buffers, for example, to change the order of the elements in a
 list.
 
+** Diff
+
+---
+*** New 'diff-mode' font locking face 'diff-error'.
+This face is used for error messages from diff.
+
++++
+*** New command 'diff-refresh-hunk'.
+This new command (bound to 'C-c C-l') regenerates the current hunk.
+
+
 ** Miscellaneous
+
++++
+*** 'format-seconds' can now be used for sub-second times.
+The new optional "," parameter has been added, and
+(format-seconds "%mm %,1ss" 66.4) will now result in "1m 6.4s".
+
+---
+*** 'global-display-fill-column-indicator-mode' skips some buffers.
+By default, turning on 'global-display-fill-column-indicator-mode'
+doesn't turn on 'display-fill-column-indicator-mode' in special-mode
+buffers.  This can be controlled by customizing the variable
+'global-display-fill-column-indicator-modes'.
 
 ---
 *** New user option 'compilation-search-all-directories'.
@@ -1264,10 +1322,6 @@ number [10]", or not have the default displayed at all, like "Enter a
 number".  (This requires that all callers are altered to use
 'format-prompt', though.)
 
----
-*** New 'diff-mode' font locking face 'diff-error'.
-This face is used for error messages from diff.
-
 +++
 *** New global mode 'global-goto-address-mode'.
 This will enable 'goto-address-mode' in all buffers.
@@ -1324,6 +1378,16 @@ to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 *** Movement commands in 'gomoku-mode' are fixed.
 'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
 horizontal movements now stop at the edge of the board.
+
+** xterm-mouse mode
+
+---
+*** TTY menu navigation is now supported in 'xterm-mouse-mode'.
+TTY menus support mouse navigation and selection when xterm-mouse-mode
+is active.  When run on a terminal, clicking on the menu bar with the
+mouse now pops up a TTY menu by default instead of running the command
+'tmm-menubar'.  To restore the old behavior, set the variable
+'tty-menu-open-use-tmm' to non-nil.
 
 ** xwidget-webkit mode
 
@@ -1600,6 +1664,11 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'define-globalized-minor-mode' now takes a :predicate parameter.
+This can be used to control which major modes the minor mode should be
+used in.
+
++++
 ** 'truncate-string-ellipsis' now uses '…' by default.
 Modes that use 'truncate-string-to-width' with non-nil, non-string
 argument 'ellipsis', will now indicate truncation using '…' when
@@ -1749,6 +1818,14 @@ This user option can be one of the predefined styles or a function to
 personalize the uniquified buffer name.
 
 +++
+** New variable 'tty-menu-calls-mouse-position-function'.
+This controls whether 'mouse-position-function' is called by functions
+that retrieve the mouse position when that happens during TTY menu
+handling.  Lisp programs that set 'mouse-position-function' should
+also set this variable non-nil if they are compatible with the tty
+menu handling.
+
++++
 ** 'inhibit-nul-byte-detection' is renamed to 'inhibit-null-byte-detection'.
 
 +++
@@ -1760,6 +1837,11 @@ file can affect code in another.  For details, see the manual section
 
 ---
 ** 'unload-feature' now also tries to undo additions to buffer-local hooks.
+
+---
+** Some functions are no longer considered safe by 'unsafep':
+'replace-regexp-in-string', 'catch', 'throw', 'error', 'signal'
+and 'play-sound-file'.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

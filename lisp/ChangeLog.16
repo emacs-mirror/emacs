@@ -379,7 +379,7 @@
 2013-02-28  Sam Steingold  <sds@gnu.org>
 
 	* vc/diff-mode.el (diff-hunk-file-names): Handle filenames with spaces.
-	See <http://stackoverflow.com/questions/14720205>.
+	See <https://stackoverflow.com/questions/14720205>.
 
 2013-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
@@ -1326,7 +1326,7 @@
 
 	* net/soap-client.el (soap-invoke): Encode the string for
 	`url-request-data' as UTF-8.
-	Fixes <http://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
+	Fixes <https://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
 
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
@@ -2462,7 +2462,7 @@
 2012-12-27  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-calculate-indent): Do not stagger
-	continuations, see <http://stackoverflow.com/questions/3582436>.
+	continuations, see <https://stackoverflow.com/questions/3582436>.
 
 2012-12-27  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -11473,7 +11473,7 @@
 	(sh-set-shell): Use smie-setup if requested.
 
 	* term.el (term-set-escape-char): Properly set term-escape-char.
-	See http://stackoverflow.com/questions/10524656.
+	See https://stackoverflow.com/questions/10524656.
 
 2012-05-10  Chong Yidong  <cyd@gnu.org>
 
@@ -16476,7 +16476,7 @@
 	(python-pdbtrack-track-stack-file): Adjust to recognize ipdb as well as
 	regular python pdb prompts.  Adjustments shamelessly taken exactly as
 	suggested in EmacsWiki page (tiny change):
-	http://www.emacswiki.org/PythonProgrammingInEmacs#toc14
+	https://www.emacswiki.org/PythonProgrammingInEmacs#toc14
 
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 

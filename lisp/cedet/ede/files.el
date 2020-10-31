@@ -96,15 +96,12 @@ of the anchor file for the project."
 
 (defun ede--put-inode-dir-hash (dir inode)
   "Add to the EDE project hash DIR associated with INODE."
-  (when (fboundp 'puthash)
-    (puthash dir inode ede-inode-directory-hash)
-    inode))
+  (puthash dir inode ede-inode-directory-hash)
+  inode)
 
 (defun ede--get-inode-dir-hash (dir)
   "Get the EDE project hash DIR associated with INODE."
-  (when (fboundp 'gethash)
-    (gethash dir ede-inode-directory-hash)
-    ))
+  (gethash dir ede-inode-directory-hash))
 
 (defun ede--inode-for-dir (dir)
   "Return the inode for the directory DIR."
@@ -272,28 +269,24 @@ Do this only when developing new projects that are incorrectly putting
 Do this whenever a new project is created, as opposed to loaded."
   ;; TODO - Use maphash, and delete by regexp, not by dir searching!
   (setq dir (expand-file-name dir))
-  (when (fboundp 'remhash)
-    (remhash (file-name-as-directory dir) ede-project-directory-hash)
-    ;; Look for all subdirs of D, and remove them.
-    (let ((match (concat "^" (regexp-quote dir))))
-      (maphash (lambda (K O)
-		 (when (string-match match K)
-		   (remhash K ede-project-directory-hash)))
-	       ede-project-directory-hash))
-    ))
+  (remhash (file-name-as-directory dir) ede-project-directory-hash)
+  ;; Look for all subdirs of D, and remove them.
+  (let ((match (concat "^" (regexp-quote dir))))
+    (maphash (lambda (K O)
+               (when (string-match match K)
+                 (remhash K ede-project-directory-hash)))
+             ede-project-directory-hash)))
 
 (defun ede--directory-project-from-hash (dir)
   "If there is an already loaded project for DIR, return it from the hash."
-  (when (fboundp 'gethash)
-    (setq dir (expand-file-name dir))
-    (gethash dir ede-project-directory-hash nil)))
+  (setq dir (expand-file-name dir))
+  (gethash dir ede-project-directory-hash nil))
 
 (defun ede--directory-project-add-description-to-hash (dir desc)
   "Add to the EDE project hash DIR associated with DESC."
-  (when (fboundp 'puthash)
-    (setq dir (expand-file-name dir))
-    (puthash dir desc ede-project-directory-hash)
-    desc))
+  (setq dir (expand-file-name dir))
+  (puthash dir desc ede-project-directory-hash)
+  desc)
 
 ;;; DIRECTORY-PROJECT-P, -CONS
 ;;

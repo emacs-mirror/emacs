@@ -2665,9 +2665,6 @@ See `edebug-behavior-alist' for implementations.")
 
 (defvar edebug-previous-result nil) ;; Last result returned.
 
-;; Emacs 19 adds an arg to mark and mark-marker.
-(defalias 'edebug-mark-marker 'mark-marker)
-
 (defun edebug--display (value offset-index arg-mode)
   ;; edebug--display-1 is too big, we should split it.  This function
   ;; here was just introduced to avoid making edebug--display-1
@@ -2895,8 +2892,8 @@ See `edebug-behavior-alist' for implementations.")
               ;; But don't restore point if edebug-buffer is current buffer.
               (if (not (eq edebug-buffer edebug-outside-buffer))
                   (goto-char edebug-outside-point))
-              (if (marker-buffer (edebug-mark-marker))
-                  (set-marker (edebug-mark-marker) edebug-outside-mark))
+              (if (marker-buffer (mark-marker))
+                  (set-marker (mark-marker) edebug-outside-mark))
               ))     ; unwind-protect
 	  ;; None of the following is done if quit or signal occurs.
 
@@ -3153,8 +3150,8 @@ before returning.  The default is one second."
       (goto-char edebug-outside-point)
       (message "Current buffer: %s Point: %s Mark: %s"
 	       (current-buffer) (point)
-	       (if (marker-buffer (edebug-mark-marker))
-		   (marker-position (edebug-mark-marker)) "<not set>"))
+               (if (marker-buffer (mark-marker))
+                   (marker-position (mark-marker)) "<not set>"))
       (sit-for arg)
       (edebug-pop-to-buffer edebug-buffer (car edebug-window-data)))))
 
@@ -3725,8 +3722,8 @@ Return the result of the last expression."
          ;; for us.
          (with-current-buffer edebug-outside-buffer ; of edebug-buffer
            (goto-char edebug-outside-point)
-           (if (marker-buffer (edebug-mark-marker))
-               (set-marker (edebug-mark-marker) edebug-outside-mark))
+           (if (marker-buffer (mark-marker))
+               (set-marker (mark-marker) edebug-outside-mark))
            ,@body)
 
        ;; Back to edebug-buffer.  Restore rest of inside context.
@@ -4666,6 +4663,8 @@ instrumentation for, defaulting to all functions."
       (defalias symbol unwrapped)))
   (message "Removed edebug instrumentation from %s"
            (mapconcat #'symbol-name functions ", ")))
+
+(define-obsolete-function-alias 'edebug-mark-marker #'mark-marker "28.1")
 
 (provide 'edebug)
 ;;; edebug.el ends here

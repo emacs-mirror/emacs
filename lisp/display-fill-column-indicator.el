@@ -51,6 +51,8 @@ This uses `display-fill-column-indicator' internally.
 To change the position of the column displayed by default
 customize `display-fill-column-indicator-column'.  You can change the
 character for the indicator setting `display-fill-column-indicator-character'.
+The globalized version is `global-display-fill-column-indicator-mode',
+which see.
 See Info node `Displaying Boundaries' for details."
   :lighter nil
   (if display-fill-column-indicator-mode
@@ -74,7 +76,8 @@ See Info node `Displaying Boundaries' for details."
 
 ;;;###autoload
 (define-globalized-minor-mode global-display-fill-column-indicator-mode
-  display-fill-column-indicator-mode display-fill-column-indicator--turn-on)
+  display-fill-column-indicator-mode display-fill-column-indicator--turn-on
+  :predicate '((not special-mode) t))
 
 (provide 'display-fill-column-indicator)
 

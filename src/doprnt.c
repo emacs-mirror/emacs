@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    . For %s and %c, when field width is specified (e.g., %25s), it accounts for
      the display width of each character, according to char-width-table.  That
      is, it does not assume that each character takes one column on display.
+     Nor does it assume that each character is a single byte.
 
    . If the size of the buffer is not enough to produce the formatted string in
      its entirety, it makes sure that truncation does not chop the last
@@ -42,12 +43,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      Emacs can handle.
 
    OTOH, this function supports only a small subset of the standard C formatted
-   output facilities.  E.g., %u and %ll are not supported, and precision is
-   ignored %s and %c conversions.  (See below for the detailed documentation of
-   what is supported.)  However, this is okay, as this function is supposed to
-   be called from `error' and similar functions, and thus does not need to
-   support features beyond those in `Fformat_message', which is used
-   by `error' on the Lisp level.  */
+   output facilities.  E.g., %u is not supported, precision is ignored
+   in %s and %c conversions, and %lld does not necessarily work and
+   code should use something like %"pM"d with intmax_t instead.
+   (See below for the detailed documentation of what is supported.)
+   However, this is okay, as this function is supposed to be called
+   from 'error' and similar C functions, and thus does not need to
+   support all the features of 'Fformat_message', which is used by the
+   Lisp 'error' function.  */
 
 /* In the FORMAT argument this function supports ` and ' as directives
    that output left and right quotes as per ‘text-quoting style’.  It
@@ -61,19 +64,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    %e means print a `double' argument in exponential notation.
    %f means print a `double' argument in decimal-point notation.
    %g means print a `double' argument in exponential notation
-      or in decimal-point notation, whichever uses fewer characters.
+      or in decimal-point notation, depending on the value;
+      this is often (though not always) the shorter of the two notations.
    %c means print a `signed int' argument as a single character.
    %% means produce a literal % character.
 
-   A %-sequence may contain optional flag, width, and precision specifiers, and
-   a length modifier, as follows:
+   A %-sequence other than %% may contain optional flags, width, precision,
+   and length, as follows:
 
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
    is empty or l or the value of the pD or pI or PRIdMAX (sans "d") macros.
-   Also, %% in a format stands for a single % in the output.  A % that
-   does not introduce a valid %-sequence causes undefined behavior.
+   A % that does not introduce a valid %-sequence causes undefined behavior.
+   ASCII bytes in FORMAT other than % are copied through as-is;
+   non-ASCII bytes should not appear in FORMAT.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -99,7 +104,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    For %e, %f, and %g sequences, the number after the "." in the precision
    specifier says how many decimal places to show; if zero, the decimal point
-   itself is omitted.  For %s and %S, the precision specifier is ignored.  */
+   itself is omitted.  For %d, %o, and %x sequences, the precision specifies
+   the minimum number of digits to appear.  Precision specifiers are
+   not supported for other %-sequences.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -115,7 +122,50 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
+/* Enough to handle floating point formats with large numbers.  */
+enum { SIZE_BOUND_EXTRA = DBL_MAX_10_EXP + 50 };
+
+/* Parse FMT as an unsigned decimal integer, putting its value into *VALUE.
+   Return the address of the first byte after the integer.
+   If FMT is not an integer, return FMT and store zero into *VALUE.  */
+static char const *
+parse_format_integer (char const *fmt, int *value)
+{
+  int n = 0;
+  bool overflow = false;
+  for (; '0' <= *fmt && *fmt <= '9'; fmt++)
+    {
+      overflow |= INT_MULTIPLY_WRAPV (n, 10, &n);
+      overflow |= INT_ADD_WRAPV (n, *fmt - '0', &n);
+    }
+  if (overflow || min (PTRDIFF_MAX, SIZE_MAX) - SIZE_BOUND_EXTRA < n)
+    error ("Format width or precision too large");
+  *value = n;
+  return fmt;
+}
+
+/* Like doprnt, except FORMAT_END must be non-null.
+   Although this function is never exercised in current Emacs,
+   it is retained in case some future Emacs version
+   contains doprnt callers that need such formats.
+   Having a separate function helps GCC optimize doprnt better.  */
+static ptrdiff_t
+doprnt_non_null_end (char *buffer, ptrdiff_t bufsize, char const *format,
+		     char const *format_end, va_list ap)
+{
+  USE_SAFE_ALLOCA;
+  ptrdiff_t fmtlen = format_end - format;
+  char *fmt = SAFE_ALLOCA (fmtlen + 1);
+  memcpy (fmt, format, fmtlen);
+  fmt[fmtlen] = 0;
+  ptrdiff_t nbytes = doprnt (buffer, bufsize, fmt, NULL, ap);
+  SAFE_FREE ();
+  return nbytes;
+}
+
 /* Generate output from a format-spec FORMAT,
+   terminated at either the first NUL or (if FORMAT_END is non-null
+   and there are no NUL bytes between FORMAT and FORMAT_END)
    terminated at position FORMAT_END.
    (*FORMAT_END is not part of the format, but must exist and be readable.)
    Output goes in BUFFER, which has room for BUFSIZE chars.
@@ -131,11 +181,11 @@ ptrdiff_t
 doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
+  if (format_end)
+    return doprnt_non_null_end (buffer, bufsize, format, format_end, ap);
+
   const char *fmt = format;	/* Pointer into format string.  */
   char *bufptr = buffer;	/* Pointer into output buffer.  */
-
-  /* Enough to handle floating point formats with large numbers.  */
-  enum { SIZE_BOUND_EXTRA = DBL_MAX_10_EXP + 50 };
 
   /* Use this for sprintf unless we need something really big.  */
   char tembuf[SIZE_BOUND_EXTRA + 50];
@@ -150,103 +200,91 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   char *big_buffer = NULL;
 
   enum text_quoting_style quoting_style = text_quoting_style ();
-  ptrdiff_t tem = -1;
-  char *string;
-  char fixed_buffer[20];	/* Default buffer for small formatting. */
-  char *fmtcpy;
-  int minlen;
-  char charbuf[MAX_MULTIBYTE_LENGTH + 1];	/* Used for %c.  */
-  USE_SAFE_ALLOCA;
-
-  if (format_end == 0)
-    format_end = format + strlen (format);
-
-  fmtcpy = (format_end - format < sizeof (fixed_buffer) - 1
-	    ? fixed_buffer
-	    : SAFE_ALLOCA (format_end - format + 1));
 
   bufsize--;
 
   /* Loop until end of format string or buffer full. */
-  while (fmt < format_end && bufsize > 0)
+  while (*fmt && bufsize > 0)
     {
       char const *fmt0 = fmt;
       char fmtchar = *fmt++;
       if (fmtchar == '%')
 	{
-	  ptrdiff_t size_bound = 0;
 	  ptrdiff_t width;  /* Columns occupied by STRING on display.  */
 	  enum {
 	    pDlen = sizeof pD - 1,
 	    pIlen = sizeof pI - 1,
-	    pMlen = sizeof PRIdMAX - 2
+	    pMlen = sizeof PRIdMAX - 2,
+	    maxmlen = max (max (1, pDlen), max (pIlen, pMlen))
 	  };
 	  enum {
 	    no_modifier, long_modifier, pD_modifier, pI_modifier, pM_modifier
 	  } length_modifier = no_modifier;
 	  static char const modifier_len[] = { 0, 1, pDlen, pIlen, pMlen };
-	  int maxmlen = max (max (1, pDlen), max (pIlen, pMlen));
 	  int mlen;
+	  char charbuf[MAX_MULTIBYTE_LENGTH + 1];	/* Used for %c.  */
 
-	  /* Copy this one %-spec into fmtcpy.  */
-	  string = fmtcpy;
+	  /* Width and precision specified by this %-sequence.  */
+	  int wid = 0, prec = -1;
+
+	  /* FMTSTAR will be a "%*.*X"-like version of this %-sequence.
+	     Start by putting '%' into FMTSTAR.  */
+	  char fmtstar[sizeof "%-+ 0*.*d" + maxmlen];
+	  char *string = fmtstar;
 	  *string++ = '%';
-	  while (fmt < format_end)
-	    {
-	      *string++ = *fmt;
-	      if ('0' <= *fmt && *fmt <= '9')
-		{
-		  /* Get an idea of how much space we might need.
-		     This might be a field width or a precision; e.g.
-		     %1.1000f and %1000.1f both might need 1000+ bytes.
-		     Parse the width or precision, checking for overflow.  */
-		  int n = *fmt - '0';
-		  bool overflow = false;
-		  while (fmt + 1 < format_end
-			 && '0' <= fmt[1] && fmt[1] <= '9')
-		    {
-		      overflow |= INT_MULTIPLY_WRAPV (n, 10, &n);
-		      overflow |= INT_ADD_WRAPV (n, fmt[1] - '0', &n);
-		      *string++ = *++fmt;
-		    }
 
-		  if (overflow
-		      || min (PTRDIFF_MAX, SIZE_MAX) - SIZE_BOUND_EXTRA < n)
-		    error ("Format width or precision too large");
-		  if (size_bound < n)
-		    size_bound = n;
+	  /* Copy at most one instance of each flag into FMTSTAR.  */
+	  bool minusflag = false, plusflag = false, zeroflag = false,
+	    spaceflag = false;
+	  for (;; fmt++)
+	    {
+	      *string = *fmt;
+	      switch (*fmt)
+		{
+		case '-': string += !minusflag; minusflag = true; continue;
+		case '+': string += !plusflag; plusflag = true; continue;
+		case ' ': string += !spaceflag; spaceflag = true; continue;
+		case '0': string += !zeroflag; zeroflag = true; continue;
 		}
-	      else if (! (*fmt == '-' || *fmt == ' ' || *fmt == '.'
-			  || *fmt == '+'))
-		break;
-	      fmt++;
+	      break;
 	    }
+
+	  /* Parse width and precision, putting "*.*" into FMTSTAR.  */
+	  if ('1' <= *fmt && *fmt <= '9')
+	    fmt = parse_format_integer (fmt, &wid);
+	  if (*fmt == '.')
+	    fmt = parse_format_integer (fmt + 1, &prec);
+	  *string++ = '*';
+	  *string++ = '.';
+	  *string++ = '*';
 
 	  /* Check for the length modifiers in textual length order, so
 	     that longer modifiers override shorter ones.  */
 	  for (mlen = 1; mlen <= maxmlen; mlen++)
 	    {
-	      if (format_end - fmt < mlen)
-		break;
 	      if (mlen == 1 && *fmt == 'l')
 		length_modifier = long_modifier;
-	      if (mlen == pDlen && memcmp (fmt, pD, pDlen) == 0)
+	      if (mlen == pDlen && strncmp (fmt, pD, pDlen) == 0)
 		length_modifier = pD_modifier;
-	      if (mlen == pIlen && memcmp (fmt, pI, pIlen) == 0)
+	      if (mlen == pIlen && strncmp (fmt, pI, pIlen) == 0)
 		length_modifier = pI_modifier;
-	      if (mlen == pMlen && memcmp (fmt, PRIdMAX, pMlen) == 0)
+	      if (mlen == pMlen && strncmp (fmt, PRIdMAX, pMlen) == 0)
 		length_modifier = pM_modifier;
 	    }
 
+	  /* Copy optional length modifier and conversion specifier
+	     character into FMTSTAR, and append a NUL.  */
 	  mlen = modifier_len[length_modifier];
-	  memcpy (string, fmt + 1, mlen);
-	  string += mlen;
+	  string = mempcpy (string, fmt, mlen + 1);
 	  fmt += mlen;
 	  *string = 0;
 
-	  /* Make the size bound large enough to handle floating point formats
+	  /* An idea of how much space we might need.
+	     This might be a field width or a precision; e.g.
+	     %1.1000f and %1000.1f both might need 1000+ bytes.
+	     Make it large enough to handle floating point formats
 	     with large numbers.  */
-	  size_bound += SIZE_BOUND_EXTRA;
+	  ptrdiff_t size_bound = max (wid, prec) + SIZE_BOUND_EXTRA;
 
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
@@ -257,48 +295,49 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	      sprintf_buffer = big_buffer;
 	      size_allocated = size_bound;
 	    }
-	  minlen = 0;
+	  int minlen = 0;
+	  ptrdiff_t tem;
 	  switch (*fmt++)
 	    {
 	    default:
-	      error ("Invalid format operation %s", fmtcpy);
+	      error ("Invalid format operation %s", fmt0);
 
-/*	    case 'b': */
-	    case 'l':
 	    case 'd':
 	      switch (length_modifier)
 		{
 		case no_modifier:
 		  {
 		    int v = va_arg (ap, int);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case long_modifier:
 		  {
 		    long v = va_arg (ap, long);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case pD_modifier:
 		signed_pD_modifier:
 		  {
 		    ptrdiff_t v = va_arg (ap, ptrdiff_t);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case pI_modifier:
 		  {
 		    EMACS_INT v = va_arg (ap, EMACS_INT);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case pM_modifier:
 		  {
 		    intmax_t v = va_arg (ap, intmax_t);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
+		default:
+		  eassume (false);
 		}
 	      /* Now copy into final output, truncating as necessary.  */
 	      string = sprintf_buffer;
@@ -311,13 +350,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case no_modifier:
 		  {
 		    unsigned v = va_arg (ap, unsigned);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case long_modifier:
 		  {
 		    unsigned long v = va_arg (ap, unsigned long);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case pD_modifier:
@@ -325,15 +364,17 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case pI_modifier:
 		  {
 		    EMACS_UINT v = va_arg (ap, EMACS_UINT);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
 		case pM_modifier:
 		  {
 		    uintmax_t v = va_arg (ap, uintmax_t);
-		    tem = sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtstar, wid, prec, v);
 		  }
 		  break;
+		default:
+		  eassume (false);
 		}
 	      /* Now copy into final output, truncating as necessary.  */
 	      string = sprintf_buffer;
@@ -344,18 +385,15 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    case 'g':
 	      {
 		double d = va_arg (ap, double);
-		tem = sprintf (sprintf_buffer, fmtcpy, d);
+		tem = sprintf (sprintf_buffer, fmtstar, wid, prec, d);
 		/* Now copy into final output, truncating as necessary.  */
 		string = sprintf_buffer;
 		goto doit;
 	      }
 
 	    case 'S':
-	      string[-1] = 's';
-	      FALLTHROUGH;
 	    case 's':
-	      if (fmtcpy[1] != 's')
-		minlen = atoi (&fmtcpy[1]);
+	      minlen = minusflag ? -wid : wid;
 	      string = va_arg (ap, char *);
 	      tem = strnlen (string, STRING_BYTES_BOUND + 1);
 	      if (tem == STRING_BYTES_BOUND + 1)
@@ -432,14 +470,12 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		string = charbuf;
 		string[tem] = 0;
 		width = strwidth (string, tem);
-		if (fmtcpy[1] != 'c')
-		  minlen = atoi (&fmtcpy[1]);
+		minlen = minusflag ? -wid : wid;
 		goto doit1;
 	      }
 
 	    case '%':
 	      /* Treat this '%' as normal.  */
-	      fmt0 = fmt - 1;
 	      break;
 	    }
 	}
@@ -450,13 +486,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	src = uLSQM, srclen = sizeof uLSQM - 1;
       else if (quoting_style == CURVE_QUOTING_STYLE && fmtchar == '\'')
 	src = uRSQM, srclen = sizeof uRSQM - 1;
-      else if (quoting_style == STRAIGHT_QUOTING_STYLE && fmtchar == '`')
-	src = "'", srclen = 1;
       else
 	{
-	  while (fmt < format_end && !CHAR_HEAD_P (*fmt))
-	    fmt++;
-	  src = fmt0, srclen = fmt - fmt0;
+	  if (quoting_style == STRAIGHT_QUOTING_STYLE && fmtchar == '`')
+	    fmtchar = '\'';
+	  eassert (ASCII_CHAR_P (fmtchar));
+	  *bufptr++ = fmtchar;
+	  continue;
 	}
 
       if (bufsize < srclen)
@@ -479,8 +515,6 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   xfree (big_buffer);
 
   *bufptr = 0;		/* Make sure our string ends with a '\0' */
-
-  SAFE_FREE ();
   return bufptr - buffer;
 }
 

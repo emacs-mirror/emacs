@@ -16,13 +16,14 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 (require 'message)
 (require 'epa)
@@ -37,7 +38,10 @@ Mostly, the empty passphrase is used.  However, the keys for
  as S/MIME).")
 
 (defun test-conf ()
-  (ignore-errors (epg-find-configuration 'OpenPGP)))
+  ;; Emacs doesn't have support for finding the name of the PGP agent
+  ;; on MacOS, so disable the checks.
+  (and (not (eq system-type 'darwin))
+       (ignore-errors (epg-find-configuration 'OpenPGP))))
 
 (defun enc-standards ()
   (if with-smime '(enc-pgp enc-pgp-mime enc-smime)
@@ -65,8 +69,7 @@ instead of gpg-agent."
       (let ((agent-info (getenv "GPG_AGENT_INFO"))
 	    (gpghome (getenv "GNUPGHOME")))
 	(condition-case error
-	    (let ((epg-gpg-home-directory
-                   (expand-file-name "test/data/mml-sec" source-directory))
+            (let ((epg-gpg-home-directory (ert-resource-directory))
 		  (mml-smime-use 'epg)
 		  ;; Create debug output in empty epg-debug-buffer.
 		  (epg-debug t)
@@ -880,8 +883,7 @@ So the second decryption fails."
                  (equal (cdr (assq 'comm atts)) "gpg-agent")
                  (string-match
                   (concat "homedir.*"
-                          (regexp-quote (expand-file-name "test/data/mml-sec"
-                                                          source-directory)))
+                          (regexp-quote (ert-resource-directory)))
                   (cdr (assq 'args atts))))
         (call-process "kill" nil nil nil (format "%d" pid))))))
 

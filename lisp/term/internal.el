@@ -1,4 +1,4 @@
-;;; internal.el --- support for PC internal terminal
+;;; internal.el --- support for PC internal terminal  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 1998-1999, 2001-2020 Free Software
 ;; Foundation, Inc.

@@ -108,8 +108,10 @@ This verifies that indenting a piece of code that ends in a paren
 without a statement terminator on the same line does not loop
 forever.  The test starts an asynchronous Emacs batch process
 under timeout control."
+  :tags '(:expensive-test)
   (interactive)
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
+  (skip-unless (not (< emacs-major-version 28))) ; times out in older Emacsen
   (let* ((emacs (concat invocation-directory invocation-name))
          (test-function 'cperl-mode-test--run-bug-10483)
          (test-function-name (symbol-name test-function))
@@ -118,7 +120,7 @@ under timeout control."
          (process-connection-type nil)
          runner)
     (with-temp-buffer
-      (with-timeout (1
+      (with-timeout (2
                      (delete-process runner)
                      (setq ran-out-of-time t))
         (setq runner (start-process "speedy"
@@ -217,5 +219,41 @@ point in the distant past, and is still broken in perl-mode. "
         ;; case.
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
+
+(ert-deftest cperl-bug37127 ()
+  "Verify that closing a paren in a regex goes without a message.
+Also check that the message is issued if the regex terminator is
+missing."
+  ;; Part one: Regex is ok, no messages
+  (ert-with-message-capture collected-messages
+    (with-temp-buffer
+      (insert "$_ =~ /(./;")
+      (funcall cperl-test-mode)
+      (goto-char (point-min))
+      (search-forward ".")
+      (let ((last-command-event ?\))
+            ;; Don't emit "Matches ..." even if not visible (e.g. in batch).
+            (blink-matching-paren 'jump-offscreen))
+        (self-insert-command 1)
+        ;; `self-insert-command' doesn't call `blink-matching-open' in
+        ;; batch mode, so we need to call it explicitly.
+        (blink-matching-open))
+      (syntax-propertize (point-max)))
+    (should (string-equal collected-messages "")))
+  ;; part two: Regex terminator missing -> message
+  (when (eq cperl-test-mode #'cperl-mode)
+    ;; This test is only run in `cperl-mode' because only cperl-mode
+    ;; emits a message to warn about such unclosed REs.
+    (ert-with-message-capture collected-messages
+      (with-temp-buffer
+        (insert "$_ =~ /(..;")
+        (goto-char (point-min))
+        (funcall cperl-test-mode)
+        (search-forward ".")
+        (let ((last-command-event ?\)))
+          (self-insert-command 1))
+        (syntax-propertize (point-max)))
+      (should (string-match "^End of .* string/RE"
+                            collected-messages)))))
 
 ;;; cperl-mode-tests.el ends here

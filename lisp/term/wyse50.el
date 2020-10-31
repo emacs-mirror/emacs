@@ -1,4 +1,4 @@
-;;; wyse50.el --- terminal support code for Wyse 50
+;;; wyse50.el --- terminal support code for Wyse 50  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1989, 1993-1994, 2001-2020 Free Software Foundation,
 ;; Inc.

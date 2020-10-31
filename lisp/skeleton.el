@@ -339,7 +339,8 @@ automatically, and you are prompted to fill in the variable parts.")))
       (dlet ((str (or str
                       `(setq str
 			     (skeleton-read ',(car skeleton-il)
-			                    nil ,recursive)))))
+			                    nil ,recursive))))
+             resume:)
 	(when (and (eq (cadr skeleton-il) '\n) (not recursive)
 	           (save-excursion (skip-chars-backward " \t") (bolp)))
 	  (setq skeleton-il (cons nil (cons '> (cddr skeleton-il)))))

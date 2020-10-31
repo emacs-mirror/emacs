@@ -1629,6 +1629,10 @@ Convert the entire buffer to unified diff format
 unified format to context format.  When the mark is active, convert
 only the hunks within the region.
 
+@item C-c C-l
+@findex diff-refresh-hunk
+Re-generate the current hunk (@code{diff-refresh-hunk}).
+
 @item C-c C-w
 @findex diff-ignore-whitespace-hunk
 Re-generate the current hunk, disregarding changes in whitespace

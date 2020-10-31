@@ -1,4 +1,4 @@
-;;; reposition.el --- center a Lisp function or comment on the screen
+;;; reposition.el --- center a Lisp function or comment on the screen  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991, 1994, 2001-2020 Free Software Foundation, Inc.
 

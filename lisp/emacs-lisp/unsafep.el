@@ -91,17 +91,41 @@
 in the parse.")
 (put 'unsafep-vars 'risky-local-variable t)
 
-;;Other safe functions
+;; Other safe forms.
+;;
+;; A function, macro or special form may be put here only if all of
+;; the following statements are true:
+;;
+;; * It is not already marked `pure' or `side-effect-free', or handled
+;;   explicitly by `unsafep'.
+;;
+;; * It is not inherently unsafe; eg, would allow the execution of
+;;   arbitrary code, interact with the file system, network or other
+;;   processes, or otherwise exfiltrate information from the running
+;;   Emacs process or manipulate the user's environment.
+;;
+;; * It does not have side-effects that can make other code behave in
+;;   unsafe and/or unexpected ways; eg, set variables, mutate data, or
+;;   change control flow.
+;;   Any side effect must be innocuous; altering the match data is
+;;   explicitly permitted.
+;;
+;; * It does not allow Emacs to behave deceptively to the user; eg,
+;;   display arbitrary messages.
+;;
+;; * It does not present a potentially large attack surface; eg,
+;;   play arbitrary audio files.
+
 (dolist (x '(;;Special forms
-	     and catch if or prog1 prog2 progn while unwind-protect
+	     and if or prog1 prog2 progn while unwind-protect
 	     ;;Safe subrs that have some side-effects
-	     ding error random signal sleep-for string-match throw
+	     ding random sleep-for string-match
 	     ;;Defsubst functions from subr.el
 	     caar cadr cdar cddr
 	     ;;Macros from subr.el
 	     save-match-data unless when
 	     ;;Functions from subr.el that have side effects
-	     split-string replace-regexp-in-string play-sound-file))
+	     split-string))
   (put x 'safe-function t))
 
 ;;;###autoload

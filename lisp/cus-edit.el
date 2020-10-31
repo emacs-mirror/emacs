@@ -3739,6 +3739,14 @@ the present value is saved to its :shown-value property instead."
           (widget-put widget :children children)
 	  (custom-face-state-set widget))))))
 
+(defun cus--face-link (widget _format)
+  (widget-create-child-and-convert
+   widget 'face-link
+   :button-face 'link
+   :tag "link"
+   :action (lambda (&rest _x)
+             (customize-face (widget-value widget)))))
+
 (defvar custom-face-menu nil
   "If non-nil, an alist of actions for the `custom-face' widget.
 
@@ -4008,7 +4016,7 @@ restoring it to the state of a face that has never been customized."
 
 (define-widget 'face 'symbol
   "A Lisp face name (with sample)."
-  :format "%{%t%}: (%{sample%}) %v"
+  :format "%f %{%t%}: (%{sample%}) %v"
   :tag "Face"
   :value 'default
   :sample-face-get 'widget-face-sample-face-get
@@ -4018,6 +4026,7 @@ restoring it to the state of a face that has never been customized."
                                 obarray #'facep 'strict)
   :prompt-match 'facep
   :prompt-history 'widget-face-prompt-value-history
+  :format-handler 'cus--face-link
   :validate (lambda (widget)
 	      (unless (facep (widget-value widget))
 		(widget-put widget

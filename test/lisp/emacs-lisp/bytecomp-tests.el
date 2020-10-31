@@ -365,7 +365,12 @@
             '(((a b)) a b (c) (d)))
     (mapcar (lambda (x) (cond ((memq '(a b) x) 1)
                               ((equal x '(c)) 2)))
-            '(((a b)) a b (c) (d))))
+            '(((a b)) a b (c) (d)))
+
+    (assoc 'b '((a 1) (b 2) (c 3)))
+    (assoc "b" '(("a" 1) ("b" 2) ("c" 3)))
+    (let ((x '((a 1) (b 2) (c 3)))) (assoc 'c x))
+    (assoc 'a '((a 1) (b 2) (c 3)) (lambda (u v) (not (equal u v)))))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")

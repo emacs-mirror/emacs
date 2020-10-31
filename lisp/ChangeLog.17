@@ -23951,7 +23951,7 @@
 
 	* simple.el (shell-command-on-region): Pass the `replace' argument
 	down to `call-process-region' to comply with the doc as reported on
-	<http://stackoverflow.com/questions/16720458/emacs-noninteractive-call-to-shell-command-on-region-always-deletes-region>
+	<https://stackoverflow.com/questions/16720458/emacs-noninteractive-call-to-shell-command-on-region-always-deletes-region>
 
 2013-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -125,7 +125,6 @@
   (should-error
    (dbus-check-arguments :session dbus--test-service :object-path)
    :type 'wrong-type-argument)
-  ;; Raises an error on stderr.
   (should-error
    (dbus-check-arguments :session dbus--test-service :object-path "string")
    :type 'dbus-error)
@@ -1885,6 +1884,112 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
         (should-not dbus--test-signal-received))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test09-get-managed-objects ()
+  "Check `dbus-get-all-managed-objects'."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((interfaces
+             `((,(concat dbus--test-interface ".I0")
+                ((,(concat dbus--test-path "/obj1")
+                  (("I0Property1" . "Zero one one")
+                   ("I0Property2" . "Zero one two")
+                   ("I0Property3" . "Zero one three")))
+                 (,(concat dbus--test-path "/obj0/obj2")
+                  (("I0Property1" . "Zero two one")
+                   ("I0Property2" . "Zero two two")
+                   ("I0Property3" . "Zero two three")))
+                 (,(concat dbus--test-path "/obj0/obj3")
+                  (("I0Property1" . "Zero three one")
+                   ("I0Property2" . "Zero three two")
+                   ("I0Property3" . "Zero three three")))))
+               (,(concat dbus--test-interface ".I1")
+                ((,(concat dbus--test-path "/obj0/obj2")
+                  (("I1Property1" . "One one one")
+                   ("I1Property2" . "One one two")))
+                 (,(concat dbus--test-path "/obj0/obj3")
+                  (("I1Property1" . "One two one")
+                   ("I1Property2" . "One two two"))))))))
+
+        (should-not
+         (dbus-get-all-managed-objects
+          :session dbus--test-service dbus--test-path))
+
+        (dolist (interface interfaces)
+          (pcase-let ((`(,iname ,objs) interface))
+            (dolist (obj objs)
+              (pcase-let ((`(,path ,props) obj))
+                (dolist (prop props)
+                  (should
+                   (equal
+                    (dbus-register-property
+                     :session dbus--test-service path iname
+                     (car prop) :readwrite (cdr prop))
+                    `((:property :session ,iname ,(car prop))
+                      (,dbus--test-service ,path)))))))))
+
+        (let ((result (dbus-get-all-managed-objects
+                       :session dbus--test-service dbus--test-path)))
+          (should
+           (= 3 (length result)))
+
+          (dolist (interface interfaces)
+            (pcase-let ((`(,iname ,objs) interface))
+              (dolist (obj objs)
+                (pcase-let ((`(,path ,props) obj))
+                  (let* ((object (cadr (assoc-string path result)))
+                         (iface  (cadr (assoc-string iname object))))
+                    (should object)
+                    (should iface)
+                    (dolist (prop props)
+                      (should (equal (cdr (assoc-string (car prop) iface))
+                                     (cdr prop))))))))))
+
+        (let ((result (dbus-get-all-managed-objects
+                       :session dbus--test-service
+                       (concat dbus--test-path "/obj0"))))
+          (should
+           (= 2 (length result)))
+
+          (dolist (interface interfaces)
+            (pcase-let ((`(,iname ,objs) interface))
+              (dolist (obj objs)
+                (pcase-let ((`(,path ,props) obj))
+                  (when (string-prefix-p (concat dbus--test-path "/obj0/") path)
+                    (let* ((object (cadr (assoc-string path result)))
+                           (iface  (cadr (assoc-string iname object))))
+                      (should object)
+                      (should iface)
+                      (dolist (prop props)
+                        (should (equal (cdr (assoc-string (car prop) iface))
+                                       (cdr prop)))))))))))
+
+        (let ((result (dbus-get-all-managed-objects
+                       :session dbus--test-service
+                       (concat dbus--test-path "/obj0/obj2"))))
+          (should
+           (= 1 (length result)))
+
+          (dolist (interface interfaces)
+            (pcase-let ((`(,iname ,objs) interface))
+              (dolist (obj objs)
+                (pcase-let ((`(,path ,props) obj))
+                  (when (string-prefix-p
+                         (concat dbus--test-path "/obj0/obj2") path)
+                    (let* ((object (cadr (assoc-string path result)))
+                           (iface  (cadr (assoc-string iname object))))
+                      (should object)
+                      (should iface)
+                      (dolist (prop props)
+                        (should (equal (cdr (assoc-string (car prop) iface))
+                                       (cdr prop))))))))))))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))

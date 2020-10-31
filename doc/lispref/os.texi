@@ -1901,7 +1901,10 @@ The integer number of hours.
 The integer number of minutes.
 @item %s
 @itemx %S
-The integer number of seconds.
+The number of seconds.  If the optional @samp{,} parameter is used,
+it's a floating point number, and the number after the @samp{,}
+specifies how many decimals to be used.  @samp{%,2s} means ``use two
+decimals''.
 @item %z
 Non-printing control flag.  When it is used, other specifiers must be
 given in the order of decreasing size, i.e., years before days, hours

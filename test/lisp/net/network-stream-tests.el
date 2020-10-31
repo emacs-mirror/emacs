@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
 (require 'gnutls)
 (require 'network-stream)
 ;; The require above is needed for 'open-network-stream' to work, but
@@ -239,16 +241,13 @@
       (should (equal (buffer-string) "foo\n")))
     (delete-process server)))
 
-(defconst network-stream-tests--datadir
-  (expand-file-name "test/data/net" source-directory))
-
 (defun make-tls-server (port)
   (start-process "gnutls" (generate-new-buffer "*tls*")
                  "gnutls-serv" "--http"
                  "--x509keyfile"
-                 (concat network-stream-tests--datadir "/key.pem")
+                 (ert-resource-file "key.pem")
                  "--x509certfile"
-                 (concat network-stream-tests--datadir "/cert.pem")
+                 (ert-resource-file "cert.pem")
                  "--port" (format "%s" port)))
 
 (ert-deftest connect-to-tls-ipv4-wait ()

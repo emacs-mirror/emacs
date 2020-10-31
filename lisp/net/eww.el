@@ -1190,6 +1190,7 @@ just re-display the HTML already fetched."
     (define-key map [(control e)] 'eww-end-of-text)
     (define-key map [?\t] 'shr-next-link)
     (define-key map [?\M-\t] 'shr-previous-link)
+    (define-key map [backtab] 'shr-previous-link)
     map))
 
 (defvar eww-textarea-map
@@ -1199,6 +1200,7 @@ just re-display the HTML already fetched."
     (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [?\t] 'shr-next-link)
     (define-key map [?\M-\t] 'shr-previous-link)
+    (define-key map [backtab] 'shr-previous-link)
     map))
 
 (defvar eww-select-map

@@ -1,0 +1,6 @@
+tcpmux		1/tcp				# TCP port service multiplexer
+smtp		25/tcp		mail
+http		80/tcp		www		# WorldWideWeb HTTP
+kerberos	88/tcp		kerberos5 krb5 kerberos-sec	# Kerberos v5
+kerberos	88/udp		kerberos5 krb5 kerberos-sec	# Kerberos v5
+rtmp		1/ddp			# Routing Table Maintenance Protocol

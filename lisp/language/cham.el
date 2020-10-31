@@ -1,4 +1,4 @@
-;;; cham.el --- support for Cham -*- coding: utf-8 -*-
+;;; cham.el --- support for Cham -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2009, 2010, 2011, 2012
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)

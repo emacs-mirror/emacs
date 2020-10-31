@@ -1,4 +1,4 @@
-;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps
+;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 

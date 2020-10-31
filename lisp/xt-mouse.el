@@ -76,7 +76,11 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
               ;; to guard against that.
               (copy-sequence event))
 	vec)
-       (is-move vec)
+       (is-move
+        (if track-mouse vec
+          ;; Mouse movement events are currently supposed to be
+          ;; suppressed.  Return no event.
+          []))
        (t
 	(let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
 	       (down-data (nth 1 down))
@@ -263,7 +267,7 @@ which is the \"1006\" extension implemented in Xterm >= 277."
                                                     (eq y 1)))
                                            'tab-bar
                                          'menu-bar))
-                             (nthcdr 2 (posn-at-x-y x y)))))
+                             (nthcdr 2 (posn-at-x-y x y (selected-frame))))))
              (event (list type posn)))
         (setcar (nthcdr 3 posn) timestamp)
 
@@ -321,11 +325,13 @@ down the SHIFT key while pressing the mouse button."
   (if xterm-mouse-mode
       ;; Turn it on
       (progn
-	(setq mouse-position-function #'xterm-mouse-position-function)
+        (setq mouse-position-function #'xterm-mouse-position-function
+              tty-menu-calls-mouse-position-function t)
         (mapc #'turn-on-xterm-mouse-tracking-on-terminal (terminal-list)))
     ;; Turn it off
     (mapc #'turn-off-xterm-mouse-tracking-on-terminal (terminal-list))
-    (setq mouse-position-function nil)))
+    (setq mouse-position-function nil
+          tty-menu-calls-mouse-position-function nil)))
 
 (defun xterm-mouse-tracking-enable-sequence ()
   "Return a control sequence to enable XTerm mouse tracking.
@@ -339,8 +345,8 @@ modern xterms:
             position (<= 223), which can be reported in this
             basic mode.
 
-\"\\e[?1002h\" \"Mouse motion mode\": Enables reports for mouse
-            motion events during dragging operations.
+\"\\e[?1003h\" \"Mouse motion mode\": Enables reports for mouse
+            motion events.
 
 \"\\e[?1005h\" \"UTF-8 coordinate extension\": Enables an
             extension to the basic mouse mode, which uses UTF-8
@@ -360,7 +366,7 @@ given escape sequence takes precedence over the former."
   (apply #'concat (xterm-mouse--tracking-sequence ?h)))
 
 (defconst xterm-mouse-tracking-enable-sequence
-  "\e[?1000h\e[?1002h\e[?1005h\e[?1006h"
+  "\e[?1000h\e[?1003h\e[?1005h\e[?1006h"
   "Control sequence to enable xterm mouse tracking.
 Enables basic mouse tracking, mouse motion events and finally
 extended tracking on terminals that support it. The following
@@ -371,8 +377,8 @@ escape sequences are understood by modern xterms:
             position (<= 223), which can be reported in this
             basic mode.
 
-\"\\e[?1002h\" \"Mouse motion mode\": Enables reports for mouse
-            motion events during dragging operations.
+\"\\e[?1003h\" \"Mouse motion mode\": Enables reports for mouse
+            motion events.
 
 \"\\e[?1005h\" \"UTF-8 coordinate extension\": Enables an extension
             to the basic mouse mode, which uses UTF-8
@@ -400,7 +406,7 @@ The control sequence resets the modes set by
   (apply #'concat (nreverse (xterm-mouse--tracking-sequence ?l))))
 
 (defconst xterm-mouse-tracking-disable-sequence
-  "\e[?1006l\e[?1005l\e[?1002l\e[?1000l"
+  "\e[?1006l\e[?1005l\e[?1003l\e[?1000l"
   "Reset the modes set by `xterm-mouse-tracking-enable-sequence'.")
 
 (make-obsolete-variable
@@ -414,7 +420,7 @@ SUFFIX is the last character of each escape sequence (?h to
 enable, ?l to disable)."
   (mapcar
    (lambda (code) (format "\e[?%d%c" code suffix))
-   `(1000 1002 ,@(when xterm-mouse-utf-8 '(1005)) 1006)))
+   `(1000 1003 ,@(when xterm-mouse-utf-8 '(1005)) 1006)))
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)
   "Enable xterm mouse tracking on TERMINAL."

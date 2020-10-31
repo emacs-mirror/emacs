@@ -1,4 +1,4 @@
-;;; hmac-def.el --- A macro for defining HMAC functions.
+;;; hmac-def.el --- A macro for defining HMAC functions.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999, 2001, 2007-2020 Free Software Foundation, Inc.
 

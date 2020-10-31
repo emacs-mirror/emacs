@@ -2589,7 +2589,7 @@ This function will not modify `match-data'."
 		    ;; going on.
 		    (if checkdoc-bouncy-flag (message "%s -> done" question))
 		    (delete-region start end)
-		    (insert replacewith)
+		    (insert-before-markers replacewith)
 		    (if checkdoc-bouncy-flag (sit-for 0))
 		    (setq ret t)))
 	      (delete-overlay o)

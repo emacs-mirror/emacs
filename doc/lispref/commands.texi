@@ -2508,16 +2508,22 @@ button-down events entirely.  It also reshuffles focus events and
 miscellaneous window events so that they never appear in a key sequence
 with any other events.
 
-@cindex @code{tab-line} prefix key
-@cindex @code{header-line} prefix key
-@cindex @code{mode-line} prefix key
-@cindex @code{vertical-line} prefix key
-@cindex @code{horizontal-scroll-bar} prefix key
-@cindex @code{vertical-scroll-bar} prefix key
-@cindex @code{menu-bar} prefix key
-@cindex @code{tab-bar} prefix key
-@cindex mouse events, in special parts of frame
-When mouse events occur in special parts of a window, such as a mode
+@cindex @code{tab-line}, prefix key
+@cindex @code{header-line}, prefix key
+@cindex @code{mode-line}, prefix key
+@cindex @code{vertical-line}, prefix key
+@cindex @code{horizontal-scroll-bar}, prefix key
+@cindex @code{vertical-scroll-bar}, prefix key
+@cindex @code{menu-bar}, prefix key
+@cindex @code{tab-bar}, prefix key
+@cindex @code{left-margin}, prefix key
+@cindex @code{right-margin}, prefix key
+@cindex @code{left-fringe}, prefix key
+@cindex @code{right-fringe}, prefix key
+@cindex @code{right-divider}, prefix key
+@cindex @code{bottom-divider}, prefix key
+@cindex mouse events, in special parts of window or frame
+When mouse events occur in special parts of a window or frame, such as a mode
 line or a scroll bar, the event type shows nothing special---it is the
 same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
@@ -2525,9 +2531,11 @@ elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
 prefix keys, all of which are symbols: @code{tab-line}, @code{header-line},
 @code{horizontal-scroll-bar}, @code{menu-bar}, @code{tab-bar}, @code{mode-line},
-@code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
-meanings for mouse clicks in special window parts by defining key
-sequences using these imaginary prefix keys.
+@code{vertical-line}, @code{vertical-scroll-bar}, @code{left-margin},
+@code{right-margin}, @code{left-fringe}, @code{right-fringe},
+@code{right-divider}, and @code{bottom-divider}.  You can define meanings for
+mouse clicks in special window parts by defining key sequences using these
+imaginary prefix keys.
 
 For example, if you call @code{read-key-sequence} and then click the
 mouse on the window's mode line, you get two events, like this:

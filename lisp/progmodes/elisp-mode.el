@@ -897,8 +897,10 @@ non-nil result supersedes the xrefs produced by
     (let ((buffer-point (find-function-search-for-symbol symbol type file)))
       (with-current-buffer (car buffer-point)
         (save-excursion
-          (goto-char (or (cdr buffer-point) (point-min)))
-          (point-marker))))))
+          (save-restriction
+            (widen)
+            (goto-char (or (cdr buffer-point) (point-min)))
+            (point-marker)))))))
 
 (cl-defmethod xref-location-group ((l xref-elisp-location))
   (xref-elisp-location-file l))
@@ -1410,6 +1412,30 @@ which see."
   1 - contains the string last displayed in the echo area for variables,
       or argument string for functions.
   2 - `function' if function args, `variable' if variable documentation.")
+
+(defun elisp--documentation-one-liner ()
+  (let* (str
+         (callback (lambda (doc &rest plist)
+                     (setq str
+                           (format "%s: %s"
+                                   (propertize (prin1-to-string
+                                                (plist-get plist :thing))
+                                               'face (plist-get plist :face))
+                                   doc)))))
+    (or (progn (elisp-eldoc-var-docstring callback) str)
+        (progn (elisp-eldoc-funcall callback) str))))
+
+(defalias 'elisp-eldoc-documentation-function 'elisp--documentation-one-liner
+  "Return Elisp documentation for the thing at point as one-line string.
+This is meant as a backward compatibility aide to the \"old\"
+Elisp eldoc behaviour.  Consider variable docstrings and function
+signatures only, in this order.  If none applies, returns nil.
+Changes to `eldoc-documentation-functions' and
+`eldoc-documentation-strategy' are _not_ reflected here.  As such
+it is preferrable to use ElDoc's interfaces directly.")
+
+(make-obsolete 'elisp-eldoc-documentation-function
+               "use ElDoc's interfaces instead." "28.1")
 
 (defun elisp-eldoc-funcall (callback &rest _ignored)
   "Document function call at point.

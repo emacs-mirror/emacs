@@ -1,4 +1,4 @@
-;;; sieve-mode.el --- Sieve code editing commands for Emacs
+;;; sieve-mode.el --- Sieve code editing commands for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

@@ -519,8 +519,8 @@ Message buffer where you can explain more about the patch."
   (add-hook 'message-send-hook
             (lambda ()
               (message-goto-body)
-              (insert "Tags: patch\nthanks\n\n"))
-            t)
+              (insert "Tags: patch\n\n"))
+            nil t)
   (message-add-action
    (lambda ()
      ;; Bury the help buffer (if it's shown).

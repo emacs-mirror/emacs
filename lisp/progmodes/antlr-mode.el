@@ -52,7 +52,7 @@
 ;;
 ;;  * Probably.  Show rules/dependencies for ANT like for Makefile (does ANT
 ;;    support vocabularies and grammar inheritance?), I have to look at
-;;    jde-ant.el: http://jakarta.apache.org/ant/manual/OptionalTasks/antlr.html
+;;    jde-ant.el: https://jakarta.apache.org/ant/manual/OptionalTasks/antlr.html
 ;;  * Probably.  Make `indent-region' faster, especially in actions.  ELP
 ;;    profiling in a class init action shows half the time is spent in
 ;;    `antlr-next-rule', the other half in `c-guess-basic-syntax'.

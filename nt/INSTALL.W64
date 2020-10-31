@@ -22,7 +22,7 @@ MinGW-w64 provides a complete runtime for projects built with GCC for 64-bit
 Windows -- it's located at http://mingw-w64.org/.
 
 MSYS2 is a Cygwin-derived software distribution for Windows which provides
-build tools for MinGW-w64 -- see http://msys2.github.io/.
+build tools for MinGW-w64 -- see https://msys2.github.io/.
 
 ** Download and install MinGW-w64 and MSYS2
 

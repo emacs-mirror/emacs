@@ -20,7 +20,7 @@ Available at:
 * PTCP154
 
 Available at:
-    <http://www.iana.org/assignments/charset-reg/PTCP154>
+    <https://www.iana.org/assignments/charset-reg/PTCP154>
 
 * Uni2JIS
 
@@ -50,8 +50,8 @@ Available at:
 * CP720.map and CP858.map
 
 Created manually by looking at these pages:
-    <http://en.wikipedia.org/wiki/Code_page_720>.
-    <http://en.wikipedia.org/wiki/Code_page_859>.
+    <https://en.wikipedia.org/wiki/Code_page_720>.
+    <https://en.wikipedia.org/wiki/Code_page_859>.
 The text in that page is under the terms of the GNU Free Documentation
 License.
 

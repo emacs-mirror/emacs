@@ -153,6 +153,24 @@
    46 57 nil
    (point-max)))
 
+
+;;;; Position after search.
+
+(defun text-property-search--pos-test (fun pos &optional reverse)
+  (with-temp-buffer
+    (insert (concat "foo "
+                  (propertize "bar" 'x t)
+                  " baz"))
+    (goto-char (if reverse (point-max) (point-min)))
+    (funcall fun 'x t)
+    (should (= (point) pos))))
+
+(ert-deftest text-property-search-forward-point-at-beginning ()
+  (text-property-search--pos-test #'text-property-search-forward 5))
+
+(ert-deftest text-property-search-backward-point-at-end ()
+  (text-property-search--pos-test #'text-property-search-backward 8 t))
+
 (provide 'text-property-search-tests)
 
 ;;; text-property-search-tests.el ends here

@@ -330,6 +330,9 @@ extern int composition_update_it (struct composition_it *,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 
 extern ptrdiff_t composition_adjust_point (ptrdiff_t, ptrdiff_t);
+extern Lisp_Object composition_gstring_lookup_cache (Lisp_Object);
+
+extern void composition_gstring_cache_clear_font (Lisp_Object);
 
 INLINE_HEADER_END
 

@@ -490,8 +490,8 @@ Uses binary search."
          (utmin (+ ut (* direction 12.0)))
          (utmax ut)     ; the time searched is between utmin and utmax
          ;; utmin and utmax are in hours.
-         (utmoment-old 0.0)             ; rise or set approximation
-         (utmoment 1.0)                 ; rise or set approximation
+         (utmoment-old utmin)           ; rise or set approximation
+         (utmoment utmax)               ; rise or set approximation
          (hut 0)                        ; sun height at utmoment
          (t0 (car time))
          (hmin (cadr (solar-horizontal-coordinates (list t0 utmin)

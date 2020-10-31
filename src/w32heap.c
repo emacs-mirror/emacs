@@ -191,7 +191,7 @@ free_fn the_free_fn;
 
 /* It doesn't seem to be useful to allocate from a file mapping.
    It would be if the memory was shared.
-     http://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
+     https://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
 
 /* This is the function to commit memory when the heap allocator
    claims for new memory.  Before dumping with unexec, we allocate
@@ -246,7 +246,7 @@ init_heap (bool use_dynamic_heap)
          environment before starting GDB to get low fragmentation heap
          on XP and older systems, for the price of losing "certain
          heap debug options"; for the details see
-         http://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
+	 https://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
       data_region_end = data_region_base;
 
       /* Create the private heap.  */

@@ -1573,8 +1573,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defun vc-git-extra-status-menu () vc-git-extra-menu-map)
 
 (defun vc-git-root (file)
-  (or (vc-file-getprop file 'git-root)
-      (vc-file-setprop file 'git-root (vc-find-root file ".git"))))
+  (vc-find-root file ".git"))
 
 ;; grep-compute-defaults autoloads grep.
 (declare-function grep-read-regexp "grep" ())

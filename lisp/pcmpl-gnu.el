@@ -67,12 +67,13 @@
    nil
    (function
     (lambda (entry)
-      (when (and (file-readable-p entry)
-		 (file-regular-p entry))
-	(let ((zipped (string-match "\\.\\(t?gz\\|\\(ta\\)?Z\\)\\'"
-				    entry)))
-	  (or (and unzip-p zipped)
-	      (and (not unzip-p) (not zipped)))))))))
+      (or (file-directory-p entry)
+          (when (and (file-readable-p entry)
+                     (file-regular-p entry))
+            (let ((zipped (string-match "\\.\\(t?gz\\|\\(ta\\)?Z\\)\\'"
+                                        entry)))
+              (or (and unzip-p zipped)
+                  (and (not unzip-p) (not zipped))))))))))
 
 ;;;###autoload
 (defun pcomplete/bzip2 ()
