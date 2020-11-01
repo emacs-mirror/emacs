@@ -3931,7 +3931,12 @@ Optional EVENT is the location for the menu."
         (custom-face-mark-to-save widget)
       ;; The user is working on only a selected terminal type;
       ;; make sure we save the entire spec to `custom-file'. (Bug #40866)
+      ;; If recreating a widget that may have been edited by the user, remember
+      ;; to always save the edited value into the :shown-value property, so
+      ;; we use that value for the recreated widget.  (Bug#44331)
+      (widget-put widget :shown-value (custom-face-widget-to-spec widget))
       (custom-face-edit-all widget)
+      (widget-put widget :shown-value nil) ; Reset it after we used it.
       (custom-face-mark-to-save widget)
       (if (eq form 'selected)
           (custom-face-edit-selected widget)
