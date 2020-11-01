@@ -3323,6 +3323,53 @@ update_frame_with_menu (struct frame *f, int row, int col)
   display_completed = !paused_p;
 }
 
+/* Update the mouse position for a frame F.  This handles both
+   updating the display for mouse-face propreties and updating the
+   help echo text.
+
+   Returns the number of events generated.  */
+int
+update_mouse_position (struct frame *f, int x, int y)
+{
+  previous_help_echo_string = help_echo_string;
+  help_echo_string = Qnil;
+
+  note_mouse_highlight (f, x, y);
+
+  /* If the contents of the global variable help_echo_string
+     has changed, generate a HELP_EVENT.  */
+  if (!NILP (help_echo_string)
+      || !NILP (previous_help_echo_string))
+    {
+      Lisp_Object frame;
+      XSETFRAME (frame, f);
+
+      gen_help_event (help_echo_string, frame, help_echo_window,
+                      help_echo_object, help_echo_pos);
+      return 1;
+    }
+
+  return 0;
+}
+
+DEFUN ("display--update-for-mouse-movement", Fdisplay__update_for_mouse_movement,
+       Sdisplay__update_for_mouse_movement, 2, 2, 0,
+       doc: /* Handle mouse movement detected by Lisp code.
+
+This function should be called when Lisp code detects the mouse has
+moved, even if `track-mouse' is nil.  This handles updates that do not
+rely on input events such as updating display for mouse-face
+properties or updating the help echo text.  */)
+  (Lisp_Object mouse_x, Lisp_Object mouse_y)
+{
+  CHECK_FIXNUM (mouse_x);
+  CHECK_FIXNUM (mouse_y);
+
+  update_mouse_position (SELECTED_FRAME (), XFIXNUM (mouse_x),
+                         XFIXNUM (mouse_y));
+  return Qnil;
+}
+
 
 /************************************************************************
 			 Window-based updates
@@ -6494,6 +6541,7 @@ syms_of_display (void)
 {
   defsubr (&Sredraw_frame);
   defsubr (&Sredraw_display);
+  defsubr (&Sdisplay__update_for_mouse_movement);
   defsubr (&Sframe_or_buffer_changed_p);
   defsubr (&Sopen_termscript);
   defsubr (&Sding);

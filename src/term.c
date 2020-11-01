@@ -2430,22 +2430,6 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   cursor_to (f, save_y, save_x);
 }
 
-static bool
-term_mouse_movement (struct frame *frame, Gpm_Event *event)
-{
-  /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (event->x != last_mouse_x || event->y != last_mouse_y)
-    {
-      frame->mouse_moved = 1;
-      note_mouse_highlight (frame, event->x, event->y);
-      /* Remember which glyph we're now on.  */
-      last_mouse_x = event->x;
-      last_mouse_y = event->y;
-      return 1;
-    }
-  return 0;
-}
-
 /* Return the current time, as a Time value.  Wrap around on overflow.  */
 static Time
 current_Time (void)
@@ -2562,30 +2546,22 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
 
   if (event->type & (GPM_MOVE | GPM_DRAG))
     {
-      previous_help_echo_string = help_echo_string;
-      help_echo_string = Qnil;
-
       Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
 
-      if (!term_mouse_movement (f, event))
-        help_echo_string = previous_help_echo_string;
+      /* Has the mouse moved off the glyph it was on at the last
+         sighting?  */
+      if (event->x != last_mouse_x || event->y != last_mouse_y)
+        {
+          /* FIXME: These three lines can not be moved into
+             update_mouse_position unless xterm-mouse gets updated to
+             generate mouse events via C code.  See
+             https://lists.gnu.org/archive/html/emacs-devel/2020-11/msg00163.html */
+          last_mouse_x = event->x;
+          last_mouse_y = event->y;
+          f->mouse_moved = 1;
 
-      /* If the contents of the global variable help_echo_string
-         has changed, generate a HELP_EVENT.  */
-      if (!NILP (help_echo_string)
-	  || !NILP (previous_help_echo_string))
-	{
-	  Lisp_Object frame;
-
-	  if (f)
-	    XSETFRAME (frame, f);
-	  else
-	    frame = Qnil;
-
-	  gen_help_event (help_echo_string, frame, help_echo_window,
-		          help_echo_object, help_echo_pos);
-	  count++;
-	}
+          count += update_mouse_position (f, event->x, event->y);
+        }
     }
   else
     {
