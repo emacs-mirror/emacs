@@ -2523,13 +2523,10 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (setq directory (expand-file-name directory))
-  (with-parsed-tramp-file-name directory nil
-    (tramp-flush-directory-properties v localname)
+  (tramp-skeleton-delete-directory directory recursive trash
     (tramp-barf-unless-okay
      v (format "cd / && %s %s"
-	       (or (and trash (tramp-get-remote-trash v))
-		   (if recursive "rm -rf" "rmdir"))
+               (if recursive "rm -rf" "rmdir")
 	       (tramp-shell-quote-argument localname))
      "Couldn't delete %s" directory)))
 
@@ -2538,11 +2535,11 @@ The method used must be an out-of-band method."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (tramp-barf-unless-okay
-     v (format "%s %s"
-	       (or (and trash (tramp-get-remote-trash v)) "rm -f")
-	       (tramp-shell-quote-argument localname))
-     "Couldn't delete %s" filename)))
+    (if (and delete-by-moving-to-trash trash)
+	(move-file-to-trash filename)
+      (tramp-barf-unless-okay
+       v (format "rm -f %s" (tramp-shell-quote-argument localname))
+       "Couldn't delete %s" filename))))
 
 ;; Dired.
 

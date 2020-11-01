@@ -3864,7 +3864,7 @@ It does not support `:stderr'."
 	    p))))))
 
 (defun tramp-handle-make-symbolic-link
-  (target linkname &optional ok-if-already-exists)
+    (target linkname &optional ok-if-already-exists)
   "Like `make-symbolic-link' for Tramp files.
 This is the fallback implementation for backends which do not
 support symbolic links."
@@ -3877,8 +3877,7 @@ support symbolic links."
     (tramp-run-real-handler
      #'make-symbolic-link (list target linkname ok-if-already-exists))))
 
-(defun tramp-handle-shell-command
-  (command &optional output-buffer error-buffer)
+(defun tramp-handle-shell-command (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."
   (let* ((asynchronous (string-match-p "[ \t]*&[ \t]*\\'" command))
 	 (command (substring command 0 asynchronous))
@@ -4662,6 +4661,7 @@ If both files are local, the function returns t."
       (and (tramp-tramp-file-p file1) (tramp-tramp-file-p file2)
 	   (string-equal (file-remote-p file1) (file-remote-p file2)))))
 
+;; See also `file-modes-symbolic-to-number'.
 (defun tramp-mode-string-to-int (mode-string)
   "Convert a ten-letter \"drwxrwxrwx\"-style MODE-STRING into mode bits."
   (let* (case-fold-search
@@ -4741,6 +4741,7 @@ If both files are local, the function returns t."
   "A list of file types returned from the `stat' system call.
 This is used to map a mode number to a permission string.")
 
+;; See also `file-modes-number-to-symbolic'.
 (defun tramp-file-mode-from-int (mode)
   "Turn an integer representing a file MODE into an ls(1)-like string."
   (let ((type	(cdr
@@ -5332,6 +5333,25 @@ name of a process or buffer, or nil to default to the current buffer."
    'tramp-unload-hook
    (lambda ()
      (remove-hook 'interrupt-process-functions #'tramp-interrupt-process))))
+
+(defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
+  "Skeleton for `tramp-*-handle-delete-directory'.
+BODY is the backend specific code."
+  (declare (indent 3) (debug t))
+  `(with-parsed-tramp-file-name (expand-file-name ,directory) nil
+    (if (and delete-by-moving-to-trash ,trash)
+	;; Move non-empty dir to trash only if recursive deletion was
+	;; requested.
+	(if (and (not ,recursive)
+		 (directory-files
+		  ,directory nil directory-files-no-dot-files-regexp))
+	    (tramp-error
+	     v 'file-error "Directory is not empty, not moving to trash")
+	  (move-file-to-trash ,directory))
+      ,@body)
+    (tramp-flush-directory-properties v localname)))
+
+(put #'tramp-skeleton-delete-directory 'tramp-suppress-trace t)
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages

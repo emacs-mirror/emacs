@@ -691,8 +691,7 @@ It has been changed in GVFS 1.14.")
     ("gvfs-move" . "move")
     ("gvfs-rename" . "rename")
     ("gvfs-rm" . "remove")
-    ("gvfs-set-attribute" . "set")
-    ("gvfs-trash" . "trash"))
+    ("gvfs-set-attribute" . "set"))
   "List of cons cells, mapping \"gvfs-<command>\" to \"gio <command>\".")
 
 ;; <http://www.pygtk.org/docs/pygobject/gio-constants.html>
@@ -1080,24 +1079,21 @@ file names."
 
 (defun tramp-gvfs-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (with-parsed-tramp-file-name directory nil
+  (tramp-skeleton-delete-directory directory recursive trash
     (if (and recursive (not (file-symlink-p directory)))
 	(mapc (lambda (file)
 		(if (eq t (tramp-compat-file-attribute-type
 			   (file-attributes file)))
-		    (delete-directory file recursive trash)
-		  (delete-file file trash)))
+		    (delete-directory file recursive)
+		  (delete-file file)))
 	      (directory-files
 	       directory 'full directory-files-no-dot-files-regexp))
       (when (directory-files directory nil directory-files-no-dot-files-regexp)
 	(tramp-error
 	 v 'file-error "Couldn't delete non-empty %s" directory)))
 
-    (tramp-flush-directory-properties v localname)
-    (unless
-	(tramp-gvfs-send-command
-	 v (if (and trash delete-by-moving-to-trash) "gvfs-trash" "gvfs-rm")
-	 (tramp-gvfs-url-file-name directory))
+    (unless (tramp-gvfs-send-command
+	     v "gvfs-rm" (tramp-gvfs-url-file-name directory))
       ;; Propagate the error.
       (with-current-buffer (tramp-get-connection-buffer v)
 	(goto-char (point-min))
@@ -1108,15 +1104,15 @@ file names."
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (unless
-	(tramp-gvfs-send-command
-	 v (if (and trash delete-by-moving-to-trash) "gvfs-trash" "gvfs-rm")
-	 (tramp-gvfs-url-file-name filename))
-      ;; Propagate the error.
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(goto-char (point-min))
-	(tramp-error-with-buffer
-	 nil v 'file-error "Couldn't delete %s" filename)))))
+    (if (and delete-by-moving-to-trash trash)
+	(move-file-to-trash filename)
+      (unless (tramp-gvfs-send-command
+	       v "gvfs-rm" (tramp-gvfs-url-file-name filename))
+	;; Propagate the error.
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (tramp-error-with-buffer
+	   nil v 'file-error "Couldn't delete %s" filename))))))
 
 (defun tramp-gvfs-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."

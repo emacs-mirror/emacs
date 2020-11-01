@@ -437,27 +437,25 @@ Emacs dired can't find files."
 		(and parents (file-directory-p dir)))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
-(defun tramp-adb-handle-delete-directory (directory &optional recursive _trash)
+(defun tramp-adb-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (setq directory (expand-file-name directory))
-  (with-parsed-tramp-file-name (file-truename directory) nil
-    (tramp-flush-directory-properties v localname))
-  (with-parsed-tramp-file-name directory nil
-    (tramp-flush-directory-properties v localname)
+  (tramp-skeleton-delete-directory directory recursive trash
     (tramp-adb-barf-unless-okay
      v (format "%s %s"
 	       (if recursive "rm -r" "rmdir")
 	       (tramp-shell-quote-argument localname))
      "Couldn't delete %s" directory)))
 
-(defun tramp-adb-handle-delete-file (filename &optional _trash)
+(defun tramp-adb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (tramp-adb-barf-unless-okay
-     v (format "rm %s" (tramp-shell-quote-argument localname))
-     "Couldn't delete %s" filename)))
+    (if (and delete-by-moving-to-trash trash)
+	(move-file-to-trash filename)
+      (tramp-adb-barf-unless-okay
+       v (format "rm %s" (tramp-shell-quote-argument localname))
+       "Couldn't delete %s" filename))))
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."

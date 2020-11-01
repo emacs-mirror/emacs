@@ -635,41 +635,39 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(file-attributes filename))
        (unless ok-if-already-exists 'nofollow)))))
 
-(defun tramp-smb-handle-delete-directory (directory &optional recursive _trash)
+(defun tramp-smb-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (setq directory (directory-file-name (expand-file-name directory)))
-  (when (file-exists-p directory)
-    (when recursive
-      (mapc
-       (lambda (file)
-	 (if (file-directory-p file)
-	     (delete-directory file recursive)
-	   (delete-file file)))
-       ;; We do not want to delete "." and "..".
-       (directory-files directory 'full directory-files-no-dot-files-regexp)))
+  (tramp-skeleton-delete-directory directory recursive trash
+    (when (file-exists-p directory)
+      (when recursive
+	(mapc
+	 (lambda (file)
+	   (if (file-directory-p file)
+	       (delete-directory file recursive)
+	     (delete-file file)))
+	 ;; We do not want to delete "." and "..".
+	 (directory-files directory 'full directory-files-no-dot-files-regexp)))
 
-    (with-parsed-tramp-file-name directory nil
       ;; We must also flush the cache of the directory, because
       ;; `file-attributes' reads the values from there.
       (tramp-flush-directory-properties v localname)
       (unless (tramp-smb-send-command
 	       v (format
 		  "%s \"%s\""
-		  (if (tramp-smb-get-cifs-capabilities v) "posix_rmdir" "rmdir")
+		  (if (tramp-smb-get-cifs-capabilities v)
+		      "posix_rmdir" "rmdir")
 		  (tramp-smb-get-localname v)))
 	;; Error.
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
 	  (search-forward-regexp tramp-smb-errors nil t)
-	  (tramp-error
-	   v 'file-error "%s `%s'" (match-string 0) directory)))
+	  (tramp-error v 'file-error "%s `%s'" (match-string 0) directory)))
 
       ;; "rmdir" does not report an error.  So we check ourselves.
       (when (file-exists-p directory)
-	(tramp-error
-	 v 'file-error "`%s' not removed." directory)))))
+	(tramp-error v 'file-error "`%s' not removed." directory)))))
 
-(defun tramp-smb-handle-delete-file (filename &optional _trash)
+(defun tramp-smb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (when (file-exists-p filename)
@@ -677,17 +675,18 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; We must also flush the cache of the directory, because
       ;; `file-attributes' reads the values from there.
       (tramp-flush-file-properties v localname)
-      (unless (tramp-smb-send-command
-	       v (format
-		  "%s \"%s\""
-		  (if (tramp-smb-get-cifs-capabilities v) "posix_unlink" "rm")
-		  (tramp-smb-get-localname v)))
-	;; Error.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (search-forward-regexp tramp-smb-errors nil t)
-	  (tramp-error
-	   v 'file-error "%s `%s'" (match-string 0) filename))))))
+      (if (and delete-by-moving-to-trash trash)
+	  (move-file-to-trash filename)
+	(unless (tramp-smb-send-command
+		 v (format
+		    "%s \"%s\""
+		    (if (tramp-smb-get-cifs-capabilities v) "posix_unlink" "rm")
+		    (tramp-smb-get-localname v)))
+	  ;; Error.
+	  (with-current-buffer (tramp-get-connection-buffer v)
+	    (goto-char (point-min))
+	    (search-forward-regexp tramp-smb-errors nil t)
+	    (tramp-error v 'file-error "%s `%s'" (match-string 0) filename)))))))
 
 (defun tramp-smb-handle-directory-files
   (directory &optional full match nosort)
