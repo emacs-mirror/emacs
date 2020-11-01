@@ -264,7 +264,7 @@ Foundation Web site at @url{https://www.gnu.org/licenses/fdl.html}.
 @end quotation
 
 The document was typeset with
-@uref{http://www.texinfo.org/, GNU Texinfo}.
+@uref{https://www.gnu.org/software/texinfo/, GNU Texinfo}.
 
 @end copying
 
