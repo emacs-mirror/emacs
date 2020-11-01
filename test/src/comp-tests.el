@@ -791,4 +791,95 @@ Return a list of results."
     (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-fibn-entry-f)))
     (should (= (comp-tests-pure-fibn-entry-f) 6765))))
 
+(defvar comp-tests-cond-rw-checked-function nil
+  "Function to be checked.")
+(defun comp-tests-cond-rw-checker-val (_)
+  "Check we manage to propagate the correct return value."
+  (should
+   (cl-some
+    #'identity
+    (comp-tests-map-checker
+     comp-tests-cond-rw-checked-function
+     (lambda (insn)
+       (pcase insn
+         (`(return ,mvar)
+          (and (comp-mvar-const-vld mvar)
+               (= (comp-mvar-constant mvar) 123)))))))))
+
+(defvar comp-tests-cond-rw-expected-type nil
+  "Type to expect in `comp-tests-cond-rw-checker-type'.")
+(defun comp-tests-cond-rw-checker-type (_)
+  "Check we manage to propagate the correct return type."
+  (should
+   (cl-some
+    #'identity
+    (comp-tests-map-checker
+     comp-tests-cond-rw-checked-function
+     (lambda (insn)
+       (pcase insn
+         (`(return ,mvar)
+          (eq (comp-mvar-type mvar) comp-tests-cond-rw-expected-type))))))))
+
+(defvar comp-tests-cond-rw-0-var)
+(comp-deftest cond-rw-0 ()
+  "Check we do not miscompile some simple functions."
+  (let ((lexical-binding t))
+    (let ((f (native-compile '(lambda (l)
+                                (when (eq (car l) 'x)
+                                  (cdr l))))))
+      (should (subr-native-elisp-p f))
+      (should (eq (funcall f '(x . y)) 'y))
+      (should (null (funcall f '(z . y)))))
+
+    (should
+     (subr-native-elisp-p
+      (native-compile '(lambda () (if (eq comp-tests-cond-rw-0-var 123) 5 10)))))))
+
+(comp-deftest cond-rw-1 ()
+  "Test cond-rw pass allow us to propagate type+val under `eq' tests."
+  (let ((lexical-binding t)
+        (comp-tests-cond-rw-expected-type 'fixnum)
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type)
+                                (comp-final comp-tests-cond-rw-checker-val))))
+    (subr-native-elisp-p (native-compile '(lambda (x) (if (eq x 123) x t))))
+    (subr-native-elisp-p (native-compile '(lambda (x) (if (eq 123 x) x t))))))
+
+(comp-deftest cond-rw-2 ()
+  "Test cond-rw pass allow us to propagate type+val under `=' tests."
+  (let ((lexical-binding t)
+        (comp-tests-cond-rw-expected-type 'fixnum)
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type)
+                                (comp-final comp-tests-cond-rw-checker-val))))
+    (subr-native-elisp-p (native-compile '(lambda (x) (if (= x 123) x t))))))
+
+(comp-deftest cond-rw-3 ()
+  "Test cond-rw pass allow us to propagate type+val under `eql' tests."
+  (let ((lexical-binding t)
+        (comp-tests-cond-rw-expected-type 'fixnum)
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type)
+                                (comp-final comp-tests-cond-rw-checker-val))))
+    (subr-native-elisp-p (native-compile '(lambda (x) (if (eql 123 x) x t))))))
+
+(comp-deftest cond-rw-4 ()
+  "Test cond-rw pass allow us to propagate type under `=' tests."
+  (let ((lexical-binding t)
+        (comp-tests-cond-rw-expected-type 'number)
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type))))
+    (subr-native-elisp-p (native-compile '(lambda (x y) (if (= x y) x t))))))
+
+(comp-deftest cond-rw-5 ()
+  "Test cond-rw pass allow us to propagate type under `=' tests."
+  (let ((lexical-binding t)
+        (comp-tests-cond-rw-checked-function #'comp-tests-cond-rw-4-f)
+        (comp-tests-cond-rw-expected-type 'fixnum)
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type))))
+    (eval '(defun comp-tests-cond-rw-4-f (x y)
+             (declare (speed 3))
+             (if (= x (comp-hint-fixnum y))
+                 x
+               t))
+          t)
+    (native-compile #'comp-tests-cond-rw-4-f)
+    (should (subr-native-elisp-p (symbol-function #'comp-tests-cond-rw-4-f)))))
+
 ;;; comp-tests.el ends here
