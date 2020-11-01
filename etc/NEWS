@@ -133,14 +133,6 @@ characters.  In particular, this significantly improves word-wrapping
 for CJK text mixed with Latin text.
 
 ---
-** New input method 'compose' based on X Multi_key sequences.
-
----
-** Improved language transliteration in Malayalam input methods.
-Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
-deprecated.  Errors in the Inscript method were corrected.
-
----
 ** Rudimentary support for the 'st' terminal emulator.
 Emacs now supports 256 color display on the 'st' terminal emulator.
 
@@ -628,6 +620,23 @@ recorded for the purpose of 'view-lossage'.
 *** The command 'view-lossage' can now be invoked from the menu bar.
 The menu bar "Help" menu now has a "Show Recent Inputs" item under the
 "Describe" sub-menu.
+
+** Input methods
+
++++
+*** 'C-x \' temporarily enables a transient input method.
+'C-u C-x \' can be used to select a transient input method, e.g.
+'C-u C-x \ compose RET' selects the 'compose' input method.  Then typing
+'C-x \ 1 2' will insert the character '½', and disable the input method
+afterwards.
+
+---
+*** New input method 'compose' based on X Multi_key sequences.
+
+---
+*** Improved language transliteration in Malayalam input methods.
+Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
+deprecated.  Errors in the Inscript method were corrected.
 
 ** Ispell
 
