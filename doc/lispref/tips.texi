@@ -283,8 +283,9 @@ implementing such clickable links.
 @cindex keys, reserved
 Don't define @kbd{C-c @var{letter}} as a key in Lisp programs.
 Sequences consisting of @kbd{C-c} and a letter (either upper or lower
-case) are reserved for users; they are the @strong{only} sequences
-reserved for users, so do not block them.
+case; @acronym{ASCII} or non-@acronym{ASCII}) are reserved for users;
+they are the @strong{only} sequences reserved for users, so do not
+block them.
 
 Changing all the Emacs major modes to respect this convention was a
 lot of work; abandoning this convention would make that work go to
