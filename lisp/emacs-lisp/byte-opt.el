@@ -1262,7 +1262,7 @@
        '(concat regexp-opt regexp-quote
 	 string-to-char string-to-syntax symbol-name
          eq eql
-         = /= < <= => > min max
+         = /= < <= >= > min max
          + - * / % mod abs ash 1+ 1- sqrt
          logand logior lognot logxor logcount
          copysign isnan ldexp float logb
@@ -1270,7 +1270,7 @@
          ffloor fceiling fround ftruncate
          string= string-equal string< string-lessp
          string-search
-         consp atom listp nlistp propert-list-p
+         consp atom listp nlistp proper-list-p
          sequencep arrayp vectorp stringp bool-vector-p hash-table-p
          null not
          numberp integerp floatp natnump characterp
