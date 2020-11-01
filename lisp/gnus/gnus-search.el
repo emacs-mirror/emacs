@@ -825,9 +825,6 @@ quirks.")
 				 gnus-search-grep)
   nil)
 
-(defclass gnus-search-gmane (gnus-search-engine gnus-search-process)
-  nil)
-
 ;;; The "indexed" search engine.  These are engines that use an
 ;;; external program, with indexes kept on disk, to search messages
 ;;; usually kept in some local directory.  The three common slots are
@@ -970,8 +967,7 @@ quirks.")
 (define-obsolete-variable-alias 'nnir-method-default-engines
   'gnus-search-default-engines "28.1")
 
-(defcustom gnus-search-default-engines '((nnimap gnus-search-imap)
-					 (nntp  gnus-search-gmane))
+(defcustom gnus-search-default-engines '((nnimap gnus-search-imap))
   "Alist of default search engines keyed by server method."
   :version "26.1"
   :group 'gnus-search
@@ -1920,77 +1916,6 @@ Assume \"size\" key is equal to \"larger\"."
 			    (or group server))
 		   artlist)))
 	     grouplist))))
-
-(declare-function mm-url-insert "mm-url" (url &optional follow-refresh))
-(declare-function mm-url-encode-www-form-urlencoded "mm-url" (pairs))
-
-;; gmane interface
-(cl-defmethod gnus-search-run-search ((engine gnus-search-gmane)
-				      srv query &optional groups)
-  "Run a search against a gmane back-end server."
-  (let* ((case-fold-search t)
-	 (groupspec (mapconcat
-		     (lambda (x)
-		       (if (string-match-p "gmane" x)
-			   (format "group:%s" (gnus-group-short-name x))
-			 (error "Can't search non-gmane groups: %s" x)))
-		     groups " "))
-	 (buffer (slot-value engine 'proc-buffer))
-	 (search (concat (gnus-search-make-query-string engine query)
-			 " "
-			 groupspec))
-	 (gnus-inhibit-demon t)
-	 artlist)
-    (require 'mm-url)
-    (with-current-buffer buffer
-      (erase-buffer)
-      (mm-url-insert
-       (concat
-	"http://search.gmane.org/nov.php"
-	"?"
-	(mm-url-encode-www-form-urlencoded
-	 `(("query" . ,search)
-	   ("HITSPERPAGE" . "999")))))
-      (set-buffer-multibyte t)
-      (decode-coding-region (point-min) (point-max) 'utf-8)
-      (goto-char (point-min))
-      (forward-line 1)
-      (while (not (eobp))
-	(unless (or (eolp) (looking-at "\x0d"))
-	  (let ((header (nnheader-parse-nov)))
-	    (let ((xref (mail-header-xref header))
-		  (xscore (string-to-number (cdr (assoc 'X-Score
-							(mail-header-extra header))))))
-	      (when (string-match " \\([^:]+\\)[:/]\\([0-9]+\\)" xref)
-		(push
-		 (vector
-		  (gnus-group-prefixed-name (match-string 1 xref) srv)
-		  (string-to-number (match-string 2 xref)) xscore)
-		 artlist)))))
-	(forward-line 1)))
-    (apply #'vector (nreverse (delete-dups artlist)))))
-
-(cl-defmethod gnus-search-transform-expression ((_e gnus-search-gmane)
-						(_expr (head near)))
-  nil)
-
-;; Can Gmane handle OR or NOT keywords?
-(cl-defmethod gnus-search-transform-expression ((_e gnus-search-gmane)
-						(_expr (head or)))
-  nil)
-
-(cl-defmethod gnus-search-transform-expression ((_e gnus-search-gmane)
-						(_expr (head not)))
-  nil)
-
-(cl-defmethod gnus-search-transform-expression ((_e gnus-search-gmane)
-						(expr list))
-  "The only keyword value gmane can handle is author, ie from."
-  (cond
-   ((memq (car expr) '(from sender author address))
-    (format "author:%s" (cdr expr)))
-   ((eql (car expr) 'body)
-    (cdr expr))))
 
 ;;; Util Code:
 
