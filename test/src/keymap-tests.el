@@ -23,6 +23,19 @@
 
 (require 'ert)
 
+(ert-deftest describe-buffer-bindings/header-in-current-buffer ()
+  "Header should be inserted into the current buffer.
+https://debbugs.gnu.org/39149#31"
+  (with-temp-buffer
+    (describe-buffer-bindings (current-buffer))
+    (should (string-match (rx bol "key" (+ space) "binding" eol)
+                          (buffer-string)))))
+
+(ert-deftest describe-buffer-bindings/returns-nil ()
+  "Should return nil."
+  (with-temp-buffer
+    (should (eq (describe-buffer-bindings (current-buffer)) nil))))
+
 (ert-deftest keymap-store_in_keymap-XFASTINT-on-non-characters ()
   "Check for bug fixed in \"Fix assertion violation in define-key\",
 commit 86c19714b097aa477d339ed99ffb5136c755a046."

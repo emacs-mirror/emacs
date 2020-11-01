@@ -1169,14 +1169,14 @@ Any inserted text ends in two newlines (used by
          (print-title (or maps always-title)))
     ;; Print title.
     (when print-title
-      (princ (concat (if title
-                         (concat title
-                                 (if prefix
-                                     (concat " Starting With "
-                                             (key-description prefix)))
-                                 ":\n"))
-                     "key             binding\n"
-                     "---             -------\n")))
+      (insert (concat (if title
+                          (concat title
+                                  (if prefix
+                                      (concat " Starting With "
+                                              (key-description prefix)))
+                                  ":\n"))
+                      "key             binding\n"
+                      "---             -------\n")))
     ;; Describe key bindings.
     (setq help--keymaps-seen nil)
     (while (consp maps)
@@ -1202,7 +1202,7 @@ Any inserted text ends in two newlines (used by
                         sub-shadows no-menu mention-shadow)))
       (setq maps (cdr maps)))
     (when print-title
-      (princ "\n"))))
+      (insert "\n"))))
 
 (defun help--shadow-lookup (keymap key accept-default remap)
   "Like `lookup-key', but with command remapping.
