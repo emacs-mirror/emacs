@@ -26844,7 +26844,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   else
     max_x = min (max_x, it->last_visible_x);
 
-  /* Skip over display elements that are not visible. because IT->w is
+  /* Skip over display elements that are not visible because IT->w is
      hscrolled.  */
   if (it->current_x < it->first_visible_x)
     move_it_in_display_line_to (it, 100000, it->first_visible_x,
