@@ -687,7 +687,8 @@ The character information includes:
                                   (save-excursion (goto-char pos)
                                                   (looking-at-p "[ \t]+$")))
                              'trailing-whitespace)
-                            ((and nobreak-char-display char (eq char '#xa0))
+                            ((and nobreak-char-display char
+                                  (eq (get-char-code-property char 'general-category) 'Zs))
                              'nobreak-space)
                             ((and nobreak-char-display char
 				  (memq char '(#xad #x2010 #x2011)))
