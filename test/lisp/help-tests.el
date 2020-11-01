@@ -361,6 +361,26 @@ C-b		undefined
 
 ")))))
 
+(defvar help-tests--was-in-buffer nil)
+
+(ert-deftest help-substitute-command-keys/menu-filter-in-correct-buffer ()
+  "Evaluate menu-filter in the original buffer.  See Bug#39149."
+  (unwind-protect
+      (progn
+        (define-key global-map (kbd "C-c C-l r")
+          `(menu-item "2" identity
+                      :filter ,(lambda (cmd)
+                                 (setq help-tests--was-in-buffer
+                                       (current-buffer))
+                                 cmd)))
+        (with-temp-buffer
+          (substitute-command-keys "\\[identity]")
+          (should (eq help-tests--was-in-buffer
+                      (current-buffer)))))
+    (setq help-tests--was-in-buffer nil)
+    (define-key global-map (kbd "C-c C-l r") nil)
+    (define-key global-map (kbd "C-c C-l") nil)))
+
 (provide 'help-tests)
 
 ;;; help-tests.el ends here

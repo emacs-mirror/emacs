@@ -1013,8 +1013,7 @@ Otherwise, return a new string (without any text properties)."
         (insert string)
         (goto-char (point-min))
         (while (< (point) (point-max))
-          (let ((standard-output (current-buffer))
-                (orig-point (point))
+          (let ((orig-point (point))
                 end-point active-maps
                 close generate-summary)
             (cond
