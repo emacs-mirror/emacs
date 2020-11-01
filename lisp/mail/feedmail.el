@@ -1630,7 +1630,7 @@ local gurus."
   (let ((result (smtpmail-via-smtp addr-listoid prepped)))
     (when result
       (set-buffer errors-to)
-      (insert "Send via smtpmail failed: %s" result)
+      (insert "Send via smtpmail failed: " result)
       (let ((case-fold-search t)
 	    ;; don't be overconfident about the name of the trace buffer
 	    (tracer (concat "trace.*smtp.*" (regexp-quote smtpmail-smtp-server))))
