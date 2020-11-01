@@ -896,7 +896,7 @@ This is the same format used for saving keyboard macros (see
 For an approximate inverse of this, see `key-description'."
   ;; Don't use a defalias, since the `pure' property is true only for
   ;; the calling convention of `kbd'.
-  (declare (pure t))
+  (declare (pure t) (side-effect-free t))
   ;; A pure function is expected to preserve the match data.
   (save-match-data (read-kbd-macro keys)))
 
@@ -4446,7 +4446,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 (defun string-replace (fromstring tostring instring)
   "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
-  (declare (pure t))
+  (declare (pure t) (side-effect-free t))
   (when (equal fromstring "")
     (signal 'wrong-length-argument fromstring))
   (let ((start 0)
