@@ -1582,7 +1582,7 @@ starts with @kbd{@key{ESC} [}.)  If Emacs understands your terminal
 type properly, it automatically handles such sequences as single input
 events.
 
-  Key sequences that consists of @kbd{C-c} followed by a letter (upper
+  Key sequences that consist of @kbd{C-c} followed by a letter (upper
 or lower case; @acronym{ASCII} or non-@acronym{ASCII}) are reserved
 for users.  Emacs itself will never bind those key sequences, and
 Emacs extensions should avoid binding them.  In other words, users can
