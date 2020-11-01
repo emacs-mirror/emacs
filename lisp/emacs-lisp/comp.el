@@ -2346,6 +2346,7 @@ FUNCTION can be a function-name or byte compiled function."
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers this for non self calls too!!
          ((and comp-func-callee
+               (comp-func-c-name comp-func-callee)
                (or (and (>= (comp-func-speed comp-func) 3)
                         (comp-func-unique-in-cu-p callee))
                    (and (>= (comp-func-speed comp-func) 2)
@@ -2365,9 +2366,7 @@ FUNCTION can be a function-name or byte compiled function."
 (defun comp-call-optim-func ()
   "Perform the trampoline call optimization for the current function."
   (cl-loop
-   with self = (comp-func-name comp-func)
    for b being each hash-value of (comp-func-blocks comp-func)
-   when self ;; FIXME add proper anonymous lambda support.
    do (comp-loop-insn-in-block b
         (pcase insn
           (`(set ,lval (callref funcall ,f . ,rest))
