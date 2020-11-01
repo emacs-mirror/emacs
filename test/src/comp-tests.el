@@ -686,28 +686,29 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
               'comment)
     (comp-tests-mentioned-p-1 x insn)))
 
-(defun comp-tests-make-insn-checker (func-name checker)
-  "Apply CHECKER to each insn in FUNC-NAME.
-CHECKER should always return nil to have a pass."
-  (should-not
-   (cl-loop
-    named checker-loop
-    with func-c-name = (comp-c-func-name func-name "F" t)
+(defun comp-tests-map-checker (func-name checker)
+  "Apply CHECKER to each insn of FUNC-NAME.
+Return a list of results."
+  (cl-loop
+    with func-c-name = (comp-c-func-name (or func-name 'anonymous-lambda) "F" t)
     with f = (gethash func-c-name (comp-ctxt-funcs-h comp-ctxt))
     for bb being each hash-value of (comp-func-blocks f)
-    do (cl-loop
-        for insn in (comp-block-insns bb)
-        when (funcall checker insn)
-          do (cl-return-from checker-loop 'mentioned)))))
+    nconc
+    (cl-loop
+     for insn in (comp-block-insns bb)
+     collect (funcall checker insn))))
 
 (defun comp-tests-tco-checker (_)
   "Check that inside `comp-tests-tco-f' we have no recursion."
-  (comp-tests-make-insn-checker
-   'comp-tests-tco-f
-   (lambda (insn)
-     (or (comp-tests-mentioned-p 'comp-tests-tco-f insn)
-         (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-tco-f "F" t)
-                                 insn)))))
+  (should
+   (cl-notany
+    #'identity
+    (comp-tests-map-checker
+     'comp-tests-tco-f
+     (lambda (insn)
+       (or (comp-tests-mentioned-p 'comp-tests-tco-f insn)
+           (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-tco-f "F" t)
+                                   insn)))))))
 
 (comp-deftest tco ()
   "Check for tail recursion elimination."
@@ -728,11 +729,14 @@ CHECKER should always return nil to have a pass."
 
 (defun comp-tests-fw-prop-checker-1 (_)
   "Check that inside `comp-tests-fw-prop-f' `concat' and `length' are folded."
-  (comp-tests-make-insn-checker
-   'comp-tests-fw-prop-1-f
-   (lambda (insn)
-     (or (comp-tests-mentioned-p 'concat insn)
-         (comp-tests-mentioned-p 'length insn)))))
+  (should
+   (cl-notany
+    #'identity
+    (comp-tests-map-checker
+     'comp-tests-fw-prop-1-f
+     (lambda (insn)
+       (or (comp-tests-mentioned-p 'concat insn)
+           (comp-tests-mentioned-p 'length insn)))))))
 
 (comp-deftest fw-prop ()
   "Some tests for forward propagation."
@@ -751,21 +755,28 @@ CHECKER should always return nil to have a pass."
 (defun comp-tests-pure-checker-1 (_)
   "Check that inside `comp-tests-pure-caller-f' `comp-tests-pure-callee-f' is
  folded."
-  (comp-tests-make-insn-checker
-   'comp-tests-pure-caller-f
-   (lambda (insn)
-     (or (comp-tests-mentioned-p 'comp-tests-pure-callee-f insn)
-         (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-pure-callee-f "F" t)
-                                 insn)))))
+  (should
+   (cl-notany
+    #'identity
+    (comp-tests-map-checker
+     'comp-tests-pure-caller-f
+     (lambda (insn)
+       (or (comp-tests-mentioned-p 'comp-tests-pure-callee-f insn)
+           (comp-tests-mentioned-p (comp-c-func-name
+                                    'comp-tests-pure-callee-f "F" t)
+                                   insn)))))))
 
 (defun comp-tests-pure-checker-2 (_)
   "Check that `comp-tests-pure-fibn-f' is folded."
-  (comp-tests-make-insn-checker
-   'comp-tests-pure-fibn-entry-f
-   (lambda (insn)
-     (or (comp-tests-mentioned-p 'comp-tests-pure-fibn-f insn)
-         (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-pure-fibn-f "F" t)
-                                 insn)))))
+  (should
+   (cl-notany
+    #'identity
+    (comp-tests-map-checker
+     'comp-tests-pure-fibn-entry-f
+     (lambda (insn)
+       (or (comp-tests-mentioned-p 'comp-tests-pure-fibn-f insn)
+           (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-pure-fibn-f "F" t)
+                                   insn)))))))
 
 (comp-deftest pure ()
   "Some tests for pure functions optimization."
