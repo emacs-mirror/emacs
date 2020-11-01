@@ -88,7 +88,7 @@ If called interactively, toggle `%s'.  If the prefix argument is
 positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.
+If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 All other values will disable the mode.
 
