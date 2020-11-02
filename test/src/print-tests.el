@@ -383,25 +383,28 @@ otherwise, use a different charset."
       (let ((print-length 1))
         (format "%S" h))))))
 
-(print-tests--deftest print-integer-output-format ()
+(print-tests--deftest print-integers-as-characters ()
   ;; Bug#44155.
-  (let ((integer-output-format t)
-        (syms (list ?? ?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\ ?Á)))
-    (should (equal (read (print-tests--prin1-to-string syms)) syms))
-    (should (equal (print-tests--prin1-to-string syms)
-                   (concat "(" (mapconcat #'prin1-char syms " ") ")"))))
-  (let ((integer-output-format t)
-        (syms (list -1 0 1 ?\120 4194175 4194176 (max-char) (1+ (max-char)))))
-    (should (equal (read (print-tests--prin1-to-string syms)) syms)))
-  (let ((integer-output-format 16)
-        (syms (list -1 0 1 most-positive-fixnum (1+ most-positive-fixnum))))
-    (should (equal (read (print-tests--prin1-to-string syms)) syms))
-    (should (equal (print-tests--prin1-to-string syms)
-                   (concat "(" (mapconcat
-                                (lambda (i)
-                                  (if (and (>= i 0) (<= i most-positive-fixnum))
-                                      (format "#x%x" i) (format "%d" i)))
-                                syms " ") ")")))))
+  (let* ((print-integers-as-characters t)
+         (chars '(?? ?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\ ?f ?~ ?Á 32
+                  ?\n ?\r ?\t ?\b ?\f ?\a ?\v ?\e ?\d))
+         (nums '(-1 -65 0 1 31 #x80 #x9f #x110000 #x3fff80 #x3fffff))
+         (nonprints '(#xd800 #xdfff #x030a #xffff #x2002 #x200c))
+         (printed-chars (print-tests--prin1-to-string chars))
+         (printed-nums (print-tests--prin1-to-string nums))
+         (printed-nonprints (print-tests--prin1-to-string nonprints)))
+    (should (equal (read printed-chars) chars))
+    (should (equal
+             printed-chars
+             (concat
+              "(?? ?\\; ?\\( ?\\) ?\\{ ?\\} ?\\[ ?\\] ?\\\" ?\\' ?\\\\"
+              " ?f ?~ ?Á ?\\s ?\\n ?\\r ?\\t ?\\b ?\\f 7 11 27 127)")))
+    (should (equal (read printed-nums) nums))
+    (should (equal printed-nums
+                   "(-1 -65 0 1 31 128 159 1114112 4194176 4194303)"))
+    (should (equal (read printed-nonprints) nonprints))
+    (should (equal printed-nonprints
+                   "(55296 57343 778 65535 8194 8204)"))))
 
 (provide 'print-tests)
 ;;; print-tests.el ends here

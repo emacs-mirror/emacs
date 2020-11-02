@@ -1848,6 +1848,24 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
   return true;
 }
 
+static char
+named_escape (int i)
+{
+  switch (i)
+    {
+    case '\b': return 'b';
+    case '\t': return 't';
+    case '\n': return 'n';
+    case '\f': return 'f';
+    case '\r': return 'r';
+    case ' ':  return 's';
+      /* \a, \v, \e and \d are excluded from printing as escapes since
+         they are somewhat rare as characters and more likely to be
+         plain integers. */
+    }
+  return 0;
+}
+
 static void
 print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
@@ -1908,29 +1926,30 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
     {
     case_Lisp_Int:
       {
-	int c;
-	intmax_t i;
+        EMACS_INT i = XFIXNUM (obj);
+        char escaped_name;
 
-	if (EQ (Vinteger_output_format, Qt) && CHARACTERP (obj)
-	    && (c = XFIXNUM (obj)))
+	if (print_integers_as_characters && i >= 0 && i <= MAX_UNICODE_CHAR
+            && ((escaped_name = named_escape (i))
+                || graphic_base_p (i)))
 	  {
 	    printchar ('?', printcharfun);
-	    if (escapeflag
-		&& (c == ';' || c == '(' || c == ')' || c == '{' || c == '}'
-		    || c == '[' || c == ']' || c == '\"' || c == '\'' || c == '\\'))
+            if (escaped_name)
+              {
+                printchar ('\\', printcharfun);
+                i = escaped_name;
+              }
+            else if (escapeflag
+                     && (i == ';' || i == '\"' || i == '\'' || i == '\\'
+                         || i == '(' || i == ')'
+                         || i == '{' || i == '}'
+                         || i == '[' || i == ']'))
 	      printchar ('\\', printcharfun);
-	    printchar (c, printcharfun);
-	  }
-	else if (INTEGERP (Vinteger_output_format)
-		 && integer_to_intmax (Vinteger_output_format, &i)
-		 && i == 16 && !NILP (Fnatnump (obj)))
-	  {
-	    int len = sprintf (buf, "#x%"pI"x", (EMACS_UINT) XFIXNUM (obj));
-	    strout (buf, len, len, printcharfun);
+	    printchar (i, printcharfun);
 	  }
 	else
 	  {
-	    int len = sprintf (buf, "%"pI"d", XFIXNUM (obj));
+	    int len = sprintf (buf, "%"pI"d", i);
 	    strout (buf, len, len, printcharfun);
 	  }
       }
@@ -2270,12 +2289,13 @@ A value of nil means to use the shortest notation
 that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
 
-  DEFVAR_LISP ("integer-output-format", Vinteger_output_format,
-	       doc: /* The format used to print integers.
-When t, print characters from integers that represent a character.
-When a number 16, print non-negative integers in the hexadecimal format.
-Otherwise, by default print integers in the decimal format.  */);
-  Vinteger_output_format = Qnil;
+  DEFVAR_BOOL ("print-integers-as-characters", print_integers_as_characters,
+	       doc: /* Non-nil means integers are printed using characters syntax.
+Only independent graphic characters, and control characters with named
+escape sequences such as newline, are printed this way.  Other
+integers, including those corresponding to raw bytes, are printed
+as numbers the usual way.  */);
+  print_integers_as_characters = Qnil;
 
   DEFVAR_LISP ("print-length", Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.

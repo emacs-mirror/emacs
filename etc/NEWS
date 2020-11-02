@@ -1711,12 +1711,6 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
-** New variable 'integer-output-format' determines how to print integer values.
-When this variable is bound to the value 't', integers are printed by
-printing functions as characters when an integer represents a character.
-When bound to the number 16, non-negative integers are printed in the
-hexadecimal format.
-
 +++
 ** 'define-globalized-minor-mode' now takes a ':predicate' parameter.
 This can be used to control which major modes the minor mode should be
@@ -1908,6 +1902,11 @@ file can affect code in another.  For details, see the manual section
 ** Some functions are no longer considered safe by 'unsafep':
 'replace-regexp-in-string', 'catch', 'throw', 'error', 'signal'
 and 'play-sound-file'.
+
++++
+** New variable 'print-integers-as-characters' modifies integer printing.
+If this variable is non-nil, character syntax is used for printing
+numbers when this makes sense, such as '?A' for 65.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
