@@ -167,7 +167,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 			  Lisp_Object match, Lisp_Object nosort, bool attrs,
 			  Lisp_Object id_format, Lisp_Object return_count)
 {
-  ptrdiff_t ind = 0, last = MOST_POSITIVE_FIXNUM;
+  EMACS_INT ind = 0, last = MOST_POSITIVE_FIXNUM;
 
   if (!NILP (return_count))
     {
