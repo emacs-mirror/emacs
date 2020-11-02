@@ -88,9 +88,9 @@ If called interactively, toggle `%s'.  If the prefix argument is
 positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.
+If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
-All other values will disable the mode.
+Disable the mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
@@ -312,12 +312,10 @@ or call the function `%s'."))))
             (cond ((eq arg 'toggle)
                    (not ,getter))
                   ((and (numberp arg)
-                        (> arg 0))
-                   t)
-                  ((eq arg nil)
-                   t)
+                        (< arg 1))
+                   nil)
                   (t
-                   nil)))
+                   t)))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,getter ',hook-on ',hook-off))

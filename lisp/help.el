@@ -1013,8 +1013,7 @@ Otherwise, return a new string (without any text properties)."
         (insert string)
         (goto-char (point-min))
         (while (< (point) (point-max))
-          (let ((standard-output (current-buffer))
-                (orig-point (point))
+          (let ((orig-point (point))
                 end-point active-maps
                 close generate-summary)
             (cond
@@ -1190,8 +1189,8 @@ Any inserted text ends in two newlines (used by
                 ;; map.
                 (or (keymapp sub-shadows)
                     (null sub-shadows)
-                    (consp sub-shadows)
-                    (not (keymapp (car sub-shadows)))))
+                    (and (consp sub-shadows)
+                         (keymapp (car sub-shadows)))))
           ;; Maps we have already listed in this loop shadow this map.
           (let ((tail orig-maps))
             (while (not (equal tail maps))

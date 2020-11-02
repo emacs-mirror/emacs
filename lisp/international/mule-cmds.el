@@ -55,6 +55,7 @@
 
 ;; Keep "C-x C-m ..." for mule specific commands.
 (define-key ctl-x-map "\C-m" mule-keymap)
+(define-key ctl-x-map "\\" 'transient-input-method)
 
 (defvar describe-language-environment-map
   (let ((map (make-sparse-keymap "Describe Language Environment")))
@@ -1344,6 +1345,16 @@ This is the input method activated automatically by the command
                  mule-input-method-string)
   :set-after '(current-language-environment))
 
+(defcustom transient-input-method nil
+  "Default transient input method.
+This is the input method activated automatically by the command
+`transient-input-method' (\\[transient-input-method])."
+  :link  '(custom-manual "(emacs)Input Methods")
+  :group 'mule
+  :type '(choice (const nil)
+                 mule-input-method-string)
+  :set-after '(current-language-environment))
+
 (put 'input-method-function 'permanent-local t)
 
 (defvar input-method-history nil
@@ -1518,6 +1529,35 @@ To deactivate it programmatically, use `deactivate-input-method'."
 
 (defvar toggle-input-method-active nil
   "Non-nil inside `toggle-input-method'.")
+
+(defun transient-input-method (&optional arg interactive)
+  "Enable transient input method for the current buffer."
+  (interactive "P\np")
+  (when (or arg (not transient-input-method))
+    (let* ((default (or (car input-method-history) default-input-method))
+           (input-method
+            (read-input-method-name
+             (if default "Transient input method (default %s): " "Transient input method: ")
+             default t)))
+      (setq transient-input-method input-method)
+      (when interactive
+        (customize-mark-as-set 'transient-input-method))))
+  (let* ((previous-input-method current-input-method)
+         (history input-method-history)
+         (clearfun (make-symbol "clear-transient-input-method"))
+         (exitfun
+          (lambda ()
+            (deactivate-input-method)
+            (when previous-input-method
+              (activate-input-method previous-input-method))
+            (setq input-method-history history)
+            (remove-hook 'input-method-after-insert-chunk-hook clearfun))))
+    (fset clearfun (lambda () (funcall exitfun)))
+    (add-hook 'input-method-after-insert-chunk-hook clearfun)
+    (when previous-input-method
+      (deactivate-input-method))
+    (activate-input-method transient-input-method)
+    exitfun))
 
 (defun toggle-input-method (&optional arg interactive)
   "Enable or disable multilingual text input method for the current buffer.

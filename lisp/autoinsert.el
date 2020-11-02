@@ -315,8 +315,7 @@ The document was typeset with
 @printindex cp
 
 @bye
-
-@c " (file-name-nondirectory (buffer-file-name)) " ends here\n"))
+"))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
 CONDITION may be a regexp that must match the new file's name, or it may be
