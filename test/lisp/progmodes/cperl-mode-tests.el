@@ -224,6 +224,10 @@ point in the distant past, and is still broken in perl-mode. "
   "Verify that closing a paren in a regex goes without a message.
 Also check that the message is issued if the regex terminator is
 missing."
+  ;; The actual fix for this bug is in simple.el, which is not
+  ;; backported to older versions of Emacs.  Therefore we skip this
+  ;; test if we're running Emacs 27 or older.
+  (skip-unless (< 27 emacs-major-version))
   ;; Part one: Regex is ok, no messages
   (ert-with-message-capture collected-messages
     (with-temp-buffer
