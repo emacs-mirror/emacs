@@ -5645,6 +5645,9 @@ Use the command `abbrev-mode' to change this variable.  */);
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
 		     Qintegerp,
 		     doc: /* Column beyond which automatic line-wrapping should happen.
+It is used by filling commands, such as `fill-region' and `fill-paragraph',
+and by `auto-fill-mode', which see.
+See also `current-fill-column'.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &BVAR (current_buffer, left_margin),
