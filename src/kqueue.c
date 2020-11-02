@@ -128,7 +128,7 @@ kqueue_compare_dir_list (Lisp_Object watch_object)
     return;
   }
   new_directory_files =
-    directory_files_internal (dir, Qnil, Qnil, Qnil, true, Qnil);
+    directory_files_internal (dir, Qnil, Qnil, Qnil, true, Qnil, Qnil);
   new_dl = kqueue_directory_listing (new_directory_files);
 
   /* Parse through the old list.  */
@@ -452,7 +452,8 @@ only when the upper directory of the renamed file is watched.  */)
   if (NILP (Ffile_directory_p (file)))
     watch_object = list4 (watch_descriptor, file, flags, callback);
   else {
-    dir_list = directory_files_internal (file, Qnil, Qnil, Qnil, true, Qnil);
+    dir_list = directory_files_internal (file, Qnil, Qnil, Qnil, true, Qnil,
+                                         Qnil);
     watch_object = list5 (watch_descriptor, file, flags, callback, dir_list);
   }
   watch_list = Fcons (watch_object, watch_list);
