@@ -1216,13 +1216,11 @@ Internal use.")
 (defun ispell--call-enchant-lsmod (&rest args)
   "Call enchant-lsmod with ARGS and return the output as string."
   (with-output-to-string
-    (with-current-buffer
-        standard-output
-      (apply #'ispell-call-process
-             (replace-regexp-in-string "enchant\\(-[0-9]\\)?\\'"
-                                       "enchant-lsmod\\1"
-                                       ispell-program-name)
-             nil t nil args))))
+    (apply #'ispell-call-process
+           (replace-regexp-in-string "enchant\\(-[0-9]\\)?\\'"
+                                     "enchant-lsmod\\1"
+                                     ispell-program-name)
+           nil '(t nil) nil args)))
 
 (defun ispell--get-extra-word-characters (&optional lang)
   "Get the extra word characters for LANG as a character class.
