@@ -345,7 +345,7 @@ the default EWW buffer."
       (narrow-to-region start end)
       (goto-char start)
       (let ((case-fold-search t))
-        (while (re-search-forward "<[^0-9a-z!/]" nil t)
+        (while (re-search-forward "<[^0-9a-z!?/]" nil t)
           (goto-char (match-beginning 0))
           (delete-region (point) (1+ (point)))
           (insert "&lt;"))))))
