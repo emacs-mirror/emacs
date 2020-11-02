@@ -1220,6 +1220,8 @@ Internal use.")
            (replace-regexp-in-string "enchant\\(-[0-9]\\)?\\'"
                                      "enchant-lsmod\\1"
                                      ispell-program-name)
+           ;; We discard stderr here because enchant-lsmod can emit
+           ;; unrelated warnings that will confuse us.
            nil '(t nil) nil args)))
 
 (defun ispell--get-extra-word-characters (&optional lang)
