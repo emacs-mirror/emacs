@@ -54,10 +54,12 @@
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
-       "[Show]" 'action (lambda (&rest _ignore)
-                          (with-output-to-temp-buffer
-                              "*Pp Eval Output*"
-                            (princ pp)))
+       "[Show]"
+       'follow-link t
+       'action (lambda (&rest _ignore)
+                 (with-output-to-temp-buffer
+                     "*Pp Eval Output*"
+                   (princ pp)))
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
