@@ -684,13 +684,11 @@ Otherwise returns the library directory name, if that is defined."
     (with-temp-buffer
       (setq status (ispell-call-process
 		    ispell-program-name nil t nil
-		    ;; aspell doesn't accept the -vv switch.
 		    (let ((case-fold-search
 			   (memq system-type '(ms-dos windows-nt)))
 			  (speller
 			   (file-name-nondirectory ispell-program-name)))
-		      ;; Assume anything that isn't `aspell' is Ispell.
-		      (if (string-match "\\`aspell" speller) "-v" "-vv"))))
+		      "-vv")))
       (goto-char (point-min))
       (if interactivep
 	  ;; Report version information of ispell
