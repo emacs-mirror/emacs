@@ -624,11 +624,14 @@ The menu bar "Help" menu now has a "Show Recent Inputs" item under the
 ** Input methods
 
 +++
-*** 'C-x \' temporarily enables a transient input method.
-'C-u C-x \' can be used to select a transient input method, e.g.
-'C-u C-x \ compose RET' selects the 'compose' input method.  Then typing
-'C-x \ 1 2' will insert the character '½', and disable the input method
-afterwards.
+*** Emacs now supports "transient" input methods.
+A transient input method is enabled for inserting a single character,
+and is then automatically disabled.  'C-x \' temporarily enables the
+selected transient input method.  Use 'C-u C-x \' to select a
+transient input method (which can be different from the input method
+enabled by 'C-\').  For example, 'C-u C-x \ compose RET' selects the
+'compose' input method; then typing 'C-x \ 1 2' will insert the
+character '½', and disable the 'compose' input method afterwards.
 
 ---
 *** New input method 'compose' based on X Multi_key sequences.

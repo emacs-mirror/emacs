@@ -1347,13 +1347,14 @@ This is the input method activated automatically by the command
 
 (defcustom transient-input-method nil
   "Default transient input method.
-This is the input method activated automatically by the command
+This is the input method activated by the command
 `transient-input-method' (\\[transient-input-method])."
   :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
   :type '(choice (const nil)
                  mule-input-method-string)
-  :set-after '(current-language-environment))
+  :set-after '(current-language-environment)
+  :version "28.1")
 
 (put 'input-method-function 'permanent-local t)
 
@@ -1531,7 +1532,8 @@ To deactivate it programmatically, use `deactivate-input-method'."
   "Non-nil inside `toggle-input-method'.")
 
 (defun transient-input-method (&optional arg interactive)
-  "Enable transient input method for the current buffer."
+  "Enable a transient input method for the current buffer.
+If `transient-input-method' was not yet defined, prompt for it."
   (interactive "P\np")
   (when (or arg (not transient-input-method))
     (let* ((default (or (car input-method-history) default-input-method))

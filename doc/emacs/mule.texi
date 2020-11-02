@@ -579,8 +579,8 @@ Enable or disable use of the selected input method (@code{toggle-input-method}).
 Select a new input method for the current buffer (@code{set-input-method}).
 
 @item C-x \ @var{method} @key{RET}
-Temporarily enable the selected transient input method, and
-automatically disable it after inserting a single character
+Temporarily enable the selected transient input method ; it will be
+automatically disabled after inserting a single character
 (@code{transient-input-method}).
 
 @item C-h I @var{method} @key{RET}
@@ -682,13 +682,17 @@ including the string that stands for it in the mode line.
 
 @findex transient-input-method
 @kindex C-x \
-  To insert only a single character using a transient input method you
-can first select a transient input method by typing @kbd{C-u C-x \}.
-Then typing @kbd{C-x \} (@code{transient-input-method}) will
-temporarily enable the selected transient input method, and disable it
-automatically after using the activated input method to insert
-a single character.  This is useful to insert a character from input
-methods with rare Unicode characters.
+  Sometimes it can be convenient to enable an input method
+@dfn{transiently}, for inserting only a single character.  Typing
+@kbd{C-x \} (@code{transient-input-method}) will temporarily enable an
+input method, let you insert a single character using the input method
+rules, and then automatically disable the input method.  If no
+transient input method was selected yet, @kbd{C-x \} will prompt you
+for an input method; subsequent invocations of this command will
+enable the selected transient input method.  To select a different
+transient input method, type @kbd{C-u C-x \}.  You can select a
+transient method that is different from the input method which you
+selected using @kbd{C-u C-\}.
 
 @node Coding Systems
 @section Coding Systems
