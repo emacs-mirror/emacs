@@ -301,7 +301,7 @@ file names."
     (tramp-rclone-flush-directory-cache v)))
 
 (defun tramp-rclone-handle-directory-files
-    (directory &optional full match nosort)
+    (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -312,7 +312,7 @@ file names."
     (with-parsed-tramp-file-name directory nil
       (let ((result
 	     (directory-files
-	      (tramp-rclone-local-file-name directory) full match)))
+	      (tramp-rclone-local-file-name directory) full match count)))
 	;; Massage the result.
 	(when full
 	  (let ((local (concat "^" (regexp-quote (tramp-rclone-mount-point v))))

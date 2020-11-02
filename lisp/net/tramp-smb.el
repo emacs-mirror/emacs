@@ -689,7 +689,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (tramp-error v 'file-error "%s `%s'" (match-string 0) filename)))))))
 
 (defun tramp-smb-handle-directory-files
-  (directory &optional full match nosort)
+  (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -703,6 +703,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (delete nil
 		    (mapcar (lambda (x) (when (string-match-p match x) x))
 			    result))))
+
+    ;; return count number of results
+    (when (and (natnump count) (> count 0))
+      (setq result (nbutlast result (- (length result) count))))
+
     ;; Prepend directory.
     (when full
       (setq result

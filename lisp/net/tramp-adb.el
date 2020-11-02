@@ -301,7 +301,7 @@ ARGUMENTS to pass to the OPERATION."
       file-properties)))
 
 (defun tramp-adb-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -311,8 +311,8 @@ ARGUMENTS to pass to the OPERATION."
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (copy-tree
        (with-tramp-file-property
-	   v localname (format "directory-files-and-attributes-%s-%s-%s-%s"
-			       full match id-format nosort)
+	   v localname (format "directory-files-and-attributes-%s-%s-%s-%s-%s"
+			       full match id-format nosort count)
 	 (with-current-buffer (tramp-get-buffer v)
 	   (when (tramp-adb-send-command-and-check
 		  v (format "%s -a -l %s"
@@ -342,11 +342,17 @@ ARGUMENTS to pass to the OPERATION."
 	     (unless nosort
 	       (setq result
 		     (sort result (lambda (x y) (string< (car x) (car y))))))
-	     (delq nil
-		   (mapcar (lambda (x)
-			     (if (or (not match) (string-match-p match (car x)))
-				 x))
-			   result)))))))))
+
+             (setq result (delq nil
+                                (mapcar (lambda (x) (if (or (not match)
+                                                            (string-match-p
+                                                             match (car x)))
+                                                        x)) result)))
+             (when (natnump count)
+               (setq result (last result count))
+               (nreverse result))
+
+             result)))))))
 
 (defun tramp-adb-get-ls-command (vec)
   "Determine `ls' command and its arguments."

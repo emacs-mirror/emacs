@@ -3116,7 +3116,7 @@ User is always nil."
     (setq directory (substring directory 0 -1)))
   directory)
 
-(defun tramp-handle-directory-files (directory &optional full match nosort)
+(defun tramp-handle-directory-files (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -3132,16 +3132,20 @@ User is always nil."
 	(when (or (null match) (string-match-p match item))
 	  (push (if full (concat directory item) item)
 		result)))
-      (if nosort result (sort result #'string<)))))
+      (unless nosort
+        (setq result (sort result #'string<)))
+      (when (natnump count)
+        (setq result (last file count))
+        (nreverse files)))))
 
 (defun tramp-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
   (mapcar
    (lambda (x)
      (cons x (file-attributes
 	      (if full x (expand-file-name x directory)) id-format)))
-   (directory-files directory full match nosort)))
+   (directory-files directory full match nosort count)))
 
 (defun tramp-handle-dired-uncache (dir)
   "Like `dired-uncache' for Tramp files."

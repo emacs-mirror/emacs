@@ -3427,8 +3427,7 @@ system TYPE.")
   (and (file-directory-p name)
        (file-readable-p name)))
 
-(defun ange-ftp-directory-files (directory &optional full match
-					   &rest v19-args)
+(defun ange-ftp-directory-files (directory &optional full match nosort count)
   (setq directory (expand-file-name directory))
   (if (ange-ftp-ftp-name directory)
       (progn
@@ -3443,19 +3442,21 @@ system TYPE.")
 	    (if (or (not match) (string-match-p match f))
 		(setq files
 		      (cons (if full (concat directory f) f) files))))
-	  (nreverse files)))
-    (apply 'ange-ftp-real-directory-files directory full match v19-args)))
+	  (nreverse files))
+        (when (natnump count)
+          (setq files (last files count))))
+    (apply 'ange-ftp-real-directory-files directory full match nosort count)))
 
 (defun ange-ftp-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format count)
   (setq directory (expand-file-name directory))
   (if (ange-ftp-ftp-name directory)
       (mapcar
        (lambda (file)
 	 (cons file (file-attributes (expand-file-name file directory))))
-       (ange-ftp-directory-files directory full match nosort))
+       (ange-ftp-directory-files directory full match nosort count))
     (ange-ftp-real-directory-files-and-attributes
-     directory full match nosort id-format)))
+     directory full match nosort id-format count)))
 
 (defun ange-ftp-file-attributes (file &optional id-format)
   (setq file (expand-file-name file))

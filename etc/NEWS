@@ -1724,6 +1724,17 @@ This function returns the list of file names of all the backup files
 of its file argument.
 
 +++
+** New utility function 'directory-empty-p'.
+This predicate tests whether a given filename is an accessible
+directory and whether it contains no other directories or files.
+
++++
+** 'directory-files' now takes an additional COUNT parameter.
+The parameter makes 'directory-files' return COUNT first file names
+from a directory.  If MATCH is also given, the function will return
+first COUNT file names that match the expression.
+
++++
 ** The 'count-lines' function now takes an optional parameter to
 ignore invisible lines.
 

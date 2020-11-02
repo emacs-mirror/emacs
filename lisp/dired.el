@@ -3016,6 +3016,20 @@ dired-buffers."
 ;; Tree Dired
 
 ;;; utility functions
+(defun directory-empty-p (filename)
+  "Return t if FILENAME names an existing directory containing no
+other files.  Return nil if FILENAME does not name a directory, or if
+there was trouble determining whether DIRECTORYNAME is a directory or empty.
+
+As a special case, this function will also return t if FILENAME is the
+empty string (\"\").  This quirk is due to Emacs interpreting the
+empty string (in some cases) as the current directory.
+
+Symbolic links to directories count as directories.
+See `file-symlink-p' to distinguish symlinks.  "
+  (and (file-directory-p filename)
+       (null (directory-files
+              filename nil directory-files-no-dot-files-regexp t 1))))
 
 (defun dired-in-this-tree-p (file dir)
   ;;"Is FILE part of the directory tree starting at DIR?"

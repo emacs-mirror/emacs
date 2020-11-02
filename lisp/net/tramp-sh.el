@@ -1701,9 +1701,8 @@ ID-FORMAT valid values are `string' and `integer'."
 		    (tramp-get-remote-gid v 'integer)))))))))
 
 ;; Directory listings.
-
 (defun tramp-sh-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
   (unless (file-exists-p directory)
@@ -1743,8 +1742,9 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (sort result (lambda (x y) (string< (car x) (car y)))))
 	  ;; The scripts could fail, for example with huge file size.
 	  (tramp-handle-directory-files-and-attributes
-	   directory full match nosort id-format)))))
+	   directory full match nosort id-format count)))))
 
+;; FIXME Fix function to work with count parameter.
 (defun tramp-do-directory-files-and-attributes-with-perl
   (vec localname &optional id-format)
   "Implement `directory-files-and-attributes' for Tramp files using a Perl script."
@@ -1760,6 +1760,7 @@ ID-FORMAT valid values are `string' and `integer'."
     (when (stringp object) (tramp-error vec 'file-error object))
     object))
 
+;; FIXME Fix function to work with count parameter.
 (defun tramp-do-directory-files-and-attributes-with-stat
   (vec localname &optional id-format)
   "Implement `directory-files-and-attributes' for Tramp files using stat(1) command."

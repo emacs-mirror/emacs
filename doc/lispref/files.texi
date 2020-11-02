@@ -2937,6 +2937,10 @@ you want the utmost possible speed and don't care what order the files
 are processed in.  If the order of processing is visible to the user,
 then the user will probably be happier if you do sort the names.
 
+If @var{count} is non-@code{nil}, the function will return names of
+first @var{count} number of files, or names of all files, whichever
+occurs first.  @var{count} has to be an integer greater than zero.
+
 @example
 @group
 (directory-files "~lewis")
@@ -2948,6 +2952,22 @@ then the user will probably be happier if you do sort the names.
 
 An error is signaled if @var{directory} is not the name of a directory
 that can be read.
+@end defun
+
+@defun directory-empty-p filename
+This utility function returns t if given @var{filename} is an
+accessible directory and it does not contain any files, i.e. is an
+empty directory.  It will ignore '.' and '..' on systems that returns
+them as files in a directory.
+
+As a special case, this function will also return t if
+FILENAME is the empty string ("").  This quirk is due to Emacs
+interpreting the empty string (in some cases) as the current
+directory.
+
+Symbolic links to directories count as directories.
+See @var{file-symlink-p} to distinguish symlinks.
+
 @end defun
 
 @cindex recursive traverse of directory tree

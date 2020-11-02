@@ -2892,7 +2892,8 @@ list_system_processes (void)
      process.  */
   procdir = build_string ("/proc");
   match = build_string ("[0-9]+");
-  proclist = directory_files_internal (procdir, Qnil, match, Qt, false, Qnil);
+  proclist = directory_files_internal (procdir, Qnil, match, Qt,
+                                       false, Qnil, Qnil);
 
   /* `proclist' gives process IDs as strings.  Destructively convert
      each string into a number.  */
