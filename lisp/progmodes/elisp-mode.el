@@ -1416,12 +1416,13 @@ which see."
 (defun elisp--documentation-one-liner ()
   (let* (str
          (callback (lambda (doc &rest plist)
-                     (setq str
-                           (format "%s: %s"
-                                   (propertize (prin1-to-string
-                                                (plist-get plist :thing))
-                                               'face (plist-get plist :face))
-                                   doc)))))
+                     (when doc
+                       (setq str
+                             (format "%s: %s"
+                                     (propertize (prin1-to-string
+                                                  (plist-get plist :thing))
+                                                 'face (plist-get plist :face))
+                                     doc))))))
     (or (progn (elisp-eldoc-var-docstring callback) str)
         (progn (elisp-eldoc-funcall callback) str))))
 
