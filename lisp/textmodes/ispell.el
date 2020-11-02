@@ -1215,8 +1215,8 @@ Internal use.")
 
 (defun ispell--call-enchant-lsmod (&rest args)
   "Call enchant-lsmod with ARGS and return the output as string."
-  (with-current-buffer standard-output
-    (with-output-to-string
+  (with-output-to-string
+    (with-current-buffer standard-output
       (apply #'ispell-call-process
              (replace-regexp-in-string "enchant\\(-[0-9]\\)?\\'"
                                        "enchant-lsmod\\1"
