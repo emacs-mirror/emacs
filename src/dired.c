@@ -169,9 +169,9 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 {
   ptrdiff_t ind = 0, last = MOST_POSITIVE_FIXNUM;
 
-  if (!NILP(return_count))
+  if (!NILP (return_count))
     {
-      CHECK_FIXNAT(return_count);
+      CHECK_FIXNAT (return_count);
       last = XFIXNAT (return_count);
     }
 
@@ -302,7 +302,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
 DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 5, 0,
        doc: /* Return a list of names of files in DIRECTORY.
-There are three optional arguments:
+There are four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names whose non-directory part
@@ -338,7 +338,7 @@ Value is a list of the form:
 where each FILEn-ATTRS is the attributes of FILEn as returned
 by `file-attributes'.
 
-This function accepts four optional arguments:
+This function accepts five optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names whose non-directory part
@@ -347,10 +347,10 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself.
 ID-FORMAT specifies the preferred format of attributes uid and gid, see
  `file-attributes' for further documentation.
-On MS-Windows, performance depends on `w32-get-true-file-attributes',
-which see.
 If COUNT is non-nil and a natural number, the function will return
- COUNT number of file names (if so many are present).  */)
+ COUNT number of file names (if so many are present).
+On MS-Windows, performance depends on `w32-get-true-file-attributes',
+which see.  */)
   (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
    Lisp_Object nosort, Lisp_Object id_format, Lisp_Object count)
 {

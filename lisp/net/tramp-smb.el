@@ -704,7 +704,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (mapcar (lambda (x) (when (string-match-p match x) x))
 			    result))))
 
-    ;; return count number of results
+    ;; Return count number of results.
     (when (and (natnump count) (> count 0))
       (setq result (nbutlast result (- (length result) count))))
 

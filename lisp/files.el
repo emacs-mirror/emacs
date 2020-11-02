@@ -888,6 +888,16 @@ recursion."
 	    (push (concat dir "/" file) files)))))
     (nconc result (nreverse files))))
 
+(defun directory-empty-p (dir)
+  "Return t if DIR names an existing directory containing no other files.
+Return nil if DIR does not name a directory, or if there was
+trouble determining whether DIR is a directory or empty.
+
+Symbolic links to directories count as directories.
+See `file-symlink-p' to distinguish symlinks."
+  (and (file-directory-p dir)
+       (null (directory-files dir nil directory-files-no-dot-files-regexp t 1))))
+
 (defvar module-file-suffix)
 
 (defun load-file (file)

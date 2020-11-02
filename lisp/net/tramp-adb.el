@@ -344,14 +344,14 @@ ARGUMENTS to pass to the OPERATION."
 		     (sort result (lambda (x y) (string< (car x) (car y))))))
 
              (setq result (delq nil
-                                (mapcar (lambda (x) (if (or (not match)
-                                                            (string-match-p
-                                                             match (car x)))
-                                                        x)) result)))
+                                (mapcar
+                                 (lambda (x) (if (or (not match)
+                                                     (string-match-p
+                                                      match (car x)))
+                                                 x))
+                                 result)))
              (when (natnump count)
-               (setq result (last result count))
-               (nreverse result))
-
+               (setq result (last result count)))
              result)))))))
 
 (defun tramp-adb-get-ls-command (vec)

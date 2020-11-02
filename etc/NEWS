@@ -1704,34 +1704,34 @@ argument 'ellipsis', will now indicate truncation using '…' when
 the selected frame can display it, and using "..." otherwise.
 
 +++
-*** New command 'make-directory-autoloads'.
+** New command 'make-directory-autoloads'.
 This does the same as the old command 'update-directory-autoloads',
 but has different semantics: Instead of passing in the output file via
 the dynamically bound 'generated-autoload-file' variable, the output
 file is now a explicit parameter.
 
 +++
-*** New function 'string-search'.
+** New function 'string-search'.
 This function takes two string parameters and returns the position of
 the first instance of the former string in the latter.
 
 +++
-*** New function 'string-replace'.
+** New function 'string-replace'.
 This function works along the line of 'replace-regexp-in-string', but
 matching on strings instead of regexps, and does not change the global
 match state.
 
 +++
-*** New function 'process-lines-ignore-status'.
+** New function 'process-lines-ignore-status'.
 This is like 'process-lines', but does not signal an error if the
 return status is non-zero.  'process-lines-handling-status' has also
 been added, and takes a callback to handle the return status.
 
 ---
-*** 'ascii' is now a coding system alias for 'us-ascii'.
+** 'ascii' is now a coding system alias for 'us-ascii'.
 
 +++
-*** New function 'file-backup-file-names'.
+** New function 'file-backup-file-names'.
 This function returns the list of file names of all the backup files
 of its file argument.
 
@@ -1744,7 +1744,8 @@ directory and whether it contains no other directories or files.
 ** 'directory-files' now takes an additional COUNT parameter.
 The parameter makes 'directory-files' return COUNT first file names
 from a directory.  If MATCH is also given, the function will return
-first COUNT file names that match the expression.
+first COUNT file names that match the expression.  The same COUNT
+parameter has been added to 'directory-files-and-attributes'.
 
 +++
 ** The 'count-lines' function now takes an optional parameter to

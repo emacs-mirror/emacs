@@ -3442,9 +3442,9 @@ system TYPE.")
 	    (if (or (not match) (string-match-p match f))
 		(setq files
 		      (cons (if full (concat directory f) f) files))))
-	  (nreverse files))
-        (when (natnump count)
-          (setq files (last files count))))
+          (when (natnump count)
+            (setq files (last files count)))
+	  (nreverse files)))
     (apply 'ange-ftp-real-directory-files directory full match nosort count)))
 
 (defun ange-ftp-directory-files-and-attributes
