@@ -178,6 +178,9 @@ directory name and PACKAGE is the name of a package (a symbol).
 When generating `package--builtins', Emacs assumes any file in
 DIR is part of the package PACKAGE.")
 
+(defconst finder-buffer "*Finder*"
+  "Name of the Finder buffer.")
+
 (defun finder-compile-keywords (&rest dirs)
   "Regenerate list of built-in Emacs packages.
 This recomputes `package--builtins' and `finder-keywords-hash',
@@ -338,9 +341,9 @@ not `finder-known-keywords'."
 (defun finder-list-keywords ()
   "Display descriptions of the keywords in the Finder buffer."
   (interactive)
-  (if (get-buffer "*Finder*")
-      (pop-to-buffer "*Finder*")
-    (pop-to-buffer (get-buffer-create "*Finder*"))
+  (if (get-buffer finder-buffer)
+      (pop-to-buffer finder-buffer)
+    (pop-to-buffer (get-buffer-create finder-buffer))
     (finder-mode)
     (let ((inhibit-read-only t))
       (erase-buffer)
@@ -467,10 +470,9 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
   "Exit Finder mode.
 Quit the window and kill all Finder-related buffers."
   (interactive)
-  (let ((buf "*Finder*"))
-    (if (equal (current-buffer) buf)
-        (quit-window t)
-      (and (get-buffer buf) (kill-buffer buf)))))
+  (quit-window t)
+  (dolist (buf (list finder-buffer "*Finder-package*"))
+    (and (get-buffer buf) (kill-buffer buf))))
 
 (defun finder-unload-function ()
   "Unload the Finder library."
