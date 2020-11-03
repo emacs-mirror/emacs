@@ -373,7 +373,7 @@ on unknown notifications and errors on unknown requests.
             :optional-keys (mapcar #'car optional))))
 
   (defun eglot--check-dspec (interface-name dspec)
-    "Check if variables in DSPEC "
+    "Check destructuring spec DSPEC against INTERFACE-NAME."
     (cl-destructuring-bind (&key required-keys optional-keys &allow-other-keys)
         (eglot--interface interface-name)
       (cond ((or required-keys optional-keys)
@@ -457,10 +457,14 @@ treated as in `eglot-dbind'."
            (cond (interface-name
                   (eglot--check-dspec interface-name vars)
                   ;; In this mode, in runtime, we assume
-                  ;; `eglot-strict-mode' is fully on, otherwise we
+                  ;; `eglot-strict-mode' is partially on, otherwise we
                   ;; can't disambiguate between certain types.
                   `(ignore-errors
-                     (eglot--check-object ',interface-name ,obj-once)))
+                     (eglot--check-object
+                      ',interface-name ,obj-once
+                      t
+                      (memq 'disallow-non-standard-keys eglot-strict-mode)
+                      t)))
                  (t
                   ;; In this interface-less mode we don't check
                   ;; `eglot-strict-mode' at all: just check that the object
