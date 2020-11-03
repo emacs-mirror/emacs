@@ -1,4 +1,4 @@
-;;; edt-pc.el --- enhanced EDT keypad mode emulation for PC 101 keyboards
+;;; edt-pc.el --- enhanced EDT keypad mode emulation for PC 101 keyboards  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1986, 1994-1995, 2001-2020 Free Software Foundation,
 ;; Inc.
