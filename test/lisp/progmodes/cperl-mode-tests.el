@@ -220,6 +220,35 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
 
+(ert-deftest cperl-bug30393 ()
+  "Verify that indentation is not disturbed by an open paren in col 0.
+Perl is not Lisp: An open paren in column 0 does not start a function."
+  (let ((file (ert-resource-file "cperl-bug-30393.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (while (re-search-forward
+              (concat "^# ?-+ \\_<\\(?1:.+?\\)\\_>: input ?-+\n"
+                      "\\(?2:\\(?:.*\n\\)+?\\)"
+                      "# ?-+ \\1: expected output ?-+\n"
+                      "\\(?3:\\(?:.*\n\\)+?\\)"
+                      "# ?-+ \\1: end ?-+")
+              nil t)
+        (let ((name (match-string 1))
+              (code (match-string 2))
+              (expected (match-string 3))
+              got)
+          (with-temp-buffer
+            (insert code)
+	    (funcall cperl-test-mode)
+            (goto-char (point-min))
+            (while (null (eobp))
+              (cperl-indent-command)
+              (next-line))
+            (setq expected (concat "test case " name ":\n" expected))
+            (setq got (concat "test case " name ":\n" (buffer-string)))
+            (should (equal got expected))))))))
+
 (ert-deftest cperl-bug37127 ()
   "Verify that closing a paren in a regex goes without a message.
 Also check that the message is issued if the regex terminator is
