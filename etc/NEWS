@@ -148,7 +148,9 @@ displays.)
 
 +++
 ** Mouse wheel scrolling with Shift modifier now scrolls horizontally.
-This works in text buffers and over images.
+This works in text buffers and over images.  Typing a numeric prefix arg
+(e.g. 'M-5') before starting horizontal scrolling changes its step value.
+The value is saved in the user option 'mouse-wheel-scroll-amount-horizontal'.
 
 ---
 ** The default value of 'frame-title-format' and 'icon-title-format' has changed.
