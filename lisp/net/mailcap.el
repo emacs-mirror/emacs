@@ -1131,20 +1131,30 @@ For instance, \"foo.png\" will result in \"image/png\"."
             res)))
        (nreverse res)))))
 
+(defun mailcap--async-shell (command file)
+  "Asynchronously call MIME viewer shell COMMAND.
+Replace %s in COMMAND with FILE, as per `mailcap-mime-data'.
+Delete FILE once COMMAND exits."
+  (let ((buf (get-buffer-create " *mailcap shell*")))
+    (async-shell-command (format command file) buf)
+    (add-function :after (process-sentinel (get-buffer-process buf))
+                  (lambda (proc _msg)
+                    (when (memq (process-status proc) '(exit signal))
+                      (delete-file file))))))
+
 (defun mailcap-view-mime (type)
   "View the data in the current buffer that has MIME type TYPE.
-`mailcap--computed-mime-data' determines the method to use."
+The variable `mailcap--computed-mime-data' determines the method
+to use.  If the method is a shell command string, erase the
+current buffer after passing its contents to the shell command."
   (let ((method (mailcap-mime-info type)))
     (if (stringp method)
-        (let ((file (make-temp-file "emacs-mailcap" nil
-                                    (cadr (split-string type "/")))))
-          (unwind-protect
-              (let ((coding-system-for-write 'binary))
-                (write-region (point-min) (point-max) file nil 'silent)
-                (delete-region (point-min) (point-max))
-                (shell-command (format method file)))
-            (when (file-exists-p file)
-              (delete-file file))))
+        (let* ((ext (concat "." (cadr (split-string type "/"))))
+               (file (make-temp-file "emacs-mailcap" nil ext))
+               (coding-system-for-write 'binary))
+          (write-region nil nil file nil 'silent)
+          (delete-region (point-min) (point-max))
+          (mailcap--async-shell method file))
       (funcall method))))
 
 (provide 'mailcap)
