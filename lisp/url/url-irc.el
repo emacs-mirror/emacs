@@ -1,4 +1,4 @@
-;;; url-irc.el --- IRC URL interface
+;;; url-irc.el --- IRC URL interface  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
 

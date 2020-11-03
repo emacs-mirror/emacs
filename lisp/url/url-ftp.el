@@ -1,4 +1,4 @@
-;;; url-ftp.el --- FTP wrapper
+;;; url-ftp.el --- FTP wrapper  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
 
