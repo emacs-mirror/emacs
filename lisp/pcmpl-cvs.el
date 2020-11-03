@@ -1,4 +1,4 @@
-;;; pcmpl-cvs.el --- functions for dealing with cvs completions
+;;; pcmpl-cvs.el --- functions for dealing with cvs completions  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -29,7 +29,6 @@
 (provide 'pcmpl-cvs)
 
 (require 'pcomplete)
-(require 'executable)
 
 (defgroup pcmpl-cvs nil
   "Functions for dealing with CVS completions."
@@ -39,8 +38,7 @@
 
 (defcustom pcmpl-cvs-binary (or (executable-find "cvs") "cvs")
   "The full path of the `cvs' binary."
-  :type 'file
-  :group 'pcmpl-cvs)
+  :type 'file)
 
 ;; Functions:
 
@@ -139,7 +137,7 @@
   (let ((entries (pcmpl-cvs-entries opers))
 	tags)
     (with-temp-buffer
-      (apply 'call-process pcmpl-cvs-binary nil t nil
+      (apply #'call-process pcmpl-cvs-binary nil t nil
 	     "status" "-v" entries)
       (goto-char (point-min))
       (while (re-search-forward "Existing Tags:" nil t)
