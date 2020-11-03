@@ -5867,10 +5867,7 @@ RECURSIVE if DIRECTORY is nonempty."
       ;; case, where the operation fails in delete-directory-internal.
       ;; As `move-file-to-trash' trashes directories (empty or
       ;; otherwise) as a unit, we do not need to recurse here.
-      (if (and (not recursive)
-	       ;; Check if directory is empty apart from "." and "..".
-	       (directory-files
-		directory 'full directory-files-no-dot-files-regexp))
+      (if (not (or recursive (directory-empty-p directory)))
 	  (error "Directory is not empty, not moving to trash")
 	(move-file-to-trash directory)))
      ;; Otherwise, call ourselves recursively if needed.

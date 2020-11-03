@@ -1738,6 +1738,9 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (setcar item (expand-file-name (car item) directory)))
 	  (push item result)))
 
+      (when (natnump count)
+        (setq result (last result count)))
+
       (or (if nosort
 	      result
 	    (sort result (lambda (x y) (string< (car x) (car y)))))

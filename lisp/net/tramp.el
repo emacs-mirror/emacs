@@ -3145,7 +3145,7 @@ User is always nil."
    (lambda (x)
      (cons x (file-attributes
 	      (if full x (expand-file-name x directory)) id-format)))
-   (directory-files directory full match nosort count)))
+   (tramp-compat-directory-files directory full match nosort count)))
 
 (defun tramp-handle-dired-uncache (dir)
   "Like `dired-uncache' for Tramp files."
@@ -5346,9 +5346,7 @@ BODY is the backend specific code."
     (if (and delete-by-moving-to-trash ,trash)
 	;; Move non-empty dir to trash only if recursive deletion was
 	;; requested.
-	(if (and (not ,recursive)
-		 (directory-files
-		  ,directory nil directory-files-no-dot-files-regexp))
+	(if (not (or ,recursive (tramp-compat-directory-empty-p ,directory)))
 	    (tramp-error
 	     v 'file-error "Directory is not empty, not moving to trash")
 	  (move-file-to-trash ,directory))

@@ -2783,8 +2783,9 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
       (should-not (file-directory-p tmp-name1))
 
       ;; Trashing directories works only since Emacs 27.1.  It doesn't
-      ;; work for crypted remote directories.
-      (when (and (not (tramp--test-crypt-p)) (tramp--test-emacs27-p))
+      ;; work for crypted remote directories and for ange-ftp.
+      (when (and (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p))
+		 (tramp--test-emacs27-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -2925,7 +2926,15 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 			   '("bla" "foo")))
 	    (should (equal (directory-files
 			    tmp-name1 'full directory-files-no-dot-files-regexp)
-			   `(,tmp-name2 ,tmp-name3))))
+			   `(,tmp-name2 ,tmp-name3)))
+	    ;; Check the COUNT arg.  It exists since Emacs 28.
+	    (when (tramp--test-emacs28-p)
+	      (with-no-warnings
+		(should
+		 (= 1 (length
+		       (directory-files
+			tmp-name1 nil directory-files-no-dot-files-regexp
+			nil 1)))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
@@ -3443,7 +3452,13 @@ They might differ only in time attributes or directory size."
 		(file-attributes (car elt)) (cdr elt))))
 
 	    (setq attr (directory-files-and-attributes tmp-name2 nil "\\`b"))
-	    (should (equal (mapcar #'car attr) '("bar" "boz"))))
+	    (should (equal (mapcar #'car attr) '("bar" "boz")))
+
+	    ;; Check the COUNT arg.  It exists since Emacs 28.
+	    (when (tramp--test-emacs28-p)
+	      (with-no-warnings
+		(should (= 1 (length (directory-files-and-attributes
+				      tmp-name2 nil "\\`b" nil nil 1)))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))

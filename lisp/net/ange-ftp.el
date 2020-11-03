@@ -3536,20 +3536,22 @@ system TYPE.")
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
     (if parsed
-	(let* ((host (nth 0 parsed))
-	       (user (nth 1 parsed))
-	       (name (ange-ftp-quote-string (nth 2 parsed)))
-	       (abbr (ange-ftp-abbreviate-filename file))
-	       (result (ange-ftp-send-cmd host user
-					  (list 'delete name)
-					  (format "Deleting %s" abbr))))
-	  (or (car result)
-	      (signal 'ftp-error
-		      (list
-		       "Removing old name"
-		       (format "FTP Error: \"%s\"" (cdr result))
-		       file)))
-	  (ange-ftp-delete-file-entry file))
+        (if (and delete-by-moving-to-trash trash)
+	    (move-file-to-trash file)
+	  (let* ((host (nth 0 parsed))
+	         (user (nth 1 parsed))
+	         (name (ange-ftp-quote-string (nth 2 parsed)))
+	         (abbr (ange-ftp-abbreviate-filename file))
+	         (result (ange-ftp-send-cmd host user
+					    (list 'delete name)
+					    (format "Deleting %s" abbr))))
+	    (or (car result)
+	        (signal 'ftp-error
+		        (list
+		         "Removing old name"
+		         (format "FTP Error: \"%s\"" (cdr result))
+		         file)))
+	    (ange-ftp-delete-file-entry file)))
       (ange-ftp-real-delete-file file trash))))
 
 (defun ange-ftp-file-modtime (file)
@@ -4163,45 +4165,55 @@ directory, so that Emacs will know its current contents."
 
 (defun ange-ftp-delete-directory (dir &optional recursive trash)
   (if (file-directory-p dir)
-      (let ((parsed (ange-ftp-ftp-name dir)))
-	(if recursive
-	    (mapc
-	     (lambda (file)
-	       (if (file-directory-p file)
-		   (ange-ftp-delete-directory file recursive trash)
-		 (delete-file file trash)))
-	     (directory-files dir 'full directory-files-no-dot-files-regexp)))
-	(if parsed
-	    (let* ((host (nth 0 parsed))
-		   (user (nth 1 parsed))
-		   ;; Some ftp's on unix machines (at least on Suns)
-		   ;; insist that rmdir take a filename, and not a
-		   ;; directory-name name as an arg. Argh!! This is a bug.
-		   ;; Non-unix machines will probably always insist
-		   ;; that rmdir takes a directory-name as an arg
-		   ;; (as the ftp man page says it should).
-		   (name (ange-ftp-quote-string
-			  (if (eq (ange-ftp-host-type host) 'unix)
-			      (ange-ftp-real-directory-file-name
-			       (nth 2 parsed))
-			    (ange-ftp-real-file-name-as-directory
-			     (nth 2 parsed)))))
-		   (abbr (ange-ftp-abbreviate-filename dir))
-		   (result
-		    (progn
-		      ;; CWD must not in this directory.
-		      (ange-ftp-cd host user "/" 'noerror)
-		      (ange-ftp-send-cmd host user
-					 (list 'rmdir name)
-					 (format "Removing directory %s"
-						 abbr)))))
-	      (or (car result)
-		  (ange-ftp-error host user
-				  (format "Could not remove directory %s: %s"
-					  dir
-					  (cdr result))))
-	      (ange-ftp-delete-file-entry dir t))
-	  (ange-ftp-real-delete-directory dir recursive trash)))
+      ;; Trashing directories does not work yet, because
+      ;; `rename-file', called in `move-file-to-trash', does not
+      ;; handle directories.
+      (if nil ; (and delete-by-moving-to-trash trash)
+	  ;; Move non-empty dir to trash only if recursive deletion was
+	  ;; requested.
+	  (if (not (or recursive (directory-empty-p dir)))
+	      (signal 'ftp-error
+                      (list "Directory is not empty, not moving to trash"))
+	    (move-file-to-trash dir))
+        (let ((parsed (ange-ftp-ftp-name dir)))
+	  (if recursive
+	      (mapc
+	       (lambda (file)
+	         (if (file-directory-p file)
+		     (ange-ftp-delete-directory file recursive)
+		   (delete-file file)))
+	       (directory-files dir 'full directory-files-no-dot-files-regexp)))
+	  (if parsed
+	      (let* ((host (nth 0 parsed))
+		     (user (nth 1 parsed))
+		     ;; Some ftp's on unix machines (at least on Suns)
+		     ;; insist that rmdir take a filename, and not a
+		     ;; directory-name name as an arg. Argh!! This is a bug.
+		     ;; Non-unix machines will probably always insist
+		     ;; that rmdir takes a directory-name as an arg
+		     ;; (as the ftp man page says it should).
+		     (name (ange-ftp-quote-string
+			    (if (eq (ange-ftp-host-type host) 'unix)
+			        (ange-ftp-real-directory-file-name
+			         (nth 2 parsed))
+			      (ange-ftp-real-file-name-as-directory
+			       (nth 2 parsed)))))
+		     (abbr (ange-ftp-abbreviate-filename dir))
+		     (result
+		      (progn
+		        ;; CWD must not in this directory.
+		        (ange-ftp-cd host user "/" 'noerror)
+		        (ange-ftp-send-cmd host user
+					   (list 'rmdir name)
+					   (format "Removing directory %s"
+						   abbr)))))
+	        (or (car result)
+		    (ange-ftp-error host user
+				    (format "Could not remove directory %s: %s"
+					    dir
+					    (cdr result))))
+	        (ange-ftp-delete-file-entry dir t))
+	    (ange-ftp-real-delete-directory dir recursive trash))))
     (error "Not a directory: %s" dir)))
 
 ;; Make a local copy of FILE and return its name.

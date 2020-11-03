@@ -1088,7 +1088,7 @@ file names."
 		  (delete-file file)))
 	      (directory-files
 	       directory 'full directory-files-no-dot-files-regexp))
-      (when (directory-files directory nil directory-files-no-dot-files-regexp)
+      (unless (tramp-compat-directory-empty-p directory)
 	(tramp-error
 	 v 'file-error "Couldn't delete non-empty %s" directory)))
 
