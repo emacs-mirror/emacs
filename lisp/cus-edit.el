@@ -4021,7 +4021,7 @@ restoring it to the state of a face that has never been customized."
 
 (define-widget 'face 'symbol
   "A Lisp face name (with sample)."
-  :format "%f %{%t%}: (%{sample%}) %v"
+  :format "%{%t%}: %f (%{sample%}) %v"
   :tag "Face"
   :value 'default
   :sample-face-get 'widget-face-sample-face-get
