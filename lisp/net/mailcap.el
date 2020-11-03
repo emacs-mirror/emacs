@@ -175,11 +175,11 @@ is consulted."
       (type   . "application/zip")
       ("copiousoutput"))
      ("pdf"
-      (viewer . pdf-view-mode)
+      (viewer . doc-view-mode)
       (type . "application/pdf")
       (test . window-system))
      ("pdf"
-      (viewer . doc-view-mode)
+      (viewer . pdf-view-mode)
       (type . "application/pdf")
       (test . window-system))
      ("pdf"
@@ -330,7 +330,10 @@ Content-Type header as argument to return a boolean value for the
 validity.  Otherwise, if it is a non-function Lisp symbol or list
 whose car is a symbol, it is `eval'uated to yield the validity.  If it
 is a string or list of strings, it represents a shell command to run
-to return a true or false shell value for the validity.")
+to return a true or false shell value for the validity.
+
+The last matching entry in this structure takes presedence over
+preceding entries.")
 (put 'mailcap-mime-data 'risky-local-variable t)
 
 (defvar mailcap--computed-mime-data nil
