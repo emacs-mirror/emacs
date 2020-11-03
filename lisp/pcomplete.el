@@ -352,7 +352,7 @@ modified to be an empty string, or the desired separation string."
 (defvar pcomplete-show-list nil)
 (defvar pcomplete-expand-only-p nil)
 
-;; for the sake of the bye-compiler, when compiling other files that
+;; for the sake of the byte-compiler, when compiling other files that
 ;; contain completion functions
 (defvar pcomplete-args nil)
 (defvar pcomplete-begins nil)
