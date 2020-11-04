@@ -1007,18 +1007,17 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))
 	  (when (fboundp 'diff-mode)
-	    (make-local-variable 'compilation-finish-functions)
 	    (add-hook
 	     'compilation-finish-functions
-	     `(lambda (buff msg)
+	     (lambda (buff _msg)
 		(with-current-buffer buff
 		  (diff-mode)
-		  (set (make-local-variable 'eshell-diff-window-config)
-		       ,config)
-		  (local-set-key [?q] 'eshell-diff-quit)
+		  (set (make-local-variable 'eshell-diff-window-config) config)
+		  (local-set-key [?q] #'eshell-diff-quit)
 		  (if (fboundp 'turn-on-font-lock-if-enabled)
 		      (turn-on-font-lock-if-enabled))
-		  (goto-char (point-min))))))
+		  (goto-char (point-min))))
+	     nil t))
 	  (pop-to-buffer (current-buffer))))))
   nil)
 

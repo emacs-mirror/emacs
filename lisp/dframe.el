@@ -287,6 +287,9 @@ CREATE-HOOK is a hook to run after creating a frame."
       ;; Correct use of `temp-buffer-show-function': Bob Weiner
       (if (and (boundp 'temp-buffer-show-hook)
 	       (boundp 'temp-buffer-show-function))
+	  ;; FIXME: Doesn't this get us into an inf-loop when the
+          ;; `temp-buffer-show-function' runs `temp-buffer-show-hook'
+          ;; (as is normally the case)?
 	  (progn (make-local-variable 'temp-buffer-show-hook)
 		 (setq temp-buffer-show-hook temp-buffer-show-function)))
       (make-local-variable 'temp-buffer-show-function)

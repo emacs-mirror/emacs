@@ -2143,8 +2143,7 @@ Removes smb prompt.  Returns nil if an error message has appeared."
     "%s %s"
     tramp-smb-winexe-shell-command tramp-smb-winexe-shell-command-switch))
 
-  (set (make-local-variable 'kill-buffer-hook)
-       '(tramp-smb-kill-winexe-function))
+  (add-hook 'kill-buffer-hook #'tramp-smb-kill-winexe-function nil t)
 
   ;; Suppress "^M".  Shouldn't we specify utf8?
   (set-process-coding-system (tramp-get-connection-process vec) 'raw-text-dos)

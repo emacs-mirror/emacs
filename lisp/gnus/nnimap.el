@@ -365,7 +365,7 @@ textual parts.")
     (mm-disable-multibyte)
     (buffer-disable-undo)
     (gnus-add-buffer)
-    (set (make-local-variable 'after-change-functions) nil)
+    (set (make-local-variable 'after-change-functions) nil) ;FIXME: Why?
     (set (make-local-variable 'nnimap-object)
 	 (make-nnimap :server (nnoo-current-server 'nnimap)
 		      :initial-resync 0))
