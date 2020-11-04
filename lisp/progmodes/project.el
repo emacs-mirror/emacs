@@ -301,8 +301,8 @@ to find the list of ignores for each directory."
                                        (split-string files)
                                        (concat " -o " find-name-arg " "))
                                       " "
-                                      (shell-quote-argument ")"))"")
-                          )))
+                                      (shell-quote-argument ")"))
+                            ""))))
     (project--remote-file-names
      (sort (split-string (shell-command-to-string command) "\0" t)
            #'string<))))
