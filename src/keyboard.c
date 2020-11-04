@@ -7005,11 +7005,7 @@ tty_read_avail_input (struct terminal *terminal,
   if (gpm_tty == tty)
   {
       Gpm_Event event;
-      struct input_event gpm_hold_quit;
       int gpm, fd = gpm_fd;
-
-      EVENT_INIT (gpm_hold_quit);
-      gpm_hold_quit.kind = NO_EVENT;
 
       /* gpm==1 if event received.
          gpm==0 if the GPM daemon has closed the connection, in which case
@@ -7018,13 +7014,11 @@ tty_read_avail_input (struct terminal *terminal,
 		select masks.
          gpm==-1 if a protocol error or EWOULDBLOCK; the latter is normal.  */
       while (gpm = Gpm_GetEvent (&event), gpm == 1) {
-	  nread += handle_one_term_event (tty, &event, &gpm_hold_quit);
+	  nread += handle_one_term_event (tty, &event);
       }
       if (gpm == 0)
 	/* Presumably the GPM daemon has closed the connection.  */
 	close_gpm (fd);
-      if (gpm_hold_quit.kind != NO_EVENT)
-	  kbd_buffer_store_event (&gpm_hold_quit);
       if (nread)
 	  return nread;
   }

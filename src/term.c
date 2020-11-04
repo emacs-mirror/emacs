@@ -2550,67 +2550,63 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 }
 
 int
-handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event,
-		       struct input_event *hold_quit)
+handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
 {
   struct frame *f = XFRAME (tty->top_frame);
   struct input_event ie;
-  bool do_help = 0;
   int count = 0;
 
   EVENT_INIT (ie);
   ie.kind = NO_EVENT;
   ie.arg = Qnil;
 
-  if (event->type & (GPM_MOVE | GPM_DRAG)) {
-    previous_help_echo_string = help_echo_string;
-    help_echo_string = Qnil;
-
-    Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
-
-    if (!term_mouse_movement (f, event))
-      help_echo_string = previous_help_echo_string;
-
-    /* If the contents of the global variable help_echo_string
-       has changed, generate a HELP_EVENT.  */
-    if (!NILP (help_echo_string)
-	|| !NILP (previous_help_echo_string))
-      do_help = 1;
-
-    goto done;
-  }
-  else {
-    f->mouse_moved = 0;
-    term_mouse_click (&ie, event, f);
-    if (tty_handle_tab_bar_click (f, event->x, event->y,
-                                 (ie.modifiers & down_modifier) != 0, &ie))
-      {
-       /* tty_handle_tab_bar_click stores 2 events in the event
-          queue, so we are done here.  */
-       count += 2;
-       return count;
-      }
-  }
-
- done:
-  if (ie.kind != NO_EVENT)
+  if (event->type & (GPM_MOVE | GPM_DRAG))
     {
-      kbd_buffer_store_event_hold (&ie, hold_quit);
-      count++;
+      previous_help_echo_string = help_echo_string;
+      help_echo_string = Qnil;
+
+      Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
+
+      if (!term_mouse_movement (f, event))
+        help_echo_string = previous_help_echo_string;
+
+      /* If the contents of the global variable help_echo_string
+         has changed, generate a HELP_EVENT.  */
+      if (!NILP (help_echo_string)
+	  || !NILP (previous_help_echo_string))
+	{
+	  Lisp_Object frame;
+
+	  if (f)
+	    XSETFRAME (frame, f);
+	  else
+	    frame = Qnil;
+
+	  gen_help_event (help_echo_string, frame, help_echo_window,
+		          help_echo_object, help_echo_pos);
+	  count++;
+	}
     }
-
-  if (do_help
-      && !(hold_quit && hold_quit->kind != NO_EVENT))
+  else
     {
-      Lisp_Object frame;
-
-      if (f)
-	XSETFRAME (frame, f);
-      else
-	frame = Qnil;
-
-      gen_help_event (help_echo_string, frame, help_echo_window,
-		      help_echo_object, help_echo_pos);
+      f->mouse_moved = 0;
+      term_mouse_click (&ie, event, f);
+      /* eassert (ie.kind == GPM_CLICK_EVENT); */
+      if (tty_handle_tab_bar_click (f, event->x, event->y,
+                                    (ie.modifiers & down_modifier) != 0, &ie))
+        {
+          /* eassert (ie.kind == GPM_CLICK_EVENT
+           *          || ie.kind == TAB_BAR_EVENT); */
+          /* tty_handle_tab_bar_click stores 2 events in the event
+             queue, so we are done here.  */
+          /* FIXME: Actually, `tty_handle_tab_bar_click` returns true
+             without storing any events, when
+             (ie.modifiers & down_modifier) != 0  */
+          count += 2;
+          return count;
+        }
+      /* eassert (ie.kind == GPM_CLICK_EVENT); */
+      kbd_buffer_store_event (&ie);
       count++;
     }
 
