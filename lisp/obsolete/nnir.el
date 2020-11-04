@@ -12,6 +12,7 @@
 ;;   Justus Piater <Justus <at> Piater.name>
 ;; Mostly rewritten by Andrew Cohen <cohen@bu.edu> from 2010
 ;; Keywords: news mail searching ir
+;; Obsolete-since: 28.1
 
 ;; This file is part of GNU Emacs.
 
