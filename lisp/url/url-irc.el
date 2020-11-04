@@ -48,6 +48,8 @@ PASSWORD - What password to use"
 ;; External.
 (declare-function zenirc "ext:zenirc" (&optional prefix))
 (declare-function zenirc-send-line "ext:zenirc" ())
+(defvar zenirc-server-alist)
+(defvar zenirc-buffer-name)
 
 (defun url-irc-zenirc (host port channel user password)
   (let ((zenirc-buffer-name (if (and user host port)
@@ -65,7 +67,7 @@ PASSWORD - What password to use"
 
 (defun url-irc-rcirc (host port channel user password)
   (let ((chan (when channel (concat "#" channel))))
-    (rcirc-connect host port user nil nil (when chan (list chan)))
+    (rcirc-connect host port user nil nil (when chan (list chan)) password)
     (when chan
       (switch-to-buffer (concat chan "@" host)))))
 
