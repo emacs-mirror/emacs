@@ -579,7 +579,7 @@ buffer.  @xref{Follow Mode}.
 @findex windmove-default-keybindings
 @findex windmove-display-default-keybindings
 @findex windmove-delete-default-keybindings
-@findex windmove-swap-states-in-direction
+@findex windmove-swap-states-default-keybindings
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
@@ -593,7 +593,7 @@ keybindings for commands that specify in what direction to display the
 window for the buffer that the next command is going to display.
 Also there is @w{@kbd{M-x windmove-delete-default-keybindings}} to
 define keybindings for commands that delete windows directionally, and
-@w{@kbd{M-x windmove-swap-states-in-direction}} that define
+@w{@kbd{M-x windmove-swap-states-default-keybindings}} that defines
 keybindings for commands that swap the window contents of the selected
 window with the window in the specified direction.
 
