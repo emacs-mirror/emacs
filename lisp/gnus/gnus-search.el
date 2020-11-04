@@ -810,31 +810,27 @@ the files in ARTLIST by that search key.")
     :documentation
     "Can this search engine handle the FUZZY search capability?
     This slot is set automatically by the imap server, and cannot
-    be set manually.  Currently only partially implemented."))
+    be set manually.  Currently only partially implemented.")
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-imap-raw-queries-p)))
     :documentation
   "The base IMAP search engine, using an IMAP server's search capabilites.
-
 This backend may be subclassed to handle particular IMAP servers'
 quirks.")
-
-(eieio-oset-default 'gnus-search-imap 'raw-queries-p
-		    gnus-search-imap-raw-queries-p)
 
 (defclass gnus-search-find-grep (gnus-search-engine
 				 gnus-search-process
 				 gnus-search-grep)
   nil)
 
-;;; The "indexed" search engine.  These are engines that use an
-;;; external program, with indexes kept on disk, to search messages
-;;; usually kept in some local directory.  The three common slots are
-;;; "program", holding the string name of the executable; "switches",
-;;; holding additional switches to pass to the executable; and
-;;; "prefix", which is sort of the path to the found messages which
-;;; should be removed so that Gnus can find them.  Many of the
-;;; subclasses also allow distinguishing multiple databases or
-;;; indexes.  These slots can be set using a global default, or on a
-;;; per-server basis.
+;;; The "indexed" search engine.
+
+;; These are engines that use an external program, with indexes kept
+;; on disk, to search messages usually kept in some local directory.
+;; They have several slots in common, for instance program name or
+;; configuration file.  Many of the subclasses also allow
+;; distinguishing multiple databases or indexes.  These slots can be
+;; set using a global default, or on a per-server basis.
 
 (defclass gnus-search-indexed (gnus-search-engine
 			       gnus-search-process
@@ -851,10 +847,11 @@ quirks.")
     :documentation "Location of the config file, if any.")
    (remove-prefix
     :initarg :remove-prefix
+    :initform (concat (getenv "HOME") "/Mail/")
     :type string
     :documentation
     "The path to the directory where the indexed mails are
-    kept. This path is removed from the search results.")
+    kept.  This path is removed from the search results.")
    (switches
     :initarg :switches
     :type list
@@ -866,103 +863,69 @@ quirks.")
   :documentation "A base search engine class that assumes a local search index
   accessed by a command line program.")
 
-(eieio-oset-default 'gnus-search-indexed 'remove-prefix
-		    (concat (getenv "HOME") "/Mail/"))
-
 (defclass gnus-search-swish-e (gnus-search-indexed)
   ((index-files
     :init-arg :index-files
-    :type list)))
-
-(eieio-oset-default 'gnus-search-swish-e 'program
-		    gnus-search-swish-e-program)
-
-(eieio-oset-default 'gnus-search-swish-e 'remove-prefix
-		    gnus-search-swish-e-remove-prefix)
-
-(eieio-oset-default 'gnus-search-swish-e 'index-files
-		    gnus-search-swish-e-index-files)
-
-(eieio-oset-default 'gnus-search-swish-e 'switches
-		    gnus-search-swish-e-switches)
-
-(eieio-oset-default 'gnus-search-swish-e 'raw-queries-p
-		    gnus-search-swish-e-raw-queries-p)
+    :initform (symbol-value 'gnus-search-swish-e-index-files)
+    :type list)
+   (program
+    :initform (symbol-value 'gnus-search-swish-e-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-swish-e-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-swish-e-switches))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-swish-e-raw-queries-p))))
 
 (defclass gnus-search-swish++ (gnus-search-indexed)
-  nil)
-
-(eieio-oset-default 'gnus-search-swish++ 'program
-		    gnus-search-swish++-program)
-
-(eieio-oset-default 'gnus-search-swish++ 'remove-prefix
-		    gnus-search-swish++-remove-prefix)
-
-(eieio-oset-default 'gnus-search-swish++ 'config-file
-		    gnus-search-swish++-config-file)
-
-(eieio-oset-default 'gnus-search-swish++ 'switches
-		    gnus-search-swish++-switches)
-
-(eieio-oset-default 'gnus-search-swish++ 'raw-queries-p
-		    gnus-search-swish++-raw-queries-p)
+  ((program
+    :initform (symbol-value 'gnus-search-swish++-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-swish++-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-swish++-switches))
+   (config-file
+    :initform (symbol-value 'gnus-search-swish++-config-file))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-swish++-raw-queries-p))))
 
 (defclass gnus-search-mairix (gnus-search-indexed)
-  nil)
-
-(eieio-oset-default 'gnus-search-mairix 'program
-		    gnus-search-mairix-program)
-
-(eieio-oset-default 'gnus-search-mairix 'switches
-		    gnus-search-mairix-switches)
-
-(eieio-oset-default 'gnus-search-mairix 'remove-prefix
-		    gnus-search-mairix-remove-prefix)
-
-(eieio-oset-default 'gnus-search-mairix 'config-file
-		    gnus-search-mairix-config-file)
-
-(eieio-oset-default 'gnus-search-mairix 'raw-queries-p
-		    gnus-search-mairix-raw-queries-p)
+  ((program
+    :initform (symbol-value 'gnus-search-mairix-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-mairix-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-mairix-switches))
+   (config-file
+    :initform (symbol-value 'gnus-search-mairix-config-file))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-mairix-raw-queries-p))))
 
 (defclass gnus-search-namazu (gnus-search-indexed)
   ((index-directory
     :initarg :index-directory
     :type string
-    :custom directory)))
-
-(eieio-oset-default 'gnus-search-namazu 'program
-		    gnus-search-namazu-program)
-
-(eieio-oset-default 'gnus-search-namazu 'index-directory
-		    gnus-search-namazu-index-directory)
-
-(eieio-oset-default 'gnus-search-namazu 'switches
-		    gnus-search-namazu-switches)
-
-(eieio-oset-default 'gnus-search-namazu 'remove-prefix
-		    gnus-search-namazu-remove-prefix)
-
-(eieio-oset-default 'gnus-search-namazu 'raw-queries-p
-		    gnus-search-namazu-raw-queries-p)
+    :custom directory)
+   (program
+    :initform (symbol-value 'gnus-search-namazu-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-namazu-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-namazu-switches))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-namazu-raw-queries-p))))
 
 (defclass gnus-search-notmuch (gnus-search-indexed)
-  nil)
-
-(eieio-oset-default 'gnus-search-notmuch 'program
-		    gnus-search-notmuch-program)
-
-(eieio-oset-default 'gnus-search-notmuch 'switches
-		    gnus-search-notmuch-switches)
-
-(eieio-oset-default 'gnus-search-notmuch 'remove-prefix
-		    gnus-search-notmuch-remove-prefix)
-
-(eieio-oset-default 'gnus-search-notmuch 'config-file
-		    gnus-search-notmuch-config-file)
-
-(eieio-oset-default 'gnus-search-notmuch 'raw-queries-p
-		    gnus-search-notmuch-raw-queries-p)
+  ((program
+    :initform (symbol-value 'gnus-search-notmuch-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-notmuch-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-notmuch-switches))
+   (config-file
+    :initform (symbol-value 'gnus-search-notmuch-config-file))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-notmuch-raw-queries-p))))
 
 (define-obsolete-variable-alias 'nnir-method-default-engines
   'gnus-search-default-engines "28.1")
