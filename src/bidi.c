@@ -1458,6 +1458,11 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
   else
     start_re = paragraph_start_re;
 
+  /* Prevent quitting inside re_match_2, as redisplay_window could
+     have temporarily moved point.  */
+  ptrdiff_t count = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+
   val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
   if (val < 0)
     {
@@ -1467,6 +1472,7 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
 	val = -2;
     }
 
+  unbind_to (count, Qnil);
   return val;
 }
 
@@ -1542,6 +1548,11 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   if (cache_buffer->base_buffer)
     cache_buffer = cache_buffer->base_buffer;
 
+  /* Prevent quitting inside re_match_2, as redisplay_window could
+     have temporarily moved point.  */
+  ptrdiff_t count = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+
   while (pos_byte > BEGV_BYTE
 	 && n++ < MAX_PARAGRAPH_SEARCH
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
@@ -1559,6 +1570,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
       else
 	pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
     }
+  unbind_to (count, Qnil);
   if (n >= MAX_PARAGRAPH_SEARCH)
     pos = BEGV, pos_byte = BEGV_BYTE;
   if (bpc)
