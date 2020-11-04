@@ -685,9 +685,7 @@ Otherwise returns the library directory name, if that is defined."
       (setq status (ispell-call-process
 		    ispell-program-name nil t nil
 		    (let ((case-fold-search
-			   (memq system-type '(ms-dos windows-nt)))
-			  (speller
-			   (file-name-nondirectory ispell-program-name)))
+			   (memq system-type '(ms-dos windows-nt))))
 		      "-vv")))
       (goto-char (point-min))
       (if interactivep
