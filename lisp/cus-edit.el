@@ -730,47 +730,85 @@ groups after non-groups, if nil do not order groups at all."
 ;; `custom-buffer-create-internal' if `custom-buffer-verbose-help' is non-nil.
 
 (defvar custom-commands
-  '((" Apply " Custom-set t
-     "Apply settings (for the current session only)."
-     "index"
-     "Apply")
-    (" Apply and Save " Custom-save
-     (or custom-file user-init-file)
-     "Apply settings and save for future sessions."
-     "save"
-     "Save")
+  '((" Apply " Custom-set t "Apply settings (for the current session only)."
+     "index" "Apply" (modified))
+    (" Apply and Save " Custom-save (or custom-file user-init-file)
+     "Apply settings and save for future sessions." "save" "Save"
+     (modified set changed rogue))
     (" Undo Edits " Custom-reset-current t
      "Restore customization buffer to reflect existing settings."
-     "refresh"
-     "Undo")
+     "refresh" "Undo" (modified))
     (" Reset Customizations " Custom-reset-saved t
-     "Undo any settings applied only for the current session."
-     "undo"
-     "Reset")
+     "Undo any settings applied only for the current session." "undo" "Reset"
+     (modified set changed rogue))
     (" Erase Customizations " Custom-reset-standard
      (or custom-file user-init-file)
-     "Un-customize settings in this and future sessions."
-     "delete"
-     "Uncustomize")
-    (" Help for Customize " Custom-help t
-     "Get help for using Customize."
-     "help"
-     "Help")
-    (" Exit " Custom-buffer-done t "Exit Customize." "exit" "Exit")))
+     "Un-customize settings in this and future sessions." "delete" "Uncustomize"
+     (modified set changed rogue saved))
+    (" Help for Customize " Custom-help t "Get help for using Customize."
+     "help" "Help" t)
+    (" Exit " Custom-buffer-done t "Exit Customize." "exit" "Exit" t))
+  "Alist of specifications for Customize menu items, tool bar icons and buttons.
+Each member has the format (TAG COMMAND VISIBLE HELP ICON LABEL ENABLE).
+TAG is a string, used as the :tag property of a widget.
+COMMAND is the command that the item or button runs.
+VISIBLE should be a form, suitable to pass as the :visible property for menu
+or tool bar items.
+HELP should be a string that can be used as the help echo property for tooltips
+and the like.
+ICON is a string that names the image to use for the tool bar item, like in the
+first argument of `tool-bar-local-item'.
+LABEL should be a string, used as the name of the menu items.
+ENABLE should be a list of custom states or t.  When ENABLE is t, the item is
+always enabled.  Otherwise, it is enabled only if at least one option displayed
+in the Custom buffer is in a state present in ENABLE.")
+
+(defvar-local custom-command-buttons nil
+  "A list that holds the buttons that act on all settings in a Custom buffer.
+`custom-buffer-create-internal' adds the buttons to this list.
+Changes in the state of the custom options should notify the buttons via the
+:notify property, so buttons can be enabled/disabled correctly at all times.")
 
 (defun Custom-help ()
   "Read the node on Easy Customization in the Emacs manual."
   (interactive)
   (info "(emacs)Easy Customization"))
 
-(defvar custom-reset-menu
-  '(("Undo Edits in Customization Buffer" . Custom-reset-current)
-    ("Revert This Session's Customizations" . Custom-reset-saved)
-    ("Erase Customizations" . Custom-reset-standard))
-  "Alist of actions for the `Reset' button.
+(defvar custom-reset-menu nil
+  "If non-nil, an alist of actions for the `Reset' button.
+
+This variable is kept for backward compatibility reasons, please use
+`custom-reset-extended-menu' instead.
+
 The key is a string containing the name of the action, the value is a
 Lisp function taking the widget as an element which will be called
 when the action is chosen.")
+
+(defvar custom-reset-extended-menu
+  (let ((map (make-sparse-keymap)))
+    (define-key-after map [Custom-reset-current]
+      '(menu-item "Undo Edits in Customization Buffer" Custom-reset-current
+                  :enable (seq-some (lambda (option)
+                                      (eq (widget-get option :custom-state)
+                                          'modified))
+                                    custom-options)))
+    (define-key-after map [Custom-reset-saved]
+      '(menu-item "Revert This Session's Customizations" Custom-reset-saved
+                  :enable (seq-some (lambda (option)
+                                      (memq (widget-get option :custom-state)
+                                          '(modified set changed rogue)))
+                                    custom-options)))
+    (when (or custom-file user-init-file)
+      (define-key-after map [Custom-reset-standard]
+        '(menu-item "Erase Customizations" Custom-reset-standard
+                    :enable (seq-some
+                             (lambda (option)
+                               (memq (widget-get option :custom-state)
+                                     '(modified set changed rogue saved)))
+                             custom-options))))
+    map)
+  "A menu for the \"Revert...\" button.
+Used in `custom-reset' to show a menu to the user.")
 
 (defvar custom-options nil
   "Customization widgets in the current buffer.")
@@ -821,7 +859,8 @@ setting was merely edited before, this sets it then saves it."
   "Select item from reset menu."
   (let* ((completion-ignore-case t)
 	 (answer (widget-choose "Reset settings"
-				custom-reset-menu
+                                (or custom-reset-menu
+                                    custom-reset-extended-menu)
 				event)))
     (if answer
 	(funcall answer))))
@@ -1555,7 +1594,10 @@ that option.
 DESCRIPTION is unused."
   (pop-to-buffer-same-window
    (custom-get-fresh-buffer (or name "*Customization*")))
-  (custom-buffer-create-internal options))
+  (custom-buffer-create-internal options)
+  ;; Notify the command buttons, to correctly enable/disable them.
+  (dolist (btn custom-command-buttons)
+    (widget-apply btn :notify)))
 
 ;;;###autoload
 (defun custom-buffer-create-other-window (options &optional name _description)
@@ -1672,11 +1714,24 @@ or a regular expression.")
     (if custom-buffer-verbose-help
 	(widget-insert "
 Operate on all settings in this buffer:\n"))
-    (let ((button (lambda (tag action active help _icon _label)
+    (let ((button (lambda (tag action visible help _icon _label active)
 		    (widget-insert " ")
-		    (if (eval active)
-			(widget-create 'push-button :tag tag
-				       :help-echo help :action action))))
+                    (if (eval visible)
+                        (push (widget-create
+                               'push-button :tag tag
+                               :help-echo help :action action
+                               :notify
+                               (lambda (widget)
+                                 (when (listp active)
+                                   (if (seq-some
+                                        (lambda (widget)
+                                          (memq
+                                           (widget-get widget :custom-state)
+                                           active))
+                                        custom-options)
+                                       (widget-apply widget :activate)
+                                     (widget-apply widget :deactivate)))))
+                              custom-command-buttons))))
 	  (commands custom-commands))
       (if custom-reset-button-menu
 	  (progn
@@ -2215,7 +2270,11 @@ and `face'."
   (let ((state (widget-get widget :custom-state)))
     (unless (eq state 'modified)
       (unless (memq state '(nil unknown hidden))
-	(widget-put widget :custom-state 'modified))
+	(widget-put widget :custom-state 'modified)
+        ;; Tell our buttons and the tool bar that we changed the widget's state.
+        (force-mode-line-update)
+        (dolist (btn custom-command-buttons)
+          (widget-apply btn :notify)))
       ;; Update the status text (usually from "STANDARD" to "EDITED
       ;; bla bla" in the buffer after the command has run.  Otherwise
       ;; commands like `M-u' (that work on a region in the buffer)
@@ -2254,7 +2313,10 @@ and `face'."
 	       (custom-group-state-update widget)))
 	    (t
 	     (setq widget nil)))))
-  (widget-setup))
+  (widget-setup)
+  (force-mode-line-update)
+  (dolist (btn custom-command-buttons)
+    (widget-apply btn :notify)))
 
 (defun custom-show (widget value)
   "Non-nil if WIDGET should be shown with VALUE by default."
@@ -4945,9 +5007,19 @@ The format is suitable for use with `easy-menu-define'."
 	 (mapcar (lambda (arg)
 		   (let ((tag     (nth 0 arg))
 			 (command (nth 1 arg))
-			 (active  (nth 2 arg))
-			 (help    (nth 3 arg)))
-		     (vector tag command :active (eval active) :help help)))
+                         (visible (nth 2 arg))
+                         (help    (nth 3 arg))
+                         (active  (nth 6 arg)))
+                     (vector tag command :visible (eval visible)
+                             :active
+                             `(or (eq t ',active)
+                                  (seq-some ,(lambda (widget)
+                                               (memq
+                                                (widget-get widget
+                                                            :custom-state)
+                                                active))
+                                            custom-options))
+                             :help help)))
 		 custom-commands)))
 
 (defvar tool-bar-map)
