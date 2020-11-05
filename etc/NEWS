@@ -89,6 +89,17 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 
 +++
+** Improved handling of minibuffers on switching frames.
+By default, an active minibuffer now moves to a newly selected frame.
+When continuing the current command (by completing the minibuffer
+action), the effect happens in the frame where the minibuffer was
+first opened.  An alternative behavior is available by customizing
+'minibuffer-follows-selected-frame' to nil.  Here, the minibuffer
+stays in the frame where you first opened it, and you must switch back
+to this frame to continue or abort its command.  The old, somewhat
+unsystematic behavior is no longer available.
+
++++
 ** New system for displaying documentation for groups of functions.
 This can either be used by saying 'M-x shortdoc-display-group' and
 choosing a group, or clicking a button in the *Help* buffers when

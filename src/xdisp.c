@@ -31224,7 +31224,9 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     {
       *active_cursor = false;
 
-      if (MINI_WINDOW_P (w) && minibuf_level == 0)
+      if (MINI_WINDOW_P (w) &&
+          (minibuf_level == 0
+           || is_minibuffer (0, w->contents)))
 	return NO_CURSOR;
 
       non_selected = true;
