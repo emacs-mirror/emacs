@@ -682,37 +682,25 @@ default_to_grave_quoting_style (void)
 	  && EQ (AREF (dv, 0), make_fixnum ('`')));
 }
 
-/* Return the current effective text quoting style.  */
-enum text_quoting_style
-text_quoting_style (void)
-{
-  if (NILP (Vtext_quoting_style)
-      ? default_to_grave_quoting_style ()
-      : EQ (Vtext_quoting_style, Qgrave))
-    return GRAVE_QUOTING_STYLE;
-  else if (EQ (Vtext_quoting_style, Qstraight))
-    return STRAIGHT_QUOTING_STYLE;
-  else
-    return CURVE_QUOTING_STYLE;
-}
-
-/* This is just a Lisp wrapper for text_quoting_style above.  */
-DEFUN ("get-quoting-style", Fget_quoting_style,
-       Sget_quoting_style, 0, 0, 0,
+DEFUN ("text-quoting-style", Ftext_quoting_style,
+       Stext_quoting_style, 0, 0, 0,
        doc: /* Return the current effective text quoting style.
 See variable `text-quoting-style'.  */)
   (void)
 {
-  switch (text_quoting_style ())
-    {
-    case STRAIGHT_QUOTING_STYLE:
-      return Qstraight;
-    case CURVE_QUOTING_STYLE:
-      return Qcurve;
-    case GRAVE_QUOTING_STYLE:
-    default:
-      return Qgrave;
-    }
+  /* Use grave accent and apostrophe `like this'.  */
+  if (NILP (Vtext_quoting_style)
+      ? default_to_grave_quoting_style ()
+      : EQ (Vtext_quoting_style, Qgrave))
+    return Qgrave;
+
+  /* Use apostrophes 'like this'.  */
+  else if (EQ (Vtext_quoting_style, Qstraight))
+    return Qstraight;
+
+  /* Use curved single quotes ‘like this’.  */
+  else
+    return Qcurve;
 }
 
 
@@ -755,5 +743,5 @@ otherwise.  */);
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
-  defsubr (&Sget_quoting_style);
+  defsubr (&Stext_quoting_style);
 }

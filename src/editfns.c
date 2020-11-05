@@ -3154,7 +3154,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
     if (STRINGP (args[i]) && STRING_MULTIBYTE (args[i]))
       multibyte = true;
 
-  int quoting_style = message ? text_quoting_style () : -1;
+  Lisp_Object quoting_style = message ? Ftext_quoting_style () : Qnil;
 
   ptrdiff_t ispec;
   ptrdiff_t nspec = 0;
@@ -3774,7 +3774,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 
 	  if ((format_char == '`' || format_char == '\'')
-	      && quoting_style == CURVE_QUOTING_STYLE)
+	      && EQ (quoting_style, Qcurve))
 	    {
 	      if (! multibyte)
 		{
@@ -3785,7 +3785,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      convbytes = 3;
 	      new_result = true;
 	    }
-	  else if (format_char == '`' && quoting_style == STRAIGHT_QUOTING_STYLE)
+	  else if (format_char == '`' && EQ (quoting_style, Qstraight))
 	    {
 	      convsrc = "'";
 	      new_result = true;

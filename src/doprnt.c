@@ -199,7 +199,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   /* Buffer we have got with malloc.  */
   char *big_buffer = NULL;
 
-  enum text_quoting_style quoting_style = text_quoting_style ();
+  Lisp_Object quoting_style = Ftext_quoting_style ();
 
   bufsize--;
 
@@ -482,13 +482,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
       char const *src;
       ptrdiff_t srclen;
-      if (quoting_style == CURVE_QUOTING_STYLE && fmtchar == '`')
+      if (EQ (quoting_style, Qcurve) && fmtchar == '`')
 	src = uLSQM, srclen = sizeof uLSQM - 1;
-      else if (quoting_style == CURVE_QUOTING_STYLE && fmtchar == '\'')
+      else if (EQ (quoting_style, Qcurve) && fmtchar == '\'')
 	src = uRSQM, srclen = sizeof uRSQM - 1;
       else
 	{
-	  if (quoting_style == STRAIGHT_QUOTING_STYLE && fmtchar == '`')
+	  if (EQ (quoting_style, Qstraight) && fmtchar == '`')
 	    fmtchar = '\'';
 	  eassert (ASCII_CHAR_P (fmtchar));
 	  *bufptr++ = fmtchar;
