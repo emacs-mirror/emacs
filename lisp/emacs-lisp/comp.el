@@ -2249,7 +2249,8 @@ Forward propagate immediate involed in assignments."
                  (consts (mapcar #'comp-mvar-constant rest))
                  (x (car consts))
                  (equals (cl-every (lambda (y) (equal x y)) consts)))
-       (setf (comp-mvar-constant lval) x))
+       (setf (comp-mvar-const-vld lval) t
+             (comp-mvar-constant lval) x))
      ;; Forward type propagation.
      ;; FIXME: checking for type equality is not sufficient cause does not
      ;; account type hierarchy!
