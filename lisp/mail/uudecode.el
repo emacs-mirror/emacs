@@ -162,12 +162,10 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	      (setq counter (1+ counter)
 		    inputpos (1+ inputpos))
 	      (cond ((= counter 4)
-		     (setq result (cons
-				   (concat
-				    (char-to-string (ash bits -16))
-				    (char-to-string (logand (ash bits -8) 255))
-				    (char-to-string (logand bits 255)))
-				   result))
+		     (setq result (cons (logand bits 255)
+					(cons (logand (ash bits -8) 255)
+					      (cons (ash bits -16)
+						    result))))
 		     (setq bits 0 counter 0))
 		    (t (setq bits (ash bits 6)))))))
 	  (cond
@@ -179,26 +177,26 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	    ;;(error "uucode ends unexpectedly")
 	    (setq done t))
 	   ((= counter 3)
-	    (setq result (cons
-			  (concat
-			   (char-to-string (logand (ash bits -16) 255))
-			   (char-to-string (logand (ash bits -8) 255)))
-			  result)))
+	    (setq result (cons (logand (ash bits -8) 255)
+			       (cons (logand (ash bits -16) 255)
+				     result))))
 	   ((= counter 2)
-	    (setq result (cons
-			  (char-to-string (logand (ash bits -10) 255))
-			  result))))
+	    (setq result (cons (logand (ash bits -10) 255)
+			       result))))
 	  (skip-chars-forward non-data-chars end))
 	(if file-name
             (with-temp-file file-name
               (set-buffer-multibyte nil)
-              (insert (apply #'concat (nreverse result))))
+              (apply #'insert (nreverse result)))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
-	  (if enable-multibyte-characters
-	      (dolist (x (nreverse result))
-                (insert (decode-coding-string x 'binary)))
-	    (insert (apply #'concat (nreverse result))))
+          (apply #'insert
+                 (nreverse
+                  (if enable-multibyte-characters
+                      (mapcar (lambda (ch)
+                                (or (decode-char 'eight-bit ch) ch))
+                              result)
+                    result)))
 	  (delete-region (point) end))))))
 
 ;;;###autoload
