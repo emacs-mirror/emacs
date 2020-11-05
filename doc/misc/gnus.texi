@@ -17937,7 +17937,7 @@ find all message that have been received recently from certain groups:
           (cons 'criteria "")))
         (group-spec (cadr args)))
     (gnus-search-run-query (list (cons 'search-query-spec query-spec)
-                                 (cons 'search-group-spec group-spec))))))
+                                 (cons 'search-group-spec group-spec)))))
 @end lisp
 
 Then the following @code{nnselect-specs}:
