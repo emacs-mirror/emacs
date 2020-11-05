@@ -74,10 +74,6 @@
 ;; need a completely separate top-level command, since we wouldn't be
 ;; creating a group at all.
 
-;; TODO: Do better with handling message size searches.  Make sure
-;; we're providing for the usual shorthands (kb, M, etc), and that all
-;; the engines handle it properly.
-
 ;;; Code:
 
 (require 'gnus-group)
@@ -133,6 +129,10 @@ transformed."
   :version "24.1"
   :type 'regexp
   :group 'gnus-search)
+
+(make-obsolete-variable
+ 'nnir-imap-default-search-key
+ "specify imap search keys, or use parsed queries." "28.1")
 
 ;; Engine-specific configuration options.
 
@@ -930,11 +930,11 @@ quirks.")
 (define-obsolete-variable-alias 'nnir-method-default-engines
   'gnus-search-default-engines "28.1")
 
-(defcustom gnus-search-default-engines '((nnimap gnus-search-imap))
+(defcustom gnus-search-default-engines '((nnimap . gnus-search-imap))
   "Alist of default search engines keyed by server method."
   :version "26.1"
   :group 'gnus-search
-  :type `(repeat (list (choice (const nnimap) (const nntp) (const nnspool)
+  :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
 			       (const nnfolder) (const nnmaildir))
@@ -1168,7 +1168,21 @@ means (usually the \"mark\" keyword)."
     (cl-case (car expr)
       (date (setcar expr 'on))
       (tag (setcar expr 'keyword))
-      (sender (setcar expr 'from)))
+      (sender (setcar expr 'from))
+      (attachment (setcar expr 'body)))
+    ;; Allow sizes specified as KB or MB.
+    (let ((case-fold-search t)
+	  unit)
+      (when (and (memq (car expr) '(larger smaller))
+		 (string-match "\\(kb?\\|mb?\\)\\'" (cdr expr)))
+	(setq unit (match-string 1 (cdr expr)))
+	(setcdr expr
+		(number-to-string
+		 (* (string-to-number
+		     (string-replace unit "" (cdr expr)))
+		    (if (string-prefix-p "k" unit)
+			1024
+		      1048576))))))
     (cond
      ((consp (car expr))
       (format "(%s)" (gnus-search-transform engine expr)))
@@ -1176,14 +1190,14 @@ means (usually the \"mark\" keyword)."
       (gnus-search-transform
        engine (gnus-search-parse-query
 	       (format
-	       "to:%s or cc:%s or bcc:%s"
-	       (cdr expr) (cdr expr) (cdr expr)))))
+		"to:%s or cc:%s or bcc:%s"
+		(cdr expr) (cdr expr) (cdr expr)))))
      ((eq (car expr) 'address)
       (gnus-search-transform
        engine (gnus-search-parse-query
 	       (format
-	       "from:%s or to:%s or cc:%s or bcc:%s"
-	       (cdr expr) (cdr expr) (cdr expr) (cdr expr)))))
+		"from:%s or to:%s or cc:%s or bcc:%s"
+		(cdr expr) (cdr expr) (cdr expr) (cdr expr)))))
      ((memq (car expr) '(before since on sentbefore senton sentsince))
       ;; Ignore dates given as strings.
       (when (listp (cdr expr))
@@ -1949,28 +1963,32 @@ remaining string, then adds all that to the top-level spec."
 ;; server.
 (defun gnus-search-server-to-engine (srv)
   (let* ((method (gnus-server-to-method srv))
+	 (engine-config (assoc 'gnus-search-engine (cddr method)))
 	 (server
-	  (or (assoc 'gnus-search-engine (cddr method))
-	      (assoc (car method) gnus-search-default-engines)
+	  (or (nth 1 engine-config)
+	      (cdr-safe (assoc (car method) gnus-search-default-engines))
 	      (when-let ((old (assoc 'nnir-search-engine
 				     (cddr method))))
 		(nnheader-message
 		 8 "\"nnir-search-engine\" is no longer a valid parameter")
-		(pcase old
+		(pcase (nth 1 old)
 		  ('notmuch 'gnus-search-notmuch)
 		  ('namazu 'gnus-search-namazu)
 		  ('find-grep 'gnus-search-find-grep)))))
 	 (inst
 	  (cond
 	   ((null server) nil)
-	   ((eieio-object-p (cadr server))
-	    (cadr server))
-	   ((class-p (cadr server))
-	    (make-instance (cadr server)))
+	   ((eieio-object-p server)
+	    server)
+	   ((class-p server)
+	    (make-instance server))
 	   (t nil))))
     (if inst
-	(when (cddr server)
-	  (pcase-dolist (`(,key ,value) (cddr server))
+	(when (cddr engine-config)
+	  ;; We're not being completely backward-compatible here,
+	  ;; because we're not checking for nnir-specific config
+	  ;; options in the server definition.
+	  (pcase-dolist (`(,key ,value) (cddr engine-config))
 	    (condition-case nil
 		(setf (slot-value inst key) value)
 	      ((invalid-slot-name invalid-slot-type)
