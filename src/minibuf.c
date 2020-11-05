@@ -142,7 +142,7 @@ void move_minibuffer_onto_frame (void)
 
       set_window_buffer (sf->minibuffer_window, buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
-      if (XWINDOW (minibuf_window)->frame == selected_frame)
+      if (EQ (XWINDOW (minibuf_window)->frame, selected_frame))
         /* The minibuffer might be on another frame. */
         Fset_frame_selected_window (selected_frame, sf->minibuffer_window,
                                     Qnil);
