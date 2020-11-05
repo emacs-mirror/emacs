@@ -132,7 +132,7 @@ been set up by `rfn-eshadow-setup-minibuffer'."
   ;; Use `path-separator' as it does eshell.
   (setq eshell-path-env
 	(mapconcat
-	 #'identity (butlast (tramp-compat-exec-path)) path-separator)))
+	 #'identity (nbutlast (tramp-compat-exec-path)) path-separator)))
 
 (with-eval-after-load 'esh-util
   (add-hook 'eshell-mode-hook

@@ -668,7 +668,8 @@ absolute file names."
     (let (tramp-crypt-enabled)
       (delete-file (tramp-crypt-encrypt-file-name filename)))))
 
-(defun tramp-crypt-handle-directory-files (directory &optional full match nosort)
+(defun tramp-crypt-handle-directory-files
+    (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -697,7 +698,11 @@ absolute file names."
 		 (replace-regexp-in-string
 		  (concat "^" (regexp-quote directory)) "" x))
 	       result)))
-      (if nosort result (sort result #'string<)))))
+      (unless nosort
+        (setq result (sort result #'string<)))
+      (when (and (natnump count) (> count 0))
+	(setq result (nbutlast result (- (length result) count))))
+      result)))
 
 (defun tramp-crypt-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

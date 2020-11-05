@@ -289,16 +289,16 @@ file names."
     (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name directory) nil
-    (delete-directory (tramp-rclone-local-file-name directory) recursive trash)
     (tramp-flush-directory-properties v localname)
-    (tramp-rclone-flush-directory-cache v)))
+    (tramp-rclone-flush-directory-cache v)
+    (delete-directory (tramp-rclone-local-file-name directory) recursive trash)))
 
 (defun tramp-rclone-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
+    (tramp-rclone-flush-directory-cache v)
     (delete-file (tramp-rclone-local-file-name filename) trash)
-    (tramp-flush-file-properties v localname)
-    (tramp-rclone-flush-directory-cache v)))
+    (tramp-flush-file-properties v localname)))
 
 (defun tramp-rclone-handle-directory-files
     (directory &optional full match nosort count)
@@ -311,8 +311,8 @@ file names."
     (setq directory (file-name-as-directory (expand-file-name directory)))
     (with-parsed-tramp-file-name directory nil
       (let ((result
-	     (directory-files
-	      (tramp-rclone-local-file-name directory) full match count)))
+	     (tramp-compat-directory-files
+	      (tramp-rclone-local-file-name directory) full match nosort count)))
 	;; Massage the result.
 	(when full
 	  (let ((local (concat "^" (regexp-quote (tramp-rclone-mount-point v))))

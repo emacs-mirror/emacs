@@ -350,8 +350,8 @@ ARGUMENTS to pass to the OPERATION."
                                                       match (car x)))
                                                  x))
                                  result)))
-             (when (natnump count)
-               (setq result (last result count)))
+	     (when (and (natnump count) (> count 0))
+	       (setq result (nbutlast result (- (length result) count))))
              result)))))))
 
 (defun tramp-adb-get-ls-command (vec)

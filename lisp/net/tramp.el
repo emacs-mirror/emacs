@@ -3134,8 +3134,8 @@ User is always nil."
 		result)))
       (unless nosort
         (setq result (sort result #'string<)))
-      (when (natnump count)
-        (setq result (last result count)))
+      (when (and (natnump count) (> count 0))
+	(setq result (nbutlast result (- (length result) count))))
       result)))
 
 (defun tramp-handle-directory-files-and-attributes

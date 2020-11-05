@@ -1738,12 +1738,13 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (setcar item (expand-file-name (car item) directory)))
 	  (push item result)))
 
-      (when (natnump count)
-        (setq result (last result count)))
+      (unless nosort
+	(setq result (sort result (lambda (x y) (string< (car x) (car y))))))
 
-      (or (if nosort
-	      result
-	    (sort result (lambda (x y) (string< (car x) (car y)))))
+      (when (and (natnump count) (> count 0))
+	(setq result (nbutlast result (- (length result) count))))
+
+      (or result
 	  ;; The scripts could fail, for example with huge file size.
 	  (tramp-handle-directory-files-and-attributes
 	   directory full match nosort id-format count)))))

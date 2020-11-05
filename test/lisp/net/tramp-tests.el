@@ -2169,6 +2169,8 @@ is greater than 10.
   (skip-unless (tramp--test-enabled))
   ;; The bugs are fixed in Emacs 28.1.
   (skip-unless (tramp--test-emacs28-p))
+  ;; Methods with a share do not expand "/path/..".
+  (skip-unless (not (tramp--test-share-p)))
 
   (should
    (string-equal
@@ -2931,10 +2933,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	    (when (tramp--test-emacs28-p)
 	      (with-no-warnings
 		(should
-		 (= 1 (length
-		       (directory-files
-			tmp-name1 nil directory-files-no-dot-files-regexp
-			nil 1)))))))
+		 (equal
+		  (directory-files
+		   tmp-name1 nil directory-files-no-dot-files-regexp nil 1)
+		  '("bla"))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
@@ -3457,8 +3459,9 @@ They might differ only in time attributes or directory size."
 	    ;; Check the COUNT arg.  It exists since Emacs 28.
 	    (when (tramp--test-emacs28-p)
 	      (with-no-warnings
-		(should (= 1 (length (directory-files-and-attributes
-				      tmp-name2 nil "\\`b" nil nil 1)))))))
+		(setq attr (directory-files-and-attributes
+			    tmp-name2 nil "\\`b" nil nil 1))
+		(should (equal (mapcar #'car attr) '("bar"))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
@@ -3470,10 +3473,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless
    (or (tramp--test-sh-p) (tramp--test-sudoedit-p)
        ;; Not all tramp-gvfs.el methods support changing the file mode.
-       (and
-	(tramp--test-gvfs-p)
-	(string-match-p
-	 "ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
+       (tramp--test-gvfs-p "afp") (tramp--test-gvfs-p "ftp")))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -5704,6 +5704,13 @@ This does not support special file names."
   "Check, whether the remote host runs a based method from tramp-sh.el."
   (tramp-sh-file-name-handler-p
    (tramp-dissect-file-name tramp-test-temporary-file-directory)))
+
+(defun tramp--test-share-p ()
+  "Check, whether the method needs a share."
+  (and (tramp--test-gvfs-p)
+       (string-match-p
+	"^\\(afp\\|davs?\\|smb\\)$"
+	(file-remote-p tramp-test-temporary-file-directory 'method))))
 
 (defun tramp--test-sudoedit-p ()
   "Check, whether the sudoedit method is used."

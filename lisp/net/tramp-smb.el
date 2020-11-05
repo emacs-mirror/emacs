@@ -704,6 +704,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (mapcar (lambda (x) (when (string-match-p match x) x))
 			    result))))
 
+    ;; Sort them if necessary.
+    (unless nosort
+      (setq result (sort result #'string-lessp)))
+
     ;; Return count number of results.
     (when (and (natnump count) (> count 0))
       (setq result (nbutlast result (- (length result) count))))
@@ -714,8 +718,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (mapcar
 	     (lambda (x) (format "%s/%s" (directory-file-name directory) x))
 	     result)))
-    ;; Sort them if necessary.
-    (unless nosort (setq result (sort result #'string-lessp)))
+
     result))
 
 (defun tramp-smb-handle-expand-file-name (name &optional dir)
