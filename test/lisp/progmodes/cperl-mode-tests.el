@@ -244,7 +244,7 @@ Perl is not Lisp: An open paren in column 0 does not start a function."
             (goto-char (point-min))
             (while (null (eobp))
               (cperl-indent-command)
-              (next-line))
+              (forward-line 1))
             (setq expected (concat "test case " name ":\n" expected))
             (setq got (concat "test case " name ":\n" (buffer-string)))
             (should (equal got expected))))))))

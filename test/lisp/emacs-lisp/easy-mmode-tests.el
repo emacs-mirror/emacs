@@ -44,20 +44,21 @@
                  '(c-mode (not message-mode mail-mode) text-mode))
                 t))))
 
+(define-minor-mode easy-mmode-test-mode "A test.")
+
 (ert-deftest easy-mmode--minor-mode ()
   (with-temp-buffer
-    (define-minor-mode test-mode "A test.")
-    (should (eq test-mode nil))
-    (test-mode nil)
-    (should (eq test-mode t))
-    (test-mode -33)
-    (should (eq test-mode nil))
-    (test-mode 33)
-    (should (eq test-mode t))
-    (test-mode 'toggle)
-    (should (eq test-mode nil))
-    (test-mode 'toggle)
-    (should (eq test-mode t))))
+    (should (eq easy-mmode-test-mode nil))
+    (easy-mmode-test-mode nil)
+    (should (eq easy-mmode-test-mode t))
+    (easy-mmode-test-mode -33)
+    (should (eq easy-mmode-test-mode nil))
+    (easy-mmode-test-mode 33)
+    (should (eq easy-mmode-test-mode t))
+    (easy-mmode-test-mode 'toggle)
+    (should (eq easy-mmode-test-mode nil))
+    (easy-mmode-test-mode 'toggle)
+    (should (eq easy-mmode-test-mode t))))
 
 (provide 'easy-mmode-tests)
 
