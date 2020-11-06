@@ -52,7 +52,8 @@
 
 (defconst cl--typeof-types
   ;; Hand made from the source code of `type-of'.
-  '((integer number number-or-marker atom)
+  '((fixnum integer number number-or-marker atom)
+    (bignum integer number number-or-marker atom)
     (symbol atom) (string array sequence atom)
     (cons list sequence)
     ;; Markers aren't `numberp', yet they are accepted wherever integers are

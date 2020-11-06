@@ -278,7 +278,10 @@ This is tipically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
-                  :documentation "When non-nil support late load."))
+                  :documentation "When non-nil support late load.")
+  (supertype-memoize (make-hash-table :test #'equal) :type hash-table
+                     :documentation "Serve memoization for
+ `comp-common-supertype'."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -2124,6 +2127,40 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
       'fixnum
     (type-of obj)))
 
+(defun comp-supertypes (type)
+  "Return a list of pairs (supertype . hierarchy-level) for TYPE."
+  (cl-loop
+   named outer
+   with found = nil
+   for l in cl--typeof-types
+   do (cl-loop
+       for x in l
+       for i from (length l) downto 0
+       when (eq type x)
+         do (setf found t)
+       when found
+         collect `(,x . ,i) into res
+       finally (when found
+                 (cl-return-from outer res)))))
+
+(defun comp-common-supertype-2 (type1 type2)
+  "Return the first common supertype of TYPE1 TYPE2."
+  (car (cl-reduce (lambda (x y)
+                    (if (> (cdr x) (cdr y))
+                        x
+                      y))
+                  (cl-intersection
+                   (comp-supertypes type1)
+                   (comp-supertypes type2)
+                   :key #'car))))
+
+(defun comp-common-supertype (&rest types)
+  "Return the first common supertype of TYPES."
+  (or (gethash types (comp-ctxt-supertype-memoize comp-ctxt))
+      (puthash types
+               (cl-reduce #'comp-common-supertype-2 types)
+               (comp-ctxt-supertype-memoize comp-ctxt))))
+
 (defun comp-copy-insn (insn)
   "Deep copy INSN."
   ;; Adapted from `copy-tree'.
@@ -2252,12 +2289,9 @@ Forward propagate immediate involed in assignments."
        (setf (comp-mvar-const-vld lval) t
              (comp-mvar-constant lval) x))
      ;; Forward type propagation.
-     ;; FIXME: checking for type equality is not sufficient cause does not
-     ;; account type hierarchy!
      (when-let* ((types (mapcar #'comp-mvar-type rest))
                  (non-empty (cl-notany #'null types))
-                 (x (car types))
-                 (eqs (cl-every (lambda (y) (eq x y)) types)))
+                 (x (comp-common-supertype types)))
        (setf (comp-mvar-type lval) x)))))
 
 (defun comp-fwprop* ()
