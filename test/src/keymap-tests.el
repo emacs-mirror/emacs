@@ -3,6 +3,7 @@
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
+;;         Stefan Kangas <stefankangas@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +52,83 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
           (should (eq (lookup-key Buffer-menu-mode-map [32]) 'undefined)))
       (define-key Buffer-menu-mode-map [32] def))))
 
-(ert-deftest keymap-where-is-internal-test ()
+
+;;;; where-is-internal
+
+(defun keymap-tests--command-1 () (interactive) nil)
+(defun keymap-tests--command-2 () (interactive) nil)
+(put 'keymap-tests--command-1 :advertised-binding [?y])
+
+(ert-deftest keymap-where-is-internal ()
+  (let ((map (make-sparse-keymap)))
+    (define-key map "x" 'keymap-tests--command-1)
+    (define-key map "y" 'keymap-tests--command-1)
+    (should (equal (where-is-internal 'keymap-tests--command-1 map)
+                   '([?y] [?x])))))
+
+(ert-deftest keymap-where-is-internal/firstonly-t ()
+  (let ((map (make-sparse-keymap)))
+    (define-key map "x" 'keymap-tests--command-1)
+    (define-key map "y" 'keymap-tests--command-1)
+    (should (equal (where-is-internal 'keymap-tests--command-1 map t)
+                   [?y]))))
+
+(ert-deftest keymap-where-is-internal/menu-item ()
+  (let ((map (make-sparse-keymap)))
+    (define-key map [menu-bar foobar cmd1]
+      '(menu-item "Run Command 1" keymap-tests--command-1
+                  :help "Command 1 Help"))
+    (define-key map "x" 'keymap-tests--command-1)
+    (should (equal (where-is-internal 'keymap-tests--command-1 map)
+                   '([?x] [menu-bar foobar cmd1])))
+    (should (equal (where-is-internal 'keymap-tests--command-1 map t) [?x]))))
+
+
+(ert-deftest keymap-where-is-internal/advertised-binding ()
+  ;; Make sure order does not matter.
+  (dolist (keys '(("x" . "y") ("y" . "x")))
+    (let ((map (make-sparse-keymap)))
+      (define-key map (car keys) 'keymap-tests--command-1)
+      (define-key map (cdr keys) 'keymap-tests--command-1)
+      (should (equal (where-is-internal 'keymap-tests--command-1 map t) [121])))))
+
+(ert-deftest keymap-where-is-internal/advertised-binding-respect-remap ()
+  (let ((map (make-sparse-keymap)))
+    (define-key map "x" 'next-line)
+    (define-key map [remap keymap-tests--command-1] 'next-line)
+    (define-key map "y" 'keymap-tests--command-1)
+    (should (equal (where-is-internal 'keymap-tests--command-1 map t) [?x]))))
+
+(ert-deftest keymap-where-is-internal/remap ()
+  (let ((map (make-keymap)))
+    (define-key map (kbd "x") 'foo)
+    (define-key map (kbd "y") 'bar)
+    (define-key map [remap foo] 'bar)
+    (should (equal (where-is-internal 'foo map t) [?y]))
+    (should (equal (where-is-internal 'bar map t) [?y]))))
+
+(defvar keymap-tests-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "x" 'keymap-tests--command-2)
+    map))
+
+(defvar keymap-tests-major-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "x" 'keymap-tests--command-1)
+    map))
+
+(define-minor-mode keymap-tests-minor-mode "Test.")
+
+(define-derived-mode keymap-tests-major-mode nil "Test.")
+
+(ert-deftest keymap-where-is-internal/shadowed ()
+  (with-temp-buffer
+    (keymap-tests-major-mode)
+    (keymap-tests-minor-mode)
+    (should-not (where-is-internal 'keymap-tests--command-1 nil t))
+    (should (equal (where-is-internal 'keymap-tests--command-2 nil t) [120]))))
+
+(ert-deftest keymap-where-is-internal/preferred-modifier-is-a-string ()
   "Make sure we don't crash when `where-is-preferred-modifier' is not a symbol."
   (should
    (equal (let ((where-is-preferred-modifier "alt"))
