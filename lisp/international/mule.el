@@ -876,16 +876,23 @@ as an encoding result.
 
 `:inhibit-nul-byte-detection'
 
-VALUE non-nil means Emacs ignore null bytes on code detection.
+VALUE non-nil means Emacs should ignore null bytes on code detection.
 See the variable `inhibit-nul-byte-detection'.  This attribute
 is meaningful only when `:coding-type' is `undecided'.
+If VALUE is t, Emacs will ignore null bytes unconditionally while
+detecting encoding.  If VALUE is non-nil and not t, Emacs will
+ignore null bytes if `inhibit-null-byte-detection' is non-nil.
 
 `:inhibit-iso-escape-detection'
 
-VALUE non-nil means Emacs ignores ISO-2022 escape sequences on
+VALUE non-nil means Emacs should ignore ISO-2022 escape sequences on
 code detection.  See the variable `inhibit-iso-escape-detection'.
 This attribute is meaningful only when `:coding-type' is
 `undecided'.
+If VALUE is t, Emacs will ignore escape sequences unconditionally
+while detecting encoding.  If VALUE is non-nil and not t, Emacs
+will ignore escape sequences if `inhibit-iso-escape-detection' is
+non-nil.
 
 `:prefer-utf-8'
 
