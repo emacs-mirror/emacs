@@ -701,7 +701,7 @@ return one word."
 
 (defun gnus-search-query-end-of-input ()
   "Are we at the end of input?"
-  (skip-chars-forward "[[:blank:]]")
+  (skip-chars-forward "[:blank:]")
   (looking-at "$"))
 
 ;;; Search engines
