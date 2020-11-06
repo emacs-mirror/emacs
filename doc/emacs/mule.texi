@@ -581,7 +581,7 @@ Select a new input method for the current buffer (@code{set-input-method}).
 @item C-x \ @var{method} @key{RET}
 Temporarily enable the selected transient input method ; it will be
 automatically disabled after inserting a single character
-(@code{transient-input-method}).
+(@code{activate-transient-input-method}).
 
 @item C-h I @var{method} @key{RET}
 @itemx C-h C-\ @var{method} @key{RET}
@@ -680,13 +680,13 @@ character.
 input methods.  The list gives information about each input method,
 including the string that stands for it in the mode line.
 
-@findex transient-input-method
+@findex activate-transient-input-method
 @kindex C-x \
   Sometimes it can be convenient to enable an input method
 @dfn{transiently}, for inserting only a single character.  Typing
-@kbd{C-x \} (@code{transient-input-method}) will temporarily enable an
-input method, let you insert a single character using the input method
-rules, and then automatically disable the input method.  If no
+@kbd{C-x \} (@code{activate-transient-input-method}) will temporarily
+enable an input method, let you insert a single character using the input
+method rules, and then automatically disable the input method.  If no
 transient input method was selected yet, @kbd{C-x \} will prompt you
 for an input method; subsequent invocations of this command will
 enable the selected transient input method.  To select a different

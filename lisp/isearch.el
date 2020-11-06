@@ -565,6 +565,10 @@ This is like `describe-bindings', but displays only Isearch keys."
                   :help "Highlight all matches for current search string"))
     (define-key map [isearch-search-replace-separator]
       '(menu-item "--"))
+    (define-key map [isearch-transient-input-method]
+      '(menu-item "Turn on transient input method"
+                  isearch-transient-input-method
+                  :help "Turn on transient input method for search"))
     (define-key map [isearch-toggle-specified-input-method]
       '(menu-item "Turn on specific input method"
                   isearch-toggle-specified-input-method
@@ -747,6 +751,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; For searching multilingual text.
     (define-key map "\C-\\" 'isearch-toggle-input-method)
     (define-key map "\C-^" 'isearch-toggle-specified-input-method)
+    (define-key map "\C-x\\" 'isearch-transient-input-method)
 
     ;; People expect to be able to paste with the mouse.
     (define-key map [mouse-2] #'isearch-mouse-2)
@@ -1077,6 +1082,8 @@ method in the current buffer.
 To use a different input method for searching, type \
 \\[isearch-toggle-specified-input-method],
 and specify an input method you want to use.
+
+To activate a transient input method, type \\[isearch-transient-input-method].
 
 The above keys, bound in `isearch-mode-map', are often controlled by
  options; do \\[apropos] on search-.* to find them.
@@ -3263,7 +3270,7 @@ the word mode."
 		       "over")
 		   (if isearch-wrapped "wrapped ")
                    (if (and (not isearch-success) (buffer-narrowed-p) widen-automatically)
-                       "narrowed-buffer " "")
+                       "narrowed " "")
                    (if (and (not isearch-success) (not isearch-case-fold-search))
                        "case-sensitive ")
                    (let ((prefix ""))

@@ -652,6 +652,8 @@ transient input method (which can be different from the input method
 enabled by 'C-\').  For example, 'C-u C-x \ compose RET' selects the
 'compose' input method; then typing 'C-x \ 1 2' will insert the
 character '½', and disable the 'compose' input method afterwards.
+You can use 'C-x \' in incremental search to insert a single character
+to the search string.
 
 ---
 *** New input method 'compose' based on X Multi_key sequences.
