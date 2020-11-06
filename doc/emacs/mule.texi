@@ -682,6 +682,7 @@ including the string that stands for it in the mode line.
 
 @findex activate-transient-input-method
 @kindex C-x \
+@anchor{transient input method}
   Sometimes it can be convenient to enable an input method
 @dfn{transiently}, for inserting only a single character.  Typing
 @kbd{C-x \} (@code{activate-transient-input-method}) will temporarily
