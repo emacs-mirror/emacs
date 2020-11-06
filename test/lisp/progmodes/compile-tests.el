@@ -191,10 +191,10 @@
     ;; javac
     (javac
      "/src/Test.java:5: ';' expected\n        foo foo\n               ^\n"
-     1 15 5 "/src/Test.java" 2)
+     1 16 5 "/src/Test.java" 2)
     (javac
      "e:\\src\\Test.java:7: warning: ';' expected\n   foo foo\n          ^\n"
-     1 10 7 "e:\\src\\Test.java" 1)
+     1 11 7 "e:\\src\\Test.java" 1)
     ;; jikes-file jikes-line
     (jikes-file
      "Found 2 semantic errors compiling \"../javax/swing/BorderFactory.java\":"
