@@ -598,6 +598,8 @@ Each element is (INDEX . VALUE)")
 
 (defvar byte-native-compiling nil
   "Non nil while native compiling.")
+(defvar byte-native-qualities nil
+  "To spill default qualities from the compiled file.")
 (defvar byte-native-for-bootstrap nil
   "Non nil while compiling for bootstrap."
   ;; During boostrap we produce both the .eln and the .elc together.
@@ -2216,6 +2218,11 @@ With argument ARG, insert value in current buffer after the form."
 	(setq byte-compile-unresolved-functions nil)
         (setq byte-compile-noruntime-functions nil)
         (setq byte-compile-new-defuns nil)
+        (when byte-native-compiling
+          (defvar comp-speed)
+          (push `(comp-speed . ,comp-speed) byte-native-qualities)
+          (defvar comp-debug)
+          (push `(comp-debug . ,comp-debug) byte-native-qualities))
 
 	;; Compile the forms from the input buffer.
 	(while (progn

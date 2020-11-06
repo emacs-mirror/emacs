@@ -423,10 +423,6 @@ load_gccjit_if_necessary (bool mandatory)
 #define TEXT_OPTIM_QLY_SYM "text_optim_qly"
 #define TEXT_FDOC_SYM "text_data_fdoc"
 
-
-#define COMP_SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
-#define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
-
 #define STR_VALUE(s) #s
 #define STR(s) STR_VALUE (s)
 
@@ -485,6 +481,8 @@ enum cast_kind_of_type
 /* C side of the compiler context.  */
 
 typedef struct {
+  EMACS_INT speed;
+  EMACS_INT debug;
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
   gcc_jit_type *bool_type;
@@ -916,7 +914,7 @@ obj_to_reloc (Lisp_Object obj)
 static void
 emit_comment (const char *str)
 {
-  if (COMP_DEBUG)
+  if (comp.debug)
     gcc_jit_block_add_comment (comp.block,
 			       NULL,
 			       str);
@@ -1847,7 +1845,7 @@ emit_mvar_rval (Lisp_Object mvar)
 
   if (!NILP (const_vld))
     {
-      if (COMP_DEBUG > 1)
+      if (comp.debug > 1)
 	{
 	  Lisp_Object func =
 	    Fgethash (constant,
@@ -2566,7 +2564,7 @@ emit_static_object (const char *name, Lisp_Object obj)
 				  0, NULL, 0);
   DECL_BLOCK (block, f);
 
-  if (COMP_DEBUG > 1)
+  if (comp.debug > 1)
     {
       char *comment = memcpy (xmalloc (len), p, len);
       for (ptrdiff_t i = 0; i < len - 1; i++)
@@ -2789,10 +2787,8 @@ emit_ctxt_code (void)
 {
   /* Emit optimize qualities.  */
   Lisp_Object opt_qly[] =
-    { Fcons (Qcomp_speed,
-	     Fsymbol_value (Qcomp_speed)),
-      Fcons (Qcomp_debug,
-	     Fsymbol_value (Qcomp_debug)),
+    { Fcons (Qcomp_speed, make_fixnum (comp.speed)),
+      Fcons (Qcomp_debug, make_fixnum (comp.debug)),
       Fcons (Qgccjit,
 	     Fcomp_libgccjit_version ()) };
   emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (ARRAYELTS (opt_qly), opt_qly));
@@ -4212,13 +4208,13 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 
   comp.ctxt = gcc_jit_context_acquire ();
 
-  if (COMP_DEBUG)
+  if (comp.debug)
     {
       gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
 				       1);
     }
-  if (COMP_DEBUG > 2)
+  if (comp.debug > 2)
     {
       logfile = fopen ("libgccjit.log", "w");
       gcc_jit_context_set_logfile (comp.ctxt,
@@ -4403,10 +4399,12 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   CHECK_STRING (filename);
   Lisp_Object base_name = Fsubstring (filename, Qnil, make_fixnum (-4));
 
+  comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
+  comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
-				  COMP_SPEED < 0 ? 0
-				  : (COMP_SPEED > 3 ? 3 : COMP_SPEED));
+				  comp.speed < 0 ? 0
+				  : (comp.speed > 3 ? 3 : comp.speed));
   comp.d_default_idx =
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
   comp.d_impure_idx =
@@ -4456,11 +4454,11 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   add_driver_options ();
 
-  if (COMP_DEBUG)
+  if (comp.debug)
       gcc_jit_context_dump_to_file (comp.ctxt,
 				    format_string ("%s.c", SSDATA (base_name)),
 				    1);
-  if (COMP_DEBUG > 2)
+  if (comp.debug > 2)
     gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
   Lisp_Object tmp_file =
