@@ -2295,7 +2295,7 @@ Only independent graphic characters, and control characters with named
 escape sequences such as newline, are printed this way.  Other
 integers, including those corresponding to raw bytes, are printed
 as numbers the usual way.  */);
-  print_integers_as_characters = Qnil;
+  print_integers_as_characters = false;
 
   DEFVAR_LISP ("print-length", Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.
