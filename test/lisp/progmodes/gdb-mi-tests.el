@@ -34,8 +34,10 @@
            '((alpha . "ab\ncd")
              (beta . ("x" ("y" (delta . ())))))))
 
-  (should (equal (gdb-mi--from-string "alpha=\"a\\303\\245b\"")
-                 `((alpha . ,(string-to-multibyte "a\303\245b")))))
+  (let ((gdb-mi-decode-strings nil))
+    (let ((ref `((alpha . ,(string-to-multibyte "a\303\245b")))))
+      (should (equal (gdb-mi--from-string "alpha=\"a\\303\\245b\"")
+                     ref))))
   (let ((gdb-mi-decode-strings 'utf-8))
     (should (equal (gdb-mi--from-string "alpha=\"a\\303\\245b\"")
                    '((alpha . "aåb")))))
