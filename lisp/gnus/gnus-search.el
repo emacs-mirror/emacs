@@ -410,7 +410,7 @@ returned by `completion-at-point-functions'.  That usually means
 a list of strings, a hash table, or an alist."
   :group 'gnus-search
   :version "28.1"
-  :type 'list)
+  :type '(repeat sexp))
 
 ;;; Search language
 
