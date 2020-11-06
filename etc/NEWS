@@ -90,14 +90,15 @@ This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 
 +++
 ** Improved handling of minibuffers on switching frames.
-By default, an active minibuffer now moves to a newly selected frame.
-When continuing the current command (by completing the minibuffer
-action), the effect happens in the frame where the minibuffer was
-first opened.  An alternative behavior is available by customizing
+By default, when you switch to another frame, an active minibuffer now
+moves to the newly selected frame.  Nevertheless, the effect of what
+you type in the minibuffer happens in the frame where the minibuffer
+was first activated, even if it moved to another frame.  An
+alternative behavior is available by customizing
 'minibuffer-follows-selected-frame' to nil.  Here, the minibuffer
 stays in the frame where you first opened it, and you must switch back
 to this frame to continue or abort its command.  The old, somewhat
-unsystematic behavior is no longer available.
+unsystematic behavior, which mixed these two is no longer available.
 
 +++
 ** New system for displaying documentation for groups of functions.
