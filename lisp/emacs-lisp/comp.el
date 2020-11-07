@@ -191,18 +191,30 @@ For internal use only by the testsuite.")
 Each function in FUNCTIONS is run after PASS.
 Useful to hook into pass checkers.")
 
-(defconst comp-known-ret-types '((cons . cons)
-                                 (1+ . number)
-                                 (1- . number)
-                                 (+ . number)
-                                 (- . number)
-                                 (* . number)
-                                 (/ . number)
-                                 (% . number)
+(defconst comp-known-ret-types '((cons . (cons))
+                                 (1+ . (number))
+                                 (1- . (number))
+                                 (+ . (number))
+                                 (- . (number))
+                                 (* . (number))
+                                 (/ . (number))
+                                 (% . (number))
                                  ;; Type hints
-                                 (comp-hint-fixnum . fixnum)
-                                 (comp-hint-cons . cons))
+                                 (comp-hint-cons . (cons)))
   "Alist used for type propagation.")
+
+(defconst comp-known-ret-ranges
+  `((comp-hint-fixnum . (,most-negative-fixnum . ,most-positive-fixnum)))
+  "Known returned ranges.")
+
+;; TODO fill it.
+(defconst comp-type-predicates '((cons . consp)
+                                 (float . floatp)
+                                 (integer . integerp)
+                                 (number . numberp)
+                                 (string . stringp)
+                                 (symbol . symbolp))
+  "Alist type -> predicate.")
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
@@ -285,9 +297,9 @@ This is tipically for top-level forms other than defun.")
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
                   :documentation "When non-nil support late load.")
-  (supertype-memoize (make-hash-table :test #'equal) :type hash-table
-                     :documentation "Serve memoization for
- `comp-common-supertype'."))
+  (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
+                      :documentation "Serve memoization for
+`comp-union-typesets'."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -419,14 +431,68 @@ CFG is mutated by a pass.")
   (slot nil :type (or fixnum symbol)
         :documentation "Slot number in the array if a number or
         'scratch' for scratch slot.")
-  (const-vld nil :type boolean
-             :documentation "Valid signal for the following slot.")
-  (constant nil
-            :documentation "When const-vld non-nil this is used for holding
- a value known at compile time.")
-  (type nil :type symbol
-        :documentation "When non-nil indicates the type when known at compile
- time."))
+  (typeset '(t) :type list
+           :documentation "List of possible types the mvar can assume.
+Each element cannot be a subtype of any other element of this slot.")
+  (valset '() :type list
+          :documentation "List of possible values the mvar can assume.
+Interg values are handled in the `range' slot.")
+  (range '() :type list
+         :documentation "Integer interval."))
+
+(defsubst comp-mvar-value-vld-p (mvar)
+  "Return t if one single value can be extracted by the MVAR constrains."
+  (or (= (length (comp-mvar-valset mvar)) 1)
+      (let ((r (comp-mvar-range mvar)))
+        (and (= (length r) 1)
+             (let ((low (caar r))
+                   (high (cdar r)))
+               (and
+                (integerp low)
+                (integerp high)
+                (= low high)))))))
+
+(defsubst comp-mvar-value (mvar)
+  "Return the constant value of MVAR.
+`comp-mvar-value-vld-p' *must* be satisfied before calling
+`comp-mvar-const'."
+  (declare (gv-setter
+            (lambda (val)
+              `(if (integerp ,val)
+                   (setf (comp-mvar-typeset ,mvar) nil
+                         (comp-mvar-range ,mvar) (list (cons ,val ,val)))
+                 (setf (comp-mvar-typeset ,mvar) nil
+                       (comp-mvar-valset ,mvar) (list ,val))))))
+  (let ((v (comp-mvar-valset mvar)))
+    (if (= (length v) 1)
+        (car v)
+      (caar (comp-mvar-range mvar)))))
+
+(defsubst comp-mvar-fixnum-p (mvar)
+  "Return t if MVAR is certainly a fixnum."
+  (when-let (range (comp-mvar-range mvar))
+    (let* ((low (caar range))
+           (high (cdar (last range))))
+      (unless (or (eq low '-)
+                  (< low most-negative-fixnum)
+                  (eq high '+)
+                  (> high most-positive-fixnum))
+        t))))
+
+(defsubst comp-mvar-symbol-p (mvar)
+  "Return t if MVAR is certainly a symbol."
+  (equal (comp-mvar-typeset mvar) '(symbol)))
+
+(defsubst comp-mvar-cons-p (mvar)
+  "Return t if MVAR is certainly a cons."
+  (equal (comp-mvar-typeset mvar) '(cons)))
+
+(defun comp-mvar-type-hint-match-p (mvar type-hint)
+  "Match MVAR against TYPE-HINT.
+In use by the backend."
+  (cl-ecase type-hint
+    (cons (comp-mvar-cons-p mvar))
+    (fixnum (comp-mvar-fixnum-p mvar))))
 
 ;; Special vars used by some passes
 (defvar comp-func)
@@ -462,6 +528,14 @@ To be used by all entry points."
 (defsubst comp-type-hint-p (func)
   "Type-hint predicate for function name FUNC."
   (when (memq func comp-type-hints) t))
+
+(defsubst comp-func-ret-typeset (func)
+  "Return the typeset returned by function FUNC. "
+  (or (alist-get func comp-known-ret-types) '(t)))
+
+(defsubst comp-func-ret-range (func)
+  "Return the range returned by function FUNC. "
+  (alist-get func comp-known-ret-ranges))
 
 (defun comp-func-unique-in-cu-p (func)
   "Return t if FUNC is known to be unique in the current compilation unit."
@@ -943,10 +1017,14 @@ STACK-OFF is the index of the first slot frame involved."
                              collect (comp-slot-n sp))))
 
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
-  (when const-vld
-    (comp-add-const-to-relocs constant))
-  (make--comp-mvar :slot slot :const-vld const-vld :constant constant
-                   :type type))
+  "`comp-mvar' intitializer."
+  (let ((mvar (make--comp-mvar :slot slot)))
+    (when const-vld
+      (comp-add-const-to-relocs constant)
+      (setf (comp-mvar-value mvar) constant))
+    (when type
+      (setf (comp-mvar-typeset mvar) (list type)))
+    mvar))
 
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
@@ -1823,11 +1901,9 @@ blocks."
 ;; this form is called 'minimal SSA form'.
 ;; This pass should be run every time basic blocks or m-var are shuffled.
 
-(cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
-  (let ((mvar (make--comp-mvar :slot slot
-                               :const-vld const-vld
-                               :constant constant
-                               :type type)))
+(cl-defun make-comp-ssa-mvar (&rest rest &key _slot _constant _type)
+  "Same as `make-comp-mvar' but set the `id' slot."
+  (let ((mvar (apply #'make-comp-mvar rest)))
     (setf (comp-mvar-id mvar) (sxhash-eq mvar))
     mvar))
 
@@ -2130,19 +2206,18 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 ;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
-(defsubst comp-strict-type-of (obj)
-  "Given OBJ return its type understanding fixnums."
-  ;; Should be certainly smarter but now we take advantages just from fixnums.
-  (if (fixnump obj)
-      'fixnum
-    (type-of obj)))
+(defconst comp--typeof-types (mapcar (lambda (x)
+                                       (append x '(t)))
+                                     cl--typeof-types)
+  ;; TODO can we just add t in `cl--typeof-types'?
+  "Like `cl--typeof-types' but with t as common supertype.")
 
 (defun comp-supertypes (type)
   "Return a list of pairs (supertype . hierarchy-level) for TYPE."
   (cl-loop
    named outer
    with found = nil
-   for l in cl--typeof-types
+   for l in comp--typeof-types
    do (cl-loop
        for x in l
        for i from (length l) downto 0
@@ -2165,10 +2240,105 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 
 (defun comp-common-supertype (&rest types)
   "Return the first common supertype of TYPES."
-  (or (gethash types (comp-ctxt-supertype-memoize comp-ctxt))
-      (puthash types
-               (cl-reduce #'comp-common-supertype-2 types)
-               (comp-ctxt-supertype-memoize comp-ctxt))))
+  (cl-reduce #'comp-common-supertype-2 types))
+
+(defsubst comp-subtype-p (type1 type2)
+  "Return t if TYPE1 is a subtype of TYPE1 or nil otherwise."
+  (eq (comp-common-supertype-2 type1 type2) type2))
+
+(defun comp-union-typesets (&rest typesets)
+  "Union types present into TYPESETS."
+  (or (gethash typesets (comp-ctxt-union-typesets-mem comp-ctxt))
+      (puthash typesets
+               (cl-loop
+                with types = (apply #'append typesets)
+                with res = '()
+                for lane in comp--typeof-types
+                do (cl-loop
+                    with last = nil
+                    for x in lane
+                    when (memq x types)
+                      do (setf last x)
+                    finally (when last
+                              (push last res)))
+                finally (cl-return (cl-remove-duplicates res)))
+               (comp-ctxt-union-typesets-mem comp-ctxt))))
+
+(defsubst comp-range-1+ (x)
+  (if (symbolp x)
+      x
+    (1+ x)))
+
+(defsubst comp-range-1- (x)
+  (if (symbolp x)
+      x
+    (1- x)))
+
+(defsubst comp-range-< (x y)
+  (cond
+   ((eq x '+) nil)
+   ((eq x '-) t)
+   ((eq y '+) t)
+   ((eq y '-) nil)
+   (t (< x y))))
+
+(defun comp-range-union (&rest ranges)
+  "Combine integer intervals RANGES by union operation."
+  (cl-loop
+   with all-ranges = (apply #'append ranges)
+   with lows = (mapcar (lambda (x)
+                         (cons (comp-range-1- (car x)) 'l))
+                       all-ranges)
+   with highs = (mapcar (lambda (x)
+                          (cons (cdr x) 'h))
+                        all-ranges)
+   with nest = 0
+   with low = nil
+   with res = ()
+   for (i . x) in (cl-sort (nconc lows highs) #'comp-range-< :key #'car)
+   if (eq x 'l)
+   do
+   (when (zerop nest)
+     (setf low i))
+   (cl-incf nest)
+   else
+   do
+   (when (= nest 1)
+     (push `(,(comp-range-1+ low) . ,i) res))
+   (cl-decf nest)
+   finally (cl-return (reverse res))))
+
+(defun comp-range-intersection (&rest ranges)
+  "Combine integer intervals RANGES by intersecting."
+  (cl-loop
+   with all-ranges = (apply #'append ranges)
+   with n-ranges = (length ranges)
+   with lows = (mapcar (lambda (x)
+                         (cons (car x) 'l))
+                       all-ranges)
+   with highs = (mapcar (lambda (x)
+                          (cons (cdr x) 'h))
+                        all-ranges)
+   with nest = 0
+   with low = nil
+   with res = ()
+   initially (when (cl-some #'null ranges)
+               ;; Intersecting with a null range always results in a
+               ;; null range.
+               (cl-return '()))
+   for (i . x) in (cl-sort (nconc lows highs) #'comp-range-< :key #'car)
+   if (eq x 'l)
+   do
+   (cl-incf nest)
+   (when (= nest n-ranges)
+     (setf low i))
+   else
+   do
+   (when (= nest n-ranges)
+     (push `(,low . ,i)
+           res))
+   (cl-decf nest)
+   finally (cl-return (reverse res))))
 
 (defun comp-copy-insn (insn)
   "Deep copy INSN."
@@ -2213,20 +2383,18 @@ Forward propagate immediate involed in assignments."
        for insn in (comp-block-insns b)
        do (pcase insn
             (`(setimm ,lval ,v)
-             (setf (comp-mvar-const-vld lval) t
-                   (comp-mvar-constant lval) v
-                   (comp-mvar-type lval) (comp-strict-type-of v)))))))
+             (setf (comp-mvar-value lval) v))))))
 
 (defsubst comp-mvar-propagate (lval rval)
   "Propagate into LVAL properties of RVAL."
-  (setf (comp-mvar-const-vld lval) (comp-mvar-const-vld rval)
-        (comp-mvar-constant lval) (comp-mvar-constant rval)
-        (comp-mvar-type lval) (comp-mvar-type rval)))
+  (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval)
+        (comp-mvar-valset lval) (comp-mvar-valset rval)
+        (comp-mvar-range lval) (comp-mvar-range rval)))
 
 (defsubst comp-function-foldable-p (f args)
   "Given function F called with ARGS return non-nil when optimizable."
-  (and (cl-every #'comp-mvar-const-vld args)
-       (comp-function-pure-p f)))
+  (and (comp-function-pure-p f)
+       (cl-every #'comp-mvar-value-vld-p args)))
 
 (defsubst comp-function-call-maybe-fold (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
@@ -2238,10 +2406,10 @@ Forward propagate immediate involed in assignments."
     (cond
      ((eq f 'symbol-value)
       (when-let* ((arg0 (car args))
-                  (const (comp-mvar-const-vld arg0))
-                  (ok-to-optim (member (comp-mvar-constant arg0)
+                  (const (comp-mvar-value-vld-p arg0))
+                  (ok-to-optim (member (comp-mvar-value arg0)
                                        comp-symbol-values-optimizable)))
-        (rewrite-insn-as-setimm insn (symbol-value (comp-mvar-constant
+        (rewrite-insn-as-setimm insn (symbol-value (comp-mvar-value
                                                     (car args))))))
      ((comp-function-foldable-p f args)
       (ignore-errors
@@ -2254,7 +2422,7 @@ Forward propagate immediate involed in assignments."
                       ;; and know to be pure.
                       (comp-func-byte-func f-in-ctxt)
                     f))
-               (value (comp-apply-in-env f (mapcar #'comp-mvar-constant args))))
+               (value (comp-apply-in-env f (mapcar #'comp-mvar-value args))))
           (rewrite-insn-as-setimm insn value)))))))
 
 (defun comp-fwprop-insn (insn)
@@ -2263,13 +2431,19 @@ Forward propagate immediate involed in assignments."
     (`(set ,lval ,rval)
      (pcase rval
        (`(,(or 'call 'callref) ,f . ,args)
-        (setf (comp-mvar-type lval)
-              (alist-get f comp-known-ret-types))
+        (if-let ((range (comp-func-ret-range f)))
+            (setf (comp-mvar-range lval) (list range)
+                  (comp-mvar-typeset lval) nil)
+          (setf (comp-mvar-typeset lval)
+                (comp-func-ret-typeset f)))
         (comp-function-call-maybe-fold insn f args))
        (`(,(or 'direct-call 'direct-callref) ,f . ,args)
         (let ((f (comp-func-name (gethash f (comp-ctxt-funcs-h comp-ctxt)))))
-          (setf (comp-mvar-type lval)
-                (alist-get f comp-known-ret-types))
+          (if-let ((range (comp-func-ret-range f)))
+              (setf (comp-mvar-range lval) (list range)
+                    (comp-mvar-typeset lval) nil)
+            (setf (comp-mvar-typeset lval)
+                  (comp-func-ret-typeset f)))
           (comp-function-call-maybe-fold insn f args)))
        (_
         (comp-mvar-propagate lval rval))))
@@ -2278,31 +2452,46 @@ Forward propagate immediate involed in assignments."
        ('eq
         (comp-mvar-propagate lval rval))
        ((or 'eql 'equal)
-        (if (memq (comp-mvar-type rval) '(symbol fixnum))
+        (if (or (comp-mvar-symbol-p rval)
+                (comp-mvar-fixnum-p rval))
             (comp-mvar-propagate lval rval)
-          (setf (comp-mvar-type lval) (comp-mvar-type rval))))
+          (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval))))
        ('=
-        (if (eq (comp-mvar-type rval) 'fixnum)
+        (if (comp-mvar-fixnum-p rval)
             (comp-mvar-propagate lval rval)
-          (setf (comp-mvar-type lval) 'number)))))
+          (setf (comp-mvar-typeset lval)
+                (unless (comp-mvar-range rval)
+                  '(number)))))))
     (`(setimm ,lval ,v)
-     (setf (comp-mvar-const-vld lval) t
-           (comp-mvar-constant lval) v
-           (comp-mvar-type lval) (comp-strict-type-of v)))
+     (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
-     (let ((rvals (mapcar #'car rest)))
-       ;; Forward const prop here.
-       (when-let* ((vld (cl-every #'comp-mvar-const-vld rvals))
-                   (consts (mapcar #'comp-mvar-constant rvals))
-                   (x (car consts))
-                   (equals (cl-every (lambda (y) (equal x y)) consts)))
-         (setf (comp-mvar-const-vld lval) t
-               (comp-mvar-constant lval) x))
-       ;; Forward type propagation.
-       (when-let* ((types (mapcar #'comp-mvar-type rvals))
-                   (non-empty (cl-notany #'null types))
-                   (x (comp-common-supertype types)))
-         (setf (comp-mvar-type lval) x))))))
+     (let* ((rvals (mapcar #'car rest))
+            (values (mapcar #'comp-mvar-valset rvals))
+            (from-latch (cl-some
+                         (lambda (x)
+                           (comp-latch-p
+                            (gethash (cdr x)
+                                     (comp-func-blocks comp-func))))
+                         rest)))
+
+       ;; Type propagation.
+       (setf (comp-mvar-typeset lval)
+             (apply #'comp-union-typesets (mapcar #'comp-mvar-typeset rvals)))
+       ;; Value propagation.
+       (setf (comp-mvar-valset lval)
+             (when (cl-every #'consp values)
+               ;; TODO memoize?
+               (cl-remove-duplicates (apply #'append values)
+                                     :test #'equal)))
+       ;; Range propagation
+       (setf (comp-mvar-range lval)
+             (when (and (not from-latch)
+                        (cl-notany (lambda (x)
+                                     (comp-subtype-p 'integer x))
+                                   (comp-mvar-typeset lval)))
+               ;; TODO memoize?
+               (apply #'comp-range-union
+                      (mapcar #'comp-mvar-range rvals))))))))
 
 (defun comp-fwprop* ()
   "Propagate for set* and phi operands.
@@ -2416,11 +2605,11 @@ FUNCTION can be a function-name or byte compiled function."
         (pcase insn
           (`(set ,lval (callref funcall ,f . ,rest))
            (when-let ((new-form (comp-call-optim-form-call
-                                 (comp-mvar-constant f) rest)))
+                                 (comp-mvar-value f) rest)))
              (setf insn `(set ,lval ,new-form))))
           (`(callref funcall ,f . ,rest)
            (when-let ((new-form (comp-call-optim-form-call
-                                 (comp-mvar-constant f) rest)))
+                                 (comp-mvar-value f) rest)))
              (setf insn new-form)))))))
 
 (defun comp-call-optim (_)
@@ -2639,7 +2828,8 @@ Update all insn accordingly."
              do
              (cl-assert (null (gethash idx reverse-h)))
              (cl-assert (fixnump idx))
-             (setf (comp-mvar-constant mvar) idx)
+             (setf (comp-mvar-valset mvar) ()
+                   (comp-mvar-range mvar) (list (cons idx idx)))
              (puthash idx t reverse-h))))
 
 (defun comp-compile-ctxt-to-file (name)

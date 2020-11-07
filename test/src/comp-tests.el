@@ -37,7 +37,7 @@
 (defconst comp-test-dyn-src
   (concat comp-test-directory "comp-test-funcs-dyn.el"))
 
-(when (boundp 'comp-ctxt)
+(when (featurep 'nativecomp)
   (message "Compiling tests...")
   (load (native-compile comp-test-src))
   (load (native-compile comp-test-dyn-src)))
@@ -676,8 +676,8 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (cl-loop for y in insn
            when (cond
                  ((consp y) (comp-tests-mentioned-p x y))
-                 ((and (comp-mvar-p y) (comp-mvar-const-vld y))
-                  (equal (comp-mvar-constant y) x))
+                 ((and (comp-mvar-p y) (comp-mvar-value-vld-p y))
+                  (equal (comp-mvar-value y) x))
                  (t (equal x y)))
              return t))
 
@@ -804,8 +804,8 @@ Return a list of results."
      (lambda (insn)
        (pcase insn
          (`(return ,mvar)
-          (and (comp-mvar-const-vld mvar)
-               (= (comp-mvar-constant mvar) 123)))))))))
+          (and (comp-mvar-value-vld-p mvar)
+               (eql (comp-mvar-value mvar) 123)))))))))
 
 (defvar comp-tests-cond-rw-expected-type nil
   "Type to expect in `comp-tests-cond-rw-checker-type'.")
@@ -819,7 +819,8 @@ Return a list of results."
      (lambda (insn)
        (pcase insn
          (`(return ,mvar)
-          (eq (comp-mvar-type mvar) comp-tests-cond-rw-expected-type))))))))
+          (equal (comp-mvar-typeset mvar)
+                 comp-tests-cond-rw-expected-type))))))))
 
 (defvar comp-tests-cond-rw-0-var)
 (comp-deftest cond-rw-0 ()
@@ -839,40 +840,39 @@ Return a list of results."
 (comp-deftest cond-rw-1 ()
   "Test cond-rw pass allow us to propagate type+val under `eq' tests."
   (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type 'fixnum)
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type)
-                                (comp-final comp-tests-cond-rw-checker-val))))
+        (comp-tests-cond-rw-expected-type '(integer))
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type
+                                            comp-tests-cond-rw-checker-val))))
     (subr-native-elisp-p (native-compile '(lambda (x) (if (eq x 123) x t))))
     (subr-native-elisp-p (native-compile '(lambda (x) (if (eq 123 x) x t))))))
 
 (comp-deftest cond-rw-2 ()
   "Test cond-rw pass allow us to propagate type+val under `=' tests."
   (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type 'fixnum)
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type)
-                                (comp-final comp-tests-cond-rw-checker-val))))
+        (comp-tests-cond-rw-expected-type '(integer))
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type
+                                            comp-tests-cond-rw-checker-val))))
     (subr-native-elisp-p (native-compile '(lambda (x) (if (= x 123) x t))))))
 
 (comp-deftest cond-rw-3 ()
   "Test cond-rw pass allow us to propagate type+val under `eql' tests."
   (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type 'fixnum)
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type)
-                                (comp-final comp-tests-cond-rw-checker-val))))
+        (comp-tests-cond-rw-expected-type '(integer))
+        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type
+                                            comp-tests-cond-rw-checker-val))))
     (subr-native-elisp-p (native-compile '(lambda (x) (if (eql 123 x) x t))))))
 
 (comp-deftest cond-rw-4 ()
   "Test cond-rw pass allow us to propagate type under `=' tests."
   (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type 'number)
+        (comp-tests-cond-rw-expected-type '(number))
         (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type))))
     (subr-native-elisp-p (native-compile '(lambda (x y) (if (= x y) x t))))))
 
 (comp-deftest cond-rw-5 ()
   "Test cond-rw pass allow us to propagate type under `=' tests."
-  (let ((lexical-binding t)
-        (comp-tests-cond-rw-checked-function #'comp-tests-cond-rw-4-f)
-        (comp-tests-cond-rw-expected-type 'fixnum)
+  (let ((comp-tests-cond-rw-checked-function #'comp-tests-cond-rw-4-f)
+        (comp-tests-cond-rw-expected-type '(integer))
         (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type))))
     (eval '(defun comp-tests-cond-rw-4-f (x y)
              (declare (speed 3))
@@ -882,5 +882,49 @@ Return a list of results."
           t)
     (native-compile #'comp-tests-cond-rw-4-f)
     (should (subr-native-elisp-p (symbol-function #'comp-tests-cond-rw-4-f)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Range propagation tests. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(comp-deftest range-simple-union ()
+  (should (equal (comp-range-union '((-1 . 0)) '((3 . 4)))
+                 '((-1 . 0) (3 . 4))))
+  (should (equal (comp-range-union '((-1 . 2)) '((3 . 4)))
+                 '((-1 . 4))))
+  (should (equal (comp-range-union '((-1 . 3)) '((3 . 4)))
+                 '((-1 . 4))))
+  (should (equal (comp-range-union '((-1 . 4)) '((3 . 4)))
+                 '((-1 . 4))))
+  (should (equal (comp-range-union '((-1 . 5)) '((3 . 4)))
+                 '((-1 . 5))))
+  (should (equal (comp-range-union '((-1 . 0)) '())
+                 '((-1 . 0)))))
+
+(comp-deftest range-simple-intersection ()
+  (should (equal (comp-range-intersection '((-1 . 0)) '((3 . 4)))
+                 '()))
+  (should (equal (comp-range-intersection '((-1 . 2)) '((3 . 4)))
+                 '()))
+  (should (equal (comp-range-intersection '((-1 . 3)) '((3 . 4)))
+                 '((3 . 3))))
+  (should (equal (comp-range-intersection '((-1 . 4)) '((3 . 4)))
+                 '((3 . 4))))
+  (should (equal (comp-range-intersection '((-1 . 5)) '((3 . 4)))
+                 '((3 . 4))))
+  (should (equal (comp-range-intersection '((-1 . 0)) '())
+                 '())))
+
+(comp-deftest union-types ()
+  (let ((comp-ctxt (make-comp-ctxt)))
+    (should (equal (comp-union-typesets '(integer) '(number))
+                   '(number)))
+    (should (equal (comp-union-typesets '(integer symbol) '(number))
+                   '(symbol number)))
+    (should (equal (comp-union-typesets '(integer symbol) '(number list))
+                   '(list symbol number)))
+    (should (equal (comp-union-typesets '(integer symbol) '())
+                   '(symbol integer)))))
 
 ;;; comp-tests.el ends here

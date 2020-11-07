@@ -1845,32 +1845,32 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_rval (Lisp_Object mvar)
 {
-  Lisp_Object const_vld = CALL1I (comp-mvar-const-vld, mvar);
-  Lisp_Object constant = CALL1I (comp-mvar-constant, mvar);
+  Lisp_Object const_vld = CALL1I (comp-mvar-value-vld-p, mvar);
 
   if (!NILP (const_vld))
     {
+      Lisp_Object value = CALL1I (comp-mvar-value, mvar);
       if (comp.debug > 1)
 	{
 	  Lisp_Object func =
-	    Fgethash (constant,
+	    Fgethash (value,
 		      CALL1I (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
 		      Qnil);
 
 	  emit_comment (
 	    SSDATA (
 	      Fprin1_to_string (
-		NILP (func) ? constant : CALL1I (comp-func-c-name, func),
+		NILP (func) ? value : CALL1I (comp-func-c-name, func),
 		Qnil)));
 	}
-      if (FIXNUMP (constant))
+      if (FIXNUMP (value))
 	{
 	  /* We can still emit directly objects that are self-contained in a
 	     word (read fixnums).  */
-          return emit_rvalue_from_lisp_obj (constant);
+          return emit_rvalue_from_lisp_obj (value);
 	}
       /* Other const objects are fetched from the reloc array.  */
-      return emit_lisp_obj_rval (constant);
+      return emit_lisp_obj_rval (value);
     }
 
   return gcc_jit_lvalue_as_rvalue (emit_mvar_lval (mvar));
@@ -2371,12 +2371,13 @@ static gcc_jit_rvalue *
 emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 			  Lisp_Object type)
 {
-  bool type_hint = EQ (CALL1I (comp-mvar-type, SECOND (insn)), type);
+  bool hint_match =
+    !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
   gcc_jit_rvalue *args[] =
     { emit_mvar_rval (SECOND (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.bool_type,
-					   type_hint) };
+					   hint_match) };
 
   return gcc_jit_context_new_call (comp.ctxt, NULL, func, 2, args);
 }
@@ -2386,13 +2387,14 @@ static gcc_jit_rvalue *
 emit_call2_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 			   Lisp_Object type)
 {
-  bool type_hint = EQ (CALL1I (comp-mvar-type, SECOND (insn)), type);
+  bool hint_match =
+    !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
   gcc_jit_rvalue *args[] =
     { emit_mvar_rval (SECOND (insn)),
       emit_mvar_rval (THIRD (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.bool_type,
-					   type_hint) };
+					   hint_match) };
 
   return gcc_jit_context_new_call (comp.ctxt, NULL, func, 3, args);
 }
