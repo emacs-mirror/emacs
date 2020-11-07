@@ -156,4 +156,13 @@
   (load custom-test-admin-cus-test)
   (should (null (cus-test-opts t))))
 
+(ert-deftest custom-test-enable-theme-keeps-settings ()
+  "Test that enabling a theme doesn't change its settings."
+  (let* ((custom-theme-load-path `(,(ert-resource-directory)))
+         settings)
+    (load-theme 'custom--test 'no-confirm 'no-enable)
+    (setq settings (get 'custom--test 'theme-settings))
+    (enable-theme 'custom--test)
+    (should (equal settings (get 'custom--test 'theme-settings)))))
+
 ;;; custom-tests.el ends here
