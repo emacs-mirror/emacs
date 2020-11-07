@@ -24,6 +24,45 @@
 
 (require 'ert)
 
+(defun keymap-tests--make-keymap-test (fun)
+  (should (eq (car (funcall fun)) 'keymap))
+  (should (proper-list-p (funcall fun)))
+  (should (equal (car (last (funcall fun "foo"))) "foo")))
+
+(ert-deftest keymap-make-keymap ()
+  (keymap-tests--make-keymap-test #'make-keymap)
+  (should (char-table-p (cadr (make-keymap)))))
+
+(ert-deftest keymap-make-sparse-keymap ()
+  (keymap-tests--make-keymap-test #'make-sparse-keymap))
+
+(ert-deftest keymap-keymapp ()
+  (should (keymapp (make-keymap)))
+  (should (keymapp (make-sparse-keymap)))
+  (should-not (keymapp '(foo bar))))
+
+(ert-deftest keymap-keymap-parent ()
+  (should-not (keymap-parent (make-keymap)))
+  (should-not (keymap-parent (make-sparse-keymap)))
+  (let ((map (make-keymap)))
+    (set-keymap-parent map help-mode-map)
+    (should (equal (keymap-parent map) help-mode-map))))
+
+(ert-deftest keymap-keymap-set-parent/returns-parent ()
+  (let ((map (make-keymap)))
+    (should (equal (set-keymap-parent map help-mode-map) help-mode-map))))
+
+(ert-deftest keymap-copy-keymap/is-equal ()
+  (should (equal (copy-keymap help-mode-map) help-mode-map)))
+
+(ert-deftest keymap-copy-keymap/is-not-eq ()
+  (should-not (eq (copy-keymap help-mode-map) help-mode-map)))
+
+(ert-deftest keymap-lookup-key ()
+  (let ((map (make-keymap)))
+    (define-key map [?a] 'foo)
+    (should (eq (lookup-key map [?a]) 'foo))))
+
 (ert-deftest describe-buffer-bindings/header-in-current-buffer ()
   "Header should be inserted into the current buffer.
 https://debbugs.gnu.org/39149#31"
@@ -134,6 +173,16 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
    (equal (let ((where-is-preferred-modifier "alt"))
             (where-is-internal 'execute-extended-command global-map t))
           [#x8000078])))
+
+(ert-deftest keymap-apropos-internal ()
+  (should (equal (apropos-internal "^next-line$") '(next-line)))
+  (should (>= (length (apropos-internal "^help")) 100))
+  (should-not (apropos-internal "^test-a-missing-symbol-foo-bar-zut$")))
+
+(ert-deftest keymap-apropos-internal/predicate ()
+  (should (equal (apropos-internal "^next-line$" #'commandp) '(next-line)))
+  (should (>= (length (apropos-internal "^help" #'commandp)) 15))
+  (should-not (apropos-internal "^next-line$" #'keymapp)))
 
 (provide 'keymap-tests)
 
