@@ -178,13 +178,16 @@
 
 (defun lisp--match-hidden-arg (limit)
   (let ((res nil))
+    (forward-line 0)
     (while
-        (let ((ppss (parse-partial-sexp (line-beginning-position)
+        (let ((ppss (parse-partial-sexp (point)
                                         (line-end-position)
                                         -1)))
           (skip-syntax-forward " )")
           (if (or (>= (car ppss) 0)
-                  (looking-at ";\\|$"))
+                  (eolp)
+                  (looking-at ";")
+                  (nth 8 (syntax-ppss))) ;Within a string or comment.
               (progn
                 (forward-line 1)
                 (< (point) limit))
