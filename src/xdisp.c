@@ -18820,6 +18820,10 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
   /* Try to scroll by specified few lines.  */
   if ((0 < scroll_conservatively
+       /* FIXME: the option is supposed to affect minibuffers, but we
+	  test MINI_WINDOW_P, which can also catch uses of
+	  mini-windows for displaying the echo area.  Do we need to
+	  distinguish these two use cases?  */
        || (scroll_minibuffer_conservatively && MINI_WINDOW_P (w))
        || 0 < emacs_scroll_step
        || temp_scroll_step
