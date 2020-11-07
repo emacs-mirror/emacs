@@ -84,7 +84,12 @@ ftcrfont_glyph_extents (struct font *font,
       cache->lbearing = floor (extents.x_bearing);
       cache->rbearing = ceil (extents.width + extents.x_bearing);
       cache->width = lround (extents.x_advance);
-      cache->ascent = ceil (- extents.y_bearing);
+      /* The subtraction of a small number is to avoid rounding up due
+	 to floating-point inaccuracies with some fonts, which then
+	 could cause unpleasant effects while scrolling (see bug
+	 #44284), since we then think that a glyph row's ascent is too
+	 small to accommodate a glyph with a higher phys_ascent.  */
+      cache->ascent = ceil (- extents.y_bearing - 1.0 / 256);
       cache->descent = ceil (extents.height + extents.y_bearing);
     }
 
