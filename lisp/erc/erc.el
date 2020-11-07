@@ -1500,7 +1500,7 @@ Defaults to the server buffer."
 
 ;; activation
 
-(defconst erc-default-server "irc.freenode.net"
+(defconst erc-default-server "chat.freenode.net"
   "IRC server to use if it cannot be detected otherwise.")
 
 (defconst erc-default-port 6667
@@ -2244,7 +2244,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc :server \"irc.freenode.net\" :full-name \"Harry S Truman\")
+   (erc :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
 
 then the server and full-name will be set to those values, whereas
 `erc-compute-port', `erc-compute-nick' and `erc-compute-full-name' will

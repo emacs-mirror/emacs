@@ -583,6 +583,7 @@ extern bool alphanumericp (int);
 extern bool graphicp (int);
 extern bool printablep (int);
 extern bool blankp (int);
+extern bool graphic_base_p (int);
 
 /* Look up the element in char table OBJ at index CH, and return it as
    an integer.  If the element is not a character, return CH itself.  */

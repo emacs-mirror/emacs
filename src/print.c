@@ -1859,6 +1859,24 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
   return true;
 }
 
+static char
+named_escape (int i)
+{
+  switch (i)
+    {
+    case '\b': return 'b';
+    case '\t': return 't';
+    case '\n': return 'n';
+    case '\f': return 'f';
+    case '\r': return 'r';
+    case ' ':  return 's';
+      /* \a, \v, \e and \d are excluded from printing as escapes since
+         they are somewhat rare as characters and more likely to be
+         plain integers. */
+    }
+  return 0;
+}
+
 static void
 print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
@@ -1919,8 +1937,32 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
     {
     case_Lisp_Int:
       {
-	int len = sprintf (buf, "%"pI"d", XFIXNUM (obj));
-	strout (buf, len, len, printcharfun);
+        EMACS_INT i = XFIXNUM (obj);
+        char escaped_name;
+
+	if (print_integers_as_characters && i >= 0 && i <= MAX_UNICODE_CHAR
+            && ((escaped_name = named_escape (i))
+                || graphic_base_p (i)))
+	  {
+	    printchar ('?', printcharfun);
+            if (escaped_name)
+              {
+                printchar ('\\', printcharfun);
+                i = escaped_name;
+              }
+            else if (escapeflag
+                     && (i == ';' || i == '\"' || i == '\'' || i == '\\'
+                         || i == '(' || i == ')'
+                         || i == '{' || i == '}'
+                         || i == '[' || i == ']'))
+	      printchar ('\\', printcharfun);
+	    printchar (i, printcharfun);
+	  }
+	else
+	  {
+	    int len = sprintf (buf, "%"pI"d", i);
+	    strout (buf, len, len, printcharfun);
+	  }
       }
       break;
 
@@ -2257,6 +2299,14 @@ decimal point.  0 is not allowed with `e' or `g'.
 A value of nil means to use the shortest notation
 that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
+
+  DEFVAR_BOOL ("print-integers-as-characters", print_integers_as_characters,
+	       doc: /* Non-nil means integers are printed using characters syntax.
+Only independent graphic characters, and control characters with named
+escape sequences such as newline, are printed this way.  Other
+integers, including those corresponding to raw bytes, are printed
+as numbers the usual way.  */);
+  print_integers_as_characters = false;
 
   DEFVAR_LISP ("print-length", Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.

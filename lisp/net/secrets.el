@@ -795,8 +795,8 @@ In this mode, widgets represent the search results.
   (set (make-local-variable 'revert-buffer-function)
        #'secrets-show-collections)
   ;; When we toggle, we must set temporary widgets.
-  (set (make-local-variable 'tree-widget-after-toggle-functions)
-       '(secrets-tree-widget-after-toggle-function)))
+  (add-hook 'tree-widget-after-toggle-functions
+            #'secrets-tree-widget-after-toggle-function nil t))
 
 ;; It doesn't make sense to call it interactively.
 (put 'secrets-mode 'disabled t)

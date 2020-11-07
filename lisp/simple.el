@@ -1344,18 +1344,20 @@ rather than line counts."
   ;; Leave mark at previous position
   (or (region-active-p) (push-mark))
   ;; Move to the specified line number in that buffer.
-  (if (and (not relative) (not widen-automatically))
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-        (if (eq selective-display t)
-            (re-search-forward "[\n\C-m]" nil 'end (1- line))
-          (forward-line (1- line))))
-    (unless relative (widen))
-    (goto-char (point-min))
-    (if (eq selective-display t)
-	(re-search-forward "[\n\C-m]" nil 'end (1- line))
-      (forward-line (1- line)))))
+  (let ((pos (save-restriction
+               (unless relative (widen))
+               (goto-char (point-min))
+               (if (eq selective-display t)
+                   (re-search-forward "[\n\C-m]" nil 'end (1- line))
+                 (forward-line (1- line)))
+               (point))))
+    (when (and (not relative)
+               (buffer-narrowed-p)
+               widen-automatically
+               ;; Position is outside narrowed part of buffer
+               (or (> (point-min) pos) (> pos (point-max))))
+      (widen))
+    (goto-char pos)))
 
 (defun goto-line-relative (line &optional buffer)
   "Go to LINE, counting from line at (point-min).

@@ -95,8 +95,8 @@
   (setq-local revert-buffer-function #'list-timers)
   (setq tabulated-list-format
         '[("Idle" 6 timer-list--idle-predicate)
-          ("        Next" 12 timer-list--next-predicate)
-          ("      Repeat" 12 timer-list--repeat-predicate)
+          ("Next" 12 timer-list--next-predicate :right-align t :pad-right 1)
+          ("Repeat" 12 timer-list--repeat-predicate :right-align t :pad-right 1)
           ("Function" 10 timer-list--function-predicate)]))
 
 (defun timer-list--idle-predicate (A B)
@@ -121,7 +121,7 @@
     (string< rA rB)))
 
 (defun timer-list--function-predicate (A B)
-  "Predicate to sort Timer-List by the Next column."
+  "Predicate to sort Timer-List by the Function column."
   (let ((fA (aref (cadr A) 3))
         (fB (aref (cadr B) 3)))
     (string< fA fB)))

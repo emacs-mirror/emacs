@@ -1092,13 +1092,12 @@ code that has already executed, in order to examine its execution in
 more detail.
 
 @vindex gdb-mi-decode-strings
-  If the file names of the source files are shown with octal escapes,
-set the variable @code{gdb-mi-decode-strings} to the appropriate
-coding-system, most probably @code{utf-8}.  (This is @code{nil} by
-default because GDB may emit octal escapes in situations where
-decoding is undesirable, and also because the program being debugged
-might use an encoding different from the one used to encode non-ASCII
-file names on your system.)
+  By default, source file names and non-ASCII strings in the program
+being debugged are decoded using the default coding-system.  If you
+prefer a different decoding, perhaps because the program being
+debugged uses a different character encoding, set the variable
+@code{gdb-mi-decode-strings} to the appropriate coding-system, or to
+@code{nil} to leave non-ASCII characters as undecoded octal escapes.
 
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer

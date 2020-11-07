@@ -701,7 +701,7 @@ The text is displayed for `minibuffer-message-timeout' seconds,
 or until the next input event arrives, whichever comes first.
 Enclose MESSAGE in [...] if this is not yet the case.
 If ARGS are provided, then pass MESSAGE through `format-message'."
-  (if (not (minibufferp (current-buffer)))
+  (if (not (minibufferp (current-buffer) t))
       (progn
         (if args
             (apply #'message message args)

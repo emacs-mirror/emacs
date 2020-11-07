@@ -419,6 +419,7 @@ character into the search string, similar to the usual
 @kindex C-^ @r{(Incremental Search)}
 @findex isearch-toggle-input-method
 @findex isearch-toggle-specified-input-method
+@findex isearch-transient-input-method
 Use an input method (@pxref{Input Methods}).  If an input method is
 enabled in the current buffer when you start the search, the same
 method will be active in the minibuffer when you type the search
@@ -437,7 +438,11 @@ I-search [@var{im}]:
 @noindent
 where @var{im} is the mnemonic of the active input method.  Any input
 method you enable during incremental search remains enabled in the
-current buffer afterwards.
+current buffer afterwards.  Finally, you can temporarily enable a
+transient input method (@pxref{transient input method}) with
+@kbd{C-x \} (@code{isearch-transient-input-method}) to insert a single
+character to the search string using an input method, and
+automatically disable the input method afterwards.
 @end itemize
 
 @kindex M-s o @r{(Incremental Search)}

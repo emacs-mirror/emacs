@@ -51,6 +51,17 @@
   (setq input-method-function nil)
   (isearch-update))
 
+;;;###autoload
+(defun isearch-transient-input-method ()
+  "Activate transient input method in interactive search."
+  (interactive)
+  (let ((overriding-terminal-local-map nil))
+    (activate-transient-input-method))
+  (setq isearch-input-method-function input-method-function
+	isearch-input-method-local-p t)
+  (setq input-method-function nil)
+  (isearch-update))
+
 (defvar isearch-minibuffer-local-map
   (let ((map (copy-keymap minibuffer-local-map)))
     (define-key map [with-keyboard-coding] 'isearch-with-keyboard-coding)
@@ -117,6 +128,7 @@
 			  (cons last-char unread-command-events))
 		    ;; Inherit current-input-method in a minibuffer.
 		    str (read-string prompt isearch-message 'junk-hist nil t))
+	      (deactivate-transient-input-method)
 	      (if (or (not str) (< (length str) (length isearch-message)))
 		  ;; All inputs were deleted while the input method
 		  ;; was working.

@@ -264,7 +264,7 @@ Foundation Web site at @url{https://www.gnu.org/licenses/fdl.html}.
 @end quotation
 
 The document was typeset with
-@uref{http://www.texinfo.org/, GNU Texinfo}.
+@uref{https://www.gnu.org/software/texinfo/, GNU Texinfo}.
 
 @end copying
 
@@ -315,8 +315,7 @@ The document was typeset with
 @printindex cp
 
 @bye
-
-@c " (file-name-nondirectory (buffer-file-name)) " ends here\n"))
+"))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
 CONDITION may be a regexp that must match the new file's name, or it may be

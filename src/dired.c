@@ -165,8 +165,16 @@ read_dirent (DIR *dir, Lisp_Object dirname)
 Lisp_Object
 directory_files_internal (Lisp_Object directory, Lisp_Object full,
 			  Lisp_Object match, Lisp_Object nosort, bool attrs,
-			  Lisp_Object id_format)
+			  Lisp_Object id_format, Lisp_Object return_count)
 {
+  EMACS_INT ind = 0, last = MOST_POSITIVE_FIXNUM;
+
+  if (!NILP (return_count))
+    {
+      CHECK_FIXNAT (return_count);
+      last = XFIXNAT (return_count);
+    }
+
   if (!NILP (match))
     CHECK_STRING (match);
 
@@ -267,6 +275,10 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
       else
 	finalname = name;
 
+      if (ind == last)
+          break;
+      ind ++;
+
       list = Fcons (attrs ? Fcons (finalname, fileattrs) : finalname, list);
     }
 
@@ -288,18 +300,20 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 }
 
 
-DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
+DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 5, 0,
        doc: /* Return a list of names of files in DIRECTORY.
-There are three optional arguments:
+There are four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names whose non-directory part
  matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
- NOSORT is useful if you plan to sort the result yourself.  */)
+ NOSORT is useful if you plan to sort the result yourself.
+If COUNT is non-nil and a natural number, the function will return
+ COUNT number of file names (if so many are present).  */)
   (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
-   Lisp_Object nosort)
+   Lisp_Object nosort, Lisp_Object count)
 {
   directory = Fexpand_file_name (directory, Qnil);
 
@@ -307,14 +321,15 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
-    return call5 (handler, Qdirectory_files, directory,
-                  full, match, nosort);
+    return call6 (handler, Qdirectory_files, directory,
+                  full, match, nosort, count);
 
-  return directory_files_internal (directory, full, match, nosort, false, Qnil);
+  return directory_files_internal (directory, full, match, nosort,
+                                   false, Qnil, count);
 }
 
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
-       Sdirectory_files_and_attributes, 1, 5, 0,
+       Sdirectory_files_and_attributes, 1, 6, 0,
        doc: /* Return a list of names of files and their attributes in DIRECTORY.
 Value is a list of the form:
 
@@ -323,7 +338,7 @@ Value is a list of the form:
 where each FILEn-ATTRS is the attributes of FILEn as returned
 by `file-attributes'.
 
-This function accepts four optional arguments:
+This function accepts five optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names whose non-directory part
@@ -332,10 +347,12 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself.
 ID-FORMAT specifies the preferred format of attributes uid and gid, see
  `file-attributes' for further documentation.
+If COUNT is non-nil and a natural number, the function will return
+ COUNT number of file names (if so many are present).
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.  */)
   (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
-   Lisp_Object nosort, Lisp_Object id_format)
+   Lisp_Object nosort, Lisp_Object id_format, Lisp_Object count)
 {
   directory = Fexpand_file_name (directory, Qnil);
 
@@ -344,11 +361,11 @@ which see.  */)
   Lisp_Object handler
     = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
-    return call6 (handler, Qdirectory_files_and_attributes,
-                  directory, full, match, nosort, id_format);
+    return call7 (handler, Qdirectory_files_and_attributes,
+                  directory, full, match, nosort, id_format, count);
 
   return directory_files_internal (directory, full, match, nosort,
-				   true, id_format);
+				   true, id_format, count);
 }
 
 

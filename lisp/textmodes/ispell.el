@@ -684,13 +684,9 @@ Otherwise returns the library directory name, if that is defined."
     (with-temp-buffer
       (setq status (ispell-call-process
 		    ispell-program-name nil t nil
-		    ;; aspell doesn't accept the -vv switch.
 		    (let ((case-fold-search
-			   (memq system-type '(ms-dos windows-nt)))
-			  (speller
-			   (file-name-nondirectory ispell-program-name)))
-		      ;; Assume anything that isn't `aspell' is Ispell.
-		      (if (string-match "\\`aspell" speller) "-v" "-vv"))))
+			   (memq system-type '(ms-dos windows-nt))))
+		      "-vv")))
       (goto-char (point-min))
       (if interactivep
 	  ;; Report version information of ispell
@@ -771,18 +767,23 @@ Otherwise returns the library directory name, if that is defined."
 	    (setq ispell-really-hunspell nil))))))
     result))
 
+(defmacro ispell-with-safe-default-directory (&rest body)
+  "Execute the forms in BODY with a reasonable
+`default-directory'."
+  (declare (indent 0) (debug t))
+  `(let ((default-directory default-directory))
+     (unless (file-accessible-directory-p default-directory)
+       (setq default-directory (expand-file-name "~/")))
+     ,@body))
+
 (defun ispell-call-process (&rest args)
-  "Like `call-process' but defend against bad `default-directory'."
-  (let ((default-directory default-directory))
-    (unless (file-accessible-directory-p default-directory)
-      (setq default-directory (expand-file-name "~/")))
+  "Like `call-process', but defend against bad `default-directory'."
+  (ispell-with-safe-default-directory
     (apply 'call-process args)))
 
 (defun ispell-call-process-region (&rest args)
-  "Like `call-process-region' but defend against bad `default-directory'."
-  (let ((default-directory default-directory))
-    (unless (file-accessible-directory-p default-directory)
-      (setq default-directory (expand-file-name "~/")))
+  "Like `call-process-region', but defend against bad `default-directory'."
+  (ispell-with-safe-default-directory
     (apply 'call-process-region args)))
 
 (defvar ispell-debug-buffer)
@@ -1216,13 +1217,14 @@ Internal use.")
 (defun ispell--call-enchant-lsmod (&rest args)
   "Call enchant-lsmod with ARGS and return the output as string."
   (with-output-to-string
-    (with-current-buffer
-        standard-output
+    (with-current-buffer standard-output
       (apply #'ispell-call-process
              (replace-regexp-in-string "enchant\\(-[0-9]\\)?\\'"
                                        "enchant-lsmod\\1"
                                        ispell-program-name)
-             nil t nil args))))
+             ;; We discard stderr here because enchant-lsmod can emit
+             ;; unrelated warnings that will confuse us.
+             nil '(t nil) nil args))))
 
 (defun ispell--get-extra-word-characters (&optional lang)
   "Get the extra word characters for LANG as a character class.

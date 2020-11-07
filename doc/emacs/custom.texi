@@ -1582,6 +1582,13 @@ starts with @kbd{@key{ESC} [}.)  If Emacs understands your terminal
 type properly, it automatically handles such sequences as single input
 events.
 
+  Key sequences that consist of @kbd{C-c} followed by a letter (upper
+or lower case; @acronym{ASCII} or non-@acronym{ASCII}) are reserved
+for users.  Emacs itself will never bind those key sequences, and
+Emacs extensions should avoid binding them.  In other words, users can
+bind key sequences like @kbd{C-c a} or @kbd{C-c ç} and rely on these
+never being shadowed by other Emacs bindings.
+
 @node Prefix Keymaps
 @subsection Prefix Keymaps
 

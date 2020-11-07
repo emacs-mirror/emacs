@@ -309,6 +309,30 @@ A nil value for either argument stands for the current time."
     (lambda (filename &optional timestamp _flag)
       (set-file-times filename timestamp))))
 
+;; `directory-files' and `directory-files-and-attributes' got argument
+;; COUNT in Emacs 28.1.
+(defalias 'tramp-compat-directory-files
+  (if (equal (tramp-compat-funcall 'func-arity #'directory-files) '(1 . 5))
+      #'directory-files
+    (lambda (directory &optional full match nosort _count)
+      (directory-files directory full match nosort))))
+
+(defalias 'tramp-compat-directory-files-and-attributes
+  (if (equal (tramp-compat-funcall 'func-arity #'directory-files-and-attributes)
+	     '(1 . 6))
+      #'directory-files-and-attributes
+    (lambda (directory &optional full match nosort id-format _count)
+      (directory-files-and-attributes directory full match nosort id-format))))
+
+;; `directory-empty-p' is new in Emacs 28.1.
+(defalias 'tramp-compat-directory-empty-p
+  (if (fboundp 'directory-empty-p)
+      #'directory-empty-p
+    (lambda (dir)
+      (and (file-directory-p dir)
+	   (null (tramp-compat-directory-files
+		  dir nil directory-files-no-dot-files-regexp t 1))))))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-loaddefs 'force)
@@ -322,5 +346,8 @@ A nil value for either argument stands for the current time."
 ;;
 ;; * Starting with Emacs 27.1, there's no need to escape open
 ;;   parentheses with a backslash in docstrings anymore.
+;;
+;; * Starting with Emacs 27.1, there's `make-empty-file'.  Could be
+;;   used instead of `write-region'.
 
 ;;; tramp-compat.el ends here

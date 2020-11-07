@@ -69,6 +69,17 @@ the minibuffer for a few seconds, or until you type something; then
 the minibuffer comes back.  While the minibuffer is in use, Emacs does
 not echo keystrokes.
 
+@vindex minibuffer-follows-selected-frame
+  While using the minibuffer, you can switch to a different frame,
+perhaps to note text you need to enter (@pxref{Frame Commands}).  By
+default, the active minibuffer moves to this new frame.  If you set
+the user option @code{minibuffer-follows-selected-frame} to
+@code{nil}, then the minibuffer stays in the frame where you opened
+it, and you must switch back to that frame in order to complete (or
+abort) the current command.  Note that the effect of the command, when
+you finally finish using the minibuffer, always takes place in the
+frame where you first opened it.
+
 @node Minibuffer File
 @section Minibuffers for File Names
 

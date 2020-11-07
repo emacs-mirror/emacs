@@ -138,7 +138,9 @@ preserve the setting."
 ;; Variables the user doesn't need to know about.
 
 (defvar vc-log-operation nil)
-(defvar vc-log-after-operation-hook nil)
+(defvar vc-log-after-operation-hook nil
+  "Name of the hook run at the end of `vc-finish-logentry'.
+BEWARE: Despite its name, this variable is not itself a hook!")
 (defvar vc-log-fileset)
 
 ;; In a log entry buffer, this is a local variable

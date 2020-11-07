@@ -201,8 +201,11 @@ the elements themselves.
 
 ;;;###autoload
 (defun cl-some (cl-pred cl-seq &rest cl-rest)
-  "Return true if PREDICATE is true of any element of SEQ or SEQs.
-If so, return the true (non-nil) value returned by PREDICATE.
+  "Say whether PREDICATE is true for any element in the SEQ sequences.
+More specifically, the return value of this function will be the
+same as the first return value of PREDICATE where PREDICATE has a
+non-nil value.
+
 \n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-some

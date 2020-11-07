@@ -888,6 +888,16 @@ recursion."
 	    (push (concat dir "/" file) files)))))
     (nconc result (nreverse files))))
 
+(defun directory-empty-p (dir)
+  "Return t if DIR names an existing directory containing no other files.
+Return nil if DIR does not name a directory, or if there was
+trouble determining whether DIR is a directory or empty.
+
+Symbolic links to directories count as directories.
+See `file-symlink-p' to distinguish symlinks."
+  (and (file-directory-p dir)
+       (null (directory-files dir nil directory-files-no-dot-files-regexp t 1))))
+
 (defvar module-file-suffix)
 
 (defun load-file (file)
@@ -5862,10 +5872,7 @@ RECURSIVE if DIRECTORY is nonempty."
       ;; case, where the operation fails in delete-directory-internal.
       ;; As `move-file-to-trash' trashes directories (empty or
       ;; otherwise) as a unit, we do not need to recurse here.
-      (if (and (not recursive)
-	       ;; Check if directory is empty apart from "." and "..".
-	       (directory-files
-		directory 'full directory-files-no-dot-files-regexp))
+      (if (not (or recursive (directory-empty-p directory)))
 	  (error "Directory is not empty, not moving to trash")
 	(move-file-to-trash directory)))
      ;; Otherwise, call ourselves recursively if needed.

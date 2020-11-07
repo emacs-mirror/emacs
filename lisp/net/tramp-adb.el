@@ -301,7 +301,7 @@ ARGUMENTS to pass to the OPERATION."
       file-properties)))
 
 (defun tramp-adb-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -311,8 +311,8 @@ ARGUMENTS to pass to the OPERATION."
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (copy-tree
        (with-tramp-file-property
-	   v localname (format "directory-files-and-attributes-%s-%s-%s-%s"
-			       full match id-format nosort)
+	   v localname (format "directory-files-and-attributes-%s-%s-%s-%s-%s"
+			       full match id-format nosort count)
 	 (with-current-buffer (tramp-get-buffer v)
 	   (when (tramp-adb-send-command-and-check
 		  v (format "%s -a -l %s"
@@ -342,11 +342,17 @@ ARGUMENTS to pass to the OPERATION."
 	     (unless nosort
 	       (setq result
 		     (sort result (lambda (x y) (string< (car x) (car y))))))
-	     (delq nil
-		   (mapcar (lambda (x)
-			     (if (or (not match) (string-match-p match (car x)))
-				 x))
-			   result)))))))))
+
+             (setq result (delq nil
+                                (mapcar
+                                 (lambda (x) (if (or (not match)
+                                                     (string-match-p
+                                                      match (car x)))
+                                                 x))
+                                 result)))
+	     (when (and (natnump count) (> count 0))
+	       (setq result (nbutlast result (- (length result) count))))
+             result)))))))
 
 (defun tramp-adb-get-ls-command (vec)
   "Determine `ls' command and its arguments."
@@ -437,27 +443,25 @@ Emacs dired can't find files."
 		(and parents (file-directory-p dir)))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
-(defun tramp-adb-handle-delete-directory (directory &optional recursive _trash)
+(defun tramp-adb-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (setq directory (expand-file-name directory))
-  (with-parsed-tramp-file-name (file-truename directory) nil
-    (tramp-flush-directory-properties v localname))
-  (with-parsed-tramp-file-name directory nil
-    (tramp-flush-directory-properties v localname)
+  (tramp-skeleton-delete-directory directory recursive trash
     (tramp-adb-barf-unless-okay
      v (format "%s %s"
 	       (if recursive "rm -r" "rmdir")
 	       (tramp-shell-quote-argument localname))
      "Couldn't delete %s" directory)))
 
-(defun tramp-adb-handle-delete-file (filename &optional _trash)
+(defun tramp-adb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (tramp-adb-barf-unless-okay
-     v (format "rm %s" (tramp-shell-quote-argument localname))
-     "Couldn't delete %s" filename)))
+    (if (and delete-by-moving-to-trash trash)
+	(move-file-to-trash filename)
+      (tramp-adb-barf-unless-okay
+       v (format "rm %s" (tramp-shell-quote-argument localname))
+       "Couldn't delete %s" filename))))
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."

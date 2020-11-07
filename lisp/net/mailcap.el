@@ -175,11 +175,11 @@ is consulted."
       (type   . "application/zip")
       ("copiousoutput"))
      ("pdf"
-      (viewer . pdf-view-mode)
+      (viewer . doc-view-mode)
       (type . "application/pdf")
       (test . window-system))
      ("pdf"
-      (viewer . doc-view-mode)
+      (viewer . pdf-view-mode)
       (type . "application/pdf")
       (test . window-system))
      ("pdf"
@@ -330,7 +330,10 @@ Content-Type header as argument to return a boolean value for the
 validity.  Otherwise, if it is a non-function Lisp symbol or list
 whose car is a symbol, it is `eval'uated to yield the validity.  If it
 is a string or list of strings, it represents a shell command to run
-to return a true or false shell value for the validity.")
+to return a true or false shell value for the validity.
+
+The last matching entry in this structure takes presedence over
+preceding entries.")
 (put 'mailcap-mime-data 'risky-local-variable t)
 
 (defvar mailcap--computed-mime-data nil
@@ -1128,20 +1131,30 @@ For instance, \"foo.png\" will result in \"image/png\"."
             res)))
        (nreverse res)))))
 
+(defun mailcap--async-shell (command file)
+  "Asynchronously call MIME viewer shell COMMAND.
+Replace %s in COMMAND with FILE, as per `mailcap-mime-data'.
+Delete FILE once COMMAND exits."
+  (let ((buf (get-buffer-create " *mailcap shell*")))
+    (async-shell-command (format command file) buf)
+    (add-function :after (process-sentinel (get-buffer-process buf))
+                  (lambda (proc _msg)
+                    (when (memq (process-status proc) '(exit signal))
+                      (delete-file file))))))
+
 (defun mailcap-view-mime (type)
   "View the data in the current buffer that has MIME type TYPE.
-`mailcap--computed-mime-data' determines the method to use."
+The variable `mailcap--computed-mime-data' determines the method
+to use.  If the method is a shell command string, erase the
+current buffer after passing its contents to the shell command."
   (let ((method (mailcap-mime-info type)))
     (if (stringp method)
-        (let ((file (make-temp-file "emacs-mailcap" nil
-                                    (cadr (split-string type "/")))))
-          (unwind-protect
-              (let ((coding-system-for-write 'binary))
-                (write-region (point-min) (point-max) file nil 'silent)
-                (delete-region (point-min) (point-max))
-                (shell-command (format method file)))
-            (when (file-exists-p file)
-              (delete-file file))))
+        (let* ((ext (concat "." (cadr (split-string type "/"))))
+               (file (make-temp-file "emacs-mailcap" nil ext))
+               (coding-system-for-write 'binary))
+          (write-region nil nil file nil 'silent)
+          (delete-region (point-min) (point-max))
+          (mailcap--async-shell method file))
       (funcall method))))
 
 (provide 'mailcap)

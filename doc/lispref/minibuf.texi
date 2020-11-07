@@ -2586,10 +2586,12 @@ The minibuffer command @code{next-matching-history-element} (normally
 @node Minibuffer Misc
 @section Minibuffer Miscellany
 
-@defun minibufferp &optional buffer-or-name
+@defun minibufferp &optional buffer-or-name live
 This function returns non-@code{nil} if @var{buffer-or-name} is a
-minibuffer.  If @var{buffer-or-name} is omitted, it tests the current
-buffer.
+minibuffer.  If @var{buffer-or-name} is omitted or @code{nil}, it
+tests the current buffer.  When @var{live} is non-@code{nil}, the
+function returns non-@code{nil} only when @var{buffer-or-name} is an
+active minibuffer.
 @end defun
 
 @defvar minibuffer-setup-hook

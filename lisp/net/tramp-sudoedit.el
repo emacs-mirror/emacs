@@ -321,29 +321,25 @@ absolute file names."
 (defun tramp-sudoedit-handle-delete-directory
     (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (setq directory (expand-file-name directory))
-  (with-parsed-tramp-file-name directory nil
-    (tramp-flush-directory-properties v localname)
-    (unless
-	(tramp-sudoedit-send-command
-	 v (or (and trash "trash")
-	       (if recursive '("rm" "-rf") "rmdir"))
-	 (tramp-compat-file-name-unquote localname))
+  (tramp-skeleton-delete-directory directory recursive trash
+    (unless (tramp-sudoedit-send-command
+	     v (if recursive '("rm" "-rf") "rmdir")
+	     (tramp-compat-file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't delete %s" directory))))
 
 (defun tramp-sudoedit-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (unless
-	(tramp-sudoedit-send-command
-	 v (if (and trash delete-by-moving-to-trash) "trash" "rm")
-	 (tramp-compat-file-name-unquote localname))
-      ;; Propagate the error.
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(goto-char (point-min))
-	(tramp-error-with-buffer
-	 nil v 'file-error "Couldn't delete %s" filename)))))
+    (if (and delete-by-moving-to-trash trash)
+	(move-file-to-trash filename)
+      (unless (tramp-sudoedit-send-command
+	       v "rm" (tramp-compat-file-name-unquote localname))
+	;; Propagate the error.
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (tramp-error-with-buffer
+	   nil v 'file-error "Couldn't delete %s" filename))))))
 
 (defun tramp-sudoedit-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.

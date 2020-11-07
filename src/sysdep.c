@@ -1440,6 +1440,7 @@ set_window_size (int fd, int height, int width)
 
   /* BSD-style.  */
   struct winsize size;
+  memset (&size, 0, sizeof (size));
   size.ws_row = height;
   size.ws_col = width;
 
@@ -1450,6 +1451,7 @@ set_window_size (int fd, int height, int width)
 
   /* SunOS - style.  */
   struct ttysize size;
+  memset (&size, 0, sizeof (size));
   size.ts_lines = height;
   size.ts_cols = width;
 
@@ -2892,7 +2894,8 @@ list_system_processes (void)
      process.  */
   procdir = build_string ("/proc");
   match = build_string ("[0-9]+");
-  proclist = directory_files_internal (procdir, Qnil, match, Qt, false, Qnil);
+  proclist = directory_files_internal (procdir, Qnil, match, Qt,
+                                       false, Qnil, Qnil);
 
   /* `proclist' gives process IDs as strings.  Destructively convert
      each string into a number.  */

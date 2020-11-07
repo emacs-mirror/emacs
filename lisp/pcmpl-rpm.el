@@ -1,4 +1,4 @@
-;;; pcmpl-rpm.el --- functions for dealing with rpm completions
+;;; pcmpl-rpm.el --- functions for dealing with rpm completions  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -47,14 +47,12 @@
   :version "24.3"
   :type '(choice (const :tag "No options" nil)
                  (string :tag "Single option")
-                 (repeat :tag "List of options" string))
-  :group 'pcmpl-rpm)
+                 (repeat :tag "List of options" string)))
 
 (defcustom pcmpl-rpm-cache t
   "Whether to cache the list of installed packages."
   :version "24.3"
-  :type 'boolean
-  :group 'pcmpl-rpm)
+  :type 'boolean)
 
 (defconst pcmpl-rpm-cache-stamp-file "/var/lib/rpm/Packages"
   "File used to check that the list of installed packages is up-to-date.")
@@ -78,7 +76,7 @@
     (message "Getting list of installed rpms...")
     (setq pcmpl-rpm-cache-time (current-time)
           pcmpl-rpm-packages
-          (split-string (apply 'pcomplete-process-result "rpm"
+          (split-string (apply #'pcomplete-process-result "rpm"
                                (append '("-q" "-a")
                                        (if (stringp pcmpl-rpm-query-options)
                                            (list pcmpl-rpm-query-options)

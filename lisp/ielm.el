@@ -533,9 +533,10 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
-  (set (make-local-variable 'completion-at-point-functions)
-       '(comint-replace-by-expanded-history
-         ielm-complete-filename elisp-completion-at-point))
+  (dolist (f '(elisp-completion-at-point
+               ielm-complete-filename
+               comint-replace-by-expanded-history))
+    (add-hook 'completion-at-point-functions f nil t))
   (add-hook 'eldoc-documentation-functions
             #'elisp-eldoc-var-docstring nil t)
   (add-hook 'eldoc-documentation-functions

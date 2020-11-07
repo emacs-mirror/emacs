@@ -18820,6 +18820,10 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
   /* Try to scroll by specified few lines.  */
   if ((0 < scroll_conservatively
+       /* FIXME: the option is supposed to affect minibuffers, but we
+	  test MINI_WINDOW_P, which can also catch uses of
+	  mini-windows for displaying the echo area.  Do we need to
+	  distinguish these two use cases?  */
        || (scroll_minibuffer_conservatively && MINI_WINDOW_P (w))
        || 0 < emacs_scroll_step
        || temp_scroll_step
@@ -27065,7 +27069,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   else
     max_x = min (max_x, it->last_visible_x);
 
-  /* Skip over display elements that are not visible. because IT->w is
+  /* Skip over display elements that are not visible because IT->w is
      hscrolled.  */
   if (it->current_x < it->first_visible_x)
     move_it_in_display_line_to (it, 100000, it->first_visible_x,
@@ -31224,7 +31228,9 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     {
       *active_cursor = false;
 
-      if (MINI_WINDOW_P (w) && minibuf_level == 0)
+      if (MINI_WINDOW_P (w) &&
+          (minibuf_level == 0
+           || is_minibuffer (0, w->contents)))
 	return NO_CURSOR;
 
       non_selected = true;

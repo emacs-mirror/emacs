@@ -2144,7 +2144,7 @@ I need real-time help, where to find it?
 
 @subsubheading Answer
 
-Point your IRC client to irc.freenode.net, channel #gnus.
+Point your IRC client to chat.freenode.net, channel #gnus.
 
 @node FAQ 9 - Tuning Gnus
 @subsection Tuning Gnus

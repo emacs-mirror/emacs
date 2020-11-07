@@ -140,12 +140,12 @@ out.
 
 @item Connect to Freenode
 
-Run @kbd{M-x erc}.  Use ``irc.freenode.net'' as the IRC server, ``6667''
-as the port, and choose a nickname.
+Run @kbd{M-x erc}.  Use ``chat.freenode.net'' as the IRC server,
+``6667'' as the port, and choose a nickname.
 
 @item Get used to the interface
 
-Switch to the ``irc.freenode.net:6667'' buffer, if you're not already
+Switch to the ``chat.freenode.net:6667'' buffer, if you're not already
 there.  You will see first some messages about checking for ident, and
 then a bunch of other messages that describe the current IRC server.
 
@@ -162,9 +162,10 @@ channel.
 
 If you would like to be able to talk with people privately on the
 Freenode network, you will have to ``register'' your nickname.  To do
-so, switch to the ``irc.freenode.net:6667'' buffer and type ``/msg
+so, switch to the ``chat.freenode.net:6667'' buffer and type ``/msg
 NickServ register <password>'', replacing ``<password>'' with your
-desired password.  It should tell you that the operation was successful.
+desired password.  It should tell you that the operation was
+successful.
 
 @item Talk to people in the channel
 
@@ -518,7 +519,7 @@ That is, if called with the following arguments, @var{server} and
 parameters.
 
 @example
-(erc :server "irc.freenode.net" :full-name "Harry S Truman")
+(erc :server "chat.freenode.net" :full-name "Harry S Truman")
 @end example
 @end defun
 
@@ -694,7 +695,8 @@ stuff, to the current ERC buffer."
 ;; This causes ERC to connect to the Freenode network upon hitting
 ;; C-c e f.  Replace MYNICK with your IRC nick.
 (global-set-key "\C-cef" (lambda () (interactive)
-                           (erc :server "irc.freenode.net" :port "6667"
+                           (erc :server "chat.freenode.net"
+                                :port "6667"
                                 :nick "MYNICK")))
 
 ;; This causes ERC to connect to the IRC server on your own machine (if
@@ -718,7 +720,7 @@ stuff, to the current ERC buffer."
 (setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc")))
 
 ;; Rename server buffers to reflect the current network name instead
-;; of SERVER:PORT (e.g., "freenode" instead of "irc.freenode.net:6667").
+;; of SERVER:PORT (e.g., "freenode" instead of "chat.freenode.net:6667").
 ;; This is useful when using a bouncer like ZNC where you have multiple
 ;; connections to the same server.
 (setq erc-rename-buffers t)

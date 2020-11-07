@@ -293,6 +293,7 @@
 
 (ert-deftest dired-test-bug27899 ()
   "Test for https://debbugs.gnu.org/27899 ."
+  :tags '(:unstable)
   (dired (list (expand-file-name "src" source-directory)
                "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c"))
   (let ((orig dired-hide-details-mode))
@@ -440,6 +441,81 @@
        (should (= 6 (length (dired-get-marked-files)))) ; All empty dirs but zeta-empty-dir deleted.
      (advice-remove 'read-answer 'dired-test-bug27940-advice))))
 
+(ert-deftest dired-test-directory-files ()
+  "Test for `directory-files'."
+  (let ((testdir (expand-file-name
+                  "directory-files-test" (temporary-file-directory)))
+        (nod directory-files-no-dot-files-regexp))
+    (unwind-protect
+        (progn
+          (when (file-directory-p testdir)
+            (delete-directory testdir t))
+
+          (make-directory testdir)
+          (when (file-directory-p testdir)
+            ;; directory-empty-p: test non-existent dir
+            (should-not (directory-empty-p "some-imaginary-dir"))
+            (should (= 2 (length (directory-files testdir))))
+            ;; directory-empty-p: test empty dir
+            (should (directory-empty-p testdir))
+            (should-not (directory-files testdir nil nod t 1))
+            (dolist (file '(a b c d))
+              (make-empty-file (expand-file-name (symbol-name file) testdir)))
+            (should (= 6 (length (directory-files testdir))))
+            (should (equal "abcd" (mapconcat 'identity (directory-files
+                                                        testdir nil nod) "")))
+            (should (= 2 (length (directory-files testdir nil "[bc]"))))
+            (should (= 3 (length (directory-files testdir nil nod nil 3))))
+            (dolist (file '(5 4 3 2 1))
+              (make-empty-file
+               (expand-file-name (number-to-string file) testdir)))
+            ;;(should (= 0 (length (directory-files testdir nil "[0-9]" t -1))))
+            (should (= 5 (length (directory-files testdir nil "[0-9]" t))))
+            (should (= 5 (length (directory-files testdir nil "[0-9]" t 50))))
+            (should-not (directory-empty-p testdir)))
+
+          (delete-directory testdir t)))))
+
+(ert-deftest dired-test-directory-files-and-attributes ()
+  "Test for `directory-files-and-attributes'."
+  (let ((testdir (expand-file-name
+                  "directory-files-test" (temporary-file-directory)))
+        (nod directory-files-no-dot-files-regexp))
+
+    (unwind-protect
+        (progn
+          (when (file-directory-p testdir)
+            (delete-directory testdir t))
+
+          (make-directory testdir)
+          (when (file-directory-p testdir)
+            (should (= 2 (length (directory-files testdir))))
+            (should-not (directory-files-and-attributes testdir t nod t 1))
+            (dolist (file '(a b c d))
+              (make-directory (expand-file-name (symbol-name file) testdir)))
+            (should (= 6 (length (directory-files-and-attributes testdir))))
+            (dolist (dir (directory-files-and-attributes testdir t nod))
+              (should (file-directory-p (car dir)))
+              (should-not (file-regular-p (car dir))))
+            (should (= 2 (length
+                          (directory-files-and-attributes testdir nil "[bc]"))))
+            (should (= 3 (length
+                          (directory-files-and-attributes
+                           testdir nil nod nil nil 3))))
+            (dolist (file '(5 4 3 2 1))
+              (make-empty-file
+               (expand-file-name (number-to-string file) testdir)))
+            ;; (should (= 0 (length (directory-files-and-attributes testdir nil
+            ;;                                                      "[0-9]" t
+            ;;                                                      nil -1))))
+            (should (= 5 (length
+                          (directory-files-and-attributes
+                           testdir nil "[0-9]" t))))
+            (should (= 5 (length
+                          (directory-files-and-attributes
+                           testdir nil "[0-9]" t nil 50))))))
+      (when (file-directory-p testdir)
+        (delete-directory testdir t)))))
 
 (provide 'dired-tests)
 ;; dired-tests.el ends here

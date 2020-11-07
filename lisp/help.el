@@ -1013,8 +1013,7 @@ Otherwise, return a new string (without any text properties)."
         (insert string)
         (goto-char (point-min))
         (while (< (point) (point-max))
-          (let ((standard-output (current-buffer))
-                (orig-point (point))
+          (let ((orig-point (point))
                 end-point active-maps
                 close generate-summary)
             (cond
@@ -1169,14 +1168,14 @@ Any inserted text ends in two newlines (used by
          (print-title (or maps always-title)))
     ;; Print title.
     (when print-title
-      (princ (concat (if title
-                         (concat title
-                                 (if prefix
-                                     (concat " Starting With "
-                                             (key-description prefix)))
-                                 ":\n"))
-                     "key             binding\n"
-                     "---             -------\n")))
+      (insert (concat (if title
+                          (concat title
+                                  (if prefix
+                                      (concat " Starting With "
+                                              (key-description prefix)))
+                                  ":\n"))
+                      "key             binding\n"
+                      "---             -------\n")))
     ;; Describe key bindings.
     (setq help--keymaps-seen nil)
     (while (consp maps)
@@ -1190,8 +1189,8 @@ Any inserted text ends in two newlines (used by
                 ;; map.
                 (or (keymapp sub-shadows)
                     (null sub-shadows)
-                    (consp sub-shadows)
-                    (not (keymapp (car sub-shadows)))))
+                    (and (consp sub-shadows)
+                         (keymapp (car sub-shadows)))))
           ;; Maps we have already listed in this loop shadow this map.
           (let ((tail orig-maps))
             (while (not (equal tail maps))
@@ -1202,7 +1201,7 @@ Any inserted text ends in two newlines (used by
                         sub-shadows no-menu mention-shadow)))
       (setq maps (cdr maps)))
     (when print-title
-      (princ "\n"))))
+      (insert "\n"))))
 
 (defun help--shadow-lookup (keymap key accept-default remap)
   "Like `lookup-key', but with command remapping.

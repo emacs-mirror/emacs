@@ -394,6 +394,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
 	     ;; minibuf.c
+             (minibuffer-follows-selected-frame minibuffer boolean "28.1")
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
 			     (choice (const :tag "Infinite" t) integer)

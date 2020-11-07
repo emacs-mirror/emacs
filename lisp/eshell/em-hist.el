@@ -75,8 +75,7 @@
 (defcustom eshell-hist-load-hook nil
   "A list of functions to call when loading `eshell-hist'."
   :version "24.1"			; removed eshell-hist-initialize
-  :type 'hook
-  :group 'eshell-hist)
+  :type 'hook)
 
 (defcustom eshell-hist-unload-hook
   (list
@@ -84,8 +83,7 @@
     (lambda ()
       (remove-hook 'kill-emacs-hook 'eshell-save-some-history))))
   "A hook that gets run when `eshell-hist' is unloaded."
-  :type 'hook
-  :group 'eshell-hist)
+  :type 'hook)
 
 (defcustom eshell-history-file-name
   (expand-file-name "history" eshell-directory-name)
@@ -93,20 +91,17 @@
 See also `eshell-read-history' and `eshell-write-history'.
 If it is nil, Eshell will use the value of HISTFILE."
   :type '(choice (const :tag "Use HISTFILE" nil)
-		 file)
-  :group 'eshell-hist)
+		 file))
 
 (defcustom eshell-history-size 128
   "Size of the input history ring.  If nil, use envvar HISTSIZE."
   :type '(choice (const :tag "Use HISTSIZE" nil)
-		 integer)
-  :group 'eshell-hist)
+		 integer))
 
 (defcustom eshell-hist-ignoredups nil
   "If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash."
-  :type 'boolean
-  :group 'eshell-hist)
+  :type 'boolean)
 
 (defcustom eshell-save-history-on-exit t
   "Determine if history should be automatically saved.
@@ -118,8 +113,7 @@ If set to `ask', ask if any Eshell buffers are open at exit time.
 If set to t, history will always be saved, silently."
   :type '(choice (const :tag "Never" nil)
 		 (const :tag "Ask" ask)
-		 (const :tag "Always save" t))
-  :group 'eshell-hist)
+		 (const :tag "Always save" t)))
 
 (defcustom eshell-input-filter 'eshell-input-filter-default
   "Predicate for filtering additions to input history.
@@ -128,8 +122,7 @@ the input history list.  Default is to save anything that isn't all
 whitespace."
   :type '(radio (function-item eshell-input-filter-default)
                 (function-item eshell-input-filter-initial-space)
-                (function :tag "Other function"))
-  :group 'eshell-hist)
+                (function :tag "Other function")))
 
 (put 'eshell-input-filter 'risky-local-variable t)
 
@@ -138,31 +131,26 @@ whitespace."
 Otherwise, typing <M-p> and <M-n> will always go to the next history
 element, regardless of any text on the command line.  In that case,
 <C-c M-r> and <C-c M-s> still offer that functionality."
-  :type 'boolean
-  :group 'eshell-hist)
+  :type 'boolean)
 
 (defcustom eshell-hist-move-to-end t
   "If non-nil, move to the end of the buffer before cycling history."
-  :type 'boolean
-  :group 'eshell-hist)
+  :type 'boolean)
 
 (defcustom eshell-hist-event-designator
   "^!\\(!\\|-?[0-9]+\\|\\??[^:^$%*?]+\\??\\|#\\)"
   "The regexp used to identifier history event designators."
-  :type 'regexp
-  :group 'eshell-hist)
+  :type 'regexp)
 
 (defcustom eshell-hist-word-designator
   "^:?\\([0-9]+\\|[$^%*]\\)?\\(-[0-9]*\\|[$^%*]\\)?"
   "The regexp used to identify history word designators."
-  :type 'regexp
-  :group 'eshell-hist)
+  :type 'regexp)
 
 (defcustom eshell-hist-modifier
   "^\\(:\\([hretpqx&g]\\|s/\\([^/]*\\)/\\([^/]*\\)/\\)\\)*"
   "The regexp used to identity history modifiers."
-  :type 'regexp
-  :group 'eshell-hist)
+  :type 'regexp)
 
 (defcustom eshell-hist-rebind-keys-alist
   '(([(control ?p)]   . eshell-previous-input)
@@ -180,8 +168,7 @@ element, regardless of any text on the command line.  In that case,
   "History keys to bind differently if point is in input text."
   :type '(repeat (cons (vector :tag "Keys to bind"
 			       (repeat :inline t sexp))
-		       (function :tag "Command")))
-  :group 'eshell-hist)
+		       (function :tag "Command"))))
 
 ;;; Internal Variables:
 
@@ -308,7 +295,6 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 
   (add-hook 'kill-emacs-hook #'eshell-save-some-history)
 
-  (make-local-variable 'eshell-input-filter-functions)
   (add-hook 'eshell-input-filter-functions #'eshell-add-to-history nil t))
 
 (defun eshell-save-some-history ()

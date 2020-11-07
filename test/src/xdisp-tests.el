@@ -57,9 +57,9 @@
          (xdisp-tests--in-minibuffer
            (let ((max-mini-window-height 4))
              (dotimes (_ 80) (insert "\nhello"))
-             (beginning-of-buffer)
+             (goto-char (point-min))
              (redisplay 'force)
-             (end-of-buffer)
+             (goto-char (point-max))
              ;; A simple edit like removing the last `o' shouldn't cause
              ;; the rest of the minibuffer's text to move.
              (list

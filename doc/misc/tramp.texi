@@ -4512,6 +4512,21 @@ HISTFILE=/dev/null
 
 
 @item
+Where are remote files trashed to?
+
+Emacs can trash file instead of deleting them, @ref{Misc File Ops,
+Trashing , , emacs}.  Remote files are always trashed to the local
+trash, except remote encrypted files (@pxref{Keeping files
+encrypted}), which are deleted anyway.
+
+If Emacs is configured to use the XDG conventions for the trash
+directory, remote files cannot be restored with the respective tools,
+because those conventions don't specify remote paths.  Such files must
+be restored by moving them manually from
+@file{$@{XDG_DATA_HOME@}/Trash/files/}, if needed.
+
+
+@item
 How to shorten long file names when typing in @value{tramp}?
 
 Adapt several of these approaches to reduce typing.  If the full name

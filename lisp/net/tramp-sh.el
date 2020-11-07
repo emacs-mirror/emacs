@@ -1703,7 +1703,7 @@ ID-FORMAT valid values are `string' and `integer'."
 ;; Directory listings.
 
 (defun tramp-sh-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
   (unless (file-exists-p directory)
@@ -1738,13 +1738,18 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (setcar item (expand-file-name (car item) directory)))
 	  (push item result)))
 
-      (or (if nosort
-	      result
-	    (sort result (lambda (x y) (string< (car x) (car y)))))
+      (unless nosort
+	(setq result (sort result (lambda (x y) (string< (car x) (car y))))))
+
+      (when (and (natnump count) (> count 0))
+	(setq result (nbutlast result (- (length result) count))))
+
+      (or result
 	  ;; The scripts could fail, for example with huge file size.
 	  (tramp-handle-directory-files-and-attributes
-	   directory full match nosort id-format)))))
+	   directory full match nosort id-format count)))))
 
+;; FIXME: Fix function to work with count parameter.
 (defun tramp-do-directory-files-and-attributes-with-perl
   (vec localname &optional id-format)
   "Implement `directory-files-and-attributes' for Tramp files using a Perl script."
@@ -1760,6 +1765,7 @@ ID-FORMAT valid values are `string' and `integer'."
     (when (stringp object) (tramp-error vec 'file-error object))
     object))
 
+;; FIXME: Fix function to work with count parameter.
 (defun tramp-do-directory-files-and-attributes-with-stat
   (vec localname &optional id-format)
   "Implement `directory-files-and-attributes' for Tramp files using stat(1) command."
@@ -2523,13 +2529,10 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (setq directory (expand-file-name directory))
-  (with-parsed-tramp-file-name directory nil
-    (tramp-flush-directory-properties v localname)
+  (tramp-skeleton-delete-directory directory recursive trash
     (tramp-barf-unless-okay
      v (format "cd / && %s %s"
-	       (or (and trash (tramp-get-remote-trash v))
-		   (if recursive "rm -rf" "rmdir"))
+               (if recursive "rm -rf" "rmdir")
 	       (tramp-shell-quote-argument localname))
      "Couldn't delete %s" directory)))
 
@@ -2538,11 +2541,11 @@ The method used must be an out-of-band method."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (tramp-barf-unless-okay
-     v (format "%s %s"
-	       (or (and trash (tramp-get-remote-trash v)) "rm -f")
-	       (tramp-shell-quote-argument localname))
-     "Couldn't delete %s" filename)))
+    (if (and delete-by-moving-to-trash trash)
+	(move-file-to-trash filename)
+      (tramp-barf-unless-okay
+       v (format "rm -f %s" (tramp-shell-quote-argument localname))
+       "Couldn't delete %s" filename))))
 
 ;; Dired.
 

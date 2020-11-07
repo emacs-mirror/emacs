@@ -81,6 +81,11 @@ Some tests might take long time to run.  In order to summarize the
 
     make SUMMARIZE_TESTS=<nn> ...
 
+The backtrace of failing tests are truncated to the default value of
+'ert-batch-backtrace-right-margin'.  To see more of the backtrace, use
+
+    make TEST_BACKTRACE_LINE_LENGTH=<nn> ...
+
 The tests are run in batch mode by default; sometimes it's useful to
 get precisely the same environment but run in interactive mode for
 debugging.  To do that, use

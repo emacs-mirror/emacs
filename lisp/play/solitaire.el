@@ -1,4 +1,4 @@
-;;; solitaire.el --- game of solitaire in Emacs Lisp
+;;; solitaire.el --- game of solitaire in Emacs Lisp  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
 
@@ -38,8 +38,7 @@
 
 (defcustom solitaire-mode-hook nil
   "Hook to run upon entry to Solitaire."
-  :type 'hook
-  :group 'solitaire)
+  :type 'hook)
 
 (defvar solitaire-mode-map
   (let ((map (make-sparse-keymap)))
@@ -119,8 +118,7 @@ The usual mnemonic keys move the cursor around the board; in addition,
   "Non-nil means check for possible moves after each major change.
 This takes a while, so switch this on if you like to be informed when
 the game is over, or off, if you are working on a slow machine."
-  :type 'boolean
-  :group 'solitaire)
+  :type 'boolean)
 
 (defconst solitaire-valid-directions
   '(solitaire-left solitaire-right solitaire-up solitaire-down))

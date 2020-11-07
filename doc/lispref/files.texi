@@ -2917,7 +2917,7 @@ or display the names in a buffer using the @code{ls} shell command.  In
 the latter case, it can optionally display information about each file,
 depending on the options passed to the @code{ls} command.
 
-@defun directory-files directory &optional full-name match-regexp nosort
+@defun directory-files directory &optional full-name match-regexp nosort count
 This function returns a list of the names of the files in the directory
 @var{directory}.  By default, the list is in alphabetical order.
 
@@ -2937,6 +2937,10 @@ you want the utmost possible speed and don't care what order the files
 are processed in.  If the order of processing is visible to the user,
 then the user will probably be happier if you do sort the names.
 
+If @var{count} is non-@code{nil}, the function will return names of
+first @var{count} number of files, or names of all files, whichever
+occurs first.  @var{count} has to be an integer greater than zero.
+
 @example
 @group
 (directory-files "~lewis")
@@ -2948,6 +2952,16 @@ then the user will probably be happier if you do sort the names.
 
 An error is signaled if @var{directory} is not the name of a directory
 that can be read.
+@end defun
+
+@defun directory-empty-p directory
+This utility function returns @code{t} if given @var{directory} is an
+accessible directory and it does not contain any files, i.e., is an
+empty directory.  It will ignore @samp{.} and @samp{..} on systems
+that return them as files in a directory.
+
+Symbolic links to directories count as directories.
+See @var{file-symlink-p} to distinguish symlinks.
 @end defun
 
 @cindex recursive traverse of directory tree
@@ -2996,7 +3010,7 @@ is called with one argument (the file or directory) and should return
 non-@code{nil} if that directory is the one it is looking for.
 @end defun
 
-@defun directory-files-and-attributes directory &optional full-name match-regexp nosort id-format
+@defun directory-files-and-attributes directory &optional full-name match-regexp nosort id-format count
 This is similar to @code{directory-files} in deciding which files
 to report on and how to report their names.  However, instead
 of returning a list of file names, it returns for each file a

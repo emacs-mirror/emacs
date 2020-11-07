@@ -982,6 +982,27 @@ printablep (int c)
 	    || gen_cat == UNICODE_CATEGORY_Cn)); /* unassigned */
 }
 
+/* Return true if C is graphic character that can be printed independently.  */
+bool
+graphic_base_p (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! FIXNUMP (category))
+    return false;
+  EMACS_INT gen_cat = XFIXNUM (category);
+
+  return (!(gen_cat == UNICODE_CATEGORY_Mn       /* mark, nonspacing */
+            || gen_cat == UNICODE_CATEGORY_Mc    /* mark, combining */
+            || gen_cat == UNICODE_CATEGORY_Me    /* mark, enclosing */
+            || gen_cat == UNICODE_CATEGORY_Zs    /* separator, space */
+            || gen_cat == UNICODE_CATEGORY_Zl    /* separator, line */
+            || gen_cat == UNICODE_CATEGORY_Zp    /* separator, paragraph */
+            || gen_cat == UNICODE_CATEGORY_Cc    /* other, control */
+            || gen_cat == UNICODE_CATEGORY_Cs    /* other, surrogate */
+            || gen_cat == UNICODE_CATEGORY_Cf    /* other, format */
+            || gen_cat == UNICODE_CATEGORY_Cn)); /* other, unassigned */
+}
+
 /* Return true if C is a horizontal whitespace character, as defined
    by https://www.unicode.org/reports/tr18/tr18-19.html#blank.  */
 bool

@@ -1,4 +1,4 @@
-;;; edt-lk201.el --- enhanced EDT keypad mode emulation for LK-201 keyboards
+;;; edt-lk201.el --- enhanced EDT keypad mode emulation for LK-201 keyboards  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1986, 1992-1993, 1995, 2001-2020 Free Software
 ;; Foundation, Inc.

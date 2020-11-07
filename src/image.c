@@ -9808,11 +9808,11 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* Get the image dimensions.  */
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
-  RsvgRectangle zero_rect, viewbox;
+  RsvgRectangle zero_rect, viewbox, out_logical_rect;
 
   rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
                                       &zero_rect, &viewbox,
-                                      NULL, NULL);
+                                      &out_logical_rect, NULL);
   viewbox_width = viewbox.x + viewbox.width;
   viewbox_height = viewbox.y + viewbox.height;
 #else

@@ -387,13 +387,13 @@ If parsing fails, try to set this variable to nil."
      (("author")
       ("howpublished" "The way in which the booklet was published")
       ("address") ("month") ("year") ("note")))
-    ("PhdThesis" "PhD. Thesis"
+    ("PhdThesis" "PhD Thesis"
      (("author")
-      ("title" "Title of the PhD. thesis")
-      ("school" "School where the PhD. thesis was written")
+      ("title" "Title of the PhD thesis")
+      ("school" "School where the PhD thesis was written")
       ("year"))
      nil
-     (("type" "Type of the PhD. thesis")
+     (("type" "Type of the PhD thesis")
       ("address" "Address of the school (if not part of field \"school\") or country")
       ("month") ("note")))
     ("MastersThesis" "Master's Thesis"
@@ -467,8 +467,8 @@ alternatives, starting from zero."
       ("year" nil nil 0) ("date" nil nil 0))
      nil
      (("translator") ("annotator") ("commentator") ("subtitle") ("titleaddon")
-      ("editor") ("editora") ("editorb") ("editorc")
-      ("journalsubtitle") ("issuetitle") ("issuesubtitle")
+      ("editor") ("editora") ("editorb") ("editorc") ("journalsubtitle")
+      ("journaltitleaddon") ("issuetitle") ("issuesubtitle") ("issuetitleaddon")
       ("language") ("origlanguage") ("series") ("volume") ("number") ("eid")
       ("issue") ("month") ("pages") ("version") ("note") ("issn")
       ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
@@ -481,7 +481,7 @@ alternatives, starting from zero."
       ("introduction") ("foreword") ("afterword") ("subtitle") ("titleaddon")
       ("maintitle") ("mainsubtitle") ("maintitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn")
+      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
       ("chapter") ("pages") ("pagetotal") ("addendum") ("pubstate") ("doi")
       ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("MVBook" "Multi-Volume Book"
@@ -502,7 +502,7 @@ alternatives, starting from zero."
       ("afterword") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn")
+      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
       ("chapter") ("pages") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("BookInBook" "Book in Collection" ; same as @inbook
@@ -513,7 +513,7 @@ alternatives, starting from zero."
       ("afterword") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn")
+      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
       ("chapter") ("pages") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("SuppBook" "Supplemental Material in a Book" ; same as @inbook
@@ -524,7 +524,7 @@ alternatives, starting from zero."
       ("afterword") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn")
+      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
       ("chapter") ("pages") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Booklet" "Booklet (Bound, but no Publisher)"
@@ -532,9 +532,9 @@ alternatives, starting from zero."
       ("year" nil nil 1) ("date" nil nil 1))
      nil
      (("subtitle") ("titleaddon") ("language") ("howpublished") ("type")
-      ("note") ("location") ("chapter") ("pages") ("pagetotal") ("addendum")
-      ("pubstate") ("doi") ("eprint") ("eprintclass") ("eprinttype")
-      ("url") ("urldate")))
+      ("note") ("location") ("eid") ("chapter") ("pages") ("pagetotal")
+      ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
+      ("eprinttype") ("url") ("urldate")))
     ("Collection" "Single-Volume Collection"
      (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
      nil
@@ -543,8 +543,8 @@ alternatives, starting from zero."
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("language") ("origlanguage") ("volume")
       ("part") ("edition") ("volumes") ("series") ("number") ("note")
-      ("publisher") ("location") ("isbn") ("chapter") ("pages") ("pagetotal")
-      ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
+      ("publisher") ("location") ("isbn") ("eid") ("chapter") ("pages")
+      ("pagetotal") ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
       ("eprinttype") ("url") ("urldate")))
     ("MVCollection" "Multi-Volume Collection"
      (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
@@ -558,32 +558,40 @@ alternatives, starting from zero."
     ("InCollection" "Article in a Collection"
      (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
      (("booktitle"))
-     (("editor") ("editora") ("editorb") ("editorc") ("translator") ("annotator")
-      ("commentator") ("introduction") ("foreword") ("afterword")
+     (("editor") ("editora") ("editorb") ("editorc") ("translator")
+      ("annotator") ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition")
       ("volumes") ("series") ("number") ("note") ("publisher") ("location")
-      ("isbn") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("isbn") ("eid") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
       ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("SuppCollection" "Supplemental Material in a Collection" ; same as @incollection
-     (("author") ("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
      (("booktitle"))
-     (("editora") ("editorb") ("editorc") ("translator") ("annotator")
-      ("commentator") ("introduction") ("foreword") ("afterword")
+     (("editor") ("editora") ("editorb") ("editorc") ("translator")
+      ("annotator") ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition")
       ("volumes") ("series") ("number") ("note") ("publisher") ("location")
-      ("isbn") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("isbn") ("eid") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
       ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+    ("Dataset" "Data Set"
+     (("author" nil nil 0) ("editor" nil nil 0) ("title")
+      ("year" nil nil 1) ("date" nil nil 1))
+     nil
+     (("subtitle") ("titleaddon") ("language") ("edition") ("type") ("series")
+      ("number") ("version") ("note") ("organization") ("publisher")
+      ("location") ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
+      ("eprinttype") ("url") ("urldate")))
     ("Manual" "Technical Manual"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
       ("year" nil nil 1) ("date" nil nil 1))
      nil
      (("subtitle") ("titleaddon") ("language") ("edition")
       ("type") ("series") ("number") ("version") ("note")
-      ("organization") ("publisher") ("location") ("isbn") ("chapter")
+      ("organization") ("publisher") ("location") ("isbn") ("eid") ("chapter")
       ("pages") ("pagetotal") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Misc" "Miscellaneous"
@@ -592,35 +600,37 @@ alternatives, starting from zero."
      nil
      (("subtitle") ("titleaddon") ("language") ("howpublished") ("type")
       ("version") ("note") ("organization") ("location")
-      ("date") ("month") ("year") ("addendum") ("pubstate")
+      ("month") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Online" "Online Resource"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1) ("url"))
+      ("year" nil nil 1) ("date" nil nil 1)
+      ("doi" nil nil 2) ("eprint" nil nil 2) ("url" nil nil 2))
      nil
      (("subtitle") ("titleaddon") ("language") ("version") ("note")
-      ("organization") ("date") ("month") ("year") ("addendum")
-      ("pubstate") ("urldate")))
+      ("organization") ("month") ("addendum")
+      ("pubstate") ("eprintclass") ("eprinttype") ("urldate")))
     ("Patent" "Patent"
      (("author") ("title") ("number") ("year" nil nil 0) ("date" nil nil 0))
      nil
      (("holder") ("subtitle") ("titleaddon") ("type") ("version") ("location")
-      ("note") ("date") ("month") ("year") ("addendum") ("pubstate")
+      ("note") ("month") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Periodical" "Complete Issue of a Periodical"
      (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
      nil
-     (("editora") ("editorb") ("editorc") ("subtitle") ("issuetitle")
-      ("issuesubtitle") ("language") ("series") ("volume") ("number") ("issue")
-      ("date") ("month") ("year") ("note") ("issn") ("addendum") ("pubstate")
+     (("editora") ("editorb") ("editorc") ("subtitle") ("titleaddon")
+      ("issuetitle") ("issuesubtitle") ("issuetitleaddon") ("language")
+      ("series") ("volume") ("number") ("issue")
+      ("month") ("note") ("issn") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("SuppPeriodical" "Supplemental Material in a Periodical" ; same as @article
      (("author") ("title") ("journaltitle")
       ("year" nil nil 0) ("date" nil nil 0))
      nil
      (("translator") ("annotator") ("commentator") ("subtitle") ("titleaddon")
-      ("editor") ("editora") ("editorb") ("editorc")
-      ("journalsubtitle") ("issuetitle") ("issuesubtitle")
+      ("editor") ("editora") ("editorb") ("editorc") ("journalsubtitle")
+      ("journaltitleaddon") ("issuetitle") ("issuesubtitle") ("issuetitleaddon")
       ("language") ("origlanguage") ("series") ("volume") ("number") ("eid")
       ("issue") ("month") ("pages") ("version") ("note") ("issn")
       ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
@@ -628,19 +638,19 @@ alternatives, starting from zero."
     ("Proceedings" "Single-Volume Conference Proceedings"
      (("title") ("year" nil nil 0) ("date" nil nil 0))
      nil
-     (("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
-      ("maintitleaddon") ("eventtitle") ("eventdate") ("venue") ("language")
-      ("editor")
-      ("volume") ("part") ("volumes") ("series") ("number") ("note")
-      ("organization") ("publisher") ("location") ("month")
-      ("isbn") ("chapter") ("pages") ("pagetotal") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+     (("editor") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
+      ("maintitleaddon") ("eventtitle") ("eventtitleaddon") ("eventdate")
+      ("venue") ("language") ("volume") ("part") ("volumes") ("series")
+      ("number") ("note") ("organization") ("publisher") ("location") ("month")
+      ("isbn") ("eid") ("chapter") ("pages") ("pagetotal") ("addendum")
+      ("pubstate") ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url")
+      ("urldate")))
     ("MVProceedings" "Multi-Volume Conference Proceedings"
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("year" nil nil 0) ("date" nil nil 0))
      nil
-     (("subtitle") ("titleaddon") ("eventtitle") ("eventdate") ("venue")
-      ("language") ("volumes") ("series") ("number") ("note")
-      ("organization") ("publisher") ("location") ("month")
+     (("editor") ("subtitle") ("titleaddon") ("eventtitle") ("eventtitleaddon")
+      ("eventdate") ("venue") ("language") ("volumes") ("series") ("number")
+      ("note") ("organization") ("publisher") ("location") ("month")
       ("isbn") ("pagetotal") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("InProceedings" "Article in Conference Proceedings"
@@ -648,9 +658,9 @@ alternatives, starting from zero."
      (("booktitle"))
      (("editor") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
-      ("eventtitle") ("eventdate") ("venue") ("language")
+      ("eventtitle") ("eventtitleaddon") ("eventdate") ("venue") ("language")
       ("volume") ("part") ("volumes") ("series") ("number") ("note")
-      ("organization") ("publisher") ("location") ("month") ("isbn")
+      ("organization") ("publisher") ("location") ("month") ("isbn") ("eid")
       ("chapter") ("pages") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Reference" "Single-Volume Work of Reference" ; same as @collection
@@ -661,8 +671,8 @@ alternatives, starting from zero."
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("language") ("origlanguage") ("volume")
       ("part") ("edition") ("volumes") ("series") ("number") ("note")
-      ("publisher") ("location") ("isbn") ("chapter") ("pages") ("pagetotal")
-      ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
+      ("publisher") ("location") ("isbn") ("eid") ("chapter") ("pages")
+      ("pagetotal") ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
       ("eprinttype") ("url") ("urldate")))
     ("MVReference" "Multi-Volume Work of Reference" ; same as @mvcollection
      (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
@@ -674,42 +684,51 @@ alternatives, starting from zero."
       ("location") ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
       ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("InReference" "Article in a Work of Reference" ; same as @incollection
-     (("author") ("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
      (("booktitle"))
-     (("editora") ("editorb") ("editorc") ("translator") ("annotator")
-      ("commentator") ("introduction") ("foreword") ("afterword")
+     (("editor") ("editora") ("editorb") ("editorc") ("translator")
+      ("annotator") ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition")
       ("volumes") ("series") ("number") ("note") ("publisher") ("location")
-      ("isbn") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("isbn") ("eid") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
       ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Report" "Technical or Research Report"
      (("author") ("title") ("type") ("institution")
       ("year" nil nil 0) ("date" nil nil 0))
      nil
      (("subtitle") ("titleaddon") ("language") ("number") ("version") ("note")
-      ("location") ("month") ("isrn") ("chapter") ("pages") ("pagetotal")
-      ("addendum") ("pubstate")
+      ("location") ("month") ("isrn") ("eid") ("chapter") ("pages")
+      ("pagetotal") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
-    ("Thesis" "PhD. or Master's Thesis"
+    ("Software" "Computer Software" ; Same as @misc.
+     (("author" nil nil 0) ("editor" nil nil 0) ("title")
+      ("year" nil nil 1) ("date" nil nil 1))
+     nil
+     (("subtitle") ("titleaddon") ("language") ("howpublished") ("type")
+      ("version") ("note") ("organization") ("location")
+      ("month") ("addendum") ("pubstate")
+      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+    ("Thesis" "PhD or Master's Thesis"
      (("author") ("title") ("type") ("institution")
       ("year" nil nil 0) ("date" nil nil 0))
      nil
      (("subtitle") ("titleaddon") ("language") ("note") ("location")
-      ("month") ("isbn") ("chapter") ("pages") ("pagetotal")
+      ("month") ("isbn") ("eid") ("chapter") ("pages") ("pagetotal")
       ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("Unpublished" "Unpublished"
      (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
      nil
-     (("subtitle") ("titleaddon") ("language") ("howpublished")
-      ("note") ("location") ("isbn") ("date") ("month") ("year")
-      ("addendum") ("pubstate") ("url") ("urldate"))))
+     (("subtitle") ("titleaddon") ("type") ("eventtitle") ("eventtitleaddon")
+      ("eventdate") ("venue") ("language") ("howpublished") ("note")
+      ("location") ("isbn") ("month") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate"))))
   "Alist of biblatex entry types and their associated fields.
 It has the same format as `bibtex-BibTeX-entry-alist'."
   :group 'bibtex
-  :version "24.1"
+  :version "28.1"
   :type 'bibtex-entry-alist
   :risky t)
 
@@ -766,6 +785,7 @@ if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
     ("eprinttype" "Type of eprint identifier")
     ("eventdate" "Date of a conference or some other event")
     ("eventtitle" "Title of a conference or some other event")
+    ("eventtitleaddon" "Annex to the eventtitle (e.g., acronym of known event)")
     ("file" "Local link to an electronic version of the work")
     ("foreword" "Author(s) of a foreword to the work")
     ("holder" "Holder(s) of a patent")
@@ -781,9 +801,11 @@ if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
     ("issue" "Issue of a journal")
     ("issuesubtitle" "Subtitle of a specific issue of a journal or other periodical.")
     ("issuetitle" "Title of a specific issue of a journal or other periodical.")
+    ("issuetitleaddon" "Annex to the issuetitle")
     ("iswc" "International Standard Work Code of a musical work")
     ("journalsubtitle" "Subtitle of a journal, a newspaper, or some other periodical.")
     ("journaltitle" "Name of a journal, a newspaper, or some other periodical.")
+    ("journaltitleaddon" "Annex to the journaltitle")
     ("label" "Substitute for the regular label to be used by the citation style")
     ("language" "Language(s) of the work")
     ("library" "Library name and a call number")
@@ -811,6 +833,8 @@ if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
     ("series" "Name of a publication series")
     ("shortauthor" "Author(s) of the work, given in an abbreviated form")
     ("shorteditor" "Editor(s) of the work, given in an abbreviated form")
+    ("shorthand" "Special designation overriding the default label")
+    ("shorthandintro" "Phrase overriding the standard shorthand introduction")
     ("shortjournal" "Short version or an acronym of the journal title")
     ("shortseries" "Short version or an acronym of the series field")
     ("shorttitle" "Title in an abridged form")
@@ -829,7 +853,7 @@ if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
     "Alist of biblatex fields.
 It has the same format as `bibtex-BibTeX-entry-alist'."
   :group 'bibtex
-  :version "24.1"
+  :version "28.1"
   :type 'bibtex-field-alist)
 
 (defcustom bibtex-dialect-list '(BibTeX biblatex)

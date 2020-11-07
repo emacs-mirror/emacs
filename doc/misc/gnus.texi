@@ -795,18 +795,10 @@ Advanced Scoring
 
 Searching
 
-* nnir::                        Searching with various engines.
+* Search Engines::              Selecting and configuring search engines.
+* Creating Search Groups::      Creating search groups.
+* Search Queries::              Gnus' built-in search syntax.
 * nnmairix::                    Searching with Mairix.
-
-nnir
-
-* What is nnir?::               What does nnir do.
-* Basic Usage::                 How to perform simple searches.
-* Setting up nnir::             How to set up nnir.
-
-Setting up nnir
-
-* Associating Engines::         How to associate engines.
 
 Various
 
@@ -17919,12 +17911,11 @@ Or we may wish to create a group from the results of a search query:
 
 @lisp
 (nnselect-specs
- (nnselect-function . nnir-run-query)
+ (nnselect-function . gnus-search-run-query)
  (nnselect-args
-  (nnir-query-spec
-   (query . "FLAGGED")
-   (criteria . ""))
-  (nnir-group-spec
+  (search-query-spec
+   (query . "mark:flag"))
+  (search-group-spec
    ("nnimap:home")
    ("nnimap:work"))))
 @end lisp
@@ -17945,9 +17936,8 @@ find all message that have been received recently from certain groups:
                                                    (days-to-time (car args)))))
           (cons 'criteria "")))
         (group-spec (cadr args)))
-    (nnir-run-query (cons 'nnir-specs
-                          (list (cons 'nnir-query-spec query-spec)
-                                (cons 'nnir-group-spec group-spec))))))
+    (gnus-search-run-query (list (cons 'search-query-spec query-spec)
+                                 (cons 'search-group-spec group-spec)))))
 @end lisp
 
 Then the following @code{nnselect-specs}:
@@ -17970,18 +17960,13 @@ parameter of @code{nnselect-rescan} will allow automatic refreshing.
 A refresh can always be invoked manually through
 @code{gnus-group-get-new-news-this-group}.
 
-The nnir interface (@pxref{nnir}) includes engines for searching a
-variety of backends.  While the details of each search engine vary,
-the result of an nnir search is always a vector of the sort used by
-the nnselect method, and the results of nnir queries are usually
-viewed using an nnselect group.  Indeed the standard search function
-@code{gnus-group-read-ephemeral-search-group} just creates an
-ephemeral nnselect group with the appropriate nnir query as the
-@code{nnselect-specs}.  nnir originally included both the search
-engines and the glue to connect search results to gnus.  Over time
-this glue evolved into the nnselect method.  The two had a mostly
-amicable parting so that nnselect could pursue its dream of becoming a
-fully functioning backend, but occasional conflicts may still linger.
+Gnus includes engines for searching a variety of backends.  While the
+details of each search engine vary, the result of a search is always a
+vector of the sort used by the nnselect method, and the results of
+queries are usually viewed using an nnselect group.  Indeed the
+standard search function @code{gnus-group-read-ephemeral-search-group}
+just creates an ephemeral nnselect group with the appropriate search
+query as the @code{nnselect-specs}.
 
 @node Combined Groups
 @subsection Combined Groups
@@ -21445,9 +21430,6 @@ four days, Gnus will decay the scores four times, for instance.
 @chapter Searching
 @cindex searching
 
-FIXME: A brief comparison of nnir, nnmairix, contrib/gnus-namazu would
-be nice.
-
 Gnus has various ways of finding articles that match certain criteria
 (from a particular author, on a certain subject, etc.).  The simplest
 method is to enter a group and then either "limit" the summary buffer
@@ -21455,50 +21437,166 @@ to the desired articles using the limiting commands (@pxref{Limiting}),
 or searching through messages in the summary buffer (@pxref{Searching
 for Articles}).
 
-Limiting commands and summary buffer searching work on subsets of the
-articles already fetched from the servers, and these commands won't
-query the server for additional articles.  While simple, these methods
-are therefore inadequate if the desired articles span multiple groups,
-or if the group is so large that fetching all articles is impractical.
-Many backends (such as imap, notmuch, namazu, etc.) provide their own
-facilities to search for articles directly on the server and Gnus can
-take advantage of these methods.  This chapter describes tools for
-searching groups and servers for articles matching a query.
+Limiting commands and summary buffer searching work on articles
+already fetched from the servers, and these commands won't query the
+server for additional articles.  While simple, these methods are
+therefore inadequate if the desired articles span multiple groups, or
+if the group is so large that fetching all articles is impractical.
+
+It's possible to search a backend more thoroughly using an associated
+search engine.  Some backends come with their own search engine: IMAP
+servers, for instance, do their own searching.  Other backends, for
+example a local @code{nnmaildir} installation, might require the user
+to manually set up some sort of search indexing.  Default associations
+between backends and engines can be defined in
+@code{gnus-search-default-engines}, and engines can also be defined on
+a per-backend basis (@pxref{Search Engines}).
+
+Once the search engines are set up, you can search for messages in
+groups from one or more backends, and show the results in a group.
+The groups that hold search results are created on the nnselect
+backend, and can be either ephemeral or persistent (@pxref{Creating
+Search Groups}).
+
+@vindex gnus-search-use-parsed-queries
+Search queries can be specified one of two ways: either using the
+syntax of the engine responsible for the group you're searching, or
+using Gnus' generalized search syntax.  Set the option
+@code{gnus-search-use-parsed-queries} to a non-nil value to used the
+generalized syntax.  The advantage of this syntax is that, if you have
+multiple backends indexed by different engines, you don't need to
+remember which one you're searching---it's also possible to issue the
+same query against multiple groups, indexed by different engines, at
+the same time.  It also provides a few other conveniences including
+relative date parsing and tie-ins into other Emacs packages.  For
+details on Gnus' query language, see @ref{Search Queries}.
 
 @menu
-* nnir::                     Searching with various engines.
-* nnmairix::                 Searching with Mairix.
+* Search Engines::             Selecting and configuring search engines.
+* Creating Search Groups::     How and where.
+* Search Queries::             Gnus' built-in search syntax.
+* nnmairix::                   Searching with Mairix.
 @end menu
 
-@node nnir
-@section nnir
-@cindex nnir
+@node Search Engines
+@section Search Engines
+@cindex search engines
+@cindex configuring search
 
-This section describes how to use @code{nnir} to search for articles
-within gnus.
+In order to search for messages from any given server, that server
+must have a search engine associated with it.  IMAP servers do their
+own searching (theoretically it is possible to use a different engine
+to search an IMAP store, but we don't recommend it), but in all other
+cases the user will have to manually specify an engine to use.  This
+can be done at two different levels: by server type, or on a
+per-server basis.
 
-@menu
-* What is nnir?::               What does @code{nnir} do?
-* Basic Usage::                 How to perform simple searches.
-* Setting up nnir::             How to set up @code{nnir}.
-@end menu
+@vindex gnus-search-default-engines
+The option @code{gnus-search-default-engines} assigns search engines
+by server type.  Its value is an alist mapping symbols indicating a
+server type (e.g.@: @code{nnmaildir} or @code{nnml}) to symbols
+indicating a search engine class.  The built-in search engine symbols
+are:
 
-@node What is nnir?
-@subsection What is nnir?
+@itemize
+@item
+@code{gnus-search-imap}
 
-@code{nnir} is a Gnus interface to a number of tools for searching
-through mail and news repositories.  Different backends (like
-@code{nnimap} and @code{nntp}) work with different tools (called
-@dfn{engines} in @code{nnir} lingo), but all use the same basic search
-interface.
+@item
+@code{gnus-search-find-grep}
 
-The @code{nnimap} search engine should work with no configuration.
-Other engines may require a local index that needs to be created and
-maintained outside of Gnus.
+@item
+@code{gnus-search-notmuch}
 
+@item
+@code{gnus-search-swish-e}
 
-@node Basic Usage
-@subsection Basic Usage
+@item
+@code{gnus-search-swish++}
+
+@item
+@code{gnus-search-mairix}
+
+@item
+@code{gnus-search-namazu}
+@end itemize
+
+If you need more granularity, you can specify a search engine in the
+server definition, using the @code{gnus-search-engine} key, whether
+that be in your @file{.gnus.el} config file, or through Gnus' server
+buffer.  That might look like:
+
+@example
+'(nnmaildir "My Mail"
+   (directory "/home/user/.mail")
+   (gnus-search-engine gnus-search-notmuch
+     (config-file "/home/user/.mail/.notmuch_config")))
+@end example
+
+Search engines like notmuch, namazu and mairix are similar in
+behavior: they use a local executable to create an index of a message
+store, and run command line search queries against those messages,
+and return a list of absolute file names of matching messages.
+
+These engines have a handful of configuration parameters in common.
+These common parameters are:
+
+@table @code
+@item program
+The name of the executable.  Defaults to the plain
+program name such as @command{notmuch} or @command{namazu}.
+
+@item config-file
+The absolute filename of the configuration file for this search
+engine.
+
+@item remove-prefix
+The directory part to be removed from the filenames returned by the
+search query.  This absolute path should include everything up to the
+top level of the message store.
+
+@item switches
+Additional command-line switches to be fed to the search program.  The
+value of this parameter must be a list of strings, one string per
+switch.
+@end table
+
+The options above can be set in one of two ways: using a customization
+option that is set for all engines of that type, or on a per-engine
+basis in your server configuration files.
+
+The customization options are formed on the pattern
+@code{gnus-search-@var{engine}-@var{parameter}}.  For instance, to use a
+non-standard notmuch program, you might set
+@code{gnus-search-notmuch-program} to @file{/usr/local/bin/notmuch}.
+This would apply to all notmuch engines.  The engines that use these
+options are: ``notmuch'', ``namazu'', ``mairix'', ``swish-e'' and
+``swish++''.
+
+Alternately, the options can be set directly on your Gnus server
+definitions, for instance, in the @code{nnmaildir} example above.
+Note that the server options are part of the @code{gnus-search-engine}
+sexp, and the option symbol and value form a two-element list, not a
+cons cell.
+
+The namazu and swish-e engines each have one additional option,
+specifying where to store their index files.  For namazu it is
+@code{index-directory}, and should be a single directory path.  For
+swish-e it is @code{index-files}, and should be a list of strings.
+
+All indexed search engines come with their own method of updating
+their search indexes to include newly-arrived messages.  Gnus
+currently provides no convenient interface for this, and you'll have
+to manage updates yourself, though this will likely change in the
+future.
+
+Lastly, all search engines accept a @code{raw-queries-p} option.  This
+indicates that engines of this type (or this particular engine) should
+always use raw queries, never parsed (@pxref{Search Queries}).
+
+@node Creating Search Groups
+@section Creating Search Groups
+@cindex creating search groups
 
 In the group buffer typing @kbd{G G} will search the group on the
 current line by calling @code{gnus-group-read-ephemeral-search-group}.
@@ -21525,297 +21623,133 @@ in their original group.  You can @emph{warp} (i.e., jump) to the
 original group for the article on the current line with @kbd{A W}, aka
 @code{gnus-warp-to-article}.
 
-You say you want to search more than just the group on the current line?
-No problem: just process-mark the groups you want to search.  You want
-even more?  Calling for an nnir search with the cursor on a topic heading
-will search all the groups under that heading.
+You say you want to search more than just the group on the current
+line?  No problem: just process-mark the groups you want to search.
+You want even more?  Initiating a search with the cursor on a topic
+heading will search all the groups under that topic.
 
+@vindex gnus-search-ignored-newsgroups
 Still not enough?  OK, in the server buffer
-@code{gnus-group-read-ephemeral-search-group} (now bound to @kbd{G})
+@code{gnus-group-read-ephemeral-search-group} (here bound to @kbd{G})
 will search all groups from the server on the current line.  Too much?
 Want to ignore certain groups when searching, like spam groups?  Just
-customize @code{nnir-ignored-newsgroups}.
+customize @code{gnus-search-ignored-newsgroups}: groups matching this
+regexp will not be searched.
 
-One more thing: individual search engines may have special search
-features.  You can access these special features by giving a
-prefix-arg to @code{gnus-group-read-ephemeral-search-group}.  If you
-are searching multiple groups with different search engines you will
-be prompted for the special search features for each engine
-separately.
+@node Search Queries
+@section Search Queries
+@cindex search queries
+@cindex search syntax
 
+Gnus provides an optional unified search syntax that can be used
+across all supported search engines.  This can be convenient in that
+you don't have to remember different search syntaxes; it's also
+possible to mark multiple groups indexed by different engines and
+issue a single search against them.
 
-@node Setting up nnir
-@subsection Setting up nnir
+@vindex gnus-search-use-parsed-queries
+Set the option @code{gnus-search-use-parsed-queries} to non-@code{nil}
+to enable this---it is @code{nil} by default.  Even if it is
+non-@code{nil}, it's still possible to turn off parsing for a class of
+engines or a single engine (@pxref{Search Engines}), or a single
+search by giving a prefix argument to any of the search commands.
 
-To set up nnir you may need to do some prep work.  Firstly, you may
-need to configure the search engines you plan to use.  Some of them,
-like @code{imap}, need no special configuration.  Others, like
-@code{namazu} and @code{swish}, require configuration as described
-below.  Secondly, you need to associate a search engine with a server
-or a backend.
+The search syntax is fairly simple: keys and values are separated by a
+colon, multi-word values must be quoted, ``and'' is implicit, ``or''
+is explicit, ``not'' will negate the following expression (or keys can
+be prefixed with a ``-''),and parentheses can be used to group logical
+sub-clauses.  For example:
 
-If you just want to use the @code{imap} engine to search @code{nnimap}
-servers then you don't have to do anything.  But you might want to
-read the details of the query language anyway.
+@example
+(from:john or from:peter) subject:"lunch tomorrow" since:3d
+@end example
 
-@menu
-* Associating Engines::                 How to associate engines.
-* The imap Engine::                     Imap configuration and usage.
-* The swish++ Engine::                  Swish++ configuration and usage.
-* The swish-e Engine::                  Swish-e configuration and usage.
-* The namazu Engine::                   Namazu configuration and usage.
-* The notmuch Engine::                  Notmuch configuration and usage.
-* The hyrex Engine::                    Hyrex configuration and usage.
-* Customizations::                      User customizable settings.
-@end menu
+The syntax is made to be accepted by a wide range of engines, and thus
+will happily accept most input, valid or not.  Some terms will only be
+meaningful to some engines; other engines will drop them silently.
 
-@node Associating Engines
-@subsubsection Associating Engines
+Key completion is offered on @key{TAB}, but it's also possible to
+enter the query with abbreviated keys, which will be expanded during
+parsing.  If a key is abbreviated to the point of ambiguity (for
+instance, ``s:'' could be ``subject:'' or ``since:''), an error will
+be raised.
 
-
-When searching a group, @code{nnir} needs to know which search engine to
-use.  You can configure a given server to use a particular engine by
-setting the server variable @code{nnir-search-engine} to the engine
-name.  For example to use the @code{namazu} engine to search the server
-named @code{home} you can use
-
-@lisp
-(setq gnus-secondary-select-methods
-      '((nnml "home"
-         (nnimap-address "localhost")
-         (nnir-search-engine namazu))))
-@end lisp
-
-Alternatively you might want to use a particular engine for all servers
-with a given backend.  For example, you might want to use the @code{imap}
-engine for all servers using the @code{nnimap} backend.  In this case you
-can customize the variable @code{nnir-method-default-engines}.  This is
-an alist of pairs of the form @code{(backend . engine)}.  By default this
-variable is set to use the @code{imap} engine for all servers using the
-@code{nnimap} backend.  But if you wanted to use @code{namazu} for all
-your servers with an @code{nnimap} backend you could change this to
-
-@lisp
-'((nnimap . namazu))
-@end lisp
-
-@node The imap Engine
-@subsubsection The imap Engine
-
-The @code{imap} engine requires no configuration.
-
-Queries using the @code{imap} engine follow a simple query language.
-The search is always case-insensitive and supports the following
-features (inspired by the Google search input language):
+Supported keys include all the usual mail headers: ``from'',
+``subject'', ``cc'', etc.  Other keys are:
 
 @table @samp
-
-@item Boolean query operators
-AND, OR, and NOT are supported, and parentheses can be used to control
-operator precedence, e.g., (emacs OR xemacs) AND linux.  Note that
-operators must be written with all capital letters to be
-recognized.  Also preceding a term with a @minus{} sign is equivalent
-to NOT term.
-
-@item Automatic AND queries
-If you specify multiple words then they will be treated as an AND
-expression intended to match all components.
-
-@item Phrase searches
-If you wrap your query in double-quotes then it will be treated as a
-literal string.
-
+@item body
+The body of the message.
+@item recipient
+Equivalent to @samp{to or cc or bcc}.
+@item address
+Equivalent to @samp{from or recipient}.
+@item id
+The keys @samp{message-id} and @samp{id} are equivalent.
+@item mark
+Accepts @samp{flag}, @samp{seen}, @samp{read} or @samp{replied}, or
+any of Gnus' single-letter representations of those marks, e.g.@:
+@samp{mark:R} for @samp{read}.
+@item tag
+This is interpreted as @samp{keyword} for IMAP and @samp{tag} for
+notmuch.
+@item attachment
+Matches the attachment file name.
+@item before
+Date is exclusive; see below for date parsing.
+@item after
+Date is inclusive; can also use @samp{since}.
+@item thread
+Return entire message threads, not just individual messages.
+@item raw
+Do not parse this particular search.
+@item limit
+Limit the results to this many messages.  When searching multiple
+groups this may give undesired results, as the limiting happens before
+sorting.
+@item grep
+Only applicable to ``local index'' engines such as mairix or notmuch.
+On systems with a grep command, additionally filter the results by
+using the value of this term as a grep regexp.
 @end table
 
-By default the whole message will be searched.  The query can be limited
-to a specific part of a message by using a prefix-arg.  After inputting
-the query this will prompt (with completion) for a message part.
-Choices include ``Whole message'', ``Subject'', ``From'', and
-``To''.  Any unrecognized input is interpreted as a header name.  For
-example, typing @kbd{Message-ID} in response to this prompt will limit
-the query to the Message-ID header.
+@vindex gnus-search-contact-tables
+Elisp-based contact management packages (e.g.@: BBDB or EBDB) can push
+completion tables onto the variable @code{gnus-search-contact-tables},
+allowing auto-completion of contact names and addresses for keys like
+@samp{from} or @samp{to}.
 
-Finally selecting ``Imap'' will interpret the query as a raw
-@acronym{IMAP} search query.  The format of such queries can be found in
-RFC3501.
+@subsection Date value parsing
 
-If you don't like the default of searching whole messages you can
-customize @code{nnir-imap-default-search-key}.  For example to use
-@acronym{IMAP} queries by default
+@vindex gnus-search-date-keys
+Date-type keys (see @code{gnus-search-date-keys}) will accept a wide
+variety of values.  First, anything that @code{parse-time-string} can
+parse is acceptable.  Dates with missing values will be interpreted as
+the most recent occurrence thereof: for instance ``march 03'' is the
+most recent March 3rd.  Lastly, it's possible to use relative
+specifications, such as ``3d'' (three days ago).  This format also accepts
+w, m and y.
 
-@lisp
-(setq nnir-imap-default-search-key "Imap")
-@end lisp
-
-@node The swish++ Engine
-@subsubsection The swish++ Engine
-
-FIXME: Say something more here.
-
-Documentation for swish++ may be found at the swish++ sourceforge page:
-@uref{http://swishplusplus.sourceforge.net}
-
-@table @code
-
-@item nnir-swish++-program
-The name of the swish++ executable.  Defaults to @code{search}
-
-@item nnir-swish++-additional-switches
-A list of strings to be given as additional arguments to
-swish++.  @code{nil} by default.
-
-@item nnir-swish++-remove-prefix
-The prefix to remove from each file name returned by swish++ in order
-to get a group name.  By default this is @code{$HOME/Mail}.
-
-@end table
-
-@node The swish-e Engine
-@subsubsection The swish-e Engine
-
-FIXME: Say something more here.
-
-@table @code
-
-@item nnir-swish-e-program
-The name of the swish-e search program.  Defaults to @code{swish-e}.
-
-@item nnir-swish-e-additional-switches
-A list of strings to be given as additional arguments to
-swish-e.  @code{nil} by default.
-
-@item nnir-swish-e-remove-prefix
-The prefix to remove from each file name returned by swish-e in order
-to get a group name.  By default this is @code{$HOME/Mail}.
-
-@end table
-
-@node The namazu Engine
-@subsubsection The namazu Engine
-
-Using the namazu engine requires creating and maintaining index files.
-One directory should contain all the index files, and nnir must be told
-where to find them by setting the @code{nnir-namazu-index-directory}
-variable.
-
-To work correctly the @code{nnir-namazu-remove-prefix} variable must
-also be correct.  This is the prefix to remove from each file name
-returned by Namazu in order to get a proper group name (albeit with @samp{/}
-instead of @samp{.}).
-
-For example, suppose that Namazu returns file names such as
-@samp{/home/john/Mail/mail/misc/42}.  For this example, use the
-following setting: @code{(setq nnir-namazu-remove-prefix
-"/home/john/Mail/")} Note the trailing slash.  Removing this prefix from
-the directory gives @samp{mail/misc/42}.  @code{nnir} knows to remove
-the @samp{/42} and to replace @samp{/} with @samp{.} to arrive at the
-correct group name @samp{mail.misc}.
-
-Extra switches may be passed to the namazu search command by setting the
-variable @code{nnir-namazu-additional-switches}.  It is particularly
-important not to pass any switches to namazu that will change the
-output format.  Good switches to use include @option{--sort},
-@option{--ascending}, @option{--early} and @option{--late}.
-Refer to the Namazu documentation for further
-information on valid switches.
-
-Mail must first be indexed with the @command{mknmz} program.  Read the
-documentation for namazu to create a configuration file.  Here is an
-example:
-
-@cartouche
-@example
- package conf;  # Don't remove this line!
-
- # Paths which will not be indexed. Don't use '^' or '$' anchors.
- $EXCLUDE_PATH = "spam|sent";
-
- # Header fields which should be searchable. case-insensitive
- $REMAIN_HEADER = "from|date|message-id|subject";
-
- # Searchable fields. case-insensitive
- $SEARCH_FIELD = "from|date|message-id|subject";
-
- # The max length of a word.
- $WORD_LENG_MAX = 128;
-
- # The max length of a field.
- $MAX_FIELD_LENGTH = 256;
-@end example
-@end cartouche
-
-For this example, mail is stored in the directories @samp{~/Mail/mail/},
-@samp{~/Mail/lists/} and @samp{~/Mail/archive/}, so to index them go to
-the index directory set in @code{nnir-namazu-index-directory} and issue
-the following command:
+When creating persistent search groups, the search is saved unparsed,
+and re-parsed every time the group is updated.  So a permanent search
+group with a query like:
 
 @example
-mknmz --mailnews ~/Mail/archive/ ~/Mail/mail/ ~/Mail/lists/
+from:"my boss" mark:flag since:1w
 @end example
 
-For maximum searching efficiency you might want to have a cron job run
-this command periodically, say every four hours.
-
-
-@node The notmuch Engine
-@subsubsection The notmuch Engine
-
-@table @code
-@item nnir-notmuch-program
-The name of the notmuch search executable.  Defaults to
-@samp{notmuch}.
-
-@item nnir-notmuch-additional-switches
-A list of strings, to be given as additional arguments to notmuch.
-
-@item nnir-notmuch-remove-prefix
-The prefix to remove from each file name returned by notmuch in order
-to get a group name (albeit with @samp{/} instead of @samp{.}).  This
-is a regular expression.
-
-@item nnir-notmuch-filter-group-names-function
-A function used to transform the names of groups being searched in,
-for use as a ``path:'' search keyword for notmuch.  If nil, the
-default, ``path:'' keywords are not used.  Otherwise, this should be a
-callable which accepts a single group name and returns a transformed
-name as notmuch expects to see it.  In many mail backends, for
-instance, dots in group names must be converted to forward slashes: to
-achieve this, set this option to
-@example
-(lambda (g) (replace-regexp-in-string "\\." "/" g))
-@end example
-
-@end table
-
-
-@node The hyrex Engine
-@subsubsection The hyrex Engine
-This engine is obsolete.
-
-@node Customizations
-@subsubsection Customizations
-
-@table @code
-
-@item nnir-method-default-engines
-Alist of pairs of server backends and search engines.  The default
-association is
-@example
-(nnimap . imap)
-@end example
-
-@item nnir-ignored-newsgroups
-A regexp to match newsgroups in the active file that should be skipped
-when searching all groups on a server.
-
-@end table
-
+would always contain only messages from the past seven days.
 
 @node nnmairix
 @section nnmairix
 
 @cindex mairix
 @cindex nnmairix
+
+This section is now mostly obsolete, as mairix can be used as a regular
+search engine, including persistent search groups, with
+@code{nnselect}.
+
 This paragraph describes how to set up mairix and the back end
 @code{nnmairix} for indexing and searching your mail from within
 Gnus.  Additionally, you can create permanent ``smart'' groups which are

@@ -1406,13 +1406,8 @@ hits the start of file."
 	      offset (* 3 offset)))	; expand search window
       (or found
 	  (re-search-forward pat nil t)
-	  (if (and (buffer-narrowed-p) widen-automatically)
-              (progn
-                ;; Rerun after removing narrowing
-                (widen)
-                (etags-goto-tag-location tag-info))
-            (user-error "Rerun etags: `%s' not found in %s"
-                        pat buffer-file-name))))
+	  (user-error "Rerun etags: `%s' not found in %s"
+                      pat buffer-file-name)))
     ;; Position point at the right place
     ;; if the search string matched an extra Ctrl-m at the beginning.
     (and (eq selective-display t)
@@ -2140,8 +2135,10 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
     (let ((buffer (find-file-noselect file)))
       (with-current-buffer buffer
         (save-excursion
-          (etags-goto-tag-location tag-info)
-          (point-marker))))))
+          (save-restriction
+            (widen)
+            (etags-goto-tag-location tag-info)
+            (point-marker)))))))
 
 (cl-defmethod xref-location-line ((l xref-etags-location))
   (with-slots (tag-info) l

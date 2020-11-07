@@ -2368,6 +2368,8 @@ argument @var{fileonly} non-@code{nil} means check only that
 @var{file} exists, not that it actually defines @var{function}.
 @end defmac
 
+@findex check-declare-file
+@findex check-declare-directory
   To verify that these functions really are declared where
 @code{declare-function} says they are, use @code{check-declare-file}
 to check all @code{declare-function} calls in one source file, or use

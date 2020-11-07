@@ -2169,6 +2169,8 @@ is greater than 10.
   (skip-unless (tramp--test-enabled))
   ;; The bugs are fixed in Emacs 28.1.
   (skip-unless (tramp--test-emacs28-p))
+  ;; Methods with a share do not expand "/path/..".
+  (skip-unless (not (tramp--test-share-p)))
 
   (should
    (string-equal
@@ -2266,7 +2268,24 @@ This checks also `file-name-as-directory', `file-name-directory',
       (write-region "foo" nil tmp-name)
       (should (file-exists-p tmp-name))
       (delete-file tmp-name)
-      (should-not (file-exists-p tmp-name)))))
+      (should-not (file-exists-p tmp-name))
+
+      ;; Trashing files doesn't work for crypted remote files.
+      (unless (tramp--test-crypt-p)
+	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
+	      (delete-by-moving-to-trash t))
+	  (make-directory trash-directory)
+	  (should-not (file-exists-p tmp-name))
+	  (write-region "foo" nil tmp-name)
+	  (should (file-exists-p tmp-name))
+	  (delete-file tmp-name 'trash)
+	  (should-not (file-exists-p tmp-name))
+	  (should
+	   (file-exists-p
+	    (expand-file-name
+	     (file-name-nondirectory tmp-name) trash-directory)))
+	  (delete-directory trash-directory 'recursive)
+	  (should-not (file-exists-p trash-directory)))))))
 
 (ert-deftest tramp-test08-file-local-copy ()
   "Check `file-local-copy'."
@@ -2431,7 +2450,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	      (should-error
 	       (cl-letf (((symbol-function #'y-or-n-p) #'ignore)
 			 ;; Ange-FTP.
-			 ((symbol-function 'yes-or-no-p) 'ignore))
+			 ((symbol-function #'yes-or-no-p) #'ignore))
 		 (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
                :type 'file-already-exists)
 	      (should-error
@@ -2763,7 +2782,53 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
        (delete-directory tmp-name1)
        :type 'file-error)
       (delete-directory tmp-name1 'recursive)
-      (should-not (file-directory-p tmp-name1)))))
+      (should-not (file-directory-p tmp-name1))
+
+      ;; Trashing directories works only since Emacs 27.1.  It doesn't
+      ;; work for crypted remote directories and for ange-ftp.
+      (when (and (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p))
+		 (tramp--test-emacs27-p))
+	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
+	      (delete-by-moving-to-trash t))
+	  (make-directory trash-directory)
+	  ;; Delete empty directory.
+	  (make-directory tmp-name1)
+	  (should (file-directory-p tmp-name1))
+	  (delete-directory tmp-name1 nil 'trash)
+	  (should-not (file-directory-p tmp-name1))
+	  (should
+	   (file-exists-p
+	    (expand-file-name
+	     (file-name-nondirectory tmp-name1) trash-directory)))
+	  (delete-directory trash-directory 'recursive)
+	  (should-not (file-exists-p trash-directory))
+	  ;; Delete non-empty directory.
+	  (make-directory tmp-name1)
+	  (should (file-directory-p tmp-name1))
+	  (write-region "foo" nil (expand-file-name "bla" tmp-name1))
+	  (should (file-exists-p (expand-file-name "bla" tmp-name1)))
+	  (make-directory tmp-name2)
+	  (should (file-directory-p tmp-name2))
+	  (write-region "foo" nil (expand-file-name "bla" tmp-name2))
+	  (should (file-exists-p (expand-file-name "bla" tmp-name2)))
+	  (should-error
+	   (delete-directory tmp-name1 nil 'trash)
+	   ;; tramp-rclone.el calls the local `delete-directory'.
+	   ;; This raises another error.
+	   :type (if (tramp--test-rclone-p) 'error 'file-error))
+	  (delete-directory tmp-name1 'recursive 'trash)
+	  (should-not (file-directory-p tmp-name1))
+	  (should
+	   (file-exists-p
+	    (format
+	     "%s/%s/bla" trash-directory (file-name-nondirectory tmp-name1))))
+	  (should
+	   (file-exists-p
+	    (format
+	     "%s/%s/%s/bla" trash-directory (file-name-nondirectory tmp-name1)
+	     (file-name-nondirectory tmp-name2))))
+	  (delete-directory trash-directory 'recursive)
+	  (should-not (file-exists-p trash-directory)))))))
 
 (ert-deftest tramp-test15-copy-directory ()
   "Check `copy-directory'."
@@ -2863,7 +2928,15 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 			   '("bla" "foo")))
 	    (should (equal (directory-files
 			    tmp-name1 'full directory-files-no-dot-files-regexp)
-			   `(,tmp-name2 ,tmp-name3))))
+			   `(,tmp-name2 ,tmp-name3)))
+	    ;; Check the COUNT arg.  It exists since Emacs 28.
+	    (when (tramp--test-emacs28-p)
+	      (with-no-warnings
+		(should
+		 (equal
+		  (directory-files
+		   tmp-name1 nil directory-files-no-dot-files-regexp nil 1)
+		  '("bla"))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
@@ -3381,7 +3454,14 @@ They might differ only in time attributes or directory size."
 		(file-attributes (car elt)) (cdr elt))))
 
 	    (setq attr (directory-files-and-attributes tmp-name2 nil "\\`b"))
-	    (should (equal (mapcar #'car attr) '("bar" "boz"))))
+	    (should (equal (mapcar #'car attr) '("bar" "boz")))
+
+	    ;; Check the COUNT arg.  It exists since Emacs 28.
+	    (when (tramp--test-emacs28-p)
+	      (with-no-warnings
+		(setq attr (directory-files-and-attributes
+			    tmp-name2 nil "\\`b" nil nil 1))
+		(should (equal (mapcar #'car attr) '("bar"))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
@@ -3393,10 +3473,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless
    (or (tramp--test-sh-p) (tramp--test-sudoedit-p)
        ;; Not all tramp-gvfs.el methods support changing the file mode.
-       (and
-	(tramp--test-gvfs-p)
-	(string-match-p
-	 "ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
+       (tramp--test-gvfs-p "afp") (tramp--test-gvfs-p "ftp")))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -5627,6 +5704,13 @@ This does not support special file names."
   "Check, whether the remote host runs a based method from tramp-sh.el."
   (tramp-sh-file-name-handler-p
    (tramp-dissect-file-name tramp-test-temporary-file-directory)))
+
+(defun tramp--test-share-p ()
+  "Check, whether the method needs a share."
+  (and (tramp--test-gvfs-p)
+       (string-match-p
+	"^\\(afp\\|davs?\\|smb\\)$"
+	(file-remote-p tramp-test-temporary-file-directory 'method))))
 
 (defun tramp--test-sudoedit-p ()
   "Check, whether the sudoedit method is used."

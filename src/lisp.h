@@ -4356,6 +4356,8 @@ extern void clear_regexp_cache (void);
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object last_minibuf_string;
+extern void move_minibuffer_onto_frame (void);
+extern bool is_minibuffer (EMACS_INT, Lisp_Object);
 extern Lisp_Object get_minibuffer (EMACS_INT);
 extern void init_minibuf_once (void);
 extern void syms_of_minibuf (void);
@@ -4633,7 +4635,7 @@ extern void syms_of_ccl (void);
 extern void syms_of_dired (void);
 extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              Lisp_Object, Lisp_Object,
-                                             bool, Lisp_Object);
+                                             bool, Lisp_Object, Lisp_Object);
 
 /* Defined in term.c.  */
 extern int *char_ins_del_vector;
