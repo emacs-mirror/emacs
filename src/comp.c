@@ -406,6 +406,9 @@ load_gccjit_if_necessary (bool mandatory)
 }
 
 
+/* Increase this number to force a new Vcomp_abi_hash to be generated.  */
+#define ABI_VERSION "0"
+
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -778,8 +781,10 @@ hash_native_abi (void)
   eassert (NILP (Vcomp_abi_hash));
 
   Vcomp_abi_hash =
-    comp_hash_string (Fmapconcat (intern_c_string ("subr-name"),
-				  Vcomp_subr_list, build_string ("")));
+    comp_hash_string (
+      concat2 (build_string (ABI_VERSION),
+	       Fmapconcat (intern_c_string ("subr-name"),
+			   Vcomp_subr_list, build_string (""))));
   Lisp_Object separator = build_string ("-");
   Vcomp_native_version_dir =
     concat3 (Vemacs_version,
@@ -5262,7 +5267,7 @@ native compiled one.  */);
   DEFVAR_LISP ("comp-subr-list", Vcomp_subr_list,
 	       doc: /* List of all defined subrs.  */);
   DEFVAR_LISP ("comp-abi-hash", Vcomp_abi_hash,
-	       doc: /* String signing the ABI exposed to .eln files.  */);
+	       doc: /* String signing the .eln files ABI.  */);
   Vcomp_abi_hash = Qnil;
   DEFVAR_LISP ("comp-native-version-dir", Vcomp_native_version_dir,
 	       doc: /* Directory in use to disambiguate eln compatibility.  */);
