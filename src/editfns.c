@@ -2117,6 +2117,13 @@ nil.  */)
     {
       signal_after_change (BEGV, size_a, ZV - BEGV);
       update_compositions (BEGV, ZV, CHECK_INSIDE);
+      /* We've locked the buffer's file above in
+	 prepare_to_modify_buffer; if the buffer is unchanged at this
+	 point, i.e. no insertions or deletions have been made, unlock
+	 the file now.  */
+      if (SAVE_MODIFF == MODIFF
+	  && STRINGP (BVAR (a, file_truename)))
+	unlock_file (BVAR (a, file_truename));
     }
 
   return Qt;
