@@ -8498,8 +8498,8 @@ DEFUN ("w32-register-hot-key", Fw32_register_hot_key,
        doc: /* Register KEY as a hot-key combination.
 Certain key combinations like Alt-Tab and Win-R are reserved for
 system use on Windows, and therefore are normally intercepted by the
-system.  These key combinations can be received by registering them
-as hot-keys, except for Win-L which always locks the computer.
+system.  These key combinations can be used in Emacs by registering
+them as hot-keys, except for Win-L which always locks the computer.
 
 On Windows 98 and ME, KEY must be a one element key definition in
 vector form that would be acceptable to `define-key' (e.g. [A-tab] for
@@ -8508,16 +8508,19 @@ Alt-Tab).  The meta modifier is interpreted as Alt if
 modifier keys.  The return value is the hotkey-id if registered,
 otherwise nil.
 
-On Windows versions since NT, KEY can also be specified as [M-], [s-] or
-[h-] to indicate that all combinations of that key should be processed
-by Emacs instead of the operating system.  The super and hyper
-modifiers are interpreted according to the current values of
-`w32-lwindow-modifier' and `w32-rwindow-modifier'.  For instance,
-setting `w32-lwindow-modifier' to `super' and then calling
-`(w32-register-hot-key [s-])' grabs all combinations of the left Windows
-key to Emacs, but leaves the right Windows key free for the operating
-system keyboard shortcuts.  The return value is t if the call affected
-any key combinations, otherwise nil.  */)
+On Windows versions since NT, KEY can also be specified as just a
+modifier key, [M-], [s-] or [H-], to indicate that all combinations
+of the respective modifier key should be processed by Emacs instead
+of the operating system.  The super and hyper modifiers are
+interpreted according to the current values of `w32-lwindow-modifier'
+and `w32-rwindow-modifier'.  For instance, setting `w32-lwindow-modifier'
+to `super' and then calling `(w32-register-hot-key [s-])' grabs all
+combinations of the left Windows key to Emacs as keys with the Super
+modifier, but leaves the right Windows key free for the operating
+system keyboard shortcuts.
+
+The return value is t if the call affected any key combinations,
+otherwise nil.  */)
   (Lisp_Object key)
 {
   key = w32_parse_and_hook_hot_key (key, 1);
