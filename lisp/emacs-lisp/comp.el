@@ -2155,14 +2155,13 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 
 (defun comp-common-supertype-2 (type1 type2)
   "Return the first common supertype of TYPE1 TYPE2."
-  (car (cl-reduce (lambda (x y)
-                    (if (> (cdr x) (cdr y))
-                        x
-                      y))
-                  (cl-intersection
-                   (comp-supertypes type1)
-                   (comp-supertypes type2)
-                   :key #'car))))
+  (when-let ((types (cl-intersection
+                     (comp-supertypes type1)
+                     (comp-supertypes type2)
+                     :key #'car)))
+    (car (cl-reduce (lambda (x y)
+                      (if (> (cdr x) (cdr y)) x y))
+                    types))))
 
 (defun comp-common-supertype (&rest types)
   "Return the first common supertype of TYPES."
