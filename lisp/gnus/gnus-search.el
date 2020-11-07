@@ -782,8 +782,7 @@ the files in ARTLIST by that search key.")
 (cl-defmethod shared-initialize ((engine gnus-search-process)
 				 slots)
   (setq slots (plist-put slots :proc-buffer
-			 (get-buffer-create
-			  (generate-new-buffer-name " *gnus-search-"))))
+			 (generate-new-buffer " *gnus-search-")))
   (cl-call-next-method engine slots))
 
 (defclass gnus-search-imap (gnus-search-engine)
@@ -1995,7 +1994,7 @@ remaining string, then adds all that to the top-level spec."
 	       (nnheader-message
 		5 "Invalid search engine parameter: (%s %s)"
 		key value)))))
-      (nnheader-message 5 "No search engine defined for %s" srv))
+      (error "No search engine defined for %S" method))
     inst))
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
@@ -2127,7 +2126,8 @@ article came from is also searched."
 	      (minibuffer-with-setup-hook
 		  (lambda ()
 		    (add-hook 'completion-at-point-functions
-			      #'gnus-search--complete-key-data))
+			      #'gnus-search--complete-key-data
+			      nil t))
 		(read-from-minibuffer
 		 "Query: " nil gnus-search-minibuffer-map
 		 nil 'gnus-search-history)))
