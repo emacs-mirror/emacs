@@ -1391,7 +1391,7 @@ first backend that could register the file is used."
 	(unless fname
 	  (setq fname buffer-file-name))
 	(when (vc-call-backend backend 'registered fname)
-	  (error "This file is already registered"))
+	  (error "This file is already registered: %s" fname))
 	;; Watch out for new buffers of size 0: the corresponding file
 	;; does not exist yet, even though buffer-modified-p is nil.
 	(when bname
