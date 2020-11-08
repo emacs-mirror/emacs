@@ -242,6 +242,15 @@ Useful to hook into pass checkers.")
                               direct-callref)
   "Limple operators use to call subrs.")
 
+(defconst comp-limple-branches '(jump cond-jump)
+  "Limple operators use for conditional and unconditional branches.")
+
+(defconst comp-limple-ops `(,@comp-limple-calls
+                            ,@comp-limple-assignments
+                            ,@comp-limple-branches
+                            return)
+  "All limple operators.")
+
 (define-error 'native-compiler-error-dyn-func
   "can't native compile a non-lexically-scoped function"
   'native-compiler-error)
@@ -584,7 +593,8 @@ Assume allocation class 'd-default as default."
                          (seq (or "entry_" "entry_fallback_" "bb_")
                               (1+ num) (? "_latch")))))
      (1 font-lock-constant-face))
-    (,(rx "(" (group-n 1 (1+ (or word "-"))))
+    (,(rx-to-string
+       `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
      (1 font-lock-keyword-face)))
   "Highlights used by comp-limple-mode.")
 
