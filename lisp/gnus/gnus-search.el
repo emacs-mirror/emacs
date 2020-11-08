@@ -1963,25 +1963,29 @@ remaining string, then adds all that to the top-level spec."
 (defun gnus-search-server-to-engine (srv)
   (let* ((method (gnus-server-to-method srv))
 	 (engine-config (assoc 'gnus-search-engine (cddr method)))
-	 (server
-	  (or (nth 1 engine-config)
-	      (cdr-safe (assoc (car method) gnus-search-default-engines))
-	      (when-let ((old (assoc 'nnir-search-engine
-				     (cddr method))))
-		(nnheader-message
-		 8 "\"nnir-search-engine\" is no longer a valid parameter")
-		(pcase (nth 1 old)
-		  ('notmuch 'gnus-search-notmuch)
-		  ('namazu 'gnus-search-namazu)
-		  ('find-grep 'gnus-search-find-grep)))))
-	 (inst
+	 (server (or (nth 1 engine-config)
+		     (cdr-safe (assoc (car method) gnus-search-default-engines))
+		     (when-let ((old (assoc 'nnir-search-engine
+					    (cddr method))))
+		       (nnheader-message
+			8 "\"nnir-search-engine\" is no longer a valid parameter")
+		       (nth 1 old))))
+	 inst)
+    (setq server
+	  (pcase server
+	    ('notmuch 'gnus-search-notmuch)
+	    ('namazu 'gnus-search-namazu)
+	    ('find-grep 'gnus-search-find-grep)
+	    ('imap 'gnus-search-imap)
+	    (_ server))
+	  inst
 	  (cond
 	   ((null server) nil)
 	   ((eieio-object-p server)
 	    server)
 	   ((class-p server)
 	    (make-instance server))
-	   (t nil))))
+	   (t nil)))
     (if inst
 	(when (cddr engine-config)
 	  ;; We're not being completely backward-compatible here,
@@ -1994,7 +1998,7 @@ remaining string, then adds all that to the top-level spec."
 	       (nnheader-message
 		5 "Invalid search engine parameter: (%s %s)"
 		key value)))))
-      (error "No search engine defined for %S" method))
+      (error "No search engine defined for %s" srv))
     inst))
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
