@@ -2767,12 +2767,14 @@ Also discard all previous input in the minibuffer."
 (defvar empty-history)
 
 (defun read-char-from-minibuffer (prompt &optional chars history)
-  "Read a character from the minibuffer, prompting for PROMPT.
+  "Read a character from the minibuffer, prompting for it with PROMPT.
 Like `read-char', but uses the minibuffer to read and return a character.
-When CHARS is non-nil, any input that is not one of CHARS is ignored.
-When HISTORY is a symbol, then allows navigating in a history.
-The navigation commands are `M-p' and `M-n', with `RET' to select
-a character from history."
+Optional argument CHARS, if non-nil, should be a list of characters;
+the function will ignore any input that is not one of CHARS.
+Optional argument HISTORY, if non-nil, should be a symbol that
+specifies the history list variable to use for navigating in input
+history using `M-p' and `M-n', with `RET' to select a character from
+history."
   (let* ((empty-history '())
          (map (if (consp chars)
                   (or (gethash chars read-char-from-minibuffer-map-hash)

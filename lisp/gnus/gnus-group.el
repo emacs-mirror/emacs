@@ -3186,6 +3186,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
       (let* ((group-spec
 	      (or
 	       (cdr (assq 'search-group-spec specs))
+	       (cdr (assq 'nnir-group-spec specs))
 	       (if (gnus-server-server-name)
 		   (list (list (gnus-server-server-name)))
 		 (seq-group-by
@@ -3198,6 +3199,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	     (query-spec
 	      (or
 	       (cdr (assq 'search-query-spec specs))
+	       (cdr (assq 'nnir-query-spec specs))
 	       (gnus-search-make-spec no-parse))))
 	(gnus-group-make-group
 	 name
@@ -3229,6 +3231,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
   (interactive "P")
   (let* ((group-spec
 	  (or (cdr (assq 'search-group-spec specs))
+	      (cdr (assq 'nnir-group-spec specs))
 	      (if (gnus-server-server-name)
 		  (list (list (gnus-server-server-name)))
 		(seq-group-by
@@ -3240,6 +3243,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 			(assoc (gnus-group-topic-name) gnus-topic-alist))))))))
 	 (query-spec
 	  (or (cdr (assq 'search-query-spec specs))
+	      (cdr (assq 'nnir-query-spec specs))
 	      (gnus-search-make-spec no-parse))))
     (gnus-group-read-ephemeral-group
      (concat "nnselect-" (message-unique-id))

@@ -484,9 +484,21 @@ are interpreted in a widget specific way.
 The following keyword arguments apply to all widgets:
 
 @table @code
+@cindex internal format
+@cindex external format
 @vindex value@r{ keyword}
 @item :value
-The initial value for widgets of this type.
+The initial value for widgets of this type.  Typically, a widget
+represents its value in two formats: external and internal.  The
+external format is the value as the rest of Emacs sees it, and the
+internal format is a representation that the widget defines and uses
+in a widget specific way.
+
+Both formats might be the same for certain widgets and might differ
+for others, and there is no guarantee about which format the value
+stored in the @code{:value} property has.  However, when creating a
+widget or defining a new one (@pxref{Defining New Widgets}), the
+@code{:value} should be in the external format.
 
 @vindex format@r{ keyword}
 @item :format
@@ -629,8 +641,9 @@ representation of the @code{:value} property if not.
 
 @vindex match@r{ keyword}
 @item :match
-Should be a function called with two arguments, the widget and a value,
-and returning non-@code{nil} if the widget can represent the specified value.
+Should be a function called with two arguments, the widget and an
+external value, and should return non-@code{nil} if the widget can
+represent the specified value.
 
 @vindex validate@r{ keyword}
 @item :validate

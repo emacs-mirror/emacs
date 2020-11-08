@@ -1045,7 +1045,7 @@ requesting the fileset doesn't intend to change the VC state,
 such as when printing the log or showing the diffs.
 
 If the current buffer is in `vc-dir' or Dired mode, FILESET is the
-list of marked files, or the current directory if no files are
+list of marked files, or the file under point if no files are
 marked.
 Otherwise, if the current buffer is visiting a version-controlled
 file or is an indirect buffer whose base buffer visits a
@@ -1391,7 +1391,7 @@ first backend that could register the file is used."
 	(unless fname
 	  (setq fname buffer-file-name))
 	(when (vc-call-backend backend 'registered fname)
-	  (error "This file is already registered"))
+	  (error "This file is already registered: %s" fname))
 	;; Watch out for new buffers of size 0: the corresponding file
 	;; does not exist yet, even though buffer-modified-p is nil.
 	(when bname
