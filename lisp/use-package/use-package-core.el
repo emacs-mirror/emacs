@@ -1394,7 +1394,8 @@ no keyword implies `:all'."
               (comment (nth 2 def)))
           (unless (and comment (stringp comment))
             (setq comment (format "Customized with use-package %s" name)))
-          `(customize-set-variable (quote ,variable) ,value ,comment)))
+          `(customize-set-variable (quote ,variable) ,value ,comment)
+          `(put ',variable 'theme-value '((use-package-synthetic-theme ignore-just-for-saving)))))
     args)
    (use-package-process-keywords name rest state)))
 
