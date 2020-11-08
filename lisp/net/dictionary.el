@@ -788,9 +788,9 @@ This function knows about the special meaning of quotes (\")"
 	    dictionary-description-open-delimiter
 	    (dictionary-decode-charset description dictionary)
 	    dictionary-description-close-delimiter
-	    " [" (dictionary-decode-charset dictionary dictionary) "]:"
-	    "\n\n")
-    (put-text-property start (point) 'face 'dictionary-word-entry-face)))
+	    " [" (dictionary-decode-charset dictionary dictionary) "]:")
+    (put-text-property start (point) 'face 'dictionary-word-entry-face)
+    (insert "\n\n")))
 
 (defun dictionary-display-word-definition (reply word dictionary)
   "Insert the definition for the current word"
