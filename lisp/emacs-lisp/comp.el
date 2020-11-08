@@ -2289,19 +2289,20 @@ Forward propagate immediate involed in assignments."
      (setf (comp-mvar-const-vld lval) t
            (comp-mvar-constant lval) v
            (comp-mvar-type lval) (comp-strict-type-of v)))
-    (`(phi (,lval . _) . ,rest)
-     ;; Forward const prop here.
-     (when-let* ((vld (cl-every #'comp-mvar-const-vld rest))
-                 (consts (mapcar #'comp-mvar-constant rest))
-                 (x (car consts))
-                 (equals (cl-every (lambda (y) (equal x y)) consts)))
-       (setf (comp-mvar-const-vld lval) t
-             (comp-mvar-constant lval) x))
-     ;; Forward type propagation.
-     (when-let* ((types (mapcar #'comp-mvar-type rest))
-                 (non-empty (cl-notany #'null types))
-                 (x (comp-common-supertype types)))
-       (setf (comp-mvar-type lval) x)))))
+    (`(phi ,lval . ,rest)
+     (let ((rvals (mapcar #'car rest)))
+       ;; Forward const prop here.
+       (when-let* ((vld (cl-every #'comp-mvar-const-vld rvals))
+                   (consts (mapcar #'comp-mvar-constant rvals))
+                   (x (car consts))
+                   (equals (cl-every (lambda (y) (equal x y)) consts)))
+         (setf (comp-mvar-const-vld lval) t
+               (comp-mvar-constant lval) x))
+       ;; Forward type propagation.
+       (when-let* ((types (mapcar #'comp-mvar-type rvals))
+                   (non-empty (cl-notany #'null types))
+                   (x (comp-common-supertype types)))
+         (setf (comp-mvar-type lval) x))))))
 
 (defun comp-fwprop* ()
   "Propagate for set* and phi operands.
