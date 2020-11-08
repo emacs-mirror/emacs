@@ -2223,12 +2223,12 @@ Forward propagate immediate involed in assignments."
         (comp-mvar-constant lval) (comp-mvar-constant rval)
         (comp-mvar-type lval) (comp-mvar-type rval)))
 
-(defsubst comp-function-optimizable-p (f args)
+(defsubst comp-function-foldable-p (f args)
   "Given function F called with ARGS return non-nil when optimizable."
   (and (cl-every #'comp-mvar-const-vld args)
        (comp-function-pure-p f)))
 
-(defsubst comp-function-call-maybe-remove (insn f args)
+(defsubst comp-function-call-maybe-fold (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
   (cl-flet ((rewrite-insn-as-setimm (insn value)
                ;; See `comp-emit-setimm'.
@@ -2243,7 +2243,7 @@ Forward propagate immediate involed in assignments."
                                        comp-symbol-values-optimizable)))
         (rewrite-insn-as-setimm insn (symbol-value (comp-mvar-constant
                                                     (car args))))))
-     ((comp-function-optimizable-p f args)
+     ((comp-function-foldable-p f args)
       (ignore-errors
         ;; No point to complain here in case of error because we
         ;; should do basic block pruning in order to be sure that this
@@ -2265,12 +2265,12 @@ Forward propagate immediate involed in assignments."
        (`(,(or 'call 'callref) ,f . ,args)
         (setf (comp-mvar-type lval)
               (alist-get f comp-known-ret-types))
-        (comp-function-call-maybe-remove insn f args))
+        (comp-function-call-maybe-fold insn f args))
        (`(,(or 'direct-call 'direct-callref) ,f . ,args)
         (let ((f (comp-func-name (gethash f (comp-ctxt-funcs-h comp-ctxt)))))
           (setf (comp-mvar-type lval)
                 (alist-get f comp-known-ret-types))
-          (comp-function-call-maybe-remove insn f args)))
+          (comp-function-call-maybe-fold insn f args)))
        (_
         (comp-mvar-propagate lval rval))))
     (`(assume ,lval ,rval ,kind)
