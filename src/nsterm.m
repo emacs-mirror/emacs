@@ -1782,6 +1782,8 @@ ns_destroy_window (struct frame *f)
 {
   NSTRACE ("ns_destroy_window");
 
+  check_window_system (f);
+
   /* If this frame has a parent window, detach it as not doing so can
      cause a crash in GNUStep.  */
   if (FRAME_PARENT_FRAME (f) != NULL)
@@ -1792,7 +1794,7 @@ ns_destroy_window (struct frame *f)
       [parent removeChildWindow: child];
     }
 
-  check_window_system (f);
+  [[FRAME_NS_VIEW (f) window] close];
   ns_free_frame_resources (f);
   ns_window_num--;
 }

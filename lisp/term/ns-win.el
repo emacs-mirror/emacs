@@ -148,9 +148,8 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-|] 'shell-command-on-region)
 (define-key global-map [s-kp-bar] 'shell-command-on-region)
 (define-key global-map [?\C-\s- ] 'ns-do-show-character-palette)
-;; (as in Terminal.app)
-(define-key global-map [s-right] 'ns-next-frame)
-(define-key global-map [s-left] 'ns-prev-frame)
+(define-key global-map [s-right] 'move-end-of-line)
+(define-key global-map [s-left] 'move-beginning-of-line)
 
 (define-key global-map [home] 'beginning-of-buffer)
 (define-key global-map [end] 'end-of-buffer)

@@ -1160,7 +1160,9 @@ With some possible metadata (to be decided).")
   (let ((filename project-list-file))
     (with-temp-buffer
       (insert ";;; -*- lisp-data -*-\n")
-      (pp project--list (current-buffer))
+      (let ((print-length nil)
+            (print-level nil))
+        (pp project--list (current-buffer)))
       (write-region nil nil filename nil 'silent))))
 
 ;;;###autoload
