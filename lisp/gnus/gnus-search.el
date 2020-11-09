@@ -962,12 +962,18 @@ Responsible for handling and, or, and parenthetical expressions.")
 
 (cl-defmethod gnus-search-make-query-string ((engine gnus-search-engine)
 					     query-spec)
-  (if (and gnus-search-use-parsed-queries
-	   (null (alist-get 'raw query-spec))
-	   (null (slot-value engine 'raw-queries-p)))
-      (gnus-search-transform
-       engine (alist-get 'parsed-query query-spec))
-    (alist-get 'query query-spec)))
+  (let ((parsed-query (alist-get 'parsed-query query-spec))
+	(raw-query (alist-get 'query query-spec)))
+    (if (and gnus-search-use-parsed-queries
+	     (null (alist-get 'raw query-spec))
+	     (null (slot-value engine 'raw-queries-p))
+	     parsed-query)
+	(gnus-search-transform engine parsed-query)
+      (if (listp raw-query)
+	  ;; Some callers are sending this in as (query "query"), not
+	  ;; as a cons cell?
+	  (car raw-query)
+	raw-query))))
 
 (defsubst gnus-search-single-p (query)
   "Return t if QUERY is a search for a single message."
@@ -1108,7 +1114,7 @@ Other capabilities could be tested here."
 ;; TODO: Don't exclude booleans and date keys, just check for them
 ;; before checking for general keywords.
 (defvar gnus-search-imap-search-keys
-  '(body cc bcc from header keyword larger smaller subject text to uid)
+  '(body cc bcc from header keyword larger smaller subject text to uid x-gm-raw)
   "Known IMAP search keys, excluding booleans and date keys.")
 
 (cl-defmethod gnus-search-transform ((_ gnus-search-imap)
@@ -1952,7 +1958,8 @@ remaining string, then adds all that to the top-level spec."
 	(setq query
 	      (string-trim (replace-match "" t t query 0)))
 	(setf (alist-get 'query query-spec) query)))
-    (when gnus-search-use-parsed-queries
+    (when (and gnus-search-use-parsed-queries
+	       (null (alist-get 'raw query-spec)))
       (setf (alist-get 'parsed-query query-spec)
 	    (gnus-search-parse-query query)))
     query-spec))

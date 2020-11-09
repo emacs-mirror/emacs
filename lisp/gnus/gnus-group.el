@@ -3201,6 +3201,10 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	       (cdr (assq 'search-query-spec specs))
 	       (cdr (assq 'nnir-query-spec specs))
 	       (gnus-search-make-spec no-parse))))
+	;; If our query came via an old call to nnir, we know not to
+	;; parse the query.
+	(when (assq 'nnir-query-spec specs)
+	  (setf (alist-get 'raw query-spec) t))
 	(gnus-group-make-group
 	 name
 	 (list 'nnselect "nnselect")
@@ -3245,6 +3249,10 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	  (or (cdr (assq 'search-query-spec specs))
 	      (cdr (assq 'nnir-query-spec specs))
 	      (gnus-search-make-spec no-parse))))
+    ;; If our query came via an old call to nnir, we know not to parse
+    ;; the query.
+    (when (assq 'nnir-query-spec specs)
+      (setf (alist-get 'raw query-spec) t))
     (gnus-group-read-ephemeral-group
      (concat "nnselect-" (message-unique-id))
      (list 'nnselect "nnselect")
