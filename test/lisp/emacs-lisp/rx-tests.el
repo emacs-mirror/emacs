@@ -544,7 +544,7 @@
 (ert-deftest rx-compat ()
   "Test old symbol retained for compatibility (bug#37517)."
   (should (equal
-           (with-suppressed-warnings ((obsolete rx-submatch-n))
+           (with-no-warnings
              (rx-submatch-n '(group-n 3 (+ nonl) eol)))
            "\\(?3:.+$\\)")))
 
