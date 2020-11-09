@@ -2921,7 +2921,7 @@ process buffer for a list of commands.)"
          (python-shell-make-comint
           (or cmd (python-shell-calculate-command))
           (python-shell-get-process-name dedicated) show)))
-    (pop-to-buffer buffer)
+    (set-buffer buffer)
     (get-buffer-process buffer)))
 
 (defun run-python-internal ()
