@@ -9767,6 +9767,7 @@ svg_css_length_to_pixels (RsvgLength length)
     case RSVG_UNIT_CM:
       /* 2.54 cm in an inch.  */
       value = dpi * value / 2.54;
+      break;
     case RSVG_UNIT_MM:
       /* 25.4 mm in an inch.  */
       value = dpi * value / 25.4;
@@ -9774,9 +9775,11 @@ svg_css_length_to_pixels (RsvgLength length)
     case RSVG_UNIT_PT:
       /* 72 points in an inch.  */
       value = dpi * value / 72;
+      break;
     case RSVG_UNIT_PC:
       /* 6 picas in an inch.  */
       value = dpi * value / 6;
+      break;
     case RSVG_UNIT_IN:
       value *= dpi;
       break;
