@@ -48,10 +48,6 @@
     (set-keymap-parent map help-mode-map)
     (should (equal (keymap-parent map) help-mode-map))))
 
-(ert-deftest keymap-keymap-set-parent/returns-parent ()
-  (let ((map (make-keymap)))
-    (should (equal (set-keymap-parent map help-mode-map) help-mode-map))))
-
 (ert-deftest keymap-copy-keymap/is-equal ()
   (should (equal (copy-keymap help-mode-map) help-mode-map)))
 
