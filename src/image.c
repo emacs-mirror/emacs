@@ -9542,19 +9542,19 @@ DEF_DLL_FN (void, rsvg_handle_set_base_uri, (RsvgHandle *, const char *));
 DEF_DLL_FN (gboolean, rsvg_handle_write,
 	    (RsvgHandle *, const guchar *, gsize, GError **));
 DEF_DLL_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
-#endif
+#  endif
 
-#if LIBRSVG_CHECK_VERSION (2, 46, 0)
+#  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 DEF_DLL_FN (void, rsvg_handle_get_intrinsic_dimensions,
             RsvgHandle *, gboolean *, RsvgLength *, gboolean *,
             RsvgLength *, gboolean *, RsvgRectangle *));
 DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
 	    (RsvgHandle *, const char *, const RsvgRectangle *,
 	     RsvgRectangle *, RsvgRectangle *, GError **));
-#else
+#  else
 DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 	    (RsvgHandle *, RsvgDimensionData *));
-#endif
+#  endif
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
 DEF_DLL_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_DLL_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
@@ -9642,6 +9642,7 @@ init_svg_functions (void)
 #  undef g_object_unref
 #  undef g_type_init
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
+#   undef rsvg_handle_get_intrinsic_dimensions
 #   undef rsvg_handle_get_geometry_for_layer
 #  else
 #   undef rsvg_handle_get_dimensions
@@ -9672,7 +9673,10 @@ init_svg_functions (void)
 #   define g_type_init fn_g_type_init
 #  endif
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
-#   define rsvg_handle_get_geometry_for_layer fn_rsvg_handle_get_geometry_for_layer
+#   define rsvg_handle_get_intrinsic_dimensions \
+	fn_rsvg_handle_get_intrinsic_dimensions
+#   define rsvg_handle_get_geometry_for_layer	\
+	fn_rsvg_handle_get_geometry_for_layer
 #  else
 #   define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
 #  endif
@@ -9746,6 +9750,7 @@ svg_load (struct frame *f, struct image *img)
   return success_p;
 }
 
+#if LIBRSVG_CHECK_VERSION (2, 46, 0)
 static double
 svg_css_length_to_pixels (RsvgLength length)
 {
@@ -9783,6 +9788,7 @@ svg_css_length_to_pixels (RsvgLength length)
 
   return value;
 }
+#endif
 
 /* Load frame F and image IMG.  CONTENTS contains the SVG XML data to
    be parsed, SIZE is its size, and FILENAME is the name of the SVG
