@@ -222,7 +222,7 @@ If `ask', you will be prompted for a branch type."
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
-    (let ((state (vc-hg-state file)))  ; expensive
+    (let ((state (vc-state file 'Hg)))  ; expensive
       (and state (not (memq state '(ignored unregistered)))))))
 
 (defun vc-hg-state (file)
