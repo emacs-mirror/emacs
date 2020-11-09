@@ -283,8 +283,8 @@ Complete the given word, using ispell.
 @item C-c C-a (@code{erc-bol})
 Go to beginning of line or end of prompt.
 
-@item C-c C-b (@code{erc-iswitchb})
-Use @code{iswitchb-read-buffer} to prompt for a ERC buffer to switch to.
+@item C-c C-b (@code{erc-switch-to-buffer})
+Use @code{read-buffer} to prompt for a ERC buffer to switch to.
 
 @item C-c C-c (@code{erc-toggle-interpret-controls})
 Toggle interpretation of control sequences in messages.
