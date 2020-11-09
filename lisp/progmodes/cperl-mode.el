@@ -5983,6 +5983,7 @@ else
      (cperl-continued-brace-offset     .  0)
      (cperl-label-offset               . -2)
      (cperl-continued-statement-offset .  4)
+     (cperl-close-paren-offset         . -4)
      (cperl-extra-newline-before-brace .  nil)
      (cperl-extra-newline-before-brace-multiline .  nil)
      (cperl-merge-trailing-else        .  nil)

@@ -249,6 +249,44 @@ Perl is not Lisp: An open paren in column 0 does not start a function."
             (setq got (concat "test case " name ":\n" (buffer-string)))
             (should (equal got expected))))))))
 
+(ert-deftest cperl-bug19709 ()
+  "Verify that indentation of closing paren works as intended.
+Note that Perl mode has no setting for close paren offset, per
+documentation it does the right thing anyway."
+  (let ((file (ert-resource-file "cperl-bug-19709.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (while (re-search-forward
+              (concat "^# ?-+ \\_<\\(?1:.+?\\)\\_>: input ?-+\n"
+                      "\\(?2:\\(?:.*\n\\)+?\\)"
+                      "# ?-+ \\1: expected output ?-+\n"
+                      "\\(?3:\\(?:.*\n\\)+?\\)"
+                      "# ?-+ \\1: end ?-+")
+              nil t)
+        (let ((name (match-string 1))
+              (code (match-string 2))
+              (expected (match-string 3))
+              got)
+          (with-temp-buffer
+            (insert code)
+	    (funcall cperl-test-mode)
+            (setq-local
+             ;; settings from the bug report
+             cperl-indent-level 4
+             cperl-indent-parens-as-block t
+             cperl-close-paren-offset -4
+             ;; same, adapted for per-mode
+             perl-indent-level 4
+             perl-indent-parens-as-block t)
+            (goto-char (point-min))
+            (while (null (eobp))
+              (cperl-indent-command)
+              (next-line))
+            (setq expected (concat "test case " name ":\n" expected))
+            (setq got (concat "test case " name ":\n" (buffer-string)))
+            (should (equal got expected))))))))
+
 (ert-deftest cperl-bug37127 ()
   "Verify that closing a paren in a regex goes without a message.
 Also check that the message is issued if the regex terminator is
