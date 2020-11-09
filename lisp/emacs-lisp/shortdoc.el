@@ -689,8 +689,8 @@ There can be any number of :example/:result elements."
 (define-short-documentation-group sequence
   "Sequence Predicates"
   (seq-contains-p
-   :eval (seq-contains '(a b c) 'b)
-   :eval (seq-contains '(a b c) 'd))
+   :eval (seq-contains-p '(a b c) 'b)
+   :eval (seq-contains-p '(a b c) 'd))
   (seq-every-p
    :eval (seq-every-p #'numberp '(1 2 3)))
   (seq-empty-p
