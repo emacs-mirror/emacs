@@ -208,6 +208,18 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 
+(defface log-view-commit-body
+  '((((class color) (min-colors 88) (background light))
+     :background "gray95" :foreground "black" :extend t)
+    (((class color) (min-colors 88) (background dark))
+     :background "gray5" :foreground "white" :extend t)
+    (((class color) (min-colors 8) (background light))
+     :foreground "black")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "white"))
+  "Face for the commit body in `log-view-mode'."
+  :version "28.1")
+
 (defvar log-view-file-re
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
           ;; Subversion has no such thing??
@@ -415,7 +427,7 @@ This calls `log-view-expanded-log-entry-function' to do the work."
 	      (insert long-entry "\n")
 	      (add-text-properties
 	       beg (point)
-	       '(font-lock-face font-lock-comment-face log-view-comment t))
+	       '(font-lock-face log-view-commit-body log-view-comment t))
 	      (goto-char opoint))))))))
 
 (defun log-view-beginning-of-defun (&optional arg)

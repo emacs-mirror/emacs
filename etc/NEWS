@@ -436,6 +436,11 @@ their 'default-directory' under VC.
 *** New command 'vc-dir-root' uses the root directory without asking.
 
 ---
+*** New face 'log-view-commit-body'.
+This is used when expanding commit messages from 'vc-print-root-log'
+and similar commands.
+
+---
 *** The responsible VC backend is now the most specific one.
 'vc-responsible-backend' loops over the backends in
 'vc-handled-backends' to determine which backend is responsible for a
