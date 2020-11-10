@@ -22,10 +22,12 @@
 
 ;;; Requirements:
 
-;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
-;; `dvipdf' (comes with Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive)
-;; and `pdftotext', which comes with xpdf (http://www.foolabs.com/xpdf/) or
-;; poppler (http://poppler.freedesktop.org/).
+;; Viewing PS/PDF/DVI files requires Ghostscript, `dvipdf' (comes with
+;; Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive) and
+;; `pdftotext', which comes with xpdf (http://www.foolabs.com/xpdf/)
+;; or poppler (http://poppler.freedesktop.org/).
+;; Djvu documents require `ddjvu' (from DjVuLibre).
+;; ODF files require `soffice' (from LibreOffice).
 
 ;;; Commentary:
 
