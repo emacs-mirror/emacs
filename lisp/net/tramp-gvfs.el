@@ -876,7 +876,7 @@ Return nil for null BYTE-ARRAY."
 		  byte-array (car byte-array))))
     (dbus-byte-array-to-string
      (if (and (consp byte-array) (zerop (car (last byte-array))))
-	 (nbutlast byte-array) byte-array))))
+	 (butlast byte-array) byte-array))))
 
 (defun tramp-gvfs-stringify-dbus-message (message)
   "Convert a D-Bus MESSAGE into readable UTF8 strings, used for traces."
