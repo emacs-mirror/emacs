@@ -1,5 +1,88 @@
 # Changes
 
+## 2.4.1
+
+This is mostly a bug-fix release:
+
+- Update the documentation for :custom as per #850
+
+- Fix broken test due to #850
+
+- better tests
+
+- add test for #845
+
+- Support keymap symbol in bind-key. Fix #845
+
+- use-package-core.el: use the Emacs set-default function to avoid saving :custom vars twice
+
+- Fix Travis
+
+- typo, should be a vector, not a bytecode object
+
+  Solves https://github.com/jwiegley/use-package/issues/842
+
+- Add special value back again, in case needed for backwards compat
+
+  I don't know why this special value exists, but perhaps old client code uses it.
+
+  The additional `t' in the macro expansion is accidental but not harmful I guess.
+
+- Even when there's no :config, run any pre/post config hooks
+
+  i.e., following the existing docs for use-package-inject-hooks, these hooks are
+  run:
+
+  use-package--foo--pre-config-hook
+  use-package--foo--post-config-hook
+
+  This should make config customisations more predictable (for example, spacemacs
+  uses these hooks extensively to allow 'layers' to be customised).
+
+  I got rid of the "special" default value for :config, because it doesn't seem to
+  be treated any differently than nil.
+
+  Fixes #785
+
+- Clarify the documentation for :after
+
+- add table of contents to README
+
+- Fix typos
+
+  Typos found with codespell.
+
+- Fix typos
+
+- Attempt to explain omit "-hook" better
+
+- Update tests
+
+- Switch from `require' to `load' + `featurep'
+
+- Use `require', not `load', when byte-compiling
+
+- Make custom-face evaluate elisp.
+
+  Fix #696.
+
+- Add a line of documentation for (use-pacakage ... :hook).
+
+- Fix typo in README
+
+- Fix documentation for defer
+
+- Add no-query option for pdf-tools-install
+
+- Fix typo in README
+
+- Fix all notes in README
+
+- Mention use-package-ensure in README
+
+  Without requiring `use-package-ensure`, setting `use-package-always-ensure`
+  did not actually work for me.
+
 ## 2.4
 
 ### Breaking changes
