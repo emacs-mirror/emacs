@@ -7194,6 +7194,20 @@ Frames, windows, buffers, and subprocesses count as vectors
 		make_int (strings_consed));
 }
 
+#ifdef GNU_LINUX
+DEFUN ("malloc-info", Fmalloc_info, Smalloc_info, 0, 0, "",
+       doc: /* Report malloc information to stderr.
+This function outputs to stderr an XML-formatted
+description of the current state of the memory-allocation
+arenas.  */)
+  (void)
+{
+  if (malloc_info (0, stderr))
+    error ("malloc_info failed: %s", emacs_strerror (errno));
+  return Qnil;
+}
+#endif
+
 static bool
 symbol_uses_obj (Lisp_Object symbol, Lisp_Object obj)
 {
@@ -7538,6 +7552,9 @@ N should be nonnegative.  */);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_info);
   defsubr (&Smemory_use_counts);
+#ifdef GNU_LINUX
+  defsubr (&Smalloc_info);
+#endif
   defsubr (&Ssuspicious_object);
 
   Lisp_Object watcher;
