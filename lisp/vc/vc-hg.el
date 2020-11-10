@@ -223,7 +223,10 @@ If `ask', you will be prompted for a branch type."
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
     (let ((state (vc-state file 'Hg)))  ; expensive
-      (and state (not (memq state '(ignored unregistered)))))))
+      (if (memq state '(ignored unregistered nil))
+          ;; Clear the cache for proper fallback to another backend.
+          (ignore (vc-file-setprop file 'vc-state nil))
+        t))))
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
