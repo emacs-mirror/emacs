@@ -295,6 +295,10 @@ If this variable is nil, or if the provided function returns nil,
     (if (zerop (setq length (nnselect-artlist-length nnselect-artlist)))
 	(progn
 	  (nnheader-report 'nnselect "Selection produced empty results.")
+	  (when (gnus-ephemeral-group-p group)
+	    (gnus-kill-ephemeral-group group)
+	    (setq gnus-ephemeral-servers
+		  (assq-delete-all 'nnselect gnus-ephemeral-servers)))
 	  (nnheader-insert ""))
       (with-current-buffer nntp-server-buffer
 	(nnheader-insert "211 %d %d %d %s\n"
@@ -769,8 +773,10 @@ If this variable is nil, or if the provided function returns nil,
 Return an article list."
   (let ((func (alist-get 'nnselect-function specs))
 	(args (alist-get 'nnselect-args specs)))
-    (funcall func args)))
-
+    (condition-case err
+	(funcall func args)
+      (error (gnus-error 3 "nnselect-run: %s on %s gave error %s" func args err)
+	     []))))
 
 (defun nnselect-search-thread (header)
   "Make an nnselect group containing the thread with article HEADER.
