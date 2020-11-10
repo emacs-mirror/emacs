@@ -145,6 +145,12 @@ the buffer.
   A numeric argument to @kbd{C-q} or @kbd{C-x 8 ...} specifies
 how many copies of the character to insert (@pxref{Arguments}).
 
+  As an alternative to @kbd{C-x 8}, you can select the corresponding
+transient input method by typing @kbd{C-u C-x \ iso-transl @key{RET}},
+then temporarily activating this transient input method by typing
+@kbd{C-x \ [} will insert the same character @t{‘} (@pxref{transient
+input method}).
+
   In addition, in some contexts, if you type a quotation using grave
 accent and apostrophe @kbd{`like this'}, it is converted to a form
 @t{‘like this’} using single quotation marks, even without @kbd{C-x 8}

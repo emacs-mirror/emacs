@@ -664,6 +664,13 @@ to the search string.
 *** New input method 'compose' based on X Multi_key sequences.
 
 ---
+*** New input method 'iso-transl' with the same keys as 'C-x 8'.
+After selecting it as a transient input method with 'C-u C-x \
+iso-transl RET', it supports the same key sequences as 'C-x 8',
+so e.g. like 'C-x 8 [' inserts a left single quotation mark,
+'C-x \ [' does the same.
+
+---
 *** Improved language transliteration in Malayalam input methods.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.

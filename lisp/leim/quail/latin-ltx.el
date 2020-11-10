@@ -8,7 +8,7 @@
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 ;;         Dave Love <fx@gnu.org>
-;; Keywords: multilingual, input, Greek, i18n
+;; Keywords: multilingual, input method, i18n
 
 ;; This file is part of GNU Emacs.
 
