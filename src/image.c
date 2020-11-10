@@ -9546,7 +9546,7 @@ DEF_DLL_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
 
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 DEF_DLL_FN (void, rsvg_handle_get_intrinsic_dimensions,
-            RsvgHandle *, gboolean *, RsvgLength *, gboolean *,
+            (RsvgHandle *, gboolean *, RsvgLength *, gboolean *,
             RsvgLength *, gboolean *, RsvgRectangle *));
 DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
 	    (RsvgHandle *, const char *, const RsvgRectangle *,
