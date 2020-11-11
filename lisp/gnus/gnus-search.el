@@ -1315,7 +1315,7 @@ filenames, sometimes with additional information.  Returns a list
 of viable results, in the form of a list of [group article score]
 vectors.")
 
-(cl-defgeneric gnus-search-index-extract (engine)
+(cl-defgeneric gnus-search-indexed-extract (engine)
   "Extract a single article result from the current buffer.
 Returns a list of two values: a file name, and a relevancy score.
 Advances point to the beginning of the next result.")
