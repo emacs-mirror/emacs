@@ -90,12 +90,6 @@
 
 ;;; Internal Variables:
 
-(defvar gnus-search-memo-query nil
-  "Internal: stores current query.")
-
-(defvar gnus-search-memo-server nil
-  "Internal: stores current server.")
-
 (defvar gnus-search-history ()
   "Internal history of Gnus searches.")
 
