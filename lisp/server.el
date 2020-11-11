@@ -354,9 +354,11 @@ Updates `server-clients'."
 
       (setq server-clients (delq proc server-clients))
 
-      ;; Delete the client's tty, except on Windows (both GUI and console),
-      ;; where there's only one terminal and does not make sense to delete it.
-      (unless (eq system-type 'windows-nt)
+      ;; Delete the client's tty, except on Windows (both GUI and
+      ;; console), where there's only one terminal and does not make
+      ;; sense to delete it, or if we are explicitly told not.
+      (unless (or (eq system-type 'windows-nt)
+                  (process-get proc 'no-delete-terminal))
 	(let ((terminal (process-get proc 'terminal)))
 	  ;; Only delete the terminal if it is non-nil.
 	  (when (and terminal (eq (terminal-live-p terminal) t))
@@ -918,6 +920,19 @@ This handles splitting the command if it would be bigger than
            (server-send-string proc "-window-system-unsupported \n")
            nil))))
 
+(defun server-create-dumb-terminal-frame (nowait proc &optional parameters)
+  (add-to-list 'frame-inherited-parameters 'client)
+  (let ((frame (make-frame `((client . ,(if nowait 'nowait proc))
+                             ;; This is a leftover, see above.
+                             (environment . ,(process-get proc 'env))
+                             ,@parameters))))
+    (server-log (format "%s created" frame) proc)
+    (select-frame frame)
+    (process-put proc 'frame frame)
+    (process-put proc 'terminal (frame-terminal frame))
+    (process-put proc 'no-delete-terminal t)
+    frame))
+
 (defun server-goto-toplevel (proc)
   (condition-case nil
       ;; If we're running isearch, we must abort it to allow Emacs to
@@ -1264,6 +1279,14 @@ The following commands are accepted by the client:
 					   terminal-frame)))))
 		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
+                   ((equal tty-type "dumb")
+                    ;; Emacsclient is likely running inside something
+                    ;; like an Emacs shell buffer. We can't run an
+                    ;; Emacs frame in a tty like this, so instead, use
+                    ;; whichever terminal is currently
+                    ;; selected. (bug#25547)
+                    (server-create-dumb-terminal-frame nowait proc
+                                                       frame-parameters))
 		   ((or (and (eq system-type 'windows-nt)
 			     (daemonp)
 			     (setq display "w32"))
