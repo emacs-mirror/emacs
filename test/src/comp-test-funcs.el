@@ -348,6 +348,12 @@
 (defsubst comp-test-defsubst-f ()
   t)
 
+(defvar comp-test-and-3-var 1)
+(defun comp-test-and-3-f (x)
+  (and (atom x)
+       comp-test-and-3-var
+       2))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

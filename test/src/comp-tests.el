@@ -440,6 +440,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
               '(lambda ()
                  (delete-region (point-min) (point-max))))))))
 
+(comp-deftest and-3 ()
+  (should (= (comp-test-and-3-f t) 2))
+  (should (null (comp-test-and-3-f '(1 2)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
