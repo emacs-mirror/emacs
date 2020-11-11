@@ -978,7 +978,6 @@ Prevent this load system from loading files in twice.")
     global-semanticdb-minor-mode
     global-semantic-idle-summary-mode
     global-semantic-mru-bookmark-mode
-    global-cedet-m3-minor-mode
     global-semantic-idle-local-symbol-highlight-mode
     global-semantic-highlight-edits-mode
     global-semantic-show-unmatched-syntax-mode
@@ -1000,7 +999,6 @@ The possible elements of this list include the following:
  `global-semantic-stickyfunc-mode'     - Show current fun in header line.
  `global-semantic-mru-bookmark-mode'   - Provide `switch-to-buffer'-like
                                          keybinding for tag names.
- `global-cedet-m3-minor-mode'          - A mouse 3 context menu.
  `global-semantic-idle-local-symbol-highlight-mode' - Highlight references
                                          of the symbol under point.
 The following modes are more targeted at people who want to see
