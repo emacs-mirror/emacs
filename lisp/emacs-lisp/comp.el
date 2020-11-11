@@ -186,7 +186,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
   "List of disabled passes.
 For internal use only by the testsuite.")
 
-(defvar comp-post-pass-hooks ()
+(defvar comp-post-pass-hooks '()
   "Alist PASS FUNCTIONS.
 Each function in FUNCTIONS is run after PASS.
 Useful to hook into pass checkers.")
@@ -421,7 +421,9 @@ CFG is mutated by a pass.")
   (speed nil :type number
          :documentation "Optimization level (see `comp-speed').")
   (pure nil :type boolean
-        :documentation "t if pure nil otherwise."))
+        :documentation "t if pure nil otherwise.")
+  (ret-type-specifier '(t) :type list
+                      :documentation "Derived return type specifier."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexically-scoped function."
@@ -2768,6 +2770,53 @@ These are substituted with a normal 'set' op."
 
 ;;; Final pass specific code.
 
+(defun comp-ret-type-spec (_ func)
+  "Compute type specifier for `comp-func' FUNC.
+Set it into the `ret-type-specifier' slot."
+  (cl-loop
+   with res-typeset = nil
+   with res-valset = nil
+   with res-range = nil
+   for bb being the hash-value in (comp-func-blocks func)
+   do (cl-loop
+       for insn in (comp-block-insns bb)
+       do (pcase insn
+	    (`(return ,mvar)
+	      (when-let ((typeset (comp-mvar-typeset mvar)))
+		(setf res-typeset (comp-union-typesets res-typeset typeset)))
+	      (when-let ((valset (comp-mvar-valset mvar)))
+		(setf res-valset (append res-valset valset)))
+	      (when-let (range (comp-mvar-range mvar))
+		(setf res-range (comp-range-union res-range range))))))
+   finally
+   (when res-valset
+     (setf res-typeset
+           (cl-loop
+            with res = (copy-sequence res-typeset)
+            for type in res-typeset
+            for pred = (alist-get type comp-type-predicates)
+            when pred
+              do (cl-loop
+                  for v in res-valset
+                  when (funcall pred v)
+                    do (setf res (remove type res)))
+            finally (cl-return res))))
+   (setf res-range (cl-loop for (l . h) in res-range
+                            for low = (if (numberp l) l '*)
+                            for high = (if (numberp h) h '*)
+                            collect `(integer ,low , high))
+         res-valset (cl-remove-duplicates res-valset))
+   (let ((res (append res-typeset
+                      (when res-valset
+                        `((member ,@res-valset)))
+                      res-range)))
+     (setf (comp-func-ret-type-specifier func)
+           (if (> (length res) 1)
+               `(or ,@res)
+             (if (consp (car res))
+                 (car res)
+               res))))))
+
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."
   (setf (comp-data-container-l cont)
@@ -2867,6 +2916,7 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
+  (maphash #'comp-ret-type-spec (comp-ctxt-funcs-h comp-ctxt))
   (unless comp-dry-run
     (if noninteractive
 	(comp-final1)
