@@ -743,7 +743,7 @@ Return a list of results."
        (or (comp-tests-mentioned-p 'concat insn)
            (comp-tests-mentioned-p 'length insn)))))))
 
-(comp-deftest fw-prop ()
+(comp-deftest fw-prop-1 ()
   "Some tests for forward propagation."
   (let ((comp-speed 2)
         (comp-post-pass-hooks '((comp-final comp-tests-fw-prop-checker-1))))
@@ -756,6 +756,110 @@ Return a list of results."
     (native-compile #'comp-tests-fw-prop-1-f)
     (should (subr-native-elisp-p (symbol-function #'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
+
+(defun comp-tests-check-ret-type-spec (func-form type-specifier)
+  (let ((lexical-binding t)
+        (speed 2)
+        (comp-post-pass-hooks
+         `((comp-final
+            ,(lambda (_)
+               (let ((f (gethash (comp-c-func-name (cadr func-form) "F" t)
+                                 (comp-ctxt-funcs-h comp-ctxt))))
+                 (should (equal (comp-func-ret-type-specifier f)
+                                type-specifier))))))))
+    (eval func-form t)
+    (native-compile (cadr func-form))))
+
+(defconst comp-tests-type-spec-tests
+  `(((defun comp-tests-ret-type-spec-0-f (x)
+       x)
+     (t))
+
+    ((defun comp-tests-ret-type-spec-1-f ()
+       1)
+     (integer 1 1))
+
+    ((defun comp-tests-ret-type-spec-2-f (x)
+       (if x 1 3))
+     (or (integer 1 1) (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-3-f (x)
+       (let (y)
+         (if x
+             (setf y 1)
+           (setf y 2))
+         y))
+     (integer 1 2))
+
+    ((defun comp-tests-ret-type-spec-4-f (x)
+       (let (y)
+         (if x
+             (setf y 1)
+           (setf y 3))
+         y))
+     (or (integer 1 1) (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-5-f (x)
+       (if x
+           (list x)
+         3))
+     (or cons (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-6-f (x)
+       (if x
+           'foo
+         3))
+     (or (member foo) (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-7-1-f (x)
+       (if (eq x 3)
+           x
+         'foo))
+     (or (member foo) (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-7-2-f (x)
+       (if (eq 3 x)
+           x
+         'foo))
+     (or (member foo) (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-8-1-f (x)
+       (if (= x 3)
+           x
+         'foo))
+     (or (member foo) (integer 3 3)))
+
+    ((defun comp-tests-ret-type-spec-8-2-f (x)
+       (if (= 3 x)
+           x
+         'foo))
+     (or (member foo) (integer 3 3)))
+
+    ;; FIXME returning ATM (or t (member foo))
+    ;; ((defun comp-tests-ret-type-spec-8-3-f (x)
+    ;;    (if (= x 3)
+    ;;        'foo
+    ;;      x))
+    ;;  (or number (member foo)))
+
+    ((defun comp-tests-ret-type-spec-8-4-f (x y)
+       (if (= x y)
+           x
+         'foo))
+     (or number (member foo)))
+
+    ((defun comp-tests-ret-type-spec-9-1-f (x)
+       (comp-hint-fixnum y))
+     (integer ,most-negative-fixnum ,most-positive-fixnum))
+
+    ((defun comp-tests-ret-type-spec-9-1-f (x)
+       (comp-hint-cons x))
+     (cons))))
+
+(comp-deftest ret-type-spec ()
+  "Some derived return type specifier tests."
+  (cl-loop for (func-form  type-spec) in comp-tests-type-spec-tests
+           do (comp-tests-check-ret-type-spec func-form type-spec)))
 
 (defun comp-tests-pure-checker-1 (_)
   "Check that inside `comp-tests-pure-caller-f' `comp-tests-pure-callee-f' is
@@ -825,67 +929,6 @@ Return a list of results."
          (`(return ,mvar)
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
-
-(defvar comp-tests-cond-rw-0-var)
-(comp-deftest cond-rw-0 ()
-  "Check we do not miscompile some simple functions."
-  (let ((lexical-binding t))
-    (let ((f (native-compile '(lambda (l)
-                                (when (eq (car l) 'x)
-                                  (cdr l))))))
-      (should (subr-native-elisp-p f))
-      (should (eq (funcall f '(x . y)) 'y))
-      (should (null (funcall f '(z . y)))))
-
-    (should
-     (subr-native-elisp-p
-      (native-compile '(lambda () (if (eq comp-tests-cond-rw-0-var 123) 5 10)))))))
-
-(comp-deftest cond-rw-1 ()
-  "Test cond-rw pass allow us to propagate type+val under `eq' tests."
-  (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type '(integer))
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type
-                                            comp-tests-cond-rw-checker-val))))
-    (subr-native-elisp-p (native-compile '(lambda (x) (if (eq x 123) x t))))
-    (subr-native-elisp-p (native-compile '(lambda (x) (if (eq 123 x) x t))))))
-
-(comp-deftest cond-rw-2 ()
-  "Test cond-rw pass allow us to propagate type+val under `=' tests."
-  (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type '(integer))
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type
-                                            comp-tests-cond-rw-checker-val))))
-    (subr-native-elisp-p (native-compile '(lambda (x) (if (= x 123) x t))))))
-
-(comp-deftest cond-rw-3 ()
-  "Test cond-rw pass allow us to propagate type+val under `eql' tests."
-  (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type '(integer))
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type
-                                            comp-tests-cond-rw-checker-val))))
-    (subr-native-elisp-p (native-compile '(lambda (x) (if (eql 123 x) x t))))))
-
-(comp-deftest cond-rw-4 ()
-  "Test cond-rw pass allow us to propagate type under `=' tests."
-  (let ((lexical-binding t)
-        (comp-tests-cond-rw-expected-type '(number))
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type))))
-    (subr-native-elisp-p (native-compile '(lambda (x y) (if (= x y) x t))))))
-
-(comp-deftest cond-rw-5 ()
-  "Test cond-rw pass allow us to propagate type under `=' tests."
-  (let ((comp-tests-cond-rw-checked-function #'comp-tests-cond-rw-4-f)
-        (comp-tests-cond-rw-expected-type '(integer))
-        (comp-post-pass-hooks '((comp-final comp-tests-cond-rw-checker-type))))
-    (eval '(defun comp-tests-cond-rw-4-f (x y)
-             (declare (speed 3))
-             (if (= x (comp-hint-fixnum y))
-                 x
-               t))
-          t)
-    (native-compile #'comp-tests-cond-rw-4-f)
-    (should (subr-native-elisp-p (symbol-function #'comp-tests-cond-rw-4-f)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
