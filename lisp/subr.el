@@ -2618,15 +2618,7 @@ keyboard-quit events while waiting for a valid input."
 	  (unless (get-text-property 0 'face prompt)
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		       (read-char-from-minibuffer
-                        prompt
-                        ;; If we have a dynamically bound `help-form'
-                        ;; here, then the `C-h' (i.e., `help-char')
-                        ;; character should output that instead of
-                        ;; being a command char.
-                        (if help-form
-                            (cons help-char chars)
-                          chars))))
+		       (read-key prompt)))
 	  (and show-help (buffer-live-p (get-buffer helpbuf))
 	       (kill-buffer helpbuf))
 	  (cond
@@ -2774,20 +2766,36 @@ the function will ignore any input that is not one of CHARS.
 Optional argument HISTORY, if non-nil, should be a symbol that
 specifies the history list variable to use for navigating in input
 history using `M-p' and `M-n', with `RET' to select a character from
-history."
+history.
+If the caller has set `help-form', there is no need to explicitly add
+`help-char' to chars.  It's bound automatically to `help-form-show'."
   (let* ((empty-history '())
          (map (if (consp chars)
-                  (or (gethash chars read-char-from-minibuffer-map-hash)
-                      (puthash chars
-                               (let ((map (make-sparse-keymap)))
-                                 (set-keymap-parent map read-char-from-minibuffer-map)
-                                 (dolist (char chars)
-                                   (define-key map (vector char)
-                                     'read-char-from-minibuffer-insert-char))
-                                 (define-key map [remap self-insert-command]
-                                   'read-char-from-minibuffer-insert-other)
-                                 map)
-                               read-char-from-minibuffer-map-hash))
+                  (or (and (gethash chars read-char-from-minibuffer-map-hash)
+                           ;; Don't use cached keymap with `help-char'.
+                           (not help-form))
+                      (let ((map (make-sparse-keymap))
+                            (msg help-form))
+                        (set-keymap-parent map read-char-from-minibuffer-map)
+                        ;; If we have a dynamically bound `help-form'
+                        ;; here, then the `C-h' (i.e., `help-char')
+                        ;; character should output that instead of
+                        ;; being a command char.
+                        (when help-form
+                          (define-key map (vector help-char)
+                            (lambda ()
+                              (interactive)
+                              (let ((help-form msg)) ; lexically bound msg
+                                (help-form-show)))))
+                        (dolist (char chars)
+                          (define-key map (vector char)
+                            'read-char-from-minibuffer-insert-char))
+                        (define-key map [remap self-insert-command]
+                          'read-char-from-minibuffer-insert-other)
+                        (unless help-form
+                          ;; Don't cache keymap with `help-char'.
+                          (puthash chars map read-char-from-minibuffer-map-hash))
+                        map))
                 read-char-from-minibuffer-map))
          (result
           (read-from-minibuffer prompt nil map nil

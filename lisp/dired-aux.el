@@ -1380,7 +1380,7 @@ return t; if SYM is q or ESC, return nil."
 			     (format " [Type yn!q or %s] "
 				     (key-description (vector help-char)))
 			   " [Type y, n, q or !] ")))
-	   (set sym (setq char (read-char-choice prompt char-choices)))
+	   (set sym (setq char (read-char-from-minibuffer prompt char-choices)))
 	   (if (memq char '(?y ?\s ?!)) t)))))
 
 

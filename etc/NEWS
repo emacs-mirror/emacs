@@ -1322,6 +1322,11 @@ If 'tab-always-indent' is 'complete', this new user option can be used to
 further tweak whether to complete or indent.
 
 ---
+*** 'dired-query' now uses 'read-char-from-minibuffer'.
+Using it instead of 'read-char-choice' allows using 'C-x o'
+to switch to the help window displayed after typing 'C-h'.
+
+---
 *** 'zap-up-to-char' now uses 'read-char-from-minibuffer'.
 This allows navigating through the history of characters that have
 been input.  This is mostly useful for characters that have complex
