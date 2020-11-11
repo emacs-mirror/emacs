@@ -695,7 +695,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	   v 'file-error "%s `%s'" (match-string 0) filename))))))
 
 (defun tramp-smb-handle-directory-files
-  (directory &optional full match nosort)
+  (directory &optional full match nosort _count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error

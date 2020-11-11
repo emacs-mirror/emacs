@@ -2091,7 +2091,10 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 ;; Add completion functions for AFP, DAV, DAVS, SFTP and SMB methods.
 (when tramp-gvfs-enabled
   ;; Suppress D-Bus error messages.
-  (let (tramp-gvfs-dbus-event-vector)
+  (let (tramp-gvfs-dbus-event-vector
+	;; Sometimes, it fails with "Variable binding depth exceeds
+	;; max-specpdl-size".  Shall be fixed in Emacs 27.
+	(max-specpdl-size (* 2 max-specpdl-size)))
     (zeroconf-init tramp-gvfs-zeroconf-domain)
     (if (zeroconf-list-service-types)
 	(progn

@@ -383,7 +383,7 @@ ARGUMENTS to pass to the OPERATION."
       file-properties)))
 
 (defun tramp-adb-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format _count)
   "Like `directory-files-and-attributes' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error

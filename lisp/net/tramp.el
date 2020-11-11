@@ -3102,7 +3102,8 @@ User is always nil."
     (setq directory (substring directory 0 -1)))
   directory)
 
-(defun tramp-handle-directory-files (directory &optional full match nosort)
+(defun tramp-handle-directory-files
+    (directory &optional full match nosort _count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
@@ -3121,7 +3122,7 @@ User is always nil."
       (if nosort result (sort result #'string<)))))
 
 (defun tramp-handle-directory-files-and-attributes
-  (directory &optional full match nosort id-format)
+  (directory &optional full match nosort id-format _count)
   "Like `directory-files-and-attributes' for Tramp files."
   (mapcar
    (lambda (x)

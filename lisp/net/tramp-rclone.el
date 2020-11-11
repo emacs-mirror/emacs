@@ -300,7 +300,7 @@ file names."
     (tramp-rclone-flush-directory-cache v)))
 
 (defun tramp-rclone-handle-directory-files
-    (directory &optional full match nosort)
+    (directory &optional full match nosort _count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
     (tramp-error
