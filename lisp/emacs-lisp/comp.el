@@ -449,7 +449,7 @@ Interg values are handled in the `range' slot.")
   (range '() :type list
          :documentation "Integer interval."))
 
-(defsubst comp-mvar-value-vld-p (mvar)
+(defun comp-mvar-value-vld-p (mvar)
   "Return t if one single value can be extracted by the MVAR constrains."
   (or (= (length (comp-mvar-valset mvar)) 1)
       (let ((r (comp-mvar-range mvar)))
@@ -461,7 +461,7 @@ Interg values are handled in the `range' slot.")
                 (integerp high)
                 (= low high)))))))
 
-(defsubst comp-mvar-value (mvar)
+(defun comp-mvar-value (mvar)
   "Return the constant value of MVAR.
 `comp-mvar-value-vld-p' *must* be satisfied before calling
 `comp-mvar-const'."
@@ -477,7 +477,7 @@ Interg values are handled in the `range' slot.")
         (car v)
       (caar (comp-mvar-range mvar)))))
 
-(defsubst comp-mvar-fixnum-p (mvar)
+(defun comp-mvar-fixnum-p (mvar)
   "Return t if MVAR is certainly a fixnum."
   (when-let (range (comp-mvar-range mvar))
     (let* ((low (caar range))
@@ -518,15 +518,15 @@ To be used by all entry points."
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit"))))
 
-(defsubst comp-set-op-p (op)
+(defun comp-set-op-p (op)
   "Assignment predicate for OP."
   (when (memq op comp-limple-sets) t))
 
-(defsubst comp-assign-op-p (op)
+(defun comp-assign-op-p (op)
   "Assignment predicate for OP."
   (when (memq op comp-limple-assignments) t))
 
-(defsubst comp-call-op-p (op)
+(defun comp-call-op-p (op)
   "Call predicate for OP."
   (when (memq op comp-limple-calls) t))
 
@@ -534,11 +534,11 @@ To be used by all entry points."
   "Limple INSN call predicate."
   (comp-call-op-p (car-safe insn)))
 
-(defsubst comp-type-hint-p (func)
+(defun comp-type-hint-p (func)
   "Type-hint predicate for function name FUNC."
   (when (memq func comp-type-hints) t))
 
-(defsubst comp-func-ret-typeset (func)
+(defun comp-func-ret-typeset (func)
   "Return the typeset returned by function FUNC. "
   (or (alist-get func comp-known-ret-types) '(t)))
 
@@ -564,13 +564,13 @@ To be used by all entry points."
                                     comp-ctxt))
            (comp-ctxt-funcs-h comp-ctxt)))
 
-(defsubst comp-function-pure-p (f)
+(defun comp-function-pure-p (f)
   "Return t if F is pure."
   (or (get f 'pure)
       (when-let ((func (comp-symbol-func-to-fun f)))
         (comp-func-pure func))))
 
-(defsubst comp-alloc-class-to-container (alloc-class)
+(defun comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS, return the data container for the current context.
 Assume allocation class 'd-default as default."
   (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-default) comp-ctxt))
@@ -682,7 +682,7 @@ instruction."
 
 ;;; spill-lap pass specific code.
 
-(defsubst comp-lex-byte-func-p (f)
+(defun comp-lex-byte-func-p (f)
   "Return t if F is a lexically-scoped byte compiled function."
   (and (byte-code-function-p f)
        (fixnump (aref f 0))))
@@ -945,12 +945,12 @@ Points to the next slot to be filled.")
               byte-switch byte-pushconditioncase)
   "LAP end of basic blocks op codes.")
 
-(defsubst comp-lap-eob-p (inst)
+(defun comp-lap-eob-p (inst)
   "Return t if INST closes the current basic blocks, nil otherwise."
   (when (memq (car inst) comp-lap-eob-ops)
     t))
 
-(defsubst comp-lap-fall-through-p (inst)
+(defun comp-lap-fall-through-p (inst)
   "Return t if INST fall through, nil otherwise."
   (when (not (memq (car inst) '(byte-goto byte-return)))
     t))
@@ -1047,13 +1047,13 @@ If SSA non-nil populate it of m-var in ssa form."
            do (aset v i mvar)
            finally return v))
 
-(defsubst comp-emit (insn)
+(defun comp-emit (insn)
   "Emit INSN into basic block BB."
   (let ((bb (comp-limplify-curr-block comp-pass)))
     (cl-assert (not (comp-block-closed bb)))
     (push insn (comp-block-insns bb))))
 
-(defsubst comp-emit-set-call (call)
+(defun comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
 If the callee function is known to have a return type propagate it."
   (cl-assert call)
@@ -2395,18 +2395,18 @@ Forward propagate immediate involed in assignments."
             (`(setimm ,lval ,v)
              (setf (comp-mvar-value lval) v))))))
 
-(defsubst comp-mvar-propagate (lval rval)
+(defun comp-mvar-propagate (lval rval)
   "Propagate into LVAL properties of RVAL."
   (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval)
         (comp-mvar-valset lval) (comp-mvar-valset rval)
         (comp-mvar-range lval) (comp-mvar-range rval)))
 
-(defsubst comp-function-foldable-p (f args)
+(defun comp-function-foldable-p (f args)
   "Given function F called with ARGS return non-nil when optimizable."
   (and (comp-function-pure-p f)
        (cl-every #'comp-mvar-value-vld-p args)))
 
-(defsubst comp-function-call-maybe-fold (insn f args)
+(defun comp-function-call-maybe-fold (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
   (cl-flet ((rewrite-insn-as-setimm (insn value)
                ;; See `comp-emit-setimm'.
@@ -2925,7 +2925,7 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Primitive funciton advice machinery
 
-(defsubst comp-trampoline-filename (subr-name)
+(defun comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
   (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
 
