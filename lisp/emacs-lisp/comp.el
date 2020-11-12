@@ -2437,6 +2437,45 @@ Forward propagate immediate involed in assignments."
                (value (comp-apply-in-env f (mapcar #'comp-mvar-value args))))
           (rewrite-insn-as-setimm insn value)))))))
 
+(defun comp-phi (lval &rest rvals)
+  "Phi function propagating RVALS into LVAL.
+Return LVAL."
+  (let* ((rhs-mvars (mapcar #'car rvals))
+         (values (mapcar #'comp-mvar-valset rhs-mvars))
+         (from-latch (cl-some
+                      (lambda (x)
+                        (comp-latch-p
+                         (gethash (cdr x)
+                                  (comp-func-blocks comp-func))))
+                      rvals)))
+
+    ;; Type propagation.
+    (setf (comp-mvar-typeset lval)
+          (apply #'comp-union-typesets (mapcar #'comp-mvar-typeset rhs-mvars)))
+
+    ;; Value propagation.
+    (setf (comp-mvar-valset lval)
+          (cl-loop
+           for v in (cl-remove-duplicates (apply #'append values)
+                                          :test #'equal)
+           ;; We propagate only values those types are not already
+           ;; into typeset.
+           when (cl-notany (lambda (x)
+                             (comp-subtype-p (type-of v) x))
+                           (comp-mvar-typeset lval))
+             collect v))
+
+    ;; Range propagation
+    (setf (comp-mvar-range lval)
+          (when (and (not from-latch)
+                     (cl-notany (lambda (x)
+                                  (comp-subtype-p 'integer x))
+                                (comp-mvar-typeset lval)))
+            ;; TODO memoize?
+            (apply #'comp-range-union
+                   (mapcar #'comp-mvar-range rhs-mvars))))
+    lval))
+
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
   (pcase insn
@@ -2477,33 +2516,7 @@ Forward propagate immediate involed in assignments."
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
-     (let* ((rvals (mapcar #'car rest))
-            (values (mapcar #'comp-mvar-valset rvals))
-            (from-latch (cl-some
-                         (lambda (x)
-                           (comp-latch-p
-                            (gethash (cdr x)
-                                     (comp-func-blocks comp-func))))
-                         rest)))
-
-       ;; Type propagation.
-       (setf (comp-mvar-typeset lval)
-             (apply #'comp-union-typesets (mapcar #'comp-mvar-typeset rvals)))
-       ;; Value propagation.
-       (setf (comp-mvar-valset lval)
-             (when (cl-every #'consp values)
-               ;; TODO memoize?
-               (cl-remove-duplicates (apply #'append values)
-                                     :test #'equal)))
-       ;; Range propagation
-       (setf (comp-mvar-range lval)
-             (when (and (not from-latch)
-                        (cl-notany (lambda (x)
-                                     (comp-subtype-p 'integer x))
-                                   (comp-mvar-typeset lval)))
-               ;; TODO memoize?
-               (apply #'comp-range-union
-                      (mapcar #'comp-mvar-range rvals))))))))
+     (apply #'comp-phi lval rest))))
 
 (defun comp-fwprop* ()
   "Propagate for set* and phi operands.
