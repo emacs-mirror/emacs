@@ -3444,16 +3444,17 @@ else # "${HAVE_X11}" != "yes"
 fi   # "${HAVE_X11}" != "yes"
 
 HAVE_HARFBUZZ=no
+### On MS-Windows we use hb_font_get_nominal_glyph, which appeared
+### in HarfBuzz version 1.2.3
+if test "${HAVE_W32}" = "yes"; then
+  harfbuzz_required_ver=1.2.3
+else
+  harfbuzz_required_ver=0.9.42
+fi
 if test "${HAVE_X11}" = "yes" && test "${HAVE_FREETYPE}" = "yes" \
         || test "${HAVE_W32}" = "yes"; then
   if test "${with_harfbuzz}" != "no"; then
-    ### On MS-Windows we use hb_font_get_nominal_glyph, which appeared
-    ### in HarfBuzz version 1.2.3
-    if test "${HAVE_W32}" = "yes"; then
-      EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= 1.2.3])
-    else
-      EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= 0.9.42])
-    fi
+    EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= $harfbuzz_required_ver])
     if test "$HAVE_HARFBUZZ" = "yes"; then
       AC_DEFINE(HAVE_HARFBUZZ, 1, [Define to 1 if using HarfBuzz.])
       ### mingw32 and Cygwin-w32 don't use -lharfbuzz, since they load
@@ -5918,9 +5919,9 @@ fi
 
 if test "${HAVE_CAIRO}" = "yes" && test "${HAVE_HARFBUZZ}" = no; then
   AC_MSG_WARN([This configuration uses the Cairo graphics library,
-    but not the HarfBuzz font shaping library.  We recommend the use
-    of HarfBuzz when using Cairo, please install HarfBuzz development
-    packages.])
+    but not the HarfBuzz font shaping library (minimum version $harfbuzz_required_ver).
+    We recommend the use of HarfBuzz when using Cairo, please install
+    appropriate HarfBuzz development packages.])
 fi
 
 # Let plain 'make' work.
