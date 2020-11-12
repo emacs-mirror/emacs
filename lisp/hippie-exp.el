@@ -411,14 +411,14 @@ undoes the expansion."
   "Construct a function similar to `hippie-expand'.
 Make it use the expansion functions in TRY-LIST.  An optional second
 argument VERBOSE non-nil makes the function verbose."
-  `(function (lambda (arg)
-    ,(concat
-      "Try to expand text before point, using the following functions: \n"
-      (mapconcat 'prin1-to-string (eval try-list) ", "))
-    (interactive "P")
-    (let ((hippie-expand-try-functions-list ,try-list)
-          (hippie-expand-verbose ,verbose))
-      (hippie-expand arg)))))
+  `(lambda (arg)
+     ,(concat
+       "Try to expand text before point, using the following functions: \n"
+       (mapconcat 'prin1-to-string (eval try-list) ", "))
+     (interactive "P")
+     (let ((hippie-expand-try-functions-list ,try-list)
+           (hippie-expand-verbose ,verbose))
+       (hippie-expand arg))))
 
 
 ;;;  Here follows the try-functions and their requisites:
@@ -534,10 +534,10 @@ string).  It returns t if a new completion is found, nil otherwise."
 	(setq he-expand-list
 	      (and (not (equal he-search-string ""))
 		   (sort (all-completions he-search-string obarray
-					  (function (lambda (sym)
+                                          (lambda (sym)
 					    (or (boundp sym)
 						(fboundp sym)
-						(symbol-plist sym)))))
+                                                (symbol-plist sym))))
 			 'string-lessp)))))
   (while (and he-expand-list
 	      (he-string-member (car he-expand-list) he-tried-table))
@@ -563,10 +563,10 @@ otherwise."
 	  (if (not (string= he-search-string ""))
 	      (setq expansion
 		    (try-completion he-search-string obarray
-				    (function (lambda (sym)
+                                    (lambda (sym)
 				      (or (boundp sym)
 					  (fboundp sym)
-					  (symbol-plist sym)))))))
+                                          (symbol-plist sym))))))
 	  (if (or (eq expansion t)
 		  (string= expansion he-search-string)
 		  (he-string-member expansion he-tried-table))
@@ -821,10 +821,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	(he-init-string (he-dabbrev-beg) (point))
 	(setq he-expand-list
 	      (and (not (equal he-search-string ""))
-		   (mapcar (function (lambda (sym)
+                   (mapcar (lambda (sym)
 			     (if (and (boundp sym) (vectorp (eval sym)))
 				 (abbrev-expansion (downcase he-search-string)
-						   (eval sym)))))
+                                                   (eval sym))))
 			   (append '(local-abbrev-table
 				     global-abbrev-table)
 				   abbrev-table-name-list))))))

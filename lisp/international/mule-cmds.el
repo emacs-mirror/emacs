@@ -491,8 +491,8 @@ non-nil, it is used to sort CODINGS instead."
 				 0)))
 			   1)
 			 ))))))
-      (sort codings (function (lambda (x y)
-				(> (funcall func x) (funcall func y))))))))
+      (sort codings (lambda (x y)
+                      (> (funcall func x) (funcall func y)))))))
 
 (defun find-coding-systems-region (from to)
   "Return a list of proper coding systems to encode a text between FROM and TO.
@@ -888,7 +888,7 @@ It is highly recommended to fix it before writing to a file."
 
     ;; Change elements of the list to (coding . base-coding).
     (setq default-coding-system
-	  (mapcar (function (lambda (x) (cons x (coding-system-base x))))
+          (mapcar (lambda (x) (cons x (coding-system-base x)))
 		  default-coding-system))
 
     (if (and auto-cs (not no-other-defaults))
@@ -1082,7 +1082,7 @@ it asks the user to select a proper coding system."
     (if (fboundp select-safe-coding-system-function)
 	(funcall select-safe-coding-system-function
 		 (point-min) (point-max) coding
-		 (function (lambda (x) (coding-system-get x :mime-charset))))
+                 (lambda (x) (coding-system-get x :mime-charset)))
       coding)))
 
 ;;; Language support stuff.
@@ -1261,7 +1261,7 @@ This returns a language environment name as a string."
 	 (name (completing-read prompt
 				language-info-alist
 				(and key
-				     (function (lambda (elm) (and (listp elm) (assq key elm)))))
+                                     (lambda (elm) (and (listp elm) (assq key elm))))
 				t nil nil default)))
     (if (and (> (length name) 0)
 	     (or (not key)
@@ -2965,9 +2965,9 @@ STR should be a unibyte string."
   (mapconcat
    (if (and coding-system (eq (coding-system-type coding-system) 'iso-2022))
        ;; Try to get a pretty description for ISO 2022 escape sequences.
-       (function (lambda (x) (or (cdr (assq x iso-2022-control-alist))
-				 (format "#x%02X" x))))
-     (function (lambda (x) (format "#x%02X" x))))
+       (lambda (x) (or (cdr (assq x iso-2022-control-alist))
+                  (format "#x%02X" x)))
+     (lambda (x) (format "#x%02X" x)))
    str " "))
 
 (defun encode-coding-char (char coding-system &optional charset)

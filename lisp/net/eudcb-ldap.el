@@ -138,10 +138,10 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
     ;; Apply eudc-duplicate-attribute-handling-method
     (if (not (eq 'list eudc-duplicate-attribute-handling-method))
 	(mapc
-	 (function (lambda (record)
-		     (setq final-result
-			   (append (eudc-filter-duplicate-attributes record)
-				   final-result))))
+         (lambda (record)
+           (setq final-result
+                 (append (eudc-filter-duplicate-attributes record)
+                         final-result)))
 	 result))
     final-result))
 

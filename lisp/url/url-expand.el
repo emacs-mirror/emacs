@@ -65,10 +65,10 @@ path components followed by `..' are removed, along with the `..' itself."
   (if (and url (not (string-match "^#" url)))
       ;; Need to nuke newlines and spaces in the URL, or we open
       ;; ourselves up to potential security holes.
-      (setq url (mapconcat (function (lambda (x)
-				       (if (memq x '(?  ?\n ?\r))
-					   ""
-					 (char-to-string x))))
+      (setq url (mapconcat (lambda (x)
+                             (if (memq x '(?  ?\n ?\r))
+                                 ""
+                               (char-to-string x)))
 			   url "")))
 
   ;; Need to figure out how/where to expand the fragment relative to

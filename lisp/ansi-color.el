@@ -572,27 +572,27 @@ The face definitions are based upon the variables
         (index 0))
     ;; miscellaneous attributes
     (mapc
-     (function (lambda (e)
-                 (aset map index e)
-                 (setq index (1+ index)) ))
+     (lambda (e)
+       (aset map index e)
+       (setq index (1+ index)) )
      ansi-color-faces-vector)
     ;; foreground attributes
     (setq index 30)
     (mapc
-     (function (lambda (e)
-                 (aset map index
-		       (ansi-color-make-face 'foreground
-                                             (if (consp e) (car e) e)))
-                 (setq index (1+ index)) ))
+     (lambda (e)
+       (aset map index
+             (ansi-color-make-face 'foreground
+                         (if (consp e) (car e) e)))
+       (setq index (1+ index)) )
      ansi-color-names-vector)
     ;; background attributes
     (setq index 40)
     (mapc
-     (function (lambda (e)
-                 (aset map index
-		       (ansi-color-make-face 'background
-                                             (if (consp e) (cdr e) e)))
-                 (setq index (1+ index)) ))
+     (lambda (e)
+       (aset map index
+             (ansi-color-make-face 'background
+                         (if (consp e) (cdr e) e)))
+       (setq index (1+ index)) )
      ansi-color-names-vector)
     map))
 

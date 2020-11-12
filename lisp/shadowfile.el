@@ -540,11 +540,11 @@ them again, unless you make more changes to the files.  To cancel a shadow
 permanently, remove the group from `shadow-literal-groups' or
 `shadow-regexp-groups'."
   (interactive)
-  (map-y-or-n-p (function (lambda (pair)
-			    (format "Cancel copying %s to %s? "
-				    (car pair) (cdr pair))))
-		(function (lambda (pair)
-			    (shadow-remove-from-todo pair)))
+  (map-y-or-n-p (lambda (pair)
+                  (format "Cancel copying %s to %s? "
+                          (car pair) (cdr pair)))
+                (lambda (pair)
+                  (shadow-remove-from-todo pair))
 		shadow-files-to-copy
 		'("shadow" "shadows" "cancel copy"))
   (message "There are %d shadows to be updated."
@@ -601,8 +601,8 @@ and to are absolute file names."
 			     shadow-homedir))
 	     (canonical-file (shadow-contract-file-name absolute-file))
 	     (shadows
-	      (mapcar (function (lambda (shadow)
-				  (cons absolute-file shadow)))
+              (mapcar (lambda (shadow)
+                        (cons absolute-file shadow))
 		      (append
 		       (shadow-shadows-of-1
 			canonical-file shadow-literal-groups nil)

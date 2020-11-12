@@ -1459,10 +1459,10 @@
 	(setq rest (cdr rest))))
     (if tags (error "optimizer error: missed tags %s" tags))
     ;; Remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
-    (mapcar (function (lambda (elt)
-			(if (numberp elt)
-			    elt
-			  (cdr elt))))
+    (mapcar (lambda (elt)
+              (if (numberp elt)
+                  elt
+                (cdr elt)))
 	    (nreverse lap))))
 
 

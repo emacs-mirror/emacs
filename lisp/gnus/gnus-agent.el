@@ -4033,11 +4033,11 @@ If REREAD is not nil, downloaded articles are marked as unread."
 	 (list (list
 		(if (listp reread)
 		    reread
-		  (delq nil (mapcar (function (lambda (c)
-						(cond ((eq reread t)
-						       (car c))
-						      ((cdr c)
-						       (car c)))))
+                  (delq nil (mapcar (lambda (c)
+                                      (cond ((eq reread t)
+                                             (car c))
+                                            ((cdr c)
+                                             (car c))))
 				    gnus-agent-article-alist)))
 		'del '(read)))
 	 gnus-command-method)

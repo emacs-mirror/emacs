@@ -249,9 +249,9 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
        (forward-paragraph 1)
        (setq end (point))
        (setq found
-             (refer-every (function (lambda (keyword)
-                                (goto-char begin)
-                                (re-search-forward keyword end t)))
+             (refer-every (lambda (keyword)
+                       (goto-char begin)
+                       (re-search-forward keyword end t))
                     keywords-list))
        (if (not found)
            (progn
