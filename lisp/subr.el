@@ -2771,9 +2771,8 @@ If the caller has set `help-form', there is no need to explicitly add
 `help-char' to chars.  It's bound automatically to `help-form-show'."
   (let* ((empty-history '())
          (map (if (consp chars)
-                  (or (and (gethash chars read-char-from-minibuffer-map-hash)
-                           ;; Don't use cached keymap with `help-char'.
-                           (not help-form))
+                  (or (gethash (if help-form (cons help-char chars) chars)
+                               read-char-from-minibuffer-map-hash)
                       (let ((map (make-sparse-keymap))
                             (msg help-form))
                         (set-keymap-parent map read-char-from-minibuffer-map)
@@ -2792,9 +2791,8 @@ If the caller has set `help-form', there is no need to explicitly add
                             'read-char-from-minibuffer-insert-char))
                         (define-key map [remap self-insert-command]
                           'read-char-from-minibuffer-insert-other)
-                        (unless help-form
-                          ;; Don't cache keymap with `help-char'.
-                          (puthash chars map read-char-from-minibuffer-map-hash))
+                        (puthash (if help-form (cons help-char chars) chars)
+                                 map read-char-from-minibuffer-map-hash)
                         map))
                 read-char-from-minibuffer-map))
          (result
