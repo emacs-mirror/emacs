@@ -745,8 +745,7 @@ pattern to search for."
 ;;;###autoload
 (defun project-find-file ()
   "Visit a file (with completion) in the current project.
-The completion default is the filename at point, if one is
-recognized."
+The completion default is the string at point."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (list (project-root pr))))
