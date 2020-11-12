@@ -4018,7 +4018,6 @@ Options:
 `edebug-print-circle'
 `edebug-on-error'
 `edebug-on-quit'
-`edebug-on-signal'
 `edebug-unwrap-results'
 `edebug-global-break-condition'"
   :lighter " *Debugging*"
