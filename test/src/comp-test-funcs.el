@@ -354,6 +354,22 @@
        comp-test-and-3-var
        2))
 
+(defun comp-test-copy-insn-f (insn)
+  ;; From `comp-copy-insn'.
+  (if (consp insn)
+      (let (result)
+	(while (consp insn)
+	  (let ((newcar (car insn)))
+	    (if (or (consp (car insn)) (comp-mvar-p (car insn)))
+		(setf newcar (comp-copy-insn (car insn))))
+	    (push newcar result))
+	  (setf insn (cdr insn)))
+	(nconc (nreverse result)
+               (if (comp-mvar-p insn) (comp-copy-insn insn) insn)))
+    (if (comp-mvar-p insn)
+        (copy-comp-mvar insn)
+      insn)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

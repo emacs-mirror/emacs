@@ -444,6 +444,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (= (comp-test-and-3-f t) 2))
   (should (null (comp-test-and-3-f '(1 2)))))
 
+(comp-deftest copy-insn ()
+  (should (equal (comp-test-copy-insn-f '(1 2 3 (4 5 6)))
+                 '(1 2 3 (4 5 6))))
+  (should (null (comp-test-copy-insn-f nil))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
