@@ -456,15 +456,21 @@ Interg values are handled in the `range' slot.")
 
 (defun comp-mvar-value-vld-p (mvar)
   "Return t if one single value can be extracted by the MVAR constrains."
-  (or (= (length (comp-mvar-valset mvar)) 1)
-      (let ((r (comp-mvar-range mvar)))
-        (and (= (length r) 1)
-             (let ((low (caar r))
-                   (high (cdar r)))
-               (and
-                (integerp low)
-                (integerp high)
-                (= low high)))))))
+  (when (null (comp-mvar-typeset mvar))
+    (let* ((v (comp-mvar-valset mvar))
+           (r (comp-mvar-range mvar))
+           (valset-len (length v))
+           (range-len (length r)))
+      (if (and (= valset-len 1)
+               (= range-len 0))
+          t
+        (when (and (= valset-len 0)
+                   (= range-len 1))
+          (let* ((low (caar r))
+                 (high (cdar r)))
+            (and (integerp low)
+                 (integerp high)
+                 (= low high))))))))
 
 (defun comp-mvar-value (mvar)
   "Return the constant value of MVAR.
