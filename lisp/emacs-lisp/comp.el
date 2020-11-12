@@ -191,30 +191,16 @@ For internal use only by the testsuite.")
 Each function in FUNCTIONS is run after PASS.
 Useful to hook into pass checkers.")
 
-(defconst comp-known-ret-types '((cons . (cons))
-                                 (1+ . (number))
-                                 (1- . (number))
-                                 (+ . (number))
-                                 (- . (number))
-                                 (* . (number))
-                                 (/ . (number))
-                                 (% . (number))
-                                 ;; Type hints
-                                 (comp-hint-cons . (cons)))
+(defconst comp-known-type-specifiers
+  `((cons (function (t t) cons))
+    (1+ (function ((or number marker)) number))
+    (1- (function ((or number marker)) number))
+    (+ (function (&rest (or number marker)) number))
+    (- (function (&rest (or number marker)) number))
+    (* (function (&rest (or number marker)) number))
+    (/ (function ((or number marker) &rest (or number marker)) number))
+    (% (function ((or number marker) (or number marker)) number)))
   "Alist used for type propagation.")
-
-(defconst comp-known-ret-ranges
-  `((comp-hint-fixnum . (,most-negative-fixnum . ,most-positive-fixnum)))
-  "Known returned ranges.")
-
-;; TODO fill it.
-(defconst comp-type-predicates '((cons . consp)
-                                 (float . floatp)
-                                 (integer . integerp)
-                                 (number . numberp)
-                                 (string . stringp)
-                                 (symbol . symbolp))
-  "Alist type -> predicate.")
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
@@ -438,21 +424,32 @@ CFG is mutated by a pass.")
   (lambda-list nil :type list
         :documentation "Original lambda-list."))
 
-(cl-defstruct (comp-mvar (:constructor make--comp-mvar))
-  "A meta-variable being a slot in the meta-stack."
-  (id nil :type (or null number)
-      :documentation "Unique id when in SSA form.")
-  (slot nil :type (or fixnum symbol)
-        :documentation "Slot number in the array if a number or
-        'scratch' for scratch slot.")
+(cl-defstruct comp-constraint
+  "Internal representation of a type/value constraint."
   (typeset '(t) :type list
            :documentation "List of possible types the mvar can assume.
 Each element cannot be a subtype of any other element of this slot.")
   (valset '() :type list
           :documentation "List of possible values the mvar can assume.
-Interg values are handled in the `range' slot.")
+Integer values are handled in the `range' slot.")
   (range '() :type list
          :documentation "Integer interval."))
+
+(cl-defstruct comp-constraint-f
+  "Internal constraint representation for a function."
+  (args nil :type (or null list)
+        :documentation "List of `comp-constraint' for its arguments.")
+  (ret nil :type (or comp-constraint comp-constraint-f)
+       :documentation "Returned value `comp-constraint'."))
+
+(cl-defstruct (comp-mvar (:constructor make--comp-mvar)
+                         (:include comp-constraint))
+  "A meta-variable being a slot in the meta-stack."
+  (id nil :type (or null number)
+      :documentation "Unique id when in SSA form.")
+  (slot nil :type (or fixnum symbol)
+        :documentation "Slot number in the array if a number or
+        'scratch' for scratch slot."))
 
 (defun comp-mvar-value-vld-p (mvar)
   "Return t if one single value can be extracted by the MVAR constrains."
@@ -529,6 +526,73 @@ To be used by all entry points."
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit"))))
 
+(cl-defun comp-type-spec-to-constraint (type-specifier)
+  "Destructure TYPE-SPECIFIER.
+Return the corresponding `comp-constraint' or `comp-constraint-f'."
+  (let (typeset valset range)
+    (cl-labels ((star-or-num (x)
+                  (or (numberp x) (eq '* x)))
+                (destructure-push (x)
+                  (pcase x
+                    ('&optional
+                     (cl-return-from comp-type-spec-to-constraint '&optional))
+                    ('&rest
+                     (cl-return-from comp-type-spec-to-constraint '&rest))
+                    ('null
+                     (push nil valset))
+                    ('boolean
+                     (push t valset)
+                     (push nil valset))
+                    ('fixnum
+                     (push `(,most-negative-fixnum . ,most-positive-fixnum)
+                           range))
+                    ('bignum
+                     (push `(- . ,(1- most-negative-fixnum))
+                           range)
+                     (push `(,(1+ most-positive-fixnum) . +)
+                           range))
+                    ((pred symbolp)
+                     (push x typeset))
+                    (`(member . ,rest)
+                     (setf valset (append rest valset)))
+                    ('(integer * *)
+                     (push '(- . +) range))
+                    (`(integer ,(and low (pred integerp)) *)
+                     (push `(,low . +) range))
+                    (`(integer * ,(and high (pred integerp)))
+                     (push `(- . ,high) range))
+                    (`(integer ,(and low (pred integerp))
+                               ,(and high (pred integerp)))
+                     (push `(,low . ,high) range))
+                    (`(float ,(pred star-or-num) ,(pred star-or-num))
+                     ;; No float range support :/
+                     (push 'float typeset))
+                    (`(function ,args ,ret-type-spec)
+                     (cl-return-from
+                         comp-type-spec-to-constraint
+                       (make-comp-constraint-f
+                        :args (mapcar #'comp-type-spec-to-constraint args)
+                        :ret (comp-type-spec-to-constraint ret-type-spec))))
+                    (_ (error "Unsopported type specifier")))))
+      (if (or (atom type-specifier)
+              (memq (car type-specifier) '(member integer float function)))
+          (destructure-push type-specifier)
+        (if (eq (car type-specifier) 'or)
+            (mapc #'destructure-push (cdr type-specifier))
+          (error "Unsopported type specifier")))
+      (make-comp-constraint :typeset typeset
+                      :valset valset
+                      :range range))))
+
+(defconst comp-known-constraints-h
+  (let ((h (make-hash-table :test #'eq)))
+    (cl-loop
+     for (f type-spec) in comp-known-type-specifiers
+     for constr = (comp-type-spec-to-constraint type-spec)
+     do (puthash f constr h))
+    h)
+  "Hash table function -> `comp-constraint'")
+
 (defun comp-set-op-p (op)
   "Assignment predicate for OP."
   (when (memq op comp-limple-sets) t))
@@ -550,12 +614,15 @@ To be used by all entry points."
   (when (memq func comp-type-hints) t))
 
 (defun comp-func-ret-typeset (func)
-  "Return the typeset returned by function FUNC. "
-  (or (alist-get func comp-known-ret-types) '(t)))
+  "Return the typeset returned by function FUNC."
+  (if-let ((spec (gethash func comp-known-constraints-h)))
+      (comp-constraint-typeset (comp-constraint-f-ret spec))
+    '(t)))
 
-(defsubst comp-func-ret-range (func)
-  "Return the range returned by function FUNC. "
-  (alist-get func comp-known-ret-ranges))
+(defun comp-func-ret-range (func)
+  "Return the range returned by function FUNC."
+  (when-let ((spec (gethash func comp-known-constraints-h)))
+    (comp-constraint-range (comp-constraint-f-ret spec))))
 
 (defun comp-func-unique-in-cu-p (func)
   "Return t if FUNC is known to be unique in the current compilation unit."
@@ -2495,7 +2562,7 @@ Return LVAL."
      (pcase rval
        (`(,(or 'call 'callref) ,f . ,args)
         (if-let ((range (comp-func-ret-range f)))
-            (setf (comp-mvar-range lval) (list range)
+            (setf (comp-mvar-range lval) range
                   (comp-mvar-typeset lval) nil)
           (setf (comp-mvar-typeset lval)
                 (comp-func-ret-typeset f)))
@@ -2503,7 +2570,7 @@ Return LVAL."
        (`(,(or 'direct-call 'direct-callref) ,f . ,args)
         (let ((f (comp-func-name (gethash f (comp-ctxt-funcs-h comp-ctxt)))))
           (if-let ((range (comp-func-ret-range f)))
-              (setf (comp-mvar-range lval) (list range)
+              (setf (comp-mvar-range lval) range
                     (comp-mvar-typeset lval) nil)
             (setf (comp-mvar-typeset lval)
                   (comp-func-ret-typeset f)))
