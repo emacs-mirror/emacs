@@ -2735,7 +2735,7 @@ floating point support."
   "Keymap for the `read-char-from-minibuffer' function.")
 
 (defconst read-char-from-minibuffer-map-hash
-  (make-hash-table :weakness 'key :test 'equal))
+  (make-hash-table :test 'equal))
 
 (defun read-char-from-minibuffer-insert-char ()
   "Insert the character you type in the minibuffer and exit.
@@ -2771,7 +2771,7 @@ If the caller has set `help-form', there is no need to explicitly add
 `help-char' to chars.  It's bound automatically to `help-form-show'."
   (let* ((empty-history '())
          (map (if (consp chars)
-                  (or (gethash (if help-form (cons help-char chars) chars)
+                  (or (gethash (cons help-form chars)
                                read-char-from-minibuffer-map-hash)
                       (let ((map (make-sparse-keymap))
                             (msg help-form))
@@ -2791,7 +2791,7 @@ If the caller has set `help-form', there is no need to explicitly add
                             'read-char-from-minibuffer-insert-char))
                         (define-key map [remap self-insert-command]
                           'read-char-from-minibuffer-insert-other)
-                        (puthash (if help-form (cons help-char chars) chars)
+                        (puthash (cons help-form chars)
                                  map read-char-from-minibuffer-map-hash)
                         map))
                 read-char-from-minibuffer-map))
