@@ -5336,9 +5336,6 @@ Key bindings:
 (defvar vhdl-reserved-words-regexp nil
   "Regexp for additional reserved words.")
 
-(defvar vhdl-directive-keywords-regexp nil
-  "Regexp for compiler directive keywords.")
-
 (defun vhdl-upcase-list (condition list)
   "Upcase all elements in LIST based on CONDITION."
   (when condition
@@ -5416,9 +5413,6 @@ Key bindings:
 		  (concat vhdl-forbidden-syntax "\\|"))
 		(regexp-opt vhdl-reserved-words)
 		"\\)\\>"))
-  (setq vhdl-directive-keywords-regexp
-	(concat "\\<\\(" (mapconcat 'regexp-quote
-				    vhdl-directive-keywords "\\|") "\\)\\>"))
   (vhdl-abbrev-list-init))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13631,7 +13625,10 @@ This does background highlighting of translate-off regions.")
 			    vhdl-template-prompt-syntax ">\\)")
 		    2 'vhdl-font-lock-prompt-face t)
 	      (list (concat "--\\s-*"
-			    vhdl-directive-keywords-regexp "\\s-+\\(.*\\)$")
+                            "\\<"
+                            (regexp-opt vhdl-directive-keywords t)
+                            "\\>"
+			     "\\s-+\\(.*\\)$")
 		    2 'vhdl-font-lock-directive-face t)
 	      ;; highlight c-preprocessor directives
 	      (list "^#[ \t]*\\(\\w+\\)\\([ \t]+\\(\\w+\\)\\)?"
