@@ -2786,49 +2786,48 @@ These are substituted with a normal 'set' op."
 (defun comp-ret-type-spec (_ func)
   "Compute type specifier for `comp-func' FUNC.
 Set it into the `ret-type-specifier' slot."
-  (cl-loop
-   with res-typeset = nil
-   with res-valset = nil
-   with res-range = nil
-   for bb being the hash-value in (comp-func-blocks func)
-   do (cl-loop
-       for insn in (comp-block-insns bb)
-       do (pcase insn
-	    (`(return ,mvar)
-	      (when-let ((typeset (comp-mvar-typeset mvar)))
-		(setf res-typeset (comp-union-typesets res-typeset typeset)))
-	      (when-let ((valset (comp-mvar-valset mvar)))
-		(setf res-valset (append res-valset valset)))
-	      (when-let (range (comp-mvar-range mvar))
-		(setf res-range (comp-range-union res-range range))))))
-   finally
-   (when res-valset
-     (setf res-typeset
-           (cl-loop
-            with res = (copy-sequence res-typeset)
-            for type in res-typeset
-            for pred = (alist-get type comp-type-predicates)
-            when pred
-              do (cl-loop
-                  for v in res-valset
-                  when (funcall pred v)
-                    do (setf res (remove type res)))
-            finally (cl-return res))))
-   (setf res-range (cl-loop for (l . h) in res-range
-                            for low = (if (numberp l) l '*)
-                            for high = (if (numberp h) h '*)
-                            collect `(integer ,low , high))
-         res-valset (cl-remove-duplicates res-valset))
-   (let ((res (append res-typeset
-                      (when res-valset
-                        `((member ,@res-valset)))
-                      res-range)))
-     (setf (comp-func-ret-type-specifier func)
-           (if (> (length res) 1)
-               `(or ,@res)
-             (if (consp (car res))
-                 (car res)
-               res))))))
+  (let* ((comp-func (make-comp-func))
+         (res-mvar (apply #'comp-phi
+                          (make-comp-mvar)
+                          (cl-loop
+                           with res = nil
+                           for bb being the hash-value in (comp-func-blocks
+                                                           func)
+                           do (cl-loop
+                               for insn in (comp-block-insns bb)
+                               ;; Collect over every exit point the returned
+                               ;; mvars and union results.
+                               do (pcase insn
+                                    (`(return ,mvar)
+                                     (push `(,mvar . nil) res))))
+                           finally (cl-return res))))
+         (res-valset (comp-mvar-valset res-mvar))
+         (res-typeset (comp-mvar-typeset res-mvar))
+         (res-range (comp-mvar-range res-mvar)))
+    ;; If nil is a value convert it into a `null' type specifier.
+    (when res-valset
+      (when (memq nil res-valset)
+        (setf res-valset (remove nil res-valset))
+        (push 'null res-typeset)))
+
+    ;; Form proper integer type specifiers.
+    (setf res-range (cl-loop for (l . h) in res-range
+                             for low = (if (integerp l) l '*)
+                             for high = (if (integerp h) h '*)
+                             collect `(integer ,low , high))
+          res-valset (cl-remove-duplicates res-valset))
+
+    ;; Form the final type specifier.
+    (let ((res (append res-typeset
+                       (when res-valset
+                         `((member ,@res-valset)))
+                       res-range)))
+      (setf (comp-func-ret-type-specifier func)
+            (if (> (length res) 1)
+                `(or ,@res)
+              (if (memq (car-safe res) '(member integer))
+                  res
+                (car res)))))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."
