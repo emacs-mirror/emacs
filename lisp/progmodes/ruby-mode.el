@@ -2436,7 +2436,7 @@ If there is no Rubocop config file, Rubocop will be passed a flag
                                      "\\)"
                                      "\\|/"
                                      "\\(?:Gem\\|Rake\\|Cap\\|Thor"
-                                     "\\|Puppet\\|Berks"
+                                     "\\|Puppet\\|Berks\\|Brew"
                                      "\\|Vagrant\\|Guard\\|Pod\\)file"
                                      "\\)\\'"))
                    'ruby-mode))
