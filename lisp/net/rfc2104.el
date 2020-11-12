@@ -26,11 +26,9 @@
 ;;
 ;; Example:
 ;;
-;; (require 'md5)
 ;; (rfc2104-hash 'md5 64 16 "Jefe" "what do ya want for nothing?")
 ;; "750c783e6ab0b503eaa86e310a5db738"
 ;;
-;; (require 'sha1)
 ;; (rfc2104-hash 'sha1 64 20 "Jefe" "what do ya want for nothing?")
 ;; "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
 ;;

@@ -26,11 +26,6 @@
 ;; sieve-style #-comments and a lightly hacked syntax table.  It was
 ;; strongly influenced by awk-mode.el.
 ;;
-;; Put something similar to the following in your .emacs to use this file:
-;;
-;; (load "~/lisp/sieve")
-;; (setq auto-mode-alist (cons '("\\.siv\\'" . sieve-mode) auto-mode-alist))
-;;
 ;; References:
 ;;
 ;; RFC 3028,

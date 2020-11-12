@@ -51,7 +51,6 @@
 ;;(defun mypkg-submit-bug-report ()
 ;;  "Submit via mail a bug report on mypkg"
 ;;  (interactive)
-;;  (require 'reporter)
 ;;  (reporter-submit-bug-report
 ;;   mypkg-maintainer-address
 ;;   (concat "mypkg.el " mypkg-version)

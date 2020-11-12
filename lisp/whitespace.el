@@ -86,19 +86,6 @@
 ;; * if global whitespace is turned off, whitespace continues on only
 ;;   in the buffers in which local whitespace is on.
 ;;
-;; To use whitespace, insert in your ~/.emacs:
-;;
-;;    (require 'whitespace)
-;;
-;; Or autoload at least one of the commands`whitespace-mode',
-;; `whitespace-toggle-options', `global-whitespace-mode' or
-;; `global-whitespace-toggle-options'.  For example:
-;;
-;;    (autoload 'whitespace-mode           "whitespace"
-;;      "Toggle whitespace visualization."        t)
-;;    (autoload 'whitespace-toggle-options "whitespace"
-;;      "Toggle local `whitespace-mode' options." t)
-;;
 ;; whitespace was inspired by:
 ;;
 ;;    whitespace.el            Rajesh Vaidheeswarran <rv@gnu.org>

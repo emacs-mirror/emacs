@@ -26,9 +26,8 @@
 ;;
 ;;   M-x pixel-scroll-mode RET
 ;;
-;; To make the mode permanent, put these in your init file:
+;; To make the mode permanent, put this in your Init file:
 ;;
-;;   (require 'pixel-scroll)
 ;;   (pixel-scroll-mode 1)
 
 ;;; Commentary:

@@ -29,7 +29,7 @@
 
 ;; Major mode for editing Python files with some fontification and
 ;; indentation bits extracted from original Dave Love's python.el
-;; found in GNU/Emacs.
+;; found in GNU Emacs.
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Shell
@@ -246,13 +246,6 @@
 
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
-
-;;; Installation:
-
-;; Add this to your .emacs:
-
-;; (add-to-list 'load-path "/folder/containing/file")
-;; (require 'python)
 
 ;;; TODO:
 
