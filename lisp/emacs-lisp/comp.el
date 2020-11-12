@@ -308,7 +308,10 @@ This is tipically for top-level forms other than defun.")
                   :documentation "When non-nil support late load.")
   (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
                       :documentation "Serve memoization for
-`comp-union-typesets'."))
+`comp-union-typesets'.")
+  (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
+                        :documentation "Serve memoization for
+`comp-common-supertype'."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -2252,7 +2255,10 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 
 (defun comp-common-supertype (&rest types)
   "Return the first common supertype of TYPES."
-  (cl-reduce #'comp-common-supertype-2 types))
+  (or (gethash types (comp-ctxt-common-supertype-mem comp-ctxt))
+      (puthash types
+               (cl-reduce #'comp-common-supertype-2 types)
+               (comp-ctxt-common-supertype-mem comp-ctxt))))
 
 (defsubst comp-subtype-p (type1 type2)
   "Return t if TYPE1 is a subtype of TYPE1 or nil otherwise."
