@@ -3085,6 +3085,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
   for (i = from; ; i++)
     {
       bool this_shadowed = 0;
+      Lisp_Object shadowed_by = Qnil;
       int range_beg, range_end;
       Lisp_Object val;
 
@@ -3127,11 +3128,9 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       /* If this binding is shadowed by some other map, ignore it.  */
       if (!NILP (shadow))
 	{
-	  Lisp_Object tem;
+	  shadowed_by = shadow_lookup (shadow, kludge, Qt, 0);
 
-	  tem = shadow_lookup (shadow, kludge, Qt, 0);
-
-	  if (!NILP (tem))
+	  if (!NILP (shadowed_by))
 	    {
 	      if (mention_shadow)
 		this_shadowed = 1;
@@ -3185,6 +3184,21 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 		   !NILP (tem2))
 	       && !NILP (Fequal (tem2, definition)))
 	  i++;
+
+      /* Make sure found consecutive keys are either not shadowed or,
+	 if they are, that they are shadowed by the same command.  */
+      if (CHAR_TABLE_P (vector) && i != starting_i)
+	{
+	  Lisp_Object tem;
+	  Lisp_Object key = make_nil_vector (1);
+	  for (int j = starting_i + 1; j <= i; j++)
+	    {
+	      ASET (key, 0, make_fixnum (j));
+	      tem = shadow_lookup (shadow, key, Qt, 0);
+	      if (NILP (Fequal (tem, shadowed_by)))
+		i = j - 1;
+	    }
+	}
 
       /* If we have a range of more than one character,
 	 print where the range reaches to.  */

@@ -200,6 +200,33 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
             (where-is-internal 'execute-extended-command global-map t))
           [#x8000078])))
 
+
+;;;; describe_vector
+
+(ert-deftest help--describe-vector/bug-9293-one-shadowed-in-range ()
+  "Check that we only show a range if shadowed by the same command."
+  (let ((orig-map (let ((map (make-keymap)))
+                    (define-key map "e" 'foo)
+                    (define-key map "f" 'foo)
+                    (define-key map "g" 'foo)
+                    (define-key map "h" 'foo)
+                    map))
+        (shadow-map (let ((map (make-keymap)))
+                      (define-key map "f" 'bar)
+                      map)))
+    (with-temp-buffer
+      (help--describe-vector (cadr orig-map) nil #'help--describe-command
+                             t shadow-map orig-map t)
+      (should (equal (buffer-string)
+                     "
+e		foo
+f		foo  (binding currently shadowed)
+g .. h		foo
+")))))
+
+
+;;;; apropos-internal
+
 (ert-deftest keymap-apropos-internal ()
   (should (equal (apropos-internal "^next-line$") '(next-line)))
   (should (>= (length (apropos-internal "^help")) 100))
