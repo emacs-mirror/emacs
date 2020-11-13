@@ -363,10 +363,10 @@
      character width.
 
      #+BEGIN_SRC emacs-lisp
-     (add-to-list 'which-key-replacement-alist '(("TAB" . nil) . ("↹" . nil))
-     (add-to-list 'which-key-replacement-alist '(("RET" . nil) . ("⏎" . nil))
-     (add-to-list 'which-key-replacement-alist '(("DEL" . nil) . ("⇤" . nil))
-     (add-to-list 'which-key-replacement-alist '(("SPC" . nil) . ("␣" . nil))
+     (add-to-list 'which-key-replacement-alist '(("TAB" . nil) . ("↹" . nil)))
+     (add-to-list 'which-key-replacement-alist '(("RET" . nil) . ("⏎" . nil)))
+     (add-to-list 'which-key-replacement-alist '(("DEL" . nil) . ("⇤" . nil)))
+     (add-to-list 'which-key-replacement-alist '(("SPC" . nil) . ("␣" . nil)))
      #+END_SRC
 
      The =cdr= may also be a function that receives a =cons= of the form =(KEY
