@@ -3223,7 +3223,13 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       if (this_shadowed)
 	{
 	  SET_PT (PT - 1);
-	  insert_string ("  (binding currently shadowed)");
+	  static char const fmt[] = "  (currently shadowed by `%s')";
+	  USE_SAFE_ALLOCA;
+	  char *buffer = SAFE_ALLOCA (sizeof fmt +
+				      SBYTES (SYMBOL_NAME (shadowed_by)));
+	  esprintf (buffer, fmt, SDATA (SYMBOL_NAME (shadowed_by)));
+	  insert_string (buffer);
+	  SAFE_FREE();
 	  SET_PT (PT + 1);
 	}
     }

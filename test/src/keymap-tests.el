@@ -58,7 +58,6 @@
   (let* (menu-item-filter-ran
          (object `(menu-item "2" identity
                              :filter ,(lambda (cmd)
-                                        (message "foo")
                                         (setq menu-item-filter-ran t)
                                         cmd))))
     (keymap--get-keyelt object t)
@@ -213,14 +212,15 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
                     map))
         (shadow-map (let ((map (make-keymap)))
                       (define-key map "f" 'bar)
-                      map)))
+                      map))
+        (text-quoting-style 'grave))
     (with-temp-buffer
       (help--describe-vector (cadr orig-map) nil #'help--describe-command
                              t shadow-map orig-map t)
       (should (equal (buffer-string)
                      "
 e		foo
-f		foo  (binding currently shadowed)
+f		foo  (currently shadowed by `bar')
 g .. h		foo
 ")))))
 
