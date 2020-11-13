@@ -87,10 +87,14 @@ General steps (for each step, check for possible errors):
      make -C etc/refcards
      make -C etc/refcards clean
 
-    If some of the non-English etc/refcards fail to build, you
-    probably need to install some TeX foreign language packages.
-    For more information, search for the string "refcard" in the file
-    admin/release-process.
+    If some of the etc/refcards, especially the non-English ones, fail
+    to build, you probably need to install some TeX/LaTeX packages, in
+    particular for foreign language support.  For more information,
+    search for the string "refcard" in the file admin/release-process.
+
+    (ru-refcard causes numerous "Underfull hbox" and "Overfull hbox"
+    messages from TeX, but those seem to be harmless, as the result
+    looks just fine.)
 
 5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
