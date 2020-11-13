@@ -3130,7 +3130,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 	{
 	  shadowed_by = shadow_lookup (shadow, kludge, Qt, 0);
 
-	  if (!NILP (shadowed_by))
+	  if (!NILP (shadowed_by) && !EQ (shadowed_by, definition))
 	    {
 	      if (mention_shadow)
 		this_shadowed = 1;

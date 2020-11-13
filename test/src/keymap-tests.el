@@ -224,6 +224,30 @@ f		foo  (binding currently shadowed)
 g .. h		foo
 ")))))
 
+(ert-deftest help--describe-vector/bug-9293-same-command-does-not-shadow ()
+  "Check that a command can't be shadowed by the same command."
+  (let ((range-map
+         (let ((map (make-keymap)))
+           (define-key map "0" 'foo)
+           (define-key map "1" 'foo)
+           (define-key map "2" 'foo)
+           (define-key map "3" 'foo)
+           map))
+        (shadow-map
+         (let ((map (make-keymap)))
+           (define-key map "0" 'foo)
+           (define-key map "1" 'foo)
+           (define-key map "2" 'foo)
+           (define-key map "3" 'foo)
+           map)))
+   (with-temp-buffer
+     (help--describe-vector (cadr range-map) nil #'help--describe-command
+                            t shadow-map range-map t)
+     (should (equal (buffer-string)
+                    "
+0 .. 3		foo
+")))))
+
 
 ;;;; apropos-internal
 
