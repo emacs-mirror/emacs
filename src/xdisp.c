@@ -8324,10 +8324,10 @@ next_element_from_display_vector (struct it *it)
 	    next_face_id = it->dpvec_face_id;
 	  else
 	    {
-	      int lface_id =
-		GLYPH_CODE_FACE (it->dpvec[it->current.dpvec_index + 1]);
+              Lisp_Object gc = it->dpvec[it->current.dpvec_index + 1];
+              int lface_id = GLYPH_CODE_P (gc) ? GLYPH_CODE_FACE (gc) : 0;
 
-	      if (lface_id > 0)
+              if (lface_id > 0)
 		next_face_id = merge_faces (it->w, Qt, lface_id,
 					    it->saved_face_id);
 	    }
