@@ -441,7 +441,7 @@ decomposition."
     (concat (quick-check-list-to-regexp quick-check-list) "\\|[가-힣]"))
 
   (defun quick-check-composition-list-to-regexp (quick-check-list)
-    (concat (quick-check-list-to-regexp quick-check-list) "\\|[ᅡ-ᅵᆨ-ᇂ]"))
+    (quick-check-list-to-regexp quick-check-list))
 )
 
 
