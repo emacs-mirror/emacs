@@ -52,6 +52,8 @@
 (autoload 'gnus-cloud-upload-all-data "gnus-cloud")
 (autoload 'gnus-cloud-download-all-data "gnus-cloud")
 
+(autoload 'gnus-topic-find-groups "gnus-topic")
+
 (defcustom gnus-no-groups-message "No news is good news"
   "Message displayed by Gnus when no groups are available."
   :group 'gnus-start
@@ -3194,8 +3196,10 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 		  (or gnus-group-marked
 		      (if (gnus-group-group-name)
 			  (list (gnus-group-group-name))
-			(cdr
-			 (assoc (gnus-group-topic-name) gnus-topic-alist))))))))
+			(mapcar #'caadr
+				(gnus-topic-find-groups
+				 (gnus-group-topic-name)
+				 nil 'all nil t))))))))
 	     (query-spec
 	      (or
 	       (cdr (assq 'search-query-spec specs))
@@ -3243,8 +3247,10 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 		 (or gnus-group-marked
 		     (if (gnus-group-group-name)
 			 (list (gnus-group-group-name))
-		       (cdr
-			(assoc (gnus-group-topic-name) gnus-topic-alist))))))))
+		       (mapcar #'caadr
+				(gnus-topic-find-groups
+				 (gnus-group-topic-name)
+				 nil 'all nil t))))))))
 	 (query-spec
 	  (or (cdr (assq 'search-query-spec specs))
 	      (cdr (assq 'nnir-query-spec specs))
