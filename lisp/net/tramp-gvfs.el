@@ -689,7 +689,6 @@ It has been changed in GVFS 1.14.")
     ("gvfs-monitor-file" . "monitor")
     ("gvfs-mount" . "mount")
     ("gvfs-move" . "move")
-    ("gvfs-rename" . "rename")
     ("gvfs-rm" . "remove")
     ("gvfs-set-attribute" . "set"))
   "List of cons cells, mapping \"gvfs-<command>\" to \"gio <command>\".")
@@ -985,15 +984,12 @@ file names."
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
 
-    (let* ((t1 (tramp-tramp-file-p filename))
-	   (t2 (tramp-tramp-file-p newname))
-	   (equal-remote (tramp-equal-remote filename newname))
-	   (gvfs-operation
-	    (cond
-	     ((eq op 'copy) "gvfs-copy")
-	     (equal-remote "gvfs-rename")
-	     (t "gvfs-move")))
-	   (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+    (let ((t1 (tramp-tramp-file-p filename))
+	  (t2 (tramp-tramp-file-p newname))
+	  (equal-remote (tramp-equal-remote filename newname))
+	  ;; "gvfs-rename" is not trustworthy.
+	  (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
+	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
@@ -2439,7 +2435,10 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 
 (when tramp-gvfs-enabled
   ;; Suppress D-Bus error messages and Tramp traces.
-  (let ((tramp-verbose 0)
+  (let (;; Sometimes, it fails with "Variable binding depth exceeds
+	;; max-specpdl-size".  Shall be fixed in Emacs 27.
+	(max-specpdl-size (* 2 max-specpdl-size))
+	(tramp-verbose 0)
 	tramp-gvfs-dbus-event-vector fun)
     ;; Add completion functions for services announced by DNS-SD.
     ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.

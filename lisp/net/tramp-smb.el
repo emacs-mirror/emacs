@@ -1630,8 +1630,9 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
       ;; Set file modification time.
       (when (or (eq visit t) (stringp visit))
 	(set-visited-file-modtime
-	 (tramp-compat-file-attribute-modification-time
-	  (file-attributes filename))))
+	 (or (tramp-compat-file-attribute-modification-time
+	      (file-attributes filename))
+	     (current-time))))
 
       ;; The end.
       (when (and (null noninteractive)

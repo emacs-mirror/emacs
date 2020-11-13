@@ -2281,9 +2281,13 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (delete-file tmp-name 'trash)
 	  (should-not (file-exists-p tmp-name))
 	  (should
-	   (file-exists-p
-	    (expand-file-name
-	     (file-name-nondirectory tmp-name) trash-directory)))
+	   (or (file-exists-p
+		(expand-file-name
+		 (file-name-nondirectory tmp-name) trash-directory))
+	       ;; Gdrive.
+	       (file-symlink-p
+		(expand-file-name
+		 (file-name-nondirectory tmp-name) trash-directory))))
 	  (delete-directory trash-directory 'recursive)
 	  (should-not (file-exists-p trash-directory)))))))
 
@@ -3473,7 +3477,10 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless
    (or (tramp--test-sh-p) (tramp--test-sudoedit-p)
        ;; Not all tramp-gvfs.el methods support changing the file mode.
-       (tramp--test-gvfs-p "afp") (tramp--test-gvfs-p "ftp")))
+       (and
+	(tramp--test-gvfs-p)
+	(string-match-p
+	 "ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
