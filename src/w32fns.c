@@ -4576,7 +4576,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  int size, i;
 	  W32Msg wmsg;
 	  HIMC context = get_ime_context_fn (hwnd);
-	  wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+	  wmsg.dwModifiers = 0;
 	  /* Get buffer size.  */
 	  size = get_composition_string_fn (context, GCS_RESULTSTR, NULL, 0);
 	  buffer = alloca (size);
