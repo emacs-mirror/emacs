@@ -51,7 +51,8 @@
 (defvar org-babel-default-header-args:ruby '())
 
 (defvar org-babel-ruby-command "ruby"
-  "Name of command to use for executing ruby code.")
+  "Name of command to use for executing ruby code.
+It's possible to override it by using a header argument `:ruby'")
 
 (defcustom org-babel-ruby-hline-to "nil"
   "Replace hlines in incoming tables with this when translating to ruby."
@@ -71,7 +72,7 @@
   "Execute a block of Ruby code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((session (org-babel-ruby-initiate-session
-		   (cdr (assq :session params))))
+		   (cdr (assq :session params)) params))
          (result-params (cdr (assq :result-params params)))
          (result-type (cdr (assq :result-type params)))
          (full-body (org-babel-expand-body:generic
@@ -147,14 +148,15 @@ Emacs-lisp table, otherwise return the results as a string."
                 res)
       res)))
 
-(defun org-babel-ruby-initiate-session (&optional session _params)
+(defun org-babel-ruby-initiate-session (&optional session params)
   "Initiate a ruby session.
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session."
   (unless (string= session "none")
     (require 'inf-ruby)
-    (let* ((cmd (cdr (assoc inf-ruby-default-implementation
-			    inf-ruby-implementations)))
+    (let* ((cmd (cdr (or (assq :ruby params)
+			 (assoc inf-ruby-default-implementation
+				inf-ruby-implementations))))
 	   (buffer (get-buffer (format "*%s*" session)))
 	   (session-buffer (or buffer (save-window-excursion
 					(run-ruby cmd session)
