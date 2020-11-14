@@ -1330,7 +1330,8 @@ If STR has `advice' text property, append the following special event:
 
 (defun quail-input-method (key)
   (if (or (and (or buffer-read-only
-                   (get-char-property (point) 'read-only))
+                   (and (get-char-property (point) 'read-only)
+                        (get-char-property (point) 'front-sticky)))
 	       (not (or inhibit-read-only
 			(get-char-property (point) 'inhibit-read-only))))
 	  (and overriding-terminal-local-map

@@ -563,6 +563,12 @@ method's keys by defining key bindings in the keymap returned by the
 function @code{quail-translation-keymap}, using @code{define-key}.
 @xref{Init Rebinding}.
 
+  Input methods are inhibited when the text in the buffer is read-only
+for some reason.  This is so single-character key bindings work in
+modes that make buffer text or parts of it read-only, such as
+@code{read-only-mode} and @code{image-mode}, even when an input method
+is active.
+
   Another facility for typing characters not on your keyboard is by
 using @kbd{C-x 8 @key{RET}} (@code{insert-char}) to insert a single
 character based on its Unicode name or code-point; see @ref{Inserting
