@@ -54,6 +54,16 @@
 (ert-deftest keymap-copy-keymap/is-not-eq ()
   (should-not (eq (copy-keymap help-mode-map) help-mode-map)))
 
+(ert-deftest keymap---get-keyelt/runs-menu-item-filter ()
+  (let* (menu-item-filter-ran
+         (object `(menu-item "2" identity
+                             :filter ,(lambda (cmd)
+                                        (message "foo")
+                                        (setq menu-item-filter-ran t)
+                                        cmd))))
+    (keymap--get-keyelt object t)
+    (should menu-item-filter-ran)))
+
 (ert-deftest keymap-lookup-key ()
   (let ((map (make-keymap)))
     (define-key map [?a] 'foo)
@@ -71,6 +81,26 @@ https://debbugs.gnu.org/39149#31"
   "Should return nil."
   (with-temp-buffer
     (should (eq (describe-buffer-bindings (current-buffer)) nil))))
+
+(defun keymap-tests--test-menu-item-filter (show filter-fun)
+  (unwind-protect
+      (progn
+        (define-key global-map (kbd "C-c C-l r")
+          `(menu-item "2" identity :filter ,filter-fun))
+        (with-temp-buffer
+          (describe-buffer-bindings (current-buffer))
+          (goto-char (point-min))
+          (if (eq show 'show)
+              (should (search-forward "C-c C-l r" nil t))
+            (should-not (search-forward "C-c C-l r" nil t)))))
+    (define-key global-map (kbd "C-c C-l r") nil)
+    (define-key global-map (kbd "C-c C-l") nil)))
+
+(ert-deftest describe-buffer-bindings/menu-item-filter-show-binding ()
+  (keymap-tests--test-menu-item-filter 'show (lambda (cmd) cmd)))
+
+(ert-deftest describe-buffer-bindings/menu-item-filter-hide-binding ()
+  (keymap-tests--test-menu-item-filter 'hide (lambda (_) nil)))
 
 (ert-deftest keymap-store_in_keymap-XFASTINT-on-non-characters ()
   "Check for bug fixed in \"Fix assertion violation in define-key\",
