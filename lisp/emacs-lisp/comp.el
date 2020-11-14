@@ -731,7 +731,7 @@ Assume allocation class 'd-default as default."
   "Syntax-highlight LIMPLE IR."
   (setf font-lock-defaults '(comp-limple-lock-keywords)))
 
-(cl-defun comp-log (data &optional (level 1))
+(cl-defun comp-log (data &optional (level 1) quoted)
   "Log DATA at LEVEL.
 LEVEL is a number from 1-3; if it is less than `comp-verbose', do
 nothing.  If `noninteractive', log with `message'.  Otherwise,
@@ -742,15 +742,16 @@ log with `comp-log-to-buffer'."
           (atom (message "%s" data))
           (t (dolist (elem data)
                (message "%s" elem))))
-      (comp-log-to-buffer data))))
+      (comp-log-to-buffer data quoted))))
 
-(cl-defun comp-log-to-buffer (data)
+(cl-defun comp-log-to-buffer (data &optional quoted)
   "Log DATA to `comp-log-buffer-name'."
-  (let* ((log-buffer
-          (or (get-buffer comp-log-buffer-name)
-              (with-current-buffer (get-buffer-create comp-log-buffer-name)
-                (setf buffer-read-only t)
-                (current-buffer))))
+  (let* ((print-f (if quoted #'prin1 #'princ))
+         (log-buffer
+             (or (get-buffer comp-log-buffer-name)
+                 (with-current-buffer (get-buffer-create comp-log-buffer-name)
+                   (setf buffer-read-only t)
+                   (current-buffer))))
          (log-window (get-buffer-window log-buffer))
          (inhibit-read-only t)
          at-end-p)
@@ -762,9 +763,9 @@ log with `comp-log-to-buffer'."
       (save-excursion
         (goto-char (point-max))
         (cl-typecase data
-          (atom (princ data log-buffer))
+          (atom (funcall print-f data log-buffer))
           (t (dolist (elem data)
-               (princ elem log-buffer)
+               (funcall print-f elem log-buffer)
                (insert "\n"))))
         (insert "\n"))
       (when (and at-end-p log-window)
@@ -780,7 +781,7 @@ VERBOSITY is a number between 0 and 3."
     (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
              using (hash-value bb)
              do (comp-log (concat "<" (symbol-name block-name) ">") verbosity)
-                (comp-log (comp-block-insns bb) verbosity))))
+                (comp-log (comp-block-insns bb) verbosity t))))
 
 (defun comp-log-edges (func)
   "Log edges in FUNC."
@@ -913,7 +914,7 @@ clashes."
                   (gethash (aref (comp-func-byte-func func) 1)
                            byte-to-native-lambdas-h))))
         (cl-assert lap)
-        (comp-log lap 2)
+        (comp-log lap 2 t)
         (let ((arg-list (aref (comp-func-byte-func func) 0)))
           (setf (comp-func-l-args func)
                 (comp-decrypt-arg-list arg-list function-name)
@@ -951,7 +952,7 @@ clashes."
                 (gethash (aref byte-code 1)
                          byte-to-native-lambdas-h))))
       (cl-assert lap)
-      (comp-log lap 2)
+      (comp-log lap 2 t)
       (if (comp-func-l-p func)
           (setf (comp-func-l-args func)
                 (comp-decrypt-arg-list (aref byte-code 0) byte-code))
@@ -1005,7 +1006,7 @@ clashes."
       (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
       (comp-add-func-to-ctxt func)
       (comp-log (format "Function %s:\n" name) 1)
-      (comp-log lap 1))))
+      (comp-log lap 1 t))))
 
 (cl-defmethod comp-spill-lap-function ((filename string))
   "Byte-compile FILENAME spilling data from the byte compiler."
