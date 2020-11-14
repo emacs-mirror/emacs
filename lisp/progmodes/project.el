@@ -754,8 +754,7 @@ The completion default is the string at point."
 ;;;###autoload
 (defun project-or-external-find-file ()
   "Visit a file (with completion) in the current project or external roots.
-The completion default is the filename at point, if one is
-recognized."
+The completion default is the string at point."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (cons
