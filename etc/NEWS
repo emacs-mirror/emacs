@@ -1250,6 +1250,11 @@ and the result is not truncated in any way.
 *** The '/' operator now has higher precedence in (La)TeX input mode.
 It no longer has lower precedence than '+' and '-'.
 
+---
+*** Calc now marks its windows dedicated.
+The new user option 'calc-make-windows-dedicated' controls this.  It
+is t by default; set to nil to get back the old behavior.
+
 ** term-mode
 
 ---
