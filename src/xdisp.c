@@ -22082,7 +22082,7 @@ extend_face_to_end_of_line (struct it *it)
 	 updating current_x.  */
       it->current_x = it->glyph_row->used[TEXT_AREA];
 
-      do
+      while (it->current_x <= it->last_visible_x)
 	{
 	  if (it->current_x != indicator_column)
 	    PRODUCE_GLYPHS (it);
@@ -22100,7 +22100,6 @@ extend_face_to_end_of_line (struct it *it)
 	      it->c = it->char_to_display = ' ';
 	    }
 	}
-      while (it->current_x <= it->last_visible_x);
 
       if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
 	  && (it->glyph_row->used[RIGHT_MARGIN_AREA]
