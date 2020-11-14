@@ -29,7 +29,7 @@
 
 ;; Major mode for editing Python files with some fontification and
 ;; indentation bits extracted from original Dave Love's python.el
-;; found in GNU/Emacs.
+;; found in GNU Emacs.
 
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Shell
@@ -246,13 +246,6 @@
 
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
-
-;;; Installation:
-
-;; Add this to your .emacs:
-
-;; (add-to-list 'load-path "/folder/containing/file")
-;; (require 'python)
 
 ;;; TODO:
 
@@ -662,10 +655,11 @@ builtins.")
     ;; assignments
     ;; support for a = b = c = 5
     (,(lambda (limit)
-        (let ((re (python-rx (group (+ (any word ?. ?_)))
-                             (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
-                             ;; A type, like " : int ".
-                             (? ?: (* space) (+ (any word ?. ?_)) (* space))
+        (let ((re (python-rx (group symbol-name)
+                             ;; subscript, like "[5]"
+                             (? ?\[ (+ (not ?\])) ?\]) (* space)
+                             ;; type hint, like ": int" or ": Mapping[int, str]"
+                             (? ?: (* space) (+ not-simple-operator) (* space))
                              assignment-operator))
               (res nil))
           (while (and (setq res (re-search-forward re limit t))
@@ -675,9 +669,9 @@ builtins.")
      (1 font-lock-variable-name-face nil nil))
     ;; support for a, b, c = (1, 2, 3)
     (,(lambda (limit)
-        (let ((re (python-rx (group (+ (any word ?. ?_))) (* space)
-                             (* ?, (* space) (+ (any word ?. ?_)) (* space))
-                             ?, (* space) (+ (any word ?. ?_)) (* space)
+        (let ((re (python-rx (group symbol-name) (* space)
+                             (* ?, (* space) symbol-name (* space))
+                             ?, (* space) symbol-name (* space)
                              assignment-operator))
               (res nil))
           (while (and (setq res (re-search-forward re limit t))
@@ -2921,7 +2915,7 @@ process buffer for a list of commands.)"
          (python-shell-make-comint
           (or cmd (python-shell-calculate-command))
           (python-shell-get-process-name dedicated) show)))
-    (pop-to-buffer buffer)
+    (set-buffer buffer)
     (get-buffer-process buffer)))
 
 (defun run-python-internal ()

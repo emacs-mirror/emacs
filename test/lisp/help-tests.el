@@ -91,7 +91,7 @@
 (ert-deftest help-tests-substitute-command-keys/keymaps ()
   (with-substitute-command-keys-test
    (test "\\{minibuffer-local-must-match-map}"
-               "\
+         "\
 key             binding
 ---             -------
 
@@ -125,10 +125,21 @@ M-s		next-matching-history-element
    (test "\\<minibuffer-local-must-match-map>\\[abort-recursive-edit]" "C-g")
    (test "\\<emacs-lisp-mode-map>\\[eval-defun]" "C-M-x")))
 
+(defvar help-tests-remap-map
+  (let ((map (make-keymap)))
+    (define-key map (kbd "x") 'foo)
+    (define-key map (kbd "y") 'bar)
+    (define-key map [remap foo] 'bar)
+    map))
+
+(ert-deftest help-tests-substitute-command-keys/remap ()
+  (should (equal (substitute-command-keys "\\<help-tests-remap-map>\\[foo]") "y"))
+  (should (equal (substitute-command-keys "\\<help-tests-remap-map>\\[bar]") "y")))
+
 (ert-deftest help-tests-substitute-command-keys/undefined-map ()
   (with-substitute-command-keys-test
    (test-re "\\{foobar-map}"
-                  "\nUses keymap [`'‘]foobar-map['’], which is not currently defined.\n")))
+            "\nUses keymap [`'‘]foobar-map['’], which is not currently defined.\n")))
 
 (ert-deftest help-tests-substitute-command-keys/quotes ()
  (with-substitute-command-keys-test

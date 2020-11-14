@@ -226,11 +226,11 @@
 		       ((and (not (eobp)) (= (following-char) ?\@))
 			;; <@foo.bar,@baz:quux@abcd.efg>
 			(rfc822-snarf-frob-list "<...> address" ?\, ?\:
-			  (function (lambda ()
-				      (if (rfc822-looking-at ?\@)
-					  (rfc822-snarf-domain)
-					(rfc822-bad-address
-					  "Gubbish in route-addr")))))
+                          (lambda ()
+                            (if (rfc822-looking-at ?\@)
+                                (rfc822-snarf-domain)
+                              (rfc822-bad-address
+                               "Gubbish in route-addr"))))
 			(rfc822-snarf-words)
 			(or (rfc822-looking-at ?@)
 			    (rfc822-bad-address "Malformed <..@..> address"))

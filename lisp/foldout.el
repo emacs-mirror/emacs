@@ -527,19 +527,18 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
     (define-key map "\C-z" 'foldout-zoom-subtree)
     (define-key map "\C-x" 'foldout-exit-fold))
   (let* ((modifiers (apply 'concat
-			   (mapcar (function
-				    (lambda (modifier)
-				      (vector
-				       (cond
-					 ((eq modifier 'shift) ?S)
-					 ((eq modifier 'control) ?C)
-					 ((eq modifier 'meta) ?M)
-					 ((eq modifier 'alt) ?A)
-					 ((eq modifier 'hyper) ?H)
-					 ((eq modifier 'super) ?s)
-					 (t (error "invalid mouse modifier %s"
-						   modifier)))
-				       ?-)))
+                           (mapcar (lambda (modifier)
+                                     (vector
+                                      (cond
+                                       ((eq modifier 'shift) ?S)
+                                       ((eq modifier 'control) ?C)
+                                       ((eq modifier 'meta) ?M)
+                                       ((eq modifier 'alt) ?A)
+                                       ((eq modifier 'hyper) ?H)
+                                       ((eq modifier 'super) ?s)
+                                       (t (error "invalid mouse modifier %s"
+                                                 modifier)))
+                                      ?-))
 				   foldout-mouse-modifiers)))
 	 (mouse-1 (vector (intern (concat modifiers "down-mouse-1"))))
 	 (mouse-2 (vector (intern (concat modifiers "down-mouse-2"))))

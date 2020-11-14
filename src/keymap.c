@@ -2926,7 +2926,7 @@ You type        Translation\n\
       CALLN (Ffuncall,
 	     Qdescribe_map_tree,
 	     KVAR (current_kboard, Vlocal_function_key_map), Qnil, Qnil, prefix,
-	     msg, nomenu, Qt, Qt, Qt);
+	     msg, nomenu, Qt, Qnil, Qnil);
     }
 
   /* Print the input-decode-map translations under this prefix.  */

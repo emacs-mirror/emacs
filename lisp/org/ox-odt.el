@@ -2199,10 +2199,10 @@ SHORT-CAPTION are strings."
 (defun org-odt--image-size
   (file info &optional user-width user-height scale dpi embed-as)
   (let* ((--pixels-to-cms
-	  (function (lambda (pixels dpi)
-		      (let ((cms-per-inch 2.54)
-			    (inches (/ pixels dpi)))
-			(* cms-per-inch inches)))))
+          (lambda (pixels dpi)
+            (let ((cms-per-inch 2.54)
+                  (inches (/ pixels dpi)))
+              (* cms-per-inch inches))))
 	 (--size-in-cms
 	  (function
 	   (lambda (size-in-pixels dpi)

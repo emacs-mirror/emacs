@@ -1065,8 +1065,7 @@ it to the name of the bookmark currently being set, advancing
 If `bookmark-sort-flag' is non-nil, then return a sorted copy of the alist."
   (if bookmark-sort-flag
       (sort (copy-alist bookmark-alist)
-            (function
-             (lambda (x y) (string-lessp (car x) (car y)))))
+            (lambda (x y) (string-lessp (car x) (car y))))
     bookmark-alist))
 
 

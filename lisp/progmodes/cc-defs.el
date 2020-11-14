@@ -434,9 +434,8 @@ to it is returned.  This function does not modify the point or the mark."
 	 (setq count (+ count (skip-chars-backward "\\\\"))))
        (not (zerop (logand count 1))))))
 
-(defmacro c-will-be-unescaped (beg end)
-  ;; Would the character after END be unescaped after the removal of (BEG END)?
-  ;; This is regardless of its current status.  It is assumed that (>= POS END).
+(defmacro c-will-be-unescaped (beg)
+  ;; Would the character after BEG be unescaped?
   `(save-excursion
     (let (count)
       (goto-char ,beg)

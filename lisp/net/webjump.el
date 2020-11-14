@@ -40,7 +40,6 @@
 
 ;; You may wish to add something like the following to your init file:
 ;;
-;;   (require 'webjump)
 ;;   (global-set-key "\C-cj" 'webjump)
 ;;   (setq webjump-sites
 ;;         (append '(

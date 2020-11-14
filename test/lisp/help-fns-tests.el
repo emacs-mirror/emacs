@@ -24,8 +24,9 @@
 ;;; Code:
 
 (require 'ert)
+(require 'help-fns)
 
-(autoload 'help-fns-test--macro "help-fns" nil nil t)
+(autoload 'help-fns-test--macro "foo" nil nil t)
 
 
 ;;; Several tests for describe-function

@@ -5488,7 +5488,13 @@ frame.  The selected window is not changed by this function."
 	      (set-window-parameter (window-parent new) 'window-atom t))
 	    (set-window-parameter new 'window-atom t)))
 
-	  ;; Sanitize sizes unless SIZE was specified.
+          ;; Make the new window inherit the `min-margins' parameter of
+          ;; WINDOW (Bug#44483).
+          (let ((min-margins (window-parameter window 'min-margins)))
+            (when min-margins
+              (set-window-parameter new 'min-margins min-margins)))
+
+          ;; Sanitize sizes unless SIZE was specified.
 	  (unless size
             (window--sanitize-window-sizes horizontal))
 

@@ -235,11 +235,10 @@
   (let ((num 0)
 	(retval ""))
     (mapc
-     (function
-      (lambda (x)
-	(if (fboundp (cdr (cdr x)))
-	    (setq retval (format "%s%c" retval (car x))
-		  num (1+ num)))))
+     (lambda (x)
+       (if (fboundp (cdr (cdr x)))
+           (setq retval (format "%s%c" retval (car x))
+                 num (1+ num))))
      (reverse socks-authentication-methods))
     (format "%c%s" num retval)))
 

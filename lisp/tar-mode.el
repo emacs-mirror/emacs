@@ -37,13 +37,6 @@
 
 ;; This code now understands the extra fields that GNU tar adds to tar files.
 
-;; This interacts correctly with "uncompress.el" in the Emacs library,
-;; which you get with
-;;
-;;  (autoload 'uncompress-while-visiting "uncompress")
-;;  (setq auto-mode-alist (cons '("\\.Z$" . uncompress-while-visiting)
-;;			   auto-mode-alist))
-;;
 ;; Do not attempt to use tar-mode.el with crypt.el, you will lose.
 
 ;;    ***************   TO DO   ***************

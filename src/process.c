@@ -8217,13 +8217,29 @@ init_process_emacs (int sockfd)
   if (!will_dump_with_unexec_p ())
     {
 #if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
-	 this should always fail, but is enough to initialize glib's
+      /* Tickle glib's child-handling code.  Ask glib to install a
+	 watch source for Emacs itself which will initialize glib's
 	 private SIGCHLD handler, allowing catch_child_signal to copy
-	 it into lib_child_handler.  */
-      g_source_unref (g_child_watch_source_new (getpid ()));
-#endif
+	 it into lib_child_handler.
+
+         Unfortunatly in glib commit 2e471acf, the behavior changed to
+         always install a signal handler when g_child_watch_source_new
+         is called and not just the first time it's called.  Glib also
+         now resets signal handlers to SIG_DFL when it no longer has a
+         watcher on that signal.  This is a hackey work around to get
+         glib's g_unix_signal_handler into lib_child_handler.  */
+      GSource *source = g_child_watch_source_new (getpid ());
       catch_child_signal ();
+      g_source_unref (source);
+
+      eassert (lib_child_handler != dummy_handler);
+      signal_handler_t lib_child_handler_glib = lib_child_handler;
+      catch_child_signal ();
+      eassert (lib_child_handler == dummy_handler);
+      lib_child_handler = lib_child_handler_glib;
+#else
+      catch_child_signal ();
+#endif
     }
 
 #ifdef HAVE_SETRLIMIT

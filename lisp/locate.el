@@ -668,11 +668,11 @@ the database on the command line."
   (or (file-exists-p database)
       (error "Database file %s does not exist" database))
   (let ((locate-make-command-line
-	 (function (lambda (string)
-		     (cons locate-command
-			   (list (concat "--database="
-					 (expand-file-name database))
-				 string))))))
+         (lambda (string)
+           (cons locate-command
+                 (list (concat "--database="
+                               (expand-file-name database))
+                       string)))))
     (locate search-string)))
 
 (defun locate-do-redisplay (&optional arg test-for-subdir)

@@ -1482,7 +1482,7 @@ Note that the style variables are always made local to the buffer."
 	   ((and
 	     (c-is-escaped end)
 	     (or (eq beg end) ; .... by inserting stuff between \ and \n?
-	      	 (c-will-be-unescaped beg end))) ;  ... by removing an odd number of \s?
+	      	 (c-will-be-unescaped beg))) ;  ... by removing an odd number of \s?
 	    (goto-char (1+ end))) ; To after the NL which is being unescaped.
 	   (t
 	    (goto-char end)))

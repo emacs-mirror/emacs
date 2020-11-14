@@ -142,10 +142,6 @@ void move_minibuffer_onto_frame (void)
 
       set_window_buffer (sf->minibuffer_window, buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
-      if (EQ (XWINDOW (minibuf_window)->frame, selected_frame))
-        /* The minibuffer might be on another frame. */
-        Fset_frame_selected_window (selected_frame, sf->minibuffer_window,
-                                    Qnil);
       set_window_buffer (of->minibuffer_window, get_minibuffer (0), 0, 0);
     }
 }
@@ -732,7 +728,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* If cursor is on the minibuffer line,
      show the user we have exited by putting it in column 0.  */
   if (XWINDOW (minibuf_window)->cursor.vpos >= 0
-      && !noninteractive)
+      && !noninteractive
+      && !FRAME_INITIAL_P (SELECTED_FRAME ()))
     {
       XWINDOW (minibuf_window)->cursor.hpos = 0;
       XWINDOW (minibuf_window)->cursor.x = 0;

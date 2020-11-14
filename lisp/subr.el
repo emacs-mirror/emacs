@@ -1283,10 +1283,10 @@ The normal global definition of the character C-x indirects to this keymap.")
   "Convert a key sequence to a list of events."
   (if (vectorp key)
       (append key nil)
-    (mapcar (function (lambda (c)
-			(if (> c 127)
-			    (logxor c listify-key-sequence-1)
-			  c)))
+    (mapcar (lambda (c)
+              (if (> c 127)
+                  (logxor c listify-key-sequence-1)
+                c))
 	    key)))
 
 (defun eventp (object)
@@ -2623,15 +2623,7 @@ keyboard-quit events while waiting for a valid input."
 	  (unless (get-text-property 0 'face prompt)
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		       (read-char-from-minibuffer
-                        prompt
-                        ;; If we have a dynamically bound `help-form'
-                        ;; here, then the `C-h' (i.e., `help-char')
-                        ;; character should output that instead of
-                        ;; being a command char.
-                        (if help-form
-                            (cons help-char chars)
-                          chars))))
+		       (read-key prompt)))
 	  (and show-help (buffer-live-p (get-buffer helpbuf))
 	       (kill-buffer helpbuf))
 	  (cond
@@ -2748,7 +2740,7 @@ floating point support."
   "Keymap for the `read-char-from-minibuffer' function.")
 
 (defconst read-char-from-minibuffer-map-hash
-  (make-hash-table :weakness 'key :test 'equal))
+  (make-hash-table :test 'equal))
 
 (defun read-char-from-minibuffer-insert-char ()
   "Insert the character you type in the minibuffer and exit.
@@ -2772,25 +2764,41 @@ Also discard all previous input in the minibuffer."
 (defvar empty-history)
 
 (defun read-char-from-minibuffer (prompt &optional chars history)
-  "Read a character from the minibuffer, prompting for PROMPT.
+  "Read a character from the minibuffer, prompting for it with PROMPT.
 Like `read-char', but uses the minibuffer to read and return a character.
-When CHARS is non-nil, any input that is not one of CHARS is ignored.
-When HISTORY is a symbol, then allows navigating in a history.
-The navigation commands are `M-p' and `M-n', with `RET' to select
-a character from history."
+Optional argument CHARS, if non-nil, should be a list of characters;
+the function will ignore any input that is not one of CHARS.
+Optional argument HISTORY, if non-nil, should be a symbol that
+specifies the history list variable to use for navigating in input
+history using `M-p' and `M-n', with `RET' to select a character from
+history.
+If the caller has set `help-form', there is no need to explicitly add
+`help-char' to chars.  It's bound automatically to `help-form-show'."
   (let* ((empty-history '())
          (map (if (consp chars)
-                  (or (gethash chars read-char-from-minibuffer-map-hash)
-                      (puthash chars
-                               (let ((map (make-sparse-keymap)))
-                                 (set-keymap-parent map read-char-from-minibuffer-map)
-                                 (dolist (char chars)
-                                   (define-key map (vector char)
-                                     'read-char-from-minibuffer-insert-char))
-                                 (define-key map [remap self-insert-command]
-                                   'read-char-from-minibuffer-insert-other)
-                                 map)
-                               read-char-from-minibuffer-map-hash))
+                  (or (gethash (list help-form (cons help-char chars))
+                               read-char-from-minibuffer-map-hash)
+                      (let ((map (make-sparse-keymap))
+                            (msg help-form))
+                        (set-keymap-parent map read-char-from-minibuffer-map)
+                        ;; If we have a dynamically bound `help-form'
+                        ;; here, then the `C-h' (i.e., `help-char')
+                        ;; character should output that instead of
+                        ;; being a command char.
+                        (when help-form
+                          (define-key map (vector help-char)
+                            (lambda ()
+                              (interactive)
+                              (let ((help-form msg)) ; lexically bound msg
+                                (help-form-show)))))
+                        (dolist (char chars)
+                          (define-key map (vector char)
+                            'read-char-from-minibuffer-insert-char))
+                        (define-key map [remap self-insert-command]
+                          'read-char-from-minibuffer-insert-other)
+                        (puthash (list help-form (cons help-char chars))
+                                 map read-char-from-minibuffer-map-hash)
+                        map))
                 read-char-from-minibuffer-map))
          (result
           (read-from-minibuffer prompt nil map nil

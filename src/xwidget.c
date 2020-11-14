@@ -128,6 +128,16 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
       if (EQ (xw->type, Qwebkit))
         {
           xw->widget_osr = webkit_web_view_new ();
+
+          /* webkitgtk uses GSubprocess which sets sigaction causing
+             Emacs to not catch SIGCHLD with its usual handle setup in
+             catch_child_signal().  This resets the SIGCHLD
+             sigaction.  */
+          struct sigaction old_action;
+          sigaction (SIGCHLD, NULL, &old_action);
+          webkit_web_view_load_uri(WEBKIT_WEB_VIEW (xw->widget_osr),
+                                   "about:blank");
+          sigaction (SIGCHLD, &old_action, NULL);
         }
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,

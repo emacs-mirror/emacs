@@ -1115,7 +1115,7 @@ arglist-cont."
 	      (vector (+ (current-column) c-basic-offset))))
 	(vector 0)))))
 
-(defun c-lineup-2nd-brace-entry-in-arglist (langelem)
+(defun c-lineup-2nd-brace-entry-in-arglist (_langelem)
   "Lineup the second entry of a brace block under the first, when the first
 line is also contained in an arglist or an enclosing brace ON THAT LINE.
 
@@ -1156,7 +1156,7 @@ Works with brace-list-intro."
 	      (eq (char-after) ?{))))
        'c-lineup-arglist-intro-after-paren))
 
-(defun c-lineup-class-decl-init-+ (langelem)
+(defun c-lineup-class-decl-init-+ (_langelem)
   "Line up the second entry of a class (etc.) initializer c-basic-offset
 characters in from the identifier when:
 \(i) The type is a class, struct, union, etc. (but not an enum);
@@ -1197,7 +1197,7 @@ Works with: brace-list-intro."
 	    (eq (point) init-pos)
 	    (vector (+ (current-column) c-basic-offset)))))))
 
-(defun c-lineup-class-decl-init-after-brace (langelem)
+(defun c-lineup-class-decl-init-after-brace (_langelem)
   "Line up the second entry of a class (etc.) initializer after its opening
 brace when:
 \(i) The type is a class, struct, union, etc. (but not an enum);

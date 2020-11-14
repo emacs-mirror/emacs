@@ -41,16 +41,8 @@
 ;; If you are not satisfied with the type page there are a number of
 ;; variables you may want to set.
 ;;
-;;
-;;  Installation
-;;
-;; type at your prompt "emacs -l handwrite.el" or put this file on your
-;; Emacs Lisp load path, add the following into your init file:
-;;
-;;                (require 'handwrite)
-;;
-;; "M-x handwrite"  or "Write by hand"  in the edit menu should work now.
-;;
+;; To use this, say "M-x handwrite" or type at your prompt
+;; "emacs -l handwrite.el".
 ;;
 ;; I tried to make it `iso_8859_1'-friendly, but there are some exotic
 ;; characters missing.

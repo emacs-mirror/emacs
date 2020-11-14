@@ -167,7 +167,11 @@
   (let ((k "blue"))
     (should (equal (pcase "<blue>"
                      ((rx "<" (literal k) ">") 'ok))
-                   'ok))))
+                   'ok)))
+  (should (equal (pcase "abc"
+                   ((rx (? (let x alpha)) (?? (let y alnum)) ?c)
+                    (list x y)))
+                 '("a" "b"))))
 
 (ert-deftest rx-kleene ()
   "Test greedy and non-greedy repetition operators."
@@ -540,7 +544,7 @@
 (ert-deftest rx-compat ()
   "Test old symbol retained for compatibility (bug#37517)."
   (should (equal
-           (with-suppressed-warnings ((obsolete rx-submatch-n))
+           (with-no-warnings
              (rx-submatch-n '(group-n 3 (+ nonl) eol)))
            "\\(?3:.+$\\)")))
 

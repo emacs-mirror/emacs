@@ -524,10 +524,9 @@ call it manually."
       (if (called-interactively-p 'interactive)
 	  (message "No files need to be shadowed."))
     (save-excursion
-      (map-y-or-n-p (function
-		     (lambda (pair)
-		       (or arg shadow-noquery
-			   (format "Copy shadow file %s? " (cdr pair)))))
+      (map-y-or-n-p (lambda (pair)
+                      (or arg shadow-noquery
+                          (format "Copy shadow file %s? " (cdr pair))))
 		    (function shadow-copy-file)
 		    shadow-files-to-copy
 		    '("shadow" "shadows" "copy"))
@@ -540,11 +539,11 @@ them again, unless you make more changes to the files.  To cancel a shadow
 permanently, remove the group from `shadow-literal-groups' or
 `shadow-regexp-groups'."
   (interactive)
-  (map-y-or-n-p (function (lambda (pair)
-			    (format "Cancel copying %s to %s? "
-				    (car pair) (cdr pair))))
-		(function (lambda (pair)
-			    (shadow-remove-from-todo pair)))
+  (map-y-or-n-p (lambda (pair)
+                  (format "Cancel copying %s to %s? "
+                          (car pair) (cdr pair)))
+                (lambda (pair)
+                  (shadow-remove-from-todo pair))
 		shadow-files-to-copy
 		'("shadow" "shadows" "cancel copy"))
   (message "There are %d shadows to be updated."
@@ -601,8 +600,8 @@ and to are absolute file names."
 			     shadow-homedir))
 	     (canonical-file (shadow-contract-file-name absolute-file))
 	     (shadows
-	      (mapcar (function (lambda (shadow)
-				  (cons absolute-file shadow)))
+              (mapcar (lambda (shadow)
+                        (cons absolute-file shadow))
 		      (append
 		       (shadow-shadows-of-1
 			canonical-file shadow-literal-groups nil)
@@ -632,9 +631,8 @@ Consider them as regular expressions if third arg REGEXP is true."
                             "shadow-shadows-of-1: %s %s %s"
                             file (shadow-parse-name file) realname))
 			 (mapcar
-			  (function
-			   (lambda (x)
-			     (shadow-replace-name-component x realname)))
+                          (lambda (x)
+                            (shadow-replace-name-component x realname))
 			  nonmatching)))
 		      (t nonmatching))
 		(shadow-shadows-of-1 file (cdr groups) regexp)))))
@@ -791,9 +789,8 @@ look for files that have been changed and need to be copied to other systems."
   (save-some-buffers arg t)
   (shadow-copy-files)
   (shadow-save-todo-file)
-  (and (or (not (memq t (mapcar (function
-				 (lambda (buf) (and (buffer-file-name buf)
-						    (buffer-modified-p buf))))
+  (and (or (not (memq t (mapcar (lambda (buf) (and (buffer-file-name buf)
+                                              (buffer-modified-p buf)))
 				(buffer-list))))
 	   (yes-or-no-p "Modified buffers exist; exit anyway? "))
        (or (not (fboundp 'process-list))

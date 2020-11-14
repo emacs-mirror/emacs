@@ -2922,5 +2922,31 @@ Examples:
  ("_⍵" ?⍹)
  )
 
+;; Quail package `iso-transl' is based on `C-x 8' key sequences.
+;; This input method supports the same key sequences as defined
+;; by the `C-x 8' keymap in iso-transl.el.
+
+(quail-define-package
+ "iso-transl" "UTF-8" "X8" t
+ "Use the same key sequences as in `C-x 8' keymap defined in iso-transl.el.
+Examples:
+ * E -> €   1 / 2 -> ½   ^ 3 -> ³"
+ '(("\t" . quail-completion))
+ t nil nil nil nil nil nil nil nil t)
+
+(eval-when-compile
+  (require 'iso-transl)
+  (defmacro iso-transl--define-rules ()
+    `(quail-define-rules
+      ,@(mapcar (lambda (rule)
+                  (let ((from (car rule))
+                        (to (cdr rule)))
+                    (list from (if (stringp to)
+                                   (vector to)
+                                 to))))
+                iso-transl-char-map))))
+
+(iso-transl--define-rules)
+
 (provide 'compose)
 ;;; compose.el ends here

@@ -1782,6 +1782,8 @@ ns_destroy_window (struct frame *f)
 {
   NSTRACE ("ns_destroy_window");
 
+  check_window_system (f);
+
   /* If this frame has a parent window, detach it as not doing so can
      cause a crash in GNUStep.  */
   if (FRAME_PARENT_FRAME (f) != NULL)
@@ -1792,7 +1794,7 @@ ns_destroy_window (struct frame *f)
       [parent removeChildWindow: child];
     }
 
-  check_window_system (f);
+  [[FRAME_NS_VIEW (f) window] close];
   ns_free_frame_resources (f);
   ns_window_num--;
 }
@@ -6529,6 +6531,14 @@ not_in_argv (NSString *arg)
             code = 0xFF08; /* backspace */
           else
             code = fnKeysym;
+
+          /* Function keys (such as the F-keys, arrow keys, etc.) set
+             modifiers as though the fn key has been pressed when it
+             hasn't.  Also some combinations of fn and a function key
+             return a different key than was pressed (e.g. fn-<left>
+             gives <home>).  We need to unset the fn key flag in these
+             cases.  */
+          flags &= ~NS_FUNCTION_KEY_MASK;
         }
 
       /* The ⌘ and ⌥ modifiers can be either shift-like (for alternate
@@ -6549,17 +6559,6 @@ not_in_argv (NSString *arg)
          modifiers.  */
       Lisp_Object kind = fnKeysym ? QCfunction : QCordinary;
       emacs_event->modifiers = EV_MODIFIERS2 (flags, kind);
-
-      /* Function keys (such as the F-keys, arrow keys, etc.) set
-         modifiers as though the fn key has been pressed when it
-         hasn't.  Also some combinations of fn and a function key
-         return a different key than was pressed (e.g. fn-<left> gives
-         <home>).  We need to unset the fn modifier in these cases.
-         FIXME: Can we avoid setting it in the first place?  */
-      if (fnKeysym && (flags & NS_FUNCTION_KEY_MASK))
-        emacs_event->modifiers
-          ^= parse_solitary_modifier (mod_of_kind (ns_function_modifier,
-                                                   QCfunction));
 
       if (NS_KEYLOG)
         fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",

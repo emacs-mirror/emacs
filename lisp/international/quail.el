@@ -787,7 +787,7 @@ you type is correctly handled."
 
 (defun quail-keyseq-translate (keyseq)
   (apply 'string
-	 (mapcar (function (lambda (x) (quail-keyboard-translate x)))
+         (mapcar (lambda (x) (quail-keyboard-translate x))
 		 keyseq)))
 
 (defun quail-insert-kbd-layout (kbd-layout)
@@ -2145,7 +2145,7 @@ minibuffer and the selected frame has no other windows)."
 	  (setq str
 		(format "%s[%s]"
 			str
-			(concat (sort (mapcar (function (lambda (x) (car x)))
+                        (concat (sort (mapcar (lambda (x) (car x))
 					      (cdr map))
 				      '<)))))
       ;; Show list of translations.
@@ -2349,13 +2349,13 @@ Optional 6th arg IGNORES is a list of translations to ignore."
 	  ((consp translation)
 	   (setq translation (cdr translation))
 	   (let ((multibyte nil))
-	     (mapc (function (lambda (x)
-			       ;; Accept only non-ASCII chars not
-			       ;; listed in IGNORES.
-			       (if (and (if (integerp x) (> x 127)
-                                          (string-match-p "[^[:ascii:]]" x))
-					(not (member x ignores)))
-				   (setq multibyte t))))
+             (mapc (lambda (x)
+                     ;; Accept only non-ASCII chars not
+                     ;; listed in IGNORES.
+                     (if (and (if (integerp x) (> x 127)
+                                (string-match-p "[^[:ascii:]]" x))
+                              (not (member x ignores)))
+                         (setq multibyte t)))
 		   translation)
 	     (when multibyte
 	       (setcdr decode-map
@@ -2380,11 +2380,11 @@ These are stored in DECODE-MAP using the concise format.  DECODE-MAP
 should be made by `quail-build-decode-map' (which see)."
   (setq decode-map
 	(sort (cdr decode-map)
-	      (function (lambda (x y)
-			  (setq x (car x) y (car y))
-			  (or (> (length x) (length y))
-			      (and (= (length x) (length y))
-				   (not (string< x y))))))))
+              (lambda (x y)
+                (setq x (car x) y (car y))
+                (or (> (length x) (length y))
+                    (and (= (length x) (length y))
+                         (not (string< x y)))))))
   (let ((window-width (window-width (get-buffer-window
                                      (current-buffer) 'visible)))
 	(single-trans-width 4)

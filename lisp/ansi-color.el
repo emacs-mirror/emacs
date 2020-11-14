@@ -363,7 +363,7 @@ it will override BEGIN, the start of the region.  Set
 	  (setq ansi-color-context-region (list nil (match-beginning 0)))
 	(setq ansi-color-context-region nil)))))
 
-(defun ansi-color-apply-on-region (begin end)
+(defun ansi-color-apply-on-region (begin end &optional preserve-sequences)
   "Translates SGR control sequences into overlays or extents.
 Delete all other control sequences without processing them.
 
@@ -380,18 +380,28 @@ ansi codes.  This information will be used for the next call to
 `ansi-color-apply-on-region'.  Specifically, it will override
 BEGIN, the start of the region and set the face with which to
 start.  Set `ansi-color-context-region' to nil if you don't want
-this."
+this.
+
+If PRESERVE-SEQUENCES is t, the sequences are hidden instead of
+being deleted."
   (let ((codes (car ansi-color-context-region))
-	(start-marker (or (cadr ansi-color-context-region)
-			  (copy-marker begin)))
-	(end-marker (copy-marker end)))
+        (start-marker (or (cadr ansi-color-context-region)
+                          (copy-marker begin)))
+        (end-marker (copy-marker end)))
     (save-excursion
       (goto-char start-marker)
       ;; Find the next escape sequence.
       (while (re-search-forward ansi-color-control-seq-regexp end-marker t)
-        ;; Remove escape sequence.
-        (let ((esc-seq (delete-and-extract-region
+        ;; Extract escape sequence.
+        (let ((esc-seq (buffer-substring
                         (match-beginning 0) (point))))
+          (if preserve-sequences
+              ;; Make the escape sequence transparent.
+              (overlay-put (make-overlay (match-beginning 0) (point))
+                           'invisible t)
+            ;; Otherwise, strip.
+            (delete-region (match-beginning 0) (point)))
+
           ;; Colorize the old block from start to end using old face.
           (funcall ansi-color-apply-face-function
                    (prog1 (marker-position start-marker)
@@ -572,27 +582,27 @@ The face definitions are based upon the variables
         (index 0))
     ;; miscellaneous attributes
     (mapc
-     (function (lambda (e)
-                 (aset map index e)
-                 (setq index (1+ index)) ))
+     (lambda (e)
+       (aset map index e)
+       (setq index (1+ index)) )
      ansi-color-faces-vector)
     ;; foreground attributes
     (setq index 30)
     (mapc
-     (function (lambda (e)
-                 (aset map index
-		       (ansi-color-make-face 'foreground
-                                             (if (consp e) (car e) e)))
-                 (setq index (1+ index)) ))
+     (lambda (e)
+       (aset map index
+             (ansi-color-make-face 'foreground
+                         (if (consp e) (car e) e)))
+       (setq index (1+ index)) )
      ansi-color-names-vector)
     ;; background attributes
     (setq index 40)
     (mapc
-     (function (lambda (e)
-                 (aset map index
-		       (ansi-color-make-face 'background
-                                             (if (consp e) (cdr e) e)))
-                 (setq index (1+ index)) ))
+     (lambda (e)
+       (aset map index
+             (ansi-color-make-face 'background
+                         (if (consp e) (cdr e) e)))
+       (setq index (1+ index)) )
      ansi-color-names-vector)
     map))
 

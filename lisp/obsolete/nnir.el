@@ -874,9 +874,9 @@ Windows NT 4.0."
       ;; Sort by score
       (apply #'vector
              (sort artlist
-                   (function (lambda (x y)
-                               (> (nnir-artitem-rsv x)
-                                  (nnir-artitem-rsv y)))))))))
+                   (lambda (x y)
+                     (> (nnir-artitem-rsv x)
+                        (nnir-artitem-rsv y))))))))
 
 ;; Swish-E interface.
 (defun nnir-run-swish-e (query server &optional _group)
@@ -969,9 +969,9 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
       ;; Sort by score
       (apply #'vector
              (sort artlist
-                   (function (lambda (x y)
-                               (> (nnir-artitem-rsv x)
-                                  (nnir-artitem-rsv y)))))))))
+                   (lambda (x y)
+                     (> (nnir-artitem-rsv x)
+                        (nnir-artitem-rsv y))))))))
 
 ;; HyREX interface
 (defun nnir-run-hyrex (query server &optional group)
@@ -1037,12 +1037,12 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
       (message "Massaging hyrex-search output...done.")
       (apply #'vector
 	     (sort artlist
-                   (function (lambda (x y)
-                               (if (string-lessp (nnir-artitem-group x)
-                                                 (nnir-artitem-group y))
-                                   t
-                                 (< (nnir-artitem-number x)
-                                    (nnir-artitem-number y)))))))
+                   (lambda (x y)
+                     (if (string-lessp (nnir-artitem-group x)
+                                       (nnir-artitem-group y))
+                         t
+                       (< (nnir-artitem-number x)
+                          (nnir-artitem-number y))))))
       )))
 
 ;; Namazu interface
@@ -1112,9 +1112,9 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
       ;; sort artlist by score
       (apply #'vector
              (sort artlist
-                   (function (lambda (x y)
-                               (> (nnir-artitem-rsv x)
-                                  (nnir-artitem-rsv y)))))))))
+                   (lambda (x y)
+                     (> (nnir-artitem-rsv x)
+                        (nnir-artitem-rsv y))))))))
 
 (defun nnir-run-notmuch (query server &optional groups)
   "Run QUERY with GROUPS from SERVER against notmuch.

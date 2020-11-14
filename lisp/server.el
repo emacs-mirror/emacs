@@ -354,9 +354,11 @@ Updates `server-clients'."
 
       (setq server-clients (delq proc server-clients))
 
-      ;; Delete the client's tty, except on Windows (both GUI and console),
-      ;; where there's only one terminal and does not make sense to delete it.
-      (unless (eq system-type 'windows-nt)
+      ;; Delete the client's tty, except on Windows (both GUI and
+      ;; console), where there's only one terminal and does not make
+      ;; sense to delete it, or if we are explicitly told not.
+      (unless (or (eq system-type 'windows-nt)
+                  (process-get proc 'no-delete-terminal))
 	(let ((terminal (process-get proc 'terminal)))
 	  ;; Only delete the terminal if it is non-nil.
 	  (when (and terminal (eq (terminal-live-p terminal) t))
@@ -830,7 +832,6 @@ This handles splitting the command if it would be bigger than
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (add-to-list 'frame-inherited-parameters 'client)
   (let ((frame
          (server-with-environment
              (process-get proc 'env)
@@ -842,32 +843,19 @@ This handles splitting the command if it would be bigger than
                "TERMINFO_DIRS" "TERMPATH"
                ;; rxvt wants these
                "COLORFGBG" "COLORTERM")
-           (make-frame `((window-system . nil)
-                         (tty . ,tty)
-                         (tty-type . ,type)
-                         ;; Ignore nowait here; we always need to
-                         ;; clean up opened ttys when the client dies.
-                         (client . ,proc)
-                         ;; This is a leftover from an earlier
-                         ;; attempt at making it possible for process
-                         ;; run in the server process to use the
-                         ;; environment of the client process.
-                         ;; It has no effect now and to make it work
-                         ;; we'd need to decide how to make
-                         ;; process-environment interact with client
-                         ;; envvars, and then to change the
-                         ;; C functions `child_setup' and
-                         ;; `getenv_internal' accordingly.
-                         (environment . ,(process-get proc 'env))
-                         ,@parameters)))))
+           (server--create-frame
+            ;; Ignore nowait here; we always need to
+            ;; clean up opened ttys when the client dies.
+            nil proc
+            `((window-system . nil)
+              (tty . ,tty)
+              (tty-type . ,type)
+              ,@parameters)))))
 
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
     (set-frame-parameter frame 'display
                          (getenv-internal "DISPLAY" (process-get proc 'env)))
-    (select-frame frame)
-    (process-put proc 'frame frame)
-    (process-put proc 'terminal (frame-terminal frame))
     frame))
 
 (defun server-create-window-system-frame (display nowait proc parent-id
@@ -893,30 +881,55 @@ This handles splitting the command if it would be bigger than
       )
 
     (cond (w
-           ;; Flag frame as client-created, but use a dummy client.
-           ;; This will prevent the frame from being deleted when
-           ;; emacsclient quits while also preventing
-           ;; `server-save-buffers-kill-terminal' from unexpectedly
-           ;; killing emacs on that frame.
-           (let* ((params `((client . ,(if nowait 'nowait proc))
-                            ;; This is a leftover, see above.
-                            (environment . ,(process-get proc 'env))
-                            ,@parameters))
-                  frame)
-             (if parent-id
-                 (push (cons 'parent-id (string-to-number parent-id)) params))
-             (add-to-list 'frame-inherited-parameters 'client)
-             (setq frame (make-frame-on-display display params))
-             (server-log (format "%s created" frame) proc)
-             (select-frame frame)
-             (process-put proc 'frame frame)
-             (process-put proc 'terminal (frame-terminal frame))
-             frame))
+           (server--create-frame
+            nowait proc
+            `((display . ,display)
+              ,@(if parent-id
+                    `((parent-id . ,(string-to-number parent-id))))
+              ,@parameters)))
 
           (t
            (server-log "Window system unsupported" proc)
            (server-send-string proc "-window-system-unsupported \n")
            nil))))
+
+(defun server-create-dumb-terminal-frame (nowait proc &optional parameters)
+  ;; If the destination is a dumb terminal, we can't really run Emacs
+  ;; in its tty.  So instead, we use whichever terminal is currently
+  ;; selected.  This situation typically occurs when `emacsclient' is
+  ;; running inside something like an Emacs shell buffer (bug#25547).
+  (let ((frame (server--create-frame nowait proc parameters)))
+    ;; The client is not the exclusive owner of this terminal, so don't
+    ;; delete the terminal when the client exits.
+    ;; FIXME: Maybe we just shouldn't set the `terminal' property instead?
+    (process-put proc 'no-delete-terminal t)
+    frame))
+
+(defun server--create-frame (nowait proc parameters)
+  (add-to-list 'frame-inherited-parameters 'client)
+  ;; When `nowait' is set, flag frame as client-created, but use
+  ;; a dummy client.  This will prevent the frame from being deleted
+  ;; when emacsclient quits while also preventing
+  ;; `server-save-buffers-kill-terminal' from unexpectedly killing
+  ;; emacs on that frame.
+  (let ((frame (make-frame `((client . ,(if nowait 'nowait proc))
+                             ;; This is a leftover from an earlier
+                             ;; attempt at making it possible for process
+                             ;; run in the server process to use the
+                             ;; environment of the client process.
+                             ;; It has no effect now and to make it work
+                             ;; we'd need to decide how to make
+                             ;; process-environment interact with client
+                             ;; envvars, and then to change the
+                             ;; C functions `child_setup' and
+                             ;; `getenv_internal' accordingly.
+                             (environment . ,(process-get proc 'env))
+                             ,@parameters))))
+    (server-log (format "%s created" frame) proc)
+    (select-frame frame)
+    (process-put proc 'frame frame)
+    (process-put proc 'terminal (frame-terminal frame))
+    frame))
 
 (defun server-goto-toplevel (proc)
   (condition-case nil
@@ -1264,6 +1277,9 @@ The following commands are accepted by the client:
 					   terminal-frame)))))
 		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
+                   ((equal tty-type "dumb")
+                    (server-create-dumb-terminal-frame nowait proc
+                                                       frame-parameters))
 		   ((or (and (eq system-type 'windows-nt)
 			     (daemonp)
 			     (setq display "w32"))

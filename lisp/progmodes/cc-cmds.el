@@ -907,7 +907,6 @@ settings of `c-cleanup-list' are done."
     (when (and (boundp 'electric-pair-mode)
 	       electric-pair-mode)
       (let ((size (buffer-size))
-	    (c-in-electric-pair-functionality t)
 	    post-self-insert-hook)
 	(electric-pair-post-self-insert-function)
 	(setq got-pair-} (and at-eol
@@ -2327,7 +2326,7 @@ with a brace block, at the outermost level of nesting."
 	(c-save-buffer-state ((paren-state (c-parse-state))
 			      (orig-point-min (point-min))
 			      (orig-point-max (point-max))
-			      lim name where limits fdoc)
+			      lim name limits where)
 	  (setq lim (c-widen-to-enclosing-decl-scope
 		     paren-state orig-point-min orig-point-max))
 	  (and lim (setq lim (1- lim)))

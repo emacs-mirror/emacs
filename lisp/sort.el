@@ -251,7 +251,7 @@ the sort order."
       (narrow-to-region beg end)
       (goto-char (point-min))
       (sort-subr reverse
-		 (function (lambda () (skip-chars-forward "\n")))
+                 (lambda () (skip-chars-forward "\n"))
 		 'forward-page))))
 
 (defvar sort-fields-syntax-table nil)
@@ -316,16 +316,16 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 ;;region to sort."
 ;;  (interactive "p\nr")
 ;;  (sort-fields-1 field beg end
-;;		 (function (lambda ()
-;;			     (sort-skip-fields field)
-;;			     (string-to-number
-;;			      (buffer-substring
-;;			       (point)
-;;			       (save-excursion
-;;				 (re-search-forward
-;;				  "[+-]?[0-9]*\\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
-;;				 (point))))))
-;;		 nil))
+;; 		 (lambda ()
+;; 		   (sort-skip-fields field)
+;; 		   (string-to-number
+;; 		    (buffer-substring
+;; 		     (point)
+;; 		     (save-excursion
+;; 		       (re-search-forward
+;; 			"[+-]?[0-9]*\\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
+;; 		       (point)))))
+;; 		 nil))
 
 ;;;###autoload
 (defun sort-fields (field beg end)
@@ -340,10 +340,10 @@ the sort order."
   (let ;; To make `end-of-line' and etc. to ignore fields.
       ((inhibit-field-text-motion t))
     (sort-fields-1 field beg end
-		   (function (lambda ()
-			       (sort-skip-fields field)
-			       nil))
-		   (function (lambda () (skip-chars-forward "^ \t\n"))))))
+                   (lambda ()
+                     (sort-skip-fields field)
+                     nil)
+                   (lambda () (skip-chars-forward "^ \t\n")))))
 
 (defun sort-fields-1 (field beg end startkeyfun endkeyfun)
   (let ((tbl (syntax-table)))
@@ -457,21 +457,21 @@ sRegexp specifying key within record: \nr")
 	(goto-char (match-beginning 0))
 	(sort-subr reverse
 		   'sort-regexp-fields-next-record
-		   (function (lambda ()
-			       (goto-char sort-regexp-record-end)))
-		   (function (lambda ()
-			       (let ((n 0))
-				 (cond ((numberp key-regexp)
-					(setq n key-regexp))
-				       ((re-search-forward
-					  key-regexp sort-regexp-record-end t)
-					(setq n 0))
-				       (t (throw 'key nil)))
-				 (condition-case ()
-				     (cons (match-beginning n)
-					   (match-end n))
-				   ;; if there was no such register
-				   (error (throw 'key nil)))))))))))
+                   (lambda ()
+                     (goto-char sort-regexp-record-end))
+                   (lambda ()
+                     (let ((n 0))
+                       (cond ((numberp key-regexp)
+                              (setq n key-regexp))
+                             ((re-search-forward
+                               key-regexp sort-regexp-record-end t)
+                              (setq n 0))
+                             (t (throw 'key nil)))
+                       (condition-case ()
+                           (cons (match-beginning n)
+                                 (match-end n))
+                         ;; if there was no such register
+                         (error (throw 'key nil))))))))))
 
 
 (defvar sort-columns-subprocess t)

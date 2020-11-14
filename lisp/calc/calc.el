@@ -1435,6 +1435,12 @@ commands given here will actually operate on the *Calculator* stack."
     (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
 
+(defcustom calc-make-windows-dedicated t
+  "If non-nil, windows displaying Calc buffers will be marked dedicated.
+See `window-dedicated-p' for what that means."
+  :version "28.1"
+  :type 'boolean)
+
 ;;;###autoload
 (defun calc (&optional arg full-display interactive)
   "The Emacs Calculator.  Full documentation is listed under `calc-mode'."
@@ -1480,6 +1486,8 @@ commands given here will actually operate on the *Calculator* stack."
       (and (windowp full-display)
            (window-point full-display)
            (select-window full-display))
+      (and calc-make-windows-dedicated
+           (set-window-dedicated-p nil t))
       (calc-check-defines)
       (when (and calc-said-hello interactive)
         (sit-for 2)
@@ -2140,7 +2148,9 @@ the United States."
               (if calc-trail-window-hook
                   (run-hooks 'calc-trail-window-hook)
                 (let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
-                  (set-window-buffer w calc-trail-buffer)))
+                  (set-window-buffer w calc-trail-buffer)
+                  (and calc-make-windows-dedicated
+                       (set-window-dedicated-p nil t))))
               (calc-wrapper
                (setq overlay-arrow-string calc-trail-overlay
                      overlay-arrow-position calc-trail-pointer)

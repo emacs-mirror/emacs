@@ -1600,20 +1600,19 @@ Checks each target in TARGET-TABLE using
 and generates the overview, one line per target name."
   (insert
    (mapconcat
-    (function (lambda (item)
-		(let* ((target-name (car item))
-		       (no-prereqs (not (member target-name prereq-list)))
-		       (needs-rebuild (or no-prereqs
-					  (funcall
-					   makefile-query-one-target-method-function
-					   target-name
-					   filename))))
-		  (format "\t%s%s"
-			  target-name
-			  (cond (no-prereqs "  .. has no prerequisites")
-				(needs-rebuild "  .. NEEDS REBUILD")
-				(t "  .. is up to date"))))
-		))
+    (lambda (item)
+      (let* ((target-name (car item))
+             (no-prereqs (not (member target-name prereq-list)))
+             (needs-rebuild (or no-prereqs
+                                (funcall
+                                 makefile-query-one-target-method-function
+                                 target-name
+                                 filename))))
+        (format "\t%s%s"
+                target-name
+                (cond (no-prereqs "  .. has no prerequisites")
+                      (needs-rebuild "  .. NEEDS REBUILD")
+                      (t "  .. is up to date")))))
     target-table "\n"))
   (goto-char (point-min))
   (delete-file filename))		; remove the tmpfile
@@ -1687,9 +1686,9 @@ Then prompts for all required parameters."
 
 (defun makefile-prompt-for-gmake-funargs (function-name prompt-list)
   (mapconcat
-   (function (lambda (one-prompt)
-	       (read-string (format "[%s] %s: " function-name one-prompt)
-			    nil)))
+   (lambda (one-prompt)
+     (read-string (format "[%s] %s: " function-name one-prompt)
+                  nil))
    prompt-list
    ","))
 

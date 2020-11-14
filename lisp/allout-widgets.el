@@ -916,15 +916,15 @@ posting threshold criteria."
           (let ((min (point-max))
                 (max 0)
                 first second)
-            (mapc (function (lambda (entry)
-                              (if (eq :undone-exposure (car entry))
-                                  nil
-                                (setq first (cadr entry)
-                                      second (caddr entry))
-                                (if (< (min first second) min)
-                                    (setq min (min first second)))
-                                (if (> (max first second) max)
-                                    (setq max (max first second))))))
+            (mapc (lambda (entry)
+                    (if (eq :undone-exposure (car entry))
+                        nil
+                      (setq first (cadr entry)
+                            second (caddr entry))
+                      (if (< (min first second) min)
+                          (setq min (min first second)))
+                      (if (> (max first second) max)
+                          (setq max (max first second)))))
                     allout-widgets-changes-record)
             (> (- max min) allout-widgets-adjust-message-size-threshold)))
       (let ((prior (current-message)))
@@ -975,8 +975,8 @@ Records changes in `allout-widgets-changes-record'."
 
 Generally invoked via `allout-exposure-change-functions'."
 
-  (let ((changes (sort changes (function (lambda (this next)
-                                           (< (cadr this) (cadr next))))))
+  (let ((changes (sort changes (lambda (this next)
+                                 (< (cadr this) (cadr next)))))
         ;; have to distinguish between concealing and exposing so that, eg,
         ;; `allout-expose-topic's mix is handled properly.
         handled-expose
@@ -2301,9 +2301,9 @@ The elements of LIST are not copied, just the list structure itself."
         end (or end (point-max)))
   (if (> start end) (let ((interim start)) (setq start end end interim)))
   (let ((button-overlays (delq nil
-                               (mapcar (function (lambda (o)
-                                                   (if (overlay-get o 'button)
-                                                       o)))
+                               (mapcar (lambda (o)
+                                         (if (overlay-get o 'button)
+                                             o))
                                        (overlays-in start end)))))
     (length button-overlays)))
 

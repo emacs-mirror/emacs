@@ -1004,9 +1004,8 @@ to be colored."
 	 (completing-read
 	  "Title of rule to highlight: "
 	  (mapcar
-	   (function
-	    (lambda (rule)
-	      (list (symbol-name (car rule)))))
+           (lambda (rule)
+             (list (symbol-name (car rule))))
 	   (append (or align-mode-rules-list align-rules-list)
 		   (or align-mode-exclude-rules-list
 		       align-exclude-rules-list))) nil t)))

@@ -2464,14 +2464,14 @@ SPC:   Accept word this time.
       (progn
 	(require 'ehelp)
 	(with-electric-help
-	 (function (lambda ()
-		     ;;This shouldn't be necessary: with-electric-help needs
-		     ;; an optional argument telling it about the smallest
-		     ;; acceptable window-height of the help buffer.
-		     ;;(if (< (window-height) 15)
-		     ;;	 (enlarge-window
-		     ;;	  (- 15 (ispell-adjusted-window-height))))
-		     (princ "Selections are:
+         (lambda ()
+           ;;This shouldn't be necessary: with-electric-help needs
+           ;; an optional argument telling it about the smallest
+           ;; acceptable window-height of the help buffer.
+           ;;(if (< (window-height) 15)
+           ;;	 (enlarge-window
+           ;;	  (- 15 (ispell-adjusted-window-height))))
+           (princ "Selections are:
 
 DIGIT: Replace the word with a digit offered in the *Choices* buffer.
 SPC:   Accept word this time.
@@ -2491,7 +2491,7 @@ SPC:   Accept word this time.
 `C-l':  Redraw screen.
 `C-r':  Recursive edit.
 `C-z':  Suspend Emacs or iconify frame.")
-		     nil))))
+           nil)))
 
 
     (let ((help-1 (concat "[r/R]eplace word; [a/A]ccept for this session; "
@@ -3274,15 +3274,15 @@ otherwise, the current line is skipped."
 Generated from `ispell-tex-skip-alists'."
   (concat
    ;; raw tex keys
-   (mapconcat (function (lambda (lst) (car lst)))
+   (mapconcat (lambda (lst) (car lst))
 	      (car ispell-tex-skip-alists)
 	      "\\|")
    "\\|"
    ;; keys wrapped in begin{}
-   (mapconcat (function (lambda (lst)
-			  (concat "\\\\begin[ \t\n]*{[ \t\n]*"
-				  (car lst)
-				  "[ \t\n]*}")))
+   (mapconcat (lambda (lst)
+                (concat "\\\\begin[ \t\n]*{[ \t\n]*"
+                        (car lst)
+                        "[ \t\n]*}"))
 	      (car (cdr ispell-tex-skip-alists))
 	      "\\|")))
 
@@ -3704,11 +3704,10 @@ Standard ispell choices are then available."
 	    ((string-equal (upcase word) word)
 	     (setq possibilities (mapcar #'upcase possibilities)))
 	    ((eq (upcase (aref word 0)) (aref word 0))
-             (setq possibilities (mapcar (function
-                                          (lambda (pos)
-                                            (if (eq (aref word 0) (aref pos 0))
-						pos
-                                              (capitalize pos))))
+             (setq possibilities (mapcar (lambda (pos)
+                                           (if (eq (aref word 0) (aref pos 0))
+                                               pos
+                                             (capitalize pos)))
                                          possibilities))))
 	   (setq case-fold-search case-fold-search-val)
 	   (save-window-excursion

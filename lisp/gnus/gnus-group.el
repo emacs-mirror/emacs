@@ -52,6 +52,8 @@
 (autoload 'gnus-cloud-upload-all-data "gnus-cloud")
 (autoload 'gnus-cloud-download-all-data "gnus-cloud")
 
+(autoload 'gnus-topic-find-groups "gnus-topic")
+
 (defcustom gnus-no-groups-message "No news is good news"
   "Message displayed by Gnus when no groups are available."
   :group 'gnus-start
@@ -3186,6 +3188,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
       (let* ((group-spec
 	      (or
 	       (cdr (assq 'search-group-spec specs))
+	       (cdr (assq 'nnir-group-spec specs))
 	       (if (gnus-server-server-name)
 		   (list (list (gnus-server-server-name)))
 		 (seq-group-by
@@ -3193,12 +3196,19 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 		  (or gnus-group-marked
 		      (if (gnus-group-group-name)
 			  (list (gnus-group-group-name))
-			(cdr
-			 (assoc (gnus-group-topic-name) gnus-topic-alist))))))))
+			(mapcar #'caadr
+				(gnus-topic-find-groups
+				 (gnus-group-topic-name)
+				 nil 'all nil t))))))))
 	     (query-spec
 	      (or
 	       (cdr (assq 'search-query-spec specs))
+	       (cdr (assq 'nnir-query-spec specs))
 	       (gnus-search-make-spec no-parse))))
+	;; If our query came via an old call to nnir, we know not to
+	;; parse the query.
+	(when (assq 'nnir-query-spec specs)
+	  (setf (alist-get 'raw query-spec) t))
 	(gnus-group-make-group
 	 name
 	 (list 'nnselect "nnselect")
@@ -3229,6 +3239,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
   (interactive "P")
   (let* ((group-spec
 	  (or (cdr (assq 'search-group-spec specs))
+	      (cdr (assq 'nnir-group-spec specs))
 	      (if (gnus-server-server-name)
 		  (list (list (gnus-server-server-name)))
 		(seq-group-by
@@ -3236,11 +3247,18 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 		 (or gnus-group-marked
 		     (if (gnus-group-group-name)
 			 (list (gnus-group-group-name))
-		       (cdr
-			(assoc (gnus-group-topic-name) gnus-topic-alist))))))))
+		       (mapcar #'caadr
+				(gnus-topic-find-groups
+				 (gnus-group-topic-name)
+				 nil 'all nil t))))))))
 	 (query-spec
 	  (or (cdr (assq 'search-query-spec specs))
+	      (cdr (assq 'nnir-query-spec specs))
 	      (gnus-search-make-spec no-parse))))
+    ;; If our query came via an old call to nnir, we know not to parse
+    ;; the query.
+    (when (assq 'nnir-query-spec specs)
+      (setf (alist-get 'raw query-spec) t))
     (gnus-group-read-ephemeral-group
      (concat "nnselect-" (message-unique-id))
      (list 'nnselect "nnselect")

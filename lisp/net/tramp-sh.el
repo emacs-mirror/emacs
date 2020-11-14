@@ -3530,7 +3530,8 @@ implementation will be used."
              ;; We must pass modtime explicitly, because FILENAME can
              ;; be different from (buffer-file-name), f.e. if
              ;; `file-precious-flag' is set.
-             (tramp-compat-file-attribute-modification-time file-attr))
+	     (or (tramp-compat-file-attribute-modification-time file-attr)
+		 (current-time)))
             (when (and (= (tramp-compat-file-attribute-user-id file-attr) uid)
                        (= (tramp-compat-file-attribute-group-id file-attr) gid))
               (setq need-chown nil))))

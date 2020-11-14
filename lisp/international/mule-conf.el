@@ -1251,7 +1251,9 @@ by UTF-8."
   :coding-type 'undecided
   :mnemonic ?-
   :charset-list '(emacs)
-  :prefer-utf-8 t)
+  :prefer-utf-8 t
+  :inhibit-null-byte-detection 0
+  :inhibit-iso-escape-detection 0)
 
 (define-coding-system 'raw-text
   "Raw text, which means text contains random 8-bit codes.

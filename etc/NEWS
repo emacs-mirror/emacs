@@ -436,6 +436,11 @@ their 'default-directory' under VC.
 *** New command 'vc-dir-root' uses the root directory without asking.
 
 ---
+*** New face 'log-view-commit-body'.
+This is used when expanding commit messages from 'vc-print-root-log'
+and similar commands.
+
+---
 *** The responsible VC backend is now the most specific one.
 'vc-responsible-backend' loops over the backends in
 'vc-handled-backends' to determine which backend is responsible for a
@@ -657,6 +662,13 @@ to the search string.
 
 ---
 *** New input method 'compose' based on X Multi_key sequences.
+
+---
+*** New input method 'iso-transl' with the same keys as 'C-x 8'.
+After selecting it as a transient input method with 'C-u C-x \
+iso-transl RET', it supports the same key sequences as 'C-x 8',
+so e.g. like 'C-x 8 [' inserts a left single quotation mark,
+'C-x \ [' does the same.
 
 ---
 *** Improved language transliteration in Malayalam input methods.
@@ -1122,6 +1134,13 @@ project's root directory, respectively.
 +++
 *** New user option 'project-list-file'.
 
+** xref
+
+---
+*** Prefix arg of 'xref-goto-xref' quits the *xref* buffer.
+So typing 'C-u RET' in the *xref* buffer quits its window
+before navigating to the selected location.
+
 ** json.el
 
 ---
@@ -1238,6 +1257,11 @@ and the result is not truncated in any way.
 *** The '/' operator now has higher precedence in (La)TeX input mode.
 It no longer has lower precedence than '+' and '-'.
 
+---
+*** Calc now marks its windows dedicated.
+The new user option 'calc-make-windows-dedicated' controls this.  It
+is t by default; set to nil to get back the old behavior.
+
 ** term-mode
 
 ---
@@ -1308,6 +1332,11 @@ visited errors, so you can have an overview what errors were already visited.
 *** New user option 'tab-first-completion'.
 If 'tab-always-indent' is 'complete', this new user option can be used to
 further tweak whether to complete or indent.
+
+---
+*** 'dired-query' now uses 'read-char-from-minibuffer'.
+Using it instead of 'read-char-choice' allows using 'C-x o'
+to switch to the help window displayed after typing 'C-h'.
 
 ---
 *** 'zap-up-to-char' now uses 'read-char-from-minibuffer'.
@@ -1956,6 +1985,11 @@ image API via 'M-x report-emacs-bug'.
 
 ---
 ** The user option 'make-pointer-invisible' is now honored on macOS.
+
+--
+** On macOS, 's-<left>' and 's-<right>' are now bound to
+'move-beginning-of-line' and 'move-end-of-line' respectively. The commands
+to select previous/next frame are still bound to 's-~' and 's-`'.
 
 
 ----------------------------------------------------------------------

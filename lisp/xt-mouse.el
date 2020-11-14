@@ -77,6 +77,7 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
               (copy-sequence event))
 	vec)
        (is-move
+        (xterm-mouse--handle-mouse-movement)
         (if track-mouse vec
           ;; Mouse movement events are currently supposed to be
           ;; suppressed.  Return no event.
@@ -106,7 +107,13 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	      (if (null track-mouse)
 		  (vector drag)
 		(push drag unread-command-events)
+                (xterm-mouse--handle-mouse-movement)
 		(vector (list 'mouse-movement ev-data))))))))))))
+
+(defun xterm-mouse--handle-mouse-movement ()
+  "Handle mouse motion that was just generated for XTerm mouse."
+  (display--update-for-mouse-movement (terminal-parameter nil 'xterm-mouse-x)
+                                      (terminal-parameter nil 'xterm-mouse-y)))
 
 ;; These two variables have been converted to terminal parameters.
 ;;

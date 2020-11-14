@@ -9542,16 +9542,19 @@ DEF_DLL_FN (void, rsvg_handle_set_base_uri, (RsvgHandle *, const char *));
 DEF_DLL_FN (gboolean, rsvg_handle_write,
 	    (RsvgHandle *, const guchar *, gsize, GError **));
 DEF_DLL_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
-#endif
+#  endif
 
-#if LIBRSVG_CHECK_VERSION (2, 46, 0)
+#  if LIBRSVG_CHECK_VERSION (2, 46, 0)
+DEF_DLL_FN (void, rsvg_handle_get_intrinsic_dimensions,
+            (RsvgHandle *, gboolean *, RsvgLength *, gboolean *,
+            RsvgLength *, gboolean *, RsvgRectangle *));
 DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
 	    (RsvgHandle *, const char *, const RsvgRectangle *,
 	     RsvgRectangle *, RsvgRectangle *, GError **));
-#else
+#  else
 DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 	    (RsvgHandle *, RsvgDimensionData *));
-#endif
+#  endif
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
 DEF_DLL_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_DLL_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
@@ -9599,6 +9602,7 @@ init_svg_functions (void)
   LOAD_DLL_FN (library, rsvg_handle_close);
 #endif
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
+  LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
 #else
   LOAD_DLL_FN (library, rsvg_handle_get_dimensions);
@@ -9638,6 +9642,7 @@ init_svg_functions (void)
 #  undef g_object_unref
 #  undef g_type_init
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
+#   undef rsvg_handle_get_intrinsic_dimensions
 #   undef rsvg_handle_get_geometry_for_layer
 #  else
 #   undef rsvg_handle_get_dimensions
@@ -9668,7 +9673,10 @@ init_svg_functions (void)
 #   define g_type_init fn_g_type_init
 #  endif
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
-#   define rsvg_handle_get_geometry_for_layer fn_rsvg_handle_get_geometry_for_layer
+#   define rsvg_handle_get_intrinsic_dimensions \
+	fn_rsvg_handle_get_intrinsic_dimensions
+#   define rsvg_handle_get_geometry_for_layer	\
+	fn_rsvg_handle_get_geometry_for_layer
 #  else
 #   define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
 #  endif
@@ -9742,6 +9750,49 @@ svg_load (struct frame *f, struct image *img)
   return success_p;
 }
 
+#if LIBRSVG_CHECK_VERSION (2, 46, 0)
+static double
+svg_css_length_to_pixels (RsvgLength length)
+{
+  /* FIXME: 96 appears to be a pretty standard DPI but we should
+     probably use the real DPI if we can get it.  */
+  double dpi = 96;
+  double value = length.length;
+
+  switch (length.unit)
+    {
+    case RSVG_UNIT_PX:
+      /* Already a pixel value.  */
+      break;
+    case RSVG_UNIT_CM:
+      /* 2.54 cm in an inch.  */
+      value = dpi * value / 2.54;
+      break;
+    case RSVG_UNIT_MM:
+      /* 25.4 mm in an inch.  */
+      value = dpi * value / 25.4;
+      break;
+    case RSVG_UNIT_PT:
+      /* 72 points in an inch.  */
+      value = dpi * value / 72;
+      break;
+    case RSVG_UNIT_PC:
+      /* 6 picas in an inch.  */
+      value = dpi * value / 6;
+      break;
+    case RSVG_UNIT_IN:
+      value *= dpi;
+      break;
+    default:
+      /* Probably one of em, ex, or %.  We can't know what the pixel
+         value is without more information.  */
+      value = 0;
+    }
+
+  return value;
+}
+#endif
+
 /* Load frame F and image IMG.  CONTENTS contains the SVG XML data to
    be parsed, SIZE is its size, and FILENAME is the name of the SVG
    file being loaded.
@@ -9810,11 +9861,48 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
   RsvgRectangle zero_rect, viewbox, out_logical_rect;
 
-  rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
-                                      &zero_rect, &viewbox,
-                                      &out_logical_rect, NULL);
-  viewbox_width = viewbox.x + viewbox.width;
-  viewbox_height = viewbox.y + viewbox.height;
+  /* Try the instrinsic dimensions first.  */
+  gboolean has_width, has_height, has_viewbox;
+  RsvgLength iwidth, iheight;
+
+  rsvg_handle_get_intrinsic_dimensions (rsvg_handle,
+                                        &has_width, &iwidth,
+                                        &has_height, &iheight,
+                                        &has_viewbox, &viewbox);
+
+  if (has_width && has_height)
+    {
+      /* Success!  We can use these values directly.  */
+      viewbox_width = svg_css_length_to_pixels (iwidth);
+      viewbox_height = svg_css_length_to_pixels (iheight);
+    }
+  else if (has_width && has_viewbox)
+    {
+      viewbox_width = svg_css_length_to_pixels (iwidth);
+      viewbox_height = svg_css_length_to_pixels (iwidth)
+        * viewbox.width / viewbox.height;
+    }
+  else if (has_height && has_viewbox)
+    {
+      viewbox_height = svg_css_length_to_pixels (iheight);
+      viewbox_width = svg_css_length_to_pixels (iheight)
+        * viewbox.height / viewbox.width;
+    }
+  else if (has_viewbox)
+    {
+      viewbox_width = viewbox.width;
+      viewbox_height = viewbox.height;
+    }
+  else
+    {
+      /* We haven't found a useable set of sizes, so try working out
+         the visible area.  */
+      rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
+                                          &zero_rect, &viewbox,
+                                          &out_logical_rect, NULL);
+      viewbox_width = viewbox.x + viewbox.width;
+      viewbox_height = viewbox.y + viewbox.height;
+    }
 #else
   /* The function used above to get the geometry of the visible area
      of the SVG are only available in librsvg 2.46 and above, so in
@@ -9827,6 +9915,19 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   viewbox_width = dimension_data.width;
   viewbox_height = dimension_data.height;
 #endif
+
+  if (viewbox_width == 0 || viewbox_height == 0)
+    {
+      /* We do not have any usable dimensions, so make some up.  The
+         values below are supposedly the default values most web
+         browsers use for SVGs with no set size.  */
+      /* FIXME: At this stage we should perhaps consider rendering the
+         image out to a bitmap and getting the dimensions from
+         that.  */
+      viewbox_width = 300;
+      viewbox_height = 150;
+    }
+
   compute_image_size (viewbox_width, viewbox_height, img->spec,
                       &width, &height);
 

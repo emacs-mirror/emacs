@@ -291,9 +291,8 @@ generate the completions list.  This means that the hook
   `(pcomplete--here (lambda () ,form) ,stub ,paring ,form-only))
 
 (defcustom pcomplete-command-completion-function
-  (function
-   (lambda ()
-     (pcomplete-here (pcomplete-executables))))
+  (lambda ()
+    (pcomplete-here (pcomplete-executables)))
   "Function called for completing the initial command argument."
   :type 'function)
 
@@ -302,9 +301,8 @@ generate the completions list.  This means that the hook
   :type 'function)
 
 (defcustom pcomplete-default-completion-function
-  (function
-   (lambda ()
-     (while (pcomplete-here (pcomplete-entries)))))
+  (lambda ()
+    (while (pcomplete-here (pcomplete-entries))))
   "Function called when no completion rule can be found.
 This function is used to generate completions for every argument."
   :type 'function)
@@ -988,9 +986,8 @@ Arguments NO-GANGING and ARGS-FOLLOW are currently ignored."
 	    (setq index (1+ index))))
 	(throw 'pcomplete-completions
 	       (mapcar
-		(function
-		 (lambda (opt)
-		   (concat "-" opt)))
+                (lambda (opt)
+                  (concat "-" opt))
 		(pcomplete-uniquify-list choices))))
     (let ((arg (pcomplete-arg)))
       (when (and (> (length arg) 1)
