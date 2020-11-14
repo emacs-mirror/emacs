@@ -639,6 +639,41 @@ Return the corresponding `comp-constraint' or `comp-constraint-f'."
     h)
   "Hash table function -> `comp-constraint'")
 
+(defun comp-constraint-to-type-spec (mvar)
+  "Given MVAR return its type specifier."
+  (let ((valset (comp-mvar-valset mvar))
+        (typeset (comp-mvar-typeset mvar))
+        (range (comp-mvar-range mvar)))
+
+    (when valset
+      (when (memq nil valset)
+        (if (memq t valset)
+            (progn
+              ;; t and nil are values, convert into `boolean'.
+              (push 'boolean typeset)
+              (setf valset (remove t (remove nil valset))))
+          ;; Only nil is a value, convert it into a `null' type specifier.
+          (setf valset (remove nil valset))
+          (push 'null typeset))))
+
+    ;; Form proper integer type specifiers.
+    (setf range (cl-loop for (l . h) in range
+                             for low = (if (integerp l) l '*)
+                             for high = (if (integerp h) h '*)
+                             collect `(integer ,low , high))
+          valset (cl-remove-duplicates valset))
+
+    ;; Form the final type specifier.
+    (let ((res (append typeset
+                       (when valset
+                         `((member ,@valset)))
+                       range)))
+      (if (> (length res) 1)
+          `(or ,@res)
+        (if (memq (car-safe res) '(member integer))
+            res
+          (car res))))))
+
 (defun comp-set-op-p (op)
   "Assignment predicate for OP."
   (when (memq op comp-limple-sets) t))
@@ -2934,34 +2969,9 @@ Set it into the `ret-type-specifier' slot."
                                do (pcase insn
                                     (`(return ,mvar)
                                      (push `(,mvar . nil) res))))
-                           finally (cl-return res))))
-         (res-valset (comp-mvar-valset res-mvar))
-         (res-typeset (comp-mvar-typeset res-mvar))
-         (res-range (comp-mvar-range res-mvar)))
-    ;; If nil is a value convert it into a `null' type specifier.
-    (when res-valset
-      (when (memq nil res-valset)
-        (setf res-valset (remove nil res-valset))
-        (push 'null res-typeset)))
-
-    ;; Form proper integer type specifiers.
-    (setf res-range (cl-loop for (l . h) in res-range
-                             for low = (if (integerp l) l '*)
-                             for high = (if (integerp h) h '*)
-                             collect `(integer ,low , high))
-          res-valset (cl-remove-duplicates res-valset))
-
-    ;; Form the final type specifier.
-    (let ((res (append res-typeset
-                       (when res-valset
-                         `((member ,@res-valset)))
-                       res-range)))
-      (setf (comp-func-ret-type-specifier func)
-            (if (> (length res) 1)
-                `(or ,@res)
-              (if (memq (car-safe res) '(member integer))
-                  res
-                (car res)))))))
+                           finally (cl-return res)))))
+    (setf (comp-func-ret-type-specifier func)
+          (comp-constraint-to-type-spec res-mvar))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."

@@ -880,7 +880,11 @@ Return a list of results."
          (when x
            (setf y x))
          y))
-     t)))
+     t)
+
+    ((defun comp-tests-ret-type-spec-f (x y)
+       (eq x y))
+     boolean)))
 
 (comp-deftest ret-type-spec ()
   "Some derived return type specifier tests."
