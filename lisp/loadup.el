@@ -57,7 +57,7 @@
 ;; bidi.c needs for its job.
 (setq redisplay--inhibit-bidi t)
 
-(message "dump mode: %s" dump-mode)
+(message "Dump mode: %s" dump-mode)
 
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping or running Emacs normally.

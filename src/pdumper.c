@@ -4024,7 +4024,7 @@ types.  */)
     ctx->header.fingerprint[i] = fingerprint[i];
 
   const dump_off header_start = ctx->offset;
-  dump_fingerprint ("dumping fingerprint", ctx->header.fingerprint);
+  dump_fingerprint ("Dumping fingerprint", ctx->header.fingerprint);
   dump_write (ctx, &ctx->header, sizeof (ctx->header));
   const dump_off header_end = ctx->offset;
 
