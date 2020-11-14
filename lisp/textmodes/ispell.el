@@ -3704,11 +3704,10 @@ Standard ispell choices are then available."
 	    ((string-equal (upcase word) word)
 	     (setq possibilities (mapcar #'upcase possibilities)))
 	    ((eq (upcase (aref word 0)) (aref word 0))
-             (setq possibilities (mapcar (function
-                                          (lambda (pos)
-                                            (if (eq (aref word 0) (aref pos 0))
-						pos
-                                              (capitalize pos))))
+             (setq possibilities (mapcar (lambda (pos)
+                                           (if (eq (aref word 0) (aref pos 0))
+                                               pos
+                                             (capitalize pos)))
                                          possibilities))))
 	   (setq case-fold-search case-fold-search-val)
 	   (save-window-excursion

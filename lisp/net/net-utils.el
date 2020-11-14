@@ -985,9 +985,8 @@ This command uses `network-connection-service-alist', which see."
     (read-from-minibuffer "Host: " (net-utils-machine-at-point))
     (completing-read "Service: "
 		     (mapcar
-		      (function
-		       (lambda (elt)
-			 (list (symbol-name (car elt)))))
+                      (lambda (elt)
+                        (list (symbol-name (car elt))))
 		      network-connection-service-alist))))
   (network-connection
    host

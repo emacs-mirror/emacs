@@ -1894,8 +1894,8 @@ class of FUNCTION)."
   "Read name of existing advice of CLASS for FUNCTION with completion.
 An optional PROMPT is used to prompt for the name."
   (let* ((name-completion-table
-          (mapcar (function (lambda (advice)
-			      (list (symbol-name (ad-advice-name advice)))))
+          (mapcar (lambda (advice)
+                    (list (symbol-name (ad-advice-name advice))))
 		  (ad-get-advice-info-field function class)))
 	 (default
 	   (if (null name-completion-table)
@@ -2255,13 +2255,11 @@ element is its actual current value, and the third element is either
   (let* ((parsed-arglist (ad-parse-arglist arglist))
 	 (rest (nth 2 parsed-arglist)))
     `(list
-      ,@(mapcar (function
-                 (lambda (req)
-                  `(list ',req ,req 'required)))
+      ,@(mapcar (lambda (req)
+                  `(list ',req ,req 'required))
                 (nth 0 parsed-arglist))
-      ,@(mapcar (function
-                 (lambda (opt)
-                  `(list ',opt ,opt 'optional)))
+      ,@(mapcar (lambda (opt)
+                  `(list ',opt ,opt 'optional))
                 (nth 1 parsed-arglist))
       ,@(if rest (list `(list ',rest ,rest 'rest))))))
 
@@ -2623,8 +2621,8 @@ should be modified.  The assembled function will be returned."
 (defun ad-make-hook-form (function hook-name)
   "Make hook-form from FUNCTION's advice bodies in class HOOK-NAME."
   (let ((hook-forms
-	 (mapcar (function (lambda (advice)
-			     (ad-body-forms (ad-advice-definition advice))))
+         (mapcar (lambda (advice)
+                   (ad-body-forms (ad-advice-definition advice)))
 		 (ad-get-enabled-advices function hook-name))))
     (if hook-forms
 	(macroexp-progn (apply 'append hook-forms)))))
@@ -3167,15 +3165,14 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
 			(setq args (cdr args)))))
 	 (flags
 	  (mapcar
-	   (function
-	    (lambda (flag)
+           (lambda (flag)
              (let ((completion
                     (try-completion (symbol-name flag) ad-defadvice-flags)))
                (cond ((eq completion t) flag)
                      ((member completion ad-defadvice-flags)
                       (intern completion))
                      (t (error "defadvice: Invalid or ambiguous flag: %s"
-                               flag))))))
+                               flag)))))
 	   args))
 	 (advice (ad-make-advice
 		  name (memq 'protect flags)
@@ -3217,11 +3214,10 @@ undone on exit of this macro."
   (let* ((index -1)
 	 ;; Make let-variables to store current definitions:
 	 (current-bindings
-	  (mapcar (function
-		   (lambda (function)
+          (mapcar (lambda (function)
                     (setq index (1+ index))
                     (list (intern (format "ad-oRiGdEf-%d" index))
-                          `(symbol-function ',function))))
+                          `(symbol-function ',function)))
 		  functions)))
     `(let ,current-bindings
       (unwind-protect

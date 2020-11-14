@@ -574,9 +574,8 @@ Optional GRID-RESOLUTION may be used in place of `strokes-grid-resolution'.
 The grid is a square whose dimension is [0,GRID-RESOLUTION)."
   (or grid-resolution (setq grid-resolution strokes-grid-resolution))
   (let ((stroke-extent (strokes-get-stroke-extent positions)))
-    (mapcar (function
-	     (lambda (pos)
-	       (strokes-get-grid-position stroke-extent pos grid-resolution)))
+    (mapcar (lambda (pos)
+              (strokes-get-grid-position stroke-extent pos grid-resolution))
 	    positions)))
 
 (defun strokes-fill-stroke (unfilled-stroke &optional force)

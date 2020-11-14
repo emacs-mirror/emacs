@@ -5398,10 +5398,9 @@ The event, EV, is the mouse event."
 		    artist-arrow-point-2)))
 	;; Remove those variables from vars that are not bound
 	(mapc
-	 (function
-	  (lambda (x)
-	    (if (not (and (boundp x) (symbol-value x)))
-		(setq vars (delq x vars))))) vars)
+         (lambda (x)
+           (if (not (and (boundp x) (symbol-value x)))
+               (setq vars (delq x vars)))) vars)
 	(reporter-submit-bug-report
 	 artist-maintainer-address
 	 (concat "artist.el " artist-version)

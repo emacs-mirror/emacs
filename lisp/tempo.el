@@ -353,9 +353,8 @@ possible."
 	((and (consp element)
 	      (eq (car element) 's)) (tempo-insert-named (car (cdr element))))
 	((and (consp element)
-	      (eq (car element) 'l)) (mapcar (function
-					      (lambda (elt)
-						(tempo-insert elt on-region)))
+              (eq (car element) 'l)) (mapcar (lambda (elt)
+                                               (tempo-insert elt on-region))
 					     (cdr element)))
 	((eq element 'p) (tempo-insert-mark (point-marker)))
 	((eq element 'r) (if on-region
@@ -546,10 +545,9 @@ and insert the results."
   (interactive)
   (let ((next-mark (catch 'found
 		     (mapc
-		      (function
-		       (lambda (mark)
-			 (if (< (point) mark)
-			     (throw 'found mark))))
+                      (lambda (mark)
+                        (if (< (point) mark)
+                            (throw 'found mark)))
 		      tempo-marks)
 		     ;; return nil if not found
 		     nil)))
@@ -565,11 +563,10 @@ and insert the results."
   (let ((prev-mark (catch 'found
 		     (let (last)
 		       (mapc
-			(function
-			 (lambda (mark)
-			   (if (<= (point) mark)
-			       (throw 'found last))
-			   (setq last mark)))
+                        (lambda (mark)
+                          (if (<= (point) mark)
+                              (throw 'found last))
+                          (setq last mark))
 			tempo-marks)
 		       last))))
     (if prev-mark

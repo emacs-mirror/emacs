@@ -76,12 +76,11 @@
   "Do some cleanup in a RECORD to make it suitable for EUDC."
   (declare (obsolete eudc-ldap-cleanup-record-filtering-addresses "25.1"))
   (mapcar
-   (function
-    (lambda (field)
-      (cons (intern (downcase (car field)))
-	    (if (cdr (cdr field))
-		(cdr field)
-	      (car (cdr field))))))
+   (lambda (field)
+     (cons (intern (downcase (car field)))
+           (if (cdr (cdr field))
+               (cdr field)
+             (car (cdr field)))))
    record))
 
 (defun eudc-filter-$ (string)

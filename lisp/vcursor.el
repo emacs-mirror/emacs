@@ -602,15 +602,14 @@ Set `vcursor-window' to the returned value as a side effect."
 	       (pos-visible-in-window-p (point) vcursor-window))
 	  (progn
 	    (walk-windows
-	     (function
-	      (lambda (win)
-		(and (not winok)
-		     (eq (current-buffer) (window-buffer win))
-		     (not (and not-this (eq thiswin win)))
-		     (cond
-		      ((pos-visible-in-window-p (point) win) (setq winok win))
-		      ((eq thiswin win))
-		      ((not winbuf) (setq winbuf win))))))
+             (lambda (win)
+               (and (not winok)
+                    (eq (current-buffer) (window-buffer win))
+                    (not (and not-this (eq thiswin win)))
+                    (cond
+                     ((pos-visible-in-window-p (point) win) (setq winok win))
+                     ((eq thiswin win))
+                     ((not winbuf) (setq winbuf win)))))
 	     nil (not this-frame))
 	    (setq vcursor-window
 		  (cond
