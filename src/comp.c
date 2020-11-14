@@ -4215,26 +4215,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 
   comp.ctxt = gcc_jit_context_acquire ();
 
-  if (comp.debug)
-    {
-      gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
-				       1);
-    }
-  if (comp.debug > 2)
-    {
-      logfile = fopen ("libgccjit.log", "w");
-      gcc_jit_context_set_logfile (comp.ctxt,
-				   logfile,
-				   0, 0);
-      gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
-				       1);
-      gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
-				       1);
-    }
-
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
@@ -4408,6 +4388,25 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
   comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
+
+  if (comp.debug)
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
+				       1);
+  if (comp.debug > 2)
+    {
+      logfile = fopen ("libgccjit.log", "w");
+      gcc_jit_context_set_logfile (comp.ctxt,
+				   logfile,
+				   0, 0);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
+				       1);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
+				       1);
+    }
+
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  comp.speed < 0 ? 0
