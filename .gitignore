@@ -153,6 +153,7 @@ test/manual/etags/ETAGS
 test/manual/etags/CTAGS
 test/manual/indent/*.new
 test/lisp/gnus/mml-sec-resources/random_seed
+test/lisp/play/fortune-resources/fortunes.dat
 
 # ctags, etags.
 TAGS
