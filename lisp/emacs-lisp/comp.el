@@ -670,6 +670,11 @@ Return the corresponding `comp-constraint' or `comp-constraint-f'."
   (when-let ((spec (gethash func comp-known-constraints-h)))
     (comp-constraint-range (comp-constraint-f-ret spec))))
 
+(defun comp-func-ret-valset (func)
+  "Return the valset returned by function FUNC."
+  (when-let ((spec (gethash func comp-known-constraints-h)))
+    (comp-constraint-valset (comp-constraint-f-ret spec))))
+
 (defun comp-func-unique-in-cu-p (func)
   "Return t if FUNC is known to be unique in the current compilation unit."
   (if (symbolp func)
@@ -2601,26 +2606,29 @@ Return LVAL."
                    (mapcar #'comp-mvar-range rhs-mvars))))
     lval))
 
+(defun comp-fwprop-call (insn lval f args)
+  "Propagate on a call INSN into LVAL.
+F is the function being called with arguments ARGS.
+Fold the call in case."
+  (if-let ((range (comp-func-ret-range f)))
+      (setf (comp-mvar-range lval) range
+            (comp-mvar-typeset lval) nil)
+    (if-let ((valset (comp-func-ret-valset f)))
+        (setf (comp-mvar-valset lval) valset
+              (comp-mvar-typeset lval) nil)
+      (setf (comp-mvar-typeset lval) (comp-func-ret-typeset f))))
+  (comp-function-call-maybe-fold insn f args))
+
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
   (pcase insn
     (`(set ,lval ,rval)
      (pcase rval
        (`(,(or 'call 'callref) ,f . ,args)
-        (if-let ((range (comp-func-ret-range f)))
-            (setf (comp-mvar-range lval) range
-                  (comp-mvar-typeset lval) nil)
-          (setf (comp-mvar-typeset lval)
-                (comp-func-ret-typeset f)))
-        (comp-function-call-maybe-fold insn f args))
+        (comp-fwprop-call insn lval f args))
        (`(,(or 'direct-call 'direct-callref) ,f . ,args)
         (let ((f (comp-func-name (gethash f (comp-ctxt-funcs-h comp-ctxt)))))
-          (if-let ((range (comp-func-ret-range f)))
-              (setf (comp-mvar-range lval) range
-                    (comp-mvar-typeset lval) nil)
-            (setf (comp-mvar-typeset lval)
-                  (comp-func-ret-typeset f)))
-          (comp-function-call-maybe-fold insn f args)))
+          (comp-fwprop-call insn lval f args)))
        (_
         (comp-mvar-propagate lval rval))))
     (`(assume ,lval ,rval ,kind)
