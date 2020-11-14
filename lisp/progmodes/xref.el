@@ -600,9 +600,9 @@ SELECT is `quit', also quit the *xref* window."
 
 (defun xref-goto-xref (&optional quit)
   "Jump to the xref on the current line and select its window.
-Non-interactively, non-nil QUIT means to first quit the *xref*
-buffer."
-  (interactive)
+Non-interactively, non-nil QUIT, or interactively, with prefix argument
+means to first quit the *xref* buffer."
+  (interactive "P")
   (let* ((buffer (current-buffer))
          (xref (or (xref--item-at-point)
                    (user-error "No reference at point")))

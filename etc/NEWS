@@ -1134,6 +1134,13 @@ project's root directory, respectively.
 +++
 *** New user option 'project-list-file'.
 
+** xref
+
+---
+*** Prefix arg of 'xref-goto-xref' quits the *xref* buffer.
+So typing 'C-u RET' in the *xref* buffer quits its window
+before navigating to the selected location.
+
 ** json.el
 
 ---
