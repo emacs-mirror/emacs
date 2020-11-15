@@ -25,11 +25,32 @@
 
 ;; Enabling this package implements more dynamic interaction with the
 ;; *Completions* buffer to give the user a similar experience than
-;; interacting with Zle from zsh shell.
+;; interacting with Zle from zsh shell.  This basically means:
+
+;; 0. When tab is pressed in the minibuffer the *Completions* buffer
+;; is shown as usual.
+
+;; 1.1 If the completion list is too large then a second tab just
+;; scrolls the list.
+
+;; 1.2 If all the completion candidates are visible then a second tab
+;; highlights the first candidate and completed in the minibuffer.
+;; (selected)
+
+;; 2. Every time tab is pressed the next horizontal completion (on the
+;; right) is selected.
+
+;; 3. When a candidate is highlighted arrow keys also selects the next
+;; candidate in the arrow direction.  The arrow produces the same
+;; result either in the minibuffer or in *Completions* window.
+
+;; 4. isearch in the *Completions* buffer works as expected.
 
 ;; The package intents to implement such functionalities without using
-;; hacks or complex functions.  And using the default Emacs *Completions*
-;; infrastructure.
+;; hacks or complex functions, using the default Emacs *Completions*
+;; infrastructure.  The main advantage is that it is not needed to
+;; switch to/from *Completions* buffer to select a candidate from the
+;; list with arrow keys.
 
 
 ;;; Code:
