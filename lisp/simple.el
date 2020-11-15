@@ -5087,11 +5087,20 @@ visual feedback indicating the extent of the region being copied."
   (if (called-interactively-p 'interactive)
       (indicate-copied-region)))
 
+(defcustom copy-region-blink-delay 1
+  "Time in seconds to delay after showing the other end of the region.
+It's used by the command `kill-ring-save' and the function
+`indicate-copied-region' to blink the cursor between point and mark.
+The value 0 disables blinking."
+  :type 'number
+  :group 'killing
+  :version "28.1")
+
 (defun indicate-copied-region (&optional message-len)
   "Indicate that the region text has been copied interactively.
-If the mark is visible in the selected window, blink the cursor
-between point and mark if there is currently no active region
-highlighting.
+If the mark is visible in the selected window, blink the cursor between
+point and mark if there is currently no active region highlighting.
+The option `copy-region-blink-delay' can disable blinking.
 
 If the mark lies outside the selected window, display an
 informative message containing a sample of the copied text.  The
@@ -5105,12 +5114,14 @@ of this sample text; it defaults to 40."
     (if (pos-visible-in-window-p mark (selected-window))
 	;; Swap point-and-mark quickly so as to show the region that
 	;; was selected.  Don't do it if the region is highlighted.
-	(unless (and (region-active-p)
-		     (face-background 'region nil t))
+	(when (and (numberp copy-region-blink-delay)
+		   (> copy-region-blink-delay 0)
+		   (or (not (region-active-p))
+		       (not (face-background 'region nil t))))
 	  ;; Swap point and mark.
 	  (set-marker (mark-marker) (point) (current-buffer))
 	  (goto-char mark)
-	  (sit-for blink-matching-delay)
+	  (sit-for copy-region-blink-delay)
 	  ;; Swap back.
 	  (set-marker (mark-marker) mark (current-buffer))
 	  (goto-char point)
@@ -5121,11 +5132,14 @@ of this sample text; it defaults to 40."
       (let ((len (min (abs (- mark point))
 		      (or message-len 40))))
 	(if (< point mark)
-	    ;; Don't say "killed"; that is misleading.
-	    (message "Saved text until \"%s\""
-		     (buffer-substring-no-properties (- mark len) mark))
-	  (message "Saved text from \"%s\""
-		   (buffer-substring-no-properties mark (+ mark len))))))))
+	    ;; Don't say "killed" or "saved"; that is misleading.
+	    (message "Copied text until \"%s\""
+		     ;; Don't show newlines literally
+		     (query-replace-descr
+		      (buffer-substring-no-properties (- mark len) mark)))
+	  (message "Copied text from \"%s\""
+		   (query-replace-descr
+		    (buffer-substring-no-properties mark (+ mark len)))))))))
 
 (defun append-next-kill (&optional interactive)
   "Cause following command, if it kills, to add to previous kill.

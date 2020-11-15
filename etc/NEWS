@@ -203,6 +203,12 @@ This command would previously not redefine values defined by these
 forms, but this command has now been changed to work more like
 'eval-defun', and reset the values as specified.
 
+---
+** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.
+'copy-region-blink-delay' specifies a delay to indicate the region
+copied by 'kill-ring-save'.  'delete-pair-blink-delay' specifies
+a delay to show a paired character to delete.
+
 +++
 ** New command 'undo-redo'.
 It undoes previous undo commands, but doesn't record itself as an
