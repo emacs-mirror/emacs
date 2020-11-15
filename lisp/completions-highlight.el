@@ -177,6 +177,7 @@ suffix."
 
 (defvar completions-highlight-minibuffer-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-must-match-map)
     (define-key map [right] 'minibuffer-next-completion)
     (define-key map [left] 'minibuffer-previous-completion)
     (define-key map [down] 'minibuffer-next-line-completion)
@@ -186,6 +187,7 @@ suffix."
 
 (defvar completions-highlight-completions-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map completion-list-mode-map)
     (define-key map "\C-g" 'quit-window)
 
     (define-key map [up] 'completions-highlight-previous-line-completion)
