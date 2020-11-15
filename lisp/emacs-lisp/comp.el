@@ -723,22 +723,6 @@ Return the corresponding `comp-constraint' or `comp-constraint-f'."
   "Type-hint predicate for function name FUNC."
   (when (memq func comp-type-hints) t))
 
-(defun comp-func-ret-typeset (func)
-  "Return the typeset returned by function FUNC."
-  (if-let ((spec (gethash func comp-known-constraints-h)))
-      (comp-constraint-typeset (comp-constraint-f-ret spec))
-    '(t)))
-
-(defun comp-func-ret-range (func)
-  "Return the range returned by function FUNC."
-  (when-let ((spec (gethash func comp-known-constraints-h)))
-    (comp-constraint-range (comp-constraint-f-ret spec))))
-
-(defun comp-func-ret-valset (func)
-  "Return the valset returned by function FUNC."
-  (when-let ((spec (gethash func comp-known-constraints-h)))
-    (comp-constraint-valset (comp-constraint-f-ret spec))))
-
 (defun comp-func-unique-in-cu-p (func)
   "Return t if FUNC is known to be unique in the current compilation unit."
   (if (symbolp func)
@@ -2604,7 +2588,8 @@ Forward propagate immediate involed in assignments."
        (cl-every #'comp-mvar-value-vld-p args)))
 
 (defun comp-function-call-maybe-fold (insn f args)
-  "Given INSN when F is pure if all ARGS are known remove the function call."
+  "Given INSN when F is pure if all ARGS are known remove the function call.
+Return non-nil if the function is folded successfully."
   (cl-flet ((rewrite-insn-as-setimm (insn value)
                ;; See `comp-emit-setimm'.
                (comp-add-const-to-relocs value)
@@ -2675,14 +2660,12 @@ Return LVAL."
   "Propagate on a call INSN into LVAL.
 F is the function being called with arguments ARGS.
 Fold the call in case."
-  (if-let ((range (comp-func-ret-range f)))
-      (setf (comp-mvar-range lval) range
-            (comp-mvar-typeset lval) nil)
-    (if-let ((valset (comp-func-ret-valset f)))
-        (setf (comp-mvar-valset lval) valset
-              (comp-mvar-typeset lval) nil)
-      (setf (comp-mvar-typeset lval) (comp-func-ret-typeset f))))
-  (comp-function-call-maybe-fold insn f args))
+  (unless (comp-function-call-maybe-fold insn f args)
+    (when-let ((constr (gethash f comp-known-constraints-h)))
+      (let ((constr (comp-constraint-f-ret constr)))
+        (setf (comp-mvar-range lval) (comp-constraint-range constr)
+              (comp-mvar-valset lval) (comp-constraint-valset constr)
+              (comp-mvar-typeset lval) (comp-constraint-typeset constr))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
