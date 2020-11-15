@@ -106,7 +106,7 @@ alive and active."
   `(and (window-live-p minibuffer-scroll-window)
 	(eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
 	(with-selected-window minibuffer-scroll-window
-            ,@body)))
+          ,@body)))
 
 (defun minibuffer-next-completion (n)
   "Execute `completions-highlight-next-completion' in *Completions*.
@@ -178,27 +178,28 @@ suffix."
 (defvar completions-highlight-minibuffer-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-must-match-map)
-    (define-key map [right] 'minibuffer-next-completion)
-    (define-key map [left] 'minibuffer-previous-completion)
-    (define-key map [down] 'minibuffer-next-line-completion)
-    (define-key map [up] 'minibuffer-previous-line-completion)
+    (define-key map [right] #'minibuffer-next-completion)
+    (define-key map [left] #'minibuffer-previous-completion)
+    (define-key map [down] #'minibuffer-next-line-completion)
+    (define-key map [up] #'minibuffer-previous-line-completion)
     map)
   "Keymap used in minibuffer while *Completions* is active.")
 
 (defvar completions-highlight-completions-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map completion-list-mode-map)
-    (define-key map "\C-g" 'quit-window)
+    (define-key map [?\t] #'completions-highlight-next-completion)
+    (define-key map "\C-g" #'quit-window)
 
-    (define-key map [up] 'completions-highlight-previous-line-completion)
-    (define-key map "\C-p" 'completions-highlight-previous-line-completion)
-    (define-key map [down] 'completions-highlight-next-line-completion)
-    (define-key map "\C-n" 'completions-highlight-next-line-completion)
+    (define-key map [up] #'completions-highlight-previous-line-completion)
+    (define-key map "\C-p" #'completions-highlight-previous-line-completion)
+    (define-key map [down] #'completions-highlight-next-line-completion)
+    (define-key map "\C-n" #'completions-highlight-next-line-completion)
 
-    (define-key map [right] 'completions-highlight-next-completion)
-    (define-key map "\C-f" 'completions-highlight-next-completion)
-    (define-key map [left] 'completions-highlight-previous-completion)
-    (define-key map "\C-b" 'completions-highlight-previous-completion)
+    (define-key map [right] #'completions-highlight-next-completion)
+    (define-key map "\C-f" #'completions-highlight-next-completion)
+    (define-key map [left] #'completions-highlight-previous-completion)
+    (define-key map "\C-b" #'completions-highlight-previous-completion)
     map)
   "Keymap used in *Completions* while highlighting candidates.")
 
