@@ -571,9 +571,10 @@ Integer values are handled in the `range' slot.")
                   (> high most-positive-fixnum))
         t))))
 
-(defsubst comp-mvar-symbol-p (mvar)
+(defun comp-mvar-symbol-p (mvar)
   "Return t if MVAR is certainly a symbol."
-  (equal (comp-mvar-typeset mvar) '(symbol)))
+  (or (equal (comp-mvar-typeset mvar) '(symbol))
+      (cl-every #'symbolp (comp-mvar-valset mvar))))
 
 (defsubst comp-mvar-cons-p (mvar)
   "Return t if MVAR is certainly a cons."
@@ -1999,12 +2000,20 @@ Return the corresponding rhs slot number."
                      ,(and (or 'eq 'eql '= 'equal) test-fn) ,op1 ,op2))
 	       (comment ,_comment-str)
 	       (cond-jump ,cond ,(pred comp-mvar-p) ,bb-1 ,_bb-2))
-             (when-let ((target-slot1 (comp-cond-rw-target-slot
-                                      (comp-mvar-slot op1) (car insns-seq) b)))
-	       (comp-emit-assume target-slot1 op2 bb-1 test-fn))
-             (when-let ((target-slot2 (comp-cond-rw-target-slot
-                                      (comp-mvar-slot op2) (car insns-seq) b)))
-	       (comp-emit-assume target-slot2 op1 bb-1 test-fn))
+             ;; FIXME We guard the target block against having more
+             ;; then one predecessor.  The right fix will be to add a
+             ;; new dedicated basic block for the assumptions so we
+             ;; can proceed always.
+             (when (= (length (comp-block-in-edges
+                                 (gethash bb-1
+                                          (comp-func-blocks comp-func))))
+                      1)
+               (when-let ((target-slot1 (comp-cond-rw-target-slot
+                                         (comp-mvar-slot op1) (car insns-seq) b)))
+                 (comp-emit-assume target-slot1 op2 bb-1 test-fn))
+               (when-let ((target-slot2 (comp-cond-rw-target-slot
+                                         (comp-mvar-slot op2) (car insns-seq) b)))
+                 (comp-emit-assume target-slot2 op1 bb-1 test-fn)))
 	     (cl-return-from in-the-basic-block))))))
 
 (defun comp-cond-rw (_)

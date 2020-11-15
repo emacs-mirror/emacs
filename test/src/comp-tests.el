@@ -449,6 +449,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
                  '(1 2 3 (4 5 6))))
   (should (null (comp-test-copy-insn-f nil))))
 
+(comp-deftest comp-test-cond-rw-1 ()
+  "Check cond-rw does not break target blocks with multiple predecessor."
+  (should (null (comp-test-cond-rw-1-2-f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

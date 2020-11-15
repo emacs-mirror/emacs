@@ -370,6 +370,16 @@
         (copy-comp-mvar insn)
       insn)))
 
+(defun comp-test-cond-rw-1-1-f ())
+
+(defun comp-test-cond-rw-1-2-f ()
+  (let ((it (comp-test-cond-rw-1-1-f))
+	(key 't))
+    (if (or (equal it key)
+	    (eq key t))
+	it
+      nil)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
