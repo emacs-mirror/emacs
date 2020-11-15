@@ -99,7 +99,6 @@ TRY-VSCROLL is passed straight to `line-move'"
 
 
 ;; Minibuffer side commands
-
 (defmacro with-minibuffer-scroll-window (&rest body)
   "Execute BODY in *Completions* buffer and return to `minibuffer'.
 The command is only executed if the `minibuffer-scroll-window' is
@@ -149,7 +148,6 @@ executed in another window, but cursor stays in minibuffer."
    (completions-highlight-previous-line-completion n)))
 
 ;; General commands
-
 (defun minibuffer-completion-set-suffix (choice)
   "Set CHOICE suffix to current completion.
 It uses `completion-base-position' to determine the cursor
@@ -254,6 +252,7 @@ It is called when showing the *Completions* buffer."
   (use-local-map (make-composed-keymap
                   completions-highlight-minibuffer-map (current-local-map))))
 
+;;;###autoload
 (define-minor-mode completions-highlight-mode
   "Completion highlight mode to enable candidates highlight in the minibuffer."
   :global t
