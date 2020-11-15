@@ -50,14 +50,13 @@
   "Saves the Completions current-localmap to restore it disabling the mode.")
 
 ;; *Completions* side commands
-
 (defun completions-highlight-this-completion (&optional n)
   "Highlight the completion under point or near.
 N is set to 1 if not specified."
-  (setq n (or (and n (/ n (abs n)))
-	      1))
-  (next-completion n)
-  (completions-highlight-next-completion (* -1 n)))
+  (setq n (prefix-numeric-value n))
+  (let ((sign (/ n (abs n))))
+    (next-completion sign)
+    (completions-highlight-next-completion (* -1 sign))))
 
 (defun completions-highlight-next-completion (n)
   "Move to and highlight the next item in the completion list.
