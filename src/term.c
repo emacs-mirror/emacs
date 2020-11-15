@@ -2481,7 +2481,7 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 {
   int i, j;
 
-  result->kind = GPM_CLICK_EVENT;
+  result->kind = MOUSE_CLICK_EVENT;
   for (i = 0, j = GPM_B_LEFT; i < 3; i++, j >>= 1 )
     {
       if (event->buttons & j) {
@@ -2567,11 +2567,11 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
     {
       f->mouse_moved = 0;
       term_mouse_click (&ie, event, f);
-      /* eassert (ie.kind == GPM_CLICK_EVENT); */
+      /* eassert (ie.kind == MOUSE_CLICK_EVENT); */
       if (tty_handle_tab_bar_click (f, event->x, event->y,
                                     (ie.modifiers & down_modifier) != 0, &ie))
         {
-          /* eassert (ie.kind == GPM_CLICK_EVENT
+          /* eassert (ie.kind == MOUSE_CLICK_EVENT
            *          || ie.kind == TAB_BAR_EVENT); */
           /* tty_handle_tab_bar_click stores 2 events in the event
              queue, so we are done here.  */
@@ -2581,7 +2581,7 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
           count += 2;
           return count;
         }
-      /* eassert (ie.kind == GPM_CLICK_EVENT); */
+      /* eassert (ie.kind == MOUSE_CLICK_EVENT); */
       kbd_buffer_store_event (&ie);
       count++;
     }

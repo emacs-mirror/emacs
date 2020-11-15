@@ -220,10 +220,6 @@ enum event_kind
      save yourself before shutdown. */
   SAVE_SESSION_EVENT
 
-#ifdef HAVE_GPM
-  , GPM_CLICK_EVENT
-#endif
-
 #ifdef HAVE_DBUS
   , DBUS_EVENT
 #endif
