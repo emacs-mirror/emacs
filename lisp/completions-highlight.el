@@ -63,9 +63,15 @@ N is set to 1 if not specified."
   "Move to and highlight the next item in the completion list.
 With prefix argument N, move N items (negative N means move backward).
 If completion highlight is enabled, highlights the selected candidate.
-Returns the completion string if available."
+Returns the completion string if available.
+If N is equal to zero returns the current candidate"
   (interactive "p")
-  (next-completion n)
+
+  (unless (zerop n)
+    (next-completion n)
+    (cond
+     ((eobp) (next-completion -1))
+     ((bobp) (next-completion 1))))
 
   (let* ((obeg (point))
          (oend (next-single-property-change obeg 'mouse-face nil (point-max)))
@@ -108,8 +114,7 @@ alive and active."
   `(and (window-live-p minibuffer-scroll-window)
 	(eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
 	(with-selected-window minibuffer-scroll-window
-          (with-current-buffer (window-buffer minibuffer-scroll-window)
-            ,@body))))
+            ,@body)))
 
 (defun minibuffer-next-completion (n)
   "Execute `completions-highlight-next-completion' in *Completions*.
@@ -163,7 +168,6 @@ suffix."
          (completion-no-auto-exit t))
 
     (with-selected-window minibuffer-window
-      (with-current-buffer minibuffer-buffer
 	(let* ((prompt-end (minibuffer-prompt-end))
 	       (cursor-pos (if obase-position
 			       (cadr obase-position)
@@ -177,7 +181,7 @@ suffix."
           (choose-completion-string suffix minibuffer-buffer
                                     (list cursor-pos (point-max)))
           (add-face-text-property cursor-pos (+ cursor-pos suffix-len) 'shadow)
-          (goto-char cursor-pos))))))
+          (goto-char cursor-pos)))))
 
 
 (defvar completions-highlight-minibuffer-map
