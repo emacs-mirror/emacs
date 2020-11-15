@@ -1,4 +1,4 @@
-;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
+;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1989, 1993-1995, 1997, 2000-2020 Free Software
 ;; Foundation, Inc.
@@ -87,7 +87,6 @@ transitional behavior (again, as shown).
 The behavior of `%5z' is new in Emacs 27.  If your files might be
 edited by older versions of Emacs also, do not use this format yet."
   :type 'string
-  :group 'time-stamp
   :version "27.1")
 ;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
 
@@ -102,8 +101,7 @@ when they are saved, either add this line to your init file:
 or customize option `before-save-hook'.
 
 See also the variable `time-stamp-warn-inactive'."
-  :type 'boolean
-  :group 'time-stamp)
+  :type 'boolean)
 
 (defcustom time-stamp-warn-inactive t
   "Have \\[time-stamp] warn if a buffer did not get time-stamped.
@@ -111,7 +109,6 @@ If non-nil, a warning is displayed if `time-stamp-active' has
 deactivated time stamping and the buffer contains a template that
 otherwise would have been updated."
   :type 'boolean
-  :group 'time-stamp
   :version "19.29")
 
 (defcustom time-stamp-time-zone nil
@@ -125,7 +122,6 @@ Its format is that of the ZONE argument of the `format-time-string' function."
                        (integer :tag "Offset (seconds east of UTC)")
                        (string :tag "Time zone abbreviation"))
                  (integer :tag "Offset (seconds east of UTC)"))
-  :group 'time-stamp
   :version "20.1")
 ;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
 
