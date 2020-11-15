@@ -7165,15 +7165,21 @@ w32_initialize_display_info (Lisp_Object display_name)
   memset (dpyinfo, 0, sizeof (*dpyinfo));
 
   dpyinfo->name_list_element = Fcons (display_name, Qnil);
+  static char const title[] = "GNU Emacs";
   if (STRINGP (Vsystem_name))
     {
-      dpyinfo->w32_id_name = xmalloc (SCHARS (Vinvocation_name)
-                                      + SCHARS (Vsystem_name) + 2);
-      sprintf (dpyinfo->w32_id_name, "%s@%s",
-               SDATA (Vinvocation_name), SDATA (Vsystem_name));
+      static char const at[] = " at ";
+      ptrdiff_t nbytes = sizeof (title) + sizeof (at);
+      if (INT_ADD_WRAPV (nbytes, SCHARS (Vsystem_name), &nbytes))
+	memory_full (SIZE_MAX);
+      dpyinfo->w32_id_name = xmalloc (nbytes);
+      sprintf (dpyinfo->w32_id_name, "%s%s%s", title, at, SDATA (Vsystem_name));
     }
   else
-    dpyinfo->w32_id_name = xlispstrdup (Vinvocation_name);
+    {
+      dpyinfo->w32_id_name = xmalloc (sizeof (title));
+      strcpy (dpyinfo->w32_id_name, title);
+    }
 
   /* Default Console mode values - overridden when running in GUI mode
      with values obtained from system metrics.  */
