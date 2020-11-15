@@ -43,12 +43,6 @@
 (defvar minibuffer-tab-through-completions-function-save nil
   "Saves the the original value of completion-in-minibuffer-scroll-window.")
 
-(defvar completions-highlight-minibuffer-map-save nil
-  "Saves the minibuffer current-localmap to restore it disabling the mode.")
-
-(defvar completions-highlight-completions-map-save nil
-  "Saves the Completions current-localmap to restore it disabling the mode.")
-
 ;; *Completions* side commands
 (defun completions-highlight-this-completion (&optional n)
   "Highlight the completion under point or near.
@@ -209,38 +203,6 @@ suffix."
   "Keymap used in *Completions* while highlighting candidates.")
 
 
-(defun completions-highlight-minibuffer-bindings (set)
-  "Add extra/remove keybindings to `minibuffer-local-must-match-map'.
-When SET is nil the bindings are removed."
-  (if set
-      (let ((local-map (current-local-map)))
-        (unless (eq local-map completions-highlight-minibuffer-map)
-          (setq completions-highlight-minibuffer-map-save local-map)
-          (unless (eq local-map
-                      (keymap-parent completions-highlight-minibuffer-map))
-            (set-keymap-parent completions-highlight-minibuffer-map local-map))
-          (use-local-map completions-highlight-minibuffer-map)))
-
-    (use-local-map completions-highlight-minibuffer-map-save)))
-
-
-(defun completions-highlight-completions-bindings (set)
-  "Add extra keybindings to `completion-list-mode-map'.
-When SET is nil the bindings are removed."
-  (if set
-        (let ((local-map (current-local-map)))
-          (unless (eq local-map completions-highlight-completions-map)
-            (setq completions-highlight-completions-map-save local-map)
-            (set-keymap-parent completions-highlight-completions-map local-map)
-            (use-local-map completions-highlight-completions-map)))
-
-    ;; Set is called already inside *Completions* but unset not
-    (when-let ((parent (keymap-parent completions-highlight-completions-map))
-               (buffer (get-buffer "*Completions*")))
-      (with-current-buffer buffer
-        (use-local-map completions-highlight-completions-map-save)))))
-
-
 (defun completions-highlight-minibuffer-tab-through-completions ()
   "Default action in `minibuffer-scroll-window' WINDOW.
 This is called when *Completions* window is already visible and
@@ -284,17 +246,15 @@ It is called when showing the *Completions* buffer."
       (add-hook 'isearch-mode-end-hook
 		#'completions-highlight-this-completion nil t)
 
-      (completions-highlight-completions-bindings t)))
+      (use-local-map (make-composed-keymap
+                      completions-highlight-completions-map (current-local-map)))))
 
   (add-hook 'pre-command-hook
 	    #'completions-highlight-minibuffer-pre-command-hook nil t)
 
-  (completions-highlight-minibuffer-bindings t))
-
-(defun completions-highlight-exit ()
-  "Function to call when disabling the `completion-highlight-mode' mode.
-It is called when hiding the *Completions* buffer."
-  (completions-highlight-minibuffer-bindings nil))
+  ;; Add completions-highlight-minibuffer-map bindings to minibuffer map
+  (use-local-map (make-composed-keymap
+                  completions-highlight-minibuffer-map (current-local-map))))
 
 (define-minor-mode completions-highlight-mode
   "Completion highlight mode to enable candidates highlight in the minibuffer."
@@ -309,18 +269,13 @@ It is called when hiding the *Completions* buffer."
 	(setq minibuffer-tab-through-completions-function
 	      #'completions-highlight-minibuffer-tab-through-completions)
 
-	(add-hook 'completion-setup-hook #'completions-highlight-setup t)
-	(add-hook 'minibuffer-hide-completions-hook #'completions-highlight-exit)
-	)
+	(add-hook 'completion-setup-hook #'completions-highlight-setup t))
 
     ;; Restore the default completion-in-minibuffer-scroll-window
     (setq minibuffer-tab-through-completions-function
 	  minibuffer-tab-through-completions-function-save)
 
-    (remove-hook 'completion-setup-hook #'completions-highlight-setup)
-    (remove-hook 'minibuffer-hide-completions-hook #'completions-highlight-exit)
-
-    (completions-highlight-completions-bindings nil)))
+    (remove-hook 'completion-setup-hook #'completions-highlight-setup)))
 
 (provide 'completions-highlight)
 ;;; completions-highlight.el ends here
