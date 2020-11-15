@@ -37,7 +37,7 @@
 (require 'simple)
 (require 'minibuffer)
 
-(defvar completions-highlight-overlay nil
+(defvar completions-highlight-overlay (make-overlay 0 0)
   "Overlay to use when `completion-highlight-mode' is enabled.")
 
 (defvar minibuffer-tab-through-completions-function-save nil
@@ -223,7 +223,6 @@ should be assigned to completion-in-minibuffer-scroll-window."
 
 (defun completions-highlight-completions-pre-command-hook ()
   "Function `pre-command-hook' to use only in the *Completions."
-  (move-overlay completions-highlight-overlay 0 0)
   (minibuffer-completion-set-suffix ""))
 
 (defun completions-highlight-minibuffer-pre-command-hook ()
@@ -234,25 +233,24 @@ should be assigned to completion-in-minibuffer-scroll-window."
 (defun completions-highlight-setup ()
   "Function to call when enabling the `completion-highlight-mode' mode.
 It is called when showing the *Completions* buffer."
+  (delete-overlay completions-highlight-overlay)
 
   (with-current-buffer standard-output
     (when (string= (buffer-name) "*Completions*")
-      (unless (overlayp completions-highlight-overlay)
-	  (setq completions-highlight-overlay (make-overlay 0 0))
-	  (overlay-put completions-highlight-overlay 'face 'highlight))
 
       (add-hook 'pre-command-hook
 		#'completions-highlight-completions-pre-command-hook nil t)
       (add-hook 'isearch-mode-end-hook
 		#'completions-highlight-this-completion nil t)
 
+      ;; Add completions-highlight-completions-map to *Completions*
       (use-local-map (make-composed-keymap
                       completions-highlight-completions-map (current-local-map)))))
 
   (add-hook 'pre-command-hook
 	    #'completions-highlight-minibuffer-pre-command-hook nil t)
 
-  ;; Add completions-highlight-minibuffer-map bindings to minibuffer map
+  ;; Add completions-highlight-minibuffer-map bindings to minibuffer
   (use-local-map (make-composed-keymap
                   completions-highlight-minibuffer-map (current-local-map))))
 
@@ -263,7 +261,9 @@ It is called when showing the *Completions* buffer."
 
   (if completions-highlight-mode
       (progn
-	(setq minibuffer-tab-through-completions-function-save
+	(overlay-put completions-highlight-overlay 'face 'highlight)
+
+        (setq minibuffer-tab-through-completions-function-save
 	      minibuffer-tab-through-completions-function)
 
 	(setq minibuffer-tab-through-completions-function
