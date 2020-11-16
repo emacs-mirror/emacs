@@ -4031,7 +4031,7 @@ make_directory_wrapper_1 (Lisp_Object ignore)
 
 DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
        Scomp_el_to_eln_filename, 1, 2, 0,
-       doc: /* Given a source FILENAME return the corresponding .eln filename.
+       doc: /* Return the corresponding .eln filename for source FILENAME.
 If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
   (Lisp_Object filename, Lisp_Object base_dir)
 {
@@ -4173,7 +4173,8 @@ DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,
 
 DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        0, 0, 0,
-       doc: /* Initialize the native compiler context. Return t on success.  */)
+       doc: /* Initialize the native compiler context.
+Return t on success.  */)
   (void)
 {
   load_gccjit_if_necessary (true);
@@ -4331,8 +4332,7 @@ DEFUN ("comp-native-driver-options-effective-p",
        Fcomp_native_driver_options_effective_p,
        Scomp_native_driver_options_effective_p,
        0, 0, 0,
-       doc: /* Return t if `comp-native-driver-options' is
-	       effective nil otherwise.  */)
+       doc: /* Return t if `comp-native-driver-options' is effective.  */)
   (void)
 {
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
@@ -4378,7 +4378,7 @@ restore_sigmask (void)
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
-       doc: /* Compile as native code the current context to file FILENAME.  */)
+       doc: /* Compile the current context as native code to file FILENAME.  */)
   (Lisp_Object filename)
 {
   load_gccjit_if_necessary (true);
@@ -4491,8 +4491,10 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
        Scomp_libgccjit_version, 0, 0, 0,
-       doc: /* Return the libgccjit version in use in the form
-(MAJOR MINOR PATCHLEVEL) or nil if unknown (pre GCC10).  */)
+       doc: /* Return libgccjit version in use.
+
+The return value has the form (MAJOR MINOR PATCHLEVEL) or nil if
+unknown (before GCC version 10).  */)
   (void)
 {
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version) || defined (WINDOWSNT)
@@ -4974,8 +4976,8 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
 
 DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
        7, 7, 0,
-       doc: /* This gets called by top_level_run during load phase to register
-	       anonymous lambdas.  */)
+       doc: /* Register anonymous lambda.
+This gets called by top_level_run during the load phase.  */)
   (Lisp_Object reloc_idx, Lisp_Object minarg, Lisp_Object maxarg,
    Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
    Lisp_Object comp_u)
@@ -5002,8 +5004,8 @@ DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
 
 DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
        7, 7, 0,
-       doc: /* This gets called by top_level_run during load phase to register
-	       each exported subr.  */)
+       doc: /* Register exported subr.
+This gets called by top_level_run during the load phase.  */)
   (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
    Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
    Lisp_Object comp_u)
@@ -5028,8 +5030,8 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
 
 DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
        Scomp__late_register_subr, 7, 7, 0,
-       doc: /* This gets called by late_top_level_run during load
-	       phase to register each exported subr.  */)
+       doc: /* Register exported subr.
+This gets called by late_top_level_run during the load phase.  */)
   (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
    Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
    Lisp_Object comp_u)
@@ -5056,8 +5058,7 @@ file_in_eln_sys_dir (Lisp_Object filename)
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILENAME.
-	       LATE_LOAD has to be non-nil when loading for deferred
-	       compilation.  */)
+LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
   (Lisp_Object filename, Lisp_Object late_load)
 {
   CHECK_STRING (filename);
@@ -5102,8 +5103,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
 
 DEFUN ("native-comp-available-p", Fnative_comp_available_p,
        Snative_comp_available_p, 0, 0, 0,
-       doc: /* Returns t if native compilation of Lisp files is available in
-this instance of Emacs, nil otherwise.  */)
+       doc: /* Return non-nil if native compilation support is built-in.  */)
   (void)
 {
 #ifdef HAVE_NATIVE_COMP
@@ -5120,11 +5120,10 @@ syms_of_comp (void)
 #ifdef HAVE_NATIVE_COMP
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("comp-deferred-compilation", comp_deferred_compilation,
-	       doc: /* If non-nil compile asyncronously all .elc files
-being loaded.
+	       doc: /* If non-nil compile loaded .elc files asynchronously.
 
-Once compilation happened each function definition is updated to the
-native compiled one.  */);
+After compilation, each function definition is updated to the native
+compiled one.  */);
   comp_deferred_compilation = true;
 
   DEFSYM (Qcomp_speed, "comp-speed");
@@ -5275,8 +5274,8 @@ native compiled one.  */);
   Vcomp_native_version_dir = Qnil;
 
   DEFVAR_LISP ("comp-deferred-pending-h", Vcomp_deferred_pending_h,
-	       doc: /* Hash table symbol-name -> function-value.  For
-		       internal use during  */);
+	       doc: /* Hash table symbol-name -> function-value.
+For internal use.  */);
   Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   DEFVAR_LISP ("comp-eln-to-el-h", Vcomp_eln_to_el_h,
@@ -5296,9 +5295,8 @@ The last directory of this list is assumed to be the system one.  */);
   Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
   DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
-	       doc: /* When non-nil enable trampoline synthesis
-		       triggerd by `fset' making primitives
-		       redefinable effectivelly.  */);
+	       doc: /* If non-nil, enable trampoline synthesis triggered by `fset'.
+This makes primitives redefinable effectively.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
 	       doc: /* Hash table subr-name -> installed trampoline.
