@@ -425,7 +425,8 @@ arrange to deinstrument it.
 @item ?
 Display the help message for Edebug (@code{edebug-help}).
 
-@item C-]
+@item a
+@itemx C-]
 Abort one level back to the previous command level
 (@code{abort-recursive-edit}).
 
@@ -446,7 +447,7 @@ Redisplay the most recently known expression result in the echo area
 
 @item d
 Display a backtrace, excluding Edebug's own functions for clarity
-(@code{edebug-backtrace}).
+(@code{edebug-pop-to-backtrace}).
 
 @xref{Backtraces}, for a description of backtraces
 and the commands which work on them.
@@ -640,7 +641,8 @@ configuration is the collection of windows and contents that were in
 effect outside of Edebug.
 
 @table @kbd
-@item v
+@item P
+@itemx v
 Switch to viewing the outside window configuration
 (@code{edebug-view-outside}).  Type @kbd{C-x X w} to return to Edebug.
 
