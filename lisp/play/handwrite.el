@@ -233,7 +233,7 @@ Variables: `handwrite-linespace'     (default 12)
 	))
     (switch-to-buffer ps-buf-name)
     (forward-line 1)
-    (insert "showpage exec Hwsave restore\n\n")
+    (insert " showpage exec Hwsave restore\n\n")
     (insert "%%Pages " (number-to-string ipage) " 0\n")
     (insert "%%EOF\n")
     ;;To avoid cumbersome code we simply ignore formfeeds
