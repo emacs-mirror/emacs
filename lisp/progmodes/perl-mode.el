@@ -209,7 +209,7 @@
 (eval-and-compile
   (defconst perl--syntax-exp-intro-keywords
     '("split" "if" "unless" "until" "while" "print"
-      "grep" "map" "not" "or" "and" "for" "foreach"))
+      "grep" "map" "not" "or" "and" "for" "foreach" "return"))
 
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"

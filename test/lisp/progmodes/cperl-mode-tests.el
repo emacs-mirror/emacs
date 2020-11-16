@@ -228,6 +228,21 @@ documentation it does the right thing anyway."
      (cperl-indent-command)
      (forward-line 1))))
 
+(ert-deftest cperl-test-bug-28650 ()
+  "Verify that regular expressions are recognized after 'return'.
+The test uses the syntax property \"inside a string\" for the
+text in regular expressions, which is non-nil for both cperl-mode
+and perl-mode."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-26850.pl"))
+    (goto-char (point-min))
+    (re-search-forward "sub interesting {[^}]*}")
+    (should-not (equal (nth 3 (cperl-test-ppss (match-string 0) "Today"))
+                       nil))
+    (re-search-forward "sub boring {[^}]*}")
+    (should-not (equal (nth 3 (cperl-test-ppss (match-string 0) "likes\\?"))
+                       nil))))
+
 (ert-deftest cperl-test-bug-30393 ()
   "Verify that indentation is not disturbed by an open paren in col 0.
 Perl is not Lisp: An open paren in column 0 does not start a function."
