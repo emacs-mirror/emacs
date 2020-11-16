@@ -88,16 +88,16 @@ If this is a function, call it to generate the initial field text."
                  (const :tag "Default" t))
   :risky t)
 
-(defcustom bibtex-unify-case-convert 'identity
-  "*Function called when unifying case on entry and field names.
-This variable is buffer-local."
+(defcustom bibtex-unify-case-convert #'identity
+  "Function called when unifying case on entry and field names.
+It is called with one argument, the entry or field name."
   :version "28.1"
   :type '(choice (const :tag "Same case as in `bibtex-field-alist'" identity)
 		 (const :tag "Downcase" downcase)
 		 (const :tag "Capitalize" capitalize)
 		 (const :tag "Upcase" upcase)
-		 (function :tag "Conversion function")))
-(make-variable-buffer-local 'bibtex-unify-case-convert)
+                 (function :tag "Conversion function"))
+  :local t)
 
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
