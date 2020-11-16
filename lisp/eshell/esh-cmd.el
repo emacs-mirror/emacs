@@ -918,7 +918,7 @@ at the moment are:
 		       (funcall pred name))
 		  (throw 'simple nil)))
 	    t))
-	 (fboundp (intern-soft (concat "eshell/" name))))))
+	 (eshell-find-alias-function name))))
 
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."
