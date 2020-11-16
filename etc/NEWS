@@ -1307,6 +1307,11 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 
 ** Miscellaneous
 
+---
+*** New user option 'bibtex-unify-case-convert'.
+This new option allows the user to customize how case is converted
+when unifying entries.
+
 +++
 *** 'format-seconds' can now be used for sub-second times.
 The new optional "," parameter has been added, and
