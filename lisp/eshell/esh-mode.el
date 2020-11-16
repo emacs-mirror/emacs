@@ -742,13 +742,12 @@ This function should be a pre-command hook."
 	    (if (eq scroll 'this)
 		(goto-char (point-max))
 	      (walk-windows
-	       (function
-		(lambda (window)
-		  (when (and (eq (window-buffer window) current)
-			     (or (eq scroll t) (eq scroll 'all)))
-		    (select-window window)
-		    (goto-char (point-max))
-		    (select-window selected))))
+               (lambda (window)
+                 (when (and (eq (window-buffer window) current)
+                            (or (eq scroll t) (eq scroll 'all)))
+                   (select-window window)
+                   (goto-char (point-max))
+                   (select-window selected)))
 	       nil t))))))
 
 ;;; jww (1999-10-23): this needs testing
@@ -764,29 +763,28 @@ This function should be in the list `eshell-output-filter-functions'."
 	 (scroll eshell-scroll-to-bottom-on-output))
     (unwind-protect
 	(walk-windows
-	 (function
-	  (lambda (window)
-	    (if (eq (window-buffer window) current)
-		(progn
-		  (select-window window)
-		  (if (and (< (point) eshell-last-output-end)
-			   (or (eq scroll t) (eq scroll 'all)
-			       ;; Maybe user wants point to jump to end.
-			       (and (eq scroll 'this)
-				    (eq selected window))
-			       (and (eq scroll 'others)
-				    (not (eq selected window)))
-			       ;; If point was at the end, keep it at end.
-			       (>= (point) eshell-last-output-start)))
-		      (goto-char eshell-last-output-end))
-		  ;; Optionally scroll so that the text
-		  ;; ends at the bottom of the window.
-		  (if (and eshell-scroll-show-maximum-output
-			   (>= (point) eshell-last-output-end))
-		      (save-excursion
-			(goto-char (point-max))
-			(recenter -1)))
-		  (select-window selected)))))
+         (lambda (window)
+           (if (eq (window-buffer window) current)
+               (progn
+                 (select-window window)
+                 (if (and (< (point) eshell-last-output-end)
+                          (or (eq scroll t) (eq scroll 'all)
+                              ;; Maybe user wants point to jump to end.
+                              (and (eq scroll 'this)
+                                   (eq selected window))
+                              (and (eq scroll 'others)
+                                   (not (eq selected window)))
+                              ;; If point was at the end, keep it at end.
+                              (>= (point) eshell-last-output-start)))
+                     (goto-char eshell-last-output-end))
+                 ;; Optionally scroll so that the text
+                 ;; ends at the bottom of the window.
+                 (if (and eshell-scroll-show-maximum-output
+                          (>= (point) eshell-last-output-end))
+                     (save-excursion
+                       (goto-char (point-max))
+                       (recenter -1)))
+                 (select-window selected))))
 	 nil t)
       (set-buffer current))))
 

@@ -65,16 +65,15 @@ Changes will only take effect in future Eshell buffers."
   :type (append
 	 (list 'set ':tag "Supported modules")
 	 (mapcar
-	  (function
-	   (lambda (modname)
-	     (let ((modsym (intern modname)))
-	       (list 'const
-		     ':tag (format "%s -- %s" modname
-				   (get modsym 'custom-tag))
-		     ':link (caar (get modsym 'custom-links))
-		     ':doc (concat "\n" (get modsym 'group-documentation)
-				   "\n ")
-		     modsym))))
+          (lambda (modname)
+            (let ((modsym (intern modname)))
+              (list 'const
+                    ':tag (format "%s -- %s" modname
+                                  (get modsym 'custom-tag))
+                    ':link (caar (get modsym 'custom-links))
+                    ':doc (concat "\n" (get modsym 'group-documentation)
+                                  "\n ")
+                    modsym)))
 	  (sort (mapcar 'symbol-name
 			(eshell-subgroups 'eshell-module))
 		'string-lessp))

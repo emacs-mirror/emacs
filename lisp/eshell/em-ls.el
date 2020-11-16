@@ -631,38 +631,37 @@ In Eshell's implementation of ls, ENTRIES is always reversed."
   (if (eq sort-method 'unsorted)
       (nreverse entries)
     (sort entries
-	  (function
-	   (lambda (l r)
-	     (let ((result
-		    (cond
-		     ((eq sort-method 'by-atime)
-		      (eshell-ls-compare-entries l r 4 'time-less-p))
-		     ((eq sort-method 'by-mtime)
-		      (eshell-ls-compare-entries l r 5 'time-less-p))
-		     ((eq sort-method 'by-ctime)
-		      (eshell-ls-compare-entries l r 6 'time-less-p))
-		     ((eq sort-method 'by-size)
-		      (eshell-ls-compare-entries l r 7 '<))
-		     ((eq sort-method 'by-extension)
-		      (let ((lx (file-name-extension
-				 (directory-file-name (car l))))
-			    (rx (file-name-extension
-				 (directory-file-name (car r)))))
-			(cond
-			 ((or (and (not lx) (not rx))
-			      (equal lx rx))
-			  (string-lessp (directory-file-name (car l))
-					(directory-file-name (car r))))
-			 ((not lx) t)
-			 ((not rx) nil)
-			 (t
-			  (string-lessp lx rx)))))
-		     (t
-		      (string-lessp (directory-file-name (car l))
-				    (directory-file-name (car r)))))))
-	       (if reverse-list
-		   (not result)
-		 result)))))))
+          (lambda (l r)
+            (let ((result
+                   (cond
+                    ((eq sort-method 'by-atime)
+                     (eshell-ls-compare-entries l r 4 'time-less-p))
+                    ((eq sort-method 'by-mtime)
+                     (eshell-ls-compare-entries l r 5 'time-less-p))
+                    ((eq sort-method 'by-ctime)
+                     (eshell-ls-compare-entries l r 6 'time-less-p))
+                    ((eq sort-method 'by-size)
+                     (eshell-ls-compare-entries l r 7 '<))
+                    ((eq sort-method 'by-extension)
+                     (let ((lx (file-name-extension
+                                (directory-file-name (car l))))
+                           (rx (file-name-extension
+                                (directory-file-name (car r)))))
+                       (cond
+                        ((or (and (not lx) (not rx))
+                             (equal lx rx))
+                         (string-lessp (directory-file-name (car l))
+                                       (directory-file-name (car r))))
+                        ((not lx) t)
+                        ((not rx) nil)
+                        (t
+                         (string-lessp lx rx)))))
+                    (t
+                     (string-lessp (directory-file-name (car l))
+                                   (directory-file-name (car r)))))))
+              (if reverse-list
+                  (not result)
+                result))))))
 
 (defun eshell-ls-files (files &optional size-width copy-fileinfo)
   "Output a list of FILES.
@@ -799,9 +798,8 @@ to use, and each member of which is the width of that column
 	 (width 0)
 	 (widths
 	  (mapcar
-	   (function
-	    (lambda (file)
-	      (+ 2 (length (car file)))))
+           (lambda (file)
+             (+ 2 (length (car file))))
 	   files))
 	 ;; must account for the added space...
 	 (max-width (+ (window-width) 2))
@@ -846,9 +844,8 @@ to use, and each member of which is the width of that column
 	 (width 0)
 	 (widths
 	  (mapcar
-	   (function
-	    (lambda (file)
-	      (+ 2 (length (car file)))))
+           (lambda (file)
+             (+ 2 (length (car file))))
 	   files))
 	 (max-width (+ (window-width) 2))
 	 col-widths

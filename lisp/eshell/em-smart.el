@@ -94,10 +94,9 @@ it to get a real sense of how it works."
 
 (defcustom eshell-smart-unload-hook
   (list
-   (function
-    (lambda ()
-      (remove-hook 'window-configuration-change-hook
-		   'eshell-refresh-windows))))
+   (lambda ()
+     (remove-hook 'window-configuration-change-hook
+                  'eshell-refresh-windows)))
   "A hook that gets run when `eshell-smart' is unloaded."
   :type 'hook
   :group 'eshell-smart)
@@ -186,9 +185,8 @@ The options are `begin', `after' or `end'."
 
     (make-local-variable 'eshell-smart-command-done)
     (add-hook 'eshell-post-command-hook
-	      (function
-	       (lambda ()
-		 (setq eshell-smart-command-done t)))
+              (lambda ()
+                (setq eshell-smart-command-done t))
               t t)
 
     (unless (eq eshell-review-quick-commands t)
@@ -208,13 +206,12 @@ The options are `begin', `after' or `end'."
   "Refresh all visible Eshell buffers."
   (let (affected)
     (walk-windows
-     (function
-      (lambda (wind)
-	(with-current-buffer (window-buffer wind)
-	  (if eshell-mode
-	      (let (window-scroll-functions) ;;FIXME: Why?
-		(eshell-smart-scroll-window wind (window-start))
-		(setq affected t))))))
+     (lambda (wind)
+       (with-current-buffer (window-buffer wind)
+         (if eshell-mode
+             (let (window-scroll-functions) ;;FIXME: Why?
+               (eshell-smart-scroll-window wind (window-start))
+               (setq affected t)))))
      0 frame)
     (if affected
 	(let (window-scroll-functions) ;;FIXME: Why?

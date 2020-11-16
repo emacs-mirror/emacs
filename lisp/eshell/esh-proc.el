@@ -215,9 +215,8 @@ and signal names."
 The prompt will be set to PROMPT."
   (completing-read prompt
 		   (mapcar
-		    (function
-		     (lambda (proc)
-		       (cons (process-name proc) t)))
+                    (lambda (proc)
+                      (cons (process-name proc) t))
 		    (process-list))
                    nil t))
 
@@ -499,9 +498,8 @@ See the variable `eshell-kill-processes-on-exit'."
   (let ((sigs eshell-kill-process-signals))
     (while sigs
       (eshell-process-interact
-       (function
-	(lambda (proc)
-	  (signal-process (process-id proc) (car sigs)))) t query)
+       (lambda (proc)
+         (signal-process (process-id proc) (car sigs))) t query)
       (setq query nil)
       (if (not eshell-process-list)
 	  (setq sigs nil)

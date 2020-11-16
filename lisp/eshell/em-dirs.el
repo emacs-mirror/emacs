@@ -289,9 +289,8 @@ Thus, this does not include the current directory.")
 	       (eshell-read-user-names)
 	       (pcomplete-uniquify-list
 		(mapcar
-		 (function
-		  (lambda (user)
-		    (file-name-as-directory (cdr user))))
+                 (lambda (user)
+                   (file-name-as-directory (cdr user)))
 		 eshell-user-names)))))))
 
 (defun eshell/pwd (&rest _args)

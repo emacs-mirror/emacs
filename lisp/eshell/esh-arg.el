@@ -85,51 +85,48 @@ If POS is nil, the location of point is checked."
    'eshell-parse-special-reference
 
    ;; numbers convert to numbers if they stand alone
-   (function
-    (lambda ()
-      (when (and (not eshell-current-argument)
-		 (not eshell-current-quoted)
-		 (looking-at eshell-number-regexp)
-		 (eshell-arg-delimiter (match-end 0)))
-	(goto-char (match-end 0))
-	(let ((str (match-string 0)))
-	  (if (> (length str) 0)
-	      (add-text-properties 0 (length str) '(number t) str))
-	  str))))
+   (lambda ()
+     (when (and (not eshell-current-argument)
+                (not eshell-current-quoted)
+                (looking-at eshell-number-regexp)
+                (eshell-arg-delimiter (match-end 0)))
+       (goto-char (match-end 0))
+       (let ((str (match-string 0)))
+         (if (> (length str) 0)
+             (add-text-properties 0 (length str) '(number t) str))
+         str)))
 
    ;; parse any non-special characters, based on the current context
-   (function
-    (lambda ()
-      (unless eshell-inside-quote-regexp
-	(setq eshell-inside-quote-regexp
-	      (format "[^%s]+"
-		      (apply 'string eshell-special-chars-inside-quoting))))
-      (unless eshell-outside-quote-regexp
-	(setq eshell-outside-quote-regexp
-	      (format "[^%s]+"
-		      (apply 'string eshell-special-chars-outside-quoting))))
-      (when (looking-at (if eshell-current-quoted
-			    eshell-inside-quote-regexp
-			  eshell-outside-quote-regexp))
-	(goto-char (match-end 0))
-	(let ((str (match-string 0)))
-	  (if str
-	      (set-text-properties 0 (length str) nil str))
-	  str))))
+   (lambda ()
+     (unless eshell-inside-quote-regexp
+       (setq eshell-inside-quote-regexp
+             (format "[^%s]+"
+                     (apply 'string eshell-special-chars-inside-quoting))))
+     (unless eshell-outside-quote-regexp
+       (setq eshell-outside-quote-regexp
+             (format "[^%s]+"
+                     (apply 'string eshell-special-chars-outside-quoting))))
+     (when (looking-at (if eshell-current-quoted
+                           eshell-inside-quote-regexp
+                         eshell-outside-quote-regexp))
+       (goto-char (match-end 0))
+       (let ((str (match-string 0)))
+         (if str
+             (set-text-properties 0 (length str) nil str))
+         str)))
 
    ;; whitespace or a comment is an argument delimiter
-   (function
-    (lambda ()
-      (let (comment-p)
-	(when (or (looking-at "[ \t]+")
-		  (and (not eshell-current-argument)
-		       (looking-at "#\\([^<'].*\\|$\\)")
-		       (setq comment-p t)))
-	  (if comment-p
-	      (add-text-properties (match-beginning 0) (match-end 0)
-				   '(comment t)))
-	  (goto-char (match-end 0))
-	  (eshell-finish-arg)))))
+   (lambda ()
+     (let (comment-p)
+       (when (or (looking-at "[ \t]+")
+                 (and (not eshell-current-argument)
+                      (looking-at "#\\([^<'].*\\|$\\)")
+                      (setq comment-p t)))
+         (if comment-p
+             (add-text-properties (match-beginning 0) (match-end 0)
+                                  '(comment t)))
+         (goto-char (match-end 0))
+         (eshell-finish-arg))))
 
    ;; parse backslash and the character after
    'eshell-parse-backslash

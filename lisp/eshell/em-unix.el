@@ -419,9 +419,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 		  (apply 'eshell-shuffle-files
 			 command action
 			 (mapcar
-			  (function
-			   (lambda (file)
-			     (concat source "/" file)))
+                          (lambda (file)
+                            (concat source "/" file))
 			  (directory-files source))
 			 target func t args)
 		  (when (eq func 'rename-file)
