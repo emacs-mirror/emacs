@@ -649,7 +649,7 @@ Eshell solves this problem by running such programs in Emacs's
 terminal emulator.
 
 Programs that need a terminal to display output properly are referred
-to in this manual as ``visual commands,'' because they are not simply
+to in this manual as ``visual commands'', because they are not simply
 line-oriented.  You must tell Eshell which commands are visual, by
 adding them to @code{eshell-visual-commands}; for commands that are
 visual for only certain @emph{sub}-commands -- e.g., @samp{git log} but
