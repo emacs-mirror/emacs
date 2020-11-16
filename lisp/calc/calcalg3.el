@@ -480,13 +480,13 @@
                             "Fitting variables"
                             (format "%s; %s"
 				    (mapconcat 'symbol-name
-					       (mapcar (function (lambda (v)
-								   (nth 1 v)))
+                                               (mapcar (lambda (v)
+                                                         (nth 1 v))
 						       defv)
 					       ",")
 				    (mapconcat 'symbol-name
-					       (mapcar (function (lambda (v)
-								   (nth 1 v)))
+                                               (mapcar (lambda (v)
+                                                         (nth 1 v))
 						       defc)
 					       ",")))))
 	(coefs nil))
@@ -1336,7 +1336,7 @@
   (or (> (length (nth 1 data)) 2)
       (math-reject-arg data "*Too few data points"))
   (if (and (math-vectorp x) (or (math-constp x) math-expand-formulas))
-      (cons 'vec (mapcar (function (lambda (x) (calcFunc-polint data x)))
+      (cons 'vec (mapcar (lambda (x) (calcFunc-polint data x))
 			 (cdr x)))
     (or (math-objectp x) math-expand-formulas (math-reject-arg x 'objectp))
     (math-with-extra-prec 2
@@ -1352,7 +1352,7 @@
   (or (> (length (nth 1 data)) 2)
       (math-reject-arg data "*Too few data points"))
   (if (and (math-vectorp x) (or (math-constp x) math-expand-formulas))
-      (cons 'vec (mapcar (function (lambda (x) (calcFunc-ratint data x)))
+      (cons 'vec (mapcar (lambda (x) (calcFunc-ratint data x))
 			 (cdr x)))
     (or (math-objectp x) math-expand-formulas (math-reject-arg x 'objectp))
     (math-with-extra-prec 2
@@ -1910,8 +1910,8 @@
     (while p
       (setq vars (delq (assoc (car-safe p) vars) vars)
 	    p (cdr p)))
-    (sort (mapcar 'car vars)
-	  (function (lambda (x y) (string< (nth 1 x) (nth 1 y)))))))
+    (sort (mapcar #'car vars)
+          (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
 
 ;; The variables math-all-vars-vars (the vars for math-all-vars) and
 ;; math-all-vars-found are local to math-all-vars-in, but are used by
