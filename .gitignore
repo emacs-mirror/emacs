@@ -198,7 +198,6 @@ src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
 src/temacs
-src/fingerprint.c
 src/dmpstruct.h
 src/*.pdmp
 
