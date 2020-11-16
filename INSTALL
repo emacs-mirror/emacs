@@ -254,9 +254,9 @@ updated.
 Emacs debugging symbols are distributed by a debug package.  It does
 not exist for every released Emacs package, this depends on the
 distribution.  On Debian-based systems, you can install a debug
-package of Emacs with a command like 'apt-get install emacs-dbg' (on
-older systems, replace 'emacs' with eg 'emacs27').  On Red Hat-based
-systems, the corresponding command is 'dnf debuginfo-install emacs'.
+package of Emacs with a command like 'apt-get install emacs-dbg'.
+On Red Hat-based systems, the corresponding command is
+'dnf debuginfo-install emacs'.
 
 
 DETAILED BUILDING AND INSTALLATION:
