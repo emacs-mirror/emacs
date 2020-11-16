@@ -3683,7 +3683,7 @@ When \"(\" is present, that defun will attempt to parse a
 parenthesized expression inside the template.  When \")\" is
 present it will treat an unbalanced closing paren as a sign of
 the invalidity of the putative template construct."
-  t "[<;{},|+&->)]"
+  t "[<;{},|+&>)-]"
   c++ "[<;{},>()]")
 (c-lang-defvar c-<>-notable-chars-re (c-lang-const c-<>-notable-chars-re))
 

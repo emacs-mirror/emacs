@@ -1974,14 +1974,13 @@ make_tag (const char *name, 	/* tag name, or NULL if unnamed */
 
 /* Record a tag. */
 static void
-pfnote (char *name, bool is_func, char *linestart, ptrdiff_t linelen,
-	intmax_t lno, intmax_t cno)
-                		/* tag name, or NULL if unnamed */
-                  		/* tag is a function */
-                     		/* start of the line where tag is */
-                 		/* length of the line where tag is */
-             			/* line number */
-              			/* character number */
+pfnote (char *name,		/* tag name, or NULL if unnamed */
+	bool is_func,		/* tag is a function */
+	char *linestart,	/* start of the line where tag is */
+	ptrdiff_t linelen,	/* length of the line where tag is */
+	intmax_t lno,		/* line number */
+	intmax_t cno)		/* character number */
+
 {
   register node *np;
 
@@ -2905,15 +2904,13 @@ static void make_C_tag (bool);
  */
 
 static bool
-consider_token (char *str, ptrdiff_t len, int c, int *c_extp,
-		ptrdiff_t bracelev, ptrdiff_t parlev, bool *is_func_or_var)
-                        	/* IN: token pointer */
-                      		/* IN: token length */
-                    		/* IN: first char after the token */
-                 		/* IN, OUT: C extensions mask */
-                  		/* IN: brace level */
-                		/* IN: parenthesis level */
-                          	/* OUT: function or variable found */
+consider_token (char *str,	      /* IN: token pointer */
+		ptrdiff_t len,	      /* IN: token length */
+		int c,		      /* IN: first char after the token */
+		int *c_extp,	      /* IN, OUT: C extensions mask */
+		ptrdiff_t bracelev,   /* IN: brace level */
+		ptrdiff_t parlev,     /* IN: parenthesis level */
+		bool *is_func_or_var) /* OUT: function or variable found */
 {
   /* When structdef is stagseen, scolonseen, or snone with bracelev > 0,
      structtype is the type of the preceding struct-like keyword, and
@@ -3312,9 +3309,8 @@ perhaps_more_input (FILE *inf)
  * 	C syntax and adds them to the list.
  */
 static void
-C_entries (int c_ext, FILE *inf)
-               			/* extension of C */
-               			/* input file */
+C_entries (int c_ext,		/* extension of C */
+	   FILE *inf)		/* input file */
 {
   char c;			/* latest char read; '\0' for end of line */
   char *lp;			/* pointer one beyond the character `c' */

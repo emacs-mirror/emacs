@@ -352,11 +352,11 @@ is the current directory.
 *** Set find-function-C-source-directory accordingly.
 
 Once you have installed the source package, for example at
-/home/myself/deb-src/emacs-26.3, add the following line to your
+/home/myself/deb-src/emacs-27.1, add the following line to your
 startup file:
 
      (setq find-function-C-source-directory
-           "/home/myself/deb-src/emacs-26.3/src/")
+           "/home/myself/deb-src/emacs-27.1/src/")
 
 The installation directory of the Emacs source package will contain
 the exact package name and version number of Emacs that is installed
@@ -386,7 +386,7 @@ To get describe-function and similar commands to work, you can then
 add something like the following to your startup file:
 
      (setq find-function-C-source-directory
-           "/usr/src/debug/emacs-26.3-1.fc31.x86_64/src/")
+           "/usr/src/debug/emacs-27.1-1.fc31.x86_64/src/")
 
 However, the exact directory name will depend on the system, and you
 will need to both upgrade source and debug info when your system

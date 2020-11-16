@@ -1292,7 +1292,15 @@ changed with `comment-style'."
 
 (defun comment-region-default (beg end &optional arg)
   (if comment-combine-change-calls
-      (combine-change-calls beg end (comment-region-default-1 beg end arg))
+      (combine-change-calls beg
+          ;; A new line might get inserted and whitespace deleted
+          ;; after END for line comments.  Ensure the next argument is
+          ;; after any and all changes.
+          (save-excursion
+            (goto-char end)
+            (forward-line)
+            (point))
+        (comment-region-default-1 beg end arg))
     (comment-region-default-1 beg end arg)))
 
 ;;;###autoload
