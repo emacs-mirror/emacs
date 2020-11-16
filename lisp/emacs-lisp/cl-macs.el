@@ -819,16 +819,15 @@ final clause, and matches if no other keys match.
       (cons
        'cond
        (mapcar
-        (function
-         (lambda (c)
-           (cons (cond ((eq (car c) 'otherwise) t)
-                       ((eq (car c) 'cl--ecase-error-flag)
-                        `(error "cl-etypecase failed: %s, %s"
-                                ,temp ',(reverse type-list)))
-                       (t
-                        (push (car c) type-list)
-                        `(cl-typep ,temp ',(car c))))
-                 (or (cdr c) '(nil)))))
+        (lambda (c)
+          (cons (cond ((eq (car c) 'otherwise) t)
+                      ((eq (car c) 'cl--ecase-error-flag)
+                       `(error "cl-etypecase failed: %s, %s"
+                               ,temp ',(reverse type-list)))
+                      (t
+                       (push (car c) type-list)
+                       `(cl-typep ,temp ',(car c))))
+                (or (cdr c) '(nil))))
         clauses)))))
 
 ;;;###autoload
@@ -2763,7 +2762,7 @@ Supported keywords for slots are:
     (unless (cl--struct-name-p name)
       (signal 'wrong-type-argument (list 'cl-struct-name-p name 'name)))
     (setq descs (cons '(cl-tag-slot)
-		      (mapcar (function (lambda (x) (if (consp x) x (list x))))
+                      (mapcar (lambda (x) (if (consp x) x (list x)))
 			      descs)))
     (while opts
       (let ((opt (if (consp (car opts)) (caar opts) (car opts)))
@@ -2790,9 +2789,8 @@ Supported keywords for slots are:
                ;; we include EIEIO classes rather than cl-structs!
                (when include-name (error "Can't :include more than once"))
                (setq include-name (car args))
-               (setq include-descs (mapcar (function
-                                            (lambda (x)
-                                              (if (consp x) x (list x))))
+               (setq include-descs (mapcar (lambda (x)
+                                             (if (consp x) x (list x)))
                                            (cdr args))))
 	      ((eq opt :print-function)
 	       (setq print-func (car args)))

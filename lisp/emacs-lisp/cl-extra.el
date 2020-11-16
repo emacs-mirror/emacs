@@ -209,10 +209,10 @@ non-nil value.
 \n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-some
-	(apply 'cl-map nil
-	       (function (lambda (&rest cl-x)
-			   (let ((cl-res (apply cl-pred cl-x)))
-			     (if cl-res (throw 'cl-some cl-res)))))
+        (apply #'cl-map nil
+               (lambda (&rest cl-x)
+                 (let ((cl-res (apply cl-pred cl-x)))
+                   (if cl-res (throw 'cl-some cl-res))))
 	       cl-seq cl-rest) nil)
     (let ((cl-x nil))
       (while (and cl-seq (not (setq cl-x (funcall cl-pred (pop cl-seq))))))
@@ -224,9 +224,9 @@ non-nil value.
 \n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-every
-	(apply 'cl-map nil
-	       (function (lambda (&rest cl-x)
-			   (or (apply cl-pred cl-x) (throw 'cl-every nil))))
+        (apply #'cl-map nil
+               (lambda (&rest cl-x)
+                 (or (apply cl-pred cl-x) (throw 'cl-every nil)))
 	       cl-seq cl-rest) t)
     (while (and cl-seq (funcall cl-pred (car cl-seq)))
       (setq cl-seq (cdr cl-seq)))
@@ -249,14 +249,13 @@ non-nil value.
   (or cl-base
       (setq cl-base (copy-sequence [0])))
   (map-keymap
-   (function
-    (lambda (cl-key cl-bind)
-      (aset cl-base (1- (length cl-base)) cl-key)
-      (if (keymapp cl-bind)
-	  (cl--map-keymap-recursively
-	   cl-func-rec cl-bind
-	   (vconcat cl-base (list 0)))
-	(funcall cl-func-rec cl-base cl-bind))))
+   (lambda (cl-key cl-bind)
+     (aset cl-base (1- (length cl-base)) cl-key)
+     (if (keymapp cl-bind)
+         (cl--map-keymap-recursively
+          cl-func-rec cl-bind
+          (vconcat cl-base (list 0)))
+       (funcall cl-func-rec cl-base cl-bind)))
    cl-map))
 
 ;;;###autoload

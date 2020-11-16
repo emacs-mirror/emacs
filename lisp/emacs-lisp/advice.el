@@ -2370,28 +2370,26 @@ The assignment starts at position INDEX."
 (defun ad-insert-argument-access-forms (definition arglist)
   "Expands arg-access text macros in DEFINITION according to ARGLIST."
   (ad-substitute-tree
-   (function
-    (lambda (form)
-      (or (eq form 'ad-arg-bindings)
-	  (and (memq (car-safe form)
-		     '(ad-get-arg ad-get-args ad-set-arg ad-set-args))
-	       (integerp (car-safe (cdr form)))))))
-   (function
-    (lambda (form)
-      (if (eq form 'ad-arg-bindings)
-	  (ad-retrieve-args-form arglist)
-	(let ((accessor (car form))
-	      (index (car (cdr form)))
-	      (val (car (cdr (ad-insert-argument-access-forms
-			      (cdr form) arglist)))))
-	  (cond ((eq accessor 'ad-get-arg)
-		 (ad-get-argument arglist index))
-		((eq accessor 'ad-set-arg)
-		 (ad-set-argument arglist index val))
-		((eq accessor 'ad-get-args)
-		 (ad-get-arguments arglist index))
-		((eq accessor 'ad-set-args)
-		 (ad-set-arguments arglist index val)))))))
+   (lambda (form)
+     (or (eq form 'ad-arg-bindings)
+         (and (memq (car-safe form)
+                    '(ad-get-arg ad-get-args ad-set-arg ad-set-args))
+              (integerp (car-safe (cdr form))))))
+   (lambda (form)
+     (if (eq form 'ad-arg-bindings)
+         (ad-retrieve-args-form arglist)
+       (let ((accessor (car form))
+             (index (car (cdr form)))
+             (val (car (cdr (ad-insert-argument-access-forms
+                             (cdr form) arglist)))))
+         (cond ((eq accessor 'ad-get-arg)
+                (ad-get-argument arglist index))
+               ((eq accessor 'ad-set-arg)
+                (ad-set-argument arglist index val))
+               ((eq accessor 'ad-get-args)
+                (ad-get-arguments arglist index))
+               ((eq accessor 'ad-set-args)
+                (ad-set-arguments arglist index val))))))
 		   definition))
 
 ;; @@@ Mapping argument lists:
