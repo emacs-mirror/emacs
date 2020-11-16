@@ -6175,7 +6175,6 @@ If nil, don't show those extra buttons."
 	     face ,gnus-article-button-face
 	     follow-link t
 	     gnus-part ,id
-	     button t
 	     article-type multipart
 	     rear-nonsticky t))
 	  ;; Do the handles
@@ -6200,6 +6199,7 @@ If nil, don't show those extra buttons."
 	       follow-link t
 	       gnus-part ,id
 	       button t
+	       category t
 	       gnus-data ,handle
 	       rear-nonsticky t))
 	    (insert "  "))
