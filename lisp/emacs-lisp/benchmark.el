@@ -43,7 +43,7 @@
 ;;;###autoload
 (defmacro benchmark-run (&optional repetitions &rest forms)
   "Time execution of FORMS.
-If REPETITIONS is supplied as a number, run forms that many times,
+If REPETITIONS is supplied as a number, run FORMS that many times,
 accounting for the overhead of the resulting loop.  Otherwise run
 FORMS once.
 Return a list of the total elapsed time for execution, the number of
