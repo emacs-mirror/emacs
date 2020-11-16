@@ -631,14 +631,13 @@ See %s for details" mairix-output-buffer)))
     (when (member 'flags mairix-widget-other)
       (setq flag
 	    (mapconcat
-	     (function
-	      (lambda (flag)
-		(setq temp
-		      (widget-value (cadr (assoc (car flag) mairix-widgets))))
-		(if (string= "yes" temp)
-		    (cadr flag)
-		  (if (string= "no" temp)
-		      (concat "-" (cadr flag))))))
+             (lambda (flag)
+               (setq temp
+                     (widget-value (cadr (assoc (car flag) mairix-widgets))))
+               (if (string= "yes" temp)
+                   (cadr flag)
+                 (if (string= "no" temp)
+                     (concat "-" (cadr flag)))))
 	     '(("seen" "s") ("replied" "r") ("flagged" "f")) ""))
       (when (not (zerop (length flag)))
 	(push (concat "F:" flag) query)))
@@ -694,34 +693,33 @@ Fill in VALUES if based on an article."
 VALUES may contain values for editable fields from current article."
   (let ((ret))
     (mapc
-     (function
-      (lambda (field)
-	(setq field (car (cddr field)))
-	(setq
-	 ret
-	 (nconc
-	  (list
-	   (list
-	    (concat "c" field)
-	    (widget-create 'checkbox
-			   :tag field
-			   :notify (lambda (widget &rest ignore)
-				     (mairix-widget-toggle-activate widget))
-			   nil)))
-	  (list
-	   (list
-	    (concat "e" field)
-	    (widget-create 'editable-field
-			   :size 60
-			   :format (concat " " field ":"
-					   (make-string
-					    (- 11 (length field)) ?\ )
-					   "%v")
-			   :value (or (cadr (assoc field values)) ""))))
-	  ret))
-	(widget-insert "\n")
-	;; Deactivate editable field
-	(widget-apply (cadr (nth 1 ret)) :deactivate)))
+     (lambda (field)
+       (setq field (car (cddr field)))
+       (setq
+        ret
+        (nconc
+         (list
+          (list
+           (concat "c" field)
+           (widget-create 'checkbox
+                          :tag field
+                          :notify (lambda (widget &rest ignore)
+                                    (mairix-widget-toggle-activate widget))
+                          nil)))
+         (list
+          (list
+           (concat "e" field)
+           (widget-create 'editable-field
+                          :size 60
+                          :format (concat " " field ":"
+                                          (make-string
+                                           (- 11 (length field)) ?\ )
+                                          "%v")
+                          :value (or (cadr (assoc field values)) ""))))
+         ret))
+       (widget-insert "\n")
+       ;; Deactivate editable field
+       (widget-apply (cadr (nth 1 ret)) :deactivate))
      mairix-widget-fields-list)
     ret))
 
@@ -936,13 +934,12 @@ Use cursor keys or C-n,C-p to select next/previous search.\n\n")
 	(save-excursion
 	  (save-restriction
 	    (mapcar
-	     (function
-	      (lambda (field)
-		(list (car (cddr field))
-		      (if (car field)
-			  (mairix-replace-invalid-chars
-			   (funcall get-mail-header (car field)))
-			nil))))
+             (lambda (field)
+               (list (car (cddr field))
+                     (if (car field)
+                         (mairix-replace-invalid-chars
+                          (funcall get-mail-header (car field)))
+                       nil)))
 	     mairix-widget-fields-list)))
       (error "No function for obtaining mail header specified"))))
 
