@@ -58,6 +58,17 @@
 (require 'simple)
 (require 'minibuffer)
 
+(defcustom completions-highlight-autoselect nil
+  "Select first candidate without extra tab.
+
+When this variable is nil an extra tab is required to select and
+highlight the first candidate in the *Completions* buffer.  When
+the value is non-nil the candidate is selected every time the
+buffer is shown and updated."
+  :type 'boolean
+  :group 'completion
+  :version "28.1")
+
 (defvar completions-highlight-overlay (make-overlay 0 0)
   "Overlay to use when `completion-highlight-mode' is enabled.")
 
@@ -267,7 +278,12 @@ It is called when showing the *Completions* buffer."
 
       ;; Add completions-highlight-completions-map to *Completions*
       (use-local-map (make-composed-keymap
-                      completions-highlight-completions-map (current-local-map)))))
+                      completions-highlight-completions-map (current-local-map)))
+
+      ;; Autoselect candidate if enabled
+      (when completions-highlight-autoselect
+        (with-selected-window (get-buffer-window (current-buffer) 0)
+          (completions-highlight-next-completion 1)))))
 
   (add-hook 'pre-command-hook
 	    #'completions-highlight-minibuffer-pre-command-hook nil t)
