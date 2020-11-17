@@ -71,10 +71,9 @@ See `mh-identity-add-menu'."
         (mh-insert-auto-fields) mh-auto-fields-list]
        "--")
 
-     (mapcar (function
-              (lambda (arg)
-                `[,arg  (mh-insert-identity ,arg) :style radio
-                        :selected (equal mh-identity-local ,arg)]))
+     (mapcar (lambda (arg)
+               `[,arg  (mh-insert-identity ,arg) :style radio
+                       :selected (equal mh-identity-local ,arg)])
              (mapcar 'car mh-identity-list))
      '(["None"
         (mh-insert-identity "None") :style radio

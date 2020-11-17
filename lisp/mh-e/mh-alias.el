@@ -73,12 +73,11 @@ If ARG is non-nil, set timestamp with the current time."
         (setq mh-alias-tstamp (list (nth 0 time) (nth 1 time))))
     (let ((stamp))
       (car (memq t (mapcar
-                    (function
-                     (lambda (file)
-                       (when (and file (file-exists-p file))
-                         (setq stamp (file-attribute-modification-time
-				      (file-attributes file)))
-			 (time-less-p mh-alias-tstamp stamp))))
+                    (lambda (file)
+                      (when (and file (file-exists-p file))
+                        (setq stamp (file-attribute-modification-time
+                                     (file-attributes file)))
+                        (time-less-p mh-alias-tstamp stamp)))
                     (mh-alias-filenames t)))))))
 
 (defun mh-alias-filenames (arg)
@@ -93,11 +92,10 @@ appended."
            (filelist (and filename (split-string filename "[ \t]+")))
            (userlist
             (mapcar
-             (function
-              (lambda (file)
-                (if (and mh-user-path file
-                         (file-exists-p (expand-file-name file mh-user-path)))
-                    (expand-file-name file mh-user-path))))
+             (lambda (file)
+               (if (and mh-user-path file
+                        (file-exists-p (expand-file-name file mh-user-path)))
+                   (expand-file-name file mh-user-path)))
              filelist)))
       (if arg
           (if (stringp mh-alias-system-aliases)
@@ -466,12 +464,11 @@ set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
       ;; Double-check that we have an individual alias. This means that the
       ;; alias doesn't expand into a list (of which this address is part).
       (car (delq nil (mapcar
-                      (function
-                       (lambda (alias)
-                         (let ((recurse (mh-alias-ali alias nil)))
-                           (if (string-match ".*,.*" recurse)
-                               nil
-                             alias))))
+                      (lambda (alias)
+                        (let ((recurse (mh-alias-ali alias nil)))
+                          (if (string-match ".*,.*" recurse)
+                              nil
+                            alias)))
                       (split-string aliases ", +")))))))
 
 ;;;###mh-autoload
