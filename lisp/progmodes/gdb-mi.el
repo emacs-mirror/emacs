@@ -1617,17 +1617,16 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
   ;; (if it has an associated update trigger)
   (add-hook
    'kill-buffer-hook
-   (function
-    (lambda ()
-      (let ((trigger (gdb-rules-update-trigger
-                      (gdb-current-buffer-rules))))
-        (when trigger
-          (gdb-delete-subscriber
-           gdb-buf-publisher
-           ;; This should match gdb-add-subscriber done in
-           ;; gdb-get-buffer-create
-           (cons (current-buffer)
-                 (gdb-bind-function-to-buffer trigger (current-buffer))))))))
+   (lambda ()
+     (let ((trigger (gdb-rules-update-trigger
+                     (gdb-current-buffer-rules))))
+       (when trigger
+         (gdb-delete-subscriber
+          gdb-buf-publisher
+          ;; This should match gdb-add-subscriber done in
+          ;; gdb-get-buffer-create
+          (cons (current-buffer)
+                (gdb-bind-function-to-buffer trigger (current-buffer)))))))
    nil t))
 
 ;; Partial-output buffer : This accumulates output from a command executed on

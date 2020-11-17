@@ -567,46 +567,45 @@ default font on FRAME, or its best approximation."
            (x-list-fonts "-*-*-medium-r-normal-*-*-*-*-*-*-iso10646-1"
                          'default frame)))
          val)
-    (mapc (function
-           (lambda (script-desc)
-             (let* ((script (car script-desc))
-                    (script-chars (vconcat (cdr script-desc)))
-                    (nchars (length script-chars))
-                    (fntlist all-fonts)
-                    (entry (list script))
-                    fspec ffont font-obj glyphs idx)
-               ;; For each font in FNTLIST, determine whether it
-               ;; supports the representative character(s) of any
-               ;; scripts that have no USBs defined for it.
-               (dolist (fnt fntlist)
-                 (setq fspec (ignore-errors (font-spec :name fnt)))
-                 (if fspec
-                     (setq ffont (find-font fspec frame)))
-                 (when ffont
-                   (setq font-obj
-                         (open-font ffont size frame))
-                   ;; Ignore fonts for which open-font returns nil:
-                   ;; they are buggy fonts that we cannot use anyway.
-                   (setq glyphs
-                         (if font-obj
-                             (font-get-glyphs font-obj
-                                              0 nchars script-chars)
-                           '[nil]))
-                   ;; Does this font support ALL of the script's
-                   ;; representative characters?
-                   (setq idx 0)
-                   (while (and (< idx nchars) (not (null (aref glyphs idx))))
-                     (setq idx (1+ idx)))
-                   (if (= idx nchars)
-                       ;; It does; add this font to the script's entry in alist.
-                       (let ((font-family (font-get font-obj :family)))
-                         ;; Unifont is an ugly font, and it is already
-                         ;; present in the default fontset.
-                         (unless (string= (downcase (symbol-name font-family))
-                                          "unifont")
-                           (push font-family entry))))))
-                 (if (> (length entry) 1)
-                     (push (nreverse entry) val)))))
+    (mapc (lambda (script-desc)
+            (let* ((script (car script-desc))
+                   (script-chars (vconcat (cdr script-desc)))
+                   (nchars (length script-chars))
+                   (fntlist all-fonts)
+                   (entry (list script))
+                   fspec ffont font-obj glyphs idx)
+              ;; For each font in FNTLIST, determine whether it
+              ;; supports the representative character(s) of any
+              ;; scripts that have no USBs defined for it.
+              (dolist (fnt fntlist)
+                (setq fspec (ignore-errors (font-spec :name fnt)))
+                (if fspec
+                    (setq ffont (find-font fspec frame)))
+                (when ffont
+                  (setq font-obj
+                        (open-font ffont size frame))
+                  ;; Ignore fonts for which open-font returns nil:
+                  ;; they are buggy fonts that we cannot use anyway.
+                  (setq glyphs
+                        (if font-obj
+                            (font-get-glyphs font-obj
+                                             0 nchars script-chars)
+                          '[nil]))
+                  ;; Does this font support ALL of the script's
+                  ;; representative characters?
+                  (setq idx 0)
+                  (while (and (< idx nchars) (not (null (aref glyphs idx))))
+                    (setq idx (1+ idx)))
+                  (if (= idx nchars)
+                      ;; It does; add this font to the script's entry in alist.
+                      (let ((font-family (font-get font-obj :family)))
+                        ;; Unifont is an ugly font, and it is already
+                        ;; present in the default fontset.
+                        (unless (string= (downcase (symbol-name font-family))
+                                         "unifont")
+                          (push font-family entry))))))
+              (if (> (length entry) 1)
+                  (push (nreverse entry) val))))
           (w32--filter-USB-scripts))
     ;; We've opened a lot of fonts, so clear the font caches to free
     ;; some memory.

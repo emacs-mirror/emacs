@@ -3270,34 +3270,33 @@ Currently this method is for LaTeX only."
 	  (let* ((span 1) ;; spanning length
 		 (first-p t) ;; first in a row
 		 (insert-column ;; a function that processes one column/multicolumn
-		  (function
-		   (lambda (from to)
-		     (let ((line (table--buffer-substring-and-trim
-				  (table--goto-coordinate (cons from y))
-				  (table--goto-coordinate (cons to y)))))
-		       ;; escape special characters
-		       (with-temp-buffer
-			 (insert line)
-			 (goto-char (point-min))
-			 (while (re-search-forward "\\([#$~_^%{}&]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
-			   (if (match-beginning 1)
-			       (save-excursion
-				 (goto-char (match-beginning 1))
-				 (insert  "\\"))
-			     (if (match-beginning 2)
-				 (replace-match "$\\backslash$" t t)
-			       (replace-match (concat "$" (match-string 3) "$")) t t)))
-			 (setq line (buffer-substring (point-min) (point-max))))
-		       ;; insert a column separator and column/multicolumn contents
-		       (with-current-buffer dest-buffer
-			 (unless first-p
-			   (insert (if (eq (char-before) ?\s) "" " ") "& "))
-			 (if (> span 1)
-			     (insert (format "\\multicolumn{%d}{%sl|}{%s}" span (if first-p "|" "") line))
-			   (insert line)))
-		       (setq first-p nil)
-		       (setq span 1)
-		       (setq start (nth i col-list)))))))
+                  (lambda (from to)
+                    (let ((line (table--buffer-substring-and-trim
+                                 (table--goto-coordinate (cons from y))
+                                 (table--goto-coordinate (cons to y)))))
+                      ;; escape special characters
+                      (with-temp-buffer
+                        (insert line)
+                        (goto-char (point-min))
+                        (while (re-search-forward "\\([#$~_^%{}&]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
+                          (if (match-beginning 1)
+                              (save-excursion
+                                (goto-char (match-beginning 1))
+                                (insert  "\\"))
+                            (if (match-beginning 2)
+                                (replace-match "$\\backslash$" t t)
+                              (replace-match (concat "$" (match-string 3) "$")) t t)))
+                        (setq line (buffer-substring (point-min) (point-max))))
+                      ;; insert a column separator and column/multicolumn contents
+                      (with-current-buffer dest-buffer
+                        (unless first-p
+                          (insert (if (eq (char-before) ?\s) "" " ") "& "))
+                        (if (> span 1)
+                            (insert (format "\\multicolumn{%d}{%sl|}{%s}" span (if first-p "|" "") line))
+                          (insert line)))
+                      (setq first-p nil)
+                      (setq span 1)
+                      (setq start (nth i col-list))))))
 	    (setq start x0)
 	    (setq i 1)
 	    (while (setq c (nth i border-char-list))

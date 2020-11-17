@@ -690,14 +690,13 @@ Optional DEPTH limits search depth."
   (setq depth (1- depth))
   (cons dir
 	(and (not (eq depth -1))
-	     (apply 'nconc
+             (apply #'nconc
 		    (mapcar
-		     (function
-		      (lambda (d)
-			(cond
-			 ((not (file-directory-p d)) nil)
-			 ((file-symlink-p d) (list d))
-			 (t (ffap-all-subdirs-loop d depth)))))
+                     (lambda (d)
+                       (cond
+                        ((not (file-directory-p d)) nil)
+                        ((file-symlink-p d) (list d))
+                        (t (ffap-all-subdirs-loop d depth))))
 		     (directory-files dir t "\\`[^.]")
 		     )))))
 
@@ -710,13 +709,12 @@ Set to 0 to avoid all searching, or nil for no limit.")
 The subdirs begin with the original directory, and the depth of the
 search is bounded by `ffap-kpathsea-depth'.  This is intended to mimic
 kpathsea, a library used by some versions of TeX."
-  (apply 'nconc
+  (apply #'nconc
 	 (mapcar
-	  (function
-	   (lambda (dir)
-	     (if (string-match "[^/]//\\'" dir)
-		 (ffap-all-subdirs (substring dir 0 -2) ffap-kpathsea-depth)
-	       (list dir))))
+          (lambda (dir)
+            (if (string-match "[^/]//\\'" dir)
+                (ffap-all-subdirs (substring dir 0 -2) ffap-kpathsea-depth)
+              (list dir)))
 	  path)))
 
 (defun ffap-locate-file (file nosuffix path)
@@ -1793,8 +1791,7 @@ Applies `ffap-menu-text-plist' text properties at all matches."
   ;; Remove duplicates.
   (setq ffap-menu-alist			; sort by item
 	(sort ffap-menu-alist
-	      (function
-	       (lambda (a b) (string-lessp (car a) (car b))))))
+              (lambda (a b) (string-lessp (car a) (car b)))))
   (let ((ptr ffap-menu-alist))		; remove duplicates
     (while (cdr ptr)
       (if (equal (car (car ptr)) (car (car (cdr ptr))))
@@ -1802,8 +1799,7 @@ Applies `ffap-menu-text-plist' text properties at all matches."
 	(setq ptr (cdr ptr)))))
   (setq ffap-menu-alist			; sort by position
 	(sort ffap-menu-alist
-	      (function
-	       (lambda (a b) (< (cdr a) (cdr b)))))))
+              (lambda (a b) (< (cdr a) (cdr b))))))
 
 
 ;;; Mouse Support (`ffap-at-mouse'):

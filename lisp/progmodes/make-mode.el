@@ -1370,13 +1370,11 @@ Fill comments, backslashed lines, and variable definitions specially."
     (goto-char (point-min))
     (erase-buffer)
     (mapconcat
-     (function
-      (lambda (item) (insert (makefile-browser-format-target-line (car item) nil) "\n")))
+     (lambda (item) (insert (makefile-browser-format-target-line (car item) nil) "\n"))
      targets
      "")
     (mapconcat
-     (function
-      (lambda (item) (insert (makefile-browser-format-macro-line (car item) nil) "\n")))
+     (lambda (item) (insert (makefile-browser-format-macro-line (car item) nil) "\n"))
      macros
      "")
     (sort-lines nil (point-min) (point-max))

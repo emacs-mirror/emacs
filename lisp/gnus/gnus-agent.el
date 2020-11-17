@@ -3567,22 +3567,21 @@ articles in every agentized group? "))
                 (let* (delete-recursive
 		       files f
                        (delete-recursive
-                        (function
-                         (lambda (f-or-d)
-                           (ignore-errors
-                             (if (file-directory-p f-or-d)
-                                 (condition-case nil
-                                     (delete-directory f-or-d)
-                                   (file-error
-				    (setq files (directory-files f-or-d))
-				    (while files
-				      (setq f (pop files))
-				      (or (member f '("." ".."))
-					  (funcall delete-recursive
-						   (nnheader-concat
-						    f-or-d f))))
-                                    (delete-directory f-or-d)))
-                               (delete-file f-or-d)))))))
+                        (lambda (f-or-d)
+                          (ignore-errors
+                            (if (file-directory-p f-or-d)
+                                (condition-case nil
+                                    (delete-directory f-or-d)
+                                  (file-error
+                                   (setq files (directory-files f-or-d))
+                                   (while files
+                                     (setq f (pop files))
+                                     (or (member f '("." ".."))
+                                         (funcall delete-recursive
+                                                  (nnheader-concat
+                                                   f-or-d f))))
+                                   (delete-directory f-or-d)))
+                              (delete-file f-or-d))))))
                   (funcall delete-recursive dir)))))))))
 
 ;;;###autoload

@@ -7435,18 +7435,17 @@ are interchanged."
 With argument ARG, takes previous line and moves it past ARG lines.
 With argument 0, interchanges line point is in with line mark is in."
   (interactive "*p")
-  (transpose-subr (function
-		   (lambda (arg)
-		     (if (> arg 0)
-			 (progn
-			   ;; Move forward over ARG lines,
-			   ;; but create newlines if necessary.
-			   (setq arg (forward-line arg))
-			   (if (/= (preceding-char) ?\n)
-			       (setq arg (1+ arg)))
-			   (if (> arg 0)
-			       (newline arg)))
-		       (forward-line arg))))
+  (transpose-subr (lambda (arg)
+                    (if (> arg 0)
+                        (progn
+                          ;; Move forward over ARG lines,
+                          ;; but create newlines if necessary.
+                          (setq arg (forward-line arg))
+                          (if (/= (preceding-char) ?\n)
+                              (setq arg (1+ arg)))
+                          (if (> arg 0)
+                              (newline arg)))
+                      (forward-line arg)))
 		  arg))
 
 ;; FIXME seems to leave point BEFORE the current object when ARG = 0,

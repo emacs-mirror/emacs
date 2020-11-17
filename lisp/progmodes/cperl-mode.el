@@ -5442,11 +5442,10 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	       (cperl-init-faces))))
 	((not cperl-faces-init)
 	 (add-hook 'font-lock-mode-hook
-		   (function
-		    (lambda ()
-		      (if (memq major-mode '(perl-mode cperl-mode))
-			  (progn
-			    (or cperl-faces-init (cperl-init-faces)))))))
+                   (lambda ()
+                     (if (memq major-mode '(perl-mode cperl-mode))
+                         (progn
+                           (or cperl-faces-init (cperl-init-faces))))))
 	 (eval-after-load
 	     "ps-print"
 	   '(or cperl-faces-init (cperl-init-faces))))))
@@ -6073,9 +6072,8 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
    (list (completing-read "Enter style: " cperl-style-alist nil 'insist)))
   (or cperl-old-style
       (setq cperl-old-style
-	    (mapcar (function
-		     (lambda (name)
-		       (cons name (eval name))))
+            (mapcar (lambda (name)
+                      (cons name (eval name)))
 		    cperl-styles-entries)))
   (let ((style (cdr (assoc style cperl-style-alist))) setting)
     (while style
@@ -6527,22 +6525,21 @@ Does not move point."
 	  (setq lst (cdr (assoc "+Unsorted List+..." ind))))
 	(setq lst
 	      (mapcar
-	       (function
-		(lambda (elt)
-		  (cond ((string-match "^[_a-zA-Z]" (car elt))
-			 (goto-char (cdr elt))
-			 (beginning-of-line) ; pos should be of the start of the line
-			 (list (car elt)
-			       (point)
-			       (1+ (count-lines 1 (point))) ; 1+ since at beg-o-l
-			       (buffer-substring (progn
-						   (goto-char (cdr elt))
-						   ;; After name now...
-						   (or (eolp) (forward-char 1))
-						   (point))
-						 (progn
-						   (beginning-of-line)
-						   (point))))))))
+               (lambda (elt)
+                 (cond ((string-match "^[_a-zA-Z]" (car elt))
+                        (goto-char (cdr elt))
+                        (beginning-of-line) ; pos should be of the start of the line
+                        (list (car elt)
+                              (point)
+                              (1+ (count-lines 1 (point))) ; 1+ since at beg-o-l
+                              (buffer-substring (progn
+                                                  (goto-char (cdr elt))
+                                                  ;; After name now...
+                                                  (or (eolp) (forward-char 1))
+                                                  (point))
+                                                (progn
+                                                  (beginning-of-line)
+                                                  (point)))))))
 	       lst))
 	(erase-buffer)
 	(while lst
@@ -6645,16 +6642,15 @@ Use as
                           (setq cperl-unreadable-ok t)
                           nil)	; Return empty list
 		      (error "Aborting: unreadable directory %s" file)))))))
-	  (mapc (function
-		 (lambda (file)
-		   (cond
-		    ((string-match cperl-noscan-files-regexp file)
-		     nil)
-		    ((not (file-directory-p file))
-		     (if (string-match cperl-scan-files-regexp file)
-			 (cperl-write-tags file erase recurse nil t noxs topdir)))
-		    ((not recurse) nil)
-		    (t (cperl-write-tags file erase recurse t t noxs topdir)))))
+          (mapc (lambda (file)
+                  (cond
+                   ((string-match cperl-noscan-files-regexp file)
+                    nil)
+                   ((not (file-directory-p file))
+                    (if (string-match cperl-scan-files-regexp file)
+                        (cperl-write-tags file erase recurse nil t noxs topdir)))
+                   ((not recurse) nil)
+                   (t (cperl-write-tags file erase recurse t t noxs topdir))))
 		files)))
        (t
 	(setq xs (string-match "\\.xs$" file))
@@ -6768,11 +6764,10 @@ One may build such TAGS files from CPerl mode menu."
 	(or tags-table-list
 	    (call-interactively 'visit-tags-table))
 	(mapc
-	 (function
-	  (lambda (tagsfile)
-	    (message "Updating list of classes... %s" tagsfile)
-	    (set-buffer (get-file-buffer tagsfile))
-	    (cperl-tags-hier-fill)))
+         (lambda (tagsfile)
+           (message "Updating list of classes... %s" tagsfile)
+           (set-buffer (get-file-buffer tagsfile))
+           (cperl-tags-hier-fill))
 	 tags-table-list)
 	(message "Updating list of classes... postprocessing...")
 	(mapc remover (car cperl-hierarchy))
@@ -6816,24 +6811,23 @@ One may build such TAGS files from CPerl mode menu."
 	 l1 head cons1 cons2 ord writeto recurse
 	 root-packages root-functions
 	 (move-deeper
-	  (function
-	   (lambda (elt)
-	     (cond ((and (string-match regexp (car elt))
-			 (or (eq ord 1) (match-end 2)))
-		    (setq head (substring (car elt) 0 (match-end 1))
-			  recurse t)
-		    (if (setq cons1 (assoc head writeto)) nil
-		      ;; Need to init new head
-		      (setcdr writeto (cons (list head (list "Packages: ")
-						  (list "Methods: "))
-					    (cdr writeto)))
-		      (setq cons1 (nth 1 writeto)))
-		    (setq cons2 (nth ord cons1)) ; Either packs or meths
-		    (setcdr cons2 (cons elt (cdr cons2))))
-		   ((eq ord 2)
-		    (setq root-functions (cons elt root-functions)))
-		   (t
-		    (setq root-packages (cons elt root-packages))))))))
+          (lambda (elt)
+            (cond ((and (string-match regexp (car elt))
+                        (or (eq ord 1) (match-end 2)))
+                   (setq head (substring (car elt) 0 (match-end 1))
+                         recurse t)
+                   (if (setq cons1 (assoc head writeto)) nil
+                     ;; Need to init new head
+                     (setcdr writeto (cons (list head (list "Packages: ")
+                                                 (list "Methods: "))
+                                           (cdr writeto)))
+                     (setq cons1 (nth 1 writeto)))
+                   (setq cons2 (nth ord cons1)) ; Either packs or meths
+                   (setcdr cons2 (cons elt (cdr cons2))))
+                  ((eq ord 2)
+                   (setq root-functions (cons elt root-functions)))
+                  (t
+                   (setq root-packages (cons elt root-packages)))))))
     (setcdr to l1)			; Init to dynamic space
     (setq writeto to)
     (setq ord 1)
@@ -6903,16 +6897,15 @@ One may build such TAGS files from CPerl mode menu."
   (let (list)
     (cons 'keymap
 	  (mapcar
-	   (function
-	    (lambda (elt)
-	      (cond ((listp (cdr elt))
-		     (setq list (cperl-list-fold
-				 (cdr elt) (car elt) imenu-max-items))
-		     (cons nil
-			   (cons (car elt)
-				 (cperl-menu-to-keymap list))))
-		    (t
-		     (list (cdr elt) (car elt) t))))) ; t is needed in 19.34
+           (lambda (elt)
+             (cond ((listp (cdr elt))
+                    (setq list (cperl-list-fold
+                                (cdr elt) (car elt) imenu-max-items))
+                    (cons nil
+                          (cons (car elt)
+                                (cperl-menu-to-keymap list))))
+                   (t
+                    (list (cdr elt) (car elt) t)))) ; t is needed in 19.34
 	   (cperl-list-fold menu "Root" imenu-max-items)))))
 
 
@@ -8239,15 +8232,14 @@ If a region is highlighted, restricts to the region."
 		end (max (mark) (point)))
 	(setq beg (point-min)
 	      end (point-max)))
-      (cperl-map-pods-heres (function
-			     (lambda (s e _p)
-			       (if do-heres
-				   (setq e (save-excursion
-					     (goto-char e)
-					     (forward-line -1)
-					     (point))))
-			       (ispell-region s e)
-			       t))
+      (cperl-map-pods-heres (lambda (s e _p)
+                         (if do-heres
+                             (setq e (save-excursion
+                                       (goto-char e)
+                                       (forward-line -1)
+                                       (point))))
+                         (ispell-region s e)
+                         t)
 			    (if do-heres 'here-doc-group 'in-pod)
 			    beg end))))
 

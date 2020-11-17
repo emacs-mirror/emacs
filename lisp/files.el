@@ -7370,9 +7370,9 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
   (save-some-buffers arg t)
   (let ((confirm confirm-kill-emacs))
     (and
-     (or (not (memq t (mapcar (function
-                               (lambda (buf) (and (buffer-file-name buf)
-                                                  (buffer-modified-p buf))))
+     (or (not (memq t (mapcar (lambda (buf)
+                                (and (buffer-file-name buf)
+                                     (buffer-modified-p buf)))
                               (buffer-list))))
          (progn (setq confirm nil)
                 (yes-or-no-p "Modified buffers exist; exit anyway? ")))
