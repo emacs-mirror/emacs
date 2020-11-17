@@ -280,12 +280,11 @@ your changes into effect."
     ("^\\s-*\\(\\sw+\\)\\s-" 1 font-lock-variable-name-face))
   '("srm\\.conf\\'" "httpd\\.conf\\'" "access\\.conf\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([-A-Za-z0-9_]+\\)" 1)
-	      ("*Directories*" "^\\s-*<Directory\\s-*\\([^>]+\\)>" 1)
-	      ("*Locations*"   "^\\s-*<Location\\s-*\\([^>]+\\)>" 1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([-A-Za-z0-9_]+\\)" 1)
+             ("*Directories*" "^\\s-*<Directory\\s-*\\([^>]+\\)>" 1)
+             ("*Locations*"   "^\\s-*<Location\\s-*\\([^>]+\\)>" 1)))))
   "Generic mode for Apache or HTTPD configuration files."))
 
 (when (memq 'apache-log-generic-mode generic-extras-enable-list)
@@ -401,11 +400,10 @@ your changes into effect."
      (2 font-lock-variable-name-face)))
   '("\\.[iI][nN][iI]\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\[\\(.*\\)\\]" 1)
-	      ("*Variables*" "^\\s-*\\([^=]+\\)\\s-*=" 1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\[\\(.*\\)\\]" 1)
+             ("*Variables*" "^\\s-*\\([^=]+\\)\\s-*=" 1)))))
   "Generic mode for MS-Windows INI files.
 You can use `ini-generic-mode-find-file-hook' to enter this mode
 automatically for INI files whose names do not end in \".ini\".")
@@ -432,10 +430,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
     ("^\\([^\n\r]*\\)\\s-*=" 1 font-lock-variable-name-face))
   '("\\.[rR][eE][gG]\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\s-*\\(.*\\)\\s-*=" 1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\s-*\\(.*\\)\\s-*=" 1)))))
   "Generic mode for MS-Windows Registry files."))
 
 (declare-function w32-shell-name "w32-fns" ())
@@ -456,10 +453,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
     ("\\s-/\\([^/]+\\)/[i, \t\n]" 1 font-lock-constant-face))
   '("\\.rules\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "\\s-/\\([^/]+\\)/[i, \t\n]" 1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "\\s-/\\([^/]+\\)/[i, \t\n]" 1)))))
   "Generic mode for Mailagent rules files."))
 
 ;; Solaris/Sys V prototype files
@@ -548,13 +544,12 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face)))
   '("\\.wrl\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([A-Za-z0-9_]+\\)\\s-*{" 1)
-	      ("*Definitions*"
-	       "DEF\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([A-Za-z0-9]+\\)\\s-*{"
-	       1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([A-Za-z0-9_]+\\)\\s-*{" 1)
+             ("*Definitions*"
+              "DEF\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([A-Za-z0-9]+\\)\\s-*{"
+              1)))))
   "Generic Mode for VRML files."))
 
 ;; Java Manifests
@@ -594,20 +589,18 @@ like an INI file.  You can add this hook to `find-file-hook'."
       ;;   * an equal sign
       ;;   * a colon
       (mapcar
-       (function
-	(lambda (elt)
-	  (list
-	   (concat "^" java-properties-key elt java-properties-value "$")
-	   '(1 font-lock-constant-face)
-	   '(4 font-lock-variable-name-face))))
+       (lambda (elt)
+         (list
+          (concat "^" java-properties-key elt java-properties-value "$")
+          '(1 font-lock-constant-face)
+          '(4 font-lock-variable-name-face)))
        ;; These are the separators
        '(":\\s-*" "\\s-+" "\\s-*=\\s-*"))))
   nil
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([^#! \t\n\r=:]+\\)" 1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([^#! \t\n\r=:]+\\)" 1)))))
   "Generic mode for Java properties files."))
 
 ;; C shell alias definitions
@@ -622,10 +615,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (1 font-lock-variable-name-face)))
   '("alias\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\(alias\\|unalias\\)\\s-+\\([-a-zA-Z0-9_]+\\)" 2))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\(alias\\|unalias\\)\\s-+\\([-a-zA-Z0-9_]+\\)" 2)))))
   "Generic mode for C Shell alias files."))
 
 ;; Ansible inventory files
@@ -645,11 +637,10 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-keyword-face)))
   '("inventory\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\s-*\\[\\(.*\\)\\]" 1)
-	      ("*Variables*" "\\s-+\\([^ =\n\r]+\\)=" 1))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\s-*\\[\\(.*\\)\\]" 1)
+             ("*Variables*" "\\s-+\\([^ =\n\r]+\\)=" 1)))))
   "Generic mode for Ansible inventory files."))
 
 ;;; Windows RC files
@@ -1432,10 +1423,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   '(("^\\([-A-Za-z0-9_]+\\)" 1 font-lock-type-face))
   '("/etc/inetd\\.conf\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([-A-Za-z0-9_]+\\)" 1))))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))))))
 
 ;; Services
 (when (memq 'etc-services-generic-mode generic-extras-enable-list)
@@ -1450,10 +1440,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face)))
   '("/etc/services\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([-A-Za-z0-9_]+\\)" 1))))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))))))
 
 ;; Password and Group files
 (when (memq 'etc-passwd-generic-mode generic-extras-enable-list)
@@ -1493,10 +1482,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; /etc/passwd- is a backup file for /etc/passwd, so is group- and shadow-
   '("/etc/passwd-?\\'" "/etc/group-?\\'" "/etc/shadow-?\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([-A-Za-z0-9_]+\\):" 1))))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([-A-Za-z0-9_]+\\):" 1)))))))
 
 ;; Fstab
 (when (memq 'etc-fstab-generic-mode generic-extras-enable-list)
@@ -1547,10 +1535,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face t)))
   '("/etc/[v]*fstab\\'")
   (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^\\([^# \t]+\\)\\s-+" 1))))))))
+   (lambda ()
+     (setq imenu-generic-expression
+           '((nil "^\\([^# \t]+\\)\\s-+" 1)))))))
 
 ;; /etc/sudoers
 (when (memq 'etc-sudoers-generic-mode generic-extras-enable-list)
@@ -1710,9 +1697,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (list
    'generic-bracket-support
    ;; Make keywords case-insensitive
-   (function
-    (lambda()
-      (setq font-lock-defaults '(generic-font-lock-keywords nil t)))))
+   (lambda ()
+     (setq font-lock-defaults '(generic-font-lock-keywords nil t))))
   "Generic mode for SPICE circuit netlist files."))
 
 (when (memq 'ibis-generic-mode generic-extras-enable-list)
@@ -1758,9 +1744,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (list
    'generic-bracket-support
    ;; Make keywords case-insensitive
-   (function
-    (lambda()
-      (setq font-lock-defaults '(generic-font-lock-keywords nil t)))))
+   (lambda ()
+     (setq font-lock-defaults '(generic-font-lock-keywords nil t))))
   "Generic mode for ASTAP circuit netlist files."))
 
 (when (memq 'etc-modules-conf-generic-mode generic-extras-enable-list)
