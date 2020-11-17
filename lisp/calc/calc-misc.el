@@ -176,9 +176,9 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
   "Create another, independent Calculator buffer."
   (interactive)
   (if (eq major-mode 'calc-mode)
-      (mapc (function
-	     (lambda (v)
-	      (set-default v (symbol-value v)))) calc-local-var-list))
+      (mapc (lambda (v)
+              (set-default v (symbol-value v)))
+            calc-local-var-list))
   (set-buffer (generate-new-buffer "*Calculator*"))
   (pop-to-buffer (current-buffer))
   (calc-mode))
@@ -274,9 +274,8 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 ;;;###autoload
 (defun calc-do-handle-whys ()
   (setq calc-why (sort calc-next-why
-		       (function
-			(lambda (x y)
-			  (and (eq (car x) '*) (not (eq (car y) '*))))))
+                       (lambda (x y)
+                         (and (eq (car x) '*) (not (eq (car y) '*)))))
 	calc-next-why nil)
   (if (and calc-why (or (eq calc-auto-why t)
 			(and (eq (car (car calc-why)) '*)

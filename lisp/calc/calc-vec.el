@@ -744,7 +744,7 @@
 ;;; Get the Nth row of a matrix.
 (defun calcFunc-mrow (mat n)   ; [Public]
   (if (Math-vectorp n)
-      (math-map-vec (function (lambda (x) (calcFunc-mrow mat x))) n)
+      (math-map-vec (lambda (x) (calcFunc-mrow mat x)) n)
     (if (and (eq (car-safe n) 'intv) (math-constp n))
 	(calcFunc-subvec mat
 			 (math-add (nth 2 n) (if (memq (nth 1 n) '(2 3)) 0 1))
@@ -768,15 +768,15 @@
 
 ;;; Get the Nth column of a matrix.
 (defun math-mat-col (mat n)
-  (cons 'vec (mapcar (function (lambda (x) (elt x n))) (cdr mat))))
+  (cons 'vec (mapcar (lambda (x) (elt x n)) (cdr mat))))
 
 (defun calcFunc-mcol (mat n)   ; [Public]
   (if (Math-vectorp n)
       (calcFunc-trn
-       (math-map-vec (function (lambda (x) (calcFunc-mcol mat x))) n))
+       (math-map-vec (lambda (x) (calcFunc-mcol mat x)) n))
     (if (and (eq (car-safe n) 'intv) (math-constp n))
 	(if (math-matrixp mat)
-	    (math-map-vec (function (lambda (x) (calcFunc-mrow x n))) mat)
+            (math-map-vec (lambda (x) (calcFunc-mrow x n)) mat)
 	  (calcFunc-mrow mat n))
       (or (and (integerp (setq n (math-check-integer n)))
 	       (> n 0))
@@ -804,7 +804,7 @@
 
 ;;; Remove the Nth column from a matrix.
 (defun math-mat-less-col (mat n)
-  (cons 'vec (mapcar (function (lambda (x) (math-mat-less-row x n)))
+  (cons 'vec (mapcar (lambda (x) (math-mat-less-row x n))
 		     (cdr mat))))
 
 (defun calcFunc-mrcol (mat n)   ; [Public]
@@ -939,10 +939,10 @@
       (calcFunc-idn a (1- (length m)))
     (if (math-vectorp m)
 	(if (math-zerop a)
-	    (cons 'vec (mapcar (function (lambda (x)
-					   (if (math-vectorp x)
-					       (math-mimic-ident a x)
-					     a)))
+            (cons 'vec (mapcar (lambda (x)
+                                 (if (math-vectorp x)
+                                     (math-mimic-ident a x)
+                                   a))
 			       (cdr m)))
 	  (math-dimension-error))
       (calcFunc-idn a))))

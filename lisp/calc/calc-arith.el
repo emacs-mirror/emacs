@@ -2390,7 +2390,7 @@
 			   (math-trunc (nth 3 a)))))
 	((math-provably-integerp a) a)
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-trunc x math-trunc-prec))) a))
+         (math-map-vec (lambda (x) (math-trunc x math-trunc-prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2453,7 +2453,7 @@
 			     (math-add (math-floor (nth 3 a)) -1)
 			   (math-floor (nth 3 a)))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-floor x math-floor-prec))) a))
+         (math-map-vec (lambda (x) (math-floor x math-floor-prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2520,7 +2520,7 @@
 			   (math-ceiling (nth 2 a)))
 			 (math-ceiling (nth 3 a))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-ceiling x prec))) a))
+         (math-map-vec (lambda (x) (math-ceiling x prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2573,7 +2573,7 @@
 	((eq (car a) 'intv)
 	 (math-floor (math-add a '(frac 1 2))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-round x prec))) a))
+         (math-map-vec (lambda (x) (math-round x prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2656,7 +2656,7 @@
 		    (calcFunc-scf (nth 2 x) n)
 		    (calcFunc-scf (nth 3 x) n))))
 	    ((eq (car x) 'vec)
-	     (math-map-vec (function (lambda (x) (calcFunc-scf x n))) x))
+             (math-map-vec (lambda (x) (calcFunc-scf x n)) x))
 	    ((math-infinitep x)
 	     x)
 	    (t

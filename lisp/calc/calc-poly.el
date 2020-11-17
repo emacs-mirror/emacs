@@ -202,7 +202,7 @@
   (if (memq (car-safe expr) '(+ -))
       (math-list-to-sum
        (sort (math-sum-to-list expr)
-	     (function (lambda (a b) (math-beforep (car a) (car b))))))
+             (lambda (a b) (math-beforep (car a) (car b)))))
     expr))
 
 (defun math-list-to-sum (lst)
@@ -387,7 +387,7 @@ This returns only the remainder from the pseudo-division."
       lst
     (if (eq a -1)
 	(math-mul-list lst a)
-      (mapcar (function (lambda (x) (math-poly-div-exact x a))) lst))))
+      (mapcar (lambda (x) (math-poly-div-exact x a)) lst))))
 
 (defun math-mul-list (lst a)
   (if (eq a 1)
@@ -395,7 +395,7 @@ This returns only the remainder from the pseudo-division."
     (if (eq a -1)
 	(mapcar 'math-neg lst)
       (and (not (eq a 0))
-	   (mapcar (function (lambda (x) (math-mul x a))) lst)))))
+           (mapcar (lambda (x) (math-mul x a)) lst)))))
 
 ;;; Run GCD on all elements in a list.
 (defun math-poly-gcd-list (lst)
@@ -502,10 +502,10 @@ Take the base that has the highest degree considering both a and b.
 
 (defun math-sort-poly-base-list (lst)
   "Sort a list of polynomial bases."
-  (sort lst (function (lambda (a b)
-			(or (> (nth 1 a) (nth 1 b))
-			    (and (= (nth 1 a) (nth 1 b))
-				 (math-beforep (car a) (car b))))))))
+  (sort lst (lambda (a b)
+              (or (> (nth 1 a) (nth 1 b))
+                  (and (= (nth 1 a) (nth 1 b))
+                       (math-beforep (car a) (car b)))))))
 
 ;;; Given an expression find all variables that are polynomial bases.
 ;;; Return list in the form '( (var1 degree1) (var2 degree2) ... ).
@@ -1033,10 +1033,9 @@ If no partial fraction representation can be found, return nil."
 				(math-transpose
 				 (cons 'vec
 				       (mapcar
-					(function
-					 (lambda (x)
-					   (cons 'vec (math-padded-polynomial
-						       x var tdeg))))
+                                        (lambda (x)
+                                          (cons 'vec (math-padded-polynomial
+                                                      x var tdeg)))
 					(cdr eqns))))))
 	   (and (math-vectorp eqns)
 		(let ((res 0)

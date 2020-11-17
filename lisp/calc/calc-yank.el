@@ -643,12 +643,11 @@ Interactively, reads the register using `register-read-with-preview'."
 	  (allow-ret (> n 1))
 	  (list (math-showing-full-precision
 		 (mapcar (if (> n 1)
-			     (function (lambda (x)
-					 (math-format-flat-expr x 0)))
-			   (function
-			    (lambda (x)
-			      (if (math-vectorp x) (setq allow-ret t))
-			      (math-format-nice-expr x (frame-width)))))
+                             (lambda (x)
+                               (math-format-flat-expr x 0))
+                           (lambda (x)
+                             (if (math-vectorp x) (setq allow-ret t))
+                             (math-format-nice-expr x (frame-width))))
 			 (if (> n 0)
 			     (calc-top-list n)
 			   (calc-top-list 1 (- n)))))))

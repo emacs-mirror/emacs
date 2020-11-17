@@ -506,7 +506,7 @@ The variable VAR will be added to `calc-mode-var-list'."
 
 (defun calc-mode-var-list-restore-default-values ()
   "Restore the default values of the variables in `calc-mode-var-list'."
-  (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
+  (mapcar (lambda (v) (set (car v) (nth 1 v)))
           calc-mode-var-list))
 
 (defun calc-mode-var-list-restore-saved-values ()
@@ -535,7 +535,7 @@ The variable VAR will be added to `calc-mode-var-list'."
                             newvarlist)))
               (setq varlist (cdr varlist)))))))
     (if newvarlist
-        (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
+        (mapcar (lambda (v) (set (car v) (nth 1 v)))
                 newvarlist)
       (calc-mode-var-list-restore-default-values))))
 
@@ -1315,8 +1315,9 @@ Notations:  3.14e6     3.14 * 10^6
 \\{calc-mode-map}
 "
   (interactive)
-  (mapc (function           ;FIXME: Why (set-default v (symbol-value v)) ?!?!?
-	 (lambda (v) (set-default v (symbol-value v))))
+  (mapc (lambda (v)
+          ;; FIXME: Why (set-default v (symbol-value v)) ?!?!?
+          (set-default v (symbol-value v)))
         calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
@@ -1537,7 +1538,7 @@ See `window-dedicated-p' for what that means."
             (let ((tail (nthcdr (1- calc-undo-length) calc-undo-list)))
               (if tail (setcdr tail nil)))
             (setq calc-redo-list nil))))
-      (mapc (function (lambda (v) (set-default v (symbol-value v))))
+      (mapc (lambda (v) (set-default v (symbol-value v)))
 	    calc-local-var-list)
       (let ((buf (current-buffer))
             (win (get-buffer-window (current-buffer)))

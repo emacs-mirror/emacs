@@ -181,19 +181,18 @@
          (calc-line-numbering nil)
          (calc-show-selections t)
          (calc-why nil)
-         (math-mt-func (function
-                        (lambda (x)
-                          (let ((result (math-apply-rewrites x (cdr crules)
-                                                             heads crules)))
-                            (if result
-                                (progn
-                                  (if trace-buffer
-                                      (let ((fmt (math-format-stack-value
-                                                  (list result nil nil))))
-                                        (with-current-buffer trace-buffer
-                                          (insert "\nrewrite to\n" fmt "\n"))))
-                                  (setq heads (math-rewrite-heads result heads t))))
-                            result)))))
+         (math-mt-func (lambda (x)
+                         (let ((result (math-apply-rewrites x (cdr crules)
+                                                            heads crules)))
+                           (if result
+                               (progn
+                                 (if trace-buffer
+                                     (let ((fmt (math-format-stack-value
+                                                 (list result nil nil))))
+                                       (with-current-buffer trace-buffer
+                                         (insert "\nrewrite to\n" fmt "\n"))))
+                                 (setq heads (math-rewrite-heads result heads t))))
+                           result))))
     (if trace-buffer
 	(let ((fmt (math-format-stack-value (list math-rewrite-whole-expr nil nil))))
 	  (with-current-buffer trace-buffer
@@ -485,8 +484,8 @@
     (let ((math-rewrite-whole t))
       (cdr (math-compile-rewrites (cons
 				   'vec
-				   (mapcar (function (lambda (x)
-						       (list 'vec x t)))
+                                   (mapcar (lambda (x)
+                                             (list 'vec x t))
 					   (if (eq (car-safe pats) 'vec)
 					       (cdr pats)
 					     (list pats)))))))))
@@ -656,15 +655,14 @@
 					  nil
 					  (nreverse
 					   (mapcar
-					    (function
-					     (lambda (v)
-					       (and (car v)
-						    (list
-						     'calcFunc-assign
-						     (math-build-var-name
-						      (car v))
-						     (math-rwcomp-register-expr
-						      (nth 1 v))))))
+                                            (lambda (v)
+                                              (and (car v)
+                                                   (list
+                                                    'calcFunc-assign
+                                                    (math-build-var-name
+                                                     (car v))
+                                                    (math-rwcomp-register-expr
+                                                     (nth 1 v)))))
 					    math-regs))))
 				 (math-rwcomp-match-vars math-rhs))
 			       math-remembering)
@@ -672,7 +670,7 @@
 	    (let* ((heads (math-rewrite-heads math-pattern))
 		   (rule (list (vconcat
 				(nreverse
-				 (mapcar (function (lambda (x) (nth 3 x)))
+                                 (mapcar (lambda (x) (nth 3 x))
 					 math-regs)))
 			       math-prog
 			       heads
@@ -724,10 +722,9 @@
 	(setq rules (cdr rules)))
       (if nil-rules
 	  (setq rule-set (cons (cons nil nil-rules) rule-set)))
-      (setq all-heads (mapcar 'car
-			      (sort all-heads (function
-					       (lambda (x y)
-						 (< (cdr x) (cdr y)))))))
+      (setq all-heads (mapcar #'car
+                              (sort all-heads (lambda (x y)
+                                                (< (cdr x) (cdr y))))))
       (let ((set rule-set)
 	    rule heads ptr)
 	(while set
@@ -790,15 +787,14 @@
 	      (math-rewrite-heads-rec (car expr)))))))
 
 (defun math-parse-schedule (sched)
-  (mapcar (function
-	   (lambda (s)
-	     (if (integerp s)
-		 s
-	       (if (math-vectorp s)
-		   (math-parse-schedule (cdr s))
-		 (if (eq (car-safe s) 'var)
-		     (math-var-to-calcFunc s)
-		   (error "Improper component in rewrite schedule"))))))
+  (mapcar (lambda (s)
+            (if (integerp s)
+                s
+              (if (math-vectorp s)
+                  (math-parse-schedule (cdr s))
+                (if (eq (car-safe s) 'var)
+                    (math-var-to-calcFunc s)
+                  (error "Improper component in rewrite schedule")))))
 	  sched))
 
 (defun math-rwcomp-match-vars (expr)
@@ -1180,9 +1176,8 @@
  						(list 'calcFunc-register
  						      reg2))))
  		       (math-rwcomp-pattern (car arg2) (cdr arg2))))
- 		 (let* ((args (mapcar (function
- 				       (lambda (x)
- 					 (cons x (math-rwcomp-best-reg x))))
+                 (let* ((args (mapcar (lambda (x)
+                                        (cons x (math-rwcomp-best-reg x)))
  				      (cdr expr)))
  			(args2 (copy-sequence args))
  			(argp (reverse args2))

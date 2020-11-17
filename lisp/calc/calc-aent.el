@@ -76,8 +76,8 @@
 	    (calc-refresh-evaltos (nth 2 (nth 1 (car alg-exp))))
 	    (setq alg-exp (list (nth 2 (car alg-exp)))))
 	  (setq calc-quick-prev-results alg-exp
-		buf (mapconcat (function (lambda (x)
-					   (math-format-value x 1000)))
+                buf (mapconcat (lambda (x)
+                                 (math-format-value x 1000))
 			       alg-exp
 			       " ")
 		shortbuf buf)
@@ -197,18 +197,17 @@
 	       (calc-language (if (memq calc-language '(nil big))
 				  'flat calc-language))
 	       (calc-dollar-values (mapcar
-				    (function
-				     (lambda (x)
-				       (if (stringp x)
-					   (progn
-					     (setq x (math-read-exprs x))
-					     (if (eq (car-safe x)
-						     'error)
-						 (throw 'calc-error
-							(calc-eval-error
-							 (cdr x)))
-					       (car x)))
-					 x)))
+                                    (lambda (x)
+                                      (if (stringp x)
+                                          (progn
+                                            (setq x (math-read-exprs x))
+                                            (if (eq (car-safe x)
+                                                    'error)
+                                                (throw 'calc-error
+                                                       (calc-eval-error
+                                                        (cdr x)))
+                                              (car x)))
+                                        x))
 				    args))
 	       (calc-dollar-used 0)
 	       (res (if (stringp str)
@@ -640,10 +639,10 @@ in Calc algebraic input.")
 	    (math-find-user-tokens (car (car p)))
 	    (setq p (cdr p)))
 	  (setq calc-user-tokens (mapconcat 'identity
-					    (sort (mapcar 'car math-toks)
-						  (function (lambda (x y)
-							      (> (length x)
-								 (length y)))))
+                                            (sort (mapcar #'car math-toks)
+                                                  (lambda (x y)
+                                                    (> (length x)
+                                                       (length y))))
 					    "\\|")
 		calc-last-main-parse-table mtab
 		calc-last-user-lang-parse-table ltab

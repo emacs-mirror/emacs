@@ -464,14 +464,13 @@
 	    (math-compose-vector (cdr (nth 1 a))
 				 (math-vector-to-string sep nil)
 				 (or cprec prec))
-	  (cons 'horiz (mapcar (function
-				(lambda (x)
-				  (if (eq (car-safe x) 'calcFunc-bstring)
-				      (prog1
-					  (math-compose-expr
-					   x (or bprec cprec prec))
-					(setq bprec -123))
-				    (math-compose-expr x (or cprec prec)))))
+          (cons 'horiz (mapcar (lambda (x)
+                                 (if (eq (car-safe x) 'calcFunc-bstring)
+                                     (prog1
+                                         (math-compose-expr
+                                          x (or bprec cprec prec))
+                                       (setq bprec -123))
+                                   (math-compose-expr x (or cprec prec))))
 			       (cdr (nth 1 a)))))))
      ((and (memq (car a) '(calcFunc-cvert calcFunc-clvert calcFunc-crvert))
 	   (not (eq calc-language 'unform))
@@ -482,47 +481,46 @@
       (let* ((base 0)
 	     (v 0)
 	     (prec (or (nth 2 a) prec))
-	     (c (mapcar (function
-			 (lambda (x)
-			   (let ((b nil) (cc nil) a d)
-			     (if (and (memq (car-safe x) '(calcFunc-cbase
-							   calcFunc-ctbase
-							   calcFunc-cbbase))
-				      (memq (length x) '(1 2)))
-				 (setq b (car x)
-				       x (nth 1 x)))
-			     (if (and (eq (car-safe x) 'calcFunc-crule)
-				      (memq (length x) '(1 2))
-				      (or (null (nth 1 x))
-					  (and (math-vectorp (nth 1 x))
-					       (= (length (nth 1 x)) 2)
-					       (math-vector-is-string
-						(nth 1 x)))
-					  (and (natnump (nth 1 x))
-					       (<= (nth 1 x) 255))))
-				 (setq cc (list
-					   'rule
-					   (if (math-vectorp (nth 1 x))
-					       (aref (math-vector-to-string
-						      (nth 1 x) nil) 0)
-					     (or (nth 1 x) ?-))))
-			       (or (and (memq (car-safe x) '(calcFunc-cvspace
-							     calcFunc-ctspace
-							     calcFunc-cbspace))
-					(memq (length x) '(2 3))
-					(eq (nth 1 x) 0))
-				   (null x)
-				   (setq cc (math-compose-expr x prec))))
-			     (setq a (if cc (math-comp-ascent cc) 0)
-				   d (if cc (math-comp-descent cc) 0))
-			     (if (eq b 'calcFunc-cbase)
-				 (setq base (+ v a -1))
-			       (if (eq b 'calcFunc-ctbase)
-				   (setq base v)
-				 (if (eq b 'calcFunc-cbbase)
-				     (setq base (+ v a d -1)))))
-			     (setq v (+ v a d))
-			     cc)))
+             (c (mapcar (lambda (x)
+                          (let ((b nil) (cc nil) a d)
+                            (if (and (memq (car-safe x) '(calcFunc-cbase
+                                                          calcFunc-ctbase
+                                                          calcFunc-cbbase))
+                                     (memq (length x) '(1 2)))
+                                (setq b (car x)
+                                      x (nth 1 x)))
+                            (if (and (eq (car-safe x) 'calcFunc-crule)
+                                     (memq (length x) '(1 2))
+                                     (or (null (nth 1 x))
+                                         (and (math-vectorp (nth 1 x))
+                                              (= (length (nth 1 x)) 2)
+                                              (math-vector-is-string
+                                               (nth 1 x)))
+                                         (and (natnump (nth 1 x))
+                                              (<= (nth 1 x) 255))))
+                                (setq cc (list
+                                          'rule
+                                          (if (math-vectorp (nth 1 x))
+                                              (aref (math-vector-to-string
+                                                     (nth 1 x) nil) 0)
+                                            (or (nth 1 x) ?-))))
+                              (or (and (memq (car-safe x) '(calcFunc-cvspace
+                                                            calcFunc-ctspace
+                                                            calcFunc-cbspace))
+                                       (memq (length x) '(2 3))
+                                       (eq (nth 1 x) 0))
+                                  (null x)
+                                  (setq cc (math-compose-expr x prec))))
+                            (setq a (if cc (math-comp-ascent cc) 0)
+                                  d (if cc (math-comp-descent cc) 0))
+                            (if (eq b 'calcFunc-cbase)
+                                (setq base (+ v a -1))
+                              (if (eq b 'calcFunc-ctbase)
+                                  (setq base v)
+                                (if (eq b 'calcFunc-cbbase)
+                                    (setq base (+ v a d -1)))))
+                            (setq v (+ v a d))
+                            cc))
 			(cdr (nth 1 a)))))
 	(setq c (delq nil c))
 	(if c
@@ -865,16 +863,15 @@
     (while (<= (setq col (1+ col)) cols)
       (setq res (cons (cons math-comp-just
 			    (cons base
-				  (mapcar (function
-					   (lambda (r)
-					     (list 'horiz
-						   (math-compose-expr
-						    (nth col r)
-						    math-comp-vector-prec)
-						   (if (= col cols)
-						       ""
-						     (concat
-                                                      math-comp-comma-spc " ")))))
+                                  (mapcar (lambda (r)
+                                            (list 'horiz
+                                                  (math-compose-expr
+                                                   (nth col r)
+                                                   math-comp-vector-prec)
+                                                  (if (= col cols)
+                                                      ""
+                                                    (concat
+                                                     math-comp-comma-spc " "))))
 					  a)))
 		      res)))
     (nreverse res)))
@@ -923,7 +920,7 @@
 					 ( ?\^? . "\\^?" )))
 
 (defun math-vector-to-string (a &optional quoted)
-  (setq a (concat (mapcar (function (lambda (x) (if (consp x) (nth 1 x) x)))
+  (setq a (concat (mapcar (lambda (x) (if (consp x) (nth 1 x) x))
 			  (cdr a))))
   (if (string-match "[\000-\037\177\\\"]" a)
       (let ((p 0)

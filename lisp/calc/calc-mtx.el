@@ -55,7 +55,7 @@
 (defun math-col-matrix (a)
   (if (and (Math-vectorp a)
 	   (not (math-matrixp a)))
-      (cons 'vec (mapcar (function (lambda (x) (list 'vec x))) (cdr a)))
+      (cons 'vec (mapcar (lambda (x) (list 'vec x)) (cdr a)))
     a))
 
 
@@ -79,8 +79,8 @@
     (cons 'vec (nreverse mat))))
 
 (defun math-mul-mat-vec (a b)
-  (cons 'vec (mapcar (function (lambda (row)
-				 (math-dot-product row b)))
+  (cons 'vec (mapcar (lambda (row)
+                       (math-dot-product row b))
 		     (cdr a))))
 
 

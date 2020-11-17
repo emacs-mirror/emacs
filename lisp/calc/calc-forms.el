@@ -2129,7 +2129,7 @@ and ends on the last Sunday of October at 2 a.m."
 	     ((memq (car n) '(+ - / vec neg))
 	      (math-normalize
 	       (cons (car n)
-		     (mapcar (function (lambda (x) (math-make-mod x m)))
+                     (mapcar (lambda (x) (math-make-mod x m))
 			     (cdr n)))))
 	     ((and (eq (car n) '*) (Math-anglep (nth 1 n)))
 	      (math-mul (math-make-mod (nth 1 n) m) (nth 2 n)))

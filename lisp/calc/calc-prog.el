@@ -182,7 +182,7 @@
 	  odef key keyname cmd cmd-base cmd-base-default
           func calc-user-formula-alist is-symb)
      (if is-lambda
-	 (setq math-arglist (mapcar (function (lambda (x) (nth 1 x)))
+         (setq math-arglist (mapcar (lambda (x) (nth 1 x))
 			       (nreverse (cdr (reverse (cdr form)))))
 	       form (nth (1- (length form)) form))
        (calc-default-formula-arglist form)
@@ -290,10 +290,10 @@
 			(y-or-n-p
 			 "Leave it symbolic for non-constant arguments? ")))
      (setq calc-user-formula-alist
-           (mapcar (function (lambda (x)
-                               (or (cdr (assq x '((nil . arg-nil)
-                                                  (t . arg-t))))
-                                   x))) calc-user-formula-alist))
+           (mapcar (lambda (x)
+                     (or (cdr (assq x '((nil . arg-nil)
+                                        (t . arg-t))))
+                         x)) calc-user-formula-alist))
      (if cmd
 	 (progn
 	   (require 'calc-macs)
@@ -319,8 +319,8 @@
 	     (append
 	      (list 'lambda calc-user-formula-alist)
 	      (and is-symb
-		   (mapcar (function (lambda (v)
-				       (list 'math-check-const v t)))
+                   (mapcar (lambda (v)
+                             (list 'math-check-const v t))
 			   calc-user-formula-alist))
 	      (list body))))
      (put func 'calc-user-defn form)

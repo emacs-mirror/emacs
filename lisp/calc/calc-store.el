@@ -168,15 +168,13 @@
     ()
   (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
   (define-key calc-var-name-map " " 'self-insert-command)
-  (mapc (function
-	 (lambda (x)
+  (mapc (lambda (x)
 	  (define-key calc-var-name-map (char-to-string x)
-	    'calcVar-digit)))
+            'calcVar-digit))
 	"0123456789")
-  (mapc (function
-	 (lambda (x)
+  (mapc (lambda (x)
 	  (define-key calc-var-name-map (char-to-string x)
-	    'calcVar-oper)))
+            'calcVar-oper))
 	"+-*/^|"))
 
 (defvar calc-store-opers)
@@ -324,10 +322,9 @@
 	 (calc-pop-push-record
 	  (1+ calc-given-value-flag)
 	  (concat "=" (calc-var-name (car (car var))))
-	  (let ((saved-val (mapcar (function
-				    (lambda (v)
-				      (and (boundp (car v))
-					   (symbol-value (car v)))))
+          (let ((saved-val (mapcar (lambda (v)
+                                     (and (boundp (car v))
+                                          (symbol-value (car v))))
 				   var)))
 	    (unwind-protect
 		(let ((vv var))
@@ -597,13 +594,12 @@
 				      calc-settings-file)))
      (if var
 	 (calc-insert-permanent-variable var)
-       (mapatoms (function
-		  (lambda (x)
-		    (and (string-match "\\`var-" (symbol-name x))
-			 (not (memq x calc-dont-insert-variables))
-			 (calc-var-value x)
-			 (not (eq (car-safe (symbol-value x)) 'special-const))
-			 (calc-insert-permanent-variable x))))))
+       (mapatoms (lambda (x)
+                   (and (string-match "\\`var-" (symbol-name x))
+                        (not (memq x calc-dont-insert-variables))
+                        (calc-var-value x)
+                        (not (eq (car-safe (symbol-value x)) 'special-const))
+                        (calc-insert-permanent-variable x)))))
      (save-buffer))))
 
 
@@ -638,27 +634,26 @@
 (defun calc-insert-variables (buf)
   (interactive "bBuffer in which to save variable values: ")
   (with-current-buffer buf
-    (mapatoms (function
-	       (lambda (x)
-		 (and (string-match "\\`var-" (symbol-name x))
-		      (not (memq x calc-dont-insert-variables))
-		      (calc-var-value x)
-		      (not (eq (car-safe (symbol-value x)) 'special-const))
-		      (or (not (eq x 'var-Decls))
-			  (not (equal var-Decls '(vec))))
-		      (or (not (eq x 'var-Holidays))
-			  (not (equal var-Holidays '(vec (var sat var-sat)
-							 (var sun var-sun)))))
-		      (insert "(setq "
-			      (symbol-name x)
-			      " "
-			      (prin1-to-string
-			       (let ((calc-language
-				      (if (memq calc-language '(nil big))
-					  'flat
-					calc-language)))
-				 (math-format-value (symbol-value x) 100000)))
-			      ")\n")))))))
+    (mapatoms (lambda (x)
+                (and (string-match "\\`var-" (symbol-name x))
+                     (not (memq x calc-dont-insert-variables))
+                     (calc-var-value x)
+                     (not (eq (car-safe (symbol-value x)) 'special-const))
+                     (or (not (eq x 'var-Decls))
+                         (not (equal var-Decls '(vec))))
+                     (or (not (eq x 'var-Holidays))
+                         (not (equal var-Holidays '(vec (var sat var-sat)
+                                                        (var sun var-sun)))))
+                     (insert "(setq "
+                             (symbol-name x)
+                             " "
+                             (prin1-to-string
+                              (let ((calc-language
+                                     (if (memq calc-language '(nil big))
+                                         'flat
+                                       calc-language)))
+                                (math-format-value (symbol-value x) 100000)))
+                             ")\n"))))))
 
 (defun calc-assign (arg)
   (interactive "P")

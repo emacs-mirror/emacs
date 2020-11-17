@@ -268,7 +268,7 @@
   (interactive)
   (calc-wrapper
    (let (pos
-	 (vals (mapcar (function (lambda (v) (symbol-value (car v))))
+         (vals (mapcar (lambda (v) (symbol-value (car v)))
 		       calc-mode-var-list)))
      (unless calc-settings-file
        (error "No `calc-settings-file' specified"))

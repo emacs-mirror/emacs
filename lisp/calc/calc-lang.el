@@ -175,20 +175,19 @@
 (put 'c 'math-vector-brackets "{}")
 
 (put 'c 'math-radix-formatter
-     (function (lambda (r s)
-		 (if (= r 16) (format "0x%s" s)
-		   (if (= r 8) (format "0%s" s)
-		     (format "%d#%s" r s))))))
+     (lambda (r s)
+       (if (= r 16) (format "0x%s" s)
+         (if (= r 8) (format "0%s" s)
+           (format "%d#%s" r s)))))
 
 (put 'c 'math-compose-subscr
-     (function
-      (lambda (a)
-        (let ((args (cdr (cdr a))))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "["
-                (math-compose-vector args ", " 0)
-                "]")))))
+     (lambda (a)
+       (let ((args (cdr (cdr a))))
+         (list 'horiz
+               (math-compose-expr (nth 1 a) 1000)
+               "["
+               (math-compose-vector args ", " 0)
+               "]"))))
 
 (add-to-list 'calc-lang-slash-idiv 'c)
 (add-to-list 'calc-lang-allow-underscores 'c)
@@ -238,9 +237,9 @@
 (put 'pascal 'math-output-filter 'calc-output-case-filter)
 
 (put 'pascal 'math-radix-formatter
-     (function (lambda (r s)
-		 (if (= r 16) (format "$%s" s)
-		   (format "%d#%s" r s)))))
+     (lambda (r s)
+       (if (= r 16) (format "$%s" s)
+         (format "%d#%s" r s))))
 
 (put 'pascal 'math-lang-read-symbol
      '((?\$
@@ -253,17 +252,16 @@
               math-exp-pos (match-end 1)))))
 
 (put 'pascal 'math-compose-subscr
-     (function
-      (lambda (a)
-        (let ((args (cdr (cdr a))))
-          (while (eq (car-safe (nth 1 a)) 'calcFunc-subscr)
-            (setq args (append (cdr (cdr (nth 1 a))) args)
-                  a (nth 1 a)))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "["
-                (math-compose-vector args ", " 0)
-                "]")))))
+     (lambda (a)
+       (let ((args (cdr (cdr a))))
+         (while (eq (car-safe (nth 1 a)) 'calcFunc-subscr)
+           (setq args (append (cdr (cdr (nth 1 a))) args)
+                 a (nth 1 a)))
+         (list 'horiz
+               (math-compose-expr (nth 1 a) 1000)
+               "["
+               (math-compose-vector args ", " 0)
+               "]"))))
 
 (add-to-list 'calc-lang-allow-underscores 'pascal)
 (add-to-list 'calc-lang-brackets-are-subscripts 'pascal)
@@ -350,17 +348,16 @@
               math-exp-pos (match-end 0)))))
 
 (put 'fortran 'math-compose-subscr
-     (function
-      (lambda (a)
-        (let ((args (cdr (cdr a))))
-          (while (eq (car-safe (nth 1 a)) 'calcFunc-subscr)
-            (setq args (append (cdr (cdr (nth 1 a))) args)
-                  a (nth 1 a)))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "("
-                (math-compose-vector args ", " 0)
-                ")")))))
+     (lambda (a)
+       (let ((args (cdr (cdr a))))
+         (while (eq (car-safe (nth 1 a)) 'calcFunc-subscr)
+           (setq args (append (cdr (cdr (nth 1 a))) args)
+                 a (nth 1 a)))
+         (list 'horiz
+               (math-compose-expr (nth 1 a) 1000)
+               "("
+               (math-compose-vector args ", " 0)
+               ")"))))
 
 (add-to-list 'calc-lang-slash-idiv 'fortran)
 (add-to-list 'calc-lang-allow-underscores 'fortran)
@@ -598,18 +595,17 @@
 (put 'tex 'math-input-filter 'math-tex-input-filter)
 
 (put 'tex 'math-matrix-formatter
-     (function
-      (lambda (a)
-        (if (and (integerp calc-language-option)
-                 (or (= calc-language-option 0)
-                     (> calc-language-option 1)
-                     (< calc-language-option -1)))
-            (append '(vleft 0 "\\matrix{")
-                    (math-compose-tex-matrix (cdr a))
-                    '("}"))
-          (append '(horiz "\\matrix{ ")
-                  (math-compose-tex-matrix (cdr a))
-                  '(" }"))))))
+     (lambda (a)
+       (if (and (integerp calc-language-option)
+                (or (= calc-language-option 0)
+                    (> calc-language-option 1)
+                    (< calc-language-option -1)))
+           (append '(vleft 0 "\\matrix{")
+                   (math-compose-tex-matrix (cdr a))
+                   '("}"))
+         (append '(horiz "\\matrix{ ")
+                 (math-compose-tex-matrix (cdr a))
+                 '(" }")))))
 
 (put 'tex 'math-var-formatter 'math-compose-tex-var)
 
@@ -839,18 +835,17 @@
 (put 'latex 'math-complex-format 'i)
 
 (put 'latex 'math-matrix-formatter
-     (function
-      (lambda (a)
-        (if (and (integerp calc-language-option)
-                 (or (= calc-language-option 0)
-                     (> calc-language-option 1)
-                     (< calc-language-option -1)))
-            (append '(vleft 0 "\\begin{pmatrix}")
-                    (math-compose-tex-matrix (cdr a) t)
-                    '("\\end{pmatrix}"))
-          (append '(horiz "\\begin{pmatrix} ")
-                  (math-compose-tex-matrix (cdr a) t)
-                  '(" \\end{pmatrix}"))))))
+     (lambda (a)
+       (if (and (integerp calc-language-option)
+                (or (= calc-language-option 0)
+                    (> calc-language-option 1)
+                    (< calc-language-option -1)))
+           (append '(vleft 0 "\\begin{pmatrix}")
+                   (math-compose-tex-matrix (cdr a) t)
+                   '("\\end{pmatrix}"))
+         (append '(horiz "\\begin{pmatrix} ")
+                 (math-compose-tex-matrix (cdr a) t)
+                 '(" \\end{pmatrix}")))))
 
 (put 'latex 'math-var-formatter 'math-compose-tex-var)
 
@@ -1023,36 +1018,34 @@
 (put 'eqn 'math-evalto '("evalto " . " -> "))
 
 (put 'eqn 'math-matrix-formatter
-     (function
-      (lambda (a)
-        (append '(horiz "matrix { ")
-                (math-compose-eqn-matrix
-                 (cdr (math-transpose a)))
-                '("}")))))
+     (lambda (a)
+       (append '(horiz "matrix { ")
+               (math-compose-eqn-matrix
+                (cdr (math-transpose a)))
+               '("}"))))
 
 (put 'eqn 'math-var-formatter
-     (function
-      (lambda (a prec)
-        (let (v)
-          (if (and math-compose-hash-args
-                   (let ((p calc-arg-values))
-                     (setq v 1)
-                     (while (and p (not (equal (car p) a)))
-                       (setq p (and (eq math-compose-hash-args t) (cdr p))
-                             v (1+ v)))
-                     p))
-              (if (eq math-compose-hash-args 1)
-                  "#"
-                (format "#%d" v))
-            (if (string-match ".'\\'" (symbol-name (nth 2 a)))
-                (math-compose-expr
-                 (list 'calcFunc-Prime
-                       (list
-                        'var
-                        (intern (substring (symbol-name (nth 1 a)) 0 -1))
-                        (intern (substring (symbol-name (nth 2 a)) 0 -1))))
-                 prec)
-              (symbol-name (nth 1 a))))))))
+     (lambda (a prec)
+       (let (v)
+         (if (and math-compose-hash-args
+                  (let ((p calc-arg-values))
+                    (setq v 1)
+                    (while (and p (not (equal (car p) a)))
+                      (setq p (and (eq math-compose-hash-args t) (cdr p))
+                            v (1+ v)))
+                    p))
+             (if (eq math-compose-hash-args 1)
+                 "#"
+               (format "#%d" v))
+           (if (string-match ".'\\'" (symbol-name (nth 2 a)))
+               (math-compose-expr
+                (list 'calcFunc-Prime
+                      (list
+                       'var
+                       (intern (substring (symbol-name (nth 1 a)) 0 -1))
+                       (intern (substring (symbol-name (nth 2 a)) 0 -1))))
+                prec)
+             (symbol-name (nth 1 a)))))))
 
 (defconst math-eqn-special-funcs
   '( calcFunc-log
@@ -1065,31 +1058,30 @@
      calcFunc-arcsinh calcFunc-arccosh calcFunc-arctanh))
 
 (put 'eqn 'math-func-formatter
-     (function
-      (lambda (func a)
-        (let (left right)
-          (if (string-match "[^']'+\\'" func)
-              (let ((n (- (length func) (match-beginning 0) 1)))
-                (setq func (substring func 0 (- n)))
-                (while (>= (setq n (1- n)) 0)
-                  (setq func (concat func " prime")))))
-          (cond ((or (> (length a) 2)
-                     (not (math-tex-expr-is-flat (nth 1 a))))
-                 (setq left "{left ( "
-                       right " right )}"))
+     (lambda (func a)
+       (let (left right)
+         (if (string-match "[^']'+\\'" func)
+             (let ((n (- (length func) (match-beginning 0) 1)))
+               (setq func (substring func 0 (- n)))
+               (while (>= (setq n (1- n)) 0)
+                 (setq func (concat func " prime")))))
+         (cond ((or (> (length a) 2)
+                    (not (math-tex-expr-is-flat (nth 1 a))))
+                (setq left "{left ( "
+                      right " right )}"))
 
-                ((and
-                  (memq (car a) math-eqn-special-funcs)
-                  (= (length a) 2)
-                  (or (Math-realp (nth 1 a))
-                      (memq (car (nth 1 a)) '(var *))))
-                 (setq left "~{" right "}"))
-                (t
-                 (setq left " ( "
-                       right " )")))
-          (list 'horiz func left
-                (math-compose-vector (cdr a) " , " 0)
-                right)))))
+               ((and
+                 (memq (car a) math-eqn-special-funcs)
+                 (= (length a) 2)
+                 (or (Math-realp (nth 1 a))
+                     (memq (car (nth 1 a)) '(var *))))
+                (setq left "~{" right "}"))
+               (t
+                (setq left " ( "
+                      right " )")))
+         (list 'horiz func left
+               (math-compose-vector (cdr a) " , " 0)
+               right))))
 
 (put 'eqn 'math-lang-read-symbol
      '((?\"
@@ -1111,23 +1103,22 @@
      ("above" punc ",")))
 
 (put 'eqn 'math-lang-adjust-words
-     (function
-      (lambda ()
-        (let ((code (assoc math-expr-data math-eqn-ignore-words)))
-          (cond ((null code))
-                ((null (cdr code))
-                 (math-read-token))
-                ((consp (nth 1 code))
-                 (math-read-token)
-                 (if (assoc math-expr-data (cdr code))
-                     (setq math-expr-data (format "%s %s"
-                                                  (car code) math-expr-data))))
-                ((eq (nth 1 code) 'punc)
-                 (setq math-exp-token 'punc
-                       math-expr-data (nth 2 code)))
-                (t
-                 (math-read-token)
-                 (math-read-token)))))))
+     (lambda ()
+       (let ((code (assoc math-expr-data math-eqn-ignore-words)))
+         (cond ((null code))
+               ((null (cdr code))
+                (math-read-token))
+               ((consp (nth 1 code))
+                (math-read-token)
+                (if (assoc math-expr-data (cdr code))
+                    (setq math-expr-data (format "%s %s"
+                                                 (car code) math-expr-data))))
+               ((eq (nth 1 code) 'punc)
+                (setq math-exp-token 'punc
+                      math-expr-data (nth 2 code)))
+               (t
+                (math-read-token)
+                (math-read-token))))))
 
 (put 'eqn 'math-lang-read
      '((eq (string-match "->\\|<-\\|\\+-\\|\\\\dots\\|~\\|\\^"
@@ -1357,14 +1348,13 @@
        ( calcFunc-in    .  (math-lang-compose-switch-args "Contains"))))
 
 (put 'yacas 'math-compose-subscr
-     (function
-      (lambda (a)
-        (let ((args (cdr (cdr a))))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "["
-                (math-compose-vector args ", " 0)
-                "]")))))
+     (lambda (a)
+       (let ((args (cdr (cdr a))))
+         (list 'horiz
+               (math-compose-expr (nth 1 a) 1000)
+               "["
+               (math-compose-vector args ", " 0)
+               "]"))))
 
 (defun math-yacas-parse-Sum (f _val)
   "Read in the arguments to \"Sum\" in Calc's Yacas mode."
@@ -1600,24 +1590,22 @@
 (add-to-list 'calc-lang-brackets-are-subscripts 'maxima)
 
 (put 'maxima 'math-compose-subscr
-     (function
-      (lambda (a)
-        (let ((args (cdr (cdr a))))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "["
-                (math-compose-vector args ", " 0)
-                "]")))))
+     (lambda (a)
+       (let ((args (cdr (cdr a))))
+         (list 'horiz
+               (math-compose-expr (nth 1 a) 1000)
+               "["
+               (math-compose-vector args ", " 0)
+               "]"))))
 
 (put 'maxima 'math-matrix-formatter
-     (function
-      (lambda (a)
-        (list 'horiz
-              "matrix("
-              (math-compose-vector (cdr a)
-                                   (concat math-comp-comma " ")
-                                   math-comp-vector-prec)
-              ")"))))
+     (lambda (a)
+       (list 'horiz
+             "matrix("
+             (math-compose-vector (cdr a)
+                                  (concat math-comp-comma " ")
+                                  math-comp-vector-prec)
+             ")")))
 
 
 ;;; Giac
@@ -1806,15 +1794,14 @@ order to Calc's."
 (add-to-list 'calc-lang-allow-underscores 'giac)
 
 (put 'giac 'math-compose-subscr
-     (function
-      (lambda (a)
-        ;; (let ((args (cdr (cdr a))))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "["
-                (math-compose-expr
-                 (calc-normalize (list '- (nth 2 a) 1)) 0)
-                "]")))) ;;)
+     (lambda (a)
+       ;; (let ((args (cdr (cdr a))))
+       (list 'horiz
+             (math-compose-expr (nth 1 a) 1000)
+             "["
+             (math-compose-expr
+              (calc-normalize (list '- (nth 2 a) 1)) 0)
+             "]"))) ;;)
 
 (defun math-read-giac-subscr (x _op)
   (let ((idx (math-read-expr-level 0)))
@@ -1932,7 +1919,7 @@ order to Calc's."
 (put 'math 'math-function-close "]")
 
 (put 'math 'math-radix-formatter
-     (function (lambda (r s) (format "%d^^%s" r s))))
+     (lambda (r s) (format "%d^^%s" r s)))
 
 (put 'math 'math-lang-read
      '((eq (string-match "\\[\\[\\|->\\|:>" math-exp-str math-exp-pos)
@@ -1942,13 +1929,12 @@ order to Calc's."
              math-exp-pos (match-end 0))))
 
 (put 'math 'math-compose-subscr
-     (function
-      (lambda (a)
-        (list 'horiz
-              (math-compose-expr (nth 1 a) 1000)
-              "[["
-              (math-compose-expr (nth 2 a) 0)
-              "]]"))))
+     (lambda (a)
+       (list 'horiz
+             (math-compose-expr (nth 1 a) 1000)
+             "[["
+             (math-compose-expr (nth 2 a) 0)
+             "]]")))
 
 (defun math-read-math-subscr (x _op)
   (let ((idx (math-read-expr-level 0)))
@@ -2038,26 +2024,24 @@ order to Calc's."
 (put 'maple 'math-complex-format 'I)
 
 (put 'maple 'math-matrix-formatter
-     (function
-      (lambda (a)
-        (list 'horiz
-              "matrix("
-              math-comp-left-bracket
-              (math-compose-vector (cdr a)
-                                   (concat math-comp-comma " ")
-                                   math-comp-vector-prec)
-              math-comp-right-bracket
-              ")"))))
+     (lambda (a)
+       (list 'horiz
+             "matrix("
+             math-comp-left-bracket
+             (math-compose-vector (cdr a)
+                                  (concat math-comp-comma " ")
+                                  math-comp-vector-prec)
+             math-comp-right-bracket
+             ")")))
 
 (put 'maple 'math-compose-subscr
-     (function
-      (lambda (a)
-        (let ((args (cdr (cdr a))))
-          (list 'horiz
-                (math-compose-expr (nth 1 a) 1000)
-                "["
-                (math-compose-vector args ", " 0)
-                "]")))))
+     (lambda (a)
+       (let ((args (cdr (cdr a))))
+         (list 'horiz
+               (math-compose-expr (nth 1 a) 1000)
+               "["
+               (math-compose-vector args ", " 0)
+               "]"))))
 
 (add-to-list 'calc-lang-allow-underscores 'maple)
 (add-to-list 'calc-lang-brackets-are-subscripts 'maple)

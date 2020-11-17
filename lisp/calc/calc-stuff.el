@@ -182,7 +182,7 @@ With a prefix, push that prefix as a number onto the stack."
 	 math-eval-rules-cache-tag t
 	 math-format-date-cache nil
 	 math-holidays-cache-tag t)
-   (mapc (function (lambda (x) (set x -100))) math-cache-list)
+   (mapc (lambda (x) (set x -100)) math-cache-list)
    (unless inhibit-msg
      (message "All internal calculator caches have been reset"))))
 
@@ -258,14 +258,14 @@ With a prefix, push that prefix as a number onto the stack."
 	  (t (list 'calcFunc-clean a)))))
 
 (defun calcFunc-pclean (a &optional prec)
-  (math-map-over-constants (function (lambda (x) (calcFunc-clean x prec)))
+  (math-map-over-constants (lambda (x) (calcFunc-clean x prec))
 			   a))
 
 (defun calcFunc-pfloat (a)
   (math-map-over-constants 'math-float a))
 
 (defun calcFunc-pfrac (a &optional tol)
-  (math-map-over-constants (function (lambda (x) (calcFunc-frac x tol)))
+  (math-map-over-constants (lambda (x) (calcFunc-frac x tol))
 			   a))
 
 ;; The variable math-moc-func is local to math-map-over-constants,
