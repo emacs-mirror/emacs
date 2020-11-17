@@ -831,12 +831,14 @@ equivalent to '(map (:sym sym))'.
 
 +++
 *** New commands to filter the package list.
-The filter command key bindings are as follows:
+The filter commands are bound to the following keys:
 
 key             binding
 ---             -------
 / a             package-menu-filter-by-archive
+/ d             package-menu-filter-by-description
 / k             package-menu-filter-by-keyword
+/ N             package-menu-filter-by-name-or-description
 / n             package-menu-filter-by-name
 / s             package-menu-filter-by-status
 / v             package-menu-filter-by-version

@@ -2704,7 +2704,9 @@ either a full name or nil, and EMAIL is a valid email address."
     (define-key map "(" #'package-menu-toggle-hiding)
     (define-key map (kbd "/ /") 'package-menu-clear-filter)
     (define-key map (kbd "/ a") 'package-menu-filter-by-archive)
+    (define-key map (kbd "/ d") 'package-menu-filter-by-description)
     (define-key map (kbd "/ k") 'package-menu-filter-by-keyword)
+    (define-key map (kbd "/ N") 'package-menu-filter-by-name-or-description)
     (define-key map (kbd "/ n") 'package-menu-filter-by-name)
     (define-key map (kbd "/ s") 'package-menu-filter-by-status)
     (define-key map (kbd "/ v") 'package-menu-filter-by-version)
@@ -2736,8 +2738,11 @@ either a full name or nil, and EMAIL is a valid email address."
     "--"
     ("Filter Packages"
      ["Filter by Archive" package-menu-filter-by-archive :help "Filter packages by archive"]
+     ["Filter by Description" package-menu-filter-by-description :help "Filter packages by description"]
      ["Filter by Keyword" package-menu-filter-by-keyword :help "Filter packages by keyword"]
      ["Filter by Name" package-menu-filter-by-name :help "Filter packages by name"]
+     ["Filter by Name or Description" package-menu-filter-by-name-or-description
+      :help "Filter packages by name or description"]
      ["Filter by Status" package-menu-filter-by-status :help "Filter packages by status"]
      ["Filter by Version" package-menu-filter-by-version :help "Filter packages by version"]
      ["Filter Marked" package-menu-filter-marked :help "Filter packages marked for upgrade"]
@@ -3765,6 +3770,23 @@ packages."
                                              (string-join archive ",")
                                            archive)))))
 
+(defun package-menu-filter-by-description (description)
+  "Filter the \"*Packages*\" buffer by DESCRIPTION regexp.
+Display only packages with a description that matches regexp
+DESCRIPTION.
+
+When called interactively, prompt for DESCRIPTION.
+
+If DESCRIPTION is nil or the empty string, show all packages."
+  (interactive (list (read-regexp "Filter by description (regexp)")))
+  (package--ensure-package-menu-mode)
+  (if (or (not description) (string-empty-p description))
+      (package-menu--generate t t)
+    (package-menu--filter-by (lambda (pkg-desc)
+                        (string-match description
+                                      (package-desc-summary pkg-desc)))
+                      (format "desc:%s" description))))
+
 (defun package-menu-filter-by-keyword (keyword)
   "Filter the \"*Packages*\" buffer by KEYWORD.
 Display only packages with specified KEYWORD.
@@ -3789,6 +3811,27 @@ packages."
 
 (define-obsolete-function-alias
   'package-menu-filter #'package-menu-filter-by-keyword "27.1")
+
+(defun package-menu-filter-by-name-or-description (name-or-description)
+  "Filter the \"*Packages*\" buffer by NAME-OR-DESCRIPTION regexp.
+Display only packages with a name-or-description that matches regexp
+NAME-OR-DESCRIPTION.
+
+When called interactively, prompt for NAME-OR-DESCRIPTION.
+
+If NAME-OR-DESCRIPTION is nil or the empty string, show all
+packages."
+  (interactive (list (read-regexp "Filter by name or description (regexp)")))
+  (package--ensure-package-menu-mode)
+  (if (or (not name-or-description) (string-empty-p name-or-description))
+      (package-menu--generate t t)
+    (package-menu--filter-by (lambda (pkg-desc)
+                        (or (string-match name-or-description
+                                          (package-desc-summary pkg-desc))
+                            (string-match name-or-description
+                                          (symbol-name
+                                           (package-desc-name pkg-desc)))))
+                      (format "name-or-desc:%s" name-or-description))))
 
 (defun package-menu-filter-by-name (name)
   "Filter the \"*Packages*\" buffer by NAME regexp.
