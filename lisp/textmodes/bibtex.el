@@ -96,8 +96,7 @@ It is called with one argument, the entry or field name."
 		 (const :tag "Downcase" downcase)
 		 (const :tag "Capitalize" capitalize)
 		 (const :tag "Upcase" upcase)
-                 (function :tag "Conversion function"))
-  :local t)
+                 (function :tag "Conversion function")))
 
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
