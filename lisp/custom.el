@@ -157,7 +157,9 @@ set to nil, as the value is no longer rogue."
   (if (keywordp doc)
       (error "Doc string is missing"))
   (let ((initialize #'custom-initialize-reset)
-	(requests nil))
+        (requests nil)
+        ;; Whether automatically buffer-local.
+        buffer-local)
     (unless (memq :group args)
       (custom-add-to-group (custom-current-group) symbol 'custom-variable))
     (while args
@@ -183,7 +185,7 @@ set to nil, as the value is no longer rogue."
 		 (put symbol 'safe-local-variable value))
                 ((eq keyword :local)
                  (when (memq value '(t permanent))
-                   (make-variable-buffer-local symbol))
+                   (setq buffer-local t))
                  (when (eq value 'permanent)
                    (put symbol 'permanent-local t)))
 		((eq keyword :type)
@@ -205,7 +207,9 @@ set to nil, as the value is no longer rogue."
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
     (unless custom-dont-initialize
-      (funcall initialize symbol default)))
+      (funcall initialize symbol default))
+    (when buffer-local
+      (make-variable-buffer-local symbol)))
   (run-hooks 'custom-define-hook)
   symbol)
 
