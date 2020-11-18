@@ -4037,7 +4037,15 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 {
   CHECK_STRING (filename);
 
-  filename = Fexpand_file_name (filename, Qnil);
+  /* Use `file-truename' or fall back to `expand-file-name' when the
+     first is not available (bug#44701).
+
+     `file-truename' is not available only for a short phases of the
+     bootstrap before file.el is loaded, given we do not symlink
+     inside the build directory this should work.  */
+  filename = NILP (Ffboundp (intern_c_string ("file-truename")))
+    ? Fexpand_file_name (filename, Qnil)
+    : CALL1I (file-truename, filename);
 
   if (NILP (Ffile_exists_p (filename)))
     xsignal1 (Qfile_missing, filename);
