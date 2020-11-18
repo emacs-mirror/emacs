@@ -2658,7 +2658,8 @@ The method used must be an out-of-band method."
 		     #'file-name-nondirectory (list localname)))))))
 
       (save-restriction
-	(let ((beg (point)))
+	(let ((beg (point))
+	      match)
 	  (narrow-to-region (point) (point))
 	  ;; We cannot use `insert-buffer-substring' because the Tramp
 	  ;; buffer changes its contents before insertion due to calling
@@ -2696,10 +2697,25 @@ The method used must be an out-of-band method."
 		(re-search-forward tramp-display-escape-sequence-regexp nil t)
 	      (replace-match "")))
 
-	  ;; Decode the output, it could be multibyte.
-	  (decode-coding-region
-	   beg (point-max)
-	   (or file-name-coding-system default-file-name-coding-system))
+	  ;; Decode the output, it could be multibyte.  We must
+	  ;; restore the text property, because `decode-coding-region'
+	  ;; has destroyed it.  However, text-property-search.el
+	  ;; exists since Emacs 27 only.
+	  (if (not (require 'text-property-search nil 'noerror))
+	      (decode-coding-region
+	       beg (point-max)
+	       (or file-name-coding-system default-file-name-coding-system))
+	    (goto-char beg)
+            (while (setq match
+			 (tramp-compat-funcall
+			  'text-property-search-forward 'dired-filename t t))
+	      (decode-coding-region
+	       (tramp-compat-funcall 'prop-match-beginning match)
+	       (tramp-compat-funcall 'prop-match-end match)
+	       (or file-name-coding-system default-file-name-coding-system))
+	      (put-text-property
+	       (tramp-compat-funcall 'prop-match-beginning match)
+	       (point) 'dired-filename t)))
 
 	  ;; The inserted file could be from somewhere else.
 	  (when (and (not wildcard) (not full-directory-p))
