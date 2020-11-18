@@ -403,7 +403,8 @@ well."
   '((((class color))
      :foreground "red" :background "black" :weight bold)
     (t :weight bold))
-  "`diff-mode' face for error messages from diff.")
+  "`diff-mode' face for error messages from diff."
+  :version "28.1")
 
 (defconst diff-yank-handler '(diff-yank-function))
 (defun diff-yank-function (text)
