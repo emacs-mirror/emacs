@@ -1150,7 +1150,9 @@ queries the server for the existing fields and displays a corresponding form."
     (cons "Directory Servers"
 	  (easy-menu-create-menu "Directory Servers" (cdr (eudc-menu))))))
 
-;;; Load time initializations :
+;;}}}
+
+;;{{{ Load time initializations
 
 ;; Load the options file
 (if (and (not noninteractive)
@@ -1207,5 +1209,7 @@ This does nothing except loading eudc by autoload side-effect."
 ;;}}}
 
 (provide 'eudc)
-
+;; Local Variables:
+;; outline-regexp: ";;\\([;*]+ [^\s\t\n]\\|{{{\\|###autoload\\)\\|("
+;; End:
 ;;; eudc.el ends here

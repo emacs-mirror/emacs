@@ -237,8 +237,8 @@ Last entry becomes the first and can be selected with
       (push (car last) comps)
       (completion--cache-all-sorted-completions beg end comps))))
 
-;;; Helpers for `fido-mode' (or `ido-mode' emulation)
-;;;
+;;;_* Helpers for `fido-mode' (or `ido-mode' emulation)
+
 (defun icomplete-fido-kill ()
   "Kill line or current completion, like `ido-mode'.
 If killing to the end of line make sense, call `kill-line',
@@ -782,7 +782,7 @@ matches exist."
 		    "}")
 	  (concat determ " [Matched]"))))))
 
-;;; Iswitchb compatibility
+;;;_* Iswitchb compatibility
 
 ;; We moved Iswitchb to `obsolete' in 24.4, but autoloads in files in
 ;; `obsolete' aren't obeyed (since that would encourage people to keep using
@@ -798,9 +798,10 @@ matches exist."
 ;;;_* Provide
 (provide 'icomplete)
 
-;;_* Local emacs vars.
+;;;_* Local emacs vars.
 ;;Local variables:
 ;;allout-layout: (-2 :)
+;;outline-regexp: ";;\\([;*]+ [^\s\t\n]\\|;_[ *+=>]*\\|###autoload\\)\\|("
 ;;End:
 
 ;;; icomplete.el ends here

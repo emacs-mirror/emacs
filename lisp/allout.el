@@ -2529,10 +2529,10 @@ We skip anomalous low-level topics, a la `allout-aberrant-container-p'."
 
 ;;;_  - Subtree Charting
 ;;;_   " These routines either produce or assess charts, which are
-;;; nested lists of the locations of topics within a subtree.
-;;;
-;;; Charts enable efficient subtree navigation by providing a reusable basis
-;;; for elaborate, compound assessment and adjustment of a subtree.
+;; nested lists of the locations of topics within a subtree.
+;;
+;; Charts enable efficient subtree navigation by providing a reusable basis
+;; for elaborate, compound assessment and adjustment of a subtree.
 
 ;;;_   > allout-chart-subtree (&optional levels visible orig-depth prev-depth)
 (defun allout-chart-subtree (&optional levels visible orig-depth prev-depth)
@@ -6514,6 +6514,7 @@ If BEG is bigger than END we return 0."
 ;;  - and closes the last topic (this local-variables section).
 ;;Local variables:
 ;;allout-layout: (0 : -1 -1 0)
+;;outline-regexp: ";;\\([;*]+ [^\s\t\n]\\|;_[ *+=>]*\\|###autoload\\)\\|("
 ;;End:
 
 ;;; allout.el ends here
