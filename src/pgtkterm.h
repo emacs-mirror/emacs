@@ -235,7 +235,7 @@ struct pgtk_display_info
   struct frame *last_mouse_glyph_frame;
 
   /* Modifier masks in gdk */
-  int meta_mod_mask, alt_mod_mask;
+  int meta_mod_mask, alt_mod_mask, super_mod_mask;
 
   /* The last click event. */
   GdkEvent *last_click_event;
