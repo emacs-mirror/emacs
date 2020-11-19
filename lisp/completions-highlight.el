@@ -153,6 +153,15 @@ is executed in another window, but cursor stays in minibuffer."
   (interactive "p")
   (with-minibuffer-scroll-window (previous-line n)))
 
+;; Maybe this may be done with an advise?
+(defun minibuffer-choose-completion ()
+  "Execute `choose-completion' in *Completions*."
+  (interactive)
+  (if (and (completions-highlight-completions-visible-p)
+           (overlay-buffer completions-highlight-overlay))
+      (with-minibuffer-scroll-window (choose-completion))
+    (minibuffer-complete-and-exit)))
+
 ;; General commands
 (defun completions-highlight--set-suffix (choice)
   "Set CHOICE suffix to current completion.
@@ -192,6 +201,8 @@ suffix."
     (define-key map [left] #'minibuffer-previous-completion)
     (define-key map [down] #'minibuffer-next-line-completion)
     (define-key map [up] #'minibuffer-previous-line-completion)
+    (define-key map [remap minibuffer-complete-and-exit]
+      #'minibuffer-choose-completion)
     map)
   "Keymap used in minibuffer while *Completions* is active.")
 
