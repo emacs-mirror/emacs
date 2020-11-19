@@ -5869,13 +5869,16 @@ which window parameters (if any) are saved by this function.
 @xref{Window Parameters}.
 @end defun
 
-@defun set-window-configuration configuration
+@defun set-window-configuration configuration &optional dont-set-frame
 This function restores the configuration of windows and buffers as
 specified by @var{configuration}, for the frame that
 @var{configuration} was created for, regardless of whether that frame
 is selected or not.  The argument @var{configuration} must be a value
 that was previously returned by @code{current-window-configuration}
-for that frame.
+for that frame.  Normally the function also selects the frame which is
+recorded in the configuration, but if @var{dont-set-frame} is
+non-@code{nil}, it leaves selected the frame which was current at the
+start of the function.
 
 If the frame from which @var{configuration} was saved is dead, all
 this function does is to restore the value of the variable
