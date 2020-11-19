@@ -179,6 +179,7 @@ suffix."
 
 (defvar completions-highlight-minibuffer-map
   (let ((map (make-sparse-keymap)))
+    (define-key map [backtab] #'minibuffer-previous-completion)
     (set-keymap-parent map minibuffer-local-must-match-map)
     (define-key map [right] #'minibuffer-next-completion)
     (define-key map [left] #'minibuffer-previous-completion)
