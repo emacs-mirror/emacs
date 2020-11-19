@@ -4352,21 +4352,19 @@ Shell debugging commands are available as single key sequences."
     ["Toggle Toolbar" idlwave-shell-toggle-toolbar t]
     ["Exit IDL" idlwave-shell-quit t]))
 
-(if (or (featurep 'easymenu) (load "easymenu" t))
-    (progn
-      (easy-menu-define
-       idlwave-mode-debug-menu idlwave-mode-map "IDL debugging menus"
-       idlwave-shell-menu-def)
-      (easy-menu-define
-       idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
-       idlwave-shell-menu-def)
-      (save-current-buffer
-	(dolist (buf (buffer-list))
-          (set-buffer buf)
-          (if (derived-mode-p 'idlwave-mode)
-              (progn
-                (easy-menu-remove idlwave-mode-debug-menu)
-                (easy-menu-add idlwave-mode-debug-menu)))))))
+(easy-menu-define
+  idlwave-mode-debug-menu idlwave-mode-map "IDL debugging menus"
+  idlwave-shell-menu-def)
+(easy-menu-define
+  idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
+  idlwave-shell-menu-def)
+(save-current-buffer
+  (dolist (buf (buffer-list))
+    (set-buffer buf)
+    (if (derived-mode-p 'idlwave-mode)
+        (progn
+          (easy-menu-remove idlwave-mode-debug-menu)
+          (easy-menu-add idlwave-mode-debug-menu)))))
 
 ;; The Breakpoint Glyph -------------------------------------------------------
 

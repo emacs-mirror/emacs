@@ -9032,14 +9032,12 @@ Assumes that point is at the beginning of the unit as found by
      (and (boundp 'idlwave-shell-automatic-start)
 	  idlwave-shell-automatic-start)]))
 
-(if (or (featurep 'easymenu) (load "easymenu" t))
-    (progn
-      (easy-menu-define idlwave-mode-menu idlwave-mode-map
-			"IDL and WAVE CL editing menu"
-			idlwave-mode-menu-def)
-      (easy-menu-define idlwave-mode-debug-menu idlwave-mode-map
-			"IDL and WAVE CL editing menu"
-			idlwave-mode-debug-menu-def)))
+(easy-menu-define idlwave-mode-menu idlwave-mode-map
+  "IDL and WAVE CL editing menu"
+  idlwave-mode-menu-def)
+(easy-menu-define idlwave-mode-debug-menu idlwave-mode-map
+  "IDL and WAVE CL editing menu"
+  idlwave-mode-debug-menu-def)
 
 (defun idlwave-customize ()
   "Call the customize function with `idlwave' as argument."
