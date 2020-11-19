@@ -249,15 +249,7 @@ Otherwise return the normal value."
     (goto-char cur-pos)
     result))
 
-;; Emacs used to count each multibyte character as several positions in the buffer,
-;; so we had to use Emacs's chars-in-region to count characters. Since 20.3,
-;; Emacs counts multibyte characters as 1 position.  XEmacs has always been
-;; counting each char as just one pos. So, now we can simply subtract beg from
-;; end to determine the number of characters in a region.
 (defun viper-chars-in-region (beg end &optional preserve-sign)
-  ;;(let ((count (abs (if (fboundp 'chars-in-region)
-  ;;    		(chars-in-region beg end)
-  ;;    	      (- end beg)))))
   (let ((count (abs (- end beg))))
     (if (and (< end beg) preserve-sign)
 	(- count)
