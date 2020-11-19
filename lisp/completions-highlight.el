@@ -72,6 +72,15 @@ buffer is shown and updated."
   :group 'completions-highlight
   :version "28.1")
 
+(defcustom completions-highlight-set-suffix t
+  "Insert completion candidate in minibuffer
+
+When this variable is nil the completions will be highlighted but
+not inserted in the minibuffer."
+  :type 'boolean
+  :group 'completions-highlight
+  :version "28.1")
+
 (defface completions-highlight
   '((t :inherit highlight :extend t))
   "Default face for highlighting the current line in Hl-Line mode."
@@ -85,8 +94,9 @@ buffer is shown and updated."
   "Saves the the original value of completion-in-minibuffer-scroll-window.")
 
 ;; *Completions* side commands
-(defun completions-highlight-this-completion ()
+(defun completions-highlight--this-completion ()
   "Highlight the completion under point or near."
+  ;; Find a completion close
   (next-completion -1)
   (next-completion 1)
   (completions-highlight-select-near))
@@ -104,7 +114,8 @@ buffer is shown and updated."
          (choice (buffer-substring-no-properties obeg oend)))
 
     (move-overlay completions-highlight-overlay obeg oend)
-    (minibuffer-completion-set-suffix choice)))
+    (when completions-highlight-set-suffix
+      (completions-highlight--set-suffix choice))))
 
 (defsubst completions-highlight-completions-visible-p ()
   "Return t if *Completions* is visible."
@@ -127,8 +138,7 @@ The argument N is passed directly to
 `next-completion', the command is executed
 in another window, but cursor stays in minibuffer."
   (interactive "p")
-  (with-minibuffer-scroll-window
-   (next-completion n)))
+  (with-minibuffer-scroll-window (next-completion n)))
 
 (defun minibuffer-previous-completion (n)
   "Execute `previous-completion' in *Completions*.
@@ -136,8 +146,7 @@ The argument N is passed directly to `previous-completion', the
 command is executed in another window, but cursor stays in
 minibuffer."
   (interactive "p")
-  (with-minibuffer-scroll-window
-   (previous-completion n)))
+  (with-minibuffer-scroll-window (previous-completion n)))
 
 (defun minibuffer-next-line-completion (n)
   "Execute `next-line' in *Completions*.
