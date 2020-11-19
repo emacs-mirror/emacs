@@ -6602,6 +6602,9 @@ Use as
 "
   (cperl-write-tags nil nil t t))
 
+(defvar cperl-tags-file-name "TAGS"
+  "TAGS file name to use in `cperl-write-tags'.")
+
 (defun cperl-write-tags (&optional file erase recurse dir inbuffer noxs topdir)
   ;; If INBUFFER, do not select buffer, and do not save
   ;; If ERASE is `ignore', do not erase, and do not try to delete old info.
@@ -6611,7 +6614,7 @@ Use as
     (if (and (not dir) (buffer-modified-p)) (error "Save buffer first!")))
   (or topdir
       (setq topdir default-directory))
-  (let ((tags-file-name "TAGS")
+  (let ((tags-file-name cperl-tags-file-name)
         (inhibit-read-only t)
 	(case-fold-search nil)
 	xs rel)
