@@ -301,15 +301,14 @@ disable ffap most of the time."
   :version "20.3")
 
 
-;;; Compatibility:
-;;
-;; This version of ffap supports only the Emacs it is distributed in.
-;; See the ftp site for a more general version.  The following
-;; functions are necessary "leftovers" from the more general version.
+;;; Obsolete:
 
 (defun ffap-mouse-event ()		; current mouse event, or nil
+  (declare (obsolete nil "28.1"))
   (and (listp last-nonmenu-event) last-nonmenu-event))
+
 (defun ffap-event-buffer (event)
+  (declare (obsolete nil "28.1"))
   (window-buffer (car (event-start event))))
 
 
@@ -1736,7 +1735,9 @@ Function CONT is applied to the entry chosen by the user."
   (let (choice)
     (cond
      ;; Emacs mouse:
-     ((and (fboundp 'x-popup-menu) (ffap-mouse-event))
+     ((and (fboundp 'x-popup-menu)
+           (listp last-nonmenu-event)
+           last-nonmenu-event)
       (setq choice
 	    (x-popup-menu
 	     t
@@ -1829,7 +1830,7 @@ Return value:
 	   (ffap-guesser))))
     (cond
      (guess
-      (set-buffer (ffap-event-buffer e))
+      (set-buffer (window-buffer (car (event-start e))))
       (ffap-highlight)
       (unwind-protect
 	  (progn
