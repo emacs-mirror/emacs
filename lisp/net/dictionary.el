@@ -1179,8 +1179,6 @@ It presents the word at point as default input and allows editing it."
 (defun dictionary-popup-matching-words (&optional word)
   "Display entries matching the word at the point"
   (interactive)
-  (unless (functionp 'popup-menu)
-    (error "Sorry, popup menus are not available in this emacs version"))
   (dictionary-do-matching (or word (current-word))
 			  dictionary-default-dictionary
 			  dictionary-default-popup-strategy
