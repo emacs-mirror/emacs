@@ -5502,25 +5502,32 @@ Case is always significant and text properties are ignored. */)
   haybytes = SBYTES (haystack) - start_byte;
 
   /* We can do a direct byte-string search if both strings have the
-     same multibyteness, or if at least one of them consists of ASCII
-     characters only.  */
+     same multibyteness, or if the needle consists of ASCII characters only.  */
   if (STRING_MULTIBYTE (haystack)
       ? (STRING_MULTIBYTE (needle)
          || SCHARS (haystack) == SBYTES (haystack) || string_ascii_p (needle))
       : (!STRING_MULTIBYTE (needle)
-         || SCHARS (needle) == SBYTES (needle) || string_ascii_p (haystack)))
-    res = memmem (haystart, haybytes,
-		  SSDATA (needle), SBYTES (needle));
-  else if (STRING_MULTIBYTE (haystack))  /* unibyte needle */
+         || SCHARS (needle) == SBYTES (needle)))
+    {
+      if (STRING_MULTIBYTE (haystack) && STRING_MULTIBYTE (needle)
+          && SCHARS (haystack) == SBYTES (haystack)
+          && SCHARS (needle) != SBYTES (needle))
+        /* Multibyte non-ASCII needle, multibyte ASCII haystack: impossible.  */
+        return Qnil;
+      else
+        res = memmem (haystart, haybytes,
+                      SSDATA (needle), SBYTES (needle));
+    }
+  else if (STRING_MULTIBYTE (haystack))  /* unibyte non-ASCII needle */
     {
       Lisp_Object multi_needle = string_to_multibyte (needle);
       res = memmem (haystart, haybytes,
 		    SSDATA (multi_needle), SBYTES (multi_needle));
     }
-  else                        /* unibyte haystack, multibyte needle */
+  else              /* unibyte haystack, multibyte non-ASCII needle */
     {
       /* The only possible way we can find the multibyte needle in the
-	 unibyte stack (since we know that neither are pure-ASCII) is
+	 unibyte stack (since we know that the needle is non-ASCII) is
 	 if they contain "raw bytes" (and no other non-ASCII chars.)  */
       ptrdiff_t nbytes = SBYTES (needle);
       for (ptrdiff_t i = 0; i < nbytes; i++)
