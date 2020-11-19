@@ -150,7 +150,7 @@ is executed in another window, but cursor stays in minibuffer."
   (with-minibuffer-scroll-window (previous-line n)))
 
 ;; General commands
-(defun minibuffer-completion-set-suffix (choice)
+(defun completions-highlight--set-suffix (choice)
   "Set CHOICE suffix to current completion.
 It uses `completion-base-position' to determine the cursor
 position.  If choice is the empty string the command removes the
@@ -161,21 +161,24 @@ suffix."
          (completion-no-auto-exit t))
 
     (with-selected-window minibuffer-window
-	(let* ((prompt-end (minibuffer-prompt-end))
-	       (cursor-pos (if obase-position
-			       (cadr obase-position)
-			     (choose-completion-guess-base-position choice)))
-	       (prefix-len (- cursor-pos prompt-end))
-	       (suffix (if (< prefix-len (length choice))
-			   (substring choice prefix-len)
-			 ""))
-	       (suffix-len (string-width suffix)))
+      (let* ((prompt-end (minibuffer-prompt-end))
+	     (cursor-pos (if obase-position
+			     (cadr obase-position)
+			   (choose-completion-guess-base-position choice)))
+	     (prefix-len (- cursor-pos prompt-end))
+	     (suffix (if (< prefix-len (length choice))
+			 (substring choice prefix-len)
+		       ""))
+	     (suffix-len (string-width suffix)))
 
-          (choose-completion-string suffix minibuffer-buffer
-                                    (list cursor-pos (point-max)))
-          (add-face-text-property cursor-pos (+ cursor-pos suffix-len) 'shadow)
-          (goto-char cursor-pos)))))
+        (choose-completion-string suffix minibuffer-buffer
+                                  (list cursor-pos (point-max)))
+        (add-face-text-property cursor-pos (+ cursor-pos suffix-len) 'shadow)
+        (goto-char cursor-pos)))))
 
+(defun completions-highlight--clear-suffix()
+  "Clear completion suffix if set."
+  (completions-highlight--set-suffix ""))
 
 (defvar completions-highlight-minibuffer-map
   (let ((map (make-sparse-keymap)))
@@ -195,7 +198,7 @@ suffix."
     map)
   "Keymap used in *Completions* while highlighting candidates.")
 
-(defun completions-highlight-minibuffer-tab-through-completions ()
+(defun completions-highlight--minibuffer-tab-through-completions ()
   "Default action in `minibuffer-scroll-window' WINDOW.
 This is called when *Completions* window is already visible and
 should be assigned to completion-in-minibuffer-scroll-window."
@@ -213,15 +216,6 @@ should be assigned to completion-in-minibuffer-scroll-window."
 	;; can scroll.
 	(with-selected-window window (scroll-up))))))
 
-(defun completions-highlight-completions-pre-command-hook ()
-  "Function `pre-command-hook' to use only in the *Completions."
-  (minibuffer-completion-set-suffix ""))
-
-(defun completions-highlight-minibuffer-pre-command-hook ()
-  "Function `pre-command-hook' to use only in the minibuffer."
-  (unless (eq this-command 'minibuffer-complete-and-exit)
-    (minibuffer-completion-set-suffix "")))
-
 (defun completions-highlight-setup ()
   "Function to call when enabling the `completion-highlight-mode' mode.
 It is called when showing the *Completions* buffer."
@@ -230,10 +224,8 @@ It is called when showing the *Completions* buffer."
   (with-current-buffer standard-output
     (when (string= (buffer-name) "*Completions*")
 
-      (add-hook 'pre-command-hook
-		#'completions-highlight-completions-pre-command-hook nil t)
-      (add-hook 'post-command-hook
-		#'completions-highlight-this-completion nil t)
+      (add-hook 'pre-command-hook #'completions-highlight--clear-suffix nil t)
+      (add-hook 'post-command-hook #'completions-highlight--this-completion nil t)
 
       ;; Add completions-highlight-completions-map to *Completions*
       (use-local-map (make-composed-keymap
@@ -245,8 +237,7 @@ It is called when showing the *Completions* buffer."
           (next-completion 1)
           (completions-highlight-select-near)))))
 
-  (add-hook 'pre-command-hook
-	    #'completions-highlight-minibuffer-pre-command-hook nil t)
+  (add-hook 'pre-command-hook #'completions-highlight--clear-suffix nil t)
 
   ;; Add completions-highlight-minibuffer-map bindings to minibuffer
   (use-local-map (make-composed-keymap
@@ -266,7 +257,7 @@ It is called when showing the *Completions* buffer."
 	      minibuffer-tab-through-completions-function)
 
 	(setq minibuffer-tab-through-completions-function
-	      #'completions-highlight-minibuffer-tab-through-completions)
+	      #'completions-highlight--minibuffer-tab-through-completions)
 
 	(add-hook 'completion-setup-hook #'completions-highlight-setup t))
 
