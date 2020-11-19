@@ -838,6 +838,10 @@ key             binding
 / u             package-menu-filter-upgradable
 / /             package-menu-filter-clear
 
+*** Option to automatically native compile packages on installation.
+Customize the user option `package-native-compile' to enable automatic
+native compilation of packages on installation.
+
 ---
 *** Column widths in 'list-packages' display can now be customized.
 See the new user options 'package-name-column-width',
