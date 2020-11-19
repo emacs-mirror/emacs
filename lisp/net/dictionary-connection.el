@@ -1,4 +1,4 @@
-;;; dictionary-connection.el --- TCP-based client connection for dictionary
+;;; dictionary-connection.el --- TCP-based client connection for dictionary  -*- lexical-binding:t -*-
 
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: network
