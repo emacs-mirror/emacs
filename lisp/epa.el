@@ -24,7 +24,6 @@
 ;;; Dependencies
 
 (require 'epg)
-(require 'font-lock)
 (eval-when-compile (require 'subr-x))
 (require 'derived)
 

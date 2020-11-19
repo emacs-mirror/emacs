@@ -58,7 +58,6 @@
 (load "erc-loaddefs" nil t)
 
 (require 'cl-lib)
-(require 'font-lock)
 (require 'format-spec)
 (require 'pp)
 (require 'thingatpt)

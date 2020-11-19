@@ -270,8 +270,7 @@ instead."
               eshell-current-subjob-p
               font-lock-mode)
           ;; use the fancy highlighting in `eshell-ls' rather than font-lock
-          (when (and eshell-ls-use-colors
-                     (featurep 'font-lock))
+          (when eshell-ls-use-colors
             (font-lock-mode -1)
             (setq font-lock-defaults nil)
             (if (boundp 'font-lock-buffers)

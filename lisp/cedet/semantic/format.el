@@ -32,7 +32,6 @@
 ;;
 
 ;;; Code:
-(eval-when-compile (require 'font-lock))
 (require 'semantic)
 (require 'semantic/tag-ls)
 (require 'ezimage)
@@ -119,12 +118,10 @@ be used unless font lock is a feature.")
   "Apply onto TEXT a color associated with FACE-CLASS.
 FACE-CLASS is a tag type found in `semantic-format-face-alist'.
 See that variable for details on adding new types."
-  (if (featurep 'font-lock)
-      (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
-	    (newtext (concat text)))
-	(put-text-property 0 (length text) 'face face newtext)
-	newtext)
-    text))
+  (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
+        (newtext (concat text)))
+    (put-text-property 0 (length text) 'face face newtext)
+    newtext))
 
 (defun semantic--format-colorize-merge-text (precoloredtext face-class)
   "Apply onto PRECOLOREDTEXT a color associated with FACE-CLASS.

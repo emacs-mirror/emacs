@@ -7642,14 +7642,13 @@ associated TAG, if any."
 
 (defun idlwave-completion-fontify-classes ()
   "Goto the *Completions* buffer and fontify the class info."
-  (when (featurep 'font-lock)
-    (with-current-buffer "*Completions*"
-      (save-excursion
-	(goto-char (point-min))
-	(let ((buffer-read-only nil))
-	  (while (re-search-forward "\\.*<[^>]+>" nil t)
-	    (put-text-property (match-beginning 0) (match-end 0)
-			       'face 'font-lock-string-face)))))))
+  (with-current-buffer "*Completions*"
+    (save-excursion
+      (goto-char (point-min))
+      (let ((buffer-read-only nil))
+        (while (re-search-forward "\\.*<[^>]+>" nil t)
+          (put-text-property (match-beginning 0) (match-end 0)
+                             'face 'font-lock-string-face))))))
 
 (defun idlwave-uniquify (list)
   (let ((ht (make-hash-table :size (length list) :test 'equal)))

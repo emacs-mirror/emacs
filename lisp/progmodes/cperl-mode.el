@@ -400,7 +400,7 @@ Font for POD headers."
   :version "21.1"
   :group 'cperl-faces)
 
-(defcustom cperl-pod-here-fontify '(featurep 'font-lock)
+(defcustom cperl-pod-here-fontify t
   "Not-nil after evaluation means to highlight POD and here-docs sections."
   :type 'boolean
   :group 'cperl-faces)

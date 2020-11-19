@@ -261,7 +261,6 @@
 (require 'comint)
 
 (eval-when-compile
-  (require 'font-lock)
   ;; We need imenu everywhere because of the predicate index!
   (require 'imenu)
   ;)
@@ -1883,8 +1882,6 @@ Argument BOUND is a buffer position limiting searching."
 ;; Set everything up
 (defun prolog-font-lock-keywords ()
   "Set up font lock keywords for the current Prolog system."
-  ;;(when window-system
-  (require 'font-lock)
 
   ;; Define Prolog faces
   (defface prolog-redo-face

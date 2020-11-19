@@ -107,8 +107,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'font-lock))
-
 (defgroup generic-x nil
   "A collection of generic modes."
   :prefix "generic-"
