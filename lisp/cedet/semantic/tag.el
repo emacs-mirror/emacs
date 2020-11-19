@@ -1321,12 +1321,12 @@ This function is overridable with the symbol `insert-foreign-tag'."
   "Insert foreign tags into log-edit mode."
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
-;;; Compatibility
+;;; Obsolete
 ;;
-(defconst semantic-token-version
-  semantic-tag-version)
-(defconst semantic-token-incompatible-version
-  semantic-tag-incompatible-version)
+(define-obsolete-variable-alias 'semantic-token-version
+  'semantic-tag-version "28.1")
+(define-obsolete-variable-alias 'semantic-token-incompatible-version
+  'semantic-tag-incompatible-version "28.1")
 
 (provide 'semantic/tag)
 

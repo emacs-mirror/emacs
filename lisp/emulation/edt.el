@@ -2161,8 +2161,7 @@ Argument KEY is the name of a key.  It can be a standard key or a function key.
 Argument BINDING is the Emacs function to be bound to <KEY>."
   (define-key edt-user-global-map key binding))
 
-;;  For backward compatibility to existing edt-user.el files.
-(fset 'edt-bind-standard-key (symbol-function 'edt-bind-key))
+(define-obsolete-function-alias 'edt-bind-standard-key #'edt-bind-key "28.1")
 
 (defun edt-bind-gold-key (key gold-binding)
   "Binds <GOLD> standard key sequences to custom bindings in the EDT Emulator.
