@@ -44,13 +44,13 @@
 ;; Stuff for customizing.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar dictionary-server)
+(defvar dictionary-current-server)
 (defun dictionary-set-server-var (name value)
   (if (and (boundp 'dictionary-connection)
 	   dictionary-connection
 	   (eq (dictionary-connection-status dictionary-connection) 'up)
 	   (y-or-n-p
-	    (concat "Close existing connection to " dictionary-server "? ")))
+	    (concat "Close existing connection to " dictionary-current-server "? ")))
       (dictionary-connection-close dictionary-connection))
   (set-default name value))
 
@@ -63,11 +63,22 @@
   :group 'dictionary)
 
 (defcustom dictionary-server
-  "dict.org"
-  "This server is contacted for searching the dictionary"
+  nil
+  "This server is contacted for searching the dictionary.
+
+You can specify here:
+
+- Automatic: First try localhost, then dict.org after confirmation
+- localhost: Only use localhost
+- dict.org: Only use dict.org
+- User-defined: You can specify your own server here
+"
   :group 'dictionary
   :set 'dictionary-set-server-var
-  :type 'string
+  :type '(choice (const :tag "Automatic" nil)
+                 (const :tag "localhost" "localhost")
+                 (const :tag "dict.org" "dict.org")
+                 (string :tag "User-defined"))
   :version "28.1")
 
 (defcustom dictionary-port
@@ -421,56 +432,71 @@ is utf-8"
   "Return the reply list stored in `reply'."
   (list 'get reply ''reply-list))
 
+(defun dictionary-open-server (server)
+  "Opens a new connection to this server"
+  (let ((wanted 'raw-text)
+        (coding-system nil))
+    (if (member wanted (coding-system-list))
+        (setq coding-system wanted))
+    (let ((coding-system-for-read coding-system)
+          (coding-system-for-write coding-system))
+      (setq dictionary-current-server server)
+      (message "Opening connection to %s:%s" server
+               dictionary-port)
+      (dictionary-connection-close dictionary-connection)
+      (setq dictionary-connection
+            (if dictionary-use-http-proxy
+                (dictionary-connection-open dictionary-proxy-server
+                                            dictionary-proxy-port)
+              (dictionary-connection-open server dictionary-port)))
+      (set-process-query-on-exit-flag
+       (dictionary-connection-process dictionary-connection)
+       nil)
+
+      (when dictionary-use-http-proxy
+        (message "Proxy CONNECT to %s:%d"
+                 dictionary-proxy-server
+                 dictionary-proxy-port)
+        (dictionary-send-command (format "CONNECT %s:%d HTTP/1.1"
+                                         server
+                                         dictionary-port))
+        ;; just a \r\n combination
+        (dictionary-send-command "")
+
+        ;; read first line of reply
+        (let* ((reply (dictionary-read-reply))
+               (reply-list (dictionary-split-string reply)))
+          ;; first item is protocol, second item is code
+          (unless (= (string-to-number (cadr reply-list)) 200)
+            (error "Bad reply from proxy server %s" reply))
+
+          ;; skip the following header lines until empty found
+          (while (not (equal reply ""))
+            (setq reply (dictionary-read-reply)))))
+
+      (dictionary-check-initial-reply)
+      (dictionary-send-command (concat "client " dictionary-identification))
+      (let ((reply (dictionary-read-reply-and-split)))
+        (message nil)
+        (unless (dictionary-check-reply reply 250)
+          (error "Unknown server answer: %s"
+                 (dictionary-reply reply)))))))
+
 (defun dictionary-check-connection ()
   "Check if there is already a connection open"
   (if (not (and dictionary-connection
 		(eq (dictionary-connection-status dictionary-connection) 'up)))
-      (let ((wanted 'raw-text)
-	    (coding-system nil))
-	(if (member wanted (coding-system-list))
-	    (setq coding-system wanted))
-	(let ((coding-system-for-read coding-system)
-	      (coding-system-for-write coding-system))
-	  (message "Opening connection to %s:%s" dictionary-server
-		   dictionary-port)
-	  (dictionary-connection-close dictionary-connection)
-	  (setq dictionary-connection
-		(if dictionary-use-http-proxy
-		    (dictionary-connection-open dictionary-proxy-server
-                                                dictionary-proxy-port)
-		  (dictionary-connection-open dictionary-server dictionary-port)))
-	  (set-process-query-on-exit-flag
-	   (dictionary-connection-process dictionary-connection)
-	   nil)
-
-	  (when dictionary-use-http-proxy
-	    (message "Proxy CONNECT to %s:%d"
-		     dictionary-proxy-server
-		     dictionary-proxy-port)
-	    (dictionary-send-command (format "CONNECT %s:%d HTTP/1.1"
-					     dictionary-server
-					     dictionary-port))
-	    ;; just a \r\n combination
-	    (dictionary-send-command "")
-
-	    ;; read first line of reply
-	    (let* ((reply (dictionary-read-reply))
-		   (reply-list (dictionary-split-string reply)))
-	      ;; first item is protocol, second item is code
-	      (unless (= (string-to-number (cadr reply-list)) 200)
-		(error "Bad reply from proxy server %s" reply))
-
-	      ;; skip the following header lines until empty found
-	      (while (not (equal reply ""))
-		(setq reply (dictionary-read-reply)))))
-
-	  (dictionary-check-initial-reply)
-	  (dictionary-send-command (concat "client " dictionary-identification))
-	  (let ((reply (dictionary-read-reply-and-split)))
-	    (message nil)
-	    (unless (dictionary-check-reply reply 250)
-	      (error "Unknown server answer: %s"
-		     (dictionary-reply reply))))))))
+      (if dictionary-server
+          (dictionary-open-server dictionary-server)
+        (let ((server "localhost"))
+          (condition-case nil
+              (dictionary-open-server server)
+            (error
+             (if (y-or-n-p
+                  (format "Failed to open server %s, continue with dict.org?"
+                          server))
+                 (dictionary-open-server "dict.org")
+               (error "Failed automatic server selection, please customize dictionary-server"))))))))
 
 (defun dictionary-mode-p ()
   "Return non-nil if current buffer has dictionary-mode"
