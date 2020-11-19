@@ -1,4 +1,4 @@
-;;; dictionary.el --- Client for rfc2229 dictionary servers
+;;; dictionary.el --- Client for rfc2229 dictionary servers  -*- lexical-binding:t -*-
 
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: interface, dictionary
@@ -416,7 +416,7 @@ is utf-8"
     (dictionary-store-positions)
     (dictionary-store-state 'dictionary-new-buffer nil)))
 
-(defun dictionary-new-buffer (&rest ignore)
+(defun dictionary-new-buffer ()
   "Create a new and clean buffer"
 
   (dictionary-pre-buffer)
@@ -513,7 +513,7 @@ is utf-8"
 ;; Dealing with closing the buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun dictionary-close (&rest ignore)
+(defun dictionary-close ()
   "Close the current dictionary buffer and its connection"
   (interactive)
   (if (eq major-mode 'dictionary-mode)
@@ -777,13 +777,13 @@ This function knows about the special meaning of quotes (\")"
 	     (dictionary (nth 2 reply-list))
 	     (description (nth 3 reply-list))
 	     (word (nth 1 reply-list)))
-	(dictionary-display-word-entry word dictionary description)
+	(dictionary-display-word-entry dictionary description)
 	(setq reply (dictionary-read-answer))
 	(dictionary-display-word-definition reply word dictionary)
 	(setq reply (dictionary-read-reply-and-split))))
     (dictionary-post-buffer)))
 
-(defun dictionary-display-word-entry (word dictionary description)
+(defun dictionary-display-word-entry (dictionary description)
   "Insert an explanation for the current definition."
   (let ((start (point)))
     (insert "From "
@@ -857,7 +857,7 @@ The word is taken from the buffer, the `dictionary' is given as argument."
       (unless (dictionary-check-reply reply 110)
 	(error "Unknown server answer: %s"
 	       (dictionary-reply reply)))
-      (dictionary-display-dictionarys reply))))
+      (dictionary-display-dictionarys))))
 
 (defun dictionary-simple-split-string (string &optional pattern)
   "Return a list of substrings of STRING which are separated by PATTERN.
@@ -872,7 +872,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    start (match-end 0)))
     (nreverse (cons (substring string start) parts))))
 
-(defun dictionary-display-dictionarys (reply)
+(defun dictionary-display-dictionarys ()
   "Handle the display of all dictionaries existing on the server"
   (dictionary-pre-buffer)
   (insert "Please select your default dictionary:\n\n")
@@ -969,9 +969,9 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (unless (dictionary-check-reply reply 111)
 	(error "Unknown server answer: %s"
 	       (dictionary-reply reply)))
-      (dictionary-display-strategies reply))))
+      (dictionary-display-strategies))))
 
-(defun dictionary-display-strategies (reply)
+(defun dictionary-display-strategies ()
   "Handle the display of all strategies existing on the server"
   (dictionary-pre-buffer)
   (insert "Please select your default search strategy:\n\n")
@@ -1186,9 +1186,8 @@ It presents the word at point as default input and allows editing it."
 			  dictionary-default-popup-strategy
 			  'dictionary-process-popup-replies))
 
-(defun dictionary-process-popup-replies (reply)
-  (let ((number (nth 1 (dictionary-reply-list reply)))
-	(list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
+(defun dictionary-process-popup-replies (&ignore)
+  (let ((list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
 
     (let ((result (mapcar (lambda (item)
 			    (let* ((list (dictionary-split-string item))
@@ -1204,13 +1203,11 @@ It presents the word at point as default input and allows editing it."
 					t ))))
 
 			  list)))
-      (let ((menu (make-sparse-keymap 'dictionary-popup)))
-
-	(easy-menu-define dictionary-mode-map-menu dictionary-mode-map
-	  "Menu used for displaying dictionary popup"
-	  (cons "Matching words"
-		`(,@result)))
-	(popup-menu dictionary-mode-map-menu)))))
+      (easy-menu-define dictionary-mode-map-menu dictionary-mode-map
+        "Menu used for displaying dictionary popup"
+        (cons "Matching words"
+              `(,@result)))
+      (popup-menu dictionary-mode-map-menu))))
 
 ;;; Tooltip support
 
@@ -1234,7 +1231,7 @@ It presents the word at point as default input and allows editing it."
 	(dictionary-do-search word dictionary 'dictionary-read-definition t))
     nil))
 
-(defun dictionary-read-definition (reply)
+(defun dictionary-read-definition (&ignore)
   (let ((list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (mapconcat 'identity (cdr list) "\n")))
 
@@ -1255,7 +1252,7 @@ It presents the word at point as default input and allows editing it."
 (defvar dictionary-tooltip-mouse-event nil
   "Event that triggered the tooltip mode")
 
-(defun dictionary-display-tooltip (event)
+(defun dictionary-display-tooltip (&ignore)
   "Search the current word in the `dictionary-tooltip-dictionary'."
   (interactive "e")
   (if (and dictionary-tooltip-mode dictionary-tooltip-dictionary)
