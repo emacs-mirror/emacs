@@ -2,7 +2,6 @@
 
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: network
-;; Version: 1.11
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
