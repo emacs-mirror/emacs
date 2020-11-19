@@ -419,9 +419,6 @@ struct buffer
   /* Non-nil means show ... at end of line followed by invisible lines.  */
   Lisp_Object selective_display_ellipses_;
 
-  /* Alist of (FUNCTION . STRING) for each minor mode enabled in buffer.  */
-  Lisp_Object minor_modes_;
-
   /* t if "self-insertion" should overwrite; `binary' if it should also
      overwrite newlines and tabs - for editing executables and the like.  */
   Lisp_Object overwrite_mode_;
