@@ -89,6 +89,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'easymenu)
 
 ;;; Some variables
 
@@ -1075,18 +1076,6 @@ defined in `filesets-ingroup-patterns'."
   :type 'integer
   :group 'filesets)
 
-;;; Emacs compatibility
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (fset 'filesets-error 'error)
-
-    (require 'easymenu)
-
-    (defun filesets-error (_class &rest args)
-      "`error' wrapper."
-      (error "%s" (mapconcat 'identity args " ")))
-
-    ))
 
 (defun filesets-filter-dir-names (lst &optional negative)
   "Remove non-directory names from a list of strings.
@@ -1160,7 +1149,7 @@ Return full path if FULL-FLAG is non-nil."
     (filesets-message 1 "Filesets: %S doesn't exist" dir)
     nil)
    (t
-    (filesets-error 'error "Filesets: " dir " does not exist"))))
+    (error "Filesets: %s does not exist" dir))))
 
 (defun filesets-quote (txt)
   "Return TXT in quotes."
@@ -1172,7 +1161,7 @@ Return full path if FULL-FLAG is non-nil."
 	(p (point)))
     (if m
 	(buffer-substring (min m p) (max m p))
-      (filesets-error 'error "No selection."))))
+      (error "No selection"))))
 
 (defun filesets-get-quoted-selection ()
   "Return the currently selected text in quotes."
@@ -1357,8 +1346,7 @@ Use the viewer defined in EV-ENTRY (a valid element of
 		(goto-char (point-min)))
 	    (when oh
 	      (run-hooks 'oh))))
-      (filesets-error 'error
-		      "Filesets: general error when spawning external viewer"))))
+      (error "Filesets: general error when spawning external viewer"))))
 
 (defun filesets-find-file (file)
   "Call `find-file' after a possible delay (see `filesets-find-file-delay').
@@ -1741,8 +1729,7 @@ Assume MODE (see `filesets-entry-mode'), if provided."
 			;;(filesets-message 3 "Filesets: scanning %s" dirpatt)
 			(filesets-directory-files dir patt ':files t))
 		    ;; (message "Filesets: malformed entry: %s" entry)))))))
-		    (filesets-error 'error "Filesets: malformed entry: "
-				    entry)))))))
+                    (error "Filesets: malformed entry: %s" entry)))))))
     (filesets-filter-list fl
 			  (lambda (file)
 			    (not (filesets-filetype-property file event))))))
@@ -1768,7 +1755,7 @@ Use LOOKUP-NAME for searching additional data if provided."
 	      (dolist (this files nil)
 		(filesets-file-open open-function this))
 	    (message "Filesets: canceled")))
-      (filesets-error 'error "Filesets: Unknown fileset: " name))))
+      (error "Filesets: Unknown fileset: %s" name))))
 
 (defun filesets-close (&optional mode name lookup-name)
   "Close all buffers belonging to the fileset called NAME.
@@ -1789,7 +1776,7 @@ Use LOOKUP-NAME for deducing the save-function, if provided."
 	      (if buffer
 		  (filesets-file-close save-function buffer)))))
 ;      (message "Filesets: Unknown fileset: `%s'" name))))
-      (filesets-error 'error "Filesets: Unknown fileset: " name))))
+      (error "Filesets: Unknown fileset: %s" name))))
 
 (defun filesets-add-buffer (&optional name buffer)
   "Add BUFFER (or current buffer) to the fileset called NAME.
@@ -1997,7 +1984,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
     (_
-     (filesets-error 'error "Filesets: malformed definition of " something))))
+     (error "Filesets: malformed definition of %s" something))))
 
 (defun filesets-ingroup-get-data (master pos &optional fun)
   "Access to `filesets-ingroup-patterns'.  Extract data section."
@@ -2070,8 +2057,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 		   (lst      nil))
 	      (cond
 	       ((not this-patt)
-		(filesets-error 'error "Filesets: malformed :ingroup definition "
-				this-def))
+                (error "Filesets: malformed :ingroup definition %s" this-def))
 	       ((< this-sd 0)
 		nil)
 	       (t
@@ -2174,7 +2160,7 @@ FS is a fileset's name.  FLIST is a list returned by
 	(progn
 	  (message "Filesets: can't parse %s" master)
 	  nil)
-      (filesets-error 'error "Filesets: can't parse " master))))
+      (error "Filesets: can't parse %s" master))))
 
 (defun filesets-build-dir-submenu-now (level depth entry lookup-name dir patt fd
 					     &optional rebuild-flag)
@@ -2473,7 +2459,7 @@ We apologize for the inconvenience.")))
       (insert msg)
       (when (y-or-n-p (format "Edit startup (%s) file now? " cf))
 	(find-file-other-window cf))
-      (filesets-error 'error msg))))
+      (error msg))))
 
 (defun filesets-update (cached-version)
   "Do some cleanup after updating filesets.el."
@@ -2509,8 +2495,7 @@ We apologize for the inconvenience.")))
 (defun filesets-init ()
   "Filesets initialization.
 Set up hooks, load the cache file -- if existing -- and build the menu."
-  (add-hook (if (featurep 'xemacs) 'activate-menubar-hook 'menu-bar-update-hook)
-	    (function filesets-build-menu-maybe))
+  (add-hook 'menu-bar-update-hook #'filesets-build-menu-maybe)
   (add-hook 'kill-buffer-hook (function filesets-remove-from-ubl))
   (add-hook 'first-change-hook (function filesets-reset-filename-on-change))
   (add-hook 'kill-emacs-hook (function filesets-exit))
@@ -2524,6 +2509,10 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 	    (setq filesets-menu-use-cached-flag t)))
     (filesets-build-menu)))
 
+(defun filesets-error (_class &rest args)
+  "`error' wrapper."
+  (declare (obsolete error "28.1"))
+  (error "%s" (mapconcat 'identity args " ")))
 
 (provide 'filesets)
 
