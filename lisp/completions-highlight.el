@@ -58,6 +58,11 @@
 (require 'simple)
 (require 'minibuffer)
 
+(defgroup completions-highlight nil
+  "Highlight candidates in completions buffer."
+  :version "28.1"
+  :group 'completion)
+
 (defcustom completions-highlight-autoselect nil
   "Select first candidate without extra tab.
 
@@ -66,8 +71,14 @@ highlight the first candidate in the *Completions* buffer.  When
 the value is non-nil the candidate is selected every time the
 buffer is shown and updated."
   :type 'boolean
-  :group 'completion
+  :group 'completions-highlight
   :version "28.1")
+
+(defface completions-highlight
+  '((t :inherit highlight :extend t))
+  "Default face for highlighting the current line in Hl-Line mode."
+  :version "28.1"
+  :group 'completions-highlight)
 
 (defvar completions-highlight-overlay (make-overlay 0 0)
   "Overlay to use when `completion-highlight-mode' is enabled.")
@@ -300,7 +311,7 @@ It is called when showing the *Completions* buffer."
 
   (if completions-highlight-mode
       (progn
-	(overlay-put completions-highlight-overlay 'face 'highlight)
+        (overlay-put completions-highlight-overlay 'face 'completions-highlight)
 
         (setq minibuffer-tab-through-completions-function-save
 	      minibuffer-tab-through-completions-function)
