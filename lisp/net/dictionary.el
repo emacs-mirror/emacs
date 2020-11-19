@@ -1179,7 +1179,7 @@ It presents the word at point as default input and allows editing it."
 (defun dictionary-popup-matching-words (&optional word)
   "Display entries matching the word at the point"
   (interactive)
-  (dictionary-do-matching (or word (current-word))
+  (dictionary-do-matching (or word (current-word) (error "Nothing to search for"))
 			  dictionary-default-dictionary
 			  dictionary-default-popup-strategy
 			  'dictionary-process-popup-replies))
