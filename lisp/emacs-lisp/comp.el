@@ -3511,14 +3511,12 @@ LOAD can be nil t or 'late."
                        (list "Path not a file nor directory" path)))))
     (dolist (file files)
       (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
-          ;; When no load is specified (plain async compilation) we
-          ;; consider valid the one previously queued, otherwise we
-          ;; check for coherence (bug#40602).
-          (cl-assert (or (null load)
-                         (eq load (cdr entry)))
-                     nil "Trying to queue %s with LOAD %s but this is already \
-queued with LOAD %"
-                     file load (cdr entry))
+          ;; Most likely the byte-compiler has requested a deferred
+          ;; compilation, so update `comp-files-queue' to reflect that.
+          (unless (or (null load)
+                      (eq load (cdr entry)))
+            (cl-substitute (cons file load) (car entry) comp-files-queue
+                           :key #'car :test #'string=))
         ;; Make sure we are not already compiling `file' (bug#40838).
         (unless (or (gethash file comp-async-compilations)
                     ;; Also exclude files from deferred compilation if
