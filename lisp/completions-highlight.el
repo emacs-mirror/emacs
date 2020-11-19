@@ -44,8 +44,6 @@
 ;; candidate in the arrow direction.  The arrow produces the same
 ;; result either in the minibuffer or in *Completions* window.
 
-;; 4. isearch in the *Completions* buffer works as expected.
-
 ;; The package intents to implement such functionalities without using
 ;; hacks or complex functions, using the default Emacs *Completions*
 ;; infrastructure.  The main advantage is that it is not needed to
@@ -87,59 +85,26 @@ buffer is shown and updated."
   "Saves the the original value of completion-in-minibuffer-scroll-window.")
 
 ;; *Completions* side commands
-(defun completions-highlight-this-completion (&optional n)
-  "Highlight the completion under point or near.
-N is set to 1 if not specified."
-  (setq n (prefix-numeric-value n))
-  (let ((sign (/ n (abs n))))
-    (next-completion sign)
-    (completions-highlight-next-completion (* -1 sign))))
+(defun completions-highlight-this-completion ()
+  "Highlight the completion under point or near."
+  (next-completion -1)
+  (next-completion 1)
+  (completions-highlight-select-near))
 
-(defun completions-highlight-next-completion (n)
-  "Move to and highlight the next item in the completion list.
-With prefix argument N, move N items (negative N means move backward).
-If completion highlight is enabled, highlights the selected candidate.
-Returns the completion string if available.
-If N is equal to zero returns the current candidate"
+(defun completions-highlight-select-near ()
+  "Move to and highlight closer item in the completion list."
   (interactive "p")
 
-  (unless (zerop n)
-    (next-completion n)
-    (cond
-     ((eobp) (next-completion -1))
-     ((bobp) (next-completion 1))))
+  (cond
+   ((eobp) (next-completion -1))
+   ((bobp) (next-completion 1)))
 
   (let* ((obeg (point))
          (oend (next-single-property-change obeg 'mouse-face nil (point-max)))
          (choice (buffer-substring-no-properties obeg oend)))
 
     (move-overlay completions-highlight-overlay obeg oend)
-    (minibuffer-completion-set-suffix choice)
-
-    ;; Return the current completion
-    choice))
-
-(defun completions-highlight-previous-completion (n)
-  "Move to the previous N item in the completion list.
-See `completions-highlight-next-completion' for more details."
-  (interactive "p")
-  (completions-highlight-next-completion (- n)))
-
-(defun completions-highlight-next-line-completion (&optional arg try-vscroll)
-  "Go to completion candidate in line above current.
-With prefix argument ARG, move to ARG candidate bellow current.
-TRY-VSCROLL is passed straight to `line-move'"
-  (interactive "^p\np")
-  (line-move arg t nil try-vscroll)
-  (completions-highlight-this-completion arg))
-
-(defun completions-highlight-previous-line-completion (&optional arg try-vscroll)
-  "Go to completion candidate in line above current.
-With prefix argument ARG, move to ARG candidate above current.
-TRY-VSCROLL is passed straight to `line-move'"
-  (interactive "^p\np")
-  (completions-highlight-next-line-completion (- arg) try-vscroll))
-
+    (minibuffer-completion-set-suffix choice)))
 
 ;; Minibuffer side commands
 (defmacro with-minibuffer-scroll-window (&rest body)
@@ -149,46 +114,40 @@ alive and active."
   `(and (window-live-p minibuffer-scroll-window)
 	(eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
 	(with-selected-window minibuffer-scroll-window
-          ,@body)))
+          ,@body
+          (completions-highlight-this-completion))))
 
 (defun minibuffer-next-completion (n)
-  "Execute `completions-highlight-next-completion' in *Completions*.
+  "Execute `next-completion' in *Completions*.
 The argument N is passed directly to
-`completions-highlight-next-completion', the command is executed
+`next-completion', the command is executed
 in another window, but cursor stays in minibuffer."
   (interactive "p")
   (with-minibuffer-scroll-window
-   (completions-highlight-next-completion n)))
-
+   (next-completion n)))
 
 (defun minibuffer-previous-completion (n)
-  "Execute `completions-highlight-previous-completion' in *Completions*.
-The argument N is passed directly to
-`completions-highlight-previous-completion', the command is
-executed in another window, but cursor stays in minibuffer."
+  "Execute `previous-completion' in *Completions*.
+The argument N is passed directly to `previous-completion', the
+command is executed in another window, but cursor stays in
+minibuffer."
   (interactive "p")
   (with-minibuffer-scroll-window
-   (completions-highlight-previous-completion n)))
-
+   (previous-completion n)))
 
 (defun minibuffer-next-line-completion (n)
-  "Execute `completions-highlight-next-line-completion' in *Completions*.
-The argument N is passed directly to
-`completions-highlight-next-line-completion', the command is
+  "Execute `next-line' in *Completions*.
+The argument N is passed directly to `next-line', the command is
 executed in another window, but cursor stays in minibuffer."
   (interactive "p")
-  (with-minibuffer-scroll-window
-   (completions-highlight-next-line-completion n)))
-
+  (with-minibuffer-scroll-window (next-line n)))
 
 (defun minibuffer-previous-line-completion (n)
-  "Execute `completions-highlight-previous-line-completion' in *Completions*.
-The argument N is passed directly to
-`completions-highlight-previous-line-completion', the command is
-executed in another window, but cursor stays in minibuffer."
+  "Execute `previous-line' in *Completions*.
+The argument N is passed directly to `previous-line', the command
+is executed in another window, but cursor stays in minibuffer."
   (interactive "p")
-  (with-minibuffer-scroll-window
-   (completions-highlight-previous-line-completion n)))
+  (with-minibuffer-scroll-window (previous-line n)))
 
 ;; General commands
 (defun minibuffer-completion-set-suffix (choice)
@@ -231,21 +190,9 @@ suffix."
 (defvar completions-highlight-completions-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map completion-list-mode-map)
-    (define-key map [?\t] #'completions-highlight-next-completion)
     (define-key map "\C-g" #'quit-window)
-
-    (define-key map [up] #'completions-highlight-previous-line-completion)
-    (define-key map "\C-p" #'completions-highlight-previous-line-completion)
-    (define-key map [down] #'completions-highlight-next-line-completion)
-    (define-key map "\C-n" #'completions-highlight-next-line-completion)
-
-    (define-key map [right] #'completions-highlight-next-completion)
-    (define-key map "\C-f" #'completions-highlight-next-completion)
-    (define-key map [left] #'completions-highlight-previous-completion)
-    (define-key map "\C-b" #'completions-highlight-previous-completion)
     map)
   "Keymap used in *Completions* while highlighting candidates.")
-
 
 (defun completions-highlight-minibuffer-tab-through-completions ()
   "Default action in `minibuffer-scroll-window' WINDOW.
@@ -284,7 +231,7 @@ It is called when showing the *Completions* buffer."
 
       (add-hook 'pre-command-hook
 		#'completions-highlight-completions-pre-command-hook nil t)
-      (add-hook 'isearch-mode-end-hook
+      (add-hook 'post-command-hook
 		#'completions-highlight-this-completion nil t)
 
       ;; Add completions-highlight-completions-map to *Completions*
@@ -294,7 +241,8 @@ It is called when showing the *Completions* buffer."
       ;; Autoselect candidate if enabled
       (when completions-highlight-autoselect
         (with-selected-window (get-buffer-window (current-buffer) 0)
-          (completions-highlight-next-completion 1)))))
+          (next-completion 1)
+          (completions-highlight-select-near)))))
 
   (add-hook 'pre-command-hook
 	    #'completions-highlight-minibuffer-pre-command-hook nil t)
