@@ -3489,13 +3489,28 @@ environment variable 'NATIVE_DISABLED' is set byte compile only."
 (defun native-compile-async (paths &optional recursively load)
   "Compile PATHS asynchronously.
 PATHS is one path or a list of paths to files or directories.
-`comp-async-jobs-number' specifies the number of (commands) to
-run simultaneously.  If RECURSIVELY, recurse into subdirectories
-of given directories.
-LOAD can be nil t or 'late."
+
+If optional argument RECURSIVELY is non-nil, recurse into
+subdirectories of given directories.
+
+If optional argument LOAD is non-nil, request to load the file
+after compiling.
+
+The variable `comp-async-jobs-number' specifies the number
+of (commands) to run simultaneously.
+
+LOAD can also be the symbol `late'.  This is used internally if
+the byte code has already been loaded when this function is
+called.  It means that we requests the special kind of load,
+necessary in that situation, called \"late\" loading.
+
+During a \"late\" load instead of executing all top level forms
+of the original files, only function definitions are
+loaded (paying attention to have these effective only if the
+bytecode definition was not changed in the meanwhile)."
   (comp-ensure-native-compiler)
   (unless (member load '(nil t late))
-    (error "LOAD must be nil t or 'late"))
+    (error "LOAD must be nil, t or 'late"))
   (unless (listp paths)
     (setf paths (list paths)))
   (let (files)
