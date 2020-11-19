@@ -2658,8 +2658,7 @@ The method used must be an out-of-band method."
 		     #'file-name-nondirectory (list localname)))))))
 
       (save-restriction
-	(let ((beg (point))
-	      match)
+	(let ((beg (point)))
 	  (narrow-to-region (point) (point))
 	  ;; We cannot use `insert-buffer-substring' because the Tramp
 	  ;; buffer changes its contents before insertion due to calling
@@ -2692,30 +2691,44 @@ The method used must be an out-of-band method."
 	  ;; Some busyboxes are reluctant to discard colors.
 	  (unless
 	      (string-match-p "color" (tramp-get-connection-property v "ls" ""))
-	    (goto-char beg)
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "")))
+            (save-excursion
+	      (goto-char beg)
+	      (while
+		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
+	        (replace-match ""))))
 
-	  ;; Decode the output, it could be multibyte.  We must
-	  ;; restore the text property, because `decode-coding-region'
-	  ;; has destroyed it.  However, text-property-search.el
-	  ;; exists since Emacs 27 only.
-	  (if (not (require 'text-property-search nil 'noerror))
-	      (decode-coding-region
-	       beg (point-max)
-	       (or file-name-coding-system default-file-name-coding-system))
-	    (goto-char beg)
-            (while (setq match
-			 (tramp-compat-funcall
-			  'text-property-search-forward 'dired-filename t t))
-	      (decode-coding-region
-	       (tramp-compat-funcall 'prop-match-beginning match)
-	       (tramp-compat-funcall 'prop-match-end match)
-	       (or file-name-coding-system default-file-name-coding-system))
-	      (put-text-property
-	       (tramp-compat-funcall 'prop-match-beginning match)
-	       (point) 'dired-filename t)))
+          ;; Now decode what read if necessary.  Stolen from `insert-directory'.
+	  (let ((coding (or coding-system-for-read
+			    file-name-coding-system
+			    default-file-name-coding-system
+			    'undecided))
+		coding-no-eol
+		val pos)
+	    (when (and enable-multibyte-characters
+		       (not (memq (coding-system-base coding)
+				  '(raw-text no-conversion))))
+	      ;; If no coding system is specified or detection is
+	      ;; requested, detect the coding.
+	      (if (eq (coding-system-base coding) 'undecided)
+		  (setq coding (detect-coding-region beg (point) t)))
+	      (if (not (eq (coding-system-base coding) 'undecided))
+		  (save-restriction
+		    (setq coding-no-eol
+			  (coding-system-change-eol-conversion coding 'unix))
+		    (narrow-to-region beg (point))
+		    (goto-char (point-min))
+		    (while (not (eobp))
+		      (setq pos (point)
+			    val (get-text-property (point) 'dired-filename))
+		      (goto-char (next-single-property-change
+				  (point) 'dired-filename nil (point-max)))
+		      ;; Force no eol conversion on a file name, so
+		      ;; that CR is preserved.
+		      (decode-coding-region pos (point)
+					    (if val coding-no-eol coding))
+		      (if val
+			  (put-text-property pos (point)
+					     'dired-filename t)))))))
 
 	  ;; The inserted file could be from somewhere else.
 	  (when (and (not wildcard) (not full-directory-p))
