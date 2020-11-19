@@ -106,16 +106,20 @@ buffer is shown and updated."
     (move-overlay completions-highlight-overlay obeg oend)
     (minibuffer-completion-set-suffix choice)))
 
+(defsubst completions-highlight-completions-visible-p ()
+  "Return t if *Completions* is visible."
+  (and (window-live-p minibuffer-scroll-window)
+       (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))))
+
 ;; Minibuffer side commands
 (defmacro with-minibuffer-scroll-window (&rest body)
   "Execute BODY in *Completions* buffer and return to `minibuffer'.
 The command is only executed if the `minibuffer-scroll-window' is
 alive and active."
-  `(and (window-live-p minibuffer-scroll-window)
-	(eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
+  `(and (completions-highlight-completions-visible-p)
 	(with-selected-window minibuffer-scroll-window
-          ,@body
-          (completions-highlight-this-completion))))
+          (ignore-errors ,@body)
+          (run-hooks 'post-command-hook))))
 
 (defun minibuffer-next-completion (n)
   "Execute `next-completion' in *Completions*.
