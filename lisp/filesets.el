@@ -308,7 +308,7 @@ SYM to VAL and return t.  If INIT-FLAG is non-nil, set with
 
 (defcustom filesets-menu-path '("File")	; cf recentf-menu-path
   "The menu under which the filesets menu should be inserted.
-See `add-submenu' for documentation."
+See `easy-menu-add-item' for documentation."
   :set (function filesets-set-default)
   :type '(choice (const :tag "Top Level" nil)
 		 (sexp :tag "Menu Path"))
@@ -317,7 +317,7 @@ See `add-submenu' for documentation."
 
 (defcustom filesets-menu-before "Open File..." ; cf recentf-menu-before
   "The name of a menu before which this menu should be added.
-See `add-submenu' for documentation."
+See `easy-menu-add-item' for documentation."
   :set (function filesets-set-default)
   :type '(choice (string :tag "Name")
                  (const :tag "Last" nil))
@@ -326,7 +326,7 @@ See `add-submenu' for documentation."
 
 (defcustom filesets-menu-in-menu nil
   "Use that instead of `current-menubar' as the menu to change.
-See `add-submenu' for documentation."
+See `easy-menu-add-item' for documentation."
   :set (function filesets-set-default)
   :type 'sexp
   :group 'filesets)
@@ -2349,21 +2349,20 @@ bottom up, set `filesets-submenus' to nil, first.)"
       (filesets-menu-cache-file-save-maybe)))
   (let ((cb (current-buffer)))
     (when (not (member cb filesets-updated-buffers))
-      (add-submenu
-       filesets-menu-path
-       `(,filesets-menu-name
-	 ("# Filesets"
-	  ["Edit Filesets"   filesets-edit]
-	  ["Save Filesets"   filesets-save-config]
-	  ["Save Menu Cache" filesets-menu-cache-file-save]
-	  ["Rebuild Menu"    filesets-build-menu]
-	  ["Customize"       filesets-customize]
-	  ["About"           filesets-info])
-	 ,(filesets-get-cmd-menu)
-	 "---"
-	 ,@filesets-menu-cache)
-       filesets-menu-before
-       filesets-menu-in-menu)
+      (easy-menu-add-item (or filesets-menu-in-menu (current-global-map))
+                          (cons "menu-bar" filesets-menu-path)
+                          `(,filesets-menu-name
+                            ("# Filesets"
+                             ["Edit Filesets"   filesets-edit]
+                             ["Save Filesets"   filesets-save-config]
+                             ["Save Menu Cache" filesets-menu-cache-file-save]
+                             ["Rebuild Menu"    filesets-build-menu]
+                             ["Customize"       filesets-customize]
+                             ["About"           filesets-info])
+                            ,(filesets-get-cmd-menu)
+                            "---"
+                            ,@filesets-menu-cache)
+                          filesets-menu-before)
       (setq filesets-updated-buffers
 	    (cons cb filesets-updated-buffers))
       ;; This wipes out other messages in the echo area.
