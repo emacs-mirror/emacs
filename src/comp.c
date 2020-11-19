@@ -4677,13 +4677,13 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       /* Comp already loaded.  */
       if (!NILP (delayed_sources))
 	{
-	  CALLN (Ffuncall, intern_c_string ("native-compile-async"),
+	  CALLN (Ffuncall, intern_c_string ("native--compile-async"),
 		 delayed_sources, Qnil, Qlate);
 	  delayed_sources = Qnil;
 	}
       Fputhash (function_name, definition, Vcomp_deferred_pending_h);
-      CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
-	     Qlate);
+      CALLN (Ffuncall, intern_c_string ("native--compile-async"),
+	     src, Qnil, Qlate);
     }
   else
     {

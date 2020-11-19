@@ -3485,8 +3485,7 @@ environment variable 'NATIVE_DISABLED' is set byte compile only."
         (`(,tempfile . ,target-file)
          (rename-file tempfile target-file t))))))
 
-;;;###autoload
-(defun native-compile-async (paths &optional recursively load)
+(defun native--compile-async (paths &optional recursively load)
   "Compile PATHS asynchronously.
 PATHS is one path or a list of paths to files or directories.
 
@@ -3552,6 +3551,23 @@ bytecode definition was not changed in the meanwhile)."
                                        out-filename)))))))
     (when (zerop (comp-async-runnings))
       (comp-run-async-workers))))
+
+;;;###autoload
+(defun native-compile-async (paths &optional recursively load)
+  "Compile PATHS asynchronously.
+PATHS is one path or a list of paths to files or directories.
+
+If optional argument RECURSIVELY is non-nil, recurse into
+subdirectories of given directories.
+
+If optional argument LOAD is non-nil, request to load the file
+after compiling.
+
+The variable `comp-async-jobs-number' specifies the number
+of (commands) to run simultaneously."
+  ;; Normalize: we only want to pass t or nil, never e.g. `late'.
+  (let ((load (not (not load))))
+    (native--compile-async paths recursively load)))
 
 (provide 'comp)
 
