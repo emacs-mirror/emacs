@@ -54,8 +54,6 @@
 ;; of other details.
 
 ;; The mode information (on C-h m) provides some customization help.
-;; If you use font-lock feature of this mode, it is advisable to use
-;; either lazy-lock-mode or fast-lock-mode.  I prefer lazy-lock.
 
 ;; Faces used now: three faces for first-class and second-class keywords
 ;; and control flow words, one for each: comments, string, labels,
