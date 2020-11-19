@@ -22,7 +22,6 @@
 ;;; Code:
 
 (require 'url-parse)
-(autoload 'url-warn "url")
 
 (defun url-default-find-proxy-for-url (urlobj host)
   (cond
@@ -60,7 +59,7 @@
      ((string-match "^socks +" proxy)
       (concat "socks://" (substring proxy (match-end 0))))
      (t
-      (url-warn 'url (format "Unknown proxy directive: %s" proxy) 'critical)
+      (display-warning 'url (format "Unknown proxy directive: %s" proxy) 'critical)
       nil))))
 
 (autoload 'url-http "url-http")

@@ -23,7 +23,6 @@
 
 (require 'url-vars)
 (require 'url-parse)
-(autoload 'url-warn "url")
 (autoload 'auth-source-search "auth-source")
 
 (defsubst url-auth-user-prompt (url realm)
@@ -540,7 +539,7 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 		  (t rating)))
 	 (node (assoc type url-registered-auth-schemes)))
     (if (not (fboundp function))
-	(url-warn
+        (display-warning
 	 'security
 	 (format-message
 	  "Tried to register `%s' as an auth scheme, but it is not a function!"

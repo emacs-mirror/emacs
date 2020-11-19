@@ -365,19 +365,7 @@ how long to wait for a response before giving up."
       (if (buffer-live-p buff)
 	  (kill-buffer buff)))))
 
-(cond
- ((fboundp 'display-warning)
-  (defalias 'url-warn 'display-warning))
- ((fboundp 'warn)
-  (defun url-warn (class message &optional level)
-    (warn "(%s/%s) %s" class (or level 'warning) message)))
- (t
-  (defun url-warn (class message &optional level)
-    (with-current-buffer (get-buffer-create "*URL-WARNINGS*")
-      (goto-char (point-max))
-      (save-excursion
-	(insert (format "(%s/%s) %s\n" class (or level 'warning) message)))
-      (display-buffer (current-buffer))))))
+(define-obsolete-function-alias 'url-warn #'display-warning "28.1")
 
 (provide 'url)
 
