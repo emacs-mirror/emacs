@@ -1249,6 +1249,9 @@ It presents the word at point as default input and allows editing it."
           (goto-char point)
         (current-word))))))
 
+(defvar dictionary-tooltip-mouse-event nil
+  "Event that triggered the tooltip mode")
+
 (defun dictionary-display-tooltip (event)
   "Search the current word in the `dictionary-tooltip-dictionary'."
   (interactive "e")
@@ -1262,9 +1265,6 @@ It presents the word at point as default input and allows editing it."
                                                            dictionary-tooltip-dictionary)))))
         t)
     nil))
-
-(defvar dictionary-tooltip-mouse-event nil
-  "Event that triggered the tooltip mode")
 
 (defun dictionary-tooltip-track-mouse (event)
   "Called whenever a dictionary tooltip display is about to be triggered."
