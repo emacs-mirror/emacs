@@ -38,14 +38,9 @@
 (defvar semantic-utest-test-directory (expand-file-name "tests" cedet-utest-directory)
   "Location of test files.")
 
-(defvar semantic-utest-temp-directory (if (fboundp 'temp-directory)
-					  (temp-directory)
-					temporary-file-directory)
-  "Temporary directory to use when creating files.")
-
 (defun semantic-utest-fname (name)
   "Create a filename for NAME in /tmp."
-  (expand-file-name name semantic-utest-temp-directory))
+  (expand-file-name name temporary-file-directory))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Data for C tests

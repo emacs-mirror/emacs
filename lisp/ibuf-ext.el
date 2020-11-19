@@ -208,11 +208,9 @@ either clicking or hitting return "
            'follow-link t
            'help-echo "Click or RET: save new value in customize"
            'action (lambda (_)
-                     (if (not (fboundp 'customize-save-variable))
-                         (message "Customize not available; value not saved")
-                       (customize-save-variable 'ibuffer-saved-filters
-                                                ibuffer-saved-filters)
-                       (message "Saved updated ibuffer-saved-filters."))))
+                     (customize-save-variable 'ibuffer-saved-filters
+                                              ibuffer-saved-filters)
+                     (message "Saved updated ibuffer-saved-filters.")))
           ".  See below for
 an explanation and alternative ways to save the repaired value.
 
@@ -1116,13 +1114,10 @@ filter into parts."
 
 (defun ibuffer-maybe-save-stuff ()
   (when ibuffer-save-with-custom
-    (if (fboundp 'customize-save-variable)
-	(progn
-	  (customize-save-variable 'ibuffer-saved-filters
-				   ibuffer-saved-filters)
-	  (customize-save-variable 'ibuffer-saved-filter-groups
-				   ibuffer-saved-filter-groups))
-      (message "Not saved permanently: Customize not available"))))
+    (customize-save-variable 'ibuffer-saved-filters
+                             ibuffer-saved-filters)
+    (customize-save-variable 'ibuffer-saved-filter-groups
+                             ibuffer-saved-filter-groups)))
 
 ;;;###autoload
 (defun ibuffer-save-filters (name filters)

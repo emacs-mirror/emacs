@@ -103,9 +103,7 @@ that a password is invalid, so that `password-read' query the
 user again."
   (let ((password (gethash key password-data)))
     (when (stringp password)
-      (if (fboundp 'clear-string)
-          (clear-string password)
-        (fillarray password ?_)))
+      (clear-string password))
     (remhash key password-data)))
 
 (defun password-cache-add (key password)

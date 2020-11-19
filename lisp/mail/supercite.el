@@ -618,10 +618,7 @@ the list should be unique."
 		   (lambda (elt) (char-to-string (cdr elt))) alist "/")
 		  ") "))
 	 (p prompt)
-	 (event
-	  (if (fboundp 'allocate-event)
-	      (allocate-event)
-	    nil)))
+         event)
     (while (stringp p)
       (if (let ((cursor-in-echo-area t)
 		(inhibit-quit t))
@@ -630,8 +627,6 @@ the list should be unique."
 	    (prog1 quit-flag (setq quit-flag nil)))
 	  (progn
 	    (message "%s%s" p (single-key-description event))
-	    (if (fboundp 'deallocate-event)
-		(deallocate-event event))
 	    (setq quit-flag nil)
 	    (signal 'quit '())))
       (let ((char event)
@@ -650,8 +645,6 @@ the list should be unique."
 	  (discard-input)
 	  (if (eq p prompt)
 	      (setq p (concat "Try again.  " prompt)))))))
-    (if (fboundp 'deallocate-event)
-	(deallocate-event event))
     p))
 
 (defun sc-scan-info-alist (alist)
