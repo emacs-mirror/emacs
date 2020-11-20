@@ -109,14 +109,12 @@ otherwise it goes to the next completion. "
   "Move to and highlight closer item in the completion list."
   (interactive "p")
 
+  (next-completion -1)
+  (next-completion 1)
   ;; Try to find the closest completion if not in one
-  (unless (get-text-property (point) 'mouse-face)
-    (next-completion -1)
-    (next-completion 1)
-
-    (cond
-     ((eobp) (next-completion -1))
-     ((bobp) (next-completion 1))))
+  (cond
+   ((eobp) (next-completion -1))
+   ((bobp) (next-completion 1)))
 
   (let* ((obeg (point))
          (oend (next-single-property-change obeg 'mouse-face nil (point-max)))
@@ -128,7 +126,8 @@ otherwise it goes to the next completion. "
 
 (defsubst completions-highlight-completions-visible-p ()
   "Return t if *Completions* is visible."
-  (and (window-live-p minibuffer-scroll-window)
+  (and (windowp minibuffer-scroll-window)
+       (window-live-p minibuffer-scroll-window)
        (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))))
 
 (defun completions-highlight-from-minibuffer (&optional command)
@@ -226,9 +225,12 @@ should be assigned to completion-in-minibuffer-scroll-window."
   (completions-highlight--clear-suffix)
   (unless (lookup-key completions-highlight-minibuffer-map
                       (this-single-command-keys))
-    (remove-hook 'pre-command-hook
-                 #'completions-highlight-maybe-close-completions t)
     (minibuffer-hide-completions)))
+
+(defun completions-highlight--hide-completions-advise ()
+  "Function to advise minibuffer-hide-completions."
+  (remove-hook 'pre-command-hook
+               #'completions-highlight-maybe-close-completions t))
 
 (defun completions-highlight-setup ()
   "Function to call when enabling the `completion-highlight-mode' mode.
@@ -274,13 +276,17 @@ It is called when showing the *Completions* buffer."
 	(setq minibuffer-tab-through-completions-function
 	      #'completions-highlight--minibuffer-tab-through-completions)
 
-	(add-hook 'completion-setup-hook #'completions-highlight-setup t))
+	(add-hook 'completion-setup-hook #'completions-highlight-setup t)
+        (advice-add 'minibuffer-hide-completions
+                    :before #'completions-highlight--hide-completions-advise))
 
     ;; Restore the default completion-in-minibuffer-scroll-window
     (setq minibuffer-tab-through-completions-function
 	  minibuffer-tab-through-completions-function-save)
 
-    (remove-hook 'completion-setup-hook #'completions-highlight-setup)))
+    (remove-hook 'completion-setup-hook #'completions-highlight-setup)
+    (advice-remove 'minibuffer-hide-completions
+                   #'completions-highlight--hide-completions-advise)))
 
 (provide 'completions-highlight)
 ;;; completions-highlight.el ends here
