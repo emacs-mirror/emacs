@@ -81,6 +81,17 @@ not inserted in the minibuffer."
   :group 'completions-highlight
   :version "28.1")
 
+(defcustom completions-highlight-tab-no-scroll nil
+  "When press tab with too many candidates go to next or scroll.
+
+When non-nil tab always go to next completions independently of
+the *Completions* buffer size.  When this variable is nil tab
+scrolls the *Completions* buffer if there are too many candidates
+otherwise it goes to the next completion. "
+  :type 'boolean
+  :group 'completions-highlight
+  :version "28.1")
+
 (defface completions-highlight
   '((t :inherit highlight :extend t))
   "Default face for highlighting the current line in Hl-Line mode."
@@ -94,20 +105,18 @@ not inserted in the minibuffer."
   "Saves the the original value of completion-in-minibuffer-scroll-window.")
 
 ;; *Completions* side commands
-(defun completions-highlight--this-completion ()
-  "Highlight the completion under point or near."
-  ;; Find a completion close
-  (next-completion -1)
-  (next-completion 1)
-  (completions-highlight-select-near))
-
 (defun completions-highlight-select-near ()
   "Move to and highlight closer item in the completion list."
   (interactive "p")
 
-  (cond
-   ((eobp) (next-completion -1))
-   ((bobp) (next-completion 1)))
+  ;; Try to find the closest completion if not in one
+  (unless (get-text-property (point) 'mouse-face)
+    (next-completion -1)
+    (next-completion 1)
+
+    (cond
+     ((eobp) (next-completion -1))
+     ((bobp) (next-completion 1))))
 
   (let* ((obeg (point))
          (oend (next-single-property-change obeg 'mouse-face nil (point-max)))
@@ -122,45 +131,18 @@ not inserted in the minibuffer."
   (and (window-live-p minibuffer-scroll-window)
        (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))))
 
-;; Minibuffer side commands
-(defmacro with-minibuffer-scroll-window (&rest body)
-  "Execute BODY in *Completions* buffer and return to `minibuffer'.
-The command is only executed if the `minibuffer-scroll-window' is
-alive and active."
-  `(and (completions-highlight-completions-visible-p)
-	(with-selected-window minibuffer-scroll-window
-          (ignore-errors ,@body)
-          (run-hooks 'post-command-hook))))
-
-(defun minibuffer-next-completion (n)
-  "Execute `next-completion' in *Completions*.
-The argument N is passed directly to
-`next-completion', the command is executed
-in another window, but cursor stays in minibuffer."
-  (interactive "p")
-  (with-minibuffer-scroll-window (next-completion n)))
-
-(defun minibuffer-previous-completion (n)
-  "Execute `previous-completion' in *Completions*.
-The argument N is passed directly to `previous-completion', the
-command is executed in another window, but cursor stays in
-minibuffer."
-  (interactive "p")
-  (with-minibuffer-scroll-window (previous-completion n)))
-
-(defun minibuffer-next-line-completion (n)
-  "Execute `next-line' in *Completions*.
-The argument N is passed directly to `next-line', the command is
-executed in another window, but cursor stays in minibuffer."
-  (interactive "p")
-  (with-minibuffer-scroll-window (next-line n)))
-
-(defun minibuffer-previous-line-completion (n)
-  "Execute `previous-line' in *Completions*.
-The argument N is passed directly to `previous-line', the command
-is executed in another window, but cursor stays in minibuffer."
-  (interactive "p")
-  (with-minibuffer-scroll-window (previous-line n)))
+(defun completions-highlight-from-minibuffer (&optional command)
+  (interactive)
+  (and (completions-highlight-completions-visible-p)
+       (with-selected-window minibuffer-scroll-window
+         (when-let ((command (or command
+                                 (lookup-key (current-active-maps)
+                                             (this-single-command-keys))
+                                 (lookup-key (current-active-maps)
+                                             (lookup-key local-function-key-map
+                                                         (this-single-command-keys))))))
+           (call-interactively command)
+           (run-hooks 'post-command-hook)))))
 
 ;; Maybe this may be done with an advise?
 (defun minibuffer-choose-completion ()
@@ -168,7 +150,7 @@ is executed in another window, but cursor stays in minibuffer."
   (interactive)
   (if (and (completions-highlight-completions-visible-p)
            (overlay-buffer completions-highlight-overlay))
-      (with-minibuffer-scroll-window (choose-completion))
+      (call-interactively #'completions-highlight-from-minibuffer)
     (minibuffer-complete-and-exit)))
 
 ;; General commands
@@ -205,13 +187,10 @@ suffix."
 (defvar completions-highlight-minibuffer-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-must-match-map)
-    (define-key map [backtab] #'minibuffer-previous-completion)
-    (define-key map [right] #'minibuffer-next-completion)
-    (define-key map [left] #'minibuffer-previous-completion)
-    (define-key map [down] #'minibuffer-next-line-completion)
-    (define-key map [up] #'minibuffer-previous-line-completion)
-    (define-key map [remap minibuffer-complete-and-exit]
-      #'minibuffer-choose-completion)
+    (dolist (key '(up down left right backtab))
+      (define-key map `[(,key)] #'completions-highlight-from-minibuffer))
+
+    (define-key map [remap minibuffer-complete-and-exit] #'minibuffer-choose-completion)
     map)
   "Keymap used in minibuffer while *Completions* is active.")
 
@@ -228,17 +207,19 @@ This is called when *Completions* window is already visible and
 should be assigned to completion-in-minibuffer-scroll-window."
   (let ((window minibuffer-scroll-window))
     (with-current-buffer (window-buffer window)
-      (if (pos-visible-in-window-p (point-max) window)
-	  (if (pos-visible-in-window-p (point-min) window)
-	      ;; If all completions are shown point-min and point-max
-	      ;; are both visible.  Then do the highlight.
-	      (minibuffer-next-completion 1)
-	    ;; Else the buffer is too long, so better just scroll it to
-	    ;; the beginning as default behavior.
-	    (set-window-start window (point-min) nil))
-	;; Then point-max is not visible the buffer is too long and we
-	;; can scroll.
-	(with-selected-window window (scroll-up))))))
+      (if completions-highlight-tab-no-scroll
+          (completions-highlight-from-minibuffer #'next-completion)
+        (if (pos-visible-in-window-p (point-max) window) ;; scroll o go to next
+	    (if (pos-visible-in-window-p (point-min) window)
+	        ;; If all completions are shown point-min and point-max
+	        ;; are both visible.  Then do the highlight.
+	        (completions-highlight-from-minibuffer #'next-completion)
+	      ;; Else the buffer is too long, so better just scroll it to
+	      ;; the beginning as default behavior.
+	      (set-window-start window (point-min) nil))
+	  ;; Then point-max is not visible the buffer is too long and we
+	  ;; can scroll.
+	  (with-selected-window window (scroll-up)))))))
 
 (defun completions-highlight-setup ()
   "Function to call when enabling the `completion-highlight-mode' mode.
@@ -249,7 +230,7 @@ It is called when showing the *Completions* buffer."
     (when (string= (buffer-name) "*Completions*")
 
       (add-hook 'pre-command-hook #'completions-highlight--clear-suffix nil t)
-      (add-hook 'post-command-hook #'completions-highlight--this-completion nil t)
+      (add-hook 'post-command-hook #'completions-highlight-select-near nil t)
 
       ;; Add completions-highlight-completions-map to *Completions*
       (use-local-map (make-composed-keymap
