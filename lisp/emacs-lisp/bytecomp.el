@@ -2570,7 +2570,8 @@ list that represents a doc string reference.
 ;; and similar macros cleaner.
 (put 'eval 'byte-hunk-handler 'byte-compile-file-form-eval)
 (defun byte-compile-file-form-eval (form)
-  (if (eq (car-safe (nth 1 form)) 'quote)
+  (if (and (eq (car-safe (nth 1 form)) 'quote)
+           (equal (nth 2 form) lexical-binding))
       (nth 1 (nth 1 form))
     (byte-compile-keep-pending form)))
 
