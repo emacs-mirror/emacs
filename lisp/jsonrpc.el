@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.12
+;; Version: 1.0.13
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -271,7 +271,7 @@ it only exits locally (returning the JSONRPC result object) if
 the request is successful, otherwise it exits non-locally with an
 error of type `jsonrpc-error'.
 
-DEFERRED is passed to `jsonrpc-async-request', which see.
+DEFERRED and TIMEOUT as in `jsonrpc-async-request', which see.
 
 If CANCEL-ON-INPUT is non-nil and the user inputs something while
 the function is waiting, then it exits immediately, returning
@@ -284,7 +284,8 @@ ignored."
               (catch tag
                 (setq
                  id-and-timer
-                 (jsonrpc--async-request-1
+                 (apply
+                  #'jsonrpc--async-request-1
                   connection method params
                   :success-fn (lambda (result)
                                 (unless cancelled
@@ -300,13 +301,14 @@ ignored."
                   (lambda ()
                     (unless cancelled
                       (throw tag '(error (jsonrpc-error-message . "Timed out")))))
-                  :deferred deferred
-                  :timeout timeout))
+                  `(,@(when deferred `(:deferred ,deferred))
+                    ,@(when timeout  `(:timeout  ,timeout)))))
                 (cond (cancel-on-input
-                       (while (sit-for 30))
-                       (setq cancelled t)
+                       (unwind-protect
+                           (let ((inhibit-quit t)) (while (sit-for 30)))
+                         (setq cancelled t))
                        `(cancelled ,cancel-on-input-retval))
-                      (t (while t (accept-process-output nil 30)))))
+                      (t (while t (sit-for 30)))))
             ;; In normal operation, cancellation is handled by the
             ;; timeout function and response filter, but we still have
             ;; to protect against user-quit (C-g) or the
