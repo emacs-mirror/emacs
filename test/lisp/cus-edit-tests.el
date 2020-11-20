@@ -70,11 +70,13 @@
     (should (search-forward cus-edit-tests--obsolete-option-tag nil t))))
 
 (ert-deftest cus-edit-tests-customize-saved/show-obsolete ()
-  ;; FIXME: How to test for saved options?
-  :expected-result :failed
   (with-cus-edit-test "*Customize Saved*"
-    (customize-saved)
-    (should (search-forward cus-edit-tests--obsolete-option-tag nil t))))
+    (unwind-protect
+        (progn
+          (put 'cus-edit-tests--obsolete-option-tag 'saved-value '(t))
+          (customize-saved)
+          (should (search-forward cus-edit-tests--obsolete-option-tag nil t)))
+      (put 'cus-edit-tests--obsolete-option-tag 'saved-value nil))))
 
 (provide 'cus-edit-tests)
 ;;; cus-edit-tests.el ends here
