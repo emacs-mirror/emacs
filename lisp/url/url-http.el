@@ -1119,9 +1119,7 @@ the end of the document."
               (beginning-of-line)
               (looking-at regexp))
  	    (add-text-properties (match-beginning 0) (match-end 0)
-				 (list 'start-open t
-				       'end-open t
-				       'chunked-encoding t
+                                 (list 'chunked-encoding t
 				       'face 'cursor
 				       'invisible t))
 	    (setq url-http-chunked-length (string-to-number (buffer-substring

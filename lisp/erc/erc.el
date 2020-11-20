@@ -4014,8 +4014,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
         ;; of the prompt, but stuff typed in front of the prompt
         ;; shall remain part of the prompt.
         (setq prompt (propertize prompt
-                                 'start-open t ; XEmacs
-                                 'rear-nonsticky t ; Emacs
+                                 'rear-nonsticky t
                                  'erc-prompt t
                                  'field t
                                  'front-sticky t
