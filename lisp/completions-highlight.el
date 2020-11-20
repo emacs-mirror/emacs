@@ -221,6 +221,15 @@ should be assigned to completion-in-minibuffer-scroll-window."
 	  ;; can scroll.
 	  (with-selected-window window (scroll-up)))))))
 
+(defun completions-highlight-maybe-close-completions ()
+  "Close *Completions* buffer when the command is not in the map."
+  (completions-highlight--clear-suffix)
+  (unless (lookup-key completions-highlight-minibuffer-map
+                      (this-single-command-keys))
+    (remove-hook 'pre-command-hook
+                 #'completions-highlight-maybe-close-completions t)
+    (minibuffer-hide-completions)))
+
 (defun completions-highlight-setup ()
   "Function to call when enabling the `completion-highlight-mode' mode.
 It is called when showing the *Completions* buffer."
@@ -242,7 +251,8 @@ It is called when showing the *Completions* buffer."
           (next-completion 1)
           (completions-highlight-select-near)))))
 
-  (add-hook 'pre-command-hook #'completions-highlight--clear-suffix nil t)
+  (add-hook 'pre-command-hook
+            #'completions-highlight-maybe-close-completions nil t)
 
   ;; Add completions-highlight-minibuffer-map bindings to minibuffer
   (use-local-map (make-composed-keymap
