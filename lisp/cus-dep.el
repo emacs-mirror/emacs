@@ -204,7 +204,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (setq where (get symbol 'custom-where))
 		    (when where
 		      (if (or (custom-variable-p symbol)
-			      (custom-facep symbol))
+                              (facep symbol))
 			  ;; This means it's a variable or a face.
 			  (progn
 			    (if (assoc version version-alist)
