@@ -26,8 +26,7 @@
 
 ;;; Commentary:
 ;;
-;; This mode is for IDL version 5 or later.  It should work on
-;; Emacs>20.3 or XEmacs>20.4.
+;; This mode is for IDL version 5 or later.
 ;;
 ;; Runs IDL as an inferior process of Emacs, much like the Emacs
 ;; `shell' or `telnet' commands.  Provides command history and
@@ -66,15 +65,6 @@
 ;; IDLWAVE is documented online in info format.
 ;; A printable version of the documentation is available from the
 ;; maintainers webpage (see under SOURCE)
-;;
-;;
-;; KNOWN PROBLEMS
-;; ==============
-;;
-;; Under XEmacs the Debug menu in the shell does not display the
-;; keybindings in the prefix map.  There bindings are available anyway - so
-;; it is a bug in XEmacs.
-;; The Debug menu in source buffers *does* display the bindings correctly.
 ;;
 ;;
 ;; CUSTOMIZATION VARIABLES
@@ -166,7 +156,6 @@ t          Arrows force the cursor back to the current command line and
   "Non-nil means, use the debugging toolbar in all IDL related buffers.
 Starting the shell will then add the toolbar to all idlwave-mode buffers.
 Exiting the shell will removed everywhere.
-Available on XEmacs and on Emacs 21.x or later.
 At any time you can toggle the display of the toolbar with
 `C-c C-d C-t' (`idlwave-shell-toggle-toolbar')."
   :group 'idlwave-shell-general-setup
@@ -605,12 +594,6 @@ the directory stack.")
 
 (defvar idlwave-shell-last-save-and-action-file nil
   "The last file which was compiled with `idlwave-shell-save-and-...'.")
-
-;; Highlighting uses overlays.  When necessary, require the emulation.
-(if (not (fboundp 'make-overlay))
-    (condition-case nil
-	(require 'overlay)
-      (error nil)))
 
 (defvar idlwave-shell-stop-line-overlay nil
   "The overlay for where IDL is currently stopped.")
@@ -2747,6 +2730,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 ;; Begin terrible hack section -- XEmacs tests for button2 explicitly
 ;; on drag events, calling drag-n-drop code if detected.  Ughhh...
 (defun idlwave-default-mouse-track-event-is-with-button (_event _n)
+  (declare (obsolete nil "28.1"))
   t)
 
 (define-obsolete-function-alias 'idlwave-xemacs-hack-mouse-track 'ignore "27.1")
@@ -3608,10 +3592,8 @@ Existing overlays are recycled, in order to minimize consumption."
 	  (when use-glyph
 	    (if old-buffers
 		(setq old-buffers (delq (current-buffer) old-buffers)))
-	    (if (fboundp 'set-specifier) ;; XEmacs
-		(set-specifier left-margin-width (cons (current-buffer) 2))
-	      (if (< left-margin-width 2)
-		  (setq left-margin-width 2)))
+            (if (< left-margin-width 2)
+                (setq left-margin-width 2))
 	    (let ((window (get-buffer-window (current-buffer) 0)))
 	      (if window
 		  (set-window-margins
@@ -3619,9 +3601,7 @@ Existing overlays are recycled, in order to minimize consumption."
       (if use-glyph
 	  (while (setq buf (pop old-buffers))
 	    (with-current-buffer buf
-	      (if (fboundp 'set-specifier) ;; XEmacs
-		  (set-specifier left-margin-width (cons (current-buffer) 0))
-		(setq left-margin-width 0))
+              (setq left-margin-width 0)
 	      (let ((window (get-buffer-window buf 0)))
 		(if window
 		    (set-window-margins
