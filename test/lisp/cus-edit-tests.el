@@ -23,6 +23,7 @@
 
 (require 'ert)
 (require 'ert-x)
+(eval-when-compile (require 'cl-lib))
 (require 'cus-edit)
 
 (defmacro with-cus-edit-test (buffer &rest body)
@@ -71,12 +72,9 @@
 
 (ert-deftest cus-edit-tests-customize-saved/show-obsolete ()
   (with-cus-edit-test "*Customize Saved*"
-    (unwind-protect
-        (progn
-          (put 'cus-edit-tests--obsolete-option-tag 'saved-value '(t))
-          (customize-saved)
-          (should (search-forward cus-edit-tests--obsolete-option-tag nil t)))
-      (put 'cus-edit-tests--obsolete-option-tag 'saved-value nil))))
+    (cl-letf (((get 'cus-edit-tests--obsolete-option-tag 'saved-value) '(t)))
+      (customize-saved)
+      (should (search-forward cus-edit-tests--obsolete-option-tag nil t)))))
 
 (provide 'cus-edit-tests)
 ;;; cus-edit-tests.el ends here
