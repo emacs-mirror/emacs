@@ -1298,7 +1298,8 @@ that were added or redefined since that version."
 	       (if (custom-facep symbol)
 		   (push (list symbol 'custom-face) found)))))))
     (if found
-	(custom-buffer-create (custom-sort-items found t 'first)
+        (custom-buffer-create (custom--filter-obsolete-variables
+                               (custom-sort-items found t 'first))
 			      "*Customize Changed Options*")
       (user-error "No user option defaults have been changed since Emacs %s"
                   since-version))))
@@ -1504,7 +1505,8 @@ If TYPE is `groups', include only groups."
 						(symbol-name type))
 	     pattern))
     (custom-buffer-create
-     (custom-sort-items found t custom-buffer-order-groups)
+     (custom--filter-obsolete-variables
+      (custom-sort-items found t custom-buffer-order-groups))
      "*Customize Apropos*")))
 
 ;;;###autoload
@@ -4232,6 +4234,13 @@ and so forth.  The remaining group tags are shown with `custom-group-tag'."
 	(insert "--------")))
   (widget-default-create widget))
 
+(defun custom--filter-obsolete-variables (items)
+  "Filter obsolete variables from ITEMS."
+  (seq-remove (lambda (item)
+                (and (eq (nth 1 item) 'custom-variable)
+                     (get (nth 0 item) 'byte-obsolete-variable)))
+              items))
+
 (defun custom-group-members (symbol groups-only)
   "Return SYMBOL's custom group members.
 If GROUPS-ONLY is non-nil, return only those members that are groups."
@@ -4437,12 +4446,13 @@ This works for both graphical and text displays."
 					     ?\s))
 	   ;; Members.
 	   (message "Creating group...")
-	   (let* ((members (custom-sort-items
-			    members
-			    ;; Never sort the top-level custom group.
-			    (unless (eq symbol 'emacs)
-			      custom-buffer-sort-alphabetically)
-			    custom-buffer-order-groups))
+           (let* ((members (custom--filter-obsolete-variables
+                            (custom-sort-items
+                             members
+                             ;; Never sort the top-level custom group.
+                             (unless (eq symbol 'emacs)
+                               custom-buffer-sort-alphabetically)
+                             custom-buffer-order-groups)))
 		  (prefixes (widget-get widget :custom-prefixes))
 		  (custom-prefix-list (custom-prefix-add symbol prefixes))
 		  (have-subtitle (and (not (eq symbol 'emacs))

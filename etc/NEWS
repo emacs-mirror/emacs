@@ -712,6 +712,16 @@ This file was a compatibility kludge which is no longer needed.
 To revert to the previous behavior,
 '(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
 
+** Customize
+
+*** Most customize commands now hide obsolete user options.
+Obsolete user options are no longer shown in the listings produced by
+the commands `customize', `customize-group', `customize-apropos' and
+`customize-changed-options'.
+
+To customize obsolete user options, use `customize-option' or
+`customize-saved'.
+
 ** Edebug
 
 +++
