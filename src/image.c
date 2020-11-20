@@ -9551,10 +9551,9 @@ DEF_DLL_FN (void, rsvg_handle_get_intrinsic_dimensions,
 DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
 	    (RsvgHandle *, const char *, const RsvgRectangle *,
 	     RsvgRectangle *, RsvgRectangle *, GError **));
-#  else
+#  endif
 DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 	    (RsvgHandle *, RsvgDimensionData *));
-#  endif
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
 DEF_DLL_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_DLL_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
@@ -9604,9 +9603,8 @@ init_svg_functions (void)
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
   LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
-#else
-  LOAD_DLL_FN (library, rsvg_handle_get_dimensions);
 #endif
+  LOAD_DLL_FN (library, rsvg_handle_get_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_pixbuf);
 
   LOAD_DLL_FN (gdklib, gdk_pixbuf_get_width);
@@ -9644,9 +9642,8 @@ init_svg_functions (void)
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 #   undef rsvg_handle_get_intrinsic_dimensions
 #   undef rsvg_handle_get_geometry_for_layer
-#  else
-#   undef rsvg_handle_get_dimensions
 #  endif
+#  undef rsvg_handle_get_dimensions
 #  undef rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   undef g_file_new_for_path
@@ -9677,9 +9674,8 @@ init_svg_functions (void)
 	fn_rsvg_handle_get_intrinsic_dimensions
 #   define rsvg_handle_get_geometry_for_layer	\
 	fn_rsvg_handle_get_geometry_for_layer
-#  else
-#   define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
 #  endif
+#  define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
 #  define rsvg_handle_get_pixbuf fn_rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   define g_file_new_for_path fn_g_file_new_for_path
