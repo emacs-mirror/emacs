@@ -20,3 +20,7 @@ proc foo3 {} {
     puts a""b";                 # And that won't either!
     puts "a""b";                # But this will!
 }
+
+# FIXME: The [..] interpolation within "..." strings is not properly
+# handled by the current `syntax-propertize-function`!
+set a "Testing: [split "192.168.1.1/24" "/"] address";
