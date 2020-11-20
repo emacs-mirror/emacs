@@ -1365,10 +1365,13 @@ Returns a list of [group article score] vectors."
 						server query &optional groups)
   (let ((prefix (slot-value engine 'remove-prefix))
 	(group-regexp (when groups
-			(regexp-opt
-			 (mapcar
-			  (lambda (x) (gnus-group-real-name x))
-			  groups))))
+			(mapconcat
+			 (lambda (x)
+			   (replace-regexp-in-string
+			    ;; Accept any of [.\/] as path separators.
+			    "[.\\/]" "[.\\\\/]"
+			    (gnus-group-real-name x)))
+			 groups "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
@@ -1383,16 +1386,16 @@ Returns a list of [group article score] vectors."
     ;; Are we running an additional grep query?
     (when-let ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
+    ;; Prep prefix.
+    (when (and prefix (null (string-empty-p prefix)))
+      (setq prefix (file-name-as-directory (expand-file-name prefix))))
     ;; Turn (file-name score) into [group article score].
     (pcase-dolist (`(,f-name ,score) artlist)
-      (setq article (file-name-nondirectory f-name))
+      (setq article (file-name-nondirectory f-name)
+	    group (file-name-directory f-name))
       ;; Remove prefix.
-      (when (and prefix
-		 (file-name-absolute-p prefix)
-		 (string-match (concat "^"
-				       (file-name-as-directory prefix))
-			       f-name))
-	(setq group (replace-match "" t t (file-name-directory f-name))))
+      (when prefix
+	(setq group (string-remove-prefix prefix group)))
       ;; Break the directory name down until it's something that
       ;; (probably) can be used as a group name.
       (setq group
