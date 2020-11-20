@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.13
+;; Version: 1.0.14
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -308,7 +308,7 @@ ignored."
                            (let ((inhibit-quit t)) (while (sit-for 30)))
                          (setq cancelled t))
                        `(cancelled ,cancel-on-input-retval))
-                      (t (while t (sit-for 30)))))
+                      (t (while t (accept-process-output nil 30)))))
             ;; In normal operation, cancellation is handled by the
             ;; timeout function and response filter, but we still have
             ;; to protect against user-quit (C-g) or the
