@@ -2776,10 +2776,7 @@ If the optional argument EXPAND is non-nil then the actions in
         ;; Adjust parallel comment
 	(end-of-line)
 	(if (idlwave-in-comment)
-	    ;; Emacs 21 is too smart with fill-column on comment indent
-	    (let ((fill-column (if (fboundp 'comment-indent-new-line)
-				   (1- (frame-width))
-				 fill-column)))
+            (let ((fill-column (1- (frame-width))))
 	      (indent-for-comment)))))
     (goto-char mloc)
     ;; Get rid of marker
@@ -3991,12 +3988,7 @@ blank lines."
       ;; skip blank lines
       (skip-chars-forward " \t\n")
       (if (looking-at (concat "[ \t]*\\(" comment-start "+\\)"))
-	  (if (fboundp 'uncomment-region)
-	      (uncomment-region beg end)
-	    (comment-region beg end
-			    (- (length (buffer-substring
-					(match-beginning 1)
-					(match-end 1))))))
+          (uncomment-region beg end)
 	(comment-region beg end)))))
 
 
@@ -4042,11 +4034,6 @@ blank lines."
 (defun idlwave-reset-sintern (&optional what)
   "Reset all sintern hashes."
   ;; Make sure the hash functions are accessible.
-  (unless (and (fboundp 'gethash)
-               (fboundp 'puthash))
-    (require 'cl)
-    (or (fboundp 'puthash)
-        (defalias 'puthash 'cl-puthash)))
   (let ((entries '((idlwave-sint-routines 1000 10)
 		   (idlwave-sint-keywords 1000 10)
 		   (idlwave-sint-methods   100 10)
@@ -8886,9 +8873,7 @@ Assumes that point is at the beginning of the unit as found by
   (let ((begin (point)))
     (re-search-forward
      "[a-zA-Z_][a-zA-Z0-9$_]+\\(::[a-zA-Z_][a-zA-Z0-9$_]+\\)?")
-    (if (fboundp 'buffer-substring-no-properties)
-        (buffer-substring-no-properties begin (point))
-      (buffer-substring begin (point)))))
+    (buffer-substring-no-properties begin (point))))
 
 (defalias 'idlwave-function-menu
   (condition-case nil
@@ -9004,8 +8989,7 @@ Assumes that point is at the beginning of the unit as found by
     ("Customize"
      ["Browse IDLWAVE Group" idlwave-customize t]
      "--"
-     ["Build Full Customize Menu" idlwave-create-customize-menu
-      (fboundp 'customize-menu-create)])
+     ["Build Full Customize Menu" idlwave-create-customize-menu t])
     ("Documentation"
      ["Describe Mode" describe-mode t]
      ["Abbreviation List" idlwave-list-abbrevs t]
@@ -9045,24 +9029,21 @@ Assumes that point is at the beginning of the unit as found by
 (defun idlwave-create-customize-menu ()
   "Create a full customization menu for IDLWAVE, insert it into the menu."
   (interactive)
-  (if (fboundp 'customize-menu-create)
-      (progn
-	;; Try to load the code for the shell, so that we can customize it
-	;; as well.
-	(or (featurep 'idlw-shell)
-	    (load "idlw-shell" t))
-	(easy-menu-change
-	 '("IDLWAVE") "Customize"
-	 `(["Browse IDLWAVE group" idlwave-customize t]
-	   "--"
-	   ,(customize-menu-create 'idlwave)
-	   ["Set" Custom-set t]
-	   ["Save" Custom-save t]
-	   ["Reset to Current" Custom-reset-current t]
-	   ["Reset to Saved" Custom-reset-saved t]
-	   ["Reset to Standard Settings" Custom-reset-standard t]))
-	(message "\"IDLWAVE\"-menu now contains full customization menu"))
-    (error "Cannot expand menu (outdated version of cus-edit.el)")))
+  ;; Try to load the code for the shell, so that we can customize it
+  ;; as well.
+  (or (featurep 'idlw-shell)
+      (load "idlw-shell" t))
+  (easy-menu-change
+   '("IDLWAVE") "Customize"
+   `(["Browse IDLWAVE group" idlwave-customize t]
+     "--"
+     ,(customize-menu-create 'idlwave)
+     ["Set" Custom-set t]
+     ["Save" Custom-save t]
+     ["Reset to Current" Custom-reset-current t]
+     ["Reset to Saved" Custom-reset-saved t]
+     ["Reset to Standard Settings" Custom-reset-standard t]))
+  (message "\"IDLWAVE\"-menu now contains full customization menu"))
 
 (defun idlwave-show-commentary ()
   "Use the finder to view the file documentation from `idlwave.el'."
