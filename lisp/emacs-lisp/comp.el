@@ -118,7 +118,7 @@ compilation input."
   :type 'hook)
 
 (defcustom comp-async-env-modifier-form nil
-  "Form evaluated before compilation by each asyncronous compilation worker.
+  "Form evaluated before compilation by each asynchronous compilation worker.
 Usable to modify the compiler environment."
   :type 'list)
 
@@ -352,7 +352,7 @@ Needed to replace immediate byte-compiled lambdas with the compiled reference.")
              :documentation "Standard data relocated in use by functions.")
   (d-impure (make-comp-data-container) :type comp-data-container
             :documentation "Relocated data that cannot be moved into pure space.
-This is tipically for top-level forms other than defun.")
+This is typically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
@@ -389,7 +389,7 @@ To be used when ncall-conv is nil."))
          :documentation "List of instructions.")
   (closed nil :type boolean
           :documentation "t if closed.")
-  ;; All the followings are for SSA and CGF analysis.
+  ;; All the following are for SSA and CGF analysis.
   ;; Keep in sync with `comp-clean-ssa'!!
   (in-edges () :type list
             :documentation "List of incoming edges.")
@@ -461,7 +461,7 @@ CFG is mutated by a pass.")
   (blocks (make-hash-table) :type hash-table
           :documentation "Basic block name -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
-             :documentation "LAP lable -> LIMPLE basic block name.")
+             :documentation "LAP label -> LIMPLE basic block name.")
   (edges-h (make-hash-table) :type hash-table
          :documentation "Hash edge-num -> edge connecting basic two blocks.")
   (block-cnt-gen (funcall #'comp-gen-counter) :type function
@@ -749,7 +749,7 @@ Assume allocation class 'd-default as default."
                                            comp-curr-allocation-class))))
 
 
-;;; Log rountines.
+;;; Log routines.
 
 (defconst comp-limple-lock-keywords
   `((,(rx bol "(comment" (1+ not-newline)) . font-lock-comment-face)
@@ -873,7 +873,7 @@ instruction."
 Add PREFIX in front of it.  If FIRST is not nil, pick the first
 available name ignoring compilation context and potential name
 clashes."
-  ;; Unfortunatelly not all symbol names are valid as C function names...
+  ;; Unfortunately not all symbol names are valid as C function names...
   ;; Nassi's algorithm here:
   (let* ((orig-name (if (symbolp name) (symbol-name name) name))
          (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
@@ -2008,7 +2008,7 @@ Return the corresponding rhs slot number."
 (defun comp-cond-rw (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
 This is introducing and placing 'assume' insns in use by fwprop
-to propagate conditional branch test informations on target basic
+to propagate conditional branch test information on target basic
 blocks."
   (maphash (lambda (_ f)
              (when (and (>= (comp-func-speed f) 1)
@@ -2051,7 +2051,7 @@ blocks."
                              f))))
 
 (defun comp-pure-infer-func (f)
-  "If all funtions called by F are pure then F is pure too."
+  "If all functions called by F are pure then F is pure too."
   (when (and (cl-every (lambda (x)
                          (or (comp-function-pure-p x)
                              (eq x (comp-func-name f))))
@@ -2094,7 +2094,7 @@ blocks."
     mvar))
 
 (defun comp-clean-ssa (f)
-  "Clean-up SSA for funtion F."
+  "Clean-up SSA for function F."
   (setf (comp-func-edges-h f) (make-hash-table))
   (cl-loop
    for b being each hash-value of (comp-func-blocks f)
@@ -2367,7 +2367,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                            do (finalize-phi args b)))))
 
 (defun comp-ssa ()
-  "Port all functions into mininal SSA form."
+  "Port all functions into minimal SSA form."
   (maphash (lambda (_ f)
              (let* ((comp-func f)
                     (ssa-status (comp-func-ssa-status f)))
@@ -3139,7 +3139,7 @@ Prepare every function for final compilation and drive the C back-end."
   x)
 
 
-;; Primitive funciton advice machinery
+;; Primitive function advice machinery
 
 (defun comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
@@ -3445,7 +3445,7 @@ load once finished compiling."
 ;;;###autoload
 (defun native-compile (function-or-file &optional output)
   "Compile FUNCTION-OR-FILE into native code.
-This is the syncronous entry-point for the Emacs Lisp native
+This is the synchronous entry-point for the Emacs Lisp native
 compiler.
 FUNCTION-OR-FILE is a function symbol, a form or the filename of
 an Emacs Lisp source file.

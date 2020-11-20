@@ -602,7 +602,7 @@ Each element is (INDEX . VALUE)")
   "To spill default qualities from the compiled file.")
 (defvar byte-native-for-bootstrap nil
   "Non nil while compiling for bootstrap."
-  ;; During boostrap we produce both the .eln and the .elc together.
+  ;; During bootstrap we produce both the .eln and the .elc together.
   ;; Because the make target is the later this has to be produced as
   ;; last to be resilient against build interruptions.
 )

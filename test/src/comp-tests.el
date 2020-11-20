@@ -393,7 +393,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
-  "Test effectiveness of primitve advicing."
+  "Test effectiveness of primitive advicing."
   (let (comp-test-primitive-advice
         (f (lambda (&rest args)
              (setq comp-test-primitive-advice args))))
@@ -406,7 +406,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (defvar comp-test-primitive-redefine-args)
 (comp-deftest primitive-redefine ()
-  "Test effectiveness of primitve redefinition."
+  "Test effectiveness of primitive redefinition."
   (cl-letf ((comp-test-primitive-redefine-args nil)
             ((symbol-function #'-)
              (lambda (&rest args)

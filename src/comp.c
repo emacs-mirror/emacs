@@ -1517,7 +1517,7 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
   emit_comment ("XFIXNUM");
   gcc_jit_rvalue *i = emit_coerce (comp.emacs_uint_type, emit_XLI (obj));
 
-  /* FIXME: Implementation dependent (both RSHIFT are arithmetics).  */
+  /* FIXME: Implementation dependent (both RSHIFT are arithmetic).  */
 
   if (!USE_LSB_TAG)
     {
@@ -3780,7 +3780,7 @@ define_maybe_gc_or_quit (void)
     /* 9 translates into checking for GC or quit every 512 calls to
        'maybe_gc_quit'.  This is the smallest value I could find with
        no performance impact running elisp-banechmarks and the same
-       used by the byte intepreter (see 'exec_byte_code').  */
+       used by the byte interpreter (see 'exec_byte_code').  */
     maybe_do_it_block,
     pass_block);
 
@@ -4067,7 +4067,7 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
      included in the hashing algorithm.
 
      As at any point in time no more then one file can exist with the
-     same filename, should be possibile to clean up all
+     same filename, should be possible to clean up all
      filename-path_hash-* except the most recent one (or the new one
      being recompiled).
 
@@ -4617,7 +4617,7 @@ register_native_comp_unit (Lisp_Object comp_u)
    loaded the compiler and its dependencies.  */
 static Lisp_Object delayed_sources;
 
-/* Queue an asyncronous compilation for the source file defining
+/* Queue an asynchronous compilation for the source file defining
    FUNCTION_NAME and perform a late load.
 
    NOTE: ideally would be nice to move its call simply into Fload but
@@ -4671,7 +4671,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     }
 
   /* This is to have deferred compilaiton able to compile comp
-     dependecies breaking circularity.  */
+     dependencies breaking circularity.  */
   if (!NILP (Ffeaturep (Qcomp, Qnil)))
     {
       /* Comp already loaded.  */
@@ -5297,7 +5297,7 @@ If a directory is non absolute is assumed to be relative to
 `invocation-directory'.
 The last directory of this list is assumed to be the system one.  */);
 
-  /* Temporary value in use for boostrap.  We can't do better as
+  /* Temporary value in use for bootstrap.  We can't do better as
      `invocation-directory' is still unset, will be fixed up during
      dump reload.  */
   Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);

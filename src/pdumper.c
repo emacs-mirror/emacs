@@ -326,7 +326,7 @@ dump_fingerprint (char const *label,
 /* To be used if some order in the relocation process has to be enforced. */
 enum reloc_phase
   {
-    /* First to run.  Place here every relocation with no dependecy.  */
+    /* First to run.  Place every relocation with no dependency here.  */
     EARLY_RELOCS,
     /* Late and very late relocs are relocated at the very last after
        all hooks has been run.  All lisp machinery is at disposal

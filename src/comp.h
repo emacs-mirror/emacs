@@ -42,7 +42,7 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object lambda_gc_guard_h;
   /* Hash c_name -> d_reloc_imp index.  */
   Lisp_Object lambda_c_name_idx_h;
-  /* Hash doc-idx -> function documentaiton.  */
+  /* Hash doc-idx -> function documentation.  */
   Lisp_Object data_fdoc_v;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
