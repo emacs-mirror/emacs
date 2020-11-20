@@ -1355,8 +1355,8 @@ Normally a space.")
 
 (defmacro idlwave-keyword-abbrev (&rest args)
   "Creates a function for abbrev hooks to call `idlwave-check-abbrev' with args."
-  `(quote (lambda ()
-	    ,(append '(idlwave-check-abbrev) args))))
+  `(lambda ()
+     ,(append '(idlwave-check-abbrev) args)))
 
 ;; If I take the time I can replace idlwave-keyword-abbrev with
 ;; idlwave-code-abbrev and remove the quoted abbrev check from
