@@ -4,7 +4,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
-;; Version: 1.8
+;; Version: 1.9
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
 ;; Created: 2019-01-12
@@ -104,7 +104,7 @@ RECOMPILE all the benchmark folder when non nil."
 	   (when recompile
 	     (mapc (lambda (f)
 		     (message "Compiling... %s" f)
-		     (funcall compile-function f t))
+		     (funcall compile-function f))
 		   sources))
 	   ;; Load
 	   (mapc #'load (mapcar (if native-comp
