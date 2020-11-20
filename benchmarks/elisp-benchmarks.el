@@ -85,7 +85,7 @@ RECOMPILE all the benchmark folder when non nil."
 	   repeat runs
 	   for i from 1
 	   named test-loop
-	   with native-comp = (boundp 'comp-ctxt) ; FIXME when possible
+	   with native-comp = (featurep 'nativecomp)
 	   with compile-function = (if native-comp
 				       #'native-compile
 				     #'byte-compile-file)
