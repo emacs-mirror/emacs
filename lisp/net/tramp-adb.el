@@ -1316,23 +1316,24 @@ connection if a previous connection has died for some reason."
 	    ;; Mark it as connected.
 	    (tramp-set-connection-property p "connected" t)))))))
 
-;; Default settings for connection-local variables.
-(defconst tramp-adb-connection-local-default-profile
-  '((shell-file-name . "/system/bin/sh")
-    (shell-command-switch . "-c"))
-  "Default connection-local variables for remote adb connections.")
-
+;;; Default connection-local variables for Tramp:
 ;; `connection-local-set-profile-variables' and
 ;; `connection-local-set-profiles' exists since Emacs 26.1.
+(defconst tramp-adb-connection-local-default-shell-variables
+  '((shell-file-name . "/system/bin/sh")
+    (shell-command-switch . "-c"))
+  "Default connection-local shell variables for remote adb connections.")
+
+(tramp-compat-funcall
+ 'connection-local-set-profile-variables
+ 'tramp-adb-connection-local-default-shell-profile
+ tramp-adb-connection-local-default-shell-variables)
+
 (with-eval-after-load 'shell
-  (tramp-compat-funcall
-   'connection-local-set-profile-variables
-   'tramp-adb-connection-local-default-profile
-   tramp-adb-connection-local-default-profile)
   (tramp-compat-funcall
    'connection-local-set-profiles
    `(:application tramp :protocol ,tramp-adb-method)
-   'tramp-adb-connection-local-default-profile))
+   'tramp-adb-connection-local-default-shell-profile))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

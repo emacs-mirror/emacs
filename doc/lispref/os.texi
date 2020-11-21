@@ -1077,12 +1077,19 @@ directories in a search path (as found in an environment variable).  Its
 value is @code{":"} for Unix and GNU systems, and @code{";"} for MS systems.
 @end defvar
 
+@defun path-separator
+This function returns the connection-local value of variable
+@code{path-separator}.  That is @code{";"} for MS systems and a local
+@code{default-directory}, and @code{":"} for Unix and GNU systems, or
+a remote @code{default-directory}.
+@end defun
+
 @defun parse-colon-path path
 This function takes a search path string such as the value of
 the @env{PATH} environment variable, and splits it at the separators,
 returning a list of directories.  @code{nil} in this list means
 the current directory.  Although the function's name says
-``colon'', it actually uses the value of @code{path-separator}.
+``colon'', it actually uses the value of variable @code{path-separator}.
 
 @example
 (parse-colon-path ":/foo:/bar")
@@ -1154,6 +1161,19 @@ in the system's terminal driver, before Emacs was started.
 @c FIXME?  Seems untrue since 23.1.  For me, it is 0.
 @c The value is @code{nil} if Emacs is running under a window system.
 @end defvar
+
+@defvar null-device
+This variable holds the system null device.  Its value is
+@code{"/dev/null"} for Unix and GNU systems, and @code{"NUL"} for MS
+systems.
+@end defvar
+
+@defun null-device
+This function returns the connection-local value of variable
+@code{null-device}.  That is @code{"NUL"} for MS systems and a local
+@code{default-directory}, and @code{"/dev/null"} for Unix and GNU
+systems, or a remote @code{default-directory}.
+@end defun
 
 @node User Identification
 @section User Identification

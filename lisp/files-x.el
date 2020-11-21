@@ -730,6 +730,16 @@ Execute BODY, and unwind connection-local variables."
      ;; No connection-local variables to apply.
      ,@body))
 
+;;;###autoload
+(defun path-separator ()
+  "The connection-local value of `path-separator'."
+  (with-connection-local-variables path-separator))
+
+;;;###autoload
+(defun null-device ()
+  "The connection-local value of `null-device'."
+  (with-connection-local-variables null-device))
+
 
 
 (provide 'files-x)
