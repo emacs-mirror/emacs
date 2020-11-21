@@ -173,6 +173,12 @@ See the variable `tramp-encoding-shell' for more information."
   :version "24.1"
   :type '(choice (const nil) string))
 
+;; Since Emacs 26.1, `system-name' can return `nil' at build time if
+;; Emacs is compiled with "--no-build-details".  We do expect it to be
+;; a string.  (Bug#44481)
+(defconst tramp-system-name (or (system-name) "")
+  "The system name Tramp is running locally.")
+
 (defvar tramp-methods nil
   "Alist of methods for remote files.
 This is a list of entries of the form (NAME PARAM1 PARAM2 ...).
@@ -410,7 +416,7 @@ empty string for the method name."
 		       (choice :tag "  Host regexp" regexp sexp)
 		       (choice :tag "    User name" string (const nil)))))
 
-(defcustom tramp-default-host (system-name)
+(defcustom tramp-default-host tramp-system-name
   "Default host to use for transferring files.
 Useful for su and sudo methods mostly."
   :type 'string)
@@ -465,8 +471,8 @@ interpreted as a regular expression which always matches."
 (defcustom tramp-restricted-shell-hosts-alist
   (when (memq system-type '(windows-nt))
     (list (format "\\`\\(%s\\|%s\\)\\'"
-		  (regexp-quote (downcase (system-name)))
-		  (regexp-quote (upcase (system-name))))))
+		  (regexp-quote (downcase tramp-system-name))
+		  (regexp-quote (upcase tramp-system-name)))))
   "List of hosts, which run a restricted shell.
 This is a list of regular expressions, which denote hosts running
 a restricted shell like \"rbash\".  Those hosts can be used as
@@ -479,7 +485,7 @@ host runs a restricted shell, it shall be added to this list, too."
   (concat
    "\\`"
    (regexp-opt
-    (list "localhost" "localhost6" (system-name) "127.0.0.1" "::1") t)
+    (list "localhost" "localhost6" tramp-system-name "127.0.0.1" "::1") t)
    "\\'")
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
