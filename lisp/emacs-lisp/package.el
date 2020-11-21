@@ -2112,8 +2112,7 @@ Otherwise return nil."
   (when str
     (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
       (setq str (substring str (match-end 0))))
-    (ignore-errors
-      (if (version-to-list str) str))))
+    (if (version-to-list str) str)))
 
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 
