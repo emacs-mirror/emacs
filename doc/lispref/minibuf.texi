@@ -2109,6 +2109,11 @@ special responses @code{recenter}, @code{scroll-up},
 @kbd{C-v}, @kbd{M-v}, @kbd{C-M-v} and @kbd{C-M-S-v} in
 @code{query-replace-map}), this function performs the specified window
 recentering or scrolling operation, and poses the question again.
+
+If you bind @code{help-form} (@pxref{Help Functions}) to
+a non-@code{nil} value while calling @code{y-or-n-p}, then pressing
+@code{help-char} causes it to evaluate @code{help-form} and display
+the result.  @code{help-char} is automatically added to @var{prompt}.
 @end defun
 
 @defun y-or-n-p-with-timeout prompt seconds default
@@ -2317,6 +2322,11 @@ character.  Optionally, it ignores any input that is not a member of
 @var{chars}, a list of accepted characters.  The @var{history}
 argument specifies the history list symbol to use; if it is omitted or
 @code{nil}, this function doesn't use the history.
+
+If you bind @code{help-form} (@pxref{Help Functions}) to
+a non-@code{nil} value while calling @code{read-char-from-minibuffer},
+then pressing @code{help-char} causes it to evaluate @code{help-form}
+and display the result.
 @end defun
 
 @node Reading a Password

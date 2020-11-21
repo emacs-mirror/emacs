@@ -1774,6 +1774,12 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'read-char-from-minibuffer' and 'y-or-n-p' support 'help-form'.
+If you bind 'help-form' to a non-nil value while calling these functions,
+then pressing 'C-h' (help-char) causes the function to evaluate 'help-form'
+and display the result.
+
++++
 ** 'set-window-configuration' now takes an optional 'dont-set-frame'
 parameter which, when non-nil, instructs the function not to select
 the frame recorded in the configuration.

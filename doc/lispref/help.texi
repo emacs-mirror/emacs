@@ -676,8 +676,9 @@ If this variable is non-@code{nil}, its value is a form to evaluate
 whenever the character @code{help-char} is read.  If evaluating the form
 produces a string, that string is displayed.
 
-A command that calls @code{read-event}, @code{read-char-choice}, or
-@code{read-char} probably should bind @code{help-form} to a
+A command that calls @code{read-event}, @code{read-char-choice},
+@code{read-char}, @code{read-char-from-minibuffer}, or
+@code{y-or-n-p} probably should bind @code{help-form} to a
 non-@code{nil} expression while it does input.  (The time when you
 should not do this is when @kbd{C-h} has some other meaning.)
 Evaluating this expression should result in a string that explains
