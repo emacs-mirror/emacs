@@ -1861,10 +1861,13 @@ parse_resource_key (const char *res_key, char *setting_key)
   /* check existence of setting_key */
   GSettingsSchemaSource *ssrc = g_settings_schema_source_get_default ();
   GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, FALSE);
-  if (!g_settings_schema_has_key (scm, setting_key)) {
-    g_settings_schema_unref (scm);
-    return NULL;
-  }
+  if (!scm)
+    return NULL;	/* *.schema.xml is not installed. */
+  if (!g_settings_schema_has_key (scm, setting_key))
+    {
+      g_settings_schema_unref (scm);
+      return NULL;
+    }
 
   /* create GSettings, and return it */
   GSettings *gs = g_settings_new_full (scm, NULL, path);
