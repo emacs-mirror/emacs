@@ -137,18 +137,17 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 
 (defun eudc-bbdb-extract-phones (record)
   (require 'bbdb)
-  (mapcar (function
-	   (lambda (phone)
-	     (if eudc-bbdb-use-locations-as-attribute-names
-		 (cons (intern (if (eudc--using-bbdb-3-or-newer-p)
-                                   (bbdb-phone-label phone)
-                                 (bbdb-phone-location phone)))
-		       (bbdb-phone-string phone))
-	       (cons 'phones (format "%s: %s"
-				     (if (eudc--using-bbdb-3-or-newer-p)
-                                         (bbdb-phone-label phone)
-                                       (bbdb-phone-location phone))
-				     (bbdb-phone-string phone))))))
+  (mapcar (lambda (phone)
+            (if eudc-bbdb-use-locations-as-attribute-names
+                (cons (intern (if (eudc--using-bbdb-3-or-newer-p)
+                                  (bbdb-phone-label phone)
+                                (bbdb-phone-location phone)))
+                      (bbdb-phone-string phone))
+              (cons 'phones (format "%s: %s"
+                                    (if (eudc--using-bbdb-3-or-newer-p)
+                                        (bbdb-phone-label phone)
+                                      (bbdb-phone-location phone))
+                                    (bbdb-phone-string phone)))))
 	  (if (eudc--using-bbdb-3-or-newer-p)
               (bbdb-record-phone record)
             (bbdb-record-phones record))))
@@ -243,17 +242,15 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
       (if (car query-attrs)
 	  (setq records (eval `(bbdb-search ,(quote records) ,@bbdb-attrs))))
       (setq query-attrs (cdr query-attrs)))
-    (mapc (function
-	   (lambda (record)
-	     (setq filtered (eudc-filter-duplicate-attributes record))
-	     ;; If there were duplicate attributes reverse the order of the
-	     ;; record so the unique attributes appear first
-	     (if (> (length filtered) 1)
-		 (setq filtered (mapcar (function
-					 (lambda (rec)
-					   (reverse rec)))
-					filtered)))
-	     (setq result (append result filtered))))
+    (mapc (lambda (record)
+            (setq filtered (eudc-filter-duplicate-attributes record))
+            ;; If there were duplicate attributes reverse the order of the
+            ;; record so the unique attributes appear first
+            (if (> (length filtered) 1)
+                (setq filtered (mapcar (lambda (rec)
+                                         (reverse rec))
+                                       filtered)))
+            (setq result (append result filtered)))
 	  (delq nil
 		(mapcar 'eudc-bbdb-format-record-as-result
 			(delq nil

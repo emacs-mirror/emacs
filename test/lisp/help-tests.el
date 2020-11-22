@@ -392,6 +392,12 @@ C-b		undefined
     (define-key global-map (kbd "C-c C-l r") nil)
     (define-key global-map (kbd "C-c C-l") nil)))
 
+(ert-deftest help-substitute-command-keys/preserves-text-properties ()
+  "Check that we preserve text properties (Bug#17052)."
+  (should (equal (substitute-command-keys
+                  (propertize "foo \\[save-buffer]" 'face 'bold))
+                 (propertize "foo C-x C-s" 'face 'bold))))
+
 (provide 'help-tests)
 
 ;;; help-tests.el ends here

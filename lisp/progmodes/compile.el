@@ -334,48 +334,44 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ": \\*\\*\\* \\[\\(\\(.+?\\):\\([0-9]+\\): .+\\)\\]" 2 3 nil 0 1)
 
     (gnu
-     ;; The first line matches the program name for
-
-     ;;     PROGRAM:SOURCE-FILE-NAME:LINENO: MESSAGE
-
-     ;; format, which is used for non-interactive programs other than
-     ;; compilers (e.g. the "jade:" entry in compilation.txt).
-
-     ;; This first line makes things ambiguous with output such as
-     ;; "foo:344:50:blabla" since the "foo" part can match this first
-     ;; line (in which case the file name as "344").  To avoid this,
-     ;; the second line disallows filenames exclusively composed of
-     ;; digits.
-
-     ;; Similarly, we get lots of false positives with messages including
-     ;; times of the form "HH:MM:SS" where MM is taken as a line number, so
-     ;; the last line tries to rule out message where the info after the
-     ;; line number starts with "SS".  --Stef
-
-     ;; The core of the regexp is the one with *?.  It says that a file name
-     ;; can be composed of any non-newline char, but it also rules out some
-     ;; valid but unlikely cases, such as a trailing space or a space
-     ;; followed by a -, or a colon followed by a space.
-     ;;
-     ;; The "in \\|from " exception was added to handle messages from Ruby.
      ,(rx
        bol
+       ;; Match an optional program name in the format
+       ;;     PROGRAM:SOURCE-FILE-NAME:LINENO: MESSAGE
+       ;; which is used for non-interactive programs other than
+       ;; compilers (e.g. the "jade:" entry in compilation.txt).
        (? (| (regexp "[[:alpha:]][-[:alnum:].]+: ?")
+             ;; FIXME: This pattern was added for handling messages
+             ;; from Ruby, but it is unclear whether it is actually
+             ;; used since the gcc-include rule above seems to cover
+             ;; it.
              (regexp "[ \t]+\\(?:in \\|from\\)")))
-       (group-n 1 (: (regexp "[0-9]*[^0-9\n]")
-                     (*? (| (regexp "[^\n :]")
-                            (regexp " [^-/\n]")
-                            (regexp ":[^ \n]")))))
+
+       ;; File name group.
+       (group-n 1
+                ;; Avoid matching the file name as a program in the pattern
+                ;; above by disallow file names entirely composed of digits.
+                (: (regexp "[0-9]*[^0-9\n]")
+                   ;; This rule says that a file name can be composed
+                   ;; of any non-newline char, but it also rules out
+                   ;; some valid but unlikely cases, such as a
+                   ;; trailing space or a space followed by a -, or a
+                   ;; colon followed by a space.
+                   (*? (| (regexp "[^\n :]")
+                          (regexp " [^-/\n]")
+                          (regexp ":[^ \n]")))))
        (regexp ": ?")
+
+       ;; Line number group.
        (group-n 2 (regexp "[0-9]+"))
        (? (| (: "-"
-                (group-n 4 (regexp "[0-9]+"))
-                (? "." (group-n 5 (regexp "[0-9]+"))))
+                (group-n 4 (regexp "[0-9]+"))            ; ending line
+                (? "." (group-n 5 (regexp "[0-9]+"))))   ; ending column
              (: (in ".:")
-                (group-n 3 (regexp "[0-9]+"))
+                (group-n 3 (regexp "[0-9]+"))            ; starting column
                 (? "-"
-                   (? (group-n 4 (regexp "[0-9]+")) ".")
-                   (group-n 5 (regexp "[0-9]+"))))))
+                   (? (group-n 4 (regexp "[0-9]+")) ".") ; ending line
+                   (group-n 5 (regexp "[0-9]+"))))))     ; ending column
        ":"
        (| (: (* " ")
              (group-n 6 (| "FutureWarning"
@@ -392,6 +388,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
                            (regexp "[Nn]ote"))))
           (: (* " ")
              (regexp "[Ee]rror"))
+
+          ;; Avoid matching time stamps on the form "HH:MM:SS" where
+          ;; MM is interpreted as a line number by trying to rule out
+          ;; messages where the text after the line number starts with
+          ;; a 2-digit number.
           (: (regexp "[0-9]?")
              (| (regexp "[^0-9\n]")
                 eol))

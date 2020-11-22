@@ -22272,14 +22272,15 @@ extend_face_to_end_of_line (struct it *it)
                      default_face->id : face->id);
 
       /* Display fill-column indicator if needed.  */
-      /* We need to subtract 1 to the indicator_column here because we
-	 will add the indicator IN the column indicator number, not
-	 after it.  We compare the variable it->current_x before
-	 producing the glyph.  When FRAME_WINDOW_P we subtract
-	 CHAR_WIDTH calculating STRETCH_WIDTH for the same reason.  */
-      const int indicator_column =
-	fill_column_indicator_column (it, 1) - 1;
-      do
+      const int indicator_column = fill_column_indicator_column (it, 1);
+
+      /* Make sure our idea of current_x is in sync with the glyphs
+	 actually in the glyph row.  They might differ because
+	 append_space_for_newline can insert one glyph without
+	 updating current_x.  */
+      it->current_x = it->glyph_row->used[TEXT_AREA];
+
+      while (it->current_x <= it->last_visible_x)
 	{
 	  if (it->current_x != indicator_column)
 	    PRODUCE_GLYPHS (it);
@@ -22297,7 +22298,6 @@ extend_face_to_end_of_line (struct it *it)
 	      it->c = it->char_to_display = ' ';
 	    }
 	}
-      while (it->current_x <= it->last_visible_x);
 
       if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
 	  && (it->glyph_row->used[RIGHT_MARGIN_AREA]

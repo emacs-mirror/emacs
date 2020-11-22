@@ -5583,12 +5583,11 @@ used verbatim."
   "Return copy of STRING for literal reproduction across LaTeX processing.
 Expresses the original characters (including carriage returns) of the
 string across LaTeX processing."
-  (mapconcat (function
-	      (lambda (char)
-		(cond ((memq char '(?\\ ?$ ?% ?# ?& ?{ ?} ?_ ?^ ?- ?*))
-		       (concat "\\char" (number-to-string char) "{}"))
-		      ((= char ?\n) "\\\\")
-		      (t (char-to-string char)))))
+  (mapconcat (lambda (char)
+               (cond ((memq char '(?\\ ?$ ?% ?# ?& ?{ ?} ?_ ?^ ?- ?*))
+                      (concat "\\char" (number-to-string char) "{}"))
+                     ((= char ?\n) "\\\\")
+                     (t (char-to-string char))))
 	     string
 	     ""))
 ;;;_   > allout-latex-verbatim-quote-curr-line ()

@@ -25,7 +25,6 @@
 (require 'url-util)
 (require 'url-parse)
 (require 'nntp)
-(autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
 
 ;; Unused.
@@ -42,7 +41,7 @@
 	(nntp-send-command "^.*\r?\n" "AUTHINFO USER" user)
 	(nntp-send-command "^.*\r?\n" "AUTHINFO PASS" pass)
 	(if (not (nntp-server-opened host))
-	    (url-warn 'url (format "NNTP authentication to `%s' as `%s' failed"
+            (display-warning 'url (format "NNTP authentication to `%s' as `%s' failed"
 				   host user))))))
 
 (defun url-news-fetch-message-id (host message-id)

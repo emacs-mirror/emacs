@@ -220,7 +220,7 @@ missing or nil, the value of -START- is assumed for it."
 	  (cond
 	   ((eq -dir- 'forward) t)
 	   ((eq -dir- 'backward) nil)
-	   (t (error "Invalid -dir- argument \"%s\" to `syntax-comments'" -dir-))))
+	   (t (error "Invalid -dir- argument \"%s\" to `syntax-br-comments'" -dir-))))
          (start -start-)
 	 (start-str (format "%d" (abs start)))
 	 (type -type-))
@@ -338,10 +338,14 @@ the `parse-partial-sexp's are expected to stop.  See
   (setq parse-sexp-ignore-comments t)
   (setq comment-end-can-be-escaped nil)
   (modify-syntax-entry ?\n ">")
-  (modify-syntax-entry ?\; "<"))
+  (modify-syntax-entry ?\; "<")
+  (modify-syntax-entry ?{ ".")
+  (modify-syntax-entry ?} "."))
 (defun \;-out ()
   (modify-syntax-entry ?\n " ")
-  (modify-syntax-entry ?\; "."))
+  (modify-syntax-entry ?\; ".")
+  (modify-syntax-entry ?{ "(}")
+  (modify-syntax-entry ?} "){"))
 (eval-and-compile
   (setq syntax-comments-section "lisp"))
 
@@ -352,6 +356,62 @@ the `parse-partial-sexp's are expected to stop.  See
 (syntax-comments \; backward t 32)
 (syntax-comments \; forward t 33)
 (syntax-comments \; backward t 33)
+
+;; "Lisp" style comments inside lists.
+(syntax-br-comments \; backward nil 40)
+(syntax-br-comments \; forward t 41)
+(syntax-br-comments \; backward t 41)
+(syntax-br-comments \; forward t 42)
+(syntax-br-comments \; backward t 42)
+(syntax-br-comments \; forward nil 43)
+
+;; "Lisp" style comments parsed by `parse-partial-sexp'.
+(syntax-pps-comments \; 41 90 91)
+(syntax-pps-comments \; 42 92 93)
+(syntax-pps-comments \; 43 94 95 -999)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; "Lisp" style nested comments: between delimiters #|  |#.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun \#|-in ()
+  (setq parse-sexp-ignore-comments t)
+  (modify-syntax-entry ?# ". 14")
+  (modify-syntax-entry ?| ". 23n")
+  (modify-syntax-entry ?\; "< b")
+  (modify-syntax-entry ?\n "> b"))
+(defun \#|-out ()
+  (modify-syntax-entry ?# ".")
+  (modify-syntax-entry ?| ".")
+  (modify-syntax-entry ?\; ".")
+  (modify-syntax-entry ?\n " "))
+(eval-and-compile
+  (setq syntax-comments-section "lisp-n"))
+
+(syntax-comments \#| forward nil 100 0)
+(syntax-comments \#| backward nil 100 0)
+(syntax-comments \#| forward nil 101 -999)
+(syntax-comments \#| forward t 102)
+(syntax-comments \#| backward t 102)
+
+(syntax-comments \#| forward t 103)
+(syntax-comments \#| backward t 103)
+(syntax-comments \#| forward t 104)
+(syntax-comments \#| backward t 104)
+
+(syntax-comments \#| forward nil 105 -999)
+(syntax-comments \#| backward t 105)
+(syntax-comments \#| forward t 106)
+(syntax-comments \#| backward t 106)
+(syntax-comments \#| forward t 107)
+(syntax-comments \#| backward t 107)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mixed "Lisp" style (nested and unnested) comments.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(syntax-comments \#| forward t 110)
+(syntax-comments \#| backward t 110)
+(syntax-comments \#| forward t 111)
+(syntax-comments \#| backward t 111)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs 27 "C" style comments - `comment-end-can-be-escaped' is non-nil.

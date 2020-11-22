@@ -12928,19 +12928,23 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
   Lisp_Object system_name = Fsystem_name ();
-
-  ptrdiff_t nbytes = SBYTES (Vinvocation_name) + 1;
-  if (STRINGP (system_name)
-      && INT_ADD_WRAPV (nbytes, SBYTES (system_name) + 1, &nbytes))
-    memory_full (SIZE_MAX);
-  dpyinfo->x_id = ++x_display_id;
-  dpyinfo->x_id_name = xmalloc (nbytes);
-  char *nametail = lispstpcpy (dpyinfo->x_id_name, Vinvocation_name);
+  static char const title[] = "GNU Emacs";
   if (STRINGP (system_name))
     {
-      *nametail++ = '@';
-      lispstpcpy (nametail, system_name);
+      static char const at[] = " at ";
+      ptrdiff_t nbytes = sizeof (title) + sizeof (at);
+      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+	memory_full (SIZE_MAX);
+      dpyinfo->x_id_name = xmalloc (nbytes);
+      sprintf (dpyinfo->x_id_name, "%s%s%s", title, at, SDATA (system_name));
     }
+  else
+    {
+      dpyinfo->x_id_name = xmalloc (sizeof (title));
+      strcpy (dpyinfo->x_id_name, title);
+    }
+
+  dpyinfo->x_id = ++x_display_id;
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);

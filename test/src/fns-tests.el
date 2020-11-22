@@ -938,6 +938,13 @@
   (should (equal (string-search "\303" "aøb") nil))
   (should (equal (string-search "\270" "aøb") nil))
   (should (equal (string-search "ø" "\303\270") nil))
+  (should (equal (string-search "ø" (make-string 32 ?a)) nil))
+  (should (equal (string-search "ø" (string-to-multibyte (make-string 32 ?a)))
+                 nil))
+  (should (equal (string-search "o" (string-to-multibyte
+                                     (apply #'string
+                                            (number-sequence ?a ?z))))
+                 14))
 
   (should (equal (string-search "a\U00010f98z" "a\U00010f98a\U00010f98z") 2))
 

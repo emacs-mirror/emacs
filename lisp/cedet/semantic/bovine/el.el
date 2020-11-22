@@ -464,27 +464,11 @@ Return a bovination list to use."
 (define-mode-local-override semantic-dependency-tag-file
   emacs-lisp-mode (tag)
   "Find the file BUFFER depends on described by TAG."
-  (if (fboundp 'find-library-name)
-      (condition-case nil
-	  ;; Try an Emacs 22 fcn.  This throws errors.
-	  (find-library-name (semantic-tag-name tag))
-	(error
-	 (message "semantic: cannot find source file %s"
-		  (semantic-tag-name tag))))
-    ;; No handy function available.  (Older Emacsen)
-    (let* ((lib (locate-library (semantic-tag-name tag)))
-	   (name (if lib (file-name-sans-extension lib) nil))
-	   (nameel (concat name ".el")))
-      (cond
-       ((and name (file-exists-p nameel)) nameel)
-       ((and name (file-exists-p (concat name ".el.gz")))
-	;; This is the linux distro case.
-	(concat name ".el.gz"))
-       ;; Source file does not exist.
-       (name
-	(message "semantic: cannot find source file %s" (concat name ".el")))
-       (t
-	nil)))))
+  (condition-case nil
+      (find-library-name (semantic-tag-name tag))
+    (error
+     (message "semantic: cannot find source file %s"
+              (semantic-tag-name tag)))))
 
 ;;; DOC Strings
 ;;

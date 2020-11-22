@@ -210,9 +210,8 @@ to writing a completion function."
   :group 'eshell-cmpl)
 
 (defcustom eshell-command-completion-function
-  (function
-   (lambda ()
-     (pcomplete-here (eshell-complete-commands-list))))
+  (lambda ()
+    (pcomplete-here (eshell-complete-commands-list)))
   (eshell-cmpl--custom-variable-docstring 'pcomplete-command-completion-function)
   :type (get 'pcomplete-command-completion-function 'custom-type)
   :group 'eshell-cmpl)
@@ -224,12 +223,11 @@ to writing a completion function."
   :group 'eshell-cmpl)
 
 (defcustom eshell-default-completion-function
-  (function
-   (lambda ()
-     (while (pcomplete-here
-	     (pcomplete-dirs-or-entries
-	      (cdr (assoc (funcall eshell-cmpl-command-name-function)
-			  eshell-command-completions-alist)))))))
+  (lambda ()
+    (while (pcomplete-here
+            (pcomplete-dirs-or-entries
+             (cdr (assoc (funcall eshell-cmpl-command-name-function)
+                         eshell-command-completions-alist))))))
   (eshell-cmpl--custom-variable-docstring 'pcomplete-default-completion-function)
   :type (get 'pcomplete-default-completion-function 'custom-type)
   :group 'eshell-cmpl)
@@ -308,10 +306,9 @@ to writing a completion function."
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run
   (add-hook 'eshell-mode-hook
-	    (function
-	     (lambda ()
-	       (set (make-local-variable 'comint-file-name-quote-list)
-		    eshell-special-chars-outside-quoting)))
+            (lambda ()
+              (set (make-local-variable 'comint-file-name-quote-list)
+                   eshell-special-chars-outside-quoting))
             nil t)
   (add-hook 'pcomplete-quote-arg-hook #'eshell-quote-backslash nil t)
   (add-hook 'completion-at-point-functions
@@ -391,19 +388,18 @@ to writing a completion function."
       (nconc args (list ""))
       (nconc posns (list (point))))
     (cons (mapcar
-	   (function
-	    (lambda (arg)
-	      (let ((val
-		     (if (listp arg)
-			 (let ((result
-				(eshell-do-eval
-				 (list 'eshell-commands arg) t)))
-			   (cl-assert (eq (car result) 'quote))
-			   (cadr result))
-		       arg)))
-		(if (numberp val)
-		    (setq val (number-to-string val)))
-		(or val ""))))
+           (lambda (arg)
+             (let ((val
+                    (if (listp arg)
+                        (let ((result
+                               (eshell-do-eval
+                                (list 'eshell-commands arg) t)))
+                          (cl-assert (eq (car result) 'quote))
+                          (cadr result))
+                      arg)))
+               (if (numberp val)
+                   (setq val (number-to-string val)))
+               (or val "")))
 	   args)
 	  posns)))
 
@@ -454,9 +450,8 @@ to writing a completion function."
 			      (eshell-alias-completions filename))
 			 (eshell-winnow-list
 			  (mapcar
-			   (function
-			    (lambda (name)
-			      (substring name 7)))
+                           (lambda (name)
+                             (substring name 7))
 			   (all-completions (concat "eshell/" filename)
 					    obarray #'functionp))
 			  nil '(eshell-find-alias-function))

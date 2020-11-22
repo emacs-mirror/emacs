@@ -612,14 +612,13 @@
 					    "()")
 					  minibuffer-local-map
 					  t)))
-		       (setq math-arglist (mapcar (function
-					      (lambda (x)
-						(list 'var
-						      x
-						      (intern
-						       (concat
-							"var-"
-							(symbol-name x))))))
+                       (setq math-arglist (mapcar (lambda (x)
+                                                    (list 'var
+                                                          x
+                                                          (intern
+                                                           (concat
+                                                            "var-"
+                                                            (symbol-name x)))))
 					     math-arglist))))
 		 (setq oper (list "$"
 				  (length math-arglist)
@@ -962,12 +961,12 @@
     (apply 'calcFunc-mapeqp func args)))
 
 (defun calcFunc-mapeqr (func &rest args)
-  (setq args (mapcar (function (lambda (x)
-				 (let ((func (assq (car-safe x)
-						   calc-tweak-eqn-table)))
-				   (if func
-				       (cons (nth 1 func) (cdr x))
-				     x))))
+  (setq args (mapcar (lambda (x)
+                       (let ((func (assq (car-safe x)
+                                         calc-tweak-eqn-table)))
+                         (if func
+                             (cons (nth 1 func) (cdr x))
+                           x)))
 		     args))
   (apply 'calcFunc-mapeqp func args))
 
@@ -1092,28 +1091,28 @@
 (defun calcFunc-reducea (func vec)
   (if (math-matrixp vec)
       (cons 'vec
-	    (mapcar (function (lambda (x) (calcFunc-reducer func x)))
+            (mapcar (lambda (x) (calcFunc-reducer func x))
 		    (cdr vec)))
     (calcFunc-reducer func vec)))
 
 (defun calcFunc-rreducea (func vec)
   (if (math-matrixp vec)
       (cons 'vec
-	    (mapcar (function (lambda (x) (calcFunc-rreducer func x)))
+            (mapcar (lambda (x) (calcFunc-rreducer func x))
 		    (cdr vec)))
     (calcFunc-rreducer func vec)))
 
 (defun calcFunc-reduced (func vec)
   (if (math-matrixp vec)
       (cons 'vec
-	    (mapcar (function (lambda (x) (calcFunc-reducer func x)))
+            (mapcar (lambda (x) (calcFunc-reducer func x))
 		    (cdr (math-transpose vec))))
     (calcFunc-reducer func vec)))
 
 (defun calcFunc-rreduced (func vec)
   (if (math-matrixp vec)
       (cons 'vec
-	    (mapcar (function (lambda (x) (calcFunc-rreducer func x)))
+            (mapcar (lambda (x) (calcFunc-rreducer func x))
 		    (cdr (math-transpose vec))))
     (calcFunc-rreducer func vec)))
 
@@ -1216,10 +1215,10 @@
   (let ((mat nil))
     (while (setq a (cdr a))
       (setq mat (cons (cons 'vec
-			    (mapcar (function (lambda (x)
-						(math-build-call func
-								 (list (car a)
-								       x))))
+                            (mapcar (lambda (x)
+                                      (math-build-call func
+                                                       (list (car a)
+                                                             x)))
 				    (cdr b)))
 		      mat)))
     (math-normalize (cons 'vec (nreverse mat)))))

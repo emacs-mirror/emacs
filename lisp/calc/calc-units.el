@@ -860,23 +860,22 @@ If COMP or STD is non-nil, put that in the units table instead."
 	     tab)
 	(message "Building units table...")
 	(setq math-units-table-buffer-valid nil)
-	(setq tab (mapcar (function
-			   (lambda (x)
-			     (list (car x)
-				   (and (nth 1 x)
-					(if (stringp (nth 1 x))
-					    (let ((exp (math-read-plain-expr
-							(nth 1 x))))
-					      (if (eq (car-safe exp) 'error)
-						  (error "Format error in definition of %s in units table: %s"
-							 (car x) (nth 2 exp))
-						exp))
-					  (nth 1 x)))
-				   (nth 2 x)
-				   (nth 3 x)
-				   (and (not (nth 1 x))
-					(list (cons (car x) 1)))
-                                   (nth 4 x))))
+        (setq tab (mapcar (lambda (x)
+                            (list (car x)
+                                  (and (nth 1 x)
+                                       (if (stringp (nth 1 x))
+                                           (let ((exp (math-read-plain-expr
+                                                       (nth 1 x))))
+                                             (if (eq (car-safe exp) 'error)
+                                                 (error "Format error in definition of %s in units table: %s"
+                                                        (car x) (nth 2 exp))
+                                               exp))
+                                         (nth 1 x)))
+                                  (nth 2 x)
+                                  (nth 3 x)
+                                  (and (not (nth 1 x))
+                                       (list (cons (car x) 1)))
+                                  (nth 4 x)))
 			  combined-units))
 	(let ((math-units-table tab))
 	  (mapc #'math-find-base-units tab))
@@ -1100,10 +1099,9 @@ If COMP or STD is non-nil, put that in the units table instead."
 	       (setq math-decompose-units-cache
 		     (cons entry
 			   (sort ulist
-				 (function
-				  (lambda (x y)
-				    (not (Math-lessp (nth 1 x)
-						     (nth 1 y))))))))))
+                                 (lambda (x y)
+                                   (not (Math-lessp (nth 1 x)
+                                                    (nth 1 y)))))))))
 	 (cdr math-decompose-units-cache))))
 
 (defun math-decompose-unit-part (unit)

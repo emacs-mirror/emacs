@@ -1173,17 +1173,16 @@ When DING is non-nil, ring the bell as well."
 Useful when source code is displayed as help.  See the option
 `idlwave-help-fontify-source-code'."
   (interactive)
-  (if (featurep 'font-lock)
-      (let ((major-mode 'idlwave-mode)
-	    (font-lock-verbose
-	     (if (called-interactively-p 'interactive) font-lock-verbose nil)))
-	(with-syntax-table idlwave-mode-syntax-table
-          (set (make-local-variable 'font-lock-defaults)
-               idlwave-font-lock-defaults)
-          (if (fboundp 'font-lock-ensure) ; Emacs >= 25.1
-              (font-lock-ensure)
-            ;; Silence "interactive use only" warning on Emacs >= 25.1.
-            (with-no-warnings (font-lock-fontify-buffer)))))))
+  (let ((major-mode 'idlwave-mode)
+        (font-lock-verbose
+         (if (called-interactively-p 'interactive) font-lock-verbose nil)))
+    (with-syntax-table idlwave-mode-syntax-table
+      (set (make-local-variable 'font-lock-defaults)
+           idlwave-font-lock-defaults)
+      (if (fboundp 'font-lock-ensure) ; Emacs >= 25.1
+          (font-lock-ensure)
+        ;; Silence "interactive use only" warning on Emacs >= 25.1.
+        (with-no-warnings (font-lock-fontify-buffer))))))
 
 
 (defun idlwave-help-error (name type class keyword)

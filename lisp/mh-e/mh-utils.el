@@ -270,9 +270,8 @@ and displayed in a help buffer."
                   (cdr (assoc nil (assoc major-mode mh-help-messages)))))
          (text (substitute-command-keys (mapconcat 'identity help ""))))
     (with-electric-help
-     (function
-      (lambda ()
-        (insert text)))
+     (lambda ()
+       (insert text))
      mh-help-buffer)))
 
 ;;;###mh-autoload

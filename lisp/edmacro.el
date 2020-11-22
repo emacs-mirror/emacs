@@ -535,32 +535,31 @@ doubt, use whitespace."
 	       (setq bind-len (1+ text)))
 	      (t
 	       (setq desc (mapconcat
-			   (function
-			    (lambda (ch)
-			      (cond
-			       ((integerp ch)
-				(concat
-				 (cl-loop for pf across "ACHMsS"
-                                          for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
-                                                       ?\M-\^@ ?\s-\^@ ?\S-\^@)
-                                          when (/= (logand ch bit) 0)
-                                          concat (format "%c-" pf))
-				 (let ((ch2 (logand ch (1- (ash 1 18)))))
-				   (cond ((<= ch2 32)
-					  (pcase ch2
-					    (0 "NUL") (9 "TAB") (10 "LFD")
-					    (13 "RET") (27 "ESC") (32 "SPC")
-					    (_
-					     (format "C-%c"
-						     (+ (if (<= ch2 26) 96 64)
-							ch2)))))
-					 ((= ch2 127) "DEL")
-					 ((<= ch2 maxkey) (char-to-string ch2))
-					 (t (format "\\%o" ch2))))))
-			       ((symbolp ch)
-				(format "<%s>" ch))
-			       (t
-				(error "Unrecognized item in macro: %s" ch)))))
+                           (lambda (ch)
+                             (cond
+                              ((integerp ch)
+                               (concat
+                                (cl-loop for pf across "ACHMsS"
+                                         for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
+                                                              ?\M-\^@ ?\s-\^@ ?\S-\^@)
+                                         when (/= (logand ch bit) 0)
+                                         concat (format "%c-" pf))
+                                (let ((ch2 (logand ch (1- (ash 1 18)))))
+                                  (cond ((<= ch2 32)
+                                         (pcase ch2
+                                           (0 "NUL") (9 "TAB") (10 "LFD")
+                                           (13 "RET") (27 "ESC") (32 "SPC")
+                                           (_
+                                            (format "C-%c"
+                                                    (+ (if (<= ch2 26) 96 64)
+                                                       ch2)))))
+                                        ((= ch2 127) "DEL")
+                                        ((<= ch2 maxkey) (char-to-string ch2))
+                                        (t (format "\\%o" ch2))))))
+                              ((symbolp ch)
+                               (format "<%s>" ch))
+                              (t
+                               (error "Unrecognized item in macro: %s" ch))))
 			   (or fkey key) " "))))
 	(if prefix
 	    (setq desc (concat (edmacro-sanitize-for-string prefix) desc)))

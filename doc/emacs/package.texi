@@ -187,12 +187,28 @@ Filter package list by archive (@code{package-menu-filter-by-archive}).
 This prompts for a package archive (e.g., @samp{gnu}), then shows only
 packages from that archive.
 
+@item / d
+@kindex / d @r{(Package Menu)}
+@findex package-menu-filter-by-description
+Filter package list by description
+(@code{package-menu-filter-by-description}).  This prompts for a
+regular expression, then shows only packages with descriptions
+matching that regexp.
+
 @item / k
 @kindex / k @r{(Package Menu)}
 @findex package-menu-filter-by-keyword
 Filter package list by keyword (@code{package-menu-filter-by-keyword}).
 This prompts for a keyword (e.g., @samp{games}), then shows only
 packages with that keyword.
+
+@item / N
+@kindex / N @r{(Package Menu)}
+@findex package-menu-filter-by-name-or-description
+Filter package list by name or description
+(@code{package-menu-filter-by-name-or-description}).  This prompts for
+a regular expression, then shows only packages with a name or
+description matching that regexp.
 
 @item / n
 @kindex / n @r{(Package Menu)}

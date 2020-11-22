@@ -53,6 +53,11 @@
 (declare-function semantic-clear-toplevel-cache "semantic")
 (declare-function semantic-tag-similar-p "semantic/tag-ls")
 
+(define-obsolete-variable-alias 'semantic-token-version
+  'semantic-tag-version "28.1")
+(define-obsolete-variable-alias 'semantic-token-incompatible-version
+  'semantic-tag-incompatible-version "28.1")
+
 (defconst semantic-tag-version "2.0"
   "Version string of semantic tags made with this code.")
 
@@ -1321,12 +1326,6 @@ This function is overridable with the symbol `insert-foreign-tag'."
   "Insert foreign tags into log-edit mode."
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
-;;; Compatibility
-;;
-(defconst semantic-token-version
-  semantic-tag-version)
-(defconst semantic-token-incompatible-version
-  semantic-tag-incompatible-version)
 
 (provide 'semantic/tag)
 

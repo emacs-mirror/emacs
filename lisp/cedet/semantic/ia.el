@@ -79,15 +79,14 @@
 	   (insert "("))
 	  (t nil))))
 
-(defalias 'semantic-ia-get-completions 'semantic-ia-get-completions-deprecated
-  "`Semantic-ia-get-completions' is obsolete.
-Use `semantic-analyze-possible-completions' instead.")
+(defalias 'semantic-ia-get-completions 'semantic-ia-get-completions-deprecated)
+(make-obsolete 'semantic-ia-get-completions
+               #'semantic-analyze-possible-completions "28.1")
 
 (defun semantic-ia-get-completions-deprecated (context point)
   "A function to help transition away from `semantic-ia-get-completions'.
-Return completions based on CONTEXT at POINT.
-You should not use this, nor the aliased version.
-Use `semantic-analyze-possible-completions' instead."
+Return completions based on CONTEXT at POINT."
+  (declare (obsolete semantic-analyze-possible-completions "28.1"))
   (semantic-analyze-possible-completions context))
 
 ;;;###autoload

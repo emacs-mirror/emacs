@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(defalias 'custom-facep 'facep)
-
 ;;; Declaring a face.
 
 (defun custom-declare-face (face spec doc &rest args)
@@ -393,6 +391,8 @@ Each of the arguments ARGS has this form:
 
 This means reset FACE to its value in FROM-THEME."
   (apply 'custom-theme-reset-faces 'user args))
+
+(define-obsolete-function-alias 'custom-facep #'facep "28.1")
 
 ;;; The End.
 

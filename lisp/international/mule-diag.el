@@ -136,13 +136,12 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 
 		((eq sort-key 'iso-spec)
 		 ;; Sort by DIMENSION CHARS FINAL-CHAR
-		 (function
-		  (lambda (x y)
-		    (or (< (nth 1 x) (nth 1 y))
-			(and (= (nth 1 x) (nth 1 y))
-			     (or (< (nth 2 x) (nth 2 y))
-				 (and (= (nth 2 x) (nth 2 y))
-				      (< (nth 3 x) (nth 3 y)))))))))
+                 (lambda (x y)
+                   (or (< (nth 1 x) (nth 1 y))
+                       (and (= (nth 1 x) (nth 1 y))
+                            (or (< (nth 2 x) (nth 2 y))
+                                (and (= (nth 2 x) (nth 2 y))
+                                     (< (nth 3 x) (nth 3 y))))))))
 		(t
 		 (error "Invalid charset sort key: %s" sort-key))))
 

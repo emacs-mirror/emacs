@@ -42,13 +42,6 @@
 (require 'ediff-help)
 ;; end pacifier
 
-
-;; be careful with ediff-tbar
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (require 'ediff-tbar)
-    (defun ediff-compute-toolbar-width () 0)))
-
 (defgroup ediff-window nil
   "Ediff window manipulation."
   :prefix "ediff-"
@@ -961,8 +954,7 @@ create a new splittable frame if none is found."
     ;; 1 more line for the mode line
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
-	  fwidth (max (+ (ediff-help-message-line-length) 2)
-		      (ediff-compute-toolbar-width))
+          fwidth (max (+ (ediff-help-message-line-length) 2) 0)
 	  adjusted-parameters
 	  (list
 	   ;; possibly change surrogate minibuffer
@@ -1291,6 +1283,9 @@ It assumes that it is called from within the control buffer."
 			     (ediff-multiframe-setup-p)
 			     ediff-wide-display-p)))))))
 
+(defun ediff-compute-toolbar-width ()
+  (declare (obsolete nil "28.1"))
+  0)
 
 (provide 'ediff-wind)
 ;;; ediff-wind.el ends here

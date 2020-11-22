@@ -4297,13 +4297,13 @@ tex-src/gzip.texi,303
 @node Top,62,2139
 @node Copying,80,2652
 @node Overview,83,2705
-@node Sample,166,7272
-@node Invoking gzip,Invoking gzip210,8828
-@node Advanced usage,Advanced usage357,13496
-@node Environment,420,15208
-@node Tapes,437,15769
-@node Problems,460,16768
-@node Concept Index,Concept Index473,17288
+@node Sample,166,7273
+@node Invoking gzip,Invoking gzip210,8829
+@node Advanced usage,Advanced usage357,13497
+@node Environment,420,15209
+@node Tapes,437,15770
+@node Problems,460,16769
+@node Concept Index,Concept Index473,17289
 
 tex-src/texinfo.tex,30627
 \def\texinfoversion{\texinfoversion26,1035

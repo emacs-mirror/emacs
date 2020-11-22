@@ -1310,6 +1310,7 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
                                 ((and mention-shadow (not (eq tem definition)))
                                  (setq this-shadowed t))
                                 (t nil))))
+                    (eq definition (lookup-key tail (vector event) t))
                     (push (list event definition this-shadowed) vect))))
             ((eq (car tail) 'keymap)
              ;; The same keymap might be in the structure twice, if

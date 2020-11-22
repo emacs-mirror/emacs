@@ -221,15 +221,12 @@ It is a function which takes two arguments, the directory and its parent."
 
     (make-local-variable 'revert-buffer-function)
     (setq revert-buffer-function
-	  (function
-	   (lambda (_ignore1 _ignore2)
-	     (find-lisp-insert-directory
-	      default-directory
-	      find-lisp-file-predicate
-	      find-lisp-directory-predicate
-	      'ignore)
-	     )
-	   ))
+          (lambda (_ignore1 _ignore2)
+            (find-lisp-insert-directory
+             default-directory
+             find-lisp-file-predicate
+             find-lisp-directory-predicate
+             'ignore)))
 
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
@@ -267,11 +264,10 @@ It is a function which takes two arguments, the directory and its parent."
     (insert find-lisp-line-indent "\n")
     ;; Run the find function
     (mapc
-     (function
-      (lambda (file)
-	(find-lisp-find-dired-insert-file
-	 (substring file len)
-	 (current-buffer))))
+     (lambda (file)
+       (find-lisp-find-dired-insert-file
+        (substring file len)
+        (current-buffer)))
      (sort files 'string-lessp))
     ;; FIXME: Sort function is ignored for now
     ;; (funcall sort-function files))

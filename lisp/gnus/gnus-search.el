@@ -2101,9 +2101,10 @@ article came from is also searched."
 (defun gnus-search--complete-key-data ()
   "Potentially return completion data for a search key or value."
   (let* ((key-start (save-excursion
-		      (if (re-search-backward " " (minibuffer-prompt-end) t)
-			  (1+ (point))
-			(minibuffer-prompt-end))))
+		      (or (re-search-backward " " (minibuffer-prompt-end) t)
+			  (goto-char (minibuffer-prompt-end)))
+		      (skip-chars-forward " -")
+		      (point)))
 	 (after-colon (save-excursion
 			(when (re-search-backward ":" key-start t)
 			  (1+ (point)))))
@@ -2113,7 +2114,7 @@ article came from is also searched."
 	;; only handle in a contact-completion context.
 	(when (and gnus-search-contact-tables
 		   (save-excursion
-		     (re-search-backward "\\<\\(\\w+\\):" key-start t)
+		     (re-search-backward "\\<-?\\(\\w+\\):" key-start t)
 		     (member (match-string 1)
 			     '("from" "to" "cc"
 			       "bcc" "recipient" "address"))))

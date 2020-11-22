@@ -62,7 +62,33 @@
 33;        \
 33
 
+/* Lisp comments within lists */
+40)40
+41(;90 comment
+91)41
+42(;92\
+93)42
+43( ;94
+95
+
+/* Nested Lisp comments */
+100|#100
+101#|#
+102#||#102
+103#| Comment |#103
+104#| Comment
+|#104
+105#|#|#105
+106#| #| Comment |# |#106
+107#|#|#|#|#|#|#|#|#| Comment |#|#|#|#|#|#|#|#|#107
+
+/* Mixed Lisp comments */
+110; #|
+110
+111#| ; |#111
+
 Local Variables:
 mode: fundamental
 eval: (set-syntax-table (make-syntax-table))
 End:
+999

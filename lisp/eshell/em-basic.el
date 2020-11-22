@@ -90,11 +90,10 @@ or `eshell-printn' for display."
 	     (car args))
 	    (t
 	     (mapcar
-	      (function
-	       (lambda (arg)
-		 (if (stringp arg)
-		     (set-text-properties 0 (length arg) nil arg))
-		 arg))
+              (lambda (arg)
+                (if (stringp arg)
+                    (set-text-properties 0 (length arg) nil arg))
+                arg)
 	      args)))))
       (if output-newline
 	  (cond

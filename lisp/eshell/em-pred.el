@@ -116,10 +116,9 @@ The format of each entry is
 (defcustom eshell-modifier-alist
   '((?E . #'(lambda (lst)
               (mapcar
-               (function
-                (lambda (str)
-                  (eshell-stringify
-                   (car (eshell-parse-argument str)))))
+               (lambda (str)
+                 (eshell-stringify
+                  (car (eshell-parse-argument str))))
                lst)))
     (?L . #'(lambda (lst) (mapcar 'downcase lst)))
     (?U . #'(lambda (lst) (mapcar 'upcase lst)))
@@ -240,16 +239,14 @@ EXAMPLES:
 (defun eshell-display-predicate-help ()
   (interactive)
   (with-electric-help
-   (function
-    (lambda ()
-      (insert eshell-predicate-help-string)))))
+   (lambda ()
+     (insert eshell-predicate-help-string))))
 
 (defun eshell-display-modifier-help ()
   (interactive)
   (with-electric-help
-   (function
-    (lambda ()
-      (insert eshell-modifier-help-string)))))
+   (lambda ()
+     (insert eshell-modifier-help-string))))
 
 (define-minor-mode eshell-pred-mode
   "Minor mode for the eshell-pred module.
@@ -544,20 +541,20 @@ that `ls -l' will show in the first column of its display."
     (if repeat
 	`(lambda (lst)
 	   (mapcar
-	    (function
-	     (lambda (str)
-	       (let ((i 0))
-		 (while (setq i (string-match ,match str i))
-		   (setq str (replace-match ,replace t nil str))))
-	       str)) lst))
+            (lambda (str)
+              (let ((i 0))
+                (while (setq i (string-match ,match str i))
+                  (setq str (replace-match ,replace t nil str))))
+              str)
+            lst))
       `(lambda (lst)
 	 (mapcar
-	  (function
-	   (lambda (str)
-	     (if (string-match ,match str)
-		 (setq str (replace-match ,replace t nil str))
-	       (error (concat str ": substitution failed")))
-	     str)) lst)))))
+          (lambda (str)
+            (if (string-match ,match str)
+                (setq str (replace-match ,replace t nil str))
+              (error (concat str ": substitution failed")))
+            str)
+          lst)))))
 
 (defun eshell-include-members (&optional invert-p)
   "Include only lisp members matching a regexp."
@@ -598,9 +595,8 @@ that `ls -l' will show in the first column of its display."
       (goto-char (1+ end)))
     `(lambda (lst)
        (mapcar
-	(function
-	 (lambda (str)
-	   (split-string str ,sep))) lst))))
+        (lambda (str)
+          (split-string str ,sep)) lst))))
 
 (provide 'em-pred)
 

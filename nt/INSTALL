@@ -502,11 +502,21 @@ build will run on Windows 9X and newer systems).
        Does Emacs use -lgnutls?                                yes
        Does Emacs use -lxml2?                                  yes
        Does Emacs use -lfreetype?                              no
+       Does Emacs use HarfBuzz?                                yes
        Does Emacs use -lm17n-flt?                              no
        Does Emacs use -lotf?                                   no
        Does Emacs use -lxft?                                   no
+       Does Emacs use -lsystemd?                               no
+       Does Emacs use -ljansson?                               yes
+       Does Emacs use the GMP library?                         yes
        Does Emacs directly use zlib?                           yes
+       Does Emacs have dynamic modules support?                yes
        Does Emacs use toolkit scroll bars?                     yes
+       Does Emacs support Xwidgets?                            no
+       Does Emacs have threading support in lisp?              yes
+       Does Emacs support the portable dumper?                 yes
+       Does Emacs support the legacy unexec dumping?           no
+       Which dumping strategy does Emacs use?                  pdumper
 
   You are almost there, hang on.
 
@@ -814,6 +824,14 @@ build will run on Windows 9X and newer systems).
   serialization using the libjansson library.  Prebuilt binaries of
   the libjansson DLL (for 32-bit builds of Emacs) are available from
   the ezwinports site and from the MSYS2 project.
+
+* Optional support for HarfBuzzz shaping library
+
+  Emacs supports display of complex scripts and Arabic shaping.  The
+  preferred library for that is HarfBuzz; prebuilt binaries are
+  available from the ezwinports site (for 32-bit builds of Emacs) and
+  from the MSYS2 project.  If HarfBuzz is not available, Emacs will
+  use the Uniscribe shaping engine that is part of MS-Windows.
 
 
 This file is part of GNU Emacs.

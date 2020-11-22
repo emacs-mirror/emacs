@@ -1501,10 +1501,14 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	  {
 	    int offset = XBUFFER_OBJFWD (innercontents)->offset;
 	    int idx = PER_BUFFER_IDX (offset);
-	    if (idx > 0
-                && bindflag == SET_INTERNAL_SET
-		&& !let_shadows_buffer_binding_p (sym))
-	      SET_PER_BUFFER_VALUE_P (buf, idx, 1);
+	    if (idx > 0 && bindflag == SET_INTERNAL_SET
+	        && !PER_BUFFER_VALUE_P (buf, idx))
+	      {
+		if (let_shadows_buffer_binding_p (sym))
+		  set_default_internal (symbol, newval, bindflag);
+		else
+		  SET_PER_BUFFER_VALUE_P (buf, idx, 1);
+	      }
 	  }
 
 	if (voide)

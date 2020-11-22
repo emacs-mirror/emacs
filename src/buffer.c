@@ -297,11 +297,6 @@ bset_mark (struct buffer *b, Lisp_Object val)
   b->mark_ = val;
 }
 static void
-bset_minor_modes (struct buffer *b, Lisp_Object val)
-{
-  b->minor_modes_ = val;
-}
-static void
 bset_mode_line_format (struct buffer *b, Lisp_Object val)
 {
   b->mode_line_format_ = val;
@@ -1004,7 +999,6 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
   bset_major_mode (b, Qfundamental_mode);
   bset_keymap (b, Qnil);
   bset_mode_name (b, QSFundamental);
-  bset_minor_modes (b, Qnil);
 
   /* If the standard case table has been altered and invalidated,
      fix up its insides first.  */
@@ -5180,7 +5174,6 @@ init_buffer_once (void)
   bset_upcase_table (&buffer_local_flags, make_fixnum (0));
   bset_case_canon_table (&buffer_local_flags, make_fixnum (0));
   bset_case_eqv_table (&buffer_local_flags, make_fixnum (0));
-  bset_minor_modes (&buffer_local_flags, make_fixnum (0));
   bset_width_table (&buffer_local_flags, make_fixnum (0));
   bset_pt_marker (&buffer_local_flags, make_fixnum (0));
   bset_begv_marker (&buffer_local_flags, make_fixnum (0));

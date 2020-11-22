@@ -304,10 +304,9 @@ otherwise t.")
   ;; situation can occur, for example, if a Lisp function results in
   ;; `debug' being called, and the user then types \\[top-level]
   (add-hook 'eshell-post-command-hook
-	    (function
-	     (lambda ()
-	       (setq eshell-current-command nil
-		     eshell-last-async-proc nil)))
+            (lambda ()
+              (setq eshell-current-command nil
+                    eshell-last-async-proc nil))
             nil t)
 
   (add-hook 'eshell-parse-argument-hook
@@ -355,18 +354,17 @@ hooks should be run before and after the command."
 	   args))
 	 (commands
 	  (mapcar
-	   (function
-	    (lambda (cmd)
-              (setq cmd
-                    (if (or (not (car eshell--sep-terms))
-                            (string= (car eshell--sep-terms) ";"))
-			(eshell-parse-pipeline cmd)
-		      `(eshell-do-subjob
-                        (list ,(eshell-parse-pipeline cmd)))))
-	      (setq eshell--sep-terms (cdr eshell--sep-terms))
-	      (if eshell-in-pipeline-p
-		  cmd
-		`(eshell-trap-errors ,cmd))))
+           (lambda (cmd)
+             (setq cmd
+                   (if (or (not (car eshell--sep-terms))
+                           (string= (car eshell--sep-terms) ";"))
+                       (eshell-parse-pipeline cmd)
+                     `(eshell-do-subjob
+                       (list ,(eshell-parse-pipeline cmd)))))
+             (setq eshell--sep-terms (cdr eshell--sep-terms))
+             (if eshell-in-pipeline-p
+                 cmd
+               `(eshell-trap-errors ,cmd)))
 	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
     (let ((cmd commands))
       (while cmd
@@ -920,7 +918,7 @@ at the moment are:
 		       (funcall pred name))
 		  (throw 'simple nil)))
 	    t))
-	 (fboundp (intern-soft (concat "eshell/" name))))))
+	 (eshell-find-alias-function name))))
 
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."

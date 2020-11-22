@@ -24,7 +24,6 @@
 ;;; Dependencies
 
 (require 'epg)
-(require 'font-lock)
 (eval-when-compile (require 'subr-x))
 (require 'derived)
 
@@ -1071,9 +1070,7 @@ If no one is selected, default secret key is used.  "
 			   (list 'epa-coding-system-used
 				 epa-last-coding-system-specified
 				 'front-sticky nil
-				 'rear-nonsticky t
-				 'start-open t
-				 'end-open t)))))
+                                 'rear-nonsticky t)))))
 
 (define-obsolete-function-alias 'epa--derived-mode-p 'derived-mode-p "28.1")
 
@@ -1148,9 +1145,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 			   (list 'epa-coding-system-used
 				 epa-last-coding-system-specified
 				 'front-sticky nil
-				 'rear-nonsticky t
-				 'start-open t
-				 'end-open t)))))
+                                 'rear-nonsticky t)))))
 
 ;;;; Key Management
 

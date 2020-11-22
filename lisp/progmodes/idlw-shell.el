@@ -26,8 +26,7 @@
 
 ;;; Commentary:
 ;;
-;; This mode is for IDL version 5 or later.  It should work on
-;; Emacs>20.3 or XEmacs>20.4.
+;; This mode is for IDL version 5 or later.
 ;;
 ;; Runs IDL as an inferior process of Emacs, much like the Emacs
 ;; `shell' or `telnet' commands.  Provides command history and
@@ -66,15 +65,6 @@
 ;; IDLWAVE is documented online in info format.
 ;; A printable version of the documentation is available from the
 ;; maintainers webpage (see under SOURCE)
-;;
-;;
-;; KNOWN PROBLEMS
-;; ==============
-;;
-;; Under XEmacs the Debug menu in the shell does not display the
-;; keybindings in the prefix map.  There bindings are available anyway - so
-;; it is a bug in XEmacs.
-;; The Debug menu in source buffers *does* display the bindings correctly.
 ;;
 ;;
 ;; CUSTOMIZATION VARIABLES
@@ -166,7 +156,6 @@ t          Arrows force the cursor back to the current command line and
   "Non-nil means, use the debugging toolbar in all IDL related buffers.
 Starting the shell will then add the toolbar to all idlwave-mode buffers.
 Exiting the shell will removed everywhere.
-Available on XEmacs and on Emacs 21.x or later.
 At any time you can toggle the display of the toolbar with
 `C-c C-d C-t' (`idlwave-shell-toggle-toolbar')."
   :group 'idlwave-shell-general-setup
@@ -606,12 +595,6 @@ the directory stack.")
 (defvar idlwave-shell-last-save-and-action-file nil
   "The last file which was compiled with `idlwave-shell-save-and-...'.")
 
-;; Highlighting uses overlays.  When necessary, require the emulation.
-(if (not (fboundp 'make-overlay))
-    (condition-case nil
-	(require 'overlay)
-      (error nil)))
-
 (defvar idlwave-shell-stop-line-overlay nil
   "The overlay for where IDL is currently stopped.")
 (defvar idlwave-shell-is-stopped nil)
@@ -967,8 +950,6 @@ IDL has currently stepped.")
   (setq idlwave-shell-default-directory default-directory)
   (setq idlwave-shell-hide-output nil)
 
-  ;; NB: `make-local-hook' needed for older/alternative Emacs compatibility
-  ;; (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'idlwave-shell-kill-shell-buffer-confirm
 	    nil 'local)
   (add-hook 'kill-buffer-hook 'idlwave-shell-delete-temp-files nil 'local)
@@ -1007,8 +988,6 @@ IDL has currently stepped.")
   (set (make-local-variable 'comment-start) ";")
   (setq abbrev-mode t)
 
-  ;; NB: `make-local-hook' needed for older/alternative Emacs compatibility
-  ;; make-local-hook 'post-command-hook)
   (add-hook 'post-command-hook 'idlwave-command-hook nil t)
 
   ;; Read the command history?
@@ -2751,6 +2730,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 ;; Begin terrible hack section -- XEmacs tests for button2 explicitly
 ;; on drag events, calling drag-n-drop code if detected.  Ughhh...
 (defun idlwave-default-mouse-track-event-is-with-button (_event _n)
+  (declare (obsolete nil "28.1"))
   t)
 
 (define-obsolete-function-alias 'idlwave-xemacs-hack-mouse-track 'ignore "27.1")
@@ -3612,10 +3592,8 @@ Existing overlays are recycled, in order to minimize consumption."
 	  (when use-glyph
 	    (if old-buffers
 		(setq old-buffers (delq (current-buffer) old-buffers)))
-	    (if (fboundp 'set-specifier) ;; XEmacs
-		(set-specifier left-margin-width (cons (current-buffer) 2))
-	      (if (< left-margin-width 2)
-		  (setq left-margin-width 2)))
+            (if (< left-margin-width 2)
+                (setq left-margin-width 2))
 	    (let ((window (get-buffer-window (current-buffer) 0)))
 	      (if window
 		  (set-window-margins
@@ -3623,9 +3601,7 @@ Existing overlays are recycled, in order to minimize consumption."
       (if use-glyph
 	  (while (setq buf (pop old-buffers))
 	    (with-current-buffer buf
-	      (if (fboundp 'set-specifier) ;; XEmacs
-		  (set-specifier left-margin-width (cons (current-buffer) 0))
-		(setq left-margin-width 0))
+              (setq left-margin-width 0)
 	      (let ((window (get-buffer-window buf 0)))
 		(if window
 		    (set-window-margins
@@ -4352,21 +4328,19 @@ Shell debugging commands are available as single key sequences."
     ["Toggle Toolbar" idlwave-shell-toggle-toolbar t]
     ["Exit IDL" idlwave-shell-quit t]))
 
-(if (or (featurep 'easymenu) (load "easymenu" t))
-    (progn
-      (easy-menu-define
-       idlwave-mode-debug-menu idlwave-mode-map "IDL debugging menus"
-       idlwave-shell-menu-def)
-      (easy-menu-define
-       idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
-       idlwave-shell-menu-def)
-      (save-current-buffer
-	(dolist (buf (buffer-list))
-          (set-buffer buf)
-          (if (derived-mode-p 'idlwave-mode)
-              (progn
-                (easy-menu-remove idlwave-mode-debug-menu)
-                (easy-menu-add idlwave-mode-debug-menu)))))))
+(easy-menu-define
+  idlwave-mode-debug-menu idlwave-mode-map "IDL debugging menus"
+  idlwave-shell-menu-def)
+(easy-menu-define
+  idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
+  idlwave-shell-menu-def)
+(save-current-buffer
+  (dolist (buf (buffer-list))
+    (set-buffer buf)
+    (if (derived-mode-p 'idlwave-mode)
+        (progn
+          (easy-menu-remove idlwave-mode-debug-menu)
+          (easy-menu-add idlwave-mode-debug-menu)))))
 
 ;; The Breakpoint Glyph -------------------------------------------------------
 

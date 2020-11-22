@@ -345,6 +345,25 @@ comparing the subr with a much slower lisp implementation."
       (setq-default binding-test-some-local 'new-default))
     (should (eq binding-test-some-local 'some))))
 
+(ert-deftest data-tests--let-buffer-local ()
+  (let ((blvar (make-symbol "blvar")))
+    (set-default blvar nil)
+    (make-variable-buffer-local blvar)
+
+    (dolist (var (list blvar 'left-margin))
+      (let ((def (default-value var)))
+        (with-temp-buffer
+          (should (equal def (symbol-value var)))
+          (cl-progv (list var) (list 42)
+            (should (equal (symbol-value var) 42))
+            (should (equal (default-value var) (symbol-value var)))
+            (set var 123)
+            (should (equal (symbol-value var) 123))
+            (should (equal (default-value var) (symbol-value var)))) ;bug#44733
+          (should (equal (symbol-value var) def))
+          (should (equal (default-value var) (symbol-value var))))
+        (should (equal (default-value var) def))))))
+
 (ert-deftest binding-test-makunbound ()
   "Tests of makunbound, from the manual."
   (with-current-buffer binding-test-buffer-B
@@ -380,6 +399,37 @@ comparing the subr with a much slower lisp implementation."
 (ert-deftest binding-test-set-constant-nil ()
   "Test setting a keyword to itself"
   (with-no-warnings (should (setq :keyword :keyword))))
+
+(ert-deftest data-tests--set-default-per-buffer ()
+  :expected-result t ;; Not fixed yet!
+  ;; FIXME: Performance tests are inherently unreliable.
+  ;; Using wall-clock time makes it even worse, so don't bother unless
+  ;; we have the primitive to measure cpu-time.
+  (skip-unless (fboundp 'current-cpu-time))
+  ;; Test performance of set-default on DEFVAR_PER_BUFFER variables.
+  ;; More specifically, test the problem seen in bug#41029 where setting
+  ;; the default value of a variable takes time proportional to the
+  ;; number of buffers.
+  (let* ((fun #'error)
+         (test (lambda ()
+                 (with-temp-buffer
+                   (let ((st (car (current-cpu-time))))
+                     (dotimes (_ 1000)
+                       (let ((case-fold-search 'data-test))
+                         ;; Use an indirection through a mutable var
+                         ;; to try and make sure the byte-compiler
+                         ;; doesn't optimize away the let bindings.
+                         (funcall fun)))
+                     ;; FIXME: Handle the wraparound, if any.
+                     (- (car (current-cpu-time)) st)))))
+         (_ (setq fun #'ignore))
+         (time1 (funcall test))
+         (bufs (mapcar (lambda (_) (generate-new-buffer " data-test"))
+                       (make-list 1000 nil)))
+         (time2 (funcall test)))
+    (mapc #'kill-buffer bufs)
+    ;; Don't divide one time by the other since they may be 0.
+    (should (< time2 (* time1 5)))))
 
 ;; More tests to write -
 ;; kill-local-variable

@@ -309,9 +309,8 @@ A lambda list keyword is a symbol that starts with `&'."
 (defun edebug-sort-alist (alist function)
   ;; Return the ALIST sorted with comparison function FUNCTION.
   ;; This uses 'sort so the sorting is destructive.
-  (sort alist (function
-	       (lambda (e1 e2)
-		 (funcall function (car e1) (car e2))))))
+  (sort alist (lambda (e1 e2)
+                (funcall function (car e1) (car e2)))))
 
 ;; Not used.
 '(defmacro edebug-save-restriction (&rest body)
@@ -407,14 +406,13 @@ Return the result of the last expression in BODY."
   (if (listp window-info)
       (mapcar (lambda (one-window-info)
                 (if one-window-info
-                    (apply (function
-                            (lambda (window buffer point start hscroll)
-                              (if (edebug-window-live-p window)
-                                  (progn
-                                    (set-window-buffer window buffer)
-                                    (set-window-point window point)
-                                    (set-window-start window start)
-                                    (set-window-hscroll window hscroll)))))
+                    (apply (lambda (window buffer point start hscroll)
+                             (if (edebug-window-live-p window)
+                                 (progn
+                                   (set-window-buffer window buffer)
+                                   (set-window-point window point)
+                                   (set-window-start window start)
+                                   (set-window-hscroll window hscroll))))
                            one-window-info)))
 	      window-info)
     (set-window-configuration window-info)))

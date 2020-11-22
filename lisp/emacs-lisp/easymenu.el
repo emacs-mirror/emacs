@@ -514,6 +514,7 @@ completely and menu filter functions can be expected to work.
 If BEFORE is non-nil, add before the item named BEFORE.
 If IN-MENU is non-nil, follow MENU-PATH in IN-MENU.
 This is a compatibility function; use `easy-menu-add-item'."
+  (declare (obsolete easy-menu-add-item "28.1"))
   (easy-menu-add-item (or in-menu (current-global-map))
 		      (cons "menu-bar" menu-path)
 		      submenu before))

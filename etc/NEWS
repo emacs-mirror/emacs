@@ -103,7 +103,7 @@ unsystematic behavior, which mixed these two is no longer available.
 +++
 ** New system for displaying documentation for groups of functions.
 This can either be used by saying 'M-x shortdoc-display-group' and
-choosing a group, or clicking a button in the *Help* buffers when
+choosing a group, or clicking a button in the "*Help*" buffers when
 looking at the doc string of a function that belongs to one of these
 groups.
 
@@ -187,6 +187,11 @@ space characters.
 freenode IRC network for years now.  Occurrences of "irc.freenode.net"
 have been replaced with "chat.freenode.net" throughout Emacs.
 
++++
+** New functions 'null-device' and 'path-separator'.
+These functions return the connection local value of the respective
+variables.  This can be used for remote hosts.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -202,6 +207,12 @@ Emacs will echo the message and allow the user to continue editing.
 This command would previously not redefine values defined by these
 forms, but this command has now been changed to work more like
 'eval-defun', and reset the values as specified.
+
+---
+** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.
+'copy-region-blink-delay' specifies a delay to indicate the region
+copied by 'kill-ring-save'.  'delete-pair-blink-delay' specifies
+a delay to show a paired character to delete.
 
 +++
 ** New command 'undo-redo'.
@@ -282,7 +293,7 @@ indentation is done using SMIE or with the old ad-hoc code.
 When a warning is displayed to the user, the resulting buffer now has
 buttons which allow making permanent changes to the treatment of that
 warning.  Automatic showing of the warning can be disabled (although
-it is still logged to the *Messages* buffer), or the warning can be
+it is still logged to the "*Messages*" buffer), or the warning can be
 disabled entirely.
 
 ** mspool.el
@@ -471,13 +482,13 @@ tags to be considered as well.
 ** Gnus
 
 +++
-*** New gnus-search library
+*** New gnus-search library.
 A new unified search syntax which can be used across multiple
 supported search engines.  Set 'gnus-search-use-parsed-queries' to
 non-nil to enable.
 
 +++
-*** New value for user option 'smiley-style'
+*** New value for user option 'smiley-style'.
 Smileys can now be rendered with emojis instead of small images when
 using the new 'emoji' value in 'smiley-style'.
 
@@ -706,6 +717,16 @@ This file was a compatibility kludge which is no longer needed.
 To revert to the previous behavior,
 '(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
 
+** Customize
+
+*** Most customize commands now hide obsolete user options.
+Obsolete user options are no longer shown in the listings produced by
+the commands 'customize', 'customize-group', 'customize-apropos' and
+'customize-changed-options'.
+
+To customize obsolete user options, use 'customize-option' or
+'customize-saved'.
+
 ** Edebug
 
 +++
@@ -825,12 +846,14 @@ equivalent to '(map (:sym sym))'.
 
 +++
 *** New commands to filter the package list.
-The filter command key bindings are as follows:
+The filter commands are bound to the following keys:
 
 key             binding
 ---             -------
 / a             package-menu-filter-by-archive
+/ d             package-menu-filter-by-description
 / k             package-menu-filter-by-keyword
+/ N             package-menu-filter-by-name-or-description
 / n             package-menu-filter-by-name
 / s             package-menu-filter-by-status
 / v             package-menu-filter-by-version
@@ -872,7 +895,7 @@ Customize 'gdb-max-source-window-count' to use more than one window.
 Control source file display by 'gdb-display-source-buffer-action'.
 
 +++
-*** The default value of gdb-mi-decode-strings is now t.
+*** The default value of 'gdb-mi-decode-strings' is now t.
 This means that the default coding-system is now used to decode strings
 and source file names from GDB.
 
@@ -1141,8 +1164,8 @@ project's root directory, respectively.
 ** xref
 
 ---
-*** Prefix arg of 'xref-goto-xref' quits the *xref* buffer.
-So typing 'C-u RET' in the *xref* buffer quits its window
+*** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
+So typing 'C-u RET' in the "*xref*" buffer quits its window
 before navigating to the selected location.
 
 ** json.el
@@ -1305,6 +1328,11 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 
 ** Miscellaneous
 
+---
+*** New user option 'bibtex-unify-case-convert'.
+This new option allows the user to customize how case is converted
+when unifying entries.
+
 +++
 *** 'format-seconds' can now be used for sub-second times.
 The new optional "," parameter has been added, and
@@ -1320,7 +1348,7 @@ buffers.  This can be controlled by customizing the variable
 ---
 *** New user option 'compilation-search-all-directories'.
 When doing parallel builds, directories and compilation errors may
-arrive in the *compilation* buffer out-of-order.  If this variable is
+arrive in the "*compilation*" buffer out-of-order.  If this variable is
 non-nil (the default), Emacs will now search backwards in the buffer
 for any directory the file with errors may be in.  If nil, this won't
 be done (and this restores how this previously worked).
@@ -1750,6 +1778,17 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'read-char-from-minibuffer' and 'y-or-n-p' support 'help-form'.
+If you bind 'help-form' to a non-nil value while calling these functions,
+then pressing 'C-h' (help-char) causes the function to evaluate 'help-form'
+and display the result.
+
++++
+** 'set-window-configuration' now takes an optional 'dont-set-frame'
+parameter which, when non-nil, instructs the function not to select
+the frame recorded in the configuration.
+
++++
 ** 'define-globalized-minor-mode' now takes a ':predicate' parameter.
 This can be used to control which major modes the minor mode should be
 used in.
@@ -1992,7 +2031,7 @@ image API via 'M-x report-emacs-bug'.
 
 --
 ** On macOS, 's-<left>' and 's-<right>' are now bound to
-'move-beginning-of-line' and 'move-end-of-line' respectively. The commands
+'move-beginning-of-line' and 'move-end-of-line' respectively.  The commands
 to select previous/next frame are still bound to 's-~' and 's-`'.
 
 

@@ -2122,7 +2122,7 @@ read_char_help_form_unwind (void)
   Lisp_Object window_config = XCAR (help_form_saved_window_configs);
   help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
   if (!NILP (window_config))
-    Fset_window_configuration (window_config);
+    Fset_window_configuration (window_config, Qnil);
 }
 
 #define STOP_POLLING					\
@@ -3736,9 +3736,6 @@ discard_mouse_events (void)
       if (sp->kind == MOUSE_CLICK_EVENT
 	  || sp->kind == WHEEL_EVENT
           || sp->kind == HORIZ_WHEEL_EVENT
-#ifdef HAVE_GPM
-	  || sp->kind == GPM_CLICK_EVENT
-#endif
 	  || sp->kind == SCROLL_BAR_CLICK_EVENT
 	  || sp->kind == HORIZONTAL_SCROLL_BAR_CLICK_EVENT)
 	{
@@ -5542,9 +5539,6 @@ make_lispy_event (struct input_event *event)
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
     case MOUSE_CLICK_EVENT:
-#ifdef HAVE_GPM
-    case GPM_CLICK_EVENT:
-#endif
 #ifndef USE_TOOLKIT_SCROLL_BARS
     case SCROLL_BAR_CLICK_EVENT:
     case HORIZONTAL_SCROLL_BAR_CLICK_EVENT:
@@ -5559,11 +5553,7 @@ make_lispy_event (struct input_event *event)
 	position = Qnil;
 
 	/* Build the position as appropriate for this mouse click.  */
-	if (event->kind == MOUSE_CLICK_EVENT
-#ifdef HAVE_GPM
-	    || event->kind == GPM_CLICK_EVENT
-#endif
-	    )
+	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
 	    struct frame *f = XFRAME (event->frame_or_window);
 	    int row, column;

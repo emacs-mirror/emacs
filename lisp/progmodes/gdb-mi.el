@@ -373,19 +373,17 @@ were not yet received."
   (dolist (handler gdb-handler-list)
     (setf (gdb-handler-pending-trigger handler) nil)))
 
-(defmacro gdb-wait-for-pending (&rest body)
-  "Wait for all pending GDB commands to finish and evaluate BODY.
+(defun gdb-wait-for-pending (func)
+  "Wait for all pending GDB commands to finish and call FUNC.
 
 This function checks every 0.5 seconds if there are any pending
 triggers in `gdb-handler-list'."
-  `(run-with-timer
-    0.5 nil
-    '(lambda ()
-       (if (not (cl-find-if (lambda (handler)
-                               (gdb-handler-pending-trigger handler))
-                             gdb-handler-list))
-	   (progn ,@body)
-	 (gdb-wait-for-pending ,@body)))))
+  (run-with-timer
+   0.5 nil
+   (lambda ()
+     (if (cl-some #'gdb-handler-pending-trigger gdb-handler-list)
+	 (gdb-wait-for-pending func)
+       (funcall func)))))
 
 ;; Publish-subscribe
 
@@ -1617,17 +1615,16 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
   ;; (if it has an associated update trigger)
   (add-hook
    'kill-buffer-hook
-   (function
-    (lambda ()
-      (let ((trigger (gdb-rules-update-trigger
-                      (gdb-current-buffer-rules))))
-        (when trigger
-          (gdb-delete-subscriber
-           gdb-buf-publisher
-           ;; This should match gdb-add-subscriber done in
-           ;; gdb-get-buffer-create
-           (cons (current-buffer)
-                 (gdb-bind-function-to-buffer trigger (current-buffer))))))))
+   (lambda ()
+     (let ((trigger (gdb-rules-update-trigger
+                     (gdb-current-buffer-rules))))
+       (when trigger
+         (gdb-delete-subscriber
+          gdb-buf-publisher
+          ;; This should match gdb-add-subscriber done in
+          ;; gdb-get-buffer-create
+          (cons (current-buffer)
+                (gdb-bind-function-to-buffer trigger (current-buffer)))))))
    nil t))
 
 ;; Partial-output buffer : This accumulates output from a command executed on
@@ -2525,7 +2522,7 @@ Unset `gdb-thread-number' if current thread exited and update threads list."
     ;; disallow us to properly call -thread-info without --thread option.
     ;; Thus we need to use gdb-wait-for-pending.
     (gdb-wait-for-pending
-     (gdb-emit-signal gdb-buf-publisher 'update-threads))))
+     (lambda () (gdb-emit-signal gdb-buf-publisher 'update-threads)))))
 
 (defun gdb-thread-selected (_token output-field)
   "Handler for =thread-selected MI output record.
@@ -2539,11 +2536,10 @@ Sets `gdb-thread-number' to new id."
     ;; as usually. Things happen too fast and second call (from
     ;; gdb-thread-selected handler) gets cut off by our beloved
     ;; pending triggers.
-    ;; Solution is `gdb-wait-for-pending' macro: it guarantees that its
-    ;; body will get executed when `gdb-handler-list' if free of
+    ;; Solution is `gdb-wait-for-pending': it guarantees that its
+    ;; argument will get called when `gdb-handler-list' if free of
     ;; pending triggers.
-    (gdb-wait-for-pending
-     (gdb-update))))
+    (gdb-wait-for-pending #'gdb-update)))
 
 (defun gdb-running (_token output-field)
   (let* ((thread-id

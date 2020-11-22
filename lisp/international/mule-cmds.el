@@ -441,56 +441,55 @@ non-nil, it is used to sort CODINGS instead."
 	   (most-preferred (car from-priority))
 	   (lang-preferred (get-language-info current-language-environment
 					      'coding-system))
-	   (func (function
-		  (lambda (x)
-		    (let ((base (coding-system-base x)))
-		      ;; We calculate the priority number 0..255 by
-		      ;; using the 8 bits PMMLCEII as this:
-		      ;; P: 1 if most preferred.
-		      ;; MM: greater than 0 if mime-charset.
-		      ;; L: 1 if one of the current lang. env.'s codings.
-		      ;; C: 1 if one of codings listed in the category list.
-		      ;; E: 1 if not XXX-with-esc
-		      ;; II: if iso-2022 based, 0..3, else 1.
-		      (logior
-		       (ash (if (eq base most-preferred) 1 0) 7)
-		       (ash
-			(let ((mime (coding-system-get base :mime-charset)))
-			   ;; Prefer coding systems corresponding to a
-			   ;; MIME charset.
-			   (if mime
-			       ;; Lower utf-16 priority so that we
-			       ;; normally prefer utf-8 to it, and put
-			       ;; x-ctext below that.
-			       (cond ((string-match-p "utf-16"
-						      (symbol-name mime))
-				      2)
-				     ((string-match-p "^x-" (symbol-name mime))
-				      1)
-				     (t 3))
-			     0))
-			5)
-		       (ash (if (memq base lang-preferred) 1 0) 4)
-		       (ash (if (memq base from-priority) 1 0) 3)
-		       (ash (if (string-match-p "-with-esc\\'"
-						(symbol-name base))
-				0 1) 2)
-		       (if (eq (coding-system-type base) 'iso-2022)
-			   (let ((category (coding-system-category base)))
-			     ;; For ISO based coding systems, prefer
-			     ;; one that doesn't use designation nor
-			     ;; locking/single shifting.
-			       (cond
-				((or (eq category 'coding-category-iso-8-1)
-				     (eq category 'coding-category-iso-8-2))
-				 2)
-				((or (eq category 'coding-category-iso-7-tight)
-				     (eq category 'coding-category-iso-7))
-				 1)
-				(t
-				 0)))
-			   1)
-			 ))))))
+           (func (lambda (x)
+                   (let ((base (coding-system-base x)))
+                     ;; We calculate the priority number 0..255 by
+                     ;; using the 8 bits PMMLCEII as this:
+                     ;; P: 1 if most preferred.
+                     ;; MM: greater than 0 if mime-charset.
+                     ;; L: 1 if one of the current lang. env.'s codings.
+                     ;; C: 1 if one of codings listed in the category list.
+                     ;; E: 1 if not XXX-with-esc
+                     ;; II: if iso-2022 based, 0..3, else 1.
+                     (logior
+                      (ash (if (eq base most-preferred) 1 0) 7)
+                      (ash
+                       (let ((mime (coding-system-get base :mime-charset)))
+                         ;; Prefer coding systems corresponding to a
+                         ;; MIME charset.
+                         (if mime
+                             ;; Lower utf-16 priority so that we
+                             ;; normally prefer utf-8 to it, and put
+                             ;; x-ctext below that.
+                             (cond ((string-match-p "utf-16"
+                                                    (symbol-name mime))
+                                    2)
+                                   ((string-match-p "^x-" (symbol-name mime))
+                                    1)
+                                   (t 3))
+                           0))
+                       5)
+                      (ash (if (memq base lang-preferred) 1 0) 4)
+                      (ash (if (memq base from-priority) 1 0) 3)
+                      (ash (if (string-match-p "-with-esc\\'"
+                                               (symbol-name base))
+                               0 1) 2)
+                      (if (eq (coding-system-type base) 'iso-2022)
+                          (let ((category (coding-system-category base)))
+                            ;; For ISO based coding systems, prefer
+                            ;; one that doesn't use designation nor
+                            ;; locking/single shifting.
+                            (cond
+                             ((or (eq category 'coding-category-iso-8-1)
+                                  (eq category 'coding-category-iso-8-2))
+                              2)
+                             ((or (eq category 'coding-category-iso-7-tight)
+                                  (eq category 'coding-category-iso-7))
+                              1)
+                             (t
+                              0)))
+                        1)
+                      )))))
       (sort codings (lambda (x y)
                       (> (funcall func x) (funcall func y)))))))
 

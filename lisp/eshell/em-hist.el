@@ -79,9 +79,8 @@
 
 (defcustom eshell-hist-unload-hook
   (list
-   (function
-    (lambda ()
-      (remove-hook 'kill-emacs-hook 'eshell-save-some-history))))
+   (lambda ()
+     (remove-hook 'kill-emacs-hook 'eshell-save-some-history)))
   "A hook that gets run when `eshell-hist' is unloaded."
   :type 'hook)
 
@@ -250,16 +249,14 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 	(set (make-local-variable 'search-invisible) t)
 	(set (make-local-variable 'search-exit-option) t)
 	(add-hook 'isearch-mode-hook
-		  (function
-		   (lambda ()
-		     (if (>= (point) eshell-last-output-end)
-			 (setq overriding-terminal-local-map
-			       eshell-isearch-map))))
+                  (lambda ()
+                    (if (>= (point) eshell-last-output-end)
+                        (setq overriding-terminal-local-map
+                              eshell-isearch-map)))
                   nil t)
 	(add-hook 'isearch-mode-end-hook
-		  (function
-		   (lambda ()
-		     (setq overriding-terminal-local-map nil)))
+                  (lambda ()
+                    (setq overriding-terminal-local-map nil))
                   nil t))
     (eshell-hist-mode))
 

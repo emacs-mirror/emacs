@@ -153,9 +153,7 @@ display a button."
 				       'end-glyph (if inline glyph)
 				       'duplicable t
 				       'invisible inline
-				       'start-open t
-				       'end-open t
-				       'object-data data))))
+                                       'object-data data))))
 	((fboundp 'create-image)
 	 (let* ((image (create-image data nil t))
 		(props (list 'object-data data 'eudc-image image)))
@@ -192,9 +190,7 @@ display a button."
 			eudc-bob-sound-keymap
 			eudc-bob-sound-menu
 			(list 'duplicable t
-			      'start-open t
-			      'end-open t
-			      'object-data data)))
+                              'object-data data)))
 
 (defun eudc-bob-display-generic-binary (data)
   "Display a button for unidentified binary DATA."
@@ -202,9 +198,7 @@ display a button."
 			eudc-bob-generic-keymap
 			eudc-bob-generic-menu
 			(list 'duplicable t
-			      'start-open t
-			      'end-open t
-			      'object-data data)))
+                              'object-data data)))
 
 (defun eudc-bob-play-sound-at-point ()
   "Play the sound data contained in the button at point."

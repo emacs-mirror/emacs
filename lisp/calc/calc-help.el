@@ -402,32 +402,32 @@ C-w  Describe how there is no warranty for Calc."
             "Or type `h i' to read the full Calc manual on-line.\n\n"))
     (princ "Basic keys:\n")
     (let* ((calc-full-help-flag t))
-      (mapc (function (lambda (x) (princ (format
-                                          "  %s\n"
-                                          (substitute-command-keys x)))))
+      (mapc (lambda (x)
+              (princ (format
+                      "  %s\n"
+                      (substitute-command-keys x))))
 	    (nreverse (cdr (reverse (cdr (calc-help))))))
-      (mapc (function (lambda (prefix)
-			(let ((msgs (ignore-errors (funcall prefix))))
-			  (if (car msgs)
-			      (princ
-			       (if (eq (nth 2 msgs) ?v)
-                                   (format-message
-                                    "\n`v' or `V' prefix (vector/matrix) keys: \n")
-				 (if (nth 2 msgs)
-				     (format-message
-				      "\n`%c' prefix (%s) keys:\n"
-				      (nth 2 msgs)
-				      (or (cdr (assq (nth 2 msgs)
-						     calc-help-long-names))
-					  (nth 1 msgs)))
-				   (format "\n%s-modified keys:\n"
-					   (capitalize (nth 1 msgs)))))))
-			  (mapcar (function
-                                   (lambda (x)
-                                     (princ (format
-                                             "  %s\n"
-                                             (substitute-command-keys x)))))
-				  (car msgs)))))
+      (mapc (lambda (prefix)
+              (let ((msgs (ignore-errors (funcall prefix))))
+                (if (car msgs)
+                    (princ
+                     (if (eq (nth 2 msgs) ?v)
+                         (format-message
+                          "\n`v' or `V' prefix (vector/matrix) keys: \n")
+                       (if (nth 2 msgs)
+                           (format-message
+                            "\n`%c' prefix (%s) keys:\n"
+                            (nth 2 msgs)
+                            (or (cdr (assq (nth 2 msgs)
+                                           calc-help-long-names))
+                                (nth 1 msgs)))
+                         (format "\n%s-modified keys:\n"
+                                 (capitalize (nth 1 msgs)))))))
+                (mapcar (lambda (x)
+                          (princ (format
+                                  "  %s\n"
+                                  (substitute-command-keys x))))
+                        (car msgs))))
 	    '(calc-inverse-prefix-help
 	      calc-hyperbolic-prefix-help
 	      calc-inv-hyp-prefix-help

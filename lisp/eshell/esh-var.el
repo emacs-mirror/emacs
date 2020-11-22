@@ -382,9 +382,8 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 
 (defun eshell-envvar-names (&optional environment)
   "Return a list of currently visible environment variable names."
-  (mapcar (function
-	   (lambda (x)
-	     (substring x 0 (string-match "=" x))))
+  (mapcar (lambda (x)
+            (substring x 0 (string-match "=" x)))
 	  (or environment process-environment)))
 
 (defun eshell-environment-variables ()
@@ -618,14 +617,13 @@ For example, to retrieve the second element of a user's record in
     (sort
      (append
       (mapcar
-       (function
-	(lambda (varname)
-	  (let ((value (eshell-get-variable varname)))
-	    (if (and value
-		     (stringp value)
-		     (file-directory-p value))
-		(concat varname "/")
-	      varname))))
+       (lambda (varname)
+         (let ((value (eshell-get-variable varname)))
+           (if (and value
+                    (stringp value)
+                    (file-directory-p value))
+               (concat varname "/")
+             varname)))
        (eshell-envvar-names (eshell-environment-variables)))
       (all-completions argname obarray 'boundp)
       completions)

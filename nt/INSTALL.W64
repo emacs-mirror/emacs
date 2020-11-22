@@ -55,14 +55,16 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   mingw-w64-x86_64-jansson \
   mingw-w64-x86_64-libxml2 \
   mingw-w64-x86_64-gnutls \
-  mingw-w64-x86_64-zlib
+  mingw-w64-x86_64-zlib \
+  mingw-w64-x86_64-harfbuzz
 
 The packages include the base developer tools (autoconf, grep, make, etc.),
 the compiler toolchain (gcc, gdb, etc.), several image libraries, an XML
-library, the GnuTLS (transport layer security) library, and zlib for
-decompressing text.  Only the first three packages are required (base-devel,
-toolchain, xpm-nox); the rest are optional.  You can select only part of the
-libraries if you don't need them all.
+library, the GnuTLS (transport layer security) library, zlib for
+decompressing text, and HarfBuzz for use as the shaping engine.  Only the
+first three packages are required (base-devel,  toolchain, xpm-nox); the
+rest are optional.  You can select only part of the libraries if you don't
+need them all.
 
 You now have a complete build environment for Emacs.
 

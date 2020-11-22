@@ -88,6 +88,16 @@ If this is a function, call it to generate the initial field text."
                  (const :tag "Default" t))
   :risky t)
 
+(defcustom bibtex-unify-case-convert #'identity
+  "Function called when unifying case on entry and field names.
+It is called with one argument, the entry or field name."
+  :version "28.1"
+  :type '(choice (const :tag "Same case as in `bibtex-field-alist'" identity)
+		 (const :tag "Downcase" downcase)
+		 (const :tag "Capitalize" capitalize)
+		 (const :tag "Upcase" upcase)
+                 (function :tag "Conversion function")))
+
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
   "List of optional fields the user wants to have always present.
@@ -122,7 +132,8 @@ last-comma          Add or delete comma on end of last field in entry,
                       according to value of `bibtex-comma-after-last-field'.
 delimiters          Change delimiters according to variables
                       `bibtex-field-delimiters' and `bibtex-entry-delimiters'.
-unify-case          Change case of entry types and field names.
+unify-case          Change case of entry and field names according to
+                      `bibtex-unify-case-convert'.
 braces              Enclose parts of field entries by braces according to
                       `bibtex-field-braces-alist'.
 strings             Replace parts of field entries by string constants
@@ -2346,7 +2357,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                 ;; unify case of entry type
                 (when (memq 'unify-case format)
                   (delete-region beg-type end-type)
-                  (insert (car entry-list)))
+                  (insert (funcall bibtex-unify-case-convert (car entry-list))))
 
                 ;; update left entry delimiter
                 (when (memq 'delimiters format)
@@ -2549,47 +2560,48 @@ Formats current entry according to variable `bibtex-entry-format'."
                       (error "Mandatory field `%s' is empty" field-name))
 
                     ;; unify case of field name
-                    (if (memq 'unify-case format)
-                        (let ((fname (car (assoc-string field-name
-                                                        default-field-list t))))
-                          (if fname
-                              (progn
-                                (delete-region beg-name end-name)
-                                (goto-char beg-name)
-                                (insert fname))
-                            ;; there are no rules we could follow
-                            (downcase-region beg-name end-name))))
+                    (when (memq 'unify-case format)
+		      (let ((fname (car (assoc-string field-name
+						      default-field-list t)))
+			    (curname (buffer-substring beg-name end-name)))
+			(delete-region beg-name end-name)
+			(goto-char beg-name)
+			(insert (funcall bibtex-unify-case-convert
+					 (or fname curname)))))
 
                     ;; update point
                     (goto-char end-field))))
 
               ;; check whether all required fields are present
-              (if (memq 'required-fields format)
-                  (let ((alt-expect (make-vector num-alt nil))
-                        (alt-found (make-vector num-alt 0)))
-                    (dolist (fname req-field-list)
-                      (cond ((setq idx (nth 3 fname))
-                             ;; t if field has alternative flag
-                             (bibtex-vec-push alt-expect idx (car fname))
-                             (if (member-ignore-case (car fname) field-list)
-                                 (bibtex-vec-incr alt-found idx)))
-                            ((not (member-ignore-case (car fname) field-list))
-                             ;; If we use the crossref field, a required field
-                             ;; can have the OPT prefix.  So if it was empty,
-                             ;; we have deleted by now.  Nonetheless we can
-                             ;; move point on this empty field.
-                             (setq error-field-name (car fname))
-                             (error "Mandatory field `%s' is missing" (car fname)))))
-                    (dotimes (idx num-alt)
-                      (cond ((= 0 (aref alt-found idx))
-                             (setq error-field-name (car (last (aref alt-fields idx))))
-                             (error "Alternative mandatory field `%s' is missing"
-                                    (aref alt-expect idx)))
-                            ((< 1 (aref alt-found idx))
-                             (setq error-field-name (car (last (aref alt-fields idx))))
-                             (error "Alternative fields `%s' are defined %s times"
-                                    (aref alt-expect idx)
-                                    (length (aref alt-fields idx))))))))
+              (when (memq 'required-fields format)
+		(let ((alt-expect (make-vector num-alt nil))
+		      (alt-found (make-vector num-alt 0)))
+		  (dolist (fname req-field-list)
+		    (cond ((setq idx (nth 3 fname))
+			   ;; t if field has alternative flag
+			   (bibtex-vec-push alt-expect idx (car fname))
+			   (if (member-ignore-case (car fname) field-list)
+			       (bibtex-vec-incr alt-found idx)))
+			  ((not (member-ignore-case (car fname) field-list))
+			   ;; If we use the crossref field, a required field
+			   ;; can have the OPT prefix.  So if it was empty,
+			   ;; we have deleted by now.  Nonetheless we can
+			   ;; move point on this empty field.
+			   (setq error-field-name (car fname))
+			   (error "Mandatory field `%s' is missing"
+                                  (car fname)))))
+		  (dotimes (idx num-alt)
+		    (cond ((= 0 (aref alt-found idx))
+			   (setq error-field-name
+                                 (car (last (aref alt-fields idx))))
+			   (error "Alternative mandatory field `%s' is missing"
+				  (aref alt-expect idx)))
+			  ((< 1 (aref alt-found idx))
+			   (setq error-field-name
+                                 (car (last (aref alt-fields idx))))
+			   (error "Alternative fields `%s' are defined %s times"
+				  (aref alt-expect idx)
+				  (length (aref alt-fields idx))))))))
 
               ;; update comma after last field
               (if (memq 'last-comma format)

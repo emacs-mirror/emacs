@@ -262,23 +262,39 @@ NAME must be equal to `tramp-current-connection'."
 			  (info-lookup->topic-cache 'symbol))))))))
 
 ;;; Default connection-local variables for Tramp:
-
-(defconst tramp-connection-local-default-profile
-  '((shell-file-name . "/bin/sh")
-    (shell-command-switch . "-c"))
-  "Default connection-local variables for remote connections.")
-
 ;; `connection-local-set-profile-variables' and
 ;; `connection-local-set-profiles' exists since Emacs 26.1.
+
+(defconst tramp-connection-local-default-system-variables
+  '((path-separator . ":")
+    (null-device . "/dev/null"))
+  "Default connection-local system variables for remote connections.")
+
+(tramp-compat-funcall
+ 'connection-local-set-profile-variables
+ 'tramp-connection-local-default-system-profile
+ tramp-connection-local-default-system-variables)
+
+(tramp-compat-funcall
+ 'connection-local-set-profiles
+ `(:application tramp)
+ 'tramp-connection-local-default-system-profile)
+
+(defconst tramp-connection-local-default-shell-variables
+  '((shell-file-name . "/bin/sh")
+    (shell-command-switch . "-c"))
+  "Default connection-local shell variables for remote connections.")
+
+(tramp-compat-funcall
+ 'connection-local-set-profile-variables
+ 'tramp-connection-local-default-shell-profile
+ tramp-connection-local-default-shell-variables)
+
 (with-eval-after-load 'shell
-  (tramp-compat-funcall
-   'connection-local-set-profile-variables
-   'tramp-connection-local-default-profile
-   tramp-connection-local-default-profile)
   (tramp-compat-funcall
    'connection-local-set-profiles
    `(:application tramp)
-   'tramp-connection-local-default-profile))
+   'tramp-connection-local-default-shell-profile))
 
 (add-hook 'tramp-unload-hook
 	  (lambda () (unload-feature 'tramp-integration 'force)))

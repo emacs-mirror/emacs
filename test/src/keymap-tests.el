@@ -54,6 +54,15 @@
 (ert-deftest keymap-copy-keymap/is-not-eq ()
   (should-not (eq (copy-keymap help-mode-map) help-mode-map)))
 
+(ert-deftest keymap---get-keyelt/runs-menu-item-filter ()
+  (let* (menu-item-filter-ran
+         (object `(menu-item "2" identity
+                             :filter ,(lambda (cmd)
+                                        (setq menu-item-filter-ran t)
+                                        cmd))))
+    (keymap--get-keyelt object t)
+    (should menu-item-filter-ran)))
+
 (ert-deftest keymap-lookup-key ()
   (let ((map (make-keymap)))
     (define-key map [?a] 'foo)
@@ -71,6 +80,26 @@ https://debbugs.gnu.org/39149#31"
   "Should return nil."
   (with-temp-buffer
     (should (eq (describe-buffer-bindings (current-buffer)) nil))))
+
+(defun keymap-tests--test-menu-item-filter (show filter-fun)
+  (unwind-protect
+      (progn
+        (define-key global-map (kbd "C-c C-l r")
+          `(menu-item "2" identity :filter ,filter-fun))
+        (with-temp-buffer
+          (describe-buffer-bindings (current-buffer))
+          (goto-char (point-min))
+          (if (eq show 'show)
+              (should (search-forward "C-c C-l r" nil t))
+            (should-not (search-forward "C-c C-l r" nil t)))))
+    (define-key global-map (kbd "C-c C-l r") nil)
+    (define-key global-map (kbd "C-c C-l") nil)))
+
+(ert-deftest describe-buffer-bindings/menu-item-filter-show-binding ()
+  (keymap-tests--test-menu-item-filter 'show (lambda (cmd) cmd)))
+
+(ert-deftest describe-buffer-bindings/menu-item-filter-hide-binding ()
+  (keymap-tests--test-menu-item-filter 'hide (lambda (_) nil)))
 
 (ert-deftest keymap-store_in_keymap-XFASTINT-on-non-characters ()
   "Check for bug fixed in \"Fix assertion violation in define-key\",
@@ -169,6 +198,58 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
    (equal (let ((where-is-preferred-modifier "alt"))
             (where-is-internal 'execute-extended-command global-map t))
           [#x8000078])))
+
+
+;;;; describe_vector
+
+(ert-deftest help--describe-vector/bug-9293-one-shadowed-in-range ()
+  "Check that we only show a range if shadowed by the same command."
+  (let ((orig-map (let ((map (make-keymap)))
+                    (define-key map "e" 'foo)
+                    (define-key map "f" 'foo)
+                    (define-key map "g" 'foo)
+                    (define-key map "h" 'foo)
+                    map))
+        (shadow-map (let ((map (make-keymap)))
+                      (define-key map "f" 'bar)
+                      map))
+        (text-quoting-style 'grave))
+    (with-temp-buffer
+      (help--describe-vector (cadr orig-map) nil #'help--describe-command
+                             t shadow-map orig-map t)
+      (should (equal (buffer-string)
+                     "
+e		foo
+f		foo  (currently shadowed by `bar')
+g .. h		foo
+")))))
+
+(ert-deftest help--describe-vector/bug-9293-same-command-does-not-shadow ()
+  "Check that a command can't be shadowed by the same command."
+  (let ((range-map
+         (let ((map (make-keymap)))
+           (define-key map "0" 'foo)
+           (define-key map "1" 'foo)
+           (define-key map "2" 'foo)
+           (define-key map "3" 'foo)
+           map))
+        (shadow-map
+         (let ((map (make-keymap)))
+           (define-key map "0" 'foo)
+           (define-key map "1" 'foo)
+           (define-key map "2" 'foo)
+           (define-key map "3" 'foo)
+           map)))
+   (with-temp-buffer
+     (help--describe-vector (cadr range-map) nil #'help--describe-command
+                            t shadow-map range-map t)
+     (should (equal (buffer-string)
+                    "
+0 .. 3		foo
+")))))
+
+
+;;;; apropos-internal
 
 (ert-deftest keymap-apropos-internal ()
   (should (equal (apropos-internal "^next-line$") '(next-line)))

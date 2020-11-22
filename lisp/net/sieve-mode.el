@@ -43,8 +43,6 @@
 
 (autoload 'sieve-manage "sieve")
 (autoload 'sieve-upload "sieve")
-(eval-when-compile
-  (require 'font-lock))
 
 (defgroup sieve nil
   "Sieve."

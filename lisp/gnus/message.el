@@ -7651,7 +7651,7 @@ Optional DIGEST will use digest to forward."
     ;; Consider there is no illegible text.
     (add-text-properties
      b (point)
-     '(no-illegible-text t rear-nonsticky t start-open t))))
+     '(no-illegible-text t rear-nonsticky t))))
 
 (defun message-forward-make-body-mml (forward-buffer)
   (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")

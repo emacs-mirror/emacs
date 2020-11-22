@@ -784,9 +784,17 @@ This command assumes point is not in a string or comment."
   (interactive "P")
   (insert-pair arg ?\( ?\)))
 
+(defcustom delete-pair-blink-delay blink-matching-delay
+  "Time in seconds to delay after showing a paired character to delete.
+It's used by the command `delete-pair'.  The value 0 disables blinking."
+  :type 'number
+  :group 'lisp
+  :version "28.1")
+
 (defun delete-pair (&optional arg)
   "Delete a pair of characters enclosing ARG sexps that follow point.
-A negative ARG deletes a pair around the preceding ARG sexps instead."
+A negative ARG deletes a pair around the preceding ARG sexps instead.
+The option `delete-pair-blink-delay' can disable blinking."
   (interactive "P")
   (if arg
       (setq arg (prefix-numeric-value arg))
@@ -802,6 +810,9 @@ A negative ARG deletes a pair around the preceding ARG sexps instead."
 				      (if (= (length p) 3) (cdr p) p))
 				    insert-pair-alist))
 	      (error "Not after matching pair"))
+	    (when (and (numberp delete-pair-blink-delay)
+		       (> delete-pair-blink-delay 0))
+	      (sit-for delete-pair-blink-delay))
 	    (delete-char 1)))
 	(delete-char -1))
     (save-excursion
@@ -814,6 +825,9 @@ A negative ARG deletes a pair around the preceding ARG sexps instead."
 				    (if (= (length p) 3) (cdr p) p))
 				  insert-pair-alist))
 	    (error "Not before matching pair"))
+	  (when (and (numberp delete-pair-blink-delay)
+		     (> delete-pair-blink-delay 0))
+	    (sit-for delete-pair-blink-delay))
 	  (delete-char -1)))
       (delete-char 1))))
 

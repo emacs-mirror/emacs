@@ -1330,7 +1330,8 @@ If STR has `advice' text property, append the following special event:
 
 (defun quail-input-method (key)
   (if (or (and (or buffer-read-only
-                   (get-char-property (point) 'read-only))
+                   (and (get-char-property (point) 'read-only)
+                        (get-char-property (point) 'front-sticky)))
 	       (not (or inhibit-read-only
 			(get-char-property (point) 'inhibit-read-only))))
 	  (and overriding-terminal-local-map
@@ -2477,14 +2478,13 @@ should be made by `quail-build-decode-map' (which see)."
                               'face 'font-lock-comment-face))
           (quail-indent-to max-key-width)
           (if (vectorp (cdr elt))
-              (mapc (function
-                     (lambda (x)
-                       (let ((width (if (integerp x) (char-width x)
-                                      (string-width x))))
-                         (when (> (+ (current-column) 1 width) window-width)
-                           (insert "\n")
-                           (quail-indent-to max-key-width))
-                         (insert " " x))))
+              (mapc (lambda (x)
+                      (let ((width (if (integerp x) (char-width x)
+                                     (string-width x))))
+                        (when (> (+ (current-column) 1 width) window-width)
+                          (insert "\n")
+                          (quail-indent-to max-key-width))
+                        (insert " " x)))
                     (cdr elt))
             (insert " " (cdr elt)))
           (insert ?\n))

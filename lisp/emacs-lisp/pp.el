@@ -94,27 +94,25 @@ after OUT-BUFFER-NAME."
 	 ;; This function either decides not to display it at all
 	 ;; or displays it in the usual way.
 	 (temp-buffer-show-function
-	  (function
-	   (lambda (buf)
-	     (with-current-buffer buf
-	       (goto-char (point-min))
-	       (end-of-line 1)
-	       (if (or (< (1+ (point)) (point-max))
-		       (>= (- (point) (point-min)) (frame-width)))
-		   (let ((temp-buffer-show-function old-show-function)
-			 (old-selected (selected-window))
-			 (window (display-buffer buf)))
-		     (goto-char (point-min)) ; expected by some hooks ...
-		     (make-frame-visible (window-frame window))
-		     (unwind-protect
-			 (progn
-			   (select-window window)
-			   (run-hooks 'temp-buffer-show-hook))
-		       (when (window-live-p old-selected)
-			 (select-window old-selected))
-		       (message "See buffer %s." out-buffer-name)))
-		 (message "%s" (buffer-substring (point-min) (point)))
-		 ))))))
+          (lambda (buf)
+            (with-current-buffer buf
+              (goto-char (point-min))
+              (end-of-line 1)
+              (if (or (< (1+ (point)) (point-max))
+                      (>= (- (point) (point-min)) (frame-width)))
+                  (let ((temp-buffer-show-function old-show-function)
+                        (old-selected (selected-window))
+                        (window (display-buffer buf)))
+                    (goto-char (point-min)) ; expected by some hooks ...
+                    (make-frame-visible (window-frame window))
+                    (unwind-protect
+                        (progn
+                          (select-window window)
+                          (run-hooks 'temp-buffer-show-hook))
+                      (when (window-live-p old-selected)
+                        (select-window old-selected))
+                      (message "See buffer %s." out-buffer-name)))
+                (message "%s" (buffer-substring (point-min) (point))))))))
     (with-output-to-temp-buffer out-buffer-name
       (pp expression)
       (with-current-buffer standard-output
