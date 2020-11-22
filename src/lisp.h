@@ -3798,6 +3798,7 @@ flush_stack_call_func (void (*func) (void *arg), void *arg)
 
 extern void garbage_collect (void);
 extern void maybe_garbage_collect (void);
+extern bool maybe_garbage_collect_eagerly (EMACS_INT factor);
 extern const char *pending_malloc_warning;
 extern Lisp_Object zero_vector;
 extern EMACS_INT consing_until_gc;

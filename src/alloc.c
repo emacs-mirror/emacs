@@ -6209,6 +6209,30 @@ For further details, see Info node `(elisp)Garbage Collection'.  */)
   return CALLMANY (Flist, total);
 }
 
+DEFUN ("garbage-collect-maybe", Fgarbage_collect_maybe,
+Sgarbage_collect_maybe, 1, 1, "",
+       doc: /* Call `garbage-collect' if enough allocation happened.
+FACTOR determines what "enough" means here:
+If FACTOR is a positive number N, it means to run GC if more than
+1/Nth of the allocations needed to trigger automatic allocation took
+place.
+Therefore, as N gets higher, this is more likely to perform a GC.
+Returns non-nil if GC happened, and nil otherwise.  */)
+  (Lisp_Object factor)
+{
+  CHECK_FIXNAT (factor);
+  EMACS_INT fact = XFIXNAT (factor);
+
+  EMACS_INT since_gc = gc_threshold - consing_until_gc;
+  if (fact >= 1 && since_gc > gc_threshold / fact)
+    {
+      garbage_collect ();
+      return Qt;
+    }
+  else
+    return Qnil;
+}
+
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the
    only interesting objects referenced from glyphs are strings.  */
 
@@ -7553,6 +7577,7 @@ N should be nonnegative.  */);
   defsubr (&Smake_finalizer);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
+  defsubr (&Sgarbage_collect_maybe);
   defsubr (&Smemory_info);
   defsubr (&Smemory_use_counts);
 #ifdef GNU_LINUX

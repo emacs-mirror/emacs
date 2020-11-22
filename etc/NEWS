@@ -1828,6 +1828,8 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
+** New function `garbage-collect-maybe` to trigger GC early
+
 ---
 ** 'defvar' detects the error of defining a variable currently lexically bound.
 Such mixes are always signs that the outer lexical binding was an
