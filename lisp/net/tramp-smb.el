@@ -74,7 +74,7 @@
   :version "24.4")
 
 ;;;###tramp-autoload
-(defcustom tramp-smb-conf "/dev/null"
+(defcustom tramp-smb-conf null-device
   "Path of the \"smb.conf\" file.
 If it is nil, no \"smb.conf\" will be added to the `tramp-smb-program'
 call, letting the SMB client use the default one."
@@ -797,7 +797,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (setq
 	     args
 	     (append args (list (tramp-unquote-shell-quote-argument localname)
-				"2>/dev/null")))
+				(concat "2>" (tramp-get-remote-null-device v)))))
 
 	    (unwind-protect
 		(with-temp-buffer

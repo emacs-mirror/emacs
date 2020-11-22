@@ -238,6 +238,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%k\" indicates the keep-date parameter of a program, if exists.
     - \"%c\" adds additional `tramp-ssh-controlmaster-options'
       options for the first hop.
+    - \"%n\" expands to \"2>/dev/null\".
 
     The existence of `tramp-login-args', combined with the
     absence of `tramp-copy-args', is an indication that the
@@ -5325,7 +5326,9 @@ name of a process or buffer, or nil to default to the current buffer."
 	(tramp-compat-funcall
 	 'tramp-send-command
 	 (process-get proc 'vector)
-	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>/dev/null" pid pid))
+	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>%s"
+                 pid pid
+                 (tramp-get-remote-null-device (process-get proc 'vector))))
 	;; Wait, until the process has disappeared.  If it doesn't,
 	;; fall back to the default implementation.
         (while (tramp-accept-process-output proc 0))
@@ -5338,6 +5341,15 @@ name of a process or buffer, or nil to default to the current buffer."
    'tramp-unload-hook
    (lambda ()
      (remove-hook 'interrupt-process-functions #'tramp-interrupt-process))))
+
+(defun tramp-get-remote-null-device (vec)
+  "Return null device on the remote host identified by VEC.
+If VEC is nil, return local null device."
+  (if (null vec)
+      null-device
+    (with-tramp-connection-property vec "null-device"
+      (let ((default-directory (tramp-make-tramp-file-name vec)))
+        (tramp-compat-null-device)))))
 
 (defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
   "Skeleton for `tramp-*-handle-delete-directory'.
