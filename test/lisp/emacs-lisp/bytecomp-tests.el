@@ -810,6 +810,12 @@ literals (Bug#20852)."
 
   (test-suppression
    '(defun zot ()
+      (next-line))
+   '((interactive-only next-line))
+   "interactive use only")
+
+  (test-suppression
+   '(defun zot ()
       (mapcar #'list '(1 2 3))
       nil)
    '((mapcar mapcar))
