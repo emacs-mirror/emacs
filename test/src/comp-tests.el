@@ -855,10 +855,10 @@ Return a list of results."
        (if (= x y)
            x
          'foo))
-     (or number (member foo)))
+     (or (member foo) number))
 
     ((defun comp-tests-ret-type-spec-9-1-f (x)
-       (comp-hint-fixnum y))
+       (comp-hint-fixnum x))
      (integer ,most-negative-fixnum ,most-positive-fixnum))
 
     ((defun comp-tests-ret-type-spec-f (x)
@@ -892,7 +892,8 @@ Return a list of results."
 
 (comp-deftest ret-type-spec ()
   "Some derived return type specifier tests."
-  (cl-loop for (func-form  type-spec) in comp-tests-type-spec-tests
+  (cl-loop with comp-ctxt = (make-comp-cstr-ctxt)
+           for (func-form  type-spec) in comp-tests-type-spec-tests
            do (comp-tests-check-ret-type-spec func-form type-spec)))
 
 (defun comp-tests-pure-checker-1 (_)
