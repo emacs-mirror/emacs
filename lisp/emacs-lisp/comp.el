@@ -3439,6 +3439,92 @@ load once finished compiling."
       ;; So we return the compiled function.
       (native-elisp-load data))))
 
+(defun native-compile-async-skip-p (file load selector)
+  "Return non-nil when FILE compilation should be skipped.
+
+LOAD and SELECTOR work as described in `native--compile-async'."
+  ;; Make sure we are not already compiling `file' (bug#40838).
+  (or (gethash file comp-async-compilations)
+      (cond
+       ((null selector) nil)
+       ((functionp selector) (not (funcall selector file)))
+       ((stringp selector) (not (string-match-p selector file)))
+       (t (error "SELECTOR must be a function a regexp or nil")))
+      ;; Also exclude files from deferred compilation if
+      ;; any of the regexps in
+      ;; `comp-deferred-compilation-deny-list' matches.
+      (and (eq load 'late)
+           (cl-some (lambda (re)
+                      (string-match-p re file))
+                    comp-deferred-compilation-deny-list))))
+
+(defun native--compile-async (paths &optional recursively load selector)
+  "Compile PATHS asynchronously.
+PATHS is one path or a list of paths to files or directories.
+
+If optional argument RECURSIVELY is non-nil, recurse into
+subdirectories of given directories.
+
+If optional argument LOAD is non-nil, request to load the file
+after compiling.
+
+The optional argument SELECTOR has the following valid values:
+
+nil -- Select all files.
+a string -- A regular expression selecting files with matching names.
+a function -- A function selecting files with matching names.
+
+The variable `comp-async-jobs-number' specifies the number
+of (commands) to run simultaneously.
+
+LOAD can also be the symbol `late'.  This is used internally if
+the byte code has already been loaded when this function is
+called.  It means that we requests the special kind of load,
+necessary in that situation, called \"late\" loading.
+
+During a \"late\" load instead of executing all top level forms
+of the original files, only function definitions are
+loaded (paying attention to have these effective only if the
+bytecode definition was not changed in the meanwhile)."
+  (comp-ensure-native-compiler)
+  (unless (member load '(nil t late))
+    (error "LOAD must be nil, t or 'late"))
+  (unless (listp paths)
+    (setf paths (list paths)))
+  (let (files)
+    (dolist (path paths)
+      (cond ((file-directory-p path)
+             (dolist (file (if recursively
+                               (directory-files-recursively
+                                path comp-valid-source-re)
+                             (directory-files path t comp-valid-source-re)))
+               (push file files)))
+            ((file-exists-p path) (push path files))
+            (t (signal 'native-compiler-error
+                       (list "Path not a file nor directory" path)))))
+    (dolist (file files)
+      (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
+          ;; Most likely the byte-compiler has requested a deferred
+          ;; compilation, so update `comp-files-queue' to reflect that.
+          (unless (or (null load)
+                      (eq load (cdr entry)))
+            (cl-substitute (cons file load) (car entry) comp-files-queue
+                           :key #'car :test #'string=))
+
+        (unless (native-compile-async-skip-p file load selector)
+          (let* ((out-filename (comp-el-to-eln-filename file))
+                 (out-dir (file-name-directory out-filename)))
+            (unless (file-exists-p out-dir)
+              (make-directory out-dir t))
+            (if (file-writable-p out-filename)
+                (setf comp-files-queue
+                      (append comp-files-queue `((,file . ,load))))
+              (display-warning 'comp
+                               (format "No write access for %s skipping."
+                                       out-filename)))))))
+    (when (zerop (comp-async-runnings))
+      (comp-run-async-workers))))
+
 
 ;;; Compiler entry points.
 
@@ -3485,75 +3571,8 @@ environment variable 'NATIVE_DISABLED' is set byte compile only."
         (`(,tempfile . ,target-file)
          (rename-file tempfile target-file t))))))
 
-(defun native--compile-async (paths &optional recursively load)
-  "Compile PATHS asynchronously.
-PATHS is one path or a list of paths to files or directories.
-
-If optional argument RECURSIVELY is non-nil, recurse into
-subdirectories of given directories.
-
-If optional argument LOAD is non-nil, request to load the file
-after compiling.
-
-The variable `comp-async-jobs-number' specifies the number
-of (commands) to run simultaneously.
-
-LOAD can also be the symbol `late'.  This is used internally if
-the byte code has already been loaded when this function is
-called.  It means that we requests the special kind of load,
-necessary in that situation, called \"late\" loading.
-
-During a \"late\" load instead of executing all top level forms
-of the original files, only function definitions are
-loaded (paying attention to have these effective only if the
-bytecode definition was not changed in the meanwhile)."
-  (comp-ensure-native-compiler)
-  (unless (member load '(nil t late))
-    (error "LOAD must be nil, t or 'late"))
-  (unless (listp paths)
-    (setf paths (list paths)))
-  (let (files)
-    (dolist (path paths)
-      (cond ((file-directory-p path)
-             (dolist (file (if recursively
-                               (directory-files-recursively
-                                path comp-valid-source-re)
-                             (directory-files path t comp-valid-source-re)))
-               (push file files)))
-            ((file-exists-p path) (push path files))
-            (t (signal 'native-compiler-error
-                       (list "Path not a file nor directory" path)))))
-    (dolist (file files)
-      (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
-          ;; Most likely the byte-compiler has requested a deferred
-          ;; compilation, so update `comp-files-queue' to reflect that.
-          (unless (or (null load)
-                      (eq load (cdr entry)))
-            (cl-substitute (cons file load) (car entry) comp-files-queue
-                           :key #'car :test #'string=))
-        ;; Make sure we are not already compiling `file' (bug#40838).
-        (unless (or (gethash file comp-async-compilations)
-                    ;; Also exclude files from deferred compilation if
-                    ;; any of the regexps in
-                    ;; `comp-deferred-compilation-deny-list' matches.
-                    (and (eq load 'late)
-                         (cl-some (lambda (re) (string-match re file))
-                                  comp-deferred-compilation-deny-list)))
-          (let* ((out-filename (comp-el-to-eln-filename file))
-                 (out-dir (file-name-directory out-filename)))
-            (unless (file-exists-p out-dir)
-              (make-directory out-dir t))
-            (if (file-writable-p out-filename)
-                (setf comp-files-queue
-                      (append comp-files-queue `((,file . ,load))))
-              (display-warning 'comp
-                               (format "No write access for %s skipping."
-                                       out-filename)))))))
-    (when (zerop (comp-async-runnings))
-      (comp-run-async-workers))))
-
 ;;;###autoload
-(defun native-compile-async (paths &optional recursively load)
+(defun native-compile-async (paths &optional recursively load selector)
   "Compile PATHS asynchronously.
 PATHS is one path or a list of paths to files or directories.
 
@@ -3562,12 +3581,18 @@ subdirectories of given directories.
 
 If optional argument LOAD is non-nil, request to load the file
 after compiling.
+
+The optional argument SELECTOR has the following valid values:
+
+nil -- Select all files.
+a string -- A regular expression selecting files with matching names.
+a function -- A function selecting files with matching names.
 
 The variable `comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously."
   ;; Normalize: we only want to pass t or nil, never e.g. `late'.
   (let ((load (not (not load))))
-    (native--compile-async paths recursively load)))
+    (native--compile-async paths recursively load selector)))
 
 (provide 'comp)
 
