@@ -29151,7 +29151,7 @@ again and again.  @xref{MIME Commands}.
 @item
 The new hooks @code{gnus-gcc-pre-body-encode-hook} and
 @code{gnus-gcc-post-body-encode-hook} are run before/after encoding
-the message body of the Gcc copy of a sent message.  See
+the message body of the Gcc copy of a sent message.
 @xref{Archived Messages}.
 
 @end itemize
