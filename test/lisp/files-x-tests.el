@@ -274,7 +274,8 @@
         (should-not (local-variable-p 'remote-shell-file-name))
         (should-not (boundp 'remote-shell-file-name))))))
 
-(defvar tramp-connection-local-default-profile)
+(defvar tramp-connection-local-default-shell-variables)
+(defvar tramp-connection-local-default-system-variables)
 
 (ert-deftest files-x-test-with-connection-local-variables ()
   "Test setting connection-local variables."
@@ -335,7 +336,10 @@
 	   (append
 	    (nreverse (copy-tree files-x-test--variables3))
 	    (nreverse (copy-tree files-x-test--variables2))
-            (nreverse (copy-tree tramp-connection-local-default-profile)))))
+            (nreverse
+             (copy-tree tramp-connection-local-default-shell-variables))
+            (nreverse
+             (copy-tree tramp-connection-local-default-system-variables)))))
          ;; The variables exist also as local variables.
          (should (local-variable-p 'remote-shell-file-name))
          (should (local-variable-p 'remote-null-device))
