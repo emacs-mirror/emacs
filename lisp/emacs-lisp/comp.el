@@ -80,13 +80,13 @@ This intended for debugging the compiler itself.
   "Unconditionally (re-)compile all files."
   :type 'boolean)
 
-(defcustom comp-deferred-compilation-black-list
+(defcustom comp-deferred-compilation-deny-list
   '()
   "List of regexps to exclude files from deferred native compilation.
 Skip if any is matching."
   :type 'list)
 
-(defcustom comp-bootstrap-black-list
+(defcustom comp-bootstrap-deny-list
   '()
   "List of regexps to exclude files from native compilation during bootstrap.
 Skip if any is matching."
@@ -3464,7 +3464,7 @@ Ultra cheap impersonation of `batch-byte-compile'."
   (cl-loop for file in command-line-args-left
            if (or (null byte-native-for-bootstrap)
                   (cl-notany (lambda (re) (string-match re file))
-                             comp-bootstrap-black-list))
+                             comp-bootstrap-deny-list))
            do (comp--native-compile file)
            else
            do (byte-compile-file file)))
@@ -3535,10 +3535,10 @@ bytecode definition was not changed in the meanwhile)."
         (unless (or (gethash file comp-async-compilations)
                     ;; Also exclude files from deferred compilation if
                     ;; any of the regexps in
-                    ;; `comp-deferred-compilation-black-list' matches.
+                    ;; `comp-deferred-compilation-deny-list' matches.
                     (and (eq load 'late)
                          (cl-some (lambda (re) (string-match re file))
-                                  comp-deferred-compilation-black-list)))
+                                  comp-deferred-compilation-deny-list)))
           (let* ((out-filename (comp-el-to-eln-filename file))
                  (out-dir (file-name-directory out-filename)))
             (unless (file-exists-p out-dir)
