@@ -4448,7 +4448,10 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  int size, i;
 	  W32Msg wmsg;
 	  HIMC context = get_ime_context_fn (hwnd);
-	  wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+	  wmsg.dwModifiers =
+	    w32_ignore_modifiers_on_IME_input
+	    ? 0
+	    : w32_get_key_modifiers (wParam, lParam);
 	  /* Get buffer size.  */
 	  size = get_composition_string_fn (context, GCS_RESULTSTR, NULL, 0);
 	  buffer = alloca (size);
@@ -10613,6 +10616,15 @@ tip frame.  */);
 	       w32_disable_abort_dialog,
 	       doc: /* Non-nil means don't display the abort dialog when aborting.  */);
   w32_disable_abort_dialog = 0;
+
+  DEFVAR_BOOL ("w32-ignore-modifiers-on-IME-input",
+	       w32_ignore_modifiers_on_IME_input,
+	       doc: /* Whether to ignore modifier keys when processing input with IME.
+Some MS-Windows input methods use modifier keys such as Ctrl or Alt to input
+characters, in which case applying the modifiers will change the input.
+The default value of this variable is therefore t, to ignore modifier
+keys when IME input is received.  */);
+  w32_ignore_modifiers_on_IME_input = true;
 
 #if 0 /* TODO: Port to W32 */
   defsubr (&Sx_change_window_property);

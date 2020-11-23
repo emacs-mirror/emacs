@@ -48,7 +48,7 @@ skip leading or trailing empty lines of the buffer.
 
 ** Tramp
 
-*** The user option 'tramp-completion-reread-directory-timeout' is made obsolete.
+*** The user option 'tramp-completion-reread-directory-timeout' is now obsolete.
 
 
 * New Modes and Packages in Emacs 27.2
@@ -61,6 +61,13 @@ skip leading or trailing empty lines of the buffer.
 
 
 * Changes in Emacs 27.2 on Non-Free Operating Systems
+
+** Emacs now ignores modifier keys when IME input is used.
+By default, pressing Ctrl, Shift, and Alt keys while using IME input
+will no longer apply the modifiers to the produced characters, as
+there are IMEs which use keys with modifiers to input some
+characters.  Customize the variable 'w32-ignore-modifiers-on-IME-input'
+to nil to get back the old behavior.
 
 
 * Installation Changes in Emacs 27.1
