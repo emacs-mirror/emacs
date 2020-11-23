@@ -1,4 +1,4 @@
-;;; persian.el  --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8;-*-
+;;; persian.el  --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

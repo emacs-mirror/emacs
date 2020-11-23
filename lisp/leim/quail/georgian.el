@@ -1,4 +1,4 @@
-;;; georgian.el --- Quail package for inputting Georgian characters  -*-coding: utf-8;-*-
+;;; georgian.el --- Quail package for inputting Georgian characters  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

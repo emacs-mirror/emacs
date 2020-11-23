@@ -1,4 +1,4 @@
-;;; tamil-dvorak.el --- Quail package for Tamil input with Dvorak keyboard
+;;; tamil-dvorak.el --- Quail package for Tamil input with Dvorak keyboard  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

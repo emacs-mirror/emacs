@@ -1,4 +1,4 @@
-;;; hanja3.el --- Quail-package for Korean Hanja (KSC5601)  -*-coding: utf-8;-*-
+;;; hanja3.el --- Quail-package for Korean Hanja (KSC5601)  -*-coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
 

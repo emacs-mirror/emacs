@@ -1,4 +1,4 @@
-;;; arabic.el --- Quail package for inputting Arabic	-*- coding: utf-8;-*-
+;;; arabic.el --- Quail package for inputting Arabic	-*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 

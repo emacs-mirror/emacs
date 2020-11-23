@@ -1,4 +1,4 @@
-;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols)
+;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols)  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011

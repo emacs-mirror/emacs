@@ -1,4 +1,4 @@
-;;; ipa-praat.el --- Inputting IPA characters with the conventions of Praat
+;;; ipa-praat.el --- Inputting IPA characters with the conventions of Praat  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
