@@ -448,6 +448,7 @@ If non-nil, select the next article when reaching the end of the
 article (or the previous article when paging backwards).
 
 If nil, don't do anything at the end/start of the articles."
+  :version "28.1"
   :group 'gnus-summary-maneuvering
   :type 'boolean)
 
