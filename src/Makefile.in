@@ -286,6 +286,9 @@ W32_OBJ=@W32_OBJ@
 ## -lkernel32 if CYGWIN but not HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
 
+PGTK_OBJ=@PGTK_OBJ@
+PGTK_LIBS=@PGTK_LIBS@
+
 ## emacs.res if HAVE_W32
 EMACSRES = @EMACSRES@
 ## If HAVE_W32, compiler arguments for including
@@ -426,7 +429,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	profiler.o decompress.o \
 	thread.o systhread.o \
 	$(if $(HYBRID_MALLOC),sheap.o) \
-	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
+	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(PGTK_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ) $(GMP_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
@@ -524,7 +527,7 @@ shortlisp := loaddefs.el loadup.el $(sort ${shortlisp})
 lisp = $(addprefix ${lispsource}/,${shortlisp})
 
 ## Construct full set of libraries to be linked.
-LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
    $(WEBKIT_LIBS) \

@@ -189,7 +189,7 @@ See also `eww-form-checkbox-selected-symbol'."
                  string))
 
 (defface eww-form-submit
-  '((((type x w32 ns) (class color))	; Like default mode line
+  '((((type x w32 ns pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
@@ -197,7 +197,7 @@ See also `eww-form-checkbox-selected-symbol'."
   :group 'eww)
 
 (defface eww-form-file
-  '((((type x w32 ns) (class color))	; Like default mode line
+  '((((type x w32 ns pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
@@ -205,7 +205,7 @@ See also `eww-form-checkbox-selected-symbol'."
   :group 'eww)
 
 (defface eww-form-checkbox
-  '((((type x w32 ns) (class color))	; Like default mode line
+  '((((type x w32 ns pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
@@ -213,7 +213,7 @@ See also `eww-form-checkbox-selected-symbol'."
   :group 'eww)
 
 (defface eww-form-select
-  '((((type x w32 ns) (class color))	; Like default mode line
+  '((((type x w32 ns pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."

@@ -309,11 +309,13 @@ set_alarm (void)
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
 # ifdef HAVE_TIMERFD
-	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
-	    {
-	      add_timer_wait_descriptor (timerfd);
-	      return;
-	    }
+	  if (timerfd >= 0) {
+	    if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
+              {
+                add_timer_wait_descriptor (timerfd);
+                return;
+              }
+	  }
 # endif
 	  if (alarm_timer_ok
 	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
@@ -461,7 +463,8 @@ turn_on_atimers (bool on)
       if (alarm_timer_ok)
 	timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0);
 # ifdef HAVE_TIMERFD
-      timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0);
+      if (timerfd >= 0)
+	timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0);
 # endif
 #endif
       alarm (0);
@@ -568,6 +571,9 @@ have_buggy_timerfd (void)
 # ifdef CYGWIN
   struct utsname name;
   return uname (&name) < 0 || strverscmp (name.release, "3.0.2") < 0;
+# elif defined HAVE_PGTK
+  /* pgtk emacs does not want timerfd. */
+  return true;
 # else
   return false;
 # endif

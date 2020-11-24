@@ -1611,6 +1611,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_bignum ();
   init_threads ();
   init_eval ();
+#ifdef HAVE_PGTK
+  init_pgtkterm ();   /* before init_atimer(). */
+#endif
   init_atimer ();
   running_asynch_code = 0;
   init_random ();
@@ -1943,6 +1946,16 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #endif /* HAVE_NS */
 
+#ifdef HAVE_PGTK
+      syms_of_pgtkterm ();
+      syms_of_pgtkfns ();
+      syms_of_pgtkselect ();
+      syms_of_pgtkmenu ();
+      syms_of_pgtkim ();
+      syms_of_fontset ();
+      syms_of_xsettings ();
+#endif
+
       syms_of_gnutls ();
 
 #ifdef HAVE_INOTIFY
@@ -2015,8 +2028,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_DBUS
   init_dbusbind ();
 #endif
-#ifdef USE_GTK
+#if defined(USE_GTK)
+#ifndef HAVE_PGTK
   init_xterm ();
+#endif
 #endif
 
   /* This can create a thread that may call getenv, so it must follow

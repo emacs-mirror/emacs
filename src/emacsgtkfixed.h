@@ -27,6 +27,9 @@ struct frame;
 
 G_BEGIN_DECLS
 
+#define EMACS_TYPE_FIXED        (emacs_fixed_get_type ())
+#define EMACS_IS_FIXED(obj)     (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EMACS_TYPE_FIXED))
+
 struct frame;
 
 typedef struct _EmacsFixedPrivate       EmacsFixedPrivate;
@@ -43,6 +46,8 @@ struct _EmacsFixedClass
 {
   GtkFixedClass parent_class;
 };
+
+extern GType emacs_fixed_get_type (void);
 
 extern GtkWidget *emacs_fixed_new (struct frame *f);
 

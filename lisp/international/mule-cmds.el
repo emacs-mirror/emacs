@@ -88,7 +88,7 @@
     (bindings--define-key map [separator-3] menu-bar-separator)
     (bindings--define-key map [set-terminal-coding-system]
       '(menu-item "For Terminal" set-terminal-coding-system
-        :enable (null (memq initial-window-system '(x w32 ns)))
+        :enable (null (memq initial-window-system '(x w32 ns pgtk)))
         :help "How to encode terminal output"))
     (bindings--define-key map [set-keyboard-coding-system]
       '(menu-item "For Keyboard" set-keyboard-coding-system

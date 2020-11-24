@@ -122,8 +122,12 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
 # endif
 
       xw->widgetwindow_osr = gtk_offscreen_window_new ();
+#ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
+#else
+      gtk_container_check_resize (GTK_CONTAINER (xw->widgetwindow_osr));
+#endif
 
       if (EQ (xw->type, Qwebkit))
         {
@@ -510,6 +514,10 @@ xwidget_osr_draw_cb (GtkWidget *widget, cairo_t *cr, gpointer data)
   cairo_rectangle (cr, 0, 0, xv->clip_right, xv->clip_bottom);
   cairo_clip (cr);
 
+#ifdef HAVE_PGTK
+  gtk_container_check_resize (GTK_CONTAINER (xw->widgetwindow_osr));
+#endif
+
   gtk_widget_draw (xw->widget_osr, cr);
   return FALSE;
 }
@@ -527,6 +535,11 @@ xwidget_osr_event_forward (GtkWidget *widget, GdkEvent *event,
      perhaps in xwgir_event_cb.  */
   gtk_main_do_event (eventcopy);
 
+#ifdef HAVE_PGTK
+  /* Pgtk code needs this event */
+  if (event->type == GDK_MOTION_NOTIFY)
+    return FALSE;
+#endif
   /* Don't propagate this event further.  */
   return TRUE;
 }
@@ -957,8 +970,12 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
 #ifdef USE_GTK
   if (xw->widget_osr)
     {
+#ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
+#else
+      gtk_container_check_resize (GTK_CONTAINER (xw->widgetwindow_osr));
+#endif
       gtk_container_resize_children (GTK_CONTAINER (xw->widgetwindow_osr));
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
                                    xw->height);

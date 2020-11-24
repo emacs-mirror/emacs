@@ -2506,6 +2506,7 @@ See `menu-bar-mode' for more information."
 
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
 (declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
+(declare-function pgtk-menu-bar-open "term/pgtk-win" (&optional frame))
 
 (defun lookup-key-ignore-too-long (map key)
   "Call `lookup-key' and convert numeric values to nil."

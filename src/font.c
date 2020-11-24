@@ -5567,7 +5567,11 @@ match.  */);
   syms_of_xftfont ();
 #endif  /* HAVE_XFT */
 #endif  /* not USE_CAIRO */
-#endif	/* HAVE_X_WINDOWS */
+#else	/* not HAVE_X_WINDOWS */
+#ifdef USE_CAIRO
+  syms_of_ftcrfont ();
+#endif
+#endif	/* not HAVE_X_WINDOWS */
 #else	/* not HAVE_FREETYPE */
 #ifdef HAVE_X_WINDOWS
   syms_of_xfont ();

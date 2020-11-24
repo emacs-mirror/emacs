@@ -46,6 +46,7 @@
 	  (pcase (or window-system 'tty)
 	    ('x "X11")
 	    ('ns "OpenStep")
+            ('pgtk "PureGTK")
 	    ('tty "TTY")
 	    (_ nil)))))
 

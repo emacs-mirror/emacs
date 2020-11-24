@@ -422,7 +422,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		  AREF (item_properties, ITEM_PROPERTY_SELECTED),
 		  AREF (item_properties, ITEM_PROPERTY_HELP));
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
+#ifdef HAVE_EXT_MENU_BAR
   /* Display a submenu using the toolkit.  */
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame))
       && ! (NILP (map) || NILP (enabled)))

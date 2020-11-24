@@ -22,7 +22,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cairo-ft.h>
 
 #include "lisp.h"
+#ifndef HAVE_PGTK
 #include "xterm.h"
+#else
+#include "pgtkterm.h"
+#endif
 #include "blockinput.h"
 #include "charset.h"
 #include "composite.h"
@@ -132,7 +136,9 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   filename = XCAR (val);
   size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
+  {
     size = pixel_size;
+  }
 
   block_input ();
 
@@ -513,11 +519,19 @@ ftcrfont_draw (struct glyph_string *s,
 
   block_input ();
 
+#ifndef HAVE_PGTK
   cr = x_begin_cr_clip (f, s->gc);
+#else
+  cr = pgtk_begin_cr_clip (f);
+#endif
 
   if (with_background)
     {
+#ifndef HAVE_PGTK
       x_set_cr_source_with_gc_background (f, s->gc);
+#else
+      pgtk_set_cr_source_with_color (f, s->xgcv.background);
+#endif
       cairo_rectangle (cr, x, y - FONT_BASE (face->font),
 		       s->width, FONT_HEIGHT (face->font));
       cairo_fill (cr);
@@ -534,11 +548,19 @@ ftcrfont_draw (struct glyph_string *s,
                                                        NULL));
     }
 
+#ifndef HAVE_PGTK
   x_set_cr_source_with_gc_foreground (f, s->gc);
+#else
+  pgtk_set_cr_source_with_color (f, s->xgcv.foreground);
+#endif
   cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
   cairo_show_glyphs (cr, glyphs, len);
 
+#ifndef HAVE_PGTK
   x_end_cr_clip (f);
+#else
+  pgtk_end_cr_clip (f);
+#endif
 
   unblock_input ();
 

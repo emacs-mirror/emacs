@@ -574,6 +574,7 @@ struct frame
     struct x_output *x;         /* From xterm.h.  */
     struct w32_output *w32;     /* From w32term.h.  */
     struct ns_output *ns;       /* From nsterm.h.  */
+    struct pgtk_output *pgtk; /* From pgtkterm.h. */
   }
   output_data;
 
@@ -841,6 +842,11 @@ default_pixels_per_inch_y (void)
 #else
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
+#ifndef HAVE_PGTK
+#define FRAME_PGTK_P(f) false
+#else
+#define FRAME_PGTK_P(f) ((f)->output_method == output_pgtk)
+#endif
 
 /* FRAME_WINDOW_P tests whether the frame is a graphical window system
    frame.  */
@@ -853,6 +859,9 @@ default_pixels_per_inch_y (void)
 #endif
 #ifdef HAVE_NS
 #define FRAME_WINDOW_P(f) FRAME_NS_P(f)
+#endif
+#ifdef HAVE_PGTK
+#define FRAME_WINDOW_P(f) FRAME_PGTK_P(f)
 #endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) ((void) (f), false)
@@ -1701,7 +1710,7 @@ extern const char *x_get_resource_string (const char *, const char *);
 extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
-#ifndef HAVE_NS
+#if !defined(HAVE_NS) && !defined(HAVE_PGTK)
 
 /* Set F's bitmap icon, if specified among F's parameters.  */
 

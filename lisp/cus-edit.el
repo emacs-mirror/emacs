@@ -2172,7 +2172,7 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 ns) (class color))	; Like default mode line
+  '((((type x w32 ns pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
@@ -2180,7 +2180,7 @@ and `face'."
   :group 'custom-faces)
 
 (defface custom-button-mouse
-  '((((type x w32 ns) (class color))
+  '((((type x w32 ns pgtk) (class color))
      :box (:line-width 2 :style released-button)
      :background "grey90" :foreground "black")
     (t
@@ -2205,7 +2205,7 @@ and `face'."
       (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
-  '((((type x w32 ns) (class color))
+  '((((type x w32 ns pgtk) (class color))
      :box (:line-width 2 :style pressed-button)
      :background "lightgrey" :foreground "black")
     (t :inverse-video t))
@@ -3444,6 +3444,10 @@ MS Windows.")
 				    (const :format "NS "
 					   :sibling-args (:help-echo "\
 GNUstep or Macintosh OS Cocoa interface.")
+					   ns)
+				    (const :format "PGTK "
+					   :sibling-args (:help-echo "\
+Pure-GTK interface.")
 					   ns)
 				    (const :format "DOS "
 					   :sibling-args (:help-echo "\

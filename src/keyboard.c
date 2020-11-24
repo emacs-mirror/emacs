@@ -3939,6 +3939,9 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  *used_mouse_menu = true;
 	FALLTHROUGH;
 #endif
+#ifdef HAVE_PGTK
+      case PGTK_PREEDIT_TEXT_EVENT:
+#endif
 #ifdef HAVE_NTGUI
       case END_SESSION_EVENT:
       case LANGUAGE_CHANGE_EVENT:
@@ -6046,6 +6049,11 @@ make_lispy_event (struct input_event *event)
     case CONFIG_CHANGED_EVENT:
 	return list3 (Qconfig_changed_event,
 		      event->arg, event->frame_or_window);
+
+#ifdef HAVE_PGTK
+    case PGTK_PREEDIT_TEXT_EVENT:
+      return list2 (intern ("pgtk-preedit-text"), event->arg);
+#endif
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -12451,6 +12459,8 @@ keys_of_keyboard (void)
 			    "ns-put-working-text");
   initial_define_lispy_key (Vspecial_event_map, "ns-unput-working-text",
 			    "ns-unput-working-text");
+  initial_define_lispy_key (Vspecial_event_map, "pgtk-preedit-text",
+			    "pgtk-preedit-text");
   /* Here we used to use `ignore-event' which would simple set prefix-arg to
      current-prefix-arg, as is done in `handle-switch-frame'.
      But `handle-switch-frame is not run from the special-map.

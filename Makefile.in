@@ -218,6 +218,9 @@ icondir=$(datarootdir)/icons
 # The source directory for the icon files.
 iconsrcdir=$(srcdir)/etc/images/icons
 
+# Where to install the gsettings schema file.
+gsettingsschemadir = @gsettingsschemadir@
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
@@ -306,6 +309,8 @@ LN_S_FILEONLY = @LN_S_FILEONLY@
 # We use gzip to compress installed .el and some .txt files.
 GZIP_PROG = @GZIP_PROG@
 
+GLIB_COMPILE_SCHEMAS = glib-compile-schemas
+
 # ============================= Targets ==============================
 
 # Program name transformation.
@@ -338,7 +343,9 @@ COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
 ELN_DESTDIR = "$(DESTDIR)${libdir}/emacs/${version}/"
 
-all: ${SUBDIR} info
+gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
+
+all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid)
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 etc-emacsver
 
@@ -478,7 +485,7 @@ $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln
+install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln install-gsettings-schemas
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -776,7 +783,7 @@ install-strip:
 ### create (but not the noninstalled files such as 'make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
-uninstall: uninstall-$(NTDIR) uninstall-doc
+uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	rm -f "$(DESTDIR)$(includedir)/emacs-module.h"
 	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
@@ -873,7 +880,7 @@ clean_dirs = $(mostlyclean_dirs) nextstep
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
-clean: $(clean_dirs:=_clean)
+clean: $(clean_dirs:=_clean) clean-gsettings-schemas
 	$(MAKE) -C admin/charsets $@
 	[ ! -d test ] || $(MAKE) -C test $@
 	-rm -f ./*.tmp etc/*.tmp*
@@ -1211,3 +1218,10 @@ gitmerge:
 	${GITMERGE_EMACS} -batch --no-site-file --no-site-lisp \
 	  -l ${srcdir}/admin/gitmerge.el \
 	  --eval '(setq gitmerge-minimum-missing ${GITMERGE_NMIN})' -f gitmerge
+
+@GSETTINGS_RULES@
+
+install-gsettings-schemas:
+uninstall-gsettings-schemas:
+clean-gsettings-schemas:
+$(gsettings_SCHEMAS:.xml=.valid):

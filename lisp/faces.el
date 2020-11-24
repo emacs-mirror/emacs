@@ -1151,13 +1151,14 @@ an integer value."
            (:height
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x ns)) ; No stipple on w32
-                 (mapcar #'list
+            (and (memq (window-system frame) '(x ns pgtk)) ; No stipple on w32
+                 (mapcar (lambda (f)
+                           (cons (file-name-base f) f))
                          (apply #'nconc
                                 (mapcar (lambda (dir)
                                           (and (file-readable-p dir)
                                                (file-directory-p dir)
-                                               (directory-files dir)))
+                                               (directory-files dir 'full)))
                                         x-bitmap-file-path)))))
            (:inherit
             (cons '("none" . nil)
@@ -1487,7 +1488,7 @@ If FRAME is nil, the current FRAME is used."
 	    match (cond ((eq req 'type)
 			 (or (memq (window-system frame) options)
 			     (and (memq 'graphic options)
-				  (memq (window-system frame) '(x w32 ns)))
+				  (memq (window-system frame) '(x w32 ns pgtk)))
 			     ;; FIXME: This should be revisited to use
 			     ;; display-graphic-p, provided that the
 			     ;; color selection depends on the number
@@ -2755,7 +2756,7 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 ns) (class color))
+    (((type x w32 ns pgtk) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))

@@ -20,12 +20,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef XSETTINGS_H
 #define XSETTINGS_H
 
+#ifndef HAVE_PGTK
 #include <X11/Xlib.h>
+#endif
 
 struct x_display_info;
+struct pgtk_display_info;
 
-extern void xsettings_initialize (struct x_display_info *);
-extern void xft_settings_event (struct x_display_info *, const XEvent *);
+#ifndef HAVE_PGTK
+typedef struct x_display_info Display_Info;
+#else
+typedef struct pgtk_display_info Display_Info;
+#endif
+
+extern void xsettings_initialize (Display_Info *);
+#ifndef HAVE_PGTK
+extern void xft_settings_event (Display_Info *, const XEvent *);
+#endif
 extern const char *xsettings_get_system_font (void);
 #ifdef USE_LUCID
 extern const char *xsettings_get_system_normal_font (void);
