@@ -948,7 +948,6 @@ Key bindings:
         (add-hook 'change-major-mode-hook
                   #'turn-off-hideshow
                   nil t)
-        (easy-menu-add hs-minor-mode-menu)
         (set (make-local-variable 'line-move-ignore-invisible) t)
         (add-to-invisibility-spec '(hs . t)))
     (remove-from-invisibility-spec '(hs . t))

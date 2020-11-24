@@ -1718,8 +1718,6 @@ or as help on variables `cperl-tips', `cperl-problems',
   (and (boundp 'msb-menu-cond)
        (not cperl-msb-fixed)
        (cperl-msb-fix))
-  (if (fboundp 'easy-menu-add)
-      (easy-menu-add cperl-menu))	; A NOP in Emacs.
   (if cperl-hook-after-change
       (add-hook 'after-change-functions #'cperl-after-change-function nil t))
   ;; After hooks since fontification will break this

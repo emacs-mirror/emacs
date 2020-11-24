@@ -4205,9 +4205,11 @@ STRING are replaced by `-' and substrings are converted to lower case."
 (defun vhdl-update-mode-menu ()
   "Update VHDL Mode menu."
   (interactive)
-  (easy-menu-remove vhdl-mode-menu-list) ; for XEmacs
+  (when (featurep 'xemacs)
+    (easy-menu-remove vhdl-mode-menu-list))
   (setq vhdl-mode-menu-list (vhdl-create-mode-menu))
-  (easy-menu-add vhdl-mode-menu-list)	; for XEmacs
+  (when (featurep 'xemacs)
+    (easy-menu-add vhdl-mode-menu-list))
   (easy-menu-define vhdl-mode-menu vhdl-mode-map
 		    "Menu keymap for VHDL Mode." vhdl-mode-menu-list))
 
@@ -4313,7 +4315,8 @@ The directory of the current source file is scanned."
     (push ["*Rescan*" vhdl-add-source-files-menu t] menu-list)
     (push "Sources" menu-list)
     ;; Create menu
-    (easy-menu-add menu-list)
+    (when (featurep 'xemacs)
+      (easy-menu-add menu-list))
     (easy-menu-define vhdl-sources-menu newmap
 		      "VHDL source files menu" menu-list))
   (message ""))
@@ -4926,7 +4929,8 @@ Key bindings:
   ;; add source file menu
   (if vhdl-source-file-menu (vhdl-add-source-files-menu))
   ;; add VHDL menu
-  (easy-menu-add vhdl-mode-menu-list)	; for XEmacs
+  (when (featurep 'xemacs)
+    (easy-menu-add vhdl-mode-menu-list))
   (easy-menu-define vhdl-mode-menu vhdl-mode-map
 		    "Menu keymap for VHDL Mode." vhdl-mode-menu-list)
   ;; initialize hideshow and add menu

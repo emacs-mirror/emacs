@@ -1258,7 +1258,8 @@ common grammar menu."
        (unless (boundp ',symbol)
          (easy-menu-define ,symbol nil
            "Grammar Menu" (copy-sequence semantic-grammar-menu)))
-       (easy-menu-add ,symbol)
+       (when (featurep 'xemacs)
+         (easy-menu-add ,symbol))
        (let ((,items (cdr ,mode-menu))
              (,path (list (car ,symbol))))
          (when ,items

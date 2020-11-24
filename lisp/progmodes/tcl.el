@@ -654,9 +654,7 @@ already exist."
        #'tcl-add-log-defun)
 
   (setq-local beginning-of-defun-function #'tcl-beginning-of-defun-function)
-  (setq-local end-of-defun-function #'tcl-end-of-defun-function)
-
-  (easy-menu-add tcl-mode-menu))
+  (setq-local end-of-defun-function #'tcl-end-of-defun-function))
 
 
 

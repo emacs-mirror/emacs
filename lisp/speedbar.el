@@ -1144,6 +1144,7 @@ frame and window to be the currently active frame and window."
 
 (defvar speedbar-previous-menu nil
   "The menu before the last `speedbar-reconfigure-keymaps' was called.")
+(make-obsolete-variable 'speedbar-previous-menu "no longer used." "28.1")
 
 (defun speedbar-reconfigure-keymaps ()
   "Reconfigure the menu-bar in a speedbar frame.
@@ -1195,10 +1196,7 @@ and the existence of packages."
 			 (speedbar-initial-keymap)
 			 ;; This creates a small keymap we can glom the
 			 ;; menu adjustments into.
-			 (speedbar-make-specialized-keymap)))
-      ;; Delete the old menu if applicable.
-      (if speedbar-previous-menu (easy-menu-remove speedbar-previous-menu))
-      (setq speedbar-previous-menu md)
+                         (speedbar-make-specialized-keymap)))
       ;; Now add the new menu
       (easy-menu-define speedbar-menu-map (current-local-map)
         "Speedbar menu" md))

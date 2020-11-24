@@ -114,22 +114,19 @@ ERC menu yet.")
      ;; make sure the menu only gets defined once, since Emacs 22
      ;; activates it immediately
      (easy-menu-define erc-menu erc-mode-map "ERC menu" erc-menu-definition)
-     (setq erc-menu-defined t))
-   (erc-menu-add))
-  ((erc-menu-remove)
-   ;; `easy-menu-remove' is a no-op in Emacs 22
+     (setq erc-menu-defined t)))
+  (;; `easy-menu-remove' is a no-op in Emacs 22
    (message "You might have to restart Emacs to remove the ERC menu")))
-
-;; silence byte-compiler warning
-(defvar erc-menu)
 
 (defun erc-menu-add ()
   "Add the ERC menu to the current buffer."
-  (easy-menu-add erc-menu erc-mode-map))
+  (declare (obsolete nil "28.1"))
+  nil)
 
 (defun erc-menu-remove ()
   "Remove the ERC menu from the current buffer."
-  (easy-menu-remove erc-menu))
+  (declare (obsolete nil "28.1"))
+  nil)
 
 (provide 'erc-menu)
 

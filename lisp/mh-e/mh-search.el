@@ -618,7 +618,7 @@ The hook `mh-search-mode-hook' is called upon entry to this mode.
 
 \\{mh-search-mode-map}"
 
-  (easy-menu-add mh-pick-menu)
+  (mh-do-in-xemacs (easy-menu-add mh-pick-menu))
   (mh-set-help mh-search-mode-help-messages))
 
 

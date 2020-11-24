@@ -408,7 +408,8 @@ Here are all local bindings.
     (make-local-hook 'post-command-hook)
     (make-local-hook 'pre-command-hook))
   (make-local-variable 'reftex-last-follow-point)
-  (easy-menu-add reftex-index-menu reftex-index-mode-map)
+  (when (featurep 'xemacs)
+    (easy-menu-add reftex-index-menu reftex-index-mode-map))
   (add-hook 'post-command-hook 'reftex-index-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-index-pre-command-hook nil t))
 
@@ -1386,7 +1387,8 @@ Here are all local bindings.
   :syntax-table reftex-index-phrases-syntax-table
   (set (make-local-variable 'font-lock-defaults)
        reftex-index-phrases-font-lock-defaults)
-  (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-mode-map)
+  (when (featurep 'xemacs)
+    (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-mode-map))
   (set (make-local-variable 'reftex-index-phrases-marker) (make-marker)))
 ;; (add-hook 'reftex-index-phrases-mode-hook 'turn-on-font-lock)
 

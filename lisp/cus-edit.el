@@ -5126,7 +5126,6 @@ Erase customizations; set options
 Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
-  (easy-menu-add Custom-mode-menu)
   (setq-local tool-bar-map
 	      (or custom-tool-bar-map
 		  ;; Set up `custom-tool-bar-map'.

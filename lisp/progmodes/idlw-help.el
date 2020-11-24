@@ -306,7 +306,6 @@ Jump:               [h] to function doclib header
 Here are all keybindings.
 \\{idlwave-help-mode-map}"
   (buffer-disable-undo)
-  (easy-menu-add idlwave-help-menu idlwave-help-mode-map)
   (setq truncate-lines t)
   (setq case-fold-search t)
   (setq mode-line-format

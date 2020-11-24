@@ -3109,8 +3109,6 @@ Like `text-mode', but with these additional commands:
        '(message-font-lock-keywords t))
   (if (boundp 'tool-bar-map)
       (set (make-local-variable 'tool-bar-map) (message-make-tool-bar)))
-  (easy-menu-add message-mode-menu message-mode-map)
-  (easy-menu-add message-mode-field-menu message-mode-map)
   ;; Mmmm... Forbidden properties...
   (add-hook 'after-change-functions #'message-strip-forbidden-properties
 	    nil 'local)
