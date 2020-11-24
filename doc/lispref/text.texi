@@ -1100,7 +1100,7 @@ one, it rotates the kill ring to place the yanked string at the front.
 This command replaces the just-yanked entry from the kill ring with a
 different entry from the kill ring.
 
-This is allowed only immediately after a @code{yank} or another
+This works only immediately after a @code{yank} or another
 @code{yank-pop}.  At such a time, the region contains text that was just
 inserted by yanking.  @code{yank-pop} deletes that text and inserts in
 its place a different piece of killed text.  It does not add the deleted

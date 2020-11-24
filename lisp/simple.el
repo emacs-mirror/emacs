@@ -5344,7 +5344,7 @@ Normally set from the UNDO element of a yank-handler; see `insert-for-yank'.")
 
 (defun yank-pop (&optional arg)
   "Replace just-yanked stretch of killed text with a different stretch.
-This command is allowed only immediately after a `yank' or a
+The main use of this command is immediately after a `yank' or a
 `yank-pop'.  At such a time, the region contains a stretch of
 reinserted previously-killed text.  `yank-pop' deletes that text
 and inserts in its place a different stretch of killed text by
@@ -5359,30 +5359,36 @@ comes the newest one.
 
 This command honors the `yank-handled-properties' and
 `yank-excluded-properties' variables, and the `yank-handler' text
-property, in the way that `yank' does."
-  (interactive "*p")
+property, in the way that `yank' does.
+
+When this command is called not immediately after a `yank' or a
+`yank-pop', then it activates the minibuffer with its completion
+and history filled with previously-killed items from the
+`kill-ring' variable, and reads a string to yank at point.
+See `yank-from-kill-ring' for more details."
+  (interactive "p")
   (if (not (eq last-command 'yank))
-      (user-error "Previous command was not a yank"))
-  (setq this-command 'yank)
-  (unless arg (setq arg 1))
-  (let ((inhibit-read-only t)
-	(before (< (point) (mark t))))
-    (if before
-	(funcall (or yank-undo-function 'delete-region) (point) (mark t))
-      (funcall (or yank-undo-function 'delete-region) (mark t) (point)))
-    (setq yank-undo-function nil)
-    (set-marker (mark-marker) (point) (current-buffer))
-    (insert-for-yank (current-kill arg))
-    ;; Set the window start back where it was in the yank command,
-    ;; if possible.
-    (set-window-start (selected-window) yank-window-start t)
-    (if before
-	;; This is like exchange-point-and-mark, but doesn't activate the mark.
-	;; It is cleaner to avoid activation, even though the command
-	;; loop would deactivate the mark because we inserted text.
-	(goto-char (prog1 (mark t)
-		     (set-marker (mark-marker) (point) (current-buffer))))))
-  nil)
+      (yank-from-kill-ring (read-from-kill-ring) current-prefix-arg)
+    (setq this-command 'yank)
+    (unless arg (setq arg 1))
+    (let ((inhibit-read-only t)
+          (before (< (point) (mark t))))
+      (if before
+          (funcall (or yank-undo-function 'delete-region) (point) (mark t))
+        (funcall (or yank-undo-function 'delete-region) (mark t) (point)))
+      (setq yank-undo-function nil)
+      (set-marker (mark-marker) (point) (current-buffer))
+      (insert-for-yank (current-kill arg))
+      ;; Set the window start back where it was in the yank command,
+      ;; if possible.
+      (set-window-start (selected-window) yank-window-start t)
+      (if before
+          ;; This is like exchange-point-and-mark, but doesn't activate the mark.
+          ;; It is cleaner to avoid activation, even though the command
+          ;; loop would deactivate the mark because we inserted text.
+          (goto-char (prog1 (mark t)
+                       (set-marker (mark-marker) (point) (current-buffer))))))
+    nil))
 
 (defun yank (&optional arg)
   "Reinsert (\"paste\") the last stretch of killed text.
@@ -5449,6 +5455,76 @@ See also the command `yank-pop' (\\[yank-pop])."
 With ARG, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
+
+(defvar read-from-kill-ring-history)
+(defun read-from-kill-ring ()
+  "Read a string from `kill-ring' using completion and minibuffer history."
+  (let* ((history-add-new-input nil)
+         (ellipsis (if (char-displayable-p ?…) "…" "..."))
+         ;; Remove keymaps from text properties of copied string,
+         ;; because typing RET in the minibuffer might call
+         ;; an irrelevant command from the map of copied string.
+         (read-from-kill-ring-history
+          (mapcar (lambda (s)
+                    (remove-list-of-text-properties
+                     0 (length s)
+                     '(
+                       keymap local-map action mouse-action
+                       button category help-args)
+                     s)
+                    s)
+                  kill-ring))
+         (completions
+          (mapcar (lambda (s)
+                    (let* ((s (query-replace-descr s))
+                           (b 0))
+                      ;; Add ellipsis on leading whitespace
+                      (when (string-match "\\`[[:space:]]+" s)
+                        (setq b (match-end 0))
+                        (add-text-properties 0 b `(display ,ellipsis) s))
+                      ;; Add ellipsis at the end of a long string
+                      (when (> (length s) (+ 40 b))
+                        (add-text-properties
+                         (min (+ 40 b) (length s)) (length s)
+                         `(display ,ellipsis) s))
+                      s))
+                  read-from-kill-ring-history)))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          ;; Allow ‘SPC’ to be self-inserting
+          (use-local-map
+           (let ((map (make-sparse-keymap)))
+             (set-keymap-parent map (current-local-map))
+             (define-key map " " nil)
+             (define-key map "?" nil)
+             map)))
+      (completing-read
+       "Yank from kill-ring: "
+       (lambda (string pred action)
+         (if (eq action 'metadata)
+             ;; Keep sorted by recency
+             '(metadata (display-sort-function . identity))
+           (complete-with-action action completions string pred)))
+       nil nil nil
+       'read-from-kill-ring-history))))
+
+(defun yank-from-kill-ring (string &optional arg)
+  "Insert the `kill-ring' item selected from the minibuffer history.
+Use minibuffer navigation and search commands to browse the
+previously-killed items from the `kill-ring' variable in the
+minibuffer history before typing RET to insert the selected item,
+or use completion on the elements of `kill-ring'.  You can edit
+the item in the minibuffer before inserting it.
+
+With \\[universal-argument] as argument, put point at beginning,
+and mark at end, like `yank' does."
+  (interactive (list (read-from-kill-ring) current-prefix-arg))
+  (push-mark)
+  (insert-for-yank string)
+  (if (consp arg)
+      ;; Swap point and mark like in `yank'.
+      (goto-char (prog1 (mark t)
+                   (set-marker (mark-marker) (point) (current-buffer))))))
 
 ;; Some kill commands.
 

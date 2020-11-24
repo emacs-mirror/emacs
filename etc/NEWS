@@ -208,6 +208,13 @@ This command would previously not redefine values defined by these
 forms, but this command has now been changed to work more like
 'eval-defun', and reset the values as specified.
 
++++
+** Standalone 'M-y' uses the minibuffer to complete previous kills.
+When 'M-y' is typed not after a yank command, it activates the minibuffer
+where you can browse previous kills using the minibuffer history or
+completion.  In Isearch 'C-s M-y' uses the minibuffer with completion
+on previous kills to read a string and append it to the search string.
+
 ---
 ** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.
 'copy-region-blink-delay' specifies a delay to indicate the region
