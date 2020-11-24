@@ -365,6 +365,7 @@ It collects and prints the diagnostics messages."
 	(idlwave-help-diagnostics nil))
     ;; Check for frame switching.  When the command is invoked twice
     ;; at the same position, we try to switch to the help frame
+    ;; FIXME:  Frame switching works only on XEmacs
     (if (and idlwave-experimental
 	     (equal last-command this-command)
 	     (equal idlwave-last-context-help-pos marker))
