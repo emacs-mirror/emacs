@@ -365,7 +365,6 @@ It collects and prints the diagnostics messages."
 	(idlwave-help-diagnostics nil))
     ;; Check for frame switching.  When the command is invoked twice
     ;; at the same position, we try to switch to the help frame
-    ;; FIXME:  Frame switching works only on XEmacs
     (if (and idlwave-experimental
 	     (equal last-command this-command)
 	     (equal idlwave-last-context-help-pos marker))
@@ -1200,16 +1199,9 @@ Useful when source code is displayed as help.  See the option
     (setq idlwave-help-frame
 	  (make-frame idlwave-help-frame-parameters))
     ;; Strip menubar (?) and toolbar from the Help frame.
-    (if (fboundp 'set-specifier)
-	(progn
-	  ;; XEmacs
-	  (let ((sval (cons idlwave-help-frame nil)))
-	    ;; (set-specifier menubar-visible-p sval)
-	    (set-specifier default-toolbar-visible-p sval)))
-      ;; Emacs
-      (modify-frame-parameters idlwave-help-frame
-			       '(;;(menu-bar-lines . 0)
-				 (tool-bar-lines . 0)))))
+    (modify-frame-parameters idlwave-help-frame
+                             '(;;(menu-bar-lines . 0)
+                               (tool-bar-lines . 0))))
   (select-frame idlwave-help-frame))
 
 (defun idlwave-help-get-help-buffer ()
