@@ -1100,6 +1100,10 @@ background colors or transparency, such as xbm, pbm, svg, png and gif.
 ** EWW
 
 +++
+*** New user option 'eww-use-browse-url'.
+This is a regexp that can be set to alter how links are followed in eww.
+
++++
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.
