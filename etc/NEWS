@@ -482,6 +482,12 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user option 'gnus-paging-select-next'.
+This controls what happens when using commands like `SPC' and `DEL' to
+page the current article.  If non-nil (the default), go to the
+next/prev article, but if nil, do nothing at the end/start of the article.
+
++++
 *** New gnus-search library.
 A new unified search syntax which can be used across multiple
 supported search engines.  Set 'gnus-search-use-parsed-queries' to
