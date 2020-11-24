@@ -1909,7 +1909,7 @@ User will be queried, if no fileset name is provided."
 		       (substring (elt submenu 0) 2))))
     (if (listp submenu)
 	(cons name (cdr submenu))
-      (apply 'vector (list name (cdr (append submenu nil)))))))
+      (apply 'vector (list name (cadr (append submenu nil)))))))
 ;      (vconcat `[,name] (subseq submenu 1)))))
 
 (defun filesets-wrap-submenu (submenu-body)
