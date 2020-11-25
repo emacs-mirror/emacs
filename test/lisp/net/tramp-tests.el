@@ -4467,7 +4467,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should (processp proc))
 	      (should (equal (process-status proc) 'run))
 	      ;; On MS Windows, `process-tty-name' returns nil.
-	      (unless (tramp--test-windows-nt)
+	      (unless (tramp--test-windows-nt-p)
 		(should (stringp (process-tty-name proc))))))
 
 	;; Cleanup.
