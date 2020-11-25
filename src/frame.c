@@ -1426,11 +1426,15 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
       if (FRAMEP (gfocus))
 	{
 	  focus = FRAME_FOCUS_FRAME (XFRAME (gfocus));
-	  if ((FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
+	  if (FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
 	      /* Redirect frame focus also when FRAME has its minibuffer
-		 window on the selected frame (see Bug#24500).  */
+		 window on the selected frame (see Bug#24500).
+
+		 Don't do that: It causes redirection problem with a
+		 separate minibuffer frame (Bug#24803) and problems
+		 when updating the cursor on such frames.
 	      || (NILP (focus)
-		  && EQ (FRAME_MINIBUF_WINDOW (f), sf->selected_window)))
+		  && EQ (FRAME_MINIBUF_WINDOW (f), sf->selected_window)))  */
 	    Fredirect_frame_focus (gfocus, frame);
 	}
     }
