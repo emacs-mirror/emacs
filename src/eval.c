@@ -691,6 +691,45 @@ default_toplevel_binding (Lisp_Object symbol)
   return binding;
 }
 
+/* Look for a lexical-binding of SYMBOL somewhere up the stack.
+   This will only find bindings created with interpreted code, since once
+   compiled names of lexical variables are basically gone anyway.  */
+static bool
+lexbound_p (Lisp_Object symbol)
+{
+  union specbinding *pdl = specpdl_ptr;
+  while (pdl > specpdl)
+    {
+      switch ((--pdl)->kind)
+	{
+	case SPECPDL_LET_DEFAULT:
+	case SPECPDL_LET:
+	  if (EQ (specpdl_symbol (pdl), Qinternal_interpreter_environment))
+	    {
+	      Lisp_Object env = specpdl_old_value (pdl);
+	      if (CONSP (env) && !NILP (Fassq (symbol, env)))
+	        return true;
+	    }
+	  break;
+
+	case SPECPDL_UNWIND:
+	case SPECPDL_UNWIND_ARRAY:
+	case SPECPDL_UNWIND_PTR:
+	case SPECPDL_UNWIND_INT:
+	case SPECPDL_UNWIND_INTMAX:
+	case SPECPDL_UNWIND_EXCURSION:
+	case SPECPDL_UNWIND_VOID:
+	case SPECPDL_BACKTRACE:
+	case SPECPDL_LET_LOCAL:
+	  break;
+
+	default:
+	  emacs_abort ();
+	}
+    }
+  return false;
+}
+
 DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_value, 1, 1, 0,
        doc: /* Return SYMBOL's toplevel default value.
 "Toplevel" means outside of any let binding.  */)
@@ -726,6 +765,15 @@ This is like `defvar' and `defconst' but without affecting the variable's
 value.  */)
   (Lisp_Object symbol, Lisp_Object doc)
 {
+  if (!XSYMBOL (symbol)->u.s.declared_special
+      && lexbound_p (symbol))
+    /* This test tries to catch the situation where we do
+       (let ((<foo-var> ...)) ...(<foo-function> ...)....)
+       and where the `foo` package only gets loaded when <foo-function>
+       is called, so the outer `let` incorrectly made the binding lexical
+       because the <foo-var> wasn't yet declared as dynamic at that point.  */
+    error ("Defining as dynamic an already lexical var");
+
   XSYMBOL (symbol)->u.s.declared_special = true;
   if (!NILP (doc))
     {

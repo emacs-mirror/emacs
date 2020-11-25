@@ -1806,6 +1806,11 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
+---
+** `defvar` detects the error of defining a variable currently lexically bound.
+Such mixes are always signs that the outer lexical binding was an
+error and should have used dynamic binding instead.
+
 +++
 ** New completion function 'affixation-function' to add prefix/suffix.
 It accepts a list of completions and should return a list where
