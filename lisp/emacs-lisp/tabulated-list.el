@@ -767,6 +767,7 @@ as the ewoc pretty-printer."
   (setq-local revert-buffer-function #'tabulated-list-revert)
   (setq-local glyphless-char-display
               (tabulated-list-make-glyphless-char-display-table))
+  (setq-local text-scale-remap-header-line t)
   ;; Avoid messing up the entries' display just because the first
   ;; column of the first entry happens to begin with a R2L letter.
   (setq bidi-paragraph-direction 'left-to-right)

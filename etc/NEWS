@@ -1516,6 +1516,18 @@ mouse now pops up a TTY menu by default instead of running the command
 'tmm-menubar'.  To restore the old behavior, set the user option
 'tty-menu-open-use-tmm' to non-nil.
 
+** text-scale-mode
+
+---
+*** text-scale-mode can now adjust font size of the header line.
+When the new buffer local variable 'text-scale-remap-header-line'
+is non-nil, 'text-scale-adjust' will also scale the text in the header
+line when displaying that buffer.
+
+This is useful for major modes that arrange their display in a tabular
+form below the header line.  It is enabled by default in
+'tabulated-list-mode' and its derived modes.
+
 ** xwidget-webkit mode
 
 *** New xwidget commands.
