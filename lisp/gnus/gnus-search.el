@@ -1313,6 +1313,7 @@ of whichever date elements are present."
 	(pcase flag
 	  ("flag" "flagged")
 	  ("read" "seen")
+	  ("replied" "answered")
 	  (_ flag)))
   (if (member flag '("seen" "answered" "deleted" "draft" "flagged"))
       (upcase flag)
