@@ -8156,7 +8156,7 @@ the appropriate statement modifier."
 
 (defun cperl-pod2man-build-command ()
   "Builds the entire background manpage and cleaning command."
-  (let ((command (concat pod2man-program " %s 2>/dev/null"))
+  (let ((command (concat pod2man-program " %s 2>" null-device))
         (flist (and (boundp 'Man-filter-list) Man-filter-list)))
     (while (and flist (car flist))
       (let ((pcom (car (car flist)))

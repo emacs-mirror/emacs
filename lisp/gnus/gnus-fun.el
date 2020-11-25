@@ -286,8 +286,8 @@ colors of the displayed X-Faces."
     (setq file (car file))
     (with-temp-buffer
       (shell-command
-       (format "pnmcut -left 110 -top 30 -width 144 -height 144 '%s' | ppmnorm 2>/dev/null | pnmscale -width 48 | ppmtopgm | pgmtopbm -threshold -value 0.92 | pbmtoxbm | compface"
-	       file)
+       (format "pnmcut -left 110 -top 30 -width 144 -height 144 '%s' | ppmnorm 2>%s | pnmscale -width 48 | ppmtopgm | pgmtopbm -threshold -value 0.92 | pbmtoxbm | compface"
+	       file null-device)
        (current-buffer))
       ;;(sleep-for 3)
       (delete-file file)
