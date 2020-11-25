@@ -233,17 +233,6 @@ Each positive or negative step scales the default face height by this amount."
   "If non-nil, text scaling may change font size of header lines too.")
 (make-variable-buffer-local 'text-scale-header-line)
 
-(defun text-scale--refresh (symbol newval operation where)
-  "Watcher for `text-scale-remap-header-line'.
-See `add-variable-watcher'."
-  (when (and (eq symbol 'text-scale-remap-header-line)
-             (eq operation 'set)
-             text-scale-mode)
-    (with-current-buffer where
-      (let ((text-scale-remap-header-line newval))
-        (text-scale-mode 1)))))
-(add-variable-watcher 'text-scale-remap-header-line #'text-scale--refresh)
-
 (defun face-remap--clear-remappings ()
   (dolist (remapping
            ;; This is a bit messy to stay backwards compatible.
@@ -287,6 +276,17 @@ the font size of the header line."
     (when text-scale-remap-header-line
       (face-remap--remap-face 'header-line)))
   (force-window-update (current-buffer)))
+
+(defun text-scale--refresh (symbol newval operation where)
+  "Watcher for `text-scale-remap-header-line'.
+See `add-variable-watcher'."
+  (when (and (eq symbol 'text-scale-remap-header-line)
+             (eq operation 'set)
+             text-scale-mode)
+    (with-current-buffer where
+      (let ((text-scale-remap-header-line newval))
+        (text-scale-mode 1)))))
+(add-variable-watcher 'text-scale-remap-header-line #'text-scale--refresh)
 
 (defun text-scale-min-amount ()
   "Return the minimum amount of text-scaling we allow."
