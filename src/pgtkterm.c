@@ -1004,8 +1004,6 @@ x_set_cursor_gc (struct glyph_string *s)
       PGTK_TRACE ("x_set_cursor_gc: 6. %08lx, %08lx.", xgcv.background,
 		  xgcv.foreground);
 
-      IF_DEBUG (x_check_font (s->f, s->font));
-
       s->xgcv = xgcv;
     }
 }
