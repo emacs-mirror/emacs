@@ -5477,15 +5477,16 @@ With ARG, rotate that many kills forward (or backward, if negative)."
          (completions
           (mapcar (lambda (s)
                     (let* ((s (query-replace-descr s))
-                           (b 0))
+                           (b 0)
+                           (limit (frame-width)))
                       ;; Add ellipsis on leading whitespace
                       (when (string-match "\\`[[:space:]]+" s)
                         (setq b (match-end 0))
                         (add-text-properties 0 b `(display ,ellipsis) s))
                       ;; Add ellipsis at the end of a long string
-                      (when (> (length s) (+ 40 b))
+                      (when (> (length s) (+ limit b))
                         (add-text-properties
-                         (min (+ 40 b) (length s)) (length s)
+                         (min (+ limit b) (length s)) (length s)
                          `(display ,ellipsis) s))
                       s))
                   read-from-kill-ring-history)))

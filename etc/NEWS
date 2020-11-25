@@ -1346,6 +1346,9 @@ When non-nil, some commands like 'describe-symbol' show more detailed
 completions with more information in completion prefix and suffix.
 
 ---
+*** User option 'completions-format' supports a new value 'one-column'.
+
+---
 *** New user option 'bibtex-unify-case-convert'.
 This new option allows the user to customize how case is converted
 when unifying entries.

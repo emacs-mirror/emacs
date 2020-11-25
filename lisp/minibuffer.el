@@ -1679,9 +1679,11 @@ Return nil if there is no valid completion, else t."
   "Define the appearance and sorting of completions.
 If the value is `vertical', display completions sorted vertically
 in columns in the *Completions* buffer.
-If the value is `horizontal', display completions sorted
-horizontally in alphabetical order, rather than down the screen."
-  :type '(choice (const horizontal) (const vertical))
+If the value is `horizontal', display completions sorted in columns
+horizontally in alphabetical order, rather than down the screen.
+If the value is `one-column', display completions down the screen
+in one column."
+  :type '(choice (const horizontal) (const vertical) (const one-column))
   :version "23.2")
 
 (defcustom completions-detailed nil
@@ -1727,6 +1729,9 @@ It also eliminates runs of equal strings."
                             (apply #'+ (mapcar #'string-width str))
                           (string-width str))))
             (cond
+             ((eq completions-format 'one-column)
+              ;; Nothing special
+              )
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
 	      (when (> row rows)
@@ -1790,6 +1795,8 @@ It also eliminates runs of equal strings."
                     (font-lock-prepend-text-property
                      beg end 'face 'completions-annotations)))))
 	    (cond
+             ((eq completions-format 'one-column)
+              (insert "\n"))
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
 	      (if (> column 0)
