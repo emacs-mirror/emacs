@@ -1798,6 +1798,13 @@ buffer.  This function must accept one argument, a completion, and
 should either return @code{nil} or a string to be displayed next to
 the completion.
 
+@item :affixation-function
+The value should be a function to add prefixes and suffixes to
+completions.  This function must accept one argument, a list of
+completions, and should return such a list of completions where
+each element contains a list of three elements: a completion,
+a prefix string, and a suffix string.
+
 @item :exit-function
 The value should be a function to run after performing completion.
 The function should accept two arguments, @var{string} and
@@ -1896,6 +1903,15 @@ The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
 completion.  It should return a string, which is displayed after the
 completion @var{string} in the @file{*Completions*} buffer.
+
+@item affixation-function
+The value should be a function for adding prefixes and suffixes to
+completions.  The function should take one argument,
+@var{completions}, which is a list of possible completions.  It should
+return such a list of @var{completions} where each element contains a list
+of three elements: a completion, a prefix which is displayed before
+the completion string in the @file{*Completions*} buffer, and
+a suffix displayed after the completion string.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function
