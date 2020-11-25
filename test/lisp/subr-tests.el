@@ -545,7 +545,11 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                             (match-beginning 1) (match-end 1)))
                   "babbcaacabc")
                  "b<abbc,0,4,1,3>a<ac,0,2,1,1><abc,0,3,1,2>"))
-  )
+  ;; anchors (bug#15107, bug#44861)
+  (should (equal (replace-regexp-in-string "a\\B" "b" "a aaaa")
+                 "a bbba"))
+  (should (equal (replace-regexp-in-string "\\`\\|x" "z" "--xx--")
+                 "z--zz--")))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

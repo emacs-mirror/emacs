@@ -4546,10 +4546,9 @@ and replace a sub-expression, e.g.
 	(when (= me mb) (setq me (min l (1+ mb))))
 	;; Generate a replacement for the matched substring.
 	;; Operate on only the substring to minimize string consing.
-	;; Set up match data for the substring for replacement;
-	;; presumably this is likely to be faster than munging the
-	;; match data directly in Lisp.
-	(string-match regexp (setq str (substring string mb me)))
+        ;; Translate the match data so that it applies to the matched substring.
+        (match-data--translate (- mb))
+        (setq str (substring string mb me))
 	(setq matches
 	      (cons (replace-match (if (stringp rep)
 				       rep
