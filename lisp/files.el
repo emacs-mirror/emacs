@@ -2678,6 +2678,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.dir-locals\\(?:-2\\)?\\.el\\'" . lisp-data-mode)
      ("eww-bookmarks\\'" . lisp-data-mode)
      ("tramp\\'" . lisp-data-mode)
+     ("/archive-contents\\'" . lisp-data-mode)
      ("places\\'" . lisp-data-mode)
      ("\\.emacs-places\\'" . lisp-data-mode)
      ("\\.el\\'" . emacs-lisp-mode)
