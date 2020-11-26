@@ -5441,6 +5441,25 @@ x_find_modifier_meanings (struct pgtk_display_info *dpyinfo)
     {
       dpyinfo->super_mod_mask = GDK_MOD4_MASK;
     }
+
+  state = GDK_HYPER_MASK;
+  r = gdk_keymap_map_virtual_modifiers (keymap, &state);
+  if (r)
+    {
+      /* Hyper key exists. */
+      if (state == GDK_HYPER_MASK)
+	{
+	  dpyinfo->hyper_mod_mask = GDK_MOD3_MASK;	/* maybe this is hyper. */
+	}
+      else
+	{
+	  dpyinfo->hyper_mod_mask = state & ~GDK_HYPER_MASK;
+	}
+    }
+  else
+    {
+      dpyinfo->hyper_mod_mask = GDK_MOD3_MASK;
+    }
 }
 
 static void
@@ -5497,7 +5516,7 @@ pgtk_gtk_to_emacs_modifiers (struct pgtk_display_info *dpyinfo, int state)
     mod |= mod_alt;
   if (state & dpyinfo->super_mod_mask)
     mod |= mod_super;
-  if (state & GDK_HYPER_MASK)
+  if (state & dpyinfo->hyper_mod_mask)
     mod |= mod_hyper;
   return mod;
 }
@@ -5521,7 +5540,7 @@ pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *dpyinfo, int state)
   if (state & mod_super)
     mask |= dpyinfo->super_mod_mask;
   if (state & mod_hyper)
-    mask |= GDK_HYPER_MASK;
+    mask |= dpyinfo->hyper_mod_mask;
   if (state & shift_modifier)
     mask |= GDK_SHIFT_MASK;
   if (state & mod_ctrl)
@@ -5613,10 +5632,10 @@ key_press_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
     {
       /* While super is pressed, gtk_im_context_filter_keypress() always process the
        * key events ignoring super.
-       * As a work around, don't call it while super is pressed...
+       * As a work around, don't call it while super or hyper are pressed...
        */
       struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-      if (!(event->key.state & dpyinfo->super_mod_mask))
+      if (!(event->key.state & (dpyinfo->super_mod_mask | dpyinfo->hyper_mod_mask)))
 	{
 	  if (pgtk_im_filter_keypress (f, &event->key))
 	    return TRUE;
