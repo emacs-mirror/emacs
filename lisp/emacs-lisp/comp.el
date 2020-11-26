@@ -38,6 +38,7 @@
 (require 'rx)
 (require 'subr-x)
 (require 'warnings)
+(require 'comp-cstr)
 
 (defgroup comp nil
   "Emacs Lisp native compiler."
@@ -267,6 +268,16 @@ Useful to hook into pass checkers.")
     (comp-hint-cons (function (t) cons)))
   "Alist used for type propagation.")
 
+(defconst comp-known-func-cstr-h
+  (cl-loop
+   with comp-ctxt = (make-comp-cstr-ctxt)
+   with h = (make-hash-table :test #'eq)
+   for (f type-spec) in comp-known-type-specifiers
+   for cstr = (comp-type-spec-to-cstr type-spec)
+   do (puthash f cstr h)
+   finally (cl-return h))
+  "Hash table function -> `comp-constraint'")
+
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
   "Symbol values we can resolve in the compile-time.")
@@ -326,7 +337,7 @@ Useful to hook into pass checkers.")
   (idx (make-hash-table :test #'equal) :type hash-table
        :documentation "Obj -> position into the previous field."))
 
-(cl-defstruct comp-ctxt
+(cl-defstruct (comp-ctxt (:include comp-cstr-ctxt))
   "Lisp side of the compiler context."
   (output nil :type string
           :documentation "Target output file-name for the compilation.")
@@ -356,13 +367,7 @@ This is typically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
-                  :documentation "When non-nil support late load.")
-  (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
-                      :documentation "Serve memoization for
-`comp-union-typesets'.")
-  (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
-                        :documentation "Serve memoization for
-`comp-common-supertype'."))
+                  :documentation "When non-nil support late load."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -489,26 +494,8 @@ CFG is mutated by a pass.")
   (lambda-list nil :type list
         :documentation "Original lambda-list."))
 
-(cl-defstruct comp-constraint
-  "Internal representation of a type/value constraint."
-  (typeset '(t) :type list
-           :documentation "List of possible types the mvar can assume.
-Each element cannot be a subtype of any other element of this slot.")
-  (valset '() :type list
-          :documentation "List of possible values the mvar can assume.
-Integer values are handled in the `range' slot.")
-  (range '() :type list
-         :documentation "Integer interval."))
-
-(cl-defstruct comp-constraint-f
-  "Internal constraint representation for a function."
-  (args nil :type (or null list)
-        :documentation "List of `comp-constraint' for its arguments.")
-  (ret nil :type (or comp-constraint comp-constraint-f)
-       :documentation "Returned value `comp-constraint'."))
-
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar)
-                         (:include comp-constraint))
+                         (:include comp-cstr))
   "A meta-variable being a slot in the meta-stack."
   (id nil :type (or null number)
       :documentation "Unique id when in SSA form.")
@@ -591,108 +578,6 @@ To be used by all entry points."
     (error "Emacs not compiled with native compiler support (--with-nativecomp)"))
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit"))))
-
-(cl-defun comp-type-spec-to-constraint (type-specifier)
-  "Destructure TYPE-SPECIFIER.
-Return the corresponding `comp-constraint' or `comp-constraint-f'."
-  (let (typeset valset range)
-    (cl-labels ((star-or-num (x)
-                  (or (numberp x) (eq '* x)))
-                (destructure-push (x)
-                  (pcase x
-                    ('&optional
-                     (cl-return-from comp-type-spec-to-constraint '&optional))
-                    ('&rest
-                     (cl-return-from comp-type-spec-to-constraint '&rest))
-                    ('null
-                     (push nil valset))
-                    ('boolean
-                     (push t valset)
-                     (push nil valset))
-                    ('fixnum
-                     (push `(,most-negative-fixnum . ,most-positive-fixnum)
-                           range))
-                    ('bignum
-                     (push `(- . ,(1- most-negative-fixnum))
-                           range)
-                     (push `(,(1+ most-positive-fixnum) . +)
-                           range))
-                    ((pred symbolp)
-                     (push x typeset))
-                    (`(member . ,rest)
-                     (setf valset (append rest valset)))
-                    ('(integer * *)
-                     (push '(- . +) range))
-                    (`(integer ,(and low (pred integerp)) *)
-                     (push `(,low . +) range))
-                    (`(integer * ,(and high (pred integerp)))
-                     (push `(- . ,high) range))
-                    (`(integer ,(and low (pred integerp))
-                               ,(and high (pred integerp)))
-                     (push `(,low . ,high) range))
-                    (`(float ,(pred star-or-num) ,(pred star-or-num))
-                     ;; No float range support :/
-                     (push 'float typeset))
-                    (`(function ,args ,ret-type-spec)
-                     (cl-return-from
-                         comp-type-spec-to-constraint
-                       (make-comp-constraint-f
-                        :args (mapcar #'comp-type-spec-to-constraint args)
-                        :ret (comp-type-spec-to-constraint ret-type-spec))))
-                    (_ (error "Unsopported type specifier")))))
-      (if (or (atom type-specifier)
-              (memq (car type-specifier) '(member integer float function)))
-          (destructure-push type-specifier)
-        (if (eq (car type-specifier) 'or)
-            (mapc #'destructure-push (cdr type-specifier))
-          (error "Unsopported type specifier")))
-      (make-comp-constraint :typeset typeset
-                      :valset valset
-                      :range range))))
-
-(defconst comp-known-constraints-h
-  (let ((h (make-hash-table :test #'eq)))
-    (cl-loop
-     for (f type-spec) in comp-known-type-specifiers
-     for constr = (comp-type-spec-to-constraint type-spec)
-     do (puthash f constr h))
-    h)
-  "Hash table function -> `comp-constraint'")
-
-(defun comp-constraint-to-type-spec (mvar)
-  "Given MVAR return its type specifier."
-  (let ((valset (comp-mvar-valset mvar))
-        (typeset (comp-mvar-typeset mvar))
-        (range (comp-mvar-range mvar)))
-
-    (when valset
-      (when (memq nil valset)
-        (if (memq t valset)
-            (progn
-              ;; t and nil are values, convert into `boolean'.
-              (push 'boolean typeset)
-              (setf valset (remove t (remove nil valset))))
-          ;; Only nil is a value, convert it into a `null' type specifier.
-          (setf valset (remove nil valset))
-          (push 'null typeset))))
-
-    ;; Form proper integer type specifiers.
-    (setf range (cl-loop for (l . h) in range
-                             for low = (if (integerp l) l '*)
-                             for high = (if (integerp h) h '*)
-                             collect `(integer ,low , high))
-          valset (cl-remove-duplicates valset))
-
-    ;; Form the final type specifier.
-    (let ((res (append typeset
-                       (when valset
-                         `((member ,@valset)))
-                       range)))
-      (if (> (length res) 1)
-          `(or ,@res)
-        (if (memq (car-safe res) '(member integer))
-            res
-          (car res))))))
 
 (defun comp-set-op-p (op)
   "Assignment predicate for OP."
@@ -2392,143 +2277,6 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 ;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
-(defconst comp--typeof-types (mapcar (lambda (x)
-                                       (append x '(t)))
-                                     cl--typeof-types)
-  ;; TODO can we just add t in `cl--typeof-types'?
-  "Like `cl--typeof-types' but with t as common supertype.")
-
-(defun comp-supertypes (type)
-  "Return a list of pairs (supertype . hierarchy-level) for TYPE."
-  (cl-loop
-   named outer
-   with found = nil
-   for l in comp--typeof-types
-   do (cl-loop
-       for x in l
-       for i from (length l) downto 0
-       when (eq type x)
-         do (setf found t)
-       when found
-         collect `(,x . ,i) into res
-       finally (when found
-                 (cl-return-from outer res)))))
-
-(defun comp-common-supertype-2 (type1 type2)
-  "Return the first common supertype of TYPE1 TYPE2."
-  (when-let ((types (cl-intersection
-                     (comp-supertypes type1)
-                     (comp-supertypes type2)
-                     :key #'car)))
-    (car (cl-reduce (lambda (x y)
-                      (if (> (cdr x) (cdr y)) x y))
-                    types))))
-
-(defun comp-common-supertype (&rest types)
-  "Return the first common supertype of TYPES."
-  (or (gethash types (comp-ctxt-common-supertype-mem comp-ctxt))
-      (puthash types
-               (cl-reduce #'comp-common-supertype-2 types)
-               (comp-ctxt-common-supertype-mem comp-ctxt))))
-
-(defsubst comp-subtype-p (type1 type2)
-  "Return t if TYPE1 is a subtype of TYPE1 or nil otherwise."
-  (eq (comp-common-supertype-2 type1 type2) type2))
-
-(defun comp-union-typesets (&rest typesets)
-  "Union types present into TYPESETS."
-  (or (gethash typesets (comp-ctxt-union-typesets-mem comp-ctxt))
-      (puthash typesets
-               (cl-loop
-                with types = (apply #'append typesets)
-                with res = '()
-                for lane in comp--typeof-types
-                do (cl-loop
-                    with last = nil
-                    for x in lane
-                    when (memq x types)
-                      do (setf last x)
-                    finally (when last
-                              (push last res)))
-                finally (cl-return (cl-remove-duplicates res)))
-               (comp-ctxt-union-typesets-mem comp-ctxt))))
-
-(defsubst comp-range-1+ (x)
-  (if (symbolp x)
-      x
-    (1+ x)))
-
-(defsubst comp-range-1- (x)
-  (if (symbolp x)
-      x
-    (1- x)))
-
-(defsubst comp-range-< (x y)
-  (cond
-   ((eq x '+) nil)
-   ((eq x '-) t)
-   ((eq y '+) t)
-   ((eq y '-) nil)
-   (t (< x y))))
-
-(defun comp-range-union (&rest ranges)
-  "Combine integer intervals RANGES by union operation."
-  (cl-loop
-   with all-ranges = (apply #'append ranges)
-   with lows = (mapcar (lambda (x)
-                         (cons (comp-range-1- (car x)) 'l))
-                       all-ranges)
-   with highs = (mapcar (lambda (x)
-                          (cons (cdr x) 'h))
-                        all-ranges)
-   with nest = 0
-   with low = nil
-   with res = ()
-   for (i . x) in (cl-sort (nconc lows highs) #'comp-range-< :key #'car)
-   if (eq x 'l)
-   do
-   (when (zerop nest)
-     (setf low i))
-   (cl-incf nest)
-   else
-   do
-   (when (= nest 1)
-     (push `(,(comp-range-1+ low) . ,i) res))
-   (cl-decf nest)
-   finally (cl-return (reverse res))))
-
-(defun comp-range-intersection (&rest ranges)
-  "Combine integer intervals RANGES by intersecting."
-  (cl-loop
-   with all-ranges = (apply #'append ranges)
-   with n-ranges = (length ranges)
-   with lows = (mapcar (lambda (x)
-                         (cons (car x) 'l))
-                       all-ranges)
-   with highs = (mapcar (lambda (x)
-                          (cons (cdr x) 'h))
-                        all-ranges)
-   with nest = 0
-   with low = nil
-   with res = ()
-   initially (when (cl-some #'null ranges)
-               ;; Intersecting with a null range always results in a
-               ;; null range.
-               (cl-return '()))
-   for (i . x) in (cl-sort (nconc lows highs) #'comp-range-< :key #'car)
-   if (eq x 'l)
-   do
-   (cl-incf nest)
-   (when (= nest n-ranges)
-     (setf low i))
-   else
-   do
-   (when (= nest n-ranges)
-     (push `(,low . ,i)
-           res))
-   (cl-decf nest)
-   finally (cl-return (reverse res))))
-
 (defun comp-copy-insn (insn)
   "Deep copy INSN."
   ;; Adapted from `copy-tree'.
@@ -2615,55 +2363,16 @@ Return non-nil if the function is folded successfully."
                (value (comp-apply-in-env f (mapcar #'comp-mvar-value args))))
           (rewrite-insn-as-setimm insn value)))))))
 
-(defun comp-phi (lval &rest rvals)
-  "Phi function propagating RVALS into LVAL.
-Return LVAL."
-  (let* ((rhs-mvars (mapcar #'car rvals))
-         (values (mapcar #'comp-mvar-valset rhs-mvars))
-         (from-latch (cl-some
-                      (lambda (x)
-                        (comp-latch-p
-                         (gethash (cdr x)
-                                  (comp-func-blocks comp-func))))
-                      rvals)))
-
-    ;; Type propagation.
-    (setf (comp-mvar-typeset lval)
-          (apply #'comp-union-typesets (mapcar #'comp-mvar-typeset rhs-mvars)))
-
-    ;; Value propagation.
-    (setf (comp-mvar-valset lval)
-          (cl-loop
-           for v in (cl-remove-duplicates (apply #'append values)
-                                          :test #'equal)
-           ;; We propagate only values those types are not already
-           ;; into typeset.
-           when (cl-notany (lambda (x)
-                             (comp-subtype-p (type-of v) x))
-                           (comp-mvar-typeset lval))
-             collect v))
-
-    ;; Range propagation
-    (setf (comp-mvar-range lval)
-          (when (and (not from-latch)
-                     (cl-notany (lambda (x)
-                                  (comp-subtype-p 'integer x))
-                                (comp-mvar-typeset lval)))
-            ;; TODO memoize?
-            (apply #'comp-range-union
-                   (mapcar #'comp-mvar-range rhs-mvars))))
-    lval))
-
 (defun comp-fwprop-call (insn lval f args)
   "Propagate on a call INSN into LVAL.
 F is the function being called with arguments ARGS.
 Fold the call in case."
   (unless (comp-function-call-maybe-fold insn f args)
-    (when-let ((constr (gethash f comp-known-constraints-h)))
-      (let ((constr (comp-constraint-f-ret constr)))
-        (setf (comp-mvar-range lval) (comp-constraint-range constr)
-              (comp-mvar-valset lval) (comp-constraint-valset constr)
-              (comp-mvar-typeset lval) (comp-constraint-typeset constr))))))
+    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+      (let ((cstr (comp-cstr-f-ret cstr-f)))
+        (setf (comp-mvar-range lval) (comp-cstr-range cstr)
+              (comp-mvar-valset lval) (comp-cstr-valset cstr)
+              (comp-mvar-typeset lval) (comp-cstr-typeset cstr))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
@@ -2695,7 +2404,17 @@ Fold the call in case."
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
-     (apply #'comp-phi lval rest))))
+     (let* ((from-latch (cl-some
+                         (lambda (x)
+                           (comp-latch-p
+                            (gethash (cdr x)
+                                     (comp-func-blocks comp-func))))
+                         rest))
+            (prop-fn (if from-latch
+                         #'comp-cstr-union-no-range
+                       #'comp-cstr-union))
+            (rvals (mapcar #'car rest)))
+       (apply prop-fn lval rvals)))))
 
 (defun comp-fwprop* ()
   "Propagate for set* and phi operands.
@@ -2966,8 +2685,8 @@ These are substituted with a normal 'set' op."
   "Compute type specifier for `comp-func' FUNC.
 Set it into the `ret-type-specifier' slot."
   (let* ((comp-func (make-comp-func))
-         (res-mvar (apply #'comp-phi
-                          (make-comp-mvar)
+         (res-mvar (apply #'comp-cstr-union
+                          (make-comp-cstr)
                           (cl-loop
                            with res = nil
                            for bb being the hash-value in (comp-func-blocks
@@ -2978,10 +2697,10 @@ Set it into the `ret-type-specifier' slot."
                                ;; mvars and union results.
                                do (pcase insn
                                     (`(return ,mvar)
-                                     (push `(,mvar . nil) res))))
+                                     (push mvar res))))
                            finally (cl-return res)))))
     (setf (comp-func-ret-type-specifier func)
-          (comp-constraint-to-type-spec res-mvar))))
+          (comp-cstr-to-type-spec res-mvar))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."

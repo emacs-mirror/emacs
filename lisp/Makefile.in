@@ -114,6 +114,7 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc
 ifeq ($(HAVE_NATIVE_COMP),yes)
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
 endif
 COMPILE_FIRST += $(lisp)/emacs-lisp/autoload.elc
 
