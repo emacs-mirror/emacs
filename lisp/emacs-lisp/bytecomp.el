@@ -1746,7 +1746,7 @@ Files in subdirectories of DIRECTORY are processed also."
   (byte-recompile-directory directory nil t))
 
 ;;;###autoload
-(defun byte-recompile-directory (directory &optional arg force)
+(defun byte-recompile-directory (directory &optional arg force follow-symlinks)
   "Recompile every `.el' file in DIRECTORY that needs recompilation.
 This happens when a `.elc' file exists but is older than the `.el' file.
 Files in subdirectories of DIRECTORY are processed also.
@@ -1759,7 +1759,11 @@ compile it.  A nonzero ARG also means ask about each subdirectory
 before scanning it.
 
 If the third argument FORCE is non-nil, recompile every `.el' file
-that already has a `.elc' file."
+that already has a `.elc' file.
+
+This command will normally not follow symlinks when compiling
+files.  If FOLLOW-SYMLINKS is non-nil, symlinked `.el' files will
+also be compiled."
   (interactive "DByte recompile directory: \nP")
   (if arg (setq arg (prefix-numeric-value arg)))
   (if noninteractive
@@ -1792,7 +1796,8 @@ that already has a `.elc' file."
 	     (if (file-directory-p source)
 		 (and (not (member file '("RCS" "CVS")))
 		      (not (eq ?\. (aref file 0)))
-		      (not (file-symlink-p source))
+                      (or follow-symlinks
+		          (not (file-symlink-p source)))
 		      ;; This file is a subdirectory.  Handle them differently.
 		      (or (null arg) (eq 0 arg)
 			  (y-or-n-p (concat "Check " source "? ")))
