@@ -1,13 +1,13 @@
 Didacticiel d'Emacs.  Voir la fin de ce document pour les conditions.
 
 Les commandes Emacs utilisent généralement la touche CONTROLE (souvent
-désignée par CTRL ou CTL) ou la touche META (souvent désignée par EDIT
-ou ALT). Pour ces touches, nous utiliserons les abréviations suivantes :
+désignée par CTRL) ou la touche META (plus souvent désignée par ALT).
+Pour ces touches, nous utiliserons les abréviations suivantes :
 
  C-<car> signifie qu'il faut maintenir la touche CONTROLE appuyée tout
          en tapant le caractère <car>. Ainsi, C-f signifie : presser
          sur la touche CONTROLE tout en pressant la touche f.
- M-<car> signifie qu'il faut maintenir la touche META ou EDIT ou ALT
+ M-<car> signifie qu'il faut maintenir la touche META ou ALT
 	 appuyée tout en tapant le caractère <car>. Si aucune de ces
 	 touches n'existe, pressez puis relâchez la touche ESC et
 	 tapez <car>. Nous écrirons <ESC> pour désigner la touche ESC.
@@ -31,7 +31,7 @@ La première chose que vous devez savoir est comment vous déplacer à
 travers le texte. Vous savez déjà comment avancer d'un écran avec
 C-v. Pour revenir un écran en arrière, tapez M-v (pressez la touche
 META tout en appuyant sur v ou faites <ESC>v si vous n'avez pas de
-touche META, EDIT ou ALT).
+touche META ou ALT).
 
 >> Faites M-v, puis C-v plusieurs fois.
 
@@ -208,7 +208,7 @@ La plupart des commandes Emacs acceptent un paramètre numérique qui,
 la plupart du temps, indique un nombre de répétitions. Pour indiquer à
 une commande le nombre de fois que l'on souhaite la répéter, on
 utilise C-u suivi du nombre avant de taper la commande. Si vous avez
-une touche META (ou EDIT ou ALT), il existe une autre façon d'entrer
+une touche META (ou ALT), il existe une autre façon d'entrer
 un paramètre numérique : tapez le nombre tout en pressant la touche
 META. Nous vous conseillons d'apprendre à utiliser la méthode C-u car
 elle fonctionne sur tous les types de terminaux. Le paramètre
@@ -1101,7 +1101,7 @@ suffisant pour vous rappeler les commandes que vous avez déjà
 apprises.
 
 Les commandes multi-caractères, comme C-x C-s et (si vous n'avez ni
-touche META, ni touche EDIT, ni touche ALT) <ESC>v sont également
+touche META, ni touche ALT) <ESC>v sont également
 possibles après C-h c.
 
 Pour obtenir plus d'informations sur une commande, faites C-h k au

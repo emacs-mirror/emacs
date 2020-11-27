@@ -1,8 +1,8 @@
 Einführung in Emacs.  Siehe Dateiende für Vervielfältigungsbedingungen.
 
 Emacs-Befehle beinhalten im allgemeinen die CONTROL-Taste (manchmal
-auch als CTRL, CTL oder STRG beschriftet) sowie die META-Taste (auch
-EDIT oder ALT genannt).  Folgende Abkürzungen werden verwendet:
+auch als CTRL oder STRG beschriftet) sowie die META-Taste (oft
+ALT genannt).  Folgende Abkürzungen werden verwendet:
 
  C-<Zeichen>  bedeutet, dass die CONTROL-Taste gedrückt sein muss,
               während man das Zeichen <Zeichen> eingibt.  Beispiel:
@@ -264,7 +264,7 @@ Die meisten Emacs-Befehle akzeptieren ein numerisches Argument, das in
 der Regel als Wiederholungszähler dient (d.h., wie oft der Befehl
 ausgeführt werden soll).  Eingegeben wird diese Zahl mit C-u, dann die
 Ziffern und dann der Befehl selbst.  Alternativ können Sie die
-META-Taste (bzw. EDIT- oder ALT-Taste) gedrückt halten und dann die
+META-Taste (oder ALT-Taste) gedrückt halten und dann die
 Ziffern des Wiederholungszählers eingeben.  Wir empfehlen allerdings,
 die C-u-Methode zu lernen, da sie mit jedem Terminal funktioniert.
 Das numerische Argument wird auch »Präfix-Argument« genannt, da man es
