@@ -1,14 +1,16 @@
 Emacs användarhandledning. I slutet finns kopieringsvillkoren.
 
-Emacs-kommandon innebär ofta användning av kontrolltangenten (vanligen
-märkt CTRL eller CTL) eller META-tangenten (på vissa tangentbord märkt
-ALT eller EDIT). Vi använder här följande förkortningar:
+Emacs-kommandon använder ofta kontrolltangenten (vanligen märkt CTRL
+eller CTL) eller META-tangenten (på vissa tangentbord märkt ALT).
+Istället för att skriva ut deras namn varje gång använder vi följande
+förkortningar:
 
  C-<chr> håll ner kontrolltangenten samtidigt som du skriver bokstaven
          <chr>. C-f betyder: håll ner kontrolltangenten och tryck f.
- M-<chr> håll ner META-tangenten samtidigt som du skriver <chr>. Om
-         META-tangent saknas trycker du <ESC>, ESC-tangenten, släpper
-         den och trycker sedan <chr>.
+ M-<chr> håll ner META- eller ALT-tangenten samtidigt som du skriver
+         <chr>. Om det inte finns någon META- eller ALT-tangent
+         trycker du på ESC-tangenten, släpper den och trycker sedan
+         <chr>. När vi skriver <ESC> menar vi ESC-tangenten.
 
 Viktigt: För att avsluta Emacs trycker du C-x C-c (två tecken).
 För att avsluta kommandon som inte skrivits in fullt, tryck C-g.
@@ -35,7 +37,7 @@ Det första du behöver veta är hur du manövrerar från plats till plats
 i texten. Du har redan lärt dig hur du flyttar en skärmbild framåt,
 med C-v. För att flytta dig en skärmbild bakåt trycker du M-v. (Håll
 ned META-tangenten och tryck v eller tryck <ESC>v om du inte har
-META-, EDIT- eller ALT-tangent.)
+en META- eller ALT-tangent.)
 
 >> Prova att trycka M-v och C-v några gånger.
 
@@ -205,12 +207,11 @@ de mer avancerade kontrollfunktionerna.
 De flesta kommandon i Emacs tar ett numeriskt argument och för de
 flesta kommandon leder detta till att de repeteras. Ett numeriskt
 argument anges genom att du skriver C-u och sedan talet, innan du
-skriver kommandot. Om du har en META- (eller EDIT- eller ALT-) tangent
-så finns det ett annat alternativ för att ge numeriska argument: skriv
-talet medan du håller ned META-tangenten. Vi föreslår att du använder
-C-u för det fungerar på alla slags terminaler. Det numeriska
-argumentet kallas också för "prefixargument" eftersom det skrivs före
-kommandot.
+skriver kommandot. Om du har en META- eller ALT-tangent så finns det
+ett annat alternativ för att ge numeriska argument: skriv talet medan
+du håller ned META-tangenten. Vi föreslår att du använder C-u för det
+fungerar på alla slags terminaler. Det numeriska argumentet kallas
+också för "prefixargument" eftersom det skrivs före kommandot.
 
 Till exempel: C-u 8 C-f flyttar markören åtta steg framåt.
 
@@ -641,7 +642,7 @@ vill spara eller ej.
 * UTVIDGNING AV KOMMANDOMÄNGDEN
 -------------------------------
 
-Det finns mycket fler Emacs-kommandon än antalet KONTROLL- eller
+Det finns många fler Emacs-kommandon än antalet KONTROLL- eller
 META-tangenter. För att komma förbi denna begränsning har Emacs ett
 "X"- (eXtend) kommando. Detta finns i två varianter:
 
@@ -1042,8 +1043,7 @@ beskrivande namn kan de också fungera som en enkel dokumentation,
 tillräckligt för att påminna dig om kommandon du redan lärt dig.
 
 Flerteckenskommandon, så som C-x C-s och <ESC>v (i stället för M-v, om
-du inte har META, EDIT eller ALT tangenten) är också tillåtna efter
-C-h c.
+du inte har META- eller ALT-tangenten) är också tillåtna efter C-h c.
 
 För att få mer information om ett kommando kan du använda C-h k
 istället för C-h c.
