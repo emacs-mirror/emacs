@@ -77,8 +77,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
    is empty or l or the value of the pD or pI or PRIdMAX (sans "d") macros.
    A % that does not introduce a valid %-sequence causes undefined behavior.
-   ASCII bytes in FORMAT other than % are copied through as-is;
-   non-ASCII bytes should not appear in FORMAT.
+   Bytes in FORMAT other than % are copied through as-is.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -175,7 +174,13 @@ doprnt_non_null_end (char *buffer, ptrdiff_t bufsize, char const *format,
    Returns the number of bytes stored into BUFFER, excluding
    the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
-   Integers are passed as C integers.  */
+   Integers are passed as C integers.
+
+   FIXME: If FORMAT_END is not at a character boundary
+   doprnt_non_null_end will cut the string in the middle of the
+   character and the returned string will have an incomplete character
+   sequence at the end.  We may prefer to cut at a character
+   boundary.  */
 
 ptrdiff_t
 doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
@@ -486,14 +491,25 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	src = uLSQM, srclen = sizeof uLSQM - 1;
       else if (EQ (quoting_style, Qcurve) && fmtchar == '\'')
 	src = uRSQM, srclen = sizeof uRSQM - 1;
-      else
+      else if (! LEADING_CODE_P (fmtchar))
 	{
 	  if (EQ (quoting_style, Qstraight) && fmtchar == '`')
 	    fmtchar = '\'';
-	  eassert (ASCII_CHAR_P (fmtchar));
+
 	  *bufptr++ = fmtchar;
 	  continue;
 	}
+      else
+        {
+          int charlen = BYTES_BY_CHAR_HEAD (fmtchar);
+          src = fmt0;
+
+          /* If the format string ends in the middle of a multibyte
+             character we don't want to skip over the NUL byte.  */
+          for (srclen = 1 ; *(src + srclen) != 0 && srclen < charlen ; srclen++);
+
+          fmt = src + srclen;
+        }
 
       if (bufsize < srclen)
 	{
