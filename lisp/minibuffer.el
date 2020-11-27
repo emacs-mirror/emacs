@@ -1134,6 +1134,7 @@ completion candidates than this number."
 (defvar-local completion-all-sorted-completions nil)
 (defvar-local completion--all-sorted-completions-location nil)
 (defvar completion-cycling nil)      ;Function that takes down the cycling map.
+(defvar completion-tab-width nil)
 
 (defvar completion-fail-discreetly nil
   "If non-nil, stay quiet when there  is no match.")
@@ -1718,6 +1719,11 @@ It also eliminates runs of equal strings."
 	   (row 0)
            (first t)
 	   (laststring nil))
+      (unless (or tab-stop-list (null completion-tab-width)
+                  (zerop (mod colwidth completion-tab-width)))
+        ;; Align to tab positions for the case
+        ;; when the caller uses tabs inside prefix.
+        (setq colwidth (- colwidth (mod colwidth completion-tab-width))))
       ;; The insertion should be "sensible" no matter what choices were made
       ;; for the parameters above.
       (dolist (str strings)
@@ -1758,9 +1764,10 @@ It also eliminates runs of equal strings."
 		  ;; already past the goal column, there is still
 		  ;; a space displayed.
 		  (set-text-properties (1- (point)) (point)
-				       ;; We can't just set tab-width, because
-				       ;; completion-setup-function will kill
-				       ;; all local variables :-(
+				       ;; We can set tab-width using
+				       ;; completion-tab-width, but
+				       ;; the caller can prefer using
+				       ;; \t to align prefixes.
 				       `(display (space :align-to ,column)))
 		  nil))))
             (setq first nil)

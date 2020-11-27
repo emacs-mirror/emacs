@@ -8822,6 +8822,8 @@ Called from `temp-buffer-show-hook'."
 	     insert-fun))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (if base-dir (setq default-directory base-dir))
+      (when completion-tab-width
+        (setq tab-width completion-tab-width))
       ;; Maybe insert help string.
       (when completion-show-help
 	(goto-char (point-min))
