@@ -2,16 +2,16 @@ Tutorial de Emacs.  Vea al final las condiciones de copiado.
 
 Generalmente los comandos de Emacs involucran la tecla CONTROL
 (algunas veces llamada CTRL O CTL) o la tecla meta (algunas veces
-llamada EDIT o ALT).  En lugar de escribir completamente esto en cada
+llamada ALT).  En lugar de escribir completamente esto en cada
 ocasión, usaremos las siguientes abreviaturas.
 
  C-<car> significa mantener presionada la tecla CONTROL mientras
          teclea el carácter <car>.  Por lo tanto C-f será: Mantenga
          presionada la tecla CONTROL y teclee f.
- M-<car> significa mantener presionada la tecla META o EDIT o ALT
- 	 mientras teclea <car>.  Si no hay teclas META, EDIT o ALT, en
- 	 su lugar presione y libere la tecla ESC y luego teclee
- 	 <car>.  Escribimos <ESC> para referirnos a la tecla ESC.
+ M-<car> significa mantener presionada la tecla META o ALT mientras
+         teclea <car>.  Si no hay teclas META o ALT, en su lugar
+         presione y libere la tecla ESC y luego teclee <car>.
+         Escribimos <ESC> para referirnos a la tecla ESC.
 
 Nota importante: para terminar la sesión de Emacs teclee C-x C-c (dos
 caracteres).  Para cancelar un comando parcialmente introducido,
@@ -32,7 +32,7 @@ texto.
 Lo primero que necesita saber es cómo moverse de un lugar a otro en el
 texto.  Ya sabe cómo avanzar una pantalla, con C-v.  Para retroceder
 una pantalla teclee M-v (mantenga oprimida la tecla META y teclee v, o
-teclee <ESC>v si no tiene las teclas META, EDIT o ALT).
+teclee <ESC>v si no tiene las teclas META o ALT).
 
 >> Intente teclear M-v y luego C-v, varias veces.
 
@@ -203,12 +203,12 @@ La mayoría de comandos de Emacs aceptan un argumento numérico; para la
 mayoría de comandos esto sirve como un factor de repetición.  La
 manera de pasarle un factor de repetición a un comando es tecleando
 C-u y luego los dígitos antes de introducir los comandos.  Si tiene
-una tecla META (o EDIT o ALT), hay una manera alternativa para
-ingresar un argumento numérico: teclear los dígitos mientras presiona
-la tecla META.  Recomendamos aprender el método C-u porque éste
-funciona en cualquier terminal.  El argumento numérico es también
-llamado un «argumento prefijo», porque usted teclea el argumento antes
-del comando al que se aplica.
+una tecla META (o ALT), hay una manera alternativa para ingresar un
+argumento numérico: teclear los dígitos mientras presiona la tecla
+META.  Recomendamos aprender el método C-u porque éste funciona en
+cualquier terminal.  El argumento numérico es también llamado un
+«argumento prefijo», porque usted teclea el argumento antes del
+comando al que se aplica.
 
 Por ejemplo, C-u 8 C-f mueve hacia adelante ocho caracteres.
 
@@ -1075,8 +1075,8 @@ como una breve documentación: suficiente para recordarle los comandos
 que ha aprendido.
 
 Los comandos de múltiples caracteres tales como C-x C-s y (si no tiene
-las teclas META o EDIT o ALT) <ESC>v también están permitidos después
-de C-h c.
+las teclas META o ALT) <ESC>v también están permitidos después de
+C-h c.
 
 Para conseguir más información sobre un comando use C-h k en vez de
 C-h c.
