@@ -681,6 +681,10 @@ default_toplevel_binding (Lisp_Object symbol)
 	case SPECPDL_UNWIND_EXCURSION:
 	case SPECPDL_UNWIND_VOID:
 	case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+        case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	case SPECPDL_LET_LOCAL:
 	  break;
 
@@ -720,6 +724,10 @@ lexbound_p (Lisp_Object symbol)
 	case SPECPDL_UNWIND_EXCURSION:
 	case SPECPDL_UNWIND_VOID:
 	case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+        case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	case SPECPDL_LET_LOCAL:
 	  break;
 
@@ -3480,6 +3488,15 @@ record_unwind_protect_void (void (*function) (void))
 }
 
 void
+record_unwind_protect_module (enum specbind_tag kind, void *ptr)
+{
+  specpdl_ptr->kind = kind;
+  specpdl_ptr->unwind_ptr.func = NULL;
+  specpdl_ptr->unwind_ptr.arg = ptr;
+  grow_specpdl ();
+}
+
+void
 rebind_for_thread_switch (void)
 {
   union specbinding *bind;
@@ -3529,6 +3546,14 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
       break;
     case SPECPDL_BACKTRACE:
       break;
+#ifdef HAVE_MODULES
+    case SPECPDL_MODULE_RUNTIME:
+      finalize_runtime_unwind (this_binding->unwind_ptr.arg);
+      break;
+    case SPECPDL_MODULE_ENVIRONMENT:
+      finalize_environment_unwind (this_binding->unwind_ptr.arg);
+      break;
+#endif
     case SPECPDL_LET:
       { /* If variable has a trivial value (no forwarding), and isn't
 	   trapped, we can just set it.  */
@@ -3859,6 +3884,10 @@ backtrace_eval_unrewind (int distance)
 	case SPECPDL_UNWIND_INTMAX:
 	case SPECPDL_UNWIND_VOID:
 	case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+        case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	  break;
 	case SPECPDL_LET:
 	  { /* If variable has a trivial value (no forwarding), we can
@@ -3994,6 +4023,10 @@ NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  
 	  case SPECPDL_UNWIND_EXCURSION:
 	  case SPECPDL_UNWIND_VOID:
 	  case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+          case SPECPDL_MODULE_RUNTIME:
+          case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	    break;
 
 	  default:
@@ -4039,6 +4072,14 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	    mark_objects (backtrace_args (pdl), nargs);
 	  }
 	  break;
+
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+          break;
+        case SPECPDL_MODULE_ENVIRONMENT:
+          mark_module_environment (pdl->unwind_ptr.arg);
+          break;
+#endif
 
 	case SPECPDL_LET_DEFAULT:
 	case SPECPDL_LET_LOCAL:
