@@ -3038,8 +3038,19 @@ to `accept-change-group' or `cancel-change-group'."
       (if (eq buffer-undo-list t)
 	  (setq buffer-undo-list nil)
 	;; Add a boundary to make sure the upcoming changes won't be
-	;; merged with any previous changes (bug#33341).
-	(undo-boundary)))))
+	;; merged/combined with any previous changes (bug#33341).
+	;; We're not supposed to introduce a real (visible)
+        ;; `undo-boundary', tho, so we have to push something else
+        ;; that acts like a boundary w.r.t preventing merges while
+	;; being harmless.
+        ;; We use for that an "empty insertion", but in order to be harmless,
+        ;; it has to be at a harmless position.  Currently only
+        ;; insertions are ever merged/combined, so we use such a "boundary"
+        ;; only when the last change was an insertion and we use the position
+        ;; of the last insertion.
+        (when (numberp (caar buffer-undo-list))
+          (push (cons (caar buffer-undo-list) (caar buffer-undo-list))
+                buffer-undo-list))))))
 
 (defun accept-change-group (handle)
   "Finish a change group made with `prepare-change-group' (which see).
