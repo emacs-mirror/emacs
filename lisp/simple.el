@@ -5478,7 +5478,7 @@ With ARG, rotate that many kills forward (or backward, if negative)."
           (mapcar (lambda (s)
                     (let* ((s (query-replace-descr s))
                            (b 0)
-                           (limit (frame-width)))
+                           (limit (frame-text-cols)))
                       ;; Add ellipsis on leading whitespace
                       (when (string-match "\\`[[:space:]]+" s)
                         (setq b (match-end 0))
