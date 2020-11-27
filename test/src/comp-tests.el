@@ -965,24 +965,4 @@ Return a list of results."
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Range propagation tests. ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; FIXME to be removed when movable into comp-cstr-tests.el
-(comp-deftest range-simple-intersection ()
-  (should (equal (comp-range-intersection '((-1 . 0)) '((3 . 4)))
-                 '()))
-  (should (equal (comp-range-intersection '((-1 . 2)) '((3 . 4)))
-                 '()))
-  (should (equal (comp-range-intersection '((-1 . 3)) '((3 . 4)))
-                 '((3 . 3))))
-  (should (equal (comp-range-intersection '((-1 . 4)) '((3 . 4)))
-                 '((3 . 4))))
-  (should (equal (comp-range-intersection '((-1 . 5)) '((3 . 4)))
-                 '((3 . 4))))
-  (should (equal (comp-range-intersection '((-1 . 0)) '())
-                 '())))
-
 ;;; comp-tests.el ends here
