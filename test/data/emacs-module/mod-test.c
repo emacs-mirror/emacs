@@ -547,6 +547,14 @@ Fmod_test_double (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return result;
 }
 
+static emacs_value
+Fmod_test_funcall (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                   void *data)
+{
+  assert (0 < nargs);
+  return env->funcall (env, args[0], nargs - 1, args + 1);
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -629,6 +637,8 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-add-nanosecond", Fmod_test_add_nanosecond, 1, 1, NULL, NULL);
   DEFUN ("mod-test-nanoseconds", Fmod_test_nanoseconds, 1, 1, NULL, NULL);
   DEFUN ("mod-test-double", Fmod_test_double, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-funcall", Fmod_test_funcall, 1, emacs_variadic_function,
+         NULL, NULL);
 
 #undef DEFUN
 
