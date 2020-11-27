@@ -3036,7 +3036,10 @@ to `accept-change-group' or `cancel-change-group'."
   (dolist (elt handle)
     (with-current-buffer (car elt)
       (if (eq buffer-undo-list t)
-	  (setq buffer-undo-list nil)))))
+	  (setq buffer-undo-list nil)
+	;; Add a boundary to make sure the upcoming changes won't be
+	;; merged with any previous changes (bug#33341).
+	(undo-boundary)))))
 
 (defun accept-change-group (handle)
   "Finish a change group made with `prepare-change-group' (which see).
