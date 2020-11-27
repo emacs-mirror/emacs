@@ -3124,7 +3124,7 @@ enum specbind_tag {
   SPECPDL_UNWIND_PTR,		/* Likewise, on void *.  */
   SPECPDL_UNWIND_INT,		/* Likewise, on int.  */
   SPECPDL_UNWIND_INTMAX,	/* Likewise, on intmax_t.  */
-  SPECPDL_UNWIND_EXCURSION,	/* Likewise, on an execursion.  */
+  SPECPDL_UNWIND_EXCURSION,	/* Likewise, on an excursion.  */
   SPECPDL_UNWIND_VOID,		/* Likewise, with no arg.  */
   SPECPDL_BACKTRACE,		/* An element of the backtrace.  */
   SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
