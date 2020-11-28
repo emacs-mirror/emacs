@@ -800,14 +800,23 @@ file names."
 	  (with-tramp-progress-reporter
 	      v 0 (format "%s %s to %s" msg-operation filename newname)
 	    (unless
-		(apply
-		 #'tramp-gvfs-send-command v gvfs-operation
-		 (append
-		  (and (eq op 'copy) (or keep-date preserve-uid-gid)
-		       '("--preserve"))
-		  (list
-		   (tramp-gvfs-url-file-name filename)
-		   (tramp-gvfs-url-file-name newname))))
+		(and (apply
+		      #'tramp-gvfs-send-command v gvfs-operation
+		      (append
+		       (and (eq op 'copy) (or keep-date preserve-uid-gid)
+			    '("--preserve"))
+		       (list
+			(tramp-gvfs-url-file-name filename)
+			(tramp-gvfs-url-file-name newname))))
+		     ;; Some backends do not return a proper error
+		     ;; code in case of direct copy/move.  Apply sanity checks.
+		     (or (not equal-remote)
+			 (tramp-gvfs-send-command
+			  v "gvfs-info" (tramp-gvfs-url-file-name newname))
+			 (eq op 'copy)
+			 (not (tramp-gvfs-send-command
+			       v "gvfs-info"
+			       (tramp-gvfs-url-file-name filename)))))
 
 	      (if (or (not equal-remote)
 		      (and equal-remote
