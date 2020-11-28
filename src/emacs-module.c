@@ -217,9 +217,6 @@ static void module_out_of_memory (emacs_env *);
 static void module_reset_handlerlist (struct handler **);
 static bool value_storage_contains_p (const struct emacs_value_storage *,
                                       emacs_value, ptrdiff_t *);
-static Lisp_Object module_objects (Lisp_Object);
-static void module_push_pointer (Lisp_Object, void *);
-static void module_pop_pointer (Lisp_Object, void *);
 
 static bool module_assertions = false;
 
@@ -1008,8 +1005,7 @@ module_signal_or_throw (struct emacs_env_private *env)
     }
 }
 
-/* Live runtime and environment objects, for assertions.  These are hashtables
-   keyed by the thread objects.  */
+/* Live runtime and environment objects, for assertions.  */
 static Lisp_Object Vmodule_runtimes;
 static Lisp_Object Vmodule_environments;
 
@@ -1050,7 +1046,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   rt->private_members = &rt_priv;
   rt->get_environment = module_get_environment;
 
-  module_push_pointer (Vmodule_runtimes, rt);
+  Vmodule_runtimes = Fcons (make_mint_ptr (rt), Vmodule_runtimes);
   ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (finalize_runtime_unwind, rt);
 
@@ -1150,8 +1146,7 @@ module_assert_runtime (struct emacs_runtime *ert)
   if (! module_assertions)
     return;
   ptrdiff_t count = 0;
-  for (Lisp_Object tail = module_objects (Vmodule_runtimes); CONSP (tail);
-       tail = XCDR (tail))
+  for (Lisp_Object tail = Vmodule_runtimes; CONSP (tail); tail = XCDR (tail))
     {
       if (xmint_pointer (XCAR (tail)) == ert)
         return;
@@ -1167,7 +1162,7 @@ module_assert_env (emacs_env *env)
   if (! module_assertions)
     return;
   ptrdiff_t count = 0;
-  for (Lisp_Object tail = module_objects (Vmodule_environments); CONSP (tail);
+  for (Lisp_Object tail = Vmodule_environments; CONSP (tail);
        tail = XCDR (tail))
     {
       if (xmint_pointer (XCAR (tail)) == env)
@@ -1215,83 +1210,6 @@ module_out_of_memory (emacs_env *env)
 }
 
 
-/* Hash table helper functions.  */
-
-/* Like HASH_TABLE_SIZE, but also works during garbage collection.  */
-
-static ptrdiff_t
-module_gc_hash_table_size (const struct Lisp_Hash_Table *h)
-{
-  ptrdiff_t size = gc_asize (h->next);
-  eassert (0 <= size);
-  return size;
-}
-
-/* Like (push NEWELT (gethash KEY TABLE)).  */
-
-static void
-module_hash_push (Lisp_Object table, Lisp_Object key, Lisp_Object newelt)
-{
-  /* Inline calls to Fgethash/Fputhash to avoid duplicate hash lookup.  */
-  struct Lisp_Hash_Table *h = XHASH_TABLE (table);
-  Lisp_Object hash;
-  ptrdiff_t i = hash_lookup (h, key, &hash);
-  if (i >= 0)
-    set_hash_value_slot (h, i, Fcons (newelt, HASH_VALUE (h, i)));
-  else
-    hash_put (h, key, list1 (newelt), hash);
-}
-
-/* Like (pop (gethash KEY TABLE)), but removes KEY from TABLE if the new value
-   is nil.  */
-
-static Lisp_Object
-module_hash_pop (Lisp_Object table, Lisp_Object key)
-{
-  /* Inline calls to Fgethash/Fputhash to avoid duplicate hash lookup.  */
-  struct Lisp_Hash_Table *h = XHASH_TABLE (table);
-  Lisp_Object hash;
-  ptrdiff_t i = hash_lookup (h, key, &hash);
-  eassert (i >= 0);
-  Lisp_Object value = HASH_VALUE (h, i);
-  Lisp_Object rest = XCDR (value);
-  if (NILP (rest))
-    hash_remove_from_table(h, key);
-  else
-    set_hash_value_slot (h, i, rest);
-  return XCAR (value);
-}
-
-/* Returns the list of objects for the current thread in TABLE.  The keys of
-   TABLE are thread objects.  */
-
-static Lisp_Object
-module_objects (Lisp_Object table)
-{
- return Fgethash (Fcurrent_thread (), table, Qnil);
-}
-
-/* Adds PTR to the front of the list of objects for the current thread in TABLE.
-   The keys of TABLE are thread objects.  */
-
-static void
-module_push_pointer (Lisp_Object table, void *ptr)
-{
-  module_hash_push (table, Fcurrent_thread (), make_mint_ptr (ptr));
-}
-
-/* Removes the first object from the list of objects for the current thread in
-   TABLE.  The keys of TABLE are thread objects.  Checks that the first object
-   is a pointer with value PTR.  */
-
-static void
-module_pop_pointer (Lisp_Object table, void *ptr)
-{
-  Lisp_Object value = module_hash_pop (table, Fcurrent_thread ());
-  eassert (xmint_pointer (value) == ptr);
-}
-
-
 /* Value conversion.  */
 
 /* Convert an `emacs_value' to the corresponding internal object.
@@ -1308,7 +1226,7 @@ value_to_lisp (emacs_value v)
          environments.  */
       ptrdiff_t num_environments = 0;
       ptrdiff_t num_values = 0;
-      for (Lisp_Object environments = module_objects (Vmodule_environments);
+      for (Lisp_Object environments = Vmodule_environments;
            CONSP (environments); environments = XCDR (environments))
         {
           emacs_env *env = xmint_pointer (XCAR (environments));
@@ -1408,19 +1326,16 @@ allocate_emacs_value (emacs_env *env, struct emacs_value_storage *storage,
 void
 mark_modules (void)
 {
-  const struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_environments);
-  /* Can't use HASH_TABLE_SIZE because we are in the mark phase of the GC.  */
-  for (ptrdiff_t i = 0; i < module_gc_hash_table_size (h); ++i)
-    if (!EQ (HASH_KEY (h, i), Qunbound))
-      for (Lisp_Object tem = HASH_VALUE (h, i); CONSP (tem); tem = XCDR (tem))
-        {
-          emacs_env *env = xmint_pointer (XCAR (tem));
-          struct emacs_env_private *priv = env->private_members;
-          for (struct emacs_value_frame *frame = &priv->storage.initial;
-               frame != NULL; frame = frame->next)
-            for (int i = 0; i < frame->offset; ++i)
-              mark_object (frame->objects[i].v);
-        }
+  for (Lisp_Object tem = Vmodule_environments; CONSP (tem); tem = XCDR (tem))
+    {
+      emacs_env *env = xmint_pointer (XCAR (tem));
+      struct emacs_env_private *priv = env->private_members;
+      for (struct emacs_value_frame *frame = &priv->storage.initial;
+	   frame != NULL;
+	   frame = frame->next)
+        for (int i = 0; i < frame->offset; ++i)
+          mark_object (frame->objects[i].v);
+    }
 }
 
 
@@ -1475,7 +1390,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_time = module_make_time;
   env->extract_big_integer = module_extract_big_integer;
   env->make_big_integer = module_make_big_integer;
-  module_push_pointer (Vmodule_environments, env);
+  Vmodule_environments = Fcons (make_mint_ptr (env), Vmodule_environments);
   return env;
 }
 
@@ -1485,7 +1400,8 @@ static void
 finalize_environment (emacs_env *env)
 {
   finalize_storage (&env->private_members->storage);
-  module_pop_pointer (Vmodule_environments, env);
+  eassert (xmint_pointer (XCAR (Vmodule_environments)) == env);
+  Vmodule_environments = XCDR (Vmodule_environments);
 }
 
 static void
@@ -1498,8 +1414,9 @@ static void
 finalize_runtime_unwind (void *raw_ert)
 {
   struct emacs_runtime *ert = raw_ert;
+  eassert (xmint_pointer (XCAR (Vmodule_runtimes)) == ert);
+  Vmodule_runtimes = XCDR (Vmodule_runtimes);
   finalize_environment (ert->private_members->env);
-  module_pop_pointer (Vmodule_runtimes, ert);
 }
 
 
@@ -1589,14 +1506,10 @@ syms_of_module (void)
 		       Qnil, false);
 
   staticpro (&Vmodule_runtimes);
-  Vmodule_runtimes
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, DEFAULT_REHASH_SIZE,
-                       DEFAULT_REHASH_THRESHOLD, Qnil, false);
+  Vmodule_runtimes = Qnil;
 
   staticpro (&Vmodule_environments);
-  Vmodule_environments
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, DEFAULT_REHASH_SIZE,
-                       DEFAULT_REHASH_THRESHOLD, Qnil, false);
+  Vmodule_environments = Qnil;
 
   DEFSYM (Qmodule_load_failed, "module-load-failed");
   Fput (Qmodule_load_failed, Qerror_conditions,
