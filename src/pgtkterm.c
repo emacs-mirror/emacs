@@ -6574,6 +6574,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
 	  break;
+	case GDK_SCROLL_SMOOTH:		/* shut up warning */
+	  break;
 	}
     }
   else if (gdk_event_get_scroll_deltas (event, &delta_x, &delta_y))
