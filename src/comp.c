@@ -967,12 +967,13 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 	   subr_sym, make_string ("R", 1));
 
   gcc_jit_type *f_ptr_type =
-    gcc_jit_context_new_function_ptr_type (comp.ctxt,
-					   NULL,
-					   ret_type,
-					   nargs,
-					   types,
-					   0);
+    gcc_jit_type_get_const (
+      gcc_jit_context_new_function_ptr_type (comp.ctxt,
+					     NULL,
+					     ret_type,
+					     nargs,
+					     types,
+					     0));
   gcc_jit_field *field =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
@@ -2866,7 +2867,9 @@ emit_ctxt_code (void)
       comp.ctxt,
       NULL,
       GCC_JIT_GLOBAL_EXPORTED,
-      gcc_jit_type_get_pointer (gcc_jit_struct_as_type (f_reloc_struct)),
+      gcc_jit_type_get_pointer (
+	gcc_jit_type_get_const (
+	  gcc_jit_struct_as_type (f_reloc_struct))),
       FUNC_LINK_TABLE_SYM);
 
   xfree (fields);

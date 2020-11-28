@@ -143,6 +143,19 @@ Integer values are handled in the `range' slot.")
                 finally (cl-return (cl-remove-duplicates res)))
                (comp-cstr-ctxt-union-typesets-mem comp-ctxt))))
 
+(defun comp-intersect-typesets (&rest typesets)
+  "Intersect types present into TYPESETS."
+  (when-let ((ty (apply #'append typesets)))
+    (if (> (length ty) 1)
+        (cl-reduce
+         (lambda (x y)
+           (let ((st (comp-common-supertype-2 x y)))
+             (cond
+              ((eq st x) (list y))
+              ((eq st y) (list x)))))
+         ty)
+      ty)))
+
 
 ;;; Integer range handling
 
@@ -252,7 +265,7 @@ Integer values are handled in the `range' slot.")
   "Combine SRCS by union set operation setting the result in DST.
 DST is returned."
   (apply #'comp-cstr-union-no-range dst srcs)
-  ;; Range propagation
+  ;; Range propagation.
   (setf (comp-cstr-range dst)
         (when (cl-notany (lambda (x)
                            (comp-subtype-p 'integer x))
@@ -265,6 +278,59 @@ DST is returned."
 (defun comp-cstr-union-make (&rest srcs)
   "Combine SRCS by union set operation and return a new constraint."
   (apply #'comp-cstr-union (make-comp-cstr) srcs))
+
+;; TODO memoize
+(cl-defun comp-cstr-intersection (dst &rest srcs)
+  "Combine SRCS by intersection set operation setting the result in DST.
+DST is returned."
+
+  ;; Value propagation.
+  (setf (comp-cstr-valset dst)
+        ;; TODO sort.
+        (let ((values (cl-loop for src in srcs
+                               for v = (comp-cstr-valset src)
+                               when v
+                               collect v)))
+          (when values
+            (cl-reduce (lambda (x y)
+                         (cl-intersection x y :test #'equal))
+                       values))))
+
+  ;; Range propagation.
+  (when (cl-some #'identity (mapcar #'comp-cstr-range srcs))
+    (if (comp-cstr-valset dst)
+        (progn
+          (setf (comp-cstr-valset dst) nil
+                (comp-cstr-range dst) nil
+                (comp-cstr-typeset dst) nil)
+          (cl-return-from comp-cstr-intersection dst))
+      ;; TODO memoize?
+      (setf  (comp-cstr-range dst)
+             (apply #'comp-range-intersection
+                    (mapcar #'comp-cstr-range srcs)))))
+
+  ;; Type propagation.
+  (setf (comp-cstr-typeset dst)
+        (if (or (comp-cstr-range dst) (comp-cstr-valset dst))
+            (cl-loop
+             with type-val = (cl-remove-duplicates
+                              (append (mapcar #'type-of
+                                              (comp-cstr-valset dst))
+                                      (when (comp-cstr-range dst)
+                                        '(integer))))
+             for type in (apply #'comp-intersect-typesets
+                                (mapcar #'comp-cstr-typeset srcs))
+             when (and type (not (member type type-val)))
+               do (setf (comp-cstr-valset dst) nil
+                        (comp-cstr-range dst) nil)
+                  (cl-return nil))
+          (apply #'comp-intersect-typesets
+                 (mapcar #'comp-cstr-typeset srcs))))
+  dst)
+
+(defun comp-cstr-intersection-make (&rest srcs)
+  "Combine SRCS by intersection set operation and return a new constraint."
+  (apply #'comp-cstr-intersection (make-comp-cstr) srcs))
 
 (defun comp-type-spec-to-cstr (type-spec &optional fn)
   "Convert a type specifier TYPE-SPEC into a `comp-cstr'.
@@ -287,11 +353,8 @@ FN non-nil indicates we are parsing a function lambda list."
        (apply #'comp-cstr-union-make
               (mapcar #'comp-type-spec-to-cstr rest)))
       (`(and . ,rest)
-       (cl-assert nil)
-       ;; TODO
-       ;; (apply #'comp-cstr-intersect-make
-       ;;        (mapcar #'comp-type-spec-to-cstr rest))
-       )
+       (apply #'comp-cstr-intersection-make
+              (mapcar #'comp-type-spec-to-cstr rest)))
       (`(not  ,cstr)
        (cl-assert nil)
        ;; TODO
@@ -351,7 +414,10 @@ FN non-nil indicates we are parsing a function lambda list."
                   ;; Empty type specifier
                   nil))))
       (pcase res
-        (`(,(or 'integer 'member) . ,_rest) res)
+        (`(,(or 'integer 'member) . ,rest)
+         (if rest
+             res
+           (car res)))
         ((pred atom) res)
         (`(,_first . ,rest)
          (if rest
