@@ -7251,7 +7251,6 @@ This is an extended text-mode.
        '(message-font-lock-keywords t))
   (set (make-local-variable 'mail-header-separator) "")
   (set (make-local-variable 'gnus-article-edit-mode) t)
-  (easy-menu-add message-mode-field-menu message-mode-map)
   (mml-mode)
   (setq buffer-read-only nil)
   (buffer-enable-undo)

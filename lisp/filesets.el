@@ -203,8 +203,8 @@ key is supported."
 (defun filesets-select-command (cmd-list)
   "Select one command from CMD-LIST -- a string with space separated names."
   (let ((this (shell-command-to-string
-	       (format "which --skip-alias %s 2> /dev/null | head -n 1"
-		       cmd-list))))
+	       (format "which --skip-alias %s 2> %s | head -n 1"
+		       cmd-list null-device))))
     (if (equal this "")
 	nil
       (file-name-nondirectory (substring this 0 (- (length this) 1))))))
@@ -1718,9 +1718,12 @@ Assume MODE (see `filesets-entry-mode'), if provided."
 				(filesets-entry-get-master entry)))))
 		  (cons entry (filesets-ingroup-cache-get entry))))
 	       (:tree
-		(let ((dir  (nth 0 entry))
-		      (patt (nth 1 entry)))
-		  (filesets-directory-files dir patt ':files t)))
+                (let* ((dirpatt (filesets-entry-get-tree entry))
+                       (dir (nth 0 dirpatt))
+                       (patt (nth 1 dirpatt))
+                       (depth (or (filesets-entry-get-tree-max-level entry)
+                                  filesets-tree-max-level)))
+                  (filesets-files-under 0 depth entry dir patt)))
 	       (:pattern
 		(let ((dirpatt (filesets-entry-get-pattern entry)))
 		  (if dirpatt
@@ -1733,6 +1736,34 @@ Assume MODE (see `filesets-entry-mode'), if provided."
     (filesets-filter-list fl
 			  (lambda (file)
 			    (not (filesets-filetype-property file event))))))
+
+(defun filesets-files-under (level depth entry dir patt &optional relativep)
+  "Files under DIR that match PATT.
+LEVEL is the current level under DIR.
+DEPTH is the maximal tree scanning depth for ENTRY.
+ENTRY is a fileset.
+DIR is a directory.
+PATT is a regexp that included file names must match.
+RELATIVEP non-nil means use relative file names."
+  (and (or (= depth 0) (< level depth))
+       (let* ((dir         (file-name-as-directory dir))
+              (files-here  (filesets-directory-files
+                            dir patt nil (not relativep)
+                            (filesets-entry-get-filter-dirs-flag entry)))
+              (subdirs     (filesets-filter-dir-names files-here))
+              (files
+               (filesets-filter-dir-names
+                (apply #'append
+                       files-here
+                       (mapcar
+                        (lambda (subdir)
+                          (let* ((subdir (file-name-as-directory subdir))
+                                 (full-subdir  (concat dir subdir)))
+                            (filesets-files-under (+ level 1) depth entry
+                                                  full-subdir patt)))
+                        subdirs))
+                t)))
+         files)))
 
 (defun filesets-open (&optional mode name lookup-name)
   "Open the fileset called NAME.
@@ -1878,7 +1909,7 @@ User will be queried, if no fileset name is provided."
 		       (substring (elt submenu 0) 2))))
     (if (listp submenu)
 	(cons name (cdr submenu))
-      (apply 'vector (list name (cdr (append submenu nil)))))))
+      (apply 'vector (list name (cadr (append submenu nil)))))))
 ;      (vconcat `[,name] (subseq submenu 1)))))
 
 (defun filesets-wrap-submenu (submenu-body)

@@ -362,7 +362,7 @@ through the possibilities.
 that was yanked and replaces it with the text from an earlier kill.
 So, to recover the text of the next-to-the-last kill, first use
 @kbd{C-y} to yank the last kill, and then use @kbd{M-y} to replace it
-with the previous kill.  @kbd{M-y} is allowed only after a @kbd{C-y}
+with the previous kill.  This works only after a @kbd{C-y}
 or another @kbd{M-y}.
 
   You can understand @kbd{M-y} in terms of a last-yank pointer which
@@ -393,6 +393,15 @@ pointer remains at the same place in the kill ring, so repeating
 
   When you call @kbd{C-y} with a numeric argument, that also sets the
 last-yank pointer to the entry that it yanks.
+
+  Alternatively, when the previous command was not a yank command,
+@kbd{M-y} activates the minibuffer where you can browse previous kills
+using the minibuffer history commands (@pxref{Minibuffer History}), or
+you can use completion commands (@pxref{Completion}) on a list of
+previously killed blocks of text from the kill ring.  Exiting the
+minibuffer will insert the selected text to the buffer.  With a plain
+prefix argument (@kbd{C-u M-y}), this command leaves the cursor in
+front of the inserted text, and sets the mark at the end.
 
 @node Appending Kills
 @subsection Appending Kills

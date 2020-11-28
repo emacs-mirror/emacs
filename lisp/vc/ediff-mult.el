@@ -2317,7 +2317,7 @@ If this is a session registry buffer then just bury it."
 	 (meta-patchbuf ediff-meta-patchbufer)
 	 session-buf beg-marker end-marker)
 
-    (if (or (file-directory-p file) (string-match "/dev/null" file))
+    (if (or (file-directory-p file) (string-match null-device file))
 	(user-error "`%s' is not an ordinary file" (file-name-as-directory file)))
     (setq session-buf (ediff-get-session-buffer info)
 	  beg-marker (ediff-get-session-objB-name info)

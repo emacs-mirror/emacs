@@ -2592,7 +2592,8 @@ the default language."
 	comment-start-skip "/\\*+ *\\|// *")
   ;; various -----------------------------------------------------------------
   (set (make-local-variable 'font-lock-defaults) antlr-font-lock-defaults)
-  (easy-menu-add antlr-mode-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add antlr-mode-menu))
   (set (make-local-variable 'imenu-create-index-function)
        'antlr-imenu-create-index-function)
   (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test

@@ -4186,8 +4186,9 @@ must tell Emacs.  Here's how to do that in your init file:
 	    (modify-syntax-entry ?\\\\ \"\\\\\" sql-mode-syntax-table)))"
   :abbrev-table sql-mode-abbrev-table
 
-  (if sql-mode-menu
-      (easy-menu-add sql-mode-menu)); XEmacs
+  (when (and (featurep 'xemacs)
+             sql-mode-menu)
+      (easy-menu-add sql-mode-menu))
 
   ;; (smie-setup sql-smie-grammar #'sql-smie-rules)
   (set (make-local-variable 'comment-start) "--")
@@ -4312,8 +4313,9 @@ you entered, right above the output it created.
   (setq mode-name
         (concat "SQLi[" (or (sql-get-product-feature sql-product :name)
                             (symbol-name sql-product)) "]"))
-  (if sql-interactive-mode-menu
-      (easy-menu-add sql-interactive-mode-menu)) ; XEmacs
+  (when (and (featurep 'xemacs)
+             sql-interactive-mode-menu)
+    (easy-menu-add sql-interactive-mode-menu))
 
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
   ;; SELECT 'x' FROM DUAL with SQL*Plus, because the title of the column

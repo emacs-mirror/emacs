@@ -1796,6 +1796,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     from a display vector, we need to consume all of
 		     the glyphs from that display vector.  */
 		  start_display (&it2, w, top);
+		  it2.glyph_row = NULL;
 		  move_it_to (&it2, charpos - 1, -1, -1, -1, MOVE_TO_POS);
 		  /* If we didn't get to CHARPOS - 1, there's some
 		     replacing display property at that position, and
@@ -1919,6 +1920,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     of the display line where the display string
 		     begins.  */
 		  start_display (&it3, w, top);
+		  it3.glyph_row = NULL;
 		  move_it_to (&it3, -1, 0, top_y, -1, MOVE_TO_X | MOVE_TO_Y);
 		  /* If it3_moved stays false after the 'while' loop
 		     below, that means we already were at a newline

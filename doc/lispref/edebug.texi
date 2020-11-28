@@ -877,8 +877,8 @@ If non-@code{nil}, Edebug binds @code{print-circle} to this value while
 printing results.  The default value is @code{t}.
 @end defopt
 
-  See @xref{Output Functions} for further details about how printing
-can be customized.
+  For further details about how printing can be customized, see
+@pxref{Output Functions}.
 
 @node Trace Buffer
 @subsection Trace Buffer

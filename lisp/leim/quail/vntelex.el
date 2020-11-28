@@ -1,4 +1,4 @@
-;;; vntelex.el --- Quail package for Vietnamese by Telex method
+;;; vntelex.el --- Quail package for Vietnamese by Telex method  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

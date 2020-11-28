@@ -3124,9 +3124,13 @@ enum specbind_tag {
   SPECPDL_UNWIND_PTR,		/* Likewise, on void *.  */
   SPECPDL_UNWIND_INT,		/* Likewise, on int.  */
   SPECPDL_UNWIND_INTMAX,	/* Likewise, on intmax_t.  */
-  SPECPDL_UNWIND_EXCURSION,	/* Likewise, on an execursion.  */
+  SPECPDL_UNWIND_EXCURSION,	/* Likewise, on an excursion.  */
   SPECPDL_UNWIND_VOID,		/* Likewise, with no arg.  */
   SPECPDL_BACKTRACE,		/* An element of the backtrace.  */
+#ifdef HAVE_MODULES
+  SPECPDL_MODULE_RUNTIME,       /* A live module runtime.  */
+  SPECPDL_MODULE_ENVIRONMENT,   /* A live module environment.  */
+#endif
   SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
   /* Tags greater than SPECPDL_LET must be "subkinds" of LET.  */
   SPECPDL_LET_LOCAL,		/* A buffer-local let-binding.  */
@@ -4146,6 +4150,7 @@ extern void record_unwind_protect_intmax (void (*) (intmax_t), intmax_t);
 extern void record_unwind_protect_void (void (*) (void));
 extern void record_unwind_protect_excursion (void);
 extern void record_unwind_protect_nothing (void);
+extern void record_unwind_protect_module (enum specbind_tag, void *);
 extern void clear_unwind_protect (ptrdiff_t);
 extern void set_unwind_protect (ptrdiff_t, void (*) (Lisp_Object), Lisp_Object);
 extern void set_unwind_protect_ptr (ptrdiff_t, void (*) (void *), void *);
@@ -4216,7 +4221,9 @@ extern module_funcptr module_function_address
   (struct Lisp_Module_Function const *);
 extern void *module_function_data (const struct Lisp_Module_Function *);
 extern void module_finalize_function (const struct Lisp_Module_Function *);
-extern void mark_modules (void);
+extern void mark_module_environment (void *);
+extern void finalize_runtime_unwind (void *);
+extern void finalize_environment_unwind (void *);
 extern void init_module_assertions (bool);
 extern void syms_of_module (void);
 #endif

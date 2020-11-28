@@ -681,6 +681,10 @@ default_toplevel_binding (Lisp_Object symbol)
 	case SPECPDL_UNWIND_EXCURSION:
 	case SPECPDL_UNWIND_VOID:
 	case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+        case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	case SPECPDL_LET_LOCAL:
 	  break;
 
@@ -689,6 +693,49 @@ default_toplevel_binding (Lisp_Object symbol)
 	}
     }
   return binding;
+}
+
+/* Look for a lexical-binding of SYMBOL somewhere up the stack.
+   This will only find bindings created with interpreted code, since once
+   compiled names of lexical variables are basically gone anyway.  */
+static bool
+lexbound_p (Lisp_Object symbol)
+{
+  union specbinding *pdl = specpdl_ptr;
+  while (pdl > specpdl)
+    {
+      switch ((--pdl)->kind)
+	{
+	case SPECPDL_LET_DEFAULT:
+	case SPECPDL_LET:
+	  if (EQ (specpdl_symbol (pdl), Qinternal_interpreter_environment))
+	    {
+	      Lisp_Object env = specpdl_old_value (pdl);
+	      if (CONSP (env) && !NILP (Fassq (symbol, env)))
+	        return true;
+	    }
+	  break;
+
+	case SPECPDL_UNWIND:
+	case SPECPDL_UNWIND_ARRAY:
+	case SPECPDL_UNWIND_PTR:
+	case SPECPDL_UNWIND_INT:
+	case SPECPDL_UNWIND_INTMAX:
+	case SPECPDL_UNWIND_EXCURSION:
+	case SPECPDL_UNWIND_VOID:
+	case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+        case SPECPDL_MODULE_ENVIRONMENT:
+#endif
+	case SPECPDL_LET_LOCAL:
+	  break;
+
+	default:
+	  emacs_abort ();
+	}
+    }
+  return false;
 }
 
 DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_value, 1, 1, 0,
@@ -726,6 +773,15 @@ This is like `defvar' and `defconst' but without affecting the variable's
 value.  */)
   (Lisp_Object symbol, Lisp_Object doc)
 {
+  if (!XSYMBOL (symbol)->u.s.declared_special
+      && lexbound_p (symbol))
+    /* This test tries to catch the situation where we do
+       (let ((<foo-var> ...)) ...(<foo-function> ...)....)
+       and where the `foo` package only gets loaded when <foo-function>
+       is called, so the outer `let` incorrectly made the binding lexical
+       because the <foo-var> wasn't yet declared as dynamic at that point.  */
+    error ("Defining as dynamic an already lexical var");
+
   XSYMBOL (symbol)->u.s.declared_special = true;
   if (!NILP (doc))
     {
@@ -3432,6 +3488,15 @@ record_unwind_protect_void (void (*function) (void))
 }
 
 void
+record_unwind_protect_module (enum specbind_tag kind, void *ptr)
+{
+  specpdl_ptr->kind = kind;
+  specpdl_ptr->unwind_ptr.func = NULL;
+  specpdl_ptr->unwind_ptr.arg = ptr;
+  grow_specpdl ();
+}
+
+void
 rebind_for_thread_switch (void)
 {
   union specbinding *bind;
@@ -3481,6 +3546,14 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
       break;
     case SPECPDL_BACKTRACE:
       break;
+#ifdef HAVE_MODULES
+    case SPECPDL_MODULE_RUNTIME:
+      finalize_runtime_unwind (this_binding->unwind_ptr.arg);
+      break;
+    case SPECPDL_MODULE_ENVIRONMENT:
+      finalize_environment_unwind (this_binding->unwind_ptr.arg);
+      break;
+#endif
     case SPECPDL_LET:
       { /* If variable has a trivial value (no forwarding), and isn't
 	   trapped, we can just set it.  */
@@ -3811,6 +3884,10 @@ backtrace_eval_unrewind (int distance)
 	case SPECPDL_UNWIND_INTMAX:
 	case SPECPDL_UNWIND_VOID:
 	case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+        case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	  break;
 	case SPECPDL_LET:
 	  { /* If variable has a trivial value (no forwarding), we can
@@ -3946,6 +4023,10 @@ NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  
 	  case SPECPDL_UNWIND_EXCURSION:
 	  case SPECPDL_UNWIND_VOID:
 	  case SPECPDL_BACKTRACE:
+#ifdef HAVE_MODULES
+          case SPECPDL_MODULE_RUNTIME:
+          case SPECPDL_MODULE_ENVIRONMENT:
+#endif
 	    break;
 
 	  default:
@@ -3991,6 +4072,14 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	    mark_objects (backtrace_args (pdl), nargs);
 	  }
 	  break;
+
+#ifdef HAVE_MODULES
+        case SPECPDL_MODULE_RUNTIME:
+          break;
+        case SPECPDL_MODULE_ENVIRONMENT:
+          mark_module_environment (pdl->unwind_ptr.arg);
+          break;
+#endif
 
 	case SPECPDL_LET_DEFAULT:
 	case SPECPDL_LET_LOCAL:

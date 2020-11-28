@@ -43,6 +43,7 @@
 
 ;; `temporary-file-directory' as function is introduced with Emacs 26.1.
 (declare-function tramp-handle-temporary-file-directory "tramp")
+(declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
 (defconst tramp-compat-emacs-compiled-version (eval-when-compile emacs-version)
@@ -332,6 +333,13 @@ A nil value for either argument stands for the current time."
       (and (file-directory-p dir)
 	   (null (tramp-compat-directory-files
 		  dir nil directory-files-no-dot-files-regexp t 1))))))
+
+;; Function `null-device' is new in Emacs 28.1.
+(defalias 'tramp-compat-null-device
+  (if (fboundp 'null-device)
+      #'null-device
+    (lambda ()
+      (if (tramp-tramp-file-p default-directory) "/dev/null" null-device))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

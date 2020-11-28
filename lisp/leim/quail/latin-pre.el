@@ -1,4 +1,4 @@
-;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8;-*-
+;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,

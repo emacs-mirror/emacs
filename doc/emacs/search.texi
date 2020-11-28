@@ -295,9 +295,12 @@ from point to the @var{n}th occurrence of the specified character.
 appends the current kill to the search string.  @kbd{M-y}
 (@code{isearch-yank-pop}), if called after @kbd{C-y}, replaces that
 appended text with an earlier kill, similar to the usual @kbd{M-y}
-(@code{yank-pop}) command (@pxref{Yanking}).  Clicking @kbd{mouse-2}
-in the echo area appends the current X selection (@pxref{Primary
-Selection}) to the search string (@code{isearch-yank-x-selection}).
+(@code{yank-pop}) command.  When @kbd{M-y} is called not after
+@kbd{C-y}, then it activates the minibuffer where you can select
+a previous kill to append to the search string (@pxref{Earlier
+Kills}).  Clicking @kbd{mouse-2} in the echo area appends the current
+X selection (@pxref{Primary Selection}) to the search string
+(@code{isearch-yank-x-selection}).
 
 @kindex C-M-d @r{(Incremental search)}
 @kindex C-M-y @r{(Incremental search)}

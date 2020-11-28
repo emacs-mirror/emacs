@@ -175,6 +175,12 @@ See the variable `tramp-encoding-shell' for more information."
   :version "24.1"
   :type '(choice (const nil) string))
 
+;; Since Emacs 26.1, `system-name' can return `nil' at build time if
+;; Emacs is compiled with "--no-build-details".  We do expect it to be
+;; a string.  (Bug#44481)
+(defconst tramp-system-name (or (system-name) "")
+  "The system name Tramp is running locally.")
+
 (defvar tramp-methods nil
   "Alist of methods for remote files.
 This is a list of entries of the form (NAME PARAM1 PARAM2 ...).
@@ -238,6 +244,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%k\" indicates the keep-date parameter of a program, if exists.
     - \"%c\" adds additional `tramp-ssh-controlmaster-options'
       options for the first hop.
+    - \"%n\" expands to \"2>/dev/null\".
 
     The existence of `tramp-login-args', combined with the
     absence of `tramp-copy-args', is an indication that the
@@ -416,7 +423,7 @@ empty string for the method name."
 		       (choice :tag "  Host regexp" regexp sexp)
 		       (choice :tag "    User name" string (const nil)))))
 
-(defcustom tramp-default-host (system-name)
+(defcustom tramp-default-host tramp-system-name
   "Default host to use for transferring files.
 Useful for su and sudo methods mostly."
   :type 'string)
@@ -471,8 +478,8 @@ interpreted as a regular expression which always matches."
 (defcustom tramp-restricted-shell-hosts-alist
   (when (memq system-type '(windows-nt))
     (list (format "\\`\\(%s\\|%s\\)\\'"
-		  (regexp-quote (downcase (system-name)))
-		  (regexp-quote (upcase (system-name))))))
+		  (regexp-quote (downcase tramp-system-name))
+		  (regexp-quote (upcase tramp-system-name)))))
   "List of hosts, which run a restricted shell.
 This is a list of regular expressions, which denote hosts running
 a restricted shell like \"rbash\".  Those hosts can be used as
@@ -485,7 +492,7 @@ host runs a restricted shell, it shall be added to this list, too."
   (concat
    "\\`"
    (regexp-opt
-    (list "localhost" "localhost6" (system-name) "127.0.0.1" "::1") t)
+    (list "localhost" "localhost6" tramp-system-name "127.0.0.1" "::1") t)
    "\\'")
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
@@ -5325,7 +5332,9 @@ name of a process or buffer, or nil to default to the current buffer."
 	(tramp-compat-funcall
 	 'tramp-send-command
 	 (process-get proc 'vector)
-	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>/dev/null" pid pid))
+	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>%s"
+                 pid pid
+                 (tramp-get-remote-null-device (process-get proc 'vector))))
 	;; Wait, until the process has disappeared.  If it doesn't,
 	;; fall back to the default implementation.
         (while (tramp-accept-process-output proc 0))
@@ -5338,6 +5347,15 @@ name of a process or buffer, or nil to default to the current buffer."
    'tramp-unload-hook
    (lambda ()
      (remove-hook 'interrupt-process-functions #'tramp-interrupt-process))))
+
+(defun tramp-get-remote-null-device (vec)
+  "Return null device on the remote host identified by VEC.
+If VEC is nil, return local null device."
+  (if (null vec)
+      null-device
+    (with-tramp-connection-property vec "null-device"
+      (let ((default-directory (tramp-make-tramp-file-name vec)))
+        (tramp-compat-null-device)))))
 
 (defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
   "Skeleton for `tramp-*-handle-delete-directory'.

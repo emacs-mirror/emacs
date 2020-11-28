@@ -363,7 +363,8 @@ ARGUMENTS to pass to the OPERATION."
      ;; by GNU Coreutils. Force "ls" to print one column and set
      ;; time-style to imitate other "ls" flavors.
      ((tramp-adb-send-command-and-check
-       vec "ls --time-style=long-iso /dev/null")
+       vec (concat "ls --time-style=long-iso "
+                   (tramp-get-remote-null-device vec)))
       "ls -1 --time-style=long-iso")
      ;; Can't disable coloring explicitly for toybox ls command.  We
      ;; also must force "ls" to print just one column.
@@ -371,7 +372,8 @@ ARGUMENTS to pass to the OPERATION."
      ;; On CyanogenMod based system BusyBox is used and "ls" output
      ;; coloring is enabled by default.  So we try to disable it when
      ;; possible.
-     ((tramp-adb-send-command-and-check vec "ls --color=never -al /dev/null")
+     ((tramp-adb-send-command-and-check
+       vec (concat "ls --color=never -al " (tramp-get-remote-null-device vec)))
       "ls --color=never")
      (t "ls"))))
 
@@ -611,13 +613,13 @@ But handle the case, if the \"test\" command is not available."
       ;; (introduced in POSIX.1-2008) fails.
       (tramp-adb-send-command-and-check
        v (format
-	  (concat "touch -d %s %s %s 2>/dev/null || "
-		  "touch -d %s %s %s 2>/dev/null || "
+	  (concat "touch -d %s %s %s 2>%s || "
+		  "touch -d %s %s %s 2>%s || "
 		  "touch -t %s %s %s")
 	  (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
-	  nofollow quoted-name
+	  nofollow quoted-name (tramp-get-remote-null-device v)
 	  (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
-	  nofollow quoted-name
+	  nofollow quoted-name (tramp-get-remote-null-device v)
 	  (format-time-string "%Y%m%d%H%M.%S" time t)
 	  nofollow quoted-name)))))
 
@@ -791,7 +793,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			       (cons program args) " "))
       ;; Determine input.
       (if (null infile)
-	  (setq input "/dev/null")
+	  (setq input (tramp-get-remote-null-device v))
 	(setq infile (expand-file-name infile))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
@@ -833,7 +835,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		  tmpstderr (tramp-make-tramp-file-name v stderr))))
 	 ;; stderr to be discarded.
 	 ((null (cadr destination))
-	  (setq stderr "/dev/null"))))
+	  (setq stderr (tramp-get-remote-null-device v)))))
        ;; 't
        (destination
 	(setq outbuf (current-buffer))))
@@ -1316,23 +1318,24 @@ connection if a previous connection has died for some reason."
 	    ;; Mark it as connected.
 	    (tramp-set-connection-property p "connected" t)))))))
 
-;; Default settings for connection-local variables.
-(defconst tramp-adb-connection-local-default-profile
-  '((shell-file-name . "/system/bin/sh")
-    (shell-command-switch . "-c"))
-  "Default connection-local variables for remote adb connections.")
-
+;;; Default connection-local variables for Tramp:
 ;; `connection-local-set-profile-variables' and
 ;; `connection-local-set-profiles' exists since Emacs 26.1.
+(defconst tramp-adb-connection-local-default-shell-variables
+  '((shell-file-name . "/system/bin/sh")
+    (shell-command-switch . "-c"))
+  "Default connection-local shell variables for remote adb connections.")
+
+(tramp-compat-funcall
+ 'connection-local-set-profile-variables
+ 'tramp-adb-connection-local-default-shell-profile
+ tramp-adb-connection-local-default-shell-variables)
+
 (with-eval-after-load 'shell
-  (tramp-compat-funcall
-   'connection-local-set-profile-variables
-   'tramp-adb-connection-local-default-profile
-   tramp-adb-connection-local-default-profile)
   (tramp-compat-funcall
    'connection-local-set-profiles
    `(:application tramp :protocol ,tramp-adb-method)
-   'tramp-adb-connection-local-default-profile))
+   'tramp-adb-connection-local-default-shell-profile))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

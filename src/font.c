@@ -3945,6 +3945,23 @@ VALUE must be a non-negative integer or a floating point number
 specifying the font size.  It specifies the font size in pixels (if
 VALUE is an integer), or in points (if VALUE is a float).
 
+`:dpi'
+
+VALUE must be a non-negative number that specifies the resolution
+(dot per inch) for which the font is designed.
+
+`:spacing'
+
+VALUE specifies the spacing of the font: mono, proportional, charcell,
+or dual.  It can be either a number (0 for proportional, 90 for dual,
+100 for mono, 110 for charcell) or a 1-letter symbol: `P', `D', `M',
+or `C' (lower-case variants are also accepted).
+
+`:avgwidth'
+
+VALUE must be a non-negative integer specifying the average width of
+the font in 1/10 pixel units.
+
 `:name'
 
 VALUE must be a string of XLFD-style or fontconfig-style font name.

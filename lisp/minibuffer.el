@@ -83,7 +83,6 @@
 
 ;; - add support for ** to pcm.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
-;; - A feature like completing-help.el.
 
 ;;; Code:
 
@@ -121,6 +120,10 @@ This metadata is an alist.  Currently understood keys are:
 - `annotation-function': function to add annotations in *Completions*.
    Takes one argument (STRING), which is a possible completion and
    returns a string to append to STRING.
+- `affixation-function': function to prepend/append a prefix/suffix to
+   entries.  Takes one argument (COMPLETIONS) and should return a list
+   of completions with a list of three elements: completion, its prefix
+   and suffix.
 - `display-sort-function': function to sort entries in *Completions*.
    Takes one argument (COMPLETIONS) and should return a new list
    of completions.  Can operate destructively.
@@ -1131,6 +1134,7 @@ completion candidates than this number."
 (defvar-local completion-all-sorted-completions nil)
 (defvar-local completion--all-sorted-completions-location nil)
 (defvar completion-cycling nil)      ;Function that takes down the cycling map.
+(defvar completion-tab-width nil)
 
 (defvar completion-fail-discreetly nil
   "If non-nil, stay quiet when there  is no match.")
@@ -1669,17 +1673,26 @@ Return nil if there is no valid completion, else t."
     (#b000 nil)
       (_     t))))
 
-(defface completions-annotations '((t :inherit italic))
+(defface completions-annotations '((t :inherit (italic shadow)))
   "Face to use for annotations in the *Completions* buffer.")
 
 (defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.
 If the value is `vertical', display completions sorted vertically
 in columns in the *Completions* buffer.
-If the value is `horizontal', display completions sorted
-horizontally in alphabetical order, rather than down the screen."
-  :type '(choice (const horizontal) (const vertical))
+If the value is `horizontal', display completions sorted in columns
+horizontally in alphabetical order, rather than down the screen.
+If the value is `one-column', display completions down the screen
+in one column."
+  :type '(choice (const horizontal) (const vertical) (const one-column))
   :version "23.2")
+
+(defcustom completions-detailed nil
+  "When non-nil, display completions with details added as prefix/suffix.
+Some commands might provide a detailed view with more information prepended
+or appended to completions."
+  :type 'boolean
+  :version "28.1")
 
 (defun completion--insert-strings (strings)
   "Insert a list of STRINGS into the current buffer.
@@ -1689,8 +1702,7 @@ It also eliminates runs of equal strings."
     (let* ((length (apply #'max
 			  (mapcar (lambda (s)
 				    (if (consp s)
-					(+ (string-width (car s))
-                                           (string-width (cadr s)))
+					(apply #'+ (mapcar #'string-width s))
 				      (string-width s)))
 				  strings)))
 	   (window (get-buffer-window (current-buffer) 0))
@@ -1707,6 +1719,11 @@ It also eliminates runs of equal strings."
 	   (row 0)
            (first t)
 	   (laststring nil))
+      (unless (or tab-stop-list (null completion-tab-width)
+                  (zerop (mod colwidth completion-tab-width)))
+        ;; Align to tab positions for the case
+        ;; when the caller uses tabs inside prefix.
+        (setq colwidth (- colwidth (mod colwidth completion-tab-width))))
       ;; The insertion should be "sensible" no matter what choices were made
       ;; for the parameters above.
       (dolist (str strings)
@@ -1715,10 +1732,12 @@ It also eliminates runs of equal strings."
           ;; FIXME: `string-width' doesn't pay attention to
           ;; `display' properties.
           (let ((length (if (consp str)
-                            (+ (string-width (car str))
-                               (string-width (cadr str)))
+                            (apply #'+ (mapcar #'string-width str))
                           (string-width str))))
             (cond
+             ((eq completions-format 'one-column)
+              ;; Nothing special
+              )
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
 	      (when (> row rows)
@@ -1745,23 +1764,46 @@ It also eliminates runs of equal strings."
 		  ;; already past the goal column, there is still
 		  ;; a space displayed.
 		  (set-text-properties (1- (point)) (point)
-				       ;; We can't just set tab-width, because
-				       ;; completion-setup-function will kill
-				       ;; all local variables :-(
+				       ;; We can set tab-width using
+				       ;; completion-tab-width, but
+				       ;; the caller can prefer using
+				       ;; \t to align prefixes.
 				       `(display (space :align-to ,column)))
 		  nil))))
             (setq first nil)
             (if (not (consp str))
                 (put-text-property (point) (progn (insert str) (point))
                                    'mouse-face 'highlight)
-              (put-text-property (point) (progn (insert (car str)) (point))
-                                 'mouse-face 'highlight)
-              (let ((beg (point))
-                    (end (progn (insert (cadr str)) (point))))
-                (put-text-property beg end 'mouse-face nil)
-                (font-lock-prepend-text-property beg end 'face
-                                                 'completions-annotations)))
+              ;; If `str' is a list that has 2 elements,
+              ;; then the second element is a suffix annotation.
+              ;; If `str' has 3 elements, then the second element
+              ;; is a prefix, and the third element is a suffix.
+              (let* ((prefix (when (nth 2 str) (nth 1 str)))
+                     (suffix (or (nth 2 str) (nth 1 str))))
+                (when prefix
+                  (let ((beg (point))
+                        (end (progn (insert prefix) (point))))
+                    (put-text-property beg end 'mouse-face nil)
+                    ;; When both prefix and suffix are added
+                    ;; by the caller via affixation-function,
+                    ;; then allow the caller to decide
+                    ;; what faces to put on prefix and suffix.
+                    (unless prefix
+                      (font-lock-prepend-text-property
+                       beg end 'face 'completions-annotations))))
+                (put-text-property (point) (progn (insert (car str)) (point))
+                                   'mouse-face 'highlight)
+                (let ((beg (point))
+                      (end (progn (insert suffix) (point))))
+                  (put-text-property beg end 'mouse-face nil)
+                  ;; Put the predefined face only when suffix
+                  ;; is added via annotation-function.
+                  (unless prefix
+                    (font-lock-prepend-text-property
+                     beg end 'face 'completions-annotations)))))
 	    (cond
+             ((eq completions-format 'one-column)
+              (insert "\n"))
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
 	      (if (> column 0)
@@ -1880,6 +1922,11 @@ These include:
    completion).  The function can access the completion data via
    `minibuffer-completion-table' and related variables.
 
+`:affixation-function': Function to prepend/append a prefix/suffix to
+   completions.  The function must accept one argument, a list of
+   completions, and return a list where each element is a list of
+   three elements: a completion, a prefix and a suffix.
+
 `:exit-function': Function to run after completion is performed.
 
    The function must accept two arguments, STRING and STATUS.
@@ -1962,10 +2009,13 @@ variables.")
                                            base-size md
                                            minibuffer-completion-table
                                            minibuffer-completion-predicate))
-             (afun (or (completion-metadata-get all-md 'annotation-function)
-                       (plist-get completion-extra-properties
-                                  :annotation-function)
-                       completion-annotate-function))
+             (ann-fun (or (completion-metadata-get all-md 'annotation-function)
+                          (plist-get completion-extra-properties
+                                     :annotation-function)
+                          completion-annotate-function))
+             (aff-fun (or (completion-metadata-get all-md 'affixation-function)
+                          (plist-get completion-extra-properties
+                                     :affixation-function)))
              (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
@@ -2006,12 +2056,15 @@ variables.")
                               (if sort-fun
                                   (funcall sort-fun completions)
                                 (sort completions 'string-lessp))))
-                      (when afun
+                      (when ann-fun
                         (setq completions
                               (mapcar (lambda (s)
-                                        (let ((ann (funcall afun s)))
+                                        (let ((ann (funcall ann-fun s)))
                                           (if ann (list s ann) s)))
                                       completions)))
+                      (when aff-fun
+                        (setq completions
+                              (funcall aff-fun completions)))
 
                       (with-current-buffer standard-output
                         (set (make-local-variable 'completion-base-position)
@@ -3034,19 +3087,6 @@ the commands start with a \"-\" or a SPC."
   :version "24.1"
   :type 'boolean)
 
-(defcustom minibuffer-default-prompt-format " (default %s)"
-  "Format string used to output \"default\" values.
-When prompting for input, there will often be a default value,
-leading to prompts like \"Number of articles (default 50): \".
-The \"default\" part of that prompt is controlled by this
-variable, and can be set to, for instance, \" [%s]\" if you want
-a shorter displayed prompt, or \"\", if you don't want to display
-the default at all.
-
-This variable is used by the `format-prompt' function."
-  :version "28.1"
-  :type 'string)
-
 (defun completion-pcm--pattern-trivial-p (pattern)
   (and (stringp (car pattern))
        ;; It can be followed by `point' and "" and still be trivial.
@@ -3863,6 +3903,19 @@ the minibuffer was activated, and execute the forms."
   (interactive "^P")
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
+
+(defcustom minibuffer-default-prompt-format " (default %s)"
+  "Format string used to output \"default\" values.
+When prompting for input, there will often be a default value,
+leading to prompts like \"Number of articles (default 50): \".
+The \"default\" part of that prompt is controlled by this
+variable, and can be set to, for instance, \" [%s]\" if you want
+a shorter displayed prompt, or \"\", if you don't want to display
+the default at all.
+
+This variable is used by the `format-prompt' function."
+  :version "28.1"
+  :type 'string)
 
 (defun format-prompt (prompt default &rest format-args)
   "Format PROMPT with DEFAULT according to `minibuffer-default-prompt-format'.

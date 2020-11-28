@@ -605,7 +605,7 @@ buffer."
 		       (t "~/.history")))))
       (if (or (equal comint-input-ring-file-name "")
 	      (equal (file-truename comint-input-ring-file-name)
-		     (file-truename "/dev/null")))
+		     (file-truename null-device)))
 	  (setq comint-input-ring-file-name nil))
       ;; Arrange to write out the input ring on exit, if the shell doesn't
       ;; do this itself.

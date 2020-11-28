@@ -516,19 +516,25 @@ Subtests signal errors if something goes wrong."
     ;; Should not warn that mt--test2 is not known to be defined.
     (should-not (re-search-forward "my--test2" nil t))))
 
+(defmacro bytecomp--with-warning-test (re-warning &rest form)
+  (declare (indent 1))
+  `(with-current-buffer (get-buffer-create "*Compile-Log*")
+     (let ((inhibit-read-only t)) (erase-buffer))
+     (byte-compile ,@form)
+     (ert-info ((buffer-string) :prefix "buffer: ")
+       (should (re-search-forward ,re-warning)))))
+
 (ert-deftest bytecomp-warn-wrong-args ()
-  (with-current-buffer (get-buffer-create "*Compile-Log*")
-    (let ((inhibit-read-only t)) (erase-buffer))
-    (byte-compile '(remq 1 2 3))
-    (ert-info ((buffer-string) :prefix "buffer: ")
-      (should (re-search-forward "remq.*3.*2")))))
+  (bytecomp--with-warning-test "remq.*3.*2"
+    '(remq 1 2 3)))
 
 (ert-deftest bytecomp-warn-wrong-args-subr ()
-  (with-current-buffer (get-buffer-create "*Compile-Log*")
-    (let ((inhibit-read-only t)) (erase-buffer))
-    (byte-compile '(safe-length 1 2 3))
-    (ert-info ((buffer-string) :prefix "buffer: ")
-      (should (re-search-forward "safe-length.*3.*1")))))
+  (bytecomp--with-warning-test "safe-length.*3.*1"
+    '(safe-length 1 2 3)))
+
+(ert-deftest bytecomp-warn-variable-lacks-prefix ()
+  (bytecomp--with-warning-test "foo.*lacks a prefix"
+    '(defvar foo nil)))
 
 (ert-deftest test-eager-load-macro-expansion ()
   (test-byte-comp-compile-and-load nil
@@ -807,6 +813,12 @@ literals (Bug#20852)."
       obsolete-variable)
    '((obsolete obsolete-variable))
    "obsolete")
+
+  (test-suppression
+   '(defun zot ()
+      (next-line))
+   '((interactive-only next-line))
+   "interactive use only")
 
   (test-suppression
    '(defun zot ()

@@ -591,7 +591,8 @@ Honor `eldoc-echo-area-use-multiline-p' and
                ;; format the *eldoc* buffer, using as most of its
                ;; contents as we know will fit.
                (with-current-buffer (eldoc--format-doc-buffer docs)
-                 (eldoc--echo-area-substring available)))
+                 (save-excursion
+                   (eldoc--echo-area-substring available))))
               (t ;; this is the "truncate brutally" situation
                (let ((string
                       (with-current-buffer (eldoc--format-doc-buffer docs)

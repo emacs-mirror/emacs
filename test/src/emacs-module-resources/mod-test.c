@@ -691,6 +691,14 @@ Fmod_test_identity (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return args[0];
 }
 
+static emacs_value
+Fmod_test_funcall (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                   void *data)
+{
+  assert (0 < nargs);
+  return env->funcall (env, args[0], nargs - 1, args + 1);
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -780,6 +788,8 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-function-finalizer-calls",
          Fmod_test_function_finalizer_calls, 0, 0, NULL, NULL);
   DEFUN ("mod-test-async-pipe", Fmod_test_async_pipe, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-funcall", Fmod_test_funcall, 1, emacs_variadic_function,
+         NULL, NULL);
 
 #undef DEFUN
 

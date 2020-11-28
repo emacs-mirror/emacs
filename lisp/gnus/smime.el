@@ -398,7 +398,7 @@ Any details (stdout and stderr) are left in the buffer specified by
 `smime-details-buffer'."
   (smime-new-details-buffer)
   (if (apply 'smime-call-openssl-region b e (list smime-details-buffer t)
-	     "smime" "-verify" "-noverify" "-out" '("/dev/null"))
+	     "smime" "-verify" "-noverify" "-out" `(,null-device))
       t
     (insert-buffer-substring smime-details-buffer)
     nil))

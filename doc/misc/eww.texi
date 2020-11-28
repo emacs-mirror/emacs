@@ -262,6 +262,12 @@ fetching images that originate from the same source as the
 retrieving these images'' and @code{t} means ``always send cookies
 when retrieving these images''.
 
+@vindex eww-use-browse-url
+  When following links in EWW, @acronym{URL}s that match the
+@code{eww-use-browse-url} regexp will be passed to @code{browse-url}
+instead of EWW handling them itself.  The action can be further
+customized by altering @code{browse-url-handlers}.
+
 @vindex eww-header-line-format
 @cindex Header
   The header line of the EWW buffer can be changed by customizing

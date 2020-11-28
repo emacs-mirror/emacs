@@ -1224,7 +1224,7 @@ default) no filter is applied."
                       map))
       ,@(pcase-let ((`(,ind ,face ,explain)
                      (cond ((null known)
-                            '("?" mode-line "No known backends"))
+                            '("?" nil "No known backends"))
                            (some-waiting
                             `("Wait" compilation-mode-line-run
                               ,(format "Waiting for %s running backend(s)"

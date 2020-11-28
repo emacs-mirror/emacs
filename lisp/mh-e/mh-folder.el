@@ -656,9 +656,10 @@ perform the operation on all messages in that region.
   (mh-funcall-if-exists hl-line-mode 1)
   (setq revert-buffer-function 'mh-undo-folder)
   (add-to-list 'minor-mode-alist '(mh-showing-mode " Show"))
-  (easy-menu-add mh-folder-sequence-menu)
-  (easy-menu-add mh-folder-message-menu)
-  (easy-menu-add mh-folder-folder-menu)
+  (mh-do-in-xemacs
+    (easy-menu-add mh-folder-sequence-menu)
+    (easy-menu-add mh-folder-message-menu)
+    (easy-menu-add mh-folder-folder-menu))
   (mh-inc-spool-make)
   (mh-set-help mh-folder-mode-help-messages)
   (if (and (featurep 'xemacs)

@@ -801,6 +801,11 @@ This macro is used to test if macroexpansion in `should' works."
     (should (eql 0 (ert-stats-completed-unexpected stats)))
     (should (eql 1 (ert-stats-skipped stats)))))
 
+(ert-deftest ert-test-with-demoted-errors ()
+  "Check that ERT correctly handles `with-demoted-errors'."
+  :expected-result :failed  ;; FIXME!  Bug#11218
+  (should-not (with-demoted-errors (error "Foo"))))
+
 
 (provide 'ert-tests)
 
