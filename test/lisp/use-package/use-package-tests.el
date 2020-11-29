@@ -1129,28 +1129,25 @@
     ;;                '((foo bar baz))))
     ))
 
+
 (ert-deftest use-package-test/:custom-1 ()
   (match-expansion
    (use-package foo :custom (foo bar))
    `(progn
-      (funcall
-       (or
-        (get 'foo 'custom-set)
-        (function set-default))
-       'foo bar)
-      (set 'foo 'saved-variable-comment "Customized with use-package foo")
+      (let
+          ((custom--inhibit-theme-enable nil))
+        (custom-theme-set-variables 'use-package
+                                    '(foo bar nil nil "Customized with use-package foo")))
       (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:custom-with-comment1 ()
   (match-expansion
    (use-package foo :custom (foo bar "commented"))
    `(progn
-      (funcall
-       (or
-        (get 'foo 'custom-set)
-        (function set-default))
-       'foo bar)
-      (set 'foo 'saved-variable-comment "commented")
+      (let
+          ((custom--inhibit-theme-enable nil))
+        (custom-theme-set-variables 'use-package
+                                    '(foo bar nil nil "commented")))
       (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:custom-face-1 ()
