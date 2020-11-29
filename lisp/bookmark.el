@@ -1475,7 +1475,32 @@ for a file, defaulting to the file defined by variable
 		((eq 'nospecial bookmark-version-control) version-control)
 		(t t))))
 	  (condition-case nil
-	      (write-region (point-min) (point-max) file)
+              ;; There was a stretch of time (about 15 years) when we
+              ;; used `write-region' below instead of `write-file',
+              ;; before going back to `write-file' again.  So if you're
+              ;; considering changing it to `write-region', please see
+              ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=12507.
+              ;; That bug tells the story of how we first started using
+              ;; `write-region' in 2005...
+              ;;
+              ;;   commit a506054af7cd86a63fda996056c09310966f32ef
+              ;;   Author:     Karl Fogel <kfogel@red-bean.com>
+              ;;   AuthorDate: Sat Nov 12 20:30:22 2005 +0000
+              ;;
+              ;;       (bookmark-write-file): Don't visit the
+              ;;       destination file, just write the data to it
+              ;;       using write-region.  This is similar to
+              ;;       2005-05-29T08:36:26Z!rms@gnu.org of saveplace.el,
+              ;;       but with an additional change to avoid visiting
+              ;;       the  file in the first place.
+              ;;
+              ;; ...and of how further inquiry led us to investigate (in
+              ;; 2012 and then again in 2020) and eventually decide that
+              ;; matching the saveplace.el change doesn't make sense for
+              ;; bookmark.el.  Therefore we reverted to `write-file',
+              ;; which means numbered backups may now be created,
+              ;; depending on `bookmark-version-control' as per above.
+	      (write-file file)
 	    (file-error (message "Can't write %s" file)))
 	  (setq bookmark-file-coding-system coding-system-for-write)
 	  (kill-buffer (current-buffer))
