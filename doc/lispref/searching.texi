@@ -1484,8 +1484,8 @@ Corresponding string regexp: @samp{\_>}
 @cindex @code{submatch} in rx
 Match the @var{rx}s, making the matched text and position accessible
 in the match data.  The first group in a regexp is numbered 1;
-subsequent groups will be numbered one higher than the previous
-group.@*
+subsequent groups will be numbered one above the previously
+highest-numbered group in the pattern so far.@*
 Corresponding string regexp: @samp{\(@dots{}\)}
 
 @item (group-n @var{n} @var{rx}@dots{})

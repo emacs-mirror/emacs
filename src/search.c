@@ -3031,6 +3031,23 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   return Qnil;
 }
 
+DEFUN ("match-data--translate", Fmatch_data__translate, Smatch_data__translate,
+       1, 1, 0,
+       doc: /* Add N to all string positions in the match data.  Internal.  */)
+  (Lisp_Object n)
+{
+  CHECK_FIXNUM (n);
+  EMACS_INT delta = XFIXNUM (n);
+  if (EQ (last_thing_searched, Qt))   /* String match data only.  */
+    for (ptrdiff_t i = 0; i < search_regs.num_regs; i++)
+      if (search_regs.start[i] >= 0)
+        {
+          search_regs.start[i] = max (0, search_regs.start[i] + delta);
+          search_regs.end[i] = max (0, search_regs.end[i] + delta);
+        }
+  return Qnil;
+}
+
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
 static void
@@ -3388,6 +3405,7 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Smatch_end);
   defsubr (&Smatch_data);
   defsubr (&Sset_match_data);
+  defsubr (&Smatch_data__translate);
   defsubr (&Sregexp_quote);
   defsubr (&Snewline_cache_check);
 

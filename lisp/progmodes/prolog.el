@@ -1292,8 +1292,7 @@ To find out what version of Prolog mode you are running, enter
   (setq-local shell-dirstack-query "pwd.")
   (setq-local compilation-error-regexp-alist
               prolog-inferior-error-regexp-alist)
-  (compilation-shell-minor-mode)
-  (prolog-inferior-menu))
+  (compilation-shell-minor-mode))
 
 (defun prolog-input-filter (str)
   (cond ((string-match "\\`\\s *\\'" str) nil) ;whitespace
@@ -3378,9 +3377,6 @@ PREFIX is the prefix of the search regexp."
 (defun prolog-menu ()
   "Add the menus for the Prolog editing buffers."
 
-  (easy-menu-add prolog-edit-menu-insert-move)
-  (easy-menu-add prolog-edit-menu-runtime)
-
   ;; Add predicate index menu
   (setq-local imenu-create-index-function
               'imenu-default-create-index-function)
@@ -3391,9 +3387,7 @@ PREFIX is the prefix of the search regexp."
 
   (if (and prolog-imenu-flag
            (< (count-lines (point-min) (point-max)) prolog-imenu-max-lines))
-      (imenu-add-to-menubar "Predicates"))
-
-  (easy-menu-add prolog-menu-help))
+      (imenu-add-to-menubar "Predicates")))
 
 (easy-menu-define
   prolog-inferior-menu-all prolog-inferior-mode-map
@@ -3436,8 +3430,8 @@ PREFIX is the prefix of the search regexp."
   "Create the menus for the Prolog inferior buffer.
 This menu is dynamically created because one may change systems during
 the life of an Emacs session."
-  (easy-menu-add prolog-inferior-menu-all)
-  (easy-menu-add prolog-menu-help))
+  (declare (obsolete nil "28.1"))
+  nil)
 
 (defun prolog-mode-version ()
   "Echo the current version of Prolog mode in the minibuffer."

@@ -153,7 +153,8 @@ Here are all local bindings.
   (make-local-variable 'reftex-last-follow-point)
   (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)
-  (easy-menu-add reftex-toc-menu reftex-toc-mode-map))
+  (when (featurep 'xemacs)
+    (easy-menu-add reftex-toc-menu reftex-toc-mode-map)))
 
 (defvar reftex-last-toc-file nil
   "Stores the file name from which `reftex-toc' was called.  For redo command.")

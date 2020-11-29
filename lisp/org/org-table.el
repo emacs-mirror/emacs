@@ -3287,7 +3287,6 @@ Parameters get priority."
       (setq-local org-selected-window sel-win)
       (use-local-map org-table-fedit-map)
       (add-hook 'post-command-hook #'org-table-fedit-post-command t t)
-      (easy-menu-add org-table-fedit-menu)
       (setq startline (org-current-line))
       (dolist (entry eql)
 	(let* ((type (cond
@@ -5129,15 +5128,13 @@ When LOCAL is non-nil, show references for the table at point."
 		  orgtbl-line-start-regexp))
     (when (fboundp 'font-lock-add-keywords)
       (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
-      (org-restart-font-lock))
-    (easy-menu-add orgtbl-mode-menu))
+      (org-restart-font-lock)))
    (t
     (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
     (remove-hook 'before-change-functions 'org-before-change-function t)
     (when (fboundp 'font-lock-remove-keywords)
       (font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
       (org-restart-font-lock))
-    (easy-menu-remove orgtbl-mode-menu)
     (force-mode-line-update 'all))))
 
 (defun orgtbl-make-binding (fun n &rest keys)

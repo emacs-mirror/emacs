@@ -382,8 +382,7 @@ it defaults to `insert'."
   "Set handle INDEX, using MODE, to point to TARGET."
   (when target
     (if (and (stringp target)
-	     (or (string= target null-device)
-		 (string= target "/dev/null")))
+             (string= target (null-device)))
 	(aset eshell-current-handles index nil)
       (let ((where (eshell-get-target target mode))
 	    (current (car (aref eshell-current-handles index))))

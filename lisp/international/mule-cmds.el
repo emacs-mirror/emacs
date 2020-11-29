@@ -3084,13 +3084,11 @@ on encoding."
         (puthash "BELL (BEL)" ?\a names)
         (setq ucs-names names))))
 
-(defun mule--ucs-names-annotation (name)
-  ;; FIXME: It would be much better to add this annotation before rather than
-  ;; after the char name, so the annotations are aligned.
-  ;; FIXME: The default behavior of displaying annotations in italics
-  ;; doesn't work well here.
-  (let ((char (gethash name ucs-names)))
-    (when char (format " (%c)" char))))
+(defun mule--ucs-names-affixation (names)
+  (mapcar (lambda (name)
+            (let ((char (gethash name ucs-names)))
+              (list name (concat (if char (format "%c" char) " ") "\t") "")))
+          names))
 
 (defun char-from-name (string &optional ignore-case)
   "Return a character as a number from its Unicode name STRING.
@@ -3133,13 +3131,14 @@ octal).  Treat otherwise-ambiguous strings like \"BED\" (U+1F6CF)
 as names, not numbers."
   (let* ((enable-recursive-minibuffers t)
 	 (completion-ignore-case t)
+	 (completion-tab-width 4)
 	 (input
 	  (completing-read
 	   prompt
 	   (lambda (string pred action)
 	     (if (eq action 'metadata)
 		 '(metadata
-		   (annotation-function . mule--ucs-names-annotation)
+		   (affixation-function . mule--ucs-names-affixation)
 		   (category . unicode-name))
 	       (complete-with-action action (ucs-names) string pred)))))
 	 (char

@@ -124,6 +124,8 @@
     ;; cucumber
     (cucumber "Scenario: undefined step  # features/cucumber.feature:3"
      29 nil 3 "features/cucumber.feature")
+    ;; This rule is actually handled by the `cucumber' pattern but when
+    ;; `omake' is included, then `gnu' matches it first.
     (gnu "      /home/gusev/.rvm/foo/bar.rb:500:in `_wrap_assertion'"
      1 nil 500 "/home/gusev/.rvm/foo/bar.rb")
     ;; edg-1 edg-2

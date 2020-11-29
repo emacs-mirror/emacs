@@ -148,4 +148,157 @@
       ;; Check that we effectively moved the item to the last position.
       (should (equal (widget-value lst) '("beg" "middle" "end"))))))
 
+(ert-deftest widget-test-choice-match-no-inline ()
+  "Test that a no-inline choice widget can match its values."
+  (let* ((choice '(choice (const nil) (const t) string function))
+         (widget (widget-convert choice)))
+    (should (widget-apply widget :match nil))
+    (should (widget-apply widget :match t))
+    (should (widget-apply widget :match ""))
+    (should (widget-apply widget :match 'ignore))))
+
+(ert-deftest widget-test-choice-match-all-inline ()
+  "Test that a choice widget with all inline members can match its values."
+  (let* ((lst '(list (choice (list :inline t symbol number)
+                             (list :inline t symbol regexp))))
+         (widget (widget-convert lst)))
+    (should-not (widget-apply widget :match nil))
+    (should (widget-apply widget :match '(:test 2)))
+    (should (widget-apply widget :match '(:test ".*")))
+    (should-not (widget-apply widget :match '(:test ignore)))))
+
+(ert-deftest widget-test-choice-match-some-inline ()
+  "Test that a choice widget with some inline members can match its values."
+  (let* ((lst '(list string
+                     (choice (const t)
+                             (list :inline t symbol number)
+                             (list :inline t symbol regexp))))
+         (widget (widget-convert lst)))
+    (should-not (widget-apply widget :match nil))
+    (should (widget-apply widget :match '("" t)))
+    (should (widget-apply widget :match '("" :test 2)))
+    (should (widget-apply widget :match '("" :test ".*")))
+    (should-not (widget-apply widget :match '(:test ignore)))))
+
+(ert-deftest widget-test-inline-p ()
+  "Test `widget-inline-p'.
+For widgets without an :inline t property, `widget-inline-p' has to return nil.
+But if the widget is a choice widget, it has to return nil if passed nil as
+the bubblep argument, or non-nil if one of the members of the choice widget has
+an :inline t property and we pass a non-nil bubblep argument.  If no members of
+the choice widget have an :inline t property, then `widget-inline-p' has to
+return nil, even with a non-nil bubblep argument."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'repeat
+                                  :value '(nil)
+                                  '(choice (const nil) (const t)
+                                           (list :inline t symbol number))
+                                  '(choice (const nil) (const t)
+                                           (list function string))))
+           (children (widget-get widget :children))
+           (child-1 (car children))
+           (child-2 (cadr children)))
+      (should-not (widget-inline-p widget))
+      (should-not (widget-inline-p child-1))
+      (should (widget-inline-p child-1 'bubble))
+      (should-not (widget-inline-p child-2))
+      (should-not (widget-inline-p child-2 'bubble)))))
+
+(ert-deftest widget-test-repeat-can-handle-choice ()
+  "Test that we can create a repeat widget with a choice correctly."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'repeat
+                                  :entry-format "%i %d %v"
+                                  :value '((:test 2))
+                                  '(choice (const nil) (const t)
+                                           (list symbol number))))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (equal (widget-value widget) '((:test 2)))))))
+
+(ert-deftest widget-test-repeat-can-handle-inlinable-choice ()
+  "Test that we can create a repeat widget with an inlinable choice correctly."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'repeat
+                                  :entry-format "%i %d %v"
+                                  :value '(:test 2)
+                                  '(choice (const nil) (const t)
+                                           (list :inline t symbol number))))
+           (child (widget-get widget :children)))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (equal (widget-value widget) '(:test 2))))))
+
+(ert-deftest widget-test-list-can-handle-choice ()
+  "Test that we can create a list widget with a choice correctly."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'list
+                                  :value '((1 "One"))
+                                  '(choice string
+                                           (list number string))))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (equal (widget-value widget) '((1 "One")))))))
+
+(ert-deftest widget-test-list-can-handle-inlinable-choice ()
+  "Test that we can create a list widget with an inlinable choice correctly."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'list
+                                  :value '(1 "One")
+                                  '(choice string
+                                           (list :inline t number string))))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (equal (widget-value widget) '(1 "One"))))))
+
+(ert-deftest widget-test-option-can-handle-choice ()
+  "Test that we can create a option widget with a choice correctly."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'repeat
+                                  :value '(("foo"))
+                                  '(list (option
+                                          (choice string
+                                                  (list :inline t
+                                                        number string))))))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (equal (widget-value widget) '(("foo")))))))
+
+(ert-deftest widget-test-option-can-handle-inlinable-choice ()
+  "Test that we can create a option widget with an inlinable choice correctly."
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'repeat
+                                  :value '((1 "One"))
+                                  '(list (option
+                                          (choice string
+                                                  (list :inline t
+                                                        number string))))))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (equal (widget-value widget) '((1 "One")))))))
+
 ;;; wid-edit-tests.el ends here

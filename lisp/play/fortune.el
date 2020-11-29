@@ -96,7 +96,7 @@ Normally you won't have a reason to change it."
   "Options to pass to the strfile program (a string)."
   :type 'string)
 
-(defcustom fortune-quiet-strfile-options "> /dev/null"
+(defcustom fortune-quiet-strfile-options (concat "> " null-device)
   "Text added to the command for running `strfile'.
 By default it discards the output produced by `strfile'.
 Set this to \"\" if you would like to see the output."

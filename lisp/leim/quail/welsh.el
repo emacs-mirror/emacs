@@ -1,4 +1,4 @@
-;;; welsh.el --- Quail package for inputting Welsh characters  -*-coding: utf-8;-*-
+;;; welsh.el --- Quail package for inputting Welsh characters  -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

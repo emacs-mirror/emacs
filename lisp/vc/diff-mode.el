@@ -2326,7 +2326,7 @@ where DEFUN... is a list of function names found in FILE."
                       ;; would look for non-existent files like
                       ;; /dev/null.
                       (diff-find-source-location
-                       (not (equal "/dev/null"
+                       (not (equal null-device
                                    (car (diff-hunk-file-names t))))))
                      (other-buf nil)
                      (goto-otherbuf
@@ -2567,8 +2567,8 @@ fixed, visit it in a buffer."
                  (concat "diff.*\n"
                          "\\(?:\\(?:new file\\|deleted\\).*\n\\)?"
                          "\\(?:index.*\n\\)?"
-                         "--- \\(?:/dev/null\\|a/\\(.*\\)\\)\n"
-                         "\\+\\+\\+ \\(?:/dev/null\\|b/\\(.*\\)\\)\n"))))
+                         "--- \\(?:" null-device "\\|a/\\(.*\\)\\)\n"
+                         "\\+\\+\\+ \\(?:" null-device "\\|b/\\(.*\\)\\)\n"))))
         (put-text-property (match-beginning 0)
                            (or (match-beginning 2) (match-beginning 1))
                            'display (propertize

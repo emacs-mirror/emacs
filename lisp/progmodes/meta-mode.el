@@ -946,10 +946,7 @@ The environment marked is the one that contains point or follows point."
   (set (make-local-variable 'font-lock-defaults)
        '(meta-font-lock-keywords
          nil nil ((?_ . "w")) nil
-         (font-lock-comment-start-regexp . "%")))
-
-  ;; Activate syntax table, keymap and menu.
-  (easy-menu-add meta-mode-menu))
+         (font-lock-comment-start-regexp . "%"))))
 
 
 ;;;###autoload

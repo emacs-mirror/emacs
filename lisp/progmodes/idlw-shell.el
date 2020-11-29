@@ -954,7 +954,6 @@ IDL has currently stepped.")
 	    nil 'local)
   (add-hook 'kill-buffer-hook 'idlwave-shell-delete-temp-files nil 'local)
   (add-hook 'kill-emacs-hook 'idlwave-shell-delete-temp-files)
-  (easy-menu-add idlwave-shell-mode-menu idlwave-shell-mode-map)
 
   ;; Set the optional comint variables
   (when idlwave-shell-comint-settings
@@ -4334,13 +4333,6 @@ Shell debugging commands are available as single key sequences."
 (easy-menu-define
   idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
   idlwave-shell-menu-def)
-(save-current-buffer
-  (dolist (buf (buffer-list))
-    (set-buffer buf)
-    (if (derived-mode-p 'idlwave-mode)
-        (progn
-          (easy-menu-remove idlwave-mode-debug-menu)
-          (easy-menu-add idlwave-mode-debug-menu)))))
 
 ;; The Breakpoint Glyph -------------------------------------------------------
 

@@ -1621,8 +1621,7 @@ So `allout-post-command-business' should not reactivate it...")
 	cur)
     (while menus
       (setq cur (car menus)
-	    menus (cdr menus))
-      (easy-menu-add cur))))
+            menus (cdr menus)))))
 ;;;_  > allout-overlay-preparations
 (defun allout-overlay-preparations ()
   "Set the properties of the allout invisible-text overlay and others."

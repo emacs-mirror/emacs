@@ -506,4 +506,54 @@ See Bug#36226."
     (should (not (multibyte-string-p (mod-test-return-unibyte))))
     (should (equal result "foo\x00zot"))))
 
+(cl-defstruct (emacs-module-tests--variable
+               (:constructor nil)
+               (:constructor emacs-module-tests--make-variable
+                             (name
+                              &aux
+                              (mutex (make-mutex name))
+                              (condvar (make-condition-variable mutex name))))
+               (:copier nil))
+  "A variable that's protected by a mutex."
+  value
+  (mutex nil :read-only t :type mutex)
+  (condvar nil :read-only t :type condition-variable))
+
+(defun emacs-module-tests--wait-for-variable (variable desired)
+  (with-mutex (emacs-module-tests--variable-mutex variable)
+    (while (not (eq (emacs-module-tests--variable-value variable) desired))
+      (condition-wait (emacs-module-tests--variable-condvar variable)))))
+
+(defun emacs-module-tests--change-variable (variable new)
+  (with-mutex (emacs-module-tests--variable-mutex variable)
+    (setf (emacs-module-tests--variable-value variable) new)
+    (condition-notify (emacs-module-tests--variable-condvar variable) :all)))
+
+(ert-deftest emacs-module-tests/interleaved-threads ()
+  (let* ((state-1 (emacs-module-tests--make-variable "1"))
+         (state-2 (emacs-module-tests--make-variable "2"))
+         (thread-1
+          (make-thread
+           (lambda ()
+             (emacs-module-tests--change-variable state-1 'before-module)
+             (mod-test-funcall
+              (lambda ()
+                (emacs-module-tests--change-variable state-1 'in-module)
+                (emacs-module-tests--wait-for-variable state-2 'in-module)))
+             (emacs-module-tests--change-variable state-1 'after-module))
+           "thread 1"))
+         (thread-2
+          (make-thread
+           (lambda ()
+             (emacs-module-tests--change-variable state-2 'before-module)
+             (emacs-module-tests--wait-for-variable state-1 'in-module)
+             (mod-test-funcall
+              (lambda ()
+                (emacs-module-tests--change-variable state-2 'in-module)
+                (emacs-module-tests--wait-for-variable state-1 'after-module)))
+             (emacs-module-tests--change-variable state-2 'after-module))
+           "thread 2")))
+    (thread-join thread-1)
+    (thread-join thread-2)))
+
 ;;; emacs-module-tests.el ends here

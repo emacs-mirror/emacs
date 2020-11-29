@@ -246,6 +246,12 @@ struct pgtk_display_info
     GtkIMContext *context;
     struct frame *focused_frame;
   } im;
+
+  struct
+  {
+    double acc_x, acc_y;
+    double x_per_char, y_per_line;
+  } scroll;
 };
 
 /* This is a chain of structures for all the PGTK displays currently in use.  */

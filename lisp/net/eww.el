@@ -56,6 +56,13 @@
   :group 'eww
   :type 'string)
 
+(defcustom eww-use-browse-url "\\`mailto:"
+  "eww will use `browse-url' when following links that match this regexp.
+The action to be taken can further be customized via
+`browse-url-handlers'."
+  :version "28.1"
+  :type 'regexp)
+
 (defun erc--download-directory ()
   "Return the name of the download directory.
 If ~/Downloads/ exists, that will be used, and if not, the
@@ -1731,7 +1738,7 @@ If EXTERNAL is double prefix, browse in new buffer."
     (cond
      ((not url)
       (message "No link under point"))
-     ((string-match-p "\\`mailto:" url)
+     ((string-match-p eww-use-browse-url url)
       ;; This respects the user options `browse-url-handlers'
       ;; and `browse-url-mailto-function'.
       (browse-url url))

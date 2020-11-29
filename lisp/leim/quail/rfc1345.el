@@ -1,4 +1,4 @@
-;;; rfc1345.el --- Quail method for RFC 1345 mnemonics -*- coding: utf-8 -*-
+;;; rfc1345.el --- Quail method for RFC 1345 mnemonics -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 

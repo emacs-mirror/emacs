@@ -143,8 +143,7 @@ require \"fileinto\";
 (define-derived-mode sieve-manage-mode special-mode "Sieve-manage"
   "Mode used for sieve script management."
   (buffer-disable-undo (current-buffer))
-  (setq truncate-lines t)
-  (easy-menu-add sieve-manage-mode-menu sieve-manage-mode-map))
+  (setq truncate-lines t))
 
 ;; Commands used in sieve-manage mode:
 

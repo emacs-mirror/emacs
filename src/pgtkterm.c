@@ -6530,6 +6530,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   union buffered_input_event inev;
   struct frame *f, *frame;
   struct pgtk_display_info *dpyinfo;
+  GdkScrollDirection dir;
+  double delta_x, delta_y;
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
@@ -6543,7 +6545,7 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   else
     f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
-  inev.ie.kind = WHEEL_EVENT;
+  inev.ie.kind = NO_EVENT;
   inev.ie.timestamp = event->scroll.time;
   inev.ie.modifiers =
     pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->scroll.state);
@@ -6552,50 +6554,66 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   XSETFRAME (inev.ie.frame_or_window, f);
   inev.ie.arg = Qnil;
 
-  switch (event->scroll.direction)
+  if (gdk_event_get_scroll_direction (event, &dir))
     {
-    case GDK_SCROLL_UP:
-      inev.ie.kind = WHEEL_EVENT;
-      inev.ie.modifiers |= up_modifier;
-      break;
-    case GDK_SCROLL_DOWN:
-      inev.ie.kind = WHEEL_EVENT;
-      inev.ie.modifiers |= down_modifier;
-      break;
-    case GDK_SCROLL_LEFT:
-      inev.ie.kind = HORIZ_WHEEL_EVENT;
-      inev.ie.modifiers |= up_modifier;
-      break;
-    case GDK_SCROLL_RIGHT:
-      inev.ie.kind = HORIZ_WHEEL_EVENT;
-      inev.ie.modifiers |= down_modifier;
-      break;
-    case GDK_SCROLL_SMOOTH:
-      if (event->scroll.delta_y >= 0.5)
+      switch (dir)
 	{
-	  inev.ie.kind = WHEEL_EVENT;
-	  inev.ie.modifiers |= down_modifier;
-	}
-      else if (event->scroll.delta_y <= -0.5)
-	{
+	case GDK_SCROLL_UP:
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
-	}
-      else if (event->scroll.delta_x >= 0.5)
-	{
-	  inev.ie.kind = HORIZ_WHEEL_EVENT;
+	  break;
+	case GDK_SCROLL_DOWN:
+	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
-	}
-      else if (event->scroll.delta_x <= -0.5)
-	{
+	  break;
+	case GDK_SCROLL_LEFT:
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
+	  break;
+	case GDK_SCROLL_RIGHT:
+	  inev.ie.kind = HORIZ_WHEEL_EVENT;
+	  inev.ie.modifiers |= down_modifier;
+	  break;
+	case GDK_SCROLL_SMOOTH:		/* shut up warning */
+	  break;
 	}
-      else
-	return TRUE;
-      break;
-    default:
-      return TRUE;
+    }
+  else if (gdk_event_get_scroll_deltas (event, &delta_x, &delta_y))
+    {
+      dpyinfo->scroll.acc_x += delta_x;
+      dpyinfo->scroll.acc_y += delta_y;
+      if (dpyinfo->scroll.acc_y >= dpyinfo->scroll.y_per_line)
+	{
+	  int nlines = dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
+	  inev.ie.kind = WHEEL_EVENT;
+	  inev.ie.modifiers |= down_modifier;
+	  inev.ie.arg = make_fixnum(nlines);
+	  dpyinfo->scroll.acc_y -= dpyinfo->scroll.y_per_line * nlines;
+	}
+      else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line)
+	{
+	  int nlines = -dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
+	  inev.ie.kind = WHEEL_EVENT;
+	  inev.ie.modifiers |= up_modifier;
+	  inev.ie.arg = make_fixnum(nlines);
+	  dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
+	}
+      else if (dpyinfo->scroll.acc_x >= dpyinfo->scroll.x_per_char)
+	{
+	  int nchars = dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
+	  inev.ie.kind = HORIZ_WHEEL_EVENT;
+	  inev.ie.modifiers |= up_modifier;
+	  inev.ie.arg = make_fixnum(nchars);
+	  dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
+	}
+      else if (dpyinfo->scroll.acc_x <= -dpyinfo->scroll.x_per_char)
+	{
+	  int nchars = -dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
+	  inev.ie.kind = HORIZ_WHEEL_EVENT;
+	  inev.ie.modifiers |= down_modifier;
+	  inev.ie.arg = make_fixnum(nchars);
+	  dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
+	}
     }
 
   if (inev.ie.kind != NO_EVENT)
@@ -6942,6 +6960,10 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     dpyinfo->resx = dpi;
     dpyinfo->resy = dpi;
   }
+
+  /* smooth scroll setting */
+  dpyinfo->scroll.x_per_char = 2;
+  dpyinfo->scroll.y_per_line = 2;
 
   x_setup_pointer_blanking (dpyinfo);
 

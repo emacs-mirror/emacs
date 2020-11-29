@@ -1,4 +1,4 @@
-;;; croatian.el -- Quail package for inputting Croatian  -*-coding: utf-8;-*-
+;;; croatian.el -- Quail package for inputting Croatian  -*-coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 

@@ -735,7 +735,7 @@ context menu.
 
 Classes can be marked for operations similar to the standard Emacs
 commands @kbd{M-x tags-search} and @kbd{M-x tags-query-replace} (see
-also @xref{Tags-like Functions}.)
+also @pxref{Tags-like Functions}.)
 
 @table @kbd
 @cindex toggle mark

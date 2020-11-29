@@ -193,7 +193,7 @@ program."
     (let ((count 0)
 	  (mark1 (point-min-marker))
 	  (mark1-end (point-min))
-	  (possible-file-names '("/dev/null" . "/dev/null"))
+	  (possible-file-names `(,null-device . ,null-device))
 	  mark2-end mark2 filenames
 	  beg1 beg2 end1 end2
 	  patch-map opoint)
@@ -217,10 +217,10 @@ program."
 	    (setq possible-file-names
 		  (cons (if (and beg1 end1)
 			    (buffer-substring beg1 end1)
-			  "/dev/null")
+			  null-device)
 			(if (and beg2 end2)
 			    (buffer-substring beg2 end2)
-			  "/dev/null")))
+			  null-device)))
             ;; Remove file junk (Bug#26084).
             (while (re-search-backward
                     (concat "^\\(?:" diff-file-junk-re "\\)") mark1-end t)
@@ -309,12 +309,12 @@ program."
 				   (file-exists-p (cdr m2)))
 			  (setq base-dir1 (car m1)
 				base-dir2 (car m2))))))))
-	      (or (string= (car proposed-file-names) "/dev/null")
+	      (or (string= (car proposed-file-names) null-device)
 		  (setcar proposed-file-names
 			  (ediff-file-name-sans-prefix
 			   (car proposed-file-names) base-dir1)))
 	      (or (string=
-		   (cdr proposed-file-names) "/dev/null")
+		   (cdr proposed-file-names) null-device)
 		  (setcdr proposed-file-names
 			  (ediff-file-name-sans-prefix
 			   (cdr proposed-file-names) base-dir2)))
@@ -323,7 +323,7 @@ program."
 
     ;; take the given file name into account
     (or (file-directory-p filename)
-	(string= "/dev/null" filename)
+	(string= null-device filename)
 	(setcar (ediff-get-session-objA (car ediff-patch-map))
 		(cons (file-name-nondirectory filename)
 		      (file-name-nondirectory filename))))
@@ -582,7 +582,7 @@ optional argument, then use it."
 	 patch-buf
 	 (if (and ediff-patch-map
 		  (not (string-match-p
-			"^/dev/null"
+			(concat "^" null-device)
 			;; this is the file to patch
 			(ediff-get-session-objA-name (car ediff-patch-map))))
 		  (> (length
