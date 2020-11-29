@@ -806,6 +806,12 @@ emacs_module_init (struct emacs_runtime *ert)
                                            strlen (interactive_spec)));
   bind_function (env, "mod-test-identity", identity_fn);
 
+  /* We allocate lots of values to trigger bugs in the frame allocator during
+     initialization.  */
+  int count = 10000;  /* larger than value_frame_size in emacs-module.c */
+  for (int i = 0; i < count; ++i)
+    env->make_integer (env, i);
+
   provide (env, "mod-test");
   return 0;
 }
