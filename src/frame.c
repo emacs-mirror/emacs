@@ -3634,7 +3634,11 @@ DEFUN ("frame-position", Fframe_position,
 FRAME must be a live frame and defaults to the selected one.  The return
 value is a cons (x, y) of the coordinates of the top left corner of
 FRAME's outer frame, in pixels relative to an origin (0, 0) of FRAME's
-display.  */)
+display.
+
+Note that the values returned are not guaranteed to be accurate: The
+values depend on the underlying window system, and some systems add a
+constant offset to the values.  */)
      (Lisp_Object frame)
 {
   register struct frame *f = decode_live_frame (frame);
