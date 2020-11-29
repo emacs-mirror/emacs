@@ -1418,6 +1418,7 @@ into a plain rx-expression, collecting names into `rx--pcase-vars'."
      (cons head (mapcar #'rx--pcase-transform rest)))
     (_ rx)))
 
+;;;###autoload
 (pcase-defmacro rx (&rest regexps)
   "A pattern that matches strings against `rx' REGEXPS in sexp form.
 REGEXPS are interpreted as in `rx'.  The pattern matches any

@@ -184,8 +184,7 @@ Turning on DNS mode runs `dns-mode-hook'."
   (set (make-local-variable 'font-lock-defaults)
        '(dns-mode-font-lock-keywords nil nil ((?_ . "w"))))
   (add-hook 'before-save-hook 'dns-mode-soa-maybe-increment-serial
-	    nil t)
-  (easy-menu-add dns-mode-menu dns-mode-map))
+            nil t))
 
 ;;;###autoload (defalias 'zone-mode 'dns-mode)
 

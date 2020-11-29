@@ -1873,10 +1873,6 @@ The main features of this mode are
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'completion-ignore-case) t)
 
-  (when (featurep 'easymenu)
-    (easy-menu-add idlwave-mode-menu idlwave-mode-map)
-    (easy-menu-add idlwave-mode-debug-menu idlwave-mode-map))
-
   (setq abbrev-mode t)
 
   (set (make-local-variable idlwave-fill-function) 'idlwave-auto-fill)

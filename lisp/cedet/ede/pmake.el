@@ -180,7 +180,7 @@ MFILENAME is the makefile to generate."
 	  ;;
 	  ;; NOTE: This is GNU Make specific.
 	  (if (and (oref this automatic-dependencies) df)
-	      (insert "DEPS_MAGIC := $(shell mkdir .deps > /dev/null "
+	      (insert "DEPS_MAGIC := $(shell mkdir .deps > " null-device " "
 		      "2>&1 || :)\n"
 		      "-include $(DEP_FILES)\n\n"))
 	  ;;

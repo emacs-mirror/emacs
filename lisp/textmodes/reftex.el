@@ -207,7 +207,8 @@ on the menu bar.
   (if reftex-mode
       (progn
         ;; Mode was turned on
-        (easy-menu-add reftex-mode-menu)
+        (when (featurep 'xemacs)
+          (easy-menu-add reftex-mode-menu))
         (and reftex-plug-into-AUCTeX
              (reftex-plug-into-AUCTeX))
         (unless (get 'reftex-auto-view-crossref 'initialized)
@@ -224,7 +225,8 @@ on the menu bar.
 
         (run-hooks 'reftex-mode-hook))
     ;; Mode was turned off
-    (easy-menu-remove reftex-mode-menu)))
+    (when (featurep 'xemacs)
+      (easy-menu-remove reftex-mode-menu))))
 
 (defvar reftex-docstruct-symbol)
 (defun reftex-kill-buffer-hook ()

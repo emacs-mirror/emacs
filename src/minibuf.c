@@ -508,7 +508,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
   if (!EQ (mini_frame, selected_frame))
     record_unwind_protect (restore_window_configuration,
-			   Fcons (Qt,
+			   Fcons (/* Arrange for the frame later to be
+                                     switched back to the calling
+                                     frame. */
+                                  Qnil,
                                   Fcurrent_window_configuration (mini_frame)));
 
   /* If the minibuffer is on an iconified or invisible frame,

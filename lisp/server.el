@@ -648,7 +648,17 @@ the `server-process' variable."
            ;; Remove any leftover socket or authentication file.
            (ignore-errors
              (let (delete-by-moving-to-trash)
-               (delete-file server-file)))
+               (delete-file server-file)
+               ;; Also delete the directory that the server file was
+               ;; created in -- but only in /tmp (see bug#44644).
+               ;; There may be other servers running, too, so this may
+               ;; fail.
+               (when (equal (file-name-directory
+                             (directory-file-name
+                              (file-name-directory server-file)))
+                            "/tmp/")
+                 (ignore-errors
+                   (delete-directory (file-name-directory server-file))))))
          (setq server-mode nil) ;; already set by the minor mode code
          (display-warning
           'server

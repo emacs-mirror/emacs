@@ -1058,27 +1058,43 @@ return nil.  Otherwise point is returned."
       (archive-goto-file short))
     next))
 
-(defun archive-copy-file (file new-name)
-  "Copy FILE to a location specified by NEW-NAME.
-Interactively, FILE is the file at point, and the function prompts
-for NEW-NAME."
+(defun archive-copy-file (files new-name)
+  "Copy FILES to a location specified by NEW-NAME.
+FILES can be a single file or a list of files.
+
+Interactively, FILES is the list of marked files, or the file at
+point if nothing is marked, and the function prompts for
+NEW-NAME."
   (interactive
-   (let ((name (archive--file-desc-ext-file-name (archive-get-descr))))
-     (list name
-           (read-file-name (format "Copy %s to: " name)))))
-  (when (file-directory-p new-name)
-    (setq new-name (expand-file-name file new-name)))
-  (when (and (file-exists-p new-name)
-             (not (yes-or-no-p (format "%s already exists; overwrite? "
-                                       new-name))))
-    (user-error "Not overwriting %s" new-name))
-  (let* ((descr (archive-get-descr))
-         (archive (buffer-file-name))
-         (extractor (archive-name "extract"))
-         (ename (archive--file-desc-ext-file-name descr)))
-    (with-temp-buffer
-      (archive--extract-file extractor archive ename)
-      (write-region (point-min) (point-max) new-name))))
+   (let ((names
+          (mapcar
+           #'archive--file-desc-ext-file-name
+           (or (archive-get-marked ?*) (list (archive-get-descr))))))
+     (list names
+           (read-file-name (format "Copy %s to: " (string-join names ", "))))))
+  (unless (consp files)
+    (setq files (list files)))
+  (when (and (> (length files) 1)
+             (not (file-directory-p new-name)))
+    (user-error "Can't copy a list of files to a single file"))
+  (save-excursion
+    (dolist (file files)
+      (let ((write-to (if (file-directory-p new-name)
+                          (expand-file-name file new-name)
+                        new-name)))
+        (when (and (file-exists-p write-to)
+                   (not (yes-or-no-p (format "%s already exists; overwrite? "
+                                             write-to))))
+          (user-error "Not overwriting %s" write-to))
+        (archive-goto-file file)
+        (let* ((descr (archive-get-descr))
+               (archive (buffer-file-name))
+               (extractor (archive-name "extract"))
+               (ename (archive--file-desc-ext-file-name descr)))
+          (with-temp-buffer
+            (set-buffer-multibyte nil)
+            (archive--extract-file extractor archive ename)
+            (write-region (point-min) (point-max) write-to)))))))
 
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."

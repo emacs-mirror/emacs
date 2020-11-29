@@ -484,5 +484,95 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
 
   (should-error (string-replace "" "x" "abc")))
 
+(ert-deftest subr-replace-regexp-in-string ()
+  (should (equal (replace-regexp-in-string "a+" "xy" "abaabbabaaba")
+                 "xybxybbxybxybxy"))
+  ;; FIXEDCASE
+  (let ((case-fold-search t))
+    (should (equal (replace-regexp-in-string "a+" "xy" "ABAABBABAABA")
+                   "XYBXYBBXYBXYBXY"))
+    (should (equal (replace-regexp-in-string "a+" "xy" "ABAABBABAABA" t)
+                   "xyBxyBBxyBxyBxy"))
+    (should (equal (replace-regexp-in-string
+                    "a[bc]*" "xyz"
+                    "a A ab AB Ab aB abc ABC Abc AbC aBc")
+                   "xyz XYZ xyz XYZ Xyz xyz xyz XYZ Xyz Xyz xyz"))
+    (should (equal (replace-regexp-in-string
+                    "a[bc]*" "xyz"
+                    "a A ab AB Ab aB abc ABC Abc AbC aBc" t)
+                   "xyz xyz xyz xyz xyz xyz xyz xyz xyz xyz xyz")))
+  (let ((case-fold-search nil))
+    (should (equal (replace-regexp-in-string "a+" "xy" "ABAABBABAABA")
+                   "ABAABBABAABA")))
+  ;; group substitution
+  (should (equal (replace-regexp-in-string
+                  "a\\(b*\\)" "<\\1,\\&>" "babbcaabacbab")
+                 "b<bb,abb>c<,a><b,ab><,a>cb<b,ab>"))
+  (should (equal (replace-regexp-in-string
+                  "x\\(?2:..\\)\\(?1:..\\)\\(..\\)\\(..\\)\\(..\\)"
+                  "<\\3,\\5,\\4,\\1,\\2>" "yxabcdefghijkl")
+                 "y<ef,ij,gh,cd,ab>kl"))
+  ;; LITERAL
+  (should (equal (replace-regexp-in-string
+                  "a\\(b*\\)" "<\\1,\\&>" "babbcaabacbab" nil t)
+                 "b<\\1,\\&>c<\\1,\\&><\\1,\\&><\\1,\\&>cb<\\1,\\&>"))
+  (should (equal (replace-regexp-in-string
+                  "a" "\\\\,\\?" "aba")
+                 "\\,\\?b\\,\\?"))
+  (should (equal (replace-regexp-in-string
+                  "a" "\\\\,\\?" "aba" nil t)
+                 "\\\\,\\?b\\\\,\\?"))
+  ;; SUBEXP
+  (should (equal (replace-regexp-in-string
+                  "\\(a\\)\\(b*\\)c" "xy" "babbcdacd" nil nil 2)
+                 "baxycdaxycd"))
+  ;; START
+  (should (equal (replace-regexp-in-string
+                  "ab" "x" "abcabdabeabf" nil nil nil 4)
+                 "bdxexf"))
+  ;; An empty pattern matches once before every character.
+  (should (equal (replace-regexp-in-string "" "x" "abc")
+                 "xaxbxc"))
+  (should (equal (replace-regexp-in-string "y*" "x" "abc")
+                 "xaxbxc"))
+  ;; replacement function
+  (should (equal (replace-regexp-in-string
+                  "a\\(b*\\)c"
+                  (lambda (s)
+                    (format "<%s,%s,%s,%s,%s>"
+                            s
+                            (match-beginning 0) (match-end 0)
+                            (match-beginning 1) (match-end 1)))
+                  "babbcaacabc")
+                 "b<abbc,0,4,1,3>a<ac,0,2,1,1><abc,0,3,1,2>"))
+  ;; anchors (bug#15107, bug#44861)
+  (should (equal (replace-regexp-in-string "a\\B" "b" "a aaaa")
+                 "a bbba"))
+  (should (equal (replace-regexp-in-string "\\`\\|x" "z" "--xx--")
+                 "z--zz--")))
+
+(ert-deftest subr-tests--change-group-33341 ()
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "0\n")
+    (let ((g (prepare-change-group)))
+      (activate-change-group g)
+      (insert "b\n")
+      (insert "c\n")
+      (cancel-change-group g))
+    (should (equal (buffer-string) "0\n"))
+    (erase-buffer)
+    (setq buffer-undo-list nil)
+    (insert "0\n")
+    (let ((g (prepare-change-group)))
+      (activate-change-group g)
+      (insert "b\n")
+      (insert "c\n")
+      (accept-change-group g))
+    (should (equal (buffer-string) "0\nb\nc\n"))
+    (undo-boundary)
+    (undo)
+    (should (equal (buffer-string) ""))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

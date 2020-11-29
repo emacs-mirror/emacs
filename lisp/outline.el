@@ -1121,14 +1121,19 @@ Return either 'hide-all, 'headings-only, or 'show-all."
       (setq heading-end (point))
       (outline-end-of-subtree)
       (setq end (point))
-      (setq ov-list (cl-remove-if-not
-                     (lambda (o) (eq (overlay-get o 'invisible) 'outline))
-                     (overlays-in start end)))
-      (cond ((eq ov-list nil) 'show-all)
-            ;; (eq (length ov-list) 1) wouldn’t work: what if there is
-            ;; one folded subheading?
-            ((and (eq (overlay-end (car ov-list)) end)
-                  (eq (overlay-start (car ov-list)) heading-end))
+      (setq ov-list
+            (seq-filter
+             (lambda (o)
+               (and (eq (overlay-get o 'invisible) 'outline)
+                    (save-excursion
+                      (goto-char (overlay-start o))
+                      (outline-on-heading-p t))))
+             (overlays-in start end)))
+      (cond ((null ov-list) 'show-all)
+            ((and (or (= end (point-max)
+                         (1+ (overlay-end (car ov-list))))
+                      (= (overlay-end (car ov-list)) end))
+                  (= (overlay-start (car ov-list)) heading-end))
              'hide-all)
             (t 'headings-only)))))
 
@@ -1168,20 +1173,30 @@ Return either 'hide-all, 'headings-only, or 'show-all."
 (defun outline-cycle-buffer ()
   "Cycle the whole buffer like in `outline-cycle'."
   (interactive)
-  (pcase outline--cycle-buffer-state
-    ('show-all
-     (outline-hide-sublevels 1)
-     (setq outline--cycle-buffer-state 'top-level)
-     (message "Top level headings"))
-    ('top-level
-     (outline-show-all)
-     (outline-hide-region-body (point-min) (point-max))
-     (setq outline--cycle-buffer-state 'all-heading)
-     (message "All headings"))
-    ('all-heading
-     (outline-show-all)
-     (setq outline--cycle-buffer-state 'show-all)
-     (message "Show all"))))
+  (let (has-top-level)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (or has-top-level (eobp)))
+        (when (outline-on-heading-p t)
+          (when (= (funcall outline-level) 1)
+            (setq has-top-level t)))
+        (outline-next-heading)))
+    (cond
+     ((and (eq outline--cycle-buffer-state 'show-all)
+           has-top-level)
+      (outline-hide-sublevels 1)
+      (setq outline--cycle-buffer-state 'top-level)
+      (message "Top level headings"))
+     ((or (eq outline--cycle-buffer-state 'show-all)
+          (eq outline--cycle-buffer-state 'top-level))
+      (outline-show-all)
+      (outline-hide-region-body (point-min) (point-max))
+      (setq outline--cycle-buffer-state 'all-heading)
+      (message "All headings"))
+     (t
+      (outline-show-all)
+      (setq outline--cycle-buffer-state 'show-all)
+      (message "Show all")))))
 
 (provide 'outline)
 (provide 'noutline)

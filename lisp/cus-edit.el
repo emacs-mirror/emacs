@@ -2900,14 +2900,20 @@ Modified means that the widget that holds the value has been edited by the user
 in a customize buffer.
 To check for other states, call `custom-variable-state'."
   (catch 'get-error
-    (let* ((symbol (widget-get widget :value))
+    (let* ((form (widget-get widget :custom-form))
+           (symbol (widget-get widget :value))
            (get (or (get symbol 'custom-get) 'default-value))
            (value (if (default-boundp symbol)
                       (condition-case nil
                           (funcall get symbol)
                         (error (throw 'get-error t)))
-                    (symbol-value symbol))))
-      (not (equal value (widget-value (car (widget-get widget :children))))))))
+                    (symbol-value symbol)))
+           (orig-value (widget-value (car (widget-get widget :children)))))
+      (not (equal (if (memq form '(lisp mismatch))
+                      ;; Mimic `custom-variable-value-create'.
+                      (custom-quote value)
+                    value)
+                  orig-value)))))
 
 (defun custom-variable-state-set (widget &optional state)
   "Set the state of WIDGET to STATE.
@@ -5126,7 +5132,6 @@ Erase customizations; set options
 Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
-  (easy-menu-add Custom-mode-menu)
   (setq-local tool-bar-map
 	      (or custom-tool-bar-map
 		  ;; Set up `custom-tool-bar-map'.

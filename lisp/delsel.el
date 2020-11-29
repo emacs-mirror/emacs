@@ -274,6 +274,8 @@ to `delete-selection-mode'."
 (put 'quoted-insert 'delete-selection t)
 
 (put 'yank 'delete-selection 'yank)
+(put 'yank-pop 'delete-selection 'yank)
+(put 'yank-from-kill-ring 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
 ;; delete-backward-char and delete-forward-char already delete the selection by

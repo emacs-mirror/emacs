@@ -1030,6 +1030,13 @@ Responsible for handling and, or, and parenthetical expressions.")
 (declare-function nnimap-buffer "nnimap" ())
 (declare-function nnimap-command "nnimap" (&rest args))
 
+(defvar gnus-search-imap-search-keys
+  '(body cc bcc from header keyword larger smaller subject text to uid x-gm-raw
+	 answered before deleted draft flagged on since recent seen sentbefore
+	 senton sentsince unanswered undeleted undraft unflagged unkeyword
+	 unseen all)
+  "Known IMAP search keys.")
+
 ;; imap interface
 (cl-defmethod gnus-search-run-search ((engine gnus-search-imap)
 				      srv query groups)
@@ -1058,6 +1065,15 @@ Responsible for handling and, or, and parenthetical expressions.")
 
       (setq q-string
 	    (gnus-search-make-query-string engine query))
+
+      ;; A bit of backward-compatibility slash convenience: if the
+      ;; query string doesn't start with any known IMAP search
+      ;; keyword, assume it is a "TEXT" search.
+      (unless (and (string-match "\\`[[:word:]]+" q-string)
+		   (memql (intern-soft (downcase
+					(match-string 0 q-string)))
+			  gnus-search-imap-search-keys))
+	(setq q-string (concat "TEXT " q-string)))
 
       ;; If it's a thread query, make sure that all message-id
       ;; searches are also references searches.
@@ -1114,12 +1130,6 @@ Other capabilities could be tested here."
 				 "\r\n")))
 	(nnimap-get-response call)))
      (t (nnimap-command "UID SEARCH %s" query)))))
-
-;; TODO: Don't exclude booleans and date keys, just check for them
-;; before checking for general keywords.
-(defvar gnus-search-imap-search-keys
-  '(body cc bcc from header keyword larger smaller subject text to uid x-gm-raw)
-  "Known IMAP search keys, excluding booleans and date keys.")
 
 (cl-defmethod gnus-search-transform ((_ gnus-search-imap)
 				     (_query null))
@@ -1303,6 +1313,7 @@ of whichever date elements are present."
 	(pcase flag
 	  ("flag" "flagged")
 	  ("read" "seen")
+	  ("replied" "answered")
 	  (_ flag)))
   (if (member flag '("seen" "answered" "deleted" "draft" "flagged"))
       (upcase flag)
@@ -1365,10 +1376,13 @@ Returns a list of [group article score] vectors."
 						server query &optional groups)
   (let ((prefix (slot-value engine 'remove-prefix))
 	(group-regexp (when groups
-			(regexp-opt
-			 (mapcar
-			  (lambda (x) (gnus-group-real-name x))
-			  groups))))
+			(mapconcat
+			 (lambda (x)
+			   (replace-regexp-in-string
+			    ;; Accept any of [.\/] as path separators.
+			    "[.\\/]" "[.\\\\/]"
+			    (gnus-group-real-name x)))
+			 groups "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
@@ -1383,16 +1397,16 @@ Returns a list of [group article score] vectors."
     ;; Are we running an additional grep query?
     (when-let ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
+    ;; Prep prefix.
+    (when (and prefix (null (string-empty-p prefix)))
+      (setq prefix (file-name-as-directory (expand-file-name prefix))))
     ;; Turn (file-name score) into [group article score].
     (pcase-dolist (`(,f-name ,score) artlist)
-      (setq article (file-name-nondirectory f-name))
+      (setq article (file-name-nondirectory f-name)
+	    group (file-name-directory f-name))
       ;; Remove prefix.
-      (when (and prefix
-		 (file-name-absolute-p prefix)
-		 (string-match (concat "^"
-				       (file-name-as-directory prefix))
-			       f-name))
-	(setq group (replace-match "" t t (file-name-directory f-name))))
+      (when prefix
+	(setq group (string-remove-prefix prefix group)))
       ;; Break the directory name down until it's something that
       ;; (probably) can be used as a group name.
       (setq group

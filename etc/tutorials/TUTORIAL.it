@@ -1,18 +1,18 @@
 Esercitazione di Emacs.  Condizioni d'uso alla fine del file.
 
-I comandi di Emacs comportano generalmente l'uso del tasto CONTROL (a
-volte indicato con CTRL o CTL) o del tasto META (a volte indicato con
-EDIT o ALT).  Piuttosto che indicarli per esteso ogni volta, useremo
+I comandi di Emacs comportano generalmente l'uso del tasto CONTROL
+(spesso indicato con CTRL) o del tasto META (di solito indicato con
+ALT).  Piuttosto che indicarli per esteso ogni volta, useremo
 le seguenti abbreviazioni:
 
  C-<car>  significa che bisogna tenere abbassato il tasto CONTROL
 	  mentre si preme il carattere <car>.  Quindi C-f significa:
 	  tieni premuto CONTROL e batti f.
- M-<car>  significa che bisogna tenere abbassato il tasto META o EDIT
-	  o ALT mentre si preme il carattere <car>.  Se non ci sono
-	  tasti META, EDIT o ALT, al loro posto si può premere e poi
-	  rilasciare il tasto ESC e quindi premere <car>.  Useremo
-	  <ESC> per indicare il tasto ESC.
+ M-<car>  significa che bisogna tenere abbassato il tasto META o ALT
+	  mentre si preme il carattere <car>.  Se non ci sono tasti
+	  META o ALT, al loro posto si può premere e poi rilasciare
+	  il tasto ESC e quindi premere <car>.  Useremo <ESC> per
+	  indicare il tasto ESC.
 
 Nota importante: per chiudere una sessione di lavoro di Emacs usa C-x
 C-c (due caratteri).
@@ -20,7 +20,7 @@ Per annullare un comando inserito parzialmente usa C-g.
 Per terminare l'esercitazione, usa C-x k quindi <Invio> al prompt.
 I caratteri “>>” posti al margine sinistro indicano le direttive per
 provare a usare un comando.  Per esempio:
-<<Blank lines inserted here by startup of help-with-tutorial>>
+<<Blank lines inserted around following line by help-with-tutorial>>
 [Spaziatura inserita a scopo didattico.  Il testo continua sotto]
 >> Adesso premi C-v (vedi schermata successiva) per spostarti alla
 	prossima schermata (vai avanti, tieni premuto il tasto
@@ -33,11 +33,12 @@ alla schermata successiva, favorendo così la continuità di lettura.
 La prima cosa che bisogna imparare è come raggiungere un certo punto
 del testo.  Sai già come andare avanti di una schermata, con C-v.  Per
 andare indietro di una schermata, premi M-v (tieni premuto il tasto
-META e poi premi v, oppure usa <ESC>v se non c'è un tasto META, EDIT o
-ALT).
+META e poi premi v, oppure usa <ESC>v se non c'è un tasto META o ALT).
 
 >> Ora prova: premi M-v e quindi C-v alcune volte.
 
+Puoi ovviamente spostarti avanti e indietro in questo testo in altri
+modi, se li conosci.
 
 * SOMMARIO
 ----------
@@ -207,11 +208,11 @@ Molti comandi di Emacs accettano un argomento numerico che spesso
 serve a conteggiare per quante volte vanno ripetuti.  Il modo in cui
 si può fornire ad un comando il numero di ripetizioni è il seguente:
 si usa C-u e quindi si indicano le cifre prima di impartire il comando
-stesso.  Se esiste un tasto META (o EDIT o ALT) c'è un modo
-alternativo: si battono le cifre tenendo premuto il tasto META.  Noi
-consigliamo di imparare il metodo con C-u perché funziona su tutti i
-terminali.  L'argomento numerico è anche chiamato “argomento
-prefisso”, perché viene indicato prima del comando a cui si riferisce.
+stesso.  Se esiste un tasto META (o ALT) c'è un modo alternativo: si
+battono le cifre tenendo premuto il tasto META.  Noi consigliamo di
+imparare il metodo con C-u perché funziona su tutti i terminali.
+L'argomento numerico è anche chiamato “argomento prefisso”, perché
+viene indicato prima del comando a cui si riferisce.
 
 Per esempio, C-u 8 C-f sposta il cursore in avanti di otto caratteri.
 
@@ -502,9 +503,10 @@ usare per annullare l'inserimento del testo).
 >> Elimina questa riga con C-k poi usa C-/ e dovrebbe ricomparire.
 
 C-_ è un comando di annullamento alternativo, funziona esattamente
-come C-/.  Su alcuni terminali, la sequenza C-/ invia effettivamente
-C-_ a Emacs.  Alternativamente, anche C-x u ha la stessa funzione di
-C-/, ma è leggermente più scomoda da inserire.
+come C-/.  Su alcune tastiere non è necessario usare il tasto shift
+per inserire C-_. Su alcuni terminali, la sequenza C-/ invia
+effettivamente C-_ a Emacs.  Alternativamente, anche C-x u ha la
+stessa funzione di C-/, ma è leggermente più scomoda da inserire.
 
 Un argomento numerico per C-/, C-_ o C-x u agisce come numero delle
 ripetizioni da effettuare.
@@ -651,11 +653,12 @@ la possibilità di salvare il buffer del primo file: sarebbe fastidioso
 dover prima passare a quel buffer per salvarlo con C-x C-s.  Così c'è
 il comando
 
-	C-x s   Salva alcuni buffer
+	C-x s   Salva alcuni buffer nei loro file
 
-C-x s chiede conferma del salvataggio per ogni buffer che contiene
-testo modificato e non ancora salvato.  Chiede, per ognuno di quei
-buffer, se si voglia salvarne il contenuto nel file corrispondente.
+C-x s chiede conferma del salvataggio per ogni buffer associato ad un
+file che contiene testo modificato e non ancora salvato.  Chiede, per
+ognuno di quei buffer, se si voglia salvarne il contenuto nel file
+corrispondente.
 
 >> Inserisci una riga di testo e poi premi C-x s.
    Dovrebbe chiederti se vuoi salvare il file chiamato “...TUTORIAL”.
@@ -701,14 +704,14 @@ gestisce la posta.
 
 Ci sono molti comandi C-x.  Ecco una lista di quelli già conosciuti:
 
-	C-x C-f    Apri un file.
-	C-x C-s    Salva un file.
-	C-x s      Salva alcuni buffer.
-	C-x C-b    Elenca buffer.
-	C-x b      Passa a un altro buffer.
-	C-x C-c    Chiudi Emacs.
-	C-x 1      Elimina tutte le finestre tranne una.
-	C-x u      Annulla.
+	C-x C-f    Apri un file
+	C-x C-s    Salva il buffer sul file
+	C-x s      Salva alcuni buffer sui loro file
+	C-x C-b    Elenca buffer
+	C-x b      Passa a un altro buffer
+	C-x C-c    Chiudi Emacs
+	C-x 1      Elimina tutte le finestre tranne una
+	C-x u      Annulla
 
 I comandi estesi con nome sono usati ancora meno spesso, oppure sono
 usati solo in certe modalità.  Un esempio è il comando replace-string
@@ -749,7 +752,7 @@ salvataggio automatico.
 Se il computer si blocca si può recuperare il file salvato
 automaticamente aprendo il file in modo normale (il file che si stava
 scrivendo, non quello di salvataggio automatico) e usando poi M-x
-recover-file<Invio>.  Quando viene chiesta la conferma si risponda
+recover-this-file<Invio>.  Quando viene chiesta la conferma si risponda
 con yes<Invio> per procedere con il recupero dei dati salvati
 automaticamente.
 
@@ -1091,8 +1094,8 @@ quindi anche come breve descrizione, sufficiente per ricordarsi di
 comandi già imparati.
 
 I comandi con più caratteri come ad esempio C-x C-s e (se non c'è il
-tasto META o EDIT o ALT) <ESC>v sono permessi allo stesso modo dopo
-una richiesta di aiuto fatta con C-h c.
+tasto META o ALT) <ESC>v sono permessi allo stesso modo dopo una
+richiesta di aiuto fatta con C-h c.
 
 Per avere ulteriori informazioni su un comando si usa C-h k invece che
 C-h c.
@@ -1156,7 +1159,7 @@ Puoi imparare di più su Emacs leggendo il suo manuale, sia nella forma
 stampata piuttosto che da dentro Emacs stesso (usa il menu Help oppure
 C-h r).  Due funzionalità che possono farti comodo sono il
 completamento automatico, che consente di ridurre il numero di
-caratteri da digitare, e dired, che semplifica la gestione dei file.
+caratteri da digitare, e Dired, che semplifica la gestione dei file.
 
 Il completamento è un modo per evitare la pressione di tasti quando
 non sia necessario.  Ad esempio, quando vuoi passare al buffer

@@ -199,7 +199,7 @@ $ ls -l push*
 @end example
 @end deffn
 
-@deffn Command byte-recompile-directory directory &optional flag force
+@deffn Command byte-recompile-directory directory &optional flag force follow-symlinks
 @cindex library compilation
 This command recompiles every @samp{.el} file in @var{directory} (or
 its subdirectories) that needs recompilation.  A file needs
@@ -217,6 +217,10 @@ Interactively, @code{byte-recompile-directory} prompts for
 
 If @var{force} is non-@code{nil}, this command recompiles every
 @samp{.el} file that has a @samp{.elc} file.
+
+This command will normally not compile @samp{.el} files that are
+symlinked.  If the optional @var{follow-symlink} parameter is
+non-@code{nil}, symlinked @samp{.el} will also be compiled.
 
 The returned value is unpredictable.
 @end deffn

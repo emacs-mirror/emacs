@@ -3754,6 +3754,20 @@ Additional typographic style information for the font, such as
 The charset registry and encoding of the font, such as
 @samp{iso8859-1}.  The value should be a string or a symbol.
 
+@item :dpi
+The resolution in dots per inch for which the font is designed.  The
+value must be a non-negative number.
+
+@item :spacing
+The spacing of the font: proportional, dual, mono, or charcell.  The
+value should be either an integer (0 for proportional, 90 for dual,
+100 for mono, 110 for charcell) or a one-letter symbol (one of
+@code{P}, @code{D}, @code{M}, or @code{C}).
+
+@item :avgwidth
+The average width of the font in 1/10 pixel units.  The value should
+be a non-negative number.
+
 @item :script
 The script that the font must support (a symbol).
 

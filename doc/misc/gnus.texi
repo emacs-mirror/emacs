@@ -5361,6 +5361,15 @@ articles with the same subject, go to the first unread article.
 
 This variable is not particularly useful if you use a threaded display.
 
+@item gnus-paging-select-next
+@vindex gnus-paging-select-next
+Control whether to select the next/previous article when paging (with
+commands like @kbd{SPC} or @kbd{DEL}).  If non-@code{nil}, select the
+next article when reaching the end of the article (or the previous
+article when paging backwards).
+
+If @code{nil}, don't do anything at the end/start of the articles.
+
 @item gnus-summary-check-current
 @vindex gnus-summary-check-current
 If non-@code{nil}, all the ``unread'' movement commands will not proceed
@@ -29151,7 +29160,7 @@ again and again.  @xref{MIME Commands}.
 @item
 The new hooks @code{gnus-gcc-pre-body-encode-hook} and
 @code{gnus-gcc-post-body-encode-hook} are run before/after encoding
-the message body of the Gcc copy of a sent message.  See
+the message body of the Gcc copy of a sent message.
 @xref{Archived Messages}.
 
 @end itemize

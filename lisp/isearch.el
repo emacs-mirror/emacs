@@ -2500,11 +2500,18 @@ If search string is empty, just beep."
   "Replace just-yanked search string with previously killed string."
   (interactive)
   (if (not (memq last-command '(isearch-yank-kill isearch-yank-pop)))
-      ;; Fall back on `isearch-yank-kill' for the benefits of people
-      ;; who are used to the old behavior of `M-y' in isearch mode. In
-      ;; future, this fallback may be changed if we ever change
-      ;; `yank-pop' to do something like the kill-ring-browser.
-      (isearch-yank-kill)
+      ;; Yank string from kill-ring-browser.
+      (with-isearch-suspended
+       (let ((string (read-from-kill-ring)))
+         (if (and isearch-case-fold-search
+                  (eq 'not-yanks search-upper-case))
+             (setq string (downcase string)))
+         (if isearch-regexp (setq string (regexp-quote string)))
+         (setq isearch-yank-flag t)
+         (setq isearch-new-string (concat isearch-string string)
+               isearch-new-message (concat isearch-message
+                                           (mapconcat 'isearch-text-char-description
+                                                      string "")))))
     (isearch-pop-state)
     (isearch-yank-string (current-kill 1))))
 

@@ -208,6 +208,13 @@ This command would previously not redefine values defined by these
 forms, but this command has now been changed to work more like
 'eval-defun', and reset the values as specified.
 
++++
+** Standalone 'M-y' uses the minibuffer to complete previous kills.
+When 'M-y' is typed not after a yank command, it activates the minibuffer
+where you can browse previous kills using the minibuffer history or
+completion.  In Isearch 'C-s M-y' uses the minibuffer with completion
+on previous kills to read a string and append it to the search string.
+
 ---
 ** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.
 'copy-region-blink-delay' specifies a delay to indicate the region
@@ -480,6 +487,12 @@ completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
 
 ** Gnus
+
++++
+*** New user option 'gnus-paging-select-next'.
+This controls what happens when using commands like `SPC' and `DEL' to
+page the current article.  If non-nil (the default), go to the
+next/prev article, but if nil, do nothing at the end/start of the article.
 
 +++
 *** New gnus-search library.
@@ -1104,6 +1117,10 @@ background colors or transparency, such as xbm, pbm, svg, png and gif.
 ** EWW
 
 +++
+*** New user option 'eww-use-browse-url'.
+This is a regexp that can be set to alter how links are followed in eww.
+
++++
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.
@@ -1328,6 +1345,13 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 
 ** Miscellaneous
 
+*** New user option 'completions-detailed'.
+When non-nil, some commands like 'describe-symbol' show more detailed
+completions with more information in completion prefix and suffix.
+
+---
+*** User option 'completions-format' supports a new value 'one-column'.
+
 ---
 *** New user option 'bibtex-unify-case-convert'.
 This new option allows the user to customize how case is converted
@@ -1502,6 +1526,18 @@ is active.  When run on a terminal, clicking on the menu bar with the
 mouse now pops up a TTY menu by default instead of running the command
 'tmm-menubar'.  To restore the old behavior, set the user option
 'tty-menu-open-use-tmm' to non-nil.
+
+** text-scale-mode
+
+---
+*** text-scale-mode can now adjust font size of the header line.
+When the new buffer local variable 'text-scale-remap-header-line'
+is non-nil, 'text-scale-adjust' will also scale the text in the header
+line when displaying that buffer.
+
+This is useful for major modes that arrange their display in a tabular
+form below the header line.  It is enabled by default in
+'tabulated-list-mode' and its derived modes.
 
 ** xwidget-webkit mode
 
@@ -1679,6 +1715,7 @@ parameter.
 'previous-system-time-locale' have been removed, as they were created
 by mistake and were not useful to Lisp code.
 
+---
 ** The 'load-dangerous-libraries' variable is now obsolete.
 It was used to allow loading Lisp libraries compiled by XEmacs, a
 modified version of Emacs which is no longer actively maintained.
@@ -1693,6 +1730,7 @@ Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 To load the file after byte-compiling, add a call to 'load' from Lisp
 or use 'M-x emacs-lisp-byte-compile-and-load' interactively.
 
+---
 ** The metamail.el library is now marked obsolete.
 
 ---
@@ -1776,6 +1814,17 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 
 * Lisp Changes in Emacs 28.1
+
+---
+** `defvar` detects the error of defining a variable currently lexically bound.
+Such mixes are always signs that the outer lexical binding was an
+error and should have used dynamic binding instead.
+
++++
+** New completion function 'affixation-function' to add prefix/suffix.
+It accepts a list of completions and should return a list where
+each element is a list with three elements: a completion,
+a prefix string, and a suffix string.
 
 +++
 ** 'read-char-from-minibuffer' and 'y-or-n-p' support 'help-form'.
@@ -1971,6 +2020,10 @@ It is meant as an (experimental) aid for converting Emacs Lisp code
 to lexical binding, where dynamic (special) variables bound in one
 file can affect code in another.  For details, see the manual section
 "(Elisp) Converting to Lexical Binding".
+
++++
+** 'byte-recompile-directory' can now compile symlinked .el files.
+This is achieved by giving a non-nil FOLLOW-SYMLINKS parameter.
 
 ---
 ** 'unload-feature' now also tries to undo additions to buffer-local hooks.

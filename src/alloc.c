@@ -6082,10 +6082,6 @@ garbage_collect (void)
   mark_fringe_data ();
 #endif
 
-#ifdef HAVE_MODULES
-  mark_modules ();
-#endif
-
   /* Everything is now marked, except for the data in font caches,
      undo lists, and finalizers.  The first two are compacted by
      removing an items which aren't reachable otherwise.  */
@@ -6179,10 +6175,17 @@ where each entry has the form (NAME SIZE USED FREE), where:
 - FREE is the number of those objects that are not live but that Emacs
   keeps around for future allocations (maybe because it does not know how
   to return them to the OS).
+
 However, if there was overflow in pure space, and Emacs was dumped
 using the 'unexec' method, `garbage-collect' returns nil, because
 real GC can't be done.
-See Info node `(elisp)Garbage Collection'.  */)
+
+Note that calling this function does not guarantee that absolutely all
+unreachable objects will be garbage-collected.  Emacs uses a
+mark-and-sweep garbage collector, but is conservative when it comes to
+collecting objects in some circumstances.
+
+For further details, see Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
   if (garbage_collection_inhibited)

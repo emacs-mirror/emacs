@@ -2597,7 +2597,8 @@ Key bindings:
   (setq abbrev-mode t)
   (c-init-language-vars-for 'c-mode)
   (c-common-init 'c-mode)
-  (easy-menu-add c-c-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add c-c-menu))
   (cc-imenu-init cc-imenu-c-generic-expression)
   (add-hook 'flymake-diagnostic-functions 'flymake-cc nil t)
   (c-run-mode-hooks 'c-mode-common-hook))
@@ -2688,7 +2689,8 @@ Key bindings:
   (setq abbrev-mode t)
   (c-init-language-vars-for 'c++-mode)
   (c-common-init 'c++-mode)
-  (easy-menu-add c-c++-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add c-c++-menu))
   (cc-imenu-init cc-imenu-c++-generic-expression)
   (add-hook 'flymake-diagnostic-functions 'flymake-cc nil t)
   (c-run-mode-hooks 'c-mode-common-hook))
@@ -2735,7 +2737,8 @@ Key bindings:
   (setq abbrev-mode t)
   (c-init-language-vars-for 'objc-mode)
   (c-common-init 'objc-mode)
-  (easy-menu-add c-objc-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add c-objc-menu))
   (cc-imenu-init nil 'cc-imenu-objc-function)
   (c-run-mode-hooks 'c-mode-common-hook))
 
@@ -2785,7 +2788,8 @@ Key bindings:
   (setq abbrev-mode t)
   (c-init-language-vars-for 'java-mode)
   (c-common-init 'java-mode)
-  (easy-menu-add c-java-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add c-java-menu))
   (cc-imenu-init cc-imenu-java-generic-expression)
   (c-run-mode-hooks 'c-mode-common-hook))
 
@@ -2827,7 +2831,8 @@ Key bindings:
   (c-initialize-cc-mode t)
   (c-init-language-vars-for 'idl-mode)
   (c-common-init 'idl-mode)
-  (easy-menu-add c-idl-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add c-idl-menu))
   ;;(cc-imenu-init cc-imenu-idl-generic-expression) ;TODO
   (c-run-mode-hooks 'c-mode-common-hook))
 
@@ -2872,7 +2877,8 @@ Key bindings:
   (setq	abbrev-mode t)
   (c-init-language-vars-for 'pike-mode)
   (c-common-init 'pike-mode)
-  (easy-menu-add c-pike-menu)
+  (when (featurep 'xemacs)
+    (easy-menu-add c-pike-menu))
   ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;TODO
   (c-run-mode-hooks 'c-mode-common-hook))
 

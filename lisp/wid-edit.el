@@ -591,9 +591,25 @@ Otherwise, just return the value."
 			  (widget-put widget :args args)))
 		      (widget-apply widget :default-get)))))
 
+(defun widget-inline-p (widget &optional bubblep)
+  "Non-nil if the widget WIDGET is inline.
+
+With BUBBLEP non-nil, check also if WIDGET has a member that bubbles its inline
+property (if any), up to WIDGET, so that WIDGET can act as an inline widget."
+  (or (widget-get widget :inline)
+      (and bubblep
+           (widget-get widget :inline-bubbles-p)
+           (widget-apply widget :inline-bubbles-p))))
+
 (defun widget-match-inline (widget vals)
-  "In WIDGET, match the start of VALS."
-  (cond ((widget-get widget :inline)
+  "In WIDGET, match the start of VALS.
+
+For an inline widget or for a widget that acts like one (see `widget-inline-p'),
+try to match elements in VALS as far as possible.  Otherwise, match the first
+element of the list VALS.
+
+Return a list whose car contains all members of VALS that matched WIDGET."
+  (cond ((widget-inline-p widget t)
 	 (widget-apply widget :match-inline vals))
 	((and (listp vals)
 	      (widget-apply widget :match (car vals)))
@@ -2198,7 +2214,7 @@ But if NO-TRUNCATE is non-nil, include them."
   (let ((value (widget-get widget :value))
 	(args (widget-get widget :args))
 	(explicit (widget-get widget :explicit-choice))
-	current)
+        current val inline-p fun)
     (if explicit
 	(progn
 	  ;; If the user specified the choice for this value,
@@ -2207,15 +2223,24 @@ But if NO-TRUNCATE is non-nil, include them."
 					      widget explicit value)))
 	  (widget-put widget :choice explicit)
 	  (widget-put widget :explicit-choice nil))
+      (setq inline-p (widget-inline-p widget t))
       (while args
 	(setq current (car args)
 	      args (cdr args))
-	(when (widget-apply current :match value)
-	  (widget-put widget :children (list (widget-create-child-value
-					      widget current value)))
-	  (widget-put widget :choice current)
-	  (setq args nil
-		current nil)))
+        (if inline-p
+            (if (widget-get current :inline)
+                (setq val value
+                      fun :match-inline)
+              (setq val (car value)
+                    fun :match))
+          (setq val value
+                fun :match))
+        (when (widget-apply current fun val)
+          (widget-put widget :children (list (widget-create-child-value
+                                              widget current val)))
+          (widget-put widget :choice current)
+          (setq args nil
+                current nil)))
       (when current
 	(let ((void (widget-get widget :void)))
 	  (widget-put widget :children (list (widget-create-child-and-convert
@@ -2438,7 +2463,7 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 			     (let ((child (widget-create-child widget type)))
 			       (widget-apply child :deactivate)
 			       child))
-			    ((widget-get type :inline)
+                            ((widget-inline-p type t)
 			     (widget-create-child-value
 			      widget type (cdr chosen)))
 			    (t
@@ -2795,7 +2820,7 @@ Return an alist of (TYPE MATCH)."
 	(if answer
 	    (setq children (cons (widget-editable-list-entry-create
 				  widget
-				  (if (widget-get type :inline)
+                                  (if (widget-inline-p type t)
 				      (car answer)
 				    (car (car answer)))
 				  t)
@@ -2979,7 +3004,7 @@ Save CHILD into the :last-deleted list, so it can be inserted later."
 	   (insert-char ?\s (widget-get widget :indent)))
       (push (cond ((null answer)
 		   (widget-create-child widget arg))
-		  ((widget-get arg :inline)
+                  ((widget-inline-p arg t)
 		   (widget-create-child-value widget arg (car answer)))
 		  (t
 		   (widget-create-child-value widget arg (car (car answer)))))
@@ -3900,12 +3925,17 @@ example:
     `(cons :format "Key: %v" ,key-type ,value-type)))
 
 (define-widget 'choice 'menu-choice
-  "A union of several sexp types."
+  "A union of several sexp types.
+
+If one of the choices of a choice widget has an :inline t property,
+then the choice widget can act as an inline widget on its own if the
+current choice is inline."
   :tag "Choice"
   :format "%{%t%}: %[Value Menu%] %v"
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
-  :prompt-value 'widget-choice-prompt-value)
+  :prompt-value 'widget-choice-prompt-value
+  :inline-bubbles-p #'widget-choice-inline-bubbles-p)
 
 (defun widget-choice-prompt-value (widget prompt value _unbound)
   "Make a choice."
@@ -3948,6 +3978,20 @@ example:
     (if current
 	(widget-prompt-value current prompt nil t)
       value)))
+
+(defun widget-choice-inline-bubbles-p (widget)
+  "Non-nil if the choice WIDGET has at least one choice that is inline.
+This is used when matching values, because a choice widget needs to
+match a value inline rather than just match it if at least one of its choices
+is inline."
+  (let ((args (widget-get widget :args))
+        cur found)
+    (while (and args (not found))
+      (setq cur (car args)
+            args (cdr args)
+            found (widget-get cur :inline)))
+    found))
+
 
 (define-widget 'radio 'radio-button-choice
   "A union of several sexp types."

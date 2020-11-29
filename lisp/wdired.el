@@ -763,7 +763,7 @@ If OLD, return the old target.  If MOVE, move point before it."
       (unless (equal link-to-new link-to-ori)
         (setq changes t)
         (if (equal link-to-new "") ;empty filename!
-            (setq link-to-new "/dev/null"))
+            (setq link-to-new (null-device)))
         (condition-case err
             (progn
               (delete-file link-from)
