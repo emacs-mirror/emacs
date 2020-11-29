@@ -5459,6 +5459,8 @@ With ARG, rotate that many kills forward (or backward, if negative)."
 (defvar read-from-kill-ring-history)
 (defun read-from-kill-ring ()
   "Read a string from `kill-ring' using completion and minibuffer history."
+  ;; `current-kill' updates `kill-ring' with a possible interprogram-paste
+  (current-kill 0)
   (let* ((history-add-new-input nil)
          (ellipsis (if (char-displayable-p ?…) "…" "..."))
          ;; Remove keymaps from text properties of copied string,
