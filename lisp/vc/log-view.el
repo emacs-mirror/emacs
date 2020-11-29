@@ -208,15 +208,7 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 
-(defface log-view-commit-body
-  '((((class color) (min-colors 88) (background light))
-     :background "gray95" :foreground "black" :extend t)
-    (((class color) (min-colors 88) (background dark))
-     :background "gray5" :foreground "white" :extend t)
-    (((class color) (min-colors 8) (background light))
-     :foreground "black")
-    (((class color) (min-colors 8) (background dark))
-     :foreground "white"))
+(defface log-view-commit-body '((t :inherit font-lock-comment-face))
   "Face for the commit body in `log-view-mode'."
   :version "28.1")
 

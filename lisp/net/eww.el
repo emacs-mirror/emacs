@@ -58,7 +58,7 @@
 
 (defcustom eww-use-browse-url "\\`mailto:"
   "eww will use `browse-url' when following links that match this regexp.
-The action to be taken can further be customized via
+The action to be taken can be further customized via
 `browse-url-handlers'."
   :version "28.1"
   :type 'regexp)
