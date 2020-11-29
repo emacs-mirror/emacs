@@ -1709,6 +1709,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	break;
     }
 
+  bool debugger_called = false;
   if (/* Don't run the debugger for a memory-full error.
 	 (There is no room in memory to do that!)  */
       !NILP (error_symbol)
@@ -1722,12 +1723,24 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	     if requested".  */
 	  || EQ (h->tag_or_ch, Qerror)))
     {
-      bool debugger_called
+      debugger_called
 	= maybe_call_debugger (conditions, error_symbol, data);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
       if (keyboard_quit && debugger_called && EQ (real_error_symbol, Qquit))
 	return Qnil;
+    }
+
+  /* If we're in batch mode, print a backtrace unconditionally to help with
+     debugging.  Make sure to use `debug' unconditionally to not interfere with
+     ERT or other packages that install custom debuggers.  */
+  if (!debugger_called && !NILP (error_symbol)
+      && (NILP (clause) || EQ (h->tag_or_ch, Qerror)) && noninteractive)
+    {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      specbind (Vdebugger, Qdebug);
+      call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
+      unbind_to (count, Qnil);
     }
 
   if (!NILP (clause))
