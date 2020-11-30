@@ -26,6 +26,7 @@
 ;;; Commentary:
 
 (require 'ert)
+(require 'ert-x)
 (require 'cl-lib)
 (require 'subr-x)
 (require 'bytecomp)
@@ -545,6 +546,19 @@ Subtests signal errors if something goes wrong."
   (test-byte-comp-compile-and-load nil
     '(eval-and-compile (defmacro abc (arg) -1) (defun def () (abc 2))))
   (should (equal (funcall 'def) -1)))
+
+(defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
+  `(ert-deftest ,(intern (format "bytecomp-warn/%s" file)) ()
+     :expected-result ,(if reverse :failed :passed)
+     (with-current-buffer (get-buffer-create "*Compile-Log*")
+       (let ((inhibit-read-only t)) (erase-buffer))
+       (byte-compile-file ,(ert-resource-file file))
+       (ert-info ((buffer-string) :prefix "buffer: ")
+         (should (re-search-forward ,re-warning))))))
+
+(bytecomp--define-warning-file-test "warn-free-setq.el" "free.*foo")
+
+(bytecomp--define-warning-file-test "warn-free-variable-reference.el" "free.*bar")
 
 (ert-deftest test-eager-load-macro-expansion-eval-when-compile ()
   ;; Make sure we interpret eval-when-compile forms properly.  CLISP
