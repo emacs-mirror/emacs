@@ -745,7 +745,9 @@ pattern to search for."
 ;;;###autoload
 (defun project-find-file ()
   "Visit a file (with completion) in the current project.
-The completion default is the string at point."
+
+The completion default is the filename at point, determined by
+`thing-at-point' (whether such file exists or not)."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (list (project-root pr))))
@@ -754,7 +756,9 @@ The completion default is the string at point."
 ;;;###autoload
 (defun project-or-external-find-file ()
   "Visit a file (with completion) in the current project or external roots.
-The completion default is the string at point."
+
+The completion default is the filename at point, determined by
+`thing-at-point' (whether such file exists or not)."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (cons
