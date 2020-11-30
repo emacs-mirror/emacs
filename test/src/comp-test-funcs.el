@@ -380,6 +380,16 @@
 	it
       nil)))
 
+(defun comp-test-44968-f (start end)
+  (let ((dirlist)
+        (dir (expand-file-name start))
+        (end (expand-file-name end)))
+    (while (not (or (equal dir (car dirlist))
+                    (file-equal-p dir end)))
+      (push dir dirlist)
+      (setq dir (directory-file-name (file-name-directory dir))))
+    (nreverse dirlist)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

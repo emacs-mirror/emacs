@@ -550,12 +550,18 @@ CFG is mutated by a pass.")
 
 (defun comp-mvar-symbol-p (mvar)
   "Return t if MVAR is certainly a symbol."
-  (or (equal (comp-mvar-typeset mvar) '(symbol))
-      (cl-every #'symbolp (comp-mvar-valset mvar))))
+  (and (null (comp-mvar-range mvar))
+       (or (and (null (comp-mvar-valset mvar))
+                (equal (comp-mvar-typeset mvar) '(symbol)))
+           (and (or (null (comp-mvar-typeset mvar))
+                    (equal (comp-mvar-typeset mvar) '(symbol)))
+                (cl-every #'symbolp (comp-mvar-valset mvar))))))
 
 (defsubst comp-mvar-cons-p (mvar)
   "Return t if MVAR is certainly a cons."
-  (equal (comp-mvar-typeset mvar) '(cons)))
+  (and (null (comp-mvar-valset mvar))
+       (null (comp-mvar-range mvar))
+       (equal (comp-mvar-typeset mvar) '(cons))))
 
 (defun comp-mvar-type-hint-match-p (mvar type-hint)
   "Match MVAR against TYPE-HINT.
