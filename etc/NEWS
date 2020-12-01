@@ -490,7 +490,7 @@ tags to be considered as well.
 
 +++
 *** New user option 'gnus-paging-select-next'.
-This controls what happens when using commands like `SPC' and `DEL' to
+This controls what happens when using commands like 'SPC' and 'DEL' to
 page the current article.  If non-nil (the default), go to the
 next/prev article, but if nil, do nothing at the end/start of the article.
 
@@ -841,6 +841,12 @@ initialization performance penalties.  See the "(tramp) Improving
 performance of asynchronous remote processes" node of the Tramp manual
 for details, and also for a discussion or restrictions.  This feature
 is experimental.
+
++++
+*** New user option 'tramp-debug-to-file'.
+When non-nil, this user option instructs Tramp to mirror the debug
+buffer to a file under the "/tmp/" directory.  This is useful, if (in
+rare cases) Tramp blocks Emacs, and we need further debug information.
 
 ** Tempo
 
@@ -1526,7 +1532,7 @@ mouse now pops up a TTY menu by default instead of running the command
 ** text-scale-mode
 
 ---
-*** text-scale-mode can now adjust font size of the header line.
+*** 'text-scale-mode' can now adjust font size of the header line.
 When the new buffer local variable 'text-scale-remap-header-line'
 is non-nil, 'text-scale-adjust' will also scale the text in the header
 line when displaying that buffer.
@@ -1812,7 +1818,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 * Lisp Changes in Emacs 28.1
 
 ---
-** `defvar` detects the error of defining a variable currently lexically bound.
+** 'defvar' detects the error of defining a variable currently lexically bound.
 Such mixes are always signs that the outer lexical binding was an
 error and should have used dynamic binding instead.
 
@@ -1825,7 +1831,7 @@ a prefix string, and a suffix string.
 +++
 ** 'read-char-from-minibuffer' and 'y-or-n-p' support 'help-form'.
 If you bind 'help-form' to a non-nil value while calling these functions,
-then pressing 'C-h' (help-char) causes the function to evaluate 'help-form'
+then pressing 'C-h' ('help-char') causes the function to evaluate 'help-form'
 and display the result.
 
 +++
@@ -2018,7 +2024,7 @@ file can affect code in another.  For details, see the manual section
 "(Elisp) Converting to Lexical Binding".
 
 +++
-** 'byte-recompile-directory' can now compile symlinked .el files.
+** 'byte-recompile-directory' can now compile symlinked ".el" files.
 This is achieved by giving a non-nil FOLLOW-SYMLINKS parameter.
 
 ---
