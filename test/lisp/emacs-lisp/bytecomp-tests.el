@@ -548,7 +548,7 @@ Subtests signal errors if something goes wrong."
   (should (equal (funcall 'def) -1)))
 
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
-  `(ert-deftest ,(intern (format "bytecomp-warn/%s" file)) ()
+  `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
      :expected-result ,(if reverse :failed :passed)
      (with-current-buffer (get-buffer-create "*Compile-Log*")
        (let ((inhibit-read-only t)) (erase-buffer))
@@ -556,9 +556,29 @@ Subtests signal errors if something goes wrong."
        (ert-info ((buffer-string) :prefix "buffer: ")
          (should (re-search-forward ,re-warning))))))
 
-(bytecomp--define-warning-file-test "warn-free-setq.el" "free.*foo")
+(bytecomp--define-warning-file-test "error-lexical-var-with-add-hook.el"
+                            "add-hook.*lexical var")
 
-(bytecomp--define-warning-file-test "warn-free-variable-reference.el" "free.*bar")
+(bytecomp--define-warning-file-test "error-lexical-var-with-remove-hook.el"
+                            "remove-hook.*lexical var")
+
+(bytecomp--define-warning-file-test "error-lexical-var-with-run-hook-with-args-until-failure.el"
+                            "args-until-failure.*lexical var")
+
+(bytecomp--define-warning-file-test "error-lexical-var-with-run-hook-with-args-until-success.el"
+                            "args-until-success.*lexical var")
+
+(bytecomp--define-warning-file-test "error-lexical-var-with-run-hook-with-args.el"
+                            "args.*lexical var")
+
+(bytecomp--define-warning-file-test "error-lexical-var-with-symbol-value.el"
+                            "symbol-value.*lexical var")
+
+(bytecomp--define-warning-file-test "warn-free-setq.el"
+                            "free.*foo")
+
+(bytecomp--define-warning-file-test "warn-free-variable-reference.el"
+                            "free.*bar")
 
 (bytecomp--define-warning-file-test "warn-obsolete-defun.el"
                             "foo-obsolete.*obsolete function.*99.99")
