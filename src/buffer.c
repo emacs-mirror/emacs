@@ -62,8 +62,9 @@ struct buffer buffer_defaults;
 
 /* This structure marks which slots in a buffer have corresponding
    default values in buffer_defaults.
-   Each such slot has a nonzero value in this structure.
-   The value has only one nonzero bit.
+   Each such slot has a value in this structure.
+   The value is a positive Lisp integer that must be smaller than
+   MAX_PER_BUFFER_VARS.
 
    When a buffer has its own local value for a slot,
    the entry for that slot (found in the same slot in this structure)
