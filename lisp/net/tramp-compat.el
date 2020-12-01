@@ -341,6 +341,13 @@ A nil value for either argument stands for the current time."
     (lambda ()
       (if (tramp-tramp-file-p default-directory) "/dev/null" null-device))))
 
+;; Function `string-replace' is new in Emacs 28.1.
+(defalias 'tramp-compat-string-replace
+  (if (fboundp 'string-replace)
+      #'string-replace
+    (lambda (fromstring tostring instring)
+      (replace-regexp-in-string (regexp-quote fromstring) tostring instring))))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-loaddefs 'force)

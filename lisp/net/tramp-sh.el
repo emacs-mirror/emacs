@@ -3764,7 +3764,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      ;; Make events a list of symbols.
 	      events
 	      (mapcar
-	       (lambda (x) (intern-soft (replace-regexp-in-string "_" "-" x)))
+	       (lambda (x) (intern-soft (tramp-compat-string-replace "_" "-" x)))
 	       (split-string events "," 'omit))))
        ;; "gio monitor".
        ((setq command (tramp-get-remote-gio-monitor v))
@@ -3836,11 +3836,11 @@ Fall back to normal file name handler if no Tramp handler exists."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
           ;; Fix action names.
-          string (replace-regexp-in-string
+          string (tramp-compat-string-replace
 	          "attributes changed" "attribute-changed" string)
-          string (replace-regexp-in-string
+          string (tramp-compat-string-replace
 	          "changes done" "changes-done-hint" string)
-          string (replace-regexp-in-string
+          string (tramp-compat-string-replace
 	          "renamed to" "moved" string))
     ;; https://bugs.launchpad.net/bugs/1742946
     (when
@@ -3848,7 +3848,7 @@ Fall back to normal file name handler if no Tramp handler exists."
       (delete-process proc))
 
     ;; Delete empty lines.
-    (setq string (replace-regexp-in-string "\n\n" "\n" string))
+    (setq string (tramp-compat-string-replace "\n\n" "\n" string))
 
     (while (string-match
 	    (eval-when-compile
@@ -3896,7 +3896,7 @@ Fall back to normal file name handler if no Tramp handler exists."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
 	  ;; Attribute change is returned in unused wording.
-	  string (replace-regexp-in-string
+	  string (tramp-compat-string-replace
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
 
     (while (string-match
@@ -3913,7 +3913,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	       proc
 	       (list
 		(intern-soft
-		 (replace-regexp-in-string
+		 (tramp-compat-string-replace
 		  "_" "-" (downcase (match-string 4 string)))))
 	       ;; File names are returned as absolute paths.  We must
 	       ;; add the remote prefix.
@@ -3952,7 +3952,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (mapcar
 	       (lambda (x)
 		 (intern-soft
-		  (replace-regexp-in-string "_" "-" (downcase x))))
+		  (tramp-compat-string-replace "_" "-" (downcase x))))
 	       (split-string (match-string 1 line) "," 'omit))
 	      (or (match-string 3 line)
 		  (file-name-nondirectory (process-get proc 'watch-name))))))
@@ -4006,7 +4006,7 @@ Only send the definition if it has not already been done."
 	  vec 5 (format-message "Sending script `%s'" name)
 	;; In bash, leading TABs like in `tramp-vc-registered-read-file-names'
 	;; could result in unwanted command expansion.  Avoid this.
-	(setq script (replace-regexp-in-string
+	(setq script (tramp-compat-string-replace
 		      (make-string 1 ?\t) (make-string 8 ? ) script))
 	;; The script could contain a call of Perl.  This is masked with `%s'.
 	(when (and (string-match-p "%s" script)
@@ -4675,7 +4675,7 @@ Goes through the list `tramp-local-coding-commands' and
 				?n (concat
                                     "2>" (tramp-get-remote-null-device vec))
 				?o (tramp-get-remote-od vec)))
-			      value (replace-regexp-in-string "%" "%%" value)))
+			      value (tramp-compat-string-replace "%" "%%" value)))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-enc name)))
 		  (tramp-message
@@ -4704,7 +4704,7 @@ Goes through the list `tramp-local-coding-commands' and
 				?n (concat
                                     "2>" (tramp-get-remote-null-device vec))
 				?o (tramp-get-remote-od vec)))
-			      value (replace-regexp-in-string "%" "%%" value)))
+			      value (tramp-compat-string-replace "%" "%%" value)))
 		      (when (string-match-p "\\(^\\|[^%]\\)%t" value)
 			(setq tmpfile (tramp-make-tramp-temp-name vec)
 			      value

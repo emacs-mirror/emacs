@@ -5043,6 +5043,7 @@ root-directory, it is most likely sufficient to make the
 @node Traces and Profiles
 @chapter How to Customize Traces
 @vindex tramp-verbose
+@vindex tramp-debug-to-file
 
 @value{tramp} messages are raised with verbosity levels ranging from 0
 to 10.  @value{tramp} does not display all messages; only those with a
@@ -5094,6 +5095,20 @@ both the error and the signal have to be set as follows:
 If @code{tramp-verbose} is greater than or equal to 10, Lisp
 backtraces are also added to the @value{tramp} debug buffer in case of
 errors.
+
+In very rare cases it could happen, that @value{tramp} blocks Emacs.
+Killing Emacs does not allow to inspect the debug buffer.  In that
+case, you might instruct @value{tramp} to mirror the debug buffer to
+file:
+
+@lisp
+(customize-set-variable 'tramp-debug-to-file t)
+@end lisp
+
+The debug buffer is written as file in your
+@code{temporary-file-directory}, which is usually @file{/tmp/}.  Use
+this option with care, because it could decrease the performance of
+@value{tramp} actions.
 
 To enable stepping through @value{tramp} function call traces, they
 have to be specifically enabled as shown in this code:

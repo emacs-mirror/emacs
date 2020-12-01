@@ -112,6 +112,13 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
 10  traces (huge)."
   :type 'integer)
 
+(defcustom tramp-debug-to-file nil
+  "Whether Tramp debug messages shall be saved to file.
+The debug file has the same name as the debug buffer, written to
+`temporary-file-directory'."
+  :version "28.1"
+  :type 'boolean)
+
 (defcustom tramp-backup-directory-alist nil
   "Alist of filename patterns and backup directory names.
 Each element looks like (REGEXP . DIRECTORY), with the same meaning like
@@ -1722,8 +1729,7 @@ The outline level is equal to the verbosity of the Tramp message."
 
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer for VEC."
-  (with-current-buffer
-      (get-buffer-create (tramp-debug-buffer-name vec))
+  (with-current-buffer (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
       (setq buffer-undo-list t)
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
@@ -1732,8 +1738,7 @@ The outline level is equal to the verbosity of the Tramp message."
       ;; `(custom-declare-variable outline-minor-mode-prefix ...)'
       ;; raises on error in `(outline-mode)', we don't want to see it
       ;; in the traces.
-      (let ((default-directory (tramp-compat-temporary-file-directory))
-	    signal-hook-function)
+      (let ((default-directory (tramp-compat-temporary-file-directory)))
 	(outline-mode))
       (set (make-local-variable 'outline-level) 'tramp-debug-outline-level)
       (set (make-local-variable 'font-lock-keywords)
@@ -1743,56 +1748,73 @@ The outline level is equal to the verbosity of the Tramp message."
       (use-local-map special-mode-map))
     (current-buffer)))
 
+(defun tramp-get-debug-file-name (vec)
+  "Get the debug buffer for VEC."
+  (expand-file-name
+   (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
+   (tramp-compat-temporary-file-directory)))
+
 (defsubst tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
 Message is formatted with FMT-STRING as control string and the remaining
 ARGUMENTS to actually emit the message (if applicable)."
-  (with-current-buffer (tramp-get-debug-buffer vec)
-    (goto-char (point-max))
-    ;; Headline.
-    (when (bobp)
-      (insert
-       (format
-	";; Emacs: %s Tramp: %s -*- mode: outline; -*-"
-	emacs-version tramp-version))
-      (when (>= tramp-verbose 10)
-	(let ((tramp-verbose 0))
+  (let ((inhibit-message t)
+	file-name-handler-alist message-log-max signal-hook-function)
+    (with-current-buffer (tramp-get-debug-buffer vec)
+      (goto-char (point-max))
+      (let ((point (point)))
+	;; Headline.
+	(when (bobp)
 	  (insert
 	   (format
-	    "\n;; Location: %s Git: %s/%s"
-	    (locate-library "tramp")
-	    (or tramp-repository-branch "")
-	    (or tramp-repository-version ""))))))
-    (unless (bolp)
-      (insert "\n"))
-    ;; Timestamp.
-    (let ((now (current-time)))
-      (insert (format-time-string "%T." now))
-      (insert (format "%06d " (nth 2 now))))
-    ;; Calling Tramp function.  We suppress compat and trace functions
-    ;; from being displayed.
-    (let ((btn 1) btf fn)
-      (while (not fn)
-	(setq btf (nth 1 (backtrace-frame btn)))
-	(if (not btf)
-	    (setq fn "")
-	  (and (symbolp btf) (setq fn (symbol-name btf))
-	       (or (not (string-match-p "^tramp" fn))
-		   (get btf 'tramp-suppress-trace))
-	       (setq fn nil))
-	  (setq btn (1+ btn))))
-      ;; The following code inserts filename and line number.  Should
-      ;; be inactive by default, because it is time consuming.
-;      (let ((ffn (find-function-noselect (intern fn))))
-;	(insert
-;	 (format
-;	  "%s:%d: "
-;	  (file-name-nondirectory (buffer-file-name (car ffn)))
-;	  (with-current-buffer (car ffn)
-;	    (1+ (count-lines (point-min) (cdr ffn)))))))
-      (insert (format "%s " fn)))
-    ;; The message.
-    (insert (apply #'format-message fmt-string arguments))))
+	    ";; Emacs: %s Tramp: %s -*- mode: outline; -*-"
+	    emacs-version tramp-version))
+	  (when (>= tramp-verbose 10)
+	    (let ((tramp-verbose 0))
+	      (insert
+	       (format
+		"\n;; Location: %s Git: %s/%s"
+		(locate-library "tramp")
+		(or tramp-repository-branch "")
+		(or tramp-repository-version "")))))
+	  ;; Delete debug file.
+	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
+	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))))
+	(unless (bolp)
+	  (insert "\n"))
+	;; Timestamp.
+	(let ((now (current-time)))
+	  (insert (format-time-string "%T." now))
+	  (insert (format "%06d " (nth 2 now))))
+	;; Calling Tramp function.  We suppress compat and trace
+	;; functions from being displayed.
+	(let ((btn 1) btf fn)
+	  (while (not fn)
+	    (setq btf (nth 1 (backtrace-frame btn)))
+	    (if (not btf)
+		(setq fn "")
+	      (and (symbolp btf) (setq fn (symbol-name btf))
+		   (or (not (string-match-p "^tramp" fn))
+		       (get btf 'tramp-suppress-trace))
+		   (setq fn nil))
+	      (setq btn (1+ btn))))
+	  ;; The following code inserts filename and line number.
+	  ;; Should be inactive by default, because it is time consuming.
+	  ;; (let ((ffn (find-function-noselect (intern fn))))
+	  ;;   (insert
+	  ;;    (format
+	  ;;     "%s:%d: "
+	  ;;     (file-name-nondirectory (buffer-file-name (car ffn)))
+	  ;;     (with-current-buffer (car ffn)
+	  ;;       (1+ (count-lines (point-min) (cdr ffn)))))))
+	  (insert (format "%s " fn)))
+	;; The message.
+	(insert (apply #'format-message fmt-string arguments))
+	;; Write message to debug file.
+	(when tramp-debug-to-file
+	  (ignore-errors
+	    (write-region
+	     point (point-max) (tramp-get-debug-file-name vec) 'append)))))))
 
 (put #'tramp-debug-message 'tramp-suppress-trace t)
 
