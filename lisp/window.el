@@ -8566,13 +8566,13 @@ Return the buffer switched to."
 
       (when set-window-start-and-point
         (let* ((entry (assq buffer (window-prev-buffers)))
-	       (displayed (and (eq switch-to-buffer-preserve-window-point
-				   'already-displayed)
+               (preserve-win-point
+                (buffer-local-value 'switch-to-buffer-preserve-window-point
+                                    buffer))
+	       (displayed (and (eq preserve-win-point 'already-displayed)
 			       (get-buffer-window buffer 0))))
 	  (set-window-buffer nil buffer)
-	  (when (and entry
-		     (or (eq switch-to-buffer-preserve-window-point t)
-		         displayed))
+	  (when (and entry (or (eq preserve-win-point t) displayed))
 	    ;; Try to restore start and point of buffer in the selected
 	    ;; window (Bug#4041).
 	    (set-window-start (selected-window) (nth 1 entry) t)
