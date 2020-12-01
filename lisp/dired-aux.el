@@ -3023,7 +3023,13 @@ REGEXP should use constructs supported by your local `grep' command."
           (query-replace-read-args
            "Query replace regexp in marked files" t t)))
      (list (nth 0 common) (nth 1 common))))
-  (with-current-buffer (dired-do-find-regexp from)
+  (require 'xref)
+  (defvar xref-show-xrefs-function)
+  (with-current-buffer
+      (let ((xref-show-xrefs-function
+             ;; Some future-proofing (bug#44905).
+             (eval (car (get 'xref-show-xrefs-function 'standard-value)))))
+        (dired-do-find-regexp from))
     (xref-query-replace-in-results from to)))
 
 (defun dired-nondirectory-p (file)
