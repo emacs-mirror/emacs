@@ -560,6 +560,24 @@ Subtests signal errors if something goes wrong."
 
 (bytecomp--define-warning-file-test "warn-free-variable-reference.el" "free.*bar")
 
+(bytecomp--define-warning-file-test "warn-obsolete-defun.el"
+                            "foo-obsolete.*obsolete function.*99.99")
+
+(defvar bytecomp--tests-obsolete-var nil)
+(make-obsolete-variable 'bytecomp--tests-obsolete-var nil "99.99")
+
+(bytecomp--define-warning-file-test "warn-obsolete-hook.el"
+                            "bytecomp--tests-obs.*obsolete.*99.99")
+
+(bytecomp--define-warning-file-test "warn-obsolete-variable-same-file.el"
+                            "foo-obs.*obsolete.*99.99" t)
+
+(bytecomp--define-warning-file-test "warn-obsolete-variable.el"
+                            "bytecomp--tests-obs.*obsolete.*99.99")
+
+(bytecomp--define-warning-file-test "warn-interactive-only.el"
+                            "next-line.*interactive use only.*forward-line")
+
 (ert-deftest test-eager-load-macro-expansion-eval-when-compile ()
   ;; Make sure we interpret eval-when-compile forms properly.  CLISP
   ;; and SBCL interpreter eval-when-compile (well, the CL equivalent)
