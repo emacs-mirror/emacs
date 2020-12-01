@@ -1913,7 +1913,7 @@ seconds.
 
 (autoload 'benchmark-run "benchmark" "\
 Time execution of FORMS.
-If REPETITIONS is supplied as a number, run forms that many times,
+If REPETITIONS is supplied as a number, run FORMS that many times,
 accounting for the overhead of the resulting loop.  Otherwise run
 FORMS once.
 Return a list of the total elapsed time for execution, the number of
@@ -34519,7 +34519,7 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
-(push (purecopy '(tramp 2 4 5 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 4 5 27 2)) package--builtin-versions)
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
