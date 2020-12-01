@@ -434,16 +434,17 @@ backend implementation of `project-external-roots'.")
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
-     (let (backend)
+     (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
+           backend)
        (if (and (file-equal-p dir (cdr project))
                 (setq backend (vc-responsible-backend dir))
                 (cond
                  ((eq backend 'Hg))
                  ((and (eq backend 'Git)
                        (or
-                        (not project-vc-ignores)
+                        (not ignores)
                         (version<= "1.9" (vc-git--program-version)))))))
-           (project--vc-list-files dir backend project-vc-ignores)
+           (project--vc-list-files dir backend ignores)
          (project--files-in-directory
           dir
           (project--dir-ignores project dir)))))
