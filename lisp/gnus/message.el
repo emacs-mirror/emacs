@@ -2090,14 +2090,21 @@ is used by default."
       (goto-char (point-min))
       (looking-at message-unix-mail-delimiter))))
 
-(defun message-fetch-field (header &optional not-all)
-  "The same as `mail-fetch-field', only remove all newlines.
+(defun message-fetch-field (header &optional first)
+  "Return the value of the header field named HEADER.
+Continuation lines are folded (i.e., newlines are removed).
 Surrounding whitespace is also removed.
+
+By default, if there's more than one header field named HEADER,
+all the values are returned as one concatenated string, and
+values are comma-separated.
+
+If FIRST is non-nil, only the first value is returned.
 
 The buffer is expected to be narrowed to just the header of the message;
 see `message-narrow-to-headers-or-head'."
   (let* ((inhibit-point-motion-hooks t)
-	 (value (mail-fetch-field header nil (not not-all))))
+	 (value (mail-fetch-field header nil (not first))))
     (when value
       (while (string-match "\n[\t ]+" value)
 	(setq value (replace-match " " t t value)))
@@ -2105,12 +2112,12 @@ see `message-narrow-to-headers-or-head'."
       ;; we have initial or trailing white space; remove it.
       (string-trim value))))
 
-(defun message-field-value (header &optional not-all)
+(defun message-field-value (header &optional first)
   "The same as `message-fetch-field', only narrow to the headers first."
   (save-excursion
     (save-restriction
       (message-narrow-to-headers-or-head)
-      (message-fetch-field header not-all))))
+      (message-fetch-field header first))))
 
 (defun message-narrow-to-field ()
   "Narrow the buffer to the header on the current line."
