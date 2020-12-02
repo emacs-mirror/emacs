@@ -256,26 +256,26 @@ Integer values are handled in the `range' slot.")
 
 (defun comp-cstr-union-no-range (dst &rest srcs)
   "As `comp-cstr-union' but escluding the irange component."
-  (let ((values (mapcar #'comp-cstr-valset srcs)))
 
-    ;; Type propagation.
-    (setf (comp-cstr-typeset dst)
-          (apply #'comp-union-typesets (mapcar #'comp-cstr-typeset srcs)))
+  ;; Type propagation.
+  (setf (comp-cstr-typeset dst)
+        (apply #'comp-union-typesets (mapcar #'comp-cstr-typeset srcs)))
 
-    ;; Value propagation.
-    (setf (comp-cstr-valset dst)
-          (cl-loop
-           ;; TODO sort.
-           for v in (cl-remove-duplicates (apply #'append values)
-                                          :test #'equal)
-           ;; We propagate only values those types are not already
-           ;; into typeset.
-           when (cl-notany (lambda (x)
-                             (comp-subtype-p (type-of v) x))
-                           (comp-cstr-typeset dst))
-           collect v))
+  ;; Value propagation.
+  (setf (comp-cstr-valset dst)
+        (cl-loop
+         with values = (mapcar #'comp-cstr-valset srcs)
+         ;; TODO sort.
+         for v in (cl-remove-duplicates (apply #'append values)
+                                        :test #'equal)
+         ;; We propagate only values those types are not already
+         ;; into typeset.
+         when (cl-notany (lambda (x)
+                           (comp-subtype-p (type-of v) x))
+                         (comp-cstr-typeset dst))
+         collect v))
 
-    dst))
+  dst)
 
 (defun comp-cstr-union (dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
