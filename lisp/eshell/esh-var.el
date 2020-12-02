@@ -113,7 +113,6 @@
 (require 'esh-io)
 
 (require 'pcomplete)
-(require 'env)
 (require 'ring)
 
 (defgroup eshell-var nil

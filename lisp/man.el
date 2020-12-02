@@ -1109,7 +1109,6 @@ Return the buffer in which the manpage will appear."
 	 (buffer  (get-buffer bufname)))
     (if buffer
 	(Man-notify-when-ready buffer)
-      (require 'env)
       (message "Invoking %s %s in the background" manual-program man-args)
       (setq buffer (generate-new-buffer bufname))
       (with-current-buffer buffer
