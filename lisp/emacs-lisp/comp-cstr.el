@@ -86,6 +86,20 @@ Integer values are handled in the `range' slot.")
                         :documentation "Serve memoization for
 `comp-common-supertype'."))
 
+(defmacro with-comp-cstr-accessors (&rest body)
+  "Define some quick accessor to reduce code vergosity in BODY."
+  (declare (debug (form body))
+           (indent defun))
+  `(cl-macrolet ((typeset (&rest x)
+                          `(comp-cstr-typeset ,@x))
+                 (valset (&rest x)
+                         `(comp-cstr-valset ,@x))
+                 (range (&rest x)
+                        `(comp-cstr-range ,@x))
+                 (neg (&rest x)
+                      `(comp-cstr-neg ,@x)))
+     ,@body))
+
 
 ;;; Type handling.
 
@@ -299,86 +313,87 @@ DST is returned."
   "Combine SRCS by union set operation setting the result in DST.
 Do range propagation when RANGE is non-nil.
 DST is returned."
-  ;; Check first if we are in the simple case of all input non-negate
-  ;; or negated so we don't have to cons.
-  (cl-loop
-   for cstr in srcs
-   unless (comp-cstr-neg cstr)
-   count t into n-pos
-   else
-   count t into n-neg
-   finally
-   (when (or (zerop n-pos) (zerop n-neg))
-     (apply #'comp-cstr-union-homogeneous dst srcs)
-     (cl-return-from comp-cstr-union-1 dst)))
+  (with-comp-cstr-accessors
+    ;; Check first if we are in the simple case of all input non-negate
+    ;; or negated so we don't have to cons.
+    (cl-loop
+     for cstr in srcs
+     unless (neg cstr)
+     count t into n-pos
+     else
+     count t into n-neg
+     finally
+     (when (or (zerop n-pos) (zerop n-neg))
+       (apply #'comp-cstr-union-homogeneous dst srcs)
+       (cl-return-from comp-cstr-union-1 dst)))
 
-  ;; Some are negated and some are not
-  (cl-loop
-   for cstr in srcs
-   if (comp-cstr-neg cstr)
-   collect cstr into negatives
-   else
-   collect cstr into positives
-   finally
-   (let* ((pos (apply #'comp-cstr-union-homogeneous (make-comp-cstr) positives))
-          (neg (apply #'comp-cstr-union-homogeneous (make-comp-cstr) negatives)))
+    ;; Some are negated and some are not
+    (cl-loop
+     for cstr in srcs
+     if (neg cstr)
+     collect cstr into negatives
+     else
+     collect cstr into positives
+     finally
+     (let* ((pos (apply #'comp-cstr-union-homogeneous (make-comp-cstr) positives))
+            (neg (apply #'comp-cstr-union-homogeneous (make-comp-cstr) negatives)))
 
-     ;; Type propagation.
-     (when (and (comp-cstr-typeset pos)
-                ;; When some pos type is not a subtype of any neg ones.
-                (cl-every (lambda (x)
-                            (cl-some (lambda (y)
-                                       (not (comp-subtype-p x y)))
-                                     (comp-cstr-typeset neg)))
-                          (comp-cstr-typeset pos)))
-       ;; This is a conservative choice, ATM we can't represent such a
-       ;; disjoint set of types unless we decide to add a new slot
-       ;; into `comp-cstr' list them all.  This probably wouldn't
-       ;; work for the future when we'll support also non-builtin
-       ;; types.
-       (setf (comp-cstr-typeset dst) '(t)
-             (comp-cstr-valset dst) ()
-             (comp-cstr-range dst) ()
-             (comp-cstr-neg dst) nil)
-       (cl-return-from comp-cstr-union-1 dst))
+       ;; Type propagation.
+       (when (and (typeset pos)
+                  ;; When some pos type is not a subtype of any neg ones.
+                  (cl-every (lambda (x)
+                              (cl-some (lambda (y)
+                                         (not (comp-subtype-p x y)))
+                                       (typeset neg)))
+                            (typeset pos)))
+         ;; This is a conservative choice, ATM we can't represent such a
+         ;; disjoint set of types unless we decide to add a new slot
+         ;; into `comp-cstr' list them all.  This probably wouldn't
+         ;; work for the future when we'll support also non-builtin
+         ;; types.
+         (setf (typeset dst) '(t)
+               (valset dst) ()
+               (range dst) ()
+               (neg dst) nil)
+         (cl-return-from comp-cstr-union-1 dst))
 
-     ;; Value propagation.
-     (setf (comp-cstr-valset neg)
-           (cl-nset-difference (comp-cstr-valset neg) (comp-cstr-valset pos)))
+       ;; Value propagation.
+       (setf (valset neg)
+             (cl-nset-difference (valset neg) (valset pos)))
 
-     ;; Range propagation
-     (when (and range
-                (or (comp-cstr-range pos)
-                    (comp-cstr-range neg))
-                (cl-notany (lambda (x)
-                             (comp-subtype-p 'integer x))
-                           (comp-cstr-typeset pos)))
-       (if (or (comp-cstr-valset neg)
-               (comp-cstr-typeset neg))
-           (setf (comp-cstr-range neg)
-                 (comp-range-union (comp-range-negation (comp-cstr-range pos))
-                                   (comp-cstr-range neg)))
-         ;; When possibile do not return a negated cstr.
-         (setf (comp-cstr-typeset dst) ()
-               (comp-cstr-valset dst) ()
-               (comp-cstr-range dst) (comp-range-union
-                                      (comp-range-negation (comp-cstr-range neg))
-                                      (comp-cstr-range pos))
-               (comp-cstr-neg dst) nil)
-         (cl-return-from comp-cstr-union-1 dst)))
+       ;; Range propagation
+       (when (and range
+                  (or (range pos)
+                      (range neg))
+                  (cl-notany (lambda (x)
+                               (comp-subtype-p 'integer x))
+                             (typeset pos)))
+         (if (or (valset neg)
+                 (typeset neg))
+             (setf (range neg)
+                   (comp-range-union (comp-range-negation (range pos))
+                                     (range neg)))
+           ;; When possibile do not return a negated cstr.
+           (setf (typeset dst) ()
+                 (valset dst) ()
+                 (range dst) (comp-range-union
+                                        (comp-range-negation (range neg))
+                                        (range pos))
+                 (neg dst) nil)
+           (cl-return-from comp-cstr-union-1 dst)))
 
-     (if (and (null (comp-cstr-typeset neg))
-              (null (comp-cstr-valset neg))
-              (null (comp-cstr-range neg)))
-         (setf (comp-cstr-typeset dst) '(t)
-               (comp-cstr-valset dst) ()
-               (comp-cstr-range dst) ()
-               (comp-cstr-neg dst) nil)
-       (setf (comp-cstr-typeset dst) (comp-cstr-typeset neg)
-             (comp-cstr-valset dst) (comp-cstr-valset neg)
-             (comp-cstr-range dst) (comp-cstr-range neg)
-             (comp-cstr-neg dst) t))))
-  dst)
+       (if (and (null (typeset neg))
+                (null (valset neg))
+                (null (range neg)))
+           (setf (typeset dst) '(t)
+                 (valset dst) ()
+                 (range dst) ()
+                 (neg dst) nil)
+         (setf (typeset dst) (typeset neg)
+               (valset dst) (valset neg)
+               (range dst) (range neg)
+               (neg dst) t))))
+    dst))
 
 
 ;;; Entry points.
