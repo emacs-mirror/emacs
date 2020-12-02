@@ -239,23 +239,26 @@ Integer values are handled in the `range' slot.")
 
 (defun comp-range-negation (range)
   "Negate range RANGE."
-  (cl-loop
-   with res = ()
-   with last-h = '-
-   for (l . h) in range
-   unless (eq l '-)
+  (if (null range)
+      '((- . +))
+    (cl-loop
+     with res = ()
+     with last-h = '-
+     for (l . h) in range
+     unless (eq l '-)
      do (push `(,(comp-range-1+ last-h) . ,(1- l)) res)
-   do (setf last-h h)
-   finally
-   (unless (eq '+ last-h)
-     (push `(,(1+ last-h) . +) res))
-   (cl-return (reverse res))))
+     do (setf last-h h)
+     finally
+     (unless (eq '+ last-h)
+       (push `(,(1+ last-h) . +) res))
+     (cl-return (reverse res)))))
 
 
-;;; Entry points.
+;;; Union specific code.
 
-(defun comp-cstr-union-no-range (dst &rest srcs)
-  "As `comp-cstr-union' but escluding the irange component."
+(defun comp-cstr-union-homogeneous-no-range (dst &rest srcs)
+  "As `comp-cstr-union' but escluding the irange component.
+All SRCS constraints must be homogeneously negated or non-negated."
 
   ;; Type propagation.
   (setf (comp-cstr-typeset dst)
@@ -277,10 +280,11 @@ Integer values are handled in the `range' slot.")
 
   dst)
 
-(defun comp-cstr-union (dst &rest srcs)
+(defun comp-cstr-union-homogeneous (dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
+All SRCS constraints must be homogeneously negated or non-negated.
 DST is returned."
-  (apply #'comp-cstr-union-no-range dst srcs)
+  (apply #'comp-cstr-union-homogeneous-no-range dst srcs)
   ;; Range propagation.
   (setf (comp-cstr-range dst)
         (when (cl-notany (lambda (x)
@@ -290,6 +294,105 @@ DST is returned."
           (apply #'comp-range-union
                  (mapcar #'comp-cstr-range srcs))))
   dst)
+
+(cl-defun comp-cstr-union-1 (range dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+Do range propagation when RANGE is non-nil.
+DST is returned."
+  ;; Check first if we are in the simple case of all input non-negate
+  ;; or negated so we don't have to cons.
+  (cl-loop
+   for cstr in srcs
+   unless (comp-cstr-neg cstr)
+   count t into n-pos
+   else
+   count t into n-neg
+   finally
+   (when (or (zerop n-pos) (zerop n-neg))
+     (apply #'comp-cstr-union-homogeneous dst srcs)
+     (cl-return-from comp-cstr-union-1 dst)))
+
+  ;; Some are negated and some are not
+  (cl-loop
+   for cstr in srcs
+   if (comp-cstr-neg cstr)
+   collect cstr into negatives
+   else
+   collect cstr into positives
+   finally
+   (let* ((pos (apply #'comp-cstr-union-homogeneous (make-comp-cstr) positives))
+          (neg (apply #'comp-cstr-union-homogeneous (make-comp-cstr) negatives)))
+
+     ;; Type propagation.
+     (when (and (comp-cstr-typeset pos)
+                ;; When some pos type is not a subtype of any neg ones.
+                (cl-every (lambda (x)
+                            (cl-some (lambda (y)
+                                       (not (comp-subtype-p x y)))
+                                     (comp-cstr-typeset neg)))
+                          (comp-cstr-typeset pos)))
+       ;; This is a conservative choice, ATM we can't represent such a
+       ;; disjoint set of types unless we decide to add a new slot
+       ;; into `comp-cstr' list them all.  This probably wouldn't
+       ;; work for the future when we'll support also non-builtin
+       ;; types.
+       (setf (comp-cstr-typeset dst) '(t)
+             (comp-cstr-valset dst) ()
+             (comp-cstr-range dst) ()
+             (comp-cstr-neg dst) nil)
+       (cl-return-from comp-cstr-union-1 dst))
+
+     ;; Value propagation.
+     (setf (comp-cstr-valset neg)
+           (cl-nset-difference (comp-cstr-valset neg) (comp-cstr-valset pos)))
+
+     ;; Range propagation
+     (when (and range
+                (or (comp-cstr-range pos)
+                    (comp-cstr-range neg))
+                (cl-notany (lambda (x)
+                             (comp-subtype-p 'integer x))
+                           (comp-cstr-typeset pos)))
+       (if (or (comp-cstr-valset neg)
+               (comp-cstr-typeset neg))
+           (setf (comp-cstr-range neg)
+                 (comp-range-union (comp-range-negation (comp-cstr-range pos))
+                                   (comp-cstr-range neg)))
+         ;; When possibile do not return a negated cstr.
+         (setf (comp-cstr-typeset dst) ()
+               (comp-cstr-valset dst) ()
+               (comp-cstr-range dst) (comp-range-union
+                                      (comp-range-negation (comp-cstr-range neg))
+                                      (comp-cstr-range pos))
+               (comp-cstr-neg dst) nil)
+         (cl-return-from comp-cstr-union-1 dst)))
+
+     (if (and (null (comp-cstr-typeset neg))
+              (null (comp-cstr-valset neg))
+              (null (comp-cstr-range neg)))
+         (setf (comp-cstr-typeset dst) '(t)
+               (comp-cstr-valset dst) ()
+               (comp-cstr-range dst) ()
+               (comp-cstr-neg dst) nil)
+       (setf (comp-cstr-typeset dst) (comp-cstr-typeset neg)
+             (comp-cstr-valset dst) (comp-cstr-valset neg)
+             (comp-cstr-range dst) (comp-cstr-range neg)
+             (comp-cstr-neg dst) t))))
+  dst)
+
+
+;;; Entry points.
+
+(defun comp-cstr-union-no-range (dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+Do not propagate the range component.
+DST is returned."
+  (apply #'comp-cstr-union-1 nil dst srcs))
+
+(defun comp-cstr-union (dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+DST is returned."
+  (apply #'comp-cstr-union-1 t dst srcs))
 
 (defun comp-cstr-union-make (&rest srcs)
   "Combine SRCS by union set operation and return a new constraint."

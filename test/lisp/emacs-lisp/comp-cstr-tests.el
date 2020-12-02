@@ -78,7 +78,14 @@
     ((and (integer -1 3) (integer 3 5)) . (integer 3 3))
     ((and (integer -1 4) (integer 3 5)) . (integer 3 4))
     ((and (integer -1 5) nil) . nil)
-    ((not symbol) . (not symbol)))
+    ((not symbol) . (not symbol))
+    ((or (member foo) (not (member foo bar))) . (not (member bar)))
+    ((or (member foo bar) (not (member foo))) . t)
+    ;; Intentionally conservative, see `comp-cstr-union'.
+    ((or symbol (not sequence)) . t)
+    ((or vector (not sequence)) . (not sequence))
+    ((or (integer 1 10) (not (integer * 5))) . (integer 1 *))
+    ((or symbol (integer 1 10) (not (integer * 5))) . (integer 1 *)))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()
