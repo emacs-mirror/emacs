@@ -1927,16 +1927,17 @@ memclear (void *p, ptrdiff_t nbytes)
 /* True iff C is an ASCII character.  */
 #define ASCII_CHAR_P(c) UNSIGNED_CMP (c, <, 0x80)
 
-/* A char-table is a kind of vectorlike, with contents are like a
-   vector but with a few other slots.  For some purposes, it makes
-   sense to handle a char-table with type struct Lisp_Vector.  An
-   element of a char table can be any Lisp objects, but if it is a sub
-   char-table, we treat it a table that contains information of a
-   specific range of characters.  A sub char-table is like a vector but
-   with two integer fields between the header and Lisp data, which means
+/* A char-table is a kind of vectorlike, with contents like a vector,
+   but with a few additional slots.  For some purposes, it makes sense
+   to handle a char-table as type 'struct Lisp_Vector'.  An element of
+   a char-table can be any Lisp object, but if it is a sub-char-table,
+   we treat it as a table that contains information of a specific
+   range of characters.  A sub-char-table is like a vector, but with
+   two integer fields between the header and Lisp data, which means
    that it has to be marked with some precautions (see mark_char_table
-   in alloc.c).  A sub char-table appears only in an element of a char-table,
-   and there's no way to access it directly from Emacs Lisp program.  */
+   in alloc.c).  A sub-char-table appears only in an element of a
+   char-table, and there's no way to access it directly from a Lisp
+   program.  */
 
 enum CHARTAB_SIZE_BITS
   {
@@ -1956,11 +1957,11 @@ struct Lisp_Char_Table
        contents, and extras slots.  */
     union vectorlike_header header;
 
-    /* This holds a default value,
-       which is used whenever the value for a specific character is nil.  */
+    /* This holds the default value, which is used whenever the value
+       for a specific character is nil.  */
     Lisp_Object defalt;
 
-    /* This points to another char table, which we inherit from when the
+    /* This points to another char table, from which we inherit when the
        value for a specific character is nil.  The `defalt' slot takes
        precedence over this.  */
     Lisp_Object parent;
@@ -1969,8 +1970,8 @@ struct Lisp_Char_Table
        meant for.  */
     Lisp_Object purpose;
 
-    /* The bottom sub char-table for characters of the range 0..127.  It
-       is nil if none of ASCII character has a specific value.  */
+    /* The bottom sub char-table for characters in the range 0..127.  It
+       is nil if no ASCII character has a specific value.  */
     Lisp_Object ascii;
 
     Lisp_Object contents[(1 << CHARTAB_SIZE_BITS_0)];
@@ -2045,7 +2046,7 @@ CHAR_TABLE_REF_ASCII (Lisp_Object ct, ptrdiff_t idx)
 }
 
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
-   characters.  Do not check validity of CT.  */
+   characters.  Does not check validity of CT.  */
 INLINE Lisp_Object
 CHAR_TABLE_REF (Lisp_Object ct, int idx)
 {
@@ -2055,7 +2056,7 @@ CHAR_TABLE_REF (Lisp_Object ct, int idx)
 }
 
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
-   8-bit European characters.  Do not check validity of CT.  */
+   8-bit European characters.  Does not check validity of CT.  */
 INLINE void
 CHAR_TABLE_SET (Lisp_Object ct, int idx, Lisp_Object val)
 {
