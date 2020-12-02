@@ -20822,9 +20822,8 @@ try_window_id (struct window *w)
 		     + window_wants_header_line (w)
 		     + window_internal_height (w));
 
-#if defined (HAVE_GPM) || defined (MSDOS)
 	  gui_clear_window_mouse_face (w);
-#endif
+
 	  /* Perform the operation on the screen.  */
 	  if (dvpos > 0)
 	    {
