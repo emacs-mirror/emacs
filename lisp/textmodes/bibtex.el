@@ -88,16 +88,6 @@ If this is a function, call it to generate the initial field text."
                  (const :tag "Default" t))
   :risky t)
 
-(defcustom bibtex-unify-case-convert #'identity
-  "Function called when unifying case on entry and field names.
-It is called with one argument, the entry or field name."
-  :version "28.1"
-  :type '(choice (const :tag "Same case as in `bibtex-field-alist'" identity)
-		 (const :tag "Downcase" downcase)
-		 (const :tag "Capitalize" capitalize)
-		 (const :tag "Upcase" upcase)
-                 (function :tag "Conversion function")))
-
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
   "List of optional fields the user wants to have always present.
@@ -133,7 +123,7 @@ last-comma          Add or delete comma on end of last field in entry,
 delimiters          Change delimiters according to variables
                       `bibtex-field-delimiters' and `bibtex-entry-delimiters'.
 unify-case          Change case of entry and field names according to
-                      `bibtex-unify-case-convert'.
+                      `bibtex-unify-case-function'.
 braces              Enclose parts of field entries by braces according to
                       `bibtex-field-braces-alist'.
 strings             Replace parts of field entries by string constants
@@ -192,6 +182,17 @@ Space characters in REGEXP will be replaced by \"[ \\t\\n]+\"."
   :type '(repeat (list (repeat (string :tag "field name"))
                        (regexp :tag "From regexp")
                        (regexp :tag "To string constant"))))
+
+(defcustom bibtex-unify-case-function #'identity
+  "Function for unifying case of entry and field names.
+It is called with one argument, the entry or field name."
+  :version "28.1"
+  :type '(choice (const :tag "Same case as in `bibtex-field-alist'" identity)
+		 (const :tag "Downcase" downcase)
+		 (const :tag "Capitalize" capitalize)
+		 (const :tag "Upcase" upcase)
+                 (function :tag "Conversion function"))
+  :safe (lambda (x) (memq x '(upcase downcase capitalize identity))))
 
 (defcustom bibtex-clean-entry-hook nil
   "List of functions to call when entry has been cleaned.
@@ -2357,7 +2358,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                 ;; unify case of entry type
                 (when (memq 'unify-case format)
                   (delete-region beg-type end-type)
-                  (insert (funcall bibtex-unify-case-convert (car entry-list))))
+                  (insert (funcall bibtex-unify-case-function (car entry-list))))
 
                 ;; update left entry delimiter
                 (when (memq 'delimiters format)
@@ -2566,7 +2567,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 			    (curname (buffer-substring beg-name end-name)))
 			(delete-region beg-name end-name)
 			(goto-char beg-name)
-			(insert (funcall bibtex-unify-case-convert
+			(insert (funcall bibtex-unify-case-function
 					 (or fname curname)))))
 
                     ;; update point
