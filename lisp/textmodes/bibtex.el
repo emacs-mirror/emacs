@@ -3483,7 +3483,7 @@ if that value is non-nil.
                     (make-string (+ bibtex-entry-offset
                                     bibtex-contline-indentation)
                                  ?\s)))))
-    (if buffer-file-name
+    (if (and buffer-file-name enable-local-variables)
         (add-hook 'hack-local-variables-hook fun nil t)
       (funcall fun))))
 
