@@ -33,8 +33,6 @@
 
 ;;; Code:
 
-(require 'button)
-
 (defvar cl-print-readably nil
   "If non-nil, try and make sure the result can be `read'.")
 

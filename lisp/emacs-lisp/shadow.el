@@ -183,7 +183,6 @@ See the documentation for `list-load-path-shadows' for further information."
 	buffer-read-only t))
 
 ;; TODO use text-properties instead, a la dired.
-(require 'button)
 (define-button-type 'load-path-shadows-find-file
   'follow-link t
 ;;  'face 'default

@@ -29,7 +29,6 @@
 
 (require 'cl-lib)
 (require 'backtrace)
-(require 'button)
 
 (defgroup debugger nil
   "Debuggers and related commands for Emacs."

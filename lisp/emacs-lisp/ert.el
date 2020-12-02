@@ -58,7 +58,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'button)
 (require 'debug)
 (require 'backtrace)
 (require 'easymenu)

@@ -90,7 +90,6 @@
 
 (require 'ansi-color)
 (require 'cl-lib)
-(require 'button)
 
 (defgroup man nil
   "Browse UNIX manual pages."

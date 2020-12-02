@@ -40,8 +40,6 @@
 
 ;;; Code:
 
-(require 'button)
-
 
 ;; User Options:
 

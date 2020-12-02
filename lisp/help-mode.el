@@ -29,7 +29,6 @@
 
 ;;; Code:
 
-(require 'button)
 (require 'cl-lib)
 (eval-when-compile (require 'easymenu))
 

@@ -404,7 +404,6 @@
 (make-obsolete-variable 'woman-version nil "28.1")
 
 (require 'man)
-(require 'button)
 (define-button-type 'WoMan-xref-man-page
   :supertype 'Man-abstract-xref-man-page
   'func (lambda (arg)
