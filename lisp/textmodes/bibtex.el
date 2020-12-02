@@ -902,7 +902,8 @@ If nil prefix OPT is always removed."
 (defcustom bibtex-comment-start "@Comment"
   "String starting a BibTeX comment."
   :group 'bibtex
-  :type 'string)
+  :type 'string
+  :safe #'stringp)
 
 (defcustom bibtex-add-entry-hook nil
   "List of functions to call when BibTeX entry has been inserted."
@@ -1231,7 +1232,8 @@ and must return a string (the key to use)."
   "Offset for BibTeX entries.
 Added to the value of all other variables which determine columns."
   :group 'bibtex
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom bibtex-field-indentation 2
   "Starting column for the name part in BibTeX fields."
@@ -1244,13 +1246,15 @@ Added to the value of all other variables which determine columns."
   "Starting column for the text part in BibTeX fields.
 Should be equal to the space needed for the longest name part."
   :group 'bibtex
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom bibtex-contline-indentation
   (+ bibtex-text-indentation 1)
   "Starting column for continuation lines of BibTeX fields."
   :group 'bibtex
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom bibtex-align-at-equal-sign nil
   "If non-nil, align fields at equal sign instead of field text.
@@ -2954,7 +2958,7 @@ for parsing BibTeX keys.  If parsing fails, try to set this variable to nil."
                                          (1+ (match-beginning 3)) (1- (match-end 3)))))
                                (unless (assoc key crossref-keys)
                                  (push (list key) crossref-keys))))
-                            ;; We have probably have a non-bibtex file.
+                            ;; We probably have a non-bibtex file.
                             ((not (match-beginning bibtex-type-in-head))
                              (throw 'userkey nil))
                             ;; only keys of known entries
@@ -3448,15 +3452,10 @@ if that value is non-nil.
                                    bibtex-parse-keys-timeout t
                                    'bibtex-parse-buffers-stealthily)))
   (set (make-local-variable 'paragraph-start) "[ \f\n\t]*$")
-  (set (make-local-variable 'comment-start) bibtex-comment-start)
-  (set (make-local-variable 'comment-start-skip)
-       (concat (regexp-quote bibtex-comment-start) "\\>[ \t]*"))
   (set (make-local-variable 'comment-column) 0)
   (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[[:alnum:]]+[ \t]*")
   (set (make-local-variable 'outline-regexp) "[ \t]*@")
   (set (make-local-variable 'fill-paragraph-function) #'bibtex-fill-field)
-  (set (make-local-variable 'fill-prefix)
-       (make-string (+ bibtex-entry-offset bibtex-contline-indentation) ?\s))
   (set (make-local-variable 'font-lock-defaults)
        '(bibtex-font-lock-keywords
          nil t ((?$ . "\"")
@@ -3475,9 +3474,18 @@ if that value is non-nil.
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-via-font-lock
         bibtex-font-lock-syntactic-keywords))
-  (bibtex-set-dialect nil t)
-  ;; Allow `bibtex-dialect' as a file-local variable.
-  (add-hook 'hack-local-variables-hook #'bibtex-set-dialect nil t))
+  (let ((fun (lambda ()
+               (bibtex-set-dialect)
+               (set (make-local-variable 'comment-start) bibtex-comment-start)
+               (set (make-local-variable 'comment-start-skip)
+                    (concat (regexp-quote bibtex-comment-start) "\\>[ \t]*"))
+               (set (make-local-variable 'fill-prefix)
+                    (make-string (+ bibtex-entry-offset
+                                    bibtex-contline-indentation)
+                                 ?\s)))))
+    (if buffer-file-name
+        (add-hook 'hack-local-variables-hook fun nil t)
+      (funcall fun))))
 
 (defun bibtex-entry-alist (dialect)
   "Return entry-alist for DIALECT."
