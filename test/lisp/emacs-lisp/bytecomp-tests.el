@@ -490,6 +490,9 @@ Subtests signal errors if something goes wrong."
       (defun def () (m))))
   (should (equal (funcall 'def) 4)))
 
+
+;;;; Warnings.
+
 (ert-deftest bytecomp-tests--warnings ()
   (with-current-buffer (get-buffer-create "*Compile-Log*")
     (let ((inhibit-read-only t)) (erase-buffer)))
@@ -536,16 +539,6 @@ Subtests signal errors if something goes wrong."
 (ert-deftest bytecomp-warn-variable-lacks-prefix ()
   (bytecomp--with-warning-test "foo.*lacks a prefix"
     '(defvar foo nil)))
-
-(ert-deftest test-eager-load-macro-expansion ()
-  (test-byte-comp-compile-and-load nil
-    '(progn (defmacro abc (arg) 1) (defun def () (abc 2))))
-  (should (equal (funcall 'def) 1)))
-
-(ert-deftest test-eager-load-macro-expansion-eval-and-compile ()
-  (test-byte-comp-compile-and-load nil
-    '(eval-and-compile (defmacro abc (arg) -1) (defun def () (abc 2))))
-  (should (equal (funcall 'def) -1)))
 
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
@@ -597,6 +590,19 @@ Subtests signal errors if something goes wrong."
 
 (bytecomp--define-warning-file-test "warn-interactive-only.el"
                             "next-line.*interactive use only.*forward-line")
+
+
+;;;; Macro expansion.
+
+(ert-deftest test-eager-load-macro-expansion ()
+  (test-byte-comp-compile-and-load nil
+    '(progn (defmacro abc (arg) 1) (defun def () (abc 2))))
+  (should (equal (funcall 'def) 1)))
+
+(ert-deftest test-eager-load-macro-expansion-eval-and-compile ()
+  (test-byte-comp-compile-and-load nil
+    '(eval-and-compile (defmacro abc (arg) -1) (defun def () (abc 2))))
+  (should (equal (funcall 'def) -1)))
 
 (ert-deftest test-eager-load-macro-expansion-eval-when-compile ()
   ;; Make sure we interpret eval-when-compile forms properly.  CLISP
