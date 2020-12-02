@@ -800,7 +800,9 @@ RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
 characters contained in CHARSET.
 
 The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
-range of code points (in CHARSET) of target characters.  */)
+range of code points (in CHARSET) of target characters.  Note that
+these are not character codes, but code points in CHARSET; for the
+difference see `decode-char' and `list-charset-chars'.  */)
   (Lisp_Object function, Lisp_Object charset, Lisp_Object arg, Lisp_Object from_code, Lisp_Object to_code)
 {
   struct charset *cs;
