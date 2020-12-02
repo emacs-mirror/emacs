@@ -85,7 +85,9 @@
     ((or symbol (not sequence)) . t)
     ((or vector (not sequence)) . (not sequence))
     ((or (integer 1 10) (not (integer * 5))) . (integer 1 *))
-    ((or symbol (integer 1 10) (not (integer * 5))) . (integer 1 *)))
+    ((or symbol (integer 1 10) (not (integer * 5))) . (integer 1 *))
+    ((or symbol (not (member foo))) . (not (member foo)))
+    ((or (not symbol) (not (member foo))) . (not symbol)))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()

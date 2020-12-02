@@ -325,6 +325,8 @@ DST is returned."
      finally
      (when (or (zerop n-pos) (zerop n-neg))
        (apply #'comp-cstr-union-homogeneous dst srcs)
+       (when (zerop n-pos)
+         (setf (neg dst) t))
        (cl-return-from comp-cstr-union-1 dst)))
 
     ;; Some are negated and some are not
