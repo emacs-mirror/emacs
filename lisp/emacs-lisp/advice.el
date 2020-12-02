@@ -1840,8 +1840,7 @@ function at point for which PREDICATE returns non-nil)."
 	(or default
 	    ;; Prefer func name at point, if it's an advised function etc.
 	    (let ((function (progn
-			      (require 'help)
-			      (function-called-at-point))))
+                              (function-called-at-point))))
 	      (and function
 		   (member (symbol-name function) ad-advised-functions)
 		   (or (null predicate)

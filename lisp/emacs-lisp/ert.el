@@ -63,7 +63,6 @@
 (require 'easymenu)
 (require 'ewoc)
 (require 'find-func)
-(require 'help)
 (require 'pp)
 
 ;;; UI customization options.
