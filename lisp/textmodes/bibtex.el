@@ -1940,18 +1940,22 @@ If `bibtex-expand-strings' is non-nil, also expand BibTeX strings."
                                     (bibtex-end-of-text-in-field bounds))))
 
 (defun bibtex-text-in-field (field &optional follow-crossref)
-  "Get content of field FIELD of current BibTeX entry.
-Return nil if not found.
+  "Return content of field FIELD of current BibTeX entry or nil if not found.
+FIELD may also be a list of fields that are tried in order.
 If optional arg FOLLOW-CROSSREF is non-nil, follow crossref."
   (save-excursion
-    (let* ((end (if follow-crossref (bibtex-end-of-entry) t))
-           (beg (bibtex-beginning-of-entry)) ; move point
-           (bounds (bibtex-search-forward-field field end)))
+    (let ((end (if (and (not follow-crossref) (stringp field))
+                   t ; try to minimize parsing
+                 (bibtex-end-of-entry)))
+          bounds)
+      (bibtex-beginning-of-entry) ; move point
+      (let ((field (if (stringp field) (list field) field)))
+        (while (and field (not bounds))
+          (setq bounds (bibtex-search-forward-field (pop field) end))))
       (cond (bounds (bibtex-text-in-field-bounds bounds t))
             ((and follow-crossref
-                  (progn (goto-char beg)
-                         (setq bounds (bibtex-search-forward-field
-                                       "\\(OPT\\)?crossref" end))))
+                  (setq bounds (bibtex-search-forward-field
+                                "\\(OPT\\)?crossref" end)))
              (let ((crossref-field (bibtex-text-in-field-bounds bounds t)))
                (if (bibtex-search-crossref crossref-field)
                    ;; Do not pass FOLLOW-CROSSREF because we want
@@ -2689,6 +2693,7 @@ is returned unchanged."
 
 (defun bibtex-autokey-get-field (field &optional change-list)
   "Get content of BibTeX field FIELD.  Return empty string if not found.
+FIELD may also be a list of fields that are tried in order.
 Optional arg CHANGE-LIST is a list of substitution patterns that is
 applied to the content of FIELD.  It is an alist with pairs
 \(OLD-REGEXP . NEW-STRING)."
@@ -2757,7 +2762,10 @@ and `bibtex-autokey-names-stretch'."
 
 (defun bibtex-autokey-get-year ()
   "Return year field contents as a string obeying `bibtex-autokey-year-length'."
-  (let ((yearfield (bibtex-autokey-get-field "year")))
+  (let ((yearfield (bibtex-autokey-get-field '("year" "date"))))
+    ;; biblatex date field has format yyyy-mm-dd
+    (if (< 4 (length yearfield))
+        (setq yearfield (substring yearfield 0 4)))
     (substring yearfield (max 0 (- (length yearfield)
                                    bibtex-autokey-year-length)))))
 
@@ -3627,7 +3635,7 @@ and `bibtex-user-optional-fields'."
             optional (nth 4 e-list)))
     (if bibtex-include-OPTkey
         (push (list "key"
-                    "Used for reference key creation if author and editor fields are missing"
+                    "Crossref key"
                     (if (or (stringp bibtex-include-OPTkey)
                             (functionp bibtex-include-OPTkey))
                         bibtex-include-OPTkey))
