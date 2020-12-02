@@ -296,7 +296,7 @@ The information is logged to `byte-compile-log-buffer'."
 
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
-	     obsolete noruntime cl-functions interactive-only
+             obsolete noruntime interactive-only
 	     make-local mapcar constants suspicious lexical lexical-dynamic)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
@@ -312,8 +312,6 @@ Elements of the list may be:
   obsolete    obsolete variables and functions.
   noruntime   functions that may not be defined at runtime (typically
               defined only under `eval-when-compile').
-  cl-functions    calls to runtime functions (as distinguished from macros and
-                  aliases) from the old CL package (not the newer cl-lib).
   interactive-only
 	      commands that normally shouldn't be called from Lisp code.
   lexical     global/dynamic variables lacking a prefix.
@@ -968,11 +966,6 @@ CONST2 may be evaluated multiple times."
 
 ;;; compile-time evaluation
 
-(defun byte-compile-cl-file-p (file)
-  "Return non-nil if FILE is one of the CL files."
-  (and (stringp file)
-       (string-match "^cl\\.el" (file-name-nondirectory file))))
-
 (defun byte-compile-eval (form)
   "Eval FORM and mark the functions defined therein.
 Each function's symbol gets added to `byte-compile-noruntime-functions'."
@@ -1003,18 +996,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		(when (and (symbolp s) (not (memq s old-autoloads)))
 		  (push s byte-compile-noruntime-functions))
 		(when (and (consp s) (eq t (car s)))
-		  (push (cdr s) old-autoloads)))))))
-      (when (byte-compile-warning-enabled-p 'cl-functions)
-	(let ((hist-new load-history))
-	  ;; Go through load-history, looking for the cl files.
-	  ;; Since new files are added at the start of load-history,
-	  ;; we scan the new history until the tail matches the old.
-	  (while (and (not byte-compile-cl-functions)
-		      hist-new (not (eq hist-new hist-orig)))
-	    ;; We used to check if the file had already been loaded,
-	    ;; but it is better to check non-nil byte-compile-cl-functions.
-	    (and (byte-compile-cl-file-p (car (pop hist-new)))
-		 (byte-compile-find-cl-functions))))))))
+                  (push (cdr s) old-autoloads))))))))))
 
 (defun byte-compile-eval-before-compile (form)
   "Evaluate FORM for `eval-and-compile'."
@@ -1025,9 +1007,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
       ;; There are other ways to do this nowadays.
       (let ((tem current-load-list))
 	(while (not (eq tem hist-nil-orig))
-	  (when (equal (car tem) '(require . cl))
-            (byte-compile-disable-warning 'cl-functions))
-	  (setq tem (cdr tem)))))))
+          (setq tem (cdr tem)))))))
 
 ;;; byte compiler messages
 
@@ -1577,45 +1557,6 @@ extra args."
            (if (equal sig1 '(1 . 1)) "argument" "arguments")
            (byte-compile-arglist-signature-string sig2)))))))
 
-(defvar byte-compile-cl-functions nil
-  "List of functions defined in CL.")
-
-;; Can't just add this to cl-load-hook, because that runs just before
-;; the forms from cl.el get added to load-history.
-(defun byte-compile-find-cl-functions ()
-  (unless byte-compile-cl-functions
-    (dolist (elt load-history)
-      (and (byte-compile-cl-file-p (car elt))
-	   (dolist (e (cdr elt))
-	     ;; Includes the cl-foo functions that cl autoloads.
-	     (when (memq (car-safe e) '(autoload defun))
-	       (push (cdr e) byte-compile-cl-functions)))))))
-
-(defun byte-compile-cl-warn (form)
-  "Warn if FORM is a call of a function from the CL package."
-  (let ((func (car-safe form)))
-    (if (and byte-compile-cl-functions
-	     (memq func byte-compile-cl-functions)
-	     ;; Aliases which won't have been expanded at this point.
-	     ;; These aren't all aliases of subrs, so not trivial to
-	     ;; avoid hardwiring the list.
-	     (not (memq func
-			'(cl--block-wrapper cl--block-throw
-			  multiple-value-call nth-value
-			  copy-seq first second rest endp cl-member
-			  ;; These are included in generated code
-			  ;; that can't be called except at compile time
-			  ;; or unless cl is loaded anyway.
-			  cl--defsubst-expand cl-struct-setf-expander
-			  ;; These would sometimes be warned about
-			  ;; but such warnings are never useful,
-			  ;; so don't warn about them.
-			  macroexpand
-			  cl--compiling-file))))
-	(byte-compile-warn "function `%s' from cl package called at runtime"
-			   func)))
-  form)
-
 (defun byte-compile-print-syms (str1 strn syms)
   (when syms
     (byte-compile-set-symbol-position (car syms) t))
@@ -1713,7 +1654,6 @@ extra args."
 	   (and (markerp warning-series)
 		(eq (marker-buffer warning-series)
 		    (get-buffer byte-compile-log-buffer)))))
-     (byte-compile-find-cl-functions)
      (if (or (eq warning-series 'byte-compile-warning-series)
 	     warning-series-started)
 	 ;; warning-series does come from compilation,
@@ -2510,8 +2450,7 @@ list that represents a doc string reference.
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
   (let ((args (mapcar 'eval (cdr form)))
-	(hist-orig load-history)
-	hist-new prov-cons)
+        hist-new prov-cons)
     (apply 'require args)
 
     ;; Record the functions defined by the require in `byte-compile-new-defuns'.
@@ -2524,21 +2463,7 @@ list that represents a doc string reference.
       (dolist (x (car hist-new))
         (when (and (consp x)
                    (memq (car x) '(defun t)))
-          (push (cdr x) byte-compile-new-defuns))))
-
-    (when (byte-compile-warning-enabled-p 'cl-functions)
-      ;; Detect (require 'cl) in a way that works even if cl is already loaded.
-      (if (member (car args) '("cl" cl))
-	  (progn
-	    (byte-compile-warn "cl package required at runtime")
-	    (byte-compile-disable-warning 'cl-functions))
-	;; We may have required something that causes cl to be loaded, eg
-	;; the uncompiled version of a file that requires cl when compiling.
-	(setq hist-new load-history)
-	(while (and (not byte-compile-cl-functions)
-		    hist-new (not (eq hist-new hist-orig)))
-	  (and (byte-compile-cl-file-p (car (pop hist-new)))
-	       (byte-compile-find-cl-functions))))))
+          (push (cdr x) byte-compile-new-defuns)))))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
 (put 'progn 'byte-hunk-handler 'byte-compile-file-form-progn)
@@ -3239,9 +3164,7 @@ for symbols generated by the byte compiler itself."
                       ;; differently now).
                       (not (eq handler 'cl-byte-compile-compiler-macro))))
             (funcall handler form)
-          (byte-compile-normal-call form))
-        (if (byte-compile-warning-enabled-p 'cl-functions)
-            (byte-compile-cl-warn form))))
+          (byte-compile-normal-call form))))
      ((and (byte-code-function-p (car form))
            (memq byte-optimize '(t lap)))
       (byte-compile-unfold-bcf form))

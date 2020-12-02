@@ -2224,8 +2224,6 @@ For that it has to be fbound with a non-autoload definition."
   (let ((byte-compile-warnings byte-compile-warnings)
         ;; Don't pop up windows showing byte-compiler warnings.
         (warning-suppress-types '((bytecomp))))
-    (if (featurep 'cl)
-        (byte-compile-disable-warning 'cl-functions))
     (byte-compile (ad-get-advice-info-field function 'advicefunname))))
 
 ;; @@@ Accessing argument lists:
