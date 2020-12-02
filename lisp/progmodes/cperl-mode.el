@@ -1247,11 +1247,7 @@ versions of Emacs."
 	  ["Speed" (describe-variable 'cperl-speed) t]
 	  ["Praise" (describe-variable 'cperl-praise) t]
 	  ["Faces" (describe-variable 'cperl-tips-faces) t]
-	  ["CPerl mode" (describe-function 'cperl-mode) t]
-	  ["CPerl version"
-	   (message "The version of master-file for this CPerl is %s-Emacs"
-		    cperl-version)
-           t]))))
+          ["CPerl mode" (describe-function 'cperl-mode) t]))))
   (error nil))
 
 (autoload 'c-macro-expand "cmacexp"
@@ -8523,6 +8519,7 @@ do extra unwind via `cperl-unwind-to-safe'."
     (string-match ":\\s *\\([0-9.]+\\)" v)
     (substring v (match-beginning 1) (match-end 1)))
   "Version of IZ-supported CPerl package this file is based on.")
+(make-obsolete-variable 'cperl-version 'emacs-version "28.1")
 
 (defvar cperl-do-not-fontify 'fontified
   "Text property which inhibits refontification.")
