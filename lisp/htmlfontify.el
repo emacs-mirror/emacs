@@ -78,8 +78,6 @@
 
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
-(require 'faces)
-;;  (`facep' `face-attr-construct' `x-color-values' `color-values' `face-name')
 (require 'custom)
 ;;  (`defgroup' `defcustom')
 (require 'font-lock)

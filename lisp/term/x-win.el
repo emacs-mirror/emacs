@@ -75,7 +75,6 @@
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
-(require 'faces)
 (require 'select)
 (require 'menu-bar)
 (require 'fontset)
