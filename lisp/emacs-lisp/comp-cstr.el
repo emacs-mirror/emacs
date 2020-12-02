@@ -66,7 +66,9 @@ Each element cannot be a subtype of any other element of this slot.")
           :documentation "List of possible values the mvar can assume.
 Integer values are handled in the `range' slot.")
   (range () :type list
-         :documentation "Integer interval."))
+         :documentation "Integer interval.")
+  (neg nil :type boolean
+       :documentation "Non-nil if the constraint is negated"))
 
 (cl-defstruct comp-cstr-f
   "Internal constraint representation for a function."
@@ -235,6 +237,20 @@ Integer values are handled in the `range' slot.")
    (cl-decf nest)
    finally (cl-return (reverse res))))
 
+(defun comp-range-negation (range)
+  "Negate range RANGE."
+  (cl-loop
+   with res = ()
+   with last-h = '-
+   for (l . h) in range
+   unless (eq l '-)
+     do (push `(,(comp-range-1+ last-h) . ,(1- l)) res)
+   do (setf last-h h)
+   finally
+   (unless (eq '+ last-h)
+     (push `(,(1+ last-h) . +) res))
+   (cl-return (reverse res))))
+
 
 ;;; Entry points.
 
@@ -332,6 +348,19 @@ DST is returned."
   "Combine SRCS by intersection set operation and return a new constraint."
   (apply #'comp-cstr-intersection (make-comp-cstr) srcs))
 
+(defun comp-cstr-negation (dst src)
+  "Negate SRC setting the result in DST.
+DST is returned."
+  (setf (comp-cstr-typeset dst) (comp-cstr-typeset src)
+        (comp-cstr-valset dst) (comp-cstr-valset src)
+        (comp-cstr-range dst) (comp-cstr-range src)
+        (comp-cstr-neg dst) (not (comp-cstr-neg src)))
+  dst)
+
+(defun comp-cstr-negation-make (src)
+  "Negate SRC and return a new constraint."
+  (comp-cstr-negation (make-comp-cstr) src))
+
 (defun comp-type-spec-to-cstr (type-spec &optional fn)
   "Convert a type specifier TYPE-SPEC into a `comp-cstr'.
 FN non-nil indicates we are parsing a function lambda list."
@@ -356,10 +385,7 @@ FN non-nil indicates we are parsing a function lambda list."
        (apply #'comp-cstr-intersection-make
               (mapcar #'comp-type-spec-to-cstr rest)))
       (`(not  ,cstr)
-       (cl-assert nil)
-       ;; TODO
-       ;; (comp-cstr-negate-make (comp-type-spec-to-cstr cstr))
-       )
+       (comp-cstr-negation-make (comp-type-spec-to-cstr cstr)))
       (`(integer ,(and (pred integerp) l) ,(and (pred integerp) h))
        (comp-irange-to-cstr `(,l . ,h)))
       (`(integer * ,(and (pred integerp) h))
@@ -383,7 +409,8 @@ FN non-nil indicates we are parsing a function lambda list."
   "Given CSTR return its type specifier."
   (let ((valset (comp-cstr-valset cstr))
         (typeset (comp-cstr-typeset cstr))
-        (range (comp-cstr-range cstr)))
+        (range (comp-cstr-range cstr))
+        (negated (comp-cstr-neg cstr)))
 
     (when valset
       (when (memq nil valset)
@@ -412,17 +439,21 @@ FN non-nil indicates we are parsing a function lambda list."
                  (valset `(member ,@valset))
                  (t
                   ;; Empty type specifier
-                  nil))))
-      (pcase res
-        (`(,(or 'integer 'member) . ,rest)
-         (if rest
-             res
-           (car res)))
-        ((pred atom) res)
-        (`(,_first . ,rest)
-         (if rest
-             `(or ,@res)
-           (car res)))))))
+                  nil)))
+           (final
+            (pcase res
+              (`(,(or 'integer 'member) . ,rest)
+               (if rest
+                   res
+                 (car res)))
+              ((pred atom) res)
+              (`(,_first . ,rest)
+               (if rest
+                   `(or ,@res)
+                 (car res))))))
+      (if negated
+          `(not ,final)
+        final))))
 
 (provide 'comp-cstr)
 

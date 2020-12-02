@@ -77,7 +77,8 @@
     ((and (integer -1 2) (integer 3 5)) . nil)
     ((and (integer -1 3) (integer 3 5)) . (integer 3 3))
     ((and (integer -1 4) (integer 3 5)) . (integer 3 4))
-    ((and (integer -1 5) nil) . nil))
+    ((and (integer -1 5) nil) . nil)
+    ((not symbol) . (not symbol)))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()
