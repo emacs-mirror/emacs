@@ -14521,6 +14521,14 @@ The default is @samp{(%Deleted %Seen)}.
 
 @end table
 
+@vindex nnimap-split-download-body
+By default, the nnimap back end only retrieves the message headers;
+the option @code{nnimap-split-download-body} (which is a regular
+customization option, not a server variable) tells it to retrieve the
+message bodies as well.  We don't set this by default because it will
+slow @acronym{IMAP} down, and that is not an appropriate decision to
+make on behalf of the user.
+
 Here's a complete example @code{nnimap} backend with a client-side
 ``fancy'' splitting method:
 
@@ -24622,13 +24630,7 @@ the value @samp{spam} means @samp{nnimap+your-server:spam}.  The value
 Note for IMAP users: if you use the @code{spam-check-bogofilter},
 @code{spam-check-ifile}, and @code{spam-check-stat} spam back ends,
 you should also set the variable @code{nnimap-split-download-body} to
-@code{t}.  These spam back ends are most useful when they can ``scan''
-the full message body.  By default, the nnimap back end only retrieves
-the message headers; @code{nnimap-split-download-body} tells it to
-retrieve the message bodies as well.  We don't set this by default
-because it will slow @acronym{IMAP} down, and that is not an
-appropriate decision to make on behalf of the user.  @xref{Client-Side
-IMAP Splitting}.
+@code{t}.  @xref{Client-Side IMAP Splitting}.
 
 You have to specify one or more spam back ends for @code{spam-split}
 to use, by setting the @code{spam-use-*} variables.  @xref{Spam Back
