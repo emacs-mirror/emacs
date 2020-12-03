@@ -567,11 +567,38 @@ Subtests signal errors if something goes wrong."
 (bytecomp--define-warning-file-test "error-lexical-var-with-symbol-value.el"
                             "symbol-value.*lexical var")
 
+(bytecomp--define-warning-file-test "warn-autoload-not-on-top-level.el"
+                            "compiler ignores.*autoload.*")
+
+(bytecomp--define-warning-file-test "warn-callargs.el"
+                            "with 2 arguments, but accepts only 1")
+
+(bytecomp--define-warning-file-test "warn-defcustom-nogroup.el"
+                            "fails to specify containing group")
+
+(bytecomp--define-warning-file-test "warn-defcustom-notype.el"
+                            "fails to specify type")
+
+(bytecomp--define-warning-file-test "warn-defvar-lacks-prefix.el"
+                            "var.*foo.*lacks a prefix")
+
+(bytecomp--define-warning-file-test "warn-format.el"
+                            "called with 2 args to fill 1 format field")
+
 (bytecomp--define-warning-file-test "warn-free-setq.el"
                             "free.*foo")
 
 (bytecomp--define-warning-file-test "warn-free-variable-reference.el"
                             "free.*bar")
+
+(bytecomp--define-warning-file-test "warn-make-variable-buffer-local.el"
+                            "make-variable-buffer-local.*not called at toplevel")
+
+(bytecomp--define-warning-file-test "warn-interactive-only.el"
+                            "next-line.*interactive use only.*forward-line")
+
+(bytecomp--define-warning-file-test "warn-lambda-malformed-interactive-spec.el"
+                            "malformed interactive spec")
 
 (bytecomp--define-warning-file-test "warn-obsolete-defun.el"
                             "foo-obsolete.*obsolete function.*99.99")
@@ -588,8 +615,29 @@ Subtests signal errors if something goes wrong."
 (bytecomp--define-warning-file-test "warn-obsolete-variable.el"
                             "bytecomp--tests-obs.*obsolete.*99.99")
 
-(bytecomp--define-warning-file-test "warn-interactive-only.el"
-                            "next-line.*interactive use only.*forward-line")
+(bytecomp--define-warning-file-test "warn-redefine-defun-as-macro.el"
+                            "as both function and macro")
+
+(bytecomp--define-warning-file-test "warn-redefine-macro-as-defun.el"
+                            "as both function and macro")
+
+(bytecomp--define-warning-file-test "warn-redefine-defun.el"
+                            "defined multiple")
+
+(bytecomp--define-warning-file-test "warn-save-excursion.el"
+                            "with-current.*rather than save-excursion")
+
+(bytecomp--define-warning-file-test "warn-variable-let-bind-constant.el"
+                            "let-bind constant")
+
+(bytecomp--define-warning-file-test "warn-variable-let-bind-nonvariable.el"
+                            "let-bind nonvariable")
+
+(bytecomp--define-warning-file-test "warn-variable-set-constant.el"
+                            "variable reference to constant")
+
+(bytecomp--define-warning-file-test "warn-variable-set-nonvariable.el"
+                            "variable reference to nonvariable")
 
 
 ;;;; Macro expansion.
