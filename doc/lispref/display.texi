@@ -5900,6 +5900,26 @@ string containing the image data as raw bytes.  @var{image-type} should be a
 @end lisp
 @end defun
 
+@defun svg-embed-base-uri-image svg relative-filename &rest args
+To @var{svg} add an embedded (raster) image placed at
+@var{relative-filename}.  @var{relative-filename} is searched inside
+@code{file-name-directory} of the @code{:base-uri} svg image property.
+This improves the performance of embedding large images.
+
+@lisp
+;; Embeding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg
+(svg-embed-base-uri-image svg "subdir/rms.jpg"
+           :width "100px" :height "100px"
+           :x "50px" :y "75px")
+(svg-embed-base-uri-image svg "another/rms.jpg"
+           :width "100px" :height "100px"
+           :x "75px" :y "50px")
+(svg-image svg :scale 1.0
+           :base-uri "/tmp/dummy"
+           :width 175 :height 175)
+@end lisp
+@end defun
+
 @defun svg-clip-path svg &rest args
 Add a clipping path to @var{svg}.  If applied to a shape via the
 @var{:clip-path} property, parts of that shape which lie outside of
