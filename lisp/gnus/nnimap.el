@@ -146,15 +146,16 @@ textual parts.")
   :version "24.4"
   :group 'nnimap)
 
+(define-obsolete-variable-alias
+  'nnimap-split-download-body-default 'nnimap-split-download-body
+  "28.1")
+
 (defcustom nnimap-split-download-body nil
   "If non-nil, make message bodies available for consideration during splitting.
 This requires downloading the full message from the IMAP server
 during splitting, which may be slow."
+  :version "28.1"
   :type 'boolean)
-
-(define-obsolete-variable-alias
-  'nnimap-split-download-body-default 'nnimap-split-download-body
-  "28.1")
 
 (defvar nnimap-process nil)
 
