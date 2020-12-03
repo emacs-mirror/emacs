@@ -80,8 +80,6 @@
 (eval-when-compile (require 'cl-lib))
 (require 'custom)
 ;;  (`defgroup' `defcustom')
-(require 'font-lock)
-;;  (`font-lock-fontify-region')
 (require 'cus-edit)
 
 (require 'htmlfontify-loaddefs)

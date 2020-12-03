@@ -5457,7 +5457,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
 (defun cperl-init-faces ()
   (condition-case errs
       (progn
-	(require 'font-lock)
 	(let (t-font-lock-keywords t-font-lock-keywords-1 font-lock-anchored)
 	  (setq font-lock-anchored t)
 	  (setq

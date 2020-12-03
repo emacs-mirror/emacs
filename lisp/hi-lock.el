@@ -87,8 +87,6 @@
 
 ;;; Code:
 
-(require 'font-lock)
-
 (defgroup hi-lock nil
   "Interactively add and remove font-lock patterns for highlighting text."
   :link '(custom-manual "(emacs)Highlight Interactively")

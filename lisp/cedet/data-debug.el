@@ -42,7 +42,6 @@
 ;;       (data-debug-show-stuff stuff "myStuff"))
 ;;     stuff))
 
-(require 'font-lock)
 (require 'ring)
 
 ;;; Code:

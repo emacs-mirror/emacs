@@ -105,7 +105,6 @@
 ;;{{{ Dependencies
 
 (require 'custom)
-(require 'font-lock)
 (require 'cc-mode)
 
 ;;}}}
