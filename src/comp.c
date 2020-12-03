@@ -580,8 +580,11 @@ typedef struct {
   gcc_jit_rvalue *data_relocs_impure;
   /* Same as before but content does not survive load phase. */
   gcc_jit_rvalue *data_relocs_ephemeral;
-  /* Synthesized struct holding func relocs.  */
+  /* Global structure holding function relocations.  */
   gcc_jit_lvalue *func_relocs;
+  gcc_jit_type *func_relocs_ptr_type;
+  /* Pointer to this structure local to each function.  */
+  gcc_jit_lvalue *func_relocs_local;
   gcc_jit_function *memcpy;
   Lisp_Object d_default_idx;
   Lisp_Object d_impure_idx;
@@ -1013,9 +1016,17 @@ emit_call (Lisp_Object func, gcc_jit_type *ret_type, ptrdiff_t nargs,
     }
   else
     {
+      /* Inline functions so far don't have a local variable for
+	 function reloc table so we fall back to the global one.  Even
+	 if this is not aesthetic calling into C from open-code is
+	 always a fallback and therefore not be performance critical.
+	 To fix this could think do the inline our-self without
+	 relying on GCC. */
       gcc_jit_lvalue *f_ptr =
 	gcc_jit_rvalue_dereference_field (
-	  gcc_jit_lvalue_as_rvalue (comp.func_relocs),
+	  gcc_jit_lvalue_as_rvalue (comp.func_relocs_local
+				    ? comp.func_relocs_local
+				    : comp.func_relocs),
 	  NULL,
 	  (gcc_jit_field *) xmint_pointer (gcc_func));
 
@@ -2862,15 +2873,16 @@ emit_ctxt_code (void)
 				     NULL,
 				     "freloc_link_table",
 				     n_frelocs, fields);
+  comp.func_relocs_ptr_type =
+    gcc_jit_type_get_pointer (
+      gcc_jit_struct_as_type (f_reloc_struct));
+
   comp.func_relocs =
-    gcc_jit_context_new_global (
-      comp.ctxt,
-      NULL,
-      GCC_JIT_GLOBAL_EXPORTED,
-      gcc_jit_type_get_pointer (
-	gcc_jit_type_get_const (
-	  gcc_jit_struct_as_type (f_reloc_struct))),
-      FUNC_LINK_TABLE_SYM);
+    gcc_jit_context_new_global (comp.ctxt,
+				NULL,
+				GCC_JIT_GLOBAL_EXPORTED,
+				comp.func_relocs_ptr_type,
+				FUNC_LINK_TABLE_SYM);
 
   xfree (fields);
 }
@@ -3931,6 +3943,12 @@ compile_function (Lisp_Object func)
   comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
   comp.func_speed = XFIXNUM (CALL1I (comp-func-speed, func));
 
+  comp.func_relocs_local =
+    gcc_jit_function_new_local (comp.func,
+				NULL,
+				comp.func_relocs_ptr_type,
+				"freloc");
+
   comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
   if (comp.func_has_non_local || !comp.func_speed)
     {
@@ -3984,6 +4002,12 @@ compile_function (Lisp_Object func)
       if (!EQ (block, entry_block))
 	declare_block (HASH_KEY (ht, i));
     }
+
+  gcc_jit_block_add_assignment (retrive_block (Qentry),
+				NULL,
+				comp.func_relocs_local,
+				gcc_jit_lvalue_as_rvalue (comp.func_relocs));
+
 
   for (ptrdiff_t i = 0; i < ht->count; i++)
     {
@@ -4396,6 +4420,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   CHECK_STRING (filename);
   Lisp_Object base_name = Fsubstring (filename, Qnil, make_fixnum (-4));
+
+  comp.func_relocs_local = NULL;
 
   comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
   comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
