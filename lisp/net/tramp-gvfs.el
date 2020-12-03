@@ -108,8 +108,6 @@
 (require 'url-util)
 
 ;; Pacify byte-compiler.
-(eval-when-compile (require 'custom))
-
 (declare-function zeroconf-init "zeroconf")
 (declare-function zeroconf-list-service-types "zeroconf")
 (declare-function zeroconf-list-services "zeroconf")

@@ -104,7 +104,6 @@
 
 ;;{{{ Dependencies
 
-(require 'custom)
 (require 'cc-mode)
 
 ;;}}}

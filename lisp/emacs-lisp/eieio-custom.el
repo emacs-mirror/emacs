@@ -33,7 +33,6 @@
 (require 'eieio)
 (require 'widget)
 (require 'wid-edit)
-(require 'custom)
 
 ;;; Compatibility
 

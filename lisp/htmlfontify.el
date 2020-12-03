@@ -78,8 +78,6 @@
 
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
-(require 'custom)
-;;  (`defgroup' `defcustom')
 (require 'cus-edit)
 
 (require 'htmlfontify-loaddefs)

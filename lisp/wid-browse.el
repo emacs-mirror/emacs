@@ -28,7 +28,6 @@
 ;;; Code:
 
 (require 'easymenu)
-(require 'custom)
 (require 'wid-edit)
 
 (defgroup widget-browse nil
