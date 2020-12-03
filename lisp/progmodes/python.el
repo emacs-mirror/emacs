@@ -3197,6 +3197,8 @@ the python shell:
            (line-beginning-position) (line-end-position))))
       (buffer-substring-no-properties (point-min) (point-max)))))
 
+(declare-function compilation-forget-errors "compile")
+
 (defun python-shell-send-region (start end &optional send-main msg
                                        no-cookie)
   "Send the region delimited by START and END to inferior Python process.
@@ -3214,6 +3216,10 @@ process running; defaults to t when called interactively."
          (original-string (buffer-substring-no-properties start end))
          (_ (string-match "\\`\n*\\(.*\\)" original-string)))
     (message "Sent: %s..." (match-string 1 original-string))
+    ;; Recalculate positions to avoid landing on the wrong line if
+    ;; lines have been removed/added.
+    (with-current-buffer (process-buffer process)
+      (compilation-forget-errors))
     (python-shell-send-string string process)))
 
 (defun python-shell-send-statement (&optional send-main msg)
