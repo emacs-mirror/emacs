@@ -518,6 +518,13 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user option 'gnus-registry-register-all'.
+
+If non-nil (the default), create registry entries for all messages.
+If nil, don't automatically create entries, they must be created
+manually.
+
++++
 *** New user options to customise the summary line specs %[ and %].
 Four new options introduced in customisation group
 'gnus-summary-format'.  These are 'gnus-sum-opening-bracket',
