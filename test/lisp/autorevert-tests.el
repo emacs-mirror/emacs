@@ -589,7 +589,7 @@ This expects `auto-revert--messages' to be bound by
   ;; (with-auto-revert-test
    (let ((auto-revert-use-notify t)
          (tmpfile (make-temp-file "auto-revert-test"))
-         (times '(60 30 15))
+         (times '(120 60 30 15))
          (num-buffers 10)
          require-final-newline buffers)
 
