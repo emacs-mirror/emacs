@@ -754,7 +754,7 @@ external command."
 				      (eshell-stringify-list
 				       (flatten-tree args)))
 			      " "))
-	     (cmd (format "%s -n %s"
+	     (cmd (format "%s -nH %s"
 			  (pcase command
 			    ("egrep" "grep -E")
 			    ("fgrep" "grep -F")
