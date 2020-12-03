@@ -650,30 +650,15 @@ will use an up-to-date value of `auto-revert-interval'."
               (string-match auto-revert-notify-exclude-dir-regexp
 			    (expand-file-name default-directory))
 	      (file-symlink-p (or buffer-file-name default-directory)))
-    ;; Check, whether this has been activated already.
     (let ((file (if buffer-file-name
 		    (expand-file-name buffer-file-name default-directory)
 	          (expand-file-name default-directory))))
-      (maphash
-       (lambda (key _value)
-         (when (and
-                (file-notify-valid-p key)
-                (equal (file-notify--watch-absolute-filename
-                        (gethash key file-notify-descriptors))
-                       (directory-file-name file))
-                (equal (file-notify--watch-callback
-                        (gethash key file-notify-descriptors))
-                       'auto-revert-notify-handler))
-         (setq auto-revert-notify-watch-descriptor key)))
-       auto-revert--buffers-by-watch-descriptor)
-      ;; Create a new watch if needed.
-      (unless auto-revert-notify-watch-descriptor
-        (setq auto-revert-notify-watch-descriptor
-	      (ignore-errors
-		(file-notify-add-watch
-		 file
-                 (if buffer-file-name '(change attribute-change) '(change))
-                 'auto-revert-notify-handler))))
+      (setq auto-revert-notify-watch-descriptor
+	    (ignore-errors
+	      (file-notify-add-watch
+	       file
+               (if buffer-file-name '(change attribute-change) '(change))
+               'auto-revert-notify-handler))))
       (when auto-revert-notify-watch-descriptor
         (setq auto-revert-notify-modified-p t)
         (puthash
@@ -682,7 +667,7 @@ will use an up-to-date value of `auto-revert-interval'."
 	       (gethash auto-revert-notify-watch-descriptor
 		        auto-revert--buffers-by-watch-descriptor))
          auto-revert--buffers-by-watch-descriptor)
-        (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t)))))
+        (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very
