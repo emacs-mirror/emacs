@@ -754,15 +754,12 @@ external command."
 				      (eshell-stringify-list
 				       (flatten-tree args)))
 			      " "))
-	     (cmd (progn
-		    (set-text-properties 0 (length args)
-					 '(invisible t) args)
-		    (format "%s -n %s"
-			    (pcase command
-			      ("egrep" "grep -E")
-			      ("fgrep" "grep -F")
-			      (x x))
-			    args)))
+	     (cmd (format "%s -n %s"
+			  (pcase command
+			    ("egrep" "grep -E")
+			    ("fgrep" "grep -F")
+			    (x x))
+			  args))
 	     compilation-scroll-output)
 	(grep cmd)))))
 
