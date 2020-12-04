@@ -3405,6 +3405,7 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
     }
 }
 
+#ifdef HAVE_NATIVE_COMP
 static void
 dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
 {
@@ -3425,6 +3426,7 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
   const char *c_name = XSUBR (subr)->native_c_name[0];
   dump_write (ctx, c_name, 1 + strlen (c_name));
 }
+#endif
 
 static void
 dump_drain_cold_data (struct dump_context *ctx)
@@ -3469,9 +3471,11 @@ dump_drain_cold_data (struct dump_context *ctx)
         case COLD_OP_BIGNUM:
           dump_cold_bignum (ctx, data);
           break;
+#ifdef HAVE_NATIVE_COMP
 	case COLD_OP_NATIVE_SUBR:
 	  dump_cold_native_subr (ctx, data);
 	  break;
+#endif
         default:
           emacs_abort ();
         }

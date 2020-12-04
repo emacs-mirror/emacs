@@ -2221,6 +2221,7 @@ If some packages are not installed propose to install them."
   (equal (cadr (assq (package-desc-name pkg) package-alist))
          pkg))
 
+(declare-function comp-el-to-eln-filename "comp.c")
 (defun package--delete-directory (dir)
   "Delete DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native

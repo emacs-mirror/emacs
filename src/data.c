@@ -4055,8 +4055,8 @@ syms_of_data (void)
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
   defsubr (&Ssubr_native_elisp_p);
-#ifdef HAVE_NATIVE_COMP
   defsubr (&Ssubr_native_lambda_list);
+#ifdef HAVE_NATIVE_COMP
   defsubr (&Ssubr_native_comp_unit);
   defsubr (&Snative_comp_unit_file);
   defsubr (&Snative_comp_unit_set_file);

@@ -203,6 +203,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (byte-recompile-file buffer-file-name nil 0)
   (load buffer-file-name))
 
+(declare-function native-compile "comp")
 (defun emacs-lisp-native-compile-and-load ()
   "Native-compile synchronously the current file (if it has changed).
 Load the compiled code when finished.
