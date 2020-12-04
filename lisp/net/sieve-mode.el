@@ -185,16 +185,15 @@ inherits from C mode's and it has the same variables for customizing
 indentation.  It has its own abbrev table and its own syntax table.
 
 Turning on Sieve mode runs `sieve-mode-hook'."
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'comment-start) "#")
-  (set (make-local-variable 'comment-end) "")
-  ;;(set (make-local-variable 'comment-start-skip) "\\(^\\|\\s-\\);?#+ *")
-  (set (make-local-variable 'comment-start-skip) "#+ *")
-  (set (make-local-variable 'syntax-propertize-function)
-       #'sieve-syntax-propertize)
-  (set (make-local-variable 'font-lock-defaults)
-       '(sieve-font-lock-keywords nil nil ((?_ . "w"))))
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local comment-start "#")
+  (setq-local comment-end "")
+  ;; (setq-local comment-start-skip "\\(^\\|\\s-\\);?#+ *")
+  (setq-local comment-start-skip "#+ *")
+  (setq-local syntax-propertize-function #'sieve-syntax-propertize)
+  (setq-local font-lock-defaults
+              '(sieve-font-lock-keywords nil nil ((?_ . "w"))))
   (easy-menu-add-item nil nil sieve-mode-menu))
 
 (provide 'sieve-mode)

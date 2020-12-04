@@ -304,46 +304,34 @@ This is used during Tempo template completion."
   (setq local-abbrev-table abbrev)
 
   ;; Set up paragraphs (?)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
 
   ;; Set up comments
-  (make-local-variable 'comment-start)
-  (setq comment-start "-- ")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "--+[ \t]*")
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
+  (setq-local comment-start "-- ")
+  (setq-local comment-start-skip "--+[ \t]*")
+  (setq-local comment-column 40)
+  (setq-local parse-sexp-ignore-comments t)
 
   ;; Set up indentation
   (if snmp-special-indent
-      (set (make-local-variable 'indent-line-function) 'snmp-indent-line))
-  (set (make-local-variable 'tab-always-indent) snmp-tab-always-indent)
+      (setq-local indent-line-function 'snmp-indent-line))
+  (setq-local tab-always-indent snmp-tab-always-indent)
 
   ;; Font Lock
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults (cons font-keywords '(nil nil ((?- . "w 1234")))))
+  (setq-local font-lock-defaults (cons font-keywords '(nil nil ((?- . "w 1234")))))
 
   ;; Imenu
-  (make-local-variable 'imenu-create-index-function)
-  (setq imenu-create-index-function imenu-index)
+  (setq-local imenu-create-index-function imenu-index)
 
   ;; Tempo
   (tempo-use-tag-list tempo-tags)
-  (make-local-variable 'tempo-match-finder)
-  (setq tempo-match-finder "\\b\\(.+\\)\\=")
-  (make-local-variable 'tempo-interactive)
-  (setq tempo-interactive t)
+  (setq-local tempo-match-finder "\\b\\(.+\\)\\=")
+  (setq-local tempo-interactive t)
 
   ;; Miscellaneous customization
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline))
+  (setq-local require-final-newline mode-require-final-newline))
 
 
 ;; SNMPv1 MIB Editing Mode.
@@ -370,14 +358,11 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
                    'snmp-tempo-tags)
 
   ;; Completion lists
-  (make-local-variable 'snmp-mode-syntax-list)
-  (setq snmp-mode-syntax-list (append snmp-rfc1155-types
-                                     snmp-rfc1213-types
-                                     snmp-mode-syntax-list))
-  (make-local-variable 'snmp-mode-access-list)
-  (setq snmp-mode-access-list snmp-rfc1155-access)
-  (make-local-variable 'snmp-mode-status-list)
-  (setq snmp-mode-status-list snmp-rfc1212-status)
+  (setq-local snmp-mode-syntax-list (append snmp-rfc1155-types
+                                            snmp-rfc1213-types
+                                            snmp-mode-syntax-list))
+  (setq-local snmp-mode-access-list snmp-rfc1155-access)
+  (setq-local snmp-mode-status-list snmp-rfc1212-status)
 
   ;; Run hooks
   (run-mode-hooks 'snmp-common-mode-hook 'snmp-mode-hook))
@@ -405,14 +390,11 @@ then `snmpv2-mode-hook'."
                    'snmpv2-tempo-tags)
 
   ;; Completion lists
-  (make-local-variable 'snmp-mode-syntax-list)
-  (setq snmp-mode-syntax-list (append snmp-rfc1902-types
-                                     snmp-rfc1903-types
-                                     snmp-mode-syntax-list))
-  (make-local-variable 'snmp-mode-access-list)
-  (setq snmp-mode-access-list snmp-rfc1902-access)
-  (make-local-variable 'snmp-mode-status-list)
-  (setq snmp-mode-status-list snmp-rfc1902-status)
+  (setq-local snmp-mode-syntax-list (append snmp-rfc1902-types
+                                            snmp-rfc1903-types
+                                            snmp-mode-syntax-list))
+  (setq-local snmp-mode-access-list snmp-rfc1902-access)
+  (setq-local snmp-mode-status-list snmp-rfc1902-status)
 
   ;; Run hooks
   (run-mode-hooks 'snmp-common-mode-hook 'snmpv2-mode-hook))

@@ -1740,10 +1740,10 @@ The outline level is equal to the verbosity of the Tramp message."
       ;; in the traces.
       (let ((default-directory (tramp-compat-temporary-file-directory)))
 	(outline-mode))
-      (set (make-local-variable 'outline-level) 'tramp-debug-outline-level)
-      (set (make-local-variable 'font-lock-keywords)
-	   `(t (eval ,tramp-debug-font-lock-keywords)
-	       ,(eval tramp-debug-font-lock-keywords)))
+      (setq-local outline-level 'tramp-debug-outline-level)
+      (setq-local font-lock-keywords
+                  `(t (eval ,tramp-debug-font-lock-keywords)
+                      ,(eval tramp-debug-font-lock-keywords)))
       ;; Do not edit the debug buffer.
       (use-local-map special-mode-map))
     (current-buffer)))

@@ -792,8 +792,8 @@ In this mode, widgets represent the search results.
 
 \\{secrets-mode-map}"
   (setq buffer-undo-list t)
-  (set (make-local-variable 'revert-buffer-function)
-       #'secrets-show-collections)
+  (setq-local revert-buffer-function
+              #'secrets-show-collections)
   ;; When we toggle, we must set temporary widgets.
   (add-hook 'tree-widget-after-toggle-functions
             #'secrets-tree-widget-after-toggle-function nil t))

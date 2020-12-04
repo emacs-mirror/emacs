@@ -307,8 +307,8 @@ This variable is only used if the variable
 
 (define-derived-mode net-utils-mode special-mode "NetworkUtil"
   "Major mode for interacting with an external network utility."
-  (set (make-local-variable 'font-lock-defaults)
-       '((net-utils-font-lock-keywords)))
+  (setq-local font-lock-defaults
+              '((net-utils-font-lock-keywords)))
   (setq-local revert-buffer-function #'net-utils--revert-function))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -624,9 +624,8 @@ This command uses `nslookup-program' to look up DNS records."
 ;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
-  (set
-   (make-local-variable 'font-lock-defaults)
-   '((nslookup-font-lock-keywords)))
+  (setq-local font-lock-defaults
+              '((nslookup-font-lock-keywords)))
   (setq comint-prompt-regexp nslookup-prompt-regexp)
   (setq comint-input-autoexpand t))
 
@@ -971,10 +970,8 @@ The port is deduced from `network-connection-service-alist'."
   "Major mode for interacting with the network-connection program.")
 
 (defun network-connection-mode-setup (host service)
-  (make-local-variable 'network-connection-host)
-  (setq network-connection-host host)
-  (make-local-variable 'network-connection-service)
-  (setq network-connection-service service))
+  (setq-local network-connection-host host)
+  (setq-local network-connection-service service))
 
 ;;;###autoload
 (defun network-connection-to-service (host service)
