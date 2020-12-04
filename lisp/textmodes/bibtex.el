@@ -3457,38 +3457,38 @@ if that value is non-nil.
     (setq bibtex-parse-idle-timer (run-with-idle-timer
                                    bibtex-parse-keys-timeout t
                                    'bibtex-parse-buffers-stealthily)))
-  (set (make-local-variable 'paragraph-start) "[ \f\n\t]*$")
-  (set (make-local-variable 'comment-column) 0)
-  (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[[:alnum:]]+[ \t]*")
-  (set (make-local-variable 'outline-regexp) "[ \t]*@")
-  (set (make-local-variable 'fill-paragraph-function) #'bibtex-fill-field)
-  (set (make-local-variable 'font-lock-defaults)
-       '(bibtex-font-lock-keywords
-         nil t ((?$ . "\"")
-                ;; Mathematical expressions should be fontified as strings
-                (?\" . ".")
-                ;; Quotes are field delimiters and quote-delimited
-                ;; entries should be fontified in the same way as
-                ;; brace-delimited ones
-                )
-         nil
-         (font-lock-extra-managed-props . (category))
-	 (font-lock-mark-block-function
-	  . (lambda ()
-              (set-mark (bibtex-end-of-entry))
-	      (bibtex-beginning-of-entry)))))
-  (set (make-local-variable 'syntax-propertize-function)
-       (syntax-propertize-via-font-lock
-        bibtex-font-lock-syntactic-keywords))
+  (setq-local paragraph-start "[ \f\n\t]*$")
+  (setq-local comment-column 0)
+  (setq-local defun-prompt-regexp "^[ \t]*@[[:alnum:]]+[ \t]*")
+  (setq-local outline-regexp "[ \t]*@")
+  (setq-local fill-paragraph-function #'bibtex-fill-field)
+  (setq-local font-lock-defaults
+              '(bibtex-font-lock-keywords
+                nil t ((?$ . "\"")
+                       ;; Mathematical expressions should be fontified as strings
+                       (?\" . ".")
+                       ;; Quotes are field delimiters and quote-delimited
+                       ;; entries should be fontified in the same way as
+                       ;; brace-delimited ones
+                       )
+                nil
+                (font-lock-extra-managed-props . (category))
+                (font-lock-mark-block-function
+                 . (lambda ()
+                     (set-mark (bibtex-end-of-entry))
+                     (bibtex-beginning-of-entry)))))
+  (setq-local syntax-propertize-function
+              (syntax-propertize-via-font-lock
+               bibtex-font-lock-syntactic-keywords))
   (let ((fun (lambda ()
                (bibtex-set-dialect)
-               (set (make-local-variable 'comment-start) bibtex-comment-start)
-               (set (make-local-variable 'comment-start-skip)
-                    (concat (regexp-quote bibtex-comment-start) "\\>[ \t]*"))
-               (set (make-local-variable 'fill-prefix)
-                    (make-string (+ bibtex-entry-offset
-                                    bibtex-contline-indentation)
-                                 ?\s)))))
+               (setq-local comment-start bibtex-comment-start)
+               (setq-local comment-start-skip
+                           (concat (regexp-quote bibtex-comment-start) "\\>[ \t]*"))
+               (setq-local fill-prefix
+                           (make-string (+ bibtex-entry-offset
+                                           bibtex-contline-indentation)
+                                        ?\s)))))
     (if (and buffer-file-name enable-local-variables)
         (add-hook 'hack-local-variables-hook fun nil t)
       (funcall fun))))
@@ -4014,15 +4014,15 @@ of the head of the entry found.  Return nil if no entry found."
 (defun bibtex-init-sort-entry-class-alist ()
   "Initialize `bibtex-sort-entry-class-alist' (buffer-local)."
   (unless (local-variable-p 'bibtex-sort-entry-class-alist)
-    (set (make-local-variable 'bibtex-sort-entry-class-alist)
-         (let ((i -1) alist)
-           (dolist (class bibtex-sort-entry-class)
-             (setq i (1+ i))
-             (dolist (entry class)
-               ;; All entry types should be downcase (for ease of comparison).
-               (push (cons (if (stringp entry) (downcase entry) entry) i)
-                     alist)))
-           alist))))
+    (setq-local bibtex-sort-entry-class-alist
+                (let ((i -1) alist)
+                  (dolist (class bibtex-sort-entry-class)
+                    (setq i (1+ i))
+                    (dolist (entry class)
+                      ;; All entry types should be downcase (for ease of comparison).
+                      (push (cons (if (stringp entry) (downcase entry) entry) i)
+                            alist)))
+                  alist))))
 
 (defun bibtex-lessp (index1 index2)
   "Predicate for sorting BibTeX entries with indices INDEX1 and INDEX2.

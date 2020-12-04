@@ -4098,7 +4098,7 @@ Includes LaTeX/Nroff modes and extended character mode."
       (progn
 	(ispell-send-string "+\n")	; set ispell mode to tex
 	(if (not (eq ispell-parser 'tex))
-	    (set (make-local-variable 'ispell-parser) 'tex)))
+            (setq-local ispell-parser 'tex)))
     (ispell-send-string "-\n"))		; set mode to normal (nroff)
   ;; If needed, test for SGML & HTML modes and set a buffer local nil/t value.
   (if (and ispell-skip-html (not (eq ispell-skip-html t)))
