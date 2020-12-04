@@ -5051,6 +5051,9 @@ This gets called by top_level_run during the load phase.  */)
     make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, doc_idx, intspec,
 	       comp_u);
 
+  if (AUTOLOADP (XSYMBOL (name)->u.s.function))
+    /* Remember that the function was already an autoload.  */
+    LOADHIST_ATTACH (Fcons (Qt, name));
   LOADHIST_ATTACH (Fcons (Qdefun, name));
 
   { /* Handle automatic advice activation (bug#42038).
