@@ -325,10 +325,8 @@ and the hook `eshell-exit-hook'."
   (setq auto-fill-function nil)
 
   ;; always display everything from a return value
-  (if (boundp 'print-length)
-      (setq-local print-length nil))
-  (if (boundp 'print-level)
-      (setq-local print-level nil))
+  (setq-local print-length nil)
+  (setq-local print-level nil)
 
   ;; set require-final-newline to nil; otherwise, all redirected
   ;; output will end with a newline, whether or not the source
