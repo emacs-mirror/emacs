@@ -351,6 +351,7 @@
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
 (if (not (eq system-type 'ms-dos))
     (load "tooltip"))
+(load "international/iso-transl") ; Binds Alt-[ and friends.
 
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.

@@ -1352,6 +1352,12 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 
 ** Miscellaneous
 
+---
+*** iso-transl is now preloaded.
+This means that keystrokes like 'Alt-[' are defined by default,
+instead of only becoming available after doing (for instance)
+'C-x 8 <letter>'.
+
 *** New user option 'completions-detailed'.
 When non-nil, some commands like 'describe-symbol' show more detailed
 completions with more information in completion prefix and suffix.
