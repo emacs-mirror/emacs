@@ -472,9 +472,9 @@ filters in `senator-search-tag-filter-functions' remain active."
   (if classes
       (let ((tag   (make-symbol "tag"))
             (names (mapconcat 'symbol-name classes "', `")))
-        (set (make-local-variable 'senator--search-filter)
-             `(lambda (,tag)
-                (memq (semantic-tag-class ,tag) ',classes)))
+        (setq-local senator--search-filter
+                    `(lambda (,tag)
+                       (memq (semantic-tag-class ,tag) ',classes)))
         (add-hook 'senator-search-tag-filter-functions
                   senator--search-filter nil t)
         (message "Limit search to `%s' tags" names))
@@ -857,17 +857,17 @@ Use a senator search function when semantic isearch mode is enabled."
 	;; senator one.
 	(when (and (local-variable-p 'isearch-search-fun-function)
 		   (not (local-variable-p 'senator-old-isearch-search-fun)))
-	  (set (make-local-variable 'senator-old-isearch-search-fun)
-	       isearch-search-fun-function))
-	(set (make-local-variable 'isearch-search-fun-function)
-	     'senator-isearch-search-fun))
+          (setq-local senator-old-isearch-search-fun
+                      isearch-search-fun-function))
+        (setq-local isearch-search-fun-function
+                    'senator-isearch-search-fun))
     ;; When `senator-isearch-semantic-mode' is off restore the
     ;; previous `isearch-search-fun-function'.
     (when (eq isearch-search-fun-function 'senator-isearch-search-fun)
       (if (local-variable-p 'senator-old-isearch-search-fun)
 	  (progn
-	    (set (make-local-variable 'isearch-search-fun-function)
-		 senator-old-isearch-search-fun)
+            (setq-local isearch-search-fun-function
+                        senator-old-isearch-search-fun)
 	    (kill-local-variable 'senator-old-isearch-search-fun))
 	(kill-local-variable 'isearch-search-fun-function)))))
 

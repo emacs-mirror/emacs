@@ -590,7 +590,7 @@ Look for key expressions, and add push-buttons near them."
     (with-current-buffer "*Help*"
       (let ((inhibit-read-only t))
 	(goto-char (point-min))
-	(set (make-local-variable 'semantic-analyzer-debug-orig) orig-buffer)
+        (setq-local semantic-analyzer-debug-orig orig-buffer)
 	;; First, add do-in buttons to recommendations.
 	(while (re-search-forward "^\\s-*M-x \\(\\(\\w\\|\\s_\\)+\\) " nil t)
 	  (let ((fcn (match-string 1)))

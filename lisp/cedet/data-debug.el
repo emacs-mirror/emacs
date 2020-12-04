@@ -881,9 +881,8 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (setq-local comment-start-skip
        "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (buffer-disable-undo)
-  (set (make-local-variable 'font-lock-global-modes) nil)
-  (font-lock-mode -1)
-  )
+  (setq-local font-lock-global-modes nil)
+  (font-lock-mode -1))
 
 ;;;###autoload
 (defun data-debug-new-buffer (name)

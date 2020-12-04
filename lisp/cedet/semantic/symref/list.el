@@ -176,7 +176,7 @@ Display the references in `semantic-symref-results-mode'."
     (switch-to-buffer-other-window buff)
     (set-buffer buff)
     (semantic-symref-results-mode)
-    (set (make-local-variable 'semantic-symref-current-results) res)
+    (setq-local semantic-symref-current-results res)
     (semantic-symref-results-dump res)
     (goto-char (point-min))))
 
@@ -184,7 +184,7 @@ Display the references in `semantic-symref-results-mode'."
   "Major-mode for displaying Semantic Symbol Reference results."
   (buffer-disable-undo)
   ;; FIXME: Why bother turning off font-lock?
-  (set (make-local-variable 'font-lock-global-modes) nil)
+  (setq-local font-lock-global-modes nil)
   (font-lock-mode -1))
 
 (defcustom semantic-symref-results-summary-function 'semantic-format-tag-prototype

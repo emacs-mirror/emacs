@@ -495,8 +495,7 @@ is requested."
   (setq semantic--buffer-cache tagtable
         semantic-unmatched-syntax-cache-check nil)
   ;; This is specific to the bovine parser.
-  (set (make-local-variable 'semantic-bovinate-nonterminal-check-obarray)
-       nil)
+  (setq-local semantic-bovinate-nonterminal-check-obarray nil)
   (semantic-parse-tree-set-up-to-date)
   (add-hook 'after-change-functions 'semantic-change-function nil t)
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook

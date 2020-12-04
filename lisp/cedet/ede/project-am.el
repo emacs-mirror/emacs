@@ -493,8 +493,7 @@ This is used when subprojects are made in named subdirectories."
 		    :file fn)))
 	(oset ampf directory (file-name-directory fn))
 	(oset ampf configureoutputfiles cof)
-	(make-local-variable 'ede-object)
-	(setq ede-object ampf)
+        (setq-local ede-object ampf)
 	;; Move the rescan after we set ede-object to prevent recursion
 	(project-rescan ampf)
 	ampf))))
