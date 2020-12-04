@@ -35,8 +35,7 @@
 
 (defun erc-imenu-setup ()
   "Setup Imenu support in an ERC buffer."
-  (set (make-local-variable 'imenu-create-index-function)
-       'erc-create-imenu-index))
+  (setq-local imenu-create-index-function #'erc-create-imenu-index))
 
 (add-hook 'erc-mode-hook 'erc-imenu-setup)
 (autoload 'erc-create-imenu-index "erc-imenu" "Imenu index creation function")
