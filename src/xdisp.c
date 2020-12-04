@@ -11929,8 +11929,8 @@ pop_message_unwind (void)
 
 
 /* Check that Vmessage_stack is nil.  Called from emacs.c when Emacs
-   exits.  If the stack is not empty, we have a missing pop_message
-   somewhere.  */
+   exits.  If the stack is not empty, we have a missing
+   pop_message_unwind somewhere.  */
 
 void
 check_message_stack (void)
@@ -11939,6 +11939,11 @@ check_message_stack (void)
     emacs_abort ();
 }
 
+void
+clear_message_stack (void)
+{
+  Vmessage_stack = Qnil;
+}
 
 /* Truncate to NCHARS what will be displayed in the echo area the next
    time we display it---but don't redisplay it now.  */
