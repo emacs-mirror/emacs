@@ -4259,11 +4259,7 @@ Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
   (let ((match (match-string 0 string)))
     (save-match-data
-      (set-match-data (mapcar (lambda (x)
-				(if (numberp x)
-				    (- x (match-beginning 0))
-				  x))
-			      (match-data t)))
+      (match-data--translate (- (match-beginning 0)))
       (replace-match replacement fixedcase literal match subexp))))
 
 
