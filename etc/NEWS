@@ -1187,6 +1187,9 @@ project's root directory, respectively.
 So typing 'C-u RET' in the "*xref*" buffer quits its window
 before navigating to the selected location.
 
+*** New option xref-search-program.
+So far Grep and ripgrep are supported.
+
 ** json.el
 
 ---
