@@ -1739,7 +1739,7 @@ BibTeX field as necessary."
          ;; It can be confusing if non-editing commands try to
          ;; modify the buffer.
          (if buffer-read-only
-             (error "Comma missing at buffer position %s" (point)))
+             (user-error "Comma missing at buffer position %s" (point)))
          (insert ",")
          (forward-char -1)
          ;; Now try again.
@@ -2263,7 +2263,7 @@ On success return bounds, nil otherwise.  Do not move point."
                   (>= (bibtex-end-of-field bounds) (point)))
              bounds)
             ((not noerr)
-             (error "Can't find enclosing BibTeX field"))))))
+             (user-error "Can't find enclosing BibTeX field"))))))
 
 (defun bibtex-beginning-first-field (&optional beg)
   "Move point to beginning of first field.
@@ -2275,7 +2275,7 @@ Optional arg BEG is beginning of entry."
 (defun bibtex-insert-kill (n &optional comma)
   "Reinsert the Nth stretch of killed BibTeX text (field or entry).
 Optional arg COMMA is as in `bibtex-enclosing-field'."
-  (unless bibtex-last-kill-command (error "BibTeX kill ring is empty"))
+  (unless bibtex-last-kill-command (user-error "BibTeX kill ring is empty"))
   (let ((fun (lambda (kryp kr) ; adapted from `current-kill'
                (car (set kryp (nthcdr (mod (- n (length (symbol-value kryp)))
                                            (length kr))
@@ -2354,7 +2354,7 @@ Formats current entry according to variable `bibtex-entry-format'."
               ;; identify entry type
               (goto-char (point-min))
               (or (re-search-forward bibtex-entry-type nil t)
-                  (error "Not inside a BibTeX entry"))
+                  (user-error "Not inside a BibTeX entry"))
               (let* ((beg-type (1+ (match-beginning 0)))
                      (end-type (match-end 0))
                      (entry-list (assoc-string (buffer-substring-no-properties
@@ -2564,7 +2564,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                                (memq 'required-fields format)
                                (assoc-string field-name req-field-list t))
                       (setq error-field-name field-name)
-                      (error "Mandatory field `%s' is empty" field-name))
+                      (user-error "Mandatory field `%s' is empty" field-name))
 
                     ;; unify case of field name
                     (when (memq 'unify-case format)
@@ -2595,20 +2595,20 @@ Formats current entry according to variable `bibtex-entry-format'."
 			   ;; we have deleted by now.  Nonetheless we can
 			   ;; move point on this empty field.
 			   (setq error-field-name (car fname))
-			   (error "Mandatory field `%s' is missing"
-                                  (car fname)))))
+			   (user-error "Mandatory field `%s' is missing"
+                                       (car fname)))))
 		  (dotimes (idx num-alt)
 		    (cond ((= 0 (aref alt-found idx))
 			   (setq error-field-name
                                  (car (last (aref alt-fields idx))))
-			   (error "Alternative mandatory field `%s' is missing"
-				  (aref alt-expect idx)))
+			   (user-error "Alternative mandatory field `%s' is missing"
+                                       (aref alt-expect idx)))
 			  ((< 1 (aref alt-found idx))
 			   (setq error-field-name
                                  (car (last (aref alt-fields idx))))
-			   (error "Alternative fields `%s' are defined %s times"
-				  (aref alt-expect idx)
-				  (length (aref alt-fields idx))))))))
+			   (user-error "Alternative fields `%s' are defined %s times"
+                                       (aref alt-expect idx)
+                                       (length (aref alt-fields idx))))))))
 
               ;; update comma after last field
               (if (memq 'last-comma format)
@@ -2754,7 +2754,8 @@ and `bibtex-autokey-names-stretch'."
                       ;; name is of the form "First Middle Last" or "Last"
                       ;; --> take the last token
                       (match-string 1 fullname))
-                     (t (error "Name `%s' is incorrectly formed" fullname)))))
+                     (t (user-error "Name `%s' is incorrectly formed"
+                                    fullname)))))
     (funcall bibtex-autokey-name-case-convert-function
              (bibtex-autokey-abbrev name bibtex-autokey-name-length))))
 
@@ -3052,15 +3053,15 @@ Use `bibtex-predefined-strings' and BibTeX files `bibtex-string-files'."
         (if (file-name-absolute-p filename)
             (if (file-readable-p filename)
                 (push filename string-files)
-              (error "BibTeX strings file %s not found" filename))
+              (user-error "BibTeX strings file %s not found" filename))
           (dolist (dir dirlist)
             (when (file-readable-p
                    (setq fullfilename (expand-file-name filename dir)))
               (push fullfilename string-files)
               (setq found t)))
           (unless found
-            (error "File %s not in paths defined via bibtex-string-file-path"
-                   filename))))
+            (user-error "File %s not in paths defined via bibtex-string-file-path"
+                        filename))))
       ;; parse string files
       (dolist (filename string-files)
         (with-temp-buffer
@@ -3135,11 +3136,11 @@ does not use `bibtex-mode'."
                    (push expanded-file-name file-list)
                    (setq found t)))
                (unless found
-                 (error "File `%s' not in paths defined via bibtex-file-path"
-                        file))))))
+                 (user-error "File `%s' not in paths defined via bibtex-file-path"
+                             file))))))
     (dolist (file file-list)
       (unless (file-readable-p file)
-        (error "BibTeX file `%s' not found" file)))
+        (user-error "BibTeX file `%s' not found" file)))
     ;; expand dir-list
     (dolist (dir dir-list)
       (setq file-list
@@ -3216,7 +3217,7 @@ that is generated by calling `bibtex-url'."
       (bibtex-beginning-of-entry)
       (if (looking-at bibtex-entry-maybe-empty-head)
           (kill-new (message "%s" (funcall bibtex-summary-function)))
-        (error "No entry found")))))
+        (user-error "No entry found")))))
 
 (defun bibtex-summary ()
   "Return summary of current BibTeX entry.
@@ -3248,7 +3249,7 @@ Used as default value of `bibtex-summary-function'."
                    `((" " . ,names) (" " . ,year) (": " . ,title)
                      (", " . ,journal) (" " . ,volume) (":" . ,pages))
                    ""))
-    (error "Entry not found")))
+    (user-error "Entry not found")))
 
 (defun bibtex-pop (arg direction)
   "Fill current field from the ARGth same field's text in DIRECTION.
@@ -3282,8 +3283,8 @@ Generic function used by `bibtex-pop-previous' and `bibtex-pop-next'."
               (goto-char (bibtex-end-of-field bounds))
             (setq failure t))))
       (if failure
-          (error "No %s matching BibTeX field"
-                 (if (eq direction 'previous) "previous" "next"))
+          (user-error "No %s matching BibTeX field"
+                      (if (eq direction 'previous) "previous" "next"))
         ;; Found a matching field.  Remember boundaries.
         (let ((new-text (bibtex-text-in-field-bounds bounds))
               (nbeg (copy-marker (bibtex-start-of-field bounds)))
@@ -3499,7 +3500,7 @@ if that value is non-nil.
         entry-alist)
     (if (boundp var)
         (setq entry-alist (symbol-value var))
-      (error "BibTeX dialect `%s' undefined" dialect))
+      (user-error "BibTeX dialect `%s' undefined" dialect))
     (if (not (consp (nth 1 (car entry-alist))))
         ;; new format
         entry-alist
@@ -3553,8 +3554,8 @@ LOCAL is t for interactive calls."
                                         bibtex-dialect))))
                (if (boundp var)
                    (symbol-value var)
-                 (error "Field types for BibTeX dialect `%s' undefined"
-                        bibtex-dialect))))
+                 (user-error "Field types for BibTeX dialect `%s' undefined"
+                             bibtex-dialect))))
     (funcall setfun 'bibtex-entry-type
              (concat "@[ \t]*\\(?:"
                      (regexp-opt (mapcar #'car bibtex-entry-alist)) "\\)"))
@@ -3625,7 +3626,7 @@ and `bibtex-user-optional-fields'."
   (let ((e-list (assoc-string entry-type bibtex-entry-alist t))
         required optional)
     (unless e-list
-      (error "Fields for BibTeX entry type %s not defined" entry-type))
+      (user-error "Fields for BibTeX entry type %s not defined" entry-type))
     (if (member-ignore-case entry-type bibtex-include-OPTcrossref)
         (setq required (nth 2 e-list)
               optional (append (nth 3 e-list) (nth 4 e-list)))
@@ -3656,7 +3657,7 @@ is non-nil."
                  (bibtex-read-key (format "%s key: " entry-type))))
         (field-list (bibtex-field-list entry-type)))
     (unless (bibtex-prepare-new-entry (list key nil entry-type))
-      (error "Entry with key `%s' already exists" key))
+      (user-error "Entry with key `%s' already exists" key))
     (indent-to-column bibtex-entry-offset)
     (insert "@" entry-type (bibtex-entry-left-delimiter))
     (if key (insert key))
@@ -3868,7 +3869,7 @@ INIT is surrounded by field delimiters, unless NODELIM is non-nil."
   (let ((init (nth 2 field)))
     (if (not init) (setq init "")
       (if (functionp init) (setq init (funcall init)))
-      (unless (stringp init) (error "`%s' is not a string" init)))
+      (unless (stringp init) (user-error "`%s' is not a string" init)))
     ;; NODELIM is required by `bibtex-insert-kill'
     (if nodelim (insert init)
       (insert (bibtex-field-left-delimiter) init
@@ -3906,7 +3907,7 @@ Return the new location of point."
            (goto-char (bibtex-end-of-string bounds)))
           ((looking-at bibtex-any-valid-entry-type)
            ;; Parsing of entry failed
-           (error "Syntactically incorrect BibTeX entry starts here"))
+           (user-error "Syntactically incorrect BibTeX entry starts here"))
           (t (if (called-interactively-p 'interactive)
 		 (message "Not on a known BibTeX entry."))
              (goto-char pnt)))
@@ -3981,7 +3982,7 @@ If mark is active count entries in region, if not in whole buffer."
     (if bounds
         (ispell-region (bibtex-start-of-text-in-field bounds)
                        (bibtex-end-of-text-in-field bounds))
-      (error "No abstract in entry"))))
+      (user-error "No abstract in entry"))))
 
 (defun bibtex-narrow-to-entry ()
   "Narrow buffer to current BibTeX entry."
@@ -4098,7 +4099,7 @@ for a crossref key, t otherwise."
      (let* ((pnt (point))
             (_ (bibtex-beginning-of-entry))
             (end (cdr (bibtex-valid-entry t)))
-            (_ (unless end (error "Not inside valid entry")))
+            (_ (unless end (user-error "Not inside valid entry")))
             (beg (match-end 0)) ; set by `bibtex-valid-entry'
             (bounds (bibtex-search-forward-field "\\(OPT\\)?crossref" end))
             case-fold-search best temp crossref-key)
@@ -4138,7 +4139,7 @@ for a crossref key, t otherwise."
              (bibtex-reposition-window pos)
              (beginning-of-line)
              (if (and eqb (> pnt pos) (not noerror))
-                 (error "The referencing entry must precede the crossrefed entry!"))))
+                 (user-error "The referencing entry must precede the crossrefed entry"))))
           ;; `bibtex-search-crossref' is called noninteractively during
           ;; clean-up of an entry.  Then it is not possible to check
           ;; whether the current entry and the crossrefed entry have
@@ -4559,7 +4560,7 @@ interactive calls."
              (if (memq (preceding-char) '(?} ?\"))
                  (forward-char -1)))
            (if help (bibtex-print-help-message (car bounds))))
-          ((not noerror) (error "Not on BibTeX field")))))
+          ((not noerror) (user-error "Not on BibTeX field")))))
 
 (defun bibtex-find-text-internal (&optional noerror subfield comma)
   "Find text part of current BibTeX field or entry head.
@@ -4635,8 +4636,8 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
       (cond ((not failure)
              (list name start-text end-text end string-const))
             ((and no-sub (not noerror))
-             (error "Not on text part of BibTeX field"))
-            ((not noerror) (error "Not on BibTeX field"))))))
+             (user-error "Not on text part of BibTeX field"))
+            ((not noerror) (user-error "Not on BibTeX field"))))))
 
 (defun bibtex-remove-OPT-or-ALT (&optional comma)
   "Remove the string starting optional/alternative fields.
@@ -4774,7 +4775,7 @@ The sequence of kills wraps around, so that after the oldest one
 comes the newest one."
   (interactive "*p")
   (unless (eq last-command 'bibtex-yank)
-    (error "Previous command was not a BibTeX yank"))
+    (user-error "Previous command was not a BibTeX yank"))
   (setq this-command 'bibtex-yank)
   (let ((inhibit-read-only t) key)
     ;; point is at end of yanked entry
@@ -4832,12 +4833,12 @@ At end of the cleaning process, the functions in
   (let ((case-fold-search t)
         (start (bibtex-beginning-of-entry))
         (_ (or (looking-at bibtex-any-entry-maybe-empty-head)
-	       (error "Not inside a BibTeX entry")))
+	       (user-error "Not inside a BibTeX entry")))
         (entry-type (bibtex-type-in-head))
         (key (bibtex-key-in-head)))
     (cond ((bibtex-string= entry-type "preamble")
            ;; (bibtex-format-preamble)
-           (error "No clean up of @Preamble entries"))
+           (user-error "No clean up of @Preamble entries"))
           ((bibtex-string= entry-type "string")
            (setq entry-type 'string))
           ;; (bibtex-format-string)
@@ -4887,11 +4888,11 @@ At end of the cleaning process, the functions in
           (setq error (or (/= (point) start)
                           (bibtex-search-entry key nil end))))
         (if error
-            (error "New inserted entry yields duplicate key"))
+            (user-error "New inserted entry yields duplicate key"))
         (dolist (buffer (bibtex-initialize))
           (with-current-buffer buffer
             (if (cdr (assoc-string key bibtex-reference-keys))
-                (error "Duplicate key in %s" (buffer-file-name)))))
+                (user-error "Duplicate key in %s" (buffer-file-name)))))
 
         ;; Only update `bibtex-strings' and `bibtex-reference-keys'
         ;; if they have been built already.
@@ -5193,7 +5194,7 @@ entries from minibuffer."
            bibtex-maintain-sorted-entries))
         endpos)
     (unless (bibtex-prepare-new-entry (list key nil "String"))
-      (error "Entry with key `%s' already exists" key))
+      (user-error "Entry with key `%s' already exists" key))
     (if (zerop (length key)) (setq key nil))
     (indent-to-column bibtex-entry-offset)
     (insert "@String"
