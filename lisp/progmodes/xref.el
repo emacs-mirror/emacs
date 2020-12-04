@@ -1279,7 +1279,7 @@ IGNORES is a list of glob patterns for files to ignore."
      ;; without the '| sort ...' part if GNU sort is not available on
      ;; your system and/or stable ordering is not important to you.
      ;; Note#2: '!*/' is there to filter out dirs (e.g. submodules).
-     "xargs -0 rg <C> -nH --no-messages -g '!*/' -e <R> | sort -t: -k1 -k2n"
+     "xargs -0 rg <C> -nH --no-messages -g '!*/' -e <R> | sort -t: -k1,1 -k2n,2"
      ))
   "Associative list mapping program identifiers to command templates.
 
