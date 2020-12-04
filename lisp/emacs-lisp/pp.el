@@ -118,7 +118,7 @@ after OUT-BUFFER-NAME."
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
 	(setq buffer-read-only nil)
-	(set (make-local-variable 'font-lock-verbose) nil)))))
+        (setq-local font-lock-verbose nil)))))
 
 ;;;###autoload
 (defun pp-eval-expression (expression)

@@ -355,15 +355,14 @@ Returns the forms."
       ;; Env is up to date
       elint-buffer-forms
     ;; Remake env
-    (set (make-local-variable 'elint-buffer-forms) (elint-get-top-forms))
-    (set (make-local-variable 'elint-features) nil)
-    (set (make-local-variable 'elint-buffer-env)
-	 (elint-init-env elint-buffer-forms))
+    (setq-local elint-buffer-forms (elint-get-top-forms))
+    (setq-local elint-features nil)
+    (setq-local elint-buffer-env (elint-init-env elint-buffer-forms))
     (if elint-preloaded-env
         ;; FIXME: This doesn't do anything!  Should we setq the result to
         ;; elint-buffer-env?
 	(elint-env-add-env elint-preloaded-env elint-buffer-env))
-    (set (make-local-variable 'elint-last-env-time) (buffer-modified-tick))
+    (setq-local elint-last-env-time (buffer-modified-tick))
     elint-buffer-forms))
 
 (defun elint-get-top-forms ()
@@ -456,8 +455,8 @@ Return nil if there are no more forms, t otherwise."
 	 (= 4 (length form))
 	 (eq (car-safe (cadr form)) 'quote)
 	 (equal (nth 2 form) '(quote error-conditions)))
-    (set (make-local-variable 'elint-extra-errors)
-	 (cons (cadr (cadr form)) elint-extra-errors)))
+    (setq-local elint-extra-errors
+                (cons (cadr (cadr form)) elint-extra-errors)))
    ((eq (car form) 'provide)
     (add-to-list 'elint-features (eval (cadr form))))
    ;; Import variable definitions

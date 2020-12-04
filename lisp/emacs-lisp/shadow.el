@@ -177,8 +177,8 @@ See the documentation for `list-load-path-shadows' for further information."
 
 (define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
   "Major mode for load-path shadows buffer."
-  (set (make-local-variable 'font-lock-defaults)
-       '((load-path-shadows-font-lock-keywords)))
+  (setq-local font-lock-defaults
+              '((load-path-shadows-font-lock-keywords)))
   (setq buffer-undo-list t
 	buffer-read-only t))
 

@@ -1802,8 +1802,8 @@ Also sets `ert--results-progress-bar-button-begin'."
            ;; `progress-bar-button-begin' will be the right position
            ;; even in the results buffer.
            (with-current-buffer results-buffer
-             (set (make-local-variable 'ert--results-progress-bar-button-begin)
-                  progress-bar-button-begin))))
+             (setq-local ert--results-progress-bar-button-begin
+                         progress-bar-button-begin))))
        (insert "\n\n")
        (buffer-string))
      ;; footer
@@ -1979,15 +1979,15 @@ BUFFER-NAME, if non-nil, is the buffer name to use."
         ;; from ert-results-mode to ert-results-mode when
         ;; font-lock-mode turns itself off in change-major-mode-hook.)
         (erase-buffer)
-        (set (make-local-variable 'font-lock-function)
-             'ert--results-font-lock-function)
+        (setq-local font-lock-function
+                    'ert--results-font-lock-function)
         (let ((ewoc (ewoc-create 'ert--print-test-for-ewoc nil nil t)))
-          (set (make-local-variable 'ert--results-ewoc) ewoc)
-          (set (make-local-variable 'ert--results-stats) stats)
-          (set (make-local-variable 'ert--results-progress-bar-string)
-               (make-string (ert-stats-total stats)
-                            (ert-char-for-test-result nil t)))
-          (set (make-local-variable 'ert--results-listener) listener)
+          (setq-local ert--results-ewoc ewoc)
+          (setq-local ert--results-stats stats)
+          (setq-local ert--results-progress-bar-string
+                      (make-string (ert-stats-total stats)
+                                   (ert-char-for-test-result nil t)))
+          (setq-local ert--results-listener listener)
           (cl-loop for test across (ert--stats-tests stats) do
                    (ewoc-enter-last ewoc
                                     (make-ert--ewoc-entry :test test
