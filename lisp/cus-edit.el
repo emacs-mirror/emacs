@@ -4717,8 +4717,9 @@ if only the first line of the docstring is shown."))
       (let ((inhibit-read-only t)
 	    (print-length nil)
 	    (print-level nil))
-	(custom-save-variables)
-	(custom-save-faces))
+        (atomic-change-group
+	  (custom-save-variables)
+	  (custom-save-faces)))
       (let ((file-precious-flag t))
 	(save-buffer))
       (if old-buffer
