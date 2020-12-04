@@ -342,7 +342,7 @@ compile-first: $(COMPILE_FIRST)
 # Do not build comp.el unless necessary not to exceed max-specpdl-size and
 # max-lisp-eval-depth in normal builds.
 ifneq ($(HAVE_NATIVE_COMP),yes)
-compile-targets: $(filter-out ./emacs-lisp/comp.elc,$(TARGETS))
+compile-targets: $(filter-out ./emacs-lisp/comp-cstr.elc,$(filter-out ./emacs-lisp/comp.elc,$(TARGETS)))
 else
 compile-targets: $(TARGETS)
 endif
