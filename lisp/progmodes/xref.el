@@ -1286,8 +1286,9 @@ IGNORES is a list of glob patterns for files to ignore."
 Program identifier should be a symbol, named after the search program.
 
 The command template must be a shell command (or usually a
-pipeline) that will search the list of files which will be piped
-from stdin.  The template should have following fields:
+pipeline) that will search the files based on the list of file
+names that is piped from stdin, separated by null characters.
+The template should have the following fields:
 
   <C> for extra arguments such as -i and --color
   <R> for the regexp itself (in Extended format)"
@@ -1296,7 +1297,7 @@ from stdin.  The template should have following fields:
                 (string :tag "Command template"))))
 
 (defcustom xref-search-program 'grep
-  "The program to use to search inside files.
+  "The program to use for regexp search inside files.
 
 This must reference a corresponding entry in `xref-search-program-alist'."
   :type `(choice
