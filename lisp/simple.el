@@ -3786,6 +3786,7 @@ a shell (with its need to quote arguments)."
   (shell-command command output-buffer error-buffer))
 
 (declare-function comint-output-filter "comint" (process string))
+(declare-function comint-term-environment "comint")
 
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
@@ -3965,10 +3966,13 @@ impose the use of a shell (with its need to quote arguments)."
                   (shell-command-save-pos-or-erase)
 		  (setq default-directory directory)
 		  (let ((process-environment
-			 (if (natnump async-shell-command-width)
-			     (cons (format "COLUMNS=%d" async-shell-command-width)
-				   process-environment)
-			   process-environment)))
+                         (append
+                          (comint-term-environment)
+                          (and (natnump async-shell-command-width)
+                               (list
+                                (format "COLUMNS=%d"
+                                        async-shell-command-width)))
+                          process-environment)))
 		    (setq proc
 			  (start-process-shell-command "Shell" buffer command)))
 		  (setq mode-line-process '(":%s"))
