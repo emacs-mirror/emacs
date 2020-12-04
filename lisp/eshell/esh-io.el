@@ -344,8 +344,8 @@ it defaults to `insert'."
 	    (if buffer-file-read-only
 		(error "Cannot write to read-only file `%s'" target))
 	    (setq buffer-read-only nil)
-	    (set (make-local-variable 'eshell-output-file-buffer)
-		 (if (eq exists buf) 0 t))
+            (setq-local eshell-output-file-buffer
+                        (if (eq exists buf) 0 t))
 	    (cond ((eq mode 'overwrite)
 		   (erase-buffer))
 		  ((eq mode 'append)

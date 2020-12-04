@@ -144,8 +144,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
-  (make-local-variable 'eshell-complex-commands)
-  (setq eshell-complex-commands
+  (setq-local eshell-complex-commands
 	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
 		  "cat" "time" "cp" "mv" "make" "du" "diff")
 		eshell-complex-commands)))
@@ -1008,7 +1007,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	     (lambda (buff _msg)
 		(with-current-buffer buff
 		  (diff-mode)
-		  (set (make-local-variable 'eshell-diff-window-config) config)
+                  (setq-local eshell-diff-window-config config)
 		  (local-set-key [?q] #'eshell-diff-quit)
 		  (if (fboundp 'turn-on-font-lock-if-enabled)
 		      (turn-on-font-lock-if-enabled))
