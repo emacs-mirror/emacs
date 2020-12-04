@@ -1187,8 +1187,10 @@ project's root directory, respectively.
 So typing 'C-u RET' in the "*xref*" buffer quits its window
 before navigating to the selected location.
 
-*** New option xref-search-program.
-So far Grep and ripgrep are supported.
+*** New options xref-search-program and xref-search-program-alist.
+So far Grep and ripgrep are supported.  ripgrep seems to offer better
+performance in certain cases, in particular for case-insensitive
+searches.
 
 ** json.el
 
