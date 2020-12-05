@@ -47,8 +47,6 @@
 
 ;;; Code:
 
-(require 'custom)
-
 ;; User variables
 
 (defgroup savehist nil

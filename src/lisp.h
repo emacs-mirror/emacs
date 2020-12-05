@@ -3715,6 +3715,7 @@ extern Lisp_Object echo_area_buffer[2];
 extern void add_to_log (char const *, ...);
 extern void vadd_to_log (char const *, va_list);
 extern void check_message_stack (void);
+extern void clear_message_stack (void);
 extern void setup_echo_area_for_printing (bool);
 extern bool push_message (void);
 extern void pop_message_unwind (void);
@@ -3797,6 +3798,7 @@ flush_stack_call_func (void (*func) (void *arg), void *arg)
 
 extern void garbage_collect (void);
 extern void maybe_garbage_collect (void);
+extern bool maybe_garbage_collect_eagerly (EMACS_INT factor);
 extern const char *pending_malloc_warning;
 extern Lisp_Object zero_vector;
 extern EMACS_INT consing_until_gc;

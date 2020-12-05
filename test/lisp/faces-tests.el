@@ -24,7 +24,6 @@
 
 (require 'ert)
 (require 'ert-x)
-(require 'faces)
 
 (defgroup faces--test nil ""
   :group 'faces--test)

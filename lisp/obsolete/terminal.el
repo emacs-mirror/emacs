@@ -44,6 +44,7 @@
 ;;>>   more-processing enabled.
 
 (require 'ehelp)
+(require 'shell)
 
 (defgroup terminal nil
   "Terminal emulator for Emacs."
@@ -1055,12 +1056,6 @@ move to start of new line, clear to end of line."
   "Shell command to set terminal modes for terminal emulator.")
 ;; This used to have `new' in it, but that loses outside BSD
 ;; and it's apparently not needed in BSD.
-
-(defcustom explicit-shell-file-name nil
-  "If non-nil, is file name to use for explicitly requested inferior shell."
-  :type '(choice (const :tag "None" nil)
-		 file)
-  :group 'terminal)
 
 ;;;###autoload
 (defun terminal-emulator (buffer program args &optional width height)

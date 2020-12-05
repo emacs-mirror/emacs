@@ -190,9 +190,9 @@ returns the buffer used."
 	(erase-buffer))
       (buffer-enable-undo (current-buffer))
       (diff-mode)
-      (set (make-local-variable 'revert-buffer-function)
-           (lambda (_ignore-auto _noconfirm)
-             (diff-no-select old new switches no-async (current-buffer))))
+      (setq-local revert-buffer-function
+                  (lambda (_ignore-auto _noconfirm)
+                    (diff-no-select old new switches no-async (current-buffer))))
       (setq default-directory thisdir)
       (setq diff-default-directory default-directory)
       (let ((inhibit-read-only t))

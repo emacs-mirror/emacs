@@ -113,7 +113,7 @@
                most-positive-float
                ;; custom-print-functions
                ))
-  (defvaralias var (intern (format "cl-%s" var))))
+  (define-obsolete-variable-alias var (intern (format "cl-%s" var)) "27.1"))
 
 (dolist (fun '(
                (get* . cl-get)
@@ -291,7 +291,7 @@
                ))
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
-    (defalias fun new)))
+    (define-obsolete-function-alias fun new "27.1")))
 
 (defun cl--wrap-in-nil-block (fun &rest args)
   `(cl-block nil ,(apply fun args)))

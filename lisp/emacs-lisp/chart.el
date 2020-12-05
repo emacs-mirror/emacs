@@ -120,7 +120,7 @@ too much in text characters anyways.")
 (define-derived-mode chart-mode special-mode "Chart"
   "Define a mode in Emacs for displaying a chart."
   (buffer-disable-undo)
-  (set (make-local-variable 'font-lock-global-modes) nil)
+  (setq-local font-lock-global-modes nil)
   (font-lock-mode -1)                   ;Isn't it off already?  --Stef
   )
 

@@ -89,18 +89,16 @@ for use on `completion-at-point-function'."
 
 (defun pcomplete-erc-setup ()
   "Setup `erc-mode' to use pcomplete."
-  (set (make-local-variable 'pcomplete-ignore-case)
-       t)
-  (set (make-local-variable 'pcomplete-use-paring)
-       nil)
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'pcomplete-erc-parse-arguments)
-  (set (make-local-variable 'pcomplete-command-completion-function)
-       'pcomplete/erc-mode/complete-command)
-  (set (make-local-variable 'pcomplete-command-name-function)
-       'pcomplete-erc-command-name)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       (lambda () (pcomplete-here (pcomplete-erc-nicks)))))
+  (setq-local pcomplete-ignore-case t)
+  (setq-local pcomplete-use-paring nil)
+  (setq-local pcomplete-parse-arguments-function
+              #'pcomplete-erc-parse-arguments)
+  (setq-local pcomplete-command-completion-function
+              #'pcomplete/erc-mode/complete-command)
+  (setq-local pcomplete-command-name-function
+              #'pcomplete-erc-command-name)
+  (setq-local pcomplete-default-completion-function
+              (lambda () (pcomplete-here (pcomplete-erc-nicks)))))
 
 ;;; Programmable completion logic
 

@@ -5004,8 +5004,6 @@ the rounding returns a past time."
 
 ;;;; Font-Lock stuff, including the activators
 
-(require 'font-lock)
-
 (defconst org-match-sexp-depth 3
   "Number of stacked braces for sub/superscript matching.")
 

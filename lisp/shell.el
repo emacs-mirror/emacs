@@ -265,10 +265,11 @@ see the function `dirtrack-mode'."
   :group 'shell-directories)
 
 (defcustom explicit-shell-file-name nil
-  "If non-nil, is file name to use for explicitly requested inferior shell.
-When nil, such interactive shell sessions fallback to using either
-the shell specified in $ESHELL or in `shell-file-name'."
-  :type '(choice (const :tag "None" nil) file)
+  "If non-nil, the file name to use for explicitly requested inferior shells.
+When nil, such interactive shell sessions fall back to using the
+shell specified in either the environment variable \"ESHELL\" or
+`shell-file-name'."
+  :type '(choice (const :tag "Default" nil) file)
   :group 'shell)
 
 ;; Note: There are no explicit references to the variable `explicit-csh-args'.
@@ -748,16 +749,15 @@ Make the shell buffer the current buffer, and return it.
 
   (with-connection-local-variables
    ;; On remote hosts, the local `shell-file-name' might be useless.
-   (when (file-remote-p default-directory)
-     (if (and (called-interactively-p 'any)
+   (when (and (file-remote-p default-directory)
+              (called-interactively-p 'any)
               (null explicit-shell-file-name)
               (null (getenv "ESHELL")))
-         (set (make-local-variable 'explicit-shell-file-name)
-              (file-local-name
-	       (expand-file-name
-                (read-file-name
-                 "Remote shell path: " default-directory shell-file-name
-                 t shell-file-name))))))
+     (setq-local explicit-shell-file-name
+                 (file-local-name
+                  (expand-file-name
+                   (read-file-name "Remote shell path: " default-directory
+                                   shell-file-name t shell-file-name)))))
 
    ;; Rain or shine, BUFFER must be current by now.
    (unless (comint-check-proc buffer)

@@ -56,8 +56,6 @@
 
 ;;; Code:
 
-(require 'button)
-
 (defgroup apropos nil
   "Apropos commands for users and programmers."
   :group 'help

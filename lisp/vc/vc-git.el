@@ -1242,18 +1242,18 @@ log entries."
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
   ;; Don't have file markers, so use impossible regexp.
-  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
-  (set (make-local-variable 'log-view-per-file-logs) nil)
-  (set (make-local-variable 'log-view-message-re)
-       (if (not (memq vc-log-view-type '(long log-search with-diff)))
-	   (cadr vc-git-root-log-format)
-	 "^commit +\\([0-9a-z]+\\)"))
+  (setq-local log-view-file-re regexp-unmatchable)
+  (setq-local log-view-per-file-logs nil)
+  (setq-local log-view-message-re
+              (if (not (memq vc-log-view-type '(long log-search with-diff)))
+                  (cadr vc-git-root-log-format)
+                "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
   (when (memq vc-log-view-type '(short log-outgoing log-incoming mergebase))
     (setq truncate-lines t)
-    (set (make-local-variable 'log-view-expanded-log-entry-function)
-	 'vc-git-expanded-log-entry))
-  (set (make-local-variable 'log-view-font-lock-keywords)
+    (setq-local log-view-expanded-log-entry-function
+                'vc-git-expanded-log-entry))
+  (setq-local log-view-font-lock-keywords
        (if (not (memq vc-log-view-type '(long log-search with-diff)))
 	   (list (cons (nth 1 vc-git-root-log-format)
 		       (nth 2 vc-git-root-log-format)))

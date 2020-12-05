@@ -387,8 +387,7 @@ ESC or `q' to quit without changing further buffers,
           (switch-to-buffer buffer)
 	  (let* ((bfn (buffer-file-name))
 		 (new-bfn (and (stringp bfn)
-			       (replace-regexp-in-string
-				(regexp-quote source) target bfn)))
+			       (tramp-compat-string-replace source target bfn)))
 		 (prompt (format-message
 			  "Set visited file name to `%s' [Type yn!eq or %s] "
 			  new-bfn (key-description (vector help-char)))))

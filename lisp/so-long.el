@@ -50,15 +50,14 @@
 ;; performance further, as well as making the so-long activity more obvious to
 ;; the user.  These kinds of minified files are typically not intended to be
 ;; edited, so not providing the usual editing mode in such cases will rarely be
-;; an issue.  However, should the user wish to do so, the original state of the
-;; buffer may be reinstated by calling `so-long-revert' (the key binding for
-;; which is advertised when the major mode change occurs).  If you prefer that
-;; the major mode not be changed, the `so-long-minor-mode' action can be
-;; configured.
+;; an issue.  However, you can reinstate the original state of the buffer by
+;; calling `so-long-revert' (the key binding of which is advertised when the major
+;; mode change occurs).  If you prefer that the major mode not be changed, you
+;; can customize the `so-long-minor-mode' action.
 ;;
 ;; The user options `so-long-action' and `so-long-action-alist' determine what
-;; will happen when `so-long' and `so-long-revert' are invoked, allowing
-;; alternative actions (including custom actions) to be configured.  As well as
+;; actions `so-long' and `so-long-revert' will take.  This allows you to configure
+;; alternative actions (including custom actions).  As well as
 ;; the major and minor mode actions provided by this library, `longlines-mode'
 ;; is also supported by default as an alternative action.
 ;;

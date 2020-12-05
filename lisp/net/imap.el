@@ -1726,8 +1726,7 @@ See `imap-enable-exchange-bug-workaround'."
 	      (string-match "The specified message set is invalid"
 			    (cadr data)))
 	 (with-current-buffer (or buffer (current-buffer))
-	   (set (make-local-variable 'imap-enable-exchange-bug-workaround)
-		t)
+           (setq-local imap-enable-exchange-bug-workaround t)
 	   (imap-fetch (cdr uids) props receive nouidfetch))
        (signal (car data) (cdr data))))))
 

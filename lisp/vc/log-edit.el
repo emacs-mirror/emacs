@@ -463,16 +463,16 @@ done.  Otherwise, it uses the current buffer."
     (if mode
 	(funcall mode)
       (log-edit-mode))
-    (set (make-local-variable 'log-edit-callback) callback)
+    (setq-local log-edit-callback callback)
     (if (listp params)
 	(dolist (crt params)
 	  (set (make-local-variable (car crt)) (cdr crt)))
       ;; For backward compatibility with log-edit up to version 22.2
       ;; accept non-list PARAMS to mean `log-edit-list'.
-      (set (make-local-variable 'log-edit-listfun) params))
+      (setq-local log-edit-listfun params))
 
-    (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
-    (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
+    (if buffer (setq-local log-edit-parent-buffer parent))
+    (setq-local log-edit-initial-files (log-edit-files))
     (when setup
       (erase-buffer)
       (run-hooks 'log-edit-hook))
@@ -489,8 +489,7 @@ the package from which this is used might also provide additional
 commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
-  (set (make-local-variable 'font-lock-defaults)
-       '(log-edit-font-lock-keywords t))
+  (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (make-local-variable 'log-edit-comment-ring-index)

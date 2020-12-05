@@ -1506,8 +1506,8 @@ finalize_environment_unwind (void *env)
 void
 finalize_runtime_unwind (void *raw_ert)
 {
-  struct emacs_runtime *ert = raw_ert;
-  finalize_environment (ert->private_members->env);
+  /* No further cleanup is required, as the initial environment is
+     unwound separately.  See the logic in Fmodule_load.  */
 }
 
 

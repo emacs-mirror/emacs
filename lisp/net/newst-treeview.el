@@ -719,9 +719,8 @@ for the button."
                               (window-width (newsticker--treeview-item-window))
                             fill-column))))
           (if newsticker-use-full-width
-              (set (make-local-variable 'fill-column) wwidth))
-          (set (make-local-variable 'fill-column) (min fill-column
-                                                       wwidth)))
+              (setq-local fill-column wwidth))
+          (setq-local fill-column (min fill-column wwidth)))
         (let ((desc (newsticker--desc item)))
           (insert "\n" (or desc "[No Description]")))
         (set-marker marker1 (1+ (point-min)))
@@ -2024,8 +2023,8 @@ Return t if groups have changed, nil otherwise."
   "Major mode for Newsticker Treeview.
 \\{newsticker-treeview-mode-map}"
   (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map)
-           newsticker-treeview-tool-bar-map))
+      (setq-local tool-bar-map
+                  newsticker-treeview-tool-bar-map))
   (setq buffer-read-only t
         truncate-lines t))
 

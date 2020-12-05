@@ -146,12 +146,20 @@ textual parts.")
   :version "24.4"
   :group 'nnimap)
 
+(define-obsolete-variable-alias
+  'nnimap-split-download-body-default 'nnimap-split-download-body
+  "28.1")
+
+(defcustom nnimap-split-download-body nil
+  "If non-nil, make message bodies available for consideration during splitting.
+This requires downloading the full message from the IMAP server
+during splitting, which may be slow."
+  :version "28.1"
+  :type 'boolean)
+
 (defvar nnimap-process nil)
 
 (defvar nnimap-status-string "")
-
-(defvar nnimap-split-download-body-default nil
-  "Internal variable with default value for `nnimap-split-download-body'.")
 
 (defvar nnimap-keepalive-timer nil)
 (defvar nnimap-process-buffers nil)
@@ -2100,7 +2108,7 @@ Return the server's response to the SELECT or EXAMINE command."
 		 "BODY.PEEK"
 	       "RFC822.PEEK"))
 	    (cond
-	     (nnimap-split-download-body-default
+	     (nnimap-split-download-body
 	      "[]")
 	     ((nnimap-ver4-p)
 	      "[HEADER]")

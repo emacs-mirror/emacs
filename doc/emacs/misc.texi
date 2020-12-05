@@ -810,6 +810,7 @@ to @command{gpg}.  This will output the list of keys to the
 buffer whose name is the value of @code{shell-command-buffer-name}.
 
 @vindex shell-file-name
+@cindex @env{SHELL} environment variable
   The above commands use the shell specified by the variable
 @code{shell-file-name}.  Its default value is determined by the
 @env{SHELL} environment variable when Emacs is started.  If the file
@@ -889,7 +890,6 @@ Subshells in different buffers run independently and in parallel.
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable
-@cindex @env{SHELL} environment variable
   To specify the shell file name used by @kbd{M-x shell}, customize
 the variable @code{explicit-shell-file-name}.  If this is @code{nil}
 (the default), Emacs uses the environment variable @env{ESHELL} if it

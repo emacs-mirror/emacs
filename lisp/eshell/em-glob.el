@@ -129,7 +129,7 @@ This option slows down recursive glob processing by quite a bit."
   "Initialize the extended globbing code."
   ;; it's important that `eshell-glob-chars-list' come first
   (when (boundp 'eshell-special-chars-outside-quoting)
-    (set (make-local-variable 'eshell-special-chars-outside-quoting)
+    (setq-local eshell-special-chars-outside-quoting
 	 (append eshell-glob-chars-list eshell-special-chars-outside-quoting)))
   (add-hook 'eshell-parse-argument-hook 'eshell-parse-glob-chars t t)
   (add-hook 'eshell-pre-rewrite-command-hook
@@ -205,7 +205,7 @@ resulting regular expression."
 	regexp)
     (while (string-match
 	    (or eshell-glob-chars-regexp
-		(set (make-local-variable 'eshell-glob-chars-regexp)
+                (setq-local eshell-glob-chars-regexp
 		     (format "[%s]+" (apply 'string eshell-glob-chars-list))))
 	    pattern matched-in-pattern)
       (let* ((op-begin (match-beginning 0))

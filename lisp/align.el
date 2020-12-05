@@ -412,7 +412,7 @@ The possible settings for `align-region-separate' are:
 
     (c-variable-declaration
      (regexp   . ,(concat "[*&0-9A-Za-z_]>?[&*]*\\(\\s-+[*&]*\\)"
-			  "[A-Za-z_][0-9A-Za-z:_]*\\s-*\\(\\()\\|"
+			  "[A-Za-z_][][0-9A-Za-z:_]*\\s-*\\(\\()\\|"
 			  "=[^=\n].*\\|(.*)\\|\\(\\[.*\\]\\)*\\)"
 			  "\\s-*[;,]\\|)\\s-*$\\)"))
      (group    . 1)

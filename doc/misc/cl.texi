@@ -210,17 +210,10 @@ behave in exactly the same way as the @file{cl-lib.el} versions.
 @c There is also cl-mapc, which was called cl-mapc even before cl-lib.el.
 @c But not autoloaded, so maybe not much used?
 
-Since the old @file{cl.el} does not use a clean namespace, Emacs has a
-policy that packages distributed with Emacs must not load @code{cl} at
-run time.  (It is ok for them to load @code{cl} at @emph{compile}
-time, with @code{eval-when-compile}, and use the macros it provides.)
-There is no such restriction on the use of @code{cl-lib}.  New code
-should use @code{cl-lib} rather than @code{cl}.
-
-There is one more file, @file{cl-compat.el}, which defines some
-routines from the older Quiroz @file{cl.el} package that are not otherwise
-present in the new package.  This file is obsolete and should not be
-used in new code.
+The old file @file{cl.el}, as well as the even older
+@file{cl-compat.el}, are deprecated and will be removed in a future
+version of Emacs.  Any existing code that uses them should be updated
+to use @file{cl-lib.el} instead.
 
 @node Naming Conventions
 @section Naming Conventions

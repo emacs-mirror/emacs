@@ -1840,8 +1840,7 @@ function at point for which PREDICATE returns non-nil)."
 	(or default
 	    ;; Prefer func name at point, if it's an advised function etc.
 	    (let ((function (progn
-			      (require 'help)
-			      (function-called-at-point))))
+                              (function-called-at-point))))
 	      (and function
 		   (member (symbol-name function) ad-advised-functions)
 		   (or (null predicate)
@@ -2224,8 +2223,6 @@ For that it has to be fbound with a non-autoload definition."
   (let ((byte-compile-warnings byte-compile-warnings)
         ;; Don't pop up windows showing byte-compiler warnings.
         (warning-suppress-types '((bytecomp))))
-    (if (featurep 'cl)
-        (byte-compile-disable-warning 'cl-functions))
     (byte-compile (ad-get-advice-info-field function 'advicefunname))))
 
 ;; @@@ Accessing argument lists:

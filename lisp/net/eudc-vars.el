@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(require 'custom)
-
 ;;{{{      EUDC Main Custom Group
 
 (defgroup eudc nil

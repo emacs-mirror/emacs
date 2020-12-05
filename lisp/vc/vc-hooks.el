@@ -814,7 +814,7 @@ In the latter case, VC mode is deactivated for this buffer."
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
 	  ;; because this is for things that depend on the file name.
-          (set (make-local-variable 'backup-inhibited) t)))
+          (setq-local backup-inhibited t)))
        ((let* ((truename (and buffer-file-truename
 			      (expand-file-name buffer-file-truename)))
 	       (link-type (and truename

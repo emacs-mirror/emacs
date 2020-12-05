@@ -271,7 +271,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 (define-derived-mode reb-mode nil "RE Builder"
   "Major mode for interactively building Regular Expressions."
-  (set (make-local-variable 'blink-matching-paren) nil)
+  (setq-local blink-matching-paren nil)
   (reb-mode-common))
 
 (defvar reb-lisp-mode-map
@@ -832,8 +832,8 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
     (let ((font-lock-is-on font-lock-mode))
       (font-lock-mode -1)
       (kill-local-variable 'font-lock-set-defaults)
-      ;;(set (make-local-variable 'reb-re-syntax) 'string)
-      ;;(set (make-local-variable 'reb-re-syntax) 'rx)
+      ;;(setq-local reb-re-syntax 'string)
+      ;;(setq-local reb-re-syntax 'rx)
       (setq font-lock-defaults
             (cond
              ((memq reb-re-syntax '(read string))

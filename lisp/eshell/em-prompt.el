@@ -117,10 +117,9 @@ arriving, or after."
 
     (make-local-variable 'eshell-prompt-regexp)
     (if eshell-prompt-regexp
-	(set (make-local-variable 'paragraph-start) eshell-prompt-regexp))
+        (setq-local paragraph-start eshell-prompt-regexp))
 
-    (set (make-local-variable 'eshell-skip-prompt-function)
-	 'eshell-skip-prompt)
+    (setq-local eshell-skip-prompt-function #'eshell-skip-prompt)
     (eshell-prompt-mode)))
 
 (defun eshell-emit-prompt ()

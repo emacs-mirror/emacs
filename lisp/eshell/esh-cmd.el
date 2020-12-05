@@ -290,12 +290,12 @@ otherwise t.")
 
 (defun eshell-cmd-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the Eshell command processing module."
-  (set (make-local-variable 'eshell-current-command) nil)
-  (set (make-local-variable 'eshell-command-name) nil)
-  (set (make-local-variable 'eshell-command-arguments) nil)
-  (set (make-local-variable 'eshell-last-arguments) nil)
-  (set (make-local-variable 'eshell-last-command-name) nil)
-  (set (make-local-variable 'eshell-last-async-proc) nil)
+  (setq-local eshell-current-command nil)
+  (setq-local eshell-command-name nil)
+  (setq-local eshell-command-arguments nil)
+  (setq-local eshell-last-arguments nil)
+  (setq-local eshell-last-command-name nil)
+  (setq-local eshell-last-async-proc nil)
 
   (add-hook 'eshell-kill-hook #'eshell-resume-command nil t)
 

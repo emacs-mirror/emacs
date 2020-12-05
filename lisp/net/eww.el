@@ -58,7 +58,7 @@
 
 (defcustom eww-use-browse-url "\\`mailto:"
   "eww will use `browse-url' when following links that match this regexp.
-The action to be taken can further be customized via
+The action to be taken can be further customized via
 `browse-url-handlers'."
   :version "28.1"
   :type 'regexp)
@@ -1832,7 +1832,7 @@ Use link at point if there is one, else the current page's URL."
         (suffix ""))
     (when (string-match "\\`\\(.*\\)\\([.][^.]+\\)" file)
       (setq stem (match-string 1 file)
-            suffix (match-string 2)))
+            suffix (match-string 2 file)))
     (while (file-exists-p (expand-file-name file directory))
       (setq file (format "%s(%d)%s" stem count suffix))
       (setq count (1+ count)))

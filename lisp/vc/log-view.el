@@ -208,15 +208,7 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 
-(defface log-view-commit-body
-  '((((class color) (min-colors 88) (background light))
-     :background "gray95" :foreground "black" :extend t)
-    (((class color) (min-colors 88) (background dark))
-     :background "gray5" :foreground "white" :extend t)
-    (((class color) (min-colors 8) (background light))
-     :foreground "black")
-    (((class color) (min-colors 8) (background dark))
-     :foreground "white"))
+(defface log-view-commit-body '((t :inherit font-lock-comment-face))
   "Face for the commit body in `log-view-mode'."
   :version "28.1")
 
@@ -273,12 +265,10 @@ The match group number 1 should match the revision number itself.")
 (define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
-  (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'log-view-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'log-view-end-of-defun)
-  (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap)
+  (setq-local font-lock-defaults log-view-font-lock-defaults)
+  (setq-local beginning-of-defun-function #'log-view-beginning-of-defun)
+  (setq-local end-of-defun-function #'log-view-end-of-defun)
+  (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
