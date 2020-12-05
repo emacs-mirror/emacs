@@ -383,6 +383,23 @@ DST is returned."
                (neg dst) nil)
          (cl-return-from comp-cstr-union-1-no-mem dst))
 
+       ;; Verify disjoint condition between positive types and
+       ;; negative types coming from values, in case give-up.
+       (let ((neg-value-types (nconc (mapcar #'type-of (valset neg))
+                                           (when (range neg)
+                                             '(integer)))))
+         (when (cl-some (lambda (x)
+                          (cl-some (lambda (y)
+                                     (and (not (eq y x))
+                                          (comp-subtype-p y x)))
+                                   neg-value-types))
+                        (typeset pos))
+           (setf (typeset dst) '(t)
+                 (valset dst) ()
+                 (range dst) ()
+                 (neg dst) nil)
+           (cl-return-from comp-cstr-union-1-no-mem dst)))
+
        ;; Value propagation.
        (cond
         ((and (valset pos) (valset neg)
@@ -401,12 +418,8 @@ DST is returned."
        ;; Range propagation
        (if (and range
                 (or (range pos)
-                    (range neg))
-                (cl-notany (lambda (x)
-                             (comp-subtype-p 'integer x))
-                           (typeset pos)))
-           (if (or (valset neg)
-                   (typeset neg))
+                    (range neg)))
+           (if (or (valset neg) (typeset neg))
                (setf (range neg)
                      (if (memq 'integer (typeset neg))
                          (comp-range-negation (range pos))
@@ -416,9 +429,10 @@ DST is returned."
              ;; When possibile do not return a negated cstr.
              (setf (typeset dst) (typeset pos)
                    (valset dst) (valset pos)
-                   (range dst) (comp-range-union
-                                (comp-range-negation (range neg))
-                                (range pos))
+                   (range dst) (unless (memq 'integer (typeset dst))
+                                 (comp-range-union
+                                  (comp-range-negation (range neg))
+                                  (range pos)))
                    (neg dst) nil)
              (cl-return-from comp-cstr-union-1-no-mem dst))
          (setf (range neg) ()))
