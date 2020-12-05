@@ -947,24 +947,21 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
 
     (cl-loop for ((group . xrefs) . more1) on xref-alist
              do
-             (let ((show-summary (> (length xrefs) 1)))
-               (cl-loop for (xref . more2) on xrefs do
-                        (with-slots (summary location) xref
-                          (let* ((line (xref-location-line location))
-                                 (line-fmt
-                                  (if line
-                                      (format #("%d:" 0 2 (face xref-line-number))
-                                              line)
-                                    ""))
-                                 (group-fmt
-                                  (propertize
-                                   (substring group group-prefix-length)
-                                   'face 'xref-file-header))
-                                 (candidate
-                                  (if show-summary
-                                      (format "%s:%s%s" group-fmt line-fmt summary)
-                                    (format "%s" group-fmt))))
-                            (push (cons candidate xref) xref-alist-with-line-info))))))
+             (cl-loop for (xref . more2) on xrefs do
+                      (with-slots (summary location) xref
+                        (let* ((line (xref-location-line location))
+                               (line-fmt
+                                (if line
+                                    (format #("%d:" 0 2 (face xref-line-number))
+                                            line)
+                                  ""))
+                               (group-fmt
+                                (propertize
+                                 (substring group group-prefix-length)
+                                 'face 'xref-file-header))
+                               (candidate
+                                (format "%s:%s%s" group-fmt line-fmt summary)))
+                          (push (cons candidate xref) xref-alist-with-line-info)))))
 
     (setq xref (if (not (cdr xrefs))
                    (car xrefs)
