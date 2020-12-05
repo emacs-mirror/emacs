@@ -2252,13 +2252,18 @@ off.
 @vindex ps-print-color-p
   If your printer doesn't support colors, you should turn off color
 processing by setting @code{ps-print-color-p} to @code{nil}.  By
-default, if the display supports colors, Emacs produces hardcopy output
-with color information; on black-and-white printers, colors are emulated
-with shades of gray.  This might produce illegible output, even if your
-screen colors only use shades of gray.
+default, if the display supports colors, Emacs produces hardcopy
+output with color information; on black-and-white printers, colors are
+emulated with shades of gray.  This might produce barely-readable or
+even illegible output, even if your screen colors only use shades of
+gray.
 
-  Alternatively, you can set @code{ps-print-color-p} to @code{black-white} to
-print colors on black/white printers.
+@vindex ps-black-white-faces
+  Alternatively, you can set @code{ps-print-color-p} to @code{black-white}
+to have colors display better on black/white printers.  This works by
+using information in @code{ps-black-white-faces} to express colors by
+customizable list of shades of gray, augmented by bold and italic
+face attributes.
 
 @vindex ps-use-face-background
   By default, PostScript printing ignores the background colors of the
