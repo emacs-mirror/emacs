@@ -265,12 +265,10 @@ The match group number 1 should match the revision number itself.")
 (define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
-  (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'log-view-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'log-view-end-of-defun)
-  (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap)
+  (setq-local font-lock-defaults log-view-font-lock-defaults)
+  (setq-local beginning-of-defun-function #'log-view-beginning-of-defun)
+  (setq-local end-of-defun-function #'log-view-end-of-defun)
+  (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;

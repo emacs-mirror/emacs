@@ -179,9 +179,9 @@ Another is that undo information is not kept."
       ;; want any of its output to appear from now on.
       (when oldproc (delete-process oldproc)))
     (kill-all-local-variables)
-    (set (make-local-variable 'vc-parent-buffer) camefrom)
-    (set (make-local-variable 'vc-parent-buffer-name)
-	 (concat " from " (buffer-name camefrom)))
+    (setq-local vc-parent-buffer camefrom)
+    (setq-local vc-parent-buffer-name
+                (concat " from " (buffer-name camefrom)))
     (setq default-directory olddir)
     (let ((buffer-undo-list t)
           (inhibit-read-only t))
@@ -411,8 +411,8 @@ Display the buffer in some window, but don't select it."
 				  (symbol-value error-regexp-alist))))
     (let ((compilation-error-regexp-alist error-regexp-alist))
       (compilation-mode))
-    (set (make-local-variable 'compilation-error-regexp-alist)
-	 error-regexp-alist)))
+    (setq-local compilation-error-regexp-alist
+                error-regexp-alist)))
 
 (declare-function vc-dir-refresh "vc-dir" ())
 
@@ -678,14 +678,14 @@ BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
     (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create logbuf))
       (pop-to-buffer (get-buffer-create logbuf)))
-    (set (make-local-variable 'vc-parent-buffer) parent)
-    (set (make-local-variable 'vc-parent-buffer-name)
-	 (concat " from " (buffer-name vc-parent-buffer)))
+    (setq-local vc-parent-buffer parent)
+    (setq-local vc-parent-buffer-name
+                (concat " from " (buffer-name vc-parent-buffer)))
     (vc-log-edit files mode backend)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))
-    (set (make-local-variable 'vc-log-operation) action)
+    (setq-local vc-log-operation action)
     (when comment
       (erase-buffer)
       (when (stringp comment) (insert comment)))
