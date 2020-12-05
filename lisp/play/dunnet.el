@@ -1144,8 +1144,7 @@ treasures for points?" "4" "four")
 
 (define-derived-mode dun-mode text-mode "Dungeon"
   "Major mode for running dunnet."
-  (make-local-variable 'scroll-step)
-  (setq scroll-step 2))
+  (setq-local scroll-step 2))
 
 (defun dun-parse (_arg)
   "Function called when return is pressed in interactive mode to parse line."
