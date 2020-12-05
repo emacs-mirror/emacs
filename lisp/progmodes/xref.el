@@ -931,6 +931,33 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
                        '(display-buffer-in-direction . ((direction . below))))
         (current-buffer))))))
 
+(defun xref--show-defs-minibuffer (fetcher alist)
+  (let* ((xrefs (funcall fetcher))
+         (xref-alist (xref--analyze xrefs))
+         xref-alist-with-line-info
+         xref)
+
+    (cl-loop for ((group . xrefs) . more1) on xref-alist
+             do
+             (let ((show-summary (> (length xrefs) 1)))
+               (cl-loop for (xref . more2) on xrefs do
+                        (with-slots (summary location) xref
+                          (let* ((line (xref-location-line location))
+                                 (line-fmt (if line (format "%s:" line) ""))
+                                 (candidate
+                                  (if show-summary
+                                      (format "%s:%s%s" group line-fmt summary)
+                                    (format "%s" group))))
+                            (push (cons candidate xref) xref-alist-with-line-info))))))
+
+    (setq xref (if (not (cdr xrefs))
+                   (car xrefs)
+                 (cdr (assoc (completing-read "Jump to definition: "
+                                              (reverse xref-alist-with-line-info))
+                             xref-alist-with-line-info))))
+
+    (xref-pop-to-location xref (assoc-default 'display-action alist))))
+
 
 (defcustom xref-show-xrefs-function 'xref--show-xref-buffer
   "Function to display a list of search results.
