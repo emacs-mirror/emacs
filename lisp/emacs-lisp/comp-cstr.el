@@ -57,7 +57,8 @@
                          (:constructor comp-irange-to-cstr
                                        (irange &aux
                                                (range (list irange))
-                                               (typeset ()))))
+                                               (typeset ())))
+                         (:copier nil))
   "Internal representation of a type/value constraint."
   (typeset '(t) :type list
            :documentation "List of possible types the mvar can assume.
@@ -84,7 +85,13 @@ Integer values are handled in the `range' slot.")
   ;; TODO we should be able to just cons hash this.
   (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
-`comp-common-supertype'."))
+`comp-common-supertype'.")
+  (union-1-mem-no-range (make-hash-table :test #'equal) :type hash-table
+                        :documentation "Serve memoization for
+`comp-cstr-union-1'.")
+  (union-1-mem-range (make-hash-table :test #'equal) :type hash-table
+                     :documentation "Serve memoization for
+`comp-cstr-union-1'."))
 
 (defmacro with-comp-cstr-accessors (&rest body)
   "Define some quick accessor to reduce code vergosity in BODY."
@@ -99,6 +106,14 @@ Integer values are handled in the `range' slot.")
                  (neg (&rest x)
                       `(comp-cstr-neg ,@x)))
      ,@body))
+
+(defun comp-cstr-copy (cstr)
+  "Return a deep copy of CSTR."
+  (with-comp-cstr-accessors
+    (make-comp-cstr :typeset (copy-tree (typeset cstr))
+                    :valset (copy-tree (valset cstr))
+                    :range (copy-tree (range cstr))
+                    :neg (copy-tree (neg cstr)))))
 
 
 ;;; Type handling.
@@ -312,9 +327,10 @@ DST is returned."
                  (mapcar #'comp-cstr-range srcs))))
   dst)
 
-(cl-defun comp-cstr-union-1 (range dst &rest srcs)
+(cl-defun comp-cstr-union-1-no-mem (range dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
 Do range propagation when RANGE is non-nil.
+Non memoized version of `comp-cstr-union-1'.
 DST is returned."
   (with-comp-cstr-accessors
     ;; Check first if we are in the simple case of all input non-negate
@@ -330,7 +346,7 @@ DST is returned."
        (apply #'comp-cstr-union-homogeneous dst srcs)
        (when (zerop n-pos)
          (setf (neg dst) t))
-       (cl-return-from comp-cstr-union-1 dst)))
+       (cl-return-from comp-cstr-union-1-no-mem dst)))
 
     ;; Some are negated and some are not
     (cl-loop
@@ -365,7 +381,7 @@ DST is returned."
                (valset dst) ()
                (range dst) ()
                (neg dst) nil)
-         (cl-return-from comp-cstr-union-1 dst))
+         (cl-return-from comp-cstr-union-1-no-mem dst))
 
        ;; Value propagation.
        (cond
@@ -376,7 +392,7 @@ DST is returned."
                (valset dst) ()
                (range dst) ()
                (neg dst) nil)
-         (cl-return-from comp-cstr-union-1 dst))
+         (cl-return-from comp-cstr-union-1-no-mem dst))
         (t
          ;; pos is a subset or eq to neg
          (setf (valset neg)
@@ -404,7 +420,7 @@ DST is returned."
                                 (comp-range-negation (range neg))
                                 (range pos))
                    (neg dst) nil)
-             (cl-return-from comp-cstr-union-1 dst))
+             (cl-return-from comp-cstr-union-1-no-mem dst))
          (setf (range neg) ()))
 
        (if (and (null (typeset neg))
@@ -419,6 +435,25 @@ DST is returned."
                (range dst) (range neg)
                (neg dst) (neg neg)))))
     dst))
+
+(defun comp-cstr-union-1 (range dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+Do range propagation when RANGE is non-nil.
+DST is returned."
+  (let ((mem-h (if range
+                   (comp-cstr-ctxt-union-1-mem-range comp-ctxt)
+                 (comp-cstr-ctxt-union-1-mem-no-range comp-ctxt))))
+    (with-comp-cstr-accessors
+      (if-let ((mem-res (gethash srcs mem-h)))
+          (progn
+            (setf (typeset dst) (typeset mem-res)
+                  (valset dst) (valset mem-res)
+                  (range dst) (range mem-res)
+                  (neg dst) (neg mem-res))
+            mem-res)
+        (let ((res (apply #'comp-cstr-union-1-no-mem range dst srcs)))
+          (puthash srcs (comp-cstr-copy res) mem-h)
+         res)))))
 
 
 ;;; Entry points.
