@@ -157,6 +157,9 @@ during splitting, which may be slow."
   :version "28.1"
   :type 'boolean)
 
+(defvar nnimap--split-download-body nil
+  "Like `nnimap-split-download-body', but for internal use.")
+
 (defvar nnimap-process nil)
 
 (defvar nnimap-status-string "")
@@ -2108,7 +2111,8 @@ Return the server's response to the SELECT or EXAMINE command."
 		 "BODY.PEEK"
 	       "RFC822.PEEK"))
 	    (cond
-	     (nnimap-split-download-body
+             ((or nnimap-split-download-body
+                  nnimap--split-download-body)
 	      "[]")
 	     ((nnimap-ver4-p)
 	      "[HEADER]")
