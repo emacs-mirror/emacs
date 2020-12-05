@@ -175,6 +175,9 @@ Integer values are handled in the `range' slot.")
 
 ;;; Integer range handling
 
+(defsubst comp-star-or-num-p (x)
+  (or (numberp x) (eq '* x)))
+
 (defsubst comp-range-1+ (x)
   (if (symbolp x)
       x
@@ -484,46 +487,44 @@ DST is returned."
 (defun comp-type-spec-to-cstr (type-spec &optional fn)
   "Convert a type specifier TYPE-SPEC into a `comp-cstr'.
 FN non-nil indicates we are parsing a function lambda list."
-  (cl-flet ((star-or-num (x)
-              (or (numberp x) (eq '* x))))
-    (pcase type-spec
-      ((and (or '&optional '&rest) x)
-       (if fn
-           x
-         (error "Invalid `%s` in type specifier" x)))
-      ('fixnum
-       (comp-irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
-      ('boolean
-       (comp-type-spec-to-cstr '(member t nil)))
-      ('null (comp-value-to-cstr nil))
-      ((pred atom)
-       (comp-type-to-cstr type-spec))
-      (`(or . ,rest)
-       (apply #'comp-cstr-union-make
-              (mapcar #'comp-type-spec-to-cstr rest)))
-      (`(and . ,rest)
-       (apply #'comp-cstr-intersection-make
-              (mapcar #'comp-type-spec-to-cstr rest)))
-      (`(not  ,cstr)
-       (comp-cstr-negation-make (comp-type-spec-to-cstr cstr)))
-      (`(integer ,(and (pred integerp) l) ,(and (pred integerp) h))
-       (comp-irange-to-cstr `(,l . ,h)))
-      (`(integer * ,(and (pred integerp) h))
-       (comp-irange-to-cstr `(- . ,h)))
-      (`(integer ,(and (pred integerp) l) *)
-       (comp-irange-to-cstr `(,l . +)))
-      (`(float ,(pred star-or-num) ,(pred star-or-num))
-       ;; No float range support :/
-       (comp-type-to-cstr 'float))
-      (`(member . ,rest)
-       (apply #'comp-cstr-union-make (mapcar #'comp-value-to-cstr rest)))
-      (`(function ,args ,ret)
-       (make-comp-cstr-f
-        :args (mapcar (lambda (x)
-                        (comp-type-spec-to-cstr x t))
-                      args)
-        :ret (comp-type-spec-to-cstr ret)))
-      (_ (error "Invalid type specifier")))))
+  (pcase type-spec
+    ((and (or '&optional '&rest) x)
+     (if fn
+         x
+       (error "Invalid `%s` in type specifier" x)))
+    ('fixnum
+     (comp-irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
+    ('boolean
+     (comp-type-spec-to-cstr '(member t nil)))
+    ('null (comp-value-to-cstr nil))
+    ((pred atom)
+     (comp-type-to-cstr type-spec))
+    (`(or . ,rest)
+     (apply #'comp-cstr-union-make
+            (mapcar #'comp-type-spec-to-cstr rest)))
+    (`(and . ,rest)
+     (apply #'comp-cstr-intersection-make
+            (mapcar #'comp-type-spec-to-cstr rest)))
+    (`(not  ,cstr)
+     (comp-cstr-negation-make (comp-type-spec-to-cstr cstr)))
+    (`(integer ,(and (pred integerp) l) ,(and (pred integerp) h))
+     (comp-irange-to-cstr `(,l . ,h)))
+    (`(integer * ,(and (pred integerp) h))
+     (comp-irange-to-cstr `(- . ,h)))
+    (`(integer ,(and (pred integerp) l) *)
+     (comp-irange-to-cstr `(,l . +)))
+    (`(float ,(pred comp-star-or-num-p) ,(pred comp-star-or-num-p))
+     ;; No float range support :/
+     (comp-type-to-cstr 'float))
+    (`(member . ,rest)
+     (apply #'comp-cstr-union-make (mapcar #'comp-value-to-cstr rest)))
+    (`(function ,args ,ret)
+     (make-comp-cstr-f
+      :args (mapcar (lambda (x)
+                      (comp-type-spec-to-cstr x t))
+                    args)
+      :ret (comp-type-spec-to-cstr ret)))
+    (_ (error "Invalid type specifier"))))
 
 (defun comp-cstr-to-type-spec (cstr)
   "Given CSTR return its type specifier."
@@ -562,7 +563,9 @@ FN non-nil indicates we are parsing a function lambda list."
                   nil)))
            (final
             (pcase res
-              (`(,(or 'integer 'member) . ,rest)
+              ((or `(member . ,rest)
+                   `(integer ,(pred comp-star-or-num-p)
+                             ,(pred comp-star-or-num-p)))
                (if rest
                    res
                  (car res)))
