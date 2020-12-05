@@ -935,7 +935,15 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
   (let* ((xrefs (funcall fetcher))
          (xref-alist (xref--analyze xrefs))
          xref-alist-with-line-info
-         xref)
+         xref
+         (group-prefix-length
+          ;; FIXME: Groups are not always file names, but they often
+          ;; are.  At least this shouldn't make the other kinds of
+          ;; groups look worse.
+          (let ((common-prefix (try-completion "" xref-alist)))
+            (if (> (length common-prefix) 0)
+                (length (file-name-directory common-prefix))
+              0))))
 
     (cl-loop for ((group . xrefs) . more1) on xref-alist
              do
@@ -944,10 +952,11 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
                         (with-slots (summary location) xref
                           (let* ((line (xref-location-line location))
                                  (line-fmt (if line (format "%s:" line) ""))
+                                 (group-fmt (substring group group-prefix-length))
                                  (candidate
                                   (if show-summary
-                                      (format "%s:%s%s" group line-fmt summary)
-                                    (format "%s" group))))
+                                      (format "%s:%s%s" group-fmt line-fmt summary)
+                                    (format "%s" group-fmt))))
                             (push (cons candidate xref) xref-alist-with-line-info))))))
 
     (setq xref (if (not (cdr xrefs))
