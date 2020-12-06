@@ -197,7 +197,7 @@ command to find the next error.  The buffer is also in `comint-mode' and
 				      buffer-file-name))))
   (require 'compile)
   (save-some-buffers (not compilation-ask-about-save))
-  (set (make-local-variable 'executable-command) command)
+  (setq-local executable-command command)
   (let ((compilation-error-regexp-alist executable-error-regexp-alist))
     (compilation-start command t (lambda (_x) "*interpretation*"))))
 

@@ -1141,18 +1141,18 @@ Assumes that file has been compiled with debugging support."
 ;;;###autoload
 (define-derived-mode mixal-mode prog-mode "mixal"
   "Major mode for the mixal asm language."
-  (set (make-local-variable 'comment-start) "*")
-  (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")
-  (set (make-local-variable 'font-lock-defaults)
-       '(mixal-font-lock-keywords))
-  (set (make-local-variable 'syntax-propertize-function)
-       mixal-syntax-propertize-function)
+  (setq-local comment-start "*")
+  (setq-local comment-start-skip "^\\*[ \t]*")
+  (setq-local font-lock-defaults
+              '(mixal-font-lock-keywords))
+  (setq-local syntax-propertize-function
+              mixal-syntax-propertize-function)
   ;; might add an indent function in the future
-  ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
-  (set (make-local-variable 'compile-command)
-       (concat "mixasm "
-	       (if buffer-file-name
-		   (shell-quote-argument buffer-file-name)))))
+  ;;  (setq-local indent-line-function 'mixal-indent-line)
+  (setq-local compile-command
+              (concat "mixasm "
+                      (if buffer-file-name
+                          (shell-quote-argument buffer-file-name)))))
 
 (provide 'mixal-mode)
 

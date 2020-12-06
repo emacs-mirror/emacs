@@ -861,36 +861,34 @@ with no args, if that value is non-nil."
   :group 'fortran
   :syntax-table fortran-mode-syntax-table
   :abbrev-table fortran-mode-abbrev-table
-  (set (make-local-variable 'indent-line-function) 'fortran-indent-line)
-  (set (make-local-variable 'indent-region-function)
+  (setq-local indent-line-function 'fortran-indent-line)
+  (setq-local indent-region-function
        (lambda (start end)
          (let (fortran-blink-matching-if ; avoid blinking delay
                indent-region-function)
            (indent-region start end nil))))
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+  (setq-local require-final-newline mode-require-final-newline)
   ;; The syntax tables don't understand the column-0 comment-markers.
-  (set (make-local-variable 'comment-use-syntax) nil)
-  (set (make-local-variable 'comment-padding) "$$$")
-  (set (make-local-variable 'comment-start) fortran-comment-line-start)
-  (set (make-local-variable 'comment-start-skip)
+  (setq-local comment-use-syntax nil)
+  (setq-local comment-padding "$$$")
+  (setq-local comment-start fortran-comment-line-start)
+  (setq-local comment-start-skip
        ;; We can't reuse `fortran-comment-line-start-skip' directly because
        ;; it contains backrefs whereas we need submatch-1 to end at the
        ;; beginning of the comment delimiter.
        ;; (concat "\\(\\)\\(![ \t]*\\|" fortran-comment-line-start-skip "\\)")
        "\\(\\)\\(?:^[CcDd*]\\|!\\)\\(?:\\([^ \t\n]\\)\\2+\\)?[ \t]*")
-  (set (make-local-variable 'comment-indent-function) 'fortran-comment-indent)
-  (set (make-local-variable 'comment-region-function) 'fortran-comment-region)
-  (set (make-local-variable 'uncomment-region-function)
-       'fortran-uncomment-region)
-  (set (make-local-variable 'comment-insert-comment-function)
-       'fortran-indent-comment)
-  (set (make-local-variable 'abbrev-all-caps) t)
-  (set (make-local-variable 'normal-auto-fill-function) 'fortran-auto-fill)
-  (set (make-local-variable 'indent-tabs-mode) (fortran-analyze-file-format))
+  (setq-local comment-indent-function 'fortran-comment-indent)
+  (setq-local comment-region-function 'fortran-comment-region)
+  (setq-local uncomment-region-function 'fortran-uncomment-region)
+  (setq-local comment-insert-comment-function 'fortran-indent-comment)
+  (setq-local abbrev-all-caps t)
+  (setq-local normal-auto-fill-function 'fortran-auto-fill)
+  (setq-local indent-tabs-mode (fortran-analyze-file-format))
   (setq mode-line-process '(indent-tabs-mode fortran-tab-mode-string))
-  (set (make-local-variable 'fill-column) fortran-line-length)
-  (set (make-local-variable 'fill-paragraph-function) 'fortran-fill-paragraph)
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local fill-column fortran-line-length)
+  (setq-local fill-paragraph-function 'fortran-fill-paragraph)
+  (setq-local font-lock-defaults
        '((fortran-font-lock-keywords
           fortran-font-lock-keywords-1
           fortran-font-lock-keywords-2
@@ -898,20 +896,19 @@ with no args, if that value is non-nil."
           fortran-font-lock-keywords-4)
          nil t ((?/ . "$/") ("_$" . "w"))
          fortran-beginning-of-subprogram))
-  (set (make-local-variable 'syntax-propertize-function)
+  (setq-local syntax-propertize-function
        (fortran-make-syntax-propertize-function fortran-line-length))
-  (set (make-local-variable 'imenu-case-fold-search) t)
-  (set (make-local-variable 'imenu-generic-expression)
-       fortran-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist) '(("_$" . "w")))
-  (set (make-local-variable 'beginning-of-defun-function)
-       #'fortran-beginning-of-subprogram)
-  (set (make-local-variable 'end-of-defun-function)
-       #'fortran-end-of-subprogram)
-  (set (make-local-variable 'add-log-current-defun-function)
-       #'fortran-current-defun)
-  (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
-  (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
+  (setq-local imenu-case-fold-search t)
+  (setq-local imenu-generic-expression fortran-imenu-generic-expression)
+  (setq-local imenu-syntax-alist '(("_$" . "w")))
+  (setq-local beginning-of-defun-function
+              #'fortran-beginning-of-subprogram)
+  (setq-local end-of-defun-function
+              #'fortran-end-of-subprogram)
+  (setq-local add-log-current-defun-function
+              #'fortran-current-defun)
+  (setq-local dabbrev-case-fold-search 'case-fold-search)
+  (setq-local gud-find-expr-function 'fortran-gud-find-expr)
   (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t))
 
 

@@ -173,10 +173,9 @@
 ;;;###autoload
 (define-derived-mode ld-script-mode prog-mode "LD-Script"
    "A major mode to edit GNU ld script files"
-  (set (make-local-variable 'comment-start) "/* ")
-  (set (make-local-variable 'comment-end)   " */")
-  (set (make-local-variable 'font-lock-defaults)
-       '(ld-script-font-lock-keywords nil)))
+  (setq-local comment-start "/* ")
+  (setq-local comment-end   " */")
+  (setq-local font-lock-defaults '(ld-script-font-lock-keywords nil)))
 
 (provide 'ld-script)
 

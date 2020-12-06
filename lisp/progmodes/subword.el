@@ -332,7 +332,7 @@ as parts of words: e.g., in `superword-mode',
 searching subwords in order to avoid unwanted reentrancy.")
 
 (defun subword-setup-buffer ()
-  (set (make-local-variable 'find-word-boundary-function-table)
+  (setq-local find-word-boundary-function-table
        (if (or subword-mode superword-mode)
            subword-find-word-boundary-function-table
          subword-empty-char-table)))
