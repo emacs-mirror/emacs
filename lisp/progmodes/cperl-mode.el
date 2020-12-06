@@ -931,19 +931,12 @@ In regular expressions (including character classes):
 (defun cperl-putback-char (c)		; Emacs 19
   (push c unread-command-events))       ; Avoid undefined warning
 
-(defvar cperl-do-not-fontify
-  ;; FIXME: This is not doing what it claims!
-  (if (string< emacs-version "19.30")
-      'fontified
-    'lazy-lock)
-  "Text property which inhibits refontification.")
-
 (defsubst cperl-put-do-not-fontify (from to &optional post)
   ;; If POST, do not do it with postponed fontification
   (if (and post cperl-syntaxify-by-font-lock)
       nil
     (put-text-property (max (point-min) (1- from))
-		       to cperl-do-not-fontify t)))
+                       to 'fontified t)))
 
 (defcustom cperl-mode-hook nil
   "Hook run by CPerl mode."
@@ -1254,11 +1247,7 @@ versions of Emacs."
 	  ["Speed" (describe-variable 'cperl-speed) t]
 	  ["Praise" (describe-variable 'cperl-praise) t]
 	  ["Faces" (describe-variable 'cperl-tips-faces) t]
-	  ["CPerl mode" (describe-function 'cperl-mode) t]
-	  ["CPerl version"
-	   (message "The version of master-file for this CPerl is %s-Emacs"
-		    cperl-version)
-           t]))))
+          ["CPerl mode" (describe-function 'cperl-mode) t]))))
   (error nil))
 
 (autoload 'c-macro-expand "cmacexp"
@@ -5468,7 +5457,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
 (defun cperl-init-faces ()
   (condition-case errs
       (progn
-	(require 'font-lock)
 	(let (t-font-lock-keywords t-font-lock-keywords-1 font-lock-anchored)
 	  (setq font-lock-anchored t)
 	  (setq
@@ -8530,6 +8518,11 @@ do extra unwind via `cperl-unwind-to-safe'."
     (string-match ":\\s *\\([0-9.]+\\)" v)
     (substring v (match-beginning 1) (match-end 1)))
   "Version of IZ-supported CPerl package this file is based on.")
+(make-obsolete-variable 'cperl-version 'emacs-version "28.1")
+
+(defvar cperl-do-not-fontify 'fontified
+  "Text property which inhibits refontification.")
+(make-obsolete-variable 'cperl-do-not-fontify nil "28.1")
 
 (provide 'cperl-mode)
 

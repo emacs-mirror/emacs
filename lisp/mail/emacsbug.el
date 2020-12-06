@@ -241,12 +241,12 @@ Already submitted bugs can be found in the Emacs bug tracker:
       ;; that report-emacs-bug-orig-text remains valid.  (Bug#5178)
       (message-sort-headers)
       ;; Stop message-mode stealing the properties we will add.
-      (set (make-local-variable 'message-strip-special-text-properties) nil)
+      (setq-local message-strip-special-text-properties nil)
       ;; Make sure we default to the From: address as envelope when sending
       ;; through sendmail.  FIXME: Why?
       (when (and (not (message--sendmail-envelope-from))
 		 (message-bogus-recipient-p (message-make-address)))
-	(set (make-local-variable 'message-sendmail-envelope-from) 'header)))
+        (setq-local message-sendmail-envelope-from 'header)))
     (rfc822-goto-eoh)
     (forward-line 1)
     ;; Move the mail signature to the proper place.
@@ -381,9 +381,8 @@ usually do not have translators for other languages.\n\n")))
         (add-hook report-emacs-bug-send-hook 'report-emacs-bug-hook nil t))
     (goto-char (point-max))
     (skip-chars-backward " \t\n")
-    (make-local-variable 'report-emacs-bug-orig-text)
-    (setq report-emacs-bug-orig-text
-          (buffer-substring-no-properties (point-min) (point)))
+    (setq-local report-emacs-bug-orig-text
+                (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
 (defun emacs-bug--system-description ()

@@ -548,7 +548,7 @@ or svn+ssh://."
 
 (define-derived-mode vc-svn-log-view-mode log-view-mode "SVN-Log-View"
   (require 'add-log)
-  (set (make-local-variable 'log-view-per-file-logs) nil))
+  (setq-local log-view-per-file-logs nil))
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 

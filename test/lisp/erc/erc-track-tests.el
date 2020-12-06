@@ -24,7 +24,6 @@
 
 (require 'ert)
 (require 'erc-track)
-(require 'font-core)
 
 (ert-deftest erc-track--shorten-aggressive-nil ()
   "Test non-aggressive erc track buffer name shortening."

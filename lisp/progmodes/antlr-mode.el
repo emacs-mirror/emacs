@@ -75,8 +75,8 @@
 ;;   (add-hook 'speedbar-load-hook  ; would be too late in antlr-mode.el
 ;;	       (lambda () (speedbar-add-supported-extension ".g")))
 
-;; I strongly recommend to use font-lock with a support mode like fast-lock,
-;; lazy-lock or better jit-lock (Emacs-21.1+) / lazy-shot (XEmacs).
+;; I strongly recommend to use font-lock with a support mode like
+;; jit-lock (Emacs) / lazy-shot (XEmacs).
 
 ;; To customize, use menu item "Antlr" -> "Customize Antlr".
 

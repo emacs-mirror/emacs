@@ -111,8 +111,9 @@
 (defun build-klist (arglist keys &optional allow-others)
   (let ((res (Multiple-value-call 'mapcar* 'cons (unzip-lists arglist))))
     (or allow-others
-	(let ((bad (set-difference (mapcar 'car res) keys)))
-	  (if bad (error "Bad keywords: %s not in %s" bad keys))))
+        (with-suppressed-warnings ((obsolete set-difference))
+          (let ((bad (set-difference (mapcar 'car res) keys)))
+            (if bad (error "Bad keywords: %s not in %s" bad keys)))))
     res))
 
 (defun extract-from-klist (klist key &optional def)
@@ -130,16 +131,18 @@
       (funcall (or test 'eql) item elt))))
 
 (defun safe-idiv (a b)
-  (let* ((q (/ (abs a) (abs b)))
-         (s (* (signum a) (signum b))))
-    (Values q (- a (* s q b)) s)))
+  (with-suppressed-warnings ((obsolete signum))
+    (let* ((q (/ (abs a) (abs b)))
+           (s (* (signum a) (signum b))))
+      (Values q (- a (* s q b)) s))))
 
 
 ;; Internal routines.
 
 (defun pair-with-newsyms (oldforms)
-  (let ((newsyms (mapcar (lambda (x) (make-symbol "--cl-var--")) oldforms)))
-    (Values (mapcar* 'list newsyms oldforms) newsyms)))
+  (with-suppressed-warnings ((obsolete mapcar*))
+    (let ((newsyms (mapcar (lambda (x) (make-symbol "--cl-var--")) oldforms)))
+      (Values (mapcar* 'list newsyms oldforms) newsyms))))
 
 (defun zip-lists (evens odds)
   (cl-mapcan 'list evens odds))

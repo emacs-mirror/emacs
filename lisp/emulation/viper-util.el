@@ -596,7 +596,7 @@ Otherwise return the normal value."
 (defun viper-save-setting (var message file &optional erase-msg)
   (let* ((var-name (symbol-name var))
 	 (var-val (if (boundp var) (eval var)))
-	 (regexp (format "^[^;]*%s[ \t\n]*[a-zA-Z---_']*[ \t\n)]" var-name))
+	 (regexp (format "^[^;]*%s[ \t\n]*[a-zA-Z0-9---_']*[ \t\n)]" var-name))
 	 (buf (find-file-noselect (substitute-in-file-name file)))
 	)
     (message "%s" (or message ""))

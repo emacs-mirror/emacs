@@ -779,7 +779,7 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 			     found)))))))
 	    (if root (setq file-name (expand-file-name cbase root))))))
     ;; Make a local variable in this buffer so we needn't search again.
-    (set (make-local-variable 'change-log-default-name) file-name))
+    (setq-local change-log-default-name file-name))
   file-name)
 
 (defun add-log-file-name (buffer-file log-file)
@@ -1134,40 +1134,40 @@ Runs `change-log-mode-hook'.
 	indent-tabs-mode t
 	tab-width 8
 	show-trailing-whitespace t)
-  (set (make-local-variable 'fill-forward-paragraph-function)
-       'change-log-fill-forward-paragraph)
-  (set (make-local-variable 'comment-start) nil)
+  (setq-local fill-forward-paragraph-function
+              'change-log-fill-forward-paragraph)
+  (setq-local comment-start nil)
   ;; Make sure we call `change-log-indent' when filling.
-  (set (make-local-variable 'fill-indent-according-to-mode) t)
+  (setq-local fill-indent-according-to-mode t)
   ;; Avoid that filling leaves behind a single "*" on a line.
   (add-hook 'fill-nobreak-predicate
 	    (lambda ()
               (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
 	    nil t)
-  (set (make-local-variable 'indent-line-function) 'change-log-indent)
-  (set (make-local-variable 'tab-always-indent) nil)
-  (set (make-local-variable 'copyright-at-end-flag) t)
+  (setq-local indent-line-function 'change-log-indent)
+  (setq-local tab-always-indent nil)
+  (setq-local copyright-at-end-flag t)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
   ;; between entries for different files.
-  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<")
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (setq-local paragraph-start "\\s *$\\|\f\\|^\\<")
+  (setq-local paragraph-separate paragraph-start)
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
-  (set (make-local-variable 'page-delimiter) "^\\<\\|^\f")
-  (set (make-local-variable 'version-control) 'never)
-  (set (make-local-variable 'smerge-resolve-function)
-       'change-log-resolve-conflict)
-  (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
-  (set (make-local-variable 'font-lock-defaults)
-       '(change-log-font-lock-keywords t nil nil backward-paragraph))
-  (set (make-local-variable 'multi-isearch-next-buffer-function)
-       'change-log-next-buffer)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'change-log-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'change-log-end-of-defun)
+  (setq-local page-delimiter "^\\<\\|^\f")
+  (setq-local version-control 'never)
+  (setq-local smerge-resolve-function
+              'change-log-resolve-conflict)
+  (setq-local adaptive-fill-regexp "\\s *")
+  (setq-local font-lock-defaults
+              '(change-log-font-lock-keywords t nil nil backward-paragraph))
+  (setq-local multi-isearch-next-buffer-function
+              'change-log-next-buffer)
+  (setq-local beginning-of-defun-function
+              'change-log-beginning-of-defun)
+  (setq-local end-of-defun-function
+              'change-log-end-of-defun)
   ;; next-error function glue
   (setq next-error-function 'change-log-next-error))
 

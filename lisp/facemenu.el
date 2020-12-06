@@ -85,10 +85,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'help)
-  (require 'button))
-
 ;; Global bindings:
 (define-key global-map [C-down-mouse-2] 'facemenu-menu)
 (define-key global-map "\M-o" 'facemenu-keymap)

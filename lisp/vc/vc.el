@@ -1411,8 +1411,7 @@ first backend that could register the file is used."
        ;; the buffers visiting files affected by this `vc-register', not
        ;; in the current-buffer.
        ;; (unless vc-make-backup-files
-       ;;   (make-local-variable 'backup-inhibited)
-       ;;   (setq backup-inhibited t))
+       ;;   (setq-local backup-inhibited t))
 
        (vc-resynch-buffer file t t))
      files)
@@ -1779,11 +1778,11 @@ Return t if the buffer had changes, nil otherwise."
     (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (set-buffer buffer)
     (diff-mode)
-    (set (make-local-variable 'diff-vc-backend) (car vc-fileset))
-    (set (make-local-variable 'diff-vc-revisions) (list rev1 rev2))
-    (set (make-local-variable 'revert-buffer-function)
-	 (lambda (_ignore-auto _noconfirm)
-           (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
+    (setq-local diff-vc-backend (car vc-fileset))
+    (setq-local diff-vc-revisions (list rev1 rev2))
+    (setq-local revert-buffer-function
+                (lambda (_ignore-auto _noconfirm)
+                  (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
     ;; Make the *vc-diff* buffer read only, the diff-mode key
     ;; bindings are nicer for read only buffers. pcl-cvs does the
     ;; same thing.
@@ -2118,7 +2117,7 @@ Saves the buffer to the file."
       (with-current-buffer result-buf
 	;; Set the parent buffer so that things like
 	;; C-x v g, C-x v l, ... etc work.
-	(set (make-local-variable 'vc-parent-buffer) filebuf))
+        (setq-local vc-parent-buffer filebuf))
       result-buf)))
 
 (defun vc-find-revision-no-save (file revision &optional backend buffer)
@@ -2165,7 +2164,7 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                           (get-file-buffer filename)
                           (find-file-noselect filename))))
       (with-current-buffer result-buf
-	(set (make-local-variable 'vc-parent-buffer) filebuf))
+        (setq-local vc-parent-buffer filebuf))
       result-buf)))
 
 ;; Header-insertion code
@@ -2466,7 +2465,7 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 			       rev-buff-func)
   (let (retval (buffer (get-buffer-create buffer-name)))
     (with-current-buffer buffer
-      (set (make-local-variable 'vc-log-view-type) type))
+      (setq-local vc-log-view-type type))
     (setq retval (funcall backend-func backend buffer-name type files))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
@@ -2478,10 +2477,9 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
                                    backend 'region-history-mode))
                              'region-history-mode
                            'log-view-mode))
-	(set (make-local-variable 'log-view-vc-backend) backend)
-	(set (make-local-variable 'log-view-vc-fileset) files)
-	(set (make-local-variable 'revert-buffer-function)
-	     rev-buff-func)))
+        (setq-local log-view-vc-backend backend)
+        (setq-local log-view-vc-fileset files)
+        (setq-local revert-buffer-function rev-buff-func)))
     ;; Display after setting up major-mode, so display-buffer-alist can know
     ;; the major-mode.
     (pop-to-buffer buffer)
@@ -2679,13 +2677,13 @@ mark."
     (vc-call region-history file buf lfrom lto)
     (with-current-buffer buf
       (vc-call-backend backend 'region-history-mode)
-      (set (make-local-variable 'log-view-vc-backend) backend)
-      (set (make-local-variable 'log-view-vc-fileset) (list file))
-      (set (make-local-variable 'revert-buffer-function)
-	   (lambda (_ignore-auto _noconfirm)
-             (with-current-buffer buf
-               (let ((inhibit-read-only t)) (erase-buffer)))
-             (vc-call region-history file buf lfrom lto))))
+      (setq-local log-view-vc-backend backend)
+      (setq-local log-view-vc-fileset (list file))
+      (setq-local revert-buffer-function
+                  (lambda (_ignore-auto _noconfirm)
+                    (with-current-buffer buf
+                      (let ((inhibit-read-only t)) (erase-buffer)))
+                    (vc-call region-history file buf lfrom lto))))
     (display-buffer buf)))
 
 ;;;###autoload

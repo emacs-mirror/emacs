@@ -163,7 +163,7 @@ This is default behavior of shells like bash."
     (add-hook 'pre-command-hook 'eshell-save-previous-point nil t)
     (make-local-variable 'overriding-local-map)
     (add-hook 'post-command-hook 'eshell-rebind-input-map nil t)
-    (set (make-local-variable 'eshell-lock-keymap) nil)
+    (setq-local eshell-lock-keymap nil)
     (eshell-rebind-mode)))
 
 (defun eshell-lock-local-map (&optional arg)
@@ -219,8 +219,7 @@ lock it at that."
 
 (defun eshell-setup-input-keymap ()
   "Setup the input keymap to be used during input editing."
-  (make-local-variable 'eshell-input-keymap)
-  (setq eshell-input-keymap (make-sparse-keymap))
+  (setq-local eshell-input-keymap (make-sparse-keymap))
   (set-keymap-parent eshell-input-keymap eshell-mode-map)
   (let ((bindings eshell-rebind-keys-alist))
     (while bindings

@@ -239,14 +239,14 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (define-derived-mode vc-mtn-log-view-mode log-view-mode "Mtn-Log-View"
   ;; Don't match anything.
-  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
-  (set (make-local-variable 'log-view-per-file-logs) nil)
+  (setq-local log-view-file-re regexp-unmatchable)
+  (setq-local log-view-per-file-logs nil)
   ;; TODO: Use a more precise regexp than "[ |/]+" to avoid false positives
   ;; in the ChangeLog text.
-  (set (make-local-variable 'log-view-message-re)
-       "^[ |/]+Revision: \\([0-9a-f]+\\)")
+  (setq-local log-view-message-re
+              "^[ |/]+Revision: \\([0-9a-f]+\\)")
   (require 'add-log)                    ;For change-log faces.
-  (set (make-local-variable 'log-view-font-lock-keywords)
+  (setq-local log-view-font-lock-keywords
        (append log-view-font-lock-keywords
                '(("^[ |]+Author: \\(.*\\)" (1 'change-log-email))
                  ("^[ |]+Date: \\(.*\\)" (1 'change-log-date))))))

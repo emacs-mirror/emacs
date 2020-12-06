@@ -312,45 +312,38 @@ and the hook `eshell-exit-hook'."
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 
-  (set (make-local-variable 'bookmark-make-record-function)
-       'eshell-bookmark-make-record)
+  (setq-local bookmark-make-record-function #'eshell-bookmark-make-record)
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
-  (set (make-local-variable 'list-buffers-directory)
-       (expand-file-name default-directory))
+  (setq-local list-buffers-directory (expand-file-name default-directory))
 
   ;; always set the tab width to 8 in Eshell buffers, since external
   ;; commands which do their own formatting almost always expect this
-  (set (make-local-variable 'tab-width) 8)
+  (setq-local tab-width 8)
 
   ;; don't ever use auto-fill in Eshell buffers
   (setq auto-fill-function nil)
 
   ;; always display everything from a return value
-  (if (boundp 'print-length)
-      (set (make-local-variable 'print-length) nil))
-  (if (boundp 'print-level)
-      (set (make-local-variable 'print-level) nil))
+  (setq-local print-length nil)
+  (setq-local print-level nil)
 
   ;; set require-final-newline to nil; otherwise, all redirected
   ;; output will end with a newline, whether or not the source
   ;; indicated it!
-  (set (make-local-variable 'require-final-newline) nil)
+  (setq-local require-final-newline nil)
 
-  (set (make-local-variable 'max-lisp-eval-depth)
-       (max 3000 max-lisp-eval-depth))
-  (set (make-local-variable 'max-specpdl-size)
-       (max 6000 max-lisp-eval-depth))
+  (setq-local max-lisp-eval-depth (max 3000 max-lisp-eval-depth))
+  (setq-local max-specpdl-size (max 6000 max-lisp-eval-depth))
 
-  (set (make-local-variable 'eshell-last-input-start) (point-marker))
-  (set (make-local-variable 'eshell-last-input-end) (point-marker))
-  (set (make-local-variable 'eshell-last-output-start) (point-marker))
-  (set (make-local-variable 'eshell-last-output-end) (point-marker))
-  (set (make-local-variable 'eshell-last-output-block-begin) (point))
+  (setq-local eshell-last-input-start (point-marker))
+  (setq-local eshell-last-input-end (point-marker))
+  (setq-local eshell-last-output-start (point-marker))
+  (setq-local eshell-last-output-end (point-marker))
+  (setq-local eshell-last-output-block-begin (point))
 
   (let ((modules-list (copy-sequence eshell-modules-list)))
-    (make-local-variable 'eshell-modules-list)
-    (setq eshell-modules-list modules-list))
+    (setq-local eshell-modules-list modules-list))
 
   ;; This is to avoid making the paragraph base direction
   ;; right-to-left if the first word just happens to start with a
@@ -391,7 +384,7 @@ and the hook `eshell-exit-hook'."
       (add-hook 'pre-command-hook #'eshell-preinput-scroll-to-bottom t t))
 
   (when eshell-scroll-show-maximum-output
-    (set (make-local-variable 'scroll-conservatively) 1000))
+    (setq-local scroll-conservatively 1000))
 
   (when eshell-status-in-mode-line
     (add-hook 'eshell-pre-command-hook #'eshell-command-started nil t)

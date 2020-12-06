@@ -356,10 +356,10 @@ from the current buffer."
 	       ((and (bufferp cvs-temp-buffer) (buffer-live-p cvs-temp-buffer))
 		cvs-temp-buffer)
 	       (t
-		(set (make-local-variable 'cvs-temp-buffer)
-		     (cvs-get-buffer-create
-		      (eval cvs-temp-buffer-name `((dir . ,dir)))
-                      'noreuse))))))
+                (setq-local cvs-temp-buffer
+                            (cvs-get-buffer-create
+                             (eval cvs-temp-buffer-name `((dir . ,dir)))
+                             'noreuse))))))
 
     ;; Handle the potential pre-existing process.
     (let ((proc (get-buffer-process buf)))
@@ -381,7 +381,7 @@ from the current buffer."
       (unless nosetup (save-excursion (display-buffer buf)))
       ;; FIXME: this doesn't do the right thing if the user later on
       ;; does a `find-file-other-window' and `scroll-other-window'
-      (set (make-local-variable 'other-window-scroll-buffer) buf))
+      (setq-local other-window-scroll-buffer buf))
 
     (add-to-list 'cvs-temp-buffers buf)
 
@@ -393,13 +393,13 @@ from the current buffer."
         ;; a very large and unwanted undo record.
         (buffer-disable-undo)
         (erase-buffer))
-      (set (make-local-variable 'cvs-buffer) cvs-buf)
+      (setq-local cvs-buffer cvs-buf)
       ;;(cvs-minor-mode 1)
       (let ((lbd list-buffers-directory))
 	(if (fboundp mode) (funcall mode) (fundamental-mode))
 	(when lbd (setq list-buffers-directory lbd)))
       (cvs-minor-mode 1)
-      ;;(set (make-local-variable 'cvs-buffer) cvs-buf)
+      ;;(setq-local cvs-buffer cvs-buf)
       (if normal
           (buffer-enable-undo)
 	(setq buffer-read-only t)
@@ -466,10 +466,10 @@ If non-nil, NEW means to create a new buffer no matter what."
 		 "\n")
 	 (setq buffer-read-only t)
 	 (cvs-mode)
-	 (set (make-local-variable 'list-buffers-directory) buffer-name)
-	 ;;(set (make-local-variable 'cvs-temp-buffer) (cvs-temp-buffer))
+         (setq-local list-buffers-directory buffer-name)
+         ;;(setq-local cvs-temp-buffer (cvs-temp-buffer))
 	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n\n" "\n" t)))
-	   (set (make-local-variable 'cvs-cookies) cookies)
+           (setq-local cvs-cookies cookies)
 	   (add-hook 'kill-buffer-hook
 		     (lambda ()
 		       (ignore-errors (kill-buffer cvs-temp-buffer)))
@@ -1103,7 +1103,7 @@ for a lock file.  If so, it inserts a message cookie in the *cvs* buffer."
 	    (let ((msg (match-string 1))
 		  (lock (match-string 2)))
 	      (with-current-buffer cvs-buffer
-		(set (make-local-variable 'cvs-lock-file) lock)
+                (setq-local cvs-lock-file lock)
 		;; display the lock situation in the *cvs* buffer:
 		(ewoc-enter-last
 		 cvs-cookies
@@ -1146,8 +1146,8 @@ Full documentation is in the Texinfo file."
   (if buffer-file-name
       (error "Use M-x cvs-quickdir to get a *cvs* buffer"))
   (buffer-disable-undo)
-  ;;(set (make-local-variable 'goal-column) cvs-cursor-column)
-  (set (make-local-variable 'revert-buffer-function) 'cvs-mode-revert-buffer)
+  ;;(setq-local goal-column cvs-cursor-column)
+  (setq-local revert-buffer-function 'cvs-mode-revert-buffer)
   (setq truncate-lines t)
   (cvs-prefix-make-local 'cvs-branch-prefix)
   (cvs-prefix-make-local 'cvs-secondary-branch-prefix)
@@ -1464,7 +1464,7 @@ The POSTPROC specified there (typically `log-edit') is then called,
     (funcall setupfun 'cvs-do-commit setup
 	     '((log-edit-listfun . cvs-commit-filelist)
 	       (log-edit-diff-function . cvs-mode-diff)) buf)
-    (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
+    (setq-local cvs-minor-wrap-function 'cvs-commit-minor-wrap)
     (run-hooks 'cvs-mode-commit-hook)))
 
 (defun cvs-commit-minor-wrap (_buf f)
@@ -1525,15 +1525,14 @@ This is best called from a `log-view-mode' buffer."
     (with-current-buffer buf
       ;; Set the filename before, so log-edit can correctly setup its
       ;; log-edit-initial-files variable.
-      (set (make-local-variable 'cvs-edit-log-files) (list file)))
+      (setq-local cvs-edit-log-files (list file)))
     (funcall setupfun 'cvs-do-edit-log nil
 	     '((log-edit-listfun . cvs-edit-log-filelist)
 	       (log-edit-diff-function . cvs-mode-diff))
 	     buf)
     (when text (erase-buffer) (insert text))
-    (set (make-local-variable 'cvs-edit-log-revision) rev)
-    (set (make-local-variable 'cvs-minor-wrap-function)
-         'cvs-edit-log-minor-wrap)
+    (setq-local cvs-edit-log-revision rev)
+    (setq-local cvs-minor-wrap-function 'cvs-edit-log-minor-wrap)
     ;; (run-hooks 'cvs-mode-commit-hook)
     ))
 
@@ -2396,7 +2395,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 		     (string-prefix-p default-directory dir))
 	    (let ((subdir (substring dir (length default-directory))))
 	      (set-buffer buffer)
-	      (set (make-local-variable 'cvs-buffer) cvs-buf)
+              (setq-local cvs-buffer cvs-buf)
 	      ;; `cvs -q add file' produces no useful output :-(
 	      (when (and (equal (car flags) "add")
 			 (goto-char (point-min))

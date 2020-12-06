@@ -33,7 +33,6 @@
 (require 'eieio)
 (require 'widget)
 (require 'wid-edit)
-(require 'custom)
 
 ;;; Compatibility
 
@@ -366,8 +365,7 @@ These groups are specified with the `:group' slot flag."
     (widget-insert "\n\n")
     (widget-insert "Edit object " (eieio-object-name obj) "\n\n")
     ;; Create the widget editing the object.
-    (make-local-variable 'eieio-wo)
-    (setq eieio-wo (eieio-custom-widget-insert obj :eieio-group g))
+    (setq-local eieio-wo (eieio-custom-widget-insert obj :eieio-group g))
     ;;Now generate the apply buttons
     (widget-insert "\n")
     (eieio-custom-object-apply-reset obj)
@@ -376,10 +374,8 @@ These groups are specified with the `:group' slot flag."
     ;;(widget-minor-mode)
     (goto-char (point-min))
     (widget-forward 3)
-    (make-local-variable 'eieio-co)
-    (setq eieio-co obj)
-    (make-local-variable 'eieio-cog)
-    (setq eieio-cog g)))
+    (setq-local eieio-co obj)
+    (setq-local eieio-cog g)))
 
 (cl-defmethod eieio-custom-object-apply-reset ((_obj eieio-default-superclass))
   "Insert an Apply and Reset button into the object editor.

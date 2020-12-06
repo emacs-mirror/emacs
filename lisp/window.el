@@ -2309,7 +2309,7 @@ SIDE can be any of the symbols `left', `top', `right' or
 ;; Neither of these allow one to selectively ignore specific windows
 ;; (windows whose `no-other-window' parameter is non-nil) as targets of
 ;; the movement.
-(defun window-in-direction (direction &optional window ignore sign wrap mini)
+(defun window-in-direction (direction &optional window ignore sign wrap minibuf)
   "Return window in DIRECTION as seen from WINDOW.
 More precisely, return the nearest window in direction DIRECTION
 as seen from the position of `window-point' in window WINDOW.
@@ -2332,10 +2332,11 @@ frame borders.  This means to return for WINDOW at the top of the
 frame and DIRECTION `above' the minibuffer window if the frame
 has one, and a window at the bottom of the frame otherwise.
 
-Optional argument MINI nil means to return the minibuffer window
-if and only if it is currently active.  MINI non-nil means to
-return the minibuffer window even when it's not active.  However,
-if WRAP is non-nil, always act as if MINI were nil.
+Optional argument MINIBUF t means to return the minibuffer
+window even if it isn't active.  MINIBUF nil or omitted means
+to return the minibuffer window if and only if it is currently active.
+MINIBUF neither nil nor t means never return the minibuffer window.
+However, if WRAP is non-nil, always act as if MINIBUF were nil.
 
 Return nil if no suitable window can be found."
   (setq window (window-normalize-window window t))
@@ -2451,7 +2452,7 @@ Return nil if no suitable window can be found."
 	   (setq best-edge-2 w-top)
 	   (setq best-diff-2 best-diff-2-new)
 	   (setq best-2 w)))))
-     frame nil (and mini t))
+     frame nil minibuf)
     (or best best-2)))
 
 (defun get-window-with-predicate (predicate &optional minibuf all-frames default)
@@ -8565,13 +8566,13 @@ Return the buffer switched to."
 
       (when set-window-start-and-point
         (let* ((entry (assq buffer (window-prev-buffers)))
-	       (displayed (and (eq switch-to-buffer-preserve-window-point
-				   'already-displayed)
+               (preserve-win-point
+                (buffer-local-value 'switch-to-buffer-preserve-window-point
+                                    buffer))
+	       (displayed (and (eq preserve-win-point 'already-displayed)
 			       (get-buffer-window buffer 0))))
 	  (set-window-buffer nil buffer)
-	  (when (and entry
-		     (or (eq switch-to-buffer-preserve-window-point t)
-		         displayed))
+	  (when (and entry (or (eq preserve-win-point t) displayed))
 	    ;; Try to restore start and point of buffer in the selected
 	    ;; window (Bug#4041).
 	    (set-window-start (selected-window) (nth 1 entry) t)

@@ -88,7 +88,9 @@ the selected window is considered for restoring."
   :group 'view)
 
 (defcustom view-inhibit-help-message nil
-  "Non-nil inhibits the help message shown upon entering View mode."
+  "Non-nil inhibits the help message shown upon entering View mode.
+This setting takes effect only when View mode is entered via an
+interactive command; otherwise the help message is not shown."
   :type 'boolean
   :group 'view
   :version "22.1")
@@ -559,7 +561,10 @@ This function runs the normal hook `view-mode-hook'."
 
   (unless view-mode
     (view-mode 1)
-    (unless view-inhibit-help-message
+    (when (and (not view-inhibit-help-message)
+               ;; Avoid spamming the echo area if `view-mode' is entered
+               ;; non-interactively, e.g., in a temporary buffer (bug#44629).
+               this-command)
       (message "%s"
 	       (substitute-command-keys "\
 View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit.")))))

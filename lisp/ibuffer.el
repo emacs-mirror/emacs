@@ -48,7 +48,6 @@
   (require 'ibuf-macs)
   (require 'dired))
 
-(require 'font-core)
 (require 'seq)
 
 (require 'ibuffer-loaddefs)

@@ -237,16 +237,14 @@ For true \"word wrap\" behavior, use `visual-line-mode' instead."
 	(add-hook 'after-change-functions 'refill-after-change-function nil t)
 	(add-hook 'post-command-hook 'refill-post-command-function nil t)
 	(add-hook 'pre-command-hook 'refill-pre-command-function nil t)
-	(set (make-local-variable 'refill-saved-state)
-	     (mapcar (lambda (s) (cons s (symbol-value s)))
-		     '(fill-paragraph-function auto-fill-function)))
+        (setq-local refill-saved-state
+                    (mapcar (lambda (s) (cons s (symbol-value s)))
+                            '(fill-paragraph-function auto-fill-function)))
 	;; This provides the test for recursive paragraph filling.
-	(set (make-local-variable 'fill-paragraph-function)
-	     'refill-fill-paragraph)
+        (setq-local fill-paragraph-function #'refill-fill-paragraph)
 	;; When using justification, doing DEL on 2 spaces should remove
 	;; both, otherwise, the subsequent refill will undo the DEL.
-	(set (make-local-variable 'backward-delete-char-untabify-method)
-	     'hungry)
+        (setq-local backward-delete-char-untabify-method 'hungry)
 	(setq refill-ignorable-overlay (make-overlay 1 1 nil nil t))
 	(overlay-put refill-ignorable-overlay 'modification-hooks
 		     '(refill-adjust-ignorable-overlay))

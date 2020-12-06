@@ -3148,7 +3148,7 @@ comment at the start of cc-engine.el for more info."
 		      ((nth 7 s) 'c++)
 		      (t 'c)))
 	    (setq start (nth 8 s))
-	    (unless end
+	    (unless (and end (>= end here))
 	      (setq s1 (parse-partial-sexp here (point-max)
 					   nil		  ; TARGETDEPTH
 					   nil		  ; STOPBEFORE

@@ -170,9 +170,9 @@ The options are `begin', `after' or `end'."
   (unless eshell-non-interactive-p
     ;; override a few variables, since they would interfere with the
     ;; smart display functionality.
-    (set (make-local-variable 'eshell-scroll-to-bottom-on-output) nil)
-    (set (make-local-variable 'eshell-scroll-to-bottom-on-input) nil)
-    (set (make-local-variable 'eshell-scroll-show-maximum-output) t)
+    (setq-local eshell-scroll-to-bottom-on-output nil)
+    (setq-local eshell-scroll-to-bottom-on-input nil)
+    (setq-local eshell-scroll-show-maximum-output t)
 
     (add-hook 'window-scroll-functions 'eshell-smart-scroll-window nil t)
     (add-hook 'window-configuration-change-hook 'eshell-refresh-windows)

@@ -247,9 +247,8 @@ Commands:
 	       (list 'buffer-display-table buffer-display-table
 		     'default-text-properties default-text-properties
 		     'use-hard-newlines use-hard-newlines))
-	 (make-local-variable 'enriched-default-text-properties-local-flag)
-	 (setq enriched-default-text-properties-local-flag
-	       (local-variable-p 'default-text-properties))
+         (setq-local enriched-default-text-properties-local-flag
+                     (local-variable-p 'default-text-properties))
 	 (make-local-variable 'default-text-properties)
 	 (setq buffer-display-table  enriched-display-table)
 	 (use-hard-newlines 1 (if enriched-rerun-flag 'never nil))

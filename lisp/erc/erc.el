@@ -1488,12 +1488,12 @@ Defaults to the server buffer."
 (define-derived-mode erc-mode fundamental-mode "ERC"
   "Major mode for Emacs IRC."
   (setq local-abbrev-table erc-mode-abbrev-table)
-  (set (make-local-variable 'next-line-add-newlines) nil)
+  (setq-local next-line-add-newlines nil)
   (setq line-move-ignore-invisible t)
-  (set (make-local-variable 'paragraph-separate)
-       (concat "\C-l\\|\\(^" (regexp-quote (erc-prompt)) "\\)"))
-  (set (make-local-variable 'paragraph-start)
-       (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
+  (setq-local paragraph-separate
+              (concat "\C-l\\|\\(^" (regexp-quote (erc-prompt)) "\\)"))
+  (setq-local paragraph-start
+              (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
   (setq-local completion-ignore-case t)
   (add-hook 'completion-at-point-functions 'erc-complete-word-at-point nil t))
 
@@ -6493,8 +6493,7 @@ if `erc-away' is non-nil."
                           (format-spec erc-header-line-format spec)
                         nil)))
           (cond (erc-header-line-uses-tabbar-p
-                 (set (make-local-variable 'tabbar--local-hlf)
-                      header-line-format)
+                 (setq-local tabbar--local-hlf header-line-format)
                  (kill-local-variable 'header-line-format))
                 ((null header)
                  (setq header-line-format nil))

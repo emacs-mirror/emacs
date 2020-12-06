@@ -51,10 +51,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-
-;; Stuff that needs to be there when we use defcustom
-(require 'custom)
-
 (require 'easymenu)
 
 (defvar reftex-tables-dirty t

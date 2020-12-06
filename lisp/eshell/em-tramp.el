@@ -51,10 +51,9 @@
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
-  (make-local-variable 'eshell-complex-commands)
-  (setq eshell-complex-commands
-	(append '("su" "sudo")
-		eshell-complex-commands)))
+  (setq-local eshell-complex-commands
+              (append '("su" "sudo")
+                      eshell-complex-commands)))
 
 (autoload 'eshell-parse-command "esh-cmd")
 

@@ -322,7 +322,7 @@ to find the list of ignores for each directory."
   :group 'project)
 
 (defcustom project-vc-ignores nil
-  "List of patterns to include in `project-ignores'."
+  "List of patterns to add to `project-ignores'."
   :type '(repeat string)
   :safe #'listp)
 
@@ -434,16 +434,17 @@ backend implementation of `project-external-roots'.")
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
-     (let (backend)
+     (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
+           backend)
        (if (and (file-equal-p dir (cdr project))
                 (setq backend (vc-responsible-backend dir))
                 (cond
                  ((eq backend 'Hg))
                  ((and (eq backend 'Git)
                        (or
-                        (not project-vc-ignores)
+                        (not ignores)
                         (version<= "1.9" (vc-git--program-version)))))))
-           (project--vc-list-files dir backend project-vc-ignores)
+           (project--vc-list-files dir backend ignores)
          (project--files-in-directory
           dir
           (project--dir-ignores project dir)))))
@@ -467,9 +468,26 @@ backend implementation of `project-external-roots'.")
                             (cons "--"
                                   (mapcar
                                    (lambda (i)
-                                     (if (string-match "\\./" i)
-                                         (format ":!/:%s" (substring i 2))
-                                       (format ":!:%s" i)))
+                                     (format
+                                      ":(exclude,glob,top)%s"
+                                      (if (string-match "\\*\\*" i)
+                                          ;; Looks like pathspec glob
+                                          ;; format already.
+                                          i
+                                        (if (string-match "\\./" i)
+                                            ;; ./abc -> abc
+                                            (setq i (substring i 2))
+                                          ;; abc -> **/abc
+                                          (setq i (concat "**/" i))
+                                          ;; FIXME: '**/abc' should also
+                                          ;; match a directory with that
+                                          ;; name, but doesn't (git 2.25.1).
+                                          ;; Maybe we should replace
+                                          ;; such entries with two.
+                                          (if (string-match "/\\'" i)
+                                              ;; abc/ -> abc/**
+                                              (setq i (concat i "**"))))
+                                        i)))
                                    extra-ignores)))))
        (setq files
              (mapcar
@@ -534,12 +552,26 @@ backend implementation of `project-external-roots'.")
     (append
      (when (file-equal-p dir root)
        (setq backend (vc-responsible-backend root))
-       (mapcar
-        (lambda (entry)
-          (if (string-match "\\`/" entry)
-              (replace-match "./" t t entry)
-            entry))
-        (vc-call-backend backend 'ignore-completion-table root)))
+       (delq
+        nil
+        (mapcar
+         (lambda (entry)
+           (cond
+            ((eq ?! (aref entry 0))
+             ;; No support for whitelisting (yet).
+             nil)
+            ((string-match "\\(/\\)[^/]" entry)
+             ;; FIXME: This seems to be Git-specific.
+             ;; And / in the entry (start or even the middle) means
+             ;; the pattern is "rooted".  Or actually it is then
+             ;; relative to its respective .gitignore (of which there
+             ;; could be several), but we only support .gitignore at
+             ;; the root.
+             (if (= (match-beginning 0) 0)
+                 (replace-match "./" t t entry 1)
+               (concat "./" entry)))
+            (t entry)))
+         (vc-call-backend backend 'ignore-completion-table root))))
      (project--value-in-dir 'project-vc-ignores root)
      (mapcar
       (lambda (dir)
@@ -745,7 +777,9 @@ pattern to search for."
 ;;;###autoload
 (defun project-find-file ()
   "Visit a file (with completion) in the current project.
-The completion default is the string at point."
+
+The completion default is the filename at point, determined by
+`thing-at-point' (whether such file exists or not)."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (list (project-root pr))))
@@ -754,7 +788,9 @@ The completion default is the string at point."
 ;;;###autoload
 (defun project-or-external-find-file ()
   "Visit a file (with completion) in the current project or external roots.
-The completion default is the string at point."
+
+The completion default is the filename at point, determined by
+`thing-at-point' (whether such file exists or not)."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (cons

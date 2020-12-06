@@ -113,7 +113,6 @@
 (require 'esh-io)
 
 (require 'pcomplete)
-(require 'env)
 (require 'ring)
 
 (defgroup eshell-var nil
@@ -228,12 +227,11 @@ environment of created subprocesses."
   ;; Break the association with our parent's environment.  Otherwise,
   ;; changing a variable will affect all of Emacs.
   (unless eshell-modify-global-environment
-    (set (make-local-variable 'process-environment)
-	 (eshell-copy-environment)))
+    (setq-local process-environment (eshell-copy-environment)))
 
-  (set (make-local-variable 'eshell-special-chars-inside-quoting)
+  (setq-local eshell-special-chars-inside-quoting
        (append eshell-special-chars-inside-quoting '(?$)))
-  (set (make-local-variable 'eshell-special-chars-outside-quoting)
+  (setq-local eshell-special-chars-outside-quoting
        (append eshell-special-chars-outside-quoting '(?$)))
 
   (add-hook 'eshell-parse-argument-hook #'eshell-interpolate-variable t t)

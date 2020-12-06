@@ -275,8 +275,7 @@ to invocation.")
       (make-local-variable 'ediff-window-setup-function)
       (make-local-variable 'ediff-keep-variants)
 
-      (make-local-variable 'window-min-height)
-      (setq window-min-height 2)
+      (setq-local window-min-height 2)
 
       ;; unwrap set up parameters passed as argument
       (while setup-parameters

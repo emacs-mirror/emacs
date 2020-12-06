@@ -701,8 +701,8 @@ non-nil if the minor mode is enabled."
 	(when (and (local-variable-p 'header-line-format (current-buffer))
 		   (not (eq header-line-format
 			    semantic-stickyfunc-header-line-format)))
-	  (set (make-local-variable 'semantic-stickyfunc-old-hlf)
-	       header-line-format))
+          (setq-local semantic-stickyfunc-old-hlf
+                      header-line-format))
 	(setq header-line-format semantic-stickyfunc-header-line-format))
     ;; Disable sticky func mode
     ;; Restore previous buffer local value of header line format if

@@ -30,21 +30,11 @@
 ;; A-umlaut as `C-x 8 " A' or `Alt-" A' (if you have an Alt key) or
 ;; `umlaut A' (if you have an umlaut/diaeresis key).
 
-;; C-x 8 is set up to autoload this package,
-;; but Alt keys and dead accent keys are only defined
-;; once you have loaded the package.  It is nontrivial
-;; to make all of the Alt keys autoload, and it is not clear
-;; that the dead accent keys SHOULD autoload this package.
-
 ;; This package supports all characters defined by ISO 8859-1, along
 ;; with a few other ISO 10646 characters commonly used in English and
 ;; basic math.
 
 ;;; Code:
-
-;;; Provide some binding for startup:
-;;;###autoload (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
-;;;###autoload (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
 
 (defvar iso-transl-dead-key-alist
   '((?\' . mute-acute)

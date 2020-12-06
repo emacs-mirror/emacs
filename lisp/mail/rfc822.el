@@ -279,8 +279,7 @@
     (let ((buf (generate-new-buffer " rfc822")))
       (unwind-protect
           (with-current-buffer buf
-            (make-local-variable 'case-fold-search)
-            (setq case-fold-search nil)	;For speed(?)
+            (setq-local case-fold-search nil)	;For speed(?)
             (insert header-text)
             ;; unfold continuation lines
             (goto-char (point-min))

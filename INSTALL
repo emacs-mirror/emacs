@@ -113,6 +113,7 @@ sections if you need to.
 
                 make help
 
+
 ADDITIONAL DISTRIBUTION FILES
 
 * Complex Text Layout support libraries
@@ -221,6 +222,8 @@ packages needed to build the installed version of Emacs with a command
 like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
 eg 'emacs25').  On Red Hat-based systems, the corresponding command is
 'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
+
+On FreeBSD, the command is 'pkg install -y `pkg rquery %dn emacs-devel`'.
 
 
 DETAILED BUILDING AND INSTALLATION:

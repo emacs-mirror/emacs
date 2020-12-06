@@ -464,19 +464,19 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
-  (set (make-local-variable 'log-view-per-file-logs) nil)
-  (set (make-local-variable 'log-view-message-re)
-       (if (eq vc-log-view-type 'short)
-	   (cadr vc-hg-root-log-format)
-         "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
-  (set (make-local-variable 'tab-width) 2)
+  (setq-local log-view-file-re regexp-unmatchable)
+  (setq-local log-view-per-file-logs nil)
+  (setq-local log-view-message-re
+              (if (eq vc-log-view-type 'short)
+                  (cadr vc-hg-root-log-format)
+                "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
+  (setq-local tab-width 2)
   ;; Allow expanding short log entries
   (when (eq vc-log-view-type 'short)
     (setq truncate-lines t)
-    (set (make-local-variable 'log-view-expanded-log-entry-function)
-	 'vc-hg-expanded-log-entry))
-  (set (make-local-variable 'log-view-font-lock-keywords)
+    (setq-local log-view-expanded-log-entry-function
+                'vc-hg-expanded-log-entry))
+  (setq-local log-view-font-lock-keywords
        (if (eq vc-log-view-type 'short)
 	   (list (cons (nth 1 vc-hg-root-log-format)
 		       (nth 2 vc-hg-root-log-format)))

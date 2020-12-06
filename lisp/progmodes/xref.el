@@ -931,6 +931,46 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
                        '(display-buffer-in-direction . ((direction . below))))
         (current-buffer))))))
 
+(defun xref--show-defs-minibuffer (fetcher alist)
+  (let* ((xrefs (funcall fetcher))
+         (xref-alist (xref--analyze xrefs))
+         xref-alist-with-line-info
+         xref
+         (group-prefix-length
+          ;; FIXME: Groups are not always file names, but they often
+          ;; are.  At least this shouldn't make the other kinds of
+          ;; groups look worse.
+          (let ((common-prefix (try-completion "" xref-alist)))
+            (if (> (length common-prefix) 0)
+                (length (file-name-directory common-prefix))
+              0))))
+
+    (cl-loop for ((group . xrefs) . more1) on xref-alist
+             do
+             (cl-loop for (xref . more2) on xrefs do
+                      (with-slots (summary location) xref
+                        (let* ((line (xref-location-line location))
+                               (line-fmt
+                                (if line
+                                    (format #("%d:" 0 2 (face xref-line-number))
+                                            line)
+                                  ""))
+                               (group-fmt
+                                (propertize
+                                 (substring group group-prefix-length)
+                                 'face 'xref-file-header))
+                               (candidate
+                                (format "%s:%s%s" group-fmt line-fmt summary)))
+                          (push (cons candidate xref) xref-alist-with-line-info)))))
+
+    (setq xref (if (not (cdr xrefs))
+                   (car xrefs)
+                 (cdr (assoc (completing-read "Jump to definition: "
+                                              (reverse xref-alist-with-line-info))
+                             xref-alist-with-line-info))))
+
+    (xref-pop-to-location xref (assoc-default 'display-action alist))))
+
 
 (defcustom xref-show-xrefs-function 'xref--show-xref-buffer
   "Function to display a list of search results.
@@ -1262,12 +1302,57 @@ IGNORES is a list of glob patterns for files to ignore."
 (declare-function tramp-tramp-file-p "tramp")
 (declare-function tramp-file-local-name "tramp")
 
+;; TODO: Experiment with 'xargs -P4' (or any other number).
+;; This speeds up either command, even more than rg's '-j4' does.
+;; Ripgrep gets jumbled output, though, even with --line-buffered.
+;; But Grep seems to be stable. Even without --line-buffered.
+(defcustom xref-search-program-alist
+  '((grep
+     .
+     ;; '-s' because 'git ls-files' can output broken symlinks.
+     "xargs -0 grep <C> -snHE -e <R>")
+    (ripgrep
+     .
+     ;; Note: by default, ripgrep's output order is non-deterministic
+     ;; (https://github.com/BurntSushi/ripgrep/issues/152)
+     ;; because it does the search in parallel.  You can use the template
+     ;; without the '| sort ...' part if GNU sort is not available on
+     ;; your system and/or stable ordering is not important to you.
+     ;; Note#2: '!*/' is there to filter out dirs (e.g. submodules).
+     "xargs -0 rg <C> -nH --no-messages -g '!*/' -e <R> | sort -t: -k1,1 -k2n,2"
+     ))
+  "Associative list mapping program identifiers to command templates.
+
+Program identifier should be a symbol, named after the search program.
+
+The command template must be a shell command (or usually a
+pipeline) that will search the files based on the list of file
+names that is piped from stdin, separated by null characters.
+The template should have the following fields:
+
+  <C> for extra arguments such as -i and --color
+  <R> for the regexp itself (in Extended format)"
+  :type '(repeat
+          (cons (symbol :tag "Program identifier")
+                (string :tag "Command template"))))
+
+(defcustom xref-search-program 'grep
+  "The program to use for regexp search inside files.
+
+This must reference a corresponding entry in `xref-search-program-alist'."
+  :type `(choice
+          (const :tag "Use Grep" grep)
+          (const :tag "Use ripgrep" ripgrep)
+          (symbol :tag "User defined")))
+
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
 Return a list of xref values.
 FILES must be a list of absolute file names."
   (cl-assert (consp files))
+  (require 'grep)
+  (defvar grep-highlight-matches)
   (pcase-let*
       ((output (get-buffer-create " *project grep output*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
@@ -1277,13 +1362,17 @@ FILES must be a list of absolute file names."
        ;; first file is remote, they all are, and on the same host.
        (dir (file-name-directory (car files)))
        (remote-id (file-remote-p dir))
-       ;; 'git ls-files' can output broken symlinks.
-       (command (format "xargs -0 grep %s -snHE -e %s"
-                        (if (and case-fold-search
-                                 (isearch-no-upper-case-p regexp t))
-                            "-i"
-                          "")
-                        (shell-quote-argument (xref--regexp-to-extended regexp)))))
+       ;; The 'auto' default would be fine too, but ripgrep can't handle
+       ;; the options we pass in that case.
+       (grep-highlight-matches nil)
+       (command (grep-expand-template (cdr
+                                       (or
+                                        (assoc
+                                         xref-search-program
+                                         xref-search-program-alist)
+                                        (user-error "Unknown search program `%s'"
+                                                    xref-search-program)))
+                                      (xref--regexp-to-extended regexp))))
     (when remote-id
       (require 'tramp)
       (setq files (mapcar

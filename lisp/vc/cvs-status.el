@@ -92,8 +92,8 @@
 ;;;###autoload
 (define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
   "Mode used for cvs status output."
-  (set (make-local-variable 'font-lock-defaults) cvs-status-font-lock-defaults)
-  (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-status-minor-wrap))
+  (setq-local font-lock-defaults cvs-status-font-lock-defaults)
+  (setq-local cvs-minor-wrap-function #'cvs-status-minor-wrap))
 
 ;; Define cvs-status-next and cvs-status-prev
 (easy-mmode-define-navigation cvs-status cvs-status-entry-leader-re "entry")

@@ -232,7 +232,6 @@
 
 (require 'cl-lib)
 (require 'comint)
-(require 'custom)
 (require 'thingatpt)
 (require 'view)
 (eval-when-compile (require 'subr-x))   ; string-empty-p
