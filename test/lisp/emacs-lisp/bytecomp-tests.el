@@ -540,6 +540,16 @@ Subtests signal errors if something goes wrong."
   (bytecomp--with-warning-test "foo.*lacks a prefix"
     '(defvar foo nil)))
 
+(defvar bytecomp-tests--docstring (make-string 100 ?x))
+
+(ert-deftest bytecomp-warn-wide-docstring/defconst ()
+  (bytecomp--with-warning-test "defconst.*foo.*wider than.*characters"
+    `(defconst foo t ,bytecomp-tests--docstring)))
+
+(ert-deftest bytecomp-warn-wide-docstring/defvar ()
+  (bytecomp--with-warning-test "defvar.*foo.*wider than.*characters"
+    `(defvar foo t ,bytecomp-tests--docstring)))
+
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
      :expected-result ,(if reverse :failed :passed)
@@ -638,6 +648,67 @@ Subtests signal errors if something goes wrong."
 
 (bytecomp--define-warning-file-test "warn-variable-set-nonvariable.el"
                             "variable reference to nonvariable")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-autoload.el"
+ "autoload.*foox.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-custom-declare-variable.el"
+ "custom-declare-variable.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defalias.el"
+ "defalias.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defconst.el"
+ "defconst.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-define-abbrev-table.el"
+ "define-abbrev.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-define-obsolete-function-alias.el"
+ "defalias.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-define-obsolete-variable-alias.el"
+ "defvaralias.*foo.*wider than.*characters")
+
+;; TODO: We don't yet issue warnings for defuns.
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defun.el"
+ "wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defvar.el"
+ "defvar.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defvaralias.el"
+ "defvaralias.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore-fill-column.el"
+ "defvar.*foo.*wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore-override.el"
+ "defvar.*foo.*wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore.el"
+ "defvar.*foo.*wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-multiline-first.el"
+ "defvar.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-multiline.el"
+ "defvar.*foo.*wider than.*characters")
 
 
 ;;;; Macro expansion.

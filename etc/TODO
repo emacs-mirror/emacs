@@ -638,8 +638,6 @@ Do this for some or all errors associated with using subprocesses.
 ** Maybe reinterpret 'parse-error' as a category of errors
 Put some other errors under it.
 
-** Make byte-compiler warn when a doc string is too wide
-
 ** Make byte-optimization warnings issue accurate line numbers
 
 ** Record the sxhash of the default value for customized variables

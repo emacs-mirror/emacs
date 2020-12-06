@@ -299,7 +299,8 @@ The information is logged to `byte-compile-log-buffer'."
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
              obsolete noruntime interactive-only
-	     make-local mapcar constants suspicious lexical lexical-dynamic)
+             make-local mapcar constants suspicious lexical lexical-dynamic
+             docstrings)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for all).
@@ -322,6 +323,8 @@ Elements of the list may be:
   make-local  calls to make-variable-buffer-local that may be incorrect.
   mapcar      mapcar called for effect.
   constants   let-binding of, or assignment to, constants/nonvariables.
+  docstrings  docstrings that are too wide (longer than 80 characters,
+              or `fill-column', whichever is bigger)
   suspicious  constructs that usually don't do what the coder wanted.
 
 If the list begins with `not', then the remaining elements specify warnings to
@@ -1563,6 +1566,81 @@ extra args."
            (if (equal sig1 '(1 . 1)) "argument" "arguments")
            (byte-compile-arglist-signature-string sig2)))))))
 
+(defvar byte-compile--wide-docstring-substitution-len 3
+  "Substitution width used in `byte-compile--wide-docstring-p'.
+This is a heuristic for guessing the width of a documentation
+string: `byte-compile--wide-docstring-p' assumes that any
+`substitute-command-keys' command substitutions are this long.")
+
+(defun byte-compile--wide-docstring-p (docstring col)
+  "Return t if string DOCSTRING is wider than COL.
+Ignore all `substitute-command-keys' substitutions, except for
+the `\\\\=[command]' ones that are assumed to be of length
+`byte-compile--wide-docstring-substitution-len'.  Also ignore
+URLs."
+  (string-match
+   (format "^.\\{%s,\\}$" (int-to-string (1+ col)))
+   (replace-regexp-in-string
+    (rx (or
+         ;; Ignore some URLs.
+         (seq "http" (? "s") "://" (* anychar))
+         ;; Ignore these `substitute-command-keys' substitutions.
+         (seq "\\" (or "="
+                       (seq "<" (* (not ">")) ">")
+                       (seq "{" (* (not "}")) "}")))))
+    ""
+    ;; Heuristic: assume these substitutions are of some length N.
+    (replace-regexp-in-string
+     (rx "\\" (or (seq "[" (* (not "]")) "]")))
+     (make-string byte-compile--wide-docstring-substitution-len ?x)
+     docstring))))
+
+(defcustom byte-compile-docstring-max-column 80
+  "Recommended maximum width of doc string lines.
+The byte-compiler will emit a warning for documentation strings
+containing lines wider than this.  If `fill-column' has a larger
+value, it will override this variable."
+  :group 'bytecomp
+  :type 'integer
+  :safe #'integerp
+  :version "28.1")
+
+(defun byte-compile-docstring-length-warn (form)
+  "Warn if documentation string of FORM is too wide.
+It is too wide if it has any lines longer than the largest of
+`fill-column' and `byte-compile-docstring-max-column'."
+  ;; This has some limitations that it would be nice to fix:
+  ;; 1. We don't try to handle defuns.  It is somewhat tricky to get
+  ;;    it right since `defun' is a macro.  Also, some macros
+  ;;    themselves produce defuns (e.g. `define-derived-mode').
+  ;; 2. We assume that any `subsititute-command-keys' command replacement has a
+  ;;    given length.  We can't reliably do these replacements, since the value
+  ;;    of the keymaps in general can't be known at compile time.
+  (when (byte-compile-warning-enabled-p 'docstrings)
+    (let ((col (max byte-compile-docstring-max-column fill-column))
+          kind name docs)
+      (pcase (car form)
+        ((or 'autoload 'custom-declare-variable 'defalias
+             'defconst 'define-abbrev-table
+             'defvar 'defvaralias)
+         (setq kind (nth 0 form))
+         (setq name (nth 1 form))
+         (setq docs (nth 3 form)))
+        ;; Here is how one could add lambda's here:
+        ;; ('lambda
+        ;;   (setq kind "")   ; can't be "function", unfortunately
+        ;;   (setq docs (and (stringp (nth 2 form))
+        ;;                   (nth 2 form))))
+        )
+      (when (and (consp name) (eq (car name) 'quote))
+        (setq name (cadr name)))
+      (setq name (if name (format " `%s'" name) ""))
+      (when (and kind docs (stringp docs)
+                 (byte-compile--wide-docstring-p docs col))
+        (byte-compile-warn "%s%s docstring wider than %s characters"
+                           kind name col))))
+  form)
+
 (defun byte-compile-print-syms (str1 strn syms)
   (when syms
     (byte-compile-set-symbol-position (car syms) t))
@@ -2410,7 +2488,8 @@ list that represents a doc string reference.
              (delq (assq funsym byte-compile-unresolved-functions)
                    byte-compile-unresolved-functions)))))
   (if (stringp (nth 3 form))
-      form
+      (prog1 form
+        (byte-compile-docstring-length-warn form))
     ;; No doc string, so we can compile this as a normal form.
     (byte-compile-keep-pending form 'byte-compile-normal-call)))
 
@@ -2438,6 +2517,7 @@ list that represents a doc string reference.
   (if (and (null (cddr form))		;No `value' provided.
            (eq (car form) 'defvar))     ;Just a declaration.
       nil
+    (byte-compile-docstring-length-warn form)
     (cond ((consp (nth 2 form))
            (setq form (copy-sequence form))
            (setcar (cdr (cdr form))
@@ -2461,6 +2541,7 @@ list that represents a doc string reference.
        (if (byte-compile-warning-enabled-p 'suspicious)
            (byte-compile-warn
             "Alias for `%S' should be declared before its referent" newname)))))
+  (byte-compile-docstring-length-warn form)
   (byte-compile-keep-pending form))
 
 (put 'custom-declare-variable 'byte-hunk-handler
@@ -2844,6 +2925,7 @@ for symbols generated by the byte compiler itself."
     (unless (eq 'lambda (car-safe fun))
       (error "Not a lambda list: %S" fun))
     (byte-compile-set-symbol-position 'lambda))
+  (byte-compile-docstring-length-warn fun)
   (byte-compile-check-lambda-list (nth 1 fun))
   (let* ((arglist (nth 1 fun))
          (arglistvars (byte-compile-arglist-vars arglist))
@@ -4624,6 +4706,7 @@ binding slots have been popped."
              (byte-compile-warning-enabled-p 'lexical (nth 1 form)))
     (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
                        (nth 1 form)))
+  (byte-compile-docstring-length-warn form)
   (let ((fun (nth 0 form))
 	(var (nth 1 form))
 	(value (nth 2 form))
@@ -4698,6 +4781,7 @@ binding slots have been popped."
       ;; - `arg' is the expression to which it is defined.
       ;; - `rest' is the rest of the arguments.
       (`(,_ ',name ,arg . ,rest)
+       (byte-compile-docstring-length-warn form)
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
