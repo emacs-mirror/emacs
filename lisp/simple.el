@@ -6426,7 +6426,8 @@ for it.")
 	     (<= position (point-max)))
 	(if widen-automatically
 	    (widen)
-	  (error "Global mark position is outside accessible part of buffer")))
+	  (error "Global mark position is outside accessible part of buffer %s"
+                 (buffer-name buffer))))
     (goto-char position)
     (switch-to-buffer buffer)))
 
