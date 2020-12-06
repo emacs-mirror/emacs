@@ -2609,14 +2609,14 @@ calls @var{function} with no arguments, or @samp{--eval=@var{form}}.
 
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with
-@code{t} as the stream, goes instead to Emacs's standard descriptors
-when in batch mode: @code{message} writes to the standard error
-descriptor, while @code{prin1} and other print functions write to the
-standard output.  Similarly, input that would normally come from the
-minibuffer is read from the standard input descriptor.  Thus, Emacs
-behaves much like a noninteractive application program.  (The echo
-area output that Emacs itself normally generates, such as command
-echoing, is suppressed entirely.)
+@code{t} as the stream (@pxref{Output Streams}), goes instead to
+Emacs's standard descriptors when in batch mode: @code{message} writes
+to the standard error descriptor, while @code{prin1} and other print
+functions write to the standard output.  Similarly, input that would
+normally come from the minibuffer is read from the standard input
+descriptor.  Thus, Emacs behaves much like a noninteractive
+application program.  (The echo area output that Emacs itself normally
+generates, such as command echoing, is suppressed entirely.)
 
 Non-ASCII text written to the standard output or error descriptors is
 by default encoded using @code{locale-coding-system} (@pxref{Locales})
