@@ -72,7 +72,7 @@
 ;;                                          by git, so it's probably
 ;;                                          not a good idea.
 ;; - merge-news (file)                      see `merge-file'
-;; - mark-resolved (file)                          OK
+;; - mark-resolved (files)                         OK
 ;; - steal-lock (file &optional revision)          NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
