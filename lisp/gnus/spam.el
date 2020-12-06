@@ -46,7 +46,7 @@
 
 (eval-when-compile (require 'hashcash))
 
-;; for nnimap-split-download-body-default
+;; for nnimap-split-download-body
 (eval-when-compile (require 'nnimap))
 
 (eval-when-compile (require 'cl-lib))
@@ -1231,7 +1231,7 @@ Will not return a nil score."
 ;;; set up IMAP widening if it's necessary
 (defun spam-setup-widening ()
   (when (spam-widening-needed-p)
-    (setq nnimap-split-download-body-default t)))
+    (setq nnimap-split-download-body t)))
 
 (defun spam-widening-needed-p (&optional force-symbols)
   (let (found)
