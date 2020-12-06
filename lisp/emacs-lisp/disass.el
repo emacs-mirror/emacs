@@ -75,7 +75,8 @@ redefine OBJECT if it is a symbol."
       (disassemble-internal object indent nil)))
   nil)
 
-
+(declare-function native-comp-unit-file "data.c")
+(declare-function subr-native-comp-unit "data.c")
 (cl-defun disassemble-internal (obj indent interactive-p)
   (let ((macro 'nil)
 	(name (when (symbolp obj)

@@ -535,6 +535,7 @@ It is the default value of the variable `top-level'."
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
     (when (featurep 'nativecomp)
+      (defvar comp-eln-load-path)
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env
           (dolist (path (split-string path-env ":"))
