@@ -1054,17 +1054,36 @@
 					 (nth 1 a)) 185))
 	      (calc-language 'flat)
 	      (low (and (nth 3 a) (math-compose-expr (nth 3 a) 0)))
-	      (high (and (nth 4 a) (math-compose-expr (nth 4 a) 0))))
+	      (high (and (nth 4 a) (math-compose-expr (nth 4 a) 0)))
+              ;; Check if we have Unicode integral top/bottom parts.
+              (fancy (and (char-displayable-p ?⌠)
+                          (char-displayable-p ?⌡)))
+              ;; If we do, find the most suitable middle part.
+              (fancy-stem (cond ((not fancy))
+                                ;; U+23AE INTEGRAL EXTENSION
+                                ((char-displayable-p ?⎮) "⎮ ")
+                                ;; U+2502 BOX DRAWINGS LIGHT VERTICAL
+                                ((char-displayable-p ?│) "│ ")
+                                ;; U+007C VERTICAL LINE
+                                (t "| "))))
 	 (list 'horiz
 	       (if parens "(" "")
-	       (append (list 'vcent (if high 3 2))
-		       (and high (list (list 'horiz "  " high)))
-		       '("  /"
-			 " | "
-			 " | "
-			 " | "
-			 "/  ")
-		       (and low (list (list 'horiz low "  "))))
+	       (append (list 'vcent (if fancy
+                                        (if high 2 1)
+                                      (if high 3 2)))
+		       (and high (list (if fancy
+                                           (list 'horiz high " ")
+                                         (list 'horiz "  " high))))
+                       (if fancy
+                           (list "⌠ " fancy-stem "⌡ ")
+		         '("  /"
+			   " | "
+			   " | "
+			   " | "
+			   "/  "))
+		       (and low (list (if fancy
+                                          (list 'horiz low " ")
+                                        (list 'horiz low "  ")))))
 	       expr
 	       (if over
 		   ""
