@@ -224,13 +224,13 @@
   (let ((i 0)
 	(p math-power-of-2-cache)
 	val)
-    (while (and p (Math-natnum-lessp (setq val (car p)) n))
+    (while (and p (< (setq val (car p)) n))
       (setq p (cdr p)
 	    i (1+ i)))
     (if p
 	(and (equal val n)
 	     i)
-      (while (Math-natnum-lessp
+      (while (<
 	      (prog1
 		  (setq val (math-mul val 2))
 		(setq math-power-of-2-cache (nconc math-power-of-2-cache
@@ -438,7 +438,7 @@
       (if (Math-integer-negp a)
 	  (setq a (math-clip a w)))
       (cond ((or (Math-integer-negp n)
-		 (not (Math-natnum-lessp n w)))
+		 (>= n w))
 	     (calcFunc-rot a (math-mod n w) w))
 	    (t
 	     (math-add (calcFunc-lsh a (- n w) w)
@@ -455,7 +455,7 @@
 	 (math-reject-arg a 'integerp))
 	((< (or w (setq w calc-word-size)) 0)
 	 (setq a (math-clip a (- w)))
-	 (if (Math-natnum-lessp a (math-power-of-2 (- -1 w)))
+	 (if (< a (math-power-of-2 (- -1 w)))
 	     a
 	   (math-sub a (math-power-of-2 (- w)))))
         ((math-zerop w)
