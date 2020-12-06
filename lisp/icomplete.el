@@ -75,7 +75,7 @@ everything preceding the ~/ is discarded so the interactive
 selection process starts again from the user's $HOME.")
 
 (defcustom icomplete-show-matches-on-no-input nil
-  "When non-nil, show completions when first prompting for input.
+  "When non-nil, show completions when the minibuffer is empty.
 This also means that if you traverse the list of completions with
 commands like `C-.' and just hit RET without typing any
 characters, the match under point will be chosen instead of the
