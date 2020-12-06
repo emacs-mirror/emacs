@@ -241,11 +241,20 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     ;; GradleStyleMessagerRenderer.kt in kotlin sources, see
     ;; https://youtrack.jetbrains.com/issue/KT-34683).
     (gradle-kotlin
-     ,(concat
-       "^\\(?:\\(w\\)\\|.\\): *"            ;type
-       "\\(\\(?:[A-Za-z]:\\)?[^:\n]+\\): *" ;file
-       "(\\([0-9]+\\), *\\([0-9]+\\))")     ;line, column
-     2 3 4 (1))
+     ,(rx bol
+          (| (group "w")                ; 1: warning
+             (group (in "iv"))          ; 2: info
+             "e")                       ; error
+          ": "
+          (group                        ; 3: file
+           (? (in "A-Za-z") ":")
+           (+ (not (in "\n:"))))
+          ": ("
+          (group (+ digit))             ; 4: line
+          ", "
+          (group (+ digit))             ; 5: column
+          "): ")
+     3 4 5 (1 . 2))
 
     (iar
      "^\"\\(.*\\)\",\\([0-9]+\\)\\s-+\\(?:Error\\|Warnin\\(g\\)\\)\\[[0-9]+\\]:"
