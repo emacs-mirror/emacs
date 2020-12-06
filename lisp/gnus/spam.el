@@ -44,12 +44,9 @@
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
 
-(eval-when-compile (require 'hashcash))
-
-;; for nnimap-split-download-body-default
-(eval-when-compile (require 'nnimap))
-
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'hashcash))
 
 ;; autoload query-dig
 (autoload 'query-dig "dig")
@@ -1228,10 +1225,20 @@ Will not return a nil score."
 
 ;;{{{ set up widening, processor checks
 
-;;; set up IMAP widening if it's necessary
+(defconst spam--widened (list ())
+  "Unique value identifying changes to `nnimap--split-download-body'.")
+
 (defun spam-setup-widening ()
-  (when (spam-widening-needed-p)
-    (setq nnimap-split-download-body-default t)))
+  "Set up IMAP widening if it's necessary."
+  (and (boundp 'nnimap--split-download-body)
+       (not nnimap--split-download-body)
+       (spam-widening-needed-p)
+       (setq nnimap--split-download-body spam--widened)))
+
+(defun spam-teardown-widening ()
+  "Tear down IMAP widening."
+  (when (eq (bound-and-true-p nnimap--split-download-body) spam--widened)
+    (setq nnimap--split-download-body nil)))
 
 (defun spam-widening-needed-p (&optional force-symbols)
   (let (found)
@@ -2865,6 +2872,7 @@ installed through `spam-necessary-extra-headers'."
 (defun spam-unload-hook ()
   "Uninstall the spam.el hooks."
   (interactive)
+  (spam-teardown-widening)
   (remove-hook 'gnus-save-newsrc-hook 'spam-maybe-spam-stat-save)
   (remove-hook 'gnus-get-top-new-news-hook 'spam-maybe-spam-stat-load)
   (remove-hook 'gnus-startup-hook 'spam-maybe-spam-stat-load)

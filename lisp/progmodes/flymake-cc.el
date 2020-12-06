@@ -50,7 +50,7 @@ SOURCE."
   ;; TODO: if you can understand it, use `compilation-mode's regexps
   ;; or even some of its machinery here.
   ;;
-  ;;    (set (make-local-variable 'compilation-locs)
+  ;;    (setq-local compilation-locs
   ;;         (make-hash-table :test 'equal :weakness 'value))
   ;;    (compilation-parse-errors (point-min) (point-max)
   ;;                              'gnu 'gcc-include)

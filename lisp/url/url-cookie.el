@@ -162,7 +162,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
               ";; version-control: never\n"
               ";; no-byte-compile: t\n"
               ";; End:\n")
-      (set (make-local-variable 'version-control) 'never)
+      (setq-local version-control 'never)
       (write-file fname))
     (setq url-cookies-changed-since-last-save nil))))
 

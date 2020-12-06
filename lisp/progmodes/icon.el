@@ -163,25 +163,24 @@ Variables controlling indentation style:
 Turning on Icon mode calls the value of the variable `icon-mode-hook'
 with no args, if that value is non-nil."
   :abbrev-table icon-mode-abbrev-table
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'indent-line-function) #'icon-indent-line)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "# *")
-  (set (make-local-variable 'comment-indent-function) 'icon-comment-indent)
-  (set (make-local-variable 'indent-line-function) 'icon-indent-line)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local indent-line-function #'icon-indent-line)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-start-skip "# *")
+  (setq-local comment-indent-function 'icon-comment-indent)
+  (setq-local indent-line-function 'icon-indent-line)
   ;; font-lock support
-  (set (make-local-variable 'font-lock-defaults)
-       '((icon-font-lock-keywords
-          icon-font-lock-keywords-1 icon-font-lock-keywords-2)
-         nil nil ((?_ . "w")) beginning-of-defun
-         ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
-         ;;(font-lock-comment-start-regexp . "#")
-         (font-lock-mark-block-function . mark-defun)))
+  (setq-local font-lock-defaults
+              '((icon-font-lock-keywords
+                 icon-font-lock-keywords-1 icon-font-lock-keywords-2)
+                nil nil ((?_ . "w")) beginning-of-defun
+                ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+                ;;(font-lock-comment-start-regexp . "#")
+                (font-lock-mark-block-function . mark-defun)))
   ;; imenu support
-  (set (make-local-variable 'imenu-generic-expression)
-       icon-imenu-generic-expression)
+  (setq-local imenu-generic-expression icon-imenu-generic-expression)
   ;; hideshow support
   ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
   (unless (assq 'icon-mode hs-special-modes-alist)

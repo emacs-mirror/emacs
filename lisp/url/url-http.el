@@ -741,12 +741,12 @@ should be shown to the user."
 		   ;; without changing the API.  Instead url-retrieve should
 		   ;; either simply not return the "destination" buffer, or it
 		   ;; should take an optional `dest-buf' argument.
-		   (set (make-local-variable 'url-redirect-buffer)
-			(url-retrieve-internal
-			 redirect-uri url-callback-function
-			 url-callback-arguments
-			 (url-silent url-current-object)
-			 (not (url-use-cookies url-current-object))))
+                   (setq-local url-redirect-buffer
+                               (url-retrieve-internal
+                                redirect-uri url-callback-function
+                                url-callback-arguments
+                                (url-silent url-current-object)
+                                (not (url-use-cookies url-current-object))))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.

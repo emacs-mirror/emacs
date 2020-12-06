@@ -617,7 +617,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun viper-comint-mode-hook ()
-  (set (make-local-variable 'require-final-newline) nil)
+  (setq-local require-final-newline nil)
   (setq viper-ex-style-editing nil
 	viper-ex-style-motion nil)
   (viper-change-state-to-insert))

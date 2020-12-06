@@ -948,7 +948,7 @@ Key bindings:
         (add-hook 'change-major-mode-hook
                   #'turn-off-hideshow
                   nil t)
-        (set (make-local-variable 'line-move-ignore-invisible) t)
+        (setq-local line-move-ignore-invisible t)
         (add-to-invisibility-spec '(hs . t)))
     (remove-from-invisibility-spec '(hs . t))
     ;; hs-show-all does nothing unless h-m-m is non-nil.

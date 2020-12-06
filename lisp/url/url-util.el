@@ -574,8 +574,8 @@ Has a preference for looking backward when not directly on a symbol."
   (save-excursion
     (goto-char (point-min))
     (unless url-current-mime-headers
-      (set (make-local-variable 'url-current-mime-headers)
-	   (mail-header-extract)))))
+      (setq-local url-current-mime-headers
+                  (mail-header-extract)))))
 
 (defun url-make-private-file (file)
   "Make FILE only readable and writable by the current user.

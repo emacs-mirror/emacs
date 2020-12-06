@@ -81,7 +81,7 @@
     ((not symbol) . (not symbol))
     ((or (member foo) (not (member foo bar))) . (not (member bar)))
     ((or (member foo bar) (not (member foo))) . t)
-    ;; Intentionally conservative, see `comp-cstr-union'.
+    ;; Intentionally conservative, see `comp-cstr-union-1-no-mem'.
     ((or symbol (not sequence)) . t)
     ((or symbol (not symbol)) . t)
     ;; Conservative.
@@ -98,7 +98,10 @@
     ((or (member foo) (not string)) . (not string))
     ((or (not (integer 1 2)) integer) . integer)
     ((or (not (integer 1 2)) (not integer)) . (not integer))
-    ((or (integer 1 2) (not integer)) . (not (or integer (integer * 0) (integer 3 *)))))
+    ((or (integer 1 2) (not integer)) . (not (or integer (integer * 0) (integer 3 *))))
+    ((or number (not (integer 1 2))) . t)
+    ((or atom (not (integer 1 2))) . t)
+    ((or atom (not (member foo))) . t))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()

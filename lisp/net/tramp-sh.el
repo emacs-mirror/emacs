@@ -480,7 +480,7 @@ The string is used in `tramp-methods'.")
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
 ;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
 ;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
-;; Darwin: /usr/bin:/bin:/usr/sbin:/sbin
+;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
 ;; IRIX64: /usr/bin
 ;; QNAP QTS: ---
 ;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
@@ -595,10 +595,12 @@ rm -f %t"
   "Shell function to implement `uudecode' to standard output.
 Many systems support `uudecode -o /dev/stdout' or `uudecode -o -'
 for this or `uudecode -p', but some systems don't, and for them
-we have this shell function.")
+we have this shell function.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-file-truename
-  "%s -e '
+  "%p -e '
 use File::Spec;
 use Cwd \"realpath\";
 
@@ -633,14 +635,14 @@ if (!$result) {
 
 $result =~ s/\"/\\\\\"/g;
 print \"\\\"$result\\\"\\n\";
-' \"$1\" 2>/dev/null"
+' \"$1\" %n"
   "Perl script to produce output suitable for use with `file-truename'
 on the remote file system.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-file-name-all-completions
-  "%s -e '
+  "%p -e '
 opendir(d, $ARGV[0]) || die(\"$ARGV[0]: $!\\nfail\\n\");
 @files = readdir(d); closedir(d);
 foreach $f (@files) {
@@ -652,11 +654,11 @@ foreach $f (@files) {
  }
 }
 print \"ok\\n\"
-' \"$1\" 2>/dev/null"
+' \"$1\" %n"
   "Perl script to produce output suitable for use with
-`file-name-all-completions' on the remote file system.  Escape
-sequence %s is replaced with name of Perl binary.  This string is
-passed to `format', so percent characters need to be doubled.")
+`file-name-all-completions' on the remote file system.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 ;; Perl script to implement `file-attributes' in a Lisp `read'able
 ;; output.  If you are hacking on this, note that you get *no* output
@@ -665,7 +667,7 @@ passed to `format', so percent characters need to be doubled.")
 ;; The device number is returned as "-1", because there will be a virtual
 ;; device number set in `tramp-sh-handle-file-attributes'.
 (defconst tramp-perl-file-attributes
-  "%s -e '
+  "%p -e '
 @stat = lstat($ARGV[0]);
 if (!@stat) {
     print \"nil\\n\";
@@ -702,14 +704,14 @@ printf(
     $stat[7],
     $stat[2],
     $stat[1]
-);' \"$1\" \"$2\" 2>/dev/null"
+);' \"$1\" \"$2\" %n"
   "Perl script to produce output suitable for use with `file-attributes'
 on the remote file system.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-directory-files-and-attributes
-  "%s -e '
+  "%p -e '
 chdir($ARGV[0]) or printf(\"\\\"Cannot change to $ARGV[0]: $''!''\\\"\\n\"), exit();
 opendir(DIR,\".\") or printf(\"\\\"Cannot open directory $ARGV[0]: $''!''\\\"\\n\"), exit();
 @list = readdir(DIR);
@@ -754,31 +756,31 @@ for($i = 0; $i < $n; $i++)
         $stat[2],
         $stat[1]);
 }
-printf(\")\\n\");' \"$1\" \"$2\" 2>/dev/null"
+printf(\")\\n\");' \"$1\" \"$2\" %n"
   "Perl script implementing `directory-files-and-attributes' as Lisp `read'able
 output.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 ;; These two use base64 encoding.
 (defconst tramp-perl-encode-with-module
-  "%s -MMIME::Base64 -0777 -ne 'print encode_base64($_)' %n"
+  "%p -MMIME::Base64 -0777 -ne 'print encode_base64($_)' %n"
   "Perl program to use for encoding a file.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.
 This implementation requires the MIME::Base64 Perl module to be installed
-on the remote host.")
+on the remote host.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-decode-with-module
-  "%s -MMIME::Base64 -0777 -ne 'print decode_base64($_)' %n"
+  "%p -MMIME::Base64 -0777 -ne 'print decode_base64($_)' %n"
   "Perl program to use for decoding a file.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.
 This implementation requires the MIME::Base64 Perl module to be installed
-on the remote host.")
+on the remote host.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-encode
-  "%s -e '
+  "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
 # Copyright (C) 2002-2020 Free Software Foundation, Inc.
 use strict;
@@ -813,11 +815,11 @@ while (read STDIN, $data, 54) {
                 qq(\\n);
 }' %n"
   "Perl program to use for encoding a file.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-decode
-  "%s -e '
+  "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
 # Copyright (C) 2002-2020 Free Software Foundation, Inc.
 use strict;
@@ -857,22 +859,25 @@ while (my $data = <STDIN>) {
     last if $finished;
 }' %n"
   "Perl program to use for decoding a file.
-Escape sequence %s is replaced with name of Perl binary.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-pack
-  "%s -e 'binmode STDIN; binmode STDOUT; print pack(q{u*}, join q{}, <>)'"
+  "%p -e 'binmode STDIN; binmode STDOUT; print pack(q{u*}, join q{}, <>)' %n"
   "Perl program to use for encoding a file.
-Escape sequence %s is replaced with name of Perl binary.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-perl-unpack
-  "%s -e 'binmode STDIN; binmode STDOUT; print unpack(q{u*}, join q{}, <>)'"
+  "%p -e 'binmode STDIN; binmode STDOUT; print unpack(q{u*}, join q{}, <>)' %n"
   "Perl program to use for decoding a file.
-Escape sequence %s is replaced with name of Perl binary.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-hexdump-encode "%h -v -e '16/1 \" %%02x\" \"\\n\"'"
   "`hexdump' program to use for encoding a file.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-awk-encode
   "%a '\\
@@ -906,21 +911,24 @@ END {
   printf tail
 }'"
   "`awk' program to use for encoding a file.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-hexdump-awk-encode
   (format "%s | %s" tramp-hexdump-encode tramp-awk-encode)
   "`hexdump' / `awk' pipe to use for encoding a file.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-od-encode "%o -v -t x1 -A n"
   "`od' program to use for encoding a file.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
-(defconst tramp-od-awk-encode
-  (format "%s | %s" tramp-od-encode tramp-awk-encode)
+(defconst tramp-od-awk-encode (format "%s | %s" tramp-od-encode tramp-awk-encode)
   "`od' / `awk' pipe to use for encoding a file.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-awk-decode
   "%a '\\
@@ -946,7 +954,8 @@ BEGIN {
   }
 }'"
   "Awk program to use for decoding a file.
-This string is passed to `format', so percent characters need to be doubled.")
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
@@ -968,7 +977,8 @@ echo \")\""
 It must be send formatted with two strings; the tests for file
 existence, and file readability.  Input shall be read via
 here-document, otherwise the command could exceed maximum length
-of command line.")
+of command line.
+Format specifiers \"%s\" are replaced before the script is used.")
 
 ;; New handlers should be added here.
 ;;;###tramp-autoload
@@ -3296,7 +3306,9 @@ implementation will be used."
 		  ;; correctly.  Unset `file-name-handler-alist'.
 		  ;; Otherwise, epa-file gets confused.
 		  (let (file-name-handler-alist
-			(coding-system-for-write 'binary))
+			(coding-system-for-write 'binary)
+			(default-directory
+			  (tramp-compat-temporary-file-directory)))
 		    (with-temp-file tmpfile
 		      (set-buffer-multibyte nil)
 		      (insert-buffer-substring (tramp-get-buffer v))
@@ -3994,6 +4006,51 @@ Fall back to normal file name handler if no Tramp handler exists."
 
 ;;; Internal Functions:
 
+(defun tramp-expand-script (vec script)
+  "Expand SCRIPT with remote files or commands.
+\"%a\", \"%h\", \"%o\" and \"%p\" format specifiers are replaced
+by the respective `awk', `hexdump', `od' and `perl' commands.
+\"%n\" is replaced by \"2>/dev/null\", and \"%t\" is replaced by
+a temporary file name.
+If VEC is nil, the respective local commands are used.
+If there is a format specifier which cannot be expanded, this
+function returns nil."
+  (if (not (string-match-p "\\(^\\|[^%]\\)%[ahnopt]" script))
+      script
+    (catch 'wont-work
+      (let ((awk (when (string-match-p "\\(^\\|[^%]\\)%a" script)
+		   (or
+		    (if vec (tramp-get-remote-awk vec) (executable-find "awk"))
+		    (throw 'wont-work nil))))
+	    (hdmp (when (string-match-p "\\(^\\|[^%]\\)%h" script)
+		    (or
+		     (if vec (tramp-get-remote-hexdump vec)
+		       (executable-find "hexdump"))
+		     (throw 'wont-work nil))))
+	    (dev (when (string-match-p "\\(^\\|[^%]\\)%n" script)
+		   (or
+		    (if vec (concat "2>" (tramp-get-remote-null-device vec))
+		      (if (eq system-type 'windows-nt) ""
+			(concat "2>" null-device)))
+		    (throw 'wont-work nil))))
+	    (od (when (string-match-p "\\(^\\|[^%]\\)%o" script)
+		  (or (if vec (tramp-get-remote-od vec) (executable-find "od"))
+		      (throw 'wont-work nil))))
+	    (perl (when (string-match-p "\\(^\\|[^%]\\)%p" script)
+		    (or
+		     (if vec
+			 (tramp-get-remote-perl vec) (executable-find "perl"))
+		     (throw 'wont-work nil))))
+	    (tmp (when (string-match-p "\\(^\\|[^%]\\)%t" script)
+		   (or
+		    (if vec
+			(tramp-file-local-name (tramp-make-tramp-temp-name vec))
+		      (tramp-compat-make-temp-name))
+		    (throw 'wont-work nil)))))
+	(format-spec
+	 script
+	 (format-spec-make ?a awk ?h hdmp ?n dev ?o od ?p perl ?t tmp))))))
+
 (defun tramp-maybe-send-script (vec script name)
   "Define in remote shell function NAME implemented as SCRIPT.
 Only send the definition if it has not already been done."
@@ -4008,14 +4065,15 @@ Only send the definition if it has not already been done."
 	;; could result in unwanted command expansion.  Avoid this.
 	(setq script (tramp-compat-string-replace
 		      (make-string 1 ?\t) (make-string 8 ? ) script))
-	;; The script could contain a call of Perl.  This is masked with `%s'.
-	(when (and (string-match-p "%s" script)
-		   (not (tramp-get-remote-perl vec)))
-	  (tramp-error vec 'file-error "No Perl available on remote host"))
+	;; Expand format specifiers.
+	(unless (setq script (tramp-expand-script vec script))
+	  (tramp-error
+	   vec 'file-error
+	   (format "Script %s is not applicable on remote host" name)))
+	;; Send it.
 	(tramp-barf-unless-okay
 	 vec
-	 (format "%s () {\n%s\n}"
-		 name (format script (tramp-get-remote-perl vec)))
+	 (format "%s () {\n%s\n}" name script)
 	 "Script %s sending failed" name)
 	(tramp-set-connection-property
 	 (tramp-get-connection-process vec) "scripts" (cons name scripts))))))
@@ -4523,7 +4581,7 @@ process to set up.  VEC specifies the connection."
 (defconst tramp-local-coding-commands
   `((b64 base64-encode-region base64-decode-region)
     (uu  tramp-uuencode-region uudecode-decode-region)
-    (pack ,(format tramp-perl-pack "perl") ,(format tramp-perl-unpack "perl")))
+    (pack ,tramp-perl-pack ,tramp-perl-unpack))
   "List of local coding commands for inline transfer.
 Each item is a list that looks like this:
 
@@ -4613,6 +4671,8 @@ Goes through the list `tramp-local-coding-commands' and
 		 vec 5 "Checking local encoding function `%s'" loc-enc)
 	      (tramp-message
 	       vec 5 "Checking local encoding command `%s' for sanity" loc-enc)
+	      (unless (stringp (setq loc-enc (tramp-expand-script nil loc-enc)))
+		(throw 'wont-work-local nil))
 	      (unless (zerop (tramp-call-local-coding-command loc-enc nil nil))
 		(throw 'wont-work-local nil)))
 	    (if (not (stringp loc-dec))
@@ -4620,6 +4680,8 @@ Goes through the list `tramp-local-coding-commands' and
 		 vec 5 "Checking local decoding function `%s'" loc-dec)
 	      (tramp-message
 	       vec 5 "Checking local decoding command `%s' for sanity" loc-dec)
+	      (unless (stringp (setq loc-dec (tramp-expand-script nil loc-dec)))
+		(throw 'wont-work-local nil))
 	      (unless (zerop (tramp-call-local-coding-command loc-dec nil nil))
 		(throw 'wont-work-local nil)))
 	    ;; Search for remote coding commands with the same format
@@ -4647,35 +4709,8 @@ Goes through the list `tramp-local-coding-commands' and
 		  (unless (stringp rem-enc)
 		    (let ((name (symbol-name rem-enc))
 			  (value (symbol-value rem-enc)))
-		      ;; Check if remote perl exists when necessary.
-		      (and (string-match-p "perl" name)
-			   (not (tramp-get-remote-perl vec))
-			   (throw 'wont-work-remote nil))
-		      ;; Check if remote awk exists when necessary.
-		      (and (string-match-p "\\(^\\|[^%]\\)%a" value)
-			   (not (tramp-get-remote-awk vec))
-			   (throw 'wont-work-remote nil))
-		      ;; Check if remote hexdump exists when necessary.
-		      (and (string-match-p "\\(^\\|[^%]\\)%h" value)
-			   (not (tramp-get-remote-hexdump vec))
-			   (throw 'wont-work-remote nil))
-		      ;; Check if remote od exists when necessary.
-		      (and (string-match-p "\\(^\\|[^%]\\)%o" value)
-			   (not (tramp-get-remote-od vec))
-			   (throw 'wont-work-remote nil))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
-		      (when (string-match-p "\\(^\\|[^%]\\)%[aho]" value)
-			(setq value
-			      (format-spec
-			       value
-			       (format-spec-make
-				?a (tramp-get-remote-awk vec)
-				?h (tramp-get-remote-hexdump vec)
-				?n (concat
-                                    "2>" (tramp-get-remote-null-device vec))
-				?o (tramp-get-remote-od vec)))
-			      value (tramp-compat-string-replace "%" "%%" value)))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-enc name)))
 		  (tramp-message
@@ -4690,28 +4725,9 @@ Goes through the list `tramp-local-coding-commands' and
 
 		  (unless (stringp rem-dec)
 		    (let ((name (symbol-name rem-dec))
-			  (value (symbol-value rem-dec))
-			  tmpfile)
+			  (value (symbol-value rem-dec)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
-		      (when (string-match-p "\\(^\\|[^%]\\)%[aho]" value)
-			(setq value
-			      (format-spec
-			       value
-			       (format-spec-make
-				?a (tramp-get-remote-awk vec)
-				?h (tramp-get-remote-hexdump vec)
-				?n (concat
-                                    "2>" (tramp-get-remote-null-device vec))
-				?o (tramp-get-remote-od vec)))
-			      value (tramp-compat-string-replace "%" "%%" value)))
-		      (when (string-match-p "\\(^\\|[^%]\\)%t" value)
-			(setq tmpfile (tramp-make-tramp-temp-name vec)
-			      value
-			      (format-spec
-			       value
-			       (format-spec-make
-				?t (tramp-file-local-name tmpfile)))))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-dec name)))
 		  (tramp-message
