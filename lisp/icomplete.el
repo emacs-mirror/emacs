@@ -75,12 +75,7 @@ everything preceding the ~/ is discarded so the interactive
 selection process starts again from the user's $HOME.")
 
 (defcustom icomplete-show-matches-on-no-input nil
-  "If nil, don't wait for completions before showing the prompt.
-Instead, when there's no input, completions may be displayed
-asynchronously later, when the completions have been computed.
-
-If non-nil, always compute the completions first.
-
+  "When non-nil, show completions when first prompting for input.
 This also means that if you traverse the list of completions with
 commands like `C-.' and just hit RET without typing any
 characters, the match under point will be chosen instead of the
