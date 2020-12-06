@@ -3786,6 +3786,7 @@ a shell (with its need to quote arguments)."
   (shell-command command output-buffer error-buffer))
 
 (declare-function comint-output-filter "comint" (process string))
+(declare-function comint-term-environment "comint" ())
 
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
@@ -3964,15 +3965,19 @@ impose the use of a shell (with its need to quote arguments)."
 		(with-current-buffer buffer
                   (shell-command-save-pos-or-erase)
 		  (setq default-directory directory)
-		  (let ((process-environment
-			 (if (natnump async-shell-command-width)
-			     (cons (format "COLUMNS=%d" async-shell-command-width)
-				   process-environment)
-			   process-environment)))
+                  (require 'shell)
+                  (let ((process-environment
+                         (append
+                          (and (natnump async-shell-command-width)
+                               (list
+                                (format "COLUMNS=%d"
+                                        async-shell-command-width)))
+                          (comint-term-environment)
+                          process-environment)))
 		    (setq proc
 			  (start-process-shell-command "Shell" buffer command)))
 		  (setq mode-line-process '(":%s"))
-		  (require 'shell) (shell-mode)
+                  (shell-mode)
                   (set-process-sentinel proc #'shell-command-sentinel)
 		  ;; Use the comint filter for proper handling of
 		  ;; carriage motion (see comint-inhibit-carriage-motion).
@@ -5459,6 +5464,8 @@ With ARG, rotate that many kills forward (or backward, if negative)."
 (defvar read-from-kill-ring-history)
 (defun read-from-kill-ring ()
   "Read a string from `kill-ring' using completion and minibuffer history."
+  ;; `current-kill' updates `kill-ring' with a possible interprogram-paste
+  (current-kill 0)
   (let* ((history-add-new-input nil)
          (ellipsis (if (char-displayable-p ?…) "…" "..."))
          ;; Remove keymaps from text properties of copied string,
@@ -6419,7 +6426,8 @@ for it.")
 	     (<= position (point-max)))
 	(if widen-automatically
 	    (widen)
-	  (error "Global mark position is outside accessible part of buffer")))
+	  (error "Global mark position is outside accessible part of buffer %s"
+                 (buffer-name buffer))))
     (goto-char position)
     (switch-to-buffer buffer)))
 

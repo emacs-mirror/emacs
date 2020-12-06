@@ -515,9 +515,9 @@ If called interactively, toggle `Allout mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -836,9 +836,9 @@ If called interactively, toggle `Allout-Widgets mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1260,9 +1260,9 @@ If called interactively, toggle `Artist mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1598,9 +1598,9 @@ If called interactively, toggle `Autoarg-Kp mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1660,9 +1660,9 @@ If called interactively, toggle `Auto-Insert mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1753,9 +1753,9 @@ If called interactively, toggle `Auto-Revert mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1786,9 +1786,9 @@ If called interactively, toggle `Auto-Revert-Tail mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1833,9 +1833,9 @@ If called interactively, toggle `Global Auto-Revert mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1970,9 +1970,9 @@ If called interactively, toggle `Display-Battery mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1994,7 +1994,7 @@ seconds.
 
 (autoload 'benchmark-run "benchmark" "\
 Time execution of FORMS.
-If REPETITIONS is supplied as a number, run forms that many times,
+If REPETITIONS is supplied as a number, run FORMS that many times,
 accounting for the overhead of the resulting loop.  Otherwise run
 FORMS once.
 Return a list of the total elapsed time for execution, the number of
@@ -2952,9 +2952,9 @@ If called interactively, toggle `Bug-Reference mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -2968,9 +2968,9 @@ If called interactively, toggle `Bug-Reference-Prog mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -3038,7 +3038,11 @@ before scanning it.
 If the third argument FORCE is non-nil, recompile every `.el' file
 that already has a `.elc' file.
 
-\(fn DIRECTORY &optional ARG FORCE)" t nil)
+This command will normally not follow symlinks when compiling
+files.  If FOLLOW-SYMLINKS is non-nil, symlinked `.el' files will
+also be compiled.
+
+\(fn DIRECTORY &optional ARG FORCE FOLLOW-SYMLINKS)" t nil)
 (put 'no-byte-compile 'safe-local-variable 'booleanp)
 
 (autoload 'byte-compile-file "bytecomp" "\
@@ -4713,9 +4717,9 @@ If called interactively, toggle `Checkdoc minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -4829,9 +4833,9 @@ If called interactively, toggle `Cl-Font-Lock-Built-In mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -5047,9 +5051,9 @@ If called interactively, toggle `Cl-Old-Struct-Compat mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -5486,9 +5490,9 @@ If called interactively, toggle `Compilation-Shell minor mode'.  If
 the prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -5507,9 +5511,9 @@ If called interactively, toggle `Compilation minor mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -5550,9 +5554,9 @@ If called interactively, toggle `Dynamic-Completion mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -6117,9 +6121,9 @@ If called interactively, toggle `Cua mode'.  If the prefix argument is
 positive, enable the mode, and if it is zero or negative, disable the
 mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -6171,9 +6175,9 @@ If called interactively, toggle `Cua-Rectangle-Mark mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -6200,9 +6204,9 @@ If called interactively, toggle `Cursor-Intangible mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -6221,9 +6225,9 @@ If called interactively, toggle `Cursor-Sensor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -6607,9 +6611,9 @@ If called interactively, toggle `Cwarn mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7062,9 +7066,9 @@ If called interactively, toggle `Delete-Selection mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7237,9 +7241,9 @@ If called interactively, toggle `Desktop-Save mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7636,9 +7640,9 @@ If called interactively, toggle `Diff minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7828,9 +7832,9 @@ If called interactively, toggle `Dirtrack mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -8005,9 +8009,9 @@ If called interactively, toggle `Display-Fill-Column-Indicator mode'.
 If the prefix argument is positive, enable the mode, and if it is zero
 or negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -8082,9 +8086,9 @@ If called interactively, toggle `Display-Line-Numbers mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -8225,9 +8229,9 @@ If called interactively, toggle `Doc-View minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -8293,9 +8297,9 @@ If called interactively, toggle `Double mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -9143,9 +9147,9 @@ If called interactively, toggle `Global Ede mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -9997,9 +10001,9 @@ If called interactively, toggle `Electric-Pair mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10021,9 +10025,9 @@ If called interactively, toggle `Electric-Pair-Local mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10244,9 +10248,9 @@ If called interactively, toggle `Enriched mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10509,9 +10513,9 @@ If called interactively, toggle `epa-mail mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10579,9 +10583,9 @@ If called interactively, toggle `Epa-Global-Mail mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -11962,9 +11966,9 @@ If called interactively, toggle `Buffer-Face mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -12011,7 +12015,7 @@ Besides the choice of face, it is the same as `buffer-face-mode'.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "face-remap" '("buffer-face-mode-" "face-" "internal-lisp-face-attributes" "text-scale-m"))
+(register-definition-prefixes "face-remap" '("buffer-face-mode-" "face-" "internal-lisp-face-attributes" "text-scale-"))
 
 ;;;***
 
@@ -12384,6 +12388,12 @@ Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables.
 
 \(fn &rest BODY)" nil t)
+
+(autoload 'path-separator "files-x" "\
+The connection-local value of `path-separator'." nil nil)
+
+(autoload 'null-device "files-x" "\
+The connection-local value of `null-device'." nil nil)
 
 (register-definition-prefixes "files-x" '("connection-local-" "dir-locals-to-string" "hack-connection-local-variables" "modify-" "read-file-local-variable"))
 
@@ -12884,9 +12894,9 @@ If called interactively, toggle `Flymake mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -12972,9 +12982,9 @@ If called interactively, toggle `Flyspell mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -13055,9 +13065,9 @@ If called interactively, toggle `Follow mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -13185,9 +13195,9 @@ If called interactively, toggle `Footnote mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -13652,9 +13662,9 @@ If called interactively, toggle `Gdb-Enable-Debug mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -13836,9 +13846,9 @@ If called interactively, toggle `Glasses mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -14451,9 +14461,9 @@ If called interactively, toggle `Gnus-Mailing-List mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero
 or negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.
-Enable the mode if ARG is nil, omitted, or is a positive number.
-All other values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
+the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
@@ -14731,6 +14741,14 @@ Initialize the Gnus registry." t nil)
 
 ;;;***
 
+;;;### (autoloads nil "gnus-search" "gnus/gnus-search.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from gnus/gnus-search.el
+
+(register-definition-prefixes "gnus-search" '("gnus-search-"))
+
+;;;***
+
 ;;;### (autoloads nil "gnus-sieve" "gnus/gnus-sieve.el" (0 0 0 0))
 ;;; Generated autoloads from gnus/gnus-sieve.el
 
@@ -14908,9 +14926,9 @@ If called interactively, toggle `Goto-Address mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -14950,9 +14968,9 @@ If called interactively, toggle `Goto-Address-Prog mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -15290,9 +15308,9 @@ If called interactively, toggle `Gud-Tooltip mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16011,9 +16029,9 @@ If called interactively, toggle `Hi-Lock mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16223,9 +16241,9 @@ If called interactively, toggle `Hide-Ifdef mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16308,9 +16326,9 @@ If called interactively, toggle `Hs minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16358,9 +16376,9 @@ If called interactively, toggle `Highlight-Changes mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16389,9 +16407,9 @@ If called interactively, toggle `Highlight-Changes-Visible mode'.  If
 the prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16539,9 +16557,9 @@ If called interactively, toggle `Hl-Line mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16577,9 +16595,9 @@ If called interactively, toggle `Global Hl-Line mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16995,9 +17013,9 @@ If called interactively, toggle `Fido mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17024,9 +17042,9 @@ If called interactively, toggle `Icomplete mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17572,9 +17590,9 @@ If called interactively, toggle `Iimage mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17886,9 +17904,9 @@ If called interactively, toggle `Image-Dired minor mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17988,9 +18006,9 @@ If called interactively, toggle `Auto-Image-File mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -18023,9 +18041,9 @@ If called interactively, toggle `Image minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -18648,7 +18666,12 @@ See Info node `(elisp)Defining Functions' for more details.
 Declare that you need either EMACS-VER, XEMACS-VER or SXEMACS-ver.
 Only checks one based on which kind of Emacs is being run.
 
+This function is obsolete; do this instead:
+    (when (version<= \"28.1\" emacs-version) ...)
+
 \(fn EMACS-VER XEMACS-VER SXEMACS-VER)" nil nil)
+
+(make-obsolete 'inversion-require-emacs 'nil '"28.1")
 
 (register-definition-prefixes "inversion" '("inversion-"))
 
@@ -18663,6 +18686,9 @@ Select an input method and turn it on in interactive search." t nil)
 
 (autoload 'isearch-toggle-input-method "isearch-x" "\
 Toggle input method in interactive search." t nil)
+
+(autoload 'isearch-transient-input-method "isearch-x" "\
+Activate transient input method in interactive search." t nil)
 
 (autoload 'isearch-process-search-multibyte-characters "isearch-x" "\
 
@@ -18984,9 +19010,9 @@ If called interactively, toggle `ISpell minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -19185,7 +19211,7 @@ one of the aforementioned options instead of using this mode.
 
 ;;;### (autoloads nil "jsonrpc" "jsonrpc.el" (0 0 0 0))
 ;;; Generated autoloads from jsonrpc.el
-(push (purecopy '(jsonrpc 1 0 12)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 14)) package--builtin-versions)
 
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
@@ -19679,9 +19705,9 @@ If called interactively, toggle `Linum mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -20259,9 +20285,9 @@ If called interactively, toggle `Mail-Abbrevs mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -20601,9 +20627,9 @@ If called interactively, toggle `Master mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -20643,9 +20669,9 @@ If called interactively, toggle `Minibuffer-Depth-Indicate mode'.  If
 the prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21190,9 +21216,9 @@ If called interactively, toggle `Midnight mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21242,9 +21268,9 @@ If called interactively, toggle `Minibuffer-Electric-Default mode'.
 If the prefix argument is positive, enable the mode, and if it is zero
 or negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21818,9 +21844,9 @@ If called interactively, toggle `Msb mode'.  If the prefix argument is
 positive, enable the mode, and if it is zero or negative, disable the
 mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -22555,13 +22581,6 @@ This command does not work if you use short group names." t nil)
 ;;; Generated autoloads from gnus/nnimap.el
 
 (register-definition-prefixes "nnimap" '("nnimap-"))
-
-;;;***
-
-;;;### (autoloads nil "nnir" "gnus/nnir.el" (0 0 0 0))
-;;; Generated autoloads from gnus/nnir.el
-
-(register-definition-prefixes "nnir" '("nnir-"))
 
 ;;;***
 
@@ -24346,9 +24365,9 @@ If called interactively, toggle `Org-Num mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -24440,9 +24459,9 @@ If called interactively, toggle `Outline minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -24648,9 +24667,9 @@ If called interactively, toggle `Show-Paren mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -25361,9 +25380,9 @@ If called interactively, toggle `Pixel-Scroll mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -26147,13 +26166,15 @@ pattern to search for.
 
 (autoload 'project-find-file "project" "\
 Visit a file (with completion) in the current project.
-The completion default is the filename at point, if one is
-recognized." t nil)
+
+The completion default is the filename at point, determined by
+`thing-at-point' (whether such file exists or not)." t nil)
 
 (autoload 'project-or-external-find-file "project" "\
 Visit a file (with completion) in the current project or external roots.
-The completion default is the filename at point, if one is
-recognized." t nil)
+
+The completion default is the filename at point, determined by
+`thing-at-point' (whether such file exists or not)." t nil)
 
 (autoload 'project-dired "project" "\
 Start Dired in the current project's root." t nil)
@@ -27112,9 +27133,9 @@ If called interactively, toggle `Rcirc-Track minor mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27164,9 +27185,9 @@ If called interactively, toggle `Recentf mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27322,9 +27343,9 @@ If called interactively, toggle `Rectangle-Mark mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27361,9 +27382,9 @@ If called interactively, toggle `Refill mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27398,9 +27419,9 @@ If called interactively, toggle `Reftex mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27679,9 +27700,9 @@ If called interactively, toggle `Reveal mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27711,9 +27732,9 @@ If called interactively, toggle `Global Reveal mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28245,9 +28266,9 @@ If called interactively, toggle `Rng-Validate mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28402,9 +28423,9 @@ If called interactively, toggle `Rst minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28436,7 +28457,7 @@ Major mode for editing Ruby code.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist (cons (purecopy (concat "\\(?:\\.\\(?:" "rbw?\\|ru\\|rake\\|thor" "\\|jbuilder\\|rabl\\|gemspec\\|podspec" "\\)" "\\|/" "\\(?:Gem\\|Rake\\|Cap\\|Thor" "\\|Puppet\\|Berks" "\\|Vagrant\\|Guard\\|Pod\\)file" "\\)\\'")) 'ruby-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy (concat "\\(?:\\.\\(?:" "rbw?\\|ru\\|rake\\|thor" "\\|jbuilder\\|rabl\\|gemspec\\|podspec" "\\)" "\\|/" "\\(?:Gem\\|Rake\\|Cap\\|Thor" "\\|Puppet\\|Berks\\|Brew" "\\|Vagrant\\|Guard\\|Pod\\)file" "\\)\\'")) 'ruby-mode))
 
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8")) (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
 
@@ -28458,9 +28479,9 @@ If called interactively, toggle `Ruler mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28661,6 +28682,29 @@ For more details, see Info node `(elisp) Extending Rx'.
 
 (function-put 'rx-define 'lisp-indent-function 'defun)
 
+(autoload 'rx--pcase-macroexpander "rx" "\
+A pattern that matches strings against `rx' REGEXPS in sexp form.
+REGEXPS are interpreted as in `rx'.  The pattern matches any
+string that is a match for REGEXPS, as if by `string-match'.
+
+In addition to the usual `rx' syntax, REGEXPS can contain the
+following constructs:
+
+  (let REF RX...)  binds the symbol REF to a submatch that matches
+                   the regular expressions RX.  REF is bound in
+                   CODE to the string of the submatch or nil, but
+                   can also be used in `backref'.
+  (backref REF)    matches whatever the submatch REF matched.
+                   REF can be a number, as usual, or a name
+                   introduced by a previous (let REF ...)
+                   construct.
+
+\(fn &rest REGEXPS)" nil nil)
+
+(define-symbol-prop 'rx--pcase-macroexpander 'edebug-form-spec 'nil)
+
+(define-symbol-prop 'rx 'pcase-macroexpander #'rx--pcase-macroexpander)
+
 (register-definition-prefixes "rx" '("rx-"))
 
 ;;;***
@@ -28729,9 +28773,9 @@ If called interactively, toggle `Savehist mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28790,9 +28834,9 @@ If called interactively, toggle `Save-Place mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28809,9 +28853,9 @@ If called interactively, toggle `Save-Place-Local mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28903,9 +28947,9 @@ If called interactively, toggle `Scroll-All mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28936,9 +28980,9 @@ If called interactively, toggle `Scroll-Lock mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28983,7 +29027,6 @@ The possible elements of this list include the following:
  `global-semantic-stickyfunc-mode'     - Show current fun in header line.
  `global-semantic-mru-bookmark-mode'   - Provide `switch-to-buffer'-like
                                          keybinding for tag names.
- `global-cedet-m3-minor-mode'          - A mouse 3 context menu.
  `global-semantic-idle-local-symbol-highlight-mode' - Highlight references
                                          of the symbol under point.
 The following modes are more targeted at people who want to see
@@ -29013,9 +29056,9 @@ If called interactively, toggle `Semantic mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -29653,9 +29696,9 @@ If called interactively, toggle `Server mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -30290,9 +30333,9 @@ If called interactively, toggle `Smerge mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -30423,9 +30466,9 @@ If called interactively, toggle `So-Long minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -30505,9 +30548,9 @@ If called interactively, toggle `Global So-Long mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31623,9 +31666,9 @@ If called interactively, toggle `Strokes mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31733,9 +31776,9 @@ If called interactively, toggle `Subword mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31793,9 +31836,9 @@ If called interactively, toggle `Superword mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31899,9 +31942,9 @@ If called interactively, toggle `Gpm-Mouse mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31930,9 +31973,9 @@ If called interactively, toggle `Tab-Line mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -32346,9 +32389,9 @@ If called interactively, toggle `Table-Fixed-Width mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -33537,9 +33580,9 @@ If called interactively, toggle `Tildify mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -33592,9 +33635,9 @@ If called interactively, toggle `Display-Time mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -34484,9 +34527,9 @@ If called interactively, toggle `Type-Break mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -35015,9 +35058,9 @@ If called interactively, toggle `Url-Handler mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37176,9 +37219,9 @@ If called interactively, toggle `View mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37555,9 +37598,9 @@ If called interactively, toggle `Which-Function mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37583,9 +37626,9 @@ If called interactively, toggle `Whitespace mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37602,9 +37645,9 @@ If called interactively, toggle `Whitespace-Newline mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37635,9 +37678,9 @@ If called interactively, toggle `Global Whitespace mode'.  If the
 prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37664,9 +37707,9 @@ If called interactively, toggle `Global Whitespace-Newline mode'.  If
 the prefix argument is positive, enable the mode, and if it is zero or
 negative, disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -37994,9 +38037,9 @@ If called interactively, toggle `Widget minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -38234,9 +38277,9 @@ If called interactively, toggle `Winner mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -38526,9 +38569,9 @@ If called interactively, toggle `Xterm-Mouse mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
-If called from Lisp, toggle the mode if if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.  All other
-values will disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -38682,27 +38725,27 @@ Zone out, completely." t nil)
 ;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
 ;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
 ;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
-;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/croatian.el"
-;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
-;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
-;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
-;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
-;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
-;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
-;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
-;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
-;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
-;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
-;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
-;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
-;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
-;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "mh-e/mh-loaddefs.el"
-;;;;;;  "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el" "newcomment.el"
-;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
-;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
-;;;;;;  "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
-;;;;;;  "org/org-datetree.el" "org/org-element.el" "org/org-feed.el"
-;;;;;;  "org/org-footnote.el" "org/org-id.el" "org/org-indent.el"
+;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/compose.el"
+;;;;;;  "leim/quail/croatian.el" "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el"
+;;;;;;  "leim/quail/czech.el" "leim/quail/georgian.el" "leim/quail/greek.el"
+;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
+;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
+;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
+;;;;;;  "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
+;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
+;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
+;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
+;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
+;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
+;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmailedit.el" "mail/rmailkwd.el"
+;;;;;;  "mail/rmailmm.el" "mail/rmailmsc.el" "mail/rmailsort.el"
+;;;;;;  "mail/rmailsum.el" "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el"
+;;;;;;  "mh-e/mh-loaddefs.el" "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el"
+;;;;;;  "newcomment.el" "obarray.el" "org/ob-core.el" "org/ob-lob.el"
+;;;;;;  "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el"
+;;;;;;  "org/ol-irc.el" "org/org-archive.el" "org/org-attach.el"
+;;;;;;  "org/org-clock.el" "org/org-datetree.el" "org/org-element.el"
+;;;;;;  "org/org-feed.el" "org/org-footnote.el" "org/org-id.el" "org/org-indent.el"
 ;;;;;;  "org/org-install.el" "org/org-mobile.el" "org/org-plot.el"
 ;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
 ;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"

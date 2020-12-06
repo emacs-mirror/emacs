@@ -579,7 +579,7 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
                      (progn
                        (if rmail-delete-after-output
                            (rmail-delete-message))
-                       (if (> count 0)
+                       (if (>= count 0)
                            (let ((msgnum rmail-current-message))
                              (rmail-next-message 1)
                              (eq rmail-current-message (1+ msgnum)))))

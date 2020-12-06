@@ -445,17 +445,17 @@ images."
   "NewsTicker"
   "Viewing news feeds in Emacs."
   (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map)
-           newsticker--plainview-tool-bar-map))
-  (set (make-local-variable 'imenu-sort-function) nil)
-  (set (make-local-variable 'scroll-conservatively) 999)
+      (setq-local tool-bar-map
+                  newsticker--plainview-tool-bar-map))
+  (setq-local imenu-sort-function nil)
+  (setq-local scroll-conservatively 999)
   (setq imenu-create-index-function 'newsticker--imenu-create-index)
   (setq imenu-default-goto-function 'newsticker--imenu-goto)
   (setq buffer-read-only t)
   (auto-fill-mode -1) ;; turn auto-fill off!
   (font-lock-mode -1) ;; turn off font-lock!!
-  (set (make-local-variable 'font-lock-defaults) nil)
-  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (setq-local font-lock-defaults nil)
+  (setq-local line-move-ignore-invisible t)
   (setq mode-line-format
         (list "-"
               'mode-line-mule-info
@@ -533,7 +533,7 @@ Unless FORCE is t this is done only if necessary, i.e. when the
        (set-buffer-file-coding-system 'utf-8)
 
        (if newsticker-use-full-width
-           (set (make-local-variable 'fill-column) (1- (window-width))))
+           (setq-local fill-column (1- (window-width))))
        (newsticker--buffer-insert-all-items)
 
        ;; FIXME: needed for methods buffer in ecb

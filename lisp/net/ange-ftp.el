@@ -1556,7 +1556,7 @@ good, skip, fatal, or unknown."
          ;; This looks like an error, but we have to keep reading the output
          ;; to see if it was fixed or not.  E.g. it may indicate that IPv6
          ;; failed, but maybe a subsequent IPv4 fallback succeeded.
-         (set (make-local-variable 'ange-ftp-pending-error-line) line)
+         (setq-local ange-ftp-pending-error-line line)
          t)
 	((string-match ange-ftp-fatal-msgs line)
 	 (delete-process proc)
@@ -1970,30 +1970,24 @@ on the gateway machine to do the FTP instead."
   "Major mode for interacting with the FTP process.
 
 \\{comint-mode-map}"
-  (make-local-variable 'ange-ftp-process-string)
-  (setq ange-ftp-process-string "")
+  (setq-local ange-ftp-process-string "")
   (make-local-variable 'ange-ftp-process-busy)
   (make-local-variable 'ange-ftp-process-result)
   (make-local-variable 'ange-ftp-process-msg)
   (make-local-variable 'ange-ftp-process-multi-skip)
-  (make-local-variable 'ange-ftp-process-result-line)
   (make-local-variable 'ange-ftp-process-continue)
-  (make-local-variable 'ange-ftp-hash-mark-count)
   (make-local-variable 'ange-ftp-binary-hash-mark-size)
   (make-local-variable 'ange-ftp-ascii-hash-mark-size)
   (make-local-variable 'ange-ftp-hash-mark-unit)
-  (make-local-variable 'ange-ftp-xfer-size)
   (make-local-variable 'ange-ftp-last-percent)
-  (setq ange-ftp-hash-mark-count 0)
-  (setq ange-ftp-xfer-size 0)
-  (setq ange-ftp-process-result-line "")
+  (setq-local ange-ftp-hash-mark-count 0)
+  (setq-local ange-ftp-xfer-size 0)
+  (setq-local ange-ftp-process-result-line "")
   (setq comint-prompt-regexp "^ftp> ")
-  (make-local-variable 'comint-password-prompt-regexp)
   ;; This is a regexp that can't match anything.
   ;; ange-ftp has its own ways of handling passwords.
-  (setq comint-password-prompt-regexp regexp-unmatchable)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start comint-prompt-regexp))
+  (setq-local comint-password-prompt-regexp regexp-unmatchable)
+  (setq-local paragraph-start comint-prompt-regexp))
 
 (defcustom ange-ftp-raw-login nil
   "Use raw FTP commands for login, if account password is not nil.
@@ -3662,7 +3656,7 @@ so return the size on the remote host exactly. See RFC 3659."
 ;;     (set-process-sentinel proc 'ange-ftp-copy-file-locally-sentinel)
 ;;     (set-process-query-on-exit-flag proc nil)
 ;;     (with-current-buffer (process-buffer proc)
-;;       (set (make-local-variable 'copy-cont) cont))))
+;;       (setq-local copy-cont cont))))
 ;;
 ;; (defun ange-ftp-copy-file-locally-sentinel (proc status)
 ;;   (with-current-buffer (process-buffer proc)

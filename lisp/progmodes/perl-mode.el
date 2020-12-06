@@ -299,12 +299,21 @@
                ;; $a = "foo y \"toto\" bar" where we'd end up changing the
                ;; syntax of the backslash and hence de-escaping the embedded
                ;; double quote.
-               (put-text-property (match-beginning 3) (match-end 3)
-                                  'syntax-table
-                                  (if (assoc (char-after (match-beginning 3))
-                                             perl-quote-like-pairs)
-                                      (string-to-syntax "|")
-                                    (string-to-syntax "\"")))
+               (let* ((b3 (match-beginning 3))
+                      (c (char-after b3)))
+                 (put-text-property
+                  b3 (match-end 3) 'syntax-table
+                  (cond
+                   ((assoc c perl-quote-like-pairs)
+                    (string-to-syntax "|"))
+                   ;; If the separator is a normal quote and the operation
+                   ;; only takes a single arg, then there's nothing
+                   ;; special to do.
+                   ((and (memq c '(?\" ?\'))
+                         (memq (char-after (match-beginning 2)) '(?m ?q)))
+                    nil)
+                   (t
+                    (string-to-syntax "\"")))))
                (perl-syntax-propertize-special-constructs end))))))
       ;; Here documents.
       ((concat
@@ -379,7 +388,8 @@
             (put-text-property (1- (point)) (point) 'syntax-table
                                (string-to-syntax "> c"))))))
      ((or (null (setq char (nth 3 state)))
-          (and (characterp char) (eq (char-syntax (nth 3 state)) ?\")))
+          (and (characterp char)
+               (null (get-text-property (nth 8 state) 'syntax-table))))
       ;; Normal text, or comment, or docstring, or normal string.
       nil)
      ((eq (nth 3 state) ?\n)
@@ -400,6 +410,7 @@
                                                (point)))
                                '("tr" "s" "y"))))
             (close (cdr (assq char perl-quote-like-pairs)))
+            (middle nil)
             (st (perl-quote-syntax-table char)))
         (when (with-syntax-table st
 		(if close
@@ -430,6 +441,7 @@
 			   ;; In the case of s{...}{...}, we only handle the
 			   ;; first part here and the next below.
 			   (when (and twoargs (not close))
+			     (setq middle (point))
 			     (nth 8 (parse-partial-sexp
 				     (point) limit
 				     nil nil state 'syntax-table)))))))
@@ -437,11 +449,14 @@
 	  (when (eq (char-before (1- (point))) ?$)
 	    (put-text-property (- (point) 2) (1- (point))
 			       'syntax-table '(1)))
-	  (put-text-property (1- (point)) (point)
-			     'syntax-table
-			     (if close
-				 (string-to-syntax "|")
-			       (string-to-syntax "\"")))
+	  (if (and middle (memq char '(?\" ?\')))
+	      (put-text-property (1- middle) middle
+			     'syntax-table '(1))
+	    (put-text-property (1- (point)) (point)
+			       'syntax-table
+			       (if close
+				   (string-to-syntax "|")
+				 (string-to-syntax "\""))))
 	  ;; If we have two args with a non-self-paired starter (e.g.
 	  ;; s{...}{...}) we're right after the first arg, so we still have to
 	  ;; handle the second part.

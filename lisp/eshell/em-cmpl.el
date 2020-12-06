@@ -267,48 +267,48 @@ to writing a completion function."
 
 (defun eshell-cmpl-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the completions module."
-  (set (make-local-variable 'pcomplete-command-completion-function)
-       eshell-command-completion-function)
-  (set (make-local-variable 'pcomplete-command-name-function)
-       eshell-cmpl-command-name-function)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       eshell-default-completion-function)
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'eshell-complete-parse-arguments)
-  (set (make-local-variable 'pcomplete-file-ignore)
-       eshell-cmpl-file-ignore)
-  (set (make-local-variable 'pcomplete-dir-ignore)
-       eshell-cmpl-dir-ignore)
-  (set (make-local-variable 'pcomplete-ignore-case)
-       eshell-cmpl-ignore-case)
-  (set (make-local-variable 'pcomplete-autolist)
-       eshell-cmpl-autolist)
+  (setq-local pcomplete-command-completion-function
+              eshell-command-completion-function)
+  (setq-local pcomplete-command-name-function
+              eshell-cmpl-command-name-function)
+  (setq-local pcomplete-default-completion-function
+              eshell-default-completion-function)
+  (setq-local pcomplete-parse-arguments-function
+              'eshell-complete-parse-arguments)
+  (setq-local pcomplete-file-ignore
+              eshell-cmpl-file-ignore)
+  (setq-local pcomplete-dir-ignore
+              eshell-cmpl-dir-ignore)
+  (setq-local pcomplete-ignore-case
+              eshell-cmpl-ignore-case)
+  (setq-local pcomplete-autolist
+              eshell-cmpl-autolist)
   (if (boundp 'pcomplete-suffix-list)
-      (set (make-local-variable 'pcomplete-suffix-list)
-           eshell-cmpl-suffix-list))
-  (set (make-local-variable 'pcomplete-recexact)
-       eshell-cmpl-recexact)
-  (set (make-local-variable 'pcomplete-man-function)
-       eshell-cmpl-man-function)
-  (set (make-local-variable 'pcomplete-compare-entry-function)
-       eshell-cmpl-compare-entry-function)
-  (set (make-local-variable 'pcomplete-expand-before-complete)
-       eshell-cmpl-expand-before-complete)
-  (set (make-local-variable 'pcomplete-cycle-completions)
-       eshell-cmpl-cycle-completions)
-  (set (make-local-variable 'pcomplete-cycle-cutoff-length)
-       eshell-cmpl-cycle-cutoff-length)
-  (set (make-local-variable 'pcomplete-restore-window-delay)
-       eshell-cmpl-restore-window-delay)
-  (set (make-local-variable 'pcomplete-use-paring)
-       eshell-cmpl-use-paring)
+      (setq-local pcomplete-suffix-list
+                  eshell-cmpl-suffix-list))
+  (setq-local pcomplete-recexact
+              eshell-cmpl-recexact)
+  (setq-local pcomplete-man-function
+              eshell-cmpl-man-function)
+  (setq-local pcomplete-compare-entry-function
+              eshell-cmpl-compare-entry-function)
+  (setq-local pcomplete-expand-before-complete
+              eshell-cmpl-expand-before-complete)
+  (setq-local pcomplete-cycle-completions
+              eshell-cmpl-cycle-completions)
+  (setq-local pcomplete-cycle-cutoff-length
+              eshell-cmpl-cycle-cutoff-length)
+  (setq-local pcomplete-restore-window-delay
+              eshell-cmpl-restore-window-delay)
+  (setq-local pcomplete-use-paring
+              eshell-cmpl-use-paring)
   ;; `comint-file-name-quote-list' should only be set after all the
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run
   (add-hook 'eshell-mode-hook
             (lambda ()
-              (set (make-local-variable 'comint-file-name-quote-list)
-                   eshell-special-chars-outside-quoting))
+              (setq-local comint-file-name-quote-list
+                          eshell-special-chars-outside-quoting))
             nil t)
   (add-hook 'pcomplete-quote-arg-hook #'eshell-quote-backslash nil t)
   (add-hook 'completion-at-point-functions

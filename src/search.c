@@ -3033,12 +3033,12 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
 DEFUN ("match-data--translate", Fmatch_data__translate, Smatch_data__translate,
        1, 1, 0,
-       doc: /* Add N to all string positions in the match data.  Internal.  */)
+       doc: /* Add N to all positions in the match data.  Internal.  */)
   (Lisp_Object n)
 {
   CHECK_FIXNUM (n);
   EMACS_INT delta = XFIXNUM (n);
-  if (EQ (last_thing_searched, Qt))   /* String match data only.  */
+  if (!NILP (last_thing_searched))
     for (ptrdiff_t i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
         {

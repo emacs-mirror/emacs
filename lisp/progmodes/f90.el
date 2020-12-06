@@ -1179,29 +1179,26 @@ Turning on F90 mode calls the value of the variable `f90-mode-hook'
 with no args, if that value is non-nil."
   :group 'f90
   :abbrev-table f90-mode-abbrev-table
-  (set (make-local-variable 'indent-line-function) 'f90-indent-line)
-  (set (make-local-variable 'indent-region-function) 'f90-indent-region)
-  (set (make-local-variable 'comment-start) "!")
-  (set (make-local-variable 'comment-start-skip) "!+ *")
-  (set (make-local-variable 'comment-indent-function) 'f90-comment-indent)
-  (set (make-local-variable 'abbrev-all-caps) t)
-  (set (make-local-variable 'normal-auto-fill-function) 'f90-do-auto-fill)
+  (setq-local indent-line-function #'f90-indent-line)
+  (setq-local indent-region-function #'f90-indent-region)
+  (setq-local comment-start "!")
+  (setq-local comment-start-skip "!+ *")
+  (setq-local comment-indent-function 'f90-comment-indent)
+  (setq-local abbrev-all-caps t)
+  (setq-local normal-auto-fill-function #'f90-do-auto-fill)
   (setq indent-tabs-mode nil)           ; auto buffer local
-  (set (make-local-variable 'fill-paragraph-function) 'f90-fill-paragraph)
-  (set (make-local-variable 'font-lock-defaults)
-       '((f90-font-lock-keywords f90-font-lock-keywords-1
-                                 f90-font-lock-keywords-2
-                                 f90-font-lock-keywords-3
-                                 f90-font-lock-keywords-4)
-         nil t))
-  (set (make-local-variable 'imenu-case-fold-search) t)
-  (set (make-local-variable 'imenu-generic-expression)
-       f90-imenu-generic-expression)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'f90-beginning-of-subprogram)
-  (set (make-local-variable 'end-of-defun-function) 'f90-end-of-subprogram)
-  (set (make-local-variable 'add-log-current-defun-function)
-       #'f90-current-defun))
+  (setq-local fill-paragraph-function #'f90-fill-paragraph)
+  (setq-local font-lock-defaults
+              '((f90-font-lock-keywords f90-font-lock-keywords-1
+                                        f90-font-lock-keywords-2
+                                        f90-font-lock-keywords-3
+                                        f90-font-lock-keywords-4)
+                nil t))
+  (setq-local imenu-case-fold-search t)
+  (setq-local imenu-generic-expression f90-imenu-generic-expression)
+  (setq-local beginning-of-defun-function #'f90-beginning-of-subprogram)
+  (setq-local end-of-defun-function #'f90-end-of-subprogram)
+  (setq-local add-log-current-defun-function #'f90-current-defun))
 
 
 ;; Inline-functions.

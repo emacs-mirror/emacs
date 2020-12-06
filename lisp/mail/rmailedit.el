@@ -66,8 +66,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     (setq mode-line-modified (default-value 'mode-line-modified))
     ;; Don't turn off auto-saving based on the size of the buffer
     ;; because that code does not understand buffer-swapping.
-    (make-local-variable 'auto-save-include-big-deletions)
-    (setq auto-save-include-big-deletions t)
+    (setq-local auto-save-include-big-deletions t)
     ;; If someone uses C-x C-s, don't clobber the rmail file (bug#2625).
     (add-hook 'write-region-annotate-functions
 	      'rmail-write-region-annotate nil t)
@@ -98,10 +97,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (if (zerop rmail-total-messages)
       (error "No messages in this buffer"))
   (rmail-modify-format)
-  (make-local-variable 'rmail-old-pruned)
-  (setq rmail-old-pruned (rmail-msg-is-pruned))
+  (setq-local rmail-old-pruned (rmail-msg-is-pruned))
   (rmail-edit-mode)
-  (set (make-local-variable 'rmail-old-mime-state)
+  (setq-local rmail-old-mime-state
        (and rmail-enable-mime
 	    ;; If you use something else, you are on your own.
 	    (eq rmail-mime-feature 'rmailmm)
@@ -125,13 +123,11 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 		(goto-char (point-min))
 		;; t = decoded; raw = raw.
 		(aref (aref (rmail-mime-entity-display entity) 0) 0)))))
-  (make-local-variable 'rmail-old-text)
-  (setq rmail-old-text
-	(save-restriction
-	  (widen)
-	  (buffer-substring (point-min) (point-max))))
-  (make-local-variable 'rmail-old-headers)
-  (setq rmail-old-headers (rmail-edit-headers-alist t))
+  (setq-local rmail-old-text
+              (save-restriction
+                (widen)
+                (buffer-substring (point-min) (point-max))))
+  (setq-local rmail-old-headers (rmail-edit-headers-alist t))
   (setq buffer-read-only nil)
   (setq buffer-undo-list nil)
   ;; Whether the buffer is initially marked as modified or not
@@ -209,7 +205,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (kill-all-local-variables)
       (rmail-mode-1)
       (if (boundp 'tool-bar-map)
-	  (set (make-local-variable 'tool-bar-map) rmail-tool-bar-map))
+          (setq-local tool-bar-map rmail-tool-bar-map))
       (setq buffer-undo-list t)
       (rmail-variables))
     ;; If text has really changed, mark message as edited.

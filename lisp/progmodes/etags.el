@@ -34,7 +34,6 @@
 ;;   prefixes but somewhere within the name.
 
 (require 'ring)
-(require 'button)
 (require 'xref)
 (require 'fileloop)
 

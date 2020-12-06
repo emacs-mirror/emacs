@@ -308,14 +308,14 @@ followed by the first character of the construct.
    `m2-indent' controls the number of spaces for each indentation.
    `m2-compile-command' holds the command to compile a Modula-2 program.
    `m2-link-command' holds the command to link a Modula-2 program."
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'comment-start) "(* ")
-  (set (make-local-variable 'comment-end) " *)")
-  (set (make-local-variable 'comment-start-skip) "\\(?:(\\*+\\|//+\\) *")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local comment-start "(* ")
+  (setq-local comment-end " *)")
+  (setq-local comment-start-skip "\\(?:(\\*+\\|//+\\) *")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local font-lock-defaults
 	'((m3-font-lock-keywords
 	   m3-font-lock-keywords-1 m3-font-lock-keywords-2)
 	  nil nil ((?_ . "w") (?. . "w") (?< . ". 1") (?> . ". 4")) nil

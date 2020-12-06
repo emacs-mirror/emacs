@@ -1303,28 +1303,25 @@ the change bounds to encompass the whole nonterminal tag."
   "Initialize a buffer for editing Semantic grammars.
 
 \\{semantic-grammar-mode-map}"
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'comment-start) ";;")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local comment-start ";;")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (set (make-local-variable 'indent-line-function)
-       'semantic-grammar-indent)
-  (set (make-local-variable 'fill-paragraph-function)
-       'lisp-fill-paragraph)
-  (set (make-local-variable 'font-lock-multiline)
-       'undecided)
-  (set (make-local-variable 'font-lock-defaults)
-       '((semantic-grammar-mode-keywords
-          semantic-grammar-mode-keywords-1
-          semantic-grammar-mode-keywords-2
-          semantic-grammar-mode-keywords-3)
-         nil  ;; perform string/comment fontification
-         nil  ;; keywords are case sensitive.
-         ;; This puts _ & - as a word constituent,
-         ;; simplifying our keywords significantly
-         ((?_ . "w") (?- . "w"))))
+  (setq-local comment-start-skip
+              "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+  (setq-local indent-line-function #'semantic-grammar-indent)
+  (setq-local fill-paragraph-function #'lisp-fill-paragraph)
+  (setq-local font-lock-multiline 'undecided)
+  (setq-local font-lock-defaults
+              '((semantic-grammar-mode-keywords
+                 semantic-grammar-mode-keywords-1
+                 semantic-grammar-mode-keywords-2
+                 semantic-grammar-mode-keywords-3)
+                nil  ;; perform string/comment fontification
+                nil  ;; keywords are case sensitive.
+                ;; This puts _ & - as a word constituent,
+                ;; simplifying our keywords significantly
+                ((?_ . "w") (?- . "w"))))
   ;; Setup Semantic to parse grammar
   (semantic-grammar-wy--install-parser)
   (setq semantic-lex-comment-regex ";;"
@@ -1338,16 +1335,14 @@ the change bounds to encompass the whole nonterminal tag."
           (nonterminal  . "Nonterminal")
           (rule         . "Rule")
           ))
-  (set (make-local-variable 'semantic-format-face-alist)
-       '(
-         (code         . default)
-         (keyword      . font-lock-keyword-face)
-         (token        . font-lock-type-face)
-         (nonterminal  . font-lock-function-name-face)
-         (rule         . default)
-         ))
-  (set (make-local-variable 'semantic-stickyfunc-sticky-classes)
-       '(nonterminal))
+  (setq-local semantic-format-face-alist
+              '((code         . default)
+                (keyword      . font-lock-keyword-face)
+                (token        . font-lock-type-face)
+                (nonterminal  . font-lock-function-name-face)
+                (rule         . default)))
+  (setq-local semantic-stickyfunc-sticky-classes
+              '(nonterminal))
   ;; Before each change, clear the cached regexp used to highlight
   ;; macros local in this grammar.
   (add-hook 'before-change-functions

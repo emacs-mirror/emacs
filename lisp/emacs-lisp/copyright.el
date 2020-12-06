@@ -256,7 +256,7 @@ interactively."
 				  (match-string-no-properties 1)
 				  copyright-current-gpl-version)))))
 		 (replace-match copyright-current-gpl-version t t nil 1))))
-	(set (make-local-variable 'copyright-update) nil)))
+        (setq-local copyright-update nil)))
     ;; If a write-file-hook returns non-nil, the file is presumed to be written.
     nil))
 

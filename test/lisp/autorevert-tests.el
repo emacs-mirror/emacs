@@ -132,7 +132,7 @@ This expects `auto-revert--messages' to be bound by
                 (null (string-match
                        (format-message
                         "Reverting buffer `%s'\\." (buffer-name buffer))
-                       auto-revert--messages)))
+                       (or auto-revert--messages ""))))
       (if (with-current-buffer buffer auto-revert-use-notify)
           (read-event nil nil 0.05)
         (sleep-for 0.05)))))
@@ -582,6 +582,89 @@ This expects `auto-revert--messages' to be bound by
 
 (auto-revert--deftest-remote auto-revert-test06-write-file
   "Test `write-file' in `auto-revert-mode' for remote buffers.")
+
+;; This is inspired by Bug#44638.
+(ert-deftest auto-revert-test07-auto-revert-several-buffers ()
+  "Check autorevert for several buffers visiting the same file."
+  ;; (with-auto-revert-test
+   (let ((auto-revert-use-notify t)
+         (tmpfile (make-temp-file "auto-revert-test"))
+         (times '(120 60 30 15))
+         (num-buffers 10)
+         require-final-newline buffers)
+
+     (unwind-protect
+         ;; Check indirect buffers.
+         (ert-with-message-capture auto-revert--messages
+           (auto-revert-tests--write-file "any text" tmpfile (pop times))
+           (push (find-file-noselect tmpfile) buffers)
+           (with-current-buffer (car buffers)
+             (should (string-equal (buffer-string) "any text"))
+             ;; `buffer-stale--default-function' checks for
+             ;; `verify-visited-file-modtime'.  We must ensure that
+             ;; it returns nil.
+             (auto-revert-mode 1)
+             (should auto-revert-mode))
+
+           (dotimes (i num-buffers)
+             (add-to-list
+              'buffers
+              (make-indirect-buffer
+               (car buffers) (format "%s-%d" (buffer-file-name (car buffers)) i) 'clone)
+              'append))
+           (dolist (buf buffers)
+             (with-current-buffer buf
+               (should (string-equal (buffer-string) "any text"))
+               (should auto-revert-mode)))
+
+           (auto-revert-tests--write-file "another text" tmpfile (pop times))
+           ;; Check, that the buffer has been reverted.
+           (auto-revert--wait-for-revert (car buffers))
+           (dolist (buf buffers)
+             (with-current-buffer buf
+               (should (string-equal (buffer-string) "another text")))))
+
+       ;; Exit.
+       (ignore-errors
+         (dolist (buf buffers)
+           (with-current-buffer buf (set-buffer-modified-p nil))
+           (kill-buffer buf)))
+       (setq buffers nil)
+       (ignore-errors (delete-file tmpfile)))
+
+     ;; Check direct buffers.
+     (unwind-protect
+         (ert-with-message-capture auto-revert--messages
+           (auto-revert-tests--write-file "any text" tmpfile (pop times))
+
+           (dotimes (i num-buffers)
+             (add-to-list
+              'buffers
+              (generate-new-buffer (format "%s-%d" (file-name-nondirectory tmpfile) i))
+              'append))
+           (dolist (buf buffers)
+             (with-current-buffer buf
+               (insert-file-contents tmpfile 'visit)
+               (should (string-equal (buffer-string) "any text"))
+               (auto-revert-mode 1)
+               (should auto-revert-mode)))
+
+           (auto-revert-tests--write-file "another text" tmpfile (pop times))
+           ;; Check, that the buffers have been reverted.
+           (dolist (buf buffers)
+             (auto-revert--wait-for-revert buf)
+             (with-current-buffer buf
+               (should (string-equal (buffer-string) "another text")))))
+
+       ;; Exit.
+       (ignore-errors
+         (dolist (buf buffers)
+           (with-current-buffer buf (set-buffer-modified-p nil))
+           (kill-buffer buf)))
+       (ignore-errors (delete-file tmpfile)))));)
+
+(auto-revert--deftest-remote auto-revert-test07-auto-revert-several-buffers
+  "Check autorevert for several buffers visiting the same remote file.")
 
 (defun auto-revert-test-all (&optional interactive)
   "Run all tests for \\[auto-revert]."

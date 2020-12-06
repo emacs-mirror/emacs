@@ -485,7 +485,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
                        (t (window-in-direction
                            dir nil nil
                            (and arg (prefix-numeric-value arg))
-                           windmove-wrap-around)))))
+                           windmove-wrap-around 'nomini)))))
          (unless window
            (setq window (split-window nil nil dir) type 'window))
          (cons window type)))
@@ -569,7 +569,7 @@ select the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
   (let ((other-window (window-in-direction dir nil nil arg
-                                           windmove-wrap-around t)))
+                                           windmove-wrap-around 'nomini)))
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           (t
@@ -637,7 +637,7 @@ a single modifier.  Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
   (let ((other-window (window-in-direction dir nil nil nil
-                                           windmove-wrap-around t)))
+                                           windmove-wrap-around 'nomini)))
     (cond ((or (null other-window) (window-minibuffer-p other-window))
            (user-error "No window %s from selected window" dir))
           (t

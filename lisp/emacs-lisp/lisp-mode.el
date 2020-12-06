@@ -634,7 +634,7 @@ font-lock keywords will not be case sensitive."
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
-  ;;(set (make-local-variable 'adaptive-fill-mode) nil)
+  ;;(setq-local adaptive-fill-mode nil)
   (setq-local indent-line-function 'lisp-indent-line)
   (setq-local indent-region-function 'lisp-indent-region)
   (setq-local comment-indent-function #'lisp-comment-indent)

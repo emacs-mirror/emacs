@@ -646,7 +646,7 @@ Does not signal an error if optional argument NOERROR is non-nil."
              (< no (length archive-files)))
 	(let ((item (aref archive-files no)))
 	  (if (and (archive--file-desc-p item)
-	           (let ((mode (archive--file-desc-mode item)))
+	           (let ((mode (or (archive--file-desc-mode item) 0)))
 	             (zerop (logand 16384 mode))))
 	      item
 	    (if (not noerror)

@@ -701,18 +701,18 @@ or a superior directory.")
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
   (require 'add-log)
-  (set (make-local-variable 'log-view-per-file-logs) nil)
-  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
-  (set (make-local-variable 'log-view-message-re)
+  (setq-local log-view-per-file-logs nil)
+  (setq-local log-view-file-re regexp-unmatchable)
+  (setq-local log-view-message-re
        (if (eq vc-log-view-type 'short)
 	   "^ *\\([0-9.]+\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   ;; Allow expanding short log entries
   (when (eq vc-log-view-type 'short)
     (setq truncate-lines t)
-    (set (make-local-variable 'log-view-expanded-log-entry-function)
-	 'vc-bzr-expanded-log-entry))
-  (set (make-local-variable 'log-view-font-lock-keywords)
+    (setq-local log-view-expanded-log-entry-function
+                'vc-bzr-expanded-log-entry))
+  (setq-local log-view-font-lock-keywords
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
        (if (eq vc-log-view-type 'short)

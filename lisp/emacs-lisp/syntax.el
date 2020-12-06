@@ -353,7 +353,7 @@ set by `syntax-propertize'")
         (setq syntax-propertize--done (max (point-max) pos))
       ;; (message "Needs to syntax-propertize from %s to %s"
       ;;          syntax-propertize--done pos)
-      (set (make-local-variable 'parse-sexp-lookup-properties) t)
+      (setq-local parse-sexp-lookup-properties t)
       (when (< syntax-propertize--done (point-min))
         ;; *Usually* syntax-propertize is called via syntax-ppss which
         ;; takes care of adding syntax-ppss-flush-cache to b-c-f, but this

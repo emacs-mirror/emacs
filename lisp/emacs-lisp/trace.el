@@ -225,7 +225,7 @@ be printed along with the arguments in the trace."
           (ctx (funcall context)))
       (unless inhibit-trace
         (with-current-buffer trace-buffer
-          (set (make-local-variable 'window-point-insertion-type) t)
+          (setq-local window-point-insertion-type t)
           (unless background (trace--display-buffer trace-buffer))
           (goto-char (point-max))
           ;; Insert a separator from previous trace output:

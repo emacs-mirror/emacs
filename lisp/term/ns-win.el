@@ -47,7 +47,6 @@
 ;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
 (require 'mouse)
-(require 'faces)
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)

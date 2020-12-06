@@ -33,7 +33,6 @@
 
 ;;; Code:
 
-(require 'custom)
 (require 'password-cache)
 
 (autoload 'auth-source-search "auth-source")

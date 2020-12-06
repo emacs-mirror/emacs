@@ -37,7 +37,6 @@
 ;; 'mwheel-down', but I cannot find a way to do this very easily (or
 ;; portably), so for now I just live with it.
 
-(require 'custom)
 (require 'timer)
 
 (defvar mouse-wheel-mode)

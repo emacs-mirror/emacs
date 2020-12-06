@@ -50,8 +50,7 @@
   (let* ((ov (oref (ede-current-project) local-variables))
 	 (cp (ede-current-project)))
     (ede-customize cp)
-    (make-local-variable 'eieio-ede-old-variables)
-    (setq eieio-ede-old-variables ov)))
+    (setq-local eieio-ede-old-variables ov)))
 
 ;;;###autoload
 (defalias 'customize-project 'ede-customize-project)

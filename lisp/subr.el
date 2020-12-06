@@ -4264,11 +4264,7 @@ Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
   (let ((match (match-string 0 string)))
     (save-match-data
-      (set-match-data (mapcar (lambda (x)
-				(if (numberp x)
-				    (- x (match-beginning 0))
-				  x))
-			      (match-data t)))
+      (match-data--translate (- (match-beginning 0)))
       (replace-match replacement fixedcase literal match subexp))))
 
 
@@ -5267,6 +5263,8 @@ use `called-interactively-p'.
 
 To test whether a function can be called interactively, use
 `commandp'."
+  ;; Kept around for now.  See discussion at:
+  ;; https://lists.gnu.org/r/emacs-devel/2020-08/msg00564.html
   (declare (obsolete called-interactively-p "23.2"))
   (called-interactively-p 'interactive))
 

@@ -532,8 +532,7 @@ message."
 	;; Set up the rest of its state and local variables.
 	(setq buffer-read-only t)
 	(rmail-summary-mode)
-	(make-local-variable 'minor-mode-alist)
-	(setq minor-mode-alist (list (list t (concat ": " description))))
+        (setq-local minor-mode-alist (list (list t (concat ": " description))))
 	(setq rmail-buffer rbuf
 	      rmail-summary-redo redo
 	      rmail-total-messages total)))
@@ -1089,13 +1088,10 @@ Commands for sorting the summary:
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'rmail-buffer)
   (make-local-variable 'rmail-total-messages)
-  (make-local-variable 'rmail-current-message)
-  (setq rmail-current-message nil)
-  (make-local-variable 'rmail-summary-redo)
-  (setq rmail-summary-redo nil)
+  (setq-local rmail-current-message nil)
+  (setq-local rmail-summary-redo nil)
   (make-local-variable 'revert-buffer-function)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
+  (setq-local font-lock-defaults '(rmail-summary-font-lock-keywords t))
   (rmail-summary-enable))
 
 ;; Summary features need to be disabled during edit mode.
@@ -1288,8 +1284,7 @@ Returns non-nil if message N was found."
   ;; Make sure we have an overlay to use.
   (or rmail-summary-overlay
       (progn
-	(make-local-variable 'rmail-summary-overlay)
-	(setq rmail-summary-overlay (make-overlay (point) (point)))
+        (setq-local rmail-summary-overlay (make-overlay (point) (point)))
 	(overlay-put rmail-summary-overlay 'rmail-summary t)))
   ;; If this message is in the summary, use the overlay to highlight it.
   ;; Otherwise, don't highlight anything.

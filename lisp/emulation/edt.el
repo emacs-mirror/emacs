@@ -788,7 +788,7 @@ Argument NUM is the number of lines to delete."
 In select mode, selected text is highlighted."
   (if arg
       (progn
-	(set (make-local-variable 'edt-select-mode) 'edt-select-mode-current)
+        (setq-local edt-select-mode 'edt-select-mode-current)
 	(setq rect-start-point (window-point)))
     (progn
       (kill-local-variable 'edt-select-mode)))

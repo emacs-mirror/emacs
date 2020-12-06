@@ -78,12 +78,6 @@
 
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
-(require 'faces)
-;;  (`facep' `face-attr-construct' `x-color-values' `color-values' `face-name')
-(require 'custom)
-;;  (`defgroup' `defcustom')
-(require 'font-lock)
-;;  (`font-lock-fontify-region')
 (require 'cus-edit)
 
 (require 'htmlfontify-loaddefs)
@@ -1857,9 +1851,7 @@ Hardly bombproof, but good enough in the context in which it is being used."
 adding an extension of `hfy-extn'.  Fontification is actually done by
 `htmlfontify-buffer'.  If the buffer is not fontified, just copy it."
   ;;(message "hfy-copy-and-fontify-file");;DBUG
-  (let (;;(fast-lock-minimum-size      hfy-fast-lock-save)
-        ;;(font-lock-support-mode         'fast-lock-mode)
-        ;;(window-system  (or window-system 'htmlfontify))
+  (let (;;(window-system  (or window-system 'htmlfontify))
         (target nil)
         (source nil)
         (html   nil))

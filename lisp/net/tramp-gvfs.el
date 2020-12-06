@@ -108,8 +108,6 @@
 (require 'url-util)
 
 ;; Pacify byte-compiler.
-(eval-when-compile (require 'custom))
-
 (declare-function zeroconf-init "zeroconf")
 (declare-function zeroconf-list-service-types "zeroconf")
 (declare-function zeroconf-list-services "zeroconf")
@@ -1020,14 +1018,23 @@ file names."
 	  (with-tramp-progress-reporter
 	      v 0 (format "%s %s to %s" msg-operation filename newname)
 	    (unless
-		(apply
-		 #'tramp-gvfs-send-command v gvfs-operation
-		 (append
-		  (and (eq op 'copy) (or keep-date preserve-uid-gid)
-		       '("--preserve"))
-		  (list
-		   (tramp-gvfs-url-file-name filename)
-		   (tramp-gvfs-url-file-name newname))))
+		(and (apply
+		      #'tramp-gvfs-send-command v gvfs-operation
+		      (append
+		       (and (eq op 'copy) (or keep-date preserve-uid-gid)
+			    '("--preserve"))
+		       (list
+			(tramp-gvfs-url-file-name filename)
+			(tramp-gvfs-url-file-name newname))))
+		     ;; Some backends do not return a proper error
+		     ;; code in case of direct copy/move.  Apply sanity checks.
+		     (or (not equal-remote)
+			 (tramp-gvfs-send-command
+			  v "gvfs-info" (tramp-gvfs-url-file-name newname))
+			 (eq op 'copy)
+			 (not (tramp-gvfs-send-command
+			       v "gvfs-info"
+			       (tramp-gvfs-url-file-name filename)))))
 
 	      (if (or (not equal-remote)
 		      (and equal-remote
@@ -1441,11 +1448,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
           ;; Fix action names.
-          string (replace-regexp-in-string
+          string (tramp-compat-string-replace
 	          "attributes changed" "attribute-changed" string)
-          string (replace-regexp-in-string
+          string (tramp-compat-string-replace
 	          "changes done" "changes-done-hint" string)
-          string (replace-regexp-in-string
+          string (tramp-compat-string-replace
 	          "renamed to" "moved" string))
     ;; https://bugs.launchpad.net/bugs/1742946
     (when
@@ -2050,7 +2057,7 @@ and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
 	   (vec (make-tramp-file-name
 		 :method "media"
 		 ;; A host name cannot contain spaces.
-		 :host (replace-regexp-in-string " " "_" (nth 1 volume))))
+		 :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
 	   (media (make-tramp-media-device
 		   :method method
 		   :host (tramp-gvfs-url-host (nth 5 volume))
@@ -2355,7 +2362,7 @@ VEC is used only for traces."
 	       (vec (make-tramp-file-name
 		     :method "media"
 		     ;; A host name cannot contain spaces.
-		     :host (replace-regexp-in-string " " "_" (nth 1 volume))))
+		     :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
 	       (media (make-tramp-media-device
 		       :method method
 		       :host (tramp-gvfs-url-host (nth 5 volume))

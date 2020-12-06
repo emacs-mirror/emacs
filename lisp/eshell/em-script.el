@@ -58,15 +58,13 @@ This includes when running `eshell-command'."
 
 (defun eshell-script-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the script parsing code."
-  (make-local-variable 'eshell-interpreter-alist)
-  (setq eshell-interpreter-alist
+  (setq-local eshell-interpreter-alist
 	(cons (cons #'(lambda (file _args)
                         (string= (file-name-nondirectory file)
                                  "eshell"))
                     'eshell/source)
 	      eshell-interpreter-alist))
-  (make-local-variable 'eshell-complex-commands)
-  (setq eshell-complex-commands
+  (setq-local eshell-complex-commands
 	(append '("source" ".") eshell-complex-commands))
   ;; these two variables are changed through usage, but we don't want
   ;; to ruin it for other modules

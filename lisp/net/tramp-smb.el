@@ -464,8 +464,8 @@ pass to the OPERATION."
 
 	    (let* ((share (tramp-smb-get-share v))
 		   (localname (file-name-as-directory
-			       (replace-regexp-in-string
-				"\\\\" "/" (tramp-smb-get-localname v))))
+			       (tramp-compat-string-replace
+				"\\" "/" (tramp-smb-get-localname v))))
 		   (tmpdir    (tramp-compat-make-temp-name))
 		   (args      (list (concat "//" host "/" share) "-E"))
 		   (options   tramp-smb-options))
@@ -777,8 +777,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (with-tramp-file-property v localname "file-acl"
 	(when (executable-find tramp-smb-acl-program)
 	  (let* ((share     (tramp-smb-get-share v))
-		 (localname (replace-regexp-in-string
-			     "\\\\" "/" (tramp-smb-get-localname v)))
+		 (localname (tramp-compat-string-replace
+			     "\\" "/" (tramp-smb-get-localname v)))
 		 (args      (list (concat "//" host "/" share) "-E"))
 		 (options   tramp-smb-options))
 
@@ -1445,10 +1445,10 @@ component is used as the target of the symlink."
 
       (when (and (stringp acl-string) (executable-find tramp-smb-acl-program))
 	(let* ((share     (tramp-smb-get-share v))
-	       (localname (replace-regexp-in-string
-			   "\\\\" "/" (tramp-smb-get-localname v)))
+	       (localname (tramp-compat-string-replace
+			   "\\" "/" (tramp-smb-get-localname v)))
 	       (args      (list (concat "//" host "/" share) "-E" "-S"
-				(replace-regexp-in-string
+				(tramp-compat-string-replace
 				 "\n" "," acl-string)))
 	       (options   tramp-smb-options))
 

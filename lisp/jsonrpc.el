@@ -138,18 +138,15 @@ immediately."
 
 (defun jsonrpc-events-buffer (connection)
   "Get or create JSONRPC events buffer for CONNECTION."
-  (let* ((probe (jsonrpc--events-buffer connection))
-         (buffer (or (and (buffer-live-p probe)
-                          probe)
-                     (let ((buffer (get-buffer-create
-                                    (format "*%s events*"
-                                            (jsonrpc-name connection)))))
-                       (with-current-buffer buffer
-                         (buffer-disable-undo)
-                         (read-only-mode t)
-                         (setf (jsonrpc--events-buffer connection) buffer))
-                       buffer))))
-    buffer))
+  (let ((probe (jsonrpc--events-buffer connection)))
+    (if (buffer-live-p probe)
+        probe
+      (with-current-buffer
+          (get-buffer-create (format "*%s events*" (jsonrpc-name connection)))
+        (buffer-disable-undo)
+        (setq buffer-read-only t)
+        (setf (jsonrpc--events-buffer connection)
+              (current-buffer))))))
 
 (defun jsonrpc-forget-pending-continuations (connection)
   "Stop waiting for responses from the current JSONRPC CONNECTION."
@@ -406,7 +403,7 @@ connection object, called when the process dies .")
           (ignore-errors (kill-buffer hidden-name))
           (rename-buffer hidden-name)
           (process-put proc 'jsonrpc-stderr (current-buffer))
-          (read-only-mode t))))
+          (setq buffer-read-only t))))
     (setf (jsonrpc--process conn) proc)
     (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
@@ -414,7 +411,9 @@ connection object, called when the process dies .")
     (with-current-buffer (process-buffer proc)
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
-      (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (setq buffer-read-only t))
     (process-put proc 'jsonrpc-connection conn)))
 
 (cl-defmethod jsonrpc-connection-send ((connection jsonrpc-process-connection)

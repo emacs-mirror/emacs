@@ -243,11 +243,10 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
   (if (and (eshell-using-module 'eshell-rebind)
 	   (not eshell-non-interactive-p))
       (let ((rebind-alist eshell-rebind-keys-alist))
-	(make-local-variable 'eshell-rebind-keys-alist)
-	(setq eshell-rebind-keys-alist
+        (setq-local eshell-rebind-keys-alist
 	      (append rebind-alist eshell-hist-rebind-keys-alist))
-	(set (make-local-variable 'search-invisible) t)
-	(set (make-local-variable 'search-exit-option) t)
+        (setq-local search-invisible t)
+        (setq-local search-exit-option t)
 	(add-hook 'isearch-mode-hook
                   (lambda ()
                     (if (>= (point) eshell-last-output-end)
@@ -278,8 +277,8 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
   (make-local-variable 'eshell-save-history-index)
 
   (if (minibuffer-window-active-p (selected-window))
-      (set (make-local-variable 'eshell-save-history-on-exit) nil)
-    (set (make-local-variable 'eshell-history-ring) nil)
+      (setq-local eshell-save-history-on-exit nil)
+    (setq-local eshell-history-ring nil)
     (if eshell-history-file-name
 	(eshell-read-history nil t))
 

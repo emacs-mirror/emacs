@@ -195,9 +195,8 @@ You play by moving the cursor over the square you choose and hitting \\[gomoku-h
 Other useful commands:\n
 \\{gomoku-mode-map}"
   (gomoku-display-statistics)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(gomoku-font-lock-keywords t)
-	buffer-read-only t)
+  (setq-local font-lock-defaults '(gomoku-font-lock-keywords t))
+  (setq buffer-read-only t)
   (add-hook 'post-command-hook #'gomoku--intangible nil t))
 
 ;;;

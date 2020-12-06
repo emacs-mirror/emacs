@@ -1103,19 +1103,17 @@ commands act on the child files of that directory that are displayed in
 the *vc-dir* buffer.
 
 \\{vc-dir-mode-map}"
-  (set (make-local-variable 'vc-dir-backend) use-vc-backend)
-  (set (make-local-variable 'desktop-save-buffer)
-       'vc-dir-desktop-buffer-misc-data)
+  (setq-local vc-dir-backend use-vc-backend)
+  (setq-local desktop-save-buffer 'vc-dir-desktop-buffer-misc-data)
   (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
-    (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
+    (setq-local tool-bar-map vc-dir-tool-bar-map))
   (let ((buffer-read-only nil))
     (erase-buffer)
-    (set (make-local-variable 'vc-dir-process-buffer) nil)
-    (set (make-local-variable 'vc-ewoc) (ewoc-create #'vc-dir-printer))
-    (set (make-local-variable 'revert-buffer-function)
-	 'vc-dir-revert-buffer-function)
+    (setq-local vc-dir-process-buffer nil)
+    (setq-local vc-ewoc (ewoc-create #'vc-dir-printer))
+    (setq-local revert-buffer-function 'vc-dir-revert-buffer-function)
     (setq list-buffers-directory (expand-file-name "*vc-dir*" default-directory))
     (add-to-list 'vc-dir-buffers (current-buffer))
     ;; Make sure that if the directory buffer is killed, the update

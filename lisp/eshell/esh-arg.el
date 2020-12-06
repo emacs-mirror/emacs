@@ -168,8 +168,8 @@ treated as a literal character."
 (defun eshell-arg-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the argument parsing code."
   (eshell-arg-mode)
-  (set (make-local-variable 'eshell-inside-quote-regexp) nil)
-  (set (make-local-variable 'eshell-outside-quote-regexp) nil))
+  (setq-local eshell-inside-quote-regexp nil)
+  (setq-local eshell-outside-quote-regexp nil))
 
 (defun eshell-insert-buffer-name (buffer-name)
   "Insert BUFFER-NAME into the current buffer at point."
