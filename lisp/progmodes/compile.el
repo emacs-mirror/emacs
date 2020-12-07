@@ -1868,7 +1868,8 @@ Returns the compilation buffer created."
       (let ((process-environment
 	     (append
 	      compilation-environment
-              (comint-term-environment)
+              (and (derived-mode-p 'comint-mode)
+                   (comint-term-environment))
 	      (list (format "INSIDE_EMACS=%s,compile" emacs-version))
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
