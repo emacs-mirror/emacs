@@ -1334,6 +1334,8 @@ The following commands are accepted by the client:
   ;; inhibit-quit flag, which is good since `commands' (as well as
   ;; find-file-noselect via the major-mode) can run arbitrary code,
   ;; including code that needs to wait.
+  (when (and frame server-raise-frame)
+    (select-frame-set-input-focus frame))
   (with-local-quit
     (condition-case err
         (let ((buffers (server-visit-files files proc nowait)))
@@ -1686,9 +1688,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
                   (switch-to-buffer next-buffer))
 	      ;; After all the above, we might still have ended up with
 	      ;; a minibuffer/dedicated-window (if there's no other).
-	      (error (pop-to-buffer next-buffer)))))))
-    (when server-raise-frame
-      (select-frame-set-input-focus (window-frame)))))
+	      (error (pop-to-buffer next-buffer)))))))))
 
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (arg)
