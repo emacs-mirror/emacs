@@ -1986,13 +1986,13 @@ resultant list will be returned."
   ;; prepare local hooks
   (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
   ;; create whitespace local buffer environment
-  (set (make-local-variable 'whitespace-font-lock-keywords) nil)
-  (set (make-local-variable 'whitespace-display-table) nil)
-  (set (make-local-variable 'whitespace-display-table-was-local) nil)
-  (set (make-local-variable 'whitespace-active-style)
-       (if (listp whitespace-style)
-	   whitespace-style
-	 (list whitespace-style)))
+  (setq-local whitespace-font-lock-keywords nil)
+  (setq-local whitespace-display-table nil)
+  (setq-local whitespace-display-table-was-local nil)
+  (setq-local whitespace-active-style
+              (if (listp whitespace-style)
+	          whitespace-style
+	        (list whitespace-style)))
   ;; turn on whitespace
   (when whitespace-active-style
     (whitespace-color-on)
@@ -2034,19 +2034,14 @@ resultant list will be returned."
   "Turn on color visualization."
   (when (whitespace-style-face-p)
     ;; save current point and refontify when necessary
-    (set (make-local-variable 'whitespace-point)
-         (point))
+    (setq-local whitespace-point (point))
     (setq whitespace-point--used
           (let ((ol (make-overlay (point) (point) nil nil t)))
             (delete-overlay ol) ol))
-    (set (make-local-variable 'whitespace-font-lock-refontify)
-	 0)
-    (set (make-local-variable 'whitespace-bob-marker)
-	 (point-min-marker))
-    (set (make-local-variable 'whitespace-eob-marker)
-	 (point-max-marker))
-    (set (make-local-variable 'whitespace-buffer-changed)
-	 nil)
+    (setq-local whitespace-font-lock-refontify 0)
+    (setq-local whitespace-bob-marker (point-min-marker))
+    (setq-local whitespace-eob-marker (point-max-marker))
+    (setq-local whitespace-buffer-changed nil)
     (add-hook 'post-command-hook #'whitespace-post-command-hook nil t)
     (add-hook 'before-change-functions #'whitespace-buffer-changed nil t)
     ;; Add whitespace-mode color into font lock.
