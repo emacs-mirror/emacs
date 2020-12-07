@@ -464,8 +464,7 @@ only affect the Gcc copy, but not the original message."
 	 (gnus-inews-add-send-actions ,winconf ,buffer ,oarticle ,config
 				      ,yanked ,winconf-name)
 	 (setq gnus-message-buffer (current-buffer))
-	 (set (make-local-variable 'gnus-message-group-art)
-	      (cons ,group ,article))
+         (setq-local gnus-message-group-art (cons ,group ,article))
          ;; Enable highlighting of different citation levels
          (when gnus-message-highlight-citation
            (gnus-message-citation-mode 1))
@@ -473,7 +472,7 @@ only affect the Gcc copy, but not the original message."
          (if (eq major-mode 'message-mode)
              (let ((mbl1 mml-buffer-list))
                (setq mml-buffer-list mbl)  ;; Global value
-               (set (make-local-variable 'mml-buffer-list) mbl1);; Local value
+               (setq-local mml-buffer-list mbl1) ;; Local value
                (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
                (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
            (mml-destroy-buffers)
@@ -724,10 +723,10 @@ network.  The corresponding back end must have a `request-post' method."
 	  (gnus-setup-message 'message
 	    (progn
 	      (message-news (gnus-group-real-name gnus-newsgroup-name))
-	      (set (make-local-variable 'gnus-discouraged-post-methods)
-		   (remove
-		    (car (gnus-find-method-for-group gnus-newsgroup-name))
-		    gnus-discouraged-post-methods)))))))))
+              (setq-local gnus-discouraged-post-methods
+                          (remove
+                           (car (gnus-find-method-for-group gnus-newsgroup-name))
+                           gnus-discouraged-post-methods)))))))))
 
 (defun gnus-summary-post-news (&optional arg)
   "Start composing a message.  Post to the current group by default.
@@ -1926,8 +1925,8 @@ this is a reply."
 			 (message-goto-body)
 			 (insert ,(cdr result)))))
 		   ((eq 'signature (car result))
-		    (set (make-local-variable 'message-signature) nil)
-		    (set (make-local-variable 'message-signature-file) nil)
+                    (setq-local message-signature nil)
+                    (setq-local message-signature-file nil)
 		    (if (not (cdr result))
 			'ignore
 		      `(lambda ()
@@ -1953,8 +1952,8 @@ this is a reply."
       (when (or name address)
 	(add-hook 'message-setup-hook
 		  `(lambda ()
-		     (set (make-local-variable 'user-mail-address)
-			  ,(or (cdr address) user-mail-address))
+                     (setq-local user-mail-address
+                                 ,(or (cdr address) user-mail-address))
 		     (let ((user-full-name ,(or (cdr name) (user-full-name)))
 			   (user-mail-address
 			    ,(or (cdr address) user-mail-address)))

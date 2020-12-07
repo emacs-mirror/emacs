@@ -1098,7 +1098,7 @@ When FORCE, rebuild the tool bar."
 					gnus-group-tool-bar-zap-list
 					'gnus-group-mode-map)))
       (if map
-	  (set (make-local-variable 'tool-bar-map) map))))
+	  (setq-local tool-bar-map map))))
   gnus-group-tool-bar-map)
 
 (define-derived-mode gnus-group-mode gnus-mode "Group"

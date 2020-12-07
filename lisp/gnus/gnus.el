@@ -3175,8 +3175,7 @@ that that variable is buffer-local to the summary buffers."
   "Make mode lines a bit simpler."
   (setq mode-line-modified "--")
   (when (listp mode-line-format)
-    (make-local-variable 'mode-line-format)
-    (setq mode-line-format (copy-sequence mode-line-format))
+    (setq-local mode-line-format (copy-sequence mode-line-format))
     (when (equal (nth 3 mode-line-format) "   ")
       (setcar (nthcdr 3 mode-line-format) " "))))
 

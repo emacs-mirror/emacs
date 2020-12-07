@@ -1129,18 +1129,17 @@ articles in the topic and its subtopics."
 	(gnus-topic-make-menu-bar))
       (gnus-set-format 'topic t)
       (add-hook 'gnus-group-catchup-group-hook 'gnus-topic-update-topic)
-      (set (make-local-variable 'gnus-group-prepare-function)
-	   'gnus-group-prepare-topics)
-      (set (make-local-variable 'gnus-group-get-parameter-function)
-	   'gnus-group-topic-parameters)
-      (set (make-local-variable 'gnus-group-goto-next-group-function)
-	   'gnus-topic-goto-next-group)
-      (set (make-local-variable 'gnus-group-indentation-function)
-	   'gnus-topic-group-indentation)
-      (set (make-local-variable 'gnus-group-update-group-function)
-	   'gnus-topic-update-topics-containing-group)
-      (set (make-local-variable 'gnus-group-sort-alist-function)
-	   'gnus-group-sort-topic)
+      (setq-local gnus-group-prepare-function
+	          'gnus-group-prepare-topics)
+      (setq-local gnus-group-get-parameter-function
+	          'gnus-group-topic-parameters)
+      (setq-local gnus-group-goto-next-group-function
+	          'gnus-topic-goto-next-group)
+      (setq-local gnus-group-indentation-function
+                  'gnus-topic-group-indentation)
+      (setq-local gnus-group-update-group-function
+	          'gnus-topic-update-topics-containing-group)
+      (setq-local gnus-group-sort-alist-function 'gnus-group-sort-topic)
       (setq gnus-group-change-level-function 'gnus-topic-change-level)
       (setq gnus-goto-missing-group-function 'gnus-topic-goto-missing-group)
       (add-hook 'gnus-check-bogus-groups-hook 'gnus-topic-clean-alist

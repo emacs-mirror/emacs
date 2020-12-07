@@ -454,7 +454,7 @@ manipulated as follows:
 				      (symbol-name major-mode))
 			(match-string 1 (symbol-name major-mode))))
 	 (mode (intern (format "gnus-agent-%s-mode" buffer))))
-    (set (make-local-variable 'gnus-agent-mode) t)
+    (setq-local gnus-agent-mode t)
     (set mode nil)
     (set (make-local-variable mode) t)
     ;; Set up the menu.
@@ -1056,8 +1056,8 @@ article's mark is toggled."
 (defun gnus-agent-get-undownloaded-list ()
   "Construct list of articles that have not been downloaded."
   (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
-    (when (set (make-local-variable 'gnus-newsgroup-agentized)
-               (gnus-agent-method-p gnus-command-method))
+    (when (setq-local gnus-newsgroup-agentized
+                      (gnus-agent-method-p gnus-command-method))
       (let* ((alist (gnus-agent-load-alist gnus-newsgroup-name))
              (headers (sort (mapcar (lambda (h)
                                       (mail-header-number h))
@@ -1440,7 +1440,7 @@ downloaded into the agent."
     (let ((file (gnus-agent-lib-file "history")))
       (when (file-exists-p file)
 	(nnheader-insert-file-contents file))
-      (set (make-local-variable 'gnus-agent-file-name) file))))
+      (setq-local gnus-agent-file-name file))))
 
 (defun gnus-agent-close-history ()
   (when (gnus-buffer-live-p gnus-agent-current-history)

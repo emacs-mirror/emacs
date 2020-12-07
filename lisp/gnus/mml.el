@@ -1266,8 +1266,8 @@ See Info node `(emacs-mime)Composing'.
   :lighter " MML" :keymap mml-mode-map
   (when mml-mode
     (when (boundp 'dnd-protocol-alist)
-      (set (make-local-variable 'dnd-protocol-alist)
-	   (append mml-dnd-protocol-alist dnd-protocol-alist)))))
+      (setq-local dnd-protocol-alist
+                  (append mml-dnd-protocol-alist dnd-protocol-alist)))))
 
 ;;;
 ;;; Helper functions for reading MIME stuff from the minibuffer and

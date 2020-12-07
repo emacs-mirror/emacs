@@ -3038,7 +3038,7 @@ When FORCE, rebuild the tool bar."
 	;; Need to set `gnus-summary-tool-bar-map' because `gnus-article-mode'
 	;; uses its value.
 	(setq gnus-summary-tool-bar-map map))))
-  (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map))
+  (setq-local tool-bar-map gnus-summary-tool-bar-map))
 
 (defun gnus-make-score-map (type)
   "Make a summary score map of type TYPE."
@@ -3174,8 +3174,8 @@ The following commands are available:
   (make-local-variable 'gnus-original-article-buffer)
   (add-hook 'pre-command-hook #'gnus-set-global-variables nil t)
   (mm-enable-multibyte)
-  (set (make-local-variable 'bookmark-make-record-function)
-       #'gnus-summary-bookmark-make-record))
+  (setq-local bookmark-make-record-function
+              #'gnus-summary-bookmark-make-record))
 
 (defun gnus-summary-make-local-variables ()
   "Make all the local summary buffer variables."
@@ -3547,7 +3547,7 @@ Returns non-nil if the setup was successful."
       (let ((gnus-summary-mode-group group))
        (gnus-summary-mode))
       (when (gnus-group-quit-config group)
-	(set (make-local-variable 'gnus-single-article-buffer) nil))
+        (setq-local gnus-single-article-buffer nil))
       (turn-on-gnus-mailing-list-mode)
       ;; These functions don't currently depend on GROUP, but might in
       ;; the future.
@@ -5670,8 +5670,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	 articles fetched-articles cached)
 
     (unless (gnus-check-server
-	     (set (make-local-variable 'gnus-current-select-method)
-		  (gnus-find-method-for-group group)))
+             (setq-local gnus-current-select-method
+                         (gnus-find-method-for-group group)))
       (error "Couldn't open server"))
 
     (or (and entry (not (eq (car entry) t))) ; Either it's active...
@@ -10638,7 +10638,7 @@ groups."
 		 (mime-to-mml current-handles))
 	       (let ((mbl1 mml-buffer-list))
 		 (setq mml-buffer-list mbl)
-		 (set (make-local-variable 'mml-buffer-list) mbl1))
+                 (setq-local mml-buffer-list mbl1))
 	       (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t))))
 	 `(lambda (no-highlight)
 	    (let ((mail-parse-charset ',gnus-newsgroup-charset)
@@ -12846,8 +12846,7 @@ UNREAD is a sorted list."
 		(and gnus-newsgroup-name
 		     (gnus-parameter-charset gnus-newsgroup-name))
 		gnus-default-charset))
-      (set (make-local-variable 'gnus-newsgroup-ignored-charsets)
-	   ignored-charsets))))
+      (setq-local gnus-newsgroup-ignored-charsets ignored-charsets))))
 
 ;;;
 ;;; Mime Commands
