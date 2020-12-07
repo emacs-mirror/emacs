@@ -568,8 +568,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
     (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:sl=:cx=:ne"))
   (setq-local grep-num-matches-found 0)
-  (set (make-local-variable 'compilation-exit-message-function)
-       #'grep-exit-message)
+  (setq-local compilation-exit-message-function #'grep-exit-message)
   (run-hooks 'grep-setup-hook))
 
 (defun grep-exit-message (status code msg)
@@ -880,22 +879,22 @@ The value depends on `grep-command', `grep-template',
 (define-compilation-mode grep-mode "Grep"
   "Sets `grep-last-buffer' and `compilation-window-height'."
   (setq grep-last-buffer (current-buffer))
-  (set (make-local-variable 'tool-bar-map) grep-mode-tool-bar-map)
-  (set (make-local-variable 'compilation-error-face)
-       grep-hit-face)
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       grep-regexp-alist)
-  (set (make-local-variable 'compilation-mode-line-errors)
-       grep-mode-line-matches)
+  (setq-local tool-bar-map grep-mode-tool-bar-map)
+  (setq-local compilation-error-face
+              grep-hit-face)
+  (setq-local compilation-error-regexp-alist
+              grep-regexp-alist)
+  (setq-local compilation-mode-line-errors
+              grep-mode-line-matches)
   ;; compilation-directory-matcher can't be nil, so we set it to a regexp that
   ;; can never match.
-  (set (make-local-variable 'compilation-directory-matcher)
-       (list regexp-unmatchable))
-  (set (make-local-variable 'compilation-process-setup-function)
-       #'grep-process-setup)
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-error-screen-columns)
-       grep-error-screen-columns)
+  (setq-local compilation-directory-matcher
+              (list regexp-unmatchable))
+  (setq-local compilation-process-setup-function
+              #'grep-process-setup)
+  (setq-local compilation-disable-input t)
+  (setq-local compilation-error-screen-columns
+              grep-error-screen-columns)
   (add-hook 'compilation-filter-hook #'grep-filter nil t))
 
 (defun grep--save-buffers ()
