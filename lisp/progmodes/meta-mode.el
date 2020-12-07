@@ -919,57 +919,55 @@ The environment marked is the one that contains point or follows point."
 (define-derived-mode meta-common-mode prog-mode "-Meta-common-"
   "Common initialization for Metafont or MetaPost mode."
   :abbrev-table meta-mode-abbrev-table
-  (set (make-local-variable 'paragraph-start)
-       (concat page-delimiter "\\|$"))
-  (set (make-local-variable 'paragraph-separate)
-       (concat page-delimiter "\\|$"))
+  (setq-local paragraph-start (concat page-delimiter "\\|$"))
+  (setq-local paragraph-separate (concat page-delimiter "\\|$"))
 
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+  (setq-local paragraph-ignore-fill-prefix t)
 
-  (set (make-local-variable 'comment-start-skip) "%+[ \t\f]*")
-  (set (make-local-variable 'comment-start) "%")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-multi-line) nil)
+  (setq-local comment-start-skip "%+[ \t\f]*")
+  (setq-local comment-start "%")
+  (setq-local comment-end "")
+  (setq-local comment-multi-line nil)
 
   ;; We use `back-to-indentation' but \f is no indentation sign.
   (modify-syntax-entry ?\f "_   ")
 
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local parse-sexp-ignore-comments t)
 
   (add-hook 'completion-at-point-functions #'meta-completions-at-point nil t)
-  (set (make-local-variable 'comment-indent-function) #'meta-comment-indent)
-  (set (make-local-variable 'indent-line-function) #'meta-indent-line)
+  (setq-local comment-indent-function #'meta-comment-indent)
+  (setq-local indent-line-function #'meta-indent-line)
   ;; No need to define a mode-specific 'indent-region-function.
   ;; Simply use the generic 'indent-region and 'comment-region.
 
   ;; Set defaults for font-lock mode.
-  (set (make-local-variable 'font-lock-defaults)
-       '(meta-font-lock-keywords
-         nil nil ((?_ . "w")) nil
-         (font-lock-comment-start-regexp . "%"))))
+  (setq-local font-lock-defaults
+              '(meta-font-lock-keywords
+                nil nil ((?_ . "w")) nil
+                (font-lock-comment-start-regexp . "%"))))
 
 
 ;;;###autoload
 (define-derived-mode metafont-mode meta-common-mode "Metafont"
   "Major mode for editing Metafont sources."
   ;; Set defaults for completion function.
-  (set (make-local-variable 'meta-symbol-list) nil)
-  (set (make-local-variable 'meta-symbol-changed) nil)
+  (setq-local meta-symbol-list nil)
+  (setq-local meta-symbol-changed nil)
   (apply 'meta-add-symbols metafont-symbol-list)
-  (set (make-local-variable 'meta-complete-list)
-        (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
-              (list "" 'ispell-complete-word))))
+  (setq-local meta-complete-list
+              (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
+                    (list "" 'ispell-complete-word))))
 
 ;;;###autoload
 (define-derived-mode metapost-mode meta-common-mode "MetaPost"
   "Major mode for editing MetaPost sources."
   ;; Set defaults for completion function.
-  (set (make-local-variable 'meta-symbol-list) nil)
-  (set (make-local-variable 'meta-symbol-changed) nil)
+  (setq-local meta-symbol-list nil)
+  (setq-local meta-symbol-changed nil)
   (apply 'meta-add-symbols metapost-symbol-list)
-  (set (make-local-variable 'meta-complete-list)
-        (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
-              (list "" 'ispell-complete-word))))
+  (setq-local meta-complete-list
+              (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
+                    (list "" 'ispell-complete-word))))
 
 
 ;;; Just in case ...
