@@ -806,6 +806,16 @@ This macro is used to test if macroexpansion in `should' works."
   :expected-result :failed  ;; FIXME!  Bug#11218
   (should-not (with-demoted-errors (error "Foo"))))
 
+(ert-deftest ert-test-fail-inside-should ()
+  "Check that `ert-fail' inside `should' works correctly."
+  (let ((result (ert-run-test
+                 (make-ert-test
+                  :name 'test-1
+                  :body (lambda () (should (integerp (ert-fail "Boo"))))))))
+    (should (ert-test-failed-p result))
+    (should (equal (ert-test-failed-condition result)
+                   '(ert-test-failed ("Boo"))))))
+
 
 (provide 'ert-tests)
 
