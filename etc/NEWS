@@ -1371,11 +1371,10 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 ** Miscellaneous
 
 ---
-*** Errors in 'kill-emacs-hook' no longer prevents Emacs from shutting down.
+*** Errors in 'kill-emacs-hook' no longer prevent Emacs from shutting down.
 If a function in that hook signals an error in an interactive Emacs,
-the user will be prompted whether to continue or not.  If the user
-doesn't answer within five seconds, Emacs will continue shutting down
-anyway.
+the user will be prompted on whether to continue.  If the user doesn't
+answer within five seconds, Emacs will continue shutting down anyway.
 
 ---
 *** iso-transl is now preloaded.

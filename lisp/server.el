@@ -269,8 +269,8 @@ the \"-f\" switch otherwise."
   :version "23.1")
 
 (defcustom server-client-instructions t
-  "If non-nil, output instructions on how to exit the client on connection.
-If non, no messaging is done."
+  "If non-nil, display instructions on how to exit the client on connection.
+If nil, no instructions are displayed."
   :version "28.1"
   :type 'boolean)
 
