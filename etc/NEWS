@@ -193,7 +193,9 @@ These functions return the connection local value of the respective
 variables.  This can be used for remote hosts.
 
 ** Emacs now prints a backtrace when signaling an error in batch mode.  This
-makes debugging Emacs Lisp scripts run in batch mode easier.
+makes debugging Emacs Lisp scripts run in batch mode easier.  If you
+want to disable this behavior, set 'backtrace-on-error-noninteractive'
+to nil.
 
 
 * Editing Changes in Emacs 28.1
