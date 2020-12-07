@@ -5909,4 +5909,22 @@ returned list are in the same order as in TREE.
 (defconst regexp-unmatchable "\\`a\\`"
   "Standard regexp guaranteed not to match any string at all.")
 
+(defun run-hook-query-error-with-timeout (hook)
+  "Run HOOK, catching errors, and querying the user about whether to continue.
+If a function in HOOK signals an error, the user will be prompted
+whether to continue or not.  If the user doesn't respond,
+evaluation will continue if the user doesn't respond within five
+seconds."
+  (run-hook-wrapped
+   hook
+   (lambda (fun)
+     (condition-case err
+         (funcall fun)
+       (error
+        (unless (y-or-n-p-with-timeout (format "Error %s; continue?" err)
+                                       5 t)
+          (error err))))
+     ;; Continue running.
+     nil)))
+
 ;;; subr.el ends here

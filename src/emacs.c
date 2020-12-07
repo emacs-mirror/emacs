@@ -2368,7 +2368,7 @@ all of which are called before Emacs is actually killed.  */
   if (noninteractive)
     safe_run_hooks (Qkill_emacs_hook);
   else
-    run_hook (Qkill_emacs_hook);
+    call1 (Qrun_hook_query_error_with_timeout, Qkill_emacs_hook);
 
 #ifdef HAVE_X_WINDOWS
   /* Transfer any clipboards we own to the clipboard manager.  */
@@ -2890,6 +2890,8 @@ syms_of_emacs (void)
   DEFSYM (Qrisky_local_variable, "risky-local-variable");
   DEFSYM (Qkill_emacs, "kill-emacs");
   DEFSYM (Qkill_emacs_hook, "kill-emacs-hook");
+  DEFSYM (Qrun_hook_query_error_with_timeout,
+	  "run-hook-query-error-with-timeout");
 
 #ifdef HAVE_UNEXEC
   defsubr (&Sdump_emacs);
