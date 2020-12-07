@@ -268,6 +268,12 @@ the \"-f\" switch otherwise."
   :type 'string
   :version "23.1")
 
+(defcustom server-client-instructions t
+  "If non-nil, output instructions on how to exit the client on connection.
+If non, no messaging is done."
+  :version "28.1"
+  :type 'boolean)
+
 ;; We do not use `temporary-file-directory' here, because emacsclient
 ;; does not read the init file.
 (defvar server-socket-dir
@@ -1360,8 +1366,10 @@ The following commands are accepted by the client:
             nil)
            ((and frame (null buffers))
             (run-hooks 'server-after-make-frame-hook)
-            (message "%s" (substitute-command-keys
-                           "When done with this frame, type \\[delete-frame]")))
+            (when server-client-instructions
+              (message "%s"
+                       (substitute-command-keys
+                        "When done with this frame, type \\[delete-frame]"))))
            ((not (null buffers))
             (run-hooks 'server-after-make-frame-hook)
             (server-switch-buffer
@@ -1372,9 +1380,11 @@ The following commands are accepted by the client:
              ;; where it may be displayed.
              (plist-get (process-plist proc) 'frame))
             (run-hooks 'server-switch-hook)
-            (unless nowait
-              (message "%s" (substitute-command-keys
-                             "When done with a buffer, type \\[server-edit]")))))
+            (when (and (not nowait)
+                       server-client-instructions)
+              (message "%s"
+                       (substitute-command-keys
+                        "When done with a buffer, type \\[server-edit]")))))
           (when (and frame (null tty-name))
             (server-unselect-display frame)))
       ((quit error)

@@ -1893,6 +1893,12 @@ with @kbd{C-x #}.  But @kbd{C-x #} is the way to tell
 window or a frame, @kbd{C-x #} always displays the next server buffer
 in that window or in that frame.
 
+@vindex server-client-instructions
+  When @command{emacsclient} connects, the server will normally output
+a message that says how to exit the client frame.  If
+@code{server-client-instructions} is set to @code{nil}, this message
+is inhibited.
+
 @node emacsclient Options
 @subsection @code{emacsclient} Options
 @cindex @code{emacsclient} options
