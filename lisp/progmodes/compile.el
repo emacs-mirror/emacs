@@ -807,7 +807,7 @@ You might also use mode hooks to specify it in certain modes, like this:
        (lambda ()
 	 (unless (or (file-exists-p \"makefile\")
 		     (file-exists-p \"Makefile\"))
-	   (set (make-local-variable \\='compile-command)
+           (setq-local compile-command
 		(concat \"make -k \"
 			(if buffer-file-name
 			  (shell-quote-argument
@@ -1839,14 +1839,13 @@ Returns the compilation buffer created."
         ;; default-directory' can't be used reliably for that because it may be
         ;; affected by the special handling of "cd ...;".
         ;; NB: must be done after (funcall mode) as that resets local variables
-        (set (make-local-variable 'compilation-directory) thisdir)
-	(set (make-local-variable 'compilation-environment) thisenv)
+        (setq-local compilation-directory thisdir)
+        (setq-local compilation-environment thisenv)
 	(if highlight-regexp
-	    (set (make-local-variable 'compilation-highlight-regexp)
-		 highlight-regexp))
+            (setq-local compilation-highlight-regexp highlight-regexp))
         (if (or compilation-auto-jump-to-first-error
 		(eq compilation-scroll-output 'first-error))
-            (set (make-local-variable 'compilation-auto-jump-to-next) t))
+            (setq-local compilation-auto-jump-to-next t))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: "
@@ -1872,10 +1871,9 @@ Returns the compilation buffer created."
                    (comint-term-environment))
 	      (list (format "INSIDE_EMACS=%s,compile" emacs-version))
 	      (copy-sequence process-environment))))
-	(set (make-local-variable 'compilation-arguments)
-	     (list command mode name-function highlight-regexp))
-	(set (make-local-variable 'revert-buffer-function)
-	     'compilation-revert-buffer)
+        (setq-local compilation-arguments
+                    (list command mode name-function highlight-regexp))
+        (setq-local revert-buffer-function 'compilation-revert-buffer)
 	(and outwin
 	     ;; Forcing the window-start overrides the usual redisplay
 	     ;; feature of bringing point into view, so setting the
@@ -2180,20 +2178,19 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)
   ;; Let windows scroll along with the output.
-  (set (make-local-variable 'window-point-insertion-type) t)
-  (set (make-local-variable 'tool-bar-map) compilation-mode-tool-bar-map)
+  (setq-local window-point-insertion-type t)
+  (setq-local tool-bar-map compilation-mode-tool-bar-map)
   (setq major-mode 'compilation-mode ; FIXME: Use define-derived-mode.
 	mode-name (or name-of-mode "Compilation"))
-  (set (make-local-variable 'page-delimiter)
-       compilation-page-delimiter)
-  ;; (set (make-local-variable 'compilation-buffer-modtime) nil)
+  (setq-local page-delimiter compilation-page-delimiter)
+  ;; (setq-local compilation-buffer-modtime nil)
   (compilation-setup)
   ;; Turn off deferred fontifications in the compilation buffer, if
   ;; the user turned them on globally.  This is because idle timers
   ;; aren't re-run after receiving input from a subprocess, so the
   ;; buffer is left unfontified after the compilation exits, until
   ;; some other input event happens.
-  (set (make-local-variable 'jit-lock-defer-time) nil)
+  (setq-local jit-lock-defer-time nil)
   (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
 
@@ -2263,7 +2260,7 @@ Optional argument MINOR indicates this is called from
   (setq-local compilation-num-errors-found 0)
   (setq-local compilation-num-warnings-found 0)
   (setq-local compilation-num-infos-found 0)
-  (set (make-local-variable 'overlay-arrow-string) "")
+  (setq-local overlay-arrow-string "")
   (setq next-error-overlay-arrow-position nil)
   (add-hook 'kill-buffer-hook
 	    (lambda () (setq next-error-overlay-arrow-position nil)) nil t)
@@ -2271,10 +2268,10 @@ Optional argument MINOR indicates this is called from
   ;; with the next-error function in simple.el, and it's only
   ;; coincidentally named similarly to compilation-next-error.
   (setq next-error-function 'compilation-next-error-function)
-  (set (make-local-variable 'comint-file-name-prefix)
-       (or (file-remote-p default-directory) ""))
-  (set (make-local-variable 'compilation-locs)
-       (make-hash-table :test 'equal :weakness 'value))
+  (setq-local comint-file-name-prefix
+              (or (file-remote-p default-directory) ""))
+  (setq-local compilation-locs
+              (make-hash-table :test 'equal :weakness 'value))
   ;; It's generally preferable to use after-change-functions since they
   ;; can be subject to combine-after-change-calls, but if we do that, we risk
   ;; running our hook after font-lock, resulting in incorrect refontification.
@@ -2412,8 +2409,7 @@ and runs `compilation-filter-hook'."
               (set-marker (process-mark proc) (point))
               ;; Update the number of errors in compilation-mode-line-errors
               (compilation--ensure-parse (point))
-              ;; (set (make-local-variable 'compilation-buffer-modtime)
-              ;;      (current-time))
+              ;; (setq-local compilation-buffer-modtime (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
@@ -3167,9 +3163,9 @@ TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
   ;; Again, since this command is used in buffers that contain several
   ;; compilations, to set the beginning of "this compilation", it's a good
   ;; place to reset compilation-auto-jump-to-next.
-  (set (make-local-variable 'compilation-auto-jump-to-next)
-       (or compilation-auto-jump-to-first-error
-	   (eq compilation-scroll-output 'first-error))))
+  (setq-local compilation-auto-jump-to-next
+              (or compilation-auto-jump-to-first-error
+                  (eq compilation-scroll-output 'first-error))))
 
 (provide 'compile)
 
