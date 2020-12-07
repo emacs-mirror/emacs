@@ -115,6 +115,21 @@ Integer values are handled in the `range' slot.")
                     :range (copy-tree (range cstr))
                     :neg (copy-tree (neg cstr)))))
 
+(defun comp-cstrs-homogeneous (cstrs)
+  "Check if constraints CSTRS are all homogeneously negated or non-negated.
+Return `pos' if they are all positive, `neg' if they are all
+negated or nil othewise."
+  (cl-loop
+   for cstr in cstrs
+   unless (comp-cstr-neg cstr)
+     count t into n-pos
+   else
+     count t into n-neg
+   finally
+   (cond
+    ((zerop n-neg) (cl-return 'pos))
+    ((zerop n-pos) (cl-return 'neg)))))
+
 
 ;;; Type handling.
 
@@ -342,18 +357,10 @@ DST is returned."
 
       ;; Check first if we are in the simple case of all input non-negate
       ;; or negated so we don't have to cons.
-      (cl-loop
-       for cstr in srcs
-       unless (neg cstr)
-         count t into n-pos
-       else
-         count t into n-neg
-       finally
-       (when (or (zerop n-pos) (zerop n-neg))
-         (apply #'comp-cstr-union-homogeneous dst srcs)
-         (when (zerop n-pos)
-           (setf (neg dst) t))
-         (cl-return-from comp-cstr-union-1-no-mem dst)))
+      (when-let ((res (comp-cstrs-homogeneous srcs)))
+        (apply #'comp-cstr-union-homogeneous dst srcs)
+        (setf (neg dst) (eq res 'neg))
+        (cl-return-from comp-cstr-union-1-no-mem dst))
 
       ;; Some are negated and some are not
       (cl-loop
