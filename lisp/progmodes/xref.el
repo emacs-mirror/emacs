@@ -593,6 +593,25 @@ SELECT is `quit', also quit the *xref* window."
   (xref--search-property 'xref-item t)
   (xref-show-location-at-point))
 
+(defun xref-next-group ()
+  "Move to the first item of the next xref group and display its source."
+  (interactive)
+  (xref--search-property 'xref-group)
+  (xref--search-property 'xref-item)
+  (xref-show-location-at-point))
+
+(defun xref-prev-group ()
+  "Move to the first item of the previous xref group and display its source."
+  (interactive)
+  ;; Search for the xref group of the current item, provided that the
+  ;; point is not already in an xref group.
+  (unless (plist-member (text-properties-at (point)) 'xref-group)
+    (xref--search-property 'xref-group t))
+  ;; Search for the previous xref group.
+  (xref--search-property 'xref-group t)
+  (xref--search-property 'xref-item)
+  (xref-show-location-at-point))
+
 (defun xref--item-at-point ()
   (save-excursion
     (back-to-indentation)
@@ -738,6 +757,8 @@ references displayed in the current *xref* buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "n") #'xref-next-line)
     (define-key map (kbd "p") #'xref-prev-line)
+    (define-key map (kbd "N") #'xref-next-group)
+    (define-key map (kbd "P") #'xref-prev-group)
     (define-key map (kbd "r") #'xref-query-replace-in-results)
     (define-key map (kbd "RET") #'xref-goto-xref)
     (define-key map (kbd "TAB")  #'xref-quit-and-goto-xref)

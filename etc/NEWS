@@ -1205,6 +1205,11 @@ So far Grep and ripgrep are supported.  ripgrep seems to offer better
 performance in certain cases, in particular for case-insensitive
 searches.
 
++++
+*** New commands 'xref-prev-group' and 'xref-next-group'.
+These commands are bound respectively to 'P' and 'N', and navigate to
+the first item of the previous or next group in the "*xref*" buffer.
+
 ** json.el
 
 ---
