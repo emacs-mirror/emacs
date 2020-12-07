@@ -83,7 +83,10 @@
     (with-temp-buffer
       (call-process (concat invocation-directory invocation-name)
                     nil '(t t) nil
-                    "-Q" "-batch" "--eval" (prin1-to-string `(byte-compile-file ,el))
+                    "-Q" "-batch"
+                    "--eval" (prin1-to-string
+                              `(let ((backtrace-on-error-noninteractive nil))
+                                 (byte-compile-file ,el)))
                     "-l" elc)
       (should (equal (buffer-string)
                      "Symbol's function definition is void: \\(setf\\ gv-test-foo\\)\n")))))
@@ -133,8 +136,10 @@
                     "-Q" "-batch" "--eval" (prin1-to-string `(byte-compile-file ,el))
                     "-l" elc
                     "--eval"
-                    (prin1-to-string '(progn (setf (gv-test-foo gv-test-pair) 99)
-                                             (message "%d" (car gv-test-pair)))))
+                    (prin1-to-string
+                     '(let ((backtrace-on-error-noninteractive nil))
+                        (setf (gv-test-foo gv-test-pair) 99)
+                        (message "%d" (car gv-test-pair)))))
       (should (string-match
                "\\`Symbol.s function definition is void: \\\\(setf\\\\ gv-test-foo\\\\)\n\\'"
                (buffer-string))))))

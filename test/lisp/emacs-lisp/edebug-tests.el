@@ -97,7 +97,10 @@ back to the top level.")
 
               ;; sit-on interferes with keyboard macros.
               (edebug-sit-on-break nil)
-              (edebug-continue-kbd-macro t))
+              (edebug-continue-kbd-macro t)
+
+              ;; don't print backtraces, otherwise error messages don't match
+              (backtrace-on-error-noninteractive nil))
      ,@body))
 
 (defmacro edebug-tests-with-normal-env (&rest body)
