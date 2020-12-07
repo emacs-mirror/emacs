@@ -2365,10 +2365,13 @@ all of which are called before Emacs is actually killed.  */
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   waiting_for_input = 0;
-  if (noninteractive)
-    safe_run_hooks (Qkill_emacs_hook);
-  else
-    call1 (Qrun_hook_query_error_with_timeout, Qkill_emacs_hook);
+  if (!NILP (find_symbol_value (Qkill_emacs_hook)))
+    {
+      if (noninteractive)
+	safe_run_hooks (Qkill_emacs_hook);
+      else
+	call1 (Qrun_hook_query_error_with_timeout, Qkill_emacs_hook);
+    }
 
 #ifdef HAVE_X_WINDOWS
   /* Transfer any clipboards we own to the clipboard manager.  */
