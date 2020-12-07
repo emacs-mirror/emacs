@@ -2805,11 +2805,18 @@ Prepare every function for final compilation and drive the C back-end."
       (and (comp--release-ctxt)
            compile-result))))
 
+(defvar comp-async-compilation nil
+  "Non-nil while executing an asyncronous native compilation.")
+
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
   (maphash #'comp-ret-type-spec (comp-ctxt-funcs-h comp-ctxt))
   (unless comp-dry-run
-    (if noninteractive
+    ;; Always run the C side of the compilation as a sub-process
+    ;; unless during bootstrap or async compilation (bug#45056).  GCC
+    ;; leaks memory but also interfere with the ability of Emacs to
+    ;; detect when a sub-process completes (TODO understand why).
+    (if (or byte-native-for-bootstrap comp-async-compilation)
 	(comp-final1)
       ;; Call comp-final1 in a child process.
       (let* ((output (comp-ctxt-output comp-ctxt))
@@ -3073,6 +3080,7 @@ display a message."
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
+                                  comp-async-compilation t
                                   comp-eln-load-path ',comp-eln-load-path
                                   comp-native-driver-options
                                   ',comp-native-driver-options
