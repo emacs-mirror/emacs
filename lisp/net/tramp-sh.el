@@ -5030,6 +5030,9 @@ connection if a previous connection has died for some reason."
 
 		(tramp-message vec 6 "%s" (string-join (process-command p) " "))
 
+		;; Set connection-local variables.
+		(tramp-set-connection-local-variables vec)
+
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
 		 p 10
@@ -5138,9 +5141,6 @@ connection if a previous connection has died for some reason."
 		  ;; Next hop.
 		  (setq options ""
 			target-alist (cdr target-alist)))
-
-		;; Set connection-local variables.
-		(tramp-set-connection-local-variables vec)
 
 		;; Activate session timeout.
 		(when (tramp-get-connection-property p "session-timeout" nil)
