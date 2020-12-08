@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#include <stdio.h>
 #include <config.h>
 
 #include <stdlib.h>
@@ -4525,18 +4526,40 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 EMACS_UINT
 hash_string (char const *ptr, ptrdiff_t len)
 {
-  char const *p = ptr;
-  char const *end = p + len;
-  unsigned char c;
-  EMACS_UINT hash = 0;
-
-  while (p != end)
+  if (len < 16)
     {
-      c = *p++;
-      hash = sxhash_combine (hash, c);
-    }
+      char const *p = ptr;
+      char const *end = p + len;
+      EMACS_UINT hash = len;
 
-  return hash;
+      while (p < end)
+        {
+          unsigned char c = *p++;
+          hash = sxhash_combine (hash, c);
+        }
+
+      return hash;
+    }
+  else
+    {
+      EMACS_UINT const *p   = (EMACS_UINT const *) ptr;
+      EMACS_UINT const *end = (EMACS_UINT const *) (ptr + len);
+      EMACS_UINT hash = len;
+      /* At most 8 steps.  We could reuse SXHASH_MAX_LEN, of course,
+       * but dividing by 8 is cheaper.  */
+      ptrdiff_t step = max (1, (end - p) >> 3);
+
+      /* Beware: `end` might be unaligned, so `p < end` is not always the same
+       * as `p <= end - 1`.  */
+      while (p <= end - 1)
+        {
+          EMACS_UINT c = *p;
+          p += step;
+          hash = sxhash_combine (hash, c);
+        }
+
+      return hash;
+    }
 }
 
 /* Return a hash for string PTR which has length LEN.  The hash
