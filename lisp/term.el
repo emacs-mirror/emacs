@@ -264,7 +264,7 @@
 ;; M-p     term-previous-input           Cycle backwards in input history
 ;; M-n     term-next-input               Cycle forwards
 ;; M-r     term-previous-matching-input  Previous input matching a regexp
-;; M-s     comint-next-matching-input    Next input that matches
+;; M-s     term-next-matching-input      Next input that matches
 ;; return  term-send-input
 ;; C-c C-a term-bol                      Beginning of line; skip prompt.
 ;; C-d     term-delchar-or-maybe-eof     Delete char unless at end of buff.
