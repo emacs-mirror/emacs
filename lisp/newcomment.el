@@ -304,7 +304,7 @@ This is useful when style-conventions require a certain minimal offset.
 Python's PEP8 for example recommends two spaces, so you could do:
 
 \(add-hook \\='python-mode-hook
-   (lambda () (set (make-local-variable \\='comment-inline-offset) 2)))
+   (lambda () (setq-local comment-inline-offset 2)))
 
 See `comment-padding' for whole-line comments."
   :version "24.3"
@@ -361,21 +361,21 @@ function should first call this function explicitly."
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
 	(if (zerop (length cs))
 	    (error "No comment syntax defined")
-	  (set (make-local-variable 'comment-start) cs)
-	  (set (make-local-variable 'comment-start-skip) cs))))
+          (setq-local comment-start cs)
+          (setq-local comment-start-skip cs))))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
-      (set (make-local-variable 'comment-use-syntax)
-	   (let ((st (syntax-table))
-		 (cs comment-start)
-		 (ce (if (string= "" comment-end) "\n" comment-end)))
-	     ;; Try to skip over a comment using forward-comment
-	     ;; to see if the syntax tables properly recognize it.
-	     (with-temp-buffer
-	       (set-syntax-table st)
-	       (insert cs " hello " ce)
-	       (goto-char (point-min))
-	       (and (forward-comment 1) (eobp))))))
+      (setq-local comment-use-syntax
+                  (let ((st (syntax-table))
+                        (cs comment-start)
+                        (ce (if (string= "" comment-end) "\n" comment-end)))
+                    ;; Try to skip over a comment using forward-comment
+                    ;; to see if the syntax tables properly recognize it.
+                    (with-temp-buffer
+                      (set-syntax-table st)
+                      (insert cs " hello " ce)
+                      (goto-char (point-min))
+                      (and (forward-comment 1) (eobp))))))
     ;; comment-padding
     (unless comment-padding (setq comment-padding 0))
     (when (integerp comment-padding)
@@ -385,9 +385,9 @@ function should first call this function explicitly."
     ;;(setq comment-end (comment-string-strip comment-end nil t))
     ;; comment-continue
     (unless (or comment-continue (string= comment-end ""))
-      (set (make-local-variable 'comment-continue)
-	   (concat (if (string-match "\\S-\\S-" comment-start) " " "|")
-		   (substring comment-start 1)))
+      (setq-local comment-continue
+                  (concat (if (string-match "\\S-\\S-" comment-start) " " "|")
+                          (substring comment-start 1)))
       ;; Hasn't been necessary yet.
       ;; (unless (string-match comment-start-skip comment-continue)
       ;;	(kill-local-variable 'comment-continue))
@@ -396,29 +396,29 @@ function should first call this function explicitly."
     (unless (and comment-start-skip
 		 ;; In case comment-start has changed since last time.
 		 (string-match comment-start-skip comment-start))
-      (set (make-local-variable 'comment-start-skip)
-	   (concat (unless (eq comment-use-syntax t)
-                     ;; `syntax-ppss' will detect escaping.
-                     "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)")
-                   "\\(?:\\s<+\\|"
-		   (regexp-quote (comment-string-strip comment-start t t))
-		   ;; Let's not allow any \s- but only [ \t] since \n
-		   ;; might be both a comment-end marker and \s-.
-		   "+\\)[ \t]*")))
+      (setq-local comment-start-skip
+                  (concat (unless (eq comment-use-syntax t)
+                            ;; `syntax-ppss' will detect escaping.
+                            "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)")
+                          "\\(?:\\s<+\\|"
+                          (regexp-quote (comment-string-strip comment-start t t))
+                          ;; Let's not allow any \s- but only [ \t] since \n
+                          ;; might be both a comment-end marker and \s-.
+                          "+\\)[ \t]*")))
     (unless (and comment-end-skip
 		 ;; In case comment-end has changed since last time.
 		 (string-match comment-end-skip
                                (if (string= "" comment-end) "\n" comment-end)))
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
-	(set (make-local-variable 'comment-end-skip)
-	     ;; We use [ \t] rather than \s- because we don't want to
-	     ;; remove ^L in C mode when uncommenting.
-	     (concat "[ \t]*\\(\\s>" (if comment-quote-nested "" "+")
-		     "\\|" (regexp-quote (substring ce 0 1))
-		     (if (and comment-quote-nested (<= (length ce) 1)) "" "+")
-		     (regexp-quote (substring ce 1))
-		     "\\)"))))))
+        (setq-local comment-end-skip
+                    ;; We use [ \t] rather than \s- because we don't want to
+                    ;; remove ^L in C mode when uncommenting.
+                    (concat "[ \t]*\\(\\s>" (if comment-quote-nested "" "+")
+                            "\\|" (regexp-quote (substring ce 0 1))
+                            (if (and comment-quote-nested (<= (length ce) 1)) "" "+")
+                            (regexp-quote (substring ce 1))
+                            "\\)"))))))
 
 (defun comment-quote-re (str unp)
   (concat (regexp-quote (substring str 0 1))
