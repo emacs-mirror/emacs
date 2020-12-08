@@ -18,7 +18,6 @@
 ## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import multiprocessing as mp
-import glob
 import os
 import shutil
 import re
