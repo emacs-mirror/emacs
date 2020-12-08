@@ -4267,8 +4267,10 @@ still determine whether to handle the particular condition.  */);
 
   DEFVAR_BOOL ("backtrace-on-error-noninteractive",
                backtrace_on_error_noninteractive,
-               doc: /* If non-nil and Emacs is running noninteractively,
-print a backtrace on encountering an unhandled error.  */);
+               doc: /* Non-nil means print backtrace on error in batch mode.
+If this is nil, errors in batch mode will just print the error
+message upon encountering an unhandled error, without showing
+the Lisp backtrace.  */);
   backtrace_on_error_noninteractive = true;
 
   /* The value of num_nonmacro_input_events as of the last time we

@@ -192,10 +192,10 @@ have been replaced with "chat.freenode.net" throughout Emacs.
 These functions return the connection local value of the respective
 variables.  This can be used for remote hosts.
 
-** Emacs now prints a backtrace when signaling an error in batch mode.  This
-makes debugging Emacs Lisp scripts run in batch mode easier.  If you
-want to disable this behavior, set 'backtrace-on-error-noninteractive'
-to nil.
+** Emacs now prints a backtrace when signaling an error in batch mode.
+This makes debugging Emacs Lisp scripts run in batch mode easier.  To
+get back the old behavior, set the new variable
+'backtrace-on-error-noninteractive' to a nil value.
 
 
 * Editing Changes in Emacs 28.1
