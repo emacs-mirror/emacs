@@ -1473,6 +1473,8 @@ validate_arguments (const struct parsed_options *options)
     }
 }
 
+static struct timespec tags_file_time;
+
 int
 main (int argc, char **argv)
 {
@@ -1532,6 +1534,12 @@ main (int argc, char **argv)
   linebuffer_init (&filename_lb);
   linebuffer_init (&filebuf);
   linebuffer_init (&token_name);
+
+  struct stat st;
+
+  /* If no TAGS file, nothing to do here.  */
+  if (stat (tagfile, &st) == 0)
+    tags_file_time = get_stat_mtime (&st);
 
   if (find_mode)
     read_dot_etags ();
@@ -7971,7 +7979,6 @@ static void
 maybe_set_update_mode (void)
 {
   struct stat st;
-  struct timespec mtime;
 
   update = false;
 
@@ -7980,8 +7987,7 @@ maybe_set_update_mode (void)
     return;
 
   /* If the TAGS file is newer than the .etags file, just update.  */
-  mtime = get_stat_mtime (&st);
-  if (time_newer (&mtime, &dot_etags_time))
+  if (time_newer (&tags_file_time, &dot_etags_time))
     update = true;
 }
 
@@ -8118,7 +8124,8 @@ walk_directory (const char *dirname)
 	    {
 	      struct timespec t = get_stat_mtime (&st);
 
-	      if (update && time_newer (&dot_etags_time, &t))
+	      if (update && time_newer (&tags_file_time, &t)
+		  && time_newer (&dot_etags_time, &t))
 		{
 		  /* Nothing - .etags is newer.  */
 		}
