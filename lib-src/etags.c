@@ -1828,7 +1828,7 @@ get_language_from_interpreter (char *interpreter)
  * Return a language given the file name.
  */
 static language *
-get_language_from_filename (const char *file, boot case_sensitive)
+get_language_from_filename (const char *file, bool case_sensitive)
 {
   language *lang;
   const char **name, **ext, *suffix;
@@ -7429,7 +7429,7 @@ relative_filename (const char *file, const char *dir)
 {
   const char *fp, *dp;
   char *afn, *res;
-  ptrdiff i;
+  ptrdiff_t i;
 
   /* Find the common root of file and dir (with a trailing slash). */
   afn = absolute_filename (file, cwd);
@@ -7873,7 +7873,7 @@ split_arguments (char *input, int *argc, char ***argv)
 	break;
 
       ++*argc;
-      xrnew (*argv, 1 + *argc, char *);
+      xrnew (*argv, 1 + *argc, 1);
 
       (*argv)[*argc - 1] = input;
       (*argv)[*argc] = NULL;
@@ -7898,8 +7898,7 @@ add_entry (char *line, int lineno)
 	filename_matcher_size *= 2;
 
       matchers = (struct filename_matcher *)
-	xrealloc (matchers, (filename_matcher_size
-			     * sizeof (struct filename_matcher)));
+	xnrealloc (matchers, filename_matcher_size, sizeof (struct filename_matcher));
     }
 
   if (*line == '#' || *line == '\0')
