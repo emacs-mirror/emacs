@@ -1371,6 +1371,12 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 ** Miscellaneous
 
 ---
+*** 'hexl-mode' scrolling commands now heed 'next-screen-context-lines'.
+Previously, 'hexl-scroll-down' and 'hexl-scroll-up' would scroll
+up/down an entire window, but they now work more like the standard
+scrolling commands.
+
+---
 *** Errors in 'kill-emacs-hook' no longer prevent Emacs from shutting down.
 If a function in that hook signals an error in an interactive Emacs,
 the user will be prompted on whether to continue.  If the user doesn't
