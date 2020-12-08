@@ -1592,17 +1592,6 @@ make_image_cache (void)
   return c;
 }
 
-/* Compare two lists (one of which must be proper), comparing each
-   element with `eq'.  */
-static bool
-equal_lists (Lisp_Object a, Lisp_Object b)
-{
-  while (CONSP (a) && CONSP (b) && EQ (XCAR (a), XCAR (b)))
-    a = XCDR (a), b = XCDR (b);
-
-  return EQ (a, b);
-}
-
 /* Find an image matching SPEC in the cache, and return it.  If no
    image is found, return NULL.  */
 static struct image *
@@ -1630,7 +1619,7 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
 
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
-	&& equal_lists (img->spec, spec)
+	&& !NILP (Fequal (img->spec, spec))
 	&& (ignore_colors || (img->face_foreground == foreground
                               && img->face_background == background)))
       break;
