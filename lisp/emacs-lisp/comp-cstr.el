@@ -302,11 +302,11 @@ Return them as multiple value."
    with nest = 0
    with low = nil
    with res = ()
+   for (i . x) in (cl-sort (nconc lows highs) #'comp-range-< :key #'car)
    initially (when (cl-some #'null ranges)
                ;; Intersecting with a null range always results in a
                ;; null range.
                (cl-return '()))
-   for (i . x) in (cl-sort (nconc lows highs) #'comp-range-< :key #'car)
    if (eq x 'l)
    do
    (cl-incf nest)
@@ -502,27 +502,9 @@ DST is returned."
           (puthash srcs (comp-cstr-copy res) mem-h)
          res)))))
 
-
-;;; Entry points.
-
-(defun comp-cstr-union-no-range (dst &rest srcs)
-  "Combine SRCS by union set operation setting the result in DST.
-Do not propagate the range component.
-DST is returned."
-  (apply #'comp-cstr-union-1 nil dst srcs))
-
-(defun comp-cstr-union (dst &rest srcs)
-  "Combine SRCS by union set operation setting the result in DST.
-DST is returned."
-  (apply #'comp-cstr-union-1 t dst srcs))
-
-(defun comp-cstr-union-make (&rest srcs)
-  "Combine SRCS by union set operation and return a new constraint."
-  (apply #'comp-cstr-union (make-comp-cstr) srcs))
-
-;; TODO memoize
-(cl-defun comp-cstr-intersection (dst &rest srcs)
+(cl-defun comp-cstr-intersection-homogeneous (dst &rest srcs)
   "Combine SRCS by intersection set operation setting the result in DST.
+All SRCS constraints must be homogeneously negated or non-negated.
 DST is returned."
 
   ;; Value propagation.
@@ -568,6 +550,96 @@ DST is returned."
           (apply #'comp-intersect-typesets
                  (mapcar #'comp-cstr-typeset srcs))))
   dst)
+
+
+;;; Entry points.
+
+(defun comp-cstr-union-no-range (dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+Do not propagate the range component.
+DST is returned."
+  (apply #'comp-cstr-union-1 nil dst srcs))
+
+(defun comp-cstr-union (dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+DST is returned."
+  (apply #'comp-cstr-union-1 t dst srcs))
+
+(defun comp-cstr-union-make (&rest srcs)
+  "Combine SRCS by union set operation and return a new constraint."
+  (apply #'comp-cstr-union (make-comp-cstr) srcs))
+
+(cl-defun comp-cstr-intersection (dst &rest srcs)
+  "Combine SRCS by intersection set operation setting the result in DST.
+DST is returned."
+  (with-comp-cstr-accessors
+    (cl-flet ((return-empty ()
+                (setf (typeset dst) ()
+                      (valset dst) ()
+                      (range dst) ()
+                      (neg dst) nil)
+                (cl-return-from comp-cstr-intersection dst)))
+      (when-let ((res (comp-cstrs-homogeneous srcs)))
+        (apply #'comp-cstr-intersection-homogeneous dst srcs)
+        (setf (neg dst) (eq res 'neg))
+        (cl-return-from comp-cstr-intersection dst))
+
+      ;; Some are negated and some are not
+      (cl-multiple-value-bind (positives negatives) (comp-split-pos-neg srcs)
+        (let* ((pos (apply #'comp-cstr-intersection-homogeneous
+                           (make-comp-cstr) positives))
+               (neg (apply #'comp-cstr-intersection-homogeneous
+                           (make-comp-cstr :neg t) negatives)))
+
+          ;; In case pos is not relevant return directly the content
+          ;; of neg.
+          (when (equal (typeset pos) '(t))
+            (setf (typeset dst) (typeset neg)
+                  (valset dst) (valset neg)
+                  (range dst) (range neg)
+                  (neg dst) t)
+            (cl-return-from comp-cstr-intersection dst))
+
+          (when (cl-some
+                 (lambda (ty)
+                   (memq ty (typeset neg)))
+                 (typeset pos))
+            (return-empty))
+
+          ;; Some negated types are subtypes of some non-negated one.
+          ;; Transform the corresponding set of types from neg to pos.
+          (cl-loop
+           for neg-type in (typeset neg)
+           do (cl-loop
+               for pos-type in (copy-sequence (typeset pos))
+               when (and (not (eq neg-type pos-type))
+                         (comp-subtype-p neg-type pos-type))
+               do (cl-loop
+                   with found
+                   for (type . _) in (comp-supertypes neg-type)
+                   when found
+                     collect type into res
+                   when (eq type pos-type)
+                     do (setf (typeset pos) (cl-union (typeset pos) res))
+                        ;; (delq neg-type (typeset neg))
+                        (cl-return)
+                   when (eq type neg-type)
+                     do (setf found t))))
+
+          (setf (range pos)
+                (if (memq 'integer (typeset pos))
+                    (progn
+                      (setf (typeset pos) (delq 'integer (typeset pos)))
+                      (comp-range-negation (range neg)))
+                  (comp-range-intersection (range pos)
+                                           (comp-range-negation (range neg)))))
+
+          ;; Return a non negated form.
+          (setf (typeset dst) (typeset pos)
+                (valset dst) (valset pos)
+                (range dst) (range pos)
+                (neg dst) nil)))
+      dst)))
 
 (defun comp-cstr-intersection-make (&rest srcs)
   "Combine SRCS by intersection set operation and return a new constraint."

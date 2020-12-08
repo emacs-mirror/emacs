@@ -155,7 +155,29 @@
     ;; 57
     ((or atom (not (integer 1 2))) . t)
     ;; 58
-    ((or atom (not (member foo))) . t))
+    ((or atom (not (member foo))) . t)
+    ;; 59
+    ((and symbol (not cons)) . symbol)
+    ;; 60
+    ((and symbol (not symbol)) . nil)
+    ;; 61
+    ((and atom (not symbol)) . atom)
+    ;; 62
+    ((and atom (not string)) . (or array sequence atom))
+    ;; 63 Conservative
+    ((and symbol (not (member foo))) . symbol)
+    ;; 64 Conservative
+    ((and symbol (not (member 3))) . symbol)
+    ;; 65
+    ((and (not (member foo)) (integer 1 10)) . (integer 1 10))
+    ;; 66
+    ((and (member foo) (not (integer 1 10))) . (member foo))
+    ;; 67
+    ((and t (not (member foo))) . (not (member foo)))
+    ;; 68
+    ((and integer (not (integer 3 4))) . (or (integer * 2) (integer 5 *)))
+    ;; 69
+    ((and (integer 0 20) (not (integer 5 10))) . (or (integer 0 4) (integer 11 20))))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()
