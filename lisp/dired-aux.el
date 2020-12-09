@@ -259,7 +259,7 @@ the string of command switches used as the third argument of `diff'."
      (list
       (minibuffer-with-setup-hook
 	  (lambda ()
-	    (set (make-local-variable 'minibuffer-default-add-function) nil)
+            (setq-local minibuffer-default-add-function nil)
 	    (setq minibuffer-default defaults))
 	(read-file-name (format-prompt "Diff %s with" default current)
 	                target-dir default t))
@@ -334,7 +334,7 @@ only in the active region if `dired-mark-region' is non-nil."
 	   (defaults (dired-dwim-target-defaults nil target-dir)))
       (minibuffer-with-setup-hook
 	  (lambda ()
-	    (set (make-local-variable 'minibuffer-default-add-function) nil)
+            (setq-local minibuffer-default-add-function nil)
 	    (setq minibuffer-default defaults))
 	(read-directory-name (format "Compare %s with: "
 				     (dired-current-directory))
@@ -2049,7 +2049,7 @@ Optional arg HOW-TO determines how to treat the target.
 	 (target (expand-file-name ; fluid variable inside dired-create-files
 		  (minibuffer-with-setup-hook
 		      (lambda ()
-			(set (make-local-variable 'minibuffer-default-add-function) nil)
+                        (setq-local minibuffer-default-add-function nil)
 			(setq minibuffer-default defaults))
 		    (dired-mark-read-file-name
                      (format "%s %%s %s: "
@@ -3013,14 +3013,14 @@ is part of a file name (i.e., has the text property `dired-filename')."
 (defun dired-isearch-filenames ()
   "Search for a string using Isearch only in file names in the Dired buffer."
   (interactive)
-  (set (make-local-variable 'dired-isearch-filenames) t)
+  (setq-local dired-isearch-filenames t)
   (isearch-forward nil t))
 
 ;;;###autoload
 (defun dired-isearch-filenames-regexp ()
   "Search for a regexp using Isearch only in file names in the Dired buffer."
   (interactive)
-  (set (make-local-variable 'dired-isearch-filenames) t)
+  (setq-local dired-isearch-filenames t)
   (isearch-forward-regexp nil t))
 
 
