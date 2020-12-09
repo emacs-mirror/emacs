@@ -2169,7 +2169,10 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
     (when (and (not (or tags-file-name
                         tags-table-list))
                (setq proj (project-current)))
-      (etags--project-tags-generate proj)
+      (message "Generating new tags table...")
+      (let ((start (time-to-seconds)))
+        (etags--project-tags-generate proj)
+        (message "...done (%.2f s)" (- (time-to-seconds) start)))
       ;; Invalidate the scanned tags after any change is written to disk.
       (add-hook 'after-save-hook #'etags--project-update-file)
       (add-hook 'before-save-hook #'etags--project-mark-as-new)
