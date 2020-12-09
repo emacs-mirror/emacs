@@ -834,6 +834,13 @@ This evaluates the TESTS test cases from glibc."
 
 (ert-deftest regexp-eszett ()
   "Test matching of ß and ẞ."
+  ;; Sanity checks.
+  (should (equal (upcase "ß") "SS"))
+  (should (equal (downcase "ß") "ß"))
+  (should (equal (capitalize "ß") "Ss"))  ; undeutsch...
+  (should (equal (upcase "ẞ") "ẞ"))
+  (should (equal (downcase "ẞ") "ß"))
+  (should (equal (capitalize "ẞ") "ẞ"))
   ;; ß is a lower-case letter (Ll); ẞ is an upper-case letter (Lu).
   (let ((case-fold-search nil))
     (should (equal (string-match "ß" "ß") 0))
@@ -842,8 +849,8 @@ This evaluates the TESTS test cases from glibc."
     (should (equal (string-match "ẞ" "ẞ") 0))
     (should (equal (string-match "[[:alpha:]]" "ß") 0))
     ;; bug#11309
-    ;;(should (equal (string-match "[[:lower:]]" "ß") 0))
-    ;;(should (equal (string-match "[[:upper:]]" "ß") nil))
+    (should (equal (string-match "[[:lower:]]" "ß") 0))
+    (should (equal (string-match "[[:upper:]]" "ß") nil))
     (should (equal (string-match "[[:alpha:]]" "ẞ") 0))
     (should (equal (string-match "[[:lower:]]" "ẞ") nil))
     (should (equal (string-match "[[:upper:]]" "ẞ") 0)))
@@ -854,8 +861,8 @@ This evaluates the TESTS test cases from glibc."
     (should (equal (string-match "ẞ" "ẞ") 0))
     (should (equal (string-match "[[:alpha:]]" "ß") 0))
     ;; bug#11309
-    ;;(should (equal (string-match "[[:lower:]]" "ß") 0))
-    ;;(should (equal (string-match "[[:upper:]]" "ß") 0))
+    (should (equal (string-match "[[:lower:]]" "ß") 0))
+    (should (equal (string-match "[[:upper:]]" "ß") 0))
     (should (equal (string-match "[[:alpha:]]" "ẞ") 0))
     (should (equal (string-match "[[:lower:]]" "ẞ") 0))
     (should (equal (string-match "[[:upper:]]" "ẞ") 0))))
