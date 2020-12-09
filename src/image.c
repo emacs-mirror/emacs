@@ -9776,11 +9776,8 @@ svg_load (struct frame *f, struct image *img)
 
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
 static double
-svg_css_length_to_pixels (RsvgLength length)
+svg_css_length_to_pixels (RsvgLength length, double dpi)
 {
-  /* FIXME: 96 appears to be a pretty standard DPI but we should
-     probably use the real DPI if we can get it.  */
-  double dpi = 96;
   double value = length.length;
 
   switch (length.unit)
@@ -9854,6 +9851,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   rsvg_handle = rsvg_handle_new_from_stream_sync (input_stream, base_file,
 						  RSVG_HANDLE_FLAGS_NONE,
 						  NULL, &err);
+  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
+                           FRAME_DISPLAY_INFO (f)->resy);
+
   if (base_file)
     g_object_unref (base_file);
   g_object_unref (input_stream);
@@ -9864,6 +9864,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
   eassume (rsvg_handle);
+
+  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
+                           FRAME_DISPLAY_INFO (f)->resy);
 
   /* Set base_uri for properly handling referenced images (via 'href').
      Can be explicitly specified using `:base_uri' image property.
@@ -9889,6 +9892,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   /* Try the instrinsic dimensions first.  */
   gboolean has_width, has_height, has_viewbox;
   RsvgLength iwidth, iheight;
+  double dpi = FRAME_DISPLAY_INFO (f)->resx;
 
   rsvg_handle_get_intrinsic_dimensions (rsvg_handle,
                                         &has_width, &iwidth,
@@ -9898,19 +9902,19 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (has_width && has_height)
     {
       /* Success!  We can use these values directly.  */
-      viewbox_width = svg_css_length_to_pixels (iwidth);
-      viewbox_height = svg_css_length_to_pixels (iheight);
+      viewbox_width = svg_css_length_to_pixels (iwidth, dpi);
+      viewbox_height = svg_css_length_to_pixels (iheight, dpi);
     }
   else if (has_width && has_viewbox)
     {
-      viewbox_width = svg_css_length_to_pixels (iwidth);
-      viewbox_height = svg_css_length_to_pixels (iwidth)
+      viewbox_width = svg_css_length_to_pixels (iwidth, dpi);
+      viewbox_height = svg_css_length_to_pixels (iwidth, dpi)
         * viewbox.width / viewbox.height;
     }
   else if (has_height && has_viewbox)
     {
-      viewbox_height = svg_css_length_to_pixels (iheight);
-      viewbox_width = svg_css_length_to_pixels (iheight)
+      viewbox_height = svg_css_length_to_pixels (iheight, dpi);
+      viewbox_width = svg_css_length_to_pixels (iheight, dpi)
         * viewbox.height / viewbox.width;
     }
   else if (has_viewbox)
@@ -10019,6 +10023,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   rsvg_handle = rsvg_handle_new_from_stream_sync (input_stream, base_file,
 						  RSVG_HANDLE_FLAGS_NONE,
 						  NULL, &err);
+
+  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
+                           FRAME_DISPLAY_INFO (f)->resy);
+
   if (base_file)
     g_object_unref (base_file);
   g_object_unref (input_stream);
@@ -10029,6 +10037,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
   eassume (rsvg_handle);
+
+  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
+                           FRAME_DISPLAY_INFO (f)->resy);
 
   /* Set base_uri for properly handling referenced images (via 'href').
      Can be explicitly specified using `:base_uri' image property.
