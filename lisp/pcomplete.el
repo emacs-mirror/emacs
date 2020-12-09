@@ -742,8 +742,8 @@ this is `comint-dynamic-complete-functions'."
               #'pcomplete-parse-comint-arguments)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil 'local)
-  (setq-local completef-sym
-              (copy-sequence (symbol-value completef-sym)))
+  (set (make-local-variable completef-sym)
+       (copy-sequence (symbol-value completef-sym)))
   (let* ((funs (symbol-value completef-sym))
 	 (elem (or (memq 'comint-filename-completion funs)
                    (memq 'shell-filename-completion funs)
