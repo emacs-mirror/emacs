@@ -6,7 +6,6 @@
 ;; Maintainer: Michael Mauger <michael@mauger.com>
 ;; Version: 3.6
 ;; Keywords: comm languages processes
-;; URL: https://savannah.gnu.org/projects/emacs/
 
 ;; This file is part of GNU Emacs.
 
