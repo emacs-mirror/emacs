@@ -1382,6 +1382,13 @@ NAME is either a string or a list of strings."
       (setq pointer (cdr pointer)))
     keys))
 
+(defun epg--filter-revoked-keys (keys)
+  (seq-remove (lambda (key)
+                (seq-find (lambda (user)
+                            (eq (epg-user-id-validity user) 'revoked))
+                          (epg-key-user-id-list key)))
+              keys))
+
 (defun epg--args-from-sig-notations (notations)
   (apply #'nconc
 	 (mapcar
