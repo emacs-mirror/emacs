@@ -1633,12 +1633,13 @@ static void
 uncache_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img;
+  EMACS_UINT hash = sxhash (spec);
 
   /* Because the background colors are based on the current face, we
      can have multiple copies of an image with the same spec. We want
      to remove them all to ensure the user doesn't see an old version
      of the image when the face changes.  */
-  while ((img = search_image_cache (f, spec, sxhash (spec), 0, 0, true)))
+  while ((img = search_image_cache (f, spec, hash, 0, 0, true)))
     {
       free_image (f, img);
       /* As display glyphs may still be referring to the image ID, we
