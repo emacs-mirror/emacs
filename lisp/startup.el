@@ -633,7 +633,7 @@ It is the default value of the variable `top-level'."
       (with-current-buffer "*Messages*"
         (messages-buffer-mode)
         ;; Make it easy to do like "tail -f".
-        (set (make-local-variable 'window-point-insertion-type) t)
+        (setq-local window-point-insertion-type t)
         ;; Give *Messages* the same default-directory as *scratch*,
         ;; just to keep things predictable.
 	(setq default-directory (or dir (expand-file-name "~/")))))
@@ -1999,7 +1999,7 @@ splash screen in another window."
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq default-directory command-line-default-directory)
-      (set (make-local-variable 'tab-width) 8)
+      (setq-local tab-width 8)
 
       (if pure-space-overflow
 	  (insert pure-space-overflow-message))

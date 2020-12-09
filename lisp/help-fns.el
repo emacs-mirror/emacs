@@ -1137,8 +1137,7 @@ it is displayed along with the global value."
 		(when (looking-at "value is") (replace-match ""))
 		(save-excursion
 		  (insert "\n\nValue:")
-		  (set (make-local-variable 'help-button-cache)
-		       (point-marker)))
+                  (setq-local help-button-cache (point-marker)))
 		(insert "value is shown ")
 		(insert-button "below"
 			       'action help-button-cache

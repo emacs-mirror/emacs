@@ -8390,9 +8390,9 @@ from the list of completions and default values."
           ;; here manually.
           (if (and (boundp 'icomplete-with-completion-tables)
                    (listp icomplete-with-completion-tables))
-              (set (make-local-variable 'icomplete-with-completion-tables)
-                   (cons rbts-completion-table
-                         icomplete-with-completion-tables))))
+              (setq-local icomplete-with-completion-tables
+                          (cons rbts-completion-table
+                                icomplete-with-completion-tables))))
       (read-buffer prompt (other-buffer (current-buffer))
                    (confirm-nonexistent-file-or-buffer)))))
 

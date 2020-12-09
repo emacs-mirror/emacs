@@ -446,7 +446,7 @@ local, and sets it to FACE."
     (setq specs (car specs)))
   (if (null specs)
       (buffer-face-mode 0)
-    (set (make-local-variable 'buffer-face-mode-face) specs)
+    (setq-local buffer-face-mode-face specs)
     (buffer-face-mode t)))
 
 ;;;###autoload
@@ -470,7 +470,7 @@ buffer local, and set it to SPECS."
   (if (or (null specs)
 	  (and buffer-face-mode (equal buffer-face-mode-face specs)))
       (buffer-face-mode 0)
-    (set (make-local-variable 'buffer-face-mode-face) specs)
+    (setq-local buffer-face-mode-face specs)
     (buffer-face-mode t)))
 
 (defun buffer-face-mode-invoke (specs arg &optional interactive)

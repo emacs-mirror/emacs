@@ -2055,7 +2055,7 @@ See the command `doc-view-mode' for more information on this mode."
   :init-value nil :keymap doc-view-presentation-mode-map
   (if doc-view-presentation-mode
       (progn
-        (set (make-local-variable 'mode-line-format) nil)
+        (setq-local mode-line-format nil)
         (doc-view-fit-page-to-window)
         ;; (doc-view-convert-all-pages)
         )

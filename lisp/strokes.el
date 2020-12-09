@@ -1231,8 +1231,8 @@ the stroke as a character in some language."
 ;;	mode-popup-menu edit-strokes-menu) ; what about extent-specific stuff?
 ;;  (and (featurep 'menubar)
 ;;       current-menubar
-;;       (set (make-local-variable 'current-menubar)
-;;	    (copy-sequence current-menubar))
+;;       (setq-local current-menubar
+;;                   (copy-sequence current-menubar))
 ;;       (add-submenu nil edit-strokes-menu)))
 
 ;;(let ((map edit-strokes-mode-map))
@@ -1363,13 +1363,13 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
      finally do (unless (eobp)
                   (kill-region (1+ (point)) (point-max))))
     (view-buffer "*Strokes List*" nil)
-    (set (make-local-variable 'view-mode-map)
-	 (let ((map (copy-keymap view-mode-map)))
-	   (define-key map "q" `(lambda ()
-				  (interactive)
-				  (View-quit)
-				  (set-window-configuration ,config)))
-	   map))
+    (setq-local view-mode-map
+                (let ((map (copy-keymap view-mode-map)))
+                  (define-key map "q" `(lambda ()
+                                         (interactive)
+                                         (View-quit)
+                                         (set-window-configuration ,config)))
+                  map))
     (goto-char (point-min))))
 
 (defun strokes-alphabetic-lessp (stroke1 stroke2)
