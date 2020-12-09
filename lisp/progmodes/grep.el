@@ -100,7 +100,7 @@ To change the default value, use \\[customize] or call the function
   :set #'grep-apply-setting
   :version "22.1")
 
-(defcustom grep-match-regexp "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m"
+(defcustom grep-match-regexp "\033\\[\\(?:0?1;\\)?31m\\(.*?\\)\033\\[[0-9]*m"
   "Regular expression matching grep markers to highlight.
 It matches SGR ANSI escape sequences which are emitted by grep to
 color its output.  This variable is used in `grep-filter'."
@@ -412,7 +412,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
                (- mend beg))))))
      nil nil
      (3 '(face nil display ":")))
-    ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1))
+    ("^Binary file \\(.+\\) matches" 1 nil nil 0 1))
   "Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
 
