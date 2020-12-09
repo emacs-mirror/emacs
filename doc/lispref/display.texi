@@ -2632,10 +2632,12 @@ appearance of @var{face} will again be determined by its default face
 spec.
 
 @cindex @code{eval-defun}, and @code{defface} forms
+@cindex @code{eval-last-sexp}, and @code{defface} forms
 As an exception, if you evaluate a @code{defface} form with
-@kbd{C-M-x} in Emacs Lisp mode (@code{eval-defun}), a special feature
-of @code{eval-defun} overrides any custom face specs on the face,
-causing the face to reflect exactly what the @code{defface} says.
+@kbd{C-M-x} (@code{eval-defun}) or with @kbd{C-x C-e}
+(@code{eval-last-sexp}) in Emacs Lisp mode, a special feature of these
+commands overrides any custom face specs on the face, causing the face
+to reflect exactly what the @code{defface} says.
 
 The @var{spec} argument is a @dfn{face spec}, which states how the
 face should appear on different kinds of terminals.  It should be an
