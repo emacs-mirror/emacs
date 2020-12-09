@@ -3834,6 +3834,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
+	;; Set "gio-file-monitor" property if needed.
+	(when (string-equal (file-name-nondirectory command) "gio")
+	  (tramp-set-connection-property
+	   p "gio-file-monitor" (tramp-get-remote-gio-file-monitor v)))
 	p))))
 
 (defun tramp-sh-gio-monitor-process-filter (proc string)
@@ -5752,6 +5756,30 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
   (with-tramp-connection-property vec "gio-monitor"
     (tramp-message vec 5 "Finding a suitable `gio-monitor' command")
     (tramp-find-executable vec "gio" (tramp-get-remote-path vec) t t)))
+
+(defun tramp-get-remote-gio-file-monitor (vec)
+  "Determine remote GFileMonitor."
+  (with-tramp-connection-property vec "gio-file-monitor"
+    (with-current-buffer (tramp-get-connection-buffer vec)
+      (tramp-message vec 5 "Finding the used GFileMonitor")
+      (when-let ((gio (tramp-get-remote-gio-monitor vec)))
+	;; Search for the used FileMonitor.  There is no known way to
+	;; get this information directly from gio, so we check for
+	;; linked libraries of libgio.
+	(when (tramp-send-command-and-check vec (concat "ldd " gio))
+	  (goto-char (point-min))
+	  (when (re-search-forward "\\S-+/libgio\\S-+")
+	    (when (tramp-send-command-and-check
+		   vec (concat "strings " (match-string 0)))
+	      (goto-char (point-min))
+	      (re-search-forward
+	       (format
+		"^%s$"
+		(regexp-opt
+		 '("GFamFileMonitor" "GFenFileMonitor"
+		   "GInotifyFileMonitor" "GKqueueFileMonitor")))
+	       nil 'noerror)
+	      (intern (match-string 0)))))))))
 
 (defun tramp-get-remote-gvfs-monitor-dir (vec)
   "Determine remote `gvfs-monitor-dir' command."
