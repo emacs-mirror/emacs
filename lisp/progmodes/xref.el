@@ -1355,7 +1355,9 @@ The template should have the following fields:
   <R> for the regexp itself (in Extended format)"
   :type '(repeat
           (cons (symbol :tag "Program identifier")
-                (string :tag "Command template"))))
+                (string :tag "Command template")))
+  :version "28.1"
+  :package-version '(xref . "1.0.4"))
 
 (defcustom xref-search-program 'grep
   "The program to use for regexp search inside files.
@@ -1364,7 +1366,9 @@ This must reference a corresponding entry in `xref-search-program-alist'."
   :type `(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
-          (symbol :tag "User defined")))
+          (symbol :tag "User defined"))
+  :version "28.1"
+  :package-version '(xref . "1.0.4"))
 
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
