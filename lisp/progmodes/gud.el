@@ -2566,7 +2566,11 @@ You may use the `gud-def' macro in the initialization hook to define other
 commands.
 
 Other commands for interacting with the debugger process are inherited from
-comint mode, which see."
+`comint-mode', which see.
+
+Commands:
+
+\\{gud-mode-map}"
   (setq mode-line-process '(":%s"))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (setq-local gud-last-frame nil)
