@@ -5669,7 +5669,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
   if (whole)
     {
       ptrdiff_t start_pos = IT_CHARPOS (it);
-      int dy = frame_line_height;
+      int flh = frame_line_height;
       int ht = window_box_height (w);
       int nscls = sanitize_next_screen_context_lines ();
       /* In the below we divide the window box height by the frame's
@@ -5677,14 +5677,37 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	 box is not an integral multiple of the line height.  This is
 	 important to ensure we get back to the same position when
 	 scrolling up, then down.  */
-      dy = n * max (dy, (ht / dy - nscls) * dy);
+      int dy = n * max (flh, (ht / flh - nscls) * flh);
+      int goal_y;
+      void *it_data;
 
       /* Note that move_it_vertically always moves the iterator to the
          start of a line.  So, if the last line doesn't have a newline,
 	 we would end up at the start of the line ending at ZV.  */
       if (dy <= 0)
 	{
+	  goal_y = it.current_y - dy;
 	  move_it_vertically_backward (&it, -dy);
+	  /* Extra precision for people who want us to preserve the
+	     screen position of the cursor: effectively round DY to the
+	     nearest screen line, instead of rounding to zero; the latter
+	     causes point to move by one line after C-v followed by M-v,
+	     if the buffer has lines of different height.  */
+	  if (!NILP (Vscroll_preserve_screen_position)
+	      && it.current_y - goal_y > 0.5 * flh)
+	    {
+	      it_data = bidi_shelve_cache ();
+	      struct it it2 = it;
+
+	      move_it_by_lines (&it, -1);
+	      if (it.current_y < goal_y - 0.5 * flh)
+		{
+		  it = it2;
+		  bidi_unshelve_cache (it_data, false);
+		}
+	      else
+		bidi_unshelve_cache (it_data, true);
+	    }
 	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
@@ -5693,8 +5716,25 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	}
       else if (dy > 0)
 	{
-	  move_it_to (&it, ZV, -1, it.current_y + dy, -1,
-		      MOVE_TO_POS | MOVE_TO_Y);
+	  goal_y = it.current_y + dy;
+	  move_it_to (&it, ZV, -1, goal_y, -1, MOVE_TO_POS | MOVE_TO_Y);
+	  /* See the comment above, for the reasons of this
+	     extra-precision.  */
+	  if (!NILP (Vscroll_preserve_screen_position)
+	      && goal_y - it.current_y  > 0.5 * flh)
+	    {
+	      it_data = bidi_shelve_cache ();
+	      struct it it2 = it;
+
+	      move_it_by_lines (&it, 1);
+	      if (it.current_y > goal_y + 0.5 * flh)
+		{
+		  it = it2;
+		  bidi_unshelve_cache (it_data, false);
+		}
+	      else
+		bidi_unshelve_cache (it_data, true);
+	    }
 	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
