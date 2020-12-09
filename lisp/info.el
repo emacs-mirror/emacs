@@ -4790,10 +4790,10 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\<see"
+			(cond ((save-match-data (looking-back "\\(^\\| \\)see"
                                                               (- (point) 3)))
 			       "")
-			      ((save-match-data (looking-back "\\<in"
+			      ((save-match-data (looking-back "\\(^\\| \\)in"
                                                               (- (point) 2)))
 			       "")
 			      ((memq (char-before) '(nil ?\. ?! ??))
