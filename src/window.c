@@ -8246,11 +8246,17 @@ is displayed in the `mode-line' face.  */);
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       Vscroll_preserve_screen_position,
 	       doc: /* Controls if scroll commands move point to keep its screen position unchanged.
+
 A value of nil means point does not keep its screen position except
 at the scroll margin or window boundary respectively.
+
 A value of t means point keeps its screen position if the scroll
 command moved it vertically out of the window, e.g. when scrolling
-by full screens.
+by full screens.  If point is within `next-screen-context-lines' lines
+from the edges of the window, point will typically not keep its screen
+position when doing commands like `scroll-up-command'/`scroll-down-command'
+and the like.
+
 Any other value means point always keeps its screen position.
 Scroll commands should have the `scroll-command' property
 on their symbols to be controlled by this variable.  */);
