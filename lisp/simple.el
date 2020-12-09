@@ -7202,6 +7202,12 @@ rests."
   "Move point to visible beginning of current logical line.
 This disregards any invisible newline characters.
 
+When moving from position that has no `field' property, this
+command doesn't enter text which has non-nil `field' property.
+In particular, when invoked in the minibuffer, the command will
+stop short of entering the text of the minibuffer prompt.
+See `inhibit-field-text-motion' for how to inhibit this.
+
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 \(But if the buffer doesn't end in a newline, it stops at the

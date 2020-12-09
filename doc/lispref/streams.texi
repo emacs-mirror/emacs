@@ -123,13 +123,13 @@ came from.  In this case, it makes no difference what value
 @code{t} used as a stream means that the input is read from the
 minibuffer.  In fact, the minibuffer is invoked once and the text
 given by the user is made into a string that is then used as the
-input stream.  If Emacs is running in batch mode, standard input is used
-instead of the minibuffer.  For example,
+input stream.  If Emacs is running in batch mode (@pxref{Batch Mode}),
+standard input is used instead of the minibuffer.  For example,
 @example
 (message "%s" (read t))
 @end example
-will read a Lisp expression from standard input and print the result
-to standard output.
+will in batch mode read a Lisp expression from standard input and
+print the result to standard output.
 
 @item @code{nil}
 @cindex @code{nil} input stream
@@ -392,13 +392,15 @@ is responsible for storing the characters wherever you want to put them.
 
 @item @code{t}
 @cindex @code{t} output stream
-The output characters are displayed in the echo area.
+The output characters are displayed in the echo area.  If Emacs is
+running in batch mode (@pxref{Batch Mode}), the output is written to
+the standard output descriptor instead.
 
 @item @code{nil}
 @cindex @code{nil} output stream
-@code{nil} specified as an output stream means to use the value of
-@code{standard-output} instead; that value is the @dfn{default output
-stream}, and must not be @code{nil}.
+@code{nil} specified as an output stream means to use the value of the
+@code{standard-output} variable instead; that value is the
+@dfn{default output stream}, and must not be @code{nil}.
 
 @item @var{symbol}
 A symbol as output stream is equivalent to the symbol's function
