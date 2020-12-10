@@ -2158,6 +2158,8 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
   ;;
   ;; ctags's etags doesn't support stdin input.
   ;; It also looks broken here (indexes only some of the input files).
+  ;;
+  ;; If our etags supported '-L', we could use any version of etags.
   )
 
 (defun etags--maybe-use-project-tags ()
