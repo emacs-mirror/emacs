@@ -5973,4 +5973,22 @@ seconds."
      ;; Continue running.
      nil)))
 
+(defun internal--fill-string-single-line (str)
+  "Fill string STR to `fill-column'.
+This is intended for very simple filling while bootstrapping
+Emacs itself, and does not support all the customization options
+of fill.el (for example `fill-region')."
+  (if (< (string-width str) fill-column)
+      str
+    (let ((fst (substring str 0 fill-column))
+          (lst (substring str fill-column)))
+      (if (string-match ".*\\( \\(.+\\)\\)$" fst)
+          (setq fst (replace-match "\n\\2" nil nil fst 1)))
+      (concat fst (internal--fill-string-single-line lst)))))
+
+(defun internal--format-docstring-line (string &rest objects)
+  "Format a documentation string out of STRING and OBJECTS.
+This is intended for internal use only."
+  (internal--fill-string-single-line (apply #'format string objects)))
+
 ;;; subr.el ends here
