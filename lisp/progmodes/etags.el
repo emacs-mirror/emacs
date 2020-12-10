@@ -2156,7 +2156,7 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
   ;; How do we get the correct etags here?
   ;; E.g. "~/vc/emacs-master/lib-src/etags"
   ;;
-  ;; ctags's etags doesn't support stdin input.
+  ;; ctags's etags requires '-L -' for stdin input.
   ;; It also looks broken here (indexes only some of the input files).
   ;;
   ;; If our etags supported '-L', we could use any version of etags.
@@ -2240,6 +2240,9 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
          "--append"
          "-o"
          etags--project-tags-file)
+        ;; TODO: When the project is big (tags file in 10s of megabytes),
+        ;; revert-buffer is predictably slow.  One way to avoid
+        ;; this is to only keep TAGS in a buffer, but not on disk.
         (revert-buffer t t)
         (tags-table-mode)
         ;; FIXME: Is there a better way to do this?
