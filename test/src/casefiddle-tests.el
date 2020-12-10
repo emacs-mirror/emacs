@@ -247,7 +247,8 @@
   ;;             input upcase downcase [titlecase]
   (dolist (test '((?a ?A ?a) (?A ?A ?a)
                   (?ł ?Ł ?ł) (?Ł ?Ł ?ł)
-                  (?ß ?ß ?ß) (?ẞ ?ẞ ?ß)
+                  ;; We char-upcase ß to ẞ; see bug #11309.
+                  (?ß ?ẞ ?ß) (?ẞ ?ẞ ?ß)
                   (?ⅷ ?Ⅷ ?ⅷ) (?Ⅷ ?Ⅷ ?ⅷ)
                   (?Ǆ ?Ǆ ?ǆ ?ǅ) (?ǅ ?Ǆ ?ǆ ?ǅ) (?ǆ ?Ǆ ?ǆ ?ǅ)))
     (let ((ch (car test))
