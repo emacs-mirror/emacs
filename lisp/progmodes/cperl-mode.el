@@ -1673,10 +1673,6 @@ or as help on variables `cperl-tips', `cperl-problems',
                           (cperl-fontify-syntaxically end))))
 	;; Do not introduce variable if not needed, we check it!
         (setq-local parse-sexp-lookup-properties t)
-	;; Fix broken font-lock:
-	(or (boundp 'font-lock-unfontify-region-function)
-	    (setq font-lock-unfontify-region-function
-		 #'font-lock-default-unfontify-region))
 	;; Our: just a plug for wrong font-lock
         (setq-local font-lock-unfontify-region-function
                     ;; not present with old Emacs
