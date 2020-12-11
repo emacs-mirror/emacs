@@ -3473,49 +3473,18 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	 (font-lock-string-face (if (boundp 'font-lock-string-face)
 				    font-lock-string-face
 				  'font-lock-string-face))
-	 (my-cperl-delimiters-face (if (boundp 'font-lock-constant-face)
-				      font-lock-constant-face
-				    'font-lock-constant-face))
+	 (my-cperl-delimiters-face
+	  font-lock-constant-face)
 	 (my-cperl-REx-spec-char-face	; [] ^.$ and wrapper-of ({})
-	  (if (boundp 'font-lock-function-name-face)
-	      font-lock-function-name-face
-	    'font-lock-function-name-face))
-	 (font-lock-variable-name-face	; interpolated vars and ({})-code
-	  (if (boundp 'font-lock-variable-name-face)
-	      font-lock-variable-name-face
-	    'font-lock-variable-name-face))
-	 (font-lock-function-name-face	; used in `cperl-find-sub-attrs'
-	  (if (boundp 'font-lock-function-name-face)
-	      font-lock-function-name-face
-	    'font-lock-function-name-face))
-	 (font-lock-constant-face	; used in `cperl-find-sub-attrs'
-	  (if (boundp 'font-lock-constant-face)
-	      font-lock-constant-face
-	    'font-lock-constant-face))
+          font-lock-function-name-face)
 	 (my-cperl-REx-0length-face ; 0-length, (?:)etc, non-literal \
-	  (if (boundp 'font-lock-builtin-face)
-	      font-lock-builtin-face
-	    'font-lock-builtin-face))
-	 (font-lock-comment-face
-	  (if (boundp 'font-lock-comment-face)
-	      font-lock-comment-face
-	    'font-lock-comment-face))
-	 (font-lock-warning-face
-	  (if (boundp 'font-lock-warning-face)
-	      font-lock-warning-face
-	    'font-lock-warning-face))
+          font-lock-builtin-face)
 	 (my-cperl-REx-ctl-face		; (|)
-	  (if (boundp 'font-lock-keyword-face)
-	      font-lock-keyword-face
-	    'font-lock-keyword-face))
+          font-lock-keyword-face)
 	 (my-cperl-REx-modifiers-face	; //gims
-	  (if (boundp 'cperl-nonoverridable-face)
-	      cperl-nonoverridable-face
-	    'cperl-nonoverridable-face))
+	  'cperl-nonoverridable-face)
 	 (my-cperl-REx-length1-face	; length=1 escaped chars, POSIX classes
-	  (if (boundp 'font-lock-type-face)
-	      font-lock-type-face
-	    'font-lock-type-face))
+          font-lock-type-face)
 	 (stop-point (if ignore-max
 			 (point-max)
 		       max))
