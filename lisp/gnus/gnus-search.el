@@ -1252,44 +1252,41 @@ means (usually the \"mark\" keyword)."
 		    (gnus-search-imap-handle-string engine (cdr expr))))))))))
 
 (cl-defmethod gnus-search-imap-handle-date ((_engine gnus-search-imap)
-				     (date list))
+					    (date list))
   "Turn DATE into a date string recognizable by IMAP.
 While other search engines can interpret partially-qualified
 dates such as a plain \"January\", IMAP requires an absolute
 date.
 
 DATE is a list of (dd mm yyyy), any element of which could be
-nil.  Massage those numbers into the most recent past occurrence
-of whichever date elements are present."
-  (let ((now (decode-time (current-time))))
-    ;; Set nil values to 1, current-month, current-year, or else 1, 1,
-    ;; current-year, depending on what we think the user meant.
-    (unless (seq-elt date 1)
-      (setf (seq-elt date 1)
-	    (if (seq-elt date 0)
-		(seq-elt now 4)
-	      1)))
-    (unless (seq-elt date 0)
-      (setf (seq-elt date 0) 1))
-    (unless (seq-elt date 2)
-      (setf (seq-elt date 2)
-	    (seq-elt now 5)))
-    ;; Fiddle with the date until it's in the past.  There
-    ;; must be a way to combine all these steps.
-    (unless (< (seq-elt date 2)
-	       (seq-elt now 5))
-      (when (< (seq-elt now 3)
-	       (seq-elt date 0))
-	(cl-decf (seq-elt date 1)))
-      (cond ((zerop (seq-elt date 1))
-	     (setf (seq-elt date 1) 1)
-	     (cl-decf (seq-elt date 2)))
-	    ((< (seq-elt now 4)
-		(seq-elt date 1))
-	     (cl-decf (seq-elt date 2))))))
-  (format-time-string "%e-%b-%Y" (apply #'encode-time
-					(append '(0 0 0)
-						date))))
+nil (except that (dd nil yyyy) is not allowed).  Massage those
+numbers into the most recent past occurrence of whichever date
+elements are present."
+  (pcase-let ((`(,nday ,nmonth ,nyear)
+	       (seq-subseq (decode-time (current-time))
+			   3 6))
+	      (`(,dday ,dmonth ,dyear) date))
+    (unless (and dday dmonth dyear)
+      (unless dday (setq dday 1))
+      (if dyear
+	  ;; If we have a year, then leave everything else as is or set
+	  ;; to 1.
+	  (setq dmonth (or dmonth 1))
+	(if dmonth
+	    (setq dyear
+		  (if (or (> dmonth nmonth)
+			  (and (= dmonth nmonth)
+			       (> dday nday)))
+		      ;; If our day/month combo is ahead of "now",
+		      ;; move the year back.
+		      (1- nyear)
+		    nyear))
+	  (setq dmonth 1))))
+    (format-time-string
+     "%e-%b-%Y"
+     (apply #'encode-time
+	    (append '(0 0 0)
+		    (list dday dmonth dyear))))))
 
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))
