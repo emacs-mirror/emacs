@@ -1795,8 +1795,9 @@ which is then usually a filename.  */)
 static int
 image_frame_cache_size (struct frame *f)
 {
-  struct image_cache *c = FRAME_IMAGE_CACHE (f);
   int total = 0;
+#ifdef USE_CAIRO
+  struct image_cache *c = FRAME_IMAGE_CACHE (f);
 
   if (!c)
     return 0;
@@ -1805,12 +1806,11 @@ image_frame_cache_size (struct frame *f)
     {
       struct image *img = c->images[i];
 
-#ifdef USE_CAIRO
-      if (img)
+      if (img && img->pixmap && img->pixmap != NO_PIXMAP)
 	total += img->pixmap->width * img->pixmap->height  *
 	  img->pixmap->bits_per_pixel / 8;
-#endif
     }
+#endif
   return total;
 }
 
