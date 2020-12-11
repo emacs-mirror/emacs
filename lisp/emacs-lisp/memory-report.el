@@ -59,7 +59,9 @@ by counted more than once."
       (if (listp report)
           (push report summaries)
         (push report details)))
-    (dolist (summary (nreverse summaries))
+    (dolist (summary (seq-sort (lambda (e1 e2)
+                                 (> (cdr e1) (cdr e2)))
+                               summaries))
       (insert (format "%s  %s\n"
                       (memory-report--format (cdr summary))
                       (car summary))))
