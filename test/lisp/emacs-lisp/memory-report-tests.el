@@ -1,6 +1,6 @@
-;;; memory-report-tests.el --- tests for memory-report.el              -*- lexical-binding: t -*-
+;;; memory-report-tests.el --- tests for memory-report.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,9 @@
 (require 'memory-report)
 
 (defun setup-memory-report-tests ()
+  ;; Set the sizes on things based on a 64-bit architecture.  (We're
+  ;; hard-coding this to be able to write simple tests that'll work on
+  ;; all architectures.)
   (memory-report--set-size
    '((conses 16 499173 99889)
      (symbols 48 22244 3)
