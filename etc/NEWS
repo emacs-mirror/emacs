@@ -1368,6 +1368,21 @@ This face is used for error messages from 'diff'.
 *** New command 'diff-refresh-hunk'.
 This new command (bound to 'C-c C-l') regenerates the current hunk.
 
+** Buttons
+
++++
+*** New minor mode 'button-mode'.
+This minor mode does nothing else than install 'button-buffer-map' as
+a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
+to buttons), and can be used in any view-mode-like buffer that has
+buttons in it.
+
++++
+*** New utility function 'button-buttonize'.
+This function takes a string and returns a string propertized in a way
+that makes it a valid button.
+
+
 ** Miscellaneous
 
 ---
@@ -1479,13 +1494,6 @@ both modes are on).
 *** New command 'submit-emacs-patch'.
 This works like 'report-emacs-bug', but is more geared towards sending
 patches to the Emacs issue tracker.
-
-+++
-*** New minor mode 'button-mode'.
-This minor mode does nothing else than install 'button-buffer-map' as
-a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
-to buttons), and can be used in any view-mode-like buffer that has
-buttons in it.
 
 ---
 *** 'icomplete-show-matches-on-no-input' behavior change.

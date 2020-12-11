@@ -613,6 +613,18 @@ button at point is the button to describe."
       (button--describe props)
       t)))
 
+(defun button-buttonize (string callback &optional data)
+  "Make STRING into a button and return it.
+When clicked, CALLBACK will be called with the optional DATA parameter."
+  (propertize string
+              'face 'button
+              'button t
+              'follow-link t
+              'category t
+              'button-data data
+              'keymap button-map
+              'action callback))
+
 (provide 'button)
 
 ;;; button.el ends here
