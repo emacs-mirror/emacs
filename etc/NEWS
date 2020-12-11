@@ -275,6 +275,11 @@ preserving markers, properties and overlays.  The new variable
 number of seconds that 'revert-buffer-with-fine-grain' should spend
 trying to be non-destructive.
 
++++
+** New command 'memory-report'.
+This command opens a new buffer called "*Memory Report*" and gives a
+summary of where Emacs is using memory currently.
+
 ** Outline
 
 +++
