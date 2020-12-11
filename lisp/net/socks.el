@@ -260,7 +260,7 @@
     (setq state (process-get proc 'socks-state))
     (cond
      ((= state socks-state-waiting-for-auth)
-      (cl-callf (lambda (s) (setq string (concat string s)))
+      (cl-callf (lambda (s) (setq string (concat s string)))
           (process-get proc 'socks-scratch))
       (if (< (length string) 2)
 	  nil				; We need to spin some more
@@ -272,7 +272,7 @@
      ((= state socks-state-authenticated)
       )
      ((= state socks-state-waiting)
-      (cl-callf (lambda (s) (setq string (concat string s)))
+      (cl-callf (lambda (s) (setq string (concat s string)))
           (process-get proc 'socks-scratch))
       (setq version (process-get proc 'socks-server-protocol))
       (cond
@@ -542,7 +542,7 @@
 			      service))
         (process-put proc 'socks-buffer buffer)
         (process-put proc 'socks-host host)
-        (process-put proc 'socks-service host)
+        (process-put proc 'socks-service service)
         (set-process-filter proc nil)
         (set-process-buffer proc (if buffer (get-buffer-create buffer)))
         proc))))
