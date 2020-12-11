@@ -986,10 +986,10 @@
 
 (ert-deftest object-intervals ()
   (should (equal (object-intervals (propertize "foo" 'bar 'zot))
-                 ((0 3 (bar zot)))))
+                 '((0 3 (bar zot)))))
   (should (equal (object-intervals (concat (propertize "foo" 'bar 'zot)
                                            (propertize "foo" 'gazonk "gazonk")))
-                 ((0 3 (bar zot)) (3 6 (gazonk "gazonk")))))
+                 '((0 3 (bar zot)) (3 6 (gazonk "gazonk")))))
   (should (equal
            (with-temp-buffer
              (insert "foobar")
@@ -997,5 +997,5 @@
              (put-text-property 3 6 'bar 2)
              (put-text-property 2 5 'zot 3)
              (object-intervals (current-buffer)))
-           ((0 1 (foo 1)) (1 2 (zot 3 foo 1)) (2 4 (zot 3 bar 2))
-            (4 5 (bar 2)) (5 6 nil)))))
+           '((0 1 (foo 1)) (1 2 (zot 3 foo 1)) (2 4 (zot 3 bar 2))
+             (4 5 (bar 2)) (5 6 nil)))))
