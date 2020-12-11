@@ -5440,7 +5440,8 @@ disregarding any coding systems.  If nil, use the current buffer.
 
 This function is useful for comparing two buffers running in the same
 Emacs, but is not guaranteed to return the same hash between different
-Emacs versions.
+Emacs versions.  It should be somewhat more efficient on larger
+buffers than `secure-hash' is, and should not allocate more memory.
 
 It should not be used for anything security-related.  See
 `secure-hash' for these applications.  */ )
