@@ -1805,9 +1805,11 @@ image_frame_cache_size (struct frame *f)
     {
       struct image *img = c->images[i];
 
+#ifdef USE_CAIRO
       if (img)
 	total += img->pixmap->width * img->pixmap->height  *
 	  img->pixmap->bits_per_pixel / 8;
+#endif
     }
   return total;
 }
