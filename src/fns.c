@@ -5573,6 +5573,40 @@ Case is always significant and text properties are ignored. */)
 
   return make_int (string_byte_to_char (haystack, res - SSDATA (haystack)));
 }
+
+static void
+collect_interval (INTERVAL interval, Lisp_Object collector)
+{
+  nconc2 (collector,
+	  list1(list3 (make_fixnum (interval->position),
+		       make_fixnum (interval->position + LENGTH (interval)),
+		       interval->plist)));
+}
+
+DEFUN ("object-intervals", Fobject_intervals, Sobject_intervals, 1, 1, 0,
+       doc: /* Return a copy of the text properties of OBJECT.
+OBJECT must be a buffer or a string.
+
+Altering this copy does not change the layout of the text properties
+in OBJECT.  */)
+  (register Lisp_Object object)
+{
+  Lisp_Object collector = Fcons (Qnil, Qnil);
+  INTERVAL intervals;
+
+  if (STRINGP (object))
+    intervals = string_intervals (object);
+  else if (BUFFERP (object))
+    intervals = buffer_intervals (XBUFFER (object));
+  else
+    wrong_type_argument (Qbuffer_or_string_p, object);
+
+  if (! intervals)
+    return Qnil;
+
+  traverse_intervals (intervals, 0, collect_interval, collector);
+  return CDR (collector);
+}
 
 
 void
@@ -5614,6 +5648,7 @@ syms_of_fns (void)
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
   defsubr (&Sstring_search);
+  defsubr (&Sobject_intervals);
 
   /* Crypto and hashing stuff.  */
   DEFSYM (Qiv_auto, "iv-auto");

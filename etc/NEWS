@@ -1389,6 +1389,12 @@ that makes it a valid button.
 
 ** Miscellaneous
 
++++
+*** New function 'object-intervals'.
+This function returns a copy of the list of intervals (i.e., text
+properties) in the object in question (which must either be a string
+or a buffer).
+
 ---
 *** 'hexl-mode' scrolling commands now heed 'next-screen-context-lines'.
 Previously, 'hexl-scroll-down' and 'hexl-scroll-up' would scroll
