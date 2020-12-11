@@ -2325,7 +2325,8 @@ checked out in that new branch."
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
 	(read-directory-name "Directory: " default-directory default-directory t))
-      (read-string (if current-prefix-arg "New branch name: " "New tag name: "))
+      (read-string (if current-prefix-arg "New branch name: " "New tag name: ")
+                   nil 'vc-revision-history)
       current-prefix-arg)))
   (message "Making %s... " (if branchp "branch" "tag"))
   (when (file-directory-p dir) (setq dir (file-name-as-directory dir)))
