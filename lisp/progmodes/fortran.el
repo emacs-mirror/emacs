@@ -1220,7 +1220,8 @@ Auto-indent does not happen if a numeric ARG is used."
 ;; FIXME push-mark?
 (defun fortran-beginning-of-subprogram (&optional arg)
   "Move point to the beginning of the current Fortran subprogram.
-If ARG is negative, go to the beginning of the next instead."
+If ARG is negative, and point is between subprograms, the
+\"current\" subprogram is the next one."
   (interactive)
   (if (and arg
            (< arg 0))
