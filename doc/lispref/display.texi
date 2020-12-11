@@ -6577,6 +6577,12 @@ except when you explicitly clear it.  This mode can be useful for
 debugging.
 @end defvar
 
+@defun image-cache-size
+This function returns the total size of the current image cache, in
+bytes.  An image of size 200x100 with 24 bits per color will have a
+cache size of 60000 bytes, for instance.
+@end defun
+
 @node Xwidgets
 @section Embedded Native Widgets
 @cindex xwidget

@@ -1792,6 +1792,40 @@ which is then usually a filename.  */)
   return Qnil;
 }
 
+static int
+image_frame_cache_size (struct frame *f)
+{
+  struct image_cache *c = FRAME_IMAGE_CACHE (f);
+  int total = 0;
+
+  if (!c)
+    return 0;
+
+  for (ptrdiff_t i = 0; i < c->used; ++i)
+    {
+      struct image *img = c->images[i];
+
+      if (img)
+	total += img->pixmap->width * img->pixmap->height  *
+	  img->pixmap->bits_per_pixel / 8;
+    }
+  return total;
+}
+
+DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
+       doc: /* Return the size of the image cache.  */)
+  (void)
+{
+  Lisp_Object tail, frame;
+  int total = 0;
+
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_WINDOW_P (XFRAME (frame)))
+      total += image_frame_cache_size (XFRAME (frame));
+
+  return make_int (total);
+}
+
 
 DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
@@ -10703,6 +10737,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_metadata);
+  defsubr (&Simage_cache_size);
 
 #ifdef GLYPH_DEBUG
   defsubr (&Simagep);

@@ -1089,6 +1089,10 @@ If 'shr-width' is non-nil, it overrides this variable.
 
 ** Images
 
++++
+*** New function 'image-cache-size'.
+This function returns the size of the current image cache, in bytes.
+
 ---
 *** Animated images stop automatically under high CPU pressure sooner.
 Previously, an animated image would stop animating if any single image
