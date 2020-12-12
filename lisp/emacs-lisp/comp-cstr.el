@@ -142,7 +142,32 @@ Return them as multiple value."
    finally (cl-return (cl-values positives negatives))))
 
 
+;;; Value handling.
+
+(defun comp-normalize-valset (valset)
+  "Sort VALSET and return it."
+  (cl-sort valset (lambda (x y)
+                    ;; We might want to use `sxhash-eql' for speed but
+                    ;; this is safer to keep tests stable.
+                    (< (sxhash-equal x)
+                       (sxhash-equal y)))))
+
+(defun comp-union-valsets (&rest valsets)
+  "Union values present into VALSETS."
+  (comp-normalize-valset (cl-reduce #'cl-union valsets)))
+
+(defun comp-intersection-valsets (&rest valsets)
+  "Union values present into VALSETS."
+  (comp-normalize-valset (cl-reduce #'cl-intersection valsets)))
+
+
 ;;; Type handling.
+
+(defun comp-normalize-typeset (typeset)
+  "Sort TYPESET and return it."
+  (cl-sort typeset (lambda (x y)
+                     (string-lessp (symbol-name x)
+                                   (symbol-name y)))))
 
 (defun comp-supertypes (type)
   "Return a list of pairs (supertype . hierarchy-level) for TYPE."
@@ -196,8 +221,8 @@ Return them as multiple value."
                       do (setf last x)
                     finally (when last
                               (push last res)))
-                ;; TODO sort.
-                finally (cl-return (cl-remove-duplicates res)))
+                finally (cl-return (comp-normalize-typeset
+                                    (cl-remove-duplicates res))))
                (comp-cstr-ctxt-union-typesets-mem comp-ctxt))))
 
 (defun comp-intersect-typesets (&rest typesets)
@@ -211,7 +236,7 @@ Return them as multiple value."
               ((eq st x) (list y))
               ((eq st y) (list x)))))
          ty)
-      ty)))
+      (comp-normalize-typeset ty))))
 
 
 ;;; Integer range handling
@@ -324,17 +349,18 @@ All SRCS constraints must be homogeneously negated or non-negated."
 
   ;; Value propagation.
   (setf (comp-cstr-valset dst)
-        (cl-loop
-         with values = (mapcar #'comp-cstr-valset srcs)
-         ;; TODO sort.
-         for v in (cl-remove-duplicates (apply #'append values)
-                                        :test #'equal)
-         ;; We propagate only values those types are not already
-         ;; into typeset.
-         when (cl-notany (lambda (x)
-                           (comp-subtype-p (type-of v) x))
-                         (comp-cstr-typeset dst))
-         collect v))
+        (comp-normalize-valset
+         (cl-loop
+          with values = (mapcar #'comp-cstr-valset srcs)
+          ;; TODO sort.
+          for v in (cl-remove-duplicates (apply #'append values)
+                                         :test #'equal)
+          ;; We propagate only values those types are not already
+          ;; into typeset.
+          when (cl-notany (lambda (x)
+                            (comp-subtype-p (type-of v) x))
+                          (comp-cstr-typeset dst))
+          collect v)))
 
   dst)
 
@@ -413,7 +439,8 @@ DST is returned."
           ;; Value propagation.
           (cond
            ((and (valset pos) (valset neg)
-                 (equal (cl-union (valset pos) (valset neg)) (valset pos)))
+                 (equal (comp-union-valsets (valset pos) (valset neg))
+                        (valset pos)))
             ;; Pos is a superset of neg.
             (give-up))
            (t

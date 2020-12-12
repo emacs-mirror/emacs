@@ -45,23 +45,23 @@
     ;; 2
     ((or string array) . array)
     ;; 3
-    ((or symbol number) . (or symbol number))
+    ((or symbol number) . (or number symbol))
     ;; 4
-    ((or cons atom) . (or cons atom)) ;; SBCL return T
+    ((or cons atom) . (or atom cons)) ;; SBCL return T
     ;; 5
     ((or integer number) . number)
     ;; 6
-    ((or (or integer symbol) number) . (or symbol number))
+    ((or (or integer symbol) number) . (or number symbol))
     ;; 7
-    ((or (or integer symbol) (or number list)) . (or list symbol number))
+    ((or (or integer symbol) (or number list)) . (or list number symbol))
     ;; 8
     ((or (or integer number) nil) . number)
     ;; 9
     ((member foo) . (member foo))
     ;; 10
-    ((member foo bar) . (member foo bar))
+    ((member foo bar) . (member bar foo))
     ;; 11
-    ((or (member foo) (member bar)) . (member foo bar))
+    ((or (member foo) (member bar)) . (member bar foo))
     ;; 12
     ((or (member foo) symbol) . symbol) ;; SBCL return (OR SYMBOL (MEMBER FOO))
     ;; 13
