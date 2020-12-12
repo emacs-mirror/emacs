@@ -384,11 +384,13 @@ next_kbd_event (union buffered_input_event *ptr)
   return ptr == kbd_buffer + KBD_BUFFER_SIZE - 1 ? kbd_buffer : ptr + 1;
 }
 
+#ifdef HAVE_X11
 static union buffered_input_event *
 prev_kbd_event (union buffered_input_event *ptr)
 {
   return ptr == kbd_buffer ? kbd_buffer + KBD_BUFFER_SIZE - 1 : ptr - 1;
 }
+#endif
 
 /* Like EVENT_START, but assume EVENT is an event.
    This pacifies gcc -Wnull-dereference, which might otherwise
