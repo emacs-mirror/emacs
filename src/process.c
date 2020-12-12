@@ -5328,8 +5328,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  do
 	    {
 	      unsigned old_timers_run = timers_run;
-	      struct buffer *old_buffer = current_buffer;
-	      Lisp_Object old_window = selected_window;
 
 	      timer_delay = timer_check ();
 
@@ -5686,9 +5684,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
       if (read_kbd != 0)
 	{
-	  unsigned old_timers_run = timers_run;
-	  struct buffer *old_buffer = current_buffer;
-	  Lisp_Object old_window = selected_window;
 	  bool leave = false;
 
 	  if (detect_input_pending_run_timers (do_display))
