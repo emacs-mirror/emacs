@@ -122,7 +122,7 @@ Using `thunk-let' and `thunk-let*' requires `lexical-binding'."
   (declare (indent 1) (debug let))
   (cl-reduce
    (lambda (expr binding) `(thunk-let (,binding) ,expr))
-   (nreverse bindings)
+   (reverse bindings)
    :initial-value (macroexp-progn body)))
 
 ;; (defalias 'lazy-let  #'thunk-let)
