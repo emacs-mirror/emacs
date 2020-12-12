@@ -1460,8 +1460,8 @@ the normal Gnus MIME machinery."
     (?I gnus-tmp-indentation ?s)
     (?T (if (= gnus-tmp-level 0) "" (make-string (frame-width) ? )) ?s)
     (?R gnus-tmp-replied ?c)
-    (?\[ gnus-tmp-opening-bracket ?c)
-    (?\] gnus-tmp-closing-bracket ?c)
+    (?\[ gnus-tmp-opening-bracket ?s)
+    (?\] gnus-tmp-closing-bracket ?s)
     (?\> (make-string gnus-tmp-level ? ) ?s)
     (?\< (make-string (max 0 (- 20 gnus-tmp-level)) ? ) ?s)
     (?i gnus-tmp-score ?d)
@@ -3748,6 +3748,30 @@ buffer that was in action when the last article was fetched."
       (inline
 	(gnus-summary-extract-address-component gnus-tmp-from))))))
 
+(defcustom gnus-sum-opening-bracket "["
+  "With %[ spec, used to identify normal (non-adopted) articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
+(defcustom gnus-sum-closing-bracket "]"
+  "With %] spec, used to identify normal (non-adopted) articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
+(defcustom gnus-sum-opening-bracket-adopted "<"
+  "With %[ spec, used to identify adopted articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
+(defcustom gnus-sum-closing-bracket-adopted ">"
+  "With %] spec, used to identify adopted articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
 (defun gnus-summary-insert-line (header level current undownloaded
                                  unread replied expirable subject-or-nil
 				 &optional dummy score process)
@@ -3805,8 +3829,14 @@ buffer that was in action when the last article was fetched."
 		       (1+ (match-beginning 0)) (1- (match-end 0))))
 	   (t gnus-tmp-from)))
 	 (gnus-tmp-subject (mail-header-subject gnus-tmp-header))
-	 (gnus-tmp-opening-bracket (if gnus-tmp-dummy ?\< ?\[))
-	 (gnus-tmp-closing-bracket (if gnus-tmp-dummy ?\> ?\]))
+	 (gnus-tmp-opening-bracket
+	  (if gnus-tmp-dummy
+	      gnus-sum-opening-bracket-adopted
+	    gnus-sum-opening-bracket))
+	 (gnus-tmp-closing-bracket
+	  (if gnus-tmp-dummy
+	      gnus-sum-closing-bracket-adopted
+	    gnus-sum-closing-bracket))
 	 (inhibit-read-only t))
     (when (string= gnus-tmp-name "")
       (setq gnus-tmp-name gnus-tmp-from))
@@ -5439,10 +5469,10 @@ or a straight list of headers."
 	    (if (and (eq gnus-summary-make-false-root 'adopt)
 		     (= gnus-tmp-level 1)
 		     (memq number gnus-tmp-gathered))
-		(setq gnus-tmp-opening-bracket ?\<
-		      gnus-tmp-closing-bracket ?\>)
-	      (setq gnus-tmp-opening-bracket ?\[
-		    gnus-tmp-closing-bracket ?\]))
+		(setq gnus-tmp-opening-bracket gnus-sum-opening-bracket-adopted
+		      gnus-tmp-closing-bracket gnus-sum-closing-bracket-adopted)
+	      (setq gnus-tmp-opening-bracket gnus-sum-opening-bracket
+		    gnus-tmp-closing-bracket gnus-sum-closing-bracket))
 	    (if (>= gnus-tmp-level (length gnus-thread-indent-array))
 		(gnus-make-thread-indent-array
 		 (max (* 2 (length gnus-thread-indent-array))

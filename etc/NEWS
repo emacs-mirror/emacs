@@ -511,6 +511,19 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user options to customise the summary line specs %[ and %].
+Four new options introduced in customisation group
+'gnus-summary-format'.  These are 'gnus-sum-opening-bracket',
+'gnus-sum-closing-bracket', 'gnus-sum-opening-bracket-adopted', and
+'gnus-sum-closing-bracket-adopted'.  Their default values are '[', ']',
+'<', '>' respectively. These variables control the appearance of '%['
+and '%]' specs in the summary line format.  '%[' will normally display
+the value of 'gnus-sum-opening-bracket', but can also be
+'gnus-sum-opening-bracket-adopted' for the adopted articles.  '%]' will
+normally display the value of 'gnus-sum-closing-bracket', but can also
+be 'gnus-sum-closing-bracket-adopted' for the adopted articles.
+
++++
 *** New user option 'gnus-paging-select-next'.
 This controls what happens when using commands like 'SPC' and 'DEL' to
 page the current article.  If non-nil (the default), go to the
