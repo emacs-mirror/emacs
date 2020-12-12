@@ -11751,9 +11751,10 @@ resize_mini_window (struct window *w, bool exact_p)
     return false;
 
   /* By default, start display at the beginning.  */
-  set_marker_both (w->start, w->contents,
-		   BUF_BEGV (XBUFFER (w->contents)),
-		   BUF_BEGV_BYTE (XBUFFER (w->contents)));
+  if (redisplay_adhoc_scroll_in_resize_mini_windows)
+    set_marker_both (w->start, w->contents,
+		     BUF_BEGV (XBUFFER (w->contents)),
+		     BUF_BEGV_BYTE (XBUFFER (w->contents)));
 
   /* Nil means don't try to resize.  */
   if ((NILP (Vresize_mini_windows)
@@ -11812,27 +11813,32 @@ resize_mini_window (struct window *w, bool exact_p)
       if (height > max_height)
 	{
 	  height = (max_height / unit) * unit;
-	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
-	  move_it_vertically_backward (&it, height - unit);
-	  /* The following move is usually a no-op when the stuff
-	     displayed in the mini-window comes entirely from buffer
-	     text, but it is needed when some of it comes from overlay
-	     strings, especially when there's an after-string at ZV.
-	     This happens with some completion packages, like
-	     icomplete, ido-vertical, etc.  With those packages, if we
-	     don't force w->start to be at the beginning of a screen
-	     line, important parts of the stuff in the mini-window,
-	     such as user prompt, will be hidden from view.  */
-	  move_it_by_lines (&it, 0);
-	  start = it.current.pos;
-	  /* Prevent redisplay_window from recentering, and thus from
-	     overriding the window-start point we computed here.  */
-	  w->start_at_line_beg = false;
+	  if (redisplay_adhoc_scroll_in_resize_mini_windows)
+	    {
+	      init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
+	      move_it_vertically_backward (&it, height - unit);
+              /* The following move is usually a no-op when the stuff
+                 displayed in the mini-window comes entirely from buffer
+                 text, but it is needed when some of it comes from overlay
+                 strings, especially when there's an after-string at ZV.
+                 This happens with some completion packages, like
+                 icomplete, ido-vertical, etc.  With those packages, if we
+                 don't force w->start to be at the beginning of a screen
+                 line, important parts of the stuff in the mini-window,
+                 such as user prompt, will be hidden from view.  */
+              move_it_by_lines (&it, 0);
+              start = it.current.pos;
+              /* Prevent redisplay_window from recentering, and thus from
+                 overriding the window-start point we computed here.  */
+              w->start_at_line_beg = false;
+              SET_MARKER_FROM_TEXT_POS (w->start, start);
+            }
 	}
       else
-	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
-
-      SET_MARKER_FROM_TEXT_POS (w->start, start);
+	{
+	  SET_TEXT_POS (start, BEGV, BEGV_BYTE);
+          SET_MARKER_FROM_TEXT_POS (w->start, start);
+        }
 
       if (EQ (Vresize_mini_windows, Qgrow_only))
 	{
@@ -35502,6 +35508,14 @@ The initial frame is not displayed anywhere, so skipping it is
 best except in special circumstances such as running redisplay tests
 in batch mode.   */);
   redisplay_skip_initial_frame = true;
+
+  DEFVAR_BOOL ("redisplay-adhoc-scroll-in-resize-mini-windows",
+               redisplay_adhoc_scroll_in_resize_mini_windows,
+    doc: /* If nil always use normal scrolling in minibuffer windows.
+Otherwise, use custom-tailored code after resizing minibuffer windows to try
+and display the most important part of the minibuffer.   */);
+  /* See bug#43519 for some discussion around this.  */
+  redisplay_adhoc_scroll_in_resize_mini_windows = true;
 }
 
 

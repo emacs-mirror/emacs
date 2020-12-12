@@ -88,6 +88,13 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 ** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 
+In addition, there is a new variable
+`redisplay-adhoc-scroll-in-resize-mini-windows` to disable the
+ad-hoc auto-scrolling when resizing minibuffer windows.  It has been
+found that its heuristic can be counter productive in some corner
+cases, tho the cure may be worse than the disease.  This said, the
+effect should be negligible in the vast majority of cases anyway.
+
 +++
 ** Improved handling of minibuffers on switching frames.
 By default, when you switch to another frame, an active minibuffer now
