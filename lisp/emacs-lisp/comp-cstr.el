@@ -91,7 +91,10 @@ Integer values are handled in the `range' slot.")
 `comp-cstr-union-1'.")
   (union-1-mem-range (make-hash-table :test #'equal) :type hash-table
                      :documentation "Serve memoization for
-`comp-cstr-union-1'."))
+`comp-cstr-union-1'.")
+  (intersection-mem (make-hash-table :test #'equal) :type hash-table
+                    :documentation "Serve memoization for
+`intersection-mem'."))
 
 (defmacro with-comp-cstr-accessors (&rest body)
   "Define some quick accessor to reduce code vergosity in BODY."
@@ -526,7 +529,7 @@ DST is returned."
           (setf (comp-cstr-valset dst) nil
                 (comp-cstr-range dst) nil
                 (comp-cstr-typeset dst) nil)
-          (cl-return-from comp-cstr-intersection dst))
+          (cl-return-from comp-cstr-intersection-homogeneous dst))
       ;; TODO memoize?
       (setf  (comp-cstr-range dst)
              (apply #'comp-range-intersection
@@ -551,26 +554,9 @@ DST is returned."
                  (mapcar #'comp-cstr-typeset srcs))))
   dst)
 
-
-;;; Entry points.
-
-(defun comp-cstr-union-no-range (dst &rest srcs)
-  "Combine SRCS by union set operation setting the result in DST.
-Do not propagate the range component.
-DST is returned."
-  (apply #'comp-cstr-union-1 nil dst srcs))
-
-(defun comp-cstr-union (dst &rest srcs)
-  "Combine SRCS by union set operation setting the result in DST.
-DST is returned."
-  (apply #'comp-cstr-union-1 t dst srcs))
-
-(defun comp-cstr-union-make (&rest srcs)
-  "Combine SRCS by union set operation and return a new constraint."
-  (apply #'comp-cstr-union (make-comp-cstr) srcs))
-
-(cl-defun comp-cstr-intersection (dst &rest srcs)
+(cl-defun comp-cstr-intersection-no-mem (dst &rest srcs)
   "Combine SRCS by intersection set operation setting the result in DST.
+Non memoized version of `comp-cstr-intersection-no-mem'.
 DST is returned."
   (with-comp-cstr-accessors
     (cl-flet ((return-empty ()
@@ -578,11 +564,11 @@ DST is returned."
                       (valset dst) ()
                       (range dst) ()
                       (neg dst) nil)
-                (cl-return-from comp-cstr-intersection dst)))
+                (cl-return-from comp-cstr-intersection-no-mem dst)))
       (when-let ((res (comp-cstrs-homogeneous srcs)))
         (apply #'comp-cstr-intersection-homogeneous dst srcs)
         (setf (neg dst) (eq res 'neg))
-        (cl-return-from comp-cstr-intersection dst))
+        (cl-return-from comp-cstr-intersection-no-mem dst))
 
       ;; Some are negated and some are not
       (cl-multiple-value-bind (positives negatives) (comp-split-pos-neg srcs)
@@ -598,7 +584,7 @@ DST is returned."
                   (valset dst) (valset neg)
                   (range dst) (range neg)
                   (neg dst) t)
-            (cl-return-from comp-cstr-intersection dst))
+            (cl-return-from comp-cstr-intersection-no-mem dst))
 
           (when (cl-some
                  (lambda (ty)
@@ -640,6 +626,40 @@ DST is returned."
                 (range dst) (range pos)
                 (neg dst) nil)))
       dst)))
+
+
+;;; Entry points.
+
+(defun comp-cstr-union-no-range (dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+Do not propagate the range component.
+DST is returned."
+  (apply #'comp-cstr-union-1 nil dst srcs))
+
+(defun comp-cstr-union (dst &rest srcs)
+  "Combine SRCS by union set operation setting the result in DST.
+DST is returned."
+  (apply #'comp-cstr-union-1 t dst srcs))
+
+(defun comp-cstr-union-make (&rest srcs)
+  "Combine SRCS by union set operation and return a new constraint."
+  (apply #'comp-cstr-union (make-comp-cstr) srcs))
+
+(defun comp-cstr-intersection (dst &rest srcs)
+  "Combine SRCS by intersection set operation setting the result in DST.
+DST is returned."
+  (let ((mem-h (comp-cstr-ctxt-intersection-mem comp-ctxt)))
+    (with-comp-cstr-accessors
+      (if-let ((mem-res (gethash srcs mem-h)))
+          (progn
+            (setf (typeset dst) (typeset mem-res)
+                  (valset dst) (valset mem-res)
+                  (range dst) (range mem-res)
+                  (neg dst) (neg mem-res))
+            mem-res)
+        (let ((res (apply #'comp-cstr-intersection-no-mem dst srcs)))
+          (puthash srcs (comp-cstr-copy res) mem-h)
+         res)))))
 
 (defun comp-cstr-intersection-make (&rest srcs)
   "Combine SRCS by intersection set operation and return a new constraint."
