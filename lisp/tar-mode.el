@@ -588,7 +588,7 @@ For instance, if mode is #o700, then it produces `rwx------'."
         (setq pos (tar-header-data-end descriptor))
         (progress-reporter-update progress-reporter pos)))
 
-    (set (make-local-variable 'tar-parse-info) (nreverse result))
+    (setq-local tar-parse-info (nreverse result))
     ;; A tar file should end with a block or two of nulls,
     ;; but let's not get a fatal error if it doesn't.
     (if (null descriptor)
@@ -718,21 +718,21 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
        (file-writable-p buffer-file-name)
        (setq buffer-read-only nil))    ; undo what `special-mode' did
   (make-local-variable 'tar-parse-info)
-  (set (make-local-variable 'require-final-newline) nil) ; binary data, dude...
-  (set (make-local-variable 'local-enable-local-variables) nil)
-  (set (make-local-variable 'next-line-add-newlines) nil)
-  (set (make-local-variable 'tar-file-name-coding-system)
-       (or file-name-coding-system
-	   default-file-name-coding-system
-	   locale-coding-system))
+  (setq-local require-final-newline nil) ; binary data, dude...
+  (setq-local local-enable-local-variables nil)
+  (setq-local next-line-add-newlines nil)
+  (setq-local tar-file-name-coding-system
+              (or file-name-coding-system
+	          default-file-name-coding-system
+	          locale-coding-system))
   ;; Prevent loss of data when saving the file.
-  (set (make-local-variable 'file-precious-flag) t)
+  (setq-local file-precious-flag t)
   (buffer-disable-undo)
   (widen)
   ;; Now move the Tar data into an auxiliary buffer, so we can use the main
   ;; buffer for the summary.
   (cl-assert (not (tar-data-swapped-p)))
-  (set (make-local-variable 'revert-buffer-function) #'tar-mode-revert)
+  (setq-local revert-buffer-function #'tar-mode-revert)
   ;; We started using write-contents-functions, but this hook is not
   ;; used during auto-save, so we now use
   ;; write-region-annotate-functions which hooks at a lower-level.
@@ -741,10 +741,10 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (add-hook 'change-major-mode-hook #'tar-change-major-mode-hook nil t)
   ;; Tar data is made of bytes, not chars.
   (set-buffer-multibyte nil)            ;Hopefully a no-op.
-  (set (make-local-variable 'tar-data-buffer)
-       (generate-new-buffer (format " *tar-data %s*"
-                                    (file-name-nondirectory
-                                     (or buffer-file-name (buffer-name))))))
+  (setq-local tar-data-buffer (generate-new-buffer
+                               (format " *tar-data %s*"
+                                       (file-name-nondirectory
+                                        (or buffer-file-name (buffer-name))))))
   (condition-case err
       (progn
         (tar-swap-data)
@@ -1004,8 +1004,8 @@ return nil.  Otherwise point is returned."
                 default-directory))
         (set-buffer-modified-p nil)
         (normal-mode)                   ; pick a mode.
-        (set (make-local-variable 'tar-superior-buffer) tar-buffer)
-        (set (make-local-variable 'tar-superior-descriptor) descriptor)
+        (setq-local tar-superior-buffer tar-buffer)
+        (setq-local tar-superior-descriptor descriptor)
         (setq buffer-read-only read-only-p)
         (tar-subfile-mode 1)))
     (cond

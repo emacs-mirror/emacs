@@ -2067,14 +2067,14 @@ variables.")
                               (funcall aff-fun completions)))
 
                       (with-current-buffer standard-output
-                        (set (make-local-variable 'completion-base-position)
+                        (setq-local completion-base-position
                              (list (+ start base-size)
                                    ;; FIXME: We should pay attention to completion
                                    ;; boundaries here, but currently
                                    ;; completion-all-completions does not give us the
                                    ;; necessary information.
                                    end))
-                        (set (make-local-variable 'completion-list-insert-choice-function)
+                        (setq-local completion-list-insert-choice-function
                              (let ((ctable minibuffer-completion-table)
                                    (cpred minibuffer-completion-predicate)
                                    (cprops completion-extra-properties))
@@ -2866,7 +2866,7 @@ See `read-file-name' for the meaning of the arguments."
                           ;; On the first request on `M-n' fill
                           ;; `minibuffer-default' with a list of defaults
                           ;; relevant for file-name reading.
-                          (set (make-local-variable 'minibuffer-default-add-function)
+                          (setq-local minibuffer-default-add-function
                                (lambda ()
                                  (with-current-buffer
                                      (window-buffer (minibuffer-selected-window))

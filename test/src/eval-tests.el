@@ -195,6 +195,23 @@ expressions works for identifiers starting with period."
         (search-forward "  foo()")
         (search-forward "  normal-top-level()")))))
 
+(ert-deftest eval-tests/backtrace-in-batch-mode/inhibit ()
+  (let ((emacs (expand-file-name invocation-name invocation-directory)))
+    (skip-unless (file-executable-p emacs))
+    (with-temp-buffer
+      (let ((status (call-process
+                     emacs nil t nil
+                     "--quick" "--batch"
+                     (concat "--eval="
+                             (prin1-to-string
+                              '(progn
+                                 (defun foo () (error "Boo"))
+                                 (let ((backtrace-on-error-noninteractive nil))
+                                   (foo))))))))
+        (should (natnump status))
+        (should-not (eql status 0)))
+      (should (equal (string-trim (buffer-string)) "Boo")))))
+
 (ert-deftest eval-tests/backtrace-in-batch-mode/demoted-errors ()
   (let ((emacs (expand-file-name invocation-name invocation-directory)))
     (skip-unless (file-executable-p emacs))

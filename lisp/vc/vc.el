@@ -201,7 +201,7 @@
 ;;
 ;; STATE-CHANGING FUNCTIONS
 ;;
-;; * create-repo (backend)
+;; * create-repo ()
 ;;
 ;;   Create an empty repository in the current directory and initialize
 ;;   it so VC mode can add files to it.  For file-oriented systems, this
@@ -275,7 +275,7 @@
 ;;   If FILE is in the `added' state it should be returned to the
 ;;   `unregistered' state.
 ;;
-;; - merge-file (file rev1 rev2)
+;; - merge-file (file &optional rev1 rev2)
 ;;
 ;;   Merge the changes between REV1 and REV2 into the current working
 ;;   file (for non-distributed VCS).  It is expected that with an
@@ -333,19 +333,19 @@
 ;;   the case).  Not all backends support this.  At present, this is
 ;;   only ever used with LIMIT = 1 (by vc-annotate-show-log-revision-at-line).
 ;;
-;; * log-outgoing (backend remote-location)
+;; * log-outgoing (buffer remote-location)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   sent when performing a push operation to REMOTE-LOCATION.
 ;;
-;; * log-incoming (backend remote-location)
+;; * log-incoming (buffer remote-location)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   received when performing a pull operation from REMOTE-LOCATION.
 ;;
-;; - log-search (pattern)
+;; - log-search (buffer pattern)
 ;;
-;;   Search for PATTERN in the revision log.
+;;   Search for PATTERN in the revision log and output results into BUFFER.
 ;;
 ;; - log-view-mode ()
 ;;
@@ -478,7 +478,7 @@
 ;;
 ;;   Return the root of the VC controlled hierarchy for file.
 ;;
-;; - ignore (file &optional directory)
+;; - ignore (file &optional directory remove)
 ;;
 ;;   Ignore FILE under DIRECTORY (default is 'default-directory').
 ;;   FILE is a file wildcard relative to DIRECTORY.
@@ -487,7 +487,7 @@
 ;;   When called from Lisp code, if DIRECTORY is non-nil, the
 ;;   repository to use will be deduced by DIRECTORY.
 ;;
-;; - ignore-completion-table
+;; - ignore-completion-table (directory)
 ;;
 ;;   Return the completion table for files ignored by the current
 ;;   version control system, e.g., the entries in `.gitignore' and

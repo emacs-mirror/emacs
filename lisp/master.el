@@ -96,8 +96,7 @@ yourself the value of `master-of' by calling `master-show-slave'."
   "Makes BUFFER the slave of the current buffer.
 Use \\[master-mode] to toggle control of the slave buffer."
   (interactive "bSlave: ")
-  (make-local-variable 'master-of)
-  (setq master-of buffer)
+  (setq-local master-of buffer)
   (run-hooks 'master-set-slave-hook))
 
 (defun master-show-slave ()

@@ -568,7 +568,7 @@ the line could be found."
     (mm-enable-multibyte)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
-    (set (make-local-variable 'nntp-process-response) nil)
+    (setq-local nntp-process-response nil)
     t))
 
 ;;; Various functions the backends use.

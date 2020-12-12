@@ -1599,111 +1599,106 @@ or as help on variables `cperl-tips', `cperl-problems',
   ;; Until Emacs is multi-threaded, we do not actually need it local:
   (make-local-variable 'cperl-font-lock-multiline-start)
   (make-local-variable 'cperl-font-locking)
-  (set (make-local-variable 'outline-regexp) cperl-outline-regexp)
-  (set (make-local-variable 'outline-level) 'cperl-outline-level)
-  (set (make-local-variable 'add-log-current-defun-function)
-	(lambda ()
-	  (save-excursion
-	    (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
-		(match-string-no-properties 1)))))
+  (setq-local outline-regexp cperl-outline-regexp)
+  (setq-local outline-level 'cperl-outline-level)
+  (setq-local add-log-current-defun-function
+              (lambda ()
+                (save-excursion
+                  (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+                      (match-string-no-properties 1)))))
 
-  (set (make-local-variable 'paragraph-start) (concat "^$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'indent-line-function) #'cperl-indent-line)
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-column) cperl-comment-column)
-  (set (make-local-variable 'comment-start-skip) "#+ *")
+  (setq-local paragraph-start (concat "^$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local indent-line-function #'cperl-indent-line)
+  (setq-local require-final-newline mode-require-final-newline)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-column cperl-comment-column)
+  (setq-local comment-start-skip "#+ *")
 
 ;;       "[ \t]*sub"
 ;;	  (cperl-after-sub-regexp 'named nil) ; 8=name 11=proto 14=attr-start
 ;;	  cperl-maybe-white-and-comment-rex	; 15=pre-block
-  (set (make-local-variable 'defun-prompt-regexp)
-       (concat "^[ \t]*\\("
-               cperl-sub-regexp
-	       (cperl-after-sub-regexp 'named 'attr-groups)
-	       "\\|"			; per toke.c
-	       "\\(BEGIN\\|UNITCHECK\\|CHECK\\|INIT\\|END\\|AUTOLOAD\\|DESTROY\\)"
-	       "\\)"
-	       cperl-maybe-white-and-comment-rex))
-  (set (make-local-variable 'comment-indent-function) #'cperl-comment-indent)
-  (set (make-local-variable 'fill-paragraph-function)
-       #'cperl-fill-paragraph)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'indent-region-function) #'cperl-indent-region)
+  (setq-local defun-prompt-regexp
+              (concat "^[ \t]*\\("
+                      cperl-sub-regexp
+                      (cperl-after-sub-regexp 'named 'attr-groups)
+                      "\\|"			; per toke.c
+                      "\\(BEGIN\\|UNITCHECK\\|CHECK\\|INIT\\|END\\|AUTOLOAD\\|DESTROY\\)"
+                      "\\)"
+                      cperl-maybe-white-and-comment-rex))
+  (setq-local comment-indent-function #'cperl-comment-indent)
+  (setq-local fill-paragraph-function #'cperl-fill-paragraph)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local indent-region-function #'cperl-indent-region)
   ;;(setq auto-fill-function #'cperl-do-auto-fill) ; Need to switch on and off!
-  (set (make-local-variable 'imenu-create-index-function)
-       #'cperl-imenu--create-perl-index)
-  (set (make-local-variable 'imenu-sort-function) nil)
-  (set (make-local-variable 'vc-rcs-header) cperl-vc-rcs-header)
-  (set (make-local-variable 'vc-sccs-header) cperl-vc-sccs-header)
+  (setq-local imenu-create-index-function #'cperl-imenu--create-perl-index)
+  (setq-local imenu-sort-function nil)
+  (setq-local vc-rcs-header cperl-vc-rcs-header)
+  (setq-local vc-sccs-header cperl-vc-sccs-header)
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
-	 (set (make-local-variable 'compilation-error-regexp-alist-alist)
-	      (cons (cons 'cperl (car cperl-compilation-error-regexp-alist))
-		    compilation-error-regexp-alist-alist))
+         (setq-local compilation-error-regexp-alist-alist
+                     (cons (cons 'cperl (car cperl-compilation-error-regexp-alist))
+                           compilation-error-regexp-alist-alist))
 	 (if (fboundp 'compilation-build-compilation-error-regexp-alist)
 	     (let ((f 'compilation-build-compilation-error-regexp-alist))
 	       (funcall f))
 	   (make-local-variable 'compilation-error-regexp-alist)
 	   (push 'cperl compilation-error-regexp-alist)))
 	((boundp 'compilation-error-regexp-alist);; xemacs 19.x
-	 (set (make-local-variable 'compilation-error-regexp-alist)
-	       (append cperl-compilation-error-regexp-alist
-		       compilation-error-regexp-alist))))
-  (set (make-local-variable 'font-lock-defaults)
-	'((cperl-load-font-lock-keywords
-	   cperl-load-font-lock-keywords-1
-	   cperl-load-font-lock-keywords-2) nil nil ((?_ . "w"))))
+         (setq-local compilation-error-regexp-alist
+                     (append cperl-compilation-error-regexp-alist
+                             compilation-error-regexp-alist))))
+  (setq-local font-lock-defaults
+              '((cperl-load-font-lock-keywords
+                 cperl-load-font-lock-keywords-1
+                 cperl-load-font-lock-keywords-2)
+                nil nil ((?_ . "w"))))
   ;; Reset syntaxification cache.
-  (set (make-local-variable 'cperl-syntax-state) nil)
+  (setq-local cperl-syntax-state nil)
   (if cperl-use-syntax-table-text-property
       (if (eval-when-compile (fboundp 'syntax-propertize-rules))
           (progn
             ;; Reset syntaxification cache.
-            (set (make-local-variable 'cperl-syntax-done-to) nil)
-            (set (make-local-variable 'syntax-propertize-function)
-                 (lambda (start end)
-                   (goto-char start)
-                   ;; Even if cperl-fontify-syntaxically has already gone
-                   ;; beyond `start', syntax-propertize has just removed
-                   ;; syntax-table properties between start and end, so we have
-                   ;; to re-apply them.
-                   (setq cperl-syntax-done-to start)
-                   (cperl-fontify-syntaxically end))))
+            (setq-local cperl-syntax-done-to nil)
+            (setq-local syntax-propertize-function
+                        (lambda (start end)
+                          (goto-char start)
+                          ;; Even if cperl-fontify-syntaxically has already gone
+                          ;; beyond `start', syntax-propertize has just removed
+                          ;; syntax-table properties between start and end, so we have
+                          ;; to re-apply them.
+                          (setq cperl-syntax-done-to start)
+                          (cperl-fontify-syntaxically end))))
 	;; Do not introduce variable if not needed, we check it!
-	(set (make-local-variable 'parse-sexp-lookup-properties) t)
-	;; Fix broken font-lock:
-	(or (boundp 'font-lock-unfontify-region-function)
-	    (setq font-lock-unfontify-region-function
-		 #'font-lock-default-unfontify-region))
+        (setq-local parse-sexp-lookup-properties t)
 	;; Our: just a plug for wrong font-lock
-	(set (make-local-variable 'font-lock-unfontify-region-function)
-             ;; not present with old Emacs
-	     #'cperl-font-lock-unfontify-region-function)
+        (setq-local font-lock-unfontify-region-function
+                    ;; not present with old Emacs
+                    #'cperl-font-lock-unfontify-region-function)
 	;; Reset syntaxification cache.
-	(set (make-local-variable 'cperl-syntax-done-to) nil)
-	(set (make-local-variable 'font-lock-syntactic-keywords)
-	      (if cperl-syntaxify-by-font-lock
-		  '((cperl-fontify-syntaxically))
-                ;; unless font-lock-syntactic-keywords, font-lock (pre-22.1)
-                ;;  used to ignore syntax-table text-properties.  (t) is a hack
-                ;;  to make font-lock think that font-lock-syntactic-keywords
-                ;;  are defined.
-		'(t)))))
+        (setq-local cperl-syntax-done-to nil)
+        (setq-local font-lock-syntactic-keywords
+                    (if cperl-syntaxify-by-font-lock
+                        '((cperl-fontify-syntaxically))
+                      ;; unless font-lock-syntactic-keywords, font-lock (pre-22.1)
+                      ;;  used to ignore syntax-table text-properties.  (t) is a hack
+                      ;;  to make font-lock think that font-lock-syntactic-keywords
+                      ;;  are defined.
+                      '(t)))))
   (setq cperl-font-lock-multiline t) ; Not localized...
-  (set (make-local-variable 'font-lock-multiline) t)
-  (set (make-local-variable 'font-lock-fontify-region-function)
-       #'cperl-font-lock-fontify-region-function)
+  (setq-local font-lock-multiline t)
+  (setq-local font-lock-fontify-region-function
+              #'cperl-font-lock-fontify-region-function)
   (make-local-variable 'cperl-old-style)
-  (set (make-local-variable 'normal-auto-fill-function)
-       #'cperl-do-auto-fill)
+  (setq-local normal-auto-fill-function
+              #'cperl-do-auto-fill)
   (if (cperl-val 'cperl-font-lock)
       (progn (or cperl-faces-init (cperl-init-faces))
 	     (font-lock-mode 1)))
-  (set (make-local-variable 'facemenu-add-face-function)
-       #'cperl-facemenu-add-face-function) ; XXXX What this guy is for???
+  (setq-local facemenu-add-face-function
+              #'cperl-facemenu-add-face-function) ; XXXX What this guy is for???
   (and (boundp 'msb-menu-cond)
        (not cperl-msb-fixed)
        (cperl-msb-fix))
@@ -3478,49 +3473,18 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	 (font-lock-string-face (if (boundp 'font-lock-string-face)
 				    font-lock-string-face
 				  'font-lock-string-face))
-	 (my-cperl-delimiters-face (if (boundp 'font-lock-constant-face)
-				      font-lock-constant-face
-				    'font-lock-constant-face))
+	 (my-cperl-delimiters-face
+	  font-lock-constant-face)
 	 (my-cperl-REx-spec-char-face	; [] ^.$ and wrapper-of ({})
-	  (if (boundp 'font-lock-function-name-face)
-	      font-lock-function-name-face
-	    'font-lock-function-name-face))
-	 (font-lock-variable-name-face	; interpolated vars and ({})-code
-	  (if (boundp 'font-lock-variable-name-face)
-	      font-lock-variable-name-face
-	    'font-lock-variable-name-face))
-	 (font-lock-function-name-face	; used in `cperl-find-sub-attrs'
-	  (if (boundp 'font-lock-function-name-face)
-	      font-lock-function-name-face
-	    'font-lock-function-name-face))
-	 (font-lock-constant-face	; used in `cperl-find-sub-attrs'
-	  (if (boundp 'font-lock-constant-face)
-	      font-lock-constant-face
-	    'font-lock-constant-face))
+          font-lock-function-name-face)
 	 (my-cperl-REx-0length-face ; 0-length, (?:)etc, non-literal \
-	  (if (boundp 'font-lock-builtin-face)
-	      font-lock-builtin-face
-	    'font-lock-builtin-face))
-	 (font-lock-comment-face
-	  (if (boundp 'font-lock-comment-face)
-	      font-lock-comment-face
-	    'font-lock-comment-face))
-	 (font-lock-warning-face
-	  (if (boundp 'font-lock-warning-face)
-	      font-lock-warning-face
-	    'font-lock-warning-face))
+          font-lock-builtin-face)
 	 (my-cperl-REx-ctl-face		; (|)
-	  (if (boundp 'font-lock-keyword-face)
-	      font-lock-keyword-face
-	    'font-lock-keyword-face))
+          font-lock-keyword-face)
 	 (my-cperl-REx-modifiers-face	; //gims
-	  (if (boundp 'cperl-nonoverridable-face)
-	      cperl-nonoverridable-face
-	    'cperl-nonoverridable-face))
+	  'cperl-nonoverridable-face)
 	 (my-cperl-REx-length1-face	; length=1 escaped chars, POSIX classes
-	  (if (boundp 'font-lock-type-face)
-	      font-lock-type-face
-	    'font-lock-type-face))
+          font-lock-type-face)
 	 (stop-point (if ignore-max
 			 (point-max)
 		       max))
@@ -6107,7 +6071,7 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 	       (set-buffer "*info-perl-tmp*")
 	       (rename-buffer "*info*")
 	       (set-buffer bname)))
-	(set (make-local-variable 'window-min-height) 2)
+        (setq-local window-min-height 2)
 	(current-buffer)))))
 
 (defun cperl-word-at-point (&optional p)
@@ -6425,7 +6389,7 @@ by CPerl."
   (if cperl-use-syntax-table-text-property-for-tags
       (progn
 	;; Do not introduce variable if not needed, we check it!
-	(set (make-local-variable 'parse-sexp-lookup-properties) t))))
+        (setq-local parse-sexp-lookup-properties t))))
 
 ;; Copied from imenu-example--name-and-position.
 (defvar imenu-use-markers)
@@ -8347,7 +8311,7 @@ may be used to debug problems with delayed incremental fontification."
     (goto-char pos)
     (normal-mode)
     ;; Why needed???  With older font-locks???
-    (set (make-local-variable 'font-lock-cache-position) (make-marker))
+    (setq-local font-lock-cache-position (make-marker))
     (while (if (> window-size 0)
 	       (< pos (point-max))
 	     (> pos (point-min)))

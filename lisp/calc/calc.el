@@ -2100,7 +2100,7 @@ the United States."
 	   (set-buffer calc-trail-buffer)
 	   (unless (derived-mode-p 'calc-trail-mode)
              (calc-trail-mode)
-             (set (make-local-variable 'calc-main-buffer) buf)))))
+             (setq-local calc-main-buffer buf)))))
   (or (and calc-trail-pointer
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
       (with-current-buffer calc-trail-buffer

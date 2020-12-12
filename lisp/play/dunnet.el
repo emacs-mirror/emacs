@@ -46,10 +46,10 @@
 
 ;;;;
 ;;;; This section defines the globals that are used in dunnet.
-;;;;
-;;;; IMPORTANT
-;;;; All globals which can change must be saved from 'save-game.  Add
-;;;; all new globals to bottom of this section.
+;;
+;; IMPORTANT
+;; All globals which can change must be saved from 'save-game.
+;; Add all new globals to bottom of this section.
 
 (defvar dun-visited '(27))
 (defvar dun-current-room 1)
@@ -771,7 +771,6 @@ A hole leads north."
 )
 
 
-;;; How the user references *all* objects, permanent and regular.
 (defconst dun-objnames
   '((shovel . 0)
     (lamp . 1)
@@ -831,7 +830,8 @@ A hole leads north."
     (ladder . -27)
     (subway . -28) (train . -28)
     (pc . -29) (drive . -29) (coconut . -30) (coconuts . -30)
-    (lake . -32) (water . -32)))
+    (lake . -32) (water . -32))
+  "How the user references *all* objects, permanent and regular.")
 
 (dolist (x dun-objnames)
   (let (name)
@@ -839,13 +839,6 @@ A hole leads north."
     (eval (list 'defconst (intern name) (cdr x)))))
 
 (defconst obj-special 255)
-
-;;; The initial setup of what objects are in each room.
-;;; Regular objects have whole numbers lower than 255.
-;;; Objects that cannot be taken but might move and are
-;;; described during room description are negative.
-;;; Stuff that is described and might change are 255, and are
-;;; handled specially by 'dun-describe-room.
 
 (defvar dun-room-objects (list nil
 
@@ -899,10 +892,13 @@ A hole leads north."
 nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
 nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
 nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-nil))
-
-;;; These are objects in a room that are only described in the
-;;; room description.  They are permanent.
+nil)
+  "The initial setup of what objects are in each room.
+Regular objects have whole numbers lower than 255.
+Objects that cannot be taken but might move and are
+described during room description are negative.
+Stuff that is described and might change are 255, and are
+handled specially by 'dun-describe-room.")
 
 (defconst dun-room-silents (list nil
         (list obj-tree obj-coconut)            ;; dead-end
@@ -947,11 +943,10 @@ nil))
         nil nil nil nil nil nil nil nil
 	(list obj-pc)                          ;; pc-area
 	nil nil nil nil nil nil
-))
+	)
+  "These are objects in a room that are only described in the
+room description.  They are permanent.")
 (defvar dun-inventory '(1))
-
-;;; Descriptions of objects, as they appear in the room description, and
-;;; the inventory.
 
 (defconst dun-objects
   '(("There is a shovel here." "A shovel")                ;0
@@ -982,26 +977,24 @@ nil))
     ("There is a valuable amethyst here." "An amethyst") ;24
     ("The Mona Lisa is here." "The Mona Lisa") ;25
     ("There is a 100 dollar bill here." "A $100 bill") ;26
-    ("There is a floppy disk here." "A floppy disk"))) ;27
-
-;;; Weight of objects
+    ("There is a floppy disk here." "A floppy disk")) ;27
+  "Descriptions of objects, as they appear in the room description, and
+the inventory.")
 
 (defconst dun-object-lbs
-  '(2 1 1 1 1 0 2 2 10 3 1 1 1 0 1 1 0 1 1 1 1 0 0 2 2 1 0 0))
+  '(2 1 1 1 1 0 2 2 10 3 1 1 1 0 1 1 0 1 1 1 1 0 0 2 2 1 0 0)
+  "Weight of objects.")
 (defconst dun-object-pts
   '(0 0 0 0 0 0 0 10 0 0 10 10 10 0 0 10 0 10 10 0 0 0 0 10 10 10 10 0))
 
 
-;;; Unix representation of objects.
 (defconst dun-objfiles
   '("shovel.o" "lamp.o" "cpu.o" "food.o" "key.o" "paper.o"
     "rms.o" "diamond.o" "weight.o" "preserver.o" "bracelet.o"
     "gold.o" "platinum.o" "towel.o" "axe.o" "silver.o" "license.o"
     "coins.o" "egg.o" "jar.o" "bone.o" "nitric.o" "glycerine.o"
-    "ruby.o" "amethyst.o"))
-
-;;; These are the descriptions for the negative numbered objects from
-;;; dun-room-objects
+    "ruby.o" "amethyst.o")
+  "Unix representation of objects.")
 
 (defconst dun-perm-objects
   '(nil
@@ -1016,11 +1009,10 @@ nil))
     ("There is a box with a slit in it, bolted to the wall here.")
     nil nil
     ("There is a bus here.")
-    nil nil nil))
+    nil nil nil)
+  "These are the descriptions for the negative numbered objects from
+`dun-room-objects'.")
 
-
-;;; These are the descriptions the user gets when regular objects are
-;;; examined.
 
 (defconst dun-physobj-desc '(
 "It is a normal shovel with a price tag attached that says $19.99."
@@ -1043,10 +1035,8 @@ nil nil
 "They are old coins from the 19th century."
 "It is a valuable Fabrege egg."
 "It is a plain glass jar."
-nil nil nil nil nil))
-
-;;; These are the descriptions the user gets when non-regular objects
-;;; are examined.
+nil nil nil nil nil)
+  "The descriptions the user gets when regular objects are examined.")
 
 (defconst dun-permobj-desc
   '(nil
@@ -1087,7 +1077,8 @@ it.  It is very big, though."
 nil nil nil nil
 "It is a normal ladder that is permanently attached to the hole."
 "It is a passenger train that is ready to go."
-"It is a personal computer that has only one floppy disk drive."))
+"It is a personal computer that has only one floppy disk drive.")
+  "The descriptions the user gets when non-regular objects are examined.")
 
 (defconst dun-diggables
       (list nil nil nil (list obj-cpu) nil nil nil nil nil nil nil
@@ -1189,10 +1180,9 @@ treasures for points?" "4" "four")
 ;;;; This section contains all of the verbs and commands.
 ;;;;
 
-;;; Give long description of room if haven't been there yet.  Otherwise
-;;; short.  Also give long if we were called with negative room number.
-
 (defun dun-describe-room (room)
+  "Give long description of room if haven't been there yet.
+Otherwise short.  Also give long if we were called with negative room number."
   (if (and (not (member (abs room) dun-light-rooms))
 	   (not (member obj-lamp dun-inventory))
 	   (not (member obj-lamp (nth dun-current-room dun-room-objects))))
@@ -1222,10 +1212,9 @@ treasures for points?" "4" "four")
     (if (and (member obj-bus (nth dun-current-room dun-room-objects)) dun-inbus)
 	(dun-mprincl "You are on the bus."))))
 
-;;; There is a special object in the room.  This object's description,
-;;; or lack thereof, depends on certain conditions.
-
 (defun dun-special-object ()
+  "There is a special object in the room.  This object's description,
+or lack thereof, depends on certain conditions."
   (cond
    ((= dun-current-room computer-room)
     (if dun-computer
@@ -1298,10 +1287,9 @@ disk bursts into flames, and disintegrates.")
 (defun dun-quit (_args)
   (dun-die nil))
 
-;;; Print every object in player's inventory.  Special case for the jar,
-;;; as we must also print what is in it.
-
 (defun dun-inven (_args)
+  "Print every object in player's inventory.
+Special case for the jar, as we must also print what is in it."
   (dun-mprincl "You currently have:")
   (dolist (curobj dun-inventory)
     (when curobj
@@ -1352,9 +1340,8 @@ on your head.")
         (if (member objnum (list obj-food obj-weight obj-jar))
             (dun-drop-check objnum)))))))
 
-;;; Dropping certain things causes things to happen.
-
 (defun dun-drop-check (objnum)
+  "Dropping certain things causes things to happen."
   (cond
    ((and (= objnum obj-food) (= dun-room bear-hangout)
          (member obj-bear (nth bear-hangout dun-room-objects)))
@@ -1381,9 +1368,8 @@ through.")))
    ((and (= objnum obj-weight) (= dun-current-room maze-button-room))
     (dun-mprincl "A passageway opens."))))
 
-;;; Give long description of current room, or an object.
-
 (defun dun-examine (obj)
+  "Give long description of current room, or an object."
   (let ((objnum (dun-objnum-from-args obj)))
     (cond
      ((eq objnum obj-special)
@@ -1474,10 +1460,9 @@ For an explosive time, go to Fourth St. and Vermont.")
       (setq total (+ total (nth x dun-object-lbs))))
     total))
 
-;;; We try to take an object that is untakable.  Print a message
-;;; depending on what it is.
-
 (defun dun-try-take (_obj)
+  "We try to take an object that is untakable.
+Print a message depending on what it is."
   (dun-mprinc "You cannot take that."))
 
 (defun dun-dig (_args)
@@ -1670,15 +1655,15 @@ just try dropping it."))
 (defun dun-go (args)
   (if (or (not (car args))
 	  (eq (dun-doverb dun-ignore dun-verblist (car args)
-			  (cdr (cdr args))) -1))
+			  (cdr (cdr args)))
+	      -1))
       (dun-mprincl "I don't understand where you want me to go.")))
 
-;;; Uses the dungeon-map to figure out where we are going.  If the
-;;; requested direction yields 255, we know something special is
-;;; supposed to happen, or perhaps you can't go that way unless
-;;; certain conditions are met.
-
 (defun dun-move (dir)
+  ;; Uses the dungeon-map to figure out where we are going.  If the
+  ;; requested direction yields 255, we know something special is
+  ;; supposed to happen, or perhaps you can't go that way unless
+  ;; certain conditions are met.
   (if (and (not (member dun-current-room dun-light-rooms))
 	   (not (member obj-lamp dun-inventory))
 	   (not (member obj-lamp (nth dun-current-room dun-room-objects))))
@@ -1709,17 +1694,17 @@ body.")
 				   (list obj-bus)))))
 	    (setq dun-current-room newroom)))))))
 
-;;; Movement in this direction causes something special to happen if the
-;;; right conditions exist.  It may be that you can't go this way unless
-;;; you have a key, or a passage has been opened.
-
-;;; coding note: Each check of the current room is on the same 'if' level,
-;;; i.e. there aren't else's.  If two rooms next to each other have
-;;; specials, and they are connected by specials, this could cause
-;;; a problem.  Be careful when adding them to consider this, and
-;;; perhaps use else's.
-
 (defun dun-special-move (dir)
+  ;; Movement in this direction causes something special to happen if the
+  ;; right conditions exist.  It may be that you can't go this way unless
+  ;; you have a key, or a passage has been opened.
+
+  ;; coding note: Each check of the current room is on the same 'if' level,
+  ;; i.e. there aren't else's.  If two rooms next to each other have
+  ;; specials, and they are connected by specials, this could cause
+  ;; a problem.  Be careful when adding them to consider this, and
+  ;; perhaps use else's.
+
   (if (= dun-current-room building-front)
       (if (not (member obj-key dun-inventory))
 	  (dun-mprincl "You don't have a key that can open this door.")
@@ -2152,10 +2137,10 @@ for a moment, then straighten yourself up.\n")
 ;;;;
 
 
-;;; Function which takes a verb and a list of other words.  Calls proper
-;;; function associated with the verb, and passes along the other words.
-
 (defun dun-doverb (ignore verblist verb rest)
+  "Take a verb and a list of other words.
+Calls proper function associated with the verb, and passes along the
+other words."
   (when verb
     (if (member (intern verb) ignore)
 	(if (not (car rest)) -1
@@ -2165,9 +2150,8 @@ for a moment, then straighten yourself up.\n")
 	(funcall (cdr (assq (intern verb) verblist)) rest)))))
 
 
-;;; Function to take a string and change it into a list of lowercase words.
-
 (defun dun-listify-string (strin)
+  "Take a string and change it into a list of lowercase words."
   (let (pos ret-list end-pos)
     (setq pos 0)
     (setq ret-list nil)
@@ -2177,7 +2161,8 @@ for a moment, then straighten yourself up.\n")
 	  (setq ret-list (append ret-list (list
 					   (downcase
 					    (substring strin pos end-pos))))))
-      (setq pos (+ end-pos 1))) ret-list))
+      (setq pos (+ end-pos 1)))
+    ret-list))
 
 (defun dun-listify-string2 (strin)
   (let (pos ret-list end-pos)
@@ -2194,10 +2179,8 @@ for a moment, then straighten yourself up.\n")
 (defun dun-replace (list n number)
   (rplaca (nthcdr n list) number))
 
-
-;;; Get the first non-ignored word from a list.
-
 (defun dun-firstword (list)
+  "Get the first non-ignored word from a list."
   (when (car list)
     (while (and list (memq (intern (car list)) dun-ignore))
       (setq list (cdr list)))
@@ -2209,10 +2192,9 @@ for a moment, then straighten yourself up.\n")
       (setq list (cdr list)))
     list))
 
-;;; parse a line passed in as a string  Call the proper verb with the
-;;; rest of the line passed in as a list.
-
 (defun dun-vparse (ignore verblist line)
+  "Parse a line passed in as a string.
+Call the proper verb with the rest of the line passed in as a list."
   (dun-mprinc "\n")
   (setq dun-line-list (dun-listify-string (concat line " ")))
   (dun-doverb ignore verblist (car dun-line-list) (cdr dun-line-list)))
@@ -2222,54 +2204,47 @@ for a moment, then straighten yourself up.\n")
   (setq dun-line-list (dun-listify-string2 (concat line " ")))
   (dun-doverb ignore verblist (car dun-line-list) (cdr dun-line-list)))
 
-;;; Read a line, in window mode
-
 (defun dun-read-line ()
+  "Read a line, in window mode."
   (let ((line (read-string "")))
     (dun-mprinc line)
     line))
 
-;;; Insert something into the window buffer
-
 (defun dun-minsert (&rest args)
+  "Insert something into the window buffer."
   (dolist (arg args)
     (if (stringp arg)
         (insert arg)
       (insert (prin1-to-string arg)))))
-
-;;; Print something out, in window mode
 
 (defun dun-mprinc (&rest args)
+  "Print something out, in window mode."
   (dolist (arg args)
     (if (stringp arg)
         (insert arg)
       (insert (prin1-to-string arg)))))
 
-;;; In window mode, keep screen from jumping by keeping last line at
-;;; the bottom of the screen.
-
 (defun dun-fix-screen ()
+  "In window mode, keep screen from jumping by keeping last line at
+the bottom of the screen."
   (interactive)
   (forward-line (- 0 (- (window-height) 2 )))
   (set-window-start (selected-window) (point))
   (goto-char (point-max)))
 
-;;; Insert something into the buffer, followed by newline.
-
 (defun dun-minsertl (&rest args)
+  "Insert something into the buffer, followed by newline."
   (apply #'dun-minsert args)
   (dun-minsert "\n"))
 
-;;; Print something, followed by a newline.
-
 (defun dun-mprincl (&rest args)
+  "Print something, followed by a newline."
   (apply #'dun-mprinc args)
   (dun-mprinc "\n"))
 
-;;; Function which will get an object number given the list of
-;;; words in the command, except for the verb.
-
 (defun dun-objnum-from-args (obj)
+  "Get an object number given the list of words in the command,
+except for the verb."
   (setq obj (dun-firstword obj))
   (if (not obj)
       obj-special
@@ -2285,9 +2260,8 @@ for a moment, then straighten yourself up.\n")
       nil
     result)))
 
-;;; Given a unix style pathname, build a list of path components (recursive)
-
 (defun dun-get-path (dirstring startlist)
+  "Given a unix style pathname, build a list of path components (recursive)"
   (let (slash)
     (if (= (length dirstring) 0)
 	startlist
@@ -2299,10 +2273,9 @@ for a moment, then straighten yourself up.\n")
 		    (append startlist
 			    (list (substring dirstring 0 slash)))))))))
 
-;;; Function to put objects in the treasure room.  Also prints current
-;;; score to let user know he has scored.
-
 (defun dun-put-objs-in-treas (objlist)
+  "Put objects in the treasure room.
+Also prints current score to let user know he has scored."
   (let (oscore newscore)
     (setq oscore (dun-reg-score))
     (dun-replace dun-room-objects 0 (append (nth 0 dun-room-objects) objlist))
@@ -2310,9 +2283,8 @@ for a moment, then straighten yourself up.\n")
     (if (not (= oscore newscore))
 	(dun-score nil))))
 
-;;; Load an encrypted file, and eval it.
-
 (defun dun-load-d (filename)
+  "Load an encrypted file, and eval it."
   (let ((result t))
     (with-temp-buffer
       (condition-case nil
@@ -3154,14 +3126,16 @@ File not found")))
   (dun-mprinc "\n")
   (dun-batch-loop))
 
-(when noninteractive
-  (fset 'dun-mprinc 'dun-batch-mprinc)
-  (fset 'dun-mprincl 'dun-batch-mprincl)
-  (fset 'dun-vparse 'dun-batch-parse)
-  (fset 'dun-parse2 'dun-batch-parse2)
-  (fset 'dun-read-line 'dun-batch-read-line)
-  (fset 'dun-dos-interface 'dun-batch-dos-interface)
-  (fset 'dun-unix-interface 'dun-batch-unix-interface)
+;;;###autoload
+(defun dun-batch ()
+  "Start `dunnet' in batch mode."
+  (fset 'dun-mprinc #'dun-batch-mprinc)
+  (fset 'dun-mprincl #'dun-batch-mprincl)
+  (fset 'dun-vparse #'dun-batch-parse)
+  (fset 'dun-parse2 #'dun-batch-parse2)
+  (fset 'dun-read-line #'dun-batch-read-line)
+  (fset 'dun-dos-interface #'dun-batch-dos-interface)
+  (fset 'dun-unix-interface #'dun-batch-unix-interface)
   (dun-mprinc "\n")
   (setq dun-batch-mode t)
   (dun-batch-loop))

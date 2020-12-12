@@ -3577,7 +3577,9 @@ window managers may refuse to honor a HEIGHT that is not an integer
 multiple of the default frame font height.
 
 When called interactively, HEIGHT is the numeric prefix and the
-currently selected frame will be set to this height.  */)
+currently selected frame will be set to this height.
+
+If FRAME is nil, it defaults to the selected frame.  */)
   (Lisp_Object frame, Lisp_Object height, Lisp_Object pretend, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
@@ -3600,7 +3602,9 @@ window managers may refuse to honor a WIDTH that is not an integer
 multiple of the default frame font width.
 
 When called interactively, WIDTH is the numeric prefix and the
-currently selected frame will be set to this width.    */)
+currently selected frame will be set to this width.
+
+If FRAME is nil, it defaults to the selected frame.  */)
   (Lisp_Object frame, Lisp_Object width, Lisp_Object pretend, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
@@ -3616,7 +3620,9 @@ Optional argument PIXELWISE non-nil means to measure in pixels.  Note:
 When `frame-resize-pixelwise' is nil, some window managers may refuse to
 honor a WIDTH that is not an integer multiple of the default frame font
 width or a HEIGHT that is not an integer multiple of the default frame
-font height.  */)
+font height.
+
+If FRAME is nil, it defaults to the selected frame.  */)
   (Lisp_Object frame, Lisp_Object width, Lisp_Object height, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);

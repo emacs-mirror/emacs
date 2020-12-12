@@ -741,8 +741,7 @@ of an NNTP server to use.  As opposed to \\[gnus], this command
 will not connect to the local server."
   (let ((val (or arg (1- gnus-level-default-subscribed))))
     (gnus val t child)
-    (make-local-variable 'gnus-group-use-permanent-levels)
-    (setq gnus-group-use-permanent-levels val)))
+    (setq-local gnus-group-use-permanent-levels val)))
 
 (defun gnus-1 (&optional arg dont-connect child)
   "Read network news.
@@ -875,13 +874,13 @@ If REGEXP is given, lines that match it will be deleted."
     (with-current-buffer (setq gnus-dribble-buffer
 			       (gnus-get-buffer-create
 				(file-name-nondirectory dribble-file)))
-      (set (make-local-variable 'file-precious-flag) t)
+      (setq-local file-precious-flag t)
       (setq buffer-save-without-query t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
       ;; The buffer may be shrunk a lot when deleting old entries.
       ;; It caused the auto-saving to stop.
-      (set (make-local-variable 'auto-save-include-big-deletions) t)
+      (setq-local auto-save-include-big-deletions t)
       (auto-save-mode t)
       (buffer-disable-undo)
       (bury-buffer (current-buffer))
@@ -2763,8 +2762,7 @@ values from `gnus-newsrc-hashtb', and write a new value of
 
 	  ;; Save .newsrc.eld.
 	  (set-buffer (gnus-get-buffer-create " *Gnus-newsrc*"))
-	  (make-local-variable 'version-control)
-	  (setq version-control gnus-backup-startup-file)
+          (setq-local version-control gnus-backup-startup-file)
 	  (setq buffer-file-name
 		(concat gnus-current-startup-file ".eld"))
 	  (setq default-directory (file-name-directory buffer-file-name))
@@ -2973,8 +2971,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		(when ranges
 		  (insert ",")))))
 	  (insert "\n")))
-      (make-local-variable 'version-control)
-      (setq version-control 'never)
+      (setq-local version-control 'never)
       ;; It has been reported that sometime the modtime on the .newsrc
       ;; file seems to be off.  We really do want to overwrite it, so
       ;; we clear the modtime here before saving.  It's a bit odd,

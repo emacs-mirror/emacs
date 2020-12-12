@@ -762,6 +762,8 @@ After the tab is created, the hooks in
          (from-tab (tab-bar--tab)))
 
     (when tab-bar-new-tab-choice
+      (when (minibuffer-selected-window)
+        (select-window (minibuffer-selected-window)))
       (delete-other-windows)
       ;; Create a new window to get rid of old window parameters
       ;; (e.g. prev/next buffers) of old window.

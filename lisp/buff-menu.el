@@ -269,8 +269,8 @@ In Buffer Menu mode, the following commands are defined:
 \\[revert-buffer]    Update the list of buffers.
 \\[Buffer-menu-toggle-files-only]    Toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury]    Bury the buffer listed on this line."
-  (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional _noconfirm) 'fast))
+  (setq-local buffer-stale-function
+              (lambda (&optional _noconfirm) 'fast))
   (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
 
 (defun buffer-menu (&optional arg)

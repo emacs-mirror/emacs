@@ -3850,8 +3850,7 @@ This format is defined by the `gnus-article-time-format' variable."
   (unless gnus-article-emphasis-alist
     (let ((name (and gnus-newsgroup-name
 		     (gnus-group-real-name gnus-newsgroup-name))))
-      (make-local-variable 'gnus-article-emphasis-alist)
-      (setq gnus-article-emphasis-alist
+      (setq-local gnus-article-emphasis-alist
 	    (nconc
 	     (let ((alist gnus-group-highlight-words-alist) elem highlight)
 	       (while (setq elem (pop alist))
@@ -4495,10 +4494,10 @@ commands:
   (when (gnus-visual-p 'article-menu 'menu)
     (gnus-article-make-menu-bar)
     (when gnus-summary-tool-bar-map
-      (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map)))
+      (setq-local tool-bar-map gnus-summary-tool-bar-map)))
   (gnus-update-format-specifications nil 'article-mode)
-  (set (make-local-variable 'page-delimiter) gnus-page-delimiter)
-  (set (make-local-variable 'gnus-page-broken) nil)
+  (setq-local page-delimiter gnus-page-delimiter)
+  (setq-local gnus-page-broken nil)
   (make-local-variable 'gnus-article-current-summary)
   (make-local-variable 'gnus-article-mime-handles)
   (make-local-variable 'gnus-article-decoded-p)
@@ -4507,13 +4506,12 @@ commands:
   (make-local-variable 'gnus-article-image-alist)
   (make-local-variable 'gnus-article-charset)
   (make-local-variable 'gnus-article-ignored-charsets)
-  (set (make-local-variable 'bookmark-make-record-function)
-       'gnus-summary-bookmark-make-record)
+  (setq-local bookmark-make-record-function 'gnus-summary-bookmark-make-record)
   ;; Prevent Emacs from displaying non-break space with
   ;; `nobreak-space' face.
-  (set (make-local-variable 'nobreak-char-display) nil)
+  (setq-local nobreak-char-display nil)
   ;; Enable `gnus-article-remove-images' to delete images shr.el renders.
-  (set (make-local-variable 'shr-put-image-function) 'gnus-shr-put-image)
+  (setq-local shr-put-image-function 'gnus-shr-put-image)
   (unless gnus-article-show-cursor
     (setq cursor-in-non-selected-windows nil))
   (gnus-set-default-directory)
@@ -4557,7 +4555,7 @@ commands:
 		 t)))
 	(let ((summary gnus-summary-buffer))
 	  (with-current-buffer name
-	    (set (make-local-variable 'gnus-article-edit-mode) nil)
+            (setq-local gnus-article-edit-mode nil)
 	    (gnus-article-stop-animations)
 	    (when gnus-article-mime-handles
 	      (mm-destroy-parts gnus-article-mime-handles)
@@ -4568,14 +4566,14 @@ commands:
 	    (setq buffer-read-only t)
 	    (unless (derived-mode-p 'gnus-article-mode)
 	      (gnus-article-mode))
-	    (set (make-local-variable 'gnus-summary-buffer) summary)
+            (setq-local gnus-summary-buffer summary)
 	    (setq truncate-lines gnus-article-truncate-lines)
 	    (current-buffer)))
       (let ((summary gnus-summary-buffer))
 	(with-current-buffer (gnus-get-buffer-create name)
 	  (gnus-article-mode)
 	  (setq truncate-lines gnus-article-truncate-lines)
-	  (set (make-local-variable 'gnus-summary-buffer) summary)
+          (setq-local gnus-summary-buffer summary)
 	  (gnus-summary-set-local-parameters gnus-newsgroup-name)
 	  (when article-lapsed-timer
 	    (gnus-stop-date-timer))
@@ -5036,7 +5034,7 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 	  (setq gnus-article-mime-handles nil)
 	  (let ((mbl1 mml-buffer-list))
 	    (setq mml-buffer-list mbl)
-	    (set (make-local-variable 'mml-buffer-list) mbl1))
+            (setq-local mml-buffer-list mbl1))
 	  (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t)))
      `(lambda (no-highlight)
 	(let ((mail-parse-charset (or gnus-article-charset
@@ -6902,8 +6900,8 @@ then we display only bindings that start with that prefix."
 	(setq draft gnus-draft-mode)))
     (with-temp-buffer
       (use-local-map keymap)
-      (set (make-local-variable 'gnus-agent-summary-mode) agent)
-      (set (make-local-variable 'gnus-draft-mode) draft)
+      (setq-local gnus-agent-summary-mode agent)
+      (setq-local gnus-draft-mode draft)
       (describe-bindings prefix))
     (let ((item `((lambda (prefix)
 		    (with-current-buffer ,(current-buffer)
@@ -7247,10 +7245,9 @@ This is an extended text-mode.
 \\{gnus-article-edit-mode-map}"
   (make-local-variable 'gnus-article-edit-done-function)
   (make-local-variable 'gnus-prev-winconf)
-  (set (make-local-variable 'font-lock-defaults)
-       '(message-font-lock-keywords t))
-  (set (make-local-variable 'mail-header-separator) "")
-  (set (make-local-variable 'gnus-article-edit-mode) t)
+  (setq-local font-lock-defaults '(message-font-lock-keywords t))
+  (setq-local mail-header-separator "")
+  (setq-local gnus-article-edit-mode t)
   (mml-mode)
   (setq buffer-read-only nil)
   (buffer-enable-undo)

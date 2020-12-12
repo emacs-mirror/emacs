@@ -410,7 +410,7 @@
    ((and (math-num-integerp b)
 	 (if (math-negp b)
 	     (math-reject-arg b 'range)
-	   (Math-natnum-lessp (setq b (math-trunc b)) 20)))
+	   (< (setq b (math-trunc b)) 20)))
     (and calc-symbolic-mode (or (math-floatp a) (math-floatp b))
 	 (math-inexact-result))
     (math-mul
@@ -427,7 +427,7 @@
    ((and (math-num-integerp a)
 	 (if (math-negp a)
 	     (math-reject-arg a 'range)
-	   (Math-natnum-lessp (setq a (math-trunc a)) 20)))
+	   (< (setq a (math-trunc a)) 20)))
     (math-sub (or math-current-beta-value (calcFunc-beta a b))
 	      (calcFunc-betaB (math-sub 1 x) b a)))
    (t

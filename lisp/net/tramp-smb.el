@@ -2040,6 +2040,9 @@ If ARGUMENT is non-nil, use it as argument for
 	      (process-put p 'adjust-window-size-function #'ignore)
 	      (set-process-query-on-exit-flag p nil)
 
+	      ;; Set connection-local variables.
+	      (tramp-set-connection-local-variables vec)
+
 	      (condition-case err
 		  (let ((inhibit-message t))
 		    ;; Play login scenario.
@@ -2072,9 +2075,6 @@ If ARGUMENT is non-nil, use it as argument for
 		    ;; at once, it is read painfully slow.
 		    (tramp-set-connection-property p "smb-share" share)
 		    (tramp-set-connection-property p "chunksize" 1)
-
-		    ;; Set connection-local variables.
-		    (tramp-set-connection-local-variables vec)
 
 		    ;; Mark it as connected.
 		    (tramp-set-connection-property p "connected" t))

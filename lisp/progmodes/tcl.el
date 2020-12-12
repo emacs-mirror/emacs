@@ -616,41 +616,39 @@ Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
 already exist."
   (unless (and (boundp 'filladapt-mode) filladapt-mode)
-    (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
+    (setq-local paragraph-ignore-fill-prefix t))
 
-  (set (make-local-variable 'indent-line-function) #'tcl-indent-line)
-  (set (make-local-variable 'comment-indent-function) #'tcl-comment-indent)
+  (setq-local indent-line-function #'tcl-indent-line)
+  (setq-local comment-indent-function #'tcl-comment-indent)
   ;; Tcl doesn't require a final newline.
-  ;; (make-local-variable 'require-final-newline)
-  ;; (setq require-final-newline t)
+  ;; (setq-local require-final-newline t)
 
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[;{[]\\)\\s-*\\)#+ *")
-  (set (make-local-variable 'comment-end) "")
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip
+              "\\(\\(^\\|[;{[]\\)\\s-*\\)#+ *")
+  (setq-local comment-end "")
 
-  (set (make-local-variable 'outline-regexp) ".")
-  (set (make-local-variable 'outline-level) 'tcl-outline-level)
+  (setq-local outline-regexp ".")
+  (setq-local outline-level 'tcl-outline-level)
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(tcl-font-lock-keywords nil nil nil beginning-of-defun))
-  (set (make-local-variable 'syntax-propertize-function)
-       tcl-syntax-propertize-function)
+  (setq-local font-lock-defaults
+              '(tcl-font-lock-keywords nil nil nil beginning-of-defun))
+  (setq-local syntax-propertize-function
+              tcl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
 
-  (set (make-local-variable 'imenu-generic-expression)
-       tcl-imenu-generic-expression)
+  (setq-local imenu-generic-expression tcl-imenu-generic-expression)
 
   ;; Settings for new dabbrev code.
-  (set (make-local-variable 'dabbrev-case-fold-search) nil)
-  (set (make-local-variable 'dabbrev-case-replace) nil)
-  (set (make-local-variable 'dabbrev-abbrev-skip-leading-regexp) "[$!]")
-  (set (make-local-variable 'dabbrev-abbrev-char-regexp) "\\sw\\|\\s_")
+  (setq-local dabbrev-case-fold-search nil)
+  (setq-local dabbrev-case-replace nil)
+  (setq-local dabbrev-abbrev-skip-leading-regexp "[$!]")
+  (setq-local dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
 
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
-  (set (make-local-variable 'add-log-current-defun-function)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local defun-prompt-regexp tcl-omit-ws-regexp)
+  (setq-local add-log-current-defun-function
        #'tcl-add-log-defun)
 
   (setq-local beginning-of-defun-function #'tcl-beginning-of-defun-function)
@@ -1201,14 +1199,14 @@ Variables controlling Inferior Tcl mode:
 
 The following commands are available:
 \\{inferior-tcl-mode-map}"
-  (set (make-local-variable 'comint-prompt-regexp)
-       (or tcl-prompt-regexp
-	   (concat "^" (regexp-quote tcl-application) ">")))
+  (setq-local comint-prompt-regexp
+              (or tcl-prompt-regexp
+                  (concat "^" (regexp-quote tcl-application) ">")))
   (setq mode-line-process '(": %s"))
   (setq local-abbrev-table tcl-mode-abbrev-table)
   (set-syntax-table tcl-mode-syntax-table)
-  (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
-  (set (make-local-variable 'inferior-tcl-delete-prompt-marker) (make-marker))
+  (setq-local defun-prompt-regexp tcl-omit-ws-regexp)
+  (setq-local inferior-tcl-delete-prompt-marker (make-marker))
   (set-process-filter (get-buffer-process (current-buffer)) 'tcl-filter))
 
 ;;;###autoload
@@ -1229,7 +1227,7 @@ See documentation for function `inferior-tcl-mode' for more information."
     (unless (process-tty-name (inferior-tcl-proc))
       (tcl-send-string (inferior-tcl-proc)
                        "set ::tcl_interactive 1; concat\n")))
-  (set (make-local-variable 'tcl-application) cmd)
+  (setq-local tcl-application cmd)
   (setq inferior-tcl-buffer "*inferior-tcl*")
   (pop-to-buffer "*inferior-tcl*"))
 
@@ -1493,7 +1491,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
   (interactive "P")
   (auto-fill-mode arg)
   (if auto-fill-function
-      (set (make-local-variable 'comment-auto-fill-only-comments) t)
+      (setq-local comment-auto-fill-only-comments t)
     (kill-local-variable 'comment-auto-fill-only-comments)))
 
 (defun tcl-electric-hash (&optional count)
@@ -1574,7 +1572,7 @@ The first line is assumed to look like \"#!.../program ...\"."
   (save-excursion
     (goto-char (point-min))
     (if (looking-at "#![^ \t]*/\\([^ \t\n/]+\\)\\([ \t]\\|$\\)")
-	(set (make-local-variable 'tcl-application) (match-string 1)))))
+        (setq-local tcl-application (match-string 1)))))
 
 (defun tcl-popup-menu (_e)
   "XEmacs menu support."

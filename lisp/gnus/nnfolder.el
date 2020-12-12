@@ -1083,7 +1083,7 @@ This command does not work if you use short group names."
       (let ((coding-system-for-write
 	     (or nnfolder-file-coding-system-for-write
 		 nnfolder-file-coding-system)))
-	(set (make-local-variable 'copyright-update) nil)
+        (setq-local copyright-update nil)
 	(save-buffer)))
     (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
       (nnfolder-save-nov))))
@@ -1098,8 +1098,8 @@ This command does not work if you use short group names."
   (or (cdr (assoc group nnfolder-nov-buffer-alist))
       (let ((buffer (gnus-get-buffer-create (format " *nnfolder overview %s*" group))))
 	(with-current-buffer buffer
-	  (set (make-local-variable 'nnfolder-nov-buffer-file-name)
-	       (nnfolder-group-nov-pathname group))
+          (setq-local nnfolder-nov-buffer-file-name
+                      (nnfolder-group-nov-pathname group))
 	  (erase-buffer)
 	  (when (file-exists-p nnfolder-nov-buffer-file-name)
 	    (nnheader-insert-file-contents nnfolder-nov-buffer-file-name)))

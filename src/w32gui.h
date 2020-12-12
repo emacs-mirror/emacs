@@ -46,6 +46,7 @@ extern int w32_load_image (struct frame *f, struct image *img,
                            Lisp_Object spec_file, Lisp_Object spec_data);
 extern bool w32_can_use_native_image_api (Lisp_Object);
 extern void w32_gdiplus_shutdown (void);
+extern size_t w32_image_size (struct image *);
 
 #define FACE_DEFAULT (~0)
 

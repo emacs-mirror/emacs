@@ -6063,6 +6063,7 @@ Erlang_functions (FILE *inf)
 	    {
 	      free (last);
 	      last = NULL;
+	      allocated = lastlen = 0;
 	    }
 	}
       else

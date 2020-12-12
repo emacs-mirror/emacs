@@ -268,6 +268,12 @@ the \"-f\" switch otherwise."
   :type 'string
   :version "23.1")
 
+(defcustom server-client-instructions t
+  "If non-nil, display instructions on how to exit the client on connection.
+If nil, no instructions are displayed."
+  :version "28.1"
+  :type 'boolean)
+
 ;; We do not use `temporary-file-directory' here, because emacsclient
 ;; does not read the init file.
 (defvar server-socket-dir
@@ -1328,6 +1334,8 @@ The following commands are accepted by the client:
   ;; inhibit-quit flag, which is good since `commands' (as well as
   ;; find-file-noselect via the major-mode) can run arbitrary code,
   ;; including code that needs to wait.
+  (when (and frame server-raise-frame)
+    (select-frame-set-input-focus frame))
   (with-local-quit
     (condition-case err
         (let ((buffers (server-visit-files files proc nowait)))
@@ -1360,8 +1368,10 @@ The following commands are accepted by the client:
             nil)
            ((and frame (null buffers))
             (run-hooks 'server-after-make-frame-hook)
-            (message "%s" (substitute-command-keys
-                           "When done with this frame, type \\[delete-frame]")))
+            (when server-client-instructions
+              (message "%s"
+                       (substitute-command-keys
+                        "When done with this frame, type \\[delete-frame]"))))
            ((not (null buffers))
             (run-hooks 'server-after-make-frame-hook)
             (server-switch-buffer
@@ -1372,9 +1382,11 @@ The following commands are accepted by the client:
              ;; where it may be displayed.
              (plist-get (process-plist proc) 'frame))
             (run-hooks 'server-switch-hook)
-            (unless nowait
-              (message "%s" (substitute-command-keys
-                             "When done with a buffer, type \\[server-edit]")))))
+            (when (and (not nowait)
+                       server-client-instructions)
+              (message "%s"
+                       (substitute-command-keys
+                        "When done with a buffer, type \\[server-edit]")))))
           (when (and frame (null tty-name))
             (server-unselect-display frame)))
       ((quit error)
@@ -1676,9 +1688,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
                   (switch-to-buffer next-buffer))
 	      ;; After all the above, we might still have ended up with
 	      ;; a minibuffer/dedicated-window (if there's no other).
-	      (error (pop-to-buffer next-buffer)))))))
-    (when server-raise-frame
-      (select-frame-set-input-focus (window-frame)))))
+	      (error (pop-to-buffer next-buffer)))))))))
 
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (arg)

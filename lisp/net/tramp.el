@@ -5210,6 +5210,8 @@ Invokes `password-read' if available, `read-passwd' else."
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key))))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
+	 ;; Use connection-local value.
+	 (auth-sources (with-current-buffer (process-buffer proc) auth-sources))
 	 ;; We suspend the timers while reading the password.
          (stimers (with-timeout-suspend))
 	 auth-info auth-passwd)
@@ -5250,7 +5252,7 @@ Invokes `password-read' if available, `read-passwd' else."
 		   (setq auth-passwd (funcall auth-passwd)))
 		 auth-passwd)
 
-	       ;; Try the password cache.
+	       ;; Try the password cache.  Exists since Emacs 26.1.
 	       (progn
 		 (setq auth-passwd (password-read pw-prompt key)
 		       tramp-password-save-function

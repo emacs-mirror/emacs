@@ -1275,13 +1275,15 @@ the menu entries in the dispatch menu.")
    "  "))
 
 ;;;###autoload
-(defun project-switch-project ()
+(defun project-switch-project (dir)
   "\"Switch\" to another project by running an Emacs command.
 The available commands are presented as a dispatch menu
-made from `project-switch-commands'."
-  (interactive)
-  (let ((dir (project-prompt-project-dir))
-        (choice nil))
+made from `project-switch-commands'.
+
+When called in a program, it will use the project corresponding
+to directory DIR."
+  (interactive (list (project-prompt-project-dir)))
+  (let ((choice nil))
     (while (not choice)
       (setq choice (assq (read-event (project--keymap-prompt))
                          project-switch-commands)))

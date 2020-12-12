@@ -233,7 +233,7 @@ Also see the `reveal-auto-hide' variable."
   :keymap reveal-mode-map
   (if reveal-mode
       (progn
-	(set (make-local-variable 'search-invisible) t)
+        (setq-local search-invisible t)
 	(add-hook 'post-command-hook 'reveal-post-command nil t))
     (kill-local-variable 'search-invisible)
     (remove-hook 'post-command-hook 'reveal-post-command t)))

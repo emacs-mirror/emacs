@@ -451,7 +451,7 @@ function findactiveelement(doc){
 XW is the xwidget identifier, TEXT is retrieved from the webkit."
   (switch-to-buffer
    (generate-new-buffer "textarea"))
-  (set (make-local-variable 'xwidget-xwbl) xw)
+  (setq-local xwidget-xwbl xw)
   (insert text))
 
 (defun xwidget-webkit-end-edit-textarea ()

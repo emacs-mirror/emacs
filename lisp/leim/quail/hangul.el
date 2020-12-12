@@ -525,7 +525,7 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
   (quail-delete-overlays)
   (if (eq (selected-window) (minibuffer-window))
       (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-  (set (make-local-variable 'input-method-function) func))
+  (setq-local input-method-function func))
 
 (defun hangul-input-method-deactivate ()
   "Deactivate the current Hangul input method."

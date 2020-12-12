@@ -29,7 +29,6 @@
 (declare-function math-looks-negp "calc-misc" (a))
 (declare-function math-posp "calc-misc" (a))
 (declare-function math-compare "calc-ext" (a b))
-(declare-function math-compare-bignum "calc-ext" (a b))
 
 
 (defmacro calc-wrapper (&rest body)
@@ -173,13 +172,6 @@
 	   (eq (car a) 'float)
 	   (eq (nth 1 a) b)
 	   (= (nth 2 a) 0))))
-
-(defsubst Math-natnum-lessp (a b)
-  (if (consp a)
-      (and (consp b)
-	   (= (math-compare-bignum (cdr a) (cdr b)) -1))
-    (or (consp b)
-	(< a b))))
 
 (provide 'calc-macs)
 

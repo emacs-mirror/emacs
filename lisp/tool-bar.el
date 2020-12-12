@@ -159,7 +159,8 @@ To define items in any other map, use `tool-bar-local-item'."
 		       ((< (display-color-cells) 256)
 			',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
 		       (t
-			',(list xpm-spec pbm-spec xbm-spec))))))
+			',(list xpm-spec pbm-spec xbm-spec)))
+                 t)))
 
 ;;;###autoload
 (defun tool-bar-local-item (icon def key map &rest props)

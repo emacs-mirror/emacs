@@ -237,9 +237,8 @@ For most purposes, consider using `format-encode-region' instead."
                   ;; delete the buffer once the write is done, but do
                   ;; it after running to-fn so it doesn't affect
                   ;; write-region calls in to-fn.
-                  (set (make-local-variable
-                        'write-region-post-annotation-function)
-                       'kill-buffer)))
+                  (setq-local write-region-post-annotation-function
+                              #'kill-buffer)))
 	      nil)
 	  ;; Otherwise just call function, it will return annotations.
 	  (funcall to-fn from to orig-buf)))))

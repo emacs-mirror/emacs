@@ -410,8 +410,18 @@ the specializer used will be the one returned by BODY."
 ;;;###autoload
 (defmacro cl-defmethod (name args &rest body)
   "Define a new method for generic function NAME.
-I.e. it defines the implementation of NAME to use for invocations where the
-values of the dispatch arguments match the specified TYPEs.
+This it defines an implementation of NAME to use for invocations
+of specific types of arguments.
+
+ARGS is a list of dispatch arguments (see `cl-defun'), but where
+each variable element is either just a single variable name VAR,
+or a list on the form (VAR TYPE).
+
+For instance:
+
+  (cl-defmethod foo (bar (format-string string) &optional zot)
+    (format format-string bar))
+
 The dispatch arguments have to be among the mandatory arguments, and
 all methods of NAME have to use the same set of arguments for dispatch.
 Each dispatch argument and TYPE are specified in ARGS where the corresponding

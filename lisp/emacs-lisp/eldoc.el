@@ -467,7 +467,6 @@ This holds the results of the last documentation request."
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
-  (interactive (list t))
   (with-current-buffer (if (buffer-live-p eldoc--doc-buffer)
                            eldoc--doc-buffer
                          (setq eldoc--doc-buffer
