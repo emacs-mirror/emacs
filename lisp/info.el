@@ -2473,7 +2473,7 @@ Table of contents is created from the tree structure of menus."
               (setq bound (or (and (equal nodename "Top")
                                    (save-excursion
                                      (re-search-forward
-                                      "^[ \t-—]*The Detailed Node Listing" nil t)))
+                                      "^[ \t—-]*The Detailed Node Listing" nil t)))
                               bound))
               (while (< (point) bound)
                 (cond
