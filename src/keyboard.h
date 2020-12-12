@@ -446,7 +446,6 @@ extern void push_kboard (struct kboard *);
 extern void push_frame_kboard (struct frame *);
 extern void pop_kboard (void);
 extern void temporarily_switch_to_single_kboard (struct frame *);
-extern void record_asynch_buffer_change (void);
 extern void input_poll_signal (int);
 extern void start_polling (void);
 extern void stop_polling (void);
