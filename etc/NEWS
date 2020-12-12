@@ -292,6 +292,10 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Loading dunnet.el in batch mode doesn't start the game any more
+Instead you need to do 'emacs -f dun-batch' to start the game in
+batch mode.
+
 ** Emacs Server
 
 +++
