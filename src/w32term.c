@@ -1991,6 +1991,17 @@ w32_draw_image_foreground (struct glyph_string *s)
   RestoreDC (s->hdc ,-1);
 }
 
+size_t
+w32_image_size (struct image *img)
+{
+  BITMAP bm_info;
+  size_t rv = 0;
+
+  if (GetObject (img->pixmap, sizeof (BITMAP), &bm_info))
+    rv = bm_info.bmWidth * bm_info.bmHeight * bm_info.bmBitsPixel / 8;
+  return rv;
+}
+
 
 /* Draw a relief around the image glyph string S.  */
 

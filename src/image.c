@@ -1792,11 +1792,11 @@ which is then usually a filename.  */)
   return Qnil;
 }
 
-static int
+static size_t
 image_frame_cache_size (struct frame *f)
 {
-  int total = 0;
-#ifdef USE_CAIRO
+  size_t total = 0;
+#if defined USE_CAIRO
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
 
   if (!c)
@@ -1810,6 +1810,19 @@ image_frame_cache_size (struct frame *f)
 	total += img->pixmap->width * img->pixmap->height  *
 	  img->pixmap->bits_per_pixel / 8;
     }
+#elif defined HAVE_NTGUI
+  struct image_cache *c = FRAME_IMAGE_CACHE (f);
+
+  if (!c)
+    return 0;
+
+  for (ptrdiff_t i = 0; i < c->used; ++i)
+    {
+      struct image *img = c->images[i];
+
+      if (img && img->pixmap && img->pixmap != NO_PIXMAP)
+	total += w32_image_size (img);
+    }
 #endif
   return total;
 }
@@ -1819,7 +1832,7 @@ DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
   (void)
 {
   Lisp_Object tail, frame;
-  int total = 0;
+  size_t total = 0;
 
   FOR_EACH_FRAME (tail, frame)
     if (FRAME_WINDOW_P (XFRAME (frame)))
