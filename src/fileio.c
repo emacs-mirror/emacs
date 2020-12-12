@@ -3757,9 +3757,10 @@ characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
 If optional fifth argument REPLACE is non-nil, replace the current
 buffer contents (in the accessible portion) with the file contents.
 This is better than simply deleting and inserting the whole thing
-because (1) it preserves some marker positions and (2) it puts less data
-in the undo list.  When REPLACE is non-nil, the second return value is
-the number of characters that replace previous buffer contents.
+because (1) it preserves some marker positions (in unchanged portions
+at the start and end of the buffer) and (2) it puts less data in the
+undo list.  When REPLACE is non-nil, the second return value is the
+number of characters that replace previous buffer contents.
 
 This function does code conversion according to the value of
 `coding-system-for-read' or `file-coding-system-alist', and sets the

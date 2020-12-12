@@ -6119,6 +6119,9 @@ This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
 
+Reverting a buffer will try to preserve markers in the buffer;
+see the Info node `(elisp)Reverting' for details.
+
 This command also implements an interface for special buffers
 that contain text that doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
