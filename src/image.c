@@ -9872,8 +9872,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   rsvg_handle = rsvg_handle_new_from_stream_sync (input_stream, base_file,
 						  RSVG_HANDLE_FLAGS_NONE,
 						  NULL, &err);
-  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
-                           FRAME_DISPLAY_INFO (f)->resy);
 
   if (base_file)
     g_object_unref (base_file);
@@ -9881,6 +9879,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* Check rsvg_handle too, to avoid librsvg 2.40.13 bug (Bug#36773#26).  */
   if (!rsvg_handle || err) goto rsvg_error;
+
+  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
+                           FRAME_DISPLAY_INFO (f)->resy);
 #else
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
@@ -10045,15 +10046,15 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 						  RSVG_HANDLE_FLAGS_NONE,
 						  NULL, &err);
 
-  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
-                           FRAME_DISPLAY_INFO (f)->resy);
-
   if (base_file)
     g_object_unref (base_file);
   g_object_unref (input_stream);
 
   /* Check rsvg_handle too, to avoid librsvg 2.40.13 bug (Bug#36773#26).  */
   if (!rsvg_handle || err) goto rsvg_error;
+
+  rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
+                           FRAME_DISPLAY_INFO (f)->resy);
 #else
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
