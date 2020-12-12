@@ -2228,24 +2228,32 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
                              (if (eobp)
                                  (point)
                                (- (point) 2)))
-              (write-region (point-min) (point-max) buffer-file-name nil 'silent)))
+              (write-region (point-min) (point-max) buffer-file-name nil 'silent)
+              (set-visited-file-modtime)))
           (setq should-scan t))))
       (when should-scan
-        (call-process
-         etags--command
-         nil
-         '("*etags-project-tags-errors*" t)
-         nil
-         file-name
-         "--append"
-         "-o"
-         etags--project-tags-file)
-        ;; TODO: When the project is big (tags file in 10s of megabytes),
-        ;; revert-buffer is predictably slow.  One way to avoid
-        ;; this is to only keep TAGS in a buffer, but not on disk.
-        (revert-buffer t t)
-        (tags-table-mode)
+        (goto-char (point-max))
+        (let ((inhibit-read-only t)
+              (current-end (point)))
+          (call-process
+           etags--command
+           nil
+           '(t "*etags-project-tags-errors*")
+           nil
+           file-name
+           "--append"
+           "-o"
+           "-")
+          ;; XXX: When the project is big (tags file in 10s of megabytes),
+          ;; this is much faster than revert-buffer.  Or even using
+          ;; write-region without APPEND.
+          ;; We could also keep TAGS strictly as a buffer, with no
+          ;; backing on disk.
+          (write-region current-end (point-max) etags--project-tags-file t))
+        (set-visited-file-modtime)
         ;; FIXME: Is there a better way to do this?
+        ;; Completion table is the only remaining place where the
+        ;; update is not incremental.
         (setq-default tags-completion-table nil)
         ))))
 
