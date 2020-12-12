@@ -1864,7 +1864,10 @@ byte, is @var{len}.  The original string in @var{str} can be either an
 it can include embedded null bytes, and doesn't have to end in a
 terminating null byte at @code{@var{str}[@var{len}]}.  The function
 raises the @code{overflow-error} error condition if @var{len} is
-negative or exceeds the maximum length of an Emacs string.
+negative or exceeds the maximum length of an Emacs string.  If
+@var{len} is zero, then @var{str} can be @code{NULL}, otherwise it
+must point to valid memory.  For nonzero @var{len}, @code{make_string}
+returns unique mutable string objects.
 @end deftypefn
 
 @deftypefn Function emacs_value make_unibyte_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{len})
