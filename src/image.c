@@ -9583,6 +9583,9 @@ DEF_DLL_FN (gboolean, rsvg_handle_write,
 DEF_DLL_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
 #  endif
 
+DEF_DLL_FN (void, rsvg_handle_set_dpi_x_y,
+	    (RsvgHandle * handle, double dpi_x, double dpi_y));
+
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 DEF_DLL_FN (void, rsvg_handle_get_intrinsic_dimensions,
             (RsvgHandle *, gboolean *, RsvgLength *, gboolean *,
@@ -9639,6 +9642,7 @@ init_svg_functions (void)
   LOAD_DLL_FN (library, rsvg_handle_write);
   LOAD_DLL_FN (library, rsvg_handle_close);
 #endif
+  LOAD_DLL_FN (library, rsvg_handle_set_dpi_x_y);
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
   LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
@@ -9694,6 +9698,7 @@ init_svg_functions (void)
 #   undef rsvg_handle_set_base_uri
 #   undef rsvg_handle_write
 #  endif
+#  undef rsvg_handle_set_dpi_x_y
 
 #  define gdk_pixbuf_get_bits_per_sample fn_gdk_pixbuf_get_bits_per_sample
 #  define gdk_pixbuf_get_colorspace fn_gdk_pixbuf_get_colorspace
@@ -9727,6 +9732,7 @@ init_svg_functions (void)
 #   define rsvg_handle_set_base_uri fn_rsvg_handle_set_base_uri
 #   define rsvg_handle_write fn_rsvg_handle_write
 #  endif
+#  define rsvg_handle_set_dpi_x_y fn_rsvg_handle_set_dpi_x_y
 
 # endif /* !WINDOWSNT  */
 
