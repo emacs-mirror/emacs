@@ -164,7 +164,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-fwprop
                         comp-call-optim
                         comp-ipa-pure
-                        comp-cond-rw
+                        comp-cond-cstr
                         comp-fwprop
                         comp-dead-code
                         comp-tco
@@ -1849,7 +1849,7 @@ BB-NAME."
 	(comp-block-insns (gethash bb-name (comp-func-blocks comp-func))))
   (setf (comp-func-ssa-status comp-func) 'dirty))
 
-(defun comp-cond-rw-target-slot (slot-num exit-insn bb)
+(defun comp-cond-cstr-target-slot (slot-num exit-insn bb)
   "Search for the last assignment of SLOT-NUM in BB.
 Keep on searching till EXIT-INSN is encountered.
 Return the corresponding rhs slot number."
@@ -1867,8 +1867,8 @@ Return the corresponding rhs slot number."
            (setf res rhs)))
      finally (cl-assert nil))))
 
-(defun comp-cond-rw-func ()
-  "`comp-cond-rw' worker function for each selected function."
+(defun comp-cond-cstr-func ()
+  "`comp-cond-cstr' worker function for each selected function."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do (cl-loop
@@ -1888,15 +1888,15 @@ Return the corresponding rhs slot number."
                                  (gethash bb-1
                                           (comp-func-blocks comp-func))))
                       1)
-               (when-let ((target-slot1 (comp-cond-rw-target-slot
+               (when-let ((target-slot1 (comp-cond-cstr-target-slot
                                          (comp-mvar-slot op1) (car insns-seq) b)))
                  (comp-emit-assume target-slot1 op2 bb-1 test-fn))
-               (when-let ((target-slot2 (comp-cond-rw-target-slot
+               (when-let ((target-slot2 (comp-cond-cstr-target-slot
                                          (comp-mvar-slot op2) (car insns-seq) b)))
                  (comp-emit-assume target-slot2 op1 bb-1 test-fn)))
 	     (cl-return-from in-the-basic-block))))))
 
-(defun comp-cond-rw (_)
+(defun comp-cond-cstr (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
 This is introducing and placing 'assume' insns in use by fwprop
 to propagate conditional branch test information on target basic
@@ -1909,7 +1909,7 @@ blocks."
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (comp-cond-rw-func)
+                 (comp-cond-cstr-func)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
