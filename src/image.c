@@ -9743,11 +9743,10 @@ static bool
 svg_load (struct frame *f, struct image *img)
 {
   bool success_p = 0;
-  Lisp_Object file_name, base_uri;
+  Lisp_Object file_name;
 
   /* If IMG->spec specifies a file name, create a non-file spec from it.  */
   file_name = image_spec_value (img->spec, QCfile, NULL);
-  base_uri = image_spec_value (img->spec, QCbase_uri, NULL);
   if (STRINGP (file_name))
     {
       int fd;
@@ -9767,16 +9766,15 @@ svg_load (struct frame *f, struct image *img)
 	  return 0;
 	}
       /* If the file was slurped into memory properly, parse it.  */
-      if (!STRINGP (base_uri))
-        base_uri = ENCODE_FILE (file);
-      success_p = svg_load_image (f, img, contents, size, SSDATA (base_uri));
+      success_p = svg_load_image (f, img, contents, size,
+				  SSDATA (ENCODE_FILE (file)));
       xfree (contents);
     }
   /* Else it's not a file, it's a Lisp object.  Load the image from a
      Lisp object rather than a file.  */
   else
     {
-      Lisp_Object data;
+      Lisp_Object data, original_filename;
 
       data = image_spec_value (img->spec, QCdata, NULL);
       if (!STRINGP (data))
@@ -9784,10 +9782,10 @@ svg_load (struct frame *f, struct image *img)
 	  image_error ("Invalid image data `%s'", data);
 	  return 0;
 	}
-      if (!STRINGP (base_uri))
-        base_uri = BVAR (current_buffer, filename);
+      original_filename = BVAR (current_buffer, filename);
       success_p = svg_load_image (f, img, SSDATA (data), SBYTES (data),
-                                  (NILP (base_uri) ? NULL : SSDATA (base_uri)));
+                                  (NILP (original_filename) ? NULL
+				   : SSDATA (original_filename)));
     }
 
   return success_p;
@@ -9888,7 +9886,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
                            FRAME_DISPLAY_INFO (f)->resy);
 
   /* Set base_uri for properly handling referenced images (via 'href').
-     Can be explicitly specified using `:base_uri' image property.
      See rsvg bug 596114 - "image refs are relative to curdir, not .svg file"
      <https://gitlab.gnome.org/GNOME/librsvg/issues/33>. */
   if (filename)
@@ -10061,7 +10058,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
                            FRAME_DISPLAY_INFO (f)->resy);
 
   /* Set base_uri for properly handling referenced images (via 'href').
-     Can be explicitly specified using `:base_uri' image property.
      See rsvg bug 596114 - "image refs are relative to curdir, not .svg file"
      <https://gitlab.gnome.org/GNOME/librsvg/issues/33>. */
   if (filename)
@@ -10744,7 +10740,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
 #if defined (HAVE_RSVG)
   DEFSYM (Qsvg, "svg");
-  DEFSYM (QCbase_uri, ":base-uri");
   add_image_type (Qsvg);
 #ifdef HAVE_NTGUI
   /* Other libraries used directly by svg code.  */
