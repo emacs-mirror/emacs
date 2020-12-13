@@ -294,7 +294,9 @@ by counted more than once."
                                       (overlay-lists)))))
 
 (defun memory-report--image-cache ()
-  (list (cons "Total Image Cache Size" (image-cache-size))))
+  (list (cons "Total Image Cache Size" (if (fboundp 'image-cache-size)
+                                           (image-cache-size)
+                                         0))))
 
 (provide 'memory-report)
 
