@@ -1827,12 +1827,9 @@ Runs in a batch-mode Emacs.  Interactively use variable
   (interactive (list buffer-file-name))
   (let* ((file (or file
                    (car command-line-args-left)))
-         (dummy-elc-file)
          (byte-compile-log-buffer
           (generate-new-buffer " *dummy-byte-compile-log-buffer*"))
-         (byte-compile-dest-file-function
-          (lambda (source)
-            (setq dummy-elc-file (make-temp-file (file-name-nondirectory source)))))
+         (byte-compile-dest-file-function #'ignore)
          (collected)
          (byte-compile-log-warning-function
           (lambda (string &optional position fill level)
@@ -1842,7 +1839,6 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (unwind-protect
         (byte-compile-file file)
       (ignore-errors
-        (delete-file dummy-elc-file)
         (kill-buffer byte-compile-log-buffer)))
     (prin1 :elisp-flymake-output-start)
     (terpri)
