@@ -656,7 +656,7 @@ Assume allocation class 'd-default as default."
 
 (defconst comp-limple-lock-keywords
   `((,(rx bol "(comment" (1+ not-newline)) . font-lock-comment-face)
-    (,(rx "#s(" (group-n 1 "comp-mvar"))
+    (,(rx "#(" (group-n 1 "mvar"))
      (1 font-lock-function-name-face))
     (,(rx bol "(" (group-n 1 "phi"))
      (1 font-lock-variable-name-face))
@@ -715,15 +715,30 @@ log with `comp-log-to-buffer'."
         (with-selected-window log-window
           (goto-char (point-max)))))))
 
+(defun comp-prettyformat-mvar (mvar)
+  (format "#(mvar %s %s %S)"
+          (comp-mvar-id mvar)
+          (comp-mvar-slot mvar)
+          (comp-cstr-to-type-spec mvar)))
+
+(defun comp-prettyformat-insn (insn)
+  (cl-typecase insn
+    (comp-mvar (comp-prettyformat-mvar insn))
+    (atom (prin1-to-string insn))
+    (cons (concat "(" (mapconcat #'comp-prettyformat-insn insn " ") ")"))))
+
 (defun comp-log-func (func verbosity)
   "Log function FUNC.
 VERBOSITY is a number between 0 and 3."
   (when (>= comp-verbose verbosity)
     (comp-log (format "\nFunction: %s\n" (comp-func-name func)) verbosity)
-    (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
-             using (hash-value bb)
-             do (comp-log (concat "<" (symbol-name block-name) ">") verbosity)
-                (comp-log (comp-block-insns bb) verbosity t))))
+    (cl-loop
+     for block-name being each hash-keys of (comp-func-blocks func)
+     using (hash-value bb)
+     do (comp-log (concat "<" (symbol-name block-name) ">") verbosity)
+        (cl-loop
+         for insn in (comp-block-insns bb)
+         do (comp-log (comp-prettyformat-insn insn) verbosity)))))
 
 (defun comp-log-edges (func)
   "Log edges in FUNC."
@@ -2286,7 +2301,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                                for e in (comp-block-in-edges b)
                                for b = (comp-edge-src e)
                                for in-frame = (comp-block-final-frame b)
-                               collect (cons (aref in-frame slot-n)
+                               collect (list (aref in-frame slot-n)
                                              (comp-block-name b))))))
 
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
