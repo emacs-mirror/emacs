@@ -152,6 +152,4 @@ return the value of the last statement in BODY, as elisp."
 
 (provide 'ob-perl)
 
-
-
 ;;; ob-perl.el ends here

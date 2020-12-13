@@ -143,7 +143,8 @@ Emacs Lisp representation of the value of the variable."
 				   (org-babel-ref-split-args new-referent))))
 	      (when (> (length new-header-args) 0)
 		(setq args (append (org-babel-parse-header-arguments
-				    new-header-args) args)))
+				    new-header-args)
+				   args)))
 	      (setq ref new-refere)))
 	  (when (string-match "^\\(.+\\):\\(.+\\)$" ref)
 	    (setq split-file (match-string 1 ref))
@@ -239,7 +240,6 @@ to \"0:-1\"."
 (defun org-babel-ref-split-args (arg-string)
   "Split ARG-STRING into top-level arguments of balanced parenthesis."
   (mapcar #'org-trim (org-babel-balanced-split arg-string 44)))
-
 
 (provide 'ob-ref)
 

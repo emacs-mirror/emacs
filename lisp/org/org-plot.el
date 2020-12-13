@@ -3,6 +3,7 @@
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
+;; Maintainer: TEC <tecosaur@gmail.com>
 ;; Keywords: tables, plotting
 ;; Homepage: https://orgmode.org
 ;;
@@ -144,7 +145,8 @@ and dependent variables."
 	 row-vals)
     (when (>= ind 0) ;; collect values of ind col
       (setf row-vals (mapcar (lambda (row) (setf counter (+ 1 counter))
-			       (cons counter (nth ind row))) table)))
+			       (cons counter (nth ind row)))
+			     table)))
     (when (or deps (>= ind 0)) ;; remove non-plotting columns
       (setf deps (delq ind deps))
       (setf table (mapcar (lambda (row)
@@ -288,14 +290,12 @@ line directly before or after the table."
 	(setf params (plist-put params (car pair) (cdr pair)))))
     ;; collect table and table information
     (let* ((data-file (make-temp-file "org-plot"))
-	   (table (org-table-to-lisp))
-	   (num-cols (length (if (eq (nth 0 table) 'hline) (nth 1 table)
-			       (nth 0 table)))))
+	   (table (org-table-collapse-header (org-table-to-lisp)))
+	   (num-cols (length (car table))))
       (run-with-idle-timer 0.1 nil #'delete-file data-file)
-      (while (eq 'hline (car table)) (setf table (cdr table)))
       (when (eq (cadr table) 'hline)
 	(setf params
-	      (plist-put params :labels (nth 0 table))) ; headers to labels
+	      (plist-put params :labels (car table))) ; headers to labels
 	(setf table (delq 'hline (cdr table)))) ; clean non-data from table
       ;; Collect options.
       (save-excursion (while (and (equal 0 (forward-line -1))
@@ -308,26 +308,20 @@ line directly before or after the table."
 	(`grid (let ((y-labels (org-plot/gnuplot-to-grid-data
 				table data-file params)))
 		 (when y-labels (plist-put params :ylabels y-labels)))))
-      ;; Check for timestamp ind column.
-      (let ((ind (1- (plist-get params :ind))))
-	(when (and (>= ind 0) (eq '2d (plist-get params :plot-type)))
-	  (if (= (length
-		  (delq 0 (mapcar
-			   (lambda (el)
-			     (if (string-match org-ts-regexp3 el) 0 1))
-			   (mapcar (lambda (row) (nth ind row)) table))))
-		 0)
-	      (plist-put params :timeind t)
-	    ;; Check for text ind column.
-	    (if (or (string= (plist-get params :with) "hist")
-		    (> (length
-			(delq 0 (mapcar
-				 (lambda (el)
-				   (if (string-match org-table-number-regexp el)
-				       0 1))
-				 (mapcar (lambda (row) (nth ind row)) table))))
-		       0))
-		(plist-put params :textind t)))))
+      ;; Check type of ind column (timestamp? text?)
+      (when (eq `2d (plist-get params :plot-type))
+	(let* ((ind (1- (plist-get params :ind)))
+	       (ind-column (mapcar (lambda (row) (nth ind row)) table)))
+	  (cond ((< ind 0) nil) ; ind is implicit
+		((cl-every (lambda (el)
+			     (string-match org-ts-regexp3 el))
+			   ind-column)
+		 (plist-put params :timeind t)) ; ind holds timestamps
+		((or (string= (plist-get params :with) "hist")
+		     (cl-notevery (lambda (el)
+				    (string-match org-table-number-regexp el))
+				  ind-column))
+		 (plist-put params :textind t))))) ; ind holds text
       ;; Write script.
       (with-temp-buffer
 	(if (plist-get params :script)	; user script

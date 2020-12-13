@@ -65,6 +65,4 @@ called by `org-babel-execute-src-block'."
 
 (provide 'ob-ledger)
 
-
-
 ;;; ob-ledger.el ends here

@@ -4,6 +4,7 @@
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
+;; Maintainer: Jack Kamm <jackkamm@gmail.com>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 
@@ -29,10 +30,11 @@
 ;;; Code:
 (require 'ob)
 (require 'org-macs)
+(require 'python)
 
-(declare-function py-shell "ext:python-mode" (&optional argprompt))
+(declare-function py-shell "ext:python-mode" (&rest args))
 (declare-function py-toggle-shells "ext:python-mode" (arg))
-(declare-function run-python "ext:python" (&optional cmd dedicated show))
+(declare-function py-shell-send-string "ext:python-mode" (strg &optional process))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("python" . "py"))
@@ -104,7 +106,8 @@ VARS contains resolved variable references."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (end-of-line 1) (insert var) (comint-send-input)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-load-session:python (session body params)
@@ -177,42 +180,40 @@ Emacs-lisp table, otherwise return the results as a string."
   "Initiate a python session.
 If there is not a current inferior-process-buffer in SESSION
 then create.  Return the initialized session."
-  (require org-babel-python-mode)
   (save-window-excursion
     (let* ((session (if session (intern session) :default))
-           (python-buffer (org-babel-python-session-buffer session))
+           (py-buffer (org-babel-python-session-buffer session))
 	   (cmd (if (member system-type '(cygwin windows-nt ms-dos))
 		    (concat org-babel-python-command " -i")
 		  org-babel-python-command)))
       (cond
-       ((and (eq 'python org-babel-python-mode)
-	     (fboundp 'run-python)) ; python.el
-	(if (not (version< "24.1" emacs-version))
-	    (run-python cmd)
-	  (unless python-buffer
-	    (setq python-buffer (org-babel-python-with-earmuffs session)))
-	  (let ((python-shell-buffer-name
-		 (org-babel-python-without-earmuffs python-buffer)))
-	    (run-python cmd))))
+       ((eq 'python org-babel-python-mode) ; python.el
+	(unless py-buffer
+	  (setq py-buffer (org-babel-python-with-earmuffs session)))
+	(let ((python-shell-buffer-name
+	       (org-babel-python-without-earmuffs py-buffer)))
+	  (run-python cmd)
+	  (sleep-for 0 10)))
        ((and (eq 'python-mode org-babel-python-mode)
 	     (fboundp 'py-shell)) ; python-mode.el
+	(require 'python-mode)
 	;; Make sure that py-which-bufname is initialized, as otherwise
 	;; it will be overwritten the first time a Python buffer is
 	;; created.
 	(py-toggle-shells py-default-interpreter)
 	;; `py-shell' creates a buffer whose name is the value of
 	;; `py-which-bufname' with '*'s at the beginning and end
-	(let* ((bufname (if (and python-buffer (buffer-live-p python-buffer))
+	(let* ((bufname (if (and py-buffer (buffer-live-p py-buffer))
 			    (replace-regexp-in-string ;; zap surrounding *
-			     "^\\*\\([^*]+\\)\\*$" "\\1" python-buffer)
+			     "^\\*\\([^*]+\\)\\*$" "\\1" py-buffer)
 			  (concat "Python-" (symbol-name session))))
 	       (py-which-bufname bufname))
-	  (py-shell)
-	  (setq python-buffer (org-babel-python-with-earmuffs bufname))))
+	  (setq py-buffer (org-babel-python-with-earmuffs bufname))
+	  (py-shell nil nil t org-babel-python-command py-buffer nil nil t nil)))
        (t
 	(error "No function available for running an inferior Python")))
       (setq org-babel-python-buffers
-	    (cons (cons session python-buffer)
+	    (cons (cons session py-buffer)
 		  (assq-delete-all session org-babel-python-buffers)))
       session)))
 
@@ -222,8 +223,9 @@ then create.  Return the initialized session."
     (org-babel-python-session-buffer
      (org-babel-python-initiate-session-by-key session))))
 
-(defvar org-babel-python-eoe-indicator "'org_babel_python_eoe'"
+(defvar org-babel-python-eoe-indicator "org_babel_python_eoe"
   "A string to indicate that evaluation has completed.")
+
 (defconst org-babel-python-wrapper-method
   "
 def main():
@@ -238,14 +240,39 @@ def main():
 
 open('%s', 'w').write( pprint.pformat(main()) )")
 
-(defconst org-babel-python--exec-tmpfile
-  (concat
-   "__org_babel_python_fname = '%s'; "
-   "__org_babel_python_fh = open(__org_babel_python_fname); "
-   "exec(compile("
-   "__org_babel_python_fh.read(), __org_babel_python_fname, 'exec'"
-   ")); "
-   "__org_babel_python_fh.close()"))
+(defconst org-babel-python--exec-tmpfile "\
+with open('%s') as __org_babel_python_tmpfile:
+    exec(compile(__org_babel_python_tmpfile.read(), __org_babel_python_tmpfile.name, 'exec'))"
+  "Template for Python session command with output results.
+
+Has a single %s escape, the tempfile containing the source code
+to evaluate.")
+
+(defun org-babel-python-format-session-value
+    (src-file result-file result-params)
+  "Return Python code to evaluate SRC-FILE and write result to RESULT-FILE."
+  (format "\
+import ast
+with open('%s') as __org_babel_python_tmpfile:
+    __org_babel_python_ast = ast.parse(__org_babel_python_tmpfile.read())
+__org_babel_python_final = __org_babel_python_ast.body[-1]
+if isinstance(__org_babel_python_final, ast.Expr):
+    __org_babel_python_ast.body = __org_babel_python_ast.body[:-1]
+    exec(compile(__org_babel_python_ast, '<string>', 'exec'))
+    __org_babel_python_final = eval(compile(ast.Expression(
+        __org_babel_python_final.value), '<string>', 'eval'))
+    with open('%s', 'w') as __org_babel_python_tmpfile:
+        if %s:
+            import pprint
+            __org_babel_python_tmpfile.write(pprint.pformat(__org_babel_python_final))
+        else:
+            __org_babel_python_tmpfile.write(str(__org_babel_python_final))
+else:
+    exec(compile(__org_babel_python_ast, '<string>', 'exec'))
+    __org_babel_python_final = None"
+	  (org-babel-process-file-name src-file 'noquote)
+	  (org-babel-process-file-name result-file 'noquote)
+	  (if (member "pp" result-params) "True" "False")))
 
 (defun org-babel-python-evaluate
   (session body &optional result-type result-params preamble)
@@ -255,6 +282,19 @@ open('%s', 'w').write( pprint.pformat(main()) )")
        session body result-type result-params)
     (org-babel-python-evaluate-external-process
      body result-type result-params preamble)))
+
+(defun org-babel-python--shift-right (body &optional count)
+  (with-temp-buffer
+    (python-mode)
+    (insert body)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (unless (python-syntax-context 'string)
+	(python-indent-shift-right (line-beginning-position)
+				   (line-end-position)
+				   count))
+      (forward-line 1))
+    (buffer-string)))
 
 (defun org-babel-python-evaluate-external-process
     (body &optional result-type result-params preamble)
@@ -276,16 +316,43 @@ last statement in BODY, as elisp."
 			(if (member "pp" result-params)
 			    org-babel-python-pp-wrapper-method
 			  org-babel-python-wrapper-method)
-			(mapconcat
-			 (lambda (line) (format "\t%s" line))
-			 (split-string (org-remove-indentation (org-trim body))
-				       "[\r\n]")
-			 "\n")
+			(org-babel-python--shift-right body)
 			(org-babel-process-file-name tmp-file 'noquote))))
 		     (org-babel-eval-read-file tmp-file))))))
     (org-babel-result-cond result-params
       raw
       (org-babel-python-table-or-string (org-trim raw)))))
+
+(defun org-babel-python--send-string (session body)
+  "Pass BODY to the Python process in SESSION.
+Return output."
+  (with-current-buffer session
+    (let* ((string-buffer "")
+	   (comint-output-filter-functions
+	    (cons (lambda (text) (setq string-buffer
+				       (concat string-buffer text)))
+		  comint-output-filter-functions))
+	   (body (format "\
+try:
+%s
+except:
+    raise
+finally:
+    print('%s')"
+			 (org-babel-python--shift-right body 4)
+			 org-babel-python-eoe-indicator)))
+      (if (not (eq 'python-mode org-babel-python-mode))
+	  (let ((python-shell-buffer-name
+		 (org-babel-python-without-earmuffs session)))
+	    (python-shell-send-string body))
+	(require 'python-mode)
+	(py-shell-send-string body (get-buffer-process session)))
+      ;; same as `python-shell-comint-end-of-output-p' in emacs-25.1+
+      (while (not (string-match
+		   org-babel-python-eoe-indicator
+		   string-buffer))
+	(accept-process-output (get-buffer-process (current-buffer))))
+      (org-babel-chomp (substring string-buffer 0 (match-beginning 0))))))
 
 (defun org-babel-python-evaluate-session
     (session body &optional result-type result-params)
@@ -293,72 +360,26 @@ last statement in BODY, as elisp."
 If RESULT-TYPE equals `output' then return standard output as a
 string.  If RESULT-TYPE equals `value' then return the value of the
 last statement in BODY, as elisp."
-  (let* ((send-wait (lambda () (comint-send-input nil t) (sleep-for 0 5)))
-	 (dump-last-value
-	  (lambda
-	    (tmp-file pp)
-	    (mapc
-	     (lambda (statement) (insert statement) (funcall send-wait))
-	     (if pp
-		 (list
-		  "import pprint"
-		  (format "open('%s', 'w').write(pprint.pformat(_))"
-			  (org-babel-process-file-name tmp-file 'noquote)))
-	       (list (format "open('%s', 'w').write(str(_))"
-			     (org-babel-process-file-name tmp-file
-                                                          'noquote)))))))
-	 (last-indent 0)
-	 (input-body (lambda (body)
-		       (dolist (line (split-string body "[\r\n]"))
-			 ;; Insert a blank line to end an indent
-			 ;; block.
-			 (let ((curr-indent (string-match "\\S-" line)))
-			   (if curr-indent
-			       (progn
-				 (when (< curr-indent last-indent)
-				   (insert "")
-				   (funcall send-wait))
-				 (setq last-indent curr-indent))
-			     (setq last-indent 0)))
-			 (insert line)
-			 (funcall send-wait))
-		       (funcall send-wait)))
+  (let* ((tmp-src-file (org-babel-temp-file "python-"))
          (results
-          (pcase result-type
-            (`output
-	     (let ((body (if (string-match-p ".\n+." body) ; Multiline
-			     (let ((tmp-src-file (org-babel-temp-file
-						  "python-")))
-			       (with-temp-file tmp-src-file (insert body))
-			       (format org-babel-python--exec-tmpfile
-				       tmp-src-file))
-			   body)))
-	       (mapconcat
-		#'org-trim
-		(butlast
-		 (org-babel-comint-with-output
-		     (session org-babel-python-eoe-indicator t body)
-		   (funcall input-body body)
-		   (funcall send-wait) (funcall send-wait)
-		   (insert org-babel-python-eoe-indicator)
-		   (funcall send-wait))
-		 2) "\n")))
-            (`value
-             (let ((tmp-file (org-babel-temp-file "python-")))
-               (org-babel-comint-with-output
-                   (session org-babel-python-eoe-indicator nil body)
-                 (let ((comint-process-echoes nil))
-                   (funcall input-body body)
-                   (funcall dump-last-value tmp-file
-                            (member "pp" result-params))
-                   (funcall send-wait) (funcall send-wait)
-                   (insert org-babel-python-eoe-indicator)
-                   (funcall send-wait)))
-               (org-babel-eval-read-file tmp-file))))))
-    (unless (string= (substring org-babel-python-eoe-indicator 1 -1) results)
-      (org-babel-result-cond result-params
-	results
-        (org-babel-python-table-or-string results)))))
+	  (progn
+	    (with-temp-file tmp-src-file (insert body))
+            (pcase result-type
+	      (`output
+	       (let ((body (format org-babel-python--exec-tmpfile
+				   (org-babel-process-file-name
+				    tmp-src-file 'noquote))))
+		 (org-babel-python--send-string session body)))
+              (`value
+               (let* ((tmp-results-file (org-babel-temp-file "python-"))
+		      (body (org-babel-python-format-session-value
+			     tmp-src-file tmp-results-file result-params)))
+		 (org-babel-python--send-string session body)
+		 (sleep-for 0 10)
+		 (org-babel-eval-read-file tmp-results-file)))))))
+    (org-babel-result-cond result-params
+      results
+      (org-babel-python-table-or-string results))))
 
 (defun org-babel-python-read-string (string)
   "Strip \\='s from around Python string."
@@ -368,7 +389,5 @@ last statement in BODY, as elisp."
     string))
 
 (provide 'ob-python)
-
-
 
 ;;; ob-python.el ends here

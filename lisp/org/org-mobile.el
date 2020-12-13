@@ -258,6 +258,17 @@ the old and new values for the entry.")
 (defvar org-mobile-files-alist nil)
 (defvar org-mobile-checksum-files nil)
 
+;; Add org mobile commands to the main org menu
+(easy-menu-add-item
+ org-org-menu
+ nil
+ '("MobileOrg"
+   ["Push Files and Views" org-mobile-push t]
+   ["Get Captured and Flagged" org-mobile-pull t]
+   ["Find FLAGGED Tasks" (org-agenda nil "?") :active t :keys "\\[org-agenda] ?"]
+   "--"
+   ["Setup" (customize-group 'org-mobile) t]))
+
 (defun org-mobile-prepare-file-lists ()
   (setq org-mobile-files-alist (org-mobile-files-alist))
   (setq org-mobile-checksum-files nil))

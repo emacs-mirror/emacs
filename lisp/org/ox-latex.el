@@ -30,6 +30,8 @@
 (require 'ox)
 (require 'ox-publish)
 
+;;; Function Declarations
+
 (defvar org-latex-default-packages-alist)
 (defvar org-latex-packages-alist)
 (defvar orgtbl-exp-regexp)
@@ -736,8 +738,9 @@ environment."
   :safe #'stringp)
 
 (defcustom org-latex-inline-image-rules
-  `(("file" . ,(regexp-opt
-		'("pdf" "jpeg" "jpg" "png" "ps" "eps" "tikz" "pgf" "svg"))))
+  `(("file" . ,(rx "."
+		   (or "pdf" "jpeg" "jpg" "png" "ps" "eps" "tikz" "pgf" "svg")
+		   eos)))
   "Rules characterizing image files that can be inlined into LaTeX.
 
 A rule consists in an association whose key is the type of link
@@ -750,8 +753,7 @@ pdflatex, pdf, jpg and png images are OK.  When processing
 through dvi to Postscript, only ps and eps are allowed.  The
 default we use here encompasses both."
   :group 'org-export-latex
-  :version "24.4"
-  :package-version '(Org . "8.0")
+  :package-version '(Org . "9.4")
   :type '(alist :key-type (string :tag "Type")
 		:value-type (regexp :tag "Path")))
 
@@ -1239,7 +1241,7 @@ calling `org-latex-compile'."
   :package-version '(Org . "8.3")
   :type '(repeat
 	  (cons
-	   (string :tag "Regexp")
+	   (regexp :tag "Regexp")
 	   (string :tag "Message"))))
 
 
@@ -1586,6 +1588,7 @@ INFO is a plist used as a communication channel."
 			lang))))
     `((?a . ,(org-export-data (plist-get info :author) info))
       (?t . ,(org-export-data (plist-get info :title) info))
+      (?s . ,(org-export-data (plist-get info :subtitle) info))
       (?k . ,(org-export-data (org-latex--wrap-latex-math-block
 			       (plist-get info :keywords) info)
 			      info))
@@ -2171,25 +2174,27 @@ contextual information."
   "Transcode an ITEM element from Org to LaTeX.
 CONTENTS holds the contents of the item.  INFO is a plist holding
 contextual information."
-  (let* ((counter
-	  (let ((count (org-element-property :counter item))
-		(level
-		 ;; Determine level of current item to determine the
-		 ;; correct LaTeX counter to use (enumi, enumii...).
-		 (let ((parent item) (level 0))
-		   (while (memq (org-element-type
-				 (setq parent (org-export-get-parent parent)))
-				'(plain-list item))
-		     (when (and (eq (org-element-type parent) 'plain-list)
-				(eq (org-element-property :type parent)
-				    'ordered))
-		       (cl-incf level)))
-		   level)))
-	    (and count
-		 (< level 5)
-		 (format "\\setcounter{enum%s}{%s}\n"
-			 (nth (1- level) '("i" "ii" "iii" "iv"))
-			 (1- count)))))
+  (let* ((orderedp (eq (org-element-property
+			:type (org-export-get-parent item))
+		       'ordered))
+	 (level
+	  ;; Determine level of current item to determine the
+	  ;; correct LaTeX counter to use (enumi, enumii...).
+	  (let ((parent item) (level 0))
+	    (while (memq (org-element-type
+			  (setq parent (org-export-get-parent parent)))
+			 '(plain-list item))
+	      (when (and (eq (org-element-type parent) 'plain-list)
+			 (eq (org-element-property :type parent)
+			     'ordered))
+		(cl-incf level)))
+	    level))
+	 (count (org-element-property :counter item))
+	 (counter (and count
+		       (< level 5)
+		       (format "\\setcounter{enum%s}{%s}\n"
+			       (nth (1- level) '("i" "ii" "iii" "iv"))
+			       (1- count))))
 	 (checkbox (cl-case (org-element-property :checkbox item)
 		     (on "$\\boxtimes$")
 		     (off "$\\square$")
@@ -2208,9 +2213,11 @@ contextual information."
 	    "\\item"
 	    (cond
 	     ((and checkbox tag)
-	      (format "[{%s %s}] %s" checkbox tag tag-footnotes))
+	      (format (if orderedp "{%s %s} %s" "[{%s %s}] %s")
+		      checkbox tag tag-footnotes))
 	     ((or checkbox tag)
-	      (format "[{%s}] %s" (or checkbox tag) tag-footnotes))
+	      (format (if orderedp "{%s} %s" "[{%s}] %s")
+		      (or checkbox tag) tag-footnotes))
 	     ;; Without a tag or a check-box, if CONTENTS starts with
 	     ;; an opening square bracket, add "\relax" to "\item",
 	     ;; unless the brackets comes from an initial export
@@ -2382,8 +2389,11 @@ used as a communication channel."
 	      (format "[%s]" (plist-get info :latex-default-figure-position)))
 	     (t ""))))
 	 (center
-	  (if (plist-member attr :center) (plist-get attr :center)
-	    (plist-get info :latex-images-centered)))
+	  (cond
+	   ;; If link is an image link, do not center.
+	   ((eq 'link (org-element-type (org-export-get-parent link))) nil)
+	   ((plist-member attr :center) (plist-get attr :center))
+	   (t (plist-get info :latex-images-centered))))
 	 (comment-include (if (plist-get attr :comment-include) "%" ""))
 	 ;; It is possible to specify scale or width and height in
 	 ;; the ATTR_LATEX line, and also via default variables.
@@ -2425,7 +2435,8 @@ used as a communication channel."
 		       (format "\\resizebox{%s}{%s}{%s}"
 			       (if (org-string-nw-p width) width "!")
 			       (if (org-string-nw-p height) height "!")
-			       image-code)))))
+			       image-code))
+		      (t image-code))))
       ;; For other images:
       ;; - add scale, or width and height to options.
       ;; - include the image with \includegraphics.
@@ -2517,15 +2528,16 @@ INFO is a plist holding contextual information.  See
 	 (imagep (org-export-inline-image-p
 		  link (plist-get info :latex-inline-image-rules)))
 	 (path (org-latex--protect-text
-		(cond ((member type '("http" "https" "ftp" "mailto" "doi"))
-		       (concat type ":" raw-path))
-		      ((string= type "file")
-		       (org-export-file-uri raw-path))
-		      (t
-		       raw-path)))))
+		(pcase type
+		  ((or "http" "https" "ftp" "mailto" "doi")
+		   (concat type ":" raw-path))
+		  ("file"
+		   (org-export-file-uri raw-path))
+		  (_
+		   raw-path)))))
     (cond
      ;; Link type is handled by a special function.
-     ((org-export-custom-protocol-maybe link desc 'latex))
+     ((org-export-custom-protocol-maybe link desc 'latex info))
      ;; Image file.
      (imagep (org-latex--inline-image link info))
      ;; Radio link: Transcode target's contents and use them as link's
@@ -2576,7 +2588,9 @@ INFO is a plist holding contextual information.  See
      ;; equivalent line number.
      ((string= type "coderef")
       (format (org-export-get-coderef-format path desc)
-	      (org-export-resolve-coderef path info)))
+	      ;; Resolve with RAW-PATH since PATH could be tainted
+	      ;; with `org-latex--protect-text' call above.
+	      (org-export-resolve-coderef raw-path info)))
      ;; External link with a description part.
      ((and path desc) (format "\\href{%s}{%s}" path desc))
      ;; External link without a description part.

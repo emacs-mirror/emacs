@@ -172,12 +172,6 @@ All these properties should be back-end agnostic.  Back-end
 specific properties are set through `org-export-define-backend'.
 Properties redefined there have precedence over these.")
 
-(defconst org-export-special-keywords '("FILETAGS" "SETUPFILE" "OPTIONS")
-  "List of in-buffer keywords that require special treatment.
-These keywords are not directly associated to a property.  The
-way they are handled must be hard-coded into
-`org-export--get-inbuffer-options' function.")
-
 (defconst org-export-filters-alist
   '((:filter-body . org-export-filter-body-functions)
     (:filter-bold . org-export-filter-bold-functions)
@@ -1474,104 +1468,57 @@ Assume buffer is in Org mode.  Narrowing, if any, is ignored."
 		   ;; Priority is given to back-end specific options.
 		   (org-export-get-all-options backend)
 		   org-export-options-alist))
-	 (regexp (format "^[ \t]*#\\+%s:"
-			 (regexp-opt (nconc (delq nil (mapcar #'cadr options))
-					    org-export-special-keywords))))
 	 plist to-parse)
-    (letrec ((find-properties
-	      (lambda (keyword)
-		;; Return all properties associated to KEYWORD.
-		(let (properties)
-		  (dolist (option options properties)
-		    (when (equal (nth 1 option) keyword)
-		      (cl-pushnew (car option) properties))))))
-	     (get-options
-	      (lambda (&optional files)
-		;; Recursively read keywords in buffer.  FILES is
-		;; a list of files read so far.  PLIST is the current
-		;; property list obtained.
-		(org-with-wide-buffer
-		 (goto-char (point-min))
-		 (while (re-search-forward regexp nil t)
-		   (let ((element (org-element-at-point)))
-		     (when (eq (org-element-type element) 'keyword)
-		       (let ((key (org-element-property :key element))
-			     (val (org-element-property :value element)))
-			 (cond
-			  ;; Options in `org-export-special-keywords'.
-			  ((equal key "SETUPFILE")
-			   (let* ((uri (org-strip-quotes (org-trim val)))
-				  (uri-is-url (org-file-url-p uri))
-				  (uri (if uri-is-url
-					   uri
-					 (expand-file-name uri))))
-			     ;; Avoid circular dependencies.
-			     (unless (member uri files)
-			       (with-temp-buffer
-				 (unless uri-is-url
-				   (setq default-directory
-					 (file-name-directory uri)))
-				 (insert (org-file-contents uri 'noerror))
-				 (let ((org-inhibit-startup t)) (org-mode))
-				 (funcall get-options (cons uri files))))))
-			  ((equal key "OPTIONS")
-			   (setq plist
-				 (org-combine-plists
-				  plist
-				  (org-export--parse-option-keyword
-				   val backend))))
-			  ((equal key "FILETAGS")
-			   (setq plist
-				 (org-combine-plists
-				  plist
-				  (list :filetags
-					(org-uniquify
-					 (append
-					  (org-split-string val ":")
-					  (plist-get plist :filetags)))))))
-			  (t
-			   ;; Options in `org-export-options-alist'.
-			   (dolist (property (funcall find-properties key))
-			     (setq
-			      plist
-			      (plist-put
-			       plist property
-			       ;; Handle value depending on specified
-			       ;; BEHAVIOR.
-			       (cl-case (nth 4 (assq property options))
-				 (parse
-				  (unless (memq property to-parse)
-				    (push property to-parse))
-				  ;; Even if `parse' implies `space'
-				  ;; behavior, we separate line with
-				  ;; "\n" so as to preserve
-				  ;; line-breaks.  However, empty
-				  ;; lines are forbidden since `parse'
-				  ;; doesn't allow more than one
-				  ;; paragraph.
-				  (let ((old (plist-get plist property)))
-				    (cond ((not (org-string-nw-p val)) old)
-					  (old (concat old "\n" val))
-					  (t val))))
-				 (space
-				  (if (not (plist-get plist property))
-				      (org-trim val)
-				    (concat (plist-get plist property)
-					    " "
-					    (org-trim val))))
-				 (newline
-				  (org-trim
-				   (concat (plist-get plist property)
-					   "\n"
-					   (org-trim val))))
-				 (split `(,@(plist-get plist property)
-					  ,@(split-string val)))
-				 ((t) val)
-				 (otherwise
-				  (if (not (plist-member plist property)) val
-				    (plist-get plist property)))))))))))))))))
+    (let ((find-properties
+	   (lambda (keyword)
+	     ;; Return all properties associated to KEYWORD.
+	     (let (properties)
+	       (dolist (option options properties)
+		 (when (equal (nth 1 option) keyword)
+		   (cl-pushnew (car option) properties)))))))
       ;; Read options in the current buffer and return value.
-      (funcall get-options (and buffer-file-name (list buffer-file-name)))
+      (dolist (entry (org-collect-keywords
+		      (nconc (delq nil (mapcar #'cadr options))
+			     '("FILETAGS" "OPTIONS"))))
+	(pcase entry
+	  (`("OPTIONS" . ,values)
+	   (setq plist
+		 (apply #'org-combine-plists
+			plist
+			(mapcar (lambda (v)
+				  (org-export--parse-option-keyword v backend))
+				values))))
+	  (`("FILETAGS" . ,values)
+	   (setq plist
+		 (plist-put plist
+			    :filetags
+			    (org-uniquify
+			     (cl-mapcan (lambda (v) (org-split-string v ":"))
+					values)))))
+	  (`(,keyword . ,values)
+	   (dolist (property (funcall find-properties keyword))
+	     (setq plist
+		   (plist-put
+		    plist property
+		    ;; Handle value depending on specified BEHAVIOR.
+		    (cl-case (nth 4 (assq property options))
+		      (parse
+		       (unless (memq property to-parse)
+			 (push property to-parse))
+		       ;; Even if `parse' implies `space' behavior, we
+		       ;; separate line with "\n" so as to preserve
+		       ;; line-breaks.
+		       (mapconcat #'identity values "\n"))
+		      (space
+		       (mapconcat #'identity values " "))
+		      (newline
+		       (mapconcat #'identity values "\n"))
+		      (split
+		       (cl-mapcan (lambda (v) (split-string v)) values))
+		      ((t)
+		       (org-last values))
+		      (otherwise
+		       (car values)))))))))
       ;; Parse properties in TO-PARSE.  Remove newline characters not
       ;; involved in line breaks to simulate `space' behavior.
       ;; Finally return options.
@@ -1633,44 +1580,10 @@ process."
 Also look for BIND keywords in setup files.  The return value is
 an alist where associations are (VARIABLE-NAME VALUE)."
   (when org-export-allow-bind-keywords
-    (letrec ((collect-bind
-	      (lambda (files alist)
-		;; Return an alist between variable names and their
-		;; value.  FILES is a list of setup files names read
-		;; so far, used to avoid circular dependencies.  ALIST
-		;; is the alist collected so far.
-		(let ((case-fold-search t))
-		  (org-with-wide-buffer
-		   (goto-char (point-min))
-		   (while (re-search-forward
-			   "^[ \t]*#\\+\\(BIND\\|SETUPFILE\\):" nil t)
-		     (let ((element (org-element-at-point)))
-		       (when (eq (org-element-type element) 'keyword)
-			 (let ((val (org-element-property :value element)))
-			   (if (equal (org-element-property :key element)
-				      "BIND")
-			       (push (read (format "(%s)" val)) alist)
-			     ;; Enter setup file.
-			     (let* ((uri (org-strip-quotes val))
-				    (uri-is-url (org-file-url-p uri))
-				    (uri (if uri-is-url
-					     uri
-					   (expand-file-name uri))))
-			       ;; Avoid circular dependencies.
-			       (unless (member uri files)
-				 (with-temp-buffer
-				   (unless uri-is-url
-				     (setq default-directory
-					   (file-name-directory uri)))
-				   (let ((org-inhibit-startup t)) (org-mode))
-				   (insert (org-file-contents uri 'noerror))
-				   (setq alist
-					 (funcall collect-bind
-						  (cons uri files)
-						  alist))))))))))
-		   alist)))))
-      ;; Return value in appropriate order of appearance.
-      (nreverse (funcall collect-bind nil nil)))))
+    (pcase (org-collect-keywords '("BIND"))
+      (`(("BIND" . ,values))
+       (mapcar (lambda (v) (read (format "(%s)" v)))
+	       values)))))
 
 ;; defsubst org-export-get-parent must be defined before first use,
 ;; was originally defined in the topology section
@@ -3461,15 +3374,16 @@ Move point after the link."
 	(goto-char (org-element-property :end link))
       (let ((new-path (file-relative-name (expand-file-name path file-dir)
 					  includer-dir))
-	    (new-link (org-element-copy link))
-	    (contents (and (org-element-property :contents-begin link)
-			   (buffer-substring
-			    (org-element-property :contents-begin link)
-			    (org-element-property :contents-end link)))))
+	    (new-link (org-element-copy link)))
 	(org-element-put-property new-link :path new-path)
+	(when (org-element-property :contents-begin link)
+	  (org-element-adopt-elements new-link
+	    (buffer-substring
+	     (org-element-property :contents-begin link)
+	     (org-element-property :contents-end link))))
 	(delete-region (org-element-property :begin link)
 		       (org-element-property :end link))
-	(insert (org-element-link-interpreter new-link contents))))))
+	(insert (org-element-interpret-data new-link))))))
 
 (defun org-export--prepare-file-contents
     (file &optional lines ind minlevel id footnotes includer)
@@ -4184,8 +4098,8 @@ meant to be translated with `org-export-data' or alike."
 
 (org-define-error 'org-link-broken "Unable to resolve link; aborting")
 
-(defun org-export-custom-protocol-maybe (link desc backend)
-  "Try exporting LINK with a dedicated function.
+(defun org-export-custom-protocol-maybe (link desc backend &optional info)
+  "Try exporting LINK object with a dedicated function.
 
 DESC is its description, as a string, or nil.  BACKEND is the
 back-end used for export, as a symbol.
@@ -4196,14 +4110,20 @@ A custom protocol has precedence over regular back-end export.
 The function ignores links with an implicit type (e.g.,
 \"custom-id\")."
   (let ((type (org-element-property :type link)))
-    (unless (or (member type '("coderef" "custom-id" "fuzzy" "radio"))
+    (unless (or (member type '("coderef" "custom-id" "fuzzy" "radio" nil))
 		(not backend))
-      (let ((protocol (org-link-get-parameter type :export)))
+      (let ((protocol (org-link-get-parameter type :export))
+	    (path (org-element-property :path link)))
 	(and (functionp protocol)
-	     (funcall protocol
-		      (org-element-property :path link)
-		      desc
-		      backend))))))
+	     (condition-case nil
+		 (funcall protocol path desc backend info)
+	       ;; XXX: The function used (< Org 9.4) to accept only
+	       ;; three mandatory arguments.  Type-specific `:export'
+	       ;; functions in the wild may not handle current
+	       ;; signature.  Provide backward compatibility support
+	       ;; for them.
+	       (wrong-number-of-arguments
+		(funcall protocol path desc backend))))))))
 
 (defun org-export-get-coderef-format (path desc)
   "Return format string for code reference link.
@@ -4332,7 +4252,7 @@ ignores white spaces and statistics cookies, if applicable."
     (`headline
      (let ((title (split-string
 		   (replace-regexp-in-string
-		    "\\[[0-9]*\\(?:%\\|/[0-9]*\\)\\]" ""
+		    "\\[[0-9]*\\(?:%\\|/[0-9]*\\)\\]" " "
 		    (org-element-property :raw-value datum)))))
        (delq nil
 	     (list
@@ -4805,9 +4725,6 @@ code."
 ;; `org-export-table-row-is-special-p' are predicates used to look for
 ;; meta-information about the table structure.
 ;;
-;; `org-table-has-header-p' tells when the rows before the first rule
-;;  should be considered as table's header.
-;;
 ;; `org-export-table-cell-width', `org-export-table-cell-alignment'
 ;; and `org-export-table-cell-borders' extract information from
 ;; a table-cell element.
@@ -5243,7 +5160,8 @@ rows (resp. columns)."
       (lambda (row)
 	(when (eq (org-element-property :type row) 'standard)
 	  (cl-incf rows)
-	  (unless first-row (setq first-row row)))) info)
+	  (unless first-row (setq first-row row))))
+      info)
     ;; Set number of columns.
     (org-element-map first-row 'table-cell (lambda (_) (cl-incf columns)) info)
     ;; Return value.
@@ -5459,7 +5377,7 @@ transcoding it."
      (apostrophe :utf-8 "’" :html "&rsquo;"))
     ("da"
      ;; one may use: »...«, "...", ›...‹, or '...'.
-     ;; http://sproget.dk/raad-og-regler/retskrivningsregler/retskrivningsregler/a7-40-60/a7-58-anforselstegn/
+     ;; https://sproget.dk/raad-og-regler/retskrivningsregler/retskrivningsregler/a7-40-60/a7-58-anforselstegn/
      ;; LaTeX quotes require Babel!
      (primary-opening
       :utf-8 "»" :html "&raquo;" :latex ">>" :texinfo "@guillemetright{}")
@@ -5552,8 +5470,19 @@ transcoding it."
      (secondary-opening :utf-8 "‘" :html "&lsquo;" :latex "`" :texinfo "`")
      (secondary-closing :utf-8 "’" :html "&rsquo;" :latex "'" :texinfo "'")
      (apostrophe :utf-8 "’" :html "&rsquo;"))
+    ("ro"
+     (primary-opening
+      :utf-8 "„" :html "&bdquo;" :latex "\"`" :texinfo "@quotedblbase{}")
+     (primary-closing :utf-8 "”" :html "&rdquo;" :latex "''" :texinfo "''")
+     (secondary-opening
+      :utf-8 "«" :html "&laquo;" :latex "\\guillemotleft{}"
+      :texinfo "@guillemetleft{}")
+     (secondary-closing
+      :utf-8 "»" :html "&raquo;" :latex "\\guillemotright{}"
+      :texinfo "@guillemetright{}")
+     (apostrophe :utf-8 "’" :html "&rsquo;"))
     ("ru"
-     ;; http://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%B2%D1%8B%D1%87%D0%BA%D0%B8#.D0.9A.D0.B0.D0.B2.D1.8B.D1.87.D0.BA.D0.B8.2C_.D0.B8.D1.81.D0.BF.D0.BE.D0.BB.D1.8C.D0.B7.D1.83.D0.B5.D0.BC.D1.8B.D0.B5_.D0.B2_.D1.80.D1.83.D1.81.D1.81.D0.BA.D0.BE.D0.BC_.D1.8F.D0.B7.D1.8B.D0.BA.D0.B5
+     ;; https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%B2%D1%8B%D1%87%D0%BA%D0%B8#.D0.9A.D0.B0.D0.B2.D1.8B.D1.87.D0.BA.D0.B8.2C_.D0.B8.D1.81.D0.BF.D0.BE.D0.BB.D1.8C.D0.B7.D1.83.D0.B5.D0.BC.D1.8B.D0.B5_.D0.B2_.D1.80.D1.83.D1.81.D1.81.D0.BA.D0.BE.D0.BC_.D1.8F.D0.B7.D1.8B.D0.BA.D0.B5
      ;; http://www.artlebedev.ru/kovodstvo/sections/104/
      (primary-opening :utf-8 "«" :html "&laquo;" :latex "{}<<"
 		      :texinfo "@guillemetleft{}")
@@ -5812,6 +5741,7 @@ them."
      ("nn" :default "Forfattar")
      ("pl" :default "Autor")
      ("pt_BR" :default "Autor")
+     ("ro" :default "Autor")
      ("ru" :html "&#1040;&#1074;&#1090;&#1086;&#1088;" :utf-8 "Автор")
      ("sl" :default "Avtor")
      ("sv" :html "F&ouml;rfattare")
@@ -5829,6 +5759,7 @@ them."
      ("nl" :default "Vervolg van vorige pagina")
      ("pt" :default "Continuação da página anterior")
      ("pt_BR" :html "Continua&ccedil;&atilde;o da p&aacute;gina anterior" :ascii "Continuacao da pagina anterior" :default "Continuação da página anterior")
+     ("ro" :default "Continuare de pe pagina precedentă")
      ("ru" :html "(&#1055;&#1088;&#1086;&#1076;&#1086;&#1083;&#1078;&#1077;&#1085;&#1080;&#1077;)"
       :utf-8 "(Продолжение)")
      ("sl" :default "Nadaljevanje s prejšnje strani"))
@@ -5843,12 +5774,15 @@ them."
      ("nl" :default "Vervolg op volgende pagina")
      ("pt" :default "Continua na página seguinte")
      ("pt_BR" :html "Continua na pr&oacute;xima p&aacute;gina" :ascii "Continua na proxima pagina" :default "Continua na próxima página")
+     ("ro" :default "Continuare pe pagina următoare")
      ("ru" :html "(&#1055;&#1088;&#1086;&#1076;&#1086;&#1083;&#1078;&#1077;&#1085;&#1080;&#1077; &#1089;&#1083;&#1077;&#1076;&#1091;&#1077;&#1090;)"
       :utf-8 "(Продолжение следует)")
      ("sl" :default "Nadaljevanje na naslednji strani"))
     ("Created"
      ("cs" :default "Vytvořeno")
+     ("nl" :default "Gemaakt op")  ;; must be followed by a date or date+time
      ("pt_BR" :default "Criado em")
+     ("ro" :default "Creat")
      ("sl" :default "Ustvarjeno"))
     ("Date"
      ("ar" :default "بتاريخ")
@@ -5869,6 +5803,7 @@ them."
      ("nb" :default "Dato")
      ("nn" :default "Dato")
      ("pl" :default "Data")
+     ("ro" :default "Data")
      ("pt_BR" :default "Data")
      ("ru" :html "&#1044;&#1072;&#1090;&#1072;" :utf-8 "Дата")
      ("sl" :default "Datum")
@@ -5886,10 +5821,12 @@ them."
      ("fr" :ascii "Equation" :default "Équation")
      ("is" :default "Jafna")
      ("ja" :default "方程式")
+     ("nl" :default "Vergelijking")
      ("no" :default "Ligning")
      ("nb" :default "Ligning")
      ("nn" :default "Likning")
      ("pt_BR" :html "Equa&ccedil;&atilde;o" :default "Equação" :ascii "Equacao")
+     ("ro" :default "Ecuația")
      ("ru" :html "&#1059;&#1088;&#1072;&#1074;&#1085;&#1077;&#1085;&#1080;&#1077;"
       :utf-8 "Уравнение")
      ("sl" :default "Enačba")
@@ -5905,10 +5842,12 @@ them."
      ("is" :default "Mynd")
      ("it" :default "Figura")
      ("ja" :default "図" :html "&#22259;")
+     ("nl" :default "Figuur")
      ("no" :default "Illustrasjon")
      ("nb" :default "Illustrasjon")
      ("nn" :default "Illustrasjon")
      ("pt_BR" :default "Figura")
+     ("ro" :default "Imaginea")
      ("ru" :html "&#1056;&#1080;&#1089;&#1091;&#1085;&#1086;&#1082;" :utf-8 "Рисунок")
      ("sv" :default "Illustration")
      ("zh-CN" :html "&#22270;" :utf-8 "图"))
@@ -5923,10 +5862,12 @@ them."
      ("is" :default "Mynd %d")
      ("it" :default "Figura %d:")
      ("ja" :default "図%d: " :html "&#22259;%d: ")
+     ("nl" :default "Figuur %d:" :html "Figuur&nbsp;%d:")
      ("no" :default "Illustrasjon %d")
      ("nb" :default "Illustrasjon %d")
      ("nn" :default "Illustrasjon %d")
      ("pt_BR" :default "Figura %d:")
+     ("ro" :default "Imaginea %d:")
      ("ru" :html "&#1056;&#1080;&#1089;. %d.:" :utf-8 "Рис. %d.:")
      ("sl" :default "Slika %d")
      ("sv" :default "Illustration %d")
@@ -5952,6 +5893,7 @@ them."
      ("nn" :default "Fotnotar")
      ("pl" :default "Przypis")
      ("pt_BR" :html "Notas de Rodap&eacute;" :default "Notas de Rodapé" :ascii "Notas de Rodape")
+     ("ro" :default "Note de subsol")
      ("ru" :html "&#1057;&#1085;&#1086;&#1089;&#1082;&#1080;" :utf-8 "Сноски")
      ("sl" :default "Opombe")
      ("sv" :default "Fotnoter")
@@ -5968,6 +5910,7 @@ them."
      ("et" :default "Loendite nimekiri")
      ("fr" :default "Liste des programmes")
      ("ja" :default "ソースコード目次")
+     ("nl" :default "Lijst van programma's")
      ("no" :default "Dataprogrammer")
      ("nb" :default "Dataprogrammer")
      ("pt_BR" :html "&Iacute;ndice de Listagens" :default "Índice de Listagens" :ascii "Indice de Listagens")
@@ -5986,10 +5929,12 @@ them."
      ("is" :default "Töfluskrá" :html "T&ouml;fluskr&aacute;")
      ("it" :default "Indice delle tabelle")
      ("ja" :default "表目次")
+     ("nl" :default "Lijst van tabellen")
      ("no" :default "Tabeller")
      ("nb" :default "Tabeller")
      ("nn" :default "Tabeller")
      ("pt_BR" :html "&Iacute;ndice de Tabelas" :default "Índice de Tabelas" :ascii "Indice de Tabelas")
+     ("ro" :default "Tabele")
      ("ru" :html "&#1057;&#1087;&#1080;&#1089;&#1086;&#1082; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;"
       :utf-8 "Список таблиц")
      ("sl" :default "Seznam tabel")
@@ -6005,9 +5950,11 @@ them."
      ("fr" :default "Programme" :html "Programme")
      ("it" :default "Listato")
      ("ja" :default "ソースコード")
+     ("nl" :default "Programma")
      ("no" :default "Dataprogram")
      ("nb" :default "Dataprogram")
      ("pt_BR" :default "Listagem")
+     ("ro" :default "Lista")
      ("ru" :html "&#1056;&#1072;&#1089;&#1087;&#1077;&#1095;&#1072;&#1090;&#1082;&#1072;"
       :utf-8 "Распечатка")
      ("sl" :default "Izpis programa")
@@ -6022,8 +5969,10 @@ them."
      ("fr" :default "Programme %d :" :html "Programme&nbsp;%d&nbsp;:")
      ("it" :default "Listato %d :")
      ("ja" :default "ソースコード%d:")
+     ("nl" :default "Programma %d:" :html "Programma&nbsp;%d:")
      ("no" :default "Dataprogram %d")
      ("nb" :default "Dataprogram %d")
+     ("ro" :default "Lista %d")
      ("pt_BR" :default "Listagem %d:")
      ("ru" :html "&#1056;&#1072;&#1089;&#1087;&#1077;&#1095;&#1072;&#1090;&#1082;&#1072; %d.:"
       :utf-8 "Распечатка %d.:")
@@ -6036,20 +5985,28 @@ them."
      ("es" :default "Referencias")
      ("fr" :ascii "References" :default "Références")
      ("it" :default "Riferimenti")
+     ("nl" :default "Bronverwijzingen")
      ("pt_BR" :html "Refer&ecirc;ncias" :default "Referências" :ascii "Referencias")
+     ("ro" :default "Bibliografie")
      ("sl" :default "Reference"))
     ("See figure %s"
      ("cs" :default "Viz obrázek %s")
      ("fr" :default "cf. figure %s"
       :html "cf.&nbsp;figure&nbsp;%s" :latex "cf.~figure~%s")
      ("it" :default "Vedi figura %s")
+     ("nl" :default "Zie figuur %s"
+      :html "Zie figuur&nbsp;%s" :latex "Zie figuur~%s")
      ("pt_BR" :default "Veja a figura %s")
+     ("ro" :default "Vezi figura %s")
      ("sl" :default "Glej sliko %s"))
     ("See listing %s"
      ("cs" :default "Viz program %s")
      ("fr" :default "cf. programme %s"
       :html "cf.&nbsp;programme&nbsp;%s" :latex "cf.~programme~%s")
+     ("nl" :default "Zie programma %s"
+      :html "Zie programma&nbsp;%s" :latex "Zie programma~%s")
      ("pt_BR" :default "Veja a listagem %s")
+     ("ro" :default "Vezi tabelul %s")
      ("sl" :default "Glej izpis programa %s"))
     ("See section %s"
      ("ar" :default "انظر قسم %s")
@@ -6061,8 +6018,11 @@ them."
      ("fr" :default "cf. section %s")
      ("it" :default "Vedi sezione %s")
      ("ja" :default "セクション %s を参照")
+     ("nl" :default "Zie sectie %s"
+      :html "Zie sectie&nbsp;%s" :latex "Zie sectie~%s")
      ("pt_BR" :html "Veja a se&ccedil;&atilde;o %s" :default "Veja a seção %s"
       :ascii "Veja a secao %s")
+     ("ro" :default "Vezi secțiunea %s")
      ("ru" :html "&#1057;&#1084;. &#1088;&#1072;&#1079;&#1076;&#1077;&#1083; %s"
       :utf-8 "См. раздел %s")
      ("sl" :default "Glej poglavje %d")
@@ -6072,7 +6032,10 @@ them."
      ("fr" :default "cf. tableau %s"
       :html "cf.&nbsp;tableau&nbsp;%s" :latex "cf.~tableau~%s")
      ("it" :default "Vedi tabella %s")
+     ("nl" :default "Zie tabel %s"
+      :html "Zie tabel&nbsp;%s" :latex "Zie tabel~%s")
      ("pt_BR" :default "Veja a tabela %s")
+     ("ro" :default "Vezi tabelul %s")
      ("sl" :default "Glej tabelo %s"))
     ("Table"
      ("ar" :default "جدول")
@@ -6084,7 +6047,9 @@ them."
      ("is" :default "Tafla")
      ("it" :default "Tabella")
      ("ja" :default "表" :html "&#34920;")
+     ("nl" :default "Tabel")
      ("pt_BR" :default "Tabela")
+     ("ro" :default "Tabel")
      ("ru" :html "&#1058;&#1072;&#1073;&#1083;&#1080;&#1094;&#1072;"
       :utf-8 "Таблица")
      ("zh-CN" :html "&#34920;" :utf-8 "表"))
@@ -6099,10 +6064,12 @@ them."
      ("is" :default "Tafla %d")
      ("it" :default "Tabella %d:")
      ("ja" :default "表%d:" :html "&#34920;%d:")
+     ("nl" :default "Tabel %d:" :html "Tabel&nbsp;%d:")
      ("no" :default "Tabell %d")
      ("nb" :default "Tabell %d")
      ("nn" :default "Tabell %d")
      ("pt_BR" :default "Tabela %d:")
+     ("ro" :default "Tabel %d")
      ("ru" :html "&#1058;&#1072;&#1073;&#1083;&#1080;&#1094;&#1072; %d.:"
       :utf-8 "Таблица %d.:")
      ("sl" :default "Tabela %d")
@@ -6129,6 +6096,7 @@ them."
      ("nn" :default "Innhald")
      ("pl" :html "Spis tre&#x015b;ci")
      ("pt_BR" :html "&Iacute;ndice" :utf8 "Índice" :ascii "Indice")
+     ("ro" :default "Cuprins")
      ("ru" :html "&#1057;&#1086;&#1076;&#1077;&#1088;&#1078;&#1072;&#1085;&#1080;&#1077;"
       :utf-8 "Содержание")
      ("sl" :default "Kazalo")
@@ -6145,7 +6113,9 @@ them."
      ("fr" :ascii "Destination inconnue" :default "Référence inconnue")
      ("it" :default "Riferimento sconosciuto")
      ("ja" :default "不明な参照先")
+     ("nl" :default "Onbekende verwijzing")
      ("pt_BR" :html "Refer&ecirc;ncia desconhecida" :default "Referência desconhecida" :ascii "Referencia desconhecida")
+     ("ro" :default "Referință necunoscută")
      ("ru" :html "&#1053;&#1077;&#1080;&#1079;&#1074;&#1077;&#1089;&#1090;&#1085;&#1072;&#1103; &#1089;&#1089;&#1099;&#1083;&#1082;&#1072;"
       :utf-8 "Неизвестная ссылка")
      ("sl" :default "Neznana referenca")
@@ -6877,10 +6847,12 @@ back to standard interface."
       (with-current-buffer "*Org Export Dispatcher*"
 	;; Refresh help.  Maintain display continuity by re-visiting
 	;; previous window position.
-	(let ((pos (window-start)))
+	(let ((pt (point))
+	      (wstart (window-start)))
 	  (erase-buffer)
 	  (insert help)
-	  (set-window-start nil pos)))
+	  (goto-char pt)
+	  (set-window-start nil wstart)))
       (org-fit-window-to-buffer)
       (org-export--dispatch-action
        standard-prompt allowed-keys entries options first-key expertp))))
@@ -6903,24 +6875,10 @@ options as CDR."
     ;; C-p, SPC, DEL).
     (while (and (setq key (read-char-exclusive prompt))
 		(not expertp)
-		(memq key '(14 16 ?\s ?\d)))
-      (cl-case key
-	(14 (if (not (pos-visible-in-window-p (point-max)))
-		(ignore-errors (scroll-up 1))
-	      (message "End of buffer")
-	      (sit-for 1)))
-	(16 (if (not (pos-visible-in-window-p (point-min)))
-		(ignore-errors (scroll-down 1))
-	      (message "Beginning of buffer")
-	      (sit-for 1)))
-	(?\s (if (not (pos-visible-in-window-p (point-max)))
-		 (scroll-up nil)
-	       (message "End of buffer")
-	       (sit-for 1)))
-	(?\d (if (not (pos-visible-in-window-p (point-min)))
-		 (scroll-down nil)
-	       (message "Beginning of buffer")
-	       (sit-for 1)))))
+		;; FIXME: Don't use C-v (22) here, as it is used as a
+		;; modifier key in the export dispatch.
+		(memq key '(14 16 ?\s ?\d 134217846)))
+      (org-scroll key t))
     (cond
      ;; Ignore undefined associations.
      ((not (memq key allowed-keys))
@@ -6929,7 +6887,7 @@ options as CDR."
       (org-export--dispatch-ui options first-key expertp))
      ;; q key at first level aborts export.  At second level, cancel
      ;; first key instead.
-     ((eq key ?q) (if (not first-key) (error "Export aborted")
+     ((eq key ?q) (if (not first-key) (user-error "Export aborted")
 		    (org-export--dispatch-ui options nil expertp)))
      ;; Help key: Switch back to standard interface if expert UI was
      ;; active.

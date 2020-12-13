@@ -193,7 +193,8 @@ This function is called by `org-babel-execute-src-block'."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (end-of-line 1) (insert var) (comint-send-input nil t)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-load-session:R (session body params)
@@ -459,11 +460,11 @@ last statement in BODY, as elisp."
   "R-specific processing of return value.
 Insert hline if column names in output have been requested."
   (if column-names-p
-      (cons (car result) (cons 'hline (cdr result)))
+      (condition-case nil
+	  (cons (car result) (cons 'hline (cdr result)))
+	(error "Could not parse R result"))
     result))
 
 (provide 'ob-R)
-
-
 
 ;;; ob-R.el ends here

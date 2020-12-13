@@ -49,11 +49,13 @@
 
 (require 'cl-lib)
 (require 'org)
+(require 'org-refile)
 
 (declare-function org-at-encrypted-entry-p "org-crypt" ())
 (declare-function org-at-table-p "org-table" (&optional table-type))
 (declare-function org-clock-update-mode-line "org-clock" (&optional refresh))
 (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
+(declare-function org-datetree-find-month-create (d &optional keep-restriction))
 (declare-function org-decrypt-entry "org-crypt" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-lineage "org-element" (datum &optional types with-self))
@@ -68,6 +70,7 @@
 
 (defvar dired-buffers)
 (defvar org-end-time-was-given)
+(defvar org-keyword-properties)
 (defvar org-remember-default-headline)
 (defvar org-remember-templates)
 (defvar org-store-link-plist)
@@ -156,14 +159,20 @@ description  A short string describing the template, will be shown during
 type         The type of entry.  Valid types are:
                entry       an Org node, with a headline.  Will be filed
                            as the child of the target entry or as a
-                           top-level entry.
+                           top-level entry.  Its default template is:
+                             \"* %?\n %a\"
                item        a plain list item, will be placed in the
-                           first plain list at the target
-                           location.
+                           first plain list at the target location.
+                           Its default template is:
+                             \"- %?\"
                checkitem   a checkbox item.  This differs from the
                            plain list item only in so far as it uses a
-                           different default template.
+                           different default template.  Its default
+                           template is:
+                             \"- [ ] %?\"
                table-line  a new line in the first table at target location.
+                           Its default template is:
+                             \"| %? |\"
                plain       text to be inserted as it is.
 
 target       Specification of where the captured item should be placed.
@@ -211,9 +220,10 @@ target       Specification of where the captured item should be placed.
                 Most general way: write your own function which both visits
                 the file and moves point to the right location
 
-template     The template for creating the capture item.  If you leave this
-             empty, an appropriate default template will be used.  See below
-             for more details.  Instead of a string, this may also be one of
+template     The template for creating the capture item.
+             If it is an empty string or nil, a default template based on
+             the entry type will be used (see the \"type\" section above).
+             Instead of a string, this may also be one of:
 
                  (file \"/path/to/template-file\")
                  (function function-returning-the-template)
@@ -236,15 +246,15 @@ properties are:
 
  :jump-to-captured   When set, jump to the captured entry when finished.
 
- :empty-lines        Set this to the number of lines the should be inserted
+ :empty-lines        Set this to the number of lines that should be inserted
                      before and after the new item.  Default 0, only common
                      other value is 1.
 
- :empty-lines-before Set this to the number of lines the should be inserted
+ :empty-lines-before Set this to the number of lines that should be inserted
                      before the new item.  Overrides :empty-lines for the
                      number lines inserted before.
 
- :empty-lines-after  Set this to the number of lines the should be inserted
+ :empty-lines-after  Set this to the number of lines that should be inserted
                      after the new item.  Overrides :empty-lines for the
                      number of lines inserted after.
 
@@ -260,7 +270,9 @@ properties are:
  :time-prompt        Prompt for a date/time to be used for date/week trees
                      and when filling the template.
 
- :tree-type          When `week', make a week tree instead of the month tree.
+ :tree-type          When `week', make a week tree instead of the month-day
+                     tree.  When `month', make a month tree instead of the
+                     month-day tree.
 
  :unnarrowed         Do not narrow the target buffer, simply show the
                      full buffer.  Default is to narrow it so that you
@@ -322,7 +334,7 @@ be replaced with content and expanded:
   %^L         Like %^C, but insert as link.
   %^{prop}p   Prompt the user for a value for property `prop'.
   %^{prompt}  Prompt the user for a string and replace this sequence with it.
-              A default value and a completion table ca be specified like this:
+              A default value and a completion table can be specified like this:
               %^{prompt|default|completion2|completion3|...}.
   %?          After completing the template, position cursor here.
   %\\1 ... %\\N Insert the text entered at the nth %^{prompt}, where N
@@ -625,7 +637,7 @@ of the day at point (if any) or the current HH:MM time."
     (setq org-overriding-default-time
 	  (org-get-cursor-date (equal goto 1))))
   (cond
-   ((equal goto '(4)) (org-capture-goto-target))
+   ((equal goto '(4))  (org-capture-goto-target keys))
    ((equal goto '(16)) (org-capture-goto-last-stored))
    (t
     (let* ((orig-buf (current-buffer))
@@ -698,21 +710,19 @@ of the day at point (if any) or the current HH:MM time."
 
 (defun org-capture-get-template ()
   "Get the template from a file or a function if necessary."
-  (let ((txt (org-capture-get :template)) file)
-    (cond
-     ((and (listp txt) (eq (car txt) 'file))
-      (if (file-exists-p
-	   (setq file (expand-file-name (nth 1 txt) org-directory)))
-	  (setq txt (org-file-contents file))
-	(setq txt (format "* Template file %s not found" (nth 1 txt)))))
-     ((and (listp txt) (eq (car txt) 'function))
-      (if (fboundp (nth 1 txt))
-	  (setq txt (funcall (nth 1 txt)))
-	(setq txt (format "* Template function %s not found" (nth 1 txt)))))
-     ((not txt) (setq txt ""))
-     ((stringp txt))
-     (t (setq txt "* Invalid capture template")))
-    (org-capture-put :template txt)))
+  (org-capture-put
+   :template
+   (pcase (org-capture-get :template)
+     (`nil "")
+     ((and (pred stringp) template) template)
+     (`(file ,file)
+      (let ((filename (expand-file-name file org-directory)))
+	(if (file-exists-p filename) (org-file-contents filename)
+	  (format "* Template file %S not found" file))))
+     (`(function ,f)
+      (if (functionp f) (funcall f)
+	(format "* Template function %S not found" f)))
+     (_ "* Invalid capture template"))))
 
 (defun org-capture-finalize (&optional stay-with-capture)
   "Finalize the capture process.
@@ -726,6 +736,11 @@ captured item after finalizing."
     (error "This does not seem to be a capture buffer for Org mode"))
 
   (run-hooks 'org-capture-prepare-finalize-hook)
+
+  ;; Update `org-capture-plist' with the buffer-local value.  Since
+  ;; captures can be run concurrently, this is to ensure that
+  ;; `org-capture-after-finalize-hook' accesses the proper plist.
+  (setq org-capture-plist org-capture-current-plist)
 
   ;; Did we start the clock in this capture buffer?
   (when (and org-capture-clock-was-started
@@ -996,11 +1011,13 @@ Store them in the capture property list."
 	   (org-capture-put-target-region-and-position)
 	   (widen)
 	   ;; Make a date/week tree entry, with the current date (or
-	   ;; yesterday, if we are extending dates for a couple of hours)
+	   ;; yesterday, if we are extending dates for a couple of
+	   ;; hours)
 	   (funcall
-	    (if (eq (org-capture-get :tree-type) 'week)
-		#'org-datetree-find-iso-week-create
-	      #'org-datetree-find-date-create)
+	    (pcase (org-capture-get :tree-type)
+	      (`week #'org-datetree-find-iso-week-create)
+	      (`month #'org-datetree-find-month-create)
+	      (_ #'org-datetree-find-date-create))
 	    (calendar-gregorian-from-absolute
 	     (cond
 	      (org-overriding-default-time
@@ -1021,7 +1038,7 @@ Store them in the capture property list."
 			 (apply #'encode-time 0 0
 				org-extend-today-until
 				(cl-cdddr (decode-time prompt-time))))
-			((string-match "\\([^ ]+\\)--?[^ ]+[ ]+\\(.*\\)"
+			((string-match "\\([^ ]+\\)-[^ ]+[ ]+\\(.*\\)"
 				       org-read-date-final-answer)
 			 ;; Replace any time range by its start.
 			 (apply #'encode-time
@@ -1058,7 +1075,7 @@ Store them in the capture property list."
 		    (org-capture-put-target-region-and-position)
 		    (widen)
 		    (goto-char org-clock-hd-marker))
-	   (error "No running clock that could be used as capture target")))
+	   (user-error "No running clock that could be used as capture target")))
 	(target (error "Invalid capture target specification: %S" target)))
 
       (org-capture-put :buffer (current-buffer)
@@ -1115,8 +1132,8 @@ may have been stored before."
     (`plain (org-capture-place-plain-text))
     (`item (org-capture-place-item))
     (`checkitem (org-capture-place-item)))
-  (org-capture-mode 1)
-  (setq-local org-capture-current-plist org-capture-plist))
+  (setq-local org-capture-current-plist org-capture-plist)
+  (org-capture-mode 1))
 
 (defun org-capture-place-entry ()
   "Place the template as a new Org entry."
@@ -1129,7 +1146,14 @@ may have been stored before."
     (when exact-position (goto-char exact-position))
     (cond
      ;; Force insertion at point.
-     ((org-capture-get :insert-here) nil)
+     (insert-here?
+      ;; FIXME: level should probably set directly within (let ...).
+      (setq level (org-get-valid-level
+                   (if (or (org-at-heading-p)
+                           (ignore-errors
+			     (save-excursion (org-back-to-heading t))))
+                       (org-outline-level)
+                     1))))
      ;; Insert as a child of the current entry.
      ((org-capture-get :target-entry-p)
       (setq level (org-get-valid-level
@@ -1150,14 +1174,11 @@ may have been stored before."
 	  (when insert-here? (narrow-to-region beg beg))
 	  (org-paste-subtree level template 'for-yank))
 	(org-capture-position-for-last-stored beg)
-	(let ((end (if (org-at-heading-p) (line-end-position 0) (point))))
-	  (org-capture-empty-lines-after)
-	  (unless (org-at-heading-p) (outline-next-heading))
-	  (org-capture-mark-kill-region origin (point))
-	  (org-capture-narrow beg end)
-	  (when (or (search-backward "%?" beg t)
-		    (search-forward "%?" end t))
-	    (replace-match "")))))))
+	(org-capture-empty-lines-after)
+	(unless (org-at-heading-p) (outline-next-heading))
+	(org-capture-mark-kill-region origin (point))
+	(org-capture-narrow beg (if (eobp) (point) (1- (point))))
+	(org-capture--position-cursor beg (point))))))
 
 (defun org-capture-place-item ()
   "Place the template as a new plain list item."
@@ -1269,9 +1290,7 @@ may have been stored before."
 	;; not narrow at the beginning of the next line, possibly
 	;; altering its structure (e.g., when it is a headline).
 	(org-capture-narrow beg (1- end))
-	(when (or (search-backward "%?" beg t)
-		  (search-forward "%?" end t))
-	  (replace-match ""))))))
+	(org-capture--position-cursor beg end)))))
 
 (defun org-capture-place-table-line ()
   "Place the template as a table line."
@@ -1353,9 +1372,7 @@ may have been stored before."
 	;; TEXT is guaranteed to end with a newline character.  Ignore
 	;; it when narrowing so as to not alter data on the next line.
 	(org-capture-narrow beg (1- end))
-	(when (or (search-backward "%?" beg t)
-		  (search-forward "%?" end t))
-	  (replace-match ""))))))
+	(org-capture--position-cursor beg (1- end))))))
 
 (defun org-capture-place-plain-text ()
   "Place the template plainly.
@@ -1390,9 +1407,7 @@ Of course, if exact position has been required, just put it there."
 	(org-capture-empty-lines-after)
 	(org-capture-mark-kill-region origin (point))
 	(org-capture-narrow beg end)
-	(when (or (search-backward "%?" beg t)
-		  (search-forward "%?" end t))
-	  (replace-match ""))))))
+	(org-capture--position-cursor beg end)))))
 
 (defun org-capture-mark-kill-region (beg end)
   "Mark the region that will have to be killed when aborting capture."
@@ -1438,8 +1453,15 @@ Of course, if exact position has been required, just put it there."
 (defun org-capture-narrow (beg end)
   "Narrow, unless configuration says not to narrow."
   (unless (org-capture-get :unnarrowed)
-    (narrow-to-region beg end)
-    (goto-char beg)))
+    (narrow-to-region beg end)))
+
+(defun org-capture--position-cursor (beg end)
+  "Move point to first \"%?\" location or at start of template.
+BEG and END are buffer positions at the beginning and end position
+of the template."
+  (goto-char beg)
+  (when (search-forward "%?" end t)
+    (replace-match "")))
 
 (defun org-capture-empty-lines-before (&optional n)
   "Set the correct number of empty lines before the insertion point.
@@ -1736,11 +1758,11 @@ The template may still contain \"%?\" for cursor positioning."
 			 (_ (error "Invalid `org-capture--clipboards' value: %S"
 				   org-capture--clipboards)))))
 		    ("p"
-		     ;; We remove file properties inherited from
+		     ;; We remove keyword properties inherited from
 		     ;; target buffer so `org-read-property-value' has
 		     ;; a chance to find allowed values in sub-trees
 		     ;; from the target buffer.
-		     (setq-local org-file-properties nil)
+		     (setq-local org-keyword-properties nil)
 		     (let* ((origin (set-marker (make-marker)
 						(org-capture-get :pos)
 						(org-capture-get :buffer)))
@@ -1924,5 +1946,9 @@ Assume sexps have been marked with
 
 
 (provide 'org-capture)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-capture.el ends here

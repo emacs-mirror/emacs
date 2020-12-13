@@ -22,27 +22,8 @@
 
 ;;; Code:
 
-(require 'org-macs)
-(require 'org-compat)
-
-(declare-function org-at-heading-p "org" (&optional ignored))
-(declare-function org-beginning-of-line "org" (&optional n))
-(declare-function org-defkey "org" (keymap key def))
-(declare-function org-mark-ring-push "org" (&optional pos buffer))
-(declare-function org-overview "org" ())
-(declare-function org-refile-check-position "org" (refile-pointer))
-(declare-function org-refile-get-location "org" (&optional prompt default-buffer new-nodes))
-(declare-function org-show-context "org" (&optional key))
-(declare-function org-show-set-visibility "org" (detail))
-
-(defvar org-complex-heading-regexp)
-(defvar org-startup-align-all-tables)
-(defvar org-startup-folded)
-(defvar org-startup-truncated)
-(defvar org-special-ctrl-a/e)
-(defvar org-refile-target-verify-function)
-(defvar org-refile-use-outline-path)
-(defvar org-refile-targets)
+(require 'org)
+(require 'org-refile)
 
 (defvar org-goto-exit-command nil)
 (defvar org-goto-map nil)
@@ -234,20 +215,15 @@ position or nil."
 	 (and (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
 	 (pop-to-buffer-same-window
 	  (condition-case nil
-	      (make-indirect-buffer (current-buffer) "*org-goto*")
-	    (error (make-indirect-buffer (current-buffer) "*org-goto*"))))
+	      (make-indirect-buffer (current-buffer) "*org-goto*" t)
+	    (error (make-indirect-buffer (current-buffer) "*org-goto*" t))))
 	 (let (temp-buffer-show-function temp-buffer-show-hook)
 	   (with-output-to-temp-buffer "*Org Help*"
 	   (princ (format help (if org-goto-auto-isearch
 				   "  Just type for auto-isearch."
 				 "  n/p/f/b/u to navigate, q to quit.")))))
 	 (org-fit-window-to-buffer (get-buffer-window "*Org Help*"))
-	 (setq buffer-read-only nil)
-	 (let ((org-startup-truncated t)
-	       (org-startup-folded nil)
-	       (org-startup-align-all-tables nil))
-	   (org-mode)
-	   (org-overview))
+	 (org-overview)
 	 (setq buffer-read-only t)
 	 (if (and (boundp 'org-goto-start-pos)
 		  (integer-or-marker-p org-goto-start-pos))
@@ -308,5 +284,9 @@ With a prefix argument, use the alternative interface: e.g., if
       (message "Quit"))))
 
 (provide 'org-goto)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-goto.el ends here

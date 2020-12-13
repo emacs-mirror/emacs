@@ -191,7 +191,7 @@ Example:
           :working-suffix \".org\"
           :base-url \"https://orgmode.org/worg/\"
           :working-directory \"/home/user/org/Worg/\")
-         (\"http://localhost/org-notes/\"
+         (\"localhost org-notes/\"
           :online-suffix \".html\"
           :working-suffix \".org\"
           :base-url \"http://localhost/org/\"
@@ -202,12 +202,17 @@ Example:
           :working-directory \"~/site/content/post/\"
           :online-suffix \".html\"
           :working-suffix \".md\"
-          :rewrites ((\"\\(https://site.com/[0-9]+/[0-9]+/[0-9]+/\\)\" . \".md\")))))
+          :rewrites ((\"\\(https://site.com/[0-9]+/[0-9]+/[0-9]+/\\)\" . \".md\")))
+         (\"GNU emacs OpenGrok\"
+          :base-url \"https://opengrok.housegordon.com/source/xref/emacs/\"
+          :working-directory \"~/dev/gnu-emacs/\")))
 
-
-   The last line tells `org-protocol-open-source' to open
-   /home/user/org/index.php, if the URL cannot be mapped to an existing
-   file, and ends with either \"org\" or \"org/\".
+   The :rewrites line of \"localhost org-notes\" entry tells
+   `org-protocol-open-source' to open /home/user/org/index.php,
+   if the URL cannot be mapped to an existing file, and ends with
+   either \"org\" or \"org/\".  The \"GNU emacs OpenGrok\" entry
+   does not include any suffix properties, allowing local source
+   file to be opened as found by OpenGrok.
 
 Consider using the interactive functions `org-protocol-create' and
 `org-protocol-create-for-org' to help you filling this variable with valid contents."
@@ -278,7 +283,7 @@ This should be a single regexp string."
   :group 'org-protocol
   :version "24.4"
   :package-version '(Org . "8.0")
-  :type 'string)
+  :type 'regexp)
 
 ;;; Helper functions:
 
@@ -545,11 +550,12 @@ The location for a browser's bookmark should look like this:
 		   ;; ending than strip-suffix here:
 		   (f1 (substring f 0 (string-match "\\([\\?#].*\\)?$" f)))
                    (start-pos (+ (string-match wsearch f1) (length base-url)))
-                   (end-pos (string-match
-			     (regexp-quote strip-suffix) f1))
+                   (end-pos (if strip-suffix
+			      (string-match (regexp-quote strip-suffix) f1)
+			      (length f1)))
 		   ;; We have to compare redirects without suffix below:
 		   (f2 (concat wdir (substring f1 start-pos end-pos)))
-                   (the-file (concat f2 add-suffix)))
+                   (the-file (if add-suffix (concat f2 add-suffix) f2)))
 
 	      ;; Note: the-file may still contain `%C3' et al here because browsers
 	      ;; tend to encode `&auml;' in URLs to `%25C3' - `%25' being `%'.
@@ -617,13 +623,13 @@ CLIENT is ignored."
             (let ((proto
 		   (concat the-protocol
 			   (regexp-quote (plist-get (cdr prolist) :protocol))
-			   "\\(:/+\\|\\?\\)")))
+			   "\\(:/+\\|/*\\?\\)")))
               (when (string-match proto fname)
                 (let* ((func (plist-get (cdr prolist) :function))
                        (greedy (plist-get (cdr prolist) :greedy))
                        (split (split-string fname proto))
                        (result (if greedy restoffiles (cadr split)))
-		       (new-style (string= (match-string 1 fname) "?")))
+		       (new-style (string-match "/*?" (match-string 1 fname))))
                   (when (plist-get (cdr prolist) :kill-client)
 		    (message "Greedy org-protocol handler.  Killing client.")
 		    (server-edit))

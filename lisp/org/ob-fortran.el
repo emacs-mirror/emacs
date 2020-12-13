@@ -101,12 +101,13 @@ its header arguments."
 		     (concat
 		      ;; variables
 		      (mapconcat 'org-babel-fortran-var-to-fortran vars "\n")
-		      body) params)
+		      body)
+		     params)
 		  body) "\n") "\n")))
 
 (defun org-babel-fortran-ensure-main-wrap (body params)
   "Wrap body in a \"program ... end program\" block if none exists."
-  (if (string-match "^[ \t]*program[ \t]*.*" (capitalize body))
+  (if (string-match "^[ \t]*program\\>" (capitalize body))
       (let ((vars (org-babel--get-vars params)))
 	(when vars (error "Cannot use :vars if `program' statement is present"))
 	body)

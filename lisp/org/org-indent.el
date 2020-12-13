@@ -71,8 +71,6 @@ Delay used when the buffer to initialize isn't current.")
 (defvar org-indent--initial-marker nil
   "Position of initialization before interrupt.
 This is used locally in each buffer being initialized.")
-(defvar org-hide-leading-stars-before-indent-mode nil
-  "Used locally.")
 (defvar org-indent-modified-headline-flag nil
   "Non-nil means the last deletion operated on a headline.
 It is modified by `org-indent-notify-modified-headline'.")
@@ -178,10 +176,11 @@ during idle time."
     (setq-local indent-tabs-mode nil)
     (setq-local org-indent--initial-marker (copy-marker 1))
     (when org-indent-mode-turns-off-org-adapt-indentation
-      (setq-local org-adapt-indentation nil))
+      ;; Don't turn off `org-adapt-indentation' when its value is
+      ;; 'headline-data, just indent headline data specially.
+      (or (eq org-adapt-indentation 'headline-data)
+	  (setq-local org-adapt-indentation nil)))
     (when org-indent-mode-turns-on-hiding-stars
-      (setq-local org-hide-leading-stars-before-indent-mode
-		  org-hide-leading-stars)
       (setq-local org-hide-leading-stars t))
     (org-indent--compute-prefixes)
     (if (boundp 'filter-buffer-substring-functions)
@@ -207,15 +206,14 @@ during idle time."
       (setq org-indent-agent-timer
 	    (run-with-idle-timer 0.2 t #'org-indent-initialize-agent))))
    (t
-    ;; mode was turned off (or we refused to turn it on)
+    ;; Mode was turned off (or we refused to turn it on)
     (kill-local-variable 'org-adapt-indentation)
     (setq org-indent-agentized-buffers
 	  (delq (current-buffer) org-indent-agentized-buffers))
     (when (markerp org-indent--initial-marker)
       (set-marker org-indent--initial-marker nil))
-    (when (boundp 'org-hide-leading-stars-before-indent-mode)
-      (setq-local org-hide-leading-stars
-		  org-hide-leading-stars-before-indent-mode))
+    (when (local-variable-p 'org-hide-leading-stars)
+      (kill-local-variable 'org-hide-leading-stars))
     (if (boundp 'filter-buffer-substring-functions)
 	(remove-hook 'filter-buffer-substring-functions
 		     (lambda (fun start end delete)
@@ -365,7 +363,18 @@ stopped."
 	      level (org-list-item-body-column (point))))
 	    ;; Regular line.
 	    (t
-	     (org-indent-set-line-properties level (current-indentation))))))))))
+	     (org-indent-set-line-properties
+	      level
+	      (current-indentation)
+	      ;; When adapt indentation is 'headline-data, use
+	      ;; `org-indent--heading-line-prefixes' for setting
+	      ;; headline data indentation.
+	      (and (eq org-adapt-indentation 'headline-data)
+		   (or (org-at-planning-p)
+		       (org-at-clock-log-p)
+		       (looking-at-p org-property-start-re)
+		       (looking-at-p org-property-end-re)
+		       (looking-at-p org-property-re))))))))))))
 
 (defun org-indent-notify-modified-headline (beg end)
   "Set `org-indent-modified-headline-flag' depending on context.
