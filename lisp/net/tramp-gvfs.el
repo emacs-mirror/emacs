@@ -1434,6 +1434,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
+	;; Set "gio-file-monitor" property.  We believe, that "gio
+	;; monitor" uses polling when applied for mounted files.
+	(tramp-set-connection-property p "gio-file-monitor" 'GPollFileMonitor)
 	p))))
 
 (defun tramp-gvfs-monitor-process-filter (proc string)
@@ -2112,7 +2115,10 @@ connection if a previous connection has died for some reason."
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
-      (set-process-query-on-exit-flag p nil)))
+      (set-process-query-on-exit-flag p nil)
+
+      ;; Set connection-local variables.
+      (tramp-set-connection-local-variables vec)))
 
   (unless (tramp-gvfs-connection-mounted-p vec)
     (let ((method (tramp-file-name-method vec))
@@ -2215,9 +2221,6 @@ connection if a previous connection has died for some reason."
 	(ignore-errors
 	  (and (functionp tramp-password-save-function)
 	       (funcall tramp-password-save-function)))
-
-	;; Set connection-local variables.
-	(tramp-set-connection-local-variables vec)
 
 	;; Mark it as connected.
 	(tramp-set-connection-property

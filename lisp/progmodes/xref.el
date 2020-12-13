@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
-;; Version: 1.0.3
+;; Version: 1.0.4
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -593,6 +593,25 @@ SELECT is `quit', also quit the *xref* window."
   (xref--search-property 'xref-item t)
   (xref-show-location-at-point))
 
+(defun xref-next-group ()
+  "Move to the first item of the next xref group and display its source."
+  (interactive)
+  (xref--search-property 'xref-group)
+  (xref--search-property 'xref-item)
+  (xref-show-location-at-point))
+
+(defun xref-prev-group ()
+  "Move to the first item of the previous xref group and display its source."
+  (interactive)
+  ;; Search for the xref group of the current item, provided that the
+  ;; point is not already in an xref group.
+  (unless (plist-member (text-properties-at (point)) 'xref-group)
+    (xref--search-property 'xref-group t))
+  ;; Search for the previous xref group.
+  (xref--search-property 'xref-group t)
+  (xref--search-property 'xref-item)
+  (xref-show-location-at-point))
+
 (defun xref--item-at-point ()
   (save-excursion
     (back-to-indentation)
@@ -738,6 +757,8 @@ references displayed in the current *xref* buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "n") #'xref-next-line)
     (define-key map (kbd "p") #'xref-prev-line)
+    (define-key map (kbd "N") #'xref-next-group)
+    (define-key map (kbd "P") #'xref-prev-group)
     (define-key map (kbd "r") #'xref-query-replace-in-results)
     (define-key map (kbd "RET") #'xref-goto-xref)
     (define-key map (kbd "TAB")  #'xref-quit-and-goto-xref)
@@ -1334,7 +1355,9 @@ The template should have the following fields:
   <R> for the regexp itself (in Extended format)"
   :type '(repeat
           (cons (symbol :tag "Program identifier")
-                (string :tag "Command template"))))
+                (string :tag "Command template")))
+  :version "28.1"
+  :package-version '(xref . "1.0.4"))
 
 (defcustom xref-search-program 'grep
   "The program to use for regexp search inside files.
@@ -1343,7 +1366,9 @@ This must reference a corresponding entry in `xref-search-program-alist'."
   :type `(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
-          (symbol :tag "User defined")))
+          (symbol :tag "User defined"))
+  :version "28.1"
+  :package-version '(xref . "1.0.4"))
 
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)

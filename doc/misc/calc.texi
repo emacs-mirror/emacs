@@ -28047,13 +28047,7 @@ defined as the distance that light will travel in a vacuum in
 vacuum is exactly 299792458 m/s.  Many other units have been
 redefined in terms of fundamental physical processes; a second, for
 example, is currently defined as 9192631770 periods of a certain
-radiation related to the cesium-133 atom.  The only SI unit that is not
-based on a fundamental physical process (although there are efforts to
-change this) is the kilogram, which was originally defined as the mass
-of one liter of water, but is now defined as the mass of the
-international prototype of the kilogram (IPK), a cylinder of platinum-iridium
-kept at the Bureau international des poids et mesures in Sèvres,
-France.  (There are several copies of the IPK throughout the world.)
+radiation related to the cesium-133 atom.
 The British imperial units, once defined in terms of physical objects,
 were redefined in 1963 in terms of SI units.  The US customary units,
 which were the same as British units until the British imperial system

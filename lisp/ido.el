@@ -3966,7 +3966,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
 		      (boundp 'ido-completion-buffer-full))
 		  (set-window-start win (point-min))
 		(with-no-warnings
-		  (set (make-local-variable 'ido-completion-buffer-full) t))
+                  (setq-local ido-completion-buffer-full t))
 		(setq full-list t
 		      display-it t))
 	    (scroll-other-window))
@@ -4810,8 +4810,7 @@ Modified from `icomplete-completions'."
 	    (delete-region ido-eoinput (point-max))))
 
       ;; Reestablish the local variable 'cause minibuffer-setup is weird:
-      (make-local-variable 'ido-eoinput)
-      (setq ido-eoinput 1))))
+      (setq-local ido-eoinput 1))))
 
 (defun ido-summary-buffers-to-end ()
   ;; Move the summaries to the end of the buffer list.

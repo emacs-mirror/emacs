@@ -465,6 +465,9 @@ are two possible targets for this %spatch.  However, these files do not exist."
 				     file1 file2 (if multi-patch-p "multi-" ""))))
 		    (princ "
 \nPlease enter an alternative patch target ...\n"))
+                  (when (and (string= file1 file2)
+                             (y-or-n-p (format "Create %s?" file1)))
+                    (write-region (point-min) (point-min) file1))
 		  (let ((directory t)
 			target)
 		    (while directory

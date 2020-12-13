@@ -2417,17 +2417,6 @@ If X is not an error form, return 1."
                (mapcar #'math-normalize (cdr a))))))
 
 
-;;; Normalize a bignum digit list by trimming high-end zeros.  [L l]
-(defun math-norm-bignum (a)
-  (let ((digs a) (last nil))
-    (while digs
-      (or (eq (car digs) 0) (setq last digs))
-      (setq digs (cdr digs)))
-    (and last
-	 (progn
-	   (setcdr last nil)
-	   a))))
-
 ;;; Return 0 for zero, -1 for negative, 1 for positive.  [S n] [Public]
 (defun calcFunc-sign (a &optional x)
   (let ((signs (math-possible-signs a)))
@@ -2541,23 +2530,6 @@ If X is not an error form, return 1."
 		  (math-compare-lists (cdr a) (cdr b)))
 	     0
 	   2))))
-
-;;; Compare two bignum digit lists, return -1 for A<B, 0 for A=B, 1 for A>B.
-(defun math-compare-bignum (a b)   ; [S l l]
-  (let ((res 0))
-    (while (and a b)
-      (if (< (car a) (car b))
-	  (setq res -1)
-	(if (> (car a) (car b))
-	    (setq res 1)))
-      (setq a (cdr a)
-	    b (cdr b)))
-    (if a
-	(progn
-	  (while (eq (car a) 0) (setq a (cdr a)))
-	  (if a 1 res))
-      (while (eq (car b) 0) (setq b (cdr b)))
-      (if b -1 res))))
 
 (defun math-compare-lists (a b)
   (cond ((null a) (null b))
@@ -2685,7 +2657,7 @@ If X is not an error form, return 1."
 	 (if (Math-integer-negp a) (setq a (math-neg a)))
 	 (if (Math-integer-negp b) (setq b (math-neg b)))
 	 (let (c)
-	   (if (Math-natnum-lessp a b)
+	   (if (< a b)
 	       (setq c b b a a c))
 	   (while (and (consp a) (not (eq b 0)))
 	     (setq c b

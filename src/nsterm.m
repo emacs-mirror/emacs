@@ -1166,7 +1166,6 @@ ns_update_end (struct frame *f)
     {
 #endif
       [NSGraphicsContext setCurrentContext:nil];
-      [view setNeedsDisplay:YES];
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
     }
   else
@@ -3056,7 +3055,7 @@ ns_clear_under_internal_border (struct frame *f)
       if (!face)
         return;
 
-      ns_focus (f, &frame_rect, 1);
+      ns_focus (f, NULL, 1);
       [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
       for (int i = 0; i < 4 ; i++)
         {
@@ -4987,8 +4986,8 @@ ns_set_vertical_scroll_bar (struct window *window,
           [bar removeFromSuperview];
           wset_vertical_scroll_bar (window, Qnil);
           [bar release];
+          ns_clear_frame_area (f, left, top, width, height);
         }
-      ns_clear_frame_area (f, left, top, width, height);
       unblock_input ();
       return;
     }
@@ -5010,7 +5009,7 @@ ns_set_vertical_scroll_bar (struct window *window,
       r.size.width = oldRect.size.width;
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
         {
-          if (oldRect.origin.x != r.origin.x)
+          if (! NSEqualRects (oldRect, r))
               ns_clear_frame_area (f, left, top, width, height);
           [bar setFrame: r];
         }
@@ -5088,8 +5087,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
       oldRect = [bar frame];
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
         {
-          if (oldRect.origin.y != r.origin.y)
-            ns_clear_frame_area (f, left, top, width, height);
+          ns_clear_frame_area (f, left, top, width, height);
           [bar setFrame: r];
           update_p = YES;
         }

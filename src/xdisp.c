@@ -1925,12 +1925,12 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  /* If it3_moved stays false after the 'while' loop
 		     below, that means we already were at a newline
 		     before the loop (e.g., the display string begins
-		     with a newline), so we don't need to (and cannot)
-		     inspect the glyphs of it3.glyph_row, because
-		     PRODUCE_GLYPHS will not produce anything for a
-		     newline, and thus it3.glyph_row stays at its
-		     stale content it got at top of the window.  */
+		     with a newline), so we don't need to return to
+		     the last position before the display string,
+		     because PRODUCE_GLYPHS will not produce anything
+		     for a newline.  */
 		  bool it3_moved = false;
+		  int top_x_before_string = it3.current_x;
 		  /* Finally, advance the iterator until we hit the
 		     first display element whose character position is
 		     CHARPOS, or until the first newline from the
@@ -1938,6 +1938,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     display line.  */
 		  while (get_next_display_element (&it3))
 		    {
+		      if (!EQ (it3.object, string))
+			top_x_before_string = it3.current_x;
 		      PRODUCE_GLYPHS (&it3);
 		      if (IT_CHARPOS (it3) == charpos
 			  || ITERATOR_AT_END_OF_LINE_P (&it3))
@@ -1952,32 +1954,26 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  if (!it3.line_number_produced_p)
 		    {
 		      if (it3.lnum_pixel_width > 0)
-			top_x += it3.lnum_pixel_width;
+			{
+			  top_x += it3.lnum_pixel_width;
+			  top_x_before_string += it3.lnum_pixel_width;
+			}
 		      else if (it.line_number_produced_p)
-			top_x += it.lnum_pixel_width;
+			{
+			  top_x += it.lnum_pixel_width;
+			  top_x_before_string += it3.lnum_pixel_width;
+			}
 		    }
 		  /* Normally, we would exit the above loop because we
 		     found the display element whose character
 		     position is CHARPOS.  For the contingency that we
 		     didn't, and stopped at the first newline from the
-		     display string, move back over the glyphs
-		     produced from the string, until we find the
-		     rightmost glyph not from the string.  */
+		     display string, reset top_x to the coordinate of
+		     the rightmost glyph not from the string.  */
 		  if (it3_moved
 		      && newline_in_string
 		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
-		    {
-		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
-					+ it3.glyph_row->used[TEXT_AREA];
-
-		      while (EQ ((g - 1)->object, string))
-			{
-			  --g;
-			  top_x -= g->pixel_width;
-			}
-		      eassert (g < it3.glyph_row->glyphs[TEXT_AREA]
-				    + it3.glyph_row->used[TEXT_AREA]);
-		    }
+		    top_x = top_x_before_string;
 		}
 	    }
 

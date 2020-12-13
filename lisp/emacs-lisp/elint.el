@@ -558,7 +558,8 @@ Return nil if there are no more forms, t otherwise."
     (when . elint-check-conditional-form)
     (unless . elint-check-conditional-form)
     (and . elint-check-conditional-form)
-    (or . elint-check-conditional-form))
+    (or . elint-check-conditional-form)
+    (require . elint-require-form))
   "Functions to call when some special form should be linted.")
 
 (defun elint-form (form env &optional nohandler)
@@ -952,6 +953,13 @@ Does basic handling of `featurep' tests."
 	  (t
 	   (elint-form form env t))))
   env)
+
+(defun elint-require-form (form _env)
+  "Load `require'd files."
+  (pcase form
+    (`(require ',x)
+     (require x)))
+  nil)
 
 ;;;
 ;;; Message functions

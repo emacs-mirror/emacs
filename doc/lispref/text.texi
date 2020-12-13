@@ -2931,6 +2931,22 @@ used instead.  Here is an example:
 @end example
 @end defvar
 
+@defun object-intervals OBJECT
+This function returns a copy of the intervals (i.e., text properties)
+in @var{object} as a list of intervals.  @var{object} must be a string
+or a buffer.  Altering the structure of this list does not change the
+intervals in the object.
+
+@example
+(object-intervals (propertize "foo" 'face 'bold))
+     @result{} ((0 3 (face bold)))
+@end example
+
+Each element in the returned list represents one interval.  Each
+interval has three parts: The first is the start, the second is the
+end, and the third part is the text property itself.
+@end defun
+
 @node Changing Properties
 @subsection Changing Text Properties
 @cindex changing text properties

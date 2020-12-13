@@ -56,8 +56,9 @@
   "Compile the compiler and load it to compile it-self.
 Check that the resulting binaries do not differ."
   :tags '(:expensive-test :nativecomp)
-  (let* ((comp-src (concat comp-test-directory
-                           "../../lisp/emacs-lisp/comp.el"))
+  (let* ((byte-native-for-bootstrap t) ; FIXME HACK
+         (comp-src (concat comp-test-directory
+                              "../../lisp/emacs-lisp/comp.el"))
          (comp1-src (make-temp-file "stage1-" nil ".el"))
          (comp2-src (make-temp-file "stage2-" nil ".el"))
          ;; Can't use debug symbols.

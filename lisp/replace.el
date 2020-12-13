@@ -1706,7 +1706,7 @@ See also `multi-occur'."
 	    (buffer-undo-list t)
 	    (occur--final-pos nil))
 	(erase-buffer)
-        (set (make-local-variable 'occur-highlight-regexp) regexp)
+        (setq-local occur-highlight-regexp regexp)
 	(let ((count
 	       (if (stringp nlines)
                    ;; Treat nlines as a regexp to collect.

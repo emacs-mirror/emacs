@@ -416,6 +416,9 @@ will be killed."
 (defvar rcirc-server-buffer nil
   "The server buffer associated with this channel buffer.")
 
+(defvar rcirc-server-parameters nil
+  "List of parameters received from the server.")
+
 (defvar rcirc-target nil
   "The channel or user associated with this buffer.")
 
@@ -586,6 +589,7 @@ If ARG is non-nil, instead prompt for connection parameters."
       (setq-local rcirc-user-disconnect nil)
       (setq-local rcirc-user-authenticated nil)
       (setq-local rcirc-connecting t)
+      (setq-local rcirc-server-parameters nil)
 
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
@@ -2873,9 +2877,28 @@ Not in rfc1459.txt"
 (defun rcirc-handler-433 (process sender args text)
   "ERR_NICKNAMEINUSE"
   (rcirc-handler-generic process "433" sender args text)
-  (let* ((new-nick (concat (cadr args) "`")))
-    (with-rcirc-process-buffer process
-      (rcirc-cmd-nick new-nick nil process))))
+  (with-rcirc-process-buffer process
+    (let* ((length (string-to-number
+                    (or (rcirc-server-parameter-value 'nicklen)
+                        "16"))))
+      (rcirc-cmd-nick (rcirc--make-new-nick (cadr args) length) nil process))))
+
+(defun rcirc--make-new-nick (nick length)
+  ;; If we already have some ` chars at the end, then shorten the
+  ;; non-` bit of the name.
+  (when (= (length nick) length)
+    (setq nick (replace-regexp-in-string "[^`]\\(`+\\)\\'" "\\1" nick)))
+  (concat
+   (if (>= (length nick) length)
+       (substring nick 0 (1- length))
+     nick)
+   "`"))
+
+(defun rcirc-handler-005 (process sender args text)
+  "ERR_NICKNAMEINUSE"
+  (rcirc-handler-generic process "005" sender args text)
+  (with-rcirc-process-buffer process
+    (setq rcirc-server-parameters (append rcirc-server-parameters args))))
 
 (defun rcirc-authenticate ()
   "Send authentication to process associated with current buffer.
@@ -3071,6 +3094,13 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   "Return true if point is past the input marker."
   (>= (point) rcirc-prompt-end-marker))
 
+
+(defun rcirc-server-parameter-value (parameter)
+  (cl-loop for elem in rcirc-server-parameters
+           for setting = (split-string elem "=")
+           when (and (= (length setting) 2)
+                     (string-equal (downcase (car setting)) parameter))
+           return (cadr setting)))
 
 (provide 'rcirc)
 

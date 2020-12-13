@@ -5028,10 +5028,37 @@ Nothing if the article is a root and lots of spaces if it isn't (it
 pushes everything after it off the screen).
 @item [
 Opening bracket, which is normally @samp{[}, but can also be @samp{<}
-for adopted articles (@pxref{Customizing Threading}).
+for adopted articles (@pxref{Customizing Threading}).  This can be
+customized using following settings:
+
+@table @code
+@item gnus-sum-opening-bracket
+@vindex gnus-sum-opening-bracket
+Opening bracket for normal (non-adopted) articles.  The default is
+@samp{[}.
+
+@item gnus-sum-opening-bracket-adopted
+@vindex gnus-sum-opening-bracket-adopted
+Opening bracket for adopted articles.  The default is @samp{<}.
+
+@end table
+
 @item ]
 Closing bracket, which is normally @samp{]}, but can also be @samp{>}
-for adopted articles.
+for adopted articles.  This can be customised using following settings:
+
+@table @code
+@item gnus-sum-closing-bracket
+@vindex gnus-sum-closing-bracket
+Closing bracket for normal (non-adopted) articles.  The default is
+@samp{]}.
+
+@item gnus-sum-closing-bracket-adopted
+@vindex gnus-sum-opening-bracket-adopted
+Closing bracket for adopted articles.  The default is @samp{>}.
+
+@end table
+
 @item >
 One space for each thread level.
 @item <

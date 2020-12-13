@@ -319,9 +319,9 @@ then `locate-post-command-hook'."
 	(erase-buffer)
 
 	(setq locate-current-filter filter)
-	(set (make-local-variable 'locate-local-search) search-string)
-	(set (make-local-variable 'locate-local-filter) filter)
-	(set (make-local-variable 'locate-local-prompt) run-locate-command)
+        (setq-local locate-local-search search-string)
+        (setq-local locate-local-filter filter)
+        (setq-local locate-local-prompt run-locate-command)
 
 	(if run-locate-command
 	    (shell-command search-string locate-buffer-name)
@@ -467,8 +467,8 @@ do not work in subdirectories.
 	buffer-read-only    t)
   (add-to-invisibility-spec '(dired . t))
   (dired-alist-add-1 default-directory (point-min-marker))
-  (set (make-local-variable 'dired-directory) "/")
-  (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
+  (setq-local dired-directory "/")
+  (setq-local dired-subdir-switches locate-ls-subdir-switches)
   (setq dired-switches-alist nil)
   ;; This should support both Unix and Windoze style names
   (setq-local directory-listing-before-filename-regexp

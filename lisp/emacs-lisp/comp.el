@@ -164,7 +164,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-fwprop
                         comp-call-optim
                         comp-ipa-pure
-                        comp-cond-rw
+                        comp-cond-cstr
                         comp-fwprop
                         comp-dead-code
                         comp-tco
@@ -313,6 +313,9 @@ Useful to hook into pass checkers.")
                             return)
   "All limple operators.")
 
+(defvar comp-func nil
+  "Bound to the current function by most passes.")
+
 (define-error 'native-compiler-error-dyn-func
   "can't native compile a non-lexically-scoped function"
   'native-compiler-error)
@@ -400,13 +403,13 @@ To be used when ncall-conv is nil."))
             :documentation "List of incoming edges.")
   (out-edges () :type list
              :documentation "List of out-coming edges.")
-  (dom nil :type comp-block
+  (dom nil :type (or null comp-block)
         :documentation "Immediate dominator.")
-  (df (make-hash-table) :type hash-table
+  (df (make-hash-table) :type (or null hash-table)
       :documentation "Dominance frontier set. Block-name -> block")
-  (post-num nil :type number
+  (post-num nil :type (or null number)
             :documentation "Post order number.")
-  (final-frame nil :type vector
+  (final-frame nil :type (or null vector)
              :documentation "This is a copy of the frame when leaving the block.
 Is in use to help the SSA rename pass."))
 
@@ -426,13 +429,25 @@ into it.")
                           (:include comp-block))
   "A basic block for a latch loop.")
 
+(cl-defstruct (comp-block-cstr (:copier nil)
+                               (:include comp-block))
+  "A basic block holding only constraints.")
+
 (cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
   "An edge connecting two basic blocks."
-  (src nil :type comp-block)
-  (dst nil :type comp-block)
+  (src nil :type (or null comp-block))
+  (dst nil :type (or null comp-block))
   (number nil :type number
           :documentation "The index number corresponding to this edge in the
  edge hash."))
+
+(defun make-comp-edge (&rest args)
+  "Create a `comp-edge' with basic blocks SRC and DST."
+  (let ((n (funcall (comp-func-edge-cnt-gen comp-func))))
+    (puthash
+     n
+     (apply #'make--comp-edge :number n args)
+     (comp-func-edges-h comp-func))))
 
 (defun comp-block-preds (basic-block)
   "Given BASIC-BLOCK return the list of its predecessors."
@@ -463,8 +478,8 @@ into it.")
 Once in SSA form this *must* be set to 'dirty' every time the topology of the
 CFG is mutated by a pass.")
   (frame-size nil :type number)
-  (blocks (make-hash-table) :type hash-table
-          :documentation "Basic block name -> basic block.")
+  (blocks (make-hash-table :test #'eq) :type hash-table
+          :documentation "Basic block symbol -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
              :documentation "LAP label -> LIMPLE basic block name.")
   (edges-h (make-hash-table) :type hash-table
@@ -570,9 +585,6 @@ In use by the backend."
     (cons (comp-mvar-cons-p mvar))
     (fixnum (comp-mvar-fixnum-p mvar))))
 
-;; Special vars used by some passes
-(defvar comp-func)
-
 
 
 (defun comp-ensure-native-compiler ()
@@ -650,7 +662,7 @@ Assume allocation class 'd-default as default."
      (1 font-lock-variable-name-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
-                              (1+ num) (? "_latch")))))
+                              (1+ num) (? (or "_latch" "_cstrs"))))))
      (1 font-lock-constant-face))
     (,(rx-to-string
        `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
@@ -1841,15 +1853,14 @@ into the C code forwarding the compilation unit."
 
 ;;; conditional branches rewrite pass specific code.
 
-(defun comp-emit-assume (target-slot rhs bb-name kind)
+(defun comp-emit-assume (target-slot rhs bb kind)
   "Emit an assume of kind KIND for TARGET-SLOT being RHS.
-The assume is emitted at the beginning of the block named
-BB-NAME."
+The assume is emitted at the beginning of the block BB."
   (push `(assume ,(make-comp-mvar :slot target-slot) ,rhs ,kind)
-	(comp-block-insns (gethash bb-name (comp-func-blocks comp-func))))
+	(comp-block-insns bb))
   (setf (comp-func-ssa-status comp-func) 'dirty))
 
-(defun comp-cond-rw-target-slot (slot-num exit-insn bb)
+(defun comp-cond-cstr-target-slot (slot-num exit-insn bb)
   "Search for the last assignment of SLOT-NUM in BB.
 Keep on searching till EXIT-INSN is encountered.
 Return the corresponding rhs slot number."
@@ -1867,36 +1878,69 @@ Return the corresponding rhs slot number."
            (setf res rhs)))
      finally (cl-assert nil))))
 
-(defun comp-cond-rw-func ()
-  "`comp-cond-rw' worker function for each selected function."
+(defun comp-add-new-block-beetween (bb-symbol bb-a bb-b)
+  "Create a new basic-block named BB-SYMBOL and add it between BB-A and BB-B."
+  (cl-loop
+   with new-bb = (make-comp-block-cstr :name bb-symbol
+                                       :insns `((jump ,(comp-block-name bb-b))))
+   with new-edge = (make-comp-edge :src bb-a :dst new-bb)
+   for ed in (comp-block-in-edges bb-b)
+   when (eq (comp-edge-src ed) bb-a)
+   do
+   ;; Connect `ed' to `new-bb' and disconnect it from `bb-a'.
+   (cl-assert (memq ed (comp-block-out-edges bb-a)))
+   (setf (comp-edge-src ed) new-bb
+         (comp-block-out-edges bb-a) (delq ed (comp-block-out-edges bb-a)))
+   (push ed (comp-block-out-edges new-bb))
+   ;; Connect `bb-a' `new-bb' with `new-edge'.
+   (push (comp-block-out-edges bb-a) new-edge)
+   (push (comp-block-in-edges new-bb) new-edge)
+   (setf (comp-func-ssa-status comp-func) 'dirty)
+   ;; Add `new-edge' to the current function and return it.
+   (cl-return (puthash bb-symbol new-bb (comp-func-blocks comp-func)))
+   finally (cl-assert nil)))
+
+(defun comp-cond-cstr-target-block (curr-bb target-bb-sym)
+  "Return the appropriate basic block to add constraint assumptions into.
+CURR-BB is the current basic block.
+TARGET-BB-SYM is the symbol name of the target block."
+  (let ((target-bb (gethash target-bb-sym
+                            (comp-func-blocks comp-func))))
+    (if (= (length (comp-block-in-edges target-bb)) 1)
+        ;; If block has only one predecessor is already suitable for
+        ;; adding constraint assumptions.
+        target-bb
+      (comp-add-new-block-beetween (intern (concat (symbol-name target-bb-sym)
+                                                   "_cstrs"))
+                                   curr-bb target-bb))))
+
+(defun comp-cond-cstr-func ()
+  "`comp-cond-cstr' worker function for each selected function."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
-   do (cl-loop
-       named in-the-basic-block
-       for insns-seq on (comp-block-insns b)
-       do (pcase insns-seq
-            (`((set ,(and (pred comp-mvar-p) cond)
-                    (,(pred comp-call-op-p)
-                     ,(and (or 'eq 'eql '= 'equal) test-fn) ,op1 ,op2))
-	       (comment ,_comment-str)
-	       (cond-jump ,cond ,(pred comp-mvar-p) ,bb-1 ,_bb-2))
-             ;; FIXME We guard the target block against having more
-             ;; then one predecessor.  The right fix will be to add a
-             ;; new dedicated basic block for the assumptions so we
-             ;; can proceed always.
-             (when (= (length (comp-block-in-edges
-                                 (gethash bb-1
-                                          (comp-func-blocks comp-func))))
-                      1)
-               (when-let ((target-slot1 (comp-cond-rw-target-slot
-                                         (comp-mvar-slot op1) (car insns-seq) b)))
-                 (comp-emit-assume target-slot1 op2 bb-1 test-fn))
-               (when-let ((target-slot2 (comp-cond-rw-target-slot
-                                         (comp-mvar-slot op2) (car insns-seq) b)))
-                 (comp-emit-assume target-slot2 op1 bb-1 test-fn)))
-	     (cl-return-from in-the-basic-block))))))
+   do
+   (cl-loop
+    named in-the-basic-block
+    for insns-seq on (comp-block-insns b)
+    do
+    (pcase insns-seq
+      (`((set ,(and (pred comp-mvar-p) cond)
+              (,(pred comp-call-op-p)
+               ,(and (or 'eq 'eql '= 'equal) test-fn) ,op1 ,op2))
+	 (comment ,_comment-str)
+	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
+       (let* ((bb-1 (car blocks))
+              (bb-target (comp-cond-cstr-target-block b bb-1)))
+         (setf (car blocks) (comp-block-name bb-target))
+         (when-let ((target-slot1 (comp-cond-cstr-target-slot
+                                   (comp-mvar-slot op1) (car insns-seq) b)))
+           (comp-emit-assume target-slot1 op2 bb-target test-fn))
+         (when-let ((target-slot2 (comp-cond-cstr-target-slot
+                                   (comp-mvar-slot op2) (car insns-seq) b)))
+           (comp-emit-assume target-slot2 op1 bb-target test-fn)))
+       (cl-return-from in-the-basic-block))))))
 
-(defun comp-cond-rw (_)
+(defun comp-cond-cstr (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
 This is introducing and placing 'assume' insns in use by fwprop
 to propagate conditional branch test information on target basic
@@ -1909,7 +1953,7 @@ blocks."
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (comp-cond-rw-func)
+                 (comp-cond-cstr-func)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
@@ -2002,45 +2046,38 @@ blocks."
 
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
-  (cl-flet ((edge-add (&rest args &aux (n (funcall
-                                           (comp-func-edge-cnt-gen comp-func))))
-                      (puthash
-                       n
-                       (apply #'make--comp-edge :number n args)
-                       (comp-func-edges-h comp-func))))
-
-    (cl-loop with blocks = (comp-func-blocks comp-func)
-             for bb being each hash-value of blocks
-             for last-insn = (car (last (comp-block-insns bb)))
-             for (op first second third forth) = last-insn
-             do (cl-case op
-                  (jump
-                   (edge-add :src bb :dst (gethash first blocks)))
-                  (cond-jump
-                   (edge-add :src bb :dst (gethash third blocks))
-                   (edge-add :src bb :dst (gethash forth blocks)))
-                  (cond-jump-narg-leq
-                   (edge-add :src bb :dst (gethash second blocks))
-                   (edge-add :src bb :dst (gethash third blocks)))
-                  (push-handler
-                   (edge-add :src bb :dst (gethash third blocks))
-                   (edge-add :src bb :dst (gethash forth blocks)))
-                  (return)
-                  (otherwise
-                   (signal 'native-ice
-                           (list "block does not end with a branch"
-                                 bb
-                                 (comp-func-name comp-func)))))
-             ;; Update edge refs into blocks.
-             finally
-             (cl-loop
-              for edge being the hash-value in (comp-func-edges-h comp-func)
-              do
-              (push edge
-                    (comp-block-out-edges (comp-edge-src edge)))
-              (push edge
-                    (comp-block-in-edges (comp-edge-dst edge))))
-             (comp-log-edges comp-func))))
+  (cl-loop with blocks = (comp-func-blocks comp-func)
+           for bb being each hash-value of blocks
+           for last-insn = (car (last (comp-block-insns bb)))
+           for (op first second third forth) = last-insn
+           do (cl-case op
+                (jump
+                 (make-comp-edge :src bb :dst (gethash first blocks)))
+                (cond-jump
+                 (make-comp-edge :src bb :dst (gethash third blocks))
+                 (make-comp-edge :src bb :dst (gethash forth blocks)))
+                (cond-jump-narg-leq
+                 (make-comp-edge :src bb :dst (gethash second blocks))
+                 (make-comp-edge :src bb :dst (gethash third blocks)))
+                (push-handler
+                 (make-comp-edge :src bb :dst (gethash third blocks))
+                 (make-comp-edge :src bb :dst (gethash forth blocks)))
+                (return)
+                (otherwise
+                 (signal 'native-ice
+                         (list "block does not end with a branch"
+                               bb
+                               (comp-func-name comp-func)))))
+           ;; Update edge refs into blocks.
+           finally
+           (cl-loop
+            for edge being the hash-value in (comp-func-edges-h comp-func)
+            do
+            (push edge
+                  (comp-block-out-edges (comp-edge-src edge)))
+            (push edge
+                  (comp-block-in-edges (comp-edge-dst edge))))
+           (comp-log-edges comp-func)))
 
 (defun comp-collect-rev-post-order (basic-block)
   "Walk BASIC-BLOCK children and return their name in reversed post-order."

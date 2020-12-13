@@ -42,6 +42,7 @@
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
+(define-coding-system-alias 'ks_c_5601-1987 'korean-iso-8bit)
 
 (define-coding-system 'iso-2022-kr
   "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."

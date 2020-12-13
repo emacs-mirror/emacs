@@ -1260,6 +1260,9 @@ connection if a previous connection has died for some reason."
 	    (process-put p 'adjust-window-size-function #'ignore)
 	    (set-process-query-on-exit-flag p nil)
 
+	    ;; Set connection-local variables.
+	    (tramp-set-connection-local-variables vec)
+
 	    ;; Change prompt.
 	    (tramp-set-connection-property
 	     p "prompt" (regexp-quote (format "///%s#$" prompt)))
@@ -1311,9 +1314,6 @@ connection if a previous connection has died for some reason."
 		(tramp-set-file-property vec "" "su-command-p" nil)
 		(tramp-error
 		 vec 'file-error "Cannot switch to user `%s'" user)))
-
-	    ;; Set connection-local variables.
-	    (tramp-set-connection-local-variables vec)
 
 	    ;; Mark it as connected.
 	    (tramp-set-connection-property p "connected" t)))))))

@@ -1117,8 +1117,7 @@ EXTRA is the possible non-standard header."
       (gnus-configure-windows 'edit-score)
       (gnus-score-mode)
       (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
-      (make-local-variable 'gnus-prev-winconf)
-      (setq gnus-prev-winconf winconf))
+      (setq-local gnus-prev-winconf winconf))
     (gnus-message
      4 "%s" (substitute-command-keys
 	     "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
@@ -1145,8 +1144,7 @@ EXTRA is the possible non-standard header."
     (gnus-configure-windows 'edit-score)
     (gnus-score-mode)
     (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
-    (make-local-variable 'gnus-prev-winconf)
-    (setq gnus-prev-winconf winconf))
+    (setq-local gnus-prev-winconf winconf))
   (gnus-message
    4 "%s" (substitute-command-keys
 	   "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))

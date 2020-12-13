@@ -486,7 +486,7 @@ If MODE is not set, try to find mode automatically."
         ;; support modes, but now that we use font-lock-ensure, support modes
         ;; aren't a problem any more.  So we could probably get rid of this
         ;; setting now, but it seems harmless and potentially still useful.
-	(set (make-local-variable 'font-lock-mode-hook) nil)
+	(setq-local font-lock-mode-hook nil)
         (setq buffer-file-name (mm-handle-filename handle))
 	(with-demoted-errors
 	    (if mode

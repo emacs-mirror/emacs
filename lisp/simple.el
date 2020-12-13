@@ -1922,7 +1922,7 @@ to get different commands to edit and resubmit."
                     (setq execute-extended-command--last-typed
                               (minibuffer-contents)))
                   nil 'local)
-	(set (make-local-variable 'minibuffer-default-add-function)
+        (setq-local minibuffer-default-add-function
 	     (lambda ()
 	       ;; Get a command name at point in the original buffer
 	       ;; to propose it after M-n.
@@ -2372,10 +2372,10 @@ negative number -N means the Nth entry of \"future history.\""
     (unless (memq last-command '(next-history-element
 				 previous-history-element))
       (let ((prompt-end (minibuffer-prompt-end)))
-	(set (make-local-variable 'minibuffer-temporary-goal-position)
-	     (cond ((<= (point) prompt-end) prompt-end)
-		   ((eobp) nil)
-		   (t (point))))))
+        (setq-local minibuffer-temporary-goal-position
+                    (cond ((<= (point) prompt-end) prompt-end)
+                          ((eobp) nil)
+                          (t (point))))))
     (goto-char (point-max))
     (delete-minibuffer-contents)
     (setq minibuffer-history-position nabs)
@@ -2548,14 +2548,14 @@ Return 0 if current buffer is not a minibuffer."
 (defun minibuffer-history-isearch-setup ()
   "Set up a minibuffer for using isearch to search the minibuffer history.
 Intended to be added to `minibuffer-setup-hook'."
-  (set (make-local-variable 'isearch-search-fun-function)
-       'minibuffer-history-isearch-search)
-  (set (make-local-variable 'isearch-message-function)
-       'minibuffer-history-isearch-message)
-  (set (make-local-variable 'isearch-wrap-function)
-       'minibuffer-history-isearch-wrap)
-  (set (make-local-variable 'isearch-push-state-function)
-       'minibuffer-history-isearch-push-state)
+  (setq-local isearch-search-fun-function
+              #'minibuffer-history-isearch-search)
+  (setq-local isearch-message-function
+              #'minibuffer-history-isearch-message)
+  (setq-local isearch-wrap-function
+              #'minibuffer-history-isearch-wrap)
+  (setq-local isearch-push-state-function
+              #'minibuffer-history-isearch-push-state)
   (add-hook 'isearch-mode-end-hook 'minibuffer-history-isearch-end nil t))
 
 (defun minibuffer-history-isearch-end ()
@@ -3585,8 +3585,8 @@ to `shell-command-history'."
   (minibuffer-with-setup-hook
       (lambda ()
         (shell-completion-vars)
-	(set (make-local-variable 'minibuffer-default-add-function)
-	     'minibuffer-default-add-shell-commands))
+        (setq-local minibuffer-default-add-function
+                    #'minibuffer-default-add-shell-commands))
     (apply #'read-from-minibuffer prompt initial-contents
 	   minibuffer-local-shell-command-map
 	   nil
@@ -7202,6 +7202,12 @@ rests."
   "Move point to visible beginning of current logical line.
 This disregards any invisible newline characters.
 
+When moving from position that has no `field' property, this
+command doesn't enter text which has non-nil `field' property.
+In particular, when invoked in the minibuffer, the command will
+stop short of entering the text of the minibuffer prompt.
+See `inhibit-field-text-motion' for how to inhibit this.
+
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 \(But if the buffer doesn't end in a newline, it stops at the
@@ -7431,8 +7437,8 @@ Mode' for details."
 	    (if (local-variable-p var)
 	        (push (cons var (symbol-value var))
 		      visual-line--saved-state))))
-	(set (make-local-variable 'line-move-visual) t)
-	(set (make-local-variable 'truncate-partial-width-windows) nil)
+        (setq-local line-move-visual t)
+        (setq-local truncate-partial-width-windows nil)
 	(setq truncate-lines nil
 	      word-wrap t
 	      fringe-indicator-alist
@@ -8825,10 +8831,9 @@ Called from `temp-buffer-show-hook'."
       (let ((base-position completion-base-position)
             (insert-fun completion-list-insert-choice-function))
         (completion-list-mode)
-        (set (make-local-variable 'completion-base-position) base-position)
-        (set (make-local-variable 'completion-list-insert-choice-function)
-	     insert-fun))
-      (set (make-local-variable 'completion-reference-buffer) mainbuf)
+        (setq-local completion-base-position base-position)
+        (setq-local completion-list-insert-choice-function insert-fun))
+      (setq-local completion-reference-buffer mainbuf)
       (if base-dir (setq default-directory base-dir))
       (when completion-tab-width
         (setq tab-width completion-tab-width))
@@ -9288,8 +9293,7 @@ to a non-nil value."
   (cond
    ((and (not buffer-read-only) view-mode)
     (View-exit-and-edit)
-    (make-local-variable 'view-read-only)
-    (setq view-read-only t))		; Must leave view mode.
+    (setq-local view-read-only t))		; Must leave view mode.
    ((and buffer-read-only view-read-only
          ;; If view-mode is already active, `view-mode-enter' is a nop.
          (not view-mode)
@@ -9307,8 +9311,8 @@ and setting it to nil."
     (setq buffer-invisibility-spec vis-mode-saved-buffer-invisibility-spec)
     (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
   (when visible-mode
-    (set (make-local-variable 'vis-mode-saved-buffer-invisibility-spec)
-	 buffer-invisibility-spec)
+    (setq-local vis-mode-saved-buffer-invisibility-spec
+                buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
 
 (defvar messages-buffer-mode-map

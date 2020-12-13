@@ -2632,10 +2632,12 @@ appearance of @var{face} will again be determined by its default face
 spec.
 
 @cindex @code{eval-defun}, and @code{defface} forms
+@cindex @code{eval-last-sexp}, and @code{defface} forms
 As an exception, if you evaluate a @code{defface} form with
-@kbd{C-M-x} in Emacs Lisp mode (@code{eval-defun}), a special feature
-of @code{eval-defun} overrides any custom face specs on the face,
-causing the face to reflect exactly what the @code{defface} says.
+@kbd{C-M-x} (@code{eval-defun}) or with @kbd{C-x C-e}
+(@code{eval-last-sexp}) in Emacs Lisp mode, a special feature of these
+commands overrides any custom face specs on the face, causing the face
+to reflect exactly what the @code{defface} says.
 
 The @var{spec} argument is a @dfn{face spec}, which states how the
 face should appear on different kinds of terminals.  It should be an
@@ -5898,6 +5900,26 @@ string containing the image data as raw bytes.  @var{image-type} should be a
 @end lisp
 @end defun
 
+@defun svg-embed-base-uri-image svg relative-filename &rest args
+To @var{svg} add an embedded (raster) image placed at
+@var{relative-filename}.  @var{relative-filename} is searched inside
+@code{file-name-directory} of the @code{:base-uri} svg image property.
+This improves the performance of embedding large images.
+
+@lisp
+;; Embeding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg
+(svg-embed-base-uri-image svg "subdir/rms.jpg"
+           :width "100px" :height "100px"
+           :x "50px" :y "75px")
+(svg-embed-base-uri-image svg "another/rms.jpg"
+           :width "100px" :height "100px"
+           :x "75px" :y "50px")
+(svg-image svg :scale 1.0
+           :base-uri "/tmp/dummy"
+           :width 175 :height 175)
+@end lisp
+@end defun
+
 @defun svg-clip-path svg &rest args
 Add a clipping path to @var{svg}.  If applied to a shape via the
 @var{:clip-path} property, parts of that shape which lie outside of
@@ -6575,6 +6597,12 @@ except when you explicitly clear it.  This mode can be useful for
 debugging.
 @end defvar
 
+@defun image-cache-size
+This function returns the total size of the current image cache, in
+bytes.  An image of size 200x100 with 24 bits per color will have a
+cache size of 60000 bytes, for instance.
+@end defun
+
 @node Xwidgets
 @section Embedded Native Widgets
 @cindex xwidget
@@ -6877,6 +6905,16 @@ using text properties.
 @defun insert-text-button label &rest properties
 This inserts a button with the label @var{label} at point, using text
 properties.
+@end defun
+
+@defun button-buttonize string callback &optional data
+Sometimes it's more convenient to make a string into a button without
+inserting it into a buffer immediately, for instance when creating
+data structures that may then, later, be inserted into a buffer.  This
+function makes @var{string} into such a string, and @var{callback}
+will be called when the user clicks on the button.  The optional
+@var{data} parameter will be used as the parameter when @var{callback}
+is called.  If @code{nil}, the button is used as the parameter instead.
 @end defun
 
 @node Manipulating Buttons

@@ -2199,11 +2199,21 @@ Display the reference on the current line.
 Move to the next reference and display it in the other window
 (@code{xref-next-line}).
 
+@item N
+@findex xref-next-group
+Move to the first reference of the next reference group and display it
+in the other window (@code{xref-next-group}).
+
 @item p
 @itemx ,
 @findex xref-prev-line
 Move to the previous reference and display it in the other window
 (@code{xref-prev-line}).
+
+@item P
+@findex xref-prev-group
+Move to the first reference of the previous reference group and
+display it in the other window (@code{xref-prev-group}).
 
 @item C-o
 @findex xref-show-location-at-point

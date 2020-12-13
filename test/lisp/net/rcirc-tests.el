@@ -51,4 +51,16 @@
     "MODE #cchan +kl :a:b"
     nil "MODE" '("#cchan" "+kl" "a:b")))
 
+(ert-deftest rcirc-rename-nicks ()
+  (should (equal (rcirc--make-new-nick "foo" 16)
+                 "foo`"))
+  (should (equal (rcirc--make-new-nick "123456789012345" 16)
+                 "123456789012345`"))
+  (should (equal (rcirc--make-new-nick "1234567890123456" 16)
+                 "123456789012345`"))
+  (should (equal (rcirc--make-new-nick "123456789012345`" 16)
+                 "12345678901234``"))
+  (should (equal (rcirc--make-new-nick "123456789012````" 16)
+                 "12345678901`````")))
+
 ;;; rcirc-tests.el ends here

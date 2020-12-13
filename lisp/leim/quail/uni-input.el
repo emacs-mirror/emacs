@@ -105,8 +105,7 @@ While this input method is active, the variable
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (set (make-local-variable 'input-method-function)
-	 'ucs-input-method)))
+    (setq-local input-method-function 'ucs-input-method)))
 
 (defun ucs-input-deactivate ()
   "Deactivate UCS input method."
