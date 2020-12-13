@@ -4,8 +4,8 @@
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
-;; Version: 0.27
-;; Package-Requires: ((emacs "24.1") (cl-lib "1.0"))
+;; Version: 0.27.1
+;; Package-Requires: ((emacs "24.2") (cl-lib "1.0"))
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
@@ -875,7 +875,7 @@ work on `python-indent-calculate-indentation' instead."
                  (python-util-forward-comment)
                  (current-indentation))))
           (if (and indentation (not (zerop indentation)))
-              (set (make-local-variable 'python-indent-offset) indentation)
+              (setq-local python-indent-offset indentation)
             (when python-indent-guess-indent-offset-verbose
               (message "Can't guess python-indent-offset, using defaults: %s"
                        python-indent-offset))))))))
@@ -2623,7 +2623,7 @@ also `with-current-buffer'."
        (set-buffer python-shell--font-lock-buffer)
        (when (not font-lock-mode)
          (font-lock-mode 1))
-       (set (make-local-variable 'delay-mode-hooks) t)
+       (setq-local delay-mode-hooks t)
        (let ((python-indent-guess-indent-offset nil))
          (when (not (derived-mode-p 'python-mode))
            (python-mode))
@@ -2702,7 +2702,7 @@ With argument MSG show activation message."
   (interactive "p")
   (python-shell-with-shell-buffer
     (python-shell-font-lock-kill-buffer)
-    (set (make-local-variable 'python-shell--font-lock-buffer) nil)
+    (setq-local python-shell--font-lock-buffer nil)
     (add-hook 'post-command-hook
               #'python-shell-font-lock-post-command-hook nil 'local)
     (add-hook 'kill-buffer-hook
@@ -2725,7 +2725,7 @@ With argument MSG show deactivation message."
        (cdr (python-util-comint-last-prompt))
        (line-end-position)
        '(face nil font-lock-face nil)))
-    (set (make-local-variable 'python-shell--font-lock-buffer) nil)
+    (setq-local python-shell--font-lock-buffer nil)
     (remove-hook 'post-command-hook
                  #'python-shell-font-lock-post-command-hook 'local)
     (remove-hook 'kill-buffer-hook
@@ -2741,8 +2741,8 @@ With argument MSG show deactivation message."
 With argument MSG show activation/deactivation message."
   (interactive "p")
   (python-shell-with-shell-buffer
-    (set (make-local-variable 'python-shell-font-lock-enable)
-         (not python-shell-font-lock-enable))
+    (setq-local python-shell-font-lock-enable
+                (not python-shell-font-lock-enable))
     (if python-shell-font-lock-enable
         (python-shell-font-lock-turn-on msg)
       (python-shell-font-lock-turn-off msg))
@@ -2765,9 +2765,9 @@ eventually provide a shell."
 (defun python-shell-comint-watch-for-first-prompt-output-filter (output)
   "Run `python-shell-first-prompt-hook' when first prompt is found in OUTPUT."
   (when (not python-shell--first-prompt-received)
-    (set (make-local-variable 'python-shell--first-prompt-received-output-buffer)
-         (concat python-shell--first-prompt-received-output-buffer
-                 (ansi-color-filter-apply output)))
+    (setq-local python-shell--first-prompt-received-output-buffer
+                (concat python-shell--first-prompt-received-output-buffer
+                        (ansi-color-filter-apply output)))
     (when (python-shell-comint-end-of-output-p
            python-shell--first-prompt-received-output-buffer)
       (if (string-match-p
@@ -2775,7 +2775,7 @@ eventually provide a shell."
            (or python-shell--first-prompt-received-output-buffer ""))
           ;; Skip pdb prompts and reset the buffer.
           (setq python-shell--first-prompt-received-output-buffer nil)
-        (set (make-local-variable 'python-shell--first-prompt-received) t)
+        (setq-local python-shell--first-prompt-received t)
         (setq python-shell--first-prompt-received-output-buffer nil)
         (with-current-buffer (current-buffer)
           (let ((inhibit-quit nil))
@@ -2815,30 +2815,30 @@ variable.
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (when python-shell--parent-buffer
     (python-util-clone-local-variables python-shell--parent-buffer))
-  (set (make-local-variable 'indent-tabs-mode) nil)
+  (setq-local indent-tabs-mode nil)
   ;; Users can interactively override default values for
   ;; `python-shell-interpreter' and `python-shell-interpreter-args'
   ;; when calling `run-python'.  This ensures values let-bound in
   ;; `python-shell-make-comint' are locally set if needed.
-  (set (make-local-variable 'python-shell-interpreter)
-       (or python-shell--interpreter python-shell-interpreter))
-  (set (make-local-variable 'python-shell-interpreter-args)
-       (or python-shell--interpreter-args python-shell-interpreter-args))
-  (set (make-local-variable 'python-shell--prompt-calculated-input-regexp) nil)
-  (set (make-local-variable 'python-shell--block-prompt) nil)
-  (set (make-local-variable 'python-shell--prompt-calculated-output-regexp) nil)
+  (setq-local python-shell-interpreter
+              (or python-shell--interpreter python-shell-interpreter))
+  (setq-local python-shell-interpreter-args
+              (or python-shell--interpreter-args python-shell-interpreter-args))
+  (setq-local python-shell--prompt-calculated-input-regexp nil)
+  (setq-local python-shell--block-prompt nil)
+  (setq-local python-shell--prompt-calculated-output-regexp nil)
   (python-shell-prompt-set-calculated-regexps)
   (setq comint-prompt-regexp python-shell--prompt-calculated-input-regexp)
-  (set (make-local-variable 'comint-prompt-read-only) t)
+  (setq-local comint-prompt-read-only t)
   (setq mode-line-process '(":%s"))
-  (set (make-local-variable 'comint-output-filter-functions)
-       '(ansi-color-process-output
-         python-shell-comint-watch-for-first-prompt-output-filter
-         python-comint-postoutput-scroll-to-bottom
-         comint-watch-for-password-prompt))
+  (setq-local comint-output-filter-functions
+              '(ansi-color-process-output
+                python-shell-comint-watch-for-first-prompt-output-filter
+                python-comint-postoutput-scroll-to-bottom
+                comint-watch-for-password-prompt))
   (setq-local comint-highlight-input nil)
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       python-shell-compilation-regexp-alist)
+  (setq-local compilation-error-regexp-alist
+              python-shell-compilation-regexp-alist)
   (add-hook 'completion-at-point-functions
             #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
@@ -3605,7 +3605,7 @@ __PYTHON_EL_native_completion_setup()" process)
 With argument MSG show deactivation message."
   (interactive "p")
   (python-shell-with-shell-buffer
-    (set (make-local-variable 'python-shell-completion-native-enable) nil)
+    (setq-local python-shell-completion-native-enable nil)
     (when msg
       (message "Shell native completion is disabled, using fallback"))))
 
@@ -3614,7 +3614,7 @@ With argument MSG show deactivation message."
 With argument MSG show deactivation message."
   (interactive "p")
   (python-shell-with-shell-buffer
-    (set (make-local-variable 'python-shell-completion-native-enable) t)
+    (setq-local python-shell-completion-native-enable t)
     (python-shell-completion-native-turn-on-maybe msg)))
 
 (defun python-shell-completion-native-turn-on-maybe (&optional msg)
@@ -3994,7 +3994,7 @@ Argument OUTPUT is a string with the output from the comint process."
                  (tracked-buffer-window (get-buffer-window tracked-buffer))
                  (tracked-buffer-line-pos))
             (with-current-buffer tracked-buffer
-              (set (make-local-variable 'overlay-arrow-position) (make-marker))
+              (setq-local overlay-arrow-position (make-marker))
               (setq tracked-buffer-line-pos (progn
                                               (goto-char (point-min))
                                               (forward-line (1- line-number))
@@ -5535,48 +5535,43 @@ REPORT-FN is Flymake's callback function."
   "Major mode for editing Python files.
 
 \\{python-mode-map}"
-  (set (make-local-variable 'tab-width) 8)
-  (set (make-local-variable 'indent-tabs-mode) nil)
+  (setq-local tab-width 8)
+  (setq-local indent-tabs-mode nil)
 
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip) "#+\\s-*")
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+\\s-*")
 
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local parse-sexp-lookup-properties t)
+  (setq-local parse-sexp-ignore-comments t)
 
-  (set (make-local-variable 'forward-sexp-function)
-       'python-nav-forward-sexp)
+  (setq-local forward-sexp-function #'python-nav-forward-sexp)
 
-  (set (make-local-variable 'font-lock-defaults)
-       `(,python-font-lock-keywords
-         nil nil nil nil
-         (font-lock-syntactic-face-function
-          . python-font-lock-syntactic-face-function)))
+  (setq-local font-lock-defaults
+              `(,python-font-lock-keywords
+                nil nil nil nil
+                (font-lock-syntactic-face-function
+                 . python-font-lock-syntactic-face-function)))
 
-  (set (make-local-variable 'syntax-propertize-function)
-       python-syntax-propertize-function)
+  (setq-local syntax-propertize-function
+              python-syntax-propertize-function)
 
-  (set (make-local-variable 'indent-line-function)
-       #'python-indent-line-function)
-  (set (make-local-variable 'indent-region-function) #'python-indent-region)
+  (setq-local indent-line-function #'python-indent-line-function)
+  (setq-local indent-region-function #'python-indent-region)
   ;; Because indentation is not redundant, we cannot safely reindent code.
-  (set (make-local-variable 'electric-indent-inhibit) t)
-  (set (make-local-variable 'electric-indent-chars)
-       (cons ?: electric-indent-chars))
+  (setq-local electric-indent-inhibit t)
+  (setq-local electric-indent-chars
+              (cons ?: electric-indent-chars))
 
   ;; Add """ ... """ pairing to electric-pair-mode.
   (add-hook 'post-self-insert-hook
             #'python-electric-pair-string-delimiter 'append t)
 
-  (set (make-local-variable 'paragraph-start) "\\s-*$")
-  (set (make-local-variable 'fill-paragraph-function)
-       #'python-fill-paragraph)
-  (set (make-local-variable 'normal-auto-fill-function) #'python-do-auto-fill)
+  (setq-local paragraph-start "\\s-*$")
+  (setq-local fill-paragraph-function #'python-fill-paragraph)
+  (setq-local normal-auto-fill-function #'python-do-auto-fill)
 
-  (set (make-local-variable 'beginning-of-defun-function)
-       #'python-nav-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       #'python-nav-end-of-defun)
+  (setq-local beginning-of-defun-function #'python-nav-beginning-of-defun)
+  (setq-local end-of-defun-function #'python-nav-end-of-defun)
 
   (add-hook 'completion-at-point-functions
             #'python-completion-at-point nil 'local)
@@ -5584,26 +5579,25 @@ REPORT-FN is Flymake's callback function."
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
 
-  (set (make-local-variable 'imenu-create-index-function)
-       #'python-imenu-create-index)
+  (setq-local imenu-create-index-function
+              #'python-imenu-create-index)
 
-  (set (make-local-variable 'add-log-current-defun-function)
-       #'python-info-current-defun)
+  (setq-local add-log-current-defun-function
+              #'python-info-current-defun)
 
   (add-hook 'which-func-functions #'python-info-current-defun nil t)
 
-  (set (make-local-variable 'skeleton-further-elements)
-       '((abbrev-mode nil)
-         (< '(backward-delete-char-untabify (min python-indent-offset
-                                                 (current-column))))
-         (^ '(- (1+ (current-indentation))))))
+  (setq-local skeleton-further-elements
+              '((abbrev-mode nil)
+                (< '(backward-delete-char-untabify (min python-indent-offset
+                                                        (current-column))))
+                (^ '(- (1+ (current-indentation))))))
 
   (with-no-warnings
     ;; suppress warnings about eldoc-documentation-function being obsolete
    (if (null eldoc-documentation-function)
        ;; Emacs<25
-       (set (make-local-variable 'eldoc-documentation-function)
-            #'python-eldoc-function)
+       (setq-local eldoc-documentation-function #'python-eldoc-function)
      (if (boundp 'eldoc-documentation-functions)
          (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
        (add-function :before-until (local 'eldoc-documentation-function)
@@ -5620,16 +5614,14 @@ REPORT-FN is Flymake's callback function."
      python-hideshow-forward-sexp-function
      nil))
 
-  (set (make-local-variable 'outline-regexp)
-       (python-rx (* space) block-start))
-  (set (make-local-variable 'outline-heading-end-regexp) ":[^\n]*\n")
-  (set (make-local-variable 'outline-level)
-       #'(lambda ()
-           "`outline-level' function for Python mode."
-           (1+ (/ (current-indentation) python-indent-offset))))
+  (setq-local outline-regexp (python-rx (* space) block-start))
+  (setq-local outline-heading-end-regexp ":[^\n]*\n")
+  (setq-local outline-level
+              (lambda ()
+                "`outline-level' function for Python mode."
+                (1+ (/ (current-indentation) python-indent-offset))))
 
-  (set (make-local-variable 'prettify-symbols-alist)
-       python-prettify-symbols-alist)
+  (setq-local prettify-symbols-alist python-prettify-symbols-alist)
 
   (python-skeleton-add-menu-items)
 

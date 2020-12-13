@@ -979,10 +979,9 @@ supported at a time.
     (speedbar-set-timer dframe-update-speed)
     )
   ;; Frame modifications
-  (set (make-local-variable 'dframe-delete-frame-function)
-       'speedbar-handle-delete-frame)
+  (setq-local dframe-delete-frame-function 'speedbar-handle-delete-frame)
   ;; hscroll
-  (set (make-local-variable 'auto-hscroll-mode) nil)
+  (setq-local auto-hscroll-mode nil)
   ;; reset the selection variable
   (setq speedbar-last-selected-file nil))
 
@@ -1075,9 +1074,8 @@ in the selected file.
   (save-excursion
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
-    (make-local-variable 'frame-title-format)
-    (setq frame-title-format "Speedbar"
-	  case-fold-search nil
+    (setq-local frame-title-format "Speedbar")
+    (setq case-fold-search nil
 	  buffer-read-only t)
     (speedbar-set-mode-line-format)
     ;; Add in our dframe hooks.
@@ -1814,16 +1812,13 @@ of the special mode functions."
 	      (setq v (intern-soft (concat ms "-speedbar-key-map")))
 	      (if (not v)
 		  nil ;; don't add special keymap
-		(make-local-variable 'speedbar-special-mode-key-map)
-		(setq speedbar-special-mode-key-map
-		      (symbol-value v)))
+                (setq-local speedbar-special-mode-key-map
+                            (symbol-value v)))
 	      (setq v (intern-soft (concat ms "-speedbar-menu-items")))
 	      (if (not v)
 		  nil ;; don't add special menus
-		(make-local-variable 'speedbar-easymenu-definition-special)
-		(setq speedbar-easymenu-definition-special
-		      (symbol-value v)))
-	      )))))))
+                (setq-local speedbar-easymenu-definition-special
+                            (symbol-value v))))))))))
 
 (defun speedbar-remove-localized-speedbar-support (buffer)
   "Remove any traces that BUFFER supports speedbar in a specialized way."

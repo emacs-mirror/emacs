@@ -1222,7 +1222,13 @@ This function is a no-op when Emacs is running in batch mode.
 It returns t if a desktop file was loaded, nil otherwise.
 \n(fn DIRNAME)"
   (interactive "i\nP")
-  (unless noninteractive
+  (if (or noninteractive
+          (and (desktop-owner)
+               (= (desktop-owner) (emacs-pid))))
+      (message "Not reloading the desktop%s"
+               (if noninteractive
+                   ""
+                 "; already loaded"))
     (setq desktop-dirname
           (file-name-as-directory
            (expand-file-name

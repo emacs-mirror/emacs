@@ -409,7 +409,8 @@ of the elements of LIST is performed as if by `pcase-let'.
       (dolist (case cases)
         (unless (or (memq case used-cases)
                     (memq (car case) pcase--dontwarn-upats))
-          (message "Redundant pcase pattern: %S" (car case))))
+          (message "pcase pattern %S shadowed by previous pcase pattern"
+                   (car case))))
       (macroexp-let* defs main))))
 
 (defun pcase--macroexpand (pat)

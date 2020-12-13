@@ -1273,9 +1273,9 @@ temporary buffer to display the current @acronym{MIME} message.
 
 @findex rmail-epa-decrypt
 @cindex encrypted mails (reading in Rmail)
-  If the current message is an encrypted one, use the command @kbd{M-x
-rmail-epa-decrypt} to decrypt it, using the EasyPG library
-(@pxref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}).
+  If the current message is an encrypted one, use the command
+@kbd{C-c C-d} (@code{rmail-epa-decrypt}) to decrypt it, using the
+EasyPG library (@pxref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}).
 
   You can highlight and activate URLs in the Rmail buffer using Goto
 Address mode:

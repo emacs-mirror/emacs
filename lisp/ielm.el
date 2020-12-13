@@ -529,8 +529,8 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   :syntax-table emacs-lisp-mode-syntax-table
 
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
-  (set (make-local-variable 'paragraph-separate) "\\'")
-  (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
+  (setq-local paragraph-separate "\\'")
+  (setq-local paragraph-start comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
   (dolist (f '(elisp-completion-at-point
@@ -541,28 +541,28 @@ Customized bindings may be defined in `ielm-map', which currently contains:
             #'elisp-eldoc-var-docstring nil t)
   (add-hook 'eldoc-documentation-functions
             #'elisp-eldoc-funcall nil t)
-  (set (make-local-variable 'ielm-prompt-internal) ielm-prompt)
-  (set (make-local-variable 'comint-prompt-read-only) ielm-prompt-read-only)
+  (setq-local ielm-prompt-internal ielm-prompt)
+  (setq-local comint-prompt-read-only ielm-prompt-read-only)
   (setq comint-get-old-input 'ielm-get-old-input)
-  (set (make-local-variable 'comint-completion-addsuffix) '("/" . ""))
+  (setq-local comint-completion-addsuffix '("/" . ""))
   (setq mode-line-process '(":%s on " (:eval (buffer-name ielm-working-buffer))))
   ;; Useful for `hs-minor-mode'.
   (setq-local comment-start ";")
   (setq-local comment-use-syntax t)
   (setq-local lexical-binding t)
 
-  (set (make-local-variable 'indent-line-function) #'ielm-indent-line)
-  (set (make-local-variable 'ielm-working-buffer) (current-buffer))
-  (set (make-local-variable 'fill-paragraph-function) #'lisp-fill-paragraph)
+  (setq-local indent-line-function #'ielm-indent-line)
+  (setq-local ielm-working-buffer (current-buffer))
+  (setq-local fill-paragraph-function #'lisp-fill-paragraph)
 
   ;; Value holders
-  (set (make-local-variable '*) nil)
-  (set (make-local-variable '**) nil)
-  (set (make-local-variable '***) nil)
-  (set (make-local-variable 'ielm-match-data) nil)
+  (setq-local * nil)
+  (setq-local ** nil)
+  (setq-local *** nil)
+  (setq-local ielm-match-data nil)
 
   ;; font-lock support
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local font-lock-defaults
        '(ielm-font-lock-keywords nil nil ((?: . "w") (?- . "w") (?* . "w"))))
 
   ;; A dummy process to keep comint happy. It will never get any input
@@ -577,7 +577,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
 
     ;; Lisp output can include raw characters that confuse comint's
     ;; carriage control code.
-    (set (make-local-variable 'comint-inhibit-carriage-motion) t)
+    (setq-local comint-inhibit-carriage-motion t)
 
     ;; Add a silly header
     (insert ielm-header)

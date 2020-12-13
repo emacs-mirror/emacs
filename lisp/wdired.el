@@ -242,12 +242,12 @@ See `wdired-mode'."
   (interactive)
   (unless (derived-mode-p 'dired-mode)
     (error "Not a Dired buffer"))
-  (set (make-local-variable 'wdired-old-content)
-       (buffer-substring (point-min) (point-max)))
-  (set (make-local-variable 'wdired-old-marks)
-       (dired-remember-marks (point-min) (point-max)))
-  (set (make-local-variable 'wdired-old-point) (point))
-  (set (make-local-variable 'query-replace-skip-read-only) t)
+  (setq-local wdired-old-content
+              (buffer-substring (point-min) (point-max)))
+  (setq-local wdired-old-marks
+              (dired-remember-marks (point-min) (point-max)))
+  (setq-local wdired-old-point (point))
+  (setq-local query-replace-skip-read-only t)
   (add-function :after-while (local 'isearch-filter-predicate)
                 #'wdired-isearch-filter-read-only)
   (use-local-map wdired-mode-map)
@@ -390,7 +390,7 @@ non-nil means return old filename."
   (dired-advertise)
   (remove-hook 'kill-buffer-hook 'wdired-check-kill-buffer t)
   (remove-hook 'after-change-functions 'wdired--restore-properties t)
-  (set (make-local-variable 'revert-buffer-function) 'dired-revert))
+  (setq-local revert-buffer-function 'dired-revert))
 
 
 (defun wdired-abort-changes ()
@@ -834,7 +834,7 @@ Like original function but it skips read-only words."
 ;; original name and permissions as a property
 (defun wdired-preprocess-perms ()
   (let ((inhibit-read-only t))
-    (set (make-local-variable 'wdired-col-perm) nil)
+    (setq-local wdired-col-perm nil)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))

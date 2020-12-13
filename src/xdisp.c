@@ -1925,12 +1925,12 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  /* If it3_moved stays false after the 'while' loop
 		     below, that means we already were at a newline
 		     before the loop (e.g., the display string begins
-		     with a newline), so we don't need to (and cannot)
-		     inspect the glyphs of it3.glyph_row, because
-		     PRODUCE_GLYPHS will not produce anything for a
-		     newline, and thus it3.glyph_row stays at its
-		     stale content it got at top of the window.  */
+		     with a newline), so we don't need to return to
+		     the last position before the display string,
+		     because PRODUCE_GLYPHS will not produce anything
+		     for a newline.  */
 		  bool it3_moved = false;
+		  int top_x_before_string = it3.current_x;
 		  /* Finally, advance the iterator until we hit the
 		     first display element whose character position is
 		     CHARPOS, or until the first newline from the
@@ -1938,6 +1938,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     display line.  */
 		  while (get_next_display_element (&it3))
 		    {
+		      if (!EQ (it3.object, string))
+			top_x_before_string = it3.current_x;
 		      PRODUCE_GLYPHS (&it3);
 		      if (IT_CHARPOS (it3) == charpos
 			  || ITERATOR_AT_END_OF_LINE_P (&it3))
@@ -1952,32 +1954,26 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  if (!it3.line_number_produced_p)
 		    {
 		      if (it3.lnum_pixel_width > 0)
-			top_x += it3.lnum_pixel_width;
+			{
+			  top_x += it3.lnum_pixel_width;
+			  top_x_before_string += it3.lnum_pixel_width;
+			}
 		      else if (it.line_number_produced_p)
-			top_x += it.lnum_pixel_width;
+			{
+			  top_x += it.lnum_pixel_width;
+			  top_x_before_string += it3.lnum_pixel_width;
+			}
 		    }
 		  /* Normally, we would exit the above loop because we
 		     found the display element whose character
 		     position is CHARPOS.  For the contingency that we
 		     didn't, and stopped at the first newline from the
-		     display string, move back over the glyphs
-		     produced from the string, until we find the
-		     rightmost glyph not from the string.  */
+		     display string, reset top_x to the coordinate of
+		     the rightmost glyph not from the string.  */
 		  if (it3_moved
 		      && newline_in_string
 		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
-		    {
-		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
-					+ it3.glyph_row->used[TEXT_AREA];
-
-		      while (EQ ((g - 1)->object, string))
-			{
-			  --g;
-			  top_x -= g->pixel_width;
-			}
-		      eassert (g < it3.glyph_row->glyphs[TEXT_AREA]
-				    + it3.glyph_row->used[TEXT_AREA]);
-		    }
+		    top_x = top_x_before_string;
 		}
 	    }
 
@@ -11755,9 +11751,10 @@ resize_mini_window (struct window *w, bool exact_p)
     return false;
 
   /* By default, start display at the beginning.  */
-  set_marker_both (w->start, w->contents,
-		   BUF_BEGV (XBUFFER (w->contents)),
-		   BUF_BEGV_BYTE (XBUFFER (w->contents)));
+  if (redisplay_adhoc_scroll_in_resize_mini_windows)
+    set_marker_both (w->start, w->contents,
+		     BUF_BEGV (XBUFFER (w->contents)),
+		     BUF_BEGV_BYTE (XBUFFER (w->contents)));
 
   /* Nil means don't try to resize.  */
   if ((NILP (Vresize_mini_windows)
@@ -11816,27 +11813,32 @@ resize_mini_window (struct window *w, bool exact_p)
       if (height > max_height)
 	{
 	  height = (max_height / unit) * unit;
-	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
-	  move_it_vertically_backward (&it, height - unit);
-	  /* The following move is usually a no-op when the stuff
-	     displayed in the mini-window comes entirely from buffer
-	     text, but it is needed when some of it comes from overlay
-	     strings, especially when there's an after-string at ZV.
-	     This happens with some completion packages, like
-	     icomplete, ido-vertical, etc.  With those packages, if we
-	     don't force w->start to be at the beginning of a screen
-	     line, important parts of the stuff in the mini-window,
-	     such as user prompt, will be hidden from view.  */
-	  move_it_by_lines (&it, 0);
-	  start = it.current.pos;
-	  /* Prevent redisplay_window from recentering, and thus from
-	     overriding the window-start point we computed here.  */
-	  w->start_at_line_beg = false;
+	  if (redisplay_adhoc_scroll_in_resize_mini_windows)
+	    {
+	      init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
+	      move_it_vertically_backward (&it, height - unit);
+              /* The following move is usually a no-op when the stuff
+                 displayed in the mini-window comes entirely from buffer
+                 text, but it is needed when some of it comes from overlay
+                 strings, especially when there's an after-string at ZV.
+                 This happens with some completion packages, like
+                 icomplete, ido-vertical, etc.  With those packages, if we
+                 don't force w->start to be at the beginning of a screen
+                 line, important parts of the stuff in the mini-window,
+                 such as user prompt, will be hidden from view.  */
+              move_it_by_lines (&it, 0);
+              start = it.current.pos;
+              /* Prevent redisplay_window from recentering, and thus from
+                 overriding the window-start point we computed here.  */
+              w->start_at_line_beg = false;
+              SET_MARKER_FROM_TEXT_POS (w->start, start);
+            }
 	}
       else
-	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
-
-      SET_MARKER_FROM_TEXT_POS (w->start, start);
+	{
+	  SET_TEXT_POS (start, BEGV, BEGV_BYTE);
+          SET_MARKER_FROM_TEXT_POS (w->start, start);
+        }
 
       if (EQ (Vresize_mini_windows, Qgrow_only))
 	{
@@ -35521,6 +35523,14 @@ The initial frame is not displayed anywhere, so skipping it is
 best except in special circumstances such as running redisplay tests
 in batch mode.   */);
   redisplay_skip_initial_frame = true;
+
+  DEFVAR_BOOL ("redisplay-adhoc-scroll-in-resize-mini-windows",
+               redisplay_adhoc_scroll_in_resize_mini_windows,
+    doc: /* If nil always use normal scrolling in minibuffer windows.
+Otherwise, use custom-tailored code after resizing minibuffer windows to try
+and display the most important part of the minibuffer.   */);
+  /* See bug#43519 for some discussion around this.  */
+  redisplay_adhoc_scroll_in_resize_mini_windows = true;
 }
 
 

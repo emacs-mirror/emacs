@@ -121,6 +121,7 @@ Setting this option to nil might speed up the generation of summaries."
     (define-key map [?\S-\ ] 'rmail-summary-scroll-msg-down)
     (define-key map "\177"   'rmail-summary-scroll-msg-down)
     (define-key map "?"      'describe-mode)
+    (define-key map "\C-c\C-d"      'rmail-summary-epa-decrypt)
     (define-key map "\C-c\C-n" 'rmail-summary-next-same-subject)
     (define-key map "\C-c\C-p" 'rmail-summary-previous-same-subject)
     (define-key map "\C-c\C-s\C-d" 'rmail-summary-sort-by-date)
@@ -1481,6 +1482,12 @@ argument says to read a file name and use that file as the inbox."
   (rmail-pop-to-buffer rmail-buffer)
   (rmail-edit-current-message)
   (use-local-map rmail-summary-edit-map))
+
+(defun rmail-summary-epa-decrypt ()
+  "Decrypt this message."
+  (interactive)
+  (rmail-pop-to-buffer rmail-buffer)
+  (rmail-epa-decrypt))
 
 (defun rmail-summary-cease-edit ()
   "Finish editing message, then go back to Rmail summary buffer."

@@ -199,48 +199,16 @@
      (message "Omitting leading zeros on integers"))))
 
 
-(defvar math-power-of-2-cache (list 1 2 4 8 16 32 64 128 256 512 1024))
-(defvar math-big-power-of-2-cache nil)
 (defun math-power-of-2 (n)    ;  [I I] [Public]
-  (if (and (natnump n) (<= n 100))
-      (or (nth n math-power-of-2-cache)
-	  (let* ((i (length math-power-of-2-cache))
-		 (val (nth (1- i) math-power-of-2-cache)))
-	    (while (<= i n)
-	      (setq val (math-mul val 2)
-		    math-power-of-2-cache (nconc math-power-of-2-cache
-						 (list val))
-		    i (1+ i)))
-	    val))
-    (let ((found (assq n math-big-power-of-2-cache)))
-      (if found
-	  (cdr found)
-	(let ((po2 (math-ipow 2 n)))
-	  (setq math-big-power-of-2-cache
-		(cons (cons n po2) math-big-power-of-2-cache))
-	  po2)))))
+  (if (natnump n)
+      (ash 1 n)
+    (error "argument must be a natural number")))
 
 (defun math-integer-log2 (n)    ; [I I] [Public]
-  (let ((i 0)
-	(p math-power-of-2-cache)
-	val)
-    (while (and p (Math-natnum-lessp (setq val (car p)) n))
-      (setq p (cdr p)
-	    i (1+ i)))
-    (if p
-	(and (equal val n)
-	     i)
-      (while (Math-natnum-lessp
-	      (prog1
-		  (setq val (math-mul val 2))
-		(setq math-power-of-2-cache (nconc math-power-of-2-cache
-						   (list val))))
-	      n)
-	(setq i (1+ i)))
-      (and (equal val n)
-	   i))))
-
-
+  (and (natnump n)
+       (not (zerop n))
+       (zerop (logand n (1- n)))
+       (logb n)))
 
 
 ;;; Bitwise operations.
@@ -404,7 +372,7 @@
 	  (math-clip (calcFunc-ash a n (- w)) w)
 	(if (Math-integer-negp a)
 	    (setq a (math-clip a w)))
-	(let ((two-to-sizem1 (math-power-of-2 (1- w)))
+	(let ((two-to-sizem1 (and (not (zerop w)) (math-power-of-2 (1- w))))
 	      (sh (calcFunc-lsh a n w)))
 	  (cond ((or (zerop w)
                      (zerop (logand a two-to-sizem1)))
@@ -438,7 +406,7 @@
       (if (Math-integer-negp a)
 	  (setq a (math-clip a w)))
       (cond ((or (Math-integer-negp n)
-		 (not (Math-natnum-lessp n w)))
+		 (>= n w))
 	     (calcFunc-rot a (math-mod n w) w))
 	    (t
 	     (math-add (calcFunc-lsh a (- n w) w)
@@ -455,7 +423,7 @@
 	 (math-reject-arg a 'integerp))
 	((< (or w (setq w calc-word-size)) 0)
 	 (setq a (math-clip a (- w)))
-	 (if (Math-natnum-lessp a (math-power-of-2 (- -1 w)))
+	 (if (< a (math-power-of-2 (- -1 w)))
 	     a
 	   (math-sub a (math-power-of-2 (- w)))))
         ((math-zerop w)

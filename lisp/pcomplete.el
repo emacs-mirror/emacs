@@ -738,8 +738,8 @@ user actually typed in."
 COMPLETEF-SYM should be the symbol where the
 dynamic-complete-functions are kept.  For comint mode itself,
 this is `comint-dynamic-complete-functions'."
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       #'pcomplete-parse-comint-arguments)
+  (setq-local pcomplete-parse-arguments-function
+              #'pcomplete-parse-comint-arguments)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil 'local)
   (set (make-local-variable completef-sym)

@@ -106,7 +106,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
     (remove-hook 'gnus-message-setup-hook 'gnus-pick-setup-message))
    (t
     ;; Make sure that we don't select any articles upon group entry.
-    (set (make-local-variable 'gnus-auto-select-first) nil)
+    (setq-local gnus-auto-select-first nil)
     ;; Change line format.
     (setq gnus-summary-line-format gnus-summary-pick-line-format)
     (setq gnus-summary-line-format-spec nil)
@@ -114,7 +114,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
     (gnus-update-summary-mark-positions)
     ;; FIXME: a buffer-local minor mode adding globally to a hook??
     (add-hook 'gnus-message-setup-hook 'gnus-pick-setup-message)
-    (set (make-local-variable 'gnus-summary-goto-unread) 'never)
+    (setq-local gnus-summary-goto-unread 'never)
     ;; Set up the menu.
     (when (gnus-visual-p 'pick-menu 'menu)
       (gnus-pick-make-menu-bar)))))
@@ -333,10 +333,8 @@ This must be bound to a button-down mouse event."
    ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-binary-mode nil))
    (gnus-binary-mode
     ;; Make sure that we don't select any articles upon group entry.
-    (make-local-variable 'gnus-auto-select-first)
-    (setq gnus-auto-select-first nil)
-    (make-local-variable 'gnus-summary-display-article-function)
-    (setq gnus-summary-display-article-function 'gnus-binary-display-article)
+    (setq-local gnus-auto-select-first nil)
+    (setq-local gnus-summary-display-article-function 'gnus-binary-display-article)
     ;; Set up the menu.
     (when (gnus-visual-p 'binary-menu 'menu)
       (gnus-binary-make-menu-bar)))))

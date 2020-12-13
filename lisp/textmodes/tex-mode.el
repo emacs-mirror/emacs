@@ -2331,9 +2331,14 @@ FILE is typically the output DVI or PDF file."
   :version "23.1"
   :group 'tex-run)
 
+(defun tex--quote-spec (fspec)
+  (cl-loop for (char . file) in fspec
+           collect (cons char (shell-quote-argument file))))
+
 (defun tex-format-cmd (format fspec)
   "Like `format-spec' but adds user-specified args to the command.
 Only applies the FSPEC to the args part of FORMAT."
+  (setq fspec (tex--quote-spec fspec))
   (if (not (string-match "\\([^ /\\]+\\) " format))
       (format-spec format fspec)
     (let* ((prefix (substring format 0 (match-beginning 0)))
@@ -2430,8 +2435,8 @@ Only applies the FSPEC to the args part of FORMAT."
 	    (prog1 (file-name-directory (expand-file-name file))
 	      (setq file (file-name-nondirectory file))))
 	  (root (file-name-sans-extension file))
-	  (fspec (list (cons ?r (shell-quote-argument root))
-		       (cons ?f (shell-quote-argument file))))
+	  (fspec (list (cons ?r root)
+		       (cons ?f file)))
 	  (default (tex-compile-default fspec)))
      (list default-directory
 	   (completing-read

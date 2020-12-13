@@ -661,10 +661,12 @@ Intended as a UPower PropertiesChanged signal handler."
   (cond ((stringp battery-upower-device)
          (list battery-upower-device))
         (battery-upower-device)
-        ((dbus-call-method :system battery-upower-service
-                           battery-upower-path
-                           battery-upower-interface
-                           "EnumerateDevices"))))
+        ((dbus-ignore-errors
+           (dbus-call-method :system battery-upower-service
+                             battery-upower-path
+                             battery-upower-interface
+                             "EnumerateDevices"
+                             :timeout 1000)))))
 
 (defun battery--upower-state (props state)
   "Merge the UPower battery state in PROPS with STATE.

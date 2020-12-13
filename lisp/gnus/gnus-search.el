@@ -105,6 +105,8 @@
 
 (define-error 'gnus-search-parse-error "Gnus search parsing error")
 
+(define-error 'gnus-search-config-error "Gnus search configuration error")
+
 ;;; User Customizable Variables:
 
 (defgroup gnus-search nil
@@ -1852,8 +1854,10 @@ Assume \"size\" key is equal to \"larger\"."
 	 (grouplist (or groups (gnus-search-get-active server)))
 	 (buffer (slot-value engine 'proc-buffer)))
     (unless directory
-      (error "No directory found in method specification of server %s"
-	     server))
+      (signal 'gnus-search-config-error
+	      (list (format-message
+		     "No directory found in definition of server %s"
+		     server))))
     (apply
      'vconcat
      (mapcar (lambda (x)
@@ -1885,7 +1889,9 @@ Assume \"size\" key is equal to \"larger\"."
 					    group nil t)))
 				    group))))))
 		     (unless group
-		       (error "Cannot locate directory for group"))
+		       (signal 'gnus-search-config-error
+			       (list
+				"Cannot locate directory for group")))
 		     (save-excursion
 		       (apply
 			'call-process "find" nil t
@@ -1934,12 +1940,19 @@ Assume \"size\" key is equal to \"larger\"."
 	 (limit (alist-get 'limit prepared-query)))
     (mapc
      (pcase-lambda (`(,server . ,groups))
-       (let ((search-engine (gnus-search-server-to-engine server)))
-	 (setq results
-	       (vconcat
-		(gnus-search-run-search
-		 search-engine server prepared-query groups)
-		results))))
+       (condition-case err
+	   (let ((search-engine (gnus-search-server-to-engine server)))
+	     (setq results
+		   (vconcat
+		    (gnus-search-run-search
+		     search-engine server prepared-query groups)
+		    results)))
+	 (gnus-search-config-error
+	  (if (< 1 (length (alist-get 'search-group-spec specs)))
+	      (apply #'nnheader-message 4
+		     "Search engine for %s improperly configured: %s"
+		     server (cdr err))
+	    (signal 'gnus-search-config-error err)))))
      (alist-get 'search-group-spec specs))
     ;; Some search engines do their own limiting, but some don't, so
     ;; do it again here.  This is bad because, if the user is
@@ -1949,7 +1962,7 @@ Assume \"size\" key is equal to \"larger\"."
     ;; from a later group entirely.
     (if limit
 	(seq-subseq results 0 (min limit (length results)))
-     results)))
+      results)))
 
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
@@ -2023,11 +2036,13 @@ remaining string, then adds all that to the top-level spec."
 	      (condition-case nil
 		  (setf (slot-value inst key) value)
 		((invalid-slot-name invalid-slot-type)
-		 (nnheader-message
-		  5 "Invalid search engine parameter: (%s %s)"
+		 (nnheader-report 'search
+		  "Invalid search engine parameter: (%s %s)"
 		  key value)))))
 	  (push (cons srv inst) gnus-search-engine-instance-alist))
-      (error "No search engine defined for %s" srv))
+      (signal 'gnus-search-config-error
+	      (list (format-message
+		     "No search engine configured for %s" srv))))
     inst))
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))

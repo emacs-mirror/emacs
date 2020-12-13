@@ -324,7 +324,7 @@ comparing the subr with a much slower lisp implementation."
 
 (defvar binding-test-some-local 'some)
 (with-current-buffer binding-test-buffer-A
-  (set (make-local-variable 'binding-test-some-local) 'local))
+  (setq-local binding-test-some-local 'local))
 
 (ert-deftest binding-test-manual ()
   "A test case from the elisp manual."

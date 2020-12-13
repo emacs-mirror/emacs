@@ -512,10 +512,10 @@ This chapter tells you how to get help with Emacs.
 @cindex Help system, entering the
 
 Type @kbd{C-h t} to invoke the self-paced tutorial.  Just typing
-@kbd{C-h} enters the help system.  Starting with Emacs 22, the tutorial
-is available in many foreign languages such as French, German, Japanese,
-Russian, etc.  Use @kbd{M-x help-with-tutorial-spec-language @key{RET}}
-to choose your language and start the tutorial.
+@kbd{C-h} enters the help system.  The tutorial is available in many
+foreign languages such as French, German, Japanese, Russian, etc.  Use
+@kbd{M-x help-with-tutorial-spec-language @key{RET}} to choose your
+language and start the tutorial.
 
 Your system administrator may have changed @kbd{C-h} to act like
 @key{DEL} to deal with local keyboards.  You can use @kbd{M-x
@@ -966,9 +966,9 @@ latest features, you may want to stick to the releases.
 
 The following sections list some of the major new features in the last
 few Emacs releases.  For full details of the changes in any version of
-Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  As of Emacs 22,
-you can give this command a prefix argument to read about which features
-were new in older versions.
+Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
+this command a prefix argument to read about which features were new
+in older versions.
 
 @node New in Emacs 26
 @section What is different about Emacs 26?
@@ -1723,14 +1723,6 @@ buffer by default, put this in your @file{.emacs} file:
 (add-hook '@var{mymode}-mode-hook
           (lambda ()
            (setq abbrev-mode t)))
-@end lisp
-
-@noindent If your Emacs version is older then 22.1, you will also need to use:
-
-@lisp
-(condition-case ()
-   (quietly-read-abbrev-file)
-  (file-error nil))
 @end lisp
 
 @node Associating modes with files
@@ -2583,16 +2575,14 @@ effective way of doing that.  Emacs automatically intercepts the compile
 error messages, inserts them into a special buffer called
 @file{*compilation*}, and lets you visit the locus of each message in
 the source.  Type @kbd{C-x `} to step through the offending lines one by
-one (starting with Emacs 22, you can also use @kbd{M-g M-p} and
-@kbd{M-g M-n} to go to the previous and next matches directly).  Click
-@kbd{mouse-2} or press @key{RET} on a message text in the
-@file{*compilation*} buffer to go to the line whose number is mentioned
-in that message.
+one (you can also use @kbd{M-g M-p} and @kbd{M-g M-n} to go to the
+previous and next matches directly).  Click @kbd{mouse-2} or press
+@key{RET} on a message text in the @file{*compilation*} buffer to go
+to the line whose number is mentioned in that message.
 
 But if you indeed need to go to a certain text line, type @kbd{M-g M-g}
-(which is the default binding of the @code{goto-line} function starting
-with Emacs 22).  Emacs will prompt you for the number of the line and go
-to that line.
+(which is the default binding of the @code{goto-line} function).
+Emacs will prompt you for the number of the line and go to that line.
 
 You can do this faster by invoking @code{goto-line} with a numeric
 argument that is the line's number.  For example, @kbd{C-u 286 M-g M-g}
@@ -2825,13 +2815,13 @@ Add the following line to your @file{.emacs} file:
 @cindex @code{ls} in Shell mode
 
 In many systems, @code{ls} is aliased to @samp{ls --color}, which
-prints using ANSI color escape sequences.  Emacs version 21.1 and
-later includes the @code{ansi-color} package, which lets Shell mode
-recognize these escape sequences.  In Emacs 23.2 and later, the
-package is enabled by default; in earlier versions you can enable it
-by typing @kbd{M-x ansi-color-for-comint-mode} in the Shell buffer, or
-by adding @code{(add-hook 'shell-mode-hook
-'ansi-color-for-comint-mode-on)} to your init file.
+prints using ANSI color escape sequences.  Emacs includes the
+@code{ansi-color} package, which lets Shell mode recognize these
+escape sequences.  In Emacs 23.2 and later, the package is enabled by
+default; in earlier versions you can enable it by typing @kbd{M-x
+ansi-color-for-comint-mode} in the Shell buffer, or by adding
+@code{(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)} to
+your init file.
 
 @node Fullscreen mode on MS-Windows
 @section How can I start Emacs in fullscreen mode on MS-Windows?
@@ -3210,12 +3200,11 @@ arbitrary Emacs Lisp code evaluated when the file is visited.
 Obviously, there is a potential for Trojan horses to exploit this
 feature.
 
-As of Emacs 22, Emacs has a list of local variables that are known to
-be safe to set.  If a file tries to set any variable outside this
-list, it asks the user to confirm whether the variables should be set.
-You can also tell Emacs whether to allow the evaluation of Emacs Lisp
-code found at the bottom of files by setting the variable
-@code{enable-local-eval}.
+Emacs has a list of local variables that are known to be safe to set.
+If a file tries to set any variable outside this list, it asks the
+user to confirm whether the variables should be set. You can also tell
+Emacs whether to allow the evaluation of Emacs Lisp code found at the
+bottom of files by setting the variable @code{enable-local-eval}.
 
 @xref{File Variables,,, emacs, The GNU Emacs Manual}.
 

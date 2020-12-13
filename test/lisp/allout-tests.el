@@ -74,7 +74,7 @@
   "Ensure that prior local value is resumed."
   (with-temp-buffer
     (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (set (make-local-variable 'allout-tests-locally-true) t)
+    (setq-local allout-tests-locally-true t)
     (cl-assert (not (default-boundp 'allout-tests-locally-true))
                nil (concat "Test setup mistake -- variable supposed to"
                            " not have global binding, but it does."))
@@ -98,7 +98,7 @@
     (allout-tests-obliterate-variable 'allout-tests-globally-true)
     (setq allout-tests-globally-true t)
     (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (set (make-local-variable 'allout-tests-locally-true) t)
+    (setq-local allout-tests-locally-true t)
     (allout-add-resumptions '(allout-tests-globally-unbound t)
                             '(allout-tests-globally-true nil)
                             '(allout-tests-locally-true nil))
@@ -135,7 +135,7 @@
     (allout-tests-obliterate-variable 'allout-tests-globally-true)
     (setq allout-tests-globally-true t)
     (allout-tests-obliterate-variable 'allout-tests-locally-true)
-    (set (make-local-variable 'allout-tests-locally-true) t)
+    (setq-local allout-tests-locally-true t)
     (allout-add-resumptions '(allout-tests-globally-unbound t)
                             '(allout-tests-globally-true nil)
                             '(allout-tests-locally-true nil))

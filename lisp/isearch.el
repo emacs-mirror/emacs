@@ -965,10 +965,6 @@ Each element is an `isearch--state' struct where the slots are
 ;; The value of input-method-function when isearch is invoked.
 (defvar isearch-input-method-function nil)
 
-;; A flag to tell if input-method-function is locally bound when
-;; isearch is invoked.
-(defvar isearch-input-method-local-p nil)
-
 (defvar isearch--saved-overriding-local-map nil)
 
 ;; Minor-mode-alist changes - kind of redundant with the
@@ -1238,7 +1234,6 @@ used to set the value of `isearch-regexp-function'."
 	search-ring-yank-pointer nil
 	isearch-opened-overlays nil
 	isearch-input-method-function input-method-function
-	isearch-input-method-local-p (local-variable-p 'input-method-function)
 	regexp-search-ring-yank-pointer nil
 
 	isearch-pre-scroll-point nil
@@ -1259,9 +1254,7 @@ used to set the value of `isearch-regexp-function'."
   ;; We must bypass input method while reading key.  When a user type
   ;; printable character, appropriate input method is turned on in
   ;; minibuffer to read multibyte characters.
-  (or isearch-input-method-local-p
-      (make-local-variable 'input-method-function))
-  (setq input-method-function nil)
+  (setq-local input-method-function nil)
 
   (looking-at "")
   (setq isearch-window-configuration
@@ -1418,8 +1411,8 @@ NOPUSH is t and EDIT is t."
 	(set-window-group-start (selected-window) found-start t))))
 
   (setq isearch-mode nil)
-  (if isearch-input-method-local-p
-      (setq input-method-function isearch-input-method-function)
+  (if isearch-input-method-function
+      (setq-local input-method-function isearch-input-method-function)
     (kill-local-variable 'input-method-function))
 
   (if isearch-tool-bar-old-map

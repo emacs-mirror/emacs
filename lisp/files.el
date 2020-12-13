@@ -597,7 +597,7 @@ settings being applied, but still respect file-local ones.")
 
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
-;; (set (make-local-variable 'enable-local-variables) nil)
+;; (setq-local enable-local-variables nil)
 ;; These two are not precisely the same.
 ;; Setting this variable does not cause -*- mode settings to be
 ;; ignored, whereas setting enable-local-variables does.
@@ -2419,9 +2419,7 @@ Do you want to revisit the file normally now? ")))
       ;; this is a permanent local, the major mode won't eliminate it.
       (and backup-enable-predicate
 	   (not (funcall backup-enable-predicate buffer-file-name))
-	   (progn
-	     (make-local-variable 'backup-inhibited)
-	     (setq backup-inhibited t)))
+           (setq-local backup-inhibited t))
       (if rawfile
 	  (progn
 	    (set-buffer-multibyte nil)
@@ -3520,7 +3518,7 @@ n  -- to ignore the local variables list.")
 	  (let ((print-escape-newlines t))
 	    (prin1 (cdr elt) buf))
 	  (insert "\n"))
-	(set (make-local-variable 'cursor-type) nil)
+        (setq-local cursor-type nil)
 	(set-buffer-modified-p nil)
 	(goto-char (point-min)))
 
@@ -4492,9 +4490,7 @@ the old visited file has been renamed to the new name FILENAME."
     (and buffer-file-name
 	 backup-enable-predicate
 	 (not (funcall backup-enable-predicate buffer-file-name))
-	 (progn
-	   (make-local-variable 'backup-inhibited)
-	   (setq backup-inhibited t)))
+         (setq-local backup-inhibited t))
     (let ((oauto buffer-auto-save-file-name))
       (cond ((null filename)
 	     (setq buffer-auto-save-file-name nil))
@@ -6123,6 +6119,9 @@ This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
 
+Reverting a buffer will try to preserve markers in the buffer;
+see the Info node `(elisp)Reverting' for details.
+
 This command also implements an interface for special buffers
 that contain text that doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
@@ -6219,7 +6218,7 @@ Non-file buffers need a custom function."
                ;; Run after-revert-hook as it was before we reverted.
                (setq-default revert-buffer-internal-hook global-hook)
                (if local-hook
-                   (set (make-local-variable 'revert-buffer-internal-hook)
+                   (setq-local revert-buffer-internal-hook
                         local-hook)
                  (kill-local-variable 'revert-buffer-internal-hook))
                (run-hooks 'revert-buffer-internal-hook))

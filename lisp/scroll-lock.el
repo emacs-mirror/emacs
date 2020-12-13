@@ -64,7 +64,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
       (progn
 	(setq scroll-lock-preserve-screen-pos-save
 	      scroll-preserve-screen-position)
-	(set (make-local-variable 'scroll-preserve-screen-position) 'always))
+        (setq-local scroll-preserve-screen-position 'always))
     (setq scroll-preserve-screen-position
 	  scroll-lock-preserve-screen-pos-save)))
 

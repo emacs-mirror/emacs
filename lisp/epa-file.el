@@ -309,7 +309,8 @@ encryption is used."
 If no one is selected, symmetric encryption will be performed.  "
 		    recipients)
 		 (if epa-file-encrypt-to
-		     (epg-list-keys context recipients)))))
+                     (epg--filter-revoked-keys
+		      (epg-list-keys context recipients))))))
       (error
        (epa-display-error context)
        (if (setq entry (assoc file epa-file-passphrase-alist))

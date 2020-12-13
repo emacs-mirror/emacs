@@ -10837,11 +10837,11 @@ comment at the start of cc-engine.el for more info."
 	     (low-lim (max (or lim (point-min))   (or macro-start (point-min))))
 	     before-lparen after-rparen
 	     (here (point))
-	     (pp-count-out 20)	; Max number of paren/brace constructs before
-				; we give up.
+	     (pp-count-out 20)	 ; Max number of paren/brace constructs before
+					; we give up
 	     ids	      ; List of identifiers in the parenthesized list.
 	     id-start after-prec-token decl-or-cast decl-res
-	     c-last-identifier-range identifier-ok)
+	     c-last-identifier-range semi-position+1)
 	(narrow-to-region low-lim (or macro-end (point-max)))
 
 	;; Search backwards for the defun's argument list.  We give up if we
@@ -10875,8 +10875,8 @@ comment at the start of cc-engine.el for more info."
 		   (setq after-rparen (point)))
 		  ((eq (char-before) ?\])
 		   (setq after-rparen nil))
-		  (t ; either } (hit previous defun) or = or no more
-		     ; parens/brackets.
+		  (t	       ; either } (hit previous defun) or = or no more
+					; parens/brackets.
 		   (throw 'knr nil)))
 
 	    (if after-rparen
@@ -10933,31 +10933,35 @@ comment at the start of cc-engine.el for more info."
 		       (forward-char)	; over the )
 		       (setq after-prec-token after-rparen)
 		       (c-forward-syntactic-ws)
+		       ;; Each time around the following checks one
+		       ;; declaration (which may contain several identifiers).
 		       (while (and
-			       (or (consp (setq decl-or-cast
-						(c-forward-decl-or-cast-1
-						 after-prec-token
-						 nil ; Or 'arglist ???
-						 nil)))
-				   (progn
-				     (goto-char after-prec-token)
-				     (c-forward-syntactic-ws)
-				     (setq identifier-ok (eq (char-after) ?{))
-				     nil))
-			       (eq (char-after) ?\;)
-			       (setq after-prec-token (1+ (point)))
+			       (consp (setq decl-or-cast
+					    (c-forward-decl-or-cast-1
+					     after-prec-token
+					     nil ; Or 'arglist ???
+					     nil)))
+			       (memq (char-after) '(?\; ?\,))
 			       (goto-char (car decl-or-cast))
-			       (setq decl-res (c-forward-declarator))
-			       (setq identifier-ok
-				     (member (buffer-substring-no-properties
-					(car decl-res) (cadr decl-res))
-				       ids))
-			       (progn
-				 (goto-char after-prec-token)
-				 (prog1 (< (point) here)
-				   (c-forward-syntactic-ws))))
-			 (setq identifier-ok nil))
-		       identifier-ok))
+			       (save-excursion
+				 (setq semi-position+1
+				       (c-syntactic-re-search-forward
+					";" (+ (point) 1000) t)))
+			       (c-do-declarators
+				semi-position+1 t nil nil
+				(lambda (id-start id-end _next _not-top
+						  _func _init)
+				  (if (not (member
+					    (buffer-substring-no-properties
+					     id-start id-end)
+					    ids))
+				      (throw 'knr nil))))
+
+			       (progn (forward-char)
+				      (<= (point) here))
+			       (progn (c-forward-syntactic-ws)
+				      t)))
+		       t))
 		    ;; ...Yes.  We've identified the function's argument list.
 		    (throw 'knr
 			   (progn (goto-char after-rparen)

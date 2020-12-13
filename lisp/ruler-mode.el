@@ -584,8 +584,8 @@ format first."
   (when (and (not ruler-mode)
 	     (local-variable-p 'header-line-format)
 	     (not (local-variable-p 'ruler-mode-header-line-format-old)))
-    (set (make-local-variable 'ruler-mode-header-line-format-old)
-	 header-line-format))
+    (setq-local ruler-mode-header-line-format-old
+                header-line-format))
   (setq header-line-format ruler-mode-header-line-format))
 
 ;;;###autoload

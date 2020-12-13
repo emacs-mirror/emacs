@@ -75,12 +75,7 @@ everything preceding the ~/ is discarded so the interactive
 selection process starts again from the user's $HOME.")
 
 (defcustom icomplete-show-matches-on-no-input nil
-  "If nil, don't wait for completions before showing the prompt.
-Instead, when there's no input, completions may be displayed
-asynchronously later, when the completions have been computed.
-
-If non-nil, always compute the completions first.
-
+  "When non-nil, show completions when the minibuffer is empty.
 This also means that if you traverse the list of completions with
 commands like `C-.' and just hit RET without typing any
 characters, the match under point will be chosen instead of the
@@ -446,7 +441,7 @@ Conditions are:
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
-    (set (make-local-variable 'completion-show-inline-help) nil)
+    (setq-local completion-show-inline-help nil)
     (use-local-map (make-composed-keymap icomplete-minibuffer-map
     					 (current-local-map)))
     (add-hook 'pre-command-hook  #'icomplete-pre-command-hook  nil t)
@@ -469,7 +464,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and completion-in-region-mode
 	     icomplete-mode (icomplete-simple-completing-p))
     (setq icomplete--in-region-buffer (current-buffer))
-    (set (make-local-variable 'completion-show-inline-help) nil)
+    (setq-local completion-show-inline-help nil)
     (let ((tem (assq 'completion-in-region-mode
 		     minor-mode-overriding-map-alist)))
       (unless (memq icomplete-minibuffer-map (cdr tem))

@@ -1336,8 +1336,7 @@ Use the viewer defined in EV-ENTRY (a valid element of
 	      (progn
 		(switch-to-buffer (format "Filesets: %s %s" vwr file))
 		(insert output)
-		(make-local-variable 'filesets-output-buffer-flag)
-		(setq filesets-output-buffer-flag t)
+                (setq-local filesets-output-buffer-flag t)
 		(set-visited-file-name file t)
 		(when oh
 		  (run-hooks 'oh))

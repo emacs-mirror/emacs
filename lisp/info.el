@@ -2473,7 +2473,7 @@ Table of contents is created from the tree structure of menus."
               (setq bound (or (and (equal nodename "Top")
                                    (save-excursion
                                      (re-search-forward
-                                      "^[ \t-]*The Detailed Node Listing" nil t)))
+                                      "^[ \t—-]*The Detailed Node Listing" nil t)))
                               bound))
               (while (< (point) bound)
                 (cond
@@ -4790,10 +4790,10 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\<see"
+			(cond ((save-match-data (looking-back "\\(^\\| \\)see"
                                                               (- (point) 3)))
 			       "")
-			      ((save-match-data (looking-back "\\<in"
+			      ((save-match-data (looking-back "\\(^\\| \\)in"
                                                               (- (point) 2)))
 			       "")
 			      ((memq (char-before) '(nil ?\. ?! ??))

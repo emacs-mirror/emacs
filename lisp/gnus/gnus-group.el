@@ -1098,7 +1098,7 @@ When FORCE, rebuild the tool bar."
 					gnus-group-tool-bar-zap-list
 					'gnus-group-mode-map)))
       (if map
-	  (set (make-local-variable 'tool-bar-map) map))))
+	  (setq-local tool-bar-map map))))
   gnus-group-tool-bar-map)
 
 (define-derived-mode gnus-group-mode gnus-mode "Group"
@@ -1745,7 +1745,8 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 	(prog1
 	    (setq mode-line-buffer-identification
 		  (gnus-mode-line-buffer-identification
-		   (list mode-string)))
+		   (list (propertize mode-string
+				     'face 'mode-line-buffer-id))))
 	  (set-buffer-modified-p modified))))))
 
 (defun gnus-group-group-name ()

@@ -863,25 +863,25 @@ Entering array mode calls the function `array-mode-hook'."
   (make-local-variable 'array-row)
   (make-local-variable 'array-column)
   (make-local-variable 'array-copy-string)
-  (set (make-local-variable 'array-respect-tabs) nil)
-  (set (make-local-variable 'array-max-row)
-       (read-number "Number of array rows: "))
-  (set (make-local-variable 'array-max-column)
-       (read-number "Number of array columns: "))
-  (set (make-local-variable 'array-columns-per-line)
-       (read-number "Array columns per line: "))
-  (set (make-local-variable 'array-field-width)
-       (read-number "Field width: "))
-  (set (make-local-variable 'array-rows-numbered)
-       (y-or-n-p "Rows numbered? "))
-  (set (make-local-variable 'array-line-length)
-       (* array-field-width array-columns-per-line))
-  (set (make-local-variable 'array-lines-per-row)
-       (+ (floor (1- array-max-column) array-columns-per-line)
-          (if array-rows-numbered 2 1)))
+  (setq-local array-respect-tabs nil)
+  (setq-local array-max-row
+              (read-number "Number of array rows: "))
+  (setq-local array-max-column
+              (read-number "Number of array columns: "))
+  (setq-local array-columns-per-line
+              (read-number "Array columns per line: "))
+  (setq-local array-field-width
+              (read-number "Field width: "))
+  (setq-local array-rows-numbered
+              (y-or-n-p "Rows numbered? "))
+  (setq-local array-line-length
+              (* array-field-width array-columns-per-line))
+  (setq-local array-lines-per-row
+              (+ (floor (1- array-max-column) array-columns-per-line)
+                 (if array-rows-numbered 2 1)))
   (message "")
   (force-mode-line-update)
-  (set (make-local-variable 'truncate-lines) t)
+  (setq-local truncate-lines t)
   (setq overwrite-mode 'overwrite-mode-textual))
 
 

@@ -40,6 +40,8 @@
 
 ;;; Code:
 
+(require 'iso8601)
+
 
 ;; User Options:
 
@@ -2761,12 +2763,16 @@ and `bibtex-autokey-names-stretch'."
 
 (defun bibtex-autokey-get-year ()
   "Return year field contents as a string obeying `bibtex-autokey-year-length'."
-  (let ((yearfield (bibtex-autokey-get-field '("year" "date"))))
-    ;; biblatex date field has format yyyy-mm-dd
-    (if (< 4 (length yearfield))
-        (setq yearfield (substring yearfield 0 4)))
-    (substring yearfield (max 0 (- (length yearfield)
-                                   bibtex-autokey-year-length)))))
+  (let* ((str (bibtex-autokey-get-field '("date" "year"))) ; possibly ""
+         (year (or (and (iso8601-valid-p str)
+                        (let ((year (decoded-time-year (iso8601-parse str))))
+                          (and year (number-to-string year))))
+                   ;; BibTeX permits a year field "(about 1984)", where only
+                   ;; the last four nonpunctuation characters must be numerals.
+                   (and (string-match "\\([0-9][0-9][0-9][0-9]\\)[^[:alnum:]]*\\'" str)
+                        (match-string 1 str))
+                   (user-error "Year or date field `%s' invalid" str))))
+    (substring year (max 0 (- (length year) bibtex-autokey-year-length)))))
 
 (defun bibtex-autokey-get-title ()
   "Get title field contents up to a terminator.
@@ -2849,12 +2855,12 @@ The name part:
 
 The year part:
  1. Build the year part of the key by truncating the content of the year
-    field to the rightmost `bibtex-autokey-year-length' digits (useful
-    values are 2 and 4).
- 2. If the year field (or any other field required to generate the key)
-    is absent, but the entry has a valid crossref field and
-    `bibtex-autokey-use-crossref' is non-nil, use the field of the
-    crossreferenced entry instead.
+    component of the date or year field to the rightmost
+    `bibtex-autokey-year-length' digits (useful values are 2 and 4).
+ 2. If both the year and date fields are absent, but the entry has a
+    valid crossref field and `bibtex-autokey-use-crossref' is
+    non-nil, use the date or year field of the crossreferenced entry
+    instead.
 
 The title part
  1. Change the content of the title field according to

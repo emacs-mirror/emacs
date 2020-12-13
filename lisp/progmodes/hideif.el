@@ -302,17 +302,17 @@ Several variables affect how the hiding is done:
         ;; We can still simulate the behavior of older hideif versions (i.e.
         ;; `hide-ifdef-env' being buffer local) by clearing this variable
         ;; (C-c @ C) every time before hiding current buffer.
-;;      (set (make-local-variable 'hide-ifdef-env)
+;;      (setq-local hide-ifdef-env
 ;;           (default-value 'hide-ifdef-env))
         (set 'hide-ifdef-env (default-value 'hide-ifdef-env))
         ;; Some C/C++ headers might have other ways to prevent reinclusion and
         ;; thus would like `hide-ifdef-expand-reinclusion-protection' to be nil.
-        (set (make-local-variable 'hide-ifdef-expand-reinclusion-protection)
-             (default-value 'hide-ifdef-expand-reinclusion-protection))
-        (set (make-local-variable 'hide-ifdef-hiding)
-             (default-value 'hide-ifdef-hiding))
-        (set (make-local-variable 'hif-outside-read-only) buffer-read-only)
-        (set (make-local-variable 'line-move-ignore-invisible) t)
+        (setq-local hide-ifdef-expand-reinclusion-protection
+                    (default-value 'hide-ifdef-expand-reinclusion-protection))
+        (setq-local hide-ifdef-hiding
+                    (default-value 'hide-ifdef-hiding))
+        (setq-local hif-outside-read-only buffer-read-only)
+        (setq-local line-move-ignore-invisible t)
         (add-hook 'change-major-mode-hook
                   (lambda () (hide-ifdef-mode -1)) nil t)
 
@@ -1792,7 +1792,7 @@ It does not do the work that's pointless to redo on a recursive entry."
 (defun hide-ifdef-toggle-shadowing ()
   "Toggle shadowing."
   (interactive)
-  (set (make-local-variable 'hide-ifdef-shadow) (not hide-ifdef-shadow))
+  (setq-local hide-ifdef-shadow (not hide-ifdef-shadow))
   (message "Shadowing %s" (if hide-ifdef-shadow "ON" "OFF"))
   (save-restriction
     (widen)

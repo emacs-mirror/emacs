@@ -91,7 +91,7 @@ test-filenotify-gio:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-file-notification=gfile
     - make bootstrap
-    - make -C test autorevert-tests filenotify-tests
+    - make -k -C test autorevert-tests filenotify-tests
 
 test-gnustep:
   stage: test

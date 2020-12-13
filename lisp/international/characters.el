@@ -759,7 +759,14 @@ with L, LRE, or LRO Unicode bidi character type.")
         (funcall map-unicode-property 'uppercase
                  (lambda (lc uc) (aset up lc uc) (aset up uc uc)))
         (funcall map-unicode-property 'lowercase
-                 (lambda (uc lc) (aset down uc lc) (aset down lc lc))))))
+                 (lambda (uc lc) (aset down uc lc) (aset down lc lc)))
+
+        ;; Override the Unicode uppercase property for ß, since we are
+        ;; using our case tables for determining the case of a
+        ;; character (see uppercasep and lowercasep in buffer.h).
+        ;; The special-uppercase property of ß ensures that it is
+        ;; still upcased to SS per the usual convention.
+        (aset up ?ß ?ẞ))))
 
   ;; Clear out the extra slots so that they will be recomputed from the main
   ;; (downcase) table and upcase table.  Since we’re side-stepping the usual

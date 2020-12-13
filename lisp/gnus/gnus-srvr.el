@@ -262,8 +262,7 @@ The following commands are available:
   (setq mode-line-process nil)
   (buffer-disable-undo)
   (setq truncate-lines t)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gnus-server-font-lock-keywords t)))
+  (setq-local font-lock-defaults '(gnus-server-font-lock-keywords t)))
 
 
 (defun gnus-server-insert-server-line (name method)

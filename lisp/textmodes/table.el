@@ -4073,10 +4073,12 @@ cache buffer into the designated cell in the table buffer."
       (set-buffer table-cell-buffer)
       (let ((cache-buffer (get-buffer-create table-cache-buffer-name))
 	    (org-coord (table--get-coordinate))
+            (fixed table-fixed-width-mode)
 	    (in-cell (equal (table--cell-to-coord (table--probe-cell))
 			    (cons table-cell-info-lu-coordinate table-cell-info-rb-coordinate)))
 	    rectangle)
 	(set-buffer cache-buffer)
+        (setq-local table-fixed-width-mode fixed)
 	(setq rectangle
 	      (extract-rectangle
 	       1

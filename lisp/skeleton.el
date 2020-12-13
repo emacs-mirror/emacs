@@ -312,10 +312,15 @@ automatically, and you are prompted to fill in the variable parts.")))
         (save-excursion (insert "\n")))
     (unwind-protect
 	(setq prompt (cond ((stringp prompt)
-                            (read-string (format prompt skeleton-subprompt)
-                                         (setq initial-input
-                                               (or initial-input
-                                                   (symbol-value 'input)))))
+                            ;; The user may issue commands to move
+                            ;; around (like `C-M-v').  Ensure that we
+                            ;; insert the skeleton at the correct
+                            ;; (initial) point.
+                            (save-excursion
+                              (read-string (format prompt skeleton-subprompt)
+                                           (setq initial-input
+                                                 (or initial-input
+                                                     (symbol-value 'input))))))
                            ((functionp prompt)
                             (funcall prompt))
                            (t (eval prompt))))

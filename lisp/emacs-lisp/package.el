@@ -1115,14 +1115,15 @@ boundaries."
     ;; Use some headers we've invented to drive the process.
     (let* (;; Prefer Package-Version; if defined, the package author
            ;; probably wants us to use it.  Otherwise try Version.
-           (pkg-version
-            (or (package-strip-rcs-id (lm-header "package-version"))
-                (package-strip-rcs-id (lm-header "version"))))
+           (version-info
+            (or (lm-header "package-version") (lm-header "version")))
+           (pkg-version (package-strip-rcs-id version-info))
            (keywords (lm-keywords-list))
            (homepage (lm-homepage)))
       (unless pkg-version
-        (error
-            "Package lacks a \"Version\" or \"Package-Version\" header"))
+         (if version-info
+             (error "Unrecognized package version: %s" version-info)
+           (error "Package lacks a \"Version\" or \"Package-Version\" header")))
       (package-desc-from-define
        file-name pkg-version desc
        (and-let* ((require-lines (lm-header-multiline "package-requires")))
@@ -2112,7 +2113,10 @@ Otherwise return nil."
   (when str
     (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
       (setq str (substring str (match-end 0))))
-    (if (version-to-list str) str)))
+    (let ((l (version-to-list str)))
+      ;; Don't return `str' but (package-version-join (version-to-list str))
+      ;; to make sure we use a "canonical name"!
+      (if l (package-version-join l)))))
 
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 

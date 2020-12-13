@@ -365,22 +365,22 @@ Variables controlling indentation style:
 
 Turning on SIMULA mode calls the value of the variable simula-mode-hook
 with no arguments, if that value is non-nil."
-  (set (make-local-variable 'comment-column) 40)
-  ;; (set (make-local-variable 'end-comment-column) 75)
-  (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\f")
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'indent-line-function) 'simula-indent-line)
-  (set (make-local-variable 'comment-start) "! ")
-  (set (make-local-variable 'comment-end) " ;")
-  (set (make-local-variable 'comment-start-skip) "!+ *")
-  (set (make-local-variable 'parse-sexp-ignore-comments) nil)
-  (set (make-local-variable 'comment-multi-line) t)
-  (set (make-local-variable 'font-lock-defaults)
-       '((simula-font-lock-keywords simula-font-lock-keywords-1
-          simula-font-lock-keywords-2 simula-font-lock-keywords-3)
-         nil t ((?_ . "w"))))
-  (set (make-local-variable 'syntax-propertize-function)
-       simula-syntax-propertize-function)
+  (setq-local comment-column 40)
+  ;; (setq-local end-comment-column 75)
+  (setq-local paragraph-start "[ \t]*$\\|\f")
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local indent-line-function 'simula-indent-line)
+  (setq-local comment-start "! ")
+  (setq-local comment-end " ;")
+  (setq-local comment-start-skip "!+ *")
+  (setq-local parse-sexp-ignore-comments nil)
+  (setq-local comment-multi-line t)
+  (setq-local font-lock-defaults
+              '((simula-font-lock-keywords simula-font-lock-keywords-1
+                 simula-font-lock-keywords-2 simula-font-lock-keywords-3)
+                nil t ((?_ . "w"))))
+  (setq-local syntax-propertize-function
+              simula-syntax-propertize-function)
   (abbrev-mode 1))
 
 (defun simula-indent-exp ()

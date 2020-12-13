@@ -474,7 +474,7 @@
 
 ;; Modifies mode-line-buffer-identification.
 (defun viper-refresh-mode-line ()
-  (set (make-local-variable 'viper-mode-string)
+  (setq-local viper-mode-string
 	(cond ((eq viper-current-state 'emacs-state) viper-emacs-state-id)
 	      ((eq viper-current-state 'vi-state) viper-vi-state-id)
 	      ((eq viper-current-state 'replace-state) viper-replace-state-id)
@@ -1865,14 +1865,10 @@ Undo previous insertion and inserts new."
     ;; minibuffer and vice versa. Otherwise, command arguments will affect
     ;; minibuffer ops and insertions from the minibuffer will change those in
     ;; the normal buffers
-    (make-local-variable 'viper-d-com)
-    (make-local-variable 'viper-last-insertion)
-    (make-local-variable 'viper-command-ring)
-    (setq viper-d-com nil
-	  viper-last-insertion nil
-	  viper-command-ring nil)
-    (funcall hook)
-    ))
+    (setq-local viper-d-com nil)
+    (setq-local viper-last-insertion nil)
+    (setq-local viper-command-ring nil)
+    (funcall hook)))
 
 ;; This is a temp hook that uses free variables viper--init-message and viper-initial.
 ;; A dirty feature, but it is the simplest way to have it do the right thing.

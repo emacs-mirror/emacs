@@ -318,7 +318,7 @@ See the command `outline-mode' for more information on this mode."
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
 		  nil t)
-	(set (make-local-variable 'line-move-ignore-invisible) t)
+        (setq-local line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t)))
     (setq line-move-ignore-invisible nil)

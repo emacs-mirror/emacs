@@ -88,6 +88,13 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 ** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 
+In addition, there is a new variable
+`redisplay-adhoc-scroll-in-resize-mini-windows` to disable the
+ad-hoc auto-scrolling when resizing minibuffer windows.  It has been
+found that its heuristic can be counter productive in some corner
+cases, tho the cure may be worse than the disease.  This said, the
+effect should be negligible in the vast majority of cases anyway.
+
 +++
 ** Improved handling of minibuffers on switching frames.
 By default, when you switch to another frame, an active minibuffer now
@@ -192,6 +199,11 @@ have been replaced with "chat.freenode.net" throughout Emacs.
 These functions return the connection local value of the respective
 variables.  This can be used for remote hosts.
 
+** Emacs now prints a backtrace when signaling an error in batch mode.
+This makes debugging Emacs Lisp scripts run in batch mode easier.  To
+get back the old behavior, set the new variable
+'backtrace-on-error-noninteractive' to a nil value.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -270,6 +282,11 @@ preserving markers, properties and overlays.  The new variable
 number of seconds that 'revert-buffer-with-fine-grain' should spend
 trying to be non-destructive.
 
++++
+** New command 'memory-report'.
+This command opens a new buffer called "*Memory Report*" and gives a
+summary of where Emacs is using memory currently.
+
 ** Outline
 
 +++
@@ -281,6 +298,18 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+** Loading dunnet.el in batch mode doesn't start the game any more
+Instead you need to do 'emacs -f dun-batch' to start the game in
+batch mode.
+
+** Emacs Server
+
++++
+*** New user option 'server-client-instructions'.
+When emacsclient connects, Emacs will (by default) output a message
+about how to exit the client frame.  If 'server-client-instructions'
+is set to nil, this message is inhibited.
 
 ** Python mode
 
@@ -487,6 +516,26 @@ completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
 
 ** Gnus
+
++++
+*** New user option 'gnus-registry-register-all'.
+
+If non-nil (the default), create registry entries for all messages.
+If nil, don't automatically create entries, they must be created
+manually.
+
++++
+*** New user options to customise the summary line specs %[ and %].
+Four new options introduced in customisation group
+'gnus-summary-format'.  These are 'gnus-sum-opening-bracket',
+'gnus-sum-closing-bracket', 'gnus-sum-opening-bracket-adopted', and
+'gnus-sum-closing-bracket-adopted'.  Their default values are '[', ']',
+'<', '>' respectively. These variables control the appearance of '%['
+and '%]' specs in the summary line format.  '%[' will normally display
+the value of 'gnus-sum-opening-bracket', but can also be
+'gnus-sum-opening-bracket-adopted' for the adopted articles.  '%]' will
+normally display the value of 'gnus-sum-closing-bracket', but can also
+be 'gnus-sum-closing-bracket-adopted' for the adopted articles.
 
 +++
 *** New user option 'gnus-paging-select-next'.
@@ -1077,6 +1126,22 @@ If 'shr-width' is non-nil, it overrides this variable.
 ** Images
 
 ---
+** Can explicitly specify base_uri for svg images.
+':base-uri' image property can be used to explicitly specify base_uri
+for embedded images into svg. ':base-uri' is supported for both file
+and data svg images.
+
++++
+** 'svg-embed-base-uri-image' added to embed images
+'svg-embed-base-uri-image' can be used to embed images located
+relatively to 'file-name-directory' of the ':base-uri' svg image property.
+This works much faster then 'svg-embed'.
+
++++
+*** New function 'image-cache-size'.
+This function returns the size of the current image cache, in bytes.
+
+---
 *** Animated images stop automatically under high CPU pressure sooner.
 Previously, an animated image would stop animating if any single image
 took more than two seconds to display.  The new algorithm maintains a
@@ -1191,6 +1256,11 @@ before navigating to the selected location.
 So far Grep and ripgrep are supported.  ripgrep seems to offer better
 performance in certain cases, in particular for case-insensitive
 searches.
+
++++
+*** New commands 'xref-prev-group' and 'xref-next-group'.
+These commands are bound respectively to 'P' and 'N', and navigate to
+the first item of the previous or next group in the "*xref*" buffer.
 
 ** json.el
 
@@ -1350,7 +1420,40 @@ This face is used for error messages from 'diff'.
 *** New command 'diff-refresh-hunk'.
 This new command (bound to 'C-c C-l') regenerates the current hunk.
 
+** Buttons
+
++++
+*** New minor mode 'button-mode'.
+This minor mode does nothing else than install 'button-buffer-map' as
+a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
+to buttons), and can be used in any view-mode-like buffer that has
+buttons in it.
+
++++
+*** New utility function 'button-buttonize'.
+This function takes a string and returns a string propertized in a way
+that makes it a valid button.
+
+
 ** Miscellaneous
+
++++
+*** New function 'object-intervals'.
+This function returns a copy of the list of intervals (i.e., text
+properties) in the object in question (which must either be a string
+or a buffer).
+
+---
+*** 'hexl-mode' scrolling commands now heed 'next-screen-context-lines'.
+Previously, 'hexl-scroll-down' and 'hexl-scroll-up' would scroll
+up/down an entire window, but they now work more like the standard
+scrolling commands.
+
+---
+*** Errors in 'kill-emacs-hook' no longer prevent Emacs from shutting down.
+If a function in that hook signals an error in an interactive Emacs,
+the user will be prompted on whether to continue.  If the user doesn't
+answer within five seconds, Emacs will continue shutting down anyway.
 
 ---
 *** iso-transl is now preloaded.
@@ -1449,13 +1552,6 @@ both modes are on).
 *** New command 'submit-emacs-patch'.
 This works like 'report-emacs-bug', but is more geared towards sending
 patches to the Emacs issue tracker.
-
-+++
-*** New minor mode 'button-mode'.
-This minor mode does nothing else than install 'button-buffer-map' as
-a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
-to buttons), and can be used in any view-mode-like buffer that has
-buttons in it.
 
 ---
 *** 'icomplete-show-matches-on-no-input' behavior change.

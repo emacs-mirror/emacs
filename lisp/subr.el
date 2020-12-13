@@ -2745,20 +2745,22 @@ floating point support."
   "Insert the character you type in the minibuffer and exit.
 Discard all previous input before inserting and exiting the minibuffer."
   (interactive)
-  (delete-minibuffer-contents)
-  (insert last-command-event)
-  (exit-minibuffer))
+  (when (minibufferp)
+    (delete-minibuffer-contents)
+    (insert last-command-event)
+    (exit-minibuffer)))
 
 (defun read-char-from-minibuffer-insert-other ()
   "Handle inserting of a character other than allowed.
 Display an error on trying to insert a disallowed character.
 Also discard all previous input in the minibuffer."
   (interactive)
-  (delete-minibuffer-contents)
-  (ding)
-  (discard-input)
-  (minibuffer-message "Wrong answer")
-  (sit-for 2))
+  (when (minibufferp)
+    (delete-minibuffer-contents)
+    (ding)
+    (discard-input)
+    (minibuffer-message "Wrong answer")
+    (sit-for 2)))
 
 (defvar empty-history)
 
@@ -2802,6 +2804,8 @@ There is no need to explicitly add `help-char' to CHARS;
                                  map read-char-from-minibuffer-map-hash)
                         map))
                 read-char-from-minibuffer-map))
+         ;; Protect this-command when called from pre-command-hook (bug#45029)
+         (this-command this-command)
          (result
           (read-from-minibuffer prompt nil map nil
                                 (or history 'empty-history)))
@@ -2856,28 +2860,31 @@ There is no need to explicitly add `help-char' to CHARS;
   "Insert the answer \"y\" and exit the minibuffer of `y-or-n-p'.
 Discard all previous input before inserting and exiting the minibuffer."
   (interactive)
-  (delete-minibuffer-contents)
-  (insert "y")
-  (exit-minibuffer))
+  (when (minibufferp)
+    (delete-minibuffer-contents)
+    (insert "y")
+    (exit-minibuffer)))
 
 (defun y-or-n-p-insert-n ()
   "Insert the answer \"n\" and exit the minibuffer of `y-or-n-p'.
 Discard all previous input before inserting and exiting the minibuffer."
   (interactive)
-  (delete-minibuffer-contents)
-  (insert "n")
-  (exit-minibuffer))
+  (when (minibufferp)
+    (delete-minibuffer-contents)
+    (insert "n")
+    (exit-minibuffer)))
 
 (defun y-or-n-p-insert-other ()
   "Handle inserting of other answers in the minibuffer of `y-or-n-p'.
 Display an error on trying to insert a disallowed character.
 Also discard all previous input in the minibuffer."
   (interactive)
-  (delete-minibuffer-contents)
-  (ding)
-  (discard-input)
-  (minibuffer-message "Please answer y or n")
-  (sit-for 2))
+  (when (minibufferp)
+    (delete-minibuffer-contents)
+    (ding)
+    (discard-input)
+    (minibuffer-message "Please answer y or n")
+    (sit-for 2)))
 
 (defvar empty-history)
 
@@ -2955,6 +2962,8 @@ is nil and `use-dialog-box' is non-nil."
                              (let ((help-form msg)) ; lexically bound msg
                                (help-form-show)))))
                        map))
+             ;; Protect this-command when called from pre-command-hook (bug#45029)
+             (this-command this-command)
              (str (read-from-minibuffer
                    prompt nil keymap nil
                    (or y-or-n-p-history-variable 'empty-history))))
@@ -3955,7 +3964,7 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
 ;; Don't throw `throw-on-input' on those events by default.
 (setq while-no-input-ignore-events
       '(focus-in focus-out help-echo iconify-frame
-        make-frame-visible selection-request buffer-switch))
+        make-frame-visible selection-request))
 
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.
@@ -5258,6 +5267,8 @@ use `called-interactively-p'.
 
 To test whether a function can be called interactively, use
 `commandp'."
+  ;; Kept around for now.  See discussion at:
+  ;; https://lists.gnu.org/r/emacs-devel/2020-08/msg00564.html
   (declare (obsolete called-interactively-p "23.2"))
   (called-interactively-p 'interactive))
 
@@ -5897,5 +5908,23 @@ returned list are in the same order as in TREE.
 ;; The initial anchoring is for better performance in searching matches.
 (defconst regexp-unmatchable "\\`a\\`"
   "Standard regexp guaranteed not to match any string at all.")
+
+(defun run-hook-query-error-with-timeout (hook)
+  "Run HOOK, catching errors, and querying the user about whether to continue.
+If a function in HOOK signals an error, the user will be prompted
+whether to continue or not.  If the user doesn't respond,
+evaluation will continue if the user doesn't respond within five
+seconds."
+  (run-hook-wrapped
+   hook
+   (lambda (fun)
+     (condition-case err
+         (funcall fun)
+       (error
+        (unless (y-or-n-p-with-timeout (format "Error %s; continue?" err)
+                                       5 t)
+          (error err))))
+     ;; Continue running.
+     nil)))
 
 ;;; subr.el ends here

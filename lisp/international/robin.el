@@ -424,8 +424,7 @@ While this input method is active, the variable
 	(add-hook 'minibuffer-exit-hook 'robin-exit-from-minibuffer))
     (run-hooks 'input-method-activate-hook
 	       'robin-activate-hook)
-    (set (make-local-variable 'input-method-function)
-	 'robin-input-method)))
+    (setq-local input-method-function 'robin-input-method)))
 
 (define-obsolete-variable-alias
   'robin-inactivate-hook

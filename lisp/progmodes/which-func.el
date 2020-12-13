@@ -293,7 +293,7 @@ If no function name is found, return nil."
 	         (null which-function-imenu-failed))
         (ignore-errors (imenu--make-index-alist t))
         (unless imenu--index-alist
-          (set (make-local-variable 'which-function-imenu-failed) t)))
+          (setq-local which-function-imenu-failed t)))
       ;; If we have an index alist, use it.
       (when (and (null name)
 	         (boundp 'imenu--index-alist) imenu--index-alist)
