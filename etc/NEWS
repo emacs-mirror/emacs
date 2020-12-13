@@ -383,6 +383,18 @@ value of 'tab-bar-show'.
 If your mouse or trackpad supports it, you can now scroll tabs when
 the mouse pointer is in the tab line by scrolling left or right.
 
+---
+*** New tab-line faces and options
+The face 'tab-line-tab-special' is used for tabs whose buffers are
+special, i.e. not file-backed.  The face
+'tab-line-tab-inactive-alternate' is used to display inactive tabs
+with an alternating background color, making them easier to
+distinguish between, especially if the face 'tab-line-tab' is
+configured to not display with a box; this alternate face is only
+applied when the option 'tab-line-tab-face-functions' is
+so-configured.  That option may also be used to customize tab-line
+faces in other ways.
+
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 
