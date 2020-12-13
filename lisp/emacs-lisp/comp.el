@@ -520,7 +520,8 @@ CFG is mutated by a pass.")
 
 (defun comp-mvar-value-vld-p (mvar)
   "Return t if one single value can be extracted by the MVAR constrains."
-  (when (null (comp-mvar-typeset mvar))
+  (when (and (null (comp-mvar-typeset mvar))
+             (null (comp-mvar-neg mvar)))
     (let* ((v (comp-mvar-valset mvar))
            (r (comp-mvar-range mvar))
            (valset-len (length v))
@@ -1868,26 +1869,34 @@ into the C code forwarding the compilation unit."
 
 ;;; conditional branches rewrite pass specific code.
 
-(defun comp-emit-assume (target-slot rhs bb kind)
-  "Emit an assume of kind KIND for TARGET-SLOT being RHS.
+(defun comp-emit-assume (target rhs bb negated)
+  "Emit an assume for mvar TARGET being RHS.
+When NEGATED is non-nil the assumption is negated.
 The assume is emitted at the beginning of the block BB."
-  (push `(assume ,(make-comp-mvar :slot target-slot) ,rhs ,kind)
-	(comp-block-insns bb))
-  (setf (comp-func-ssa-status comp-func) 'dirty))
+  (let ((target-slot (comp-mvar-slot target))
+        (tmp-mvar (if negated
+                      (make-comp-mvar :slot (comp-mvar-slot rhs))
+                    rhs)))
+    (push `(assume ,(make-comp-mvar :slot target-slot) (and ,target ,tmp-mvar))
+	  (comp-block-insns bb))
+    (if negated
+        (push `(assume ,tmp-mvar (not ,rhs))
+	      (comp-block-insns bb)))
+    (setf (comp-func-ssa-status comp-func) 'dirty)))
 
-(defun comp-cond-cstr-target-slot (slot-num exit-insn bb)
-  "Search for the last assignment of SLOT-NUM in BB.
+(defun comp-cond-cstr-target-mvar (mvar exit-insn bb)
+  "Given MVAR search in BB what we'll use as assume target.
 Keep on searching till EXIT-INSN is encountered.
-Return the corresponding rhs slot number."
+Return the corresponding rhs mvar."
   (cl-flet ((targetp (x)
               ;; Ret t if x is an mvar and target the correct slot number.
               (and (comp-mvar-p x)
-                   (eql slot-num (comp-mvar-slot x)))))
+                   (eql (comp-mvar-slot mvar) (comp-mvar-slot x)))))
     (cl-loop
      with res = nil
      for insn in (comp-block-insns bb)
      when (eq insn exit-insn)
-     do (cl-return (and (comp-mvar-p res) (comp-mvar-slot res)))
+     do (cl-return (and (comp-mvar-p res) res))
      do (pcase insn
           (`(,(pred comp-assign-op-p) ,(pred targetp) ,rhs)
            (setf res rhs)))
@@ -1941,19 +1950,22 @@ TARGET-BB-SYM is the symbol name of the target block."
     (pcase insns-seq
       (`((set ,(and (pred comp-mvar-p) cond)
               (,(pred comp-call-op-p)
-               ,(and (or 'eq 'eql '= 'equal) test-fn) ,op1 ,op2))
+               ,(or 'eq 'eql '= 'equal) ,op1 ,op2))
 	 (comment ,_comment-str)
 	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
-       (let* ((bb-1 (car blocks))
-              (bb-target (comp-cond-cstr-target-block b bb-1)))
-         (setf (car blocks) (comp-block-name bb-target))
-         (when-let ((target-slot1 (comp-cond-cstr-target-slot
-                                   (comp-mvar-slot op1) (car insns-seq) b)))
-           (comp-emit-assume target-slot1 op2 bb-target test-fn))
-         (when-let ((target-slot2 (comp-cond-cstr-target-slot
-                                   (comp-mvar-slot op2) (car insns-seq) b)))
-           (comp-emit-assume target-slot2 op1 bb-target test-fn)))
-       (cl-return-from in-the-basic-block))))))
+       (cl-loop
+        with target-mvar1 = (comp-cond-cstr-target-mvar op1 (car insns-seq) b)
+        with target-mvar2 = (comp-cond-cstr-target-mvar op2 (car insns-seq) b)
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for assume-target = (comp-cond-cstr-target-block b branch-target)
+        for negated in '(nil t)
+        do (setf (car branch-target-cell) (comp-block-name assume-target))
+        when target-mvar1
+          do (comp-emit-assume target-mvar1 op2 assume-target negated)
+        when target-mvar2
+          do (comp-emit-assume target-mvar2 op1 assume-target negated)
+        finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-cond-cstr (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
@@ -2384,7 +2396,8 @@ Forward propagate immediate involed in assignments."
   "Propagate into LVAL properties of RVAL."
   (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval)
         (comp-mvar-valset lval) (comp-mvar-valset rval)
-        (comp-mvar-range lval) (comp-mvar-range rval)))
+        (comp-mvar-range lval) (comp-mvar-range rval)
+        (comp-mvar-neg lval) (comp-mvar-neg rval)))
 
 (defun comp-function-foldable-p (f args)
   "Given function F called with ARGS return non-nil when optimizable."
@@ -2430,7 +2443,8 @@ Fold the call in case."
       (let ((cstr (comp-cstr-f-ret cstr-f)))
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
               (comp-mvar-valset lval) (comp-cstr-valset cstr)
-              (comp-mvar-typeset lval) (comp-cstr-typeset cstr))))))
+              (comp-mvar-typeset lval) (comp-cstr-typeset cstr)
+              (comp-mvar-neg lval) (comp-cstr-neg cstr))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
@@ -2444,21 +2458,12 @@ Fold the call in case."
           (comp-fwprop-call insn lval f args)))
        (_
         (comp-mvar-propagate lval rval))))
-    (`(assume ,lval ,rval ,kind)
-     (pcase kind
-       ('eq
-        (comp-mvar-propagate lval rval))
-       ((or 'eql 'equal)
-        (if (or (comp-mvar-symbol-p rval)
-                (comp-mvar-fixnum-p rval))
-            (comp-mvar-propagate lval rval)
-          (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval))))
-       ('=
-        (if (comp-mvar-fixnum-p rval)
-            (comp-mvar-propagate lval rval)
-          (setf (comp-mvar-typeset lval)
-                (unless (comp-mvar-range rval)
-                  '(number)))))))
+    (`(assume ,lval (,kind . ,operands))
+     (cl-ecase kind
+       (and
+        (apply #'comp-cstr-intersection lval operands))
+       (not
+        (comp-cstr-negation lval (car operands)))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
