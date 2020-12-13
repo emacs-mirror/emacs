@@ -1963,7 +1963,11 @@ See also `emacs-lisp-byte-compile-and-load'."
 	  (insert "\n")			; aaah, unix.
 	  (cond
 	   ((null target-file) nil)     ;We only wanted the warnings!
-	   ((file-writable-p target-file)
+	   ((and (file-writable-p target-file)
+                 ;; We attempt to create a temporary file in the
+                 ;; target directory, so the target directory must be
+                 ;; writable.
+                 (file-writable-p (file-name-directory target-file)))
 	    ;; We must disable any code conversion here.
 	    (let* ((coding-system-for-write 'no-conversion)
 		   ;; Write to a tempfile so that if another Emacs
@@ -1992,6 +1996,14 @@ See also `emacs-lisp-byte-compile-and-load'."
 	      ;; deleting target-file before writing it.
 	      (rename-file tempfile target-file t))
 	    (or noninteractive (message "Wrote %s" target-file)))
+           ((file-writable-p target-file)
+            ;; In case the target directory isn't writable (see e.g. Bug#44631),
+            ;; try writing to the output file directly.  We must disable any
+            ;; code conversion here.
+            (let ((coding-system-for-write 'no-conversion))
+              (with-file-modes (logand (default-file-modes) #o666)
+                (write-region (point-min) (point-max) target-file nil 1)))
+            (or noninteractive (message "Wrote %s" target-file)))
 	   (t
 	    ;; This is just to give a better error message than write-region
 	    (let ((exists (file-exists-p target-file)))

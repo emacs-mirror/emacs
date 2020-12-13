@@ -947,6 +947,75 @@ literals (Bug#20852)."
    '((suspicious set-buffer))
    "Warning: Use .with-current-buffer. rather than"))
 
+(ert-deftest bytecomp-tests--not-writable-directory ()
+  "Test that byte compilation works if the output directory isn't
+writable (Bug#44631)."
+  (let ((directory (make-temp-file "bytecomp-tests-" :directory)))
+    (unwind-protect
+        (let* ((input-file (expand-file-name "test.el" directory))
+               (output-file (expand-file-name "test.elc" directory))
+               (byte-compile-dest-file-function
+                (lambda (_) output-file))
+               (byte-compile-error-on-warn t))
+          (write-region "" nil input-file nil nil nil 'excl)
+          (write-region "" nil output-file nil nil nil 'excl)
+          (set-file-modes input-file #o400)
+          (set-file-modes output-file #o200)
+          (set-file-modes directory #o500)
+          (should (byte-compile-file input-file))
+          (should (file-regular-p output-file))
+          (should (cl-plusp (file-attribute-size
+                             (file-attributes output-file)))))
+      (with-demoted-errors "Error cleaning up directory: %s"
+        (set-file-modes directory #o700)
+        (delete-directory directory :recursive)))))
+
+(ert-deftest bytecomp-tests--dest-mountpoint ()
+  "Test that byte compilation works if the destination file is a
+mountpoint (Bug#44631)."
+  (let ((bwrap (executable-find "bwrap"))
+        (emacs (expand-file-name invocation-name invocation-directory)))
+    (skip-unless bwrap)
+    (skip-unless (file-executable-p bwrap))
+    (skip-unless (not (file-remote-p bwrap)))
+    (skip-unless (file-executable-p emacs))
+    (skip-unless (not (file-remote-p emacs)))
+    (let ((directory (make-temp-file "bytecomp-tests-" :directory)))
+      (unwind-protect
+          (let* ((input-file (expand-file-name "test.el" directory))
+                 (output-file (expand-file-name "test.elc" directory))
+                 (unquoted-file (file-name-unquote output-file))
+                 (byte-compile-dest-file-function
+                  (lambda (_) output-file))
+                 (byte-compile-error-on-warn t))
+            (should-not (file-remote-p input-file))
+            (should-not (file-remote-p output-file))
+            (write-region "" nil input-file nil nil nil 'excl)
+            (write-region "" nil output-file nil nil nil 'excl)
+            (set-file-modes input-file #o400)
+            (set-file-modes output-file #o200)
+            (set-file-modes directory #o500)
+            (with-temp-buffer
+              (let ((status (call-process
+                             bwrap nil t nil
+                             "--ro-bind" "/" "/"
+                             "--bind" unquoted-file unquoted-file
+                             emacs "--quick" "--batch" "--load=bytecomp"
+                             (format "--eval=%S"
+                                     `(setq byte-compile-dest-file-function
+                                            (lambda (_) ,output-file)
+                                            byte-compile-error-on-warn t))
+                             "--funcall=batch-byte-compile" input-file)))
+                (unless (eql status 0)
+                  (ert-fail `((status . ,status)
+                              (output . ,(buffer-string)))))))
+            (should (file-regular-p output-file))
+            (should (cl-plusp (file-attribute-size
+                               (file-attributes output-file)))))
+        (with-demoted-errors "Error cleaning up directory: %s"
+          (set-file-modes directory #o700)
+          (delete-directory directory :recursive))))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
