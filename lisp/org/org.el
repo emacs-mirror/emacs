@@ -8,7 +8,7 @@
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
 
-;; Version: 9.4.1
+;; Version: 9.4.2
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -149,6 +149,7 @@ Stars are put in group 1 and the trimmed body in group 2.")
 (declare-function org-columns-quit "org-colview" ())
 (declare-function org-columns-insert-dblock "org-colview" ())
 (declare-function org-duration-from-minutes "org-duration" (minutes &optional fmt canonical))
+(declare-function org-duration-to-minutes "org-duration" (duration &optional canonical))
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-cache-refresh "org-element" (pos))
 (declare-function org-element-cache-reset "org-element" (&optional all))
@@ -4179,7 +4180,7 @@ After a match, the following groups carry important information:
   "Variable associated with STARTUP options for Org.
 Each element is a list of three items: the startup options (as written
 in the #+STARTUP line), the corresponding variable, and the value to set
-this variable to if the option is found.  An optional forth element PUSH
+this variable to if the option is found.  An optional fourth element PUSH
 means to push this value onto the list in the variable.")
 
 (defcustom org-group-tags t

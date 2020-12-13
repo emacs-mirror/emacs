@@ -137,6 +137,8 @@
 (declare-function org-set-property "org" (property value))
 (declare-function org-toggle-tag "org" (tag &optional onoff))
 
+(declare-function org-search-view "org-agenda" (&optional todo-only string edit-at))
+
 
 ;;; Bibtex data
 (defvar org-bibtex-types

@@ -159,13 +159,16 @@ If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session."
   (unless (string= session "none")
     (require 'inf-ruby)
-    (let* ((cmd (cdr (or (assq :ruby params)
-			 (assoc inf-ruby-default-implementation
-				inf-ruby-implementations))))
+    (let* ((command (cdr (or (assq :ruby params)
+			     (assoc inf-ruby-default-implementation
+				    inf-ruby-implementations))))
 	   (buffer (get-buffer (format "*%s*" session)))
 	   (session-buffer (or buffer (save-window-excursion
 					(run-ruby-or-pop-to-buffer
-					 cmd (or session "ruby")
+					 (if (functionp command)
+					     (funcall command)
+					   command)
+					 (or session "ruby")
 					 (unless session
 					   (inf-ruby-buffer)))
 					(current-buffer)))))

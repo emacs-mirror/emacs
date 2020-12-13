@@ -37,6 +37,7 @@
 (require 'org-compat)
 (require 'org-keys)
 
+(declare-function org-mode "org" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-class "org-element" (datum &optional parent))
 (declare-function org-element-context "org-element" (&optional element))

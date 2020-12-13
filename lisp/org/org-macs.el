@@ -34,6 +34,7 @@
 (require 'cl-lib)
 (require 'format-spec)
 
+(declare-function org-mode "org" ())
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-string-collate-lessp "org-compat" (s1 s2 &optional locale ignore-case))
 
