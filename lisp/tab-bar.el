@@ -296,6 +296,16 @@ If nil, don't show it at all."
 (defvar tab-bar-forward-button " > "
   "Button for going forward in tab history.")
 
+(defcustom tab-bar-history-buttons-show t
+  "Show back and forward buttons when `tab-bar-history-mode' is enabled."
+  :type 'boolean
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
 (defcustom tab-bar-tab-hints nil
   "Show absolute numbers on tabs in the tab bar before the tab name.
 This helps to select the tab by its number using `tab-bar-select-tab'
@@ -415,7 +425,7 @@ Return its existing value or a new value."
          (tabs (funcall tab-bar-tabs-function)))
     (append
      '(keymap (mouse-1 . tab-bar-handle-mouse))
-     (when tab-bar-history-mode
+     (when (and tab-bar-history-mode tab-bar-history-buttons-show)
        `((sep-history-back menu-item ,separator ignore)
          (history-back
           menu-item ,tab-bar-back-button tab-bar-history-back
