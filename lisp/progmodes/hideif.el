@@ -304,7 +304,7 @@ Several variables affect how the hiding is done:
         ;; (C-c @ C) every time before hiding current buffer.
 ;;      (setq-local hide-ifdef-env
 ;;           (default-value 'hide-ifdef-env))
-        (set 'hide-ifdef-env (default-value 'hide-ifdef-env))
+        (setq hide-ifdef-env (default-value 'hide-ifdef-env))
         ;; Some C/C++ headers might have other ways to prevent reinclusion and
         ;; thus would like `hide-ifdef-expand-reinclusion-protection' to be nil.
         (setq-local hide-ifdef-expand-reinclusion-protection

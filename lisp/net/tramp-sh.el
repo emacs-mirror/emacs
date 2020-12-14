@@ -3562,7 +3562,7 @@ implementation will be used."
 
 	  ;; Make `last-coding-system-used' have the right value.
 	  (when coding-system-used
-	    (set 'last-coding-system-used coding-system-used))))
+            (setq last-coding-system-used coding-system-used))))
 
       (tramp-flush-file-properties v localname)
 
