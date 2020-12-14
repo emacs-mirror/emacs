@@ -89,7 +89,7 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 
 In addition, there is a new variable
-`redisplay-adhoc-scroll-in-resize-mini-windows` to disable the
+'redisplay-adhoc-scroll-in-resize-mini-windows' to disable the
 ad-hoc auto-scrolling when resizing minibuffer windows.  It has been
 found that its heuristic can be counter productive in some corner
 cases, tho the cure may be worse than the disease.  This said, the
@@ -303,8 +303,8 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
-** Loading dunnet.el in batch mode doesn't start the game any more
-Instead you need to do 'emacs -f dun-batch' to start the game in
+** Loading dunnet.el in batch mode doesn't start the game any more.
+Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
 
 ** Emacs Server
@@ -523,21 +523,20 @@ tags to be considered as well.
 
 +++
 *** New user option 'gnus-registry-register-all'.
-
 If non-nil (the default), create registry entries for all messages.
 If nil, don't automatically create entries, they must be created
 manually.
 
 +++
-*** New user options to customise the summary line specs %[ and %].
+*** New user options to customise the summary line specs "%[" and "%]".
 Four new options introduced in customisation group
 'gnus-summary-format'.  These are 'gnus-sum-opening-bracket',
 'gnus-sum-closing-bracket', 'gnus-sum-opening-bracket-adopted', and
-'gnus-sum-closing-bracket-adopted'.  Their default values are '[', ']',
-'<', '>' respectively. These variables control the appearance of '%['
-and '%]' specs in the summary line format.  '%[' will normally display
+'gnus-sum-closing-bracket-adopted'.  Their default values are "[", "]",
+"<", ">" respectively.  These options control the appearance of "%["
+and "%]" specs in the summary line format.  "%[" will normally display
 the value of 'gnus-sum-opening-bracket', but can also be
-'gnus-sum-opening-bracket-adopted' for the adopted articles.  '%]' will
+'gnus-sum-opening-bracket-adopted' for the adopted articles.  "%]" will
 normally display the value of 'gnus-sum-closing-bracket', but can also
 be 'gnus-sum-closing-bracket-adopted' for the adopted articles.
 
@@ -1130,13 +1129,13 @@ If 'shr-width' is non-nil, it overrides this variable.
 ** Images
 
 ---
-** Can explicitly specify base_uri for svg images.
+*** You can explicitly specify base_uri for svg images.
 ':base-uri' image property can be used to explicitly specify base_uri
-for embedded images into svg. ':base-uri' is supported for both file
+for embedded images into svg.  ':base-uri' is supported for both file
 and data svg images.
 
 +++
-** 'svg-embed-base-uri-image' added to embed images
+*** 'svg-embed-base-uri-image' added to embed images.
 'svg-embed-base-uri-image' can be used to embed images located
 relatively to 'file-name-directory' of the ':base-uri' svg image property.
 This works much faster then 'svg-embed'.
@@ -1256,8 +1255,8 @@ project's root directory, respectively.
 So typing 'C-u RET' in the "*xref*" buffer quits its window
 before navigating to the selected location.
 
-*** New options xref-search-program and xref-search-program-alist.
-So far Grep and ripgrep are supported.  ripgrep seems to offer better
+*** New user options 'xref-search-program' and 'xref-search-program-alist'.
+So far 'grep' and 'ripgrep' are supported.  'ripgrep' seems to offer better
 performance in certain cases, in particular for case-insensitive
 searches.
 
@@ -1442,9 +1441,8 @@ that makes it a valid button.
 ** Miscellaneous
 
 +++
-
 *** New variable 'current-minibuffer-command'.
-This is like 'this-command', but is bound recursively when entering
+This is like 'this-command', but it is bound recursively when entering
 the minibuffer.
 
 +++
@@ -1763,14 +1761,12 @@ used instead.
 * New Modes and Packages in Emacs 28.1
 
 ** Lisp Data mode
-
 The new command 'lisp-data-mode' enables a major mode for buffers
 composed of Lisp symbolic expressions that do not form a computer
 program.  The ".dir-locals.el" file is automatically set to use this
 mode, as are other data files produced by Emacs.
 
 ** hierarchy.el
-
 It's a library to create, query, navigate and display hierarchy structures.
 
 ** New themes 'modus-vivendi' and 'modus-operandi'.
@@ -1781,13 +1777,12 @@ Consult the Modus Themes Info manual for more information on the user
 options they provide.
 
 ** Dictionary mode
-
-This is a mode for searching a RFC 2229 dictionary
-server. 'dictionary' opens a buffer for starting
-operations. 'dictionary-search' performs a lookup for a word. It also
-supports a 'dictionary-tooltip-mode' which performs a lookup of the
-word under the mouse in 'dictionary-tooltip-dictionary' (which must be
-customized first).
+This is a mode for searching a RFC 2229 dictionary server.
+'dictionary' opens a buffer for starting operations.
+'dictionary-search' performs a lookup for a word.  It also supports a
+'dictionary-tooltip-mode' which performs a lookup of the word under
+the mouse in 'dictionary-tooltip-dictionary' (which must be customized
+first).
 
 
 * Incompatible Editing Changes in Emacs 28.1
@@ -1939,7 +1934,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 * Lisp Changes in Emacs 28.1
 
-** New function `garbage-collect-maybe` to trigger GC early
+** New function 'garbage-collect-maybe' to trigger GC early.
 
 ---
 ** 'defvar' detects the error of defining a variable currently lexically bound.
@@ -2163,6 +2158,20 @@ and 'play-sound-file'.
 ** New variable 'print-integers-as-characters' modifies integer printing.
 If this variable is non-nil, character syntax is used for printing
 numbers when this makes sense, such as '?A' for 65.
+
+** New error 'remote-file-error', a subcategory of 'file-error'.
+It is signaled if a remote file operation fails due to internal
+reasons, and could block Emacs.  It does not replace 'file-error'
+signals for the usual cases.  Timers, process filters and process
+functions, which run remote file operations, shall protect themselves
+against this error.
+
+If such an error occurs, please report this as bug via 'M-x report-emacs-bug'.
+Until it is solved you could ignore such errors by performing
+
+    (setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
+
+** The error 'ftp-error' belongs also to category 'remote-file-error'.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

@@ -2944,7 +2944,8 @@ implementation will be used."
 				 (mapconcat
 				  #'tramp-shell-quote-argument uenv " "))
 			      "")
-			    (if heredoc (format "<<'%s'" tramp-end-of-heredoc) "")
+			    (if heredoc
+				(format "<<'%s'" tramp-end-of-heredoc) "")
 			    (if tmpstderr (format "2>'%s'" tmpstderr) "")
 			    (mapconcat #'tramp-shell-quote-argument env " ")
 			    (if heredoc
@@ -4914,7 +4915,8 @@ Goes through the list `tramp-inline-compress-commands'."
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
 If there is just some editing, retry it after 5 seconds."
-  (if (and tramp-locked tramp-locker
+  (if (and (tramp-get-connection-property
+	    (tramp-get-connection-process vec) "locked" nil)
 	   (tramp-file-name-equal-p vec (car tramp-current-connection)))
       (progn
 	(tramp-message
@@ -4958,10 +4960,9 @@ connection if a previous connection has died for some reason."
 	(when (and (time-less-p
 		    60 (time-since
 			(tramp-get-connection-property p "last-cmd-time" 0)))
-		   (process-live-p p))
-	  (tramp-send-command vec "echo are you awake" t t)
-	  (unless (and (process-live-p p)
-		       (tramp-wait-for-output p 10))
+		   (process-live-p p)
+		   (tramp-get-connection-property p "connected" nil))
+	  (unless (tramp-send-command-and-check vec "echo are you awake")
 	    ;; The error will be caught locally.
 	    (tramp-error vec 'file-error "Awake did fail")))
       (file-error
