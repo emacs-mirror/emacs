@@ -3568,15 +3568,19 @@ mhtml-mode."
   ;; Return a start position for building `c-state-cache' from
   ;; scratch.  This will be at the top level, 2 defuns back.
   (save-excursion
-    ;; Go back 2 bods, but ignore any bogus positions returned by
-    ;; beginning-of-defun (i.e. open paren in column zero).
-    (goto-char here)
-    (let ((cnt 2))
-      (while (not (or (bobp) (zerop cnt)))
-	(c-beginning-of-defun-1)	; Pure elisp BOD.
-	(if (eq (char-after) ?\{)
-	    (setq cnt (1- cnt)))))
-    (point)))
+    (save-restriction
+      (when (> here (* 10 c-state-cache-too-far))
+	(narrow-to-region (- here (* 10 c-state-cache-too-far)) here))
+      ;; Go back 2 bods, but ignore any bogus positions returned by
+      ;; beginning-of-defun (i.e. open paren in column zero).
+      (goto-char here)
+      (let ((cnt 2))
+	(while (not (or (bobp) (zerop cnt)))
+	  (c-beginning-of-defun-1)	; Pure elisp BOD.
+	  (if (eq (char-after) ?\{)
+	      (setq cnt (1- cnt)))))
+      (and (not (bobp))
+	   (point)))))
 
 (defun c-state-balance-parens-backwards (here- here+ top)
   ;; Return the position of the opening paren/brace/bracket before HERE- which
@@ -3667,9 +3671,7 @@ mhtml-mode."
 	    how-far 0))
      ((<= good-pos here)
       (setq strategy 'forward
-	    start-point (if changed-macro-start
-			    cache-pos
-			  (max good-pos cache-pos))
+	    start-point (max good-pos cache-pos)
 	    how-far (- here start-point)))
      ((< (- good-pos here) (- here cache-pos)) ; FIXME!!! ; apply some sort of weighting.
       (setq strategy 'backward
@@ -3688,7 +3690,8 @@ mhtml-mode."
 	       ;; (not (c-major-mode-is 'c++-mode))
 	       (> how-far c-state-cache-too-far))
       (setq BOD-pos (c-get-fallback-scan-pos here)) ; somewhat EXPENSIVE!!!
-      (if (< (- here BOD-pos) how-far)
+      (if (and BOD-pos
+	       (< (- here BOD-pos) how-far))
 	  (setq strategy 'BOD
 		start-point BOD-pos)))
 
@@ -4337,8 +4340,12 @@ mhtml-mode."
       (if (and dropped-cons
 	       (<= too-high-pa here))
 	  (c-append-lower-brace-pair-to-state-cache too-high-pa here here-bol))
-      (setq c-state-cache-good-pos (or (c-state-cache-after-top-paren)
-				       (c-state-get-min-scan-pos)))))
+      (if (and c-state-cache-good-pos (< here c-state-cache-good-pos))
+	  (setq c-state-cache-good-pos
+		(or (save-excursion
+		      (goto-char here)
+		      (c-literal-start))
+		    here)))))
 
   ;; The brace-pair desert marker:
   (when (car c-state-brace-pair-desert)
