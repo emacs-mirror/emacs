@@ -380,10 +380,8 @@ is utf-8"
   (setq major-mode 'dictionary-mode)
   (setq mode-name "Dictionary")
 
-  (make-local-variable 'dictionary-data-stack)
-  (setq dictionary-data-stack nil)
-  (make-local-variable 'dictionary-position-stack)
-  (setq dictionary-position-stack nil)
+  (setq-local dictionary-data-stack nil)
+  (setq-local dictionary-position-stack nil)
 
   (make-local-variable 'dictionary-current-data)
   (make-local-variable 'dictionary-positions)
@@ -407,10 +405,8 @@ is utf-8"
     (switch-to-buffer-other-window buffer)
     (dictionary-mode)
 
-    (make-local-variable 'dictionary-window-configuration)
-    (make-local-variable 'dictionary-selected-window)
-    (setq dictionary-window-configuration window-configuration)
-    (setq dictionary-selected-window selected-window)
+    (setq-local dictionary-window-configuration window-configuration)
+    (setq-local dictionary-selected-window selected-window)
     (dictionary-check-connection)
     (dictionary-new-buffer)
     (dictionary-store-positions)
