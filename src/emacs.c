@@ -973,6 +973,9 @@ emacs_seccomp (unsigned int operation, unsigned int flags, void *args)
 static ptrdiff_t
 read_full (int fd, void *buffer, ptrdiff_t size)
 {
+  eassert (0 <= fd);
+  eassert (buffer != NULL);
+  eassert (0 <= size);
   enum
   {
   /* See MAX_RW_COUNT in sysdep.c.  */
