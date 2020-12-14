@@ -27,33 +27,33 @@
 
 ;;; Code:
 
-(defmacro dictionary-connection-p (connection)
+(defsubst dictionary-connection-p (connection)
   "Returns non-nil if `connection' is a connection object"
-  (list 'get connection ''connection))
+  (get connection 'connection))
 
-(defmacro dictionary-connection-read-point (connection)
+(defsubst dictionary-connection-read-point (connection)
   "Return the read point of the connection object."
-  (list 'get connection ''dictionary-connection-read-point))
+  (get connection 'dictionary-connection-read-point))
 
-(defmacro dictionary-connection-process (connection)
+(defsubst dictionary-connection-process (connection)
   "Return the process of the connection object."
-  (list 'get connection ''dictionary-connection-process))
+  (get connection 'dictionary-connection-process))
 
-(defmacro dictionary-connection-buffer (connection)
+(defsubst dictionary-connection-buffer (connection)
   "Return the buffer of the connection object."
-  (list 'get connection ''dictionary-connection-buffer))
+  (get connection 'dictionary-connection-buffer))
 
-(defmacro dictionary-connection-set-read-point (connection point)
+(defsubst dictionary-connection-set-read-point (connection point)
   "Set the read-point for `connection' to `point'."
-  (list 'put connection ''dictionary-connection-read-point point))
+  (put connection 'dictionary-connection-read-point point))
 
-(defmacro dictionary-connection-set-process (connection process)
+(defsubst dictionary-connection-set-process (connection process)
   "Set the process for `connection' to `process'."
-  (list 'put connection ''dictionary-connection-process process))
+  (put connection 'dictionary-connection-process process))
 
-(defmacro dictionary-connection-set-buffer (connection buffer)
+(defsubst dictionary-connection-set-buffer (connection buffer)
   "Set the buffer for `connection' to `buffer'."
-  (list 'put connection ''dictionary-connection-buffer buffer))
+  (put connection 'dictionary-connection-buffer buffer))
 
 (defun dictionary-connection-create-data (buffer process point)
   "Create a new connection data based on `buffer', `process', and `point'."
