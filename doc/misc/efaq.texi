@@ -1672,8 +1672,6 @@ would use with @code{display-line-numbers}.
 There is also the @samp{linum} package (distributed with Emacs since
 version 23.1) which will henceforth become obsolete.  Users and
 developers are encouraged to use @samp{display-line-numbers} instead.
-The packages @samp{setnu} and @samp{wb-line-number} (not distributed
-with Emacs) also implement this feature.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
