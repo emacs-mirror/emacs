@@ -594,11 +594,11 @@ You can get a printed reference card listing commands and keys to
 invoke them.  You can order one from the FSF for $2 (or 10 for $18),
 or you can print your own from the @file{etc/refcards/refcard.tex} or
 @file{etc/refcards/refcard.pdf} files in the Emacs distribution.
-Beginning with version 21.1, the Emacs distribution comes with
-translations of the reference card into several languages; look for
-files named @file{etc/refcards/@var{lang}-refcard.*}, where @var{lang}
-is a two-letter code of the language.  For example, the German version
-of the reference card is in the files @file{etc/refcards/de-refcard.tex}
+The Emacs distribution comes with translations of the reference card
+into several languages; look for files named
+@file{etc/refcards/@var{lang}-refcard.*}, where @var{lang} is a
+two-letter code of the language.  For example, the German version of
+the reference card is in the files @file{etc/refcards/de-refcard.tex}
 and @file{etc/refcards/de-refcard.pdf}.
 
 @item
@@ -3322,7 +3322,7 @@ the main GNU distribution site, sources are available as
 @c Don't include VER in the file name, because pretests are not there.
 @uref{https://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
 
-(Replace @samp{VERSION} with the relevant version number, e.g., @samp{23.1}.)
+(Replace @samp{VERSION} with the relevant version number, e.g., @samp{28.1}.)
 
 @item
 Next uncompress and extract the source files.  This requires
@@ -3622,8 +3622,8 @@ For MS-DOS, @pxref{Emacs for MS-DOS}.
 @section Where can I get Emacs for GNUstep?
 @cindex GNUstep, Emacs for
 
-Beginning with version 23.1, Emacs supports GNUstep natively.
-See the file @file{nextstep/INSTALL} in the distribution.
+Emacs supports GNUstep natively.  See the file @file{nextstep/INSTALL}
+in the distribution.
 
 @node Emacs for macOS
 @section Where can I get Emacs for macOS?
@@ -3631,8 +3631,8 @@ See the file @file{nextstep/INSTALL} in the distribution.
 @cindex Macintosh, Emacs for
 @cindex macOS, Emacs for
 
-Beginning with version 22.1, Emacs supports macOS natively.
-See the file @file{nextstep/INSTALL} in the distribution.
+Emacs supports macOS natively.  See the file @file{nextstep/INSTALL}
+in the distribution.
 
 @c ------------------------------------------------------------
 @node Key bindings
