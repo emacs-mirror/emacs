@@ -28,35 +28,35 @@
 ;;; Code:
 
 (defsubst dictionary-connection-p (connection)
-  "Returns non-nil if `connection' is a connection object"
+  "Returns non-nil if CONNECTION is a connection object."
   (get connection 'connection))
 
 (defsubst dictionary-connection-read-point (connection)
-  "Return the read point of the connection object."
+  "Return the read point of the CONNECTION object."
   (get connection 'dictionary-connection-read-point))
 
 (defsubst dictionary-connection-process (connection)
-  "Return the process of the connection object."
+  "Return the process of the CONNECTION object."
   (get connection 'dictionary-connection-process))
 
 (defsubst dictionary-connection-buffer (connection)
-  "Return the buffer of the connection object."
+  "Return the buffer of the CONNECTION object."
   (get connection 'dictionary-connection-buffer))
 
 (defsubst dictionary-connection-set-read-point (connection point)
-  "Set the read-point for `connection' to `point'."
+  "Set the read-point for CONNECTION to POINT."
   (put connection 'dictionary-connection-read-point point))
 
 (defsubst dictionary-connection-set-process (connection process)
-  "Set the process for `connection' to `process'."
+  "Set the process for CONNECTION to PROCESS."
   (put connection 'dictionary-connection-process process))
 
 (defsubst dictionary-connection-set-buffer (connection buffer)
-  "Set the buffer for `connection' to `buffer'."
+  "Set the buffer for CONNECTION to BUFFER."
   (put connection 'dictionary-connection-buffer buffer))
 
 (defun dictionary-connection-create-data (buffer process point)
-  "Create a new connection data based on `buffer', `process', and `point'."
+  "Create a new connection data based on BUFFER, PROCESS, and POINT."
   (let ((connection (make-symbol "connection")))
     (put connection 'connection t)
     (dictionary-connection-set-read-point connection point)
@@ -65,7 +65,7 @@
     connection))
 
 (defun dictionary-connection-open (server port)
-  "Open a connection to `server' and `port'.
+  "Open a connection to SERVER at PORT.
 A data structure identifing the connection is returned"
 
   (let ((process-buffer (generate-new-buffer (format " connection to %s:%s"
@@ -78,7 +78,7 @@ A data structure identifing the connection is returned"
       (dictionary-connection-create-data process-buffer process (point-min)))))
 
 (defun dictionary-connection-status (connection)
-  "Return the status of the connection.
+  "Return the status of the CONNECTION.
 Possible return values are the symbols:
 nil: argument is no connection object
 'none: argument has no connection
@@ -97,7 +97,7 @@ nil: argument is no connection object
             'up))))))
 
 (defun dictionary-connection-close (connection)
-  "Force closing of the connection."
+  "Force closing of the CONNECTION."
   (when (dictionary-connection-p connection)
     (let ((buffer (dictionary-connection-buffer connection))
           (process (dictionary-connection-process connection)))
@@ -110,7 +110,7 @@ nil: argument is no connection object
       (dictionary-connection-set-buffer connection nil))))
 
 (defun dictionary-connection-send (connection data)
-  "Send `data' to the process."
+  "Send DATA to the process stored in CONNECTION."
   (unless (eq (dictionary-connection-status connection) 'up)
     (error "Connection is not up"))
   (with-current-buffer (dictionary-connection-buffer connection)
@@ -119,11 +119,11 @@ nil: argument is no connection object
     (process-send-string (dictionary-connection-process connection) data)))
 
 (defun dictionary-connection-send-crlf (connection data)
-  "Send `data' together with CRLF to the process."
+  "Send DATA together with CRLF to the process found in CONNECTION."
   (dictionary-connection-send connection (concat data "\r\n")))
 
 (defun dictionary-connection-read (connection delimiter)
-  "Read data until `delimiter' is found inside the buffer."
+  "Read data from CONNECTION until DELIMITER is found inside the buffer."
   (unless (eq (dictionary-connection-status connection) 'up)
     (error "Connection is not up"))
   (let ((case-fold-search nil)
@@ -142,11 +142,13 @@ nil: argument is no connection object
 	result))))
 
 (defun dictionary-connection-read-crlf (connection)
-  "Read until a line is completedx with CRLF"
+  "Read from CONNECTION until a line is completed with CRLF."
   (dictionary-connection-read connection "\015?\012"))
 
 (defun dictionary-connection-read-to-point (connection)
-  "Read until a line is consisting of a single point"
+  "Read from CONNECTION until an end of entry is encountered.
+End of entry is a decimal point found on a line by itself.
+"
   (dictionary-connection-read connection "\015?\012[.]\015?\012"))
 
 (provide 'dictionary-connection)
