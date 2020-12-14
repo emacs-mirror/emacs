@@ -928,7 +928,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (let ((reply (dictionary-read-reply-and-split)))
 	(message nil)
 	(if (dictionary-check-reply reply 550)
-	    (error "Dictionary \"%s\" not existing" dictionary)
+	    (error "Dictionary \"%s\" does not exist" dictionary)
 	  (unless (dictionary-check-reply reply 112)
 	    (error "Unknown server answer: %s" (dictionary-reply reply)))
 	  (dictionary-pre-buffer)
