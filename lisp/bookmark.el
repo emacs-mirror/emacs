@@ -26,7 +26,8 @@
 ;; This package is for setting "bookmarks" in files.  A bookmark
 ;; associates a string with a location in a certain file.  Thus, you
 ;; can navigate your way to that location by providing the string.
-;; See the "User Variables" section for customizations.
+;;
+;; Type `M-x customize-group RET boomark RET' for user options.
 
 
 ;;; Code:
