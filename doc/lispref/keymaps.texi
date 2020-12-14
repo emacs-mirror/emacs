@@ -2812,6 +2812,11 @@ the shift modifier:
 @xref{Function Keys}, for more information about how to add modifiers to
 function keys.
 
+If you have functions that change whether a tool bar item is enabled
+or not, this status is not necessarily updated visually immediately.
+To force recalculation of the tool bar, call
+@code{force-mode-line-update} (@pxref{Mode Line Format}).
+
 @node Modifying Menus
 @subsection Modifying Menus
 @cindex menu modification
