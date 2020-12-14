@@ -82,6 +82,16 @@ lacks the terminfo database, you can instruct Emacs to support 24-bit
 true color by setting 'COLORTERM=truecolor' in the environment.  This is
 useful on systems such as FreeBSD which ships only with "etc/termcap".
 
+** On GNU/Linux systems, Emacs now supports loading a Secure Computing
+filter.  To use this, you can pass a --seccomp=FILE command-line
+option to Emacs.  FILE must name a binary file containing an array of
+'struct sock_filter' structures.  Emacs will then install that list of
+Secure Computing filters into its own process early during the startup
+process.  You can use this functionality to put an Emacs process in a
+sandbox to avoid security issues when executing untrusted code.  See
+the manual page for 'seccomp' for details about Secure Computing
+filters.
+
 
 * Changes in Emacs 28.1
 

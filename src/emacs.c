@@ -33,6 +33,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "sysstdio.h"
 
+#include <read-file.h>
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -59,6 +61,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_LIBSYSTEMD
 # include <systemd/sd-daemon.h>
 # include <sys/socket.h>
+#endif
+
+#ifdef HAVE_LINUX_SECCOMP_H
+# include <linux/seccomp.h>
+# include <linux/filter.h>
+# include <sys/prctl.h>
+# include <sys/syscall.h>
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -239,6 +248,11 @@ Initialization options:\n\
     "\
 --dump-file FILE            read dumped state from FILE\n\
 ",
+#endif
+#ifdef HAVE_LINUX_SECCOMP_H
+    "\
+--sandbox=FILE              read Seccomp BPF filter from FILE\n\
+"
 #endif
     "\
 --no-build-details          do not add build details such as time stamps\n\
@@ -937,12 +951,113 @@ load_pdump (int argc, char **argv)
 }
 #endif /* HAVE_PDUMPER */
 
+#ifdef HAVE_LINUX_SECCOMP_H
+
+/* Wrapper function for the `seccomp' system call on GNU/Linux.  This
+   system call usually doesn't have a wrapper function.  See the
+   manual page of `seccomp' for the signature.  */
+
+static int
+emacs_seccomp (unsigned int operation, unsigned int flags, void *args)
+{
+#ifdef SYS_seccomp
+  return syscall (SYS_seccomp, operation, flags, args);
+#else
+  errno = ENOSYS;
+  return -1;
+#endif
+}
+
+/* Attempt to load Secure Computing filters from FILE.  Return false
+   if that doesn't work for some reason.  */
+
+static bool
+load_seccomp (const char *file)
+{
+  bool success = false;
+  struct sock_fprog program = {0, NULL};
+  size_t size;
+  program.filter
+    = (struct sock_filter *) read_file (file, RF_BINARY, &size);
+  if (program.filter == NULL)
+    {
+      emacs_perror ("read_file");
+      goto out;
+    }
+  if (size == 0 || size % sizeof *program.filter != 0)
+    {
+      fprintf (stderr, "seccomp filter %s has invalid size %zu\n",
+               file, size);
+      goto out;
+    }
+  size_t count = size / sizeof *program.filter;
+  eassert (0 < size && 0 < count);
+  if (USHRT_MAX < count)
+    {
+      fprintf (stderr, "seccomp filter %s is too big\n", file);
+      goto out;
+    }
+  program.len = count;
+
+  /* See man page of `seccomp' why this is necessary.  Note that we
+     intentionally don't check the return value: a parent process
+     might have made this call before, in which case it would fail;
+     or, if enabling privilege-restricting mode fails, the `seccomp'
+     syscall will fail anyway.  */
+  prctl (PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+  /* Install the filter.  Make sure that potential other threads can't
+     escape it.  */
+  if (emacs_seccomp (SECCOMP_SET_MODE_FILTER,
+                     SECCOMP_FILTER_FLAG_TSYNC, &program)
+      != 0)
+    {
+      emacs_perror ("seccomp");
+      goto out;
+    }
+  success = true;
+
+ out:
+  free (program.filter);
+  return success;
+}
+
+/* Load Secure Computing filter from file specified with the --seccomp
+   option.  Exit if that fails.  */
+
+static void
+maybe_load_seccomp (int argc, char **argv)
+{
+  int skip_args = 0;
+  char *file = NULL;
+  while (skip_args < argc - 1)
+    {
+      if (argmatch (argv, argc, "-seccomp", "--seccomp", 9, &file,
+                    &skip_args)
+          || argmatch (argv, argc, "--", NULL, 2, NULL, &skip_args))
+        break;
+      ++skip_args;
+    }
+  if (file == NULL)
+    return;
+  if (!load_seccomp (file))
+    fatal ("cannot enable seccomp filter from %s", file);
+}
+
+#endif  /* HAVE_LINUX_SECCOMP_H */
+
 int
 main (int argc, char **argv)
 {
   /* Variable near the bottom of the stack, and aligned appropriately
      for pointers.  */
   void *stack_bottom_variable;
+
+  /* First, check whether we should apply a seccomp filter.  This
+     should come at the very beginning to allow the filter to protect
+     the initialization phase.  */
+#ifdef HAVE_LINUX_SECCOMP_H
+  maybe_load_seccomp (argc, argv);
+#endif
 
   bool no_loadup = false;
   char *junk = 0;
@@ -2137,11 +2252,14 @@ static const struct standard_args standard_args[] =
   { "-color", "--color", 5, 0},
   { "-no-splash", "--no-splash", 3, 0 },
   { "-no-desktop", "--no-desktop", 3, 0 },
-  /* The following two must be just above the file-name args, to get
+  /* The following three must be just above the file-name args, to get
      them out of our way, but without mixing them with file names.  */
   { "-temacs", "--temacs", 1, 1 },
 #ifdef HAVE_PDUMPER
   { "-dump-file", "--dump-file", 1, 1 },
+#endif
+#ifdef HAVE_LINUX_SECCOMP_H
+  { "-seccomp", "--seccomp", 1, 1 },
 #endif
 #ifdef HAVE_NS
   { "-NSAutoLaunch", 0, 5, 1 },
