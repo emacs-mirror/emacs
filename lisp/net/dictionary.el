@@ -742,7 +742,7 @@ of matching words."
                        'callback 'dictionary-restore-state
                        'help-echo (purecopy "Mouse-2 to go backwards in history"))
 	(insert " ")
-        (insert-button "[Search Definition]" :type 'dictionary-button
+        (insert-button "[Search definition]" :type 'dictionary-button
                        'callback 'dictionary-search
                        'help-echo (purecopy "Mouse-2 to look up a new word"))
 	(insert "         ")
@@ -758,11 +758,11 @@ of matching words."
 
 	(insert "\n       ")
 
-        (insert-button "[Select Dictionary]" :type 'dictionary-button
+        (insert-button "[Select dictionary]" :type 'dictionary-button
                        'callback 'dictionary-select-dictionary
                        'help-echo (purecopy "Mouse-2 to select dictionary for future searches"))
 	(insert "         ")
-        (insert-button "[Select Match Strategy]" :type 'dictionary-button
+        (insert-button "[Select match strategy]" :type 'dictionary-button
                        'callback 'dictionary-select-strategy
                        'help-echo (purecopy "Mouse-2 to select matching algorithm"))
 	(insert "\n\n")))
