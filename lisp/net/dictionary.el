@@ -422,17 +422,17 @@ is utf-8"
   (dictionary-pre-buffer)
   (dictionary-post-buffer))
 
-(defmacro dictionary-reply-code (reply)
+(defsubst dictionary-reply-code (reply)
   "Return the reply code stored in `reply'."
-  (list 'get reply ''reply-code))
+  (get reply 'reply-code))
 
-(defmacro dictionary-reply (reply)
+(defsubst dictionary-reply (reply)
   "Return the string reply stored in `reply'."
-  (list 'get reply ''reply))
+  (get reply 'reply))
 
-(defmacro dictionary-reply-list (reply)
+(defsubst dictionary-reply-list (reply)
   "Return the reply list stored in `reply'."
-  (list 'get reply ''reply-list))
+  (get reply 'reply-list))
 
 (defun dictionary-open-server (server)
   "Opens a new connection to this server"
