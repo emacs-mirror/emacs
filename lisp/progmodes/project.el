@@ -1281,7 +1281,7 @@ If nil, `project-switch-project' will only recognize commands
 listed in `project-switch-commands' and signal an error when
 others are invoked.  Otherwise, all keys in `project-prefix-map'
 are legal even if they aren't listed in the dispatch menu."
-  :type 'bool
+  :type 'boolean
   :version "28.1")
 
 (defun project--keymap-prompt ()
