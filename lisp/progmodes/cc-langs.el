@@ -699,6 +699,7 @@ It's assumed to not contain any submatchers."
   ;; The same thing regarding Unicode identifiers applies here as to
   ;; `c-symbol-key'.
   t (concat "[" (c-lang-const c-nonsymbol-chars) "]"))
+(c-lang-defvar c-nonsymbol-key (c-lang-const c-nonsymbol-key))
 
 (c-lang-defconst c-identifier-ops
   "The operators that make up fully qualified identifiers.  nil in
