@@ -258,6 +258,10 @@ buffer to be able to move point to the inaccessible portion.
 'goto-line-relative' is bound to 'C-x n g'.
 
 +++
+** When called interactively, 'goto-char' now offers the number at
+point as default.
+
++++
 ** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'
 shows equivalent key bindings for all commands that have them.
 
