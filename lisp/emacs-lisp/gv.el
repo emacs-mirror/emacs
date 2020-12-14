@@ -504,6 +504,11 @@ The return value is the last VAL in the list.
              (funcall do `(funcall (car ,gv))
                       (lambda (v) `(funcall (cdr ,gv) ,v))))))))
 
+(put 'error 'gv-expander
+     (lambda (do &rest args)
+       (funcall do `(error . ,args)
+                (lambda (v) `(progn ,v (error . ,args))))))
+
 (defmacro gv-synthetic-place (getter setter)
   "Special place described by its setter and getter.
 GETTER and SETTER (typically obtained via `gv-letplace') get and
