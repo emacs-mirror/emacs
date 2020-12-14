@@ -85,31 +85,29 @@ nil: argument is no connection object
 'up: connection is open and buffer is existing
 'down: connection is closed
 'alone: connection is not associated with a buffer"
-  (if (dictionary-connection-p connection)
-      (let ((process (dictionary-connection-process connection))
-	    (buffer (dictionary-connection-buffer connection)))
-	(if (not process)
-	    'none
-	  (if (not (buffer-live-p buffer))
-	      'alone
-	    (if (not (eq (process-status process) 'open))
-		'down
-	      'up))))
-    nil))
+  (when (dictionary-connection-p connection)
+    (let ((process (dictionary-connection-process connection))
+          (buffer (dictionary-connection-buffer connection)))
+      (if (not process)
+          'none
+        (if (not (buffer-live-p buffer))
+            'alone
+          (if (not (eq (process-status process) 'open))
+              'down
+            'up))))))
 
 (defun dictionary-connection-close (connection)
   "Force closing of the connection."
-  (if (dictionary-connection-p connection)
-      (progn
-	(let ((buffer (dictionary-connection-buffer connection))
-	      (process (dictionary-connection-process connection)))
-	  (if process
-	      (delete-process process))
-	  (if buffer
-	      (kill-buffer buffer))
+  (when (dictionary-connection-p connection)
+    (let ((buffer (dictionary-connection-buffer connection))
+          (process (dictionary-connection-process connection)))
+      (if process
+          (delete-process process))
+      (if buffer
+          (kill-buffer buffer))
 
-	  (dictionary-connection-set-process connection nil)
-	  (dictionary-connection-set-buffer connection nil)))))
+      (dictionary-connection-set-process connection nil)
+      (dictionary-connection-set-buffer connection nil))))
 
 (defun dictionary-connection-send (connection data)
   "Send `data' to the process."
