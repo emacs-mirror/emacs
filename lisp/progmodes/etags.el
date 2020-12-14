@@ -2251,6 +2251,7 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
           ;; backing on disk.
           (write-region current-end (point-max) etags--project-tags-file t))
         (set-visited-file-modtime)
+        (set-buffer-modified-p nil)
         ;; FIXME: Is there a better way to do this?
         ;; Completion table is the only remaining place where the
         ;; update is not incremental.
