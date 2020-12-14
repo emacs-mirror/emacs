@@ -1438,6 +1438,12 @@ that makes it a valid button.
 ** Miscellaneous
 
 +++
+
+*** New variable 'current-minibuffer-command'.
+This is like 'this-command', but is bound recursively when entering
+the minibuffer.
+
++++
 *** New function 'object-intervals'.
 This function returns a copy of the list of intervals (i.e., text
 properties) in the object in question (which must either be a string

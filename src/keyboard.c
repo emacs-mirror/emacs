@@ -11830,6 +11830,13 @@ will be in `last-command' during the following command.  */);
 	       doc: /* This is like `this-command', except that commands should never modify it.  */);
   Vreal_this_command = Qnil;
 
+  DEFSYM (Qcurrent_minibuffer_command, "current-minibuffer-command");
+  DEFVAR_LISP ("current-minibuffer-command", Vcurrent_minibuffer_command,
+	       doc: /* This is like `this-command', but bound recursively.
+Code running from (for instance) a minibuffer hook can check this variable
+to see what command invoked the current minibuffer.  */);
+  Vcurrent_minibuffer_command = Qnil;
+
   DEFVAR_LISP ("this-command-keys-shift-translated",
 	       Vthis_command_keys_shift_translated,
 	       doc: /* Non-nil if the key sequence activating this command was shift-translated.
