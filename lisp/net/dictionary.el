@@ -1297,11 +1297,9 @@ overwrite that mode for the current buffer.
   (let ((on (if arg
                 (> (prefix-numeric-value arg) 0)
               (not dictionary-tooltip-mode))))
-    (make-local-variable 'dictionary-tooltip-mode)
-    (setq dictionary-tooltip-mode on)
-    (make-local-variable 'track-mouse)
+    (setq-local dictionary-tooltip-mode on)
+    (setq-local track-mouse on)
     (make-local-variable 'dictionary-tooltip-mouse-event)
-    (setq track-mouse on)
     (dictionary-switch-tooltip-mode 1)
     (if on
         (local-set-key [mouse-movement] 'dictionary-tooltip-track-mouse)
