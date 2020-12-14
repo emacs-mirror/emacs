@@ -1770,6 +1770,15 @@ using 'M-x customize-themes' or 'load-theme' from your init file.
 Consult the Modus Themes Info manual for more information on the user
 options they provide.
 
+** Dictionary mode
+
+This is a mode for searching a RFC 2229 dictionary
+server. 'dictionary' opens a buffer for starting
+operations. 'dictionary-search' performs a lookup for a word. It also
+supports a 'dictionary-tooltip-mode' which performs a lookup of the
+word under the mouse in 'dictionary-tooltip-dictionary' (which must be
+customized first).
+
 
 * Incompatible Editing Changes in Emacs 28.1
 
