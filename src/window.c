@@ -5686,27 +5686,20 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	 we would end up at the start of the line ending at ZV.  */
       if (dy <= 0)
 	{
-	  goal_y = it.current_y - dy;
+	  goal_y = it.current_y + dy;
 	  move_it_vertically_backward (&it, -dy);
-	  /* Extra precision for people who want us to preserve the
-	     screen position of the cursor: effectively round DY to the
-	     nearest screen line, instead of rounding to zero; the latter
-	     causes point to move by one line after C-v followed by M-v,
-	     if the buffer has lines of different height.  */
-	  if (!NILP (Vscroll_preserve_screen_position)
-	      && it.current_y - goal_y > 0.5 * flh)
+	  /* move_it_vertically_backward above always overshoots if DY
+	     cannot be reached exactly, i.e. if it falls in the middle
+	     of a screen line.  But if that screen line is large
+	     (e.g., a tall image), it might make more sense to
+	     undershoot instead.  */
+	  if (goal_y - it.current_y > 0.5 * flh)
 	    {
 	      it_data = bidi_shelve_cache ();
-	      struct it it2 = it;
-
-	      move_it_by_lines (&it, -1);
-	      if (it.current_y < goal_y - 0.5 * flh)
-		{
-		  it = it2;
-		  bidi_unshelve_cache (it_data, false);
-		}
-	      else
-		bidi_unshelve_cache (it_data, true);
+	      struct it it1 = it;
+	      if (line_bottom_y (&it1) - goal_y < goal_y - it.current_y)
+		move_it_by_lines (&it, 1);
+	      bidi_unshelve_cache (it_data, true);
 	    }
 	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
@@ -5718,8 +5711,11 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	{
 	  goal_y = it.current_y + dy;
 	  move_it_to (&it, ZV, -1, goal_y, -1, MOVE_TO_POS | MOVE_TO_Y);
-	  /* See the comment above, for the reasons of this
-	     extra-precision.  */
+	  /* Extra precision for people who want us to preserve the
+	     screen position of the cursor: effectively round DY to the
+	     nearest screen line, instead of rounding to zero; the latter
+	     causes point to move by one line after C-v followed by M-v,
+	     if the buffer has lines of different height.  */
 	  if (!NILP (Vscroll_preserve_screen_position)
 	      && goal_y - it.current_y  > 0.5 * flh)
 	    {

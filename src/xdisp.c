@@ -10301,11 +10301,22 @@ move_it_vertically_backward (struct it *it, int dy)
 	    move_it_vertically (it, target_y - it->current_y);
 	  else
 	    {
+	      struct text_pos last_pos;
+	      int last_y, last_vpos;
 	      do
 		{
+		  last_pos = it->current.pos;
+		  last_y = it->current_y;
+		  last_vpos = it->vpos;
 		  move_it_by_lines (it, 1);
 		}
-	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
+	      while (target_y > it->current_y && IT_CHARPOS (*it) < ZV);
+	      if (it->current_y > target_y)
+		{
+		  reseat (it, last_pos, true);
+		  it->current_y = last_y;
+		  it->vpos = last_vpos;
+		}
 	    }
 	}
     }
