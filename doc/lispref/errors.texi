@@ -135,8 +135,8 @@ problems in accessing a remote file.  @xref{Remote Files,,, emacs, The
 GNU Emacs Manual}.  Often, this error appears when timers, process
 filters, process sentinels or special events in general try to access
 a remote file, and collide with another remote file operation.  In
-general it is a good idea to write a bug report.  @xref{Reporting
-Bugs,,, emacs, The GNU Emacs Manual}.
+general it is a good idea to write a bug report.
+@xref{Bugs,,, emacs, The GNU Emacs Manual}.
 
 @c net/ange-ftp.el
 @item ftp-error
