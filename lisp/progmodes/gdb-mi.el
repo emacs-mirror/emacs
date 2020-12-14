@@ -2891,7 +2891,7 @@ If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
        (,custom-defun)
        (gdb-update-buffer-name)
        ,@(when (not nopreserve)
-          '((set-window-start window start)
+          '((set-window-start window start t)
             (set-window-point window p))))))
 
 (defmacro def-gdb-trigger-and-handler (trigger-name gdb-command
