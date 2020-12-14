@@ -1079,7 +1079,7 @@ load_seccomp (const char *file)
                file);
       goto out;
     }
-  if (emacs_close (fd) < 0)
+  if (emacs_close (fd) != 0)
     emacs_perror ("close");  /* not a fatal error */
   fd = -1;
   program.len = count;
