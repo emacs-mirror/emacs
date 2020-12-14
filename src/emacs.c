@@ -967,6 +967,43 @@ emacs_seccomp (unsigned int operation, unsigned int flags, void *args)
 #endif
 }
 
+/* Read SIZE bytes into BUFFER.  Return the number of bytes read, or
+   -1 if reading failed altogether.  */
+
+static ptrdiff_t
+read_full (int fd, void *buffer, ptrdiff_t size)
+{
+  enum
+  {
+  /* See MAX_RW_COUNT in sysdep.c.  */
+#ifdef MAX_RW_COUNT
+    max_size = MAX_RW_COUNT
+#else
+    max_size = INT_MAX >> 18 << 18
+#endif
+  };
+  if (PTRDIFF_MAX < size || max_size < size)
+    {
+      errno = EFBIG;
+      return -1;
+    }
+  char *ptr = buffer;
+  ptrdiff_t read = 0;
+  while (size != 0)
+    {
+      ptrdiff_t n = emacs_read (fd, ptr, size);
+      if (n < 0)
+        return -1;
+      if (n == 0)
+        break;  /* Avoid infinite loop on encountering EOF.  */
+      eassert (n <= size);
+      size -= n;
+      ptr += n;
+      read += n;
+    }
+  return read;
+}
+
 /* Attempt to load Secure Computing filters from FILE.  Return false
    if that doesn't work for some reason.  */
 
@@ -993,18 +1030,9 @@ load_seccomp (const char *file)
       fprintf (stderr, "seccomp file %s is not regular\n", file);
       goto out;
     }
-  enum
-  {
-  /* See MAX_RW_COUNT in sysdep.c.  */
-#ifdef MAX_RW_COUNT
-    max_read_size = MAX_RW_COUNT
-#else
-    max_read_size = INT_MAX >> 18 << 18
-#endif
-  };
   struct sock_fprog program;
   if (stat.st_size <= 0 || SIZE_MAX <= stat.st_size
-      || PTRDIFF_MAX <= stat.st_size || max_read_size < stat.st_size
+      || PTRDIFF_MAX <= stat.st_size
       || stat.st_size % sizeof *program.filter != 0)
     {
       fprintf (stderr, "seccomp filter %s has invalid size %ld\n",
@@ -1026,7 +1054,7 @@ load_seccomp (const char *file)
       emacs_perror ("malloc");
       goto out;
     }
-  ptrdiff_t read = emacs_read (fd, buffer, size + 1);
+  ptrdiff_t read = read_full (fd, buffer, size + 1);
   if (read < 0)
     {
       emacs_perror ("read");
