@@ -3390,7 +3390,7 @@ problem (@pxref{Reporting bugs}).
 * Packages that do not come with Emacs::
 * Spell-checkers::
 * Current GNU distributions::
-* Difference between Emacs and XEmacs::
+* What was XEmacs?::
 * Emacs for minimalists::
 * Emacs for MS-DOS::
 * Emacs for MS-Windows::
@@ -3526,35 +3526,21 @@ A list of sites mirroring @samp{ftp.gnu.org} can be found at
 
 @uref{https://www.gnu.org/prep/ftp}
 
-@node Difference between Emacs and XEmacs
-@section What is the difference between Emacs and XEmacs (formerly Lucid Emacs)?
+@node What was XEmacs?
+@section What was XEmacs?
 @cindex XEmacs
-@cindex Difference Emacs and XEmacs
-@cindex Lucid Emacs
-@cindex Epoch
 
 XEmacs was a branch version of Emacs that is no longer actively
-developed.  XEmacs was first called Lucid Emacs, and was initially
-derived from a prerelease version of Emacs 19.  In this FAQ, we use
-the name ``Emacs'' only for the official version.
+developed.  XEmacs last released a new version on January 30, 2009,
+and it lacks many important features that exist in Emacs.  Since its
+development has stopped, we do not expect to see any new releases.
 
-XEmacs last released a new version on January 30, 2009, and it lacks
-many important features that exists in Emacs.  In the past, it was not
-uncommon for Emacs packages to include code for compatibility with
-XEmacs.  Nowadays, although some packages still maintain such
-compatibility code, several of the more popular built-in and third
-party packages have either stopped supporting XEmacs or were developed
+In the past, it was not uncommon for Emacs packages to include code
+for compatibility with XEmacs.  Nowadays, most built-in and third party
+packages have either stopped supporting XEmacs or were developed
 exclusively for Emacs.
 
-Some XEmacs code has been contributed to Emacs, and we would like to
-use other parts, but the earlier XEmacs maintainers did not always
-keep track of the authors of contributed code, which makes it
-impossible for the FSF to get copyright papers signed for that code.
-(The FSF requires these papers for all the code included in the Emacs
-release, aside from generic C support packages that retain their
-separate identity and are not integrated into the code of Emacs
-proper.)
-
+XEmacs was initially derived from a prerelease version of Emacs 19.
 If you want to talk about these two versions and distinguish them,
 please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
 with ``GNU Emacs'' would be misleading, since XEmacs too has its
