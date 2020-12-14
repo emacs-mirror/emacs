@@ -1745,10 +1745,15 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
      ;; github#259: With `upcase-word' or somesuch,
      ;; `before-change-functions' always records the whole word's
      ;; `beg' and `end'.  Not only is this longer than needed but
-     ;; conflicts with the args received here.  Detect this using
-     ;; markers recorded earlier and `pre-change-len', then fix it.
+     ;; conflicts with the args received here, which encompass just
+     ;; the parts of the word that changed (if any).  We detect this
+     ;; using markers recorded earlier and at looking
+     ;; `pre-change-len'.  We also ensure that the before bounds
+     ;; indeed belong to the same line (if we don't, we get could get
+     ;; #367).
      (when (and (= b-end b-end-marker) (= b-beg b-beg-marker)
-                (not (zerop pre-change-length)))
+                (not (zerop pre-change-length))
+                (= (plist-get lsp-beg :line) (plist-get lsp-end :line)))
        (setq lsp-end (eglot--pos-to-lsp-position end)
              lsp-beg (eglot--pos-to-lsp-position beg)))
      (setcar eglot--recent-changes
