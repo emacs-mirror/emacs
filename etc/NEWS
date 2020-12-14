@@ -1553,12 +1553,6 @@ both modes are on).
 This works like 'report-emacs-bug', but is more geared towards sending
 patches to the Emacs issue tracker.
 
----
-*** 'icomplete-show-matches-on-no-input' behavior change.
-Previously, choosing a different completion with commands like 'C-.'
-and then hitting  'RET' would choose the default completion.  Doing
-this will now choose the completion under point.
-
 +++
 *** The user can now customize how "default" values are prompted for.
 The new utility function 'format-prompt' has been added which uses the
@@ -1609,7 +1603,9 @@ horizontally and vertically, respectively.
 *** Change in meaning of 'icomplete-show-matches-on-no-input'.
 Previously, choosing a different completion with commands like 'C-.'
 and then hitting 'RET' would choose the default completion.  Doing this
-will now choose the completion under point instead.
+will now choose the completion under point instead.  Also when this option
+is nil, completions are not shown when the minibuffer reads a file name
+with initial input as the default directory.
 
 ---
 *** The width of the buffer-name column in 'list-buffers' is now dynamic.
