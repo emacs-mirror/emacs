@@ -1729,8 +1729,8 @@ THINGS are either registrations or unregisterations (sic)."
     ;; (github#259)
     (push `(,(eglot--pos-to-lsp-position beg)
             ,(eglot--pos-to-lsp-position end)
-            (,beg . ,(copy-marker beg))
-            (,end . ,(copy-marker end)))
+            (,beg . ,(copy-marker beg nil))
+            (,end . ,(copy-marker end t)))
           eglot--recent-changes)))
 
 (defun eglot--after-change (beg end pre-change-length)
@@ -1742,23 +1742,29 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
     (`(,lsp-beg ,lsp-end
                 (,b-beg . ,b-beg-marker)
                 (,b-end . ,b-end-marker))
-     ;; github#259: With `upcase-word' or somesuch,
+     ;; github#259 and github#367: With `capitalize-word' or somesuch,
      ;; `before-change-functions' always records the whole word's
-     ;; `beg' and `end'.  Not only is this longer than needed but
-     ;; conflicts with the args received here, which encompass just
-     ;; the parts of the word that changed (if any).  We detect this
-     ;; using markers recorded earlier and at looking
-     ;; `pre-change-len'.  We also ensure that the before bounds
-     ;; indeed belong to the same line (if we don't, we get could get
-     ;; #367).
-     (when (and (= b-end b-end-marker) (= b-beg b-beg-marker)
-                (not (zerop pre-change-length))
-                (= (plist-get lsp-beg :line) (plist-get lsp-end :line)))
-       (setq lsp-end (eglot--pos-to-lsp-position end)
-             lsp-beg (eglot--pos-to-lsp-position beg)))
-     (setcar eglot--recent-changes
-             `(,lsp-beg ,lsp-end ,pre-change-length
-                        ,(buffer-substring-no-properties beg end))))
+     ;; `b-beg' and `b-end'.  Similarly, when coalescing two lines
+     ;; into one, `fill-paragraph' they mark the end of the first line
+     ;; up to the end of the second line.  In both situations, args
+     ;; received here contradict that information: `beg' and `end'
+     ;; will differ by 1 and will likely only encompass the letter
+     ;; that was capitalized or, in the sentence-joining situation,
+     ;; the replacement of the newline with a space.  That's we keep
+     ;; markers _and_ positions so we're able to detect and correct
+     ;; this.  We ignore `beg', `len' and `pre-change-len' and send
+     ;; "fuller" information about the region from the markers.  I've
+     ;; also experimented with doing this unconditionally but it seems
+     ;; to break when newlines are added.
+     (if (and (= b-end b-end-marker) (= b-beg b-beg-marker)
+              (or (/= beg b-beg) (/= end b-end)))
+         (setcar eglot--recent-changes
+                 `(,lsp-beg ,lsp-end ,(- b-end-marker b-beg-marker)
+                            ,(buffer-substring-no-properties b-beg-marker
+                                                             b-end-marker)))
+       (setcar eglot--recent-changes
+                 `(,lsp-beg ,lsp-end ,pre-change-length
+                            ,(buffer-substring-no-properties beg end)))))
     (_ (setf eglot--recent-changes :emacs-messup)))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
   (let ((buf (current-buffer)))
