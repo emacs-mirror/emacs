@@ -164,7 +164,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-fwprop
                         comp-call-optim
                         comp-ipa-pure
-                        comp-cond-cstr
+                        comp-add-cstrs
                         comp-fwprop
                         comp-dead-code
                         comp-tco
@@ -1884,24 +1884,6 @@ The assume is emitted at the beginning of the block BB."
 	      (comp-block-insns bb)))
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
-(defun comp-cond-cstr-target-mvar (mvar exit-insn bb)
-  "Given MVAR search in BB what we'll use as assume target.
-Keep on searching till EXIT-INSN is encountered.
-Return the corresponding rhs mvar."
-  (cl-flet ((targetp (x)
-              ;; Ret t if x is an mvar and target the correct slot number.
-              (and (comp-mvar-p x)
-                   (eql (comp-mvar-slot mvar) (comp-mvar-slot x)))))
-    (cl-loop
-     with res = nil
-     for insn in (comp-block-insns bb)
-     when (eq insn exit-insn)
-     do (cl-return (and (comp-mvar-p res) res))
-     do (pcase insn
-          (`(,(pred comp-assign-op-p) ,(pred targetp) ,rhs)
-           (setf res rhs)))
-     finally (cl-assert nil))))
-
 (defun comp-add-new-block-beetween (bb-symbol bb-a bb-b)
   "Create a new basic-block named BB-SYMBOL and add it between BB-A and BB-B."
   (cl-loop
@@ -1924,7 +1906,25 @@ Return the corresponding rhs mvar."
    (cl-return (puthash bb-symbol new-bb (comp-func-blocks comp-func)))
    finally (cl-assert nil)))
 
-(defun comp-cond-cstr-target-block (curr-bb target-bb-sym)
+(defun comp-add-cond-cstrs-target-mvar (mvar exit-insn bb)
+  "Given MVAR search in BB what we'll use as assume target.
+Keep on searching till EXIT-INSN is encountered.
+Return the corresponding rhs mvar."
+  (cl-flet ((targetp (x)
+              ;; Ret t if x is an mvar and target the correct slot number.
+              (and (comp-mvar-p x)
+                   (eql (comp-mvar-slot mvar) (comp-mvar-slot x)))))
+    (cl-loop
+     with res = nil
+     for insn in (comp-block-insns bb)
+     when (eq insn exit-insn)
+     do (cl-return (and (comp-mvar-p res) res))
+     do (pcase insn
+          (`(,(pred comp-assign-op-p) ,(pred targetp) ,rhs)
+           (setf res rhs)))
+     finally (cl-assert nil))))
+
+(defun comp-add-cond-cstrs-target-block (curr-bb target-bb-sym)
   "Return the appropriate basic block to add constraint assumptions into.
 CURR-BB is the current basic block.
 TARGET-BB-SYM is the symbol name of the target block."
@@ -1938,8 +1938,8 @@ TARGET-BB-SYM is the symbol name of the target block."
                                                    "_cstrs"))
                                    curr-bb target-bb))))
 
-(defun comp-cond-cstr-func ()
-  "`comp-cond-cstr' worker function for each selected function."
+(defun comp-add-cond-cstrs ()
+  "`comp-add-cstrs' worker function for each selected function."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do
@@ -1954,11 +1954,13 @@ TARGET-BB-SYM is the symbol name of the target block."
 	 (comment ,_comment-str)
 	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
-        with target-mvar1 = (comp-cond-cstr-target-mvar op1 (car insns-seq) b)
-        with target-mvar2 = (comp-cond-cstr-target-mvar op2 (car insns-seq) b)
+        with target-mvar1 = (comp-add-cond-cstrs-target-mvar op1 (car insns-seq)
+                                                             b)
+        with target-mvar2 = (comp-add-cond-cstrs-target-mvar op2 (car insns-seq)
+                                                             b)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
-        for assume-target = (comp-cond-cstr-target-block b branch-target)
+        for assume-target = (comp-add-cond-cstrs-target-block b branch-target)
         for negated in '(nil t)
         do (setf (car branch-target-cell) (comp-block-name assume-target))
         when target-mvar1
@@ -1967,7 +1969,7 @@ TARGET-BB-SYM is the symbol name of the target block."
           do (comp-emit-assume target-mvar2 op1 assume-target negated)
         finally (cl-return-from in-the-basic-block)))))))
 
-(defun comp-cond-cstr (_)
+(defun comp-add-cstrs (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
 This is introducing and placing 'assume' insns in use by fwprop
 to propagate conditional branch test information on target basic
@@ -1980,7 +1982,7 @@ blocks."
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (comp-cond-cstr-func)
+                 (comp-add-cond-cstrs)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
