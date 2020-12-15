@@ -1868,7 +1868,19 @@ into the C code forwarding the compilation unit."
     (comp-add-func-to-ctxt (comp-limplify-top-level t))))
 
 
-;;; conditional branches rewrite pass specific code.
+;;; add-cstrs pass specific code.
+
+;; This pass is responsible for adding constraints, these are
+;; generated from:
+;;
+;;  - Conditional branches: each branch taken or non taken can be used
+;;    in the CFG to infer infomations on the tested variables.
+;;
+;;  - Function calls: function calls to function assumed to be not
+;;    redefinable can be used to add constrains on the function
+;;    arguments.  Ex: if we execute successfully (= x y) we know that
+;;    afterwards both x and y must satisfy the (or number marker)
+;;    type specifier.
 
 (defun comp-emit-assume (target rhs bb negated)
   "Emit an assume for mvar TARGET being RHS.
@@ -1907,10 +1919,10 @@ The assume is emitted at the beginning of the block BB."
    (cl-return (puthash bb-symbol new-bb (comp-func-blocks comp-func)))
    finally (cl-assert nil)))
 
-(defun comp-add-cond-cstrs-target-mvar (mvar exit-insn bb)
-  "Given MVAR search in BB what we'll use as assume target.
-Keep on searching till EXIT-INSN is encountered.
-Return the corresponding rhs mvar."
+;; Cheap substitute to a copy propagation pass...
+(defun comp-cond-cstrs-target-mvar (mvar exit-insn bb)
+  "Given MVAR search in BB the original mvar MVAR got assigned from.
+Keep on searching till EXIT-INSN is encountered."
   (cl-flet ((targetp (x)
               ;; Ret t if x is an mvar and target the correct slot number.
               (and (comp-mvar-p x)
@@ -1955,10 +1967,8 @@ TARGET-BB-SYM is the symbol name of the target block."
 	 (comment ,_comment-str)
 	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
-        with target-mvar1 = (comp-add-cond-cstrs-target-mvar op1 (car insns-seq)
-                                                             b)
-        with target-mvar2 = (comp-add-cond-cstrs-target-mvar op2 (car insns-seq)
-                                                             b)
+        with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
+        with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for assume-target = (comp-add-cond-cstrs-target-block b branch-target)
@@ -1969,6 +1979,57 @@ TARGET-BB-SYM is the symbol name of the target block."
         when target-mvar2
           do (comp-emit-assume target-mvar2 op1 assume-target negated)
         finally (cl-return-from in-the-basic-block)))))))
+
+(defun comp-emit-call-cstr (mvar call-cell cstr)
+  "Emit a constraint CSTR for MVAR after CALL-CELL."
+  (let ((next-cell (cdr call-cell))
+        (new-cell `((assume ,(make-comp-mvar :slot (comp-mvar-slot mvar))
+                            (and ,mvar ,cstr)))))
+    (setf (cdr call-cell) new-cell
+          (cdr new-cell) next-cell
+          (comp-func-ssa-status comp-func) 'dirty)))
+
+(defun comp-lambda-list-gen (lambda-list)
+  "Return a generator to iterate over LAMBDA-LIST."
+  (lambda ()
+    (cl-case (car lambda-list)
+      (&optional
+       (setf lambda-list (cdr lambda-list))
+       (prog1
+           (car lambda-list)
+         (setf lambda-list (cdr lambda-list))))
+      (&rest
+       (cadr lambda-list))
+      (t
+       (prog1
+           (car lambda-list)
+         (setf lambda-list (cdr lambda-list)))))))
+
+(defun comp-add-call-cstr ()
+  "Add args assumptions for each function of which the type specifier is known."
+  (cl-loop
+   for bb being each hash-value of (comp-func-blocks comp-func)
+   do
+   (comp-loop-insn-in-block bb
+     (when-let ((match
+                 (pcase insn
+                   (`(set ,lhs (,(pred comp-call-op-p) ,f . ,args))
+                    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+                      (cl-values cstr-f lhs args)))
+                   (`(,(pred comp-call-op-p) ,f . ,args)
+                    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+                      (cl-values cstr-f nil args))))))
+       (cl-multiple-value-bind (cstr-f lhs args) match
+         (cl-loop
+          for arg in args
+          for gen = (comp-lambda-list-gen (comp-cstr-f-args cstr-f))
+          for cstr = (funcall gen)
+          for target = (comp-cond-cstrs-target-mvar arg insn bb)
+          when (and target
+                    (or (null lhs)
+                        (not (eql (comp-mvar-slot lhs)
+                                  (comp-mvar-slot target)))))
+          do (comp-emit-call-cstr target insn-cell cstr)))))))
 
 (defun comp-add-cstrs (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
@@ -1984,6 +2045,7 @@ blocks."
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
                  (comp-add-cond-cstrs)
+                 (comp-add-call-cstr)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 

@@ -872,14 +872,14 @@ Return a list of results."
        (if (= x 3)
            'foo
          x))
-     (or (member foo) (integer * 2) (integer 4 *)))
+     (or (member foo) marker number))
 
     ;; 13
     ((defun comp-tests-ret-type-spec-8-4-f (x y)
        (if (= x y)
            x
          'foo))
-     t)
+     (or (member foo) marker number))
 
     ;; 14
     ((defun comp-tests-ret-type-spec-9-1-f (x)
