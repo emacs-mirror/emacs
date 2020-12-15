@@ -7260,6 +7260,7 @@ __DATA__	Ends program source.
 __FILE__	Current (source) filename.
 __LINE__	Current line in current source.
 __PACKAGE__	Current package.
+__SUB__	Current sub.
 ARGV	Default multi-file input filehandle.  <ARGV> is a synonym for <>.
 ARGVOUT	Output filehandle with -i flag.
 BEGIN { ... }	Immediately executed (during compilation) piece of code.
@@ -7525,14 +7526,17 @@ use PACKAGE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
 prototype \\&SUB	Returns prototype of the function given a reference.
 =head1		Top-level heading.
 =head2		Second-level heading.
-=head3		Third-level heading (is there such?).
+=head3		Third-level heading.
+=head4		Fourth-level heading.
 =over [ NUMBER ]	Start list.
 =item [ TITLE ]		Start new item in the list.
 =back		End list.
 =cut		Switch from POD to Perl.
 =pod		Switch from Perl to POD.
-=begin		Switch from Perl6 to POD.
-=end		Switch from POD to Perl6.
+=begin formatname	Start directly formatted region.
+=end formatname	End directly formatted region.
+=for formatname text	Paragraph in special format.
+=encoding encodingname	Encoding of the document.
 ")
 
 (defun cperl-switch-to-doc-buffer (&optional interactive)
