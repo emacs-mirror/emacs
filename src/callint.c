@@ -286,7 +286,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
   /* Bound recursively so that code can check the current command from
      code running from minibuffer hooks (and the like), without being
      overwritten by subsequent minibuffer calls.  */
-  specbind (Qcurrent_minibuffer_command, Vreal_this_command);
+  specbind (Qcurrent_minibuffer_command, Vthis_command);
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
