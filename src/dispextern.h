@@ -3040,6 +3040,10 @@ struct image
 # if !defined USE_CAIRO && defined HAVE_XRENDER
   /* Picture versions of pixmap and mask for compositing.  */
   Picture picture, mask_picture;
+
+  /* We need to store the original image dimensions in case we have to
+     call XGetImage.  */
+  int original_width, original_height;
 # endif
 #endif	/* HAVE_X_WINDOWS */
 #ifdef HAVE_NTGUI
