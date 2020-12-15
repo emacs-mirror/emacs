@@ -499,11 +499,14 @@ preferably use the `c-mode-menu' language constant directly."
   (save-excursion
     (when (< beg end)
       (goto-char beg)
+      (let ((lim (c-determine-limit 1000))
+	    (lim+ (c-determine-+ve-limit 1000 end)))
       (when
 	  (and (not (bobp))
-	       (progn (c-backward-syntactic-ws) (eq (point) beg))
+	       (progn (c-backward-syntactic-ws lim) (eq (point) beg))
 	       (/= (skip-chars-backward c-symbol-chars (1- (point))) 0)
-	       (progn (goto-char beg) (c-forward-syntactic-ws) (<= (point) end))
+	       (progn (goto-char beg) (c-forward-syntactic-ws lim+)
+		      (<= (point) end))
 	       (> (point) beg)
 	       (goto-char end)
 	       (looking-at c-symbol-char-key))
@@ -514,14 +517,14 @@ preferably use the `c-mode-menu' language constant directly."
       (goto-char end)
       (when
 	  (and (not (eobp))
-	       (progn (c-forward-syntactic-ws) (eq (point) end))
+	       (progn (c-forward-syntactic-ws lim+) (eq (point) end))
 	       (looking-at c-symbol-char-key)
-	       (progn (c-backward-syntactic-ws) (>= (point) beg))
+	       (progn (c-backward-syntactic-ws lim) (>= (point) beg))
 	       (< (point) end)
 	       (/= (skip-chars-backward c-symbol-chars (1- (point))) 0))
 	(goto-char (1+ end))
 	(c-end-of-current-token)
-	(c-unfind-type (buffer-substring-no-properties end (point)))))))
+	(c-unfind-type (buffer-substring-no-properties end (point))))))))
 
 ;; c-maybe-stale-found-type records a place near the region being
 ;; changed where an element of `found-types' might become stale.  It
@@ -1996,7 +1999,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		;; We search for appropriate c-type properties "near"
 		;; the change.  First, find an appropriate boundary
 		;; for this property search.
-		(let (lim
+		(let (lim lim-2
 		      type type-pos
 		      marked-id term-pos
 		      (end1
@@ -2007,8 +2010,11 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		  (when (>= end1 beg) ; Don't hassle about changes entirely in
 					; comments.
 		    ;; Find a limit for the search for a `c-type' property
+		    ;; Point is currently undefined.  A `goto-char' somewhere is needed.  (2020-12-06).
+		    (setq lim-2 (c-determine-limit 1000 (point) ; that is wrong.  FIXME!!!  (2020-12-06)
+						   ))
 		    (while
-			(and (/= (skip-chars-backward "^;{}") 0)
+			(and (/= (skip-chars-backward "^;{}" lim-2) 0)
 			     (> (point) (point-min))
 			     (memq (c-get-char-property (1- (point)) 'face)
 				   '(font-lock-comment-face font-lock-string-face))))
@@ -2032,7 +2038,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 				(buffer-substring-no-properties (point) type-pos)))
 
 			(goto-char end1)
-			(skip-chars-forward "^;{}") ; FIXME!!!  loop for
+			(setq lim-2 (c-determine-+ve-limit 1000))
+			(skip-chars-forward "^;{}" lim-2) ; FIXME!!!  loop for
 					; comment, maybe
 			(setq lim (point))
 			(setq term-pos
@@ -2270,9 +2277,11 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; preserved.
   (goto-char pos)
   (let ((lit-start (c-literal-start))
+	(lim (c-determine-limit 1000))
 	enclosing-attribute pos1)
     (unless lit-start
-      (c-backward-syntactic-ws)
+      (c-backward-syntactic-ws
+       lim)
       (when (setq enclosing-attribute (c-enclosing-c++-attribute))
 	(goto-char (car enclosing-attribute))) ; Only happens in C++ Mode.
       (when (setq pos1 (c-on-identifier))
@@ -2296,14 +2305,14 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 			   (setq pos1 (c-on-identifier))
 			   (goto-char pos1)
 			   (progn
-			     (c-backward-syntactic-ws)
+			     (c-backward-syntactic-ws lim)
 			     (eq (char-before) ?\())
 			   (c-fl-decl-end (1- (point))))
-			(c-backward-syntactic-ws)
+			(c-backward-syntactic-ws lim)
 			(point))))
 		 (and (progn (c-forward-syntactic-ws lim)
 			     (not (eobp)))
-		      (c-backward-syntactic-ws)
+		      (c-backward-syntactic-ws lim)
 		      (point)))))))))
 
 (defun c-change-expand-fl-region (_beg _end _old-len)

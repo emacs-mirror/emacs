@@ -947,7 +947,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
     ;; closest token before the region.
     (save-excursion
       (let ((pos (point)))
-	(c-backward-syntactic-ws)
+	(c-backward-syntactic-ws (max (- (point) 500) (point-min)))
 	(c-clear-char-properties
 	 (if (and (not (bobp))
 		  (memq (c-get-char-property (1- (point)) 'c-type)
@@ -969,7 +969,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
     ;; The declared identifiers are font-locked correctly as types, if
     ;; that is what they are.
     (let ((prop (save-excursion
-		  (c-backward-syntactic-ws)
+		  (c-backward-syntactic-ws (max (- (point) 500) (point-min)))
 		  (unless (bobp)
 		    (c-get-char-property (1- (point)) 'c-type)))))
       (when (memq prop '(c-decl-id-start c-decl-type-start))
@@ -1505,7 +1505,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
 		 ;; Check we haven't missed a preceding "typedef".
 		 (when (not (looking-at c-typedef-key))
-		   (c-backward-syntactic-ws)
+		   (c-backward-syntactic-ws
+		    (max (- (point) 1000) (point-min)))
 		   (c-backward-token-2)
 		   (or (looking-at c-typedef-key)
 		       (goto-char start-pos)))
@@ -1545,8 +1546,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				     (c-backward-token-2)
 				     (and
 				      (not (looking-at c-opt-<>-sexp-key))
-				      (progn (c-backward-syntactic-ws)
-					     (memq (char-before) '(?\( ?,)))
+				      (progn
+					(c-backward-syntactic-ws
+					 (max (- (point) 1000) (point-min)))
+					(memq (char-before) '(?\( ?,)))
 				      (not (eq (c-get-char-property (1- (point))
 								    'c-type)
 					       'c-decl-arg-start))))))
@@ -2304,7 +2307,8 @@ need for `c-font-lock-extra-types'.")
 		  (and c-colon-type-list-re
 		       (c-go-up-list-backward)
 		       (eq (char-after) ?{)
-		       (eq (car (c-beginning-of-decl-1)) 'same)
+		       (eq (car (c-beginning-of-decl-1
+				 (c-determine-limit 1000))) 'same)
 		       (looking-at c-colon-type-list-re)))
 		;; Inherited protected member: leave unfontified
 		)
