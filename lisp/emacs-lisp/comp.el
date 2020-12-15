@@ -759,14 +759,15 @@ VERBOSITY is a number between 0 and 3."
 
 (defmacro comp-loop-insn-in-block (basic-block &rest body)
   "Loop over all insns in BASIC-BLOCK executing BODY.
-Inside BODY `insn' can be used to read or set the current
-instruction."
+Inside BODY `insn' and `insn-cell'can be used to read or set the
+current instruction or its cell."
   (declare (debug (form body))
            (indent defun))
-  (let ((sym-cell (gensym "cell-")))
-    `(cl-symbol-macrolet ((insn (car ,sym-cell)))
-       (cl-loop for ,sym-cell on (comp-block-insns ,basic-block)
-	        do ,@body))))
+  `(cl-symbol-macrolet ((insn (car insn-cell)))
+     (let ((insn-cell (comp-block-insns ,basic-block)))
+       (while insn-cell
+         ,@body
+         (setf insn-cell (cdr insn-cell))))))
 
 ;;; spill-lap pass specific code.
 
