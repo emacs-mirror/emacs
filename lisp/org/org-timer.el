@@ -470,19 +470,18 @@ time is up."
 Try to use an Org header, otherwise use the buffer name."
   (cond
    ((derived-mode-p 'org-agenda-mode)
-    (let* ((marker (or (get-text-property (point) 'org-marker)
-		       (org-agenda-error)))
+    (let* ((marker (or (get-text-property (point) 'org-marker)))
 	   (hdmarker (or (get-text-property (point) 'org-hd-marker)
 			 marker)))
-      (with-current-buffer (marker-buffer marker)
-	(org-with-wide-buffer
-	 (goto-char hdmarker)
-	 (org-show-entry)
-	 (or (ignore-errors (org-get-heading))
-	     (buffer-name (buffer-base-buffer)))))))
+      (when (and marker (marker-buffer marker))
+	(with-current-buffer (marker-buffer marker)
+	  (org-with-wide-buffer
+	   (goto-char hdmarker)
+	   (org-show-entry)
+	   (or (ignore-errors (org-get-heading))
+	       (buffer-name (buffer-base-buffer))))))))
    ((derived-mode-p 'org-mode)
-    (or (ignore-errors (org-get-heading))
-	(buffer-name (buffer-base-buffer))))
+    (ignore-errors (org-get-heading)))
    (t (buffer-name (buffer-base-buffer)))))
 
 (provide 'org-timer)

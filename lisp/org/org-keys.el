@@ -56,7 +56,7 @@
 (declare-function org-clone-subtree-with-time-shift "org" (n &optional shift))
 (declare-function org-columns "org" (&optional global columns-fmt-string))
 (declare-function org-comment-dwim "org" (arg))
-(declare-function org-copy "org" ())
+(declare-function org-refile-copy "org" ())
 (declare-function org-copy-special "org" ())
 (declare-function org-copy-visible "org" (beg end))
 (declare-function org-ctrl-c-ctrl-c "org" (&optional arg))
@@ -148,7 +148,7 @@
 (declare-function org-remove-file "org" (&optional file))
 (declare-function org-resolve-clocks "org" (&optional only-dangling-p prompt-fn last-valid))
 (declare-function org-return "org" (&optional indent))
-(declare-function org-return-indent "org" ())
+(declare-function org-return-and-maybe-indent "org" ())
 (declare-function org-reveal "org" (&optional siblings))
 (declare-function org-schedule "org" (arg &optional time))
 (declare-function org-self-insert-command "org" (N))
@@ -196,6 +196,7 @@
 (declare-function org-todo "org" (&optional arg1))
 (declare-function org-toggle-archive-tag "org" (&optional find-done))
 (declare-function org-toggle-checkbox "org" (&optional toggle-presence))
+(declare-function org-toggle-radio-button "org" (&optional arg))
 (declare-function org-toggle-comment "org" ())
 (declare-function org-toggle-fixed-width "org" ())
 (declare-function org-toggle-inline-images "org" (&optional include-linked))
@@ -218,7 +219,7 @@
 ;;; Variables
 
 (defvar org-mode-map (make-sparse-keymap)
-  "Keymap fo Org mode.")
+  "Keymap for Org mode.")
 
 (defvaralias 'org-CUA-compatible 'org-replace-disputed-keys)
 
@@ -444,7 +445,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 ;;;; TAB key with modifiers
 (org-defkey org-mode-map (kbd "C-i") #'org-cycle)
 (org-defkey org-mode-map (kbd "<tab>") #'org-cycle)
-(org-defkey org-mode-map (kbd "C-<tab>") #'org-force-cycle-archived)
+(org-defkey org-mode-map (kbd "C-c C-<tab>") #'org-force-cycle-archived)
 ;; Override text-mode binding to expose `complete-symbol' for
 ;; pcomplete functionality.
 (org-defkey org-mode-map (kbd "M-<tab>") nil)
@@ -580,7 +581,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "C-c C-d") #'org-deadline)
 (org-defkey org-mode-map (kbd "C-c ;") #'org-toggle-comment)
 (org-defkey org-mode-map (kbd "C-c C-w") #'org-refile)
-(org-defkey org-mode-map (kbd "C-c M-w") #'org-copy)
+(org-defkey org-mode-map (kbd "C-c M-w") #'org-refile-copy)
 (org-defkey org-mode-map (kbd "C-c /") #'org-sparse-tree) ;minor-mode reserved
 (org-defkey org-mode-map (kbd "C-c \\") #'org-match-sparse-tree) ;minor-mode r.
 (org-defkey org-mode-map (kbd "C-c RET") #'org-ctrl-c-ret)
@@ -617,7 +618,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "C-c C-k") #'org-kill-note-or-show-branches)
 (org-defkey org-mode-map (kbd "C-c #") #'org-update-statistics-cookies)
 (org-defkey org-mode-map (kbd "RET") #'org-return)
-(org-defkey org-mode-map (kbd "C-j") #'org-return-indent)
+(org-defkey org-mode-map (kbd "C-j") #'org-return-and-maybe-indent)
 (org-defkey org-mode-map (kbd "C-c ?") #'org-table-field-info)
 (org-defkey org-mode-map (kbd "C-c SPC") #'org-table-blank-field)
 (org-defkey org-mode-map (kbd "C-c +") #'org-table-sum)
@@ -658,6 +659,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "C-c C-x C-M-v") #'org-redisplay-inline-images)
 (org-defkey org-mode-map (kbd "C-c C-x \\") #'org-toggle-pretty-entities)
 (org-defkey org-mode-map (kbd "C-c C-x C-b") #'org-toggle-checkbox)
+(org-defkey org-mode-map (kbd "C-c C-x C-r") #'org-toggle-radio-button)
 (org-defkey org-mode-map (kbd "C-c C-x p") #'org-set-property)
 (org-defkey org-mode-map (kbd "C-c C-x P") #'org-set-property-and-value)
 (org-defkey org-mode-map (kbd "C-c C-x e") #'org-set-effort)
@@ -923,6 +925,10 @@ a-list placed behind the generic `org-babel-key-prefix'.")
   (interactive)
   (describe-bindings org-babel-key-prefix))
 
-
 (provide 'org-keys)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-keys.el ends here

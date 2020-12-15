@@ -84,7 +84,8 @@
                  (regexp-quote (format "%S" (car pair)))
                  (if (stringp (cdr pair))
                      (cdr pair) (format "%S" (cdr pair)))
-                 body))) (org-babel--get-vars params))
+                 body)))
+	(org-babel--get-vars params))
   (org-trim body))
 
 (defun org-babel-execute:latex (body params)
@@ -108,8 +109,11 @@ This function is called by `org-babel-execute-src-block'."
 	      (append (cdr (assq :packages params)) org-latex-packages-alist)))
         (cond
          ((and (string-suffix-p ".png" out-file) (not imagemagick))
-          (org-create-formula-image
-           body out-file org-format-latex-options in-buffer))
+          (let ((org-format-latex-header
+		 (concat org-format-latex-header "\n"
+			 (mapconcat #'identity headers "\n"))))
+	   (org-create-formula-image
+            body out-file org-format-latex-options in-buffer)))
          ((string-suffix-p ".tikz" out-file)
 	  (when (file-exists-p out-file) (delete-file out-file))
 	  (with-temp-file out-file
@@ -221,6 +225,6 @@ This function is called by `org-babel-execute-src-block'."
   "Return an error because LaTeX doesn't support sessions."
   (error "LaTeX does not support sessions"))
 
-
 (provide 'ob-latex)
+
 ;;; ob-latex.el ends here

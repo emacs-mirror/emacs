@@ -32,6 +32,8 @@
 (require 'pcomplete)
 
 (declare-function org-at-heading-p "org" (&optional ignored))
+(declare-function org-babel-combine-header-arg-lists "ob-core" (original &rest others))
+(declare-function org-babel-get-src-block-info "ob-core" (&optional light datum))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-buffer-property-keys "org" (&optional specials defaults columns))
 (declare-function org-element-at-point "org-element" ())
@@ -47,8 +49,9 @@
 (declare-function org-link-heading-search-string "ol" (&optional string))
 (declare-function org-tag-alist-to-string "org" (alist &optional skip-key))
 
+(defvar org-babel-common-header-args-w-values)
 (defvar org-current-tag-alist)
-(defvar org-default-priority)
+(defvar org-priority-default)
 (defvar org-drawer-regexp)
 (defvar org-element-affiliated-keywords)
 (defvar org-entities)
@@ -56,10 +59,10 @@
 (defvar org-export-exclude-tags)
 (defvar org-export-select-tags)
 (defvar org-file-tags)
-(defvar org-highest-priority)
+(defvar org-priority-highest)
 (defvar org-link-abbrev-alist)
 (defvar org-link-abbrev-alist-local)
-(defvar org-lowest-priority)
+(defvar org-priority-lowest)
 (defvar org-options-keywords)
 (defvar org-outline-regexp)
 (defvar org-property-re)
@@ -252,9 +255,9 @@ When completing for #+STARTUP, for example, this function returns
 (defun pcomplete/org-mode/file-option/priorities ()
   "Complete arguments for the #+PRIORITIES file option."
   (pcomplete-here (list (format "%c %c %c"
-				org-highest-priority
-				org-lowest-priority
-				org-default-priority))))
+				org-priority-highest
+				org-priority-lowest
+				org-priority-default))))
 
 (defun pcomplete/org-mode/file-option/select_tags ()
   "Complete arguments for the #+SELECT_TAGS file option."
@@ -352,8 +355,9 @@ This needs more work, to handle headings with lots of spaces in them."
 	    (goto-char (point-min))
 	    (let (tbl)
 	      (while (re-search-forward org-outline-regexp nil t)
-		(push (org-link-heading-search-string (org-get-heading t t t t))
-		      tbl))
+		;; Remove the leading asterisk from
+		;; `org-link-heading-search-string' result.
+		(push (substring (org-link-heading-search-string) 1) tbl))
 	      (pcomplete-uniquify-list tbl)))
 	  ;; When completing a bracketed link, i.e., "[[*", argument
 	  ;; starts at the star, so remove this character.
@@ -417,11 +421,17 @@ switches."
 				    (symbol-plist
 				     'org-babel-load-languages)
 				    'custom-type)))))))
-  (while (pcomplete-here
-	  '("-n" "-r" "-l"
-	    ":cache" ":colnames" ":comments" ":dir" ":eval" ":exports"
-	    ":file" ":hlines" ":no-expand" ":noweb" ":results" ":rownames"
-	    ":session" ":shebang" ":tangle" ":tangle-mode" ":var"))))
+  (let* ((info (org-babel-get-src-block-info 'light))
+	 (lang (car info))
+	 (lang-headers (intern (concat "org-babel-header-args:" lang)))
+	 (headers (org-babel-combine-header-arg-lists
+		   org-babel-common-header-args-w-values
+		   (and (boundp lang-headers) (eval lang-headers t)))))
+    (while (pcomplete-here
+	    (append (mapcar
+		     (lambda (arg) (format ":%s" (symbol-name (car arg))))
+		     headers)
+		    '("-n" "-r" "-l"))))))
 
 (defun pcomplete/org-mode/block-option/clocktable ()
   "Complete keywords in a clocktable line."

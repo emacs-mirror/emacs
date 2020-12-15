@@ -76,3 +76,5 @@ create one.  Return the initialized session."
   (get-buffer org-babel-coq-buffer))
 
 (provide 'ob-coq)
+
+;;; ob-coq.el ends here

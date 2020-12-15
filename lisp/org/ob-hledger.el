@@ -30,6 +30,8 @@
 ;; probably ~/.hledger.journal (it may not notice your $LEDGER_FILE env var).
 ;; So make ~/.hledger.journal a symbolic link to the real file if necessary.
 
+;; TODO Unit tests are more than welcome, too.
+
 ;;; Code:
 (require 'ob)
 
@@ -64,7 +66,4 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-hledger)
 
-
-
 ;;; ob-hledger.el ends here
-;; TODO Unit tests are more than welcome, too.

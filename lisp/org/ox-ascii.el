@@ -31,6 +31,8 @@
 (require 'ox-publish)
 (require 'cl-lib)
 
+;;; Function Declarations
+
 (declare-function aa2u "ext:ascii-art-to-unicode" ())
 
 ;;; Define Back-End
@@ -954,7 +956,7 @@ channel."
 	((not (org-element-contents link)) nil)
 	;; Do not add a link already handled by custom export
 	;; functions.
-	((org-export-custom-protocol-maybe link anchor 'ascii) nil)
+	((org-export-custom-protocol-maybe link anchor 'ascii info) nil)
 	(t
 	 (concat
 	  (org-ascii--fill-string
@@ -1270,7 +1272,8 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
   (org-ascii--justify-element
    (org-ascii--box-string
     (org-remove-indentation
-     (org-element-property :value fixed-width)) info)
+     (org-element-property :value fixed-width))
+    info)
    fixed-width info))
 
 
@@ -1569,7 +1572,7 @@ DESC is the description part of the link, or the empty string.
 INFO is a plist holding contextual information."
   (let ((type (org-element-property :type link)))
     (cond
-     ((org-export-custom-protocol-maybe link desc 'ascii))
+     ((org-export-custom-protocol-maybe link desc 'ascii info))
      ((string= type "coderef")
       (let ((ref (org-element-property :path link)))
 	(format (org-export-get-coderef-format ref desc)
@@ -1605,13 +1608,11 @@ INFO is a plist holding contextual information."
 	  ;; Don't know what to do.  Signal it.
 	  (_ "???"))))
      (t
-      (let ((raw-link (concat (org-element-property :type link)
-			      ":"
-			      (org-element-property :path link))))
-	(if (not (org-string-nw-p desc)) (format "<%s>" raw-link)
+      (let ((path (org-element-property :raw-link link)))
+	(if (not (org-string-nw-p desc)) (format "<%s>" path)
 	  (concat (format "[%s]" desc)
 		  (and (not (plist-get info :ascii-links-to-notes))
-		       (format " (<%s>)" raw-link)))))))))
+		       (format " (<%s>)" path)))))))))
 
 
 ;;;; Node Properties

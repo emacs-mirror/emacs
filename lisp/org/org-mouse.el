@@ -386,7 +386,7 @@ DEFAULT is returned if no priority is given in the headline."
   (save-excursion
     (if (org-mouse-re-search-line org-mouse-priority-regexp)
 	(match-string 1)
-      (when default (char-to-string org-default-priority)))))
+      (when default (char-to-string org-priority-default)))))
 
 (defun org-mouse-delete-timestamp ()
   "Deletes the current timestamp as well as the preceding keyword.
@@ -407,7 +407,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	  (> (match-end 0) point))))))
 
 (defun org-mouse-priority-list ()
-  (cl-loop for priority from ?A to org-lowest-priority
+  (cl-loop for priority from ?A to org-priority-lowest
 	   collect (char-to-string priority)))
 
 (defun org-mouse-todo-menu (state)
@@ -495,7 +495,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Check Deadlines"
       (if (functionp 'org-check-deadlines-and-todos)
 	  (org-check-deadlines-and-todos org-deadline-warning-days)
-	(org-check-deadlines org-deadline-warning-days)) t]
+	(org-check-deadlines org-deadline-warning-days))
+      t]
      ["Check TODOs" org-show-todo-tree t]
      ("Check Tags"
       ,@(org-mouse-keyword-menu
@@ -741,7 +742,8 @@ This means, between the beginning of line and the point."
 			       (?$ "($) Formula Parameters")
 			       (?# "(#) Recalculation: Auto")
 			       (?* "(*) Recalculation: Manual")
-			       (?' "(') Recalculation: None"))) t))))
+			       (?' "(') Recalculation: None")))
+			   t))))
      ((assq :table contextlist)
       (popup-menu
        '(nil
