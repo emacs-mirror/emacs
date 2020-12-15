@@ -3694,13 +3694,14 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	       ;;    ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
 	       ;;    "\\(\\)"		; To preserve count of pars :-( 6 + 1
 	       ;;  "\\)"
-	       ((match-beginning 3)	; 2 + 1
+	       ((match-beginning 3)	; 2 + 1: found "<<", detect its type
 		(setq b (point)
 		      tb (match-beginning 0)
 		      c (and		; not HERE-DOC
 			 (match-beginning 6)
 			 (save-match-data
 			   (or (looking-at "[ \t]*(") ; << function_call()
+			       (looking-at ">>")      ; <<>> operator
 			       (save-excursion ; 1 << func_name, or $foo << 10
 				 (condition-case nil
 				     (progn
