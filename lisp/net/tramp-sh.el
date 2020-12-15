@@ -4960,9 +4960,10 @@ connection if a previous connection has died for some reason."
 	(when (and (time-less-p
 		    60 (time-since
 			(tramp-get-connection-property p "last-cmd-time" 0)))
-		   (process-live-p p)
-		   (tramp-get-connection-property p "connected" nil))
-	  (unless (tramp-send-command-and-check vec "echo are you awake")
+		   (process-live-p p))
+	  (tramp-send-command vec "echo are you awake" t t)
+	  (unless (and (process-live-p p)
+		       (tramp-wait-for-output p 10))
 	    ;; The error will be caught locally.
 	    (tramp-error vec 'file-error "Awake did fail")))
       (file-error
