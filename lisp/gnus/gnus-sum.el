@@ -4100,8 +4100,6 @@ If SELECT-ARTICLES, only select those articles from GROUP."
      ;; The group was successfully selected.
      (t
       (gnus-set-global-variables)
-      (when (boundp 'gnus-pick-line-number)
-	(setq gnus-pick-line-number 0))
       (when (boundp 'spam-install-hooks)
 	(spam-initialize))
       ;; Save the active value in effect when the group was entered.
@@ -4226,6 +4224,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	  gnus-newsgroup-data-reverse nil)
     (gnus-run-hooks 'gnus-summary-generate-hook)
     ;; Generate the buffer, either with threads or without.
+    (when (boundp 'gnus-pick-line-number)
+      (setq gnus-pick-line-number 0))
     (when gnus-newsgroup-headers
       (gnus-summary-prepare-threads
        (if gnus-show-threads
