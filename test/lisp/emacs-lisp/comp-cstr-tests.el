@@ -103,9 +103,9 @@
     ;; 31
     ((and (member 1 2) (member 3 2)) . (member 2))
     ;; 32
-    ((and number (integer 1 2)) . number)
+    ((and number (integer 1 2)) . (integer 1 2))
     ;; 33
-    ((and integer (integer 1 2)) . integer)
+    ((and integer (integer 1 2)) . (integer 1 2))
     ;; 34
     ((and (integer -1 0) (integer 3 5)) . nil)
     ;; 35
@@ -122,18 +122,18 @@
     ((or (member foo) (not (member foo bar))) . (not (member bar)))
     ;; 41
     ((or (member foo bar) (not (member foo))) . t)
-    ;; 42 Intentionally conservative, see `comp-cstr-union-1-no-mem'.
-    ((or symbol (not sequence)) . t)
+    ;; 42
+    ((or symbol (not sequence)) . (not sequence))
     ;; 43
     ((or symbol (not symbol)) . t)
-    ;; 44 Conservative.
-    ((or symbol (not sequence)) . t)
-    ;; 45
-    ((or vector (not sequence)) . (not sequence))
+    ;; 44
+    ((or symbol (not sequence)) . (not sequence))
+    ;; 45 Conservative.
+    ((or vector (not sequence)) . t)
     ;; 46
-    ((or (integer 1 10) (not (integer * 5))) . (integer 1 *))
+    ((or (integer 1 10) (not (integer * 5))) . (not (integer * 0)))
     ;; 47
-    ((or symbol (integer 1 10) (not (integer * 5))) . (or symbol (integer 1 *)))
+    ((or symbol (integer 1 10) (not (integer * 5))) . (not (integer * 0)))
     ;; 48
     ((or (not symbol) (integer 1 10) (not (integer * 5))) . (not (or symbol (integer * 0))))
     ;; 49
@@ -149,7 +149,7 @@
     ;; 54
     ((or (not (integer 1 2)) (not integer)) . (not integer))
     ;; 55
-    ((or (integer 1 2) (not integer)) . (not (or integer (integer * 0) (integer 3 *))))
+    ((or (integer 1 2) (not integer)) . (not (or (integer * 0) (integer 3 *))))
     ;; 56
     ((or number (not (integer 1 2))) . t)
     ;; 57
@@ -177,7 +177,23 @@
     ;; 68
     ((and integer (not (integer 3 4))) . (or (integer * 2) (integer 5 *)))
     ;; 69
-    ((and (integer 0 20) (not (integer 5 10))) . (or (integer 0 4) (integer 11 20))))
+    ((and (integer 0 20) (not (integer 5 10))) . (or (integer 0 4) (integer 11 20)))
+    ;; 70
+    ((and (not (member a)) (not (member b))) . (not (member b a)))
+    ;; 71
+    ((and (not boolean) (not (member b))) . (not (or (member b) boolean)))
+    ;; 72
+    ((and t (integer 1 1)) . (integer 1 1))
+    ;; 73
+    ((not (integer -1 5)) . (not (integer -1 5)))
+    ;; 74
+    ((and boolean (or number marker)) . nil)
+    ;; 75
+    ((and atom (or number marker)) . (or marker number))
+    ;; 76
+    ((and symbol (or number marker)) . nil)
+    ;; 77
+    ((and (or symbol string) (or number marker)) . nil))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()
