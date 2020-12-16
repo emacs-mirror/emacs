@@ -108,7 +108,7 @@ language-server/bin/php-language-server.php"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port"
                                     :autoport))
-                                (haskell-mode . ("hie-wrapper" "--lsp"))
+                                (haskell-mode . ("haskell-language-server-wrapper" "--lsp"))
                                 (elm-mode . ("elm-language-server"))
                                 (kotlin-mode . ("kotlin-language-server"))
                                 (go-mode . ("gopls"))
