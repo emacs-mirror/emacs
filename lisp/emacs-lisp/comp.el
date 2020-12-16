@@ -275,7 +275,7 @@ Useful to hook into pass checkers.")
    for (f type-spec) in comp-known-type-specifiers
    for cstr = (comp-type-spec-to-cstr type-spec)
    do (puthash f cstr h)
-   finally (cl-return h))
+   finally return h)
   "Hash table function -> `comp-constraint'")
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
@@ -2761,7 +2761,7 @@ Set it into the `ret-type-specifier' slot."
                                do (pcase insn
                                     (`(return ,mvar)
                                      (push mvar res))))
-                           finally (cl-return res)))))
+                           finally return res))))
     (setf (comp-func-ret-type-specifier func)
           (comp-cstr-to-type-spec res-mvar))))
 
