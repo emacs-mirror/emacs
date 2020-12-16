@@ -100,15 +100,16 @@
                                   typescript-mode)
                                  . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
-				                        (php-mode . ("php" "vendor/felixfbecker/\
+                                (php-mode
+                                 . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php"))
                                 ((c++-mode c-mode) . ("ccls"))
                                 ((caml-mode tuareg-mode reason-mode)
                                  . ("ocaml-language-server" "--stdio"))
                                 (ruby-mode
-                                 . ("solargraph" "socket" "--port"
-                                    :autoport))
-                                (haskell-mode . ("haskell-language-server-wrapper" "--lsp"))
+                                 . ("solargraph" "socket" "--port" :autoport))
+                                (haskell-mode
+                                 . ("haskell-language-server-wrapper" "--lsp"))
                                 (elm-mode . ("elm-language-server"))
                                 (kotlin-mode . ("kotlin-language-server"))
                                 (go-mode . ("gopls"))
@@ -1522,7 +1523,7 @@ Uses THING, FACE, DEFS and PREPEND."
                    (priority . ,(+ 50 i))
                    (keymap . ,(let ((map (make-sparse-keymap)))
                                 (define-key map [mouse-1]
-                                            (eglot--mouse-call 'eglot-code-actions))
+                                  (eglot--mouse-call 'eglot-code-actions))
                                 map)))))
 
 
@@ -1763,8 +1764,8 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                             ,(buffer-substring-no-properties b-beg-marker
                                                              b-end-marker)))
        (setcar eglot--recent-changes
-                 `(,lsp-beg ,lsp-end ,pre-change-length
-                            ,(buffer-substring-no-properties beg end)))))
+               `(,lsp-beg ,lsp-end ,pre-change-length
+                          ,(buffer-substring-no-properties beg end)))))
     (_ (setf eglot--recent-changes :emacs-messup)))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
   (let ((buf (current-buffer)))
@@ -2533,9 +2534,9 @@ code actions at point"
                       actions)
               (eglot--error "No code actions here")))
          (preferred-action (cl-find-if
-                             (jsonrpc-lambda (&key isPreferred &allow-other-keys)
-                               isPreferred)
-                             actions))
+                            (jsonrpc-lambda (&key isPreferred &allow-other-keys)
+                              isPreferred)
+                            actions))
          (menu `("Eglot code actions:" ("dummy" ,@menu-items)))
          (action (if (listp last-nonmenu-event)
                      (x-popup-menu last-nonmenu-event menu)
@@ -2572,16 +2573,16 @@ code actions at point"
    finally return result))
 
 (cl-defmethod eglot-register-capability
-    (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
+  (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
   (eglot-unregister-capability server method id)
   (let* (success
          (globs (mapcar (eglot--lambda ((FileSystemWatcher) globPattern)
                           globPattern)
                         watchers))
-	 (glob-dirs
-	  (delete-dups (mapcar #'file-name-directory
-			       (mapcan #'file-expand-wildcards globs)))))
+         (glob-dirs
+          (delete-dups (mapcar #'file-name-directory
+                               (mapcan #'file-expand-wildcards globs)))))
     (cl-labels
         ((handle-event
           (event)
@@ -2605,13 +2606,13 @@ code actions at point"
               (handle-event `(,desc 'created ,file1)))))))
       (unwind-protect
           (progn
-	    (dolist (dir glob-dirs)
-	      (push (file-notify-add-watch dir '(change) #'handle-event)
-		    (gethash id (eglot--file-watches server))))
-	    (setq
-	     success
-	     `(:message ,(format "OK, watching %s directories in %s watchers"
-				 (length glob-dirs) (length watchers)))))
+            (dolist (dir glob-dirs)
+              (push (file-notify-add-watch dir '(change) #'handle-event)
+                    (gethash id (eglot--file-watches server))))
+            (setq
+             success
+             `(:message ,(format "OK, watching %s directories in %s watchers"
+                                 (length glob-dirs) (length watchers)))))
         (unless success
           (eglot-unregister-capability server method id))))))
 
