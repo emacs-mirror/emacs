@@ -1758,6 +1758,7 @@ occurrence of @var{string}.  When done, exit the recursive editing level
 with @kbd{C-M-c} to proceed to the next occurrence.
 
 @item e
+@itemx E
 to edit the replacement string in the minibuffer.  When you exit the
 minibuffer by typing @key{RET}, the minibuffer contents replace the
 current occurrence of the pattern.  They also become the new
