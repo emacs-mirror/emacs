@@ -1596,7 +1596,7 @@ which are strings. KEY is of the form produced by `key-binding'."
   "Replace the last key in the sequence KEY by a special symbol
 in order for which-key to allow looking up a description for the key."
   (let ((seq (listify-key-sequence key)))
-    (vconcat (or prefix (butlast seq)) (vector 'which-key (last seq)))))
+    (vconcat (or prefix (butlast seq)) [which-key] (last seq))))
 
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
