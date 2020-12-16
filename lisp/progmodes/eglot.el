@@ -1288,6 +1288,10 @@ and just return it.  PROMPT shouldn't end with a question mark."
 
 (defvar eglot-stay-out-of '()
   "List of Emacs things that Eglot should try to stay of.
+Each element is a string, a symbol, or a regexp which is matched
+against a variable's name.  Examples include the string
+\"company\" or the symbol `xref'.
+
 Before Eglot starts \"managing\" a particular buffer, it
 opinionatedly sets some peripheral Emacs facilites, such as
 Flymake, Xref and Company.  These overriding settings help ensure
@@ -1296,9 +1300,8 @@ consistent Eglot behaviour and only stay in place until
 previous settings are restored.
 
 However, if you wish for Eglot to stay out of a particular Emacs
-facility that you'd like to keep control of, add a string, a
-symbol, or a regexp here that will be matched against the
-variable's name, and Eglot will refrain from setting it.
+facility that you'd like to keep control of add an element to
+this list and Eglot will refrain from setting it.
 
 For example, to keep your Company customization use
 
@@ -1338,13 +1341,14 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'kill-buffer-hook #'eglot--managed-mode-off nil t)
-    ;; Prepend "didClose" to the hook after the "onoff", so it will run first
+    ;; Prepend "didClose" to the hook after the "nonoff", so it will run first
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'after-revert-hook 'eglot--after-revert-hook nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
-    (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
+    (unless (eglot--stay-out-of-p 'xref)
+      (add-hook 'xref-backend-functions 'eglot-xref-backend nil t))
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-hook 'change-major-mode-hook #'eglot--managed-mode-off nil t)
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
