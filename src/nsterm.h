@@ -414,6 +414,7 @@ typedef id instancetype;
    ========================================================================== */
 
 @class EmacsToolbar;
+@class EmacsSurface;
 
 #ifdef NS_IMPL_COCOA
 @interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
@@ -435,7 +436,7 @@ typedef id instancetype;
    BOOL fs_is_native;
    BOOL in_fullscreen_transition;
 #ifdef NS_DRAW_TO_BUFFER
-   CGContextRef drawingBuffer;
+   EmacsSurface *surface;
 #endif
 @public
    struct frame *emacsframe;
@@ -478,7 +479,7 @@ typedef id instancetype;
 
 #ifdef NS_DRAW_TO_BUFFER
 - (void)focusOnDrawingBuffer;
-- (void)createDrawingBuffer;
+- (void)unfocusDrawingBuffer;
 #endif
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
 
@@ -702,6 +703,24 @@ typedef id instancetype;
 - (instancetype)reprieve;
 - (bool)judge;
 + (CGFloat)scrollerWidth;
+@end
+
+
+@interface EmacsSurface : NSObject
+{
+  NSMutableArray *cache;
+  NSSize size;
+  CGColorSpaceRef colorSpace;
+  IOSurfaceRef currentSurface;
+  IOSurfaceRef lastSurface;
+  CGContextRef context;
+}
+- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs;
+- (void) dealloc;
+- (NSSize) getSize;
+- (CGContextRef) getContext;
+- (void) releaseContext;
+- (IOSurfaceRef) getSurface;
 @end
 
 
