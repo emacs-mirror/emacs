@@ -4181,6 +4181,11 @@ AC_SUBST([LIBS_MAIL])
 
 AC_CHECK_HEADERS([linux/seccomp.h], [HAVE_SECCOMP=yes])
 
+LIBSECCOMP=
+AC_CHECK_HEADER([seccomp.h],
+  [AC_CHECK_LIB([seccomp], [seccomp_init], [LIBSECCOMP=-lseccomp])])
+AC_SUBST([LIBSECCOMP])
+
 OLD_LIBS=$LIBS
 LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS(accept4 fchdir gethostname \

@@ -188,6 +188,7 @@ lib-src/make-docfile
 lib-src/make-fingerprint
 lib-src/movemail
 lib-src/profile
+lib-src/seccomp-filter
 lib-src/test-distrib
 lib-src/update-game-score
 nextstep/Cocoa/Emacs.base/Contents/Info.plist
@@ -301,3 +302,7 @@ nt/emacs.rc
 nt/emacsclient.rc
 src/gdb.ini
 /var/
+
+# Seccomp filter files.
+lib-src/seccomp-filter.bpf
+lib-src/seccomp-filter.pfc

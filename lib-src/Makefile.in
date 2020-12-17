@@ -189,6 +189,12 @@ LIB_WSOCK32=@LIB_WSOCK32@
 ## Extra libraries for etags
 LIBS_ETAGS = $(LIB_CLOCK_GETTIME) $(LIB_GETRANDOM)
 
+LIBSECCOMP=@LIBSECCOMP@
+
+ifneq ($(LIBSECCOMP),)
+DONT_INSTALL += seccomp-filter$(EXEEXT)
+endif
+
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
   $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32) $(LIBS_ETAGS)
@@ -217,6 +223,10 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 
 all: ${EXE_FILES} ${SCRIPTS}
+
+ifneq ($(LIBSECCOMP),)
+all: seccomp-filter.bpf
+endif
 
 .PHONY: all need-blessmail maybe-blessmail
 
@@ -399,5 +409,14 @@ update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 
 emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 	$(AM_V_RC)$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ $<
+
+ifneq ($(LIBSECCOMP),)
+seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
+	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $< $(LIBSECCOMP) -o $@
+
+seccomp-filter.bpf seccomp-filter.pfc: seccomp-filter$(EXEEXT)
+	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \
+	  seccomp-filter.bpf seccomp-filter.pfc
+endif
 
 ## Makefile ends here.

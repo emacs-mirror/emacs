@@ -25,7 +25,9 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 (require 'rx)
+(require 'subr-x)
 
 (ert-deftest emacs-tests/seccomp/absent-file ()
   (skip-unless (string-match-p (rx bow "SECCOMP" eow)
@@ -127,5 +129,52 @@ to `make-temp-file', which see."
                           "--quick" "--batch"
                           (concat "--seccomp=" filter))
             0)))))
+
+(ert-deftest emacs-tests/seccomp/allows-stdout ()
+  (skip-unless (string-match-p (rx bow "SECCOMP" eow)
+                               system-configuration-features))
+  (let ((emacs
+         (expand-file-name invocation-name invocation-directory))
+        (filter (ert-resource-file "seccomp-filter.bpf"))
+        (process-environment nil))
+    (skip-unless (file-executable-p emacs))
+    (skip-unless (file-readable-p filter))
+    ;; The --seccomp option is processed early, without filename
+    ;; handlers.  Therefore remote or quoted filenames wouldn't work.
+    (should-not (file-remote-p filter))
+    (cl-callf file-name-unquote filter)
+    (with-temp-buffer
+      (let ((status (call-process
+                     emacs nil t nil
+                     "--quick" "--batch"
+                     (concat "--seccomp=" filter)
+                     (format "--eval=%S" '(message "Hi")))))
+        (ert-info ((format "Process output: %s" (buffer-string)))
+          (should (eql status 0)))
+        (should (equal (string-trim (buffer-string)) "Hi"))))))
+
+(ert-deftest emacs-tests/seccomp/forbids-subprocess ()
+  (skip-unless (string-match-p (rx bow "SECCOMP" eow)
+                               system-configuration-features))
+  (let ((emacs
+         (expand-file-name invocation-name invocation-directory))
+        (filter (ert-resource-file "seccomp-filter.bpf"))
+        (process-environment nil))
+    (skip-unless (file-executable-p emacs))
+    (skip-unless (file-readable-p filter))
+    ;; The --seccomp option is processed early, without filename
+    ;; handlers.  Therefore remote or quoted filenames wouldn't work.
+    (should-not (file-remote-p filter))
+    (cl-callf file-name-unquote filter)
+    (with-temp-buffer
+      (let ((status
+             (call-process
+              emacs nil t nil
+              "--quick" "--batch"
+              (concat "--seccomp=" filter)
+              (format "--eval=%S" `(call-process ,emacs nil nil nil
+                                                 "--version")))))
+        (ert-info ((format "Process output: %s" (buffer-string)))
+          (should-not (eql status 0)))))))
 
 ;;; emacs-tests.el ends here
