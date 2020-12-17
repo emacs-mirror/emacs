@@ -7822,7 +7822,7 @@ set_window_scroll_bars (struct window *w, Lisp_Object width,
 	 if more than a single window needs to be considered, see
 	 redisplay_internal.  */
       if (changed)
-	windows_or_buffers_changed = 31;
+	wset_redisplay (w);
 
       return changed ? w : NULL;
     }
