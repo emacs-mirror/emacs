@@ -1967,7 +1967,11 @@ See also `emacs-lisp-byte-compile-and-load'."
                  ;; We attempt to create a temporary file in the
                  ;; target directory, so the target directory must be
                  ;; writable.
-                 (file-writable-p (file-name-directory target-file)))
+                 (file-writable-p
+                  (file-name-directory
+                   ;; Need to expand in case TARGET-FILE doesn't
+                   ;; include a directory (Bug#45287).
+                   (expand-file-name target-file))))
 	    ;; We must disable any code conversion here.
 	    (let* ((coding-system-for-write 'no-conversion)
 		   ;; Write to a tempfile so that if another Emacs

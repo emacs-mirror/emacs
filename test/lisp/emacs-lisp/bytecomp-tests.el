@@ -1016,6 +1016,21 @@ mountpoint (Bug#44631)."
           (set-file-modes directory #o700)
           (delete-directory directory :recursive))))))
 
+(ert-deftest bytecomp-tests--target-file-no-directory ()
+  "Check that Bug#45287 is fixed."
+  (let ((directory (make-temp-file "bytecomp-tests-" :directory)))
+    (unwind-protect
+        (let* ((default-directory directory)
+               (byte-compile-dest-file-function (lambda (_) "test.elc"))
+               (byte-compile-error-on-warn t))
+          (write-region "" nil "test.el" nil nil nil 'excl)
+          (should (byte-compile-file "test.el"))
+          (should (file-regular-p "test.elc"))
+          (should (cl-plusp (file-attribute-size
+                             (file-attributes "test.elc")))))
+      (with-demoted-errors "Error cleaning up directory: %s"
+        (delete-directory directory :recursive)))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
