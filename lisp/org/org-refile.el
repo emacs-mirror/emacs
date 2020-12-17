@@ -373,7 +373,7 @@ the *old* location.")
 (defvar org-refile-keep nil
   "Non-nil means `org-refile' will copy instead of refile.")
 
-(define-obsolete-function-alias 'org-copy 'org-refile-copy)
+(define-obsolete-function-alias 'org-copy 'org-refile-copy "Org 9.4")
 
 ;;;###autoload
 (defun org-refile-copy ()
