@@ -536,6 +536,42 @@ This should go with point, so that motion commands can also move
 through tall images.  This value would be to point as window-vscroll
 is to window-start.
 
+** Make redisplay smarter about which parts to redraw
+Currently, redisplay has only 2 levels of redrawing: either it
+redisplays only the selected window on the selected frame, or it
+redisplays all the windows on all the frames.  This doesn't scale well
+when the number of visible frames is large.
+
+Currently, two variables are used to make the decision what to
+redisplay: update_mode_lines and windows_or_buffers_changed.  These
+are set by various functions called from Lisp, and if redisplay finds
+one of them to be non-zero, it considers all the windows on all the
+frames for redisplay.
+
+The idea is to make the decision which parts need to be redrawn more
+fine-grained.  Instead of simple boolean variables, we could have a
+bitmapped variable which records the kinds of changes done by Lisp
+since the previous redisplay cycle.  Then the decision what exactly
+needs to be redrawn could be made based on the bits that are set.
+
+For example, one reason to consider all frames is that some scrolling
+command sets the update_mode_lines variable non-zero.  This is done
+because the frame title, which doesn't belong to any window, needs to
+be reconsidered when the selected window is scrolled.  But considering
+the frame title doesn't have to redisplay all the other windows on the
+frame, doesn't need to recompute the menu items and the tool-bar
+buttons, and doesn't need to consider frames other than the selected
+one.  Being selective about what parts of the Emacs display need to be
+reconsidered and redrawn given the changes since the last redisplay
+will go along way towards making redisplay more scalable.
+
+One way of making this change is to go through all the places that set
+update_mode_lines and windows_or_buffers_changed, figure out which
+portions of the Emacs display could be affected by each change, and
+then implement the bitmap which will record each of these affected
+display portions.  The logic in redisplay_internal will then need to
+be restructured so as to support this fine-grained redisplay.
+
 ** Address internationalization of symbols names
 Essentially as if they were documentation, e.g. in command names and
 Custom.
