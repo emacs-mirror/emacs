@@ -403,6 +403,7 @@ epaths-force-w32:
 	  w32locallisppath=$${w32locallisppath//$${w32prefix}/"%emacs_dir%"} ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${w32locallisppath//;/\\;}"'";' \
+	  -e 's;\(#.*PATH_REL_LOADSEARCH\).*$$;\1 "${lispdirrel}";' \
 	  -e '/^.*#/s/@VER@/${version}/g' 			\
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
