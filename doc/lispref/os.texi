@@ -2106,6 +2106,19 @@ run while waiting.  If a timer function needs to perform an action
 after a certain time has elapsed, it can do this by scheduling a new
 timer.
 
+  If a timer function performs a remote file operation, it can be in
+conflict with an already running remote file operation of the same
+connection.  Such conflicts are detected, and they result in a
+@code{remote-file-error} error (@pxref{Standard Errors}).  This should
+be protected by wrapping the timer function body with
+
+@lisp
+@group
+(ignore-error 'remote-file-error
+  @dots{})
+@end group
+@end lisp
+
   If a timer function calls functions that can change the match data,
 it should save and restore the match data.  @xref{Saving Match Data}.
 

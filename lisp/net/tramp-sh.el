@@ -2871,7 +2871,7 @@ implementation will be used."
 	  (unless (or (null sentinel) (functionp sentinel))
 	    (signal 'wrong-type-argument (list #'functionp sentinel)))
 	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
-	    (signal 'wrong-type-argument (list #'stringp stderr)))
+	    (signal 'wrong-type-argument (list #'bufferp stderr)))
 	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
 		     (not (tramp-equal-remote default-directory stderr)))
 	    (signal 'file-error (list "Wrong stderr" stderr)))
@@ -2985,7 +2985,11 @@ implementation will be used."
 		      ;; `verify-visited-file-modtime'.
 		      (let ((buffer-undo-list t)
 			    (inhibit-read-only t)
-			    (mark (point-max)))
+			    (mark (point-max))
+			    (coding-system-for-write
+			     (if (symbolp coding) coding (car coding)))
+			    (coding-system-for-read
+			     (if (symbolp coding) coding (cdr coding))))
 			(clear-visited-file-modtime)
 			(narrow-to-region (point-max) (point-max))
 			;; We call `tramp-maybe-open-connection', in
@@ -6138,5 +6142,10 @@ function cell is returned to be applied on a buffer."
 ;;   screen, or tmux, or mosh.
 ;;
 ;; * Implement `:stderr' of `make-process' as pipe process.
+
+;; * One interesting solution (with other applications as well) would
+;;   be to stipulate, as a directory or connection-local variable, an
+;;   additional rc file on the remote machine that is sourced every
+;;   time Tramp connects.  <https://emacs.stackexchange.com/questions/62306>
 
 ;;; tramp-sh.el ends here

@@ -3788,7 +3788,7 @@ It does not support `:stderr'."
 	(unless (or (null sentinel) (functionp sentinel))
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
 	(unless (or (null stderr) (bufferp stderr))
-	  (signal 'wrong-type-argument (list #'stringp stderr)))
+	  (signal 'wrong-type-argument (list #'bufferp stderr)))
 
 	(let* ((buffer
 		(if buffer
