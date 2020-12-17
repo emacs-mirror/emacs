@@ -949,10 +949,10 @@ init-file, or to a default value if loading is not possible."
 
               (when (and (eq user-init-file t) alternate-filename-function)
                 (let ((alt-file (funcall alternate-filename-function)))
-                  (and (equal (file-name-extension alt-file) "el")
-                       (setq alt-file (file-name-sans-extension alt-file)))
 		  (unless init-file-name
 		    (setq init-file-name alt-file))
+                  (and (equal (file-name-extension alt-file) "el")
+                       (setq alt-file (file-name-sans-extension alt-file)))
                   (load alt-file 'noerror 'nomessage)))
 
               ;; If we did not find the user's init file, set
@@ -1382,7 +1382,7 @@ please check its value")
          "~/.emacs")))
      (lambda ()
        (expand-file-name
-        "init"
+        "init.el"
         startup-init-directory))
      (not inhibit-default-init))
 
