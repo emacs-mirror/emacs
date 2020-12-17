@@ -1982,9 +1982,11 @@ TARGET-BB-SYM is the symbol name of the target block."
 
 (defun comp-emit-call-cstr (mvar call-cell cstr)
   "Emit a constraint CSTR for MVAR after CALL-CELL."
-  (let ((next-cell (cdr call-cell))
-        (new-cell `((assume ,(make-comp-mvar :slot (comp-mvar-slot mvar))
-                            (and ,mvar ,cstr)))))
+  (let* ((next-cell (cdr call-cell))
+         (new-mvar (make-comp-mvar :slot (comp-mvar-slot mvar)))
+         ;; Have new-mvar as LHS *and* RHS to ensure monotonicity and
+         ;; fwprop convergence!!
+         (new-cell `((assume ,new-mvar (and ,new-mvar ,mvar ,cstr)))))
     (setf (cdr call-cell) new-cell
           (cdr new-cell) next-cell
           (comp-func-ssa-status comp-func) 'dirty)))
@@ -2568,9 +2570,14 @@ Return t if something was changed."
                (let ((comp-func f))
                  (comp-fwprop-prologue)
                  (cl-loop
-                  for i from 1
+                  for i from 1 to 100
                   while (comp-fwprop*)
-                  finally (comp-log (format "Propagation run %d times\n" i) 2))
+                  finally
+                  (when (= i 100)
+                    (display-warning
+                     'comp
+                     (format "fwprop pass jammed into %s?" (comp-func-name f))))
+                  (comp-log (format "Propagation run %d times\n" i) 2))
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
