@@ -598,6 +598,15 @@ DST is returned."
                   (valset dst) (valset neg)
                   (range dst) (range neg)
                   (neg dst) t)
+
+            ;; (not t) => nil
+            (when (and (null (valset dst))
+                       (null (range dst))
+                       (neg dst)
+                       (equal '(t) (typeset dst)))
+              (setf (typeset dst) ()
+                    (neg dst) nil))
+
             (cl-return-from comp-cstr-intersection-no-mem dst))
 
           (when (cl-some

@@ -195,7 +195,11 @@
     ;; 77
     ((and (or symbol string) (or number marker)) . nil)
     ;; 78
-    ((and t t) . t))
+    ((and t t) . t)
+    ;; 80
+    ((and (or marker number) (integer 0 0)) . (integer 0 0))
+    ;; 81
+    ((and t (not t)) . nil))
   "Alist type specifier -> expected type specifier.")
 
 (defmacro comp-cstr-synthesize-tests ()
