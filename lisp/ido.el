@@ -2367,7 +2367,16 @@ If cursor is not at the end of the user input, move to end of input."
 	      (read-file-name-function nil))
 	  (setq this-command (or ido-fallback fallback 'find-file))
 	  (run-hook-with-args 'ido-before-fallback-functions this-command)
-	  (call-interactively this-command)))
+          (if (eq this-command 'write-file)
+              (write-file (read-file-name
+                           "Write file: "
+                           default-directory
+                           (and buffer-file-name
+                                (expand-file-name
+                                 (file-name-nondirectory buffer-file-name)
+                                 default-directory)))
+                          t)
+	    (call-interactively this-command))))
 
        ((eq ido-exit 'switch-to-buffer)
 	(ido-buffer-internal
