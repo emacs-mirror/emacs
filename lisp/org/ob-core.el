@@ -2995,7 +2995,7 @@ situations in which is it not appropriate."
   "If STRING represents a number return its value.
 Otherwise return nil."
   (unless (or (string-match-p "\\s-" (org-trim string))
-	      (not (string-match-p "^[0-9-e.+ ]+$" string)))
+	      (not (string-match-p "^[0-9e.+ -]+$" string)))
     (let ((interned-string (ignore-errors (read string))))
       (when (numberp interned-string)
 	interned-string))))
