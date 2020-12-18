@@ -4100,7 +4100,6 @@ activations need to be changed, such as when `package-load-list' is modified."
       (insert "
 ;; Local\sVariables:
 ;; version-control: never
-;;\sno-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:
 "))
