@@ -474,12 +474,17 @@ DST is returned."
                     (cl-nset-difference (valset neg) (valset pos)))))
 
             ;; Range propagation
-            (setf (range neg)
-                  (when range
-                    (comp-range-negation
-                     (comp-range-union
-                      (comp-range-negation (range neg))
-                      (range pos)))))
+            (when range
+              ;; Handle apart (or (integer 1 1) (not (integer 1 1)))
+              ;; like cases.
+              (if (and (range pos) (range neg)
+                       (equal (range pos) (range neg)))
+                  (give-up)
+                (setf (range neg)
+                      (comp-range-negation
+                       (comp-range-union
+                        (comp-range-negation (range neg))
+                        (range pos))))))
 
             (if (comp-cstr-empty-p neg)
                 (setf (typeset dst) (typeset pos)
