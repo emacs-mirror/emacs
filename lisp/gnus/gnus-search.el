@@ -1071,7 +1071,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (and (string-match "\\`[[:word:]]+" q-string)
+      (unless (and (string-match "\\`[^ [:blank:]]+" q-string)
 		   (memql (intern-soft (downcase
 					(match-string 0 q-string)))
 			  gnus-search-imap-search-keys))
