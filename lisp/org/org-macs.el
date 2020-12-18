@@ -461,9 +461,15 @@ is selected, only the bare key is returned."
 		;; Display UI and let user select an entry or
 		;; a sub-level prefix.
 		(goto-char (point-min))
-		(unless (pos-visible-in-window-p (point-max))
-		  (org-fit-window-to-buffer))
+		(setq header-line-format nil)
+		(org-fit-window-to-buffer)
+		(unless (pos-visible-in-window-p (1- (point-max)))
+		  (setq header-line-format "Use C-n, C-p or C-v to navigate.")
+		  (setq allowed-keys (append allowed-keys '("\C-n" "\C-p" "\C-v"))))
 		(let ((pressed (org--mks-read-key allowed-keys prompt)))
+		  (while (and (member pressed '("\C-n" "\C-p" "\C-v")))
+		    (org-scroll (string-to-char pressed))
+		    (setq pressed (org--mks-read-key allowed-keys prompt)))
 		  (setq current (concat current pressed))
 		  (cond
 		   ((equal pressed "\C-g") (user-error "Abort"))
