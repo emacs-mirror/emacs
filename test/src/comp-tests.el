@@ -401,6 +401,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 <https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01771.html>"
   (should (string= " ➊" (comp-test-45342-f 1))))
 
+(comp-deftest assume-double-neg ()
+  "In fwprop assumtions (not (not (member x))) /= (member x)."
+  (should-not (comp-test-assume-double-neg-f "bar" "foo")))
+
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
   "Test effectiveness of primitive advicing."

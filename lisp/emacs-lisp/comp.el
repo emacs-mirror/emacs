@@ -2530,7 +2530,9 @@ Fold the call in case."
        (and
         (apply #'comp-cstr-intersection lval operands))
        (not
-        (comp-cstr-negation lval (car operands)))))
+        ;; Prevent double negation!
+        (unless (comp-cstr-neg (car operands))
+          (comp-cstr-negation lval (car operands))))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
