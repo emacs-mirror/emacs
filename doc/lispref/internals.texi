@@ -625,7 +625,7 @@ All the data here is approximate, because there's really no consistent
 way to compute the size of a variable.  For instance, two variables
 may share parts of a data structure, and this will be counted twice,
 but this command may still give a useful high-level overview of which
-parts of Emacs is using memory.
+parts of Emacs are using memory.
 @end defun
 
 @node Stack-allocated Objects
