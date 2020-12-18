@@ -418,40 +418,40 @@ region is invalid."
         (let ((line (min (max line 1)
                          (line-number-at-pos (point-max) 'absolute))))
           (save-excursion
-            (goto-char (point-min))
-            (forward-line (1- line))
-            (cl-flet ((fallback-bol
-                       ()
-                       (back-to-indentation)
-                       (if (eobp)
-                           (line-beginning-position 0)
-                         (point)))
-                      (fallback-eol
-                       (beg)
-                       (progn
-                         (end-of-line)
-                         (skip-chars-backward " \t\f\n" beg)
-                         (if (eq (point) beg)
-                             (line-beginning-position 2)
-                           (point)))))
-              (if (and col (cl-plusp col))
-                  (let* ((beg (progn (forward-char (1- col))
-                                     (point)))
-                         (sexp-end (or (ignore-errors (end-of-thing 'sexp))
-                                       (save-match-data
-                                         (ignore-errors (end-of-thing 'symbol)))))
-                         (end (or (and sexp-end
-                                       (not (= sexp-end beg))
-                                       sexp-end)
-                                  (and (< (goto-char (1+ beg)) (point-max))
-                                       (point)))))
-                    (if end
-                        (cons beg end)
-                      (cons (setq beg (fallback-bol))
-                            (fallback-eol beg))))
-                (let* ((beg (fallback-bol))
-                       (end (fallback-eol beg)))
-                  (cons beg end)))))))
+            (save-match-data
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (cl-flet ((fallback-bol
+                         ()
+                         (back-to-indentation)
+                         (if (eobp)
+                             (line-beginning-position 0)
+                           (point)))
+                        (fallback-eol
+                         (beg)
+                         (progn
+                           (end-of-line)
+                           (skip-chars-backward " \t\f\n" beg)
+                           (if (eq (point) beg)
+                               (line-beginning-position 2)
+                             (point)))))
+                (if (and col (cl-plusp col))
+                    (let* ((beg (progn (forward-char (1- col))
+                                       (point)))
+                           (sexp-end (or (ignore-errors (end-of-thing 'sexp))
+                                         (ignore-errors (end-of-thing 'symbol))))
+                           (end (or (and sexp-end
+                                         (not (= sexp-end beg))
+                                         sexp-end)
+                                    (and (< (goto-char (1+ beg)) (point-max))
+                                         (point)))))
+                      (if end
+                          (cons beg end)
+                        (cons (setq beg (fallback-bol))
+                              (fallback-eol beg))))
+                  (let* ((beg (fallback-bol))
+                         (end (fallback-eol beg)))
+                    (cons beg end))))))))
     (error (flymake-log :warning "Invalid region line=%s col=%s" line col)
            nil)))
 
