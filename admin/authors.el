@@ -467,7 +467,12 @@ Changes to files matching one of the regexps in this list are not listed.")
     "notes/font-backend"
     ;; ada-mode has been deleted, now in GNU ELPA
     "ada-mode.texi"
+    "doc/misc/ada-mode.texi"
+    "lisp/progmodes/ada-mode.el"
+    "lisp/progmodes/ada-prj.el"
+    "lisp/progmodes/ada-xref.el"
     "GNUS-NEWS"
+    "etc/GNUS-NEWS"
     "doc/misc/gnus-news.el"
     "src/fingerprint-dummy.c"
     "src/fingerprint.h"
@@ -875,6 +880,7 @@ Changes to files in this list are not listed.")
     "lisp/obsolete/spell.el"
     "lisp/obsolete/swedish.el"
     "lisp/obsolete/sym-comp.el"
+    "obsolete/sym-comp.el"
     "library-of-babel.org"
     "flymake-elisp.el"
     "flymake-ui.el"
@@ -994,7 +1000,8 @@ in the repository.")
     ("nxml/test.invalid.xml" . "test-invalid.xml")
     ("nxml/test.valid.xml" . "test-valid.xml")
     ("automated/Makefile.in" . "test/Makefile.in")
-    ("test/rmailmm.el" . "rmailmm.el")
+    ("test/rmailmm.el" . "test/manual/rmailmm.el")
+    ("rmailmm.el" . "test/manual/rmailmm.el")
     ;; The one in lisp is eshell/eshell.el.
     ("eshell.el" . "eshell-tests.el")
     ("automated/eshell.el" . "eshell-tests.el")
@@ -1118,8 +1125,11 @@ in the repository.")
     ("lisp/net/starttls.el" . "lisp/obsolete/starttls.el")
     ("url-ns.el" . "lisp/obsolete/url-ns.el")
     ("gnus-news.texi" . "doc/misc/gnus.texi")
-    ("lisp/multifile.el". "lisp/fileloop.el")
-    ("lisp/emacs-lisp/thread.el". "lisp/thread.el")
+    ("lisp/multifile.el" . "lisp/fileloop.el")
+    ("lisp/emacs-lisp/thread.el" . "lisp/thread.el")
+    ("lisp/emacs-lisp/cl.el" . "lisp/emacs-lisp/cl-lib.el")
+    ("lisp/progmodes/mantemp.el" . "lisp/obsolete/mantemp.el")
+    ("sysdep.c" . "src/sysdep.c")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
@@ -1593,7 +1603,7 @@ and a buffer *Authors Errors* containing references to unknown files."
       ;; the versioned ChangeLog.N rather than the unversioned ChangeLog.
       (zerop (call-process "make" nil nil nil
                            "-C" root "change-history-nocommit"))
-      (error "Problem updating ChangeLog"))
+      (error "Problem updating ChangeLog, try \"C-u M-x authors RET\""))
   (let ((logs (process-lines find-program root "-name" "ChangeLog*"))
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*")
