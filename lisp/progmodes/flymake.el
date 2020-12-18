@@ -412,7 +412,7 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
 (defun flymake-diag-region (buffer line &optional col)
   "Compute BUFFER's region (BEG . END) corresponding to LINE and COL.
 If COL is nil, return a region just for LINE.  Return nil if the
-region is invalid."
+region is invalid.  This function saves match data."
   (condition-case-unless-debug _err
       (with-current-buffer buffer
         (let ((line (min (max line 1)
