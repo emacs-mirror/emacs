@@ -554,19 +554,19 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 
 ;; Highlighting
 (defcustom ediff-before-flag-bol "->>"
-  "Flag placed before a highlighted block of differences, if block starts at beginning of a line."
+  "Flag placed before highlighted block of differences at beginning of a line."
   :type 'string
   :tag  "Region before-flag at beginning of line"
   :group 'ediff)
 
 (defcustom ediff-after-flag-eol "<<-"
-  "Flag placed after a highlighted block of differences, if block ends at end of a line."
+  "Flag placed after highlighted block of differences that ends at end of line."
   :type 'string
   :tag  "Region after-flag at end of line"
   :group 'ediff)
 
 (defcustom ediff-before-flag-mol "->>"
-  "Flag placed before a highlighted block of differences, if block starts in mid-line."
+  "Flag placed before highlighted block of differences that starts mid-line."
   :type 'string
   :tag  "Region before-flag in the middle of line"
   :group 'ediff)

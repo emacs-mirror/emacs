@@ -622,7 +622,7 @@ to arrange for the message to get a From: line."
 
 
 (defcustom feedmail-sendmail-f-doesnt-sell-me-out nil
-  "Says whether the sendmail program issues a warning header if called with \"-f\".
+  "Whether sendmail should issue a warning header if called with \"-f\".
 The sendmail program has a useful feature to let you set the envelope FROM
 address via a command line option, \"-f\".  Unfortunately, it also has a widely
 disliked default behavior of selling you out if you do that by inserting

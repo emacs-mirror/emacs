@@ -1545,7 +1545,7 @@ Use with caution.")
    ("\\(^\\|:\\)soc.culture.vietnamese\\>" vietnamese-viqr)
    ("\\(^\\|:\\)\\(comp\\|rec\\|alt\\|sci\\|soc\\|news\\|gnu\\|bofh\\)\\>" iso-8859-1))
  :variable-document
- "Alist of regexps (to match group names) and default charsets to be used when reading."
+ "Alist of regexps (to match group names) and charsets to be used when reading."
  :variable-group gnus-charset
  :variable-type '(repeat (list (regexp :tag "Group")
 			       (symbol :tag "Charset")))
