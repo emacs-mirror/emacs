@@ -102,6 +102,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_rvalue_get_type
 #undef gcc_jit_struct_as_type
 #undef gcc_jit_struct_set_fields
+#undef gcc_jit_type_get_const
 #undef gcc_jit_type_get_pointer
 #undef gcc_jit_version_major
 #undef gcc_jit_version_minor
@@ -208,6 +209,7 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_new_union_type,
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_rvalue_get_type, (gcc_jit_rvalue *rvalue));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
             (gcc_jit_struct *struct_type));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_const, (gcc_jit_type *type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
@@ -308,6 +310,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_rvalue_get_type);
   LOAD_DLL_FN (library, gcc_jit_struct_as_type);
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
+  LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
