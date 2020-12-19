@@ -2017,21 +2017,24 @@ TARGET-BB-SYM is the symbol name of the target block."
                  (pcase insn
                    (`(set ,lhs (,(pred comp-call-op-p) ,f . ,args))
                     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
-                      (cl-values cstr-f lhs args)))
+                      (cl-values f cstr-f lhs args)))
                    (`(,(pred comp-call-op-p) ,f . ,args)
                     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
-                      (cl-values cstr-f nil args))))))
-       (cl-multiple-value-bind (cstr-f lhs args) match
+                      (cl-values f cstr-f nil args))))))
+       (cl-multiple-value-bind (f cstr-f lhs args) match
          (cl-loop
+          with gen = (comp-lambda-list-gen (comp-cstr-f-args cstr-f))
           for arg in args
-          for gen = (comp-lambda-list-gen (comp-cstr-f-args cstr-f))
           for cstr = (funcall gen)
           for target = (comp-cond-cstrs-target-mvar arg insn bb)
+          unless (comp-cstr-p cstr)
+            do (signal 'native-ice
+                       (list "Incoherent type specifier for function" f))
           when (and target
                     (or (null lhs)
                         (not (eql (comp-mvar-slot lhs)
                                   (comp-mvar-slot target)))))
-          do (comp-emit-call-cstr target insn-cell cstr)))))))
+            do (comp-emit-call-cstr target insn-cell cstr)))))))
 
 (defun comp-add-cstrs (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.

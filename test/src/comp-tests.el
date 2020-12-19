@@ -405,6 +405,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "In fwprop assumtions (not (not (member x))) /= (member x)."
   (should-not (comp-test-assume-double-neg-f "bar" "foo")))
 
+(comp-deftest assume-in-loop-1 ()
+  "Broken call args assumptions lead to infinite loop."
+  (should (equal (comp-test-assume-in-loop-1-f "cd") '("cd"))))
+
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
   "Test effectiveness of primitive advicing."
