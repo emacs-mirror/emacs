@@ -631,6 +631,7 @@ DIRS must contain directory names."
     (define-key map "g" 'project-find-regexp)
     (define-key map "G" 'project-or-external-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
+    (define-key map "x" 'project-execute-extended-command)
     map)
   "Keymap for project commands.")
 
@@ -1245,6 +1246,14 @@ It's also possible to enter an arbitrary directory not in the list."
   "Return the list of root directories of all known projects."
   (project--ensure-read-project-list)
   (mapcar #'car project--list))
+
+;;;###autoload
+(defun project-execute-extended-command ()
+  "Execute an extended command in project root."
+  (declare (interactive-only command-execute))
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    (call-interactively #'execute-extended-command)))
 
 
 ;;; Project switching
