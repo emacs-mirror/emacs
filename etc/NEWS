@@ -1481,6 +1481,10 @@ completions with more information in completion prefix and suffix.
 This new option allows the user to customize how case is converted
 when unifying entries.
 
+---
+*** The user option `bibtex-maintain-sorted-entries' now permits
+user-defined sorting schemes.
+
 +++
 *** 'format-seconds' can now be used for sub-second times.
 The new optional "," parameter has been added, and
