@@ -1992,12 +1992,12 @@ w32_draw_image_foreground (struct glyph_string *s)
 }
 
 size_t
-w32_image_size (struct image *img)
+w32_image_size (Emacs_Pixmap pixmap)
 {
   BITMAP bm_info;
   size_t rv = 0;
 
-  if (GetObject (img->pixmap, sizeof (BITMAP), &bm_info))
+  if (GetObject (pixmap, sizeof (BITMAP), &bm_info))
     rv = bm_info.bmWidth * bm_info.bmHeight * bm_info.bmBitsPixel / 8;
   return rv;
 }

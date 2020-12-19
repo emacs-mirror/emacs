@@ -1793,37 +1793,61 @@ which is then usually a filename.  */)
 }
 
 static size_t
+image_size_in_bytes (struct image *img)
+{
+  size_t size = 0;
+
+#if defined USE_CAIRO
+  Emacs_Pixmap pm = img->pixmap;
+  if (pm)
+    size += pm->height * pm->bytes_per_line;
+  Emacs_Pixmap msk = img->mask;
+  if (msk)
+    size += msk->height * msk->bytes_per_line;
+
+#elif defined HAVE_X_WINDOWS
+  /* Use a nominal depth of 24 bpp for pixmap and 1 bpp for mask,
+     to avoid having to query the server. */
+  if (img->pixmap != NO_PIXMAP)
+    size += img->width * img->height * 3;
+  if (img->mask != NO_PIXMAP)
+    size += img->width * img->height / 8;
+
+  if (img->ximg && img->ximg->data)
+    size += img->ximg->bytes_per_line * img->ximg->height;
+  if (img->mask_img && img->mask_img->data)
+    size += img->mask_img->bytes_per_line * img->mask_img->height;
+
+#elif defined HAVE_NS
+  if (img->pixmap)
+    size += ns_image_size_in_bytes (img->pixmap);
+  if (img->mask)
+    size += ns_image_size_in_bytes (img->mask);
+
+#elif defined HAVE_NTGUI
+  if (img->pixmap)
+    size += w32_image_size (img->pixmap);
+  if (img->mask)
+    size += w32_image_size (img->mask);
+
+#endif
+
+  return size;
+}
+
+static size_t
 image_frame_cache_size (struct frame *f)
 {
+  struct image_cache *c = FRAME_IMAGE_CACHE (f);
+  if (!c)
+    return 0;
+
   size_t total = 0;
-#if defined USE_CAIRO
-  struct image_cache *c = FRAME_IMAGE_CACHE (f);
-
-  if (!c)
-    return 0;
-
   for (ptrdiff_t i = 0; i < c->used; ++i)
     {
       struct image *img = c->images[i];
-
-      if (img && img->pixmap && img->pixmap != NO_PIXMAP)
-	total += img->pixmap->width * img->pixmap->height  *
-	  img->pixmap->bits_per_pixel / 8;
+      total += img ? image_size_in_bytes (img) : 0;
     }
-#elif defined HAVE_NTGUI
-  struct image_cache *c = FRAME_IMAGE_CACHE (f);
-
-  if (!c)
-    return 0;
-
-  for (ptrdiff_t i = 0; i < c->used; ++i)
-    {
-      struct image *img = c->images[i];
-
-      if (img && img->pixmap && img->pixmap != NO_PIXMAP)
-	total += w32_image_size (img);
-    }
-#endif
   return total;
 }
 
