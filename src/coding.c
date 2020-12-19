@@ -7821,7 +7821,7 @@ encode_coding (struct coding_system *coding)
 
 /* A string that serves as name of the reusable work buffer, and as base
    name of temporary work buffers used for code-conversion operations.  */
-Lisp_Object Vcode_conversion_workbuf_name;
+static Lisp_Object Vcode_conversion_workbuf_name;
 
 /* The reusable working buffer, created once and never killed.  */
 static Lisp_Object Vcode_conversion_reused_workbuf;
@@ -7839,7 +7839,7 @@ code_conversion_restore (Lisp_Object arg)
   if (! NILP (workbuf))
     {
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
-	reused_workbuf_in_use = 0;
+	reused_workbuf_in_use = false;
       else
 	Fkill_buffer (workbuf);
     }
@@ -7857,13 +7857,13 @@ code_conversion_save (bool with_work_buf, bool multibyte)
 	{
 	  Lisp_Object name
 	    = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
-	  workbuf = Fget_buffer_create (name);
+	  workbuf = Fget_buffer_create (name, Qt);
 	}
       else
 	{
 	  if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
 	    Vcode_conversion_reused_workbuf
-	      = Fget_buffer_create (Vcode_conversion_workbuf_name);
+	      = Fget_buffer_create (Vcode_conversion_workbuf_name, Qt);
 	  workbuf = Vcode_conversion_reused_workbuf;
 	}
     }
@@ -7881,7 +7881,7 @@ code_conversion_save (bool with_work_buf, bool multibyte)
       bset_undo_list (current_buffer, Qt);
       bset_enable_multibyte_characters (current_buffer, multibyte ? Qt : Qnil);
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
-	reused_workbuf_in_use = 1;
+	reused_workbuf_in_use = true;
       set_buffer_internal (current);
     }
 
@@ -11639,7 +11639,7 @@ syms_of_coding (void)
   staticpro (&Vcode_conversion_workbuf_name);
   Vcode_conversion_workbuf_name = build_pure_c_string (" *code-conversion-work*");
 
-  reused_workbuf_in_use = 0;
+  reused_workbuf_in_use = false;
   PDUMPER_REMEMBER_SCALAR (reused_workbuf_in_use);
 
   DEFSYM (Qcharset, "charset");

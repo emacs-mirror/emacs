@@ -1731,7 +1731,7 @@ usage: (make-process &rest ARGS)  */)
 
   buffer = Fplist_get (contact, QCbuffer);
   if (!NILP (buffer))
-    buffer = Fget_buffer_create (buffer);
+    buffer = Fget_buffer_create (buffer, Qnil);
 
   /* Make sure that the child will be able to chdir to the current
      buffer's current directory, or its unhandled equivalent.  We
@@ -1768,7 +1768,7 @@ usage: (make-process &rest ARGS)  */)
 			  QCname,
 			  concat2 (name, build_string (" stderr")),
 			  QCbuffer,
-			  Fget_buffer_create (xstderr),
+			  Fget_buffer_create (xstderr, Qnil),
 			  QCnoquery,
 			  query_on_exit ? Qnil : Qt);
     }
@@ -2443,7 +2443,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
   buffer = Fplist_get (contact, QCbuffer);
   if (NILP (buffer))
     buffer = name;
-  buffer = Fget_buffer_create (buffer);
+  buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
@@ -3173,7 +3173,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   buffer = Fplist_get (contact, QCbuffer);
   if (NILP (buffer))
     buffer = name;
-  buffer = Fget_buffer_create (buffer);
+  buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
@@ -4188,7 +4188,7 @@ usage: (make-network-process &rest ARGS)  */)
  open_socket:
 
   if (!NILP (buffer))
-    buffer = Fget_buffer_create (buffer);
+    buffer = Fget_buffer_create (buffer, Qnil);
 
   /* Unwind bind_polling_period.  */
   unbind_to (count, Qnil);
@@ -4961,7 +4961,7 @@ server_accept_connection (Lisp_Object server, int channel)
       if (!NILP (buffer))
 	{
 	  args[1] = buffer;
-	  buffer = Fget_buffer_create (Fformat (nargs, args));
+	  buffer = Fget_buffer_create (Fformat (nargs, args), Qnil);
 	}
     }
 

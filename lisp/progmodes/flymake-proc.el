@@ -431,16 +431,15 @@ instead of reading master file from disk."
 
 (defun flymake-proc--read-file-to-temp-buffer (file-name)
   "Insert contents of FILE-NAME into newly created temp buffer."
-  (let* ((temp-buffer (get-buffer-create (generate-new-buffer-name (concat "flymake:" (file-name-nondirectory file-name))))))
-    (with-current-buffer temp-buffer
-      (insert-file-contents file-name))
-    temp-buffer))
+  (with-current-buffer (generate-new-buffer
+                        (concat "flymake:" (file-name-nondirectory file-name)))
+    (insert-file-contents file-name)
+    (current-buffer)))
 
 (defun flymake-proc--copy-buffer-to-temp-buffer (buffer)
   "Copy contents of BUFFER into newly created temp buffer."
-  (with-current-buffer
-      (get-buffer-create (generate-new-buffer-name
-                          (concat "flymake:" (buffer-name buffer))))
+  (with-current-buffer (generate-new-buffer
+                        (concat "flymake:" (buffer-name buffer)))
     (insert-buffer-substring buffer)
     (current-buffer)))
 

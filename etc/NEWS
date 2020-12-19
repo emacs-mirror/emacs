@@ -1821,6 +1821,13 @@ modifies the string's text properties; instead, it uses and returns
 a copy of the string.  This helps avoid trouble when strings are
 shared or constants.
 
++++
+** Temporary buffers no longer run certain buffer hooks.
+The macros 'with-temp-buffer' and 'with-temp-file' no longer run the
+hooks 'kill-buffer-hook', 'kill-buffer-query-functions', and
+'buffer-list-update-hook' for the temporary buffers they create.  This
+avoids slowing them down when a lot of these hooks are defined.
+
 ---
 ** The obsolete function 'thread-alive-p' has been removed.
 
@@ -2176,6 +2183,15 @@ Until it is solved you could ignore such errors by performing
     (setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
 
 ** The error 'ftp-error' belongs also to category 'remote-file-error'.
+
++++
+** Buffers can now be created with certain hooks disabled.
+The functions 'get-buffer-create' and 'generate-new-buffer' accept a
+new optional argument 'inhibit-buffer-hooks'.  If non-nil, the new
+buffer does not run the hooks 'kill-buffer-hook',
+'kill-buffer-query-functions', and 'buffer-list-update-hook'.  This
+avoids slowing down internal or temporary buffers that are never
+presented to users or passed on to other applications.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

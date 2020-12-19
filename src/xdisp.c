@@ -10880,7 +10880,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       /* Ensure the Messages buffer exists, and switch to it.
          If we created it, set the major-mode.  */
       bool newbuffer = NILP (Fget_buffer (Vmessages_buffer_name));
-      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
+      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name, Qnil));
       if (newbuffer
 	  && !NILP (Ffboundp (intern ("messages-buffer-mode"))))
 	call0 (intern ("messages-buffer-mode"));
@@ -11366,7 +11366,7 @@ ensure_echo_area_buffers (void)
 	static char const name_fmt[] = " *Echo Area %d*";
 	char name[sizeof name_fmt + INT_STRLEN_BOUND (int)];
 	AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, i));
-	echo_buffer[i] = Fget_buffer_create (lname);
+	echo_buffer[i] = Fget_buffer_create (lname, Qnil);
 	bset_truncate_lines (XBUFFER (echo_buffer[i]), Qnil);
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/

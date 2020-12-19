@@ -4307,8 +4307,7 @@ characters."
 (defun shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string."
   (with-output-to-string
-    (with-current-buffer
-      standard-output
+    (with-current-buffer standard-output
       (shell-command command t))))
 
 (defun process-file (program &optional infile buffer display &rest args)

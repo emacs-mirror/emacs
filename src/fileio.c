@@ -4004,7 +4004,7 @@ by calling `format-decode', which see.  */)
 
 		  record_unwind_current_buffer ();
 
-		  workbuf = Fget_buffer_create (name);
+		  workbuf = Fget_buffer_create (name, Qt);
 		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
