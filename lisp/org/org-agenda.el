@@ -7558,7 +7558,8 @@ With a prefix argument, do so in all agenda buffers."
   "Filter lines in the agenda buffer that have a specific category.
 The category is that of the current line.
 With a `\\[universal-argument]' prefix argument, exclude the lines of that category.
-When there is already a category filter in place, this command removes the filter."
+When there is already a category filter in place, this command removes the
+filter."
   (interactive "P")
   (if (and org-agenda-filtered-by-category
 	   org-agenda-category-filter)

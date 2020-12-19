@@ -2405,8 +2405,9 @@ as if they had been supplied to a function with TARGET-ARGLIST directly.
 Excess source arguments will be neglected, missing source arguments will be
 supplied as nil.  Returns a `funcall' or `apply' form with the second element
 being `function' which has to be replaced by an actual function argument.
-Example: (ad-map-arglists \\='(a &rest args) \\='(w x y z)) will return
-         (funcall ad--addoit-function a (car args) (car (cdr args)) (nth 2 args))."
+Example:
+   (ad-map-arglists \\='(a &rest args) \\='(w x y z)) will return
+   (funcall ad--addoit-function a (car args) (car (cdr args)) (nth 2 args))."
   (let* ((parsed-source-arglist (ad-parse-arglist source-arglist))
 	 (source-reqopt-args (append (nth 0 parsed-source-arglist)
 				     (nth 1 parsed-source-arglist)))

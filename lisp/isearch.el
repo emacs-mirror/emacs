@@ -1603,7 +1603,8 @@ If this is set inside code wrapped by the macro
   "Exit Isearch mode, run BODY, and reinvoke the pending search.
 You can update the global isearch variables by setting new values to
 `isearch-new-string', `isearch-new-message', `isearch-new-forward',
-`isearch-new-regexp-function', `isearch-new-case-fold', `isearch-new-nonincremental'."
+`isearch-new-regexp-function', `isearch-new-case-fold',
+`isearch-new-nonincremental'."
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
   ;; If there were a way to catch any change of buffer from the minibuffer,
