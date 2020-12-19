@@ -182,7 +182,7 @@ attachment folders based on ID."
   :type '(repeat (function :tag "Function with ID as input")))
 
 (defvar org-attach-after-change-hook nil
-  "Hook to be called when files have been added or removed to the attachment folder.")
+  "Hook called when files have been added or removed to the attachment folder.")
 
 (defvar org-attach-open-hook nil
   "Hook that is invoked by `org-attach-open'.

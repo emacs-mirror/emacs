@@ -361,7 +361,7 @@ Each member of this list is a list with three members:
             )
     }
 }(object=%s,transfer.file=\"%s\")"
-  "A template for an R command to evaluate a block of code and write the result to a file.
+  "Template for an R command to evaluate a block of code and write result to file.
 
 Has four %s escapes to be filled in:
 1. Row names, \"TRUE\" or \"FALSE\"

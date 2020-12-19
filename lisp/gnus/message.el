@@ -1200,7 +1200,8 @@ use in `gnus-posting-styles', such as:
     (message-yank-cited-prefix  ">")
     (message-yank-empty-prefix  ">")
     (message-citation-line-format "On %D %R %p, %N wrote:"))
-  "Message citation style used by Mozilla Thunderbird.  Use with `message-cite-style'.")
+  "Message citation style used by Mozilla Thunderbird.
+Use with `message-cite-style'.")
 
 (defconst message-cite-style-gmail
   '((message-cite-function  'message-cite-original)

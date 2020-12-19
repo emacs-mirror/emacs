@@ -4112,7 +4112,8 @@ groups carry important information:
   "Regular expression to match a timestamp time or time range.
 After a match, the following groups carry important information:
 0  the full match
-1  date plus weekday, for back referencing to make sure both times are on the same day
+1  date plus weekday, for back referencing to make sure
+     both times are on the same day
 2  the first time, range or not
 4  the second time, if it is a range.")
 

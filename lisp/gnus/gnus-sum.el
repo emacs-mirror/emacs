@@ -1400,7 +1400,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-thread-indent-array nil)
 (defvar gnus-thread-indent-array-level gnus-thread-indent-level)
 (defvar gnus-sort-gathered-threads-function #'gnus-thread-sort-by-number
-  "Function called to sort the articles within a thread after it has been gathered together.")
+  "Function to sort articles within a thread after it has been gathered together.")
 
 (defvar gnus-summary-save-parts-type-history nil)
 (defvar gnus-summary-save-parts-last-directory mm-default-directory)
@@ -1526,7 +1526,7 @@ the type of the variable (string, integer, character, etc).")
   "Default shell command on article.")
 
 (defvar gnus-newsgroup-agentized nil
-  "Locally bound in each summary buffer to indicate whether the server has been agentized.")
+  "Locally bound in each summary buffer to indicate if server has been agentized.")
 (defvar gnus-newsgroup-begin nil)
 (defvar gnus-newsgroup-end nil)
 (defvar gnus-newsgroup-last-rmail nil)
@@ -1556,7 +1556,7 @@ the type of the variable (string, integer, character, etc).")
 (defvar gnus-newsgroup-expunged-tally nil)
 
 (defvar gnus-newsgroup-marked nil
-  "Sorted list of ticked articles in the current newsgroup (a subset of unread art).")
+  "Sorted list of ticked articles in current newsgroup (a subset of unread art).")
 
 (defvar gnus-newsgroup-spam-marked nil
   "List of ranges of articles that have been marked as spam.")

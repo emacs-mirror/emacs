@@ -10112,7 +10112,8 @@ variables to build the path."
 ;; A modi is:  [module-name-string file-name begin-point]
 
 (defvar verilog-cache-enabled t
-  "Non-nil enables caching of signals, etc.  Set to nil for debugging to make things SLOW!")
+  "Non-nil enables caching of signals, etc.
+Set to nil for debugging to make things SLOW!")
 
 (defvar verilog-modi-cache-list nil
   "Cache of ((Module Function) Buf-Tick Buf-Modtime Func-Returns)...

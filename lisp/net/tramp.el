@@ -1022,8 +1022,8 @@ See `tramp-file-name-structure'."
    5 6 7 8 1))
 
 (defvar tramp-file-name-structure nil ;Initialized when defining `tramp-syntax'!
-  "List of six elements (REGEXP METHOD USER HOST FILE HOP), detailing \
-the Tramp file name structure.
+  "List detailing the Tramp file name structure.
+This is a list of six elements (REGEXP METHOD USER HOST FILE HOP).
 
 The first element REGEXP is a regular expression matching a Tramp file
 name.  The regex should contain parentheses around the method name,

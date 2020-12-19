@@ -853,10 +853,12 @@ simply by any key input."
   "Timer id for deferred cell update.")
 (defvar table-inhibit-update nil
   "Non-nil inhibits implicit cell and cache updates.
-It inhibits `table-with-cache-buffer' to update data in both direction, cell to cache and cache to cell.")
+It inhibits `table-with-cache-buffer' to update data in both directions,
+cell to cache and cache to cell.")
 (defvar table-inhibit-auto-fill-paragraph nil
   "Non-nil inhibits auto fill paragraph when `table-with-cache-buffer' exits.
-This is always set to nil at the entry to `table-with-cache-buffer' before executing body forms.")
+This is always set to nil at the entry to `table-with-cache-buffer' before
+executing body forms.")
 (defvar table-mode-indicator nil
   "For mode line indicator")
 ;; This is not a real minor-mode but placed in the minor-mode-alist
@@ -957,7 +959,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     (describe-bindings . *table--cell-describe-bindings)
     (dabbrev-expand . *table--cell-dabbrev-expand)
     (dabbrev-completion . *table--cell-dabbrev-completion))
-  "List of cons cells consisting of (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
+  "List of the form (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
 
 (defvar table-command-list
   ;; Construct the real contents of the `table-command-list'.

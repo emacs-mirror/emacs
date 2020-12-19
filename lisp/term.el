@@ -365,8 +365,8 @@ not allowed.")
 (defvar-local term-scroll-end nil
   "Bottom-most line (inclusive) of the scrolling region.
 `term-scroll-end' must be in the range [0,term-height).  In addition, its
-value has to be greater than `term-scroll-start', i.e. one line scroll regions are
-not allowed.")
+value has to be greater than `term-scroll-start', i.e. one line scroll regions
+are not allowed.")
 (defvar term-pager-count nil
   "Number of lines before we need to page; if nil, paging is disabled.")
 (defvar term-saved-cursor nil)
