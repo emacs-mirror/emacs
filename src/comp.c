@@ -4618,11 +4618,11 @@ eln_load_path_final_clean_up (void)
   FOR_EACH_TAIL (dir_tail)
     {
       Lisp_Object files_in_dir =
-	internal_condition_case_4 (Fdirectory_files,
+	internal_condition_case_5 (Fdirectory_files,
 				   concat2 (XCAR (dir_tail),
 					    Vcomp_native_version_dir),
 				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
-				   Qt, return_nil);
+				   Qt, return_nil, Qnil);
       FOR_EACH_TAIL (files_in_dir)
 	Fdelete_file (XCAR (files_in_dir), Qnil);
     }
