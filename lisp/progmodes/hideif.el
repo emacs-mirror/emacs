@@ -153,8 +153,8 @@ The first time we visit such a file, _XXX_HEADER_FILE_INCLUDED_ is
 undefined, and so nothing is hidden.  The next time we visit it, everything will
 be hidden.
 
-This behavior is generally undesirable.  If this option is non-nil, the outermost
-#if is always visible."
+This behavior is generally undesirable.  If this option is non-nil, the
+outermost #if is always visible."
   :type 'boolean
   :version "25.1")
 

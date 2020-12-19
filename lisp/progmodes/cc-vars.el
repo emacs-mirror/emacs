@@ -575,7 +575,8 @@ comment styles:
 
  javadoc -- Javadoc style for \"/** ... */\" comments (default in Java mode).
  autodoc -- Pike autodoc style for \"//! ...\" comments (default in Pike mode).
- gtkdoc  -- GtkDoc style for \"/** ... **/\" comments (default in C and C++ modes).
+ gtkdoc  -- GtkDoc style for \"/** ... **/\" comments
+						   (default in C and C++ modes).
  doxygen -- Doxygen style.
 
 The value may also be a list of doc comment styles, in which case all

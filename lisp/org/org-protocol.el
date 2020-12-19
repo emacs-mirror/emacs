@@ -181,7 +181,8 @@ Possible properties are:
   :working-directory - the local working directory.  This is, what base-url will
                        be replaced with.
   :redirects         - A list of cons cells, each of which maps a regular
-                       expression to match to a path relative to :working-directory.
+                       expression to match to a path relative to
+                       :working-directory.
 
 Example:
 
@@ -202,7 +203,8 @@ Example:
           :working-directory \"~/site/content/post/\"
           :online-suffix \".html\"
           :working-suffix \".md\"
-          :rewrites ((\"\\(https://site.com/[0-9]+/[0-9]+/[0-9]+/\\)\" . \".md\")))
+          :rewrites ((\"\\(https://site.com/[0-9]+/[0-9]+/[0-9]+/\\)\"
+                     . \".md\")))
          (\"GNU emacs OpenGrok\"
           :base-url \"https://opengrok.housegordon.com/source/xref/emacs/\"
           :working-directory \"~/dev/gnu-emacs/\")))

@@ -852,8 +852,10 @@ If `recent', select the most recently visited tab."
   "Defines what to do when the last tab is closed.
 If nil, do nothing and show a message, like closing the last window or frame.
 If `delete-frame', delete the containing frame, as a web browser would do.
-If `tab-bar-mode-disable', disable tab-bar-mode so that tabs no longer show in the frame.
-If the value is a function, call that function with the tab to be closed as an argument."
+If `tab-bar-mode-disable', disable tab-bar-mode so that tabs no longer show in
+the frame.
+If the value is a function, call that function with the tab to be closed as an
+ argument."
   :type '(choice (const    :tag "Do nothing and show message" nil)
                  (const    :tag "Close the containing frame" delete-frame)
                  (const    :tag "Disable tab-bar-mode" tab-bar-mode-disable)
