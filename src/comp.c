@@ -2493,6 +2493,7 @@ emit_maybe_gc_or_quit (Lisp_Object insn)
 
 /* This is in charge of serializing an object and export a function to
    retrieve it at load time.  */
+#pragma GCC diagnostic ignored "-Waddress"
 static void
 emit_static_object (const char *name, Lisp_Object obj)
 {
@@ -2521,9 +2522,7 @@ emit_static_object (const char *name, Lisp_Object obj)
 
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer) \
   || defined (WINDOWSNT)
-#pragma GCC diagnostic ignored "-Waddress"
   if (gcc_jit_global_set_initializer)
-#pragma GCC diagnostic pop
     {
       ptrdiff_t str_size = len + 1;
       ptrdiff_t size = sizeof (static_obj_t) + str_size;
@@ -2682,6 +2681,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   gcc_jit_rvalue *res = gcc_jit_lvalue_get_address (data_struct, NULL);
   gcc_jit_block_end_with_return (block, NULL, res);
 }
+#pragma GCC diagnostic pop
 
 static gcc_jit_rvalue *
 declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
@@ -4363,6 +4363,7 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
+#pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-native-driver-options-effective-p",
        Fcomp_native_driver_options_effective_p,
        Scomp_native_driver_options_effective_p,
@@ -4372,14 +4373,12 @@ DEFUN ("comp-native-driver-options-effective-p",
 {
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
   || defined (WINDOWSNT)
-#pragma GCC diagnostic ignored "-Waddress"
   if (gcc_jit_context_add_driver_option)
     return Qt;
-#pragma GCC diagnostic pop
 #endif
   return Qnil;
 }
-
+#pragma GCC diagnostic pop
 
 static void
 add_driver_options (void)
@@ -4526,6 +4525,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   return filename;
 }
 
+#pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
        Scomp_libgccjit_version, 0, 0, 0,
        doc: /* Return libgccjit version in use.
@@ -4537,19 +4537,16 @@ unknown (before GCC version 10).  */)
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version) || defined (WINDOWSNT)
   load_gccjit_if_necessary (true);
 
-  /* FIXME this kludge is quite bad.  Can we dynamically load on all
-     operating systems?  */
-#pragma GCC diagnostic ignored "-Waddress"
   return gcc_jit_version_major
     ? list3 (make_fixnum (gcc_jit_version_major ()),
 	     make_fixnum (gcc_jit_version_minor ()),
 	     make_fixnum (gcc_jit_version_patchlevel ()))
     : Qnil;
-#pragma GCC diagnostic pop
 #else
   return Qnil;
 #endif
 }
+#pragma GCC diagnostic pop
 
 
 /******************************************************************************/
