@@ -3084,10 +3084,10 @@ libraries; only those already known by Emacs will be loaded.  */);
 #ifdef WINDOWSNT
   /* We may need to load libgccjit when dumping before term/w32-win.el
      defines `dynamic-library-alist`. This will fail if that variable
-     is empty, so add libgccjit.dll to it.  */
+     is empty, so add libgccjit-0.dll to it.  */
   if (will_dump_p ())
     Vdynamic_library_alist = list1 (list2 (Qgccjit,
-                                           build_string ("libgccjit.dll")));
+                                           build_string ("libgccjit-0.dll")));
   else
     Vdynamic_library_alist = Qnil;
 #else
