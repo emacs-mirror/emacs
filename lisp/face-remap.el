@@ -33,7 +33,7 @@
 ;;
 ;;   (face RELATIVE_SPECS_1 RELATIVE_SPECS_2 ... BASE_SPECS)
 ;;
-;; The "specs" values are a lists of face names or face attribute-value
+;; The "specs" values are lists of face names or face attribute-value
 ;; pairs, and are merged together, with earlier values taking precedence.
 ;;
 ;; The RELATIVE_SPECS_* values are added by `face-remap-add-relative'
@@ -183,13 +183,13 @@ to apply on top of the normal definition of FACE."
 This causes the remappings specified by `face-remap-add-relative'
 to apply on top of the face specification given by SPECS.
 
-The remaining arguments, SPECS, should form a list of faces.
-Each list element should be either a face name or a property list
+The remaining arguments, SPECS, specify the base of the remapping.
+Each one of SPECS should be either a face name or a property list
 of face attribute/value pairs, like in a `face' text property.
 
-If SPECS is empty, call `face-remap-reset-base' to use the normal
-definition of FACE as the base remapping; note that this is
-different from SPECS containing a single value nil, which means
+If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
+to use the normal definition of FACE as the base remapping; note that
+this is different from SPECS containing a single value nil, which means
 not to inherit from the global definition of FACE at all."
   (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
     (setq specs (car specs)))
