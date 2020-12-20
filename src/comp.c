@@ -376,6 +376,7 @@ init_gccjit_functions (void)
 #define gcc_jit_rvalue_get_type fn_gcc_jit_rvalue_get_type
 #define gcc_jit_struct_as_type fn_gcc_jit_struct_as_type
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
+#define gcc_jit_type_get_const fn_gcc_jit_type_get_const
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
 #define gcc_jit_version_major fn_gcc_jit_version_major
 #define gcc_jit_version_minor fn_gcc_jit_version_minor
