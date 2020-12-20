@@ -2719,6 +2719,15 @@ floating point support."
 	    (push (cons t read) unread-command-events)
 	    nil))))))
 
+(defun goto-char--read-natnum-interactive (prompt)
+  "Get a natural number argument, optionally prompting with PROMPT.
+If there is a natural number at point, use it as default."
+  (if (and current-prefix-arg (not (consp current-prefix-arg)))
+      (list (prefix-numeric-value current-prefix-arg))
+    (let* ((number (number-at-point))
+           (default (and (natnump number) number)))
+      (list (read-number prompt (list default (point)))))))
+
 
 (defvar read-char-history nil
   "The default history for the `read-char-from-minibuffer' function.")
@@ -2819,15 +2828,6 @@ There is no need to explicitly add `help-char' to CHARS;
     ;; Display the question with the answer.
     (message "%s%s" prompt (char-to-string char))
     char))
-
-(defun goto-char--read-natnum-interactive (prompt)
-  "Get a natural number argument, optionally prompting with PROMPT.
-If there is a natural number at point, use it as default."
-  (if (and current-prefix-arg (not (consp current-prefix-arg)))
-      (list (prefix-numeric-value current-prefix-arg))
-    (let* ((number (number-at-point))
-           (default (and (natnump number) number)))
-      (list (read-number prompt default)))))
 
 
 ;; Behind display-popup-menus-p test.
