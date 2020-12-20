@@ -4459,6 +4459,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should-error
 		 (start-file-process "test4" (current-buffer) nil)
 		 :type 'wrong-type-argument)
+
 	      (setq proc (start-file-process "test4" (current-buffer) nil))
 	      (should (processp proc))
 	      (should (equal (process-status proc) 'run))
@@ -4483,6 +4484,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	   (tramp-connection-properties
 	    (cons '(nil "direct-async-process" t) tramp-connection-properties)))
        (skip-unless (tramp-direct-async-process-p))
+       ;; For whatever reason, it doesn't cooperate with the "mock" method.
+       (skip-unless (not (tramp--test-mock-p)))
        ;; We do expect an established connection already,
        ;; `file-truename' does it by side-effect.  Suppress
        ;; `tramp--test-enabled', in order to keep the connection.
@@ -4703,12 +4706,14 @@ INPUT, if non-nil, is a string sent to the process."
   (async-shell-command command output-buffer error-buffer)
   (let ((proc (get-buffer-process output-buffer))
 	(delete-exited-processes t))
-    (when (stringp input)
-      (process-send-string proc input))
-    (with-timeout
-	((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
-      (while (or (accept-process-output proc nil nil t) (process-live-p proc))))
-    (accept-process-output proc nil nil t)))
+    (cl-letf (((symbol-function #'shell-command-sentinel) #'ignore))
+      (when (stringp input)
+	(process-send-string proc input))
+      (with-timeout
+	  ((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
+	(while
+	    (or (accept-process-output proc nil nil t) (process-live-p proc))))
+      (accept-process-output proc nil nil t))))
 
 (defun tramp--test-shell-command-to-string-asynchronously (command)
   "Like `shell-command-to-string', but for asynchronous processes."
@@ -4762,19 +4767,20 @@ INPUT, if non-nil, is a string sent to the process."
 	  (ignore-errors (delete-file tmp-name)))
 
 	;; Test `{async-}shell-command' with error buffer.
-	(let ((stderr (generate-new-buffer "*stderr*")))
-	  (unwind-protect
-	      (with-temp-buffer
-		(funcall
-		 this-shell-command
-		 "echo foo >&2; echo bar" (current-buffer) stderr)
-		(should (string-equal "bar\n" (buffer-string)))
-		;; Check stderr.
-		(with-current-buffer stderr
-		  (should (string-equal "foo\n" (buffer-string)))))
+	(unless (tramp-direct-async-process-p)
+	  (let ((stderr (generate-new-buffer "*stderr*")))
+	    (unwind-protect
+		(with-temp-buffer
+		  (funcall
+		   this-shell-command
+		   "echo foo >&2; echo bar" (current-buffer) stderr)
+		  (should (string-equal "bar\n" (buffer-string)))
+		  ;; Check stderr.
+		  (with-current-buffer stderr
+		    (should (string-equal "foo\n" (buffer-string)))))
 
-	    ;; Cleanup.
-	    (ignore-errors (kill-buffer stderr)))))
+	      ;; Cleanup.
+	      (ignore-errors (kill-buffer stderr))))))
 
       ;; Test sending string to `async-shell-command'.
       (unwind-protect
@@ -4809,6 +4815,9 @@ INPUT, if non-nil, is a string sent to the process."
 			  "tput cols")))))
       (when (natnump cols)
 	(should (= cols async-shell-command-width))))))
+
+(tramp--test--deftest-direct-async-process tramp-test32-shell-command
+  "Check direct async `shell-command'.")
 
 ;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
@@ -4961,7 +4970,7 @@ INPUT, if non-nil, is a string sent to the process."
       (should
        (string-equal
 	(format "%s,tramp:%s\n" emacs-version tramp-version)
-	(funcall this-shell-command-to-string "echo ${INSIDE_EMACS:-bla}")))
+	(funcall this-shell-command-to-string "echo \"${INSIDE_EMACS:-bla}\"")))
       (let ((process-environment
 	     (cons (format "INSIDE_EMACS=%s,foo" emacs-version)
 		   process-environment)))
@@ -4969,7 +4978,7 @@ INPUT, if non-nil, is a string sent to the process."
 	 (string-equal
 	  (format "%s,foo,tramp:%s\n" emacs-version tramp-version)
 	  (funcall
-	   this-shell-command-to-string "echo ${INSIDE_EMACS:-bla}"))))
+	   this-shell-command-to-string "echo \"${INSIDE_EMACS:-bla}\""))))
 
       ;; Set a value.
       (let ((process-environment
@@ -4979,7 +4988,8 @@ INPUT, if non-nil, is a string sent to the process."
 	 (string-match
 	  "foo"
 	  (funcall
-	   this-shell-command-to-string (format "echo ${%s:-bla}" envvar)))))
+	   this-shell-command-to-string
+	   (format "echo \"${%s:-bla}\"" envvar)))))
 
       ;; Set the empty value.
       (let ((process-environment
@@ -4989,38 +4999,45 @@ INPUT, if non-nil, is a string sent to the process."
 	 (string-match
 	  "bla"
 	  (funcall
-	   this-shell-command-to-string (format "echo ${%s:-bla}" envvar))))
+	   this-shell-command-to-string (format "echo \"${%s:-bla}\"" envvar))))
 	;; Variable is set.
 	(should
 	 (string-match
 	  (regexp-quote envvar)
 	  (funcall this-shell-command-to-string "set"))))
 
-      ;; We force a reconnect, in order to have a clean environment.
-      (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-      ;; Unset the variable.
-      (let ((tramp-remote-process-environment
-	     (cons (concat envvar "=foo") tramp-remote-process-environment)))
-	;; Set the initial value, we want to unset below.
-	(should
-	 (string-match
-	  "foo"
-	  (funcall
-	   this-shell-command-to-string (format "echo ${%s:-bla}" envvar))))
-	(let ((process-environment (cons envvar process-environment)))
-	  ;; Variable is unset.
+      (unless (tramp-direct-async-process-p)
+	;; We force a reconnect, in order to have a clean environment.
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	;; Unset the variable.
+	(let ((tramp-remote-process-environment
+	       (cons (concat envvar "=foo") tramp-remote-process-environment)))
+	  ;; Set the initial value, we want to unset below.
 	  (should
 	   (string-match
-	    "bla"
+	    "foo"
 	    (funcall
-	     this-shell-command-to-string (format "echo ${%s:-bla}" envvar))))
-	  ;; Variable is unset.
-	  (should-not
-	   (string-match
-	    (regexp-quote envvar)
-	    ;; We must remove PS1, the output is truncated otherwise.
-	    (funcall
-	     this-shell-command-to-string "printenv | grep -v PS1"))))))))
+	     this-shell-command-to-string
+	     (format "echo \"${%s:-bla}\"" envvar))))
+	  (let ((process-environment (cons envvar process-environment)))
+	    ;; Variable is unset.
+	    (should
+	     (string-match
+	      "bla"
+	      (funcall
+	       this-shell-command-to-string
+	       (format "echo \"${%s:-bla}\"" envvar))))
+	    ;; Variable is unset.
+	    (should-not
+	     (string-match
+	      (regexp-quote envvar)
+	      ;; We must remove PS1, the output is truncated otherwise.
+	      (funcall
+	       this-shell-command-to-string "printenv | grep -v PS1")))))))))
+
+(tramp--test--deftest-direct-async-process tramp-test33-environment-variables
+  "Check that remote processes set / unset environment variables properly.
+Use direct async.")
 
 ;; This test is inspired by Bug#27009.
 (ert-deftest tramp-test33-environment-variables-and-port-numbers ()
@@ -6431,6 +6448,9 @@ process sentinels.  They shall not disturb each other."
           (ignore-errors (kill-buffer buf)))
         (ignore-errors (cancel-timer timer))
         (ignore-errors (delete-directory tmp-name 'recursive))))))
+
+;; (tramp--test--deftest-direct-async-process tramp-test43-asynchronous-requests
+;;   "Check parallel direct asynchronous requests.")
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test44-auto-load ()

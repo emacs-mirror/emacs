@@ -3790,23 +3790,31 @@ It does not support `:stderr'."
 	(unless (or (null stderr) (bufferp stderr))
 	  (signal 'wrong-type-argument (list #'bufferp stderr)))
 
-	;; Quote shell command.
-	(when (and (= (length command) 3)
-		   (stringp (nth 0 command))
-		   (string-match-p "sh$" (nth 0 command))
-		   (stringp (nth 1 command))
-		   (string-equal "-c" (nth 1 command))
-		   (stringp (nth 2 command)))
-	  (setcar (cddr command) (tramp-shell-quote-argument (nth 2 command))))
-
 	(let* ((buffer
 		(if buffer
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
+	       ;; We use as environment the difference to toplevel
+	       ;; `process-environment'.
+	       (env (mapcar
+		     (lambda (elt)
+		       (unless
+			   (member
+			    elt (default-toplevel-value 'process-environment))
+			 (when (string-match-p "=" elt) elt)))
+		     process-environment))
+	       (env (setenv-internal
+		     env "INSIDE_EMACS"
+		     (concat (or (getenv "INSIDE_EMACS") emacs-version)
+			     ",tramp:" tramp-version)
+		     'keep))
+	       (env (mapcar #'tramp-shell-quote-argument (delq nil env)))
+	       ;; Quote command.
+	       (command (mapconcat #'tramp-shell-quote-argument command " "))
+	       ;; Set cwd and environment variables.
 	       (command
-		(mapconcat
-		 #'identity (append `("cd" ,localname "&&") command) " ")))
+	        (append `("cd" ,localname "&&" "(" "env") env `(,command ")"))))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-adb.el and tramp-sh.el.
@@ -3861,7 +3869,7 @@ It does not support `:stderr'."
 	      (mapcar (lambda (x) (split-string x " ")) login-args))
 	     p (make-process
 		:name name :buffer buffer
-		:command (append `(,login-program) login-args `(,command))
+		:command (append `(,login-program) login-args command)
 		:coding coding :noquery noquery :connection-type connection-type
 		:filter filter :sentinel sentinel :stderr stderr))
 

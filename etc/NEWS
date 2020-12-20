@@ -1482,7 +1482,7 @@ This new option allows the user to customize how case is converted
 when unifying entries.
 
 ---
-*** The user option `bibtex-maintain-sorted-entries' now permits
+*** The user option 'bibtex-maintain-sorted-entries' now permits
 user-defined sorting schemes.
 
 +++
@@ -2170,6 +2170,7 @@ and 'play-sound-file'.
 If this variable is non-nil, character syntax is used for printing
 numbers when this makes sense, such as '?A' for 65.
 
++++
 ** New error 'remote-file-error', a subcategory of 'file-error'.
 It is signaled if a remote file operation fails due to internal
 reasons, and could block Emacs.  It does not replace 'file-error'
@@ -2182,6 +2183,7 @@ Until it is solved you could ignore such errors by performing
 
     (setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
 
++++
 ** The error 'ftp-error' belongs also to category 'remote-file-error'.
 
 +++
@@ -2192,6 +2194,10 @@ buffer does not run the hooks 'kill-buffer-hook',
 'kill-buffer-query-functions', and 'buffer-list-update-hook'.  This
 avoids slowing down internal or temporary buffers that are never
 presented to users or passed on to other applications.
+
+---
+** 'start-process-shell-command' and 'start-file-process-shell-command'
+do not support the old calling conventions any longer.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
