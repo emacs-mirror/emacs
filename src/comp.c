@@ -102,6 +102,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_rvalue_get_type
 #undef gcc_jit_struct_as_type
 #undef gcc_jit_struct_set_fields
+#undef gcc_jit_type_get_const
 #undef gcc_jit_type_get_pointer
 #undef gcc_jit_version_major
 #undef gcc_jit_version_minor
@@ -208,6 +209,7 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_new_union_type,
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_rvalue_get_type, (gcc_jit_rvalue *rvalue));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
             (gcc_jit_struct *struct_type));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_const, (gcc_jit_type *type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
@@ -308,6 +310,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_rvalue_get_type);
   LOAD_DLL_FN (library, gcc_jit_struct_as_type);
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
+  LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
@@ -2493,6 +2496,7 @@ emit_maybe_gc_or_quit (Lisp_Object insn)
 
 /* This is in charge of serializing an object and export a function to
    retrieve it at load time.  */
+#pragma GCC diagnostic ignored "-Waddress"
 static void
 emit_static_object (const char *name, Lisp_Object obj)
 {
@@ -2521,9 +2525,7 @@ emit_static_object (const char *name, Lisp_Object obj)
 
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer) \
   || defined (WINDOWSNT)
-#pragma GCC diagnostic ignored "-Waddress"
   if (gcc_jit_global_set_initializer)
-#pragma GCC diagnostic pop
     {
       ptrdiff_t str_size = len + 1;
       ptrdiff_t size = sizeof (static_obj_t) + str_size;
@@ -2682,6 +2684,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   gcc_jit_rvalue *res = gcc_jit_lvalue_get_address (data_struct, NULL);
   gcc_jit_block_end_with_return (block, NULL, res);
 }
+#pragma GCC diagnostic pop
 
 static gcc_jit_rvalue *
 declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
@@ -4363,6 +4366,7 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
+#pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-native-driver-options-effective-p",
        Fcomp_native_driver_options_effective_p,
        Scomp_native_driver_options_effective_p,
@@ -4372,14 +4376,12 @@ DEFUN ("comp-native-driver-options-effective-p",
 {
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
   || defined (WINDOWSNT)
-#pragma GCC diagnostic ignored "-Waddress"
   if (gcc_jit_context_add_driver_option)
     return Qt;
-#pragma GCC diagnostic pop
 #endif
   return Qnil;
 }
-
+#pragma GCC diagnostic pop
 
 static void
 add_driver_options (void)
@@ -4526,6 +4528,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   return filename;
 }
 
+#pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
        Scomp_libgccjit_version, 0, 0, 0,
        doc: /* Return libgccjit version in use.
@@ -4537,19 +4540,16 @@ unknown (before GCC version 10).  */)
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version) || defined (WINDOWSNT)
   load_gccjit_if_necessary (true);
 
-  /* FIXME this kludge is quite bad.  Can we dynamically load on all
-     operating systems?  */
-#pragma GCC diagnostic ignored "-Waddress"
   return gcc_jit_version_major
     ? list3 (make_fixnum (gcc_jit_version_major ()),
 	     make_fixnum (gcc_jit_version_minor ()),
 	     make_fixnum (gcc_jit_version_patchlevel ()))
     : Qnil;
-#pragma GCC diagnostic pop
 #else
   return Qnil;
 #endif
 }
+#pragma GCC diagnostic pop
 
 
 /******************************************************************************/
@@ -4618,11 +4618,11 @@ eln_load_path_final_clean_up (void)
   FOR_EACH_TAIL (dir_tail)
     {
       Lisp_Object files_in_dir =
-	internal_condition_case_4 (Fdirectory_files,
+	internal_condition_case_5 (Fdirectory_files,
 				   concat2 (XCAR (dir_tail),
 					    Vcomp_native_version_dir),
 				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
-				   Qt, return_nil);
+				   Qt, return_nil, Qnil);
       FOR_EACH_TAIL (files_in_dir)
 	Fdelete_file (XCAR (files_in_dir), Qnil);
     }
