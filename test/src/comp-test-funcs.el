@@ -390,6 +390,11 @@
       (setq dir (directory-file-name (file-name-directory dir))))
     (nreverse dirlist)))
 
+(defun comp-test-45342-f (n)
+  (pcase n
+    (1 " ➊") (2 " ➋") (3 " ➌") (4 " ➍") (5 " ➎") (6 " ➏")
+    (7 " ➐") (8 " ➑") (9 " ➒") (10 " ➓") (_ "")))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

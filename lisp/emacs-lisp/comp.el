@@ -2863,6 +2863,7 @@ Prepare every function for final compilation and drive the C back-end."
              (print-quoted t)
              (print-gensym t)
              (print-circle t)
+             (print-escape-multibyte t)
              (expr `(progn
                       (require 'comp)
                       (setf comp-verbose ,comp-verbose
