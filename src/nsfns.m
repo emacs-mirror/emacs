@@ -456,7 +456,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 static void
 ns_set_represented_filename (struct frame *f)
 {
-  Lisp_Object filename, encoded_filename;
+  Lisp_Object filename;
   Lisp_Object buf = XWINDOW (f->selected_window)->contents;
   NSAutoreleasePool *pool;
   NSString *fstr;
@@ -473,9 +473,7 @@ ns_set_represented_filename (struct frame *f)
 
   if (! NILP (filename))
     {
-      encoded_filename = ENCODE_UTF_8 (filename);
-
-      fstr = [NSString stringWithLispString:encoded_filename];
+      fstr = [NSString stringWithLispString:filename];
       if (fstr == nil) fstr = @"";
     }
   else
