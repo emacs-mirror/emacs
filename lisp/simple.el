@@ -1958,22 +1958,27 @@ to get different commands to edit and resubmit."
      (lambda (string pred action)
        (if (and suggest-key-bindings (eq action 'metadata))
 	   '(metadata
-	     (annotation-function . read-extended-command--annotation)
+	     (affixation-function . read-extended-command--affixation)
 	     (category . command))
          (complete-with-action action obarray string pred)))
      #'commandp t nil 'extended-command-history)))
 
-(defun read-extended-command--annotation (command-name)
-  (let* ((fun (and (stringp command-name) (intern-soft command-name)))
-         (binding (where-is-internal fun overriding-local-map t))
-         (obsolete (get fun 'byte-obsolete-info))
-         (alias (symbol-function fun)))
-    (cond ((symbolp alias)
-           (format " (%s)" alias))
-          (obsolete
-           (format " (%s)" (car obsolete)))
-          ((and binding (not (stringp binding)))
-           (format " (%s)" (key-description binding))))))
+(defun read-extended-command--affixation (command-names)
+  (with-selected-window (or (minibuffer-selected-window) (selected-window))
+    (mapcar
+     (lambda (command-name)
+       (let* ((fun (and (stringp command-name) (intern-soft command-name)))
+              (binding (where-is-internal fun overriding-local-map t))
+              (obsolete (get fun 'byte-obsolete-info))
+              (alias (symbol-function fun))
+              (suffix (cond ((symbolp alias)
+                             (format " (%s)" alias))
+                            (obsolete
+                             (format " (%s)" (car obsolete)))
+                            ((and binding (not (stringp binding)))
+                             (format " (%s)" (key-description binding))))))
+         (if suffix (list command-name suffix) command-name)))
+     command-names)))
 
 (defcustom suggest-key-bindings t
   "Non-nil means show the equivalent key-binding when M-x command has one.
@@ -2195,7 +2200,8 @@ in this use of the minibuffer.")
   "Minibuffer history variables for which matching should ignore case.
 If a history variable is a member of this list, then the
 \\[previous-matching-history-element] and \\[next-matching-history-element]\
- commands ignore case when searching it, regardless of `case-fold-search'."
+ commands ignore case when searching it,
+regardless of `case-fold-search'."
   :type '(repeat variable)
   :group 'minibuffer)
 

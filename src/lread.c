@@ -3438,7 +3438,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 
 		/* Any modifiers remaining are invalid.  */
 		if (modifiers)
-		  error ("Invalid modifier in string");
+		  invalid_syntax ("Invalid modifier in string");
 		p += CHAR_STRING (ch, (unsigned char *) p);
 	      }
 	    else

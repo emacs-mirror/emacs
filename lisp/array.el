@@ -817,14 +817,16 @@ The variables are:
 Variables you assign:
      array-max-row:          The number of rows in the array.
      array-max-column:       The number of columns in the array.
-     array-columns-per-line: The number of columns in the array per line of buffer.
+     array-columns-per-line: The number of columns in the array
+                             per line of buffer.
      array-field-width:      The width of each field, in characters.
      array-rows-numbered:    A logical variable describing whether to ignore
-                       row numbers in the buffer.
+                             row numbers in the buffer.
 
 Variables which are calculated:
      array-line-length:      The number of characters in a buffer line.
-     array-lines-per-row:    The number of buffer lines used to display each row.
+     array-lines-per-row:    The number of buffer lines used to
+                             display each row.
 
   The following commands are available (an asterisk indicates it may
 take a numeric prefix argument):
@@ -834,17 +836,17 @@ take a numeric prefix argument):
     *  	\\[array-next-row]	  Move down one row.
     *  	\\[array-previous-row]	  Move up one row.
 
-    *   \\[array-copy-forward]	  Copy the current field into the column to the right.
-    *   \\[array-copy-backward]	  Copy the current field into the column to the left.
-    *   \\[array-copy-down]	  Copy the current field into the row below.
-    *   \\[array-copy-up]	  Copy the current field into the row above.
+    *   \\[array-copy-forward]	  Copy current field into the column to the right.
+    *   \\[array-copy-backward]	  Copy current field into the column to the left.
+    *   \\[array-copy-down]	  Copy current field into the row below.
+    *   \\[array-copy-up]	  Copy current field into the row above.
 
-    *   \\[array-copy-column-forward]   Copy the current column into the column to the right.
-    *   \\[array-copy-column-backward]   Copy the current column into the column to the left.
+    *   \\[array-copy-column-forward]   Copy current column into the column to the right.
+    *   \\[array-copy-column-backward]   Copy current column into the column to the left.
     *   \\[array-copy-row-down]   Copy the current row into the row below.
     *   \\[array-copy-row-up]   Copy the current row into the row above.
 
-        \\[array-fill-rectangle]   Copy the field at mark into every cell with row and column
+        \\[array-fill-rectangle]   Copy field at mark into every cell with row and column
                   between that of point and mark.
 
 	\\[array-what-position]	  Display the current array row and column.
@@ -855,7 +857,7 @@ take a numeric prefix argument):
         \\[array-expand-rows]   Expand the array (remove row numbers and
                   newlines inside rows)
 
-        \\[array-display-local-variables]   Display the current values of local variables.
+        \\[array-display-local-variables]   Display current values of local variables.
 
 Entering array mode calls the function `array-mode-hook'."
   (make-local-variable 'array-buffer-line)

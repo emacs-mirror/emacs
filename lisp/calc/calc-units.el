@@ -2157,7 +2157,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
    (calc-unary-op "midi" 'calcFunc-midi arg)))
 
 (defun calc-spn (arg)
-  "Return the scientific pitch notation corresponding to the expression on the stack."
+  "Return scientific pitch notation corresponding to the expression on the stack."
   (interactive "P")
   (calc-slow-wrapper
    (calc-unary-op "spn" 'calcFunc-spn arg)))

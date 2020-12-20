@@ -122,7 +122,7 @@ Go through `org-structure-template-alist' and
 	 (special (member name '("src" "export"))))
     (tempo-define-template (format "org-%s" (replace-regexp-in-string " " "-" name))
 			   `(,(format "#+begin_%s%s" name (if special " " ""))
-			     ,(when special 'p) '> n '> ,(unless special 'p) n
+			     ,(when special 'p) '> n ,(unless special 'p) n
 			     ,(format "#+end_%s" (car (split-string name " ")))
 			     >)
 			   key

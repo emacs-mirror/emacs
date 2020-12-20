@@ -412,44 +412,46 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
 (defun flymake-diag-region (buffer line &optional col)
   "Compute BUFFER's region (BEG . END) corresponding to LINE and COL.
 If COL is nil, return a region just for LINE.  Return nil if the
-region is invalid."
+region is invalid.  This function saves match data."
   (condition-case-unless-debug _err
       (with-current-buffer buffer
         (let ((line (min (max line 1)
                          (line-number-at-pos (point-max) 'absolute))))
           (save-excursion
-            (goto-char (point-min))
-            (forward-line (1- line))
-            (cl-flet ((fallback-bol
-                       ()
-                       (back-to-indentation)
-                       (if (eobp)
-                           (line-beginning-position 0)
-                         (point)))
-                      (fallback-eol
-                       (beg)
-                       (progn
-                         (end-of-line)
-                         (skip-chars-backward " \t\f\n" beg)
-                         (if (eq (point) beg)
-                             (line-beginning-position 2)
-                           (point)))))
-              (if (and col (cl-plusp col))
-                  (let* ((beg (progn (forward-char (1- col))
-                                     (point)))
-                         (sexp-end (ignore-errors (end-of-thing 'sexp)))
-                         (end (or (and sexp-end
-                                       (not (= sexp-end beg))
-                                       sexp-end)
-                                  (and (< (goto-char (1+ beg)) (point-max))
-                                       (point)))))
-                    (if end
-                        (cons beg end)
-                      (cons (setq beg (fallback-bol))
-                            (fallback-eol beg))))
-                (let* ((beg (fallback-bol))
-                       (end (fallback-eol beg)))
-                  (cons beg end)))))))
+            (save-match-data
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (cl-flet ((fallback-bol
+                         ()
+                         (back-to-indentation)
+                         (if (eobp)
+                             (line-beginning-position 0)
+                           (point)))
+                        (fallback-eol
+                         (beg)
+                         (progn
+                           (end-of-line)
+                           (skip-chars-backward " \t\f\n" beg)
+                           (if (eq (point) beg)
+                               (line-beginning-position 2)
+                             (point)))))
+                (if (and col (cl-plusp col))
+                    (let* ((beg (progn (forward-char (1- col))
+                                       (point)))
+                           (sexp-end (or (ignore-errors (end-of-thing 'sexp))
+                                         (ignore-errors (end-of-thing 'symbol))))
+                           (end (or (and sexp-end
+                                         (not (= sexp-end beg))
+                                         sexp-end)
+                                    (and (< (goto-char (1+ beg)) (point-max))
+                                         (point)))))
+                      (if end
+                          (cons beg end)
+                        (cons (setq beg (fallback-bol))
+                              (fallback-eol beg))))
+                  (let* ((beg (fallback-bol))
+                         (end (fallback-eol beg)))
+                    (cons beg end))))))))
     (error (flymake-log :warning "Invalid region line=%s col=%s" line col)
            nil)))
 

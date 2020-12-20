@@ -1278,7 +1278,8 @@ Used to move the robot when he is stuck in a rut for some reason."
   :group 'landmark)
 (defcustom landmark-max-stall-time 2
   "The maximum number of cycles that the robot can remain stuck in a place.
-After this limit is reached, landmark-random-move is called to push him out of it."
+After this limit is reached, landmark-random-move is called to
+push him out of it."
   :type 'integer
   :group 'landmark)
 

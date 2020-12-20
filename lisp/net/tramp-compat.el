@@ -348,6 +348,11 @@ A nil value for either argument stands for the current time."
     (lambda (fromstring tostring instring)
       (replace-regexp-in-string (regexp-quote fromstring) tostring instring))))
 
+;; Error symbol `remote-file-error' is defined in Emacs 28.1.  We use
+;; an adapted error message in order to see that compatible symbol.
+(unless (get 'remote-file-error 'error-conditions)
+  (define-error 'remote-file-error "Remote file error (compat)" 'file-error))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-loaddefs 'force)

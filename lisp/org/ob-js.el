@@ -65,7 +65,7 @@
   :safe #'stringp)
 
 (defvar org-babel-js-function-wrapper
-  "require('sys').print(require('sys').inspect(function(){\n%s\n}()));"
+  "require('process').stdout.write(require('util').inspect(function(){%s}()));"
   "Javascript code to print value of body.")
 
 (defun org-babel-execute:js (body params)
@@ -200,7 +200,5 @@ then create.  Return the initialized session."
     (error "Sessions are only supported with mozrepl add \":cmd mozrepl\""))))
 
 (provide 'ob-js)
-
-
 
 ;;; ob-js.el ends here

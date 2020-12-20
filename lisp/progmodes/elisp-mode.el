@@ -682,7 +682,7 @@ otherwise build the summary from TYPE and SYMBOL."
 	     (xref-make-elisp-location symbol type file)))
 
 (defvar elisp-xref-find-def-functions nil
-  "List of functions to be run from `elisp--xref-find-definitions' to add additional xrefs.
+  "List of functions run from `elisp--xref-find-definitions' to add more xrefs.
 Called with one arg; the symbol whose definition is desired.
 Each function should return a list of xrefs, or nil; the first
 non-nil result supersedes the xrefs produced by

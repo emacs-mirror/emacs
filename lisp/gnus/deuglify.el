@@ -250,21 +250,25 @@
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-unwrap-stop-chars nil ;; ".?!" or nil
-  "Characters that inhibit unwrapping if they are the last one on the cited line above the possible wrapped line."
+  "Characters that, when at end of cited line, inhibit unwrapping.
+When one of these characters is the last one on the cited line
+above the possibly wrapped line, it disallows unwrapping."
   :version "22.1"
   :type '(radio (const :format "None  " nil)
 		(string :value ".?!"))
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-no-wrap-chars "`"
-  "Characters that inhibit unwrapping if they are the first one in the possibly wrapped line."
+  "Characters that, when at beginning of line, inhibit unwrapping.
+When one of these characters is the first one in the possibly
+wrapped line, it disallows unwrapping."
   :version "22.1"
   :type 'string
   :group 'gnus-outlook-deuglify)
 
 (defcustom  gnus-outlook-deuglify-attrib-cut-regexp
   "\\(On \\|Am \\)?\\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),[^,]+, "
-  "Regular expression matching the beginning of an attribution line that should be cut off."
+  "Regexp matching beginning of attribution line that should be cut off."
   :version "22.1"
   :type 'regexp
   :group 'gnus-outlook-deuglify)

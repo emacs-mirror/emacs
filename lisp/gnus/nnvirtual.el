@@ -61,22 +61,27 @@ component group will show up when you enter the virtual group.")
 (defvoo nnvirtual-current-group nil)
 
 (defvoo nnvirtual-mapping-table nil
-  "Table of rules on how to map between component group and article number to virtual article number.")
+  "Table of rules for mapping groups and articles to virtual article numbers.
+These rules determine how to map between component group and article number
+on the one hand, and virtual article number on the other hand.")
 
 (defvoo nnvirtual-mapping-offsets nil
-  "Table indexed by component group to an offset to be applied to article numbers in that group.")
+  "Table of mapping offsets to be applied to article numbers in a group.
+The table is indexed by component group number of the group.")
 
 (defvoo nnvirtual-mapping-len 0
   "Number of articles in this virtual group.")
 
 (defvoo nnvirtual-mapping-reads nil
-  "Compressed sequence of read articles on the virtual group as computed from the unread status of individual component groups.")
+  "Compressed sequence of read articles on the virtual group.
+It is computed from the unread status of individual component groups.")
 
 (defvoo nnvirtual-mapping-marks nil
-  "Compressed marks alist for the virtual group as computed from the marks of individual component groups.")
+  "Compressed marks alist for the virtual group.
+It is computed from the marks of individual component groups.")
 
 (defvoo nnvirtual-info-installed nil
-  "T if we have already installed the group info for this group, and shouldn't blast over it again.")
+  "t if the group info for this group is already installed.")
 
 (defvoo nnvirtual-status-string "")
 

@@ -3182,7 +3182,7 @@ folder, which is also available in `mh-current-folder'."
   :package-version '(MH-E . "8.0"))
 
 (defcustom-mh mh-annotate-msg-hook nil
-  "Hook run whenever a message is sent and after the scan lines and message are annotated.
+  "Hook run when a message is sent and after annotating the scan lines and message.
 Hook functions can access the current folder name with
 `mh-current-folder' and obtain the message numbers of the
 annotated messages with `mh-annotate-list'."

@@ -1615,18 +1615,22 @@ that code in the early init-file."
   "Activate all installed packages.
 The variable `package-load-list' controls which packages to load."
   (setq package--activated t)
-  (if (file-readable-p package-quickstart-file)
-      ;; Skip load-source-file-function which would slow us down by a factor
-      ;; 2 (this assumes we were careful to save this file so it doesn't need
-      ;; any decoding).
-      (let ((load-source-file-function nil))
-        (load package-quickstart-file nil 'nomessage))
-    (dolist (elt (package--alist))
-      (condition-case err
-          (package-activate (car elt))
-        ;; Don't let failure of activation of a package arbitrarily stop
-        ;; activation of further packages.
-        (error (message "%s" (error-message-string err)))))))
+  (let* ((elc (concat package-quickstart-file "c"))
+         (qs (if (file-readable-p elc) elc
+               (if (file-readable-p package-quickstart-file)
+                   package-quickstart-file))))
+    (if qs
+        ;; Skip load-source-file-function which would slow us down by a factor
+        ;; 2 when loading the .el file (this assumes we were careful to
+        ;; save this file so it doesn't need any decoding).
+        (let ((load-source-file-function nil))
+          (load qs nil 'nomessage))
+      (dolist (elt (package--alist))
+        (condition-case err
+            (package-activate (car elt))
+          ;; Don't let failure of activation of a package arbitrarily stop
+          ;; activation of further packages.
+          (error (message "%s" (error-message-string err))))))))
 
 ;;;; Populating `package-archive-contents' from archives
 ;; This subsection populates the variables listed above from the
@@ -4041,6 +4045,7 @@ activations need to be changed, such as when `package-load-list' is modified."
       ;; FIXME: Delay refresh in case we're installing/deleting
       ;; several packages!
       (package-quickstart-refresh)
+    (delete-file (concat package-quickstart-file "c"))
     (delete-file package-quickstart-file)))
 
 (defun package-quickstart-refresh ()
@@ -4095,10 +4100,10 @@ activations need to be changed, such as when `package-load-list' is modified."
       (insert "
 ;; Local\sVariables:
 ;; version-control: never
-;;\sno-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:
-"))))
+"))
+    (byte-compile-file package-quickstart-file)))
 
 (defun package--imenu-prev-index-position-function ()
   "Move point to previous line in package-menu buffer.

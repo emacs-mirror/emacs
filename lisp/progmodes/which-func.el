@@ -186,7 +186,7 @@ and you want to simplify them for the mode line
   "Non-nil means display current function name in mode line.
 This makes a difference only if `which-function-mode' is non-nil.")
 
-(add-hook 'after-change-major-mode-hook 'which-func-ff-hook t)
+(add-hook 'after-change-major-mode-hook #'which-func-ff-hook t)
 
 (defun which-func-try-to-enable ()
   (unless (or (not which-function-mode)
@@ -216,7 +216,8 @@ It creates the Imenu index for the buffer, if necessary."
 (defun which-func-update ()
   ;; "Update the Which-Function mode display for all windows."
   ;; (walk-windows 'which-func-update-1 nil 'visible))
-  (which-func-update-1 (selected-window)))
+  (let ((non-essential t))
+    (which-func-update-1 (selected-window))))
 
 (defun which-func-update-1 (window)
   "Update the Which Function mode display for window WINDOW."
@@ -356,7 +357,7 @@ This function is meant to be called from `ediff-select-hook'."
     (when ediff-window-C
       (which-func-update-1 ediff-window-C))))
 
-(add-hook 'ediff-select-hook 'which-func-update-ediff-windows)
+(add-hook 'ediff-select-hook #'which-func-update-ediff-windows)
 
 (provide 'which-func)
 

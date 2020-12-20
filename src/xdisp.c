@@ -9957,7 +9957,27 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		{
 		  skip = skip2;
 		  if (skip == MOVE_POS_MATCH_OR_ZV)
-		    reached = 7;
+		    {
+		      reached = 7;
+		      /* If the last move_it_in_display_line_to call
+			 took us away from TO_CHARPOS, back up to the
+			 previous position, as it is a better
+			 approximation of TO_CHARPOS.  (Note that we
+			 could have both positions after TO_CHARPOS or
+			 both positions before it, due to bidi
+			 reordering.)  */
+		      if (IT_CHARPOS (*it) != to_charpos
+			  && ((IT_CHARPOS (it_backup) > to_charpos)
+			      == (IT_CHARPOS (*it) > to_charpos)))
+			{
+			  int max_ascent = it->max_ascent;
+			  int max_descent = it->max_descent;
+
+			  RESTORE_IT (it, &it_backup, backup_data);
+			  it->max_ascent = max_ascent;
+			  it->max_descent = max_descent;
+			}
+		    }
 		}
 	    }
 	  else
@@ -10301,11 +10321,22 @@ move_it_vertically_backward (struct it *it, int dy)
 	    move_it_vertically (it, target_y - it->current_y);
 	  else
 	    {
+	      struct text_pos last_pos;
+	      int last_y, last_vpos;
 	      do
 		{
+		  last_pos = it->current.pos;
+		  last_y = it->current_y;
+		  last_vpos = it->vpos;
 		  move_it_by_lines (it, 1);
 		}
-	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
+	      while (target_y > it->current_y && IT_CHARPOS (*it) < ZV);
+	      if (it->current_y > target_y)
+		{
+		  reseat (it, last_pos, true);
+		  it->current_y = last_y;
+		  it->vpos = last_vpos;
+		}
 	    }
 	}
     }

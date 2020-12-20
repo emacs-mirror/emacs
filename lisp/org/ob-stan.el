@@ -82,4 +82,5 @@ Otherwise, write the Stan code directly to the named file."
   (user-error "Stan does not support sessions"))
 
 (provide 'ob-stan)
+
 ;;; ob-stan.el ends here

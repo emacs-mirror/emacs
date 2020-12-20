@@ -310,7 +310,10 @@ Scroll one screen backward, and move point onscreen if necessary
 @kindex M-g c
 @findex goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
-Position 1 is the beginning of the buffer.
+Position 1 is the beginning of the buffer.  If point is on or just
+after a number in the buffer, that is the default for @var{n}.  Just
+type @key{RET} in the minibuffer to use it.  You can also specify
+@var{n} by giving @kbd{M-g c} a numeric prefix argument.
 
 @item M-g M-g
 @itemx M-g g

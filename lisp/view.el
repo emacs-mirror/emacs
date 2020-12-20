@@ -141,7 +141,8 @@ See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
 (put 'view-return-to-alist 'permanent-local t)
 
 (defvar view-exit-action nil
-  "If non-nil, a function with one argument (a buffer) called when finished viewing.
+  "If non-nil, a function called when finished viewing.
+The function should take one argument (a buffer).
 Commands like \\[view-file] and \\[view-file-other-window] may
 set this to bury or kill the viewed buffer.
 Observe that the buffer viewed might not appear in any window at

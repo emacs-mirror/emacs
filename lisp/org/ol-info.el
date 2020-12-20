@@ -59,7 +59,7 @@
 			    :link link :desc desc)
       link)))
 
-(defun org-info-open (path)
+(defun org-info-open (path _)
   "Follow an Info file and node link specified by PATH."
   (org-info-follow-link path))
 

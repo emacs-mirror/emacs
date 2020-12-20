@@ -744,7 +744,8 @@ string with the suggested prefix."
   :type '(repeat character))
 
 (defcustom gnus-inhibit-user-auto-expire t
-  "If non-nil, user marking commands will not mark an article as expirable, even if the group has auto-expire turned on."
+  "If non-nil, user marking commands will not mark an article as expirable.
+This is true even if the group has auto-expire turned on."
   :version "21.1"
   :group 'gnus-summary
   :type 'boolean)
@@ -1399,7 +1400,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-thread-indent-array nil)
 (defvar gnus-thread-indent-array-level gnus-thread-indent-level)
 (defvar gnus-sort-gathered-threads-function #'gnus-thread-sort-by-number
-  "Function called to sort the articles within a thread after it has been gathered together.")
+  "Function to sort articles within a thread after it has been gathered together.")
 
 (defvar gnus-summary-save-parts-type-history nil)
 (defvar gnus-summary-save-parts-last-directory mm-default-directory)
@@ -1525,7 +1526,7 @@ the type of the variable (string, integer, character, etc).")
   "Default shell command on article.")
 
 (defvar gnus-newsgroup-agentized nil
-  "Locally bound in each summary buffer to indicate whether the server has been agentized.")
+  "Locally bound in each summary buffer to indicate if server has been agentized.")
 (defvar gnus-newsgroup-begin nil)
 (defvar gnus-newsgroup-end nil)
 (defvar gnus-newsgroup-last-rmail nil)
@@ -1555,7 +1556,7 @@ the type of the variable (string, integer, character, etc).")
 (defvar gnus-newsgroup-expunged-tally nil)
 
 (defvar gnus-newsgroup-marked nil
-  "Sorted list of ticked articles in the current newsgroup (a subset of unread art).")
+  "Sorted list of ticked articles in current newsgroup (a subset of unread art).")
 
 (defvar gnus-newsgroup-spam-marked nil
   "List of ranges of articles that have been marked as spam.")
@@ -4100,8 +4101,6 @@ If SELECT-ARTICLES, only select those articles from GROUP."
      ;; The group was successfully selected.
      (t
       (gnus-set-global-variables)
-      (when (boundp 'gnus-pick-line-number)
-	(setq gnus-pick-line-number 0))
       (when (boundp 'spam-install-hooks)
 	(spam-initialize))
       ;; Save the active value in effect when the group was entered.
@@ -4226,6 +4225,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	  gnus-newsgroup-data-reverse nil)
     (gnus-run-hooks 'gnus-summary-generate-hook)
     ;; Generate the buffer, either with threads or without.
+    (when (boundp 'gnus-pick-line-number)
+      (setq gnus-pick-line-number 0))
     (when gnus-newsgroup-headers
       (gnus-summary-prepare-threads
        (if gnus-show-threads

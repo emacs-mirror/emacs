@@ -3105,9 +3105,11 @@ See `Info-scroll-down'."
 (defun Info-next-reference-or-link (pat prop)
   "Move point to the next pattern-based cross-reference or property-based link.
 The next cross-reference is searched using the regexp PAT, and the next link
-is searched using the text property PROP.  Move point to the closest found position
-of either a cross-reference found by `re-search-forward' or a link found by
-`next-single-char-property-change'.  Return the new position of point, or nil."
+is searched using the text property PROP.  Move point to the closest found
+position of either a cross-reference found by `re-search-forward' or a link
+found by `next-single-char-property-change'.
+
+Return the new position of point, or nil."
   (let ((pxref (save-excursion (re-search-forward pat nil t)))
 	(plink (next-single-char-property-change (point) prop)))
     (when (and (< plink (point-max)) (not (get-char-property plink prop)))
@@ -3120,10 +3122,12 @@ of either a cross-reference found by `re-search-forward' or a link found by
 
 (defun Info-prev-reference-or-link (pat prop)
   "Move point to the previous pattern-based cross-reference or property-based link.
-The previous cross-reference is searched using the regexp PAT, and the previous link
-is searched using the text property PROP.  Move point to the closest found position
-of either a cross-reference found by `re-search-backward' or a link found by
-`previous-single-char-property-change'.  Return the new position of point, or nil."
+The previous cross-reference is searched using the regexp PAT, and the previous
+link is searched using the text property PROP.  Move point to the closest found
+position of either a cross-reference found by `re-search-backward' or a link
+found by `previous-single-char-property-change'.
+
+Return the new position of point, or nil."
   (let ((pxref (save-excursion (re-search-backward pat nil t)))
 	(plink (previous-single-char-property-change (point) prop)))
     (when (and (> plink (point-min)) (not (get-char-property plink prop)))

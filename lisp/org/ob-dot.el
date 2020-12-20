@@ -87,6 +87,4 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-dot)
 
-
-
 ;;; ob-dot.el ends here

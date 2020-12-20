@@ -581,7 +581,8 @@ can use the following function:
 Compute @var{buffer}'s region (@var{beg} .  @var{end}) corresponding
 to @var{line} and @var{col}.  If @var{col} is @code{nil}, return a
 region just for @var{line}.  Return @code{nil} if the region is
-invalid.
+invalid.  This function saves match data (@pxref{Saving Match Data,,,
+elisp, The Emacs Lisp Reference Manual}).
 @end deffn
 
 @cindex add a log message

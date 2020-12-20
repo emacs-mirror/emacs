@@ -1605,8 +1605,9 @@ code line."
 
 (defun octave-eldoc-function-signatures (fn)
   (unless (equal fn (car octave-eldoc-cache))
-    (inferior-octave-send-list-and-digest
-     (list (format "print_usage ('%s');\n" fn)))
+    (while-no-input
+      (inferior-octave-send-list-and-digest
+       (list (format "print_usage ('%s');\n" fn))))
     (let (result)
       (dolist (line inferior-octave-output-list)
         ;; The help output has changed a few times in GNU Octave.

@@ -521,7 +521,7 @@ Return nil if there are no more forms, t otherwise."
   "The currently linted top form, or nil.")
 
 (defvar elint-top-form-logged nil
-  "The value t if the currently linted top form has been mentioned in the log buffer.")
+  "Non-nil if the currently linted top form has been mentioned in the log buffer.")
 
 (defun elint-top-form (form)
   "Lint a top FORM."

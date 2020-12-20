@@ -242,7 +242,6 @@ global-level ERC button keys yet.")
 
 (defun erc-button-setup ()
   "Add ERC mode-level button movement keys.  This is only done once."
-  ;; Make XEmacs use `erc-button-face'.
   ;; Add keys.
   (unless erc-button-keys-added
     (define-key erc-mode-map (kbd "<backtab>") 'erc-button-previous)

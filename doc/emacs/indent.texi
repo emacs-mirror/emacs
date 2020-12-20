@@ -255,7 +255,7 @@ indentation; otherwise, it inserts a tab character.
 indent can be further customized via the @code{tab-first-completion}
 variable.  For instance, if that variable is @code{eol}, only complete
 if point is at the end of a line.  @xref{Mode-Specific Indent,,,
-elisp, The Emacs Lisp Reference Manual} for further details.
+elisp, The Emacs Lisp Reference Manual}, for further details.
 
 @cindex Electric Indent mode
 @cindex mode, Electric Indent

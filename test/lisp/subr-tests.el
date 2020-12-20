@@ -597,6 +597,18 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (undo-boundary)
     (undo)
     (should (equal (buffer-string) ""))))
+
+;;; Apropos.
+
+(ert-deftest apropos-apropos-internal ()
+  (should (equal (apropos-internal "^next-line$") '(next-line)))
+  (should (>= (length (apropos-internal "^help")) 100))
+  (should-not (apropos-internal "^test-a-missing-symbol-foo-bar-zot$")))
+
+(ert-deftest apropos-apropos-internal/predicate ()
+  (should (equal (apropos-internal "^next-line$" #'commandp) '(next-line)))
+  (should (>= (length (apropos-internal "^help" #'commandp)) 15))
+  (should-not (apropos-internal "^next-line$" #'keymapp)))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

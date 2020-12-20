@@ -163,7 +163,7 @@ nnmairix groups are specifically excluded because they are ephemeral."
                  (const :tag "Always Install" t)
                  (const :tag "Ask Me" ask)))
 
-(defcustom gnus-registry-register-all nil
+(defcustom gnus-registry-register-all t
   "If non-nil, register all articles in the registry."
   :type 'boolean
   :version "28.1")
@@ -1094,7 +1094,7 @@ only the last one's marks are returned."
 
 (defun gnus-registry-get-or-make-entry (id &optional no-create)
   "Return registry entry for ID.
-If entry is not found, create a new one, unless NO-create is
+If entry is not found, create a new one, unless NO-CREATE is
 non-nil."
   (let* ((db gnus-registry-db)
          ;; safe if not found

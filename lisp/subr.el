@@ -2820,6 +2820,15 @@ There is no need to explicitly add `help-char' to CHARS;
     (message "%s%s" prompt (char-to-string char))
     char))
 
+(defun goto-char--read-natnum-interactive (prompt)
+  "Get a natural number argument, optionally prompting with PROMPT.
+If there is a natural number at point, use it as default."
+  (if (and current-prefix-arg (not (consp current-prefix-arg)))
+      (list (prefix-numeric-value current-prefix-arg))
+    (let* ((number (number-at-point))
+           (default (and (natnump number) number)))
+      (list (read-number prompt default)))))
+
 
 ;; Behind display-popup-menus-p test.
 (declare-function x-popup-dialog "menu.c" (position contents &optional header))
@@ -5835,6 +5844,22 @@ This is the simplest safe way to acquire and release a mutex."
        (unwind-protect
 	   (progn ,@body)
 	 (mutex-unlock ,sym)))))
+
+
+;;; Apropos.
+
+(defun apropos-internal (regexp &optional predicate)
+  "Show all symbols whose names contain match for REGEXP.
+If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
+for each symbol and a symbol is mentioned only if that returns non-nil.
+Return list of symbols found."
+  (let (found)
+    (mapatoms (lambda (symbol)
+                (when (and (string-match regexp (symbol-name symbol))
+                           (or (not predicate)
+                               (funcall predicate symbol)))
+                  (push symbol found))))
+    (sort found #'string-lessp)))
 
 
 ;;; Misc.

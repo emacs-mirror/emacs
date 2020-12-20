@@ -1591,6 +1591,14 @@ value is used.
 Otherwise, Rmail will ask you for the password to use.
 @end enumerate
 
+On some mail servers the usernames include domain information, which
+can mean they contain the @samp{@@} character.  The inbox specifier
+string uses @samp{@@} to signal the start of the mailserver name.
+This creates confusion for movemail.  If your username contains
+@samp{@@} and you're using Mailutils @command{movemail} then you can
+fix this: Replace @code{@@} in the user name with its @acronym{URL}
+encoding @samp{%40}.
+
 @vindex rmail-movemail-flags
   If you need to pass additional command-line flags to @command{movemail},
 set the variable @code{rmail-movemail-flags} a list of the flags you

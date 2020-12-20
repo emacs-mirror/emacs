@@ -1172,7 +1172,8 @@ Presets to impersonate popular mail agents are found in the
 message-cite-style-* variables.  This variable is intended for
 use in `gnus-posting-styles', such as:
 
-  ((posting-from-work-p) (eval (setq-local message-cite-style message-cite-style-outlook)))"
+  ((posting-from-work-p) (eval (setq-local message-cite-style
+                                           message-cite-style-outlook)))"
   :version "24.1"
   :group 'message-insertion
   :type '(choice (const :tag "Do not override variables" :value nil)
@@ -1199,7 +1200,8 @@ use in `gnus-posting-styles', such as:
     (message-yank-cited-prefix  ">")
     (message-yank-empty-prefix  ">")
     (message-citation-line-format "On %D %R %p, %N wrote:"))
-  "Message citation style used by Mozilla Thunderbird.  Use with `message-cite-style'.")
+  "Message citation style used by Mozilla Thunderbird.
+Use with `message-cite-style'.")
 
 (defconst message-cite-style-gmail
   '((message-cite-function  'message-cite-original)

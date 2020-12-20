@@ -1751,7 +1751,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 ;; ==========================================================================
 
 (defvoo nntp-open-telnet-envuser nil
-  "If non-nil, telnet session (client and server both) will support the ENVIRON option and not prompt for login name.")
+  "If non-nil, telnet session supports the ENVIRON option.
+Don't prompt for login name.  This applies to both client and server.")
 
 (defvoo nntp-telnet-shell-prompt "bash\\|[$>] *\r?$"
   "Regular expression to match the shell prompt on the remote machine.")

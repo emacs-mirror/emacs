@@ -120,8 +120,10 @@ This is an alist with elements of the form:
   REGEXP INIT [CLEANUP [NAME]]
 REGEXP is a regular expression that matches a file name.
 INIT is the init function to use.
-CLEANUP is the cleanup function to use, default `flymake-proc-simple-cleanup'.
-NAME is the file name function to use, default `flymake-proc-get-real-file-name'."
+CLEANUP is the cleanup function to use, default
+  `flymake-proc-simple-cleanup'.
+NAME is the file name function to use, default
+  `flymake-proc-get-real-file-name'."
   :group 'flymake
   :type '(alist :key-type (regexp :tag "File regexp")
                 :value-type

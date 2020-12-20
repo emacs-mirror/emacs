@@ -731,7 +731,7 @@ channel."
   "Transcode a LINK object into Beamer code.
 CONTENTS is the description part of the link.  INFO is a plist
 used as a communication channel."
-  (or (org-export-custom-protocol-maybe link contents 'beamer)
+  (or (org-export-custom-protocol-maybe link contents 'beamer info)
       ;; Fall-back to LaTeX export.  However, prefer "\hyperlink" over
       ;; "\hyperref" since the former handles overlay specifications.
       (let ((latex-link (org-export-with-backend 'latex link contents info)))

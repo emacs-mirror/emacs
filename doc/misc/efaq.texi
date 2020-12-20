@@ -594,11 +594,11 @@ You can get a printed reference card listing commands and keys to
 invoke them.  You can order one from the FSF for $2 (or 10 for $18),
 or you can print your own from the @file{etc/refcards/refcard.tex} or
 @file{etc/refcards/refcard.pdf} files in the Emacs distribution.
-Beginning with version 21.1, the Emacs distribution comes with
-translations of the reference card into several languages; look for
-files named @file{etc/refcards/@var{lang}-refcard.*}, where @var{lang}
-is a two-letter code of the language.  For example, the German version
-of the reference card is in the files @file{etc/refcards/de-refcard.tex}
+The Emacs distribution comes with translations of the reference card
+into several languages; look for files named
+@file{etc/refcards/@var{lang}-refcard.*}, where @var{lang} is a
+two-letter code of the language.  For example, the German version of
+the reference card is in the files @file{etc/refcards/de-refcard.tex}
 and @file{etc/refcards/de-refcard.pdf}.
 
 @item
@@ -1672,8 +1672,6 @@ would use with @code{display-line-numbers}.
 There is also the @samp{linum} package (distributed with Emacs since
 version 23.1) which will henceforth become obsolete.  Users and
 developers are encouraged to use @samp{display-line-numbers} instead.
-The packages @samp{setnu} and @samp{wb-line-number} (not distributed
-with Emacs) also implement this feature.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
@@ -1694,7 +1692,7 @@ machine at which Emacs was invoked.  This is done by setting
 @code{frame-title-format} to the default value of
 
 @lisp
-(multiple-frames "%b" ("" invocation-name "@@" (system-name)))
+(multiple-frames "%b" ("" "%b - GNU Emacs at " system-name))
 @end lisp
 
 To modify the behavior such that frame titlebars contain the buffer's
@@ -3322,7 +3320,7 @@ the main GNU distribution site, sources are available as
 @c Don't include VER in the file name, because pretests are not there.
 @uref{https://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
 
-(Replace @samp{VERSION} with the relevant version number, e.g., @samp{23.1}.)
+(Replace @samp{VERSION} with the relevant version number, e.g., @samp{28.1}.)
 
 @item
 Next uncompress and extract the source files.  This requires
@@ -3392,7 +3390,7 @@ problem (@pxref{Reporting bugs}).
 * Packages that do not come with Emacs::
 * Spell-checkers::
 * Current GNU distributions::
-* Difference between Emacs and XEmacs::
+* What was XEmacs?::
 * Emacs for minimalists::
 * Emacs for MS-DOS::
 * Emacs for MS-Windows::
@@ -3528,35 +3526,21 @@ A list of sites mirroring @samp{ftp.gnu.org} can be found at
 
 @uref{https://www.gnu.org/prep/ftp}
 
-@node Difference between Emacs and XEmacs
-@section What is the difference between Emacs and XEmacs (formerly Lucid Emacs)?
+@node What was XEmacs?
+@section What was XEmacs?
 @cindex XEmacs
-@cindex Difference Emacs and XEmacs
-@cindex Lucid Emacs
-@cindex Epoch
 
 XEmacs was a branch version of Emacs that is no longer actively
-developed.  XEmacs was first called Lucid Emacs, and was initially
-derived from a prerelease version of Emacs 19.  In this FAQ, we use
-the name ``Emacs'' only for the official version.
+developed.  XEmacs last released a new version on January 30, 2009,
+and it lacks many important features that exist in Emacs.  Since its
+development has stopped, we do not expect to see any new releases.
 
-XEmacs last released a new version on January 30, 2009, and it lacks
-many important features that exists in Emacs.  In the past, it was not
-uncommon for Emacs packages to include code for compatibility with
-XEmacs.  Nowadays, although some packages still maintain such
-compatibility code, several of the more popular built-in and third
-party packages have either stopped supporting XEmacs or were developed
+In the past, it was not uncommon for Emacs packages to include code
+for compatibility with XEmacs.  Nowadays, most built-in and third party
+packages have either stopped supporting XEmacs or were developed
 exclusively for Emacs.
 
-Some XEmacs code has been contributed to Emacs, and we would like to
-use other parts, but the earlier XEmacs maintainers did not always
-keep track of the authors of contributed code, which makes it
-impossible for the FSF to get copyright papers signed for that code.
-(The FSF requires these papers for all the code included in the Emacs
-release, aside from generic C support packages that retain their
-separate identity and are not integrated into the code of Emacs
-proper.)
-
+XEmacs was initially derived from a prerelease version of Emacs 19.
 If you want to talk about these two versions and distinguish them,
 please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
 with ``GNU Emacs'' would be misleading, since XEmacs too has its
@@ -3622,8 +3606,8 @@ For MS-DOS, @pxref{Emacs for MS-DOS}.
 @section Where can I get Emacs for GNUstep?
 @cindex GNUstep, Emacs for
 
-Beginning with version 23.1, Emacs supports GNUstep natively.
-See the file @file{nextstep/INSTALL} in the distribution.
+Emacs supports GNUstep natively.  See the file @file{nextstep/INSTALL}
+in the distribution.
 
 @node Emacs for macOS
 @section Where can I get Emacs for macOS?
@@ -3631,8 +3615,8 @@ See the file @file{nextstep/INSTALL} in the distribution.
 @cindex Macintosh, Emacs for
 @cindex macOS, Emacs for
 
-Beginning with version 22.1, Emacs supports macOS natively.
-See the file @file{nextstep/INSTALL} in the distribution.
+Emacs supports macOS natively.  See the file @file{nextstep/INSTALL}
+in the distribution.
 
 @c ------------------------------------------------------------
 @node Key bindings

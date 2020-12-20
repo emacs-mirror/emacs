@@ -283,6 +283,11 @@ invoke it (via an `interactive' spec that contains, for instance, an
   Lisp_Object save_real_this_command = Vreal_this_command;
   Lisp_Object save_last_command = KVAR (current_kboard, Vlast_command);
 
+  /* Bound recursively so that code can check the current command from
+     code running from minibuffer hooks (and the like), without being
+     overwritten by subsequent minibuffer calls.  */
+  specbind (Qcurrent_minibuffer_command, Vthis_command);
+
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
   else

@@ -68,8 +68,7 @@ mscgen supported formats."
   (let* ((out-file (or (cdr (assq :file params)) "output.png" ))
          (filetype (or (cdr (assq :filetype params)) "png" )))
     (unless (cdr (assq :file params))
-      (error "
-ERROR: no output file specified.  Add \":file name.png\" to the src header"))
+      (error "ERROR: no output file specified.  Add \":file name.png\" to the src header"))
     (org-babel-eval (concat "mscgen -T " filetype " -o " out-file) body)
     nil)) ;; signal that output has already been written to file
 
@@ -78,7 +77,5 @@ ERROR: no output file specified.  Add \":file name.png\" to the src header"))
   (error "Mscgen does not support sessions"))
 
 (provide 'ob-mscgen)
-
-
 
 ;;; ob-msc.el ends here

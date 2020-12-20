@@ -430,7 +430,8 @@ when to emit a progress message.")
   local-printer-list)
 
 (defmacro ses-cell-symbol (row &optional col)
-  "From a CELL or a pair (ROW,COL), get the symbol that names the local-variable holding its value.  (0,0) => A1."
+  "Return symbol of the local-variable holding value of CELL or pair (ROW,COL).
+For example, (0,0) => A1."
   (declare (debug t))
   `(ses-cell--symbol ,(if col `(ses-get-cell ,row ,col) row)))
 (put 'ses-cell-symbol 'safe-function t)

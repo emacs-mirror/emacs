@@ -707,7 +707,8 @@ Each element is (INDEX . VALUE)")
 
 ;; These store their argument in the next two bytes
 (byte-defop 129  1 byte-constant2
-   "for reference to a constant with vector index >= byte-constant-limit")
+   "for reference to a constant with vector
+index >= byte-constant-limit")
 (byte-defop 130  0 byte-goto "for unconditional jump")
 (byte-defop 131 -1 byte-goto-if-nil "to pop value and jump if it's nil")
 (byte-defop 132 -1 byte-goto-if-not-nil "to pop value and jump if it's not nil")
@@ -727,11 +728,14 @@ otherwise pop it")
 (byte-defop 139  0 byte-save-window-excursion-OBSOLETE
   "to make a binding to record entire window configuration")
 (byte-defop 140  0 byte-save-restriction
-  "to make a binding to record the current buffer clipping restrictions")
+  "to make a binding to record the current buffer clipping
+restrictions")
 (byte-defop 141 -1 byte-catch-OBSOLETE   ; Not generated since Emacs 25.
-  "for catch.  Takes, on stack, the tag and an expression for the body")
+  "for catch.  Takes, on stack, the tag and an expression for
+the body")
 (byte-defop 142 -1 byte-unwind-protect
-  "for unwind-protect.  Takes, on stack, an expression for the unwind-action")
+  "for unwind-protect.  Takes, on stack, an expression for
+the unwind-action")
 
 ;; For condition-case.  Takes, on stack, the variable to bind,
 ;; an expression for the body, and a list of clauses.
@@ -791,8 +795,8 @@ otherwise pop it")
 (defconst byte-discardN-preserve-tos byte-discardN)
 
 (byte-defop 183 -2 byte-switch
- "to take a hash table and a value from the stack, and jump to the address
-the value maps to, if any.")
+ "to take a hash table and a value from the stack, and jump to
+the address the value maps to, if any.")
 
 ;; unused: 182-191
 
@@ -1967,7 +1971,11 @@ See also `emacs-lisp-byte-compile-and-load'."
                  ;; We attempt to create a temporary file in the
                  ;; target directory, so the target directory must be
                  ;; writable.
-                 (file-writable-p (file-name-directory target-file)))
+                 (file-writable-p
+                  (file-name-directory
+                   ;; Need to expand in case TARGET-FILE doesn't
+                   ;; include a directory (Bug#45287).
+                   (expand-file-name target-file))))
 	    ;; We must disable any code conversion here.
 	    (let* ((coding-system-for-write 'no-conversion)
 		   ;; Write to a tempfile so that if another Emacs

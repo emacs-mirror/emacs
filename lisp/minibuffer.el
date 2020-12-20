@@ -123,7 +123,8 @@ This metadata is an alist.  Currently understood keys are:
 - `affixation-function': function to prepend/append a prefix/suffix to
    entries.  Takes one argument (COMPLETIONS) and should return a list
    of completions with a list of three elements: completion, its prefix
-   and suffix.
+   and suffix.  This function takes priority over `annotation-function'
+   when both are provided, so only this function is used.
 - `display-sort-function': function to sort entries in *Completions*.
    Takes one argument (COMPLETIONS) and should return a new list
    of completions.  Can operate destructively.
@@ -1926,6 +1927,8 @@ These include:
    completions.  The function must accept one argument, a list of
    completions, and return a list where each element is a list of
    three elements: a completion, a prefix and a suffix.
+   This function takes priority over `:annotation-function'
+   when both are provided, so only this function is used.
 
 `:exit-function': Function to run after completion is performed.
 
@@ -2056,15 +2059,16 @@ variables.")
                               (if sort-fun
                                   (funcall sort-fun completions)
                                 (sort completions 'string-lessp))))
-                      (when ann-fun
+                      (cond
+                       (aff-fun
+                        (setq completions
+                              (funcall aff-fun completions)))
+                       (ann-fun
                         (setq completions
                               (mapcar (lambda (s)
                                         (let ((ann (funcall ann-fun s)))
                                           (if ann (list s ann) s)))
-                                      completions)))
-                      (when aff-fun
-                        (setq completions
-                              (funcall aff-fun completions)))
+                                      completions))))
 
                       (with-current-buffer standard-output
                         (setq-local completion-base-position

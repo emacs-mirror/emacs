@@ -811,8 +811,8 @@ It should return a function that expects the same arguments as the methods, and
 GENERIC is the generic function (mostly used for its name).
 METHODS is the list of the selected methods.
 The METHODS list is sorted from most specific first to most generic last.
-The function can use `cl-generic-call-method' to create functions that call those
-methods.")
+The function can use `cl-generic-call-method' to create functions that call
+those methods.")
 
 (unless (ignore-errors (cl-generic-generalizers t))
   ;; Temporary definition to let the next defmethod succeed.

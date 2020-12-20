@@ -243,6 +243,15 @@ is of course immediately visible, but for example a passed deadline is
 of the frame, for example."
   :group 'org-faces)
 
+(defface org-headline-todo	  ;Copied from `font-lock-string-face'
+  '((((class color) (min-colors 16) (background light)) (:foreground "Red4"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Pink2"))
+    (((class color) (min-colors 8)  (background light)) (:bold t)))
+  "Face used to indicate that a headline is marked as TODO.
+This face is only used if `org-fontify-todo-headline' is set.  If applies
+to the part of the headline after the TODO keyword."
+  :group 'org-faces)
+
 (defface org-headline-done	  ;Copied from `font-lock-string-face'
   '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
     (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
@@ -355,6 +364,12 @@ changes."
   "Face used for tables."
   :group 'org-faces)
 
+(defface org-table-header '((t :inherit org-table
+			       :background "LightGray"
+			       :foreground "Black"))
+  "Face for table header."
+  :group 'org-faces)
+
 (defface org-formula
   '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
     (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
@@ -393,9 +408,17 @@ follows a #+DATE:, #+AUTHOR: or #+EMAIL: keyword."
   "Face for #+TITLE:, #+AUTHOR:, #+EMAIL: and #+DATE: keywords."
   :group 'org-faces)
 
-(defface org-block '((t :inherit shadow))
-  "Face text in #+begin ... #+end blocks.
-For source-blocks `org-src-block-faces' takes precedence."
+(defface org-block `((t :inherit shadow
+			,@(and (>= emacs-major-version 27) '(:extend t))))
+  "Face used for text inside various blocks.
+
+It is always used for source blocks.  You can refine what face
+should be used depending on the source block language by setting,
+`org-src-block-faces', which takes precedence.
+
+When `org-fontify-quote-and-verse-blocks' is not nil, text inside
+verse and quote blocks are fontified using the `org-verse' and
+`org-quote' faces, which inherit from `org-block'."
   :group 'org-faces
   :version "26.1")
 

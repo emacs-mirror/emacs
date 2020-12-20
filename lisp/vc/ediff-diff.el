@@ -149,7 +149,7 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-ignore-similar-regions nil
-  "If t, skip over difference regions that differ only in the white space and line breaks.
+  "If t, skip difference regions that differ only in white space and line breaks.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 

@@ -2386,8 +2386,9 @@ This function runs the hook `vc-retrieve-tag-hook' when finished."
 ;; for the root directory.
 (defvar vc-log-short-style '(directory)
   "Whether or not to show a short log.
-If it contains `directory' then if the fileset contains a directory show a short log.
-If it contains `file' then show short logs for files.
+If it contains `directory', show a short log if the fileset
+contains a directory.
+If it contains `file', show short logs for files.
 Not all VC backends support short logs!")
 
 (defvar log-view-vc-fileset)

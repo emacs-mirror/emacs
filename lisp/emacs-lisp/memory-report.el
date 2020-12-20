@@ -232,11 +232,11 @@ by counted more than once."
 
 (defun memory-report--format (bytes)
   (setq bytes (/ bytes 1024.0))
-  (let ((units '("kB" "MB" "GB" "TB")))
+  (let ((units '("KiB" "MiB" "GiB" "TiB")))
     (while (>= bytes 1024)
       (setq bytes (/ bytes 1024.0))
       (setq units (cdr units)))
-    (format "%6.1f%s" bytes (car units))))
+    (format "%6.1f %s" bytes (car units))))
 
 (defun memory-report--gc-elem (elems type)
   (* (nth 1 (assq type elems))

@@ -4817,6 +4817,7 @@ INPUT, if non-nil, is a string sent to the process."
   ;; this test cannot run properly.
   :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
+  (skip-unless nil)
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; Prior Emacs 27, `shell-command-dont-erase-buffer' wasn't working properly.
@@ -6236,15 +6237,14 @@ This is needed in timer functions as well as process filters and sentinels."
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
-  ;; The test fails from time to time, w/o a reproducible pattern.  So
-  ;; we mark it as unstable.
-  :tags '(:expensive-test :unstable)
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
   (skip-unless (or (and (tramp--test-adb-p) (tramp--test-emacs27-p))
 		   (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (not (tramp--test-docker-p)))
 
   (with-timeout
       (tramp--test-asynchronous-requests-timeout (tramp--test-timeout-handler))
@@ -6283,10 +6283,10 @@ process sentinels.  They shall not disturb each other."
              ((getenv "EMACS_HYDRA_CI") 10)
              (t 1)))
            ;; We must distinguish due to performance reasons.
-           ;; (timer-operation
-           ;;  (cond
-           ;;   ((tramp--test-mock-p) #'vc-registered)
-           ;;   (t #'file-attributes)))
+           (timer-operation
+            (cond
+             ((tramp--test-mock-p) #'vc-registered)
+             (t #'file-attributes)))
 	   ;; This is when all timers start.  We check inside the
 	   ;; timer function, that we don't exceed timeout.
 	   (timer-start (current-time))
@@ -6314,10 +6314,15 @@ process sentinels.  They shall not disturb each other."
                           (default-directory tmp-name)
                           (file
                            (buffer-name
-                            (nth (random (length buffers)) buffers))))
+                            (nth (random (length buffers)) buffers)))
+			  ;; A remote operation in a timer could
+			  ;; confuse Tramp heavily.  So we ignore this
+			  ;; error here.
+			  (debug-ignored-errors
+			   (cons 'remote-file-error debug-ignored-errors)))
                       (tramp--test-message
                        "Start timer %s %s" file (current-time-string))
-                      ;; (funcall timer-operation file)
+		      (funcall timer-operation file)
                       (tramp--test-message
                        "Stop timer %s %s" file (current-time-string))
                       ;; Adjust timer if it takes too much time.
@@ -6618,14 +6623,12 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
-;; * Fix `tramp-test05-expand-file-name-relative' in `expand-file-name'.
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
 ;;   do not work properly for `nextcloud'.
 ;; * Implement `tramp-test31-interrupt-process' for `adb' and for
 ;;   direct async processes.
-;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
-;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
+;; * Fix `tramp-test44-threads'.
 
 (provide 'tramp-tests)
 

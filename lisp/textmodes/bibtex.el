@@ -204,20 +204,34 @@ narrowed to just the entry."
 (defcustom bibtex-maintain-sorted-entries nil
   "If non-nil, BibTeX mode maintains all entries in sorted order.
 Allowed non-nil values are:
-plain or t   All entries are sorted alphabetically.
-crossref     All entries are sorted alphabetically unless an entry has a
+plain or t   Sort entries alphabetically by keys.
+crossref     Sort entries alphabetically by keys unless an entry has a
              crossref field.  These crossrefed entries are placed in
              alphabetical order immediately preceding the main entry.
 entry-class  The entries are divided into classes according to their
              entry type, see `bibtex-sort-entry-class'.  Within each class
-             the entries are sorted alphabetically.
+             sort entries alphabetically by keys.
+(INDEX-FUN PREDICATE)
+(INDEX-FUN PREDICATE INIT-FUN)  Sort entries using INDEX-FUN and PREDICATE.
+             Function INDEX-FUN is called for each entry with point at the
+             end of the head of the entry.  Its return values are used to
+             sort the entries using PREDICATE.  Function PREDICATE takes two
+             arguments INDEX1 and INDEX2 as returned by INDEX-FUN.
+             It should return non-nil if INDEX1 should sort before INDEX2.
+             If INIT-FUN is non-nil, it should be a function that is called
+             with no arguments to initialize the sorting.
 See also `bibtex-sort-ignore-string-entries'."
   :group 'bibtex
+  :version "28.1"
   :type '(choice (const nil)
+                 (const t)
                  (const plain)
                  (const crossref)
                  (const entry-class)
-                 (const t))
+                 (group :tag "Custom scheme"
+                        (function :tag "Index-Fun")
+                        (function :tag "Predicate")
+                        (option (function :tag "Init-Fun"))))
   :safe (lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
@@ -3998,28 +4012,15 @@ If mark is active count entries in region, if not in whole buffer."
     (narrow-to-region (bibtex-beginning-of-entry)
                       (bibtex-end-of-entry))))
 
-(defun bibtex-entry-index ()
-  "Return index of BibTeX entry head at or past position of point.
-The index is a list (KEY CROSSREF-KEY ENTRY-TYPE) that is used for sorting
-the entries of the BibTeX buffer.  CROSSREF-KEY is nil unless the value
-of `bibtex-maintain-sorted-entries' is `crossref'.  Move point to the end
-of the head of the entry found.  Return nil if no entry found."
-  (let ((case-fold-search t))
-    (if (re-search-forward bibtex-entry-maybe-empty-head nil t)
-        (let ((key (bibtex-key-in-head))
-              ;; all entry types should be downcase (for ease of comparison)
-              (entry-type (downcase (bibtex-type-in-head))))
-          ;; Don't search CROSSREF-KEY if we don't need it.
-          (if (eq bibtex-maintain-sorted-entries 'crossref)
-              (let ((bounds (bibtex-search-forward-field
-                             "\\(OPT\\)?crossref" t)))
-                (list key
-                      (if bounds (bibtex-text-in-field-bounds bounds t))
-                      entry-type))
-            (list key nil entry-type))))))
-
-(defun bibtex-init-sort-entry-class-alist ()
-  "Initialize `bibtex-sort-entry-class-alist' (buffer-local)."
+(define-obsolete-function-alias 'bibtex-init-sort-entry-class-alist
+  #'bibtex-init-sort "28.1")
+(defun bibtex-init-sort (&optional parse)
+  "Initialize sorting of BibTeX entries.
+If PARSE is non-nil, also parse BibTeX keys."
+  (if (or parse
+          (and (eq bibtex-maintain-sorted-entries 'crossref)
+               (functionp bibtex-reference-keys)))
+      (bibtex-parse-keys))
   (unless (local-variable-p 'bibtex-sort-entry-class-alist)
     (setq-local bibtex-sort-entry-class-alist
                 (let ((i -1) alist)
@@ -4029,7 +4030,36 @@ of the head of the entry found.  Return nil if no entry found."
                       ;; All entry types should be downcase (for ease of comparison).
                       (push (cons (if (stringp entry) (downcase entry) entry) i)
                             alist)))
-                  alist))))
+                  alist)))
+  ;; Custom sorting scheme
+  (if (and (consp bibtex-maintain-sorted-entries)
+           (nth 2 bibtex-maintain-sorted-entries))
+      (funcall (nth 2 bibtex-maintain-sorted-entries))))
+
+(defun bibtex-entry-index ()
+  "Return index of BibTeX entry head at or past position of point.
+The index is a list (KEY CROSSREF-KEY ENTRY-TYPE) that is used for sorting
+the entries of the BibTeX buffer.  CROSSREF-KEY is nil unless the value of
+`bibtex-maintain-sorted-entries' is `crossref'.
+If `bibtex-maintain-sorted-entries' is (INDEX-FUN ...), the index is the return
+value of INDEX-FUN.  Return nil if no entry found.
+Move point to the end of the head of the entry found."
+  (let ((case-fold-search t))
+    (if (re-search-forward bibtex-entry-maybe-empty-head nil t)
+        (if (consp bibtex-maintain-sorted-entries)
+            ;; Custom sorting scheme
+            (funcall (car bibtex-maintain-sorted-entries))
+          (let ((key (bibtex-key-in-head))
+                ;; ENTRY-TYPE should be downcase (for ease of comparison)
+                (entry-type (downcase (bibtex-type-in-head)))
+                bounds)
+            (list key
+                  ;; Don't search CROSSREF-KEY if we don't need it.
+                  (and (eq bibtex-maintain-sorted-entries 'crossref)
+                       (setq bounds (bibtex-search-forward-field
+                                      "\\(OPT\\)?crossref" t))
+                       (bibtex-text-in-field-bounds bounds t))
+                  entry-type))))))
 
 (defun bibtex-lessp (index1 index2)
   "Predicate for sorting BibTeX entries with indices INDEX1 and INDEX2.
@@ -4038,6 +4068,8 @@ The predicate depends on the variable `bibtex-maintain-sorted-entries'.
 If its value is nil use plain sorting."
   (cond ((not index1) (not index2)) ; indices can be nil
         ((not index2) nil)
+        ((consp bibtex-maintain-sorted-entries)
+         (funcall (cadr bibtex-maintain-sorted-entries) index1 index2))
         ((eq bibtex-maintain-sorted-entries 'crossref)
          ;; CROSSREF-KEY may be nil or it can point to an entry
          ;; in another BibTeX file.  In both cases we ignore CROSSREF-KEY.
@@ -4074,10 +4106,7 @@ affected.  If `bibtex-sort-ignore-string-entries' is non-nil, @String entries
 are ignored."
   (interactive)
   (bibtex-beginning-of-first-entry)     ; Needed by `sort-subr'
-  (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
-  (if (and (eq bibtex-maintain-sorted-entries 'crossref)
-           (functionp bibtex-reference-keys))
-      (bibtex-parse-keys))              ; Needed by `bibtex-lessp'.
+  (bibtex-init-sort)                    ; Needed by `bibtex-lessp'.
   (sort-subr nil
              'bibtex-skip-to-valid-entry   ; NEXTREC function
              'bibtex-end-of-entry          ; ENDREC function
@@ -4228,10 +4257,7 @@ If `bibtex-maintain-sorted-entries' is non-nil, perform a binary
 search to look for place for KEY.  This requires that buffer is sorted,
 see `bibtex-validate'.
 Return t if preparation was successful or nil if entry KEY already exists."
-  (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
-  (if (and (eq bibtex-maintain-sorted-entries 'crossref)
-           (functionp bibtex-reference-keys))
-      (bibtex-parse-keys))              ; Needed by `bibtex-lessp'.
+  (bibtex-init-sort)  ; Needed by `bibtex-lessp'.
   (let ((key (nth 0 index))
         key-exist)
     (cond ((or (null key)
@@ -4322,9 +4348,7 @@ Return t if test was successful, nil otherwise."
             (setq syntax-error t)
 
           ;; Check for duplicate keys and correct sort order
-          (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
-          (bibtex-parse-keys) ; Possibly needed by `bibtex-lessp'.
-                              ; Always needed by subsequent global key check.
+          (bibtex-init-sort t) ; Needed by `bibtex-lessp' and global key check.
           (let (previous current key-list)
             (bibtex-progress-message "Checking for duplicate keys")
             (bibtex-map-entries

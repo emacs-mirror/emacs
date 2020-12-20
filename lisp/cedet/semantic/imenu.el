@@ -99,7 +99,8 @@ Overridden to nil if `semantic-imenu-bucketize-file' is nil."
 
 (defcustom semantic-imenu-sort-bucket-function nil
   "Function to use when sorting tags in the buckets of functions.
-See `semantic-bucketize' and the FILTER argument for more details on this function."
+See `semantic-bucketize' and the FILTER argument for more details
+on this function."
   :group 'semantic-imenu
   :type '(radio (const :tag "No Sorting" nil)
 		(const semantic-sort-tags-by-name-increasing)

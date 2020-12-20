@@ -46,7 +46,7 @@
   "Hook run narrowed to an article before saving.")
 
 (defvoo nnmh-be-safe nil
-  "If non-nil, nnmh will check all articles to make sure whether they are new or not.
+  "If non-nil, nnmh will check all articles to make sure if they are new or not.
 Go through the .nnmh-articles file and compare with the actual
 articles in this folder.  The articles that are \"new\" will be marked
 as unread by Gnus.")

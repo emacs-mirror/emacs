@@ -2814,7 +2814,7 @@ the normal hook `change-major-mode-hook'.  */)
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */
-  update_mode_lines = 12;
+  bset_update_mode_line (current_buffer);
 
   return Qnil;
 }

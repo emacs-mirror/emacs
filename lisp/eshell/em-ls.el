@@ -274,9 +274,9 @@ instead."
             (font-lock-mode -1)
             (setq font-lock-defaults nil)
             (if (boundp 'font-lock-buffers)
-                (set 'font-lock-buffers
-                     (delq (current-buffer)
-                           (symbol-value 'font-lock-buffers)))))
+                (setq font-lock-buffers
+                      (delq (current-buffer)
+                            (symbol-value 'font-lock-buffers)))))
           (require 'em-glob)
           (let* ((insert-func 'insert)
                  (error-func 'insert)

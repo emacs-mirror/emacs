@@ -248,7 +248,7 @@ If you use score decays, you might want to set values higher than
 				     (integer :tag "Score"))))))
 
 (defcustom gnus-adaptive-word-length-limit nil
-  "Words of a length lesser than this limit will be ignored when doing adaptive scoring."
+  "Words shorter than this limit will be ignored when doing adaptive scoring."
   :version "22.1"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
